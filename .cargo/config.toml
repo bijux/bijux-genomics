@@ -1,11 +1,2 @@
 [alias]
 bijux = "run -p bijux --bin bijux"
-
-[build]
-jobs = 8
-
-[target.aarch64-apple-darwin]
-rustflags = ["-Csplit-debuginfo=unpacked"]
-
-[target.x86_64-apple-darwin]
-rustflags = ["-Csplit-debuginfo=unpacked"]

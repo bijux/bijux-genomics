@@ -4,19 +4,7 @@ members = [
   "crates/bijux-core",
   "crates/bijux-cli",
   "crates/bijux-bench",
-  "crates/bijux-analyze",
-  "crates/bijux-guardrails",
-  "crates/bijux-env-runtime",
-  "crates/bijux-env-builder",
-  "crates/bijux-stages-fastq",
-  "crates/bijux-domain-bam",
-  "crates/bijux-pipelines-bam",
-  "crates/bijux-stages-bam",
-  "crates/bijux-domain-vcf",
-  "crates/bijux-domain-fastq",
-  "crates/bijux-env-runtime",
-  "crates/bijux-env-builder",
-  "crates/bijux-engine",
+  "crates/bijux-environment",
 ]
 
 [workspace.package]
@@ -32,16 +20,13 @@ serde_yaml = "0.9"
 thiserror = "1"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt", "json"] }
-uuid = { version = "1", features = ["v4", "serde"] }
+uuid = { version = "1", features = ["v4"] }
 chrono = { version = "0.4", features = ["serde", "clock"] }
 tracing-appender = "0.2"
 walkdir = "2"
 regex = "1"
 rusqlite = "0.31"
 sha2 = "0.10"
-sysinfo = "0.30"
-tempfile = "3"
-schemars = { version = "0.8", features = ["derive"] }
 
 [workspace.lints.rust]
 unsafe_code = "forbid"
@@ -53,16 +38,3 @@ all = { level = "warn", priority = -1 }
 pedantic = { level = "warn", priority = -1 }
 unwrap_used = "deny"
 expect_used = "deny"
-
-[profile.dev]
-debug = 1
-incremental = true
-codegen-units = 256
-
-[profile.dev.package."*"]
-opt-level = 1
-
-[profile.test]
-debug = 1
-incremental = true
-codegen-units = 256

@@ -16,14 +16,6 @@
 # Temp files
 /tmp/
 *.tmp
-/artifacts/
 
-!docs/
-!docs/**
-!tests/data/
-!tests/data/fastq/
-!tests/data/fastq/*.fastq.gz
-!crates/
-!crates/**
-**/target/
-**/.DS_Store
+data/
+artifacts/
