@@ -1,0 +1,2 @@
+[alias]
+bijux = "run -p bijux --bin bijux"

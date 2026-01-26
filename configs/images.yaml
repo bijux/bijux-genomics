@@ -1,0 +1,43 @@
+fastp:
+  version: "0.23.4"
+  digest: "sha256:603656aa361eee1cbd1370db9412e588da91708da5542173e5ae74aab71cbc10"
+
+bwa:
+  version: "0.7.17"
+
+cutadapt:
+  version: "4.9"
+  digest: "sha256:4405f2effc1a195c93098408aa36268357c25b758348bfe6da8790bbe7e842ba"
+
+seqkit:
+  version: "2.8.2"
+  digest: "sha256:a1402e7826c8b4b289aecec7ccb64e8c8f22ab24385750897c4580f4b9351b82"
+
+bbduk:
+  version: "39.08"
+  digest: "sha256:da5764715915a5edeb0e40e2c18a5ce7142f31dac8e4844bd2dcb463403b8bd4"
+
+adapterremoval:
+  version: "2.3.3"
+  digest: "sha256:5b618834ce9fc6376c9605c3a69d738236b9be48fdf493c1bc0945568a50808d"
+
+trimmomatic:
+  version: "0.39"
+  digest: "sha256:41c0d161444ee7bb6b36ead3bbceb998af611be6ead6784231c5440e092bd5a4"
+
+trim_galore:
+  version: "0.6.10"
+  digest: "sha256:f323405a5a0ba19bbdae765dd4269e9156c415993977996079b63c5eb5bb0a61"
+
+seqtk:
+  version: "1.5-r133"
+
+fastqc:
+  version: "0.12.1"
+  digest: "sha256:e0b83c56262486cab51020e2bb809b391ad9b38ba7a898588ab15b73586ee789"
+
+fastqvalidator:
+  version: "0.1.1"
+
+fqtools:
+  version: "2.3"

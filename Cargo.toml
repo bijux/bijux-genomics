@@ -1,0 +1,40 @@
+[workspace]
+resolver = "2"
+members = [
+  "crates/bijux-core",
+  "crates/bijux-cli",
+  "crates/bijux-bench",
+  "crates/bijux-environment",
+]
+
+[workspace.package]
+edition = "2021"
+license = "MIT OR Apache-2.0"
+
+[workspace.dependencies]
+anyhow = "1"
+clap = { version = "4", features = ["derive"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde_yaml = "0.9"
+thiserror = "1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt", "json"] }
+uuid = { version = "1", features = ["v4"] }
+chrono = { version = "0.4", features = ["serde", "clock"] }
+tracing-appender = "0.2"
+walkdir = "2"
+regex = "1"
+rusqlite = "0.31"
+sha2 = "0.10"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+unused_imports = "deny"
+unused_must_use = "deny"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+unwrap_used = "deny"
+expect_used = "deny"
