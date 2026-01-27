@@ -2,10 +2,10 @@ use anyhow::Result;
 use clap::Parser;
 
 #[allow(dead_code)]
-#[path = "../image_qa.rs"]
+#[path = "../image_qa/mod.rs"]
 mod image_qa;
 #[allow(dead_code)]
-#[path = "../utils.rs"]
+#[path = "../utils/mod.rs"]
 mod utils;
 
 #[derive(Debug, Parser)]

@@ -2,7 +2,8 @@ use std::fs::OpenOptions;
 use std::io::Write;
 use std::path::Path;
 
-use rusqlite::Connection;
+use rusqlite::{params, Connection};
+use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 use thiserror::Error;
@@ -27,109 +28,420 @@ pub enum StageMetricKind {
     FastqMerge,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum MetricId {
+    RuntimeS,
+    MemoryMb,
+    ExitCode,
+    ReadsIn,
+    ReadsOut,
+    ReadsDropped,
+    ReadsTotal,
+    ReadsValid,
+    ReadsInvalid,
+    BasesIn,
+    BasesOut,
+    ReadsR1,
+    ReadsR2,
+    ReadsMerged,
+    ReadsUnmerged,
+    MeanQBefore,
+    MeanQAfter,
+    MeanQ,
+    MergeRate,
+    ContaminationRate,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum DerivedMetricId {
+    ReadRetention,
+    BaseRetention,
+    MergeEfficiency,
+    ErrorReductionProxy,
+}
+
 #[derive(Debug, Clone, Copy)]
-pub struct MetricDefinition {
+pub enum MetricDirection {
+    HigherBetter,
+    LowerBetter,
+    Neutral,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct MetricRange {
+    pub min: f64,
+    pub max: f64,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct MetricSpec {
+    pub id: MetricId,
     pub name: &'static str,
     pub meaning: &'static str,
+    pub direction: MetricDirection,
+    pub range: Option<MetricRange>,
+    pub stages: &'static [&'static str],
+    pub measured: bool,
+    pub derived: bool,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct DerivedMetricSpec {
+    pub id: DerivedMetricId,
+    pub name: &'static str,
+    pub meaning: &'static str,
+    pub direction: MetricDirection,
+    pub range: Option<MetricRange>,
+    pub stages: &'static [&'static str],
 }
 
 #[derive(Debug, Clone, Copy)]
 pub struct StageMetricSpec {
     pub stage: &'static str,
-    pub metrics: &'static [MetricDefinition],
+    pub metrics: &'static [MetricId],
     pub invariants: &'static [&'static str],
 }
 
-pub const FASTQ_TRIM_METRICS: [MetricDefinition; 6] = [
-    MetricDefinition {
+pub const METRIC_REGISTRY: [MetricSpec; 20] = [
+    MetricSpec {
+        id: MetricId::RuntimeS,
+        name: "runtime_s",
+        meaning: "Wall-clock runtime in seconds",
+        direction: MetricDirection::LowerBetter,
+        range: Some(MetricRange {
+            min: 0.0,
+            max: f64::INFINITY,
+        }),
+        stages: &[
+            "fastq.trim",
+            "fastq.validate",
+            "fastq.filter",
+            "fastq.merge",
+        ],
+        measured: true,
+        derived: false,
+    },
+    MetricSpec {
+        id: MetricId::MemoryMb,
+        name: "memory_mb",
+        meaning: "Peak container memory usage in MB",
+        direction: MetricDirection::LowerBetter,
+        range: Some(MetricRange {
+            min: 0.0,
+            max: f64::INFINITY,
+        }),
+        stages: &[
+            "fastq.trim",
+            "fastq.validate",
+            "fastq.filter",
+            "fastq.merge",
+        ],
+        measured: true,
+        derived: false,
+    },
+    MetricSpec {
+        id: MetricId::ExitCode,
+        name: "exit_code",
+        meaning: "Process exit code (0 = success)",
+        direction: MetricDirection::LowerBetter,
+        range: Some(MetricRange {
+            min: 0.0,
+            max: 255.0,
+        }),
+        stages: &[
+            "fastq.trim",
+            "fastq.validate",
+            "fastq.filter",
+            "fastq.merge",
+        ],
+        measured: true,
+        derived: false,
+    },
+    MetricSpec {
+        id: MetricId::ReadsIn,
         name: "reads_in",
         meaning: "Number of input reads",
+        direction: MetricDirection::Neutral,
+        range: Some(MetricRange {
+            min: 0.0,
+            max: f64::INFINITY,
+        }),
+        stages: &["fastq.trim", "fastq.filter"],
+        measured: true,
+        derived: false,
     },
-    MetricDefinition {
+    MetricSpec {
+        id: MetricId::ReadsOut,
         name: "reads_out",
         meaning: "Number of output reads",
+        direction: MetricDirection::HigherBetter,
+        range: Some(MetricRange {
+            min: 0.0,
+            max: f64::INFINITY,
+        }),
+        stages: &["fastq.trim", "fastq.filter"],
+        measured: true,
+        derived: false,
     },
-    MetricDefinition {
-        name: "bases_in",
-        meaning: "Number of input bases",
-    },
-    MetricDefinition {
-        name: "bases_out",
-        meaning: "Number of output bases",
-    },
-    MetricDefinition {
-        name: "mean_q_before",
-        meaning: "Mean Phred quality score before trimming",
-    },
-    MetricDefinition {
-        name: "mean_q_after",
-        meaning: "Mean Phred quality score after trimming",
-    },
-];
-
-pub const FASTQ_VALIDATE_METRICS: [MetricDefinition; 4] = [
-    MetricDefinition {
-        name: "reads_total",
-        meaning: "Total number of reads observed",
-    },
-    MetricDefinition {
-        name: "reads_valid",
-        meaning: "Number of reads that passed validation",
-    },
-    MetricDefinition {
-        name: "reads_invalid",
-        meaning: "Number of reads that failed validation",
-    },
-    MetricDefinition {
-        name: "mean_q",
-        meaning: "Mean Phred quality score across all bases",
-    },
-];
-
-pub const FASTQ_FILTER_METRICS: [MetricDefinition; 5] = [
-    MetricDefinition {
-        name: "reads_in",
-        meaning: "Number of input reads",
-    },
-    MetricDefinition {
-        name: "reads_out",
-        meaning: "Number of output reads",
-    },
-    MetricDefinition {
+    MetricSpec {
+        id: MetricId::ReadsDropped,
         name: "reads_dropped",
         meaning: "Number of reads removed by filtering",
+        direction: MetricDirection::LowerBetter,
+        range: Some(MetricRange {
+            min: 0.0,
+            max: f64::INFINITY,
+        }),
+        stages: &["fastq.filter"],
+        measured: true,
+        derived: false,
     },
-    MetricDefinition {
+    MetricSpec {
+        id: MetricId::ReadsTotal,
+        name: "reads_total",
+        meaning: "Total number of reads observed",
+        direction: MetricDirection::Neutral,
+        range: Some(MetricRange {
+            min: 0.0,
+            max: f64::INFINITY,
+        }),
+        stages: &["fastq.validate"],
+        measured: true,
+        derived: false,
+    },
+    MetricSpec {
+        id: MetricId::ReadsValid,
+        name: "reads_valid",
+        meaning: "Number of reads that passed validation",
+        direction: MetricDirection::HigherBetter,
+        range: Some(MetricRange {
+            min: 0.0,
+            max: f64::INFINITY,
+        }),
+        stages: &["fastq.validate"],
+        measured: true,
+        derived: false,
+    },
+    MetricSpec {
+        id: MetricId::ReadsInvalid,
+        name: "reads_invalid",
+        meaning: "Number of reads that failed validation",
+        direction: MetricDirection::LowerBetter,
+        range: Some(MetricRange {
+            min: 0.0,
+            max: f64::INFINITY,
+        }),
+        stages: &["fastq.validate"],
+        measured: true,
+        derived: false,
+    },
+    MetricSpec {
+        id: MetricId::BasesIn,
+        name: "bases_in",
+        meaning: "Number of input bases",
+        direction: MetricDirection::Neutral,
+        range: Some(MetricRange {
+            min: 0.0,
+            max: f64::INFINITY,
+        }),
+        stages: &["fastq.trim", "fastq.filter"],
+        measured: true,
+        derived: false,
+    },
+    MetricSpec {
+        id: MetricId::BasesOut,
+        name: "bases_out",
+        meaning: "Number of output bases",
+        direction: MetricDirection::HigherBetter,
+        range: Some(MetricRange {
+            min: 0.0,
+            max: f64::INFINITY,
+        }),
+        stages: &["fastq.trim", "fastq.filter"],
+        measured: true,
+        derived: false,
+    },
+    MetricSpec {
+        id: MetricId::ReadsR1,
+        name: "reads_r1",
+        meaning: "Number of reads in read 1 input",
+        direction: MetricDirection::Neutral,
+        range: Some(MetricRange {
+            min: 0.0,
+            max: f64::INFINITY,
+        }),
+        stages: &["fastq.merge"],
+        measured: true,
+        derived: false,
+    },
+    MetricSpec {
+        id: MetricId::ReadsR2,
+        name: "reads_r2",
+        meaning: "Number of reads in read 2 input",
+        direction: MetricDirection::Neutral,
+        range: Some(MetricRange {
+            min: 0.0,
+            max: f64::INFINITY,
+        }),
+        stages: &["fastq.merge"],
+        measured: true,
+        derived: false,
+    },
+    MetricSpec {
+        id: MetricId::ReadsMerged,
+        name: "reads_merged",
+        meaning: "Number of merged reads",
+        direction: MetricDirection::HigherBetter,
+        range: Some(MetricRange {
+            min: 0.0,
+            max: f64::INFINITY,
+        }),
+        stages: &["fastq.merge"],
+        measured: true,
+        derived: false,
+    },
+    MetricSpec {
+        id: MetricId::ReadsUnmerged,
+        name: "reads_unmerged",
+        meaning: "Number of unmerged reads (per end)",
+        direction: MetricDirection::Neutral,
+        range: Some(MetricRange {
+            min: 0.0,
+            max: f64::INFINITY,
+        }),
+        stages: &["fastq.merge"],
+        measured: true,
+        derived: false,
+    },
+    MetricSpec {
+        id: MetricId::MeanQBefore,
         name: "mean_q_before",
-        meaning: "Mean Phred quality score before filtering",
+        meaning: "Mean Phred quality score before processing",
+        direction: MetricDirection::HigherBetter,
+        range: Some(MetricRange {
+            min: 0.0,
+            max: 45.0,
+        }),
+        stages: &["fastq.trim", "fastq.filter"],
+        measured: true,
+        derived: false,
     },
-    MetricDefinition {
+    MetricSpec {
+        id: MetricId::MeanQAfter,
         name: "mean_q_after",
-        meaning: "Mean Phred quality score after filtering",
+        meaning: "Mean Phred quality score after processing",
+        direction: MetricDirection::HigherBetter,
+        range: Some(MetricRange {
+            min: 0.0,
+            max: 45.0,
+        }),
+        stages: &["fastq.trim", "fastq.filter"],
+        measured: true,
+        derived: false,
+    },
+    MetricSpec {
+        id: MetricId::MeanQ,
+        name: "mean_q",
+        meaning: "Mean Phred quality score across all bases",
+        direction: MetricDirection::HigherBetter,
+        range: Some(MetricRange {
+            min: 0.0,
+            max: 45.0,
+        }),
+        stages: &["fastq.validate"],
+        measured: true,
+        derived: false,
+    },
+    MetricSpec {
+        id: MetricId::MergeRate,
+        name: "merge_rate",
+        meaning: "Merged reads divided by min(reads_r1, reads_r2)",
+        direction: MetricDirection::HigherBetter,
+        range: Some(MetricRange { min: 0.0, max: 1.0 }),
+        stages: &["fastq.merge"],
+        measured: true,
+        derived: false,
+    },
+    MetricSpec {
+        id: MetricId::ContaminationRate,
+        name: "contamination_rate",
+        meaning: "Estimated contamination rate from screening",
+        direction: MetricDirection::LowerBetter,
+        range: Some(MetricRange { min: 0.0, max: 1.0 }),
+        stages: &["fastq.screen"],
+        measured: true,
+        derived: false,
     },
 ];
 
-pub const FASTQ_MERGE_METRICS: [MetricDefinition; 5] = [
-    MetricDefinition {
-        name: "reads_r1",
-        meaning: "Number of reads in read 1 input",
+pub const DERIVED_METRIC_REGISTRY: [DerivedMetricSpec; 4] = [
+    DerivedMetricSpec {
+        id: DerivedMetricId::ReadRetention,
+        name: "read_retention",
+        meaning: "reads_out / reads_in",
+        direction: MetricDirection::HigherBetter,
+        range: Some(MetricRange { min: 0.0, max: 1.0 }),
+        stages: &["fastq.trim", "fastq.filter"],
     },
-    MetricDefinition {
-        name: "reads_r2",
-        meaning: "Number of reads in read 2 input",
+    DerivedMetricSpec {
+        id: DerivedMetricId::BaseRetention,
+        name: "base_retention",
+        meaning: "bases_out / bases_in",
+        direction: MetricDirection::HigherBetter,
+        range: Some(MetricRange { min: 0.0, max: 1.0 }),
+        stages: &["fastq.trim", "fastq.filter"],
     },
-    MetricDefinition {
-        name: "reads_merged",
-        meaning: "Number of merged reads",
+    DerivedMetricSpec {
+        id: DerivedMetricId::MergeEfficiency,
+        name: "merge_efficiency",
+        meaning: "reads_merged / min(reads_r1, reads_r2)",
+        direction: MetricDirection::HigherBetter,
+        range: Some(MetricRange { min: 0.0, max: 1.0 }),
+        stages: &["fastq.merge"],
     },
-    MetricDefinition {
-        name: "reads_unmerged",
-        meaning: "Number of unmerged reads (per end)",
+    DerivedMetricSpec {
+        id: DerivedMetricId::ErrorReductionProxy,
+        name: "error_reduction_proxy",
+        meaning: "max(0, mean_q_after - mean_q_before)",
+        direction: MetricDirection::HigherBetter,
+        range: Some(MetricRange {
+            min: 0.0,
+            max: 45.0,
+        }),
+        stages: &["fastq.trim", "fastq.filter"],
     },
-    MetricDefinition {
-        name: "merge_rate",
-        meaning: "Merged reads divided by min(reads_r1, reads_r2)",
-    },
+];
+
+pub const FASTQ_TRIM_METRICS: [MetricId; 6] = [
+    MetricId::ReadsIn,
+    MetricId::ReadsOut,
+    MetricId::BasesIn,
+    MetricId::BasesOut,
+    MetricId::MeanQBefore,
+    MetricId::MeanQAfter,
+];
+
+pub const FASTQ_VALIDATE_METRICS: [MetricId; 4] = [
+    MetricId::ReadsTotal,
+    MetricId::ReadsValid,
+    MetricId::ReadsInvalid,
+    MetricId::MeanQ,
+];
+
+pub const FASTQ_FILTER_METRICS: [MetricId; 5] = [
+    MetricId::ReadsIn,
+    MetricId::ReadsOut,
+    MetricId::ReadsDropped,
+    MetricId::MeanQBefore,
+    MetricId::MeanQAfter,
+];
+
+pub const FASTQ_MERGE_METRICS: [MetricId; 5] = [
+    MetricId::ReadsR1,
+    MetricId::ReadsR2,
+    MetricId::ReadsMerged,
+    MetricId::ReadsUnmerged,
+    MetricId::MergeRate,
 ];
 
 pub const FASTQ_TRIM_INVARIANTS: [&str; 4] = [
@@ -206,6 +518,47 @@ impl StageMetricRegistry {
     pub fn spec_for_stage(stage_id: &str) -> Option<StageMetricSpec> {
         Self::kind_for_stage(stage_id).map(stage_metric_spec)
     }
+}
+
+fn json_from_str<T: DeserializeOwned>(value: &str) -> std::result::Result<T, rusqlite::Error> {
+    serde_json::from_str(value).map_err(|err| {
+        rusqlite::Error::FromSqlConversionFailure(0, rusqlite::types::Type::Text, Box::new(err))
+    })
+}
+
+/// Lookup a metric spec by id.
+///
+/// # Panics
+/// Panics if the metric id is not present in the registry.
+#[must_use]
+pub fn metric_spec(metric_id: MetricId) -> MetricSpec {
+    METRIC_REGISTRY
+        .iter()
+        .copied()
+        .find(|spec| spec.id == metric_id)
+        .unwrap_or_else(|| panic!("missing metric spec for {metric_id:?}"))
+}
+
+/// Lookup a derived metric spec by id.
+///
+/// # Panics
+/// Panics if the derived metric id is not present in the registry.
+#[must_use]
+pub fn derived_metric_spec(metric_id: DerivedMetricId) -> DerivedMetricSpec {
+    DERIVED_METRIC_REGISTRY
+        .iter()
+        .copied()
+        .find(|spec| spec.id == metric_id)
+        .unwrap_or_else(|| panic!("missing derived metric spec for {metric_id:?}"))
+}
+
+#[must_use]
+pub fn derived_metrics_for_stage(stage_id: &str) -> Vec<DerivedMetricSpec> {
+    DERIVED_METRIC_REGISTRY
+        .iter()
+        .copied()
+        .filter(|spec| spec.stages.iter().any(|stage| stage == &stage_id))
+        .collect()
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -512,6 +865,66 @@ pub fn insert_fastq_trim_v1(
     Ok(())
 }
 
+/// Load a trim benchmark record from `SQLite` if present.
+///
+/// # Errors
+/// Returns an error if the query or JSON parsing fails.
+pub fn fetch_fastq_trim_v1(
+    conn: &Connection,
+    tool: &str,
+    tool_version: &str,
+    image_digest: &str,
+    input_hash: &str,
+) -> Result<Option<BenchmarkRecord<FastqTrimMetrics>>> {
+    let mut stmt = conn.prepare(
+        "SELECT tool, tool_version, image_digest, runner, platform, input_hash,\
+         parameters_json, runtime_s, memory_mb, exit_code, metrics_json \
+         FROM bench_fastq_trim_v1 \
+         WHERE tool = ?1 AND tool_version = ?2 AND image_digest = ?3 AND input_hash = ?4\
+         LIMIT 1",
+    )?;
+    let row = stmt.query_row(
+        params![tool, tool_version, image_digest, input_hash],
+        |row| {
+            let tool: String = row.get(0)?;
+            let tool_version: String = row.get(1)?;
+            let image_digest: String = row.get(2)?;
+            let runner: String = row.get(3)?;
+            let platform: String = row.get(4)?;
+            let input_hash: String = row.get(5)?;
+            let parameters_json: String = row.get(6)?;
+            let runtime_s: f64 = row.get(7)?;
+            let memory_mb: f64 = row.get(8)?;
+            let exit_code: i64 = row.get(9)?;
+            let metrics_json: String = row.get(10)?;
+            let parameters: JsonValue = json_from_str(&parameters_json)?;
+            let metrics: FastqTrimMetrics = json_from_str(&metrics_json)?;
+            Ok(BenchmarkRecord {
+                context: BenchmarkContext {
+                    tool,
+                    tool_version,
+                    image_digest,
+                    runner,
+                    platform,
+                    input_hash,
+                    parameters,
+                },
+                execution: ExecutionMetrics {
+                    runtime_s,
+                    memory_mb,
+                    exit_code: i32::try_from(exit_code).unwrap_or(i32::MAX),
+                },
+                metrics,
+            })
+        },
+    );
+    match row {
+        Ok(record) => Ok(Some(record)),
+        Err(rusqlite::Error::QueryReturnedNoRows) => Ok(None),
+        Err(err) => Err(err.into()),
+    }
+}
+
 /// Insert a `FastQ` validate benchmark record into the v1 table.
 ///
 /// # Errors
@@ -562,6 +975,66 @@ pub fn insert_fastq_validate_v1(
         ),
     )?;
     Ok(())
+}
+
+/// Load a validate benchmark record from `SQLite` if present.
+///
+/// # Errors
+/// Returns an error if the query or JSON parsing fails.
+pub fn fetch_fastq_validate_v1(
+    conn: &Connection,
+    tool: &str,
+    tool_version: &str,
+    image_digest: &str,
+    input_hash: &str,
+) -> Result<Option<BenchmarkRecord<FastqValidateMetrics>>> {
+    let mut stmt = conn.prepare(
+        "SELECT tool, tool_version, image_digest, runner, platform, input_hash,\
+         parameters_json, runtime_s, memory_mb, exit_code, metrics_json \
+         FROM bench_fastq_validate_v1 \
+         WHERE tool = ?1 AND tool_version = ?2 AND image_digest = ?3 AND input_hash = ?4\
+         LIMIT 1",
+    )?;
+    let row = stmt.query_row(
+        params![tool, tool_version, image_digest, input_hash],
+        |row| {
+            let tool: String = row.get(0)?;
+            let tool_version: String = row.get(1)?;
+            let image_digest: String = row.get(2)?;
+            let runner: String = row.get(3)?;
+            let platform: String = row.get(4)?;
+            let input_hash: String = row.get(5)?;
+            let parameters_json: String = row.get(6)?;
+            let runtime_s: f64 = row.get(7)?;
+            let memory_mb: f64 = row.get(8)?;
+            let exit_code: i64 = row.get(9)?;
+            let metrics_json: String = row.get(10)?;
+            let parameters: JsonValue = json_from_str(&parameters_json)?;
+            let metrics: FastqValidateMetrics = json_from_str(&metrics_json)?;
+            Ok(BenchmarkRecord {
+                context: BenchmarkContext {
+                    tool,
+                    tool_version,
+                    image_digest,
+                    runner,
+                    platform,
+                    input_hash,
+                    parameters,
+                },
+                execution: ExecutionMetrics {
+                    runtime_s,
+                    memory_mb,
+                    exit_code: i32::try_from(exit_code).unwrap_or(i32::MAX),
+                },
+                metrics,
+            })
+        },
+    );
+    match row {
+        Ok(record) => Ok(Some(record)),
+        Err(rusqlite::Error::QueryReturnedNoRows) => Ok(None),
+        Err(err) => Err(err.into()),
+    }
 }
 
 /// Insert a `FastQ` filter benchmark record into the v1 table.
@@ -616,6 +1089,66 @@ pub fn insert_fastq_filter_v1(
     Ok(())
 }
 
+/// Load a filter benchmark record from `SQLite` if present.
+///
+/// # Errors
+/// Returns an error if the query or JSON parsing fails.
+pub fn fetch_fastq_filter_v1(
+    conn: &Connection,
+    tool: &str,
+    tool_version: &str,
+    image_digest: &str,
+    input_hash: &str,
+) -> Result<Option<BenchmarkRecord<FastqFilterMetrics>>> {
+    let mut stmt = conn.prepare(
+        "SELECT tool, tool_version, image_digest, runner, platform, input_hash,\
+         parameters_json, runtime_s, memory_mb, exit_code, metrics_json \
+         FROM bench_fastq_filter_v1 \
+         WHERE tool = ?1 AND tool_version = ?2 AND image_digest = ?3 AND input_hash = ?4\
+         LIMIT 1",
+    )?;
+    let row = stmt.query_row(
+        params![tool, tool_version, image_digest, input_hash],
+        |row| {
+            let tool: String = row.get(0)?;
+            let tool_version: String = row.get(1)?;
+            let image_digest: String = row.get(2)?;
+            let runner: String = row.get(3)?;
+            let platform: String = row.get(4)?;
+            let input_hash: String = row.get(5)?;
+            let parameters_json: String = row.get(6)?;
+            let runtime_s: f64 = row.get(7)?;
+            let memory_mb: f64 = row.get(8)?;
+            let exit_code: i64 = row.get(9)?;
+            let metrics_json: String = row.get(10)?;
+            let parameters: JsonValue = json_from_str(&parameters_json)?;
+            let metrics: FastqFilterMetrics = json_from_str(&metrics_json)?;
+            Ok(BenchmarkRecord {
+                context: BenchmarkContext {
+                    tool,
+                    tool_version,
+                    image_digest,
+                    runner,
+                    platform,
+                    input_hash,
+                    parameters,
+                },
+                execution: ExecutionMetrics {
+                    runtime_s,
+                    memory_mb,
+                    exit_code: i32::try_from(exit_code).unwrap_or(i32::MAX),
+                },
+                metrics,
+            })
+        },
+    );
+    match row {
+        Ok(record) => Ok(Some(record)),
+        Err(rusqlite::Error::QueryReturnedNoRows) => Ok(None),
+        Err(err) => Err(err.into()),
+    }
+}
+
 /// Insert a `FastQ` merge benchmark record into the v1 table.
 ///
 /// # Errors
@@ -666,6 +1199,66 @@ pub fn insert_fastq_merge_v1(
         ),
     )?;
     Ok(())
+}
+
+/// Load a merge benchmark record from `SQLite` if present.
+///
+/// # Errors
+/// Returns an error if the query or JSON parsing fails.
+pub fn fetch_fastq_merge_v1(
+    conn: &Connection,
+    tool: &str,
+    tool_version: &str,
+    image_digest: &str,
+    input_hash: &str,
+) -> Result<Option<BenchmarkRecord<FastqMergeMetrics>>> {
+    let mut stmt = conn.prepare(
+        "SELECT tool, tool_version, image_digest, runner, platform, input_hash,\
+         parameters_json, runtime_s, memory_mb, exit_code, metrics_json \
+         FROM bench_fastq_merge_v1 \
+         WHERE tool = ?1 AND tool_version = ?2 AND image_digest = ?3 AND input_hash = ?4\
+         LIMIT 1",
+    )?;
+    let row = stmt.query_row(
+        params![tool, tool_version, image_digest, input_hash],
+        |row| {
+            let tool: String = row.get(0)?;
+            let tool_version: String = row.get(1)?;
+            let image_digest: String = row.get(2)?;
+            let runner: String = row.get(3)?;
+            let platform: String = row.get(4)?;
+            let input_hash: String = row.get(5)?;
+            let parameters_json: String = row.get(6)?;
+            let runtime_s: f64 = row.get(7)?;
+            let memory_mb: f64 = row.get(8)?;
+            let exit_code: i64 = row.get(9)?;
+            let metrics_json: String = row.get(10)?;
+            let parameters: JsonValue = json_from_str(&parameters_json)?;
+            let metrics: FastqMergeMetrics = json_from_str(&metrics_json)?;
+            Ok(BenchmarkRecord {
+                context: BenchmarkContext {
+                    tool,
+                    tool_version,
+                    image_digest,
+                    runner,
+                    platform,
+                    input_hash,
+                    parameters,
+                },
+                execution: ExecutionMetrics {
+                    runtime_s,
+                    memory_mb,
+                    exit_code: i32::try_from(exit_code).unwrap_or(i32::MAX),
+                },
+                metrics,
+            })
+        },
+    );
+    match row {
+        Ok(record) => Ok(Some(record)),
+        Err(rusqlite::Error::QueryReturnedNoRows) => Ok(None),
+        Err(err) => Err(err.into()),
+    }
 }
 
 /// Insert an image QA record into the v1 table.

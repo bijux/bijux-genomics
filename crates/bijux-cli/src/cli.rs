@@ -72,6 +72,8 @@ pub struct BenchFastqTrimArgs {
     pub out: PathBuf,
     #[arg(long, value_delimiter = ',')]
     pub tools: Vec<String>,
+    #[arg(long)]
+    pub explain: bool,
 }
 
 #[derive(Debug, Args)]
@@ -84,6 +86,8 @@ pub struct BenchFastqValidateArgs {
     pub out: PathBuf,
     #[arg(long, value_delimiter = ',')]
     pub tools: Vec<String>,
+    #[arg(long)]
+    pub explain: bool,
 }
 
 #[derive(Debug, Args)]
@@ -96,6 +100,8 @@ pub struct BenchFastqFilterArgs {
     pub out: PathBuf,
     #[arg(long, value_delimiter = ',')]
     pub tools: Vec<String>,
+    #[arg(long)]
+    pub explain: bool,
 }
 
 #[derive(Debug, Args)]
@@ -110,6 +116,8 @@ pub struct BenchFastqMergeArgs {
     pub out: PathBuf,
     #[arg(long, value_delimiter = ',')]
     pub tools: Vec<String>,
+    #[arg(long)]
+    pub explain: bool,
 }
 
 #[derive(Debug, Args, Clone, Default)]
@@ -220,6 +228,7 @@ pub fn bench_args_from_trim(args: &FastqTrimArgs) -> Result<BenchFastqTrimArgs> 
             .clone()
             .ok_or_else(|| anyhow!("out required for benchmark"))?,
         tools: args.tools.clone(),
+        explain: false,
     })
 }
 
@@ -242,6 +251,7 @@ pub fn bench_args_from_validate(args: &FastqValidateArgs) -> Result<BenchFastqVa
             .clone()
             .ok_or_else(|| anyhow!("out required for benchmark"))?,
         tools: args.tools.clone(),
+        explain: false,
     })
 }
 
