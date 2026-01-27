@@ -38,6 +38,7 @@ pub(crate) fn discover_qa_datasets() -> Result<Vec<QaDataset>> {
                     reads: 0,
                     bases: 0,
                     mean_q: 0.0,
+                    gc_percent: 0.0,
                 },
                 input_stats_r2: None,
             });
@@ -59,6 +60,7 @@ pub(crate) fn discover_qa_datasets() -> Result<Vec<QaDataset>> {
                     reads: 0,
                     bases: 0,
                     mean_q: 0.0,
+                    gc_percent: 0.0,
                 },
                 input_stats_r2: None,
             });

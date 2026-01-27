@@ -27,6 +27,7 @@ pub fn run_image_qa(platform_name: Option<&str>) -> Result<()> {
     run_image_qa_with(&platform, &catalog, &logger)
 }
 
+#[allow(clippy::too_many_lines)]
 fn run_image_qa_with(
     platform: &PlatformSpec,
     catalog: &HashMap<String, ToolImageSpec>,
@@ -58,13 +59,23 @@ fn run_image_qa_with(
 
     let mut pass = 0;
     let mut fail = 0;
+    let mut summary_records: Vec<ImageQaRecord> = Vec::new();
 
-    for stage in [
+    let mut stages = vec![
         QaStage::Trim,
         QaStage::Validate,
         QaStage::Filter,
         QaStage::Merge,
-    ] {
+        QaStage::Correct,
+        QaStage::Qc2,
+        QaStage::Umi,
+        QaStage::Stats,
+    ];
+    if std::env::var("BIJUX_SCREEN_DB").is_ok() {
+        stages.push(QaStage::Screen);
+    }
+
+    for stage in stages {
         log_stage_header(logger, stage);
         let stage_datasets = datasets_for_stage(stage, &datasets);
         for dataset in stage_datasets {
@@ -120,9 +131,18 @@ fn run_image_qa_with(
                 }
                 append_image_qa_jsonl(&qa_jsonl, &record).context("write qa jsonl")?;
                 insert_image_qa_v1(&conn, &record).context("write qa sqlite")?;
+                summary_records.push(record);
             }
         }
     }
+
+    let qa_json = qa_dir.join("qa.json");
+    let summary = serde_json::json!({
+        "pass": pass,
+        "fail": fail,
+        "records": summary_records,
+    });
+    std::fs::write(&qa_json, serde_json::to_vec_pretty(&summary)?).context("write qa.json")?;
 
     println!("QA PASS: {pass}");
     println!("QA FAIL: {fail}");

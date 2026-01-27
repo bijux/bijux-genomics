@@ -210,12 +210,33 @@ pub struct ToolManifestV1 {
     pub schema_version: String,
     pub tool_id: String,
     pub stage_id: String,
+    pub role: ToolRole,
+    pub authoritative: bool,
+    pub strict_capable: bool,
+    pub status: ToolStatus,
     pub capabilities: Vec<String>,
     pub container: ContainerManifest,
     pub command_template: Vec<String>,
     pub outputs: Vec<PortSpec>,
     pub metrics_parser: String,
     pub constraints: ToolConstraints,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ToolRole {
+    Gatekeeper,
+    Diagnostic,
+    Transform,
+    Report,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ToolStatus {
+    Stable,
+    Experimental,
+    Deprecated,
 }
 
 #[derive(Debug, Clone)]

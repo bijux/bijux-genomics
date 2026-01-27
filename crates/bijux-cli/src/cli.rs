@@ -60,6 +60,12 @@ pub enum BenchFastqCommand {
     Validate(BenchFastqValidateArgs),
     Filter(BenchFastqFilterArgs),
     Merge(BenchFastqMergeArgs),
+    Correct(BenchFastqCorrectArgs),
+    Qc2(BenchFastqQc2Args),
+    Umi(BenchFastqUmiArgs),
+    Screen(BenchFastqScreenArgs),
+    Stats(BenchFastqStatsArgs),
+    Preprocess(BenchFastqPreprocessArgs),
 }
 
 #[derive(Debug, Args)]
@@ -88,6 +94,8 @@ pub struct BenchFastqValidateArgs {
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
+    #[arg(long)]
+    pub strict: bool,
 }
 
 #[derive(Debug, Args)]
@@ -118,6 +126,94 @@ pub struct BenchFastqMergeArgs {
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchFastqCorrectArgs {
+    #[arg(long, alias = "sample")]
+    pub sample_id: String,
+    #[arg(long)]
+    pub r1: PathBuf,
+    #[arg(long)]
+    pub r2: Option<PathBuf>,
+    #[arg(long)]
+    pub out: PathBuf,
+    #[arg(long, value_delimiter = ',')]
+    pub tools: Vec<String>,
+    #[arg(long)]
+    pub explain: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchFastqQc2Args {
+    #[arg(long, alias = "sample")]
+    pub sample_id: String,
+    #[arg(long)]
+    pub r1: PathBuf,
+    #[arg(long)]
+    pub out: PathBuf,
+    #[arg(long, value_delimiter = ',')]
+    pub tools: Vec<String>,
+    #[arg(long)]
+    pub explain: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchFastqUmiArgs {
+    #[arg(long, alias = "sample")]
+    pub sample_id: String,
+    #[arg(long)]
+    pub r1: PathBuf,
+    #[arg(long)]
+    pub r2: Option<PathBuf>,
+    #[arg(long)]
+    pub out: PathBuf,
+    #[arg(long, value_delimiter = ',')]
+    pub tools: Vec<String>,
+    #[arg(long)]
+    pub explain: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchFastqScreenArgs {
+    #[arg(long, alias = "sample")]
+    pub sample_id: String,
+    #[arg(long)]
+    pub r1: PathBuf,
+    #[arg(long)]
+    pub out: PathBuf,
+    #[arg(long, value_delimiter = ',')]
+    pub tools: Vec<String>,
+    #[arg(long)]
+    pub explain: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchFastqStatsArgs {
+    #[arg(long, alias = "sample")]
+    pub sample_id: String,
+    #[arg(long)]
+    pub r1: PathBuf,
+    #[arg(long)]
+    pub out: PathBuf,
+    #[arg(long, value_delimiter = ',')]
+    pub tools: Vec<String>,
+    #[arg(long)]
+    pub explain: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchFastqPreprocessArgs {
+    #[arg(long, alias = "sample")]
+    pub sample_id: String,
+    #[arg(long)]
+    pub r1: PathBuf,
+    #[arg(long)]
+    pub r2: Option<PathBuf>,
+    #[arg(long)]
+    pub out: PathBuf,
+    #[arg(long)]
+    pub strict: bool,
 }
 
 #[derive(Debug, Args, Clone, Default)]
@@ -173,6 +269,8 @@ pub struct FastqValidateArgs {
     pub out: Option<PathBuf>,
     #[arg(long, value_delimiter = ',')]
     pub tools: Vec<String>,
+    #[arg(long)]
+    pub strict: bool,
 }
 
 pub fn resolve_stage_tool(command: &Commands) -> (StageId, ToolId, CommonArgs) {
@@ -252,6 +350,7 @@ pub fn bench_args_from_validate(args: &FastqValidateArgs) -> Result<BenchFastqVa
             .ok_or_else(|| anyhow!("out required for benchmark"))?,
         tools: args.tools.clone(),
         explain: false,
+        strict: args.strict,
     })
 }
 

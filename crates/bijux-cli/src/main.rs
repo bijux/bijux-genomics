@@ -17,8 +17,9 @@ mod image_qa;
 mod utils;
 
 use bench::{
-    bench_fastq_filter, bench_fastq_merge, bench_fastq_trim, bench_fastq_validate,
-    print_bench_schema,
+    bench_fastq_correct, bench_fastq_filter, bench_fastq_merge, bench_fastq_preprocess,
+    bench_fastq_qc2, bench_fastq_screen, bench_fastq_stats, bench_fastq_trim, bench_fastq_umi,
+    bench_fastq_validate, print_bench_schema,
 };
 use cli::{
     bench_args_from_trim, bench_args_from_validate, is_bench_requested_trim,
@@ -118,6 +119,24 @@ fn handle_meta_commands(cli: &Cli, modules_dir: &Path) -> Result<bool> {
                     }
                     BenchFastqCommand::Merge(args) => {
                         bench_fastq_merge(&catalog, &platform, None, args)?;
+                    }
+                    BenchFastqCommand::Stats(args) => {
+                        bench_fastq_stats(&catalog, &platform, None, args)?;
+                    }
+                    BenchFastqCommand::Correct(args) => {
+                        bench_fastq_correct(&catalog, &platform, None, args)?;
+                    }
+                    BenchFastqCommand::Qc2(args) => {
+                        bench_fastq_qc2(&catalog, &platform, None, args)?;
+                    }
+                    BenchFastqCommand::Umi(args) => {
+                        bench_fastq_umi(&catalog, &platform, None, args)?;
+                    }
+                    BenchFastqCommand::Screen(args) => {
+                        bench_fastq_screen(&catalog, &platform, None, args)?;
+                    }
+                    BenchFastqCommand::Preprocess(args) => {
+                        bench_fastq_preprocess(&catalog, &platform, None, args)?;
                     }
                 },
                 BenchCommand::Schema { stage } => {
