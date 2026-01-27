@@ -27,15 +27,15 @@ RUN git clone --depth 1 --branch v${VERSION_RCORRECTOR} \
 ###########################################################
 FROM ubuntu:24.04 AS runtime
 
-LABEL maintainer="Bijan Mousavi" \
-      org.opencontainers.image.source="https://github.com/mourisl/Rcorrector" \
-      org.opencontainers.image.version="${VERSION_RCORRECTOR}" \
-      org.opencontainers.image.license="MIT"
-
 ARG VERSION_RCORRECTOR=1.0.7
 ENV VERSION_RCORRECTOR=${VERSION_RCORRECTOR} \
     DEBIAN_FRONTEND=noninteractive \
     TZ=UTC
+
+LABEL maintainer="Bijan Mousavi" \
+      org.opencontainers.image.source="https://github.com/mourisl/Rcorrector" \
+      org.opencontainers.image.version="${VERSION_RCORRECTOR}" \
+      org.opencontainers.image.license="MIT"
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \

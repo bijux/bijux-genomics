@@ -8,6 +8,9 @@ ENV VERSION_FASTQC=${VERSION_FASTQC}
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
+        bash \
+        perl \
+        libharfbuzz0b \
         unzip \
         wget \
         openjdk-11-jre-headless && \

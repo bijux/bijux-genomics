@@ -11,7 +11,7 @@ cutadapt:
 
 seqkit:
   version: "2.8.2"
-  digest: "sha256:a1402e7826c8b4b289aecec7ccb64e8c8f22ab24385750897c4580f4b9351b82"
+  digest: "sha256:ca3dc13e3fef5d34927c44b2d8cd2bc6708c2c256f42e51369d7b1203b0d2991"
 
 bbduk:
   version: "39.08"
@@ -31,13 +31,20 @@ trim_galore:
 
 seqtk:
   version: "1.5-r133"
+  digest: "sha256:6fdc3bd8b2db5d4af698c56b67e06b73c44aaaadbadd30dddd6df2a86718fa6d"
 
 fastqc:
   version: "0.12.1"
-  digest: "sha256:e0b83c56262486cab51020e2bb809b391ad9b38ba7a898588ab15b73586ee789"
+  digest: "sha256:907de540686ca17321afe5701c67a6c30f941e5486ec1cc817118351b7ba3752"
 
 fastqvalidator:
   version: "0.1.1"
+  digest: "sha256:ee07375bda910179d134bd48f05082cd37bf54b818d6af666fc433855518332a"
 
 fqtools:
   version: "2.3"
+  digest: "sha256:1482116af09a80d5ab4a43d409733e8f760b09755f414e3f03250a78bcbf397e"
+
+pear:
+  version: "0.9.6"
+  digest: "sha256:TODO"

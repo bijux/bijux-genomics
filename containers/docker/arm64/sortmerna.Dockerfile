@@ -55,7 +55,7 @@ RUN set -e; \
       -DCMAKE_PREFIX_PATH=/usr/local \
       -DTHREADS_PREFER_PTHREAD_FLAG=ON \
       -DCMAKE_C_FLAGS="-pthread" \
-      -DCMAKE_CXX_FLAGS="-pthread" \
+      -DCMAKE_CXX_FLAGS="-pthread -include cstdint" \
       -DCMAKE_EXE_LINKER_FLAGS="-pthread" && \
     cmake --build build -j"$(nproc)" && \
     cmake --install build && \
@@ -64,7 +64,7 @@ RUN set -e; \
 
 # 5) Cleanup build-time tools
 RUN set -e; \
-    pip3 uninstall -y cmake && \
+    python3 -m pip uninstall -y --break-system-packages cmake && \
     apt-get purge -y --auto-remove \
       python3-pip \
       python3 \

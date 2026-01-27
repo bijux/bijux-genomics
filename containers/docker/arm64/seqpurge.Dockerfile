@@ -1,26 +1,47 @@
 # seqpurge Dockerfile (ARM64)
 # License: Apache-2.0
-FROM ubuntu:24.04
+FROM ubuntu:20.04
 ENV DEBIAN_FRONTEND=noninteractive
 
 ARG SEQPURGE_VERSION=2025_05
 ENV SEQPURGE_VERSION=${SEQPURGE_VERSION}
 
+# Install dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    g++ qtbase5-dev qt5-qmake libqt5xmlpatterns5-dev libqt5charts5-dev libqt5sql5-mysql \
-    libqt5sql5-psql libqt5sql5-sqlite libqt5xml5 libqt5sql5 zlib1g-dev libbz2-dev \
-    liblzma-dev libhts-dev libxml2-dev pkg-config git && \
-    git clone --recursive https://github.com/imgag/ngs-bits.git /opt/ngs-bits && \
+    g++ \
+    qtbase5-dev \
+    qt5-qmake \
+    libqt5xmlpatterns5-dev \
+    libqt5charts5-dev \
+    libqt5sql5-mysql \
+    libqt5sql5-psql \
+    libqt5sql5-sqlite \
+    libqt5xml5 \
+    libqt5sql5 \
+    zlib1g-dev \
+    libbz2-dev \
+    liblzma-dev \
+    libhts-dev \
+    libxml2-dev \
+    pkg-config \
+    git \
+    ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
+# Clone and patch ngs-bits
+RUN git clone --recursive https://github.com/imgag/ngs-bits.git /opt/ngs-bits && \
     cd /opt/ngs-bits && \
     git checkout ${SEQPURGE_VERSION} && \
     make build_libs_release -j$(nproc) && \
     make build_tools_release -j$(nproc) && \
     cp bin/SeqPurge /usr/local/bin/seqpurge-bin && \
     cp bin/*.so* /usr/local/lib/ && \
-    ldconfig && \
-    apt-get purge -y g++ qt5-qmake git pkg-config && \
+    ldconfig
+
+# Cleanup
+RUN apt-get purge -y g++ qt5-qmake git pkg-config && \
     apt-get autoremove -y && \
-    rm -rf /var/lib/apt/lists/* /opt/ngs-bits
+    rm -rf /opt/ngs-bits /var/lib/apt/lists/*
 
 # Create a wrapper script for unified SeqPurge execution
 RUN echo '#!/bin/sh' > /usr/local/bin/seqpurge && \

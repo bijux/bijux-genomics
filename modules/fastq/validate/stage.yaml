@@ -8,12 +8,12 @@ inputs:
 outputs: []
 parameters: []
 metrics:
-  - name: "reads"
-    meaning: "Number of reads observed"
-  - name: "bases"
-    meaning: "Number of bases observed"
+  - name: "reads_total"
+    meaning: "Total number of reads observed"
+  - name: "reads_valid"
+    meaning: "Number of reads that passed validation"
+  - name: "reads_invalid"
+    meaning: "Number of reads that failed validation"
   - name: "mean_q"
     meaning: "Mean Phred quality score"
-  - name: "format_valid"
-    meaning: "FASTQ format validity"
 description: "FASTQ stage for validation and basic statistics."

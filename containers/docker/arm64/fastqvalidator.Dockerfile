@@ -50,6 +50,7 @@ RUN printf '%s\n' \
     '#!/bin/sh' \
     'case "$1" in' \
     '  --version) echo "${VERSION_FASTQVALIDATOR#v}"; exit 0;;' \
+    '  --help|-h|"") exec /usr/local/bin/fq-validator-bin --help;;' \
     '  *) exec /usr/local/bin/fq-validator-bin "$@";; esac' \
   > /usr/local/bin/fastq-validator && \
   chmod +x /usr/local/bin/fastq-validator

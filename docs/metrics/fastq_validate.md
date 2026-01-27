@@ -8,32 +8,31 @@ Applies to the `fastq.validate` stage and any tool that emits `FastqValidateMetr
 
 ## Metrics
 
-### reads
+### reads_total
 - **Definition:** Total number of reads observed in the input FASTQ.
 - **Type:** `u64`
-- **Measurement:** Parsed from the tool output or computed by a deterministic counter over the input. For paired-end inputs, `reads` is the sum of both mates.
+- **Measurement:** Parsed from the validation tool output or computed deterministically. For paired-end inputs, this is the sum across both mates.
 
-### bases
-- **Definition:** Total number of bases observed in the input FASTQ.
+### reads_valid
+- **Definition:** Number of reads that pass validation.
 - **Type:** `u64`
-- **Measurement:** Derived from the sum of per-read sequence lengths. For paired-end inputs, `bases` is the sum across both mates.
+- **Measurement:** Reported by the validation tool. If the tool only signals pass/fail, `reads_valid` is either `reads_total` (pass) or `0` (fail).
+
+### reads_invalid
+- **Definition:** Number of reads that fail validation.
+- **Type:** `u64`
+- **Measurement:** `reads_total - reads_valid`.
 
 ### mean_q
 - **Definition:** Mean Phred quality score across all bases.
 - **Type:** `f64`
 - **Measurement:** Weighted mean across all bases. For paired-end inputs, weights are per-base counts per mate. Reported with the tool's native precision or rounded to two decimals if computed externally.
 
-### format_valid
-- **Definition:** Whether the input FASTQ is syntactically valid per tool-specific validation rules.
-- **Type:** `bool`
-- **Measurement:** `true` if the tool reports the input as valid (or if all internal checks pass); otherwise `false`.
-
 ## Invariants
 
-- `reads` ≥ 0
-- `bases` ≥ 0
-- `mean_q` is a finite number
-- If `reads == 0`, then `bases == 0`
+- `reads_valid + reads_invalid == reads_total`
+- `mean_q ∈ [0, 45]`
+- counts are non-negative
 
 Invalid metrics **must** hard-fail validation.
 
@@ -43,10 +42,10 @@ Invalid metrics **must** hard-fail validation.
 - Adapter presence/contamination estimates
 - Read length histograms
 - Duplicate or overrepresented sequence stats
-- Any tool-specific warnings beyond `format_valid`
+- Any tool-specific warnings beyond the counts above
 
 ## Known limitations
 
-- `format_valid` is tool-dependent and may differ across validators.
+- Some validators only expose pass/fail; in that case `reads_valid` may collapse to `reads_total` or `0`.
 - `mean_q` computation can vary slightly by tool parsing strategy and rounding.
-- The schema does not capture paired-end consistency checks beyond what each tool encodes in `format_valid`.
+- The schema does not capture paired-end consistency checks beyond what each tool encodes.
