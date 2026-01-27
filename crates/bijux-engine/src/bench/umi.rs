@@ -5,14 +5,14 @@ use std::time::Instant;
 use anyhow::{anyhow, Context, Result};
 use bijux_bench::{
     append_jsonl, fetch_fastq_umi_v1, insert_fastq_umi_v1, BenchmarkContext, BenchmarkRecord,
-    ExecutionMetrics, FastqUmiMetrics, StageMetricSchema,
+    ExecutionMetrics, FastqUmiMetrics, MetricSet,
 };
 use bijux_core::load_manifests;
 use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 use uuid::Uuid;
 
 use crate::image_qa::ensure_image_qa_passed;
-use crate::utils::{
+use crate::{
     bench_base_dir, bench_tools_dir, docker_rm, docker_stats_mb, hash_file_sha256,
     input_fastq_stats, output_fastq_stats, run_tool_container, validate_execution_outputs,
     SeqkitMetrics,
@@ -29,7 +29,7 @@ pub fn bench_fastq_umi(
     catalog: &std::collections::HashMap<String, ToolImageSpec>,
     platform: &PlatformSpec,
     runner_override: Option<RunnerKind>,
-    args: &crate::cli::BenchFastqUmiArgs,
+    args: &crate::bench::args::BenchFastqUmiArgs,
 ) -> Result<()> {
     let tools = normalize_umi_tool_list(&args.tools)?;
     ensure_image_qa_passed("fastq.umi", &tools, platform, catalog)?;
@@ -99,7 +99,7 @@ fn prepare_umi_bench(
     catalog: &std::collections::HashMap<String, ToolImageSpec>,
     platform: &PlatformSpec,
     runner_override: Option<RunnerKind>,
-    args: &crate::cli::BenchFastqUmiArgs,
+    args: &crate::bench::args::BenchFastqUmiArgs,
 ) -> Result<UmiBenchInputs> {
     let runner = runner_override.unwrap_or(platform.runner);
     if runner != RunnerKind::Docker {
@@ -144,7 +144,7 @@ fn prepare_umi_bench(
 fn run_umi_tool(
     catalog: &std::collections::HashMap<String, ToolImageSpec>,
     platform: &PlatformSpec,
-    args: &crate::cli::BenchFastqUmiArgs,
+    args: &crate::bench::args::BenchFastqUmiArgs,
     bench_inputs: &UmiBenchInputs,
     tool: &str,
 ) -> Result<BenchmarkRecord<FastqUmiMetrics>> {
@@ -196,7 +196,7 @@ fn run_umi_tool(
         .ok_or_else(|| anyhow!("output FASTQ missing"))?;
     let output_stats = output_fastq_stats(&seqkit_image, &out_dir, &out_fastq)?;
 
-    let registry = load_manifests(&std::env::current_dir()?.join("modules"))
+    let registry = load_manifests(&std::env::current_dir()?.join("domain"))
         .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let tool_manifest = registry
         .tool_by_id("fastq.umi", tool)
@@ -211,7 +211,8 @@ fn run_umi_tool(
         reads_out,
         dedup_rate,
     };
-    metrics.validate()?;
+    let metric_set = MetricSet::new(metrics);
+    metric_set.validate()?;
 
     let manifest = ExecutionManifest {
         run_id: run_id.clone(),
@@ -247,11 +248,11 @@ fn run_umi_tool(
         memory_mb,
         exit_code: execution.exit_code,
     };
-    write_metrics_json(&run_dirs, &execution_metrics, &metrics)?;
+    write_metrics_json(&run_dirs, &execution_metrics, &metric_set)?;
     let record = BenchmarkRecord {
         context,
         execution: execution_metrics,
-        metrics,
+        metrics: metric_set,
     };
     record.validate()?;
     Ok(record)

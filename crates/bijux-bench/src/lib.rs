@@ -13,6 +13,7 @@ pub type Result<T> = std::result::Result<T, BenchError>;
 
 pub trait StageMetricSchema {
     const STAGE: &'static str;
+    const VERSION: i32;
     /// Validate the schema invariants.
     ///
     /// # Errors
@@ -794,6 +795,7 @@ pub struct FastqTrimMetrics {
 
 impl StageMetricSchema for FastqTrimMetrics {
     const STAGE: &'static str = "fastq.trim";
+    const VERSION: i32 = 1;
 
     fn validate(&self) -> Result<()> {
         if self.reads_out > self.reads_in {
@@ -819,10 +821,47 @@ impl StageMetricSchema for FastqTrimMetrics {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
+pub struct MetricSet<T: StageMetricSchema> {
+    pub version: i32,
+    pub metrics: T,
+}
+
+impl<T> MetricSet<T>
+where
+    T: StageMetricSchema + Serialize,
+{
+    #[must_use]
+    pub fn new(metrics: T) -> Self {
+        Self {
+            version: T::VERSION,
+            metrics,
+        }
+    }
+
+    /// Validate the metric set.
+    ///
+    /// # Errors
+    /// Returns an error if the metric schema validation fails.
+    pub fn validate(&self) -> Result<()> {
+        if self.version != T::VERSION {
+            return Err(BenchError::Validation(format!(
+                "metric version mismatch for {}: expected {} got {}",
+                T::STAGE,
+                T::VERSION,
+                self.version
+            )));
+        }
+        self.metrics.validate()?;
+        validate_metric_schema(&self.metrics)
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct BenchmarkRecord<T: StageMetricSchema> {
     pub context: BenchmarkContext,
     pub execution: ExecutionMetrics,
-    pub metrics: T,
+    pub metrics: MetricSet<T>,
 }
 
 impl<T> BenchmarkRecord<T>
@@ -834,8 +873,7 @@ where
     /// # Errors
     /// Returns an error if the metric schema validation fails.
     pub fn validate(&self) -> Result<()> {
-        self.metrics.validate()?;
-        validate_metric_schema(&self.metrics)
+        self.metrics.validate()
     }
 }
 
@@ -937,6 +975,7 @@ pub struct FastqValidateMetrics {
 
 impl StageMetricSchema for FastqValidateMetrics {
     const STAGE: &'static str = "fastq.validate";
+    const VERSION: i32 = 1;
 
     fn validate(&self) -> Result<()> {
         if self.reads_valid + self.reads_invalid != self.reads_total {
@@ -965,6 +1004,7 @@ pub struct FastqFilterMetrics {
 
 impl StageMetricSchema for FastqFilterMetrics {
     const STAGE: &'static str = "fastq.filter";
+    const VERSION: i32 = 1;
 
     fn validate(&self) -> Result<()> {
         if self.reads_out + self.reads_dropped != self.reads_in {
@@ -995,6 +1035,7 @@ pub struct FastqMergeMetrics {
 
 impl StageMetricSchema for FastqMergeMetrics {
     const STAGE: &'static str = "fastq.merge";
+    const VERSION: i32 = 1;
 
     fn validate(&self) -> Result<()> {
         let min_reads = self.reads_r1.min(self.reads_r2);
@@ -1026,6 +1067,7 @@ pub struct FastqCorrectMetrics {
 
 impl StageMetricSchema for FastqCorrectMetrics {
     const STAGE: &'static str = "fastq.correct";
+    const VERSION: i32 = 1;
 
     fn validate(&self) -> Result<()> {
         if self.reads_out != self.reads_in {
@@ -1065,6 +1107,7 @@ pub struct FastqQc2Metrics {
 
 impl StageMetricSchema for FastqQc2Metrics {
     const STAGE: &'static str = "fastq.qc2";
+    const VERSION: i32 = 1;
 
     fn validate(&self) -> Result<()> {
         if !self.mean_q.is_finite() || !(0.0..=45.0).contains(&self.mean_q) {
@@ -1091,6 +1134,7 @@ pub struct FastqUmiMetrics {
 
 impl StageMetricSchema for FastqUmiMetrics {
     const STAGE: &'static str = "fastq.umi";
+    const VERSION: i32 = 1;
 
     fn validate(&self) -> Result<()> {
         if self.reads_out > self.reads_in {
@@ -1116,6 +1160,7 @@ pub struct FastqScreenMetrics {
 
 impl StageMetricSchema for FastqScreenMetrics {
     const STAGE: &'static str = "fastq.screen";
+    const VERSION: i32 = 1;
 
     fn validate(&self) -> Result<()> {
         if !self.contamination_rate.is_finite() || !(0.0..=1.0).contains(&self.contamination_rate) {
@@ -1146,6 +1191,7 @@ pub struct FastqStatsMetrics {
 
 impl StageMetricSchema for FastqStatsMetrics {
     const STAGE: &'static str = "fastq.stats";
+    const VERSION: i32 = 1;
 
     fn validate(&self) -> Result<()> {
         if !self.mean_q.is_finite() || !(0.0..=45.0).contains(&self.mean_q) {
@@ -1211,7 +1257,7 @@ pub fn insert_fastq_trim_v1(
             &record.context.platform,
             &record.context.input_hash,
             parameters_json,
-            FASTQ_TRIM_SCHEMA_VERSION,
+            record.metrics.version,
             record.execution.runtime_s,
             record.execution.memory_mb,
             record.execution.exit_code,
@@ -1254,7 +1300,7 @@ pub fn fetch_fastq_trim_v1(
             let exit_code: i64 = row.get(9)?;
             let metrics_json: String = row.get(10)?;
             let parameters: JsonValue = json_from_str(&parameters_json)?;
-            let metrics: FastqTrimMetrics = json_from_str(&metrics_json)?;
+            let metrics: MetricSet<FastqTrimMetrics> = json_from_str(&metrics_json)?;
             Ok(BenchmarkRecord {
                 context: BenchmarkContext {
                     tool,
@@ -1323,7 +1369,7 @@ pub fn insert_fastq_validate_v1(
             &record.context.platform,
             &record.context.input_hash,
             parameters_json,
-            FASTQ_VALIDATE_SCHEMA_VERSION,
+            record.metrics.version,
             record.execution.runtime_s,
             record.execution.memory_mb,
             record.execution.exit_code,
@@ -1366,7 +1412,7 @@ pub fn fetch_fastq_validate_v1(
             let exit_code: i64 = row.get(9)?;
             let metrics_json: String = row.get(10)?;
             let parameters: JsonValue = json_from_str(&parameters_json)?;
-            let metrics: FastqValidateMetrics = json_from_str(&metrics_json)?;
+            let metrics: MetricSet<FastqValidateMetrics> = json_from_str(&metrics_json)?;
             Ok(BenchmarkRecord {
                 context: BenchmarkContext {
                     tool,
@@ -1435,7 +1481,7 @@ pub fn insert_fastq_filter_v1(
             &record.context.platform,
             &record.context.input_hash,
             parameters_json,
-            FASTQ_FILTER_SCHEMA_VERSION,
+            record.metrics.version,
             record.execution.runtime_s,
             record.execution.memory_mb,
             record.execution.exit_code,
@@ -1478,7 +1524,7 @@ pub fn fetch_fastq_filter_v1(
             let exit_code: i64 = row.get(9)?;
             let metrics_json: String = row.get(10)?;
             let parameters: JsonValue = json_from_str(&parameters_json)?;
-            let metrics: FastqFilterMetrics = json_from_str(&metrics_json)?;
+            let metrics: MetricSet<FastqFilterMetrics> = json_from_str(&metrics_json)?;
             Ok(BenchmarkRecord {
                 context: BenchmarkContext {
                     tool,
@@ -1547,7 +1593,7 @@ pub fn insert_fastq_merge_v1(
             &record.context.platform,
             &record.context.input_hash,
             parameters_json,
-            FASTQ_MERGE_SCHEMA_VERSION,
+            record.metrics.version,
             record.execution.runtime_s,
             record.execution.memory_mb,
             record.execution.exit_code,
@@ -1590,7 +1636,7 @@ pub fn fetch_fastq_merge_v1(
             let exit_code: i64 = row.get(9)?;
             let metrics_json: String = row.get(10)?;
             let parameters: JsonValue = json_from_str(&parameters_json)?;
-            let metrics: FastqMergeMetrics = json_from_str(&metrics_json)?;
+            let metrics: MetricSet<FastqMergeMetrics> = json_from_str(&metrics_json)?;
             Ok(BenchmarkRecord {
                 context: BenchmarkContext {
                     tool,
@@ -1659,7 +1705,7 @@ pub fn insert_fastq_correct_v1(
             &record.context.platform,
             &record.context.input_hash,
             parameters_json,
-            FASTQ_CORRECT_SCHEMA_VERSION,
+            record.metrics.version,
             record.execution.runtime_s,
             record.execution.memory_mb,
             record.execution.exit_code,
@@ -1702,7 +1748,7 @@ pub fn fetch_fastq_correct_v1(
             let exit_code: i64 = row.get(9)?;
             let metrics_json: String = row.get(10)?;
             let parameters: JsonValue = json_from_str(&parameters_json)?;
-            let metrics: FastqCorrectMetrics = json_from_str(&metrics_json)?;
+            let metrics: MetricSet<FastqCorrectMetrics> = json_from_str(&metrics_json)?;
             Ok(BenchmarkRecord {
                 context: BenchmarkContext {
                     tool,
@@ -1771,7 +1817,7 @@ pub fn insert_fastq_qc2_v1(
             &record.context.platform,
             &record.context.input_hash,
             parameters_json,
-            FASTQ_QC2_SCHEMA_VERSION,
+            record.metrics.version,
             record.execution.runtime_s,
             record.execution.memory_mb,
             record.execution.exit_code,
@@ -1814,7 +1860,7 @@ pub fn fetch_fastq_qc2_v1(
             let exit_code: i64 = row.get(9)?;
             let metrics_json: String = row.get(10)?;
             let parameters: JsonValue = json_from_str(&parameters_json)?;
-            let metrics: FastqQc2Metrics = json_from_str(&metrics_json)?;
+            let metrics: MetricSet<FastqQc2Metrics> = json_from_str(&metrics_json)?;
             Ok(BenchmarkRecord {
                 context: BenchmarkContext {
                     tool,
@@ -1883,7 +1929,7 @@ pub fn insert_fastq_umi_v1(
             &record.context.platform,
             &record.context.input_hash,
             parameters_json,
-            FASTQ_UMI_SCHEMA_VERSION,
+            record.metrics.version,
             record.execution.runtime_s,
             record.execution.memory_mb,
             record.execution.exit_code,
@@ -1926,7 +1972,7 @@ pub fn fetch_fastq_umi_v1(
             let exit_code: i64 = row.get(9)?;
             let metrics_json: String = row.get(10)?;
             let parameters: JsonValue = json_from_str(&parameters_json)?;
-            let metrics: FastqUmiMetrics = json_from_str(&metrics_json)?;
+            let metrics: MetricSet<FastqUmiMetrics> = json_from_str(&metrics_json)?;
             Ok(BenchmarkRecord {
                 context: BenchmarkContext {
                     tool,
@@ -1995,7 +2041,7 @@ pub fn insert_fastq_screen_v1(
             &record.context.platform,
             &record.context.input_hash,
             parameters_json,
-            FASTQ_SCREEN_SCHEMA_VERSION,
+            record.metrics.version,
             record.execution.runtime_s,
             record.execution.memory_mb,
             record.execution.exit_code,
@@ -2038,7 +2084,7 @@ pub fn fetch_fastq_screen_v1(
             let exit_code: i64 = row.get(9)?;
             let metrics_json: String = row.get(10)?;
             let parameters: JsonValue = json_from_str(&parameters_json)?;
-            let metrics: FastqScreenMetrics = json_from_str(&metrics_json)?;
+            let metrics: MetricSet<FastqScreenMetrics> = json_from_str(&metrics_json)?;
             Ok(BenchmarkRecord {
                 context: BenchmarkContext {
                     tool,
@@ -2107,7 +2153,7 @@ pub fn insert_fastq_stats_v1(
             &record.context.platform,
             &record.context.input_hash,
             parameters_json,
-            FASTQ_STATS_SCHEMA_VERSION,
+            record.metrics.version,
             record.execution.runtime_s,
             record.execution.memory_mb,
             record.execution.exit_code,
@@ -2150,7 +2196,7 @@ pub fn fetch_fastq_stats_v1(
             let exit_code: i64 = row.get(9)?;
             let metrics_json: String = row.get(10)?;
             let parameters: JsonValue = json_from_str(&parameters_json)?;
-            let metrics: FastqStatsMetrics = json_from_str(&metrics_json)?;
+            let metrics: MetricSet<FastqStatsMetrics> = json_from_str(&metrics_json)?;
             Ok(BenchmarkRecord {
                 context: BenchmarkContext {
                     tool,
@@ -2405,14 +2451,14 @@ mod tests {
                 memory_mb: 10.0,
                 exit_code: 0,
             },
-            metrics: FastqTrimMetrics {
+            metrics: MetricSet::new(FastqTrimMetrics {
                 reads_in: 100,
                 reads_out: 90,
                 bases_in: 1000,
                 bases_out: 900,
                 mean_q_before: 30.0,
                 mean_q_after: 31.0,
-            },
+            }),
         };
         record.validate()?;
         let json = serde_json::to_string(&record)?;

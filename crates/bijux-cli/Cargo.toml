@@ -20,6 +20,7 @@ uuid.workspace = true
 rusqlite.workspace = true
 bijux-environment = { path = "../bijux-environment" }
 bijux-bench = { path = "../bijux-bench" }
+bijux-engine = { path = "../bijux-engine" }
 
 [dev-dependencies]
 assert_cmd = "2"

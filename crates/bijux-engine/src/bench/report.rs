@@ -277,8 +277,11 @@ fn sanity_flags_trim(records: &[BenchmarkRecord<FastqTrimMetrics>]) -> Vec<serde
         .iter()
         .map(|record| {
             let mut flags = Vec::new();
-            if record.metrics.reads_in > 0 {
-                let retention = ratio_u64(record.metrics.reads_out, record.metrics.reads_in);
+            if record.metrics.metrics.reads_in > 0 {
+                let retention = ratio_u64(
+                    record.metrics.metrics.reads_out,
+                    record.metrics.metrics.reads_in,
+                );
                 if retention < 0.1 {
                     flags.push("reads_retention_lt_0.1");
                 }
@@ -297,8 +300,11 @@ fn sanity_flags_filter(records: &[BenchmarkRecord<FastqFilterMetrics>]) -> Vec<s
         .iter()
         .map(|record| {
             let mut flags = Vec::new();
-            if record.metrics.reads_in > 0 {
-                let retention = ratio_u64(record.metrics.reads_out, record.metrics.reads_in);
+            if record.metrics.metrics.reads_in > 0 {
+                let retention = ratio_u64(
+                    record.metrics.metrics.reads_out,
+                    record.metrics.metrics.reads_in,
+                );
                 if retention < 0.1 {
                     flags.push("reads_retention_lt_0.1");
                 }
@@ -319,8 +325,11 @@ fn sanity_flags_correct(
         .iter()
         .map(|record| {
             let mut flags = Vec::new();
-            if record.metrics.reads_in > 0 {
-                let retention = ratio_u64(record.metrics.reads_out, record.metrics.reads_in);
+            if record.metrics.metrics.reads_in > 0 {
+                let retention = ratio_u64(
+                    record.metrics.metrics.reads_out,
+                    record.metrics.metrics.reads_in,
+                );
                 if retention < 0.1 {
                     flags.push("reads_retention_lt_0.1");
                 }
@@ -339,8 +348,11 @@ fn sanity_flags_umi(records: &[BenchmarkRecord<FastqUmiMetrics>]) -> Vec<serde_j
         .iter()
         .map(|record| {
             let mut flags = Vec::new();
-            if record.metrics.reads_in > 0 {
-                let retention = ratio_u64(record.metrics.reads_out, record.metrics.reads_in);
+            if record.metrics.metrics.reads_in > 0 {
+                let retention = ratio_u64(
+                    record.metrics.metrics.reads_out,
+                    record.metrics.metrics.reads_in,
+                );
                 if retention < 0.1 {
                     flags.push("reads_retention_lt_0.1");
                 }
@@ -369,12 +381,17 @@ fn sanity_flags_merge(records: &[BenchmarkRecord<FastqMergeMetrics>]) -> Vec<ser
 
 fn sanity_flags_stats(records: &[BenchmarkRecord<FastqStatsMetrics>]) -> Vec<serde_json::Value> {
     let runtime_median = median(records.iter().map(|r| r.execution.runtime_s).collect());
-    let gc_median = median(records.iter().map(|r| r.metrics.gc_percent).collect());
+    let gc_median = median(
+        records
+            .iter()
+            .map(|r| r.metrics.metrics.gc_percent)
+            .collect(),
+    );
     records
         .iter()
         .map(|record| {
             let mut flags = Vec::new();
-            if (record.metrics.gc_percent - gc_median).abs() > 10.0 {
+            if (record.metrics.metrics.gc_percent - gc_median).abs() > 10.0 {
                 flags.push("gc_shift_gt_10");
             }
             if runtime_median > 0.0 && record.execution.runtime_s > 10.0 * runtime_median {
@@ -416,20 +433,20 @@ fn sanity_flags_qc2(records: &[BenchmarkRecord<FastqQc2Metrics>]) -> Vec<serde_j
 }
 
 fn derived_trim_metrics(record: &BenchmarkRecord<FastqTrimMetrics>) -> serde_json::Value {
-    let reads_in = record.metrics.reads_in;
-    let bases_in = record.metrics.bases_in;
+    let reads_in = record.metrics.metrics.reads_in;
+    let bases_in = record.metrics.metrics.bases_in;
     let read_retention = if reads_in > 0 {
-        ratio_u64(record.metrics.reads_out, reads_in)
+        ratio_u64(record.metrics.metrics.reads_out, reads_in)
     } else {
         0.0
     };
     let base_retention = if bases_in > 0 {
-        ratio_u64(record.metrics.bases_out, bases_in)
+        ratio_u64(record.metrics.metrics.bases_out, bases_in)
     } else {
         0.0
     };
     let error_reduction_proxy =
-        (record.metrics.mean_q_after - record.metrics.mean_q_before).max(0.0);
+        (record.metrics.metrics.mean_q_after - record.metrics.metrics.mean_q_before).max(0.0);
     serde_json::json!({
         "tool": record.context.tool,
         derived_metric_spec(DerivedMetricId::ReadRetention).name: read_retention,
@@ -439,15 +456,15 @@ fn derived_trim_metrics(record: &BenchmarkRecord<FastqTrimMetrics>) -> serde_jso
 }
 
 fn derived_filter_metrics(record: &BenchmarkRecord<FastqFilterMetrics>) -> serde_json::Value {
-    let reads_in = record.metrics.reads_in;
+    let reads_in = record.metrics.metrics.reads_in;
     let read_retention = if reads_in > 0 {
-        ratio_u64(record.metrics.reads_out, reads_in)
+        ratio_u64(record.metrics.metrics.reads_out, reads_in)
     } else {
         0.0
     };
     let base_retention = read_retention;
     let error_reduction_proxy =
-        (record.metrics.mean_q_after - record.metrics.mean_q_before).max(0.0);
+        (record.metrics.metrics.mean_q_after - record.metrics.metrics.mean_q_before).max(0.0);
     serde_json::json!({
         "tool": record.context.tool,
         derived_metric_spec(DerivedMetricId::ReadRetention).name: read_retention,
@@ -457,9 +474,13 @@ fn derived_filter_metrics(record: &BenchmarkRecord<FastqFilterMetrics>) -> serde
 }
 
 fn derived_merge_metrics(record: &BenchmarkRecord<FastqMergeMetrics>) -> serde_json::Value {
-    let min_reads = record.metrics.reads_r1.min(record.metrics.reads_r2);
+    let min_reads = record
+        .metrics
+        .metrics
+        .reads_r1
+        .min(record.metrics.metrics.reads_r2);
     let merge_efficiency = if min_reads > 0 {
-        ratio_u64(record.metrics.reads_merged, min_reads)
+        ratio_u64(record.metrics.metrics.reads_merged, min_reads)
     } else {
         0.0
     };
@@ -470,20 +491,20 @@ fn derived_merge_metrics(record: &BenchmarkRecord<FastqMergeMetrics>) -> serde_j
 }
 
 fn derived_correct_metrics(record: &BenchmarkRecord<FastqCorrectMetrics>) -> serde_json::Value {
-    let reads_in = record.metrics.reads_in;
-    let bases_in = record.metrics.bases_in;
+    let reads_in = record.metrics.metrics.reads_in;
+    let bases_in = record.metrics.metrics.bases_in;
     let read_retention = if reads_in > 0 {
-        ratio_u64(record.metrics.reads_out, reads_in)
+        ratio_u64(record.metrics.metrics.reads_out, reads_in)
     } else {
         0.0
     };
     let base_retention = if bases_in > 0 {
-        ratio_u64(record.metrics.bases_out, bases_in)
+        ratio_u64(record.metrics.metrics.bases_out, bases_in)
     } else {
         0.0
     };
     let error_reduction_proxy =
-        (record.metrics.mean_q_after - record.metrics.mean_q_before).max(0.0);
+        (record.metrics.metrics.mean_q_after - record.metrics.metrics.mean_q_before).max(0.0);
     serde_json::json!({
         "tool": record.context.tool,
         derived_metric_spec(DerivedMetricId::ReadRetention).name: read_retention,
@@ -493,9 +514,9 @@ fn derived_correct_metrics(record: &BenchmarkRecord<FastqCorrectMetrics>) -> ser
 }
 
 fn derived_umi_metrics(record: &BenchmarkRecord<FastqUmiMetrics>) -> serde_json::Value {
-    let reads_in = record.metrics.reads_in;
+    let reads_in = record.metrics.metrics.reads_in;
     let read_retention = if reads_in > 0 {
-        ratio_u64(record.metrics.reads_out, reads_in)
+        ratio_u64(record.metrics.metrics.reads_out, reads_in)
     } else {
         0.0
     };
@@ -514,10 +535,17 @@ fn rank_trim_tools(
             tool: record.context.tool.clone(),
             runtime_s: record.execution.runtime_s,
             memory_mb: record.execution.memory_mb,
-            read_retention: Some(ratio_u64(record.metrics.reads_out, record.metrics.reads_in)),
-            base_retention: Some(ratio_u64(record.metrics.bases_out, record.metrics.bases_in)),
+            read_retention: Some(ratio_u64(
+                record.metrics.metrics.reads_out,
+                record.metrics.metrics.reads_in,
+            )),
+            base_retention: Some(ratio_u64(
+                record.metrics.metrics.bases_out,
+                record.metrics.metrics.bases_in,
+            )),
             error_reduction_proxy: Some(
-                (record.metrics.mean_q_after - record.metrics.mean_q_before).max(0.0),
+                (record.metrics.metrics.mean_q_after - record.metrics.metrics.mean_q_before)
+                    .max(0.0),
             ),
         })
         .collect();
@@ -533,10 +561,17 @@ fn rank_filter_tools(
             tool: record.context.tool.clone(),
             runtime_s: record.execution.runtime_s,
             memory_mb: record.execution.memory_mb,
-            read_retention: Some(ratio_u64(record.metrics.reads_out, record.metrics.reads_in)),
-            base_retention: Some(ratio_u64(record.metrics.reads_out, record.metrics.reads_in)),
+            read_retention: Some(ratio_u64(
+                record.metrics.metrics.reads_out,
+                record.metrics.metrics.reads_in,
+            )),
+            base_retention: Some(ratio_u64(
+                record.metrics.metrics.reads_out,
+                record.metrics.metrics.reads_in,
+            )),
             error_reduction_proxy: Some(
-                (record.metrics.mean_q_after - record.metrics.mean_q_before).max(0.0),
+                (record.metrics.metrics.mean_q_after - record.metrics.metrics.mean_q_before)
+                    .max(0.0),
             ),
         })
         .collect();
@@ -569,10 +604,17 @@ fn rank_correct_tools(
             tool: record.context.tool.clone(),
             runtime_s: record.execution.runtime_s,
             memory_mb: record.execution.memory_mb,
-            read_retention: Some(ratio_u64(record.metrics.reads_out, record.metrics.reads_in)),
-            base_retention: Some(ratio_u64(record.metrics.bases_out, record.metrics.bases_in)),
+            read_retention: Some(ratio_u64(
+                record.metrics.metrics.reads_out,
+                record.metrics.metrics.reads_in,
+            )),
+            base_retention: Some(ratio_u64(
+                record.metrics.metrics.bases_out,
+                record.metrics.metrics.bases_in,
+            )),
             error_reduction_proxy: Some(
-                (record.metrics.mean_q_after - record.metrics.mean_q_before).max(0.0),
+                (record.metrics.metrics.mean_q_after - record.metrics.metrics.mean_q_before)
+                    .max(0.0),
             ),
         })
         .collect();
@@ -588,7 +630,10 @@ fn rank_umi_tools(
             tool: record.context.tool.clone(),
             runtime_s: record.execution.runtime_s,
             memory_mb: record.execution.memory_mb,
-            read_retention: Some(ratio_u64(record.metrics.reads_out, record.metrics.reads_in)),
+            read_retention: Some(ratio_u64(
+                record.metrics.metrics.reads_out,
+                record.metrics.metrics.reads_in,
+            )),
             base_retention: None,
             error_reduction_proxy: None,
         })

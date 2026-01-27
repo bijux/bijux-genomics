@@ -277,7 +277,7 @@ impl ToolRegistry {
     }
 }
 
-/// Load all manifests from the given modules directory and validate them.
+/// Load all manifests from the given domain directory and validate them.
 ///
 /// # Errors
 /// Returns an error if manifests cannot be read, parsed, or validated.

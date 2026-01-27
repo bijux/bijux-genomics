@@ -1,5 +1,3 @@
-#![allow(unused_imports)]
-
 mod datasets;
 mod helpers;
 mod logging;
@@ -9,7 +7,7 @@ mod stages;
 pub use helpers::ensure_image_qa_passed;
 pub use runner::run_image_qa;
 
-use crate::utils::SeqkitMetrics;
+use crate::SeqkitMetrics;
 use std::path::PathBuf;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

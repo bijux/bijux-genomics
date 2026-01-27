@@ -1,6 +1,6 @@
 use bijux_bench::{
     insert_fastq_trim_v1, open_sqlite, BenchmarkContext, BenchmarkRecord, ExecutionMetrics,
-    FastqTrimMetrics, StageMetricSchema,
+    FastqTrimMetrics, MetricSet, StageMetricSchema,
 };
 
 #[test]
@@ -38,14 +38,14 @@ fn sqlite_insert_fastq_trim_v1() -> Result<(), Box<dyn std::error::Error>> {
             memory_mb: 42.0,
             exit_code: 0,
         },
-        metrics: FastqTrimMetrics {
+        metrics: MetricSet::new(FastqTrimMetrics {
             reads_in: 100,
             reads_out: 90,
             bases_in: 1000,
             bases_out: 900,
             mean_q_before: 30.0,
             mean_q_after: 31.0,
-        },
+        }),
     };
 
     let conn = open_sqlite(std::path::Path::new(":memory:"))?;

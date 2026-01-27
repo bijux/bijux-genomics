@@ -117,6 +117,7 @@ dependencies = [
  "assert_cmd",
  "bijux-bench",
  "bijux-core",
+ "bijux-engine",
  "bijux-environment",
  "clap",
  "rusqlite",
@@ -153,6 +154,26 @@ dependencies = [
  "serde_yaml",
  "thiserror 1.0.69",
  "tracing",
+ "uuid",
+ "walkdir",
+]
+
+[[package]]
+name = "bijux-engine"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "assert_cmd",
+ "bijux-bench",
+ "bijux-core",
+ "bijux-environment",
+ "rusqlite",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tracing",
+ "tracing-appender",
+ "tracing-subscriber",
  "uuid",
  "walkdir",
 ]

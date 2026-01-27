@@ -10,34 +10,35 @@ use bijux_environment::api::{load_image_catalog, load_platform};
 use clap::Parser;
 use tracing::{info, warn};
 
-mod bench;
 mod cli;
 mod env;
-mod image_qa;
 mod replay;
 mod utils;
 
-use bench::{
+use bijux_engine::bench::{
     bench_fastq_correct, bench_fastq_filter, bench_fastq_merge, bench_fastq_preprocess,
     bench_fastq_qc2, bench_fastq_screen, bench_fastq_stats, bench_fastq_trim, bench_fastq_umi,
     bench_fastq_validate, print_bench_schema,
 };
+use bijux_engine::image_qa::run_image_qa;
+use bijux_engine::init_logging;
 use cli::{
-    bench_args_from_trim, bench_args_from_validate, is_bench_requested_trim,
+    bench_args_correct, bench_args_filter, bench_args_from_trim, bench_args_from_validate,
+    bench_args_merge, bench_args_preprocess, bench_args_qc2, bench_args_screen, bench_args_stats,
+    bench_args_trim, bench_args_umi, bench_args_validate, is_bench_requested_trim,
     is_bench_requested_validate, BenchCommand, BenchFastqCommand, Cli, Commands, EnvCommand,
     FastqCommand,
 };
 use env::{env_doctor, print_env_images, print_env_info};
-use image_qa::run_image_qa;
 use replay::replay_run;
-use utils::{init_logging, normalize_run_base_dir};
+use utils::normalize_run_base_dir;
 
 fn main() -> Result<()> {
     let cli = Cli::parse();
     let cwd = std::env::current_dir().context("resolve current directory")?;
-    let modules_dir = cwd.join("modules");
+    let domain_dir = cwd.join("domain");
 
-    if handle_meta_commands(&cli, &modules_dir)? {
+    if handle_meta_commands(&cli, &domain_dir)? {
         return Ok(());
     }
 
@@ -50,19 +51,20 @@ fn main() -> Result<()> {
     profile.run_base_dir = normalize_run_base_dir(&cwd, &profile.run_base_dir);
 
     let registry =
-        load_manifests(&modules_dir).map_err(|err| anyhow!("manifest validation failed: {err}"))?;
+        load_manifests(&domain_dir).map_err(|err| anyhow!("manifest validation failed: {err}"))?;
 
-    if handle_fastq_bench(&cli, &registry, &modules_dir)? {
+    if handle_fastq_bench(&cli, &registry, &domain_dir)? {
         return Ok(());
     }
 
-    run_plan(&cli, &registry, &modules_dir)
+    run_plan(&cli, &registry, &domain_dir)
 }
 
-fn handle_meta_commands(cli: &Cli, modules_dir: &Path) -> Result<bool> {
+#[allow(clippy::too_many_lines)]
+fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
     match &cli.command {
         Commands::ValidateManifests => {
-            let registry = load_manifests(modules_dir)
+            let registry = load_manifests(domain_dir)
                 .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
             println!(
                 "validated {} stages and {} tools",
@@ -115,34 +117,44 @@ fn handle_meta_commands(cli: &Cli, modules_dir: &Path) -> Result<bool> {
             match command {
                 BenchCommand::Fastq { command } => match command {
                     BenchFastqCommand::Trim(args) => {
-                        bench_fastq_trim(&catalog, &platform, None, args)?;
+                        bench_fastq_trim(&catalog, &platform, None, &bench_args_trim(args))?;
                     }
                     BenchFastqCommand::Validate(args) => {
-                        bench_fastq_validate(&catalog, &platform, None, args)?;
+                        bench_fastq_validate(
+                            &catalog,
+                            &platform,
+                            None,
+                            &bench_args_validate(args),
+                        )?;
                     }
                     BenchFastqCommand::Filter(args) => {
-                        bench_fastq_filter(&catalog, &platform, None, args)?;
+                        bench_fastq_filter(&catalog, &platform, None, &bench_args_filter(args))?;
                     }
                     BenchFastqCommand::Merge(args) => {
-                        bench_fastq_merge(&catalog, &platform, None, args)?;
+                        bench_fastq_merge(&catalog, &platform, None, &bench_args_merge(args))?;
                     }
                     BenchFastqCommand::Stats(args) => {
-                        bench_fastq_stats(&catalog, &platform, None, args)?;
+                        bench_fastq_stats(&catalog, &platform, None, &bench_args_stats(args))?;
                     }
                     BenchFastqCommand::Correct(args) => {
-                        bench_fastq_correct(&catalog, &platform, None, args)?;
+                        bench_fastq_correct(&catalog, &platform, None, &bench_args_correct(args))?;
                     }
                     BenchFastqCommand::Qc2(args) => {
-                        bench_fastq_qc2(&catalog, &platform, None, args)?;
+                        bench_fastq_qc2(&catalog, &platform, None, &bench_args_qc2(args))?;
                     }
                     BenchFastqCommand::Umi(args) => {
-                        bench_fastq_umi(&catalog, &platform, None, args)?;
+                        bench_fastq_umi(&catalog, &platform, None, &bench_args_umi(args))?;
                     }
                     BenchFastqCommand::Screen(args) => {
-                        bench_fastq_screen(&catalog, &platform, None, args)?;
+                        bench_fastq_screen(&catalog, &platform, None, &bench_args_screen(args))?;
                     }
                     BenchFastqCommand::Preprocess(args) => {
-                        bench_fastq_preprocess(&catalog, &platform, None, args)?;
+                        bench_fastq_preprocess(
+                            &catalog,
+                            &platform,
+                            None,
+                            &bench_args_preprocess(args),
+                        )?;
                     }
                 },
                 BenchCommand::Schema { stage } => {
@@ -158,7 +170,7 @@ fn handle_meta_commands(cli: &Cli, modules_dir: &Path) -> Result<bool> {
 fn handle_fastq_bench(
     cli: &Cli,
     registry: &bijux_core::ToolRegistry,
-    _modules_dir: &Path,
+    _domain_dir: &Path,
 ) -> Result<bool> {
     let Commands::Fastq { command } = &cli.command else {
         return Ok(false);
@@ -204,7 +216,7 @@ fn handle_fastq_bench(
     }
 }
 
-fn run_plan(cli: &Cli, registry: &bijux_core::ToolRegistry, modules_dir: &Path) -> Result<()> {
+fn run_plan(cli: &Cli, registry: &bijux_core::ToolRegistry, domain_dir: &Path) -> Result<()> {
     let (stage, tool, common) = cli::resolve_stage_tool(&cli.command);
 
     let run_id = new_run_id();
@@ -230,7 +242,7 @@ fn run_plan(cli: &Cli, registry: &bijux_core::ToolRegistry, modules_dir: &Path) 
     let _log_guard = init_logging(&log_path)?;
 
     println!("{}", serde_json::to_string_pretty(&plan)?);
-    println!("manifests: {}", modules_dir.display());
+    println!("manifests: {}", domain_dir.display());
 
     if !common.dry_run {
         warn!(

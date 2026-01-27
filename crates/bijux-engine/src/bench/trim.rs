@@ -4,14 +4,14 @@ use std::time::Instant;
 use anyhow::{anyhow, Context, Result};
 use bijux_bench::{
     append_jsonl, fetch_fastq_trim_v1, insert_fastq_trim_v1, BenchmarkContext, BenchmarkRecord,
-    ExecutionMetrics, FastqTrimMetrics, StageMetricSchema,
+    ExecutionMetrics, FastqTrimMetrics, MetricSet,
 };
 use bijux_core::load_manifests;
 use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 use uuid::Uuid;
 
 use crate::image_qa::ensure_image_qa_passed;
-use crate::utils::{
+use crate::{
     bench_base_dir, bench_tools_dir, docker_rm, docker_stats_mb, hash_file_sha256,
     input_fastq_stats, output_fastq_stats, run_tool_container, validate_execution_outputs,
 };
@@ -28,14 +28,14 @@ pub fn bench_fastq_trim(
     catalog: &std::collections::HashMap<String, ToolImageSpec>,
     platform: &PlatformSpec,
     runner_override: Option<RunnerKind>,
-    args: &crate::cli::BenchFastqTrimArgs,
+    args: &crate::bench::args::BenchFastqTrimArgs,
 ) -> Result<()> {
     let runner = runner_override.unwrap_or(platform.runner);
     if runner != RunnerKind::Docker {
         return Err(anyhow!("benchmarking supports docker only for now"));
     }
     let tools = normalize_tool_list(&args.tools)?;
-    let registry = load_manifests(&std::env::current_dir()?.join("modules"))
+    let registry = load_manifests(&std::env::current_dir()?.join("domain"))
         .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let bench_dir = bench_base_dir(&args.out, "trim", &args.sample_id);
     let tools_root = bench_tools_dir(&args.out, "trim", &args.sample_id);
@@ -118,7 +118,8 @@ pub fn bench_fastq_trim(
                 mean_q_before: input_stats.mean_q,
                 mean_q_after: output_stats.mean_q,
             };
-            metrics.validate()?;
+            let metric_set = MetricSet::new(metrics);
+            metric_set.validate()?;
 
             let manifest = ExecutionManifest {
                 run_id: run_id.clone(),
@@ -155,11 +156,11 @@ pub fn bench_fastq_trim(
                 memory_mb,
                 exit_code: execution.exit_code,
             };
-            write_metrics_json(&run_dirs, &execution_metrics, &metrics)?;
+            write_metrics_json(&run_dirs, &execution_metrics, &metric_set)?;
             let record = BenchmarkRecord {
                 context,
                 execution: execution_metrics,
-                metrics,
+                metrics: metric_set,
             };
             record.validate()?;
             Ok(record)
@@ -195,42 +196,44 @@ fn check_fastq_trim_comparability(records: &[BenchmarkRecord<FastqTrimMetrics>])
         return;
     }
     let first = &records[0];
-    let mut reads_in = first.metrics.reads_in;
-    let mut bases_in = first.metrics.bases_in;
-    let mut mean_q_before = first.metrics.mean_q_before;
+    let mut reads_in = first.metrics.metrics.reads_in;
+    let mut bases_in = first.metrics.metrics.bases_in;
+    let mut mean_q_before = first.metrics.metrics.mean_q_before;
 
     for record in records.iter().skip(1) {
-        if record.metrics.reads_in != reads_in {
+        if record.metrics.metrics.reads_in != reads_in {
             tracing::warn!(
                 tool = record.context.tool,
-                reads_in = record.metrics.reads_in,
+                reads_in = record.metrics.metrics.reads_in,
                 "reads_in differs from baseline"
             );
-            reads_in = record.metrics.reads_in;
+            reads_in = record.metrics.metrics.reads_in;
         }
-        if record.metrics.bases_in != bases_in {
+        if record.metrics.metrics.bases_in != bases_in {
             tracing::warn!(
                 tool = record.context.tool,
-                bases_in = record.metrics.bases_in,
+                bases_in = record.metrics.metrics.bases_in,
                 "bases_in differs from baseline"
             );
-            bases_in = record.metrics.bases_in;
+            bases_in = record.metrics.metrics.bases_in;
         }
-        if (record.metrics.mean_q_before - mean_q_before).abs() > 1e-6 {
+        if (record.metrics.metrics.mean_q_before - mean_q_before).abs() > 1e-6 {
             tracing::warn!(
                 tool = record.context.tool,
-                mean_q_before = record.metrics.mean_q_before,
+                mean_q_before = record.metrics.metrics.mean_q_before,
                 "mean_q_before differs from baseline"
             );
-            mean_q_before = record.metrics.mean_q_before;
+            mean_q_before = record.metrics.metrics.mean_q_before;
         }
-        if record.metrics.reads_in > 0 {
-            let loss = 1.0 - (record.metrics.reads_out as f64 / record.metrics.reads_in as f64);
+        if record.metrics.metrics.reads_in > 0 {
+            let loss = 1.0
+                - (record.metrics.metrics.reads_out as f64
+                    / record.metrics.metrics.reads_in as f64);
             if loss < -1e-6 {
                 tracing::warn!(
                     tool = record.context.tool,
-                    reads_in = record.metrics.reads_in,
-                    reads_out = record.metrics.reads_out,
+                    reads_in = record.metrics.metrics.reads_in,
+                    reads_out = record.metrics.metrics.reads_out,
                     "reads_out exceeds reads_in"
                 );
             }

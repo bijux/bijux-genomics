@@ -3,7 +3,7 @@ use std::process::Command;
 
 use anyhow::{anyhow, Context, Result};
 
-use crate::bench::helpers::ExecutionManifest;
+use bijux_engine::bench::ExecutionManifest;
 
 pub fn replay_run(run_id: &str, search_root: &Path) -> Result<()> {
     let manifest_path = find_manifest(search_root, run_id)?

@@ -5,6 +5,7 @@ members = [
   "crates/bijux-cli",
   "crates/bijux-bench",
   "crates/bijux-environment",
+  "crates/bijux-engine",
 ]
 
 [workspace.package]

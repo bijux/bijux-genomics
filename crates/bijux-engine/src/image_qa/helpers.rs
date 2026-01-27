@@ -4,13 +4,11 @@ use std::path::PathBuf;
 
 use anyhow::{anyhow, Context, Result};
 use bijux_bench::{image_qa_passed, ImageQaOutcome, ImageQaRecord};
-use bijux_environment::api::{
-    docker_image_exists, resolve_image, PlatformSpec, ResolvedImage, ToolImageSpec,
-};
-use tracing::warn;
+use bijux_environment::api::{PlatformSpec, ToolImageSpec};
 use uuid::Uuid;
 
 use super::QaStage;
+use crate::resolve_image_for_run;
 
 pub(crate) fn temp_out_dir(stage: &str, tool: &str) -> Result<PathBuf> {
     let base = std::env::temp_dir().join("bijux-image-qa").join(stage);
@@ -76,34 +74,6 @@ pub(crate) fn qa_already_passed(
     )?)
 }
 
-pub(crate) fn resolve_image_for_run(
-    spec: &ToolImageSpec,
-    platform: &PlatformSpec,
-) -> Result<ResolvedImage> {
-    let image = resolve_image(spec, platform)?;
-    if docker_image_exists(&image) {
-        return Ok(image);
-    }
-    if spec.digest.is_some() {
-        let fallback = ResolvedImage {
-            full_name: format!(
-                "{}/{}:{}-{}",
-                platform.image_prefix, spec.tool, spec.version, platform.arch
-            ),
-            arch: platform.arch.clone(),
-            runner: platform.runner,
-        };
-        if docker_image_exists(&fallback) {
-            warn!(
-                "digest image missing locally; falling back to tag {}",
-                fallback.full_name
-            );
-            return Ok(fallback);
-        }
-    }
-    Err(anyhow!("docker image not found: {}", image.full_name))
-}
-
 pub fn ensure_image_qa_passed(
     stage: &str,
     tools: &[String],
@@ -111,7 +81,7 @@ pub fn ensure_image_qa_passed(
     catalog: &HashMap<String, ToolImageSpec>,
 ) -> Result<()> {
     let cwd = std::env::current_dir().map_err(|err| anyhow!("failed to resolve cwd: {err}"))?;
-    let qa_sqlite = crate::utils::image_qa_sqlite_path(&cwd, &platform.name);
+    let qa_sqlite = crate::image_qa_sqlite_path(&cwd, &platform.name);
     if !qa_sqlite.exists() {
         return Err(anyhow!(
             "image QA results missing; run `bijux image-qa --platform {}`",

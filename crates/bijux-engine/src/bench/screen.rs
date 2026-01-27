@@ -9,7 +9,7 @@ pub fn bench_fastq_screen(
     catalog: &std::collections::HashMap<String, ToolImageSpec>,
     platform: &PlatformSpec,
     runner_override: Option<RunnerKind>,
-    args: &crate::cli::BenchFastqScreenArgs,
+    args: &crate::bench::args::BenchFastqScreenArgs,
 ) -> Result<()> {
     let _ = runner_override;
     let tools = normalize_screen_tool_list(&args.tools)?;

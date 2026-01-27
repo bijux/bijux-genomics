@@ -19,7 +19,7 @@ run_base_dir: \"./runs\"\n",
 }
 
 fn write_manifests(temp: &TempDir) -> Result<(), Box<dyn std::error::Error>> {
-    let trim_dir = temp.path().join("modules").join("fastq").join("trim");
+    let trim_dir = temp.path().join("domain").join("fastq").join("trim");
     let stage_dir = trim_dir.join("tools");
     fs::create_dir_all(&stage_dir)?;
     fs::write(

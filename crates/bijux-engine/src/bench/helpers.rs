@@ -1,28 +1,36 @@
-use anyhow::{anyhow, Context, Result};
-use bijux_environment::api::{
-    docker_image_exists, resolve_image, PlatformSpec, ResolvedImage, ToolImageSpec,
+use crate::bench_tools_dir;
+use crate::{
+    normalize_correct_tool_list as engine_normalize_correct_tool_list,
+    normalize_filter_tool_list as engine_normalize_filter_tool_list,
+    normalize_merge_tool_list as engine_normalize_merge_tool_list,
+    normalize_qc2_tool_list as engine_normalize_qc2_tool_list,
+    normalize_screen_tool_list as engine_normalize_screen_tool_list,
+    normalize_stats_tool_list as engine_normalize_stats_tool_list,
+    normalize_trim_tool_list as engine_normalize_trim_tool_list,
+    normalize_umi_tool_list as engine_normalize_umi_tool_list,
+    normalize_validate_tool_list as engine_normalize_validate_tool_list,
+    resolve_image_for_run as engine_resolve_image_for_run,
 };
+use anyhow::{anyhow, Context, Result};
+use bijux_environment::api::{PlatformSpec, ResolvedImage, ToolImageSpec};
 use serde::Serialize;
 use sha2::Digest;
 use std::path::{Path, PathBuf};
-use tracing::warn;
-
-use crate::utils::bench_tools_dir;
 
 #[derive(Debug, Serialize, serde::Deserialize)]
-pub(crate) struct ExecutionManifest {
-    pub(crate) run_id: String,
-    pub(crate) stage: String,
-    pub(crate) tool: String,
-    pub(crate) tool_version: String,
-    pub(crate) image_digest: String,
-    pub(crate) command: String,
-    pub(crate) input_hashes: Vec<String>,
-    pub(crate) input_files: Vec<String>,
-    pub(crate) output_dir: String,
-    pub(crate) runner: String,
-    pub(crate) platform: String,
-    pub(crate) arch: String,
+pub struct ExecutionManifest {
+    pub run_id: String,
+    pub stage: String,
+    pub tool: String,
+    pub tool_version: String,
+    pub image_digest: String,
+    pub command: String,
+    pub input_hashes: Vec<String>,
+    pub input_files: Vec<String>,
+    pub output_dir: String,
+    pub runner: String,
+    pub platform: String,
+    pub arch: String,
 }
 
 #[derive(Debug)]
@@ -72,6 +80,7 @@ pub(crate) fn prepare_tool_run_dirs(
     })
 }
 
+#[allow(dead_code)]
 pub(crate) fn tool_run_artifacts_dir(
     out: &Path,
     stage: &str,
@@ -112,120 +121,46 @@ pub(crate) fn write_metrics_json<T: serde::Serialize>(
 }
 
 pub(crate) fn normalize_tool_list(tools: &[String]) -> Result<Vec<String>> {
-    let allowed = [
-        "fastp",
-        "cutadapt",
-        "bbduk",
-        "adapterremoval",
-        "trimmomatic",
-        "trim_galore",
-        "atropos",
-        "seqpurge",
-    ];
-    let mut allowlist = allowed.to_vec();
-    if std::env::var("BIJUX_EXPERIMENTAL_TOOLS").is_err() {
-        allowlist.retain(|tool| *tool != "seqpurge");
-    }
-    normalize_tools_with_allowlist(tools, &allowlist)
+    engine_normalize_trim_tool_list(tools)
 }
 
 pub(crate) fn normalize_validate_tool_list(tools: &[String]) -> Result<Vec<String>> {
-    let allowed = [
-        "seqtk",
-        "fastqc",
-        "fastqvalidator",
-        "fastqvalidator_official",
-        "fqtools",
-    ];
-    normalize_tools_with_allowlist(tools, &allowed)
+    engine_normalize_validate_tool_list(tools)
 }
 
 pub(crate) fn normalize_filter_tool_list(tools: &[String]) -> Result<Vec<String>> {
-    let allowed = ["prinseq", "fastp", "seqkit"];
-    normalize_tools_with_allowlist(tools, &allowed)
+    engine_normalize_filter_tool_list(tools)
 }
 
 pub(crate) fn normalize_merge_tool_list(tools: &[String]) -> Result<Vec<String>> {
-    let allowed = ["pear", "vsearch", "bbmerge", "flash2"];
-    normalize_tools_with_allowlist(tools, &allowed)
+    engine_normalize_merge_tool_list(tools)
 }
 
 pub(crate) fn normalize_correct_tool_list(tools: &[String]) -> Result<Vec<String>> {
-    let allowed = ["rcorrector", "spades", "bayeshammer", "lighter", "musket"];
-    let mut allowlist = allowed.to_vec();
-    if std::env::var("BIJUX_EXPERIMENTAL_TOOLS").is_err() {
-        allowlist.retain(|tool| *tool == "rcorrector");
-    }
-    normalize_tools_with_allowlist(tools, &allowlist)
+    engine_normalize_correct_tool_list(tools)
 }
 
 pub(crate) fn normalize_qc2_tool_list(tools: &[String]) -> Result<Vec<String>> {
-    let allowed = ["fastqc", "multiqc"];
-    normalize_tools_with_allowlist(tools, &allowed)
+    engine_normalize_qc2_tool_list(tools)
 }
 
 pub(crate) fn normalize_umi_tool_list(tools: &[String]) -> Result<Vec<String>> {
-    let allowed = ["umi_tools"];
-    normalize_tools_with_allowlist(tools, &allowed)
+    engine_normalize_umi_tool_list(tools)
 }
 
 pub(crate) fn normalize_screen_tool_list(tools: &[String]) -> Result<Vec<String>> {
-    let allowed = [
-        "kraken2",
-        "centrifuge",
-        "metaphlan",
-        "kaiju",
-        "fastq_screen",
-    ];
-    normalize_tools_with_allowlist(tools, &allowed)
+    engine_normalize_screen_tool_list(tools)
 }
 
 pub(crate) fn normalize_stats_tool_list(tools: &[String]) -> Result<Vec<String>> {
-    let allowed = ["seqkit_stats"];
-    normalize_tools_with_allowlist(tools, &allowed)
-}
-
-fn normalize_tools_with_allowlist(tools: &[String], allowlist: &[&str]) -> Result<Vec<String>> {
-    let mut normalized: Vec<String> = tools.iter().map(|tool| tool.to_lowercase()).collect();
-    normalized.sort();
-    normalized.dedup();
-    if normalized.is_empty() {
-        return Err(anyhow!("no tools specified"));
-    }
-    for tool in &normalized {
-        if !allowlist.contains(&tool.as_str()) {
-            return Err(anyhow!("unsupported tool: {tool}"));
-        }
-    }
-    Ok(normalized)
+    engine_normalize_stats_tool_list(tools)
 }
 
 pub(crate) fn resolve_image_for_run(
     spec: &ToolImageSpec,
     platform: &PlatformSpec,
 ) -> Result<ResolvedImage> {
-    let image = resolve_image(spec, platform)?;
-    if docker_image_exists(&image) {
-        return Ok(image);
-    }
-    if spec.digest.is_some() {
-        let fallback = ResolvedImage {
-            full_name: format!(
-                "{}/{}:{}-{}",
-                platform.image_prefix, spec.tool, spec.version, platform.arch
-            ),
-            arch: platform.arch.clone(),
-            runner: platform.runner,
-        };
-        if docker_image_exists(&fallback) {
-            warn!(
-                "digest image missing locally; falling back to tag {}",
-                fallback.full_name
-            );
-            return Ok(fallback);
-        }
-    }
-    Err(anyhow!("docker image not found: {}", image.full_name))
+    engine_resolve_image_for_run(spec, platform)
 }
 
 #[allow(clippy::cast_precision_loss)]
@@ -289,6 +224,7 @@ pub(crate) struct DeltaMetrics {
 }
 
 impl DeltaMetrics {
+    #[allow(dead_code)]
     pub(crate) fn validate(&self) -> Result<()> {
         if !self.delta_mean_q.is_finite() {
             return Err(anyhow!("delta_mean_q must be finite"));
@@ -306,9 +242,10 @@ impl DeltaMetrics {
     }
 }
 
+#[allow(dead_code)]
 pub(crate) fn delta_metrics(
-    before: crate::utils::SeqkitMetrics,
-    after: crate::utils::SeqkitMetrics,
+    before: crate::SeqkitMetrics,
+    after: crate::SeqkitMetrics,
 ) -> DeltaMetrics {
     let read_retention = if before.reads > 0 {
         ratio_u64(after.reads, before.reads)
