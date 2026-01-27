@@ -1,23 +1,19 @@
 # seqpurge Dockerfile (ARM64)
 # License: Apache-2.0
-FROM ubuntu:20.04
+
+# Stage 1: Build ngs-bits core + SeqPurge
+FROM ubuntu:24.04 AS builder
+
 ENV DEBIAN_FRONTEND=noninteractive
-
 ARG SEQPURGE_VERSION=2025_05
-ENV SEQPURGE_VERSION=${SEQPURGE_VERSION}
 
-# Install dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    g++ \
+    build-essential \
     qtbase5-dev \
     qt5-qmake \
     libqt5xmlpatterns5-dev \
     libqt5charts5-dev \
-    libqt5sql5-mysql \
-    libqt5sql5-psql \
-    libqt5sql5-sqlite \
-    libqt5xml5 \
-    libqt5sql5 \
+    libqt5svg5-dev \
     zlib1g-dev \
     libbz2-dev \
     liblzma-dev \
@@ -28,34 +24,46 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates && \
     rm -rf /var/lib/apt/lists/*
 
-# Clone and patch ngs-bits
-RUN git clone --recursive https://github.com/imgag/ngs-bits.git /opt/ngs-bits && \
-    cd /opt/ngs-bits && \
-    git checkout ${SEQPURGE_VERSION} && \
-    make build_libs_release -j$(nproc) && \
-    make build_tools_release -j$(nproc) && \
-    cp bin/SeqPurge /usr/local/bin/seqpurge-bin && \
-    cp bin/*.so* /usr/local/lib/ && \
-    ldconfig
+WORKDIR /opt
 
-# Cleanup
-RUN apt-get purge -y g++ qt5-qmake git pkg-config && \
-    apt-get autoremove -y && \
-    rm -rf /opt/ngs-bits /var/lib/apt/lists/*
+RUN git clone --recursive --depth 1 --branch ${SEQPURGE_VERSION} \
+        https://github.com/imgag/ngs-bits.git
 
-# Create a wrapper script for unified SeqPurge execution
-RUN echo '#!/bin/sh' > /usr/local/bin/seqpurge && \
-    echo 'if [ "$1" = "--version" ]; then' >> /usr/local/bin/seqpurge && \
-    echo '    echo "$SEQPURGE_VERSION"' >> /usr/local/bin/seqpurge && \
-    echo '    exit 0' >> /usr/local/bin/seqpurge && \
-    echo 'elif [ "$1" = "--help" ]; then' >> /usr/local/bin/seqpurge && \
-    echo '    /usr/local/bin/seqpurge-bin --help' >> /usr/local/bin/seqpurge && \
-    echo '    exit 0' >> /usr/local/bin/seqpurge && \
-    echo 'else' >> /usr/local/bin/seqpurge && \
-    echo '    /usr/local/bin/seqpurge-bin "$@"' >> /usr/local/bin/seqpurge && \
-    echo 'fi' >> /usr/local/bin/seqpurge && \
-    chmod +x /usr/local/bin/seqpurge
+WORKDIR /opt/ngs-bits
+
+ENV SKIP_TESTS=1
+RUN make build_libs_release -j$(nproc) SKIP_TESTS=1 && \
+    make build_tools_release -j$(nproc) TOOLS=SeqPurge SKIP_TESTS=1
+
+# sanity check
+RUN test -x bin/SeqPurge
+
+# Stage 2: Runtime image
+FROM ubuntu:24.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libqt5core5a \
+    libqt5xmlpatterns5 \
+    libqt5charts5 \
+    libqt5svg5 \
+    libqt5sql5 \
+    libqt5sql5-sqlite \
+    libxml2 \
+    zlib1g \
+    libbz2-1.0 \
+    liblzma5 \
+    libhts3 \
+    libgomp1 \
+    ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /opt/ngs-bits/bin/SeqPurge /usr/local/bin/seqpurge
+COPY --from=builder /opt/ngs-bits/bin/*.so* /usr/local/lib/
+RUN ldconfig
 
 WORKDIR /data
-ENTRYPOINT ["/bin/sh", "-c", "seqpurge \"$@\""]
+
+ENTRYPOINT ["/usr/local/bin/seqpurge"]
 CMD ["--help"]

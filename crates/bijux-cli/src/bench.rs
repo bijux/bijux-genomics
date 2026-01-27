@@ -518,6 +518,16 @@ fn run_filter_tool(
         .output_fastq
         .as_ref()
         .ok_or_else(|| anyhow!("output fastq missing"))?;
+    let out_fastq = if out_fastq.exists() {
+        out_fastq.clone()
+    } else {
+        let alt = out_fastq.with_extension("");
+        if alt.exists() {
+            alt
+        } else {
+            return Err(anyhow!("output fastq missing"));
+        }
+    };
     let output_stats = output_fastq_stats(
         &resolve_image_for_run(
             catalog
@@ -526,7 +536,7 @@ fn run_filter_tool(
             platform,
         )?,
         &out_dir,
-        out_fastq,
+        &out_fastq,
     )?;
 
     let reads_in = bench_inputs.input_stats.reads;
@@ -750,7 +760,7 @@ fn normalize_filter_tool_list(tools: &[String]) -> Result<Vec<String>> {
         if name.is_empty() {
             continue;
         }
-        if name != "bbduk" {
+        if name != "prinseq" && name != "fastp" && name != "seqkit" {
             return Err(anyhow!("unsupported tool: {name}"));
         }
         result.push(name);
@@ -768,7 +778,7 @@ fn normalize_merge_tool_list(tools: &[String]) -> Result<Vec<String>> {
         if name.is_empty() {
             continue;
         }
-        if name != "pear" {
+        if name != "pear" && name != "vsearch" && name != "bbmerge" && name != "flash2" {
             return Err(anyhow!("unsupported tool: {name}"));
         }
         result.push(name);

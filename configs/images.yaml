@@ -15,7 +15,7 @@ seqkit:
 
 bbduk:
   version: "39.08"
-  digest: "sha256:da5764715915a5edeb0e40e2c18a5ce7142f31dac8e4844bd2dcb463403b8bd4"
+  digest: "sha256:2c2188caebf76193734a93d4a8975c6d21dd68888fccbf156e42803a26338af5"
 
 adapterremoval:
   version: "2.3.3"
@@ -35,7 +35,7 @@ seqtk:
 
 fastqc:
   version: "0.12.1"
-  digest: "sha256:907de540686ca17321afe5701c67a6c30f941e5486ec1cc817118351b7ba3752"
+  digest: "sha256:55963e17aebb78f047b43e6001855ce18ede30eb68e403f478bb3d9580062d60"
 
 fastqvalidator:
   version: "0.1.1"
@@ -43,8 +43,28 @@ fastqvalidator:
 
 fqtools:
   version: "2.3"
-  digest: "sha256:1482116af09a80d5ab4a43d409733e8f760b09755f414e3f03250a78bcbf397e"
+  digest: "sha256:9b858e23676cc3bc033c56fb78934704380d8121867b0ac8eecdbdaf8f7c5b02"
+
+prinseq:
+  version: "1.2.4"
+  digest: "sha256:7216ffecd7913edaea33ec76b3775ab0cb0d60064f31e96c63e043d578a3f971"
 
 pear:
   version: "0.9.6"
-  digest: "sha256:TODO"
+  digest: "sha256:4e00e9ffabc5ed46115efab5b6bae946913f1713bb314fd4acb7c379c37efae6"
+
+vsearch:
+  version: "2.28.1"
+  digest: "sha256:c16ef98d6fd67ac0b8eea3ebb4f3dc6df9c582d6f838317d5f6ccc7a09e60bb3"
+
+bbmerge:
+  version: "39.01"
+  digest: "sha256:6182848b989c8dbf094e06c486190b5d54243ac8eea542daa2c5c059a11bba54"
+
+flash2:
+  version: "2.2.00"
+  digest: "sha256:e3dfc866d56d1ca6d62c58ade5981e0b00fc3c8bf8148ecbd196ab56293e1dd5"
+
+seqpurge:
+  version: "2025_05"
+  digest: "sha256:65c1249b64696ad0783c6409126e45f8025851fd4eaf7f651b2df9bda2a0a662"

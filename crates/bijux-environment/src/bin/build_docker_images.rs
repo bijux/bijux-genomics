@@ -108,7 +108,6 @@ fn parse_list_arg(args: &[String], name: &str) -> Option<HashSet<String>> {
 fn reorder_tools(
     mut tools: Vec<bijux_environment::DockerToolSpec>,
 ) -> Vec<bijux_environment::DockerToolSpec> {
-    tools.retain(|tool| tool.name != "seqpurge");
     let priority = [
         "fastp",
         "cutadapt",

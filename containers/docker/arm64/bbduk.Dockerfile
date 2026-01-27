@@ -22,5 +22,5 @@ RUN echo '#!/bin/sh' > /usr/local/bin/bbduk && \
     chmod +x /usr/local/bin/bbduk
 
 WORKDIR /data
-ENTRYPOINT ["/bin/sh", "-c", "bbduk \"$@\""]
+ENTRYPOINT ["bbduk"]
 CMD ["--help"]

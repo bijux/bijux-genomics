@@ -10,6 +10,8 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         bash \
         perl \
+        fontconfig \
+        fonts-dejavu-core \
         libharfbuzz0b \
         unzip \
         wget \

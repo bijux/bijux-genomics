@@ -1,11 +1,11 @@
-SHELL := /bin/sh
-PLATFORM ?= docker-mac-arm64
-TOOLS_TRIM ?= fastp,cutadapt,bbduk,adapterremoval,trimmomatic,trim_galore
-TOOLS_VALIDATE ?= seqtk,fastqc,fastqvalidator,fqtools
-TOOLS_FILTER ?= prinseq,fastp,seqkit
-TOOLS_MERGE ?= pear,vsearch,bbmerge,flash2
+SHELL 			:= /bin/sh
+PLATFORM 		?= docker-mac-arm64
+TOOLS_TRIM 		?= fastp,cutadapt,bbduk,adapterremoval,trimmomatic,trim_galore
+TOOLS_VALIDATE 	?= seqtk,fastqc,fastqvalidator,fqtools
+TOOLS_FILTER 	?= prinseq,fastp,seqkit
+TOOLS_MERGE 	?= pear,vsearch,bbmerge,flash2
 
-.PHONY: build-images test-images benchmark-trim benchmark-validate benchmark-filter benchmark-merge \
+.PHONY: build-images test-images image-qa benchmark-trim benchmark-validate benchmark-filter benchmark-merge \
 	test-images-trim test-images-validate test-images-filter test-images-merge lint quality security test
 
 build-images:
@@ -13,6 +13,9 @@ build-images:
 
 test-images:
 	cargo run --bin test_docker_images -- --platform $(PLATFORM)
+
+image-qa:
+	cargo run --bin image_qa -- --platform $(PLATFORM)
 
 test-images-trim:
 	cargo run --bin test_docker_images -- --platform $(PLATFORM) --tools fastp,cutadapt,bbduk,adapterremoval,trimmomatic,trim_galore

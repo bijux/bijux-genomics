@@ -19,3 +19,6 @@
 
 data/
 artifacts/
+!tests/data/
+!tests/data/fastq/
+!tests/data/fastq/*.fastq.gz

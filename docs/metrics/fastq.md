@@ -6,8 +6,8 @@ This document defines the FASTQ metric layer for bijux-dna. It is a scientific c
 
 - `fastq.trim` — trimming and preprocessing
 - `fastq.validate` — validation and basic statistics
-- `fastq.filter` — quality-based filtering (schema defined; benchmark pending)
-- `fastq.merge` — read merging (schema defined; benchmark pending)
+- `fastq.filter` — quality-based filtering
+- `fastq.merge` — read merging
 
 ## Stage schemas
 
@@ -96,8 +96,21 @@ bijux bench schema fastq.merge
 - base_retention: bases_out / bases_in (trim).
 - merge_efficiency: reads_merged / min(reads_r1, reads_r2) (merge).
 
+## Tool coverage
+
+Filter tools in the benchmark harness:
+- prinseq
+- fastp
+- seqkit
+
+Merge tools in the benchmark harness:
+- pear
+- vsearch
+- bbmerge
+- flash2
+
 ## Known limitations
 
 - Validation tools differ in how they count invalid reads; `reads_valid` may collapse to 0/total for pass/fail tools.
 - Mean quality is computed via tool-specific logic and may differ slightly across tools.
-- `fastq.filter` and `fastq.merge` are schema-stable but may not yet have full benchmark harness coverage.
+- `fastq.filter` and `fastq.merge` are schema-stable; tool coverage expands over time.
