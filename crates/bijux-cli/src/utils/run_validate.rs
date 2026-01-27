@@ -54,7 +54,7 @@ pub fn run_validate_container(
             push_arg(&mut cmd, &mut args, "/data/output");
             push_arg(&mut cmd, &mut args, input_path.clone());
         }
-        "fastqvalidator" => {
+        "fastqvalidator" | "fastqvalidator_official" => {
             push_arg(&mut cmd, &mut args, "fastq-validator");
             push_arg(&mut cmd, &mut args, "--file");
             push_arg(&mut cmd, &mut args, input_path.clone());
@@ -64,6 +64,19 @@ pub fn run_validate_container(
             push_arg(&mut cmd, &mut args, "fqtools");
             push_arg(&mut cmd, &mut args, "count");
             push_arg(&mut cmd, &mut args, input_path.clone());
+        }
+        "seqkit_stats" => {
+            push_arg(&mut cmd, &mut args, "seqkit");
+            push_arg(&mut cmd, &mut args, "stats");
+            push_arg(&mut cmd, &mut args, "-a");
+            push_arg(&mut cmd, &mut args, "-T");
+            push_arg(&mut cmd, &mut args, input_path.clone());
+        }
+        "multiqc" => {
+            push_arg(&mut cmd, &mut args, "multiqc");
+            push_arg(&mut cmd, &mut args, "-o");
+            push_arg(&mut cmd, &mut args, "/data/output");
+            push_arg(&mut cmd, &mut args, "/data/input");
         }
         _ => return Err(anyhow!("unsupported tool: {tool}")),
     }
@@ -137,7 +150,7 @@ pub fn run_validate_container_with_timeout(
             push_arg(&mut cmd, &mut args, "/data/output");
             push_arg(&mut cmd, &mut args, input_path.clone());
         }
-        "fastqvalidator" => {
+        "fastqvalidator" | "fastqvalidator_official" => {
             push_arg(&mut cmd, &mut args, "fastq-validator");
             push_arg(&mut cmd, &mut args, "--file");
             push_arg(&mut cmd, &mut args, input_path.clone());
@@ -147,6 +160,19 @@ pub fn run_validate_container_with_timeout(
             push_arg(&mut cmd, &mut args, "fqtools");
             push_arg(&mut cmd, &mut args, "count");
             push_arg(&mut cmd, &mut args, input_path.clone());
+        }
+        "seqkit_stats" => {
+            push_arg(&mut cmd, &mut args, "seqkit");
+            push_arg(&mut cmd, &mut args, "stats");
+            push_arg(&mut cmd, &mut args, "-a");
+            push_arg(&mut cmd, &mut args, "-T");
+            push_arg(&mut cmd, &mut args, input_path.clone());
+        }
+        "multiqc" => {
+            push_arg(&mut cmd, &mut args, "multiqc");
+            push_arg(&mut cmd, &mut args, "-o");
+            push_arg(&mut cmd, &mut args, "/data/output");
+            push_arg(&mut cmd, &mut args, "/data/input");
         }
         _ => return Err(anyhow!("unsupported tool: {tool}")),
     }

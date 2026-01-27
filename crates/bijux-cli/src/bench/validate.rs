@@ -7,6 +7,7 @@ use bijux_bench::{
     append_jsonl, fetch_fastq_validate_v1, insert_fastq_validate_v1, BenchmarkContext,
     BenchmarkRecord, ExecutionMetrics, FastqValidateMetrics, StageMetricSchema,
 };
+use bijux_core::{load_manifests, ToolRole};
 use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 use uuid::Uuid;
 
@@ -25,8 +26,16 @@ pub fn bench_fastq_validate(
     runner_override: Option<RunnerKind>,
     args: &crate::cli::BenchFastqValidateArgs,
 ) -> Result<()> {
-    let tools = normalize_validate_tool_list(&args.tools)?;
+    let mut tools = normalize_validate_tool_list(&args.tools)?;
+    if args.strict && !tools.iter().any(|tool| tool == "fastqvalidator_official") {
+        tools.push("fastqvalidator_official".to_string());
+    }
+    tools.sort();
+    tools.dedup();
     ensure_image_qa_passed("fastq.validate", &tools, platform, catalog)?;
+    let registry = load_manifests(&std::env::current_dir()?.join("modules"))
+        .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
+    let tool_policies = build_validate_tool_policy(&registry);
     let bench_inputs = prepare_validate_bench(catalog, platform, runner_override, args)?;
 
     let sqlite_path = bench_inputs.bench_dir.join("bench.sqlite");
@@ -54,7 +63,10 @@ pub fn bench_fastq_validate(
             records.push(record);
             continue;
         }
-        let record = run_validate_tool(catalog, platform, args, &bench_inputs, &tool)?;
+        let policy = tool_policies
+            .get(&tool)
+            .ok_or_else(|| anyhow!("tool {tool} missing from manifests"))?;
+        let record = run_validate_tool(catalog, platform, args, &bench_inputs, &tool, *policy)?;
         new_records.push(record);
     }
 
@@ -135,6 +147,7 @@ fn run_validate_tool(
     args: &crate::cli::BenchFastqValidateArgs,
     bench_inputs: &ValidateBenchInputs,
     tool: &str,
+    policy: ToolPolicy,
 ) -> Result<BenchmarkRecord<FastqValidateMetrics>> {
     let spec = catalog
         .get(tool)
@@ -161,6 +174,9 @@ fn run_validate_tool(
 
     if execution.output_fastq.is_some() {
         return Err(anyhow!("fastq.validate must not output FASTQ data"));
+    }
+    if args.strict && policy.role == ToolRole::Gatekeeper && execution.exit_code != 0 {
+        return Err(anyhow!("strict validation failed for {tool}"));
     }
 
     let reads_total = validate_reads_total(tool, &bench_inputs.input_stats, &execution.stdout)?;
@@ -229,6 +245,21 @@ fn run_validate_tool(
         ));
     }
     Ok(record)
+}
+
+#[derive(Debug, Clone, Copy)]
+struct ToolPolicy {
+    role: ToolRole,
+}
+
+fn build_validate_tool_policy(
+    registry: &bijux_core::ToolRegistry,
+) -> std::collections::HashMap<String, ToolPolicy> {
+    let mut policies = std::collections::HashMap::new();
+    for tool in registry.tools_for_stage("fastq.validate") {
+        policies.insert(tool.tool_id.clone(), ToolPolicy { role: tool.role });
+    }
+    policies
 }
 
 fn validate_reads_total(tool: &str, input_stats: &SeqkitMetrics, stdout: &str) -> Result<u64> {

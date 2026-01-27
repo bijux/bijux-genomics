@@ -52,6 +52,10 @@ description: "FASTQ stage for trimming and preprocessing reads."
         r#"schema_version: "bijux.tool.v1"
 tool_id: "fastp"
 stage_id: "fastq.trim"
+role: "transform"
+authoritative: false
+strict_capable: false
+status: "stable"
 capabilities:
   - "SE"
   - "PE"

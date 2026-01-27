@@ -3,6 +3,7 @@ use bijux_environment::api::{
     docker_image_exists, resolve_image, PlatformSpec, ResolvedImage, ToolImageSpec,
 };
 use serde::Serialize;
+use std::path::{Path, PathBuf};
 use tracing::warn;
 
 #[derive(Debug, Serialize)]
@@ -26,12 +27,24 @@ pub(crate) fn normalize_tool_list(tools: &[String]) -> Result<Vec<String>> {
         "adapterremoval",
         "trimmomatic",
         "trim_galore",
+        "atropos",
+        "seqpurge",
     ];
-    normalize_tools_with_allowlist(tools, &allowed)
+    let mut allowlist = allowed.to_vec();
+    if std::env::var("BIJUX_EXPERIMENTAL_TOOLS").is_err() {
+        allowlist.retain(|tool| *tool != "seqpurge");
+    }
+    normalize_tools_with_allowlist(tools, &allowlist)
 }
 
 pub(crate) fn normalize_validate_tool_list(tools: &[String]) -> Result<Vec<String>> {
-    let allowed = ["seqtk", "fastqc", "fastqvalidator", "fqtools"];
+    let allowed = [
+        "seqtk",
+        "fastqc",
+        "fastqvalidator",
+        "fastqvalidator_official",
+        "fqtools",
+    ];
     normalize_tools_with_allowlist(tools, &allowed)
 }
 
@@ -42,6 +55,41 @@ pub(crate) fn normalize_filter_tool_list(tools: &[String]) -> Result<Vec<String>
 
 pub(crate) fn normalize_merge_tool_list(tools: &[String]) -> Result<Vec<String>> {
     let allowed = ["pear", "vsearch", "bbmerge", "flash2"];
+    normalize_tools_with_allowlist(tools, &allowed)
+}
+
+pub(crate) fn normalize_correct_tool_list(tools: &[String]) -> Result<Vec<String>> {
+    let allowed = ["rcorrector", "spades", "bayeshammer", "lighter", "musket"];
+    let mut allowlist = allowed.to_vec();
+    if std::env::var("BIJUX_EXPERIMENTAL_TOOLS").is_err() {
+        allowlist.retain(|tool| *tool == "rcorrector");
+    }
+    normalize_tools_with_allowlist(tools, &allowlist)
+}
+
+pub(crate) fn normalize_qc2_tool_list(tools: &[String]) -> Result<Vec<String>> {
+    let allowed = ["fastqc", "multiqc"];
+    normalize_tools_with_allowlist(tools, &allowed)
+}
+
+pub(crate) fn normalize_umi_tool_list(tools: &[String]) -> Result<Vec<String>> {
+    let allowed = ["umi_tools"];
+    normalize_tools_with_allowlist(tools, &allowed)
+}
+
+pub(crate) fn normalize_screen_tool_list(tools: &[String]) -> Result<Vec<String>> {
+    let allowed = [
+        "kraken2",
+        "centrifuge",
+        "metaphlan",
+        "kaiju",
+        "fastq_screen",
+    ];
+    normalize_tools_with_allowlist(tools, &allowed)
+}
+
+pub(crate) fn normalize_stats_tool_list(tools: &[String]) -> Result<Vec<String>> {
+    let allowed = ["seqkit_stats"];
     normalize_tools_with_allowlist(tools, &allowed)
 }
 
@@ -120,4 +168,70 @@ pub(crate) fn min_max(values: impl Iterator<Item = f64>) -> (f64, f64) {
 
 pub(crate) fn format_optional(value: Option<f64>) -> String {
     value.map_or_else(|| "n/a".to_string(), |v| format!("{v:.3}"))
+}
+
+pub(crate) fn find_first_fastq(dir: &Path) -> Result<PathBuf> {
+    let entries = std::fs::read_dir(dir)
+        .map_err(|err| anyhow!("failed to read output directory {}: {err}", dir.display()))?;
+    for entry in entries {
+        let entry = entry?;
+        let path = entry.path();
+        if let Some(ext) = path.extension().and_then(|ext| ext.to_str()) {
+            if ext.eq_ignore_ascii_case("fq")
+                || ext.eq_ignore_ascii_case("fastq")
+                || ext.eq_ignore_ascii_case("gz")
+            {
+                return Ok(path);
+            }
+        }
+    }
+    Err(anyhow!("no FASTQ output found in {}", dir.display()))
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub(crate) struct DeltaMetrics {
+    pub(crate) delta_mean_q: f64,
+    pub(crate) delta_gc: f64,
+    pub(crate) read_retention: f64,
+    pub(crate) base_retention: f64,
+}
+
+impl DeltaMetrics {
+    pub(crate) fn validate(&self) -> Result<()> {
+        if !self.delta_mean_q.is_finite() {
+            return Err(anyhow!("delta_mean_q must be finite"));
+        }
+        if !self.delta_gc.is_finite() {
+            return Err(anyhow!("delta_gc must be finite"));
+        }
+        if !(0.0..=1.0).contains(&self.read_retention) {
+            return Err(anyhow!("read_retention must be within [0, 1]"));
+        }
+        if !(0.0..=1.0).contains(&self.base_retention) {
+            return Err(anyhow!("base_retention must be within [0, 1]"));
+        }
+        Ok(())
+    }
+}
+
+pub(crate) fn delta_metrics(
+    before: crate::utils::SeqkitMetrics,
+    after: crate::utils::SeqkitMetrics,
+) -> DeltaMetrics {
+    let read_retention = if before.reads > 0 {
+        ratio_u64(after.reads, before.reads)
+    } else {
+        0.0
+    };
+    let base_retention = if before.bases > 0 {
+        ratio_u64(after.bases, before.bases)
+    } else {
+        0.0
+    };
+    DeltaMetrics {
+        delta_mean_q: after.mean_q - before.mean_q,
+        delta_gc: after.gc_percent - before.gc_percent,
+        read_retention,
+        base_retention,
+    }
 }

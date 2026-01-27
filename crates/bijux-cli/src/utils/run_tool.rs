@@ -64,6 +64,17 @@ pub fn run_tool_container(
             push_arg(&mut cmd, &mut args, input_path.clone());
             Some(out_dir.join(out_name))
         }
+        "atropos" => {
+            let out_name = "atropos.fastq.gz";
+            push_arg(&mut cmd, &mut args, "atropos");
+            push_arg(&mut cmd, &mut args, "trim");
+            push_arg(&mut cmd, &mut args, "-a");
+            push_arg(&mut cmd, &mut args, "ADAPTER");
+            push_arg(&mut cmd, &mut args, "-o");
+            push_arg(&mut cmd, &mut args, format!("/data/output/{out_name}"));
+            push_arg(&mut cmd, &mut args, input_path.clone());
+            Some(out_dir.join(out_name))
+        }
         "bbduk" => {
             let out_name = "bbduk.fastq.gz";
             push_arg(&mut cmd, &mut args, format!("in={input_path}"));
@@ -102,6 +113,15 @@ pub fn run_tool_container(
             push_arg(&mut cmd, &mut args, input_path.clone());
             Some(out_dir.join(format!("{basename}_trimmed.fq.gz")))
         }
+        "seqpurge" => {
+            let out_name = "seqpurge.fastq.gz";
+            push_arg(&mut cmd, &mut args, "seqpurge");
+            push_arg(&mut cmd, &mut args, "-in1");
+            push_arg(&mut cmd, &mut args, input_path.clone());
+            push_arg(&mut cmd, &mut args, "-out1");
+            push_arg(&mut cmd, &mut args, format!("/data/output/{out_name}"));
+            Some(out_dir.join(out_name))
+        }
         "prinseq" => {
             let prefix = "prinseq_good";
             push_arg(&mut cmd, &mut args, "prinseq++");
@@ -122,6 +142,26 @@ pub fn run_tool_container(
             push_arg(&mut cmd, &mut args, "-o");
             push_arg(&mut cmd, &mut args, format!("/data/output/{out_name}"));
             push_arg(&mut cmd, &mut args, input_path.clone());
+            Some(out_dir.join(out_name))
+        }
+        "rcorrector" => {
+            push_arg(&mut cmd, &mut args, "sh");
+            push_arg(&mut cmd, &mut args, "-lc");
+            push_arg(
+                &mut cmd,
+                &mut args,
+                format!("cd /data/output && rcorrector -1 {input_path}"),
+            );
+            None
+        }
+        "umi_tools" => {
+            let out_name = "umi_tools.fastq.gz";
+            push_arg(&mut cmd, &mut args, "umi_tools");
+            push_arg(&mut cmd, &mut args, "dedup");
+            push_arg(&mut cmd, &mut args, "-I");
+            push_arg(&mut cmd, &mut args, input_path.clone());
+            push_arg(&mut cmd, &mut args, "-S");
+            push_arg(&mut cmd, &mut args, format!("/data/output/{out_name}"));
             Some(out_dir.join(out_name))
         }
         _ => return Err(anyhow!("unsupported tool: {tool}")),
@@ -198,6 +238,17 @@ pub fn run_tool_container_with_timeout(
             push_arg(&mut cmd, &mut args, input_path.clone());
             Some(out_dir.join(out_name))
         }
+        "atropos" => {
+            let out_name = "atropos.fastq.gz";
+            push_arg(&mut cmd, &mut args, "atropos");
+            push_arg(&mut cmd, &mut args, "trim");
+            push_arg(&mut cmd, &mut args, "-a");
+            push_arg(&mut cmd, &mut args, "ADAPTER");
+            push_arg(&mut cmd, &mut args, "-o");
+            push_arg(&mut cmd, &mut args, format!("/data/output/{out_name}"));
+            push_arg(&mut cmd, &mut args, input_path.clone());
+            Some(out_dir.join(out_name))
+        }
         "bbduk" => {
             let out_name = "bbduk.fastq.gz";
             push_arg(&mut cmd, &mut args, format!("in={input_path}"));
@@ -236,6 +287,15 @@ pub fn run_tool_container_with_timeout(
             push_arg(&mut cmd, &mut args, input_path.clone());
             Some(out_dir.join(format!("{basename}_trimmed.fq.gz")))
         }
+        "seqpurge" => {
+            let out_name = "seqpurge.fastq.gz";
+            push_arg(&mut cmd, &mut args, "seqpurge");
+            push_arg(&mut cmd, &mut args, "-in1");
+            push_arg(&mut cmd, &mut args, input_path.clone());
+            push_arg(&mut cmd, &mut args, "-out1");
+            push_arg(&mut cmd, &mut args, format!("/data/output/{out_name}"));
+            Some(out_dir.join(out_name))
+        }
         "prinseq" => {
             let prefix = "prinseq_good";
             push_arg(&mut cmd, &mut args, "prinseq++");
@@ -256,6 +316,26 @@ pub fn run_tool_container_with_timeout(
             push_arg(&mut cmd, &mut args, "-o");
             push_arg(&mut cmd, &mut args, format!("/data/output/{out_name}"));
             push_arg(&mut cmd, &mut args, input_path.clone());
+            Some(out_dir.join(out_name))
+        }
+        "rcorrector" => {
+            push_arg(&mut cmd, &mut args, "sh");
+            push_arg(&mut cmd, &mut args, "-lc");
+            push_arg(
+                &mut cmd,
+                &mut args,
+                format!("cd /data/output && rcorrector -1 {input_path}"),
+            );
+            None
+        }
+        "umi_tools" => {
+            let out_name = "umi_tools.fastq.gz";
+            push_arg(&mut cmd, &mut args, "umi_tools");
+            push_arg(&mut cmd, &mut args, "dedup");
+            push_arg(&mut cmd, &mut args, "-I");
+            push_arg(&mut cmd, &mut args, input_path.clone());
+            push_arg(&mut cmd, &mut args, "-S");
+            push_arg(&mut cmd, &mut args, format!("/data/output/{out_name}"));
             Some(out_dir.join(out_name))
         }
         _ => return Err(anyhow!("unsupported tool: {tool}")),

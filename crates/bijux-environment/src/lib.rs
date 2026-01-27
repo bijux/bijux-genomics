@@ -409,6 +409,14 @@ pub fn default_docker_tools() -> Vec<DockerToolSpec> {
             help_cmd: Some("adapterremoval --help".to_string()),
         },
         DockerToolSpec {
+            name: "atropos".to_string(),
+            executable: Some("atropos".to_string()),
+            version_cmd: "atropos --version".to_string(),
+            probe_cmd: Some("atropos --version".to_string()),
+            probe_expected_exit: vec![0],
+            help_cmd: Some("atropos --help".to_string()),
+        },
+        DockerToolSpec {
             name: "bbduk".to_string(),
             executable: Some("bbduk".to_string()),
             version_cmd: "bbduk -Xmx256m --version".to_string(),
@@ -441,6 +449,14 @@ pub fn default_docker_tools() -> Vec<DockerToolSpec> {
             help_cmd: Some("fastp --help".to_string()),
         },
         DockerToolSpec {
+            name: "fastq_screen".to_string(),
+            executable: Some("fastq_screen".to_string()),
+            version_cmd: "fastq_screen --version".to_string(),
+            probe_cmd: Some("fastq_screen --version".to_string()),
+            probe_expected_exit: vec![0],
+            help_cmd: Some("fastq_screen --help".to_string()),
+        },
+        DockerToolSpec {
             name: "fastqc".to_string(),
             executable: Some("fastqc".to_string()),
             version_cmd: "fastqc --version".to_string(),
@@ -455,6 +471,14 @@ pub fn default_docker_tools() -> Vec<DockerToolSpec> {
             probe_cmd: Some("fastq-validator --version".to_string()),
             probe_expected_exit: vec![0],
             help_cmd: Some("fastq-validator".to_string()),
+        },
+        DockerToolSpec {
+            name: "fastqvalidator_official".to_string(),
+            executable: Some("fastq-validator".to_string()),
+            version_cmd: "fastq-validator --version".to_string(),
+            probe_cmd: Some("fastq-validator --version".to_string()),
+            probe_expected_exit: vec![0],
+            help_cmd: Some("fastq-validator --help".to_string()),
         },
         DockerToolSpec {
             name: "flash2".to_string(),
@@ -682,7 +706,7 @@ pub fn default_docker_tools() -> Vec<DockerToolSpec> {
 pub fn extract_version_from_dockerfile(dockerfile: &Path, tool: &str) -> Result<String, EnvError> {
     let content = std::fs::read_to_string(dockerfile)?;
     let pattern = format!(
-        r"(?i)ARG\s+(?:VERSION_{tool}|{tool}_VERSION|ADAPTERREMOVAL_VERSION|TRIM_GALORE|BASE_VERSION|VERSION_SPADES)\s*=\s*(\S+)",
+        r"(?i)ARG\s+(?:VERSION_{tool}|{tool}_VERSION|ADAPTERREMOVAL_VERSION|TRIM_GALORE|BASE_VERSION|VERSION_SPADES|VERSION_FASTQVALIDATOR)\s*=\s*(\S+)",
         tool = tool.to_uppercase()
     );
     let regex = Regex::new(&pattern)

@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::time::Duration;
 
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Context, Result};
 use bijux_bench::ImageQaOutcome;
 use bijux_environment::api::{PlatformSpec, ToolImageSpec};
 use uuid::Uuid;
@@ -30,6 +30,11 @@ pub(crate) fn run_stage_qa(
         QaStage::Validate => qa_validate_tool(tool, platform, catalog, dataset),
         QaStage::Filter => qa_filter_tool(tool, platform, catalog, dataset, seqkit_image),
         QaStage::Merge => qa_merge_tool(tool, platform, catalog, dataset, seqkit_image),
+        QaStage::Correct => qa_correct_tool(tool, platform, catalog, dataset, seqkit_image),
+        QaStage::Qc2 => qa_qc2_tool(tool, platform, catalog, dataset),
+        QaStage::Umi => qa_umi_tool(tool, platform, catalog, dataset, seqkit_image),
+        QaStage::Stats => qa_stats_tool(tool, platform, catalog, dataset),
+        QaStage::Screen => qa_screen_tool(tool, platform, catalog, dataset),
     };
     match outcome {
         Ok(()) => ImageQaOutcome::Pass,
@@ -248,4 +253,228 @@ fn qa_merge_tool(
         ));
     }
     Ok(())
+}
+
+fn qa_correct_tool(
+    tool: &str,
+    platform: &PlatformSpec,
+    catalog: &HashMap<String, ToolImageSpec>,
+    dataset: &QaDataset,
+    seqkit_image: &crate::utils::ResolvedImage,
+) -> Result<()> {
+    let spec = catalog
+        .get(tool)
+        .ok_or_else(|| anyhow!("tool {tool} missing from images.yaml"))?;
+    let image = resolve_image_for_run(spec, platform)?;
+    let out_dir = temp_out_dir("correct", tool)?;
+    let container_name = format!("bijux-qa-correct-{}-{}", tool, Uuid::new_v4());
+    let timeout = Duration::from_secs(QA_TIMEOUT_SECS);
+    let execution = match run_tool_container_with_timeout(
+        tool,
+        &image,
+        &dataset.r1_dir,
+        &dataset.r1,
+        &out_dir,
+        &container_name,
+        timeout,
+    ) {
+        Ok(execution) => execution,
+        Err(err) => {
+            let _ = docker_rm(&container_name);
+            return Err(err);
+        }
+    };
+    docker_rm(&container_name)?;
+    if execution.exit_code != 0 {
+        return Err(anyhow!("exit code {}", execution.exit_code));
+    }
+    let out_fastq = if let Some(path) = execution.output_fastq {
+        path
+    } else {
+        find_fastq_in_dir(&out_dir)?
+    };
+    let output_stats = output_fastq_stats(seqkit_image, &out_dir, &out_fastq)?;
+    if output_stats.reads != dataset.input_stats_r1.reads {
+        return Err(anyhow!(
+            "reads_out {} must equal reads_in {}",
+            output_stats.reads,
+            dataset.input_stats_r1.reads
+        ));
+    }
+    Ok(())
+}
+
+fn qa_qc2_tool(
+    tool: &str,
+    platform: &PlatformSpec,
+    catalog: &HashMap<String, ToolImageSpec>,
+    dataset: &QaDataset,
+) -> Result<()> {
+    let spec = catalog
+        .get(tool)
+        .ok_or_else(|| anyhow!("tool {tool} missing from images.yaml"))?;
+    let image = resolve_image_for_run(spec, platform)?;
+    let out_dir = temp_out_dir("qc2", tool)?;
+    let container_name = format!("bijux-qa-qc2-{}-{}", tool, Uuid::new_v4());
+    let timeout = Duration::from_secs(QA_TIMEOUT_SECS);
+    let execution = match run_validate_container_with_timeout(
+        tool,
+        &image,
+        &dataset.r1_dir,
+        &dataset.r1,
+        &out_dir,
+        &container_name,
+        timeout,
+    ) {
+        Ok(execution) => execution,
+        Err(err) => {
+            let _ = docker_rm(&container_name);
+            return Err(err);
+        }
+    };
+    docker_rm(&container_name)?;
+    if execution.exit_code != 0 {
+        return Err(anyhow!("exit code {}", execution.exit_code));
+    }
+    if !dir_has_files(&out_dir) {
+        return Err(anyhow!("qc2 output missing"));
+    }
+    Ok(())
+}
+
+fn qa_umi_tool(
+    tool: &str,
+    platform: &PlatformSpec,
+    catalog: &HashMap<String, ToolImageSpec>,
+    dataset: &QaDataset,
+    seqkit_image: &crate::utils::ResolvedImage,
+) -> Result<()> {
+    let spec = catalog
+        .get(tool)
+        .ok_or_else(|| anyhow!("tool {tool} missing from images.yaml"))?;
+    let image = resolve_image_for_run(spec, platform)?;
+    let out_dir = temp_out_dir("umi", tool)?;
+    let container_name = format!("bijux-qa-umi-{}-{}", tool, Uuid::new_v4());
+    let timeout = Duration::from_secs(QA_TIMEOUT_SECS);
+    let execution = match run_tool_container_with_timeout(
+        tool,
+        &image,
+        &dataset.r1_dir,
+        &dataset.r1,
+        &out_dir,
+        &container_name,
+        timeout,
+    ) {
+        Ok(execution) => execution,
+        Err(err) => {
+            let _ = docker_rm(&container_name);
+            return Err(err);
+        }
+    };
+    docker_rm(&container_name)?;
+    if execution.exit_code != 0 {
+        return Err(anyhow!("exit code {}", execution.exit_code));
+    }
+    let out_fastq = execution
+        .output_fastq
+        .ok_or_else(|| anyhow!("output FASTQ missing"))?;
+    if !out_fastq.exists() {
+        return Err(anyhow!("output FASTQ not found: {}", out_fastq.display()));
+    }
+    let output_stats = output_fastq_stats(seqkit_image, &out_dir, &out_fastq)?;
+    if output_stats.reads > dataset.input_stats_r1.reads {
+        return Err(anyhow!(
+            "reads_out {} exceeds reads_in {}",
+            output_stats.reads,
+            dataset.input_stats_r1.reads
+        ));
+    }
+    Ok(())
+}
+
+fn qa_stats_tool(
+    tool: &str,
+    platform: &PlatformSpec,
+    catalog: &HashMap<String, ToolImageSpec>,
+    dataset: &QaDataset,
+) -> Result<()> {
+    let spec = catalog
+        .get(tool)
+        .ok_or_else(|| anyhow!("tool {tool} missing from images.yaml"))?;
+    let image = resolve_image_for_run(spec, platform)?;
+    let out_dir = temp_out_dir("stats", tool)?;
+    let container_name = format!("bijux-qa-stats-{}-{}", tool, Uuid::new_v4());
+    let timeout = Duration::from_secs(QA_TIMEOUT_SECS);
+    let execution = match run_validate_container_with_timeout(
+        tool,
+        &image,
+        &dataset.r1_dir,
+        &dataset.r1,
+        &out_dir,
+        &container_name,
+        timeout,
+    ) {
+        Ok(execution) => execution,
+        Err(err) => {
+            let _ = docker_rm(&container_name);
+            return Err(err);
+        }
+    };
+    docker_rm(&container_name)?;
+    if execution.exit_code != 0 {
+        return Err(anyhow!("exit code {}", execution.exit_code));
+    }
+    Ok(())
+}
+
+fn qa_screen_tool(
+    _tool: &str,
+    _platform: &PlatformSpec,
+    _catalog: &HashMap<String, ToolImageSpec>,
+    _dataset: &QaDataset,
+) -> Result<()> {
+    Err(anyhow!(
+        "screen QA requires BIJUX_SCREEN_DB and is not enabled"
+    ))
+}
+
+fn dir_has_files(path: &std::path::Path) -> bool {
+    match std::fs::read_dir(path) {
+        Ok(mut iter) => iter.next().is_some(),
+        Err(_) => false,
+    }
+}
+
+fn find_fastq_in_dir(dir: &std::path::Path) -> Result<std::path::PathBuf> {
+    let entries = std::fs::read_dir(dir).context("read output dir")?;
+    for entry in entries {
+        let entry = entry?;
+        let path = entry.path();
+        if !path.is_file() {
+            continue;
+        }
+        if is_fastq_path(&path) {
+            return Ok(path);
+        }
+    }
+    Err(anyhow!("output FASTQ not found in {}", dir.display()))
+}
+
+fn is_fastq_path(path: &std::path::Path) -> bool {
+    let ext = path.extension().and_then(|ext| ext.to_str());
+    if let Some(ext) = ext {
+        if ext.eq_ignore_ascii_case("fastq") || ext.eq_ignore_ascii_case("fq") {
+            return true;
+        }
+        if ext.eq_ignore_ascii_case("gz") {
+            if let Some(stem) = path.file_stem().and_then(|s| s.to_str()) {
+                let nested = std::path::Path::new(stem);
+                if let Some(stem_ext) = nested.extension().and_then(|s| s.to_str()) {
+                    return stem_ext.eq_ignore_ascii_case("fastq")
+                        || stem_ext.eq_ignore_ascii_case("fq");
+                }
+            }
+        }
+    }
+    false
 }

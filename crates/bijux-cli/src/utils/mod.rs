@@ -20,7 +20,8 @@ pub use run_merge::{run_merge_container, run_merge_container_with_timeout, Merge
 pub use run_tool::{run_tool_container, run_tool_container_with_timeout, ExecutionOutput};
 pub use run_validate::{run_validate_container, run_validate_container_with_timeout};
 pub use seqkit::{
-    input_fastq_stats, output_fastq_stats, parse_fastqvalidator_count, SeqkitMetrics,
+    input_fastq_stats, length_histogram, output_fastq_stats, parse_fastqvalidator_count,
+    SeqkitMetrics,
 };
 
 pub use bijux_environment::api::ResolvedImage;
