@@ -25,6 +25,7 @@ pub enum Commands {
     },
     ValidateManifests,
     Platform,
+    ImageQa,
     Env {
         #[command(subcommand)]
         command: EnvCommand,

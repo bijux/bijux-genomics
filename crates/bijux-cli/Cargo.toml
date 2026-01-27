@@ -17,6 +17,7 @@ tracing-subscriber.workspace = true
 tracing-appender.workspace = true
 sha2.workspace = true
 uuid.workspace = true
+rusqlite.workspace = true
 bijux-environment = { path = "../bijux-environment" }
 bijux-bench = { path = "../bijux-bench" }
 
