@@ -6,16 +6,21 @@ use bijux_bench::{
     append_jsonl, fetch_fastq_trim_v1, insert_fastq_trim_v1, BenchmarkContext, BenchmarkRecord,
     ExecutionMetrics, FastqTrimMetrics, StageMetricSchema,
 };
+use bijux_core::load_manifests;
 use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 use uuid::Uuid;
 
 use crate::image_qa::ensure_image_qa_passed;
 use crate::utils::{
     bench_base_dir, bench_tools_dir, docker_rm, docker_stats_mb, hash_file_sha256,
-    input_fastq_stats, output_fastq_stats, run_tool_container,
+    input_fastq_stats, output_fastq_stats, run_tool_container, validate_execution_outputs,
 };
 
-use super::helpers::{normalize_tool_list, resolve_image_for_run, ExecutionManifest};
+use super::failure::{classify_failure, BenchmarkFailure};
+use super::helpers::{
+    compute_run_id, normalize_tool_list, params_hash, prepare_tool_run_dirs, resolve_image_for_run,
+    write_execution_logs, write_metrics_json, ExecutionManifest,
+};
 use super::report::write_trim_report;
 
 #[allow(clippy::too_many_lines)]
@@ -30,6 +35,8 @@ pub fn bench_fastq_trim(
         return Err(anyhow!("benchmarking supports docker only for now"));
     }
     let tools = normalize_tool_list(&args.tools)?;
+    let registry = load_manifests(&std::env::current_dir()?.join("modules"))
+        .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let bench_dir = bench_base_dir(&args.out, "trim", &args.sample_id);
     let tools_root = bench_tools_dir(&args.out, "trim", &args.sample_id);
     fs::create_dir_all(&bench_dir).context("create bench output dir")?;
@@ -56,88 +63,111 @@ pub fn bench_fastq_trim(
     let conn = bijux_bench::open_sqlite(&sqlite_path).context("open bench sqlite")?;
     let mut records: Vec<BenchmarkRecord<FastqTrimMetrics>> = Vec::new();
     let mut new_records: Vec<BenchmarkRecord<FastqTrimMetrics>> = Vec::new();
+    let mut failures: Vec<BenchmarkFailure> = Vec::new();
 
     for tool in tools {
-        let spec = catalog
-            .get(&tool)
-            .ok_or_else(|| anyhow!("tool {tool} missing from images.yaml"))?;
-        let image = resolve_image_for_run(spec, platform)?;
-        let image_digest = spec
-            .digest
-            .as_ref()
-            .ok_or_else(|| anyhow!("image digest missing for tool {tool}"))?
-            .to_string();
-        let cached = fetch_fastq_trim_v1(&conn, &tool, &spec.version, &image_digest, &input_hash);
-        if let Ok(Some(record)) = cached {
-            records.push(record);
-            continue;
-        }
+        let record = (|| -> Result<BenchmarkRecord<FastqTrimMetrics>> {
+            let spec = catalog
+                .get(&tool)
+                .ok_or_else(|| anyhow!("tool {tool} missing from images.yaml"))?;
+            let image = resolve_image_for_run(spec, platform)?;
+            let image_digest = spec
+                .digest
+                .as_ref()
+                .ok_or_else(|| anyhow!("image digest missing for tool {tool}"))?
+                .to_string();
+            let cached =
+                fetch_fastq_trim_v1(&conn, &tool, &spec.version, &image_digest, &input_hash);
+            if let Ok(Some(record)) = cached {
+                return Ok(record);
+            }
 
-        let tool_dir = tools_root.join(&tool);
-        let out_dir = tool_dir.join("out");
-        fs::create_dir_all(&out_dir).context("create tool output dir")?;
-        let start = Instant::now();
-        let container_name = format!("bijux-bench-{}-{}", args.sample_id, Uuid::new_v4());
-        let execution = run_tool_container(&tool, &image, &r1_dir, &r1, &out_dir, &container_name)?;
-        let runtime_s = start.elapsed().as_secs_f64();
-        let memory_mb = docker_stats_mb(&container_name)?;
-        docker_rm(&container_name)?;
-
-        let out_fastq = execution
-            .output_fastq
-            .as_ref()
-            .ok_or_else(|| anyhow!("output fastq missing"))?;
-        let output_stats = output_fastq_stats(&seqkit_image, &out_dir, out_fastq)?;
-
-        let metrics = FastqTrimMetrics {
-            reads_in: input_stats.reads,
-            reads_out: output_stats.reads,
-            bases_in: input_stats.bases,
-            bases_out: output_stats.bases,
-            mean_q_before: input_stats.mean_q,
-            mean_q_after: output_stats.mean_q,
-        };
-        metrics.validate()?;
-
-        let manifest = ExecutionManifest {
-            tool: tool.clone(),
-            tool_version: spec.version.clone(),
-            image_digest: image_digest.clone(),
-            command: execution.command.clone(),
-            input_hashes: vec![input_hash.clone()],
-            input_files: vec![r1.display().to_string()],
-            runner: runner.to_string(),
-            platform: platform.name.clone(),
-            arch: platform.arch.clone(),
-        };
-        let manifest_path = tool_dir.join("execution_manifest.json");
-        fs::write(&manifest_path, serde_json::to_vec_pretty(&manifest)?)
-            .context("write execution manifest")?;
-
-        let context = BenchmarkContext {
-            tool: tool.clone(),
-            tool_version: spec.version.clone(),
-            image_digest,
-            runner: runner.to_string(),
-            platform: platform.name.clone(),
-            input_hash: input_hash.clone(),
-            parameters: serde_json::json!({
+            let params = serde_json::json!({
                 "sample_id": args.sample_id,
                 "r1": r1,
-            }),
-        };
-        let execution_metrics = ExecutionMetrics {
-            runtime_s,
-            memory_mb,
-            exit_code: execution.exit_code,
-        };
-        let record = BenchmarkRecord {
-            context,
-            execution: execution_metrics,
-            metrics,
-        };
-        record.validate()?;
-        new_records.push(record);
+            });
+            let param_hash = params_hash(&params).unwrap_or_else(|_| Uuid::new_v4().to_string());
+            let run_id =
+                compute_run_id("fastq.trim", &tool, &image_digest, &input_hash, &param_hash);
+            let run_dirs = prepare_tool_run_dirs(&tools_root, &tool, &run_id)?;
+            let out_dir = run_dirs.artifacts_dir.clone();
+            let start = Instant::now();
+            let container_name = format!("bijux-bench-{}-{}", args.sample_id, Uuid::new_v4());
+            let execution =
+                run_tool_container(&tool, &image, &r1_dir, &r1, &out_dir, &container_name)?;
+            let runtime_s = start.elapsed().as_secs_f64();
+            let memory_mb = docker_stats_mb(&container_name)?;
+            docker_rm(&container_name)?;
+
+            let out_fastq = execution
+                .output_fastq
+                .as_ref()
+                .ok_or_else(|| anyhow!("output fastq missing"))?;
+            let output_stats = output_fastq_stats(&seqkit_image, &out_dir, out_fastq)?;
+
+            let tool_manifest = registry
+                .tool_by_id("fastq.trim", &tool)
+                .ok_or_else(|| anyhow!("tool {tool} missing from manifests"))?;
+            validate_execution_outputs(&tool_manifest.execution_contract, &out_dir)?;
+
+            let metrics = FastqTrimMetrics {
+                reads_in: input_stats.reads,
+                reads_out: output_stats.reads,
+                bases_in: input_stats.bases,
+                bases_out: output_stats.bases,
+                mean_q_before: input_stats.mean_q,
+                mean_q_after: output_stats.mean_q,
+            };
+            metrics.validate()?;
+
+            let manifest = ExecutionManifest {
+                run_id: run_id.clone(),
+                stage: "fastq.trim".to_string(),
+                tool: tool.clone(),
+                tool_version: spec.version.clone(),
+                image_digest: image_digest.clone(),
+                command: execution.command.clone(),
+                input_hashes: vec![input_hash.clone()],
+                input_files: vec![r1.display().to_string()],
+                output_dir: out_dir.display().to_string(),
+                runner: runner.to_string(),
+                platform: platform.name.clone(),
+                arch: platform.arch.clone(),
+            };
+            fs::write(
+                &run_dirs.manifest_path,
+                serde_json::to_vec_pretty(&manifest)?,
+            )
+            .context("write execution manifest")?;
+            write_execution_logs(&run_dirs, &execution.stdout, &execution.stderr)?;
+
+            let context = BenchmarkContext {
+                tool: tool.clone(),
+                tool_version: spec.version.clone(),
+                image_digest,
+                runner: runner.to_string(),
+                platform: platform.name.clone(),
+                input_hash: input_hash.clone(),
+                parameters: params,
+            };
+            let execution_metrics = ExecutionMetrics {
+                runtime_s,
+                memory_mb,
+                exit_code: execution.exit_code,
+            };
+            write_metrics_json(&run_dirs, &execution_metrics, &metrics)?;
+            let record = BenchmarkRecord {
+                context,
+                execution: execution_metrics,
+                metrics,
+            };
+            record.validate()?;
+            Ok(record)
+        })();
+        match record {
+            Ok(record) => new_records.push(record),
+            Err(err) => failures.push(classify_failure("fastq.trim", &tool, &err)),
+        }
     }
 
     records.extend(new_records.iter().cloned());
@@ -152,7 +182,10 @@ pub fn bench_fastq_trim(
     }
 
     check_fastq_trim_comparability(&records);
-    write_trim_report(&bench_dir, &records, args.explain)?;
+    write_trim_report(&bench_dir, &records, &failures, args.explain)?;
+    if !failures.is_empty() {
+        return Err(anyhow!("benchmark failures: {}", failures.len()));
+    }
     Ok(())
 }
 

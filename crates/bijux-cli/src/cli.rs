@@ -26,6 +26,7 @@ pub enum Commands {
     ValidateManifests,
     Platform,
     ImageQa,
+    Replay(ReplayArgs),
     Env {
         #[command(subcommand)]
         command: EnvCommand,
@@ -34,6 +35,13 @@ pub enum Commands {
         #[command(subcommand)]
         command: BenchCommand,
     },
+}
+
+#[derive(Debug, Args)]
+pub struct ReplayArgs {
+    pub run_id: String,
+    #[arg(long, default_value = "artifacts/bench")]
+    pub search_root: PathBuf,
 }
 
 #[derive(Debug, Subcommand)]

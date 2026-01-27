@@ -1,6 +1,7 @@
 mod correct;
+mod failure;
 mod filter;
-mod helpers;
+pub(crate) mod helpers;
 mod merge;
 mod preprocess;
 mod qc2;

@@ -1,5 +1,5 @@
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use serde_json::Value;
 
@@ -20,6 +20,24 @@ fn read_json(path: &PathBuf) -> Value {
         Ok(value) => value,
         Err(err) => panic!("parse json failed: {err}"),
     }
+}
+
+fn find_metrics_json(root: &Path, sample_id: &str) -> PathBuf {
+    let run_dir = root.join("artifacts/bench/preprocess").join(sample_id);
+    let mut stack = vec![run_dir];
+    while let Some(dir) = stack.pop() {
+        if let Ok(entries) = fs::read_dir(&dir) {
+            for entry in entries.flatten() {
+                let path = entry.path();
+                if path.is_dir() {
+                    stack.push(path);
+                } else if path.file_name().and_then(|s| s.to_str()) == Some("metrics.json") {
+                    return path;
+                }
+            }
+        }
+    }
+    panic!("metrics.json not found under preprocess run dir");
 }
 
 #[test]
@@ -51,10 +69,9 @@ fn fastq_preprocess_end_to_end() {
     ]);
     cmd.assert().success();
 
-    let delta_path = root.join("artifacts/bench/preprocess/ERR769587/delta_metrics.json");
-    assert!(delta_path.is_file(), "delta_metrics.json missing");
+    let delta_path = find_metrics_json(&root, "ERR769587");
     let delta = read_json(&delta_path);
-    let Some(read_retention) = delta["read_retention"].as_f64() else {
+    let Some(read_retention) = delta["delta_metrics"]["read_retention"].as_f64() else {
         panic!("read_retention missing or not a number");
     };
     assert!((0.0..=1.0).contains(&read_retention));
@@ -84,10 +101,9 @@ fn fastq_preprocess_end_to_end() {
     ]);
     cmd.assert().success();
 
-    let delta_path = root.join("artifacts/bench/preprocess/ERR2112797/delta_metrics.json");
-    assert!(delta_path.is_file(), "delta_metrics.json missing (PE)");
+    let delta_path = find_metrics_json(&root, "ERR2112797");
     let delta = read_json(&delta_path);
-    let Some(base_retention) = delta["base_retention"].as_f64() else {
+    let Some(base_retention) = delta["delta_metrics"]["base_retention"].as_f64() else {
         panic!("base_retention missing or not a number");
     };
     assert!((0.0..=1.0).contains(&base_retention));

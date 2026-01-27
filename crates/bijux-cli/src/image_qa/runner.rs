@@ -2,8 +2,8 @@ use std::collections::HashMap;
 
 use anyhow::{anyhow, Context, Result};
 use bijux_bench::{
-    append_image_qa_jsonl, insert_image_qa_input_v1, insert_image_qa_v1, open_sqlite,
-    ImageQaOutcome, ImageQaRecord,
+    append_image_qa_jsonl, ensure_image_qa_tables, insert_image_qa_input_v1, insert_image_qa_v1,
+    open_sqlite, ImageQaOutcome, ImageQaRecord,
 };
 use bijux_environment::api::{load_image_catalog, load_platform};
 use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
@@ -19,6 +19,8 @@ use super::logging::{
 };
 use super::stages::run_stage_qa;
 use super::QaStage;
+use bijux_core::load_manifests;
+use bijux_core::ToolRegistry;
 
 pub fn run_image_qa(platform_name: Option<&str>) -> Result<()> {
     let platform = load_platform(platform_name)?;
@@ -46,12 +48,25 @@ fn run_image_qa_with(
     std::fs::create_dir_all(qa_dir).context("create image qa dir")?;
 
     let conn = open_sqlite(&qa_sqlite).context("open image qa sqlite")?;
+    ensure_image_qa_tables(&conn).context("ensure image qa tables")?;
+    conn.execute(
+        "DELETE FROM image_qa_inputs_v1 WHERE platform = ?1 AND runner = ?2",
+        (&platform.name, &platform.runner.to_string()),
+    )
+    .context("reset image qa inputs")?;
+    conn.execute(
+        "DELETE FROM image_qa_v1 WHERE platform = ?1 AND runner = ?2",
+        (&platform.name, &platform.runner.to_string()),
+    )
+    .context("reset image qa records")?;
 
     let seqkit_spec = catalog
         .get("seqkit")
         .ok_or_else(|| anyhow!("seqkit missing from images.yaml"))?;
     let seqkit_image = super::helpers::resolve_image_for_run(seqkit_spec, platform)?;
 
+    let registry =
+        load_manifests(&std::env::current_dir()?.join("modules")).context("load manifests")?;
     let mut datasets = discover_qa_datasets()?;
     hydrate_datasets(&mut datasets, &seqkit_image)?;
 
@@ -98,8 +113,15 @@ fn run_image_qa_with(
                     continue;
                 }
                 log_tool(logger, stage, tool);
-                let mut outcome =
-                    run_stage_qa(stage, tool, platform, catalog, &dataset, &seqkit_image);
+                let mut outcome = run_stage_qa(
+                    stage,
+                    tool,
+                    platform,
+                    catalog,
+                    &registry,
+                    &dataset,
+                    &seqkit_image,
+                );
                 let record = match build_qa_record(
                     stage,
                     tool,

@@ -69,10 +69,11 @@ pub fn run_tool_container(
             push_arg(&mut cmd, &mut args, "atropos");
             push_arg(&mut cmd, &mut args, "trim");
             push_arg(&mut cmd, &mut args, "-a");
-            push_arg(&mut cmd, &mut args, "ADAPTER");
+            push_arg(&mut cmd, &mut args, "AGATCGGAAGAGC");
+            push_arg(&mut cmd, &mut args, "-se");
+            push_arg(&mut cmd, &mut args, input_path.clone());
             push_arg(&mut cmd, &mut args, "-o");
             push_arg(&mut cmd, &mut args, format!("/data/output/{out_name}"));
-            push_arg(&mut cmd, &mut args, input_path.clone());
             Some(out_dir.join(out_name))
         }
         "bbduk" => {
@@ -150,14 +151,14 @@ pub fn run_tool_container(
             push_arg(
                 &mut cmd,
                 &mut args,
-                format!("cd /data/output && rcorrector -1 {input_path}"),
+                format!("rcorrector -s {input_path} -od /data/output"),
             );
             None
         }
         "umi_tools" => {
             let out_name = "umi_tools.fastq.gz";
-            push_arg(&mut cmd, &mut args, "umi_tools");
-            push_arg(&mut cmd, &mut args, "dedup");
+            push_arg(&mut cmd, &mut args, "extract");
+            push_arg(&mut cmd, &mut args, "--bc-pattern=NNNN");
             push_arg(&mut cmd, &mut args, "-I");
             push_arg(&mut cmd, &mut args, input_path.clone());
             push_arg(&mut cmd, &mut args, "-S");
@@ -243,10 +244,11 @@ pub fn run_tool_container_with_timeout(
             push_arg(&mut cmd, &mut args, "atropos");
             push_arg(&mut cmd, &mut args, "trim");
             push_arg(&mut cmd, &mut args, "-a");
-            push_arg(&mut cmd, &mut args, "ADAPTER");
+            push_arg(&mut cmd, &mut args, "AGATCGGAAGAGC");
+            push_arg(&mut cmd, &mut args, "-se");
+            push_arg(&mut cmd, &mut args, input_path.clone());
             push_arg(&mut cmd, &mut args, "-o");
             push_arg(&mut cmd, &mut args, format!("/data/output/{out_name}"));
-            push_arg(&mut cmd, &mut args, input_path.clone());
             Some(out_dir.join(out_name))
         }
         "bbduk" => {
@@ -324,14 +326,14 @@ pub fn run_tool_container_with_timeout(
             push_arg(
                 &mut cmd,
                 &mut args,
-                format!("cd /data/output && rcorrector -1 {input_path}"),
+                format!("rcorrector -s {input_path} -od /data/output"),
             );
             None
         }
         "umi_tools" => {
             let out_name = "umi_tools.fastq.gz";
-            push_arg(&mut cmd, &mut args, "umi_tools");
-            push_arg(&mut cmd, &mut args, "dedup");
+            push_arg(&mut cmd, &mut args, "extract");
+            push_arg(&mut cmd, &mut args, "--bc-pattern=NNNN");
             push_arg(&mut cmd, &mut args, "-I");
             push_arg(&mut cmd, &mut args, input_path.clone());
             push_arg(&mut cmd, &mut args, "-S");

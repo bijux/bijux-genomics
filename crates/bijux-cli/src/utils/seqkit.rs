@@ -162,7 +162,11 @@ pub fn length_histogram(
         let len = parts
             .next()
             .ok_or_else(|| anyhow!("seqkit fx2tab length missing"))?;
-        let length: u64 = len.parse().context("parse length")?;
+        let cleaned: String = len.chars().filter(char::is_ascii_digit).collect();
+        if cleaned.is_empty() {
+            continue;
+        }
+        let length: u64 = cleaned.parse().context("parse length")?;
         *counts.entry(length).or_insert(0) += 1;
     }
     Ok(counts.into_iter().collect())

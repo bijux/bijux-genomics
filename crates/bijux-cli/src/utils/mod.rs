@@ -1,5 +1,6 @@
 #![allow(unused_imports)]
 
+mod contract;
 mod docker;
 mod hash;
 mod logging;
@@ -8,6 +9,7 @@ mod run_tool;
 mod run_validate;
 mod seqkit;
 
+pub use contract::validate_execution_outputs;
 pub use docker::{
     docker_logs, docker_rm, docker_stats_mb, docker_wait, docker_wait_timeout, parse_mem_to_mb,
 };
@@ -18,7 +20,10 @@ pub use hash::{
 pub use logging::{init_logging, StdoutLogger};
 pub use run_merge::{run_merge_container, run_merge_container_with_timeout, MergeExecutionOutput};
 pub use run_tool::{run_tool_container, run_tool_container_with_timeout, ExecutionOutput};
-pub use run_validate::{run_validate_container, run_validate_container_with_timeout};
+pub use run_validate::{
+    run_multiqc_container, run_multiqc_container_with_timeout, run_validate_container,
+    run_validate_container_with_timeout,
+};
 pub use seqkit::{
     input_fastq_stats, length_histogram, output_fastq_stats, parse_fastqvalidator_count,
     SeqkitMetrics,
