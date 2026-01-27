@@ -1,0 +1,67 @@
+use std::collections::HashMap;
+
+use anyhow::Result;
+use bijux_environment::api::{
+    available_runners, cache_dir, docker_image_exists, resolve_image, PlatformSpec, RunnerKind,
+    ToolImageSpec,
+};
+
+pub fn print_env_images(
+    catalog: &HashMap<String, ToolImageSpec>,
+    platform: &PlatformSpec,
+) -> Result<()> {
+    let mut entries: Vec<_> = catalog.iter().collect();
+    entries.sort_by_key(|(name, _)| *name);
+    for (name, spec) in entries {
+        let resolved = resolve_image(spec, platform)?;
+        let digest = spec.digest.as_deref().unwrap_or("no digest");
+        println!("{name}: {} ({digest})", resolved.full_name);
+    }
+    Ok(())
+}
+
+pub fn print_env_info(catalog: &HashMap<String, ToolImageSpec>, platform: &PlatformSpec) {
+    println!("platform: {}", platform.name);
+    println!("runner: {}", platform.runner);
+    println!("image count: {}", catalog.len());
+    println!("cache: {}", cache_dir(platform.runner).to_string_lossy());
+}
+
+pub fn env_doctor(catalog: &HashMap<String, ToolImageSpec>, platform: &PlatformSpec) {
+    println!("bijux env doctor");
+    let runners = available_runners().unwrap_or_default();
+    print_check(
+        "cache directory writable",
+        ensure_cache_writable(platform.runner),
+    );
+    print_check("runner available", runners.contains(&platform.runner));
+    println!("runners: {}", display_runners(&runners));
+    for (tool, spec) in catalog {
+        let Ok(image) = resolve_image(spec, platform) else {
+            continue;
+        };
+        let exists = docker_image_exists(&image);
+        print_check(&format!("image {tool}"), exists);
+    }
+}
+
+fn ensure_cache_writable(runner: RunnerKind) -> bool {
+    let cache_dir = cache_dir(runner);
+    std::fs::create_dir_all(&cache_dir).is_ok()
+}
+
+fn print_check(name: &str, ok: bool) {
+    if ok {
+        println!("ok   {name}");
+    } else {
+        println!("fail {name}");
+    }
+}
+
+fn display_runners(runners: &[RunnerKind]) -> String {
+    runners
+        .iter()
+        .map(std::string::ToString::to_string)
+        .collect::<Vec<_>>()
+        .join(", ")
+}
