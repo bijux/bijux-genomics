@@ -14,6 +14,7 @@ mod bench;
 mod cli;
 mod env;
 mod image_qa;
+mod replay;
 mod utils;
 
 use bench::{
@@ -28,6 +29,7 @@ use cli::{
 };
 use env::{env_doctor, print_env_images, print_env_info};
 use image_qa::run_image_qa;
+use replay::replay_run;
 use utils::{init_logging, normalize_run_base_dir};
 
 fn main() -> Result<()> {
@@ -81,6 +83,10 @@ fn handle_meta_commands(cli: &Cli, modules_dir: &Path) -> Result<bool> {
         }
         Commands::ImageQa => {
             run_image_qa(cli.platform.as_deref())?;
+            Ok(true)
+        }
+        Commands::Replay(args) => {
+            replay_run(&args.run_id, &args.search_root)?;
             Ok(true)
         }
         Commands::Env { command } => {

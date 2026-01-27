@@ -29,3 +29,10 @@ constraints:
   mem_gb: 4
   tmp_gb: 4
   threads: 2
+execution_contract:
+  required_inputs:
+    - "reads_r1"
+  expected_outputs:
+    - "*_fastqc/**"
+  forbidden_outputs: []
+  forbid_unexpected_outputs: false

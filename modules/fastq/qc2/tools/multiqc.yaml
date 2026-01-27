@@ -10,7 +10,7 @@ capabilities:
   - "PE"
 container:
   image: "bijuxdna/multiqc"
-  digest: "sha256:pending"
+  digest: "sha256:40af0025fcc5bc4ea15e5cd2a4fd7bcfc98ea06c9ca781e6268f3c81d12787ec"
 command_template:
   - "multiqc"
   - "-o"
@@ -29,3 +29,11 @@ constraints:
   mem_gb: 4
   tmp_gb: 4
   threads: 2
+execution_contract:
+  required_inputs:
+    - "reads_r1"
+  expected_outputs:
+    - "multiqc_report.html"
+    - "multiqc_data/*"
+  forbidden_outputs: []
+  forbid_unexpected_outputs: false

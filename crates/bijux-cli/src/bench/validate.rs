@@ -14,10 +14,15 @@ use uuid::Uuid;
 use crate::image_qa::ensure_image_qa_passed;
 use crate::utils::{
     bench_base_dir, bench_tools_dir, docker_rm, docker_stats_mb, hash_file_sha256,
-    input_fastq_stats, parse_fastqvalidator_count, run_validate_container, SeqkitMetrics,
+    input_fastq_stats, parse_fastqvalidator_count, run_validate_container,
+    validate_execution_outputs, SeqkitMetrics,
 };
 
-use super::helpers::{normalize_validate_tool_list, resolve_image_for_run, ExecutionManifest};
+use super::failure::{classify_failure, BenchmarkFailure};
+use super::helpers::{
+    compute_run_id, normalize_validate_tool_list, params_hash, prepare_tool_run_dirs,
+    resolve_image_for_run, write_execution_logs, write_metrics_json, ExecutionManifest,
+};
 use super::report::write_validate_report;
 
 pub fn bench_fastq_validate(
@@ -42,6 +47,7 @@ pub fn bench_fastq_validate(
     let conn = bijux_bench::open_sqlite(&sqlite_path).context("open bench sqlite")?;
     let mut records: Vec<BenchmarkRecord<FastqValidateMetrics>> = Vec::new();
     let mut new_records: Vec<BenchmarkRecord<FastqValidateMetrics>> = Vec::new();
+    let mut failures: Vec<BenchmarkFailure> = Vec::new();
 
     for tool in tools {
         let spec = catalog
@@ -66,8 +72,10 @@ pub fn bench_fastq_validate(
         let policy = tool_policies
             .get(&tool)
             .ok_or_else(|| anyhow!("tool {tool} missing from manifests"))?;
-        let record = run_validate_tool(catalog, platform, args, &bench_inputs, &tool, *policy)?;
-        new_records.push(record);
+        match run_validate_tool(catalog, platform, args, &bench_inputs, &tool, *policy) {
+            Ok(record) => new_records.push(record),
+            Err(err) => failures.push(classify_failure("fastq.validate", &tool, &err)),
+        }
     }
 
     records.extend(new_records.iter().cloned());
@@ -82,7 +90,10 @@ pub fn bench_fastq_validate(
     }
 
     check_fastq_validate_comparability(&records);
-    write_validate_report(&bench_inputs.bench_dir, &records, args.explain)?;
+    write_validate_report(&bench_inputs.bench_dir, &records, &failures, args.explain)?;
+    if !failures.is_empty() {
+        return Err(anyhow!("benchmark failures: {}", failures.len()));
+    }
     Ok(())
 }
 
@@ -141,6 +152,7 @@ fn prepare_validate_bench(
     })
 }
 
+#[allow(clippy::too_many_lines)]
 fn run_validate_tool(
     catalog: &std::collections::HashMap<String, ToolImageSpec>,
     platform: &PlatformSpec,
@@ -155,9 +167,25 @@ fn run_validate_tool(
     let image = resolve_image_for_run(spec, platform)?;
 
     println!("→ validate {tool}");
-    let tool_dir = bench_inputs.tools_root.join(tool);
-    let out_dir = tool_dir.join("out");
-    fs::create_dir_all(&out_dir).context("create tool output dir")?;
+    let params = serde_json::json!({
+        "sample_id": args.sample_id,
+        "r1": bench_inputs.r1,
+    });
+    let param_hash = params_hash(&params).unwrap_or_else(|_| Uuid::new_v4().to_string());
+    let image_digest = spec
+        .digest
+        .as_ref()
+        .ok_or_else(|| anyhow!("image digest missing for tool {tool}"))?
+        .to_string();
+    let run_id = compute_run_id(
+        "fastq.validate",
+        tool,
+        &image_digest,
+        &bench_inputs.input_hash,
+        &param_hash,
+    );
+    let run_dirs = prepare_tool_run_dirs(&bench_inputs.tools_root, tool, &run_id)?;
+    let out_dir = run_dirs.artifacts_dir.clone();
     let start = Instant::now();
     let container_name = format!("bijux-bench-{}-{}", args.sample_id, Uuid::new_v4());
     let execution = run_validate_container(
@@ -194,25 +222,32 @@ fn run_validate_tool(
     };
     metrics.validate()?;
 
-    let image_digest = spec
-        .digest
-        .as_ref()
-        .ok_or_else(|| anyhow!("image digest missing for tool {tool}"))?
-        .to_string();
-    let manifest = ExecutionManifest {
+    let registry = load_manifests(&std::env::current_dir()?.join("modules"))
+        .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
+    let manifest = registry
+        .tool_by_id("fastq.validate", tool)
+        .ok_or_else(|| anyhow!("tool {tool} missing from manifests"))?;
+    validate_execution_outputs(&manifest.execution_contract, &out_dir)?;
+    let execution_manifest = ExecutionManifest {
+        run_id: run_id.clone(),
+        stage: "fastq.validate".to_string(),
         tool: tool.to_string(),
         tool_version: spec.version.clone(),
         image_digest: image_digest.clone(),
         command: execution.command.clone(),
         input_hashes: vec![bench_inputs.input_hash.clone()],
         input_files: vec![bench_inputs.r1.display().to_string()],
+        output_dir: out_dir.display().to_string(),
         runner: bench_inputs.runner.to_string(),
         platform: platform.name.clone(),
         arch: platform.arch.clone(),
     };
-    let manifest_path = tool_dir.join("execution_manifest.json");
-    fs::write(&manifest_path, serde_json::to_vec_pretty(&manifest)?)
-        .context("write execution manifest")?;
+    fs::write(
+        &run_dirs.manifest_path,
+        serde_json::to_vec_pretty(&execution_manifest)?,
+    )
+    .context("write execution manifest")?;
+    write_execution_logs(&run_dirs, &execution.stdout, &execution.stderr)?;
     let context = BenchmarkContext {
         tool: tool.to_string(),
         tool_version: spec.version.clone(),
@@ -220,10 +255,7 @@ fn run_validate_tool(
         runner: bench_inputs.runner.to_string(),
         platform: platform.name.clone(),
         input_hash: bench_inputs.input_hash.clone(),
-        parameters: serde_json::json!({
-            "sample_id": args.sample_id,
-            "r1": bench_inputs.r1,
-        }),
+        parameters: params,
     };
     let execution_metrics = ExecutionMetrics {
         runtime_s,
@@ -236,6 +268,7 @@ fn run_validate_tool(
         metrics,
     };
     record.validate()?;
+    write_metrics_json(&run_dirs, &record.execution, &record.metrics)?;
     if execution.exit_code != 0 {
         return Err(anyhow!(
             "tool {tool} failed with status {} (stdout: {}, stderr: {})",
@@ -265,7 +298,7 @@ fn build_validate_tool_policy(
 fn validate_reads_total(tool: &str, input_stats: &SeqkitMetrics, stdout: &str) -> Result<u64> {
     let reads_total = match tool {
         "seqtk" | "fastqc" => input_stats.reads,
-        "fastqvalidator" => match parse_fastqvalidator_count(stdout) {
+        "fastqvalidator" | "fastqvalidator_official" => match parse_fastqvalidator_count(stdout) {
             Ok(count) => count,
             Err(err) => {
                 tracing::warn!(error = %err, "fastqvalidator count missing; falling back to input reads");

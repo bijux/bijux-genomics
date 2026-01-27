@@ -10,7 +10,7 @@ capabilities:
   - "PE"
 container:
   image: "bijuxdna/fastqvalidator_official"
-  digest: "sha256:pending"
+  digest: "sha256:5fc67838361bff160d38f4e63e9dfbef4f7cbb7d40b5360480da3696ebe6c6fc"
 command_template:
   - "fastq-validator"
   - "--file"
@@ -23,3 +23,9 @@ constraints:
   mem_gb: 2
   tmp_gb: 1
   threads: 1
+execution_contract:
+  required_inputs:
+    - "reads_r1"
+  expected_outputs:
+  forbidden_outputs: []
+  forbid_unexpected_outputs: true

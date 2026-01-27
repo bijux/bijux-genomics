@@ -63,6 +63,10 @@ Every benchmark record includes:
 - memory_mb (MB)
 - exit_code (process exit status)
 
+Definitions:
+- runtime_s: wall-clock duration from container start to exit.
+- memory_mb: single-point container memory usage sampled via `docker stats --no-stream` after exit.
+
 And a required context block:
 - tool
 - tool version

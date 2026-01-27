@@ -28,3 +28,10 @@ constraints:
   mem_gb: 8
   tmp_gb: 4
   threads: 4
+execution_contract:
+  required_inputs:
+    - "reads_r1"
+  expected_outputs:
+    - "*"
+  forbidden_outputs: []
+  forbid_unexpected_outputs: false

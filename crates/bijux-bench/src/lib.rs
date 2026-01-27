@@ -20,6 +20,35 @@ pub trait StageMetricSchema {
     fn validate(&self) -> Result<()>;
 }
 
+fn validate_metric_schema<T>(metrics: &T) -> Result<()>
+where
+    T: StageMetricSchema + Serialize,
+{
+    let stage = T::STAGE;
+    let spec = StageMetricRegistry::spec_for_stage(stage).ok_or_else(|| {
+        BenchError::Validation(format!("missing metric schema for stage {stage}"))
+    })?;
+    let value = serde_json::to_value(metrics)?;
+    let obj = value
+        .as_object()
+        .ok_or_else(|| BenchError::Validation("metrics must serialize to object".to_string()))?;
+    let observed: std::collections::BTreeSet<String> = obj
+        .keys()
+        .cloned()
+        .collect::<std::collections::BTreeSet<_>>();
+    let expected: std::collections::BTreeSet<String> = spec
+        .metrics
+        .iter()
+        .map(|metric_id| metric_spec(*metric_id).name.to_string())
+        .collect();
+    if observed != expected {
+        return Err(BenchError::Validation(format!(
+            "metric schema mismatch for {stage}: observed={observed:?} expected={expected:?}",
+        )));
+    }
+    Ok(())
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum StageMetricKind {
     FastqTrim,
@@ -745,7 +774,9 @@ pub struct BenchmarkContext {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ExecutionMetrics {
+    /// Wall-clock seconds from container start to exit.
     pub runtime_s: f64,
+    /// Container memory usage in MB sampled via `docker stats --no-stream` after exit.
     pub memory_mb: f64,
     pub exit_code: i32,
 }
@@ -796,14 +827,15 @@ pub struct BenchmarkRecord<T: StageMetricSchema> {
 
 impl<T> BenchmarkRecord<T>
 where
-    T: StageMetricSchema,
+    T: StageMetricSchema + Serialize,
 {
     /// Validate the record by validating its metrics.
     ///
     /// # Errors
     /// Returns an error if the metric schema validation fails.
     pub fn validate(&self) -> Result<()> {
-        self.metrics.validate()
+        self.metrics.validate()?;
+        validate_metric_schema(&self.metrics)
     }
 }
 
@@ -2186,6 +2218,41 @@ pub fn insert_image_qa_v1(conn: &Connection, record: &ImageQaRecord) -> Result<(
             IMAGE_QA_SCHEMA_VERSION,
             outcome_json,
         ),
+    )?;
+    Ok(())
+}
+
+/// Ensure image QA tables exist in `SQLite`.
+///
+/// # Errors
+/// Returns an error if the tables cannot be created.
+pub fn ensure_image_qa_tables(conn: &Connection) -> Result<()> {
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS image_qa_v1 (\
+         tool TEXT NOT NULL,\
+         stage TEXT NOT NULL,\
+         tool_version TEXT NOT NULL,\
+         image_digest TEXT NOT NULL,\
+         runner TEXT NOT NULL,\
+         platform TEXT NOT NULL,\
+         input_hash TEXT NOT NULL,\
+         status TEXT NOT NULL,\
+         failure_reason TEXT,\
+         schema_version INTEGER NOT NULL,\
+         outcome_json TEXT NOT NULL\
+         )",
+        [],
+    )?;
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS image_qa_inputs_v1 (\
+         stage TEXT NOT NULL,\
+         input_hash TEXT NOT NULL,\
+         platform TEXT NOT NULL,\
+         runner TEXT NOT NULL,\
+         schema_version INTEGER NOT NULL,\
+         UNIQUE(stage, input_hash, platform, runner)\
+         )",
+        [],
     )?;
     Ok(())
 }

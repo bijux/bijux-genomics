@@ -1,22 +1,114 @@
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Context, Result};
 use bijux_environment::api::{
     docker_image_exists, resolve_image, PlatformSpec, ResolvedImage, ToolImageSpec,
 };
 use serde::Serialize;
+use sha2::Digest;
 use std::path::{Path, PathBuf};
 use tracing::warn;
 
-#[derive(Debug, Serialize)]
+use crate::utils::bench_tools_dir;
+
+#[derive(Debug, Serialize, serde::Deserialize)]
 pub(crate) struct ExecutionManifest {
+    pub(crate) run_id: String,
+    pub(crate) stage: String,
     pub(crate) tool: String,
     pub(crate) tool_version: String,
     pub(crate) image_digest: String,
     pub(crate) command: String,
     pub(crate) input_hashes: Vec<String>,
     pub(crate) input_files: Vec<String>,
+    pub(crate) output_dir: String,
     pub(crate) runner: String,
     pub(crate) platform: String,
     pub(crate) arch: String,
+}
+
+#[derive(Debug)]
+pub(crate) struct RunDirs {
+    pub(crate) artifacts_dir: PathBuf,
+    pub(crate) logs_dir: PathBuf,
+    pub(crate) manifest_path: PathBuf,
+    pub(crate) metrics_path: PathBuf,
+}
+
+pub(crate) fn params_hash(params: &serde_json::Value) -> Result<String> {
+    let bytes = serde_json::to_vec(params).context("serialize params")?;
+    let mut hasher = sha2::Sha256::new();
+    hasher.update(bytes);
+    Ok(format!("{:x}", hasher.finalize()))
+}
+
+pub(crate) fn compute_run_id(
+    stage: &str,
+    tool: &str,
+    image_digest: &str,
+    input_hash: &str,
+    params_hash: &str,
+) -> String {
+    let seed = format!("{stage}|{tool}|{image_digest}|{input_hash}|{params_hash}");
+    let mut hasher = sha2::Sha256::new();
+    hasher.update(seed.as_bytes());
+    format!("{:x}", hasher.finalize())
+}
+
+pub(crate) fn prepare_tool_run_dirs(
+    tools_root: &Path,
+    tool: &str,
+    run_id: &str,
+) -> Result<RunDirs> {
+    let tool_dir = tools_root.join(tool);
+    let run_dir = tool_dir.join("run").join(run_id);
+    let artifacts_dir = run_dir.join("artifacts");
+    let logs_dir = run_dir.join("logs");
+    std::fs::create_dir_all(&artifacts_dir).context("create artifacts dir")?;
+    std::fs::create_dir_all(&logs_dir).context("create logs dir")?;
+    Ok(RunDirs {
+        artifacts_dir,
+        logs_dir: logs_dir.clone(),
+        manifest_path: run_dir.join("manifest.json"),
+        metrics_path: run_dir.join("metrics.json"),
+    })
+}
+
+pub(crate) fn tool_run_artifacts_dir(
+    out: &Path,
+    stage: &str,
+    sample_id: &str,
+    tool: &str,
+    run_id: &str,
+) -> PathBuf {
+    bench_tools_dir(out, stage, sample_id)
+        .join(tool)
+        .join("run")
+        .join(run_id)
+        .join("artifacts")
+}
+
+pub(crate) fn write_execution_logs(run_dirs: &RunDirs, stdout: &str, stderr: &str) -> Result<()> {
+    let log_path = run_dirs.logs_dir.join("tool.log");
+    if stderr.is_empty() {
+        std::fs::write(&log_path, stdout).context("write tool.log")?;
+    } else {
+        std::fs::write(&log_path, format!("{stdout}\n--- stderr ---\n{stderr}"))
+            .context("write tool.log")?;
+    }
+    Ok(())
+}
+
+pub(crate) fn write_metrics_json<T: serde::Serialize>(
+    run_dirs: &RunDirs,
+    execution: &bijux_bench::ExecutionMetrics,
+    metrics: &T,
+) -> Result<()> {
+    let payload = serde_json::json!({
+        "execution": execution,
+        "metrics": metrics
+    });
+    std::fs::write(&run_dirs.metrics_path, serde_json::to_vec_pretty(&payload)?)
+        .context("write metrics.json")?;
+    Ok(())
 }
 
 pub(crate) fn normalize_tool_list(tools: &[String]) -> Result<Vec<String>> {

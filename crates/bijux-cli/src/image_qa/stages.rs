@@ -3,12 +3,14 @@ use std::time::Duration;
 
 use anyhow::{anyhow, Context, Result};
 use bijux_bench::ImageQaOutcome;
+use bijux_core::ToolRegistry;
 use bijux_environment::api::{PlatformSpec, ToolImageSpec};
 use uuid::Uuid;
 
 use crate::utils::{
     docker_rm, output_fastq_stats, run_merge_container_with_timeout,
-    run_tool_container_with_timeout, run_validate_container_with_timeout,
+    run_multiqc_container_with_timeout, run_tool_container_with_timeout,
+    run_validate_container_with_timeout, validate_execution_outputs,
 };
 
 use super::helpers::{resolve_image_for_run, temp_out_dir};
@@ -22,19 +24,22 @@ pub(crate) fn run_stage_qa(
     tool: &str,
     platform: &PlatformSpec,
     catalog: &HashMap<String, ToolImageSpec>,
+    registry: &ToolRegistry,
     dataset: &QaDataset,
     seqkit_image: &crate::utils::ResolvedImage,
 ) -> ImageQaOutcome {
     let outcome = match stage {
-        QaStage::Trim => qa_trim_tool(tool, platform, catalog, dataset, seqkit_image),
-        QaStage::Validate => qa_validate_tool(tool, platform, catalog, dataset),
-        QaStage::Filter => qa_filter_tool(tool, platform, catalog, dataset, seqkit_image),
-        QaStage::Merge => qa_merge_tool(tool, platform, catalog, dataset, seqkit_image),
-        QaStage::Correct => qa_correct_tool(tool, platform, catalog, dataset, seqkit_image),
-        QaStage::Qc2 => qa_qc2_tool(tool, platform, catalog, dataset),
-        QaStage::Umi => qa_umi_tool(tool, platform, catalog, dataset, seqkit_image),
-        QaStage::Stats => qa_stats_tool(tool, platform, catalog, dataset),
-        QaStage::Screen => qa_screen_tool(tool, platform, catalog, dataset),
+        QaStage::Trim => qa_trim_tool(tool, platform, catalog, registry, dataset, seqkit_image),
+        QaStage::Validate => qa_validate_tool(tool, platform, catalog, registry, dataset),
+        QaStage::Filter => qa_filter_tool(tool, platform, catalog, registry, dataset, seqkit_image),
+        QaStage::Merge => qa_merge_tool(tool, platform, catalog, registry, dataset, seqkit_image),
+        QaStage::Correct => {
+            qa_correct_tool(tool, platform, catalog, registry, dataset, seqkit_image)
+        }
+        QaStage::Qc2 => qa_qc2_tool(tool, platform, catalog, registry, dataset),
+        QaStage::Umi => qa_umi_tool(tool, platform, catalog, registry, dataset, seqkit_image),
+        QaStage::Stats => qa_stats_tool(tool, platform, catalog, registry, dataset),
+        QaStage::Screen => qa_screen_tool(tool, platform, catalog, registry, dataset),
     };
     match outcome {
         Ok(()) => ImageQaOutcome::Pass,
@@ -46,9 +51,11 @@ fn qa_trim_tool(
     tool: &str,
     platform: &PlatformSpec,
     catalog: &HashMap<String, ToolImageSpec>,
+    registry: &ToolRegistry,
     dataset: &QaDataset,
     seqkit_image: &crate::utils::ResolvedImage,
 ) -> Result<()> {
+    let contract = tool_contract(registry, "fastq.trim", tool)?;
     let spec = catalog
         .get(tool)
         .ok_or_else(|| anyhow!("tool {tool} missing from images.yaml"))?;
@@ -75,6 +82,7 @@ fn qa_trim_tool(
     if execution.exit_code != 0 {
         return Err(anyhow!("exit code {}", execution.exit_code));
     }
+    validate_execution_outputs(contract, &out_dir)?;
     let out_fastq = execution
         .output_fastq
         .ok_or_else(|| anyhow!("output FASTQ missing"))?;
@@ -103,8 +111,10 @@ fn qa_validate_tool(
     tool: &str,
     platform: &PlatformSpec,
     catalog: &HashMap<String, ToolImageSpec>,
+    registry: &ToolRegistry,
     dataset: &QaDataset,
 ) -> Result<()> {
+    let contract = tool_contract(registry, "fastq.validate", tool)?;
     let spec = catalog
         .get(tool)
         .ok_or_else(|| anyhow!("tool {tool} missing from images.yaml"))?;
@@ -131,6 +141,7 @@ fn qa_validate_tool(
     if execution.exit_code != 0 {
         return Err(anyhow!("exit code {}", execution.exit_code));
     }
+    validate_execution_outputs(contract, &out_dir)?;
     Ok(())
 }
 
@@ -138,9 +149,11 @@ fn qa_filter_tool(
     tool: &str,
     platform: &PlatformSpec,
     catalog: &HashMap<String, ToolImageSpec>,
+    registry: &ToolRegistry,
     dataset: &QaDataset,
     seqkit_image: &crate::utils::ResolvedImage,
 ) -> Result<()> {
+    let contract = tool_contract(registry, "fastq.filter", tool)?;
     let spec = catalog
         .get(tool)
         .ok_or_else(|| anyhow!("tool {tool} missing from images.yaml"))?;
@@ -167,6 +180,7 @@ fn qa_filter_tool(
     if execution.exit_code != 0 {
         return Err(anyhow!("exit code {}", execution.exit_code));
     }
+    validate_execution_outputs(contract, &out_dir)?;
     let out_fastq = execution
         .output_fastq
         .ok_or_else(|| anyhow!("output FASTQ missing"))?;
@@ -195,9 +209,11 @@ fn qa_merge_tool(
     tool: &str,
     platform: &PlatformSpec,
     catalog: &HashMap<String, ToolImageSpec>,
+    registry: &ToolRegistry,
     dataset: &QaDataset,
     seqkit_image: &crate::utils::ResolvedImage,
 ) -> Result<()> {
+    let contract = tool_contract(registry, "fastq.merge", tool)?;
     let spec = catalog
         .get(tool)
         .ok_or_else(|| anyhow!("tool {tool} missing from images.yaml"))?;
@@ -233,6 +249,7 @@ fn qa_merge_tool(
     if execution.exit_code != 0 {
         return Err(anyhow!("exit code {}", execution.exit_code));
     }
+    validate_execution_outputs(contract, &out_dir)?;
 
     let merged_exists = execution.merged_fastq.exists();
     let unmerged_exists = execution.unmerged_r1.exists() && execution.unmerged_r2.exists();
@@ -259,9 +276,11 @@ fn qa_correct_tool(
     tool: &str,
     platform: &PlatformSpec,
     catalog: &HashMap<String, ToolImageSpec>,
+    registry: &ToolRegistry,
     dataset: &QaDataset,
     seqkit_image: &crate::utils::ResolvedImage,
 ) -> Result<()> {
+    let contract = tool_contract(registry, "fastq.correct", tool)?;
     let spec = catalog
         .get(tool)
         .ok_or_else(|| anyhow!("tool {tool} missing from images.yaml"))?;
@@ -288,6 +307,7 @@ fn qa_correct_tool(
     if execution.exit_code != 0 {
         return Err(anyhow!("exit code {}", execution.exit_code));
     }
+    validate_execution_outputs(contract, &out_dir)?;
     let out_fastq = if let Some(path) = execution.output_fastq {
         path
     } else {
@@ -308,8 +328,10 @@ fn qa_qc2_tool(
     tool: &str,
     platform: &PlatformSpec,
     catalog: &HashMap<String, ToolImageSpec>,
+    registry: &ToolRegistry,
     dataset: &QaDataset,
 ) -> Result<()> {
+    let contract = tool_contract(registry, "fastq.qc2", tool)?;
     let spec = catalog
         .get(tool)
         .ok_or_else(|| anyhow!("tool {tool} missing from images.yaml"))?;
@@ -317,6 +339,57 @@ fn qa_qc2_tool(
     let out_dir = temp_out_dir("qc2", tool)?;
     let container_name = format!("bijux-qa-qc2-{}-{}", tool, Uuid::new_v4());
     let timeout = Duration::from_secs(QA_TIMEOUT_SECS);
+    if tool == "multiqc" {
+        let fastqc_spec = catalog
+            .get("fastqc")
+            .ok_or_else(|| anyhow!("fastqc missing from images.yaml"))?;
+        let fastqc_image = resolve_image_for_run(fastqc_spec, platform)?;
+        let fastqc_dir = out_dir.join("fastqc");
+        std::fs::create_dir_all(&fastqc_dir).context("create fastqc output dir")?;
+        let fastqc_container = format!("bijux-qa-qc2-fastqc-{}", Uuid::new_v4());
+        let fastqc_exec = match run_validate_container_with_timeout(
+            "fastqc",
+            &fastqc_image,
+            &dataset.r1_dir,
+            &dataset.r1,
+            &fastqc_dir,
+            &fastqc_container,
+            timeout,
+        ) {
+            Ok(execution) => execution,
+            Err(err) => {
+                let _ = docker_rm(&fastqc_container);
+                return Err(err);
+            }
+        };
+        docker_rm(&fastqc_container)?;
+        if fastqc_exec.exit_code != 0 {
+            return Err(anyhow!("fastqc exit code {}", fastqc_exec.exit_code));
+        }
+        let execution = match run_multiqc_container_with_timeout(
+            &image,
+            &fastqc_dir,
+            &out_dir,
+            &container_name,
+            timeout,
+        ) {
+            Ok(execution) => execution,
+            Err(err) => {
+                let _ = docker_rm(&container_name);
+                return Err(err);
+            }
+        };
+        docker_rm(&container_name)?;
+        if execution.exit_code != 0 {
+            return Err(anyhow!("exit code {}", execution.exit_code));
+        }
+        validate_execution_outputs(contract, &out_dir)?;
+        if !dir_has_files(&out_dir) {
+            return Err(anyhow!("qc2 output missing"));
+        }
+        return Ok(());
+    }
+
     let execution = match run_validate_container_with_timeout(
         tool,
         &image,
@@ -336,6 +409,7 @@ fn qa_qc2_tool(
     if execution.exit_code != 0 {
         return Err(anyhow!("exit code {}", execution.exit_code));
     }
+    validate_execution_outputs(contract, &out_dir)?;
     if !dir_has_files(&out_dir) {
         return Err(anyhow!("qc2 output missing"));
     }
@@ -346,9 +420,11 @@ fn qa_umi_tool(
     tool: &str,
     platform: &PlatformSpec,
     catalog: &HashMap<String, ToolImageSpec>,
+    registry: &ToolRegistry,
     dataset: &QaDataset,
     seqkit_image: &crate::utils::ResolvedImage,
 ) -> Result<()> {
+    let contract = tool_contract(registry, "fastq.umi", tool)?;
     let spec = catalog
         .get(tool)
         .ok_or_else(|| anyhow!("tool {tool} missing from images.yaml"))?;
@@ -375,6 +451,7 @@ fn qa_umi_tool(
     if execution.exit_code != 0 {
         return Err(anyhow!("exit code {}", execution.exit_code));
     }
+    validate_execution_outputs(contract, &out_dir)?;
     let out_fastq = execution
         .output_fastq
         .ok_or_else(|| anyhow!("output FASTQ missing"))?;
@@ -396,8 +473,10 @@ fn qa_stats_tool(
     tool: &str,
     platform: &PlatformSpec,
     catalog: &HashMap<String, ToolImageSpec>,
+    registry: &ToolRegistry,
     dataset: &QaDataset,
 ) -> Result<()> {
+    let contract = tool_contract(registry, "fastq.stats", tool)?;
     let spec = catalog
         .get(tool)
         .ok_or_else(|| anyhow!("tool {tool} missing from images.yaml"))?;
@@ -424,6 +503,7 @@ fn qa_stats_tool(
     if execution.exit_code != 0 {
         return Err(anyhow!("exit code {}", execution.exit_code));
     }
+    validate_execution_outputs(contract, &out_dir)?;
     Ok(())
 }
 
@@ -431,11 +511,23 @@ fn qa_screen_tool(
     _tool: &str,
     _platform: &PlatformSpec,
     _catalog: &HashMap<String, ToolImageSpec>,
+    _registry: &ToolRegistry,
     _dataset: &QaDataset,
 ) -> Result<()> {
     Err(anyhow!(
         "screen QA requires BIJUX_SCREEN_DB and is not enabled"
     ))
+}
+
+fn tool_contract<'a>(
+    registry: &'a ToolRegistry,
+    stage_id: &str,
+    tool_id: &str,
+) -> Result<&'a bijux_core::ExecutionContract> {
+    let tool = registry
+        .tool_by_id(stage_id, tool_id)
+        .ok_or_else(|| anyhow!("tool {tool_id} missing from manifests"))?;
+    Ok(&tool.execution_contract)
 }
 
 fn dir_has_files(path: &std::path::Path) -> bool {

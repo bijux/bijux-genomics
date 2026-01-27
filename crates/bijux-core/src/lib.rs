@@ -206,6 +206,15 @@ pub struct ToolConstraints {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
+pub struct ExecutionContract {
+    pub required_inputs: Vec<String>,
+    pub expected_outputs: Vec<String>,
+    pub forbidden_outputs: Vec<String>,
+    pub forbid_unexpected_outputs: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ToolManifestV1 {
     pub schema_version: String,
     pub tool_id: String,
@@ -218,6 +227,7 @@ pub struct ToolManifestV1 {
     pub container: ContainerManifest,
     pub command_template: Vec<String>,
     pub outputs: Vec<PortSpec>,
+    pub execution_contract: ExecutionContract,
     pub metrics_parser: String,
     pub constraints: ToolConstraints,
 }
@@ -364,6 +374,12 @@ fn validate_tool_manifest(path: &Path, manifest: &ToolManifestV1) -> Result<(), 
     if manifest.stage_id.trim().is_empty() || manifest.tool_id.trim().is_empty() {
         return Err(BijuxError::Manifest(format!(
             "empty stage_id or tool_id at {}",
+            path.display()
+        )));
+    }
+    if manifest.execution_contract.required_inputs.is_empty() {
+        return Err(BijuxError::Manifest(format!(
+            "execution_contract.required_inputs empty at {}",
             path.display()
         )));
     }

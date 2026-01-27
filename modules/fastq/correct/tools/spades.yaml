@@ -33,3 +33,11 @@ constraints:
   mem_gb: 16
   tmp_gb: 8
   threads: 4
+execution_contract:
+  required_inputs:
+    - "reads_r1"
+  expected_outputs:
+    - "*.cor.fq.gz"
+  forbidden_outputs: []
+  forbid_unexpected_outputs: true
+

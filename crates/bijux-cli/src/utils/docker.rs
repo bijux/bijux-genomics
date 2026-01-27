@@ -29,37 +29,26 @@ pub fn docker_wait(container_id: &str) -> Result<i32> {
 }
 
 pub fn docker_wait_timeout(container_id: &str, timeout: std::time::Duration) -> Result<i32> {
-    let output = Command::new("docker")
-        .arg("wait")
-        .arg(container_id)
-        .arg("--time")
-        .arg(format!("{}", timeout.as_secs()))
-        .output()
-        .context("docker wait")?;
-    if output.status.success() {
-        let code = String::from_utf8_lossy(&output.stdout)
-            .trim()
-            .parse::<i32>()
-            .context("parse docker wait output")?;
-        return Ok(code);
-    }
-
-    let mut inspect = Command::new("docker");
-    inspect
-        .arg("inspect")
-        .arg(container_id)
-        .arg("--format")
-        .arg("{{.State.Status}}");
-    let inspect_output = inspect.output().context("docker inspect")?;
-    if inspect_output.status.success() {
-        let status = String::from_utf8_lossy(&inspect_output.stdout)
-            .trim()
-            .to_string();
-        if status == "exited" {
-            return docker_wait(container_id);
+    let start = std::time::Instant::now();
+    loop {
+        let output = Command::new("docker")
+            .arg("inspect")
+            .arg(container_id)
+            .arg("--format")
+            .arg("{{.State.Status}}")
+            .output()
+            .context("docker inspect")?;
+        if output.status.success() {
+            let status = String::from_utf8_lossy(&output.stdout).trim().to_string();
+            if status == "exited" {
+                return docker_wait(container_id);
+            }
         }
+        if start.elapsed() >= timeout {
+            return Err(anyhow!("timeout"));
+        }
+        std::thread::sleep(std::time::Duration::from_secs(1));
     }
-    Err(anyhow!("timeout"))
 }
 
 pub fn docker_logs(container_id: &str) -> Result<String> {

@@ -14,6 +14,7 @@ seqkit:
   digest: "sha256:ca3dc13e3fef5d34927c44b2d8cd2bc6708c2c256f42e51369d7b1203b0d2991"
 
 seqkit_stats:
+  tool: "seqkit"
   version: "2.8.2"
   digest: "sha256:ca3dc13e3fef5d34927c44b2d8cd2bc6708c2c256f42e51369d7b1203b0d2991"
 
@@ -87,9 +88,11 @@ musket:
 
 umi_tools:
   version: "1.1.6"
+  digest: "sha256:0bbc5c72fea584587162daadcc4ff5d964d90fb3043de1e231b59d4c9bf36ca8"
 
 multiqc:
   version: "1.24"
+  digest: "sha256:40af0025fcc5bc4ea15e5cd2a4fd7bcfc98ea06c9ca781e6268f3c81d12787ec"
 
 qualimap:
   version: "2.3"
@@ -111,12 +114,15 @@ kaiju:
 
 rcorrector:
   version: "1.0.7"
+  digest: "sha256:bca789c8749a32d8e39eb8901a09ac24659adf677e657494d91d3383d9cf3f4e"
 
 atropos:
   version: "1.1.31"
+  digest: "sha256:5a2fab22811303ced83475111a2427eaa894fcb39436618bb26be1da391f300d"
 
 fastq_screen:
   version: "0.15.3"
 
 fastqvalidator_official:
-  version: "0.1.1"
+  version: "v0.1.1"
+  digest: "sha256:5fc67838361bff160d38f4e63e9dfbef4f7cbb7d40b5360480da3696ebe6c6fc"

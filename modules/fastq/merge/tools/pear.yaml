@@ -34,3 +34,13 @@ constraints:
   mem_gb: 8
   tmp_gb: 4
   threads: 2
+execution_contract:
+  required_inputs:
+    - "reads_r1"
+    - "reads_r2"
+  expected_outputs:
+    - "pear.assembled.fastq"
+    - "pear.unassembled.forward.fastq"
+    - "pear.unassembled.reverse.fastq"
+  forbidden_outputs: []
+  forbid_unexpected_outputs: false

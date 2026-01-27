@@ -10,7 +10,7 @@ capabilities:
   - "PE"
 container:
   image: "bijuxdna/atropos"
-  digest: "sha256:pending"
+  digest: "sha256:5a2fab22811303ced83475111a2427eaa894fcb39436618bb26be1da391f300d"
 command_template:
   - "atropos"
   - "trim"
@@ -29,3 +29,10 @@ constraints:
   mem_gb: 4
   tmp_gb: 2
   threads: 2
+execution_contract:
+  required_inputs:
+    - "reads_r1"
+  expected_outputs:
+    - "atropos.fastq.gz"
+  forbidden_outputs: []
+  forbid_unexpected_outputs: true

@@ -46,7 +46,6 @@ pub fn run_validate_container(
         }
         "fastqc" => {
             push_arg(&mut cmd, &mut args, "fastqc");
-            push_arg(&mut cmd, &mut args, "-v");
             push_arg(&mut cmd, &mut args, "--extract");
             push_arg(&mut cmd, &mut args, "-f");
             push_arg(&mut cmd, &mut args, "fastq");
@@ -73,7 +72,6 @@ pub fn run_validate_container(
             push_arg(&mut cmd, &mut args, input_path.clone());
         }
         "multiqc" => {
-            push_arg(&mut cmd, &mut args, "multiqc");
             push_arg(&mut cmd, &mut args, "-o");
             push_arg(&mut cmd, &mut args, "/data/output");
             push_arg(&mut cmd, &mut args, "/data/input");
@@ -88,6 +86,52 @@ pub fn run_validate_container(
     let id = String::from_utf8_lossy(&output.stdout).trim().to_string();
     if id.is_empty() {
         return Err(anyhow!("missing container id for {tool}"));
+    }
+    let exit_code = docker_wait(&id)?;
+    let stdout = docker_logs(&id)?;
+    let stderr = String::new();
+    let command = command_string(&args);
+    Ok(ExecutionOutput {
+        exit_code,
+        stdout,
+        stderr,
+        output_fastq: None,
+        command,
+    })
+}
+
+pub fn run_multiqc_container(
+    image: &ResolvedImage,
+    input_dir: &Path,
+    out_dir: &Path,
+    container_name: &str,
+) -> Result<ExecutionOutput> {
+    let input_mount = format!("{}:/data/input:ro", input_dir.display());
+    let output_mount = format!("{}:/data/output", out_dir.display());
+
+    let mut cmd = Command::new("docker");
+    let mut args: Vec<String> = Vec::new();
+    push_arg(&mut cmd, &mut args, "run");
+    push_arg(&mut cmd, &mut args, "-d");
+    push_arg(&mut cmd, &mut args, "--rm=false");
+    push_arg(&mut cmd, &mut args, "--name");
+    push_arg(&mut cmd, &mut args, container_name);
+    push_arg(&mut cmd, &mut args, "-v");
+    push_arg(&mut cmd, &mut args, input_mount);
+    push_arg(&mut cmd, &mut args, "-v");
+    push_arg(&mut cmd, &mut args, output_mount);
+    push_arg(&mut cmd, &mut args, image.full_name.clone());
+    push_arg(&mut cmd, &mut args, "-o");
+    push_arg(&mut cmd, &mut args, "/data/output");
+    push_arg(&mut cmd, &mut args, "/data/input");
+
+    let output = cmd.output().context("run docker")?;
+    if !output.status.success() {
+        return Err(anyhow!("docker run failed for multiqc"));
+    }
+    let id = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    if id.is_empty() {
+        return Err(anyhow!("missing container id for multiqc"));
     }
     let exit_code = docker_wait(&id)?;
     let stdout = docker_logs(&id)?;
@@ -142,7 +186,6 @@ pub fn run_validate_container_with_timeout(
         }
         "fastqc" => {
             push_arg(&mut cmd, &mut args, "fastqc");
-            push_arg(&mut cmd, &mut args, "-v");
             push_arg(&mut cmd, &mut args, "--extract");
             push_arg(&mut cmd, &mut args, "-f");
             push_arg(&mut cmd, &mut args, "fastq");
@@ -169,7 +212,6 @@ pub fn run_validate_container_with_timeout(
             push_arg(&mut cmd, &mut args, input_path.clone());
         }
         "multiqc" => {
-            push_arg(&mut cmd, &mut args, "multiqc");
             push_arg(&mut cmd, &mut args, "-o");
             push_arg(&mut cmd, &mut args, "/data/output");
             push_arg(&mut cmd, &mut args, "/data/input");
@@ -184,6 +226,53 @@ pub fn run_validate_container_with_timeout(
     let id = String::from_utf8_lossy(&output.stdout).trim().to_string();
     if id.is_empty() {
         return Err(anyhow!("missing container id for {tool}"));
+    }
+    let exit_code = docker_wait_timeout(&id, timeout)?;
+    let stdout = docker_logs(&id)?;
+    let stderr = String::new();
+    let command = command_string(&args);
+    Ok(ExecutionOutput {
+        exit_code,
+        stdout,
+        stderr,
+        output_fastq: None,
+        command,
+    })
+}
+
+pub fn run_multiqc_container_with_timeout(
+    image: &ResolvedImage,
+    input_dir: &Path,
+    out_dir: &Path,
+    container_name: &str,
+    timeout: std::time::Duration,
+) -> Result<ExecutionOutput> {
+    let input_mount = format!("{}:/data/input:ro", input_dir.display());
+    let output_mount = format!("{}:/data/output", out_dir.display());
+
+    let mut cmd = Command::new("docker");
+    let mut args: Vec<String> = Vec::new();
+    push_arg(&mut cmd, &mut args, "run");
+    push_arg(&mut cmd, &mut args, "-d");
+    push_arg(&mut cmd, &mut args, "--rm=false");
+    push_arg(&mut cmd, &mut args, "--name");
+    push_arg(&mut cmd, &mut args, container_name);
+    push_arg(&mut cmd, &mut args, "-v");
+    push_arg(&mut cmd, &mut args, input_mount);
+    push_arg(&mut cmd, &mut args, "-v");
+    push_arg(&mut cmd, &mut args, output_mount);
+    push_arg(&mut cmd, &mut args, image.full_name.clone());
+    push_arg(&mut cmd, &mut args, "-o");
+    push_arg(&mut cmd, &mut args, "/data/output");
+    push_arg(&mut cmd, &mut args, "/data/input");
+
+    let output = cmd.output().context("run docker")?;
+    if !output.status.success() {
+        return Err(anyhow!("docker run failed for multiqc"));
+    }
+    let id = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    if id.is_empty() {
+        return Err(anyhow!("missing container id for multiqc"));
     }
     let exit_code = docker_wait_timeout(&id, timeout)?;
     let stdout = docker_logs(&id)?;
