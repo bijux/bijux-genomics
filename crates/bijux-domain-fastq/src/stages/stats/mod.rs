@@ -20,13 +20,13 @@ use bijux_engine::api::{cleanup_execution, execution_memory_mb, run_validate_exe
 use bijux_engine::api::{hash_file_sha256, input_fastq_stats, length_histogram, SeqkitMetrics};
 use bijux_environment::image_qa::ensure_image_qa_passed;
 
-use super::analyze::failure::{classify_failure, BenchmarkFailure};
-use super::analyze::report::write_stats_report;
 use super::helpers::{
     compute_run_id, normalize_stats_tool_list, params_hash, prepare_tool_run_dirs,
     resolve_image_for_run, write_execution_logs, write_explain_md, write_explain_plan_json,
     write_metrics_json, ExecutionManifest,
 };
+use crate::core::RawFailure;
+use crate::stages::helpers::BenchOutcome;
 
 /// Run the FASTQ benchmark stage.
 ///
@@ -37,7 +37,7 @@ pub fn bench_fastq_stats<S: ::std::hash::BuildHasher>(
     platform: &PlatformSpec,
     runner_override: Option<RunnerKind>,
     args: &crate::stages::args::BenchFastqStatsArgs,
-) -> Result<()> {
+) -> Result<BenchOutcome<FastqStatsMetrics>> {
     let tools = normalize_stats_tool_list(&args.tools)?;
     let artifact = FastqArtifact::single_end(&args.r1);
     preflight_stage("fastq.stats", artifact.kind)?;
@@ -76,7 +76,7 @@ pub fn bench_fastq_stats<S: ::std::hash::BuildHasher>(
     let conn = bijux_analyze::open_sqlite(&sqlite_path).context("open bench sqlite")?;
     let mut records: Vec<BenchmarkRecord<FastqStatsMetrics>> = Vec::new();
     let mut new_records: Vec<BenchmarkRecord<FastqStatsMetrics>> = Vec::new();
-    let mut failures: Vec<BenchmarkFailure> = Vec::new();
+    let mut failures: Vec<RawFailure> = Vec::new();
 
     for tool in tools {
         let spec = catalog
@@ -100,7 +100,11 @@ pub fn bench_fastq_stats<S: ::std::hash::BuildHasher>(
         }
         match run_stats_tool(catalog, platform, args, &bench_inputs, &tool) {
             Ok(record) => new_records.push(record),
-            Err(err) => failures.push(classify_failure("fastq.stats", &tool, &err)),
+            Err(err) => failures.push(RawFailure {
+                stage: "fastq.stats".to_string(),
+                tool: tool.to_string(),
+                reason: err.to_string(),
+            }),
         }
     }
 
@@ -115,11 +119,12 @@ pub fn bench_fastq_stats<S: ::std::hash::BuildHasher>(
         insert_fastq_stats_v1(&conn, record).context("insert bench sqlite")?;
     }
 
-    write_stats_report(&bench_inputs.bench_dir, &records, &failures, args.explain)?;
-    if !failures.is_empty() {
-        return Err(anyhow!("benchmark failures: {}", failures.len()));
-    }
-    Ok(())
+    Ok(BenchOutcome {
+        records,
+        failures,
+        bench_dir: bench_inputs.bench_dir,
+        explain: args.explain,
+    })
 }
 
 struct StatsBenchInputs {

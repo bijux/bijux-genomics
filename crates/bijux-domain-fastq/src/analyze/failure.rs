@@ -1,5 +1,7 @@
 use serde::Serialize;
 
+use crate::core::RawFailure;
+
 #[derive(Debug, Clone, Copy, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum FailureClass {
@@ -19,9 +21,8 @@ pub struct BenchmarkFailure {
 }
 
 #[must_use]
-pub fn classify_failure(stage: &str, tool: &str, err: &anyhow::Error) -> BenchmarkFailure {
-    let reason = err.to_string();
-    let msg = reason.to_lowercase();
+pub fn classify_raw_failure(raw: &RawFailure) -> BenchmarkFailure {
+    let msg = raw.reason.to_lowercase();
     let class = if msg.contains("timeout") {
         FailureClass::ResourceExhaustion
     } else if msg.contains("docker image not found")
@@ -36,7 +37,7 @@ pub fn classify_failure(stage: &str, tool: &str, err: &anyhow::Error) -> Benchma
         || msg.contains("must equal")
     {
         FailureClass::InvariantViolation
-    } else if (stage == "fastq.validate" && msg.contains("strict validation failed"))
+    } else if (raw.stage == "fastq.validate" && msg.contains("strict validation failed"))
         || msg.contains("invalid fastq")
         || (msg.contains("fastq") && msg.contains("invalid"))
     {
@@ -45,10 +46,10 @@ pub fn classify_failure(stage: &str, tool: &str, err: &anyhow::Error) -> Benchma
         FailureClass::ToolError
     };
     BenchmarkFailure {
-        stage: stage.to_string(),
-        tool: tool.to_string(),
+        stage: raw.stage.clone(),
+        tool: raw.tool.clone(),
         class,
-        reason,
+        reason: raw.reason.clone(),
     }
 }
 
@@ -58,22 +59,34 @@ mod tests {
 
     #[test]
     fn classify_failure_detects_data_errors() {
-        let err = anyhow::anyhow!("strict validation failed for fastqvalidator");
-        let failure = classify_failure("fastq.validate", "fastqvalidator", &err);
+        let raw = RawFailure {
+            stage: "fastq.validate".to_string(),
+            tool: "fastqvalidator".to_string(),
+            reason: "strict validation failed for fastqvalidator".to_string(),
+        };
+        let failure = classify_raw_failure(&raw);
         assert!(matches!(failure.class, FailureClass::DataError));
     }
 
     #[test]
     fn classify_failure_detects_invariants() {
-        let err = anyhow::anyhow!("reads_out must be <= reads_in");
-        let failure = classify_failure("fastq.trim", "fastp", &err);
+        let raw = RawFailure {
+            stage: "fastq.trim".to_string(),
+            tool: "fastp".to_string(),
+            reason: "reads_out must be <= reads_in".to_string(),
+        };
+        let failure = classify_raw_failure(&raw);
         assert!(matches!(failure.class, FailureClass::InvariantViolation));
     }
 
     #[test]
     fn classify_failure_defaults_to_tool_error() {
-        let err = anyhow::anyhow!("unexpected crash");
-        let failure = classify_failure("fastq.trim", "fastp", &err);
+        let raw = RawFailure {
+            stage: "fastq.trim".to_string(),
+            tool: "fastp".to_string(),
+            reason: "unexpected crash".to_string(),
+        };
+        let failure = classify_raw_failure(&raw);
         assert!(matches!(failure.class, FailureClass::ToolError));
     }
 }

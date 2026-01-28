@@ -14,19 +14,25 @@ use bijux_analyze::{
     FastqValidateMetrics,
 };
 
-use super::failure::BenchmarkFailure;
+use super::failure::{classify_raw_failure, BenchmarkFailure};
+use crate::core::RawFailure;
 use bijux_bench::analyze::{build_rankings, print_rank_explain, RankInput};
 
-pub(crate) fn write_trim_report(
+/// Write the trim benchmark report.
+///
+/// # Errors
+/// Returns an error if report serialization or file writes fail.
+pub fn write_trim_report(
     base_dir: &Path,
     records: &[BenchmarkRecord<FastqTrimMetrics>],
-    failures: &[BenchmarkFailure],
+    failures: &[RawFailure],
     explain: bool,
 ) -> Result<()> {
     let path = base_dir.join("report.json");
     let mut report = BTreeMap::new();
     report.insert("records", serde_json::to_value(records)?);
-    report.insert("failures", serde_json::to_value(failures)?);
+    let classified: Vec<BenchmarkFailure> = failures.iter().map(classify_raw_failure).collect();
+    report.insert("failures", serde_json::to_value(&classified)?);
     report.insert(
         "sanity_flags",
         serde_json::to_value(sanity_flags_trim(records))?,
@@ -48,16 +54,21 @@ pub(crate) fn write_trim_report(
     Ok(())
 }
 
-pub(crate) fn write_validate_report(
+/// Write the validate benchmark report.
+///
+/// # Errors
+/// Returns an error if report serialization or file writes fail.
+pub fn write_validate_report(
     base_dir: &Path,
     records: &[BenchmarkRecord<FastqValidateMetrics>],
-    failures: &[BenchmarkFailure],
+    failures: &[RawFailure],
     explain: bool,
 ) -> Result<()> {
     let path = base_dir.join("report.json");
     let mut report = BTreeMap::new();
     report.insert("records", serde_json::to_value(records)?);
-    report.insert("failures", serde_json::to_value(failures)?);
+    let classified: Vec<BenchmarkFailure> = failures.iter().map(classify_raw_failure).collect();
+    report.insert("failures", serde_json::to_value(&classified)?);
     report.insert(
         "sanity_flags",
         serde_json::to_value(sanity_flags_validate(records))?,
@@ -80,16 +91,21 @@ pub(crate) fn write_validate_report(
     Ok(())
 }
 
-pub(crate) fn write_filter_report(
+/// Write the filter benchmark report.
+///
+/// # Errors
+/// Returns an error if report serialization or file writes fail.
+pub fn write_filter_report(
     base_dir: &Path,
     records: &[BenchmarkRecord<FastqFilterMetrics>],
-    failures: &[BenchmarkFailure],
+    failures: &[RawFailure],
     explain: bool,
 ) -> Result<()> {
     let path = base_dir.join("report.json");
     let mut report = BTreeMap::new();
     report.insert("records", serde_json::to_value(records)?);
-    report.insert("failures", serde_json::to_value(failures)?);
+    let classified: Vec<BenchmarkFailure> = failures.iter().map(classify_raw_failure).collect();
+    report.insert("failures", serde_json::to_value(&classified)?);
     report.insert(
         "sanity_flags",
         serde_json::to_value(sanity_flags_filter(records))?,
@@ -111,16 +127,21 @@ pub(crate) fn write_filter_report(
     Ok(())
 }
 
-pub(crate) fn write_merge_report(
+/// Write the merge benchmark report.
+///
+/// # Errors
+/// Returns an error if report serialization or file writes fail.
+pub fn write_merge_report(
     base_dir: &Path,
     records: &[BenchmarkRecord<FastqMergeMetrics>],
-    failures: &[BenchmarkFailure],
+    failures: &[RawFailure],
     explain: bool,
 ) -> Result<()> {
     let path = base_dir.join("report.json");
     let mut report = BTreeMap::new();
     report.insert("records", serde_json::to_value(records)?);
-    report.insert("failures", serde_json::to_value(failures)?);
+    let classified: Vec<BenchmarkFailure> = failures.iter().map(classify_raw_failure).collect();
+    report.insert("failures", serde_json::to_value(&classified)?);
     report.insert(
         "sanity_flags",
         serde_json::to_value(sanity_flags_merge(records))?,
@@ -137,16 +158,21 @@ pub(crate) fn write_merge_report(
     Ok(())
 }
 
-pub(crate) fn write_correct_report(
+/// Write the correct benchmark report.
+///
+/// # Errors
+/// Returns an error if report serialization or file writes fail.
+pub fn write_correct_report(
     base_dir: &Path,
     records: &[BenchmarkRecord<FastqCorrectMetrics>],
-    failures: &[BenchmarkFailure],
+    failures: &[RawFailure],
     explain: bool,
 ) -> Result<()> {
     let path = base_dir.join("report.json");
     let mut report = BTreeMap::new();
     report.insert("records", serde_json::to_value(records)?);
-    report.insert("failures", serde_json::to_value(failures)?);
+    let classified: Vec<BenchmarkFailure> = failures.iter().map(classify_raw_failure).collect();
+    report.insert("failures", serde_json::to_value(&classified)?);
     report.insert(
         "sanity_flags",
         serde_json::to_value(sanity_flags_correct(records))?,
@@ -163,16 +189,21 @@ pub(crate) fn write_correct_report(
     Ok(())
 }
 
-pub(crate) fn write_qc_post_report(
+/// Write the `qc_post` benchmark report.
+///
+/// # Errors
+/// Returns an error if report serialization or file writes fail.
+pub fn write_qc_post_report(
     base_dir: &Path,
     records: &[BenchmarkRecord<FastqQcPostMetrics>],
-    failures: &[BenchmarkFailure],
+    failures: &[RawFailure],
     explain: bool,
 ) -> Result<()> {
     let path = base_dir.join("report.json");
     let mut report = BTreeMap::new();
     report.insert("records", serde_json::to_value(records)?);
-    report.insert("failures", serde_json::to_value(failures)?);
+    let classified: Vec<BenchmarkFailure> = failures.iter().map(classify_raw_failure).collect();
+    report.insert("failures", serde_json::to_value(&classified)?);
     report.insert(
         "sanity_flags",
         serde_json::to_value(sanity_flags_qc_post(records))?,
@@ -188,16 +219,21 @@ pub(crate) fn write_qc_post_report(
     Ok(())
 }
 
-pub(crate) fn write_umi_report(
+/// Write the umi benchmark report.
+///
+/// # Errors
+/// Returns an error if report serialization or file writes fail.
+pub fn write_umi_report(
     base_dir: &Path,
     records: &[BenchmarkRecord<FastqUmiMetrics>],
-    failures: &[BenchmarkFailure],
+    failures: &[RawFailure],
     explain: bool,
 ) -> Result<()> {
     let path = base_dir.join("report.json");
     let mut report = BTreeMap::new();
     report.insert("records", serde_json::to_value(records)?);
-    report.insert("failures", serde_json::to_value(failures)?);
+    let classified: Vec<BenchmarkFailure> = failures.iter().map(classify_raw_failure).collect();
+    report.insert("failures", serde_json::to_value(&classified)?);
     report.insert(
         "sanity_flags",
         serde_json::to_value(sanity_flags_umi(records))?,
@@ -214,16 +250,21 @@ pub(crate) fn write_umi_report(
     Ok(())
 }
 
-pub(crate) fn write_stats_report(
+/// Write the stats benchmark report.
+///
+/// # Errors
+/// Returns an error if report serialization or file writes fail.
+pub fn write_stats_report(
     base_dir: &Path,
     records: &[BenchmarkRecord<FastqStatsMetrics>],
-    failures: &[BenchmarkFailure],
+    failures: &[RawFailure],
     explain: bool,
 ) -> Result<()> {
     let path = base_dir.join("report.json");
     let mut report = BTreeMap::new();
     report.insert("records", serde_json::to_value(records)?);
-    report.insert("failures", serde_json::to_value(failures)?);
+    let classified: Vec<BenchmarkFailure> = failures.iter().map(classify_raw_failure).collect();
+    report.insert("failures", serde_json::to_value(&classified)?);
     report.insert(
         "sanity_flags",
         serde_json::to_value(sanity_flags_stats(records))?,

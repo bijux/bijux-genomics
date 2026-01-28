@@ -15,7 +15,11 @@ mod env;
 mod replay;
 mod utils;
 
-use bijux_domain_fastq::bench::print_bench_schema;
+use bijux_domain_fastq::analyze::report::{
+    print_bench_schema, write_correct_report, write_filter_report, write_merge_report,
+    write_qc_post_report, write_stats_report, write_trim_report, write_umi_report,
+    write_validate_report,
+};
 use bijux_domain_fastq::stages::{
     bench_fastq_correct, bench_fastq_filter, bench_fastq_merge, bench_fastq_preprocess,
     bench_fastq_qc_post, bench_fastq_screen, bench_fastq_stats, bench_fastq_trim, bench_fastq_umi,
@@ -124,33 +128,124 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
             match command {
                 BenchCommand::Fastq { command } => match command {
                     BenchFastqCommand::Trim(args) => {
-                        bench_fastq_trim(&catalog, &platform, None, &bench_args_trim(args))?;
+                        let outcome =
+                            bench_fastq_trim(&catalog, &platform, None, &bench_args_trim(args))?;
+                        write_trim_report(
+                            &outcome.bench_dir,
+                            &outcome.records,
+                            &outcome.failures,
+                            outcome.explain,
+                        )?;
+                        if !outcome.failures.is_empty() {
+                            return Err(anyhow!("benchmark failures: {}", outcome.failures.len()));
+                        }
                     }
                     BenchFastqCommand::Validate(args) => {
-                        bench_fastq_validate(
+                        let outcome = bench_fastq_validate(
                             &catalog,
                             &platform,
                             None,
                             &bench_args_validate(args),
                         )?;
+                        write_validate_report(
+                            &outcome.bench_dir,
+                            &outcome.records,
+                            &outcome.failures,
+                            outcome.explain,
+                        )?;
+                        if !outcome.failures.is_empty() {
+                            return Err(anyhow!("benchmark failures: {}", outcome.failures.len()));
+                        }
                     }
                     BenchFastqCommand::Filter(args) => {
-                        bench_fastq_filter(&catalog, &platform, None, &bench_args_filter(args))?;
+                        let outcome = bench_fastq_filter(
+                            &catalog,
+                            &platform,
+                            None,
+                            &bench_args_filter(args),
+                        )?;
+                        write_filter_report(
+                            &outcome.bench_dir,
+                            &outcome.records,
+                            &outcome.failures,
+                            outcome.explain,
+                        )?;
+                        if !outcome.failures.is_empty() {
+                            return Err(anyhow!("benchmark failures: {}", outcome.failures.len()));
+                        }
                     }
                     BenchFastqCommand::Merge(args) => {
-                        bench_fastq_merge(&catalog, &platform, None, &bench_args_merge(args))?;
+                        let outcome =
+                            bench_fastq_merge(&catalog, &platform, None, &bench_args_merge(args))?;
+                        write_merge_report(
+                            &outcome.bench_dir,
+                            &outcome.records,
+                            &outcome.failures,
+                            outcome.explain,
+                        )?;
+                        if !outcome.failures.is_empty() {
+                            return Err(anyhow!("benchmark failures: {}", outcome.failures.len()));
+                        }
                     }
                     BenchFastqCommand::Stats(args) => {
-                        bench_fastq_stats(&catalog, &platform, None, &bench_args_stats(args))?;
+                        let outcome =
+                            bench_fastq_stats(&catalog, &platform, None, &bench_args_stats(args))?;
+                        write_stats_report(
+                            &outcome.bench_dir,
+                            &outcome.records,
+                            &outcome.failures,
+                            outcome.explain,
+                        )?;
+                        if !outcome.failures.is_empty() {
+                            return Err(anyhow!("benchmark failures: {}", outcome.failures.len()));
+                        }
                     }
                     BenchFastqCommand::Correct(args) => {
-                        bench_fastq_correct(&catalog, &platform, None, &bench_args_correct(args))?;
+                        let outcome = bench_fastq_correct(
+                            &catalog,
+                            &platform,
+                            None,
+                            &bench_args_correct(args),
+                        )?;
+                        write_correct_report(
+                            &outcome.bench_dir,
+                            &outcome.records,
+                            &outcome.failures,
+                            outcome.explain,
+                        )?;
+                        if !outcome.failures.is_empty() {
+                            return Err(anyhow!("benchmark failures: {}", outcome.failures.len()));
+                        }
                     }
                     BenchFastqCommand::QcPost(args) => {
-                        bench_fastq_qc_post(&catalog, &platform, None, &bench_args_qc_post(args))?;
+                        let outcome = bench_fastq_qc_post(
+                            &catalog,
+                            &platform,
+                            None,
+                            &bench_args_qc_post(args),
+                        )?;
+                        write_qc_post_report(
+                            &outcome.bench_dir,
+                            &outcome.records,
+                            &outcome.failures,
+                            outcome.explain,
+                        )?;
+                        if !outcome.failures.is_empty() {
+                            return Err(anyhow!("benchmark failures: {}", outcome.failures.len()));
+                        }
                     }
                     BenchFastqCommand::Umi(args) => {
-                        bench_fastq_umi(&catalog, &platform, None, &bench_args_umi(args))?;
+                        let outcome =
+                            bench_fastq_umi(&catalog, &platform, None, &bench_args_umi(args))?;
+                        write_umi_report(
+                            &outcome.bench_dir,
+                            &outcome.records,
+                            &outcome.failures,
+                            outcome.explain,
+                        )?;
+                        if !outcome.failures.is_empty() {
+                            return Err(anyhow!("benchmark failures: {}", outcome.failures.len()));
+                        }
                     }
                     BenchFastqCommand::Screen(args) => {
                         bench_fastq_screen(&catalog, &platform, None, &bench_args_screen(args))?;
@@ -195,7 +290,16 @@ fn handle_fastq_bench(
                 load_image_catalog().map_err(|err| anyhow!("failed to load images: {err}"))?;
             let runner = cli::parse_runner_override(args.env.as_deref())?;
             let bench_args = bench_args_from_trim(args)?;
-            bench_fastq_trim(&catalog, &platform, runner, &bench_args)?;
+            let outcome = bench_fastq_trim(&catalog, &platform, runner, &bench_args)?;
+            write_trim_report(
+                &outcome.bench_dir,
+                &outcome.records,
+                &outcome.failures,
+                outcome.explain,
+            )?;
+            if !outcome.failures.is_empty() {
+                return Err(anyhow!("benchmark failures: {}", outcome.failures.len()));
+            }
             Ok(true)
         }
         FastqCommand::Validate(args) if is_bench_requested_validate(args) => {
@@ -205,7 +309,16 @@ fn handle_fastq_bench(
                 load_image_catalog().map_err(|err| anyhow!("failed to load images: {err}"))?;
             let runner = cli::parse_runner_override(args.env.as_deref())?;
             let bench_args = bench_args_from_validate(args)?;
-            bench_fastq_validate(&catalog, &platform, runner, &bench_args)?;
+            let outcome = bench_fastq_validate(&catalog, &platform, runner, &bench_args)?;
+            write_validate_report(
+                &outcome.bench_dir,
+                &outcome.records,
+                &outcome.failures,
+                outcome.explain,
+            )?;
+            if !outcome.failures.is_empty() {
+                return Err(anyhow!("benchmark failures: {}", outcome.failures.len()));
+            }
             Ok(true)
         }
         _ => {
