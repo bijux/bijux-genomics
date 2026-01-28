@@ -3,9 +3,12 @@ use std::process::Command;
 
 use anyhow::{anyhow, Context, Result};
 
-use bijux_engine::bench::ExecutionManifest;
+use crate::composer::bench::ExecutionManifest;
 
 pub fn replay_run(run_id: &str, search_root: &Path) -> Result<()> {
+    if crate::types::trace_enabled() {
+        println!("[engine][composer] replay run_id={run_id}");
+    }
     let manifest_path = find_manifest(search_root, run_id)?
         .ok_or_else(|| anyhow!("run_id {run_id} not found under {}", search_root.display()))?;
     let manifest_bytes = std::fs::read(&manifest_path)

@@ -19,9 +19,12 @@ use super::logging::{
 };
 use super::stages::run_stage_qa;
 use super::QaStage;
-use bijux_core::load_manifests;
+use crate::planner::load_registry;
 
 pub fn run_image_qa(platform_name: Option<&str>) -> Result<()> {
+    if crate::types::trace_enabled() {
+        println!("[engine][composer] image_qa start");
+    }
     let platform = load_platform(platform_name)?;
     let catalog = load_image_catalog()?;
     let logger = crate::StdoutLogger::new();
@@ -65,7 +68,7 @@ fn run_image_qa_with(
     let seqkit_image = crate::resolve_image_for_run(seqkit_spec, platform)?;
 
     let registry =
-        load_manifests(&std::env::current_dir()?.join("domain")).context("load manifests")?;
+        load_registry(&std::env::current_dir()?.join("domain")).context("load manifests")?;
     let mut datasets = discover_qa_datasets()?;
     hydrate_datasets(&mut datasets, &seqkit_image)?;
 
