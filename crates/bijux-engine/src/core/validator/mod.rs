@@ -4,7 +4,7 @@ pub use contract::validate_execution_outputs;
 
 use anyhow::{anyhow, Result};
 
-use crate::types::{MetricSet, StageResult};
+use crate::core::types::{MetricSet, StageResult};
 
 #[derive(Debug)]
 pub struct ValidatedStageResult {
@@ -13,7 +13,7 @@ pub struct ValidatedStageResult {
 }
 
 pub fn validate_stage(result: StageResult, metrics: MetricSet) -> Result<ValidatedStageResult> {
-    if crate::types::trace_enabled() {
+    if crate::core::types::trace_enabled() {
         println!(
             "[engine][validator] stage={} tool={}",
             result.invocation.stage_id, result.invocation.tool_id

@@ -17,10 +17,10 @@ pub use run_validate::{
 
 use anyhow::Result;
 
-use crate::types::{RunPlan, StageResult};
+use crate::core::types::{RunPlan, StageResult};
 
 pub fn execute_plan(plan: &RunPlan) -> Result<StageResult> {
-    if crate::types::trace_enabled() {
+    if crate::core::types::trace_enabled() {
         println!(
             "[engine][executor] stage={} tool={} runner={}",
             plan.invocation.stage_id, plan.invocation.tool_id, plan.runner

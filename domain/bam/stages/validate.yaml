@@ -1,0 +1,18 @@
+schema_version: "bijux.stage.v1"
+stage_id: "bam.validate"
+domain: "bam"
+inputs:
+  - name: "bam"
+    data_type: "bam"
+    cardinality: "One"
+outputs:
+  - name: "report_json"
+    data_type: "json"
+    cardinality: "One"
+parameters: []
+metrics:
+  - name: "runtime_s"
+    meaning: "Wall-clock runtime in seconds"
+  - name: "memory_mb"
+    meaning: "Peak memory usage in MB"
+description: "Stub BAM validation stage."

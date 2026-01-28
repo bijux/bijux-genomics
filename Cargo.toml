@@ -6,6 +6,8 @@ members = [
   "crates/bijux-analyze",
   "crates/bijux-domain-adapter",
   "crates/bijux-domain-dummy",
+  "crates/bijux-domain-bam",
+  "crates/bijux-domain-vcf",
   "crates/bijux-measure",
   "crates/bijux-domain-fastq",
   "crates/bijux-environment",

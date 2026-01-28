@@ -3,10 +3,10 @@ use std::process::Command;
 
 use anyhow::{anyhow, Context, Result};
 
-use crate::types::ExecutionManifest;
+use crate::core::types::ExecutionManifest;
 
 pub fn replay_run(run_id: &str, search_root: &Path) -> Result<()> {
-    if crate::types::trace_enabled() {
+    if crate::core::types::trace_enabled() {
         println!("[engine][composer] replay run_id={run_id}");
     }
     let manifest_path = find_manifest(search_root, run_id)?

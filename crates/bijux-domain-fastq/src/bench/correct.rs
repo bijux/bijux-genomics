@@ -14,8 +14,8 @@ use bijux_measure::ExecutionMetrics;
 use uuid::Uuid;
 
 use crate::domain::{
-    contract_for_stage, infer_input_kind, inspect_headers, log_header_warnings, normalize_outputs,
-    preflight_stage,
+    contract_for_stage, inspect_headers, log_header_warnings, normalize_outputs, preflight_stage,
+    FastqArtifact, FastqArtifactKind,
 };
 use crate::image_qa::ensure_image_qa_passed;
 use bijux_engine::api::validate_execution_outputs;
@@ -27,8 +27,8 @@ use super::analyze::failure::{classify_failure, BenchmarkFailure};
 use super::analyze::report::write_correct_report;
 use super::helpers::{
     compute_run_id, normalize_correct_tool_list, params_hash, prepare_tool_run_dirs,
-    resolve_image_for_run, write_execution_logs, write_explain_md, write_metrics_json,
-    ExecutionManifest,
+    resolve_image_for_run, write_execution_logs, write_explain_md, write_explain_plan_json,
+    write_metrics_json, ExecutionManifest,
 };
 
 /// Run the FASTQ benchmark stage.
@@ -42,8 +42,12 @@ pub fn bench_fastq_correct<S: ::std::hash::BuildHasher>(
     args: &crate::bench::args::BenchFastqCorrectArgs,
 ) -> Result<()> {
     let tools = normalize_correct_tool_list(&args.tools)?;
-    let input_kind = infer_input_kind(args.r2.as_deref());
-    preflight_stage("fastq.correct", input_kind)?;
+    let r2 = args
+        .r2
+        .as_ref()
+        .ok_or_else(|| anyhow!("r2 required for fastq.correct"))?;
+    let _artifacts = FastqArtifact::paired_end(&args.r1, r2);
+    preflight_stage("fastq.correct", FastqArtifactKind::PairedEnd)?;
     let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
     log_header_warnings("fastq.correct", &header);
     let registry = load_registry(&std::env::current_dir()?.join("domain"))
@@ -64,6 +68,13 @@ pub fn bench_fastq_correct<S: ::std::hash::BuildHasher>(
         "fastq.correct",
         &selected,
         &excluded,
+        None,
+    )?;
+    write_explain_plan_json(
+        &bench_inputs.bench_dir,
+        "fastq.correct",
+        &selected,
+        &registry,
         None,
     )?;
     ensure_image_qa_passed("fastq.correct", &tools, platform, catalog)?;

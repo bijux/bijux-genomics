@@ -51,33 +51,39 @@ fn assert_no_fastq_terms(dir: &str) {
 #[test]
 fn executor_does_not_import_planner_observer_validator() {
     assert_no_imports(
-        "crates/bijux-engine/src/executor",
+        "crates/bijux-engine/src/services/executor",
         &[
-            "crate::planner::",
-            "crate::observer::",
-            "crate::validator::",
+            "crate::core::planner::",
+            "crate::services::observer::",
+            "crate::core::validator::",
         ],
     );
 }
 
 #[test]
 fn observer_does_not_import_executor() {
-    assert_no_imports("crates/bijux-engine/src/observer", &["crate::executor::"]);
+    assert_no_imports(
+        "crates/bijux-engine/src/services/observer",
+        &["crate::services::executor::"],
+    );
 }
 
 #[test]
 fn validator_does_not_import_executor() {
-    assert_no_imports("crates/bijux-engine/src/validator", &["crate::executor::"]);
+    assert_no_imports(
+        "crates/bijux-engine/src/core/validator",
+        &["crate::services::executor::"],
+    );
 }
 
 #[test]
 fn engine_core_is_fastq_agnostic() {
-    assert_no_fastq_terms("crates/bijux-engine/src/planner");
-    assert_no_fastq_terms("crates/bijux-engine/src/executor");
-    assert_no_fastq_terms("crates/bijux-engine/src/observer");
-    assert_no_fastq_terms("crates/bijux-engine/src/validator");
-    assert_no_fastq_terms("crates/bijux-engine/src/types");
-    assert_no_fastq_terms("crates/bijux-engine/src/errors");
+    assert_no_fastq_terms("crates/bijux-engine/src/core/planner");
+    assert_no_fastq_terms("crates/bijux-engine/src/services/executor");
+    assert_no_fastq_terms("crates/bijux-engine/src/services/observer");
+    assert_no_fastq_terms("crates/bijux-engine/src/core/validator");
+    assert_no_fastq_terms("crates/bijux-engine/src/core/types");
+    assert_no_fastq_terms("crates/bijux-engine/src/core/errors");
 }
 
 #[test]

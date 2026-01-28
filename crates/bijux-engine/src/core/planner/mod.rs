@@ -9,8 +9,8 @@ pub use tools::{
 use anyhow::{anyhow, Result};
 use bijux_core::{load_manifests, ToolRegistry};
 
-use crate::types::Policy;
-use crate::types::{ExecutionContext, RunPlan, ToolInvocation};
+use crate::core::types::Policy;
+use crate::core::types::{ExecutionContext, RunPlan, ToolInvocation};
 
 pub fn load_registry(domain_root: &std::path::Path) -> Result<ToolRegistry> {
     load_manifests(domain_root).map_err(|err| anyhow!("manifest validation failed: {err}"))
@@ -25,7 +25,7 @@ pub fn plan_tool(
         check_capabilities(context, requirements)?;
     }
     let runner = context.runner_override.unwrap_or(context.platform.runner);
-    if crate::types::trace_enabled() {
+    if crate::core::types::trace_enabled() {
         println!(
             "[engine][planner] stage={} tool={} runner={}",
             invocation.stage_id, invocation.tool_id, runner
@@ -40,7 +40,7 @@ pub fn plan_tool(
 
 fn check_capabilities(
     context: &ExecutionContext,
-    requirements: &crate::types::StageRequirement,
+    requirements: &crate::core::types::StageRequirement,
 ) -> Result<()> {
     for capability in &requirements.capabilities {
         if !context.capabilities.contains(capability) {
@@ -51,7 +51,7 @@ fn check_capabilities(
 }
 
 pub fn apply_policy(tools: &[String], policy: Policy) -> Vec<String> {
-    if crate::types::trace_enabled() {
+    if crate::core::types::trace_enabled() {
         println!("[engine][planner] policy={policy:?} tools={}", tools.len());
     }
     match policy {
@@ -76,7 +76,7 @@ mod tests {
             },
             runner_override: None,
             env: BTreeMap::new(),
-            capabilities: vec![crate::types::Capability::Fastq],
+            capabilities: vec![crate::core::types::Capability::Fastq],
         }
     }
 
@@ -116,14 +116,14 @@ mod tests {
     #[test]
     fn plan_rejects_missing_capability() {
         let mut context = context_with_runner(RunnerKind::Docker);
-        context.capabilities = vec![crate::types::Capability::Fastq];
+        context.capabilities = vec![crate::core::types::Capability::Fastq];
         let invocation = ToolInvocation {
             stage_id: "fastq.trim".to_string(),
             tool_id: "fastp".to_string(),
             inputs: Vec::new(),
             params: serde_json::json!({}),
-            requirements: Some(crate::types::StageRequirement {
-                capabilities: vec![crate::types::Capability::Bam],
+            requirements: Some(crate::core::types::StageRequirement {
+                capabilities: vec![crate::core::types::Capability::Bam],
             }),
         };
         match plan_tool(&context, invocation, "sha256:abc".to_string()) {

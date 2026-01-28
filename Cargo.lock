@@ -172,6 +172,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "bijux-domain-bam"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bijux-domain-adapter",
+ "serde_json",
+]
+
+[[package]]
 name = "bijux-domain-dummy"
 version = "0.1.0"
 dependencies = [
@@ -197,6 +206,15 @@ dependencies = [
  "sha2",
  "tracing",
  "uuid",
+]
+
+[[package]]
+name = "bijux-domain-vcf"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bijux-domain-adapter",
+ "serde_json",
 ]
 
 [[package]]

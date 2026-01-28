@@ -18,6 +18,7 @@ use sha2::Digest;
 use std::path::{Path, PathBuf};
 
 pub use bijux_engine::api::ExecutionManifest;
+pub use bijux_engine::api::{ExplainExclusion, ExplainPlan};
 
 #[derive(Debug)]
 pub(crate) struct RunDirs {
@@ -133,6 +134,38 @@ pub(crate) fn write_explain_md(
     Ok(())
 }
 
+pub(crate) fn write_explain_plan_json(
+    base_dir: &Path,
+    stage: &str,
+    selected: &[String],
+    registry: &bijux_core::ToolRegistry,
+    policy: Option<bijux_engine::api::Policy>,
+) -> Result<()> {
+    let mut excluded = Vec::new();
+    for tool in registry.tools_for_stage(stage) {
+        if !selected.iter().any(|t| t == &tool.tool_id) {
+            excluded.push(ExplainExclusion {
+                tool: tool.tool_id.clone(),
+                reason: "not selected".to_string(),
+            });
+        }
+    }
+    let invariants = vec![
+        "stage_contract".to_string(),
+        "header_inspection".to_string(),
+        "output_normalization".to_string(),
+    ];
+    let plan = ExplainPlan {
+        stage: stage.to_string(),
+        selected_tools: selected.to_vec(),
+        excluded_tools: excluded,
+        policy,
+        invariants,
+    };
+    let path = base_dir.join("explain_plan.json");
+    bijux_engine::api::write_explain_plan(&path, &plan)
+}
+
 pub(crate) fn normalize_tool_list(tools: &[String]) -> Result<Vec<String>> {
     engine_normalize_trim_tool_list(tools)
 }
@@ -183,29 +216,4 @@ pub(crate) fn ratio_u64(numerator: u64, denominator: u64) -> f64 {
     } else {
         numerator as f64 / denominator as f64
     }
-}
-
-pub(crate) fn normalize_inverted(value: f64, min: f64, max: f64) -> f64 {
-    if (max - min).abs() < f64::EPSILON {
-        return 1.0;
-    }
-    (max - value) / (max - min)
-}
-
-pub(crate) fn min_max(values: impl Iterator<Item = f64>) -> (f64, f64) {
-    let mut min = f64::INFINITY;
-    let mut max = f64::NEG_INFINITY;
-    for value in values {
-        min = min.min(value);
-        max = max.max(value);
-    }
-    if min == f64::INFINITY {
-        (0.0, 0.0)
-    } else {
-        (min, max)
-    }
-}
-
-pub(crate) fn format_optional(value: Option<f64>) -> String {
-    value.map_or_else(|| "n/a".to_string(), |v| format!("{v:.3}"))
 }

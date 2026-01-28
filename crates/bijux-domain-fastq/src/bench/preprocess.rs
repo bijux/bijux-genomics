@@ -7,6 +7,7 @@ use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 use bijux_engine::api::{bench_base_dir, PipelineSpec};
 
 use super::filter::bench_fastq_filter;
+use super::helpers::write_explain_plan_json;
 use super::stats::bench_fastq_stats;
 use super::trim::bench_fastq_trim;
 use super::validate::bench_fastq_validate;
@@ -21,21 +22,55 @@ pub fn bench_fastq_preprocess<S: ::std::hash::BuildHasher>(
     runner_override: Option<RunnerKind>,
     args: &crate::bench::args::BenchFastqPreprocessArgs,
 ) -> Result<()> {
-    let out_dir = bench_base_dir(&args.out, "preprocess", &args.sample_id);
-    fs::create_dir_all(&out_dir).context("create preprocess output dir")?;
-    let pipeline = PipelineSpec {
+    fastq_preprocess_run(catalog, platform, runner_override, args)
+}
+
+/// Build the preprocess pipeline plan.
+#[must_use]
+pub fn fastq_preprocess_plan(_args: &crate::bench::args::BenchFastqPreprocessArgs) -> PipelineSpec {
+    PipelineSpec {
         stages: vec![
             "fastq.validate".to_string(),
             "fastq.trim".to_string(),
             "fastq.filter".to_string(),
             "fastq.stats".to_string(),
         ],
-    };
+    }
+}
+
+/// Execute the preprocess pipeline.
+///
+/// # Errors
+/// Returns an error if any stage fails.
+pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
+    platform: &PlatformSpec,
+    runner_override: Option<RunnerKind>,
+    args: &crate::bench::args::BenchFastqPreprocessArgs,
+) -> Result<()> {
+    let out_dir = bench_base_dir(&args.out, "preprocess", &args.sample_id);
+    fs::create_dir_all(&out_dir).context("create preprocess output dir")?;
+    let pipeline = fastq_preprocess_plan(args);
     let explain = format!(
         "# Explain: fastq.preprocess\n\nPipeline:\n- {}",
         pipeline.stages.join("\n- ")
     );
     fs::write(out_dir.join("explain.md"), explain).context("write explain.md")?;
+    let selected_tools = vec![
+        "fastqvalidator_official".to_string(),
+        "fastp".to_string(),
+        "fastp".to_string(),
+        "seqkit_stats".to_string(),
+    ];
+    let registry = bijux_engine::api::load_registry(&std::env::current_dir()?.join("domain"))
+        .map_err(|err| anyhow::anyhow!("manifest validation failed: {err}"))?;
+    write_explain_plan_json(
+        &out_dir,
+        "fastq.preprocess",
+        &selected_tools,
+        &registry,
+        None,
+    )?;
 
     let validate_args = crate::bench::args::BenchFastqValidateArgs {
         sample_id: args.sample_id.clone(),

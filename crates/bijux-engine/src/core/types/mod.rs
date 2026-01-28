@@ -111,6 +111,21 @@ pub struct ExecutionManifest {
     pub arch: String,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExplainExclusion {
+    pub tool: String,
+    pub reason: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExplainPlan {
+    pub stage: String,
+    pub selected_tools: Vec<String>,
+    pub excluded_tools: Vec<ExplainExclusion>,
+    pub policy: Option<Policy>,
+    pub invariants: Vec<String>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct DomainDefinition {
     pub stages: Vec<String>,
@@ -127,6 +142,15 @@ impl DomainRegistry {
     pub fn register(&mut self, name: impl Into<String>, def: DomainDefinition) {
         self.domains.insert(name.into(), def);
     }
+}
+
+#[must_use]
+pub fn default_domain_registry() -> DomainRegistry {
+    let mut registry = DomainRegistry::default();
+    registry.register("fastq", DomainDefinition::default());
+    registry.register("bam", DomainDefinition::default());
+    registry.register("vcf", DomainDefinition::default());
+    registry
 }
 
 pub fn trace_enabled() -> bool {

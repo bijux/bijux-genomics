@@ -14,7 +14,9 @@ use bijux_measure::ExecutionMetrics;
 use tracing::warn;
 use uuid::Uuid;
 
-use crate::domain::{infer_input_kind, inspect_headers, log_header_warnings, preflight_stage};
+use crate::domain::{
+    inspect_headers, log_header_warnings, preflight_stage, FastqArtifact, FastqArtifactKind,
+};
 use crate::image_qa::ensure_image_qa_passed;
 use bijux_engine::api::validate_execution_outputs;
 use bijux_engine::api::{bench_base_dir, bench_tools_dir};
@@ -25,8 +27,8 @@ use super::analyze::failure::{classify_failure, BenchmarkFailure};
 use super::analyze::report::write_merge_report;
 use super::helpers::{
     compute_run_id, normalize_merge_tool_list, params_hash, prepare_tool_run_dirs, ratio_u64,
-    resolve_image_for_run, write_execution_logs, write_explain_md, write_metrics_json,
-    ExecutionManifest,
+    resolve_image_for_run, write_execution_logs, write_explain_md, write_explain_plan_json,
+    write_metrics_json, ExecutionManifest,
 };
 
 /// Run the FASTQ benchmark stage.
@@ -40,8 +42,8 @@ pub fn bench_fastq_merge<S: ::std::hash::BuildHasher>(
     args: &crate::bench::args::BenchFastqMergeArgs,
 ) -> Result<()> {
     let tools = normalize_merge_tool_list(&args.tools)?;
-    let input_kind = infer_input_kind(Some(&args.r2));
-    preflight_stage("fastq.merge", input_kind)?;
+    let (_r1, _r2) = FastqArtifact::paired_end(&args.r1, &args.r2);
+    preflight_stage("fastq.merge", FastqArtifactKind::PairedEnd)?;
     let header = inspect_headers(&args.r1, Some(&args.r2), false)?;
     log_header_warnings("fastq.merge", &header);
     let registry = load_registry(&std::env::current_dir()?.join("domain"))
@@ -62,6 +64,13 @@ pub fn bench_fastq_merge<S: ::std::hash::BuildHasher>(
         "fastq.merge",
         &selected,
         &excluded,
+        None,
+    )?;
+    write_explain_plan_json(
+        &bench_inputs.bench_dir,
+        "fastq.merge",
+        &selected,
+        &registry,
         None,
     )?;
     ensure_image_qa_passed("fastq.merge", &tools, platform, catalog)?;

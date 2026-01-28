@@ -2,10 +2,10 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
 
-use crate::types::ExecutionManifest;
+use crate::core::types::ExecutionManifest;
 
 pub fn compare_runs(run_a: &str, run_b: &str, search_root: &Path) -> Result<serde_json::Value> {
-    if crate::types::trace_enabled() {
+    if crate::core::types::trace_enabled() {
         println!("[engine][composer] compare {run_a} vs {run_b}");
     }
     let manifest_a = load_manifest(run_a, search_root)?;

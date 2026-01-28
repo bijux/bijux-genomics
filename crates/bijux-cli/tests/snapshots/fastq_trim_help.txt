@@ -1,3 +1,18 @@
-Examples:
+Trim FASTQ reads (quality/adapters) and emit canonical outputs.
+
+Usage: bijux fastq trim [OPTIONS]
+
+Options:
+      --list-tools             
+      --dry-run                
+      --env <ENV>              
+      --sample-id <SAMPLE_ID>  
+      --r1 <R1>                
+      --out <OUT>              
+      --tools <TOOLS>          
+  -h, --help                   Print help
+
+Example:
   bijux fastq trim --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE --tools fastp
-  bijux fastq trim --list-tools
+
+Next stages: filter -> stats

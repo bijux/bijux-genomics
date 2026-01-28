@@ -13,8 +13,8 @@ use bijux_measure::ExecutionMetrics;
 use uuid::Uuid;
 
 use crate::domain::{
-    contract_for_stage, infer_input_kind, inspect_headers, log_header_warnings, normalize_outputs,
-    preflight_stage,
+    contract_for_stage, inspect_headers, log_header_warnings, normalize_outputs, preflight_stage,
+    FastqArtifact,
 };
 use crate::image_qa::ensure_image_qa_passed;
 use bijux_engine::api::validate_execution_outputs;
@@ -26,7 +26,8 @@ use super::analyze::failure::{classify_failure, BenchmarkFailure};
 use super::analyze::report::write_trim_report;
 use super::helpers::{
     compute_run_id, normalize_tool_list, params_hash, prepare_tool_run_dirs, resolve_image_for_run,
-    write_execution_logs, write_explain_md, write_metrics_json, ExecutionManifest,
+    write_execution_logs, write_explain_md, write_explain_plan_json, write_metrics_json,
+    ExecutionManifest,
 };
 
 #[allow(clippy::too_many_lines)]
@@ -41,8 +42,8 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
     args: &crate::bench::args::BenchFastqTrimArgs,
 ) -> Result<()> {
     let runner = runner_override.unwrap_or(platform.runner);
-    let input_kind = infer_input_kind(None);
-    preflight_stage("fastq.trim", input_kind)?;
+    let artifact = FastqArtifact::single_end(&args.r1);
+    preflight_stage("fastq.trim", artifact.kind)?;
     let header = inspect_headers(&args.r1, None, false)?;
     log_header_warnings("fastq.trim", &header);
     if runner != RunnerKind::Docker {
@@ -68,6 +69,7 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
         .filter(|tool| !selected.contains(tool))
         .collect();
     write_explain_md(&bench_dir, "fastq.trim", &selected, &excluded, None)?;
+    write_explain_plan_json(&bench_dir, "fastq.trim", &selected, &registry, None)?;
 
     let r1 = args.r1.canonicalize().context("resolve r1 path")?;
     let r1_dir = r1
