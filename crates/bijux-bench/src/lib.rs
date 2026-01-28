@@ -21,6 +21,10 @@ pub trait StageMetricSchema {
     fn validate(&self) -> Result<()>;
 }
 
+fn metric_schema_name(stage: &str, version: i32) -> String {
+    format!("{}_v{}", stage.replace('.', "_"), version)
+}
+
 fn validate_metric_schema<T>(metrics: &T) -> Result<()>
 where
     T: StageMetricSchema + Serialize,
@@ -782,6 +786,22 @@ pub struct ExecutionMetrics {
     pub exit_code: i32,
 }
 
+impl ExecutionMetrics {
+    /// Validate execution metric invariants.
+    ///
+    /// # Errors
+    /// Returns an error if execution metrics are invalid.
+    pub fn validate(&self) -> Result<()> {
+        if !(self.runtime_s.is_finite() && self.runtime_s > 0.0) {
+            return Err(BenchError::Validation("runtime_s must be > 0".to_string()));
+        }
+        if !(self.memory_mb.is_finite() && self.memory_mb > 0.0) {
+            return Err(BenchError::Validation("memory_mb must be > 0".to_string()));
+        }
+        Ok(())
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct FastqTrimMetrics {
@@ -822,6 +842,7 @@ impl StageMetricSchema for FastqTrimMetrics {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct MetricSet<T: StageMetricSchema> {
+    pub metrics_schema: String,
     pub version: i32,
     pub metrics: T,
 }
@@ -833,6 +854,7 @@ where
     #[must_use]
     pub fn new(metrics: T) -> Self {
         Self {
+            metrics_schema: metric_schema_name(T::STAGE, T::VERSION),
             version: T::VERSION,
             metrics,
         }
@@ -843,6 +865,15 @@ where
     /// # Errors
     /// Returns an error if the metric schema validation fails.
     pub fn validate(&self) -> Result<()> {
+        let expected_schema = metric_schema_name(T::STAGE, T::VERSION);
+        if self.metrics_schema != expected_schema {
+            return Err(BenchError::Validation(format!(
+                "metric schema mismatch for {}: expected {} got {}",
+                T::STAGE,
+                expected_schema,
+                self.metrics_schema
+            )));
+        }
         if self.version != T::VERSION {
             return Err(BenchError::Validation(format!(
                 "metric version mismatch for {}: expected {} got {}",
@@ -873,6 +904,7 @@ where
     /// # Errors
     /// Returns an error if the metric schema validation fails.
     pub fn validate(&self) -> Result<()> {
+        self.execution.validate()?;
         self.metrics.validate()
     }
 }
@@ -2463,6 +2495,7 @@ mod tests {
         record.validate()?;
         let json = serde_json::to_string(&record)?;
         assert!(json.contains("fastp"));
+        assert!(json.contains("metrics_schema"));
         Ok(())
     }
 
