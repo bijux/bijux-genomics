@@ -1,12 +1,12 @@
 use std::fs;
 use std::time::Instant;
 
+use crate::planner::load_registry;
 use anyhow::{anyhow, Context, Result};
 use bijux_bench::{
     append_jsonl, fetch_fastq_trim_v1, insert_fastq_trim_v1, BenchmarkContext, BenchmarkRecord,
     ExecutionMetrics, FastqTrimMetrics, MetricSet,
 };
-use bijux_core::load_manifests;
 use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 use uuid::Uuid;
 
@@ -35,7 +35,7 @@ pub fn bench_fastq_trim(
         return Err(anyhow!("benchmarking supports docker only for now"));
     }
     let tools = normalize_tool_list(&args.tools)?;
-    let registry = load_manifests(&std::env::current_dir()?.join("domain"))
+    let registry = load_registry(&std::env::current_dir()?.join("domain"))
         .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let bench_dir = bench_base_dir(&args.out, "trim", &args.sample_id);
     let tools_root = bench_tools_dir(&args.out, "trim", &args.sample_id);

@@ -1,8 +1,4 @@
 use anyhow::{anyhow, Result};
-use bijux_environment::api::{
-    docker_image_exists, resolve_image, PlatformSpec, ResolvedImage, ToolImageSpec,
-};
-use tracing::warn;
 
 pub fn normalize_trim_tool_list(tools: &[String]) -> Result<Vec<String>> {
     let allowed = [
@@ -93,34 +89,6 @@ fn normalize_tools_with_allowlist(tools: &[String], allowlist: &[&str]) -> Resul
     Ok(normalized)
 }
 
-pub fn resolve_image_for_run(
-    spec: &ToolImageSpec,
-    platform: &PlatformSpec,
-) -> Result<ResolvedImage> {
-    let image = resolve_image(spec, platform)?;
-    if docker_image_exists(&image) {
-        return Ok(image);
-    }
-    if spec.digest.is_some() {
-        let fallback = ResolvedImage {
-            full_name: format!(
-                "{}/{}:{}-{}",
-                platform.image_prefix, spec.tool, spec.version, platform.arch
-            ),
-            arch: platform.arch.clone(),
-            runner: platform.runner,
-        };
-        if docker_image_exists(&fallback) {
-            warn!(
-                "digest image missing locally; falling back to tag {}",
-                fallback.full_name
-            );
-            return Ok(fallback);
-        }
-    }
-    Err(anyhow!("docker image not found: {}", image.full_name))
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -155,13 +123,17 @@ mod tests {
 
     #[test]
     fn normalize_trim_tools_allows_experimental_when_enabled() {
+        let prev = std::env::var("BIJUX_EXPERIMENTAL_TOOLS").ok();
         std::env::set_var("BIJUX_EXPERIMENTAL_TOOLS", "1");
         let tools = vec!["seqpurge".to_string()];
         match normalize_trim_tool_list(&tools) {
             Ok(normalized) => assert_eq!(normalized, vec!["seqpurge".to_string()]),
             Err(err) => panic!("normalize failed: {err}"),
         }
-        std::env::remove_var("BIJUX_EXPERIMENTAL_TOOLS");
+        match prev {
+            Some(value) => std::env::set_var("BIJUX_EXPERIMENTAL_TOOLS", value),
+            None => std::env::remove_var("BIJUX_EXPERIMENTAL_TOOLS"),
+        }
     }
 
     #[test]

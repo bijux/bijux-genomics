@@ -14,6 +14,7 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt", "json"] }
 tracing-appender = "0.2"
 sha2 = "0.10"
+thiserror = "1"
 rusqlite = "0.31"
 walkdir = "2"
 uuid = { version = "1", features = ["v4"] }
