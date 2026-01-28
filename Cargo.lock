@@ -184,6 +184,7 @@ name = "bijux-domain-adapter"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "bijux-engine",
  "serde_json",
 ]
 

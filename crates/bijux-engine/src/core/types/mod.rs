@@ -92,11 +92,7 @@ pub enum Policy {
     PreferMemory,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MetricSet {
-    pub schema: String,
-    pub metrics: serde_json::Value,
-}
+pub type MetricSet = bijux_core::metrics::MetricSet<serde_json::Value>;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DataArtifact {

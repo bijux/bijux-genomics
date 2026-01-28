@@ -24,9 +24,9 @@ fn old_metrics_schema_is_rejected() {
             gc_delta: 0.1,
         },
     };
-    let mut set = bijux_analyze::MetricSet::new(metrics);
+    let mut set = bijux_analyze::metric_set(metrics);
     set.metrics_schema = "fastq_trim_v0".to_string();
-    match set.validate() {
+    match bijux_analyze::validate_metric_set(&set) {
         Ok(()) => panic!("expected schema rejection"),
         Err(err) => assert!(err.to_string().contains("metric schema mismatch")),
     }

@@ -10,6 +10,8 @@ use walkdir::WalkDir;
 
 pub mod events;
 pub mod input_assessment;
+pub mod metrics;
+pub mod run_index;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct StageId(pub String);

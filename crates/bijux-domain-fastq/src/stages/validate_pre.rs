@@ -5,8 +5,8 @@ use std::time::Instant;
 
 use anyhow::{anyhow, Context, Result};
 use bijux_analyze::{
-    append_jsonl, fetch_fastq_validate_v1, insert_fastq_validate_v1, BenchmarkContext,
-    BenchmarkRecord, FastqValidateMetrics, MetricSet,
+    append_jsonl, fetch_fastq_validate_v1, insert_fastq_validate_v1, metric_set, BenchmarkContext,
+    BenchmarkRecord, FastqValidateMetrics,
 };
 use bijux_core::ToolRole;
 use bijux_engine::api::{ensure_bench_runner, load_registry};
@@ -268,8 +268,8 @@ fn run_validate_tool<S: ::std::hash::BuildHasher>(
         reads_invalid,
         mean_q: bench_inputs.input_stats.mean_q,
     };
-    let metric_set = MetricSet::new(metrics);
-    metric_set.validate()?;
+    let metric_set = metric_set(metrics);
+    bijux_analyze::validate_metric_set(&metric_set)?;
 
     let registry = load_registry(&std::env::current_dir()?.join("domain"))
         .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
@@ -317,7 +317,8 @@ fn run_validate_tool<S: ::std::hash::BuildHasher>(
         metrics: metric_set,
     };
     record.validate()?;
-    write_metrics_json(&run_dirs, &record.execution, &record.metrics)?;
+    let envelope = &record.metrics;
+    write_metrics_json(&run_dirs, &record.execution, envelope)?;
     if execution.exit_code != 0 {
         return Err(anyhow!(
             "tool {tool} failed with status {} (stdout: {}, stderr: {})",

@@ -1,4 +1,4 @@
-use bijux_analyze::{BenchmarkRecord, FastqDeltaMetrics, FastqTrimMetrics, MetricSet};
+use bijux_analyze::{metric_set, BenchmarkRecord, FastqDeltaMetrics, FastqTrimMetrics, MetricSet};
 use bijux_measure::ExecutionMetrics;
 
 fn base_record(metrics: MetricSet<FastqTrimMetrics>) -> BenchmarkRecord<FastqTrimMetrics> {
@@ -23,7 +23,7 @@ fn base_record(metrics: MetricSet<FastqTrimMetrics>) -> BenchmarkRecord<FastqTri
 
 #[test]
 fn metrics_schema_matches_stage_and_version() {
-    let record = base_record(MetricSet::new(FastqTrimMetrics {
+    let record = base_record(metric_set(FastqTrimMetrics {
         reads_in: 100,
         reads_out: 90,
         bases_in: 1000,
@@ -44,7 +44,7 @@ fn metrics_schema_matches_stage_and_version() {
 
 #[test]
 fn metrics_schema_rejects_unknown() {
-    let mut metrics = MetricSet::new(FastqTrimMetrics {
+    let mut metrics = metric_set(FastqTrimMetrics {
         reads_in: 100,
         reads_out: 90,
         bases_in: 1000,
@@ -68,7 +68,7 @@ fn metrics_schema_rejects_unknown() {
 
 #[test]
 fn metrics_schema_rejects_mixed_stage() {
-    let mut metrics = MetricSet::new(FastqTrimMetrics {
+    let mut metrics = metric_set(FastqTrimMetrics {
         reads_in: 100,
         reads_out: 90,
         bases_in: 1000,
@@ -92,7 +92,7 @@ fn metrics_schema_rejects_mixed_stage() {
 
 #[test]
 fn execution_metrics_require_positive_values() {
-    let mut record = base_record(MetricSet::new(FastqTrimMetrics {
+    let mut record = base_record(metric_set(FastqTrimMetrics {
         reads_in: 10,
         reads_out: 9,
         bases_in: 100,

@@ -5,8 +5,8 @@ use std::time::Instant;
 
 use anyhow::{anyhow, Context, Result};
 use bijux_analyze::{
-    append_jsonl, fetch_fastq_stats_v1, insert_fastq_stats_v1, BenchmarkContext, BenchmarkRecord,
-    FastqStatsMetrics, LengthHistogramBin, MetricSet,
+    append_jsonl, fetch_fastq_stats_v1, insert_fastq_stats_v1, metric_set, BenchmarkContext,
+    BenchmarkRecord, FastqStatsMetrics, LengthHistogramBin,
 };
 use bijux_engine::api::{ensure_bench_runner, load_registry};
 use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
@@ -240,8 +240,8 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
         gc_percent: bench_inputs.input_stats.gc_percent,
         length_histogram: bench_inputs.length_hist.clone(),
     };
-    let metric_set = MetricSet::new(metrics);
-    metric_set.validate()?;
+    let metric_set = metric_set(metrics);
+    bijux_analyze::validate_metric_set(&metric_set)?;
 
     let registry = load_registry(&std::env::current_dir()?.join("domain"))
         .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
@@ -283,7 +283,8 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
         memory_mb,
         exit_code: execution.exit_code,
     };
-    write_metrics_json(&run_dirs, &execution_metrics, &metric_set)?;
+    let envelope = &metric_set;
+    write_metrics_json(&run_dirs, &execution_metrics, envelope)?;
     let record = BenchmarkRecord {
         context,
         execution: execution_metrics,
