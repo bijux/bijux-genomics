@@ -1,4 +1,4 @@
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result};
 use bijux_engine::api::bench_tools_dir;
 use bijux_engine::api::ResolvedImage;
 use bijux_engine::api::{
@@ -208,72 +208,4 @@ pub(crate) fn min_max(values: impl Iterator<Item = f64>) -> (f64, f64) {
 
 pub(crate) fn format_optional(value: Option<f64>) -> String {
     value.map_or_else(|| "n/a".to_string(), |v| format!("{v:.3}"))
-}
-
-pub(crate) fn find_first_fastq(dir: &Path) -> Result<PathBuf> {
-    let entries = std::fs::read_dir(dir)
-        .map_err(|err| anyhow!("failed to read output directory {}: {err}", dir.display()))?;
-    for entry in entries {
-        let entry = entry?;
-        let path = entry.path();
-        if let Some(ext) = path.extension().and_then(|ext| ext.to_str()) {
-            if ext.eq_ignore_ascii_case("fq")
-                || ext.eq_ignore_ascii_case("fastq")
-                || ext.eq_ignore_ascii_case("gz")
-            {
-                return Ok(path);
-            }
-        }
-    }
-    Err(anyhow!("no FASTQ output found in {}", dir.display()))
-}
-
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-pub(crate) struct DeltaMetrics {
-    pub(crate) delta_mean_q: f64,
-    pub(crate) delta_gc: f64,
-    pub(crate) read_retention: f64,
-    pub(crate) base_retention: f64,
-}
-
-impl DeltaMetrics {
-    #[allow(dead_code)]
-    pub(crate) fn validate(&self) -> Result<()> {
-        if !self.delta_mean_q.is_finite() {
-            return Err(anyhow!("delta_mean_q must be finite"));
-        }
-        if !self.delta_gc.is_finite() {
-            return Err(anyhow!("delta_gc must be finite"));
-        }
-        if !(0.0..=1.0).contains(&self.read_retention) {
-            return Err(anyhow!("read_retention must be within [0, 1]"));
-        }
-        if !(0.0..=1.0).contains(&self.base_retention) {
-            return Err(anyhow!("base_retention must be within [0, 1]"));
-        }
-        Ok(())
-    }
-}
-
-#[allow(dead_code)]
-pub(crate) fn delta_metrics(
-    before: bijux_engine::api::SeqkitMetrics,
-    after: bijux_engine::api::SeqkitMetrics,
-) -> DeltaMetrics {
-    let read_retention = if before.reads > 0 {
-        ratio_u64(after.reads, before.reads)
-    } else {
-        0.0
-    };
-    let base_retention = if before.bases > 0 {
-        ratio_u64(after.bases, before.bases)
-    } else {
-        0.0
-    };
-    DeltaMetrics {
-        delta_mean_q: after.mean_q - before.mean_q,
-        delta_gc: after.gc_percent - before.gc_percent,
-        read_retention,
-        base_retention,
-    }
 }

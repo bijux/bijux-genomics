@@ -14,6 +14,7 @@ use bijux_measure::ExecutionMetrics;
 use tracing::warn;
 use uuid::Uuid;
 
+use crate::domain::{infer_input_kind, inspect_headers, log_header_warnings, preflight_stage};
 use crate::image_qa::ensure_image_qa_passed;
 use bijux_engine::api::validate_execution_outputs;
 use bijux_engine::api::{bench_base_dir, bench_tools_dir};
@@ -39,6 +40,10 @@ pub fn bench_fastq_merge<S: ::std::hash::BuildHasher>(
     args: &crate::bench::args::BenchFastqMergeArgs,
 ) -> Result<()> {
     let tools = normalize_merge_tool_list(&args.tools)?;
+    let input_kind = infer_input_kind(Some(&args.r2));
+    preflight_stage("fastq.merge", input_kind)?;
+    let header = inspect_headers(&args.r1, Some(&args.r2), false)?;
+    log_header_warnings("fastq.merge", &header);
     let registry = load_registry(&std::env::current_dir()?.join("domain"))
         .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let bench_inputs = prepare_merge_bench(catalog, platform, runner_override, args)?;

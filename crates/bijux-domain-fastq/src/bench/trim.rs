@@ -12,6 +12,10 @@ use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 use bijux_measure::ExecutionMetrics;
 use uuid::Uuid;
 
+use crate::domain::{
+    contract_for_stage, infer_input_kind, inspect_headers, log_header_warnings, normalize_outputs,
+    preflight_stage,
+};
 use crate::image_qa::ensure_image_qa_passed;
 use bijux_engine::api::validate_execution_outputs;
 use bijux_engine::api::{bench_base_dir, bench_tools_dir};
@@ -37,6 +41,10 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
     args: &crate::bench::args::BenchFastqTrimArgs,
 ) -> Result<()> {
     let runner = runner_override.unwrap_or(platform.runner);
+    let input_kind = infer_input_kind(None);
+    preflight_stage("fastq.trim", input_kind)?;
+    let header = inspect_headers(&args.r1, None, false)?;
+    log_header_warnings("fastq.trim", &header);
     if runner != RunnerKind::Docker {
         return Err(anyhow!("benchmarking supports docker only for now"));
     }
@@ -116,8 +124,11 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
             let memory_mb = docker_stats_mb(&container_name)?;
             docker_rm(&container_name)?;
 
-            let out_fastq = execution
-                .output_fastq
+            let contract = contract_for_stage("fastq.trim")
+                .ok_or_else(|| anyhow!("missing fastq.trim contract"))?;
+            let normalized = normalize_outputs("fastq.trim", &out_dir, contract.output_kind)?;
+            let out_fastq = normalized
+                .r1
                 .as_ref()
                 .ok_or_else(|| anyhow!("output fastq missing"))?;
             let output_stats = output_fastq_stats(&seqkit_image, &out_dir, out_fastq)?;

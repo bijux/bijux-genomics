@@ -13,6 +13,10 @@ use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 use bijux_measure::ExecutionMetrics;
 use uuid::Uuid;
 
+use crate::domain::{
+    contract_for_stage, infer_input_kind, inspect_headers, log_header_warnings, normalize_outputs,
+    preflight_stage,
+};
 use crate::image_qa::ensure_image_qa_passed;
 use bijux_engine::api::validate_execution_outputs;
 use bijux_engine::api::{bench_base_dir, bench_tools_dir};
@@ -22,9 +26,9 @@ use bijux_engine::api::{hash_file_sha256, input_fastq_stats, output_fastq_stats,
 use super::analyze::failure::{classify_failure, BenchmarkFailure};
 use super::analyze::report::write_correct_report;
 use super::helpers::{
-    compute_run_id, find_first_fastq, normalize_correct_tool_list, params_hash,
-    prepare_tool_run_dirs, resolve_image_for_run, write_execution_logs, write_explain_md,
-    write_metrics_json, ExecutionManifest,
+    compute_run_id, normalize_correct_tool_list, params_hash, prepare_tool_run_dirs,
+    resolve_image_for_run, write_execution_logs, write_explain_md, write_metrics_json,
+    ExecutionManifest,
 };
 
 /// Run the FASTQ benchmark stage.
@@ -38,6 +42,10 @@ pub fn bench_fastq_correct<S: ::std::hash::BuildHasher>(
     args: &crate::bench::args::BenchFastqCorrectArgs,
 ) -> Result<()> {
     let tools = normalize_correct_tool_list(&args.tools)?;
+    let input_kind = infer_input_kind(args.r2.as_deref());
+    preflight_stage("fastq.correct", input_kind)?;
+    let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
+    log_header_warnings("fastq.correct", &header);
     let registry = load_registry(&std::env::current_dir()?.join("domain"))
         .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let bench_inputs = prepare_correct_bench(catalog, platform, runner_override, args)?;
@@ -216,12 +224,14 @@ fn run_correct_tool<S: ::std::hash::BuildHasher>(
         .get("seqkit")
         .ok_or_else(|| anyhow!("seqkit missing from images.yaml"))?;
     let seqkit_image = resolve_image_for_run(seqkit_spec, platform)?;
-    let out_fastq = if let Some(path) = execution.output_fastq {
-        path
-    } else {
-        find_first_fastq(&out_dir)?
-    };
-    let output_stats = output_fastq_stats(&seqkit_image, &out_dir, &out_fastq)?;
+    let contract = contract_for_stage("fastq.correct")
+        .ok_or_else(|| anyhow!("missing fastq.correct contract"))?;
+    let normalized = normalize_outputs("fastq.correct", &out_dir, contract.output_kind)?;
+    let out_fastq = normalized
+        .r1
+        .as_ref()
+        .ok_or_else(|| anyhow!("output fastq missing"))?;
+    let output_stats = output_fastq_stats(&seqkit_image, &out_dir, out_fastq)?;
 
     let registry = load_registry(&std::env::current_dir()?.join("domain"))
         .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
