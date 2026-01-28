@@ -398,7 +398,7 @@ fn regression_resource_measurements_are_consistent() -> Result<()> {
 fn regression_manifest_size_is_bounded() -> Result<()> {
     let manifest = ExecutionManifest {
         run_id: "run-123".to_string(),
-        stage: "fastq.stats".to_string(),
+        stage: "fastq.stats_neutral".to_string(),
         tool: "seqkit_stats".to_string(),
         tool_version: "0.16.1".to_string(),
         image_digest: "sha256:deadbeef".to_string(),

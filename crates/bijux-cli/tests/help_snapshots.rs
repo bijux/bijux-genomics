@@ -36,7 +36,7 @@ fn fastq_trim_help_snapshot() -> Result<()> {
 #[test]
 fn fastq_validate_help_snapshot() -> Result<()> {
     assert_help_contains(
-        "validate",
+        "validate-pre",
         "tests/snapshots/fastq_validate_help.txt",
         &[
             "--r1",
@@ -73,7 +73,7 @@ fn fastq_merge_help_snapshot() -> Result<()> {
 #[test]
 fn fastq_stats_help_snapshot() -> Result<()> {
     assert_help_contains(
-        "stats",
+        "stats-neutral",
         "tests/snapshots/fastq_stats_help.txt",
         &["--r1", "--out", "--sample-id", "--tools", "--list-tools"],
     )?;

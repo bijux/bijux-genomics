@@ -20,7 +20,7 @@ pub enum QcClass {
 #[must_use]
 pub fn qc_class_for_stage(stage_id: &str) -> Option<QcClass> {
     match stage_id {
-        "fastq.validate" => Some(QcClass::Structural),
+        "fastq.validate_pre" => Some(QcClass::Structural),
         "fastq.qc_post" => Some(QcClass::Statistical),
         _ => None,
     }

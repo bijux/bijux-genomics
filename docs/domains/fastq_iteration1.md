@@ -3,7 +3,7 @@
 FASTQ iteration 1 is complete when:
 
 - Trim/filter/stats are authoritative and stable.
-- One golden path exists: validate → trim → merge → filter → stats.
+- One golden path exists: validate_pre → trim → merge → filter → stats_neutral.
 - Delta metrics are computed and trusted for trim and filter.
 - Tool selection is gated by image QA + tool QA + stage invariants.
 - One PE real-data E2E run is reproducible.

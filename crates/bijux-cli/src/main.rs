@@ -22,8 +22,8 @@ use bijux_domain_fastq::analyze::report::{
 };
 use bijux_domain_fastq::stages::{
     bench_fastq_correct, bench_fastq_filter, bench_fastq_merge, bench_fastq_preprocess,
-    bench_fastq_qc_post, bench_fastq_screen, bench_fastq_stats, bench_fastq_trim, bench_fastq_umi,
-    bench_fastq_validate,
+    bench_fastq_qc_post, bench_fastq_screen, bench_fastq_stats_neutral, bench_fastq_trim,
+    bench_fastq_umi, bench_fastq_validate_pre,
 };
 use bijux_engine::api::init_logging;
 use bijux_environment::image_qa::run_image_qa;
@@ -141,7 +141,7 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
                         }
                     }
                     BenchFastqCommand::Validate(args) => {
-                        let outcome = bench_fastq_validate(
+                        let outcome = bench_fastq_validate_pre(
                             &catalog,
                             &platform,
                             None,
@@ -188,8 +188,12 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
                         }
                     }
                     BenchFastqCommand::Stats(args) => {
-                        let outcome =
-                            bench_fastq_stats(&catalog, &platform, None, &bench_args_stats(args))?;
+                        let outcome = bench_fastq_stats_neutral(
+                            &catalog,
+                            &platform,
+                            None,
+                            &bench_args_stats(args),
+                        )?;
                         write_stats_report(
                             &outcome.bench_dir,
                             &outcome.records,
@@ -302,14 +306,14 @@ fn handle_fastq_bench(
             }
             Ok(true)
         }
-        FastqCommand::Validate(args) if is_bench_requested_validate(args) => {
+        FastqCommand::ValidatePre(args) if is_bench_requested_validate(args) => {
             let platform = load_platform(cli.platform.as_deref())
                 .map_err(|err| anyhow!("failed to load platform: {err}"))?;
             let catalog =
                 load_image_catalog().map_err(|err| anyhow!("failed to load images: {err}"))?;
             let runner = cli::parse_runner_override(args.env.as_deref())?;
             let bench_args = bench_args_from_validate(args)?;
-            let outcome = bench_fastq_validate(&catalog, &platform, runner, &bench_args)?;
+            let outcome = bench_fastq_validate_pre(&catalog, &platform, runner, &bench_args)?;
             write_validate_report(
                 &outcome.bench_dir,
                 &outcome.records,

@@ -278,19 +278,23 @@ pub enum FastqCommand {
     )]
     Preprocess(CommonArgs),
     #[command(
-        about = "Summarize FASTQ read statistics.",
-        after_help = "Example:\n  bijux fastq stats --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE --tools seqkit_stats\n\nNext stages: report/compare"
+        name = "stats-neutral",
+        alias = "stats",
+        about = "Summarize FASTQ read statistics (neutral).",
+        after_help = "Example:\n  bijux fastq stats-neutral --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE --tools seqkit_stats\n\nNext stages: report/compare"
     )]
-    Stats(CommonArgs),
+    StatsNeutral(CommonArgs),
     Umi(CommonArgs),
     #[command(name = "error-correct")]
     ErrorCorrect(CommonArgs),
     Qc(CommonArgs),
     #[command(
-        about = "Validate FASTQ reads.",
-        after_help = "Examples:\n  bijux fastq validate --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE --tools fastqvalidator_official\n  bijux fastq validate --list-tools"
+        name = "validate-pre",
+        alias = "validate",
+        about = "Validate FASTQ reads (pre).",
+        after_help = "Examples:\n  bijux fastq validate-pre --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE --tools fastqvalidator_official\n  bijux fastq validate-pre --list-tools"
     )]
-    Validate(FastqValidateArgs),
+    ValidatePre(FastqValidateArgs),
     Align(CommonArgs),
 }
 
@@ -343,13 +347,13 @@ pub fn resolve_stage_tool(command: &Commands) -> (StageId, ToolId, CommonArgs) {
                 ToolId("fastp".to_string()),
                 args.common.clone(),
             ),
-            FastqCommand::Validate(args) => (
-                StageId("fastq.validate".to_string()),
+            FastqCommand::ValidatePre(args) => (
+                StageId("fastq.validate_pre".to_string()),
                 ToolId("fastqvalidator".to_string()),
                 args.common.clone(),
             ),
-            FastqCommand::Stats(common) => (
-                StageId("fastq.stats".to_string()),
+            FastqCommand::StatsNeutral(common) => (
+                StageId("fastq.stats_neutral".to_string()),
                 ToolId("seqkit_stats".to_string()),
                 common.clone(),
             ),

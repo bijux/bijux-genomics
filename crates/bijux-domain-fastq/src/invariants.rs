@@ -1,12 +1,12 @@
 use crate::domain::FastqStageKind;
 
 pub const CORE_STAGES: [&str; 6] = [
-    "fastq.validate",
+    "fastq.validate_pre",
     "fastq.trim",
     "fastq.merge",
     "fastq.correct",
     "fastq.filter",
-    "fastq.stats",
+    "fastq.stats_neutral",
 ];
 
 pub const OPTIONAL_STAGES: [&str; 3] = ["fastq.qc_post", "fastq.umi", "fastq.screen"];
@@ -21,11 +21,11 @@ pub const MUTATING_STAGES: [&str; 5] = [
     "fastq.umi",
 ];
 
-pub const LOSSLESS_STAGES: [&str; 2] = ["fastq.validate", "fastq.stats"];
+pub const LOSSLESS_STAGES: [&str; 2] = ["fastq.validate_pre", "fastq.stats_neutral"];
 
 pub const OBSERVATIONAL_STAGES: [&str; 4] = [
-    "fastq.validate",
-    "fastq.stats",
+    "fastq.validate_pre",
+    "fastq.stats_neutral",
     "fastq.qc_post",
     "fastq.screen",
 ];

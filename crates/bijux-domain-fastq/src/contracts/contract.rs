@@ -49,7 +49,7 @@ pub fn contract_for_stage(stage_id: &str) -> Option<FastqStageContract> {
             must_preserve_pairing: true,
             emits_fastq: true,
         }),
-        "fastq.validate" | "fastq.stats" | "fastq.qc_post" | "fastq.screen" => {
+        "fastq.validate_pre" | "fastq.stats_neutral" | "fastq.qc_post" | "fastq.screen" => {
             Some(FastqStageContract {
                 input_kind: FastqArtifactKind::SingleEnd,
                 output_kind: FastqArtifactKind::StatsOnly,
@@ -72,7 +72,7 @@ pub fn preflight_stage(stage_id: &str, input_kind: FastqArtifactKind) -> Result<
     };
     match contract.input_kind {
         FastqArtifactKind::SingleEnd => {
-            if input_kind == FastqArtifactKind::PairedEnd && stage_id != "fastq.stats" {
+            if input_kind == FastqArtifactKind::PairedEnd && stage_id != "fastq.stats_neutral" {
                 return Err(anyhow!("stage {stage_id} does not accept paired-end input"));
             }
         }

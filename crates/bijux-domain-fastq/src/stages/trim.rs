@@ -12,7 +12,7 @@ use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 use bijux_measure::ExecutionMetrics;
 use uuid::Uuid;
 
-use crate::core::{
+use crate::contracts::{
     contract_for_stage, inspect_headers, log_header_warnings, normalize_outputs, preflight_stage,
     FastqArtifact,
 };
@@ -22,7 +22,7 @@ use bijux_engine::api::{cleanup_execution, execution_memory_mb, run_tool_executi
 use bijux_engine::api::{hash_file_sha256, input_fastq_stats, output_fastq_stats};
 use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 
-use crate::core::RawFailure;
+use crate::contracts::RawFailure;
 use crate::stages::helpers::{
     compute_run_id, normalize_tool_list, params_hash, prepare_tool_run_dirs, resolve_image_for_run,
     write_execution_logs, write_explain_md, write_explain_plan_json, write_metrics_json,

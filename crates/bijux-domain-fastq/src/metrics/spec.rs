@@ -88,8 +88,8 @@ pub const FASTQ_STATS_INVARIANTS: [&str; 2] = ["mean_q in [0, 45]", "gc_percent 
 #[must_use]
 pub fn metric_spec_for_stage(stage_id: &str) -> Option<StageMetricSpec> {
     match stage_id {
-        "fastq.validate" => Some(StageMetricSpec {
-            stage: "fastq.validate",
+        "fastq.validate_pre" => Some(StageMetricSpec {
+            stage: "fastq.validate_pre",
             classes: &FASTQ_VALIDATE_CLASSES,
             invariants: &FASTQ_VALIDATE_INVARIANTS,
             notes: "Validation reports counts; no data is modified.",
@@ -136,8 +136,8 @@ pub fn metric_spec_for_stage(stage_id: &str) -> Option<StageMetricSpec> {
             invariants: &FASTQ_SCREEN_INVARIANTS,
             notes: "Screening reports contamination only.",
         }),
-        "fastq.stats" => Some(StageMetricSpec {
-            stage: "fastq.stats",
+        "fastq.stats_neutral" => Some(StageMetricSpec {
+            stage: "fastq.stats_neutral",
             classes: &FASTQ_STATS_CLASSES,
             invariants: &FASTQ_STATS_INVARIANTS,
             notes: "Stats is report-only and must not mutate reads.",

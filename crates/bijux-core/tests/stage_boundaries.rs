@@ -47,8 +47,8 @@ fn filter_outputs_are_compatible_with_stats_inputs() -> Result<(), Box<dyn std::
         .ok_or("missing fastq.filter")?;
     let stats = registry
         .stages()
-        .get("fastq.stats")
-        .ok_or("missing fastq.stats")?;
+        .get("fastq.stats_neutral")
+        .ok_or("missing fastq.stats_neutral")?;
     assert!(
         stage_port_matches(&filter.outputs, "fastq", &Cardinality::Many)
             && stage_port_matches(&stats.inputs, "fastq", &Cardinality::Many),
@@ -62,8 +62,8 @@ fn validate_trim_filter_chain_is_type_safe() -> Result<(), Box<dyn std::error::E
     let registry = load_manifests(&domain_root())?;
     let validate = registry
         .stages()
-        .get("fastq.validate")
-        .ok_or("missing fastq.validate")?;
+        .get("fastq.validate_pre")
+        .ok_or("missing fastq.validate_pre")?;
     let trim = registry
         .stages()
         .get("fastq.trim")

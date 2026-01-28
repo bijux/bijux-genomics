@@ -1,4 +1,4 @@
-use bijux_domain_fastq::core::{
+use bijux_domain_fastq::contracts::{
     contract_for_stage, FastqArtifactKind, FastqPE, FastqSE, FastqStats,
 };
 use std::path::PathBuf;
@@ -9,7 +9,7 @@ fn forbidden_transitions_are_rejected() {
         panic!("merge contract");
     };
     assert_eq!(merge.input_kind, FastqArtifactKind::PairedEnd);
-    let Some(stats) = contract_for_stage("fastq.stats") else {
+    let Some(stats) = contract_for_stage("fastq.stats_neutral") else {
         panic!("stats contract");
     };
     assert_eq!(stats.input_kind, FastqArtifactKind::SingleEnd);

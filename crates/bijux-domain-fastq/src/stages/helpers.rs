@@ -21,7 +21,7 @@ use bijux_core::ToolRole;
 
 use bijux_analyze::BenchmarkRecord;
 
-use crate::core::RawFailure;
+use crate::contracts::RawFailure;
 
 pub use bijux_engine::api::ExecutionManifest;
 pub use bijux_engine::api::{ExplainExclusion, ExplainPlan};

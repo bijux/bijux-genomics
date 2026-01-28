@@ -1,5 +1,5 @@
 extends: "_schema.yaml"
-stage_id: "fastq.stats"
+stage_id: "fastq.stats_neutral"
 inputs:
   - name: "reads_r1"
     data_type: "fastq"
@@ -30,3 +30,8 @@ description: "FASTQ stage for neutral statistics (no mutation)."
 mutates_fastq: false
 report_only: true
 may_change_read_count: false
+image_requirements:
+  needs:
+    - gzip
+  forbids:
+    - network

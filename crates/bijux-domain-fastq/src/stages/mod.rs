@@ -1,17 +1,28 @@
 pub mod args;
+pub mod correct;
+pub mod filter;
+pub mod merge;
+pub mod preprocess;
+pub mod preprocess_exec;
+pub mod qc_post;
+pub mod screen;
+pub mod stats_neutral;
+pub mod trim;
+pub mod umi;
+pub mod validate_pre;
+
 pub(crate) mod helpers;
 
-pub use crate::core::correct::bench_fastq_correct;
-pub use crate::core::filter::bench_fastq_filter;
-pub use crate::core::merge::bench_fastq_merge;
-pub use crate::core::stats::bench_fastq_stats;
-pub use crate::core::trim::bench_fastq_trim;
-pub use crate::core::validate::bench_fastq_validate;
-pub use crate::meta::preprocess::exec::{bench_fastq_preprocess, fastq_preprocess_run};
-pub use crate::meta::preprocess::fastq_preprocess_plan;
-pub use crate::optional::qc::bench_fastq_qc_post;
-pub use crate::optional::screen::bench_fastq_screen;
-pub use crate::optional::umi::bench_fastq_umi;
 pub use args::*;
+pub use correct::bench_fastq_correct;
+pub use filter::bench_fastq_filter;
+pub use merge::bench_fastq_merge;
+pub use preprocess::{bench_fastq_preprocess, fastq_preprocess_plan, fastq_preprocess_run};
+pub use qc_post::bench_fastq_qc_post;
+pub use screen::bench_fastq_screen;
+pub use stats_neutral::bench_fastq_stats_neutral;
+pub use trim::bench_fastq_trim;
+pub use umi::bench_fastq_umi;
+pub use validate_pre::bench_fastq_validate_pre;
 
 pub use helpers::ExecutionManifest;
