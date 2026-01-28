@@ -79,12 +79,11 @@ pub struct ExecutionEvent {
 #[derive(Debug, Clone)]
 pub struct RunLayout {
     pub run_dir: PathBuf,
-    pub meta_dir: PathBuf,
     pub stages_dir: PathBuf,
-    pub metrics_dir: PathBuf,
-    pub logs_dir: PathBuf,
+    pub summary_dir: PathBuf,
     pub assessment_path: PathBuf,
     pub manifest_path: PathBuf,
+    pub environment_path: PathBuf,
     pub metadata_path: PathBuf,
     pub events_path: PathBuf,
 }
@@ -96,23 +95,18 @@ pub struct RunLayout {
 pub fn create_run_layout(base_dir: &Path) -> Result<(String, RunLayout)> {
     let run_id = Uuid::new_v4().to_string();
     let run_dir = base_dir.join("runs").join(&run_id);
-    let meta_dir = run_dir.join("meta");
     let stages_dir = run_dir.join("stages");
-    let metrics_dir = run_dir.join("metrics");
-    let logs_dir = run_dir.join("logs");
-    std::fs::create_dir_all(&meta_dir).context("create run meta dir")?;
+    let summary_dir = run_dir.join("summary");
     std::fs::create_dir_all(&stages_dir).context("create run stages dir")?;
-    std::fs::create_dir_all(&metrics_dir).context("create run metrics dir")?;
-    std::fs::create_dir_all(&logs_dir).context("create run logs dir")?;
+    std::fs::create_dir_all(&summary_dir).context("create run summary dir")?;
     let layout = RunLayout {
-        assessment_path: meta_dir.join("input_assessment.json"),
-        manifest_path: meta_dir.join("run_manifest.json"),
-        metadata_path: meta_dir.join("run_metadata.json"),
-        events_path: meta_dir.join("events.jsonl"),
-        meta_dir,
+        assessment_path: run_dir.join("input_assessment.json"),
+        manifest_path: run_dir.join("execution_manifest.json"),
+        environment_path: run_dir.join("environment.json"),
+        metadata_path: run_dir.join("run_metadata.json"),
+        events_path: run_dir.join("events.jsonl"),
         stages_dir,
-        metrics_dir,
-        logs_dir,
+        summary_dir,
         run_dir,
     };
     Ok((run_id, layout))
@@ -124,7 +118,7 @@ pub fn create_run_layout(base_dir: &Path) -> Result<(String, RunLayout)> {
 /// Returns an error if serialization or writing fails.
 pub fn write_environment(layout: &RunLayout, env: &RunEnvironment) -> Result<()> {
     let payload = serde_json::to_string_pretty(env)?;
-    std::fs::write(layout.meta_dir.join("environment.json"), payload)?;
+    std::fs::write(&layout.environment_path, payload)?;
     Ok(())
 }
 

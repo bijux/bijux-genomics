@@ -1,12 +1,46 @@
 use std::cmp::Ordering;
-use std::path::Path;
 
-use anyhow::Result;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
+use serde_json::Value as JsonValue;
 
-use super::corpus::BenchCorpus;
-use super::objective::Objective;
-use super::query::{get_results, BenchResultRecord, BenchResultStatus};
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub enum Objective {
+    Speed,
+    Memory,
+    Retention,
+    #[default]
+    Balanced,
+}
+
+impl Objective {
+    #[must_use]
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Objective::Speed => "speed",
+            Objective::Memory => "memory",
+            Objective::Retention => "retention",
+            Objective::Balanced => "balanced",
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum BenchResultStatus {
+    Success,
+    Failure,
+    Missing,
+}
+
+#[derive(Debug, Clone)]
+pub struct BenchResultRecord {
+    pub dataset_id: String,
+    pub tool: String,
+    pub runtime_s: Option<f64>,
+    pub memory_mb: Option<f64>,
+    pub exit_code: Option<i64>,
+    pub metrics: Option<JsonValue>,
+    pub status: BenchResultStatus,
+}
 
 #[derive(Debug, Clone, Serialize)]
 pub struct ToolScore {
@@ -32,29 +66,23 @@ pub struct StageSelection {
     pub disqualified: Vec<Disqualification>,
 }
 
-/// Rank tools for a stage based on a corpus and objective.
-///
-/// # Errors
-/// Returns an error if bench results cannot be loaded or parsed.
-pub fn rank_tools_for_stage(
+#[must_use]
+pub fn select_stage(
     stage: &str,
-    tools: &[String],
+    tool_records: &[(String, Vec<BenchResultRecord>)],
     objective: Objective,
-    corpus: &BenchCorpus,
-    out_dir: &Path,
     allow_partial: bool,
-) -> Result<StageSelection> {
+) -> StageSelection {
     let mut scores = Vec::new();
     let mut disqualified = Vec::new();
 
-    for tool in tools {
-        let records = get_results(stage, tool, corpus, out_dir)?;
+    for (tool, records) in tool_records {
         let mut failed = false;
         let mut runtime = Vec::new();
         let mut memory = Vec::new();
         let mut retention = Vec::new();
 
-        for record in &records {
+        for record in records {
             match record.status {
                 BenchResultStatus::Success => {
                     if let Some(value) = record.runtime_s {
@@ -103,15 +131,15 @@ pub fn rank_tools_for_stage(
         });
     }
 
-    scores.sort_by(|a, b| compare_score(objective, a.score, b.score));
+    scores.sort_by(|a, b| compare_score(a.score, b.score));
     let selected = scores.first().map(|entry| entry.tool.clone());
 
-    Ok(StageSelection {
+    StageSelection {
         stage: stage.to_string(),
         selected,
         scores,
         disqualified,
-    })
+    }
 }
 
 fn score_for_objective(
@@ -133,7 +161,7 @@ fn score_for_objective(
     }
 }
 
-fn compare_score(_objective: Objective, left: f64, right: f64) -> Ordering {
+fn compare_score(left: f64, right: f64) -> Ordering {
     left.partial_cmp(&right).unwrap_or(Ordering::Equal)
 }
 
@@ -158,4 +186,32 @@ fn read_retention(record: &BenchResultRecord) -> Option<f64> {
         .and_then(|value| value.get("delta_metrics"))
         .and_then(|value| value.get("read_retention"))
         .and_then(serde_json::Value::as_f64)
+}
+
+#[derive(Debug, Serialize)]
+pub struct SelectionReport {
+    pub objective: String,
+    pub corpus_id: String,
+    pub stages: Vec<StageSelection>,
+}
+
+/// Write the selection report to disk.
+///
+/// # Errors
+/// Returns an error if the report cannot be serialized or written.
+pub fn write_selection_report(
+    out_dir: &std::path::Path,
+    objective: Objective,
+    corpus_id: &str,
+    stages: Vec<StageSelection>,
+) -> anyhow::Result<()> {
+    let report = SelectionReport {
+        objective: objective.as_str().to_string(),
+        corpus_id: corpus_id.to_string(),
+        stages,
+    };
+    let path = out_dir.join("selection_report.json");
+    let payload = serde_json::to_string_pretty(&report)?;
+    std::fs::write(&path, payload)?;
+    Ok(())
 }

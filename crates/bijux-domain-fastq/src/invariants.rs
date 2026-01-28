@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use crate::domain::FastqStageKind;
 
 pub const CORE_STAGES: [&str; 6] = [

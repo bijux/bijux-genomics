@@ -12,10 +12,9 @@ use crate::contracts::FastqLayout;
 use bijux_core::{build_run_metadata_v1, RunMetadataV1, ToolInvocationV1};
 
 use crate::pipeline::{
-    append_event, assess_input_dir, bench_corpus, create_run_layout, now_string,
-    rank_tools_for_stage, update_run_index, write_input_assessment, write_run_metadata,
-    write_selection_report, ExecutionEvent, RunEnvironment, RunIndexEntry, RunLayout, RunManifest,
-    RunStageEntry, ToolImageDigest,
+    append_event, assess_input_dir, bench_corpus, canonical_tool_defaults, create_run_layout,
+    now_string, update_run_index, write_input_assessment, write_run_metadata, ExecutionEvent,
+    RunEnvironment, RunIndexEntry, RunLayout, RunManifest, RunStageEntry, ToolImageDigest,
 };
 use crate::stages::helpers::write_explain_plan_json;
 use crate::stages::{
@@ -101,10 +100,17 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     fs::write(out_dir.join("explain.md"), explain).context("write explain.md")?;
     let registry = bijux_engine::api::load_registry(&std::env::current_dir()?.join("domain"))
         .map_err(|err| anyhow::anyhow!("manifest validation failed: {err}"))?;
+    let defaults = canonical_tool_defaults();
     let mut selected_tools: Vec<String> = pipeline
         .stages
         .iter()
-        .map(|stage| default_tool_for_stage(stage).to_string())
+        .map(|stage| {
+            defaults
+                .get(stage.as_str())
+                .copied()
+                .unwrap_or("fastp")
+                .to_string()
+        })
         .collect();
 
     if args.auto {
@@ -120,14 +126,17 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
                 .iter()
                 .map(|tool| tool.tool_id.clone())
                 .collect();
-            let selection = rank_tools_for_stage(
+            let mut tool_records = Vec::new();
+            for tool in &tool_ids {
+                let records = crate::pipeline::query::get_results(stage, tool, &corpus, &args.out)?;
+                tool_records.push((tool.clone(), records));
+            }
+            let selection = bijux_analyze::selection::select_stage(
                 stage,
-                &tool_ids,
+                &tool_records,
                 objective,
-                &corpus,
-                &args.out,
                 args.allow_partial,
-            )?;
+            );
             if selection.selected.is_none() {
                 return Err(anyhow::anyhow!(
                     "no eligible tools for {stage}; check bench corpus/results"
@@ -135,7 +144,12 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
             }
             selections.push(selection);
         }
-        write_selection_report(&out_dir, objective, corpus_id, selections.clone())?;
+        bijux_analyze::selection::write_selection_report(
+            &out_dir,
+            objective,
+            corpus_id.as_str(),
+            selections.clone(),
+        )?;
         selected_tools = selections
             .into_iter()
             .filter_map(|selection| selection.selected)
@@ -351,6 +365,15 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     };
     crate::pipeline::write_manifest(&layout, &manifest)?;
 
+    let deltas_path = layout.summary_dir.join("metrics_deltas.json");
+    if !deltas_path.exists() {
+        std::fs::write(&deltas_path, "{}")?;
+    }
+    let report_path = layout.summary_dir.join("report.json");
+    if !report_path.exists() {
+        std::fs::write(&report_path, "{}")?;
+    }
+
     let platform_runner = platform.runner.to_string();
     let git_commit = std::env::var("BIJUX_GIT_COMMIT").unwrap_or_else(|_| "unknown".to_string());
     let metadata: RunMetadataV1 = build_run_metadata_v1(
@@ -397,16 +420,6 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     Ok(())
 }
 
-fn default_tool_for_stage(stage: &str) -> &'static str {
-    match stage {
-        "fastq.validate_pre" => "fastqvalidator_official",
-        "fastq.stats_neutral" => "seqkit_stats",
-        "fastq.merge" => "vsearch",
-        "fastq.correct" => "rcorrector",
-        _ => "fastp",
-    }
-}
-
 fn stage_entry_from_outcome<T: bijux_analyze::StageMetricSchema>(
     stage: &str,
     tool: &str,
@@ -444,15 +457,13 @@ fn stage_entry_from_outcome<T: bijux_analyze::StageMetricSchema>(
 fn populate_run_layout(layout: &RunLayout, entries: &mut [RunStageEntry]) -> Result<()> {
     for entry in entries {
         let stage_name = entry.stage_id.trim_start_matches("fastq.");
-        let stage_dir = layout.stages_dir.join(stage_name).join(&entry.tool_id);
+        let stage_dir = layout.stages_dir.join(stage_name);
         let outputs_dir = stage_dir.join("outputs");
         let logs_dir = stage_dir.join("logs");
-        let metrics_dir = stage_dir.join("metrics");
         std::fs::create_dir_all(&outputs_dir).context("create stage outputs dir")?;
         std::fs::create_dir_all(&logs_dir).context("create stage logs dir")?;
-        std::fs::create_dir_all(&metrics_dir).context("create stage metrics dir")?;
-        let execution_metrics_path = metrics_dir.join("execution_metrics.json");
-        let domain_metrics_path = metrics_dir.join("domain_metrics.json");
+        let execution_metrics_path = stage_dir.join("execution_metrics.json");
+        let domain_metrics_path = stage_dir.join("metrics.json");
         let tool_invocation_path = stage_dir.join("tool_invocation.json");
 
         if entry.execution_metrics_path.exists() {
@@ -472,7 +483,7 @@ fn populate_run_layout(layout: &RunLayout, entries: &mut [RunStageEntry]) -> Res
             )
             .context("write execution_metrics.json")?;
             std::fs::write(&domain_metrics_path, serde_json::to_vec_pretty(&metrics)?)
-                .context("write domain_metrics.json")?;
+                .context("write metrics.json")?;
         }
         let source_run_dir = entry
             .execution_metrics_path

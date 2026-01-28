@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use bijux_engine::api::PipelineSpec;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

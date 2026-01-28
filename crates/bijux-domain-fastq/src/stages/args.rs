@@ -93,7 +93,7 @@ pub struct BenchFastqPreprocessArgs {
     pub out: PathBuf,
     pub strict: bool,
     pub auto: bool,
-    pub objective: crate::pipeline::Objective,
+    pub objective: bijux_analyze::selection::Objective,
     pub bench_corpus: Option<crate::pipeline::BenchCorpusId>,
     pub allow_partial: bool,
 }

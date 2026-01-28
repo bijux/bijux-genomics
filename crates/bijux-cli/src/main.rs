@@ -15,16 +15,13 @@ mod env;
 mod replay;
 mod utils;
 
-use bijux_domain_fastq::analyze::report::{
-    print_bench_schema, write_correct_report, write_filter_report, write_merge_report,
-    write_qc_post_report, write_stats_report, write_trim_report, write_umi_report,
-    write_validate_report,
-};
-use bijux_domain_fastq::pipeline::{benchmark_runs, write_benchmark_exports};
-use bijux_domain_fastq::stages::{
+use bijux_domain_fastq::{
     bench_fastq_correct, bench_fastq_filter, bench_fastq_merge, bench_fastq_preprocess,
     bench_fastq_qc_post, bench_fastq_screen, bench_fastq_stats_neutral, bench_fastq_trim,
-    bench_fastq_umi, bench_fastq_validate_pre,
+    bench_fastq_umi, bench_fastq_validate_pre, benchmark_runs, print_bench_schema,
+    write_benchmark_exports, write_correct_report, write_filter_report, write_merge_report,
+    write_qc_post_report, write_stats_report, write_trim_report, write_umi_report,
+    write_validate_report,
 };
 use bijux_engine::api::init_logging;
 use bijux_environment::image_qa::run_image_qa;
@@ -336,6 +333,16 @@ fn handle_fastq_bench(
             bench_fastq_preprocess(&catalog, &platform, runner, &bench_args)?;
             Ok(true)
         }
+        FastqCommand::Run(args) => {
+            let platform = load_platform(cli.platform.as_deref())
+                .map_err(|err| anyhow!("failed to load platform: {err}"))?;
+            let catalog =
+                load_image_catalog().map_err(|err| anyhow!("failed to load images: {err}"))?;
+            let runner = cli::parse_runner_override(args.args.env.as_deref())?;
+            let bench_args = preprocess_args_from_cli(&args.args)?;
+            bench_fastq_preprocess(&catalog, &platform, runner, &bench_args)?;
+            Ok(true)
+        }
         FastqCommand::Benchmark(args) => {
             let stage_id = normalize_fastq_stage_id(&args.stage);
             let summary = benchmark_runs(&args.runs, &stage_id, args.objective.into())?;
@@ -343,6 +350,21 @@ fn handle_fastq_bench(
             println!("{}", serde_json::to_string_pretty(&summary)?);
             println!("benchmark_json: {}", json_path.display());
             println!("benchmark_csv: {}", csv_path.display());
+            Ok(true)
+        }
+        FastqCommand::Analyze(args) => {
+            let stage_id = normalize_fastq_stage_id(&args.stage);
+            let summary = benchmark_runs(&args.runs, &stage_id, args.objective.into())?;
+            let (json_path, csv_path) = write_benchmark_exports(&args.runs, &summary)?;
+            println!("{}", serde_json::to_string_pretty(&summary)?);
+            println!("benchmark_json: {}", json_path.display());
+            println!("benchmark_csv: {}", csv_path.display());
+            Ok(true)
+        }
+        FastqCommand::Compare(args) => {
+            let result =
+                bijux_bench::compare::compare_runs(&args.run_a, &args.run_b, &args.search_root)?;
+            println!("{}", serde_json::to_string_pretty(&result)?);
             Ok(true)
         }
         _ => {
@@ -406,18 +428,18 @@ fn list_fastq_tools(registry: &bijux_core::ToolRegistry, stage_id: &str) {
 
 fn explain_fastq_stage(registry: &bijux_core::ToolRegistry, stage_id: &str) -> Result<()> {
     if stage_id == "fastq.preprocess" {
-        let args = bijux_domain_fastq::stages::BenchFastqPreprocessArgs {
+        let args = bijux_domain_fastq::BenchFastqPreprocessArgs {
             sample_id: "explain".to_string(),
             r1: PathBuf::from("reads.fastq.gz"),
             r2: None,
             out: PathBuf::from("artifacts"),
             strict: false,
             auto: false,
-            objective: bijux_domain_fastq::pipeline::Objective::Balanced,
+            objective: bijux_analyze::selection::Objective::Balanced,
             bench_corpus: None,
             allow_partial: false,
         };
-        let plan = bijux_domain_fastq::stages::fastq_preprocess_plan(&args);
+        let plan = bijux_domain_fastq::fastq_preprocess_plan(&args);
         println!("stage: {stage_id}");
         println!("pipeline:");
         for step in plan.stages {

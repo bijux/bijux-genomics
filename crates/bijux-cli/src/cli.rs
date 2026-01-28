@@ -3,7 +3,7 @@ use std::str::FromStr;
 
 use anyhow::{anyhow, Result};
 use bijux_core::{StageId, ToolId};
-use bijux_domain_fastq::stages::args as engine_args;
+use bijux_domain_fastq::args as engine_args;
 use bijux_environment::api::RunnerKind;
 use clap::ValueEnum;
 use clap::{Args, Parser, Subcommand};
@@ -244,13 +244,13 @@ pub enum ObjectiveArg {
     Balanced,
 }
 
-impl From<ObjectiveArg> for bijux_domain_fastq::pipeline::Objective {
+impl From<ObjectiveArg> for bijux_analyze::selection::Objective {
     fn from(value: ObjectiveArg) -> Self {
         match value {
-            ObjectiveArg::Speed => bijux_domain_fastq::pipeline::Objective::Speed,
-            ObjectiveArg::Memory => bijux_domain_fastq::pipeline::Objective::Memory,
-            ObjectiveArg::Retention => bijux_domain_fastq::pipeline::Objective::Retention,
-            ObjectiveArg::Balanced => bijux_domain_fastq::pipeline::Objective::Balanced,
+            ObjectiveArg::Speed => bijux_analyze::selection::Objective::Speed,
+            ObjectiveArg::Memory => bijux_analyze::selection::Objective::Memory,
+            ObjectiveArg::Retention => bijux_analyze::selection::Objective::Retention,
+            ObjectiveArg::Balanced => bijux_analyze::selection::Objective::Balanced,
         }
     }
 }
@@ -261,10 +261,10 @@ pub enum BenchCorpusArg {
     Fastq5Set,
 }
 
-impl From<BenchCorpusArg> for bijux_domain_fastq::pipeline::BenchCorpusId {
+impl From<BenchCorpusArg> for bijux_domain_fastq::BenchCorpusId {
     fn from(value: BenchCorpusArg) -> Self {
         match value {
-            BenchCorpusArg::Fastq5Set => bijux_domain_fastq::pipeline::BenchCorpusId::Fastq5Set,
+            BenchCorpusArg::Fastq5Set => bijux_domain_fastq::BenchCorpusId::Fastq5Set,
         }
     }
 }
@@ -313,6 +313,22 @@ pub struct FastqBenchmarkArgs {
     pub objective: ObjectiveArg,
 }
 
+#[derive(Debug, Args, Clone)]
+pub struct FastqRunArgs {
+    #[command(flatten)]
+    pub args: FastqPreprocessArgs,
+}
+
+#[derive(Debug, Args, Clone)]
+pub struct FastqCompareArgs {
+    #[arg(long)]
+    pub run_a: String,
+    #[arg(long)]
+    pub run_b: String,
+    #[arg(long, default_value = "runs")]
+    pub search_root: PathBuf,
+}
+
 #[derive(Debug, Subcommand)]
 pub enum FastqCommand {
     #[command(about = "List FASTQ stages.")]
@@ -348,6 +364,11 @@ pub enum FastqCommand {
     )]
     Preprocess(FastqPreprocessArgs),
     #[command(
+        about = "Run the FASTQ pipeline (validate → trim → filter → stats).",
+        after_help = "Examples:\n  bijux fastq run --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE\n  bijux fastq run --auto --objective speed --bench-corpus fastq_5set --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE"
+    )]
+    Run(FastqRunArgs),
+    #[command(
         name = "stats-neutral",
         alias = "stats",
         about = "Summarize FASTQ read statistics (neutral).",
@@ -367,6 +388,10 @@ pub enum FastqCommand {
     ValidatePre(FastqValidateArgs),
     #[command(about = "Benchmark existing FASTQ runs without re-execution.")]
     Benchmark(FastqBenchmarkArgs),
+    #[command(about = "Analyze FASTQ runs without re-execution.")]
+    Analyze(FastqBenchmarkArgs),
+    #[command(about = "Compare two FASTQ runs.")]
+    Compare(FastqCompareArgs),
     Align(CommonArgs),
 }
 
@@ -410,7 +435,10 @@ pub fn resolve_stage_tool(command: &Commands) -> (StageId, ToolId, CommonArgs) {
             FastqCommand::ListStages
             | FastqCommand::ListTools { .. }
             | FastqCommand::Explain { .. }
-            | FastqCommand::Benchmark(_) => (
+            | FastqCommand::Benchmark(_)
+            | FastqCommand::Analyze(_)
+            | FastqCommand::Compare(_)
+            | FastqCommand::Run(_) => (
                 StageId("fastq.trim".to_string()),
                 ToolId("fastp".to_string()),
                 CommonArgs::default(),
@@ -608,7 +636,7 @@ pub fn bench_args_preprocess(
         out: args.out.clone(),
         strict: args.strict,
         auto: false,
-        objective: bijux_domain_fastq::pipeline::Objective::Balanced,
+        objective: bijux_analyze::selection::Objective::Balanced,
         bench_corpus: None,
         allow_partial: false,
     }

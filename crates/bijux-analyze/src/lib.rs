@@ -11,6 +11,7 @@ use thiserror::Error;
 use tracing::warn;
 
 pub mod ranking;
+pub mod selection;
 pub use ranking::{build_rankings, print_rank_explain, RankInput, RankingEntry, RankingMode};
 
 pub type Result<T> = std::result::Result<T, BenchError>;
