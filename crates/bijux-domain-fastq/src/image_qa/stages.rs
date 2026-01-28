@@ -7,13 +7,13 @@ use bijux_core::ToolRegistry;
 use bijux_environment::api::{PlatformSpec, ToolImageSpec};
 use uuid::Uuid;
 
-use crate::executor::{
+use bijux_engine::api::output_fastq_stats;
+use bijux_engine::api::validate_execution_outputs;
+use bijux_engine::api::{
     docker_rm, resolve_image_for_run, run_merge_container_with_timeout,
     run_multiqc_container_with_timeout, run_tool_container_with_timeout,
     run_validate_container_with_timeout,
 };
-use crate::observer::output_fastq_stats;
-use crate::validator::validate_execution_outputs;
 
 use super::helpers::temp_out_dir;
 use super::{QaDataset, QaStage};
@@ -28,7 +28,7 @@ pub(crate) fn run_stage_qa(
     catalog: &HashMap<String, ToolImageSpec>,
     registry: &ToolRegistry,
     dataset: &QaDataset,
-    seqkit_image: &crate::ResolvedImage,
+    seqkit_image: &bijux_engine::api::ResolvedImage,
 ) -> ImageQaOutcome {
     let outcome = match stage {
         QaStage::Trim => qa_trim_tool(tool, platform, catalog, registry, dataset, seqkit_image),
@@ -55,7 +55,7 @@ fn qa_trim_tool(
     catalog: &HashMap<String, ToolImageSpec>,
     registry: &ToolRegistry,
     dataset: &QaDataset,
-    seqkit_image: &crate::ResolvedImage,
+    seqkit_image: &bijux_engine::api::ResolvedImage,
 ) -> Result<()> {
     let contract = tool_contract(registry, "fastq.trim", tool)?;
     let spec = catalog
@@ -153,7 +153,7 @@ fn qa_filter_tool(
     catalog: &HashMap<String, ToolImageSpec>,
     registry: &ToolRegistry,
     dataset: &QaDataset,
-    seqkit_image: &crate::ResolvedImage,
+    seqkit_image: &bijux_engine::api::ResolvedImage,
 ) -> Result<()> {
     let contract = tool_contract(registry, "fastq.filter", tool)?;
     let spec = catalog
@@ -213,7 +213,7 @@ fn qa_merge_tool(
     catalog: &HashMap<String, ToolImageSpec>,
     registry: &ToolRegistry,
     dataset: &QaDataset,
-    seqkit_image: &crate::ResolvedImage,
+    seqkit_image: &bijux_engine::api::ResolvedImage,
 ) -> Result<()> {
     let contract = tool_contract(registry, "fastq.merge", tool)?;
     let spec = catalog
@@ -280,7 +280,7 @@ fn qa_correct_tool(
     catalog: &HashMap<String, ToolImageSpec>,
     registry: &ToolRegistry,
     dataset: &QaDataset,
-    seqkit_image: &crate::ResolvedImage,
+    seqkit_image: &bijux_engine::api::ResolvedImage,
 ) -> Result<()> {
     let contract = tool_contract(registry, "fastq.correct", tool)?;
     let spec = catalog
@@ -424,7 +424,7 @@ fn qa_umi_tool(
     catalog: &HashMap<String, ToolImageSpec>,
     registry: &ToolRegistry,
     dataset: &QaDataset,
-    seqkit_image: &crate::ResolvedImage,
+    seqkit_image: &bijux_engine::api::ResolvedImage,
 ) -> Result<()> {
     let contract = tool_contract(registry, "fastq.umi", tool)?;
     let spec = catalog

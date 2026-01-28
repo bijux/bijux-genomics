@@ -1,0 +1,23 @@
+[package]
+name = "bijux-domain-fastq"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+tracing.workspace = true
+rusqlite.workspace = true
+uuid.workspace = true
+bijux-bench = { path = "../bijux-bench" }
+bijux-core = { path = "../bijux-core" }
+bijux-engine = { path = "../bijux-engine" }
+bijux-environment = { path = "../bijux-environment" }
+
+[dev-dependencies]
+
+[lints]
+workspace = true

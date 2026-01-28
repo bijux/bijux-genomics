@@ -18,6 +18,7 @@ pub struct BenchmarkFailure {
     pub reason: String,
 }
 
+#[must_use]
 pub fn classify_failure(stage: &str, tool: &str, err: &anyhow::Error) -> BenchmarkFailure {
     let reason = err.to_string();
     let msg = reason.to_lowercase();

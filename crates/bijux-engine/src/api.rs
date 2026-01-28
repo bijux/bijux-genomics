@@ -1,8 +1,6 @@
 //! Stable, intended-for-use engine interfaces.
 
-pub use crate::composer::bench;
 pub use crate::composer::compare;
-pub use crate::composer::image_qa;
 pub use crate::composer::paths::{
     bench_base_dir, bench_tools_dir, image_qa_base_dir, image_qa_jsonl_path, image_qa_sqlite_path,
 };
@@ -26,9 +24,9 @@ pub use crate::planner::{
 };
 pub use crate::types::{init_logging, StdoutLogger};
 pub use crate::types::{
-    trace_enabled, Capability, DataArtifact, DomainRegistry, ExecutionContext, MetricSet, Policy,
-    ReadSet, RunPlan, SequenceCollection, StageGraph, StageRequirement, StageResult,
-    ToolInvocation,
+    trace_enabled, Capability, DataArtifact, DomainRegistry, ExecutionContext, ExecutionManifest,
+    MetricSet, PipelineSpec, Policy, ReadSet, RunPlan, SequenceCollection, StageGraph,
+    StageRequirement, StageResult, ToolInvocation,
 };
 pub use crate::validator::validate_execution_outputs;
 pub use bijux_environment::api::ResolvedImage;

@@ -117,6 +117,7 @@ dependencies = [
  "assert_cmd",
  "bijux-bench",
  "bijux-core",
+ "bijux-domain-fastq",
  "bijux-engine",
  "bijux-environment",
  "clap",
@@ -158,6 +159,23 @@ dependencies = [
  "tracing",
  "uuid",
  "walkdir",
+]
+
+[[package]]
+name = "bijux-domain-fastq"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bijux-bench",
+ "bijux-core",
+ "bijux-engine",
+ "bijux-environment",
+ "rusqlite",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tracing",
+ "uuid",
 ]
 
 [[package]]

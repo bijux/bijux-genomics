@@ -1,43 +1,48 @@
+use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
 use std::time::Instant;
 
-use crate::planner::load_registry;
 use anyhow::{anyhow, Context, Result};
 use bijux_bench::{
-    append_jsonl, fetch_fastq_stats_v1, insert_fastq_stats_v1, BenchmarkContext, BenchmarkRecord,
-    ExecutionMetrics, FastqStatsMetrics, LengthHistogramBin, MetricSet,
+    append_jsonl, fetch_fastq_filter_v1, insert_fastq_filter_v1, BenchmarkContext, BenchmarkRecord,
+    ExecutionMetrics, FastqFilterMetrics, MetricSet,
 };
+use bijux_engine::api::load_registry;
 use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 use uuid::Uuid;
 
-use crate::composer::image_qa::ensure_image_qa_passed;
-use crate::composer::paths::{bench_base_dir, bench_tools_dir};
-use crate::executor::{docker_rm, docker_stats_mb, run_validate_container};
-use crate::observer::{hash_file_sha256, input_fastq_stats, length_histogram, SeqkitMetrics};
-use crate::validator::validate_execution_outputs;
+use crate::image_qa::ensure_image_qa_passed;
+use bijux_engine::api::validate_execution_outputs;
+use bijux_engine::api::{bench_base_dir, bench_tools_dir};
+use bijux_engine::api::{docker_rm, docker_stats_mb, run_tool_container};
+use bijux_engine::api::{hash_file_sha256, input_fastq_stats, output_fastq_stats, SeqkitMetrics};
 
-use super::failure::{classify_failure, BenchmarkFailure};
+use super::analyze::failure::{classify_failure, BenchmarkFailure};
+use super::analyze::report::write_filter_report;
 use super::helpers::{
-    compute_run_id, normalize_stats_tool_list, params_hash, prepare_tool_run_dirs,
+    compute_run_id, normalize_filter_tool_list, params_hash, prepare_tool_run_dirs,
     resolve_image_for_run, write_execution_logs, write_explain_md, write_metrics_json,
     ExecutionManifest,
 };
-use super::report::write_stats_report;
 
-pub fn bench_fastq_stats(
-    catalog: &std::collections::HashMap<String, ToolImageSpec>,
+/// Run the FASTQ benchmark stage.
+///
+/// # Errors
+/// Returns an error if planning, execution, or metric recording fails.
+pub fn bench_fastq_filter<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
     runner_override: Option<RunnerKind>,
-    args: &crate::composer::bench::args::BenchFastqStatsArgs,
+    args: &crate::bench::args::BenchFastqFilterArgs,
 ) -> Result<()> {
-    let tools = normalize_stats_tool_list(&args.tools)?;
+    let tools = normalize_filter_tool_list(&args.tools)?;
     let registry = load_registry(&std::env::current_dir()?.join("domain"))
         .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
-    let bench_inputs = prepare_stats_bench(catalog, platform, runner_override, args)?;
+    let bench_inputs = prepare_filter_bench(catalog, platform, runner_override, args)?;
     let selected = tools.clone();
     let all_tools: Vec<String> = registry
-        .tools_for_stage("fastq.stats")
+        .tools_for_stage("fastq.filter")
         .iter()
         .map(|tool| tool.tool_id.clone())
         .collect();
@@ -47,17 +52,17 @@ pub fn bench_fastq_stats(
         .collect();
     write_explain_md(
         &bench_inputs.bench_dir,
-        "fastq.stats",
+        "fastq.filter",
         &selected,
         &excluded,
         None,
     )?;
-    ensure_image_qa_passed("fastq.stats", &tools, platform, catalog)?;
+    ensure_image_qa_passed("fastq.filter", &tools, platform, catalog)?;
 
     let sqlite_path = bench_inputs.bench_dir.join("bench.sqlite");
     let conn = bijux_bench::open_sqlite(&sqlite_path).context("open bench sqlite")?;
-    let mut records: Vec<BenchmarkRecord<FastqStatsMetrics>> = Vec::new();
-    let mut new_records: Vec<BenchmarkRecord<FastqStatsMetrics>> = Vec::new();
+    let mut records: Vec<BenchmarkRecord<FastqFilterMetrics>> = Vec::new();
+    let mut new_records: Vec<BenchmarkRecord<FastqFilterMetrics>> = Vec::new();
     let mut failures: Vec<BenchmarkFailure> = Vec::new();
 
     for tool in tools {
@@ -69,7 +74,7 @@ pub fn bench_fastq_stats(
             .as_ref()
             .ok_or_else(|| anyhow!("image digest missing for tool {tool}"))?
             .to_string();
-        let cached = fetch_fastq_stats_v1(
+        let cached = fetch_fastq_filter_v1(
             &conn,
             &tool,
             &spec.version,
@@ -80,9 +85,9 @@ pub fn bench_fastq_stats(
             records.push(record);
             continue;
         }
-        match run_stats_tool(catalog, platform, args, &bench_inputs, &tool) {
+        match run_filter_tool(catalog, platform, args, &bench_inputs, &tool) {
             Ok(record) => new_records.push(record),
-            Err(err) => failures.push(classify_failure("fastq.stats", &tool, &err)),
+            Err(err) => failures.push(classify_failure("fastq.filter", &tool, &err)),
         }
     }
 
@@ -94,45 +99,45 @@ pub fn bench_fastq_stats(
     }
 
     for record in &new_records {
-        insert_fastq_stats_v1(&conn, record).context("insert bench sqlite")?;
+        insert_fastq_filter_v1(&conn, record).context("insert bench sqlite")?;
     }
 
-    write_stats_report(&bench_inputs.bench_dir, &records, &failures, args.explain)?;
+    check_fastq_filter_comparability(&records);
+    write_filter_report(&bench_inputs.bench_dir, &records, &failures, args.explain)?;
     if !failures.is_empty() {
         return Err(anyhow!("benchmark failures: {}", failures.len()));
     }
     Ok(())
 }
 
-struct StatsBenchInputs {
+struct FilterBenchInputs {
     runner: RunnerKind,
     r1: PathBuf,
     r1_dir: PathBuf,
     input_hash: String,
     input_stats: SeqkitMetrics,
-    length_hist: Vec<LengthHistogramBin>,
     bench_dir: PathBuf,
     tools_root: PathBuf,
 }
 
-fn prepare_stats_bench(
-    catalog: &std::collections::HashMap<String, ToolImageSpec>,
+fn prepare_filter_bench<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
     runner_override: Option<RunnerKind>,
-    args: &crate::composer::bench::args::BenchFastqStatsArgs,
-) -> Result<StatsBenchInputs> {
+    args: &crate::bench::args::BenchFastqFilterArgs,
+) -> Result<FilterBenchInputs> {
     let runner = runner_override.unwrap_or(platform.runner);
     if runner != RunnerKind::Docker {
         return Err(anyhow!("benchmarking supports docker only for now"));
     }
-    let bench_dir = bench_base_dir(&args.out, "stats", &args.sample_id);
-    let tools_root = bench_tools_dir(&args.out, "stats", &args.sample_id);
+    let bench_dir = bench_base_dir(&args.out, "filter", &args.sample_id);
+    let tools_root = bench_tools_dir(&args.out, "filter", &args.sample_id);
     fs::create_dir_all(&bench_dir).context("create bench output dir")?;
     fs::create_dir_all(&tools_root).context("create tools output dir")?;
 
     println!(
         "planned tools: {}",
-        normalize_stats_tool_list(&args.tools)?.join(", ")
+        normalize_filter_tool_list(&args.tools)?.join(", ")
     );
 
     let r1 = args.r1.canonicalize().context("resolve r1 path")?;
@@ -148,36 +153,32 @@ fn prepare_stats_bench(
 
     let input_hash = hash_file_sha256(&r1)?;
     let input_stats = input_fastq_stats(&seqkit_image, &r1_dir, &r1)?;
-    let length_hist = length_histogram(&seqkit_image, &r1_dir, &r1)?
-        .into_iter()
-        .map(|(length, count)| LengthHistogramBin { length, count })
-        .collect();
 
-    Ok(StatsBenchInputs {
+    Ok(FilterBenchInputs {
         runner,
         r1,
         r1_dir,
         input_hash,
         input_stats,
-        length_hist,
         bench_dir,
         tools_root,
     })
 }
 
-fn run_stats_tool(
-    catalog: &std::collections::HashMap<String, ToolImageSpec>,
+#[allow(clippy::too_many_lines)]
+fn run_filter_tool<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
-    args: &crate::composer::bench::args::BenchFastqStatsArgs,
-    bench_inputs: &StatsBenchInputs,
+    args: &crate::bench::args::BenchFastqFilterArgs,
+    bench_inputs: &FilterBenchInputs,
     tool: &str,
-) -> Result<BenchmarkRecord<FastqStatsMetrics>> {
+) -> Result<BenchmarkRecord<FastqFilterMetrics>> {
     let spec = catalog
         .get(tool)
         .ok_or_else(|| anyhow!("tool {tool} missing from images.yaml"))?;
     let image = resolve_image_for_run(spec, platform)?;
 
-    println!("→ stats {tool}");
+    println!("→ filter {tool}");
     let params = serde_json::json!({
         "sample_id": args.sample_id,
         "r1": bench_inputs.r1,
@@ -189,7 +190,7 @@ fn run_stats_tool(
         .ok_or_else(|| anyhow!("image digest missing for tool {tool}"))?
         .to_string();
     let run_id = compute_run_id(
-        "fastq.stats",
+        "fastq.filter",
         tool,
         &image_digest,
         &bench_inputs.input_hash,
@@ -199,7 +200,7 @@ fn run_stats_tool(
     let out_dir = run_dirs.artifacts_dir.clone();
     let start = Instant::now();
     let container_name = format!("bijux-bench-{}-{}", args.sample_id, Uuid::new_v4());
-    let execution = run_validate_container(
+    let execution = run_tool_container(
         tool,
         &image,
         &bench_inputs.r1_dir,
@@ -211,25 +212,54 @@ fn run_stats_tool(
     let memory_mb = docker_stats_mb(&container_name)?;
     docker_rm(&container_name)?;
 
-    let metrics = FastqStatsMetrics {
-        reads_total: bench_inputs.input_stats.reads,
-        bases_total: bench_inputs.input_stats.bases,
-        mean_q: bench_inputs.input_stats.mean_q,
-        gc_percent: bench_inputs.input_stats.gc_percent,
-        length_histogram: bench_inputs.length_hist.clone(),
+    let out_fastq = execution
+        .output_fastq
+        .as_ref()
+        .ok_or_else(|| anyhow!("output fastq missing"))?;
+    let out_fastq = if out_fastq.exists() {
+        out_fastq.clone()
+    } else {
+        let alt = out_fastq.with_extension("");
+        if alt.exists() {
+            alt
+        } else {
+            return Err(anyhow!("output fastq missing"));
+        }
     };
-    let metric_set = MetricSet::new(metrics);
-    metric_set.validate()?;
+    let output_stats = output_fastq_stats(
+        &resolve_image_for_run(
+            catalog
+                .get("seqkit")
+                .ok_or_else(|| anyhow!("seqkit missing from images.yaml"))?,
+            platform,
+        )?,
+        &out_dir,
+        &out_fastq,
+    )?;
 
     let registry = load_registry(&std::env::current_dir()?.join("domain"))
         .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let tool_manifest = registry
-        .tool_by_id("fastq.stats", tool)
+        .tool_by_id("fastq.filter", tool)
         .ok_or_else(|| anyhow!("tool {tool} missing from manifests"))?;
     validate_execution_outputs(&tool_manifest.execution_contract, &out_dir)?;
+
+    let reads_in = bench_inputs.input_stats.reads;
+    let reads_out = output_stats.reads;
+    let reads_dropped = reads_in.saturating_sub(reads_out);
+    let metrics = FastqFilterMetrics {
+        reads_in,
+        reads_out,
+        reads_dropped,
+        mean_q_before: bench_inputs.input_stats.mean_q,
+        mean_q_after: output_stats.mean_q,
+    };
+    let metric_set = MetricSet::new(metrics);
+    metric_set.validate()?;
+
     let manifest = ExecutionManifest {
         run_id: run_id.clone(),
-        stage: "fastq.stats".to_string(),
+        stage: "fastq.filter".to_string(),
         tool: tool.to_string(),
         tool_version: spec.version.clone(),
         image_digest: image_digest.clone(),
@@ -268,5 +298,49 @@ fn run_stats_tool(
         metrics: metric_set,
     };
     record.validate()?;
+    if execution.exit_code != 0 {
+        return Err(anyhow!(
+            "tool {tool} failed with status {} (stdout: {}, stderr: {})",
+            execution.exit_code,
+            execution.stdout.trim(),
+            execution.stderr.trim()
+        ));
+    }
     Ok(record)
+}
+
+fn check_fastq_filter_comparability(records: &[BenchmarkRecord<FastqFilterMetrics>]) {
+    if records.len() <= 1 {
+        return;
+    }
+    let first = &records[0];
+    let mut reads_in = first.metrics.metrics.reads_in;
+    let mut mean_q_before = first.metrics.metrics.mean_q_before;
+
+    for record in records.iter().skip(1) {
+        if record.metrics.metrics.reads_in != reads_in {
+            tracing::warn!(
+                tool = record.context.tool,
+                reads_in = record.metrics.metrics.reads_in,
+                "reads_in differs from baseline"
+            );
+            reads_in = record.metrics.metrics.reads_in;
+        }
+        if (record.metrics.metrics.mean_q_before - mean_q_before).abs() > 1e-6 {
+            tracing::warn!(
+                tool = record.context.tool,
+                mean_q_before = record.metrics.metrics.mean_q_before,
+                "mean_q_before differs from baseline"
+            );
+            mean_q_before = record.metrics.metrics.mean_q_before;
+        }
+        if record.metrics.metrics.reads_out > record.metrics.metrics.reads_in {
+            tracing::warn!(
+                tool = record.context.tool,
+                reads_in = record.metrics.metrics.reads_in,
+                reads_out = record.metrics.metrics.reads_out,
+                "reads_out exceeds reads_in"
+            );
+        }
+    }
 }

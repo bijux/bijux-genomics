@@ -15,12 +15,12 @@ mod env;
 mod replay;
 mod utils;
 
-use bijux_engine::api::bench::{
+use bijux_domain_fastq::bench::{
     bench_fastq_correct, bench_fastq_filter, bench_fastq_merge, bench_fastq_preprocess,
     bench_fastq_qc2, bench_fastq_screen, bench_fastq_stats, bench_fastq_trim, bench_fastq_umi,
     bench_fastq_validate, print_bench_schema,
 };
-use bijux_engine::api::image_qa::run_image_qa;
+use bijux_domain_fastq::image_qa::run_image_qa;
 use bijux_engine::api::init_logging;
 use cli::{
     bench_args_correct, bench_args_filter, bench_args_from_trim, bench_args_from_validate,

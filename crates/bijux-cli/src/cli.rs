@@ -3,7 +3,7 @@ use std::str::FromStr;
 
 use anyhow::{anyhow, Result};
 use bijux_core::{StageId, ToolId};
-use bijux_engine::api::bench::args as engine_args;
+use bijux_domain_fastq::bench::args as engine_args;
 use bijux_environment::api::RunnerKind;
 use clap::{Args, Parser, Subcommand};
 

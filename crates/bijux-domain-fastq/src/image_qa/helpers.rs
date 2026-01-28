@@ -8,7 +8,7 @@ use bijux_environment::api::{PlatformSpec, ToolImageSpec};
 use uuid::Uuid;
 
 use super::QaStage;
-use crate::executor::resolve_image_for_run;
+use bijux_engine::api::resolve_image_for_run;
 
 pub(crate) fn temp_out_dir(stage: &str, tool: &str) -> Result<PathBuf> {
     let base = std::env::temp_dir().join("bijux-image-qa").join(stage);
@@ -74,14 +74,18 @@ pub(crate) fn qa_already_passed(
     )?)
 }
 
-pub fn ensure_image_qa_passed(
+/// Ensure required image QA results exist for a stage/tool set.
+///
+/// # Errors
+/// Returns an error if QA results are missing or cannot be read.
+pub fn ensure_image_qa_passed<S: ::std::hash::BuildHasher>(
     stage: &str,
     tools: &[String],
     platform: &PlatformSpec,
-    catalog: &HashMap<String, ToolImageSpec>,
+    catalog: &HashMap<String, ToolImageSpec, S>,
 ) -> Result<()> {
     let cwd = std::env::current_dir().map_err(|err| anyhow!("failed to resolve cwd: {err}"))?;
-    let qa_sqlite = crate::composer::paths::image_qa_sqlite_path(&cwd, &platform.name);
+    let qa_sqlite = bijux_engine::api::image_qa_sqlite_path(&cwd, &platform.name);
     if !qa_sqlite.exists() {
         return Err(anyhow!(
             "image QA results missing; run `bijux image-qa --platform {}`",

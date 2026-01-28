@@ -1,38 +1,43 @@
+use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
 use std::time::Instant;
 
-use crate::planner::load_registry;
 use anyhow::{anyhow, Context, Result};
 use bijux_bench::{
     append_jsonl, fetch_fastq_validate_v1, insert_fastq_validate_v1, BenchmarkContext,
     BenchmarkRecord, ExecutionMetrics, FastqValidateMetrics, MetricSet,
 };
 use bijux_core::ToolRole;
+use bijux_engine::api::load_registry;
 use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 use uuid::Uuid;
 
-use crate::composer::image_qa::ensure_image_qa_passed;
-use crate::composer::paths::{bench_base_dir, bench_tools_dir};
-use crate::executor::{docker_rm, docker_stats_mb, run_validate_container};
-use crate::observer::{
+use crate::image_qa::ensure_image_qa_passed;
+use bijux_engine::api::validate_execution_outputs;
+use bijux_engine::api::{bench_base_dir, bench_tools_dir};
+use bijux_engine::api::{docker_rm, docker_stats_mb, run_validate_container};
+use bijux_engine::api::{
     hash_file_sha256, input_fastq_stats, parse_fastqvalidator_count, SeqkitMetrics,
 };
-use crate::validator::validate_execution_outputs;
 
-use super::failure::{classify_failure, BenchmarkFailure};
+use super::analyze::failure::{classify_failure, BenchmarkFailure};
+use super::analyze::report::write_validate_report;
 use super::helpers::{
     compute_run_id, normalize_validate_tool_list, params_hash, prepare_tool_run_dirs,
     resolve_image_for_run, write_execution_logs, write_explain_md, write_metrics_json,
     ExecutionManifest,
 };
-use super::report::write_validate_report;
 
-pub fn bench_fastq_validate(
-    catalog: &std::collections::HashMap<String, ToolImageSpec>,
+/// Run the FASTQ benchmark stage.
+///
+/// # Errors
+/// Returns an error if planning, execution, or metric recording fails.
+pub fn bench_fastq_validate<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
     runner_override: Option<RunnerKind>,
-    args: &crate::composer::bench::args::BenchFastqValidateArgs,
+    args: &crate::bench::args::BenchFastqValidateArgs,
 ) -> Result<()> {
     let mut tools = normalize_validate_tool_list(&args.tools)?;
     if args.strict && !tools.iter().any(|tool| tool == "fastqvalidator_official") {
@@ -127,11 +132,11 @@ struct ValidateBenchInputs {
     tools_root: PathBuf,
 }
 
-fn prepare_validate_bench(
-    catalog: &std::collections::HashMap<String, ToolImageSpec>,
+fn prepare_validate_bench<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
     runner_override: Option<RunnerKind>,
-    args: &crate::composer::bench::args::BenchFastqValidateArgs,
+    args: &crate::bench::args::BenchFastqValidateArgs,
 ) -> Result<ValidateBenchInputs> {
     let runner = runner_override.unwrap_or(platform.runner);
     if runner != RunnerKind::Docker {
@@ -173,10 +178,10 @@ fn prepare_validate_bench(
 }
 
 #[allow(clippy::too_many_lines)]
-fn run_validate_tool(
-    catalog: &std::collections::HashMap<String, ToolImageSpec>,
+fn run_validate_tool<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
-    args: &crate::composer::bench::args::BenchFastqValidateArgs,
+    args: &crate::bench::args::BenchFastqValidateArgs,
     bench_inputs: &ValidateBenchInputs,
     tool: &str,
     policy: ToolPolicy,

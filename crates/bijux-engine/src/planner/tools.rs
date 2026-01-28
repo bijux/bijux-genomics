@@ -92,6 +92,9 @@ fn normalize_tools_with_allowlist(tools: &[String], allowlist: &[&str]) -> Resul
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::sync::Mutex;
+
+    static ENV_LOCK: Mutex<()> = Mutex::new(());
 
     #[test]
     fn normalize_trim_tools_dedup_and_sort() {
@@ -113,6 +116,9 @@ mod tests {
 
     #[test]
     fn normalize_trim_tools_blocks_experimental_by_default() {
+        let _guard = ENV_LOCK
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
         std::env::remove_var("BIJUX_EXPERIMENTAL_TOOLS");
         let tools = vec!["seqpurge".to_string()];
         match normalize_trim_tool_list(&tools) {
@@ -123,6 +129,9 @@ mod tests {
 
     #[test]
     fn normalize_trim_tools_allows_experimental_when_enabled() {
+        let _guard = ENV_LOCK
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
         let prev = std::env::var("BIJUX_EXPERIMENTAL_TOOLS").ok();
         std::env::set_var("BIJUX_EXPERIMENTAL_TOOLS", "1");
         let tools = vec!["seqpurge".to_string()];
