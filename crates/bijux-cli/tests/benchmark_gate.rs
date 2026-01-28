@@ -1,9 +1,10 @@
 use std::path::Path;
 
 use anyhow::Result;
+use bijux_analyze::{write_filter_report, write_trim_report, write_validate_report};
 use bijux_domain_fastq::{
     args as bench_args, bench_fastq_filter, bench_fastq_trim, bench_fastq_validate_pre,
-    write_filter_report, write_trim_report, write_validate_report,
+    qc_class_for_stage, QcClass,
 };
 use bijux_environment::api::{load_image_catalog, load_platform};
 use tempfile::TempDir;
@@ -71,6 +72,10 @@ fn benchmark_gate_validate_trim_filter() -> Result<()> {
         &validate_outcome.bench_dir,
         &validate_outcome.records,
         &validate_outcome.failures,
+        qc_class_for_stage("fastq.validate_pre").map(|class| match class {
+            QcClass::Structural => "structural",
+            QcClass::Statistical => "statistical",
+        }),
         validate_outcome.explain,
     )?;
 

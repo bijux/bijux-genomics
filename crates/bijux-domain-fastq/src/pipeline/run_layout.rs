@@ -5,6 +5,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+use bijux_core::events::RunEvent;
 use bijux_core::RunMetadataV1;
 
 use crate::contracts::FastqLayout;
@@ -64,16 +65,6 @@ pub struct RunIndexEntry {
 pub struct RunIndexLine {
     pub schema_version: u32,
     pub run: RunIndexEntry,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct ExecutionEvent {
-    pub timestamp: String,
-    pub event: String,
-    pub stage: Option<String>,
-    pub tool: Option<String>,
-    pub detail: Option<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -168,7 +159,7 @@ pub fn update_run_index(base_dir: &Path, entry: RunIndexEntry) -> Result<()> {
 ///
 /// # Errors
 /// Returns an error if the file cannot be written.
-pub fn append_event(layout: &RunLayout, event: &ExecutionEvent) -> Result<()> {
+pub fn append_event(layout: &RunLayout, event: &RunEvent) -> Result<()> {
     let payload = serde_json::to_string(event)?;
     let mut file = std::fs::OpenOptions::new()
         .create(true)

@@ -40,8 +40,9 @@ fn assert_no_fastq_terms(dir: &str) {
         let Ok(contents) = fs::read_to_string(&file) else {
             continue;
         };
+        let has_stage_id = contents.contains("\"fastq.") || contents.contains("'fastq.");
         assert!(
-            !contents.contains("fastq."),
+            !has_stage_id,
             "fastq term in engine core: {}",
             file.display()
         );

@@ -1,14 +1,13 @@
 mod contract;
-pub mod failure;
 pub mod model;
 pub mod pipeline_contract;
 pub mod stages;
 
+pub use bijux_core::RawFailure;
 pub use contract::{
     contract_for_stage, ensure_umi_headers, inspect_headers, log_header_warnings,
     normalize_outputs, preflight_stage, HeaderInspection, NormalizedOutputs,
 };
-pub use failure::RawFailure;
 pub use model::{
     FastqArtifact, FastqArtifactKind, FastqLayout, FastqPE, FastqPairedEnd, FastqSE, FastqSampleId,
     FastqSingleEnd, FastqStats,

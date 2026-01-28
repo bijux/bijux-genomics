@@ -24,6 +24,57 @@ impl Objective {
     }
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ObjectiveWeights {
+    pub runtime: f64,
+    pub memory: f64,
+    pub retention: f64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ObjectiveSpec {
+    pub name: String,
+    pub weights: ObjectiveWeights,
+}
+
+#[must_use]
+pub fn objective_spec(objective: Objective) -> ObjectiveSpec {
+    match objective {
+        Objective::Speed => ObjectiveSpec {
+            name: objective.as_str().to_string(),
+            weights: ObjectiveWeights {
+                runtime: 1.0,
+                memory: 0.0,
+                retention: 0.0,
+            },
+        },
+        Objective::Memory => ObjectiveSpec {
+            name: objective.as_str().to_string(),
+            weights: ObjectiveWeights {
+                runtime: 0.0,
+                memory: 1.0,
+                retention: 0.0,
+            },
+        },
+        Objective::Retention => ObjectiveSpec {
+            name: objective.as_str().to_string(),
+            weights: ObjectiveWeights {
+                runtime: 0.0,
+                memory: 0.0,
+                retention: -1.0,
+            },
+        },
+        Objective::Balanced => ObjectiveSpec {
+            name: objective.as_str().to_string(),
+            weights: ObjectiveWeights {
+                runtime: 1.0,
+                memory: 1.0,
+                retention: -100.0,
+            },
+        },
+    }
+}
+
 #[derive(Debug, Clone)]
 pub enum BenchResultStatus {
     Success,
@@ -70,7 +121,7 @@ pub struct StageSelection {
 pub fn select_stage(
     stage: &str,
     tool_records: &[(String, Vec<BenchResultRecord>)],
-    objective: Objective,
+    objective: &ObjectiveSpec,
     allow_partial: bool,
 ) -> StageSelection {
     let mut scores = Vec::new();
@@ -143,22 +194,17 @@ pub fn select_stage(
 }
 
 fn score_for_objective(
-    objective: Objective,
+    objective: &ObjectiveSpec,
     runtime: Option<f64>,
     memory: Option<f64>,
     retention: Option<f64>,
 ) -> f64 {
-    match objective {
-        Objective::Speed => runtime.unwrap_or(f64::INFINITY),
-        Objective::Memory => memory.unwrap_or(f64::INFINITY),
-        Objective::Retention => retention.map_or(f64::INFINITY, |v| -v),
-        Objective::Balanced => {
-            let runtime = runtime.unwrap_or(f64::INFINITY);
-            let memory = memory.unwrap_or(f64::INFINITY);
-            let retention = retention.unwrap_or(0.0);
-            runtime + memory - (retention * 100.0)
-        }
-    }
+    let runtime = runtime.unwrap_or(f64::INFINITY);
+    let memory = memory.unwrap_or(f64::INFINITY);
+    let retention = retention.unwrap_or(0.0);
+    (runtime * objective.weights.runtime)
+        + (memory * objective.weights.memory)
+        + (retention * objective.weights.retention)
 }
 
 fn compare_score(left: f64, right: f64) -> Ordering {
@@ -191,6 +237,7 @@ fn read_retention(record: &BenchResultRecord) -> Option<f64> {
 #[derive(Debug, Serialize)]
 pub struct SelectionReport {
     pub objective: String,
+    pub weights: ObjectiveWeights,
     pub corpus_id: String,
     pub stages: Vec<StageSelection>,
 }
@@ -201,12 +248,13 @@ pub struct SelectionReport {
 /// Returns an error if the report cannot be serialized or written.
 pub fn write_selection_report(
     out_dir: &std::path::Path,
-    objective: Objective,
+    objective: &ObjectiveSpec,
     corpus_id: &str,
     stages: Vec<StageSelection>,
 ) -> anyhow::Result<()> {
     let report = SelectionReport {
-        objective: objective.as_str().to_string(),
+        objective: objective.name.clone(),
+        weights: objective.weights.clone(),
         corpus_id: corpus_id.to_string(),
         stages,
     };

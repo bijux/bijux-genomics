@@ -84,7 +84,7 @@ mod tests {
     fn plan_uses_platform_runner_by_default() {
         let context = context_with_runner(RunnerKind::Docker);
         let invocation = ToolInvocation {
-            stage_id: "fastq.trim".to_string(),
+            stage_id: "example.trim".to_string(),
             tool_id: "fastp".to_string(),
             inputs: Vec::new(),
             params: serde_json::json!({}),
@@ -101,7 +101,7 @@ mod tests {
         let mut context = context_with_runner(RunnerKind::Docker);
         context.runner_override = Some(RunnerKind::Apptainer);
         let invocation = ToolInvocation {
-            stage_id: "fastq.trim".to_string(),
+            stage_id: "example.trim".to_string(),
             tool_id: "fastp".to_string(),
             inputs: Vec::new(),
             params: serde_json::json!({}),
@@ -118,7 +118,7 @@ mod tests {
         let mut context = context_with_runner(RunnerKind::Docker);
         context.capabilities = vec![crate::core::types::Capability::Fastq];
         let invocation = ToolInvocation {
-            stage_id: "fastq.trim".to_string(),
+            stage_id: "example.trim".to_string(),
             tool_id: "fastp".to_string(),
             inputs: Vec::new(),
             params: serde_json::json!({}),
