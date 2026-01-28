@@ -21,6 +21,7 @@ bijux-environment = { path = "../bijux-environment" }
 bijux-bench = { path = "../bijux-bench" }
 
 [dev-dependencies]
+rusqlite = { workspace = true }
 
 [lints]
 workspace = true

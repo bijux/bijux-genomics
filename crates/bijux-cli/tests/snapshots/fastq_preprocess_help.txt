@@ -3,10 +3,21 @@ Run the FASTQ preprocess pipeline (validate → trim → filter → stats).
 Usage: bijux fastq preprocess [OPTIONS]
 
 Options:
-      --list-tools  
-      --dry-run     
-  -h, --help        Print help
+      --list-tools                   
+      --dry-run                      
+      --env <ENV>                    
+      --sample-id <SAMPLE_ID>        
+      --r1 <R1>                      
+      --r2 <R2>                      
+      --out <OUT>                    
+      --strict                       
+      --auto                         
+      --objective <OBJECTIVE>        [default: balanced] [possible values: speed, memory, retention, balanced]
+      --bench-corpus <BENCH_CORPUS>  [possible values: fastq_5set]
+      --allow-partial                
+  -h, --help                         Print help
 
 Examples:
   bijux fastq preprocess --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE
+  bijux fastq preprocess --auto --objective speed --bench-corpus fastq_5set --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE
   bijux fastq preprocess --list-tools

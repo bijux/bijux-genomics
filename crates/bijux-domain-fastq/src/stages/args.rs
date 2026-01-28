@@ -92,4 +92,8 @@ pub struct BenchFastqPreprocessArgs {
     pub r2: Option<PathBuf>,
     pub out: PathBuf,
     pub strict: bool,
+    pub auto: bool,
+    pub objective: crate::pipeline::Objective,
+    pub bench_corpus: Option<crate::pipeline::BenchCorpusId>,
+    pub allow_partial: bool,
 }

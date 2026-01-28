@@ -31,8 +31,8 @@ use cli::{
     bench_args_correct, bench_args_filter, bench_args_from_trim, bench_args_from_validate,
     bench_args_merge, bench_args_preprocess, bench_args_qc_post, bench_args_screen,
     bench_args_stats, bench_args_trim, bench_args_umi, bench_args_validate,
-    is_bench_requested_trim, is_bench_requested_validate, BenchCommand, BenchFastqCommand, Cli,
-    Commands, EnvCommand, FastqCommand,
+    is_bench_requested_trim, is_bench_requested_validate, preprocess_args_from_cli, BenchCommand,
+    BenchFastqCommand, Cli, Commands, EnvCommand, FastqCommand,
 };
 use env::{env_doctor, print_env_images, print_env_info};
 use replay::replay_run;
@@ -325,6 +325,16 @@ fn handle_fastq_bench(
             }
             Ok(true)
         }
+        FastqCommand::Preprocess(args) => {
+            let platform = load_platform(cli.platform.as_deref())
+                .map_err(|err| anyhow!("failed to load platform: {err}"))?;
+            let catalog =
+                load_image_catalog().map_err(|err| anyhow!("failed to load images: {err}"))?;
+            let runner = cli::parse_runner_override(args.env.as_deref())?;
+            let bench_args = preprocess_args_from_cli(args)?;
+            bench_fastq_preprocess(&catalog, &platform, runner, &bench_args)?;
+            Ok(true)
+        }
         _ => {
             let (stage, _tool, common) = cli::resolve_stage_tool(&cli.command);
             if common.list_tools {
@@ -392,6 +402,10 @@ fn explain_fastq_stage(registry: &bijux_core::ToolRegistry, stage_id: &str) -> R
             r2: None,
             out: PathBuf::from("artifacts"),
             strict: false,
+            auto: false,
+            objective: bijux_domain_fastq::pipeline::Objective::Balanced,
+            bench_corpus: None,
+            allow_partial: false,
         };
         let plan = bijux_domain_fastq::stages::fastq_preprocess_plan(&args);
         println!("stage: {stage_id}");

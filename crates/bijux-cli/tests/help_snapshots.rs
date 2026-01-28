@@ -85,7 +85,14 @@ fn fastq_preprocess_help_snapshot() -> Result<()> {
     assert_help_contains(
         "preprocess",
         "tests/snapshots/fastq_preprocess_help.txt",
-        &["--r1", "--out", "--sample-id"],
+        &[
+            "--r1",
+            "--out",
+            "--sample-id",
+            "--auto",
+            "--objective",
+            "--bench-corpus",
+        ],
     )?;
     Ok(())
 }
