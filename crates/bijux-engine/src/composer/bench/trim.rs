@@ -10,16 +10,16 @@ use bijux_bench::{
 use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 use uuid::Uuid;
 
-use crate::image_qa::ensure_image_qa_passed;
-use crate::{
-    bench_base_dir, bench_tools_dir, docker_rm, docker_stats_mb, hash_file_sha256,
-    input_fastq_stats, output_fastq_stats, run_tool_container, validate_execution_outputs,
-};
+use crate::composer::image_qa::ensure_image_qa_passed;
+use crate::composer::paths::{bench_base_dir, bench_tools_dir};
+use crate::executor::{docker_rm, docker_stats_mb, run_tool_container};
+use crate::observer::{hash_file_sha256, input_fastq_stats, output_fastq_stats};
+use crate::validator::validate_execution_outputs;
 
 use super::failure::{classify_failure, BenchmarkFailure};
 use super::helpers::{
     compute_run_id, normalize_tool_list, params_hash, prepare_tool_run_dirs, resolve_image_for_run,
-    write_execution_logs, write_metrics_json, ExecutionManifest,
+    write_execution_logs, write_explain_md, write_metrics_json, ExecutionManifest,
 };
 use super::report::write_trim_report;
 
@@ -28,7 +28,7 @@ pub fn bench_fastq_trim(
     catalog: &std::collections::HashMap<String, ToolImageSpec>,
     platform: &PlatformSpec,
     runner_override: Option<RunnerKind>,
-    args: &crate::bench::args::BenchFastqTrimArgs,
+    args: &crate::composer::bench::args::BenchFastqTrimArgs,
 ) -> Result<()> {
     let runner = runner_override.unwrap_or(platform.runner);
     if runner != RunnerKind::Docker {
@@ -43,6 +43,17 @@ pub fn bench_fastq_trim(
     fs::create_dir_all(&tools_root).context("create tools output dir")?;
 
     println!("planned tools: {}", tools.join(", "));
+    let selected = tools.clone();
+    let all_tools: Vec<String> = registry
+        .tools_for_stage("fastq.trim")
+        .iter()
+        .map(|tool| tool.tool_id.clone())
+        .collect();
+    let excluded: Vec<String> = all_tools
+        .into_iter()
+        .filter(|tool| !selected.contains(tool))
+        .collect();
+    write_explain_md(&bench_dir, "fastq.trim", &selected, &excluded, None)?;
 
     let r1 = args.r1.canonicalize().context("resolve r1 path")?;
     let r1_dir = r1

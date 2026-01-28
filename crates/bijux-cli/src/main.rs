@@ -15,13 +15,13 @@ mod env;
 mod replay;
 mod utils;
 
-use bijux_engine::bench::{
+use bijux_engine::api::bench::{
     bench_fastq_correct, bench_fastq_filter, bench_fastq_merge, bench_fastq_preprocess,
     bench_fastq_qc2, bench_fastq_screen, bench_fastq_stats, bench_fastq_trim, bench_fastq_umi,
     bench_fastq_validate, print_bench_schema,
 };
-use bijux_engine::image_qa::run_image_qa;
-use bijux_engine::init_logging;
+use bijux_engine::api::image_qa::run_image_qa;
+use bijux_engine::api::init_logging;
 use cli::{
     bench_args_correct, bench_args_filter, bench_args_from_trim, bench_args_from_validate,
     bench_args_merge, bench_args_preprocess, bench_args_qc2, bench_args_screen, bench_args_stats,
@@ -89,6 +89,15 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
         }
         Commands::Replay(args) => {
             replay_run(&args.run_id, &args.search_root)?;
+            Ok(true)
+        }
+        Commands::Compare(args) => {
+            let result = bijux_engine::api::compare::compare_runs(
+                &args.run_a,
+                &args.run_b,
+                &args.search_root,
+            )?;
+            println!("{}", serde_json::to_string_pretty(&result)?);
             Ok(true)
         }
         Commands::Env { command } => {

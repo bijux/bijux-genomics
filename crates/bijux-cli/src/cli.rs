@@ -3,7 +3,7 @@ use std::str::FromStr;
 
 use anyhow::{anyhow, Result};
 use bijux_core::{StageId, ToolId};
-use bijux_engine::bench::args as engine_args;
+use bijux_engine::api::bench::args as engine_args;
 use bijux_environment::api::RunnerKind;
 use clap::{Args, Parser, Subcommand};
 
@@ -28,6 +28,7 @@ pub enum Commands {
     Platform,
     ImageQa,
     Replay(ReplayArgs),
+    Compare(CompareArgs),
     Env {
         #[command(subcommand)]
         command: EnvCommand,
@@ -41,6 +42,14 @@ pub enum Commands {
 #[derive(Debug, Args)]
 pub struct ReplayArgs {
     pub run_id: String,
+    #[arg(long, default_value = "artifacts/bench")]
+    pub search_root: PathBuf,
+}
+
+#[derive(Debug, Args)]
+pub struct CompareArgs {
+    pub run_a: String,
+    pub run_b: String,
     #[arg(long, default_value = "artifacts/bench")]
     pub search_root: PathBuf,
 }

@@ -2,7 +2,7 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
 
-use crate::{hash_file_sha256, input_fastq_stats, SeqkitMetrics};
+use crate::observer::{hash_file_sha256, input_fastq_stats, SeqkitMetrics};
 
 use super::{QaDataset, QaStage};
 

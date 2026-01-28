@@ -12,6 +12,21 @@ pub struct ExecutionContext {
     pub platform: PlatformSpec,
     pub runner_override: Option<RunnerKind>,
     pub env: BTreeMap<String, String>,
+    pub capabilities: Vec<Capability>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum Capability {
+    Fastq,
+    Bam,
+    Vcf,
+    Umi,
+    ReferenceGenome,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StageRequirement {
+    pub capabilities: Vec<Capability>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -20,6 +35,14 @@ pub struct ToolInvocation {
     pub tool_id: String,
     pub inputs: Vec<PathBuf>,
     pub params: serde_json::Value,
+    pub requirements: Option<StageRequirement>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StageGraph {
+    pub nodes: Vec<String>,
+    pub edges: Vec<(String, String)>,
+    pub invariants: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -38,10 +61,51 @@ pub struct StageResult {
     pub outputs: Vec<PathBuf>,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum Policy {
+    PreferAccuracy,
+    PreferSpeed,
+    PreferMemory,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MetricSet {
     pub schema: String,
     pub metrics: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DataArtifact {
+    pub name: String,
+    pub path: PathBuf,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReadSet {
+    pub reads: Vec<DataArtifact>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SequenceCollection {
+    pub items: Vec<DataArtifact>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct DomainDefinition {
+    pub stages: Vec<String>,
+    pub metrics: Vec<String>,
+    pub validators: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct DomainRegistry {
+    pub domains: std::collections::BTreeMap<String, DomainDefinition>,
+}
+
+impl DomainRegistry {
+    pub fn register(&mut self, name: impl Into<String>, def: DomainDefinition) {
+        self.domains.insert(name.into(), def);
+    }
 }
 
 pub fn trace_enabled() -> bool {

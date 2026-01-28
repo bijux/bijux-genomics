@@ -7,15 +7,16 @@ use bijux_core::ToolRegistry;
 use bijux_environment::api::{PlatformSpec, ToolImageSpec};
 use uuid::Uuid;
 
-use crate::{
-    docker_rm, output_fastq_stats, run_merge_container_with_timeout,
+use crate::executor::{
+    docker_rm, resolve_image_for_run, run_merge_container_with_timeout,
     run_multiqc_container_with_timeout, run_tool_container_with_timeout,
-    run_validate_container_with_timeout, validate_execution_outputs,
+    run_validate_container_with_timeout,
 };
+use crate::observer::output_fastq_stats;
+use crate::validator::validate_execution_outputs;
 
 use super::helpers::temp_out_dir;
 use super::{QaDataset, QaStage};
-use crate::resolve_image_for_run;
 
 const QA_TIMEOUT_SECS: u64 = 300;
 const QA_MERGE_TIMEOUT_SECS: u64 = 300;

@@ -8,7 +8,7 @@ use bijux_bench::{
 use bijux_environment::api::{load_image_catalog, load_platform};
 use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 
-use crate::{image_qa_jsonl_path, image_qa_sqlite_path};
+use crate::composer::paths::{image_qa_jsonl_path, image_qa_sqlite_path};
 
 use super::datasets::{
     dataset_input_hash, datasets_for_stage, discover_qa_datasets, hydrate_datasets,
@@ -27,7 +27,7 @@ pub fn run_image_qa(platform_name: Option<&str>) -> Result<()> {
     }
     let platform = load_platform(platform_name)?;
     let catalog = load_image_catalog()?;
-    let logger = crate::StdoutLogger::new();
+    let logger = crate::types::StdoutLogger::new();
     run_image_qa_with(&platform, &catalog, &logger)
 }
 
@@ -35,7 +35,7 @@ pub fn run_image_qa(platform_name: Option<&str>) -> Result<()> {
 fn run_image_qa_with(
     platform: &PlatformSpec,
     catalog: &HashMap<String, ToolImageSpec>,
-    logger: &crate::StdoutLogger,
+    logger: &crate::types::StdoutLogger,
 ) -> Result<()> {
     if platform.runner != RunnerKind::Docker {
         return Err(anyhow!("image QA supports docker only for now"));
@@ -65,7 +65,7 @@ fn run_image_qa_with(
     let seqkit_spec = catalog
         .get("seqkit")
         .ok_or_else(|| anyhow!("seqkit missing from images.yaml"))?;
-    let seqkit_image = crate::resolve_image_for_run(seqkit_spec, platform)?;
+    let seqkit_image = crate::executor::resolve_image_for_run(seqkit_spec, platform)?;
 
     let registry =
         load_registry(&std::env::current_dir()?.join("domain")).context("load manifests")?;

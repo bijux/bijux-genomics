@@ -9,6 +9,7 @@ pub use tools::{
 use anyhow::{anyhow, Result};
 use bijux_core::{load_manifests, ToolRegistry};
 
+use crate::types::Policy;
 use crate::types::{ExecutionContext, RunPlan, ToolInvocation};
 
 pub fn load_registry(domain_root: &std::path::Path) -> Result<ToolRegistry> {
@@ -20,6 +21,9 @@ pub fn plan_tool(
     invocation: ToolInvocation,
     image_digest: String,
 ) -> Result<RunPlan> {
+    if let Some(requirements) = &invocation.requirements {
+        check_capabilities(context, requirements)?;
+    }
     let runner = context.runner_override.unwrap_or(context.platform.runner);
     if crate::types::trace_enabled() {
         println!(
@@ -32,6 +36,27 @@ pub fn plan_tool(
         image_digest,
         runner,
     })
+}
+
+fn check_capabilities(
+    context: &ExecutionContext,
+    requirements: &crate::types::StageRequirement,
+) -> Result<()> {
+    for capability in &requirements.capabilities {
+        if !context.capabilities.contains(capability) {
+            return Err(anyhow!("missing required capability: {capability:?}"));
+        }
+    }
+    Ok(())
+}
+
+pub fn apply_policy(tools: &[String], policy: Policy) -> Vec<String> {
+    if crate::types::trace_enabled() {
+        println!("[engine][planner] policy={policy:?} tools={}", tools.len());
+    }
+    match policy {
+        Policy::PreferAccuracy | Policy::PreferSpeed | Policy::PreferMemory => tools.to_vec(),
+    }
 }
 
 #[cfg(test)]
@@ -51,6 +76,7 @@ mod tests {
             },
             runner_override: None,
             env: BTreeMap::new(),
+            capabilities: vec![crate::types::Capability::Fastq],
         }
     }
 
@@ -62,6 +88,7 @@ mod tests {
             tool_id: "fastp".to_string(),
             inputs: Vec::new(),
             params: serde_json::json!({}),
+            requirements: None,
         };
         match plan_tool(&context, invocation, "sha256:abc".to_string()) {
             Ok(plan) => assert_eq!(plan.runner, RunnerKind::Docker),
@@ -78,10 +105,30 @@ mod tests {
             tool_id: "fastp".to_string(),
             inputs: Vec::new(),
             params: serde_json::json!({}),
+            requirements: None,
         };
         match plan_tool(&context, invocation, "sha256:abc".to_string()) {
             Ok(plan) => assert_eq!(plan.runner, RunnerKind::Apptainer),
             Err(err) => panic!("plan failed: {err}"),
+        }
+    }
+
+    #[test]
+    fn plan_rejects_missing_capability() {
+        let mut context = context_with_runner(RunnerKind::Docker);
+        context.capabilities = vec![crate::types::Capability::Fastq];
+        let invocation = ToolInvocation {
+            stage_id: "fastq.trim".to_string(),
+            tool_id: "fastp".to_string(),
+            inputs: Vec::new(),
+            params: serde_json::json!({}),
+            requirements: Some(crate::types::StageRequirement {
+                capabilities: vec![crate::types::Capability::Bam],
+            }),
+        };
+        match plan_tool(&context, invocation, "sha256:abc".to_string()) {
+            Ok(_) => panic!("expected capability error"),
+            Err(err) => assert!(err.to_string().contains("missing required capability")),
         }
     }
 }

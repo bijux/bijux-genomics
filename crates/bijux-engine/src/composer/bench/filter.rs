@@ -11,17 +11,17 @@ use bijux_bench::{
 use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 use uuid::Uuid;
 
-use crate::image_qa::ensure_image_qa_passed;
-use crate::{
-    bench_base_dir, bench_tools_dir, docker_rm, docker_stats_mb, hash_file_sha256,
-    input_fastq_stats, output_fastq_stats, run_tool_container, validate_execution_outputs,
-    SeqkitMetrics,
-};
+use crate::composer::image_qa::ensure_image_qa_passed;
+use crate::composer::paths::{bench_base_dir, bench_tools_dir};
+use crate::executor::{docker_rm, docker_stats_mb, run_tool_container};
+use crate::observer::{hash_file_sha256, input_fastq_stats, output_fastq_stats, SeqkitMetrics};
+use crate::validator::validate_execution_outputs;
 
 use super::failure::{classify_failure, BenchmarkFailure};
 use super::helpers::{
     compute_run_id, normalize_filter_tool_list, params_hash, prepare_tool_run_dirs,
-    resolve_image_for_run, write_execution_logs, write_metrics_json, ExecutionManifest,
+    resolve_image_for_run, write_execution_logs, write_explain_md, write_metrics_json,
+    ExecutionManifest,
 };
 use super::report::write_filter_report;
 
@@ -29,11 +29,30 @@ pub fn bench_fastq_filter(
     catalog: &std::collections::HashMap<String, ToolImageSpec>,
     platform: &PlatformSpec,
     runner_override: Option<RunnerKind>,
-    args: &crate::bench::args::BenchFastqFilterArgs,
+    args: &crate::composer::bench::args::BenchFastqFilterArgs,
 ) -> Result<()> {
     let tools = normalize_filter_tool_list(&args.tools)?;
-    ensure_image_qa_passed("fastq.filter", &tools, platform, catalog)?;
+    let registry = load_registry(&std::env::current_dir()?.join("domain"))
+        .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let bench_inputs = prepare_filter_bench(catalog, platform, runner_override, args)?;
+    let selected = tools.clone();
+    let all_tools: Vec<String> = registry
+        .tools_for_stage("fastq.filter")
+        .iter()
+        .map(|tool| tool.tool_id.clone())
+        .collect();
+    let excluded: Vec<String> = all_tools
+        .into_iter()
+        .filter(|tool| !selected.contains(tool))
+        .collect();
+    write_explain_md(
+        &bench_inputs.bench_dir,
+        "fastq.filter",
+        &selected,
+        &excluded,
+        None,
+    )?;
+    ensure_image_qa_passed("fastq.filter", &tools, platform, catalog)?;
 
     let sqlite_path = bench_inputs.bench_dir.join("bench.sqlite");
     let conn = bijux_bench::open_sqlite(&sqlite_path).context("open bench sqlite")?;
@@ -100,7 +119,7 @@ fn prepare_filter_bench(
     catalog: &std::collections::HashMap<String, ToolImageSpec>,
     platform: &PlatformSpec,
     runner_override: Option<RunnerKind>,
-    args: &crate::bench::args::BenchFastqFilterArgs,
+    args: &crate::composer::bench::args::BenchFastqFilterArgs,
 ) -> Result<FilterBenchInputs> {
     let runner = runner_override.unwrap_or(platform.runner);
     if runner != RunnerKind::Docker {
@@ -145,7 +164,7 @@ fn prepare_filter_bench(
 fn run_filter_tool(
     catalog: &std::collections::HashMap<String, ToolImageSpec>,
     platform: &PlatformSpec,
-    args: &crate::bench::args::BenchFastqFilterArgs,
+    args: &crate::composer::bench::args::BenchFastqFilterArgs,
     bench_inputs: &FilterBenchInputs,
     tool: &str,
 ) -> Result<BenchmarkRecord<FastqFilterMetrics>> {
