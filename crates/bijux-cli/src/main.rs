@@ -32,8 +32,8 @@ use cli::{
     bench_args_correct, bench_args_filter, bench_args_from_trim, bench_args_from_validate,
     bench_args_merge, bench_args_preprocess, bench_args_qc_post, bench_args_screen,
     bench_args_stats, bench_args_trim, bench_args_umi, bench_args_validate,
-    is_bench_requested_trim, is_bench_requested_validate, preprocess_args_from_cli, BenchCommand,
-    BenchFastqCommand, Cli, Commands, EnvCommand, FastqCommand,
+    is_bench_requested_trim, is_bench_requested_validate, preprocess_args_from_cli, AnalyzeCommand,
+    BenchCommand, BenchFastqCommand, Cli, Commands, EnvCommand, FastqCommand,
 };
 use env::{env_doctor, print_env_images, print_env_info};
 use replay::replay_run;
@@ -103,6 +103,21 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
             let run_b = args.search_root.join(&args.run_b);
             let result = compare_runs(&run_a, &run_b, &objective)?;
             println!("{}", serde_json::to_string_pretty(&result)?);
+            Ok(true)
+        }
+        Commands::Analyze { command } => {
+            match command {
+                AnalyzeCommand::Runs(args) => {
+                    let query = bijux_core::run_index::RunQuery {
+                        stage: args.stage.clone(),
+                        tool: args.tool.clone(),
+                        objective: args.objective.map(|obj| obj.as_str().to_string()),
+                        success: args.success,
+                    };
+                    let runs = bijux_core::run_index::query_runs(&args.index, &query)?;
+                    println!("{}", serde_json::to_string_pretty(&runs)?);
+                }
+            }
             Ok(true)
         }
         Commands::Env { command } => {

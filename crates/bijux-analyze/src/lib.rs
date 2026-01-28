@@ -17,6 +17,7 @@ pub mod report;
 pub mod selection;
 pub mod semantic;
 
+pub use bijux_core::metrics::{MetricEnvelope, MetricSet};
 pub use compare::{compare_runs, RunComparison};
 pub use failure::{classify_raw_failure, BenchmarkFailure, FailureClass};
 pub use ranking::{build_rankings, print_rank_explain, RankInput, RankingEntry, RankingMode};
@@ -905,52 +906,45 @@ impl StageMetricSchema for FastqTrimMetrics {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct MetricSet<T: StageMetricSchema> {
-    pub metrics_schema: String,
-    pub version: i32,
-    pub metrics: T,
-}
-
-impl<T> MetricSet<T>
+#[must_use]
+pub fn metric_set<T>(metrics: T) -> MetricSet<T>
 where
     T: StageMetricSchema + Serialize,
 {
-    #[must_use]
-    pub fn new(metrics: T) -> Self {
-        Self {
-            metrics_schema: metric_schema_name(T::STAGE, T::VERSION),
-            version: T::VERSION,
-            metrics,
-        }
-    }
+    MetricSet::new(
+        metric_schema_name(T::STAGE, T::VERSION),
+        T::VERSION,
+        metrics,
+    )
+}
 
-    /// Validate the metric set.
-    ///
-    /// # Errors
-    /// Returns an error if the metric schema validation fails.
-    pub fn validate(&self) -> Result<()> {
-        let expected_schema = metric_schema_name(T::STAGE, T::VERSION);
-        if self.metrics_schema != expected_schema {
-            return Err(BenchError::Validation(format!(
-                "metric schema mismatch for {}: expected {} got {}",
-                T::STAGE,
-                expected_schema,
-                self.metrics_schema
-            )));
-        }
-        if self.version != T::VERSION {
-            return Err(BenchError::Validation(format!(
-                "metric version mismatch for {}: expected {} got {}",
-                T::STAGE,
-                T::VERSION,
-                self.version
-            )));
-        }
-        self.metrics.validate()?;
-        validate_metric_schema(&self.metrics)
+/// Validate the metric set.
+///
+/// # Errors
+/// Returns an error if the metric schema validation fails.
+pub fn validate_metric_set<T>(set: &MetricSet<T>) -> Result<()>
+where
+    T: StageMetricSchema + Serialize,
+{
+    let expected_schema = metric_schema_name(T::STAGE, T::VERSION);
+    if set.metrics_schema != expected_schema {
+        return Err(BenchError::Validation(format!(
+            "metric schema mismatch for {}: expected {} got {}",
+            T::STAGE,
+            expected_schema,
+            set.metrics_schema
+        )));
     }
+    if set.version != T::VERSION {
+        return Err(BenchError::Validation(format!(
+            "metric version mismatch for {}: expected {} got {}",
+            T::STAGE,
+            T::VERSION,
+            set.version
+        )));
+    }
+    set.metrics.validate()?;
+    validate_metric_schema(&set.metrics)
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -971,7 +965,7 @@ where
     /// Returns an error if the metric schema validation fails.
     pub fn validate(&self) -> Result<()> {
         self.execution.validate()?;
-        self.metrics.validate()
+        validate_metric_set(&self.metrics)
     }
 }
 
@@ -2778,7 +2772,7 @@ mod tests {
                 memory_mb: 10.0,
                 exit_code: 0,
             },
-            metrics: MetricSet::new(FastqTrimMetrics {
+            metrics: metric_set(FastqTrimMetrics {
                 reads_in: 100,
                 reads_out: 90,
                 bases_in: 1000,

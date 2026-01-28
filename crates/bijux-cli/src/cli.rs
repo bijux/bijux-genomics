@@ -25,6 +25,10 @@ pub enum Commands {
         #[command(subcommand)]
         command: FastqCommand,
     },
+    Analyze {
+        #[command(subcommand)]
+        command: AnalyzeCommand,
+    },
     ValidateManifests,
     Platform,
     ImageQa,
@@ -53,6 +57,25 @@ pub struct CompareArgs {
     pub run_b: String,
     #[arg(long, default_value = "artifacts/bench")]
     pub search_root: PathBuf,
+}
+
+#[derive(Debug, Subcommand)]
+pub enum AnalyzeCommand {
+    Runs(AnalyzeRunsArgs),
+}
+
+#[derive(Debug, Args)]
+pub struct AnalyzeRunsArgs {
+    #[arg(long, default_value = "runs/bijux-runs/index.jsonl")]
+    pub index: PathBuf,
+    #[arg(long)]
+    pub stage: Option<String>,
+    #[arg(long)]
+    pub tool: Option<String>,
+    #[arg(long, value_enum)]
+    pub objective: Option<ObjectiveArg>,
+    #[arg(long)]
+    pub success: Option<bool>,
 }
 
 #[derive(Debug, Subcommand)]
@@ -242,6 +265,18 @@ pub enum ObjectiveArg {
     Memory,
     Retention,
     Balanced,
+}
+
+impl ObjectiveArg {
+    #[must_use]
+    pub fn as_str(self) -> &'static str {
+        match self {
+            ObjectiveArg::Speed => "speed",
+            ObjectiveArg::Memory => "memory",
+            ObjectiveArg::Retention => "retention",
+            ObjectiveArg::Balanced => "balanced",
+        }
+    }
 }
 
 impl From<ObjectiveArg> for bijux_analyze::selection::Objective {

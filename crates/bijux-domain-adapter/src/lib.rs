@@ -23,3 +23,11 @@ pub trait DomainAdapter {
     /// Returns an error if artifacts are incompatible.
     fn compatibility(&self, from: &Self::Artifact, to: &Self::Artifact) -> Result<()>;
 }
+
+pub trait DomainCapability {
+    type Artifact;
+    type Metrics;
+
+    fn domain_name() -> &'static str;
+    fn canonical_pipeline() -> bijux_engine::api::PipelineSpec;
+}

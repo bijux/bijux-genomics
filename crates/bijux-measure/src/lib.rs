@@ -1,3 +1,6 @@
+//! Execution-time measurement layer for runtime/resource metrics.
+//! This crate is the single authority for run-time measurement schemas.
+
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 

@@ -1,5 +1,5 @@
 use anyhow::{anyhow, Result};
-use bijux_domain_adapter::DomainAdapter;
+use bijux_domain_adapter::{DomainAdapter, DomainCapability};
 use serde_json::json;
 
 #[allow(dead_code)]
@@ -26,5 +26,21 @@ impl DomainAdapter for FastqAdapter {
 
     fn compatibility(&self, _from: &Self::Artifact, _to: &Self::Artifact) -> Result<()> {
         Ok(())
+    }
+}
+
+impl DomainCapability for FastqAdapter {
+    type Artifact = crate::contracts::FastqArtifact;
+    type Metrics = serde_json::Value;
+
+    fn domain_name() -> &'static str {
+        "fastq"
+    }
+
+    fn canonical_pipeline() -> bijux_engine::api::PipelineSpec {
+        let canonical = crate::pipeline::canonical_pipeline();
+        bijux_engine::api::PipelineSpec {
+            stages: canonical.required,
+        }
     }
 }

@@ -12,6 +12,13 @@ use std::path::Path;
 
 use crate::core::types::{ExplainPlan, MetricSet, StageResult};
 
+#[allow(dead_code)]
+pub trait Observer {
+    fn on_stage_start(&mut self, stage: &StageResult) -> Result<()>;
+    fn on_stage_end(&mut self, stage: &StageResult) -> Result<()>;
+    fn on_metric(&mut self, stage: &StageResult, metrics: &MetricSet) -> Result<()>;
+}
+
 pub fn observe_stage(result: &StageResult) -> Result<MetricSet> {
     if crate::core::types::trace_enabled() {
         println!(
@@ -20,7 +27,8 @@ pub fn observe_stage(result: &StageResult) -> Result<MetricSet> {
         );
     }
     Ok(MetricSet {
-        schema: "engine.metric.v1".to_string(),
+        metrics_schema: "engine.metric.v1".to_string(),
+        version: 1,
         metrics: serde_json::json!({}),
     })
 }

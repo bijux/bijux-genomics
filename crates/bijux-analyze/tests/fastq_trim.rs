@@ -1,6 +1,6 @@
 use bijux_analyze::{
-    insert_fastq_trim_v2, open_sqlite, BenchmarkContext, BenchmarkRecord, FastqDeltaMetrics,
-    FastqTrimMetrics, MetricSet, StageMetricSchema,
+    insert_fastq_trim_v2, metric_set, open_sqlite, BenchmarkContext, BenchmarkRecord,
+    FastqDeltaMetrics, FastqTrimMetrics, StageMetricSchema,
 };
 use bijux_measure::ExecutionMetrics;
 
@@ -45,7 +45,7 @@ fn sqlite_insert_fastq_trim_v2() -> Result<(), Box<dyn std::error::Error>> {
             memory_mb: 42.0,
             exit_code: 0,
         },
-        metrics: MetricSet::new(FastqTrimMetrics {
+        metrics: metric_set(FastqTrimMetrics {
             reads_in: 100,
             reads_out: 90,
             bases_in: 1000,
