@@ -1,6 +1,6 @@
-use bijux_environment::api::RunnerKind;
+use crate::api::RunnerKind;
 
-use bijux_engine::api::StdoutLogger;
+use super::support::StdoutLogger;
 
 use super::{QaDataset, QaStage};
 use bijux_analyze::ImageQaOutcome;

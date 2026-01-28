@@ -16,3 +16,6 @@ metrics:
   - name: "mean_q"
     meaning: "Mean Phred quality score"
 description: "FASTQ stage for validation and basic statistics."
+mutates_fastq: false
+report_only: true
+may_change_read_count: false

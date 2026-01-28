@@ -30,14 +30,7 @@ pub fn bench_fastq_preprocess<S: ::std::hash::BuildHasher>(
 pub fn fastq_preprocess_plan(
     _args: &crate::stages::args::BenchFastqPreprocessArgs,
 ) -> PipelineSpec {
-    PipelineSpec {
-        stages: vec![
-            "fastq.validate".to_string(),
-            "fastq.trim".to_string(),
-            "fastq.filter".to_string(),
-            "fastq.stats".to_string(),
-        ],
-    }
+    crate::pipeline::preprocess::preprocess_pipeline()
 }
 
 /// Execute the preprocess pipeline.

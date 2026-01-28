@@ -5,17 +5,17 @@ TOOLS_VALIDATE 	?= seqtk,fastqc,fastqvalidator,fastqvalidator_official,fqtools
 TOOLS_FILTER 	?= prinseq,fastp,seqkit
 TOOLS_MERGE 	?= pear,vsearch,bbmerge,flash2
 TOOLS_CORRECT 	?= rcorrector
-TOOLS_QC2 		?= fastqc,multiqc
+TOOLS_QC_POST 	?= fastqc,multiqc
 TOOLS_UMI 		?= umi_tools
 TOOLS_STATS 	?= seqkit_stats
 TOOLS_SCREEN 	?= kraken2,centrifuge,metaphlan,kaiju,fastq_screen
 
-EXTRA_GOALS := $(filter-out bench-all benchmark-validate benchmark-trim benchmark-merge benchmark-correct benchmark-filter benchmark-stats benchmark-qc2 benchmark-umi benchmark-screen benchmark-preprocess image-qa build-images test-images lint security test,$(MAKECMDGOALS))
+EXTRA_GOALS := $(filter-out bench-all benchmark-validate benchmark-trim benchmark-merge benchmark-correct benchmark-filter benchmark-stats benchmark-qc-post benchmark-umi benchmark-screen benchmark-preprocess image-qa build-images test-images lint security test,$(MAKECMDGOALS))
 EXTRA_FASTQ_ROOTS := $(EXTRA_GOALS)
 FASTQ_ROOT_OVERRIDE ?= $(EXTRA_FASTQ_ROOTS)
 
 .PHONY: build-images test-images image-qa bench-all benchmark-trim benchmark-validate benchmark-filter benchmark-merge \
-	benchmark-correct benchmark-qc2 benchmark-umi benchmark-stats benchmark-screen benchmark-preprocess \
+	benchmark-correct benchmark-qc-post benchmark-umi benchmark-stats benchmark-screen benchmark-preprocess \
 	test-images-trim test-images-validate test-images-filter test-images-merge lint quality security test
 
 build-images:
@@ -35,7 +35,7 @@ bench-all:
 	$(MAKE) benchmark-correct FASTQ_ROOT_OVERRIDE="$(FASTQ_ROOT_OVERRIDE)"; \
 	$(MAKE) benchmark-filter FASTQ_ROOT_OVERRIDE="$(FASTQ_ROOT_OVERRIDE)"; \
 	$(MAKE) benchmark-stats FASTQ_ROOT_OVERRIDE="$(FASTQ_ROOT_OVERRIDE)"; \
-	$(MAKE) benchmark-qc2 FASTQ_ROOT_OVERRIDE="$(FASTQ_ROOT_OVERRIDE)"; \
+	$(MAKE) benchmark-qc-post FASTQ_ROOT_OVERRIDE="$(FASTQ_ROOT_OVERRIDE)"; \
 	$(MAKE) benchmark-umi FASTQ_ROOT_OVERRIDE="$(FASTQ_ROOT_OVERRIDE)"; \
 	$(MAKE) benchmark-screen FASTQ_ROOT_OVERRIDE="$(FASTQ_ROOT_OVERRIDE)"; \
 	$(MAKE) benchmark-preprocess FASTQ_ROOT_OVERRIDE="$(FASTQ_ROOT_OVERRIDE)"
@@ -177,10 +177,10 @@ benchmark-correct:
 		cargo run --bin bijux -- bench fastq correct --sample-id "$$sample_id" --r1 "$$file" --out "$$OUT_DIR" --tools $$TOOLS; \
 	done
 
-benchmark-qc2:
+benchmark-qc-post:
 	@set -e; \
 	TOOLS="$(TOOLS)"; \
-	if [ -z "$$TOOLS" ]; then TOOLS="$(TOOLS_QC2)"; fi; \
+	if [ -z "$$TOOLS" ]; then TOOLS="$(TOOLS_QC_POST)"; fi; \
 	OUT_DIR="."; \
 	if [ -n "$(FASTQ_ROOT_OVERRIDE)" ]; then FASTQ_ROOT="$(FASTQ_ROOT_OVERRIDE)"; else FASTQ_ROOT="tests/data/fastq"; fi; \
 	if [ -z "$(FASTQ_ROOT_OVERRIDE)" ] && [ -d tests/data/fastq/canonical ]; then FASTQ_ROOT="tests/data/fastq/canonical"; fi; \
@@ -195,8 +195,8 @@ benchmark-qc2:
 	fi; \
 	for file in $$FILES; do \
 		sample_id=$$(basename "$$file" .fastq.gz); \
-		echo "→ benchmark qc2 $$sample_id"; \
-		cargo run --bin bijux -- bench fastq qc2 --sample-id "$$sample_id" --r1 "$$file" --out "$$OUT_DIR" --tools $$TOOLS; \
+		echo "→ benchmark qc_post $$sample_id"; \
+		cargo run --bin bijux -- bench fastq qc-post --sample-id "$$sample_id" --r1 "$$file" --out "$$OUT_DIR" --tools $$TOOLS; \
 	done
 
 benchmark-umi:

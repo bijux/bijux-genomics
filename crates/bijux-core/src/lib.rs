@@ -1,7 +1,6 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
-use bijux_environment::_ImagePullPolicyForProfile as ImagePullPolicy;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -132,6 +131,14 @@ pub struct Profile {
     pub image_pull_policy: ImagePullPolicy,
 }
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ImagePullPolicy {
+    Always,
+    IfMissing,
+    Never,
+}
+
 fn default_pull_policy() -> ImagePullPolicy {
     ImagePullPolicy::IfMissing
 }
@@ -186,6 +193,12 @@ pub struct StageManifestV1 {
     pub parameters: Vec<ParameterSpec>,
     pub metrics: Vec<MetricSpec>,
     pub description: String,
+    #[serde(default)]
+    pub mutates_fastq: bool,
+    #[serde(default)]
+    pub report_only: bool,
+    #[serde(default)]
+    pub may_change_read_count: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -209,6 +222,12 @@ struct StageManifestDoc {
     metrics: Option<Vec<MetricSpec>>,
     #[serde(default)]
     description: Option<String>,
+    #[serde(default)]
+    mutates_fastq: Option<bool>,
+    #[serde(default)]
+    report_only: Option<bool>,
+    #[serde(default)]
+    may_change_read_count: Option<bool>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -415,6 +434,9 @@ fn merge_stage_docs(base: StageManifestDoc, overlay: StageManifestDoc) -> StageM
         parameters: overlay.parameters.or(base.parameters),
         metrics: overlay.metrics.or(base.metrics),
         description: overlay.description.or(base.description),
+        mutates_fastq: overlay.mutates_fastq.or(base.mutates_fastq),
+        report_only: overlay.report_only.or(base.report_only),
+        may_change_read_count: overlay.may_change_read_count.or(base.may_change_read_count),
     }
 }
 
@@ -479,6 +501,9 @@ fn stage_doc_to_manifest(
         parameters,
         metrics,
         description,
+        mutates_fastq: doc.mutates_fastq.unwrap_or(false),
+        report_only: doc.report_only.unwrap_or(false),
+        may_change_read_count: doc.may_change_read_count.unwrap_or(false),
     })
 }
 

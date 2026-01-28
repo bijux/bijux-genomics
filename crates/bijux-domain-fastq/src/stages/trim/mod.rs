@@ -7,7 +7,7 @@ use bijux_analyze::{
     append_jsonl, fetch_fastq_trim_v1, insert_fastq_trim_v1, BenchmarkContext, BenchmarkRecord,
     FastqTrimMetrics, MetricSet,
 };
-use bijux_engine::api::load_registry;
+use bijux_engine::api::{ensure_bench_runner, load_registry};
 use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 use bijux_measure::ExecutionMetrics;
 use uuid::Uuid;
@@ -16,11 +16,11 @@ use crate::core::{
     contract_for_stage, inspect_headers, log_header_warnings, normalize_outputs, preflight_stage,
     FastqArtifact,
 };
-use crate::image_qa::ensure_image_qa_passed;
 use bijux_engine::api::validate_execution_outputs;
 use bijux_engine::api::{bench_base_dir, bench_tools_dir};
-use bijux_engine::api::{docker_rm, docker_stats_mb, run_tool_container};
+use bijux_engine::api::{cleanup_execution, execution_memory_mb, run_tool_execution};
 use bijux_engine::api::{hash_file_sha256, input_fastq_stats, output_fastq_stats};
+use bijux_environment::image_qa::ensure_image_qa_passed;
 
 use super::analyze::failure::{classify_failure, BenchmarkFailure};
 use super::analyze::report::write_trim_report;
@@ -41,14 +41,11 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
     runner_override: Option<RunnerKind>,
     args: &crate::stages::args::BenchFastqTrimArgs,
 ) -> Result<()> {
-    let runner = runner_override.unwrap_or(platform.runner);
+    let runner = ensure_bench_runner(platform, runner_override)?;
     let artifact = FastqArtifact::single_end(&args.r1);
     preflight_stage("fastq.trim", artifact.kind)?;
     let header = inspect_headers(&args.r1, None, false)?;
     log_header_warnings("fastq.trim", &header);
-    if runner != RunnerKind::Docker {
-        return Err(anyhow!("benchmarking supports docker only for now"));
-    }
     let tools = normalize_tool_list(&args.tools)?;
     let registry = load_registry(&std::env::current_dir()?.join("domain"))
         .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
@@ -121,10 +118,10 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
             let start = Instant::now();
             let container_name = format!("bijux-bench-{}-{}", args.sample_id, Uuid::new_v4());
             let execution =
-                run_tool_container(&tool, &image, &r1_dir, &r1, &out_dir, &container_name)?;
+                run_tool_execution(&tool, &image, &r1_dir, &r1, &out_dir, &container_name)?;
             let runtime_s = start.elapsed().as_secs_f64();
-            let memory_mb = docker_stats_mb(&container_name)?;
-            docker_rm(&container_name)?;
+            let memory_mb = execution_memory_mb(&container_name)?;
+            cleanup_execution(&container_name)?;
 
             let contract = contract_for_stage("fastq.trim")
                 .ok_or_else(|| anyhow!("missing fastq.trim contract"))?;

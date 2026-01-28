@@ -16,19 +16,19 @@ mod replay;
 mod utils;
 
 use bijux_domain_fastq::bench::print_bench_schema;
-use bijux_domain_fastq::image_qa::run_image_qa;
 use bijux_domain_fastq::stages::{
     bench_fastq_correct, bench_fastq_filter, bench_fastq_merge, bench_fastq_preprocess,
-    bench_fastq_qc2, bench_fastq_screen, bench_fastq_stats, bench_fastq_trim, bench_fastq_umi,
+    bench_fastq_qc_post, bench_fastq_screen, bench_fastq_stats, bench_fastq_trim, bench_fastq_umi,
     bench_fastq_validate,
 };
 use bijux_engine::api::init_logging;
+use bijux_environment::image_qa::run_image_qa;
 use cli::{
     bench_args_correct, bench_args_filter, bench_args_from_trim, bench_args_from_validate,
-    bench_args_merge, bench_args_preprocess, bench_args_qc2, bench_args_screen, bench_args_stats,
-    bench_args_trim, bench_args_umi, bench_args_validate, is_bench_requested_trim,
-    is_bench_requested_validate, BenchCommand, BenchFastqCommand, Cli, Commands, EnvCommand,
-    FastqCommand,
+    bench_args_merge, bench_args_preprocess, bench_args_qc_post, bench_args_screen,
+    bench_args_stats, bench_args_trim, bench_args_umi, bench_args_validate,
+    is_bench_requested_trim, is_bench_requested_validate, BenchCommand, BenchFastqCommand, Cli,
+    Commands, EnvCommand, FastqCommand,
 };
 use env::{env_doctor, print_env_images, print_env_info};
 use replay::replay_run;
@@ -146,8 +146,8 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
                     BenchFastqCommand::Correct(args) => {
                         bench_fastq_correct(&catalog, &platform, None, &bench_args_correct(args))?;
                     }
-                    BenchFastqCommand::Qc2(args) => {
-                        bench_fastq_qc2(&catalog, &platform, None, &bench_args_qc2(args))?;
+                    BenchFastqCommand::QcPost(args) => {
+                        bench_fastq_qc_post(&catalog, &platform, None, &bench_args_qc_post(args))?;
                     }
                     BenchFastqCommand::Umi(args) => {
                         bench_fastq_umi(&catalog, &platform, None, &bench_args_umi(args))?;

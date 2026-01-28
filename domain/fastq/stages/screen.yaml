@@ -21,3 +21,6 @@ metrics:
   - name: "contamination_rate"
     meaning: "Fraction of reads classified as contaminants"
 description: "FASTQ stage for taxonomic screening/contamination assessment."
+mutates_fastq: false
+report_only: true
+may_change_read_count: false

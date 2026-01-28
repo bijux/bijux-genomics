@@ -9,19 +9,19 @@ use bijux_analyze::{
     BenchmarkRecord, FastqValidateMetrics, MetricSet,
 };
 use bijux_core::ToolRole;
-use bijux_engine::api::load_registry;
+use bijux_engine::api::{ensure_bench_runner, load_registry};
 use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 use bijux_measure::ExecutionMetrics;
 use uuid::Uuid;
 
 use crate::core::{inspect_headers, log_header_warnings, preflight_stage, FastqArtifact};
-use crate::image_qa::ensure_image_qa_passed;
 use bijux_engine::api::validate_execution_outputs;
 use bijux_engine::api::{bench_base_dir, bench_tools_dir};
-use bijux_engine::api::{docker_rm, docker_stats_mb, run_validate_container};
+use bijux_engine::api::{cleanup_execution, execution_memory_mb, run_validate_execution};
 use bijux_engine::api::{
     hash_file_sha256, input_fastq_stats, parse_fastqvalidator_count, SeqkitMetrics,
 };
+use bijux_environment::image_qa::ensure_image_qa_passed;
 
 use super::analyze::failure::{classify_failure, BenchmarkFailure};
 use super::analyze::report::write_validate_report;
@@ -151,10 +151,7 @@ fn prepare_validate_bench<S: ::std::hash::BuildHasher>(
     runner_override: Option<RunnerKind>,
     args: &crate::stages::args::BenchFastqValidateArgs,
 ) -> Result<ValidateBenchInputs> {
-    let runner = runner_override.unwrap_or(platform.runner);
-    if runner != RunnerKind::Docker {
-        return Err(anyhow!("benchmarking supports docker only for now"));
-    }
+    let runner = ensure_bench_runner(platform, runner_override)?;
     let bench_dir = bench_base_dir(&args.out, "validate", &args.sample_id);
     let tools_root = bench_tools_dir(&args.out, "validate", &args.sample_id);
     fs::create_dir_all(&bench_dir).context("create bench output dir")?;
@@ -226,7 +223,7 @@ fn run_validate_tool<S: ::std::hash::BuildHasher>(
     let out_dir = run_dirs.artifacts_dir.clone();
     let start = Instant::now();
     let container_name = format!("bijux-bench-{}-{}", args.sample_id, Uuid::new_v4());
-    let execution = run_validate_container(
+    let execution = run_validate_execution(
         tool,
         &image,
         &bench_inputs.r1_dir,
@@ -235,8 +232,8 @@ fn run_validate_tool<S: ::std::hash::BuildHasher>(
         &container_name,
     )?;
     let runtime_s = start.elapsed().as_secs_f64();
-    let memory_mb = docker_stats_mb(&container_name)?;
-    docker_rm(&container_name)?;
+    let memory_mb = execution_memory_mb(&container_name)?;
+    cleanup_execution(&container_name)?;
 
     if execution.output_fastq.is_some() {
         return Err(anyhow!("fastq.validate must not output FASTQ data"));

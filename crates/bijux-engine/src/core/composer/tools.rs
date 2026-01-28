@@ -48,7 +48,7 @@ pub fn normalize_correct_tool_list(tools: &[String]) -> Result<Vec<String>> {
     normalize_tools_with_allowlist(tools, &allowlist)
 }
 
-pub fn normalize_qc2_tool_list(tools: &[String]) -> Result<Vec<String>> {
+pub fn normalize_qc_post_tool_list(tools: &[String]) -> Result<Vec<String>> {
     let allowed = ["fastqc", "multiqc"];
     normalize_tools_with_allowlist(tools, &allowed)
 }

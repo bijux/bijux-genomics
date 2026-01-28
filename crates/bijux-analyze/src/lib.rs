@@ -65,7 +65,7 @@ pub enum StageMetricKind {
     FastqFilter,
     FastqMerge,
     FastqCorrect,
-    FastqQc2,
+    FastqQcPost,
     FastqUmi,
     FastqScreen,
     FastqStats,
@@ -166,7 +166,7 @@ pub const METRIC_REGISTRY: [MetricSpec; 25] = [
             "fastq.filter",
             "fastq.merge",
             "fastq.correct",
-            "fastq.qc2",
+            "fastq.qc_post",
             "fastq.umi",
             "fastq.screen",
         ],
@@ -188,7 +188,7 @@ pub const METRIC_REGISTRY: [MetricSpec; 25] = [
             "fastq.filter",
             "fastq.merge",
             "fastq.correct",
-            "fastq.qc2",
+            "fastq.qc_post",
             "fastq.umi",
             "fastq.screen",
         ],
@@ -210,7 +210,7 @@ pub const METRIC_REGISTRY: [MetricSpec; 25] = [
             "fastq.filter",
             "fastq.merge",
             "fastq.correct",
-            "fastq.qc2",
+            "fastq.qc_post",
             "fastq.umi",
             "fastq.screen",
         ],
@@ -231,7 +231,7 @@ pub const METRIC_REGISTRY: [MetricSpec; 25] = [
             "fastq.filter",
             "fastq.correct",
             "fastq.umi",
-            "fastq.qc2",
+            "fastq.qc_post",
             "fastq.screen",
         ],
         measured: true,
@@ -311,7 +311,12 @@ pub const METRIC_REGISTRY: [MetricSpec; 25] = [
             min: 0.0,
             max: f64::INFINITY,
         }),
-        stages: &["fastq.trim", "fastq.filter", "fastq.correct", "fastq.qc2"],
+        stages: &[
+            "fastq.trim",
+            "fastq.filter",
+            "fastq.correct",
+            "fastq.qc_post",
+        ],
         measured: true,
         derived: false,
     },
@@ -428,7 +433,7 @@ pub const METRIC_REGISTRY: [MetricSpec; 25] = [
             min: 0.0,
             max: 45.0,
         }),
-        stages: &["fastq.validate", "fastq.qc2"],
+        stages: &["fastq.validate", "fastq.qc_post"],
         measured: true,
         derived: false,
     },
@@ -468,7 +473,7 @@ pub const METRIC_REGISTRY: [MetricSpec; 25] = [
         meaning: "Estimated contamination rate from screening",
         direction: MetricDirection::LowerBetter,
         range: Some(MetricRange { min: 0.0, max: 1.0 }),
-        stages: &["fastq.screen", "fastq.qc2", "fastq.validate"],
+        stages: &["fastq.screen", "fastq.qc_post", "fastq.validate"],
         measured: true,
         derived: false,
     },
@@ -577,7 +582,7 @@ pub const FASTQ_CORRECT_METRICS: [MetricId; 7] = [
     MetricId::KmerFixRate,
 ];
 
-pub const FASTQ_QC2_METRICS: [MetricId; 4] = [
+pub const FASTQ_QC_POST_METRICS: [MetricId; 4] = [
     MetricId::ReadsIn,
     MetricId::BasesIn,
     MetricId::MeanQ,
@@ -629,7 +634,7 @@ pub const FASTQ_CORRECT_INVARIANTS: [&str; 4] = [
     "counts are non-negative",
 ];
 
-pub const FASTQ_QC2_INVARIANTS: [&str; 3] = [
+pub const FASTQ_QC_POST_INVARIANTS: [&str; 3] = [
     "mean_q in [0, 45]",
     "contamination_rate in [0, 1]",
     "counts are non-negative",
@@ -654,7 +659,7 @@ pub fn metric_kind_for_stage(stage_id: &str) -> Option<StageMetricKind> {
         "fastq.filter" => Some(StageMetricKind::FastqFilter),
         "fastq.merge" => Some(StageMetricKind::FastqMerge),
         "fastq.correct" => Some(StageMetricKind::FastqCorrect),
-        "fastq.qc2" => Some(StageMetricKind::FastqQc2),
+        "fastq.qc_post" => Some(StageMetricKind::FastqQcPost),
         "fastq.umi" => Some(StageMetricKind::FastqUmi),
         "fastq.screen" => Some(StageMetricKind::FastqScreen),
         "fastq.stats" => Some(StageMetricKind::FastqStats),
@@ -690,10 +695,10 @@ pub fn stage_metric_spec(kind: StageMetricKind) -> StageMetricSpec {
             metrics: &FASTQ_CORRECT_METRICS,
             invariants: &FASTQ_CORRECT_INVARIANTS,
         },
-        StageMetricKind::FastqQc2 => StageMetricSpec {
-            stage: "fastq.qc2",
-            metrics: &FASTQ_QC2_METRICS,
-            invariants: &FASTQ_QC2_INVARIANTS,
+        StageMetricKind::FastqQcPost => StageMetricSpec {
+            stage: "fastq.qc_post",
+            metrics: &FASTQ_QC_POST_METRICS,
+            invariants: &FASTQ_QC_POST_INVARIANTS,
         },
         StageMetricKind::FastqUmi => StageMetricSpec {
             stage: "fastq.umi",
@@ -969,7 +974,7 @@ pub const FASTQ_VALIDATE_SCHEMA_VERSION: i32 = 1;
 pub const FASTQ_FILTER_SCHEMA_VERSION: i32 = 1;
 pub const FASTQ_MERGE_SCHEMA_VERSION: i32 = 1;
 pub const FASTQ_CORRECT_SCHEMA_VERSION: i32 = 1;
-pub const FASTQ_QC2_SCHEMA_VERSION: i32 = 1;
+pub const FASTQ_QC_POST_SCHEMA_VERSION: i32 = 1;
 pub const FASTQ_UMI_SCHEMA_VERSION: i32 = 1;
 pub const FASTQ_SCREEN_SCHEMA_VERSION: i32 = 1;
 pub const FASTQ_STATS_SCHEMA_VERSION: i32 = 1;
@@ -1110,15 +1115,15 @@ impl StageMetricSchema for FastqCorrectMetrics {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
-pub struct FastqQc2Metrics {
+pub struct FastqQcPostMetrics {
     pub reads_in: u64,
     pub bases_in: u64,
     pub mean_q: f64,
     pub contamination_rate: f64,
 }
 
-impl StageMetricSchema for FastqQc2Metrics {
-    const STAGE: &'static str = "fastq.qc2";
+impl StageMetricSchema for FastqQcPostMetrics {
+    const STAGE: &'static str = "fastq.qc_post";
     const VERSION: i32 = 1;
 
     fn validate(&self) -> Result<()> {
@@ -1787,16 +1792,16 @@ pub fn fetch_fastq_correct_v1(
     }
 }
 
-/// Insert a `FastQ` qc2 benchmark record into the v1 table.
+/// Insert a `FastQ` `qc_post` benchmark record into the v1 table.
 ///
 /// # Errors
 /// Returns an error if the table cannot be created or the record cannot be inserted.
-pub fn insert_fastq_qc2_v1(
+pub fn insert_fastq_qc_post_v1(
     conn: &Connection,
-    record: &BenchmarkRecord<FastqQc2Metrics>,
+    record: &BenchmarkRecord<FastqQcPostMetrics>,
 ) -> Result<()> {
     conn.execute(
-        "CREATE TABLE IF NOT EXISTS bench_fastq_qc2_v1 (\
+        "CREATE TABLE IF NOT EXISTS bench_fastq_qc_post_v1 (\
          tool TEXT NOT NULL,\
          tool_version TEXT NOT NULL,\
          image_digest TEXT NOT NULL,\
@@ -1817,7 +1822,7 @@ pub fn insert_fastq_qc2_v1(
     let parameters_json = serde_json::to_string(&record.context.parameters)?;
 
     conn.execute(
-        "INSERT INTO bench_fastq_qc2_v1 (\
+        "INSERT INTO bench_fastq_qc_post_v1 (\
          tool, tool_version, image_digest, runner, platform, input_hash,\
          parameters_json, schema_version, runtime_s, memory_mb, exit_code, metrics_json\
          ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)",
@@ -1839,21 +1844,21 @@ pub fn insert_fastq_qc2_v1(
     Ok(())
 }
 
-/// Load a qc2 benchmark record from `SQLite` if present.
+/// Load a `qc_post` benchmark record from `SQLite` if present.
 ///
 /// # Errors
 /// Returns an error if the query or JSON parsing fails.
-pub fn fetch_fastq_qc2_v1(
+pub fn fetch_fastq_qc_post_v1(
     conn: &Connection,
     tool: &str,
     tool_version: &str,
     image_digest: &str,
     input_hash: &str,
-) -> Result<Option<BenchmarkRecord<FastqQc2Metrics>>> {
+) -> Result<Option<BenchmarkRecord<FastqQcPostMetrics>>> {
     let mut stmt = conn.prepare(
         "SELECT tool, tool_version, image_digest, runner, platform, input_hash,\
          parameters_json, runtime_s, memory_mb, exit_code, metrics_json \
-         FROM bench_fastq_qc2_v1 \
+         FROM bench_fastq_qc_post_v1 \
          WHERE tool = ?1 AND tool_version = ?2 AND image_digest = ?3 AND input_hash = ?4\
          LIMIT 1",
     )?;
@@ -1872,7 +1877,7 @@ pub fn fetch_fastq_qc2_v1(
             let exit_code: i64 = row.get(9)?;
             let metrics_json: String = row.get(10)?;
             let parameters: JsonValue = json_from_str(&parameters_json)?;
-            let metrics: MetricSet<FastqQc2Metrics> = json_from_str(&metrics_json)?;
+            let metrics: MetricSet<FastqQcPostMetrics> = json_from_str(&metrics_json)?;
             Ok(BenchmarkRecord {
                 context: BenchmarkContext {
                     tool,

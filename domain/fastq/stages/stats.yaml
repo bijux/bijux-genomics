@@ -27,3 +27,6 @@ metrics:
   - name: "length_histogram"
     meaning: "Read length histogram"
 description: "FASTQ stage for neutral statistics (no mutation)."
+mutates_fastq: false
+report_only: true
+may_change_read_count: false

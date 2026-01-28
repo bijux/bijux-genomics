@@ -16,7 +16,7 @@ Optional branches:
 - merge (paired-end only)
 - correct (paired-end only)
 - umi (paired-end only)
-- qc2 (reporting/diagnostics)
+- qc_post (reporting/diagnostics)
 - screen (reporting/diagnostics)
 - preprocess (composed pipeline)
 
@@ -29,7 +29,7 @@ Stage intent (summary):
 - merge: paired-end merge into single-end reads
 - correct: error correction on paired-end reads
 - umi: UMI-aware processing of paired-end reads
-- qc2/screen: diagnostic reports; do not mutate reads
+- qc_post/screen: diagnostic reports; do not mutate reads
 - preprocess: validate -> trim -> filter -> stats orchestration
 
 ## Invariants

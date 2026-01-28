@@ -8,6 +8,8 @@ use regex::Regex;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
+pub mod image_qa;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum RunnerKind {
@@ -127,14 +129,6 @@ pub enum EnvError {
     Dockerfile(String),
     #[error("image error: {0}")]
     Image(String),
-}
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum ImagePullPolicy {
-    Always,
-    IfMissing,
-    Never,
 }
 
 /// Load platforms from configs/platforms.yaml and resolve the selected platform.
@@ -376,8 +370,6 @@ pub(crate) fn extract_version_or_digest(full_name: &str, arch: &str) -> String {
         "unknown".to_string()
     }
 }
-
-pub use ImagePullPolicy as _ImagePullPolicyForProfile;
 
 pub mod api {
     pub use super::{

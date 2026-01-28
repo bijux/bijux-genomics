@@ -1,18 +1,16 @@
 use std::collections::HashMap;
 use std::time::Duration;
 
+use crate::api::{PlatformSpec, ToolImageSpec};
 use anyhow::{anyhow, Context, Result};
 use bijux_analyze::ImageQaOutcome;
 use bijux_core::ToolRegistry;
-use bijux_environment::api::{PlatformSpec, ToolImageSpec};
 use uuid::Uuid;
 
-use bijux_engine::api::output_fastq_stats;
-use bijux_engine::api::validate_execution_outputs;
-use bijux_engine::api::{
-    docker_rm, resolve_image_for_run, run_merge_container_with_timeout,
+use super::support::{
+    docker_rm, output_fastq_stats, resolve_image_for_run, run_merge_container_with_timeout,
     run_multiqc_container_with_timeout, run_tool_container_with_timeout,
-    run_validate_container_with_timeout,
+    run_validate_container_with_timeout, validate_execution_outputs, ResolvedImage,
 };
 
 use super::helpers::temp_out_dir;
@@ -28,7 +26,7 @@ pub(crate) fn run_stage_qa(
     catalog: &HashMap<String, ToolImageSpec>,
     registry: &ToolRegistry,
     dataset: &QaDataset,
-    seqkit_image: &bijux_engine::api::ResolvedImage,
+    seqkit_image: &ResolvedImage,
 ) -> ImageQaOutcome {
     let outcome = match stage {
         QaStage::Trim => qa_trim_tool(tool, platform, catalog, registry, dataset, seqkit_image),
@@ -38,7 +36,7 @@ pub(crate) fn run_stage_qa(
         QaStage::Correct => {
             qa_correct_tool(tool, platform, catalog, registry, dataset, seqkit_image)
         }
-        QaStage::Qc2 => qa_qc2_tool(tool, platform, catalog, registry, dataset),
+        QaStage::QcPost => qa_qc_post_tool(tool, platform, catalog, registry, dataset),
         QaStage::Umi => qa_umi_tool(tool, platform, catalog, registry, dataset, seqkit_image),
         QaStage::Stats => qa_stats_tool(tool, platform, catalog, registry, dataset),
         QaStage::Screen => qa_screen_tool(tool, platform, catalog, registry, dataset),
@@ -55,7 +53,7 @@ fn qa_trim_tool(
     catalog: &HashMap<String, ToolImageSpec>,
     registry: &ToolRegistry,
     dataset: &QaDataset,
-    seqkit_image: &bijux_engine::api::ResolvedImage,
+    seqkit_image: &ResolvedImage,
 ) -> Result<()> {
     let contract = tool_contract(registry, "fastq.trim", tool)?;
     let spec = catalog
@@ -153,7 +151,7 @@ fn qa_filter_tool(
     catalog: &HashMap<String, ToolImageSpec>,
     registry: &ToolRegistry,
     dataset: &QaDataset,
-    seqkit_image: &bijux_engine::api::ResolvedImage,
+    seqkit_image: &ResolvedImage,
 ) -> Result<()> {
     let contract = tool_contract(registry, "fastq.filter", tool)?;
     let spec = catalog
@@ -213,7 +211,7 @@ fn qa_merge_tool(
     catalog: &HashMap<String, ToolImageSpec>,
     registry: &ToolRegistry,
     dataset: &QaDataset,
-    seqkit_image: &bijux_engine::api::ResolvedImage,
+    seqkit_image: &ResolvedImage,
 ) -> Result<()> {
     let contract = tool_contract(registry, "fastq.merge", tool)?;
     let spec = catalog
@@ -280,7 +278,7 @@ fn qa_correct_tool(
     catalog: &HashMap<String, ToolImageSpec>,
     registry: &ToolRegistry,
     dataset: &QaDataset,
-    seqkit_image: &bijux_engine::api::ResolvedImage,
+    seqkit_image: &ResolvedImage,
 ) -> Result<()> {
     let contract = tool_contract(registry, "fastq.correct", tool)?;
     let spec = catalog
@@ -326,20 +324,20 @@ fn qa_correct_tool(
     Ok(())
 }
 
-fn qa_qc2_tool(
+fn qa_qc_post_tool(
     tool: &str,
     platform: &PlatformSpec,
     catalog: &HashMap<String, ToolImageSpec>,
     registry: &ToolRegistry,
     dataset: &QaDataset,
 ) -> Result<()> {
-    let contract = tool_contract(registry, "fastq.qc2", tool)?;
+    let contract = tool_contract(registry, "fastq.qc_post", tool)?;
     let spec = catalog
         .get(tool)
         .ok_or_else(|| anyhow!("tool {tool} missing from images.yaml"))?;
     let image = resolve_image_for_run(spec, platform)?;
-    let out_dir = temp_out_dir("qc2", tool)?;
-    let container_name = format!("bijux-qa-qc2-{}-{}", tool, Uuid::new_v4());
+    let out_dir = temp_out_dir("qc_post", tool)?;
+    let container_name = format!("bijux-qa-qc_post-{}-{}", tool, Uuid::new_v4());
     let timeout = Duration::from_secs(QA_TIMEOUT_SECS);
     if tool == "multiqc" {
         let fastqc_spec = catalog
@@ -348,7 +346,7 @@ fn qa_qc2_tool(
         let fastqc_image = resolve_image_for_run(fastqc_spec, platform)?;
         let fastqc_dir = out_dir.join("fastqc");
         std::fs::create_dir_all(&fastqc_dir).context("create fastqc output dir")?;
-        let fastqc_container = format!("bijux-qa-qc2-fastqc-{}", Uuid::new_v4());
+        let fastqc_container = format!("bijux-qa-qc_post-fastqc-{}", Uuid::new_v4());
         let fastqc_exec = match run_validate_container_with_timeout(
             "fastqc",
             &fastqc_image,
@@ -387,7 +385,7 @@ fn qa_qc2_tool(
         }
         validate_execution_outputs(contract, &out_dir)?;
         if !dir_has_files(&out_dir) {
-            return Err(anyhow!("qc2 output missing"));
+            return Err(anyhow!("qc_post output missing"));
         }
         return Ok(());
     }
@@ -413,7 +411,7 @@ fn qa_qc2_tool(
     }
     validate_execution_outputs(contract, &out_dir)?;
     if !dir_has_files(&out_dir) {
-        return Err(anyhow!("qc2 output missing"));
+        return Err(anyhow!("qc_post output missing"));
     }
     Ok(())
 }
@@ -424,7 +422,7 @@ fn qa_umi_tool(
     catalog: &HashMap<String, ToolImageSpec>,
     registry: &ToolRegistry,
     dataset: &QaDataset,
-    seqkit_image: &bijux_engine::api::ResolvedImage,
+    seqkit_image: &ResolvedImage,
 ) -> Result<()> {
     let contract = tool_contract(registry, "fastq.umi", tool)?;
     let spec = catalog
