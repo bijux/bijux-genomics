@@ -19,18 +19,34 @@ use anyhow::Result;
 
 use crate::core::types::{RunPlan, StageResult};
 
-pub fn execute_plan(plan: &RunPlan) -> Result<StageResult> {
-    if crate::core::types::trace_enabled() {
-        println!(
-            "[engine][executor] stage={} tool={} runner={}",
-            plan.invocation.stage_id, plan.invocation.tool_id, plan.runner
-        );
+pub trait ToolRunner {
+    fn run(&self, plan: &RunPlan) -> Result<StageResult>;
+}
+
+pub struct DockerRunner;
+
+impl ToolRunner for DockerRunner {
+    fn run(&self, plan: &RunPlan) -> Result<StageResult> {
+        if crate::core::types::trace_enabled() {
+            println!(
+                "[engine][executor] stage={} tool={} runner={}",
+                plan.invocation.stage_id, plan.invocation.tool_id, plan.runner
+            );
+        }
+        Ok(StageResult {
+            invocation: plan.invocation.clone(),
+            exit_code: 0,
+            stdout: String::new(),
+            stderr: String::new(),
+            outputs: Vec::new(),
+        })
     }
-    Ok(StageResult {
-        invocation: plan.invocation.clone(),
-        exit_code: 0,
-        stdout: String::new(),
-        stderr: String::new(),
-        outputs: Vec::new(),
-    })
+}
+
+pub fn execute_plan(plan: &RunPlan) -> Result<StageResult> {
+    execute_with_runner(plan, &DockerRunner)
+}
+
+pub fn execute_with_runner<R: ToolRunner>(plan: &RunPlan, runner: &R) -> Result<StageResult> {
+    runner.run(plan)
 }

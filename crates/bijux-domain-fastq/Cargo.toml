@@ -14,12 +14,7 @@ rusqlite.workspace = true
 uuid.workspace = true
 chrono.workspace = true
 bijux-analyze = { path = "../bijux-analyze" }
-bijux-domain-adapter = { path = "../bijux-domain-adapter" }
-bijux-measure = { path = "../bijux-measure" }
 bijux-core = { path = "../bijux-core" }
-bijux-macros = { path = "../bijux-macros" }
-bijux-engine = { path = "../bijux-engine" }
-bijux-environment = { path = "../bijux-environment" }
 bijux-bench = { path = "../bijux-bench" }
 
 [dev-dependencies]

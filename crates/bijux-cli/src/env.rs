@@ -6,8 +6,10 @@ use bijux_environment::api::{
     ToolImageSpec,
 };
 
-pub fn print_env_images(
-    catalog: &HashMap<String, ToolImageSpec>,
+/// # Errors
+/// Returns an error if image resolution fails.
+pub fn print_env_images<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
 ) -> Result<()> {
     let mut entries: Vec<_> = catalog.iter().collect();
@@ -20,14 +22,20 @@ pub fn print_env_images(
     Ok(())
 }
 
-pub fn print_env_info(catalog: &HashMap<String, ToolImageSpec>, platform: &PlatformSpec) {
+pub fn print_env_info<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
+    platform: &PlatformSpec,
+) {
     println!("platform: {}", platform.name);
     println!("runner: {}", platform.runner);
     println!("image count: {}", catalog.len());
     println!("cache: {}", cache_dir(platform.runner).to_string_lossy());
 }
 
-pub fn env_doctor(catalog: &HashMap<String, ToolImageSpec>, platform: &PlatformSpec) {
+pub fn env_doctor<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
+    platform: &PlatformSpec,
+) {
     println!("bijux env doctor");
     let runners = available_runners().unwrap_or_default();
     print_check(

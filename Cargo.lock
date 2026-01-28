@@ -121,7 +121,7 @@ dependencies = [
  "bijux-domain-fastq",
  "bijux-engine",
  "bijux-environment",
- "bijux-measure",
+ "chrono",
  "clap",
  "predicates",
  "rusqlite",
@@ -142,7 +142,6 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bijux-core",
- "bijux-measure",
  "rusqlite",
  "serde",
  "serde_json",
@@ -180,20 +179,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "bijux-domain-adapter"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "bijux-engine",
- "serde_json",
-]
-
-[[package]]
 name = "bijux-domain-bam"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bijux-domain-adapter",
+ "bijux-core",
  "serde_json",
 ]
 
@@ -202,7 +192,7 @@ name = "bijux-domain-dummy"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bijux-domain-adapter",
+ "bijux-core",
  "serde_json",
 ]
 
@@ -214,11 +204,6 @@ dependencies = [
  "bijux-analyze",
  "bijux-bench",
  "bijux-core",
- "bijux-domain-adapter",
- "bijux-engine",
- "bijux-environment",
- "bijux-macros",
- "bijux-measure",
  "chrono",
  "rusqlite",
  "serde",
@@ -233,7 +218,7 @@ name = "bijux-domain-vcf"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bijux-domain-adapter",
+ "bijux-core",
  "serde_json",
 ]
 
@@ -245,7 +230,6 @@ dependencies = [
  "assert_cmd",
  "bijux-core",
  "bijux-environment",
- "bijux-measure",
  "serde",
  "serde_json",
  "sha2",
@@ -273,23 +257,6 @@ dependencies = [
  "thiserror 1.0.69",
  "tracing",
  "uuid",
-]
-
-[[package]]
-name = "bijux-macros"
-version = "0.1.0"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
-name = "bijux-measure"
-version = "0.1.0"
-dependencies = [
- "serde",
- "thiserror 1.0.69",
 ]
 
 [[package]]

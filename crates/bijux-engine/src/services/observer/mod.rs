@@ -1,10 +1,10 @@
 mod hash;
 mod seqkit;
 
+pub use bijux_core::measure::SeqkitMetrics;
 pub use hash::hash_file_sha256;
 pub use seqkit::{
     input_fastq_stats, length_histogram, output_fastq_stats, parse_fastqvalidator_count,
-    SeqkitMetrics,
 };
 
 use anyhow::{Context, Result};

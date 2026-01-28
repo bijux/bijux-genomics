@@ -5,51 +5,53 @@ use std::time::Instant;
 
 use anyhow::{anyhow, Context, Result};
 use bijux_analyze::{
-    append_jsonl, fetch_fastq_stats_v1, insert_fastq_stats_v1, metric_set, BenchmarkContext,
-    BenchmarkRecord, FastqStatsMetrics, LengthHistogramBin,
+    append_jsonl, fetch_fastq_qc_post_v1, insert_fastq_qc_post_v1, metric_set, BenchmarkContext,
+    BenchmarkRecord, FastqQcPostMetrics,
 };
+use bijux_core::measure::ExecutionMetrics;
 use bijux_engine::api::{ensure_bench_runner, load_registry};
 use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
-use bijux_measure::ExecutionMetrics;
 use uuid::Uuid;
 
-use crate::contracts::{inspect_headers, log_header_warnings, preflight_stage, FastqArtifact};
+use bijux_domain_fastq::{inspect_headers, log_header_warnings, preflight_stage, FastqArtifact};
 use bijux_engine::api::validate_execution_outputs;
 use bijux_engine::api::{bench_base_dir, bench_tools_dir};
-use bijux_engine::api::{cleanup_execution, execution_memory_mb, run_validate_execution};
-use bijux_engine::api::{hash_file_sha256, input_fastq_stats, length_histogram, SeqkitMetrics};
+use bijux_engine::api::{
+    cleanup_execution, execution_memory_mb, run_multiqc_execution, run_validate_execution,
+};
+use bijux_engine::api::{hash_file_sha256, input_fastq_stats, SeqkitMetrics};
 use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 
-use crate::contracts::RawFailure;
-use crate::stages::helpers::{
-    compute_run_id, normalize_stats_tool_list, params_hash, prepare_tool_run_dirs,
+use crate::fastq_exec::helpers::{
+    compute_run_id, normalize_qc_post_tool_list, params_hash, prepare_tool_run_dirs,
     resolve_image_for_run, write_execution_logs, write_explain_md, write_explain_plan_json,
     write_metrics_json, ExecutionManifest,
 };
-use crate::stages::helpers::{filter_tools_by_role, BenchOutcome};
+use crate::fastq_exec::helpers::{filter_tools_by_role, BenchOutcome};
+use bijux_domain_fastq::RawFailure;
 
 /// Run the FASTQ benchmark stage.
 ///
 /// # Errors
 /// Returns an error if planning, execution, or metric recording fails.
-pub fn bench_fastq_stats_neutral<S: ::std::hash::BuildHasher>(
+pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
     runner_override: Option<RunnerKind>,
-    args: &crate::stages::args::BenchFastqStatsArgs,
-) -> Result<BenchOutcome<FastqStatsMetrics>> {
-    let tools = normalize_stats_tool_list(&args.tools)?;
+    args: &bijux_domain_fastq::args::BenchFastqQcPostArgs,
+) -> Result<BenchOutcome<FastqQcPostMetrics>> {
+    let tools = normalize_qc_post_tool_list(&args.tools)?;
     let artifact = FastqArtifact::single_end(&args.r1);
-    preflight_stage("fastq.stats_neutral", artifact.kind)?;
+    preflight_stage("fastq.qc_post", artifact.kind)?;
     let header = inspect_headers(&args.r1, None, false)?;
-    log_header_warnings("fastq.stats_neutral", &header);
+    log_header_warnings("fastq.qc_post", &header);
     let registry = load_registry(&std::env::current_dir()?.join("domain"))
         .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
-    let tools = filter_tools_by_role("fastq.stats_neutral", &tools, &registry, false)?;
-    let bench_inputs = prepare_stats_bench(catalog, platform, runner_override, args)?;
+    let tools = filter_tools_by_role("fastq.qc_post", &tools, &registry, false)?;
+    let bench_inputs = prepare_qc_post_bench(catalog, platform, runner_override, args)?;
     let selected = tools.clone();
     let all_tools: Vec<String> = registry
-        .tools_for_stage("fastq.stats_neutral")
+        .tools_for_stage("fastq.qc_post")
         .iter()
         .map(|tool| tool.tool_id.clone())
         .collect();
@@ -59,25 +61,25 @@ pub fn bench_fastq_stats_neutral<S: ::std::hash::BuildHasher>(
         .collect();
     write_explain_md(
         &bench_inputs.bench_dir,
-        "fastq.stats_neutral",
+        "fastq.qc_post",
         &selected,
         &excluded,
         None,
     )?;
     write_explain_plan_json(
         &bench_inputs.bench_dir,
-        "fastq.stats_neutral",
+        "fastq.qc_post",
         &selected,
         &registry,
         None,
     )?;
-    ensure_image_qa_passed("fastq.stats_neutral", &tools, platform, catalog)?;
-    ensure_tool_qa_passed("fastq.stats_neutral", &tools, platform, catalog)?;
+    ensure_image_qa_passed("fastq.qc_post", &tools, platform, catalog)?;
+    ensure_tool_qa_passed("fastq.qc_post", &tools, platform, catalog)?;
 
     let sqlite_path = bench_inputs.bench_dir.join("bench.sqlite");
     let conn = bijux_analyze::open_sqlite(&sqlite_path).context("open bench sqlite")?;
-    let mut records: Vec<BenchmarkRecord<FastqStatsMetrics>> = Vec::new();
-    let mut new_records: Vec<BenchmarkRecord<FastqStatsMetrics>> = Vec::new();
+    let mut records: Vec<BenchmarkRecord<FastqQcPostMetrics>> = Vec::new();
+    let mut new_records: Vec<BenchmarkRecord<FastqQcPostMetrics>> = Vec::new();
     let mut failures: Vec<RawFailure> = Vec::new();
 
     for tool in tools {
@@ -89,7 +91,7 @@ pub fn bench_fastq_stats_neutral<S: ::std::hash::BuildHasher>(
             .as_ref()
             .ok_or_else(|| anyhow!("image digest missing for tool {tool}"))?
             .to_string();
-        let cached = fetch_fastq_stats_v1(
+        let cached = fetch_fastq_qc_post_v1(
             &conn,
             &tool,
             &spec.version,
@@ -100,10 +102,10 @@ pub fn bench_fastq_stats_neutral<S: ::std::hash::BuildHasher>(
             records.push(record);
             continue;
         }
-        match run_stats_tool(catalog, platform, args, &bench_inputs, &tool) {
+        match run_qc_post_tool(catalog, platform, args, &bench_inputs, &tool) {
             Ok(record) => new_records.push(record),
             Err(err) => failures.push(RawFailure {
-                stage: "fastq.stats_neutral".to_string(),
+                stage: "fastq.qc_post".to_string(),
                 tool: tool.to_string(),
                 reason: err.to_string(),
             }),
@@ -118,7 +120,7 @@ pub fn bench_fastq_stats_neutral<S: ::std::hash::BuildHasher>(
     }
 
     for record in &new_records {
-        insert_fastq_stats_v1(&conn, record).context("insert bench sqlite")?;
+        insert_fastq_qc_post_v1(&conn, record).context("insert bench sqlite")?;
     }
 
     Ok(BenchOutcome {
@@ -129,32 +131,31 @@ pub fn bench_fastq_stats_neutral<S: ::std::hash::BuildHasher>(
     })
 }
 
-struct StatsBenchInputs {
+struct QcPostBenchInputs {
     runner: RunnerKind,
     r1: PathBuf,
     r1_dir: PathBuf,
     input_hash: String,
     input_stats: SeqkitMetrics,
-    length_hist: Vec<LengthHistogramBin>,
     bench_dir: PathBuf,
     tools_root: PathBuf,
 }
 
-fn prepare_stats_bench<S: ::std::hash::BuildHasher>(
+fn prepare_qc_post_bench<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
     runner_override: Option<RunnerKind>,
-    args: &crate::stages::args::BenchFastqStatsArgs,
-) -> Result<StatsBenchInputs> {
+    args: &bijux_domain_fastq::args::BenchFastqQcPostArgs,
+) -> Result<QcPostBenchInputs> {
     let runner = ensure_bench_runner(platform, runner_override)?;
-    let bench_dir = bench_base_dir(&args.out, "stats", &args.sample_id);
-    let tools_root = bench_tools_dir(&args.out, "stats", &args.sample_id);
+    let bench_dir = bench_base_dir(&args.out, "qc_post", &args.sample_id);
+    let tools_root = bench_tools_dir(&args.out, "qc_post", &args.sample_id);
     fs::create_dir_all(&bench_dir).context("create bench output dir")?;
     fs::create_dir_all(&tools_root).context("create tools output dir")?;
 
     println!(
         "planned tools: {}",
-        normalize_stats_tool_list(&args.tools)?.join(", ")
+        normalize_qc_post_tool_list(&args.tools)?.join(", ")
     );
 
     let r1 = args.r1.canonicalize().context("resolve r1 path")?;
@@ -170,36 +171,32 @@ fn prepare_stats_bench<S: ::std::hash::BuildHasher>(
 
     let input_hash = hash_file_sha256(&r1)?;
     let input_stats = input_fastq_stats(&seqkit_image, &r1_dir, &r1)?;
-    let length_hist = length_histogram(&seqkit_image, &r1_dir, &r1)?
-        .into_iter()
-        .map(|(length, count)| LengthHistogramBin { length, count })
-        .collect();
 
-    Ok(StatsBenchInputs {
+    Ok(QcPostBenchInputs {
         runner,
         r1,
         r1_dir,
         input_hash,
         input_stats,
-        length_hist,
         bench_dir,
         tools_root,
     })
 }
 
-fn run_stats_tool<S: ::std::hash::BuildHasher>(
+#[allow(clippy::too_many_lines)]
+fn run_qc_post_tool<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
-    args: &crate::stages::args::BenchFastqStatsArgs,
-    bench_inputs: &StatsBenchInputs,
+    args: &bijux_domain_fastq::args::BenchFastqQcPostArgs,
+    bench_inputs: &QcPostBenchInputs,
     tool: &str,
-) -> Result<BenchmarkRecord<FastqStatsMetrics>> {
+) -> Result<BenchmarkRecord<FastqQcPostMetrics>> {
     let spec = catalog
         .get(tool)
         .ok_or_else(|| anyhow!("tool {tool} missing from images.yaml"))?;
     let image = resolve_image_for_run(spec, platform)?;
 
-    println!("→ stats {tool}");
+    println!("→ qc_post {tool}");
     let params = serde_json::json!({
         "sample_id": args.sample_id,
         "r1": bench_inputs.r1,
@@ -211,7 +208,7 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
         .ok_or_else(|| anyhow!("image digest missing for tool {tool}"))?
         .to_string();
     let run_id = compute_run_id(
-        "fastq.stats_neutral",
+        "fastq.qc_post",
         tool,
         &image_digest,
         &bench_inputs.input_hash,
@@ -221,24 +218,46 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
     let out_dir = run_dirs.artifacts_dir.clone();
     let start = Instant::now();
     let container_name = format!("bijux-bench-{}-{}", args.sample_id, Uuid::new_v4());
-    let execution = run_validate_execution(
-        tool,
-        &image,
-        &bench_inputs.r1_dir,
-        &bench_inputs.r1,
-        &out_dir,
-        &container_name,
-    )?;
+    let execution = if tool == "multiqc" {
+        let fastqc_spec = catalog
+            .get("fastqc")
+            .ok_or_else(|| anyhow!("fastqc missing from images.yaml"))?;
+        let fastqc_image = resolve_image_for_run(fastqc_spec, platform)?;
+        let fastqc_dir = out_dir.join("fastqc");
+        fs::create_dir_all(&fastqc_dir).context("create fastqc output dir")?;
+        let fastqc_container = format!("bijux-bench-fastqc-{}", Uuid::new_v4());
+        let fastqc_exec = run_validate_execution(
+            "fastqc",
+            &fastqc_image,
+            &bench_inputs.r1_dir,
+            &bench_inputs.r1,
+            &fastqc_dir,
+            &fastqc_container,
+        )?;
+        cleanup_execution(&fastqc_container)?;
+        if fastqc_exec.exit_code != 0 {
+            return Err(anyhow!("fastqc exit code {}", fastqc_exec.exit_code));
+        }
+        run_multiqc_execution(&image, &fastqc_dir, &out_dir, &container_name)?
+    } else {
+        run_validate_execution(
+            tool,
+            &image,
+            &bench_inputs.r1_dir,
+            &bench_inputs.r1,
+            &out_dir,
+            &container_name,
+        )?
+    };
     let runtime_s = start.elapsed().as_secs_f64();
     let memory_mb = execution_memory_mb(&container_name)?;
     cleanup_execution(&container_name)?;
 
-    let metrics = FastqStatsMetrics {
-        reads_total: bench_inputs.input_stats.reads,
-        bases_total: bench_inputs.input_stats.bases,
+    let metrics = FastqQcPostMetrics {
+        reads_in: bench_inputs.input_stats.reads,
+        bases_in: bench_inputs.input_stats.bases,
         mean_q: bench_inputs.input_stats.mean_q,
-        gc_percent: bench_inputs.input_stats.gc_percent,
-        length_histogram: bench_inputs.length_hist.clone(),
+        contamination_rate: 0.0,
     };
     let metric_set = metric_set(metrics);
     bijux_analyze::validate_metric_set(&metric_set)?;
@@ -246,12 +265,12 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
     let registry = load_registry(&std::env::current_dir()?.join("domain"))
         .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let tool_manifest = registry
-        .tool_by_id("fastq.stats_neutral", tool)
+        .tool_by_id("fastq.qc_post", tool)
         .ok_or_else(|| anyhow!("tool {tool} missing from manifests"))?;
     validate_execution_outputs(&tool_manifest.execution_contract, &out_dir)?;
     let manifest = ExecutionManifest {
         run_id: run_id.clone(),
-        stage: "fastq.stats_neutral".to_string(),
+        stage: "fastq.qc_post".to_string(),
         tool: tool.to_string(),
         tool_version: spec.version.clone(),
         image_digest: image_digest.clone(),

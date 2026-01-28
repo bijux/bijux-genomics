@@ -5,13 +5,7 @@ use anyhow::{anyhow, Context, Result};
 use bijux_environment::api::ResolvedImage;
 use tracing::warn;
 
-#[derive(Debug, Clone, Copy)]
-pub struct SeqkitMetrics {
-    pub reads: u64,
-    pub bases: u64,
-    pub mean_q: f64,
-    pub gc_percent: f64,
-}
+use bijux_core::measure::SeqkitMetrics;
 
 pub fn input_fastq_stats(
     image: &ResolvedImage,

@@ -8,8 +8,10 @@ use tracing::info;
 use uuid::Uuid;
 use walkdir::WalkDir;
 
+pub mod domain;
 pub mod events;
 pub mod input_assessment;
+pub mod measure;
 pub mod metrics;
 pub mod run_index;
 

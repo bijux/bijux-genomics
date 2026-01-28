@@ -1,5 +1,6 @@
 use std::path::Path;
 
+#[must_use]
 pub fn normalize_run_base_dir(cwd: &Path, run_base: &Path) -> std::path::PathBuf {
     if run_base.is_absolute() {
         run_base.to_path_buf()

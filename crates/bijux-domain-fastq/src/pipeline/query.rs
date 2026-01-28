@@ -6,7 +6,6 @@ use serde_json::Value as JsonValue;
 
 use bijux_analyze::open_sqlite;
 use bijux_analyze::selection::{BenchResultRecord, BenchResultStatus};
-use bijux_engine::api::bench_base_dir;
 
 use super::corpus::BenchCorpus;
 
@@ -38,6 +37,13 @@ fn bench_dir_for_stage(stage: &str) -> Option<&'static str> {
         "fastq.screen" => Some("screen"),
         _ => None,
     }
+}
+
+fn bench_base_dir(out: &Path, stage: &str, sample_id: &str) -> std::path::PathBuf {
+    out.join("artifacts")
+        .join("bench")
+        .join(stage)
+        .join(sample_id)
 }
 
 /// Load bench results for a stage/tool across the corpus.

@@ -464,6 +464,7 @@ pub struct FastqValidateArgs {
     pub strict: bool,
 }
 
+#[must_use]
 pub fn resolve_stage_tool(command: &Commands) -> (StageId, ToolId, CommonArgs) {
     match command {
         Commands::Fastq { command } => match command {
@@ -518,10 +519,13 @@ pub fn resolve_stage_tool(command: &Commands) -> (StageId, ToolId, CommonArgs) {
     }
 }
 
+#[must_use]
 pub fn is_bench_requested_trim(args: &FastqTrimArgs) -> bool {
     args.sample_id.is_some() && args.r1.is_some() && args.out.is_some()
 }
 
+/// # Errors
+/// Returns an error if CLI arguments are invalid for benchmarking.
 pub fn bench_args_from_trim(args: &FastqTrimArgs) -> Result<engine_args::BenchFastqTrimArgs> {
     Ok(engine_args::BenchFastqTrimArgs {
         sample_id: args
@@ -541,10 +545,13 @@ pub fn bench_args_from_trim(args: &FastqTrimArgs) -> Result<engine_args::BenchFa
     })
 }
 
+#[must_use]
 pub fn is_bench_requested_validate(args: &FastqValidateArgs) -> bool {
     args.sample_id.is_some() && args.r1.is_some() && args.out.is_some()
 }
 
+/// # Errors
+/// Returns an error if CLI arguments are invalid for benchmarking.
 pub fn bench_args_from_validate(
     args: &FastqValidateArgs,
 ) -> Result<engine_args::BenchFastqValidateArgs> {
@@ -567,6 +574,7 @@ pub fn bench_args_from_validate(
     })
 }
 
+#[must_use]
 pub fn bench_args_trim(args: &BenchFastqTrimArgs) -> engine_args::BenchFastqTrimArgs {
     engine_args::BenchFastqTrimArgs {
         sample_id: args.sample_id.clone(),
@@ -577,6 +585,7 @@ pub fn bench_args_trim(args: &BenchFastqTrimArgs) -> engine_args::BenchFastqTrim
     }
 }
 
+#[must_use]
 pub fn bench_args_validate(args: &BenchFastqValidateArgs) -> engine_args::BenchFastqValidateArgs {
     engine_args::BenchFastqValidateArgs {
         sample_id: args.sample_id.clone(),
@@ -588,6 +597,7 @@ pub fn bench_args_validate(args: &BenchFastqValidateArgs) -> engine_args::BenchF
     }
 }
 
+#[must_use]
 pub fn bench_args_filter(args: &BenchFastqFilterArgs) -> engine_args::BenchFastqFilterArgs {
     engine_args::BenchFastqFilterArgs {
         sample_id: args.sample_id.clone(),
@@ -598,6 +608,7 @@ pub fn bench_args_filter(args: &BenchFastqFilterArgs) -> engine_args::BenchFastq
     }
 }
 
+#[must_use]
 pub fn bench_args_merge(args: &BenchFastqMergeArgs) -> engine_args::BenchFastqMergeArgs {
     engine_args::BenchFastqMergeArgs {
         sample_id: args.sample_id.clone(),
@@ -609,6 +620,7 @@ pub fn bench_args_merge(args: &BenchFastqMergeArgs) -> engine_args::BenchFastqMe
     }
 }
 
+#[must_use]
 pub fn bench_args_correct(args: &BenchFastqCorrectArgs) -> engine_args::BenchFastqCorrectArgs {
     engine_args::BenchFastqCorrectArgs {
         sample_id: args.sample_id.clone(),
@@ -620,6 +632,7 @@ pub fn bench_args_correct(args: &BenchFastqCorrectArgs) -> engine_args::BenchFas
     }
 }
 
+#[must_use]
 pub fn bench_args_qc_post(args: &BenchFastqQcPostArgs) -> engine_args::BenchFastqQcPostArgs {
     engine_args::BenchFastqQcPostArgs {
         sample_id: args.sample_id.clone(),
@@ -630,6 +643,7 @@ pub fn bench_args_qc_post(args: &BenchFastqQcPostArgs) -> engine_args::BenchFast
     }
 }
 
+#[must_use]
 pub fn bench_args_umi(args: &BenchFastqUmiArgs) -> engine_args::BenchFastqUmiArgs {
     engine_args::BenchFastqUmiArgs {
         sample_id: args.sample_id.clone(),
@@ -641,6 +655,7 @@ pub fn bench_args_umi(args: &BenchFastqUmiArgs) -> engine_args::BenchFastqUmiArg
     }
 }
 
+#[must_use]
 pub fn bench_args_screen(args: &BenchFastqScreenArgs) -> engine_args::BenchFastqScreenArgs {
     engine_args::BenchFastqScreenArgs {
         sample_id: args.sample_id.clone(),
@@ -651,6 +666,7 @@ pub fn bench_args_screen(args: &BenchFastqScreenArgs) -> engine_args::BenchFastq
     }
 }
 
+#[must_use]
 pub fn bench_args_stats(args: &BenchFastqStatsArgs) -> engine_args::BenchFastqStatsArgs {
     engine_args::BenchFastqStatsArgs {
         sample_id: args.sample_id.clone(),
@@ -661,6 +677,7 @@ pub fn bench_args_stats(args: &BenchFastqStatsArgs) -> engine_args::BenchFastqSt
     }
 }
 
+#[must_use]
 pub fn bench_args_preprocess(
     args: &BenchFastqPreprocessArgs,
 ) -> engine_args::BenchFastqPreprocessArgs {
@@ -677,6 +694,8 @@ pub fn bench_args_preprocess(
     }
 }
 
+/// # Errors
+/// Returns an error if CLI arguments are invalid for preprocessing.
 pub fn preprocess_args_from_cli(
     args: &FastqPreprocessArgs,
 ) -> Result<engine_args::BenchFastqPreprocessArgs> {
@@ -705,6 +724,8 @@ pub fn preprocess_args_from_cli(
     })
 }
 
+/// # Errors
+/// Returns an error if the runner override is not a valid runner kind.
 pub fn parse_runner_override(env: Option<&str>) -> Result<Option<RunnerKind>> {
     match env {
         None => Ok(None),

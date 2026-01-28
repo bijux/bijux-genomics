@@ -2,7 +2,7 @@ use std::fs::OpenOptions;
 use std::io::Write;
 use std::path::Path;
 
-use bijux_measure::ExecutionMetrics;
+use bijux_core::measure::ExecutionMetrics;
 use rusqlite::{params, Connection};
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
@@ -978,7 +978,7 @@ pub enum BenchError {
     #[error("sqlite error: {0}")]
     Sqlite(#[from] rusqlite::Error),
     #[error("measure error: {0}")]
-    Measure(#[from] bijux_measure::MeasureError),
+    Measure(#[from] bijux_core::measure::MeasureError),
     #[error("validation error: {0}")]
     Validation(String),
 }

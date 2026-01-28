@@ -4,7 +4,7 @@ fn legacy_manifests_still_load() {
         .join("..")
         .join("..")
         .join("domain");
-    let registry = bijux_engine::api::load_registry(&domain);
+    let registry = bijux_core::load_manifests(&domain);
     assert!(registry.is_ok());
 }
 

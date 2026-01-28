@@ -1,0 +1,39 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+      - name: Install cargo-llvm-cov
+        run: cargo install cargo-llvm-cov --locked
+      - name: Format
+        run: cargo fmt --all -- --check
+      - name: Clippy
+        run: cargo clippy --workspace --all-targets --all-features -- -D warnings
+      - name: Tests
+        run: cargo test --workspace
+      - name: Coverage floor
+        run: |
+          cargo llvm-cov --workspace --all-features --json --output-path target/coverage.json
+          python3 - <<'PY'
+          import json
+          data=json.load(open("target/coverage.json"))
+          totals=data["data"][0]["totals"]["lines"]
+          covered=totals.get("covered",0)
+          count=totals.get("count",1)
+          pct=covered/count
+          floor=0.60
+          print(f"line coverage: {pct:.2%} (floor {floor:.0%})")
+          if pct < floor:
+              raise SystemExit(1)
+          PY
