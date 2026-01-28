@@ -15,10 +15,11 @@ mod env;
 mod replay;
 mod utils;
 
+use bijux_analyze::selection::{objective_spec, Objective};
 use bijux_analyze::{
-    print_bench_schema, write_correct_report, write_filter_report, write_merge_report,
-    write_qc_post_report, write_stats_report, write_trim_report, write_umi_report,
-    write_validate_report,
+    compare_runs, print_bench_schema, write_correct_report, write_filter_report,
+    write_merge_report, write_qc_post_report, write_stats_report, write_trim_report,
+    write_umi_report, write_validate_report,
 };
 use bijux_domain_fastq::{
     bench_fastq_correct, bench_fastq_filter, bench_fastq_merge, bench_fastq_preprocess,
@@ -97,8 +98,10 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
             Ok(true)
         }
         Commands::Compare(args) => {
-            let result =
-                bijux_bench::compare::compare_runs(&args.run_a, &args.run_b, &args.search_root)?;
+            let objective = objective_spec(Objective::Balanced);
+            let run_a = args.search_root.join(&args.run_a);
+            let run_b = args.search_root.join(&args.run_b);
+            let result = compare_runs(&run_a, &run_b, &objective)?;
             println!("{}", serde_json::to_string_pretty(&result)?);
             Ok(true)
         }
@@ -277,6 +280,7 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
     }
 }
 
+#[allow(clippy::too_many_lines)]
 fn handle_fastq_bench(
     cli: &Cli,
     registry: &bijux_core::ToolRegistry,
@@ -370,8 +374,10 @@ fn handle_fastq_bench(
             Ok(true)
         }
         FastqCommand::Compare(args) => {
-            let result =
-                bijux_bench::compare::compare_runs(&args.run_a, &args.run_b, &args.search_root)?;
+            let objective = objective_spec(Objective::Balanced);
+            let run_a = args.search_root.join(&args.run_a);
+            let run_b = args.search_root.join(&args.run_b);
+            let result = compare_runs(&run_a, &run_b, &objective)?;
             println!("{}", serde_json::to_string_pretty(&result)?);
             Ok(true)
         }

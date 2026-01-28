@@ -49,6 +49,27 @@ fn assert_no_fastq_terms(dir: &str) {
     }
 }
 
+fn assert_no_tool_names(dir: &str, tool_ids: &[&str]) {
+    let mut files = Vec::new();
+    collect_rs_files(Path::new(dir), &mut files);
+    for file in files {
+        if file.file_name().and_then(|name| name.to_str()) == Some("tools.rs") {
+            continue;
+        }
+        let Ok(contents) = fs::read_to_string(&file) else {
+            continue;
+        };
+        for tool in tool_ids {
+            assert!(
+                !contents.contains(tool),
+                "tool id leaked into engine core: {} -> {}",
+                file.display(),
+                tool
+            );
+        }
+    }
+}
+
 #[test]
 fn executor_does_not_import_composer_observer_validator() {
     assert_no_imports(
@@ -93,4 +114,40 @@ fn engine_does_not_import_domain_crates() {
         "crates/bijux-engine/src",
         &["bijux_domain", "bijux-domain", "domain::"],
     );
+}
+
+#[test]
+fn engine_core_does_not_embed_tool_ids() {
+    let tool_ids = [
+        "adapterremoval",
+        "atropos",
+        "bbduk",
+        "bbmerge",
+        "centrifuge",
+        "cutadapt",
+        "fastp",
+        "fastqc",
+        "fastq_screen",
+        "fastqvalidator",
+        "fastqvalidator_official",
+        "flash2",
+        "fqtools",
+        "kaiju",
+        "kraken2",
+        "metaphlan",
+        "multiqc",
+        "pear",
+        "prinseq",
+        "qualimap",
+        "rcorrector",
+        "samtools",
+        "seqkit",
+        "seqkit_stats",
+        "seqpurge",
+        "spades",
+        "trimmomatic",
+        "umi_tools",
+        "vsearch",
+    ];
+    assert_no_tool_names("crates/bijux-engine/src/core", &tool_ids);
 }
