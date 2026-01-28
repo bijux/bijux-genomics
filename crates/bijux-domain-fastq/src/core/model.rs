@@ -58,3 +58,6 @@ pub struct FastqPE {
 pub struct FastqStats {
     pub report: PathBuf,
 }
+
+pub type FastqSingleEnd = FastqSE;
+pub type FastqPairedEnd = FastqPE;

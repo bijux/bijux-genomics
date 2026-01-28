@@ -14,5 +14,7 @@ pub use contracts::{
     normalize_outputs, preflight_stage, HeaderInspection, NormalizedOutputs,
 };
 pub use failure::RawFailure;
-pub use model::{FastqArtifact, FastqArtifactKind, FastqPE, FastqSE, FastqStats};
+pub use model::{
+    FastqArtifact, FastqArtifactKind, FastqPE, FastqPairedEnd, FastqSE, FastqSingleEnd, FastqStats,
+};
 pub use stages::{infer_input_kind, qc_class_for_stage, FastqStageContract, QcClass};

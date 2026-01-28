@@ -2,13 +2,19 @@
 
 This is the single authoritative FASTQ spec for Bijux. It defines pipeline stages, invariants, metrics, failure taxonomy, and optional branches. It supersedes all prior FASTQ markdown.
 
-See also:
+See also (supporting, non-authoritative):
 
 - docs/domains/fastq_lifecycle.md
 - docs/contracts/fastq_v1.md
 - docs/domains/fastq_iteration1.md
 
 ## Pipeline Stages
+
+Stage tiers are fixed as of FASTQ v1:
+
+- Core: validate, trim, merge, correct, filter, stats
+- Optional: qc_post, umi, screen
+- Meta: preprocess
 
 Core stages (canonical order):
 
@@ -47,6 +53,7 @@ These must hold for all FASTQ tools and stages:
 - Output is normalized to canonical names at stage boundaries.
 - Metrics must pass schema validation.
 - Header inspection detects pairing mismatches and read name drift (warn by default, fail in strict mode).
+- Stats is the canonical normalization boundary for read/base/length/quality summaries.
 
 ## Metrics
 
@@ -76,6 +83,16 @@ These classifications are stable and are used for reporting and gating.
 - umi requires paired-end inputs and compatible headers.
 - preprocess is composition only; it does not alter semantics beyond its stages.
 
+## Artifact Types
+
+Public artifact types are fixed:
+
+- FastqSingleEnd
+- FastqPairedEnd
+- FastqStats
+
+These are the only accepted inputs/outputs per stage contract.
+
 ## Contributor Contract (FASTQ)
 
 If you add or change FASTQ tools, you must follow this contract:
@@ -91,3 +108,7 @@ If you add or change FASTQ tools, you must follow this contract:
 - FASTQ semantics live only in `bijux_domain_fastq::core` (contracts/invariants/compatibility).
 - Stages orchestrate execution and delegate semantics to the domain.
 - Bench/reporting consumes domain metrics and deltas; it does not redefine semantics.
+
+## Structural Freeze
+
+The structural layout of `bijux-domain-fastq` is frozen as of FASTQ v1. New functionality must fit this model.
