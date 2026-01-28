@@ -2,8 +2,9 @@ use crate::metrics::spec::{metric_spec_for_stage, MetricClass};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum FastqStageKind {
-    Essential,
+    Core,
     Optional,
+    Meta,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -36,11 +37,11 @@ pub const CANONICAL_STAGE_ORDER: [&str; 4] = [
 ];
 
 pub const OPTIONAL_BRANCHES: [(&str, &[&str]); 5] = [
-    ("fastq.merge", &["fastq.trim", "fastq.filter"]),
-    ("fastq.correct", &["fastq.trim"]),
     ("fastq.umi", &["fastq.trim"]),
     ("fastq.screen", &["fastq.validate"]),
     ("fastq.qc_post", &["fastq.validate"]),
+    ("fastq.merge", &["fastq.trim", "fastq.filter"]),
+    ("fastq.correct", &["fastq.trim"]),
 ];
 
 pub const STAGE_BOUNDARY_INVARIANTS: [BoundaryInvariant; 4] = [
@@ -66,10 +67,10 @@ pub const STAGE_BOUNDARY_INVARIANTS: [BoundaryInvariant; 4] = [
     },
 ];
 
-pub const STAGES: [StageDefinition; 9] = [
+pub const STAGES: [StageDefinition; 10] = [
     StageDefinition {
         stage_id: "fastq.validate",
-        kind: FastqStageKind::Essential,
+        kind: FastqStageKind::Core,
         semantics: StageSemantics {
             mutates_fastq: false,
             consumes_pairs: false,
@@ -79,7 +80,7 @@ pub const STAGES: [StageDefinition; 9] = [
     },
     StageDefinition {
         stage_id: "fastq.trim",
-        kind: FastqStageKind::Essential,
+        kind: FastqStageKind::Core,
         semantics: StageSemantics {
             mutates_fastq: true,
             consumes_pairs: true,
@@ -93,7 +94,7 @@ pub const STAGES: [StageDefinition; 9] = [
     },
     StageDefinition {
         stage_id: "fastq.filter",
-        kind: FastqStageKind::Essential,
+        kind: FastqStageKind::Core,
         semantics: StageSemantics {
             mutates_fastq: true,
             consumes_pairs: true,
@@ -107,7 +108,7 @@ pub const STAGES: [StageDefinition; 9] = [
     },
     StageDefinition {
         stage_id: "fastq.stats",
-        kind: FastqStageKind::Essential,
+        kind: FastqStageKind::Core,
         semantics: StageSemantics {
             mutates_fastq: false,
             consumes_pairs: false,
@@ -117,7 +118,7 @@ pub const STAGES: [StageDefinition; 9] = [
     },
     StageDefinition {
         stage_id: "fastq.merge",
-        kind: FastqStageKind::Optional,
+        kind: FastqStageKind::Core,
         semantics: StageSemantics {
             mutates_fastq: true,
             consumes_pairs: true,
@@ -127,7 +128,7 @@ pub const STAGES: [StageDefinition; 9] = [
     },
     StageDefinition {
         stage_id: "fastq.correct",
-        kind: FastqStageKind::Optional,
+        kind: FastqStageKind::Core,
         semantics: StageSemantics {
             mutates_fastq: true,
             consumes_pairs: true,
@@ -163,6 +164,16 @@ pub const STAGES: [StageDefinition; 9] = [
             consumes_pairs: false,
             produces_reports_only: true,
             affects_metrics: &[MetricClass::QualityShift, MetricClass::Contamination],
+        },
+    },
+    StageDefinition {
+        stage_id: "fastq.preprocess",
+        kind: FastqStageKind::Meta,
+        semantics: StageSemantics {
+            mutates_fastq: false,
+            consumes_pairs: true,
+            produces_reports_only: false,
+            affects_metrics: &[MetricClass::Integrity, MetricClass::Retention],
         },
     },
 ];
