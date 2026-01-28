@@ -1,7 +1,7 @@
 use anyhow::{anyhow, Result};
 use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 
-use crate::image_qa::ensure_image_qa_passed;
+use crate::composer::image_qa::ensure_image_qa_passed;
 
 use super::helpers::normalize_screen_tool_list;
 
@@ -9,7 +9,7 @@ pub fn bench_fastq_screen(
     catalog: &std::collections::HashMap<String, ToolImageSpec>,
     platform: &PlatformSpec,
     runner_override: Option<RunnerKind>,
-    args: &crate::bench::args::BenchFastqScreenArgs,
+    args: &crate::composer::bench::args::BenchFastqScreenArgs,
 ) -> Result<()> {
     let _ = runner_override;
     let tools = normalize_screen_tool_list(&args.tools)?;

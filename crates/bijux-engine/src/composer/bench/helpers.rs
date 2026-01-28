@@ -1,5 +1,6 @@
-use crate::bench_tools_dir;
-use crate::{
+use crate::composer::paths::bench_tools_dir;
+use crate::executor::resolve_image_for_run as engine_resolve_image_for_run;
+use crate::planner::{
     normalize_correct_tool_list as engine_normalize_correct_tool_list,
     normalize_filter_tool_list as engine_normalize_filter_tool_list,
     normalize_merge_tool_list as engine_normalize_merge_tool_list,
@@ -9,7 +10,6 @@ use crate::{
     normalize_trim_tool_list as engine_normalize_trim_tool_list,
     normalize_umi_tool_list as engine_normalize_umi_tool_list,
     normalize_validate_tool_list as engine_normalize_validate_tool_list,
-    resolve_image_for_run as engine_resolve_image_for_run,
 };
 use anyhow::{anyhow, Context, Result};
 use bijux_environment::api::{PlatformSpec, ResolvedImage, ToolImageSpec};
@@ -117,6 +117,33 @@ pub(crate) fn write_metrics_json<T: serde::Serialize>(
     });
     std::fs::write(&run_dirs.metrics_path, serde_json::to_vec_pretty(&payload)?)
         .context("write metrics.json")?;
+    Ok(())
+}
+
+pub(crate) fn write_explain_md(
+    base_dir: &Path,
+    stage: &str,
+    selected: &[String],
+    excluded: &[String],
+    policy: Option<crate::types::Policy>,
+) -> Result<()> {
+    let path = base_dir.join("explain.md");
+    let mut lines = Vec::new();
+    lines.push(format!("# Explain: {stage}"));
+    if let Some(policy) = policy {
+        lines.push(format!("\nPolicy: `{policy:?}`"));
+    }
+    lines.push("\n## Selected tools".to_string());
+    for tool in selected {
+        lines.push(format!("- {tool}"));
+    }
+    if !excluded.is_empty() {
+        lines.push("\n## Excluded tools".to_string());
+        for tool in excluded {
+            lines.push(format!("- {tool}"));
+        }
+    }
+    std::fs::write(&path, lines.join("\n")).context("write explain.md")?;
     Ok(())
 }
 
@@ -244,8 +271,8 @@ impl DeltaMetrics {
 
 #[allow(dead_code)]
 pub(crate) fn delta_metrics(
-    before: crate::SeqkitMetrics,
-    after: crate::SeqkitMetrics,
+    before: crate::observer::SeqkitMetrics,
+    after: crate::observer::SeqkitMetrics,
 ) -> DeltaMetrics {
     let read_retention = if before.reads > 0 {
         ratio_u64(after.reads, before.reads)
