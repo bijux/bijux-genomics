@@ -11,4 +11,5 @@ pub mod contracts;
 pub mod domain;
 pub mod invariants;
 pub mod metrics;
+pub mod pipeline;
 pub mod stages;

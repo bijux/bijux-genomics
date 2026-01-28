@@ -5,6 +5,7 @@ use anyhow::{anyhow, Result};
 use bijux_core::{StageId, ToolId};
 use bijux_domain_fastq::stages::args as engine_args;
 use bijux_environment::api::RunnerKind;
+use clap::ValueEnum;
 use clap::{Args, Parser, Subcommand};
 
 #[derive(Debug, Parser)]
@@ -235,12 +236,71 @@ pub struct BenchFastqPreprocessArgs {
     pub strict: bool,
 }
 
+#[derive(Debug, Clone, Copy, ValueEnum)]
+pub enum ObjectiveArg {
+    Speed,
+    Memory,
+    Retention,
+    Balanced,
+}
+
+impl From<ObjectiveArg> for bijux_domain_fastq::pipeline::Objective {
+    fn from(value: ObjectiveArg) -> Self {
+        match value {
+            ObjectiveArg::Speed => bijux_domain_fastq::pipeline::Objective::Speed,
+            ObjectiveArg::Memory => bijux_domain_fastq::pipeline::Objective::Memory,
+            ObjectiveArg::Retention => bijux_domain_fastq::pipeline::Objective::Retention,
+            ObjectiveArg::Balanced => bijux_domain_fastq::pipeline::Objective::Balanced,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, ValueEnum)]
+pub enum BenchCorpusArg {
+    #[value(name = "fastq_5set")]
+    Fastq5Set,
+}
+
+impl From<BenchCorpusArg> for bijux_domain_fastq::pipeline::BenchCorpusId {
+    fn from(value: BenchCorpusArg) -> Self {
+        match value {
+            BenchCorpusArg::Fastq5Set => bijux_domain_fastq::pipeline::BenchCorpusId::Fastq5Set,
+        }
+    }
+}
+
 #[derive(Debug, Args, Clone, Default)]
 pub struct CommonArgs {
     #[arg(long)]
     pub list_tools: bool,
     #[arg(long)]
     pub dry_run: bool,
+}
+
+#[derive(Debug, Args, Clone)]
+pub struct FastqPreprocessArgs {
+    #[command(flatten)]
+    pub common: CommonArgs,
+    #[arg(long)]
+    pub env: Option<String>,
+    #[arg(long, alias = "sample")]
+    pub sample_id: Option<String>,
+    #[arg(long)]
+    pub r1: Option<PathBuf>,
+    #[arg(long)]
+    pub r2: Option<PathBuf>,
+    #[arg(long)]
+    pub out: Option<PathBuf>,
+    #[arg(long)]
+    pub strict: bool,
+    #[arg(long)]
+    pub auto: bool,
+    #[arg(long, value_enum, default_value_t = ObjectiveArg::Balanced)]
+    pub objective: ObjectiveArg,
+    #[arg(long, value_enum)]
+    pub bench_corpus: Option<BenchCorpusArg>,
+    #[arg(long)]
+    pub allow_partial: bool,
 }
 
 #[derive(Debug, Subcommand)]
@@ -274,9 +334,9 @@ pub enum FastqCommand {
     Contam(CommonArgs),
     #[command(
         about = "Run the FASTQ preprocess pipeline (validate → trim → filter → stats).",
-        after_help = "Examples:\n  bijux fastq preprocess --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE\n  bijux fastq preprocess --list-tools"
+        after_help = "Examples:\n  bijux fastq preprocess --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE\n  bijux fastq preprocess --auto --objective speed --bench-corpus fastq_5set --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE\n  bijux fastq preprocess --list-tools"
     )]
-    Preprocess(CommonArgs),
+    Preprocess(FastqPreprocessArgs),
     #[command(
         name = "stats-neutral",
         alias = "stats",
@@ -360,7 +420,6 @@ pub fn resolve_stage_tool(command: &Commands) -> (StageId, ToolId, CommonArgs) {
             FastqCommand::Filter(common)
             | FastqCommand::Merge(common)
             | FastqCommand::Contam(common)
-            | FastqCommand::Preprocess(common)
             | FastqCommand::Umi(common)
             | FastqCommand::ErrorCorrect(common)
             | FastqCommand::Qc(common)
@@ -368,6 +427,11 @@ pub fn resolve_stage_tool(command: &Commands) -> (StageId, ToolId, CommonArgs) {
                 StageId("fastq.trim".to_string()),
                 ToolId("fastp".to_string()),
                 common.clone(),
+            ),
+            FastqCommand::Preprocess(args) => (
+                StageId("fastq.preprocess".to_string()),
+                ToolId("fastp".to_string()),
+                args.common.clone(),
             ),
         },
         _ => (
@@ -530,7 +594,39 @@ pub fn bench_args_preprocess(
         r2: args.r2.clone(),
         out: args.out.clone(),
         strict: args.strict,
+        auto: false,
+        objective: bijux_domain_fastq::pipeline::Objective::Balanced,
+        bench_corpus: None,
+        allow_partial: false,
     }
+}
+
+pub fn preprocess_args_from_cli(
+    args: &FastqPreprocessArgs,
+) -> Result<engine_args::BenchFastqPreprocessArgs> {
+    let sample_id = args
+        .sample_id
+        .clone()
+        .ok_or_else(|| anyhow::anyhow!("--sample-id is required"))?;
+    let r1 = args
+        .r1
+        .clone()
+        .ok_or_else(|| anyhow::anyhow!("--r1 is required"))?;
+    let out = args
+        .out
+        .clone()
+        .ok_or_else(|| anyhow::anyhow!("--out is required"))?;
+    Ok(engine_args::BenchFastqPreprocessArgs {
+        sample_id,
+        r1,
+        r2: args.r2.clone(),
+        out,
+        strict: args.strict,
+        auto: args.auto,
+        objective: args.objective.into(),
+        bench_corpus: args.bench_corpus.map(Into::into),
+        allow_partial: args.allow_partial,
+    })
 }
 
 pub fn parse_runner_override(env: Option<&str>) -> Result<Option<RunnerKind>> {
