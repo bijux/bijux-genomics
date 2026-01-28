@@ -1,0 +1,174 @@
+use std::collections::BTreeMap;
+use std::path::{Path, PathBuf};
+
+use anyhow::Result;
+use regex::Regex;
+use serde::{Deserialize, Serialize};
+use walkdir::WalkDir;
+
+use crate::contracts::{FastqLayout, FastqSampleId};
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FastqSampleAssessment {
+    pub id: FastqSampleId,
+    pub gzip_r1: bool,
+    pub gzip_r2: bool,
+    pub naming_warnings: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InputAssessment {
+    pub samples: Vec<FastqSampleAssessment>,
+    pub unpaired_files: Vec<PathBuf>,
+    pub issues: Vec<String>,
+}
+
+#[must_use]
+pub fn discover_fastq_files(root: &Path) -> Vec<PathBuf> {
+    WalkDir::new(root)
+        .into_iter()
+        .filter_map(Result::ok)
+        .filter(|entry| entry.file_type().is_file())
+        .map(walkdir::DirEntry::into_path)
+        .filter(|path| is_fastq_path(path))
+        .collect()
+}
+
+#[must_use]
+pub fn is_fastq_path(path: &Path) -> bool {
+    let ext = path.extension().and_then(|value| value.to_str());
+    if let Some(ext) = ext {
+        if ext.eq_ignore_ascii_case("fastq") || ext.eq_ignore_ascii_case("fq") {
+            return true;
+        }
+        if ext.eq_ignore_ascii_case("gz") {
+            let stem = path.file_stem().and_then(|value| value.to_str());
+            if let Some(stem) = stem {
+                let stem_ext = Path::new(stem).extension().and_then(|value| value.to_str());
+                return stem_ext.is_some_and(|value| {
+                    value.eq_ignore_ascii_case("fastq") || value.eq_ignore_ascii_case("fq")
+                });
+            }
+        }
+    }
+    false
+}
+
+#[must_use]
+pub fn is_gzip_path(path: &Path) -> bool {
+    path.extension()
+        .and_then(|ext| ext.to_str())
+        .is_some_and(|ext| ext.eq_ignore_ascii_case("gz"))
+}
+
+fn infer_sample_key(re: &Regex, path: &Path) -> (String, Option<u8>) {
+    let filename = path
+        .file_name()
+        .and_then(|value| value.to_str())
+        .unwrap_or("")
+        .to_string();
+    if let Some(caps) = re.captures(&filename) {
+        let base = caps
+            .name("base")
+            .map_or_else(|| filename.clone(), |value| value.as_str().to_string());
+        let read = caps
+            .name("read")
+            .and_then(|value| value.as_str().parse::<u8>().ok());
+        return (base, read);
+    }
+    (filename, None)
+}
+
+/// Assess FASTQ inputs under a directory.
+///
+/// # Errors
+/// Returns an error if regex compilation fails.
+pub fn assess_input_dir(root: &Path) -> Result<InputAssessment> {
+    let mut issues = Vec::new();
+    let mut unpaired = Vec::new();
+    let mut grouped: BTreeMap<String, Vec<(PathBuf, Option<u8>)>> = BTreeMap::new();
+    let re = Regex::new(
+        r"(?i)^(?P<base>.+?)(?:[._-](?:R)?(?P<read>[12]))?(?:\\.f(?:ast)?q)?(?:\\.gz)?$",
+    )?;
+    for path in discover_fastq_files(root) {
+        let (key, read) = infer_sample_key(&re, &path);
+        grouped.entry(key).or_default().push((path, read));
+    }
+
+    let mut samples = Vec::new();
+    for (sample_name, files) in grouped {
+        let mut r1 = None;
+        let mut r2 = None;
+        let mut naming_warnings = Vec::new();
+        for (path, read) in files {
+            match read {
+                Some(1) => {
+                    if r1.is_some() {
+                        naming_warnings.push(format!("multiple R1 candidates for {sample_name}"));
+                    }
+                    r1 = Some(path);
+                }
+                Some(2) => {
+                    if r2.is_some() {
+                        naming_warnings.push(format!("multiple R2 candidates for {sample_name}"));
+                    }
+                    r2 = Some(path);
+                }
+                _ => {
+                    if r1.is_some() {
+                        naming_warnings.push(format!("ambiguous FASTQ filename for {sample_name}"));
+                    } else {
+                        r1 = Some(path);
+                    }
+                }
+            }
+        }
+        let Some(r1_path) = r1 else {
+            issues.push(format!("sample {sample_name} missing R1"));
+            continue;
+        };
+        let (layout, r2_path) = match r2 {
+            Some(r2_path) => (FastqLayout::PairedEnd, Some(r2_path)),
+            None => (FastqLayout::SingleEnd, None),
+        };
+        if layout == FastqLayout::PairedEnd && r2_path.is_none() {
+            issues.push(format!("sample {sample_name} missing R2"));
+        }
+        let assessment = FastqSampleAssessment {
+            id: FastqSampleId {
+                sample_name: sample_name.clone(),
+                layout,
+                r1_path: r1_path.clone(),
+                r2_path: r2_path.clone(),
+            },
+            gzip_r1: is_gzip_path(&r1_path),
+            gzip_r2: r2_path.as_ref().is_some_and(|path| is_gzip_path(path)),
+            naming_warnings,
+        };
+        samples.push(assessment);
+    }
+
+    for sample in &samples {
+        if sample.id.layout == FastqLayout::SingleEnd {
+            if let Some(r2) = sample.id.r2_path.clone() {
+                unpaired.push(r2);
+            }
+        }
+    }
+
+    Ok(InputAssessment {
+        samples,
+        unpaired_files: unpaired,
+        issues,
+    })
+}
+
+/// Write the input assessment to disk.
+///
+/// # Errors
+/// Returns an error if serialization or writing fails.
+pub fn write_input_assessment(path: &Path, assessment: &InputAssessment) -> Result<()> {
+    let payload = serde_json::to_string_pretty(assessment)?;
+    std::fs::write(path, payload)?;
+    Ok(())
+}

@@ -12,6 +12,9 @@ sha2.workspace = true
 tracing.workspace = true
 rusqlite.workspace = true
 uuid.workspace = true
+walkdir.workspace = true
+regex.workspace = true
+chrono.workspace = true
 bijux-analyze = { path = "../bijux-analyze" }
 bijux-domain-adapter = { path = "../bijux-domain-adapter" }
 bijux-measure = { path = "../bijux-measure" }
