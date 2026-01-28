@@ -5,6 +5,8 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+use bijux_core::RunMetadataV1;
+
 use crate::contracts::FastqLayout;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -28,15 +30,18 @@ pub struct ToolImageDigest {
 pub struct RunStageEntry {
     pub stage_id: String,
     pub tool_id: String,
-    pub metrics_path: PathBuf,
+    pub execution_metrics_path: PathBuf,
+    pub domain_metrics_path: PathBuf,
     pub logs_dir: PathBuf,
     pub outputs_dir: PathBuf,
+    pub tool_invocation_path: PathBuf,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RunManifest {
     pub run_id: String,
-    pub timestamp: String,
+    pub started_at: String,
+    pub finished_at: String,
     pub pipeline: String,
     pub layout: FastqLayout,
     pub stages: Vec<RunStageEntry>,
@@ -45,26 +50,43 @@ pub struct RunManifest {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RunIndexEntry {
     pub run_id: String,
+    pub domain: String,
     pub pipeline: String,
     pub stages: Vec<String>,
     pub layout: FastqLayout,
     pub tools: Vec<String>,
     pub objective: Option<String>,
+    pub platform: String,
+    pub success: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RunIndex {
-    pub runs: Vec<RunIndexEntry>,
+pub struct RunIndexLine {
+    pub schema_version: u32,
+    pub run: RunIndexEntry,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ExecutionEvent {
+    pub timestamp: String,
+    pub event: String,
+    pub stage: Option<String>,
+    pub tool: Option<String>,
+    pub detail: Option<String>,
 }
 
 #[derive(Debug, Clone)]
 pub struct RunLayout {
     pub run_dir: PathBuf,
+    pub meta_dir: PathBuf,
+    pub stages_dir: PathBuf,
+    pub metrics_dir: PathBuf,
+    pub logs_dir: PathBuf,
     pub assessment_path: PathBuf,
     pub manifest_path: PathBuf,
-    pub environment_path: PathBuf,
-    pub summary_dir: PathBuf,
-    pub stages_dir: PathBuf,
+    pub metadata_path: PathBuf,
+    pub events_path: PathBuf,
 }
 
 /// Create the canonical run layout under the base directory.
@@ -72,23 +94,25 @@ pub struct RunLayout {
 /// # Errors
 /// Returns an error if directories cannot be created.
 pub fn create_run_layout(base_dir: &Path) -> Result<(String, RunLayout)> {
-    let timestamp = Utc::now();
-    let run_id = format!(
-        "run_{}_{}",
-        timestamp.format("%Y%m%d%H%M%S"),
-        Uuid::new_v4()
-    );
+    let run_id = Uuid::new_v4().to_string();
     let run_dir = base_dir.join("runs").join(&run_id);
-    let summary_dir = run_dir.join("summary");
+    let meta_dir = run_dir.join("meta");
     let stages_dir = run_dir.join("stages");
-    std::fs::create_dir_all(&summary_dir).context("create run summary dir")?;
+    let metrics_dir = run_dir.join("metrics");
+    let logs_dir = run_dir.join("logs");
+    std::fs::create_dir_all(&meta_dir).context("create run meta dir")?;
     std::fs::create_dir_all(&stages_dir).context("create run stages dir")?;
+    std::fs::create_dir_all(&metrics_dir).context("create run metrics dir")?;
+    std::fs::create_dir_all(&logs_dir).context("create run logs dir")?;
     let layout = RunLayout {
-        assessment_path: run_dir.join("input_assessment.json"),
-        manifest_path: run_dir.join("run_manifest.json"),
-        environment_path: run_dir.join("environment.json"),
-        summary_dir,
+        assessment_path: meta_dir.join("input_assessment.json"),
+        manifest_path: meta_dir.join("run_manifest.json"),
+        metadata_path: meta_dir.join("run_metadata.json"),
+        events_path: meta_dir.join("events.jsonl"),
+        meta_dir,
         stages_dir,
+        metrics_dir,
+        logs_dir,
         run_dir,
     };
     Ok((run_id, layout))
@@ -100,7 +124,17 @@ pub fn create_run_layout(base_dir: &Path) -> Result<(String, RunLayout)> {
 /// Returns an error if serialization or writing fails.
 pub fn write_environment(layout: &RunLayout, env: &RunEnvironment) -> Result<()> {
     let payload = serde_json::to_string_pretty(env)?;
-    std::fs::write(&layout.environment_path, payload)?;
+    std::fs::write(layout.meta_dir.join("environment.json"), payload)?;
+    Ok(())
+}
+
+/// Write run metadata.
+///
+/// # Errors
+/// Returns an error if serialization or writing fails.
+pub fn write_run_metadata(layout: &RunLayout, metadata: &RunMetadataV1) -> Result<()> {
+    let payload = serde_json::to_string_pretty(metadata)?;
+    std::fs::write(&layout.metadata_path, payload)?;
     Ok(())
 }
 
@@ -114,21 +148,39 @@ pub fn write_manifest(layout: &RunLayout, manifest: &RunManifest) -> Result<()> 
     Ok(())
 }
 
-/// Append a run entry to `runs/index.json`.
+/// Append a run entry to `bijux-runs/index.jsonl`.
 ///
 /// # Errors
-/// Returns an error if the index cannot be read or written.
+/// Returns an error if the index cannot be written.
 pub fn update_run_index(base_dir: &Path, entry: RunIndexEntry) -> Result<()> {
-    let index_path = base_dir.join("runs").join("index.json");
-    let mut index = if index_path.exists() {
-        let data = std::fs::read_to_string(&index_path)?;
-        serde_json::from_str(&data).unwrap_or(RunIndex { runs: Vec::new() })
-    } else {
-        RunIndex { runs: Vec::new() }
+    let index_path = base_dir.join("bijux-runs").join("index.jsonl");
+    if let Some(parent) = index_path.parent() {
+        std::fs::create_dir_all(parent)?;
+    }
+    let line = RunIndexLine {
+        schema_version: 1,
+        run: entry,
     };
-    index.runs.push(entry);
-    let payload = serde_json::to_string_pretty(&index)?;
-    std::fs::write(index_path, payload)?;
+    let payload = serde_json::to_string(&line)?;
+    let mut file = std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(index_path)?;
+    std::io::Write::write_all(&mut file, format!("{payload}\n").as_bytes())?;
+    Ok(())
+}
+
+/// Append an execution event to `events.jsonl`.
+///
+/// # Errors
+/// Returns an error if the file cannot be written.
+pub fn append_event(layout: &RunLayout, event: &ExecutionEvent) -> Result<()> {
+    let payload = serde_json::to_string(event)?;
+    let mut file = std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(&layout.events_path)?;
+    std::io::Write::write_all(&mut file, format!("{payload}\n").as_bytes())?;
     Ok(())
 }
 

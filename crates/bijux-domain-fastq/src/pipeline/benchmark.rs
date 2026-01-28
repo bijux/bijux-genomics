@@ -5,7 +5,8 @@ use anyhow::{anyhow, Context, Result};
 use serde::{Deserialize, Serialize};
 
 use super::objective::Objective;
-use super::run_layout::{RunEnvironment, RunIndex, RunManifest};
+use super::run_layout::{RunIndexLine, RunManifest};
+use bijux_core::RunMetadataV1;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RunBenchmarkRecord {
@@ -46,34 +47,45 @@ pub fn benchmark_runs(
     stage: &str,
     objective: Objective,
 ) -> Result<BenchmarkSummary> {
-    let index_path = runs_dir.join("index.json");
+    let base_dir = runs_dir
+        .parent()
+        .map_or_else(|| PathBuf::from("."), PathBuf::from);
+    let index_path = base_dir.join("bijux-runs").join("index.jsonl");
     if !index_path.exists() {
         return Err(anyhow!(
-            "missing runs/index.json under {}",
-            runs_dir.display()
+            "missing bijux-runs/index.jsonl under {}",
+            base_dir.display()
         ));
     }
-    let index: RunIndex = serde_json::from_str(&std::fs::read_to_string(&index_path)?)?;
+    let mut index_lines = Vec::new();
+    for line in std::fs::read_to_string(&index_path)?.lines() {
+        let entry: RunIndexLine = serde_json::from_str(line)?;
+        index_lines.push(entry.run);
+    }
 
     let mut records = Vec::new();
-    for entry in index.runs {
+    for entry in index_lines {
         if !entry.stages.iter().any(|s| s == stage) {
             continue;
         }
         let run_path = runs_dir.join(&entry.run_id);
-        let manifest_path = run_path.join("run_manifest.json");
-        let env_path = run_path.join("environment.json");
+        let manifest_path = run_path.join("meta").join("run_manifest.json");
+        let metadata_path = run_path.join("meta").join("run_metadata.json");
         let manifest: RunManifest =
             serde_json::from_str(&std::fs::read_to_string(&manifest_path)?)?;
-        let env: RunEnvironment = serde_json::from_str(&std::fs::read_to_string(&env_path)?)?;
+        let metadata: RunMetadataV1 =
+            serde_json::from_str(&std::fs::read_to_string(&metadata_path)?)?;
         for stage_entry in manifest.stages.iter().filter(|s| s.stage_id == stage) {
-            let (runtime_s, memory_mb, retention) = load_metrics(&stage_entry.metrics_path)
-                .with_context(|| {
-                    format!(
-                        "load metrics for {} {}",
-                        stage_entry.stage_id, stage_entry.tool_id
-                    )
-                })?;
+            let (runtime_s, memory_mb, retention) = load_metrics(
+                &stage_entry.execution_metrics_path,
+                &stage_entry.domain_metrics_path,
+            )
+            .with_context(|| {
+                format!(
+                    "load metrics for {} {}",
+                    stage_entry.stage_id, stage_entry.tool_id
+                )
+            })?;
             records.push(RunBenchmarkRecord {
                 run_id: manifest.run_id.clone(),
                 stage_id: stage_entry.stage_id.clone(),
@@ -81,9 +93,9 @@ pub fn benchmark_runs(
                 runtime_s,
                 memory_mb,
                 read_retention: retention,
-                platform: env.platform.clone(),
-                runner: env.runner.clone(),
-                hostname: env.hostname.clone(),
+                platform: metadata.platform.clone(),
+                runner: metadata.platform.clone(),
+                hostname: metadata.hostname.clone(),
             });
         }
     }
@@ -202,20 +214,20 @@ fn median(values: Vec<f64>) -> Option<f64> {
     }
 }
 
-fn load_metrics(path: &Path) -> Result<(f64, f64, Option<f64>)> {
-    let data = std::fs::read_to_string(path)?;
-    let value: serde_json::Value = serde_json::from_str(&data)?;
-    let runtime_s = value
-        .get("execution")
-        .and_then(|v| v.get("runtime_s"))
+fn load_metrics(execution_path: &Path, domain_path: &Path) -> Result<(f64, f64, Option<f64>)> {
+    let execution_data = std::fs::read_to_string(execution_path)?;
+    let execution_value: serde_json::Value = serde_json::from_str(&execution_data)?;
+    let runtime_s = execution_value
+        .get("runtime_s")
         .and_then(serde_json::Value::as_f64)
         .ok_or_else(|| anyhow!("missing runtime_s"))?;
-    let memory_mb = value
-        .get("execution")
-        .and_then(|v| v.get("memory_mb"))
+    let memory_mb = execution_value
+        .get("memory_mb")
         .and_then(serde_json::Value::as_f64)
         .ok_or_else(|| anyhow!("missing memory_mb"))?;
-    let read_retention = value
+    let domain_data = std::fs::read_to_string(domain_path)?;
+    let domain_value: serde_json::Value = serde_json::from_str(&domain_data)?;
+    let read_retention = domain_value
         .get("metrics")
         .and_then(|v| v.get("delta_metrics"))
         .and_then(|v| v.get("read_retention"))

@@ -12,13 +12,14 @@ pub use benchmark::{
 pub use corpus::{bench_corpus, BenchCorpus, BenchCorpusId, BenchDataset};
 pub use default::{fastq_default_pipeline, DefaultPipelineOptions};
 pub use discovery::{
-    assess_input_dir, discover_fastq_files, write_input_assessment, InputAssessment,
+    assess_input_dir, discover_fastq_files, write_input_assessment, InputAssessmentV1,
 };
 pub use objective::Objective;
 pub use ranking::{rank_tools_for_stage, Disqualification, StageSelection, ToolScore};
 pub use run_layout::{
-    create_run_layout, now_string, update_run_index, write_environment, write_manifest,
-    RunEnvironment, RunIndexEntry, RunLayout, RunManifest, RunStageEntry, ToolImageDigest,
+    append_event, create_run_layout, now_string, update_run_index, write_environment,
+    write_manifest, write_run_metadata, ExecutionEvent, RunEnvironment, RunIndexEntry, RunLayout,
+    RunManifest, RunStageEntry, ToolImageDigest,
 };
 pub use selection::write_selection_report;
 pub mod benchmark;

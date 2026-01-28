@@ -13,6 +13,7 @@ uuid.workspace = true
 chrono.workspace = true
 tracing.workspace = true
 walkdir.workspace = true
+sysinfo.workspace = true
 
 [dev-dependencies]
 bijux-analyze = { path = "../bijux-analyze" }
