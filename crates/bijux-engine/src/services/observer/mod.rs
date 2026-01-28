@@ -7,12 +7,13 @@ pub use seqkit::{
     SeqkitMetrics,
 };
 
-use anyhow::Result;
+use anyhow::{Context, Result};
+use std::path::Path;
 
-use crate::types::{MetricSet, StageResult};
+use crate::core::types::{ExplainPlan, MetricSet, StageResult};
 
 pub fn observe_stage(result: &StageResult) -> Result<MetricSet> {
-    if crate::types::trace_enabled() {
+    if crate::core::types::trace_enabled() {
         println!(
             "[engine][observer] stage={} tool={}",
             result.invocation.stage_id, result.invocation.tool_id
@@ -22,4 +23,14 @@ pub fn observe_stage(result: &StageResult) -> Result<MetricSet> {
         schema: "engine.metric.v1".to_string(),
         metrics: serde_json::json!({}),
     })
+}
+
+/// Write `explain_plan.json` for a run.
+///
+/// # Errors
+/// Returns an error if the file cannot be written.
+pub fn write_explain_plan(path: &Path, plan: &ExplainPlan) -> Result<()> {
+    let payload = serde_json::to_vec_pretty(plan)?;
+    std::fs::write(path, payload).context("write explain_plan.json")?;
+    Ok(())
 }

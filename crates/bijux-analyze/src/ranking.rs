@@ -2,33 +2,32 @@ use std::collections::BTreeMap;
 
 use serde::Serialize;
 
-use super::super::helpers::{format_optional, min_max, normalize_inverted};
-
 #[derive(Debug, Clone, Copy, Serialize)]
-pub(crate) enum RankingMode {
+pub enum RankingMode {
     FastestAcceptable,
     MostConservative,
     BalancedPareto,
 }
 
 #[derive(Debug, Serialize)]
-pub(crate) struct RankingEntry {
-    pub(crate) tool: String,
-    pub(crate) score: f64,
-    pub(crate) explain: String,
+pub struct RankingEntry {
+    pub tool: String,
+    pub score: f64,
+    pub explain: String,
 }
 
 #[derive(Debug)]
-pub(crate) struct RankInput {
-    pub(crate) tool: String,
-    pub(crate) runtime_s: f64,
-    pub(crate) memory_mb: f64,
-    pub(crate) read_retention: Option<f64>,
-    pub(crate) base_retention: Option<f64>,
-    pub(crate) error_reduction_proxy: Option<f64>,
+pub struct RankInput {
+    pub tool: String,
+    pub runtime_s: f64,
+    pub memory_mb: f64,
+    pub read_retention: Option<f64>,
+    pub base_retention: Option<f64>,
+    pub error_reduction_proxy: Option<f64>,
 }
 
-pub(crate) fn build_rankings(inputs: &[RankInput]) -> BTreeMap<String, Vec<RankingEntry>> {
+#[must_use]
+pub fn build_rankings(inputs: &[RankInput]) -> BTreeMap<String, Vec<RankingEntry>> {
     let mut rankings = BTreeMap::new();
     rankings.insert(
         format!("{:?}", RankingMode::FastestAcceptable),
@@ -45,7 +44,7 @@ pub(crate) fn build_rankings(inputs: &[RankInput]) -> BTreeMap<String, Vec<Ranki
     rankings
 }
 
-pub(crate) fn print_rank_explain(stage: &str, rankings: &BTreeMap<String, Vec<RankingEntry>>) {
+pub fn print_rank_explain(stage: &str, rankings: &BTreeMap<String, Vec<RankingEntry>>) {
     println!("[bijux][rank] stage: {stage}");
     for (mode, entries) in rankings {
         println!("[bijux][rank] mode: {mode}");
@@ -130,4 +129,34 @@ fn rank_balanced(inputs: &[RankInput]) -> Vec<RankingEntry> {
             .unwrap_or(std::cmp::Ordering::Equal)
     });
     entries
+}
+
+fn normalize_inverted(value: f64, min: f64, max: f64) -> f64 {
+    if (max - min).abs() < f64::EPSILON {
+        1.0
+    } else {
+        1.0 - ((value - min) / (max - min)).clamp(0.0, 1.0)
+    }
+}
+
+fn min_max(values: impl Iterator<Item = f64>) -> (f64, f64) {
+    let mut min = f64::INFINITY;
+    let mut max = f64::NEG_INFINITY;
+    for value in values {
+        if value < min {
+            min = value;
+        }
+        if value > max {
+            max = value;
+        }
+    }
+    if min == f64::INFINITY {
+        (0.0, 0.0)
+    } else {
+        (min, max)
+    }
+}
+
+fn format_optional(value: Option<f64>) -> String {
+    value.map_or_else(|| "n/a".to_string(), |v| format!("{v:.3}"))
 }

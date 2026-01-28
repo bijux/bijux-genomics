@@ -2,7 +2,10 @@ use std::collections::BTreeMap;
 use std::fs;
 use std::path::Path;
 
-use crate::domain::{delta_from_counts, qc_class_for_stage};
+use crate::domain::{
+    delta_from_counts, qc_class_for_stage, semantic_filter, semantic_stats, semantic_trim,
+    semantic_validate,
+};
 use anyhow::{anyhow, Context, Result};
 use bijux_analyze::{
     derived_metric_spec, derived_metrics_for_stage, metric_kind_for_stage, metric_spec,
@@ -13,7 +16,7 @@ use bijux_analyze::{
 
 use super::super::helpers::ratio_u64;
 use super::failure::BenchmarkFailure;
-use super::ranking::{build_rankings, print_rank_explain, RankInput};
+use bijux_analyze::{build_rankings, print_rank_explain, RankInput};
 
 pub(crate) fn write_trim_report(
     base_dir: &Path,
@@ -31,6 +34,11 @@ pub(crate) fn write_trim_report(
     );
     let derived: Vec<_> = records.iter().map(derived_trim_metrics).collect();
     report.insert("derived_metrics", serde_json::to_value(&derived)?);
+    let semantic: Vec<_> = records
+        .iter()
+        .map(|record| semantic_trim(&record.metrics.metrics))
+        .collect();
+    report.insert("semantic_metrics", serde_json::to_value(&semantic)?);
     let rankings = rank_trim_tools(records);
     report.insert("rankings", serde_json::to_value(&rankings)?);
     let json = serde_json::to_string_pretty(&report)?;
@@ -55,6 +63,11 @@ pub(crate) fn write_validate_report(
         "sanity_flags",
         serde_json::to_value(sanity_flags_validate(records))?,
     );
+    let semantic: Vec<_> = records
+        .iter()
+        .map(|record| semantic_validate(&record.metrics.metrics))
+        .collect();
+    report.insert("semantic_metrics", serde_json::to_value(&semantic)?);
     if let Some(class) = qc_class_for_stage("fastq.validate") {
         report.insert("qc_class", serde_json::to_value(class)?);
     }
@@ -82,6 +95,11 @@ pub(crate) fn write_filter_report(
         "sanity_flags",
         serde_json::to_value(sanity_flags_filter(records))?,
     );
+    let semantic: Vec<_> = records
+        .iter()
+        .map(|record| semantic_filter(&record.metrics.metrics))
+        .collect();
+    report.insert("semantic_metrics", serde_json::to_value(&semantic)?);
     let derived: Vec<_> = records.iter().map(derived_filter_metrics).collect();
     report.insert("derived_metrics", serde_json::to_value(&derived)?);
     let rankings = rank_filter_tools(records);
@@ -211,6 +229,11 @@ pub(crate) fn write_stats_report(
         "sanity_flags",
         serde_json::to_value(sanity_flags_stats(records))?,
     );
+    let semantic: Vec<_> = records
+        .iter()
+        .map(|record| semantic_stats(&record.metrics.metrics))
+        .collect();
+    report.insert("semantic_metrics", serde_json::to_value(&semantic)?);
     let json = serde_json::to_string_pretty(&report)?;
     fs::write(&path, json).context("write report.json")?;
     if explain {
@@ -538,7 +561,7 @@ fn derived_umi_metrics(record: &BenchmarkRecord<FastqUmiMetrics>) -> serde_json:
 
 fn rank_trim_tools(
     records: &[BenchmarkRecord<FastqTrimMetrics>],
-) -> BTreeMap<String, Vec<super::ranking::RankingEntry>> {
+) -> BTreeMap<String, Vec<bijux_analyze::RankingEntry>> {
     let inputs: Vec<_> = records
         .iter()
         .map(|record| RankInput {
@@ -564,7 +587,7 @@ fn rank_trim_tools(
 
 fn rank_filter_tools(
     records: &[BenchmarkRecord<FastqFilterMetrics>],
-) -> BTreeMap<String, Vec<super::ranking::RankingEntry>> {
+) -> BTreeMap<String, Vec<bijux_analyze::RankingEntry>> {
     let inputs: Vec<_> = records
         .iter()
         .map(|record| RankInput {
@@ -590,7 +613,7 @@ fn rank_filter_tools(
 
 fn rank_merge_tools(
     records: &[BenchmarkRecord<FastqMergeMetrics>],
-) -> BTreeMap<String, Vec<super::ranking::RankingEntry>> {
+) -> BTreeMap<String, Vec<bijux_analyze::RankingEntry>> {
     let inputs: Vec<_> = records
         .iter()
         .map(|record| RankInput {
@@ -607,7 +630,7 @@ fn rank_merge_tools(
 
 fn rank_correct_tools(
     records: &[BenchmarkRecord<FastqCorrectMetrics>],
-) -> BTreeMap<String, Vec<super::ranking::RankingEntry>> {
+) -> BTreeMap<String, Vec<bijux_analyze::RankingEntry>> {
     let inputs: Vec<_> = records
         .iter()
         .map(|record| RankInput {
@@ -633,7 +656,7 @@ fn rank_correct_tools(
 
 fn rank_umi_tools(
     records: &[BenchmarkRecord<FastqUmiMetrics>],
-) -> BTreeMap<String, Vec<super::ranking::RankingEntry>> {
+) -> BTreeMap<String, Vec<bijux_analyze::RankingEntry>> {
     let inputs: Vec<_> = records
         .iter()
         .map(|record| RankInput {
@@ -653,7 +676,7 @@ fn rank_umi_tools(
 
 fn rank_validate_tools(
     records: &[BenchmarkRecord<FastqValidateMetrics>],
-) -> BTreeMap<String, Vec<super::ranking::RankingEntry>> {
+) -> BTreeMap<String, Vec<bijux_analyze::RankingEntry>> {
     let inputs: Vec<_> = records
         .iter()
         .map(|record| RankInput {

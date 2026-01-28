@@ -10,6 +10,9 @@ use serde_json::Value as JsonValue;
 use thiserror::Error;
 use tracing::warn;
 
+pub mod ranking;
+pub use ranking::{build_rankings, print_rank_explain, RankInput, RankingEntry, RankingMode};
+
 pub type Result<T> = std::result::Result<T, BenchError>;
 
 pub trait StageMetricSchema {

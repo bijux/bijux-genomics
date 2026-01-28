@@ -39,11 +39,8 @@ fn cli_does_not_import_engine_internals() {
         "crates/bijux-cli/src",
         &[
             "bijux_engine::internal",
-            "bijux_engine::planner::",
-            "bijux_engine::executor::",
-            "bijux_engine::observer::",
-            "bijux_engine::validator::",
-            "bijux_engine::types::",
+            "bijux_engine::core::",
+            "bijux_engine::services::",
         ],
     );
 }

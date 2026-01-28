@@ -251,8 +251,8 @@ pub enum FastqCommand {
     Filter(CommonArgs),
     Merge(CommonArgs),
     #[command(
-        about = "Trim FASTQ reads.",
-        after_help = "Examples:\n  bijux fastq trim --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE --tools fastp\n  bijux fastq trim --list-tools"
+        about = "Trim FASTQ reads (quality/adapters) and emit canonical outputs.",
+        after_help = "Example:\n  bijux fastq trim --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE --tools fastp\n\nNext stages: filter -> stats"
     )]
     Trim(FastqTrimArgs),
     Contam(CommonArgs),

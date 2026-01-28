@@ -7,13 +7,8 @@
 )]
 
 pub mod api;
-pub mod composer;
-pub mod errors;
-pub mod executor;
+pub mod core;
 pub mod internal;
-pub mod observer;
-pub mod planner;
-pub mod types;
-pub mod validator;
+pub mod services;
 
 pub use bijux_environment::api::ResolvedImage;
