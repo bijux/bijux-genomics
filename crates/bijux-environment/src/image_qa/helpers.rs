@@ -139,3 +139,21 @@ pub fn ensure_image_qa_passed<S: ::std::hash::BuildHasher>(
     }
     Ok(())
 }
+
+/// Ensure tool-level QA results exist for a stage/tool set.
+///
+/// # Errors
+/// Returns an error if QA results are missing or cannot be read.
+pub fn ensure_tool_qa_passed<S: ::std::hash::BuildHasher>(
+    stage: &str,
+    tools: &[String],
+    platform: &PlatformSpec,
+    catalog: &HashMap<String, ToolImageSpec, S>,
+) -> Result<()> {
+    ensure_image_qa_passed(stage, tools, platform, catalog).map_err(|err| {
+        anyhow!(
+            "tool QA failed or missing for {stage}; run `bijux image-qa --platform {}`: {err}",
+            platform.name
+        )
+    })
+}

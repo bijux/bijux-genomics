@@ -1,0 +1,13 @@
+Summarize FASTQ read statistics.
+
+Usage: bijux fastq stats [OPTIONS]
+
+Options:
+      --list-tools  
+      --dry-run     
+  -h, --help        Print help
+
+Example:
+  bijux fastq stats --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE --tools seqkit_stats
+
+Next stages: report/compare

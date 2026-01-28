@@ -3,19 +3,9 @@ use super::common::{
     RetentionMetrics, SemanticMetrics,
 };
 use super::deltas::delta_from_counts;
-
 #[must_use]
 pub fn semantic_trim(metrics: &bijux_analyze::FastqTrimMetrics) -> SemanticMetrics {
-    let delta = delta_from_counts(
-        metrics.reads_in,
-        metrics.reads_out,
-        metrics.bases_in,
-        metrics.bases_out,
-        metrics.mean_q_before,
-        metrics.mean_q_after,
-        0.0,
-        0.0,
-    );
+    let delta = &metrics.delta_metrics;
     SemanticMetrics {
         integrity: IntegrityMetrics {
             reads_in: metric_u64(
@@ -66,7 +56,7 @@ pub fn semantic_trim(metrics: &bijux_analyze::FastqTrimMetrics) -> SemanticMetri
                 "Mean quality after trimming.",
             ),
             delta_mean_q: metric_f64(
-                delta.delta_mean_q,
+                delta.mean_q_delta,
                 "Mean Q shift",
                 "(-45,45)",
                 "Mean quality change.",
@@ -79,16 +69,7 @@ pub fn semantic_trim(metrics: &bijux_analyze::FastqTrimMetrics) -> SemanticMetri
 
 #[must_use]
 pub fn semantic_filter(metrics: &bijux_analyze::FastqFilterMetrics) -> SemanticMetrics {
-    let delta = delta_from_counts(
-        metrics.reads_in,
-        metrics.reads_out,
-        metrics.reads_in,
-        metrics.reads_out,
-        metrics.mean_q_before,
-        metrics.mean_q_after,
-        0.0,
-        0.0,
-    );
+    let delta = &metrics.delta_metrics;
     SemanticMetrics {
         integrity: IntegrityMetrics {
             reads_in: metric_u64(
@@ -144,7 +125,7 @@ pub fn semantic_filter(metrics: &bijux_analyze::FastqFilterMetrics) -> SemanticM
                 "Mean quality after filtering.",
             ),
             delta_mean_q: metric_f64(
-                delta.delta_mean_q,
+                delta.mean_q_delta,
                 "Mean Q shift",
                 "(-45,45)",
                 "Mean quality change.",

@@ -10,8 +10,8 @@ pub mod trim;
 pub mod validate;
 
 pub use contracts::{
-    contract_for_stage, inspect_headers, log_header_warnings, normalize_outputs, preflight_stage,
-    HeaderInspection, NormalizedOutputs,
+    contract_for_stage, ensure_umi_headers, inspect_headers, log_header_warnings,
+    normalize_outputs, preflight_stage, HeaderInspection, NormalizedOutputs,
 };
 pub use failure::RawFailure;
 pub use model::{FastqArtifact, FastqArtifactKind, FastqPE, FastqSE, FastqStats};

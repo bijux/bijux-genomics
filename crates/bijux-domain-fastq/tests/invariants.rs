@@ -17,6 +17,12 @@ fn old_metrics_schema_is_rejected() {
         bases_out: 90,
         mean_q_before: 30.0,
         mean_q_after: 31.0,
+        delta_metrics: bijux_analyze::FastqDeltaMetrics {
+            read_retention: 0.9,
+            base_retention: 0.9,
+            mean_q_delta: 1.0,
+            gc_delta: 0.1,
+        },
     };
     let mut set = bijux_analyze::MetricSet::new(metrics);
     set.metrics_schema = "fastq_trim_v0".to_string();

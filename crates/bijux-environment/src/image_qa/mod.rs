@@ -1,3 +1,4 @@
+mod apptainer;
 mod datasets;
 mod helpers;
 mod logging;
@@ -5,7 +6,7 @@ mod runner;
 mod stages;
 mod support;
 
-pub use helpers::ensure_image_qa_passed;
+pub use helpers::{ensure_image_qa_passed, ensure_tool_qa_passed};
 pub use runner::run_image_qa;
 pub(crate) use support::SeqkitMetrics;
 

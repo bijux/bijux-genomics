@@ -6,6 +6,7 @@ See also:
 
 - docs/domains/fastq_lifecycle.md
 - docs/contracts/fastq_v1.md
+- docs/domains/fastq_iteration1.md
 
 ## Pipeline Stages
 

@@ -59,3 +59,33 @@ fn fastq_filter_help_snapshot() -> Result<()> {
     )?;
     Ok(())
 }
+
+#[test]
+fn fastq_merge_help_snapshot() -> Result<()> {
+    assert_help_contains(
+        "merge",
+        "tests/snapshots/fastq_merge_help.txt",
+        &["--r1", "--r2", "--out", "--sample-id", "--tools"],
+    )?;
+    Ok(())
+}
+
+#[test]
+fn fastq_stats_help_snapshot() -> Result<()> {
+    assert_help_contains(
+        "stats",
+        "tests/snapshots/fastq_stats_help.txt",
+        &["--r1", "--out", "--sample-id", "--tools", "--list-tools"],
+    )?;
+    Ok(())
+}
+
+#[test]
+fn fastq_preprocess_help_snapshot() -> Result<()> {
+    assert_help_contains(
+        "preprocess",
+        "tests/snapshots/fastq_preprocess_help.txt",
+        &["--r1", "--out", "--sample-id"],
+    )?;
+    Ok(())
+}

@@ -98,6 +98,7 @@ pub enum MetricId {
     ContaminationRate,
     GcPercent,
     LengthHistogram,
+    DeltaMetrics,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -150,7 +151,7 @@ pub struct StageMetricSpec {
     pub invariants: &'static [&'static str],
 }
 
-pub const METRIC_REGISTRY: [MetricSpec; 25] = [
+pub const METRIC_REGISTRY: [MetricSpec; 26] = [
     MetricSpec {
         id: MetricId::RuntimeS,
         name: "runtime_s",
@@ -500,6 +501,16 @@ pub const METRIC_REGISTRY: [MetricSpec; 25] = [
         measured: true,
         derived: false,
     },
+    MetricSpec {
+        id: MetricId::DeltaMetrics,
+        name: "delta_metrics",
+        meaning: "Derived delta metrics bundle",
+        direction: MetricDirection::Neutral,
+        range: None,
+        stages: &["fastq.trim", "fastq.filter"],
+        measured: false,
+        derived: true,
+    },
 ];
 
 pub const DERIVED_METRIC_REGISTRY: [DerivedMetricSpec; 4] = [
@@ -540,13 +551,14 @@ pub const DERIVED_METRIC_REGISTRY: [DerivedMetricSpec; 4] = [
     },
 ];
 
-pub const FASTQ_TRIM_METRICS: [MetricId; 6] = [
+pub const FASTQ_TRIM_METRICS: [MetricId; 7] = [
     MetricId::ReadsIn,
     MetricId::ReadsOut,
     MetricId::BasesIn,
     MetricId::BasesOut,
     MetricId::MeanQBefore,
     MetricId::MeanQAfter,
+    MetricId::DeltaMetrics,
 ];
 
 pub const FASTQ_VALIDATE_METRICS: [MetricId; 4] = [
@@ -556,12 +568,13 @@ pub const FASTQ_VALIDATE_METRICS: [MetricId; 4] = [
     MetricId::MeanQ,
 ];
 
-pub const FASTQ_FILTER_METRICS: [MetricId; 5] = [
+pub const FASTQ_FILTER_METRICS: [MetricId; 6] = [
     MetricId::ReadsIn,
     MetricId::ReadsOut,
     MetricId::ReadsDropped,
     MetricId::MeanQBefore,
     MetricId::MeanQAfter,
+    MetricId::DeltaMetrics,
 ];
 
 pub const FASTQ_MERGE_METRICS: [MetricId; 5] = [
@@ -787,6 +800,56 @@ pub struct BenchmarkContext {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
+pub struct FastqDeltaMetrics {
+    pub read_retention: f64,
+    pub base_retention: f64,
+    pub mean_q_delta: f64,
+    pub gc_delta: f64,
+}
+
+impl FastqDeltaMetrics {
+    /// Validate delta metrics.
+    ///
+    /// # Errors
+    /// Returns an error if delta values are invalid.
+    pub fn validate(&self) -> Result<()> {
+        if !self.mean_q_delta.is_finite() {
+            return Err(BenchError::Validation(
+                "mean_q_delta must be finite".to_string(),
+            ));
+        }
+        if !self.gc_delta.is_finite() {
+            return Err(BenchError::Validation(
+                "gc_delta must be finite".to_string(),
+            ));
+        }
+        if !(0.0..=1.0).contains(&self.read_retention) {
+            return Err(BenchError::Validation(
+                "read_retention must be within [0, 1]".to_string(),
+            ));
+        }
+        if !(0.0..=1.0).contains(&self.base_retention) {
+            return Err(BenchError::Validation(
+                "base_retention must be within [0, 1]".to_string(),
+            ));
+        }
+        Ok(())
+    }
+}
+
+impl Default for FastqDeltaMetrics {
+    fn default() -> Self {
+        Self {
+            read_retention: 0.0,
+            base_retention: 0.0,
+            mean_q_delta: 0.0,
+            gc_delta: 0.0,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct FastqTrimMetrics {
     pub reads_in: u64,
     pub reads_out: u64,
@@ -794,11 +857,13 @@ pub struct FastqTrimMetrics {
     pub bases_out: u64,
     pub mean_q_before: f64,
     pub mean_q_after: f64,
+    #[serde(default)]
+    pub delta_metrics: FastqDeltaMetrics,
 }
 
 impl StageMetricSchema for FastqTrimMetrics {
     const STAGE: &'static str = "fastq.trim";
-    const VERSION: i32 = 1;
+    const VERSION: i32 = 2;
 
     fn validate(&self) -> Result<()> {
         if self.reads_out > self.reads_in {
@@ -818,6 +883,7 @@ impl StageMetricSchema for FastqTrimMetrics {
                 "mean_q_after is lower than mean_q_before"
             );
         }
+        self.delta_metrics.validate()?;
         Ok(())
     }
 }
@@ -969,9 +1035,9 @@ pub fn append_image_qa_jsonl(path: &Path, record: &ImageQaRecord) -> Result<()> 
     Ok(())
 }
 
-pub const FASTQ_TRIM_SCHEMA_VERSION: i32 = 1;
+pub const FASTQ_TRIM_SCHEMA_VERSION: i32 = 2;
 pub const FASTQ_VALIDATE_SCHEMA_VERSION: i32 = 1;
-pub const FASTQ_FILTER_SCHEMA_VERSION: i32 = 1;
+pub const FASTQ_FILTER_SCHEMA_VERSION: i32 = 2;
 pub const FASTQ_MERGE_SCHEMA_VERSION: i32 = 1;
 pub const FASTQ_CORRECT_SCHEMA_VERSION: i32 = 1;
 pub const FASTQ_QC_POST_SCHEMA_VERSION: i32 = 1;
@@ -1017,11 +1083,13 @@ pub struct FastqFilterMetrics {
     pub reads_dropped: u64,
     pub mean_q_before: f64,
     pub mean_q_after: f64,
+    #[serde(default)]
+    pub delta_metrics: FastqDeltaMetrics,
 }
 
 impl StageMetricSchema for FastqFilterMetrics {
     const STAGE: &'static str = "fastq.filter";
-    const VERSION: i32 = 1;
+    const VERSION: i32 = 2;
 
     fn validate(&self) -> Result<()> {
         if self.reads_out + self.reads_dropped != self.reads_in {
@@ -1036,6 +1104,7 @@ impl StageMetricSchema for FastqFilterMetrics {
                 "mean_q_after is lower than mean_q_before"
             );
         }
+        self.delta_metrics.validate()?;
         Ok(())
     }
 }
@@ -1284,6 +1353,58 @@ pub fn insert_fastq_trim_v1(
     Ok(())
 }
 
+/// Insert a `FastQ` trim benchmark record into the v2 table.
+///
+/// # Errors
+/// Returns an error if the table cannot be created or the record cannot be inserted.
+pub fn insert_fastq_trim_v2(
+    conn: &Connection,
+    record: &BenchmarkRecord<FastqTrimMetrics>,
+) -> Result<()> {
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS bench_fastq_trim_v2 (\
+         tool TEXT NOT NULL,\
+         tool_version TEXT NOT NULL,\
+         image_digest TEXT NOT NULL,\
+         runner TEXT NOT NULL,\
+         platform TEXT NOT NULL,\
+         input_hash TEXT NOT NULL,\
+         parameters_json TEXT NOT NULL,\
+         schema_version INTEGER NOT NULL,\
+         runtime_s REAL NOT NULL,\
+         memory_mb REAL NOT NULL,\
+         exit_code INTEGER NOT NULL,\
+         metrics_json TEXT NOT NULL\
+         )",
+        [],
+    )?;
+
+    let metrics_json = serde_json::to_string(&record.metrics)?;
+    let parameters_json = serde_json::to_string(&record.context.parameters)?;
+
+    conn.execute(
+        "INSERT INTO bench_fastq_trim_v2 (\
+         tool, tool_version, image_digest, runner, platform, input_hash,\
+         parameters_json, schema_version, runtime_s, memory_mb, exit_code, metrics_json\
+         ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)",
+        (
+            &record.context.tool,
+            &record.context.tool_version,
+            &record.context.image_digest,
+            &record.context.runner,
+            &record.context.platform,
+            &record.context.input_hash,
+            parameters_json,
+            record.metrics.version,
+            record.execution.runtime_s,
+            record.execution.memory_mb,
+            record.execution.exit_code,
+            metrics_json,
+        ),
+    )?;
+    Ok(())
+}
+
 /// Load a trim benchmark record from `SQLite` if present.
 ///
 /// # Errors
@@ -1299,6 +1420,66 @@ pub fn fetch_fastq_trim_v1(
         "SELECT tool, tool_version, image_digest, runner, platform, input_hash,\
          parameters_json, runtime_s, memory_mb, exit_code, metrics_json \
          FROM bench_fastq_trim_v1 \
+         WHERE tool = ?1 AND tool_version = ?2 AND image_digest = ?3 AND input_hash = ?4\
+         LIMIT 1",
+    )?;
+    let row = stmt.query_row(
+        params![tool, tool_version, image_digest, input_hash],
+        |row| {
+            let tool: String = row.get(0)?;
+            let tool_version: String = row.get(1)?;
+            let image_digest: String = row.get(2)?;
+            let runner: String = row.get(3)?;
+            let platform: String = row.get(4)?;
+            let input_hash: String = row.get(5)?;
+            let parameters_json: String = row.get(6)?;
+            let runtime_s: f64 = row.get(7)?;
+            let memory_mb: f64 = row.get(8)?;
+            let exit_code: i64 = row.get(9)?;
+            let metrics_json: String = row.get(10)?;
+            let parameters: JsonValue = json_from_str(&parameters_json)?;
+            let metrics: MetricSet<FastqTrimMetrics> = json_from_str(&metrics_json)?;
+            Ok(BenchmarkRecord {
+                context: BenchmarkContext {
+                    tool,
+                    tool_version,
+                    image_digest,
+                    runner,
+                    platform,
+                    input_hash,
+                    parameters,
+                },
+                execution: ExecutionMetrics {
+                    runtime_s,
+                    memory_mb,
+                    exit_code: i32::try_from(exit_code).unwrap_or(i32::MAX),
+                },
+                metrics,
+            })
+        },
+    );
+    match row {
+        Ok(record) => Ok(Some(record)),
+        Err(rusqlite::Error::QueryReturnedNoRows) => Ok(None),
+        Err(err) => Err(err.into()),
+    }
+}
+
+/// Load a trim benchmark record from `SQLite` v2 if present.
+///
+/// # Errors
+/// Returns an error if the query or JSON parsing fails.
+pub fn fetch_fastq_trim_v2(
+    conn: &Connection,
+    tool: &str,
+    tool_version: &str,
+    image_digest: &str,
+    input_hash: &str,
+) -> Result<Option<BenchmarkRecord<FastqTrimMetrics>>> {
+    let mut stmt = conn.prepare(
+        "SELECT tool, tool_version, image_digest, runner, platform, input_hash,\
+         parameters_json, runtime_s, memory_mb, exit_code, metrics_json \
+         FROM bench_fastq_trim_v2 \
          WHERE tool = ?1 AND tool_version = ?2 AND image_digest = ?3 AND input_hash = ?4\
          LIMIT 1",
     )?;
@@ -1508,6 +1689,58 @@ pub fn insert_fastq_filter_v1(
     Ok(())
 }
 
+/// Insert a `FastQ` filter benchmark record into the v2 table.
+///
+/// # Errors
+/// Returns an error if the table cannot be created or the record cannot be inserted.
+pub fn insert_fastq_filter_v2(
+    conn: &Connection,
+    record: &BenchmarkRecord<FastqFilterMetrics>,
+) -> Result<()> {
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS bench_fastq_filter_v2 (\
+         tool TEXT NOT NULL,\
+         tool_version TEXT NOT NULL,\
+         image_digest TEXT NOT NULL,\
+         runner TEXT NOT NULL,\
+         platform TEXT NOT NULL,\
+         input_hash TEXT NOT NULL,\
+         parameters_json TEXT NOT NULL,\
+         schema_version INTEGER NOT NULL,\
+         runtime_s REAL NOT NULL,\
+         memory_mb REAL NOT NULL,\
+         exit_code INTEGER NOT NULL,\
+         metrics_json TEXT NOT NULL\
+         )",
+        [],
+    )?;
+
+    let metrics_json = serde_json::to_string(&record.metrics)?;
+    let parameters_json = serde_json::to_string(&record.context.parameters)?;
+
+    conn.execute(
+        "INSERT INTO bench_fastq_filter_v2 (\
+         tool, tool_version, image_digest, runner, platform, input_hash,\
+         parameters_json, schema_version, runtime_s, memory_mb, exit_code, metrics_json\
+         ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)",
+        (
+            &record.context.tool,
+            &record.context.tool_version,
+            &record.context.image_digest,
+            &record.context.runner,
+            &record.context.platform,
+            &record.context.input_hash,
+            parameters_json,
+            record.metrics.version,
+            record.execution.runtime_s,
+            record.execution.memory_mb,
+            record.execution.exit_code,
+            metrics_json,
+        ),
+    )?;
+    Ok(())
+}
+
 /// Load a filter benchmark record from `SQLite` if present.
 ///
 /// # Errors
@@ -1523,6 +1756,66 @@ pub fn fetch_fastq_filter_v1(
         "SELECT tool, tool_version, image_digest, runner, platform, input_hash,\
          parameters_json, runtime_s, memory_mb, exit_code, metrics_json \
          FROM bench_fastq_filter_v1 \
+         WHERE tool = ?1 AND tool_version = ?2 AND image_digest = ?3 AND input_hash = ?4\
+         LIMIT 1",
+    )?;
+    let row = stmt.query_row(
+        params![tool, tool_version, image_digest, input_hash],
+        |row| {
+            let tool: String = row.get(0)?;
+            let tool_version: String = row.get(1)?;
+            let image_digest: String = row.get(2)?;
+            let runner: String = row.get(3)?;
+            let platform: String = row.get(4)?;
+            let input_hash: String = row.get(5)?;
+            let parameters_json: String = row.get(6)?;
+            let runtime_s: f64 = row.get(7)?;
+            let memory_mb: f64 = row.get(8)?;
+            let exit_code: i64 = row.get(9)?;
+            let metrics_json: String = row.get(10)?;
+            let parameters: JsonValue = json_from_str(&parameters_json)?;
+            let metrics: MetricSet<FastqFilterMetrics> = json_from_str(&metrics_json)?;
+            Ok(BenchmarkRecord {
+                context: BenchmarkContext {
+                    tool,
+                    tool_version,
+                    image_digest,
+                    runner,
+                    platform,
+                    input_hash,
+                    parameters,
+                },
+                execution: ExecutionMetrics {
+                    runtime_s,
+                    memory_mb,
+                    exit_code: i32::try_from(exit_code).unwrap_or(i32::MAX),
+                },
+                metrics,
+            })
+        },
+    );
+    match row {
+        Ok(record) => Ok(Some(record)),
+        Err(rusqlite::Error::QueryReturnedNoRows) => Ok(None),
+        Err(err) => Err(err.into()),
+    }
+}
+
+/// Load a filter benchmark record from `SQLite` v2 if present.
+///
+/// # Errors
+/// Returns an error if the query or JSON parsing fails.
+pub fn fetch_fastq_filter_v2(
+    conn: &Connection,
+    tool: &str,
+    tool_version: &str,
+    image_digest: &str,
+    input_hash: &str,
+) -> Result<Option<BenchmarkRecord<FastqFilterMetrics>>> {
+    let mut stmt = conn.prepare(
+        "SELECT tool, tool_version, image_digest, runner, platform, input_hash,\
+         parameters_json, runtime_s, memory_mb, exit_code, metrics_json \
+         FROM bench_fastq_filter_v2 \
          WHERE tool = ?1 AND tool_version = ?2 AND image_digest = ?3 AND input_hash = ?4\
          LIMIT 1",
     )?;
@@ -2475,6 +2768,12 @@ mod tests {
                 bases_out: 900,
                 mean_q_before: 30.0,
                 mean_q_after: 31.0,
+                delta_metrics: FastqDeltaMetrics {
+                    read_retention: 0.9,
+                    base_retention: 0.9,
+                    mean_q_delta: 1.0,
+                    gc_delta: 0.1,
+                },
             }),
         };
         record.validate()?;
@@ -2492,6 +2791,12 @@ mod tests {
             reads_dropped: 20,
             mean_q_before: 30.0,
             mean_q_after: 29.0,
+            delta_metrics: FastqDeltaMetrics {
+                read_retention: 0.8,
+                base_retention: 0.8,
+                mean_q_delta: -1.0,
+                gc_delta: 0.0,
+            },
         };
         metrics.validate()?;
         let invalid = FastqFilterMetrics {
@@ -2500,6 +2805,12 @@ mod tests {
             reads_dropped: 20,
             mean_q_before: 30.0,
             mean_q_after: 31.0,
+            delta_metrics: FastqDeltaMetrics {
+                read_retention: 0.81,
+                base_retention: 0.81,
+                mean_q_delta: 1.0,
+                gc_delta: 0.0,
+            },
         };
         assert!(invalid.validate().is_err());
         Ok(())

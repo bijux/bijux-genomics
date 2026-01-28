@@ -127,6 +127,31 @@ pub fn log_header_warnings(stage_id: &str, inspection: &HeaderInspection) {
     }
 }
 
+/// Ensure UMI headers are present before UMI stage execution.
+///
+/// # Errors
+/// Returns an error if UMI markers are not detected and override is not set.
+pub fn ensure_umi_headers(r1: &Path, r2: Option<&Path>) -> Result<()> {
+    let mut names = read_header_names(r1, 32)?;
+    if let Some(r2) = r2 {
+        names.extend(read_header_names(r2, 32)?);
+    }
+    let markers = ["UMI", "RX:", "BX:", "UB:"];
+    let has_marker = names
+        .iter()
+        .any(|name| markers.iter().any(|m| name.contains(m)));
+    if has_marker {
+        return Ok(());
+    }
+    if std::env::var("BIJUX_ALLOW_NO_UMI").is_ok() {
+        warn!("UMI headers not detected; proceeding due to BIJUX_ALLOW_NO_UMI");
+        return Ok(());
+    }
+    Err(anyhow!(
+        "UMI headers not detected; set BIJUX_ALLOW_NO_UMI=1 to bypass"
+    ))
+}
+
 /// Normalize FASTQ outputs to canonical names for a stage.
 ///
 /// # Errors

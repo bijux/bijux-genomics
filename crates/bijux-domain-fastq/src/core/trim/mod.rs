@@ -4,8 +4,8 @@ use std::time::Instant;
 
 use anyhow::{anyhow, Context, Result};
 use bijux_analyze::{
-    append_jsonl, fetch_fastq_trim_v1, insert_fastq_trim_v1, BenchmarkContext, BenchmarkRecord,
-    FastqTrimMetrics, MetricSet,
+    append_jsonl, fetch_fastq_trim_v2, insert_fastq_trim_v2, BenchmarkContext, BenchmarkRecord,
+    FastqDeltaMetrics, FastqTrimMetrics, MetricSet,
 };
 use bijux_engine::api::{ensure_bench_runner, load_registry};
 use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
@@ -20,7 +20,7 @@ use bijux_engine::api::validate_execution_outputs;
 use bijux_engine::api::{bench_base_dir, bench_tools_dir};
 use bijux_engine::api::{cleanup_execution, execution_memory_mb, run_tool_execution};
 use bijux_engine::api::{hash_file_sha256, input_fastq_stats, output_fastq_stats};
-use bijux_environment::image_qa::ensure_image_qa_passed;
+use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 
 use crate::core::RawFailure;
 use crate::stages::helpers::{
@@ -83,6 +83,7 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
     let input_stats = input_fastq_stats(&seqkit_image, &r1_dir, &r1)?;
 
     ensure_image_qa_passed("fastq.trim", &tools, platform, catalog)?;
+    ensure_tool_qa_passed("fastq.trim", &tools, platform, catalog)?;
 
     let sqlite_path = bench_dir.join("bench.sqlite");
     let conn = bijux_analyze::open_sqlite(&sqlite_path).context("open bench sqlite")?;
@@ -102,7 +103,7 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
                 .ok_or_else(|| anyhow!("image digest missing for tool {tool}"))?
                 .to_string();
             let cached =
-                fetch_fastq_trim_v1(&conn, &tool, &spec.version, &image_digest, &input_hash);
+                fetch_fastq_trim_v2(&conn, &tool, &spec.version, &image_digest, &input_hash);
             if let Ok(Some(record)) = cached {
                 return Ok(record);
             }
@@ -138,6 +139,7 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
                 .ok_or_else(|| anyhow!("tool {tool} missing from manifests"))?;
             validate_execution_outputs(&tool_manifest.execution_contract, &out_dir)?;
 
+            let delta = crate::metrics::compute_delta(input_stats, output_stats);
             let metrics = FastqTrimMetrics {
                 reads_in: input_stats.reads,
                 reads_out: output_stats.reads,
@@ -145,6 +147,12 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
                 bases_out: output_stats.bases,
                 mean_q_before: input_stats.mean_q,
                 mean_q_after: output_stats.mean_q,
+                delta_metrics: FastqDeltaMetrics {
+                    read_retention: delta.read_retention,
+                    base_retention: delta.base_retention,
+                    mean_q_delta: delta.delta_mean_q,
+                    gc_delta: delta.delta_gc,
+                },
             };
             let metric_set = MetricSet::new(metrics);
             metric_set.validate()?;
@@ -211,7 +219,7 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
     }
 
     for record in &new_records {
-        insert_fastq_trim_v1(&conn, record).context("insert bench sqlite")?;
+        insert_fastq_trim_v2(&conn, record).context("insert bench sqlite")?;
     }
 
     check_fastq_trim_comparability(&records);
