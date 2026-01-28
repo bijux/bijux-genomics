@@ -1,25 +1,13 @@
 use std::path::PathBuf;
 
+pub use bijux_core::input_assessment::{FastqLayout, FastqSampleId};
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum FastqArtifactKind {
     SingleEnd,
     PairedEnd,
     Merged,
     StatsOnly,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
-pub enum FastqLayout {
-    SingleEnd,
-    PairedEnd,
-}
-
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-pub struct FastqSampleId {
-    pub sample_name: String,
-    pub layout: FastqLayout,
-    pub r1_path: PathBuf,
-    pub r2_path: Option<PathBuf>,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]

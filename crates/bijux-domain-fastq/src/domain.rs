@@ -1,4 +1,7 @@
+#![allow(dead_code)]
+
 use crate::contracts::pipeline_contract::{self, StageCriticality};
+
 use crate::metrics::spec::{metric_spec_for_stage, MetricClass};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

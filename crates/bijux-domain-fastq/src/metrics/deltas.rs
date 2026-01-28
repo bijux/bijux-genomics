@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use anyhow::{anyhow, Result};
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]

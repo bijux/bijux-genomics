@@ -7,9 +7,19 @@ use regex::Regex;
 use serde::{Deserialize, Serialize};
 use walkdir::WalkDir;
 
-use bijux_engine::api::hash_file_sha256;
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum FastqLayout {
+    SingleEnd,
+    PairedEnd,
+}
 
-use crate::contracts::{FastqLayout, FastqSampleId};
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FastqSampleId {
+    pub sample_name: String,
+    pub layout: FastqLayout,
+    pub r1_path: PathBuf,
+    pub r2_path: Option<PathBuf>,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -109,7 +119,7 @@ fn infer_sample_key(re: &Regex, path: &Path) -> (String, Option<u8>) {
 /// Assess FASTQ inputs under a directory.
 ///
 /// # Errors
-/// Returns an error if regex compilation fails.
+/// Returns an error if regex compilation or hashing fails.
 pub fn assess_input_dir(root: &Path) -> Result<InputAssessmentV1> {
     let mut issues = Vec::new();
     let mut unpaired = Vec::new();
@@ -205,4 +215,12 @@ pub fn write_input_assessment(path: &Path, assessment: &InputAssessmentV1) -> Re
     let payload = serde_json::to_string_pretty(assessment)?;
     std::fs::write(path, payload)?;
     Ok(())
+}
+
+fn hash_file_sha256(path: &Path) -> Result<String> {
+    use sha2::Digest;
+    let mut file = std::fs::File::open(path)?;
+    let mut hasher = sha2::Sha256::new();
+    std::io::copy(&mut file, &mut hasher)?;
+    Ok(format!("{:x}", hasher.finalize()))
 }

@@ -11,6 +11,7 @@ thiserror.workspace = true
 rusqlite.workspace = true
 tracing.workspace = true
 bijux-measure = { path = "../bijux-measure" }
+anyhow.workspace = true
 
 [lints]
 workspace = true

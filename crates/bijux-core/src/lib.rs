@@ -8,6 +8,8 @@ use tracing::info;
 use uuid::Uuid;
 use walkdir::WalkDir;
 
+pub mod input_assessment;
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct StageId(pub String);
 

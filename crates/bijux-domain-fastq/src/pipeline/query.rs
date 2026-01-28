@@ -5,27 +5,10 @@ use rusqlite::params;
 use serde_json::Value as JsonValue;
 
 use bijux_analyze::open_sqlite;
+use bijux_analyze::selection::{BenchResultRecord, BenchResultStatus};
 use bijux_engine::api::bench_base_dir;
 
 use super::corpus::BenchCorpus;
-
-#[derive(Debug, Clone)]
-pub enum BenchResultStatus {
-    Success,
-    Failure,
-    Missing,
-}
-
-#[derive(Debug, Clone)]
-pub struct BenchResultRecord {
-    pub dataset_id: String,
-    pub tool: String,
-    pub runtime_s: Option<f64>,
-    pub memory_mb: Option<f64>,
-    pub exit_code: Option<i64>,
-    pub metrics: Option<JsonValue>,
-    pub status: BenchResultStatus,
-}
 
 fn table_for_stage(stage: &str) -> Option<&'static str> {
     match stage {

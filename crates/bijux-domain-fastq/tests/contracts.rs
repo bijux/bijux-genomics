@@ -1,6 +1,4 @@
-use bijux_domain_fastq::contracts::{
-    contract_for_stage, FastqArtifactKind, FastqPE, FastqSE, FastqStats,
-};
+use bijux_domain_fastq::{contract_for_stage, FastqArtifactKind, FastqPE, FastqSE, FastqStats};
 use std::path::PathBuf;
 
 #[test]

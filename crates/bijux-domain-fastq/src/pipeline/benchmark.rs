@@ -4,8 +4,8 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Context, Result};
 use serde::{Deserialize, Serialize};
 
-use super::objective::Objective;
 use super::run_layout::{RunIndexLine, RunManifest};
+use bijux_analyze::selection::Objective;
 use bijux_core::RunMetadataV1;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -69,8 +69,8 @@ pub fn benchmark_runs(
             continue;
         }
         let run_path = runs_dir.join(&entry.run_id);
-        let manifest_path = run_path.join("meta").join("run_manifest.json");
-        let metadata_path = run_path.join("meta").join("run_metadata.json");
+        let manifest_path = run_path.join("execution_manifest.json");
+        let metadata_path = run_path.join("run_metadata.json");
         let manifest: RunManifest =
             serde_json::from_str(&std::fs::read_to_string(&manifest_path)?)?;
         let metadata: RunMetadataV1 =

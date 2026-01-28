@@ -27,24 +27,23 @@ All downstream names derive from this identity.
 ```
 runs/
   <run_id>/
-    meta/
-      input_assessment.json
-      run_manifest.json
-      run_metadata.json
-      events.jsonl
+    input_assessment.json
+    execution_manifest.json
+    environment.json
+    run_metadata.json
+    events.jsonl
     stages/
       trim/
-        tool/
-          outputs/
-          metrics/
-            execution_metrics.json
-            domain_metrics.json
-          tool_invocation.json
-          logs/
+        outputs/
+        execution_metrics.json
+        metrics.json
+        tool_invocation.json
+        logs/
       filter/
       ...
-    metrics/
-    logs/
+    summary/
+      metrics_deltas.json
+      report.json
 ```
 
 Every FASTQ run uses this layout exactly.

@@ -1,8 +1,9 @@
 use std::path::PathBuf;
 
-use bijux_domain_fastq::pipeline::{
-    fastq_default_pipeline, rank_tools_for_stage, BenchCorpus, BenchCorpusId, BenchDataset,
-    DefaultPipelineOptions, Objective,
+use bijux_analyze::selection::{select_stage, Objective};
+use bijux_domain_fastq::{
+    fastq_default_pipeline, get_results, BenchCorpus, BenchCorpusId, BenchDataset,
+    DefaultPipelineOptions,
 };
 use bijux_engine::api::bench_base_dir;
 use rusqlite::{params, Connection};
@@ -135,8 +136,12 @@ fn default_route_selects_tools_deterministically() -> Result<(), Box<dyn std::er
 
     for stage in pipeline.stages {
         let tools = vec!["tool_fast".to_string(), "tool_slow".to_string()];
-        let selection =
-            rank_tools_for_stage(&stage, &tools, Objective::Speed, &corpus, &temp_root, false)?;
+        let mut tool_records = Vec::new();
+        for tool in &tools {
+            let records = get_results(&stage, tool, &corpus, &temp_root)?;
+            tool_records.push((tool.clone(), records));
+        }
+        let selection = select_stage(&stage, &tool_records, Objective::Speed, false);
         assert_eq!(selection.selected, Some("tool_fast".to_string()));
     }
 

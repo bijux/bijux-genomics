@@ -2,6 +2,7 @@ use anyhow::{anyhow, Result};
 use bijux_domain_adapter::DomainAdapter;
 use serde_json::json;
 
+#[allow(dead_code)]
 pub struct FastqAdapter;
 
 impl DomainAdapter for FastqAdapter {
