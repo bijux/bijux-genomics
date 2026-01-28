@@ -15,12 +15,13 @@ mod env;
 mod replay;
 mod utils;
 
-use bijux_domain_fastq::bench::{
+use bijux_domain_fastq::bench::print_bench_schema;
+use bijux_domain_fastq::image_qa::run_image_qa;
+use bijux_domain_fastq::stages::{
     bench_fastq_correct, bench_fastq_filter, bench_fastq_merge, bench_fastq_preprocess,
     bench_fastq_qc2, bench_fastq_screen, bench_fastq_stats, bench_fastq_trim, bench_fastq_umi,
-    bench_fastq_validate, print_bench_schema,
+    bench_fastq_validate,
 };
-use bijux_domain_fastq::image_qa::run_image_qa;
 use bijux_engine::api::init_logging;
 use cli::{
     bench_args_correct, bench_args_filter, bench_args_from_trim, bench_args_from_validate,
@@ -92,11 +93,8 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
             Ok(true)
         }
         Commands::Compare(args) => {
-            let result = bijux_engine::api::compare::compare_runs(
-                &args.run_a,
-                &args.run_b,
-                &args.search_root,
-            )?;
+            let result =
+                bijux_bench::compare::compare_runs(&args.run_a, &args.run_b, &args.search_root)?;
             println!("{}", serde_json::to_string_pretty(&result)?);
             Ok(true)
         }
@@ -185,6 +183,10 @@ fn handle_fastq_bench(
         return Ok(false);
     };
 
+    if let Some(done) = handle_fastq_discovery(command, registry)? {
+        return Ok(done);
+    }
+
     match command {
         FastqCommand::Trim(args) if is_bench_requested_trim(args) => {
             let platform = load_platform(cli.platform.as_deref())
@@ -209,19 +211,103 @@ fn handle_fastq_bench(
         _ => {
             let (stage, _tool, common) = cli::resolve_stage_tool(&cli.command);
             if common.list_tools {
-                let mut tool_ids: Vec<_> = registry
-                    .tools_for_stage(&stage.0)
-                    .into_iter()
-                    .map(|tool| tool.tool_id.clone())
-                    .collect();
-                tool_ids.sort();
-                for tool_id in tool_ids {
-                    println!("{tool_id}");
-                }
+                list_fastq_tools(registry, &stage.0);
                 return Ok(true);
             }
             Ok(false)
         }
+    }
+}
+
+fn handle_fastq_discovery(
+    command: &FastqCommand,
+    registry: &bijux_core::ToolRegistry,
+) -> Result<Option<bool>> {
+    match command {
+        FastqCommand::ListStages => {
+            list_fastq_stages(registry);
+            Ok(Some(true))
+        }
+        FastqCommand::ListTools { stage } => {
+            let stage_id = normalize_fastq_stage_id(stage);
+            list_fastq_tools(registry, &stage_id);
+            Ok(Some(true))
+        }
+        FastqCommand::Explain { stage } => {
+            let stage_id = normalize_fastq_stage_id(stage);
+            explain_fastq_stage(registry, &stage_id)?;
+            Ok(Some(true))
+        }
+        _ => Ok(None),
+    }
+}
+
+fn list_fastq_stages(registry: &bijux_core::ToolRegistry) {
+    let mut stage_ids: Vec<_> = registry
+        .stages()
+        .values()
+        .filter(|stage| stage.domain == "fastq")
+        .map(|stage| stage.stage_id.clone())
+        .collect();
+    stage_ids.sort();
+    for stage_id in stage_ids {
+        println!("{stage_id}");
+    }
+}
+
+fn list_fastq_tools(registry: &bijux_core::ToolRegistry, stage_id: &str) {
+    let mut tool_ids: Vec<_> = registry
+        .tools_for_stage(stage_id)
+        .into_iter()
+        .map(|tool| tool.tool_id.clone())
+        .collect();
+    tool_ids.sort();
+    for tool_id in tool_ids {
+        println!("{tool_id}");
+    }
+}
+
+fn explain_fastq_stage(registry: &bijux_core::ToolRegistry, stage_id: &str) -> Result<()> {
+    if stage_id == "fastq.preprocess" {
+        let args = bijux_domain_fastq::stages::BenchFastqPreprocessArgs {
+            sample_id: "explain".to_string(),
+            r1: PathBuf::from("reads.fastq.gz"),
+            r2: None,
+            out: PathBuf::from("artifacts"),
+            strict: false,
+        };
+        let plan = bijux_domain_fastq::stages::fastq_preprocess_plan(&args);
+        println!("stage: {stage_id}");
+        println!("pipeline:");
+        for step in plan.stages {
+            println!("- {step}");
+        }
+        return Ok(());
+    }
+    let stage = registry
+        .stages()
+        .get(stage_id)
+        .ok_or_else(|| anyhow!("unknown stage {stage_id}"))?;
+    println!("stage: {}", stage.stage_id);
+    if !stage.description.is_empty() {
+        println!("description: {}", stage.description);
+    }
+    println!("inputs:");
+    for input in &stage.inputs {
+        println!("- {} ({})", input.name, input.data_type);
+    }
+    println!("outputs:");
+    for output in &stage.outputs {
+        println!("- {} ({})", output.name, output.data_type);
+    }
+    Ok(())
+}
+
+fn normalize_fastq_stage_id(stage: &str) -> String {
+    if stage.contains('.') {
+        stage.to_string()
+    } else {
+        format!("fastq.{stage}")
     }
 }
 

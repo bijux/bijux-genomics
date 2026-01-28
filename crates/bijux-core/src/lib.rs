@@ -190,6 +190,29 @@ pub struct StageManifestV1 {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
+struct StageManifestDoc {
+    #[serde(default)]
+    extends: Option<String>,
+    #[serde(default)]
+    schema_version: Option<String>,
+    #[serde(default)]
+    stage_id: Option<String>,
+    #[serde(default)]
+    domain: Option<String>,
+    #[serde(default)]
+    inputs: Option<Vec<PortSpec>>,
+    #[serde(default)]
+    outputs: Option<Vec<PortSpec>>,
+    #[serde(default)]
+    parameters: Option<Vec<ParameterSpec>>,
+    #[serde(default)]
+    metrics: Option<Vec<MetricSpec>>,
+    #[serde(default)]
+    description: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ContainerManifest {
     pub image: String,
     pub digest: String,
@@ -295,9 +318,11 @@ pub fn load_manifests(modules_dir: &Path) -> Result<ToolRegistry, BijuxError> {
             .and_then(|name| name.to_str())
             == Some("stages");
         if is_stage && path.extension().and_then(|ext| ext.to_str()) == Some("yaml") {
-            let contents = std::fs::read_to_string(path)?;
-            let manifest: StageManifestV1 = serde_yaml::from_str(&contents)
-                .map_err(|err| BijuxError::Manifest(format!("{}: {err}", path.display())))?;
+            let manifest = match load_stage_manifest(path) {
+                Ok(Some(manifest)) => manifest,
+                Ok(None) => continue,
+                Err(err) => return Err(err),
+            };
             validate_stage_manifest(path, &manifest)?;
             if stage_ids.contains(&manifest.stage_id) {
                 return Err(BijuxError::Manifest(format!(
@@ -351,6 +376,110 @@ pub fn load_manifests(modules_dir: &Path) -> Result<ToolRegistry, BijuxError> {
     }
 
     Ok(ToolRegistry { stages, tools })
+}
+
+fn load_stage_manifest(path: &Path) -> Result<Option<StageManifestV1>, BijuxError> {
+    let contents = std::fs::read_to_string(path)?;
+    let doc: StageManifestDoc = serde_yaml::from_str(&contents)
+        .map_err(|err| BijuxError::Manifest(format!("{}: {err}", path.display())))?;
+    if doc.stage_id.is_none() && doc.extends.is_none() {
+        return Ok(None);
+    }
+    let resolved = resolve_stage_doc(path, doc)?;
+    Ok(Some(stage_doc_to_manifest(path, resolved)?))
+}
+
+fn resolve_stage_doc(path: &Path, doc: StageManifestDoc) -> Result<StageManifestDoc, BijuxError> {
+    if let Some(extends) = &doc.extends {
+        let base_path = path
+            .parent()
+            .ok_or_else(|| BijuxError::Manifest(format!("{} has no parent", path.display())))?
+            .join(extends);
+        let base_contents = std::fs::read_to_string(&base_path)?;
+        let base_doc: StageManifestDoc = serde_yaml::from_str(&base_contents)
+            .map_err(|err| BijuxError::Manifest(format!("{}: {err}", base_path.display())))?;
+        let resolved_base = resolve_stage_doc(&base_path, base_doc)?;
+        return Ok(merge_stage_docs(resolved_base, doc));
+    }
+    Ok(doc)
+}
+
+fn merge_stage_docs(base: StageManifestDoc, overlay: StageManifestDoc) -> StageManifestDoc {
+    StageManifestDoc {
+        extends: None,
+        schema_version: overlay.schema_version.or(base.schema_version),
+        stage_id: overlay.stage_id.or(base.stage_id),
+        domain: overlay.domain.or(base.domain),
+        inputs: overlay.inputs.or(base.inputs),
+        outputs: overlay.outputs.or(base.outputs),
+        parameters: overlay.parameters.or(base.parameters),
+        metrics: overlay.metrics.or(base.metrics),
+        description: overlay.description.or(base.description),
+    }
+}
+
+fn stage_doc_to_manifest(
+    path: &Path,
+    doc: StageManifestDoc,
+) -> Result<StageManifestV1, BijuxError> {
+    let Some(schema_version) = doc.schema_version else {
+        return Err(BijuxError::Manifest(format!(
+            "missing schema_version for stage at {}",
+            path.display()
+        )));
+    };
+    let Some(stage_id) = doc.stage_id else {
+        return Err(BijuxError::Manifest(format!(
+            "missing stage_id for stage at {}",
+            path.display()
+        )));
+    };
+    let Some(domain) = doc.domain else {
+        return Err(BijuxError::Manifest(format!(
+            "missing domain for stage at {}",
+            path.display()
+        )));
+    };
+    let Some(inputs) = doc.inputs else {
+        return Err(BijuxError::Manifest(format!(
+            "missing inputs for stage at {}",
+            path.display()
+        )));
+    };
+    let Some(outputs) = doc.outputs else {
+        return Err(BijuxError::Manifest(format!(
+            "missing outputs for stage at {}",
+            path.display()
+        )));
+    };
+    let Some(parameters) = doc.parameters else {
+        return Err(BijuxError::Manifest(format!(
+            "missing parameters for stage at {}",
+            path.display()
+        )));
+    };
+    let Some(metrics) = doc.metrics else {
+        return Err(BijuxError::Manifest(format!(
+            "missing metrics for stage at {}",
+            path.display()
+        )));
+    };
+    let Some(description) = doc.description else {
+        return Err(BijuxError::Manifest(format!(
+            "missing description for stage at {}",
+            path.display()
+        )));
+    };
+    Ok(StageManifestV1 {
+        schema_version,
+        stage_id,
+        domain,
+        inputs,
+        outputs,
+        parameters,
+        metrics,
+        description,
+    })
 }
 
 fn validate_stage_manifest(path: &Path, manifest: &StageManifestV1) -> Result<(), BijuxError> {

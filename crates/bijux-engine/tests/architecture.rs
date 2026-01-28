@@ -49,11 +49,11 @@ fn assert_no_fastq_terms(dir: &str) {
 }
 
 #[test]
-fn executor_does_not_import_planner_observer_validator() {
+fn executor_does_not_import_composer_observer_validator() {
     assert_no_imports(
         "crates/bijux-engine/src/services/executor",
         &[
-            "crate::core::planner::",
+            "crate::core::composer::",
             "crate::services::observer::",
             "crate::core::validator::",
         ],
@@ -78,7 +78,7 @@ fn validator_does_not_import_executor() {
 
 #[test]
 fn engine_core_is_fastq_agnostic() {
-    assert_no_fastq_terms("crates/bijux-engine/src/core/planner");
+    assert_no_fastq_terms("crates/bijux-engine/src/core/composer");
     assert_no_fastq_terms("crates/bijux-engine/src/services/executor");
     assert_no_fastq_terms("crates/bijux-engine/src/services/observer");
     assert_no_fastq_terms("crates/bijux-engine/src/core/validator");

@@ -1,0 +1,7 @@
+schema_version: "bijux.stage.v1"
+domain: "fastq"
+inputs: []
+outputs: []
+parameters: []
+metrics: []
+description: ""

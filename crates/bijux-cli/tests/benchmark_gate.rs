@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use anyhow::Result;
-use bijux_domain_fastq::bench::{
+use bijux_domain_fastq::stages::{
     args as bench_args, bench_fastq_filter, bench_fastq_trim, bench_fastq_validate,
 };
 use bijux_environment::api::{load_image_catalog, load_platform};
