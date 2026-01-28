@@ -120,3 +120,55 @@ pub fn resolve_image_for_run(
     }
     Err(anyhow!("docker image not found: {}", image.full_name))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn normalize_trim_tools_dedup_and_sort() {
+        let tools = vec![
+            "fastp".to_string(),
+            "FASTP".to_string(),
+            "cutadapt".to_string(),
+        ];
+        match normalize_trim_tool_list(&tools) {
+            Ok(normalized) => {
+                assert_eq!(
+                    normalized,
+                    vec!["cutadapt".to_string(), "fastp".to_string()]
+                );
+            }
+            Err(err) => panic!("normalize failed: {err}"),
+        }
+    }
+
+    #[test]
+    fn normalize_trim_tools_blocks_experimental_by_default() {
+        std::env::remove_var("BIJUX_EXPERIMENTAL_TOOLS");
+        let tools = vec!["seqpurge".to_string()];
+        match normalize_trim_tool_list(&tools) {
+            Ok(_) => panic!("expected failure"),
+            Err(err) => assert!(err.to_string().contains("unsupported tool")),
+        }
+    }
+
+    #[test]
+    fn normalize_trim_tools_allows_experimental_when_enabled() {
+        std::env::set_var("BIJUX_EXPERIMENTAL_TOOLS", "1");
+        let tools = vec!["seqpurge".to_string()];
+        match normalize_trim_tool_list(&tools) {
+            Ok(normalized) => assert_eq!(normalized, vec!["seqpurge".to_string()]),
+            Err(err) => panic!("normalize failed: {err}"),
+        }
+        std::env::remove_var("BIJUX_EXPERIMENTAL_TOOLS");
+    }
+
+    #[test]
+    fn normalize_tools_rejects_empty() {
+        match normalize_validate_tool_list(&[]) {
+            Ok(_) => panic!("expected empty failure"),
+            Err(err) => assert!(err.to_string().contains("no tools specified")),
+        }
+    }
+}

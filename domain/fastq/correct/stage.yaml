@@ -28,6 +28,8 @@ metrics:
     meaning: "Number of input bases"
   - name: "bases_out"
     meaning: "Number of corrected bases"
+  - name: "kmer_fix_rate"
+    meaning: "Rate of k-mer fixes applied"
   - name: "mean_q_before"
     meaning: "Mean base quality before correction"
   - name: "mean_q_after"

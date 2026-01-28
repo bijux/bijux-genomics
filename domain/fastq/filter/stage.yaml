@@ -20,4 +20,8 @@ metrics:
     meaning: "Number of output reads"
   - name: "reads_dropped"
     meaning: "Number of reads removed by filtering"
+  - name: "mean_q_before"
+    meaning: "Mean base quality before filtering"
+  - name: "mean_q_after"
+    meaning: "Mean base quality after filtering"
 description: "FASTQ stage for filtering reads."

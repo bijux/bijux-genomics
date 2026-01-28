@@ -31,4 +31,6 @@ metrics:
     meaning: "Number of merged reads"
   - name: "reads_unmerged"
     meaning: "Number of unmerged reads (per end)"
+  - name: "merge_rate"
+    meaning: "Fraction of reads that merged"
 description: "FASTQ stage for merging paired-end reads."

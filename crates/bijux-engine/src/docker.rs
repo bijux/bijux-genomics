@@ -121,3 +121,26 @@ pub fn docker_rm(container_id: &str) -> Result<()> {
     }
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::parse_mem_to_mb;
+
+    #[test]
+    fn parse_mem_to_mb_handles_units() {
+        let value = parse_mem_to_mb("1024MiB / 2GiB");
+        assert!(matches!(value, Ok(v) if (v - 1024.0).abs() < 1e-6));
+        let value = parse_mem_to_mb("1GiB / 2GiB");
+        assert!(matches!(value, Ok(v) if (v - 1024.0).abs() < 1e-6));
+        let value = parse_mem_to_mb("512KiB / 1GiB");
+        assert!(matches!(value, Ok(v) if (v - 0.5).abs() < 1e-6));
+    }
+
+    #[test]
+    fn parse_mem_to_mb_rejects_unknown_units() {
+        match parse_mem_to_mb("10MB / 1GB") {
+            Ok(_) => panic!("expected unit error"),
+            Err(err) => assert!(err.to_string().contains("unknown memory unit")),
+        }
+    }
+}

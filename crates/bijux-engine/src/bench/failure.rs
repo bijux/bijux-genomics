@@ -50,3 +50,29 @@ pub fn classify_failure(stage: &str, tool: &str, err: &anyhow::Error) -> Benchma
         reason,
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn classify_failure_detects_data_errors() {
+        let err = anyhow::anyhow!("strict validation failed for fastqvalidator");
+        let failure = classify_failure("fastq.validate", "fastqvalidator", &err);
+        assert!(matches!(failure.class, FailureClass::DataError));
+    }
+
+    #[test]
+    fn classify_failure_detects_invariants() {
+        let err = anyhow::anyhow!("reads_out must be <= reads_in");
+        let failure = classify_failure("fastq.trim", "fastp", &err);
+        assert!(matches!(failure.class, FailureClass::InvariantViolation));
+    }
+
+    #[test]
+    fn classify_failure_defaults_to_tool_error() {
+        let err = anyhow::anyhow!("unexpected crash");
+        let failure = classify_failure("fastq.trim", "fastp", &err);
+        assert!(matches!(failure.class, FailureClass::ToolError));
+    }
+}
