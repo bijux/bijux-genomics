@@ -2,6 +2,11 @@
 
 This is the single authoritative FASTQ spec for Bijux. It defines pipeline stages, invariants, metrics, failure taxonomy, and optional branches. It supersedes all prior FASTQ markdown.
 
+See also:
+
+- docs/domains/fastq_lifecycle.md
+- docs/contracts/fastq_v1.md
+
 ## Pipeline Stages
 
 Core stages (canonical order):

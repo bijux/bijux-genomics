@@ -22,13 +22,13 @@ use bijux_engine::api::{cleanup_execution, execution_memory_mb, run_tool_executi
 use bijux_engine::api::{hash_file_sha256, input_fastq_stats, output_fastq_stats};
 use bijux_environment::image_qa::ensure_image_qa_passed;
 
-use super::helpers::{
+use crate::core::RawFailure;
+use crate::stages::helpers::{
     compute_run_id, normalize_tool_list, params_hash, prepare_tool_run_dirs, resolve_image_for_run,
     write_execution_logs, write_explain_md, write_explain_plan_json, write_metrics_json,
     ExecutionManifest,
 };
-use crate::core::RawFailure;
-use crate::stages::helpers::BenchOutcome;
+use crate::stages::helpers::{filter_tools_by_role, BenchOutcome};
 
 #[allow(clippy::too_many_lines)]
 /// Run the FASTQ benchmark stage.
@@ -49,6 +49,7 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
     let tools = normalize_tool_list(&args.tools)?;
     let registry = load_registry(&std::env::current_dir()?.join("domain"))
         .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
+    let tools = filter_tools_by_role("fastq.trim", &tools, &registry, false)?;
     let bench_dir = bench_base_dir(&args.out, "trim", &args.sample_id);
     let tools_root = bench_tools_dir(&args.out, "trim", &args.sample_id);
     fs::create_dir_all(&bench_dir).context("create bench output dir")?;

@@ -1,3 +1,5 @@
+pub mod exec;
+
 use bijux_engine::api::PipelineSpec;
 
 /// Build the preprocess pipeline plan.
