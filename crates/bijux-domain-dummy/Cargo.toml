@@ -1,0 +1,13 @@
+[package]
+name = "bijux-domain-dummy"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+serde_json.workspace = true
+bijux-domain-adapter = { path = "../bijux-domain-adapter" }
+
+[lints]
+workspace = true

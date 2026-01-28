@@ -3,7 +3,10 @@ resolver = "2"
 members = [
   "crates/bijux-core",
   "crates/bijux-cli",
-  "crates/bijux-bench",
+  "crates/bijux-analyze",
+  "crates/bijux-domain-adapter",
+  "crates/bijux-domain-dummy",
+  "crates/bijux-measure",
   "crates/bijux-domain-fastq",
   "crates/bijux-environment",
   "crates/bijux-engine",

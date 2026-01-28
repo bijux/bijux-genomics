@@ -85,3 +85,60 @@ fn validate_trim_filter_chain_is_type_safe() -> Result<(), Box<dyn std::error::E
     );
     Ok(())
 }
+
+#[test]
+fn trim_outputs_are_compatible_with_correct_inputs() -> Result<(), Box<dyn std::error::Error>> {
+    let registry = load_manifests(&domain_root())?;
+    let trim = registry
+        .stages()
+        .get("fastq.trim")
+        .ok_or("missing fastq.trim")?;
+    let correct = registry
+        .stages()
+        .get("fastq.correct")
+        .ok_or("missing fastq.correct")?;
+    assert!(
+        stage_port_matches(&trim.outputs, "fastq", &Cardinality::Many)
+            && stage_port_matches(&correct.inputs, "fastq", &Cardinality::Many),
+        "trim outputs must satisfy correct input type"
+    );
+    Ok(())
+}
+
+#[test]
+fn correct_outputs_are_compatible_with_filter_inputs() -> Result<(), Box<dyn std::error::Error>> {
+    let registry = load_manifests(&domain_root())?;
+    let correct = registry
+        .stages()
+        .get("fastq.correct")
+        .ok_or("missing fastq.correct")?;
+    let filter = registry
+        .stages()
+        .get("fastq.filter")
+        .ok_or("missing fastq.filter")?;
+    assert!(
+        stage_port_matches(&correct.outputs, "fastq", &Cardinality::Many)
+            && stage_port_matches(&filter.inputs, "fastq", &Cardinality::Many),
+        "correct outputs must satisfy filter input type"
+    );
+    Ok(())
+}
+
+#[test]
+fn preprocess_outputs_are_compatible_with_qc2_inputs() -> Result<(), Box<dyn std::error::Error>> {
+    let registry = load_manifests(&domain_root())?;
+    let preprocess = registry
+        .stages()
+        .get("fastq.preprocess")
+        .ok_or("missing fastq.preprocess")?;
+    let qc2 = registry
+        .stages()
+        .get("fastq.qc2")
+        .ok_or("missing fastq.qc2")?;
+    assert!(
+        stage_port_matches(&preprocess.outputs, "fastq", &Cardinality::Many)
+            && stage_port_matches(&qc2.inputs, "fastq", &Cardinality::Many),
+        "preprocess outputs must satisfy qc2 input type"
+    );
+    Ok(())
+}

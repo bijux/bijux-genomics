@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::time::Duration;
 
 use anyhow::{anyhow, Context, Result};
-use bijux_bench::ImageQaOutcome;
+use bijux_analyze::ImageQaOutcome;
 use bijux_core::ToolRegistry;
 use bijux_environment::api::{PlatformSpec, ToolImageSpec};
 use uuid::Uuid;

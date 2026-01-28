@@ -16,7 +16,7 @@ walkdir.workspace = true
 bijux-environment = { path = "../bijux-environment" }
 
 [dev-dependencies]
-bijux-bench = { path = "../bijux-bench" }
+bijux-analyze = { path = "../bijux-analyze" }
 
 [lints]
 workspace = true

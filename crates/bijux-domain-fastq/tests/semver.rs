@@ -10,7 +10,7 @@ fn legacy_manifests_still_load() {
 
 #[test]
 fn old_metrics_schema_is_rejected() {
-    let metrics = bijux_bench::FastqTrimMetrics {
+    let metrics = bijux_analyze::FastqTrimMetrics {
         reads_in: 10,
         reads_out: 9,
         bases_in: 100,
@@ -18,7 +18,7 @@ fn old_metrics_schema_is_rejected() {
         mean_q_before: 30.0,
         mean_q_after: 31.0,
     };
-    let mut set = bijux_bench::MetricSet::new(metrics);
+    let mut set = bijux_analyze::MetricSet::new(metrics);
     set.metrics_schema = "fastq_trim_v0".to_string();
     match set.validate() {
         Ok(()) => panic!("expected schema rejection"),

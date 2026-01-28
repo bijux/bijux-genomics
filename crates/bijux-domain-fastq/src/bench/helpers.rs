@@ -94,7 +94,7 @@ pub(crate) fn write_execution_logs(run_dirs: &RunDirs, stdout: &str, stderr: &st
 
 pub(crate) fn write_metrics_json<T: serde::Serialize>(
     run_dirs: &RunDirs,
-    execution: &bijux_bench::ExecutionMetrics,
+    execution: &bijux_measure::ExecutionMetrics,
     metrics: &T,
 ) -> Result<()> {
     let payload = serde_json::json!({

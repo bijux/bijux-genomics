@@ -261,6 +261,11 @@ pub enum FastqCommand {
         after_help = "Examples:\n  bijux fastq preprocess --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE\n  bijux fastq preprocess --list-tools"
     )]
     Preprocess(CommonArgs),
+    #[command(
+        about = "Summarize FASTQ read statistics.",
+        after_help = "Examples:\n  bijux fastq stats --list-tools"
+    )]
+    Stats(CommonArgs),
     Umi(CommonArgs),
     #[command(name = "error-correct")]
     ErrorCorrect(CommonArgs),
@@ -319,6 +324,11 @@ pub fn resolve_stage_tool(command: &Commands) -> (StageId, ToolId, CommonArgs) {
                 StageId("fastq.validate".to_string()),
                 ToolId("fastqvalidator".to_string()),
                 args.common.clone(),
+            ),
+            FastqCommand::Stats(common) => (
+                StageId("fastq.stats".to_string()),
+                ToolId("seqkit_stats".to_string()),
+                common.clone(),
             ),
             FastqCommand::Filter(common)
             | FastqCommand::Merge(common)

@@ -3,7 +3,7 @@ use std::path::Path;
 use anyhow::Result;
 use bijux_engine::api::{
     docker_rm, docker_stats_mb, output_fastq_stats, parse_fastqvalidator_count,
-    run_merge_container, run_tool_container, run_validate_container,
+    run_merge_container, run_tool_container, run_validate_container, ExecutionManifest,
 };
 use bijux_environment::api::{load_image_catalog, load_platform};
 use sha2::{Digest, Sha256};
@@ -385,7 +385,32 @@ fn regression_resource_measurements_are_consistent() -> Result<()> {
     assert!(memory_a > 0.0 && memory_b > 0.0);
     let runtime_ratio = (runtime_a / runtime_b).max(runtime_b / runtime_a);
     let memory_ratio = (memory_a / memory_b).max(memory_b / memory_a);
-    assert!(runtime_ratio < 10.0, "runtime ratio too large");
-    assert!(memory_ratio < 10.0, "memory ratio too large");
+    let max_ratio = std::env::var("BIJUX_REGRESSION_MAX_RATIO")
+        .ok()
+        .and_then(|value| value.parse::<f64>().ok())
+        .unwrap_or(10.0);
+    assert!(runtime_ratio < max_ratio, "runtime ratio too large");
+    assert!(memory_ratio < max_ratio, "memory ratio too large");
+    Ok(())
+}
+
+#[test]
+fn regression_manifest_size_is_bounded() -> Result<()> {
+    let manifest = ExecutionManifest {
+        run_id: "run-123".to_string(),
+        stage: "fastq.stats".to_string(),
+        tool: "seqkit_stats".to_string(),
+        tool_version: "0.16.1".to_string(),
+        image_digest: "sha256:deadbeef".to_string(),
+        command: "seqkit stats input.fastq.gz".to_string(),
+        input_hashes: vec!["sha256:abc".to_string()],
+        input_files: vec!["input.fastq.gz".to_string()],
+        output_dir: "out".to_string(),
+        runner: "docker".to_string(),
+        platform: "local".to_string(),
+        arch: "arm64".to_string(),
+    };
+    let bytes = serde_json::to_vec(&manifest)?;
+    assert!(bytes.len() < 16 * 1024, "manifest too large");
     Ok(())
 }
