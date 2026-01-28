@@ -4,6 +4,7 @@ members = [
   "crates/bijux-core",
   "crates/bijux-cli",
   "crates/bijux-bench",
+  "crates/bijux-domain-fastq",
   "crates/bijux-environment",
   "crates/bijux-engine",
 ]

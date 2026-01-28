@@ -1,15 +1,21 @@
+use std::collections::HashMap;
+
 use anyhow::{anyhow, Result};
 use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 
-use crate::composer::image_qa::ensure_image_qa_passed;
+use crate::image_qa::ensure_image_qa_passed;
 
 use super::helpers::normalize_screen_tool_list;
 
-pub fn bench_fastq_screen(
-    catalog: &std::collections::HashMap<String, ToolImageSpec>,
+/// Run the FASTQ benchmark stage.
+///
+/// # Errors
+/// Returns an error if planning, execution, or metric recording fails.
+pub fn bench_fastq_screen<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
     runner_override: Option<RunnerKind>,
-    args: &crate::composer::bench::args::BenchFastqScreenArgs,
+    args: &crate::bench::args::BenchFastqScreenArgs,
 ) -> Result<()> {
     let _ = runner_override;
     let tools = normalize_screen_tool_list(&args.tools)?;

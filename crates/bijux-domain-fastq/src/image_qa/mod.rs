@@ -7,7 +7,7 @@ mod stages;
 pub use helpers::ensure_image_qa_passed;
 pub use runner::run_image_qa;
 
-use crate::observer::SeqkitMetrics;
+use bijux_engine::api::SeqkitMetrics;
 use std::path::PathBuf;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

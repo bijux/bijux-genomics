@@ -10,8 +10,8 @@ use bijux_bench::{
     FastqValidateMetrics,
 };
 
+use super::super::helpers::ratio_u64;
 use super::failure::BenchmarkFailure;
-use super::helpers::ratio_u64;
 use super::ranking::{build_rankings, print_rank_explain, RankInput};
 
 pub(crate) fn write_trim_report(
@@ -212,6 +212,10 @@ pub(crate) fn write_stats_report(
     Ok(())
 }
 
+/// Print the benchmark schema for a stage.
+///
+/// # Errors
+/// Returns an error if the schema cannot be rendered.
 pub fn print_bench_schema(stage: &str) -> Result<()> {
     let kind = metric_kind_for_stage(stage).ok_or_else(|| anyhow!("unknown stage {stage}"))?;
     let spec = stage_metric_spec(kind);

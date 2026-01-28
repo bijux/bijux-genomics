@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 
 use serde::Serialize;
 
-use super::helpers::{format_optional, min_max, normalize_inverted};
+use super::super::helpers::{format_optional, min_max, normalize_inverted};
 
 #[derive(Debug, Clone, Copy, Serialize)]
 pub(crate) enum RankingMode {

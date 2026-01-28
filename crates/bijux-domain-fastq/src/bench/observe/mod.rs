@@ -1,0 +1,10 @@
+pub use crate::bench::correct::bench_fastq_correct;
+pub use crate::bench::filter::bench_fastq_filter;
+pub use crate::bench::merge::bench_fastq_merge;
+pub use crate::bench::preprocess::bench_fastq_preprocess;
+pub use crate::bench::qc2::bench_fastq_qc2;
+pub use crate::bench::screen::bench_fastq_screen;
+pub use crate::bench::stats::bench_fastq_stats;
+pub use crate::bench::trim::bench_fastq_trim;
+pub use crate::bench::umi::bench_fastq_umi;
+pub use crate::bench::validate::bench_fastq_validate;

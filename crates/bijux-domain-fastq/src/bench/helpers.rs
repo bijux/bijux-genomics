@@ -1,6 +1,7 @@
-use crate::composer::paths::bench_tools_dir;
-use crate::executor::resolve_image_for_run as engine_resolve_image_for_run;
-use crate::planner::{
+use anyhow::{anyhow, Context, Result};
+use bijux_engine::api::bench_tools_dir;
+use bijux_engine::api::ResolvedImage;
+use bijux_engine::api::{
     normalize_correct_tool_list as engine_normalize_correct_tool_list,
     normalize_filter_tool_list as engine_normalize_filter_tool_list,
     normalize_merge_tool_list as engine_normalize_merge_tool_list,
@@ -10,28 +11,13 @@ use crate::planner::{
     normalize_trim_tool_list as engine_normalize_trim_tool_list,
     normalize_umi_tool_list as engine_normalize_umi_tool_list,
     normalize_validate_tool_list as engine_normalize_validate_tool_list,
+    resolve_image_for_run as engine_resolve_image_for_run,
 };
-use anyhow::{anyhow, Context, Result};
-use bijux_environment::api::{PlatformSpec, ResolvedImage, ToolImageSpec};
-use serde::Serialize;
+use bijux_environment::api::{PlatformSpec, ToolImageSpec};
 use sha2::Digest;
 use std::path::{Path, PathBuf};
 
-#[derive(Debug, Serialize, serde::Deserialize)]
-pub struct ExecutionManifest {
-    pub run_id: String,
-    pub stage: String,
-    pub tool: String,
-    pub tool_version: String,
-    pub image_digest: String,
-    pub command: String,
-    pub input_hashes: Vec<String>,
-    pub input_files: Vec<String>,
-    pub output_dir: String,
-    pub runner: String,
-    pub platform: String,
-    pub arch: String,
-}
+pub use bijux_engine::api::ExecutionManifest;
 
 #[derive(Debug)]
 pub(crate) struct RunDirs {
@@ -125,7 +111,7 @@ pub(crate) fn write_explain_md(
     stage: &str,
     selected: &[String],
     excluded: &[String],
-    policy: Option<crate::types::Policy>,
+    policy: Option<bijux_engine::api::Policy>,
 ) -> Result<()> {
     let path = base_dir.join("explain.md");
     let mut lines = Vec::new();
@@ -271,8 +257,8 @@ impl DeltaMetrics {
 
 #[allow(dead_code)]
 pub(crate) fn delta_metrics(
-    before: crate::observer::SeqkitMetrics,
-    after: crate::observer::SeqkitMetrics,
+    before: bijux_engine::api::SeqkitMetrics,
+    after: bijux_engine::api::SeqkitMetrics,
 ) -> DeltaMetrics {
     let read_retention = if before.reads > 0 {
         ratio_u64(after.reads, before.reads)

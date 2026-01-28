@@ -2,7 +2,7 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
 
-use crate::composer::bench::ExecutionManifest;
+use crate::types::ExecutionManifest;
 
 pub fn compare_runs(run_a: &str, run_b: &str, search_root: &Path) -> Result<serde_json::Value> {
     if crate::types::trace_enabled() {

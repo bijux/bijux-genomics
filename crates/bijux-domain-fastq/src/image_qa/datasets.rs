@@ -2,7 +2,7 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
 
-use crate::observer::{hash_file_sha256, input_fastq_stats, SeqkitMetrics};
+use bijux_engine::api::{hash_file_sha256, input_fastq_stats, SeqkitMetrics};
 
 use super::{QaDataset, QaStage};
 
@@ -122,7 +122,7 @@ fn discover_canonical_datasets(root: &Path) -> Result<Vec<QaDataset>> {
 
 pub(crate) fn hydrate_datasets(
     datasets: &mut [QaDataset],
-    seqkit_image: &crate::ResolvedImage,
+    seqkit_image: &bijux_engine::api::ResolvedImage,
 ) -> Result<()> {
     let qa_root = PathBuf::from("artifacts/image-qa/inputs");
     std::fs::create_dir_all(&qa_root).context("create image qa inputs dir")?;
@@ -153,7 +153,7 @@ pub(crate) fn hydrate_datasets(
 }
 
 fn subset_fastq(
-    seqkit_image: &crate::ResolvedImage,
+    seqkit_image: &bijux_engine::api::ResolvedImage,
     input: &Path,
     out_dir: &Path,
     label: &str,

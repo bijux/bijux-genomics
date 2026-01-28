@@ -1,12 +1,11 @@
+pub mod analyze;
 mod correct;
-mod failure;
 mod filter;
 mod helpers;
 mod merge;
+pub mod observe;
 mod preprocess;
 mod qc2;
-mod ranking;
-mod report;
 mod screen;
 mod stats;
 mod trim;
@@ -26,5 +25,5 @@ pub use trim::bench_fastq_trim;
 pub use umi::bench_fastq_umi;
 pub use validate::bench_fastq_validate;
 
+pub use analyze::report::print_bench_schema;
 pub use helpers::ExecutionManifest;
-pub use report::print_bench_schema;

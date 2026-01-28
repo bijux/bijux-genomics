@@ -8,7 +8,7 @@ use bijux_bench::{
 use bijux_environment::api::{load_image_catalog, load_platform};
 use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 
-use crate::composer::paths::{image_qa_jsonl_path, image_qa_sqlite_path};
+use bijux_engine::api::{image_qa_jsonl_path, image_qa_sqlite_path};
 
 use super::datasets::{
     dataset_input_hash, datasets_for_stage, discover_qa_datasets, hydrate_datasets,
@@ -19,15 +19,19 @@ use super::logging::{
 };
 use super::stages::run_stage_qa;
 use super::QaStage;
-use crate::planner::load_registry;
+use bijux_engine::api::load_registry;
 
+/// Run image QA for the FASTQ domain.
+///
+/// # Errors
+/// Returns an error if QA datasets or tool runs fail.
 pub fn run_image_qa(platform_name: Option<&str>) -> Result<()> {
-    if crate::types::trace_enabled() {
+    if bijux_engine::api::trace_enabled() {
         println!("[engine][composer] image_qa start");
     }
     let platform = load_platform(platform_name)?;
     let catalog = load_image_catalog()?;
-    let logger = crate::types::StdoutLogger::new();
+    let logger = bijux_engine::api::StdoutLogger::new();
     run_image_qa_with(&platform, &catalog, &logger)
 }
 
@@ -35,7 +39,7 @@ pub fn run_image_qa(platform_name: Option<&str>) -> Result<()> {
 fn run_image_qa_with(
     platform: &PlatformSpec,
     catalog: &HashMap<String, ToolImageSpec>,
-    logger: &crate::types::StdoutLogger,
+    logger: &bijux_engine::api::StdoutLogger,
 ) -> Result<()> {
     if platform.runner != RunnerKind::Docker {
         return Err(anyhow!("image QA supports docker only for now"));
@@ -65,7 +69,7 @@ fn run_image_qa_with(
     let seqkit_spec = catalog
         .get("seqkit")
         .ok_or_else(|| anyhow!("seqkit missing from images.yaml"))?;
-    let seqkit_image = crate::executor::resolve_image_for_run(seqkit_spec, platform)?;
+    let seqkit_image = bijux_engine::api::resolve_image_for_run(seqkit_spec, platform)?;
 
     let registry =
         load_registry(&std::env::current_dir()?.join("domain")).context("load manifests")?;

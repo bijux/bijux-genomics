@@ -3,7 +3,7 @@ use std::process::Command;
 
 use anyhow::{anyhow, Context, Result};
 
-use crate::composer::bench::ExecutionManifest;
+use crate::types::ExecutionManifest;
 
 pub fn replay_run(run_id: &str, search_root: &Path) -> Result<()> {
     if crate::types::trace_enabled() {
