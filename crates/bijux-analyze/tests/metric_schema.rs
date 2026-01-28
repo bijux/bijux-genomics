@@ -1,5 +1,5 @@
 use bijux_analyze::{metric_set, BenchmarkRecord, FastqDeltaMetrics, FastqTrimMetrics, MetricSet};
-use bijux_measure::ExecutionMetrics;
+use bijux_core::measure::ExecutionMetrics;
 
 fn base_record(metrics: MetricSet<FastqTrimMetrics>) -> BenchmarkRecord<FastqTrimMetrics> {
     BenchmarkRecord {

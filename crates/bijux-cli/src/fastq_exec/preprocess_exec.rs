@@ -9,20 +9,20 @@ use uuid::Uuid;
 use bijux_engine::api::bench_base_dir;
 use bijux_engine::services::pipeline::{run_pipeline, StagePlan};
 
-use crate::contracts::FastqLayout;
 use bijux_core::{build_run_metadata_v1, RunMetadataV1, ToolInvocationV1};
+use bijux_domain_fastq::FastqLayout;
 
-use crate::pipeline::{
-    append_event, assess_input_dir, bench_corpus, canonical_tool_defaults, create_run_layout,
-    now_string, update_run_index, write_input_assessment, write_run_metadata, RunEnvironment,
-    RunIndexEntry, RunLayout, RunManifest, RunStageEntry, ToolImageDigest,
-};
-use crate::stages::helpers::write_explain_plan_json;
-use crate::stages::{
+use crate::fastq_exec::helpers::write_explain_plan_json;
+use crate::fastq_exec::{
     bench_fastq_correct, bench_fastq_filter, bench_fastq_merge, bench_fastq_stats_neutral,
     bench_fastq_trim, bench_fastq_validate_pre,
 };
 use bijux_core::events::RunEvent;
+use bijux_domain_fastq::{
+    append_event, assess_input_dir, bench_corpus, canonical_tool_defaults, create_run_layout,
+    now_string, update_run_index, write_input_assessment, write_run_metadata, RunEnvironment,
+    RunIndexEntry, RunLayout, RunManifest, RunStageEntry, ToolImageDigest,
+};
 
 /// Run the FASTQ benchmark stage.
 ///
@@ -32,7 +32,7 @@ pub fn bench_fastq_preprocess<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
     runner_override: Option<RunnerKind>,
-    args: &crate::stages::args::BenchFastqPreprocessArgs,
+    args: &bijux_domain_fastq::args::BenchFastqPreprocessArgs,
 ) -> Result<()> {
     fastq_preprocess_run(catalog, platform, runner_override, args)
 }
@@ -46,7 +46,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
     runner_override: Option<RunnerKind>,
-    args: &crate::stages::args::BenchFastqPreprocessArgs,
+    args: &bijux_domain_fastq::args::BenchFastqPreprocessArgs,
 ) -> Result<()> {
     let out_dir = bench_base_dir(&args.out, "preprocess", &args.sample_id);
     fs::create_dir_all(&out_dir).context("create preprocess output dir")?;
@@ -91,7 +91,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         FastqLayout::SingleEnd
     };
     let pipeline =
-        crate::pipeline::fastq_default_pipeline(crate::pipeline::DefaultPipelineOptions {
+        bijux_domain_fastq::fastq_default_pipeline(bijux_domain_fastq::DefaultPipelineOptions {
             paired: derived_r2.is_some(),
             ..Default::default()
         });
@@ -132,7 +132,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
                 .collect();
             let mut tool_records = Vec::new();
             for tool in &tool_ids {
-                let records = crate::pipeline::query::get_results(stage, tool, &corpus, &args.out)?;
+                let records = bijux_domain_fastq::get_results(stage, tool, &corpus, &args.out)?;
                 tool_records.push((tool.clone(), records));
             }
             let selection = bijux_analyze::selection::select_stage(
@@ -205,7 +205,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
             let tool_id = step.tool.clone();
             match stage {
                 "fastq.validate_pre" => {
-                    let validate_args = crate::stages::args::BenchFastqValidateArgs {
+                    let validate_args = bijux_domain_fastq::args::BenchFastqValidateArgs {
                         sample_id: args.sample_id.clone(),
                         r1: args.r1.clone(),
                         out: args.out.clone(),
@@ -228,7 +228,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
                     )
                 }
                 "fastq.trim" => {
-                    let trim_args = crate::stages::args::BenchFastqTrimArgs {
+                    let trim_args = bijux_domain_fastq::args::BenchFastqTrimArgs {
                         sample_id: args.sample_id.clone(),
                         r1: args.r1.clone(),
                         out: args.out.clone(),
@@ -245,7 +245,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
                     )
                 }
                 "fastq.correct" => {
-                    let correct_args = crate::stages::args::BenchFastqCorrectArgs {
+                    let correct_args = bijux_domain_fastq::args::BenchFastqCorrectArgs {
                         sample_id: args.sample_id.clone(),
                         r1: args.r1.clone(),
                         r2: derived_r2.clone(),
@@ -267,7 +267,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
                     let r2 = derived_r2
                         .clone()
                         .ok_or_else(|| anyhow!("merge requires --r2"))?;
-                    let merge_args = crate::stages::args::BenchFastqMergeArgs {
+                    let merge_args = bijux_domain_fastq::args::BenchFastqMergeArgs {
                         sample_id: args.sample_id.clone(),
                         r1: args.r1.clone(),
                         r2,
@@ -286,7 +286,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
                     )
                 }
                 "fastq.filter" => {
-                    let filter_args = crate::stages::args::BenchFastqFilterArgs {
+                    let filter_args = bijux_domain_fastq::args::BenchFastqFilterArgs {
                         sample_id: args.sample_id.clone(),
                         r1: args.r1.clone(),
                         out: args.out.clone(),
@@ -304,7 +304,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
                     )
                 }
                 "fastq.stats_neutral" => {
-                    let stats_args = crate::stages::args::BenchFastqStatsArgs {
+                    let stats_args = bijux_domain_fastq::args::BenchFastqStatsArgs {
                         sample_id: args.sample_id.clone(),
                         r1: args.r1.clone(),
                         out: args.out.clone(),
@@ -349,7 +349,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
             })
             .collect(),
     };
-    crate::pipeline::write_environment(&layout, &env)?;
+    bijux_domain_fastq::write_environment(&layout, &env)?;
 
     let manifest = RunManifest {
         run_id: run_id.clone(),
@@ -359,7 +359,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         layout: layout_kind,
         stages: stage_entries,
     };
-    crate::pipeline::write_manifest(&layout, &manifest)?;
+    bijux_domain_fastq::write_manifest(&layout, &manifest)?;
 
     let deltas_path = layout.summary_dir.join("metrics_deltas.json");
     if !deltas_path.exists() {
@@ -422,8 +422,8 @@ fn stage_entry_from_outcome<T: bijux_analyze::StageMetricSchema>(
     let record = records
         .first()
         .ok_or_else(|| anyhow!("missing bench record for {stage}"))?;
-    let params_hash = crate::stages::helpers::params_hash(&record.context.parameters)?;
-    let run_id = crate::stages::helpers::compute_run_id(
+    let params_hash = crate::fastq_exec::helpers::params_hash(&record.context.parameters)?;
+    let run_id = crate::fastq_exec::helpers::compute_run_id(
         stage,
         tool,
         &record.context.image_digest,

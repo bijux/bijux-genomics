@@ -54,6 +54,11 @@ test-images-merge:
 
 test:
 	cargo test --workspace
+	@if command -v cargo-llvm-cov >/dev/null 2>&1; then \
+		cargo llvm-cov --workspace --all-features; \
+	else \
+		echo "cargo-llvm-cov not installed; skipping coverage"; \
+	fi
 
 lint:
 	cargo fmt --all -- --check

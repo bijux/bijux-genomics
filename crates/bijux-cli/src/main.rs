@@ -12,20 +12,22 @@ use tracing::{info, warn};
 
 mod cli;
 mod env;
+mod fastq_exec;
 mod replay;
 mod utils;
 
+use crate::fastq_exec::{
+    bench_fastq_correct, bench_fastq_filter, bench_fastq_merge, bench_fastq_preprocess,
+    bench_fastq_qc_post, bench_fastq_screen, bench_fastq_stats_neutral, bench_fastq_trim,
+    bench_fastq_umi, bench_fastq_validate_pre,
+};
 use bijux_analyze::selection::{objective_spec, Objective};
 use bijux_analyze::{
     compare_runs, print_bench_schema, write_correct_report, write_filter_report,
     write_merge_report, write_qc_post_report, write_stats_report, write_trim_report,
     write_umi_report, write_validate_report,
 };
-use bijux_domain_fastq::{
-    bench_fastq_correct, bench_fastq_filter, bench_fastq_merge, bench_fastq_preprocess,
-    bench_fastq_qc_post, bench_fastq_screen, bench_fastq_stats_neutral, bench_fastq_trim,
-    bench_fastq_umi, bench_fastq_validate_pre, benchmark_runs, write_benchmark_exports,
-};
+use bijux_domain_fastq::{benchmark_runs, write_benchmark_exports};
 use bijux_engine::api::init_logging;
 use bijux_environment::image_qa::run_image_qa;
 use cli::{
@@ -457,7 +459,7 @@ fn list_fastq_tools(registry: &bijux_core::ToolRegistry, stage_id: &str) {
 
 fn explain_fastq_stage(registry: &bijux_core::ToolRegistry, stage_id: &str) -> Result<()> {
     if stage_id == "fastq.preprocess" {
-        let args = bijux_domain_fastq::BenchFastqPreprocessArgs {
+        let args = bijux_domain_fastq::args::BenchFastqPreprocessArgs {
             sample_id: "explain".to_string(),
             r1: PathBuf::from("reads.fastq.gz"),
             r2: None,
@@ -468,7 +470,7 @@ fn explain_fastq_stage(registry: &bijux_core::ToolRegistry, stage_id: &str) -> R
             bench_corpus: None,
             allow_partial: false,
         };
-        let plan = bijux_domain_fastq::fastq_preprocess_plan(&args);
+        let plan = crate::fastq_exec::fastq_preprocess_plan(&args);
         println!("stage: {stage_id}");
         println!("pipeline:");
         for step in plan.stages {

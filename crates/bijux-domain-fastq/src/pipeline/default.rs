@@ -1,4 +1,4 @@
-use bijux_engine::api::PipelineSpec;
+use bijux_core::domain::PipelineSpec;
 
 use super::canonical::canonical_pipeline;
 

@@ -2,7 +2,7 @@ use bijux_analyze::{
     insert_fastq_trim_v2, metric_set, open_sqlite, BenchmarkContext, BenchmarkRecord,
     FastqDeltaMetrics, FastqTrimMetrics, StageMetricSchema,
 };
-use bijux_measure::ExecutionMetrics;
+use bijux_core::measure::ExecutionMetrics;
 
 #[test]
 fn fastq_trim_metrics_invariants_fail() {

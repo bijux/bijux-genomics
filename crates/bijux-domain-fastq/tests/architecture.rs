@@ -56,3 +56,11 @@ fn metrics_does_not_import_stages() {
         &["crate::stages::", "super::stages::"],
     );
 }
+
+#[test]
+fn domain_has_no_engine_or_environment_dependency() {
+    assert_no_imports(
+        "crates/bijux-domain-fastq/src",
+        &["bijux_engine", "bijux_environment"],
+    );
+}

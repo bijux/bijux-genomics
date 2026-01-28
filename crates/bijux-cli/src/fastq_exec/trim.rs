@@ -7,12 +7,12 @@ use bijux_analyze::{
     append_jsonl, fetch_fastq_trim_v2, insert_fastq_trim_v2, metric_set, BenchmarkContext,
     BenchmarkRecord, FastqDeltaMetrics, FastqTrimMetrics,
 };
+use bijux_core::measure::ExecutionMetrics;
 use bijux_engine::api::{ensure_bench_runner, load_registry};
 use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
-use bijux_measure::ExecutionMetrics;
 use uuid::Uuid;
 
-use crate::contracts::{
+use bijux_domain_fastq::{
     contract_for_stage, inspect_headers, log_header_warnings, normalize_outputs, preflight_stage,
     FastqArtifact,
 };
@@ -22,13 +22,53 @@ use bijux_engine::api::{cleanup_execution, execution_memory_mb, run_tool_executi
 use bijux_engine::api::{hash_file_sha256, input_fastq_stats, output_fastq_stats};
 use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 
-use crate::contracts::RawFailure;
-use crate::stages::helpers::{
+use crate::fastq_exec::helpers::{
     compute_run_id, normalize_tool_list, params_hash, prepare_tool_run_dirs, resolve_image_for_run,
     write_execution_logs, write_explain_md, write_explain_plan_json, write_metrics_json,
     ExecutionManifest,
 };
-use crate::stages::helpers::{filter_tools_by_role, BenchOutcome};
+use crate::fastq_exec::helpers::{filter_tools_by_role, BenchOutcome};
+use bijux_domain_fastq::RawFailure;
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[cfg(test)]
+pub struct TrimPlan {
+    pub tool: String,
+    pub input: std::path::PathBuf,
+    pub output: std::path::PathBuf,
+}
+
+#[cfg(test)]
+fn trim_output_name(tool: &str) -> Option<&'static str> {
+    match tool {
+        "fastp" => Some("fastp.fastq.gz"),
+        "cutadapt" => Some("cutadapt.fastq.gz"),
+        "atropos" => Some("atropos.fastq.gz"),
+        "bbduk" => Some("bbduk.fastq.gz"),
+        "adapterremoval" => Some("adapterremoval.fastq.gz"),
+        "trimmomatic" => Some("trimmomatic.fastq.gz"),
+        "trim_galore" => Some("trimmed_trimmed.fq.gz"),
+        "seqpurge" => Some("seqpurge.fastq.gz"),
+        "prinseq" => Some("prinseq_good.fastq"),
+        "seqkit" => Some("seqkit.fastq.gz"),
+        _ => None,
+    }
+}
+
+/// Build a trim command plan.
+///
+/// # Errors
+/// Returns an error if the tool is unsupported.
+#[cfg(test)]
+pub fn plan_trim(tool: &str, r1: &std::path::Path, out_dir: &std::path::Path) -> Result<TrimPlan> {
+    let output_name =
+        trim_output_name(tool).ok_or_else(|| anyhow!("unsupported trim tool: {tool}"))?;
+    Ok(TrimPlan {
+        tool: tool.to_string(),
+        input: r1.to_path_buf(),
+        output: out_dir.join(output_name),
+    })
+}
 
 #[allow(clippy::too_many_lines)]
 /// Run the FASTQ benchmark stage.
@@ -39,7 +79,7 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
     runner_override: Option<RunnerKind>,
-    args: &crate::stages::args::BenchFastqTrimArgs,
+    args: &bijux_domain_fastq::args::BenchFastqTrimArgs,
 ) -> Result<BenchOutcome<FastqTrimMetrics>> {
     let runner = ensure_bench_runner(platform, runner_override)?;
     let artifact = FastqArtifact::single_end(&args.r1);
@@ -139,7 +179,7 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
                 .ok_or_else(|| anyhow!("tool {tool} missing from manifests"))?;
             validate_execution_outputs(&tool_manifest.execution_contract, &out_dir)?;
 
-            let delta = crate::metrics::compute_delta(input_stats, output_stats);
+            let delta = bijux_domain_fastq::compute_delta(input_stats, output_stats);
             let metrics = FastqTrimMetrics {
                 reads_in: input_stats.reads,
                 reads_out: output_stats.reads,
@@ -230,6 +270,39 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
         bench_dir,
         explain: args.explain,
     })
+}
+
+#[allow(clippy::items_after_test_module)]
+#[cfg(test)]
+mod tests {
+    use super::{plan_trim, trim_output_name};
+    use anyhow::Result;
+    use std::path::Path;
+
+    #[test]
+    fn trim_output_names_are_defined_for_known_tools() {
+        assert_eq!(trim_output_name("fastp"), Some("fastp.fastq.gz"));
+        assert_eq!(
+            trim_output_name("trimmomatic"),
+            Some("trimmomatic.fastq.gz")
+        );
+        assert_eq!(trim_output_name("unknown"), None);
+    }
+
+    #[test]
+    fn plan_trim_builds_expected_paths() -> Result<()> {
+        let plan = plan_trim("fastp", Path::new("reads.fastq.gz"), Path::new("out"))?;
+        assert_eq!(plan.output.to_string_lossy(), "out/fastp.fastq.gz");
+        Ok(())
+    }
+
+    #[test]
+    fn plan_trim_rejects_unknown_tool() {
+        match plan_trim("mystery", Path::new("reads.fastq.gz"), Path::new("out")) {
+            Ok(_) => panic!("expected unsupported trim tool"),
+            Err(err) => assert!(err.to_string().contains("unsupported trim tool")),
+        }
+    }
 }
 
 #[allow(clippy::cast_precision_loss)]

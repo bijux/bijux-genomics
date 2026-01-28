@@ -10,7 +10,7 @@ use anyhow::{anyhow, Result};
 use bijux_core::{load_manifests, ToolRegistry};
 
 use crate::core::types::Policy;
-use crate::core::types::{ExecutionContext, RunPlan, ToolInvocation};
+use crate::core::types::{ExecutionContext, RunPlan, StageGraph, ToolInvocation};
 
 pub fn load_registry(domain_root: &std::path::Path) -> Result<ToolRegistry> {
     load_manifests(domain_root).map_err(|err| anyhow!("manifest validation failed: {err}"))
@@ -57,6 +57,23 @@ pub fn apply_policy(tools: &[String], policy: Policy) -> Vec<String> {
     match policy {
         Policy::PreferAccuracy | Policy::PreferSpeed | Policy::PreferMemory => tools.to_vec(),
     }
+}
+
+/// Validate stage transitions in a graph.
+///
+/// # Errors
+/// Returns an error if a transition references unknown stages or self-loops.
+pub fn validate_stage_graph(graph: &StageGraph) -> Result<()> {
+    let nodes: std::collections::HashSet<&String> = graph.nodes.iter().collect();
+    for (from, to) in &graph.edges {
+        if from == to {
+            return Err(anyhow!("invalid stage transition: {from} -> {to}"));
+        }
+        if !nodes.contains(from) || !nodes.contains(to) {
+            return Err(anyhow!("unknown stage in transition: {from} -> {to}"));
+        }
+    }
+    Ok(())
 }
 
 #[cfg(test)]
@@ -129,6 +146,19 @@ mod tests {
         match plan_tool(&context, invocation, "sha256:abc".to_string()) {
             Ok(_) => panic!("expected capability error"),
             Err(err) => assert!(err.to_string().contains("missing required capability")),
+        }
+    }
+
+    #[test]
+    fn validate_stage_graph_rejects_unknown_edge() {
+        let graph = StageGraph {
+            nodes: vec!["a".to_string(), "b".to_string()],
+            edges: vec![("a".to_string(), "c".to_string())],
+            invariants: Vec::new(),
+        };
+        match validate_stage_graph(&graph) {
+            Ok(()) => panic!("expected unknown stage error"),
+            Err(err) => assert!(err.to_string().contains("unknown stage")),
         }
     }
 }

@@ -5,7 +5,12 @@ use bijux_domain_fastq::{
     fastq_default_pipeline, get_results, BenchCorpus, BenchCorpusId, BenchDataset,
     DefaultPipelineOptions,
 };
-use bijux_engine::api::bench_base_dir;
+fn bench_base_dir(out: &std::path::Path, stage: &str, sample_id: &str) -> std::path::PathBuf {
+    out.join("artifacts")
+        .join("bench")
+        .join(stage)
+        .join(sample_id)
+}
 use rusqlite::{params, Connection};
 use uuid::Uuid;
 

@@ -5,9 +5,9 @@ edition.workspace = true
 license.workspace = true
 
 [dependencies]
+bijux-core = { path = "../bijux-core" }
 anyhow.workspace = true
 serde_json.workspace = true
-bijux-domain-adapter = { path = "../bijux-domain-adapter" }
 
 [lints]
 workspace = true

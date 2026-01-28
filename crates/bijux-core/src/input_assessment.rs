@@ -124,9 +124,8 @@ pub fn assess_input_dir(root: &Path) -> Result<InputAssessmentV1> {
     let mut issues = Vec::new();
     let mut unpaired = Vec::new();
     let mut grouped: BTreeMap<String, Vec<(PathBuf, Option<u8>)>> = BTreeMap::new();
-    let re = Regex::new(
-        r"(?i)^(?P<base>.+?)(?:[._-](?:R)?(?P<read>[12]))?(?:\\.f(?:ast)?q)?(?:\\.gz)?$",
-    )?;
+    let re =
+        Regex::new(r"(?i)^(?P<base>.+?)(?:[._-](?:R)?(?P<read>[12]))?(?:\.f(?:ast)?q)?(?:\.gz)?$")?;
     for path in discover_fastq_files(root) {
         let (key, read) = infer_sample_key(&re, &path);
         grouped.entry(key).or_default().push((path, read));

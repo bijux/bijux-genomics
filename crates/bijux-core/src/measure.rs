@@ -1,5 +1,4 @@
-//! Execution-time measurement layer for runtime/resource metrics.
-//! This crate is the single authority for run-time measurement schemas.
+//! Execution-time measurement schema and validation.
 
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -18,6 +17,14 @@ pub struct ExecutionMetrics {
     /// Container memory usage in MB sampled via `docker stats --no-stream` after exit.
     pub memory_mb: f64,
     pub exit_code: i32,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub struct SeqkitMetrics {
+    pub reads: u64,
+    pub bases: u64,
+    pub mean_q: f64,
+    pub gc_percent: f64,
 }
 
 impl ExecutionMetrics {

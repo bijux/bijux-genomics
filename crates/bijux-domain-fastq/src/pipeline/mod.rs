@@ -19,6 +19,7 @@ pub use canonical::{canonical_pipeline, canonical_tool_defaults};
 pub use corpus::{bench_corpus, BenchCorpus, BenchCorpusId, BenchDataset};
 pub use default::{fastq_default_pipeline, DefaultPipelineOptions};
 pub use minimal::fastq_minimal_pipeline;
+#[allow(unused_imports)]
 pub use run_layout::{
     append_event, create_run_layout, now_string, update_run_index, write_environment,
     write_manifest, write_run_metadata, RunEnvironment, RunIndexEntry, RunLayout, RunManifest,

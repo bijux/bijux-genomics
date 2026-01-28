@@ -1,3 +1,8 @@
+//! Execution engine for Bijux.
+//!
+//! Owns: planning, execution services, validation gates, and observability hooks.
+//! Must NOT depend on: bijux-domain-* crates or domain semantics.
+
 #![allow(
     clippy::module_name_repetitions,
     clippy::missing_errors_doc,

@@ -21,7 +21,7 @@ use bijux_core::ToolRole;
 
 use bijux_analyze::BenchmarkRecord;
 
-use crate::contracts::RawFailure;
+use bijux_domain_fastq::RawFailure;
 
 pub use bijux_engine::api::ExecutionManifest;
 pub use bijux_engine::api::{ExplainExclusion, ExplainPlan};
@@ -109,7 +109,7 @@ pub(crate) fn write_execution_logs(run_dirs: &RunDirs, stdout: &str, stderr: &st
 
 pub(crate) fn write_metrics_json<T: serde::Serialize>(
     run_dirs: &RunDirs,
-    execution: &bijux_measure::ExecutionMetrics,
+    execution: &bijux_core::measure::ExecutionMetrics,
     metrics: &bijux_core::metrics::MetricEnvelope<T>,
 ) -> Result<()> {
     let payload = serde_json::json!({
