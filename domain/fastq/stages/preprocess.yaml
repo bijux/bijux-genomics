@@ -32,3 +32,8 @@ description: "Meta-stage orchestrating validate → trim → merge → correct �
 mutates_fastq: true
 report_only: false
 may_change_read_count: true
+image_requirements:
+  needs:
+    - gzip
+  forbids:
+    - network

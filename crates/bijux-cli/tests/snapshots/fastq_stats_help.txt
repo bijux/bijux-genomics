@@ -1,6 +1,6 @@
-Summarize FASTQ read statistics.
+Summarize FASTQ read statistics (neutral).
 
-Usage: bijux fastq stats [OPTIONS]
+Usage: bijux fastq stats-neutral [OPTIONS]
 
 Options:
       --list-tools  
@@ -8,6 +8,6 @@ Options:
   -h, --help        Print help
 
 Example:
-  bijux fastq stats --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE --tools seqkit_stats
+  bijux fastq stats-neutral --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE --tools seqkit_stats
 
 Next stages: report/compare

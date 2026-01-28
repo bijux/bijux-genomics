@@ -1,3 +1,3 @@
 Examples:
-  bijux fastq validate --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE --tools fastqvalidator_official
-  bijux fastq validate --list-tools
+  bijux fastq validate-pre --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE --tools fastqvalidator_official
+  bijux fastq validate-pre --list-tools

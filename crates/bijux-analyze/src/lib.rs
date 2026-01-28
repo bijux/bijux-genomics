@@ -163,7 +163,7 @@ pub const METRIC_REGISTRY: [MetricSpec; 26] = [
         }),
         stages: &[
             "fastq.trim",
-            "fastq.validate",
+            "fastq.validate_pre",
             "fastq.filter",
             "fastq.merge",
             "fastq.correct",
@@ -185,7 +185,7 @@ pub const METRIC_REGISTRY: [MetricSpec; 26] = [
         }),
         stages: &[
             "fastq.trim",
-            "fastq.validate",
+            "fastq.validate_pre",
             "fastq.filter",
             "fastq.merge",
             "fastq.correct",
@@ -207,7 +207,7 @@ pub const METRIC_REGISTRY: [MetricSpec; 26] = [
         }),
         stages: &[
             "fastq.trim",
-            "fastq.validate",
+            "fastq.validate_pre",
             "fastq.filter",
             "fastq.merge",
             "fastq.correct",
@@ -273,7 +273,7 @@ pub const METRIC_REGISTRY: [MetricSpec; 26] = [
             min: 0.0,
             max: f64::INFINITY,
         }),
-        stages: &["fastq.validate"],
+        stages: &["fastq.validate_pre"],
         measured: true,
         derived: false,
     },
@@ -286,7 +286,7 @@ pub const METRIC_REGISTRY: [MetricSpec; 26] = [
             min: 0.0,
             max: f64::INFINITY,
         }),
-        stages: &["fastq.validate"],
+        stages: &["fastq.validate_pre"],
         measured: true,
         derived: false,
     },
@@ -299,7 +299,7 @@ pub const METRIC_REGISTRY: [MetricSpec; 26] = [
             min: 0.0,
             max: f64::INFINITY,
         }),
-        stages: &["fastq.validate"],
+        stages: &["fastq.validate_pre"],
         measured: true,
         derived: false,
     },
@@ -343,7 +343,7 @@ pub const METRIC_REGISTRY: [MetricSpec; 26] = [
             min: 0.0,
             max: f64::INFINITY,
         }),
-        stages: &["fastq.stats"],
+        stages: &["fastq.stats_neutral"],
         measured: true,
         derived: false,
     },
@@ -434,7 +434,7 @@ pub const METRIC_REGISTRY: [MetricSpec; 26] = [
             min: 0.0,
             max: 45.0,
         }),
-        stages: &["fastq.validate", "fastq.qc_post"],
+        stages: &["fastq.validate_pre", "fastq.qc_post"],
         measured: true,
         derived: false,
     },
@@ -474,7 +474,7 @@ pub const METRIC_REGISTRY: [MetricSpec; 26] = [
         meaning: "Estimated contamination rate from screening",
         direction: MetricDirection::LowerBetter,
         range: Some(MetricRange { min: 0.0, max: 1.0 }),
-        stages: &["fastq.screen", "fastq.qc_post", "fastq.validate"],
+        stages: &["fastq.screen", "fastq.qc_post", "fastq.validate_pre"],
         measured: true,
         derived: false,
     },
@@ -487,7 +487,7 @@ pub const METRIC_REGISTRY: [MetricSpec; 26] = [
             min: 0.0,
             max: 100.0,
         }),
-        stages: &["fastq.stats"],
+        stages: &["fastq.stats_neutral"],
         measured: true,
         derived: false,
     },
@@ -497,7 +497,7 @@ pub const METRIC_REGISTRY: [MetricSpec; 26] = [
         meaning: "Histogram of read lengths",
         direction: MetricDirection::Neutral,
         range: None,
-        stages: &["fastq.stats"],
+        stages: &["fastq.stats_neutral"],
         measured: true,
         derived: false,
     },
@@ -668,14 +668,14 @@ pub const FASTQ_STATS_INVARIANTS: [&str; 2] = ["mean_q in [0, 45]", "gc_percent 
 pub fn metric_kind_for_stage(stage_id: &str) -> Option<StageMetricKind> {
     match stage_id {
         "fastq.trim" => Some(StageMetricKind::FastqTrim),
-        "fastq.validate" => Some(StageMetricKind::FastqValidate),
+        "fastq.validate_pre" => Some(StageMetricKind::FastqValidate),
         "fastq.filter" => Some(StageMetricKind::FastqFilter),
         "fastq.merge" => Some(StageMetricKind::FastqMerge),
         "fastq.correct" => Some(StageMetricKind::FastqCorrect),
         "fastq.qc_post" => Some(StageMetricKind::FastqQcPost),
         "fastq.umi" => Some(StageMetricKind::FastqUmi),
         "fastq.screen" => Some(StageMetricKind::FastqScreen),
-        "fastq.stats" => Some(StageMetricKind::FastqStats),
+        "fastq.stats_neutral" => Some(StageMetricKind::FastqStats),
         _ => None,
     }
 }
@@ -689,7 +689,7 @@ pub fn stage_metric_spec(kind: StageMetricKind) -> StageMetricSpec {
             invariants: &FASTQ_TRIM_INVARIANTS,
         },
         StageMetricKind::FastqValidate => StageMetricSpec {
-            stage: "fastq.validate",
+            stage: "fastq.validate_pre",
             metrics: &FASTQ_VALIDATE_METRICS,
             invariants: &FASTQ_VALIDATE_INVARIANTS,
         },
@@ -724,7 +724,7 @@ pub fn stage_metric_spec(kind: StageMetricKind) -> StageMetricSpec {
             invariants: &FASTQ_SCREEN_INVARIANTS,
         },
         StageMetricKind::FastqStats => StageMetricSpec {
-            stage: "fastq.stats",
+            stage: "fastq.stats_neutral",
             metrics: &FASTQ_STATS_METRICS,
             invariants: &FASTQ_STATS_INVARIANTS,
         },
@@ -1057,7 +1057,7 @@ pub struct FastqValidateMetrics {
 }
 
 impl StageMetricSchema for FastqValidateMetrics {
-    const STAGE: &'static str = "fastq.validate";
+    const STAGE: &'static str = "fastq.validate_pre";
     const VERSION: i32 = 1;
 
     fn validate(&self) -> Result<()> {
@@ -1276,7 +1276,7 @@ pub struct FastqStatsMetrics {
 }
 
 impl StageMetricSchema for FastqStatsMetrics {
-    const STAGE: &'static str = "fastq.stats";
+    const STAGE: &'static str = "fastq.stats_neutral";
     const VERSION: i32 = 1;
 
     fn validate(&self) -> Result<()> {

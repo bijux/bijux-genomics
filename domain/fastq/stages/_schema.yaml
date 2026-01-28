@@ -8,3 +8,6 @@ description: ""
 mutates_fastq: false
 report_only: false
 may_change_read_count: false
+image_requirements:
+  needs: []
+  forbids: []

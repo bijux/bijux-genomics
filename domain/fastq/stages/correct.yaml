@@ -37,3 +37,9 @@ description: "FASTQ stage for error correction of reads."
 mutates_fastq: true
 report_only: false
 may_change_read_count: false
+image_requirements:
+  needs:
+    - gzip
+    - paired_end_support
+  forbids:
+    - network

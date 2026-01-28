@@ -6,11 +6,10 @@ use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 
 use bijux_engine::api::bench_base_dir;
 
-use crate::core::filter::bench_fastq_filter;
-use crate::core::stats::bench_fastq_stats;
-use crate::core::trim::bench_fastq_trim;
-use crate::core::validate::bench_fastq_validate;
 use crate::stages::helpers::write_explain_plan_json;
+use crate::stages::{
+    bench_fastq_filter, bench_fastq_stats_neutral, bench_fastq_trim, bench_fastq_validate_pre,
+};
 
 /// Run the FASTQ benchmark stage.
 ///
@@ -37,7 +36,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
 ) -> Result<()> {
     let out_dir = bench_base_dir(&args.out, "preprocess", &args.sample_id);
     fs::create_dir_all(&out_dir).context("create preprocess output dir")?;
-    let pipeline = crate::meta::preprocess::fastq_preprocess_plan(args);
+    let pipeline = crate::stages::fastq_preprocess_plan(args);
     let explain = format!(
         "# Explain: fastq.preprocess\n\nPipeline:\n- {}",
         pipeline.stages.join("\n- ")
@@ -67,7 +66,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         explain: false,
         strict: args.strict,
     };
-    let _ = bench_fastq_validate(catalog, platform, runner_override, &validate_args)?;
+    let _ = bench_fastq_validate_pre(catalog, platform, runner_override, &validate_args)?;
 
     let trim_args = crate::stages::args::BenchFastqTrimArgs {
         sample_id: args.sample_id.clone(),
@@ -94,7 +93,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         tools: vec!["seqkit_stats".to_string()],
         explain: false,
     };
-    let _ = bench_fastq_stats(catalog, platform, runner_override, &stats_args)?;
+    let _ = bench_fastq_stats_neutral(catalog, platform, runner_override, &stats_args)?;
 
     Ok(())
 }

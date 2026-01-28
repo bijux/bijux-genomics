@@ -1,3 +1,4 @@
+use crate::contracts::pipeline_contract::{self, StageCriticality};
 use crate::metrics::spec::{metric_spec_for_stage, MetricClass};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -19,6 +20,7 @@ pub struct StageSemantics {
 pub struct StageDefinition {
     pub stage_id: &'static str,
     pub kind: FastqStageKind,
+    pub criticality: StageCriticality,
     pub semantics: StageSemantics,
 }
 
@@ -29,24 +31,9 @@ pub struct BoundaryInvariant {
     pub rule: &'static str,
 }
 
-pub const CANONICAL_STAGE_ORDER: [&str; 4] = [
-    "fastq.validate",
-    "fastq.trim",
-    "fastq.filter",
-    "fastq.stats",
-];
-
-pub const OPTIONAL_BRANCHES: [(&str, &[&str]); 5] = [
-    ("fastq.umi", &["fastq.trim"]),
-    ("fastq.screen", &["fastq.validate"]),
-    ("fastq.qc_post", &["fastq.validate"]),
-    ("fastq.merge", &["fastq.trim", "fastq.filter"]),
-    ("fastq.correct", &["fastq.trim"]),
-];
-
 pub const STAGE_BOUNDARY_INVARIANTS: [BoundaryInvariant; 4] = [
     BoundaryInvariant {
-        from: "fastq.validate",
+        from: "fastq.validate_pre",
         to: "fastq.trim",
         rule: "validation does not modify reads; trim consumes validated reads",
     },
@@ -57,20 +44,21 @@ pub const STAGE_BOUNDARY_INVARIANTS: [BoundaryInvariant; 4] = [
     },
     BoundaryInvariant {
         from: "fastq.filter",
-        to: "fastq.stats",
+        to: "fastq.stats_neutral",
         rule: "filter output remains FASTQ; stats is report-only",
     },
     BoundaryInvariant {
         from: "fastq.merge",
-        to: "fastq.stats",
+        to: "fastq.stats_neutral",
         rule: "merge produces merged reads; stats accepts merged FASTQ",
     },
 ];
 
 pub const STAGES: [StageDefinition; 10] = [
     StageDefinition {
-        stage_id: "fastq.validate",
+        stage_id: "fastq.validate_pre",
         kind: FastqStageKind::Core,
+        criticality: StageCriticality::Essential,
         semantics: StageSemantics {
             mutates_fastq: false,
             consumes_pairs: false,
@@ -81,6 +69,7 @@ pub const STAGES: [StageDefinition; 10] = [
     StageDefinition {
         stage_id: "fastq.trim",
         kind: FastqStageKind::Core,
+        criticality: StageCriticality::Essential,
         semantics: StageSemantics {
             mutates_fastq: true,
             consumes_pairs: true,
@@ -95,6 +84,7 @@ pub const STAGES: [StageDefinition; 10] = [
     StageDefinition {
         stage_id: "fastq.filter",
         kind: FastqStageKind::Core,
+        criticality: StageCriticality::Essential,
         semantics: StageSemantics {
             mutates_fastq: true,
             consumes_pairs: true,
@@ -107,8 +97,9 @@ pub const STAGES: [StageDefinition; 10] = [
         },
     },
     StageDefinition {
-        stage_id: "fastq.stats",
+        stage_id: "fastq.stats_neutral",
         kind: FastqStageKind::Core,
+        criticality: StageCriticality::Essential,
         semantics: StageSemantics {
             mutates_fastq: false,
             consumes_pairs: false,
@@ -119,6 +110,7 @@ pub const STAGES: [StageDefinition; 10] = [
     StageDefinition {
         stage_id: "fastq.merge",
         kind: FastqStageKind::Core,
+        criticality: StageCriticality::Essential,
         semantics: StageSemantics {
             mutates_fastq: true,
             consumes_pairs: true,
@@ -129,6 +121,7 @@ pub const STAGES: [StageDefinition; 10] = [
     StageDefinition {
         stage_id: "fastq.correct",
         kind: FastqStageKind::Core,
+        criticality: StageCriticality::Essential,
         semantics: StageSemantics {
             mutates_fastq: true,
             consumes_pairs: true,
@@ -139,6 +132,7 @@ pub const STAGES: [StageDefinition; 10] = [
     StageDefinition {
         stage_id: "fastq.umi",
         kind: FastqStageKind::Optional,
+        criticality: StageCriticality::Optional,
         semantics: StageSemantics {
             mutates_fastq: true,
             consumes_pairs: true,
@@ -149,6 +143,7 @@ pub const STAGES: [StageDefinition; 10] = [
     StageDefinition {
         stage_id: "fastq.screen",
         kind: FastqStageKind::Optional,
+        criticality: StageCriticality::Experimental,
         semantics: StageSemantics {
             mutates_fastq: false,
             consumes_pairs: false,
@@ -159,6 +154,7 @@ pub const STAGES: [StageDefinition; 10] = [
     StageDefinition {
         stage_id: "fastq.qc_post",
         kind: FastqStageKind::Optional,
+        criticality: StageCriticality::Optional,
         semantics: StageSemantics {
             mutates_fastq: false,
             consumes_pairs: false,
@@ -169,6 +165,7 @@ pub const STAGES: [StageDefinition; 10] = [
     StageDefinition {
         stage_id: "fastq.preprocess",
         kind: FastqStageKind::Meta,
+        criticality: StageCriticality::Optional,
         semantics: StageSemantics {
             mutates_fastq: false,
             consumes_pairs: true,
@@ -195,6 +192,14 @@ pub fn stage_kind(stage_id: &str) -> Option<FastqStageKind> {
 }
 
 #[must_use]
+pub fn stage_criticality(stage_id: &str) -> Option<StageCriticality> {
+    STAGES
+        .iter()
+        .find(|stage| stage.stage_id == stage_id)
+        .map(|stage| stage.criticality)
+}
+
+#[must_use]
 pub fn stage_metric_classes(stage_id: &str) -> Option<&'static [MetricClass]> {
     stage_semantics(stage_id).map(|semantics| semantics.affects_metrics)
 }
@@ -202,4 +207,14 @@ pub fn stage_metric_classes(stage_id: &str) -> Option<&'static [MetricClass]> {
 #[must_use]
 pub fn stage_metric_invariants(stage_id: &str) -> Option<&'static [&'static str]> {
     metric_spec_for_stage(stage_id).map(|spec| spec.invariants)
+}
+
+#[must_use]
+pub fn canonical_stage_order() -> Vec<&'static str> {
+    pipeline_contract::canonical_stage_order()
+}
+
+#[must_use]
+pub fn optional_branches() -> Vec<(&'static str, &'static [&'static str])> {
+    pipeline_contract::optional_branches()
 }

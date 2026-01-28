@@ -1,6 +1,6 @@
 use serde::Serialize;
 
-use crate::core::RawFailure;
+use crate::contracts::RawFailure;
 
 #[derive(Debug, Clone, Copy, Serialize)]
 #[serde(rename_all = "snake_case")]
@@ -37,7 +37,7 @@ pub fn classify_raw_failure(raw: &RawFailure) -> BenchmarkFailure {
         || msg.contains("must equal")
     {
         FailureClass::InvariantViolation
-    } else if (raw.stage == "fastq.validate" && msg.contains("strict validation failed"))
+    } else if (raw.stage == "fastq.validate_pre" && msg.contains("strict validation failed"))
         || msg.contains("invalid fastq")
         || (msg.contains("fastq") && msg.contains("invalid"))
     {
@@ -60,7 +60,7 @@ mod tests {
     #[test]
     fn classify_failure_detects_data_errors() {
         let raw = RawFailure {
-            stage: "fastq.validate".to_string(),
+            stage: "fastq.validate_pre".to_string(),
             tool: "fastqvalidator".to_string(),
             reason: "strict validation failed for fastqvalidator".to_string(),
         };

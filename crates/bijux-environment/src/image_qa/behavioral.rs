@@ -20,7 +20,7 @@ use super::{QaDataset, QaStage};
 const QA_TIMEOUT_SECS: u64 = 300;
 const QA_MERGE_TIMEOUT_SECS: u64 = 300;
 
-pub(crate) fn run_stage_qa(
+pub(crate) fn run_behavioral_qa(
     stage: QaStage,
     tool: &str,
     platform: &PlatformSpec,
@@ -166,7 +166,7 @@ fn qa_validate_tool(
     registry: &ToolRegistry,
     dataset: &QaDataset,
 ) -> Result<()> {
-    let contract = tool_contract(registry, "fastq.validate", tool)?;
+    let contract = tool_contract(registry, "fastq.validate_pre", tool)?;
     let spec = catalog
         .get(tool)
         .ok_or_else(|| anyhow!("tool {tool} missing from images.yaml"))?;
@@ -528,7 +528,7 @@ fn qa_stats_tool(
     registry: &ToolRegistry,
     dataset: &QaDataset,
 ) -> Result<()> {
-    let contract = tool_contract(registry, "fastq.stats", tool)?;
+    let contract = tool_contract(registry, "fastq.stats_neutral", tool)?;
     let spec = catalog
         .get(tool)
         .ok_or_else(|| anyhow!("tool {tool} missing from images.yaml"))?;

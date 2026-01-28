@@ -182,6 +182,15 @@ pub struct MetricSpec {
     pub meaning: String,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[serde(deny_unknown_fields)]
+pub struct ImageRequirements {
+    #[serde(default)]
+    pub needs: Vec<String>,
+    #[serde(default)]
+    pub forbids: Vec<String>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct StageManifestV1 {
@@ -199,6 +208,8 @@ pub struct StageManifestV1 {
     pub report_only: bool,
     #[serde(default)]
     pub may_change_read_count: bool,
+    #[serde(default)]
+    pub image_requirements: ImageRequirements,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -228,6 +239,8 @@ struct StageManifestDoc {
     report_only: Option<bool>,
     #[serde(default)]
     may_change_read_count: Option<bool>,
+    #[serde(default)]
+    image_requirements: Option<ImageRequirements>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -437,6 +450,7 @@ fn merge_stage_docs(base: StageManifestDoc, overlay: StageManifestDoc) -> StageM
         mutates_fastq: overlay.mutates_fastq.or(base.mutates_fastq),
         report_only: overlay.report_only.or(base.report_only),
         may_change_read_count: overlay.may_change_read_count.or(base.may_change_read_count),
+        image_requirements: overlay.image_requirements.or(base.image_requirements),
     }
 }
 
@@ -504,6 +518,7 @@ fn stage_doc_to_manifest(
         mutates_fastq: doc.mutates_fastq.unwrap_or(false),
         report_only: doc.report_only.unwrap_or(false),
         may_change_read_count: doc.may_change_read_count.unwrap_or(false),
+        image_requirements: doc.image_requirements.unwrap_or_default(),
     })
 }
 

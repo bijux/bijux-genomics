@@ -12,6 +12,7 @@ use super::support::{
     image_qa_jsonl_path, image_qa_sqlite_path, resolve_image_for_run, trace_enabled, StdoutLogger,
 };
 
+use super::behavioral::run_behavioral_qa;
 use super::datasets::{
     dataset_input_hash, datasets_for_stage, discover_qa_datasets, hydrate_datasets,
 };
@@ -19,7 +20,7 @@ use super::helpers::{build_qa_record, qa_already_passed};
 use super::logging::{
     log_dataset, log_header, log_stage_header, log_tool, log_tool_result, log_tool_skip,
 };
-use super::stages::run_stage_qa;
+use super::static_qa::run_static_qa;
 use super::QaStage;
 use bijux_core::load_manifests;
 
@@ -121,15 +122,18 @@ fn run_image_qa_with(
                     continue;
                 }
                 log_tool(logger, stage, tool);
-                let mut outcome = run_stage_qa(
-                    stage,
-                    tool,
-                    platform,
-                    catalog,
-                    &registry,
-                    &dataset,
-                    &seqkit_image,
-                );
+                let mut outcome = match run_static_qa(tool, platform, catalog) {
+                    Ok(()) => run_behavioral_qa(
+                        stage,
+                        tool,
+                        platform,
+                        catalog,
+                        &registry,
+                        &dataset,
+                        &seqkit_image,
+                    ),
+                    Err(err) => ImageQaOutcome::Fail(err.to_string()),
+                };
                 let record = match build_qa_record(
                     stage,
                     tool,

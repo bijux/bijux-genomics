@@ -12,16 +12,16 @@ See also (supporting, non-authoritative):
 
 Stage tiers are fixed as of FASTQ v1:
 
-- Core: validate, trim, merge, correct, filter, stats
+- Core: validate_pre, trim, merge, correct, filter, stats_neutral
 - Optional: qc_post, umi, screen
 - Meta: preprocess
 
 Core stages (canonical order):
 
-1) validate
+1) validate_pre
 2) trim
 3) filter
-4) stats
+4) stats_neutral
 
 Optional branches:
 
@@ -34,15 +34,15 @@ Optional branches:
 
 Stage intent (summary):
 
-- validate: structural correctness and read integrity
+- validate_pre: structural correctness and read integrity
 - trim: adapter/quality trimming with canonical output normalization
 - filter: read-level filtering with retention accounting
-- stats: tool-agnostic read/base/length/quality summaries
+- stats_neutral: tool-agnostic read/base/length/quality summaries
 - merge: paired-end merge into single-end reads
 - correct: error correction on paired-end reads
 - umi: UMI-aware processing of paired-end reads
 - qc_post/screen: diagnostic reports; do not mutate reads
-- preprocess: validate -> trim -> filter -> stats orchestration
+- preprocess: validate_pre -> trim -> filter -> stats_neutral orchestration
 
 ## Invariants
 

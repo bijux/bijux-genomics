@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 use std::fs;
 use std::path::Path;
 
-use crate::core::qc_class_for_stage;
+use crate::contracts::qc_class_for_stage;
 use crate::metrics::{
     ratio_u64, semantic_filter, semantic_stats, semantic_trim, semantic_validate,
 };
@@ -15,7 +15,7 @@ use bijux_analyze::{
 };
 
 use super::failure::{classify_raw_failure, BenchmarkFailure};
-use crate::core::RawFailure;
+use crate::contracts::RawFailure;
 use bijux_bench::analyze::{build_rankings, print_rank_explain, RankInput};
 
 /// Write the trim benchmark report.
@@ -78,7 +78,7 @@ pub fn write_validate_report(
         .map(|record| semantic_validate(&record.metrics.metrics))
         .collect();
     report.insert("semantic_metrics", serde_json::to_value(&semantic)?);
-    if let Some(class) = qc_class_for_stage("fastq.validate") {
+    if let Some(class) = qc_class_for_stage("fastq.validate_pre") {
         report.insert("qc_class", serde_json::to_value(class)?);
     }
     let rankings = rank_validate_tools(records);
@@ -86,7 +86,7 @@ pub fn write_validate_report(
     let json = serde_json::to_string_pretty(&report)?;
     fs::write(&path, json).context("write report.json")?;
     if explain {
-        print_rank_explain("fastq.validate", &rankings);
+        print_rank_explain("fastq.validate_pre", &rankings);
     }
     Ok(())
 }
@@ -277,7 +277,7 @@ pub fn write_stats_report(
     let json = serde_json::to_string_pretty(&report)?;
     fs::write(&path, json).context("write report.json")?;
     if explain {
-        print_rank_explain("fastq.stats", &BTreeMap::new());
+        print_rank_explain("fastq.stats_neutral", &BTreeMap::new());
     }
     Ok(())
 }

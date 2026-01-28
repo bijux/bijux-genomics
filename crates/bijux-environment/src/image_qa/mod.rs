@@ -1,9 +1,10 @@
 mod apptainer;
+mod behavioral;
 mod datasets;
 mod helpers;
 mod logging;
 mod runner;
-mod stages;
+mod static_qa;
 mod support;
 
 pub use helpers::{ensure_image_qa_passed, ensure_tool_qa_passed};
@@ -29,13 +30,13 @@ impl QaStage {
     pub(crate) fn stage_id(self) -> &'static str {
         match self {
             QaStage::Trim => "fastq.trim",
-            QaStage::Validate => "fastq.validate",
+            QaStage::Validate => "fastq.validate_pre",
             QaStage::Filter => "fastq.filter",
             QaStage::Merge => "fastq.merge",
             QaStage::Correct => "fastq.correct",
             QaStage::QcPost => "fastq.qc_post",
             QaStage::Umi => "fastq.umi",
-            QaStage::Stats => "fastq.stats",
+            QaStage::Stats => "fastq.stats_neutral",
             QaStage::Screen => "fastq.screen",
         }
     }

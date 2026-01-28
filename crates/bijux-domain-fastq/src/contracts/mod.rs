@@ -1,15 +1,10 @@
-pub mod contracts;
-pub mod correct;
+mod contract;
 pub mod failure;
-pub mod filter;
-pub mod merge;
 pub mod model;
+pub mod pipeline_contract;
 pub mod stages;
-pub mod stats;
-pub mod trim;
-pub mod validate;
 
-pub use contracts::{
+pub use contract::{
     contract_for_stage, ensure_umi_headers, inspect_headers, log_header_warnings,
     normalize_outputs, preflight_stage, HeaderInspection, NormalizedOutputs,
 };
