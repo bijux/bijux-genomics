@@ -1,6 +1,6 @@
 use bijux_analyze::{
-    insert_fastq_trim_v1, open_sqlite, BenchmarkContext, BenchmarkRecord, FastqTrimMetrics,
-    MetricSet, StageMetricSchema,
+    insert_fastq_trim_v2, open_sqlite, BenchmarkContext, BenchmarkRecord, FastqDeltaMetrics,
+    FastqTrimMetrics, MetricSet, StageMetricSchema,
 };
 use bijux_measure::ExecutionMetrics;
 
@@ -13,6 +13,12 @@ fn fastq_trim_metrics_invariants_fail() {
         bases_out: 90,
         mean_q_before: 30.0,
         mean_q_after: 31.0,
+        delta_metrics: FastqDeltaMetrics {
+            read_retention: 0.9,
+            base_retention: 0.9,
+            mean_q_delta: 1.0,
+            gc_delta: 0.0,
+        },
     };
     let err = match metrics.validate() {
         Ok(()) => panic!("expected invariant failure"),
@@ -23,7 +29,7 @@ fn fastq_trim_metrics_invariants_fail() {
 }
 
 #[test]
-fn sqlite_insert_fastq_trim_v1() -> Result<(), Box<dyn std::error::Error>> {
+fn sqlite_insert_fastq_trim_v2() -> Result<(), Box<dyn std::error::Error>> {
     let record = BenchmarkRecord {
         context: BenchmarkContext {
             tool: "fastp".to_string(),
@@ -46,13 +52,19 @@ fn sqlite_insert_fastq_trim_v1() -> Result<(), Box<dyn std::error::Error>> {
             bases_out: 900,
             mean_q_before: 30.0,
             mean_q_after: 31.0,
+            delta_metrics: FastqDeltaMetrics {
+                read_retention: 0.9,
+                base_retention: 0.9,
+                mean_q_delta: 1.0,
+                gc_delta: 0.1,
+            },
         }),
     };
 
     let conn = open_sqlite(std::path::Path::new(":memory:"))?;
-    insert_fastq_trim_v1(&conn, &record)?;
+    insert_fastq_trim_v2(&conn, &record)?;
 
-    let count: i64 = conn.query_row("SELECT COUNT(*) FROM bench_fastq_trim_v1", [], |row| {
+    let count: i64 = conn.query_row("SELECT COUNT(*) FROM bench_fastq_trim_v2", [], |row| {
         row.get(0)
     })?;
     assert_eq!(count, 1);

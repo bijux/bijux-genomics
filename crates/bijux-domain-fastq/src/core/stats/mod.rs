@@ -18,7 +18,7 @@ use bijux_engine::api::validate_execution_outputs;
 use bijux_engine::api::{bench_base_dir, bench_tools_dir};
 use bijux_engine::api::{cleanup_execution, execution_memory_mb, run_validate_execution};
 use bijux_engine::api::{hash_file_sha256, input_fastq_stats, length_histogram, SeqkitMetrics};
-use bijux_environment::image_qa::ensure_image_qa_passed;
+use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 
 use crate::core::RawFailure;
 use crate::stages::helpers::{
@@ -72,6 +72,7 @@ pub fn bench_fastq_stats<S: ::std::hash::BuildHasher>(
         None,
     )?;
     ensure_image_qa_passed("fastq.stats", &tools, platform, catalog)?;
+    ensure_tool_qa_passed("fastq.stats", &tools, platform, catalog)?;
 
     let sqlite_path = bench_inputs.bench_dir.join("bench.sqlite");
     let conn = bijux_analyze::open_sqlite(&sqlite_path).context("open bench sqlite")?;

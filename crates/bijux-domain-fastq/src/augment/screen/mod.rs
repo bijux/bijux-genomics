@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use anyhow::{anyhow, Result};
 use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 
-use bijux_environment::image_qa::ensure_image_qa_passed;
+use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 
 use crate::stages::helpers::{filter_tools_by_role, normalize_screen_tool_list};
 
@@ -23,9 +23,9 @@ pub fn bench_fastq_screen<S: ::std::hash::BuildHasher>(
         .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let tools = filter_tools_by_role("fastq.screen", &tools, &registry, false)?;
     if std::env::var("BIJUX_SCREEN_DB").is_err() {
-        println!("screen benchmarks skipped (BIJUX_SCREEN_DB not set)");
-        return Ok(());
+        return Err(anyhow!("BIJUX_SCREEN_DB not set; screen cannot run"));
     }
     ensure_image_qa_passed("fastq.screen", &tools, platform, catalog)?;
+    ensure_tool_qa_passed("fastq.screen", &tools, platform, catalog)?;
     Err(anyhow!("screen benchmarking not implemented yet"))
 }

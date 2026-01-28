@@ -4,7 +4,7 @@ use std::path::Path;
 
 use crate::core::qc_class_for_stage;
 use crate::metrics::{
-    delta_from_counts, ratio_u64, semantic_filter, semantic_stats, semantic_trim, semantic_validate,
+    ratio_u64, semantic_filter, semantic_stats, semantic_trim, semantic_validate,
 };
 use anyhow::{anyhow, Context, Result};
 use bijux_analyze::{
@@ -507,17 +507,8 @@ fn sanity_flags_qc_post(records: &[BenchmarkRecord<FastqQcPostMetrics>]) -> Vec<
 }
 
 fn derived_trim_metrics(record: &BenchmarkRecord<FastqTrimMetrics>) -> serde_json::Value {
-    let delta = delta_from_counts(
-        record.metrics.metrics.reads_in,
-        record.metrics.metrics.reads_out,
-        record.metrics.metrics.bases_in,
-        record.metrics.metrics.bases_out,
-        record.metrics.metrics.mean_q_before,
-        record.metrics.metrics.mean_q_after,
-        0.0,
-        0.0,
-    );
-    let error_reduction_proxy = delta.delta_mean_q.max(0.0);
+    let delta = &record.metrics.metrics.delta_metrics;
+    let error_reduction_proxy = delta.mean_q_delta.max(0.0);
     serde_json::json!({
         "tool": record.context.tool,
         derived_metric_spec(DerivedMetricId::ReadRetention).name: delta.read_retention,
@@ -527,17 +518,8 @@ fn derived_trim_metrics(record: &BenchmarkRecord<FastqTrimMetrics>) -> serde_jso
 }
 
 fn derived_filter_metrics(record: &BenchmarkRecord<FastqFilterMetrics>) -> serde_json::Value {
-    let delta = delta_from_counts(
-        record.metrics.metrics.reads_in,
-        record.metrics.metrics.reads_out,
-        record.metrics.metrics.reads_in,
-        record.metrics.metrics.reads_out,
-        record.metrics.metrics.mean_q_before,
-        record.metrics.metrics.mean_q_after,
-        0.0,
-        0.0,
-    );
-    let error_reduction_proxy = delta.delta_mean_q.max(0.0);
+    let delta = &record.metrics.metrics.delta_metrics;
+    let error_reduction_proxy = delta.mean_q_delta.max(0.0);
     serde_json::json!({
         "tool": record.context.tool,
         derived_metric_spec(DerivedMetricId::ReadRetention).name: delta.read_retention,

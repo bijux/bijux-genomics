@@ -261,6 +261,10 @@ pub enum FastqCommand {
         after_help = "Examples:\n  bijux fastq filter --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE --tools fastp\n  bijux fastq filter --list-tools"
     )]
     Filter(CommonArgs),
+    #[command(
+        about = "Merge paired-end FASTQ reads.",
+        after_help = "Example:\n  bijux fastq merge --r1 reads_1.fastq.gz --r2 reads_2.fastq.gz --out artifacts --sample-id SAMPLE --tools vsearch\n\nNext stages: filter -> stats"
+    )]
     Merge(CommonArgs),
     #[command(
         about = "Trim FASTQ reads (quality/adapters) and emit canonical outputs.",
@@ -275,7 +279,7 @@ pub enum FastqCommand {
     Preprocess(CommonArgs),
     #[command(
         about = "Summarize FASTQ read statistics.",
-        after_help = "Examples:\n  bijux fastq stats --list-tools"
+        after_help = "Example:\n  bijux fastq stats --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE --tools seqkit_stats\n\nNext stages: report/compare"
     )]
     Stats(CommonArgs),
     Umi(CommonArgs),

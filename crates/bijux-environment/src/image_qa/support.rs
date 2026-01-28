@@ -82,6 +82,59 @@ pub fn output_fastq_stats(
     seqkit_stats(image, mount_dir, fastq)
 }
 
+pub fn adapter_hit_reads(
+    image: &ResolvedImage,
+    mount_dir: &Path,
+    fastq: &Path,
+    adapter: &str,
+) -> Result<u64> {
+    let mount_dir = mount_dir
+        .canonicalize()
+        .context("resolve mount directory")?;
+    let fastq = fastq.canonicalize().context("resolve fastq path")?;
+    let fastq_name = fastq
+        .file_name()
+        .ok_or_else(|| anyhow!("fastq missing filename"))?
+        .to_string_lossy()
+        .to_string();
+    let mut cmd = Command::new("docker");
+    cmd.arg("run")
+        .arg("--rm")
+        .arg("-v")
+        .arg(format!("{}:/data:ro", mount_dir.display()))
+        .arg(&image.full_name)
+        .arg("sh")
+        .arg("-lc")
+        .arg(format!(
+            "seqkit grep -s -p {adapter} /data/{fastq_name} | seqkit stats -a -T -"
+        ));
+    let output = cmd.output().context("run seqkit grep stats")?;
+    if !output.status.success() {
+        return Err(anyhow!("seqkit adapter scan failed"));
+    }
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let metrics = parse_seqkit_stats(&stdout)?;
+    Ok(metrics.reads)
+}
+
+pub fn ensure_gzip_integrity(path: &Path) -> Result<()> {
+    if path
+        .extension()
+        .and_then(|ext| ext.to_str())
+        .is_some_and(|ext| ext.eq_ignore_ascii_case("gz"))
+    {
+        let status = Command::new("gzip")
+            .arg("-t")
+            .arg(path)
+            .status()
+            .context("run gzip -t")?;
+        if !status.success() {
+            return Err(anyhow!("gzip integrity check failed: {}", path.display()));
+        }
+    }
+    Ok(())
+}
+
 fn seqkit_stats(image: &ResolvedImage, mount_dir: &Path, fastq: &Path) -> Result<SeqkitMetrics> {
     let mount_dir = mount_dir
         .canonicalize()
@@ -366,6 +419,17 @@ pub struct ExecutionOutput {
     pub command: String,
 }
 
+#[derive(Debug)]
+#[allow(dead_code)]
+pub struct TrimExecutionOutput {
+    pub exit_code: i32,
+    pub stdout: String,
+    pub stderr: String,
+    pub output_r1: std::path::PathBuf,
+    pub output_r2: Option<std::path::PathBuf>,
+    pub command: String,
+}
+
 #[allow(dead_code)]
 #[derive(Debug)]
 pub struct MergeExecutionOutput {
@@ -549,6 +613,198 @@ pub fn run_tool_container_with_timeout(
         stdout,
         stderr,
         output_fastq: out_fastq,
+        command,
+    })
+}
+
+#[allow(clippy::too_many_arguments, clippy::too_many_lines)]
+pub fn run_trim_container_with_timeout(
+    tool: &str,
+    image: &ResolvedImage,
+    r1_dir: &Path,
+    r1: &Path,
+    r2: Option<&Path>,
+    out_dir: &Path,
+    container_name: &str,
+    timeout: Duration,
+) -> Result<TrimExecutionOutput> {
+    if r2.is_none() {
+        let execution = run_tool_container_with_timeout(
+            tool,
+            image,
+            r1_dir,
+            r1,
+            out_dir,
+            container_name,
+            timeout,
+        )?;
+        let output_r1 = execution
+            .output_fastq
+            .ok_or_else(|| anyhow!("output FASTQ missing for {tool}"))?;
+        return Ok(TrimExecutionOutput {
+            exit_code: execution.exit_code,
+            stdout: execution.stdout,
+            stderr: execution.stderr,
+            output_r1,
+            output_r2: None,
+            command: execution.command,
+        });
+    }
+
+    let r2 = r2.ok_or_else(|| anyhow!("r2 path missing"))?;
+    let input_mount = format!("{}:/data/input:ro", r1_dir.display());
+    let output_mount = format!("{}:/data/output", out_dir.display());
+
+    let mut cmd = Command::new("docker");
+    let mut args: Vec<String> = Vec::new();
+    push_arg(&mut cmd, &mut args, "run");
+    push_arg(&mut cmd, &mut args, "-d");
+    push_arg(&mut cmd, &mut args, "--rm=false");
+    push_arg(&mut cmd, &mut args, "--name");
+    push_arg(&mut cmd, &mut args, container_name);
+    push_arg(&mut cmd, &mut args, "-v");
+    push_arg(&mut cmd, &mut args, input_mount);
+    push_arg(&mut cmd, &mut args, "-v");
+    push_arg(&mut cmd, &mut args, output_mount);
+    push_arg(&mut cmd, &mut args, image.full_name.clone());
+
+    let r1_name = r1
+        .file_name()
+        .ok_or_else(|| anyhow!("r1 filename missing"))?
+        .to_string_lossy()
+        .to_string();
+    let r2_name = r2
+        .file_name()
+        .ok_or_else(|| anyhow!("r2 filename missing"))?
+        .to_string_lossy()
+        .to_string();
+    let input_r1 = format!("/data/input/{r1_name}");
+    let input_r2 = format!("/data/input/{r2_name}");
+
+    let (out_r1, out_r2) = match tool {
+        "fastp" => {
+            let out1 = "fastp_R1.fastq.gz";
+            let out2 = "fastp_R2.fastq.gz";
+            push_arg(&mut cmd, &mut args, "fastp");
+            push_arg(&mut cmd, &mut args, "-i");
+            push_arg(&mut cmd, &mut args, input_r1.clone());
+            push_arg(&mut cmd, &mut args, "-I");
+            push_arg(&mut cmd, &mut args, input_r2.clone());
+            push_arg(&mut cmd, &mut args, "-o");
+            push_arg(&mut cmd, &mut args, format!("/data/output/{out1}"));
+            push_arg(&mut cmd, &mut args, "-O");
+            push_arg(&mut cmd, &mut args, format!("/data/output/{out2}"));
+            (out_dir.join(out1), out_dir.join(out2))
+        }
+        "cutadapt" => {
+            let out1 = "cutadapt_R1.fastq.gz";
+            let out2 = "cutadapt_R2.fastq.gz";
+            push_arg(&mut cmd, &mut args, "cutadapt");
+            push_arg(&mut cmd, &mut args, "-o");
+            push_arg(&mut cmd, &mut args, format!("/data/output/{out1}"));
+            push_arg(&mut cmd, &mut args, "-p");
+            push_arg(&mut cmd, &mut args, format!("/data/output/{out2}"));
+            push_arg(&mut cmd, &mut args, input_r1.clone());
+            push_arg(&mut cmd, &mut args, input_r2.clone());
+            (out_dir.join(out1), out_dir.join(out2))
+        }
+        "atropos" => {
+            let out1 = "atropos_R1.fastq.gz";
+            let out2 = "atropos_R2.fastq.gz";
+            push_arg(&mut cmd, &mut args, "atropos");
+            push_arg(&mut cmd, &mut args, "trim");
+            push_arg(&mut cmd, &mut args, "-a");
+            push_arg(&mut cmd, &mut args, "AGATCGGAAGAGC");
+            push_arg(&mut cmd, &mut args, "-A");
+            push_arg(&mut cmd, &mut args, "AGATCGGAAGAGC");
+            push_arg(&mut cmd, &mut args, "-pe1");
+            push_arg(&mut cmd, &mut args, input_r1.clone());
+            push_arg(&mut cmd, &mut args, "-pe2");
+            push_arg(&mut cmd, &mut args, input_r2.clone());
+            push_arg(&mut cmd, &mut args, "-o");
+            push_arg(&mut cmd, &mut args, format!("/data/output/{out1}"));
+            push_arg(&mut cmd, &mut args, "-p");
+            push_arg(&mut cmd, &mut args, format!("/data/output/{out2}"));
+            (out_dir.join(out1), out_dir.join(out2))
+        }
+        "bbduk" => {
+            let out1 = "bbduk_R1.fastq.gz";
+            let out2 = "bbduk_R2.fastq.gz";
+            push_arg(&mut cmd, &mut args, format!("in1={input_r1}"));
+            push_arg(&mut cmd, &mut args, format!("in2={input_r2}"));
+            push_arg(&mut cmd, &mut args, format!("out1=/data/output/{out1}"));
+            push_arg(&mut cmd, &mut args, format!("out2=/data/output/{out2}"));
+            push_arg(&mut cmd, &mut args, "ref=adapters");
+            (out_dir.join(out1), out_dir.join(out2))
+        }
+        "adapterremoval" => {
+            let out1 = "adapterremoval_R1.fastq.gz";
+            let out2 = "adapterremoval_R2.fastq.gz";
+            push_arg(&mut cmd, &mut args, "adapterremoval");
+            push_arg(&mut cmd, &mut args, "--file1");
+            push_arg(&mut cmd, &mut args, input_r1.clone());
+            push_arg(&mut cmd, &mut args, "--file2");
+            push_arg(&mut cmd, &mut args, input_r2.clone());
+            push_arg(&mut cmd, &mut args, "--output1");
+            push_arg(&mut cmd, &mut args, format!("/data/output/{out1}"));
+            push_arg(&mut cmd, &mut args, "--output2");
+            push_arg(&mut cmd, &mut args, format!("/data/output/{out2}"));
+            (out_dir.join(out1), out_dir.join(out2))
+        }
+        "trimmomatic" => {
+            let out1 = "trimmomatic_R1.fastq.gz";
+            let out2 = "trimmomatic_R2.fastq.gz";
+            let unpaired1 = "trimmomatic_R1_unpaired.fastq.gz";
+            let unpaired2 = "trimmomatic_R2_unpaired.fastq.gz";
+            push_arg(&mut cmd, &mut args, "trimmomatic");
+            push_arg(&mut cmd, &mut args, "PE");
+            push_arg(&mut cmd, &mut args, "-phred33");
+            push_arg(&mut cmd, &mut args, input_r1.clone());
+            push_arg(&mut cmd, &mut args, input_r2.clone());
+            push_arg(&mut cmd, &mut args, format!("/data/output/{out1}"));
+            push_arg(&mut cmd, &mut args, format!("/data/output/{unpaired1}"));
+            push_arg(&mut cmd, &mut args, format!("/data/output/{out2}"));
+            push_arg(&mut cmd, &mut args, format!("/data/output/{unpaired2}"));
+            push_arg(&mut cmd, &mut args, "SLIDINGWINDOW:4:20");
+            push_arg(&mut cmd, &mut args, "MINLEN:30");
+            (out_dir.join(out1), out_dir.join(out2))
+        }
+        "trim_galore" => {
+            let basename = "trimmed";
+            let out1 = format!("{basename}_val_1.fq.gz");
+            let out2 = format!("{basename}_val_2.fq.gz");
+            push_arg(&mut cmd, &mut args, "trim_galore");
+            push_arg(&mut cmd, &mut args, "--paired");
+            push_arg(&mut cmd, &mut args, "--gzip");
+            push_arg(&mut cmd, &mut args, "--output_dir");
+            push_arg(&mut cmd, &mut args, "/data/output");
+            push_arg(&mut cmd, &mut args, "--basename");
+            push_arg(&mut cmd, &mut args, basename);
+            push_arg(&mut cmd, &mut args, input_r1.clone());
+            push_arg(&mut cmd, &mut args, input_r2.clone());
+            (out_dir.join(out1), out_dir.join(out2))
+        }
+        _ => return Err(anyhow!("unsupported tool for paired trim: {tool}")),
+    };
+
+    let output = cmd.output().context("run docker")?;
+    if !output.status.success() {
+        return Err(anyhow!("docker run failed for {tool}"));
+    }
+    let id = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    if id.is_empty() {
+        return Err(anyhow!("missing container id for {tool}"));
+    }
+    let exit_code = docker_wait_timeout(&id, timeout)?;
+    let stdout = docker_logs(&id)?;
+    let stderr = String::new();
+    let command = command_string(&args);
+    Ok(TrimExecutionOutput {
+        exit_code,
+        stdout,
+        stderr,
+        output_r1: out_r1,
+        output_r2: Some(out_r2),
         command,
     })
 }

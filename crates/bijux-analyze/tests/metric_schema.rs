@@ -1,4 +1,4 @@
-use bijux_analyze::{BenchmarkRecord, FastqTrimMetrics, MetricSet};
+use bijux_analyze::{BenchmarkRecord, FastqDeltaMetrics, FastqTrimMetrics, MetricSet};
 use bijux_measure::ExecutionMetrics;
 
 fn base_record(metrics: MetricSet<FastqTrimMetrics>) -> BenchmarkRecord<FastqTrimMetrics> {
@@ -30,10 +30,16 @@ fn metrics_schema_matches_stage_and_version() {
         bases_out: 900,
         mean_q_before: 30.0,
         mean_q_after: 31.0,
+        delta_metrics: FastqDeltaMetrics {
+            read_retention: 0.9,
+            base_retention: 0.9,
+            mean_q_delta: 1.0,
+            gc_delta: 0.1,
+        },
     }));
     assert!(record.validate().is_ok());
     let schema = record.metrics.metrics_schema;
-    assert_eq!(schema, "fastq_trim_v1");
+    assert_eq!(schema, "fastq_trim_v2");
 }
 
 #[test]
@@ -45,8 +51,14 @@ fn metrics_schema_rejects_unknown() {
         bases_out: 900,
         mean_q_before: 30.0,
         mean_q_after: 31.0,
+        delta_metrics: FastqDeltaMetrics {
+            read_retention: 0.9,
+            base_retention: 0.9,
+            mean_q_delta: 1.0,
+            gc_delta: 0.1,
+        },
     });
-    metrics.metrics_schema = "fastq_trim_v2".to_string();
+    metrics.metrics_schema = "fastq_trim_v1".to_string();
     let record = base_record(metrics);
     match record.validate() {
         Ok(()) => panic!("expected schema mismatch"),
@@ -63,6 +75,12 @@ fn metrics_schema_rejects_mixed_stage() {
         bases_out: 900,
         mean_q_before: 30.0,
         mean_q_after: 31.0,
+        delta_metrics: FastqDeltaMetrics {
+            read_retention: 0.9,
+            base_retention: 0.9,
+            mean_q_delta: 1.0,
+            gc_delta: 0.1,
+        },
     });
     metrics.metrics_schema = "fastq_validate_v1".to_string();
     let record = base_record(metrics);
@@ -81,6 +99,12 @@ fn execution_metrics_require_positive_values() {
         bases_out: 90,
         mean_q_before: 30.0,
         mean_q_after: 31.0,
+        delta_metrics: FastqDeltaMetrics {
+            read_retention: 0.9,
+            base_retention: 0.9,
+            mean_q_delta: 1.0,
+            gc_delta: 0.1,
+        },
     }));
     record.execution.runtime_s = 0.0;
     match record.validate() {

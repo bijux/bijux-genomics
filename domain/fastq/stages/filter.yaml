@@ -23,6 +23,8 @@ metrics:
     meaning: "Mean base quality before filtering"
   - name: "mean_q_after"
     meaning: "Mean base quality after filtering"
+  - name: "delta_metrics"
+    meaning: "Derived retention and quality deltas"
 description: "FASTQ stage for filtering reads."
 mutates_fastq: true
 report_only: false

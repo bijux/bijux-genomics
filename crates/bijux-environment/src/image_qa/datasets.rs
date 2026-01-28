@@ -210,6 +210,18 @@ pub(crate) fn datasets_for_stage(stage: QaStage, datasets: &[QaDataset]) -> Vec<
             .filter(|dataset| dataset.r2.is_some())
             .cloned()
             .collect(),
+        QaStage::Trim => {
+            let pe: Vec<QaDataset> = datasets
+                .iter()
+                .filter(|dataset| dataset.r2.is_some())
+                .cloned()
+                .collect();
+            if pe.is_empty() {
+                datasets.to_vec()
+            } else {
+                pe
+            }
+        }
         _ => datasets.to_vec(),
     }
 }

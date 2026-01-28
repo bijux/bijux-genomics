@@ -1,0 +1,12 @@
+Run the FASTQ preprocess pipeline (validate → trim → filter → stats).
+
+Usage: bijux fastq preprocess [OPTIONS]
+
+Options:
+      --list-tools  
+      --dry-run     
+  -h, --help        Print help
+
+Examples:
+  bijux fastq preprocess --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE
+  bijux fastq preprocess --list-tools

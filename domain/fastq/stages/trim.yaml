@@ -25,6 +25,8 @@ metrics:
     meaning: "Mean base quality before trimming"
   - name: "mean_q_after"
     meaning: "Mean base quality after trimming"
+  - name: "delta_metrics"
+    meaning: "Derived retention and quality deltas"
 description: "FASTQ stage for trimming and preprocessing reads."
 mutates_fastq: true
 report_only: false
