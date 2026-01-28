@@ -49,7 +49,7 @@ pub struct BenchFastqCorrectArgs {
 }
 
 #[derive(Debug, Clone)]
-pub struct BenchFastqQc2Args {
+pub struct BenchFastqQcPostArgs {
     pub sample_id: String,
     pub r1: PathBuf,
     pub out: PathBuf,

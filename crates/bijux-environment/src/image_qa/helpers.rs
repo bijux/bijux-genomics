@@ -2,13 +2,13 @@ use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
 
+use crate::api::{PlatformSpec, ToolImageSpec};
 use anyhow::{anyhow, Context, Result};
 use bijux_analyze::{image_qa_passed, ImageQaOutcome, ImageQaRecord};
-use bijux_environment::api::{PlatformSpec, ToolImageSpec};
 use uuid::Uuid;
 
+use super::support::resolve_image_for_run;
 use super::QaStage;
-use bijux_engine::api::resolve_image_for_run;
 
 pub(crate) fn temp_out_dir(stage: &str, tool: &str) -> Result<PathBuf> {
     let base = std::env::temp_dir().join("bijux-image-qa").join(stage);
@@ -85,7 +85,7 @@ pub fn ensure_image_qa_passed<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
 ) -> Result<()> {
     let cwd = std::env::current_dir().map_err(|err| anyhow!("failed to resolve cwd: {err}"))?;
-    let qa_sqlite = bijux_engine::api::image_qa_sqlite_path(&cwd, &platform.name);
+    let qa_sqlite = super::support::image_qa_sqlite_path(&cwd, &platform.name);
     if !qa_sqlite.exists() {
         return Err(anyhow!(
             "image QA results missing; run `bijux image-qa --platform {}`",

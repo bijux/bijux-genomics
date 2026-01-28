@@ -1,7 +1,7 @@
 # bijux-dna v1 Scope Lock
 
 ## What bijux-dna v1 does
-- Defines FASTQ stages with fixed contracts (validate, trim, merge, correct, filter, qc2, umi, screen).
+- Defines FASTQ stages with fixed contracts (validate, trim, merge, correct, filter, qc_post, umi, screen).
 - Provides containerized execution with reproducible inputs and outputs.
 - Records metrics and execution context for benchmarking.
 - Supports deterministic QA and benchmarking runs on real FASTQ datasets.

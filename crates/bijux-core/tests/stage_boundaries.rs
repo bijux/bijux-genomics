@@ -125,20 +125,21 @@ fn correct_outputs_are_compatible_with_filter_inputs() -> Result<(), Box<dyn std
 }
 
 #[test]
-fn preprocess_outputs_are_compatible_with_qc2_inputs() -> Result<(), Box<dyn std::error::Error>> {
+fn preprocess_outputs_are_compatible_with_qc_post_inputs() -> Result<(), Box<dyn std::error::Error>>
+{
     let registry = load_manifests(&domain_root())?;
     let preprocess = registry
         .stages()
         .get("fastq.preprocess")
         .ok_or("missing fastq.preprocess")?;
-    let qc2 = registry
+    let qc_post = registry
         .stages()
-        .get("fastq.qc2")
-        .ok_or("missing fastq.qc2")?;
+        .get("fastq.qc_post")
+        .ok_or("missing fastq.qc_post")?;
     assert!(
         stage_port_matches(&preprocess.outputs, "fastq", &Cardinality::Many)
-            && stage_port_matches(&qc2.inputs, "fastq", &Cardinality::Many),
-        "preprocess outputs must satisfy qc2 input type"
+            && stage_port_matches(&qc_post.inputs, "fastq", &Cardinality::Many),
+        "preprocess outputs must satisfy qc_post input type"
     );
     Ok(())
 }

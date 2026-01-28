@@ -5,7 +5,7 @@ use bijux_engine::api::{
     normalize_correct_tool_list as engine_normalize_correct_tool_list,
     normalize_filter_tool_list as engine_normalize_filter_tool_list,
     normalize_merge_tool_list as engine_normalize_merge_tool_list,
-    normalize_qc2_tool_list as engine_normalize_qc2_tool_list,
+    normalize_qc_post_tool_list as engine_normalize_qc_post_tool_list,
     normalize_screen_tool_list as engine_normalize_screen_tool_list,
     normalize_stats_tool_list as engine_normalize_stats_tool_list,
     normalize_trim_tool_list as engine_normalize_trim_tool_list,
@@ -186,8 +186,8 @@ pub(crate) fn normalize_correct_tool_list(tools: &[String]) -> Result<Vec<String
     engine_normalize_correct_tool_list(tools)
 }
 
-pub(crate) fn normalize_qc2_tool_list(tools: &[String]) -> Result<Vec<String>> {
-    engine_normalize_qc2_tool_list(tools)
+pub(crate) fn normalize_qc_post_tool_list(tools: &[String]) -> Result<Vec<String>> {
+    engine_normalize_qc_post_tool_list(tools)
 }
 
 pub(crate) fn normalize_umi_tool_list(tools: &[String]) -> Result<Vec<String>> {

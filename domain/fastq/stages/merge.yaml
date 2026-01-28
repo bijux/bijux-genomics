@@ -33,3 +33,6 @@ metrics:
   - name: "merge_rate"
     meaning: "Fraction of reads that merged"
 description: "FASTQ stage for merging paired-end reads."
+mutates_fastq: true
+report_only: false
+may_change_read_count: true

@@ -1,14 +1,16 @@
 use std::collections::HashMap;
 
+use crate::api::{load_image_catalog, load_platform};
+use crate::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 use anyhow::{anyhow, Context, Result};
 use bijux_analyze::{
     append_image_qa_jsonl, ensure_image_qa_tables, insert_image_qa_input_v1, insert_image_qa_v1,
     open_sqlite, ImageQaOutcome, ImageQaRecord,
 };
-use bijux_environment::api::{load_image_catalog, load_platform};
-use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 
-use bijux_engine::api::{image_qa_jsonl_path, image_qa_sqlite_path};
+use super::support::{
+    image_qa_jsonl_path, image_qa_sqlite_path, resolve_image_for_run, trace_enabled, StdoutLogger,
+};
 
 use super::datasets::{
     dataset_input_hash, datasets_for_stage, discover_qa_datasets, hydrate_datasets,
@@ -19,19 +21,19 @@ use super::logging::{
 };
 use super::stages::run_stage_qa;
 use super::QaStage;
-use bijux_engine::api::load_registry;
+use bijux_core::load_manifests;
 
 /// Run image QA for the FASTQ domain.
 ///
 /// # Errors
 /// Returns an error if QA datasets or tool runs fail.
 pub fn run_image_qa(platform_name: Option<&str>) -> Result<()> {
-    if bijux_engine::api::trace_enabled() {
+    if trace_enabled() {
         println!("[engine][composer] image_qa start");
     }
     let platform = load_platform(platform_name)?;
     let catalog = load_image_catalog()?;
-    let logger = bijux_engine::api::StdoutLogger::new();
+    let logger = StdoutLogger::new();
     run_image_qa_with(&platform, &catalog, &logger)
 }
 
@@ -39,7 +41,7 @@ pub fn run_image_qa(platform_name: Option<&str>) -> Result<()> {
 fn run_image_qa_with(
     platform: &PlatformSpec,
     catalog: &HashMap<String, ToolImageSpec>,
-    logger: &bijux_engine::api::StdoutLogger,
+    logger: &StdoutLogger,
 ) -> Result<()> {
     if platform.runner != RunnerKind::Docker {
         return Err(anyhow!("image QA supports docker only for now"));
@@ -69,10 +71,10 @@ fn run_image_qa_with(
     let seqkit_spec = catalog
         .get("seqkit")
         .ok_or_else(|| anyhow!("seqkit missing from images.yaml"))?;
-    let seqkit_image = bijux_engine::api::resolve_image_for_run(seqkit_spec, platform)?;
+    let seqkit_image = resolve_image_for_run(seqkit_spec, platform)?;
 
-    let registry =
-        load_registry(&std::env::current_dir()?.join("domain")).context("load manifests")?;
+    let registry = load_manifests(&std::env::current_dir()?.join("domain"))
+        .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let mut datasets = discover_qa_datasets()?;
     hydrate_datasets(&mut datasets, &seqkit_image)?;
 
@@ -88,7 +90,7 @@ fn run_image_qa_with(
         QaStage::Filter,
         QaStage::Merge,
         QaStage::Correct,
-        QaStage::Qc2,
+        QaStage::QcPost,
         QaStage::Umi,
         QaStage::Stats,
     ];

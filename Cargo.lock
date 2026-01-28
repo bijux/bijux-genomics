@@ -163,7 +163,6 @@ name = "bijux-core"
 version = "0.1.0"
 dependencies = [
  "bijux-analyze",
- "bijux-environment",
  "chrono",
  "serde",
  "serde_json",
@@ -253,10 +252,18 @@ dependencies = [
 name = "bijux-environment"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
+ "bijux-analyze",
+ "bijux-core",
  "regex",
+ "rusqlite",
  "serde",
+ "serde_json",
  "serde_yaml",
+ "sha2",
  "thiserror 1.0.69",
+ "tracing",
+ "uuid",
 ]
 
 [[package]]

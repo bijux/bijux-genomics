@@ -5,3 +5,6 @@ outputs: []
 parameters: []
 metrics: []
 description: ""
+mutates_fastq: false
+report_only: false
+may_change_read_count: false

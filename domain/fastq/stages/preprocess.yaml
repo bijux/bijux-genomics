@@ -29,3 +29,6 @@ metrics:
   - name: "delta_mean_q"
     meaning: "Mean quality delta across pipeline"
 description: "Meta-stage orchestrating validate → trim → merge → correct → filter → stats."
+mutates_fastq: true
+report_only: false
+may_change_read_count: true

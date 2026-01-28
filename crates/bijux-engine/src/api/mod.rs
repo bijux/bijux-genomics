@@ -1,8 +1,11 @@
 //! Stable, intended-for-use engine interfaces.
 
+use anyhow::{anyhow, Result};
+use bijux_environment::api::{PlatformSpec, RunnerKind};
+
 pub use crate::core::composer::{
     load_registry, normalize_correct_tool_list, normalize_filter_tool_list,
-    normalize_merge_tool_list, normalize_qc2_tool_list, normalize_screen_tool_list,
+    normalize_merge_tool_list, normalize_qc_post_tool_list, normalize_screen_tool_list,
     normalize_stats_tool_list, normalize_trim_tool_list, normalize_umi_tool_list,
     normalize_validate_tool_list,
 };
@@ -30,3 +33,65 @@ pub use crate::services::observer::{
     parse_fastqvalidator_count, write_explain_plan, SeqkitMetrics,
 };
 pub use bijux_environment::api::ResolvedImage;
+
+pub fn ensure_bench_runner(
+    platform: &PlatformSpec,
+    runner_override: Option<RunnerKind>,
+) -> Result<RunnerKind> {
+    let runner = runner_override.unwrap_or(platform.runner);
+    if runner != RunnerKind::Docker {
+        return Err(anyhow!("benchmarking supports docker only for now"));
+    }
+    Ok(runner)
+}
+
+pub fn run_tool_execution(
+    tool: &str,
+    image: &ResolvedImage,
+    r1_dir: &std::path::Path,
+    r1: &std::path::Path,
+    out_dir: &std::path::Path,
+    container_name: &str,
+) -> Result<ExecutionOutput> {
+    run_tool_container(tool, image, r1_dir, r1, out_dir, container_name)
+}
+
+pub fn run_validate_execution(
+    tool: &str,
+    image: &ResolvedImage,
+    r1_dir: &std::path::Path,
+    r1: &std::path::Path,
+    out_dir: &std::path::Path,
+    container_name: &str,
+) -> Result<ExecutionOutput> {
+    run_validate_container(tool, image, r1_dir, r1, out_dir, container_name)
+}
+
+pub fn run_multiqc_execution(
+    image: &ResolvedImage,
+    input_dir: &std::path::Path,
+    out_dir: &std::path::Path,
+    container_name: &str,
+) -> Result<ExecutionOutput> {
+    run_multiqc_container(image, input_dir, out_dir, container_name)
+}
+
+pub fn run_merge_execution(
+    tool: &str,
+    image: &ResolvedImage,
+    r1_dir: &std::path::Path,
+    r1: &std::path::Path,
+    r2: &std::path::Path,
+    out_dir: &std::path::Path,
+    container_name: &str,
+) -> Result<MergeExecutionOutput> {
+    run_merge_container(tool, image, r1_dir, r1, r2, out_dir, container_name)
+}
+
+pub fn execution_memory_mb(container_name: &str) -> Result<f64> {
+    docker_stats_mb(container_name)
+}
+
+pub fn cleanup_execution(container_name: &str) -> Result<()> {
+    docker_rm(container_name)
+}

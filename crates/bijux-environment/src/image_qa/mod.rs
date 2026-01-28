@@ -3,11 +3,12 @@ mod helpers;
 mod logging;
 mod runner;
 mod stages;
+mod support;
 
 pub use helpers::ensure_image_qa_passed;
 pub use runner::run_image_qa;
+pub(crate) use support::SeqkitMetrics;
 
-use bijux_engine::api::SeqkitMetrics;
 use std::path::PathBuf;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -17,7 +18,7 @@ pub(crate) enum QaStage {
     Filter,
     Merge,
     Correct,
-    Qc2,
+    QcPost,
     Umi,
     Stats,
     Screen,
@@ -31,7 +32,7 @@ impl QaStage {
             QaStage::Filter => "fastq.filter",
             QaStage::Merge => "fastq.merge",
             QaStage::Correct => "fastq.correct",
-            QaStage::Qc2 => "fastq.qc2",
+            QaStage::QcPost => "fastq.qc_post",
             QaStage::Umi => "fastq.umi",
             QaStage::Stats => "fastq.stats",
             QaStage::Screen => "fastq.screen",
@@ -59,7 +60,7 @@ impl QaStage {
             QaStage::Filter => &["prinseq", "fastp", "seqkit"],
             QaStage::Merge => &["pear", "vsearch", "bbmerge", "flash2"],
             QaStage::Correct => &["rcorrector"],
-            QaStage::Qc2 => &["fastqc", "multiqc"],
+            QaStage::QcPost => &["fastqc", "multiqc"],
             QaStage::Umi => &["umi_tools"],
             QaStage::Stats => &["seqkit_stats"],
             QaStage::Screen => &[

@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use anyhow::{anyhow, Result};
 use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 
-use crate::image_qa::ensure_image_qa_passed;
+use bijux_environment::image_qa::ensure_image_qa_passed;
 
 use super::helpers::normalize_screen_tool_list;
 

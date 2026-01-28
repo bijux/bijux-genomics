@@ -34,3 +34,6 @@ metrics:
   - name: "mean_q_after"
     meaning: "Mean base quality after correction"
 description: "FASTQ stage for error correction of reads."
+mutates_fastq: true
+report_only: false
+may_change_read_count: false

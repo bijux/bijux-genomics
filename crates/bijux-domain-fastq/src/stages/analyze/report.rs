@@ -10,7 +10,7 @@ use anyhow::{anyhow, Context, Result};
 use bijux_analyze::{
     derived_metric_spec, derived_metrics_for_stage, metric_kind_for_stage, metric_spec,
     stage_metric_spec, BenchmarkRecord, DerivedMetricId, FastqCorrectMetrics, FastqFilterMetrics,
-    FastqMergeMetrics, FastqQc2Metrics, FastqStatsMetrics, FastqTrimMetrics, FastqUmiMetrics,
+    FastqMergeMetrics, FastqQcPostMetrics, FastqStatsMetrics, FastqTrimMetrics, FastqUmiMetrics,
     FastqValidateMetrics,
 };
 
@@ -163,9 +163,9 @@ pub(crate) fn write_correct_report(
     Ok(())
 }
 
-pub(crate) fn write_qc2_report(
+pub(crate) fn write_qc_post_report(
     base_dir: &Path,
-    records: &[BenchmarkRecord<FastqQc2Metrics>],
+    records: &[BenchmarkRecord<FastqQcPostMetrics>],
     failures: &[BenchmarkFailure],
     explain: bool,
 ) -> Result<()> {
@@ -175,15 +175,15 @@ pub(crate) fn write_qc2_report(
     report.insert("failures", serde_json::to_value(failures)?);
     report.insert(
         "sanity_flags",
-        serde_json::to_value(sanity_flags_qc2(records))?,
+        serde_json::to_value(sanity_flags_qc_post(records))?,
     );
-    if let Some(class) = qc_class_for_stage("fastq.qc2") {
+    if let Some(class) = qc_class_for_stage("fastq.qc_post") {
         report.insert("qc_class", serde_json::to_value(class)?);
     }
     let json = serde_json::to_string_pretty(&report)?;
     fs::write(&path, json).context("write report.json")?;
     if explain {
-        print_rank_explain("fastq.qc2", &BTreeMap::new());
+        print_rank_explain("fastq.qc_post", &BTreeMap::new());
     }
     Ok(())
 }
@@ -451,7 +451,7 @@ fn sanity_flags_validate(
         .collect()
 }
 
-fn sanity_flags_qc2(records: &[BenchmarkRecord<FastqQc2Metrics>]) -> Vec<serde_json::Value> {
+fn sanity_flags_qc_post(records: &[BenchmarkRecord<FastqQcPostMetrics>]) -> Vec<serde_json::Value> {
     let runtime_median = median(records.iter().map(|r| r.execution.runtime_s).collect());
     records
         .iter()

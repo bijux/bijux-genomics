@@ -79,7 +79,8 @@ pub enum BenchFastqCommand {
     Filter(BenchFastqFilterArgs),
     Merge(BenchFastqMergeArgs),
     Correct(BenchFastqCorrectArgs),
-    Qc2(BenchFastqQc2Args),
+    #[command(name = "qc-post", alias = "qc2")]
+    QcPost(BenchFastqQcPostArgs),
     Umi(BenchFastqUmiArgs),
     Screen(BenchFastqScreenArgs),
     Stats(BenchFastqStatsArgs),
@@ -163,7 +164,7 @@ pub struct BenchFastqCorrectArgs {
 }
 
 #[derive(Debug, Args)]
-pub struct BenchFastqQc2Args {
+pub struct BenchFastqQcPostArgs {
     #[arg(long, alias = "sample")]
     pub sample_id: String,
     #[arg(long)]
@@ -471,8 +472,8 @@ pub fn bench_args_correct(args: &BenchFastqCorrectArgs) -> engine_args::BenchFas
     }
 }
 
-pub fn bench_args_qc2(args: &BenchFastqQc2Args) -> engine_args::BenchFastqQc2Args {
-    engine_args::BenchFastqQc2Args {
+pub fn bench_args_qc_post(args: &BenchFastqQcPostArgs) -> engine_args::BenchFastqQcPostArgs {
+    engine_args::BenchFastqQcPostArgs {
         sample_id: args.sample_id.clone(),
         r1: args.r1.clone(),
         out: args.out.clone(),

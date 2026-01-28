@@ -26,3 +26,6 @@ metrics:
   - name: "dedup_rate"
     meaning: "Fraction of reads removed by deduplication"
 description: "FASTQ stage for UMI extraction and deduplication."
+mutates_fastq: true
+report_only: false
+may_change_read_count: true

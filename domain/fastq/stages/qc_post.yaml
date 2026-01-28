@@ -1,5 +1,5 @@
 extends: "_schema.yaml"
-stage_id: "fastq.qc2"
+stage_id: "fastq.qc_post"
 inputs:
   - name: "reads_r1"
     data_type: "fastq"
@@ -28,3 +28,6 @@ metrics:
   - name: "contamination_rate"
     meaning: "Estimated contamination rate"
 description: "FASTQ stage for quality control reporting (FastQC/MultiQC)."
+mutates_fastq: false
+report_only: true
+may_change_read_count: false
