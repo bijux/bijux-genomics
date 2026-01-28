@@ -3,7 +3,7 @@ use std::fs;
 use std::path::Path;
 
 use anyhow::{anyhow, Context, Result};
-use bijux_bench::{
+use bijux_analyze::{
     derived_metric_spec, derived_metrics_for_stage, metric_kind_for_stage, metric_spec,
     stage_metric_spec, BenchmarkRecord, DerivedMetricId, FastqCorrectMetrics, FastqFilterMetrics,
     FastqMergeMetrics, FastqQc2Metrics, FastqStatsMetrics, FastqTrimMetrics, FastqUmiMetrics,

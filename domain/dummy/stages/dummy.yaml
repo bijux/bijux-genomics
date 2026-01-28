@@ -1,0 +1,18 @@
+schema_version: "bijux.stage.v1"
+stage_id: "dummy.echo"
+domain: "dummy"
+inputs:
+  - name: "input"
+    data_type: "dummy"
+    cardinality: "One"
+outputs:
+  - name: "output"
+    data_type: "dummy"
+    cardinality: "One"
+parameters: []
+metrics:
+  - name: "runtime_s"
+    meaning: "Wall-clock runtime in seconds"
+  - name: "memory_mb"
+    meaning: "Peak memory usage in MB"
+description: "Toy dummy stage for architecture validation."

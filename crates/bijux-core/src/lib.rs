@@ -289,7 +289,12 @@ pub fn load_manifests(modules_dir: &Path) -> Result<ToolRegistry, BijuxError> {
 
     for entry in WalkDir::new(modules_dir).into_iter().filter_map(Result::ok) {
         let path = entry.path();
-        if path.is_file() && path.file_name().and_then(|s| s.to_str()) == Some("stage.yaml") {
+        let is_stage = path
+            .parent()
+            .and_then(|parent| parent.file_name())
+            .and_then(|name| name.to_str())
+            == Some("stages");
+        if is_stage && path.extension().and_then(|ext| ext.to_str()) == Some("yaml") {
             let contents = std::fs::read_to_string(path)?;
             let manifest: StageManifestV1 = serde_yaml::from_str(&contents)
                 .map_err(|err| BijuxError::Manifest(format!("{}: {err}", path.display())))?;

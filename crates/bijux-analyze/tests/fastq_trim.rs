@@ -1,7 +1,8 @@
-use bijux_bench::{
-    insert_fastq_trim_v1, open_sqlite, BenchmarkContext, BenchmarkRecord, ExecutionMetrics,
-    FastqTrimMetrics, MetricSet, StageMetricSchema,
+use bijux_analyze::{
+    insert_fastq_trim_v1, open_sqlite, BenchmarkContext, BenchmarkRecord, FastqTrimMetrics,
+    MetricSet, StageMetricSchema,
 };
+use bijux_measure::ExecutionMetrics;
 
 #[test]
 fn fastq_trim_metrics_invariants_fail() {

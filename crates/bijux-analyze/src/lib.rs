@@ -2,6 +2,7 @@ use std::fs::OpenOptions;
 use std::io::Write;
 use std::path::Path;
 
+use bijux_measure::ExecutionMetrics;
 use rusqlite::{params, Connection};
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
@@ -778,32 +779,6 @@ pub struct BenchmarkContext {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
-pub struct ExecutionMetrics {
-    /// Wall-clock seconds from container start to exit.
-    pub runtime_s: f64,
-    /// Container memory usage in MB sampled via `docker stats --no-stream` after exit.
-    pub memory_mb: f64,
-    pub exit_code: i32,
-}
-
-impl ExecutionMetrics {
-    /// Validate execution metric invariants.
-    ///
-    /// # Errors
-    /// Returns an error if execution metrics are invalid.
-    pub fn validate(&self) -> Result<()> {
-        if !(self.runtime_s.is_finite() && self.runtime_s > 0.0) {
-            return Err(BenchError::Validation("runtime_s must be > 0".to_string()));
-        }
-        if !(self.memory_mb.is_finite() && self.memory_mb > 0.0) {
-            return Err(BenchError::Validation("memory_mb must be > 0".to_string()));
-        }
-        Ok(())
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 pub struct FastqTrimMetrics {
     pub reads_in: u64,
     pub reads_out: u64,
@@ -917,6 +892,8 @@ pub enum BenchError {
     Json(#[from] serde_json::Error),
     #[error("sqlite error: {0}")]
     Sqlite(#[from] rusqlite::Error),
+    #[error("measure error: {0}")]
+    Measure(#[from] bijux_measure::MeasureError),
     #[error("validation error: {0}")]
     Validation(String),
 }

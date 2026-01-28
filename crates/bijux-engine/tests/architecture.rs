@@ -79,3 +79,11 @@ fn engine_core_is_fastq_agnostic() {
     assert_no_fastq_terms("crates/bijux-engine/src/types");
     assert_no_fastq_terms("crates/bijux-engine/src/errors");
 }
+
+#[test]
+fn engine_does_not_import_domain_crates() {
+    assert_no_imports(
+        "crates/bijux-engine/src",
+        &["bijux_domain", "bijux-domain", "domain::"],
+    );
+}

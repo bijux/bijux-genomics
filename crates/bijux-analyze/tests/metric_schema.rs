@@ -1,8 +1,9 @@
-use bijux_bench::{BenchmarkRecord, ExecutionMetrics, FastqTrimMetrics, MetricSet};
+use bijux_analyze::{BenchmarkRecord, FastqTrimMetrics, MetricSet};
+use bijux_measure::ExecutionMetrics;
 
 fn base_record(metrics: MetricSet<FastqTrimMetrics>) -> BenchmarkRecord<FastqTrimMetrics> {
     BenchmarkRecord {
-        context: bijux_bench::BenchmarkContext {
+        context: bijux_analyze::BenchmarkContext {
             tool: "fastp".to_string(),
             tool_version: "0.23.4".to_string(),
             image_digest: "sha256:abc".to_string(),

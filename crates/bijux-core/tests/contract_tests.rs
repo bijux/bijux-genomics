@@ -1,7 +1,7 @@
 use std::collections::BTreeSet;
 use std::path::Path;
 
-use bijux_bench::StageMetricRegistry;
+use bijux_analyze::StageMetricRegistry;
 use bijux_core::{load_manifests, Cardinality, PortSpec};
 
 fn domain_root() -> std::path::PathBuf {
@@ -81,7 +81,7 @@ fn stage_metrics_align_with_bench_schema() -> Result<(), Box<dyn std::error::Err
         let expected: BTreeSet<String> = spec
             .metrics
             .iter()
-            .map(|metric_id| bijux_bench::metric_spec(*metric_id).name.to_string())
+            .map(|metric_id| bijux_analyze::metric_spec(*metric_id).name.to_string())
             .collect();
         assert_eq!(
             stage_metrics, expected,

@@ -4,13 +4,14 @@ use std::path::PathBuf;
 use std::time::Instant;
 
 use anyhow::{anyhow, Context, Result};
-use bijux_bench::{
+use bijux_analyze::{
     append_jsonl, fetch_fastq_validate_v1, insert_fastq_validate_v1, BenchmarkContext,
-    BenchmarkRecord, ExecutionMetrics, FastqValidateMetrics, MetricSet,
+    BenchmarkRecord, FastqValidateMetrics, MetricSet,
 };
 use bijux_core::ToolRole;
 use bijux_engine::api::load_registry;
 use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
+use bijux_measure::ExecutionMetrics;
 use uuid::Uuid;
 
 use crate::image_qa::ensure_image_qa_passed;
@@ -69,7 +70,7 @@ pub fn bench_fastq_validate<S: ::std::hash::BuildHasher>(
     ensure_image_qa_passed("fastq.validate", &tools, platform, catalog)?;
 
     let sqlite_path = bench_inputs.bench_dir.join("bench.sqlite");
-    let conn = bijux_bench::open_sqlite(&sqlite_path).context("open bench sqlite")?;
+    let conn = bijux_analyze::open_sqlite(&sqlite_path).context("open bench sqlite")?;
     let mut records: Vec<BenchmarkRecord<FastqValidateMetrics>> = Vec::new();
     let mut new_records: Vec<BenchmarkRecord<FastqValidateMetrics>> = Vec::new();
     let mut failures: Vec<BenchmarkFailure> = Vec::new();

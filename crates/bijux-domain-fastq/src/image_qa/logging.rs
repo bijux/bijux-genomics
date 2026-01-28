@@ -3,7 +3,7 @@ use bijux_environment::api::RunnerKind;
 use bijux_engine::api::StdoutLogger;
 
 use super::{QaDataset, QaStage};
-use bijux_bench::ImageQaOutcome;
+use bijux_analyze::ImageQaOutcome;
 
 pub(crate) fn log_header(
     logger: &StdoutLogger,

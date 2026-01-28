@@ -1,4 +1,4 @@
-use bijux_bench::{FastqValidateMetrics, StageMetricSchema};
+use bijux_analyze::{FastqValidateMetrics, StageMetricSchema};
 
 #[test]
 fn fastq_validate_metrics_invariants_pass() {

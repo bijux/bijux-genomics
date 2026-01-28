@@ -19,11 +19,13 @@ run_base_dir: \"./runs\"\n",
 }
 
 fn write_manifests(temp: &TempDir) -> Result<(), Box<dyn std::error::Error>> {
-    let trim_dir = temp.path().join("domain").join("fastq").join("trim");
-    let stage_dir = trim_dir.join("tools");
-    fs::create_dir_all(&stage_dir)?;
+    let domain_dir = temp.path().join("domain").join("fastq");
+    let stages_dir = domain_dir.join("stages");
+    let tools_dir = domain_dir.join("tools");
+    fs::create_dir_all(&stages_dir)?;
+    fs::create_dir_all(&tools_dir)?;
     fs::write(
-        trim_dir.join("stage.yaml"),
+        stages_dir.join("trim.yaml"),
         r#"schema_version: "bijux.stage.v1"
 stage_id: "fastq.trim"
 domain: "fastq"
@@ -48,7 +50,7 @@ description: "FASTQ stage for trimming and preprocessing reads."
 "#,
     )?;
     fs::write(
-        stage_dir.join("fastp.yaml"),
+        tools_dir.join("fastp.yaml"),
         r#"schema_version: "bijux.tool.v1"
 tool_id: "fastp"
 stage_id: "fastq.trim"

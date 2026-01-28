@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use anyhow::{anyhow, Context, Result};
-use bijux_bench::{
+use bijux_analyze::{
     append_image_qa_jsonl, ensure_image_qa_tables, insert_image_qa_input_v1, insert_image_qa_v1,
     open_sqlite, ImageQaOutcome, ImageQaRecord,
 };
