@@ -18,6 +18,76 @@ pub struct ToolId(pub String);
 pub struct RunId(pub String);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct RunMetadataV1 {
+    pub run_id: Uuid,
+    pub started_at: DateTime<Utc>,
+    pub finished_at: DateTime<Utc>,
+    pub hostname: String,
+    pub os: String,
+    pub arch: String,
+    pub cpu_model: String,
+    pub cores: usize,
+    pub ram_mb: u64,
+    pub platform: String,
+    pub platform_version: String,
+    pub bijux_version: String,
+    pub git_commit: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ToolInvocationV1 {
+    pub stage: String,
+    pub tool: String,
+    pub version: String,
+    pub image: String,
+    pub command: String,
+    pub threads: u32,
+    pub inputs: Vec<String>,
+    pub outputs: Vec<String>,
+}
+
+#[must_use]
+pub fn build_run_metadata_v1(
+    run_id: Uuid,
+    started_at: DateTime<Utc>,
+    finished_at: DateTime<Utc>,
+    platform: &str,
+    platform_version: &str,
+    bijux_version: &str,
+    git_commit: &str,
+) -> RunMetadataV1 {
+    let mut system = sysinfo::System::new_all();
+    system.refresh_all();
+    let hostname = sysinfo::System::host_name().unwrap_or_else(|| "unknown".to_string());
+    let os = sysinfo::System::long_os_version()
+        .or_else(sysinfo::System::os_version)
+        .unwrap_or_else(|| "unknown".to_string());
+    let cpu_model = system
+        .cpus()
+        .first()
+        .map_or_else(|| "unknown".to_string(), |cpu| cpu.brand().to_string());
+    let cores = system.cpus().len();
+    let ram_mb = system.total_memory() / 1024;
+    RunMetadataV1 {
+        run_id,
+        started_at,
+        finished_at,
+        hostname,
+        os,
+        arch: std::env::consts::ARCH.to_string(),
+        cpu_model,
+        cores,
+        ram_mb,
+        platform: platform.to_string(),
+        platform_version: platform_version.to_string(),
+        bijux_version: bijux_version.to_string(),
+        git_commit: git_commit.to_string(),
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PathSpec {
     pub input: Vec<PathBuf>,
     pub output: Vec<PathBuf>,

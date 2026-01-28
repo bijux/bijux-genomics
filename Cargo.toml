@@ -28,13 +28,14 @@ serde_yaml = "0.9"
 thiserror = "1"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt", "json"] }
-uuid = { version = "1", features = ["v4"] }
+uuid = { version = "1", features = ["v4", "serde"] }
 chrono = { version = "0.4", features = ["serde", "clock"] }
 tracing-appender = "0.2"
 walkdir = "2"
 regex = "1"
 rusqlite = "0.31"
 sha2 = "0.10"
+sysinfo = "0.30"
 
 [workspace.lints.rust]
 unsafe_code = "forbid"

@@ -4,14 +4,18 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
 use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
+use uuid::Uuid;
 
 use bijux_engine::api::bench_base_dir;
 
 use crate::contracts::FastqLayout;
+use bijux_core::{build_run_metadata_v1, RunMetadataV1, ToolInvocationV1};
+
 use crate::pipeline::{
-    assess_input_dir, bench_corpus, create_run_layout, now_string, rank_tools_for_stage,
-    update_run_index, write_input_assessment, write_selection_report, RunEnvironment,
-    RunIndexEntry, RunLayout, RunManifest, RunStageEntry, ToolImageDigest,
+    append_event, assess_input_dir, bench_corpus, create_run_layout, now_string,
+    rank_tools_for_stage, update_run_index, write_input_assessment, write_run_metadata,
+    write_selection_report, ExecutionEvent, RunEnvironment, RunIndexEntry, RunLayout, RunManifest,
+    RunStageEntry, ToolImageDigest,
 };
 use crate::stages::helpers::write_explain_plan_json;
 use crate::stages::{
@@ -45,12 +49,19 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
 ) -> Result<()> {
     let out_dir = bench_base_dir(&args.out, "preprocess", &args.sample_id);
     fs::create_dir_all(&out_dir).context("create preprocess output dir")?;
+    let started_at = chrono::Utc::now();
     let (run_id, layout) = create_run_layout(&args.out)?;
     let input_dir = args
         .r1
         .parent()
         .map_or_else(|| args.out.clone(), PathBuf::from);
     let assessment = assess_input_dir(&input_dir)?;
+    if layout.assessment_path.exists() {
+        return Err(anyhow!(
+            "input assessment already exists at {}",
+            layout.assessment_path.display()
+        ));
+    }
     write_input_assessment(&layout.assessment_path, &assessment)?;
     let matched_sample = assessment
         .samples
@@ -138,6 +149,17 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         .zip(selected_tools.iter().cloned())
         .collect();
 
+    append_event(
+        &layout,
+        &ExecutionEvent {
+            timestamp: now_string(),
+            event: "pipeline_started".to_string(),
+            stage: None,
+            tool: None,
+            detail: Some("fastq.preprocess".to_string()),
+        },
+    )?;
+
     write_explain_plan_json(
         &out_dir,
         "fastq.preprocess",
@@ -147,6 +169,26 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     )?;
     let mut stage_entries = Vec::new();
     for (stage, tool) in selected_by_stage {
+        append_event(
+            &layout,
+            &ExecutionEvent {
+                timestamp: now_string(),
+                event: "tool_selected".to_string(),
+                stage: Some(stage.clone()),
+                tool: Some(tool.clone()),
+                detail: None,
+            },
+        )?;
+        append_event(
+            &layout,
+            &ExecutionEvent {
+                timestamp: now_string(),
+                event: "stage_started".to_string(),
+                stage: Some(stage.clone()),
+                tool: Some(tool.clone()),
+                detail: None,
+            },
+        )?;
         let tool_id = tool.clone();
         match stage.as_str() {
             "fastq.validate_pre" => {
@@ -262,10 +304,21 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
             }
             _ => {}
         }
+        append_event(
+            &layout,
+            &ExecutionEvent {
+                timestamp: now_string(),
+                event: "stage_finished".to_string(),
+                stage: Some(stage.clone()),
+                tool: Some(tool.clone()),
+                detail: None,
+            },
+        )?;
     }
 
     populate_run_layout(&layout, &mut stage_entries)?;
 
+    let finished_at = chrono::Utc::now();
     let env = RunEnvironment {
         hostname: std::env::var("HOSTNAME").unwrap_or_else(|_| "unknown".to_string()),
         os: std::env::consts::OS.to_string(),
@@ -290,17 +343,32 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
 
     let manifest = RunManifest {
         run_id: run_id.clone(),
-        timestamp: now_string(),
+        started_at: started_at.to_rfc3339(),
+        finished_at: finished_at.to_rfc3339(),
         pipeline: "fastq.preprocess".to_string(),
         layout: layout_kind,
         stages: stage_entries,
     };
     crate::pipeline::write_manifest(&layout, &manifest)?;
 
+    let platform_runner = platform.runner.to_string();
+    let git_commit = std::env::var("BIJUX_GIT_COMMIT").unwrap_or_else(|_| "unknown".to_string());
+    let metadata: RunMetadataV1 = build_run_metadata_v1(
+        Uuid::parse_str(&run_id)?,
+        started_at,
+        finished_at,
+        &platform_runner,
+        "unknown",
+        env!("CARGO_PKG_VERSION"),
+        &git_commit,
+    );
+    write_run_metadata(&layout, &metadata)?;
+
     update_run_index(
         &args.out,
         RunIndexEntry {
             run_id,
+            domain: "fastq".to_string(),
             pipeline: "fastq.preprocess".to_string(),
             stages: pipeline.stages,
             layout: layout_kind,
@@ -310,6 +378,19 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
             } else {
                 None
             },
+            platform: platform.runner.to_string(),
+            success: true,
+        },
+    )?;
+
+    append_event(
+        &layout,
+        &ExecutionEvent {
+            timestamp: now_string(),
+            event: "pipeline_finished".to_string(),
+            stage: None,
+            tool: None,
+            detail: Some("fastq.preprocess".to_string()),
         },
     )?;
 
@@ -352,9 +433,11 @@ fn stage_entry_from_outcome<T: bijux_analyze::StageMetricSchema>(
     Ok(RunStageEntry {
         stage_id: stage.to_string(),
         tool_id: tool.to_string(),
-        metrics_path: run_dir.join("metrics.json"),
+        execution_metrics_path: run_dir.join("metrics.json"),
+        domain_metrics_path: run_dir.join("metrics.json"),
         logs_dir: run_dir.join("logs"),
         outputs_dir: run_dir.join("artifacts"),
+        tool_invocation_path: run_dir.join("manifest.json"),
     })
 }
 
@@ -364,13 +447,57 @@ fn populate_run_layout(layout: &RunLayout, entries: &mut [RunStageEntry]) -> Res
         let stage_dir = layout.stages_dir.join(stage_name).join(&entry.tool_id);
         let outputs_dir = stage_dir.join("outputs");
         let logs_dir = stage_dir.join("logs");
+        let metrics_dir = stage_dir.join("metrics");
         std::fs::create_dir_all(&outputs_dir).context("create stage outputs dir")?;
         std::fs::create_dir_all(&logs_dir).context("create stage logs dir")?;
-        let metrics_path = stage_dir.join("metrics.json");
+        std::fs::create_dir_all(&metrics_dir).context("create stage metrics dir")?;
+        let execution_metrics_path = metrics_dir.join("execution_metrics.json");
+        let domain_metrics_path = metrics_dir.join("domain_metrics.json");
+        let tool_invocation_path = stage_dir.join("tool_invocation.json");
 
-        if entry.metrics_path.exists() {
-            std::fs::copy(&entry.metrics_path, &metrics_path)
-                .context("copy metrics.json into run layout")?;
+        if entry.execution_metrics_path.exists() {
+            let data = std::fs::read_to_string(&entry.execution_metrics_path)?;
+            let payload: serde_json::Value = serde_json::from_str(&data)?;
+            let execution = payload
+                .get("execution")
+                .cloned()
+                .ok_or_else(|| anyhow!("missing execution metrics"))?;
+            let metrics = payload
+                .get("metrics")
+                .cloned()
+                .ok_or_else(|| anyhow!("missing domain metrics"))?;
+            std::fs::write(
+                &execution_metrics_path,
+                serde_json::to_vec_pretty(&execution)?,
+            )
+            .context("write execution_metrics.json")?;
+            std::fs::write(&domain_metrics_path, serde_json::to_vec_pretty(&metrics)?)
+                .context("write domain_metrics.json")?;
+        }
+        let source_run_dir = entry
+            .execution_metrics_path
+            .parent()
+            .ok_or_else(|| anyhow!("missing run dir for metrics"))?;
+        let manifest_path = source_run_dir.join("manifest.json");
+        if manifest_path.exists() {
+            let manifest_data = std::fs::read_to_string(&manifest_path)?;
+            let manifest: bijux_engine::api::ExecutionManifest =
+                serde_json::from_str(&manifest_data)?;
+            let invocation = ToolInvocationV1 {
+                stage: manifest.stage,
+                tool: manifest.tool,
+                version: manifest.tool_version,
+                image: manifest.image_digest,
+                command: manifest.command,
+                threads: 0,
+                inputs: manifest.input_files,
+                outputs: vec![manifest.output_dir],
+            };
+            std::fs::write(
+                &tool_invocation_path,
+                serde_json::to_vec_pretty(&invocation)?,
+            )
+            .context("write tool_invocation.json")?;
         }
         let tool_log = entry.logs_dir.join("tool.log");
         if tool_log.exists() {
@@ -378,9 +505,11 @@ fn populate_run_layout(layout: &RunLayout, entries: &mut [RunStageEntry]) -> Res
                 .context("copy tool.log into run layout")?;
         }
 
-        entry.metrics_path = metrics_path;
+        entry.execution_metrics_path = execution_metrics_path;
+        entry.domain_metrics_path = domain_metrics_path;
         entry.logs_dir = logs_dir;
         entry.outputs_dir = outputs_dir;
+        entry.tool_invocation_path = tool_invocation_path;
     }
     Ok(())
 }

@@ -2,22 +2,38 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use anyhow::Result;
+use chrono::Utc;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use walkdir::WalkDir;
 
+use bijux_engine::api::hash_file_sha256;
+
 use crate::contracts::{FastqLayout, FastqSampleId};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct FastqFileAssessment {
+    pub path: PathBuf,
+    pub gzip: bool,
+    pub size_bytes: u64,
+    pub sha256: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct FastqSampleAssessment {
     pub id: FastqSampleId,
-    pub gzip_r1: bool,
-    pub gzip_r2: bool,
+    pub r1: FastqFileAssessment,
+    pub r2: Option<FastqFileAssessment>,
     pub naming_warnings: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InputAssessment {
+#[serde(deny_unknown_fields)]
+pub struct InputAssessmentV1 {
+    pub schema_version: u32,
+    pub created_at: String,
     pub samples: Vec<FastqSampleAssessment>,
     pub unpaired_files: Vec<PathBuf>,
     pub issues: Vec<String>,
@@ -61,6 +77,17 @@ pub fn is_gzip_path(path: &Path) -> bool {
         .is_some_and(|ext| ext.eq_ignore_ascii_case("gz"))
 }
 
+fn file_assessment(path: &Path) -> Result<FastqFileAssessment> {
+    let size_bytes = std::fs::metadata(path)?.len();
+    let sha256 = hash_file_sha256(path)?;
+    Ok(FastqFileAssessment {
+        path: path.to_path_buf(),
+        gzip: is_gzip_path(path),
+        size_bytes,
+        sha256,
+    })
+}
+
 fn infer_sample_key(re: &Regex, path: &Path) -> (String, Option<u8>) {
     let filename = path
         .file_name()
@@ -83,7 +110,7 @@ fn infer_sample_key(re: &Regex, path: &Path) -> (String, Option<u8>) {
 ///
 /// # Errors
 /// Returns an error if regex compilation fails.
-pub fn assess_input_dir(root: &Path) -> Result<InputAssessment> {
+pub fn assess_input_dir(root: &Path) -> Result<InputAssessmentV1> {
     let mut issues = Vec::new();
     let mut unpaired = Vec::new();
     let mut grouped: BTreeMap<String, Vec<(PathBuf, Option<u8>)>> = BTreeMap::new();
@@ -134,6 +161,11 @@ pub fn assess_input_dir(root: &Path) -> Result<InputAssessment> {
         if layout == FastqLayout::PairedEnd && r2_path.is_none() {
             issues.push(format!("sample {sample_name} missing R2"));
         }
+        let r1_assessment = file_assessment(&r1_path)?;
+        let r2_assessment = match r2_path.as_ref() {
+            Some(path) => Some(file_assessment(path)?),
+            None => None,
+        };
         let assessment = FastqSampleAssessment {
             id: FastqSampleId {
                 sample_name: sample_name.clone(),
@@ -141,8 +173,8 @@ pub fn assess_input_dir(root: &Path) -> Result<InputAssessment> {
                 r1_path: r1_path.clone(),
                 r2_path: r2_path.clone(),
             },
-            gzip_r1: is_gzip_path(&r1_path),
-            gzip_r2: r2_path.as_ref().is_some_and(|path| is_gzip_path(path)),
+            r1: r1_assessment,
+            r2: r2_assessment,
             naming_warnings,
         };
         samples.push(assessment);
@@ -156,7 +188,9 @@ pub fn assess_input_dir(root: &Path) -> Result<InputAssessment> {
         }
     }
 
-    Ok(InputAssessment {
+    Ok(InputAssessmentV1 {
+        schema_version: 1,
+        created_at: Utc::now().to_rfc3339(),
         samples,
         unpaired_files: unpaired,
         issues,
@@ -167,7 +201,7 @@ pub fn assess_input_dir(root: &Path) -> Result<InputAssessment> {
 ///
 /// # Errors
 /// Returns an error if serialization or writing fails.
-pub fn write_input_assessment(path: &Path, assessment: &InputAssessment) -> Result<()> {
+pub fn write_input_assessment(path: &Path, assessment: &InputAssessmentV1) -> Result<()> {
     let payload = serde_json::to_string_pretty(assessment)?;
     std::fs::write(path, payload)?;
     Ok(())
