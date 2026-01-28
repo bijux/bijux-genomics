@@ -8,6 +8,7 @@ use tracing::info;
 use uuid::Uuid;
 use walkdir::WalkDir;
 
+pub mod events;
 pub mod input_assessment;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -48,6 +49,35 @@ pub struct ToolInvocationV1 {
     pub threads: u32,
     pub inputs: Vec<String>,
     pub outputs: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct StageMetadataV1 {
+    pub stage: String,
+    pub started_at: DateTime<Utc>,
+    pub finished_at: DateTime<Utc>,
+    pub tool: String,
+    pub success: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ToolExecutionMetadataV1 {
+    pub stage: String,
+    pub tool: String,
+    pub version: String,
+    pub image: String,
+    pub command: String,
+    pub threads: u32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct RawFailure {
+    pub stage: String,
+    pub tool: String,
+    pub reason: String,
 }
 
 #[must_use]

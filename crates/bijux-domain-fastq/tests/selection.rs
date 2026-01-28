@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use bijux_analyze::selection::{select_stage, Objective};
+use bijux_analyze::selection::{objective_spec, select_stage, Objective};
 use bijux_domain_fastq::{
     fastq_default_pipeline, get_results, BenchCorpus, BenchCorpusId, BenchDataset,
     DefaultPipelineOptions,
@@ -141,7 +141,8 @@ fn default_route_selects_tools_deterministically() -> Result<(), Box<dyn std::er
             let records = get_results(&stage, tool, &corpus, &temp_root)?;
             tool_records.push((tool.clone(), records));
         }
-        let selection = select_stage(&stage, &tool_records, Objective::Speed, false);
+        let objective = objective_spec(Objective::Speed);
+        let selection = select_stage(&stage, &tool_records, &objective, false);
         assert_eq!(selection.selected, Some("tool_fast".to_string()));
     }
 

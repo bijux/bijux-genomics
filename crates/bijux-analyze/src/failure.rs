@@ -1,6 +1,6 @@
 use serde::Serialize;
 
-use crate::contracts::RawFailure;
+use bijux_core::RawFailure;
 
 #[derive(Debug, Clone, Copy, Serialize)]
 #[serde(rename_all = "snake_case")]

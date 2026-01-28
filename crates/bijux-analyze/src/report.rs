@@ -2,21 +2,17 @@ use std::collections::BTreeMap;
 use std::fs;
 use std::path::Path;
 
-use crate::contracts::qc_class_for_stage;
-use crate::metrics::{
-    ratio_u64, semantic_filter, semantic_stats, semantic_trim, semantic_validate,
-};
 use anyhow::{anyhow, Context, Result};
-use bijux_analyze::{
+
+use crate::failure::{classify_raw_failure, BenchmarkFailure};
+use crate::semantic::{semantic_filter, semantic_stats, semantic_trim, semantic_validate};
+use crate::{
     derived_metric_spec, derived_metrics_for_stage, metric_kind_for_stage, metric_spec,
     stage_metric_spec, BenchmarkRecord, DerivedMetricId, FastqCorrectMetrics, FastqFilterMetrics,
     FastqMergeMetrics, FastqQcPostMetrics, FastqStatsMetrics, FastqTrimMetrics, FastqUmiMetrics,
-    FastqValidateMetrics,
+    FastqValidateMetrics, RankInput,
 };
-
-use super::failure::{classify_raw_failure, BenchmarkFailure};
-use crate::contracts::RawFailure;
-use bijux_bench::analyze::{build_rankings, print_rank_explain, RankInput};
+use bijux_core::RawFailure;
 
 /// Write the trim benchmark report.
 ///
@@ -49,7 +45,7 @@ pub fn write_trim_report(
     let json = serde_json::to_string_pretty(&report)?;
     fs::write(&path, json).context("write report.json")?;
     if explain {
-        print_rank_explain("fastq.trim", &rankings);
+        crate::print_rank_explain("fastq.trim", &rankings);
     }
     Ok(())
 }
@@ -62,6 +58,7 @@ pub fn write_validate_report(
     base_dir: &Path,
     records: &[BenchmarkRecord<FastqValidateMetrics>],
     failures: &[RawFailure],
+    qc_class: Option<&str>,
     explain: bool,
 ) -> Result<()> {
     let path = base_dir.join("report.json");
@@ -78,7 +75,7 @@ pub fn write_validate_report(
         .map(|record| semantic_validate(&record.metrics.metrics))
         .collect();
     report.insert("semantic_metrics", serde_json::to_value(&semantic)?);
-    if let Some(class) = qc_class_for_stage("fastq.validate_pre") {
+    if let Some(class) = qc_class {
         report.insert("qc_class", serde_json::to_value(class)?);
     }
     let rankings = rank_validate_tools(records);
@@ -86,7 +83,7 @@ pub fn write_validate_report(
     let json = serde_json::to_string_pretty(&report)?;
     fs::write(&path, json).context("write report.json")?;
     if explain {
-        print_rank_explain("fastq.validate_pre", &rankings);
+        crate::print_rank_explain("fastq.validate_pre", &rankings);
     }
     Ok(())
 }
@@ -122,7 +119,7 @@ pub fn write_filter_report(
     let json = serde_json::to_string_pretty(&report)?;
     fs::write(&path, json).context("write report.json")?;
     if explain {
-        print_rank_explain("fastq.filter", &rankings);
+        crate::print_rank_explain("fastq.filter", &rankings);
     }
     Ok(())
 }
@@ -153,7 +150,7 @@ pub fn write_merge_report(
     let json = serde_json::to_string_pretty(&report)?;
     fs::write(&path, json).context("write report.json")?;
     if explain {
-        print_rank_explain("fastq.merge", &rankings);
+        crate::print_rank_explain("fastq.merge", &rankings);
     }
     Ok(())
 }
@@ -184,7 +181,7 @@ pub fn write_correct_report(
     let json = serde_json::to_string_pretty(&report)?;
     fs::write(&path, json).context("write report.json")?;
     if explain {
-        print_rank_explain("fastq.correct", &rankings);
+        crate::print_rank_explain("fastq.correct", &rankings);
     }
     Ok(())
 }
@@ -197,6 +194,7 @@ pub fn write_qc_post_report(
     base_dir: &Path,
     records: &[BenchmarkRecord<FastqQcPostMetrics>],
     failures: &[RawFailure],
+    qc_class: Option<&str>,
     explain: bool,
 ) -> Result<()> {
     let path = base_dir.join("report.json");
@@ -208,13 +206,13 @@ pub fn write_qc_post_report(
         "sanity_flags",
         serde_json::to_value(sanity_flags_qc_post(records))?,
     );
-    if let Some(class) = qc_class_for_stage("fastq.qc_post") {
+    if let Some(class) = qc_class {
         report.insert("qc_class", serde_json::to_value(class)?);
     }
     let json = serde_json::to_string_pretty(&report)?;
     fs::write(&path, json).context("write report.json")?;
     if explain {
-        print_rank_explain("fastq.qc_post", &BTreeMap::new());
+        crate::print_rank_explain("fastq.qc_post", &BTreeMap::new());
     }
     Ok(())
 }
@@ -245,7 +243,7 @@ pub fn write_umi_report(
     let json = serde_json::to_string_pretty(&report)?;
     fs::write(&path, json).context("write report.json")?;
     if explain {
-        print_rank_explain("fastq.umi", &rankings);
+        crate::print_rank_explain("fastq.umi", &rankings);
     }
     Ok(())
 }
@@ -277,7 +275,7 @@ pub fn write_stats_report(
     let json = serde_json::to_string_pretty(&report)?;
     fs::write(&path, json).context("write report.json")?;
     if explain {
-        print_rank_explain("fastq.stats_neutral", &BTreeMap::new());
+        crate::print_rank_explain("fastq.stats_neutral", &BTreeMap::new());
     }
     Ok(())
 }
@@ -342,6 +340,19 @@ fn median(mut values: Vec<f64>) -> f64 {
         f64::midpoint(values[mid - 1], values[mid])
     } else {
         values[mid]
+    }
+}
+
+#[allow(clippy::cast_precision_loss)]
+fn u64_to_f64(value: u64) -> f64 {
+    value as f64
+}
+
+fn ratio_u64(num: u64, denom: u64) -> f64 {
+    if denom == 0 {
+        0.0
+    } else {
+        u64_to_f64(num) / u64_to_f64(denom)
     }
 }
 
@@ -529,176 +540,66 @@ fn derived_filter_metrics(record: &BenchmarkRecord<FastqFilterMetrics>) -> serde
 }
 
 fn derived_merge_metrics(record: &BenchmarkRecord<FastqMergeMetrics>) -> serde_json::Value {
-    let min_reads = record
-        .metrics
-        .metrics
-        .reads_r1
-        .min(record.metrics.metrics.reads_r2);
-    let merge_efficiency = if min_reads > 0 {
-        ratio_u64(record.metrics.metrics.reads_merged, min_reads)
-    } else {
-        0.0
-    };
+    let metrics = &record.metrics.metrics;
+    let merged_ratio = metrics.merge_rate;
     serde_json::json!({
         "tool": record.context.tool,
-        derived_metric_spec(DerivedMetricId::MergeEfficiency).name: merge_efficiency,
+        derived_metric_spec(DerivedMetricId::MergeEfficiency).name: merged_ratio,
     })
 }
 
 fn derived_correct_metrics(record: &BenchmarkRecord<FastqCorrectMetrics>) -> serde_json::Value {
-    let reads_in = record.metrics.metrics.reads_in;
-    let bases_in = record.metrics.metrics.bases_in;
-    let read_retention = if reads_in > 0 {
-        ratio_u64(record.metrics.metrics.reads_out, reads_in)
-    } else {
+    let metrics = &record.metrics.metrics;
+    let read_retention = if metrics.reads_in == 0 {
         0.0
-    };
-    let base_retention = if bases_in > 0 {
-        ratio_u64(record.metrics.metrics.bases_out, bases_in)
     } else {
-        0.0
+        u64_to_f64(metrics.reads_out) / u64_to_f64(metrics.reads_in)
     };
-    let error_reduction_proxy =
-        (record.metrics.metrics.mean_q_after - record.metrics.metrics.mean_q_before).max(0.0);
+    let base_retention = if metrics.bases_in == 0 {
+        0.0
+    } else {
+        u64_to_f64(metrics.bases_out) / u64_to_f64(metrics.bases_in)
+    };
     serde_json::json!({
         "tool": record.context.tool,
         derived_metric_spec(DerivedMetricId::ReadRetention).name: read_retention,
         derived_metric_spec(DerivedMetricId::BaseRetention).name: base_retention,
-        derived_metric_spec(DerivedMetricId::ErrorReductionProxy).name: error_reduction_proxy,
     })
 }
 
 fn derived_umi_metrics(record: &BenchmarkRecord<FastqUmiMetrics>) -> serde_json::Value {
-    let reads_in = record.metrics.metrics.reads_in;
-    let read_retention = if reads_in > 0 {
-        ratio_u64(record.metrics.metrics.reads_out, reads_in)
-    } else {
+    let metrics = &record.metrics.metrics;
+    let retention = if metrics.reads_in == 0 {
         0.0
+    } else {
+        u64_to_f64(metrics.reads_out) / u64_to_f64(metrics.reads_in)
     };
     serde_json::json!({
         "tool": record.context.tool,
-        derived_metric_spec(DerivedMetricId::ReadRetention).name: read_retention,
+        derived_metric_spec(DerivedMetricId::ReadRetention).name: retention,
     })
 }
 
 fn rank_trim_tools(
     records: &[BenchmarkRecord<FastqTrimMetrics>],
-) -> BTreeMap<String, Vec<bijux_analyze::RankingEntry>> {
+) -> BTreeMap<String, Vec<crate::RankingEntry>> {
     let inputs: Vec<_> = records
         .iter()
         .map(|record| RankInput {
             tool: record.context.tool.clone(),
             runtime_s: record.execution.runtime_s,
             memory_mb: record.execution.memory_mb,
-            read_retention: Some(ratio_u64(
-                record.metrics.metrics.reads_out,
-                record.metrics.metrics.reads_in,
-            )),
-            base_retention: Some(ratio_u64(
-                record.metrics.metrics.bases_out,
-                record.metrics.metrics.bases_in,
-            )),
-            error_reduction_proxy: Some(
-                (record.metrics.metrics.mean_q_after - record.metrics.metrics.mean_q_before)
-                    .max(0.0),
-            ),
+            read_retention: Some(record.metrics.metrics.delta_metrics.read_retention),
+            base_retention: Some(record.metrics.metrics.delta_metrics.base_retention),
+            error_reduction_proxy: Some(record.metrics.metrics.delta_metrics.mean_q_delta.max(0.0)),
         })
         .collect();
-    build_rankings(&inputs)
-}
-
-fn rank_filter_tools(
-    records: &[BenchmarkRecord<FastqFilterMetrics>],
-) -> BTreeMap<String, Vec<bijux_analyze::RankingEntry>> {
-    let inputs: Vec<_> = records
-        .iter()
-        .map(|record| RankInput {
-            tool: record.context.tool.clone(),
-            runtime_s: record.execution.runtime_s,
-            memory_mb: record.execution.memory_mb,
-            read_retention: Some(ratio_u64(
-                record.metrics.metrics.reads_out,
-                record.metrics.metrics.reads_in,
-            )),
-            base_retention: Some(ratio_u64(
-                record.metrics.metrics.reads_out,
-                record.metrics.metrics.reads_in,
-            )),
-            error_reduction_proxy: Some(
-                (record.metrics.metrics.mean_q_after - record.metrics.metrics.mean_q_before)
-                    .max(0.0),
-            ),
-        })
-        .collect();
-    build_rankings(&inputs)
-}
-
-fn rank_merge_tools(
-    records: &[BenchmarkRecord<FastqMergeMetrics>],
-) -> BTreeMap<String, Vec<bijux_analyze::RankingEntry>> {
-    let inputs: Vec<_> = records
-        .iter()
-        .map(|record| RankInput {
-            tool: record.context.tool.clone(),
-            runtime_s: record.execution.runtime_s,
-            memory_mb: record.execution.memory_mb,
-            read_retention: None,
-            base_retention: None,
-            error_reduction_proxy: None,
-        })
-        .collect();
-    build_rankings(&inputs)
-}
-
-fn rank_correct_tools(
-    records: &[BenchmarkRecord<FastqCorrectMetrics>],
-) -> BTreeMap<String, Vec<bijux_analyze::RankingEntry>> {
-    let inputs: Vec<_> = records
-        .iter()
-        .map(|record| RankInput {
-            tool: record.context.tool.clone(),
-            runtime_s: record.execution.runtime_s,
-            memory_mb: record.execution.memory_mb,
-            read_retention: Some(ratio_u64(
-                record.metrics.metrics.reads_out,
-                record.metrics.metrics.reads_in,
-            )),
-            base_retention: Some(ratio_u64(
-                record.metrics.metrics.bases_out,
-                record.metrics.metrics.bases_in,
-            )),
-            error_reduction_proxy: Some(
-                (record.metrics.metrics.mean_q_after - record.metrics.metrics.mean_q_before)
-                    .max(0.0),
-            ),
-        })
-        .collect();
-    build_rankings(&inputs)
-}
-
-fn rank_umi_tools(
-    records: &[BenchmarkRecord<FastqUmiMetrics>],
-) -> BTreeMap<String, Vec<bijux_analyze::RankingEntry>> {
-    let inputs: Vec<_> = records
-        .iter()
-        .map(|record| RankInput {
-            tool: record.context.tool.clone(),
-            runtime_s: record.execution.runtime_s,
-            memory_mb: record.execution.memory_mb,
-            read_retention: Some(ratio_u64(
-                record.metrics.metrics.reads_out,
-                record.metrics.metrics.reads_in,
-            )),
-            base_retention: None,
-            error_reduction_proxy: None,
-        })
-        .collect();
-    build_rankings(&inputs)
+    crate::build_rankings(&inputs)
 }
 
 fn rank_validate_tools(
     records: &[BenchmarkRecord<FastqValidateMetrics>],
-) -> BTreeMap<String, Vec<bijux_analyze::RankingEntry>> {
+) -> BTreeMap<String, Vec<crate::RankingEntry>> {
     let inputs: Vec<_> = records
         .iter()
         .map(|record| RankInput {
@@ -710,5 +611,83 @@ fn rank_validate_tools(
             error_reduction_proxy: None,
         })
         .collect();
-    build_rankings(&inputs)
+    crate::build_rankings(&inputs)
+}
+
+fn rank_filter_tools(
+    records: &[BenchmarkRecord<FastqFilterMetrics>],
+) -> BTreeMap<String, Vec<crate::RankingEntry>> {
+    let inputs: Vec<_> = records
+        .iter()
+        .map(|record| RankInput {
+            tool: record.context.tool.clone(),
+            runtime_s: record.execution.runtime_s,
+            memory_mb: record.execution.memory_mb,
+            read_retention: Some(record.metrics.metrics.delta_metrics.read_retention),
+            base_retention: Some(record.metrics.metrics.delta_metrics.base_retention),
+            error_reduction_proxy: Some(record.metrics.metrics.delta_metrics.mean_q_delta.max(0.0)),
+        })
+        .collect();
+    crate::build_rankings(&inputs)
+}
+
+fn rank_merge_tools(
+    records: &[BenchmarkRecord<FastqMergeMetrics>],
+) -> BTreeMap<String, Vec<crate::RankingEntry>> {
+    let inputs: Vec<_> = records
+        .iter()
+        .map(|record| RankInput {
+            tool: record.context.tool.clone(),
+            runtime_s: record.execution.runtime_s,
+            memory_mb: record.execution.memory_mb,
+            read_retention: Some(record.metrics.metrics.merge_rate),
+            base_retention: None,
+            error_reduction_proxy: None,
+        })
+        .collect();
+    crate::build_rankings(&inputs)
+}
+
+fn rank_correct_tools(
+    records: &[BenchmarkRecord<FastqCorrectMetrics>],
+) -> BTreeMap<String, Vec<crate::RankingEntry>> {
+    let inputs: Vec<_> = records
+        .iter()
+        .map(|record| RankInput {
+            tool: record.context.tool.clone(),
+            runtime_s: record.execution.runtime_s,
+            memory_mb: record.execution.memory_mb,
+            read_retention: Some(if record.metrics.metrics.reads_in == 0 {
+                0.0
+            } else {
+                u64_to_f64(record.metrics.metrics.reads_out)
+                    / u64_to_f64(record.metrics.metrics.reads_in)
+            }),
+            base_retention: None,
+            error_reduction_proxy: None,
+        })
+        .collect();
+    crate::build_rankings(&inputs)
+}
+
+fn rank_umi_tools(
+    records: &[BenchmarkRecord<FastqUmiMetrics>],
+) -> BTreeMap<String, Vec<crate::RankingEntry>> {
+    let inputs: Vec<_> = records
+        .iter()
+        .map(|record| RankInput {
+            tool: record.context.tool.clone(),
+            runtime_s: record.execution.runtime_s,
+            memory_mb: record.execution.memory_mb,
+            read_retention: Some(if record.metrics.metrics.reads_in == 0 {
+                0.0
+            } else {
+                u64_to_f64(record.metrics.metrics.reads_out)
+                    / u64_to_f64(record.metrics.metrics.reads_in)
+            }),
+            base_retention: None,
+            error_reduction_proxy: None,
+        })
+        .collect();
+    crate::build_rankings(&inputs)
 }
