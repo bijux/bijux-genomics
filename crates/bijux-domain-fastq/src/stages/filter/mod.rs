@@ -23,13 +23,13 @@ use bijux_engine::api::{cleanup_execution, execution_memory_mb, run_tool_executi
 use bijux_engine::api::{hash_file_sha256, input_fastq_stats, output_fastq_stats, SeqkitMetrics};
 use bijux_environment::image_qa::ensure_image_qa_passed;
 
-use super::analyze::failure::{classify_failure, BenchmarkFailure};
-use super::analyze::report::write_filter_report;
 use super::helpers::{
     compute_run_id, normalize_filter_tool_list, params_hash, prepare_tool_run_dirs,
     resolve_image_for_run, write_execution_logs, write_explain_md, write_explain_plan_json,
     write_metrics_json, ExecutionManifest,
 };
+use crate::core::RawFailure;
+use crate::stages::helpers::BenchOutcome;
 
 /// Run the FASTQ benchmark stage.
 ///
@@ -40,7 +40,7 @@ pub fn bench_fastq_filter<S: ::std::hash::BuildHasher>(
     platform: &PlatformSpec,
     runner_override: Option<RunnerKind>,
     args: &crate::stages::args::BenchFastqFilterArgs,
-) -> Result<()> {
+) -> Result<BenchOutcome<FastqFilterMetrics>> {
     let tools = normalize_filter_tool_list(&args.tools)?;
     let artifact = FastqArtifact::single_end(&args.r1);
     preflight_stage("fastq.filter", artifact.kind)?;
@@ -79,7 +79,7 @@ pub fn bench_fastq_filter<S: ::std::hash::BuildHasher>(
     let conn = bijux_analyze::open_sqlite(&sqlite_path).context("open bench sqlite")?;
     let mut records: Vec<BenchmarkRecord<FastqFilterMetrics>> = Vec::new();
     let mut new_records: Vec<BenchmarkRecord<FastqFilterMetrics>> = Vec::new();
-    let mut failures: Vec<BenchmarkFailure> = Vec::new();
+    let mut failures: Vec<RawFailure> = Vec::new();
 
     for tool in tools {
         let spec = catalog
@@ -103,7 +103,11 @@ pub fn bench_fastq_filter<S: ::std::hash::BuildHasher>(
         }
         match run_filter_tool(catalog, platform, args, &bench_inputs, &tool) {
             Ok(record) => new_records.push(record),
-            Err(err) => failures.push(classify_failure("fastq.filter", &tool, &err)),
+            Err(err) => failures.push(RawFailure {
+                stage: "fastq.filter".to_string(),
+                tool: tool.to_string(),
+                reason: err.to_string(),
+            }),
         }
     }
 
@@ -119,11 +123,12 @@ pub fn bench_fastq_filter<S: ::std::hash::BuildHasher>(
     }
 
     check_fastq_filter_comparability(&records);
-    write_filter_report(&bench_inputs.bench_dir, &records, &failures, args.explain)?;
-    if !failures.is_empty() {
-        return Err(anyhow!("benchmark failures: {}", failures.len()));
-    }
-    Ok(())
+    Ok(BenchOutcome {
+        records,
+        failures,
+        bench_dir: bench_inputs.bench_dir,
+        explain: args.explain,
+    })
 }
 
 struct FilterBenchInputs {

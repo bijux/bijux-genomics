@@ -17,8 +17,20 @@ use bijux_environment::api::{PlatformSpec, ToolImageSpec};
 use sha2::Digest;
 use std::path::{Path, PathBuf};
 
+use bijux_analyze::BenchmarkRecord;
+
+use crate::core::RawFailure;
+
 pub use bijux_engine::api::ExecutionManifest;
 pub use bijux_engine::api::{ExplainExclusion, ExplainPlan};
+
+#[derive(Debug)]
+pub struct BenchOutcome<M: bijux_analyze::StageMetricSchema> {
+    pub records: Vec<BenchmarkRecord<M>>,
+    pub failures: Vec<RawFailure>,
+    pub bench_dir: PathBuf,
+    pub explain: bool,
+}
 
 #[derive(Debug)]
 pub(crate) struct RunDirs {

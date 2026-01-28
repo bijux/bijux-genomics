@@ -1,5 +1,6 @@
 pub mod common;
 pub mod deltas;
+pub mod spec;
 pub mod stage_specific;
 
 pub use common::{
@@ -7,4 +8,5 @@ pub use common::{
     QualityShiftMetrics, RetentionMetrics, SemanticMetrics,
 };
 pub use deltas::{compute_delta, delta_from_counts, ratio_u64, FastqDelta};
+pub use spec::{metric_spec_for_stage, MetricClass, StageMetricSpec};
 pub use stage_specific::{semantic_filter, semantic_stats, semantic_trim, semantic_validate};

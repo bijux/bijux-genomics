@@ -1,6 +1,9 @@
 use std::path::Path;
 
 use anyhow::Result;
+use bijux_domain_fastq::analyze::report::{
+    write_filter_report, write_trim_report, write_validate_report,
+};
 use bijux_domain_fastq::stages::{
     args as bench_args, bench_fastq_filter, bench_fastq_trim, bench_fastq_validate,
 };
@@ -65,7 +68,13 @@ fn benchmark_gate_validate_trim_filter() -> Result<()> {
         explain: false,
         strict: false,
     };
-    bench_fastq_validate(&catalog, &platform, None, &validate_args)?;
+    let validate_outcome = bench_fastq_validate(&catalog, &platform, None, &validate_args)?;
+    write_validate_report(
+        &validate_outcome.bench_dir,
+        &validate_outcome.records,
+        &validate_outcome.failures,
+        validate_outcome.explain,
+    )?;
 
     let trim_args = bench_args::BenchFastqTrimArgs {
         sample_id: sample_id.clone(),
@@ -74,7 +83,13 @@ fn benchmark_gate_validate_trim_filter() -> Result<()> {
         tools: vec!["fastp".to_string()],
         explain: false,
     };
-    bench_fastq_trim(&catalog, &platform, None, &trim_args)?;
+    let trim_outcome = bench_fastq_trim(&catalog, &platform, None, &trim_args)?;
+    write_trim_report(
+        &trim_outcome.bench_dir,
+        &trim_outcome.records,
+        &trim_outcome.failures,
+        trim_outcome.explain,
+    )?;
 
     let filter_args = bench_args::BenchFastqFilterArgs {
         sample_id: sample_id.clone(),
@@ -83,7 +98,13 @@ fn benchmark_gate_validate_trim_filter() -> Result<()> {
         tools: vec!["seqkit".to_string()],
         explain: false,
     };
-    bench_fastq_filter(&catalog, &platform, None, &filter_args)?;
+    let filter_outcome = bench_fastq_filter(&catalog, &platform, None, &filter_args)?;
+    write_filter_report(
+        &filter_outcome.bench_dir,
+        &filter_outcome.records,
+        &filter_outcome.failures,
+        filter_outcome.explain,
+    )?;
 
     let validate_report = out_path
         .join("artifacts")

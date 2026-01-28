@@ -22,13 +22,13 @@ use bijux_engine::api::{cleanup_execution, execution_memory_mb, run_tool_executi
 use bijux_engine::api::{hash_file_sha256, input_fastq_stats, output_fastq_stats};
 use bijux_environment::image_qa::ensure_image_qa_passed;
 
-use super::analyze::failure::{classify_failure, BenchmarkFailure};
-use super::analyze::report::write_trim_report;
 use super::helpers::{
     compute_run_id, normalize_tool_list, params_hash, prepare_tool_run_dirs, resolve_image_for_run,
     write_execution_logs, write_explain_md, write_explain_plan_json, write_metrics_json,
     ExecutionManifest,
 };
+use crate::core::RawFailure;
+use crate::stages::helpers::BenchOutcome;
 
 #[allow(clippy::too_many_lines)]
 /// Run the FASTQ benchmark stage.
@@ -40,7 +40,7 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
     platform: &PlatformSpec,
     runner_override: Option<RunnerKind>,
     args: &crate::stages::args::BenchFastqTrimArgs,
-) -> Result<()> {
+) -> Result<BenchOutcome<FastqTrimMetrics>> {
     let runner = ensure_bench_runner(platform, runner_override)?;
     let artifact = FastqArtifact::single_end(&args.r1);
     preflight_stage("fastq.trim", artifact.kind)?;
@@ -87,7 +87,7 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
     let conn = bijux_analyze::open_sqlite(&sqlite_path).context("open bench sqlite")?;
     let mut records: Vec<BenchmarkRecord<FastqTrimMetrics>> = Vec::new();
     let mut new_records: Vec<BenchmarkRecord<FastqTrimMetrics>> = Vec::new();
-    let mut failures: Vec<BenchmarkFailure> = Vec::new();
+    let mut failures: Vec<RawFailure> = Vec::new();
 
     for tool in tools {
         let record = (|| -> Result<BenchmarkRecord<FastqTrimMetrics>> {
@@ -194,7 +194,11 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
         })();
         match record {
             Ok(record) => new_records.push(record),
-            Err(err) => failures.push(classify_failure("fastq.trim", &tool, &err)),
+            Err(err) => failures.push(RawFailure {
+                stage: "fastq.trim".to_string(),
+                tool: tool.to_string(),
+                reason: err.to_string(),
+            }),
         }
     }
 
@@ -210,11 +214,12 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
     }
 
     check_fastq_trim_comparability(&records);
-    write_trim_report(&bench_dir, &records, &failures, args.explain)?;
-    if !failures.is_empty() {
-        return Err(anyhow!("benchmark failures: {}", failures.len()));
-    }
-    Ok(())
+    Ok(BenchOutcome {
+        records,
+        failures,
+        bench_dir,
+        explain: args.explain,
+    })
 }
 
 #[allow(clippy::cast_precision_loss)]
