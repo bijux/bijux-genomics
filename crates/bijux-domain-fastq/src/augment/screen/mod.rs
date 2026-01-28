@@ -5,7 +5,7 @@ use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 
 use bijux_environment::image_qa::ensure_image_qa_passed;
 
-use super::helpers::normalize_screen_tool_list;
+use crate::stages::helpers::{filter_tools_by_role, normalize_screen_tool_list};
 
 /// Run the FASTQ benchmark stage.
 ///
@@ -19,6 +19,9 @@ pub fn bench_fastq_screen<S: ::std::hash::BuildHasher>(
 ) -> Result<()> {
     let _ = runner_override;
     let tools = normalize_screen_tool_list(&args.tools)?;
+    let registry = bijux_engine::api::load_registry(&std::env::current_dir()?.join("domain"))
+        .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
+    let tools = filter_tools_by_role("fastq.screen", &tools, &registry, false)?;
     if std::env::var("BIJUX_SCREEN_DB").is_err() {
         println!("screen benchmarks skipped (BIJUX_SCREEN_DB not set)");
         return Ok(());

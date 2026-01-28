@@ -1,7 +1,7 @@
 schema_version: "bijux.tool.v1"
 tool_id: "fastqvalidator_official"
 stage_id: "fastq.validate"
-role: "gatekeeper"
+role: "authoritative"
 authoritative: true
 strict_capable: true
 status: "stable"

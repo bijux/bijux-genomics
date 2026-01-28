@@ -1,4 +1,7 @@
-use bijux_domain_fastq::core::{contract_for_stage, FastqArtifactKind};
+use bijux_domain_fastq::core::{
+    contract_for_stage, FastqArtifactKind, FastqPE, FastqSE, FastqStats,
+};
+use std::path::PathBuf;
 
 #[test]
 fn forbidden_transitions_are_rejected() {
@@ -23,4 +26,21 @@ fn optional_branches_are_explicit() {
     };
     assert_eq!(umi.input_kind, FastqArtifactKind::PairedEnd);
     assert_eq!(preprocess.input_kind, FastqArtifactKind::PairedEnd);
+}
+
+#[test]
+fn type_level_artifacts_are_public() {
+    let se = FastqSE {
+        r1: PathBuf::from("reads.fastq.gz"),
+    };
+    let pe = FastqPE {
+        r1: PathBuf::from("reads_r1.fastq.gz"),
+        r2: PathBuf::from("reads_r2.fastq.gz"),
+    };
+    let stats = FastqStats {
+        report: PathBuf::from("stats.json"),
+    };
+    assert!(se.r1.to_string_lossy().contains("reads"));
+    assert!(pe.r2.to_string_lossy().contains("r2"));
+    assert!(stats.report.to_string_lossy().contains("stats"));
 }

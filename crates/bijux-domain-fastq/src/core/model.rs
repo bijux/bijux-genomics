@@ -42,3 +42,19 @@ impl FastqArtifact {
         )
     }
 }
+
+#[derive(Debug, Clone)]
+pub struct FastqSE {
+    pub r1: PathBuf,
+}
+
+#[derive(Debug, Clone)]
+pub struct FastqPE {
+    pub r1: PathBuf,
+    pub r2: PathBuf,
+}
+
+#[derive(Debug, Clone)]
+pub struct FastqStats {
+    pub report: PathBuf,
+}

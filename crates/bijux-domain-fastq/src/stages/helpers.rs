@@ -17,6 +17,8 @@ use bijux_environment::api::{PlatformSpec, ToolImageSpec};
 use sha2::Digest;
 use std::path::{Path, PathBuf};
 
+use bijux_core::ToolRole;
+
 use bijux_analyze::BenchmarkRecord;
 
 use crate::core::RawFailure;
@@ -212,6 +214,44 @@ pub(crate) fn normalize_screen_tool_list(tools: &[String]) -> Result<Vec<String>
 
 pub(crate) fn normalize_stats_tool_list(tools: &[String]) -> Result<Vec<String>> {
     engine_normalize_stats_tool_list(tools)
+}
+
+pub(crate) fn filter_tools_by_role(
+    stage_id: &str,
+    tools: &[String],
+    registry: &bijux_core::ToolRegistry,
+    strict: bool,
+) -> Result<Vec<String>> {
+    let allow_experimental = std::env::var("BIJUX_EXPERIMENTAL_TOOLS").is_ok();
+    let mut filtered = Vec::new();
+    for tool in tools {
+        let manifest = registry
+            .tool_by_id(stage_id, tool)
+            .ok_or_else(|| anyhow::anyhow!("tool {tool} missing from manifests"))?;
+        match manifest.role {
+            ToolRole::Authoritative => filtered.push(tool.clone()),
+            ToolRole::Diagnostic => {
+                if strict {
+                    return Err(anyhow::anyhow!(
+                        "strict mode requires authoritative tools; {tool} is diagnostic"
+                    ));
+                }
+                filtered.push(tool.clone());
+            }
+            ToolRole::Experimental => {
+                if !allow_experimental {
+                    return Err(anyhow::anyhow!(
+                        "experimental tool {tool} requires BIJUX_EXPERIMENTAL_TOOLS=1"
+                    ));
+                }
+                filtered.push(tool.clone());
+            }
+        }
+    }
+    if filtered.is_empty() {
+        return Err(anyhow::anyhow!("no tools available after role filtering"));
+    }
+    Ok(filtered)
 }
 
 pub(crate) fn resolve_image_for_run(

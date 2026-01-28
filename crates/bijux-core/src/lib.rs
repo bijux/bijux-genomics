@@ -277,10 +277,10 @@ pub struct ToolManifestV1 {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ToolRole {
-    Gatekeeper,
+    #[serde(alias = "gatekeeper", alias = "transform", alias = "report")]
+    Authoritative,
     Diagnostic,
-    Transform,
-    Report,
+    Experimental,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]

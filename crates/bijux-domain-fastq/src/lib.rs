@@ -6,8 +6,10 @@
 // 5. execution adapters
 pub mod adapter;
 pub mod analyze;
+pub mod augment;
 pub mod core;
 pub mod domain;
+pub mod meta;
 pub mod metrics;
 pub mod pipeline;
 pub mod stages;

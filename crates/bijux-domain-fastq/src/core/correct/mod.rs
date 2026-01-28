@@ -23,13 +23,13 @@ use bijux_engine::api::{cleanup_execution, execution_memory_mb, run_tool_executi
 use bijux_engine::api::{hash_file_sha256, input_fastq_stats, output_fastq_stats, SeqkitMetrics};
 use bijux_environment::image_qa::ensure_image_qa_passed;
 
-use super::helpers::{
+use crate::core::RawFailure;
+use crate::stages::helpers::{
     compute_run_id, normalize_correct_tool_list, params_hash, prepare_tool_run_dirs,
     resolve_image_for_run, write_execution_logs, write_explain_md, write_explain_plan_json,
     write_metrics_json, ExecutionManifest,
 };
-use crate::core::RawFailure;
-use crate::stages::helpers::BenchOutcome;
+use crate::stages::helpers::{filter_tools_by_role, BenchOutcome};
 
 /// Run the FASTQ benchmark stage.
 ///
@@ -52,6 +52,7 @@ pub fn bench_fastq_correct<S: ::std::hash::BuildHasher>(
     log_header_warnings("fastq.correct", &header);
     let registry = load_registry(&std::env::current_dir()?.join("domain"))
         .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
+    let tools = filter_tools_by_role("fastq.correct", &tools, &registry, false)?;
     let bench_inputs = prepare_correct_bench(catalog, platform, runner_override, args)?;
     let selected = tools.clone();
     let all_tools: Vec<String> = registry
