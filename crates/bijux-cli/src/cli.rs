@@ -3,7 +3,7 @@ use std::str::FromStr;
 
 use anyhow::{anyhow, Result};
 use bijux_core::{StageId, ToolId};
-use bijux_domain_fastq::bench::args as engine_args;
+use bijux_domain_fastq::stages::args as engine_args;
 use bijux_environment::api::RunnerKind;
 use clap::{Args, Parser, Subcommand};
 
@@ -244,6 +244,17 @@ pub struct CommonArgs {
 
 #[derive(Debug, Subcommand)]
 pub enum FastqCommand {
+    #[command(about = "List FASTQ stages.")]
+    ListStages,
+    #[command(about = "List tools for a FASTQ stage.")]
+    ListTools {
+        #[arg(long)]
+        stage: String,
+    },
+    #[command(about = "Explain a FASTQ stage or pipeline.")]
+    Explain {
+        stage: String,
+    },
     #[command(
         about = "Filter FASTQ reads.",
         after_help = "Examples:\n  bijux fastq filter --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE --tools fastp\n  bijux fastq filter --list-tools"
@@ -315,6 +326,13 @@ pub struct FastqValidateArgs {
 pub fn resolve_stage_tool(command: &Commands) -> (StageId, ToolId, CommonArgs) {
     match command {
         Commands::Fastq { command } => match command {
+            FastqCommand::ListStages
+            | FastqCommand::ListTools { .. }
+            | FastqCommand::Explain { .. } => (
+                StageId("fastq.trim".to_string()),
+                ToolId("fastp".to_string()),
+                CommonArgs::default(),
+            ),
             FastqCommand::Trim(args) => (
                 StageId("fastq.trim".to_string()),
                 ToolId("fastp".to_string()),

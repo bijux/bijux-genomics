@@ -1,6 +1,5 @@
-schema_version: "bijux.stage.v1"
+extends: "_schema.yaml"
 stage_id: "fastq.filter"
-domain: "fastq"
 inputs:
   - name: "reads"
     data_type: "fastq"

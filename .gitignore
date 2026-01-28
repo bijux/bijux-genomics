@@ -18,6 +18,8 @@
 *.tmp
 
 data/
+!docs/data/
+!docs/data/**
 artifacts/
 !tests/data/
 !tests/data/fastq/

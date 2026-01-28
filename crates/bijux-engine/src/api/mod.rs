@@ -1,20 +1,19 @@
 //! Stable, intended-for-use engine interfaces.
 
-pub use crate::core::planner::{
+pub use crate::core::composer::{
     load_registry, normalize_correct_tool_list, normalize_filter_tool_list,
     normalize_merge_tool_list, normalize_qc2_tool_list, normalize_screen_tool_list,
     normalize_stats_tool_list, normalize_trim_tool_list, normalize_umi_tool_list,
     normalize_validate_tool_list,
 };
 pub use crate::core::types::{
-    default_domain_registry, trace_enabled, Capability, DataArtifact, DomainRegistry,
-    ExecutionContext, ExecutionManifest, ExplainExclusion, ExplainPlan, MetricSet, PipelineSpec,
-    Policy, ReadSet, RunPlan, SequenceCollection, StageGraph, StageRequirement, StageResult,
-    ToolInvocation,
+    default_domain_registry, trace_enabled, Capability, DataArtifact, Dependency, DomainRegistry,
+    ExecutionContext, ExecutionManifest, ExecutionPlan, ExplainExclusion, ExplainPlan, MetricSet,
+    PipelineSpec, Policy, ReadSet, RunPlan, SequenceCollection, StageGraph, StageNode,
+    StageRequirement, StageResult, ToolInvocation,
 };
 pub use crate::core::types::{init_logging, StdoutLogger};
 pub use crate::core::validator::validate_execution_outputs;
-pub use crate::services::composer::compare;
 pub use crate::services::composer::paths::{
     bench_base_dir, bench_tools_dir, image_qa_base_dir, image_qa_jsonl_path, image_qa_sqlite_path,
 };

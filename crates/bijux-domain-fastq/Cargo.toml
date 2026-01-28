@@ -18,6 +18,7 @@ bijux-measure = { path = "../bijux-measure" }
 bijux-core = { path = "../bijux-core" }
 bijux-engine = { path = "../bijux-engine" }
 bijux-environment = { path = "../bijux-environment" }
+bijux-bench = { path = "../bijux-bench" }
 
 [dev-dependencies]
 

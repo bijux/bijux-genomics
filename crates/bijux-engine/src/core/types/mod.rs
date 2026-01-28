@@ -46,6 +46,25 @@ pub struct StageGraph {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StageNode {
+    pub stage_id: String,
+    pub tools: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Dependency {
+    pub from: String,
+    pub to: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExecutionPlan {
+    pub stages: Vec<StageNode>,
+    pub edges: Vec<Dependency>,
+    pub policy: Policy,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PipelineSpec {
     pub stages: Vec<String>,
 }

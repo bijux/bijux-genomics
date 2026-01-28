@@ -1,4 +1,4 @@
-use bijux_domain_fastq::domain::{contract_for_stage, FastqArtifactKind};
+use bijux_domain_fastq::core::{contract_for_stage, FastqArtifactKind};
 
 #[test]
 fn forbidden_transitions_are_rejected() {
