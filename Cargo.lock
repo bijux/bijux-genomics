@@ -211,12 +211,15 @@ dependencies = [
  "bijux-engine",
  "bijux-environment",
  "bijux-measure",
+ "chrono",
+ "regex",
  "rusqlite",
  "serde",
  "serde_json",
  "sha2",
  "tracing",
  "uuid",
+ "walkdir",
 ]
 
 [[package]]

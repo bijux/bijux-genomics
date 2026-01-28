@@ -10,6 +10,7 @@ pub use contract::{
 };
 pub use failure::RawFailure;
 pub use model::{
-    FastqArtifact, FastqArtifactKind, FastqPE, FastqPairedEnd, FastqSE, FastqSingleEnd, FastqStats,
+    FastqArtifact, FastqArtifactKind, FastqLayout, FastqPE, FastqPairedEnd, FastqSE, FastqSampleId,
+    FastqSingleEnd, FastqStats,
 };
 pub use stages::{infer_input_kind, qc_class_for_stage, FastqStageContract, QcClass};

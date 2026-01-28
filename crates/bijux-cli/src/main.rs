@@ -20,6 +20,7 @@ use bijux_domain_fastq::analyze::report::{
     write_qc_post_report, write_stats_report, write_trim_report, write_umi_report,
     write_validate_report,
 };
+use bijux_domain_fastq::pipeline::{benchmark_runs, write_benchmark_exports};
 use bijux_domain_fastq::stages::{
     bench_fastq_correct, bench_fastq_filter, bench_fastq_merge, bench_fastq_preprocess,
     bench_fastq_qc_post, bench_fastq_screen, bench_fastq_stats_neutral, bench_fastq_trim,
@@ -333,6 +334,15 @@ fn handle_fastq_bench(
             let runner = cli::parse_runner_override(args.env.as_deref())?;
             let bench_args = preprocess_args_from_cli(args)?;
             bench_fastq_preprocess(&catalog, &platform, runner, &bench_args)?;
+            Ok(true)
+        }
+        FastqCommand::Benchmark(args) => {
+            let stage_id = normalize_fastq_stage_id(&args.stage);
+            let summary = benchmark_runs(&args.runs, &stage_id, args.objective.into())?;
+            let (json_path, csv_path) = write_benchmark_exports(&args.runs, &summary)?;
+            println!("{}", serde_json::to_string_pretty(&summary)?);
+            println!("benchmark_json: {}", json_path.display());
+            println!("benchmark_csv: {}", csv_path.display());
             Ok(true)
         }
         _ => {

@@ -303,6 +303,16 @@ pub struct FastqPreprocessArgs {
     pub allow_partial: bool,
 }
 
+#[derive(Debug, Args, Clone)]
+pub struct FastqBenchmarkArgs {
+    #[arg(long, default_value = "runs")]
+    pub runs: PathBuf,
+    #[arg(long)]
+    pub stage: String,
+    #[arg(long, value_enum, default_value_t = ObjectiveArg::Balanced)]
+    pub objective: ObjectiveArg,
+}
+
 #[derive(Debug, Subcommand)]
 pub enum FastqCommand {
     #[command(about = "List FASTQ stages.")]
@@ -355,6 +365,8 @@ pub enum FastqCommand {
         after_help = "Examples:\n  bijux fastq validate-pre --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE --tools fastqvalidator_official\n  bijux fastq validate-pre --list-tools"
     )]
     ValidatePre(FastqValidateArgs),
+    #[command(about = "Benchmark existing FASTQ runs without re-execution.")]
+    Benchmark(FastqBenchmarkArgs),
     Align(CommonArgs),
 }
 
@@ -397,7 +409,8 @@ pub fn resolve_stage_tool(command: &Commands) -> (StageId, ToolId, CommonArgs) {
         Commands::Fastq { command } => match command {
             FastqCommand::ListStages
             | FastqCommand::ListTools { .. }
-            | FastqCommand::Explain { .. } => (
+            | FastqCommand::Explain { .. }
+            | FastqCommand::Benchmark(_) => (
                 StageId("fastq.trim".to_string()),
                 ToolId("fastp".to_string()),
                 CommonArgs::default(),
