@@ -14,6 +14,7 @@ use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 use bijux_measure::ExecutionMetrics;
 use uuid::Uuid;
 
+use crate::domain::{infer_input_kind, inspect_headers, log_header_warnings, preflight_stage};
 use crate::image_qa::ensure_image_qa_passed;
 use bijux_engine::api::validate_execution_outputs;
 use bijux_engine::api::{bench_base_dir, bench_tools_dir};
@@ -46,6 +47,10 @@ pub fn bench_fastq_validate<S: ::std::hash::BuildHasher>(
     }
     tools.sort();
     tools.dedup();
+    let input_kind = infer_input_kind(None);
+    preflight_stage("fastq.validate", input_kind)?;
+    let header = inspect_headers(&args.r1, None, args.strict)?;
+    log_header_warnings("fastq.validate", &header);
     let registry = load_registry(&std::env::current_dir()?.join("domain"))
         .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let tool_policies = build_validate_tool_policy(&registry);

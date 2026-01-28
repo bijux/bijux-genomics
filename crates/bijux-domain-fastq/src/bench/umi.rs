@@ -13,6 +13,10 @@ use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 use bijux_measure::ExecutionMetrics;
 use uuid::Uuid;
 
+use crate::domain::{
+    contract_for_stage, infer_input_kind, inspect_headers, log_header_warnings, normalize_outputs,
+    preflight_stage,
+};
 use crate::image_qa::ensure_image_qa_passed;
 use bijux_engine::api::validate_execution_outputs;
 use bijux_engine::api::{bench_base_dir, bench_tools_dir};
@@ -38,6 +42,10 @@ pub fn bench_fastq_umi<S: ::std::hash::BuildHasher>(
     args: &crate::bench::args::BenchFastqUmiArgs,
 ) -> Result<()> {
     let tools = normalize_umi_tool_list(&args.tools)?;
+    let input_kind = infer_input_kind(args.r2.as_deref());
+    preflight_stage("fastq.umi", input_kind)?;
+    let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
+    log_header_warnings("fastq.umi", &header);
     let registry = load_registry(&std::env::current_dir()?.join("domain"))
         .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let bench_inputs = prepare_umi_bench(catalog, platform, runner_override, args)?;
@@ -216,10 +224,14 @@ fn run_umi_tool<S: ::std::hash::BuildHasher>(
         .get("seqkit")
         .ok_or_else(|| anyhow!("seqkit missing from images.yaml"))?;
     let seqkit_image = resolve_image_for_run(seqkit_spec, platform)?;
-    let out_fastq = execution
-        .output_fastq
+    let contract =
+        contract_for_stage("fastq.umi").ok_or_else(|| anyhow!("missing fastq.umi contract"))?;
+    let normalized = normalize_outputs("fastq.umi", &out_dir, contract.output_kind)?;
+    let out_fastq = normalized
+        .r1
+        .as_ref()
         .ok_or_else(|| anyhow!("output FASTQ missing"))?;
-    let output_stats = output_fastq_stats(&seqkit_image, &out_dir, &out_fastq)?;
+    let output_stats = output_fastq_stats(&seqkit_image, &out_dir, out_fastq)?;
 
     let registry = load_registry(&std::env::current_dir()?.join("domain"))
         .map_err(|err| anyhow!("manifest validation failed: {err}"))?;

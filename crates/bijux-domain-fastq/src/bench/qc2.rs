@@ -13,6 +13,7 @@ use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 use bijux_measure::ExecutionMetrics;
 use uuid::Uuid;
 
+use crate::domain::{infer_input_kind, inspect_headers, log_header_warnings, preflight_stage};
 use crate::image_qa::ensure_image_qa_passed;
 use bijux_engine::api::validate_execution_outputs;
 use bijux_engine::api::{bench_base_dir, bench_tools_dir};
@@ -40,6 +41,10 @@ pub fn bench_fastq_qc2<S: ::std::hash::BuildHasher>(
     args: &crate::bench::args::BenchFastqQc2Args,
 ) -> Result<()> {
     let tools = normalize_qc2_tool_list(&args.tools)?;
+    let input_kind = infer_input_kind(None);
+    preflight_stage("fastq.qc2", input_kind)?;
+    let header = inspect_headers(&args.r1, None, false)?;
+    log_header_warnings("fastq.qc2", &header);
     let registry = load_registry(&std::env::current_dir()?.join("domain"))
         .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let bench_inputs = prepare_qc2_bench(catalog, platform, runner_override, args)?;

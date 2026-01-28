@@ -2,6 +2,7 @@ use std::collections::BTreeMap;
 use std::fs;
 use std::path::Path;
 
+use crate::domain::{delta_from_counts, qc_class_for_stage};
 use anyhow::{anyhow, Context, Result};
 use bijux_analyze::{
     derived_metric_spec, derived_metrics_for_stage, metric_kind_for_stage, metric_spec,
@@ -54,6 +55,9 @@ pub(crate) fn write_validate_report(
         "sanity_flags",
         serde_json::to_value(sanity_flags_validate(records))?,
     );
+    if let Some(class) = qc_class_for_stage("fastq.validate") {
+        report.insert("qc_class", serde_json::to_value(class)?);
+    }
     let rankings = rank_validate_tools(records);
     report.insert("rankings", serde_json::to_value(&rankings)?);
     let json = serde_json::to_string_pretty(&report)?;
@@ -156,6 +160,9 @@ pub(crate) fn write_qc2_report(
         "sanity_flags",
         serde_json::to_value(sanity_flags_qc2(records))?,
     );
+    if let Some(class) = qc_class_for_stage("fastq.qc2") {
+        report.insert("qc_class", serde_json::to_value(class)?);
+    }
     let json = serde_json::to_string_pretty(&report)?;
     fs::write(&path, json).context("write report.json")?;
     if explain {
@@ -437,42 +444,41 @@ fn sanity_flags_qc2(records: &[BenchmarkRecord<FastqQc2Metrics>]) -> Vec<serde_j
 }
 
 fn derived_trim_metrics(record: &BenchmarkRecord<FastqTrimMetrics>) -> serde_json::Value {
-    let reads_in = record.metrics.metrics.reads_in;
-    let bases_in = record.metrics.metrics.bases_in;
-    let read_retention = if reads_in > 0 {
-        ratio_u64(record.metrics.metrics.reads_out, reads_in)
-    } else {
-        0.0
-    };
-    let base_retention = if bases_in > 0 {
-        ratio_u64(record.metrics.metrics.bases_out, bases_in)
-    } else {
-        0.0
-    };
-    let error_reduction_proxy =
-        (record.metrics.metrics.mean_q_after - record.metrics.metrics.mean_q_before).max(0.0);
+    let delta = delta_from_counts(
+        record.metrics.metrics.reads_in,
+        record.metrics.metrics.reads_out,
+        record.metrics.metrics.bases_in,
+        record.metrics.metrics.bases_out,
+        record.metrics.metrics.mean_q_before,
+        record.metrics.metrics.mean_q_after,
+        0.0,
+        0.0,
+    );
+    let error_reduction_proxy = delta.delta_mean_q.max(0.0);
     serde_json::json!({
         "tool": record.context.tool,
-        derived_metric_spec(DerivedMetricId::ReadRetention).name: read_retention,
-        derived_metric_spec(DerivedMetricId::BaseRetention).name: base_retention,
+        derived_metric_spec(DerivedMetricId::ReadRetention).name: delta.read_retention,
+        derived_metric_spec(DerivedMetricId::BaseRetention).name: delta.base_retention,
         derived_metric_spec(DerivedMetricId::ErrorReductionProxy).name: error_reduction_proxy,
     })
 }
 
 fn derived_filter_metrics(record: &BenchmarkRecord<FastqFilterMetrics>) -> serde_json::Value {
-    let reads_in = record.metrics.metrics.reads_in;
-    let read_retention = if reads_in > 0 {
-        ratio_u64(record.metrics.metrics.reads_out, reads_in)
-    } else {
-        0.0
-    };
-    let base_retention = read_retention;
-    let error_reduction_proxy =
-        (record.metrics.metrics.mean_q_after - record.metrics.metrics.mean_q_before).max(0.0);
+    let delta = delta_from_counts(
+        record.metrics.metrics.reads_in,
+        record.metrics.metrics.reads_out,
+        record.metrics.metrics.reads_in,
+        record.metrics.metrics.reads_out,
+        record.metrics.metrics.mean_q_before,
+        record.metrics.metrics.mean_q_after,
+        0.0,
+        0.0,
+    );
+    let error_reduction_proxy = delta.delta_mean_q.max(0.0);
     serde_json::json!({
         "tool": record.context.tool,
-        derived_metric_spec(DerivedMetricId::ReadRetention).name: read_retention,
-        derived_metric_spec(DerivedMetricId::BaseRetention).name: base_retention,
+        derived_metric_spec(DerivedMetricId::ReadRetention).name: delta.read_retention,
+        derived_metric_spec(DerivedMetricId::BaseRetention).name: delta.base_retention,
         derived_metric_spec(DerivedMetricId::ErrorReductionProxy).name: error_reduction_proxy,
     })
 }

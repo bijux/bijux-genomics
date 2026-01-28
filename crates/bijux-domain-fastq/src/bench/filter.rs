@@ -13,6 +13,10 @@ use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 use bijux_measure::ExecutionMetrics;
 use uuid::Uuid;
 
+use crate::domain::{
+    contract_for_stage, infer_input_kind, inspect_headers, log_header_warnings, normalize_outputs,
+    preflight_stage,
+};
 use crate::image_qa::ensure_image_qa_passed;
 use bijux_engine::api::validate_execution_outputs;
 use bijux_engine::api::{bench_base_dir, bench_tools_dir};
@@ -38,6 +42,10 @@ pub fn bench_fastq_filter<S: ::std::hash::BuildHasher>(
     args: &crate::bench::args::BenchFastqFilterArgs,
 ) -> Result<()> {
     let tools = normalize_filter_tool_list(&args.tools)?;
+    let input_kind = infer_input_kind(None);
+    preflight_stage("fastq.filter", input_kind)?;
+    let header = inspect_headers(&args.r1, None, false)?;
+    log_header_warnings("fastq.filter", &header);
     let registry = load_registry(&std::env::current_dir()?.join("domain"))
         .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let bench_inputs = prepare_filter_bench(catalog, platform, runner_override, args)?;
@@ -213,20 +221,13 @@ fn run_filter_tool<S: ::std::hash::BuildHasher>(
     let memory_mb = docker_stats_mb(&container_name)?;
     docker_rm(&container_name)?;
 
-    let out_fastq = execution
-        .output_fastq
+    let contract = contract_for_stage("fastq.filter")
+        .ok_or_else(|| anyhow!("missing fastq.filter contract"))?;
+    let normalized = normalize_outputs("fastq.filter", &out_dir, contract.output_kind)?;
+    let out_fastq = normalized
+        .r1
         .as_ref()
         .ok_or_else(|| anyhow!("output fastq missing"))?;
-    let out_fastq = if out_fastq.exists() {
-        out_fastq.clone()
-    } else {
-        let alt = out_fastq.with_extension("");
-        if alt.exists() {
-            alt
-        } else {
-            return Err(anyhow!("output fastq missing"));
-        }
-    };
     let output_stats = output_fastq_stats(
         &resolve_image_for_run(
             catalog
@@ -235,7 +236,7 @@ fn run_filter_tool<S: ::std::hash::BuildHasher>(
             platform,
         )?,
         &out_dir,
-        &out_fastq,
+        out_fastq,
     )?;
 
     let registry = load_registry(&std::env::current_dir()?.join("domain"))
