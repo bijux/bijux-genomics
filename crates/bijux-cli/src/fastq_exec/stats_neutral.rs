@@ -18,7 +18,7 @@ use bijux_engine::api::{bench_base_dir, bench_tools_dir};
 use bijux_engine::api::{cleanup_execution, execution_memory_mb, run_validate_execution};
 use bijux_engine::api::{hash_file_sha256, input_fastq_stats, length_histogram, SeqkitMetrics};
 use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
-use bijux_stages::{inspect_headers, log_header_warnings, preflight_stage, FastqArtifact};
+use bijux_stages_fastq::{inspect_headers, log_header_warnings, preflight_stage, FastqArtifact};
 
 use crate::fastq_exec::helpers::{
     compute_run_id, normalize_stats_tool_list, params_hash, prepare_tool_run_dirs,
@@ -26,7 +26,7 @@ use crate::fastq_exec::helpers::{
     write_metrics_json, write_retention_report_placeholder, write_run_manifest, ExecutionManifest,
 };
 use crate::fastq_exec::helpers::{filter_tools_by_role, BenchOutcome};
-use bijux_stages::RawFailure;
+use bijux_stages_fastq::RawFailure;
 
 /// Run the FASTQ benchmark stage.
 ///
@@ -36,7 +36,7 @@ pub fn bench_fastq_stats_neutral<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
     runner_override: Option<RunnerKind>,
-    args: &bijux_stages::args::BenchFastqStatsArgs,
+    args: &bijux_stages_fastq::args::BenchFastqStatsArgs,
 ) -> Result<BenchOutcome<FastqStatsMetrics>> {
     let tools = normalize_stats_tool_list(&args.tools)?;
     let artifact = FastqArtifact::single_end(&args.r1);
@@ -144,7 +144,7 @@ fn prepare_stats_bench<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
     runner_override: Option<RunnerKind>,
-    args: &bijux_stages::args::BenchFastqStatsArgs,
+    args: &bijux_stages_fastq::args::BenchFastqStatsArgs,
 ) -> Result<StatsBenchInputs> {
     let runner = ensure_bench_runner(platform, runner_override)?;
     let bench_dir = bench_base_dir(&args.out, "stats", &args.sample_id);
@@ -191,7 +191,7 @@ fn prepare_stats_bench<S: ::std::hash::BuildHasher>(
 fn run_stats_tool<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
-    args: &bijux_stages::args::BenchFastqStatsArgs,
+    args: &bijux_stages_fastq::args::BenchFastqStatsArgs,
     bench_inputs: &StatsBenchInputs,
     tool: &str,
 ) -> Result<BenchmarkRecord<FastqStatsMetrics>> {
@@ -287,7 +287,7 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
     let envelope = &metric_set;
     write_metrics_json(&run_dirs, &execution_metrics, envelope)?;
     write_retention_report_placeholder(&run_dirs, "fastq.stats_neutral", tool, &params)?;
-    let adapter_bank_path = bijux_stages::adapter_bank_path();
+    let adapter_bank_path = bijux_stages_fastq::adapter_bank_path();
     write_run_manifest(
         &run_dirs,
         "fastq.stats_neutral",

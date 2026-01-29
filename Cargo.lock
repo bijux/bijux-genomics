@@ -120,7 +120,7 @@ dependencies = [
  "bijux-core",
  "bijux-engine",
  "bijux-environment",
- "bijux-stages",
+ "bijux-stages-fastq",
  "chrono",
  "clap",
  "predicates",
@@ -261,10 +261,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "bijux-stages"
+name = "bijux-stages-fastq"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "bijux-analyze",
  "bijux-core",
  "bijux-domain-fastq",
  "serde",

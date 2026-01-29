@@ -1,5 +1,7 @@
 pub mod filter;
 pub mod merge;
+pub mod preprocess;
+pub mod qc_post;
 pub mod trim;
 pub mod validate_pre;
 
@@ -28,6 +30,14 @@ pub fn registry() -> Vec<StageInfo> {
         StageInfo {
             id: merge::STAGE_ID,
             version: merge::STAGE_VERSION,
+        },
+        StageInfo {
+            id: preprocess::STAGE_ID,
+            version: preprocess::STAGE_VERSION,
+        },
+        StageInfo {
+            id: qc_post::STAGE_ID,
+            version: qc_post::STAGE_VERSION,
         },
     ]
 }

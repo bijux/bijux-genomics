@@ -4,7 +4,7 @@ use std::str::FromStr;
 use anyhow::{anyhow, Result};
 use bijux_core::{StageId, ToolId};
 use bijux_environment::api::RunnerKind;
-use bijux_stages::args as engine_args;
+use bijux_stages_fastq::args as engine_args;
 use clap::ValueEnum;
 use clap::{Args, Parser, Subcommand};
 
@@ -345,10 +345,10 @@ pub enum BenchCorpusArg {
     Fastq5Set,
 }
 
-impl From<BenchCorpusArg> for bijux_stages::BenchCorpusId {
+impl From<BenchCorpusArg> for bijux_stages_fastq::BenchCorpusId {
     fn from(value: BenchCorpusArg) -> Self {
         match value {
-            BenchCorpusArg::Fastq5Set => bijux_stages::BenchCorpusId::Fastq5Set,
+            BenchCorpusArg::Fastq5Set => bijux_stages_fastq::BenchCorpusId::Fastq5Set,
         }
     }
 }
