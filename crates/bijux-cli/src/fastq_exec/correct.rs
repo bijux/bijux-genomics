@@ -18,15 +18,17 @@ use bijux_engine::api::{bench_base_dir, bench_tools_dir};
 use bijux_engine::api::{cleanup_execution, execution_memory_mb, run_tool_execution};
 use bijux_engine::api::{hash_file_sha256, input_fastq_stats, output_fastq_stats, SeqkitMetrics};
 use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
+use bijux_stages_fastq::fastq::correct::{normalize_correct_tool_list, plan_correct};
 use bijux_stages_fastq::{
     contract_for_stage, inspect_headers, log_header_warnings, normalize_outputs, preflight_stage,
-    FastqArtifact, FastqArtifactKind,
+    FastqArtifact, FastqArtifactKind, StagePlanJson,
 };
 
 use crate::fastq_exec::helpers::{
-    compute_run_id, normalize_correct_tool_list, params_hash, prepare_tool_run_dirs,
-    resolve_image_for_run, write_execution_logs, write_explain_md, write_explain_plan_json,
-    write_metrics_json, write_retention_report_placeholder, write_run_manifest, ExecutionManifest,
+    compute_run_id, params_hash, prepare_tool_run_dirs, resolve_image_for_run,
+    write_execution_logs, write_explain_md, write_explain_plan_json, write_metrics_json,
+    write_retention_report_placeholder, write_run_manifest, write_stage_plan_json,
+    ExecutionManifest,
 };
 use crate::fastq_exec::helpers::{filter_tools_by_role, BenchOutcome};
 use bijux_stages_fastq::RawFailure;
@@ -139,6 +141,7 @@ pub fn bench_fastq_correct<S: ::std::hash::BuildHasher>(
 struct CorrectBenchInputs {
     runner: RunnerKind,
     r1: PathBuf,
+    r2: PathBuf,
     r1_dir: PathBuf,
     input_hash: String,
     input_stats: SeqkitMetrics,
@@ -164,6 +167,12 @@ fn prepare_correct_bench<S: ::std::hash::BuildHasher>(
     );
 
     let r1 = args.r1.canonicalize().context("resolve r1 path")?;
+    let r2 = args
+        .r2
+        .as_ref()
+        .ok_or_else(|| anyhow!("r2 required for fastq.correct"))?
+        .canonicalize()
+        .context("resolve r2 path")?;
     let r1_dir = r1
         .parent()
         .ok_or_else(|| anyhow!("r1 has no parent"))?
@@ -180,6 +189,7 @@ fn prepare_correct_bench<S: ::std::hash::BuildHasher>(
     Ok(CorrectBenchInputs {
         runner,
         r1,
+        r2,
         r1_dir,
         input_hash,
         input_stats,
@@ -221,6 +231,9 @@ fn run_correct_tool<S: ::std::hash::BuildHasher>(
     );
     let run_dirs = prepare_tool_run_dirs(&bench_inputs.tools_root, tool, &run_id)?;
     let out_dir = run_dirs.artifacts_dir.clone();
+    let plan = plan_correct(tool, &bench_inputs.r1, &bench_inputs.r2, &out_dir)?;
+    let plan_json = StagePlanJson::from_plan(&plan);
+    let _plan_path = write_stage_plan_json(&run_dirs, "fastq_correct.plan.json", &plan_json)?;
     let start = Instant::now();
     let container_name = format!("bijux-bench-{}-{}", args.sample_id, Uuid::new_v4());
     let execution = run_tool_execution(

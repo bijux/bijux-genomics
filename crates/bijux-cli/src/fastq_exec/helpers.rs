@@ -2,12 +2,8 @@ use anyhow::{anyhow, Context, Result};
 use bijux_engine::api::bench_tools_dir;
 use bijux_engine::api::ResolvedImage;
 use bijux_engine::api::{
-    normalize_correct_tool_list as engine_normalize_correct_tool_list,
-    normalize_screen_tool_list as engine_normalize_screen_tool_list,
     normalize_stats_tool_list as engine_normalize_stats_tool_list,
     normalize_trim_tool_list as engine_normalize_trim_tool_list,
-    normalize_umi_tool_list as engine_normalize_umi_tool_list,
-    normalize_validate_tool_list as engine_normalize_validate_tool_list,
     resolve_image_for_run as engine_resolve_image_for_run,
 };
 use bijux_environment::api::{PlatformSpec, ToolImageSpec};
@@ -417,22 +413,6 @@ pub(crate) fn write_explain_plan_json(
 
 pub(crate) fn normalize_tool_list(tools: &[String]) -> Result<Vec<String>> {
     engine_normalize_trim_tool_list(tools)
-}
-
-pub(crate) fn normalize_validate_tool_list(tools: &[String]) -> Result<Vec<String>> {
-    engine_normalize_validate_tool_list(tools)
-}
-
-pub(crate) fn normalize_correct_tool_list(tools: &[String]) -> Result<Vec<String>> {
-    engine_normalize_correct_tool_list(tools)
-}
-
-pub(crate) fn normalize_umi_tool_list(tools: &[String]) -> Result<Vec<String>> {
-    engine_normalize_umi_tool_list(tools)
-}
-
-pub(crate) fn normalize_screen_tool_list(tools: &[String]) -> Result<Vec<String>> {
-    engine_normalize_screen_tool_list(tools)
 }
 
 pub(crate) fn normalize_stats_tool_list(tools: &[String]) -> Result<Vec<String>> {
