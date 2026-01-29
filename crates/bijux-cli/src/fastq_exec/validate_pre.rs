@@ -21,16 +21,17 @@ use bijux_engine::api::{
     hash_file_sha256, input_fastq_stats, parse_fastqvalidator_count, SeqkitMetrics,
 };
 use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
+use bijux_stages_fastq::fastq::validate_pre::normalize_validate_tool_list;
 use bijux_stages_fastq::{
     inspect_headers, log_header_warnings, preflight_stage, FastqArtifact, RetentionReportV1,
     StagePlanJson, ToolReferenceV1,
 };
 
 use crate::fastq_exec::helpers::{
-    compute_run_id, normalize_validate_tool_list, params_hash, prepare_tool_run_dirs,
-    resolve_image_for_run, write_execution_logs, write_explain_md, write_explain_plan_json,
-    write_metrics_json, write_retention_report_artifact, write_retention_report_placeholder,
-    write_run_manifest, write_stage_plan_json, ExecutionManifest, RunArtifactInput,
+    compute_run_id, params_hash, prepare_tool_run_dirs, resolve_image_for_run,
+    write_execution_logs, write_explain_md, write_explain_plan_json, write_metrics_json,
+    write_retention_report_artifact, write_retention_report_placeholder, write_run_manifest,
+    write_stage_plan_json, ExecutionManifest, RunArtifactInput,
 };
 use crate::fastq_exec::helpers::{filter_tools_by_role, BenchOutcome};
 use bijux_stages_fastq::RawFailure;

@@ -5,62 +5,44 @@ use bijux_core::{StageId, StageVersion};
 
 use crate::plan::{ArtifactRef, StageIO, StagePlan};
 
-pub const STAGE_ID: &str = "fastq.validate_pre";
+pub const STAGE_ID: &str = "fastq.screen";
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct ValidatePrePlan {
+pub struct ScreenPlan {
     pub tool: String,
     pub input: std::path::PathBuf,
     pub out_dir: std::path::PathBuf,
+    pub report: std::path::PathBuf,
 }
 
-#[derive(Debug, Clone)]
-pub struct ValidatePreUserConfig {
-    pub tool: String,
-    pub r1: std::path::PathBuf,
-    pub out_dir: std::path::PathBuf,
-}
-
-#[derive(Debug, Clone)]
-pub struct ValidatePreEffectiveConfig {
-    pub tool: String,
-    pub r1: std::path::PathBuf,
-    pub out_dir: std::path::PathBuf,
-}
-
-pub fn plan(tool: &str, r1: &Path, out_dir: &Path) -> ValidatePrePlan {
-    ValidatePrePlan {
-        tool: tool.to_string(),
-        input: r1.to_path_buf(),
-        out_dir: out_dir.to_path_buf(),
-    }
-}
-
-pub fn normalize_validate_tool_list(tools: &[String]) -> Result<Vec<String>> {
+pub fn normalize_screen_tool_list(tools: &[String]) -> Result<Vec<String>> {
     let allowed = [
-        "seqtk",
-        "fastqc",
-        "fastqvalidator",
-        "fastqvalidator_official",
-        "fqtools",
+        "kraken2",
+        "centrifuge",
+        "metaphlan",
+        "kaiju",
+        "fastq_screen",
     ];
     normalize_tools_with_allowlist(tools, &allowed)
 }
 
-pub fn resolve_config(user: ValidatePreUserConfig) -> ValidatePreEffectiveConfig {
-    ValidatePreEffectiveConfig {
-        tool: user.tool,
-        r1: user.r1,
-        out_dir: user.out_dir,
-    }
+/// Build a screen plan.
+///
+/// # Errors
+/// Returns an error if the tool is unsupported.
+pub fn plan_screen(tool: &str, r1: &Path, out_dir: &Path) -> Result<ScreenPlan> {
+    normalize_screen_tool_list(&[tool.to_string()])?;
+    let report = out_dir.join("screen_report.tsv");
+    Ok(ScreenPlan {
+        tool: tool.to_string(),
+        input: r1.to_path_buf(),
+        out_dir: out_dir.to_path_buf(),
+        report,
+    })
 }
 
-pub fn plan_from_config(config: &ValidatePreEffectiveConfig) -> ValidatePrePlan {
-    plan(&config.tool, &config.r1, &config.out_dir)
-}
-
-impl StagePlan for ValidatePrePlan {
+impl StagePlan for ScreenPlan {
     fn stage_id(&self) -> StageId {
         StageId(STAGE_ID.to_string())
     }
@@ -75,7 +57,10 @@ impl StagePlan for ValidatePrePlan {
                 name: "reads_r1".to_string(),
                 path: self.input.clone(),
             }],
-            outputs: Vec::new(),
+            outputs: vec![ArtifactRef {
+                name: "screen_report_tsv".to_string(),
+                path: self.report.clone(),
+            }],
         }
     }
 
@@ -83,7 +68,8 @@ impl StagePlan for ValidatePrePlan {
         serde_json::json!({
             "tool": self.tool,
             "input": self.input,
-            "out_dir": self.out_dir
+            "out_dir": self.out_dir,
+            "report": self.report
         })
     }
 }

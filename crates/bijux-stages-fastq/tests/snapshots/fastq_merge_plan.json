@@ -1,0 +1,28 @@
+{
+  "stage_id": "fastq.merge",
+  "stage_version": "1",
+  "io": {
+    "inputs": [
+      {
+        "name": "reads_r1",
+        "path": "reads_r1.fastq.gz"
+      },
+      {
+        "name": "reads_r2",
+        "path": "reads_r2.fastq.gz"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "merged_reads",
+        "path": "out/pear.fastq.gz"
+      }
+    ]
+  },
+  "parameters": {
+    "output": "out/pear.fastq.gz",
+    "r1": "reads_r1.fastq.gz",
+    "r2": "reads_r2.fastq.gz",
+    "tool": "pear"
+  }
+}

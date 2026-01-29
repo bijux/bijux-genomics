@@ -1,0 +1,34 @@
+{
+  "stage_id": "fastq.umi",
+  "stage_version": "1",
+  "io": {
+    "inputs": [
+      {
+        "name": "reads_r1",
+        "path": "reads_r1.fastq.gz"
+      },
+      {
+        "name": "reads_r2",
+        "path": "reads_r2.fastq.gz"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "dedup_reads_r1",
+        "path": "out/reads_r1.fastq.gz"
+      },
+      {
+        "name": "dedup_reads_r2",
+        "path": "out/reads_r2.fastq.gz"
+      }
+    ]
+  },
+  "parameters": {
+    "out_dir": "out",
+    "output_r1": "out/reads_r1.fastq.gz",
+    "output_r2": "out/reads_r2.fastq.gz",
+    "r1": "reads_r1.fastq.gz",
+    "r2": "reads_r2.fastq.gz",
+    "tool": "umi_tools"
+  }
+}

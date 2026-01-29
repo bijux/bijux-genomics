@@ -1,8 +1,11 @@
+pub mod correct;
 pub mod filter;
 pub mod merge;
 pub mod preprocess;
 pub mod qc_post;
+pub mod screen;
 pub mod trim;
+pub mod umi;
 pub mod validate_pre;
 
 use bijux_core::StageVersion;
@@ -15,6 +18,10 @@ pub struct StageInfo {
 
 pub fn registry() -> Vec<StageInfo> {
     vec![
+        StageInfo {
+            id: correct::STAGE_ID,
+            version: correct::STAGE_VERSION,
+        },
         StageInfo {
             id: trim::STAGE_ID,
             version: trim::STAGE_VERSION,
@@ -30,6 +37,14 @@ pub fn registry() -> Vec<StageInfo> {
         StageInfo {
             id: merge::STAGE_ID,
             version: merge::STAGE_VERSION,
+        },
+        StageInfo {
+            id: umi::STAGE_ID,
+            version: umi::STAGE_VERSION,
+        },
+        StageInfo {
+            id: screen::STAGE_ID,
+            version: screen::STAGE_VERSION,
         },
         StageInfo {
             id: preprocess::STAGE_ID,
