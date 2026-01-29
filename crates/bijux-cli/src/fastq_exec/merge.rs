@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
-use std::time::Instant;
 
 use anyhow::{anyhow, Context, Result};
 use bijux_analyze::{
@@ -16,7 +15,7 @@ use uuid::Uuid;
 
 use bijux_engine::api::validate_execution_outputs;
 use bijux_engine::api::{bench_base_dir, bench_tools_dir};
-use bijux_engine::api::{cleanup_execution, execution_memory_mb, run_merge_execution};
+use bijux_engine::api::{execute_stage_plan, StagePlan};
 use bijux_engine::api::{hash_file_sha256, input_fastq_stats, output_fastq_stats, SeqkitMetrics};
 use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use bijux_stages_fastq::{
@@ -139,7 +138,6 @@ struct MergeBenchInputs {
     runner: RunnerKind,
     r1: PathBuf,
     r2: PathBuf,
-    r1_dir: PathBuf,
     input_hash: String,
     input_hash_r1: String,
     input_hash_r2: String,
@@ -188,7 +186,6 @@ fn prepare_merge_bench<S: ::std::hash::BuildHasher>(
         runner,
         r1,
         r2,
-        r1_dir,
         input_hash,
         input_hash_r1,
         input_hash_r2,
@@ -241,29 +238,39 @@ fn run_merge_tool<S: ::std::hash::BuildHasher>(
     )?;
     let plan_json = StagePlanJson::from_plan(&plan);
     let _plan_path = write_stage_plan_json(&run_dirs, "fastq_merge.plan.json", &plan_json)?;
-    let start = Instant::now();
-    let container_name = format!("bijux-bench-{}-{}", args.sample_id, Uuid::new_v4());
-    let execution = run_merge_execution(
-        tool,
-        &image,
-        &bench_inputs.r1_dir,
-        &bench_inputs.r1,
-        &bench_inputs.r2,
-        &out_dir,
-        &container_name,
-    )?;
-    let runtime_s = start.elapsed().as_secs_f64();
-    let memory_mb = execution_memory_mb(&container_name)?;
-    cleanup_execution(&container_name)?;
+    let exec_plan = StagePlan {
+        stage_id: "fastq.merge".to_string(),
+        tool: tool.to_string(),
+        image,
+        runner: bench_inputs.runner,
+        inputs: vec![bench_inputs.r1.clone(), bench_inputs.r2.clone()],
+        out_dir: out_dir.clone(),
+        outputs: vec![plan.output.clone()],
+        params: params.clone(),
+        aux_images: HashMap::new(),
+    };
+    let execution = execute_stage_plan(&exec_plan)?;
 
     let seqkit_spec = catalog
         .get("seqkit")
         .ok_or_else(|| anyhow!("seqkit missing from images.yaml"))?;
     let seqkit_image = resolve_image_for_run(seqkit_spec, platform)?;
 
-    let merged_stats = output_fastq_stats(&seqkit_image, &out_dir, &execution.merged_fastq)?;
-    let unmerged_r1_stats = output_fastq_stats(&seqkit_image, &out_dir, &execution.unmerged_r1)?;
-    let unmerged_r2_stats = output_fastq_stats(&seqkit_image, &out_dir, &execution.unmerged_r2)?;
+    let merged_fastq = execution
+        .outputs
+        .first()
+        .ok_or_else(|| anyhow!("merge output missing"))?;
+    let unmerged_r1 = execution
+        .outputs
+        .get(1)
+        .ok_or_else(|| anyhow!("merge unmerged r1 missing"))?;
+    let unmerged_r2 = execution
+        .outputs
+        .get(2)
+        .ok_or_else(|| anyhow!("merge unmerged r2 missing"))?;
+    let merged_stats = output_fastq_stats(&seqkit_image, &out_dir, merged_fastq)?;
+    let unmerged_r1_stats = output_fastq_stats(&seqkit_image, &out_dir, unmerged_r1)?;
+    let unmerged_r2_stats = output_fastq_stats(&seqkit_image, &out_dir, unmerged_r2)?;
 
     let reads_r1 = bench_inputs.input_stats_r1.reads;
     let reads_r2 = bench_inputs.input_stats_r2.reads;
@@ -336,8 +343,8 @@ fn run_merge_tool<S: ::std::hash::BuildHasher>(
         parameters: params.clone(),
     };
     let execution_metrics = ExecutionMetrics {
-        runtime_s,
-        memory_mb,
+        runtime_s: execution.runtime_s,
+        memory_mb: execution.memory_mb,
         exit_code: execution.exit_code,
     };
     let envelope = &metric_set;

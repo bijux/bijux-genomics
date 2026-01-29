@@ -1,5 +1,5 @@
 use bijux_core::domain::PipelineSpec;
-use bijux_core::{StageId, StageVersion};
+use bijux_core::{StageId, StageVersion, ToolId};
 
 use crate::plan::{ArtifactRef, StageIO, StagePlan};
 
@@ -13,6 +13,12 @@ pub struct PreprocessPlan {
     pub pipeline: PipelineSpec,
 }
 
+#[derive(Debug, Clone)]
+pub struct PreprocessStagePlan {
+    pub stage: StageId,
+    pub tool: ToolId,
+}
+
 #[must_use]
 pub fn plan_preprocess(args: &crate::args::BenchFastqPreprocessArgs) -> PreprocessPlan {
     let pipeline = crate::fastq_default_pipeline(crate::DefaultPipelineOptions {
@@ -24,6 +30,28 @@ pub fn plan_preprocess(args: &crate::args::BenchFastqPreprocessArgs) -> Preproce
         r2: args.r2.clone(),
         pipeline,
     }
+}
+
+pub fn plan_preprocess_pipeline(
+    stages: &[String],
+    tools: &[String],
+) -> anyhow::Result<Vec<PreprocessStagePlan>> {
+    if stages.len() != tools.len() {
+        return Err(anyhow::anyhow!(
+            "pipeline stages/tools length mismatch: {} vs {}",
+            stages.len(),
+            tools.len()
+        ));
+    }
+    Ok(stages
+        .iter()
+        .cloned()
+        .zip(tools.iter().cloned())
+        .map(|(stage, tool)| PreprocessStagePlan {
+            stage: StageId(stage),
+            tool: ToolId(tool),
+        })
+        .collect())
 }
 
 impl StagePlan for PreprocessPlan {

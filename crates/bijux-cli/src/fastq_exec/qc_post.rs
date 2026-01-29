@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
-use std::time::Instant;
 
 use anyhow::{anyhow, Context, Result};
 use bijux_analyze::{
@@ -15,9 +14,7 @@ use uuid::Uuid;
 
 use bijux_engine::api::validate_execution_outputs;
 use bijux_engine::api::{bench_base_dir, bench_tools_dir};
-use bijux_engine::api::{
-    cleanup_execution, execution_memory_mb, run_multiqc_execution, run_validate_execution,
-};
+use bijux_engine::api::{execute_stage_plan, StagePlan};
 use bijux_engine::api::{hash_file_sha256, input_fastq_stats, SeqkitMetrics};
 use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use bijux_stages_fastq::StagePlanJson;
@@ -136,7 +133,6 @@ pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
 struct QcPostBenchInputs {
     runner: RunnerKind,
     r1: PathBuf,
-    r1_dir: PathBuf,
     input_hash: String,
     input_stats: SeqkitMetrics,
     bench_dir: PathBuf,
@@ -177,7 +173,6 @@ fn prepare_qc_post_bench<S: ::std::hash::BuildHasher>(
     Ok(QcPostBenchInputs {
         runner,
         r1,
-        r1_dir,
         input_hash,
         input_stats,
         bench_dir,
@@ -221,42 +216,26 @@ fn run_qc_post_tool<S: ::std::hash::BuildHasher>(
     let plan = bijux_stages_fastq::fastq::qc_post::plan_qc_post(tool, &bench_inputs.r1, &out_dir)?;
     let plan_json = StagePlanJson::from_plan(&plan);
     let _plan_path = write_stage_plan_json(&run_dirs, "fastq_qc_post.plan.json", &plan_json)?;
-    let start = Instant::now();
-    let container_name = format!("bijux-bench-{}-{}", args.sample_id, Uuid::new_v4());
-    let execution = if tool == "multiqc" {
+    let mut aux_images = HashMap::new();
+    if tool == "multiqc" {
         let fastqc_spec = catalog
             .get("fastqc")
             .ok_or_else(|| anyhow!("fastqc missing from images.yaml"))?;
         let fastqc_image = resolve_image_for_run(fastqc_spec, platform)?;
-        let fastqc_dir = out_dir.join("fastqc");
-        fs::create_dir_all(&fastqc_dir).context("create fastqc output dir")?;
-        let fastqc_container = format!("bijux-bench-fastqc-{}", Uuid::new_v4());
-        let fastqc_exec = run_validate_execution(
-            "fastqc",
-            &fastqc_image,
-            &bench_inputs.r1_dir,
-            &bench_inputs.r1,
-            &fastqc_dir,
-            &fastqc_container,
-        )?;
-        cleanup_execution(&fastqc_container)?;
-        if fastqc_exec.exit_code != 0 {
-            return Err(anyhow!("fastqc exit code {}", fastqc_exec.exit_code));
-        }
-        run_multiqc_execution(&image, &fastqc_dir, &out_dir, &container_name)?
-    } else {
-        run_validate_execution(
-            tool,
-            &image,
-            &bench_inputs.r1_dir,
-            &bench_inputs.r1,
-            &out_dir,
-            &container_name,
-        )?
+        aux_images.insert("fastqc".to_string(), fastqc_image);
+    }
+    let exec_plan = StagePlan {
+        stage_id: "fastq.qc_post".to_string(),
+        tool: tool.to_string(),
+        image,
+        runner: bench_inputs.runner,
+        inputs: vec![bench_inputs.r1.clone()],
+        out_dir: out_dir.clone(),
+        outputs: Vec::new(),
+        params: params.clone(),
+        aux_images,
     };
-    let runtime_s = start.elapsed().as_secs_f64();
-    let memory_mb = execution_memory_mb(&container_name)?;
-    cleanup_execution(&container_name)?;
+    let execution = execute_stage_plan(&exec_plan)?;
 
     let metrics = FastqQcPostMetrics {
         reads_in: bench_inputs.input_stats.reads,
@@ -303,8 +282,8 @@ fn run_qc_post_tool<S: ::std::hash::BuildHasher>(
         parameters: params.clone(),
     };
     let execution_metrics = ExecutionMetrics {
-        runtime_s,
-        memory_mb,
+        runtime_s: execution.runtime_s,
+        memory_mb: execution.memory_mb,
         exit_code: execution.exit_code,
     };
     let envelope = &metric_set;

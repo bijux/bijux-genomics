@@ -127,3 +127,59 @@ fn cli_fastq_exec_has_no_new_public_fns() -> Result<(), Box<dyn std::error::Erro
     );
     Ok(())
 }
+
+#[test]
+fn cli_fastq_exec_does_not_match_on_tool_ids() -> Result<(), Box<dyn std::error::Error>> {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let repo_root = manifest_dir
+        .parent()
+        .and_then(|p| p.parent())
+        .ok_or("repo root not found")?;
+    let root = repo_root.join("crates/bijux-cli/src/fastq_exec");
+    let mut files = Vec::new();
+    collect_rs_files(&root, &mut files);
+    let forbidden = [
+        "match tool",
+        "match tool_id",
+        "match tool.as_str()",
+        "match tool_id.as_str()",
+    ];
+    let mut offenders = Vec::new();
+    for path in files {
+        let contents = fs::read_to_string(&path)?;
+        for needle in &forbidden {
+            if contents.contains(needle) {
+                offenders.push(format!("{} -> {}", path.display(), needle));
+            }
+        }
+    }
+    assert!(
+        offenders.is_empty(),
+        "fastq_exec must not match on tool ids: {offenders:?}"
+    );
+    Ok(())
+}
+
+#[test]
+fn cli_fastq_exec_avoids_shell_execution() -> Result<(), Box<dyn std::error::Error>> {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let repo_root = manifest_dir
+        .parent()
+        .and_then(|p| p.parent())
+        .ok_or("repo root not found")?;
+    let root = repo_root.join("crates/bijux-cli/src/fastq_exec");
+    let mut files = Vec::new();
+    collect_rs_files(&root, &mut files);
+    let mut offenders = Vec::new();
+    for path in files {
+        let contents = fs::read_to_string(&path)?;
+        if contents.contains("std::process::Command") {
+            offenders.push(path.display().to_string());
+        }
+    }
+    assert!(
+        offenders.is_empty(),
+        "fastq_exec should not invoke shell commands: {offenders:?}"
+    );
+    Ok(())
+}
