@@ -50,11 +50,26 @@ fn fastq_trim_emits_contract_artifacts() -> Result<(), Box<dyn std::error::Error
     assert_file_exists(&run_dir.join("run_manifest.json"));
     assert_file_exists(&run_dir.join("metrics.json"));
     assert_file_exists(&run_dir.join("retention_report.json"));
+    assert_file_exists(&run_dir.join("run_artifacts/adapters/effective_adapters.json"));
+    assert_file_exists(&run_dir.join("run_artifacts/adapters/adapter_bank_ref.json"));
+    assert_file_exists(&run_dir.join("run_artifacts/reports/adapter_trimming_report.json"));
 
     let manifest_data = fs::read_to_string(run_dir.join("run_manifest.json"))?;
     assert!(
         manifest_data.contains("adapter_bank"),
         "adapter bank ref missing from run_manifest"
+    );
+    assert!(
+        manifest_data.contains("effective_adapters"),
+        "effective adapters missing from run_manifest"
+    );
+    assert!(
+        manifest_data.contains("adapter_bank_ref"),
+        "adapter bank ref missing from run_manifest"
+    );
+    assert!(
+        manifest_data.contains("adapter_trimming_report"),
+        "adapter trimming report missing from run_manifest"
     );
 
     let run_index_dir = artifacts.join("runs");

@@ -321,7 +321,13 @@ fn run_validate_tool<S: ::std::hash::BuildHasher>(
     write_metrics_json(&run_dirs, &record.execution, envelope)?;
     write_retention_report_placeholder(&run_dirs, "fastq.validate_pre", tool, &params)?;
     let adapter_bank_path = bijux_domain_fastq::adapter_bank_path();
-    write_run_manifest(&run_dirs, "fastq.validate_pre", tool, &adapter_bank_path)?;
+    write_run_manifest(
+        &run_dirs,
+        "fastq.validate_pre",
+        tool,
+        &adapter_bank_path,
+        &[],
+    )?;
     if execution.exit_code != 0 {
         return Err(anyhow!(
             "tool {tool} failed with status {} (stdout: {}, stderr: {})",

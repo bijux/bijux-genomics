@@ -25,9 +25,9 @@ use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed}
 
 use crate::fastq_exec::helpers::{
     compute_run_id, normalize_tool_list, params_hash, prepare_tool_run_dirs, resolve_image_for_run,
-    write_adapter_trimming_report, write_effective_adapters, write_execution_logs,
-    write_explain_md, write_explain_plan_json, write_metrics_json,
-    write_retention_report_placeholder, write_run_manifest, ExecutionManifest,
+    write_adapter_bank_ref, write_adapter_trimming_report, write_effective_adapters,
+    write_execution_logs, write_explain_md, write_explain_plan_json, write_metrics_json,
+    write_retention_report_placeholder, write_run_manifest, ExecutionManifest, RunArtifactInput,
 };
 use crate::fastq_exec::helpers::{filter_tools_by_role, BenchOutcome};
 use bijux_domain_fastq::RawFailure;
@@ -242,6 +242,15 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
                 &adapter_bank_checksum,
                 &adapter_presets_checksum,
             )?;
+            let adapter_bank_ref_path = write_adapter_bank_ref(
+                &run_dirs,
+                &adapter_bank,
+                &adapter_bank_path,
+                &presets_path,
+                &adapter_bank_checksum,
+                &adapter_presets_checksum,
+                &effective_adapters,
+            )?;
             let adapter_report_path = write_adapter_trimming_report(
                 &run_dirs,
                 &tool,
@@ -278,8 +287,26 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
             let envelope = &metric_set;
             write_metrics_json(&run_dirs, &execution_metrics, envelope)?;
             write_retention_report_placeholder(&run_dirs, "fastq.trim", &tool, &params)?;
-            write_run_manifest(&run_dirs, "fastq.trim", &tool, &adapter_bank_path)?;
-            let _ = adapter_report_path;
+            write_run_manifest(
+                &run_dirs,
+                "fastq.trim",
+                &tool,
+                &adapter_bank_path,
+                &[
+                    RunArtifactInput {
+                        name: "effective_adapters",
+                        path: effective_adapters_path.clone(),
+                    },
+                    RunArtifactInput {
+                        name: "adapter_bank_ref",
+                        path: adapter_bank_ref_path.clone(),
+                    },
+                    RunArtifactInput {
+                        name: "adapter_trimming_report",
+                        path: adapter_report_path.clone(),
+                    },
+                ],
+            )?;
             let record = BenchmarkRecord {
                 context,
                 execution: execution_metrics,
@@ -395,6 +422,24 @@ mod tests {
         let base_hash = crate::fastq_exec::helpers::params_hash(&base)?;
         let disabled_hash = crate::fastq_exec::helpers::params_hash(&disabled)?;
         assert_ne!(base_hash, disabled_hash);
+        Ok(())
+    }
+
+    #[test]
+    fn ssdna_preset_changes_params_hash() -> Result<()> {
+        let base = serde_json::json!({
+            "adapter_preset": "default_adna",
+            "enable_adapters": [],
+            "disable_adapters": []
+        });
+        let ssdna = serde_json::json!({
+            "adapter_preset": "ssdna",
+            "enable_adapters": [],
+            "disable_adapters": []
+        });
+        let base_hash = crate::fastq_exec::helpers::params_hash(&base)?;
+        let ssdna_hash = crate::fastq_exec::helpers::params_hash(&ssdna)?;
+        assert_ne!(base_hash, ssdna_hash);
         Ok(())
     }
 }

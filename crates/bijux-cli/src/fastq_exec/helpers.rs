@@ -125,6 +125,7 @@ pub(crate) fn write_run_manifest(
     stage: &str,
     tool: &str,
     adapter_bank_path: &Path,
+    extra_artifacts: &[RunArtifactInput],
 ) -> Result<()> {
     let mut artifacts = Vec::new();
     let manifest_hash = bijux_engine::api::hash_file_sha256(&run_dirs.manifest_path)?;
@@ -151,6 +152,14 @@ pub(crate) fn write_run_manifest(
         "path": adapter_bank_path,
         "sha256": adapter_hash
     }));
+    for artifact in extra_artifacts {
+        let hash = bijux_engine::api::hash_file_sha256(&artifact.path)?;
+        artifacts.push(serde_json::json!({
+            "name": artifact.name,
+            "path": artifact.path,
+            "sha256": hash
+        }));
+    }
     let payload = serde_json::json!({
         "schema_version": "bijux.run_manifest.v1",
         "stage": stage,
@@ -171,6 +180,11 @@ fn run_artifacts_dir(run_dirs: &RunDirs) -> Result<PathBuf> {
         .parent()
         .ok_or_else(|| anyhow!("run dir missing for manifest"))?;
     Ok(run_dir.join("run_artifacts"))
+}
+
+pub(crate) struct RunArtifactInput {
+    pub(crate) name: &'static str,
+    pub(crate) path: PathBuf,
 }
 
 pub(crate) fn write_effective_adapters(
@@ -206,6 +220,36 @@ pub(crate) fn write_effective_adapters(
     Ok(path)
 }
 
+pub(crate) fn write_adapter_bank_ref(
+    run_dirs: &RunDirs,
+    bank: &bijux_domain_fastq::AdapterBankV1,
+    bank_path: &Path,
+    presets_path: &Path,
+    bank_checksum: &str,
+    presets_checksum: &str,
+    effective: &bijux_domain_fastq::EffectiveAdapterSet,
+) -> Result<PathBuf> {
+    let root = run_artifacts_dir(run_dirs)?;
+    let adapters_dir = root.join("adapters");
+    std::fs::create_dir_all(&adapters_dir).context("create adapters artifact dir")?;
+    let path = adapters_dir.join("adapter_bank_ref.json");
+    let payload = serde_json::json!({
+        "schema_version": "bijux.adapter_bank_ref.v1",
+        "bank_version": bank.schema_version,
+        "bank_checksum": bank_checksum,
+        "presets_checksum": presets_checksum,
+        "preset": effective.preset,
+        "enabled_adapter_ids": effective.enabled_ids,
+        "sources": {
+            "bank_path": bank_path.display().to_string(),
+            "presets_path": presets_path.display().to_string()
+        }
+    });
+    std::fs::write(&path, serde_json::to_vec_pretty(&payload)?)
+        .context("write adapter_bank_ref.json")?;
+    Ok(path)
+}
+
 pub(crate) fn write_adapter_trimming_report(
     run_dirs: &RunDirs,
     tool: &str,
@@ -217,14 +261,17 @@ pub(crate) fn write_adapter_trimming_report(
     let reports_dir = root.join("reports");
     std::fs::create_dir_all(&reports_dir).context("create reports artifact dir")?;
     let path = reports_dir.join("adapter_trimming_report.json");
-    let counts: std::collections::BTreeMap<String, u64> =
-        adapter_ids.iter().map(|id| (id.clone(), 0)).collect();
+    let counts: std::collections::BTreeMap<String, u64> = if adapter_ids.is_empty() {
+        std::collections::BTreeMap::new()
+    } else {
+        adapter_ids.iter().map(|id| (id.clone(), 0)).collect()
+    };
     let payload = serde_json::json!({
         "schema_version": "bijux.adapter_trimming_report.v1",
-        "counts_by_adapter": counts,
-        "reads_with_any_adapter": 0,
+        "per_adapter_counts": counts,
+        "reads_with_adapter": "unknown/TBD",
         "total_reads": total_reads,
-        "bases_trimmed_total": 0,
+        "bases_trimmed_total": "unknown/TBD",
         "top_k_adapters": [],
         "tool": {
             "id": tool,

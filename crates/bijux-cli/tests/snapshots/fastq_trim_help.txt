@@ -7,6 +7,10 @@ Options:
           
       --dry-run
           
+      --list-adapter-presets
+          
+      --list-adapters
+          
       --env <ENV>
           
       --sample-id <SAMPLE_ID>

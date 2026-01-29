@@ -27,7 +27,11 @@ use bijux_analyze::{
     write_merge_report, write_qc_post_report, write_stats_report, write_trim_report,
     write_umi_report, write_validate_report,
 };
-use bijux_domain_fastq::{benchmark_runs, write_benchmark_exports};
+use bijux_domain_fastq::{
+    adapter_bank_path, adapter_presets_path, benchmark_runs, load_adapter_bank,
+    load_adapter_presets, resolve_adapter_preset, write_benchmark_exports, AdapterBankV1,
+    AdapterPresetsV1,
+};
 use bijux_engine::api::init_logging;
 use bijux_environment::image_qa::run_image_qa;
 use cli::{
@@ -436,6 +440,46 @@ fn handle_fastq_discovery(
             explain_fastq_stage(registry, &stage_id)?;
             Ok(Some(true))
         }
+        FastqCommand::Trim(args) => {
+            if args.list_adapter_presets {
+                let (_bank, presets) = load_adapter_configs(args.adapter_bank.as_deref())?;
+                list_adapter_presets(&presets);
+                return Ok(Some(true));
+            }
+            if args.list_adapters {
+                let (bank, presets) = load_adapter_configs(args.adapter_bank.as_deref())?;
+                let effective = resolve_adapter_preset(
+                    &bank,
+                    &presets,
+                    args.adapter_preset.as_str(),
+                    &args.enable_adapter,
+                    &args.disable_adapter,
+                )?;
+                list_adapters(&effective);
+                return Ok(Some(true));
+            }
+            Ok(None)
+        }
+        FastqCommand::Preprocess(args) => {
+            if args.list_adapter_presets {
+                let (_bank, presets) = load_adapter_configs(args.adapter_bank.as_deref())?;
+                list_adapter_presets(&presets);
+                return Ok(Some(true));
+            }
+            if args.list_adapters {
+                let (bank, presets) = load_adapter_configs(args.adapter_bank.as_deref())?;
+                let effective = resolve_adapter_preset(
+                    &bank,
+                    &presets,
+                    args.adapter_preset.as_str(),
+                    &args.enable_adapter,
+                    &args.disable_adapter,
+                )?;
+                list_adapters(&effective);
+                return Ok(Some(true));
+            }
+            Ok(None)
+        }
         _ => Ok(None),
     }
 }
@@ -462,6 +506,40 @@ fn list_fastq_tools(registry: &bijux_core::ToolRegistry, stage_id: &str) {
     tool_ids.sort();
     for tool_id in tool_ids {
         println!("{tool_id}");
+    }
+}
+
+fn load_adapter_configs(bank_override: Option<&Path>) -> Result<(AdapterBankV1, AdapterPresetsV1)> {
+    let bank_path = bank_override.map_or_else(adapter_bank_path, PathBuf::from);
+    let bank = load_adapter_bank(&bank_path)?;
+    let presets_path = adapter_presets_path();
+    let presets = load_adapter_presets(&presets_path, &bank)?;
+    Ok((bank, presets))
+}
+
+fn list_adapter_presets(presets: &AdapterPresetsV1) {
+    for preset in &presets.presets {
+        let description = preset.description.as_deref().unwrap_or("no description");
+        let categories = if preset.categories.is_empty() {
+            "none".to_string()
+        } else {
+            preset.categories.join(", ")
+        };
+        println!(
+            "{}: {} (categories: {})",
+            preset.name, description, categories
+        );
+    }
+}
+
+fn list_adapters(effective: &bijux_domain_fastq::EffectiveAdapterSet) {
+    println!("preset: {}", effective.preset);
+    println!("id\tcategory\tname\tenabled_by_default");
+    for adapter in &effective.adapters {
+        println!(
+            "{}\t{}\t{}\t{}",
+            adapter.id, adapter.category, adapter.name, adapter.enabled_by_default
+        );
     }
 }
 

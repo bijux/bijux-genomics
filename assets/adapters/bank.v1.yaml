@@ -27,6 +27,15 @@ adapters:
     rationale: Nextera tagmentation adapter frequently present in reads.
     source: Illumina Nextera documentation (TBD)
     notes: Citation TBD
+  - id: nextera_index
+    category: nextera
+    name: Nextera Index Adapter
+    sequence: GTCTCGTGGGCTCGG
+    read_scope: both
+    enabled_by_default: false
+    rationale: Secondary Nextera index motif seen in some tagmentation workflows.
+    source: Illumina Nextera documentation (TBD)
+    notes: Citation TBD
   - id: ssdna_splint_seed
     category: ssdna_splint
     name: ssDNA Splint Seed
@@ -34,6 +43,15 @@ adapters:
     read_scope: single_end
     enabled_by_default: false
     rationale: Placeholder splint motif seed for ssDNA workflows.
+    source: TBD
+    notes: Placeholder sequence (TBD)
+  - id: ssdna_splint_tail
+    category: ssdna_splint
+    name: ssDNA Splint Tail
+    sequence: NNNNNNCCGTAANNNNN
+    read_scope: single_end
+    enabled_by_default: false
+    rationale: Secondary ssDNA splint motif for tail detection.
     source: TBD
     notes: Placeholder sequence (TBD)
   - id: pcr_primer_fwd
@@ -45,6 +63,15 @@ adapters:
     rationale: Common PCR primer motif seen in library amplification.
     source: Kit documentation (TBD)
     notes: Citation TBD
+  - id: pcr_primer_rev
+    category: pcr_primers
+    name: PCR Primer Reverse
+    sequence: CAAGCAGAAGACGGCATACG
+    read_scope: both
+    enabled_by_default: false
+    rationale: Reverse primer motif commonly paired with PCR primer forward.
+    source: Kit documentation (TBD)
+    notes: Citation TBD
   - id: umi_construct_a
     category: umi_constructs
     name: UMI Construct Adapter
@@ -52,6 +79,15 @@ adapters:
     read_scope: both
     enabled_by_default: false
     rationale: Placeholder UMI construct containing an N-stretch.
+    source: TBD
+    notes: Placeholder sequence (TBD)
+  - id: umi_construct_b
+    category: umi_constructs
+    name: UMI Construct Adapter B
+    sequence: TGCANNNNNNNNTGCA
+    read_scope: both
+    enabled_by_default: false
+    rationale: Secondary UMI construct motif for alternate library designs.
     source: TBD
     notes: Placeholder sequence (TBD)
   - id: kit_custom_adapter
@@ -63,6 +99,15 @@ adapters:
     rationale: Representative custom kit adapter motif.
     source: Vendor kit documentation (TBD)
     notes: Citation TBD
+  - id: kit_custom_adapter_b
+    category: kit_custom
+    name: Kit Custom Adapter B
+    sequence: ACAGTGGTATCAACGCAGAG
+    read_scope: both
+    enabled_by_default: false
+    rationale: Alternate custom kit adapter for vendor-specific workflows.
+    source: Vendor kit documentation (TBD)
+    notes: Citation TBD
   - id: capture_linker_a
     category: capture_linkers
     name: Capture Linker A
@@ -72,6 +117,15 @@ adapters:
     rationale: Linker motif often used in capture workflows.
     source: Capture kit documentation (TBD)
     notes: Citation TBD
+  - id: capture_linker_b
+    category: capture_linkers
+    name: Capture Linker B
+    sequence: GTCTCGTGGGCTCGGAGATGTGTATAAGAGACAG
+    read_scope: both
+    enabled_by_default: false
+    rationale: Secondary capture linker motif for alternate kits.
+    source: Capture kit documentation (TBD)
+    notes: Citation TBD
   - id: partial_motif_seed
     category: partial_motifs
     name: Partial Adapter Motif Seed
@@ -79,5 +133,14 @@ adapters:
     read_scope: unknown
     enabled_by_default: false
     rationale: Short adapter seed for partial motif detection.
+    source: Derived from common adapter motifs (TBD)
+    notes: Citation TBD
+  - id: partial_motif_seed_short
+    category: partial_motifs
+    name: Partial Adapter Motif Short
+    sequence: AGATC
+    read_scope: unknown
+    enabled_by_default: false
+    rationale: Shorter partial motif for degraded reads.
     source: Derived from common adapter motifs (TBD)
     notes: Citation TBD
