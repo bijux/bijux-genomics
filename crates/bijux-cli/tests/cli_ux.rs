@@ -44,7 +44,7 @@ fn cli_output_matches_stage_registry() -> Result<()> {
     let output = cmd.output()?;
     assert!(output.status.success(), "fastq stages failed");
     let stdout = String::from_utf8_lossy(&output.stdout);
-    let expected: Vec<String> = bijux_stages::fastq::registry()
+    let expected: Vec<String> = bijux_stages_fastq::fastq::registry()
         .into_iter()
         .map(|stage| format!("{} v{}", stage.id, stage.version.0))
         .collect();

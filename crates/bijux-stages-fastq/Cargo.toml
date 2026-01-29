@@ -1,5 +1,5 @@
 [package]
-name = "bijux-stages"
+name = "bijux-stages-fastq"
 version = "0.1.0"
 edition = "2021"
 
@@ -14,3 +14,4 @@ anyhow.workspace = true
 anyhow.workspace = true
 serde_json.workspace = true
 walkdir.workspace = true
+bijux-analyze = { path = "../bijux-analyze" }

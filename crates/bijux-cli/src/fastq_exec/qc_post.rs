@@ -20,15 +20,17 @@ use bijux_engine::api::{
 };
 use bijux_engine::api::{hash_file_sha256, input_fastq_stats, SeqkitMetrics};
 use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
-use bijux_stages::{inspect_headers, log_header_warnings, preflight_stage, FastqArtifact};
+use bijux_stages_fastq::StagePlanJson;
+use bijux_stages_fastq::{inspect_headers, log_header_warnings, preflight_stage, FastqArtifact};
 
 use crate::fastq_exec::helpers::{
-    compute_run_id, normalize_qc_post_tool_list, params_hash, prepare_tool_run_dirs,
-    resolve_image_for_run, write_execution_logs, write_explain_md, write_explain_plan_json,
-    write_metrics_json, write_retention_report_placeholder, write_run_manifest, ExecutionManifest,
+    compute_run_id, params_hash, prepare_tool_run_dirs, resolve_image_for_run,
+    write_execution_logs, write_explain_md, write_explain_plan_json, write_metrics_json,
+    write_retention_report_placeholder, write_run_manifest, write_stage_plan_json,
+    ExecutionManifest,
 };
 use crate::fastq_exec::helpers::{filter_tools_by_role, BenchOutcome};
-use bijux_stages::RawFailure;
+use bijux_stages_fastq::RawFailure;
 
 /// Run the FASTQ benchmark stage.
 ///
@@ -38,9 +40,9 @@ pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
     runner_override: Option<RunnerKind>,
-    args: &bijux_stages::args::BenchFastqQcPostArgs,
+    args: &bijux_stages_fastq::args::BenchFastqQcPostArgs,
 ) -> Result<BenchOutcome<FastqQcPostMetrics>> {
-    let tools = normalize_qc_post_tool_list(&args.tools)?;
+    let tools = bijux_stages_fastq::fastq::qc_post::normalize_qc_post_tool_list(&args.tools)?;
     let artifact = FastqArtifact::single_end(&args.r1);
     preflight_stage("fastq.qc_post", artifact.kind)?;
     let header = inspect_headers(&args.r1, None, false)?;
@@ -145,7 +147,7 @@ fn prepare_qc_post_bench<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
     runner_override: Option<RunnerKind>,
-    args: &bijux_stages::args::BenchFastqQcPostArgs,
+    args: &bijux_stages_fastq::args::BenchFastqQcPostArgs,
 ) -> Result<QcPostBenchInputs> {
     let runner = ensure_bench_runner(platform, runner_override)?;
     let bench_dir = bench_base_dir(&args.out, "qc_post", &args.sample_id);
@@ -155,7 +157,7 @@ fn prepare_qc_post_bench<S: ::std::hash::BuildHasher>(
 
     println!(
         "planned tools: {}",
-        normalize_qc_post_tool_list(&args.tools)?.join(", ")
+        bijux_stages_fastq::fastq::qc_post::normalize_qc_post_tool_list(&args.tools)?.join(", ")
     );
 
     let r1 = args.r1.canonicalize().context("resolve r1 path")?;
@@ -187,7 +189,7 @@ fn prepare_qc_post_bench<S: ::std::hash::BuildHasher>(
 fn run_qc_post_tool<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
-    args: &bijux_stages::args::BenchFastqQcPostArgs,
+    args: &bijux_stages_fastq::args::BenchFastqQcPostArgs,
     bench_inputs: &QcPostBenchInputs,
     tool: &str,
 ) -> Result<BenchmarkRecord<FastqQcPostMetrics>> {
@@ -216,6 +218,9 @@ fn run_qc_post_tool<S: ::std::hash::BuildHasher>(
     );
     let run_dirs = prepare_tool_run_dirs(&bench_inputs.tools_root, tool, &run_id)?;
     let out_dir = run_dirs.artifacts_dir.clone();
+    let plan = bijux_stages_fastq::fastq::qc_post::plan_qc_post(tool, &bench_inputs.r1, &out_dir)?;
+    let plan_json = StagePlanJson::from_plan(&plan);
+    let _plan_path = write_stage_plan_json(&run_dirs, "fastq_qc_post.plan.json", &plan_json)?;
     let start = Instant::now();
     let container_name = format!("bijux-bench-{}-{}", args.sample_id, Uuid::new_v4());
     let execution = if tool == "multiqc" {
@@ -305,7 +310,7 @@ fn run_qc_post_tool<S: ::std::hash::BuildHasher>(
     let envelope = &metric_set;
     write_metrics_json(&run_dirs, &execution_metrics, envelope)?;
     write_retention_report_placeholder(&run_dirs, "fastq.qc_post", tool, &params)?;
-    let adapter_bank_path = bijux_stages::adapter_bank_path();
+    let adapter_bank_path = bijux_stages_fastq::adapter_bank_path();
     write_run_manifest(&run_dirs, "fastq.qc_post", tool, &adapter_bank_path, &[])?;
     let record = BenchmarkRecord {
         context,

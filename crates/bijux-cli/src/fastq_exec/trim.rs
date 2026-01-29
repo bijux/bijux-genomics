@@ -17,7 +17,7 @@ use bijux_engine::api::{bench_base_dir, bench_tools_dir};
 use bijux_engine::api::{cleanup_execution, execution_memory_mb, run_tool_execution};
 use bijux_engine::api::{hash_file_sha256, input_fastq_stats, output_fastq_stats};
 use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
-use bijux_stages::{
+use bijux_stages_fastq::{
     adapter_bank_path, adapter_presets_path, contract_for_stage, inspect_headers,
     load_adapter_bank, load_adapter_presets, log_header_warnings, normalize_outputs,
     preflight_stage, resolve_adapter_preset, FastqArtifact, RetentionReportV1, StagePlanJson,
@@ -32,7 +32,7 @@ use crate::fastq_exec::helpers::{
     write_stage_plan_json, ExecutionManifest, RunArtifactInput,
 };
 use crate::fastq_exec::helpers::{filter_tools_by_role, BenchOutcome};
-use bijux_stages::RawFailure;
+use bijux_stages_fastq::RawFailure;
 
 #[allow(clippy::too_many_lines)]
 /// Run the FASTQ benchmark stage.
@@ -43,7 +43,7 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
     runner_override: Option<RunnerKind>,
-    args: &bijux_stages::args::BenchFastqTrimArgs,
+    args: &bijux_stages_fastq::args::BenchFastqTrimArgs,
 ) -> Result<BenchOutcome<FastqTrimMetrics>> {
     let runner = ensure_bench_runner(platform, runner_override)?;
     let artifact = FastqArtifact::single_end(&args.r1);
@@ -141,13 +141,13 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
                 compute_run_id("fastq.trim", &tool, &image_digest, &input_hash, &param_hash);
             let run_dirs = prepare_tool_run_dirs(&tools_root, &tool, &run_id)?;
             let out_dir = run_dirs.artifacts_dir.clone();
-            let user_config = bijux_stages::fastq::trim::TrimUserConfig {
+            let user_config = bijux_stages_fastq::fastq::trim::TrimUserConfig {
                 tool: tool.clone(),
                 r1: r1.clone(),
                 out_dir: out_dir.clone(),
             };
-            let effective = bijux_stages::fastq::trim::resolve_config(user_config);
-            let plan = bijux_stages::fastq::trim::plan_from_config(&effective)?;
+            let effective = bijux_stages_fastq::fastq::trim::resolve_config(user_config);
+            let plan = bijux_stages_fastq::fastq::trim::plan_from_config(&effective)?;
             let plan_json = StagePlanJson::from_plan(&plan);
             let _plan_path = write_stage_plan_json(&run_dirs, "fastq_trim.plan.json", &plan_json)?;
             let start = Instant::now();
@@ -241,7 +241,7 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
                 bases_trimmed_total: Some(0),
                 top_k_adapters: Vec::new(),
             };
-            let delta = bijux_stages::compute_delta(input_stats, output_stats);
+            let delta = bijux_stages_fastq::compute_delta(input_stats, output_stats);
             let metric_set = metric_set(FastqTrimMetrics {
                 reads_in: input_stats.reads,
                 reads_out: output_stats.reads,
@@ -358,12 +358,12 @@ mod tests {
             .ok_or_else(|| anyhow::anyhow!("repo root not found"))?;
         let prev_dir = std::env::current_dir()?;
         std::env::set_current_dir(repo_root)?;
-        let bank_path = bijux_stages::adapter_bank_path();
-        let presets_path = bijux_stages::adapter_presets_path();
-        let bank = bijux_stages::load_adapter_bank(&bank_path)?;
-        let presets = bijux_stages::load_adapter_presets(&presets_path, &bank)?;
+        let bank_path = bijux_stages_fastq::adapter_bank_path();
+        let presets_path = bijux_stages_fastq::adapter_presets_path();
+        let bank = bijux_stages_fastq::load_adapter_bank(&bank_path)?;
+        let presets = bijux_stages_fastq::load_adapter_presets(&presets_path, &bank)?;
         let effective =
-            bijux_stages::resolve_adapter_preset(&bank, &presets, "default_adna", &[], &[])?;
+            bijux_stages_fastq::resolve_adapter_preset(&bank, &presets, "default_adna", &[], &[])?;
         let tmp = TempDir::new()?;
         let tools_root = tmp.path().join("tools");
         let run_dirs =

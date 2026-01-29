@@ -3,7 +3,6 @@ use bijux_engine::api::bench_tools_dir;
 use bijux_engine::api::ResolvedImage;
 use bijux_engine::api::{
     normalize_correct_tool_list as engine_normalize_correct_tool_list,
-    normalize_qc_post_tool_list as engine_normalize_qc_post_tool_list,
     normalize_screen_tool_list as engine_normalize_screen_tool_list,
     normalize_stats_tool_list as engine_normalize_stats_tool_list,
     normalize_trim_tool_list as engine_normalize_trim_tool_list,
@@ -19,7 +18,7 @@ use bijux_core::ToolRole;
 
 use bijux_analyze::BenchmarkRecord;
 
-use bijux_stages::{
+use bijux_stages_fastq::{
     AdapterTrimmingReportV1, RawFailure, RetentionReportV1, StagePlanJson, ToolReferenceV1,
 };
 
@@ -69,7 +68,7 @@ pub(crate) fn prepare_tool_run_dirs(
     tool: &str,
     run_id: &str,
 ) -> Result<RunDirs> {
-    let adapter_bank_path = bijux_stages::adapter_bank_path();
+    let adapter_bank_path = bijux_stages_fastq::adapter_bank_path();
     if !adapter_bank_path.exists() {
         return Err(anyhow!(
             "adapter bank missing at {}",
@@ -194,7 +193,7 @@ pub(crate) struct RunArtifactInput {
 
 pub(crate) fn write_effective_adapters(
     run_dirs: &RunDirs,
-    effective: &bijux_stages::EffectiveAdapterSet,
+    effective: &bijux_stages_fastq::EffectiveAdapterSet,
     bank_checksum: &str,
     presets_checksum: &str,
 ) -> Result<PathBuf> {
@@ -227,12 +226,12 @@ pub(crate) fn write_effective_adapters(
 
 pub(crate) fn write_adapter_bank_ref(
     run_dirs: &RunDirs,
-    bank: &bijux_stages::AdapterBankV1,
+    bank: &bijux_stages_fastq::AdapterBankV1,
     bank_path: &Path,
     presets_path: &Path,
     bank_checksum: &str,
     presets_checksum: &str,
-    effective: &bijux_stages::EffectiveAdapterSet,
+    effective: &bijux_stages_fastq::EffectiveAdapterSet,
 ) -> Result<PathBuf> {
     let root = run_artifacts_dir(run_dirs)?;
     let adapters_dir = root.join("adapters");
@@ -426,10 +425,6 @@ pub(crate) fn normalize_validate_tool_list(tools: &[String]) -> Result<Vec<Strin
 
 pub(crate) fn normalize_correct_tool_list(tools: &[String]) -> Result<Vec<String>> {
     engine_normalize_correct_tool_list(tools)
-}
-
-pub(crate) fn normalize_qc_post_tool_list(tools: &[String]) -> Result<Vec<String>> {
-    engine_normalize_qc_post_tool_list(tools)
 }
 
 pub(crate) fn normalize_umi_tool_list(tools: &[String]) -> Result<Vec<String>> {

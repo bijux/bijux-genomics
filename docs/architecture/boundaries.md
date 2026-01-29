@@ -10,9 +10,9 @@ Each crate below lists responsibilities, forbidden responsibilities, and allowed
 ## bijux-cli
 - Responsibilities: CLI UX, argument parsing, wiring stages to execution, emitting artifacts.
 - Forbidden: domain contracts/logic beyond staging, engine internals, tool-specific parsing.
-- Allowed deps: bijux-core, bijux-stages, bijux-engine (API only), bijux-analyze, bijux-environment.
+- Allowed deps: bijux-core, bijux-stages-fastq, bijux-engine (API only), bijux-analyze, bijux-environment.
 
-## bijux-stages
+## bijux-stages-fastq
 - Responsibilities: stage planning, contracts front door, default config resolution.
 - Forbidden: execution/runtime, container/runner logic, IO side-effects.
 - Allowed deps: bijux-core, bijux-domain-*, serde/serde_json.

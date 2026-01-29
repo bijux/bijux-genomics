@@ -18,7 +18,7 @@ use bijux_engine::api::{bench_base_dir, bench_tools_dir};
 use bijux_engine::api::{cleanup_execution, execution_memory_mb, run_tool_execution};
 use bijux_engine::api::{hash_file_sha256, input_fastq_stats, output_fastq_stats, SeqkitMetrics};
 use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
-use bijux_stages::{
+use bijux_stages_fastq::{
     contract_for_stage, inspect_headers, log_header_warnings, normalize_outputs, preflight_stage,
     FastqArtifact, StagePlanJson,
 };
@@ -30,7 +30,7 @@ use crate::fastq_exec::helpers::{
     ExecutionManifest,
 };
 use crate::fastq_exec::helpers::{filter_tools_by_role, BenchOutcome};
-use bijux_stages::RawFailure;
+use bijux_stages_fastq::RawFailure;
 
 /// Run the FASTQ benchmark stage.
 ///
@@ -40,9 +40,9 @@ pub fn bench_fastq_filter<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
     runner_override: Option<RunnerKind>,
-    args: &bijux_stages::args::BenchFastqFilterArgs,
+    args: &bijux_stages_fastq::args::BenchFastqFilterArgs,
 ) -> Result<BenchOutcome<FastqFilterMetrics>> {
-    let tools = bijux_stages::fastq::filter::normalize_filter_tool_list(&args.tools)?;
+    let tools = bijux_stages_fastq::fastq::filter::normalize_filter_tool_list(&args.tools)?;
     let artifact = FastqArtifact::single_end(&args.r1);
     preflight_stage("fastq.filter", artifact.kind)?;
     let header = inspect_headers(&args.r1, None, false)?;
@@ -148,7 +148,7 @@ fn prepare_filter_bench<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
     runner_override: Option<RunnerKind>,
-    args: &bijux_stages::args::BenchFastqFilterArgs,
+    args: &bijux_stages_fastq::args::BenchFastqFilterArgs,
 ) -> Result<FilterBenchInputs> {
     let runner = ensure_bench_runner(platform, runner_override)?;
     let bench_dir = bench_base_dir(&args.out, "filter", &args.sample_id);
@@ -158,7 +158,7 @@ fn prepare_filter_bench<S: ::std::hash::BuildHasher>(
 
     println!(
         "planned tools: {}",
-        bijux_stages::fastq::filter::normalize_filter_tool_list(&args.tools)?.join(", ")
+        bijux_stages_fastq::fastq::filter::normalize_filter_tool_list(&args.tools)?.join(", ")
     );
 
     let r1 = args.r1.canonicalize().context("resolve r1 path")?;
@@ -190,7 +190,7 @@ fn prepare_filter_bench<S: ::std::hash::BuildHasher>(
 fn run_filter_tool<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
-    args: &bijux_stages::args::BenchFastqFilterArgs,
+    args: &bijux_stages_fastq::args::BenchFastqFilterArgs,
     bench_inputs: &FilterBenchInputs,
     tool: &str,
 ) -> Result<BenchmarkRecord<FastqFilterMetrics>> {
@@ -219,7 +219,7 @@ fn run_filter_tool<S: ::std::hash::BuildHasher>(
     );
     let run_dirs = prepare_tool_run_dirs(&bench_inputs.tools_root, tool, &run_id)?;
     let out_dir = run_dirs.artifacts_dir.clone();
-    let plan = bijux_stages::fastq::filter::plan_filter(tool, &bench_inputs.r1, &out_dir)?;
+    let plan = bijux_stages_fastq::fastq::filter::plan_filter(tool, &bench_inputs.r1, &out_dir)?;
     let plan_json = StagePlanJson::from_plan(&plan);
     let _plan_path = write_stage_plan_json(&run_dirs, "fastq_filter.plan.json", &plan_json)?;
     let start = Instant::now();
@@ -264,7 +264,7 @@ fn run_filter_tool<S: ::std::hash::BuildHasher>(
     let reads_in = bench_inputs.input_stats.reads;
     let reads_out = output_stats.reads;
     let reads_dropped = reads_in.saturating_sub(reads_out);
-    let delta = bijux_stages::compute_delta(bench_inputs.input_stats, output_stats);
+    let delta = bijux_stages_fastq::compute_delta(bench_inputs.input_stats, output_stats);
     let metrics = FastqFilterMetrics {
         reads_in,
         reads_out,
@@ -318,7 +318,7 @@ fn run_filter_tool<S: ::std::hash::BuildHasher>(
     let envelope = &metric_set;
     write_metrics_json(&run_dirs, &execution_metrics, envelope)?;
     write_retention_report_placeholder(&run_dirs, "fastq.filter", tool, &params)?;
-    let adapter_bank_path = bijux_stages::adapter_bank_path();
+    let adapter_bank_path = bijux_stages_fastq::adapter_bank_path();
     write_run_manifest(&run_dirs, "fastq.filter", tool, &adapter_bank_path, &[])?;
     let record = BenchmarkRecord {
         context,

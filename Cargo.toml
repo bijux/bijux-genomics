@@ -5,7 +5,7 @@ members = [
   "crates/bijux-cli",
   "crates/bijux-bench",
   "crates/bijux-analyze",
-  "crates/bijux-stages",
+  "crates/bijux-stages-fastq",
   "crates/bijux-domain-dummy",
   "crates/bijux-domain-bam",
   "crates/bijux-domain-vcf",

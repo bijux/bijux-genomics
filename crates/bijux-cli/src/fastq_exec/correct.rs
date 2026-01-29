@@ -18,7 +18,7 @@ use bijux_engine::api::{bench_base_dir, bench_tools_dir};
 use bijux_engine::api::{cleanup_execution, execution_memory_mb, run_tool_execution};
 use bijux_engine::api::{hash_file_sha256, input_fastq_stats, output_fastq_stats, SeqkitMetrics};
 use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
-use bijux_stages::{
+use bijux_stages_fastq::{
     contract_for_stage, inspect_headers, log_header_warnings, normalize_outputs, preflight_stage,
     FastqArtifact, FastqArtifactKind,
 };
@@ -29,7 +29,7 @@ use crate::fastq_exec::helpers::{
     write_metrics_json, write_retention_report_placeholder, write_run_manifest, ExecutionManifest,
 };
 use crate::fastq_exec::helpers::{filter_tools_by_role, BenchOutcome};
-use bijux_stages::RawFailure;
+use bijux_stages_fastq::RawFailure;
 
 /// Run the FASTQ benchmark stage.
 ///
@@ -39,7 +39,7 @@ pub fn bench_fastq_correct<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
     runner_override: Option<RunnerKind>,
-    args: &bijux_stages::args::BenchFastqCorrectArgs,
+    args: &bijux_stages_fastq::args::BenchFastqCorrectArgs,
 ) -> Result<BenchOutcome<FastqCorrectMetrics>> {
     let tools = normalize_correct_tool_list(&args.tools)?;
     let r2 = args
@@ -150,7 +150,7 @@ fn prepare_correct_bench<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
     runner_override: Option<RunnerKind>,
-    args: &bijux_stages::args::BenchFastqCorrectArgs,
+    args: &bijux_stages_fastq::args::BenchFastqCorrectArgs,
 ) -> Result<CorrectBenchInputs> {
     let runner = ensure_bench_runner(platform, runner_override)?;
     let bench_dir = bench_base_dir(&args.out, "correct", &args.sample_id);
@@ -192,7 +192,7 @@ fn prepare_correct_bench<S: ::std::hash::BuildHasher>(
 fn run_correct_tool<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
-    args: &bijux_stages::args::BenchFastqCorrectArgs,
+    args: &bijux_stages_fastq::args::BenchFastqCorrectArgs,
     bench_inputs: &CorrectBenchInputs,
     tool: &str,
 ) -> Result<BenchmarkRecord<FastqCorrectMetrics>> {
@@ -304,7 +304,7 @@ fn run_correct_tool<S: ::std::hash::BuildHasher>(
     let envelope = &metric_set;
     write_metrics_json(&run_dirs, &execution_metrics, envelope)?;
     write_retention_report_placeholder(&run_dirs, "fastq.correct", tool, &params)?;
-    let adapter_bank_path = bijux_stages::adapter_bank_path();
+    let adapter_bank_path = bijux_stages_fastq::adapter_bank_path();
     write_run_manifest(&run_dirs, "fastq.correct", tool, &adapter_bank_path, &[])?;
     let record = BenchmarkRecord {
         context,
