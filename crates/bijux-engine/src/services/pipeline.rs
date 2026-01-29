@@ -1,9 +1,10 @@
 use anyhow::Result;
+use bijux_core::{StageId, ToolId};
 
 #[derive(Debug, Clone)]
 pub struct StagePlan {
-    pub stage: String,
-    pub tool: String,
+    pub stage: StageId,
+    pub tool: ToolId,
 }
 
 pub fn run_pipeline<T, RunStage, EmitEvent>(

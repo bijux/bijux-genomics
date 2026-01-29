@@ -115,7 +115,6 @@ fn fastq_trim_creates_run_artifacts() -> Result<(), Box<dyn std::error::Error>> 
     let stage_dir = run_id_dir.join("fastq.trim").join("fastp");
     let report_path = stage_dir.join("report.json");
     let log_path = stage_dir.join("logs").join("bijux.log");
-
     assert!(stage_dir.is_dir(), "stage dir missing");
     assert!(report_path.is_file(), "report.json missing");
     assert!(log_path.is_file(), "bijux.log missing");

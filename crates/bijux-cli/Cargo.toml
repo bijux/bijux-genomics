@@ -22,7 +22,7 @@ chrono.workspace = true
 bijux-environment = { path = "../bijux-environment" }
 bijux-analyze = { path = "../bijux-analyze" }
 bijux-engine = { path = "../bijux-engine" }
-bijux-domain-fastq = { path = "../bijux-domain-fastq" }
+bijux-stages = { path = "../bijux-stages" }
 bijux-bench = { path = "../bijux-bench" }
 
 [dev-dependencies]

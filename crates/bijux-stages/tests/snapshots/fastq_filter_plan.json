@@ -1,0 +1,23 @@
+{
+  "stage_id": "fastq.filter",
+  "stage_version": "1",
+  "io": {
+    "inputs": [
+      {
+        "name": "reads_r1",
+        "path": "reads.fastq.gz"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "filtered_reads",
+        "path": "out/fastp.fastq.gz"
+      }
+    ]
+  },
+  "parameters": {
+    "input": "reads.fastq.gz",
+    "output": "out/fastp.fastq.gz",
+    "tool": "fastp"
+  }
+}

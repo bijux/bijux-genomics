@@ -3,8 +3,8 @@ use std::str::FromStr;
 
 use anyhow::{anyhow, Result};
 use bijux_core::{StageId, ToolId};
-use bijux_domain_fastq::args as engine_args;
 use bijux_environment::api::RunnerKind;
+use bijux_stages::args as engine_args;
 use clap::ValueEnum;
 use clap::{Args, Parser, Subcommand};
 
@@ -345,10 +345,10 @@ pub enum BenchCorpusArg {
     Fastq5Set,
 }
 
-impl From<BenchCorpusArg> for bijux_domain_fastq::BenchCorpusId {
+impl From<BenchCorpusArg> for bijux_stages::BenchCorpusId {
     fn from(value: BenchCorpusArg) -> Self {
         match value {
-            BenchCorpusArg::Fastq5Set => bijux_domain_fastq::BenchCorpusId::Fastq5Set,
+            BenchCorpusArg::Fastq5Set => bijux_stages::BenchCorpusId::Fastq5Set,
         }
     }
 }
@@ -430,6 +430,8 @@ pub struct FastqCompareArgs {
 pub enum FastqCommand {
     #[command(about = "List FASTQ stages.")]
     ListStages,
+    #[command(about = "List FASTQ stage ids and versions.")]
+    Stages,
     #[command(about = "List tools for a FASTQ stage.")]
     ListTools {
         #[arg(long)]
@@ -543,6 +545,7 @@ pub fn resolve_stage_tool(command: &Commands) -> (StageId, ToolId, CommonArgs) {
     match command {
         Commands::Fastq { command } => match command {
             FastqCommand::ListStages
+            | FastqCommand::Stages
             | FastqCommand::ListTools { .. }
             | FastqCommand::Explain { .. }
             | FastqCommand::Benchmark(_)

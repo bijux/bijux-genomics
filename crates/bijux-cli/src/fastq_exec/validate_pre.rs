@@ -14,10 +14,6 @@ use bijux_engine::api::{ensure_bench_runner, load_registry};
 use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 use uuid::Uuid;
 
-use bijux_domain_fastq::{
-    inspect_headers, log_header_warnings, preflight_stage, FastqArtifact, RetentionReportV1,
-    ToolReferenceV1,
-};
 use bijux_engine::api::validate_execution_outputs;
 use bijux_engine::api::{bench_base_dir, bench_tools_dir};
 use bijux_engine::api::{cleanup_execution, execution_memory_mb, run_validate_execution};
@@ -25,15 +21,19 @@ use bijux_engine::api::{
     hash_file_sha256, input_fastq_stats, parse_fastqvalidator_count, SeqkitMetrics,
 };
 use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
+use bijux_stages::{
+    inspect_headers, log_header_warnings, preflight_stage, FastqArtifact, RetentionReportV1,
+    StagePlanJson, ToolReferenceV1,
+};
 
 use crate::fastq_exec::helpers::{
     compute_run_id, normalize_validate_tool_list, params_hash, prepare_tool_run_dirs,
     resolve_image_for_run, write_execution_logs, write_explain_md, write_explain_plan_json,
     write_metrics_json, write_retention_report_artifact, write_retention_report_placeholder,
-    write_run_manifest, ExecutionManifest, RunArtifactInput,
+    write_run_manifest, write_stage_plan_json, ExecutionManifest, RunArtifactInput,
 };
 use crate::fastq_exec::helpers::{filter_tools_by_role, BenchOutcome};
-use bijux_domain_fastq::RawFailure;
+use bijux_stages::RawFailure;
 
 /// Run the FASTQ benchmark stage.
 ///
@@ -43,7 +43,7 @@ pub fn bench_fastq_validate_pre<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
     runner_override: Option<RunnerKind>,
-    args: &bijux_domain_fastq::args::BenchFastqValidateArgs,
+    args: &bijux_stages::args::BenchFastqValidateArgs,
 ) -> Result<BenchOutcome<FastqValidateMetrics>> {
     let tools = normalize_validate_tool_list(&args.tools)?;
     let artifact = FastqArtifact::single_end(&args.r1);
@@ -166,7 +166,7 @@ fn prepare_validate_bench<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
     runner_override: Option<RunnerKind>,
-    args: &bijux_domain_fastq::args::BenchFastqValidateArgs,
+    args: &bijux_stages::args::BenchFastqValidateArgs,
 ) -> Result<ValidateBenchInputs> {
     let runner = ensure_bench_runner(platform, runner_override)?;
     let bench_dir = bench_base_dir(&args.out, "validate", &args.sample_id);
@@ -208,7 +208,7 @@ fn prepare_validate_bench<S: ::std::hash::BuildHasher>(
 fn run_validate_tool<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
-    args: &bijux_domain_fastq::args::BenchFastqValidateArgs,
+    args: &bijux_stages::args::BenchFastqValidateArgs,
     bench_inputs: &ValidateBenchInputs,
     tool: &str,
     policy: ToolPolicy,
@@ -238,6 +238,15 @@ fn run_validate_tool<S: ::std::hash::BuildHasher>(
     );
     let run_dirs = prepare_tool_run_dirs(&bench_inputs.tools_root, tool, &run_id)?;
     let out_dir = run_dirs.artifacts_dir.clone();
+    let user_config = bijux_stages::fastq::validate_pre::ValidatePreUserConfig {
+        tool: tool.to_string(),
+        r1: bench_inputs.r1.clone(),
+        out_dir: out_dir.clone(),
+    };
+    let effective = bijux_stages::fastq::validate_pre::resolve_config(user_config);
+    let plan = bijux_stages::fastq::validate_pre::plan_from_config(&effective);
+    let plan_json = StagePlanJson::from_plan(&plan);
+    let _plan_path = write_stage_plan_json(&run_dirs, "fastq_validate_pre.plan.json", &plan_json)?;
     let start = Instant::now();
     let container_name = format!("bijux-bench-{}-{}", args.sample_id, Uuid::new_v4());
     let execution = run_validate_execution(
@@ -340,7 +349,7 @@ fn run_validate_tool<S: ::std::hash::BuildHasher>(
     };
     let retention_report_path = write_retention_report_artifact(&run_dirs, &retention_report)?;
     write_retention_report_placeholder(&run_dirs, "fastq.validate_pre", tool, &params)?;
-    let adapter_bank_path = bijux_domain_fastq::adapter_bank_path();
+    let adapter_bank_path = bijux_stages::adapter_bank_path();
     write_run_manifest(
         &run_dirs,
         "fastq.validate_pre",
