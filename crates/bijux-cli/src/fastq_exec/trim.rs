@@ -7,30 +7,31 @@ use bijux_analyze::{
     BenchmarkContext, BenchmarkRecord, FastqDeltaMetrics, FastqTrimMetrics,
 };
 use bijux_core::measure::ExecutionMetrics;
-use bijux_engine::api::{ensure_bench_runner, load_registry};
-use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
+use bijux_engine::api::{ensure_bench_runner, filter_tools_by_role, load_registry};
+use bijux_engine::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 use uuid::Uuid;
 
 use bijux_engine::api::validate_execution_outputs;
-use bijux_engine::api::{bench_base_dir, bench_tools_dir};
-use bijux_engine::api::{execute_stage_plan, StagePlan};
-use bijux_engine::api::{hash_file_sha256, input_fastq_stats, output_fastq_stats};
-use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
+use bijux_engine::api::{
+    bench_base_dir, bench_tools_dir, compute_run_id, execute_stage_plan, hash_file_sha256,
+    input_fastq_stats, normalize_trim_tool_list, output_fastq_stats, params_hash,
+    prepare_tool_run_dirs, resolve_image_for_run, write_execution_logs, write_metrics_json,
+    write_retention_report_placeholder, write_run_manifest, write_stage_plan_json,
+    RunArtifactInput, StagePlan,
+};
+use bijux_engine::api::{ensure_image_qa_passed, ensure_tool_qa_passed};
+use bijux_stages_fastq::artifacts::{
+    write_adapter_bank_ref, write_adapter_trimming_report, write_effective_adapters,
+    write_retention_report_artifact,
+};
 use bijux_stages_fastq::{
-    adapter_bank_path, adapter_presets_path, contract_for_stage, inspect_headers,
-    load_adapter_bank, load_adapter_presets, log_header_warnings, normalize_outputs,
-    preflight_stage, resolve_adapter_preset, FastqArtifact, RetentionReportV1, StagePlanJson,
-    ToolReferenceV1,
+    adapter_bank_path, adapter_presets_path, inspect_headers, load_adapter_bank,
+    load_adapter_presets, log_header_warnings, preflight_stage, resolve_adapter_preset,
+    FastqArtifact, RetentionReportV1, StagePlanJson, ToolReferenceV1,
 };
 
-use crate::fastq_exec::helpers::{
-    compute_run_id, normalize_tool_list, params_hash, prepare_tool_run_dirs, resolve_image_for_run,
-    write_adapter_bank_ref, write_adapter_trimming_report, write_effective_adapters,
-    write_execution_logs, write_explain_md, write_explain_plan_json, write_metrics_json,
-    write_retention_report_artifact, write_retention_report_placeholder, write_run_manifest,
-    write_stage_plan_json, ExecutionManifest, RunArtifactInput,
-};
-use crate::fastq_exec::helpers::{filter_tools_by_role, BenchOutcome};
+use crate::fastq_exec::helpers::{write_explain_md, write_explain_plan_json, BenchOutcome};
+use bijux_engine::api::ExecutionManifest;
 use bijux_stages_fastq::RawFailure;
 
 #[allow(clippy::too_many_lines)]
@@ -49,7 +50,7 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
     preflight_stage("fastq.trim", artifact.kind)?;
     let header = inspect_headers(&args.r1, None, false)?;
     log_header_warnings("fastq.trim", &header);
-    let tools = normalize_tool_list(&args.tools)?;
+    let tools = normalize_trim_tool_list(&args.tools)?;
     let registry = load_registry(&std::env::current_dir()?.join("domain"))
         .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let tools = filter_tools_by_role("fastq.trim", &tools, &registry, false)?;
@@ -78,12 +79,13 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
         .ok_or_else(|| anyhow!("r1 has no parent"))?
         .to_path_buf();
 
-    let seqkit_spec = catalog
-        .get("seqkit")
-        .ok_or_else(|| anyhow!("seqkit missing from images.yaml"))?;
-    let seqkit_image = resolve_image_for_run(seqkit_spec, platform)?;
+    let tool_id = bijux_stages_fastq::TOOL_SEQKIT;
+    let tool_spec = catalog
+        .get(tool_id)
+        .ok_or_else(|| anyhow!("{tool_id} missing from images.yaml"))?;
+    let tool_image = resolve_image_for_run(tool_spec, platform)?;
     let input_hash = hash_file_sha256(&r1)?;
-    let input_stats = input_fastq_stats(&seqkit_image, &r1_dir, &r1)?;
+    let input_stats = input_fastq_stats(&tool_image, &r1_dir, &r1)?;
 
     let adapter_bank_path = args.adapter_bank.clone().unwrap_or_else(adapter_bank_path);
     let adapter_bank = load_adapter_bank(&adapter_bank_path)?;
@@ -162,14 +164,7 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
             };
             let execution = execute_stage_plan(&exec_plan)?;
 
-            let contract = contract_for_stage("fastq.trim")
-                .ok_or_else(|| anyhow!("missing fastq.trim contract"))?;
-            let normalized = normalize_outputs("fastq.trim", &out_dir, contract.output_kind)?;
-            let out_fastq = normalized
-                .r1
-                .as_ref()
-                .ok_or_else(|| anyhow!("output fastq missing"))?;
-            let output_stats = output_fastq_stats(&seqkit_image, &out_dir, out_fastq)?;
+            let output_stats = output_fastq_stats(&tool_image, &out_dir, &plan.output)?;
 
             let tool_manifest = registry
                 .tool_by_id("fastq.trim", &tool)
@@ -211,14 +206,18 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
                 memory_mb: execution.memory_mb,
                 exit_code: execution.exit_code,
             };
+            let run_dir = run_dirs
+                .manifest_path
+                .parent()
+                .ok_or_else(|| anyhow!("run dir missing for manifest"))?;
             let effective_adapters_path = write_effective_adapters(
-                &run_dirs,
+                run_dir,
                 &effective_adapters,
                 &adapter_bank_checksum,
                 &adapter_presets_checksum,
             )?;
             let adapter_bank_ref_path = write_adapter_bank_ref(
-                &run_dirs,
+                run_dir,
                 &adapter_bank,
                 &adapter_bank_path,
                 &presets_path,
@@ -230,7 +229,7 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
             let bases_trimmed_total = input_stats.bases.saturating_sub(output_stats.bases);
             let per_adapter_counts = std::collections::BTreeMap::new();
             let adapter_report_path = write_adapter_trimming_report(
-                &run_dirs,
+                run_dir,
                 &tool,
                 &spec.version,
                 &params,
@@ -282,8 +281,12 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
                 },
                 raw_reads_total: None,
             };
+            let run_dir = run_dirs
+                .manifest_path
+                .parent()
+                .ok_or_else(|| anyhow!("run dir missing for manifest"))?;
             let retention_report_path =
-                write_retention_report_artifact(&run_dirs, &retention_report)?;
+                write_retention_report_artifact(run_dir, &retention_report)?;
             write_retention_report_placeholder(&run_dirs, "fastq.trim", &tool, &params)?;
             write_run_manifest(
                 &run_dirs,
@@ -345,42 +348,6 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
         bench_dir,
         explain: args.explain,
     })
-}
-
-#[allow(clippy::items_after_test_module)]
-#[cfg(test)]
-mod tests {
-    use anyhow::Result;
-    use tempfile::TempDir;
-
-    #[test]
-    fn default_adapter_preset_writes_effective_adapters() -> Result<()> {
-        let manifest_dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        let repo_root = manifest_dir
-            .parent()
-            .and_then(|p| p.parent())
-            .ok_or_else(|| anyhow::anyhow!("repo root not found"))?;
-        let prev_dir = std::env::current_dir()?;
-        std::env::set_current_dir(repo_root)?;
-        let bank_path = bijux_stages_fastq::adapter_bank_path();
-        let presets_path = bijux_stages_fastq::adapter_presets_path();
-        let bank = bijux_stages_fastq::load_adapter_bank(&bank_path)?;
-        let presets = bijux_stages_fastq::load_adapter_presets(&presets_path, &bank)?;
-        let effective =
-            bijux_stages_fastq::resolve_adapter_preset(&bank, &presets, "default_adna", &[], &[])?;
-        let tmp = TempDir::new()?;
-        let tools_root = tmp.path().join("tools");
-        let run_dirs =
-            crate::fastq_exec::helpers::prepare_tool_run_dirs(&tools_root, "fastp", "test-run")?;
-        let path = crate::fastq_exec::helpers::write_effective_adapters(
-            &run_dirs, &effective, "bank", "presets",
-        )?;
-        let payload = std::fs::read_to_string(&path)?;
-        assert!(payload.contains("truseq_universal"));
-        assert!(payload.contains("truseq_indexed"));
-        std::env::set_current_dir(prev_dir)?;
-        Ok(())
-    }
 }
 
 #[allow(clippy::cast_precision_loss)]

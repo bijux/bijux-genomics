@@ -35,6 +35,7 @@ regex = "1"
 rusqlite = "0.31"
 sha2 = "0.10"
 sysinfo = "0.30"
+tempfile = "3"
 
 [workspace.lints.rust]
 unsafe_code = "forbid"

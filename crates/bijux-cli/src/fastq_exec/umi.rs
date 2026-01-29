@@ -8,29 +8,28 @@ use bijux_analyze::{
     BenchmarkRecord, FastqUmiMetrics,
 };
 use bijux_core::measure::ExecutionMetrics;
-use bijux_engine::api::{ensure_bench_runner, load_registry};
-use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
+use bijux_engine::api::{ensure_bench_runner, filter_tools_by_role, load_registry};
+use bijux_engine::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 use uuid::Uuid;
 
 use bijux_engine::api::validate_execution_outputs;
-use bijux_engine::api::{bench_base_dir, bench_tools_dir};
-use bijux_engine::api::{execute_stage_plan, StagePlan};
-use bijux_engine::api::{hash_file_sha256, input_fastq_stats, output_fastq_stats, SeqkitMetrics};
-use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
+use bijux_engine::api::{
+    bench_base_dir, bench_tools_dir, compute_run_id, execute_stage_plan, hash_file_sha256,
+    input_fastq_stats, output_fastq_stats, params_hash, prepare_tool_run_dirs,
+    resolve_image_for_run, write_execution_logs, write_metrics_json,
+    write_retention_report_placeholder, write_run_manifest, write_stage_plan_json, SeqkitMetrics,
+    StagePlan,
+};
+use bijux_engine::api::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use bijux_stages_fastq::fastq::umi::{normalize_umi_tool_list, plan_umi};
 use bijux_stages_fastq::ratio_u64;
 use bijux_stages_fastq::{
-    contract_for_stage, ensure_umi_headers, inspect_headers, log_header_warnings,
-    normalize_outputs, preflight_stage, FastqArtifact, FastqArtifactKind, StagePlanJson,
+    ensure_umi_headers, inspect_headers, log_header_warnings, preflight_stage, FastqArtifact,
+    FastqArtifactKind, StagePlanJson,
 };
 
-use crate::fastq_exec::helpers::{
-    compute_run_id, params_hash, prepare_tool_run_dirs, resolve_image_for_run,
-    write_execution_logs, write_explain_md, write_explain_plan_json, write_metrics_json,
-    write_retention_report_placeholder, write_run_manifest, write_stage_plan_json,
-    ExecutionManifest,
-};
-use crate::fastq_exec::helpers::{filter_tools_by_role, BenchOutcome};
+use crate::fastq_exec::helpers::{write_explain_md, write_explain_plan_json, BenchOutcome};
+use bijux_engine::api::ExecutionManifest;
 use bijux_stages_fastq::RawFailure;
 
 /// Run the FASTQ benchmark stage.
@@ -178,13 +177,14 @@ fn prepare_umi_bench<S: ::std::hash::BuildHasher>(
         .ok_or_else(|| anyhow!("r1 has no parent"))?
         .to_path_buf();
 
-    let seqkit_spec = catalog
-        .get("seqkit")
-        .ok_or_else(|| anyhow!("seqkit missing from images.yaml"))?;
-    let seqkit_image = resolve_image_for_run(seqkit_spec, platform)?;
+    let tool_id = bijux_stages_fastq::TOOL_SEQKIT;
+    let tool_spec = catalog
+        .get(tool_id)
+        .ok_or_else(|| anyhow!("{tool_id} missing from images.yaml"))?;
+    let tool_image = resolve_image_for_run(tool_spec, platform)?;
 
     let input_hash = hash_file_sha256(&r1)?;
-    let input_stats = input_fastq_stats(&seqkit_image, &r1_dir, &r1)?;
+    let input_stats = input_fastq_stats(&tool_image, &r1_dir, &r1)?;
 
     Ok(UmiBenchInputs {
         runner,
@@ -246,18 +246,12 @@ fn run_umi_tool<S: ::std::hash::BuildHasher>(
     };
     let execution = execute_stage_plan(&exec_plan)?;
 
-    let seqkit_spec = catalog
-        .get("seqkit")
-        .ok_or_else(|| anyhow!("seqkit missing from images.yaml"))?;
-    let seqkit_image = resolve_image_for_run(seqkit_spec, platform)?;
-    let contract =
-        contract_for_stage("fastq.umi").ok_or_else(|| anyhow!("missing fastq.umi contract"))?;
-    let normalized = normalize_outputs("fastq.umi", &out_dir, contract.output_kind)?;
-    let out_fastq = normalized
-        .r1
-        .as_ref()
-        .ok_or_else(|| anyhow!("output FASTQ missing"))?;
-    let output_stats = output_fastq_stats(&seqkit_image, &out_dir, out_fastq)?;
+    let tool_id = bijux_stages_fastq::TOOL_SEQKIT;
+    let tool_spec = catalog
+        .get(tool_id)
+        .ok_or_else(|| anyhow!("{tool_id} missing from images.yaml"))?;
+    let tool_image = resolve_image_for_run(tool_spec, platform)?;
+    let output_stats = output_fastq_stats(&tool_image, &out_dir, &plan.output_r1)?;
 
     let registry = load_registry(&std::env::current_dir()?.join("domain"))
         .map_err(|err| anyhow!("manifest validation failed: {err}"))?;

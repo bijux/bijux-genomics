@@ -161,6 +161,80 @@ fn cli_fastq_exec_does_not_match_on_tool_ids() -> Result<(), Box<dyn std::error:
 }
 
 #[test]
+fn cli_fastq_exec_has_no_tool_literals() -> Result<(), Box<dyn std::error::Error>> {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let repo_root = manifest_dir
+        .parent()
+        .and_then(|p| p.parent())
+        .ok_or("repo root not found")?;
+    let root = repo_root.join("crates/bijux-cli/src/fastq_exec");
+    let mut files = Vec::new();
+    collect_rs_files(&root, &mut files);
+    let forbidden = [
+        "fastp",
+        "fastqc",
+        "multiqc",
+        "seqkit",
+        "prinseq",
+        "pear",
+        "trimmomatic",
+        "cutadapt",
+        "trim_galore",
+        "fastqvalidator",
+    ];
+    let mut offenders = Vec::new();
+    for path in files {
+        let contents = fs::read_to_string(&path)?;
+        for needle in &forbidden {
+            if contents.contains(needle) {
+                offenders.push(format!("{} -> {}", path.display(), needle));
+            }
+        }
+    }
+    assert!(
+        offenders.is_empty(),
+        "fastq_exec must not hardcode tool ids: {offenders:?}"
+    );
+    Ok(())
+}
+
+#[test]
+fn cli_fastq_exec_size_or_no_exec_imports() -> Result<(), Box<dyn std::error::Error>> {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let repo_root = manifest_dir
+        .parent()
+        .and_then(|p| p.parent())
+        .ok_or("repo root not found")?;
+    let root = repo_root.join("crates/bijux-cli/src/fastq_exec");
+    let mut files = Vec::new();
+    collect_rs_files(&root, &mut files);
+    let max_lines = 450usize;
+    let mut offenders = Vec::new();
+    for path in files {
+        let contents = fs::read_to_string(&path)?;
+        let line_count = contents.lines().count();
+        if line_count > max_lines {
+            let has_env = contents.contains("bijux_environment::");
+            let has_executor = contents.contains("services::executor");
+            if has_env || has_executor {
+                offenders.push(format!(
+                    "{} -> {} lines (env={}, executor={})",
+                    path.display(),
+                    line_count,
+                    has_env,
+                    has_executor
+                ));
+            }
+        }
+    }
+    assert!(
+        offenders.is_empty(),
+        "large fastq_exec modules must not import executor/environment: {offenders:?}"
+    );
+    Ok(())
+}
+
+#[test]
 fn cli_fastq_exec_avoids_shell_execution() -> Result<(), Box<dyn std::error::Error>> {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let repo_root = manifest_dir

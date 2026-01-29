@@ -3,21 +3,19 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
+use bijux_engine::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 use uuid::Uuid;
 
 use bijux_engine::api::{
-    bench_base_dir, execute_stage_plan, hash_file_sha256, ExecutionManifest, StagePlan as ExecPlan,
+    bench_base_dir, bench_tools_dir, compute_run_id, execute_stage_plan, hash_file_sha256,
+    params_hash, prepare_tool_run_dirs, resolve_image_for_run, write_execution_logs,
+    write_stage_plan_json, ExecutionManifest, RunDirs, StagePlan as ExecPlan,
 };
-use bijux_engine::services::pipeline::{run_pipeline, StagePlan};
 
 use bijux_core::{build_run_metadata_v1, RunMetadataV1, ToolInvocationV1};
 use bijux_stages_fastq::FastqLayout;
 
-use crate::fastq_exec::helpers::{
-    compute_run_id, params_hash, prepare_tool_run_dirs, resolve_image_for_run,
-    write_execution_logs, write_explain_plan_json, write_stage_plan_json,
-};
+use crate::fastq_exec::helpers::write_explain_plan_json;
 use bijux_core::events::RunEvent;
 use bijux_stages_fastq::{
     adapter_bank_path, append_event, assess_input_dir, bench_corpus, canonical_tool_defaults,
@@ -26,6 +24,16 @@ use bijux_stages_fastq::{
     RunManifest, RunStageEntry, ToolImageDigest,
 };
 
+struct StageExecMeta {
+    run_id: String,
+    run_dirs: RunDirs,
+    params: serde_json::Value,
+    input_hash: String,
+    image: bijux_engine::api::ResolvedImage,
+    image_digest: String,
+    tool_version: String,
+}
+
 /// Run the FASTQ benchmark stage.
 ///
 /// # Errors
@@ -33,10 +41,10 @@ use bijux_stages_fastq::{
 pub fn bench_fastq_preprocess<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
-    runner_override: Option<RunnerKind>,
+    _runner_override: Option<RunnerKind>,
     args: &bijux_stages_fastq::args::BenchFastqPreprocessArgs,
 ) -> Result<()> {
-    fastq_preprocess_run(catalog, platform, runner_override, args)
+    fastq_preprocess_run(catalog, platform, args)
 }
 
 /// Execute the preprocess pipeline.
@@ -47,7 +55,6 @@ pub fn bench_fastq_preprocess<S: ::std::hash::BuildHasher>(
 pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
-    runner_override: Option<RunnerKind>,
     args: &bijux_stages_fastq::args::BenchFastqPreprocessArgs,
 ) -> Result<()> {
     let out_dir = bench_base_dir(&args.out, "preprocess", &args.sample_id);
@@ -121,11 +128,16 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         .map(|stage| {
             defaults
                 .get(stage.as_str())
-                .copied()
-                .unwrap_or("fastp")
-                .to_string()
+                .map(|tool| (*tool).to_string())
+                .or_else(|| {
+                    registry
+                        .tools_for_stage(stage)
+                        .first()
+                        .map(|tool| tool.tool_id.clone())
+                })
+                .ok_or_else(|| anyhow::anyhow!("no default tool for stage {stage}"))
         })
-        .collect();
+        .collect::<Result<_>>()?;
 
     let mut objective_name: Option<String> = None;
     if args.auto {
@@ -172,18 +184,6 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
             .collect();
     }
 
-    let selected_by_stage = bijux_stages_fastq::fastq::preprocess::plan_preprocess_pipeline(
-        &pipeline.stages,
-        &selected_tools,
-    )?;
-    let selected_by_stage: Vec<StagePlan> = selected_by_stage
-        .into_iter()
-        .map(|step| StagePlan {
-            stage: step.stage,
-            tool: step.tool,
-        })
-        .collect();
-
     append_event(
         &layout,
         &RunEvent {
@@ -202,32 +202,150 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         &registry,
         None,
     )?;
-    let mut stage_entries = run_pipeline(
-        &selected_by_stage,
-        |event, step| {
-            append_event(
-                &layout,
-                &RunEvent {
-                    timestamp: now_string(),
-                    event: event.to_string(),
-                    stage: Some(step.stage.0.clone()),
-                    tool: Some(step.tool.0.clone()),
-                    detail: None,
-                },
-            )
-        },
-        |step| {
-            execute_preprocess_stage(
-                catalog,
-                platform,
-                runner_override,
-                args,
-                derived_r2.as_ref(),
-                &step.stage.0,
-                &step.tool.0,
-            )
+    let mut stage_meta = Vec::new();
+    let planned_stages = bijux_stages_fastq::fastq::preprocess::plan_preprocess_pipeline(
+        &pipeline.stages,
+        &selected_tools,
+        &args.r1,
+        derived_r2.as_deref(),
+        |stage, tool, r1, r2| {
+            let spec = catalog
+                .get(tool)
+                .ok_or_else(|| anyhow!("tool {tool} missing from images.yaml"))?;
+            let image = resolve_image_for_run(spec, platform)?;
+            let params = serde_json::json!({
+                "sample_id": args.sample_id,
+                "r1": r1,
+                "r2": r2,
+                "adapter_preset": args.adapter_preset,
+                "adapter_bank": args.adapter_bank,
+                "enable_adapters": args.enable_adapters,
+                "disable_adapters": args.disable_adapters,
+            });
+            let params_hash = params_hash(&params)?;
+            let input_hash_r1 = hash_file_sha256(r1)?;
+            let input_hash = match r2 {
+                Some(r2) => {
+                    let input_hash_r2 = hash_file_sha256(r2)?;
+                    format!("{input_hash_r1},{input_hash_r2}")
+                }
+                None => input_hash_r1,
+            };
+            let run_id = compute_run_id(
+                stage,
+                tool,
+                spec.digest.as_deref().unwrap_or("unknown"),
+                &input_hash,
+                &params_hash,
+            );
+            let stage_dir = stage.trim_start_matches("fastq.");
+            let tools_root = bench_tools_dir(&args.out, stage_dir, &args.sample_id);
+            let run_dirs = prepare_tool_run_dirs(&tools_root, tool, &run_id)?;
+            let out_dir = run_dirs.artifacts_dir.clone();
+            stage_meta.push(StageExecMeta {
+                run_id,
+                run_dirs,
+                params,
+                input_hash,
+                image,
+                image_digest: spec.digest.clone().unwrap_or_else(|| "unknown".to_string()),
+                tool_version: spec.version.clone(),
+            });
+            Ok(out_dir)
         },
     )?;
+    let mut stage_entries = Vec::with_capacity(planned_stages.len());
+    for (step, meta) in planned_stages.iter().zip(stage_meta.iter()) {
+        append_event(
+            &layout,
+            &RunEvent {
+                timestamp: now_string(),
+                event: "tool_selected".to_string(),
+                stage: Some(step.stage.0.clone()),
+                tool: Some(step.tool.0.clone()),
+                detail: None,
+            },
+        )?;
+        append_event(
+            &layout,
+            &RunEvent {
+                timestamp: now_string(),
+                event: "stage_started".to_string(),
+                stage: Some(step.stage.0.clone()),
+                tool: Some(step.tool.0.clone()),
+                detail: None,
+            },
+        )?;
+        let plan_name = format!("{}.plan.json", step.stage.0.replace('.', "_"));
+        let _plan_path = write_stage_plan_json(&meta.run_dirs, &plan_name, &step.plan)?;
+
+        let mut aux_images = HashMap::new();
+        if step.stage.0 == bijux_stages_fastq::fastq::qc_post::STAGE_ID {
+            for aux_tool in bijux_stages_fastq::fastq::qc_post::aux_tool_ids() {
+                let spec = catalog
+                    .get(*aux_tool)
+                    .ok_or_else(|| anyhow!("{aux_tool} missing from images.yaml"))?;
+                let image = resolve_image_for_run(spec, platform)?;
+                aux_images.insert((*aux_tool).to_string(), image);
+            }
+        }
+
+        let exec_plan = ExecPlan {
+            stage_id: step.stage.0.clone(),
+            tool: step.tool.0.clone(),
+            image: meta.image.clone(),
+            runner: platform.runner,
+            inputs: step.inputs.clone(),
+            out_dir: meta.run_dirs.artifacts_dir.clone(),
+            outputs: step.outputs.clone(),
+            params: meta.params.clone(),
+            aux_images,
+        };
+        let execution = execute_stage_plan(&exec_plan)?;
+        let manifest = ExecutionManifest {
+            run_id: meta.run_id.clone(),
+            stage: step.stage.0.clone(),
+            tool: step.tool.0.clone(),
+            tool_version: meta.tool_version.clone(),
+            image_digest: meta.image_digest.clone(),
+            command: execution.command,
+            input_hashes: vec![meta.input_hash.clone()],
+            input_files: exec_plan
+                .inputs
+                .iter()
+                .map(|path| path.display().to_string())
+                .collect(),
+            output_dir: meta.run_dirs.artifacts_dir.display().to_string(),
+            runner: platform.runner.to_string(),
+            platform: platform.name.clone(),
+            arch: platform.arch.clone(),
+        };
+        std::fs::write(
+            &meta.run_dirs.manifest_path,
+            serde_json::to_vec_pretty(&manifest)?,
+        )
+        .context("write execution manifest")?;
+        write_execution_logs(&meta.run_dirs, &execution.stdout, &execution.stderr)?;
+        stage_entries.push(RunStageEntry {
+            stage_id: step.stage.0.clone(),
+            tool_id: step.tool.0.clone(),
+            execution_metrics_path: meta.run_dirs.metrics_path.clone(),
+            domain_metrics_path: meta.run_dirs.metrics_path.clone(),
+            logs_dir: meta.run_dirs.logs_dir.clone(),
+            outputs_dir: meta.run_dirs.artifacts_dir.clone(),
+            tool_invocation_path: meta.run_dirs.manifest_path.clone(),
+        });
+        append_event(
+            &layout,
+            &RunEvent {
+                timestamp: now_string(),
+                event: "stage_finished".to_string(),
+                stage: Some(step.stage.0.clone()),
+                tool: Some(step.tool.0.clone()),
+                detail: None,
+            },
+        )?;
+    }
 
     populate_run_layout(&layout, &mut stage_entries)?;
 
@@ -322,188 +440,6 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     )?;
 
     Ok(())
-}
-
-#[allow(clippy::too_many_lines)]
-fn execute_preprocess_stage<S: ::std::hash::BuildHasher>(
-    catalog: &HashMap<String, ToolImageSpec, S>,
-    platform: &PlatformSpec,
-    runner_override: Option<RunnerKind>,
-    args: &bijux_stages_fastq::args::BenchFastqPreprocessArgs,
-    derived_r2: Option<&PathBuf>,
-    stage: &str,
-    tool: &str,
-) -> Result<RunStageEntry> {
-    let _ = runner_override;
-    let spec = catalog
-        .get(tool)
-        .ok_or_else(|| anyhow!("tool {tool} missing from images.yaml"))?;
-    let image = resolve_image_for_run(spec, platform)?;
-    let r1 = args.r1.canonicalize().context("resolve r1 path")?;
-    let r2 = derived_r2
-        .map(|path| path.canonicalize())
-        .transpose()
-        .context("resolve r2 path")?;
-    let params = serde_json::json!({
-        "sample_id": args.sample_id,
-        "r1": r1,
-        "r2": r2,
-        "adapter_preset": args.adapter_preset,
-        "adapter_bank": args.adapter_bank,
-        "enable_adapters": args.enable_adapters,
-        "disable_adapters": args.disable_adapters,
-    });
-    let params_hash = params_hash(&params)?;
-    let input_hash_r1 = hash_file_sha256(&r1)?;
-    let input_hash = match &r2 {
-        Some(r2) => {
-            let input_hash_r2 = hash_file_sha256(r2)?;
-            format!("{input_hash_r1},{input_hash_r2}")
-        }
-        None => input_hash_r1,
-    };
-    let run_id = compute_run_id(
-        stage,
-        tool,
-        spec.digest.as_deref().unwrap_or("unknown"),
-        &input_hash,
-        &params_hash,
-    );
-    let stage_dir = stage.trim_start_matches("fastq.");
-    let tools_root = bijux_engine::api::bench_tools_dir(&args.out, stage_dir, &args.sample_id);
-    let run_dirs = prepare_tool_run_dirs(&tools_root, tool, &run_id)?;
-    let out_dir = run_dirs.artifacts_dir.clone();
-
-    let (plan_json, outputs, inputs) = match stage {
-        "fastq.trim" => {
-            let plan = bijux_stages_fastq::fastq::trim::plan(tool, &r1, &out_dir)?;
-            let plan_json = bijux_stages_fastq::StagePlanJson::from_plan(&plan);
-            (plan_json, vec![plan.output.clone()], vec![r1.clone()])
-        }
-        "fastq.filter" => {
-            let plan = bijux_stages_fastq::fastq::filter::plan_filter(tool, &r1, &out_dir)?;
-            let plan_json = bijux_stages_fastq::StagePlanJson::from_plan(&plan);
-            (plan_json, vec![plan.output.clone()], vec![r1.clone()])
-        }
-        "fastq.validate_pre" => {
-            let plan = bijux_stages_fastq::fastq::validate_pre::plan(tool, &r1, &out_dir);
-            let plan_json = bijux_stages_fastq::StagePlanJson::from_plan(&plan);
-            (plan_json, Vec::new(), vec![r1.clone()])
-        }
-        "fastq.merge" => {
-            let r2 = r2.clone().ok_or_else(|| anyhow!("merge requires r2"))?;
-            let plan = bijux_stages_fastq::fastq::merge::plan_merge(tool, &r1, &r2, &out_dir)?;
-            let plan_json = bijux_stages_fastq::StagePlanJson::from_plan(&plan);
-            (plan_json, vec![plan.output.clone()], vec![r1.clone(), r2])
-        }
-        "fastq.correct" => {
-            let r2 = r2.clone().ok_or_else(|| anyhow!("correct requires r2"))?;
-            let plan = bijux_stages_fastq::fastq::correct::plan_correct(tool, &r1, &r2, &out_dir)?;
-            let plan_json = bijux_stages_fastq::StagePlanJson::from_plan(&plan);
-            (
-                plan_json,
-                vec![plan.output_r1.clone(), plan.output_r2.clone()],
-                vec![r1.clone(), r2],
-            )
-        }
-        "fastq.umi" => {
-            let r2 = r2.clone().ok_or_else(|| anyhow!("umi requires r2"))?;
-            let plan = bijux_stages_fastq::fastq::umi::plan_umi(tool, &r1, &r2, &out_dir)?;
-            let plan_json = bijux_stages_fastq::StagePlanJson::from_plan(&plan);
-            (
-                plan_json,
-                vec![plan.output_r1.clone(), plan.output_r2.clone()],
-                vec![r1.clone(), r2],
-            )
-        }
-        "fastq.qc_post" => {
-            let plan = bijux_stages_fastq::fastq::qc_post::plan_qc_post(tool, &r1, &out_dir)?;
-            let plan_json = bijux_stages_fastq::StagePlanJson::from_plan(&plan);
-            (plan_json, Vec::new(), vec![r1.clone()])
-        }
-        "fastq.screen" => {
-            let plan = bijux_stages_fastq::fastq::screen::plan_screen(tool, &r1, &out_dir)?;
-            let plan_json = bijux_stages_fastq::StagePlanJson::from_plan(&plan);
-            (plan_json, vec![plan.report.clone()], vec![r1.clone()])
-        }
-        "fastq.stats_neutral" => {
-            let plan_json = bijux_stages_fastq::StagePlanJson {
-                stage_id: "fastq.stats_neutral".to_string(),
-                stage_version: "1".to_string(),
-                io: bijux_stages_fastq::StageIO {
-                    inputs: vec![bijux_stages_fastq::ArtifactRef {
-                        name: "reads_r1".to_string(),
-                        path: r1.clone(),
-                    }],
-                    outputs: Vec::new(),
-                },
-                parameters: serde_json::json!({
-                    "tool": tool,
-                    "input": r1,
-                    "out_dir": out_dir,
-                }),
-            };
-            (plan_json, Vec::new(), vec![r1.clone()])
-        }
-        _ => return Err(anyhow!("unsupported stage {stage}")),
-    };
-    let plan_name = format!("{}.plan.json", stage.replace('.', "_"));
-    let _plan_path = write_stage_plan_json(&run_dirs, &plan_name, &plan_json)?;
-
-    let mut aux_images = std::collections::HashMap::new();
-    if stage == "fastq.qc_post" && tool == "multiqc" {
-        let fastqc_spec = catalog
-            .get("fastqc")
-            .ok_or_else(|| anyhow!("fastqc missing from images.yaml"))?;
-        let fastqc_image = resolve_image_for_run(fastqc_spec, platform)?;
-        aux_images.insert("fastqc".to_string(), fastqc_image);
-    }
-
-    let exec_plan = ExecPlan {
-        stage_id: stage.to_string(),
-        tool: tool.to_string(),
-        image,
-        runner: platform.runner,
-        inputs,
-        out_dir: out_dir.clone(),
-        outputs,
-        params,
-        aux_images,
-    };
-    let execution = execute_stage_plan(&exec_plan)?;
-    let manifest = ExecutionManifest {
-        run_id: run_id.clone(),
-        stage: stage.to_string(),
-        tool: tool.to_string(),
-        tool_version: spec.version.clone(),
-        image_digest: spec.digest.clone().unwrap_or_else(|| "unknown".to_string()),
-        command: execution.command,
-        input_hashes: vec![input_hash],
-        input_files: exec_plan
-            .inputs
-            .iter()
-            .map(|path| path.display().to_string())
-            .collect(),
-        output_dir: out_dir.display().to_string(),
-        runner: platform.runner.to_string(),
-        platform: platform.name.clone(),
-        arch: platform.arch.clone(),
-    };
-    std::fs::write(
-        &run_dirs.manifest_path,
-        serde_json::to_vec_pretty(&manifest)?,
-    )
-    .context("write execution manifest")?;
-    write_execution_logs(&run_dirs, &execution.stdout, &execution.stderr)?;
-    Ok(RunStageEntry {
-        stage_id: stage.to_string(),
-        tool_id: tool.to_string(),
-        execution_metrics_path: run_dirs.metrics_path.clone(),
-        domain_metrics_path: run_dirs.metrics_path.clone(),
-        logs_dir: run_dirs.logs_dir.clone(),
-        outputs_dir: run_dirs.artifacts_dir.clone(),
-        tool_invocation_path: run_dirs.manifest_path.clone(),
-    })
 }
 
 fn populate_run_layout(layout: &RunLayout, entries: &mut [RunStageEntry]) -> Result<()> {

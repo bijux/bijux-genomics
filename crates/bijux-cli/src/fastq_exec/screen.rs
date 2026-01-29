@@ -1,12 +1,12 @@
 use std::collections::HashMap;
 
 use anyhow::{anyhow, Result};
-use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
+use bijux_engine::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 
-use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
+use bijux_engine::api::{ensure_image_qa_passed, ensure_tool_qa_passed};
 
-use crate::fastq_exec::helpers::{filter_tools_by_role, resolve_image_for_run};
 use bijux_engine::api::{execute_stage_plan, StagePlan};
+use bijux_engine::api::{filter_tools_by_role, resolve_image_for_run};
 use bijux_stages_fastq::fastq::screen::{normalize_screen_tool_list, plan_screen};
 
 /// Run the FASTQ benchmark stage.

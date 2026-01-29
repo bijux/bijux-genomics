@@ -20,6 +20,11 @@ pub fn normalize_qc_post_tool_list(tools: &[String]) -> Result<Vec<String>> {
     normalize_tools_with_allowlist(tools, &allowed)
 }
 
+#[must_use]
+pub fn aux_tool_ids() -> &'static [&'static str] {
+    &["fastqc"]
+}
+
 /// Build a qc_post plan.
 ///
 /// # Errors

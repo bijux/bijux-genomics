@@ -53,6 +53,7 @@ fn fastq_trim_emits_contract_artifacts() -> Result<(), Box<dyn std::error::Error
     assert_file_exists(&run_dir.join("run_manifest.json"));
     assert_file_exists(&run_dir.join("metrics.json"));
     assert_file_exists(&run_dir.join("retention_report.json"));
+    assert_file_exists(&run_dir.join("artifacts/engine_execution.json"));
     assert_file_exists(&run_dir.join("run_artifacts/adapters/effective_adapters.json"));
     assert_file_exists(&run_dir.join("run_artifacts/adapters/adapter_bank_ref.json"));
     assert_file_exists(&run_dir.join("run_artifacts/reports/adapter_trimming_report.json"));
