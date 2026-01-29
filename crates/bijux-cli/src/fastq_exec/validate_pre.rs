@@ -14,7 +14,10 @@ use bijux_engine::api::{ensure_bench_runner, load_registry};
 use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 use uuid::Uuid;
 
-use bijux_domain_fastq::{inspect_headers, log_header_warnings, preflight_stage, FastqArtifact};
+use bijux_domain_fastq::{
+    inspect_headers, log_header_warnings, preflight_stage, FastqArtifact, RetentionReportV1,
+    ToolReferenceV1,
+};
 use bijux_engine::api::validate_execution_outputs;
 use bijux_engine::api::{bench_base_dir, bench_tools_dir};
 use bijux_engine::api::{cleanup_execution, execution_memory_mb, run_validate_execution};
@@ -26,7 +29,8 @@ use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed}
 use crate::fastq_exec::helpers::{
     compute_run_id, normalize_validate_tool_list, params_hash, prepare_tool_run_dirs,
     resolve_image_for_run, write_execution_logs, write_explain_md, write_explain_plan_json,
-    write_metrics_json, write_retention_report_placeholder, write_run_manifest, ExecutionManifest,
+    write_metrics_json, write_retention_report_artifact, write_retention_report_placeholder,
+    write_run_manifest, ExecutionManifest, RunArtifactInput,
 };
 use crate::fastq_exec::helpers::{filter_tools_by_role, BenchOutcome};
 use bijux_domain_fastq::RawFailure;
@@ -319,6 +323,22 @@ fn run_validate_tool<S: ::std::hash::BuildHasher>(
     record.validate()?;
     let envelope = &record.metrics;
     write_metrics_json(&run_dirs, &record.execution, envelope)?;
+    let retention_report = RetentionReportV1 {
+        schema_version: "bijux.retention_report.v1".to_string(),
+        definition: "raw reads observed pre-trim".to_string(),
+        numerator: serde_json::json!(reads_total),
+        denominator: serde_json::json!(reads_total),
+        scope: "reads".to_string(),
+        stage_boundary: "fastq.validate_pre:raw".to_string(),
+        tool: ToolReferenceV1 {
+            id: tool.to_string(),
+            stage: "fastq.validate_pre".to_string(),
+            version: spec.version.clone(),
+            params: params.clone(),
+        },
+        raw_reads_total: Some(reads_total),
+    };
+    let retention_report_path = write_retention_report_artifact(&run_dirs, &retention_report)?;
     write_retention_report_placeholder(&run_dirs, "fastq.validate_pre", tool, &params)?;
     let adapter_bank_path = bijux_domain_fastq::adapter_bank_path();
     write_run_manifest(
@@ -326,7 +346,10 @@ fn run_validate_tool<S: ::std::hash::BuildHasher>(
         "fastq.validate_pre",
         tool,
         &adapter_bank_path,
-        &[],
+        &[RunArtifactInput {
+            name: "retention_report",
+            path: retention_report_path.clone(),
+        }],
     )?;
     if execution.exit_code != 0 {
         return Err(anyhow!(

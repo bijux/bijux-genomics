@@ -15,7 +15,7 @@ use uuid::Uuid;
 use bijux_domain_fastq::{
     adapter_bank_path, adapter_presets_path, contract_for_stage, inspect_headers,
     load_adapter_bank, load_adapter_presets, log_header_warnings, normalize_outputs,
-    preflight_stage, resolve_adapter_preset, FastqArtifact,
+    preflight_stage, resolve_adapter_preset, FastqArtifact, RetentionReportV1, ToolReferenceV1,
 };
 use bijux_engine::api::validate_execution_outputs;
 use bijux_engine::api::{bench_base_dir, bench_tools_dir};
@@ -27,7 +27,8 @@ use crate::fastq_exec::helpers::{
     compute_run_id, normalize_tool_list, params_hash, prepare_tool_run_dirs, resolve_image_for_run,
     write_adapter_bank_ref, write_adapter_trimming_report, write_effective_adapters,
     write_execution_logs, write_explain_md, write_explain_plan_json, write_metrics_json,
-    write_retention_report_placeholder, write_run_manifest, ExecutionManifest, RunArtifactInput,
+    write_retention_report_artifact, write_retention_report_placeholder, write_run_manifest,
+    ExecutionManifest, RunArtifactInput,
 };
 use crate::fastq_exec::helpers::{filter_tools_by_role, BenchOutcome};
 use bijux_domain_fastq::RawFailure;
@@ -251,12 +252,18 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
                 &adapter_presets_checksum,
                 &effective_adapters,
             )?;
+            let reads_with_adapter = input_stats.reads.saturating_sub(output_stats.reads);
+            let bases_trimmed_total = input_stats.bases.saturating_sub(output_stats.bases);
+            let per_adapter_counts = std::collections::BTreeMap::new();
             let adapter_report_path = write_adapter_trimming_report(
                 &run_dirs,
                 &tool,
+                &spec.version,
                 &params,
-                &effective_adapters.enabled_ids,
                 input_stats.reads,
+                reads_with_adapter,
+                bases_trimmed_total,
+                per_adapter_counts,
             )?;
             let summary = AdapterTrimmingSummary {
                 reads_with_any_adapter: Some(0),
@@ -286,6 +293,23 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
             bijux_analyze::validate_metric_set(&metric_set)?;
             let envelope = &metric_set;
             write_metrics_json(&run_dirs, &execution_metrics, envelope)?;
+            let retention_report = RetentionReportV1 {
+                schema_version: "bijux.retention_report.v1".to_string(),
+                definition: "reads retained after trim".to_string(),
+                numerator: serde_json::json!(output_stats.reads),
+                denominator: serde_json::json!(input_stats.reads),
+                scope: "reads".to_string(),
+                stage_boundary: "fastq.trim:post".to_string(),
+                tool: ToolReferenceV1 {
+                    id: tool.clone(),
+                    stage: "fastq.trim".to_string(),
+                    version: spec.version.clone(),
+                    params: params.clone(),
+                },
+                raw_reads_total: None,
+            };
+            let retention_report_path =
+                write_retention_report_artifact(&run_dirs, &retention_report)?;
             write_retention_report_placeholder(&run_dirs, "fastq.trim", &tool, &params)?;
             write_run_manifest(
                 &run_dirs,
@@ -304,6 +328,10 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
                     RunArtifactInput {
                         name: "adapter_trimming_report",
                         path: adapter_report_path.clone(),
+                    },
+                    RunArtifactInput {
+                        name: "retention_report",
+                        path: retention_report_path.clone(),
                     },
                 ],
             )?;

@@ -24,6 +24,7 @@ Trim runs also emit:
 run_artifacts/adapters/effective_adapters.json
 run_artifacts/adapters/adapter_bank_ref.json
 run_artifacts/reports/adapter_trimming_report.json
+run_artifacts/reports/retention_report.json
 ```
 
 Pipeline-level summaries (when present) contain:
@@ -42,6 +43,7 @@ execution_manifest.json
 - `effective_adapters.json`: resolved adapter set for the selected preset (ids + sequences).
 - `adapter_bank_ref.json`: adapter bank reference with checksums, preset, and enabled ids.
 - `adapter_trimming_report.json`: adapter trimming report (placeholder counts until tool parsing).
+- `retention_report.json`: retention report (pre/post) snapshot for the stage.
 
 ## Requirements
 

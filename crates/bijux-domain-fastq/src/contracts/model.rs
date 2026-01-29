@@ -63,3 +63,40 @@ pub struct FastqStats {
 
 pub type FastqSingleEnd = FastqSE;
 pub type FastqPairedEnd = FastqPE;
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct ToolReferenceV1 {
+    pub id: String,
+    pub stage: String,
+    pub version: String,
+    pub params: serde_json::Value,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct RetentionReportV1 {
+    pub schema_version: String,
+    pub definition: String,
+    pub numerator: serde_json::Value,
+    pub denominator: serde_json::Value,
+    pub scope: String,
+    pub stage_boundary: String,
+    pub tool: ToolReferenceV1,
+    pub raw_reads_total: Option<u64>,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct AdapterTrimmingReportV1 {
+    pub schema_version: String,
+    pub reads_with_adapter: u64,
+    pub total_reads: u64,
+    pub bases_trimmed_total: u64,
+    pub per_adapter_counts: std::collections::BTreeMap<String, u64>,
+    pub top_k_adapters: Vec<AdapterContributionV1>,
+    pub tool: ToolReferenceV1,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct AdapterContributionV1 {
+    pub id: String,
+    pub count: u64,
+}

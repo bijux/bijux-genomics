@@ -519,26 +519,30 @@ fn load_adapter_configs(bank_override: Option<&Path>) -> Result<(AdapterBankV1, 
 
 fn list_adapter_presets(presets: &AdapterPresetsV1) {
     for preset in &presets.presets {
-        let description = preset.description.as_deref().unwrap_or("no description");
         let categories = if preset.categories.is_empty() {
             "none".to_string()
         } else {
             preset.categories.join(", ")
         };
-        println!(
-            "{}: {} (categories: {})",
-            preset.name, description, categories
-        );
+        println!("{}: categories: {}", preset.name, categories);
     }
 }
 
 fn list_adapters(effective: &bijux_domain_fastq::EffectiveAdapterSet) {
     println!("preset: {}", effective.preset);
-    println!("id\tcategory\tname\tenabled_by_default");
+    println!("id\tcategory\tname\tread_scope\tenabled_by_default");
     for adapter in &effective.adapters {
+        let read_scope = match adapter.read_scope {
+            bijux_domain_fastq::ReadScope::R1 => "r1",
+            bijux_domain_fastq::ReadScope::R2 => "r2",
+            bijux_domain_fastq::ReadScope::Both => "both",
+            bijux_domain_fastq::ReadScope::SingleEnd => "single_end",
+            bijux_domain_fastq::ReadScope::PairedEnd => "paired_end",
+            bijux_domain_fastq::ReadScope::Unknown => "unknown",
+        };
         println!(
-            "{}\t{}\t{}\t{}",
-            adapter.id, adapter.category, adapter.name, adapter.enabled_by_default
+            "{}\t{}\t{}\t{}\t{}",
+            adapter.id, adapter.category, adapter.name, read_scope, adapter.enabled_by_default
         );
     }
 }

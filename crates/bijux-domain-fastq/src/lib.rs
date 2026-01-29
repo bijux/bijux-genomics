@@ -27,6 +27,9 @@ pub use adapter_bank::{
 pub use contract::{
     contract_for_stage as canonical_contract_for_stage, FastqStage, StageContract, StageIO,
 };
+pub use contracts::model::{
+    AdapterContributionV1, AdapterTrimmingReportV1, RetentionReportV1, ToolReferenceV1,
+};
 pub use contracts::{
     contract_for_stage, ensure_umi_headers, infer_input_kind, inspect_headers, log_header_warnings,
     normalize_outputs, preflight_stage, qc_class_for_stage, FastqArtifact, FastqArtifactKind,
