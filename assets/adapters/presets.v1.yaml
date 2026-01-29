@@ -1,28 +1,34 @@
 schema_version: bijux.adapter_presets.v1
 presets:
   - name: default_adna
+    description: Best default preset for aDNA trimming across common kits.
     categories:
       - truseq
       - nextera
       - partial_motifs
     adapter_ids: []
   - name: truseq_only
+    description: TruSeq-only adapters for Illumina TruSeq libraries.
     categories:
       - truseq
     adapter_ids: []
   - name: ssdna
+    description: ssDNA splint adapters for single-stranded workflows.
     categories:
       - ssdna_splint
     adapter_ids: []
   - name: umi
+    description: UMI construct adapters for UMI-tagged libraries.
     categories:
       - umi_constructs
     adapter_ids: []
   - name: nextera
+    description: Nextera tagmentation adapters.
     categories:
       - nextera
     adapter_ids: []
   - name: capture
+    description: Capture linker adapters for capture kits.
     categories:
       - capture_linkers
     adapter_ids: []

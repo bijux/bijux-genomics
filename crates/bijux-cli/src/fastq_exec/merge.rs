@@ -335,7 +335,7 @@ fn run_merge_tool<S: ::std::hash::BuildHasher>(
     write_metrics_json(&run_dirs, &execution_metrics, envelope)?;
     write_retention_report_placeholder(&run_dirs, "fastq.merge", tool, &params)?;
     let adapter_bank_path = bijux_domain_fastq::adapter_bank_path();
-    write_run_manifest(&run_dirs, "fastq.merge", tool, &adapter_bank_path)?;
+    write_run_manifest(&run_dirs, "fastq.merge", tool, &adapter_bank_path, &[])?;
     let record = BenchmarkRecord {
         context,
         execution: execution_metrics,

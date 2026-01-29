@@ -59,6 +59,8 @@ pub struct AdapterPresetsV1 {
 pub struct AdapterPresetV1 {
     pub name: String,
     #[serde(default)]
+    pub description: Option<String>,
+    #[serde(default)]
     pub categories: Vec<String>,
     #[serde(default)]
     pub adapter_ids: Vec<String>,

@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "bijux.adapter_trimming_report.v1",
+  "title": "AdapterTrimmingReportV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "reads_with_adapter",
+    "bases_trimmed_total",
+    "per_adapter_counts",
+    "tool"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "bijux.adapter_trimming_report.v1"
+    },
+    "reads_with_adapter": {
+      "description": "Count of reads with at least one adapter match.",
+      "oneOf": [
+        { "type": "integer", "minimum": 0 },
+        { "type": "string" }
+      ]
+    },
+    "total_reads": {
+      "description": "Total reads evaluated for adapter trimming.",
+      "oneOf": [
+        { "type": "integer", "minimum": 0 },
+        { "type": "string" }
+      ]
+    },
+    "bases_trimmed_total": {
+      "description": "Total bases trimmed across all adapters.",
+      "oneOf": [
+        { "type": "integer", "minimum": 0 },
+        { "type": "string" }
+      ]
+    },
+    "per_adapter_counts": {
+      "type": "object",
+      "description": "Counts per adapter id.",
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": 0
+      }
+    },
+    "top_k_adapters": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "count"],
+        "properties": {
+          "id": { "type": "string" },
+          "count": { "type": "integer", "minimum": 0 }
+        }
+      }
+    },
+    "tool": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "params"],
+      "properties": {
+        "id": { "type": "string" },
+        "params": { "type": "object" }
+      }
+    }
+  }
+}

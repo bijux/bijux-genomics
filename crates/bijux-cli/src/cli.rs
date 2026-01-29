@@ -362,9 +362,14 @@ pub struct CommonArgs {
 }
 
 #[derive(Debug, Args, Clone)]
+#[allow(clippy::struct_excessive_bools)]
 pub struct FastqPreprocessArgs {
     #[command(flatten)]
     pub common: CommonArgs,
+    #[arg(long)]
+    pub list_adapter_presets: bool,
+    #[arg(long)]
+    pub list_adapters: bool,
     #[arg(long)]
     pub env: Option<String>,
     #[arg(long, alias = "sample")]
@@ -491,6 +496,10 @@ pub enum FastqCommand {
 pub struct FastqTrimArgs {
     #[command(flatten)]
     pub common: CommonArgs,
+    #[arg(long)]
+    pub list_adapter_presets: bool,
+    #[arg(long)]
+    pub list_adapters: bool,
     #[arg(long)]
     pub env: Option<String>,
     #[arg(long, alias = "sample")]
