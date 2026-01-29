@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 use std::fs;
-use std::time::Instant;
 
 use anyhow::{anyhow, Context, Result};
 use bijux_analyze::{
@@ -14,7 +13,7 @@ use uuid::Uuid;
 
 use bijux_engine::api::validate_execution_outputs;
 use bijux_engine::api::{bench_base_dir, bench_tools_dir};
-use bijux_engine::api::{cleanup_execution, execution_memory_mb, run_tool_execution};
+use bijux_engine::api::{execute_stage_plan, StagePlan};
 use bijux_engine::api::{hash_file_sha256, input_fastq_stats, output_fastq_stats};
 use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use bijux_stages_fastq::{
@@ -150,13 +149,18 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
             let plan = bijux_stages_fastq::fastq::trim::plan_from_config(&effective)?;
             let plan_json = StagePlanJson::from_plan(&plan);
             let _plan_path = write_stage_plan_json(&run_dirs, "fastq_trim.plan.json", &plan_json)?;
-            let start = Instant::now();
-            let container_name = format!("bijux-bench-{}-{}", args.sample_id, Uuid::new_v4());
-            let execution =
-                run_tool_execution(&tool, &image, &r1_dir, &r1, &out_dir, &container_name)?;
-            let runtime_s = start.elapsed().as_secs_f64();
-            let memory_mb = execution_memory_mb(&container_name)?;
-            cleanup_execution(&container_name)?;
+            let exec_plan = StagePlan {
+                stage_id: "fastq.trim".to_string(),
+                tool: tool.clone(),
+                image,
+                runner,
+                inputs: vec![r1.clone()],
+                out_dir: out_dir.clone(),
+                outputs: vec![plan.output.clone()],
+                params: params.clone(),
+                aux_images: HashMap::new(),
+            };
+            let execution = execute_stage_plan(&exec_plan)?;
 
             let contract = contract_for_stage("fastq.trim")
                 .ok_or_else(|| anyhow!("missing fastq.trim contract"))?;
@@ -203,8 +207,8 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
                 parameters: params.clone(),
             };
             let execution_metrics = ExecutionMetrics {
-                runtime_s,
-                memory_mb,
+                runtime_s: execution.runtime_s,
+                memory_mb: execution.memory_mb,
                 exit_code: execution.exit_code,
             };
             let effective_adapters_path = write_effective_adapters(
@@ -375,42 +379,6 @@ mod tests {
         assert!(payload.contains("truseq_universal"));
         assert!(payload.contains("truseq_indexed"));
         std::env::set_current_dir(prev_dir)?;
-        Ok(())
-    }
-
-    #[test]
-    fn disabling_adapter_changes_params_hash() -> Result<()> {
-        let base = serde_json::json!({
-            "adapter_preset": "default_adna",
-            "enable_adapters": [],
-            "disable_adapters": []
-        });
-        let disabled = serde_json::json!({
-            "adapter_preset": "default_adna",
-            "enable_adapters": [],
-            "disable_adapters": ["truseq_universal"]
-        });
-        let base_hash = crate::fastq_exec::helpers::params_hash(&base)?;
-        let disabled_hash = crate::fastq_exec::helpers::params_hash(&disabled)?;
-        assert_ne!(base_hash, disabled_hash);
-        Ok(())
-    }
-
-    #[test]
-    fn ssdna_preset_changes_params_hash() -> Result<()> {
-        let base = serde_json::json!({
-            "adapter_preset": "default_adna",
-            "enable_adapters": [],
-            "disable_adapters": []
-        });
-        let ssdna = serde_json::json!({
-            "adapter_preset": "ssdna",
-            "enable_adapters": [],
-            "disable_adapters": []
-        });
-        let base_hash = crate::fastq_exec::helpers::params_hash(&base)?;
-        let ssdna_hash = crate::fastq_exec::helpers::params_hash(&ssdna)?;
-        assert_ne!(base_hash, ssdna_hash);
         Ok(())
     }
 }

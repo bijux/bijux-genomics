@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
-use std::time::Instant;
 
 use anyhow::{anyhow, Context, Result};
 use bijux_analyze::{
@@ -15,7 +14,7 @@ use uuid::Uuid;
 
 use bijux_engine::api::validate_execution_outputs;
 use bijux_engine::api::{bench_base_dir, bench_tools_dir};
-use bijux_engine::api::{cleanup_execution, execution_memory_mb, run_tool_execution};
+use bijux_engine::api::{execute_stage_plan, StagePlan};
 use bijux_engine::api::{hash_file_sha256, input_fastq_stats, output_fastq_stats, SeqkitMetrics};
 use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use bijux_stages_fastq::fastq::correct::{normalize_correct_tool_list, plan_correct};
@@ -142,7 +141,6 @@ struct CorrectBenchInputs {
     runner: RunnerKind,
     r1: PathBuf,
     r2: PathBuf,
-    r1_dir: PathBuf,
     input_hash: String,
     input_stats: SeqkitMetrics,
     bench_dir: PathBuf,
@@ -190,7 +188,6 @@ fn prepare_correct_bench<S: ::std::hash::BuildHasher>(
         runner,
         r1,
         r2,
-        r1_dir,
         input_hash,
         input_stats,
         bench_dir,
@@ -234,19 +231,18 @@ fn run_correct_tool<S: ::std::hash::BuildHasher>(
     let plan = plan_correct(tool, &bench_inputs.r1, &bench_inputs.r2, &out_dir)?;
     let plan_json = StagePlanJson::from_plan(&plan);
     let _plan_path = write_stage_plan_json(&run_dirs, "fastq_correct.plan.json", &plan_json)?;
-    let start = Instant::now();
-    let container_name = format!("bijux-bench-{}-{}", args.sample_id, Uuid::new_v4());
-    let execution = run_tool_execution(
-        tool,
-        &image,
-        &bench_inputs.r1_dir,
-        &bench_inputs.r1,
-        &out_dir,
-        &container_name,
-    )?;
-    let runtime_s = start.elapsed().as_secs_f64();
-    let memory_mb = execution_memory_mb(&container_name)?;
-    cleanup_execution(&container_name)?;
+    let exec_plan = StagePlan {
+        stage_id: "fastq.correct".to_string(),
+        tool: tool.to_string(),
+        image,
+        runner: bench_inputs.runner,
+        inputs: vec![bench_inputs.r1.clone(), bench_inputs.r2.clone()],
+        out_dir: out_dir.clone(),
+        outputs: vec![plan.output_r1.clone(), plan.output_r2.clone()],
+        params: params.clone(),
+        aux_images: HashMap::new(),
+    };
+    let execution = execute_stage_plan(&exec_plan)?;
 
     let seqkit_spec = catalog
         .get("seqkit")
@@ -310,8 +306,8 @@ fn run_correct_tool<S: ::std::hash::BuildHasher>(
         parameters: params.clone(),
     };
     let execution_metrics = ExecutionMetrics {
-        runtime_s,
-        memory_mb,
+        runtime_s: execution.runtime_s,
+        memory_mb: execution.memory_mb,
         exit_code: execution.exit_code,
     };
     let envelope = &metric_set;

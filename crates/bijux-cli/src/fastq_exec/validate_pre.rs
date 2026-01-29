@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
-use std::time::Instant;
 
 use anyhow::{anyhow, Context, Result};
 use bijux_analyze::{
@@ -16,12 +15,11 @@ use uuid::Uuid;
 
 use bijux_engine::api::validate_execution_outputs;
 use bijux_engine::api::{bench_base_dir, bench_tools_dir};
-use bijux_engine::api::{cleanup_execution, execution_memory_mb, run_validate_execution};
-use bijux_engine::api::{
-    hash_file_sha256, input_fastq_stats, parse_fastqvalidator_count, SeqkitMetrics,
-};
+use bijux_engine::api::{execute_stage_plan, StagePlan};
+use bijux_engine::api::{hash_file_sha256, input_fastq_stats, SeqkitMetrics};
 use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use bijux_stages_fastq::fastq::validate_pre::normalize_validate_tool_list;
+use bijux_stages_fastq::fastq::validate_pre::validate_reads_total;
 use bijux_stages_fastq::{
     inspect_headers, log_header_warnings, preflight_stage, FastqArtifact, RetentionReportV1,
     StagePlanJson, ToolReferenceV1,
@@ -156,7 +154,6 @@ pub fn bench_fastq_validate_pre<S: ::std::hash::BuildHasher>(
 struct ValidateBenchInputs {
     runner: RunnerKind,
     r1: PathBuf,
-    r1_dir: PathBuf,
     input_hash: String,
     input_stats: SeqkitMetrics,
     bench_dir: PathBuf,
@@ -197,7 +194,6 @@ fn prepare_validate_bench<S: ::std::hash::BuildHasher>(
     Ok(ValidateBenchInputs {
         runner,
         r1,
-        r1_dir,
         input_hash,
         input_stats,
         bench_dir,
@@ -248,21 +244,20 @@ fn run_validate_tool<S: ::std::hash::BuildHasher>(
     let plan = bijux_stages_fastq::fastq::validate_pre::plan_from_config(&effective);
     let plan_json = StagePlanJson::from_plan(&plan);
     let _plan_path = write_stage_plan_json(&run_dirs, "fastq_validate_pre.plan.json", &plan_json)?;
-    let start = Instant::now();
-    let container_name = format!("bijux-bench-{}-{}", args.sample_id, Uuid::new_v4());
-    let execution = run_validate_execution(
-        tool,
-        &image,
-        &bench_inputs.r1_dir,
-        &bench_inputs.r1,
-        &out_dir,
-        &container_name,
-    )?;
-    let runtime_s = start.elapsed().as_secs_f64();
-    let memory_mb = execution_memory_mb(&container_name)?;
-    cleanup_execution(&container_name)?;
+    let exec_plan = StagePlan {
+        stage_id: "fastq.validate_pre".to_string(),
+        tool: tool.to_string(),
+        image,
+        runner: bench_inputs.runner,
+        inputs: vec![bench_inputs.r1.clone()],
+        out_dir: out_dir.clone(),
+        outputs: Vec::new(),
+        params: params.clone(),
+        aux_images: HashMap::new(),
+    };
+    let execution = execute_stage_plan(&exec_plan)?;
 
-    if execution.output_fastq.is_some() {
+    if !execution.outputs.is_empty() {
         return Err(anyhow!("fastq.validate_pre must not output FASTQ data"));
     }
     if args.strict && policy.role == ToolRole::Authoritative && execution.exit_code != 0 {
@@ -321,8 +316,8 @@ fn run_validate_tool<S: ::std::hash::BuildHasher>(
         parameters: params.clone(),
     };
     let execution_metrics = ExecutionMetrics {
-        runtime_s,
-        memory_mb,
+        runtime_s: execution.runtime_s,
+        memory_mb: execution.memory_mb,
         exit_code: execution.exit_code,
     };
     let record = BenchmarkRecord {
@@ -385,74 +380,6 @@ fn build_validate_tool_policy(
         policies.insert(tool.tool_id.clone(), ToolPolicy { role: tool.role });
     }
     policies
-}
-
-fn validate_reads_total(tool: &str, input_stats: &SeqkitMetrics, stdout: &str) -> Result<u64> {
-    let reads_total = match tool {
-        "seqtk" | "fastqc" => input_stats.reads,
-        "fastqvalidator" | "fastqvalidator_official" => match parse_fastqvalidator_count(stdout) {
-            Ok(count) => count,
-            Err(err) => {
-                tracing::warn!(error = %err, "fastqvalidator count missing; falling back to input reads");
-                input_stats.reads
-            }
-        },
-        "fqtools" => stdout
-            .lines()
-            .next()
-            .ok_or_else(|| anyhow!("fqtools output missing"))?
-            .parse::<u64>()?,
-        _ => return Err(anyhow!("unsupported tool: {tool}")),
-    };
-    Ok(reads_total)
-}
-
-#[allow(clippy::items_after_test_module)]
-#[cfg(test)]
-mod tests {
-    use super::validate_reads_total;
-    use anyhow::Result;
-    use bijux_core::measure::SeqkitMetrics;
-
-    #[test]
-    fn validate_reads_total_uses_input_for_fastqc() -> Result<()> {
-        let input = SeqkitMetrics {
-            reads: 12,
-            bases: 120,
-            mean_q: 30.0,
-            gc_percent: 50.0,
-        };
-        let count = validate_reads_total("fastqc", &input, "")?;
-        assert_eq!(count, 12);
-        Ok(())
-    }
-
-    #[test]
-    fn validate_reads_total_parses_fqtools() -> Result<()> {
-        let input = SeqkitMetrics {
-            reads: 1,
-            bases: 10,
-            mean_q: 30.0,
-            gc_percent: 50.0,
-        };
-        let count = validate_reads_total("fqtools", &input, "42\n")?;
-        assert_eq!(count, 42);
-        Ok(())
-    }
-
-    #[test]
-    fn validate_reads_total_rejects_unknown_tool() {
-        let input = SeqkitMetrics {
-            reads: 1,
-            bases: 10,
-            mean_q: 30.0,
-            gc_percent: 50.0,
-        };
-        match validate_reads_total("mystery", &input, "") {
-            Ok(_) => panic!("expected unsupported tool"),
-            Err(err) => assert!(err.to_string().contains("unsupported tool")),
-        }
-    }
 }
 
 fn check_fastq_validate_comparability(records: &[BenchmarkRecord<FastqValidateMetrics>]) {

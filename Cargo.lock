@@ -270,6 +270,7 @@ dependencies = [
  "bijux-domain-fastq",
  "serde",
  "serde_json",
+ "sha2",
  "walkdir",
 ]
 

@@ -13,7 +13,7 @@ pub use crate::core::types::{
     default_domain_registry, trace_enabled, Capability, DataArtifact, Dependency, DomainRegistry,
     ExecutionContext, ExecutionManifest, ExecutionPlan, ExplainExclusion, ExplainPlan, MetricSet,
     PipelineSpec, Policy, ReadSet, RunPlan, SequenceCollection, StageGraph, StageNode,
-    StageRequirement, StageResult, ToolInvocation,
+    StageRequirement, ToolInvocation,
 };
 pub use crate::core::types::{init_logging, StdoutLogger};
 pub use crate::core::validator::validate_execution_outputs;
@@ -32,6 +32,7 @@ pub use crate::services::observer::{
     hash_file_sha256, input_fastq_stats, length_histogram, output_fastq_stats,
     parse_fastqvalidator_count, write_explain_plan, SeqkitMetrics,
 };
+pub use crate::services::stage_exec::{execute_stage_plan, StagePlan, StageResult};
 pub use bijux_environment::api::ResolvedImage;
 
 pub fn ensure_bench_runner(
