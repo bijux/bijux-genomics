@@ -3,8 +3,6 @@ use bijux_engine::api::bench_tools_dir;
 use bijux_engine::api::ResolvedImage;
 use bijux_engine::api::{
     normalize_correct_tool_list as engine_normalize_correct_tool_list,
-    normalize_filter_tool_list as engine_normalize_filter_tool_list,
-    normalize_merge_tool_list as engine_normalize_merge_tool_list,
     normalize_qc_post_tool_list as engine_normalize_qc_post_tool_list,
     normalize_screen_tool_list as engine_normalize_screen_tool_list,
     normalize_stats_tool_list as engine_normalize_stats_tool_list,
@@ -21,7 +19,9 @@ use bijux_core::ToolRole;
 
 use bijux_analyze::BenchmarkRecord;
 
-use bijux_domain_fastq::{AdapterTrimmingReportV1, RawFailure, RetentionReportV1, ToolReferenceV1};
+use bijux_stages::{
+    AdapterTrimmingReportV1, RawFailure, RetentionReportV1, StagePlanJson, ToolReferenceV1,
+};
 
 pub use bijux_engine::api::ExecutionManifest;
 pub use bijux_engine::api::{ExplainExclusion, ExplainPlan};
@@ -69,7 +69,7 @@ pub(crate) fn prepare_tool_run_dirs(
     tool: &str,
     run_id: &str,
 ) -> Result<RunDirs> {
-    let adapter_bank_path = bijux_domain_fastq::adapter_bank_path();
+    let adapter_bank_path = bijux_stages::adapter_bank_path();
     if !adapter_bank_path.exists() {
         return Err(anyhow!(
             "adapter bank missing at {}",
@@ -194,7 +194,7 @@ pub(crate) struct RunArtifactInput {
 
 pub(crate) fn write_effective_adapters(
     run_dirs: &RunDirs,
-    effective: &bijux_domain_fastq::EffectiveAdapterSet,
+    effective: &bijux_stages::EffectiveAdapterSet,
     bank_checksum: &str,
     presets_checksum: &str,
 ) -> Result<PathBuf> {
@@ -227,12 +227,12 @@ pub(crate) fn write_effective_adapters(
 
 pub(crate) fn write_adapter_bank_ref(
     run_dirs: &RunDirs,
-    bank: &bijux_domain_fastq::AdapterBankV1,
+    bank: &bijux_stages::AdapterBankV1,
     bank_path: &Path,
     presets_path: &Path,
     bank_checksum: &str,
     presets_checksum: &str,
-    effective: &bijux_domain_fastq::EffectiveAdapterSet,
+    effective: &bijux_stages::EffectiveAdapterSet,
 ) -> Result<PathBuf> {
     let root = run_artifacts_dir(run_dirs)?;
     let adapters_dir = root.join("adapters");
@@ -299,6 +299,21 @@ pub(crate) fn write_retention_report_artifact(
     let path = reports_dir.join("retention_report.json");
     std::fs::write(&path, serde_json::to_vec_pretty(report)?)
         .context("write retention_report.json")?;
+    Ok(path)
+}
+
+pub(crate) fn write_stage_plan_json(
+    run_dirs: &RunDirs,
+    file_name: &str,
+    plan: &StagePlanJson,
+) -> Result<PathBuf> {
+    let root = run_artifacts_dir(run_dirs)?;
+    let plans_dir = root.join("plans");
+    std::fs::create_dir_all(&plans_dir).context("create plans artifact dir")?;
+    let path = plans_dir.join(file_name);
+    std::fs::create_dir_all(path.parent().unwrap_or(&plans_dir))
+        .context("create plan parent dir")?;
+    std::fs::write(&path, serde_json::to_vec_pretty(plan)?).context("write stage plan json")?;
     Ok(path)
 }
 
@@ -407,14 +422,6 @@ pub(crate) fn normalize_tool_list(tools: &[String]) -> Result<Vec<String>> {
 
 pub(crate) fn normalize_validate_tool_list(tools: &[String]) -> Result<Vec<String>> {
     engine_normalize_validate_tool_list(tools)
-}
-
-pub(crate) fn normalize_filter_tool_list(tools: &[String]) -> Result<Vec<String>> {
-    engine_normalize_filter_tool_list(tools)
-}
-
-pub(crate) fn normalize_merge_tool_list(tools: &[String]) -> Result<Vec<String>> {
-    engine_normalize_merge_tool_list(tools)
 }
 
 pub(crate) fn normalize_correct_tool_list(tools: &[String]) -> Result<Vec<String>> {

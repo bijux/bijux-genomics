@@ -27,13 +27,13 @@ use bijux_analyze::{
     write_merge_report, write_qc_post_report, write_stats_report, write_trim_report,
     write_umi_report, write_validate_report,
 };
-use bijux_domain_fastq::{
+use bijux_engine::api::init_logging;
+use bijux_environment::image_qa::run_image_qa;
+use bijux_stages::{
     adapter_bank_path, adapter_presets_path, benchmark_runs, load_adapter_bank,
     load_adapter_presets, resolve_adapter_preset, write_benchmark_exports, AdapterBankV1,
     AdapterPresetsV1,
 };
-use bijux_engine::api::init_logging;
-use bijux_environment::image_qa::run_image_qa;
 use cli::{
     bench_args_correct, bench_args_filter, bench_args_from_trim, bench_args_from_validate,
     bench_args_merge, bench_args_preprocess, bench_args_qc_post, bench_args_screen,
@@ -430,6 +430,10 @@ fn handle_fastq_discovery(
             list_fastq_stages(registry);
             Ok(Some(true))
         }
+        FastqCommand::Stages => {
+            list_fastq_stage_registry();
+            Ok(Some(true))
+        }
         FastqCommand::ListTools { stage } => {
             let stage_id = normalize_fastq_stage_id(stage);
             list_fastq_tools(registry, &stage_id);
@@ -497,6 +501,12 @@ fn list_fastq_stages(registry: &bijux_core::ToolRegistry) {
     }
 }
 
+fn list_fastq_stage_registry() {
+    for stage in bijux_stages::fastq::registry() {
+        println!("{} v{}", stage.id, stage.version.0);
+    }
+}
+
 fn list_fastq_tools(registry: &bijux_core::ToolRegistry, stage_id: &str) {
     let mut tool_ids: Vec<_> = registry
         .tools_for_stage(stage_id)
@@ -528,17 +538,17 @@ fn list_adapter_presets(presets: &AdapterPresetsV1) {
     }
 }
 
-fn list_adapters(effective: &bijux_domain_fastq::EffectiveAdapterSet) {
+fn list_adapters(effective: &bijux_stages::EffectiveAdapterSet) {
     println!("preset: {}", effective.preset);
     println!("id\tcategory\tname\tread_scope\tenabled_by_default");
     for adapter in &effective.adapters {
         let read_scope = match adapter.read_scope {
-            bijux_domain_fastq::ReadScope::R1 => "r1",
-            bijux_domain_fastq::ReadScope::R2 => "r2",
-            bijux_domain_fastq::ReadScope::Both => "both",
-            bijux_domain_fastq::ReadScope::SingleEnd => "single_end",
-            bijux_domain_fastq::ReadScope::PairedEnd => "paired_end",
-            bijux_domain_fastq::ReadScope::Unknown => "unknown",
+            bijux_stages::ReadScope::R1 => "r1",
+            bijux_stages::ReadScope::R2 => "r2",
+            bijux_stages::ReadScope::Both => "both",
+            bijux_stages::ReadScope::SingleEnd => "single_end",
+            bijux_stages::ReadScope::PairedEnd => "paired_end",
+            bijux_stages::ReadScope::Unknown => "unknown",
         };
         println!(
             "{}\t{}\t{}\t{}\t{}",
@@ -549,7 +559,7 @@ fn list_adapters(effective: &bijux_domain_fastq::EffectiveAdapterSet) {
 
 fn explain_fastq_stage(registry: &bijux_core::ToolRegistry, stage_id: &str) -> Result<()> {
     if stage_id == "fastq.preprocess" {
-        let args = bijux_domain_fastq::args::BenchFastqPreprocessArgs {
+        let args = bijux_stages::args::BenchFastqPreprocessArgs {
             sample_id: "explain".to_string(),
             r1: PathBuf::from("reads.fastq.gz"),
             r2: None,
@@ -676,9 +686,9 @@ fn ensure_profile_run_base_dir(
 }
 
 fn qc_class_label(stage: &str) -> Option<&'static str> {
-    match bijux_domain_fastq::qc_class_for_stage(stage) {
-        Some(bijux_domain_fastq::QcClass::Structural) => Some("structural"),
-        Some(bijux_domain_fastq::QcClass::Statistical) => Some("statistical"),
+    match bijux_stages::qc_class_for_stage(stage) {
+        Some(bijux_stages::QcClass::Structural) => Some("structural"),
+        Some(bijux_stages::QcClass::Statistical) => Some("statistical"),
         None => None,
     }
 }

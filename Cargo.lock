@@ -118,9 +118,9 @@ dependencies = [
  "bijux-analyze",
  "bijux-bench",
  "bijux-core",
- "bijux-domain-fastq",
  "bijux-engine",
  "bijux-environment",
+ "bijux-stages",
  "chrono",
  "clap",
  "predicates",
@@ -258,6 +258,18 @@ dependencies = [
  "thiserror 1.0.69",
  "tracing",
  "uuid",
+]
+
+[[package]]
+name = "bijux-stages"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bijux-core",
+ "bijux-domain-fastq",
+ "serde",
+ "serde_json",
+ "walkdir",
 ]
 
 [[package]]

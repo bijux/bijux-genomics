@@ -14,23 +14,24 @@ use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 use tracing::warn;
 use uuid::Uuid;
 
-use bijux_domain_fastq::ratio_u64;
-use bijux_domain_fastq::{
-    inspect_headers, log_header_warnings, preflight_stage, FastqArtifact, FastqArtifactKind,
-};
 use bijux_engine::api::validate_execution_outputs;
 use bijux_engine::api::{bench_base_dir, bench_tools_dir};
 use bijux_engine::api::{cleanup_execution, execution_memory_mb, run_merge_execution};
 use bijux_engine::api::{hash_file_sha256, input_fastq_stats, output_fastq_stats, SeqkitMetrics};
 use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
+use bijux_stages::{
+    inspect_headers, log_header_warnings, preflight_stage, FastqArtifact, FastqArtifactKind,
+};
+use bijux_stages::{ratio_u64, StagePlanJson};
 
 use crate::fastq_exec::helpers::{
-    compute_run_id, normalize_merge_tool_list, params_hash, prepare_tool_run_dirs,
-    resolve_image_for_run, write_execution_logs, write_explain_md, write_explain_plan_json,
-    write_metrics_json, write_retention_report_placeholder, write_run_manifest, ExecutionManifest,
+    compute_run_id, params_hash, prepare_tool_run_dirs, resolve_image_for_run,
+    write_execution_logs, write_explain_md, write_explain_plan_json, write_metrics_json,
+    write_retention_report_placeholder, write_run_manifest, write_stage_plan_json,
+    ExecutionManifest,
 };
 use crate::fastq_exec::helpers::{filter_tools_by_role, BenchOutcome};
-use bijux_domain_fastq::RawFailure;
+use bijux_stages::RawFailure;
 
 /// Run the FASTQ benchmark stage.
 ///
@@ -40,9 +41,9 @@ pub fn bench_fastq_merge<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
     runner_override: Option<RunnerKind>,
-    args: &bijux_domain_fastq::args::BenchFastqMergeArgs,
+    args: &bijux_stages::args::BenchFastqMergeArgs,
 ) -> Result<BenchOutcome<FastqMergeMetrics>> {
-    let tools = normalize_merge_tool_list(&args.tools)?;
+    let tools = bijux_stages::fastq::merge::normalize_merge_tool_list(&args.tools)?;
     let (_r1, _r2) = FastqArtifact::paired_end(&args.r1, &args.r2);
     preflight_stage("fastq.merge", FastqArtifactKind::PairedEnd)?;
     let header = inspect_headers(&args.r1, Some(&args.r2), false)?;
@@ -152,7 +153,7 @@ fn prepare_merge_bench<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
     runner_override: Option<RunnerKind>,
-    args: &bijux_domain_fastq::args::BenchFastqMergeArgs,
+    args: &bijux_stages::args::BenchFastqMergeArgs,
 ) -> Result<MergeBenchInputs> {
     let runner = ensure_bench_runner(platform, runner_override)?;
     let bench_dir = bench_base_dir(&args.out, "merge", &args.sample_id);
@@ -162,7 +163,7 @@ fn prepare_merge_bench<S: ::std::hash::BuildHasher>(
 
     println!(
         "planned tools: {}",
-        normalize_merge_tool_list(&args.tools)?.join(", ")
+        bijux_stages::fastq::merge::normalize_merge_tool_list(&args.tools)?.join(", ")
     );
 
     let r1 = args.r1.canonicalize().context("resolve r1 path")?;
@@ -202,7 +203,7 @@ fn prepare_merge_bench<S: ::std::hash::BuildHasher>(
 fn run_merge_tool<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
-    args: &bijux_domain_fastq::args::BenchFastqMergeArgs,
+    args: &bijux_stages::args::BenchFastqMergeArgs,
     bench_inputs: &MergeBenchInputs,
     tool: &str,
 ) -> Result<BenchmarkRecord<FastqMergeMetrics>> {
@@ -232,6 +233,10 @@ fn run_merge_tool<S: ::std::hash::BuildHasher>(
     );
     let run_dirs = prepare_tool_run_dirs(&bench_inputs.tools_root, tool, &run_id)?;
     let out_dir = run_dirs.artifacts_dir.clone();
+    let plan =
+        bijux_stages::fastq::merge::plan_merge(tool, &bench_inputs.r1, &bench_inputs.r2, &out_dir)?;
+    let plan_json = StagePlanJson::from_plan(&plan);
+    let _plan_path = write_stage_plan_json(&run_dirs, "fastq_merge.plan.json", &plan_json)?;
     let start = Instant::now();
     let container_name = format!("bijux-bench-{}-{}", args.sample_id, Uuid::new_v4());
     let execution = run_merge_execution(
@@ -334,7 +339,7 @@ fn run_merge_tool<S: ::std::hash::BuildHasher>(
     let envelope = &metric_set;
     write_metrics_json(&run_dirs, &execution_metrics, envelope)?;
     write_retention_report_placeholder(&run_dirs, "fastq.merge", tool, &params)?;
-    let adapter_bank_path = bijux_domain_fastq::adapter_bank_path();
+    let adapter_bank_path = bijux_stages::adapter_bank_path();
     write_run_manifest(&run_dirs, "fastq.merge", tool, &adapter_bank_path, &[])?;
     let record = BenchmarkRecord {
         context,

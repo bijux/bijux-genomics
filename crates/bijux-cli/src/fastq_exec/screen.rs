@@ -15,7 +15,7 @@ pub fn bench_fastq_screen<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
     runner_override: Option<RunnerKind>,
-    args: &bijux_domain_fastq::args::BenchFastqScreenArgs,
+    args: &bijux_stages::args::BenchFastqScreenArgs,
 ) -> Result<()> {
     let _ = runner_override;
     let tools = normalize_screen_tool_list(&args.tools)?;

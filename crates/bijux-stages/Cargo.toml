@@ -1,0 +1,16 @@
+[package]
+name = "bijux-stages"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bijux-core = { path = "../bijux-core" }
+bijux-domain-fastq = { path = "../bijux-domain-fastq" }
+serde.workspace = true
+serde_json.workspace = true
+anyhow.workspace = true
+
+[dev-dependencies]
+anyhow.workspace = true
+serde_json.workspace = true
+walkdir.workspace = true

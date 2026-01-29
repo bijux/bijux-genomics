@@ -117,6 +117,14 @@ fn engine_does_not_import_domain_crates() {
 }
 
 #[test]
+fn engine_does_not_import_cli() {
+    assert_no_imports(
+        "crates/bijux-engine/src",
+        &["bijux-cli", "bijux_cli", "crate::cli"],
+    );
+}
+
+#[test]
 fn engine_core_does_not_embed_tool_ids() {
     let tool_ids = [
         "adapterremoval",

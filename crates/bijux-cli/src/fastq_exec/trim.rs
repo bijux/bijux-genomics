@@ -12,66 +12,27 @@ use bijux_engine::api::{ensure_bench_runner, load_registry};
 use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 use uuid::Uuid;
 
-use bijux_domain_fastq::{
-    adapter_bank_path, adapter_presets_path, contract_for_stage, inspect_headers,
-    load_adapter_bank, load_adapter_presets, log_header_warnings, normalize_outputs,
-    preflight_stage, resolve_adapter_preset, FastqArtifact, RetentionReportV1, ToolReferenceV1,
-};
 use bijux_engine::api::validate_execution_outputs;
 use bijux_engine::api::{bench_base_dir, bench_tools_dir};
 use bijux_engine::api::{cleanup_execution, execution_memory_mb, run_tool_execution};
 use bijux_engine::api::{hash_file_sha256, input_fastq_stats, output_fastq_stats};
 use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
+use bijux_stages::{
+    adapter_bank_path, adapter_presets_path, contract_for_stage, inspect_headers,
+    load_adapter_bank, load_adapter_presets, log_header_warnings, normalize_outputs,
+    preflight_stage, resolve_adapter_preset, FastqArtifact, RetentionReportV1, StagePlanJson,
+    ToolReferenceV1,
+};
 
 use crate::fastq_exec::helpers::{
     compute_run_id, normalize_tool_list, params_hash, prepare_tool_run_dirs, resolve_image_for_run,
     write_adapter_bank_ref, write_adapter_trimming_report, write_effective_adapters,
     write_execution_logs, write_explain_md, write_explain_plan_json, write_metrics_json,
     write_retention_report_artifact, write_retention_report_placeholder, write_run_manifest,
-    ExecutionManifest, RunArtifactInput,
+    write_stage_plan_json, ExecutionManifest, RunArtifactInput,
 };
 use crate::fastq_exec::helpers::{filter_tools_by_role, BenchOutcome};
-use bijux_domain_fastq::RawFailure;
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-#[cfg(test)]
-pub struct TrimPlan {
-    pub tool: String,
-    pub input: std::path::PathBuf,
-    pub output: std::path::PathBuf,
-}
-
-#[cfg(test)]
-fn trim_output_name(tool: &str) -> Option<&'static str> {
-    match tool {
-        "fastp" => Some("fastp.fastq.gz"),
-        "cutadapt" => Some("cutadapt.fastq.gz"),
-        "atropos" => Some("atropos.fastq.gz"),
-        "bbduk" => Some("bbduk.fastq.gz"),
-        "adapterremoval" => Some("adapterremoval.fastq.gz"),
-        "trimmomatic" => Some("trimmomatic.fastq.gz"),
-        "trim_galore" => Some("trimmed_trimmed.fq.gz"),
-        "seqpurge" => Some("seqpurge.fastq.gz"),
-        "prinseq" => Some("prinseq_good.fastq"),
-        "seqkit" => Some("seqkit.fastq.gz"),
-        _ => None,
-    }
-}
-
-/// Build a trim command plan.
-///
-/// # Errors
-/// Returns an error if the tool is unsupported.
-#[cfg(test)]
-pub fn plan_trim(tool: &str, r1: &std::path::Path, out_dir: &std::path::Path) -> Result<TrimPlan> {
-    let output_name =
-        trim_output_name(tool).ok_or_else(|| anyhow!("unsupported trim tool: {tool}"))?;
-    Ok(TrimPlan {
-        tool: tool.to_string(),
-        input: r1.to_path_buf(),
-        output: out_dir.join(output_name),
-    })
-}
+use bijux_stages::RawFailure;
 
 #[allow(clippy::too_many_lines)]
 /// Run the FASTQ benchmark stage.
@@ -82,7 +43,7 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
     runner_override: Option<RunnerKind>,
-    args: &bijux_domain_fastq::args::BenchFastqTrimArgs,
+    args: &bijux_stages::args::BenchFastqTrimArgs,
 ) -> Result<BenchOutcome<FastqTrimMetrics>> {
     let runner = ensure_bench_runner(platform, runner_override)?;
     let artifact = FastqArtifact::single_end(&args.r1);
@@ -180,6 +141,15 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
                 compute_run_id("fastq.trim", &tool, &image_digest, &input_hash, &param_hash);
             let run_dirs = prepare_tool_run_dirs(&tools_root, &tool, &run_id)?;
             let out_dir = run_dirs.artifacts_dir.clone();
+            let user_config = bijux_stages::fastq::trim::TrimUserConfig {
+                tool: tool.clone(),
+                r1: r1.clone(),
+                out_dir: out_dir.clone(),
+            };
+            let effective = bijux_stages::fastq::trim::resolve_config(user_config);
+            let plan = bijux_stages::fastq::trim::plan_from_config(&effective)?;
+            let plan_json = StagePlanJson::from_plan(&plan);
+            let _plan_path = write_stage_plan_json(&run_dirs, "fastq_trim.plan.json", &plan_json)?;
             let start = Instant::now();
             let container_name = format!("bijux-bench-{}-{}", args.sample_id, Uuid::new_v4());
             let execution =
@@ -271,7 +241,7 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
                 bases_trimmed_total: Some(0),
                 top_k_adapters: Vec::new(),
             };
-            let delta = bijux_domain_fastq::compute_delta(input_stats, output_stats);
+            let delta = bijux_stages::compute_delta(input_stats, output_stats);
             let metric_set = metric_set(FastqTrimMetrics {
                 reads_in: input_stats.reads,
                 reads_out: output_stats.reads,
@@ -376,35 +346,8 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
 #[allow(clippy::items_after_test_module)]
 #[cfg(test)]
 mod tests {
-    use super::{plan_trim, trim_output_name};
     use anyhow::Result;
-    use std::path::Path;
     use tempfile::TempDir;
-
-    #[test]
-    fn trim_output_names_are_defined_for_known_tools() {
-        assert_eq!(trim_output_name("fastp"), Some("fastp.fastq.gz"));
-        assert_eq!(
-            trim_output_name("trimmomatic"),
-            Some("trimmomatic.fastq.gz")
-        );
-        assert_eq!(trim_output_name("unknown"), None);
-    }
-
-    #[test]
-    fn plan_trim_builds_expected_paths() -> Result<()> {
-        let plan = plan_trim("fastp", Path::new("reads.fastq.gz"), Path::new("out"))?;
-        assert_eq!(plan.output.to_string_lossy(), "out/fastp.fastq.gz");
-        Ok(())
-    }
-
-    #[test]
-    fn plan_trim_rejects_unknown_tool() {
-        match plan_trim("mystery", Path::new("reads.fastq.gz"), Path::new("out")) {
-            Ok(_) => panic!("expected unsupported trim tool"),
-            Err(err) => assert!(err.to_string().contains("unsupported trim tool")),
-        }
-    }
 
     #[test]
     fn default_adapter_preset_writes_effective_adapters() -> Result<()> {
@@ -415,12 +358,12 @@ mod tests {
             .ok_or_else(|| anyhow::anyhow!("repo root not found"))?;
         let prev_dir = std::env::current_dir()?;
         std::env::set_current_dir(repo_root)?;
-        let bank_path = bijux_domain_fastq::adapter_bank_path();
-        let presets_path = bijux_domain_fastq::adapter_presets_path();
-        let bank = bijux_domain_fastq::load_adapter_bank(&bank_path)?;
-        let presets = bijux_domain_fastq::load_adapter_presets(&presets_path, &bank)?;
+        let bank_path = bijux_stages::adapter_bank_path();
+        let presets_path = bijux_stages::adapter_presets_path();
+        let bank = bijux_stages::load_adapter_bank(&bank_path)?;
+        let presets = bijux_stages::load_adapter_presets(&presets_path, &bank)?;
         let effective =
-            bijux_domain_fastq::resolve_adapter_preset(&bank, &presets, "default_adna", &[], &[])?;
+            bijux_stages::resolve_adapter_preset(&bank, &presets, "default_adna", &[], &[])?;
         let tmp = TempDir::new()?;
         let tools_root = tmp.path().join("tools");
         let run_dirs =
