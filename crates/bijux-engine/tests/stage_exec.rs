@@ -52,6 +52,7 @@ fn execute_plan_runs_trim() -> Result<()> {
     let result = execute_stage_plan(&exec_plan)?;
     assert_eq!(result.exit_code, 0);
     assert!(output_path.exists());
+    assert!(out_dir.path().join("engine_execution.json").exists());
     Ok(())
 }
 
