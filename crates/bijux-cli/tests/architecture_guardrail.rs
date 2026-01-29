@@ -38,7 +38,6 @@ fn cli_fastq_exec_does_not_introduce_new_modules() -> Result<(), Box<dyn std::er
     let expected = vec![
         "correct.rs",
         "filter.rs",
-        "helpers.rs",
         "merge.rs",
         "mod.rs",
         "preprocess.rs",
@@ -260,6 +259,67 @@ fn cli_fastq_exec_size_guardrail() -> Result<(), Box<dyn std::error::Error>> {
     assert!(
         offenders.is_empty(),
         "fastq_exec files must stay small: {offenders:?}"
+    );
+    Ok(())
+}
+
+#[test]
+fn cli_fastq_exec_imports_are_thin() -> Result<(), Box<dyn std::error::Error>> {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let repo_root = manifest_dir
+        .parent()
+        .and_then(|p| p.parent())
+        .ok_or("repo root not found")?;
+    let root = repo_root.join("crates/bijux-cli/src/fastq_exec");
+    let mut files = Vec::new();
+    collect_rs_files(&root, &mut files);
+    let allowed_prefixes = [
+        "std::",
+        "crate::",
+        "bijux_engine::api",
+        "bijux_stages_fastq",
+        "bijux_core",
+        "clap",
+        "correct::",
+        "filter::",
+        "merge::",
+        "preprocess::",
+        "preprocess_exec::",
+        "qc_post::",
+        "screen::",
+        "stats_neutral::",
+        "trim::",
+        "umi::",
+        "validate_pre::",
+    ];
+    let mut offenders = Vec::new();
+    for path in files {
+        let contents = fs::read_to_string(&path)?;
+        for line in contents.lines() {
+            let trimmed = line.trim_start();
+            if let Some(rest) = trimmed.strip_prefix("use ") {
+                let path_part = rest.split([';', ' ']).next().unwrap_or("");
+                if !allowed_prefixes
+                    .iter()
+                    .any(|prefix| path_part.starts_with(prefix))
+                {
+                    offenders.push(format!("{} -> {}", path.display(), path_part));
+                }
+            }
+            if let Some(rest) = trimmed.strip_prefix("pub use ") {
+                let path_part = rest.split([';', ' ']).next().unwrap_or("");
+                if !allowed_prefixes
+                    .iter()
+                    .any(|prefix| path_part.starts_with(prefix))
+                {
+                    offenders.push(format!("{} -> {}", path.display(), path_part));
+                }
+            }
+        }
+    }
+    assert!(
+        offenders.is_empty(),
+        "fastq_exec imports must be thin CLI adapters: {offenders:?}"
     );
     Ok(())
 }

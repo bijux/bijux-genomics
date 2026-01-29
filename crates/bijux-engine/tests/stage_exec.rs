@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::path::Path;
 
 use anyhow::Result;
-use bijux_engine::api::{execute_stage_plan, resolve_image_for_run, StagePlan};
+use bijux_engine::api::{execute_plan, resolve_image_for_run, StagePlan};
 use bijux_environment::api::{load_image_catalog, load_platform};
 use tempfile::TempDir;
 
@@ -49,7 +49,7 @@ fn execute_plan_runs_trim() -> Result<()> {
         params: serde_json::json!({}),
         aux_images: HashMap::new(),
     };
-    let result = execute_stage_plan(&exec_plan)?;
+    let result = execute_plan(&exec_plan)?;
     assert_eq!(result.exit_code, 0);
     assert!(output_path.exists());
     assert!(out_dir.path().join("engine_execution.json").exists());
@@ -85,7 +85,7 @@ fn execute_plan_runs_validate() -> Result<()> {
         params: serde_json::json!({}),
         aux_images: HashMap::new(),
     };
-    let result = execute_stage_plan(&exec_plan)?;
+    let result = execute_plan(&exec_plan)?;
     assert_eq!(result.exit_code, 0);
     Ok(())
 }
@@ -120,7 +120,7 @@ fn execute_plan_runs_merge() -> Result<()> {
         params: serde_json::json!({}),
         aux_images: HashMap::new(),
     };
-    let result = execute_stage_plan(&exec_plan)?;
+    let result = execute_plan(&exec_plan)?;
     assert_eq!(result.exit_code, 0);
     Ok(())
 }

@@ -140,3 +140,11 @@ pub fn execution_memory_mb(container_name: &str) -> Result<f64> {
 pub fn cleanup_execution(container_name: &str) -> Result<()> {
     docker_rm(container_name)
 }
+
+/// Execute a stage plan through the public engine API.
+///
+/// # Errors
+/// Returns an error if the execution fails or the plan is invalid.
+pub fn execute_plan(plan: &StagePlan) -> Result<StageResultV1> {
+    execute_stage_plan(plan)
+}
