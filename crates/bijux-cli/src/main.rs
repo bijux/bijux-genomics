@@ -13,6 +13,8 @@ use tracing::{info, warn};
 mod cli;
 mod env;
 mod fastq_exec;
+mod fastq_router;
+mod fastq_stats_neutral;
 mod replay;
 mod utils;
 
@@ -427,7 +429,7 @@ fn handle_fastq_discovery(
 ) -> Result<Option<bool>> {
     match command {
         FastqCommand::ListStages => {
-            list_fastq_stages(registry);
+            list_fastq_stages();
             Ok(Some(true))
         }
         FastqCommand::Stages => {
@@ -488,16 +490,9 @@ fn handle_fastq_discovery(
     }
 }
 
-fn list_fastq_stages(registry: &bijux_core::ToolRegistry) {
-    let mut stage_ids: Vec<_> = registry
-        .stages()
-        .values()
-        .filter(|stage| stage.domain == "fastq")
-        .map(|stage| stage.stage_id.clone())
-        .collect();
-    stage_ids.sort();
-    for stage_id in stage_ids {
-        println!("{stage_id}");
+fn list_fastq_stages() {
+    for stage in bijux_stages_fastq::fastq::registry() {
+        println!("{}", stage.id);
     }
 }
 
