@@ -21,7 +21,7 @@ use bijux_core::ToolRole;
 
 use bijux_analyze::BenchmarkRecord;
 
-use bijux_domain_fastq::RawFailure;
+use bijux_domain_fastq::{AdapterTrimmingReportV1, RawFailure, RetentionReportV1, ToolReferenceV1};
 
 pub use bijux_engine::api::ExecutionManifest;
 pub use bijux_engine::api::{ExplainExclusion, ExplainPlan};
@@ -128,6 +128,9 @@ pub(crate) fn write_run_manifest(
     extra_artifacts: &[RunArtifactInput],
 ) -> Result<()> {
     let mut artifacts = Vec::new();
+    let has_retention_override = extra_artifacts
+        .iter()
+        .any(|artifact| artifact.name == "retention_report");
     let manifest_hash = bijux_engine::api::hash_file_sha256(&run_dirs.manifest_path)?;
     artifacts.push(serde_json::json!({
         "name": "execution_manifest",
@@ -140,12 +143,14 @@ pub(crate) fn write_run_manifest(
         "path": run_dirs.metrics_path,
         "sha256": metrics_hash
     }));
-    let retention_hash = bijux_engine::api::hash_file_sha256(&run_dirs.retention_report_path)?;
-    artifacts.push(serde_json::json!({
-        "name": "retention_report",
-        "path": run_dirs.retention_report_path,
-        "sha256": retention_hash
-    }));
+    if !has_retention_override {
+        let retention_hash = bijux_engine::api::hash_file_sha256(&run_dirs.retention_report_path)?;
+        artifacts.push(serde_json::json!({
+            "name": "retention_report",
+            "path": run_dirs.retention_report_path,
+            "sha256": retention_hash
+        }));
+    }
     let adapter_hash = bijux_engine::api::hash_file_sha256(adapter_bank_path)?;
     artifacts.push(serde_json::json!({
         "name": "adapter_bank",
@@ -250,36 +255,50 @@ pub(crate) fn write_adapter_bank_ref(
     Ok(path)
 }
 
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn write_adapter_trimming_report(
     run_dirs: &RunDirs,
     tool: &str,
+    tool_version: &str,
     params: &serde_json::Value,
-    adapter_ids: &[String],
     total_reads: u64,
+    reads_with_adapter: u64,
+    bases_trimmed_total: u64,
+    per_adapter_counts: std::collections::BTreeMap<String, u64>,
 ) -> Result<PathBuf> {
     let root = run_artifacts_dir(run_dirs)?;
     let reports_dir = root.join("reports");
     std::fs::create_dir_all(&reports_dir).context("create reports artifact dir")?;
     let path = reports_dir.join("adapter_trimming_report.json");
-    let counts: std::collections::BTreeMap<String, u64> = if adapter_ids.is_empty() {
-        std::collections::BTreeMap::new()
-    } else {
-        adapter_ids.iter().map(|id| (id.clone(), 0)).collect()
+    let report = AdapterTrimmingReportV1 {
+        schema_version: "bijux.adapter_trimming_report.v1".to_string(),
+        reads_with_adapter,
+        total_reads,
+        bases_trimmed_total,
+        per_adapter_counts,
+        top_k_adapters: Vec::new(),
+        tool: ToolReferenceV1 {
+            id: tool.to_string(),
+            stage: "fastq.trim".to_string(),
+            version: tool_version.to_string(),
+            params: params.clone(),
+        },
     };
-    let payload = serde_json::json!({
-        "schema_version": "bijux.adapter_trimming_report.v1",
-        "per_adapter_counts": counts,
-        "reads_with_adapter": "unknown/TBD",
-        "total_reads": total_reads,
-        "bases_trimmed_total": "unknown/TBD",
-        "top_k_adapters": [],
-        "tool": {
-            "id": tool,
-            "params": params
-        }
-    });
-    std::fs::write(&path, serde_json::to_vec_pretty(&payload)?)
+    std::fs::write(&path, serde_json::to_vec_pretty(&report)?)
         .context("write adapter_trimming_report.json")?;
+    Ok(path)
+}
+
+pub(crate) fn write_retention_report_artifact(
+    run_dirs: &RunDirs,
+    report: &RetentionReportV1,
+) -> Result<PathBuf> {
+    let root = run_artifacts_dir(run_dirs)?;
+    let reports_dir = root.join("reports");
+    std::fs::create_dir_all(&reports_dir).context("create reports artifact dir")?;
+    let path = reports_dir.join("retention_report.json");
+    std::fs::write(&path, serde_json::to_vec_pretty(report)?)
+        .context("write retention_report.json")?;
     Ok(path)
 }
 

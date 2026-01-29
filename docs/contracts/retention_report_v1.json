@@ -54,6 +54,11 @@
         "version": { "type": "string" },
         "params": { "type": "object" }
       }
+    },
+    "raw_reads_total": {
+      "description": "Raw reads total observed pre-trim (if available).",
+      "type": "integer",
+      "minimum": 0
     }
   }
 }

@@ -1,6 +1,8 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
+use serde_json::Value;
+
 fn repo_root() -> Result<PathBuf, Box<dyn std::error::Error>> {
     let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     match manifest_dir.parent().and_then(|p| p.parent()) {
@@ -14,6 +16,7 @@ fn assert_file_exists(path: &Path) {
 }
 
 #[test]
+#[allow(clippy::too_many_lines)]
 fn fastq_trim_emits_contract_artifacts() -> Result<(), Box<dyn std::error::Error>> {
     if std::env::var("BIJUX_E2E").is_err() {
         return Ok(());
@@ -53,6 +56,7 @@ fn fastq_trim_emits_contract_artifacts() -> Result<(), Box<dyn std::error::Error
     assert_file_exists(&run_dir.join("run_artifacts/adapters/effective_adapters.json"));
     assert_file_exists(&run_dir.join("run_artifacts/adapters/adapter_bank_ref.json"));
     assert_file_exists(&run_dir.join("run_artifacts/reports/adapter_trimming_report.json"));
+    assert_file_exists(&run_dir.join("run_artifacts/reports/retention_report.json"));
 
     let manifest_data = fs::read_to_string(run_dir.join("run_manifest.json"))?;
     assert!(
@@ -70,6 +74,46 @@ fn fastq_trim_emits_contract_artifacts() -> Result<(), Box<dyn std::error::Error
     assert!(
         manifest_data.contains("adapter_trimming_report"),
         "adapter trimming report missing from run_manifest"
+    );
+    assert!(
+        manifest_data.contains("retention_report"),
+        "retention report missing from run_manifest"
+    );
+
+    let adapter_report: Value = serde_json::from_str(&fs::read_to_string(
+        run_dir.join("run_artifacts/reports/adapter_trimming_report.json"),
+    )?)?;
+    let reads_with_adapter = adapter_report["reads_with_adapter"]
+        .as_u64()
+        .ok_or("reads_with_adapter missing or not u64")?;
+    let total_reads = adapter_report["total_reads"]
+        .as_u64()
+        .ok_or("total_reads missing or not u64")?;
+    let _bases_trimmed_total = adapter_report["bases_trimmed_total"]
+        .as_u64()
+        .ok_or("bases_trimmed_total missing or not u64")?;
+    assert!(
+        reads_with_adapter <= total_reads,
+        "reads_with_adapter exceeds total_reads"
+    );
+    if let Some(counts) = adapter_report["per_adapter_counts"].as_object() {
+        for (id, value) in counts {
+            let count = value
+                .as_u64()
+                .ok_or(format!("per_adapter_counts.{id} not u64"))?;
+            assert!(count <= total_reads, "adapter count exceeds total_reads");
+        }
+    }
+
+    let retention_report: Value = serde_json::from_str(&fs::read_to_string(
+        run_dir.join("run_artifacts/reports/retention_report.json"),
+    )?)?;
+    let definition = retention_report["definition"]
+        .as_str()
+        .ok_or("retention definition missing")?;
+    assert!(
+        !definition.trim().is_empty(),
+        "retention definition should be non-empty"
     );
 
     let run_index_dir = artifacts.join("runs");
