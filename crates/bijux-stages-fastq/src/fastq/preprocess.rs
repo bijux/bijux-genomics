@@ -1,7 +1,7 @@
 use bijux_core::domain::PipelineSpec;
 use bijux_core::{StageId, StageVersion, ToolId};
 
-use crate::plan::{ArtifactRef, StageIO, StagePlan, StagePlanJson};
+use crate::plan::{ArtifactRef, StageIO, StagePlan as StagePlanTrait, StagePlanJson};
 
 pub const STAGE_ID: &str = "fastq.preprocess";
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
@@ -11,6 +11,16 @@ pub struct PreprocessPlan {
     pub r1: std::path::PathBuf,
     pub r2: Option<std::path::PathBuf>,
     pub pipeline: PipelineSpec,
+}
+
+#[derive(Debug, Clone)]
+pub struct StagePlan {
+    pub stage: StageId,
+    pub tool: ToolId,
+    pub plan: StagePlanJson,
+    pub inputs: Vec<std::path::PathBuf>,
+    pub outputs: Vec<std::path::PathBuf>,
+    pub out_dir: std::path::PathBuf,
 }
 
 #[must_use]
@@ -26,15 +36,6 @@ pub fn plan_preprocess(args: &crate::args::BenchFastqPreprocessArgs) -> Preproce
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct PreprocessStagePlanV1 {
-    pub stage: StageId,
-    pub tool: ToolId,
-    pub plan: StagePlanJson,
-    pub inputs: Vec<std::path::PathBuf>,
-    pub outputs: Vec<std::path::PathBuf>,
-}
-
 #[allow(clippy::too_many_lines)]
 pub fn plan_preprocess_pipeline<F>(
     stages: &[String],
@@ -42,7 +43,7 @@ pub fn plan_preprocess_pipeline<F>(
     r1: &std::path::Path,
     r2: Option<&std::path::Path>,
     mut out_dir_for_stage: F,
-) -> anyhow::Result<Vec<PreprocessStagePlanV1>>
+) -> anyhow::Result<Vec<StagePlan>>
 where
     F: FnMut(
         &str,
@@ -186,12 +187,13 @@ where
             }
             _ => return Err(anyhow::anyhow!("unsupported stage {stage}")),
         };
-        plans.push(PreprocessStagePlanV1 {
+        plans.push(StagePlan {
             stage: StageId(stage.clone()),
             tool: ToolId(tool.clone()),
             plan,
             inputs,
             outputs,
+            out_dir,
         });
         current_r1 = next_r1;
         current_r2 = next_r2;
@@ -199,7 +201,7 @@ where
     Ok(plans)
 }
 
-impl StagePlan for PreprocessPlan {
+impl StagePlanTrait for PreprocessPlan {
     fn stage_id(&self) -> StageId {
         StageId(STAGE_ID.to_string())
     }

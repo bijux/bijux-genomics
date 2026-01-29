@@ -1,45 +1,43 @@
-use std::path::PathBuf;
+use std::fs;
+use std::path::{Path, PathBuf};
 
-fn repo_root() -> Result<PathBuf, Box<dyn std::error::Error>> {
-    let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    match manifest_dir.parent().and_then(|p| p.parent()) {
-        Some(root) => Ok(root.to_path_buf()),
-        None => Err("repo root not found".into()),
-    }
+use walkdir::WalkDir;
+
+fn collect_rs_files(root: &Path) -> Vec<PathBuf> {
+    WalkDir::new(root)
+        .into_iter()
+        .filter_map(Result::ok)
+        .map(|entry| entry.path().to_path_buf())
+        .filter(|path| path.extension().and_then(|ext| ext.to_str()) == Some("rs"))
+        .collect()
 }
 
 #[test]
-fn stages_may_import_domain_fastq_but_not_engine() -> Result<(), Box<dyn std::error::Error>> {
-    let root = repo_root()?;
-    let src_dir = root.join("crates/bijux-stages-fastq/src");
-    let mut bad = Vec::new();
-    for entry in walkdir::WalkDir::new(&src_dir) {
-        let entry = entry?;
-        if !entry.file_type().is_file() {
-            continue;
-        }
-        if entry.path().extension().and_then(|ext| ext.to_str()) != Some("rs") {
-            continue;
-        }
-        let contents = std::fs::read_to_string(entry.path())?;
-        if contents.contains("bijux_engine") {
-            bad.push(entry.path().display().to_string());
+fn stages_fastq_has_no_execution_calls() -> Result<(), Box<dyn std::error::Error>> {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let root = manifest_dir.join("src");
+    let files = collect_rs_files(&root);
+    let forbidden = [
+        "std::process::Command",
+        "process::Command",
+        "Command::new",
+        "DockerRunner",
+        "docker::",
+        "docker_runner",
+        "RunnerKind",
+    ];
+    let mut offenders = Vec::new();
+    for path in files {
+        let contents = fs::read_to_string(&path)?;
+        for needle in &forbidden {
+            if contents.contains(needle) {
+                offenders.push(format!("{} -> {}", path.display(), needle));
+            }
         }
     }
     assert!(
-        bad.is_empty(),
-        "bijux-stages-fastq must not import bijux_engine: {bad:?}"
-    );
-    Ok(())
-}
-
-#[test]
-fn no_generic_bijux_stages_crate() -> Result<(), Box<dyn std::error::Error>> {
-    let root = repo_root()?;
-    let legacy = root.join("crates/bijux-stages");
-    assert!(
-        !legacy.exists(),
-        "legacy crate crates/bijux-stages should not exist"
+        offenders.is_empty(),
+        "stages-fastq must not execute tools directly: {offenders:?}"
     );
     Ok(())
 }

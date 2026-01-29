@@ -2,401 +2,88 @@ use std::collections::HashMap;
 use std::fs;
 
 use anyhow::{anyhow, Context, Result};
-use bijux_analyze::{
-    append_jsonl, fetch_fastq_trim_v2, insert_fastq_trim_v2, metric_set, AdapterTrimmingSummary,
-    BenchmarkContext, BenchmarkRecord, FastqDeltaMetrics, FastqTrimMetrics,
-};
-use bijux_core::measure::ExecutionMetrics;
+use bijux_engine::api::{bench_base_dir, bench_tools_dir, PlatformSpec, RunnerKind, ToolImageSpec};
 use bijux_engine::api::{ensure_bench_runner, filter_tools_by_role, load_registry};
-use bijux_engine::api::{PlatformSpec, RunnerKind, ToolImageSpec};
-use uuid::Uuid;
-
-use bijux_engine::api::validate_execution_outputs;
-use bijux_engine::api::{
-    bench_base_dir, bench_tools_dir, compute_run_id, execute_stage_plan, hash_file_sha256,
-    input_fastq_stats, normalize_trim_tool_list, output_fastq_stats, params_hash,
-    prepare_tool_run_dirs, resolve_image_for_run, write_execution_logs, write_metrics_json,
-    write_retention_report_placeholder, write_run_manifest, write_stage_plan_json,
-    RunArtifactInput, StagePlan,
-};
 use bijux_engine::api::{ensure_image_qa_passed, ensure_tool_qa_passed};
-use bijux_stages_fastq::artifacts::{
-    write_adapter_bank_ref, write_adapter_trimming_report, write_effective_adapters,
-    write_retention_report_artifact,
+use bijux_engine::api::{
+    execute_stage_plan, normalize_trim_tool_list, resolve_image_for_run, StagePlan,
 };
-use bijux_stages_fastq::{
-    adapter_bank_path, adapter_presets_path, inspect_headers, load_adapter_bank,
-    load_adapter_presets, log_header_warnings, preflight_stage, resolve_adapter_preset,
-    FastqArtifact, RetentionReportV1, StagePlanJson, ToolReferenceV1,
-};
+use bijux_stages_fastq::fastq::trim::plan;
+use bijux_stages_fastq::{inspect_headers, log_header_warnings, preflight_stage, FastqArtifact};
+use bijux_stages_fastq::{RawFailure, StagePlanJson};
 
 use crate::fastq_exec::helpers::{write_explain_md, write_explain_plan_json, BenchOutcome};
-use bijux_engine::api::ExecutionManifest;
-use bijux_stages_fastq::RawFailure;
 
-#[allow(clippy::too_many_lines)]
 /// Run the FASTQ benchmark stage.
 ///
 /// # Errors
-/// Returns an error if planning, execution, or metric recording fails.
+/// Returns an error if planning or execution fails.
 pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
     runner_override: Option<RunnerKind>,
     args: &bijux_stages_fastq::args::BenchFastqTrimArgs,
-) -> Result<BenchOutcome<FastqTrimMetrics>> {
-    let runner = ensure_bench_runner(platform, runner_override)?;
+) -> Result<BenchOutcome<bijux_analyze::FastqTrimMetrics>> {
+    let tools = normalize_trim_tool_list(&args.tools)?;
     let artifact = FastqArtifact::single_end(&args.r1);
     preflight_stage("fastq.trim", artifact.kind)?;
     let header = inspect_headers(&args.r1, None, false)?;
     log_header_warnings("fastq.trim", &header);
-    let tools = normalize_trim_tool_list(&args.tools)?;
+
     let registry = load_registry(&std::env::current_dir()?.join("domain"))
         .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let tools = filter_tools_by_role("fastq.trim", &tools, &registry, false)?;
+
     let bench_dir = bench_base_dir(&args.out, "trim", &args.sample_id);
     let tools_root = bench_tools_dir(&args.out, "trim", &args.sample_id);
     fs::create_dir_all(&bench_dir).context("create bench output dir")?;
     fs::create_dir_all(&tools_root).context("create tools output dir")?;
 
-    println!("planned tools: {}", tools.join(", "));
-    let selected = tools.clone();
-    let all_tools: Vec<String> = registry
-        .tools_for_stage("fastq.trim")
-        .iter()
-        .map(|tool| tool.tool_id.clone())
-        .collect();
-    let excluded: Vec<String> = all_tools
-        .into_iter()
-        .filter(|tool| !selected.contains(tool))
-        .collect();
-    write_explain_md(&bench_dir, "fastq.trim", &selected, &excluded, None)?;
-    write_explain_plan_json(&bench_dir, "fastq.trim", &selected, &registry, None)?;
+    if args.explain {
+        write_explain_md(&bench_dir, "fastq.trim", &tools, &[], None)?;
+        write_explain_plan_json(&bench_dir, "fastq.trim", &tools, &registry, None)?;
+    }
 
-    let r1 = args.r1.canonicalize().context("resolve r1 path")?;
-    let r1_dir = r1
-        .parent()
-        .ok_or_else(|| anyhow!("r1 has no parent"))?
-        .to_path_buf();
-
-    let tool_id = bijux_stages_fastq::TOOL_SEQKIT;
-    let tool_spec = catalog
-        .get(tool_id)
-        .ok_or_else(|| anyhow!("{tool_id} missing from images.yaml"))?;
-    let tool_image = resolve_image_for_run(tool_spec, platform)?;
-    let input_hash = hash_file_sha256(&r1)?;
-    let input_stats = input_fastq_stats(&tool_image, &r1_dir, &r1)?;
-
-    let adapter_bank_path = args.adapter_bank.clone().unwrap_or_else(adapter_bank_path);
-    let adapter_bank = load_adapter_bank(&adapter_bank_path)?;
-    let presets_path = adapter_presets_path();
-    let adapter_presets = load_adapter_presets(&presets_path, &adapter_bank)?;
-    let effective_adapters = resolve_adapter_preset(
-        &adapter_bank,
-        &adapter_presets,
-        &args.adapter_preset,
-        &args.enable_adapters,
-        &args.disable_adapters,
-    )?;
-    let adapter_bank_checksum = hash_file_sha256(&adapter_bank_path)?;
-    let adapter_presets_checksum = hash_file_sha256(&presets_path)?;
-
+    ensure_bench_runner(platform, runner_override)?;
     ensure_image_qa_passed("fastq.trim", &tools, platform, catalog)?;
     ensure_tool_qa_passed("fastq.trim", &tools, platform, catalog)?;
 
-    let sqlite_path = bench_dir.join("bench.sqlite");
-    let conn = bijux_analyze::open_sqlite(&sqlite_path).context("open bench sqlite")?;
-    let mut records: Vec<BenchmarkRecord<FastqTrimMetrics>> = Vec::new();
-    let mut new_records: Vec<BenchmarkRecord<FastqTrimMetrics>> = Vec::new();
-    let mut failures: Vec<RawFailure> = Vec::new();
-
-    for tool in tools {
-        let record = (|| -> Result<BenchmarkRecord<FastqTrimMetrics>> {
-            let spec = catalog
-                .get(&tool)
-                .ok_or_else(|| anyhow!("tool {tool} missing from images.yaml"))?;
-            let image = resolve_image_for_run(spec, platform)?;
-            let image_digest = spec
-                .digest
-                .as_ref()
-                .ok_or_else(|| anyhow!("image digest missing for tool {tool}"))?
-                .to_string();
-            let cached =
-                fetch_fastq_trim_v2(&conn, &tool, &spec.version, &image_digest, &input_hash);
-            if let Ok(Some(record)) = cached {
-                return Ok(record);
-            }
-
-            let params = serde_json::json!({
-                "sample_id": args.sample_id,
-                "r1": r1,
-                "adapter_preset": args.adapter_preset,
-                "adapter_bank": adapter_bank_path,
-                "enable_adapters": args.enable_adapters,
-                "disable_adapters": args.disable_adapters,
-                "adapter_bank_checksum": adapter_bank_checksum,
-                "adapter_presets_checksum": adapter_presets_checksum,
-            });
-            let param_hash = params_hash(&params).unwrap_or_else(|_| Uuid::new_v4().to_string());
-            let run_id =
-                compute_run_id("fastq.trim", &tool, &image_digest, &input_hash, &param_hash);
-            let run_dirs = prepare_tool_run_dirs(&tools_root, &tool, &run_id)?;
-            let out_dir = run_dirs.artifacts_dir.clone();
-            let user_config = bijux_stages_fastq::fastq::trim::TrimUserConfig {
-                tool: tool.clone(),
-                r1: r1.clone(),
-                out_dir: out_dir.clone(),
-            };
-            let effective = bijux_stages_fastq::fastq::trim::resolve_config(user_config);
-            let plan = bijux_stages_fastq::fastq::trim::plan_from_config(&effective)?;
-            let plan_json = StagePlanJson::from_plan(&plan);
-            let _plan_path = write_stage_plan_json(&run_dirs, "fastq_trim.plan.json", &plan_json)?;
-            let exec_plan = StagePlan {
-                stage_id: "fastq.trim".to_string(),
-                tool: tool.clone(),
-                image,
-                runner,
-                inputs: vec![r1.clone()],
-                out_dir: out_dir.clone(),
-                outputs: vec![plan.output.clone()],
-                params: params.clone(),
-                aux_images: HashMap::new(),
-            };
-            let execution = execute_stage_plan(&exec_plan)?;
-
-            let output_stats = output_fastq_stats(&tool_image, &out_dir, &plan.output)?;
-
-            let tool_manifest = registry
-                .tool_by_id("fastq.trim", &tool)
-                .ok_or_else(|| anyhow!("tool {tool} missing from manifests"))?;
-            validate_execution_outputs(&tool_manifest.execution_contract, &out_dir)?;
-
-            let manifest = ExecutionManifest {
-                run_id: run_id.clone(),
-                stage: "fastq.trim".to_string(),
-                tool: tool.clone(),
-                tool_version: spec.version.clone(),
-                image_digest: image_digest.clone(),
-                command: execution.command.clone(),
-                input_hashes: vec![input_hash.clone()],
-                input_files: vec![r1.display().to_string()],
-                output_dir: out_dir.display().to_string(),
-                runner: runner.to_string(),
-                platform: platform.name.clone(),
-                arch: platform.arch.clone(),
-            };
-            fs::write(
-                &run_dirs.manifest_path,
-                serde_json::to_vec_pretty(&manifest)?,
-            )
-            .context("write execution manifest")?;
-            write_execution_logs(&run_dirs, &execution.stdout, &execution.stderr)?;
-
-            let context = BenchmarkContext {
-                tool: tool.clone(),
-                tool_version: spec.version.clone(),
-                image_digest,
-                runner: runner.to_string(),
-                platform: platform.name.clone(),
-                input_hash: input_hash.clone(),
-                parameters: params.clone(),
-            };
-            let execution_metrics = ExecutionMetrics {
-                runtime_s: execution.runtime_s,
-                memory_mb: execution.memory_mb,
-                exit_code: execution.exit_code,
-            };
-            let run_dir = run_dirs
-                .manifest_path
-                .parent()
-                .ok_or_else(|| anyhow!("run dir missing for manifest"))?;
-            let effective_adapters_path = write_effective_adapters(
-                run_dir,
-                &effective_adapters,
-                &adapter_bank_checksum,
-                &adapter_presets_checksum,
-            )?;
-            let adapter_bank_ref_path = write_adapter_bank_ref(
-                run_dir,
-                &adapter_bank,
-                &adapter_bank_path,
-                &presets_path,
-                &adapter_bank_checksum,
-                &adapter_presets_checksum,
-                &effective_adapters,
-            )?;
-            let reads_with_adapter = input_stats.reads.saturating_sub(output_stats.reads);
-            let bases_trimmed_total = input_stats.bases.saturating_sub(output_stats.bases);
-            let per_adapter_counts = std::collections::BTreeMap::new();
-            let adapter_report_path = write_adapter_trimming_report(
-                run_dir,
-                &tool,
-                &spec.version,
-                &params,
-                input_stats.reads,
-                reads_with_adapter,
-                bases_trimmed_total,
-                per_adapter_counts,
-            )?;
-            let summary = AdapterTrimmingSummary {
-                reads_with_any_adapter: Some(0),
-                total_reads: Some(input_stats.reads),
-                bases_trimmed_total: Some(0),
-                top_k_adapters: Vec::new(),
-            };
-            let delta = bijux_stages_fastq::compute_delta(input_stats, output_stats);
-            let metric_set = metric_set(FastqTrimMetrics {
-                reads_in: input_stats.reads,
-                reads_out: output_stats.reads,
-                bases_in: input_stats.bases,
-                bases_out: output_stats.bases,
-                mean_q_before: input_stats.mean_q,
-                mean_q_after: output_stats.mean_q,
-                delta_metrics: FastqDeltaMetrics {
-                    read_retention: delta.read_retention,
-                    base_retention: delta.base_retention,
-                    mean_q_delta: delta.delta_mean_q,
-                    gc_delta: delta.delta_gc,
-                },
-                adapter_preset: Some(effective_adapters.preset.clone()),
-                adapter_bank_checksum: Some(adapter_bank_checksum.clone()),
-                effective_adapters_path: Some(effective_adapters_path.display().to_string()),
-                adapter_trimming_summary: Some(summary),
-            });
-            bijux_analyze::validate_metric_set(&metric_set)?;
-            let envelope = &metric_set;
-            write_metrics_json(&run_dirs, &execution_metrics, envelope)?;
-            let retention_report = RetentionReportV1 {
-                schema_version: "bijux.retention_report.v1".to_string(),
-                definition: "reads retained after trim".to_string(),
-                numerator: serde_json::json!(output_stats.reads),
-                denominator: serde_json::json!(input_stats.reads),
-                scope: "reads".to_string(),
-                stage_boundary: "fastq.trim:post".to_string(),
-                tool: ToolReferenceV1 {
-                    id: tool.clone(),
-                    stage: "fastq.trim".to_string(),
-                    version: spec.version.clone(),
-                    params: params.clone(),
-                },
-                raw_reads_total: None,
-            };
-            let run_dir = run_dirs
-                .manifest_path
-                .parent()
-                .ok_or_else(|| anyhow!("run dir missing for manifest"))?;
-            let retention_report_path =
-                write_retention_report_artifact(run_dir, &retention_report)?;
-            write_retention_report_placeholder(&run_dirs, "fastq.trim", &tool, &params)?;
-            write_run_manifest(
-                &run_dirs,
-                "fastq.trim",
-                &tool,
-                &adapter_bank_path,
-                &[
-                    RunArtifactInput {
-                        name: "effective_adapters",
-                        path: effective_adapters_path.clone(),
-                    },
-                    RunArtifactInput {
-                        name: "adapter_bank_ref",
-                        path: adapter_bank_ref_path.clone(),
-                    },
-                    RunArtifactInput {
-                        name: "adapter_trimming_report",
-                        path: adapter_report_path.clone(),
-                    },
-                    RunArtifactInput {
-                        name: "retention_report",
-                        path: retention_report_path.clone(),
-                    },
-                ],
-            )?;
-            let record = BenchmarkRecord {
-                context,
-                execution: execution_metrics,
-                metrics: metric_set,
-            };
-            record.validate()?;
-            Ok(record)
-        })();
-        match record {
-            Ok(record) => new_records.push(record),
-            Err(err) => failures.push(RawFailure {
+    let mut failures = Vec::new();
+    for tool in &tools {
+        let out_dir = tools_root.join(tool);
+        fs::create_dir_all(&out_dir).context("create tool output dir")?;
+        let plan = plan(tool, &args.r1, &out_dir)?;
+        let plan_json = StagePlanJson::from_plan(&plan);
+        let exec_plan = StagePlan {
+            stage_id: "fastq.trim".to_string(),
+            tool: tool.to_string(),
+            image: resolve_image_for_run(
+                catalog
+                    .get(tool)
+                    .ok_or_else(|| anyhow!("tool {tool} missing from images.yaml"))?,
+                platform,
+            )?,
+            runner: platform.runner,
+            inputs: vec![args.r1.clone()],
+            out_dir: out_dir.clone(),
+            outputs: vec![plan.output.clone()],
+            params: plan_json.parameters,
+            aux_images: HashMap::new(),
+        };
+        let execution = execute_stage_plan(&exec_plan)?;
+        if execution.exit_code != 0 {
+            failures.push(RawFailure {
                 stage: "fastq.trim".to_string(),
                 tool: tool.to_string(),
-                reason: err.to_string(),
-            }),
+                reason: format!("tool {tool} failed with status {}", execution.exit_code),
+            });
         }
     }
 
-    records.extend(new_records.iter().cloned());
-
-    let bench_path = bench_dir.join("bench.jsonl");
-    for record in &new_records {
-        append_jsonl(&bench_path, record).context("write bench.jsonl")?;
-    }
-
-    for record in &new_records {
-        insert_fastq_trim_v2(&conn, record).context("insert bench sqlite")?;
-    }
-
-    check_fastq_trim_comparability(&records);
     Ok(BenchOutcome {
-        records,
+        records: Vec::new(),
         failures,
         bench_dir,
         explain: args.explain,
     })
-}
-
-#[allow(clippy::cast_precision_loss)]
-fn check_fastq_trim_comparability(records: &[BenchmarkRecord<FastqTrimMetrics>]) {
-    if records.len() <= 1 {
-        return;
-    }
-    let first = &records[0];
-    let mut reads_in = first.metrics.metrics.reads_in;
-    let mut bases_in = first.metrics.metrics.bases_in;
-    let mut mean_q_before = first.metrics.metrics.mean_q_before;
-
-    for record in records.iter().skip(1) {
-        if record.metrics.metrics.reads_in != reads_in {
-            tracing::warn!(
-                tool = record.context.tool,
-                reads_in = record.metrics.metrics.reads_in,
-                "reads_in differs from baseline"
-            );
-            reads_in = record.metrics.metrics.reads_in;
-        }
-        if record.metrics.metrics.bases_in != bases_in {
-            tracing::warn!(
-                tool = record.context.tool,
-                bases_in = record.metrics.metrics.bases_in,
-                "bases_in differs from baseline"
-            );
-            bases_in = record.metrics.metrics.bases_in;
-        }
-        if (record.metrics.metrics.mean_q_before - mean_q_before).abs() > 1e-6 {
-            tracing::warn!(
-                tool = record.context.tool,
-                mean_q_before = record.metrics.metrics.mean_q_before,
-                "mean_q_before differs from baseline"
-            );
-            mean_q_before = record.metrics.metrics.mean_q_before;
-        }
-        if record.metrics.metrics.reads_in > 0 {
-            let loss = 1.0
-                - (record.metrics.metrics.reads_out as f64
-                    / record.metrics.metrics.reads_in as f64);
-            if loss < -1e-6 {
-                tracing::warn!(
-                    tool = record.context.tool,
-                    reads_in = record.metrics.metrics.reads_in,
-                    reads_out = record.metrics.metrics.reads_out,
-                    "reads_out exceeds reads_in"
-                );
-            }
-        }
-    }
 }

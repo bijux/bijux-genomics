@@ -199,6 +199,72 @@ fn cli_fastq_exec_has_no_tool_literals() -> Result<(), Box<dyn std::error::Error
 }
 
 #[test]
+fn cli_fastq_exec_has_no_execution_tooling() -> Result<(), Box<dyn std::error::Error>> {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let repo_root = manifest_dir
+        .parent()
+        .and_then(|p| p.parent())
+        .ok_or("repo root not found")?;
+    let root = repo_root.join("crates/bijux-cli/src/fastq_exec");
+    let mut files = Vec::new();
+    collect_rs_files(&root, &mut files);
+    let forbidden = [
+        "std::process::Command",
+        "process::Command",
+        "Command::new",
+        "DockerRunner",
+        "docker::",
+        "docker_runner",
+        "run_docker",
+    ];
+    let mut offenders = Vec::new();
+    for path in files {
+        let contents = fs::read_to_string(&path)?;
+        for needle in &forbidden {
+            if contents.contains(needle) {
+                offenders.push(format!("{} -> {}", path.display(), needle));
+            }
+        }
+    }
+    assert!(
+        offenders.is_empty(),
+        "fastq_exec must not import execution tooling: {offenders:?}"
+    );
+    Ok(())
+}
+
+#[test]
+fn cli_fastq_exec_size_guardrail() -> Result<(), Box<dyn std::error::Error>> {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let repo_root = manifest_dir
+        .parent()
+        .and_then(|p| p.parent())
+        .ok_or("repo root not found")?;
+    let root = repo_root.join("crates/bijux-cli/src/fastq_exec");
+    let mut files = Vec::new();
+    collect_rs_files(&root, &mut files);
+    let max_lines = 350usize;
+    let mut offenders = Vec::new();
+    for path in files {
+        let contents = fs::read_to_string(&path)?;
+        let line_count = contents.lines().count();
+        if line_count > max_lines {
+            offenders.push(format!(
+                "{} -> {} lines (max {})",
+                path.display(),
+                line_count,
+                max_lines
+            ));
+        }
+    }
+    assert!(
+        offenders.is_empty(),
+        "fastq_exec files must stay small: {offenders:?}"
+    );
+    Ok(())
+}
+
+#[test]
 fn cli_fastq_exec_size_or_no_exec_imports() -> Result<(), Box<dyn std::error::Error>> {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let repo_root = manifest_dir
