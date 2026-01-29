@@ -3,14 +3,30 @@ Trim FASTQ reads (quality/adapters) and emit canonical outputs.
 Usage: bijux fastq trim [OPTIONS]
 
 Options:
-      --list-tools             
-      --dry-run                
-      --env <ENV>              
-      --sample-id <SAMPLE_ID>  
-      --r1 <R1>                
-      --out <OUT>              
-      --tools <TOOLS>          
-  -h, --help                   Print help
+      --list-tools
+          
+      --dry-run
+          
+      --env <ENV>
+          
+      --sample-id <SAMPLE_ID>
+          
+      --r1 <R1>
+          
+      --out <OUT>
+          
+      --tools <TOOLS>
+          
+      --adapter-preset <ADAPTER_PRESET>
+          [default: default_adna] [possible values: default_adna, truseq_only, ssdna, umi, nextera, capture]
+      --adapter-bank <ADAPTER_BANK>
+          
+      --enable-adapter <ENABLE_ADAPTER>
+          
+      --disable-adapter <DISABLE_ADAPTER>
+          
+  -h, --help
+          Print help
 
 Example:
   bijux fastq trim --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE --tools fastp

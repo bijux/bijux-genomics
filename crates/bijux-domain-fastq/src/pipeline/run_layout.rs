@@ -48,6 +48,15 @@ pub struct RunManifest {
     pub pipeline: String,
     pub layout: FastqLayout,
     pub stages: Vec<RunStageEntry>,
+    #[serde(default)]
+    pub artifacts: Vec<RunArtifactEntry>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RunArtifactEntry {
+    pub name: String,
+    pub path: PathBuf,
+    pub sha256: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

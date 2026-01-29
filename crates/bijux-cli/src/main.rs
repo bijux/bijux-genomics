@@ -57,6 +57,14 @@ fn main() -> Result<()> {
     let mut profile = load_profile(&profile_path)
         .map_err(|err| anyhow!("failed to load profile {}: {err}", profile_path.display()))?;
     profile.run_base_dir = normalize_run_base_dir(&cwd, &profile.run_base_dir);
+    if cli.print_effective_config {
+        let payload = serde_json::json!({
+            "profile": profile,
+            "platform": cli.platform,
+        });
+        println!("{}", serde_json::to_string_pretty(&payload)?);
+        return Ok(());
+    }
 
     let registry =
         load_manifests(&domain_dir).map_err(|err| anyhow!("manifest validation failed: {err}"))?;
@@ -469,6 +477,10 @@ fn explain_fastq_stage(registry: &bijux_core::ToolRegistry, stage_id: &str) -> R
             objective: bijux_analyze::selection::Objective::Balanced,
             bench_corpus: None,
             allow_partial: false,
+            adapter_preset: "default_adna".to_string(),
+            adapter_bank: None,
+            enable_adapters: Vec::new(),
+            disable_adapters: Vec::new(),
         };
         let plan = crate::fastq_exec::fastq_preprocess_plan(&args);
         println!("stage: {stage_id}");

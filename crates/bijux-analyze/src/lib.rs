@@ -117,6 +117,10 @@ pub enum MetricId {
     GcPercent,
     LengthHistogram,
     DeltaMetrics,
+    AdapterPreset,
+    AdapterBankChecksum,
+    EffectiveAdaptersPath,
+    AdapterTrimmingSummary,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -169,7 +173,7 @@ pub struct StageMetricSpec {
     pub invariants: &'static [&'static str],
 }
 
-pub const METRIC_REGISTRY: [MetricSpec; 26] = [
+pub const METRIC_REGISTRY: [MetricSpec; 30] = [
     MetricSpec {
         id: MetricId::RuntimeS,
         name: "runtime_s",
@@ -529,6 +533,46 @@ pub const METRIC_REGISTRY: [MetricSpec; 26] = [
         measured: false,
         derived: true,
     },
+    MetricSpec {
+        id: MetricId::AdapterPreset,
+        name: "adapter_preset",
+        meaning: "Adapter preset name used for trimming",
+        direction: MetricDirection::Neutral,
+        range: None,
+        stages: &["fastq.trim"],
+        measured: false,
+        derived: false,
+    },
+    MetricSpec {
+        id: MetricId::AdapterBankChecksum,
+        name: "adapter_bank_checksum",
+        meaning: "Checksum of adapter bank used for trimming",
+        direction: MetricDirection::Neutral,
+        range: None,
+        stages: &["fastq.trim"],
+        measured: false,
+        derived: false,
+    },
+    MetricSpec {
+        id: MetricId::EffectiveAdaptersPath,
+        name: "effective_adapters_path",
+        meaning: "Path to effective adapters artifact",
+        direction: MetricDirection::Neutral,
+        range: None,
+        stages: &["fastq.trim"],
+        measured: false,
+        derived: false,
+    },
+    MetricSpec {
+        id: MetricId::AdapterTrimmingSummary,
+        name: "adapter_trimming_summary",
+        meaning: "Summary of adapter trimming outcomes",
+        direction: MetricDirection::Neutral,
+        range: None,
+        stages: &["fastq.trim"],
+        measured: false,
+        derived: false,
+    },
 ];
 
 pub const DERIVED_METRIC_REGISTRY: [DerivedMetricSpec; 4] = [
@@ -569,7 +613,7 @@ pub const DERIVED_METRIC_REGISTRY: [DerivedMetricSpec; 4] = [
     },
 ];
 
-pub const FASTQ_TRIM_METRICS: [MetricId; 7] = [
+pub const FASTQ_TRIM_METRICS: [MetricId; 11] = [
     MetricId::ReadsIn,
     MetricId::ReadsOut,
     MetricId::BasesIn,
@@ -577,6 +621,10 @@ pub const FASTQ_TRIM_METRICS: [MetricId; 7] = [
     MetricId::MeanQBefore,
     MetricId::MeanQAfter,
     MetricId::DeltaMetrics,
+    MetricId::AdapterPreset,
+    MetricId::AdapterBankChecksum,
+    MetricId::EffectiveAdaptersPath,
+    MetricId::AdapterTrimmingSummary,
 ];
 
 pub const FASTQ_VALIDATE_METRICS: [MetricId; 4] = [
@@ -877,6 +925,31 @@ pub struct FastqTrimMetrics {
     pub mean_q_after: f64,
     #[serde(default)]
     pub delta_metrics: FastqDeltaMetrics,
+    #[serde(default)]
+    pub adapter_preset: Option<String>,
+    #[serde(default)]
+    pub adapter_bank_checksum: Option<String>,
+    #[serde(default)]
+    pub effective_adapters_path: Option<String>,
+    #[serde(default)]
+    pub adapter_trimming_summary: Option<AdapterTrimmingSummary>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct AdapterTrimmingSummary {
+    pub reads_with_any_adapter: Option<u64>,
+    pub total_reads: Option<u64>,
+    pub bases_trimmed_total: Option<u64>,
+    #[serde(default)]
+    pub top_k_adapters: Vec<AdapterContribution>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct AdapterContribution {
+    pub id: String,
+    pub count: u64,
 }
 
 impl StageMetricSchema for FastqTrimMetrics {
@@ -2785,6 +2858,10 @@ mod tests {
                     mean_q_delta: 1.0,
                     gc_delta: 0.1,
                 },
+                adapter_preset: None,
+                adapter_bank_checksum: None,
+                effective_adapters_path: None,
+                adapter_trimming_summary: None,
             }),
         };
         record.validate()?;

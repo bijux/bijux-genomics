@@ -4,8 +4,8 @@ use std::time::Instant;
 
 use anyhow::{anyhow, Context, Result};
 use bijux_analyze::{
-    append_jsonl, fetch_fastq_trim_v2, insert_fastq_trim_v2, metric_set, BenchmarkContext,
-    BenchmarkRecord, FastqDeltaMetrics, FastqTrimMetrics,
+    append_jsonl, fetch_fastq_trim_v2, insert_fastq_trim_v2, metric_set, AdapterTrimmingSummary,
+    BenchmarkContext, BenchmarkRecord, FastqDeltaMetrics, FastqTrimMetrics,
 };
 use bijux_core::measure::ExecutionMetrics;
 use bijux_engine::api::{ensure_bench_runner, load_registry};
@@ -13,8 +13,9 @@ use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 use uuid::Uuid;
 
 use bijux_domain_fastq::{
-    contract_for_stage, inspect_headers, log_header_warnings, normalize_outputs, preflight_stage,
-    FastqArtifact,
+    adapter_bank_path, adapter_presets_path, contract_for_stage, inspect_headers,
+    load_adapter_bank, load_adapter_presets, log_header_warnings, normalize_outputs,
+    preflight_stage, resolve_adapter_preset, FastqArtifact,
 };
 use bijux_engine::api::validate_execution_outputs;
 use bijux_engine::api::{bench_base_dir, bench_tools_dir};
@@ -24,8 +25,9 @@ use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed}
 
 use crate::fastq_exec::helpers::{
     compute_run_id, normalize_tool_list, params_hash, prepare_tool_run_dirs, resolve_image_for_run,
-    write_execution_logs, write_explain_md, write_explain_plan_json, write_metrics_json,
-    ExecutionManifest,
+    write_adapter_trimming_report, write_effective_adapters, write_execution_logs,
+    write_explain_md, write_explain_plan_json, write_metrics_json,
+    write_retention_report_placeholder, write_run_manifest, ExecutionManifest,
 };
 use crate::fastq_exec::helpers::{filter_tools_by_role, BenchOutcome};
 use bijux_domain_fastq::RawFailure;
@@ -122,6 +124,20 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
     let input_hash = hash_file_sha256(&r1)?;
     let input_stats = input_fastq_stats(&seqkit_image, &r1_dir, &r1)?;
 
+    let adapter_bank_path = args.adapter_bank.clone().unwrap_or_else(adapter_bank_path);
+    let adapter_bank = load_adapter_bank(&adapter_bank_path)?;
+    let presets_path = adapter_presets_path();
+    let adapter_presets = load_adapter_presets(&presets_path, &adapter_bank)?;
+    let effective_adapters = resolve_adapter_preset(
+        &adapter_bank,
+        &adapter_presets,
+        &args.adapter_preset,
+        &args.enable_adapters,
+        &args.disable_adapters,
+    )?;
+    let adapter_bank_checksum = hash_file_sha256(&adapter_bank_path)?;
+    let adapter_presets_checksum = hash_file_sha256(&presets_path)?;
+
     ensure_image_qa_passed("fastq.trim", &tools, platform, catalog)?;
     ensure_tool_qa_passed("fastq.trim", &tools, platform, catalog)?;
 
@@ -151,6 +167,12 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
             let params = serde_json::json!({
                 "sample_id": args.sample_id,
                 "r1": r1,
+                "adapter_preset": args.adapter_preset,
+                "adapter_bank": adapter_bank_path,
+                "enable_adapters": args.enable_adapters,
+                "disable_adapters": args.disable_adapters,
+                "adapter_bank_checksum": adapter_bank_checksum,
+                "adapter_presets_checksum": adapter_presets_checksum,
             });
             let param_hash = params_hash(&params).unwrap_or_else(|_| Uuid::new_v4().to_string());
             let run_id =
@@ -178,24 +200,6 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
                 .tool_by_id("fastq.trim", &tool)
                 .ok_or_else(|| anyhow!("tool {tool} missing from manifests"))?;
             validate_execution_outputs(&tool_manifest.execution_contract, &out_dir)?;
-
-            let delta = bijux_domain_fastq::compute_delta(input_stats, output_stats);
-            let metrics = FastqTrimMetrics {
-                reads_in: input_stats.reads,
-                reads_out: output_stats.reads,
-                bases_in: input_stats.bases,
-                bases_out: output_stats.bases,
-                mean_q_before: input_stats.mean_q,
-                mean_q_after: output_stats.mean_q,
-                delta_metrics: FastqDeltaMetrics {
-                    read_retention: delta.read_retention,
-                    base_retention: delta.base_retention,
-                    mean_q_delta: delta.delta_mean_q,
-                    gc_delta: delta.delta_gc,
-                },
-            };
-            let metric_set = metric_set(metrics);
-            bijux_analyze::validate_metric_set(&metric_set)?;
 
             let manifest = ExecutionManifest {
                 run_id: run_id.clone(),
@@ -225,15 +229,57 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
                 runner: runner.to_string(),
                 platform: platform.name.clone(),
                 input_hash: input_hash.clone(),
-                parameters: params,
+                parameters: params.clone(),
             };
             let execution_metrics = ExecutionMetrics {
                 runtime_s,
                 memory_mb,
                 exit_code: execution.exit_code,
             };
+            let effective_adapters_path = write_effective_adapters(
+                &run_dirs,
+                &effective_adapters,
+                &adapter_bank_checksum,
+                &adapter_presets_checksum,
+            )?;
+            let adapter_report_path = write_adapter_trimming_report(
+                &run_dirs,
+                &tool,
+                &params,
+                &effective_adapters.enabled_ids,
+                input_stats.reads,
+            )?;
+            let summary = AdapterTrimmingSummary {
+                reads_with_any_adapter: Some(0),
+                total_reads: Some(input_stats.reads),
+                bases_trimmed_total: Some(0),
+                top_k_adapters: Vec::new(),
+            };
+            let delta = bijux_domain_fastq::compute_delta(input_stats, output_stats);
+            let metric_set = metric_set(FastqTrimMetrics {
+                reads_in: input_stats.reads,
+                reads_out: output_stats.reads,
+                bases_in: input_stats.bases,
+                bases_out: output_stats.bases,
+                mean_q_before: input_stats.mean_q,
+                mean_q_after: output_stats.mean_q,
+                delta_metrics: FastqDeltaMetrics {
+                    read_retention: delta.read_retention,
+                    base_retention: delta.base_retention,
+                    mean_q_delta: delta.delta_mean_q,
+                    gc_delta: delta.delta_gc,
+                },
+                adapter_preset: Some(effective_adapters.preset.clone()),
+                adapter_bank_checksum: Some(adapter_bank_checksum.clone()),
+                effective_adapters_path: Some(effective_adapters_path.display().to_string()),
+                adapter_trimming_summary: Some(summary),
+            });
+            bijux_analyze::validate_metric_set(&metric_set)?;
             let envelope = &metric_set;
             write_metrics_json(&run_dirs, &execution_metrics, envelope)?;
+            write_retention_report_placeholder(&run_dirs, "fastq.trim", &tool, &params)?;
+            write_run_manifest(&run_dirs, "fastq.trim", &tool, &adapter_bank_path)?;
+            let _ = adapter_report_path;
             let record = BenchmarkRecord {
                 context,
                 execution: execution_metrics,
@@ -278,6 +324,7 @@ mod tests {
     use super::{plan_trim, trim_output_name};
     use anyhow::Result;
     use std::path::Path;
+    use tempfile::TempDir;
 
     #[test]
     fn trim_output_names_are_defined_for_known_tools() {
@@ -302,6 +349,53 @@ mod tests {
             Ok(_) => panic!("expected unsupported trim tool"),
             Err(err) => assert!(err.to_string().contains("unsupported trim tool")),
         }
+    }
+
+    #[test]
+    fn default_adapter_preset_writes_effective_adapters() -> Result<()> {
+        let manifest_dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        let repo_root = manifest_dir
+            .parent()
+            .and_then(|p| p.parent())
+            .ok_or_else(|| anyhow::anyhow!("repo root not found"))?;
+        let prev_dir = std::env::current_dir()?;
+        std::env::set_current_dir(repo_root)?;
+        let bank_path = bijux_domain_fastq::adapter_bank_path();
+        let presets_path = bijux_domain_fastq::adapter_presets_path();
+        let bank = bijux_domain_fastq::load_adapter_bank(&bank_path)?;
+        let presets = bijux_domain_fastq::load_adapter_presets(&presets_path, &bank)?;
+        let effective =
+            bijux_domain_fastq::resolve_adapter_preset(&bank, &presets, "default_adna", &[], &[])?;
+        let tmp = TempDir::new()?;
+        let tools_root = tmp.path().join("tools");
+        let run_dirs =
+            crate::fastq_exec::helpers::prepare_tool_run_dirs(&tools_root, "fastp", "test-run")?;
+        let path = crate::fastq_exec::helpers::write_effective_adapters(
+            &run_dirs, &effective, "bank", "presets",
+        )?;
+        let payload = std::fs::read_to_string(&path)?;
+        assert!(payload.contains("truseq_universal"));
+        assert!(payload.contains("truseq_indexed"));
+        std::env::set_current_dir(prev_dir)?;
+        Ok(())
+    }
+
+    #[test]
+    fn disabling_adapter_changes_params_hash() -> Result<()> {
+        let base = serde_json::json!({
+            "adapter_preset": "default_adna",
+            "enable_adapters": [],
+            "disable_adapters": []
+        });
+        let disabled = serde_json::json!({
+            "adapter_preset": "default_adna",
+            "enable_adapters": [],
+            "disable_adapters": ["truseq_universal"]
+        });
+        let base_hash = crate::fastq_exec::helpers::params_hash(&base)?;
+        let disabled_hash = crate::fastq_exec::helpers::params_hash(&disabled)?;
+        assert_ne!(base_hash, disabled_hash);
+        Ok(())
     }
 }
 

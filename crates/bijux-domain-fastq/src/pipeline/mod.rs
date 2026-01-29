@@ -22,8 +22,8 @@ pub use minimal::fastq_minimal_pipeline;
 #[allow(unused_imports)]
 pub use run_layout::{
     append_event, create_run_layout, now_string, update_run_index, write_environment,
-    write_manifest, write_run_metadata, RunEnvironment, RunIndexEntry, RunLayout, RunManifest,
-    RunStageEntry, ToolImageDigest,
+    write_manifest, write_run_metadata, RunArtifactEntry, RunEnvironment, RunIndexEntry, RunLayout,
+    RunManifest, RunStageEntry, ToolImageDigest,
 };
 
 pub mod benchmark;

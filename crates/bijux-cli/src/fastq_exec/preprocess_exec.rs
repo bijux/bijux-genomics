@@ -19,9 +19,10 @@ use crate::fastq_exec::{
 };
 use bijux_core::events::RunEvent;
 use bijux_domain_fastq::{
-    append_event, assess_input_dir, bench_corpus, canonical_tool_defaults, create_run_layout,
-    now_string, update_run_index, write_input_assessment, write_run_metadata, RunEnvironment,
-    RunIndexEntry, RunLayout, RunManifest, RunStageEntry, ToolImageDigest,
+    adapter_bank_path, append_event, assess_input_dir, bench_corpus, canonical_tool_defaults,
+    create_run_layout, load_adapter_bank, now_string, update_run_index, write_input_assessment,
+    write_run_metadata, AdapterBankV1, RunArtifactEntry, RunEnvironment, RunIndexEntry, RunLayout,
+    RunManifest, RunStageEntry, ToolImageDigest,
 };
 
 /// Run the FASTQ benchmark stage.
@@ -52,6 +53,8 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     fs::create_dir_all(&out_dir).context("create preprocess output dir")?;
     let started_at = chrono::Utc::now();
     let (run_id, layout) = create_run_layout(&args.out)?;
+    let adapter_bank_path = args.adapter_bank.clone().unwrap_or_else(adapter_bank_path);
+    let adapter_bank = load_adapter_bank(&adapter_bank_path)?;
     let input_dir = args
         .r1
         .parent()
@@ -234,6 +237,10 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
                         out: args.out.clone(),
                         tools: vec![tool_id.clone()],
                         explain: false,
+                        adapter_preset: args.adapter_preset.clone(),
+                        adapter_bank: args.adapter_bank.clone(),
+                        enable_adapters: args.enable_adapters.clone(),
+                        disable_adapters: args.disable_adapters.clone(),
                     };
                     let outcome = bench_fastq_trim(catalog, platform, runner_override, &trim_args)?;
                     stage_entry_from_outcome(
@@ -329,6 +336,8 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     populate_run_layout(&layout, &mut stage_entries)?;
 
     let finished_at = chrono::Utc::now();
+    let retention_report_path =
+        write_retention_report(&layout.summary_dir, "fastq.preprocess", &adapter_bank)?;
     let env = RunEnvironment {
         hostname: std::env::var("HOSTNAME").unwrap_or_else(|_| "unknown".to_string()),
         os: std::env::consts::OS.to_string(),
@@ -351,6 +360,12 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     };
     bijux_domain_fastq::write_environment(&layout, &env)?;
 
+    let artifacts = build_run_artifacts(
+        &layout,
+        &stage_entries,
+        &retention_report_path,
+        &adapter_bank_path,
+    )?;
     let manifest = RunManifest {
         run_id: run_id.clone(),
         started_at: started_at.to_rfc3339(),
@@ -358,6 +373,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         pipeline: "fastq.preprocess".to_string(),
         layout: layout_kind,
         stages: stage_entries,
+        artifacts,
     };
     bijux_domain_fastq::write_manifest(&layout, &manifest)?;
 
@@ -515,4 +531,75 @@ fn populate_run_layout(layout: &RunLayout, entries: &mut [RunStageEntry]) -> Res
         entry.tool_invocation_path = tool_invocation_path;
     }
     Ok(())
+}
+
+fn write_retention_report(
+    summary_dir: &Path,
+    pipeline: &str,
+    adapter_bank: &AdapterBankV1,
+) -> Result<PathBuf> {
+    let report_path = summary_dir.join("retention_report.json");
+    let payload = serde_json::json!({
+        "schema_version": "bijux.retention_report.v1",
+        "definition": "unknown/TBD",
+        "numerator": "unknown/TBD",
+        "denominator": "unknown/TBD",
+        "scope": "unknown/TBD",
+        "stage_boundary": format!("{pipeline}:unknown/TBD"),
+        "tool": {
+            "id": "unknown/TBD",
+            "stage": "unknown/TBD",
+            "version": "unknown/TBD",
+            "params": {
+                "adapter_bank_schema": adapter_bank.schema_version,
+                "adapter_bank_count": adapter_bank.adapters.len()
+            }
+        }
+    });
+    std::fs::write(&report_path, serde_json::to_vec_pretty(&payload)?)
+        .context("write retention_report.json")?;
+    Ok(report_path)
+}
+
+fn build_run_artifacts(
+    layout: &RunLayout,
+    entries: &[RunStageEntry],
+    retention_report_path: &Path,
+    adapter_bank_path: &Path,
+) -> Result<Vec<RunArtifactEntry>> {
+    let mut artifacts = Vec::new();
+
+    let execution_manifest_path = layout.manifest_path.clone();
+    let execution_manifest_hash = bijux_engine::api::hash_file_sha256(&execution_manifest_path)?;
+    artifacts.push(RunArtifactEntry {
+        name: "execution_manifest".to_string(),
+        path: execution_manifest_path,
+        sha256: execution_manifest_hash,
+    });
+
+    for entry in entries {
+        let metrics_path = entry.domain_metrics_path.clone();
+        let metrics_hash = bijux_engine::api::hash_file_sha256(&metrics_path)?;
+        artifacts.push(RunArtifactEntry {
+            name: format!("metrics:{}", entry.stage_id),
+            path: metrics_path,
+            sha256: metrics_hash,
+        });
+    }
+
+    let retention_hash = bijux_engine::api::hash_file_sha256(retention_report_path)?;
+    artifacts.push(RunArtifactEntry {
+        name: "retention_report".to_string(),
+        path: retention_report_path.to_path_buf(),
+        sha256: retention_hash,
+    });
+
+    let adapter_hash = bijux_engine::api::hash_file_sha256(adapter_bank_path)?;
+    artifacts.push(RunArtifactEntry {
+        name: "adapter_bank".to_string(),
+        path: adapter_bank_path.to_path_buf(),
+        sha256: adapter_hash,
+    });
+
+    Ok(artifacts)
 }

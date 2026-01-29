@@ -28,7 +28,17 @@ fn fastq_trim_help_snapshot() -> Result<()> {
     assert_help_contains(
         "trim",
         "tests/snapshots/fastq_trim_help.txt",
-        &["--r1", "--out", "--sample-id", "--tools", "--list-tools"],
+        &[
+            "--r1",
+            "--out",
+            "--sample-id",
+            "--tools",
+            "--list-tools",
+            "--adapter-preset",
+            "--adapter-bank",
+            "--enable-adapter",
+            "--disable-adapter",
+        ],
     )?;
     Ok(())
 }
@@ -92,6 +102,10 @@ fn fastq_preprocess_help_snapshot() -> Result<()> {
             "--auto",
             "--objective",
             "--bench-corpus",
+            "--adapter-preset",
+            "--adapter-bank",
+            "--enable-adapter",
+            "--disable-adapter",
         ],
     )?;
     Ok(())

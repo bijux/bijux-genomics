@@ -3,19 +3,40 @@ Run the FASTQ preprocess pipeline (validate → trim → filter → stats).
 Usage: bijux fastq preprocess [OPTIONS]
 
 Options:
-      --list-tools                   
-      --dry-run                      
-      --env <ENV>                    
-      --sample-id <SAMPLE_ID>        
-      --r1 <R1>                      
-      --r2 <R2>                      
-      --out <OUT>                    
-      --strict                       
-      --auto                         
-      --objective <OBJECTIVE>        [default: balanced] [possible values: speed, memory, retention, balanced]
-      --bench-corpus <BENCH_CORPUS>  [possible values: fastq_5set]
-      --allow-partial                
-  -h, --help                         Print help
+      --list-tools
+          
+      --dry-run
+          
+      --env <ENV>
+          
+      --sample-id <SAMPLE_ID>
+          
+      --r1 <R1>
+          
+      --r2 <R2>
+          
+      --out <OUT>
+          
+      --strict
+          
+      --auto
+          
+      --objective <OBJECTIVE>
+          [default: balanced] [possible values: speed, memory, retention, balanced]
+      --bench-corpus <BENCH_CORPUS>
+          [possible values: fastq_5set]
+      --allow-partial
+          
+      --adapter-preset <ADAPTER_PRESET>
+          [default: default_adna] [possible values: default_adna, truseq_only, ssdna, umi, nextera, capture]
+      --adapter-bank <ADAPTER_BANK>
+          
+      --enable-adapter <ENABLE_ADAPTER>
+          
+      --disable-adapter <DISABLE_ADAPTER>
+          
+  -h, --help
+          Print help
 
 Examples:
   bijux fastq preprocess --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE
