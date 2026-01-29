@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "bijux.adapter_bank.v1",
+  "title": "AdapterBankV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "adapters"],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "bijux.adapter_bank.v1"
+    },
+    "adapters": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "category",
+          "name",
+          "sequence",
+          "read_scope",
+          "enabled_by_default",
+          "rationale",
+          "source",
+          "notes"
+        ],
+        "properties": {
+          "id": { "type": "string" },
+          "category": {
+            "type": "string",
+            "enum": [
+              "truseq",
+              "nextera",
+              "ssdna_splint",
+              "pcr_primers",
+              "umi_constructs",
+              "kit_custom",
+              "capture_linkers",
+              "partial_motifs"
+            ]
+          },
+          "name": { "type": "string" },
+          "sequence": { "type": "string" },
+          "read_scope": {
+            "type": "string",
+            "enum": ["r1", "r2", "both", "single_end", "paired_end", "unknown"]
+          },
+          "enabled_by_default": { "type": "boolean" },
+          "rationale": { "type": "string" },
+          "source": { "type": "string" },
+          "notes": { "type": "string" }
+        }
+      }
+    }
+  }
+}

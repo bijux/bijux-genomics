@@ -7,6 +7,10 @@ pub struct BenchFastqTrimArgs {
     pub out: PathBuf,
     pub tools: Vec<String>,
     pub explain: bool,
+    pub adapter_preset: String,
+    pub adapter_bank: Option<PathBuf>,
+    pub enable_adapters: Vec<String>,
+    pub disable_adapters: Vec<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -96,4 +100,8 @@ pub struct BenchFastqPreprocessArgs {
     pub objective: bijux_analyze::selection::Objective,
     pub bench_corpus: Option<crate::pipeline::BenchCorpusId>,
     pub allow_partial: bool,
+    pub adapter_preset: String,
+    pub adapter_bank: Option<PathBuf>,
+    pub enable_adapters: Vec<String>,
+    pub disable_adapters: Vec<String>,
 }

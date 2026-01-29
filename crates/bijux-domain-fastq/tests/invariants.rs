@@ -23,6 +23,10 @@ fn old_metrics_schema_is_rejected() {
             mean_q_delta: 1.0,
             gc_delta: 0.1,
         },
+        adapter_preset: None,
+        adapter_bank_checksum: None,
+        effective_adapters_path: None,
+        adapter_trimming_summary: None,
     };
     let mut set = bijux_analyze::metric_set(metrics);
     set.metrics_schema = "fastq_trim_v0".to_string();

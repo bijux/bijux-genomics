@@ -1,4 +1,4 @@
-use anyhow::{Context, Result};
+use anyhow::{anyhow, Context, Result};
 use bijux_engine::api::bench_tools_dir;
 use bijux_engine::api::ResolvedImage;
 use bijux_engine::api::{
@@ -40,6 +40,8 @@ pub(crate) struct RunDirs {
     pub(crate) logs_dir: PathBuf,
     pub(crate) manifest_path: PathBuf,
     pub(crate) metrics_path: PathBuf,
+    pub(crate) run_manifest_path: PathBuf,
+    pub(crate) retention_report_path: PathBuf,
 }
 
 pub(crate) fn params_hash(params: &serde_json::Value) -> Result<String> {
@@ -67,6 +69,13 @@ pub(crate) fn prepare_tool_run_dirs(
     tool: &str,
     run_id: &str,
 ) -> Result<RunDirs> {
+    let adapter_bank_path = bijux_domain_fastq::adapter_bank_path();
+    if !adapter_bank_path.exists() {
+        return Err(anyhow!(
+            "adapter bank missing at {}",
+            adapter_bank_path.display()
+        ));
+    }
     let tool_dir = tools_root.join(tool);
     let run_dir = tool_dir.join("run").join(run_id);
     let artifacts_dir = run_dir.join("artifacts");
@@ -78,7 +87,153 @@ pub(crate) fn prepare_tool_run_dirs(
         logs_dir: logs_dir.clone(),
         manifest_path: run_dir.join("manifest.json"),
         metrics_path: run_dir.join("metrics.json"),
+        run_manifest_path: run_dir.join("run_manifest.json"),
+        retention_report_path: run_dir.join("retention_report.json"),
     })
+}
+
+pub(crate) fn write_retention_report_placeholder(
+    run_dirs: &RunDirs,
+    stage: &str,
+    tool: &str,
+    params: &serde_json::Value,
+) -> Result<()> {
+    let payload = serde_json::json!({
+        "schema_version": "bijux.retention_report.v1",
+        "definition": "unknown/TBD",
+        "numerator": "unknown/TBD",
+        "denominator": "unknown/TBD",
+        "scope": "unknown/TBD",
+        "stage_boundary": format!("{stage}:unknown/TBD"),
+        "tool": {
+            "id": tool,
+            "stage": stage,
+            "version": "unknown/TBD",
+            "params": params
+        }
+    });
+    std::fs::write(
+        &run_dirs.retention_report_path,
+        serde_json::to_vec_pretty(&payload)?,
+    )
+    .context("write retention_report.json")?;
+    Ok(())
+}
+
+pub(crate) fn write_run_manifest(
+    run_dirs: &RunDirs,
+    stage: &str,
+    tool: &str,
+    adapter_bank_path: &Path,
+) -> Result<()> {
+    let mut artifacts = Vec::new();
+    let manifest_hash = bijux_engine::api::hash_file_sha256(&run_dirs.manifest_path)?;
+    artifacts.push(serde_json::json!({
+        "name": "execution_manifest",
+        "path": run_dirs.manifest_path,
+        "sha256": manifest_hash
+    }));
+    let metrics_hash = bijux_engine::api::hash_file_sha256(&run_dirs.metrics_path)?;
+    artifacts.push(serde_json::json!({
+        "name": "metrics",
+        "path": run_dirs.metrics_path,
+        "sha256": metrics_hash
+    }));
+    let retention_hash = bijux_engine::api::hash_file_sha256(&run_dirs.retention_report_path)?;
+    artifacts.push(serde_json::json!({
+        "name": "retention_report",
+        "path": run_dirs.retention_report_path,
+        "sha256": retention_hash
+    }));
+    let adapter_hash = bijux_engine::api::hash_file_sha256(adapter_bank_path)?;
+    artifacts.push(serde_json::json!({
+        "name": "adapter_bank",
+        "path": adapter_bank_path,
+        "sha256": adapter_hash
+    }));
+    let payload = serde_json::json!({
+        "schema_version": "bijux.run_manifest.v1",
+        "stage": stage,
+        "tool": tool,
+        "artifacts": artifacts
+    });
+    std::fs::write(
+        &run_dirs.run_manifest_path,
+        serde_json::to_vec_pretty(&payload)?,
+    )
+    .context("write run_manifest.json")?;
+    Ok(())
+}
+
+fn run_artifacts_dir(run_dirs: &RunDirs) -> Result<PathBuf> {
+    let run_dir = run_dirs
+        .manifest_path
+        .parent()
+        .ok_or_else(|| anyhow!("run dir missing for manifest"))?;
+    Ok(run_dir.join("run_artifacts"))
+}
+
+pub(crate) fn write_effective_adapters(
+    run_dirs: &RunDirs,
+    effective: &bijux_domain_fastq::EffectiveAdapterSet,
+    bank_checksum: &str,
+    presets_checksum: &str,
+) -> Result<PathBuf> {
+    let root = run_artifacts_dir(run_dirs)?;
+    let adapters_dir = root.join("adapters");
+    std::fs::create_dir_all(&adapters_dir).context("create adapters artifact dir")?;
+    let path = adapters_dir.join("effective_adapters.json");
+    let adapters: Vec<serde_json::Value> = effective
+        .adapters
+        .iter()
+        .map(|adapter| {
+            serde_json::json!({
+                "id": adapter.id,
+                "sequence": adapter.sequence,
+            })
+        })
+        .collect();
+    let payload = serde_json::json!({
+        "schema_version": "bijux.effective_adapters.v1",
+        "preset": effective.preset,
+        "enabled_adapter_ids": effective.enabled_ids,
+        "adapters": adapters,
+        "bank_checksum": bank_checksum,
+        "presets_checksum": presets_checksum
+    });
+    std::fs::write(&path, serde_json::to_vec_pretty(&payload)?)
+        .context("write effective_adapters.json")?;
+    Ok(path)
+}
+
+pub(crate) fn write_adapter_trimming_report(
+    run_dirs: &RunDirs,
+    tool: &str,
+    params: &serde_json::Value,
+    adapter_ids: &[String],
+    total_reads: u64,
+) -> Result<PathBuf> {
+    let root = run_artifacts_dir(run_dirs)?;
+    let reports_dir = root.join("reports");
+    std::fs::create_dir_all(&reports_dir).context("create reports artifact dir")?;
+    let path = reports_dir.join("adapter_trimming_report.json");
+    let counts: std::collections::BTreeMap<String, u64> =
+        adapter_ids.iter().map(|id| (id.clone(), 0)).collect();
+    let payload = serde_json::json!({
+        "schema_version": "bijux.adapter_trimming_report.v1",
+        "counts_by_adapter": counts,
+        "reads_with_any_adapter": 0,
+        "total_reads": total_reads,
+        "bases_trimmed_total": 0,
+        "top_k_adapters": [],
+        "tool": {
+            "id": tool,
+            "params": params
+        }
+    });
+    std::fs::write(&path, serde_json::to_vec_pretty(&payload)?)
+        .context("write adapter_trimming_report.json")?;
+    Ok(path)
 }
 
 #[allow(dead_code)]
@@ -227,12 +382,12 @@ pub(crate) fn filter_tools_by_role(
     for tool in tools {
         let manifest = registry
             .tool_by_id(stage_id, tool)
-            .ok_or_else(|| anyhow::anyhow!("tool {tool} missing from manifests"))?;
+            .ok_or_else(|| anyhow!("tool {tool} missing from manifests"))?;
         match manifest.role {
             ToolRole::Authoritative => filtered.push(tool.clone()),
             ToolRole::Diagnostic => {
                 if strict {
-                    return Err(anyhow::anyhow!(
+                    return Err(anyhow!(
                         "strict mode requires authoritative tools; {tool} is diagnostic"
                     ));
                 }
@@ -240,7 +395,7 @@ pub(crate) fn filter_tools_by_role(
             }
             ToolRole::Experimental => {
                 if !allow_experimental {
-                    return Err(anyhow::anyhow!(
+                    return Err(anyhow!(
                         "experimental tool {tool} requires BIJUX_EXPERIMENTAL_TOOLS=1"
                     ));
                 }
@@ -249,7 +404,7 @@ pub(crate) fn filter_tools_by_role(
         }
     }
     if filtered.is_empty() {
-        return Err(anyhow::anyhow!("no tools available after role filtering"));
+        return Err(anyhow!("no tools available after role filtering"));
     }
     Ok(filtered)
 }

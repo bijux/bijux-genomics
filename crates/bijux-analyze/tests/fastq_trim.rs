@@ -19,6 +19,10 @@ fn fastq_trim_metrics_invariants_fail() {
             mean_q_delta: 1.0,
             gc_delta: 0.0,
         },
+        adapter_preset: None,
+        adapter_bank_checksum: None,
+        effective_adapters_path: None,
+        adapter_trimming_summary: None,
     };
     let err = match metrics.validate() {
         Ok(()) => panic!("expected invariant failure"),
@@ -58,6 +62,10 @@ fn sqlite_insert_fastq_trim_v2() -> Result<(), Box<dyn std::error::Error>> {
                 mean_q_delta: 1.0,
                 gc_delta: 0.1,
             },
+            adapter_preset: None,
+            adapter_bank_checksum: None,
+            effective_adapters_path: None,
+            adapter_trimming_summary: None,
         }),
     };
 

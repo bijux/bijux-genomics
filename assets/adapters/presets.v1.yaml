@@ -1,0 +1,28 @@
+schema_version: bijux.adapter_presets.v1
+presets:
+  - name: default_adna
+    categories:
+      - truseq
+      - nextera
+      - partial_motifs
+    adapter_ids: []
+  - name: truseq_only
+    categories:
+      - truseq
+    adapter_ids: []
+  - name: ssdna
+    categories:
+      - ssdna_splint
+    adapter_ids: []
+  - name: umi
+    categories:
+      - umi_constructs
+    adapter_ids: []
+  - name: nextera
+    categories:
+      - nextera
+    adapter_ids: []
+  - name: capture
+    categories:
+      - capture_linkers
+    adapter_ids: []

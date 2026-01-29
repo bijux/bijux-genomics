@@ -27,7 +27,7 @@ use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed}
 use crate::fastq_exec::helpers::{
     compute_run_id, normalize_merge_tool_list, params_hash, prepare_tool_run_dirs,
     resolve_image_for_run, write_execution_logs, write_explain_md, write_explain_plan_json,
-    write_metrics_json, ExecutionManifest,
+    write_metrics_json, write_retention_report_placeholder, write_run_manifest, ExecutionManifest,
 };
 use crate::fastq_exec::helpers::{filter_tools_by_role, BenchOutcome};
 use bijux_domain_fastq::RawFailure;
@@ -324,7 +324,7 @@ fn run_merge_tool<S: ::std::hash::BuildHasher>(
         runner: bench_inputs.runner.to_string(),
         platform: platform.name.clone(),
         input_hash: bench_inputs.input_hash.clone(),
-        parameters: params,
+        parameters: params.clone(),
     };
     let execution_metrics = ExecutionMetrics {
         runtime_s,
@@ -333,6 +333,9 @@ fn run_merge_tool<S: ::std::hash::BuildHasher>(
     };
     let envelope = &metric_set;
     write_metrics_json(&run_dirs, &execution_metrics, envelope)?;
+    write_retention_report_placeholder(&run_dirs, "fastq.merge", tool, &params)?;
+    let adapter_bank_path = bijux_domain_fastq::adapter_bank_path();
+    write_run_manifest(&run_dirs, "fastq.merge", tool, &adapter_bank_path)?;
     let record = BenchmarkRecord {
         context,
         execution: execution_metrics,

@@ -10,6 +10,7 @@
 // 5. execution adapters
 // Structural layout of this crate is frozen as of FASTQ v1.
 mod adapter;
+mod adapter_bank;
 mod contract;
 mod contracts;
 mod domain;
@@ -18,6 +19,11 @@ mod metrics;
 mod pipeline;
 mod stages;
 
+pub use adapter_bank::{
+    adapter_bank_path, adapter_categories, adapter_presets_path, adapters_by_category,
+    load_adapter_bank, load_adapter_presets, resolve_adapter_preset, AdapterBankV1, AdapterEntryV1,
+    AdapterPresetV1, AdapterPresetsV1, EffectiveAdapterSet, ReadScope,
+};
 pub use contract::{
     contract_for_stage as canonical_contract_for_stage, FastqStage, StageContract, StageIO,
 };
@@ -34,8 +40,8 @@ pub use pipeline::{
     create_run_layout, fastq_default_pipeline, fastq_minimal_pipeline, now_string,
     update_run_index, write_benchmark_exports, write_environment, write_input_assessment,
     write_manifest, write_run_metadata, BenchCorpus, BenchCorpusId, BenchDataset,
-    DefaultPipelineOptions, InputAssessmentV1, RunEnvironment, RunIndexEntry, RunLayout,
-    RunManifest, RunStageEntry, ToolImageDigest,
+    DefaultPipelineOptions, InputAssessmentV1, RunArtifactEntry, RunEnvironment, RunIndexEntry,
+    RunLayout, RunManifest, RunStageEntry, ToolImageDigest,
 };
 pub use pipeline::{assess_input_dir, discover_fastq_files};
 pub use stages::args;
