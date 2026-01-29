@@ -1,7 +1,7 @@
 //! Stable, intended-for-use engine interfaces.
 
 use anyhow::{anyhow, Result};
-use bijux_environment::api::{PlatformSpec, RunnerKind};
+use bijux_core::ToolRole;
 
 pub use crate::core::composer::{
     load_registry, normalize_correct_tool_list, normalize_filter_tool_list,
@@ -32,8 +32,14 @@ pub use crate::services::observer::{
     hash_file_sha256, input_fastq_stats, length_histogram, output_fastq_stats,
     parse_fastqvalidator_count, write_explain_plan, SeqkitMetrics,
 };
-pub use crate::services::stage_exec::{execute_stage_plan, StagePlan, StageResult};
-pub use bijux_environment::api::ResolvedImage;
+pub use crate::services::run_artifacts::{
+    compute_run_id, params_hash, prepare_tool_run_dirs, tool_run_artifacts_dir,
+    write_execution_logs, write_metrics_json, write_retention_report_placeholder,
+    write_run_manifest, write_stage_plan_json, RunArtifactInput, RunDirs,
+};
+pub use crate::services::stage_exec::{execute_stage_plan, StagePlan, StageResultV1};
+pub use bijux_environment::api::{PlatformSpec, ResolvedImage, RunnerKind, ToolImageSpec};
+pub use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 
 pub fn ensure_bench_runner(
     platform: &PlatformSpec,
@@ -44,6 +50,44 @@ pub fn ensure_bench_runner(
         return Err(anyhow!("benchmarking supports docker only for now"));
     }
     Ok(runner)
+}
+
+pub fn filter_tools_by_role(
+    stage_id: &str,
+    tools: &[String],
+    registry: &bijux_core::ToolRegistry,
+    strict: bool,
+) -> Result<Vec<String>> {
+    let allow_experimental = std::env::var("BIJUX_EXPERIMENTAL_TOOLS").is_ok();
+    let mut filtered = Vec::new();
+    for tool in tools {
+        let manifest = registry
+            .tool_by_id(stage_id, tool)
+            .ok_or_else(|| anyhow!("tool {tool} missing from manifests"))?;
+        match manifest.role {
+            ToolRole::Authoritative => filtered.push(tool.clone()),
+            ToolRole::Diagnostic => {
+                if strict {
+                    return Err(anyhow!(
+                        "strict mode requires authoritative tools; {tool} is diagnostic"
+                    ));
+                }
+                filtered.push(tool.clone());
+            }
+            ToolRole::Experimental => {
+                if !allow_experimental {
+                    return Err(anyhow!(
+                        "experimental tool {tool} requires BIJUX_EXPERIMENTAL_TOOLS=1"
+                    ));
+                }
+                filtered.push(tool.clone());
+            }
+        }
+    }
+    if filtered.is_empty() {
+        return Err(anyhow!("no tools available after role filtering"));
+    }
+    Ok(filtered)
 }
 
 pub fn run_tool_execution(

@@ -9,15 +9,19 @@ use bijux_analyze::{
 };
 use bijux_core::measure::ExecutionMetrics;
 use bijux_core::ToolRole;
-use bijux_engine::api::{ensure_bench_runner, load_registry};
-use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
+use bijux_engine::api::{ensure_bench_runner, filter_tools_by_role, load_registry};
+use bijux_engine::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 use uuid::Uuid;
 
 use bijux_engine::api::validate_execution_outputs;
-use bijux_engine::api::{bench_base_dir, bench_tools_dir};
-use bijux_engine::api::{execute_stage_plan, StagePlan};
-use bijux_engine::api::{hash_file_sha256, input_fastq_stats, SeqkitMetrics};
-use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
+use bijux_engine::api::{
+    bench_base_dir, bench_tools_dir, compute_run_id, execute_stage_plan, hash_file_sha256,
+    input_fastq_stats, params_hash, prepare_tool_run_dirs, resolve_image_for_run,
+    write_execution_logs, write_metrics_json, write_retention_report_placeholder,
+    write_run_manifest, write_stage_plan_json, RunArtifactInput, SeqkitMetrics, StagePlan,
+};
+use bijux_engine::api::{ensure_image_qa_passed, ensure_tool_qa_passed};
+use bijux_stages_fastq::artifacts::write_retention_report_artifact;
 use bijux_stages_fastq::fastq::validate_pre::normalize_validate_tool_list;
 use bijux_stages_fastq::fastq::validate_pre::validate_reads_total;
 use bijux_stages_fastq::{
@@ -25,13 +29,8 @@ use bijux_stages_fastq::{
     StagePlanJson, ToolReferenceV1,
 };
 
-use crate::fastq_exec::helpers::{
-    compute_run_id, params_hash, prepare_tool_run_dirs, resolve_image_for_run,
-    write_execution_logs, write_explain_md, write_explain_plan_json, write_metrics_json,
-    write_retention_report_artifact, write_retention_report_placeholder, write_run_manifest,
-    write_stage_plan_json, ExecutionManifest, RunArtifactInput,
-};
-use crate::fastq_exec::helpers::{filter_tools_by_role, BenchOutcome};
+use crate::fastq_exec::helpers::{write_explain_md, write_explain_plan_json, BenchOutcome};
+use bijux_engine::api::ExecutionManifest;
 use bijux_stages_fastq::RawFailure;
 
 /// Run the FASTQ benchmark stage.
@@ -183,13 +182,14 @@ fn prepare_validate_bench<S: ::std::hash::BuildHasher>(
         .ok_or_else(|| anyhow!("r1 has no parent"))?
         .to_path_buf();
 
-    let seqkit_spec = catalog
-        .get("seqkit")
-        .ok_or_else(|| anyhow!("seqkit missing from images.yaml"))?;
-    let seqkit_image = resolve_image_for_run(seqkit_spec, platform)?;
+    let tool_id = bijux_stages_fastq::TOOL_SEQKIT;
+    let tool_spec = catalog
+        .get(tool_id)
+        .ok_or_else(|| anyhow!("{tool_id} missing from images.yaml"))?;
+    let tool_image = resolve_image_for_run(tool_spec, platform)?;
 
     let input_hash = hash_file_sha256(&r1)?;
-    let input_stats = input_fastq_stats(&seqkit_image, &r1_dir, &r1)?;
+    let input_stats = input_fastq_stats(&tool_image, &r1_dir, &r1)?;
 
     Ok(ValidateBenchInputs {
         runner,
@@ -343,7 +343,11 @@ fn run_validate_tool<S: ::std::hash::BuildHasher>(
         },
         raw_reads_total: Some(reads_total),
     };
-    let retention_report_path = write_retention_report_artifact(&run_dirs, &retention_report)?;
+    let run_dir = run_dirs
+        .manifest_path
+        .parent()
+        .ok_or_else(|| anyhow!("run dir missing for manifest"))?;
+    let retention_report_path = write_retention_report_artifact(run_dir, &retention_report)?;
     write_retention_report_placeholder(&run_dirs, "fastq.validate_pre", tool, &params)?;
     let adapter_bank_path = bijux_stages_fastq::adapter_bank_path();
     write_run_manifest(

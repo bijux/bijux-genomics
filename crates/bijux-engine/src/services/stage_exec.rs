@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 use std::time::Instant;
 
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Context, Result};
 use bijux_environment::api::{ResolvedImage, RunnerKind};
 use uuid::Uuid;
 
@@ -25,7 +25,7 @@ pub struct StagePlan {
 }
 
 #[derive(Debug, Clone)]
-pub struct StageResult {
+pub struct StageResultV1 {
     pub exit_code: i32,
     pub runtime_s: f64,
     pub memory_mb: f64,
@@ -49,7 +49,7 @@ struct ExecutionEnvelope {
 /// # Errors
 /// Returns an error if the execution fails or the plan is invalid.
 #[allow(clippy::too_many_lines)]
-pub fn execute_stage_plan(plan: &StagePlan) -> Result<StageResult> {
+pub fn execute_stage_plan(plan: &StagePlan) -> Result<StageResultV1> {
     let (r1, r2) = match plan.inputs.as_slice() {
         [] => (None, None),
         [r1] => (Some(r1.as_path()), None),
@@ -131,9 +131,6 @@ pub fn execute_stage_plan(plan: &StagePlan) -> Result<StageResult> {
                 command: exec.command,
             }
         }
-        "fastq.screen" => {
-            return Err(anyhow!("fastq.screen execution is not implemented yet"));
-        }
         _ => {
             let exec = run_tool_execution(
                 &plan.tool,
@@ -154,12 +151,20 @@ pub fn execute_stage_plan(plan: &StagePlan) -> Result<StageResult> {
     let runtime_s = start.elapsed().as_secs_f64();
     let memory_mb = execution_memory_mb(&container_name)?;
     cleanup_execution(&container_name)?;
-    Ok(StageResult {
+    let marker_path = plan.out_dir.join("engine_execution.json");
+    let marker = serde_json::json!({
+        "schema_version": "bijux.engine_execution.v1",
+        "stage": plan.stage_id,
+        "tool": plan.tool,
+    });
+    std::fs::write(&marker_path, serde_json::to_vec_pretty(&marker)?)
+        .context("write engine execution marker")?;
+    Ok(StageResultV1 {
         exit_code: execution.exit_code,
         runtime_s,
         memory_mb,
         outputs: outputs_override.unwrap_or_else(|| plan.outputs.clone()),
-        metrics_path: None,
+        metrics_path: Some(marker_path),
         stdout: execution.stdout,
         stderr: execution.stderr,
         command: execution.command,

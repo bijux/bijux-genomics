@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
-use std::time::Instant;
 
 use anyhow::{anyhow, Context, Result};
 use bijux_analyze::{
@@ -9,23 +8,22 @@ use bijux_analyze::{
     BenchmarkRecord, FastqStatsMetrics, LengthHistogramBin,
 };
 use bijux_core::measure::ExecutionMetrics;
-use bijux_engine::api::{ensure_bench_runner, load_registry};
-use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
+use bijux_engine::api::{ensure_bench_runner, filter_tools_by_role, load_registry};
+use bijux_engine::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 use uuid::Uuid;
 
 use bijux_engine::api::validate_execution_outputs;
-use bijux_engine::api::{bench_base_dir, bench_tools_dir};
-use bijux_engine::api::{cleanup_execution, execution_memory_mb, run_validate_execution};
-use bijux_engine::api::{hash_file_sha256, input_fastq_stats, length_histogram, SeqkitMetrics};
-use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
+use bijux_engine::api::{
+    bench_base_dir, bench_tools_dir, compute_run_id, execute_stage_plan, hash_file_sha256,
+    input_fastq_stats, length_histogram, normalize_stats_tool_list, params_hash,
+    prepare_tool_run_dirs, resolve_image_for_run, write_execution_logs, write_metrics_json,
+    write_retention_report_placeholder, write_run_manifest, SeqkitMetrics, StagePlan,
+};
+use bijux_engine::api::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use bijux_stages_fastq::{inspect_headers, log_header_warnings, preflight_stage, FastqArtifact};
 
-use crate::fastq_exec::helpers::{
-    compute_run_id, normalize_stats_tool_list, params_hash, prepare_tool_run_dirs,
-    resolve_image_for_run, write_execution_logs, write_explain_md, write_explain_plan_json,
-    write_metrics_json, write_retention_report_placeholder, write_run_manifest, ExecutionManifest,
-};
-use crate::fastq_exec::helpers::{filter_tools_by_role, BenchOutcome};
+use crate::fastq_exec::helpers::{write_explain_md, write_explain_plan_json, BenchOutcome};
+use bijux_engine::api::ExecutionManifest;
 use bijux_stages_fastq::RawFailure;
 
 /// Run the FASTQ benchmark stage.
@@ -132,7 +130,6 @@ pub fn bench_fastq_stats_neutral<S: ::std::hash::BuildHasher>(
 struct StatsBenchInputs {
     runner: RunnerKind,
     r1: PathBuf,
-    r1_dir: PathBuf,
     input_hash: String,
     input_stats: SeqkitMetrics,
     length_hist: Vec<LengthHistogramBin>,
@@ -163,14 +160,15 @@ fn prepare_stats_bench<S: ::std::hash::BuildHasher>(
         .ok_or_else(|| anyhow!("r1 has no parent"))?
         .to_path_buf();
 
-    let seqkit_spec = catalog
-        .get("seqkit")
-        .ok_or_else(|| anyhow!("seqkit missing from images.yaml"))?;
-    let seqkit_image = resolve_image_for_run(seqkit_spec, platform)?;
+    let tool_id = bijux_stages_fastq::TOOL_SEQKIT;
+    let tool_spec = catalog
+        .get(tool_id)
+        .ok_or_else(|| anyhow!("{tool_id} missing from images.yaml"))?;
+    let tool_image = resolve_image_for_run(tool_spec, platform)?;
 
     let input_hash = hash_file_sha256(&r1)?;
-    let input_stats = input_fastq_stats(&seqkit_image, &r1_dir, &r1)?;
-    let length_hist = length_histogram(&seqkit_image, &r1_dir, &r1)?
+    let input_stats = input_fastq_stats(&tool_image, &r1_dir, &r1)?;
+    let length_hist = length_histogram(&tool_image, &r1_dir, &r1)?
         .into_iter()
         .map(|(length, count)| LengthHistogramBin { length, count })
         .collect();
@@ -178,7 +176,6 @@ fn prepare_stats_bench<S: ::std::hash::BuildHasher>(
     Ok(StatsBenchInputs {
         runner,
         r1,
-        r1_dir,
         input_hash,
         input_stats,
         length_hist,
@@ -220,19 +217,18 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
     );
     let run_dirs = prepare_tool_run_dirs(&bench_inputs.tools_root, tool, &run_id)?;
     let out_dir = run_dirs.artifacts_dir.clone();
-    let start = Instant::now();
-    let container_name = format!("bijux-bench-{}-{}", args.sample_id, Uuid::new_v4());
-    let execution = run_validate_execution(
-        tool,
-        &image,
-        &bench_inputs.r1_dir,
-        &bench_inputs.r1,
-        &out_dir,
-        &container_name,
-    )?;
-    let runtime_s = start.elapsed().as_secs_f64();
-    let memory_mb = execution_memory_mb(&container_name)?;
-    cleanup_execution(&container_name)?;
+    let exec_plan = StagePlan {
+        stage_id: "fastq.stats_neutral".to_string(),
+        tool: tool.to_string(),
+        image,
+        runner: bench_inputs.runner,
+        inputs: vec![bench_inputs.r1.clone()],
+        out_dir: out_dir.clone(),
+        outputs: Vec::new(),
+        params: params.clone(),
+        aux_images: HashMap::new(),
+    };
+    let execution = execute_stage_plan(&exec_plan)?;
 
     let metrics = FastqStatsMetrics {
         reads_total: bench_inputs.input_stats.reads,
@@ -280,8 +276,8 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
         parameters: params.clone(),
     };
     let execution_metrics = ExecutionMetrics {
-        runtime_s,
-        memory_mb,
+        runtime_s: execution.runtime_s,
+        memory_mb: execution.memory_mb,
         exit_code: execution.exit_code,
     };
     let envelope = &metric_set;
