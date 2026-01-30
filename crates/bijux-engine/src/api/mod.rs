@@ -33,9 +33,10 @@ pub use crate::services::observer::{
     parse_fastqvalidator_count, write_explain_plan, SeqkitMetrics,
 };
 pub use crate::services::run_artifacts::{
-    compute_run_id, params_hash, prepare_tool_run_dirs, tool_run_artifacts_dir,
-    write_execution_logs, write_metrics_json, write_retention_report_placeholder,
-    write_run_manifest, write_stage_plan_json, RunArtifactInput, RunDirs,
+    compute_run_id, params_hash, prepare_tool_run_dirs, run_artifacts_dir_for_out,
+    tool_run_artifacts_dir, write_execution_logs, write_metrics_envelope, write_metrics_json,
+    write_retention_report_placeholder, write_run_manifest, write_stage_plan_json, DashboardFactV1,
+    MetricsEnvelopeV1, RunArtifactInput, RunDirs, StageReportV1, TelemetryEventV1,
 };
 pub use crate::services::stage_exec::{execute_stage_plan, StagePlan, StageResultV1};
 pub use bijux_environment::api::{PlatformSpec, ResolvedImage, RunnerKind, ToolImageSpec};

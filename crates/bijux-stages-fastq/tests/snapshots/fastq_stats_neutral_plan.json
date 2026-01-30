@@ -1,0 +1,18 @@
+{
+  "stage_id": "fastq.stats_neutral",
+  "stage_version": "1",
+  "io": {
+    "inputs": [
+      {
+        "name": "reads_r1",
+        "path": "reads.fastq.gz"
+      }
+    ],
+    "outputs": []
+  },
+  "parameters": {
+    "input": "reads.fastq.gz",
+    "out_dir": "out",
+    "tool": "seqkit"
+  }
+}

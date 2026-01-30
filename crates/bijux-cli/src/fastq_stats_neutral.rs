@@ -8,6 +8,7 @@ use bijux_analyze::{
     BenchmarkRecord, FastqStatsMetrics, LengthHistogramBin,
 };
 use bijux_core::measure::ExecutionMetrics;
+use bijux_core::StageObservabilityContextV1;
 use bijux_engine::api::{ensure_bench_runner, filter_tools_by_role, load_registry};
 use bijux_engine::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 use uuid::Uuid;
@@ -16,10 +17,13 @@ use bijux_engine::api::validate_execution_outputs;
 use bijux_engine::api::{
     bench_base_dir, bench_tools_dir, compute_run_id, execute_plan, hash_file_sha256,
     input_fastq_stats, length_histogram, normalize_stats_tool_list, params_hash,
-    prepare_tool_run_dirs, resolve_image_for_run, write_execution_logs, write_metrics_json,
-    write_retention_report_placeholder, write_run_manifest, SeqkitMetrics, StagePlan,
+    prepare_tool_run_dirs, resolve_image_for_run, write_execution_logs, write_metrics_envelope,
+    write_metrics_json, write_retention_report_placeholder, write_run_manifest,
+    write_stage_plan_json, SeqkitMetrics, StagePlan,
 };
 use bijux_engine::api::{ensure_image_qa_passed, ensure_tool_qa_passed};
+use bijux_stages_fastq::fastq::stats_neutral::plan_stats_neutral;
+use bijux_stages_fastq::StagePlanJson;
 use bijux_stages_fastq::{inspect_headers, log_header_warnings, preflight_stage, FastqArtifact};
 
 use crate::fastq_router::{write_explain_md, write_explain_plan_json, BenchOutcome};
@@ -127,6 +131,10 @@ pub fn bench_fastq_stats_neutral<S: ::std::hash::BuildHasher>(
     })
 }
 
+fn stage_version_i32(version: bijux_core::StageVersion) -> i32 {
+    i32::try_from(version.0).unwrap_or(i32::MAX)
+}
+
 struct StatsBenchInputs {
     runner: RunnerKind,
     r1: PathBuf,
@@ -188,7 +196,7 @@ fn prepare_stats_bench<S: ::std::hash::BuildHasher>(
 fn run_stats_tool<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
-    args: &bijux_stages_fastq::args::BenchFastqStatsArgs,
+    _args: &bijux_stages_fastq::args::BenchFastqStatsArgs,
     bench_inputs: &StatsBenchInputs,
     tool: &str,
 ) -> Result<BenchmarkRecord<FastqStatsMetrics>> {
@@ -198,10 +206,10 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
     let image = resolve_image_for_run(spec, platform)?;
 
     println!("→ stats {tool}");
-    let params = serde_json::json!({
-        "sample_id": args.sample_id,
-        "r1": bench_inputs.r1,
-    });
+    let tool_dir = bench_inputs.tools_root.join(tool);
+    let plan = plan_stats_neutral(tool, &bench_inputs.r1, &tool_dir)?;
+    let plan_json = StagePlanJson::from_plan(&plan);
+    let params = plan_json.parameters.clone();
     let param_hash = params_hash(&params).unwrap_or_else(|_| Uuid::new_v4().to_string());
     let image_digest = spec
         .digest
@@ -217,9 +225,12 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
     );
     let run_dirs = prepare_tool_run_dirs(&bench_inputs.tools_root, tool, &run_id)?;
     let out_dir = run_dirs.artifacts_dir.clone();
+    let _plan_path = write_stage_plan_json(&run_dirs, "fastq_stats_neutral.plan.json", &plan_json)?;
     let exec_plan = StagePlan {
         stage_id: "fastq.stats_neutral".to_string(),
+        stage_version: stage_version_i32(bijux_stages_fastq::fastq::stats_neutral::STAGE_VERSION),
         tool: tool.to_string(),
+        tool_version: spec.version.clone(),
         image,
         runner: bench_inputs.runner,
         inputs: vec![bench_inputs.r1.clone()],
@@ -280,6 +291,23 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
         memory_mb: execution.memory_mb,
         exit_code: execution.exit_code,
     };
+    let metrics_json = serde_json::to_value(&metric_set)?;
+    let stage_ctx = StageObservabilityContextV1 {
+        stage_id: "fastq.stats_neutral".to_string(),
+        stage_version: stage_version_i32(bijux_stages_fastq::fastq::stats_neutral::STAGE_VERSION),
+        tool_id: tool.to_string(),
+        tool_version: spec.version.clone(),
+        input_hash: bench_inputs.input_hash.clone(),
+        params_hash: param_hash.clone(),
+        parameters_json: params.clone(),
+    };
+    let _metrics_envelope_path = write_metrics_envelope(
+        &out_dir.join("run_artifacts"),
+        &stage_ctx,
+        &execution_metrics,
+        &metrics_json,
+        &[],
+    )?;
     let envelope = &metric_set;
     write_metrics_json(&run_dirs, &execution_metrics, envelope)?;
     write_retention_report_placeholder(&run_dirs, "fastq.stats_neutral", tool, &params)?;

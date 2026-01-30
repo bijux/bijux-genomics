@@ -16,9 +16,11 @@ sha2 = "0.10"
 thiserror = "1"
 walkdir = "2"
 uuid = { version = "1", features = ["v4"] }
+chrono.workspace = true
 
 [dev-dependencies]
 assert_cmd = "2"
+bijux-stages-fastq = { path = "../bijux-stages-fastq" }
 tempfile.workspace = true
 
 [lints]

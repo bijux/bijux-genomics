@@ -1,3 +1,4 @@
+use std::io::Write;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
@@ -6,6 +7,9 @@ use sha2::Digest;
 use crate::services::composer::paths::bench_tools_dir;
 
 use serde::Serialize;
+use uuid::Uuid;
+
+use bijux_core::{canonicalize_json_value, StageObservabilityContextV1};
 
 #[derive(Debug)]
 pub struct RunDirs {
@@ -21,6 +25,73 @@ pub struct RunDirs {
 pub struct RunArtifactInput {
     pub name: &'static str,
     pub path: PathBuf,
+}
+
+#[derive(Debug, Serialize)]
+pub struct StageReportV1 {
+    pub schema_version: &'static str,
+    pub stage_id: String,
+    pub tool_id: String,
+    pub warnings: Vec<String>,
+    pub errors: Vec<String>,
+    pub outputs: Vec<String>,
+    pub subreports: Vec<String>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct RetentionReportV1 {
+    pub schema_version: &'static str,
+    pub stage_id: String,
+    pub tool_id: String,
+    pub tool_version: String,
+    pub definition: String,
+    pub numerator: String,
+    pub denominator: String,
+    pub scope: String,
+    pub params: serde_json::Value,
+}
+
+#[derive(Debug, Serialize)]
+pub struct MetricsEnvelopeV1 {
+    pub schema_version: &'static str,
+    pub stage_id: String,
+    pub stage_version: i32,
+    pub tool_id: String,
+    pub tool_version: String,
+    pub input_hash: String,
+    pub params_hash: String,
+    pub parameters_json: serde_json::Value,
+    pub execution: bijux_core::measure::ExecutionMetrics,
+    pub metrics: serde_json::Value,
+    pub output_hashes: Vec<String>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct TelemetryEventV1 {
+    pub run_id: String,
+    pub stage_id: String,
+    pub tool_id: String,
+    pub event_name: String,
+    pub timestamp: String,
+    pub duration_ms: Option<u64>,
+    pub status: String,
+    pub trace_id: String,
+    pub span_id: String,
+    pub attrs: serde_json::Value,
+}
+
+#[derive(Debug, Serialize)]
+pub struct DashboardFactV1 {
+    pub run_id: String,
+    pub stage_id: String,
+    pub tool_id: String,
+    pub params_hash: String,
+    pub runtime_s: f64,
+    pub memory_mb: f64,
+    pub metrics: serde_json::Value,
+    pub metrics_envelope_path: String,
+    pub stage_report_path: String,
+    pub retention_report_path: Option<String>,
 }
 
 pub fn params_hash(params: &serde_json::Value) -> Result<String> {
@@ -66,25 +137,14 @@ pub fn write_retention_report_placeholder(
     tool: &str,
     params: &serde_json::Value,
 ) -> Result<()> {
-    let payload = serde_json::json!({
-        "schema_version": "bijux.retention_report.v1",
-        "definition": "unknown/TBD",
-        "numerator": "unknown/TBD",
-        "denominator": "unknown/TBD",
-        "scope": "unknown/TBD",
-        "stage_boundary": format!("{stage}:unknown/TBD"),
-        "tool": {
-            "id": tool,
-            "stage": stage,
-            "version": "unknown/TBD",
-            "params": params
-        }
-    });
-    std::fs::write(
-        &run_dirs.retention_report_path,
-        serde_json::to_vec_pretty(&payload)?,
-    )
-    .context("write retention_report.json")?;
+    let path = write_retention_report_v1(
+        &run_artifacts_dir(run_dirs)?,
+        stage,
+        tool,
+        "unknown/TBD",
+        params,
+    )?;
+    std::fs::copy(&path, &run_dirs.retention_report_path).context("copy retention_report.json")?;
     Ok(())
 }
 
@@ -208,4 +268,140 @@ pub fn write_metrics_json<T: serde::Serialize>(
     std::fs::write(&run_dirs.metrics_path, serde_json::to_vec_pretty(&payload)?)
         .context("write metrics.json")?;
     Ok(())
+}
+
+pub fn run_artifacts_dir_for_out(out_dir: &Path) -> PathBuf {
+    out_dir.join("run_artifacts")
+}
+
+pub fn write_plan_artifacts(
+    run_artifacts_dir: &Path,
+    stage_id: &str,
+    stage_version: i32,
+    tool_id: &str,
+    inputs: &[PathBuf],
+    outputs: &[PathBuf],
+    params: &serde_json::Value,
+) -> Result<(PathBuf, PathBuf)> {
+    std::fs::create_dir_all(run_artifacts_dir).context("create run_artifacts dir")?;
+    let plan_path = run_artifacts_dir.join("plan.json");
+    let effective_config_path = run_artifacts_dir.join("effective_config.json");
+    let payload = serde_json::json!({
+        "stage_id": stage_id,
+        "stage_version": stage_version,
+        "tool_id": tool_id,
+        "inputs": inputs,
+        "outputs": outputs,
+        "parameters": params,
+    });
+    std::fs::write(&plan_path, serde_json::to_vec_pretty(&payload)?).context("write plan.json")?;
+    std::fs::write(&effective_config_path, serde_json::to_vec_pretty(params)?)
+        .context("write effective_config.json")?;
+    Ok((plan_path, effective_config_path))
+}
+
+pub fn write_metrics_envelope(
+    run_artifacts_dir: &Path,
+    ctx: &StageObservabilityContextV1,
+    execution: &bijux_core::measure::ExecutionMetrics,
+    metrics: &serde_json::Value,
+    output_hashes: &[String],
+) -> Result<PathBuf> {
+    let canonical_params = canonicalize_json_value(&ctx.parameters_json);
+    let payload = MetricsEnvelopeV1 {
+        schema_version: "bijux.metrics_envelope.v1",
+        stage_id: ctx.stage_id.clone(),
+        stage_version: ctx.stage_version,
+        tool_id: ctx.tool_id.clone(),
+        tool_version: ctx.tool_version.clone(),
+        input_hash: ctx.input_hash.clone(),
+        params_hash: ctx.params_hash.clone(),
+        parameters_json: canonical_params,
+        execution: *execution,
+        metrics: metrics.clone(),
+        output_hashes: output_hashes.to_vec(),
+    };
+    let path = run_artifacts_dir.join("metrics_envelope.json");
+    std::fs::write(&path, serde_json::to_vec_pretty(&payload)?)
+        .context("write metrics_envelope.json")?;
+    Ok(path)
+}
+
+pub fn write_stage_report_v1(
+    run_artifacts_dir: &Path,
+    stage_id: &str,
+    tool_id: &str,
+    outputs: &[PathBuf],
+) -> Result<PathBuf> {
+    let payload = StageReportV1 {
+        schema_version: "bijux.stage_report.v1",
+        stage_id: stage_id.to_string(),
+        tool_id: tool_id.to_string(),
+        warnings: Vec::new(),
+        errors: Vec::new(),
+        outputs: outputs.iter().map(|p| p.display().to_string()).collect(),
+        subreports: Vec::new(),
+    };
+    let path = run_artifacts_dir.join("stage_report.json");
+    std::fs::write(&path, serde_json::to_vec_pretty(&payload)?)
+        .context("write stage_report.json")?;
+    Ok(path)
+}
+
+pub fn write_retention_report_v1(
+    run_artifacts_dir: &Path,
+    stage_id: &str,
+    tool_id: &str,
+    tool_version: &str,
+    params: &serde_json::Value,
+) -> Result<PathBuf> {
+    let payload = RetentionReportV1 {
+        schema_version: "bijux.retention_report.v1",
+        stage_id: stage_id.to_string(),
+        tool_id: tool_id.to_string(),
+        tool_version: tool_version.to_string(),
+        definition: "unknown/TBD".to_string(),
+        numerator: "unknown/TBD".to_string(),
+        denominator: "unknown/TBD".to_string(),
+        scope: "unknown/TBD".to_string(),
+        params: params.clone(),
+    };
+    let path = run_artifacts_dir.join("retention_report.json");
+    std::fs::write(&path, serde_json::to_vec_pretty(&payload)?)
+        .context("write retention_report.json")?;
+    Ok(path)
+}
+
+pub fn write_telemetry_event(path: &Path, event: &TelemetryEventV1) -> Result<()> {
+    if let Some(parent) = path.parent() {
+        std::fs::create_dir_all(parent).context("create telemetry dir")?;
+    }
+    let line = serde_json::to_string(event)?;
+    std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(path)
+        .context("open telemetry jsonl")?
+        .write_all(format!("{line}\n").as_bytes())
+        .context("append telemetry jsonl")?;
+    Ok(())
+}
+
+pub fn write_facts_jsonl(path: &Path, fact: &DashboardFactV1) -> Result<()> {
+    if let Some(parent) = path.parent() {
+        std::fs::create_dir_all(parent).context("create dashboard dir")?;
+    }
+    let line = serde_json::to_string(fact)?;
+    std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(path)
+        .context("open facts jsonl")?
+        .write_all(format!("{line}\n").as_bytes())
+        .context("append facts jsonl")?;
+    Ok(())
+}
+
+pub fn default_trace_ids() -> (String, String) {
+    (Uuid::new_v4().to_string(), Uuid::new_v4().to_string())
 }

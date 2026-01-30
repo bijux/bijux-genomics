@@ -40,7 +40,9 @@ fn execute_plan_runs_trim() -> Result<()> {
 
     let exec_plan = StagePlan {
         stage_id: "fastq.trim".to_string(),
+        stage_version: 1,
         tool: "fastp".to_string(),
+        tool_version: spec.version.clone(),
         image,
         runner: platform.runner,
         inputs: vec![input],
@@ -76,7 +78,9 @@ fn execute_plan_runs_validate() -> Result<()> {
     let out_dir = tempdir_in_repo()?;
     let exec_plan = StagePlan {
         stage_id: "fastq.validate_pre".to_string(),
+        stage_version: 1,
         tool: "fastqvalidator_official".to_string(),
+        tool_version: spec.version.clone(),
         image,
         runner: platform.runner,
         inputs: vec![input],
@@ -111,7 +115,9 @@ fn execute_plan_runs_merge() -> Result<()> {
     let out_dir = tempdir_in_repo()?;
     let exec_plan = StagePlan {
         stage_id: "fastq.merge".to_string(),
+        stage_version: 1,
         tool: "pear".to_string(),
+        tool_version: spec.version.clone(),
         image,
         runner: platform.runner,
         inputs: vec![r1, r2],

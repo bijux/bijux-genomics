@@ -50,6 +50,14 @@ use utils::normalize_run_base_dir;
 fn main() -> Result<()> {
     let cli = Cli::parse();
     let cwd = std::env::current_dir().context("resolve current directory")?;
+    if let Some(path) = &cli.telemetry_jsonl {
+        let telemetry_path = if path.is_absolute() {
+            path.clone()
+        } else {
+            cwd.join(path)
+        };
+        std::env::set_var("BIJUX_TELEMETRY_JSONL", telemetry_path);
+    }
     let domain_dir = cwd.join("domain");
 
     if handle_meta_commands(&cli, &domain_dir)? {
