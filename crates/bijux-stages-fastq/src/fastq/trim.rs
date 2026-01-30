@@ -1,19 +1,10 @@
 use std::path::Path;
 
 use anyhow::{anyhow, Result};
-use bijux_core::{StageId, StageVersion};
-
-use crate::plan::{ArtifactRef, StageIO, StagePlan};
+use bijux_core::{ArtifactRef, StageIO, StageId, StagePlan, StageVersion, ToolExecutionSpecV1};
 
 pub const STAGE_ID: &str = "fastq.trim";
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct TrimPlan {
-    pub tool: String,
-    pub input: std::path::PathBuf,
-    pub output: std::path::PathBuf,
-}
 
 #[derive(Debug, Clone)]
 pub struct TrimUserConfig {
@@ -57,13 +48,46 @@ pub fn resolve_config(user: TrimUserConfig) -> TrimEffectiveConfig {
 ///
 /// # Errors
 /// Returns an error if the tool is unsupported.
-pub fn plan(tool: &str, r1: &Path, out_dir: &Path) -> Result<TrimPlan> {
+pub fn plan(
+    tool: &ToolExecutionSpecV1,
+    r1: &Path,
+    out_dir: &Path,
+    adapter_bank: Option<&serde_json::Value>,
+) -> Result<StagePlan> {
     let output_name =
-        trim_output_name(tool).ok_or_else(|| anyhow!("unsupported trim tool: {tool}"))?;
-    Ok(TrimPlan {
-        tool: tool.to_string(),
-        input: r1.to_path_buf(),
-        output: out_dir.join(output_name),
+        trim_output_name(&tool.tool_id.0).ok_or_else(|| anyhow!("unsupported trim tool"))?;
+    let output = out_dir.join(output_name);
+    let mut params = serde_json::json!({
+        "tool": tool.tool_id.0,
+        "input": r1,
+        "output": output
+    });
+    if let Some(adapter_bank) = adapter_bank {
+        if let Some(map) = params.as_object_mut() {
+            map.insert("adapter_bank".to_string(), adapter_bank.clone());
+        }
+    }
+    Ok(StagePlan {
+        stage_id: StageId(STAGE_ID.to_string()),
+        stage_version: STAGE_VERSION,
+        tool_id: tool.tool_id.clone(),
+        tool_version: tool.tool_version.clone(),
+        image: tool.image.clone(),
+        command: tool.command.clone(),
+        resources: tool.resources.clone(),
+        io: StageIO {
+            inputs: vec![ArtifactRef {
+                name: "reads_r1".to_string(),
+                path: r1.to_path_buf(),
+            }],
+            outputs: vec![ArtifactRef {
+                name: "trimmed_reads".to_string(),
+                path: output.clone(),
+            }],
+        },
+        out_dir: out_dir.to_path_buf(),
+        params,
+        aux_images: std::collections::BTreeMap::new(),
     })
 }
 
@@ -71,37 +95,9 @@ pub fn plan(tool: &str, r1: &Path, out_dir: &Path) -> Result<TrimPlan> {
 ///
 /// # Errors
 /// Returns an error if the tool is unsupported.
-pub fn plan_from_config(config: &TrimEffectiveConfig) -> Result<TrimPlan> {
-    plan(&config.tool, &config.r1, &config.out_dir)
-}
-
-impl StagePlan for TrimPlan {
-    fn stage_id(&self) -> StageId {
-        StageId(STAGE_ID.to_string())
-    }
-
-    fn stage_version(&self) -> StageVersion {
-        STAGE_VERSION
-    }
-
-    fn outputs(&self) -> StageIO {
-        StageIO {
-            inputs: vec![ArtifactRef {
-                name: "reads_r1".to_string(),
-                path: self.input.clone(),
-            }],
-            outputs: vec![ArtifactRef {
-                name: "trimmed_reads".to_string(),
-                path: self.output.clone(),
-            }],
-        }
-    }
-
-    fn parameters_json(&self) -> serde_json::Value {
-        serde_json::json!({
-            "tool": self.tool,
-            "input": self.input,
-            "output": self.output
-        })
-    }
+pub fn plan_from_config(
+    tool: &ToolExecutionSpecV1,
+    config: &TrimEffectiveConfig,
+) -> Result<StagePlan> {
+    plan(tool, &config.r1, &config.out_dir, None)
 }

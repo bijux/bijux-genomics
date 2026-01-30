@@ -128,10 +128,13 @@ pub struct BenchFastqTrimArgs {
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
-    #[arg(long, value_enum, default_value_t = AdapterPresetArg::DefaultAdna)]
-    pub adapter_preset: AdapterPresetArg,
-    #[arg(long)]
-    pub adapter_bank: Option<PathBuf>,
+    #[arg(
+        long,
+        help = "Adapter bank selection: preset:<name> (default: preset:best_practice_adna)"
+    )]
+    pub adapter_bank: Option<String>,
+    #[arg(long, help = "Adapter bank file (yaml/json)")]
+    pub adapter_bank_file: Option<PathBuf>,
     #[arg(long)]
     pub enable_adapter: Vec<String>,
     #[arg(long)]
@@ -270,10 +273,13 @@ pub struct BenchFastqPreprocessArgs {
     pub out: PathBuf,
     #[arg(long)]
     pub strict: bool,
-    #[arg(long, value_enum, default_value_t = AdapterPresetArg::DefaultAdna)]
-    pub adapter_preset: AdapterPresetArg,
-    #[arg(long)]
-    pub adapter_bank: Option<PathBuf>,
+    #[arg(
+        long,
+        help = "Adapter bank selection: preset:<name> (default: preset:best_practice_adna)"
+    )]
+    pub adapter_bank: Option<String>,
+    #[arg(long, help = "Adapter bank file (yaml/json)")]
+    pub adapter_bank_file: Option<PathBuf>,
     #[arg(long)]
     pub enable_adapter: Vec<String>,
     #[arg(long)]
@@ -296,36 +302,6 @@ impl ObjectiveArg {
             ObjectiveArg::Memory => "memory",
             ObjectiveArg::Retention => "retention",
             ObjectiveArg::Balanced => "balanced",
-        }
-    }
-}
-
-#[derive(Debug, Clone, Copy, ValueEnum)]
-pub enum AdapterPresetArg {
-    #[value(name = "default_adna")]
-    DefaultAdna,
-    #[value(name = "truseq_only")]
-    TruseqOnly,
-    #[value(name = "ssdna")]
-    Ssdna,
-    #[value(name = "umi")]
-    Umi,
-    #[value(name = "nextera")]
-    Nextera,
-    #[value(name = "capture")]
-    Capture,
-}
-
-impl AdapterPresetArg {
-    #[must_use]
-    pub fn as_str(self) -> &'static str {
-        match self {
-            AdapterPresetArg::DefaultAdna => "default_adna",
-            AdapterPresetArg::TruseqOnly => "truseq_only",
-            AdapterPresetArg::Ssdna => "ssdna",
-            AdapterPresetArg::Umi => "umi",
-            AdapterPresetArg::Nextera => "nextera",
-            AdapterPresetArg::Capture => "capture",
         }
     }
 }
@@ -392,10 +368,13 @@ pub struct FastqPreprocessArgs {
     pub bench_corpus: Option<BenchCorpusArg>,
     #[arg(long)]
     pub allow_partial: bool,
-    #[arg(long, value_enum, default_value_t = AdapterPresetArg::DefaultAdna)]
-    pub adapter_preset: AdapterPresetArg,
-    #[arg(long)]
-    pub adapter_bank: Option<PathBuf>,
+    #[arg(
+        long,
+        help = "Adapter bank selection: preset:<name> (default: preset:best_practice_adna)"
+    )]
+    pub adapter_bank: Option<String>,
+    #[arg(long, help = "Adapter bank file (yaml/json)")]
+    pub adapter_bank_file: Option<PathBuf>,
     #[arg(long)]
     pub enable_adapter: Vec<String>,
     #[arg(long)]
@@ -514,10 +493,13 @@ pub struct FastqTrimArgs {
     pub out: Option<PathBuf>,
     #[arg(long, value_delimiter = ',')]
     pub tools: Vec<String>,
-    #[arg(long, value_enum, default_value_t = AdapterPresetArg::DefaultAdna)]
-    pub adapter_preset: AdapterPresetArg,
-    #[arg(long)]
-    pub adapter_bank: Option<PathBuf>,
+    #[arg(
+        long,
+        help = "Adapter bank selection: preset:<name> (default: preset:best_practice_adna)"
+    )]
+    pub adapter_bank: Option<String>,
+    #[arg(long, help = "Adapter bank file (yaml/json)")]
+    pub adapter_bank_file: Option<PathBuf>,
     #[arg(long)]
     pub enable_adapter: Vec<String>,
     #[arg(long)]
@@ -621,8 +603,8 @@ pub fn bench_args_from_trim(args: &FastqTrimArgs) -> Result<engine_args::BenchFa
             .ok_or_else(|| anyhow!("out required for benchmark"))?,
         tools: args.tools.clone(),
         explain: false,
-        adapter_preset: args.adapter_preset.as_str().to_string(),
         adapter_bank: args.adapter_bank.clone(),
+        adapter_bank_file: args.adapter_bank_file.clone(),
         enable_adapters: args.enable_adapter.clone(),
         disable_adapters: args.disable_adapter.clone(),
     })
@@ -665,8 +647,8 @@ pub fn bench_args_trim(args: &BenchFastqTrimArgs) -> engine_args::BenchFastqTrim
         out: args.out.clone(),
         tools: args.tools.clone(),
         explain: args.explain,
-        adapter_preset: args.adapter_preset.as_str().to_string(),
         adapter_bank: args.adapter_bank.clone(),
+        adapter_bank_file: args.adapter_bank_file.clone(),
         enable_adapters: args.enable_adapter.clone(),
         disable_adapters: args.disable_adapter.clone(),
     }
@@ -778,8 +760,8 @@ pub fn bench_args_preprocess(
         objective: bijux_analyze::selection::Objective::Balanced,
         bench_corpus: None,
         allow_partial: false,
-        adapter_preset: args.adapter_preset.as_str().to_string(),
         adapter_bank: args.adapter_bank.clone(),
+        adapter_bank_file: args.adapter_bank_file.clone(),
         enable_adapters: args.enable_adapter.clone(),
         disable_adapters: args.disable_adapter.clone(),
     }
@@ -812,8 +794,8 @@ pub fn preprocess_args_from_cli(
         objective: args.objective.into(),
         bench_corpus: args.bench_corpus.map(Into::into),
         allow_partial: args.allow_partial,
-        adapter_preset: args.adapter_preset.as_str().to_string(),
         adapter_bank: args.adapter_bank.clone(),
+        adapter_bank_file: args.adapter_bank_file.clone(),
         enable_adapters: args.enable_adapter.clone(),
         disable_adapters: args.disable_adapter.clone(),
     })

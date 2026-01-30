@@ -1,16 +1,17 @@
-use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 
 use anyhow::{Context, Result};
-use bijux_core::canonicalize_json_value;
+use bijux_core::{
+    canonicalize_json_value, CommandSpecV1, ContainerImageRefV1, ToolConstraints,
+    ToolExecutionSpecV1, ToolId,
+};
 use bijux_engine::api::{execute_plan, params_hash, StagePlan};
-use bijux_environment::api::{ResolvedImage, RunnerKind};
+use bijux_environment::api::RunnerKind;
 use bijux_stages_fastq::fastq::{
     correct, filter, merge, qc_post, screen, stats_neutral, trim, umi, validate_pre,
 };
-use bijux_stages_fastq::StagePlanJson;
 use tempfile::TempDir;
 
 static ENV_LOCK: Mutex<()> = Mutex::new(());
@@ -72,11 +73,27 @@ fn temp_inputs() -> Result<(TempDir, PathBuf, PathBuf)> {
     Ok((dir, r1, r2))
 }
 
-fn test_image() -> ResolvedImage {
-    ResolvedImage {
-        full_name: "bijux/test:latest".to_string(),
-        arch: "amd64".to_string(),
-        runner: RunnerKind::Docker,
+fn test_image() -> ContainerImageRefV1 {
+    ContainerImageRefV1 {
+        image: "bijux/test:latest".to_string(),
+        digest: None,
+    }
+}
+
+fn dummy_tool(tool: &str, image: &ContainerImageRefV1) -> ToolExecutionSpecV1 {
+    ToolExecutionSpecV1 {
+        tool_id: ToolId(tool.to_string()),
+        tool_version: "1.0.0".to_string(),
+        image: image.clone(),
+        command: CommandSpecV1 {
+            template: Vec::new(),
+        },
+        resources: ToolConstraints {
+            runtime: "docker".to_string(),
+            mem_gb: 1,
+            tmp_gb: 1,
+            threads: 1,
+        },
     }
 }
 
@@ -119,136 +136,42 @@ fn build_plan(
     r1: &Path,
     r2: &Path,
     out_dir: &Path,
-    image: &ResolvedImage,
+    image: &ContainerImageRefV1,
 ) -> Result<(StagePlan, Vec<PathBuf>, bool)> {
-    let mut aux_images = HashMap::new();
-    let (tool, stage_version, inputs, outputs, params) = match stage_id {
-        "fastq.trim" => {
-            let plan = trim::plan("fastp", r1, out_dir)?;
-            let plan_json = StagePlanJson::from_plan(&plan);
-            (
-                "fastp".to_string(),
-                stage_version_i32(trim::STAGE_VERSION),
-                vec![r1.to_path_buf()],
-                vec![plan.output.clone()],
-                plan_json.parameters,
-            )
-        }
-        "fastq.filter" => {
-            let plan = filter::plan_filter("fastp", r1, out_dir)?;
-            let plan_json = StagePlanJson::from_plan(&plan);
-            (
-                "fastp".to_string(),
-                stage_version_i32(filter::STAGE_VERSION),
-                vec![r1.to_path_buf()],
-                vec![plan.output.clone()],
-                plan_json.parameters,
-            )
-        }
+    let plan = match stage_id {
+        "fastq.trim" => trim::plan(&dummy_tool("fastp", image), r1, out_dir, None)?,
+        "fastq.filter" => filter::plan_filter(&dummy_tool("fastp", image), r1, out_dir)?,
         "fastq.validate_pre" => {
-            let plan = validate_pre::plan("fastqvalidator_official", r1, out_dir);
-            let plan_json = StagePlanJson::from_plan(&plan);
-            (
-                "fastqvalidator_official".to_string(),
-                stage_version_i32(validate_pre::STAGE_VERSION),
-                vec![r1.to_path_buf()],
-                Vec::new(),
-                plan_json.parameters,
-            )
+            validate_pre::plan(&dummy_tool("fastqvalidator_official", image), r1, out_dir)
         }
-        "fastq.merge" => {
-            let plan = merge::plan_merge("pear", r1, r2, out_dir)?;
-            let plan_json = StagePlanJson::from_plan(&plan);
-            (
-                "pear".to_string(),
-                stage_version_i32(merge::STAGE_VERSION),
-                vec![r1.to_path_buf(), r2.to_path_buf()],
-                merge_outputs_for("pear", out_dir),
-                plan_json.parameters,
-            )
-        }
+        "fastq.merge" => merge::plan_merge(&dummy_tool("pear", image), r1, r2, out_dir)?,
         "fastq.correct" => {
-            let plan = correct::plan_correct("rcorrector", r1, r2, out_dir)?;
-            let plan_json = StagePlanJson::from_plan(&plan);
-            (
-                "rcorrector".to_string(),
-                stage_version_i32(correct::STAGE_VERSION),
-                vec![r1.to_path_buf(), r2.to_path_buf()],
-                vec![plan.output_r1.clone(), plan.output_r2.clone()],
-                plan_json.parameters,
-            )
+            correct::plan_correct(&dummy_tool("rcorrector", image), r1, r2, out_dir)?
         }
-        "fastq.umi" => {
-            let plan = umi::plan_umi("umi_tools", r1, r2, out_dir)?;
-            let plan_json = StagePlanJson::from_plan(&plan);
-            (
-                "umi_tools".to_string(),
-                stage_version_i32(umi::STAGE_VERSION),
-                vec![r1.to_path_buf(), r2.to_path_buf()],
-                vec![plan.output_r1.clone(), plan.output_r2.clone()],
-                plan_json.parameters,
-            )
-        }
-        "fastq.screen" => {
-            let plan = screen::plan_screen("kraken2", r1, out_dir)?;
-            let plan_json = StagePlanJson::from_plan(&plan);
-            (
-                "kraken2".to_string(),
-                stage_version_i32(screen::STAGE_VERSION),
-                vec![r1.to_path_buf()],
-                vec![plan.report.clone()],
-                plan_json.parameters,
-            )
-        }
+        "fastq.umi" => umi::plan_umi(&dummy_tool("umi_tools", image), r1, r2, out_dir)?,
+        "fastq.screen" => screen::plan_screen(&dummy_tool("kraken2", image), r1, out_dir)?,
         "fastq.qc_post" => {
-            let plan = qc_post::plan_qc_post("multiqc", r1, out_dir)?;
-            let plan_json = StagePlanJson::from_plan(&plan);
+            let mut aux_images = std::collections::BTreeMap::new();
             aux_images.insert("fastqc".to_string(), image.clone());
-            (
-                "multiqc".to_string(),
-                stage_version_i32(qc_post::STAGE_VERSION),
-                vec![r1.to_path_buf()],
-                Vec::new(),
-                plan_json.parameters,
-            )
+            qc_post::plan_qc_post(&dummy_tool("multiqc", image), r1, out_dir, aux_images)?
         }
         "fastq.stats_neutral" => {
-            let plan = stats_neutral::plan_stats_neutral("seqkit", r1, out_dir)?;
-            let plan_json = StagePlanJson::from_plan(&plan);
-            (
-                "seqkit".to_string(),
-                stage_version_i32(stats_neutral::STAGE_VERSION),
-                vec![r1.to_path_buf()],
-                Vec::new(),
-                plan_json.parameters,
-            )
+            stats_neutral::plan_stats_neutral(&dummy_tool("seqkit", image), r1, out_dir)?
         }
         _ => return Err(anyhow::anyhow!("unsupported stage {stage_id}")),
     };
 
-    let exec_plan = StagePlan {
-        stage_id: stage_id.to_string(),
-        stage_version,
-        tool: tool.clone(),
-        tool_version: "1.0.0".to_string(),
-        image: image.clone(),
-        runner: RunnerKind::Docker,
-        inputs,
-        out_dir: out_dir.to_path_buf(),
-        outputs: outputs.clone(),
-        params,
-        aux_images,
-    };
-
+    let outputs: Vec<PathBuf> = plan.io.outputs.iter().map(|o| o.path.clone()).collect();
     let is_retention = matches!(
         stage_id,
         "fastq.trim" | "fastq.filter" | "fastq.merge" | "fastq.correct" | "fastq.umi"
     );
 
-    Ok((exec_plan, outputs, is_retention))
+    Ok((plan, outputs, is_retention))
 }
 
 #[test]
+#[allow(clippy::too_many_lines)]
 fn fastq_stages_emit_observability_contracts() -> Result<()> {
     let _guard = ENV_LOCK
         .lock()
@@ -270,17 +193,20 @@ fn fastq_stages_emit_observability_contracts() -> Result<()> {
             touch(output).context("touch output")?;
         }
         if stage.id == "fastq.merge" {
-            for output in merge_outputs_for(&exec_plan.tool, &out_dir) {
+            for output in merge_outputs_for(&exec_plan.tool_id.0, &out_dir) {
                 touch(&output).context("touch merge output")?;
             }
         }
 
-        let _result = execute_plan(&exec_plan)?;
+        let _result = execute_plan(&exec_plan, RunnerKind::Docker)?;
         let run_artifacts = out_dir.join("run_artifacts");
         assert!(run_artifacts.join("plan.json").exists());
         assert!(run_artifacts.join("effective_config.json").exists());
         assert!(run_artifacts.join("metrics_envelope.json").exists());
         assert!(run_artifacts.join("stage_report.json").exists());
+        assert!(run_artifacts.join("stage_metrics.json").exists());
+        assert!(run_artifacts.join("stage_invocation.json").exists());
+        assert!(run_artifacts.join("stage_events.jsonl").exists());
         let stage_config = run_artifacts
             .join("config")
             .join(format!("{}.effective.json", stage.id));
@@ -318,7 +244,7 @@ fn fastq_stages_emit_observability_contracts() -> Result<()> {
             envelope["stage_version"],
             serde_json::Value::from(stage_version_i32(stage.version))
         );
-        assert_eq!(envelope["tool_id"], exec_plan.tool);
+        assert_eq!(envelope["tool_id"], exec_plan.tool_id.0);
         assert_eq!(envelope["tool_version"], exec_plan.tool_version);
         assert!(
             envelope["input_hash"].as_str().is_some(),
@@ -348,6 +274,16 @@ fn fastq_stages_emit_observability_contracts() -> Result<()> {
         }
         assert!(has_stage_start, "missing stage_start telemetry event");
         assert!(has_stage_end, "missing stage_end telemetry event");
+
+        let invocation_path = run_artifacts.join("stage_invocation.json");
+        let invocation_raw = fs::read_to_string(&invocation_path)?;
+        let invocation: bijux_core::ToolInvocationV1 = serde_json::from_str(&invocation_raw)?;
+        assert_eq!(invocation.stage_id, exec_plan.stage_id.0);
+        assert_eq!(invocation.tool_id, exec_plan.tool_id.0);
+        assert!(!invocation.tool_version.is_empty());
+        assert!(!invocation.runner.is_empty());
+        assert!(!invocation.platform.is_empty());
+        assert!(!invocation.input_hashes.is_empty());
     }
 
     std::env::set_var("PATH", original_path);

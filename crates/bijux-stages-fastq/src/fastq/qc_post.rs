@@ -1,19 +1,13 @@
 use std::path::Path;
 
 use anyhow::{anyhow, Result};
-use bijux_core::{StageId, StageVersion};
-
-use crate::plan::{ArtifactRef, StageIO, StagePlan};
+use bijux_core::{
+    ArtifactRef, ContainerImageRefV1, StageIO, StageId, StagePlan, StageVersion,
+    ToolExecutionSpecV1,
+};
 
 pub const STAGE_ID: &str = "fastq.qc_post";
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct QcPostPlan {
-    pub tool: String,
-    pub input: std::path::PathBuf,
-    pub out_dir: std::path::PathBuf,
-}
 
 pub fn normalize_qc_post_tool_list(tools: &[String]) -> Result<Vec<String>> {
     let allowed = ["fastqc", "multiqc"];
@@ -29,43 +23,38 @@ pub fn aux_tool_ids() -> &'static [&'static str] {
 ///
 /// # Errors
 /// Returns an error if the tool is unsupported.
-pub fn plan_qc_post(tool: &str, r1: &Path, out_dir: &Path) -> Result<QcPostPlan> {
-    if !normalize_qc_post_tool_list(&[tool.to_string()])?.is_empty() {
-        return Ok(QcPostPlan {
-            tool: tool.to_string(),
-            input: r1.to_path_buf(),
-            out_dir: out_dir.to_path_buf(),
-        });
+pub fn plan_qc_post(
+    tool: &ToolExecutionSpecV1,
+    r1: &Path,
+    out_dir: &Path,
+    aux_images: std::collections::BTreeMap<String, ContainerImageRefV1>,
+) -> Result<StagePlan> {
+    if normalize_qc_post_tool_list(std::slice::from_ref(&tool.tool_id.0))?.is_empty() {
+        return Err(anyhow!("unsupported qc_post tool"));
     }
-    Err(anyhow!("unsupported qc_post tool: {tool}"))
-}
-
-impl StagePlan for QcPostPlan {
-    fn stage_id(&self) -> StageId {
-        StageId(STAGE_ID.to_string())
-    }
-
-    fn stage_version(&self) -> StageVersion {
-        STAGE_VERSION
-    }
-
-    fn outputs(&self) -> StageIO {
-        StageIO {
+    Ok(StagePlan {
+        stage_id: StageId(STAGE_ID.to_string()),
+        stage_version: STAGE_VERSION,
+        tool_id: tool.tool_id.clone(),
+        tool_version: tool.tool_version.clone(),
+        image: tool.image.clone(),
+        command: tool.command.clone(),
+        resources: tool.resources.clone(),
+        io: StageIO {
             inputs: vec![ArtifactRef {
                 name: "reads_r1".to_string(),
-                path: self.input.clone(),
+                path: r1.to_path_buf(),
             }],
             outputs: Vec::new(),
-        }
-    }
-
-    fn parameters_json(&self) -> serde_json::Value {
-        serde_json::json!({
-            "tool": self.tool,
-            "input": self.input,
-            "out_dir": self.out_dir
-        })
-    }
+        },
+        out_dir: out_dir.to_path_buf(),
+        params: serde_json::json!({
+            "tool": tool.tool_id.0,
+            "input": r1,
+            "out_dir": out_dir
+        }),
+        aux_images,
+    })
 }
 
 fn normalize_tools_with_allowlist(tools: &[String], allowlist: &[&str]) -> Result<Vec<String>> {

@@ -315,6 +315,43 @@ pub fn write_metrics_envelope(
     Ok(path)
 }
 
+pub fn write_stage_metrics_json<T: serde::Serialize>(
+    run_artifacts_dir: &Path,
+    metrics: &bijux_core::metrics::MetricSet<T>,
+) -> Result<PathBuf> {
+    let path = run_artifacts_dir.join("stage_metrics.json");
+    std::fs::write(&path, serde_json::to_vec_pretty(metrics)?)
+        .context("write stage_metrics.json")?;
+    Ok(path)
+}
+
+pub fn write_stage_invocation_json(
+    run_artifacts_dir: &Path,
+    invocation: &bijux_core::ToolInvocationV1,
+) -> Result<PathBuf> {
+    let path = run_artifacts_dir.join("stage_invocation.json");
+    std::fs::write(&path, serde_json::to_vec_pretty(invocation)?)
+        .context("write stage_invocation.json")?;
+    Ok(path)
+}
+
+pub fn write_stage_event_jsonl(
+    run_artifacts_dir: &Path,
+    event: &bijux_core::TelemetryEventV1,
+) -> Result<PathBuf> {
+    let path = run_artifacts_dir.join("stage_events.jsonl");
+    if let Some(parent) = path.parent() {
+        std::fs::create_dir_all(parent).context("create stage_events dir")?;
+    }
+    let mut file = std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(&path)
+        .context("open stage_events.jsonl")?;
+    writeln!(file, "{}", serde_json::to_string(event)?)?;
+    Ok(path)
+}
+
 pub fn write_stage_report_v1(
     run_artifacts_dir: &Path,
     stage_id: &str,

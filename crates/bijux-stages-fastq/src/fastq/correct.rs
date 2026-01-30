@@ -1,22 +1,10 @@
 use std::path::Path;
 
 use anyhow::{anyhow, Result};
-use bijux_core::{StageId, StageVersion};
-
-use crate::plan::{ArtifactRef, StageIO, StagePlan};
+use bijux_core::{ArtifactRef, StageIO, StageId, StagePlan, StageVersion, ToolExecutionSpecV1};
 
 pub const STAGE_ID: &str = "fastq.correct";
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct CorrectPlan {
-    pub tool: String,
-    pub r1: std::path::PathBuf,
-    pub r2: std::path::PathBuf,
-    pub out_dir: std::path::PathBuf,
-    pub output_r1: std::path::PathBuf,
-    pub output_r2: std::path::PathBuf,
-}
 
 pub fn normalize_correct_tool_list(tools: &[String]) -> Result<Vec<String>> {
     let allowed = ["rcorrector", "spades", "bayeshammer", "lighter", "musket"];
@@ -31,62 +19,56 @@ pub fn normalize_correct_tool_list(tools: &[String]) -> Result<Vec<String>> {
 ///
 /// # Errors
 /// Returns an error if the tool is unsupported.
-pub fn plan_correct(tool: &str, r1: &Path, r2: &Path, out_dir: &Path) -> Result<CorrectPlan> {
-    normalize_correct_tool_list(&[tool.to_string()])?;
-    Ok(CorrectPlan {
-        tool: tool.to_string(),
-        r1: r1.to_path_buf(),
-        r2: r2.to_path_buf(),
-        out_dir: out_dir.to_path_buf(),
-        output_r1: out_dir.join("reads_r1.fastq.gz"),
-        output_r2: out_dir.join("reads_r2.fastq.gz"),
-    })
-}
-
-impl StagePlan for CorrectPlan {
-    fn stage_id(&self) -> StageId {
-        StageId(STAGE_ID.to_string())
-    }
-
-    fn stage_version(&self) -> StageVersion {
-        STAGE_VERSION
-    }
-
-    fn outputs(&self) -> StageIO {
-        StageIO {
+pub fn plan_correct(
+    tool: &ToolExecutionSpecV1,
+    r1: &Path,
+    r2: &Path,
+    out_dir: &Path,
+) -> Result<StagePlan> {
+    normalize_correct_tool_list(std::slice::from_ref(&tool.tool_id.0))?;
+    let output_r1 = out_dir.join("reads_r1.fastq.gz");
+    let output_r2 = out_dir.join("reads_r2.fastq.gz");
+    Ok(StagePlan {
+        stage_id: StageId(STAGE_ID.to_string()),
+        stage_version: STAGE_VERSION,
+        tool_id: tool.tool_id.clone(),
+        tool_version: tool.tool_version.clone(),
+        image: tool.image.clone(),
+        command: tool.command.clone(),
+        resources: tool.resources.clone(),
+        io: StageIO {
             inputs: vec![
                 ArtifactRef {
                     name: "reads_r1".to_string(),
-                    path: self.r1.clone(),
+                    path: r1.to_path_buf(),
                 },
                 ArtifactRef {
                     name: "reads_r2".to_string(),
-                    path: self.r2.clone(),
+                    path: r2.to_path_buf(),
                 },
             ],
             outputs: vec![
                 ArtifactRef {
                     name: "corrected_reads_r1".to_string(),
-                    path: self.output_r1.clone(),
+                    path: output_r1.clone(),
                 },
                 ArtifactRef {
                     name: "corrected_reads_r2".to_string(),
-                    path: self.output_r2.clone(),
+                    path: output_r2.clone(),
                 },
             ],
-        }
-    }
-
-    fn parameters_json(&self) -> serde_json::Value {
-        serde_json::json!({
-            "tool": self.tool,
-            "r1": self.r1,
-            "r2": self.r2,
-            "out_dir": self.out_dir,
-            "output_r1": self.output_r1,
-            "output_r2": self.output_r2
-        })
-    }
+        },
+        out_dir: out_dir.to_path_buf(),
+        params: serde_json::json!({
+            "tool": tool.tool_id.0,
+            "r1": r1,
+            "r2": r2,
+            "out_dir": out_dir,
+            "output_r1": output_r1,
+            "output_r2": output_r2
+        }),
+        aux_images: std::collections::BTreeMap::new(),
+    })
 }
 
 fn normalize_tools_with_allowlist(tools: &[String], allowlist: &[&str]) -> Result<Vec<String>> {

@@ -119,9 +119,9 @@ pub enum MetricId {
     LengthHistogram,
     DeltaMetrics,
     AdapterPreset,
-    AdapterBankChecksum,
-    EffectiveAdaptersPath,
-    AdapterTrimmingSummary,
+    AdapterBankId,
+    AdapterBankHash,
+    AdapterOverrides,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -545,8 +545,18 @@ pub const METRIC_REGISTRY: [MetricSpec; 30] = [
         derived: false,
     },
     MetricSpec {
-        id: MetricId::AdapterBankChecksum,
-        name: "adapter_bank_checksum",
+        id: MetricId::AdapterBankId,
+        name: "adapter_bank_id",
+        meaning: "Adapter bank id used for trimming",
+        direction: MetricDirection::Neutral,
+        range: None,
+        stages: &["fastq.trim"],
+        measured: false,
+        derived: false,
+    },
+    MetricSpec {
+        id: MetricId::AdapterBankHash,
+        name: "adapter_bank_hash",
         meaning: "Checksum of adapter bank used for trimming",
         direction: MetricDirection::Neutral,
         range: None,
@@ -555,19 +565,9 @@ pub const METRIC_REGISTRY: [MetricSpec; 30] = [
         derived: false,
     },
     MetricSpec {
-        id: MetricId::EffectiveAdaptersPath,
-        name: "effective_adapters_path",
-        meaning: "Path to effective adapters artifact",
-        direction: MetricDirection::Neutral,
-        range: None,
-        stages: &["fastq.trim"],
-        measured: false,
-        derived: false,
-    },
-    MetricSpec {
-        id: MetricId::AdapterTrimmingSummary,
-        name: "adapter_trimming_summary",
-        meaning: "Summary of adapter trimming outcomes",
+        id: MetricId::AdapterOverrides,
+        name: "adapter_overrides",
+        meaning: "Adapter enable/disable overrides used for trimming",
         direction: MetricDirection::Neutral,
         range: None,
         stages: &["fastq.trim"],
@@ -623,9 +623,9 @@ pub const FASTQ_TRIM_METRICS: [MetricId; 11] = [
     MetricId::MeanQAfter,
     MetricId::DeltaMetrics,
     MetricId::AdapterPreset,
-    MetricId::AdapterBankChecksum,
-    MetricId::EffectiveAdaptersPath,
-    MetricId::AdapterTrimmingSummary,
+    MetricId::AdapterBankId,
+    MetricId::AdapterBankHash,
+    MetricId::AdapterOverrides,
 ];
 
 pub const FASTQ_VALIDATE_METRICS: [MetricId; 4] = [
@@ -929,28 +929,11 @@ pub struct FastqTrimMetrics {
     #[serde(default)]
     pub adapter_preset: Option<String>,
     #[serde(default)]
-    pub adapter_bank_checksum: Option<String>,
+    pub adapter_bank_id: Option<String>,
     #[serde(default)]
-    pub effective_adapters_path: Option<String>,
+    pub adapter_bank_hash: Option<String>,
     #[serde(default)]
-    pub adapter_trimming_summary: Option<AdapterTrimmingSummary>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct AdapterTrimmingSummary {
-    pub reads_with_any_adapter: Option<u64>,
-    pub total_reads: Option<u64>,
-    pub bases_trimmed_total: Option<u64>,
-    #[serde(default)]
-    pub top_k_adapters: Vec<AdapterContribution>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct AdapterContribution {
-    pub id: String,
-    pub count: u64,
+    pub adapter_overrides: Option<serde_json::Value>,
 }
 
 impl StageMetricSchema for FastqTrimMetrics {
@@ -1386,6 +1369,32 @@ pub fn open_sqlite(path: &Path) -> Result<Connection> {
     Ok(Connection::open(path)?)
 }
 
+fn ensure_inserted_at_column(conn: &Connection, table: &str) -> Result<()> {
+    let mut stmt = conn.prepare(&format!("PRAGMA table_info({table})"))?;
+    let mut rows = stmt.query([])?;
+    while let Some(row) = rows.next()? {
+        let name: String = row.get(1)?;
+        if name == "inserted_at" {
+            return Ok(());
+        }
+    }
+    let sql = format!(
+        "ALTER TABLE {table} ADD COLUMN inserted_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))"
+    );
+    conn.execute(&sql, [])?;
+    Ok(())
+}
+
+fn ensure_identity_index(conn: &Connection, table: &str) -> Result<()> {
+    let index_name = format!("{table}_identity_idx");
+    let sql = format!(
+        "CREATE UNIQUE INDEX IF NOT EXISTS {index_name} \
+         ON {table} (tool, tool_version, image_digest, runner, platform, input_hash)"
+    );
+    conn.execute(&sql, [])?;
+    Ok(())
+}
+
 /// Insert a `FastQ` trim benchmark record into the v1 table.
 ///
 /// # Errors
@@ -1407,10 +1416,13 @@ pub fn insert_fastq_trim_v1(
          runtime_s REAL NOT NULL,\
          memory_mb REAL NOT NULL,\
          exit_code INTEGER NOT NULL,\
-         metrics_json TEXT NOT NULL\
+         metrics_json TEXT NOT NULL,\
+         inserted_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))\
          )",
         [],
     )?;
+    ensure_inserted_at_column(conn, "bench_fastq_trim_v1")?;
+    ensure_identity_index(conn, "bench_fastq_trim_v1")?;
 
     let metrics_json = serde_json::to_string(&record.metrics)?;
     let parameters_json = serde_json::to_string(&record.context.parameters)?;
@@ -1459,10 +1471,13 @@ pub fn insert_fastq_trim_v2(
          runtime_s REAL NOT NULL,\
          memory_mb REAL NOT NULL,\
          exit_code INTEGER NOT NULL,\
-         metrics_json TEXT NOT NULL\
+         metrics_json TEXT NOT NULL,\
+         inserted_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))\
          )",
         [],
     )?;
+    ensure_inserted_at_column(conn, "bench_fastq_trim_v2")?;
+    ensure_identity_index(conn, "bench_fastq_trim_v2")?;
 
     let metrics_json = serde_json::to_string(&record.metrics)?;
     let parameters_json = serde_json::to_string(&record.context.parameters)?;
@@ -1494,22 +1509,34 @@ pub fn insert_fastq_trim_v2(
 ///
 /// # Errors
 /// Returns an error if the query or JSON parsing fails.
+/// Deterministic ordering: when multiple rows exist, pick the most recent by `inserted_at`.
 pub fn fetch_fastq_trim_v1(
     conn: &Connection,
     tool: &str,
     tool_version: &str,
     image_digest: &str,
+    runner: &str,
+    platform: &str,
     input_hash: &str,
 ) -> Result<Option<BenchmarkRecord<FastqTrimMetrics>>> {
     let mut stmt = conn.prepare(
         "SELECT tool, tool_version, image_digest, runner, platform, input_hash,\
          parameters_json, runtime_s, memory_mb, exit_code, metrics_json \
          FROM bench_fastq_trim_v1 \
-         WHERE tool = ?1 AND tool_version = ?2 AND image_digest = ?3 AND input_hash = ?4\
+         WHERE tool = ?1 AND tool_version = ?2 AND image_digest = ?3\
+         AND runner = ?4 AND platform = ?5 AND input_hash = ?6\
+         ORDER BY inserted_at DESC \
          LIMIT 1",
     )?;
     let row = stmt.query_row(
-        params![tool, tool_version, image_digest, input_hash],
+        params![
+            tool,
+            tool_version,
+            image_digest,
+            runner,
+            platform,
+            input_hash
+        ],
         |row| {
             let tool: String = row.get(0)?;
             let tool_version: String = row.get(1)?;
@@ -1559,17 +1586,28 @@ pub fn fetch_fastq_trim_v2(
     tool: &str,
     tool_version: &str,
     image_digest: &str,
+    runner: &str,
+    platform: &str,
     input_hash: &str,
 ) -> Result<Option<BenchmarkRecord<FastqTrimMetrics>>> {
     let mut stmt = conn.prepare(
         "SELECT tool, tool_version, image_digest, runner, platform, input_hash,\
          parameters_json, runtime_s, memory_mb, exit_code, metrics_json \
          FROM bench_fastq_trim_v2 \
-         WHERE tool = ?1 AND tool_version = ?2 AND image_digest = ?3 AND input_hash = ?4\
+         WHERE tool = ?1 AND tool_version = ?2 AND image_digest = ?3\
+         AND runner = ?4 AND platform = ?5 AND input_hash = ?6\
+         ORDER BY inserted_at DESC \
          LIMIT 1",
     )?;
     let row = stmt.query_row(
-        params![tool, tool_version, image_digest, input_hash],
+        params![
+            tool,
+            tool_version,
+            image_digest,
+            runner,
+            platform,
+            input_hash
+        ],
         |row| {
             let tool: String = row.get(0)?;
             let tool_version: String = row.get(1)?;
@@ -1631,10 +1669,13 @@ pub fn insert_fastq_validate_v1(
          runtime_s REAL NOT NULL,\
          memory_mb REAL NOT NULL,\
          exit_code INTEGER NOT NULL,\
-         metrics_json TEXT NOT NULL\
+         metrics_json TEXT NOT NULL,\
+         inserted_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))\
          )",
         [],
     )?;
+    ensure_inserted_at_column(conn, "bench_fastq_validate_v1")?;
+    ensure_identity_index(conn, "bench_fastq_validate_v1")?;
 
     let metrics_json = serde_json::to_string(&record.metrics)?;
     let parameters_json = serde_json::to_string(&record.context.parameters)?;
@@ -1671,17 +1712,28 @@ pub fn fetch_fastq_validate_v1(
     tool: &str,
     tool_version: &str,
     image_digest: &str,
+    runner: &str,
+    platform: &str,
     input_hash: &str,
 ) -> Result<Option<BenchmarkRecord<FastqValidateMetrics>>> {
     let mut stmt = conn.prepare(
         "SELECT tool, tool_version, image_digest, runner, platform, input_hash,\
          parameters_json, runtime_s, memory_mb, exit_code, metrics_json \
          FROM bench_fastq_validate_v1 \
-         WHERE tool = ?1 AND tool_version = ?2 AND image_digest = ?3 AND input_hash = ?4\
+         WHERE tool = ?1 AND tool_version = ?2 AND image_digest = ?3\
+         AND runner = ?4 AND platform = ?5 AND input_hash = ?6\
+         ORDER BY inserted_at DESC \
          LIMIT 1",
     )?;
     let row = stmt.query_row(
-        params![tool, tool_version, image_digest, input_hash],
+        params![
+            tool,
+            tool_version,
+            image_digest,
+            runner,
+            platform,
+            input_hash
+        ],
         |row| {
             let tool: String = row.get(0)?;
             let tool_version: String = row.get(1)?;
@@ -1743,10 +1795,13 @@ pub fn insert_fastq_filter_v1(
          runtime_s REAL NOT NULL,\
          memory_mb REAL NOT NULL,\
          exit_code INTEGER NOT NULL,\
-         metrics_json TEXT NOT NULL\
+         metrics_json TEXT NOT NULL,\
+         inserted_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))\
          )",
         [],
     )?;
+    ensure_inserted_at_column(conn, "bench_fastq_filter_v1")?;
+    ensure_identity_index(conn, "bench_fastq_filter_v1")?;
 
     let metrics_json = serde_json::to_string(&record.metrics)?;
     let parameters_json = serde_json::to_string(&record.context.parameters)?;
@@ -1795,10 +1850,13 @@ pub fn insert_fastq_filter_v2(
          runtime_s REAL NOT NULL,\
          memory_mb REAL NOT NULL,\
          exit_code INTEGER NOT NULL,\
-         metrics_json TEXT NOT NULL\
+         metrics_json TEXT NOT NULL,\
+         inserted_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))\
          )",
         [],
     )?;
+    ensure_inserted_at_column(conn, "bench_fastq_filter_v2")?;
+    ensure_identity_index(conn, "bench_fastq_filter_v2")?;
 
     let metrics_json = serde_json::to_string(&record.metrics)?;
     let parameters_json = serde_json::to_string(&record.context.parameters)?;
@@ -1835,17 +1893,28 @@ pub fn fetch_fastq_filter_v1(
     tool: &str,
     tool_version: &str,
     image_digest: &str,
+    runner: &str,
+    platform: &str,
     input_hash: &str,
 ) -> Result<Option<BenchmarkRecord<FastqFilterMetrics>>> {
     let mut stmt = conn.prepare(
         "SELECT tool, tool_version, image_digest, runner, platform, input_hash,\
          parameters_json, runtime_s, memory_mb, exit_code, metrics_json \
          FROM bench_fastq_filter_v1 \
-         WHERE tool = ?1 AND tool_version = ?2 AND image_digest = ?3 AND input_hash = ?4\
+         WHERE tool = ?1 AND tool_version = ?2 AND image_digest = ?3\
+         AND runner = ?4 AND platform = ?5 AND input_hash = ?6\
+         ORDER BY inserted_at DESC \
          LIMIT 1",
     )?;
     let row = stmt.query_row(
-        params![tool, tool_version, image_digest, input_hash],
+        params![
+            tool,
+            tool_version,
+            image_digest,
+            runner,
+            platform,
+            input_hash
+        ],
         |row| {
             let tool: String = row.get(0)?;
             let tool_version: String = row.get(1)?;
@@ -1895,17 +1964,28 @@ pub fn fetch_fastq_filter_v2(
     tool: &str,
     tool_version: &str,
     image_digest: &str,
+    runner: &str,
+    platform: &str,
     input_hash: &str,
 ) -> Result<Option<BenchmarkRecord<FastqFilterMetrics>>> {
     let mut stmt = conn.prepare(
         "SELECT tool, tool_version, image_digest, runner, platform, input_hash,\
          parameters_json, runtime_s, memory_mb, exit_code, metrics_json \
          FROM bench_fastq_filter_v2 \
-         WHERE tool = ?1 AND tool_version = ?2 AND image_digest = ?3 AND input_hash = ?4\
+         WHERE tool = ?1 AND tool_version = ?2 AND image_digest = ?3\
+         AND runner = ?4 AND platform = ?5 AND input_hash = ?6\
+         ORDER BY inserted_at DESC \
          LIMIT 1",
     )?;
     let row = stmt.query_row(
-        params![tool, tool_version, image_digest, input_hash],
+        params![
+            tool,
+            tool_version,
+            image_digest,
+            runner,
+            platform,
+            input_hash
+        ],
         |row| {
             let tool: String = row.get(0)?;
             let tool_version: String = row.get(1)?;
@@ -1967,10 +2047,13 @@ pub fn insert_fastq_merge_v1(
          runtime_s REAL NOT NULL,\
          memory_mb REAL NOT NULL,\
          exit_code INTEGER NOT NULL,\
-         metrics_json TEXT NOT NULL\
+         metrics_json TEXT NOT NULL,\
+         inserted_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))\
          )",
         [],
     )?;
+    ensure_inserted_at_column(conn, "bench_fastq_merge_v1")?;
+    ensure_identity_index(conn, "bench_fastq_merge_v1")?;
 
     let metrics_json = serde_json::to_string(&record.metrics)?;
     let parameters_json = serde_json::to_string(&record.context.parameters)?;
@@ -2007,17 +2090,28 @@ pub fn fetch_fastq_merge_v1(
     tool: &str,
     tool_version: &str,
     image_digest: &str,
+    runner: &str,
+    platform: &str,
     input_hash: &str,
 ) -> Result<Option<BenchmarkRecord<FastqMergeMetrics>>> {
     let mut stmt = conn.prepare(
         "SELECT tool, tool_version, image_digest, runner, platform, input_hash,\
          parameters_json, runtime_s, memory_mb, exit_code, metrics_json \
          FROM bench_fastq_merge_v1 \
-         WHERE tool = ?1 AND tool_version = ?2 AND image_digest = ?3 AND input_hash = ?4\
+         WHERE tool = ?1 AND tool_version = ?2 AND image_digest = ?3\
+         AND runner = ?4 AND platform = ?5 AND input_hash = ?6\
+         ORDER BY inserted_at DESC \
          LIMIT 1",
     )?;
     let row = stmt.query_row(
-        params![tool, tool_version, image_digest, input_hash],
+        params![
+            tool,
+            tool_version,
+            image_digest,
+            runner,
+            platform,
+            input_hash
+        ],
         |row| {
             let tool: String = row.get(0)?;
             let tool_version: String = row.get(1)?;
@@ -2079,10 +2173,13 @@ pub fn insert_fastq_correct_v1(
          runtime_s REAL NOT NULL,\
          memory_mb REAL NOT NULL,\
          exit_code INTEGER NOT NULL,\
-         metrics_json TEXT NOT NULL\
+         metrics_json TEXT NOT NULL,\
+         inserted_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))\
          )",
         [],
     )?;
+    ensure_inserted_at_column(conn, "bench_fastq_correct_v1")?;
+    ensure_identity_index(conn, "bench_fastq_correct_v1")?;
 
     let metrics_json = serde_json::to_string(&record.metrics)?;
     let parameters_json = serde_json::to_string(&record.context.parameters)?;
@@ -2119,17 +2216,28 @@ pub fn fetch_fastq_correct_v1(
     tool: &str,
     tool_version: &str,
     image_digest: &str,
+    runner: &str,
+    platform: &str,
     input_hash: &str,
 ) -> Result<Option<BenchmarkRecord<FastqCorrectMetrics>>> {
     let mut stmt = conn.prepare(
         "SELECT tool, tool_version, image_digest, runner, platform, input_hash,\
          parameters_json, runtime_s, memory_mb, exit_code, metrics_json \
          FROM bench_fastq_correct_v1 \
-         WHERE tool = ?1 AND tool_version = ?2 AND image_digest = ?3 AND input_hash = ?4\
+         WHERE tool = ?1 AND tool_version = ?2 AND image_digest = ?3\
+         AND runner = ?4 AND platform = ?5 AND input_hash = ?6\
+         ORDER BY inserted_at DESC \
          LIMIT 1",
     )?;
     let row = stmt.query_row(
-        params![tool, tool_version, image_digest, input_hash],
+        params![
+            tool,
+            tool_version,
+            image_digest,
+            runner,
+            platform,
+            input_hash
+        ],
         |row| {
             let tool: String = row.get(0)?;
             let tool_version: String = row.get(1)?;
@@ -2191,10 +2299,13 @@ pub fn insert_fastq_qc_post_v1(
          runtime_s REAL NOT NULL,\
          memory_mb REAL NOT NULL,\
          exit_code INTEGER NOT NULL,\
-         metrics_json TEXT NOT NULL\
+         metrics_json TEXT NOT NULL,\
+         inserted_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))\
          )",
         [],
     )?;
+    ensure_inserted_at_column(conn, "bench_fastq_qc_post_v1")?;
+    ensure_identity_index(conn, "bench_fastq_qc_post_v1")?;
 
     let metrics_json = serde_json::to_string(&record.metrics)?;
     let parameters_json = serde_json::to_string(&record.context.parameters)?;
@@ -2231,17 +2342,28 @@ pub fn fetch_fastq_qc_post_v1(
     tool: &str,
     tool_version: &str,
     image_digest: &str,
+    runner: &str,
+    platform: &str,
     input_hash: &str,
 ) -> Result<Option<BenchmarkRecord<FastqQcPostMetrics>>> {
     let mut stmt = conn.prepare(
         "SELECT tool, tool_version, image_digest, runner, platform, input_hash,\
          parameters_json, runtime_s, memory_mb, exit_code, metrics_json \
          FROM bench_fastq_qc_post_v1 \
-         WHERE tool = ?1 AND tool_version = ?2 AND image_digest = ?3 AND input_hash = ?4\
+         WHERE tool = ?1 AND tool_version = ?2 AND image_digest = ?3\
+         AND runner = ?4 AND platform = ?5 AND input_hash = ?6\
+         ORDER BY inserted_at DESC \
          LIMIT 1",
     )?;
     let row = stmt.query_row(
-        params![tool, tool_version, image_digest, input_hash],
+        params![
+            tool,
+            tool_version,
+            image_digest,
+            runner,
+            platform,
+            input_hash
+        ],
         |row| {
             let tool: String = row.get(0)?;
             let tool_version: String = row.get(1)?;
@@ -2303,10 +2425,13 @@ pub fn insert_fastq_umi_v1(
          runtime_s REAL NOT NULL,\
          memory_mb REAL NOT NULL,\
          exit_code INTEGER NOT NULL,\
-         metrics_json TEXT NOT NULL\
+         metrics_json TEXT NOT NULL,\
+         inserted_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))\
          )",
         [],
     )?;
+    ensure_inserted_at_column(conn, "bench_fastq_umi_v1")?;
+    ensure_identity_index(conn, "bench_fastq_umi_v1")?;
 
     let metrics_json = serde_json::to_string(&record.metrics)?;
     let parameters_json = serde_json::to_string(&record.context.parameters)?;
@@ -2343,17 +2468,28 @@ pub fn fetch_fastq_umi_v1(
     tool: &str,
     tool_version: &str,
     image_digest: &str,
+    runner: &str,
+    platform: &str,
     input_hash: &str,
 ) -> Result<Option<BenchmarkRecord<FastqUmiMetrics>>> {
     let mut stmt = conn.prepare(
         "SELECT tool, tool_version, image_digest, runner, platform, input_hash,\
          parameters_json, runtime_s, memory_mb, exit_code, metrics_json \
          FROM bench_fastq_umi_v1 \
-         WHERE tool = ?1 AND tool_version = ?2 AND image_digest = ?3 AND input_hash = ?4\
+         WHERE tool = ?1 AND tool_version = ?2 AND image_digest = ?3\
+         AND runner = ?4 AND platform = ?5 AND input_hash = ?6\
+         ORDER BY inserted_at DESC \
          LIMIT 1",
     )?;
     let row = stmt.query_row(
-        params![tool, tool_version, image_digest, input_hash],
+        params![
+            tool,
+            tool_version,
+            image_digest,
+            runner,
+            platform,
+            input_hash
+        ],
         |row| {
             let tool: String = row.get(0)?;
             let tool_version: String = row.get(1)?;
@@ -2415,10 +2551,13 @@ pub fn insert_fastq_screen_v1(
          runtime_s REAL NOT NULL,\
          memory_mb REAL NOT NULL,\
          exit_code INTEGER NOT NULL,\
-         metrics_json TEXT NOT NULL\
+         metrics_json TEXT NOT NULL,\
+         inserted_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))\
          )",
         [],
     )?;
+    ensure_inserted_at_column(conn, "bench_fastq_screen_v1")?;
+    ensure_identity_index(conn, "bench_fastq_screen_v1")?;
 
     let metrics_json = serde_json::to_string(&record.metrics)?;
     let parameters_json = serde_json::to_string(&record.context.parameters)?;
@@ -2455,17 +2594,28 @@ pub fn fetch_fastq_screen_v1(
     tool: &str,
     tool_version: &str,
     image_digest: &str,
+    runner: &str,
+    platform: &str,
     input_hash: &str,
 ) -> Result<Option<BenchmarkRecord<FastqScreenMetrics>>> {
     let mut stmt = conn.prepare(
         "SELECT tool, tool_version, image_digest, runner, platform, input_hash,\
          parameters_json, runtime_s, memory_mb, exit_code, metrics_json \
          FROM bench_fastq_screen_v1 \
-         WHERE tool = ?1 AND tool_version = ?2 AND image_digest = ?3 AND input_hash = ?4\
+         WHERE tool = ?1 AND tool_version = ?2 AND image_digest = ?3\
+         AND runner = ?4 AND platform = ?5 AND input_hash = ?6\
+         ORDER BY inserted_at DESC \
          LIMIT 1",
     )?;
     let row = stmt.query_row(
-        params![tool, tool_version, image_digest, input_hash],
+        params![
+            tool,
+            tool_version,
+            image_digest,
+            runner,
+            platform,
+            input_hash
+        ],
         |row| {
             let tool: String = row.get(0)?;
             let tool_version: String = row.get(1)?;
@@ -2527,10 +2677,13 @@ pub fn insert_fastq_stats_v1(
          runtime_s REAL NOT NULL,\
          memory_mb REAL NOT NULL,\
          exit_code INTEGER NOT NULL,\
-         metrics_json TEXT NOT NULL\
+         metrics_json TEXT NOT NULL,\
+         inserted_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))\
          )",
         [],
     )?;
+    ensure_inserted_at_column(conn, "bench_fastq_stats_v1")?;
+    ensure_identity_index(conn, "bench_fastq_stats_v1")?;
 
     let metrics_json = serde_json::to_string(&record.metrics)?;
     let parameters_json = serde_json::to_string(&record.context.parameters)?;
@@ -2567,17 +2720,28 @@ pub fn fetch_fastq_stats_v1(
     tool: &str,
     tool_version: &str,
     image_digest: &str,
+    runner: &str,
+    platform: &str,
     input_hash: &str,
 ) -> Result<Option<BenchmarkRecord<FastqStatsMetrics>>> {
     let mut stmt = conn.prepare(
         "SELECT tool, tool_version, image_digest, runner, platform, input_hash,\
          parameters_json, runtime_s, memory_mb, exit_code, metrics_json \
          FROM bench_fastq_stats_v1 \
-         WHERE tool = ?1 AND tool_version = ?2 AND image_digest = ?3 AND input_hash = ?4\
+         WHERE tool = ?1 AND tool_version = ?2 AND image_digest = ?3\
+         AND runner = ?4 AND platform = ?5 AND input_hash = ?6\
+         ORDER BY inserted_at DESC \
          LIMIT 1",
     )?;
     let row = stmt.query_row(
-        params![tool, tool_version, image_digest, input_hash],
+        params![
+            tool,
+            tool_version,
+            image_digest,
+            runner,
+            platform,
+            input_hash
+        ],
         |row| {
             let tool: String = row.get(0)?;
             let tool_version: String = row.get(1)?;
@@ -2860,9 +3024,9 @@ mod tests {
                     gc_delta: 0.1,
                 },
                 adapter_preset: None,
-                adapter_bank_checksum: None,
-                effective_adapters_path: None,
-                adapter_trimming_summary: None,
+                adapter_bank_id: None,
+                adapter_bank_hash: None,
+                adapter_overrides: None,
             }),
         };
         record.validate()?;

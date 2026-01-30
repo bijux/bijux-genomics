@@ -1,3 +1,4 @@
+pub mod adapter_bank;
 pub mod cli;
 pub mod env;
 pub mod fastq_exec;

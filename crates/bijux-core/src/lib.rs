@@ -28,10 +28,66 @@ pub struct ToolId(pub String);
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct RunId(pub String);
 
+pub use metrics::{
+    AdapterBankProvenanceV1, FastqDeltaMetricsV1, FastqFilterMetricsV1, FastqMergeMetricsV1,
+    FastqTrimMetricsV1, FastqValidateMetricsV1, RetentionReportMetricV1, ToolInvocationV1,
+};
 pub use observability::{
     canonicalize_json_value, EffectiveConfigV1, FactsRowV1, RetentionReportV1,
     StageObservabilityContextV1, StageObservabilityContractV1, StageReportV1, TelemetryEventV1,
 };
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct ArtifactRef {
+    pub name: String,
+    pub path: PathBuf,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct StageIO {
+    pub inputs: Vec<ArtifactRef>,
+    pub outputs: Vec<ArtifactRef>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct CommandSpecV1 {
+    pub template: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ContainerImageRefV1 {
+    pub image: String,
+    pub digest: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct StagePlan {
+    pub stage_id: StageId,
+    pub stage_version: StageVersion,
+    pub tool_id: ToolId,
+    pub tool_version: String,
+    pub image: ContainerImageRefV1,
+    pub command: CommandSpecV1,
+    pub resources: ToolConstraints,
+    pub io: StageIO,
+    pub out_dir: PathBuf,
+    pub params: serde_json::Value,
+    #[serde(default)]
+    pub aux_images: BTreeMap<String, ContainerImageRefV1>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ToolExecutionSpecV1 {
+    pub tool_id: ToolId,
+    pub tool_version: String,
+    pub image: ContainerImageRefV1,
+    pub command: CommandSpecV1,
+    pub resources: ToolConstraints,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -53,7 +109,7 @@ pub struct RunMetadataV1 {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
-pub struct ToolInvocationV1 {
+pub struct ToolInvocationMetadataV1 {
     pub stage: String,
     pub tool: String,
     pub version: String,

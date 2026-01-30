@@ -1,13 +1,37 @@
 use std::fs;
 
 use anyhow::Result;
+use bijux_core::{
+    CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
+};
+
+fn dummy_tool(tool: &str) -> ToolExecutionSpecV1 {
+    ToolExecutionSpecV1 {
+        tool_id: ToolId(tool.to_string()),
+        tool_version: "1.0.0".to_string(),
+        image: ContainerImageRefV1 {
+            image: "bijux/test:latest".to_string(),
+            digest: None,
+        },
+        command: CommandSpecV1 {
+            template: Vec::new(),
+        },
+        resources: ToolConstraints {
+            runtime: "docker".to_string(),
+            mem_gb: 1,
+            tmp_gb: 1,
+            threads: 1,
+        },
+    }
+}
 
 #[test]
 fn plan_json_is_emitted_and_stable() -> Result<()> {
     let plan = bijux_stages_fastq::fastq::trim::plan(
-        "fastp",
+        &dummy_tool("fastp"),
         std::path::Path::new("reads.fastq.gz"),
         std::path::Path::new("out"),
+        None,
     )?;
     let plan_json = bijux_stages_fastq::StagePlanJson::from_plan(&plan);
     let rendered = serde_json::to_string_pretty(&plan_json)?;
@@ -22,7 +46,7 @@ fn plan_json_is_emitted_and_stable() -> Result<()> {
 #[test]
 fn filter_plan_json_is_emitted_and_stable() -> Result<()> {
     let plan = bijux_stages_fastq::fastq::filter::plan_filter(
-        "fastp",
+        &dummy_tool("fastp"),
         std::path::Path::new("reads.fastq.gz"),
         std::path::Path::new("out"),
     )?;
@@ -39,7 +63,7 @@ fn filter_plan_json_is_emitted_and_stable() -> Result<()> {
 #[test]
 fn merge_plan_json_is_emitted_and_stable() -> Result<()> {
     let plan = bijux_stages_fastq::fastq::merge::plan_merge(
-        "pear",
+        &dummy_tool("pear"),
         std::path::Path::new("reads_r1.fastq.gz"),
         std::path::Path::new("reads_r2.fastq.gz"),
         std::path::Path::new("out"),
@@ -57,7 +81,7 @@ fn merge_plan_json_is_emitted_and_stable() -> Result<()> {
 #[test]
 fn validate_pre_plan_json_is_emitted_and_stable() -> Result<()> {
     let plan = bijux_stages_fastq::fastq::validate_pre::plan(
-        "fastqc",
+        &dummy_tool("fastqc"),
         std::path::Path::new("reads.fastq.gz"),
         std::path::Path::new("out"),
     );
@@ -74,7 +98,7 @@ fn validate_pre_plan_json_is_emitted_and_stable() -> Result<()> {
 #[test]
 fn screen_plan_json_is_emitted_and_stable() -> Result<()> {
     let plan = bijux_stages_fastq::fastq::screen::plan_screen(
-        "kraken2",
+        &dummy_tool("kraken2"),
         std::path::Path::new("reads.fastq.gz"),
         std::path::Path::new("out"),
     )?;
@@ -91,7 +115,7 @@ fn screen_plan_json_is_emitted_and_stable() -> Result<()> {
 #[test]
 fn umi_plan_json_is_emitted_and_stable() -> Result<()> {
     let plan = bijux_stages_fastq::fastq::umi::plan_umi(
-        "umi_tools",
+        &dummy_tool("umi_tools"),
         std::path::Path::new("reads_r1.fastq.gz"),
         std::path::Path::new("reads_r2.fastq.gz"),
         std::path::Path::new("out"),
@@ -109,7 +133,7 @@ fn umi_plan_json_is_emitted_and_stable() -> Result<()> {
 #[test]
 fn correct_plan_json_is_emitted_and_stable() -> Result<()> {
     let plan = bijux_stages_fastq::fastq::correct::plan_correct(
-        "rcorrector",
+        &dummy_tool("rcorrector"),
         std::path::Path::new("reads_r1.fastq.gz"),
         std::path::Path::new("reads_r2.fastq.gz"),
         std::path::Path::new("out"),
@@ -136,12 +160,16 @@ fn preprocess_plan_json_is_emitted_and_stable() -> Result<()> {
         objective: bijux_analyze::selection::Objective::Balanced,
         bench_corpus: None,
         allow_partial: false,
-        adapter_preset: "default_adna".to_string(),
-        adapter_bank: None,
+        adapter_bank: Some("preset:best_practice_adna".to_string()),
+        adapter_bank_file: None,
         enable_adapters: Vec::new(),
         disable_adapters: Vec::new(),
     };
     let plan = bijux_stages_fastq::fastq::preprocess::plan_preprocess(&args);
+    let plan = bijux_stages_fastq::fastq::preprocess::plan_preprocess_stage(
+        &plan,
+        &dummy_tool("pipeline"),
+    );
     let plan_json = bijux_stages_fastq::StagePlanJson::from_plan(&plan);
     let rendered = serde_json::to_string_pretty(&plan_json)?;
     let manifest_dir = std::env::var("CARGO_MANIFEST_DIR")?;
@@ -155,9 +183,10 @@ fn preprocess_plan_json_is_emitted_and_stable() -> Result<()> {
 #[test]
 fn qc_post_plan_json_is_emitted_and_stable() -> Result<()> {
     let plan = bijux_stages_fastq::fastq::qc_post::plan_qc_post(
-        "fastqc",
+        &dummy_tool("fastqc"),
         std::path::Path::new("reads.fastq.gz"),
         std::path::Path::new("out"),
+        std::collections::BTreeMap::new(),
     )?;
     let plan_json = bijux_stages_fastq::StagePlanJson::from_plan(&plan);
     let rendered = serde_json::to_string_pretty(&plan_json)?;
@@ -172,7 +201,7 @@ fn qc_post_plan_json_is_emitted_and_stable() -> Result<()> {
 #[test]
 fn stats_neutral_plan_json_is_emitted_and_stable() -> Result<()> {
     let plan = bijux_stages_fastq::fastq::stats_neutral::plan_stats_neutral(
-        "seqkit",
+        &dummy_tool("seqkit"),
         std::path::Path::new("reads.fastq.gz"),
         std::path::Path::new("out"),
     )?;
