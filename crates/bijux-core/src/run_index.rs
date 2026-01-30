@@ -1,5 +1,5 @@
 use std::fs::File;
-use std::io::{BufRead, BufReader};
+use std::io::{BufRead, BufReader, Write};
 use std::path::Path;
 
 use anyhow::{Context, Result};
@@ -17,11 +17,24 @@ pub struct RunIndexEntry {
     pub success: bool,
 }
 
-#[derive(Debug, Clone, serde::Deserialize)]
+#[derive(Debug, Clone, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct RunIndexLine {
     pub schema_version: u32,
-    pub run: RunIndexEntry,
+    pub run: Option<RunIndexEntry>,
+    pub stage: Option<StageIndexRow>,
+}
+
+#[derive(Debug, Clone, serde::Deserialize, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct StageIndexRow {
+    pub run_id: String,
+    pub stage_id: String,
+    pub tool_id: String,
+    pub params_hash: String,
+    pub input_hash: String,
+    pub output_hashes: Vec<String>,
+    pub artifacts: serde_json::Value,
 }
 
 #[derive(Debug, Clone, Default)]
@@ -47,7 +60,9 @@ pub fn list_runs(index_path: &Path) -> Result<Vec<RunIndexEntry>> {
             continue;
         }
         let parsed: RunIndexLine = serde_json::from_str(&line)?;
-        entries.push(parsed.run);
+        if let Some(run) = parsed.run {
+            entries.push(run);
+        }
     }
     Ok(entries)
 }
@@ -71,4 +86,66 @@ pub fn query_runs(index_path: &Path, query: &RunQuery) -> Result<Vec<RunIndexEnt
         entries.retain(|entry| entry.success == success);
     }
     Ok(entries)
+}
+
+/// Append a run entry to `index.jsonl`.
+///
+/// # Errors
+/// Returns an error if the index cannot be written.
+pub fn insert_run(index_path: &Path, entry: &RunIndexEntry) -> Result<()> {
+    let line = RunIndexLine {
+        schema_version: 1,
+        run: Some(entry.clone()),
+        stage: None,
+    };
+    let mut file = std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(index_path)
+        .with_context(|| format!("open run index {}", index_path.display()))?;
+    let payload = serde_json::to_string(&line)?;
+    writeln!(file, "{payload}")?;
+    Ok(())
+}
+
+/// Append a stage row to `index.jsonl`.
+///
+/// # Errors
+/// Returns an error if the index cannot be written.
+pub fn insert_stage_row(index_path: &Path, row: &StageIndexRow) -> Result<()> {
+    let line = RunIndexLine {
+        schema_version: 1,
+        run: None,
+        stage: Some(row.clone()),
+    };
+    let mut file = std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(index_path)
+        .with_context(|| format!("open run index {}", index_path.display()))?;
+    let payload = serde_json::to_string(&line)?;
+    writeln!(file, "{payload}")?;
+    Ok(())
+}
+
+/// Return the latest `limit` runs from the index.
+///
+/// # Errors
+/// Returns an error if the index cannot be read.
+pub fn query_latest_runs(index_path: &Path, limit: usize) -> Result<Vec<RunIndexEntry>> {
+    let entries = list_runs(index_path)?;
+    let len = entries.len();
+    if limit >= len {
+        return Ok(entries);
+    }
+    Ok(entries[len - limit..].to_vec())
+}
+
+/// Find a run by id.
+///
+/// # Errors
+/// Returns an error if the index cannot be read.
+pub fn query_run(index_path: &Path, run_id: &str) -> Result<Option<RunIndexEntry>> {
+    let entries = list_runs(index_path)?;
+    Ok(entries.into_iter().find(|entry| entry.run_id == run_id))
 }

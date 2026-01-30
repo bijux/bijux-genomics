@@ -19,6 +19,77 @@ pub struct StageObservabilityContextV1 {
     pub parameters_json: serde_json::Value,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct EffectiveConfigV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub stage_version: i32,
+    pub tool_id: String,
+    pub tool_version: String,
+    pub parameters_json: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct StageReportV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub stage_version: i32,
+    pub tool_id: String,
+    pub tool_version: String,
+    pub warnings: Vec<String>,
+    pub errors: Vec<String>,
+    pub outputs: Vec<String>,
+    pub subreports: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct RetentionReportV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub tool_id: String,
+    pub tool_version: String,
+    pub boundary: String,
+    pub numerator: serde_json::Value,
+    pub denominator: serde_json::Value,
+    pub scope: String,
+    pub params: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct TelemetryEventV1 {
+    pub run_id: String,
+    pub stage_id: String,
+    pub tool_id: String,
+    pub event_name: String,
+    pub timestamp: String,
+    pub duration_ms: Option<u64>,
+    pub status: String,
+    pub trace_id: String,
+    pub span_id: String,
+    pub attrs: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct FactsRowV1 {
+    pub schema_version: String,
+    pub run_id: String,
+    pub stage_id: String,
+    pub tool_id: String,
+    pub params_hash: String,
+    pub input_hash: String,
+    pub output_hashes: Vec<String>,
+    pub runtime_s: f64,
+    pub memory_mb: f64,
+    pub exit_code: i32,
+    pub metrics: serde_json::Value,
+    pub artifacts: serde_json::Value,
+}
+
 pub fn canonicalize_json_value(value: &serde_json::Value) -> serde_json::Value {
     match value {
         serde_json::Value::Object(map) => {
