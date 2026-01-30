@@ -1,0 +1,10 @@
+{
+  "command_changed": false,
+  "metrics_delta": {
+    "memory_mb": 20.0,
+    "runtime_s": 1.0
+  },
+  "run_a": "run-a",
+  "run_b": "run-b",
+  "tool_changed": false
+}

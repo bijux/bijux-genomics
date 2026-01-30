@@ -2,6 +2,8 @@
   "bases_in": "number",
   "bases_out": "number",
   "merge_rate": "number",
+  "pairs_in": "number",
+  "pairs_out": "number",
   "reads_in": "number",
   "reads_merged": "number",
   "reads_out": "number",

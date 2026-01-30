@@ -10,6 +10,8 @@ fn metric_set_converts_to_envelope() {
         mean_q_after: 31.0,
         bases_in: 10,
         bases_out: 10,
+        pairs_in: None,
+        pairs_out: None,
         delta_metrics: FastqDeltaMetrics {
             read_retention: 1.0,
             base_retention: 1.0,

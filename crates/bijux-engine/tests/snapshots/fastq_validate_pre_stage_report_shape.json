@@ -1,0 +1,21 @@
+{
+  "effective_config_hash": "string",
+  "effective_config_path": "string",
+  "errors": [],
+  "facts_row_id": "string",
+  "log_paths": [],
+  "metrics_path": "string",
+  "outputs": [],
+  "schema_version": "string",
+  "stage_id": "string",
+  "stage_version": "number",
+  "subreports": [
+    "string"
+  ],
+  "summary": {
+    "outputs": []
+  },
+  "tool_id": "string",
+  "tool_version": "string",
+  "warnings": []
+}

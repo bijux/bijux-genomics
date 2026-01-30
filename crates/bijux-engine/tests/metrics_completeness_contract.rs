@@ -193,26 +193,26 @@ fn metrics_completeness_contract() -> Result<()> {
         let stage_metrics: serde_json::Value = serde_json::from_str(&stage_metrics_raw)?;
         let execution = stage_metrics.get("execution").and_then(|v| v.as_object());
         assert!(execution.is_some());
-        if stage.affects_read_counts {
-            let metrics = stage_metrics["metrics"]
-                .as_object()
-                .ok_or_else(|| anyhow::anyhow!("metrics missing"))?;
-            assert!(metrics.contains_key("reads_in"));
-            assert!(metrics.contains_key("reads_out"));
-            assert!(metrics.contains_key("bases_in"));
-            assert!(metrics.contains_key("bases_out"));
-            if matches!(stage.id, "fastq.trim" | "fastq.filter") {
-                let retention = metrics
-                    .get("retention")
-                    .and_then(|value| value.as_object())
-                    .ok_or_else(|| anyhow::anyhow!("retention missing"))?;
-                assert!(retention.contains_key("value"));
-                assert!(retention.contains_key("numerator_reads"));
-                assert!(retention.contains_key("denominator_reads"));
-                assert!(retention.contains_key("definition"));
-                assert!(retention.contains_key("stage_boundary"));
-                assert!(retention.contains_key("conditions"));
-            }
+        let metrics = stage_metrics["metrics"]
+            .as_object()
+            .ok_or_else(|| anyhow::anyhow!("metrics missing"))?;
+        assert!(metrics.contains_key("reads_in"));
+        assert!(metrics.contains_key("reads_out"));
+        assert!(metrics.contains_key("bases_in"));
+        assert!(metrics.contains_key("bases_out"));
+        assert!(metrics.contains_key("pairs_in"));
+        assert!(metrics.contains_key("pairs_out"));
+        if stage.affects_read_counts && matches!(stage.id, "fastq.trim" | "fastq.filter") {
+            let retention = metrics
+                .get("retention")
+                .and_then(|value| value.as_object())
+                .ok_or_else(|| anyhow::anyhow!("retention missing"))?;
+            assert!(retention.contains_key("value"));
+            assert!(retention.contains_key("numerator_reads"));
+            assert!(retention.contains_key("denominator_reads"));
+            assert!(retention.contains_key("definition"));
+            assert!(retention.contains_key("stage_boundary"));
+            assert!(retention.contains_key("conditions"));
         }
     }
 

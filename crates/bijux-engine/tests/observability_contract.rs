@@ -269,16 +269,51 @@ fn fastq_stages_emit_observability_contracts() -> Result<()> {
         );
         assert!(effective_config.get("image_digest").is_some());
         assert!(effective_config.get("runner").is_some());
+        assert!(effective_config.get("platform").is_some());
         assert!(effective_config.get("resources").is_some());
         assert!(effective_config.get("parameters_json").is_some());
+        assert!(effective_config.get("parameters_json_normalized").is_some());
         if stage.id == "fastq.trim" {
             assert!(effective_config.get("adapter_bank").is_some());
+            assert!(effective_config.get("bank_assets").is_some());
         }
         if stage.affects_read_counts || is_retention {
             let retention_path = run_artifacts
                 .join("reports")
                 .join(format!("{}.retention.json", stage.id));
             assert!(retention_path.exists());
+            let retention_raw = fs::read_to_string(&retention_path)?;
+            let retention: serde_json::Value = serde_json::from_str(&retention_raw)?;
+            assert!(
+                retention
+                    .get("condition")
+                    .and_then(|v| v.get("banks"))
+                    .is_some(),
+                "retention condition banks missing"
+            );
+            assert!(
+                retention
+                    .get("condition")
+                    .and_then(|v| v.get("parameters"))
+                    .is_some(),
+                "retention condition parameters missing"
+            );
+            for key in [
+                "min_len",
+                "q",
+                "merge_policy",
+                "adapter_policy",
+                "polyx_policy",
+                "contaminant_policy",
+            ] {
+                assert!(
+                    retention
+                        .get("condition")
+                        .and_then(|v| v.get(key))
+                        .is_some(),
+                    "retention condition {key} missing"
+                );
+            }
         }
         let manifest_path = run_artifacts.join("observability_manifest.json");
         assert!(manifest_path.exists());
