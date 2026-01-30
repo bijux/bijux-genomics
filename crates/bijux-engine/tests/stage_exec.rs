@@ -1,7 +1,10 @@
-use std::collections::HashMap;
 use std::path::Path;
 
 use anyhow::Result;
+use bijux_core::{
+    ArtifactRef, CommandSpecV1, ContainerImageRefV1, StageIO, StageId, StageVersion,
+    ToolConstraints, ToolId,
+};
 use bijux_engine::api::{execute_plan, resolve_image_for_run, StagePlan};
 use bijux_environment::api::{load_image_catalog, load_platform};
 use tempfile::TempDir;
@@ -39,19 +42,38 @@ fn execute_plan_runs_trim() -> Result<()> {
     let output_path = out_dir.path().join("fastp.fastq.gz");
 
     let exec_plan = StagePlan {
-        stage_id: "fastq.trim".to_string(),
-        stage_version: 1,
-        tool: "fastp".to_string(),
+        stage_id: StageId("fastq.trim".to_string()),
+        stage_version: StageVersion(1),
+        tool_id: ToolId("fastp".to_string()),
         tool_version: spec.version.clone(),
-        image,
-        runner: platform.runner,
-        inputs: vec![input],
+        image: ContainerImageRefV1 {
+            image: image.full_name,
+            digest: spec.digest.clone(),
+        },
+        command: CommandSpecV1 {
+            template: Vec::new(),
+        },
+        resources: ToolConstraints {
+            runtime: "docker".to_string(),
+            mem_gb: 1,
+            tmp_gb: 1,
+            threads: 1,
+        },
+        io: StageIO {
+            inputs: vec![ArtifactRef {
+                name: "reads_r1".to_string(),
+                path: input,
+            }],
+            outputs: vec![ArtifactRef {
+                name: "trimmed_reads".to_string(),
+                path: output_path.clone(),
+            }],
+        },
         out_dir: out_dir.path().to_path_buf(),
-        outputs: vec![output_path.clone()],
         params: serde_json::json!({}),
-        aux_images: HashMap::new(),
+        aux_images: std::collections::BTreeMap::new(),
     };
-    let result = execute_plan(&exec_plan)?;
+    let result = execute_plan(&exec_plan, platform.runner)?;
     assert_eq!(result.exit_code, 0);
     assert!(output_path.exists());
     assert!(out_dir.path().join("engine_execution.json").exists());
@@ -77,19 +99,35 @@ fn execute_plan_runs_validate() -> Result<()> {
     let input = Path::new("tests/data/fastq/canonical/BIJUX_SE_R1.fastq.gz").canonicalize()?;
     let out_dir = tempdir_in_repo()?;
     let exec_plan = StagePlan {
-        stage_id: "fastq.validate_pre".to_string(),
-        stage_version: 1,
-        tool: "fastqvalidator_official".to_string(),
+        stage_id: StageId("fastq.validate_pre".to_string()),
+        stage_version: StageVersion(1),
+        tool_id: ToolId("fastqvalidator_official".to_string()),
         tool_version: spec.version.clone(),
-        image,
-        runner: platform.runner,
-        inputs: vec![input],
+        image: ContainerImageRefV1 {
+            image: image.full_name,
+            digest: spec.digest.clone(),
+        },
+        command: CommandSpecV1 {
+            template: Vec::new(),
+        },
+        resources: ToolConstraints {
+            runtime: "docker".to_string(),
+            mem_gb: 1,
+            tmp_gb: 1,
+            threads: 1,
+        },
+        io: StageIO {
+            inputs: vec![ArtifactRef {
+                name: "reads_r1".to_string(),
+                path: input,
+            }],
+            outputs: Vec::new(),
+        },
         out_dir: out_dir.path().to_path_buf(),
-        outputs: Vec::new(),
         params: serde_json::json!({}),
-        aux_images: HashMap::new(),
+        aux_images: std::collections::BTreeMap::new(),
     };
-    let result = execute_plan(&exec_plan)?;
+    let result = execute_plan(&exec_plan, platform.runner)?;
     assert_eq!(result.exit_code, 0);
     Ok(())
 }
@@ -114,19 +152,41 @@ fn execute_plan_runs_merge() -> Result<()> {
     let r2 = Path::new("tests/data/fastq/canonical/BIJUX_PE_R2.fastq.gz").canonicalize()?;
     let out_dir = tempdir_in_repo()?;
     let exec_plan = StagePlan {
-        stage_id: "fastq.merge".to_string(),
-        stage_version: 1,
-        tool: "pear".to_string(),
+        stage_id: StageId("fastq.merge".to_string()),
+        stage_version: StageVersion(1),
+        tool_id: ToolId("pear".to_string()),
         tool_version: spec.version.clone(),
-        image,
-        runner: platform.runner,
-        inputs: vec![r1, r2],
+        image: ContainerImageRefV1 {
+            image: image.full_name,
+            digest: spec.digest.clone(),
+        },
+        command: CommandSpecV1 {
+            template: Vec::new(),
+        },
+        resources: ToolConstraints {
+            runtime: "docker".to_string(),
+            mem_gb: 1,
+            tmp_gb: 1,
+            threads: 1,
+        },
+        io: StageIO {
+            inputs: vec![
+                ArtifactRef {
+                    name: "reads_r1".to_string(),
+                    path: r1,
+                },
+                ArtifactRef {
+                    name: "reads_r2".to_string(),
+                    path: r2,
+                },
+            ],
+            outputs: Vec::new(),
+        },
         out_dir: out_dir.path().to_path_buf(),
-        outputs: Vec::new(),
         params: serde_json::json!({}),
-        aux_images: HashMap::new(),
+        aux_images: std::collections::BTreeMap::new(),
     };
-    let result = execute_plan(&exec_plan)?;
+    let result = execute_plan(&exec_plan, platform.runner)?;
     assert_eq!(result.exit_code, 0);
     Ok(())
 }

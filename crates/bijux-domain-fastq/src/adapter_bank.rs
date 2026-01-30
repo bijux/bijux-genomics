@@ -4,21 +4,16 @@ use std::path::Path;
 use anyhow::{anyhow, Context, Result};
 use serde::{Deserialize, Serialize};
 
-const ADAPTER_CATEGORIES: [&str; 8] = [
-    "truseq",
-    "nextera",
-    "ssdna_splint",
-    "pcr_primers",
-    "umi_constructs",
-    "kit_custom",
-    "capture_linkers",
-    "partial_motifs",
+const ADAPTER_TAGS: [&str; 9] = [
+    "truseq", "nextera", "ssdna", "umi", "pcr", "custom", "nebnext", "capture", "partial",
 ];
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct AdapterBankV1 {
     pub schema_version: String,
+    pub bank_id: String,
+    pub version: String,
     pub adapters: Vec<AdapterEntryV1>,
 }
 
@@ -26,7 +21,7 @@ pub struct AdapterBankV1 {
 #[serde(deny_unknown_fields)]
 pub struct AdapterEntryV1 {
     pub id: String,
-    pub category: String,
+    pub tags: Vec<String>,
     pub name: String,
     pub sequence: String,
     pub read_scope: ReadScope,
@@ -61,7 +56,7 @@ pub struct AdapterPresetV1 {
     #[serde(default)]
     pub description: Option<String>,
     #[serde(default)]
-    pub categories: Vec<String>,
+    pub tags: Vec<String>,
     #[serde(default)]
     pub adapter_ids: Vec<String>,
 }
@@ -128,7 +123,11 @@ pub fn resolve_adapter_preset(
 
     let mut selected: BTreeSet<String> = BTreeSet::new();
     for adapter in &bank.adapters {
-        if preset.categories.iter().any(|c| c == &adapter.category) {
+        if adapter
+            .tags
+            .iter()
+            .any(|tag| preset.tags.iter().any(|preset_tag| preset_tag == tag))
+        {
             selected.insert(adapter.id.clone());
         }
     }
@@ -173,13 +172,24 @@ fn validate_adapter_bank(bank: &AdapterBankV1) -> Result<()> {
     if bank.adapters.is_empty() {
         return Err(anyhow!("adapter bank contains no entries"));
     }
+    if bank.bank_id.trim().is_empty() {
+        return Err(anyhow!("adapter bank missing bank_id"));
+    }
+    if bank.version.trim().is_empty() {
+        return Err(anyhow!("adapter bank missing version"));
+    }
     let mut ids = BTreeSet::new();
     for adapter in &bank.adapters {
         if !ids.insert(adapter.id.clone()) {
             return Err(anyhow!("duplicate adapter id {}", adapter.id));
         }
-        if !ADAPTER_CATEGORIES.contains(&adapter.category.as_str()) {
-            return Err(anyhow!("unknown adapter category {}", adapter.category));
+        if adapter.tags.is_empty() {
+            return Err(anyhow!("adapter {} has no tags", adapter.id));
+        }
+        for tag in &adapter.tags {
+            if !ADAPTER_TAGS.contains(&tag.as_str()) {
+                return Err(anyhow!("unknown adapter tag {tag}"));
+            }
         }
         ensure_sequence_alphabet(&adapter.sequence)?;
     }
@@ -193,9 +203,9 @@ fn validate_adapter_presets(presets: &AdapterPresetsV1, bank: &AdapterBankV1) ->
         if !names.insert(preset.name.clone()) {
             return Err(anyhow!("duplicate preset name {}", preset.name));
         }
-        for category in &preset.categories {
-            if !ADAPTER_CATEGORIES.contains(&category.as_str()) {
-                return Err(anyhow!("unknown preset category {category}"));
+        for tag in &preset.tags {
+            if !ADAPTER_TAGS.contains(&tag.as_str()) {
+                return Err(anyhow!("unknown preset tag {tag}"));
             }
         }
         for adapter_id in &preset.adapter_ids {
@@ -230,19 +240,16 @@ fn ensure_sequence_alphabet(sequence: &str) -> Result<()> {
 
 #[must_use]
 pub fn adapter_categories() -> BTreeSet<String> {
-    ADAPTER_CATEGORIES
-        .iter()
-        .map(|c| (*c).to_string())
-        .collect()
+    ADAPTER_TAGS.iter().map(|tag| (*tag).to_string()).collect()
 }
 
 #[must_use]
 pub fn adapters_by_category(bank: &AdapterBankV1) -> BTreeMap<String, Vec<String>> {
     let mut map: BTreeMap<String, Vec<String>> = BTreeMap::new();
     for adapter in &bank.adapters {
-        map.entry(adapter.category.clone())
-            .or_default()
-            .push(adapter.id.clone());
+        for tag in &adapter.tags {
+            map.entry(tag.clone()).or_default().push(adapter.id.clone());
+        }
     }
     for ids in map.values_mut() {
         ids.sort();

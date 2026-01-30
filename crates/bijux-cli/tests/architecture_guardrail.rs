@@ -383,3 +383,30 @@ fn cli_fastq_exec_avoids_shell_execution() -> Result<(), Box<dyn std::error::Err
     );
     Ok(())
 }
+
+#[test]
+fn cli_does_not_import_engine_internals() -> Result<(), Box<dyn std::error::Error>> {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let repo_root = manifest_dir
+        .parent()
+        .and_then(|p| p.parent())
+        .ok_or("repo root not found")?;
+    let root = repo_root.join("crates/bijux-cli/src");
+    let mut files = Vec::new();
+    collect_rs_files(&root, &mut files);
+    let forbidden = ["bijux_engine::services", "bijux_engine::core"];
+    let mut offenders = Vec::new();
+    for path in files {
+        let contents = fs::read_to_string(&path)?;
+        for needle in &forbidden {
+            if contents.contains(needle) {
+                offenders.push(format!("{} -> {}", path.display(), needle));
+            }
+        }
+    }
+    assert!(
+        offenders.is_empty(),
+        "CLI must not import engine internals: {offenders:?}"
+    );
+    Ok(())
+}

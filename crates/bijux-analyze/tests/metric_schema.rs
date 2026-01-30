@@ -41,9 +41,9 @@ fn metrics_schema_matches_stage_and_version() {
             gc_delta: 0.1,
         },
         adapter_preset: None,
-        adapter_bank_checksum: None,
-        effective_adapters_path: None,
-        adapter_trimming_summary: None,
+        adapter_bank_id: None,
+        adapter_bank_hash: None,
+        adapter_overrides: None,
     }));
     assert!(record.validate().is_ok());
     let schema = record.metrics.metrics_schema;
@@ -66,9 +66,9 @@ fn metrics_schema_rejects_unknown() {
             gc_delta: 0.1,
         },
         adapter_preset: None,
-        adapter_bank_checksum: None,
-        effective_adapters_path: None,
-        adapter_trimming_summary: None,
+        adapter_bank_id: None,
+        adapter_bank_hash: None,
+        adapter_overrides: None,
     });
     metrics.metrics_schema = "fastq_trim_v1".to_string();
     let record = base_record(metrics);
@@ -94,9 +94,9 @@ fn metrics_schema_rejects_mixed_stage() {
             gc_delta: 0.1,
         },
         adapter_preset: None,
-        adapter_bank_checksum: None,
-        effective_adapters_path: None,
-        adapter_trimming_summary: None,
+        adapter_bank_id: None,
+        adapter_bank_hash: None,
+        adapter_overrides: None,
     });
     metrics.metrics_schema = "fastq_validate_v1".to_string();
     let record = base_record(metrics);
@@ -122,9 +122,9 @@ fn execution_metrics_require_positive_values() {
             gc_delta: 0.1,
         },
         adapter_preset: None,
-        adapter_bank_checksum: None,
-        effective_adapters_path: None,
-        adapter_trimming_summary: None,
+        adapter_bank_id: None,
+        adapter_bank_hash: None,
+        adapter_overrides: None,
     }));
     record.execution.runtime_s = 0.0;
     match record.validate() {
@@ -155,9 +155,9 @@ fn metrics_schema_matches_stage_and_version_for_all_fastq_stages() {
             gc_delta: 0.1,
         },
         adapter_preset: None,
-        adapter_bank_checksum: None,
-        effective_adapters_path: None,
-        adapter_trimming_summary: None,
+        adapter_bank_id: None,
+        adapter_bank_hash: None,
+        adapter_overrides: None,
     });
     assert_eq!(trim.metrics_schema, "fastq_trim_v2");
 

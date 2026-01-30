@@ -1,4 +1,6 @@
-use bijux_core::{RunMetadataV1, StageMetadataV1, ToolExecutionMetadataV1, ToolInvocationV1};
+use bijux_core::{
+    RunMetadataV1, StageMetadataV1, ToolExecutionMetadataV1, ToolInvocationMetadataV1,
+};
 
 #[test]
 fn run_metadata_v1_requires_fields() {
@@ -9,7 +11,7 @@ fn run_metadata_v1_requires_fields() {
 #[test]
 fn tool_invocation_v1_requires_fields() {
     let json = "{}";
-    assert!(serde_json::from_str::<ToolInvocationV1>(json).is_err());
+    assert!(serde_json::from_str::<ToolInvocationMetadataV1>(json).is_err());
 }
 
 #[test]

@@ -57,7 +57,9 @@ pub fn write_adapter_bank_ref(
     let path = adapters_dir.join("adapter_bank_ref.json");
     let payload = serde_json::json!({
         "schema_version": "bijux.adapter_bank_ref.v1",
-        "bank_version": bank.schema_version,
+        "bank_schema": bank.schema_version,
+        "bank_id": bank.bank_id,
+        "bank_version": bank.version,
         "bank_checksum": bank_checksum,
         "presets_checksum": presets_checksum,
         "preset": effective.preset,

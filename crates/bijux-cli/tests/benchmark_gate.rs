@@ -83,8 +83,8 @@ fn benchmark_gate_validate_trim_filter() -> Result<()> {
         out: out_path.clone(),
         tools: vec!["fastp".to_string()],
         explain: false,
-        adapter_preset: "default_adna".to_string(),
-        adapter_bank: None,
+        adapter_bank: Some("preset:best_practice_adna".to_string()),
+        adapter_bank_file: None,
         enable_adapters: Vec::new(),
         disable_adapters: Vec::new(),
     };

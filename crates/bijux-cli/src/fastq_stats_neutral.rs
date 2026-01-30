@@ -8,7 +8,9 @@ use bijux_analyze::{
     BenchmarkRecord, FastqStatsMetrics, LengthHistogramBin,
 };
 use bijux_core::measure::ExecutionMetrics;
-use bijux_core::StageObservabilityContextV1;
+use bijux_core::{
+    CommandSpecV1, ContainerImageRefV1, StageObservabilityContextV1, ToolExecutionSpecV1, ToolId,
+};
 use bijux_engine::api::{ensure_bench_runner, filter_tools_by_role, load_registry};
 use bijux_engine::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 use uuid::Uuid;
@@ -19,7 +21,7 @@ use bijux_engine::api::{
     input_fastq_stats, length_histogram, normalize_stats_tool_list, params_hash,
     prepare_tool_run_dirs, resolve_image_for_run, write_execution_logs, write_metrics_envelope,
     write_metrics_json, write_retention_report_placeholder, write_run_manifest,
-    write_stage_plan_json, SeqkitMetrics, StagePlan,
+    write_stage_plan_json, SeqkitMetrics,
 };
 use bijux_engine::api::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use bijux_stages_fastq::fastq::stats_neutral::plan_stats_neutral;
@@ -29,6 +31,34 @@ use bijux_stages_fastq::{inspect_headers, log_header_warnings, preflight_stage, 
 use crate::fastq_router::{write_explain_md, write_explain_plan_json, BenchOutcome};
 use bijux_engine::api::ExecutionManifest;
 use bijux_stages_fastq::RawFailure;
+
+fn build_tool_execution_spec<S: ::std::hash::BuildHasher>(
+    stage_id: &str,
+    tool_id: &str,
+    registry: &bijux_core::ToolRegistry,
+    catalog: &HashMap<String, ToolImageSpec, S>,
+    platform: &PlatformSpec,
+) -> Result<ToolExecutionSpecV1> {
+    let manifest = registry
+        .tool_by_id(stage_id, tool_id)
+        .ok_or_else(|| anyhow!("tool {tool_id} missing from manifest for {stage_id}"))?;
+    let spec = catalog
+        .get(tool_id)
+        .ok_or_else(|| anyhow!("tool {tool_id} missing from images.yaml"))?;
+    let image = resolve_image_for_run(spec, platform)?;
+    Ok(ToolExecutionSpecV1 {
+        tool_id: ToolId(tool_id.to_string()),
+        tool_version: spec.version.clone(),
+        image: ContainerImageRefV1 {
+            image: image.full_name,
+            digest: spec.digest.clone(),
+        },
+        command: CommandSpecV1 {
+            template: manifest.command_template.clone(),
+        },
+        resources: manifest.constraints.clone(),
+    })
+}
 
 /// Run the FASTQ benchmark stage.
 ///
@@ -82,6 +112,8 @@ pub fn bench_fastq_stats_neutral<S: ::std::hash::BuildHasher>(
     let mut new_records: Vec<BenchmarkRecord<FastqStatsMetrics>> = Vec::new();
     let mut failures: Vec<RawFailure> = Vec::new();
 
+    let runner = bench_inputs.runner.to_string();
+    let platform_name = platform.name.clone();
     for tool in tools {
         let spec = catalog
             .get(&tool)
@@ -96,6 +128,8 @@ pub fn bench_fastq_stats_neutral<S: ::std::hash::BuildHasher>(
             &tool,
             &spec.version,
             &image_digest,
+            &runner,
+            &platform_name,
             &bench_inputs.input_hash,
         );
         if let Ok(Some(record)) = cached {
@@ -129,10 +163,6 @@ pub fn bench_fastq_stats_neutral<S: ::std::hash::BuildHasher>(
         bench_dir: bench_inputs.bench_dir,
         explain: args.explain,
     })
-}
-
-fn stage_version_i32(version: bijux_core::StageVersion) -> i32 {
-    i32::try_from(version.0).unwrap_or(i32::MAX)
 }
 
 struct StatsBenchInputs {
@@ -200,18 +230,19 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
     bench_inputs: &StatsBenchInputs,
     tool: &str,
 ) -> Result<BenchmarkRecord<FastqStatsMetrics>> {
-    let spec = catalog
-        .get(tool)
-        .ok_or_else(|| anyhow!("tool {tool} missing from images.yaml"))?;
-    let image = resolve_image_for_run(spec, platform)?;
+    let registry = load_registry(&std::env::current_dir()?.join("domain"))
+        .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
+    let tool_spec =
+        build_tool_execution_spec("fastq.stats_neutral", tool, &registry, catalog, platform)?;
 
     println!("→ stats {tool}");
     let tool_dir = bench_inputs.tools_root.join(tool);
-    let plan = plan_stats_neutral(tool, &bench_inputs.r1, &tool_dir)?;
+    let plan = plan_stats_neutral(&tool_spec, &bench_inputs.r1, &tool_dir)?;
     let plan_json = StagePlanJson::from_plan(&plan);
-    let params = plan_json.parameters.clone();
+    let params = plan.params.clone();
     let param_hash = params_hash(&params).unwrap_or_else(|_| Uuid::new_v4().to_string());
-    let image_digest = spec
+    let image_digest = tool_spec
+        .image
         .digest
         .as_ref()
         .ok_or_else(|| anyhow!("image digest missing for tool {tool}"))?
@@ -226,20 +257,7 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
     let run_dirs = prepare_tool_run_dirs(&bench_inputs.tools_root, tool, &run_id)?;
     let out_dir = run_dirs.artifacts_dir.clone();
     let _plan_path = write_stage_plan_json(&run_dirs, "fastq_stats_neutral.plan.json", &plan_json)?;
-    let exec_plan = StagePlan {
-        stage_id: "fastq.stats_neutral".to_string(),
-        stage_version: stage_version_i32(bijux_stages_fastq::fastq::stats_neutral::STAGE_VERSION),
-        tool: tool.to_string(),
-        tool_version: spec.version.clone(),
-        image,
-        runner: bench_inputs.runner,
-        inputs: vec![bench_inputs.r1.clone()],
-        out_dir: out_dir.clone(),
-        outputs: Vec::new(),
-        params: params.clone(),
-        aux_images: HashMap::new(),
-    };
-    let execution = execute_plan(&exec_plan)?;
+    let execution = execute_plan(&plan, bench_inputs.runner)?;
 
     let metrics = FastqStatsMetrics {
         reads_total: bench_inputs.input_stats.reads,
@@ -261,7 +279,7 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
         run_id: run_id.clone(),
         stage: "fastq.stats_neutral".to_string(),
         tool: tool.to_string(),
-        tool_version: spec.version.clone(),
+        tool_version: tool_spec.tool_version.clone(),
         image_digest: image_digest.clone(),
         command: execution.command.clone(),
         input_hashes: vec![bench_inputs.input_hash.clone()],
@@ -279,7 +297,7 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
     write_execution_logs(&run_dirs, &execution.stdout, &execution.stderr)?;
     let context = BenchmarkContext {
         tool: tool.to_string(),
-        tool_version: spec.version.clone(),
+        tool_version: tool_spec.tool_version.clone(),
         image_digest,
         runner: bench_inputs.runner.to_string(),
         platform: platform.name.clone(),
@@ -294,9 +312,9 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
     let metrics_json = serde_json::to_value(&metric_set)?;
     let stage_ctx = StageObservabilityContextV1 {
         stage_id: "fastq.stats_neutral".to_string(),
-        stage_version: stage_version_i32(bijux_stages_fastq::fastq::stats_neutral::STAGE_VERSION),
+        stage_version: i32::try_from(plan.stage_version.0).unwrap_or(i32::MAX),
         tool_id: tool.to_string(),
-        tool_version: spec.version.clone(),
+        tool_version: tool_spec.tool_version.clone(),
         input_hash: bench_inputs.input_hash.clone(),
         params_hash: param_hash.clone(),
         parameters_json: params.clone(),

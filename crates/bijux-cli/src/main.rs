@@ -10,6 +10,7 @@ use bijux_environment::api::{load_image_catalog, load_platform};
 use clap::Parser;
 use tracing::{info, warn};
 
+mod adapter_bank;
 mod cli;
 mod env;
 mod fastq_exec;
@@ -18,6 +19,9 @@ mod fastq_stats_neutral;
 mod replay;
 mod utils;
 
+use crate::adapter_bank::{
+    resolve_adapter_selection, resolve_effective_adapters, AdapterSelection,
+};
 use crate::fastq_exec::{
     bench_fastq_correct, bench_fastq_filter, bench_fastq_merge, bench_fastq_preprocess,
     bench_fastq_qc_post, bench_fastq_screen, bench_fastq_stats_neutral, bench_fastq_trim,
@@ -31,11 +35,7 @@ use bijux_analyze::{
 };
 use bijux_engine::api::init_logging;
 use bijux_environment::image_qa::run_image_qa;
-use bijux_stages_fastq::{
-    adapter_bank_path, adapter_presets_path, benchmark_runs, load_adapter_bank,
-    load_adapter_presets, resolve_adapter_preset, write_benchmark_exports, AdapterBankV1,
-    AdapterPresetsV1,
-};
+use bijux_stages_fastq::{benchmark_runs, write_benchmark_exports, AdapterPresetsV1};
 use cli::{
     bench_args_correct, bench_args_filter, bench_args_from_trim, bench_args_from_validate,
     bench_args_merge, bench_args_preprocess, bench_args_qc_post, bench_args_screen,
@@ -456,16 +456,20 @@ fn handle_fastq_discovery(
         }
         FastqCommand::Trim(args) => {
             if args.list_adapter_presets {
-                let (_bank, presets) = load_adapter_configs(args.adapter_bank.as_deref())?;
-                list_adapter_presets(&presets);
+                let selection = load_adapter_selection(
+                    args.adapter_bank.as_deref(),
+                    args.adapter_bank_file.as_deref(),
+                )?;
+                list_adapter_presets(&selection.presets);
                 return Ok(Some(true));
             }
             if args.list_adapters {
-                let (bank, presets) = load_adapter_configs(args.adapter_bank.as_deref())?;
-                let effective = resolve_adapter_preset(
-                    &bank,
-                    &presets,
-                    args.adapter_preset.as_str(),
+                let selection = load_adapter_selection(
+                    args.adapter_bank.as_deref(),
+                    args.adapter_bank_file.as_deref(),
+                )?;
+                let effective = resolve_effective_adapters(
+                    &selection,
                     &args.enable_adapter,
                     &args.disable_adapter,
                 )?;
@@ -476,16 +480,20 @@ fn handle_fastq_discovery(
         }
         FastqCommand::Preprocess(args) => {
             if args.list_adapter_presets {
-                let (_bank, presets) = load_adapter_configs(args.adapter_bank.as_deref())?;
-                list_adapter_presets(&presets);
+                let selection = load_adapter_selection(
+                    args.adapter_bank.as_deref(),
+                    args.adapter_bank_file.as_deref(),
+                )?;
+                list_adapter_presets(&selection.presets);
                 return Ok(Some(true));
             }
             if args.list_adapters {
-                let (bank, presets) = load_adapter_configs(args.adapter_bank.as_deref())?;
-                let effective = resolve_adapter_preset(
-                    &bank,
-                    &presets,
-                    args.adapter_preset.as_str(),
+                let selection = load_adapter_selection(
+                    args.adapter_bank.as_deref(),
+                    args.adapter_bank_file.as_deref(),
+                )?;
+                let effective = resolve_effective_adapters(
+                    &selection,
                     &args.enable_adapter,
                     &args.disable_adapter,
                 )?;
@@ -522,20 +530,19 @@ fn list_fastq_tools(registry: &bijux_core::ToolRegistry, stage_id: &str) {
     }
 }
 
-fn load_adapter_configs(bank_override: Option<&Path>) -> Result<(AdapterBankV1, AdapterPresetsV1)> {
-    let bank_path = bank_override.map_or_else(adapter_bank_path, PathBuf::from);
-    let bank = load_adapter_bank(&bank_path)?;
-    let presets_path = adapter_presets_path();
-    let presets = load_adapter_presets(&presets_path, &bank)?;
-    Ok((bank, presets))
+fn load_adapter_selection(
+    adapter_bank: Option<&str>,
+    adapter_bank_file: Option<&Path>,
+) -> Result<AdapterSelection> {
+    resolve_adapter_selection(adapter_bank, adapter_bank_file)
 }
 
 fn list_adapter_presets(presets: &AdapterPresetsV1) {
     for preset in &presets.presets {
-        let categories = if preset.categories.is_empty() {
+        let categories = if preset.tags.is_empty() {
             "none".to_string()
         } else {
-            preset.categories.join(", ")
+            preset.tags.join(", ")
         };
         println!("{}: categories: {}", preset.name, categories);
     }
@@ -543,7 +550,7 @@ fn list_adapter_presets(presets: &AdapterPresetsV1) {
 
 fn list_adapters(effective: &bijux_stages_fastq::EffectiveAdapterSet) {
     println!("preset: {}", effective.preset);
-    println!("id\tcategory\tname\tread_scope\tenabled_by_default");
+    println!("id\ttags\tname\tread_scope\tenabled_by_default");
     for adapter in &effective.adapters {
         let read_scope = match adapter.read_scope {
             bijux_stages_fastq::ReadScope::R1 => "r1",
@@ -553,9 +560,14 @@ fn list_adapters(effective: &bijux_stages_fastq::EffectiveAdapterSet) {
             bijux_stages_fastq::ReadScope::PairedEnd => "paired_end",
             bijux_stages_fastq::ReadScope::Unknown => "unknown",
         };
+        let tags = if adapter.tags.is_empty() {
+            "none".to_string()
+        } else {
+            adapter.tags.join(",")
+        };
         println!(
             "{}\t{}\t{}\t{}\t{}",
-            adapter.id, adapter.category, adapter.name, read_scope, adapter.enabled_by_default
+            adapter.id, tags, adapter.name, read_scope, adapter.enabled_by_default
         );
     }
 }
@@ -572,8 +584,11 @@ fn explain_fastq_stage(registry: &bijux_core::ToolRegistry, stage_id: &str) -> R
             objective: bijux_analyze::selection::Objective::Balanced,
             bench_corpus: None,
             allow_partial: false,
-            adapter_preset: "default_adna".to_string(),
-            adapter_bank: None,
+            adapter_bank: Some(format!(
+                "preset:{}",
+                crate::adapter_bank::DEFAULT_ADAPTER_PRESET
+            )),
+            adapter_bank_file: None,
             enable_adapters: Vec::new(),
             disable_adapters: Vec::new(),
         };

@@ -2,19 +2,19 @@ use anyhow::Result;
 use bijux_core::{StageId, ToolId};
 
 #[derive(Debug, Clone)]
-pub struct StagePlan {
+pub struct PipelineStep {
     pub stage: StageId,
     pub tool: ToolId,
 }
 
 pub fn run_pipeline<T, RunStage, EmitEvent>(
-    steps: &[StagePlan],
+    steps: &[PipelineStep],
     mut emit_event: EmitEvent,
     mut run_stage: RunStage,
 ) -> Result<Vec<T>>
 where
-    RunStage: FnMut(&StagePlan) -> Result<T>,
-    EmitEvent: FnMut(&str, &StagePlan) -> Result<()>,
+    RunStage: FnMut(&PipelineStep) -> Result<T>,
+    EmitEvent: FnMut(&str, &PipelineStep) -> Result<()>,
 {
     let mut entries = Vec::with_capacity(steps.len());
     for step in steps {

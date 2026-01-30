@@ -1,20 +1,10 @@
 use std::path::Path;
 
 use anyhow::{anyhow, Result};
-use bijux_core::{StageId, StageVersion};
-
-use crate::plan::{ArtifactRef, StageIO, StagePlan};
+use bijux_core::{ArtifactRef, StageIO, StageId, StagePlan, StageVersion, ToolExecutionSpecV1};
 
 pub const STAGE_ID: &str = "fastq.screen";
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct ScreenPlan {
-    pub tool: String,
-    pub input: std::path::PathBuf,
-    pub out_dir: std::path::PathBuf,
-    pub report: std::path::PathBuf,
-}
 
 pub fn normalize_screen_tool_list(tools: &[String]) -> Result<Vec<String>> {
     let allowed = [
@@ -31,47 +21,36 @@ pub fn normalize_screen_tool_list(tools: &[String]) -> Result<Vec<String>> {
 ///
 /// # Errors
 /// Returns an error if the tool is unsupported.
-pub fn plan_screen(tool: &str, r1: &Path, out_dir: &Path) -> Result<ScreenPlan> {
-    normalize_screen_tool_list(&[tool.to_string()])?;
+pub fn plan_screen(tool: &ToolExecutionSpecV1, r1: &Path, out_dir: &Path) -> Result<StagePlan> {
+    normalize_screen_tool_list(std::slice::from_ref(&tool.tool_id.0))?;
     let report = out_dir.join("screen_report.tsv");
-    Ok(ScreenPlan {
-        tool: tool.to_string(),
-        input: r1.to_path_buf(),
-        out_dir: out_dir.to_path_buf(),
-        report,
-    })
-}
-
-impl StagePlan for ScreenPlan {
-    fn stage_id(&self) -> StageId {
-        StageId(STAGE_ID.to_string())
-    }
-
-    fn stage_version(&self) -> StageVersion {
-        STAGE_VERSION
-    }
-
-    fn outputs(&self) -> StageIO {
-        StageIO {
+    Ok(StagePlan {
+        stage_id: StageId(STAGE_ID.to_string()),
+        stage_version: STAGE_VERSION,
+        tool_id: tool.tool_id.clone(),
+        tool_version: tool.tool_version.clone(),
+        image: tool.image.clone(),
+        command: tool.command.clone(),
+        resources: tool.resources.clone(),
+        io: StageIO {
             inputs: vec![ArtifactRef {
                 name: "reads_r1".to_string(),
-                path: self.input.clone(),
+                path: r1.to_path_buf(),
             }],
             outputs: vec![ArtifactRef {
                 name: "screen_report_tsv".to_string(),
-                path: self.report.clone(),
+                path: report.clone(),
             }],
-        }
-    }
-
-    fn parameters_json(&self) -> serde_json::Value {
-        serde_json::json!({
-            "tool": self.tool,
-            "input": self.input,
-            "out_dir": self.out_dir,
-            "report": self.report
-        })
-    }
+        },
+        out_dir: out_dir.to_path_buf(),
+        params: serde_json::json!({
+            "tool": tool.tool_id.0,
+            "input": r1,
+            "out_dir": out_dir,
+            "report": report
+        }),
+        aux_images: std::collections::BTreeMap::new(),
+    })
 }
 
 fn normalize_tools_with_allowlist(tools: &[String], allowlist: &[&str]) -> Result<Vec<String>> {

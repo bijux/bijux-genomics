@@ -2,19 +2,10 @@ use std::path::Path;
 
 use anyhow::{anyhow, Result};
 use bijux_core::measure::SeqkitMetrics;
-use bijux_core::{StageId, StageVersion};
-
-use crate::plan::{ArtifactRef, StageIO, StagePlan};
+use bijux_core::{ArtifactRef, StageIO, StageId, StagePlan, StageVersion, ToolExecutionSpecV1};
 
 pub const STAGE_ID: &str = "fastq.validate_pre";
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct ValidatePrePlan {
-    pub tool: String,
-    pub input: std::path::PathBuf,
-    pub out_dir: std::path::PathBuf,
-}
 
 #[derive(Debug, Clone)]
 pub struct ValidatePreUserConfig {
@@ -30,11 +21,29 @@ pub struct ValidatePreEffectiveConfig {
     pub out_dir: std::path::PathBuf,
 }
 
-pub fn plan(tool: &str, r1: &Path, out_dir: &Path) -> ValidatePrePlan {
-    ValidatePrePlan {
-        tool: tool.to_string(),
-        input: r1.to_path_buf(),
+pub fn plan(tool: &ToolExecutionSpecV1, r1: &Path, out_dir: &Path) -> StagePlan {
+    StagePlan {
+        stage_id: StageId(STAGE_ID.to_string()),
+        stage_version: STAGE_VERSION,
+        tool_id: tool.tool_id.clone(),
+        tool_version: tool.tool_version.clone(),
+        image: tool.image.clone(),
+        command: tool.command.clone(),
+        resources: tool.resources.clone(),
+        io: StageIO {
+            inputs: vec![ArtifactRef {
+                name: "reads_r1".to_string(),
+                path: r1.to_path_buf(),
+            }],
+            outputs: Vec::new(),
+        },
         out_dir: out_dir.to_path_buf(),
+        params: serde_json::json!({
+            "tool": tool.tool_id.0,
+            "input": r1,
+            "out_dir": out_dir
+        }),
+        aux_images: std::collections::BTreeMap::new(),
     }
 }
 
@@ -57,8 +66,11 @@ pub fn resolve_config(user: ValidatePreUserConfig) -> ValidatePreEffectiveConfig
     }
 }
 
-pub fn plan_from_config(config: &ValidatePreEffectiveConfig) -> ValidatePrePlan {
-    plan(&config.tool, &config.r1, &config.out_dir)
+pub fn plan_from_config(
+    tool: &ToolExecutionSpecV1,
+    config: &ValidatePreEffectiveConfig,
+) -> StagePlan {
+    plan(tool, &config.r1, &config.out_dir)
 }
 
 pub fn validate_reads_total(tool: &str, input_stats: &SeqkitMetrics, stdout: &str) -> Result<u64> {
@@ -75,34 +87,6 @@ pub fn validate_reads_total(tool: &str, input_stats: &SeqkitMetrics, stdout: &st
         _ => return Err(anyhow!("unsupported tool: {tool}")),
     };
     Ok(reads_total)
-}
-
-impl StagePlan for ValidatePrePlan {
-    fn stage_id(&self) -> StageId {
-        StageId(STAGE_ID.to_string())
-    }
-
-    fn stage_version(&self) -> StageVersion {
-        STAGE_VERSION
-    }
-
-    fn outputs(&self) -> StageIO {
-        StageIO {
-            inputs: vec![ArtifactRef {
-                name: "reads_r1".to_string(),
-                path: self.input.clone(),
-            }],
-            outputs: Vec::new(),
-        }
-    }
-
-    fn parameters_json(&self) -> serde_json::Value {
-        serde_json::json!({
-            "tool": self.tool,
-            "input": self.input,
-            "out_dir": self.out_dir
-        })
-    }
 }
 
 fn normalize_tools_with_allowlist(tools: &[String], allowlist: &[&str]) -> Result<Vec<String>> {

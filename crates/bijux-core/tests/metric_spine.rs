@@ -17,9 +17,9 @@ fn metric_set_converts_to_envelope() {
             gc_delta: 0.0,
         },
         adapter_preset: None,
-        adapter_bank_checksum: None,
-        effective_adapters_path: None,
-        adapter_trimming_summary: None,
+        adapter_bank_id: None,
+        adapter_bank_hash: None,
+        adapter_overrides: None,
     };
     let set: MetricSet<_> = metric_set(metrics);
     assert_eq!(set.metrics_schema, "fastq_trim_v2");

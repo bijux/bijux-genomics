@@ -1,7 +1,9 @@
 schema_version: bijux.adapter_bank.v1
+bank_id: bijux-fastq-adapter-bank
+version: 1
 adapters:
   - id: truseq_universal
-    category: truseq
+    tags: [truseq]
     name: TruSeq Universal Adapter
     sequence: AGATCGGAAGAGC
     read_scope: single_end
@@ -10,7 +12,7 @@ adapters:
     source: Illumina TruSeq documentation (TBD)
     notes: Citation TBD
   - id: truseq_indexed
-    category: truseq
+    tags: [truseq]
     name: TruSeq Indexed Adapter
     sequence: AGATCGGAAGAGCACACGTCTGAACTCCAGTCA
     read_scope: paired_end
@@ -19,7 +21,7 @@ adapters:
     source: Illumina TruSeq documentation (TBD)
     notes: Citation TBD
   - id: nextera_transposase
-    category: nextera
+    tags: [nextera]
     name: Nextera Transposase Adapter
     sequence: CTGTCTCTTATACACATCT
     read_scope: both
@@ -28,7 +30,7 @@ adapters:
     source: Illumina Nextera documentation (TBD)
     notes: Citation TBD
   - id: nextera_index
-    category: nextera
+    tags: [nextera]
     name: Nextera Index Adapter
     sequence: GTCTCGTGGGCTCGG
     read_scope: both
@@ -37,7 +39,7 @@ adapters:
     source: Illumina Nextera documentation (TBD)
     notes: Citation TBD
   - id: ssdna_splint_seed
-    category: ssdna_splint
+    tags: [ssdna]
     name: ssDNA Splint Seed
     sequence: NNNNNNGGTACNNNNN
     read_scope: single_end
@@ -46,7 +48,7 @@ adapters:
     source: TBD
     notes: Placeholder sequence (TBD)
   - id: ssdna_splint_tail
-    category: ssdna_splint
+    tags: [ssdna]
     name: ssDNA Splint Tail
     sequence: NNNNNNCCGTAANNNNN
     read_scope: single_end
@@ -55,7 +57,7 @@ adapters:
     source: TBD
     notes: Placeholder sequence (TBD)
   - id: pcr_primer_fwd
-    category: pcr_primers
+    tags: [pcr]
     name: PCR Primer Forward
     sequence: AATGATACGGCGACCACCGA
     read_scope: both
@@ -64,7 +66,7 @@ adapters:
     source: Kit documentation (TBD)
     notes: Citation TBD
   - id: pcr_primer_rev
-    category: pcr_primers
+    tags: [pcr]
     name: PCR Primer Reverse
     sequence: CAAGCAGAAGACGGCATACG
     read_scope: both
@@ -73,7 +75,7 @@ adapters:
     source: Kit documentation (TBD)
     notes: Citation TBD
   - id: umi_construct_a
-    category: umi_constructs
+    tags: [umi]
     name: UMI Construct Adapter
     sequence: ACGTNNNNNNNNACGT
     read_scope: both
@@ -82,7 +84,7 @@ adapters:
     source: TBD
     notes: Placeholder sequence (TBD)
   - id: umi_construct_b
-    category: umi_constructs
+    tags: [umi]
     name: UMI Construct Adapter B
     sequence: TGCANNNNNNNNTGCA
     read_scope: both
@@ -91,7 +93,7 @@ adapters:
     source: TBD
     notes: Placeholder sequence (TBD)
   - id: kit_custom_adapter
-    category: kit_custom
+    tags: [custom]
     name: Kit Custom Adapter
     sequence: GATCGGAAGAGCACACGTCT
     read_scope: both
@@ -100,7 +102,7 @@ adapters:
     source: Vendor kit documentation (TBD)
     notes: Citation TBD
   - id: kit_custom_adapter_b
-    category: kit_custom
+    tags: [custom]
     name: Kit Custom Adapter B
     sequence: ACAGTGGTATCAACGCAGAG
     read_scope: both
@@ -109,7 +111,7 @@ adapters:
     source: Vendor kit documentation (TBD)
     notes: Citation TBD
   - id: capture_linker_a
-    category: capture_linkers
+    tags: [capture]
     name: Capture Linker A
     sequence: TCGTCGGCAGCGTCAGATGTGTATAAGAGACAG
     read_scope: both
@@ -118,7 +120,7 @@ adapters:
     source: Capture kit documentation (TBD)
     notes: Citation TBD
   - id: capture_linker_b
-    category: capture_linkers
+    tags: [capture]
     name: Capture Linker B
     sequence: GTCTCGTGGGCTCGGAGATGTGTATAAGAGACAG
     read_scope: both
@@ -127,7 +129,7 @@ adapters:
     source: Capture kit documentation (TBD)
     notes: Citation TBD
   - id: partial_motif_seed
-    category: partial_motifs
+    tags: [partial]
     name: Partial Adapter Motif Seed
     sequence: AGATCGGA
     read_scope: unknown
@@ -136,7 +138,7 @@ adapters:
     source: Derived from common adapter motifs (TBD)
     notes: Citation TBD
   - id: partial_motif_seed_short
-    category: partial_motifs
+    tags: [partial]
     name: Partial Adapter Motif Short
     sequence: AGATC
     read_scope: unknown

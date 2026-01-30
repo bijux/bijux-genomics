@@ -1,7 +1,8 @@
 use bijux_core::domain::PipelineSpec;
-use bijux_core::{StageId, StageVersion, ToolId};
-
-use crate::plan::{ArtifactRef, StageIO, StagePlan as StagePlanTrait, StagePlanJson};
+use bijux_core::{
+    ArtifactRef, ContainerImageRefV1, StageIO, StageId, StagePlan, StageVersion,
+    ToolExecutionSpecV1,
+};
 
 pub const STAGE_ID: &str = "fastq.preprocess";
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
@@ -11,17 +12,6 @@ pub struct PreprocessPlan {
     pub r1: std::path::PathBuf,
     pub r2: Option<std::path::PathBuf>,
     pub pipeline: PipelineSpec,
-}
-
-#[derive(Debug, Clone)]
-pub struct StagePlan {
-    pub stage: StageId,
-    pub stage_version: StageVersion,
-    pub tool: ToolId,
-    pub plan: StagePlanJson,
-    pub inputs: Vec<std::path::PathBuf>,
-    pub outputs: Vec<std::path::PathBuf>,
-    pub out_dir: std::path::PathBuf,
 }
 
 #[must_use]
@@ -40,7 +30,9 @@ pub fn plan_preprocess(args: &crate::args::BenchFastqPreprocessArgs) -> Preproce
 #[allow(clippy::too_many_lines)]
 pub fn plan_preprocess_pipeline<F>(
     stages: &[String],
-    tools: &[String],
+    tools: &[ToolExecutionSpecV1],
+    aux_images: &std::collections::BTreeMap<String, ContainerImageRefV1>,
+    adapter_bank: Option<&serde_json::Value>,
     r1: &std::path::Path,
     r2: Option<&std::path::Path>,
     mut out_dir_for_stage: F,
@@ -48,7 +40,7 @@ pub fn plan_preprocess_pipeline<F>(
 where
     F: FnMut(
         &str,
-        &str,
+        &ToolExecutionSpecV1,
         &std::path::Path,
         Option<&std::path::Path>,
     ) -> anyhow::Result<std::path::PathBuf>,
@@ -65,27 +57,21 @@ where
     let mut plans = Vec::new();
     for (stage, tool) in stages.iter().zip(tools.iter()) {
         let out_dir = out_dir_for_stage(stage, tool, &current_r1, current_r2.as_deref())?;
-        let (plan, inputs, outputs, next_r1, next_r2, stage_version) = match stage.as_str() {
+        let (plan, next_r1, next_r2, stage_version) = match stage.as_str() {
             "fastq.trim" => {
-                let plan = crate::fastq::trim::plan(tool, &current_r1, &out_dir)?;
-                let outputs = vec![plan.output.clone()];
+                let plan = crate::fastq::trim::plan(tool, &current_r1, &out_dir, adapter_bank)?;
                 (
-                    StagePlanJson::from_plan(&plan),
-                    vec![current_r1.clone()],
-                    outputs.clone(),
-                    outputs[0].clone(),
+                    plan.clone(),
+                    plan.io.outputs[0].path.clone(),
                     None,
                     crate::fastq::trim::STAGE_VERSION,
                 )
             }
             "fastq.filter" => {
                 let plan = crate::fastq::filter::plan_filter(tool, &current_r1, &out_dir)?;
-                let outputs = vec![plan.output.clone()];
                 (
-                    StagePlanJson::from_plan(&plan),
-                    vec![current_r1.clone()],
-                    outputs.clone(),
-                    outputs[0].clone(),
+                    plan.clone(),
+                    plan.io.outputs[0].path.clone(),
                     None,
                     crate::fastq::filter::STAGE_VERSION,
                 )
@@ -93,9 +79,7 @@ where
             "fastq.validate_pre" => {
                 let plan = crate::fastq::validate_pre::plan(tool, &current_r1, &out_dir);
                 (
-                    StagePlanJson::from_plan(&plan),
-                    vec![current_r1.clone()],
-                    Vec::new(),
+                    plan.clone(),
                     current_r1.clone(),
                     current_r2.clone(),
                     crate::fastq::validate_pre::STAGE_VERSION,
@@ -106,12 +90,9 @@ where
                     .as_ref()
                     .ok_or_else(|| anyhow::anyhow!("merge requires r2"))?;
                 let plan = crate::fastq::merge::plan_merge(tool, &current_r1, r2, &out_dir)?;
-                let outputs = vec![plan.output.clone()];
                 (
-                    StagePlanJson::from_plan(&plan),
-                    vec![current_r1.clone(), r2.clone()],
-                    outputs.clone(),
-                    outputs[0].clone(),
+                    plan.clone(),
+                    plan.io.outputs[0].path.clone(),
                     None,
                     crate::fastq::merge::STAGE_VERSION,
                 )
@@ -121,13 +102,10 @@ where
                     .as_ref()
                     .ok_or_else(|| anyhow::anyhow!("correct requires r2"))?;
                 let plan = crate::fastq::correct::plan_correct(tool, &current_r1, r2, &out_dir)?;
-                let outputs = vec![plan.output_r1.clone(), plan.output_r2.clone()];
                 (
-                    StagePlanJson::from_plan(&plan),
-                    vec![current_r1.clone(), r2.clone()],
-                    outputs.clone(),
-                    outputs[0].clone(),
-                    Some(outputs[1].clone()),
+                    plan.clone(),
+                    plan.io.outputs[0].path.clone(),
+                    Some(plan.io.outputs[1].path.clone()),
                     crate::fastq::correct::STAGE_VERSION,
                 )
             }
@@ -136,22 +114,30 @@ where
                     .as_ref()
                     .ok_or_else(|| anyhow::anyhow!("umi requires r2"))?;
                 let plan = crate::fastq::umi::plan_umi(tool, &current_r1, r2, &out_dir)?;
-                let outputs = vec![plan.output_r1.clone(), plan.output_r2.clone()];
                 (
-                    StagePlanJson::from_plan(&plan),
-                    vec![current_r1.clone(), r2.clone()],
-                    outputs.clone(),
-                    outputs[0].clone(),
-                    Some(outputs[1].clone()),
+                    plan.clone(),
+                    plan.io.outputs[0].path.clone(),
+                    Some(plan.io.outputs[1].path.clone()),
                     crate::fastq::umi::STAGE_VERSION,
                 )
             }
             "fastq.qc_post" => {
-                let plan = crate::fastq::qc_post::plan_qc_post(tool, &current_r1, &out_dir)?;
+                let mut stage_aux_images = std::collections::BTreeMap::new();
+                if tool.tool_id.0 == "multiqc" {
+                    for aux_tool in crate::fastq::qc_post::aux_tool_ids() {
+                        if let Some(image) = aux_images.get(*aux_tool) {
+                            stage_aux_images.insert(aux_tool.to_string(), image.clone());
+                        }
+                    }
+                }
+                let plan = crate::fastq::qc_post::plan_qc_post(
+                    tool,
+                    &current_r1,
+                    &out_dir,
+                    stage_aux_images,
+                )?;
                 (
-                    StagePlanJson::from_plan(&plan),
-                    vec![current_r1.clone()],
-                    Vec::new(),
+                    plan.clone(),
                     current_r1.clone(),
                     current_r2.clone(),
                     crate::fastq::qc_post::STAGE_VERSION,
@@ -159,11 +145,8 @@ where
             }
             "fastq.screen" => {
                 let plan = crate::fastq::screen::plan_screen(tool, &current_r1, &out_dir)?;
-                let outputs = vec![plan.report.clone()];
                 (
-                    StagePlanJson::from_plan(&plan),
-                    vec![current_r1.clone()],
-                    outputs.clone(),
+                    plan.clone(),
                     current_r1.clone(),
                     current_r2.clone(),
                     crate::fastq::screen::STAGE_VERSION,
@@ -173,9 +156,7 @@ where
                 let plan =
                     crate::fastq::stats_neutral::plan_stats_neutral(tool, &current_r1, &out_dir)?;
                 (
-                    StagePlanJson::from_plan(&plan),
-                    vec![current_r1.clone()],
-                    Vec::new(),
+                    plan.clone(),
                     current_r1.clone(),
                     current_r2.clone(),
                     crate::fastq::stats_neutral::STAGE_VERSION,
@@ -183,52 +164,51 @@ where
             }
             _ => return Err(anyhow::anyhow!("unsupported stage {stage}")),
         };
-        plans.push(StagePlan {
-            stage: StageId(stage.clone()),
-            stage_version,
-            tool: ToolId(tool.clone()),
-            plan,
-            inputs,
-            outputs,
-            out_dir,
-        });
+        let mut exec_plan = plan;
+        exec_plan.stage_id = StageId(stage.clone());
+        exec_plan.stage_version = stage_version;
+        exec_plan.out_dir = out_dir;
+        plans.push(exec_plan);
         current_r1 = next_r1;
         current_r2 = next_r2;
     }
     Ok(plans)
 }
 
-impl StagePlanTrait for PreprocessPlan {
-    fn stage_id(&self) -> StageId {
-        StageId(STAGE_ID.to_string())
+#[must_use]
+pub fn plan_preprocess_stage(plan: &PreprocessPlan, tool: &ToolExecutionSpecV1) -> StagePlan {
+    let mut inputs = vec![ArtifactRef {
+        name: "reads_r1".to_string(),
+        path: plan.r1.clone(),
+    }];
+    if let Some(r2) = &plan.r2 {
+        inputs.push(ArtifactRef {
+            name: "reads_r2".to_string(),
+            path: r2.clone(),
+        });
     }
-
-    fn stage_version(&self) -> StageVersion {
-        STAGE_VERSION
-    }
-
-    fn outputs(&self) -> StageIO {
-        let mut inputs = vec![ArtifactRef {
-            name: "reads_r1".to_string(),
-            path: self.r1.clone(),
-        }];
-        if let Some(r2) = &self.r2 {
-            inputs.push(ArtifactRef {
-                name: "reads_r2".to_string(),
-                path: r2.clone(),
-            });
-        }
-        StageIO {
+    StagePlan {
+        stage_id: StageId(STAGE_ID.to_string()),
+        stage_version: STAGE_VERSION,
+        tool_id: tool.tool_id.clone(),
+        tool_version: tool.tool_version.clone(),
+        image: tool.image.clone(),
+        command: tool.command.clone(),
+        resources: tool.resources.clone(),
+        io: StageIO {
             inputs,
             outputs: Vec::new(),
-        }
-    }
-
-    fn parameters_json(&self) -> serde_json::Value {
-        serde_json::json!({
-            "r1": self.r1,
-            "r2": self.r2,
-            "stages": self.pipeline.stages,
-        })
+        },
+        out_dir: plan
+            .r1
+            .parent()
+            .unwrap_or_else(|| std::path::Path::new("."))
+            .to_path_buf(),
+        params: serde_json::json!({
+            "r1": plan.r1,
+            "r2": plan.r2,
+            "stages": plan.pipeline.stages,
+        }),
+        aux_images: std::collections::BTreeMap::new(),
     }
 }

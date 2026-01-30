@@ -21,10 +21,10 @@ Options:
           
       --tools <TOOLS>
           
-      --adapter-preset <ADAPTER_PRESET>
-          [default: default_adna] [possible values: default_adna, truseq_only, ssdna, umi, nextera, capture]
       --adapter-bank <ADAPTER_BANK>
-          
+          Adapter bank selection: preset:<name> (default: preset:best_practice_adna)
+      --adapter-bank-file <ADAPTER_BANK_FILE>
+          Adapter bank file (yaml/json)
       --enable-adapter <ENABLE_ADAPTER>
           
       --disable-adapter <DISABLE_ADAPTER>
