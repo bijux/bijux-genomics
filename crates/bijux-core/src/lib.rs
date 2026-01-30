@@ -34,8 +34,9 @@ pub use metrics::{
     FastqValidateMetricsV1, RetentionReportMetricV1, StageMetricsV1, ToolInvocationV1,
 };
 pub use observability::{
-    canonicalize_json_value, EffectiveConfigV1, FactsRowV1, RetentionReportV1,
-    StageObservabilityContextV1, StageObservabilityContractV1, StageReportV1, TelemetryEventV1,
+    canonicalize_json_value, parameters_json_canonicalization, EffectiveConfigV1, FactsRowV1,
+    RetentionReportV1, StageObservabilityContextV1, StageObservabilityContractV1, StageReportV1,
+    TelemetryEventV1,
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]

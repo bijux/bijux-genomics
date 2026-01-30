@@ -1,6 +1,6 @@
 use std::fs;
 
-use bijux_analyze::facts::{load_facts_jsonl, summarize_facts};
+use bijux_analyze::facts::{load_facts_jsonl, summarize_facts, write_run_summary_json};
 use bijux_core::FactsRowV1;
 use tempfile::TempDir;
 
@@ -31,6 +31,13 @@ fn facts_loader_and_summary_work() -> anyhow::Result<()> {
     assert_eq!(summary.runs, 1);
     assert_eq!(summary.stages, 1);
     assert!((summary.total_runtime_s - 1.5).abs() < 1e-6);
+
+    let summary_path = dir.path().join("run_summary.json");
+    write_run_summary_json(&summary_path, &rows)?;
+    let summary_json: serde_json::Value = serde_json::from_str(&fs::read_to_string(summary_path)?)?;
+    assert_eq!(summary_json["schema_version"], "bijux.run_summary.v1");
+    assert_eq!(summary_json["runs"], 1);
+    assert_eq!(summary_json["stages"], 1);
 
     Ok(())
 }

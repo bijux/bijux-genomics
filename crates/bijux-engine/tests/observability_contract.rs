@@ -4,7 +4,7 @@ use std::sync::Mutex;
 
 use anyhow::{Context, Result};
 use bijux_core::{
-    canonicalize_json_value, CommandSpecV1, ContainerImageRefV1, ToolConstraints,
+    parameters_json_canonicalization, CommandSpecV1, ContainerImageRefV1, ToolConstraints,
     ToolExecutionSpecV1, ToolId,
 };
 use bijux_engine::api::{execute_plan, params_hash, StagePlan};
@@ -277,7 +277,7 @@ fn fastq_stages_emit_observability_contracts() -> Result<()> {
             envelope["input_hash"].as_str().is_some(),
             "input_hash missing"
         );
-        let canonical_params = canonicalize_json_value(&exec_plan.params);
+        let canonical_params = parameters_json_canonicalization(&exec_plan.params);
         let expected_hash = params_hash(&canonical_params)?;
         assert_eq!(envelope["params_hash"], expected_hash);
         assert_eq!(envelope["parameters_json"], canonical_params);
