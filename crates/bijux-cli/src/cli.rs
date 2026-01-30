@@ -15,6 +15,8 @@ pub struct Cli {
     pub profile: String,
     #[arg(long)]
     pub platform: Option<String>,
+    #[arg(long, value_name = "PATH")]
+    pub telemetry_jsonl: Option<PathBuf>,
     #[arg(long, verbatim_doc_comment)]
     /// Print resolved config JSON (skeleton for future defaults).
     pub print_effective_config: bool,

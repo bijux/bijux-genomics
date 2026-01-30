@@ -34,6 +34,10 @@ pub struct BenchOutcome<M: bijux_analyze::StageMetricSchema> {
     pub explain: bool,
 }
 
+fn stage_version_i32(version: bijux_core::StageVersion) -> i32 {
+    i32::try_from(version.0).unwrap_or(i32::MAX)
+}
+
 /// # Errors
 /// Returns an error if the explain markdown cannot be written.
 pub(crate) fn write_explain_md(
@@ -143,15 +147,16 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
         fs::create_dir_all(&out_dir).context("create tool output dir")?;
         let plan = plan(tool, &args.r1, &out_dir)?;
         let plan_json = StagePlanJson::from_plan(&plan);
+        let spec = catalog
+            .get(tool)
+            .ok_or_else(|| anyhow!("tool {tool} missing from images.yaml"))?;
+        let image = resolve_image_for_run(spec, platform)?;
         let exec_plan = StagePlan {
             stage_id: "fastq.trim".to_string(),
+            stage_version: stage_version_i32(bijux_stages_fastq::fastq::trim::STAGE_VERSION),
             tool: tool.to_string(),
-            image: resolve_image_for_run(
-                catalog
-                    .get(tool)
-                    .ok_or_else(|| anyhow!("tool {tool} missing from images.yaml"))?,
-                platform,
-            )?,
+            tool_version: spec.version.clone(),
+            image,
             runner: platform.runner,
             inputs: vec![args.r1.clone()],
             out_dir: out_dir.clone(),
@@ -215,15 +220,18 @@ pub fn bench_fastq_validate_pre<S: ::std::hash::BuildHasher>(
         fs::create_dir_all(&out_dir).context("create tool output dir")?;
         let plan = plan_validate_pre(tool, &args.r1, &out_dir);
         let plan_json = StagePlanJson::from_plan(&plan);
+        let spec = catalog
+            .get(tool)
+            .ok_or_else(|| anyhow!("tool {tool} missing from images.yaml"))?;
+        let image = resolve_image_for_run(spec, platform)?;
         let exec_plan = StagePlan {
             stage_id: "fastq.validate_pre".to_string(),
+            stage_version: stage_version_i32(
+                bijux_stages_fastq::fastq::validate_pre::STAGE_VERSION,
+            ),
             tool: tool.to_string(),
-            image: resolve_image_for_run(
-                catalog
-                    .get(tool)
-                    .ok_or_else(|| anyhow!("tool {tool} missing from images.yaml"))?,
-                platform,
-            )?,
+            tool_version: spec.version.clone(),
+            image,
             runner: platform.runner,
             inputs: vec![args.r1.clone()],
             out_dir: out_dir.clone(),
@@ -287,15 +295,16 @@ pub fn bench_fastq_filter<S: ::std::hash::BuildHasher>(
         fs::create_dir_all(&out_dir).context("create tool output dir")?;
         let plan = plan_filter(tool, &args.r1, &out_dir)?;
         let plan_json = StagePlanJson::from_plan(&plan);
+        let spec = catalog
+            .get(tool)
+            .ok_or_else(|| anyhow!("tool {tool} missing from images.yaml"))?;
+        let image = resolve_image_for_run(spec, platform)?;
         let exec_plan = StagePlan {
             stage_id: "fastq.filter".to_string(),
+            stage_version: stage_version_i32(bijux_stages_fastq::fastq::filter::STAGE_VERSION),
             tool: tool.to_string(),
-            image: resolve_image_for_run(
-                catalog
-                    .get(tool)
-                    .ok_or_else(|| anyhow!("tool {tool} missing from images.yaml"))?,
-                platform,
-            )?,
+            tool_version: spec.version.clone(),
+            image,
             runner: platform.runner,
             inputs: vec![args.r1.clone()],
             out_dir: out_dir.clone(),
@@ -358,15 +367,15 @@ pub fn bench_fastq_merge<S: ::std::hash::BuildHasher>(
         fs::create_dir_all(&out_dir).context("create tool output dir")?;
         let plan = plan_merge(tool, &args.r1, &args.r2, &out_dir)?;
         let plan_json = StagePlanJson::from_plan(&plan);
+        let spec = catalog
+            .get(tool)
+            .ok_or_else(|| anyhow!("tool {tool} missing from images.yaml"))?;
         let exec_plan = StagePlan {
             stage_id: "fastq.merge".to_string(),
+            stage_version: stage_version_i32(bijux_stages_fastq::fastq::merge::STAGE_VERSION),
             tool: tool.to_string(),
-            image: resolve_image_for_run(
-                catalog
-                    .get(tool)
-                    .ok_or_else(|| anyhow!("tool {tool} missing from images.yaml"))?,
-                platform,
-            )?,
+            tool_version: spec.version.clone(),
+            image: resolve_image_for_run(spec, platform)?,
             runner: platform.runner,
             inputs: vec![args.r1.clone(), args.r2.clone()],
             out_dir: out_dir.clone(),
@@ -430,15 +439,15 @@ pub fn bench_fastq_screen<S: ::std::hash::BuildHasher>(
         fs::create_dir_all(&out_dir).context("create tool output dir")?;
         let plan = plan_screen(tool, &args.r1, &out_dir)?;
         let plan_json = StagePlanJson::from_plan(&plan);
+        let spec = catalog
+            .get(tool)
+            .ok_or_else(|| anyhow!("tool {tool} missing from images.yaml"))?;
         let exec_plan = StagePlan {
             stage_id: "fastq.screen".to_string(),
+            stage_version: stage_version_i32(bijux_stages_fastq::fastq::screen::STAGE_VERSION),
             tool: tool.to_string(),
-            image: resolve_image_for_run(
-                catalog
-                    .get(tool)
-                    .ok_or_else(|| anyhow!("tool {tool} missing from images.yaml"))?,
-                platform,
-            )?,
+            tool_version: spec.version.clone(),
+            image: resolve_image_for_run(spec, platform)?,
             runner: platform.runner,
             inputs: vec![args.r1.clone()],
             out_dir: out_dir.clone(),
@@ -506,15 +515,15 @@ pub fn bench_fastq_umi<S: ::std::hash::BuildHasher>(
         fs::create_dir_all(&out_dir).context("create tool output dir")?;
         let plan = plan_umi(tool, &args.r1, r2, &out_dir)?;
         let plan_json = StagePlanJson::from_plan(&plan);
+        let spec = catalog
+            .get(tool)
+            .ok_or_else(|| anyhow!("tool {tool} missing from images.yaml"))?;
         let exec_plan = StagePlan {
             stage_id: "fastq.umi".to_string(),
+            stage_version: stage_version_i32(bijux_stages_fastq::fastq::umi::STAGE_VERSION),
             tool: tool.to_string(),
-            image: resolve_image_for_run(
-                catalog
-                    .get(tool)
-                    .ok_or_else(|| anyhow!("tool {tool} missing from images.yaml"))?,
-                platform,
-            )?,
+            tool_version: spec.version.clone(),
+            image: resolve_image_for_run(spec, platform)?,
             runner: platform.runner,
             inputs: vec![args.r1.clone(), r2.clone()],
             out_dir: out_dir.clone(),
@@ -581,15 +590,15 @@ pub fn bench_fastq_correct<S: ::std::hash::BuildHasher>(
         fs::create_dir_all(&out_dir).context("create tool output dir")?;
         let plan = plan_correct(tool, &args.r1, r2, &out_dir)?;
         let plan_json = StagePlanJson::from_plan(&plan);
+        let spec = catalog
+            .get(tool)
+            .ok_or_else(|| anyhow!("tool {tool} missing from images.yaml"))?;
         let exec_plan = StagePlan {
             stage_id: "fastq.correct".to_string(),
+            stage_version: stage_version_i32(bijux_stages_fastq::fastq::correct::STAGE_VERSION),
             tool: tool.to_string(),
-            image: resolve_image_for_run(
-                catalog
-                    .get(tool)
-                    .ok_or_else(|| anyhow!("tool {tool} missing from images.yaml"))?,
-                platform,
-            )?,
+            tool_version: spec.version.clone(),
+            image: resolve_image_for_run(spec, platform)?,
             runner: platform.runner,
             inputs: vec![args.r1.clone(), r2.clone()],
             out_dir: out_dir.clone(),
@@ -663,15 +672,15 @@ pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
             )?;
             aux_images.insert((*aux_tool).to_string(), image);
         }
+        let spec = catalog
+            .get(tool)
+            .ok_or_else(|| anyhow!("tool {tool} missing from images.yaml"))?;
         let exec_plan = StagePlan {
             stage_id: "fastq.qc_post".to_string(),
+            stage_version: stage_version_i32(bijux_stages_fastq::fastq::qc_post::STAGE_VERSION),
             tool: tool.to_string(),
-            image: resolve_image_for_run(
-                catalog
-                    .get(tool)
-                    .ok_or_else(|| anyhow!("tool {tool} missing from images.yaml"))?,
-                platform,
-            )?,
+            tool_version: spec.version.clone(),
+            image: resolve_image_for_run(spec, platform)?,
             runner: platform.runner,
             inputs: vec![args.r1.clone()],
             out_dir: out_dir.clone(),
@@ -780,7 +789,13 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         }
         let exec_plan = StagePlan {
             stage_id: planned.stage.0.clone(),
+            stage_version: stage_version_i32(planned.stage_version),
             tool: tool.clone(),
+            tool_version: catalog
+                .get(&tool)
+                .ok_or_else(|| anyhow!("tool {tool} missing from images.yaml"))?
+                .version
+                .clone(),
             image,
             runner: platform.runner,
             inputs: planned.inputs.clone(),

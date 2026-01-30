@@ -231,6 +231,8 @@ dependencies = [
  "assert_cmd",
  "bijux-core",
  "bijux-environment",
+ "bijux-stages-fastq",
+ "chrono",
  "serde",
  "serde_json",
  "sha2",

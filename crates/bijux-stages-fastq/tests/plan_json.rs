@@ -168,3 +168,20 @@ fn qc_post_plan_json_is_emitted_and_stable() -> Result<()> {
     assert_eq!(rendered.trim(), snapshot.trim());
     Ok(())
 }
+
+#[test]
+fn stats_neutral_plan_json_is_emitted_and_stable() -> Result<()> {
+    let plan = bijux_stages_fastq::fastq::stats_neutral::plan_stats_neutral(
+        "seqkit",
+        std::path::Path::new("reads.fastq.gz"),
+        std::path::Path::new("out"),
+    )?;
+    let plan_json = bijux_stages_fastq::StagePlanJson::from_plan(&plan);
+    let rendered = serde_json::to_string_pretty(&plan_json)?;
+    let manifest_dir = std::env::var("CARGO_MANIFEST_DIR")?;
+    let snapshot_path =
+        std::path::Path::new(&manifest_dir).join("tests/snapshots/fastq_stats_neutral_plan.json");
+    let snapshot = fs::read_to_string(&snapshot_path)?;
+    assert_eq!(rendered.trim(), snapshot.trim());
+    Ok(())
+}

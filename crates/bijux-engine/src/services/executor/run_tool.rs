@@ -142,6 +142,14 @@ fn build_tool_command(tool: &str, input_path: &str, out_dir: &Path) -> Result<To
             args.push(format!("/data/output/{out_name}"));
             Some(out_dir.join(out_name))
         }
+        "kraken2" | "centrifuge" | "metaphlan" | "kaiju" | "fastq_screen" => {
+            let out_name = "screen_report.tsv";
+            args.extend(
+                [tool, "--report", &format!("/data/output/{out_name}")].map(str::to_string),
+            );
+            args.push(input_path.to_string());
+            Some(out_dir.join(out_name))
+        }
         _ => return Err(anyhow!("unsupported tool: {tool}")),
     };
     Ok(ToolCommand { args, output })

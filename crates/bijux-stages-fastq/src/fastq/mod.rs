@@ -4,6 +4,7 @@ pub mod merge;
 pub mod preprocess;
 pub mod qc_post;
 pub mod screen;
+pub mod stats_neutral;
 pub mod trim;
 pub mod umi;
 pub mod validate_pre;
@@ -45,6 +46,10 @@ pub fn registry() -> Vec<StageInfo> {
         StageInfo {
             id: screen::STAGE_ID,
             version: screen::STAGE_VERSION,
+        },
+        StageInfo {
+            id: stats_neutral::STAGE_ID,
+            version: stats_neutral::STAGE_VERSION,
         },
         StageInfo {
             id: preprocess::STAGE_ID,

@@ -13,6 +13,7 @@ pub mod events;
 pub mod input_assessment;
 pub mod measure;
 pub mod metrics;
+pub mod observability;
 pub mod run_index;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -26,6 +27,10 @@ pub struct ToolId(pub String);
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct RunId(pub String);
+
+pub use observability::{
+    canonicalize_json_value, StageObservabilityContextV1, StageObservabilityContractV1,
+};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]

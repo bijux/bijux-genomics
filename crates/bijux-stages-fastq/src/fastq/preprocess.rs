@@ -16,6 +16,7 @@ pub struct PreprocessPlan {
 #[derive(Debug, Clone)]
 pub struct StagePlan {
     pub stage: StageId,
+    pub stage_version: StageVersion,
     pub tool: ToolId,
     pub plan: StagePlanJson,
     pub inputs: Vec<std::path::PathBuf>,
@@ -64,7 +65,7 @@ where
     let mut plans = Vec::new();
     for (stage, tool) in stages.iter().zip(tools.iter()) {
         let out_dir = out_dir_for_stage(stage, tool, &current_r1, current_r2.as_deref())?;
-        let (plan, inputs, outputs, next_r1, next_r2) = match stage.as_str() {
+        let (plan, inputs, outputs, next_r1, next_r2, stage_version) = match stage.as_str() {
             "fastq.trim" => {
                 let plan = crate::fastq::trim::plan(tool, &current_r1, &out_dir)?;
                 let outputs = vec![plan.output.clone()];
@@ -74,6 +75,7 @@ where
                     outputs.clone(),
                     outputs[0].clone(),
                     None,
+                    crate::fastq::trim::STAGE_VERSION,
                 )
             }
             "fastq.filter" => {
@@ -85,6 +87,7 @@ where
                     outputs.clone(),
                     outputs[0].clone(),
                     None,
+                    crate::fastq::filter::STAGE_VERSION,
                 )
             }
             "fastq.validate_pre" => {
@@ -95,6 +98,7 @@ where
                     Vec::new(),
                     current_r1.clone(),
                     current_r2.clone(),
+                    crate::fastq::validate_pre::STAGE_VERSION,
                 )
             }
             "fastq.merge" => {
@@ -109,6 +113,7 @@ where
                     outputs.clone(),
                     outputs[0].clone(),
                     None,
+                    crate::fastq::merge::STAGE_VERSION,
                 )
             }
             "fastq.correct" => {
@@ -123,6 +128,7 @@ where
                     outputs.clone(),
                     outputs[0].clone(),
                     Some(outputs[1].clone()),
+                    crate::fastq::correct::STAGE_VERSION,
                 )
             }
             "fastq.umi" => {
@@ -137,6 +143,7 @@ where
                     outputs.clone(),
                     outputs[0].clone(),
                     Some(outputs[1].clone()),
+                    crate::fastq::umi::STAGE_VERSION,
                 )
             }
             "fastq.qc_post" => {
@@ -147,6 +154,7 @@ where
                     Vec::new(),
                     current_r1.clone(),
                     current_r2.clone(),
+                    crate::fastq::qc_post::STAGE_VERSION,
                 )
             }
             "fastq.screen" => {
@@ -158,37 +166,26 @@ where
                     outputs.clone(),
                     current_r1.clone(),
                     current_r2.clone(),
+                    crate::fastq::screen::STAGE_VERSION,
                 )
             }
             "fastq.stats_neutral" => {
-                let plan = StagePlanJson {
-                    stage_id: "fastq.stats_neutral".to_string(),
-                    stage_version: "1".to_string(),
-                    io: crate::plan::StageIO {
-                        inputs: vec![crate::plan::ArtifactRef {
-                            name: "reads_r1".to_string(),
-                            path: current_r1.clone(),
-                        }],
-                        outputs: Vec::new(),
-                    },
-                    parameters: serde_json::json!({
-                        "tool": tool,
-                        "input": current_r1,
-                        "out_dir": out_dir,
-                    }),
-                };
+                let plan =
+                    crate::fastq::stats_neutral::plan_stats_neutral(tool, &current_r1, &out_dir)?;
                 (
-                    plan,
+                    StagePlanJson::from_plan(&plan),
                     vec![current_r1.clone()],
                     Vec::new(),
                     current_r1.clone(),
                     current_r2.clone(),
+                    crate::fastq::stats_neutral::STAGE_VERSION,
                 )
             }
             _ => return Err(anyhow::anyhow!("unsupported stage {stage}")),
         };
         plans.push(StagePlan {
             stage: StageId(stage.clone()),
+            stage_version,
             tool: ToolId(tool.clone()),
             plan,
             inputs,

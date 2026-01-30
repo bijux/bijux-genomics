@@ -80,7 +80,9 @@ static ENV_LOCK: Mutex<()> = Mutex::new(());
 
 #[test]
 fn execute_plan_success_path_uses_public_api() -> Result<()> {
-    let _guard = ENV_LOCK.lock().unwrap();
+    let _guard = ENV_LOCK
+        .lock()
+        .map_err(|_| anyhow::anyhow!("env lock poisoned"))?;
     let (dir, r1, _r2) = temp_inputs()?;
     let bin_dir = write_fake_docker(dir.path())?;
     let log_path = dir.path().join("docker.log");
@@ -93,7 +95,9 @@ fn execute_plan_success_path_uses_public_api() -> Result<()> {
     let output_path = out_dir.join("fastp.fastq.gz");
     let exec_plan = StagePlan {
         stage_id: "fastq.trim".to_string(),
+        stage_version: 1,
         tool: "fastp".to_string(),
+        tool_version: "1.0.0".to_string(),
         image: test_image(),
         runner: RunnerKind::Docker,
         inputs: vec![r1],
@@ -114,7 +118,9 @@ fn execute_plan_success_path_uses_public_api() -> Result<()> {
 
 #[test]
 fn execute_plan_propagates_tool_failure() -> Result<()> {
-    let _guard = ENV_LOCK.lock().unwrap();
+    let _guard = ENV_LOCK
+        .lock()
+        .map_err(|_| anyhow::anyhow!("env lock poisoned"))?;
     let (dir, r1, _r2) = temp_inputs()?;
     let bin_dir = write_fake_docker(dir.path())?;
     let original_path = std::env::var("PATH").unwrap_or_default();
@@ -125,7 +131,9 @@ fn execute_plan_propagates_tool_failure() -> Result<()> {
     fs::create_dir_all(&out_dir)?;
     let exec_plan = StagePlan {
         stage_id: "fastq.trim".to_string(),
+        stage_version: 1,
         tool: "fastp".to_string(),
+        tool_version: "1.0.0".to_string(),
         image: test_image(),
         runner: RunnerKind::Docker,
         inputs: vec![r1],
@@ -144,7 +152,9 @@ fn execute_plan_propagates_tool_failure() -> Result<()> {
 
 #[test]
 fn execute_plan_hits_validate_path() -> Result<()> {
-    let _guard = ENV_LOCK.lock().unwrap();
+    let _guard = ENV_LOCK
+        .lock()
+        .map_err(|_| anyhow::anyhow!("env lock poisoned"))?;
     let (dir, r1, _r2) = temp_inputs()?;
     let bin_dir = write_fake_docker(dir.path())?;
     let log_path = dir.path().join("docker.log");
@@ -156,7 +166,9 @@ fn execute_plan_hits_validate_path() -> Result<()> {
     fs::create_dir_all(&out_dir)?;
     let exec_plan = StagePlan {
         stage_id: "fastq.validate_pre".to_string(),
+        stage_version: 1,
         tool: "fastqvalidator_official".to_string(),
+        tool_version: "1.0.0".to_string(),
         image: test_image(),
         runner: RunnerKind::Docker,
         inputs: vec![r1],
@@ -178,7 +190,9 @@ fn execute_plan_hits_validate_path() -> Result<()> {
 
 #[test]
 fn execute_plan_hits_merge_path() -> Result<()> {
-    let _guard = ENV_LOCK.lock().unwrap();
+    let _guard = ENV_LOCK
+        .lock()
+        .map_err(|_| anyhow::anyhow!("env lock poisoned"))?;
     let (dir, r1, r2) = temp_inputs()?;
     let bin_dir = write_fake_docker(dir.path())?;
     let log_path = dir.path().join("docker.log");
@@ -190,7 +204,9 @@ fn execute_plan_hits_merge_path() -> Result<()> {
     fs::create_dir_all(&out_dir)?;
     let exec_plan = StagePlan {
         stage_id: "fastq.merge".to_string(),
+        stage_version: 1,
         tool: "pear".to_string(),
+        tool_version: "1.0.0".to_string(),
         image: test_image(),
         runner: RunnerKind::Docker,
         inputs: vec![r1, r2],
