@@ -43,6 +43,7 @@ pub struct StageReportV1 {
     pub errors: Vec<String>,
     pub outputs: Vec<String>,
     pub subreports: Vec<String>,
+    pub log_paths: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -71,6 +72,14 @@ pub struct TrimReportV1 {
     pub bases_out: u64,
     pub bases_trimmed: u64,
     pub per_adapter_counts: std::collections::BTreeMap<String, u64>,
+    #[serde(default)]
+    pub adapter_preset: Option<String>,
+    #[serde(default)]
+    pub adapter_bank_id: Option<String>,
+    #[serde(default)]
+    pub adapter_bank_hash: Option<String>,
+    #[serde(default)]
+    pub adapter_overrides: Option<serde_json::Value>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -83,6 +92,19 @@ pub struct ValidateReportV1 {
     pub reads_valid: u64,
     pub reads_invalid: u64,
     pub integrity_ok: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct MergeReportV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub tool_id: String,
+    pub reads_r1: u64,
+    pub reads_r2: u64,
+    pub reads_merged: u64,
+    pub reads_unmerged: u64,
+    pub merge_rate: f64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -134,4 +156,36 @@ pub fn canonicalize_json_value(value: &serde_json::Value) -> serde_json::Value {
         }
         _ => value.clone(),
     }
+}
+
+#[must_use]
+pub fn parameters_json_canonicalization(value: &serde_json::Value) -> serde_json::Value {
+    fn normalize_numbers(value: &serde_json::Value) -> serde_json::Value {
+        match value {
+            serde_json::Value::Number(num) => {
+                if let Some(f) = num.as_f64() {
+                    serde_json::Number::from_f64(f).map_or_else(
+                        || serde_json::Value::Number(num.clone()),
+                        serde_json::Value::Number,
+                    )
+                } else {
+                    serde_json::Value::Number(num.clone())
+                }
+            }
+            serde_json::Value::Array(items) => {
+                serde_json::Value::Array(items.iter().map(normalize_numbers).collect())
+            }
+            serde_json::Value::Object(map) => {
+                let mut ordered = serde_json::Map::new();
+                for (key, val) in map {
+                    ordered.insert(key.clone(), normalize_numbers(val));
+                }
+                serde_json::Value::Object(ordered)
+            }
+            _ => value.clone(),
+        }
+    }
+
+    let canonical = canonicalize_json_value(value);
+    normalize_numbers(&canonical)
 }

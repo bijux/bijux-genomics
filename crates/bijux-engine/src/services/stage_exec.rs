@@ -15,14 +15,14 @@ use crate::api::{
 };
 use crate::services::run_artifacts::{
     default_trace_ids, params_hash, run_artifacts_dir_for_out, write_facts_jsonl,
-    write_metrics_envelope, write_observability_manifest, write_plan_artifacts,
-    write_retention_report_v1, write_stage_event_jsonl, write_stage_metrics_json,
-    write_stage_report_v1, write_telemetry_event, write_tool_invocation_json, write_trim_report_v1,
-    write_validate_report_v1,
+    write_merge_report_v1, write_metrics_envelope, write_observability_manifest,
+    write_plan_artifacts, write_retention_report_v1, write_stage_event_jsonl,
+    write_stage_metrics_json, write_stage_report_v1, write_telemetry_event,
+    write_tool_invocation_json, write_trim_report_v1, write_validate_report_v1,
 };
 use bijux_core::run_index::{insert_stage_row, StageIndexRow};
 use bijux_core::{
-    canonicalize_json_value, AdapterBankProvenanceV1, FactsRowV1, FastqCorrectMetricsV1,
+    parameters_json_canonicalization, AdapterBankProvenanceV1, FactsRowV1, FastqCorrectMetricsV1,
     FastqDeltaMetricsV1, FastqFilterMetricsV1, FastqMergeMetricsV1, FastqPreprocessMetricsV1,
     FastqTrimMetricsV1, FastqUmiMetricsV1, FastqValidateMetricsV1, RetentionReportMetricV1,
     StageMetricsV1, StageObservabilityContextV1, StagePlan, ToolInvocationV1,
@@ -395,7 +395,7 @@ pub fn execute_stage_plan(plan: &StagePlan, runner: RunnerKind) -> Result<StageR
         |_| run_artifacts_dir.join("telemetry").join("events.jsonl"),
         PathBuf::from,
     );
-    let canonical_params = canonicalize_json_value(&plan.params);
+    let canonical_params = parameters_json_canonicalization(&plan.params);
     let params_hash = params_hash(&canonical_params)?;
     let input_paths: Vec<PathBuf> = plan
         .io
@@ -633,6 +633,8 @@ pub fn execute_stage_plan(plan: &StagePlan, runner: RunnerKind) -> Result<StageR
         tool_id: plan.tool_id.0.clone(),
         tool_version: plan.tool_version.clone(),
         execution: execution_metrics,
+        failure_class: None,
+        failure_reason: None,
         metrics: stage_metrics.clone(),
     };
     let stage_metrics_path = write_stage_metrics_json(&run_artifacts_dir, &stage_metrics_payload)?;
@@ -640,6 +642,20 @@ pub fn execute_stage_plan(plan: &StagePlan, runner: RunnerKind) -> Result<StageR
     if plan.stage_id.0 == "fastq.trim" {
         let input = stats_or_zero(input_paths.first().map(PathBuf::as_path))?;
         let output = stats_or_zero(outputs.first().map(PathBuf::as_path))?;
+        let adapter_bank = canonical_params.get("adapter_bank");
+        let adapter_preset = adapter_bank
+            .and_then(|value| value.get("preset"))
+            .and_then(|value| value.as_str())
+            .map(str::to_string);
+        let adapter_bank_id = adapter_bank
+            .and_then(|value| value.get("bank_id"))
+            .and_then(|value| value.as_str())
+            .map(str::to_string);
+        let adapter_bank_hash = adapter_bank
+            .and_then(|value| value.get("bank_hash"))
+            .and_then(|value| value.as_str())
+            .map(str::to_string);
+        let adapter_overrides = canonical_params.get("adapter_overrides").cloned();
         let report_path = write_trim_report_v1(
             &run_artifacts_dir,
             &plan.stage_id.0,
@@ -648,6 +664,10 @@ pub fn execute_stage_plan(plan: &StagePlan, runner: RunnerKind) -> Result<StageR
             output.reads,
             input.bases,
             output.bases,
+            adapter_preset,
+            adapter_bank_id,
+            adapter_bank_hash,
+            adapter_overrides,
         )?;
         subreports.push(report_path);
     }
@@ -663,6 +683,31 @@ pub fn execute_stage_plan(plan: &StagePlan, runner: RunnerKind) -> Result<StageR
         )?;
         subreports.push(report_path);
     }
+    if plan.stage_id.0 == "fastq.merge" {
+        let r1 = stats_or_zero(input_paths.first().map(PathBuf::as_path))?;
+        let r2 = stats_or_zero(input_paths.get(1).map(PathBuf::as_path))?;
+        let merged = stats_or_zero(outputs.first().map(PathBuf::as_path))?;
+        let unmerged_r1 = stats_or_zero(outputs.get(1).map(PathBuf::as_path))?;
+        let unmerged_r2 = stats_or_zero(outputs.get(2).map(PathBuf::as_path))?;
+        let reads_unmerged = unmerged_r1.reads.min(unmerged_r2.reads);
+        let min_reads = r1.reads.min(r2.reads);
+        let merge_rate = if min_reads > 0 {
+            f64_from_u64(merged.reads) / f64_from_u64(min_reads)
+        } else {
+            0.0
+        };
+        let report_path = write_merge_report_v1(
+            &run_artifacts_dir,
+            &plan.stage_id.0,
+            &plan.tool_id.0,
+            r1.reads,
+            r2.reads,
+            merged.reads,
+            reads_unmerged,
+            merge_rate,
+        )?;
+        subreports.push(report_path);
+    }
     let stage_report_path = write_stage_report_v1(
         &run_artifacts_dir,
         &plan.stage_id.0,
@@ -671,6 +716,7 @@ pub fn execute_stage_plan(plan: &StagePlan, runner: RunnerKind) -> Result<StageR
         &plan.tool_version,
         &outputs,
         &subreports,
+        &[],
     )?;
     let retention_report_path = if is_retention_stage(&plan.stage_id.0) {
         retention_counts_for_plan(&plan.stage_id.0, &input_paths, &outputs)?.map(|counts| {
@@ -899,13 +945,8 @@ fn hash_outputs(outputs: &[PathBuf]) -> Result<Vec<String>> {
 }
 
 fn is_retention_stage(stage_id: &str) -> bool {
-    matches!(
-        stage_id,
-        "fastq.trim"
-            | "fastq.filter"
-            | "fastq.merge"
-            | "fastq.correct"
-            | "fastq.umi"
-            | "fastq.preprocess"
-    )
+    bijux_stages_fastq::fastq::registry()
+        .iter()
+        .find(|stage| stage.id == stage_id)
+        .is_some_and(|stage| stage.affects_read_counts)
 }

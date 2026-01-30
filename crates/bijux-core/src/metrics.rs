@@ -35,6 +35,10 @@ pub struct StageMetricsV1<T> {
     pub tool_id: String,
     pub tool_version: String,
     pub execution: ExecutionMetrics,
+    #[serde(default)]
+    pub failure_class: Option<String>,
+    #[serde(default)]
+    pub failure_reason: Option<String>,
     pub metrics: T,
 }
 

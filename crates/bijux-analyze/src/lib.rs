@@ -1386,6 +1386,20 @@ fn ensure_inserted_at_column(conn: &Connection, table: &str) -> Result<()> {
     Ok(())
 }
 
+fn ensure_record_id_column(conn: &Connection, table: &str) -> Result<()> {
+    let mut stmt = conn.prepare(&format!("PRAGMA table_info({table})"))?;
+    let mut rows = stmt.query([])?;
+    while let Some(row) = rows.next()? {
+        let name: String = row.get(1)?;
+        if name == "record_id" {
+            return Ok(());
+        }
+    }
+    let sql = format!("ALTER TABLE {table} ADD COLUMN record_id INTEGER NOT NULL DEFAULT 0");
+    conn.execute(&sql, [])?;
+    Ok(())
+}
+
 fn ensure_params_hash_column(conn: &Connection, table: &str) -> Result<()> {
     let mut stmt = conn.prepare(&format!("PRAGMA table_info({table})"))?;
     let mut rows = stmt.query([])?;
@@ -1410,8 +1424,15 @@ fn ensure_identity_index(conn: &Connection, table: &str) -> Result<()> {
     Ok(())
 }
 
+fn ensure_image_qa_identity_index(conn: &Connection) -> Result<()> {
+    let sql = "CREATE UNIQUE INDEX IF NOT EXISTS image_qa_v1_identity_idx \
+               ON image_qa_v1 (tool, stage, tool_version, image_digest, runner, platform, input_hash)";
+    conn.execute(sql, [])?;
+    Ok(())
+}
+
 fn params_hash(parameters: &serde_json::Value) -> Result<String> {
-    let canonical = bijux_core::canonicalize_json_value(parameters);
+    let canonical = bijux_core::parameters_json_canonicalization(parameters);
     let bytes = serde_json::to_vec(&canonical)?;
     let mut hasher = Sha256::new();
     hasher.update(bytes);
@@ -1428,6 +1449,7 @@ pub fn insert_fastq_trim_v1(
 ) -> Result<()> {
     conn.execute(
         "CREATE TABLE IF NOT EXISTS bench_fastq_trim_v1 (\
+         record_id INTEGER PRIMARY KEY AUTOINCREMENT,\
          tool TEXT NOT NULL,\
          tool_version TEXT NOT NULL,\
          image_digest TEXT NOT NULL,\
@@ -1446,6 +1468,7 @@ pub fn insert_fastq_trim_v1(
         [],
     )?;
     ensure_inserted_at_column(conn, "bench_fastq_trim_v1")?;
+    ensure_record_id_column(conn, "bench_fastq_trim_v1")?;
     ensure_params_hash_column(conn, "bench_fastq_trim_v1")?;
     ensure_identity_index(conn, "bench_fastq_trim_v1")?;
 
@@ -1487,6 +1510,7 @@ pub fn insert_fastq_trim_v2(
 ) -> Result<()> {
     conn.execute(
         "CREATE TABLE IF NOT EXISTS bench_fastq_trim_v2 (\
+         record_id INTEGER PRIMARY KEY AUTOINCREMENT,\
          tool TEXT NOT NULL,\
          tool_version TEXT NOT NULL,\
          image_digest TEXT NOT NULL,\
@@ -1505,6 +1529,7 @@ pub fn insert_fastq_trim_v2(
         [],
     )?;
     ensure_inserted_at_column(conn, "bench_fastq_trim_v2")?;
+    ensure_record_id_column(conn, "bench_fastq_trim_v2")?;
     ensure_params_hash_column(conn, "bench_fastq_trim_v2")?;
     ensure_identity_index(conn, "bench_fastq_trim_v2")?;
 
@@ -1558,7 +1583,7 @@ pub fn fetch_fastq_trim_v1(
          FROM bench_fastq_trim_v1 \
          WHERE tool = ?1 AND tool_version = ?2 AND image_digest = ?3\
          AND runner = ?4 AND platform = ?5 AND input_hash = ?6 AND params_hash = ?7\
-         ORDER BY inserted_at DESC, rowid DESC LIMIT 1",
+         ORDER BY record_id DESC, inserted_at DESC LIMIT 1",
     )?;
     let row = stmt.query_row(
         params![
@@ -1632,7 +1657,7 @@ pub fn fetch_fastq_trim_v2(
          FROM bench_fastq_trim_v2 \
          WHERE tool = ?1 AND tool_version = ?2 AND image_digest = ?3\
          AND runner = ?4 AND platform = ?5 AND input_hash = ?6 AND params_hash = ?7\
-         ORDER BY inserted_at DESC, rowid DESC LIMIT 1",
+         ORDER BY record_id DESC, inserted_at DESC LIMIT 1",
     )?;
     let row = stmt.query_row(
         params![
@@ -1695,6 +1720,7 @@ pub fn insert_fastq_validate_v1(
 ) -> Result<()> {
     conn.execute(
         "CREATE TABLE IF NOT EXISTS bench_fastq_validate_v1 (\
+         record_id INTEGER PRIMARY KEY AUTOINCREMENT,\
          tool TEXT NOT NULL,\
          tool_version TEXT NOT NULL,\
          image_digest TEXT NOT NULL,\
@@ -1713,6 +1739,7 @@ pub fn insert_fastq_validate_v1(
         [],
     )?;
     ensure_inserted_at_column(conn, "bench_fastq_validate_v1")?;
+    ensure_record_id_column(conn, "bench_fastq_validate_v1")?;
     ensure_params_hash_column(conn, "bench_fastq_validate_v1")?;
     ensure_identity_index(conn, "bench_fastq_validate_v1")?;
 
@@ -1765,7 +1792,7 @@ pub fn fetch_fastq_validate_v1(
          FROM bench_fastq_validate_v1 \
          WHERE tool = ?1 AND tool_version = ?2 AND image_digest = ?3\
          AND runner = ?4 AND platform = ?5 AND input_hash = ?6 AND params_hash = ?7\
-         ORDER BY inserted_at DESC, rowid DESC LIMIT 1",
+         ORDER BY record_id DESC, inserted_at DESC LIMIT 1",
     )?;
     let row = stmt.query_row(
         params![
@@ -1828,6 +1855,7 @@ pub fn insert_fastq_filter_v1(
 ) -> Result<()> {
     conn.execute(
         "CREATE TABLE IF NOT EXISTS bench_fastq_filter_v1 (\
+         record_id INTEGER PRIMARY KEY AUTOINCREMENT,\
          tool TEXT NOT NULL,\
          tool_version TEXT NOT NULL,\
          image_digest TEXT NOT NULL,\
@@ -1846,6 +1874,7 @@ pub fn insert_fastq_filter_v1(
         [],
     )?;
     ensure_inserted_at_column(conn, "bench_fastq_filter_v1")?;
+    ensure_record_id_column(conn, "bench_fastq_filter_v1")?;
     ensure_params_hash_column(conn, "bench_fastq_filter_v1")?;
     ensure_identity_index(conn, "bench_fastq_filter_v1")?;
 
@@ -1887,6 +1916,7 @@ pub fn insert_fastq_filter_v2(
 ) -> Result<()> {
     conn.execute(
         "CREATE TABLE IF NOT EXISTS bench_fastq_filter_v2 (\
+         record_id INTEGER PRIMARY KEY AUTOINCREMENT,\
          tool TEXT NOT NULL,\
          tool_version TEXT NOT NULL,\
          image_digest TEXT NOT NULL,\
@@ -1905,6 +1935,7 @@ pub fn insert_fastq_filter_v2(
         [],
     )?;
     ensure_inserted_at_column(conn, "bench_fastq_filter_v2")?;
+    ensure_record_id_column(conn, "bench_fastq_filter_v2")?;
     ensure_params_hash_column(conn, "bench_fastq_filter_v2")?;
     ensure_identity_index(conn, "bench_fastq_filter_v2")?;
 
@@ -1957,7 +1988,7 @@ pub fn fetch_fastq_filter_v1(
          FROM bench_fastq_filter_v1 \
          WHERE tool = ?1 AND tool_version = ?2 AND image_digest = ?3\
          AND runner = ?4 AND platform = ?5 AND input_hash = ?6 AND params_hash = ?7\
-         ORDER BY inserted_at DESC, rowid DESC LIMIT 1",
+         ORDER BY record_id DESC, inserted_at DESC LIMIT 1",
     )?;
     let row = stmt.query_row(
         params![
@@ -2031,7 +2062,7 @@ pub fn fetch_fastq_filter_v2(
          FROM bench_fastq_filter_v2 \
          WHERE tool = ?1 AND tool_version = ?2 AND image_digest = ?3\
          AND runner = ?4 AND platform = ?5 AND input_hash = ?6 AND params_hash = ?7\
-         ORDER BY inserted_at DESC, rowid DESC LIMIT 1",
+         ORDER BY record_id DESC, inserted_at DESC LIMIT 1",
     )?;
     let row = stmt.query_row(
         params![
@@ -2094,6 +2125,7 @@ pub fn insert_fastq_merge_v1(
 ) -> Result<()> {
     conn.execute(
         "CREATE TABLE IF NOT EXISTS bench_fastq_merge_v1 (\
+         record_id INTEGER PRIMARY KEY AUTOINCREMENT,\
          tool TEXT NOT NULL,\
          tool_version TEXT NOT NULL,\
          image_digest TEXT NOT NULL,\
@@ -2112,6 +2144,7 @@ pub fn insert_fastq_merge_v1(
         [],
     )?;
     ensure_inserted_at_column(conn, "bench_fastq_merge_v1")?;
+    ensure_record_id_column(conn, "bench_fastq_merge_v1")?;
     ensure_params_hash_column(conn, "bench_fastq_merge_v1")?;
     ensure_identity_index(conn, "bench_fastq_merge_v1")?;
 
@@ -2164,7 +2197,7 @@ pub fn fetch_fastq_merge_v1(
          FROM bench_fastq_merge_v1 \
          WHERE tool = ?1 AND tool_version = ?2 AND image_digest = ?3\
          AND runner = ?4 AND platform = ?5 AND input_hash = ?6 AND params_hash = ?7\
-         ORDER BY inserted_at DESC, rowid DESC LIMIT 1",
+         ORDER BY record_id DESC, inserted_at DESC LIMIT 1",
     )?;
     let row = stmt.query_row(
         params![
@@ -2227,6 +2260,7 @@ pub fn insert_fastq_correct_v1(
 ) -> Result<()> {
     conn.execute(
         "CREATE TABLE IF NOT EXISTS bench_fastq_correct_v1 (\
+         record_id INTEGER PRIMARY KEY AUTOINCREMENT,\
          tool TEXT NOT NULL,\
          tool_version TEXT NOT NULL,\
          image_digest TEXT NOT NULL,\
@@ -2245,6 +2279,7 @@ pub fn insert_fastq_correct_v1(
         [],
     )?;
     ensure_inserted_at_column(conn, "bench_fastq_correct_v1")?;
+    ensure_record_id_column(conn, "bench_fastq_correct_v1")?;
     ensure_params_hash_column(conn, "bench_fastq_correct_v1")?;
     ensure_identity_index(conn, "bench_fastq_correct_v1")?;
 
@@ -2297,7 +2332,7 @@ pub fn fetch_fastq_correct_v1(
          FROM bench_fastq_correct_v1 \
          WHERE tool = ?1 AND tool_version = ?2 AND image_digest = ?3\
          AND runner = ?4 AND platform = ?5 AND input_hash = ?6 AND params_hash = ?7\
-         ORDER BY inserted_at DESC, rowid DESC LIMIT 1",
+         ORDER BY record_id DESC, inserted_at DESC LIMIT 1",
     )?;
     let row = stmt.query_row(
         params![
@@ -2360,6 +2395,7 @@ pub fn insert_fastq_qc_post_v1(
 ) -> Result<()> {
     conn.execute(
         "CREATE TABLE IF NOT EXISTS bench_fastq_qc_post_v1 (\
+         record_id INTEGER PRIMARY KEY AUTOINCREMENT,\
          tool TEXT NOT NULL,\
          tool_version TEXT NOT NULL,\
          image_digest TEXT NOT NULL,\
@@ -2378,6 +2414,7 @@ pub fn insert_fastq_qc_post_v1(
         [],
     )?;
     ensure_inserted_at_column(conn, "bench_fastq_qc_post_v1")?;
+    ensure_record_id_column(conn, "bench_fastq_qc_post_v1")?;
     ensure_params_hash_column(conn, "bench_fastq_qc_post_v1")?;
     ensure_identity_index(conn, "bench_fastq_qc_post_v1")?;
 
@@ -2430,7 +2467,7 @@ pub fn fetch_fastq_qc_post_v1(
          FROM bench_fastq_qc_post_v1 \
          WHERE tool = ?1 AND tool_version = ?2 AND image_digest = ?3\
          AND runner = ?4 AND platform = ?5 AND input_hash = ?6 AND params_hash = ?7\
-         ORDER BY inserted_at DESC, rowid DESC LIMIT 1",
+         ORDER BY record_id DESC, inserted_at DESC LIMIT 1",
     )?;
     let row = stmt.query_row(
         params![
@@ -2493,6 +2530,7 @@ pub fn insert_fastq_umi_v1(
 ) -> Result<()> {
     conn.execute(
         "CREATE TABLE IF NOT EXISTS bench_fastq_umi_v1 (\
+         record_id INTEGER PRIMARY KEY AUTOINCREMENT,\
          tool TEXT NOT NULL,\
          tool_version TEXT NOT NULL,\
          image_digest TEXT NOT NULL,\
@@ -2511,6 +2549,7 @@ pub fn insert_fastq_umi_v1(
         [],
     )?;
     ensure_inserted_at_column(conn, "bench_fastq_umi_v1")?;
+    ensure_record_id_column(conn, "bench_fastq_umi_v1")?;
     ensure_params_hash_column(conn, "bench_fastq_umi_v1")?;
     ensure_identity_index(conn, "bench_fastq_umi_v1")?;
 
@@ -2563,7 +2602,7 @@ pub fn fetch_fastq_umi_v1(
          FROM bench_fastq_umi_v1 \
          WHERE tool = ?1 AND tool_version = ?2 AND image_digest = ?3\
          AND runner = ?4 AND platform = ?5 AND input_hash = ?6 AND params_hash = ?7\
-         ORDER BY inserted_at DESC, rowid DESC LIMIT 1",
+         ORDER BY record_id DESC, inserted_at DESC LIMIT 1",
     )?;
     let row = stmt.query_row(
         params![
@@ -2626,6 +2665,7 @@ pub fn insert_fastq_screen_v1(
 ) -> Result<()> {
     conn.execute(
         "CREATE TABLE IF NOT EXISTS bench_fastq_screen_v1 (\
+         record_id INTEGER PRIMARY KEY AUTOINCREMENT,\
          tool TEXT NOT NULL,\
          tool_version TEXT NOT NULL,\
          image_digest TEXT NOT NULL,\
@@ -2644,6 +2684,7 @@ pub fn insert_fastq_screen_v1(
         [],
     )?;
     ensure_inserted_at_column(conn, "bench_fastq_screen_v1")?;
+    ensure_record_id_column(conn, "bench_fastq_screen_v1")?;
     ensure_params_hash_column(conn, "bench_fastq_screen_v1")?;
     ensure_identity_index(conn, "bench_fastq_screen_v1")?;
 
@@ -2696,7 +2737,7 @@ pub fn fetch_fastq_screen_v1(
          FROM bench_fastq_screen_v1 \
          WHERE tool = ?1 AND tool_version = ?2 AND image_digest = ?3\
          AND runner = ?4 AND platform = ?5 AND input_hash = ?6 AND params_hash = ?7\
-         ORDER BY inserted_at DESC, rowid DESC LIMIT 1",
+         ORDER BY record_id DESC, inserted_at DESC LIMIT 1",
     )?;
     let row = stmt.query_row(
         params![
@@ -2759,6 +2800,7 @@ pub fn insert_fastq_stats_v1(
 ) -> Result<()> {
     conn.execute(
         "CREATE TABLE IF NOT EXISTS bench_fastq_stats_v1 (\
+         record_id INTEGER PRIMARY KEY AUTOINCREMENT,\
          tool TEXT NOT NULL,\
          tool_version TEXT NOT NULL,\
          image_digest TEXT NOT NULL,\
@@ -2777,6 +2819,7 @@ pub fn insert_fastq_stats_v1(
         [],
     )?;
     ensure_inserted_at_column(conn, "bench_fastq_stats_v1")?;
+    ensure_record_id_column(conn, "bench_fastq_stats_v1")?;
     ensure_params_hash_column(conn, "bench_fastq_stats_v1")?;
     ensure_identity_index(conn, "bench_fastq_stats_v1")?;
 
@@ -2829,7 +2872,7 @@ pub fn fetch_fastq_stats_v1(
          FROM bench_fastq_stats_v1 \
          WHERE tool = ?1 AND tool_version = ?2 AND image_digest = ?3\
          AND runner = ?4 AND platform = ?5 AND input_hash = ?6 AND params_hash = ?7\
-         ORDER BY inserted_at DESC, rowid DESC LIMIT 1",
+         ORDER BY record_id DESC, inserted_at DESC LIMIT 1",
     )?;
     let row = stmt.query_row(
         params![
@@ -2889,6 +2932,7 @@ pub fn fetch_fastq_stats_v1(
 pub fn insert_image_qa_v1(conn: &Connection, record: &ImageQaRecord) -> Result<()> {
     conn.execute(
         "CREATE TABLE IF NOT EXISTS image_qa_v1 (\
+         record_id INTEGER PRIMARY KEY AUTOINCREMENT,\
          tool TEXT NOT NULL,\
          stage TEXT NOT NULL,\
          tool_version TEXT NOT NULL,\
@@ -2903,6 +2947,8 @@ pub fn insert_image_qa_v1(conn: &Connection, record: &ImageQaRecord) -> Result<(
          )",
         [],
     )?;
+    ensure_record_id_column(conn, "image_qa_v1")?;
+    ensure_image_qa_identity_index(conn)?;
 
     let outcome_json = serde_json::to_string(&record.outcome)?;
     conn.execute(
@@ -2934,6 +2980,7 @@ pub fn insert_image_qa_v1(conn: &Connection, record: &ImageQaRecord) -> Result<(
 pub fn ensure_image_qa_tables(conn: &Connection) -> Result<()> {
     conn.execute(
         "CREATE TABLE IF NOT EXISTS image_qa_v1 (\
+         record_id INTEGER PRIMARY KEY AUTOINCREMENT,\
          tool TEXT NOT NULL,\
          stage TEXT NOT NULL,\
          tool_version TEXT NOT NULL,\
@@ -2948,8 +2995,11 @@ pub fn ensure_image_qa_tables(conn: &Connection) -> Result<()> {
          )",
         [],
     )?;
+    ensure_record_id_column(conn, "image_qa_v1")?;
+    ensure_image_qa_identity_index(conn)?;
     conn.execute(
         "CREATE TABLE IF NOT EXISTS image_qa_inputs_v1 (\
+         record_id INTEGER PRIMARY KEY AUTOINCREMENT,\
          stage TEXT NOT NULL,\
          input_hash TEXT NOT NULL,\
          platform TEXT NOT NULL,\
@@ -2959,6 +3009,7 @@ pub fn ensure_image_qa_tables(conn: &Connection) -> Result<()> {
          )",
         [],
     )?;
+    ensure_record_id_column(conn, "image_qa_inputs_v1")?;
     Ok(())
 }
 
@@ -2975,6 +3026,7 @@ pub fn insert_image_qa_input_v1(
 ) -> Result<()> {
     conn.execute(
         "CREATE TABLE IF NOT EXISTS image_qa_inputs_v1 (\
+         record_id INTEGER PRIMARY KEY AUTOINCREMENT,\
          stage TEXT NOT NULL,\
          input_hash TEXT NOT NULL,\
          platform TEXT NOT NULL,\
@@ -2984,6 +3036,7 @@ pub fn insert_image_qa_input_v1(
          )",
         [],
     )?;
+    ensure_record_id_column(conn, "image_qa_inputs_v1")?;
     conn.execute(
         "INSERT OR IGNORE INTO image_qa_inputs_v1 (\
          stage, input_hash, platform, runner, schema_version\

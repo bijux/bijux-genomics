@@ -9,10 +9,10 @@ use crate::services::composer::paths::bench_tools_dir;
 use serde::Serialize;
 use uuid::Uuid;
 
-use bijux_core::observability::{TrimReportV1, ValidateReportV1};
+use bijux_core::observability::{MergeReportV1, TrimReportV1, ValidateReportV1};
 use bijux_core::{
-    canonicalize_json_value, EffectiveConfigV1, FactsRowV1, RetentionReportV1,
-    StageObservabilityContextV1, StageReportV1, TelemetryEventV1,
+    EffectiveConfigV1, FactsRowV1, RetentionReportV1, StageObservabilityContextV1, StageReportV1,
+    TelemetryEventV1,
 };
 
 #[derive(Debug)]
@@ -62,7 +62,8 @@ pub struct ObservabilityManifestV1 {
 }
 
 pub fn params_hash(params: &serde_json::Value) -> Result<String> {
-    let bytes = serde_json::to_vec(params).context("serialize params")?;
+    let canonical = bijux_core::parameters_json_canonicalization(params);
+    let bytes = serde_json::to_vec(&canonical).context("serialize params")?;
     let mut hasher = sha2::Sha256::new();
     hasher.update(bytes);
     Ok(format!("{:x}", hasher.finalize()))
@@ -300,7 +301,7 @@ pub fn write_metrics_envelope(
     metrics: &serde_json::Value,
     output_hashes: &[String],
 ) -> Result<PathBuf> {
-    let canonical_params = canonicalize_json_value(&ctx.parameters_json);
+    let canonical_params = bijux_core::parameters_json_canonicalization(&ctx.parameters_json);
     let payload = MetricsEnvelopeV1 {
         schema_version: "bijux.metrics_envelope.v1",
         stage_id: ctx.stage_id.clone(),
@@ -361,6 +362,7 @@ pub fn write_stage_event_jsonl(
     Ok(path)
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn write_stage_report_v1(
     run_artifacts_dir: &Path,
     stage_id: &str,
@@ -369,6 +371,7 @@ pub fn write_stage_report_v1(
     tool_version: &str,
     outputs: &[PathBuf],
     subreports: &[PathBuf],
+    log_paths: &[PathBuf],
 ) -> Result<PathBuf> {
     let payload = StageReportV1 {
         schema_version: "bijux.stage_report.v1".to_string(),
@@ -383,6 +386,7 @@ pub fn write_stage_report_v1(
         errors: Vec::new(),
         outputs: outputs.iter().map(|p| p.display().to_string()).collect(),
         subreports: subreports.iter().map(|p| p.display().to_string()).collect(),
+        log_paths: log_paths.iter().map(|p| p.display().to_string()).collect(),
     };
     let path = run_artifacts_dir.join("stage_report.json");
     std::fs::write(&path, serde_json::to_vec_pretty(&payload)?)
@@ -428,6 +432,7 @@ pub fn write_retention_report_v1(
     Ok(path)
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn write_trim_report_v1(
     run_artifacts_dir: &Path,
     stage_id: &str,
@@ -436,6 +441,10 @@ pub fn write_trim_report_v1(
     reads_out: u64,
     bases_in: u64,
     bases_out: u64,
+    adapter_preset: Option<String>,
+    adapter_bank_id: Option<String>,
+    adapter_bank_hash: Option<String>,
+    adapter_overrides: Option<serde_json::Value>,
 ) -> Result<PathBuf> {
     let reports_dir = run_artifacts_dir.join("reports");
     std::fs::create_dir_all(&reports_dir).context("create reports dir")?;
@@ -450,6 +459,10 @@ pub fn write_trim_report_v1(
         bases_out,
         bases_trimmed: bases_in.saturating_sub(bases_out),
         per_adapter_counts: std::collections::BTreeMap::new(),
+        adapter_preset,
+        adapter_bank_id,
+        adapter_bank_hash,
+        adapter_overrides,
     };
     let path = reports_dir.join(file_name);
     std::fs::write(&path, serde_json::to_vec_pretty(&payload)?).context("write trim report")?;
@@ -478,6 +491,35 @@ pub fn write_validate_report_v1(
     };
     let path = reports_dir.join(file_name);
     std::fs::write(&path, serde_json::to_vec_pretty(&payload)?).context("write validate report")?;
+    Ok(path)
+}
+
+#[allow(clippy::too_many_arguments)]
+pub fn write_merge_report_v1(
+    run_artifacts_dir: &Path,
+    stage_id: &str,
+    tool_id: &str,
+    reads_r1: u64,
+    reads_r2: u64,
+    reads_merged: u64,
+    reads_unmerged: u64,
+    merge_rate: f64,
+) -> Result<PathBuf> {
+    let reports_dir = run_artifacts_dir.join("reports");
+    std::fs::create_dir_all(&reports_dir).context("create reports dir")?;
+    let file_name = format!("{stage_id}.merge_report.json");
+    let payload = MergeReportV1 {
+        schema_version: "bijux.merge_report.v1".to_string(),
+        stage_id: stage_id.to_string(),
+        tool_id: tool_id.to_string(),
+        reads_r1,
+        reads_r2,
+        reads_merged,
+        reads_unmerged,
+        merge_rate,
+    };
+    let path = reports_dir.join(file_name);
+    std::fs::write(&path, serde_json::to_vec_pretty(&payload)?).context("write merge report")?;
     Ok(path)
 }
 

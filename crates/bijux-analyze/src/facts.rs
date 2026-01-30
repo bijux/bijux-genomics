@@ -13,6 +13,28 @@ pub struct FactsSummary {
     pub avg_runtime_s: f64,
 }
 
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct RunSummaryV1 {
+    pub schema_version: String,
+    pub runs: usize,
+    pub stages: usize,
+    pub total_runtime_s: f64,
+    pub avg_runtime_s: f64,
+    pub stage_rows: Vec<RunSummaryStageRow>,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct RunSummaryStageRow {
+    pub run_id: String,
+    pub stage_id: String,
+    pub tool_id: String,
+    pub params_hash: String,
+    pub input_hash: String,
+    pub runtime_s: f64,
+    pub memory_mb: f64,
+    pub exit_code: i32,
+}
+
 /// Load facts rows from a jsonl file.
 ///
 /// # Errors
@@ -54,4 +76,43 @@ pub fn summarize_facts(rows: &[FactsRowV1]) -> FactsSummary {
         total_runtime_s,
         avg_runtime_s,
     }
+}
+
+/// Write a deterministic run summary JSON from facts rows.
+///
+/// # Errors
+/// Returns an error if the file cannot be written.
+pub fn write_run_summary_json(path: &Path, rows: &[FactsRowV1]) -> Result<()> {
+    let summary = summarize_facts(rows);
+    let mut stage_rows: Vec<RunSummaryStageRow> = rows
+        .iter()
+        .map(|row| RunSummaryStageRow {
+            run_id: row.run_id.clone(),
+            stage_id: row.stage_id.clone(),
+            tool_id: row.tool_id.clone(),
+            params_hash: row.params_hash.clone(),
+            input_hash: row.input_hash.clone(),
+            runtime_s: row.runtime_s,
+            memory_mb: row.memory_mb,
+            exit_code: row.exit_code,
+        })
+        .collect();
+    stage_rows.sort_by(|a, b| {
+        (a.run_id.clone(), a.stage_id.clone(), a.tool_id.clone()).cmp(&(
+            b.run_id.clone(),
+            b.stage_id.clone(),
+            b.tool_id.clone(),
+        ))
+    });
+    let payload = RunSummaryV1 {
+        schema_version: "bijux.run_summary.v1".to_string(),
+        runs: summary.runs,
+        stages: summary.stages,
+        total_runtime_s: summary.total_runtime_s,
+        avg_runtime_s: summary.avg_runtime_s,
+        stage_rows,
+    };
+    std::fs::write(path, serde_json::to_vec_pretty(&payload)?)
+        .with_context(|| format!("write run summary {}", path.display()))?;
+    Ok(())
 }

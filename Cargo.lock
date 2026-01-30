@@ -197,21 +197,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "bijux-domain-dummy"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "bijux-core",
- "serde_json",
-]
-
-[[package]]
 name = "bijux-domain-fastq"
 version = "0.1.0"
 dependencies = [
  "anyhow",
  "bijux-analyze",
- "bijux-bench",
  "bijux-core",
  "chrono",
  "rusqlite",
