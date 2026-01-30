@@ -41,6 +41,8 @@ fn fastq_trim_help_snapshot() -> Result<()> {
             "--adapter-bank-file",
             "--enable-adapter",
             "--disable-adapter",
+            "--polyx-preset",
+            "--contaminant-preset",
         ],
     )?;
     Ok(())
@@ -112,6 +114,8 @@ fn fastq_preprocess_help_snapshot() -> Result<()> {
             "--adapter-bank-file",
             "--enable-adapter",
             "--disable-adapter",
+            "--polyx-preset",
+            "--contaminant-preset",
         ],
     )?;
     Ok(())

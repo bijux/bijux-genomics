@@ -7,25 +7,29 @@ use anyhow::{anyhow, Context, Result};
 use bijux_environment::api::{ResolvedImage, RunnerKind};
 use chrono::Utc;
 use flate2::read::GzDecoder;
+use tracing::info;
 use uuid::Uuid;
 
 use crate::api::{
     cleanup_execution, execution_memory_mb, hash_file_sha256, run_merge_execution,
     run_multiqc_execution, run_tool_execution, run_validate_execution,
 };
+use crate::services::observer::Observer;
 use crate::services::run_artifacts::{
     default_trace_ids, params_hash, run_artifacts_dir_for_out, write_facts_jsonl,
     write_merge_report_v1, write_metrics_envelope, write_observability_manifest,
-    write_plan_artifacts, write_retention_report_v1, write_stage_event_jsonl,
-    write_stage_metrics_json, write_stage_report_v1, write_telemetry_event,
-    write_tool_invocation_json, write_trim_report_v1, write_validate_report_v1,
+    write_plan_artifacts, write_progress_event_jsonl, write_retention_report_v1,
+    write_runs_export_jsonl, write_stage_event_jsonl, write_stage_metrics_json,
+    write_stage_report_v1, write_telemetry_event, write_tool_invocation_json, write_trim_report_v1,
+    write_validate_report_v1,
 };
 use bijux_core::run_index::{insert_stage_row, StageIndexRow};
 use bijux_core::{
-    parameters_json_canonicalization, AdapterBankProvenanceV1, FactsRowV1, FastqCorrectMetricsV1,
-    FastqDeltaMetricsV1, FastqFilterMetricsV1, FastqMergeMetricsV1, FastqPreprocessMetricsV1,
-    FastqTrimMetricsV1, FastqUmiMetricsV1, FastqValidateMetricsV1, RetentionReportMetricV1,
-    StageMetricsV1, StageObservabilityContextV1, StagePlanV1, ToolInvocationV1,
+    parameters_json_canonicalization, AdapterBankProvenanceV1, BankRefV1, FactsRowV1,
+    FastqCorrectMetricsV1, FastqDeltaMetricsV1, FastqFilterMetricsV1, FastqMergeMetricsV1,
+    FastqPreprocessMetricsV1, FastqTrimMetricsV1, FastqUmiMetricsV1, FastqValidateMetricsV1,
+    MetricContextV1, RetentionReportMetricV1, StageMetricsV1, StageObservabilityContextV1,
+    StagePlanV1, ToolInvocationV1,
 };
 
 #[derive(Debug, Clone)]
@@ -64,6 +68,166 @@ fn adapter_bank_from_params(params: &serde_json::Value) -> Option<AdapterBankPro
     params
         .get("adapter_bank")
         .and_then(|value| serde_json::from_value(value.clone()).ok())
+}
+
+fn banks_from_params(params: &serde_json::Value) -> Option<serde_json::Value> {
+    let mut banks = serde_json::Map::new();
+    for (key, field) in [
+        ("adapter", "adapter_bank"),
+        ("polyx", "polyx_bank"),
+        ("contaminant", "contaminant_bank"),
+    ] {
+        if let Some(value) = params.get(field) {
+            banks.insert(key.to_string(), value.clone());
+        }
+    }
+    if banks.is_empty() {
+        None
+    } else {
+        Some(serde_json::Value::Object(banks))
+    }
+}
+
+fn metric_context_from_params(
+    plan: &StagePlanV1,
+    runner: RunnerKind,
+    input_hash: &str,
+    params_hash: &str,
+    params: &serde_json::Value,
+) -> MetricContextV1 {
+    let mut presets = BTreeMap::new();
+    let mut banks = BTreeMap::new();
+    for (key, field) in [
+        ("adapter", "adapter_bank"),
+        ("polyx", "polyx_bank"),
+        ("contaminant", "contaminant_bank"),
+    ] {
+        if let Some(value) = params.get(field) {
+            if let Some(preset) = value.get("preset").and_then(|v| v.as_str()) {
+                presets.insert(key.to_string(), preset.to_string());
+            }
+            let bank_id = value.get("bank_id").and_then(|v| v.as_str());
+            let bank_hash = value.get("bank_hash").and_then(|v| v.as_str());
+            if let (Some(bank_id), Some(bank_hash)) = (bank_id, bank_hash) {
+                banks.insert(
+                    key.to_string(),
+                    BankRefV1 {
+                        bank_id: bank_id.to_string(),
+                        bank_hash: bank_hash.to_string(),
+                    },
+                );
+            }
+        }
+    }
+    MetricContextV1 {
+        tool_id: plan.tool_id.0.clone(),
+        tool_version: plan.tool_version.clone(),
+        image_digest: plan.image.digest.clone(),
+        runner: runner.to_string(),
+        platform: std::env::var("BIJUX_PLATFORM").unwrap_or_else(|_| "unknown".to_string()),
+        input_hash: input_hash.to_string(),
+        params_hash: params_hash.to_string(),
+        presets,
+        banks,
+    }
+}
+
+#[derive(Debug, Clone)]
+struct BankEntryRecord {
+    id: String,
+    sequence: String,
+    rationale: String,
+    source: String,
+}
+
+#[derive(Debug, Clone)]
+struct BankReferenceRecord {
+    id: String,
+    file: String,
+    sha256: String,
+    rationale: String,
+    source: String,
+    fasta: Option<String>,
+}
+
+fn bank_entries_from_value(value: &serde_json::Value) -> Vec<BankEntryRecord> {
+    value
+        .get("enabled_entries")
+        .and_then(serde_json::Value::as_array)
+        .map(|entries| {
+            entries
+                .iter()
+                .filter_map(|entry| {
+                    Some(BankEntryRecord {
+                        id: entry.get("id")?.as_str()?.to_string(),
+                        sequence: entry.get("sequence")?.as_str()?.to_string(),
+                        rationale: entry.get("rationale")?.as_str()?.to_string(),
+                        source: entry.get("source")?.as_str()?.to_string(),
+                    })
+                })
+                .collect::<Vec<_>>()
+        })
+        .unwrap_or_default()
+}
+
+fn bank_references_from_value(value: &serde_json::Value) -> Vec<BankReferenceRecord> {
+    value
+        .get("references")
+        .and_then(serde_json::Value::as_array)
+        .map(|entries| {
+            entries
+                .iter()
+                .filter_map(|entry| {
+                    Some(BankReferenceRecord {
+                        id: entry.get("id")?.as_str()?.to_string(),
+                        file: entry.get("file")?.as_str()?.to_string(),
+                        sha256: entry
+                            .get("sha256")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("unknown")
+                            .to_string(),
+                        rationale: entry.get("rationale")?.as_str()?.to_string(),
+                        source: entry.get("source")?.as_str()?.to_string(),
+                        fasta: entry
+                            .get("fasta")
+                            .and_then(|v| v.as_str())
+                            .map(str::to_string),
+                    })
+                })
+                .collect::<Vec<_>>()
+        })
+        .unwrap_or_default()
+}
+
+fn write_effective_fasta(
+    run_artifacts_dir: &Path,
+    name: &str,
+    entries: &[BankEntryRecord],
+    extra_fasta: &[String],
+) -> Result<Option<(PathBuf, String)>> {
+    if entries.is_empty() && extra_fasta.is_empty() {
+        return Ok(None);
+    }
+    let banks_dir = run_artifacts_dir.join("banks");
+    std::fs::create_dir_all(&banks_dir).context("create banks dir")?;
+    let path = banks_dir.join(format!("effective_{name}.fasta"));
+    let mut payload = String::new();
+    for entry in entries {
+        payload.push('>');
+        payload.push_str(&entry.id);
+        payload.push('\n');
+        payload.push_str(&entry.sequence);
+        payload.push('\n');
+    }
+    for fasta in extra_fasta {
+        payload.push_str(fasta);
+        if !fasta.ends_with('\n') {
+            payload.push('\n');
+        }
+    }
+    std::fs::write(&path, payload).context("write effective bank fasta")?;
+    let hash = hash_file_sha256(&path)?;
+    Ok(Some((path, hash)))
 }
 
 fn fastq_stats(path: &Path) -> Result<bijux_core::measure::SeqkitMetrics> {
@@ -155,6 +319,33 @@ fn stage_version_i32(version: bijux_core::StageVersion) -> i32 {
     i32::try_from(version.0).unwrap_or(i32::MAX)
 }
 
+fn observer_result_from_plan(
+    plan: &StagePlanV1,
+    outputs: Vec<PathBuf>,
+    exit_code: i32,
+    stdout: String,
+    stderr: String,
+) -> crate::core::types::StageResult {
+    crate::core::types::StageResult {
+        invocation: crate::core::types::ToolInvocation {
+            stage_id: plan.stage_id.0.clone(),
+            tool_id: plan.tool_id.0.clone(),
+            inputs: plan
+                .io
+                .inputs
+                .iter()
+                .map(|artifact| artifact.path.clone())
+                .collect(),
+            params: plan.params.clone(),
+            requirements: None,
+        },
+        exit_code,
+        stdout,
+        stderr,
+        outputs,
+    }
+}
+
 #[derive(Debug, Clone, Copy)]
 struct RetentionCounts {
     reads_in: u64,
@@ -196,22 +387,22 @@ fn stage_metrics_for_plan(
                 gc_delta: output.gc_percent - input.gc_percent,
             };
             let retention = RetentionReportMetricV1 {
-                retention: read_retention,
-                reads_in: input.reads,
-                reads_out: output.reads,
-                bases_in: input.bases,
-                bases_out: output.bases,
-                numerator: serde_json::json!({
-                    "reads": output.reads,
-                    "bases": output.bases
+                value: read_retention,
+                numerator_reads: output.reads,
+                denominator_reads: input.reads,
+                numerator_bases: output.bases,
+                denominator_bases: input.bases,
+                definition: "reads_out / reads_in".to_string(),
+                stage_boundary: stage_id.to_string(),
+                conditions: serde_json::json!({
+                    "min_len": params.get("min_len"),
+                    "q": params.get("q"),
+                    "merge_policy": params.get("merge_policy"),
+                    "adapter_policy": params.get("adapter_policy"),
+                    "polyx_policy": params.get("polyx_policy"),
+                    "contaminant_policy": params.get("contaminant_policy"),
+                    "parameters": params.clone(),
                 }),
-                denominator: serde_json::json!({
-                    "reads": input.reads,
-                    "bases": input.bases
-                }),
-                scope: "reads+bases".to_string(),
-                condition: params.clone(),
-                parameters_json: params.clone(),
             };
             serde_json::to_value(FastqTrimMetricsV1 {
                 reads_in: input.reads,
@@ -244,22 +435,22 @@ fn stage_metrics_for_plan(
                 gc_delta: output.gc_percent - input.gc_percent,
             };
             let retention = RetentionReportMetricV1 {
-                retention: read_retention,
-                reads_in: input.reads,
-                reads_out: output.reads,
-                bases_in: input.bases,
-                bases_out: output.bases,
-                numerator: serde_json::json!({
-                    "reads": output.reads,
-                    "bases": output.bases
+                value: read_retention,
+                numerator_reads: output.reads,
+                denominator_reads: input.reads,
+                numerator_bases: output.bases,
+                denominator_bases: input.bases,
+                definition: "reads_out / reads_in".to_string(),
+                stage_boundary: stage_id.to_string(),
+                conditions: serde_json::json!({
+                    "min_len": params.get("min_len"),
+                    "q": params.get("q"),
+                    "merge_policy": params.get("merge_policy"),
+                    "adapter_policy": params.get("adapter_policy"),
+                    "polyx_policy": params.get("polyx_policy"),
+                    "contaminant_policy": params.get("contaminant_policy"),
+                    "parameters": params.clone(),
                 }),
-                denominator: serde_json::json!({
-                    "reads": input.reads,
-                    "bases": input.bases
-                }),
-                scope: "reads+bases".to_string(),
-                condition: params.clone(),
-                parameters_json: params.clone(),
             };
             serde_json::to_value(FastqFilterMetricsV1 {
                 reads_in: input.reads,
@@ -396,7 +587,11 @@ fn retention_counts_for_plan(
 /// # Errors
 /// Returns an error if the execution fails or the plan is invalid.
 #[allow(clippy::too_many_lines)]
-pub fn execute_stage_plan(plan: &StagePlanV1, runner: RunnerKind) -> Result<StageResultV1> {
+pub fn execute_stage_plan(
+    plan: &StagePlanV1,
+    runner: RunnerKind,
+    mut observer: Option<&mut dyn Observer>,
+) -> Result<StageResultV1> {
     let run_id = Uuid::new_v4().to_string();
     let (r1, r2) = match plan.io.inputs.as_slice() {
         [] => (None, None),
@@ -416,8 +611,14 @@ pub fn execute_stage_plan(plan: &StagePlanV1, runner: RunnerKind) -> Result<Stag
         PathBuf::from,
     );
     let canonical_params = parameters_json_canonicalization(&plan.params);
+    let sample_id = canonical_params
+        .get("sample_id")
+        .and_then(|value| value.as_str())
+        .unwrap_or("unknown")
+        .to_string();
     let params_hash = params_hash(&canonical_params)?;
     let adapter_bank = adapter_bank_from_params(&canonical_params);
+    let banks_json = banks_from_params(&canonical_params);
     let input_paths: Vec<PathBuf> = plan
         .io
         .inputs
@@ -429,6 +630,8 @@ pub fn execute_stage_plan(plan: &StagePlanV1, runner: RunnerKind) -> Result<Stag
         .map(|path| hash_file_sha256(path))
         .collect::<Result<Vec<_>>>()?;
     let input_hash = hash_inputs(&input_paths)?;
+    let metric_context =
+        metric_context_from_params(plan, runner, &input_hash, &params_hash, &canonical_params);
     let plan_artifacts = write_plan_artifacts(
         &run_artifacts_dir,
         &plan.stage_id.0,
@@ -452,6 +655,7 @@ pub fn execute_stage_plan(plan: &StagePlanV1, runner: RunnerKind) -> Result<Stag
             .collect::<Vec<_>>(),
         &canonical_params,
         adapter_bank.as_ref(),
+        banks_json.as_ref(),
     )?;
     let image = resolved_image_for_plan(&plan.image, runner);
     let image_digest = plan
@@ -502,11 +706,28 @@ pub fn execute_stage_plan(plan: &StagePlanV1, runner: RunnerKind) -> Result<Stag
             "tool_version": plan.tool_version.clone(),
         }),
     })?;
+    let started_at = Utc::now();
     let start = Instant::now();
     let mut outputs_override: Option<Vec<PathBuf>> = None;
     let mut telemetry_exit_code: Option<i32> = None;
     let mut telemetry_output_hashes: Vec<String> = Vec::new();
     let mut telemetry_error: Option<String> = None;
+    if let Some(observer) = observer.as_mut() {
+        let start_result =
+            observer_result_from_plan(plan, Vec::new(), -1, String::new(), String::new());
+        observer.on_stage_start(&start_result)?;
+    }
+    info!(
+        run_id = %run_id,
+        sample_id = %sample_id,
+        stage = %plan.stage_id.0,
+        tool = %plan.tool_id.0,
+        tool_version = %plan.tool_version,
+        image_digest = %plan.image.digest.clone().unwrap_or_else(|| "unknown".to_string()),
+        params_hash = %params_hash,
+        input_hash = %input_hash,
+        "stage execution starting"
+    );
     let result: Result<StageResultV1> = (|| {
         let execution = match plan.stage_id.0.as_str() {
             "fastq.merge" => {
@@ -639,6 +860,7 @@ pub fn execute_stage_plan(plan: &StagePlanV1, runner: RunnerKind) -> Result<Stag
             input_hash: input_hash.clone(),
             params_hash: params_hash.clone(),
             parameters_json: canonical_params.clone(),
+            metric_context: metric_context.clone(),
         };
         let execution_metrics = bijux_core::measure::ExecutionMetrics {
             runtime_s,
@@ -658,6 +880,7 @@ pub fn execute_stage_plan(plan: &StagePlanV1, runner: RunnerKind) -> Result<Stag
             stage_version: stage_version_i32(plan.stage_version),
             tool_id: plan.tool_id.0.clone(),
             tool_version: plan.tool_version.clone(),
+            context: metric_context.clone(),
             execution: execution_metrics,
             failure_class: None,
             failure_reason: None,
@@ -668,6 +891,56 @@ pub fn execute_stage_plan(plan: &StagePlanV1, runner: RunnerKind) -> Result<Stag
         let metrics_path = run_artifacts_dir.join("metrics.json");
         let facts_row_id = format!("{}:{}:{}", run_id, plan.stage_id.0, plan.tool_id.0);
         let mut subreports: Vec<PathBuf> = Vec::new();
+        if let Some(banks_value) = banks_json.as_ref().and_then(|value| value.as_object()) {
+            let mut banks_report = serde_json::Map::new();
+            for (bank_name, bank_value) in banks_value {
+                let entries = bank_entries_from_value(bank_value);
+                let references = bank_references_from_value(bank_value);
+                let extra_fasta: Vec<String> =
+                    references.iter().filter_map(|r| r.fasta.clone()).collect();
+                let fasta =
+                    write_effective_fasta(&run_artifacts_dir, bank_name, &entries, &extra_fasta)?;
+                let bank_entry_report = serde_json::json!({
+                    "bank_id": bank_value.get("bank_id"),
+                    "bank_hash": bank_value.get("bank_hash"),
+                    "preset": bank_value.get("preset"),
+                    "preset_hash": bank_value.get("preset_hash"),
+                    "enabled_entries": entries.iter().map(|entry| {
+                        serde_json::json!({
+                            "id": entry.id,
+                            "rationale": entry.rationale,
+                            "source": entry.source,
+                        })
+                    }).collect::<Vec<_>>(),
+                    "references": references.iter().map(|reference| {
+                        serde_json::json!({
+                            "id": reference.id,
+                            "file": reference.file,
+                            "sha256": reference.sha256,
+                            "rationale": reference.rationale,
+                            "source": reference.source,
+                        })
+                    }).collect::<Vec<_>>(),
+                    "fasta": fasta.as_ref().map(|(path, hash)| serde_json::json!({
+                        "path": path.display().to_string(),
+                        "sha256": hash,
+                    })),
+                });
+                banks_report.insert(bank_name.clone(), bank_entry_report);
+            }
+            let report_payload = serde_json::json!({
+                "schema_version": "bijux.bank_report.v1",
+                "stage_id": plan.stage_id.0,
+                "tool_id": plan.tool_id.0,
+                "banks": banks_report,
+            });
+            let reports_dir = run_artifacts_dir.join("reports");
+            std::fs::create_dir_all(&reports_dir).context("create reports dir")?;
+            let report_path = reports_dir.join("bank_report.json");
+            std::fs::write(&report_path, serde_json::to_vec_pretty(&report_payload)?)
+                .context("write bank_report.json")?;
+            subreports.push(report_path);
+        }
         if plan.stage_id.0 == "fastq.trim" {
             let input = stats_or_zero(input_paths.first().map(PathBuf::as_path))?;
             let output = stats_or_zero(outputs.first().map(PathBuf::as_path))?;
@@ -822,6 +1095,46 @@ pub fn execute_stage_plan(plan: &StagePlanV1, runner: RunnerKind) -> Result<Stag
                 }),
             },
         )?;
+        let finished_at = Utc::now();
+        let progress_status = if execution.exit_code == 0 {
+            "ok"
+        } else {
+            "error"
+        };
+        write_progress_event_jsonl(
+            &run_artifacts_dir,
+            &crate::services::run_artifacts::ProgressEventV1 {
+                schema_version: "bijux.progress.v1",
+                stage_id: plan.stage_id.0.clone(),
+                tool_id: plan.tool_id.0.clone(),
+                status: progress_status.to_string(),
+                started_at: started_at.to_rfc3339(),
+                finished_at: finished_at.to_rfc3339(),
+                outputs: outputs
+                    .iter()
+                    .map(|path| path.display().to_string())
+                    .collect(),
+                metrics_path: Some(metrics_envelope_path.display().to_string()),
+            },
+        )?;
+        write_runs_export_jsonl(
+            &run_artifacts_dir,
+            &crate::services::run_artifacts::RunsExportRowV1 {
+                schema_version: "bijux.runs_export.v1",
+                run_id: run_id.clone(),
+                stage_id: plan.stage_id.0.clone(),
+                tool_id: plan.tool_id.0.clone(),
+                tool_version: plan.tool_version.clone(),
+                started_at: started_at.to_rfc3339(),
+                finished_at: finished_at.to_rfc3339(),
+                runtime_s,
+                memory_mb,
+                exit_code: execution.exit_code,
+                params_hash: params_hash.clone(),
+                input_hash: input_hash.clone(),
+                metrics_path: Some(metrics_envelope_path.display().to_string()),
+            },
+        )?;
         let marker_path = plan.out_dir.join("engine_execution.json");
         let marker = serde_json::json!({
             "schema_version": "bijux.engine_execution.v1",
@@ -830,7 +1143,7 @@ pub fn execute_stage_plan(plan: &StagePlanV1, runner: RunnerKind) -> Result<Stag
         });
         std::fs::write(&marker_path, serde_json::to_vec_pretty(&marker)?)
             .context("write engine execution marker")?;
-        Ok(StageResultV1 {
+        let stage_result = StageResultV1 {
             run_id: run_id.clone(),
             exit_code: execution.exit_code,
             runtime_s,
@@ -840,7 +1153,32 @@ pub fn execute_stage_plan(plan: &StagePlanV1, runner: RunnerKind) -> Result<Stag
             stdout: execution.stdout,
             stderr: execution.stderr,
             command: execution.command,
-        })
+        };
+        info!(
+            run_id = %run_id,
+            sample_id = %sample_id,
+            stage = %plan.stage_id.0,
+            tool = %plan.tool_id.0,
+            tool_version = %plan.tool_version,
+            image_digest = %image_digest,
+            params_hash = %params_hash,
+            input_hash = %input_hash,
+            exit_code = execution.exit_code,
+            runtime_s = runtime_s,
+            memory_mb = memory_mb,
+            "stage execution finished"
+        );
+        if let Some(observer) = observer.as_mut() {
+            let observer_result = observer_result_from_plan(
+                plan,
+                stage_result.outputs.clone(),
+                stage_result.exit_code,
+                stage_result.stdout.clone(),
+                stage_result.stderr.clone(),
+            );
+            observer.on_stage_end(&observer_result)?;
+        }
+        Ok(stage_result)
     })();
     let runtime_s = start.elapsed().as_secs_f64();
     let duration_ms = {

@@ -3063,7 +3063,8 @@ pub fn image_qa_inputs(
 ) -> Result<Vec<String>> {
     let mut stmt = conn.prepare(
         "SELECT input_hash FROM image_qa_inputs_v1 \
-         WHERE stage = ?1 AND platform = ?2 AND runner = ?3",
+         WHERE stage = ?1 AND platform = ?2 AND runner = ?3 \
+         ORDER BY input_hash ASC",
     )?;
     let rows = stmt.query_map((stage, platform, runner), |row| row.get(0))?;
     let mut inputs = Vec::new();

@@ -73,7 +73,7 @@ fn execute_plan_runs_trim() -> Result<()> {
         params: serde_json::json!({}),
         aux_images: std::collections::BTreeMap::new(),
     };
-    let result = execute_plan(&exec_plan, platform.runner)?;
+    let result = execute_plan(&exec_plan, platform.runner, None)?;
     assert_eq!(result.exit_code, 0);
     assert!(output_path.exists());
     assert!(out_dir.path().join("engine_execution.json").exists());
@@ -127,7 +127,7 @@ fn execute_plan_runs_validate() -> Result<()> {
         params: serde_json::json!({}),
         aux_images: std::collections::BTreeMap::new(),
     };
-    let result = execute_plan(&exec_plan, platform.runner)?;
+    let result = execute_plan(&exec_plan, platform.runner, None)?;
     assert_eq!(result.exit_code, 0);
     Ok(())
 }
@@ -186,7 +186,7 @@ fn execute_plan_runs_merge() -> Result<()> {
         params: serde_json::json!({}),
         aux_images: std::collections::BTreeMap::new(),
     };
-    let result = execute_plan(&exec_plan, platform.runner)?;
+    let result = execute_plan(&exec_plan, platform.runner, None)?;
     assert_eq!(result.exit_code, 0);
     Ok(())
 }

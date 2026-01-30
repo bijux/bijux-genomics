@@ -88,6 +88,8 @@ fn benchmark_gate_validate_trim_filter() -> Result<()> {
         adapter_bank_file: None,
         enable_adapters: Vec::new(),
         disable_adapters: Vec::new(),
+        polyx_preset: None,
+        contaminant_preset: None,
     };
     let trim_outcome = bench_fastq_trim(&catalog, &platform, None, &trim_args)?;
     write_trim_report(

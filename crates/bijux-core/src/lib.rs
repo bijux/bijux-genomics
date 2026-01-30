@@ -32,11 +32,15 @@ pub struct ToolId(pub String);
 pub struct RunId(pub String);
 
 pub use metrics::{
-    AdapterBankProvenanceV1, FastqCorrectMetricsV1, FastqDeltaMetricsV1, FastqFilterMetricsV1,
-    FastqMergeMetricsV1, FastqPreprocessMetricsV1, FastqTrimMetricsV1, FastqUmiMetricsV1,
-    FastqValidateMetricsV1, RetentionReportMetricV1, StageMetricsV1, ToolInvocationV1,
+    AdapterBankProvenanceV1, BankEntryV1, BankRefV1, FastqCorrectMetricsV1, FastqDeltaMetricsV1,
+    FastqFilterMetricsV1, FastqMergeMetricsV1, FastqPreprocessMetricsV1, FastqTrimMetricsV1,
+    FastqUmiMetricsV1, FastqValidateMetricsV1, MetricContextV1, RetentionReportMetricV1,
+    StageMetricsV1, ToolInvocationV1,
 };
-pub use metrics_registry::{metrics_schema_for_stage, MetricsSchemaId, FASTQ_METRICS_SCHEMAS};
+pub use metrics_registry::{
+    metric_semantics, metrics_schema_for_stage, MetricDirection as MetricSemanticsDirection,
+    MetricSemantics, MetricsSchemaId, FASTQ_METRICS_SCHEMAS,
+};
 pub use observability::{
     canonicalize_json_value, parameters_json_canonicalization, EffectiveConfigV1, FactsRowV1,
     RetentionReportV1, StageObservabilityContextV1, StageObservabilityContractV1, StageReportV1,

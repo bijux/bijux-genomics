@@ -12,29 +12,25 @@
   "reads_in": "number",
   "reads_out": "number",
   "retention": {
-    "bases_in": "number",
-    "bases_out": "number",
-    "condition": {
-      "input": "string",
-      "output": "string",
-      "tool": "string"
+    "conditions": {
+      "adapter_policy": "null",
+      "contaminant_policy": "null",
+      "merge_policy": "null",
+      "min_len": "null",
+      "parameters": {
+        "input": "string",
+        "output": "string",
+        "tool": "string"
+      },
+      "polyx_policy": "null",
+      "q": "null"
     },
-    "denominator": {
-      "bases": "number",
-      "reads": "number"
-    },
-    "numerator": {
-      "bases": "number",
-      "reads": "number"
-    },
-    "parameters_json": {
-      "input": "string",
-      "output": "string",
-      "tool": "string"
-    },
-    "reads_in": "number",
-    "reads_out": "number",
-    "retention": "number",
-    "scope": "string"
+    "definition": "string",
+    "denominator_bases": "number",
+    "denominator_reads": "number",
+    "numerator_bases": "number",
+    "numerator_reads": "number",
+    "stage_boundary": "string",
+    "value": "number"
   }
 }

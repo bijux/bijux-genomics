@@ -157,6 +157,8 @@ fn build_plan(
                 r1,
                 out_dir,
                 Some(&adapter_bank),
+                None,
+                None,
             )?
         }
         "fastq.filter" => filter::plan_filter(&dummy_tool("fastp", image), r1, out_dir)?,
@@ -217,7 +219,7 @@ fn fastq_stages_emit_observability_contracts() -> Result<()> {
             }
         }
 
-        let _result = execute_plan(&exec_plan, RunnerKind::Docker)?;
+        let _result = execute_plan(&exec_plan, RunnerKind::Docker, None)?;
         let run_artifacts = out_dir.join("run_artifacts");
         assert!(run_artifacts.join("plan.json").exists());
         assert!(run_artifacts.join("effective_config.json").exists());
@@ -331,6 +333,28 @@ fn fastq_stages_emit_observability_contracts() -> Result<()> {
         let expected_hash = params_hash(&canonical_params)?;
         assert_eq!(envelope["params_hash"], expected_hash);
         assert_eq!(envelope["parameters_json"], canonical_params);
+
+        let progress_path = run_artifacts.join("progress.jsonl");
+        assert!(progress_path.exists());
+        let progress_raw = fs::read_to_string(&progress_path)?;
+        let progress_line = progress_raw
+            .lines()
+            .last()
+            .ok_or_else(|| anyhow::anyhow!("missing progress event"))?;
+        let progress: serde_json::Value = serde_json::from_str(progress_line)?;
+        assert_eq!(progress["stage_id"], stage.id);
+        assert_eq!(progress["tool_id"], exec_plan.tool_id.0);
+
+        let runs_path = run_artifacts.join("dashboard").join("runs.jsonl");
+        assert!(runs_path.exists());
+        let runs_raw = fs::read_to_string(&runs_path)?;
+        let runs_line = runs_raw
+            .lines()
+            .last()
+            .ok_or_else(|| anyhow::anyhow!("missing runs export"))?;
+        let run_row: serde_json::Value = serde_json::from_str(runs_line)?;
+        assert_eq!(run_row["stage_id"], stage.id);
+        assert_eq!(run_row["tool_id"], exec_plan.tool_id.0);
 
         let telemetry_path = run_artifacts.join("telemetry").join("events.jsonl");
         assert!(telemetry_path.exists());

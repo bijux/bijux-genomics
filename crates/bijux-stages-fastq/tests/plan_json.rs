@@ -32,6 +32,8 @@ fn plan_json_is_emitted_and_stable() -> Result<()> {
         std::path::Path::new("reads.fastq.gz"),
         std::path::Path::new("out"),
         None,
+        None,
+        None,
     )?;
     let plan_json = bijux_stages_fastq::StagePlanJson::from_plan(&plan);
     let rendered = serde_json::to_string_pretty(&plan_json)?;
@@ -165,6 +167,8 @@ fn preprocess_plan_json_is_emitted_and_stable() -> Result<()> {
         adapter_bank_file: None,
         enable_adapters: Vec::new(),
         disable_adapters: Vec::new(),
+        polyx_preset: None,
+        contaminant_preset: None,
     };
     let plan = bijux_stages_fastq::fastq::preprocess::plan_preprocess(&args);
     let plan = bijux_stages_fastq::fastq::preprocess::plan_preprocess_stage(

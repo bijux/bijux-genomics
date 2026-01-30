@@ -38,6 +38,7 @@ pub struct MetricsEnvelopeV1 {
     pub stage_version: i32,
     pub tool_id: String,
     pub tool_version: String,
+    pub context: bijux_core::metrics::MetricContextV1,
     pub input_hash: String,
     pub params_hash: String,
     pub parameters_json: serde_json::Value,
@@ -59,6 +60,35 @@ pub struct ObservabilityManifestV1 {
     pub stage_id: String,
     pub tool_id: String,
     pub artifacts: Vec<serde_json::Value>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct ProgressEventV1 {
+    pub schema_version: &'static str,
+    pub stage_id: String,
+    pub tool_id: String,
+    pub status: String,
+    pub started_at: String,
+    pub finished_at: String,
+    pub outputs: Vec<String>,
+    pub metrics_path: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct RunsExportRowV1 {
+    pub schema_version: &'static str,
+    pub run_id: String,
+    pub stage_id: String,
+    pub tool_id: String,
+    pub tool_version: String,
+    pub started_at: String,
+    pub finished_at: String,
+    pub runtime_s: f64,
+    pub memory_mb: f64,
+    pub exit_code: i32,
+    pub params_hash: String,
+    pub input_hash: String,
+    pub metrics_path: Option<String>,
 }
 
 pub fn params_hash(params: &serde_json::Value) -> Result<String> {
@@ -261,6 +291,7 @@ pub fn write_plan_artifacts(
     outputs: &[PathBuf],
     params: &serde_json::Value,
     adapter_bank: Option<&bijux_core::metrics::AdapterBankProvenanceV1>,
+    banks: Option<&serde_json::Value>,
 ) -> Result<PlanArtifacts> {
     std::fs::create_dir_all(run_artifacts_dir).context("create run_artifacts dir")?;
     let plan_path = run_artifacts_dir.join("plan.json");
@@ -288,6 +319,7 @@ pub fn write_plan_artifacts(
         resources: resources.clone(),
         parameters_json: params.clone(),
         adapter_bank: adapter_bank.cloned(),
+        banks: banks.cloned(),
     };
     std::fs::write(
         &effective_config_path,
@@ -320,6 +352,7 @@ pub fn write_metrics_envelope(
         stage_version: ctx.stage_version,
         tool_id: ctx.tool_id.clone(),
         tool_version: ctx.tool_version.clone(),
+        context: ctx.metric_context.clone(),
         input_hash: ctx.input_hash.clone(),
         params_hash: ctx.params_hash.clone(),
         parameters_json: canonical_params,
@@ -376,6 +409,36 @@ pub fn write_stage_event_jsonl(
     Ok(path)
 }
 
+pub fn write_progress_event_jsonl(
+    run_artifacts_dir: &Path,
+    event: &ProgressEventV1,
+) -> Result<PathBuf> {
+    let path = run_artifacts_dir.join("progress.jsonl");
+    if let Some(parent) = path.parent() {
+        std::fs::create_dir_all(parent).context("create progress dir")?;
+    }
+    let mut file = std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(&path)
+        .context("open progress.jsonl")?;
+    writeln!(file, "{}", serde_json::to_string(event)?)?;
+    Ok(path)
+}
+
+pub fn write_runs_export_jsonl(run_artifacts_dir: &Path, row: &RunsExportRowV1) -> Result<PathBuf> {
+    let dashboard_dir = run_artifacts_dir.join("dashboard");
+    std::fs::create_dir_all(&dashboard_dir).context("create dashboard dir")?;
+    let path = dashboard_dir.join("runs.jsonl");
+    let mut file = std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(&path)
+        .context("open runs.jsonl")?;
+    writeln!(file, "{}", serde_json::to_string(row)?)?;
+    Ok(path)
+}
+
 #[allow(clippy::too_many_arguments)]
 pub fn write_stage_report_v1(
     run_artifacts_dir: &Path,
@@ -390,6 +453,8 @@ pub fn write_stage_report_v1(
     subreports: &[PathBuf],
     log_paths: &[PathBuf],
 ) -> Result<PathBuf> {
+    let effective_config_hash =
+        crate::services::observer::hash_file_sha256(effective_config_path).ok();
     let payload = StageReportV1 {
         schema_version: "bijux.stage_report.v1".to_string(),
         stage_id: stage_id.to_string(),
@@ -398,6 +463,7 @@ pub fn write_stage_report_v1(
         tool_version: tool_version.to_string(),
         metrics_path: metrics_path.display().to_string(),
         effective_config_path: effective_config_path.display().to_string(),
+        effective_config_hash,
         facts_row_id: facts_row_id.map(str::to_string),
         summary: serde_json::json!({
             "outputs": outputs.iter().map(|p| p.display().to_string()).collect::<Vec<_>>()
@@ -447,6 +513,24 @@ pub fn write_retention_report_v1(
         scope: "reads+bases".to_string(),
         condition: condition.clone(),
         parameters_json: parameters_json.clone(),
+        retention: Some(bijux_core::RetentionReportMetricV1 {
+            #[allow(clippy::cast_precision_loss)]
+            value: if reads_in > 0 {
+                (reads_out as f64) / (reads_in as f64)
+            } else {
+                0.0
+            },
+            numerator_reads: reads_out,
+            denominator_reads: reads_in,
+            numerator_bases: bases_out,
+            denominator_bases: bases_in,
+            definition: "reads_out / reads_in".to_string(),
+            stage_boundary: stage_id.to_string(),
+            conditions: serde_json::json!({
+                "condition": condition.clone(),
+                "parameters": parameters_json.clone(),
+            }),
+        }),
     };
     let path = reports_dir.join(file_name);
     std::fs::write(&path, serde_json::to_vec_pretty(&payload)?)

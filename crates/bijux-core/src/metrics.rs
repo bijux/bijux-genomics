@@ -7,6 +7,29 @@ use crate::ToolConstraints;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
+pub struct BankRefV1 {
+    pub bank_id: String,
+    pub bank_hash: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct MetricContextV1 {
+    pub tool_id: String,
+    pub tool_version: String,
+    pub image_digest: Option<String>,
+    pub runner: String,
+    pub platform: String,
+    pub input_hash: String,
+    pub params_hash: String,
+    #[serde(default)]
+    pub presets: std::collections::BTreeMap<String, String>,
+    #[serde(default)]
+    pub banks: std::collections::BTreeMap<String, BankRefV1>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct MetricSet<T> {
     pub metrics_schema: String,
     pub version: i32,
@@ -34,6 +57,7 @@ pub struct StageMetricsV1<T> {
     pub stage_version: i32,
     pub tool_id: String,
     pub tool_version: String,
+    pub context: MetricContextV1,
     pub execution: ExecutionMetrics,
     #[serde(default)]
     pub failure_class: Option<String>,
@@ -74,6 +98,17 @@ pub struct AdapterBankProvenanceV1 {
     pub disabled_categories: Vec<String>,
     pub enable_adapters: Vec<String>,
     pub disable_adapters: Vec<String>,
+    #[serde(default)]
+    pub enabled_entries: Vec<BankEntryV1>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct BankEntryV1 {
+    pub id: String,
+    pub sequence: String,
+    pub rationale: String,
+    pub source: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -88,16 +123,14 @@ pub struct FastqDeltaMetricsV1 {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct RetentionReportMetricV1 {
-    pub retention: f64,
-    pub reads_in: u64,
-    pub reads_out: u64,
-    pub bases_in: u64,
-    pub bases_out: u64,
-    pub numerator: serde_json::Value,
-    pub denominator: serde_json::Value,
-    pub scope: String,
-    pub condition: serde_json::Value,
-    pub parameters_json: serde_json::Value,
+    pub value: f64,
+    pub numerator_reads: u64,
+    pub denominator_reads: u64,
+    pub numerator_bases: u64,
+    pub denominator_bases: u64,
+    pub definition: String,
+    pub stage_boundary: String,
+    pub conditions: serde_json::Value,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

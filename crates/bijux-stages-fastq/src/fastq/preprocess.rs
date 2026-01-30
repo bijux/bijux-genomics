@@ -27,12 +27,14 @@ pub fn plan_preprocess(args: &crate::args::BenchFastqPreprocessArgs) -> Preproce
     }
 }
 
-#[allow(clippy::too_many_lines)]
+#[allow(clippy::too_many_arguments, clippy::too_many_lines)]
 pub fn plan_preprocess_pipeline<F>(
     stages: &[String],
     tools: &[ToolExecutionSpecV1],
     aux_images: &std::collections::BTreeMap<String, ContainerImageRefV1>,
     adapter_bank: Option<&serde_json::Value>,
+    polyx_bank: Option<&serde_json::Value>,
+    contaminant_bank: Option<&serde_json::Value>,
     r1: &std::path::Path,
     r2: Option<&std::path::Path>,
     mut out_dir_for_stage: F,
@@ -59,7 +61,14 @@ where
         let out_dir = out_dir_for_stage(stage, tool, &current_r1, current_r2.as_deref())?;
         let (plan, next_r1, next_r2, stage_version) = match stage.as_str() {
             "fastq.trim" => {
-                let plan = crate::fastq::trim::plan(tool, &current_r1, &out_dir, adapter_bank)?;
+                let plan = crate::fastq::trim::plan(
+                    tool,
+                    &current_r1,
+                    &out_dir,
+                    adapter_bank,
+                    polyx_bank,
+                    contaminant_bank,
+                )?;
                 (
                     plan.clone(),
                     plan.io.outputs[0].path.clone(),

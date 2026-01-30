@@ -1,0 +1,12 @@
+schema_version: bijux.polyx_presets.v1
+presets:
+  - name: illumina_twocolor
+    description: "Enable poly-G trimming for two-color Illumina runs."
+    polyx_ids:
+      - polyG
+    sequences: []
+    rationale: "Two-color systems often generate poly-G artifacts."
+    references:
+      - "Illumina two-color chemistry"
+    notes: []
+    hash: d66ff024d4fe35484b374e13da91ba3f7c9631a8de1baa52fc4ab5d53618f692

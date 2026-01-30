@@ -114,6 +114,18 @@ pub fn adapter_bank_provenance_json(
         .into_iter()
         .filter(|tag| !enabled.iter().any(|enabled_tag| enabled_tag == tag))
         .collect();
+    let enabled_entries: Vec<serde_json::Value> = effective
+        .adapters
+        .iter()
+        .map(|adapter| {
+            serde_json::json!({
+                "id": adapter.id,
+                "sequence": adapter.sequence,
+                "rationale": adapter.rationale,
+                "source": adapter.source,
+            })
+        })
+        .collect();
     serde_json::json!({
         "bank_id": selection.bank.bank_id,
         "bank_version": selection.bank.version,
@@ -125,5 +137,6 @@ pub fn adapter_bank_provenance_json(
         "disabled_categories": disabled,
         "enable_adapters": enable,
         "disable_adapters": disable,
+        "enabled_entries": enabled_entries,
     })
 }

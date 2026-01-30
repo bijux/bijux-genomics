@@ -53,6 +53,8 @@ pub fn plan(
     r1: &Path,
     out_dir: &Path,
     adapter_bank: Option<&serde_json::Value>,
+    polyx_bank: Option<&serde_json::Value>,
+    contaminant_bank: Option<&serde_json::Value>,
 ) -> Result<StagePlanV1> {
     let output_name =
         trim_output_name(&tool.tool_id.0).ok_or_else(|| anyhow!("unsupported trim tool"))?;
@@ -65,6 +67,16 @@ pub fn plan(
     if let Some(adapter_bank) = adapter_bank {
         if let Some(map) = params.as_object_mut() {
             map.insert("adapter_bank".to_string(), adapter_bank.clone());
+        }
+    }
+    if let Some(polyx_bank) = polyx_bank {
+        if let Some(map) = params.as_object_mut() {
+            map.insert("polyx_bank".to_string(), polyx_bank.clone());
+        }
+    }
+    if let Some(contaminant_bank) = contaminant_bank {
+        if let Some(map) = params.as_object_mut() {
+            map.insert("contaminant_bank".to_string(), contaminant_bank.clone());
         }
     }
     Ok(StagePlanV1 {
@@ -99,5 +111,5 @@ pub fn plan_from_config(
     tool: &ToolExecutionSpecV1,
     config: &TrimEffectiveConfig,
 ) -> Result<StagePlanV1> {
-    plan(tool, &config.r1, &config.out_dir, None)
+    plan(tool, &config.r1, &config.out_dir, None, None, None)
 }

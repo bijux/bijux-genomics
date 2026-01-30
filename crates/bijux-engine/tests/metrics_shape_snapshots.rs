@@ -175,11 +175,18 @@ fn metrics_shape_snapshots() -> Result<()> {
 
     let trim_out = dir.path().join("trim");
     fs::create_dir_all(&trim_out)?;
-    let trim_plan = trim::plan(&dummy_tool("fastp", &image), &r1, &trim_out, None)?;
+    let trim_plan = trim::plan(
+        &dummy_tool("fastp", &image),
+        &r1,
+        &trim_out,
+        None,
+        None,
+        None,
+    )?;
     for output in &trim_plan.io.outputs {
         touch(&output.path)?;
     }
-    let _ = execute_plan(&trim_plan, RunnerKind::Docker)?;
+    let _ = execute_plan(&trim_plan, RunnerKind::Docker, None)?;
     let trim_metrics_raw =
         fs::read_to_string(trim_out.join("run_artifacts").join("stage_metrics.json"))?;
     let trim_metrics: serde_json::Value = serde_json::from_str(&trim_metrics_raw)?;
@@ -191,7 +198,7 @@ fn metrics_shape_snapshots() -> Result<()> {
     for output in &filter_plan.io.outputs {
         touch(&output.path)?;
     }
-    let _ = execute_plan(&filter_plan, RunnerKind::Docker)?;
+    let _ = execute_plan(&filter_plan, RunnerKind::Docker, None)?;
     let filter_metrics_raw =
         fs::read_to_string(filter_out.join("run_artifacts").join("stage_metrics.json"))?;
     let filter_metrics: serde_json::Value = serde_json::from_str(&filter_metrics_raw)?;
@@ -206,7 +213,7 @@ fn metrics_shape_snapshots() -> Result<()> {
     for output in merge_outputs_for(&merge_plan.tool_id.0, &merge_out) {
         touch(&output)?;
     }
-    let _ = execute_plan(&merge_plan, RunnerKind::Docker)?;
+    let _ = execute_plan(&merge_plan, RunnerKind::Docker, None)?;
     let merge_metrics_raw =
         fs::read_to_string(merge_out.join("run_artifacts").join("stage_metrics.json"))?;
     let merge_metrics: serde_json::Value = serde_json::from_str(&merge_metrics_raw)?;
@@ -222,7 +229,7 @@ fn metrics_shape_snapshots() -> Result<()> {
     for output in &validate_plan.io.outputs {
         touch(&output.path)?;
     }
-    let _ = execute_plan(&validate_plan, RunnerKind::Docker)?;
+    let _ = execute_plan(&validate_plan, RunnerKind::Docker, None)?;
     let validate_metrics_raw = fs::read_to_string(
         validate_out
             .join("run_artifacts")

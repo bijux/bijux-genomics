@@ -142,6 +142,10 @@ pub struct BenchFastqTrimArgs {
     pub enable_adapter: Vec<String>,
     #[arg(long)]
     pub disable_adapter: Vec<String>,
+    #[arg(long, help = "PolyX preset name (default: illumina_twocolor)")]
+    pub polyx_preset: Option<String>,
+    #[arg(long, help = "Contaminant preset name (default: illumina_default)")]
+    pub contaminant_preset: Option<String>,
 }
 
 #[derive(Debug, Args)]
@@ -289,6 +293,10 @@ pub struct BenchFastqPreprocessArgs {
     pub enable_adapter: Vec<String>,
     #[arg(long)]
     pub disable_adapter: Vec<String>,
+    #[arg(long, help = "PolyX preset name (default: illumina_twocolor)")]
+    pub polyx_preset: Option<String>,
+    #[arg(long, help = "Contaminant preset name (default: illumina_default)")]
+    pub contaminant_preset: Option<String>,
 }
 
 #[derive(Debug, Clone, Copy, ValueEnum)]
@@ -386,6 +394,10 @@ pub struct FastqPreprocessArgs {
     pub enable_adapter: Vec<String>,
     #[arg(long)]
     pub disable_adapter: Vec<String>,
+    #[arg(long, help = "PolyX preset name (default: illumina_twocolor)")]
+    pub polyx_preset: Option<String>,
+    #[arg(long, help = "Contaminant preset name (default: illumina_default)")]
+    pub contaminant_preset: Option<String>,
 }
 
 #[derive(Debug, Args, Clone)]
@@ -513,6 +525,10 @@ pub struct FastqTrimArgs {
     pub enable_adapter: Vec<String>,
     #[arg(long)]
     pub disable_adapter: Vec<String>,
+    #[arg(long, help = "PolyX preset name (default: illumina_twocolor)")]
+    pub polyx_preset: Option<String>,
+    #[arg(long, help = "Contaminant preset name (default: illumina_default)")]
+    pub contaminant_preset: Option<String>,
 }
 
 #[derive(Debug, Args, Clone)]
@@ -617,6 +633,8 @@ pub fn bench_args_from_trim(args: &FastqTrimArgs) -> Result<engine_args::BenchFa
         adapter_bank_file: args.adapter_bank_file.clone(),
         enable_adapters: args.enable_adapter.clone(),
         disable_adapters: args.disable_adapter.clone(),
+        polyx_preset: args.polyx_preset.clone(),
+        contaminant_preset: args.contaminant_preset.clone(),
     })
 }
 
@@ -662,6 +680,8 @@ pub fn bench_args_trim(args: &BenchFastqTrimArgs) -> engine_args::BenchFastqTrim
         adapter_bank_file: args.adapter_bank_file.clone(),
         enable_adapters: args.enable_adapter.clone(),
         disable_adapters: args.disable_adapter.clone(),
+        polyx_preset: args.polyx_preset.clone(),
+        contaminant_preset: args.contaminant_preset.clone(),
     }
 }
 
@@ -776,6 +796,8 @@ pub fn bench_args_preprocess(
         adapter_bank_file: args.adapter_bank_file.clone(),
         enable_adapters: args.enable_adapter.clone(),
         disable_adapters: args.disable_adapter.clone(),
+        polyx_preset: args.polyx_preset.clone(),
+        contaminant_preset: args.contaminant_preset.clone(),
     }
 }
 
@@ -811,6 +833,8 @@ pub fn preprocess_args_from_cli(
         adapter_bank_file: args.adapter_bank_file.clone(),
         enable_adapters: args.enable_adapter.clone(),
         disable_adapters: args.disable_adapter.clone(),
+        polyx_preset: args.polyx_preset.clone(),
+        contaminant_preset: args.contaminant_preset.clone(),
     })
 }
 

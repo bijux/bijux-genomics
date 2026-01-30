@@ -133,7 +133,7 @@ fn build_plan(
     image: &ContainerImageRefV1,
 ) -> Result<(bijux_core::StagePlanV1, Vec<PathBuf>)> {
     let plan = match stage_id {
-        "fastq.trim" => trim::plan(&dummy_tool("fastp", image), r1, out_dir, None)?,
+        "fastq.trim" => trim::plan(&dummy_tool("fastp", image), r1, out_dir, None, None, None)?,
         "fastq.filter" => filter::plan_filter(&dummy_tool("fastp", image), r1, out_dir)?,
         "fastq.validate_pre" => {
             validate_pre::plan(&dummy_tool("fastqvalidator_official", image), r1, out_dir)
@@ -187,7 +187,7 @@ fn metrics_completeness_contract() -> Result<()> {
             }
         }
 
-        let _result = execute_plan(&plan, RunnerKind::Docker)?;
+        let _result = execute_plan(&plan, RunnerKind::Docker, None)?;
         let stage_metrics_path = out_dir.join("run_artifacts").join("stage_metrics.json");
         let stage_metrics_raw = fs::read_to_string(&stage_metrics_path)?;
         let stage_metrics: serde_json::Value = serde_json::from_str(&stage_metrics_raw)?;
@@ -206,10 +206,12 @@ fn metrics_completeness_contract() -> Result<()> {
                     .get("retention")
                     .and_then(|value| value.as_object())
                     .ok_or_else(|| anyhow::anyhow!("retention missing"))?;
-                assert!(retention.contains_key("numerator"));
-                assert!(retention.contains_key("denominator"));
-                assert!(retention.contains_key("scope"));
-                assert!(retention.contains_key("parameters_json"));
+                assert!(retention.contains_key("value"));
+                assert!(retention.contains_key("numerator_reads"));
+                assert!(retention.contains_key("denominator_reads"));
+                assert!(retention.contains_key("definition"));
+                assert!(retention.contains_key("stage_boundary"));
+                assert!(retention.contains_key("conditions"));
             }
         }
     }
