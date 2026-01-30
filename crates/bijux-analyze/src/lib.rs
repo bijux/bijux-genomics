@@ -11,6 +11,7 @@ use thiserror::Error;
 use tracing::warn;
 
 pub mod compare;
+pub mod facts;
 pub mod failure;
 pub mod ranking;
 pub mod report;

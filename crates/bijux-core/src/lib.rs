@@ -29,7 +29,8 @@ pub struct ToolId(pub String);
 pub struct RunId(pub String);
 
 pub use observability::{
-    canonicalize_json_value, StageObservabilityContextV1, StageObservabilityContractV1,
+    canonicalize_json_value, EffectiveConfigV1, FactsRowV1, RetentionReportV1,
+    StageObservabilityContextV1, StageObservabilityContractV1, StageReportV1, TelemetryEventV1,
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

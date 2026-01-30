@@ -35,10 +35,13 @@ pub use crate::services::observer::{
 pub use crate::services::run_artifacts::{
     compute_run_id, params_hash, prepare_tool_run_dirs, run_artifacts_dir_for_out,
     tool_run_artifacts_dir, write_execution_logs, write_metrics_envelope, write_metrics_json,
-    write_retention_report_placeholder, write_run_manifest, write_stage_plan_json, DashboardFactV1,
-    MetricsEnvelopeV1, RunArtifactInput, RunDirs, StageReportV1, TelemetryEventV1,
+    write_retention_report_placeholder, write_run_manifest, write_stage_plan_json,
+    MetricsEnvelopeV1, RunArtifactInput, RunDirs,
 };
 pub use crate::services::stage_exec::{execute_stage_plan, StagePlan, StageResultV1};
+pub use bijux_core::{
+    EffectiveConfigV1, FactsRowV1, RetentionReportV1, StageReportV1, TelemetryEventV1,
+};
 pub use bijux_environment::api::{PlatformSpec, ResolvedImage, RunnerKind, ToolImageSpec};
 pub use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 

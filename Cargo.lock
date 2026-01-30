@@ -145,6 +145,7 @@ dependencies = [
  "rusqlite",
  "serde",
  "serde_json",
+ "tempfile",
  "thiserror 1.0.69",
  "tracing",
 ]
@@ -172,6 +173,7 @@ dependencies = [
  "serde_yaml",
  "sha2",
  "sysinfo",
+ "tempfile",
  "thiserror 1.0.69",
  "tracing",
  "uuid",

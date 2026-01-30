@@ -13,10 +13,11 @@ use crate::api::{
 };
 use crate::services::run_artifacts::{
     default_trace_ids, params_hash, run_artifacts_dir_for_out, write_facts_jsonl,
-    write_metrics_envelope, write_plan_artifacts, write_retention_report_v1, write_stage_report_v1,
-    write_telemetry_event,
+    write_metrics_envelope, write_observability_manifest, write_plan_artifacts,
+    write_retention_report_v1, write_stage_report_v1, write_telemetry_event,
 };
-use bijux_core::{canonicalize_json_value, StageObservabilityContextV1};
+use bijux_core::run_index::{insert_stage_row, StageIndexRow};
+use bijux_core::{canonicalize_json_value, FactsRowV1, StageObservabilityContextV1};
 
 #[derive(Debug, Clone)]
 pub struct StagePlan {
@@ -81,18 +82,19 @@ pub fn execute_stage_plan(plan: &StagePlan) -> Result<StageResultV1> {
     let canonical_params = canonicalize_json_value(&plan.params);
     let params_hash = params_hash(&canonical_params)?;
     let input_hash = hash_inputs(&plan.inputs)?;
-    let _plan_paths = write_plan_artifacts(
+    let plan_artifacts = write_plan_artifacts(
         &run_artifacts_dir,
         &plan.stage_id,
         plan.stage_version,
         &plan.tool,
+        &plan.tool_version,
         &plan.inputs,
         &plan.outputs,
         &canonical_params,
     )?;
     write_telemetry_event(
         &telemetry_path,
-        &crate::services::run_artifacts::TelemetryEventV1 {
+        &bijux_core::TelemetryEventV1 {
             run_id: run_id.clone(),
             stage_id: plan.stage_id.clone(),
             tool_id: plan.tool.clone(),
@@ -102,12 +104,18 @@ pub fn execute_stage_plan(plan: &StagePlan) -> Result<StageResultV1> {
             status: "ok".to_string(),
             trace_id: trace_id.clone(),
             span_id: span_id.clone(),
-            attrs: serde_json::json!({}),
+            attrs: serde_json::json!({
+                "params_hash": &params_hash,
+                "input_hash": &input_hash,
+                "runner": format!("{:?}", plan.runner),
+                "image": plan.image.full_name.clone(),
+                "tool_version": plan.tool_version.clone(),
+            }),
         },
     )?;
     write_telemetry_event(
         &telemetry_path,
-        &crate::services::run_artifacts::TelemetryEventV1 {
+        &bijux_core::TelemetryEventV1 {
             run_id: run_id.clone(),
             stage_id: plan.stage_id.clone(),
             tool_id: plan.tool.clone(),
@@ -117,7 +125,13 @@ pub fn execute_stage_plan(plan: &StagePlan) -> Result<StageResultV1> {
             status: "ok".to_string(),
             trace_id: trace_id.clone(),
             span_id: span_id.clone(),
-            attrs: serde_json::json!({}),
+            attrs: serde_json::json!({
+                "params_hash": &params_hash,
+                "input_hash": &input_hash,
+                "runner": format!("{:?}", plan.runner),
+                "image": plan.image.full_name.clone(),
+                "tool_version": plan.tool_version.clone(),
+            }),
         },
     )?;
     let start = Instant::now();
@@ -240,8 +254,14 @@ pub fn execute_stage_plan(plan: &StagePlan) -> Result<StageResultV1> {
         &serde_json::json!({}),
         &output_hashes,
     )?;
-    let stage_report_path =
-        write_stage_report_v1(&run_artifacts_dir, &plan.stage_id, &plan.tool, &outputs)?;
+    let stage_report_path = write_stage_report_v1(
+        &run_artifacts_dir,
+        &plan.stage_id,
+        plan.stage_version,
+        &plan.tool,
+        &plan.tool_version,
+        &outputs,
+    )?;
     let retention_report_path = if is_retention_stage(&plan.stage_id) {
         Some(write_retention_report_v1(
             &run_artifacts_dir,
@@ -253,26 +273,60 @@ pub fn execute_stage_plan(plan: &StagePlan) -> Result<StageResultV1> {
     } else {
         None
     };
-    write_facts_jsonl(
-        &run_artifacts_dir.join("dashboard").join("facts.jsonl"),
-        &crate::services::run_artifacts::DashboardFactV1 {
+    let _observability_manifest = write_observability_manifest(
+        &run_artifacts_dir,
+        &plan.stage_id,
+        &plan.tool,
+        &plan_artifacts.plan_path,
+        &plan_artifacts.effective_config_path,
+        &plan_artifacts.stage_config_path,
+        &metrics_envelope_path,
+        &stage_report_path,
+        retention_report_path.as_deref(),
+    )?;
+    let _ = insert_stage_row(
+        &run_artifacts_dir.join("run_index.jsonl"),
+        &StageIndexRow {
             run_id: run_id.clone(),
             stage_id: plan.stage_id.clone(),
             tool_id: plan.tool.clone(),
             params_hash: params_hash.clone(),
+            input_hash: input_hash.clone(),
+            output_hashes: output_hashes.clone(),
+            artifacts: serde_json::json!({
+                "plan": plan_artifacts.plan_path.display().to_string(),
+                "effective_config": plan_artifacts.effective_config_path.display().to_string(),
+                "stage_config": plan_artifacts.stage_config_path.display().to_string(),
+                "metrics_envelope": metrics_envelope_path.display().to_string(),
+                "stage_report": stage_report_path.display().to_string(),
+                "retention_report": retention_report_path.as_ref().map(|path| path.display().to_string()),
+            }),
+        },
+    );
+    write_facts_jsonl(
+        &run_artifacts_dir.join("dashboard").join("facts.jsonl"),
+        &FactsRowV1 {
+            schema_version: "bijux.facts_row.v1".to_string(),
+            run_id: run_id.clone(),
+            stage_id: plan.stage_id.clone(),
+            tool_id: plan.tool.clone(),
+            params_hash: params_hash.clone(),
+            input_hash: input_hash.clone(),
+            output_hashes: output_hashes.clone(),
             runtime_s,
             memory_mb,
+            exit_code: execution.exit_code,
             metrics: serde_json::json!({}),
-            metrics_envelope_path: metrics_envelope_path.display().to_string(),
-            stage_report_path: stage_report_path.display().to_string(),
-            retention_report_path: retention_report_path
-                .as_ref()
-                .map(|path| path.display().to_string()),
+            artifacts: serde_json::json!({
+                "metrics_envelope": metrics_envelope_path.display().to_string(),
+                "stage_report": stage_report_path.display().to_string(),
+                "retention_report": retention_report_path.as_ref().map(|path| path.display().to_string()),
+            }),
         },
     )?;
     write_telemetry_event(
         &telemetry_path,
-        &crate::services::run_artifacts::TelemetryEventV1 {
+        &bijux_core::TelemetryEventV1 {
             run_id: run_id.clone(),
             stage_id: plan.stage_id.clone(),
             tool_id: plan.tool.clone(),
@@ -283,6 +337,11 @@ pub fn execute_stage_plan(plan: &StagePlan) -> Result<StageResultV1> {
             trace_id: trace_id.clone(),
             span_id: span_id.clone(),
             attrs: serde_json::json!({
+                "params_hash": &params_hash,
+                "input_hash": &input_hash,
+                "output_hashes": &output_hashes,
+                "runner": format!("{:?}", plan.runner),
+                "image": plan.image.full_name.clone(),
                 "metrics_envelope": metrics_envelope_path.display().to_string(),
                 "stage_report": stage_report_path.display().to_string(),
                 "retention_report": retention_report_path.as_ref().map(|path| path.display().to_string()),
@@ -299,7 +358,7 @@ pub fn execute_stage_plan(plan: &StagePlan) -> Result<StageResultV1> {
         .context("write engine execution marker")?;
     write_telemetry_event(
         &telemetry_path,
-        &crate::services::run_artifacts::TelemetryEventV1 {
+        &bijux_core::TelemetryEventV1 {
             run_id: run_id.clone(),
             stage_id: plan.stage_id.clone(),
             tool_id: plan.tool.clone(),
@@ -313,12 +372,43 @@ pub fn execute_stage_plan(plan: &StagePlan) -> Result<StageResultV1> {
             },
             trace_id: trace_id.clone(),
             span_id: span_id.clone(),
-            attrs: serde_json::json!({ "exit_code": execution.exit_code }),
+            attrs: serde_json::json!({
+                "exit_code": execution.exit_code,
+                "params_hash": &params_hash,
+                "input_hash": &input_hash,
+                "output_hashes": &output_hashes,
+                "runner": format!("{:?}", plan.runner),
+                "image": plan.image.full_name.clone(),
+            }),
         },
     )?;
+    if execution.exit_code != 0 {
+        write_telemetry_event(
+            &telemetry_path,
+            &bijux_core::TelemetryEventV1 {
+                run_id: run_id.clone(),
+                stage_id: plan.stage_id.clone(),
+                tool_id: plan.tool.clone(),
+                event_name: "error".to_string(),
+                timestamp: Utc::now().to_rfc3339(),
+                duration_ms: None,
+                status: "error".to_string(),
+                trace_id: trace_id.clone(),
+                span_id: span_id.clone(),
+                attrs: serde_json::json!({
+                    "exit_code": execution.exit_code,
+                    "params_hash": &params_hash,
+                    "input_hash": &input_hash,
+                    "output_hashes": &output_hashes,
+                    "runner": format!("{:?}", plan.runner),
+                    "image": plan.image.full_name.clone(),
+                }),
+            },
+        )?;
+    }
     write_telemetry_event(
         &telemetry_path,
-        &crate::services::run_artifacts::TelemetryEventV1 {
+        &bijux_core::TelemetryEventV1 {
             run_id: run_id.clone(),
             stage_id: plan.stage_id.clone(),
             tool_id: plan.tool.clone(),
@@ -332,7 +422,14 @@ pub fn execute_stage_plan(plan: &StagePlan) -> Result<StageResultV1> {
             },
             trace_id: trace_id.clone(),
             span_id: span_id.clone(),
-            attrs: serde_json::json!({ "exit_code": execution.exit_code }),
+            attrs: serde_json::json!({
+                "exit_code": execution.exit_code,
+                "params_hash": &params_hash,
+                "input_hash": &input_hash,
+                "output_hashes": &output_hashes,
+                "runner": format!("{:?}", plan.runner),
+                "image": plan.image.full_name.clone(),
+            }),
         },
     )?;
     Ok(StageResultV1 {

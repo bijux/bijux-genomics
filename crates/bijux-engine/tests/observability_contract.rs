@@ -281,8 +281,33 @@ fn fastq_stages_emit_observability_contracts() -> Result<()> {
         assert!(run_artifacts.join("effective_config.json").exists());
         assert!(run_artifacts.join("metrics_envelope.json").exists());
         assert!(run_artifacts.join("stage_report.json").exists());
-        if is_retention {
+        let stage_config = run_artifacts
+            .join("config")
+            .join(format!("{}.effective.json", stage.id));
+        assert!(stage_config.exists());
+        if stage.affects_read_counts || is_retention {
             assert!(run_artifacts.join("retention_report.json").exists());
+        }
+        let manifest_path = run_artifacts.join("observability_manifest.json");
+        assert!(manifest_path.exists());
+        let manifest_raw = fs::read_to_string(&manifest_path)?;
+        let manifest: serde_json::Value = serde_json::from_str(&manifest_raw)?;
+        let artifacts = manifest["artifacts"]
+            .as_array()
+            .ok_or_else(|| anyhow::anyhow!("manifest artifacts missing"))?;
+        let mut names = std::collections::BTreeSet::new();
+        for artifact in artifacts {
+            if let Some(name) = artifact["name"].as_str() {
+                names.insert(name.to_string());
+            }
+        }
+        assert!(names.contains("plan"));
+        assert!(names.contains("effective_config"));
+        assert!(names.contains("stage_config"));
+        assert!(names.contains("metrics_envelope"));
+        assert!(names.contains("stage_report"));
+        if stage.affects_read_counts {
+            assert!(names.contains("retention_report"));
         }
 
         let envelope_path = run_artifacts.join("metrics_envelope.json");
@@ -303,6 +328,26 @@ fn fastq_stages_emit_observability_contracts() -> Result<()> {
         let expected_hash = params_hash(&canonical_params)?;
         assert_eq!(envelope["params_hash"], expected_hash);
         assert_eq!(envelope["parameters_json"], canonical_params);
+
+        let telemetry_path = run_artifacts.join("telemetry").join("events.jsonl");
+        assert!(telemetry_path.exists());
+        let telemetry_raw = fs::read_to_string(&telemetry_path)?;
+        let mut has_stage_start = false;
+        let mut has_stage_end = false;
+        for line in telemetry_raw.lines() {
+            if line.trim().is_empty() {
+                continue;
+            }
+            let event: bijux_core::TelemetryEventV1 = serde_json::from_str(line)?;
+            if event.event_name == "stage_start" {
+                has_stage_start = true;
+            }
+            if event.event_name == "stage_end" {
+                has_stage_end = true;
+            }
+        }
+        assert!(has_stage_start, "missing stage_start telemetry event");
+        assert!(has_stage_end, "missing stage_end telemetry event");
     }
 
     std::env::set_var("PATH", original_path);

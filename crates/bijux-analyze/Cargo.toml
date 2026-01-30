@@ -13,5 +13,8 @@ tracing.workspace = true
 anyhow.workspace = true
 bijux-core = { path = "../bijux-core" }
 
+[dev-dependencies]
+tempfile.workspace = true
+
 [lints]
 workspace = true
