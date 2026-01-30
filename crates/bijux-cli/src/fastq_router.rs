@@ -5,12 +5,19 @@ use std::path::Path;
 use crate::adapter_bank::{
     adapter_bank_provenance_json, resolve_adapter_selection, resolve_effective_adapters,
 };
+use crate::contaminant_bank::{
+    contaminant_bank_provenance_json, resolve_contaminant_selection, resolve_effective_contaminants,
+};
+use crate::polyx_bank::{
+    polyx_bank_provenance_json, resolve_effective_polyx, resolve_polyx_selection,
+};
 use anyhow::{anyhow, Context, Result};
 use bijux_analyze::BenchmarkRecord;
-use bijux_core::{CommandSpecV1, ContainerImageRefV1, ToolExecutionSpecV1, ToolId};
+use bijux_core::ContainerImageRefV1;
 use bijux_engine::api::StageResultV1;
 use bijux_engine::api::{
-    bench_base_dir, bench_tools_dir, execute_plan, PlatformSpec, RunnerKind, ToolImageSpec,
+    bench_base_dir, bench_tools_dir, build_tool_execution_spec, execute_plan, PlatformSpec,
+    RunnerKind, ToolImageSpec,
 };
 use bijux_engine::api::{ensure_bench_runner, filter_tools_by_role, load_registry};
 use bijux_engine::api::{ensure_image_qa_passed, ensure_tool_qa_passed};
@@ -39,34 +46,6 @@ pub struct BenchOutcome<M: bijux_analyze::StageMetricSchema> {
     pub explain: bool,
 }
 
-fn build_tool_execution_spec<S: ::std::hash::BuildHasher>(
-    stage_id: &str,
-    tool_id: &str,
-    registry: &bijux_core::ToolRegistry,
-    catalog: &HashMap<String, ToolImageSpec, S>,
-    platform: &PlatformSpec,
-) -> Result<ToolExecutionSpecV1> {
-    let manifest = registry
-        .tool_by_id(stage_id, tool_id)
-        .ok_or_else(|| anyhow!("tool {tool_id} missing from manifest for {stage_id}"))?;
-    let spec = catalog
-        .get(tool_id)
-        .ok_or_else(|| anyhow!("tool {tool_id} missing from images.yaml"))?;
-    let image = resolve_image_for_run(spec, platform)?;
-    Ok(ToolExecutionSpecV1 {
-        tool_id: ToolId(tool_id.to_string()),
-        tool_version: spec.version.clone(),
-        image: ContainerImageRefV1 {
-            image: image.full_name,
-            digest: spec.digest.clone(),
-        },
-        command: CommandSpecV1 {
-            template: manifest.command_template.clone(),
-        },
-        resources: manifest.constraints.clone(),
-    })
-}
-
 fn adapter_bank_context(
     adapter_bank_preset: Option<&str>,
     legacy_adapter_bank: Option<&str>,
@@ -80,6 +59,37 @@ fn adapter_bank_context(
     Ok(Some(adapter_bank_provenance_json(
         &selection, &effective, enable, disable,
     )))
+}
+
+fn polyx_bank_context(polyx_preset: Option<&str>) -> Result<Option<serde_json::Value>> {
+    let selection = resolve_polyx_selection(polyx_preset)?;
+    let effective = resolve_effective_polyx(&selection)?;
+    Ok(Some(polyx_bank_provenance_json(&selection, &effective)))
+}
+
+fn contaminant_bank_context(contaminant_preset: Option<&str>) -> Result<Option<serde_json::Value>> {
+    let selection = resolve_contaminant_selection(contaminant_preset)?;
+    let effective = resolve_effective_contaminants(&selection)?;
+    Ok(Some(contaminant_bank_provenance_json(
+        &selection, &effective,
+    )))
+}
+
+fn tool_supports_polyx(tool_id: &str) -> bool {
+    matches!(tool_id, "fastp")
+}
+
+fn polyx_unsupported_warning(
+    tool_id: &str,
+    polyx_bank: Option<&serde_json::Value>,
+    explicit: bool,
+) -> Option<String> {
+    if explicit && polyx_bank.is_some() && !tool_supports_polyx(tool_id) {
+        return Some(format!(
+            "warning: polyx preset requested but tool '{tool_id}' does not advertise polyX support"
+        ));
+    }
+    None
 }
 
 struct StageExecutionSummary {
@@ -131,6 +141,7 @@ fn write_run_summary(
             })
         })
         .collect();
+    let total_runtime_s: f64 = stage_runs.iter().map(|entry| entry.result.runtime_s).sum();
     let failures_json: Vec<serde_json::Value> = failures
         .iter()
         .map(|failure| {
@@ -144,6 +155,7 @@ fn write_run_summary(
     let summary = serde_json::json!({
         "schema_version": "bijux.run_summary.v1",
         "run_id": run_id,
+        "total_runtime_s": total_runtime_s,
         "stages": stages,
         "failures": failures_json
     });
@@ -375,6 +387,8 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
         &args.enable_adapters,
         &args.disable_adapters,
     )?;
+    let polyx_bank = polyx_bank_context(args.polyx_preset.as_deref())?;
+    let contaminant_bank = contaminant_bank_context(args.contaminant_preset.as_deref())?;
 
     let mut failures = Vec::new();
     for tool in &tools {
@@ -382,8 +396,22 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
         fs::create_dir_all(&out_dir).context("create tool output dir")?;
         let tool_spec =
             build_tool_execution_spec("fastq.trim", tool, &registry, catalog, platform)?;
-        let plan = plan(&tool_spec, &args.r1, &out_dir, adapter_bank.as_ref())?;
-        let execution = execute_plan(&plan, platform.runner)?;
+        if let Some(msg) = polyx_unsupported_warning(
+            &tool_spec.tool_id.0,
+            polyx_bank.as_ref(),
+            args.polyx_preset.is_some(),
+        ) {
+            eprintln!("{msg}");
+        }
+        let plan = plan(
+            &tool_spec,
+            &args.r1,
+            &out_dir,
+            adapter_bank.as_ref(),
+            polyx_bank.as_ref(),
+            contaminant_bank.as_ref(),
+        )?;
+        let execution = execute_plan(&plan, platform.runner, None)?;
         if execution.exit_code != 0 {
             failures.push(RawFailure {
                 stage: "fastq.trim".to_string(),
@@ -440,7 +468,7 @@ pub fn bench_fastq_validate_pre<S: ::std::hash::BuildHasher>(
         let tool_spec =
             build_tool_execution_spec("fastq.validate_pre", tool, &registry, catalog, platform)?;
         let plan = plan_validate_pre(&tool_spec, &args.r1, &out_dir);
-        let execution = execute_plan(&plan, platform.runner)?;
+        let execution = execute_plan(&plan, platform.runner, None)?;
         if execution.exit_code != 0 {
             failures.push(RawFailure {
                 stage: "fastq.validate_pre".to_string(),
@@ -497,7 +525,7 @@ pub fn bench_fastq_filter<S: ::std::hash::BuildHasher>(
         let tool_spec =
             build_tool_execution_spec("fastq.filter", tool, &registry, catalog, platform)?;
         let plan = plan_filter(&tool_spec, &args.r1, &out_dir)?;
-        let execution = execute_plan(&plan, platform.runner)?;
+        let execution = execute_plan(&plan, platform.runner, None)?;
         if execution.exit_code != 0 {
             failures.push(RawFailure {
                 stage: "fastq.filter".to_string(),
@@ -553,7 +581,7 @@ pub fn bench_fastq_merge<S: ::std::hash::BuildHasher>(
         let tool_spec =
             build_tool_execution_spec("fastq.merge", tool, &registry, catalog, platform)?;
         let plan = plan_merge(&tool_spec, &args.r1, &args.r2, &out_dir)?;
-        let execution = execute_plan(&plan, platform.runner)?;
+        let execution = execute_plan(&plan, platform.runner, None)?;
         if execution.exit_code != 0 {
             failures.push(RawFailure {
                 stage: "fastq.merge".to_string(),
@@ -610,7 +638,7 @@ pub fn bench_fastq_screen<S: ::std::hash::BuildHasher>(
         let tool_spec =
             build_tool_execution_spec("fastq.screen", tool, &registry, catalog, platform)?;
         let plan = plan_screen(&tool_spec, &args.r1, &out_dir)?;
-        let execution = execute_plan(&plan, platform.runner)?;
+        let execution = execute_plan(&plan, platform.runner, None)?;
         if execution.exit_code != 0 {
             failures.push(RawFailure {
                 stage: "fastq.screen".to_string(),
@@ -670,7 +698,7 @@ pub fn bench_fastq_umi<S: ::std::hash::BuildHasher>(
         fs::create_dir_all(&out_dir).context("create tool output dir")?;
         let tool_spec = build_tool_execution_spec("fastq.umi", tool, &registry, catalog, platform)?;
         let plan = plan_umi(&tool_spec, &args.r1, r2, &out_dir)?;
-        let execution = execute_plan(&plan, platform.runner)?;
+        let execution = execute_plan(&plan, platform.runner, None)?;
         if execution.exit_code != 0 {
             failures.push(RawFailure {
                 stage: "fastq.umi".to_string(),
@@ -730,7 +758,7 @@ pub fn bench_fastq_correct<S: ::std::hash::BuildHasher>(
         let tool_spec =
             build_tool_execution_spec("fastq.correct", tool, &registry, catalog, platform)?;
         let plan = plan_correct(&tool_spec, &args.r1, r2, &out_dir)?;
-        let execution = execute_plan(&plan, platform.runner)?;
+        let execution = execute_plan(&plan, platform.runner, None)?;
         if execution.exit_code != 0 {
             failures.push(RawFailure {
                 stage: "fastq.correct".to_string(),
@@ -803,7 +831,7 @@ pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
             }
         }
         let plan = plan_qc_post(&tool_spec, &args.r1, &out_dir, aux_images)?;
-        let execution = execute_plan(&plan, platform.runner)?;
+        let execution = execute_plan(&plan, platform.runner, None)?;
         if execution.exit_code != 0 {
             failures.push(RawFailure {
                 stage: "fastq.qc_post".to_string(),
@@ -838,6 +866,7 @@ pub fn bench_fastq_preprocess<S: ::std::hash::BuildHasher>(
 ///
 /// # Errors
 /// Returns an error if planning or execution fails.
+#[allow(clippy::too_many_lines)]
 pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
@@ -869,12 +898,30 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     let tools_root = bench_tools_dir(&args.out, "preprocess", &args.sample_id);
     fs::create_dir_all(&tools_root).context("create preprocess tools dir")?;
 
+    let adapter_bank = adapter_bank_context(
+        args.adapter_bank_preset.as_deref(),
+        args.adapter_bank.as_deref(),
+        args.adapter_bank_file.as_deref(),
+        &args.enable_adapters,
+        &args.disable_adapters,
+    )?;
+    let polyx_bank = polyx_bank_context(args.polyx_preset.as_deref())?;
+    let contaminant_bank = contaminant_bank_context(args.contaminant_preset.as_deref())?;
+
     let mut failures = Vec::new();
     let mut tool_specs = Vec::new();
     for (stage, tool) in pipeline.stages.iter().zip(selected_tools.iter()) {
-        tool_specs.push(build_tool_execution_spec(
-            stage, tool, &registry, catalog, platform,
-        )?);
+        let spec = build_tool_execution_spec(stage, tool, &registry, catalog, platform)?;
+        if stage == "fastq.trim" {
+            if let Some(msg) = polyx_unsupported_warning(
+                &spec.tool_id.0,
+                polyx_bank.as_ref(),
+                args.polyx_preset.is_some(),
+            ) {
+                eprintln!("{msg}");
+            }
+        }
+        tool_specs.push(spec);
     }
     let mut aux_tools = std::collections::BTreeMap::new();
     for aux_tool in bijux_stages_fastq::fastq::qc_post::aux_tool_ids() {
@@ -890,18 +937,13 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
             },
         );
     }
-    let adapter_bank = adapter_bank_context(
-        args.adapter_bank_preset.as_deref(),
-        args.adapter_bank.as_deref(),
-        args.adapter_bank_file.as_deref(),
-        &args.enable_adapters,
-        &args.disable_adapters,
-    )?;
     let planned_stages = plan_preprocess_pipeline(
         &pipeline.stages,
         &tool_specs,
         &aux_tools,
         adapter_bank.as_ref(),
+        polyx_bank.as_ref(),
+        contaminant_bank.as_ref(),
         &args.r1,
         args.r2.as_deref(),
         |stage, tool, _r1, _r2| {
@@ -913,11 +955,23 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         },
     )?;
 
+    let telemetry = bijux_engine::api::build_telemetry_adapter();
+    let mut pipeline_attrs = std::collections::BTreeMap::new();
+    pipeline_attrs.insert("sample_id".to_string(), args.sample_id.clone());
+    pipeline_attrs.insert("pipeline".to_string(), "fastq.preprocess".to_string());
+    let pipeline_span = telemetry.start_pipeline("fastq.preprocess", &pipeline_attrs);
+
     let mut stage_runs = Vec::new();
     for planned in planned_stages {
         let stage_id = planned.stage_id.0.clone();
         let tool = planned.tool_id.0.clone();
-        let execution = execute_plan(&planned, platform.runner)?;
+        let mut stage_attrs = std::collections::BTreeMap::new();
+        stage_attrs.insert("stage".to_string(), stage_id.clone());
+        stage_attrs.insert("tool".to_string(), tool.clone());
+        let stage_span = telemetry.start_stage(&stage_id, &stage_attrs);
+        let execution = execute_plan(&planned, platform.runner, None);
+        stage_span.end();
+        let execution = execution?;
         if execution.exit_code != 0 {
             failures.push(RawFailure {
                 stage: stage_id,
@@ -930,6 +984,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
             result: execution,
         });
     }
+    pipeline_span.end();
 
     write_run_summary(&args.out, &stage_runs, &failures)?;
     if !failures.is_empty() {
@@ -1022,4 +1077,25 @@ pub fn bench_fastq_stats_neutral<S: ::std::hash::BuildHasher>(
     args: &bijux_stages_fastq::args::BenchFastqStatsArgs,
 ) -> Result<BenchOutcome<bijux_analyze::FastqStatsMetrics>> {
     crate::fastq_stats_neutral::bench_fastq_stats_neutral(catalog, platform, runner_override, args)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::polyx_unsupported_warning;
+
+    #[test]
+    fn polyx_warning_emits_for_unsupported_tools() {
+        let polyx_bank = serde_json::json!({
+            "bank_id": "polyx.default",
+            "preset": "illumina_twocolor",
+        });
+        let warning = polyx_unsupported_warning("cutadapt", Some(&polyx_bank), true);
+        assert!(warning.is_some());
+        let warning = polyx_unsupported_warning("fastp", Some(&polyx_bank), true);
+        assert!(warning.is_none());
+        let warning = polyx_unsupported_warning("cutadapt", None, true);
+        assert!(warning.is_none());
+        let warning = polyx_unsupported_warning("cutadapt", Some(&polyx_bank), false);
+        assert!(warning.is_none());
+    }
 }

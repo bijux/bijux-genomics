@@ -12,6 +12,8 @@ pub struct BenchFastqTrimArgs {
     pub adapter_bank_file: Option<PathBuf>,
     pub enable_adapters: Vec<String>,
     pub disable_adapters: Vec<String>,
+    pub polyx_preset: Option<String>,
+    pub contaminant_preset: Option<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -106,4 +108,6 @@ pub struct BenchFastqPreprocessArgs {
     pub adapter_bank_file: Option<PathBuf>,
     pub enable_adapters: Vec<String>,
     pub disable_adapters: Vec<String>,
+    pub polyx_preset: Option<String>,
+    pub contaminant_preset: Option<String>,
 }

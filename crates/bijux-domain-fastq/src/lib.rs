@@ -11,18 +11,26 @@
 // Structural layout of this crate is frozen as of FASTQ v1.
 mod adapter;
 mod adapter_bank;
+mod contaminant_bank;
 mod contract;
 mod contracts;
 mod domain;
 mod invariants;
 mod metrics;
 mod pipeline;
+mod polyx_bank;
 mod stages;
 
 pub use adapter_bank::{
     adapter_bank_path, adapter_categories, adapter_presets_path, adapters_by_category,
     load_adapter_bank, load_adapter_presets, resolve_adapter_preset, AdapterBankV1, AdapterEntryV1,
     AdapterPresetV1, AdapterPresetsV1, EffectiveAdapterSet, ReadScope,
+};
+pub use contaminant_bank::{
+    contaminant_motifs_path, contaminant_presets_path, contaminant_references_dir,
+    load_contaminant_motifs, load_contaminant_presets, resolve_contaminant_preset,
+    ContaminantMotifBankV1, ContaminantMotifEntryV1, ContaminantPresetV1, ContaminantPresetsV1,
+    ContaminantReferenceSpecV1, EffectiveContaminantSet,
 };
 pub use contract::{
     contract_for_stage as canonical_contract_for_stage, FastqStage, StageContract, StageIO,
@@ -47,4 +55,8 @@ pub use pipeline::{
     RunLayout, RunManifest, RunStageEntry, ToolImageDigest,
 };
 pub use pipeline::{assess_input_dir, discover_fastq_files};
+pub use polyx_bank::{
+    load_polyx_bank, load_polyx_presets, polyx_bank_path, polyx_presets_path, resolve_polyx_preset,
+    EffectivePolyxSet, PolyxBankV1, PolyxEntryV1, PolyxPresetV1, PolyxPresetsV1,
+};
 pub use stages::args;

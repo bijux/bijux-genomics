@@ -1,6 +1,9 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{metrics::AdapterBankProvenanceV1, ToolConstraints};
+use crate::{
+    metrics::{AdapterBankProvenanceV1, MetricContextV1},
+    ToolConstraints,
+};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -19,6 +22,7 @@ pub struct StageObservabilityContextV1 {
     pub input_hash: String,
     pub params_hash: String,
     pub parameters_json: serde_json::Value,
+    pub metric_context: MetricContextV1,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -35,6 +39,8 @@ pub struct EffectiveConfigV1 {
     pub parameters_json: serde_json::Value,
     #[serde(default)]
     pub adapter_bank: Option<AdapterBankProvenanceV1>,
+    #[serde(default)]
+    pub banks: Option<serde_json::Value>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -47,6 +53,8 @@ pub struct StageReportV1 {
     pub tool_version: String,
     pub metrics_path: String,
     pub effective_config_path: String,
+    #[serde(default)]
+    pub effective_config_hash: Option<String>,
     pub facts_row_id: Option<String>,
     pub summary: serde_json::Value,
     pub warnings: Vec<String>,
@@ -69,6 +77,8 @@ pub struct RetentionReportV1 {
     pub scope: String,
     pub condition: serde_json::Value,
     pub parameters_json: serde_json::Value,
+    #[serde(default)]
+    pub retention: Option<crate::metrics::RetentionReportMetricV1>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

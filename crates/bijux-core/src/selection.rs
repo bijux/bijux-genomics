@@ -227,5 +227,9 @@ fn median(values: &[f64]) -> Option<f64> {
 
 fn read_retention(record: &BenchResultRecord) -> Option<f64> {
     let metrics = record.metrics.as_ref()?;
-    metrics.get("retention").and_then(serde_json::Value::as_f64)
+    let retention = metrics.get("retention")?;
+    retention
+        .get("value")
+        .and_then(serde_json::Value::as_f64)
+        .or_else(|| retention.as_f64())
 }

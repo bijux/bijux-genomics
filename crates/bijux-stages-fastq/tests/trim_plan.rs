@@ -46,6 +46,8 @@ fn plan_trim_builds_expected_paths() -> Result<()> {
         std::path::Path::new("reads.fastq.gz"),
         std::path::Path::new("out"),
         None,
+        None,
+        None,
     )?;
     assert_eq!(
         plan.io.outputs[0].path.to_string_lossy(),
@@ -60,6 +62,8 @@ fn plan_trim_rejects_unknown_tool() {
         &dummy_tool("mystery"),
         std::path::Path::new("reads.fastq.gz"),
         std::path::Path::new("out"),
+        None,
+        None,
         None,
     ) {
         Ok(_) => panic!("expected unsupported trim tool"),

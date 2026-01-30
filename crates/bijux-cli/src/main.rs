@@ -12,10 +12,12 @@ use tracing::{info, warn};
 
 mod adapter_bank;
 mod cli;
+mod contaminant_bank;
 mod env;
 mod fastq_exec;
 mod fastq_router;
 mod fastq_stats_neutral;
+mod polyx_bank;
 mod replay;
 mod utils;
 
@@ -597,6 +599,8 @@ fn explain_fastq_stage(registry: &bijux_core::ToolRegistry, stage_id: &str) -> R
             adapter_bank_file: None,
             enable_adapters: Vec::new(),
             disable_adapters: Vec::new(),
+            polyx_preset: None,
+            contaminant_preset: None,
         };
         let plan = crate::fastq_exec::fastq_preprocess_plan(&args);
         println!("stage: {stage_id}");
