@@ -7,7 +7,7 @@ use bijux_core::{
     parameters_json_canonicalization, CommandSpecV1, ContainerImageRefV1, ToolConstraints,
     ToolExecutionSpecV1, ToolId,
 };
-use bijux_engine::api::{execute_plan, params_hash, StagePlan};
+use bijux_engine::api::{execute_plan, params_hash, StagePlanV1};
 use bijux_environment::api::RunnerKind;
 use bijux_stages_fastq::fastq::{
     correct, filter, merge, qc_post, screen, stats_neutral, trim, umi, validate_pre,
@@ -137,9 +137,28 @@ fn build_plan(
     r2: &Path,
     out_dir: &Path,
     image: &ContainerImageRefV1,
-) -> Result<(StagePlan, Vec<PathBuf>, bool)> {
+) -> Result<(StagePlanV1, Vec<PathBuf>, bool)> {
     let plan = match stage_id {
-        "fastq.trim" => trim::plan(&dummy_tool("fastp", image), r1, out_dir, None)?,
+        "fastq.trim" => {
+            let adapter_bank = serde_json::json!({
+                "bank_id": "bank",
+                "bank_version": "1",
+                "bank_hash": "hash",
+                "presets_hash": "preset_hashes",
+                "preset": "ancientdna-illumina",
+                "preset_hash": "preset_hash",
+                "enabled_categories": ["truseq"],
+                "disabled_categories": ["custom"],
+                "enable_adapters": [],
+                "disable_adapters": [],
+            });
+            trim::plan(
+                &dummy_tool("fastp", image),
+                r1,
+                out_dir,
+                Some(&adapter_bank),
+            )?
+        }
         "fastq.filter" => filter::plan_filter(&dummy_tool("fastp", image), r1, out_dir)?,
         "fastq.validate_pre" => {
             validate_pre::plan(&dummy_tool("fastqvalidator_official", image), r1, out_dir)
@@ -233,6 +252,26 @@ fn fastq_stages_emit_observability_contracts() -> Result<()> {
             .join("config")
             .join(format!("{}.effective.json", stage.id));
         assert!(stage_config.exists());
+        let effective_config_path = run_artifacts.join("effective_config.json");
+        assert!(effective_config_path.exists());
+        let effective_config_raw = fs::read_to_string(&effective_config_path)?;
+        let effective_config: serde_json::Value = serde_json::from_str(&effective_config_raw)?;
+        assert_eq!(effective_config["stage_id"], stage.id);
+        assert_eq!(
+            effective_config["tool_id"],
+            serde_json::Value::from(exec_plan.tool_id.0.clone())
+        );
+        assert_eq!(
+            effective_config["tool_version"],
+            serde_json::Value::from(exec_plan.tool_version.clone())
+        );
+        assert!(effective_config.get("image_digest").is_some());
+        assert!(effective_config.get("runner").is_some());
+        assert!(effective_config.get("resources").is_some());
+        assert!(effective_config.get("parameters_json").is_some());
+        if stage.id == "fastq.trim" {
+            assert!(effective_config.get("adapter_bank").is_some());
+        }
         if stage.affects_read_counts || is_retention {
             let retention_path = run_artifacts
                 .join("reports")
@@ -263,6 +302,17 @@ fn fastq_stages_emit_observability_contracts() -> Result<()> {
             assert!(names.contains("retention_report"));
         }
 
+        let report_path = run_artifacts.join("stage_report.json");
+        let report_raw = fs::read_to_string(&report_path)?;
+        let report: serde_json::Value = serde_json::from_str(&report_raw)?;
+        assert!(report.get("metrics_path").is_some());
+        assert!(report.get("effective_config_path").is_some());
+        assert!(report.get("facts_row_id").is_some());
+        let report_metrics_path = report["metrics_path"]
+            .as_str()
+            .ok_or_else(|| anyhow::anyhow!("report metrics_path missing"))?;
+        assert!(Path::new(report_metrics_path).exists());
+
         let envelope_path = run_artifacts.join("metrics_envelope.json");
         let envelope_raw = fs::read_to_string(&envelope_path).context("read metrics envelope")?;
         let envelope: serde_json::Value = serde_json::from_str(&envelope_raw)?;
@@ -287,20 +337,32 @@ fn fastq_stages_emit_observability_contracts() -> Result<()> {
         let telemetry_raw = fs::read_to_string(&telemetry_path)?;
         let mut has_stage_start = false;
         let mut has_stage_end = false;
+        let mut has_tool_start = false;
+        let mut has_tool_end = false;
         for line in telemetry_raw.lines() {
             if line.trim().is_empty() {
                 continue;
             }
             let event: bijux_core::TelemetryEventV1 = serde_json::from_str(line)?;
+            assert!(!event.trace_id.is_empty());
+            assert!(!event.span_id.is_empty());
             if event.event_name == "stage_start" {
                 has_stage_start = true;
             }
             if event.event_name == "stage_end" {
                 has_stage_end = true;
             }
+            if event.event_name == "tool_start" {
+                has_tool_start = true;
+            }
+            if event.event_name == "tool_end" {
+                has_tool_end = true;
+            }
         }
         assert!(has_stage_start, "missing stage_start telemetry event");
         assert!(has_stage_end, "missing stage_end telemetry event");
+        assert!(has_tool_start, "missing tool_start telemetry event");
+        assert!(has_tool_end, "missing tool_end telemetry event");
 
         let invocation_raw = fs::read_to_string(&invocation_path)?;
         let invocation: bijux_core::ToolInvocationV1 = serde_json::from_str(&invocation_raw)?;

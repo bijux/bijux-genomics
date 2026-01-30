@@ -11,12 +11,12 @@ fn params_hash(params: &serde_json::Value) -> Result<String> {
 #[test]
 fn disabling_adapter_changes_params_hash() -> Result<()> {
     let base = serde_json::json!({
-        "adapter_bank": "preset:best_practice_adna",
+        "adapter_bank": "preset:ancientdna-illumina",
         "enable_adapters": [],
         "disable_adapters": []
     });
     let disabled = serde_json::json!({
-        "adapter_bank": "preset:best_practice_adna",
+        "adapter_bank": "preset:ancientdna-illumina",
         "enable_adapters": [],
         "disable_adapters": ["truseq_universal"]
     });
@@ -29,12 +29,12 @@ fn disabling_adapter_changes_params_hash() -> Result<()> {
 #[test]
 fn ssdna_preset_changes_params_hash() -> Result<()> {
     let base = serde_json::json!({
-        "adapter_bank": "preset:best_practice_adna",
+        "adapter_bank": "preset:ancientdna-illumina",
         "enable_adapters": [],
         "disable_adapters": []
     });
     let ssdna = serde_json::json!({
-        "adapter_bank": "preset:ssdna",
+        "adapter_bank": "preset:ssdna-splint",
         "enable_adapters": [],
         "disable_adapters": []
     });
@@ -60,7 +60,7 @@ fn default_adapter_preset_writes_effective_adapters() -> Result<()> {
     let effective = bijux_stages_fastq::resolve_adapter_preset(
         &bank,
         &presets,
-        "best_practice_adna",
+        "ancientdna-illumina",
         &[],
         &[],
     )?;

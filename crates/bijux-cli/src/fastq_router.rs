@@ -14,7 +14,7 @@ use bijux_engine::api::{
 };
 use bijux_engine::api::{ensure_bench_runner, filter_tools_by_role, load_registry};
 use bijux_engine::api::{ensure_image_qa_passed, ensure_tool_qa_passed};
-use bijux_engine::api::{resolve_image_for_run, ExplainExclusion, ExplainPlan};
+use bijux_engine::api::{hash_file_sha256, resolve_image_for_run, ExplainExclusion, ExplainPlan};
 use bijux_stages_fastq::fastq::correct::{normalize_correct_tool_list, plan_correct};
 use bijux_stages_fastq::fastq::filter::{normalize_filter_tool_list, plan_filter};
 use bijux_stages_fastq::fastq::merge::{normalize_merge_tool_list, plan_merge};
@@ -68,20 +68,22 @@ fn build_tool_execution_spec<S: ::std::hash::BuildHasher>(
 }
 
 fn adapter_bank_context(
-    adapter_bank: Option<&str>,
+    adapter_bank_preset: Option<&str>,
+    legacy_adapter_bank: Option<&str>,
     adapter_bank_file: Option<&Path>,
     enable: &[String],
     disable: &[String],
 ) -> Result<Option<serde_json::Value>> {
-    let selection = resolve_adapter_selection(adapter_bank, adapter_bank_file)?;
-    let _ = resolve_effective_adapters(&selection, enable, disable)?;
+    let selection =
+        resolve_adapter_selection(adapter_bank_preset, legacy_adapter_bank, adapter_bank_file)?;
+    let effective = resolve_effective_adapters(&selection, enable, disable)?;
     Ok(Some(adapter_bank_provenance_json(
-        &selection, enable, disable,
+        &selection, &effective, enable, disable,
     )))
 }
 
 struct StageExecutionSummary {
-    plan: bijux_core::StagePlan,
+    plan: bijux_core::StagePlanV1,
     result: StageResultV1,
 }
 
@@ -129,7 +131,7 @@ fn write_run_summary(
             })
         })
         .collect();
-    let failures: Vec<serde_json::Value> = failures
+    let failures_json: Vec<serde_json::Value> = failures
         .iter()
         .map(|failure| {
             serde_json::json!({
@@ -143,7 +145,7 @@ fn write_run_summary(
         "schema_version": "bijux.run_summary.v1",
         "run_id": run_id,
         "stages": stages,
-        "failures": failures
+        "failures": failures_json
     });
     let summary_path = root.join("run_summary.json");
     fs::write(&summary_path, serde_json::to_vec_pretty(&summary)?)
@@ -151,6 +153,92 @@ fn write_run_summary(
     let html_path = root.join("run_summary.html");
     let html = render_run_summary_html(&summary);
     fs::write(&html_path, html).context("write run_summary.html")?;
+    write_run_manifest(out_dir, stage_runs, failures)?;
+    Ok(())
+}
+
+fn write_run_manifest(
+    out_dir: &Path,
+    stage_runs: &[StageExecutionSummary],
+    failures: &[RawFailure],
+) -> Result<()> {
+    let run_id = stage_runs
+        .first()
+        .map(|entry| entry.result.run_id.clone())
+        .unwrap_or_default();
+    let stages: Vec<serde_json::Value> = stage_runs
+        .iter()
+        .map(|entry| {
+            let artifacts_dir = entry.plan.out_dir.join("run_artifacts");
+            let mut artifacts = Vec::new();
+            let add_artifact = |artifacts: &mut Vec<serde_json::Value>, name: &str, path: &Path| {
+                if path.exists() {
+                    if let Ok(hash) = hash_file_sha256(path) {
+                        artifacts.push(serde_json::json!({
+                            "name": name,
+                            "path": path,
+                            "sha256": hash,
+                        }));
+                    }
+                }
+            };
+            add_artifact(
+                &mut artifacts,
+                "metrics_envelope",
+                &artifacts_dir.join("metrics_envelope.json"),
+            );
+            add_artifact(
+                &mut artifacts,
+                "metrics",
+                &artifacts_dir.join("metrics.json"),
+            );
+            add_artifact(
+                &mut artifacts,
+                "stage_metrics",
+                &artifacts_dir.join("stage_metrics.json"),
+            );
+            add_artifact(
+                &mut artifacts,
+                "stage_report",
+                &artifacts_dir.join("stage_report.json"),
+            );
+            add_artifact(
+                &mut artifacts,
+                "effective_config",
+                &artifacts_dir.join("effective_config.json"),
+            );
+            add_artifact(
+                &mut artifacts,
+                "retention_report",
+                &artifacts_dir
+                    .join("reports")
+                    .join(format!("{}.retention.json", entry.plan.stage_id.0)),
+            );
+            serde_json::json!({
+                "stage_id": entry.plan.stage_id.0,
+                "tool_id": entry.plan.tool_id.0,
+                "artifacts": artifacts,
+            })
+        })
+        .collect();
+    let failures_json: Vec<serde_json::Value> = failures
+        .iter()
+        .map(|failure| {
+            serde_json::json!({
+                "stage": failure.stage,
+                "tool": failure.tool,
+                "reason": failure.reason
+            })
+        })
+        .collect();
+    let manifest = serde_json::json!({
+        "schema_version": "bijux.run_manifest.v1",
+        "run_id": run_id,
+        "stages": stages,
+        "failures": failures_json
+    });
+    let path = out_dir.join("run_manifest.json");
+    fs::write(&path, serde_json::to_vec_pretty(&manifest)?).context("write run_manifest.json")?;
     Ok(())
 }
 
@@ -281,6 +369,7 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
     ensure_tool_qa_passed("fastq.trim", &tools, platform, catalog)?;
 
     let adapter_bank = adapter_bank_context(
+        args.adapter_bank_preset.as_deref(),
         args.adapter_bank.as_deref(),
         args.adapter_bank_file.as_deref(),
         &args.enable_adapters,
@@ -802,6 +891,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         );
     }
     let adapter_bank = adapter_bank_context(
+        args.adapter_bank_preset.as_deref(),
         args.adapter_bank.as_deref(),
         args.adapter_bank_file.as_deref(),
         &args.enable_adapters,
@@ -886,7 +976,7 @@ fn select_preprocess_tools(
             .bench_corpus
             .ok_or_else(|| anyhow!("--bench-corpus is required with --auto"))?;
         let corpus = bench_corpus(corpus_id);
-        let objective = bijux_analyze::selection::objective_spec(args.objective);
+        let objective = bijux_core::selection::objective_spec(args.objective);
         let mut selections = Vec::new();
         for stage in &pipeline.stages {
             let tool_ids: Vec<String> = registry
@@ -899,7 +989,7 @@ fn select_preprocess_tools(
                 let records = bijux_stages_fastq::get_results(stage, tool, &corpus, &args.out)?;
                 tool_records.push((tool.clone(), records));
             }
-            let selection = bijux_analyze::selection::select_stage(
+            let selection = bijux_core::selection::select_stage(
                 stage,
                 &tool_records,
                 &objective,

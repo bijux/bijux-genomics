@@ -4,7 +4,7 @@ pub mod artifacts;
 pub mod fastq;
 mod plan;
 
-pub use bijux_core::{ArtifactRef, StageIO, StagePlan};
+pub use bijux_core::{ArtifactRef, StageIO, StagePlanV1};
 pub use plan::StagePlanJson;
 
 pub use bijux_domain_fastq as domain_fastq;

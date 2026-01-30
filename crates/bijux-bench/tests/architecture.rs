@@ -37,6 +37,6 @@ fn assert_no_imports(dir: &str, forbidden: &[&str]) {
 fn bench_does_not_import_selection_or_reports() {
     assert_no_imports(
         "crates/bijux-bench/src",
-        &["bijux_analyze::selection", "bijux_analyze::report"],
+        &["bijux_core::selection", "bijux_analyze::report"],
     );
 }

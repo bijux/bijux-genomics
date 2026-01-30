@@ -1,4 +1,4 @@
-use bijux_core::{StageIO, StagePlan};
+use bijux_core::{StageIO, StagePlanV1};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -10,7 +10,7 @@ pub struct StagePlanJson {
 }
 
 impl StagePlanJson {
-    pub fn from_plan(plan: &StagePlan) -> Self {
+    pub fn from_plan(plan: &StagePlanV1) -> Self {
         let stage_id = plan.stage_id.0.clone();
         let stage_version = plan.stage_version.0.to_string();
         Self {

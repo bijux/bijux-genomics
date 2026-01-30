@@ -91,6 +91,7 @@ pub enum EnvCommand {
 }
 
 #[derive(Debug, Subcommand)]
+#[allow(clippy::large_enum_variant)]
 pub enum BenchCommand {
     Fastq {
         #[command(subcommand)]
@@ -128,9 +129,11 @@ pub struct BenchFastqTrimArgs {
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
+    #[arg(long, help = "Adapter bank preset name (default: ancientdna-illumina)")]
+    pub adapter_bank_preset: Option<String>,
     #[arg(
         long,
-        help = "Adapter bank selection: preset:<name> (default: preset:best_practice_adna)"
+        help = "Adapter bank selection: preset:<name> (deprecated; use --adapter-bank-preset)"
     )]
     pub adapter_bank: Option<String>,
     #[arg(long, help = "Adapter bank file (yaml/json)")]
@@ -273,9 +276,11 @@ pub struct BenchFastqPreprocessArgs {
     pub out: PathBuf,
     #[arg(long)]
     pub strict: bool,
+    #[arg(long, help = "Adapter bank preset name (default: ancientdna-illumina)")]
+    pub adapter_bank_preset: Option<String>,
     #[arg(
         long,
-        help = "Adapter bank selection: preset:<name> (default: preset:best_practice_adna)"
+        help = "Adapter bank selection: preset:<name> (deprecated; use --adapter-bank-preset)"
     )]
     pub adapter_bank: Option<String>,
     #[arg(long, help = "Adapter bank file (yaml/json)")]
@@ -306,13 +311,13 @@ impl ObjectiveArg {
     }
 }
 
-impl From<ObjectiveArg> for bijux_analyze::selection::Objective {
+impl From<ObjectiveArg> for bijux_core::selection::Objective {
     fn from(value: ObjectiveArg) -> Self {
         match value {
-            ObjectiveArg::Speed => bijux_analyze::selection::Objective::Speed,
-            ObjectiveArg::Memory => bijux_analyze::selection::Objective::Memory,
-            ObjectiveArg::Retention => bijux_analyze::selection::Objective::Retention,
-            ObjectiveArg::Balanced => bijux_analyze::selection::Objective::Balanced,
+            ObjectiveArg::Speed => bijux_core::selection::Objective::Speed,
+            ObjectiveArg::Memory => bijux_core::selection::Objective::Memory,
+            ObjectiveArg::Retention => bijux_core::selection::Objective::Retention,
+            ObjectiveArg::Balanced => bijux_core::selection::Objective::Balanced,
         }
     }
 }
@@ -368,9 +373,11 @@ pub struct FastqPreprocessArgs {
     pub bench_corpus: Option<BenchCorpusArg>,
     #[arg(long)]
     pub allow_partial: bool,
+    #[arg(long, help = "Adapter bank preset name (default: ancientdna-illumina)")]
+    pub adapter_bank_preset: Option<String>,
     #[arg(
         long,
-        help = "Adapter bank selection: preset:<name> (default: preset:best_practice_adna)"
+        help = "Adapter bank selection: preset:<name> (deprecated; use --adapter-bank-preset)"
     )]
     pub adapter_bank: Option<String>,
     #[arg(long, help = "Adapter bank file (yaml/json)")]
@@ -493,9 +500,11 @@ pub struct FastqTrimArgs {
     pub out: Option<PathBuf>,
     #[arg(long, value_delimiter = ',')]
     pub tools: Vec<String>,
+    #[arg(long, help = "Adapter bank preset name (default: ancientdna-illumina)")]
+    pub adapter_bank_preset: Option<String>,
     #[arg(
         long,
-        help = "Adapter bank selection: preset:<name> (default: preset:best_practice_adna)"
+        help = "Adapter bank selection: preset:<name> (deprecated; use --adapter-bank-preset)"
     )]
     pub adapter_bank: Option<String>,
     #[arg(long, help = "Adapter bank file (yaml/json)")]
@@ -603,6 +612,7 @@ pub fn bench_args_from_trim(args: &FastqTrimArgs) -> Result<engine_args::BenchFa
             .ok_or_else(|| anyhow!("out required for benchmark"))?,
         tools: args.tools.clone(),
         explain: false,
+        adapter_bank_preset: args.adapter_bank_preset.clone(),
         adapter_bank: args.adapter_bank.clone(),
         adapter_bank_file: args.adapter_bank_file.clone(),
         enable_adapters: args.enable_adapter.clone(),
@@ -647,6 +657,7 @@ pub fn bench_args_trim(args: &BenchFastqTrimArgs) -> engine_args::BenchFastqTrim
         out: args.out.clone(),
         tools: args.tools.clone(),
         explain: args.explain,
+        adapter_bank_preset: args.adapter_bank_preset.clone(),
         adapter_bank: args.adapter_bank.clone(),
         adapter_bank_file: args.adapter_bank_file.clone(),
         enable_adapters: args.enable_adapter.clone(),
@@ -757,9 +768,10 @@ pub fn bench_args_preprocess(
         out: args.out.clone(),
         strict: args.strict,
         auto: false,
-        objective: bijux_analyze::selection::Objective::Balanced,
+        objective: bijux_core::selection::Objective::Balanced,
         bench_corpus: None,
         allow_partial: false,
+        adapter_bank_preset: args.adapter_bank_preset.clone(),
         adapter_bank: args.adapter_bank.clone(),
         adapter_bank_file: args.adapter_bank_file.clone(),
         enable_adapters: args.enable_adapter.clone(),
@@ -794,6 +806,7 @@ pub fn preprocess_args_from_cli(
         objective: args.objective.into(),
         bench_corpus: args.bench_corpus.map(Into::into),
         allow_partial: args.allow_partial,
+        adapter_bank_preset: args.adapter_bank_preset.clone(),
         adapter_bank: args.adapter_bank.clone(),
         adapter_bank_file: args.adapter_bank_file.clone(),
         enable_adapters: args.enable_adapter.clone(),

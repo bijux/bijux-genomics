@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use anyhow::{anyhow, Result};
-use bijux_core::{ArtifactRef, StageIO, StageId, StagePlan, StageVersion, ToolExecutionSpecV1};
+use bijux_core::{ArtifactRef, StageIO, StageId, StagePlanV1, StageVersion, ToolExecutionSpecV1};
 
 pub const STAGE_ID: &str = "fastq.merge";
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
@@ -20,11 +20,11 @@ pub fn plan_merge(
     r1: &Path,
     r2: &Path,
     out_dir: &Path,
-) -> Result<StagePlan> {
+) -> Result<StagePlanV1> {
     let output_name =
         merge_output_name(&tool.tool_id.0).ok_or_else(|| anyhow!("unsupported merge tool"))?;
     let output = out_dir.join(output_name);
-    Ok(StagePlan {
+    Ok(StagePlanV1 {
         stage_id: StageId(STAGE_ID.to_string()),
         stage_version: STAGE_VERSION,
         tool_id: tool.tool_id.clone(),

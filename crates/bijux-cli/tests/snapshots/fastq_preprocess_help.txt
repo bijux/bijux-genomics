@@ -31,8 +31,10 @@ Options:
           [possible values: fastq_5set]
       --allow-partial
           
+      --adapter-bank-preset <ADAPTER_BANK_PRESET>
+          Adapter bank preset name (default: ancientdna-illumina)
       --adapter-bank <ADAPTER_BANK>
-          Adapter bank selection: preset:<name> (default: preset:best_practice_adna)
+          Adapter bank selection: preset:<name> (deprecated; use --adapter-bank-preset)
       --adapter-bank-file <ADAPTER_BANK_FILE>
           Adapter bank file (yaml/json)
       --enable-adapter <ENABLE_ADAPTER>

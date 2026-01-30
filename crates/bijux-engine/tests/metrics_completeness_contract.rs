@@ -131,7 +131,7 @@ fn build_plan(
     r2: &Path,
     out_dir: &Path,
     image: &ContainerImageRefV1,
-) -> Result<(bijux_core::StagePlan, Vec<PathBuf>)> {
+) -> Result<(bijux_core::StagePlanV1, Vec<PathBuf>)> {
     let plan = match stage_id {
         "fastq.trim" => trim::plan(&dummy_tool("fastp", image), r1, out_dir, None)?,
         "fastq.filter" => filter::plan_filter(&dummy_tool("fastp", image), r1, out_dir)?,
@@ -201,6 +201,16 @@ fn metrics_completeness_contract() -> Result<()> {
             assert!(metrics.contains_key("reads_out"));
             assert!(metrics.contains_key("bases_in"));
             assert!(metrics.contains_key("bases_out"));
+            if matches!(stage.id, "fastq.trim" | "fastq.filter") {
+                let retention = metrics
+                    .get("retention")
+                    .and_then(|value| value.as_object())
+                    .ok_or_else(|| anyhow::anyhow!("retention missing"))?;
+                assert!(retention.contains_key("numerator"));
+                assert!(retention.contains_key("denominator"));
+                assert!(retention.contains_key("scope"));
+                assert!(retention.contains_key("parameters_json"));
+            }
         }
     }
 

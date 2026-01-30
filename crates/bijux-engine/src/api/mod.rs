@@ -39,7 +39,7 @@ pub use crate::services::run_artifacts::{
     MetricsEnvelopeV1, RunArtifactInput, RunDirs,
 };
 pub use crate::services::stage_exec::{execute_stage_plan, StageResultV1};
-pub use bijux_core::StagePlan;
+pub use bijux_core::StagePlanV1;
 pub use bijux_core::{
     EffectiveConfigV1, FactsRowV1, RetentionReportV1, StageReportV1, TelemetryEventV1,
 };
@@ -150,6 +150,6 @@ pub fn cleanup_execution(container_name: &str) -> Result<()> {
 ///
 /// # Errors
 /// Returns an error if the execution fails or the plan is invalid.
-pub fn execute_plan(plan: &StagePlan, runner: RunnerKind) -> Result<StageResultV1> {
+pub fn execute_plan(plan: &StagePlanV1, runner: RunnerKind) -> Result<StageResultV1> {
     execute_stage_plan(plan, runner)
 }

@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+use crate::{metrics::AdapterBankProvenanceV1, ToolConstraints};
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct StageObservabilityContractV1 {
@@ -27,7 +29,12 @@ pub struct EffectiveConfigV1 {
     pub stage_version: i32,
     pub tool_id: String,
     pub tool_version: String,
+    pub image_digest: Option<String>,
+    pub runner: String,
+    pub resources: ToolConstraints,
     pub parameters_json: serde_json::Value,
+    #[serde(default)]
+    pub adapter_bank: Option<AdapterBankProvenanceV1>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -38,6 +45,9 @@ pub struct StageReportV1 {
     pub stage_version: i32,
     pub tool_id: String,
     pub tool_version: String,
+    pub metrics_path: String,
+    pub effective_config_path: String,
+    pub facts_row_id: Option<String>,
     pub summary: serde_json::Value,
     pub warnings: Vec<String>,
     pub errors: Vec<String>,
@@ -58,6 +68,7 @@ pub struct RetentionReportV1 {
     pub denominator: serde_json::Value,
     pub scope: String,
     pub condition: serde_json::Value,
+    pub parameters_json: serde_json::Value,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

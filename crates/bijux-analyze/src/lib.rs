@@ -16,7 +16,6 @@ pub mod facts;
 pub mod failure;
 pub mod ranking;
 pub mod report;
-pub mod selection;
 pub mod semantic;
 
 pub use bijux_core::metrics::{MetricEnvelope, MetricSet};

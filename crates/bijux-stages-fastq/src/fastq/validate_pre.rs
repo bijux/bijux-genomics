@@ -2,7 +2,7 @@ use std::path::Path;
 
 use anyhow::{anyhow, Result};
 use bijux_core::measure::SeqkitMetrics;
-use bijux_core::{ArtifactRef, StageIO, StageId, StagePlan, StageVersion, ToolExecutionSpecV1};
+use bijux_core::{ArtifactRef, StageIO, StageId, StagePlanV1, StageVersion, ToolExecutionSpecV1};
 
 pub const STAGE_ID: &str = "fastq.validate_pre";
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
@@ -21,8 +21,8 @@ pub struct ValidatePreEffectiveConfig {
     pub out_dir: std::path::PathBuf,
 }
 
-pub fn plan(tool: &ToolExecutionSpecV1, r1: &Path, out_dir: &Path) -> StagePlan {
-    StagePlan {
+pub fn plan(tool: &ToolExecutionSpecV1, r1: &Path, out_dir: &Path) -> StagePlanV1 {
+    StagePlanV1 {
         stage_id: StageId(STAGE_ID.to_string()),
         stage_version: STAGE_VERSION,
         tool_id: tool.tool_id.clone(),
@@ -69,7 +69,7 @@ pub fn resolve_config(user: ValidatePreUserConfig) -> ValidatePreEffectiveConfig
 pub fn plan_from_config(
     tool: &ToolExecutionSpecV1,
     config: &ValidatePreEffectiveConfig,
-) -> StagePlan {
+) -> StagePlanV1 {
     plan(tool, &config.r1, &config.out_dir)
 }
 

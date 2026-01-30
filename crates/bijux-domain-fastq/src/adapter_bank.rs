@@ -3,6 +3,7 @@ use std::path::Path;
 
 use anyhow::{anyhow, Context, Result};
 use serde::{Deserialize, Serialize};
+use sha2::Digest;
 
 const ADAPTER_TAGS: [&str; 9] = [
     "truseq", "nextera", "ssdna", "umi", "pcr", "custom", "nebnext", "capture", "partial",
@@ -59,12 +60,26 @@ pub struct AdapterPresetV1 {
     pub tags: Vec<String>,
     #[serde(default)]
     pub adapter_ids: Vec<String>,
+    #[serde(default)]
+    pub sequences: Vec<String>,
+    pub rationale: String,
+    #[serde(default)]
+    pub references: Vec<String>,
+    #[serde(default)]
+    pub notes: Vec<String>,
+    pub hash: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct EffectiveAdapterSet {
     pub preset: String,
+    pub preset_hash: String,
+    pub preset_tags: Vec<String>,
+    pub rationale: String,
+    pub references: Vec<String>,
+    pub notes: Vec<String>,
+    pub sequences: Vec<String>,
     pub enabled_ids: Vec<String>,
     pub adapters: Vec<AdapterEntryV1>,
 }
@@ -121,6 +136,65 @@ pub fn resolve_adapter_preset(
         .find(|preset| preset.name == preset_name)
         .ok_or_else(|| anyhow!("unknown adapter preset {preset_name}"))?;
 
+    let (enabled_ids, adapters, sequences) =
+        resolve_adapter_ids_and_sequences(bank, preset, enable, disable)?;
+    let actual_hash = hash_preset_sequences(&sequences);
+    if actual_hash != preset.hash {
+        return Err(anyhow!(
+            "preset {} hash mismatch (expected {}, got {})",
+            preset.name,
+            preset.hash,
+            actual_hash
+        ));
+    }
+
+    Ok(EffectiveAdapterSet {
+        preset: preset.name.clone(),
+        preset_hash: preset.hash.clone(),
+        preset_tags: preset.tags.clone(),
+        rationale: preset.rationale.clone(),
+        references: preset.references.clone(),
+        notes: preset.notes.clone(),
+        sequences,
+        enabled_ids,
+        adapters,
+    })
+}
+
+fn validate_adapter_bank(bank: &AdapterBankV1) -> Result<()> {
+    if bank.adapters.is_empty() {
+        return Err(anyhow!("adapter bank contains no entries"));
+    }
+    if bank.bank_id.trim().is_empty() {
+        return Err(anyhow!("adapter bank missing bank_id"));
+    }
+    if bank.version.trim().is_empty() {
+        return Err(anyhow!("adapter bank missing version"));
+    }
+    let mut ids = BTreeSet::new();
+    for adapter in &bank.adapters {
+        if !ids.insert(adapter.id.clone()) {
+            return Err(anyhow!("duplicate adapter id {}", adapter.id));
+        }
+        if adapter.tags.is_empty() {
+            return Err(anyhow!("adapter {} has no tags", adapter.id));
+        }
+        for tag in &adapter.tags {
+            if !ADAPTER_TAGS.contains(&tag.as_str()) {
+                return Err(anyhow!("unknown adapter tag {tag}"));
+            }
+        }
+        ensure_sequence_alphabet(&adapter.sequence)?;
+    }
+    Ok(())
+}
+
+fn resolve_adapter_ids_and_sequences(
+    bank: &AdapterBankV1,
+    preset: &AdapterPresetV1,
+    enable: &[String],
+    disable: &[String],
+) -> Result<(Vec<String>, Vec<AdapterEntryV1>, Vec<String>)> {
     let mut selected: BTreeSet<String> = BTreeSet::new();
     for adapter in &bank.adapters {
         if adapter
@@ -160,40 +234,11 @@ pub fn resolve_adapter_preset(
             .ok_or_else(|| anyhow!("missing adapter id {adapter_id}"))?;
         adapters.push(adapter.clone());
     }
-
-    Ok(EffectiveAdapterSet {
-        preset: preset.name.clone(),
-        enabled_ids,
-        adapters,
-    })
-}
-
-fn validate_adapter_bank(bank: &AdapterBankV1) -> Result<()> {
-    if bank.adapters.is_empty() {
-        return Err(anyhow!("adapter bank contains no entries"));
-    }
-    if bank.bank_id.trim().is_empty() {
-        return Err(anyhow!("adapter bank missing bank_id"));
-    }
-    if bank.version.trim().is_empty() {
-        return Err(anyhow!("adapter bank missing version"));
-    }
-    let mut ids = BTreeSet::new();
-    for adapter in &bank.adapters {
-        if !ids.insert(adapter.id.clone()) {
-            return Err(anyhow!("duplicate adapter id {}", adapter.id));
-        }
-        if adapter.tags.is_empty() {
-            return Err(anyhow!("adapter {} has no tags", adapter.id));
-        }
-        for tag in &adapter.tags {
-            if !ADAPTER_TAGS.contains(&tag.as_str()) {
-                return Err(anyhow!("unknown adapter tag {tag}"));
-            }
-        }
-        ensure_sequence_alphabet(&adapter.sequence)?;
-    }
-    Ok(())
+    let sequences: Vec<String> = adapters
+        .iter()
+        .map(|adapter| adapter.sequence.clone())
+        .collect();
+    Ok((enabled_ids, adapters, sequences))
 }
 
 fn validate_adapter_presets(presets: &AdapterPresetsV1, bank: &AdapterBankV1) -> Result<()> {
@@ -202,6 +247,15 @@ fn validate_adapter_presets(presets: &AdapterPresetsV1, bank: &AdapterBankV1) ->
     for preset in &presets.presets {
         if !names.insert(preset.name.clone()) {
             return Err(anyhow!("duplicate preset name {}", preset.name));
+        }
+        if preset.hash.trim().is_empty() {
+            return Err(anyhow!("preset {} missing hash", preset.name));
+        }
+        if preset.rationale.trim().is_empty() {
+            return Err(anyhow!("preset {} missing rationale", preset.name));
+        }
+        if preset.sequences.is_empty() {
+            return Err(anyhow!("preset {} missing sequences", preset.name));
         }
         for tag in &preset.tags {
             if !ADAPTER_TAGS.contains(&tag.as_str()) {
@@ -217,8 +271,38 @@ fn validate_adapter_presets(presets: &AdapterPresetsV1, bank: &AdapterBankV1) ->
                 ));
             }
         }
+        let (_, _, sequences) = resolve_adapter_ids_and_sequences(bank, preset, &[], &[])?;
+        if !preset.sequences.is_empty() {
+            let mut expected = sequences.clone();
+            expected.sort();
+            let mut actual = preset.sequences.clone();
+            actual.sort();
+            if expected != actual {
+                return Err(anyhow!(
+                    "preset {} sequences do not match bank selection",
+                    preset.name
+                ));
+            }
+        }
+        let actual_hash = hash_preset_sequences(&sequences);
+        if actual_hash != preset.hash {
+            return Err(anyhow!(
+                "preset {} hash mismatch (expected {}, got {})",
+                preset.name,
+                preset.hash,
+                actual_hash
+            ));
+        }
     }
     Ok(())
+}
+
+fn hash_preset_sequences(sequences: &[String]) -> String {
+    let mut ordered: Vec<String> = sequences.to_vec();
+    ordered.sort();
+    let joined = ordered.join("|");
+    let digest = sha2::Sha256::digest(joined.as_bytes());
+    format!("{digest:x}")
 }
 
 fn ensure_sequence_alphabet(sequence: &str) -> Result<()> {

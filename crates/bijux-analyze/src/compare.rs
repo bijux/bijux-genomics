@@ -3,7 +3,7 @@ use std::path::Path;
 use anyhow::{Context, Result};
 use serde::Serialize;
 
-use crate::selection::ObjectiveSpec;
+use bijux_core::ObjectiveSpec;
 
 #[derive(Debug, Serialize)]
 pub struct RunComparison {
