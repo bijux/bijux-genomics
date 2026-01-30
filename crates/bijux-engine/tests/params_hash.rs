@@ -35,7 +35,10 @@ fn tool_invocation_roundtrip_and_hash_stability() -> Result<()> {
         runner_kind: "docker".to_string(),
         platform: "local".to_string(),
         parameters_json: canonical_a.clone(),
+        parameters_json_normalized: canonical_a.clone(),
         adapter_bank: None,
+        banks: None,
+        bank_assets: None,
         resources: bijux_core::ToolConstraints {
             runtime: "docker".to_string(),
             mem_gb: 1,

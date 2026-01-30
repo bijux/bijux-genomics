@@ -77,8 +77,13 @@ pub struct ToolInvocationV1 {
     pub runner_kind: String,
     pub platform: String,
     pub parameters_json: serde_json::Value,
+    pub parameters_json_normalized: serde_json::Value,
     #[serde(default)]
     pub adapter_bank: Option<AdapterBankProvenanceV1>,
+    #[serde(default)]
+    pub banks: Option<serde_json::Value>,
+    #[serde(default)]
+    pub bank_assets: Option<serde_json::Value>,
     pub resources: ToolConstraints,
     pub environment: BTreeMap<String, String>,
     pub input_hashes: Vec<String>,
@@ -140,6 +145,10 @@ pub struct FastqTrimMetricsV1 {
     pub reads_out: u64,
     pub bases_in: u64,
     pub bases_out: u64,
+    #[serde(default)]
+    pub pairs_in: Option<u64>,
+    #[serde(default)]
+    pub pairs_out: Option<u64>,
     pub mean_q_before: f64,
     pub mean_q_after: f64,
     pub delta_metrics: FastqDeltaMetricsV1,
@@ -154,6 +163,10 @@ pub struct FastqFilterMetricsV1 {
     pub reads_dropped: u64,
     pub bases_in: u64,
     pub bases_out: u64,
+    #[serde(default)]
+    pub pairs_in: Option<u64>,
+    #[serde(default)]
+    pub pairs_out: Option<u64>,
     pub mean_q_before: f64,
     pub mean_q_after: f64,
     pub delta_metrics: FastqDeltaMetricsV1,
@@ -167,6 +180,8 @@ pub struct FastqMergeMetricsV1 {
     pub reads_out: u64,
     pub bases_in: u64,
     pub bases_out: u64,
+    pub pairs_in: u64,
+    pub pairs_out: u64,
     pub reads_r1: u64,
     pub reads_r2: u64,
     pub reads_merged: u64,
@@ -181,6 +196,10 @@ pub struct FastqCorrectMetricsV1 {
     pub reads_out: u64,
     pub bases_in: u64,
     pub bases_out: u64,
+    #[serde(default)]
+    pub pairs_in: Option<u64>,
+    #[serde(default)]
+    pub pairs_out: Option<u64>,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -190,6 +209,10 @@ pub struct FastqUmiMetricsV1 {
     pub reads_out: u64,
     pub bases_in: u64,
     pub bases_out: u64,
+    #[serde(default)]
+    pub pairs_in: Option<u64>,
+    #[serde(default)]
+    pub pairs_out: Option<u64>,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -199,11 +222,23 @@ pub struct FastqPreprocessMetricsV1 {
     pub reads_out: u64,
     pub bases_in: u64,
     pub bases_out: u64,
+    #[serde(default)]
+    pub pairs_in: Option<u64>,
+    #[serde(default)]
+    pub pairs_out: Option<u64>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct FastqValidateMetricsV1 {
+    pub reads_in: u64,
+    pub reads_out: u64,
+    pub bases_in: u64,
+    pub bases_out: u64,
+    #[serde(default)]
+    pub pairs_in: Option<u64>,
+    #[serde(default)]
+    pub pairs_out: Option<u64>,
     pub reads_total: u64,
     pub reads_valid: u64,
     pub reads_invalid: u64,

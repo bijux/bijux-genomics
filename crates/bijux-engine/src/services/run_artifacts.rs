@@ -286,12 +286,14 @@ pub fn write_plan_artifacts(
     tool_version: &str,
     image_digest: Option<String>,
     runner: &str,
+    platform: &str,
     resources: &bijux_core::ToolConstraints,
     inputs: &[PathBuf],
     outputs: &[PathBuf],
     params: &serde_json::Value,
     adapter_bank: Option<&bijux_core::metrics::AdapterBankProvenanceV1>,
     banks: Option<&serde_json::Value>,
+    bank_assets: Option<&serde_json::Value>,
 ) -> Result<PlanArtifacts> {
     std::fs::create_dir_all(run_artifacts_dir).context("create run_artifacts dir")?;
     let plan_path = run_artifacts_dir.join("plan.json");
@@ -316,10 +318,13 @@ pub fn write_plan_artifacts(
         tool_version: tool_version.to_string(),
         image_digest,
         runner: runner.to_string(),
+        platform: platform.to_string(),
         resources: resources.clone(),
         parameters_json: params.clone(),
+        parameters_json_normalized: bijux_core::parameters_json_canonicalization(params),
         adapter_bank: adapter_bank.cloned(),
         banks: banks.cloned(),
+        bank_assets: bank_assets.cloned(),
     };
     std::fs::write(
         &effective_config_path,
@@ -452,6 +457,8 @@ pub fn write_stage_report_v1(
     outputs: &[PathBuf],
     subreports: &[PathBuf],
     log_paths: &[PathBuf],
+    warnings: &[String],
+    errors: &[String],
 ) -> Result<PathBuf> {
     let effective_config_hash =
         crate::services::observer::hash_file_sha256(effective_config_path).ok();
@@ -468,8 +475,8 @@ pub fn write_stage_report_v1(
         summary: serde_json::json!({
             "outputs": outputs.iter().map(|p| p.display().to_string()).collect::<Vec<_>>()
         }),
-        warnings: Vec::new(),
-        errors: Vec::new(),
+        warnings: warnings.to_vec(),
+        errors: errors.to_vec(),
         outputs: outputs.iter().map(|p| p.display().to_string()).collect(),
         subreports: subreports.iter().map(|p| p.display().to_string()).collect(),
         log_paths: log_paths.iter().map(|p| p.display().to_string()).collect(),

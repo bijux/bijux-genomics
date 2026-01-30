@@ -32,6 +32,8 @@ fn metrics_schema_matches_stage_and_version() {
         reads_out: 90,
         bases_in: 1000,
         bases_out: 900,
+        pairs_in: None,
+        pairs_out: None,
         mean_q_before: 30.0,
         mean_q_after: 31.0,
         delta_metrics: FastqDeltaMetrics {
@@ -57,6 +59,8 @@ fn metrics_schema_rejects_unknown() {
         reads_out: 90,
         bases_in: 1000,
         bases_out: 900,
+        pairs_in: None,
+        pairs_out: None,
         mean_q_before: 30.0,
         mean_q_after: 31.0,
         delta_metrics: FastqDeltaMetrics {
@@ -85,6 +89,8 @@ fn metrics_schema_rejects_mixed_stage() {
         reads_out: 90,
         bases_in: 1000,
         bases_out: 900,
+        pairs_in: None,
+        pairs_out: None,
         mean_q_before: 30.0,
         mean_q_after: 31.0,
         delta_metrics: FastqDeltaMetrics {
@@ -113,6 +119,8 @@ fn execution_metrics_require_positive_values() {
         reads_out: 9,
         bases_in: 100,
         bases_out: 90,
+        pairs_in: None,
+        pairs_out: None,
         mean_q_before: 30.0,
         mean_q_after: 31.0,
         delta_metrics: FastqDeltaMetrics {
@@ -140,12 +148,15 @@ fn execution_metrics_require_positive_values() {
 }
 
 #[test]
+#[allow(clippy::too_many_lines)]
 fn metrics_schema_matches_stage_and_version_for_all_fastq_stages() {
     let trim = metric_set(FastqTrimMetrics {
         reads_in: 100,
         reads_out: 90,
         bases_in: 1000,
         bases_out: 900,
+        pairs_in: None,
+        pairs_out: None,
         mean_q_before: 30.0,
         mean_q_after: 31.0,
         delta_metrics: FastqDeltaMetrics {
@@ -162,6 +173,12 @@ fn metrics_schema_matches_stage_and_version_for_all_fastq_stages() {
     assert_eq!(trim.metrics_schema, "fastq_trim_v2");
 
     let validate = metric_set(FastqValidateMetrics {
+        reads_in: 100,
+        reads_out: 100,
+        bases_in: 1000,
+        bases_out: 1000,
+        pairs_in: None,
+        pairs_out: None,
         reads_total: 100,
         reads_valid: 90,
         reads_invalid: 10,
@@ -173,6 +190,10 @@ fn metrics_schema_matches_stage_and_version_for_all_fastq_stages() {
         reads_in: 100,
         reads_out: 90,
         reads_dropped: 10,
+        bases_in: 1000,
+        bases_out: 900,
+        pairs_in: None,
+        pairs_out: None,
         mean_q_before: 30.0,
         mean_q_after: 31.0,
         delta_metrics: FastqDeltaMetrics {
@@ -185,6 +206,12 @@ fn metrics_schema_matches_stage_and_version_for_all_fastq_stages() {
     assert_eq!(filter.metrics_schema, "fastq_filter_v2");
 
     let merge = metric_set(FastqMergeMetrics {
+        reads_in: 100,
+        reads_out: 80,
+        bases_in: 1000,
+        bases_out: 800,
+        pairs_in: 100,
+        pairs_out: 80,
         reads_r1: 100,
         reads_r2: 100,
         reads_merged: 80,
@@ -198,6 +225,8 @@ fn metrics_schema_matches_stage_and_version_for_all_fastq_stages() {
         reads_out: 100,
         bases_in: 1000,
         bases_out: 900,
+        pairs_in: None,
+        pairs_out: None,
         mean_q_before: 30.0,
         mean_q_after: 31.0,
         kmer_fix_rate: 0.5,
@@ -215,6 +244,10 @@ fn metrics_schema_matches_stage_and_version_for_all_fastq_stages() {
     let umi = metric_set(FastqUmiMetrics {
         reads_in: 100,
         reads_out: 80,
+        bases_in: 1000,
+        bases_out: 800,
+        pairs_in: None,
+        pairs_out: None,
         dedup_rate: 0.2,
     });
     assert_eq!(umi.metrics_schema, "fastq_umi_v1");

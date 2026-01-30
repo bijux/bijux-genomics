@@ -9,11 +9,14 @@
   },
   "mean_q_after": "number",
   "mean_q_before": "number",
+  "pairs_in": "null",
+  "pairs_out": "null",
   "reads_in": "number",
   "reads_out": "number",
   "retention": {
     "conditions": {
       "adapter_policy": "null",
+      "banks": {},
       "contaminant_policy": "null",
       "merge_policy": "null",
       "min_len": "null",

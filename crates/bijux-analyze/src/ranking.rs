@@ -69,9 +69,14 @@ fn rank_fastest(inputs: &[RankInput]) -> Vec<RankingEntry> {
         })
         .collect();
     entries.sort_by(|a, b| {
-        a.score
+        match a
+            .score
             .partial_cmp(&b.score)
             .unwrap_or(std::cmp::Ordering::Equal)
+        {
+            std::cmp::Ordering::Equal => a.tool.cmp(&b.tool),
+            ordering => ordering,
+        }
     });
     entries
 }
@@ -97,9 +102,14 @@ fn rank_most_conservative(inputs: &[RankInput]) -> Vec<RankingEntry> {
         })
         .collect();
     entries.sort_by(|a, b| {
-        b.score
+        match b
+            .score
             .partial_cmp(&a.score)
             .unwrap_or(std::cmp::Ordering::Equal)
+        {
+            std::cmp::Ordering::Equal => a.tool.cmp(&b.tool),
+            ordering => ordering,
+        }
     });
     entries
 }
@@ -124,9 +134,14 @@ fn rank_balanced(inputs: &[RankInput]) -> Vec<RankingEntry> {
         })
         .collect();
     entries.sort_by(|a, b| {
-        b.score
+        match b
+            .score
             .partial_cmp(&a.score)
             .unwrap_or(std::cmp::Ordering::Equal)
+        {
+            std::cmp::Ordering::Equal => a.tool.cmp(&b.tool),
+            ordering => ordering,
+        }
     });
     entries
 }

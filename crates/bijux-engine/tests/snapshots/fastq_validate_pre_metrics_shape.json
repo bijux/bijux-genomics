@@ -1,6 +1,12 @@
 {
+  "bases_in": "number",
+  "bases_out": "number",
   "mean_q": "number",
+  "pairs_in": "null",
+  "pairs_out": "null",
+  "reads_in": "number",
   "reads_invalid": "number",
+  "reads_out": "number",
   "reads_total": "number",
   "reads_valid": "number"
 }

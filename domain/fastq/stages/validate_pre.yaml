@@ -7,6 +7,18 @@ inputs:
 outputs: []
 parameters: []
 metrics:
+  - name: "reads_in"
+    meaning: "Number of input reads"
+  - name: "reads_out"
+    meaning: "Number of output reads"
+  - name: "bases_in"
+    meaning: "Number of input bases"
+  - name: "bases_out"
+    meaning: "Number of output bases"
+  - name: "pairs_in"
+    meaning: "Number of input read pairs"
+  - name: "pairs_out"
+    meaning: "Number of output read pairs"
   - name: "reads_total"
     meaning: "Total number of reads observed"
   - name: "reads_valid"

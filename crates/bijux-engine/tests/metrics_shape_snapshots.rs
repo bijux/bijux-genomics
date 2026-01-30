@@ -161,6 +161,19 @@ fn assert_metrics_shape(stage: &str, metrics: &serde_json::Value) -> Result<()> 
     Ok(())
 }
 
+fn assert_report_shape(stage: &str, report: &serde_json::Value) -> Result<()> {
+    let shape = shape_value(report);
+    let rendered = serde_json::to_string_pretty(&shape)?;
+    let manifest_dir = env!("CARGO_MANIFEST_DIR");
+    let snapshot_path = Path::new(manifest_dir)
+        .join("tests")
+        .join("snapshots")
+        .join(format!("{stage}_stage_report_shape.json"));
+    let snapshot = fs::read_to_string(&snapshot_path)?;
+    assert_eq!(rendered.trim(), snapshot.trim());
+    Ok(())
+}
+
 #[test]
 fn metrics_shape_snapshots() -> Result<()> {
     let _guard = ENV_LOCK
@@ -191,6 +204,10 @@ fn metrics_shape_snapshots() -> Result<()> {
         fs::read_to_string(trim_out.join("run_artifacts").join("stage_metrics.json"))?;
     let trim_metrics: serde_json::Value = serde_json::from_str(&trim_metrics_raw)?;
     assert_metrics_shape("fastq_trim", &trim_metrics["metrics"])?;
+    let trim_report_raw =
+        fs::read_to_string(trim_out.join("run_artifacts").join("stage_report.json"))?;
+    let trim_report: serde_json::Value = serde_json::from_str(&trim_report_raw)?;
+    assert_report_shape("fastq_trim", &trim_report)?;
 
     let filter_out = dir.path().join("filter");
     fs::create_dir_all(&filter_out)?;
@@ -203,6 +220,10 @@ fn metrics_shape_snapshots() -> Result<()> {
         fs::read_to_string(filter_out.join("run_artifacts").join("stage_metrics.json"))?;
     let filter_metrics: serde_json::Value = serde_json::from_str(&filter_metrics_raw)?;
     assert_metrics_shape("fastq_filter", &filter_metrics["metrics"])?;
+    let filter_report_raw =
+        fs::read_to_string(filter_out.join("run_artifacts").join("stage_report.json"))?;
+    let filter_report: serde_json::Value = serde_json::from_str(&filter_report_raw)?;
+    assert_report_shape("fastq_filter", &filter_report)?;
 
     let merge_out = dir.path().join("merge");
     fs::create_dir_all(&merge_out)?;
@@ -218,6 +239,10 @@ fn metrics_shape_snapshots() -> Result<()> {
         fs::read_to_string(merge_out.join("run_artifacts").join("stage_metrics.json"))?;
     let merge_metrics: serde_json::Value = serde_json::from_str(&merge_metrics_raw)?;
     assert_metrics_shape("fastq_merge", &merge_metrics["metrics"])?;
+    let merge_report_raw =
+        fs::read_to_string(merge_out.join("run_artifacts").join("stage_report.json"))?;
+    let merge_report: serde_json::Value = serde_json::from_str(&merge_report_raw)?;
+    assert_report_shape("fastq_merge", &merge_report)?;
 
     let validate_out = dir.path().join("validate");
     fs::create_dir_all(&validate_out)?;
@@ -237,6 +262,10 @@ fn metrics_shape_snapshots() -> Result<()> {
     )?;
     let validate_metrics: serde_json::Value = serde_json::from_str(&validate_metrics_raw)?;
     assert_metrics_shape("fastq_validate_pre", &validate_metrics["metrics"])?;
+    let validate_report_raw =
+        fs::read_to_string(validate_out.join("run_artifacts").join("stage_report.json"))?;
+    let validate_report: serde_json::Value = serde_json::from_str(&validate_report_raw)?;
+    assert_report_shape("fastq_validate_pre", &validate_report)?;
 
     std::env::set_var("PATH", original_path);
     Ok(())

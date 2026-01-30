@@ -19,7 +19,15 @@ fn facts_loader_and_summary_work() -> anyhow::Result<()> {
         runtime_s: 1.5,
         memory_mb: 42.0,
         exit_code: 0,
+        bank_hashes: serde_json::json!({}),
+        reads_in: Some(10),
+        reads_out: Some(9),
+        bases_in: Some(100),
+        bases_out: Some(90),
+        pairs_in: None,
+        pairs_out: None,
         metrics: serde_json::json!({}),
+        reports: serde_json::json!({"stage_report": "stage_report.json"}),
         artifacts: serde_json::json!({"metrics_envelope": "metrics.json"}),
     };
     let payload = serde_json::to_string(&row)?;

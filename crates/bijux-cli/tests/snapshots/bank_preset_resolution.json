@@ -1,0 +1,29 @@
+{
+  "adapter_default": {
+    "bank_hash": "978e65ec96a81a5d244f366366cad91bdc38ff10d4332f2e18ee8a86250f3dfa",
+    "expected_default": "ancientdna-illumina",
+    "preset": "ancientdna-illumina",
+    "preset_hash": "a21bbb7fc760ff7315ed9e9c87a0448217b6b549cb2e4e90fb0a1bbdc0252904",
+    "presets_hash": "8ff6e1e33a58d2805a0482b03f81ec671824bd10cce703162d275414fb94dc04"
+  },
+  "adapter_override": {
+    "bank_hash": "978e65ec96a81a5d244f366366cad91bdc38ff10d4332f2e18ee8a86250f3dfa",
+    "preset": "nextera",
+    "preset_hash": "d984d48376ec978f07c7b145fcaabc5753bc25b4030a05f27c3a8c81582eddde",
+    "presets_hash": "8ff6e1e33a58d2805a0482b03f81ec671824bd10cce703162d275414fb94dc04"
+  },
+  "contaminant_default": {
+    "bank_hash": "1aaf67a37b558def20495db6cda8e30a6c60424ab9827bc21f41340b750af2fd",
+    "expected_default": "illumina_default",
+    "preset": "illumina_default",
+    "preset_hash": "7c1ed532032882ae3106927632fec1b90f4122c9e714ae7840fa495d1f620f04",
+    "presets_hash": "b7410950939da815ec2a644feffee1da91895e744ba6cbc702f05f02ae57e9b3"
+  },
+  "polyx_default": {
+    "bank_hash": "a984eaf5779f9e22219ec61ba5a697446b0d2c03fe0781a7682627e8a579fbed",
+    "expected_default": "illumina_twocolor",
+    "preset": "illumina_twocolor",
+    "preset_hash": "d66ff024d4fe35484b374e13da91ba3f7c9631a8de1baa52fc4ab5d53618f692",
+    "presets_hash": "512a0a3614326323df812d0d20f039677c0c0b4788389171005be5ed2f755308"
+  }
+}

@@ -104,6 +104,8 @@ pub enum MetricId {
     BasesIn,
     BasesOut,
     BasesTotal,
+    PairsIn,
+    PairsOut,
     ReadsR1,
     ReadsR2,
     ReadsMerged,
@@ -174,7 +176,7 @@ pub struct StageMetricSpec {
     pub invariants: &'static [&'static str],
 }
 
-pub const METRIC_REGISTRY: [MetricSpec; 30] = [
+pub const METRIC_REGISTRY: [MetricSpec; 32] = [
     MetricSpec {
         id: MetricId::RuntimeS,
         name: "runtime_s",
@@ -252,7 +254,9 @@ pub const METRIC_REGISTRY: [MetricSpec; 30] = [
         }),
         stages: &[
             "fastq.trim",
+            "fastq.validate_pre",
             "fastq.filter",
+            "fastq.merge",
             "fastq.correct",
             "fastq.umi",
             "fastq.qc_post",
@@ -270,7 +274,14 @@ pub const METRIC_REGISTRY: [MetricSpec; 30] = [
             min: 0.0,
             max: f64::INFINITY,
         }),
-        stages: &["fastq.trim", "fastq.filter", "fastq.correct", "fastq.umi"],
+        stages: &[
+            "fastq.trim",
+            "fastq.validate_pre",
+            "fastq.filter",
+            "fastq.merge",
+            "fastq.correct",
+            "fastq.umi",
+        ],
         measured: true,
         derived: false,
     },
@@ -337,9 +348,12 @@ pub const METRIC_REGISTRY: [MetricSpec; 30] = [
         }),
         stages: &[
             "fastq.trim",
+            "fastq.validate_pre",
             "fastq.filter",
+            "fastq.merge",
             "fastq.correct",
             "fastq.qc_post",
+            "fastq.umi",
         ],
         measured: true,
         derived: false,
@@ -353,7 +367,54 @@ pub const METRIC_REGISTRY: [MetricSpec; 30] = [
             min: 0.0,
             max: f64::INFINITY,
         }),
-        stages: &["fastq.trim", "fastq.filter", "fastq.correct"],
+        stages: &[
+            "fastq.trim",
+            "fastq.validate_pre",
+            "fastq.filter",
+            "fastq.merge",
+            "fastq.correct",
+            "fastq.umi",
+        ],
+        measured: true,
+        derived: false,
+    },
+    MetricSpec {
+        id: MetricId::PairsIn,
+        name: "pairs_in",
+        meaning: "Number of input read pairs",
+        direction: MetricDirection::Neutral,
+        range: Some(MetricRange {
+            min: 0.0,
+            max: f64::INFINITY,
+        }),
+        stages: &[
+            "fastq.trim",
+            "fastq.validate_pre",
+            "fastq.filter",
+            "fastq.merge",
+            "fastq.correct",
+            "fastq.umi",
+        ],
+        measured: true,
+        derived: false,
+    },
+    MetricSpec {
+        id: MetricId::PairsOut,
+        name: "pairs_out",
+        meaning: "Number of output read pairs",
+        direction: MetricDirection::HigherBetter,
+        range: Some(MetricRange {
+            min: 0.0,
+            max: f64::INFINITY,
+        }),
+        stages: &[
+            "fastq.trim",
+            "fastq.validate_pre",
+            "fastq.filter",
+            "fastq.merge",
+            "fastq.correct",
+            "fastq.umi",
+        ],
         measured: true,
         derived: false,
     },
@@ -614,11 +675,13 @@ pub const DERIVED_METRIC_REGISTRY: [DerivedMetricSpec; 4] = [
     },
 ];
 
-pub const FASTQ_TRIM_METRICS: [MetricId; 11] = [
+pub const FASTQ_TRIM_METRICS: [MetricId; 13] = [
     MetricId::ReadsIn,
     MetricId::ReadsOut,
     MetricId::BasesIn,
     MetricId::BasesOut,
+    MetricId::PairsIn,
+    MetricId::PairsOut,
     MetricId::MeanQBefore,
     MetricId::MeanQAfter,
     MetricId::DeltaMetrics,
@@ -628,23 +691,39 @@ pub const FASTQ_TRIM_METRICS: [MetricId; 11] = [
     MetricId::AdapterOverrides,
 ];
 
-pub const FASTQ_VALIDATE_METRICS: [MetricId; 4] = [
+pub const FASTQ_VALIDATE_METRICS: [MetricId; 10] = [
+    MetricId::ReadsIn,
+    MetricId::ReadsOut,
+    MetricId::BasesIn,
+    MetricId::BasesOut,
+    MetricId::PairsIn,
+    MetricId::PairsOut,
     MetricId::ReadsTotal,
     MetricId::ReadsValid,
     MetricId::ReadsInvalid,
     MetricId::MeanQ,
 ];
 
-pub const FASTQ_FILTER_METRICS: [MetricId; 6] = [
+pub const FASTQ_FILTER_METRICS: [MetricId; 10] = [
     MetricId::ReadsIn,
     MetricId::ReadsOut,
     MetricId::ReadsDropped,
+    MetricId::BasesIn,
+    MetricId::BasesOut,
+    MetricId::PairsIn,
+    MetricId::PairsOut,
     MetricId::MeanQBefore,
     MetricId::MeanQAfter,
     MetricId::DeltaMetrics,
 ];
 
-pub const FASTQ_MERGE_METRICS: [MetricId; 5] = [
+pub const FASTQ_MERGE_METRICS: [MetricId; 11] = [
+    MetricId::ReadsIn,
+    MetricId::ReadsOut,
+    MetricId::BasesIn,
+    MetricId::BasesOut,
+    MetricId::PairsIn,
+    MetricId::PairsOut,
     MetricId::ReadsR1,
     MetricId::ReadsR2,
     MetricId::ReadsMerged,
@@ -652,11 +731,13 @@ pub const FASTQ_MERGE_METRICS: [MetricId; 5] = [
     MetricId::MergeRate,
 ];
 
-pub const FASTQ_CORRECT_METRICS: [MetricId; 7] = [
+pub const FASTQ_CORRECT_METRICS: [MetricId; 9] = [
     MetricId::ReadsIn,
     MetricId::ReadsOut,
     MetricId::BasesIn,
     MetricId::BasesOut,
+    MetricId::PairsIn,
+    MetricId::PairsOut,
     MetricId::MeanQBefore,
     MetricId::MeanQAfter,
     MetricId::KmerFixRate,
@@ -669,8 +750,15 @@ pub const FASTQ_QC_POST_METRICS: [MetricId; 4] = [
     MetricId::ContaminationRate,
 ];
 
-pub const FASTQ_UMI_METRICS: [MetricId; 3] =
-    [MetricId::ReadsIn, MetricId::ReadsOut, MetricId::DedupRate];
+pub const FASTQ_UMI_METRICS: [MetricId; 7] = [
+    MetricId::ReadsIn,
+    MetricId::ReadsOut,
+    MetricId::BasesIn,
+    MetricId::BasesOut,
+    MetricId::PairsIn,
+    MetricId::PairsOut,
+    MetricId::DedupRate,
+];
 
 pub const FASTQ_SCREEN_METRICS: [MetricId; 2] = [MetricId::ReadsIn, MetricId::ContaminationRate];
 
@@ -922,6 +1010,10 @@ pub struct FastqTrimMetrics {
     pub reads_out: u64,
     pub bases_in: u64,
     pub bases_out: u64,
+    #[serde(default)]
+    pub pairs_in: Option<u64>,
+    #[serde(default)]
+    pub pairs_out: Option<u64>,
     pub mean_q_before: f64,
     pub mean_q_after: f64,
     #[serde(default)]
@@ -1118,6 +1210,14 @@ pub const IMAGE_QA_INPUTS_SCHEMA_VERSION: i32 = 1;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct FastqValidateMetrics {
+    pub reads_in: u64,
+    pub reads_out: u64,
+    pub bases_in: u64,
+    pub bases_out: u64,
+    #[serde(default)]
+    pub pairs_in: Option<u64>,
+    #[serde(default)]
+    pub pairs_out: Option<u64>,
     pub reads_total: u64,
     pub reads_valid: u64,
     pub reads_invalid: u64,
@@ -1149,6 +1249,12 @@ pub struct FastqFilterMetrics {
     pub reads_in: u64,
     pub reads_out: u64,
     pub reads_dropped: u64,
+    pub bases_in: u64,
+    pub bases_out: u64,
+    #[serde(default)]
+    pub pairs_in: Option<u64>,
+    #[serde(default)]
+    pub pairs_out: Option<u64>,
     pub mean_q_before: f64,
     pub mean_q_after: f64,
     #[serde(default)]
@@ -1180,6 +1286,18 @@ impl StageMetricSchema for FastqFilterMetrics {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct FastqMergeMetrics {
+    #[serde(default)]
+    pub reads_in: u64,
+    #[serde(default)]
+    pub reads_out: u64,
+    #[serde(default)]
+    pub bases_in: u64,
+    #[serde(default)]
+    pub bases_out: u64,
+    #[serde(default)]
+    pub pairs_in: u64,
+    #[serde(default)]
+    pub pairs_out: u64,
     pub reads_r1: u64,
     pub reads_r2: u64,
     pub reads_merged: u64,
@@ -1214,6 +1332,10 @@ pub struct FastqCorrectMetrics {
     pub reads_out: u64,
     pub bases_in: u64,
     pub bases_out: u64,
+    #[serde(default)]
+    pub pairs_in: Option<u64>,
+    #[serde(default)]
+    pub pairs_out: Option<u64>,
     pub mean_q_before: f64,
     pub mean_q_after: f64,
     pub kmer_fix_rate: f64,
@@ -1283,6 +1405,14 @@ impl StageMetricSchema for FastqQcPostMetrics {
 pub struct FastqUmiMetrics {
     pub reads_in: u64,
     pub reads_out: u64,
+    #[serde(default)]
+    pub bases_in: u64,
+    #[serde(default)]
+    pub bases_out: u64,
+    #[serde(default)]
+    pub pairs_in: Option<u64>,
+    #[serde(default)]
+    pub pairs_out: Option<u64>,
     pub dedup_rate: f64,
 }
 
@@ -3168,6 +3298,8 @@ mod tests {
                 reads_out: 90,
                 bases_in: 1000,
                 bases_out: 900,
+                pairs_in: None,
+                pairs_out: None,
                 mean_q_before: 30.0,
                 mean_q_after: 31.0,
                 delta_metrics: FastqDeltaMetrics {
@@ -3195,6 +3327,10 @@ mod tests {
             reads_in: 100,
             reads_out: 80,
             reads_dropped: 20,
+            bases_in: 1000,
+            bases_out: 800,
+            pairs_in: None,
+            pairs_out: None,
             mean_q_before: 30.0,
             mean_q_after: 29.0,
             delta_metrics: FastqDeltaMetrics {
@@ -3209,6 +3345,10 @@ mod tests {
             reads_in: 100,
             reads_out: 81,
             reads_dropped: 20,
+            bases_in: 1000,
+            bases_out: 810,
+            pairs_in: None,
+            pairs_out: None,
             mean_q_before: 30.0,
             mean_q_after: 31.0,
             delta_metrics: FastqDeltaMetrics {
@@ -3225,6 +3365,12 @@ mod tests {
     #[test]
     fn merge_metrics_invariants() -> Result<()> {
         let metrics = FastqMergeMetrics {
+            reads_in: 100,
+            reads_out: 60,
+            bases_in: 1000,
+            bases_out: 600,
+            pairs_in: 100,
+            pairs_out: 60,
             reads_r1: 100,
             reads_r2: 120,
             reads_merged: 60,
@@ -3233,6 +3379,12 @@ mod tests {
         };
         metrics.validate()?;
         let invalid = FastqMergeMetrics {
+            reads_in: 100,
+            reads_out: 80,
+            bases_in: 1000,
+            bases_out: 800,
+            pairs_in: 100,
+            pairs_out: 80,
             reads_r1: 100,
             reads_r2: 100,
             reads_merged: 80,

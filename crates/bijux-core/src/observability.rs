@@ -35,12 +35,16 @@ pub struct EffectiveConfigV1 {
     pub tool_version: String,
     pub image_digest: Option<String>,
     pub runner: String,
+    pub platform: String,
     pub resources: ToolConstraints,
     pub parameters_json: serde_json::Value,
+    pub parameters_json_normalized: serde_json::Value,
     #[serde(default)]
     pub adapter_bank: Option<AdapterBankProvenanceV1>,
     #[serde(default)]
     pub banks: Option<serde_json::Value>,
+    #[serde(default)]
+    pub bank_assets: Option<serde_json::Value>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -156,7 +160,15 @@ pub struct FactsRowV1 {
     pub runtime_s: f64,
     pub memory_mb: f64,
     pub exit_code: i32,
+    pub bank_hashes: serde_json::Value,
+    pub reads_in: Option<u64>,
+    pub reads_out: Option<u64>,
+    pub bases_in: Option<u64>,
+    pub bases_out: Option<u64>,
+    pub pairs_in: Option<u64>,
+    pub pairs_out: Option<u64>,
     pub metrics: serde_json::Value,
+    pub reports: serde_json::Value,
     pub artifacts: serde_json::Value,
 }
 

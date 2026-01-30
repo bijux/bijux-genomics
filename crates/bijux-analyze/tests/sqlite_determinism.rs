@@ -8,6 +8,8 @@ fn base_metrics() -> Result<String> {
         reads_out: 9,
         bases_in: 100,
         bases_out: 90,
+        pairs_in: None,
+        pairs_out: None,
         mean_q_before: 30.0,
         mean_q_after: 31.0,
         delta_metrics: FastqDeltaMetrics {

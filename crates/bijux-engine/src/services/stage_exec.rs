@@ -199,6 +199,81 @@ fn bank_references_from_value(value: &serde_json::Value) -> Vec<BankReferenceRec
         .unwrap_or_default()
 }
 
+fn bank_refs_from_params(params: &serde_json::Value) -> serde_json::Value {
+    let mut banks = serde_json::Map::new();
+    for (key, field) in [
+        ("adapter", "adapter_bank"),
+        ("polyx", "polyx_bank"),
+        ("contaminant", "contaminant_bank"),
+    ] {
+        if let Some(bank) = params.get(field) {
+            let entry = serde_json::json!({
+                "bank_id": bank.get("bank_id"),
+                "bank_hash": bank.get("bank_hash"),
+                "preset": bank.get("preset"),
+                "preset_hash": bank.get("preset_hash"),
+            });
+            banks.insert(key.to_string(), entry);
+        }
+    }
+    serde_json::Value::Object(banks)
+}
+
+fn retention_conditions_from_params(params: &serde_json::Value) -> serde_json::Value {
+    serde_json::json!({
+        "min_len": params.get("min_len"),
+        "q": params.get("q"),
+        "merge_policy": params.get("merge_policy"),
+        "adapter_policy": params.get("adapter_policy"),
+        "polyx_policy": params.get("polyx_policy"),
+        "contaminant_policy": params.get("contaminant_policy"),
+        "banks": bank_refs_from_params(params),
+        "parameters": params.clone(),
+    })
+}
+
+fn tool_supports_polyx(tool_id: &str) -> bool {
+    matches!(tool_id, "fastp")
+}
+
+fn polyx_unsupported_warning(tool_id: &str, params: &serde_json::Value) -> Option<String> {
+    if params.get("polyx_bank").is_some() && !tool_supports_polyx(tool_id) {
+        return Some(format!(
+            "warning: polyx preset requested but tool '{tool_id}' does not advertise polyX support"
+        ));
+    }
+    None
+}
+
+fn warnings_for_plan(plan: &StagePlanV1, params: &serde_json::Value) -> Vec<String> {
+    let mut warnings = Vec::new();
+    if let Some(msg) = polyx_unsupported_warning(plan.tool_id.0.as_str(), params) {
+        warnings.push(msg);
+    }
+    warnings
+}
+
+type IoDeltas = (
+    Option<u64>,
+    Option<u64>,
+    Option<u64>,
+    Option<u64>,
+    Option<u64>,
+    Option<u64>,
+);
+
+fn extract_io_deltas(metrics: &serde_json::Value) -> IoDeltas {
+    let reads_in = metrics.get("reads_in").and_then(serde_json::Value::as_u64);
+    let reads_out = metrics.get("reads_out").and_then(serde_json::Value::as_u64);
+    let bases_in = metrics.get("bases_in").and_then(serde_json::Value::as_u64);
+    let bases_out = metrics.get("bases_out").and_then(serde_json::Value::as_u64);
+    let pairs_in = metrics.get("pairs_in").and_then(serde_json::Value::as_u64);
+    let pairs_out = metrics.get("pairs_out").and_then(serde_json::Value::as_u64);
+    (
+        reads_in, reads_out, bases_in, bases_out, pairs_in, pairs_out,
+    )
+}
+
 fn write_effective_fasta(
     run_artifacts_dir: &Path,
     name: &str,
@@ -228,6 +303,125 @@ fn write_effective_fasta(
     std::fs::write(&path, payload).context("write effective bank fasta")?;
     let hash = hash_file_sha256(&path)?;
     Ok(Some((path, hash)))
+}
+
+fn bank_asset_name(bank_name: &str) -> &str {
+    match bank_name {
+        "adapter" => "adapters",
+        "contaminant" => "contaminants",
+        other => other,
+    }
+}
+
+fn write_effective_bank_yaml(
+    run_artifacts_dir: &Path,
+    name: &str,
+    bank_value: &serde_json::Value,
+    entries: &[BankEntryRecord],
+    references: &[BankReferenceRecord],
+) -> Result<Option<(PathBuf, String)>> {
+    if entries.is_empty() && references.is_empty() {
+        return Ok(None);
+    }
+    let banks_dir = run_artifacts_dir.join("banks");
+    std::fs::create_dir_all(&banks_dir).context("create banks dir")?;
+    let path = banks_dir.join(format!("effective_{name}.yaml"));
+    let payload = serde_json::json!({
+        "bank_id": bank_value.get("bank_id"),
+        "bank_hash": bank_value.get("bank_hash"),
+        "preset": bank_value.get("preset"),
+        "preset_hash": bank_value.get("preset_hash"),
+        "enabled_entries": entries.iter().map(|entry| {
+            serde_json::json!({
+                "id": entry.id,
+                "sequence": entry.sequence,
+                "rationale": entry.rationale,
+                "source": entry.source,
+            })
+        }).collect::<Vec<_>>(),
+        "references": references.iter().map(|reference| {
+            serde_json::json!({
+                "id": reference.id,
+                "file": reference.file,
+                "sha256": reference.sha256,
+                "rationale": reference.rationale,
+                "source": reference.source,
+            })
+        }).collect::<Vec<_>>(),
+    });
+    let yaml = serde_yaml::to_string(&payload).context("serialize effective bank yaml")?;
+    std::fs::write(&path, yaml).context("write effective bank yaml")?;
+    let hash = hash_file_sha256(&path)?;
+    Ok(Some((path, hash)))
+}
+
+fn write_effective_fasta_list(
+    run_artifacts_dir: &Path,
+    name: &str,
+    references: &[BankReferenceRecord],
+) -> Result<Option<(PathBuf, String)>> {
+    if references.is_empty() {
+        return Ok(None);
+    }
+    let banks_dir = run_artifacts_dir.join("banks");
+    std::fs::create_dir_all(&banks_dir).context("create banks dir")?;
+    let path = banks_dir.join(format!("effective_{name}.fasta.list"));
+    let payload = references
+        .iter()
+        .map(|reference| reference.file.as_str())
+        .collect::<Vec<_>>()
+        .join("\n");
+    std::fs::write(&path, payload).context("write effective bank fasta list")?;
+    let hash = hash_file_sha256(&path)?;
+    Ok(Some((path, hash)))
+}
+
+fn materialize_bank_assets(
+    run_artifacts_dir: &Path,
+    banks_value: Option<&serde_json::Value>,
+) -> Result<Option<serde_json::Value>> {
+    let Some(banks_value) = banks_value.and_then(|value| value.as_object()) else {
+        return Ok(None);
+    };
+    let mut assets = serde_json::Map::new();
+    for (bank_name, bank_value) in banks_value {
+        let asset_name = bank_asset_name(bank_name);
+        let entries = bank_entries_from_value(bank_value);
+        let references = bank_references_from_value(bank_value);
+        let extra_fasta: Vec<String> = references
+            .iter()
+            .filter_map(|reference| reference.fasta.clone())
+            .collect();
+        let fasta = write_effective_fasta(run_artifacts_dir, asset_name, &entries, &extra_fasta)?;
+        let yaml = write_effective_bank_yaml(
+            run_artifacts_dir,
+            asset_name,
+            bank_value,
+            &entries,
+            &references,
+        )?;
+        let fasta_list = if bank_name.as_str() == "contaminant" {
+            write_effective_fasta_list(run_artifacts_dir, asset_name, &references)?
+        } else {
+            None
+        };
+        let record = serde_json::json!({
+            "yaml": yaml.as_ref().map(|(path, hash)| serde_json::json!({
+                "path": path.display().to_string(),
+                "sha256": hash,
+            })),
+            "fasta": fasta.as_ref().map(|(path, hash)| serde_json::json!({
+                "path": path.display().to_string(),
+                "sha256": hash,
+            })),
+            "fasta_list": fasta_list.as_ref().map(|(path, hash)| serde_json::json!({
+                "path": path.display().to_string(),
+                "sha256": hash,
+            })),
+        });
+        assets.insert(bank_name.clone(), record);
+    }
+    Ok(Some(serde_json::Value::Object(assets)))
 }
 
 fn fastq_stats(path: &Path) -> Result<bijux_core::measure::SeqkitMetrics> {
@@ -291,6 +485,27 @@ fn fastq_stats(path: &Path) -> Result<bijux_core::measure::SeqkitMetrics> {
         mean_q,
         gc_percent,
     })
+}
+
+fn pair_counts_from_paths(
+    inputs: &[PathBuf],
+    outputs: &[PathBuf],
+) -> Result<(Option<u64>, Option<u64>)> {
+    let pairs_in = if inputs.len() >= 2 {
+        let r1 = stats_or_zero(inputs.first().map(PathBuf::as_path))?;
+        let r2 = stats_or_zero(inputs.get(1).map(PathBuf::as_path))?;
+        Some(r1.reads.min(r2.reads))
+    } else {
+        None
+    };
+    let pairs_out = if outputs.len() >= 2 {
+        let r1 = stats_or_zero(outputs.first().map(PathBuf::as_path))?;
+        let r2 = stats_or_zero(outputs.get(1).map(PathBuf::as_path))?;
+        Some(r1.reads.min(r2.reads))
+    } else {
+        None
+    };
+    Ok((pairs_in, pairs_out))
 }
 
 fn stats_or_zero(path: Option<&Path>) -> Result<bijux_core::measure::SeqkitMetrics> {
@@ -370,6 +585,7 @@ fn stage_metrics_for_plan(
         "fastq.trim" => {
             let input = stats_or_zero(inputs.first().map(PathBuf::as_path))?;
             let output = stats_or_zero(outputs.first().map(PathBuf::as_path))?;
+            let (pairs_in, pairs_out) = pair_counts_from_paths(inputs, outputs)?;
             let read_retention = if input.reads > 0 {
                 f64_from_u64(output.reads) / f64_from_u64(input.reads)
             } else {
@@ -394,21 +610,15 @@ fn stage_metrics_for_plan(
                 denominator_bases: input.bases,
                 definition: "reads_out / reads_in".to_string(),
                 stage_boundary: stage_id.to_string(),
-                conditions: serde_json::json!({
-                    "min_len": params.get("min_len"),
-                    "q": params.get("q"),
-                    "merge_policy": params.get("merge_policy"),
-                    "adapter_policy": params.get("adapter_policy"),
-                    "polyx_policy": params.get("polyx_policy"),
-                    "contaminant_policy": params.get("contaminant_policy"),
-                    "parameters": params.clone(),
-                }),
+                conditions: retention_conditions_from_params(params),
             };
             serde_json::to_value(FastqTrimMetricsV1 {
                 reads_in: input.reads,
                 reads_out: output.reads,
                 bases_in: input.bases,
                 bases_out: output.bases,
+                pairs_in,
+                pairs_out,
                 mean_q_before: input.mean_q,
                 mean_q_after: output.mean_q,
                 delta_metrics: delta,
@@ -418,6 +628,7 @@ fn stage_metrics_for_plan(
         "fastq.filter" => {
             let input = stats_or_zero(inputs.first().map(PathBuf::as_path))?;
             let output = stats_or_zero(outputs.first().map(PathBuf::as_path))?;
+            let (pairs_in, pairs_out) = pair_counts_from_paths(inputs, outputs)?;
             let read_retention = if input.reads > 0 {
                 f64_from_u64(output.reads) / f64_from_u64(input.reads)
             } else {
@@ -442,15 +653,7 @@ fn stage_metrics_for_plan(
                 denominator_bases: input.bases,
                 definition: "reads_out / reads_in".to_string(),
                 stage_boundary: stage_id.to_string(),
-                conditions: serde_json::json!({
-                    "min_len": params.get("min_len"),
-                    "q": params.get("q"),
-                    "merge_policy": params.get("merge_policy"),
-                    "adapter_policy": params.get("adapter_policy"),
-                    "polyx_policy": params.get("polyx_policy"),
-                    "contaminant_policy": params.get("contaminant_policy"),
-                    "parameters": params.clone(),
-                }),
+                conditions: retention_conditions_from_params(params),
             };
             serde_json::to_value(FastqFilterMetricsV1 {
                 reads_in: input.reads,
@@ -458,6 +661,8 @@ fn stage_metrics_for_plan(
                 reads_dropped: input.reads.saturating_sub(output.reads),
                 bases_in: input.bases,
                 bases_out: output.bases,
+                pairs_in,
+                pairs_out,
                 mean_q_before: input.mean_q,
                 mean_q_after: output.mean_q,
                 delta_metrics: delta,
@@ -483,6 +688,8 @@ fn stage_metrics_for_plan(
                 reads_out: merged.reads,
                 bases_in,
                 bases_out: merged.bases,
+                pairs_in: min_reads,
+                pairs_out: merged.reads,
                 reads_r1: r1.reads,
                 reads_r2: r2.reads,
                 reads_merged: merged.reads,
@@ -492,7 +699,14 @@ fn stage_metrics_for_plan(
         }
         "fastq.validate_pre" => {
             let input = stats_or_zero(inputs.first().map(PathBuf::as_path))?;
+            let (pairs_in, pairs_out) = pair_counts_from_paths(inputs, outputs)?;
             serde_json::to_value(FastqValidateMetricsV1 {
+                reads_in: input.reads,
+                reads_out: input.reads,
+                bases_in: input.bases,
+                bases_out: input.bases,
+                pairs_in,
+                pairs_out,
                 reads_total: input.reads,
                 reads_valid: input.reads,
                 reads_invalid: 0,
@@ -506,11 +720,14 @@ fn stage_metrics_for_plan(
             } else {
                 stats_or_zero(outputs.first().map(PathBuf::as_path))?
             };
+            let (pairs_in, pairs_out) = pair_counts_from_paths(inputs, outputs)?;
             serde_json::to_value(FastqCorrectMetricsV1 {
                 reads_in: input.reads,
                 reads_out: output.reads,
                 bases_in: input.bases,
                 bases_out: output.bases,
+                pairs_in,
+                pairs_out,
             })?
         }
         "fastq.umi" => {
@@ -520,11 +737,14 @@ fn stage_metrics_for_plan(
             } else {
                 stats_or_zero(outputs.first().map(PathBuf::as_path))?
             };
+            let (pairs_in, pairs_out) = pair_counts_from_paths(inputs, outputs)?;
             serde_json::to_value(FastqUmiMetricsV1 {
                 reads_in: input.reads,
                 reads_out: output.reads,
                 bases_in: input.bases,
                 bases_out: output.bases,
+                pairs_in,
+                pairs_out,
             })?
         }
         "fastq.preprocess" => {
@@ -534,12 +754,32 @@ fn stage_metrics_for_plan(
             } else {
                 stats_or_zero(outputs.first().map(PathBuf::as_path))?
             };
+            let (pairs_in, pairs_out) = pair_counts_from_paths(inputs, outputs)?;
             serde_json::to_value(FastqPreprocessMetricsV1 {
                 reads_in: input.reads,
                 reads_out: output.reads,
                 bases_in: input.bases,
                 bases_out: output.bases,
+                pairs_in,
+                pairs_out,
             })?
+        }
+        "fastq.qc_post" | "fastq.screen" | "fastq.stats_neutral" => {
+            let input = stats_or_zero(inputs.first().map(PathBuf::as_path))?;
+            let output = if outputs.is_empty() {
+                input
+            } else {
+                stats_or_zero(outputs.first().map(PathBuf::as_path))?
+            };
+            let (pairs_in, pairs_out) = pair_counts_from_paths(inputs, outputs)?;
+            serde_json::json!({
+                "reads_in": input.reads,
+                "reads_out": output.reads,
+                "bases_in": input.bases,
+                "bases_out": output.bases,
+                "pairs_in": pairs_in,
+                "pairs_out": pairs_out,
+            })
         }
         _ => serde_json::json!({}),
     };
@@ -619,6 +859,7 @@ pub fn execute_stage_plan(
     let params_hash = params_hash(&canonical_params)?;
     let adapter_bank = adapter_bank_from_params(&canonical_params);
     let banks_json = banks_from_params(&canonical_params);
+    let bank_assets = materialize_bank_assets(&run_artifacts_dir, banks_json.as_ref())?;
     let input_paths: Vec<PathBuf> = plan
         .io
         .inputs
@@ -640,6 +881,7 @@ pub fn execute_stage_plan(
         &plan.tool_version,
         plan.image.digest.clone(),
         &runner.to_string(),
+        &std::env::var("BIJUX_PLATFORM").unwrap_or_else(|_| "unknown".to_string()),
         &plan.resources,
         &plan
             .io
@@ -656,6 +898,7 @@ pub fn execute_stage_plan(
         &canonical_params,
         adapter_bank.as_ref(),
         banks_json.as_ref(),
+        bank_assets.as_ref(),
     )?;
     let image = resolved_image_for_plan(&plan.image, runner);
     let image_digest = plan
@@ -844,7 +1087,12 @@ pub fn execute_stage_plan(
             runner_kind: runner.to_string(),
             platform: std::env::var("BIJUX_PLATFORM").unwrap_or_else(|_| "unknown".to_string()),
             parameters_json: canonical_params.clone(),
+            parameters_json_normalized: bijux_core::parameters_json_canonicalization(
+                &canonical_params,
+            ),
             adapter_bank: adapter_bank_from_params(&canonical_params),
+            banks: banks_json.clone(),
+            bank_assets: bank_assets.clone(),
             resources: plan.resources.clone(),
             environment: std::env::vars().collect::<BTreeMap<String, String>>(),
             input_hashes: input_hashes.clone(),
@@ -896,10 +1144,10 @@ pub fn execute_stage_plan(
             for (bank_name, bank_value) in banks_value {
                 let entries = bank_entries_from_value(bank_value);
                 let references = bank_references_from_value(bank_value);
-                let extra_fasta: Vec<String> =
-                    references.iter().filter_map(|r| r.fasta.clone()).collect();
-                let fasta =
-                    write_effective_fasta(&run_artifacts_dir, bank_name, &entries, &extra_fasta)?;
+                let assets_for_bank = bank_assets
+                    .as_ref()
+                    .and_then(|assets| assets.get(bank_name))
+                    .cloned();
                 let bank_entry_report = serde_json::json!({
                     "bank_id": bank_value.get("bank_id"),
                     "bank_hash": bank_value.get("bank_hash"),
@@ -921,10 +1169,7 @@ pub fn execute_stage_plan(
                             "source": reference.source,
                         })
                     }).collect::<Vec<_>>(),
-                    "fasta": fasta.as_ref().map(|(path, hash)| serde_json::json!({
-                        "path": path.display().to_string(),
-                        "sha256": hash,
-                    })),
+                    "assets": assets_for_bank,
                 });
                 banks_report.insert(bank_name.clone(), bank_entry_report);
             }
@@ -1010,6 +1255,7 @@ pub fn execute_stage_plan(
             )?;
             subreports.push(report_path);
         }
+        let warnings = warnings_for_plan(plan, &canonical_params);
         let stage_report_path = write_stage_report_v1(
             &run_artifacts_dir,
             &plan.stage_id.0,
@@ -1022,7 +1268,11 @@ pub fn execute_stage_plan(
             &outputs,
             &subreports,
             &[],
+            &warnings,
+            &[],
         )?;
+        let (reads_in, reads_out, bases_in, bases_out, pairs_in, pairs_out) =
+            extract_io_deltas(&stage_metrics);
         let retention_report_path = if is_retention_stage(&plan.stage_id.0) {
             retention_counts_for_plan(&plan.stage_id.0, &input_paths, &outputs)?.map(|counts| {
                 write_retention_report_v1(
@@ -1030,7 +1280,7 @@ pub fn execute_stage_plan(
                     &plan.stage_id.0,
                     &plan.tool_id.0,
                     &plan.tool_version,
-                    &canonical_params,
+                    &retention_conditions_from_params(&canonical_params),
                     &canonical_params,
                     counts.reads_in,
                     counts.reads_out,
@@ -1087,7 +1337,19 @@ pub fn execute_stage_plan(
                 runtime_s,
                 memory_mb,
                 exit_code: execution.exit_code,
+                bank_hashes: bank_refs_from_params(&canonical_params),
+                reads_in,
+                reads_out,
+                bases_in,
+                bases_out,
+                pairs_in,
+                pairs_out,
                 metrics: stage_metrics.clone(),
+                reports: serde_json::json!({
+                    "stage_report": stage_report_path.display().to_string(),
+                    "retention_report": retention_report_path.as_ref().map(|path| path.display().to_string()),
+                    "bank_report": subreports.iter().find(|path| path.ends_with("bank_report.json")).map(|path| path.display().to_string()),
+                }),
                 artifacts: serde_json::json!({
                     "metrics_envelope": metrics_envelope_path.display().to_string(),
                     "stage_report": stage_report_path.display().to_string(),
@@ -1267,4 +1529,50 @@ fn is_retention_stage(stage_id: &str) -> bool {
         .iter()
         .find(|stage| stage.id == stage_id)
         .is_some_and(|stage| stage.affects_read_counts)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use bijux_core::{
+        CommandSpecV1, ContainerImageRefV1, StageIO, StageId, StageVersion, ToolConstraints, ToolId,
+    };
+
+    #[test]
+    fn polyx_warning_is_stage_wide() {
+        let plan = StagePlanV1 {
+            stage_id: StageId("fastq.trim".to_string()),
+            stage_version: StageVersion(1),
+            tool_id: ToolId("cutadapt".to_string()),
+            tool_version: "1.0.0".to_string(),
+            image: ContainerImageRefV1 {
+                image: "bijux/test:latest".to_string(),
+                digest: None,
+            },
+            command: CommandSpecV1 {
+                template: Vec::new(),
+            },
+            resources: ToolConstraints {
+                runtime: "docker".to_string(),
+                mem_gb: 1,
+                tmp_gb: 1,
+                threads: 1,
+            },
+            io: StageIO {
+                inputs: Vec::new(),
+                outputs: Vec::new(),
+            },
+            out_dir: std::path::PathBuf::from("out"),
+            params: serde_json::json!({}),
+            aux_images: std::collections::BTreeMap::new(),
+        };
+        let params = serde_json::json!({
+            "polyx_bank": {
+                "preset": "illumina_twocolor"
+            }
+        });
+        let warnings = warnings_for_plan(&plan, &params);
+        assert_eq!(warnings.len(), 1);
+        assert!(warnings[0].contains("polyx preset requested"));
+    }
 }

@@ -1,0 +1,53 @@
+{
+  "comparison": {
+    "metrics_a": {
+      "read_retention": 0.95,
+      "runtime_s": 1.0
+    },
+    "metrics_b": {
+      "read_retention": 0.9,
+      "runtime_s": 2.0
+    },
+    "objective": "balanced",
+    "run_a": "/Users/bijan/bijux/bijux-dna/target/test-fixtures/compare_ranking/run_a",
+    "run_b": "/Users/bijan/bijux/bijux-dna/target/test-fixtures/compare_ranking/run_b"
+  },
+  "rankings": {
+    "BalancedPareto": [
+      {
+        "explain": "runtime_norm=1.000 retention=0.950 memory_norm=1.000",
+        "score": 0.9849999999999999,
+        "tool": "alpha"
+      },
+      {
+        "explain": "runtime_norm=1.000 retention=0.950 memory_norm=1.000",
+        "score": 0.9849999999999999,
+        "tool": "beta"
+      }
+    ],
+    "FastestAcceptable": [
+      {
+        "explain": "runtime_s=1.000 memory_mb=100.0 read_retention=0.950",
+        "score": 1.0,
+        "tool": "alpha"
+      },
+      {
+        "explain": "runtime_s=1.000 memory_mb=100.0 read_retention=0.950",
+        "score": 1.0,
+        "tool": "beta"
+      }
+    ],
+    "MostConservative": [
+      {
+        "explain": "read_retention=0.950 base_retention=0.950 error_reduction_proxy=0.100",
+        "score": 1.902222222222222,
+        "tool": "alpha"
+      },
+      {
+        "explain": "read_retention=0.950 base_retention=0.950 error_reduction_proxy=0.100",
+        "score": 1.902222222222222,
+        "tool": "beta"
+      }
+    ]
+  }
+}

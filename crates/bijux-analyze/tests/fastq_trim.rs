@@ -11,6 +11,8 @@ fn fastq_trim_metrics_invariants_fail() {
         reads_out: 11,
         bases_in: 100,
         bases_out: 90,
+        pairs_in: None,
+        pairs_out: None,
         mean_q_before: 30.0,
         mean_q_after: 31.0,
         delta_metrics: FastqDeltaMetrics {
@@ -54,6 +56,8 @@ fn sqlite_insert_fastq_trim_v2() -> Result<(), Box<dyn std::error::Error>> {
             reads_out: 90,
             bases_in: 1000,
             bases_out: 900,
+            pairs_in: None,
+            pairs_out: None,
             mean_q_before: 30.0,
             mean_q_after: 31.0,
             delta_metrics: FastqDeltaMetrics {
