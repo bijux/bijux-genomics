@@ -38,6 +38,7 @@ pub struct StageReportV1 {
     pub stage_version: i32,
     pub tool_id: String,
     pub tool_version: String,
+    pub summary: serde_json::Value,
     pub warnings: Vec<String>,
     pub errors: Vec<String>,
     pub outputs: Vec<String>,
@@ -55,7 +56,33 @@ pub struct RetentionReportV1 {
     pub numerator: serde_json::Value,
     pub denominator: serde_json::Value,
     pub scope: String,
-    pub params: serde_json::Value,
+    pub condition: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct TrimReportV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub tool_id: String,
+    pub reads_in: u64,
+    pub reads_out: u64,
+    pub bases_in: u64,
+    pub bases_out: u64,
+    pub bases_trimmed: u64,
+    pub per_adapter_counts: std::collections::BTreeMap<String, u64>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ValidateReportV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub tool_id: String,
+    pub reads_total: u64,
+    pub reads_valid: u64,
+    pub reads_invalid: u64,
+    pub integrity_ok: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

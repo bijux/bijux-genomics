@@ -2,6 +2,7 @@ use std::collections::BTreeMap;
 
 use serde::{Deserialize, Serialize};
 
+use crate::measure::ExecutionMetrics;
 use crate::ToolConstraints;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -27,13 +28,25 @@ pub type MetricEnvelope<T> = MetricSet<T>;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
+pub struct StageMetricsV1<T> {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub stage_version: i32,
+    pub tool_id: String,
+    pub tool_version: String,
+    pub execution: ExecutionMetrics,
+    pub metrics: T,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ToolInvocationV1 {
     pub schema_version: String,
     pub stage_id: String,
     pub tool_id: String,
     pub tool_version: String,
-    pub image_digest: Option<String>,
-    pub runner: String,
+    pub image_digest: String,
+    pub runner_kind: String,
     pub platform: String,
     pub parameters_json: serde_json::Value,
     #[serde(default)]
@@ -95,6 +108,8 @@ pub struct FastqFilterMetricsV1 {
     pub reads_in: u64,
     pub reads_out: u64,
     pub reads_dropped: u64,
+    pub bases_in: u64,
+    pub bases_out: u64,
     pub mean_q_before: f64,
     pub mean_q_after: f64,
     pub delta_metrics: FastqDeltaMetricsV1,
@@ -104,11 +119,42 @@ pub struct FastqFilterMetricsV1 {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct FastqMergeMetricsV1 {
+    pub reads_in: u64,
+    pub reads_out: u64,
+    pub bases_in: u64,
+    pub bases_out: u64,
     pub reads_r1: u64,
     pub reads_r2: u64,
     pub reads_merged: u64,
     pub reads_unmerged: u64,
     pub merge_rate: f64,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct FastqCorrectMetricsV1 {
+    pub reads_in: u64,
+    pub reads_out: u64,
+    pub bases_in: u64,
+    pub bases_out: u64,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct FastqUmiMetricsV1 {
+    pub reads_in: u64,
+    pub reads_out: u64,
+    pub bases_in: u64,
+    pub bases_out: u64,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct FastqPreprocessMetricsV1 {
+    pub reads_in: u64,
+    pub reads_out: u64,
+    pub bases_in: u64,
+    pub bases_out: u64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

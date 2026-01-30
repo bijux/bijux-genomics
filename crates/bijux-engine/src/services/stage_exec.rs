@@ -16,14 +16,16 @@ use crate::api::{
 use crate::services::run_artifacts::{
     default_trace_ids, params_hash, run_artifacts_dir_for_out, write_facts_jsonl,
     write_metrics_envelope, write_observability_manifest, write_plan_artifacts,
-    write_retention_report_v1, write_stage_event_jsonl, write_stage_invocation_json,
-    write_stage_metrics_json, write_stage_report_v1, write_telemetry_event,
+    write_retention_report_v1, write_stage_event_jsonl, write_stage_metrics_json,
+    write_stage_report_v1, write_telemetry_event, write_tool_invocation_json, write_trim_report_v1,
+    write_validate_report_v1,
 };
 use bijux_core::run_index::{insert_stage_row, StageIndexRow};
 use bijux_core::{
-    canonicalize_json_value, AdapterBankProvenanceV1, FactsRowV1, FastqDeltaMetricsV1,
-    FastqFilterMetricsV1, FastqMergeMetricsV1, FastqTrimMetricsV1, FastqValidateMetricsV1,
-    RetentionReportMetricV1, StageObservabilityContextV1, StagePlan, ToolInvocationV1,
+    canonicalize_json_value, AdapterBankProvenanceV1, FactsRowV1, FastqCorrectMetricsV1,
+    FastqDeltaMetricsV1, FastqFilterMetricsV1, FastqMergeMetricsV1, FastqPreprocessMetricsV1,
+    FastqTrimMetricsV1, FastqUmiMetricsV1, FastqValidateMetricsV1, RetentionReportMetricV1,
+    StageMetricsV1, StageObservabilityContextV1, StagePlan, ToolInvocationV1,
 };
 
 #[derive(Debug, Clone)]
@@ -153,6 +155,14 @@ fn stage_version_i32(version: bijux_core::StageVersion) -> i32 {
     i32::try_from(version.0).unwrap_or(i32::MAX)
 }
 
+#[derive(Debug, Clone, Copy)]
+struct RetentionCounts {
+    reads_in: u64,
+    reads_out: u64,
+    bases_in: u64,
+    bases_out: u64,
+}
+
 #[allow(clippy::cast_precision_loss)]
 fn f64_from_u64(value: u64) -> f64 {
     value as f64
@@ -164,7 +174,7 @@ fn stage_metrics_for_plan(
     inputs: &[PathBuf],
     outputs: &[PathBuf],
     params: &serde_json::Value,
-) -> Result<bijux_core::metrics::MetricSet<serde_json::Value>> {
+) -> Result<serde_json::Value> {
     let metrics = match stage_id {
         "fastq.trim" => {
             let input = stats_or_zero(inputs.first().map(PathBuf::as_path))?;
@@ -235,6 +245,8 @@ fn stage_metrics_for_plan(
                 reads_in: input.reads,
                 reads_out: output.reads,
                 reads_dropped: input.reads.saturating_sub(output.reads),
+                bases_in: input.bases,
+                bases_out: output.bases,
                 mean_q_before: input.mean_q,
                 mean_q_after: output.mean_q,
                 delta_metrics: delta,
@@ -254,7 +266,12 @@ fn stage_metrics_for_plan(
             } else {
                 0.0
             };
+            let bases_in = r1.bases.min(r2.bases);
             serde_json::to_value(FastqMergeMetricsV1 {
+                reads_in: min_reads,
+                reads_out: merged.reads,
+                bases_in,
+                bases_out: merged.bases,
                 reads_r1: r1.reads,
                 reads_r2: r2.reads,
                 reads_merged: merged.reads,
@@ -271,20 +288,87 @@ fn stage_metrics_for_plan(
                 mean_q: input.mean_q,
             })?
         }
+        "fastq.correct" => {
+            let input = stats_or_zero(inputs.first().map(PathBuf::as_path))?;
+            let output = if outputs.is_empty() {
+                input
+            } else {
+                stats_or_zero(outputs.first().map(PathBuf::as_path))?
+            };
+            serde_json::to_value(FastqCorrectMetricsV1 {
+                reads_in: input.reads,
+                reads_out: output.reads,
+                bases_in: input.bases,
+                bases_out: output.bases,
+            })?
+        }
+        "fastq.umi" => {
+            let input = stats_or_zero(inputs.first().map(PathBuf::as_path))?;
+            let output = if outputs.is_empty() {
+                input
+            } else {
+                stats_or_zero(outputs.first().map(PathBuf::as_path))?
+            };
+            serde_json::to_value(FastqUmiMetricsV1 {
+                reads_in: input.reads,
+                reads_out: output.reads,
+                bases_in: input.bases,
+                bases_out: output.bases,
+            })?
+        }
+        "fastq.preprocess" => {
+            let input = stats_or_zero(inputs.first().map(PathBuf::as_path))?;
+            let output = if outputs.is_empty() {
+                input
+            } else {
+                stats_or_zero(outputs.first().map(PathBuf::as_path))?
+            };
+            serde_json::to_value(FastqPreprocessMetricsV1 {
+                reads_in: input.reads,
+                reads_out: output.reads,
+                bases_in: input.bases,
+                bases_out: output.bases,
+            })?
+        }
         _ => serde_json::json!({}),
     };
-    let (schema, version) = match stage_id {
-        "fastq.trim" => ("bijux.fastq.trim.metrics.v1", 1),
-        "fastq.filter" => ("bijux.fastq.filter.metrics.v1", 1),
-        "fastq.merge" => ("bijux.fastq.merge.metrics.v1", 1),
-        "fastq.validate_pre" => ("bijux.fastq.validate.metrics.v1", 1),
-        _ => ("bijux.stage.metrics.empty.v1", 1),
+    Ok(metrics)
+}
+
+fn retention_counts_for_plan(
+    stage_id: &str,
+    inputs: &[PathBuf],
+    outputs: &[PathBuf],
+) -> Result<Option<RetentionCounts>> {
+    let counts = match stage_id {
+        "fastq.trim" | "fastq.filter" | "fastq.correct" | "fastq.umi" | "fastq.preprocess" => {
+            let input = stats_or_zero(inputs.first().map(PathBuf::as_path))?;
+            let output = if outputs.is_empty() {
+                input
+            } else {
+                stats_or_zero(outputs.first().map(PathBuf::as_path))?
+            };
+            RetentionCounts {
+                reads_in: input.reads,
+                reads_out: output.reads,
+                bases_in: input.bases,
+                bases_out: output.bases,
+            }
+        }
+        "fastq.merge" => {
+            let r1 = stats_or_zero(inputs.first().map(PathBuf::as_path))?;
+            let r2 = stats_or_zero(inputs.get(1).map(PathBuf::as_path))?;
+            let merged = stats_or_zero(outputs.first().map(PathBuf::as_path))?;
+            RetentionCounts {
+                reads_in: r1.reads.min(r2.reads),
+                reads_out: merged.reads,
+                bases_in: r1.bases.min(r2.bases),
+                bases_out: merged.bases,
+            }
+        }
+        _ => return Ok(None),
     };
-    Ok(bijux_core::metrics::MetricSet {
-        metrics_schema: schema.to_string(),
-        version,
-        metrics,
-    })
+    Ok(Some(counts))
 }
 
 /// Execute a single stage plan.
@@ -345,6 +429,11 @@ pub fn execute_stage_plan(plan: &StagePlan, runner: RunnerKind) -> Result<StageR
         &canonical_params,
     )?;
     let image = resolved_image_for_plan(&plan.image, runner);
+    let image_digest = plan
+        .image
+        .digest
+        .clone()
+        .unwrap_or_else(|| "unknown".to_string());
     let emit_event = |event: &bijux_core::TelemetryEventV1| -> Result<()> {
         write_telemetry_event(&telemetry_path, event)?;
         write_stage_event_jsonl(&run_artifacts_dir, event)?;
@@ -365,6 +454,7 @@ pub fn execute_stage_plan(plan: &StagePlan, runner: RunnerKind) -> Result<StageR
             "input_hash": &input_hash,
             "runner": format!("{:?}", runner),
             "image": image.full_name.clone(),
+            "image_digest": image_digest,
             "tool_version": plan.tool_version.clone(),
         }),
     })?;
@@ -383,6 +473,7 @@ pub fn execute_stage_plan(plan: &StagePlan, runner: RunnerKind) -> Result<StageR
             "input_hash": &input_hash,
             "runner": format!("{:?}", runner),
             "image": image.full_name.clone(),
+            "image_digest": image_digest,
             "tool_version": plan.tool_version.clone(),
         }),
     })?;
@@ -497,14 +588,13 @@ pub fn execute_stage_plan(plan: &StagePlan, runner: RunnerKind) -> Result<StageR
         &outputs,
         &canonical_params,
     )?;
-    let _stage_metrics_path = write_stage_metrics_json(&run_artifacts_dir, &stage_metrics)?;
     let invocation = ToolInvocationV1 {
         schema_version: "bijux.tool_invocation.v1".to_string(),
         stage_id: plan.stage_id.0.clone(),
         tool_id: plan.tool_id.0.clone(),
         tool_version: plan.tool_version.clone(),
-        image_digest: plan.image.digest.clone(),
-        runner: runner.to_string(),
+        image_digest: image_digest.clone(),
+        runner_kind: runner.to_string(),
         platform: std::env::var("BIJUX_PLATFORM").unwrap_or_else(|_| "unknown".to_string()),
         parameters_json: canonical_params.clone(),
         adapter_bank: adapter_bank_from_params(&canonical_params),
@@ -513,7 +603,8 @@ pub fn execute_stage_plan(plan: &StagePlan, runner: RunnerKind) -> Result<StageR
         input_hashes: input_hashes.clone(),
         output_hashes: output_hashes.clone(),
     };
-    let _stage_invocation_path = write_stage_invocation_json(&run_artifacts_dir, &invocation)?;
+    let tool_invocation_path =
+        write_tool_invocation_json(&run_artifacts_dir, &plan.stage_id.0, &invocation)?;
     let ctx = StageObservabilityContextV1 {
         stage_id: plan.stage_id.0.clone(),
         stage_version: stage_version_i32(plan.stage_version),
@@ -532,9 +623,46 @@ pub fn execute_stage_plan(plan: &StagePlan, runner: RunnerKind) -> Result<StageR
         &run_artifacts_dir,
         &ctx,
         &execution_metrics,
-        &stage_metrics.metrics,
+        &stage_metrics,
         &output_hashes,
     )?;
+    let stage_metrics_payload = StageMetricsV1 {
+        schema_version: "bijux.stage_metrics.v1".to_string(),
+        stage_id: plan.stage_id.0.clone(),
+        stage_version: stage_version_i32(plan.stage_version),
+        tool_id: plan.tool_id.0.clone(),
+        tool_version: plan.tool_version.clone(),
+        execution: execution_metrics,
+        metrics: stage_metrics.clone(),
+    };
+    let stage_metrics_path = write_stage_metrics_json(&run_artifacts_dir, &stage_metrics_payload)?;
+    let mut subreports: Vec<PathBuf> = Vec::new();
+    if plan.stage_id.0 == "fastq.trim" {
+        let input = stats_or_zero(input_paths.first().map(PathBuf::as_path))?;
+        let output = stats_or_zero(outputs.first().map(PathBuf::as_path))?;
+        let report_path = write_trim_report_v1(
+            &run_artifacts_dir,
+            &plan.stage_id.0,
+            &plan.tool_id.0,
+            input.reads,
+            output.reads,
+            input.bases,
+            output.bases,
+        )?;
+        subreports.push(report_path);
+    }
+    if plan.stage_id.0 == "fastq.validate_pre" {
+        let input = stats_or_zero(input_paths.first().map(PathBuf::as_path))?;
+        let report_path = write_validate_report_v1(
+            &run_artifacts_dir,
+            &plan.stage_id.0,
+            &plan.tool_id.0,
+            input.reads,
+            input.reads,
+            0,
+        )?;
+        subreports.push(report_path);
+    }
     let stage_report_path = write_stage_report_v1(
         &run_artifacts_dir,
         &plan.stage_id.0,
@@ -542,18 +670,26 @@ pub fn execute_stage_plan(plan: &StagePlan, runner: RunnerKind) -> Result<StageR
         &plan.tool_id.0,
         &plan.tool_version,
         &outputs,
+        &subreports,
     )?;
     let retention_report_path = if is_retention_stage(&plan.stage_id.0) {
-        Some(write_retention_report_v1(
-            &run_artifacts_dir,
-            &plan.stage_id.0,
-            &plan.tool_id.0,
-            &plan.tool_version,
-            &canonical_params,
-        )?)
+        retention_counts_for_plan(&plan.stage_id.0, &input_paths, &outputs)?.map(|counts| {
+            write_retention_report_v1(
+                &run_artifacts_dir,
+                &plan.stage_id.0,
+                &plan.tool_id.0,
+                &plan.tool_version,
+                &canonical_params,
+                counts.reads_in,
+                counts.reads_out,
+                counts.bases_in,
+                counts.bases_out,
+            )
+        })
     } else {
         None
-    };
+    }
+    .transpose()?;
     let _observability_manifest = write_observability_manifest(
         &run_artifacts_dir,
         &plan.stage_id.0,
@@ -561,7 +697,9 @@ pub fn execute_stage_plan(plan: &StagePlan, runner: RunnerKind) -> Result<StageR
         &plan_artifacts.plan_path,
         &plan_artifacts.effective_config_path,
         &plan_artifacts.stage_config_path,
+        &tool_invocation_path,
         &metrics_envelope_path,
+        &stage_metrics_path,
         &stage_report_path,
         retention_report_path.as_deref(),
     )?;
@@ -597,7 +735,7 @@ pub fn execute_stage_plan(plan: &StagePlan, runner: RunnerKind) -> Result<StageR
             runtime_s,
             memory_mb,
             exit_code: execution.exit_code,
-            metrics: stage_metrics.metrics.clone(),
+            metrics: stage_metrics.clone(),
             artifacts: serde_json::json!({
                 "metrics_envelope": metrics_envelope_path.display().to_string(),
                 "stage_report": stage_report_path.display().to_string(),
@@ -621,6 +759,7 @@ pub fn execute_stage_plan(plan: &StagePlan, runner: RunnerKind) -> Result<StageR
             "output_hashes": &output_hashes,
             "runner": format!("{:?}", runner),
             "image": image.full_name.clone(),
+            "image_digest": image_digest,
             "metrics_envelope": metrics_envelope_path.display().to_string(),
             "stage_report": stage_report_path.display().to_string(),
             "retention_report": retention_report_path.as_ref().map(|path| path.display().to_string()),
@@ -655,8 +794,30 @@ pub fn execute_stage_plan(plan: &StagePlan, runner: RunnerKind) -> Result<StageR
             "output_hashes": &output_hashes,
             "runner": format!("{:?}", runner),
             "image": image.full_name.clone(),
+            "image_digest": image_digest,
         }),
     })?;
+    if execution.exit_code == 0 && !execution.stderr.trim().is_empty() {
+        emit_event(&bijux_core::TelemetryEventV1 {
+            run_id: run_id.clone(),
+            stage_id: plan.stage_id.0.clone(),
+            tool_id: plan.tool_id.0.clone(),
+            event_name: "warning".to_string(),
+            timestamp: Utc::now().to_rfc3339(),
+            duration_ms: None,
+            status: "warning".to_string(),
+            trace_id: trace_id.clone(),
+            span_id: span_id.clone(),
+            attrs: serde_json::json!({
+                "stderr_bytes": execution.stderr.len(),
+                "params_hash": &params_hash,
+                "input_hash": &input_hash,
+                "output_hashes": &output_hashes,
+                "runner": format!("{:?}", runner),
+                "image_digest": image_digest,
+            }),
+        })?;
+    }
     if execution.exit_code != 0 {
         emit_event(&bijux_core::TelemetryEventV1 {
             run_id: run_id.clone(),
@@ -675,6 +836,7 @@ pub fn execute_stage_plan(plan: &StagePlan, runner: RunnerKind) -> Result<StageR
                 "output_hashes": &output_hashes,
                 "runner": format!("{:?}", runner),
                 "image": image.full_name.clone(),
+                "image_digest": image_digest,
             }),
         })?;
     }
@@ -699,6 +861,7 @@ pub fn execute_stage_plan(plan: &StagePlan, runner: RunnerKind) -> Result<StageR
             "output_hashes": &output_hashes,
             "runner": format!("{:?}", runner),
             "image": image.full_name.clone(),
+            "image_digest": image_digest,
         }),
     })?;
     Ok(StageResultV1 {

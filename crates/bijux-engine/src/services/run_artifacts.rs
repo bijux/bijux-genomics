@@ -9,6 +9,7 @@ use crate::services::composer::paths::bench_tools_dir;
 use serde::Serialize;
 use uuid::Uuid;
 
+use bijux_core::observability::{TrimReportV1, ValidateReportV1};
 use bijux_core::{
     canonicalize_json_value, EffectiveConfigV1, FactsRowV1, RetentionReportV1,
     StageObservabilityContextV1, StageReportV1, TelemetryEventV1,
@@ -109,6 +110,10 @@ pub fn write_retention_report_placeholder(
         tool,
         "unknown/TBD",
         params,
+        0,
+        0,
+        0,
+        0,
     )?;
     std::fs::copy(&path, &run_dirs.retention_report_path).context("copy retention_report.json")?;
     Ok(())
@@ -317,7 +322,7 @@ pub fn write_metrics_envelope(
 
 pub fn write_stage_metrics_json<T: serde::Serialize>(
     run_artifacts_dir: &Path,
-    metrics: &bijux_core::metrics::MetricSet<T>,
+    metrics: &bijux_core::metrics::StageMetricsV1<T>,
 ) -> Result<PathBuf> {
     let path = run_artifacts_dir.join("stage_metrics.json");
     std::fs::write(&path, serde_json::to_vec_pretty(metrics)?)
@@ -325,13 +330,17 @@ pub fn write_stage_metrics_json<T: serde::Serialize>(
     Ok(path)
 }
 
-pub fn write_stage_invocation_json(
+pub fn write_tool_invocation_json(
     run_artifacts_dir: &Path,
+    stage_id: &str,
     invocation: &bijux_core::ToolInvocationV1,
 ) -> Result<PathBuf> {
-    let path = run_artifacts_dir.join("stage_invocation.json");
+    let invocations_dir = run_artifacts_dir.join("invocations");
+    std::fs::create_dir_all(&invocations_dir).context("create invocations dir")?;
+    let file_name = format!("{stage_id}.tool_invocation.json");
+    let path = invocations_dir.join(file_name);
     std::fs::write(&path, serde_json::to_vec_pretty(invocation)?)
-        .context("write stage_invocation.json")?;
+        .context("write tool_invocation.json")?;
     Ok(path)
 }
 
@@ -359,6 +368,7 @@ pub fn write_stage_report_v1(
     tool_id: &str,
     tool_version: &str,
     outputs: &[PathBuf],
+    subreports: &[PathBuf],
 ) -> Result<PathBuf> {
     let payload = StageReportV1 {
         schema_version: "bijux.stage_report.v1".to_string(),
@@ -366,10 +376,13 @@ pub fn write_stage_report_v1(
         stage_version,
         tool_id: tool_id.to_string(),
         tool_version: tool_version.to_string(),
+        summary: serde_json::json!({
+            "outputs": outputs.iter().map(|p| p.display().to_string()).collect::<Vec<_>>()
+        }),
         warnings: Vec::new(),
         errors: Vec::new(),
         outputs: outputs.iter().map(|p| p.display().to_string()).collect(),
-        subreports: Vec::new(),
+        subreports: subreports.iter().map(|p| p.display().to_string()).collect(),
     };
     let path = run_artifacts_dir.join("stage_report.json");
     std::fs::write(&path, serde_json::to_vec_pretty(&payload)?)
@@ -377,27 +390,94 @@ pub fn write_stage_report_v1(
     Ok(path)
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn write_retention_report_v1(
     run_artifacts_dir: &Path,
     stage_id: &str,
     tool_id: &str,
     tool_version: &str,
-    params: &serde_json::Value,
+    condition: &serde_json::Value,
+    reads_in: u64,
+    reads_out: u64,
+    bases_in: u64,
+    bases_out: u64,
 ) -> Result<PathBuf> {
+    let reports_dir = run_artifacts_dir.join("reports");
+    std::fs::create_dir_all(&reports_dir).context("create reports dir")?;
+    let file_name = format!("{stage_id}.retention.json");
     let payload = RetentionReportV1 {
         schema_version: "bijux.retention_report.v1".to_string(),
         stage_id: stage_id.to_string(),
         tool_id: tool_id.to_string(),
         tool_version: tool_version.to_string(),
         boundary: "pre/post".to_string(),
-        numerator: serde_json::json!({ "reads_out": null }),
-        denominator: serde_json::json!({ "reads_in": null }),
+        numerator: serde_json::json!({
+            "reads_out": reads_out,
+            "bases_out": bases_out,
+        }),
+        denominator: serde_json::json!({
+            "reads_in": reads_in,
+            "bases_in": bases_in,
+        }),
         scope: "reads".to_string(),
-        params: params.clone(),
+        condition: condition.clone(),
     };
-    let path = run_artifacts_dir.join("retention_report.json");
+    let path = reports_dir.join(file_name);
     std::fs::write(&path, serde_json::to_vec_pretty(&payload)?)
-        .context("write retention_report.json")?;
+        .context("write retention report")?;
+    Ok(path)
+}
+
+pub fn write_trim_report_v1(
+    run_artifacts_dir: &Path,
+    stage_id: &str,
+    tool_id: &str,
+    reads_in: u64,
+    reads_out: u64,
+    bases_in: u64,
+    bases_out: u64,
+) -> Result<PathBuf> {
+    let reports_dir = run_artifacts_dir.join("reports");
+    std::fs::create_dir_all(&reports_dir).context("create reports dir")?;
+    let file_name = format!("{stage_id}.trim_report.json");
+    let payload = TrimReportV1 {
+        schema_version: "bijux.trim_report.v1".to_string(),
+        stage_id: stage_id.to_string(),
+        tool_id: tool_id.to_string(),
+        reads_in,
+        reads_out,
+        bases_in,
+        bases_out,
+        bases_trimmed: bases_in.saturating_sub(bases_out),
+        per_adapter_counts: std::collections::BTreeMap::new(),
+    };
+    let path = reports_dir.join(file_name);
+    std::fs::write(&path, serde_json::to_vec_pretty(&payload)?).context("write trim report")?;
+    Ok(path)
+}
+
+pub fn write_validate_report_v1(
+    run_artifacts_dir: &Path,
+    stage_id: &str,
+    tool_id: &str,
+    reads_total: u64,
+    reads_valid: u64,
+    reads_invalid: u64,
+) -> Result<PathBuf> {
+    let reports_dir = run_artifacts_dir.join("reports");
+    std::fs::create_dir_all(&reports_dir).context("create reports dir")?;
+    let file_name = format!("{stage_id}.validate_report.json");
+    let payload = ValidateReportV1 {
+        schema_version: "bijux.validate_report.v1".to_string(),
+        stage_id: stage_id.to_string(),
+        tool_id: tool_id.to_string(),
+        reads_total,
+        reads_valid,
+        reads_invalid,
+        integrity_ok: reads_invalid == 0,
+    };
+    let path = reports_dir.join(file_name);
+    std::fs::write(&path, serde_json::to_vec_pretty(&payload)?).context("write validate report")?;
     Ok(path)
 }
 
@@ -439,7 +519,9 @@ pub fn write_observability_manifest(
     plan_path: &Path,
     effective_config_path: &Path,
     stage_config_path: &Path,
+    tool_invocation_path: &Path,
     metrics_envelope_path: &Path,
+    stage_metrics_path: &Path,
     stage_report_path: &Path,
     retention_report_path: Option<&Path>,
 ) -> Result<PathBuf> {
@@ -457,8 +539,16 @@ pub fn write_observability_manifest(
             "path": stage_config_path,
         }),
         serde_json::json!({
+            "name": "tool_invocation",
+            "path": tool_invocation_path,
+        }),
+        serde_json::json!({
             "name": "metrics_envelope",
             "path": metrics_envelope_path,
+        }),
+        serde_json::json!({
+            "name": "stage_metrics",
+            "path": stage_metrics_path,
         }),
         serde_json::json!({
             "name": "stage_report",

@@ -115,10 +115,13 @@ pub fn bench_fastq_stats_neutral<S: ::std::hash::BuildHasher>(
     let runner = bench_inputs.runner.to_string();
     let platform_name = platform.name.clone();
     for tool in tools {
-        let spec = catalog
-            .get(&tool)
-            .ok_or_else(|| anyhow!("tool {tool} missing from images.yaml"))?;
-        let image_digest = spec
+        let tool_spec =
+            build_tool_execution_spec("fastq.stats_neutral", &tool, &registry, catalog, platform)?;
+        let tool_dir = bench_inputs.tools_root.join(&tool);
+        let plan = plan_stats_neutral(&tool_spec, &bench_inputs.r1, &tool_dir)?;
+        let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
+        let image_digest = tool_spec
+            .image
             .digest
             .as_ref()
             .ok_or_else(|| anyhow!("image digest missing for tool {tool}"))?
@@ -126,11 +129,12 @@ pub fn bench_fastq_stats_neutral<S: ::std::hash::BuildHasher>(
         let cached = fetch_fastq_stats_v1(
             &conn,
             &tool,
-            &spec.version,
+            &tool_spec.tool_version,
             &image_digest,
             &runner,
             &platform_name,
             &bench_inputs.input_hash,
+            &params_hash,
         );
         if let Ok(Some(record)) = cached {
             records.push(record);
