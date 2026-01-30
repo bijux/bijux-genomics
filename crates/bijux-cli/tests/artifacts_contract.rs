@@ -134,7 +134,17 @@ fn fastq_bench_emits_contract_artifacts() -> Result<(), Box<dyn std::error::Erro
         assert_file_exists(&run_artifacts.join("metrics_envelope.json"));
         assert_file_exists(&run_artifacts.join("stage_report.json"));
         if case.retention {
-            assert_file_exists(&run_artifacts.join("retention_report.json"));
+            let stage_id = match case.stage_dir {
+                "stats" => "fastq.stats_neutral".to_string(),
+                "qc_post" => "fastq.qc_post".to_string(),
+                "validate_pre" => "fastq.validate_pre".to_string(),
+                other => format!("fastq.{other}"),
+            };
+            assert_file_exists(
+                &run_artifacts
+                    .join("reports")
+                    .join(format!("{stage_id}.retention.json")),
+            );
         }
     }
 

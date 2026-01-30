@@ -110,7 +110,9 @@ fn write_run_summary(
             let metrics =
                 read_json_if_exists(&metrics_path).and_then(|value| value.get("metrics").cloned());
             let stage_report_path = artifacts_dir.join("stage_report.json");
-            let retention_report_path = artifacts_dir.join("retention_report.json");
+            let retention_report_path = artifacts_dir
+                .join("reports")
+                .join(format!("{}.retention.json", entry.plan.stage_id.0));
             serde_json::json!({
                 "stage_id": entry.plan.stage_id.0,
                 "tool_id": entry.plan.tool_id.0,

@@ -29,8 +29,9 @@ pub struct ToolId(pub String);
 pub struct RunId(pub String);
 
 pub use metrics::{
-    AdapterBankProvenanceV1, FastqDeltaMetricsV1, FastqFilterMetricsV1, FastqMergeMetricsV1,
-    FastqTrimMetricsV1, FastqValidateMetricsV1, RetentionReportMetricV1, ToolInvocationV1,
+    AdapterBankProvenanceV1, FastqCorrectMetricsV1, FastqDeltaMetricsV1, FastqFilterMetricsV1,
+    FastqMergeMetricsV1, FastqPreprocessMetricsV1, FastqTrimMetricsV1, FastqUmiMetricsV1,
+    FastqValidateMetricsV1, RetentionReportMetricV1, StageMetricsV1, ToolInvocationV1,
 };
 pub use observability::{
     canonicalize_json_value, EffectiveConfigV1, FactsRowV1, RetentionReportV1,

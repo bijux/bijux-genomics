@@ -7,6 +7,7 @@ use rusqlite::{params, Connection};
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
+use sha2::{Digest, Sha256};
 use thiserror::Error;
 use tracing::warn;
 
@@ -1385,14 +1386,36 @@ fn ensure_inserted_at_column(conn: &Connection, table: &str) -> Result<()> {
     Ok(())
 }
 
+fn ensure_params_hash_column(conn: &Connection, table: &str) -> Result<()> {
+    let mut stmt = conn.prepare(&format!("PRAGMA table_info({table})"))?;
+    let mut rows = stmt.query([])?;
+    while let Some(row) = rows.next()? {
+        let name: String = row.get(1)?;
+        if name == "params_hash" {
+            return Ok(());
+        }
+    }
+    let sql = format!("ALTER TABLE {table} ADD COLUMN params_hash TEXT NOT NULL DEFAULT ''");
+    conn.execute(&sql, [])?;
+    Ok(())
+}
+
 fn ensure_identity_index(conn: &Connection, table: &str) -> Result<()> {
     let index_name = format!("{table}_identity_idx");
     let sql = format!(
         "CREATE UNIQUE INDEX IF NOT EXISTS {index_name} \
-         ON {table} (tool, tool_version, image_digest, runner, platform, input_hash)"
+         ON {table} (tool, tool_version, image_digest, runner, platform, input_hash, params_hash)"
     );
     conn.execute(&sql, [])?;
     Ok(())
+}
+
+fn params_hash(parameters: &serde_json::Value) -> Result<String> {
+    let canonical = bijux_core::canonicalize_json_value(parameters);
+    let bytes = serde_json::to_vec(&canonical)?;
+    let mut hasher = Sha256::new();
+    hasher.update(bytes);
+    Ok(format!("{:x}", hasher.finalize()))
 }
 
 /// Insert a `FastQ` trim benchmark record into the v1 table.
@@ -1411,6 +1434,7 @@ pub fn insert_fastq_trim_v1(
          runner TEXT NOT NULL,\
          platform TEXT NOT NULL,\
          input_hash TEXT NOT NULL,\
+         params_hash TEXT NOT NULL,\
          parameters_json TEXT NOT NULL,\
          schema_version INTEGER NOT NULL,\
          runtime_s REAL NOT NULL,\
@@ -1422,16 +1446,18 @@ pub fn insert_fastq_trim_v1(
         [],
     )?;
     ensure_inserted_at_column(conn, "bench_fastq_trim_v1")?;
+    ensure_params_hash_column(conn, "bench_fastq_trim_v1")?;
     ensure_identity_index(conn, "bench_fastq_trim_v1")?;
 
     let metrics_json = serde_json::to_string(&record.metrics)?;
     let parameters_json = serde_json::to_string(&record.context.parameters)?;
+    let params_hash = params_hash(&record.context.parameters)?;
 
     conn.execute(
         "INSERT INTO bench_fastq_trim_v1 (\
-         tool, tool_version, image_digest, runner, platform, input_hash,\
+         tool, tool_version, image_digest, runner, platform, input_hash, params_hash,\
          parameters_json, schema_version, runtime_s, memory_mb, exit_code, metrics_json\
-         ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)",
+         ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)",
         (
             &record.context.tool,
             &record.context.tool_version,
@@ -1439,6 +1465,7 @@ pub fn insert_fastq_trim_v1(
             &record.context.runner,
             &record.context.platform,
             &record.context.input_hash,
+            params_hash,
             parameters_json,
             record.metrics.version,
             record.execution.runtime_s,
@@ -1466,6 +1493,7 @@ pub fn insert_fastq_trim_v2(
          runner TEXT NOT NULL,\
          platform TEXT NOT NULL,\
          input_hash TEXT NOT NULL,\
+         params_hash TEXT NOT NULL,\
          parameters_json TEXT NOT NULL,\
          schema_version INTEGER NOT NULL,\
          runtime_s REAL NOT NULL,\
@@ -1477,16 +1505,18 @@ pub fn insert_fastq_trim_v2(
         [],
     )?;
     ensure_inserted_at_column(conn, "bench_fastq_trim_v2")?;
+    ensure_params_hash_column(conn, "bench_fastq_trim_v2")?;
     ensure_identity_index(conn, "bench_fastq_trim_v2")?;
 
     let metrics_json = serde_json::to_string(&record.metrics)?;
     let parameters_json = serde_json::to_string(&record.context.parameters)?;
+    let params_hash = params_hash(&record.context.parameters)?;
 
     conn.execute(
         "INSERT INTO bench_fastq_trim_v2 (\
-         tool, tool_version, image_digest, runner, platform, input_hash,\
+         tool, tool_version, image_digest, runner, platform, input_hash, params_hash,\
          parameters_json, schema_version, runtime_s, memory_mb, exit_code, metrics_json\
-         ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)",
+         ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)",
         (
             &record.context.tool,
             &record.context.tool_version,
@@ -1494,6 +1524,7 @@ pub fn insert_fastq_trim_v2(
             &record.context.runner,
             &record.context.platform,
             &record.context.input_hash,
+            params_hash,
             parameters_json,
             record.metrics.version,
             record.execution.runtime_s,
@@ -1510,6 +1541,7 @@ pub fn insert_fastq_trim_v2(
 /// # Errors
 /// Returns an error if the query or JSON parsing fails.
 /// Deterministic ordering: when multiple rows exist, pick the most recent by `inserted_at`.
+#[allow(clippy::too_many_arguments)]
 pub fn fetch_fastq_trim_v1(
     conn: &Connection,
     tool: &str,
@@ -1518,15 +1550,15 @@ pub fn fetch_fastq_trim_v1(
     runner: &str,
     platform: &str,
     input_hash: &str,
+    params_hash: &str,
 ) -> Result<Option<BenchmarkRecord<FastqTrimMetrics>>> {
     let mut stmt = conn.prepare(
-        "SELECT tool, tool_version, image_digest, runner, platform, input_hash,\
+        "SELECT tool, tool_version, image_digest, runner, platform, input_hash, params_hash,\
          parameters_json, runtime_s, memory_mb, exit_code, metrics_json \
          FROM bench_fastq_trim_v1 \
          WHERE tool = ?1 AND tool_version = ?2 AND image_digest = ?3\
-         AND runner = ?4 AND platform = ?5 AND input_hash = ?6\
-         ORDER BY inserted_at DESC \
-         LIMIT 1",
+         AND runner = ?4 AND platform = ?5 AND input_hash = ?6 AND params_hash = ?7\
+         ORDER BY inserted_at DESC, rowid DESC LIMIT 1",
     )?;
     let row = stmt.query_row(
         params![
@@ -1535,7 +1567,8 @@ pub fn fetch_fastq_trim_v1(
             image_digest,
             runner,
             platform,
-            input_hash
+            input_hash,
+            params_hash
         ],
         |row| {
             let tool: String = row.get(0)?;
@@ -1544,11 +1577,12 @@ pub fn fetch_fastq_trim_v1(
             let runner: String = row.get(3)?;
             let platform: String = row.get(4)?;
             let input_hash: String = row.get(5)?;
-            let parameters_json: String = row.get(6)?;
-            let runtime_s: f64 = row.get(7)?;
-            let memory_mb: f64 = row.get(8)?;
-            let exit_code: i64 = row.get(9)?;
-            let metrics_json: String = row.get(10)?;
+            let _params_hash: String = row.get(6)?;
+            let parameters_json: String = row.get(7)?;
+            let runtime_s: f64 = row.get(8)?;
+            let memory_mb: f64 = row.get(9)?;
+            let exit_code: i64 = row.get(10)?;
+            let metrics_json: String = row.get(11)?;
             let parameters: JsonValue = json_from_str(&parameters_json)?;
             let metrics: MetricSet<FastqTrimMetrics> = json_from_str(&metrics_json)?;
             Ok(BenchmarkRecord {
@@ -1581,6 +1615,7 @@ pub fn fetch_fastq_trim_v1(
 ///
 /// # Errors
 /// Returns an error if the query or JSON parsing fails.
+#[allow(clippy::too_many_arguments)]
 pub fn fetch_fastq_trim_v2(
     conn: &Connection,
     tool: &str,
@@ -1589,15 +1624,15 @@ pub fn fetch_fastq_trim_v2(
     runner: &str,
     platform: &str,
     input_hash: &str,
+    params_hash: &str,
 ) -> Result<Option<BenchmarkRecord<FastqTrimMetrics>>> {
     let mut stmt = conn.prepare(
-        "SELECT tool, tool_version, image_digest, runner, platform, input_hash,\
+        "SELECT tool, tool_version, image_digest, runner, platform, input_hash, params_hash,\
          parameters_json, runtime_s, memory_mb, exit_code, metrics_json \
          FROM bench_fastq_trim_v2 \
          WHERE tool = ?1 AND tool_version = ?2 AND image_digest = ?3\
-         AND runner = ?4 AND platform = ?5 AND input_hash = ?6\
-         ORDER BY inserted_at DESC \
-         LIMIT 1",
+         AND runner = ?4 AND platform = ?5 AND input_hash = ?6 AND params_hash = ?7\
+         ORDER BY inserted_at DESC, rowid DESC LIMIT 1",
     )?;
     let row = stmt.query_row(
         params![
@@ -1606,7 +1641,8 @@ pub fn fetch_fastq_trim_v2(
             image_digest,
             runner,
             platform,
-            input_hash
+            input_hash,
+            params_hash
         ],
         |row| {
             let tool: String = row.get(0)?;
@@ -1615,11 +1651,12 @@ pub fn fetch_fastq_trim_v2(
             let runner: String = row.get(3)?;
             let platform: String = row.get(4)?;
             let input_hash: String = row.get(5)?;
-            let parameters_json: String = row.get(6)?;
-            let runtime_s: f64 = row.get(7)?;
-            let memory_mb: f64 = row.get(8)?;
-            let exit_code: i64 = row.get(9)?;
-            let metrics_json: String = row.get(10)?;
+            let _params_hash: String = row.get(6)?;
+            let parameters_json: String = row.get(7)?;
+            let runtime_s: f64 = row.get(8)?;
+            let memory_mb: f64 = row.get(9)?;
+            let exit_code: i64 = row.get(10)?;
+            let metrics_json: String = row.get(11)?;
             let parameters: JsonValue = json_from_str(&parameters_json)?;
             let metrics: MetricSet<FastqTrimMetrics> = json_from_str(&metrics_json)?;
             Ok(BenchmarkRecord {
@@ -1664,6 +1701,7 @@ pub fn insert_fastq_validate_v1(
          runner TEXT NOT NULL,\
          platform TEXT NOT NULL,\
          input_hash TEXT NOT NULL,\
+         params_hash TEXT NOT NULL,\
          parameters_json TEXT NOT NULL,\
          schema_version INTEGER NOT NULL,\
          runtime_s REAL NOT NULL,\
@@ -1675,16 +1713,18 @@ pub fn insert_fastq_validate_v1(
         [],
     )?;
     ensure_inserted_at_column(conn, "bench_fastq_validate_v1")?;
+    ensure_params_hash_column(conn, "bench_fastq_validate_v1")?;
     ensure_identity_index(conn, "bench_fastq_validate_v1")?;
 
     let metrics_json = serde_json::to_string(&record.metrics)?;
     let parameters_json = serde_json::to_string(&record.context.parameters)?;
+    let params_hash = params_hash(&record.context.parameters)?;
 
     conn.execute(
         "INSERT INTO bench_fastq_validate_v1 (\
-         tool, tool_version, image_digest, runner, platform, input_hash,\
+         tool, tool_version, image_digest, runner, platform, input_hash, params_hash,\
          parameters_json, schema_version, runtime_s, memory_mb, exit_code, metrics_json\
-         ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)",
+         ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)",
         (
             &record.context.tool,
             &record.context.tool_version,
@@ -1692,6 +1732,7 @@ pub fn insert_fastq_validate_v1(
             &record.context.runner,
             &record.context.platform,
             &record.context.input_hash,
+            params_hash,
             parameters_json,
             record.metrics.version,
             record.execution.runtime_s,
@@ -1707,6 +1748,7 @@ pub fn insert_fastq_validate_v1(
 ///
 /// # Errors
 /// Returns an error if the query or JSON parsing fails.
+#[allow(clippy::too_many_arguments)]
 pub fn fetch_fastq_validate_v1(
     conn: &Connection,
     tool: &str,
@@ -1715,15 +1757,15 @@ pub fn fetch_fastq_validate_v1(
     runner: &str,
     platform: &str,
     input_hash: &str,
+    params_hash: &str,
 ) -> Result<Option<BenchmarkRecord<FastqValidateMetrics>>> {
     let mut stmt = conn.prepare(
-        "SELECT tool, tool_version, image_digest, runner, platform, input_hash,\
+        "SELECT tool, tool_version, image_digest, runner, platform, input_hash, params_hash,\
          parameters_json, runtime_s, memory_mb, exit_code, metrics_json \
          FROM bench_fastq_validate_v1 \
          WHERE tool = ?1 AND tool_version = ?2 AND image_digest = ?3\
-         AND runner = ?4 AND platform = ?5 AND input_hash = ?6\
-         ORDER BY inserted_at DESC \
-         LIMIT 1",
+         AND runner = ?4 AND platform = ?5 AND input_hash = ?6 AND params_hash = ?7\
+         ORDER BY inserted_at DESC, rowid DESC LIMIT 1",
     )?;
     let row = stmt.query_row(
         params![
@@ -1732,7 +1774,8 @@ pub fn fetch_fastq_validate_v1(
             image_digest,
             runner,
             platform,
-            input_hash
+            input_hash,
+            params_hash
         ],
         |row| {
             let tool: String = row.get(0)?;
@@ -1741,11 +1784,12 @@ pub fn fetch_fastq_validate_v1(
             let runner: String = row.get(3)?;
             let platform: String = row.get(4)?;
             let input_hash: String = row.get(5)?;
-            let parameters_json: String = row.get(6)?;
-            let runtime_s: f64 = row.get(7)?;
-            let memory_mb: f64 = row.get(8)?;
-            let exit_code: i64 = row.get(9)?;
-            let metrics_json: String = row.get(10)?;
+            let _params_hash: String = row.get(6)?;
+            let parameters_json: String = row.get(7)?;
+            let runtime_s: f64 = row.get(8)?;
+            let memory_mb: f64 = row.get(9)?;
+            let exit_code: i64 = row.get(10)?;
+            let metrics_json: String = row.get(11)?;
             let parameters: JsonValue = json_from_str(&parameters_json)?;
             let metrics: MetricSet<FastqValidateMetrics> = json_from_str(&metrics_json)?;
             Ok(BenchmarkRecord {
@@ -1790,6 +1834,7 @@ pub fn insert_fastq_filter_v1(
          runner TEXT NOT NULL,\
          platform TEXT NOT NULL,\
          input_hash TEXT NOT NULL,\
+         params_hash TEXT NOT NULL,\
          parameters_json TEXT NOT NULL,\
          schema_version INTEGER NOT NULL,\
          runtime_s REAL NOT NULL,\
@@ -1801,16 +1846,18 @@ pub fn insert_fastq_filter_v1(
         [],
     )?;
     ensure_inserted_at_column(conn, "bench_fastq_filter_v1")?;
+    ensure_params_hash_column(conn, "bench_fastq_filter_v1")?;
     ensure_identity_index(conn, "bench_fastq_filter_v1")?;
 
     let metrics_json = serde_json::to_string(&record.metrics)?;
     let parameters_json = serde_json::to_string(&record.context.parameters)?;
+    let params_hash = params_hash(&record.context.parameters)?;
 
     conn.execute(
         "INSERT INTO bench_fastq_filter_v1 (\
-         tool, tool_version, image_digest, runner, platform, input_hash,\
+         tool, tool_version, image_digest, runner, platform, input_hash, params_hash,\
          parameters_json, schema_version, runtime_s, memory_mb, exit_code, metrics_json\
-         ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)",
+         ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)",
         (
             &record.context.tool,
             &record.context.tool_version,
@@ -1818,6 +1865,7 @@ pub fn insert_fastq_filter_v1(
             &record.context.runner,
             &record.context.platform,
             &record.context.input_hash,
+            params_hash,
             parameters_json,
             record.metrics.version,
             record.execution.runtime_s,
@@ -1845,6 +1893,7 @@ pub fn insert_fastq_filter_v2(
          runner TEXT NOT NULL,\
          platform TEXT NOT NULL,\
          input_hash TEXT NOT NULL,\
+         params_hash TEXT NOT NULL,\
          parameters_json TEXT NOT NULL,\
          schema_version INTEGER NOT NULL,\
          runtime_s REAL NOT NULL,\
@@ -1856,16 +1905,18 @@ pub fn insert_fastq_filter_v2(
         [],
     )?;
     ensure_inserted_at_column(conn, "bench_fastq_filter_v2")?;
+    ensure_params_hash_column(conn, "bench_fastq_filter_v2")?;
     ensure_identity_index(conn, "bench_fastq_filter_v2")?;
 
     let metrics_json = serde_json::to_string(&record.metrics)?;
     let parameters_json = serde_json::to_string(&record.context.parameters)?;
+    let params_hash = params_hash(&record.context.parameters)?;
 
     conn.execute(
         "INSERT INTO bench_fastq_filter_v2 (\
-         tool, tool_version, image_digest, runner, platform, input_hash,\
+         tool, tool_version, image_digest, runner, platform, input_hash, params_hash,\
          parameters_json, schema_version, runtime_s, memory_mb, exit_code, metrics_json\
-         ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)",
+         ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)",
         (
             &record.context.tool,
             &record.context.tool_version,
@@ -1873,6 +1924,7 @@ pub fn insert_fastq_filter_v2(
             &record.context.runner,
             &record.context.platform,
             &record.context.input_hash,
+            params_hash,
             parameters_json,
             record.metrics.version,
             record.execution.runtime_s,
@@ -1888,6 +1940,7 @@ pub fn insert_fastq_filter_v2(
 ///
 /// # Errors
 /// Returns an error if the query or JSON parsing fails.
+#[allow(clippy::too_many_arguments)]
 pub fn fetch_fastq_filter_v1(
     conn: &Connection,
     tool: &str,
@@ -1896,15 +1949,15 @@ pub fn fetch_fastq_filter_v1(
     runner: &str,
     platform: &str,
     input_hash: &str,
+    params_hash: &str,
 ) -> Result<Option<BenchmarkRecord<FastqFilterMetrics>>> {
     let mut stmt = conn.prepare(
-        "SELECT tool, tool_version, image_digest, runner, platform, input_hash,\
+        "SELECT tool, tool_version, image_digest, runner, platform, input_hash, params_hash,\
          parameters_json, runtime_s, memory_mb, exit_code, metrics_json \
          FROM bench_fastq_filter_v1 \
          WHERE tool = ?1 AND tool_version = ?2 AND image_digest = ?3\
-         AND runner = ?4 AND platform = ?5 AND input_hash = ?6\
-         ORDER BY inserted_at DESC \
-         LIMIT 1",
+         AND runner = ?4 AND platform = ?5 AND input_hash = ?6 AND params_hash = ?7\
+         ORDER BY inserted_at DESC, rowid DESC LIMIT 1",
     )?;
     let row = stmt.query_row(
         params![
@@ -1913,7 +1966,8 @@ pub fn fetch_fastq_filter_v1(
             image_digest,
             runner,
             platform,
-            input_hash
+            input_hash,
+            params_hash
         ],
         |row| {
             let tool: String = row.get(0)?;
@@ -1922,11 +1976,12 @@ pub fn fetch_fastq_filter_v1(
             let runner: String = row.get(3)?;
             let platform: String = row.get(4)?;
             let input_hash: String = row.get(5)?;
-            let parameters_json: String = row.get(6)?;
-            let runtime_s: f64 = row.get(7)?;
-            let memory_mb: f64 = row.get(8)?;
-            let exit_code: i64 = row.get(9)?;
-            let metrics_json: String = row.get(10)?;
+            let _params_hash: String = row.get(6)?;
+            let parameters_json: String = row.get(7)?;
+            let runtime_s: f64 = row.get(8)?;
+            let memory_mb: f64 = row.get(9)?;
+            let exit_code: i64 = row.get(10)?;
+            let metrics_json: String = row.get(11)?;
             let parameters: JsonValue = json_from_str(&parameters_json)?;
             let metrics: MetricSet<FastqFilterMetrics> = json_from_str(&metrics_json)?;
             Ok(BenchmarkRecord {
@@ -1959,6 +2014,7 @@ pub fn fetch_fastq_filter_v1(
 ///
 /// # Errors
 /// Returns an error if the query or JSON parsing fails.
+#[allow(clippy::too_many_arguments)]
 pub fn fetch_fastq_filter_v2(
     conn: &Connection,
     tool: &str,
@@ -1967,15 +2023,15 @@ pub fn fetch_fastq_filter_v2(
     runner: &str,
     platform: &str,
     input_hash: &str,
+    params_hash: &str,
 ) -> Result<Option<BenchmarkRecord<FastqFilterMetrics>>> {
     let mut stmt = conn.prepare(
-        "SELECT tool, tool_version, image_digest, runner, platform, input_hash,\
+        "SELECT tool, tool_version, image_digest, runner, platform, input_hash, params_hash,\
          parameters_json, runtime_s, memory_mb, exit_code, metrics_json \
          FROM bench_fastq_filter_v2 \
          WHERE tool = ?1 AND tool_version = ?2 AND image_digest = ?3\
-         AND runner = ?4 AND platform = ?5 AND input_hash = ?6\
-         ORDER BY inserted_at DESC \
-         LIMIT 1",
+         AND runner = ?4 AND platform = ?5 AND input_hash = ?6 AND params_hash = ?7\
+         ORDER BY inserted_at DESC, rowid DESC LIMIT 1",
     )?;
     let row = stmt.query_row(
         params![
@@ -1984,7 +2040,8 @@ pub fn fetch_fastq_filter_v2(
             image_digest,
             runner,
             platform,
-            input_hash
+            input_hash,
+            params_hash
         ],
         |row| {
             let tool: String = row.get(0)?;
@@ -1993,11 +2050,12 @@ pub fn fetch_fastq_filter_v2(
             let runner: String = row.get(3)?;
             let platform: String = row.get(4)?;
             let input_hash: String = row.get(5)?;
-            let parameters_json: String = row.get(6)?;
-            let runtime_s: f64 = row.get(7)?;
-            let memory_mb: f64 = row.get(8)?;
-            let exit_code: i64 = row.get(9)?;
-            let metrics_json: String = row.get(10)?;
+            let _params_hash: String = row.get(6)?;
+            let parameters_json: String = row.get(7)?;
+            let runtime_s: f64 = row.get(8)?;
+            let memory_mb: f64 = row.get(9)?;
+            let exit_code: i64 = row.get(10)?;
+            let metrics_json: String = row.get(11)?;
             let parameters: JsonValue = json_from_str(&parameters_json)?;
             let metrics: MetricSet<FastqFilterMetrics> = json_from_str(&metrics_json)?;
             Ok(BenchmarkRecord {
@@ -2042,6 +2100,7 @@ pub fn insert_fastq_merge_v1(
          runner TEXT NOT NULL,\
          platform TEXT NOT NULL,\
          input_hash TEXT NOT NULL,\
+         params_hash TEXT NOT NULL,\
          parameters_json TEXT NOT NULL,\
          schema_version INTEGER NOT NULL,\
          runtime_s REAL NOT NULL,\
@@ -2053,16 +2112,18 @@ pub fn insert_fastq_merge_v1(
         [],
     )?;
     ensure_inserted_at_column(conn, "bench_fastq_merge_v1")?;
+    ensure_params_hash_column(conn, "bench_fastq_merge_v1")?;
     ensure_identity_index(conn, "bench_fastq_merge_v1")?;
 
     let metrics_json = serde_json::to_string(&record.metrics)?;
     let parameters_json = serde_json::to_string(&record.context.parameters)?;
+    let params_hash = params_hash(&record.context.parameters)?;
 
     conn.execute(
         "INSERT INTO bench_fastq_merge_v1 (\
-         tool, tool_version, image_digest, runner, platform, input_hash,\
+         tool, tool_version, image_digest, runner, platform, input_hash, params_hash,\
          parameters_json, schema_version, runtime_s, memory_mb, exit_code, metrics_json\
-         ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)",
+         ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)",
         (
             &record.context.tool,
             &record.context.tool_version,
@@ -2070,6 +2131,7 @@ pub fn insert_fastq_merge_v1(
             &record.context.runner,
             &record.context.platform,
             &record.context.input_hash,
+            params_hash,
             parameters_json,
             record.metrics.version,
             record.execution.runtime_s,
@@ -2085,6 +2147,7 @@ pub fn insert_fastq_merge_v1(
 ///
 /// # Errors
 /// Returns an error if the query or JSON parsing fails.
+#[allow(clippy::too_many_arguments)]
 pub fn fetch_fastq_merge_v1(
     conn: &Connection,
     tool: &str,
@@ -2093,15 +2156,15 @@ pub fn fetch_fastq_merge_v1(
     runner: &str,
     platform: &str,
     input_hash: &str,
+    params_hash: &str,
 ) -> Result<Option<BenchmarkRecord<FastqMergeMetrics>>> {
     let mut stmt = conn.prepare(
-        "SELECT tool, tool_version, image_digest, runner, platform, input_hash,\
+        "SELECT tool, tool_version, image_digest, runner, platform, input_hash, params_hash,\
          parameters_json, runtime_s, memory_mb, exit_code, metrics_json \
          FROM bench_fastq_merge_v1 \
          WHERE tool = ?1 AND tool_version = ?2 AND image_digest = ?3\
-         AND runner = ?4 AND platform = ?5 AND input_hash = ?6\
-         ORDER BY inserted_at DESC \
-         LIMIT 1",
+         AND runner = ?4 AND platform = ?5 AND input_hash = ?6 AND params_hash = ?7\
+         ORDER BY inserted_at DESC, rowid DESC LIMIT 1",
     )?;
     let row = stmt.query_row(
         params![
@@ -2110,7 +2173,8 @@ pub fn fetch_fastq_merge_v1(
             image_digest,
             runner,
             platform,
-            input_hash
+            input_hash,
+            params_hash
         ],
         |row| {
             let tool: String = row.get(0)?;
@@ -2119,11 +2183,12 @@ pub fn fetch_fastq_merge_v1(
             let runner: String = row.get(3)?;
             let platform: String = row.get(4)?;
             let input_hash: String = row.get(5)?;
-            let parameters_json: String = row.get(6)?;
-            let runtime_s: f64 = row.get(7)?;
-            let memory_mb: f64 = row.get(8)?;
-            let exit_code: i64 = row.get(9)?;
-            let metrics_json: String = row.get(10)?;
+            let _params_hash: String = row.get(6)?;
+            let parameters_json: String = row.get(7)?;
+            let runtime_s: f64 = row.get(8)?;
+            let memory_mb: f64 = row.get(9)?;
+            let exit_code: i64 = row.get(10)?;
+            let metrics_json: String = row.get(11)?;
             let parameters: JsonValue = json_from_str(&parameters_json)?;
             let metrics: MetricSet<FastqMergeMetrics> = json_from_str(&metrics_json)?;
             Ok(BenchmarkRecord {
@@ -2168,6 +2233,7 @@ pub fn insert_fastq_correct_v1(
          runner TEXT NOT NULL,\
          platform TEXT NOT NULL,\
          input_hash TEXT NOT NULL,\
+         params_hash TEXT NOT NULL,\
          parameters_json TEXT NOT NULL,\
          schema_version INTEGER NOT NULL,\
          runtime_s REAL NOT NULL,\
@@ -2179,16 +2245,18 @@ pub fn insert_fastq_correct_v1(
         [],
     )?;
     ensure_inserted_at_column(conn, "bench_fastq_correct_v1")?;
+    ensure_params_hash_column(conn, "bench_fastq_correct_v1")?;
     ensure_identity_index(conn, "bench_fastq_correct_v1")?;
 
     let metrics_json = serde_json::to_string(&record.metrics)?;
     let parameters_json = serde_json::to_string(&record.context.parameters)?;
+    let params_hash = params_hash(&record.context.parameters)?;
 
     conn.execute(
         "INSERT INTO bench_fastq_correct_v1 (\
-         tool, tool_version, image_digest, runner, platform, input_hash,\
+         tool, tool_version, image_digest, runner, platform, input_hash, params_hash,\
          parameters_json, schema_version, runtime_s, memory_mb, exit_code, metrics_json\
-         ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)",
+         ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)",
         (
             &record.context.tool,
             &record.context.tool_version,
@@ -2196,6 +2264,7 @@ pub fn insert_fastq_correct_v1(
             &record.context.runner,
             &record.context.platform,
             &record.context.input_hash,
+            params_hash,
             parameters_json,
             record.metrics.version,
             record.execution.runtime_s,
@@ -2211,6 +2280,7 @@ pub fn insert_fastq_correct_v1(
 ///
 /// # Errors
 /// Returns an error if the query or JSON parsing fails.
+#[allow(clippy::too_many_arguments)]
 pub fn fetch_fastq_correct_v1(
     conn: &Connection,
     tool: &str,
@@ -2219,15 +2289,15 @@ pub fn fetch_fastq_correct_v1(
     runner: &str,
     platform: &str,
     input_hash: &str,
+    params_hash: &str,
 ) -> Result<Option<BenchmarkRecord<FastqCorrectMetrics>>> {
     let mut stmt = conn.prepare(
-        "SELECT tool, tool_version, image_digest, runner, platform, input_hash,\
+        "SELECT tool, tool_version, image_digest, runner, platform, input_hash, params_hash,\
          parameters_json, runtime_s, memory_mb, exit_code, metrics_json \
          FROM bench_fastq_correct_v1 \
          WHERE tool = ?1 AND tool_version = ?2 AND image_digest = ?3\
-         AND runner = ?4 AND platform = ?5 AND input_hash = ?6\
-         ORDER BY inserted_at DESC \
-         LIMIT 1",
+         AND runner = ?4 AND platform = ?5 AND input_hash = ?6 AND params_hash = ?7\
+         ORDER BY inserted_at DESC, rowid DESC LIMIT 1",
     )?;
     let row = stmt.query_row(
         params![
@@ -2236,7 +2306,8 @@ pub fn fetch_fastq_correct_v1(
             image_digest,
             runner,
             platform,
-            input_hash
+            input_hash,
+            params_hash
         ],
         |row| {
             let tool: String = row.get(0)?;
@@ -2245,11 +2316,12 @@ pub fn fetch_fastq_correct_v1(
             let runner: String = row.get(3)?;
             let platform: String = row.get(4)?;
             let input_hash: String = row.get(5)?;
-            let parameters_json: String = row.get(6)?;
-            let runtime_s: f64 = row.get(7)?;
-            let memory_mb: f64 = row.get(8)?;
-            let exit_code: i64 = row.get(9)?;
-            let metrics_json: String = row.get(10)?;
+            let _params_hash: String = row.get(6)?;
+            let parameters_json: String = row.get(7)?;
+            let runtime_s: f64 = row.get(8)?;
+            let memory_mb: f64 = row.get(9)?;
+            let exit_code: i64 = row.get(10)?;
+            let metrics_json: String = row.get(11)?;
             let parameters: JsonValue = json_from_str(&parameters_json)?;
             let metrics: MetricSet<FastqCorrectMetrics> = json_from_str(&metrics_json)?;
             Ok(BenchmarkRecord {
@@ -2294,6 +2366,7 @@ pub fn insert_fastq_qc_post_v1(
          runner TEXT NOT NULL,\
          platform TEXT NOT NULL,\
          input_hash TEXT NOT NULL,\
+         params_hash TEXT NOT NULL,\
          parameters_json TEXT NOT NULL,\
          schema_version INTEGER NOT NULL,\
          runtime_s REAL NOT NULL,\
@@ -2305,16 +2378,18 @@ pub fn insert_fastq_qc_post_v1(
         [],
     )?;
     ensure_inserted_at_column(conn, "bench_fastq_qc_post_v1")?;
+    ensure_params_hash_column(conn, "bench_fastq_qc_post_v1")?;
     ensure_identity_index(conn, "bench_fastq_qc_post_v1")?;
 
     let metrics_json = serde_json::to_string(&record.metrics)?;
     let parameters_json = serde_json::to_string(&record.context.parameters)?;
+    let params_hash = params_hash(&record.context.parameters)?;
 
     conn.execute(
         "INSERT INTO bench_fastq_qc_post_v1 (\
-         tool, tool_version, image_digest, runner, platform, input_hash,\
+         tool, tool_version, image_digest, runner, platform, input_hash, params_hash,\
          parameters_json, schema_version, runtime_s, memory_mb, exit_code, metrics_json\
-         ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)",
+         ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)",
         (
             &record.context.tool,
             &record.context.tool_version,
@@ -2322,6 +2397,7 @@ pub fn insert_fastq_qc_post_v1(
             &record.context.runner,
             &record.context.platform,
             &record.context.input_hash,
+            params_hash,
             parameters_json,
             record.metrics.version,
             record.execution.runtime_s,
@@ -2337,6 +2413,7 @@ pub fn insert_fastq_qc_post_v1(
 ///
 /// # Errors
 /// Returns an error if the query or JSON parsing fails.
+#[allow(clippy::too_many_arguments)]
 pub fn fetch_fastq_qc_post_v1(
     conn: &Connection,
     tool: &str,
@@ -2345,15 +2422,15 @@ pub fn fetch_fastq_qc_post_v1(
     runner: &str,
     platform: &str,
     input_hash: &str,
+    params_hash: &str,
 ) -> Result<Option<BenchmarkRecord<FastqQcPostMetrics>>> {
     let mut stmt = conn.prepare(
-        "SELECT tool, tool_version, image_digest, runner, platform, input_hash,\
+        "SELECT tool, tool_version, image_digest, runner, platform, input_hash, params_hash,\
          parameters_json, runtime_s, memory_mb, exit_code, metrics_json \
          FROM bench_fastq_qc_post_v1 \
          WHERE tool = ?1 AND tool_version = ?2 AND image_digest = ?3\
-         AND runner = ?4 AND platform = ?5 AND input_hash = ?6\
-         ORDER BY inserted_at DESC \
-         LIMIT 1",
+         AND runner = ?4 AND platform = ?5 AND input_hash = ?6 AND params_hash = ?7\
+         ORDER BY inserted_at DESC, rowid DESC LIMIT 1",
     )?;
     let row = stmt.query_row(
         params![
@@ -2362,7 +2439,8 @@ pub fn fetch_fastq_qc_post_v1(
             image_digest,
             runner,
             platform,
-            input_hash
+            input_hash,
+            params_hash
         ],
         |row| {
             let tool: String = row.get(0)?;
@@ -2371,11 +2449,12 @@ pub fn fetch_fastq_qc_post_v1(
             let runner: String = row.get(3)?;
             let platform: String = row.get(4)?;
             let input_hash: String = row.get(5)?;
-            let parameters_json: String = row.get(6)?;
-            let runtime_s: f64 = row.get(7)?;
-            let memory_mb: f64 = row.get(8)?;
-            let exit_code: i64 = row.get(9)?;
-            let metrics_json: String = row.get(10)?;
+            let _params_hash: String = row.get(6)?;
+            let parameters_json: String = row.get(7)?;
+            let runtime_s: f64 = row.get(8)?;
+            let memory_mb: f64 = row.get(9)?;
+            let exit_code: i64 = row.get(10)?;
+            let metrics_json: String = row.get(11)?;
             let parameters: JsonValue = json_from_str(&parameters_json)?;
             let metrics: MetricSet<FastqQcPostMetrics> = json_from_str(&metrics_json)?;
             Ok(BenchmarkRecord {
@@ -2420,6 +2499,7 @@ pub fn insert_fastq_umi_v1(
          runner TEXT NOT NULL,\
          platform TEXT NOT NULL,\
          input_hash TEXT NOT NULL,\
+         params_hash TEXT NOT NULL,\
          parameters_json TEXT NOT NULL,\
          schema_version INTEGER NOT NULL,\
          runtime_s REAL NOT NULL,\
@@ -2431,16 +2511,18 @@ pub fn insert_fastq_umi_v1(
         [],
     )?;
     ensure_inserted_at_column(conn, "bench_fastq_umi_v1")?;
+    ensure_params_hash_column(conn, "bench_fastq_umi_v1")?;
     ensure_identity_index(conn, "bench_fastq_umi_v1")?;
 
     let metrics_json = serde_json::to_string(&record.metrics)?;
     let parameters_json = serde_json::to_string(&record.context.parameters)?;
+    let params_hash = params_hash(&record.context.parameters)?;
 
     conn.execute(
         "INSERT INTO bench_fastq_umi_v1 (\
-         tool, tool_version, image_digest, runner, platform, input_hash,\
+         tool, tool_version, image_digest, runner, platform, input_hash, params_hash,\
          parameters_json, schema_version, runtime_s, memory_mb, exit_code, metrics_json\
-         ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)",
+         ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)",
         (
             &record.context.tool,
             &record.context.tool_version,
@@ -2448,6 +2530,7 @@ pub fn insert_fastq_umi_v1(
             &record.context.runner,
             &record.context.platform,
             &record.context.input_hash,
+            params_hash,
             parameters_json,
             record.metrics.version,
             record.execution.runtime_s,
@@ -2463,6 +2546,7 @@ pub fn insert_fastq_umi_v1(
 ///
 /// # Errors
 /// Returns an error if the query or JSON parsing fails.
+#[allow(clippy::too_many_arguments)]
 pub fn fetch_fastq_umi_v1(
     conn: &Connection,
     tool: &str,
@@ -2471,15 +2555,15 @@ pub fn fetch_fastq_umi_v1(
     runner: &str,
     platform: &str,
     input_hash: &str,
+    params_hash: &str,
 ) -> Result<Option<BenchmarkRecord<FastqUmiMetrics>>> {
     let mut stmt = conn.prepare(
-        "SELECT tool, tool_version, image_digest, runner, platform, input_hash,\
+        "SELECT tool, tool_version, image_digest, runner, platform, input_hash, params_hash,\
          parameters_json, runtime_s, memory_mb, exit_code, metrics_json \
          FROM bench_fastq_umi_v1 \
          WHERE tool = ?1 AND tool_version = ?2 AND image_digest = ?3\
-         AND runner = ?4 AND platform = ?5 AND input_hash = ?6\
-         ORDER BY inserted_at DESC \
-         LIMIT 1",
+         AND runner = ?4 AND platform = ?5 AND input_hash = ?6 AND params_hash = ?7\
+         ORDER BY inserted_at DESC, rowid DESC LIMIT 1",
     )?;
     let row = stmt.query_row(
         params![
@@ -2488,7 +2572,8 @@ pub fn fetch_fastq_umi_v1(
             image_digest,
             runner,
             platform,
-            input_hash
+            input_hash,
+            params_hash
         ],
         |row| {
             let tool: String = row.get(0)?;
@@ -2497,11 +2582,12 @@ pub fn fetch_fastq_umi_v1(
             let runner: String = row.get(3)?;
             let platform: String = row.get(4)?;
             let input_hash: String = row.get(5)?;
-            let parameters_json: String = row.get(6)?;
-            let runtime_s: f64 = row.get(7)?;
-            let memory_mb: f64 = row.get(8)?;
-            let exit_code: i64 = row.get(9)?;
-            let metrics_json: String = row.get(10)?;
+            let _params_hash: String = row.get(6)?;
+            let parameters_json: String = row.get(7)?;
+            let runtime_s: f64 = row.get(8)?;
+            let memory_mb: f64 = row.get(9)?;
+            let exit_code: i64 = row.get(10)?;
+            let metrics_json: String = row.get(11)?;
             let parameters: JsonValue = json_from_str(&parameters_json)?;
             let metrics: MetricSet<FastqUmiMetrics> = json_from_str(&metrics_json)?;
             Ok(BenchmarkRecord {
@@ -2546,6 +2632,7 @@ pub fn insert_fastq_screen_v1(
          runner TEXT NOT NULL,\
          platform TEXT NOT NULL,\
          input_hash TEXT NOT NULL,\
+         params_hash TEXT NOT NULL,\
          parameters_json TEXT NOT NULL,\
          schema_version INTEGER NOT NULL,\
          runtime_s REAL NOT NULL,\
@@ -2557,16 +2644,18 @@ pub fn insert_fastq_screen_v1(
         [],
     )?;
     ensure_inserted_at_column(conn, "bench_fastq_screen_v1")?;
+    ensure_params_hash_column(conn, "bench_fastq_screen_v1")?;
     ensure_identity_index(conn, "bench_fastq_screen_v1")?;
 
     let metrics_json = serde_json::to_string(&record.metrics)?;
     let parameters_json = serde_json::to_string(&record.context.parameters)?;
+    let params_hash = params_hash(&record.context.parameters)?;
 
     conn.execute(
         "INSERT INTO bench_fastq_screen_v1 (\
-         tool, tool_version, image_digest, runner, platform, input_hash,\
+         tool, tool_version, image_digest, runner, platform, input_hash, params_hash,\
          parameters_json, schema_version, runtime_s, memory_mb, exit_code, metrics_json\
-         ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)",
+         ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)",
         (
             &record.context.tool,
             &record.context.tool_version,
@@ -2574,6 +2663,7 @@ pub fn insert_fastq_screen_v1(
             &record.context.runner,
             &record.context.platform,
             &record.context.input_hash,
+            params_hash,
             parameters_json,
             record.metrics.version,
             record.execution.runtime_s,
@@ -2589,6 +2679,7 @@ pub fn insert_fastq_screen_v1(
 ///
 /// # Errors
 /// Returns an error if the query or JSON parsing fails.
+#[allow(clippy::too_many_arguments)]
 pub fn fetch_fastq_screen_v1(
     conn: &Connection,
     tool: &str,
@@ -2597,15 +2688,15 @@ pub fn fetch_fastq_screen_v1(
     runner: &str,
     platform: &str,
     input_hash: &str,
+    params_hash: &str,
 ) -> Result<Option<BenchmarkRecord<FastqScreenMetrics>>> {
     let mut stmt = conn.prepare(
-        "SELECT tool, tool_version, image_digest, runner, platform, input_hash,\
+        "SELECT tool, tool_version, image_digest, runner, platform, input_hash, params_hash,\
          parameters_json, runtime_s, memory_mb, exit_code, metrics_json \
          FROM bench_fastq_screen_v1 \
          WHERE tool = ?1 AND tool_version = ?2 AND image_digest = ?3\
-         AND runner = ?4 AND platform = ?5 AND input_hash = ?6\
-         ORDER BY inserted_at DESC \
-         LIMIT 1",
+         AND runner = ?4 AND platform = ?5 AND input_hash = ?6 AND params_hash = ?7\
+         ORDER BY inserted_at DESC, rowid DESC LIMIT 1",
     )?;
     let row = stmt.query_row(
         params![
@@ -2614,7 +2705,8 @@ pub fn fetch_fastq_screen_v1(
             image_digest,
             runner,
             platform,
-            input_hash
+            input_hash,
+            params_hash
         ],
         |row| {
             let tool: String = row.get(0)?;
@@ -2623,11 +2715,12 @@ pub fn fetch_fastq_screen_v1(
             let runner: String = row.get(3)?;
             let platform: String = row.get(4)?;
             let input_hash: String = row.get(5)?;
-            let parameters_json: String = row.get(6)?;
-            let runtime_s: f64 = row.get(7)?;
-            let memory_mb: f64 = row.get(8)?;
-            let exit_code: i64 = row.get(9)?;
-            let metrics_json: String = row.get(10)?;
+            let _params_hash: String = row.get(6)?;
+            let parameters_json: String = row.get(7)?;
+            let runtime_s: f64 = row.get(8)?;
+            let memory_mb: f64 = row.get(9)?;
+            let exit_code: i64 = row.get(10)?;
+            let metrics_json: String = row.get(11)?;
             let parameters: JsonValue = json_from_str(&parameters_json)?;
             let metrics: MetricSet<FastqScreenMetrics> = json_from_str(&metrics_json)?;
             Ok(BenchmarkRecord {
@@ -2672,6 +2765,7 @@ pub fn insert_fastq_stats_v1(
          runner TEXT NOT NULL,\
          platform TEXT NOT NULL,\
          input_hash TEXT NOT NULL,\
+         params_hash TEXT NOT NULL,\
          parameters_json TEXT NOT NULL,\
          schema_version INTEGER NOT NULL,\
          runtime_s REAL NOT NULL,\
@@ -2683,16 +2777,18 @@ pub fn insert_fastq_stats_v1(
         [],
     )?;
     ensure_inserted_at_column(conn, "bench_fastq_stats_v1")?;
+    ensure_params_hash_column(conn, "bench_fastq_stats_v1")?;
     ensure_identity_index(conn, "bench_fastq_stats_v1")?;
 
     let metrics_json = serde_json::to_string(&record.metrics)?;
     let parameters_json = serde_json::to_string(&record.context.parameters)?;
+    let params_hash = params_hash(&record.context.parameters)?;
 
     conn.execute(
         "INSERT INTO bench_fastq_stats_v1 (\
-         tool, tool_version, image_digest, runner, platform, input_hash,\
+         tool, tool_version, image_digest, runner, platform, input_hash, params_hash,\
          parameters_json, schema_version, runtime_s, memory_mb, exit_code, metrics_json\
-         ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)",
+         ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)",
         (
             &record.context.tool,
             &record.context.tool_version,
@@ -2700,6 +2796,7 @@ pub fn insert_fastq_stats_v1(
             &record.context.runner,
             &record.context.platform,
             &record.context.input_hash,
+            params_hash,
             parameters_json,
             record.metrics.version,
             record.execution.runtime_s,
@@ -2715,6 +2812,7 @@ pub fn insert_fastq_stats_v1(
 ///
 /// # Errors
 /// Returns an error if the query or JSON parsing fails.
+#[allow(clippy::too_many_arguments)]
 pub fn fetch_fastq_stats_v1(
     conn: &Connection,
     tool: &str,
@@ -2723,15 +2821,15 @@ pub fn fetch_fastq_stats_v1(
     runner: &str,
     platform: &str,
     input_hash: &str,
+    params_hash: &str,
 ) -> Result<Option<BenchmarkRecord<FastqStatsMetrics>>> {
     let mut stmt = conn.prepare(
-        "SELECT tool, tool_version, image_digest, runner, platform, input_hash,\
+        "SELECT tool, tool_version, image_digest, runner, platform, input_hash, params_hash,\
          parameters_json, runtime_s, memory_mb, exit_code, metrics_json \
          FROM bench_fastq_stats_v1 \
          WHERE tool = ?1 AND tool_version = ?2 AND image_digest = ?3\
-         AND runner = ?4 AND platform = ?5 AND input_hash = ?6\
-         ORDER BY inserted_at DESC \
-         LIMIT 1",
+         AND runner = ?4 AND platform = ?5 AND input_hash = ?6 AND params_hash = ?7\
+         ORDER BY inserted_at DESC, rowid DESC LIMIT 1",
     )?;
     let row = stmt.query_row(
         params![
@@ -2740,7 +2838,8 @@ pub fn fetch_fastq_stats_v1(
             image_digest,
             runner,
             platform,
-            input_hash
+            input_hash,
+            params_hash
         ],
         |row| {
             let tool: String = row.get(0)?;
@@ -2749,11 +2848,12 @@ pub fn fetch_fastq_stats_v1(
             let runner: String = row.get(3)?;
             let platform: String = row.get(4)?;
             let input_hash: String = row.get(5)?;
-            let parameters_json: String = row.get(6)?;
-            let runtime_s: f64 = row.get(7)?;
-            let memory_mb: f64 = row.get(8)?;
-            let exit_code: i64 = row.get(9)?;
-            let metrics_json: String = row.get(10)?;
+            let _params_hash: String = row.get(6)?;
+            let parameters_json: String = row.get(7)?;
+            let runtime_s: f64 = row.get(8)?;
+            let memory_mb: f64 = row.get(9)?;
+            let exit_code: i64 = row.get(10)?;
+            let metrics_json: String = row.get(11)?;
             let parameters: JsonValue = json_from_str(&parameters_json)?;
             let metrics: MetricSet<FastqStatsMetrics> = json_from_str(&metrics_json)?;
             Ok(BenchmarkRecord {

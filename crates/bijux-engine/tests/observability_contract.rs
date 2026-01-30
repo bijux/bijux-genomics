@@ -205,14 +205,39 @@ fn fastq_stages_emit_observability_contracts() -> Result<()> {
         assert!(run_artifacts.join("metrics_envelope.json").exists());
         assert!(run_artifacts.join("stage_report.json").exists());
         assert!(run_artifacts.join("stage_metrics.json").exists());
-        assert!(run_artifacts.join("stage_invocation.json").exists());
+        let stage_metrics_raw = fs::read_to_string(run_artifacts.join("stage_metrics.json"))?;
+        let stage_metrics: serde_json::Value = serde_json::from_str(&stage_metrics_raw)?;
+        let metrics = stage_metrics["metrics"]
+            .as_object()
+            .ok_or_else(|| anyhow::anyhow!("stage_metrics.metrics missing"))?;
+        if matches!(
+            stage.id,
+            "fastq.trim"
+                | "fastq.filter"
+                | "fastq.merge"
+                | "fastq.correct"
+                | "fastq.umi"
+                | "fastq.preprocess"
+        ) {
+            assert!(metrics.contains_key("reads_in"));
+            assert!(metrics.contains_key("reads_out"));
+            assert!(metrics.contains_key("bases_in"));
+            assert!(metrics.contains_key("bases_out"));
+        }
+        let invocation_path = run_artifacts
+            .join("invocations")
+            .join(format!("{}.tool_invocation.json", stage.id));
+        assert!(invocation_path.exists());
         assert!(run_artifacts.join("stage_events.jsonl").exists());
         let stage_config = run_artifacts
             .join("config")
             .join(format!("{}.effective.json", stage.id));
         assert!(stage_config.exists());
         if stage.affects_read_counts || is_retention {
-            assert!(run_artifacts.join("retention_report.json").exists());
+            let retention_path = run_artifacts
+                .join("reports")
+                .join(format!("{}.retention.json", stage.id));
+            assert!(retention_path.exists());
         }
         let manifest_path = run_artifacts.join("observability_manifest.json");
         assert!(manifest_path.exists());
@@ -230,7 +255,9 @@ fn fastq_stages_emit_observability_contracts() -> Result<()> {
         assert!(names.contains("plan"));
         assert!(names.contains("effective_config"));
         assert!(names.contains("stage_config"));
+        assert!(names.contains("tool_invocation"));
         assert!(names.contains("metrics_envelope"));
+        assert!(names.contains("stage_metrics"));
         assert!(names.contains("stage_report"));
         if stage.affects_read_counts {
             assert!(names.contains("retention_report"));
@@ -275,13 +302,13 @@ fn fastq_stages_emit_observability_contracts() -> Result<()> {
         assert!(has_stage_start, "missing stage_start telemetry event");
         assert!(has_stage_end, "missing stage_end telemetry event");
 
-        let invocation_path = run_artifacts.join("stage_invocation.json");
         let invocation_raw = fs::read_to_string(&invocation_path)?;
         let invocation: bijux_core::ToolInvocationV1 = serde_json::from_str(&invocation_raw)?;
         assert_eq!(invocation.stage_id, exec_plan.stage_id.0);
         assert_eq!(invocation.tool_id, exec_plan.tool_id.0);
         assert!(!invocation.tool_version.is_empty());
-        assert!(!invocation.runner.is_empty());
+        assert!(!invocation.runner_kind.is_empty());
+        assert!(!invocation.image_digest.is_empty());
         assert!(!invocation.platform.is_empty());
         assert!(!invocation.input_hashes.is_empty());
     }
