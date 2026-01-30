@@ -5,7 +5,7 @@ use bijux_core::{
     ArtifactRef, CommandSpecV1, ContainerImageRefV1, StageIO, StageId, StageVersion,
     ToolConstraints, ToolId,
 };
-use bijux_engine::api::{execute_plan, resolve_image_for_run, StagePlan};
+use bijux_engine::api::{execute_plan, resolve_image_for_run, StagePlanV1};
 use bijux_environment::api::{load_image_catalog, load_platform};
 use tempfile::TempDir;
 
@@ -41,7 +41,7 @@ fn execute_plan_runs_trim() -> Result<()> {
     let out_dir = tempdir_in_repo()?;
     let output_path = out_dir.path().join("fastp.fastq.gz");
 
-    let exec_plan = StagePlan {
+    let exec_plan = StagePlanV1 {
         stage_id: StageId("fastq.trim".to_string()),
         stage_version: StageVersion(1),
         tool_id: ToolId("fastp".to_string()),
@@ -98,7 +98,7 @@ fn execute_plan_runs_validate() -> Result<()> {
 
     let input = Path::new("tests/data/fastq/canonical/BIJUX_SE_R1.fastq.gz").canonicalize()?;
     let out_dir = tempdir_in_repo()?;
-    let exec_plan = StagePlan {
+    let exec_plan = StagePlanV1 {
         stage_id: StageId("fastq.validate_pre".to_string()),
         stage_version: StageVersion(1),
         tool_id: ToolId("fastqvalidator_official".to_string()),
@@ -151,7 +151,7 @@ fn execute_plan_runs_merge() -> Result<()> {
     let r1 = Path::new("tests/data/fastq/canonical/BIJUX_PE_R1.fastq.gz").canonicalize()?;
     let r2 = Path::new("tests/data/fastq/canonical/BIJUX_PE_R2.fastq.gz").canonicalize()?;
     let out_dir = tempdir_in_repo()?;
-    let exec_plan = StagePlan {
+    let exec_plan = StagePlanV1 {
         stage_id: StageId("fastq.merge".to_string()),
         stage_version: StageVersion(1),
         tool_id: ToolId("pear".to_string()),

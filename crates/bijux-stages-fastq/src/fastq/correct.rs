@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use anyhow::{anyhow, Result};
-use bijux_core::{ArtifactRef, StageIO, StageId, StagePlan, StageVersion, ToolExecutionSpecV1};
+use bijux_core::{ArtifactRef, StageIO, StageId, StagePlanV1, StageVersion, ToolExecutionSpecV1};
 
 pub const STAGE_ID: &str = "fastq.correct";
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
@@ -24,11 +24,11 @@ pub fn plan_correct(
     r1: &Path,
     r2: &Path,
     out_dir: &Path,
-) -> Result<StagePlan> {
+) -> Result<StagePlanV1> {
     normalize_correct_tool_list(std::slice::from_ref(&tool.tool_id.0))?;
     let output_r1 = out_dir.join("reads_r1.fastq.gz");
     let output_r2 = out_dir.join("reads_r2.fastq.gz");
-    Ok(StagePlan {
+    Ok(StagePlanV1 {
         stage_id: StageId(STAGE_ID.to_string()),
         stage_version: STAGE_VERSION,
         tool_id: tool.tool_id.clone(),

@@ -26,12 +26,12 @@ fn engine_api_uses_core_stage_plan() -> Result<(), Box<dyn std::error::Error>> {
     let api_path = manifest_dir.join("src/api/mod.rs");
     let contents = fs::read_to_string(&api_path)?;
     assert!(
-        contents.contains("pub use bijux_core::StagePlan"),
-        "engine API must re-export StagePlan from bijux_core"
+        contents.contains("pub use bijux_core::StagePlanV1"),
+        "engine API must re-export StagePlanV1 from bijux_core"
     );
     assert!(
-        contents.contains("fn execute_plan(") && contents.contains("StagePlan"),
-        "engine API execute_plan must accept core StagePlan"
+        contents.contains("fn execute_plan(") && contents.contains("StagePlanV1"),
+        "engine API execute_plan must accept core StagePlanV1"
     );
     Ok(())
 }

@@ -2,7 +2,7 @@ use std::path::Path;
 
 use anyhow::{anyhow, Result};
 use bijux_core::{
-    ArtifactRef, ContainerImageRefV1, StageIO, StageId, StagePlan, StageVersion,
+    ArtifactRef, ContainerImageRefV1, StageIO, StageId, StagePlanV1, StageVersion,
     ToolExecutionSpecV1,
 };
 
@@ -28,11 +28,11 @@ pub fn plan_qc_post(
     r1: &Path,
     out_dir: &Path,
     aux_images: std::collections::BTreeMap<String, ContainerImageRefV1>,
-) -> Result<StagePlan> {
+) -> Result<StagePlanV1> {
     if normalize_qc_post_tool_list(std::slice::from_ref(&tool.tool_id.0))?.is_empty() {
         return Err(anyhow!("unsupported qc_post tool"));
     }
-    Ok(StagePlan {
+    Ok(StagePlanV1 {
         stage_id: StageId(STAGE_ID.to_string()),
         stage_version: STAGE_VERSION,
         tool_id: tool.tool_id.clone(),

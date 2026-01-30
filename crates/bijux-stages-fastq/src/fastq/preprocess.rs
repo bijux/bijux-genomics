@@ -1,6 +1,6 @@
 use bijux_core::domain::PipelineSpec;
 use bijux_core::{
-    ArtifactRef, ContainerImageRefV1, StageIO, StageId, StagePlan, StageVersion,
+    ArtifactRef, ContainerImageRefV1, StageIO, StageId, StagePlanV1, StageVersion,
     ToolExecutionSpecV1,
 };
 
@@ -36,7 +36,7 @@ pub fn plan_preprocess_pipeline<F>(
     r1: &std::path::Path,
     r2: Option<&std::path::Path>,
     mut out_dir_for_stage: F,
-) -> anyhow::Result<Vec<StagePlan>>
+) -> anyhow::Result<Vec<StagePlanV1>>
 where
     F: FnMut(
         &str,
@@ -176,7 +176,7 @@ where
 }
 
 #[must_use]
-pub fn plan_preprocess_stage(plan: &PreprocessPlan, tool: &ToolExecutionSpecV1) -> StagePlan {
+pub fn plan_preprocess_stage(plan: &PreprocessPlan, tool: &ToolExecutionSpecV1) -> StagePlanV1 {
     let mut inputs = vec![ArtifactRef {
         name: "reads_r1".to_string(),
         path: plan.r1.clone(),
@@ -187,7 +187,7 @@ pub fn plan_preprocess_stage(plan: &PreprocessPlan, tool: &ToolExecutionSpecV1) 
             path: r2.clone(),
         });
     }
-    StagePlan {
+    StagePlanV1 {
         stage_id: StageId(STAGE_ID.to_string()),
         stage_version: STAGE_VERSION,
         tool_id: tool.tool_id.clone(),

@@ -1,44 +1,77 @@
 schema_version: bijux.adapter_presets.v1
 presets:
-  - name: best_practice_adna
-    description: Best-practice preset for aDNA trimming (default).
-    tags:
-      - truseq
-      - nextera
-      - partial
-    adapter_ids: []
-  - name: minimal
-    description: Minimal adapter set (baseline TruSeq only).
-    tags:
-      - truseq
-    adapter_ids: []
-  - name: illumina_truseq
-    description: Illumina TruSeq adapters.
-    tags:
-      - truseq
-    adapter_ids: []
-  - name: nextera
-    description: Nextera tagmentation adapters.
-    tags:
-      - nextera
-    adapter_ids: []
-  - name: ssdna
-    description: ssDNA splint adapters for single-stranded workflows.
-    tags:
-      - ssdna
-    adapter_ids: []
-  - name: umi
-    description: UMI construct adapters for UMI-tagged libraries.
-    tags:
-      - umi
-    adapter_ids: []
-  - name: pcr_primers
-    description: PCR primer adapters.
-    tags:
-      - pcr
-    adapter_ids: []
-  - name: nebnext
-    description: NEBNext adapter set.
-    tags:
-      - nebnext
-    adapter_ids: []
+- name: minimal-illumina
+  description: Minimal Illumina adapter set (baseline TruSeq only).
+  tags:
+  - truseq
+  adapter_ids: []
+  rationale: Minimal trimming for Illumina libraries.
+  references:
+  - Internal best practice
+  notes:
+  - Use when adapter contamination is expected to be low.
+  hash: b55aab88af7c297cdac1a920cdc49e49881b9bcb4456a61428b6383f6ee7d2f9
+  sequences:
+  - AGATCGGAAGAGC
+  - AGATCGGAAGAGCACACGTCTGAACTCCAGTCA
+- name: ancientdna-illumina
+  description: Best-practice preset for aDNA trimming (default).
+  tags:
+  - truseq
+  - nextera
+  - partial
+  adapter_ids: []
+  rationale: Balanced trimming for degraded aDNA Illumina libraries.
+  references:
+  - Internal aDNA pipeline guidelines
+  notes:
+  - Default for aDNA runs.
+  hash: a21bbb7fc760ff7315ed9e9c87a0448217b6b549cb2e4e90fb0a1bbdc0252904
+  sequences:
+  - AGATC
+  - AGATCGGA
+  - AGATCGGAAGAGC
+  - AGATCGGAAGAGCACACGTCTGAACTCCAGTCA
+  - CTGTCTCTTATACACATCT
+  - GTCTCGTGGGCTCGG
+- name: ssdna-splint
+  description: ssDNA splint adapters for single-stranded workflows.
+  tags:
+  - ssdna
+  adapter_ids: []
+  rationale: Include ssDNA splint adapters.
+  references:
+  - Library prep protocol notes
+  notes:
+  - Use for ssDNA workflows.
+  hash: 7854c64f2948c6b583d327012dd59879853b9e195b5577bf7b6c843e6f0f4d78
+  sequences:
+  - NNNNNNCCGTAANNNNN
+  - NNNNNNGGTACNNNNN
+- name: nextera
+  description: Nextera tagmentation adapters.
+  tags:
+  - nextera
+  adapter_ids: []
+  rationale: Target Nextera tagmentation adapters.
+  references:
+  - Illumina Nextera documentation
+  notes:
+  - Use for Nextera libraries.
+  hash: d984d48376ec978f07c7b145fcaabc5753bc25b4030a05f27c3a8c81582eddde
+  sequences:
+  - CTGTCTCTTATACACATCT
+  - GTCTCGTGGGCTCGG
+- name: custom
+  description: Custom adapter preset (user managed).
+  tags:
+  - custom
+  adapter_ids: []
+  rationale: Explicit custom adapter selection.
+  references: []
+  notes:
+  - Populate via --adapter-bank-file or overrides.
+  hash: 53c46cb79c1abd97f65825df322afb41510be0f813c5474085d3246a9d58a881
+  sequences:
+  - ACAGTGGTATCAACGCAGAG
+  - GATCGGAAGAGCACACGTCT

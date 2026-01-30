@@ -111,6 +111,7 @@ pub fn write_retention_report_placeholder(
         tool,
         "unknown/TBD",
         params,
+        params,
         0,
         0,
         0,
@@ -253,9 +254,13 @@ pub fn write_plan_artifacts(
     stage_version: i32,
     tool_id: &str,
     tool_version: &str,
+    image_digest: Option<String>,
+    runner: &str,
+    resources: &bijux_core::ToolConstraints,
     inputs: &[PathBuf],
     outputs: &[PathBuf],
     params: &serde_json::Value,
+    adapter_bank: Option<&bijux_core::metrics::AdapterBankProvenanceV1>,
 ) -> Result<PlanArtifacts> {
     std::fs::create_dir_all(run_artifacts_dir).context("create run_artifacts dir")?;
     let plan_path = run_artifacts_dir.join("plan.json");
@@ -272,16 +277,23 @@ pub fn write_plan_artifacts(
         "parameters": params,
     });
     std::fs::write(&plan_path, serde_json::to_vec_pretty(&payload)?).context("write plan.json")?;
-    std::fs::write(&effective_config_path, serde_json::to_vec_pretty(params)?)
-        .context("write effective_config.json")?;
     let effective_config = EffectiveConfigV1 {
         schema_version: "bijux.effective_config.v1".to_string(),
         stage_id: stage_id.to_string(),
         stage_version,
         tool_id: tool_id.to_string(),
         tool_version: tool_version.to_string(),
+        image_digest,
+        runner: runner.to_string(),
+        resources: resources.clone(),
         parameters_json: params.clone(),
+        adapter_bank: adapter_bank.cloned(),
     };
+    std::fs::write(
+        &effective_config_path,
+        serde_json::to_vec_pretty(&effective_config)?,
+    )
+    .context("write effective_config.json")?;
     std::fs::write(
         &stage_config_path,
         serde_json::to_vec_pretty(&effective_config)?,
@@ -325,10 +337,12 @@ pub fn write_stage_metrics_json<T: serde::Serialize>(
     run_artifacts_dir: &Path,
     metrics: &bijux_core::metrics::StageMetricsV1<T>,
 ) -> Result<PathBuf> {
-    let path = run_artifacts_dir.join("stage_metrics.json");
-    std::fs::write(&path, serde_json::to_vec_pretty(metrics)?)
-        .context("write stage_metrics.json")?;
-    Ok(path)
+    let stage_path = run_artifacts_dir.join("stage_metrics.json");
+    let metrics_path = run_artifacts_dir.join("metrics.json");
+    let payload = serde_json::to_vec_pretty(metrics)?;
+    std::fs::write(&stage_path, &payload).context("write stage_metrics.json")?;
+    std::fs::write(&metrics_path, &payload).context("write metrics.json")?;
+    Ok(stage_path)
 }
 
 pub fn write_tool_invocation_json(
@@ -369,6 +383,9 @@ pub fn write_stage_report_v1(
     stage_version: i32,
     tool_id: &str,
     tool_version: &str,
+    metrics_path: &Path,
+    effective_config_path: &Path,
+    facts_row_id: Option<&str>,
     outputs: &[PathBuf],
     subreports: &[PathBuf],
     log_paths: &[PathBuf],
@@ -379,6 +396,9 @@ pub fn write_stage_report_v1(
         stage_version,
         tool_id: tool_id.to_string(),
         tool_version: tool_version.to_string(),
+        metrics_path: metrics_path.display().to_string(),
+        effective_config_path: effective_config_path.display().to_string(),
+        facts_row_id: facts_row_id.map(str::to_string),
         summary: serde_json::json!({
             "outputs": outputs.iter().map(|p| p.display().to_string()).collect::<Vec<_>>()
         }),
@@ -401,6 +421,7 @@ pub fn write_retention_report_v1(
     tool_id: &str,
     tool_version: &str,
     condition: &serde_json::Value,
+    parameters_json: &serde_json::Value,
     reads_in: u64,
     reads_out: u64,
     bases_in: u64,
@@ -423,8 +444,9 @@ pub fn write_retention_report_v1(
             "reads_in": reads_in,
             "bases_in": bases_in,
         }),
-        scope: "reads".to_string(),
+        scope: "reads+bases".to_string(),
         condition: condition.clone(),
+        parameters_json: parameters_json.clone(),
     };
     let path = reports_dir.join(file_name);
     std::fs::write(&path, serde_json::to_vec_pretty(&payload)?)

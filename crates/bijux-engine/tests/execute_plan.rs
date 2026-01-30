@@ -4,7 +4,7 @@ use std::sync::Mutex;
 
 use anyhow::Result;
 use bijux_core::{
-    ArtifactRef, CommandSpecV1, ContainerImageRefV1, StageIO, StageId, StagePlan, StageVersion,
+    ArtifactRef, CommandSpecV1, ContainerImageRefV1, StageIO, StageId, StagePlanV1, StageVersion,
     ToolConstraints, ToolId,
 };
 use bijux_engine::api::execute_plan;
@@ -95,7 +95,7 @@ fn execute_plan_success_path_uses_public_api() -> Result<()> {
     let out_dir = dir.path().join("out");
     fs::create_dir_all(&out_dir)?;
     let output_path = out_dir.join("fastp.fastq.gz");
-    let exec_plan = StagePlan {
+    let exec_plan = StagePlanV1 {
         stage_id: StageId("fastq.trim".to_string()),
         stage_version: StageVersion(1),
         tool_id: ToolId("fastp".to_string()),
@@ -148,7 +148,7 @@ fn execute_plan_propagates_tool_failure() -> Result<()> {
     let out_dir = dir.path().join("out_fail");
     fs::create_dir_all(&out_dir)?;
     let output_path = out_dir.join("fastp.fastq.gz");
-    let exec_plan = StagePlan {
+    let exec_plan = StagePlanV1 {
         stage_id: StageId("fastq.trim".to_string()),
         stage_version: StageVersion(1),
         tool_id: ToolId("fastp".to_string()),
@@ -199,7 +199,7 @@ fn execute_plan_hits_validate_path() -> Result<()> {
 
     let out_dir = dir.path().join("validate");
     fs::create_dir_all(&out_dir)?;
-    let exec_plan = StagePlan {
+    let exec_plan = StagePlanV1 {
         stage_id: StageId("fastq.validate_pre".to_string()),
         stage_version: StageVersion(1),
         tool_id: ToolId("fastqvalidator_official".to_string()),
@@ -250,7 +250,7 @@ fn execute_plan_hits_merge_path() -> Result<()> {
 
     let out_dir = dir.path().join("merge");
     fs::create_dir_all(&out_dir)?;
-    let exec_plan = StagePlan {
+    let exec_plan = StagePlanV1 {
         stage_id: StageId("fastq.merge".to_string()),
         stage_version: StageVersion(1),
         tool_id: ToolId("pear".to_string()),

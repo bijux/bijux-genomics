@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use bijux_analyze::selection::{objective_spec, select_stage, Objective};
+use bijux_core::selection::{objective_spec, select_stage, Objective};
 use bijux_domain_fastq::{
     fastq_default_pipeline, get_results, BenchCorpus, BenchCorpusId, BenchDataset,
     DefaultPipelineOptions,
@@ -23,6 +23,7 @@ fn create_bench_db(
     conn.execute(
         &format!(
             "CREATE TABLE IF NOT EXISTS {table} (\
+             record_id INTEGER PRIMARY KEY AUTOINCREMENT,\
              tool TEXT,\
              tool_version TEXT,\
              image_digest TEXT,\
@@ -33,19 +34,21 @@ fn create_bench_db(
              runtime_s REAL,\
              memory_mb REAL,\
              exit_code INTEGER,\
-             metrics_json TEXT\
+             metrics_json TEXT,\
+             inserted_at TEXT\
              )"
         ),
         [],
     )?;
 
-    for (tool, input_hash, runtime_s, memory_mb, exit_code) in rows {
+    for (idx, (tool, input_hash, runtime_s, memory_mb, exit_code)) in rows.iter().enumerate() {
         conn.execute(
             &format!(
-                "INSERT INTO {table} (tool, tool_version, image_digest, runner, platform, input_hash, parameters_json, runtime_s, memory_mb, exit_code, metrics_json)\
-                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)"
+                "INSERT INTO {table} (record_id, tool, tool_version, image_digest, runner, platform, input_hash, parameters_json, runtime_s, memory_mb, exit_code, metrics_json, inserted_at)\
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)"
             ),
             params![
+                i64::try_from(idx).unwrap_or(i64::MAX) + 1,
                 tool,
                 "1.0",
                 "sha256:deadbeef",
@@ -56,7 +59,8 @@ fn create_bench_db(
                 runtime_s,
                 memory_mb,
                 exit_code,
-                "{\"metrics\":{\"delta_metrics\":{\"read_retention\":0.9}}}"
+                "{\"metrics\":{\"delta_metrics\":{\"read_retention\":0.9}}}",
+                "2024-01-01T00:00:00Z"
             ],
         )?;
     }

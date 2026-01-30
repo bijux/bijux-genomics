@@ -1,0 +1,6 @@
+{
+  "mean_q": "number",
+  "reads_invalid": "number",
+  "reads_total": "number",
+  "reads_valid": "number"
+}

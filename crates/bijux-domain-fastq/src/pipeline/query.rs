@@ -1,11 +1,10 @@
 use std::path::Path;
 
 use anyhow::{anyhow, Context, Result};
-use rusqlite::params;
+use rusqlite::{params, Connection};
 use serde_json::Value as JsonValue;
 
-use bijux_analyze::open_sqlite;
-use bijux_analyze::selection::{BenchResultRecord, BenchResultStatus};
+use bijux_core::selection::{BenchResultRecord, BenchResultStatus};
 
 use super::corpus::BenchCorpus;
 
@@ -77,51 +76,52 @@ pub fn get_results(
             });
             continue;
         }
-        let conn = open_sqlite(&sqlite_path)
+        let conn = Connection::open(&sqlite_path)
             .with_context(|| format!("open bench sqlite for {}", dataset.id))?;
         let mut stmt = conn.prepare(&format!(
-            "SELECT runtime_s, memory_mb, exit_code, metrics_json, input_hash FROM {table} WHERE tool = ?1"
+            "SELECT runtime_s, memory_mb, exit_code, metrics_json \
+             FROM {table} \
+             WHERE tool = ?1 AND input_hash = ?2 \
+             ORDER BY record_id DESC, inserted_at DESC LIMIT 1"
         ))?;
-        let mut rows = stmt.query(params![tool])?;
-        let mut found = false;
-        while let Some(row) = rows.next()? {
+        let row = stmt.query_row(params![tool, dataset.sha256_r1], |row| {
             let runtime_s: f64 = row.get(0)?;
             let memory_mb: f64 = row.get(1)?;
             let exit_code: i64 = row.get(2)?;
             let metrics_json: String = row.get(3)?;
-            let input_hash: String = row.get(4)?;
-            if input_hash != dataset.sha256_r1 {
-                continue;
+            Ok((runtime_s, memory_mb, exit_code, metrics_json))
+        });
+        match row {
+            Ok((runtime_s, memory_mb, exit_code, metrics_json)) => {
+                let metrics: JsonValue = serde_json::from_str(&metrics_json)
+                    .with_context(|| format!("parse metrics for {}", dataset.id))?;
+                let status = if exit_code == 0 {
+                    BenchResultStatus::Success
+                } else {
+                    BenchResultStatus::Failure
+                };
+                records.push(BenchResultRecord {
+                    dataset_id: dataset.id.to_string(),
+                    tool: tool.to_string(),
+                    runtime_s: Some(runtime_s),
+                    memory_mb: Some(memory_mb),
+                    exit_code: Some(exit_code),
+                    metrics: Some(metrics),
+                    status,
+                });
             }
-            let metrics: JsonValue = serde_json::from_str(&metrics_json)
-                .with_context(|| format!("parse metrics for {}", dataset.id))?;
-            let status = if exit_code == 0 {
-                BenchResultStatus::Success
-            } else {
-                BenchResultStatus::Failure
-            };
-            records.push(BenchResultRecord {
-                dataset_id: dataset.id.to_string(),
-                tool: tool.to_string(),
-                runtime_s: Some(runtime_s),
-                memory_mb: Some(memory_mb),
-                exit_code: Some(exit_code),
-                metrics: Some(metrics),
-                status,
-            });
-            found = true;
-            break;
-        }
-        if !found {
-            records.push(BenchResultRecord {
-                dataset_id: dataset.id.to_string(),
-                tool: tool.to_string(),
-                runtime_s: None,
-                memory_mb: None,
-                exit_code: None,
-                metrics: None,
-                status: BenchResultStatus::Missing,
-            });
+            Err(rusqlite::Error::QueryReturnedNoRows) => {
+                records.push(BenchResultRecord {
+                    dataset_id: dataset.id.to_string(),
+                    tool: tool.to_string(),
+                    runtime_s: None,
+                    memory_mb: None,
+                    exit_code: None,
+                    metrics: None,
+                    status: BenchResultStatus::Missing,
+                });
+            }
+            Err(err) => return Err(err.into()),
         }
     }
 

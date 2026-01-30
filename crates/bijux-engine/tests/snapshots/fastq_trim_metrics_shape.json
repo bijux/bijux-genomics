@@ -1,0 +1,40 @@
+{
+  "bases_in": "number",
+  "bases_out": "number",
+  "delta_metrics": {
+    "base_retention": "number",
+    "gc_delta": "number",
+    "mean_q_delta": "number",
+    "read_retention": "number"
+  },
+  "mean_q_after": "number",
+  "mean_q_before": "number",
+  "reads_in": "number",
+  "reads_out": "number",
+  "retention": {
+    "bases_in": "number",
+    "bases_out": "number",
+    "condition": {
+      "input": "string",
+      "output": "string",
+      "tool": "string"
+    },
+    "denominator": {
+      "bases": "number",
+      "reads": "number"
+    },
+    "numerator": {
+      "bases": "number",
+      "reads": "number"
+    },
+    "parameters_json": {
+      "input": "string",
+      "output": "string",
+      "tool": "string"
+    },
+    "reads_in": "number",
+    "reads_out": "number",
+    "retention": "number",
+    "scope": "string"
+  }
+}

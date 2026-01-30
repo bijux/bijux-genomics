@@ -14,11 +14,11 @@ tracing.workspace = true
 rusqlite.workspace = true
 uuid.workspace = true
 chrono.workspace = true
-bijux-analyze = { path = "../bijux-analyze" }
 bijux-core = { path = "../bijux-core" }
 
 [dev-dependencies]
 rusqlite = { workspace = true }
+bijux-analyze = { path = "../bijux-analyze" }
 
 [lints]
 workspace = true

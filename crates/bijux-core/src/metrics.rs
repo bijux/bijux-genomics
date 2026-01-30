@@ -69,6 +69,9 @@ pub struct AdapterBankProvenanceV1 {
     pub bank_hash: String,
     pub presets_hash: String,
     pub preset: String,
+    pub preset_hash: String,
+    pub enabled_categories: Vec<String>,
+    pub disabled_categories: Vec<String>,
     pub enable_adapters: Vec<String>,
     pub disable_adapters: Vec<String>,
 }
@@ -90,7 +93,11 @@ pub struct RetentionReportMetricV1 {
     pub reads_out: u64,
     pub bases_in: u64,
     pub bases_out: u64,
+    pub numerator: serde_json::Value,
+    pub denominator: serde_json::Value,
+    pub scope: String,
     pub condition: serde_json::Value,
+    pub parameters_json: serde_json::Value,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

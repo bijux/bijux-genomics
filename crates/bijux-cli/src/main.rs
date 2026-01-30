@@ -27,12 +27,12 @@ use crate::fastq_exec::{
     bench_fastq_qc_post, bench_fastq_screen, bench_fastq_stats_neutral, bench_fastq_trim,
     bench_fastq_umi, bench_fastq_validate_pre,
 };
-use bijux_analyze::selection::{objective_spec, Objective};
 use bijux_analyze::{
     compare_runs, print_bench_schema, write_correct_report, write_filter_report,
     write_merge_report, write_qc_post_report, write_stats_report, write_trim_report,
     write_umi_report, write_validate_report,
 };
+use bijux_core::selection::{objective_spec, Objective};
 use bijux_engine::api::init_logging;
 use bijux_environment::image_qa::run_image_qa;
 use bijux_stages_fastq::{benchmark_runs, write_benchmark_exports, AdapterPresetsV1};
@@ -457,6 +457,7 @@ fn handle_fastq_discovery(
         FastqCommand::Trim(args) => {
             if args.list_adapter_presets {
                 let selection = load_adapter_selection(
+                    args.adapter_bank_preset.as_deref(),
                     args.adapter_bank.as_deref(),
                     args.adapter_bank_file.as_deref(),
                 )?;
@@ -465,6 +466,7 @@ fn handle_fastq_discovery(
             }
             if args.list_adapters {
                 let selection = load_adapter_selection(
+                    args.adapter_bank_preset.as_deref(),
                     args.adapter_bank.as_deref(),
                     args.adapter_bank_file.as_deref(),
                 )?;
@@ -481,6 +483,7 @@ fn handle_fastq_discovery(
         FastqCommand::Preprocess(args) => {
             if args.list_adapter_presets {
                 let selection = load_adapter_selection(
+                    args.adapter_bank_preset.as_deref(),
                     args.adapter_bank.as_deref(),
                     args.adapter_bank_file.as_deref(),
                 )?;
@@ -489,6 +492,7 @@ fn handle_fastq_discovery(
             }
             if args.list_adapters {
                 let selection = load_adapter_selection(
+                    args.adapter_bank_preset.as_deref(),
                     args.adapter_bank.as_deref(),
                     args.adapter_bank_file.as_deref(),
                 )?;
@@ -531,10 +535,11 @@ fn list_fastq_tools(registry: &bijux_core::ToolRegistry, stage_id: &str) {
 }
 
 fn load_adapter_selection(
-    adapter_bank: Option<&str>,
+    adapter_bank_preset: Option<&str>,
+    legacy_adapter_bank: Option<&str>,
     adapter_bank_file: Option<&Path>,
 ) -> Result<AdapterSelection> {
-    resolve_adapter_selection(adapter_bank, adapter_bank_file)
+    resolve_adapter_selection(adapter_bank_preset, legacy_adapter_bank, adapter_bank_file)
 }
 
 fn list_adapter_presets(presets: &AdapterPresetsV1) {
@@ -581,9 +586,10 @@ fn explain_fastq_stage(registry: &bijux_core::ToolRegistry, stage_id: &str) -> R
             out: PathBuf::from("artifacts"),
             strict: false,
             auto: false,
-            objective: bijux_analyze::selection::Objective::Balanced,
+            objective: bijux_core::selection::Objective::Balanced,
             bench_corpus: None,
             allow_partial: false,
+            adapter_bank_preset: None,
             adapter_bank: Some(format!(
                 "preset:{}",
                 crate::adapter_bank::DEFAULT_ADAPTER_PRESET

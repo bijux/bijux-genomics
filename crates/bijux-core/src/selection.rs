@@ -227,39 +227,5 @@ fn median(values: &[f64]) -> Option<f64> {
 
 fn read_retention(record: &BenchResultRecord) -> Option<f64> {
     let metrics = record.metrics.as_ref()?;
-    metrics
-        .get("metrics")
-        .and_then(|value| value.get("delta_metrics"))
-        .and_then(|value| value.get("read_retention"))
-        .and_then(serde_json::Value::as_f64)
-}
-
-#[derive(Debug, Serialize)]
-pub struct SelectionReport {
-    pub objective: String,
-    pub weights: ObjectiveWeights,
-    pub corpus_id: String,
-    pub stages: Vec<StageSelection>,
-}
-
-/// Write the selection report to disk.
-///
-/// # Errors
-/// Returns an error if the report cannot be serialized or written.
-pub fn write_selection_report(
-    out_dir: &std::path::Path,
-    objective: &ObjectiveSpec,
-    corpus_id: &str,
-    stages: Vec<StageSelection>,
-) -> anyhow::Result<()> {
-    let report = SelectionReport {
-        objective: objective.name.clone(),
-        weights: objective.weights.clone(),
-        corpus_id: corpus_id.to_string(),
-        stages,
-    };
-    let path = out_dir.join("selection_report.json");
-    let payload = serde_json::to_string_pretty(&report)?;
-    std::fs::write(&path, payload)?;
-    Ok(())
+    metrics.get("retention").and_then(serde_json::Value::as_f64)
 }
