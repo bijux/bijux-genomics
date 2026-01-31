@@ -24,8 +24,8 @@ pub use failure::{classify_raw_failure, BenchmarkFailure, FailureClass};
 pub use ranking::{build_rankings, print_rank_explain, RankInput, RankingEntry, RankingMode};
 pub use report::{
     print_bench_schema, write_correct_report, write_filter_report, write_merge_report,
-    write_qc_post_report, write_stats_report, write_trim_report, write_umi_report,
-    write_validate_report,
+    write_qc_post_report, write_run_report_from_facts, write_run_summary_from_facts,
+    write_stats_report, write_trim_report, write_umi_report, write_validate_report,
 };
 pub use semantic::{
     semantic_filter, semantic_stats, semantic_trim, semantic_validate, ContaminationMetrics,
@@ -1496,7 +1496,23 @@ impl StageMetricSchema for FastqStatsMetrics {
 /// # Errors
 /// Returns an error if the connection cannot be opened.
 pub fn open_sqlite(path: &Path) -> Result<Connection> {
-    Ok(Connection::open(path)?)
+    let conn = Connection::open(path)?;
+    ensure_sqlite_schema_version(&conn, 1)?;
+    Ok(conn)
+}
+
+fn ensure_sqlite_schema_version(conn: &Connection, target_version: i32) -> Result<()> {
+    let current: i32 = conn.query_row("PRAGMA user_version", [], |row| row.get(0))?;
+    if current == 0 {
+        conn.execute(&format!("PRAGMA user_version = {target_version}"), [])?;
+        return Ok(());
+    }
+    if current > target_version {
+        return Err(BenchError::Validation(format!(
+            "unsupported schema version {current}"
+        )));
+    }
+    Ok(())
 }
 
 fn ensure_inserted_at_column(conn: &Connection, table: &str) -> Result<()> {

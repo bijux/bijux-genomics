@@ -56,6 +56,7 @@ pub struct StageReportV1 {
     pub tool_id: String,
     pub tool_version: String,
     pub metrics_path: String,
+    pub tool_invocation_path: String,
     pub effective_config_path: String,
     #[serde(default)]
     pub effective_config_hash: Option<String>,
@@ -135,6 +136,7 @@ pub struct MergeReportV1 {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct TelemetryEventV1 {
+    pub schema_version: String,
     pub run_id: String,
     pub stage_id: String,
     pub tool_id: String,
@@ -154,6 +156,8 @@ pub struct FactsRowV1 {
     pub run_id: String,
     pub stage_id: String,
     pub tool_id: String,
+    pub tool_version: String,
+    pub image_digest: Option<String>,
     pub params_hash: String,
     pub input_hash: String,
     pub output_hashes: Vec<String>,
@@ -170,6 +174,56 @@ pub struct FactsRowV1 {
     pub metrics: serde_json::Value,
     pub reports: serde_json::Value,
     pub artifacts: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ReportSchemaV1 {
+    pub schema_version: String,
+    pub run_id: String,
+    pub stages: Vec<ReportStageSummaryV1>,
+    pub retention_context: Vec<RetentionContextV1>,
+    pub assets_provenance: Vec<AssetsProvenanceV1>,
+    #[serde(default)]
+    pub telemetry: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ReportStageSummaryV1 {
+    pub stage_id: String,
+    pub tool_id: String,
+    pub tool_version: String,
+    pub params_hash: String,
+    pub input_hash: String,
+    pub runtime_s: f64,
+    pub memory_mb: f64,
+    pub exit_code: i32,
+    pub metrics_path: String,
+    pub tool_invocation_path: String,
+    pub effective_config_path: String,
+    pub stage_report_path: String,
+    #[serde(default)]
+    pub retention_report_path: Option<String>,
+    #[serde(default)]
+    pub bank_report_path: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct RetentionContextV1 {
+    pub stage_id: String,
+    pub tool_id: String,
+    pub definition: String,
+    pub conditions: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct AssetsProvenanceV1 {
+    pub stage_id: String,
+    pub tool_id: String,
+    pub banks: serde_json::Value,
 }
 
 pub fn canonicalize_json_value(value: &serde_json::Value) -> serde_json::Value {

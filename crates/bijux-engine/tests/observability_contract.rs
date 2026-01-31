@@ -286,6 +286,14 @@ fn fastq_stages_emit_observability_contracts() -> Result<()> {
             let retention: serde_json::Value = serde_json::from_str(&retention_raw)?;
             assert!(
                 retention
+                    .get("retention")
+                    .and_then(|v| v.get("definition"))
+                    .and_then(|v| v.as_str())
+                    .is_some(),
+                "retention definition missing"
+            );
+            assert!(
+                retention
                     .get("condition")
                     .and_then(|v| v.get("banks"))
                     .is_some(),
@@ -343,12 +351,17 @@ fn fastq_stages_emit_observability_contracts() -> Result<()> {
         let report_raw = fs::read_to_string(&report_path)?;
         let report: serde_json::Value = serde_json::from_str(&report_raw)?;
         assert!(report.get("metrics_path").is_some());
+        assert!(report.get("tool_invocation_path").is_some());
         assert!(report.get("effective_config_path").is_some());
         assert!(report.get("facts_row_id").is_some());
         let report_metrics_path = report["metrics_path"]
             .as_str()
             .ok_or_else(|| anyhow::anyhow!("report metrics_path missing"))?;
         assert!(Path::new(report_metrics_path).exists());
+        let report_invocation_path = report["tool_invocation_path"]
+            .as_str()
+            .ok_or_else(|| anyhow::anyhow!("report tool_invocation_path missing"))?;
+        assert!(Path::new(report_invocation_path).exists());
 
         let envelope_path = run_artifacts.join("metrics_envelope.json");
         let envelope_raw = fs::read_to_string(&envelope_path).context("read metrics envelope")?;
@@ -403,6 +416,7 @@ fn fastq_stages_emit_observability_contracts() -> Result<()> {
                 continue;
             }
             let event: bijux_core::TelemetryEventV1 = serde_json::from_str(line)?;
+            assert_eq!(event.schema_version, "bijux.telemetry.v1");
             assert!(!event.trace_id.is_empty());
             assert!(!event.span_id.is_empty());
             if event.event_name == "stage_start" {
@@ -422,6 +436,24 @@ fn fastq_stages_emit_observability_contracts() -> Result<()> {
         assert!(has_stage_end, "missing stage_end telemetry event");
         assert!(has_tool_start, "missing tool_start telemetry event");
         assert!(has_tool_end, "missing tool_end telemetry event");
+
+        let facts_path = run_artifacts.join("dashboard").join("facts.jsonl");
+        assert!(facts_path.exists());
+        let facts_payload = fs::read_to_string(&facts_path)?;
+        let facts_lines: Vec<&str> = facts_payload
+            .lines()
+            .filter(|line| !line.trim().is_empty())
+            .collect();
+        assert_eq!(facts_lines.len(), 1);
+        let facts_line = facts_lines
+            .last()
+            .ok_or_else(|| anyhow::anyhow!("missing facts rows"))?;
+        let facts_record: bijux_core::FactsRowV1 = serde_json::from_str(facts_line)?;
+        assert_eq!(facts_record.schema_version, "bijux.facts.v1");
+        assert_eq!(facts_record.stage_id, stage.id);
+        assert_eq!(facts_record.tool_id, exec_plan.tool_id.0);
+        assert!(!facts_record.params_hash.is_empty());
+        assert!(facts_record.bank_hashes.is_object());
 
         let invocation_raw = fs::read_to_string(&invocation_path)?;
         let invocation: bijux_core::ToolInvocationV1 = serde_json::from_str(&invocation_raw)?;

@@ -28,11 +28,16 @@ pub struct RunSummaryStageRow {
     pub run_id: String,
     pub stage_id: String,
     pub tool_id: String,
+    pub tool_version: String,
+    pub image_digest: Option<String>,
     pub params_hash: String,
     pub input_hash: String,
+    pub bank_hashes: serde_json::Value,
     pub runtime_s: f64,
     pub memory_mb: f64,
     pub exit_code: i32,
+    pub reports: serde_json::Value,
+    pub deltas: serde_json::Value,
 }
 
 /// Load facts rows from a jsonl file.
@@ -90,11 +95,23 @@ pub fn write_run_summary_json(path: &Path, rows: &[FactsRowV1]) -> Result<()> {
             run_id: row.run_id.clone(),
             stage_id: row.stage_id.clone(),
             tool_id: row.tool_id.clone(),
+            tool_version: row.tool_version.clone(),
+            image_digest: row.image_digest.clone(),
             params_hash: row.params_hash.clone(),
             input_hash: row.input_hash.clone(),
+            bank_hashes: row.bank_hashes.clone(),
             runtime_s: row.runtime_s,
             memory_mb: row.memory_mb,
             exit_code: row.exit_code,
+            reports: row.reports.clone(),
+            deltas: serde_json::json!({
+                "reads_in": row.reads_in,
+                "reads_out": row.reads_out,
+                "bases_in": row.bases_in,
+                "bases_out": row.bases_out,
+                "pairs_in": row.pairs_in,
+                "pairs_out": row.pairs_out,
+            }),
         })
         .collect();
     stage_rows.sort_by(|a, b| {

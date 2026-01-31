@@ -9,17 +9,19 @@ fn facts_loader_and_summary_work() -> anyhow::Result<()> {
     let dir = TempDir::new()?;
     let path = dir.path().join("facts.jsonl");
     let row = FactsRowV1 {
-        schema_version: "bijux.facts_row.v1".to_string(),
+        schema_version: "bijux.facts.v1".to_string(),
         run_id: "run-1".to_string(),
         stage_id: "fastq.trim".to_string(),
         tool_id: "fastp".to_string(),
+        tool_version: "0.23.4".to_string(),
+        image_digest: Some("sha256:abc".to_string()),
         params_hash: "ph".to_string(),
         input_hash: "ih".to_string(),
         output_hashes: vec!["oh".to_string()],
         runtime_s: 1.5,
         memory_mb: 42.0,
         exit_code: 0,
-        bank_hashes: serde_json::json!({}),
+        bank_hashes: serde_json::json!({"adapters": "hash"}),
         reads_in: Some(10),
         reads_out: Some(9),
         bases_in: Some(100),
@@ -27,7 +29,10 @@ fn facts_loader_and_summary_work() -> anyhow::Result<()> {
         pairs_in: None,
         pairs_out: None,
         metrics: serde_json::json!({}),
-        reports: serde_json::json!({"stage_report": "stage_report.json"}),
+        reports: serde_json::json!({
+            "stage_report": "stage_report.json",
+            "retention_report": "retention_report.json"
+        }),
         artifacts: serde_json::json!({"metrics_envelope": "metrics.json"}),
     };
     let payload = serde_json::to_string(&row)?;
@@ -46,6 +51,12 @@ fn facts_loader_and_summary_work() -> anyhow::Result<()> {
     assert_eq!(summary_json["schema_version"], "bijux.run_summary.v1");
     assert_eq!(summary_json["runs"], 1);
     assert_eq!(summary_json["stages"], 1);
+    assert_eq!(summary_json["stage_rows"][0]["tool_version"], "0.23.4");
+    assert_eq!(summary_json["stage_rows"][0]["image_digest"], "sha256:abc");
+    assert_eq!(
+        summary_json["stage_rows"][0]["bank_hashes"]["adapters"],
+        "hash"
+    );
 
     Ok(())
 }

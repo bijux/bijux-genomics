@@ -1,9 +1,10 @@
 use std::collections::BTreeMap;
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
 
+use crate::facts::write_run_summary_json;
 use crate::failure::{classify_raw_failure, BenchmarkFailure};
 use crate::semantic::{semantic_filter, semantic_stats, semantic_trim, semantic_validate};
 use crate::{
@@ -12,7 +13,10 @@ use crate::{
     FastqMergeMetrics, FastqQcPostMetrics, FastqStatsMetrics, FastqTrimMetrics, FastqUmiMetrics,
     FastqValidateMetrics, RankInput,
 };
-use bijux_core::RawFailure;
+use bijux_core::{
+    AssetsProvenanceV1, FactsRowV1, RawFailure, ReportSchemaV1, ReportStageSummaryV1,
+    RetentionContextV1, RetentionReportV1, StageReportV1,
+};
 
 /// Write the trim benchmark report.
 ///
@@ -29,6 +33,7 @@ pub fn write_trim_report(
     report.insert("records", serde_json::to_value(records)?);
     let classified: Vec<BenchmarkFailure> = failures.iter().map(classify_raw_failure).collect();
     report.insert("failures", serde_json::to_value(&classified)?);
+    report.insert("gate", gate_payload(&classified));
     report.insert(
         "sanity_flags",
         serde_json::to_value(sanity_flags_trim(records))?,
@@ -66,6 +71,7 @@ pub fn write_validate_report(
     report.insert("records", serde_json::to_value(records)?);
     let classified: Vec<BenchmarkFailure> = failures.iter().map(classify_raw_failure).collect();
     report.insert("failures", serde_json::to_value(&classified)?);
+    report.insert("gate", gate_payload(&classified));
     report.insert(
         "sanity_flags",
         serde_json::to_value(sanity_flags_validate(records))?,
@@ -103,6 +109,7 @@ pub fn write_filter_report(
     report.insert("records", serde_json::to_value(records)?);
     let classified: Vec<BenchmarkFailure> = failures.iter().map(classify_raw_failure).collect();
     report.insert("failures", serde_json::to_value(&classified)?);
+    report.insert("gate", gate_payload(&classified));
     report.insert(
         "sanity_flags",
         serde_json::to_value(sanity_flags_filter(records))?,
@@ -139,6 +146,7 @@ pub fn write_merge_report(
     report.insert("records", serde_json::to_value(records)?);
     let classified: Vec<BenchmarkFailure> = failures.iter().map(classify_raw_failure).collect();
     report.insert("failures", serde_json::to_value(&classified)?);
+    report.insert("gate", gate_payload(&classified));
     report.insert(
         "sanity_flags",
         serde_json::to_value(sanity_flags_merge(records))?,
@@ -170,6 +178,7 @@ pub fn write_correct_report(
     report.insert("records", serde_json::to_value(records)?);
     let classified: Vec<BenchmarkFailure> = failures.iter().map(classify_raw_failure).collect();
     report.insert("failures", serde_json::to_value(&classified)?);
+    report.insert("gate", gate_payload(&classified));
     report.insert(
         "sanity_flags",
         serde_json::to_value(sanity_flags_correct(records))?,
@@ -202,6 +211,7 @@ pub fn write_qc_post_report(
     report.insert("records", serde_json::to_value(records)?);
     let classified: Vec<BenchmarkFailure> = failures.iter().map(classify_raw_failure).collect();
     report.insert("failures", serde_json::to_value(&classified)?);
+    report.insert("gate", gate_payload(&classified));
     report.insert(
         "sanity_flags",
         serde_json::to_value(sanity_flags_qc_post(records))?,
@@ -232,6 +242,7 @@ pub fn write_umi_report(
     report.insert("records", serde_json::to_value(records)?);
     let classified: Vec<BenchmarkFailure> = failures.iter().map(classify_raw_failure).collect();
     report.insert("failures", serde_json::to_value(&classified)?);
+    report.insert("gate", gate_payload(&classified));
     report.insert(
         "sanity_flags",
         serde_json::to_value(sanity_flags_umi(records))?,
@@ -263,6 +274,7 @@ pub fn write_stats_report(
     report.insert("records", serde_json::to_value(records)?);
     let classified: Vec<BenchmarkFailure> = failures.iter().map(classify_raw_failure).collect();
     report.insert("failures", serde_json::to_value(&classified)?);
+    report.insert("gate", gate_payload(&classified));
     report.insert(
         "sanity_flags",
         serde_json::to_value(sanity_flags_stats(records))?,
@@ -278,6 +290,172 @@ pub fn write_stats_report(
         crate::print_rank_explain("fastq.stats_neutral", &BTreeMap::new());
     }
     Ok(())
+}
+
+/// Write a run-level report from facts rows.
+///
+/// # Errors
+/// Returns an error if report serialization or file writes fail.
+pub fn write_run_report_from_facts(base_dir: &Path, rows: &[FactsRowV1]) -> Result<PathBuf> {
+    let run_id = rows
+        .first()
+        .map_or_else(String::new, |row| row.run_id.clone());
+    let mut stages = Vec::new();
+    let mut retention_context = Vec::new();
+    let mut assets_provenance = Vec::new();
+    let mut telemetry_events = Vec::new();
+
+    for row in rows {
+        let stage_report_path = report_path_for(&row.reports, "stage_report");
+        let stage_report = stage_report_path
+            .as_deref()
+            .and_then(|path| read_json_value(Path::new(path)))
+            .and_then(|value| serde_json::from_value::<StageReportV1>(value).ok());
+
+        let (metrics_path, tool_invocation_path, effective_config_path) =
+            stage_report_fields(stage_report.as_ref());
+
+        let retention_report_path = report_path_for(&row.reports, "retention_report");
+        if let Some(context) = retention_context_from_report(retention_report_path.as_deref()) {
+            retention_context.push(context);
+        }
+
+        let bank_report_path = report_path_for(&row.reports, "bank_report");
+        let banks_value = banks_from_report(bank_report_path.as_deref(), row.bank_hashes.clone());
+        assets_provenance.push(AssetsProvenanceV1 {
+            stage_id: row.stage_id.clone(),
+            tool_id: row.tool_id.clone(),
+            banks: banks_value,
+        });
+
+        if let Some(path) = telemetry_path_from_stage_report(stage_report_path.as_deref()) {
+            telemetry_events.push(path);
+        }
+
+        stages.push(ReportStageSummaryV1 {
+            stage_id: row.stage_id.clone(),
+            tool_id: row.tool_id.clone(),
+            tool_version: row.tool_version.clone(),
+            params_hash: row.params_hash.clone(),
+            input_hash: row.input_hash.clone(),
+            runtime_s: row.runtime_s,
+            memory_mb: row.memory_mb,
+            exit_code: row.exit_code,
+            metrics_path,
+            tool_invocation_path,
+            effective_config_path,
+            stage_report_path: stage_report_path
+                .as_deref()
+                .map_or_else(String::new, ToString::to_string),
+            retention_report_path,
+            bank_report_path,
+        });
+    }
+
+    let payload = ReportSchemaV1 {
+        schema_version: "bijux.report.v1".to_string(),
+        run_id,
+        stages,
+        retention_context,
+        assets_provenance,
+        telemetry: serde_json::json!({
+            "events": telemetry_events
+        }),
+    };
+
+    let path = base_dir.join("report.json");
+    std::fs::write(&path, serde_json::to_vec_pretty(&payload)?).context("write report.json")?;
+    Ok(path)
+}
+
+/// Write a deterministic run summary JSON from facts rows.
+///
+/// # Errors
+/// Returns an error if the file cannot be written.
+pub fn write_run_summary_from_facts(path: &Path, rows: &[FactsRowV1]) -> Result<()> {
+    write_run_summary_json(path, rows)
+}
+
+fn read_json_value(path: &Path) -> Option<serde_json::Value> {
+    std::fs::read_to_string(path)
+        .ok()
+        .and_then(|raw| serde_json::from_str(&raw).ok())
+}
+
+fn report_path_for(reports: &serde_json::Value, key: &str) -> Option<String> {
+    reports
+        .get(key)
+        .and_then(|value| value.as_str())
+        .map(str::to_string)
+}
+
+fn stage_report_fields(report: Option<&StageReportV1>) -> (String, String, String) {
+    report.map_or_else(
+        || (String::new(), String::new(), String::new()),
+        |report| {
+            (
+                report.metrics_path.clone(),
+                report.tool_invocation_path.clone(),
+                report.effective_config_path.clone(),
+            )
+        },
+    )
+}
+
+fn retention_context_from_report(path: Option<&str>) -> Option<RetentionContextV1> {
+    let report = path
+        .and_then(|path| read_json_value(Path::new(path)))
+        .and_then(|value| serde_json::from_value::<RetentionReportV1>(value).ok())?;
+    let definition = report
+        .retention
+        .as_ref()
+        .map_or_else(|| "unknown".to_string(), |ret| ret.definition.clone());
+    let conditions = report
+        .retention
+        .as_ref()
+        .map_or_else(|| report.condition.clone(), |ret| ret.conditions.clone());
+    Some(RetentionContextV1 {
+        stage_id: report.stage_id,
+        tool_id: report.tool_id,
+        definition,
+        conditions,
+    })
+}
+
+fn banks_from_report(path: Option<&str>, fallback: serde_json::Value) -> serde_json::Value {
+    path.and_then(|path| read_json_value(Path::new(path)))
+        .and_then(|value| value.get("banks").cloned())
+        .unwrap_or(fallback)
+}
+
+fn telemetry_path_from_stage_report(path: Option<&str>) -> Option<String> {
+    path.and_then(|path| {
+        Path::new(path).parent().map(|parent| {
+            parent
+                .join("telemetry")
+                .join("events.jsonl")
+                .display()
+                .to_string()
+        })
+    })
+}
+
+fn gate_payload(failures: &[BenchmarkFailure]) -> serde_json::Value {
+    let rationale: Vec<serde_json::Value> = failures
+        .iter()
+        .map(|failure| {
+            serde_json::json!({
+                "stage": failure.stage,
+                "tool": failure.tool,
+                "reason": failure.reason,
+                "class": format!("{:?}", failure.class),
+            })
+        })
+        .collect();
+    serde_json::json!({
+        "passes": failures.is_empty(),
+        "rationale": rationale
+    })
 }
 
 /// Print the benchmark schema for a stage.
