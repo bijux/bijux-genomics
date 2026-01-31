@@ -81,6 +81,48 @@ fn list_preprocess_artifacts(root: &Path, sample_id: &str) -> Vec<String> {
     paths
 }
 
+fn find_qc_post_report(root: &Path, sample_id: &str) -> PathBuf {
+    let run_dir = root.join("artifacts/bench/preprocess").join(sample_id);
+    let mut stack = vec![run_dir];
+    while let Some(dir) = stack.pop() {
+        if let Ok(entries) = fs::read_dir(&dir) {
+            for entry in entries.flatten() {
+                let path = entry.path();
+                if path.is_dir() {
+                    stack.push(path);
+                } else if path
+                    .file_name()
+                    .and_then(|s| s.to_str())
+                    .is_some_and(|name| name.contains("qc_post_report.json"))
+                {
+                    return path;
+                }
+            }
+        }
+    }
+    panic!("qc_post_report.json not found under preprocess run dir");
+}
+
+fn find_qc_post_stage_report(root: &Path, sample_id: &str) -> PathBuf {
+    let run_dir = root.join("artifacts/bench/preprocess").join(sample_id);
+    let mut stack = vec![run_dir];
+    while let Some(dir) = stack.pop() {
+        if let Ok(entries) = fs::read_dir(&dir) {
+            for entry in entries.flatten() {
+                let path = entry.path();
+                if path.is_dir() {
+                    stack.push(path);
+                } else if path.file_name().and_then(|s| s.to_str()) == Some("stage_report.json")
+                    && path.to_string_lossy().contains("qc_post")
+                {
+                    return path;
+                }
+            }
+        }
+    }
+    panic!("qc_post stage_report.json not found under preprocess run dir");
+}
+
 #[test]
 fn fastq_preprocess_end_to_end() {
     if std::env::var("BIJUX_E2E").is_err() {
@@ -116,6 +158,26 @@ fn fastq_preprocess_end_to_end() {
         panic!("read_retention missing or not a number");
     };
     assert!((0.0..=1.0).contains(&read_retention));
+
+    let qc_post_report = find_qc_post_report(&root, "ERR769587");
+    assert!(qc_post_report.is_file(), "qc_post report missing");
+    let stage_report_path = find_qc_post_stage_report(&root, "ERR769587");
+    let stage_report = read_json(&stage_report_path);
+    let subreports: &[serde_json::Value] = match stage_report
+        .get("subreports")
+        .and_then(|value| value.as_array())
+    {
+        Some(values) => values.as_slice(),
+        None => &[],
+    };
+    assert!(
+        subreports.iter().any(|value| {
+            value
+                .as_str()
+                .is_some_and(|path| path.contains("qc_post_report.json"))
+        }),
+        "qc_post report not referenced in stage_report"
+    );
 
     let pe_r1 = root.join("tests/data/fastq/ERR2112797/ERR2112797_1.fastq.gz");
     let pe_r2 = root.join("tests/data/fastq/ERR2112797/ERR2112797_2.fastq.gz");

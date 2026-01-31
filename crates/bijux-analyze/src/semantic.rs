@@ -76,6 +76,13 @@ pub fn metric_f64(
 #[must_use]
 pub fn semantic_trim(metrics: &crate::FastqTrimMetrics) -> SemanticMetrics {
     let delta = &metrics.delta_metrics;
+    let interpretation = if delta.read_retention < 0.8 {
+        "Trim removed a substantial fraction of reads; likely adapter/low-quality trimming."
+    } else if delta.mean_q_delta > 0.5 {
+        "Trim preserved most reads while improving mean quality."
+    } else {
+        "Trim preserved reads with minimal quality shift."
+    };
     SemanticMetrics {
         integrity: IntegrityMetrics {
             reads_in: metric_u64(
@@ -133,13 +140,23 @@ pub fn semantic_trim(metrics: &crate::FastqTrimMetrics) -> SemanticMetrics {
             ),
         }),
         contamination: None,
-        interpretation: "Trim should increase mean quality and may reduce read/base counts.",
+        interpretation,
     }
 }
 
 #[must_use]
 pub fn semantic_filter(metrics: &crate::FastqFilterMetrics) -> SemanticMetrics {
     let delta = &metrics.delta_metrics;
+    let removed = metrics.reads_dropped;
+    let interpretation = if removed == 0 {
+        "Filter removed no reads; thresholds may be permissive."
+    } else if metrics.reads_removed_by_kmer > 0 {
+        "Filter removed reads matching contaminant k-mers; check contaminant panel."
+    } else if metrics.reads_removed_by_entropy > 0 {
+        "Filter removed low-complexity reads; entropy threshold likely aggressive."
+    } else {
+        "Filter removed reads based on thresholds; review removal breakdown."
+    };
     SemanticMetrics {
         integrity: IntegrityMetrics {
             reads_in: metric_u64(
@@ -202,7 +219,7 @@ pub fn semantic_filter(metrics: &crate::FastqFilterMetrics) -> SemanticMetrics {
             ),
         }),
         contamination: None,
-        interpretation: "Filtering should reduce low-quality reads while preserving valid data.",
+        interpretation,
     }
 }
 

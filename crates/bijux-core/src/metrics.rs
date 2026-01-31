@@ -166,7 +166,11 @@ pub struct FastqFilterMetricsV1 {
     #[serde(default)]
     pub reads_removed_by_entropy: u64,
     #[serde(default)]
+    pub reads_removed_low_complexity: u64,
+    #[serde(default)]
     pub reads_removed_by_kmer: u64,
+    #[serde(default)]
+    pub reads_removed_contaminant_kmer: u64,
     #[serde(default)]
     pub reads_removed_by_length: u64,
     pub bases_in: u64,
@@ -195,6 +199,29 @@ pub struct FastqMergeMetricsV1 {
     pub reads_merged: u64,
     pub reads_unmerged: u64,
     pub merge_rate: f64,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct FastqQcPostMetricsV1 {
+    pub reads_in: u64,
+    pub reads_out: u64,
+    pub bases_in: u64,
+    pub bases_out: u64,
+    #[serde(default)]
+    pub pairs_in: Option<u64>,
+    #[serde(default)]
+    pub pairs_out: Option<u64>,
+    pub mean_q: f64,
+    pub contamination_rate: f64,
+    #[serde(default)]
+    pub raw_fastqc_dir: Option<String>,
+    #[serde(default)]
+    pub trimmed_fastqc_dir: Option<String>,
+    #[serde(default)]
+    pub multiqc_report: Option<String>,
+    #[serde(default)]
+    pub multiqc_data: Option<String>,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]

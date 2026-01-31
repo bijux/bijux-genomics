@@ -149,7 +149,11 @@ pub struct FilterReportV1 {
     pub reads_removed_total: u64,
     pub reads_removed_by_n: u64,
     pub reads_removed_by_entropy: u64,
+    #[serde(default)]
+    pub reads_removed_low_complexity: u64,
     pub reads_removed_by_kmer: u64,
+    #[serde(default)]
+    pub reads_removed_contaminant_kmer: u64,
     pub reads_removed_by_length: u64,
     #[serde(default)]
     pub entropy_distribution: serde_json::Value,
@@ -233,6 +237,8 @@ pub struct ReportSchemaV1 {
     pub telemetry: serde_json::Value,
     #[serde(default)]
     pub qc_improvement: serde_json::Value,
+    #[serde(default)]
+    pub final_qc_summary: serde_json::Value,
     #[serde(default)]
     pub filter_interpretation: serde_json::Value,
     #[serde(default)]
