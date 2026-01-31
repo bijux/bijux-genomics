@@ -1,10 +1,10 @@
 use anyhow::{anyhow, Result};
 
-use super::*;
-use crate::aggregate::{
+use bijux_analyze::aggregate::{
     metric_kind_for_stage, metric_spec, stage_metric_spec, BenchmarkContext, BenchmarkRecord,
     FastqTrimMetrics,
 };
+use bijux_analyze::report::{bench_schema_json, rank_trim_tools, write_run_summary_from_facts};
 use bijux_core::measure::ExecutionMetrics;
 use bijux_core::metrics::MetricSet;
 use bijux_core::FactsRowV1;
@@ -102,7 +102,7 @@ fn ranking_explanation_generation_has_modes() -> Result<()> {
         pairs_out: None,
         mean_q_before: 30.0,
         mean_q_after: 31.0,
-        delta_metrics: crate::FastqDeltaMetrics {
+        delta_metrics: bijux_analyze::FastqDeltaMetrics {
             read_retention: 0.9,
             base_retention: 0.9,
             mean_q_delta: 1.0,
@@ -121,7 +121,7 @@ fn ranking_explanation_generation_has_modes() -> Result<()> {
             runner: "docker".to_string(),
             platform: "linux".to_string(),
             input_hash: "ih".to_string(),
-            parameters: crate::model::JsonBlob::default(),
+            parameters: bijux_analyze::model::JsonBlob::default(),
         },
         execution: ExecutionMetrics {
             runtime_s: 1.0,

@@ -16,7 +16,6 @@ use crate::aggregate::{
 };
 use crate::decision::score::{build_rankings, RankInput, RankingEntry};
 use crate::failure::{classify_raw_failure, BenchmarkFailure};
-use crate::summaries::{semantic_filter, semantic_stats, semantic_trim, semantic_validate};
 
 pub fn gate_payload(failures: &[BenchmarkFailure]) -> serde_json::Value {
     let rationale: Vec<serde_json::Value> = failures
@@ -58,6 +57,329 @@ pub fn ratio_u64(num: u64, denom: u64) -> f64 {
         0.0
     } else {
         u64_to_f64(num) / u64_to_f64(denom)
+    }
+}
+
+#[derive(Debug, Clone, serde::Serialize)]
+#[serde(rename_all = "snake_case")]
+enum MetricValue {
+    U64(u64),
+    F64(f64),
+}
+
+#[derive(Debug, Clone, serde::Serialize)]
+struct MetricDescriptor {
+    value: MetricValue,
+    meaning: &'static str,
+    range: &'static str,
+    notes: &'static str,
+}
+
+#[derive(Debug, Clone, serde::Serialize)]
+struct IntegrityMetrics {
+    reads_in: MetricDescriptor,
+    reads_out: MetricDescriptor,
+    bases_in: MetricDescriptor,
+    bases_out: MetricDescriptor,
+}
+
+#[derive(Debug, Clone, serde::Serialize)]
+struct RetentionMetrics {
+    read_retention: MetricDescriptor,
+    base_retention: MetricDescriptor,
+}
+
+#[derive(Debug, Clone, serde::Serialize)]
+struct QualityShiftMetrics {
+    mean_q_before: MetricDescriptor,
+    mean_q_after: MetricDescriptor,
+    delta_mean_q: MetricDescriptor,
+}
+
+#[derive(Debug, Clone, serde::Serialize)]
+struct ContaminationMetrics {
+    gc_before: MetricDescriptor,
+    gc_after: MetricDescriptor,
+    delta_gc: MetricDescriptor,
+}
+
+#[derive(Debug, Clone, serde::Serialize)]
+struct SemanticMetrics {
+    integrity: IntegrityMetrics,
+    retention: RetentionMetrics,
+    quality_shift: Option<QualityShiftMetrics>,
+    contamination: Option<ContaminationMetrics>,
+    interpretation: &'static str,
+}
+
+fn metric_u64(
+    value: u64,
+    meaning: &'static str,
+    range: &'static str,
+    notes: &'static str,
+) -> MetricDescriptor {
+    MetricDescriptor {
+        value: MetricValue::U64(value),
+        meaning,
+        range,
+        notes,
+    }
+}
+
+fn metric_f64(
+    value: f64,
+    meaning: &'static str,
+    range: &'static str,
+    notes: &'static str,
+) -> MetricDescriptor {
+    MetricDescriptor {
+        value: MetricValue::F64(value),
+        meaning,
+        range,
+        notes,
+    }
+}
+
+fn semantic_trim(metrics: &FastqTrimMetrics) -> SemanticMetrics {
+    let delta = &metrics.delta_metrics;
+    let interpretation = if delta.read_retention < 0.8 {
+        "Trim removed a substantial fraction of reads; likely adapter/low-quality trimming."
+    } else if delta.mean_q_delta > 0.5 {
+        "Trim preserved most reads while improving mean quality."
+    } else {
+        "Trim preserved reads with minimal quality shift."
+    };
+    SemanticMetrics {
+        integrity: IntegrityMetrics {
+            reads_in: metric_u64(
+                metrics.reads_in,
+                "Input reads",
+                ">= 0",
+                "Raw input read count.",
+            ),
+            reads_out: metric_u64(
+                metrics.reads_out,
+                "Output reads",
+                ">= 0",
+                "Reads after trimming.",
+            ),
+            bases_in: metric_u64(metrics.bases_in, "Input bases", ">= 0", "Raw input bases."),
+            bases_out: metric_u64(
+                metrics.bases_out,
+                "Output bases",
+                ">= 0",
+                "Bases after trimming.",
+            ),
+        },
+        retention: RetentionMetrics {
+            read_retention: metric_f64(
+                delta.read_retention,
+                "Reads retained",
+                "[0,1]",
+                "Fraction of reads retained.",
+            ),
+            base_retention: metric_f64(
+                delta.base_retention,
+                "Bases retained",
+                "[0,1]",
+                "Fraction of bases retained.",
+            ),
+        },
+        quality_shift: Some(QualityShiftMetrics {
+            mean_q_before: metric_f64(
+                metrics.mean_q_before,
+                "Mean Q before",
+                "[0,45]",
+                "Mean quality before trimming.",
+            ),
+            mean_q_after: metric_f64(
+                metrics.mean_q_after,
+                "Mean Q after",
+                "[0,45]",
+                "Mean quality after trimming.",
+            ),
+            delta_mean_q: metric_f64(
+                delta.mean_q_delta,
+                "Mean Q shift",
+                "(-45,45)",
+                "Mean quality change.",
+            ),
+        }),
+        contamination: None,
+        interpretation,
+    }
+}
+
+fn semantic_filter(metrics: &FastqFilterMetrics) -> SemanticMetrics {
+    let delta = &metrics.delta_metrics;
+    let removed = metrics.reads_dropped;
+    let interpretation = if removed == 0 {
+        "Filter removed no reads; thresholds may be permissive."
+    } else if metrics.reads_removed_by_kmer > 0 {
+        "Filter removed reads matching contaminant k-mers; check contaminant panel."
+    } else if metrics.reads_removed_by_entropy > 0 {
+        "Filter removed low-complexity reads; entropy threshold likely aggressive."
+    } else {
+        "Filter removed reads based on thresholds; review removal breakdown."
+    };
+    SemanticMetrics {
+        integrity: IntegrityMetrics {
+            reads_in: metric_u64(
+                metrics.reads_in,
+                "Input reads",
+                ">= 0",
+                "Raw input read count.",
+            ),
+            reads_out: metric_u64(
+                metrics.reads_out,
+                "Output reads",
+                ">= 0",
+                "Reads after filtering.",
+            ),
+            bases_in: metric_u64(
+                metrics.reads_in,
+                "Input bases",
+                ">= 0",
+                "Approx bases inferred from reads.",
+            ),
+            bases_out: metric_u64(
+                metrics.reads_out,
+                "Output bases",
+                ">= 0",
+                "Approx bases after filtering.",
+            ),
+        },
+        retention: RetentionMetrics {
+            read_retention: metric_f64(
+                delta.read_retention,
+                "Reads retained",
+                "[0,1]",
+                "Fraction of reads retained.",
+            ),
+            base_retention: metric_f64(
+                delta.base_retention,
+                "Bases retained",
+                "[0,1]",
+                "Fraction of bases retained.",
+            ),
+        },
+        quality_shift: Some(QualityShiftMetrics {
+            mean_q_before: metric_f64(
+                metrics.mean_q_before,
+                "Mean Q before",
+                "[0,45]",
+                "Mean quality before filtering.",
+            ),
+            mean_q_after: metric_f64(
+                metrics.mean_q_after,
+                "Mean Q after",
+                "[0,45]",
+                "Mean quality after filtering.",
+            ),
+            delta_mean_q: metric_f64(
+                delta.mean_q_delta,
+                "Mean Q shift",
+                "(-45,45)",
+                "Mean quality change.",
+            ),
+        }),
+        contamination: None,
+        interpretation,
+    }
+}
+
+fn semantic_validate(metrics: &FastqValidateMetrics) -> SemanticMetrics {
+    let reads_total = metrics.reads_total;
+    let reads_valid = metrics.reads_valid;
+    let read_retention = if reads_total == 0 {
+        0.0
+    } else {
+        u64_to_f64(reads_valid) / u64_to_f64(reads_total)
+    };
+    SemanticMetrics {
+        integrity: IntegrityMetrics {
+            reads_in: metric_u64(reads_total, "Input reads", ">= 0", "Raw input read count."),
+            reads_out: metric_u64(
+                reads_valid,
+                "Output reads",
+                ">= 0",
+                "Reads passing validation.",
+            ),
+            bases_in: metric_u64(0, "Input bases", ">= 0", "Base counts not reported."),
+            bases_out: metric_u64(0, "Output bases", ">= 0", "Base counts not reported."),
+        },
+        retention: RetentionMetrics {
+            read_retention: metric_f64(
+                read_retention,
+                "Reads retained",
+                "[0,1]",
+                "Fraction of reads retained.",
+            ),
+            base_retention: metric_f64(0.0, "Bases retained", "[0,1]", "Not reported."),
+        },
+        quality_shift: None,
+        contamination: None,
+        interpretation: "Validation reports invalid reads; no data is modified.",
+    }
+}
+
+fn semantic_stats(metrics: &FastqStatsMetrics) -> SemanticMetrics {
+    let reads_total = metrics.reads_total;
+    let bases_total = metrics.bases_total;
+    let read_retention = if reads_total == 0 { 0.0 } else { 1.0 };
+    let base_retention = if bases_total == 0 { 0.0 } else { 1.0 };
+    SemanticMetrics {
+        integrity: IntegrityMetrics {
+            reads_in: metric_u64(reads_total, "Input reads", ">= 0", "Raw input read count."),
+            reads_out: metric_u64(reads_total, "Output reads", ">= 0", "Reads after stats."),
+            bases_in: metric_u64(bases_total, "Input bases", ">= 0", "Raw input bases."),
+            bases_out: metric_u64(bases_total, "Output bases", ">= 0", "Bases after stats."),
+        },
+        retention: RetentionMetrics {
+            read_retention: metric_f64(
+                read_retention,
+                "Reads retained",
+                "[0,1]",
+                "Fraction of reads retained.",
+            ),
+            base_retention: metric_f64(
+                base_retention,
+                "Bases retained",
+                "[0,1]",
+                "Fraction of bases retained.",
+            ),
+        },
+        quality_shift: Some(QualityShiftMetrics {
+            mean_q_before: metric_f64(
+                metrics.mean_q,
+                "Mean Q before",
+                "[0,45]",
+                "Mean quality before stats.",
+            ),
+            mean_q_after: metric_f64(
+                metrics.mean_q,
+                "Mean Q after",
+                "[0,45]",
+                "Mean quality after stats.",
+            ),
+            delta_mean_q: metric_f64(0.0, "Mean Q shift", "(-45,45)", "Mean quality change."),
+        }),
+        contamination: Some(ContaminationMetrics {
+            gc_before: metric_f64(
+                metrics.gc_percent,
+                "GC% before",
+                "[0,100]",
+                "GC percent before stats.",
+            ),
+            gc_after: metric_f64(
+                metrics.gc_percent,
+                "GC% after",
+                "[0,100]",
+                "GC percent after stats.",
+            ),
+            delta_gc: metric_f64(0.0, "GC% shift", "(-100,100)", "GC percent change."),
+        }),
+        interpretation: "Stats summarizes input reads; no data is modified.",
     }
 }
 
@@ -769,4 +1091,70 @@ pub fn write_stats_report(
         crate::decision::score::print_rank_explain("fastq.stats_neutral", &BTreeMap::new());
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::aggregate::{FastqDeltaMetrics, FastqTrimMetrics, FastqValidateMetrics};
+
+    #[test]
+    fn semantic_trim_generates_summary() {
+        let metrics = FastqTrimMetrics {
+            reads_in: 100,
+            reads_out: 80,
+            bases_in: 1000,
+            bases_out: 800,
+            pairs_in: None,
+            pairs_out: None,
+            mean_q_before: 30.0,
+            mean_q_after: 31.5,
+            delta_metrics: FastqDeltaMetrics {
+                read_retention: 0.8,
+                base_retention: 0.8,
+                mean_q_delta: 1.5,
+                gc_delta: 0.1,
+            },
+            adapter_preset: Some("default".to_string()),
+            adapter_bank_id: Some("bank.v1".to_string()),
+            adapter_bank_hash: Some("sha256:abc".to_string()),
+            adapter_overrides: None,
+        };
+        let summary = semantic_trim(&metrics);
+        assert!(matches!(
+            summary.integrity.reads_in.value,
+            MetricValue::U64(100)
+        ));
+        assert!(matches!(
+            summary.integrity.reads_out.value,
+            MetricValue::U64(80)
+        ));
+        assert!(summary.quality_shift.is_some());
+    }
+
+    #[test]
+    fn semantic_validate_generates_summary() {
+        let metrics = FastqValidateMetrics {
+            reads_in: 50,
+            reads_out: 50,
+            bases_in: 500,
+            bases_out: 500,
+            pairs_in: None,
+            pairs_out: None,
+            reads_total: 50,
+            reads_valid: 45,
+            reads_invalid: 5,
+            mean_q: 32.0,
+        };
+        let summary = semantic_validate(&metrics);
+        assert!(matches!(
+            summary.integrity.reads_in.value,
+            MetricValue::U64(50)
+        ));
+        assert!(matches!(
+            summary.integrity.reads_out.value,
+            MetricValue::U64(45)
+        ));
+        assert!(summary.quality_shift.is_none());
+    }
 }

@@ -4,9 +4,7 @@
 //! Must not perform IO or depend on pipeline/report layers.
 //! Invariants: registry constants are exhaustive for known stages.
 
-use crate::aggregate::registry_defs as defs;
-
-pub use defs::*;
+use super::defs;
 
 #[must_use]
 pub fn stage_metric_spec(kind: defs::StageMetricKind) -> defs::StageMetricSpec {
@@ -111,7 +109,7 @@ pub fn derived_metric_spec(metric_id: defs::DerivedMetricId) -> defs::DerivedMet
 }
 
 #[must_use]
-pub fn derived_metrics_for_stage(stage_id: &str) -> Vec<DerivedMetricSpec> {
+pub fn derived_metrics_for_stage(stage_id: &str) -> Vec<defs::DerivedMetricSpec> {
     defs::DERIVED_METRIC_REGISTRY
         .iter()
         .copied()

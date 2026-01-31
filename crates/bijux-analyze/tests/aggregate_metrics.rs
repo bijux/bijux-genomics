@@ -1,6 +1,8 @@
-use super::*;
-use crate::aggregate::Result;
-use crate::model::JsonBlob;
+use bijux_analyze::model::JsonBlob;
+use bijux_analyze::{
+    metric_set, BenchmarkContext, BenchmarkRecord, FastqDeltaMetrics, FastqFilterMetrics,
+    FastqMergeMetrics, FastqTrimMetrics, Result, StageMetricSchema,
+};
 use bijux_core::measure::ExecutionMetrics;
 
 #[test]

@@ -8,13 +8,11 @@ pub mod facts;
 pub mod run_index;
 pub mod run_summary;
 pub mod sqlite;
-pub mod sqlite_queries;
 
 pub use facts::*;
 pub use run_index::*;
 pub use run_summary::*;
 pub use sqlite::*;
-pub use sqlite_queries::*;
 
 #[derive(thiserror::Error, Debug)]
 pub enum AnalyzeError {

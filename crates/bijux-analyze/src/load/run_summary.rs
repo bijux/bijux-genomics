@@ -4,7 +4,7 @@
 use std::path::Path;
 
 use super::AnalyzeError;
-use crate::facts_export::RunSummaryV1;
+use crate::model::RunSummaryV1;
 use serde_json;
 
 /// Load a run summary from JSON.

@@ -8,7 +8,7 @@ use bijux_core::FactsRowV1;
 use serde_json;
 
 use super::AnalyzeError;
-use crate::facts_export::stable_sort_records;
+use crate::model::stable_sort_records;
 use crate::model::FactTable;
 
 /// Load facts from a JSONL file.

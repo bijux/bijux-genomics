@@ -11,6 +11,11 @@ use anyhow::{anyhow, Result};
 
 use crate::model::JsonBlob;
 
+mod queries;
+mod rows;
+
+pub use queries::*;
+
 pub(super) fn json_from_str<T: DeserializeOwned>(
     value: &str,
 ) -> std::result::Result<T, rusqlite::Error> {

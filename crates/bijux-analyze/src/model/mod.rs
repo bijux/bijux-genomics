@@ -10,4 +10,8 @@ pub mod run;
 
 pub use facts::{FactRow, FactTable};
 pub use json::JsonBlob;
-pub use run::{MetricEnvelope, RunSummary, StageRecord, ToolRecord};
+pub(crate) use run::stable_sort_records;
+pub use run::{
+    FactsSummary, MetricEnvelope, RunSummary, RunSummaryDeltas, RunSummaryStageRow, RunSummaryV1,
+    StageRecord, ToolRecord,
+};
