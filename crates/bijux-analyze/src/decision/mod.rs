@@ -1,9 +1,13 @@
 //! Owner: bijux-analyze
 //! Decision core for ranking, comparison, and explainability.
+//! Owns compare/score/explain logic and decision traces.
+//! Must not depend on load/report or perform IO.
+//! Invariants: missing semantics produce errors with remediation hints.
 
 pub mod compare;
 pub mod explain;
 pub mod score;
+mod score_helpers;
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct DecisionMetricTrace {

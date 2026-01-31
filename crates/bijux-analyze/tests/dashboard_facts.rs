@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::PathBuf;
 
-use bijux_analyze::facts::write_dashboard_facts_jsonl;
+use bijux_analyze::facts_export::write_dashboard_facts_jsonl;
 use bijux_core::FactsRowV1;
 use tempfile::TempDir;
 

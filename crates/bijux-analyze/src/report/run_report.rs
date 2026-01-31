@@ -2,38 +2,29 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
 
-use crate::facts::write_run_summary_json;
+use super::run_report_schema::{
+    build_report_sections, report_completeness, report_contract, report_metric_semantics,
+};
+use super::run_report_sections::{
+    adapter_inference_section, filter_interpretation_section, qc_improvement_section,
+};
+use crate::facts_export::write_run_summary_json;
 use crate::model::JsonBlob;
 use crate::report::model::ReportModel;
 use crate::report::render_json::write_report_json;
 use bijux_core::{
     AssetsProvenanceV1, FactsRowV1, ReportProvenanceV1, ReportSchemaV1, ReportStageSummaryV1,
-    StageReportV1,
+    RetentionContextV1, RetentionDefinitionV1, RetentionReportV1, StageReportV1, TelemetryEventV1,
 };
 
-mod helpers;
-mod schema;
-mod sections;
-mod telemetry;
-
-use helpers::{
-    banks_from_report, read_json_value, report_path_for, retention_context_from_report,
-    stage_report_fields,
-};
-use schema::{
-    build_report_sections, report_completeness, report_contract, report_metric_semantics,
-};
-use sections::{adapter_inference_section, filter_interpretation_section, qc_improvement_section};
-use telemetry::{telemetry_counts, telemetry_path_from_stage_report};
-
-/// Write a run-level report from facts rows.
+/// Build a run report model from facts rows.
 ///
 /// # Errors
-/// Returns an error if report serialization or file writes fail.
+/// Returns an error if report assembly fails.
 #[allow(clippy::too_many_lines)]
-pub fn write_run_report_from_facts(base_dir: &Path, rows: &[FactsRowV1]) -> Result<PathBuf> {
+pub fn build_run_report_model(rows: &[FactsRowV1]) -> Result<ReportModel> {
     let mut ordered = rows.to_vec();
-    crate::facts::stable_sort_records(&mut ordered, |row| {
+    crate::facts_export::stable_sort_records(&mut ordered, |row| {
         (
             row.run_id.as_str(),
             row.stage_id.as_str(),
@@ -166,13 +157,22 @@ pub fn write_run_report_from_facts(base_dir: &Path, rows: &[FactsRowV1]) -> Resu
         sections: serde_json::json!({}),
     };
 
-    let path = base_dir.join("report.json");
     let sections = build_report_sections(&report)
         .into_iter()
         .map(|(key, value)| (key, JsonBlob::new(value)))
         .collect();
     let mut model = ReportModel::empty(report);
     model.sections = sections;
+    Ok(model)
+}
+
+/// Write a run-level report from facts rows.
+///
+/// # Errors
+/// Returns an error if report serialization or file writes fail.
+pub fn write_run_report_from_facts(base_dir: &Path, rows: &[FactsRowV1]) -> Result<PathBuf> {
+    let path = base_dir.join("report.json");
+    let model = build_run_report_model(rows)?;
     write_report_json(&path, &model).context("write report.json")?;
     Ok(path)
 }
@@ -183,4 +183,100 @@ pub fn write_run_report_from_facts(base_dir: &Path, rows: &[FactsRowV1]) -> Resu
 /// Returns an error if the file cannot be written.
 pub fn write_run_summary_from_facts(path: &Path, rows: &[FactsRowV1]) -> Result<()> {
     write_run_summary_json(path, rows)
+}
+
+fn read_json_value(path: &Path) -> Option<serde_json::Value> {
+    std::fs::read_to_string(path)
+        .ok()
+        .and_then(|raw| serde_json::from_str(&raw).ok())
+}
+
+pub(super) fn report_path_for(reports: &serde_json::Value, key: &str) -> Option<String> {
+    reports
+        .get(key)
+        .and_then(|value| value.as_str())
+        .map(str::to_string)
+}
+
+fn stage_report_fields(report: Option<&StageReportV1>) -> (String, String, String) {
+    report.map_or_else(
+        || (String::new(), String::new(), String::new()),
+        |report| {
+            (
+                report.metrics_path.clone(),
+                report.tool_invocation_path.clone(),
+                report.effective_config_path.clone(),
+            )
+        },
+    )
+}
+
+fn retention_context_from_report(
+    path: Option<&str>,
+) -> Option<(RetentionContextV1, RetentionDefinitionV1)> {
+    let report = path
+        .and_then(|path| read_json_value(Path::new(path)))
+        .and_then(|value| serde_json::from_value::<RetentionReportV1>(value).ok())?;
+    let definition = report
+        .retention
+        .as_ref()
+        .map_or_else(|| "unknown".to_string(), |ret| ret.definition.clone());
+    let conditions = report
+        .retention
+        .as_ref()
+        .map_or_else(|| report.condition.clone(), |ret| ret.conditions.clone());
+    let context = RetentionContextV1 {
+        stage_id: report.stage_id,
+        tool_id: report.tool_id,
+        definition,
+        conditions,
+    };
+    let definition = RetentionDefinitionV1 {
+        stage_id: context.stage_id.clone(),
+        tool_id: context.tool_id.clone(),
+        numerator: "reads_out,bases_out".to_string(),
+        denominator: "reads_in,bases_in".to_string(),
+        conditions: context.conditions.clone(),
+    };
+    Some((context, definition))
+}
+
+fn banks_from_report(path: Option<&str>, fallback: serde_json::Value) -> serde_json::Value {
+    path.and_then(|path| read_json_value(Path::new(path)))
+        .and_then(|value| value.get("banks").cloned())
+        .unwrap_or(fallback)
+}
+
+fn telemetry_path_from_stage_report(path: Option<&str>) -> Option<String> {
+    path.and_then(|path| {
+        Path::new(path).parent().map(|parent| {
+            parent
+                .join("telemetry")
+                .join("events.jsonl")
+                .display()
+                .to_string()
+        })
+    })
+}
+
+fn telemetry_counts(paths: &[String]) -> (usize, usize) {
+    let mut total_events = 0usize;
+    let mut error_events = 0usize;
+    for path in paths {
+        let Ok(raw) = std::fs::read_to_string(path) else {
+            continue;
+        };
+        for line in raw.lines() {
+            if line.trim().is_empty() {
+                continue;
+            }
+            total_events += 1;
+            if let Ok(event) = serde_json::from_str::<TelemetryEventV1>(line) {
+                if event.event_name == "error" || event.status == "error" {
+                    error_events += 1;
+                }
+            }
+        }
+    }
+    (total_events, error_events)
 }

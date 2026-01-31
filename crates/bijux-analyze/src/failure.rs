@@ -1,5 +1,8 @@
 //! Owner: bijux-analyze
 //! Failure classification and structured remediation hints.
+//! Owns stable failure IDs and remediation guidance.
+//! Must not perform IO or depend on pipeline/report layers.
+//! Invariants: failure kinds are stable and hints are structured.
 
 use serde::Serialize;
 

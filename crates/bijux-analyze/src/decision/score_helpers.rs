@@ -1,9 +1,14 @@
+//! Owner: bijux-analyze
+//! Scoring helpers for decision ranking.
+
 use anyhow::{anyhow, Result};
 
 use crate::decision::{DecisionMetricTrace, DecisionTrace};
 use crate::semantics::resolve_semantics;
 
-use super::{RankInput, RankingEntry, RankingMode, RankingPenalty, ScoreBreakdown};
+use crate::decision::score::{
+    RankInput, RankingEntry, RankingMode, RankingPenalty, ScoreBreakdown,
+};
 
 pub(super) fn trace_for_input(
     input: &RankInput,

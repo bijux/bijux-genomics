@@ -1,5 +1,5 @@
 //! Owner: bijux-analyze
-//! `SQLite` base helpers.
+//! `SQLite` connection helpers for benchmark storage.
 
 use std::path::Path;
 
@@ -7,7 +7,8 @@ use rusqlite::Connection;
 use serde::de::DeserializeOwned;
 use sha2::{Digest, Sha256};
 
-use crate::aggregate::{BenchError, Result};
+use anyhow::{anyhow, Result};
+
 use crate::model::JsonBlob;
 
 pub(super) fn json_from_str<T: DeserializeOwned>(
@@ -35,9 +36,7 @@ fn ensure_sqlite_schema_version(conn: &Connection, target_version: i32) -> Resul
         return Ok(());
     }
     if current > target_version {
-        return Err(BenchError::Validation(format!(
-            "unsupported schema version {current}"
-        )));
+        return Err(anyhow!("unsupported schema version {current}"));
     }
     Ok(())
 }

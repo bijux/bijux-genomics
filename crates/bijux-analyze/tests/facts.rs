@@ -1,7 +1,8 @@
 use std::fs;
 use std::path::PathBuf;
 
-use bijux_analyze::facts::{load_facts_jsonl, summarize_facts, write_run_summary_json};
+use bijux_analyze::facts_export::{summarize_facts, write_run_summary_json};
+use bijux_analyze::load::load_facts;
 use bijux_core::FactsRowV1;
 use tempfile::TempDir;
 
@@ -41,7 +42,7 @@ fn facts_loader_and_summary_work() -> anyhow::Result<()> {
     let payload = serde_json::to_string(&row)?;
     fs::write(&path, format!("{payload}\n"))?;
 
-    let rows = load_facts_jsonl(&path)?;
+    let rows = load_facts(&path).map_err(|err| anyhow::anyhow!(err.to_string()))?;
     assert_eq!(rows.len(), 1);
     let summary = summarize_facts(&rows);
     assert_eq!(summary.runs, 1);

@@ -2,7 +2,7 @@ use std::fs;
 use std::path::PathBuf;
 
 use anyhow::Result;
-use bijux_analyze::{facts::load_facts_jsonl, report::write_run_report_from_facts};
+use bijux_analyze::{load::load_facts, report::write_run_report_from_facts};
 use bijux_core::{FactsRowV1, ReportSchemaV1, RetentionReportV1, StageReportV1};
 
 fn fixture_root() -> Result<PathBuf> {
@@ -31,7 +31,7 @@ fn write_report_fixture(
         facts_raw.push('\n');
     }
     fs::write(&facts_path, facts_raw)?;
-    let loaded = load_facts_jsonl(&facts_path)?;
+    let loaded = load_facts(&facts_path).map_err(|err| anyhow::anyhow!(err.to_string()))?;
     let report_path = write_run_report_from_facts(&dir, &loaded)?;
     let report_raw = fs::read_to_string(report_path)?;
     Ok(serde_json::from_str(&report_raw)?)
