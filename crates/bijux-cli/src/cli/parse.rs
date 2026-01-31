@@ -61,6 +61,10 @@ pub struct CompareArgs {
 #[derive(Debug, Subcommand)]
 pub enum AnalyzeCommand {
     Runs(AnalyzeRunsArgs),
+    Summary(AnalyzeSummaryArgs),
+    Compare(AnalyzeCompareArgs),
+    Rank(AnalyzeRankArgs),
+    Report(AnalyzeReportArgs),
 }
 
 #[derive(Debug, Args)]
@@ -75,6 +79,41 @@ pub struct AnalyzeRunsArgs {
     pub objective: Option<ObjectiveArg>,
     #[arg(long)]
     pub success: Option<bool>,
+}
+
+#[derive(Debug, Args)]
+pub struct AnalyzeSummaryArgs {
+    #[arg(long, default_value = "artifacts/bench")]
+    pub search_root: PathBuf,
+    pub run_id: String,
+}
+
+#[derive(Debug, Args)]
+pub struct AnalyzeCompareArgs {
+    pub run_a: String,
+    pub run_b: String,
+    #[arg(long, default_value = "artifacts/bench")]
+    pub search_root: PathBuf,
+    #[arg(long, value_enum, default_value_t = ObjectiveArg::Balanced)]
+    pub objective: ObjectiveArg,
+}
+
+#[derive(Debug, Args)]
+pub struct AnalyzeRankArgs {
+    #[arg(long, default_value = "artifacts/bench")]
+    pub search_root: PathBuf,
+    pub run_id: String,
+    #[arg(long)]
+    pub stage: String,
+}
+
+#[derive(Debug, Args)]
+pub struct AnalyzeReportArgs {
+    #[arg(long, default_value = "artifacts/bench")]
+    pub search_root: PathBuf,
+    pub run_id: String,
+    #[arg(long, default_value = "json")]
+    pub format: String,
 }
 
 #[derive(Debug, Subcommand)]

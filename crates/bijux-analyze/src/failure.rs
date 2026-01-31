@@ -18,6 +18,7 @@ pub struct BenchmarkFailure {
     pub tool: String,
     pub class: FailureClass,
     pub reason: String,
+    pub hints: Vec<String>,
 }
 
 #[must_use]
@@ -50,7 +51,26 @@ pub fn classify_raw_failure(raw: &RawFailure) -> BenchmarkFailure {
         tool: raw.tool.clone(),
         class,
         reason: raw.reason.clone(),
+        hints: remediation_hints(raw),
     }
+}
+
+fn remediation_hints(raw: &RawFailure) -> Vec<String> {
+    let msg = raw.reason.to_lowercase();
+    let mut hints = Vec::new();
+    if msg.contains("adapter") || msg.contains("adapter preset") {
+        hints.push("likely missing adapter preset".to_string());
+    }
+    if msg.contains("polyg") || msg.contains("poly-g") {
+        hints.push("polyG artifact suspected—enable illumina_twocolor".to_string());
+    }
+    if raw.stage == "fastq.screen" || msg.contains("contaminant") {
+        hints.push("contamination suspected—run screen stage".to_string());
+    }
+    if msg.contains("missing output") || msg.contains("output not found") {
+        hints.push("check tool output paths and permissions".to_string());
+    }
+    hints
 }
 
 #[cfg(test)]
@@ -88,5 +108,19 @@ mod tests {
         };
         let failure = classify_raw_failure(&raw);
         assert!(matches!(failure.class, FailureClass::ToolError));
+    }
+
+    #[test]
+    fn classify_failure_includes_remediation_hints() {
+        let raw = RawFailure {
+            stage: "fastq.trim".to_string(),
+            tool: "fastp".to_string(),
+            reason: "adapter preset missing".to_string(),
+        };
+        let failure = classify_raw_failure(&raw);
+        assert!(failure
+            .hints
+            .iter()
+            .any(|hint| hint.contains("adapter preset")));
     }
 }

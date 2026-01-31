@@ -179,5 +179,103 @@
   },
   "qc_improvement": {},
   "filter_interpretation": {},
-  "adapter_inference": {}
+  "adapter_inference": {},
+  "sections": {
+    "contamination": {
+      "assets": [
+        {
+          "stage_id": "fastq.trim",
+          "tool_id": "fastp",
+          "banks": {
+            "adapters": {
+              "entries": [
+                {
+                  "enabled": true,
+                  "id": "A1",
+                  "sequence": "ACGT"
+                }
+              ],
+              "hash": "sha256:adapters",
+              "preset": "default"
+            },
+            "contaminants": {
+              "entries": [
+                {
+                  "enabled": true,
+                  "id": "phix"
+                }
+              ],
+              "hash": "sha256:contam",
+              "preset": "illumina_default"
+            },
+            "polyx": {
+              "entries": [
+                {
+                  "enabled": true,
+                  "id": "polyG"
+                }
+              ],
+              "hash": "sha256:polyx",
+              "preset": "illumina_twocolor"
+            }
+          }
+        }
+      ]
+    },
+    "failures": {
+      "completeness": {
+        "status": "complete",
+        "missing_metrics": [],
+        "missing_reports": []
+      }
+    },
+    "filtering": {},
+    "qc": {},
+    "retention": {
+      "definitions": [
+        {
+          "stage_id": "fastq.trim",
+          "tool_id": "fastp",
+          "numerator": "reads_out,bases_out",
+          "denominator": "reads_in,bases_in",
+          "conditions": {
+            "min_len": 20
+          }
+        }
+      ],
+      "contexts": [
+        {
+          "stage_id": "fastq.trim",
+          "tool_id": "fastp",
+          "definition": "reads_out / reads_in",
+          "conditions": {
+            "min_len": 20
+          }
+        }
+      ]
+    },
+    "trimming": {
+      "retention_definition": [
+        {
+          "stage_id": "fastq.trim",
+          "tool_id": "fastp",
+          "numerator": "reads_out,bases_out",
+          "denominator": "reads_in,bases_in",
+          "conditions": {
+            "min_len": 20
+          }
+        }
+      ],
+      "retention_context": [
+        {
+          "stage_id": "fastq.trim",
+          "tool_id": "fastp",
+          "definition": "reads_out / reads_in",
+          "conditions": {
+            "min_len": 20
+          }
+        }
+      ]
+    }
+  }
 }

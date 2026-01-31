@@ -9,6 +9,8 @@ use serde_json::Value as JsonValue;
 use thiserror::Error;
 use tracing::warn;
 
+pub mod stats;
+
 pub type Result<T> = std::result::Result<T, BenchError>;
 
 pub trait StageMetricSchema {

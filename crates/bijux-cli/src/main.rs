@@ -30,9 +30,10 @@ use crate::fastq_exec::{
     bench_fastq_umi, bench_fastq_validate_pre,
 };
 use bijux_analyze::{
-    compare_runs, print_bench_schema, write_correct_report, write_filter_report,
-    write_merge_report, write_qc_post_report, write_stats_report, write_trim_report,
-    write_umi_report, write_validate_report,
+    compare_runs, load_facts_auto, load_run_summary, print_bench_schema, write_correct_report,
+    write_filter_report, write_merge_report, write_qc_post_report, write_run_report_from_facts,
+    write_run_summary_from_facts, write_stats_report, write_trim_report, write_umi_report,
+    write_validate_report, RankInput,
 };
 use bijux_core::selection::{objective_spec, Objective};
 use bijux_engine::api::init_logging;
@@ -142,6 +143,84 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
                     };
                     let runs = bijux_core::run_index::query_runs(&args.index, &query)?;
                     println!("{}", serde_json::to_string_pretty(&runs)?);
+                }
+                AnalyzeCommand::Summary(args) => {
+                    let run_dir = args.search_root.join(&args.run_id);
+                    let summary_path = run_dir.join("run_summary.json");
+                    if summary_path.exists() {
+                        let summary = load_run_summary(&summary_path)?;
+                        println!("{}", serde_json::to_string_pretty(&summary)?);
+                    } else {
+                        let facts_path = run_dir.join("facts.jsonl");
+                        let facts = load_facts_auto(&facts_path)?;
+                        write_run_summary_from_facts(&summary_path, &facts)?;
+                        let summary = load_run_summary(&summary_path)?;
+                        println!("{}", serde_json::to_string_pretty(&summary)?);
+                    }
+                }
+                AnalyzeCommand::Compare(args) => {
+                    let objective = objective_spec(args.objective.into());
+                    let run_a = args.search_root.join(&args.run_a);
+                    let run_b = args.search_root.join(&args.run_b);
+                    let result = compare_runs(&run_a, &run_b, &objective)?;
+                    println!("{}", serde_json::to_string_pretty(&result)?);
+                }
+                AnalyzeCommand::Rank(args) => {
+                    let run_dir = args.search_root.join(&args.run_id);
+                    let facts_path = run_dir.join("facts.jsonl");
+                    let facts = load_facts_auto(&facts_path)?;
+                    let mut by_tool: BTreeMap<String, Vec<&bijux_core::FactsRowV1>> =
+                        BTreeMap::new();
+                    for row in facts.iter().filter(|row| row.stage_id == args.stage) {
+                        by_tool.entry(row.tool_id.clone()).or_default().push(row);
+                    }
+                    let mut inputs = Vec::new();
+                    for (tool, rows) in by_tool {
+                        let denom = f64::from(u32::try_from(rows.len().max(1)).unwrap_or(u32::MAX));
+                        let runtime = rows.iter().map(|row| row.runtime_s).sum::<f64>() / denom;
+                        let memory = rows.iter().map(|row| row.memory_mb).sum::<f64>() / denom;
+                        let read_retention =
+                            rows.iter()
+                                .find_map(|row| match (row.reads_in, row.reads_out) {
+                                    #[allow(clippy::cast_precision_loss)]
+                                    (Some(ri), Some(ro)) if ri > 0 => Some(ro as f64 / ri as f64),
+                                    _ => None,
+                                });
+                        let base_retention =
+                            rows.iter()
+                                .find_map(|row| match (row.bases_in, row.bases_out) {
+                                    #[allow(clippy::cast_precision_loss)]
+                                    (Some(bi), Some(bo)) if bi > 0 => Some(bo as f64 / bi as f64),
+                                    _ => None,
+                                });
+                        let error_reduction_proxy = rows.iter().find_map(|row| {
+                            row.metrics
+                                .get("mean_q_delta")
+                                .and_then(serde_json::Value::as_f64)
+                        });
+                        inputs.push(RankInput {
+                            tool,
+                            runtime_s: runtime,
+                            memory_mb: memory,
+                            read_retention,
+                            base_retention,
+                            error_reduction_proxy,
+                        });
+                    }
+                    let rankings = bijux_analyze::build_rankings(&inputs);
+                    println!("{}", serde_json::to_string_pretty(&rankings)?);
+                }
+                AnalyzeCommand::Report(args) => {
+                    let run_dir = args.search_root.join(&args.run_id);
+                    let facts_path = run_dir.join("facts.jsonl");
+                    let facts = load_facts_auto(&facts_path)?;
+                    let report_path = write_run_report_from_facts(&run_dir, &facts)?;
+                    if args.format == "json" {
+                        let raw = std::fs::read_to_string(&report_path)?;
+                        println!("{raw}");
+                    } else {
+                        println!("report written to {}", report_path.display());
+                    }
                 }
             }
             Ok(true)

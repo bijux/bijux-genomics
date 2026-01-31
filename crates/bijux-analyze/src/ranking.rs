@@ -2,6 +2,8 @@ use std::collections::BTreeMap;
 
 use serde::Serialize;
 
+use bijux_core::metrics_registry::metric_semantics;
+
 #[derive(Debug, Clone, Copy, Serialize)]
 pub enum RankingMode {
     FastestAcceptable,
@@ -9,11 +11,28 @@ pub enum RankingMode {
     BalancedPareto,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Serialize)]
+pub struct ScoreBreakdown {
+    pub metric_id: String,
+    pub value: f64,
+    pub weight: f64,
+    pub contribution: f64,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct RankingPenalty {
+    pub reason: String,
+    pub severity: String,
+}
+
+#[derive(Debug, Clone, Serialize)]
 pub struct RankingEntry {
     pub tool: String,
     pub score: f64,
     pub explain: String,
+    pub score_breakdown: Vec<ScoreBreakdown>,
+    pub penalties: Vec<RankingPenalty>,
+    pub why_not_first: Vec<String>,
 }
 
 #[derive(Debug)]
@@ -28,6 +47,14 @@ pub struct RankInput {
 
 #[must_use]
 pub fn build_rankings(inputs: &[RankInput]) -> BTreeMap<String, Vec<RankingEntry>> {
+    assert_metric_semantics(&[
+        "runtime_s",
+        "memory_mb",
+        "read_retention",
+        "base_retention",
+        "error_reduction_proxy",
+        "merge_rate",
+    ]);
     let mut rankings = BTreeMap::new();
     rankings.insert(
         format!("{:?}", RankingMode::FastestAcceptable),
@@ -66,6 +93,14 @@ fn rank_fastest(inputs: &[RankInput]) -> Vec<RankingEntry> {
                 input.memory_mb,
                 format_optional(input.read_retention)
             ),
+            score_breakdown: vec![ScoreBreakdown {
+                metric_id: "runtime_s".to_string(),
+                value: input.runtime_s,
+                weight: 1.0,
+                contribution: input.runtime_s,
+            }],
+            penalties: penalties_for_input(input),
+            why_not_first: Vec::new(),
         })
         .collect();
     entries.sort_by(|a, b| {
@@ -78,6 +113,7 @@ fn rank_fastest(inputs: &[RankInput]) -> Vec<RankingEntry> {
             ordering => ordering,
         }
     });
+    annotate_why_not_first(&mut entries, RankingMode::FastestAcceptable);
     entries
 }
 
@@ -85,7 +121,7 @@ fn rank_most_conservative(inputs: &[RankInput]) -> Vec<RankingEntry> {
     let mut entries: Vec<_> = inputs
         .iter()
         .map(|input| {
-            let retention = input.read_retention.unwrap_or(1.0);
+            let retention = input.read_retention.unwrap_or(0.0);
             let base_retention = input.base_retention.unwrap_or(retention);
             let error_proxy = input.error_reduction_proxy.unwrap_or(0.0) / 45.0;
             let score = retention + base_retention + error_proxy;
@@ -98,6 +134,28 @@ fn rank_most_conservative(inputs: &[RankInput]) -> Vec<RankingEntry> {
                     format_optional(input.base_retention),
                     input.error_reduction_proxy.unwrap_or(0.0)
                 ),
+                score_breakdown: vec![
+                    ScoreBreakdown {
+                        metric_id: "read_retention".to_string(),
+                        value: retention,
+                        weight: 1.0,
+                        contribution: retention,
+                    },
+                    ScoreBreakdown {
+                        metric_id: "base_retention".to_string(),
+                        value: base_retention,
+                        weight: 1.0,
+                        contribution: base_retention,
+                    },
+                    ScoreBreakdown {
+                        metric_id: "error_reduction_proxy".to_string(),
+                        value: input.error_reduction_proxy.unwrap_or(0.0),
+                        weight: 1.0 / 45.0,
+                        contribution: error_proxy,
+                    },
+                ],
+                penalties: penalties_for_input(input),
+                why_not_first: Vec::new(),
             }
         })
         .collect();
@@ -111,6 +169,7 @@ fn rank_most_conservative(inputs: &[RankInput]) -> Vec<RankingEntry> {
             ordering => ordering,
         }
     });
+    annotate_why_not_first(&mut entries, RankingMode::MostConservative);
     entries
 }
 
@@ -122,7 +181,7 @@ fn rank_balanced(inputs: &[RankInput]) -> Vec<RankingEntry> {
         .map(|input| {
             let runtime_norm = normalize_inverted(input.runtime_s, min_runtime, max_runtime);
             let memory_norm = normalize_inverted(input.memory_mb, min_memory, max_memory);
-            let retention_norm = input.read_retention.unwrap_or(1.0);
+            let retention_norm = input.read_retention.unwrap_or(0.0);
             let score = 0.5 * runtime_norm + 0.3 * retention_norm + 0.2 * memory_norm;
             RankingEntry {
                 tool: input.tool.clone(),
@@ -130,6 +189,28 @@ fn rank_balanced(inputs: &[RankInput]) -> Vec<RankingEntry> {
                 explain: format!(
                     "runtime_norm={runtime_norm:.3} retention={retention_norm:.3} memory_norm={memory_norm:.3}"
                 ),
+                score_breakdown: vec![
+                    ScoreBreakdown {
+                        metric_id: "runtime_s".to_string(),
+                        value: runtime_norm,
+                        weight: 0.5,
+                        contribution: 0.5 * runtime_norm,
+                    },
+                    ScoreBreakdown {
+                        metric_id: "read_retention".to_string(),
+                        value: retention_norm,
+                        weight: 0.3,
+                        contribution: 0.3 * retention_norm,
+                    },
+                    ScoreBreakdown {
+                        metric_id: "memory_mb".to_string(),
+                        value: memory_norm,
+                        weight: 0.2,
+                        contribution: 0.2 * memory_norm,
+                    },
+                ],
+                penalties: penalties_for_input(input),
+                why_not_first: Vec::new(),
             }
         })
         .collect();
@@ -143,6 +224,7 @@ fn rank_balanced(inputs: &[RankInput]) -> Vec<RankingEntry> {
             ordering => ordering,
         }
     });
+    annotate_why_not_first(&mut entries, RankingMode::BalancedPareto);
     entries
 }
 
@@ -174,4 +256,76 @@ fn min_max(values: impl Iterator<Item = f64>) -> (f64, f64) {
 
 fn format_optional(value: Option<f64>) -> String {
     value.map_or_else(|| "n/a".to_string(), |v| format!("{v:.3}"))
+}
+
+fn penalties_for_input(input: &RankInput) -> Vec<RankingPenalty> {
+    let mut penalties = Vec::new();
+    if input.read_retention.is_none() {
+        penalties.push(RankingPenalty {
+            reason: "missing_metric:read_retention".to_string(),
+            severity: "warning".to_string(),
+        });
+    }
+    if input.base_retention.is_none() {
+        penalties.push(RankingPenalty {
+            reason: "missing_metric:base_retention".to_string(),
+            severity: "warning".to_string(),
+        });
+    }
+    if input.error_reduction_proxy.is_none() {
+        penalties.push(RankingPenalty {
+            reason: "missing_metric:error_reduction_proxy".to_string(),
+            severity: "warning".to_string(),
+        });
+    }
+    penalties
+}
+
+fn annotate_why_not_first(entries: &mut [RankingEntry], mode: RankingMode) {
+    if entries.is_empty() {
+        return;
+    }
+    let best = entries[0].clone();
+    for entry in entries.iter_mut().skip(1) {
+        let mut reasons = Vec::new();
+        match mode {
+            RankingMode::FastestAcceptable => {
+                if entry.score > best.score {
+                    reasons.push(format!(
+                        "slower_runtime_s({:.3} > {:.3})",
+                        entry.score, best.score
+                    ));
+                }
+            }
+            RankingMode::MostConservative => {
+                if entry.score < best.score {
+                    reasons.push(format!(
+                        "lower_retention_score({:.3} < {:.3})",
+                        entry.score, best.score
+                    ));
+                }
+            }
+            RankingMode::BalancedPareto => {
+                if entry.score < best.score {
+                    reasons.push(format!(
+                        "lower_balanced_score({:.3} < {:.3})",
+                        entry.score, best.score
+                    ));
+                }
+            }
+        }
+        if reasons.is_empty() {
+            reasons.push("tie_broken_by_tool_name".to_string());
+        }
+        entry.why_not_first = reasons;
+    }
+}
+
+fn assert_metric_semantics(metric_ids: &[&str]) {
+    for metric_id in metric_ids {
+        assert!(
+            metric_semantics(metric_id).is_some(),
+            "missing metric semantics for {metric_id}"
+        );
+    }
 }

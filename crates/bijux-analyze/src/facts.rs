@@ -172,3 +172,34 @@ pub fn write_run_summary_json(path: &Path, rows: &[FactsRowV1]) -> Result<()> {
         .with_context(|| format!("write run summary {}", path.display()))?;
     Ok(())
 }
+
+/// Write a deterministic dashboard facts JSONL file.
+///
+/// # Errors
+/// Returns an error if the file cannot be written.
+pub fn write_dashboard_facts_jsonl(path: &Path, rows: &[FactsRowV1]) -> Result<()> {
+    let mut ordered = rows.to_vec();
+    ordered.sort_by(|a, b| {
+        (
+            &a.run_id,
+            &a.stage_id,
+            &a.tool_id,
+            &a.params_hash,
+            &a.input_hash,
+        )
+            .cmp(&(
+                &b.run_id,
+                &b.stage_id,
+                &b.tool_id,
+                &b.params_hash,
+                &b.input_hash,
+            ))
+    });
+    let mut payload = String::new();
+    for row in ordered {
+        payload.push_str(&serde_json::to_string(&row)?);
+        payload.push('\n');
+    }
+    std::fs::write(path, payload)?;
+    Ok(())
+}

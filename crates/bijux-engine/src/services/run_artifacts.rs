@@ -207,6 +207,9 @@ pub fn write_run_manifest(
         "telemetry": {
             "events_jsonl": run_artifacts_dir(run_dirs)?.join("telemetry").join("events.jsonl"),
         },
+        "dashboard": {
+            "facts_jsonl": run_artifacts_dir(run_dirs)?.join("dashboard").join("facts.jsonl"),
+        },
     });
     std::fs::write(
         &run_dirs.run_manifest_path,
