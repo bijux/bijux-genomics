@@ -5,8 +5,11 @@
 //! Invariants: missing semantics produce errors with remediation hints.
 
 pub mod compare;
+pub mod effect;
 pub mod score;
 mod score_helpers;
+
+use effect::EffectSize;
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct DecisionMetricTrace {
@@ -14,6 +17,7 @@ pub struct DecisionMetricTrace {
     pub value: Option<f64>,
     pub weight: f64,
     pub contribution: f64,
+    pub effect: Option<EffectSize>,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]

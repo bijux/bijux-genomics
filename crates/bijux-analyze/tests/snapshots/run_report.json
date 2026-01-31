@@ -285,6 +285,35 @@
           }
         }
       ]
+    },
+    "method_assumptions": {
+      "compare_objective": "balanced_default",
+      "effect_thresholds": {
+        "absolute": 0.05,
+        "relative": 0.05
+      },
+      "tools": [
+        {
+          "stage_id": "fastq.trim",
+          "tool_id": "fastp",
+          "tool_version": "0.23.4",
+          "params_hash": "params",
+          "image_digest": "sha256:img"
+        }
+      ],
+      "presets": [
+        {
+          "stage_id": "fastq.trim",
+          "tool_id": "fastp",
+          "tool_version": "0.23.4",
+          "params_hash": "params",
+          "effective_config_path": "/Users/bijan/bijux/bijux-dna/target/test-fixtures/report/effective_config.json"
+        }
+      ],
+      "assumptions": [
+        "compare_objective defaults to balanced when not specified",
+        "effect_size uses absolute/relative thresholds for practical significance"
+      ]
     }
   }
 }

@@ -63,7 +63,7 @@ test:
 
 coverage:
 	@if command -v cargo-llvm-cov >/dev/null 2>&1; then \
-        cargo llvm-cov --workspace --all-features --show-missing-lines --html; \
+       cargo llvm-cov --workspace --all-features --show-missing-lines; \
        echo "Coverage report generated in target/llvm-cov/html/index.html"; \
     else \
        echo "cargo-llvm-cov not installed; skipping coverage"; \

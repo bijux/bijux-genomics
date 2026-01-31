@@ -31,7 +31,7 @@ pub fn build_run_report_model(rows: &[FactsRowV1]) -> Result<ReportModel> {
             row.stage_id.as_str(),
             row.tool_id.as_str(),
             row.params_hash.as_str(),
-            "",
+            row.input_hash.as_str(),
         )
     });
     let run_id = ordered

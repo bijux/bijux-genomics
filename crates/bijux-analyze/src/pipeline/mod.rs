@@ -36,8 +36,13 @@ pub fn analyze_run_pipeline(input: &AnalyzeInput) -> Result<AnalyzeOutput> {
     {
         let objective = objective_spec(Objective::Balanced);
         let comparison = compare_runs(Path::new(run_a), Path::new(run_b), &objective)?;
-        let base_dir = std::env::current_dir().context("resolve current_dir")?;
-        let path = base_dir.join("compare.json");
+        let output_dir = input
+            .options
+            .render
+            .output_dir
+            .clone()
+            .context("compare output_dir must be set in RenderOptions")?;
+        let path = output_dir.join("compare.json");
         std::fs::write(&path, serde_json::to_vec_pretty(&comparison)?)
             .context("write compare.json")?;
         output.compare_json = Some(path);
