@@ -3,6 +3,7 @@ use std::path::PathBuf;
 
 use anyhow::Result;
 use bijux_bench::compare::compare_runs;
+use bijux_core::run_index::{insert_run, RunIndexEntry};
 use bijux_engine::api::ExecutionManifest;
 
 #[test]
@@ -73,7 +74,35 @@ fn bench_compare_snapshot() -> Result<()> {
         }))?,
     )?;
 
-    let comparison = compare_runs("run-a", "run-b", &root)?;
+    let run_index = root.join("run_index.jsonl");
+    insert_run(
+        &run_index,
+        &RunIndexEntry {
+            run_id: "run-a".to_string(),
+            domain: "fastq".to_string(),
+            pipeline: "bench".to_string(),
+            stages: vec!["fastq.trim".to_string()],
+            tools: vec!["fastp".to_string()],
+            objective: None,
+            platform: "local".to_string(),
+            success: true,
+        },
+    )?;
+    insert_run(
+        &run_index,
+        &RunIndexEntry {
+            run_id: "run-b".to_string(),
+            domain: "fastq".to_string(),
+            pipeline: "bench".to_string(),
+            stages: vec!["fastq.trim".to_string()],
+            tools: vec!["fastp".to_string()],
+            objective: None,
+            platform: "local".to_string(),
+            success: true,
+        },
+    )?;
+
+    let comparison = compare_runs("run-a", "run-b", &run_index, &root)?;
     let rendered = serde_json::to_string_pretty(&comparison)?;
     let snapshot_path = manifest_dir
         .join("tests")

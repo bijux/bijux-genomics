@@ -1,14 +1,31 @@
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
-use anyhow::{anyhow, Context, Result};
+use anyhow::{anyhow, Result};
 
-use bijux_engine::api::ExecutionManifest;
+use crate::repo::{load_manifest, load_metrics, RunIndexRepository, RunRepository};
 
-pub fn compare_runs(run_a: &str, run_b: &str, search_root: &Path) -> Result<serde_json::Value> {
-    let manifest_a = load_manifest(run_a, search_root)?;
-    let manifest_b = load_manifest(run_b, search_root)?;
-    let metrics_a = load_metrics(&manifest_a)?;
-    let metrics_b = load_metrics(&manifest_b)?;
+pub fn compare_runs(
+    run_a: &str,
+    run_b: &str,
+    index_path: &Path,
+    artifacts_root: &Path,
+) -> Result<serde_json::Value> {
+    ensure_repo_exists(index_path)?;
+    let repo = RunIndexRepository::new(index_path.to_path_buf(), artifacts_root.to_path_buf());
+    compare_runs_with_repo(run_a, run_b, &repo)
+}
+
+pub fn compare_runs_with_repo(
+    run_a: &str,
+    run_b: &str,
+    repo: &dyn RunRepository,
+) -> Result<serde_json::Value> {
+    let meta_a = repo.run_metadata(run_a)?;
+    let meta_b = repo.run_metadata(run_b)?;
+    let manifest_a = load_manifest(&meta_a.manifest_path)?;
+    let manifest_b = load_manifest(&meta_b.manifest_path)?;
+    let metrics_a = load_metrics(&meta_a.metrics_path)?;
+    let metrics_b = load_metrics(&meta_b.metrics_path)?;
 
     let tool_changed = manifest_a.tool != manifest_b.tool;
     let command_changed = manifest_a.command != manifest_b.command;
@@ -21,26 +38,6 @@ pub fn compare_runs(run_a: &str, run_b: &str, search_root: &Path) -> Result<serd
         "command_changed": command_changed,
         "metrics_delta": delta,
     }))
-}
-
-fn load_manifest(run_id: &str, search_root: &Path) -> Result<ExecutionManifest> {
-    let manifest_path = find_manifest(search_root, run_id)?
-        .ok_or_else(|| anyhow!("run_id {run_id} not found under {}", search_root.display()))?;
-    let bytes = std::fs::read(&manifest_path)
-        .with_context(|| format!("read manifest {}", manifest_path.display()))?;
-    let manifest: ExecutionManifest = serde_json::from_slice(&bytes)
-        .with_context(|| format!("parse manifest {}", manifest_path.display()))?;
-    Ok(manifest)
-}
-
-fn load_metrics(manifest: &ExecutionManifest) -> Result<serde_json::Value> {
-    let metrics_path = Path::new(&manifest.output_dir).join("metrics.json");
-    if !metrics_path.exists() {
-        return Ok(serde_json::json!({}));
-    }
-    let bytes = std::fs::read(&metrics_path)
-        .with_context(|| format!("read metrics {}", metrics_path.display()))?;
-    Ok(serde_json::from_slice(&bytes)?)
 }
 
 fn numeric_delta(a: &serde_json::Value, b: &serde_json::Value) -> serde_json::Value {
@@ -57,27 +54,12 @@ fn numeric_delta(a: &serde_json::Value, b: &serde_json::Value) -> serde_json::Va
     serde_json::Value::Object(delta)
 }
 
-fn find_manifest(root: &Path, run_id: &str) -> Result<Option<PathBuf>> {
-    let mut stack = vec![root.to_path_buf()];
-    while let Some(dir) = stack.pop() {
-        let Ok(entries) = std::fs::read_dir(&dir) else {
-            continue;
-        };
-        for entry in entries {
-            let entry = entry?;
-            let path = entry.path();
-            if path.is_dir() {
-                stack.push(path);
-            } else if path.file_name().and_then(|s| s.to_str()) == Some("manifest.json") {
-                let bytes = std::fs::read(&path)
-                    .with_context(|| format!("read manifest {}", path.display()))?;
-                if let Ok(manifest) = serde_json::from_slice::<ExecutionManifest>(&bytes) {
-                    if manifest.run_id == run_id {
-                        return Ok(Some(path));
-                    }
-                }
-            }
-        }
+fn ensure_repo_exists(index_path: &Path) -> Result<()> {
+    if !index_path.exists() {
+        return Err(anyhow!(
+            "run_index.jsonl not found at {}",
+            index_path.display()
+        ));
     }
-    Ok(None)
+    Ok(())
 }

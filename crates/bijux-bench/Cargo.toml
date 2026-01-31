@@ -5,7 +5,12 @@ edition = "2021"
 
 [dependencies]
 anyhow = { workspace = true }
+fastrand = "2"
 serde_json = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
 bijux-core = { path = "../bijux-core" }
 bijux-analyze = { path = "../bijux-analyze" }
 bijux-engine = { path = "../bijux-engine" }
+
+[dev-dependencies]
+insta = { version = "1", features = ["json"] }
