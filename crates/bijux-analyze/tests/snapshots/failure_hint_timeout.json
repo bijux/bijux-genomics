@@ -1,0 +1,7 @@
+{
+  "stage": "fastq.trim",
+  "tool": "fastp",
+  "kind": "resource_exhaustion",
+  "reason": "timeout while running tool",
+  "hints": []
+}

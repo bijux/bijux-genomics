@@ -56,7 +56,7 @@ fn compare_and_ranking_snapshot() -> Result<()> {
             base_retention: Some(0.95),
             error_reduction_proxy: Some(0.1),
         },
-    ]);
+    ])?;
 
     let payload = serde_json::json!({
         "comparison": comparison,

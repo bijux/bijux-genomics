@@ -14,7 +14,7 @@ fn base_record(metrics: MetricSet<FastqTrimMetrics>) -> BenchmarkRecord<FastqTri
             runner: "docker".to_string(),
             platform: "local".to_string(),
             input_hash: "sha256:deadbeef".to_string(),
-            parameters: serde_json::json!({"sample_id": "s1"}),
+            parameters: bijux_analyze::model::JsonBlob::from_pairs(&[("sample_id", "s1")]),
         },
         execution: ExecutionMetrics {
             runtime_s: 1.0,
@@ -274,7 +274,7 @@ fn metrics_schema_matches_stage_and_version_for_all_fastq_stages() {
         pairs_in: 0,
         pairs_out: 0,
         contamination_rate: 0.1,
-        contamination_summary: serde_json::json!({}),
+        contamination_summary: bijux_analyze::model::JsonBlob::default(),
     });
     assert_eq!(screen.metrics_schema, "fastq_screen_v1");
 

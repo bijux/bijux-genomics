@@ -5,15 +5,17 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
 
-use crate::facts::write_run_summary_json;
-use crate::failure::{classify_raw_failure, BenchmarkFailure};
-use crate::semantic::{semantic_filter, semantic_stats, semantic_trim, semantic_validate};
-use crate::{
+use crate::aggregate::{
     derived_metric_spec, derived_metrics_for_stage, metric_kind_for_stage, metric_spec,
     stage_metric_spec, BenchmarkRecord, DerivedMetricId, FastqCorrectMetrics, FastqFilterMetrics,
     FastqMergeMetrics, FastqQcPostMetrics, FastqStatsMetrics, FastqTrimMetrics, FastqUmiMetrics,
-    FastqValidateMetrics, RankInput,
+    FastqValidateMetrics,
 };
+use crate::decision::score::{build_rankings, RankInput};
+use crate::facts::write_run_summary_json;
+use crate::failure::{classify_raw_failure, BenchmarkFailure};
+use crate::model::JsonBlob;
+use crate::semantic::{semantic_filter, semantic_stats, semantic_trim, semantic_validate};
 use bijux_core::observability::QcPostReportV1;
 use bijux_core::{
     AssetsProvenanceV1, FactsRowV1, FilterReportV1, MetricSemanticsV1, RawFailure,
@@ -22,19 +24,8 @@ use bijux_core::{
     StageReportV1, TelemetryEventV1,
 };
 
-#[derive(Debug, Clone, serde::Serialize)]
-pub struct ReportModel {
-    pub report: ReportSchemaV1,
-    pub sections: BTreeMap<String, serde_json::Value>,
-}
-
-fn render_report_json(model: &ReportModel) -> Result<serde_json::Value> {
-    let mut value = serde_json::to_value(&model.report)?;
-    if let serde_json::Value::Object(ref mut obj) = value {
-        obj.insert("sections".to_string(), serde_json::json!(model.sections));
-    }
-    Ok(value)
-}
+use super::model::ReportModel;
+use super::render_json::write_report_json;
 
 /// Write the trim benchmark report.
 ///
@@ -63,12 +54,12 @@ pub fn write_trim_report(
         .map(|record| semantic_trim(&record.metrics.metrics))
         .collect();
     report.insert("semantic_metrics", serde_json::to_value(&semantic)?);
-    let rankings = rank_trim_tools(records);
+    let rankings = rank_trim_tools(records)?;
     report.insert("rankings", serde_json::to_value(&rankings)?);
     let json = serde_json::to_string_pretty(&report)?;
     fs::write(&path, json).context("write report.json")?;
     if explain {
-        crate::print_rank_explain("fastq.trim", &rankings);
+        crate::decision::score::print_rank_explain("fastq.trim", &rankings);
     }
     Ok(())
 }
@@ -102,12 +93,12 @@ pub fn write_validate_report(
     if let Some(class) = qc_class {
         report.insert("qc_class", serde_json::to_value(class)?);
     }
-    let rankings = rank_validate_tools(records);
+    let rankings = rank_validate_tools(records)?;
     report.insert("rankings", serde_json::to_value(&rankings)?);
     let json = serde_json::to_string_pretty(&report)?;
     fs::write(&path, json).context("write report.json")?;
     if explain {
-        crate::print_rank_explain("fastq.validate_pre", &rankings);
+        crate::decision::score::print_rank_explain("fastq.validate_pre", &rankings);
     }
     Ok(())
 }
@@ -139,12 +130,12 @@ pub fn write_filter_report(
     report.insert("semantic_metrics", serde_json::to_value(&semantic)?);
     let derived: Vec<_> = records.iter().map(derived_filter_metrics).collect();
     report.insert("derived_metrics", serde_json::to_value(&derived)?);
-    let rankings = rank_filter_tools(records);
+    let rankings = rank_filter_tools(records)?;
     report.insert("rankings", serde_json::to_value(&rankings)?);
     let json = serde_json::to_string_pretty(&report)?;
     fs::write(&path, json).context("write report.json")?;
     if explain {
-        crate::print_rank_explain("fastq.filter", &rankings);
+        crate::decision::score::print_rank_explain("fastq.filter", &rankings);
     }
     Ok(())
 }
@@ -171,12 +162,12 @@ pub fn write_merge_report(
     );
     let derived: Vec<_> = records.iter().map(derived_merge_metrics).collect();
     report.insert("derived_metrics", serde_json::to_value(&derived)?);
-    let rankings = rank_merge_tools(records);
+    let rankings = rank_merge_tools(records)?;
     report.insert("rankings", serde_json::to_value(&rankings)?);
     let json = serde_json::to_string_pretty(&report)?;
     fs::write(&path, json).context("write report.json")?;
     if explain {
-        crate::print_rank_explain("fastq.merge", &rankings);
+        crate::decision::score::print_rank_explain("fastq.merge", &rankings);
     }
     Ok(())
 }
@@ -203,12 +194,12 @@ pub fn write_correct_report(
     );
     let derived: Vec<_> = records.iter().map(derived_correct_metrics).collect();
     report.insert("derived_metrics", serde_json::to_value(&derived)?);
-    let rankings = rank_correct_tools(records);
+    let rankings = rank_correct_tools(records)?;
     report.insert("rankings", serde_json::to_value(&rankings)?);
     let json = serde_json::to_string_pretty(&report)?;
     fs::write(&path, json).context("write report.json")?;
     if explain {
-        crate::print_rank_explain("fastq.correct", &rankings);
+        crate::decision::score::print_rank_explain("fastq.correct", &rankings);
     }
     Ok(())
 }
@@ -240,7 +231,7 @@ pub fn write_qc_post_report(
     let json = serde_json::to_string_pretty(&report)?;
     fs::write(&path, json).context("write report.json")?;
     if explain {
-        crate::print_rank_explain("fastq.qc_post", &BTreeMap::new());
+        crate::decision::score::print_rank_explain("fastq.qc_post", &BTreeMap::new());
     }
     Ok(())
 }
@@ -267,12 +258,12 @@ pub fn write_umi_report(
     );
     let derived: Vec<_> = records.iter().map(derived_umi_metrics).collect();
     report.insert("derived_metrics", serde_json::to_value(&derived)?);
-    let rankings = rank_umi_tools(records);
+    let rankings = rank_umi_tools(records)?;
     report.insert("rankings", serde_json::to_value(&rankings)?);
     let json = serde_json::to_string_pretty(&report)?;
     fs::write(&path, json).context("write report.json")?;
     if explain {
-        crate::print_rank_explain("fastq.umi", &rankings);
+        crate::decision::score::print_rank_explain("fastq.umi", &rankings);
     }
     Ok(())
 }
@@ -305,7 +296,7 @@ pub fn write_stats_report(
     let json = serde_json::to_string_pretty(&report)?;
     fs::write(&path, json).context("write report.json")?;
     if explain {
-        crate::print_rank_explain("fastq.stats_neutral", &BTreeMap::new());
+        crate::decision::score::print_rank_explain("fastq.stats_neutral", &BTreeMap::new());
     }
     Ok(())
 }
@@ -316,7 +307,17 @@ pub fn write_stats_report(
 /// Returns an error if report serialization or file writes fail.
 #[allow(clippy::too_many_lines)]
 pub fn write_run_report_from_facts(base_dir: &Path, rows: &[FactsRowV1]) -> Result<PathBuf> {
-    let run_id = rows
+    let mut ordered = rows.to_vec();
+    crate::facts::stable_sort_records(&mut ordered, |row| {
+        (
+            row.run_id.as_str(),
+            row.stage_id.as_str(),
+            row.tool_id.as_str(),
+            row.params_hash.as_str(),
+            "",
+        )
+    });
+    let run_id = ordered
         .first()
         .map_or_else(String::new, |row| row.run_id.clone());
     let mut stages = Vec::new();
@@ -328,7 +329,7 @@ pub fn write_run_report_from_facts(base_dir: &Path, rows: &[FactsRowV1]) -> Resu
     let mut missing_metrics = Vec::new();
     let mut missing_reports = Vec::new();
 
-    for row in rows {
+    for row in &ordered {
         let stage_report_path = report_path_for(&row.reports, "stage_report");
         if stage_report_path.is_none() {
             missing_reports.push(format!("{}:stage_report", row.stage_id));
@@ -410,9 +411,9 @@ pub fn write_run_report_from_facts(base_dir: &Path, rows: &[FactsRowV1]) -> Resu
 
     let metric_semantics = report_metric_semantics();
     let completeness = report_completeness(&missing_metrics, &missing_reports);
-    let qc_improvement = qc_improvement_section(rows);
-    let filter_interpretation = filter_interpretation_section(rows);
-    let adapter_inference = adapter_inference_section(rows);
+    let qc_improvement = qc_improvement_section(&ordered);
+    let filter_interpretation = filter_interpretation_section(&ordered);
+    let adapter_inference = adapter_inference_section(&ordered);
     let final_qc_summary = serde_json::json!({
         "qc": qc_improvement.clone(),
         "adapter_inference": adapter_inference.clone(),
@@ -441,10 +442,13 @@ pub fn write_run_report_from_facts(base_dir: &Path, rows: &[FactsRowV1]) -> Resu
     };
 
     let path = base_dir.join("report.json");
-    let sections = build_report_sections(&report);
-    let model = ReportModel { report, sections };
-    let json = render_report_json(&model)?;
-    std::fs::write(&path, serde_json::to_vec_pretty(&json)?).context("write report.json")?;
+    let sections = build_report_sections(&report)
+        .into_iter()
+        .map(|(key, value)| (key, JsonBlob::new(value)))
+        .collect();
+    let mut model = ReportModel::empty(report);
+    model.sections = sections;
+    write_report_json(&path, &model).context("write report.json")?;
     Ok(path)
 }
 
@@ -834,7 +838,7 @@ fn gate_payload(failures: &[BenchmarkFailure]) -> serde_json::Value {
                 "stage": failure.stage,
                 "tool": failure.tool,
                 "reason": failure.reason,
-                "class": format!("{:?}", failure.class),
+                "kind": format!("{:?}", failure.kind),
             })
         })
         .collect();
@@ -1150,7 +1154,7 @@ fn derived_umi_metrics(record: &BenchmarkRecord<FastqUmiMetrics>) -> serde_json:
 
 fn rank_trim_tools(
     records: &[BenchmarkRecord<FastqTrimMetrics>],
-) -> BTreeMap<String, Vec<crate::RankingEntry>> {
+) -> Result<BTreeMap<String, Vec<crate::decision::score::RankingEntry>>> {
     let inputs: Vec<_> = records
         .iter()
         .map(|record| RankInput {
@@ -1162,12 +1166,12 @@ fn rank_trim_tools(
             error_reduction_proxy: Some(record.metrics.metrics.delta_metrics.mean_q_delta.max(0.0)),
         })
         .collect();
-    crate::build_rankings(&inputs)
+    build_rankings(&inputs)
 }
 
 fn rank_validate_tools(
     records: &[BenchmarkRecord<FastqValidateMetrics>],
-) -> BTreeMap<String, Vec<crate::RankingEntry>> {
+) -> Result<BTreeMap<String, Vec<crate::decision::score::RankingEntry>>> {
     let inputs: Vec<_> = records
         .iter()
         .map(|record| RankInput {
@@ -1179,12 +1183,12 @@ fn rank_validate_tools(
             error_reduction_proxy: None,
         })
         .collect();
-    crate::build_rankings(&inputs)
+    build_rankings(&inputs)
 }
 
 fn rank_filter_tools(
     records: &[BenchmarkRecord<FastqFilterMetrics>],
-) -> BTreeMap<String, Vec<crate::RankingEntry>> {
+) -> Result<BTreeMap<String, Vec<crate::decision::score::RankingEntry>>> {
     let inputs: Vec<_> = records
         .iter()
         .map(|record| RankInput {
@@ -1196,12 +1200,12 @@ fn rank_filter_tools(
             error_reduction_proxy: Some(record.metrics.metrics.delta_metrics.mean_q_delta.max(0.0)),
         })
         .collect();
-    crate::build_rankings(&inputs)
+    build_rankings(&inputs)
 }
 
 fn rank_merge_tools(
     records: &[BenchmarkRecord<FastqMergeMetrics>],
-) -> BTreeMap<String, Vec<crate::RankingEntry>> {
+) -> Result<BTreeMap<String, Vec<crate::decision::score::RankingEntry>>> {
     let inputs: Vec<_> = records
         .iter()
         .map(|record| RankInput {
@@ -1213,12 +1217,12 @@ fn rank_merge_tools(
             error_reduction_proxy: None,
         })
         .collect();
-    crate::build_rankings(&inputs)
+    build_rankings(&inputs)
 }
 
 fn rank_correct_tools(
     records: &[BenchmarkRecord<FastqCorrectMetrics>],
-) -> BTreeMap<String, Vec<crate::RankingEntry>> {
+) -> Result<BTreeMap<String, Vec<crate::decision::score::RankingEntry>>> {
     let inputs: Vec<_> = records
         .iter()
         .map(|record| RankInput {
@@ -1235,12 +1239,12 @@ fn rank_correct_tools(
             error_reduction_proxy: None,
         })
         .collect();
-    crate::build_rankings(&inputs)
+    build_rankings(&inputs)
 }
 
 fn rank_umi_tools(
     records: &[BenchmarkRecord<FastqUmiMetrics>],
-) -> BTreeMap<String, Vec<crate::RankingEntry>> {
+) -> Result<BTreeMap<String, Vec<crate::decision::score::RankingEntry>>> {
     let inputs: Vec<_> = records
         .iter()
         .map(|record| RankInput {
@@ -1257,14 +1261,15 @@ fn rank_umi_tools(
             error_reduction_proxy: None,
         })
         .collect();
-    crate::build_rankings(&inputs)
+    build_rankings(&inputs)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{BenchmarkContext, MetricSet};
+    use crate::aggregate::BenchmarkContext;
     use bijux_core::measure::ExecutionMetrics;
+    use bijux_core::metrics::MetricSet;
 
     #[test]
     fn bench_schema_table_has_metrics() -> Result<()> {
@@ -1349,7 +1354,7 @@ mod tests {
     }
 
     #[test]
-    fn ranking_explanation_generation_has_modes() {
+    fn ranking_explanation_generation_has_modes() -> Result<()> {
         let metrics = FastqTrimMetrics {
             reads_in: 100,
             reads_out: 90,
@@ -1378,7 +1383,7 @@ mod tests {
                 runner: "docker".to_string(),
                 platform: "linux".to_string(),
                 input_hash: "ih".to_string(),
-                parameters: serde_json::json!({}),
+                parameters: crate::model::JsonBlob::default(),
             },
             execution: ExecutionMetrics {
                 runtime_s: 1.0,
@@ -1391,9 +1396,10 @@ mod tests {
                 metrics,
             },
         };
-        let rankings = rank_trim_tools(&[record]);
+        let rankings = rank_trim_tools(&[record])?;
         assert!(rankings.contains_key("FastestAcceptable"));
         assert!(rankings.contains_key("MostConservative"));
         assert!(rankings.contains_key("BalancedPareto"));
+        Ok(())
     }
 }

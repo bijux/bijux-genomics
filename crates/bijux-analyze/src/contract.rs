@@ -1,3 +1,6 @@
+//! Owner: bijux-analyze
+//! External analyze contract.
+
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct AnalyzeContractV1 {

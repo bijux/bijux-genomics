@@ -1,0 +1,14 @@
+{
+  "per_metric": [],
+  "penalties": [
+    "low:\"read_retention missing\""
+  ],
+  "missing": [
+    "read_retention",
+    "base_retention",
+    "error_reduction_proxy"
+  ],
+  "tie_breaks": [
+    "BalancedPareto:tool_id"
+  ]
+}

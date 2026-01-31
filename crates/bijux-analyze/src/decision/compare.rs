@@ -3,19 +3,21 @@ use std::path::Path;
 use anyhow::{Context, Result};
 use serde::Serialize;
 
-use bijux_core::metrics_registry::metric_semantics;
 use bijux_core::FactsRowV1;
 use bijux_core::ObjectiveSpec;
 
 use crate::aggregate::stats::{robust_summary, RobustSummary};
+use crate::decision::{DecisionMetricTrace, DecisionTrace};
+use crate::model::JsonBlob;
+use crate::semantics::resolve_semantics;
 
 #[derive(Debug, Serialize)]
 pub struct RunComparison {
     pub run_a: String,
     pub run_b: String,
     pub objective: String,
-    pub metrics_a: serde_json::Value,
-    pub metrics_b: serde_json::Value,
+    pub metrics_a: JsonBlob,
+    pub metrics_b: JsonBlob,
 }
 
 #[derive(Debug, Serialize)]
@@ -26,9 +28,9 @@ pub struct CompareRobustStats {
     pub flags: Vec<String>,
 }
 
-fn load_json(path: &Path) -> Result<serde_json::Value> {
+fn load_json(path: &Path) -> Result<JsonBlob> {
     let data = std::fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
-    let value = serde_json::from_str(&data)?;
+    let value: JsonBlob = serde_json::from_str(&data)?;
     Ok(value)
 }
 
@@ -53,9 +55,11 @@ pub fn compare_runs(
 }
 
 /// Compute robust summary stats for runtime/memory/retention.
-#[must_use]
-pub fn compare_robust_stats(rows: &[FactsRowV1]) -> CompareRobustStats {
-    assert_metric_semantics(&["runtime_s", "memory_mb", "read_retention"]);
+///
+/// # Errors
+/// Returns an error if required metric semantics are missing.
+pub fn compare_robust_stats(rows: &[FactsRowV1]) -> Result<CompareRobustStats> {
+    assert_metric_semantics(&["runtime_s", "memory_mb", "read_retention"])?;
     let runtime_values: Vec<f64> = rows.iter().map(|row| row.runtime_s).collect();
     let memory_values: Vec<f64> = rows.iter().map(|row| row.memory_mb).collect();
     let retention_values: Vec<f64> = rows
@@ -79,19 +83,48 @@ pub fn compare_robust_stats(rows: &[FactsRowV1]) -> CompareRobustStats {
     if runtime.outlier_count > 0 || memory.outlier_count > 0 || retention.outlier_count > 0 {
         flags.push("outliers_detected".to_string());
     }
-    CompareRobustStats {
+    Ok(CompareRobustStats {
         runtime_s: runtime,
         memory_mb: memory,
         read_retention: retention,
         flags,
-    }
+    })
 }
 
-fn assert_metric_semantics(metric_ids: &[&str]) {
+#[must_use]
+pub fn trace_for_robust_stats(stats: &CompareRobustStats) -> DecisionTrace {
+    let mut trace = DecisionTrace::empty();
+    trace.per_metric = vec![
+        DecisionMetricTrace {
+            metric_id: "runtime_s".to_string(),
+            value: Some(stats.runtime_s.median),
+            weight: 1.0,
+            contribution: stats.runtime_s.median,
+        },
+        DecisionMetricTrace {
+            metric_id: "memory_mb".to_string(),
+            value: Some(stats.memory_mb.median),
+            weight: 1.0,
+            contribution: stats.memory_mb.median,
+        },
+        DecisionMetricTrace {
+            metric_id: "read_retention".to_string(),
+            value: Some(stats.read_retention.median),
+            weight: 1.0,
+            contribution: stats.read_retention.median,
+        },
+    ];
+    trace.penalties.clone_from(&stats.flags);
+    trace
+}
+
+fn assert_metric_semantics(metric_ids: &[&str]) -> Result<()> {
     for metric_id in metric_ids {
-        assert!(
-            metric_semantics(metric_id).is_some(),
-            "missing metric semantics for {metric_id}"
-        );
+        resolve_semantics(metric_id).with_context(|| {
+            format!(
+                "missing metric semantics for {metric_id}; remediation: register in bijux-core metrics_registry"
+            )
+        })?;
     }
+    Ok(())
 }

@@ -31,20 +31,22 @@ fn row(runtime: f64, memory: f64, reads_in: u64, reads_out: u64) -> FactsRowV1 {
 }
 
 #[test]
-fn compare_robust_stats_flags_small_sample() {
+fn compare_robust_stats_flags_small_sample() -> anyhow::Result<()> {
     let rows = vec![row(1.0, 10.0, 100, 90), row(2.0, 12.0, 100, 80)];
-    let stats = compare_robust_stats(&rows);
+    let stats = compare_robust_stats(&rows)?;
     assert!(stats.flags.contains(&"sample_size_too_small".to_string()));
+    Ok(())
 }
 
 #[test]
-fn compare_robust_stats_detects_outliers() {
+fn compare_robust_stats_detects_outliers() -> anyhow::Result<()> {
     let rows = vec![
         row(1.0, 10.0, 100, 90),
         row(1.1, 11.0, 100, 90),
         row(1.0, 10.0, 100, 90),
         row(10.0, 100.0, 100, 10),
     ];
-    let stats = compare_robust_stats(&rows);
+    let stats = compare_robust_stats(&rows)?;
     assert!(stats.flags.contains(&"outliers_detected".to_string()));
+    Ok(())
 }
