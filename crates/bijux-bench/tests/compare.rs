@@ -2,7 +2,7 @@ use std::fs;
 use std::path::PathBuf;
 
 use anyhow::Result;
-use bijux_bench::compare::compare_runs;
+use bijux_bench::compare;
 use bijux_core::run_index::{insert_run, RunIndexEntry};
 use bijux_engine::api::ExecutionManifest;
 
@@ -102,7 +102,7 @@ fn bench_compare_snapshot() -> Result<()> {
         },
     )?;
 
-    let comparison = compare_runs("run-a", "run-b", &run_index, &root)?;
+    let comparison = compare("run-a", "run-b", &run_index, &root)?;
     let rendered = serde_json::to_string_pretty(&comparison)?;
     let snapshot_path = manifest_dir
         .join("tests")

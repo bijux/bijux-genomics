@@ -1,15 +1,16 @@
 //! Owner: bijux-bench
-//! Robust statistics and uncertainty estimates.
-//! Owns stable stats computations and bootstrap CI.
+//! Robust statistics.
+//! Owns stable stats computations.
 //! Must not perform IO or depend on compare/gate logic.
 //! Invariants: ordering is deterministic.
 
-#[derive(Debug, Clone)]
-pub struct BootstrapResult {
-    pub mean: f64,
-    pub ci_low: f64,
-    pub ci_high: f64,
-    pub samples: usize,
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct RobustStats {
+    pub n: usize,
+    pub median: f64,
+    pub mad: f64,
+    pub iqr: f64,
+    pub trimmed_mean: f64,
 }
 
 #[must_use]
@@ -64,33 +65,37 @@ pub fn trimmed_mean(values: &[f64], trim_ratio: f64) -> f64 {
 }
 
 #[must_use]
-pub fn bootstrap_ci(values: &[f64], samples: usize, seed: u64) -> BootstrapResult {
-    if values.is_empty() || samples == 0 {
-        return BootstrapResult {
-            mean: 0.0,
-            ci_low: 0.0,
-            ci_high: 0.0,
-            samples: 0,
+pub fn robust_stats(values: &[f64]) -> RobustStats {
+    if values.is_empty() {
+        return RobustStats {
+            n: 0,
+            median: 0.0,
+            mad: 0.0,
+            iqr: 0.0,
+            trimmed_mean: 0.0,
         };
     }
-    let mut rng = fastrand::Rng::with_seed(seed);
-    let mut means = Vec::with_capacity(samples);
-    for _ in 0..samples {
-        let mut acc = 0.0;
-        for _ in 0..values.len() {
-            let idx = rng.usize(..values.len());
-            acc += values[idx];
-        }
-        means.push(acc / values.len() as f64);
+    RobustStats {
+        n: values.len(),
+        median: median(values.to_vec()),
+        mad: mad(values),
+        iqr: iqr(values),
+        trimmed_mean: trimmed_mean(values, 0.1),
     }
-    means.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
-    let mean = means.iter().sum::<f64>() / means.len() as f64;
-    let low_idx = (means.len() as f64 * 0.025).floor() as usize;
-    let high_idx = ((means.len() as f64 * 0.975).floor() as usize).min(means.len() - 1);
-    BootstrapResult {
-        mean,
-        ci_low: means[low_idx],
-        ci_high: means[high_idx],
-        samples,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{iqr, mad, median, robust_stats, trimmed_mean};
+
+    #[test]
+    fn robust_stats_basic() {
+        let values = vec![1.0, 2.0, 3.0, 4.0, 100.0];
+        assert!((median(values.clone()) - 3.0).abs() < 1e-6);
+        assert!((mad(&values) - 1.0).abs() < 1e-6);
+        assert!((iqr(&values) - 2.0).abs() < 1e-6);
+        assert!((trimmed_mean(&values, 0.2) - 3.0).abs() < 1e-6);
+        let stats = robust_stats(&values);
+        assert_eq!(stats.n, 5);
     }
 }

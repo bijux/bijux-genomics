@@ -16,10 +16,13 @@
 # Temp files
 /tmp/
 *.tmp
-
-!docs/data/
-!docs/data/**
 artifacts/
+
+!docs/
+!docs/**
 !tests/data/
 !tests/data/fastq/
 !tests/data/fastq/*.fastq.gz
+!crates/
+!crates/**
+**/.DS_Store

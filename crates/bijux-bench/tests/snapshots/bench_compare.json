@@ -1,10 +1,21 @@
 {
-  "command_changed": false,
-  "metrics_delta": {
-    "memory_mb": 20.0,
-    "runtime_s": 1.0
-  },
   "run_a": "run-a",
   "run_b": "run-b",
-  "tool_changed": false
+  "tool_changed": false,
+  "command_changed": false,
+  "diffs": [
+    {
+      "metric_id": "memory_mb",
+      "absolute": 20.0,
+      "relative": 0.2,
+      "practical": true
+    },
+    {
+      "metric_id": "runtime_s",
+      "absolute": 1.0,
+      "relative": 1.0,
+      "practical": true
+    }
+  ],
+  "strata": []
 }
