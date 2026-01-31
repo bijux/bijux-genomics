@@ -14,8 +14,9 @@ use crate::{
     FastqValidateMetrics, RankInput,
 };
 use bijux_core::{
-    AssetsProvenanceV1, FactsRowV1, RawFailure, ReportSchemaV1, ReportStageSummaryV1,
-    RetentionContextV1, RetentionReportV1, StageReportV1,
+    AssetsProvenanceV1, FactsRowV1, MetricSemanticsV1, RawFailure, ReportCompletenessV1,
+    ReportContractV1, ReportProvenanceV1, ReportSchemaV1, ReportStageSummaryV1, RetentionContextV1,
+    RetentionDefinitionV1, RetentionReportV1, StageReportV1,
 };
 
 /// Write the trim benchmark report.
@@ -301,12 +302,19 @@ pub fn write_run_report_from_facts(base_dir: &Path, rows: &[FactsRowV1]) -> Resu
         .first()
         .map_or_else(String::new, |row| row.run_id.clone());
     let mut stages = Vec::new();
+    let mut provenance = Vec::new();
     let mut retention_context = Vec::new();
+    let mut retention_definition = Vec::new();
     let mut assets_provenance = Vec::new();
     let mut telemetry_events = Vec::new();
+    let mut missing_metrics = Vec::new();
+    let mut missing_reports = Vec::new();
 
     for row in rows {
         let stage_report_path = report_path_for(&row.reports, "stage_report");
+        if stage_report_path.is_none() {
+            missing_reports.push(format!("{}:stage_report", row.stage_id));
+        }
         let stage_report = stage_report_path
             .as_deref()
             .and_then(|path| read_json_value(Path::new(path)))
@@ -314,10 +322,22 @@ pub fn write_run_report_from_facts(base_dir: &Path, rows: &[FactsRowV1]) -> Resu
 
         let (metrics_path, tool_invocation_path, effective_config_path) =
             stage_report_fields(stage_report.as_ref());
+        if metrics_path.is_empty() {
+            missing_reports.push(format!("{}:metrics_path", row.stage_id));
+        }
+        if row.metrics == serde_json::json!({}) {
+            missing_metrics.push(format!("{}:metrics", row.stage_id));
+        }
 
         let retention_report_path = report_path_for(&row.reports, "retention_report");
-        if let Some(context) = retention_context_from_report(retention_report_path.as_deref()) {
+        if retention_report_path.is_none() && row.reads_in != row.reads_out {
+            missing_reports.push(format!("{}:retention_report", row.stage_id));
+        }
+        if let Some((context, definition)) =
+            retention_context_from_report(retention_report_path.as_deref())
+        {
             retention_context.push(context);
+            retention_definition.push(definition);
         }
 
         let bank_report_path = report_path_for(&row.reports, "bank_report");
@@ -350,14 +370,35 @@ pub fn write_run_report_from_facts(base_dir: &Path, rows: &[FactsRowV1]) -> Resu
             retention_report_path,
             bank_report_path,
         });
+
+        provenance.push(ReportProvenanceV1 {
+            stage_id: row.stage_id.clone(),
+            tool_id: row.tool_id.clone(),
+            tool_version: row.tool_version.clone(),
+            image_digest: row
+                .image_digest
+                .clone()
+                .or_else(|| Some("unknown".to_string())),
+            trace_id: row.trace_id.clone(),
+            span_id: row.span_id.clone(),
+            params_hash: row.params_hash.clone(),
+            bank_hashes: row.bank_hashes.clone(),
+        });
     }
 
+    let metric_semantics = report_metric_semantics();
+    let completeness = report_completeness(&missing_metrics, &missing_reports);
     let payload = ReportSchemaV1 {
         schema_version: "bijux.report.v1".to_string(),
+        contract: report_contract(),
         run_id,
+        completeness,
         stages,
+        provenance,
+        retention_definition,
         retention_context,
         assets_provenance,
+        metric_semantics,
         telemetry: serde_json::json!({
             "events": telemetry_events
         }),
@@ -402,7 +443,9 @@ fn stage_report_fields(report: Option<&StageReportV1>) -> (String, String, Strin
     )
 }
 
-fn retention_context_from_report(path: Option<&str>) -> Option<RetentionContextV1> {
+fn retention_context_from_report(
+    path: Option<&str>,
+) -> Option<(RetentionContextV1, RetentionDefinitionV1)> {
     let report = path
         .and_then(|path| read_json_value(Path::new(path)))
         .and_then(|value| serde_json::from_value::<RetentionReportV1>(value).ok())?;
@@ -414,12 +457,20 @@ fn retention_context_from_report(path: Option<&str>) -> Option<RetentionContextV
         .retention
         .as_ref()
         .map_or_else(|| report.condition.clone(), |ret| ret.conditions.clone());
-    Some(RetentionContextV1 {
+    let context = RetentionContextV1 {
         stage_id: report.stage_id,
         tool_id: report.tool_id,
         definition,
         conditions,
-    })
+    };
+    let definition = RetentionDefinitionV1 {
+        stage_id: context.stage_id.clone(),
+        tool_id: context.tool_id.clone(),
+        numerator: "reads_out,bases_out".to_string(),
+        denominator: "reads_in,bases_in".to_string(),
+        conditions: context.conditions.clone(),
+    };
+    Some((context, definition))
 }
 
 fn banks_from_report(path: Option<&str>, fallback: serde_json::Value) -> serde_json::Value {
@@ -438,6 +489,71 @@ fn telemetry_path_from_stage_report(path: Option<&str>) -> Option<String> {
                 .to_string()
         })
     })
+}
+
+fn report_contract() -> ReportContractV1 {
+    ReportContractV1 {
+        schema_version: "bijux.report_contract.v1".to_string(),
+        required_sections: vec![
+            "contract".to_string(),
+            "completeness".to_string(),
+            "stages".to_string(),
+            "provenance".to_string(),
+            "retention_definition".to_string(),
+            "retention_context".to_string(),
+            "assets_provenance".to_string(),
+            "metric_semantics".to_string(),
+            "telemetry".to_string(),
+        ],
+        required_provenance_fields: vec![
+            "tool_id".to_string(),
+            "tool_version".to_string(),
+            "image_digest".to_string(),
+            "trace_id".to_string(),
+            "span_id".to_string(),
+            "params_hash".to_string(),
+            "bank_hashes".to_string(),
+        ],
+    }
+}
+
+fn report_completeness(
+    missing_metrics: &[String],
+    missing_reports: &[String],
+) -> ReportCompletenessV1 {
+    let status = if missing_metrics.is_empty() && missing_reports.is_empty() {
+        "complete"
+    } else {
+        "incomplete"
+    };
+    ReportCompletenessV1 {
+        status: status.to_string(),
+        missing_metrics: missing_metrics.to_vec(),
+        missing_reports: missing_reports.to_vec(),
+    }
+}
+
+fn report_metric_semantics() -> Vec<MetricSemanticsV1> {
+    let metric_ids = [
+        "runtime_s",
+        "memory_mb",
+        "read_retention",
+        "base_retention",
+        "merge_rate",
+        "error_reduction_proxy",
+    ];
+    metric_ids
+        .iter()
+        .filter_map(|metric_id| {
+            bijux_core::metric_semantics(metric_id).map(|spec| MetricSemanticsV1 {
+                metric_id: spec.metric_id.to_string(),
+                direction: format!("{:?}", spec.direction),
+                units: spec.units.to_string(),
+                range: spec.range.to_string(),
+                missing_data_policy: spec.missing_data_policy.to_string(),
+            })
+        })
+        .collect()
 }
 
 fn gate_payload(failures: &[BenchmarkFailure]) -> serde_json::Value {
@@ -463,6 +579,12 @@ fn gate_payload(failures: &[BenchmarkFailure]) -> serde_json::Value {
 /// # Errors
 /// Returns an error if the schema cannot be rendered.
 pub fn print_bench_schema(stage: &str) -> Result<()> {
+    let json = bench_schema_json(stage)?;
+    println!("{}", serde_json::to_string_pretty(&json)?);
+    Ok(())
+}
+
+fn bench_schema_json(stage: &str) -> Result<serde_json::Value> {
     let kind = metric_kind_for_stage(stage).ok_or_else(|| anyhow!("unknown stage {stage}"))?;
     let spec = stage_metric_spec(kind);
     let metrics: Vec<_> = spec
@@ -498,14 +620,12 @@ pub fn print_bench_schema(stage: &str) -> Result<()> {
             })
         })
         .collect();
-    let json = serde_json::json!({
+    Ok(serde_json::json!({
         "stage": spec.stage,
         "metrics": metrics,
         "derived_metrics": derived,
         "invariants": spec.invariants,
-    });
-    println!("{}", serde_json::to_string_pretty(&json)?);
-    Ok(())
+    }))
 }
 
 fn median(mut values: Vec<f64>) -> f64 {
@@ -868,4 +988,106 @@ fn rank_umi_tools(
         })
         .collect();
     crate::build_rankings(&inputs)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{BenchmarkContext, MetricSet};
+    use bijux_core::measure::ExecutionMetrics;
+
+    #[test]
+    fn bench_schema_table_has_metrics() -> Result<()> {
+        let json = bench_schema_json("fastq.trim")?;
+        assert_eq!(json["stage"], "fastq.trim");
+        assert!(!json["metrics"].as_array().unwrap_or(&Vec::new()).is_empty());
+        Ok(())
+    }
+
+    #[test]
+    fn run_summary_aggregation_works() -> Result<()> {
+        let dir = tempfile::TempDir::new()?;
+        let rows = vec![FactsRowV1 {
+            schema_version: "bijux.facts.v1".to_string(),
+            run_id: "run-1".to_string(),
+            stage_id: "fastq.trim".to_string(),
+            tool_id: "fastp".to_string(),
+            tool_version: "0.23.4".to_string(),
+            image_digest: Some("sha256:abc".to_string()),
+            trace_id: "trace-1".to_string(),
+            span_id: "span-1".to_string(),
+            params_hash: "ph".to_string(),
+            input_hash: "ih".to_string(),
+            output_hashes: vec!["oh".to_string()],
+            runtime_s: 1.0,
+            memory_mb: 32.0,
+            exit_code: 0,
+            bank_hashes: serde_json::json!({}),
+            reads_in: Some(10),
+            reads_out: Some(9),
+            bases_in: Some(100),
+            bases_out: Some(90),
+            pairs_in: None,
+            pairs_out: None,
+            metrics: serde_json::json!({}),
+            reports: serde_json::json!({}),
+            artifacts: serde_json::json!({}),
+        }];
+        let summary_path = dir.path().join("run_summary.json");
+        write_run_summary_from_facts(&summary_path, &rows)?;
+        let summary_raw = std::fs::read_to_string(summary_path)?;
+        let summary_value: serde_json::Value = serde_json::from_str(&summary_raw)?;
+        assert_eq!(summary_value["runs"], 1);
+        assert_eq!(summary_value["stages"], 1);
+        Ok(())
+    }
+
+    #[test]
+    fn ranking_explanation_generation_has_modes() {
+        let metrics = FastqTrimMetrics {
+            reads_in: 100,
+            reads_out: 90,
+            bases_in: 1000,
+            bases_out: 900,
+            pairs_in: None,
+            pairs_out: None,
+            mean_q_before: 30.0,
+            mean_q_after: 31.0,
+            delta_metrics: crate::FastqDeltaMetrics {
+                read_retention: 0.9,
+                base_retention: 0.9,
+                mean_q_delta: 1.0,
+                gc_delta: 0.1,
+            },
+            adapter_preset: None,
+            adapter_bank_id: None,
+            adapter_bank_hash: None,
+            adapter_overrides: None,
+        };
+        let record = BenchmarkRecord {
+            context: BenchmarkContext {
+                tool: "fastp".to_string(),
+                tool_version: "0.23.4".to_string(),
+                image_digest: "sha256:abc".to_string(),
+                runner: "docker".to_string(),
+                platform: "linux".to_string(),
+                input_hash: "ih".to_string(),
+                parameters: serde_json::json!({}),
+            },
+            execution: ExecutionMetrics {
+                runtime_s: 1.0,
+                memory_mb: 10.0,
+                exit_code: 0,
+            },
+            metrics: MetricSet {
+                metrics_schema: "fastq_trim_v2".to_string(),
+                version: 2,
+                metrics,
+            },
+        };
+        let rankings = rank_trim_tools(&[record]);
+        assert!(rankings.contains_key("FastestAcceptable"));
+        assert!(rankings.contains_key("MostConservative"));
+        assert!(rankings.contains_key("BalancedPareto"));
+    }
 }

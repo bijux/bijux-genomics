@@ -516,11 +516,52 @@ fn list_fastq_stages() {
     for stage in bijux_stages_fastq::fastq::registry() {
         println!("{}", stage.id);
     }
+    print_bank_presets();
 }
 
 fn list_fastq_stage_registry() {
     for stage in bijux_stages_fastq::fastq::registry() {
         println!("{} v{}", stage.id, stage.version.0);
+    }
+    print_bank_presets();
+}
+
+fn print_bank_presets() {
+    if let Ok(selection) = resolve_adapter_selection(None, None, None) {
+        let mut presets: Vec<String> = selection
+            .presets
+            .presets
+            .iter()
+            .map(|preset| preset.name.clone())
+            .collect();
+        presets.sort();
+        if !presets.is_empty() {
+            println!("adapter_presets: {}", presets.join(", "));
+        }
+    }
+    if let Ok(selection) = crate::polyx_bank::resolve_polyx_selection(None) {
+        let mut presets: Vec<String> = selection
+            .presets
+            .presets
+            .iter()
+            .map(|preset| preset.name.clone())
+            .collect();
+        presets.sort();
+        if !presets.is_empty() {
+            println!("polyx_presets: {}", presets.join(", "));
+        }
+    }
+    if let Ok(selection) = crate::contaminant_bank::resolve_contaminant_selection(None) {
+        let mut presets: Vec<String> = selection
+            .presets
+            .presets
+            .iter()
+            .map(|preset| preset.name.clone())
+            .collect();
+        presets.sort();
+        if !presets.is_empty() {
+            println!("contaminant_presets: {}", presets.join(", "));
+        }
     }
 }
 

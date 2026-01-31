@@ -158,6 +158,8 @@ pub struct FactsRowV1 {
     pub tool_id: String,
     pub tool_version: String,
     pub image_digest: Option<String>,
+    pub trace_id: String,
+    pub span_id: String,
     pub params_hash: String,
     pub input_hash: String,
     pub output_hashes: Vec<String>,
@@ -180,12 +182,33 @@ pub struct FactsRowV1 {
 #[serde(deny_unknown_fields)]
 pub struct ReportSchemaV1 {
     pub schema_version: String,
+    pub contract: ReportContractV1,
     pub run_id: String,
+    pub completeness: ReportCompletenessV1,
     pub stages: Vec<ReportStageSummaryV1>,
+    pub provenance: Vec<ReportProvenanceV1>,
+    pub retention_definition: Vec<RetentionDefinitionV1>,
     pub retention_context: Vec<RetentionContextV1>,
     pub assets_provenance: Vec<AssetsProvenanceV1>,
+    pub metric_semantics: Vec<MetricSemanticsV1>,
     #[serde(default)]
     pub telemetry: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ReportContractV1 {
+    pub schema_version: String,
+    pub required_sections: Vec<String>,
+    pub required_provenance_fields: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ReportCompletenessV1 {
+    pub status: String,
+    pub missing_metrics: Vec<String>,
+    pub missing_reports: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -211,6 +234,29 @@ pub struct ReportStageSummaryV1 {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
+pub struct ReportProvenanceV1 {
+    pub stage_id: String,
+    pub tool_id: String,
+    pub tool_version: String,
+    pub image_digest: Option<String>,
+    pub trace_id: String,
+    pub span_id: String,
+    pub params_hash: String,
+    pub bank_hashes: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct RetentionDefinitionV1 {
+    pub stage_id: String,
+    pub tool_id: String,
+    pub numerator: String,
+    pub denominator: String,
+    pub conditions: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct RetentionContextV1 {
     pub stage_id: String,
     pub tool_id: String,
@@ -224,6 +270,16 @@ pub struct AssetsProvenanceV1 {
     pub stage_id: String,
     pub tool_id: String,
     pub banks: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct MetricSemanticsV1 {
+    pub metric_id: String,
+    pub direction: String,
+    pub units: String,
+    pub range: String,
+    pub missing_data_policy: String,
 }
 
 pub fn canonicalize_json_value(value: &serde_json::Value) -> serde_json::Value {

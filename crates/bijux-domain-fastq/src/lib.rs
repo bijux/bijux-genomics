@@ -44,6 +44,7 @@ pub use contracts::{
     FastqLayout, FastqPE, FastqPairedEnd, FastqSE, FastqSampleId, FastqSingleEnd,
     FastqStageContract, FastqStats, HeaderInspection, NormalizedOutputs, QcClass, RawFailure,
 };
+pub use domain::{canonical_stage_order, optional_branches, stage_semantics};
 pub use metrics::deltas::{compute_delta, ratio_u64};
 pub use pipeline::query::get_results;
 pub use pipeline::{

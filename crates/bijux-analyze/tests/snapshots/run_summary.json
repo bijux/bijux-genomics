@@ -1,85 +1,62 @@
 {
-  "avg_runtime_s": 2.0,
-  "runs": 1,
   "schema_version": "bijux.run_summary.v1",
+  "facts_path": "facts.jsonl",
+  "report_path": "report.json",
+  "telemetry_path": "telemetry/events.jsonl",
+  "runs": 1,
+  "stages": 2,
+  "total_runtime_s": 3.0,
+  "avg_runtime_s": 1.5,
   "stage_rows": [
     {
-      "bank_hashes": {},
-      "deltas": {
-        "bases_in": 1000,
-        "bases_out": 900,
-        "pairs_in": 50,
-        "pairs_out": 45,
-        "reads_in": 100,
-        "reads_out": 90
-      },
-      "exit_code": 1,
-      "image_digest": null,
-      "input_hash": "input3",
-      "memory_mb": 128.0,
-      "params_hash": "params3",
-      "reports": {
-        "stage_report": "/Users/bijan/bijux/bijux-dna/target/test-fixtures/report/stage_report.json"
-      },
-      "run_id": "run-1",
-      "runtime_s": 3.0,
-      "stage_id": "fastq.merge",
-      "tool_id": "pear",
-      "tool_version": "0.9"
-    },
-    {
-      "bank_hashes": {
-        "adapters": "sha256:adapters"
-      },
-      "deltas": {
-        "bases_in": 1000,
-        "bases_out": 800,
-        "pairs_in": null,
-        "pairs_out": null,
-        "reads_in": 100,
-        "reads_out": 80
-      },
-      "exit_code": 0,
-      "image_digest": "sha256:img",
-      "input_hash": "input",
-      "memory_mb": 64.0,
-      "params_hash": "params",
-      "reports": {
-        "bank_report": "/Users/bijan/bijux/bijux-dna/target/test-fixtures/report/bank_report.json",
-        "retention_report": "/Users/bijan/bijux/bijux-dna/target/test-fixtures/report/retention_report.json",
-        "stage_report": "/Users/bijan/bijux/bijux-dna/target/test-fixtures/report/stage_report.json"
-      },
-      "run_id": "run-1",
-      "runtime_s": 1.0,
+      "run_id": "run-2",
       "stage_id": "fastq.trim",
       "tool_id": "fastp",
-      "tool_version": "0.23.4"
+      "tool_version": "0.23.4",
+      "image_digest": "sha256:abc",
+      "params_hash": "ph2",
+      "input_hash": "ih2",
+      "bank_hashes": {
+        "adapters": "hash2"
+      },
+      "runtime_s": 2.0,
+      "memory_mb": 43.0,
+      "exit_code": 0,
+      "reports": {
+        "stage_report": "stage_report.json"
+      },
+      "deltas": {
+        "reads_in": 20,
+        "reads_out": 18,
+        "bases_in": 200,
+        "bases_out": 180,
+        "pairs_in": null,
+        "pairs_out": null
+      }
     },
     {
-      "bank_hashes": {},
-      "deltas": {
-        "bases_in": 500,
-        "bases_out": 500,
-        "pairs_in": null,
-        "pairs_out": null,
-        "reads_in": 50,
-        "reads_out": 50
-      },
-      "exit_code": 0,
-      "image_digest": "sha256:img2",
-      "input_hash": "input2",
-      "memory_mb": 32.0,
-      "params_hash": "params2",
-      "reports": {
-        "stage_report": "/Users/bijan/bijux/bijux-dna/target/test-fixtures/report/stage_report.json"
-      },
-      "run_id": "run-1",
-      "runtime_s": 2.0,
+      "run_id": "run-2",
       "stage_id": "fastq.validate_pre",
       "tool_id": "fastqvalidator",
-      "tool_version": "1.0"
+      "tool_version": "1.0",
+      "image_digest": "sha256:def",
+      "params_hash": "ph3",
+      "input_hash": "ih3",
+      "bank_hashes": {},
+      "runtime_s": 1.0,
+      "memory_mb": 30.0,
+      "exit_code": 0,
+      "reports": {
+        "stage_report": "stage_report.json"
+      },
+      "deltas": {
+        "reads_in": 20,
+        "reads_out": 20,
+        "bases_in": 200,
+        "bases_out": 200,
+        "pairs_in": null,
+        "pairs_out": null
+      }
     }
-  ],
-  "stages": 3,
-  "total_runtime_s": 6.0
+  ]
 }
