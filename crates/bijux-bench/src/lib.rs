@@ -1,3 +1,9 @@
 pub mod analyze;
+pub mod artifacts;
 pub mod compare;
+pub mod contract;
 pub mod gate;
+pub mod model;
+pub mod policy;
+pub mod repo;
+pub mod stats;
