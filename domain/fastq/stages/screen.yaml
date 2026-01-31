@@ -18,8 +18,20 @@ parameters:
 metrics:
   - name: "reads_in"
     meaning: "Number of input reads"
+  - name: "reads_out"
+    meaning: "Number of output reads (screening does not remove reads)"
+  - name: "bases_in"
+    meaning: "Number of input bases"
+  - name: "bases_out"
+    meaning: "Number of output bases (screening does not remove bases)"
+  - name: "pairs_in"
+    meaning: "Number of input read pairs"
+  - name: "pairs_out"
+    meaning: "Number of output read pairs"
   - name: "contamination_rate"
     meaning: "Fraction of reads classified as contaminants"
+  - name: "contamination_summary"
+    meaning: "Structured contamination summary from screen reports"
 description: "FASTQ stage for taxonomic screening/contamination assessment."
 mutates_fastq: false
 report_only: true

@@ -13,6 +13,7 @@
       "metric_semantics",
       "telemetry",
       "qc_improvement",
+      "final_qc_summary",
       "filter_interpretation",
       "adapter_inference"
     ],
@@ -178,6 +179,10 @@
     "error_count": 0
   },
   "qc_improvement": {},
+  "final_qc_summary": {
+    "qc": {},
+    "adapter_inference": {}
+  },
   "filter_interpretation": {},
   "adapter_inference": {},
   "sections": {
@@ -230,6 +235,10 @@
       }
     },
     "filtering": {},
+    "final_qc_summary": {
+      "adapter_inference": {},
+      "qc": {}
+    },
     "qc": {},
     "retention": {
       "definitions": [

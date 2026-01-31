@@ -28,9 +28,9 @@ use bijux_core::run_index::{insert_stage_row, StageIndexRow};
 use bijux_core::{
     parameters_json_canonicalization, AdapterBankProvenanceV1, BankRefV1, FactsRowV1,
     FastqCorrectMetricsV1, FastqDeltaMetricsV1, FastqFilterMetricsV1, FastqMergeMetricsV1,
-    FastqPreprocessMetricsV1, FastqTrimMetricsV1, FastqUmiMetricsV1, FastqValidateMetricsV1,
-    MetricContextV1, RetentionReportMetricV1, StageMetricsV1, StageObservabilityContextV1,
-    StagePlanV1, ToolInvocationV1,
+    FastqPreprocessMetricsV1, FastqQcPostMetricsV1, FastqTrimMetricsV1, FastqUmiMetricsV1,
+    FastqValidateMetricsV1, MetricContextV1, RetentionReportMetricV1, StageMetricsV1,
+    StageObservabilityContextV1, StagePlanV1, ToolInvocationV1,
 };
 
 #[derive(Debug, Clone)]
@@ -236,6 +236,13 @@ fn retention_conditions_from_params(params: &serde_json::Value) -> serde_json::V
     })
 }
 
+fn path_from_params(params: &serde_json::Value, key: &str) -> Option<PathBuf> {
+    params
+        .get(key)
+        .and_then(serde_json::Value::as_str)
+        .map(PathBuf::from)
+}
+
 fn find_fastqc_summary(dir: &Path) -> Option<PathBuf> {
     let direct = dir.join("summary.txt");
     if direct.exists() {
@@ -359,6 +366,51 @@ fn adapter_suggestions_from_fastqc(dir: &Path) -> (serde_json::Value, Option<Str
     )
 }
 
+fn parse_screen_report(path: &Path) -> (f64, serde_json::Value) {
+    let Ok(raw) = std::fs::read_to_string(path) else {
+        return (0.0, serde_json::json!({}));
+    };
+    let mut entries = Vec::new();
+    let mut unmapped_percent = None;
+    for line in raw.lines() {
+        let line = line.trim();
+        if line.is_empty() || line.starts_with('#') {
+            continue;
+        }
+        let parts: Vec<&str> = line.split('\t').collect();
+        if parts.is_empty() {
+            continue;
+        }
+        let label = parts[0].trim().to_string();
+        let mut percent = None;
+        for part in parts.iter().rev() {
+            let part = part.trim_end_matches('%');
+            if let Ok(value) = part.parse::<f64>() {
+                percent = Some(value);
+                break;
+            }
+        }
+        if let Some(value) = percent {
+            if label.to_lowercase().contains("no hit") || label.to_lowercase().contains("unmapped")
+            {
+                unmapped_percent = Some(value);
+            }
+            entries.push(serde_json::json!({
+                "reference": label,
+                "percent": value,
+            }));
+        }
+    }
+    let contamination_rate = unmapped_percent.map_or(0.0, |value| (100.0 - value).max(0.0) / 100.0);
+    (
+        contamination_rate,
+        serde_json::json!({
+            "schema_version": "bijux.screen_summary.v1",
+            "entries": entries,
+        }),
+    )
+}
+
 fn tool_supports_polyx(tool_id: &str) -> bool {
     matches!(tool_id, "fastp")
 }
@@ -380,6 +432,24 @@ fn warnings_for_plan(plan: &StagePlanV1, params: &serde_json::Value) -> Vec<Stri
     let mut warnings = Vec::new();
     if let Some(msg) = polyx_unsupported_warning(plan.tool_id.0.as_str(), params) {
         warnings.push(msg);
+    }
+    if plan.stage_id.0 == "fastq.filter" {
+        let redundant_filters = params
+            .get("redundant_filters")
+            .and_then(|value| value.as_array())
+            .map(|values| {
+                values
+                    .iter()
+                    .filter_map(|value| value.as_str())
+                    .collect::<Vec<&str>>()
+            })
+            .unwrap_or_default();
+        if !redundant_filters.is_empty() {
+            warnings.push(format!(
+                "warning: filter stage received redundant filters already handled in trim: {}",
+                redundant_filters.join(", ")
+            ));
+        }
     }
     if params.get("kmer_ref").is_some() && !tool_supports_kmer_filter(plan.tool_id.0.as_str()) {
         warnings.push(format!(
@@ -412,7 +482,9 @@ fn warnings_for_plan(plan: &StagePlanV1, params: &serde_json::Value) -> Vec<Stri
 struct FilterRemovalCounts {
     by_n: u64,
     by_entropy: u64,
+    by_low_complexity: u64,
     by_kmer: u64,
+    by_contaminant_kmer: u64,
     by_length: u64,
 }
 
@@ -439,7 +511,9 @@ fn filter_removals_from_fastp(path: &Path) -> Option<FilterRemovalCounts> {
     Some(FilterRemovalCounts {
         by_n,
         by_entropy,
+        by_low_complexity: by_entropy,
         by_kmer: 0,
+        by_contaminant_kmer: 0,
         by_length,
     })
 }
@@ -463,7 +537,9 @@ fn filter_removals_from_bbduk_stats(
     Some(FilterRemovalCounts {
         by_n: 0,
         by_entropy: 0,
+        by_low_complexity: 0,
         by_kmer: if kmer_ref_used { removed } else { 0 },
+        by_contaminant_kmer: if kmer_ref_used { removed } else { 0 },
         by_length: 0,
     })
 }
@@ -962,7 +1038,65 @@ fn stage_metrics_for_plan(
                 pairs_out,
             })?
         }
-        "fastq.qc_post" | "fastq.screen" | "fastq.stats_neutral" => {
+        "fastq.qc_post" => {
+            let input = stats_or_zero(inputs.first().map(PathBuf::as_path))?;
+            let output = if outputs.is_empty() {
+                input
+            } else {
+                stats_or_zero(outputs.first().map(PathBuf::as_path))?
+            };
+            let (pairs_in, pairs_out) = pair_counts_from_paths(inputs, outputs)?;
+            let out_dir = path_from_params(params, "out_dir")
+                .unwrap_or_else(|| outputs.first().cloned().unwrap_or_default());
+            let raw_dir = out_dir.join("fastqc_raw");
+            let trimmed_dir = out_dir.join("fastqc_trimmed");
+            let multiqc_report = out_dir.join("multiqc_report.html");
+            let multiqc_data = out_dir.join("multiqc_data");
+            serde_json::to_value(FastqQcPostMetricsV1 {
+                reads_in: input.reads,
+                reads_out: output.reads,
+                bases_in: input.bases,
+                bases_out: output.bases,
+                pairs_in,
+                pairs_out,
+                mean_q: input.mean_q,
+                contamination_rate: 0.0,
+                raw_fastqc_dir: raw_dir.exists().then_some(raw_dir.display().to_string()),
+                trimmed_fastqc_dir: trimmed_dir
+                    .exists()
+                    .then_some(trimmed_dir.display().to_string()),
+                multiqc_report: multiqc_report
+                    .exists()
+                    .then_some(multiqc_report.display().to_string()),
+                multiqc_data: multiqc_data
+                    .exists()
+                    .then_some(multiqc_data.display().to_string()),
+            })?
+        }
+        "fastq.screen" => {
+            let input = stats_or_zero(inputs.first().map(PathBuf::as_path))?;
+            let output = if outputs.is_empty() {
+                input
+            } else {
+                stats_or_zero(outputs.first().map(PathBuf::as_path))?
+            };
+            let (pairs_in, pairs_out) = pair_counts_from_paths(inputs, outputs)?;
+            let report_path = path_from_params(params, "report")
+                .or_else(|| outputs.first().cloned())
+                .unwrap_or_else(|| PathBuf::from("screen_report.tsv"));
+            let (contamination_rate, contamination_summary) = parse_screen_report(&report_path);
+            serde_json::json!({
+                "reads_in": input.reads,
+                "reads_out": output.reads,
+                "bases_in": input.bases,
+                "bases_out": output.bases,
+                "pairs_in": pairs_in,
+                "pairs_out": pairs_out,
+                "contamination_rate": contamination_rate,
+                "contamination_summary": contamination_summary,
+            })
+        }
+        "fastq.stats_neutral" => {
             let input = stats_or_zero(inputs.first().map(PathBuf::as_path))?;
             let output = if outputs.is_empty() {
                 input
@@ -1025,7 +1159,9 @@ fn filter_metrics_with_removals(
         reads_dropped: input.reads.saturating_sub(output.reads),
         reads_removed_by_n: removals.by_n,
         reads_removed_by_entropy: removals.by_entropy,
+        reads_removed_low_complexity: removals.by_low_complexity,
         reads_removed_by_kmer: removals.by_kmer,
+        reads_removed_contaminant_kmer: removals.by_contaminant_kmer,
         reads_removed_by_length: removals.by_length,
         bases_in: input.bases,
         bases_out: output.bases,
@@ -1605,7 +1741,9 @@ pub fn execute_stage_plan(
                 input.reads.saturating_sub(output.reads),
                 removals.by_n,
                 removals.by_entropy,
+                removals.by_low_complexity,
                 removals.by_kmer,
+                removals.by_contaminant_kmer,
                 removals.by_length,
                 serde_json::json!({}),
                 retention_conditions_from_params(&canonical_params),

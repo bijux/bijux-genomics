@@ -192,7 +192,9 @@ fn metrics_schema_matches_stage_and_version_for_all_fastq_stages() {
         reads_dropped: 10,
         reads_removed_by_n: 0,
         reads_removed_by_entropy: 0,
+        reads_removed_low_complexity: 0,
         reads_removed_by_kmer: 0,
+        reads_removed_contaminant_kmer: 0,
         reads_removed_by_length: 0,
         bases_in: 1000,
         bases_out: 900,
@@ -239,9 +241,17 @@ fn metrics_schema_matches_stage_and_version_for_all_fastq_stages() {
 
     let qc_post = metric_set(FastqQcPostMetrics {
         reads_in: 100,
+        reads_out: 100,
         bases_in: 1000,
+        bases_out: 1000,
+        pairs_in: None,
+        pairs_out: None,
         mean_q: 30.0,
         contamination_rate: 0.1,
+        raw_fastqc_dir: None,
+        trimmed_fastqc_dir: None,
+        multiqc_report: None,
+        multiqc_data: None,
     });
     assert_eq!(qc_post.metrics_schema, "fastq_qc_post_v1");
 
@@ -258,7 +268,13 @@ fn metrics_schema_matches_stage_and_version_for_all_fastq_stages() {
 
     let screen = metric_set(FastqScreenMetrics {
         reads_in: 100,
+        reads_out: 100,
+        bases_in: 1000,
+        bases_out: 1000,
+        pairs_in: 0,
+        pairs_out: 0,
         contamination_rate: 0.1,
+        contamination_summary: serde_json::json!({}),
     });
     assert_eq!(screen.metrics_schema, "fastq_screen_v1");
 

@@ -70,6 +70,7 @@ pub(super) fn write_run_summary(
     Ok(())
 }
 
+#[allow(clippy::too_many_lines)]
 pub(super) fn write_run_manifest(
     out_dir: &Path,
     stage_runs: &[StageExecutionSummary],
@@ -132,10 +133,28 @@ pub(super) fn write_run_manifest(
                 "telemetry_events",
                 &artifacts_dir.join("telemetry").join("events.jsonl"),
             );
+            let mut primary_outputs = Vec::new();
+            if entry.plan.stage_id.0 == "fastq.qc_post" {
+                let qc_report = artifacts_dir
+                    .join("reports")
+                    .join(format!("{}.qc_post_report.json", entry.plan.stage_id.0));
+                if qc_report.exists() {
+                    primary_outputs.push(qc_report);
+                }
+                let multiqc_report = entry.plan.out_dir.join("multiqc_report.html");
+                if multiqc_report.exists() {
+                    primary_outputs.push(multiqc_report);
+                }
+                let multiqc_data = entry.plan.out_dir.join("multiqc_data");
+                if multiqc_data.exists() {
+                    primary_outputs.push(multiqc_data);
+                }
+            }
             serde_json::json!({
                 "stage_id": entry.plan.stage_id.0,
                 "tool_id": entry.plan.tool_id.0,
                 "artifacts": artifacts,
+                "primary_outputs": primary_outputs,
             })
         })
         .collect();

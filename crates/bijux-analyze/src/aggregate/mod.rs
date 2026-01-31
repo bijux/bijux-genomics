@@ -79,7 +79,9 @@ pub enum MetricId {
     ReadsDropped,
     ReadsRemovedByN,
     ReadsRemovedByEntropy,
+    ReadsRemovedLowComplexity,
     ReadsRemovedByKmer,
+    ReadsRemovedContaminantKmer,
     ReadsRemovedByLength,
     ReadsTotal,
     ReadsValid,
@@ -100,6 +102,7 @@ pub enum MetricId {
     DedupRate,
     KmerFixRate,
     ContaminationRate,
+    ContaminationSummary,
     GcPercent,
     LengthHistogram,
     DeltaMetrics,
@@ -107,6 +110,10 @@ pub enum MetricId {
     AdapterBankId,
     AdapterBankHash,
     AdapterOverrides,
+    QcRawDir,
+    QcTrimmedDir,
+    MultiqcReport,
+    MultiqcData,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -159,7 +166,7 @@ pub struct StageMetricSpec {
     pub invariants: &'static [&'static str],
 }
 
-pub const METRIC_REGISTRY: [MetricSpec; 36] = [
+pub const METRIC_REGISTRY: [MetricSpec; 43] = [
     MetricSpec {
         id: MetricId::RuntimeS,
         name: "runtime_s",
@@ -308,9 +315,35 @@ pub const METRIC_REGISTRY: [MetricSpec; 36] = [
         derived: false,
     },
     MetricSpec {
+        id: MetricId::ReadsRemovedLowComplexity,
+        name: "reads_removed_low_complexity",
+        meaning: "Reads removed due to low complexity filter",
+        direction: MetricDirection::LowerBetter,
+        range: Some(MetricRange {
+            min: 0.0,
+            max: f64::INFINITY,
+        }),
+        stages: &["fastq.filter"],
+        measured: true,
+        derived: false,
+    },
+    MetricSpec {
         id: MetricId::ReadsRemovedByKmer,
         name: "reads_removed_by_kmer",
         meaning: "Reads removed due to k-mer contaminant filtering",
+        direction: MetricDirection::LowerBetter,
+        range: Some(MetricRange {
+            min: 0.0,
+            max: f64::INFINITY,
+        }),
+        stages: &["fastq.filter"],
+        measured: true,
+        derived: false,
+    },
+    MetricSpec {
+        id: MetricId::ReadsRemovedContaminantKmer,
+        name: "reads_removed_contaminant_kmer",
+        meaning: "Reads removed due to contaminant k-mer filtering",
         direction: MetricDirection::LowerBetter,
         range: Some(MetricRange {
             min: 0.0,
@@ -598,6 +631,16 @@ pub const METRIC_REGISTRY: [MetricSpec; 36] = [
         derived: false,
     },
     MetricSpec {
+        id: MetricId::ContaminationSummary,
+        name: "contamination_summary",
+        meaning: "Structured contamination summary",
+        direction: MetricDirection::Neutral,
+        range: None,
+        stages: &["fastq.screen"],
+        measured: true,
+        derived: false,
+    },
+    MetricSpec {
         id: MetricId::GcPercent,
         name: "gc_percent",
         meaning: "GC percentage across reads",
@@ -670,6 +713,46 @@ pub const METRIC_REGISTRY: [MetricSpec; 36] = [
         measured: false,
         derived: false,
     },
+    MetricSpec {
+        id: MetricId::QcRawDir,
+        name: "raw_fastqc_dir",
+        meaning: "FastQC output directory for raw reads",
+        direction: MetricDirection::Neutral,
+        range: None,
+        stages: &["fastq.qc_post"],
+        measured: true,
+        derived: false,
+    },
+    MetricSpec {
+        id: MetricId::QcTrimmedDir,
+        name: "trimmed_fastqc_dir",
+        meaning: "FastQC output directory for trimmed reads",
+        direction: MetricDirection::Neutral,
+        range: None,
+        stages: &["fastq.qc_post"],
+        measured: true,
+        derived: false,
+    },
+    MetricSpec {
+        id: MetricId::MultiqcReport,
+        name: "multiqc_report",
+        meaning: "MultiQC report HTML path",
+        direction: MetricDirection::Neutral,
+        range: None,
+        stages: &["fastq.qc_post"],
+        measured: true,
+        derived: false,
+    },
+    MetricSpec {
+        id: MetricId::MultiqcData,
+        name: "multiqc_data",
+        meaning: "MultiQC data directory path",
+        direction: MetricDirection::Neutral,
+        range: None,
+        stages: &["fastq.qc_post"],
+        measured: true,
+        derived: false,
+    },
 ];
 
 pub const DERIVED_METRIC_REGISTRY: [DerivedMetricSpec; 4] = [
@@ -739,13 +822,15 @@ pub const FASTQ_VALIDATE_METRICS: [MetricId; 10] = [
     MetricId::MeanQ,
 ];
 
-pub const FASTQ_FILTER_METRICS: [MetricId; 14] = [
+pub const FASTQ_FILTER_METRICS: [MetricId; 16] = [
     MetricId::ReadsIn,
     MetricId::ReadsOut,
     MetricId::ReadsDropped,
     MetricId::ReadsRemovedByN,
     MetricId::ReadsRemovedByEntropy,
+    MetricId::ReadsRemovedLowComplexity,
     MetricId::ReadsRemovedByKmer,
+    MetricId::ReadsRemovedContaminantKmer,
     MetricId::ReadsRemovedByLength,
     MetricId::BasesIn,
     MetricId::BasesOut,
@@ -782,11 +867,19 @@ pub const FASTQ_CORRECT_METRICS: [MetricId; 9] = [
     MetricId::KmerFixRate,
 ];
 
-pub const FASTQ_QC_POST_METRICS: [MetricId; 4] = [
+pub const FASTQ_QC_POST_METRICS: [MetricId; 12] = [
     MetricId::ReadsIn,
+    MetricId::ReadsOut,
     MetricId::BasesIn,
+    MetricId::BasesOut,
+    MetricId::PairsIn,
+    MetricId::PairsOut,
     MetricId::MeanQ,
     MetricId::ContaminationRate,
+    MetricId::QcRawDir,
+    MetricId::QcTrimmedDir,
+    MetricId::MultiqcReport,
+    MetricId::MultiqcData,
 ];
 
 pub const FASTQ_UMI_METRICS: [MetricId; 7] = [
@@ -799,7 +892,16 @@ pub const FASTQ_UMI_METRICS: [MetricId; 7] = [
     MetricId::DedupRate,
 ];
 
-pub const FASTQ_SCREEN_METRICS: [MetricId; 2] = [MetricId::ReadsIn, MetricId::ContaminationRate];
+pub const FASTQ_SCREEN_METRICS: [MetricId; 8] = [
+    MetricId::ReadsIn,
+    MetricId::ReadsOut,
+    MetricId::BasesIn,
+    MetricId::BasesOut,
+    MetricId::PairsIn,
+    MetricId::PairsOut,
+    MetricId::ContaminationRate,
+    MetricId::ContaminationSummary,
+];
 
 pub const FASTQ_STATS_METRICS: [MetricId; 5] = [
     MetricId::ReadsTotal,
@@ -853,8 +955,12 @@ pub const FASTQ_UMI_INVARIANTS: [&str; 3] = [
     "counts are non-negative",
 ];
 
-pub const FASTQ_SCREEN_INVARIANTS: [&str; 2] =
-    ["contamination_rate in [0, 1]", "counts are non-negative"];
+pub const FASTQ_SCREEN_INVARIANTS: [&str; 4] = [
+    "reads_out <= reads_in",
+    "bases_out <= bases_in",
+    "contamination_rate in [0, 1]",
+    "counts are non-negative",
+];
 
 pub const FASTQ_STATS_INVARIANTS: [&str; 2] = ["mean_q in [0, 45]", "gc_percent in [0, 100]"];
 
@@ -1287,7 +1393,11 @@ pub struct FastqFilterMetrics {
     #[serde(default)]
     pub reads_removed_by_entropy: u64,
     #[serde(default)]
+    pub reads_removed_low_complexity: u64,
+    #[serde(default)]
     pub reads_removed_by_kmer: u64,
+    #[serde(default)]
+    pub reads_removed_contaminant_kmer: u64,
     #[serde(default)]
     pub reads_removed_by_length: u64,
     pub bases_in: u64,
@@ -1314,7 +1424,9 @@ impl StageMetricSchema for FastqFilterMetrics {
         }
         let removed_breakdown = self.reads_removed_by_n
             + self.reads_removed_by_entropy
+            + self.reads_removed_low_complexity
             + self.reads_removed_by_kmer
+            + self.reads_removed_contaminant_kmer
             + self.reads_removed_by_length;
         if removed_breakdown > self.reads_dropped {
             return Err(BenchError::Validation(
@@ -1426,9 +1538,23 @@ impl StageMetricSchema for FastqCorrectMetrics {
 #[serde(deny_unknown_fields)]
 pub struct FastqQcPostMetrics {
     pub reads_in: u64,
+    pub reads_out: u64,
     pub bases_in: u64,
+    pub bases_out: u64,
+    #[serde(default)]
+    pub pairs_in: Option<u64>,
+    #[serde(default)]
+    pub pairs_out: Option<u64>,
     pub mean_q: f64,
     pub contamination_rate: f64,
+    #[serde(default)]
+    pub raw_fastqc_dir: Option<String>,
+    #[serde(default)]
+    pub trimmed_fastqc_dir: Option<String>,
+    #[serde(default)]
+    pub multiqc_report: Option<String>,
+    #[serde(default)]
+    pub multiqc_data: Option<String>,
 }
 
 impl StageMetricSchema for FastqQcPostMetrics {
@@ -1436,6 +1562,16 @@ impl StageMetricSchema for FastqQcPostMetrics {
     const VERSION: i32 = 1;
 
     fn validate(&self) -> Result<()> {
+        if self.reads_out > self.reads_in {
+            return Err(BenchError::Validation(
+                "reads_out must be <= reads_in".to_string(),
+            ));
+        }
+        if self.bases_out > self.bases_in {
+            return Err(BenchError::Validation(
+                "bases_out must be <= bases_in".to_string(),
+            ));
+        }
         if !self.mean_q.is_finite() || !(0.0..=45.0).contains(&self.mean_q) {
             return Err(BenchError::Validation(
                 "mean_q must be within [0, 45]".to_string(),
@@ -1489,7 +1625,14 @@ impl StageMetricSchema for FastqUmiMetrics {
 #[serde(deny_unknown_fields)]
 pub struct FastqScreenMetrics {
     pub reads_in: u64,
+    pub reads_out: u64,
+    pub bases_in: u64,
+    pub bases_out: u64,
+    pub pairs_in: u64,
+    pub pairs_out: u64,
     pub contamination_rate: f64,
+    #[serde(default)]
+    pub contamination_summary: serde_json::Value,
 }
 
 impl StageMetricSchema for FastqScreenMetrics {
@@ -1497,6 +1640,16 @@ impl StageMetricSchema for FastqScreenMetrics {
     const VERSION: i32 = 1;
 
     fn validate(&self) -> Result<()> {
+        if self.reads_out > self.reads_in {
+            return Err(BenchError::Validation(
+                "reads_out must be <= reads_in".to_string(),
+            ));
+        }
+        if self.bases_out > self.bases_in {
+            return Err(BenchError::Validation(
+                "bases_out must be <= bases_in".to_string(),
+            ));
+        }
         if !self.contamination_rate.is_finite() || !(0.0..=1.0).contains(&self.contamination_rate) {
             return Err(BenchError::Validation(
                 "contamination_rate must be within [0, 1]".to_string(),
@@ -1622,7 +1775,9 @@ mod tests {
             reads_dropped: 20,
             reads_removed_by_n: 10,
             reads_removed_by_entropy: 5,
+            reads_removed_low_complexity: 0,
             reads_removed_by_kmer: 5,
+            reads_removed_contaminant_kmer: 0,
             reads_removed_by_length: 0,
             bases_in: 1000,
             bases_out: 800,
@@ -1644,7 +1799,9 @@ mod tests {
             reads_dropped: 20,
             reads_removed_by_n: 10,
             reads_removed_by_entropy: 10,
+            reads_removed_low_complexity: 0,
             reads_removed_by_kmer: 5,
+            reads_removed_contaminant_kmer: 0,
             reads_removed_by_length: 0,
             bases_in: 1000,
             bases_out: 810,

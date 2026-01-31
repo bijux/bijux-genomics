@@ -72,7 +72,9 @@ pub const FASTQ_CORRECT_INVARIANTS: [&str; 4] = [
     "counts are non-negative",
 ];
 
-pub const FASTQ_QC_POST_INVARIANTS: [&str; 3] = [
+pub const FASTQ_QC_POST_INVARIANTS: [&str; 5] = [
+    "reads_out <= reads_in",
+    "bases_out <= bases_in",
     "mean_q in [0, 45]",
     "contamination_rate in [0, 1]",
     "counts are non-negative",

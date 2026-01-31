@@ -413,6 +413,10 @@ pub fn write_run_report_from_facts(base_dir: &Path, rows: &[FactsRowV1]) -> Resu
     let qc_improvement = qc_improvement_section(rows);
     let filter_interpretation = filter_interpretation_section(rows);
     let adapter_inference = adapter_inference_section(rows);
+    let final_qc_summary = serde_json::json!({
+        "qc": qc_improvement.clone(),
+        "adapter_inference": adapter_inference.clone(),
+    });
     let report = ReportSchemaV1 {
         schema_version: "bijux.report.v1".to_string(),
         contract: report_contract(),
@@ -430,6 +434,7 @@ pub fn write_run_report_from_facts(base_dir: &Path, rows: &[FactsRowV1]) -> Resu
             "error_count": telemetry_error_count,
         }),
         qc_improvement,
+        final_qc_summary,
         filter_interpretation,
         adapter_inference,
         sections: serde_json::json!({}),
@@ -659,7 +664,9 @@ fn filter_interpretation_section(rows: &[FactsRowV1]) -> serde_json::Value {
             "total": report.reads_removed_total,
             "by_n": report.reads_removed_by_n,
             "by_entropy": report.reads_removed_by_entropy,
+            "by_low_complexity": report.reads_removed_low_complexity,
             "by_kmer": report.reads_removed_by_kmer,
+            "by_contaminant_kmer": report.reads_removed_contaminant_kmer,
             "by_length": report.reads_removed_by_length,
         },
         "entropy_distribution": report.entropy_distribution,
@@ -694,9 +701,18 @@ fn adapter_inference_section(rows: &[FactsRowV1]) -> serde_json::Value {
             serde_json::from_str::<serde_json::Value>(&raw).ok()
         })
         .unwrap_or_else(|| serde_json::json!({}));
+    let rationale = match report.suggested_preset.as_deref() {
+        Some("illumina_twocolor") => {
+            "PolyG/overrepresented sequences consistent with two-color chemistry."
+        }
+        Some("ssdna") => "Overrepresented adapter motifs match ssDNA library prep.",
+        Some(_) => "Adapter motifs detected in overrepresented sequences.",
+        None => "No strong adapter signal detected.",
+    };
     serde_json::json!({
         "suggested_preset": report.suggested_preset,
         "suggested_adapters": suggestions,
+        "rationale": rationale,
         "safety": "Inference never changes trimming unless --accept-suggested-adapters is set.",
     })
 }
@@ -715,6 +731,7 @@ fn report_contract() -> ReportContractV1 {
             "metric_semantics".to_string(),
             "telemetry".to_string(),
             "qc_improvement".to_string(),
+            "final_qc_summary".to_string(),
             "filter_interpretation".to_string(),
             "adapter_inference".to_string(),
         ],
@@ -733,6 +750,10 @@ fn report_contract() -> ReportContractV1 {
 fn build_report_sections(report: &ReportSchemaV1) -> BTreeMap<String, serde_json::Value> {
     let mut sections = BTreeMap::new();
     sections.insert("qc".to_string(), report.qc_improvement.clone());
+    sections.insert(
+        "final_qc_summary".to_string(),
+        report.final_qc_summary.clone(),
+    );
     sections.insert(
         "trimming".to_string(),
         serde_json::json!({

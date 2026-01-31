@@ -18,6 +18,8 @@
   "reads_removed_by_kmer": "number",
   "reads_removed_by_length": "number",
   "reads_removed_by_n": "number",
+  "reads_removed_contaminant_kmer": "number",
+  "reads_removed_low_complexity": "number",
   "retention": {
     "conditions": {
       "adapter_policy": "null",

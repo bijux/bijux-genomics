@@ -33,9 +33,9 @@ pub struct RunId(pub String);
 
 pub use metrics::{
     AdapterBankProvenanceV1, BankEntryV1, BankRefV1, FastqCorrectMetricsV1, FastqDeltaMetricsV1,
-    FastqFilterMetricsV1, FastqMergeMetricsV1, FastqPreprocessMetricsV1, FastqTrimMetricsV1,
-    FastqUmiMetricsV1, FastqValidateMetricsV1, MetricContextV1, RetentionReportMetricV1,
-    StageMetricsV1, ToolInvocationV1,
+    FastqFilterMetricsV1, FastqMergeMetricsV1, FastqPreprocessMetricsV1, FastqQcPostMetricsV1,
+    FastqTrimMetricsV1, FastqUmiMetricsV1, FastqValidateMetricsV1, MetricContextV1,
+    RetentionReportMetricV1, StageMetricsV1, ToolInvocationV1,
 };
 pub use metrics_registry::{
     metric_semantics, metrics_schema_for_stage, MetricDirection as MetricSemanticsDirection,
