@@ -1,9 +1,14 @@
+//! Owner: bijux-analyze
+//! Facts ingestion and summary helpers.
+
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
 
 use anyhow::{Context, Result};
 use bijux_core::{FactsRowV1, StageReportV1};
+
+use crate::model::JsonBlob;
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct FactsSummary {
@@ -36,23 +41,41 @@ pub struct RunSummaryStageRow {
     pub image_digest: Option<String>,
     pub params_hash: String,
     pub input_hash: String,
-    pub bank_hashes: serde_json::Value,
+    pub bank_hashes: JsonBlob,
     pub runtime_s: f64,
     pub memory_mb: f64,
     pub exit_code: i32,
-    pub reports: serde_json::Value,
-    pub deltas: serde_json::Value,
+    pub reports: JsonBlob,
+    pub deltas: RunSummaryDeltas,
 }
 
-fn stage_report_path(reports: &serde_json::Value) -> Option<String> {
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct RunSummaryDeltas {
+    pub reads_in: Option<u64>,
+    pub reads_out: Option<u64>,
+    pub bases_in: Option<u64>,
+    pub bases_out: Option<u64>,
+    pub pairs_in: Option<u64>,
+    pub pairs_out: Option<u64>,
+}
+
+pub(crate) fn stable_sort_records<T>(
+    rows: &mut [T],
+    key: impl Fn(&T) -> (&str, &str, &str, &str, &str),
+) {
+    rows.sort_by(|a, b| key(a).cmp(&key(b)));
+}
+
+fn stage_report_path(reports: &JsonBlob) -> Option<String> {
     reports
+        .as_value()
         .get("stage_report")
         .and_then(|value| value.as_str())
         .map(str::to_string)
 }
 
 fn stage_outputs_for_row(row: &FactsRowV1) -> Vec<String> {
-    let Some(path) = stage_report_path(&row.reports) else {
+    let Some(path) = stage_report_path(&JsonBlob::from(row.reports.clone())) else {
         return Vec::new();
     };
     let Ok(report_raw) = std::fs::read_to_string(&path) else {
@@ -80,6 +103,15 @@ pub fn load_facts_jsonl(path: &Path) -> Result<Vec<FactsRowV1>> {
         let row: FactsRowV1 = serde_json::from_str(&line)?;
         rows.push(row);
     }
+    stable_sort_records(&mut rows, |row| {
+        (
+            row.run_id.as_str(),
+            row.stage_id.as_str(),
+            row.tool_id.as_str(),
+            row.params_hash.as_str(),
+            "",
+        )
+    });
     Ok(rows)
 }
 
@@ -126,19 +158,19 @@ pub fn write_run_summary_json(path: &Path, rows: &[FactsRowV1]) -> Result<()> {
             image_digest: row.image_digest.clone(),
             params_hash: row.params_hash.clone(),
             input_hash: row.input_hash.clone(),
-            bank_hashes: row.bank_hashes.clone(),
+            bank_hashes: JsonBlob::from(row.bank_hashes.clone()),
             runtime_s: row.runtime_s,
             memory_mb: row.memory_mb,
             exit_code: row.exit_code,
-            reports: row.reports.clone(),
-            deltas: serde_json::json!({
-                "reads_in": row.reads_in,
-                "reads_out": row.reads_out,
-                "bases_in": row.bases_in,
-                "bases_out": row.bases_out,
-                "pairs_in": row.pairs_in,
-                "pairs_out": row.pairs_out,
-            }),
+            reports: JsonBlob::from(row.reports.clone()),
+            deltas: RunSummaryDeltas {
+                reads_in: row.reads_in,
+                reads_out: row.reads_out,
+                bases_in: row.bases_in,
+                bases_out: row.bases_out,
+                pairs_in: row.pairs_in,
+                pairs_out: row.pairs_out,
+            },
         })
         .collect();
     let mut final_outputs = Vec::new();
@@ -149,12 +181,14 @@ pub fn write_run_summary_json(path: &Path, rows: &[FactsRowV1]) -> Result<()> {
     }
     final_outputs.sort();
     final_outputs.dedup();
-    stage_rows.sort_by(|a, b| {
-        (a.run_id.clone(), a.stage_id.clone(), a.tool_id.clone()).cmp(&(
-            b.run_id.clone(),
-            b.stage_id.clone(),
-            b.tool_id.clone(),
-        ))
+    stable_sort_records(&mut stage_rows, |row| {
+        (
+            row.run_id.as_str(),
+            row.stage_id.as_str(),
+            row.tool_id.as_str(),
+            row.params_hash.as_str(),
+            "",
+        )
     });
     let payload = RunSummaryV1 {
         schema_version: "bijux.run_summary.v1".to_string(),
@@ -179,21 +213,14 @@ pub fn write_run_summary_json(path: &Path, rows: &[FactsRowV1]) -> Result<()> {
 /// Returns an error if the file cannot be written.
 pub fn write_dashboard_facts_jsonl(path: &Path, rows: &[FactsRowV1]) -> Result<()> {
     let mut ordered = rows.to_vec();
-    ordered.sort_by(|a, b| {
+    stable_sort_records(&mut ordered, |row| {
         (
-            &a.run_id,
-            &a.stage_id,
-            &a.tool_id,
-            &a.params_hash,
-            &a.input_hash,
+            row.run_id.as_str(),
+            row.stage_id.as_str(),
+            row.tool_id.as_str(),
+            row.params_hash.as_str(),
+            "",
         )
-            .cmp(&(
-                &b.run_id,
-                &b.stage_id,
-                &b.tool_id,
-                &b.params_hash,
-                &b.input_hash,
-            ))
     });
     let mut payload = String::new();
     for row in ordered {

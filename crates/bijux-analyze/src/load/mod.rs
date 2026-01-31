@@ -1,3 +1,6 @@
+//! Owner: bijux-analyze
+//! Load facts and run artifacts from disk.
+
 use std::io::{BufRead, BufReader};
 use std::path::Path;
 
@@ -17,8 +20,8 @@ use crate::aggregate::{
     FastqUmiMetrics, FastqValidateMetrics, ImageQaRecord, Result, IMAGE_QA_INPUTS_SCHEMA_VERSION,
     IMAGE_QA_SCHEMA_VERSION,
 };
-use crate::facts::RunSummaryV1;
-use crate::model::FactTable;
+use crate::facts::{stable_sort_records, RunSummaryV1};
+use crate::model::{FactTable, JsonBlob};
 
 #[derive(thiserror::Error, Debug)]
 pub enum AnalyzeError {
@@ -67,6 +70,15 @@ pub fn load_facts(path: &Path) -> std::result::Result<Vec<FactsRowV1>, AnalyzeEr
         }
         rows.push(parsed_row);
     }
+    stable_sort_records(&mut rows, |row| {
+        (
+            row.run_id.as_str(),
+            row.stage_id.as_str(),
+            row.tool_id.as_str(),
+            row.params_hash.as_str(),
+            "",
+        )
+    });
     Ok(rows)
 }
 
@@ -113,6 +125,15 @@ pub fn load_facts_parquet(path: &Path) -> std::result::Result<Vec<FactsRowV1>, A
         }
         rows.push(parsed);
     }
+    stable_sort_records(&mut rows, |row| {
+        (
+            row.run_id.as_str(),
+            row.stage_id.as_str(),
+            row.tool_id.as_str(),
+            row.params_hash.as_str(),
+            "",
+        )
+    });
     Ok(rows)
 }
 
@@ -279,8 +300,8 @@ fn ensure_image_qa_identity_index(conn: &Connection) -> Result<()> {
     Ok(())
 }
 
-fn params_hash(parameters: &JsonValue) -> Result<String> {
-    let canonical = bijux_core::parameters_json_canonicalization(parameters);
+fn params_hash(parameters: &JsonBlob) -> Result<String> {
+    let canonical = bijux_core::parameters_json_canonicalization(parameters.as_value());
     let bytes = serde_json::to_vec(&canonical)?;
     let mut hasher = Sha256::new();
     hasher.update(bytes);
@@ -466,7 +487,7 @@ pub fn fetch_fastq_trim_v1(
                     runner,
                     platform,
                     input_hash,
-                    parameters,
+                    parameters: JsonBlob::from(parameters),
                 },
                 execution: ExecutionMetrics {
                     runtime_s,
@@ -540,7 +561,7 @@ pub fn fetch_fastq_trim_v2(
                     runner,
                     platform,
                     input_hash,
-                    parameters,
+                    parameters: JsonBlob::from(parameters),
                 },
                 execution: ExecutionMetrics {
                     runtime_s,
@@ -675,7 +696,7 @@ pub fn fetch_fastq_validate_v1(
                     runner,
                     platform,
                     input_hash,
-                    parameters,
+                    parameters: JsonBlob::from(parameters),
                 },
                 execution: ExecutionMetrics {
                     runtime_s,
@@ -871,7 +892,7 @@ pub fn fetch_fastq_filter_v1(
                     runner,
                     platform,
                     input_hash,
-                    parameters,
+                    parameters: JsonBlob::from(parameters),
                 },
                 execution: ExecutionMetrics {
                     runtime_s,
@@ -945,7 +966,7 @@ pub fn fetch_fastq_filter_v2(
                     runner,
                     platform,
                     input_hash,
-                    parameters,
+                    parameters: JsonBlob::from(parameters),
                 },
                 execution: ExecutionMetrics {
                     runtime_s,
@@ -1080,7 +1101,7 @@ pub fn fetch_fastq_merge_v1(
                     runner,
                     platform,
                     input_hash,
-                    parameters,
+                    parameters: JsonBlob::from(parameters),
                 },
                 execution: ExecutionMetrics {
                     runtime_s,
@@ -1215,7 +1236,7 @@ pub fn fetch_fastq_correct_v1(
                     runner,
                     platform,
                     input_hash,
-                    parameters,
+                    parameters: JsonBlob::from(parameters),
                 },
                 execution: ExecutionMetrics {
                     runtime_s,
@@ -1350,7 +1371,7 @@ pub fn fetch_fastq_qc_post_v1(
                     runner,
                     platform,
                     input_hash,
-                    parameters,
+                    parameters: JsonBlob::from(parameters),
                 },
                 execution: ExecutionMetrics {
                     runtime_s,
@@ -1485,7 +1506,7 @@ pub fn fetch_fastq_umi_v1(
                     runner,
                     platform,
                     input_hash,
-                    parameters,
+                    parameters: JsonBlob::from(parameters),
                 },
                 execution: ExecutionMetrics {
                     runtime_s,
@@ -1620,7 +1641,7 @@ pub fn fetch_fastq_screen_v1(
                     runner,
                     platform,
                     input_hash,
-                    parameters,
+                    parameters: JsonBlob::from(parameters),
                 },
                 execution: ExecutionMetrics {
                     runtime_s,
@@ -1755,7 +1776,7 @@ pub fn fetch_fastq_stats_v1(
                     runner,
                     platform,
                     input_hash,
-                    parameters,
+                    parameters: JsonBlob::from(parameters),
                 },
                 execution: ExecutionMetrics {
                     runtime_s,

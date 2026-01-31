@@ -25,8 +25,14 @@ fn semantic_trim_generates_summary() {
         adapter_overrides: None,
     };
     let summary = semantic_trim(&metrics);
-    assert_eq!(summary.integrity.reads_in.value, 100);
-    assert_eq!(summary.integrity.reads_out.value, 80);
+    assert!(matches!(
+        summary.integrity.reads_in.value,
+        bijux_analyze::MetricValue::U64(100)
+    ));
+    assert!(matches!(
+        summary.integrity.reads_out.value,
+        bijux_analyze::MetricValue::U64(80)
+    ));
     assert!(summary.quality_shift.is_some());
 }
 
@@ -45,7 +51,13 @@ fn semantic_validate_generates_summary() {
         mean_q: 32.0,
     };
     let summary = semantic_validate(&metrics);
-    assert_eq!(summary.integrity.reads_in.value, 50);
-    assert_eq!(summary.integrity.reads_out.value, 45);
+    assert!(matches!(
+        summary.integrity.reads_in.value,
+        bijux_analyze::MetricValue::U64(50)
+    ));
+    assert!(matches!(
+        summary.integrity.reads_out.value,
+        bijux_analyze::MetricValue::U64(45)
+    ));
     assert!(summary.quality_shift.is_none());
 }

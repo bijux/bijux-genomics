@@ -207,7 +207,7 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
                             error_reduction_proxy,
                         });
                     }
-                    let rankings = bijux_analyze::build_rankings(&inputs);
+                    let rankings = bijux_analyze::build_rankings(&inputs)?;
                     println!("{}", serde_json::to_string_pretty(&rankings)?);
                 }
                 AnalyzeCommand::Report(args) => {

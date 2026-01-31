@@ -1,11 +1,14 @@
+//! Owner: bijux-analyze
+//! Metric aggregation and schema validation.
+
 use std::fs::OpenOptions;
 use std::io::Write;
 use std::path::Path;
 
+use crate::model::JsonBlob;
 use bijux_core::measure::ExecutionMetrics;
 use bijux_core::metrics::MetricSet;
 use serde::{Deserialize, Serialize};
-use serde_json::Value as JsonValue;
 use thiserror::Error;
 use tracing::warn;
 
@@ -1089,7 +1092,7 @@ pub struct BenchmarkContext {
     pub runner: String,
     pub platform: String,
     pub input_hash: String,
-    pub parameters: JsonValue,
+    pub parameters: JsonBlob,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1164,7 +1167,7 @@ pub struct FastqTrimMetrics {
     #[serde(default)]
     pub adapter_bank_hash: Option<String>,
     #[serde(default)]
-    pub adapter_overrides: Option<serde_json::Value>,
+    pub adapter_overrides: Option<JsonBlob>,
 }
 
 impl StageMetricSchema for FastqTrimMetrics {
@@ -1632,7 +1635,7 @@ pub struct FastqScreenMetrics {
     pub pairs_out: u64,
     pub contamination_rate: f64,
     #[serde(default)]
-    pub contamination_summary: serde_json::Value,
+    pub contamination_summary: JsonBlob,
 }
 
 impl StageMetricSchema for FastqScreenMetrics {
@@ -1732,7 +1735,7 @@ mod tests {
                 runner: "docker".to_string(),
                 platform: "local".to_string(),
                 input_hash: "sha256:deadbeef".to_string(),
-                parameters: serde_json::json!({"adapter": "AGAT"}),
+                parameters: JsonBlob::from_pairs(&[("adapter", "AGAT")]),
             },
             execution: ExecutionMetrics {
                 runtime_s: 1.0,

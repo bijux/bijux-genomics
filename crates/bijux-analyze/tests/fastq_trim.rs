@@ -44,7 +44,10 @@ fn sqlite_insert_fastq_trim_v2() -> Result<(), Box<dyn std::error::Error>> {
             runner: "docker".to_string(),
             platform: "local".to_string(),
             input_hash: "sha256:deadbeef".to_string(),
-            parameters: serde_json::json!({"sample_id": "s1", "r1": "reads.fastq.gz"}),
+            parameters: bijux_analyze::model::JsonBlob::from_pairs(&[
+                ("sample_id", "s1"),
+                ("r1", "reads.fastq.gz"),
+            ]),
         },
         execution: ExecutionMetrics {
             runtime_s: 1.2,

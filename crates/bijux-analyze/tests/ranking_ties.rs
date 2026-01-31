@@ -1,7 +1,7 @@
 use bijux_analyze::{build_rankings, RankInput};
 
 #[test]
-fn ranking_breaks_ties_by_tool_name() {
+fn ranking_breaks_ties_by_tool_name() -> anyhow::Result<()> {
     let inputs = vec![
         RankInput {
             tool: "b".to_string(),
@@ -20,7 +20,8 @@ fn ranking_breaks_ties_by_tool_name() {
             error_reduction_proxy: Some(0.0),
         },
     ];
-    let rankings = build_rankings(&inputs);
+    let rankings = build_rankings(&inputs)?;
     let fastest = &rankings["FastestAcceptable"];
     assert_eq!(fastest[0].tool, "a");
+    Ok(())
 }

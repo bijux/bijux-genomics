@@ -1,9 +1,4 @@
-//! Owner: bijux-analyze
-//! Human-readable semantic summaries for fastq metrics.
-
-use crate::aggregate::{
-    FastqFilterMetrics, FastqStatsMetrics, FastqTrimMetrics, FastqValidateMetrics,
-};
+#![allow(dead_code)]
 
 #[derive(Debug, Clone, serde::Serialize)]
 #[serde(rename_all = "snake_case")]
@@ -88,7 +83,10 @@ pub fn metric_f64(
     }
 }
 
-#[must_use]
+use crate::aggregate::{
+    FastqFilterMetrics, FastqStatsMetrics, FastqTrimMetrics, FastqValidateMetrics,
+};
+
 pub fn semantic_trim(metrics: &FastqTrimMetrics) -> SemanticMetrics {
     let delta = &metrics.delta_metrics;
     let interpretation = if delta.read_retention < 0.8 {

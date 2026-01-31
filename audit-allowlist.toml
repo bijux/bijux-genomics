@@ -1,0 +1,6 @@
+[metadata]
+review_cadence = "every dependency upgrade sweep (min quarterly)"
+owner = "platform/infra"
+
+[advisories]
+ignore = []

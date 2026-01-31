@@ -278,7 +278,7 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
         runner: bench_inputs.runner.to_string(),
         platform: platform.name.clone(),
         input_hash: bench_inputs.input_hash.clone(),
-        parameters: params.clone(),
+        parameters: params.clone().into(),
     };
     let execution_metrics = ExecutionMetrics {
         runtime_s: execution.runtime_s,
