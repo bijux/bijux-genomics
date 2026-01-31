@@ -11,7 +11,7 @@ fn serde_json_value_is_confined_to_load_and_render() {
         if path_str.contains("/load/")
             || path_str.contains("/report")
             || path_str.contains("/model/")
-            || path_str.contains("/facts_export")
+            || path_str.contains("/export")
         {
             return;
         }

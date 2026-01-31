@@ -5,7 +5,7 @@ use std::path::PathBuf;
 
 use anyhow::{Context, Result};
 
-use crate::facts_export::write_run_summary_json;
+use crate::export::write_run_summary_json;
 use crate::report::model::ReportModel;
 use crate::report::render_json::write_report_json;
 use crate::report::write_run_report_from_facts;

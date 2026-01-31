@@ -8,12 +8,6 @@ pub mod metrics;
 pub mod registry;
 pub mod stats;
 
-mod metrics_bench;
-mod metrics_fastq;
-#[cfg(test)]
-mod metrics_tests;
-mod registry_defs;
-
 pub type Result<T> = std::result::Result<T, BenchError>;
 
 pub use metrics::*;

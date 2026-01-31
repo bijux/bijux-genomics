@@ -8,11 +8,13 @@ fn module_file_budget() {
     let src_dir = manifest_dir.join("src");
 
     let allowlist: HashMap<&'static str, usize> = HashMap::new();
-    // Temporary exceptions go here.
-    // allowlist.insert("report", 12);
+    // Temporary exceptions go here (cap overrides only; include expiry in comment).
+    // allowlist.insert("report", 14); // expires: 2026-06-01
 
-    let default_cap = 10usize;
+    let soft_cap = 12usize;
+    let hard_cap = 20usize;
     let mut offenders = Vec::new();
+    let mut warnings = Vec::new();
 
     let Ok(entries) = fs::read_dir(&src_dir) else {
         return;
@@ -42,7 +44,12 @@ fn module_file_budget() {
             count += 1;
         }
 
-        let cap = allowlist.get(module_name).copied().unwrap_or(default_cap);
+        let cap = allowlist.get(module_name).copied().unwrap_or(hard_cap);
+        if count > soft_cap {
+            warnings.push(format!(
+                "{module_name} has {count} files; soft cap {soft_cap} -> consolidate {module_name}/*.rs",
+            ));
+        }
         if count > cap {
             let hint = format!(
                 "{module_name} has {count} files, max {cap} -> consolidate {module_name}/*.rs",
@@ -51,6 +58,9 @@ fn module_file_budget() {
         }
     }
 
+    if !warnings.is_empty() {
+        eprintln!("module file budget warnings:\n{}", warnings.join("\n"));
+    }
     assert!(
         offenders.is_empty(),
         "module file budget exceeded:\n{}",

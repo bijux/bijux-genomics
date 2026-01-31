@@ -33,7 +33,8 @@ fn no_cross_layer_calls() {
         }
 
         let depends_on = |needle: &str| contents.contains(needle);
-        let allow_aggregate_for_load = path_str.ends_with("/load/sqlite_queries.rs");
+        let allow_aggregate_for_load = path_str.ends_with("/load/sqlite/queries.rs")
+            || path_str.ends_with("/load/sqlite/rows.rs");
 
         if path_str.contains("/decision/") {
             assert!(
@@ -96,7 +97,7 @@ fn public_api_is_small() -> anyhow::Result<()> {
         "pub mod aggregate;",
         "pub mod contract;",
         "pub mod decision;",
-        "pub mod facts_export;",
+        "pub mod export;",
         "pub mod load;",
         "pub mod model;",
         "pub mod report;",

@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::PathBuf;
 
-use bijux_analyze::facts_export::{summarize_facts, write_run_summary_json};
+use bijux_analyze::export::{summarize_facts, write_run_summary_json};
 use bijux_analyze::load::load_facts;
 use bijux_core::FactsRowV1;
 use tempfile::TempDir;

@@ -9,8 +9,6 @@ pub(crate) mod model;
 pub(crate) mod render_json;
 
 mod bench;
-#[cfg(test)]
-mod build_tests;
 mod run_report;
 mod run_report_schema;
 mod run_report_sections;

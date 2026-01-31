@@ -3,23 +3,19 @@
 
 // `SQLite` trim benchmark helpers.
 
-use rusqlite::{params, Connection};
-use serde_json::Value as JsonValue;
-
 use anyhow::Result;
-use bijux_core::measure::ExecutionMetrics;
-use bijux_core::metrics::MetricSet;
+use rusqlite::{params, Connection};
 
 use crate::aggregate::{
-    BenchmarkContext, BenchmarkRecord, FastqCorrectMetrics, FastqFilterMetrics, FastqMergeMetrics,
+    BenchmarkRecord, FastqCorrectMetrics, FastqFilterMetrics, FastqMergeMetrics,
     FastqQcPostMetrics, FastqScreenMetrics, FastqStatsMetrics, FastqTrimMetrics, FastqUmiMetrics,
     FastqValidateMetrics, ImageQaRecord, IMAGE_QA_INPUTS_SCHEMA_VERSION, IMAGE_QA_SCHEMA_VERSION,
 };
-use crate::model::JsonBlob;
 
-use super::sqlite::{
+use super::rows::benchmark_record_from_row;
+use super::{
     ensure_identity_index, ensure_image_qa_identity_index, ensure_inserted_at_column,
-    ensure_params_hash_column, ensure_record_id_column, json_from_str, params_hash,
+    ensure_params_hash_column, ensure_record_id_column, params_hash,
 };
 
 /// # Errors
@@ -176,39 +172,7 @@ pub fn fetch_fastq_trim_v1(
             input_hash,
             params_hash
         ],
-        |row| {
-            let tool: String = row.get(0)?;
-            let tool_version: String = row.get(1)?;
-            let image_digest: String = row.get(2)?;
-            let runner: String = row.get(3)?;
-            let platform: String = row.get(4)?;
-            let input_hash: String = row.get(5)?;
-            let _params_hash: String = row.get(6)?;
-            let parameters_json: String = row.get(7)?;
-            let runtime_s: f64 = row.get(8)?;
-            let memory_mb: f64 = row.get(9)?;
-            let exit_code: i64 = row.get(10)?;
-            let metrics_json: String = row.get(11)?;
-            let parameters: JsonValue = json_from_str(&parameters_json)?;
-            let metrics: MetricSet<FastqTrimMetrics> = json_from_str(&metrics_json)?;
-            Ok(BenchmarkRecord {
-                context: BenchmarkContext {
-                    tool,
-                    tool_version,
-                    image_digest,
-                    runner,
-                    platform,
-                    input_hash,
-                    parameters: JsonBlob::from(parameters),
-                },
-                execution: ExecutionMetrics {
-                    runtime_s,
-                    memory_mb,
-                    exit_code: i32::try_from(exit_code).unwrap_or(i32::MAX),
-                },
-                metrics,
-            })
-        },
+        benchmark_record_from_row::<FastqTrimMetrics>,
     );
     match row {
         Ok(record) => Ok(Some(record)),
@@ -251,39 +215,7 @@ pub fn fetch_fastq_trim_v2(
             input_hash,
             params_hash
         ],
-        |row| {
-            let tool: String = row.get(0)?;
-            let tool_version: String = row.get(1)?;
-            let image_digest: String = row.get(2)?;
-            let runner: String = row.get(3)?;
-            let platform: String = row.get(4)?;
-            let input_hash: String = row.get(5)?;
-            let _params_hash: String = row.get(6)?;
-            let parameters_json: String = row.get(7)?;
-            let runtime_s: f64 = row.get(8)?;
-            let memory_mb: f64 = row.get(9)?;
-            let exit_code: i64 = row.get(10)?;
-            let metrics_json: String = row.get(11)?;
-            let parameters: JsonValue = json_from_str(&parameters_json)?;
-            let metrics: MetricSet<FastqTrimMetrics> = json_from_str(&metrics_json)?;
-            Ok(BenchmarkRecord {
-                context: BenchmarkContext {
-                    tool,
-                    tool_version,
-                    image_digest,
-                    runner,
-                    platform,
-                    input_hash,
-                    parameters: JsonBlob::from(parameters),
-                },
-                execution: ExecutionMetrics {
-                    runtime_s,
-                    memory_mb,
-                    exit_code: i32::try_from(exit_code).unwrap_or(i32::MAX),
-                },
-                metrics,
-            })
-        },
+        benchmark_record_from_row::<FastqTrimMetrics>,
     );
     match row {
         Ok(record) => Ok(Some(record)),
@@ -386,39 +318,7 @@ pub fn fetch_fastq_validate_v1(
             input_hash,
             params_hash
         ],
-        |row| {
-            let tool: String = row.get(0)?;
-            let tool_version: String = row.get(1)?;
-            let image_digest: String = row.get(2)?;
-            let runner: String = row.get(3)?;
-            let platform: String = row.get(4)?;
-            let input_hash: String = row.get(5)?;
-            let _params_hash: String = row.get(6)?;
-            let parameters_json: String = row.get(7)?;
-            let runtime_s: f64 = row.get(8)?;
-            let memory_mb: f64 = row.get(9)?;
-            let exit_code: i64 = row.get(10)?;
-            let metrics_json: String = row.get(11)?;
-            let parameters: JsonValue = json_from_str(&parameters_json)?;
-            let metrics: MetricSet<FastqValidateMetrics> = json_from_str(&metrics_json)?;
-            Ok(BenchmarkRecord {
-                context: BenchmarkContext {
-                    tool,
-                    tool_version,
-                    image_digest,
-                    runner,
-                    platform,
-                    input_hash,
-                    parameters: JsonBlob::from(parameters),
-                },
-                execution: ExecutionMetrics {
-                    runtime_s,
-                    memory_mb,
-                    exit_code: i32::try_from(exit_code).unwrap_or(i32::MAX),
-                },
-                metrics,
-            })
-        },
+        benchmark_record_from_row::<FastqValidateMetrics>,
     );
     match row {
         Ok(record) => Ok(Some(record)),
@@ -583,39 +483,7 @@ pub fn fetch_fastq_filter_v1(
             input_hash,
             params_hash
         ],
-        |row| {
-            let tool: String = row.get(0)?;
-            let tool_version: String = row.get(1)?;
-            let image_digest: String = row.get(2)?;
-            let runner: String = row.get(3)?;
-            let platform: String = row.get(4)?;
-            let input_hash: String = row.get(5)?;
-            let _params_hash: String = row.get(6)?;
-            let parameters_json: String = row.get(7)?;
-            let runtime_s: f64 = row.get(8)?;
-            let memory_mb: f64 = row.get(9)?;
-            let exit_code: i64 = row.get(10)?;
-            let metrics_json: String = row.get(11)?;
-            let parameters: JsonValue = json_from_str(&parameters_json)?;
-            let metrics: MetricSet<FastqFilterMetrics> = json_from_str(&metrics_json)?;
-            Ok(BenchmarkRecord {
-                context: BenchmarkContext {
-                    tool,
-                    tool_version,
-                    image_digest,
-                    runner,
-                    platform,
-                    input_hash,
-                    parameters: JsonBlob::from(parameters),
-                },
-                execution: ExecutionMetrics {
-                    runtime_s,
-                    memory_mb,
-                    exit_code: i32::try_from(exit_code).unwrap_or(i32::MAX),
-                },
-                metrics,
-            })
-        },
+        benchmark_record_from_row::<FastqFilterMetrics>,
     );
     match row {
         Ok(record) => Ok(Some(record)),
@@ -658,39 +526,7 @@ pub fn fetch_fastq_filter_v2(
             input_hash,
             params_hash
         ],
-        |row| {
-            let tool: String = row.get(0)?;
-            let tool_version: String = row.get(1)?;
-            let image_digest: String = row.get(2)?;
-            let runner: String = row.get(3)?;
-            let platform: String = row.get(4)?;
-            let input_hash: String = row.get(5)?;
-            let _params_hash: String = row.get(6)?;
-            let parameters_json: String = row.get(7)?;
-            let runtime_s: f64 = row.get(8)?;
-            let memory_mb: f64 = row.get(9)?;
-            let exit_code: i64 = row.get(10)?;
-            let metrics_json: String = row.get(11)?;
-            let parameters: JsonValue = json_from_str(&parameters_json)?;
-            let metrics: MetricSet<FastqFilterMetrics> = json_from_str(&metrics_json)?;
-            Ok(BenchmarkRecord {
-                context: BenchmarkContext {
-                    tool,
-                    tool_version,
-                    image_digest,
-                    runner,
-                    platform,
-                    input_hash,
-                    parameters: JsonBlob::from(parameters),
-                },
-                execution: ExecutionMetrics {
-                    runtime_s,
-                    memory_mb,
-                    exit_code: i32::try_from(exit_code).unwrap_or(i32::MAX),
-                },
-                metrics,
-            })
-        },
+        benchmark_record_from_row::<FastqFilterMetrics>,
     );
     match row {
         Ok(record) => Ok(Some(record)),
@@ -793,39 +629,7 @@ pub fn fetch_fastq_merge_v1(
             input_hash,
             params_hash
         ],
-        |row| {
-            let tool: String = row.get(0)?;
-            let tool_version: String = row.get(1)?;
-            let image_digest: String = row.get(2)?;
-            let runner: String = row.get(3)?;
-            let platform: String = row.get(4)?;
-            let input_hash: String = row.get(5)?;
-            let _params_hash: String = row.get(6)?;
-            let parameters_json: String = row.get(7)?;
-            let runtime_s: f64 = row.get(8)?;
-            let memory_mb: f64 = row.get(9)?;
-            let exit_code: i64 = row.get(10)?;
-            let metrics_json: String = row.get(11)?;
-            let parameters: JsonValue = json_from_str(&parameters_json)?;
-            let metrics: MetricSet<FastqMergeMetrics> = json_from_str(&metrics_json)?;
-            Ok(BenchmarkRecord {
-                context: BenchmarkContext {
-                    tool,
-                    tool_version,
-                    image_digest,
-                    runner,
-                    platform,
-                    input_hash,
-                    parameters: JsonBlob::from(parameters),
-                },
-                execution: ExecutionMetrics {
-                    runtime_s,
-                    memory_mb,
-                    exit_code: i32::try_from(exit_code).unwrap_or(i32::MAX),
-                },
-                metrics,
-            })
-        },
+        benchmark_record_from_row::<FastqMergeMetrics>,
     );
     match row {
         Ok(record) => Ok(Some(record)),
@@ -929,39 +733,7 @@ pub fn fetch_fastq_correct_v1(
             input_hash,
             params_hash
         ],
-        |row| {
-            let tool: String = row.get(0)?;
-            let tool_version: String = row.get(1)?;
-            let image_digest: String = row.get(2)?;
-            let runner: String = row.get(3)?;
-            let platform: String = row.get(4)?;
-            let input_hash: String = row.get(5)?;
-            let _params_hash: String = row.get(6)?;
-            let parameters_json: String = row.get(7)?;
-            let runtime_s: f64 = row.get(8)?;
-            let memory_mb: f64 = row.get(9)?;
-            let exit_code: i64 = row.get(10)?;
-            let metrics_json: String = row.get(11)?;
-            let parameters: JsonValue = json_from_str(&parameters_json)?;
-            let metrics: MetricSet<FastqCorrectMetrics> = json_from_str(&metrics_json)?;
-            Ok(BenchmarkRecord {
-                context: BenchmarkContext {
-                    tool,
-                    tool_version,
-                    image_digest,
-                    runner,
-                    platform,
-                    input_hash,
-                    parameters: JsonBlob::from(parameters),
-                },
-                execution: ExecutionMetrics {
-                    runtime_s,
-                    memory_mb,
-                    exit_code: i32::try_from(exit_code).unwrap_or(i32::MAX),
-                },
-                metrics,
-            })
-        },
+        benchmark_record_from_row::<FastqCorrectMetrics>,
     );
     match row {
         Ok(record) => Ok(Some(record)),
@@ -1065,39 +837,7 @@ pub fn fetch_fastq_qc_post_v1(
             input_hash,
             params_hash
         ],
-        |row| {
-            let tool: String = row.get(0)?;
-            let tool_version: String = row.get(1)?;
-            let image_digest: String = row.get(2)?;
-            let runner: String = row.get(3)?;
-            let platform: String = row.get(4)?;
-            let input_hash: String = row.get(5)?;
-            let _params_hash: String = row.get(6)?;
-            let parameters_json: String = row.get(7)?;
-            let runtime_s: f64 = row.get(8)?;
-            let memory_mb: f64 = row.get(9)?;
-            let exit_code: i64 = row.get(10)?;
-            let metrics_json: String = row.get(11)?;
-            let parameters: JsonValue = json_from_str(&parameters_json)?;
-            let metrics: MetricSet<FastqQcPostMetrics> = json_from_str(&metrics_json)?;
-            Ok(BenchmarkRecord {
-                context: BenchmarkContext {
-                    tool,
-                    tool_version,
-                    image_digest,
-                    runner,
-                    platform,
-                    input_hash,
-                    parameters: JsonBlob::from(parameters),
-                },
-                execution: ExecutionMetrics {
-                    runtime_s,
-                    memory_mb,
-                    exit_code: i32::try_from(exit_code).unwrap_or(i32::MAX),
-                },
-                metrics,
-            })
-        },
+        benchmark_record_from_row::<FastqQcPostMetrics>,
     );
     match row {
         Ok(record) => Ok(Some(record)),
@@ -1200,39 +940,7 @@ pub fn fetch_fastq_umi_v1(
             input_hash,
             params_hash
         ],
-        |row| {
-            let tool: String = row.get(0)?;
-            let tool_version: String = row.get(1)?;
-            let image_digest: String = row.get(2)?;
-            let runner: String = row.get(3)?;
-            let platform: String = row.get(4)?;
-            let input_hash: String = row.get(5)?;
-            let _params_hash: String = row.get(6)?;
-            let parameters_json: String = row.get(7)?;
-            let runtime_s: f64 = row.get(8)?;
-            let memory_mb: f64 = row.get(9)?;
-            let exit_code: i64 = row.get(10)?;
-            let metrics_json: String = row.get(11)?;
-            let parameters: JsonValue = json_from_str(&parameters_json)?;
-            let metrics: MetricSet<FastqUmiMetrics> = json_from_str(&metrics_json)?;
-            Ok(BenchmarkRecord {
-                context: BenchmarkContext {
-                    tool,
-                    tool_version,
-                    image_digest,
-                    runner,
-                    platform,
-                    input_hash,
-                    parameters: JsonBlob::from(parameters),
-                },
-                execution: ExecutionMetrics {
-                    runtime_s,
-                    memory_mb,
-                    exit_code: i32::try_from(exit_code).unwrap_or(i32::MAX),
-                },
-                metrics,
-            })
-        },
+        benchmark_record_from_row::<FastqUmiMetrics>,
     );
     match row {
         Ok(record) => Ok(Some(record)),
@@ -1336,39 +1044,7 @@ pub fn fetch_fastq_screen_v1(
             input_hash,
             params_hash
         ],
-        |row| {
-            let tool: String = row.get(0)?;
-            let tool_version: String = row.get(1)?;
-            let image_digest: String = row.get(2)?;
-            let runner: String = row.get(3)?;
-            let platform: String = row.get(4)?;
-            let input_hash: String = row.get(5)?;
-            let _params_hash: String = row.get(6)?;
-            let parameters_json: String = row.get(7)?;
-            let runtime_s: f64 = row.get(8)?;
-            let memory_mb: f64 = row.get(9)?;
-            let exit_code: i64 = row.get(10)?;
-            let metrics_json: String = row.get(11)?;
-            let parameters: JsonValue = json_from_str(&parameters_json)?;
-            let metrics: MetricSet<FastqScreenMetrics> = json_from_str(&metrics_json)?;
-            Ok(BenchmarkRecord {
-                context: BenchmarkContext {
-                    tool,
-                    tool_version,
-                    image_digest,
-                    runner,
-                    platform,
-                    input_hash,
-                    parameters: JsonBlob::from(parameters),
-                },
-                execution: ExecutionMetrics {
-                    runtime_s,
-                    memory_mb,
-                    exit_code: i32::try_from(exit_code).unwrap_or(i32::MAX),
-                },
-                metrics,
-            })
-        },
+        benchmark_record_from_row::<FastqScreenMetrics>,
     );
     match row {
         Ok(record) => Ok(Some(record)),
@@ -1472,39 +1148,7 @@ pub fn fetch_fastq_stats_v1(
             input_hash,
             params_hash
         ],
-        |row| {
-            let tool: String = row.get(0)?;
-            let tool_version: String = row.get(1)?;
-            let image_digest: String = row.get(2)?;
-            let runner: String = row.get(3)?;
-            let platform: String = row.get(4)?;
-            let input_hash: String = row.get(5)?;
-            let _params_hash: String = row.get(6)?;
-            let parameters_json: String = row.get(7)?;
-            let runtime_s: f64 = row.get(8)?;
-            let memory_mb: f64 = row.get(9)?;
-            let exit_code: i64 = row.get(10)?;
-            let metrics_json: String = row.get(11)?;
-            let parameters: JsonValue = json_from_str(&parameters_json)?;
-            let metrics: MetricSet<FastqStatsMetrics> = json_from_str(&metrics_json)?;
-            Ok(BenchmarkRecord {
-                context: BenchmarkContext {
-                    tool,
-                    tool_version,
-                    image_digest,
-                    runner,
-                    platform,
-                    input_hash,
-                    parameters: JsonBlob::from(parameters),
-                },
-                execution: ExecutionMetrics {
-                    runtime_s,
-                    memory_mb,
-                    exit_code: i32::try_from(exit_code).unwrap_or(i32::MAX),
-                },
-                metrics,
-            })
-        },
+        benchmark_record_from_row::<FastqStatsMetrics>,
     );
     match row {
         Ok(record) => Ok(Some(record)),

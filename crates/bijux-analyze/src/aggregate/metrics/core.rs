@@ -8,8 +8,8 @@ use serde::{Deserialize, Serialize};
 use crate::aggregate::registry::{metric_spec, StageMetricKind, StageMetricRegistry};
 use crate::aggregate::{BenchError, Result};
 
-pub use crate::aggregate::metrics_bench::*;
-pub use crate::aggregate::metrics_fastq::*;
+pub use super::bench::*;
+pub use super::fastq::*;
 
 pub trait StageMetricSchema {
     const STAGE: &'static str;

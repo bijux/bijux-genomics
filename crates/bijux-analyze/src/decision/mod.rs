@@ -5,7 +5,6 @@
 //! Invariants: missing semantics produce errors with remediation hints.
 
 pub mod compare;
-pub mod explain;
 pub mod score;
 mod score_helpers;
 

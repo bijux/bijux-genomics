@@ -8,7 +8,8 @@ use super::run_report_schema::{
 use super::run_report_sections::{
     adapter_inference_section, filter_interpretation_section, qc_improvement_section,
 };
-use crate::facts_export::write_run_summary_json;
+use crate::export::write_run_summary_json;
+use crate::model::stable_sort_records;
 use crate::model::JsonBlob;
 use crate::report::model::ReportModel;
 use crate::report::render_json::write_report_json;
@@ -24,7 +25,7 @@ use bijux_core::{
 #[allow(clippy::too_many_lines)]
 pub fn build_run_report_model(rows: &[FactsRowV1]) -> Result<ReportModel> {
     let mut ordered = rows.to_vec();
-    crate::facts_export::stable_sort_records(&mut ordered, |row| {
+    stable_sort_records(&mut ordered, |row| {
         (
             row.run_id.as_str(),
             row.stage_id.as_str(),
