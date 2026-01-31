@@ -2,8 +2,7 @@ use std::collections::HashMap;
 
 use anyhow::{anyhow, Result};
 
-use crate::api::{PlatformSpec, ToolImageSpec};
-use crate::docker_image_exists;
+use crate::api::{docker_image_exists, PlatformSpec, ToolImageSpec};
 
 use super::support::resolve_image_for_run;
 

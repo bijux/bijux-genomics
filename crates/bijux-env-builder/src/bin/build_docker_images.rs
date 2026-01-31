@@ -2,9 +2,8 @@ use std::collections::HashSet;
 use std::path::PathBuf;
 use std::process::Command;
 
-use bijux_environment::{
-    default_docker_tools, extract_version_from_dockerfile, load_platform, ImageRef, RunnerKind,
-};
+use bijux_env_builder::{default_docker_tools, extract_version_from_dockerfile, DockerToolSpec};
+use bijux_env_runtime::{load_platform, ImageRef, RunnerKind};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<String> = std::env::args().collect();
@@ -105,9 +104,7 @@ fn parse_list_arg(args: &[String], name: &str) -> Option<HashSet<String>> {
     })
 }
 
-fn reorder_tools(
-    mut tools: Vec<bijux_environment::DockerToolSpec>,
-) -> Vec<bijux_environment::DockerToolSpec> {
+fn reorder_tools(mut tools: Vec<DockerToolSpec>) -> Vec<DockerToolSpec> {
     let priority = [
         "fastp",
         "cutadapt",

@@ -170,6 +170,12 @@ pub struct BenchFastqFilterArgs {
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
+    #[arg(long)]
+    pub max_n: Option<u32>,
+    #[arg(long = "low-complexity-threshold")]
+    pub low_complexity_threshold: Option<f64>,
+    #[arg(long)]
+    pub kmer_ref: Option<PathBuf>,
 }
 
 #[derive(Debug, Args)]
@@ -439,7 +445,7 @@ pub enum FastqCommand {
         about = "Filter FASTQ reads.",
         after_help = "Examples:\n  bijux fastq filter --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE --tools fastp\n  bijux fastq filter --list-tools"
     )]
-    Filter(CommonArgs),
+    Filter(FastqFilterArgs),
     #[command(
         about = "Merge paired-end FASTQ reads.",
         after_help = "Example:\n  bijux fastq merge --r1 reads_1.fastq.gz --r2 reads_2.fastq.gz --out artifacts --sample-id SAMPLE --tools vsearch\n\nNext stages: filter -> stats"
@@ -523,6 +529,28 @@ pub struct FastqTrimArgs {
     pub polyx_preset: Option<String>,
     #[arg(long, help = "Contaminant preset name (default: illumina_default)")]
     pub contaminant_preset: Option<String>,
+}
+
+#[derive(Debug, Args, Clone)]
+pub struct FastqFilterArgs {
+    #[command(flatten)]
+    pub common: CommonArgs,
+    #[arg(long)]
+    pub env: Option<String>,
+    #[arg(long, alias = "sample")]
+    pub sample_id: Option<String>,
+    #[arg(long)]
+    pub r1: Option<PathBuf>,
+    #[arg(long)]
+    pub out: Option<PathBuf>,
+    #[arg(long, value_delimiter = ',')]
+    pub tools: Vec<String>,
+    #[arg(long)]
+    pub max_n: Option<u32>,
+    #[arg(long = "low-complexity-threshold")]
+    pub low_complexity_threshold: Option<f64>,
+    #[arg(long)]
+    pub kmer_ref: Option<PathBuf>,
 }
 
 #[derive(Debug, Args, Clone)]

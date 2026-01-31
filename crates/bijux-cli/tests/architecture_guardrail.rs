@@ -340,7 +340,8 @@ fn cli_fastq_exec_size_or_no_exec_imports() -> Result<(), Box<dyn std::error::Er
         let contents = fs::read_to_string(&path)?;
         let line_count = contents.lines().count();
         if line_count > max_lines {
-            let has_env = contents.contains("bijux_environment::");
+            let has_env = contents.contains("bijux_env_runtime::")
+                || contents.contains("bijux_env_builder::");
             let has_executor = contents.contains("services::executor");
             if has_env || has_executor {
                 offenders.push(format!(

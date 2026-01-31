@@ -8,7 +8,7 @@ use bijux_core::{
     ToolExecutionSpecV1, ToolId,
 };
 use bijux_engine::api::{execute_plan, params_hash, StagePlanV1};
-use bijux_environment::api::RunnerKind;
+use bijux_env_runtime::api::RunnerKind;
 use bijux_stages_fastq::fastq::{
     correct, filter, merge, qc_post, screen, stats_neutral, trim, umi, validate_pre,
 };
@@ -31,7 +31,7 @@ case "$cmd" in
     exit 0
     ;;
   wait)
-    echo "${BIJUX_TEST_DOCKER_EXIT_CODE:-0}"
+    echo "0"
     exit 0
     ;;
   logs)
@@ -162,7 +162,10 @@ fn build_plan(
                 None,
             )?
         }
-        "fastq.filter" => filter::plan_filter(&dummy_tool("fastp", image), r1, out_dir)?,
+        "fastq.filter" => {
+            let options = bijux_stages_fastq::fastq::filter::FilterPlanOptions::default();
+            filter::plan_filter(&dummy_tool("fastp", image), r1, out_dir, &options)?
+        }
         "fastq.validate_pre" => {
             validate_pre::plan(&dummy_tool("fastqvalidator_official", image), r1, out_dir)
         }
@@ -213,6 +216,11 @@ fn fastq_stages_emit_observability_contracts() -> Result<()> {
         let (exec_plan, outputs, is_retention) = build_plan(stage.id, &r1, &r2, &out_dir, &image)?;
         for output in &outputs {
             touch(output).context("touch output")?;
+        }
+        if stage.id == "fastq.qc_post" {
+            touch(&out_dir.join("fastqc").join("fastqc_data.txt"))
+                .context("touch fastqc output")?;
+            touch(&out_dir.join("multiqc_report.html")).context("touch multiqc output")?;
         }
         if stage.id == "fastq.merge" {
             for output in merge_outputs_for(&exec_plan.tool_id.0, &out_dir) {

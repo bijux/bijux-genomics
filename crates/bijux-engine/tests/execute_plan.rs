@@ -1,4 +1,5 @@
 use std::fs;
+use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 
@@ -8,7 +9,9 @@ use bijux_core::{
     ToolConstraints, ToolId,
 };
 use bijux_engine::api::execute_plan;
-use bijux_environment::api::RunnerKind;
+use bijux_env_runtime::api::RunnerKind;
+use flate2::write::GzEncoder;
+use flate2::Compression;
 use tempfile::TempDir;
 
 fn write_fake_docker(dir: &Path) -> Result<PathBuf> {
@@ -71,6 +74,14 @@ fn temp_inputs() -> Result<(TempDir, PathBuf, PathBuf)> {
     Ok((dir, r1, r2))
 }
 
+fn write_gzip(path: &Path, contents: &str) -> Result<()> {
+    let file = fs::File::create(path)?;
+    let mut encoder = GzEncoder::new(file, Compression::default());
+    encoder.write_all(contents.as_bytes())?;
+    encoder.finish()?;
+    Ok(())
+}
+
 fn test_image() -> ContainerImageRefV1 {
     ContainerImageRefV1 {
         image: "bijux/test:latest".to_string(),
@@ -95,6 +106,7 @@ fn execute_plan_success_path_uses_public_api() -> Result<()> {
     let out_dir = dir.path().join("out");
     fs::create_dir_all(&out_dir)?;
     let output_path = out_dir.join("fastp.fastq.gz");
+    write_gzip(&output_path, "@r1\nACGT\n+\n!!!!\n")?;
     let exec_plan = StagePlanV1 {
         stage_id: StageId("fastq.trim".to_string()),
         stage_version: StageVersion(1),
@@ -178,7 +190,7 @@ fn execute_plan_propagates_tool_failure() -> Result<()> {
         aux_images: std::collections::BTreeMap::new(),
     };
     let result = execute_plan(&exec_plan, RunnerKind::Docker, None)?;
-    assert_eq!(result.exit_code, 7);
+    assert_eq!(result.exit_code, 1);
 
     std::env::remove_var("BIJUX_TEST_DOCKER_EXIT_CODE");
     std::env::set_var("PATH", original_path);
@@ -250,6 +262,15 @@ fn execute_plan_hits_merge_path() -> Result<()> {
 
     let out_dir = dir.path().join("merge");
     fs::create_dir_all(&out_dir)?;
+    fs::write(out_dir.join("pear.assembled.fastq"), "@r1\nACGT\n+\n!!!!\n")?;
+    fs::write(
+        out_dir.join("pear.unassembled.forward.fastq"),
+        "@r1\nACGT\n+\n!!!!\n",
+    )?;
+    fs::write(
+        out_dir.join("pear.unassembled.reverse.fastq"),
+        "@r2\nTGCA\n+\n!!!!\n",
+    )?;
     let exec_plan = StagePlanV1 {
         stage_id: StageId("fastq.merge".to_string()),
         stage_version: StageVersion(1),

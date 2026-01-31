@@ -9,7 +9,7 @@ use crate::services::composer::paths::bench_tools_dir;
 use serde::Serialize;
 use uuid::Uuid;
 
-use bijux_core::observability::{MergeReportV1, TrimReportV1, ValidateReportV1};
+use bijux_core::observability::{FilterReportV1, MergeReportV1, TrimReportV1, ValidateReportV1};
 use bijux_core::{
     EffectiveConfigV1, FactsRowV1, RetentionReportV1, StageObservabilityContextV1, StageReportV1,
     TelemetryEventV1,
@@ -609,6 +609,41 @@ pub fn write_validate_report_v1(
     };
     let path = reports_dir.join(file_name);
     std::fs::write(&path, serde_json::to_vec_pretty(&payload)?).context("write validate report")?;
+    Ok(path)
+}
+
+#[allow(clippy::too_many_arguments)]
+pub fn write_filter_report_v1(
+    run_artifacts_dir: &Path,
+    stage_id: &str,
+    tool_id: &str,
+    reads_in: u64,
+    reads_out: u64,
+    reads_removed_total: u64,
+    reads_removed_by_n: u64,
+    reads_removed_by_entropy: u64,
+    reads_removed_by_kmer: u64,
+    conditions: serde_json::Value,
+    redundant_filters: Vec<String>,
+) -> Result<PathBuf> {
+    let reports_dir = run_artifacts_dir.join("reports");
+    std::fs::create_dir_all(&reports_dir).context("create reports dir")?;
+    let file_name = format!("{stage_id}.filter_report.json");
+    let payload = FilterReportV1 {
+        schema_version: "bijux.filter_report.v1".to_string(),
+        stage_id: stage_id.to_string(),
+        tool_id: tool_id.to_string(),
+        reads_in,
+        reads_out,
+        reads_removed_total,
+        reads_removed_by_n,
+        reads_removed_by_entropy,
+        reads_removed_by_kmer,
+        conditions,
+        redundant_filters,
+    };
+    let path = reports_dir.join(file_name);
+    std::fs::write(&path, serde_json::to_vec_pretty(&payload)?).context("write filter report")?;
     Ok(path)
 }
 

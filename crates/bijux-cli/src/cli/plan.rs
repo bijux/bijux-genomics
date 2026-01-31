@@ -40,8 +40,12 @@ pub fn resolve_stage_tool(command: &Commands) -> (StageId, ToolId, CommonArgs) {
                 ToolId("seqkit_stats".to_string()),
                 common.clone(),
             ),
-            FastqCommand::Filter(common)
-            | FastqCommand::Merge(common)
+            FastqCommand::Filter(args) => (
+                StageId("fastq.trim".to_string()),
+                ToolId("fastp".to_string()),
+                args.common.clone(),
+            ),
+            FastqCommand::Merge(common)
             | FastqCommand::Contam(common)
             | FastqCommand::Umi(common)
             | FastqCommand::ErrorCorrect(common)
@@ -103,6 +107,9 @@ pub fn bench_args_filter(args: &BenchFastqFilterArgs) -> engine_args::BenchFastq
         out: args.out.clone(),
         tools: args.tools.clone(),
         explain: args.explain,
+        max_n: args.max_n,
+        low_complexity_threshold: args.low_complexity_threshold,
+        kmer_ref: args.kmer_ref.clone(),
     }
 }
 

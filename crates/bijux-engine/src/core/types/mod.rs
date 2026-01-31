@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 
-use bijux_environment::api::{PlatformSpec, RunnerKind};
+use bijux_env_runtime::api::{PlatformSpec, RunnerKind};
 use serde::{Deserialize, Serialize};
 
 mod logging;

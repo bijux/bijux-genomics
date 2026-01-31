@@ -2,7 +2,7 @@ use std::path::Path;
 use std::process::Command;
 
 use anyhow::{anyhow, Context, Result};
-use bijux_environment::api::ResolvedImage;
+use bijux_env_runtime::api::ResolvedImage;
 use tracing::warn;
 
 use bijux_core::measure::SeqkitMetrics;

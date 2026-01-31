@@ -5,7 +5,7 @@ use bijux_engine::api::{
     docker_rm, docker_stats_mb, output_fastq_stats, parse_fastqvalidator_count,
     run_merge_container, run_tool_container, run_validate_container, ExecutionManifest,
 };
-use bijux_environment::api::{load_image_catalog, load_platform};
+use bijux_env_runtime::api::{load_image_catalog, load_platform};
 use sha2::{Digest, Sha256};
 use tempfile::TempDir;
 use uuid::Uuid;
@@ -46,7 +46,7 @@ fn write_truncated_gzip(dir: &Path, name: &str, source: &Path) -> Result<std::pa
 
 fn run_tool_with_measurements(
     tool: &str,
-    image: &bijux_environment::api::ResolvedImage,
+    image: &bijux_env_runtime::api::ResolvedImage,
     r1_dir: &Path,
     r1: &Path,
 ) -> Result<Option<(f64, f64)>> {

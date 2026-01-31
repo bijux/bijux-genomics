@@ -6,7 +6,7 @@ use bijux_core::{
     build_execution_plan, load_manifests, load_profile, new_run_id, DryRunExecutor, Executor,
     PathSpec, RunSpec,
 };
-use bijux_environment::api::{load_image_catalog, load_platform};
+use bijux_env_runtime::api::{load_image_catalog, load_platform};
 use clap::Parser;
 use tracing::{info, warn};
 
@@ -36,7 +36,7 @@ use bijux_analyze::{
 };
 use bijux_core::selection::{objective_spec, Objective};
 use bijux_engine::api::init_logging;
-use bijux_environment::image_qa::run_image_qa;
+use bijux_env_builder::image_qa::run_image_qa;
 use bijux_stages_fastq::{benchmark_runs, write_benchmark_exports, AdapterPresetsV1};
 use cli::{
     bench_args_correct, bench_args_filter, bench_args_from_trim, bench_args_from_validate,

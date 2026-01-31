@@ -22,7 +22,7 @@ This document defines ownership and allowed dependencies. Treat it as an API con
 - Does not own: CLI argument parsing, domain business rules.
 - Allowed deps: core + stages + environment.
 
-## bijux-environment
+## bijux-env-runtime / bijux-env-builder
 - Owns: runner/platform discovery, image resolution.
 - Does not own: domain planning or CLI.
 - Allowed deps: core.

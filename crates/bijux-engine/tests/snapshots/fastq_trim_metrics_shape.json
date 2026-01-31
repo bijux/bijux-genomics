@@ -18,6 +18,9 @@
       "adapter_policy": "null",
       "banks": {},
       "contaminant_policy": "null",
+      "kmer_ref": "null",
+      "low_complexity_threshold": "null",
+      "max_n": "null",
       "merge_policy": "null",
       "min_len": "null",
       "parameters": {

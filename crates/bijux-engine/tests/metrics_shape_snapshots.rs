@@ -7,7 +7,7 @@ use bijux_core::{
     CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
 };
 use bijux_engine::api::execute_plan;
-use bijux_environment::api::RunnerKind;
+use bijux_env_runtime::api::RunnerKind;
 use bijux_stages_fastq::fastq::{filter, merge, trim, validate_pre};
 use tempfile::TempDir;
 
@@ -211,7 +211,13 @@ fn metrics_shape_snapshots() -> Result<()> {
 
     let filter_out = dir.path().join("filter");
     fs::create_dir_all(&filter_out)?;
-    let filter_plan = filter::plan_filter(&dummy_tool("fastp", &image), &r1, &filter_out)?;
+    let filter_options = bijux_stages_fastq::fastq::filter::FilterPlanOptions::default();
+    let filter_plan = filter::plan_filter(
+        &dummy_tool("fastp", &image),
+        &r1,
+        &filter_out,
+        &filter_options,
+    )?;
     for output in &filter_plan.io.outputs {
         touch(&output.path)?;
     }

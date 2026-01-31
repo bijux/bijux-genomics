@@ -170,6 +170,8 @@
   "telemetry": {
     "events": [
       "/Users/bijan/bijux/bijux-dna/target/test-fixtures/report/telemetry/events.jsonl"
-    ]
+    ],
+    "event_count": 0,
+    "error_count": 0
   }
 }

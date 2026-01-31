@@ -19,7 +19,8 @@ sha2.workspace = true
 uuid.workspace = true
 rusqlite.workspace = true
 chrono.workspace = true
-bijux-environment = { path = "../bijux-environment" }
+bijux-env-runtime = { path = "../bijux-env-runtime" }
+bijux-env-builder = { path = "../bijux-env-builder" }
 bijux-analyze = { path = "../bijux-analyze" }
 bijux-engine = { path = "../bijux-engine" }
 bijux-stages-fastq = { path = "../bijux-stages-fastq" }

@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 use std::time::Instant;
 
 use anyhow::{anyhow, Context, Result};
-use bijux_environment::api::{ResolvedImage, RunnerKind};
+use bijux_env_runtime::api::{ResolvedImage, RunnerKind};
 use chrono::Utc;
 use flate2::read::GzDecoder;
 use tracing::info;
@@ -17,11 +17,11 @@ use crate::api::{
 use crate::services::observer::Observer;
 use crate::services::run_artifacts::{
     default_trace_ids, params_hash, run_artifacts_dir_for_out, write_facts_jsonl,
-    write_merge_report_v1, write_metrics_envelope, write_observability_manifest,
-    write_plan_artifacts, write_progress_event_jsonl, write_retention_report_v1,
-    write_runs_export_jsonl, write_stage_event_jsonl, write_stage_metrics_json,
-    write_stage_report_v1, write_telemetry_event, write_tool_invocation_json, write_trim_report_v1,
-    write_validate_report_v1,
+    write_filter_report_v1, write_merge_report_v1, write_metrics_envelope,
+    write_observability_manifest, write_plan_artifacts, write_progress_event_jsonl,
+    write_retention_report_v1, write_runs_export_jsonl, write_stage_event_jsonl,
+    write_stage_metrics_json, write_stage_report_v1, write_telemetry_event,
+    write_tool_invocation_json, write_trim_report_v1, write_validate_report_v1,
 };
 use bijux_core::run_index::{insert_stage_row, StageIndexRow};
 use bijux_core::{
@@ -223,6 +223,9 @@ fn retention_conditions_from_params(params: &serde_json::Value) -> serde_json::V
     serde_json::json!({
         "min_len": params.get("min_len"),
         "q": params.get("q"),
+        "max_n": params.get("max_n"),
+        "low_complexity_threshold": params.get("low_complexity_threshold"),
+        "kmer_ref": params.get("kmer_ref"),
         "merge_policy": params.get("merge_policy"),
         "adapter_policy": params.get("adapter_policy"),
         "polyx_policy": params.get("polyx_policy"),
@@ -249,6 +252,23 @@ fn warnings_for_plan(plan: &StagePlanV1, params: &serde_json::Value) -> Vec<Stri
     let mut warnings = Vec::new();
     if let Some(msg) = polyx_unsupported_warning(plan.tool_id.0.as_str(), params) {
         warnings.push(msg);
+    }
+    if let Some(redundant) = params
+        .get("redundant_filters")
+        .and_then(|value| value.as_array())
+    {
+        if !redundant.is_empty() {
+            let rendered: Vec<String> = redundant
+                .iter()
+                .filter_map(|value| value.as_str().map(str::to_string))
+                .collect();
+            if !rendered.is_empty() {
+                warnings.push(format!(
+                    "warning: filter may be redundant; already handled by trim: {}",
+                    rendered.join(", ")
+                ));
+            }
+        }
     }
     warnings
 }
@@ -659,6 +679,9 @@ fn stage_metrics_for_plan(
                 reads_in: input.reads,
                 reads_out: output.reads,
                 reads_dropped: input.reads.saturating_sub(output.reads),
+                reads_removed_by_n: 0,
+                reads_removed_by_entropy: 0,
+                reads_removed_by_kmer: 0,
                 bases_in: input.bases,
                 bases_out: output.bases,
                 pairs_in,
@@ -1254,6 +1277,35 @@ pub fn execute_stage_plan(
                 0,
             )?;
             emit_artifact("validate_report", &report_path)?;
+            subreports.push(report_path);
+        }
+        if plan.stage_id.0 == "fastq.filter" {
+            let input = stats_or_zero(input_paths.first().map(PathBuf::as_path))?;
+            let output = stats_or_zero(outputs.first().map(PathBuf::as_path))?;
+            let redundant_filters = canonical_params
+                .get("redundant_filters")
+                .and_then(|value| value.as_array())
+                .map(|values| {
+                    values
+                        .iter()
+                        .filter_map(|value| value.as_str().map(str::to_string))
+                        .collect::<Vec<String>>()
+                })
+                .unwrap_or_default();
+            let report_path = write_filter_report_v1(
+                &run_artifacts_dir,
+                &plan.stage_id.0,
+                &plan.tool_id.0,
+                input.reads,
+                output.reads,
+                input.reads.saturating_sub(output.reads),
+                0,
+                0,
+                0,
+                retention_conditions_from_params(&canonical_params),
+                redundant_filters,
+            )?;
+            emit_artifact("filter_report", &report_path)?;
             subreports.push(report_path);
         }
         if plan.stage_id.0 == "fastq.merge" {

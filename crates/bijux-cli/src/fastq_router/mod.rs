@@ -12,7 +12,9 @@ use bijux_engine::api::{
 use bijux_engine::api::{ensure_bench_runner, filter_tools_by_role, load_registry};
 use bijux_engine::api::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use bijux_stages_fastq::fastq::correct::{normalize_correct_tool_list, plan_correct};
-use bijux_stages_fastq::fastq::filter::{normalize_filter_tool_list, plan_filter};
+use bijux_stages_fastq::fastq::filter::{
+    normalize_filter_tool_list, plan_filter, FilterPlanOptions,
+};
 use bijux_stages_fastq::fastq::merge::{normalize_merge_tool_list, plan_merge};
 use bijux_stages_fastq::fastq::preprocess::{plan_preprocess, plan_preprocess_pipeline};
 use bijux_stages_fastq::fastq::qc_post::{aux_tool_ids, normalize_qc_post_tool_list, plan_qc_post};
@@ -222,13 +224,19 @@ pub fn bench_fastq_filter<S: ::std::hash::BuildHasher>(
     ensure_image_qa_passed("fastq.filter", &tools, platform, catalog)?;
     ensure_tool_qa_passed("fastq.filter", &tools, platform, catalog)?;
 
+    let filter_options = FilterPlanOptions {
+        max_n: args.max_n,
+        low_complexity_threshold: args.low_complexity_threshold,
+        kmer_ref: args.kmer_ref.clone(),
+        redundant_filters: Vec::new(),
+    };
     let mut failures = Vec::new();
     for tool in &tools {
         let out_dir = tools_root.join(tool);
         fs::create_dir_all(&out_dir).context("create tool output dir")?;
         let tool_spec =
             build_tool_execution_spec("fastq.filter", tool, &registry, catalog, platform)?;
-        let plan = plan_filter(&tool_spec, &args.r1, &out_dir)?;
+        let plan = plan_filter(&tool_spec, &args.r1, &out_dir, &filter_options)?;
         let execution = execute_plan(&plan, platform.runner, None)?;
         if execution.exit_code != 0 {
             failures.push(RawFailure {

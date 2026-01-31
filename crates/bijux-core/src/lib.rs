@@ -43,8 +43,8 @@ pub use metrics_registry::{
 };
 pub use observability::{
     canonicalize_json_value, parameters_json_canonicalization, AssetsProvenanceV1,
-    EffectiveConfigV1, FactsRowV1, MetricSemanticsV1, ReportCompletenessV1, ReportContractV1,
-    ReportProvenanceV1, ReportSchemaV1, ReportStageSummaryV1, RetentionContextV1,
+    EffectiveConfigV1, FactsRowV1, FilterReportV1, MetricSemanticsV1, ReportCompletenessV1,
+    ReportContractV1, ReportProvenanceV1, ReportSchemaV1, ReportStageSummaryV1, RetentionContextV1,
     RetentionDefinitionV1, RetentionReportV1, StageObservabilityContextV1,
     StageObservabilityContractV1, StageReportV1, TelemetryEventV1,
 };

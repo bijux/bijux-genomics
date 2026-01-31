@@ -38,18 +38,23 @@ pub fn trace_enabled() -> bool {
     std::env::var("BIJUX_TRACE_ENGINE").is_ok()
 }
 
+#[must_use]
 pub fn image_qa_base_dir(cwd: &Path, platform: &str) -> PathBuf {
     cwd.join("artifacts").join("image-qa").join(platform)
 }
 
+#[must_use]
 pub fn image_qa_jsonl_path(cwd: &Path, platform: &str) -> PathBuf {
     image_qa_base_dir(cwd, platform).join("qa.jsonl")
 }
 
+#[must_use]
 pub fn image_qa_sqlite_path(cwd: &Path, platform: &str) -> PathBuf {
     image_qa_base_dir(cwd, platform).join("qa.sqlite")
 }
 
+/// # Errors
+/// Returns an error if the file cannot be read.
 pub fn hash_file_sha256(path: &Path) -> Result<String> {
     let bytes = std::fs::read(path).context("read file for hash")?;
     let mut hasher = sha2::Sha256::new();
@@ -217,6 +222,8 @@ fn parse_seqkit_stats(output: &str) -> Result<SeqkitMetrics> {
     })
 }
 
+/// # Errors
+/// Returns an error when the output directory violates the contract.
 pub fn validate_execution_outputs(contract: &ExecutionContract, out_dir: &Path) -> Result<()> {
     let outputs = collect_outputs(out_dir)?;
 

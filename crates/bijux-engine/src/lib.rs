@@ -16,4 +16,4 @@ pub mod core;
 pub mod internal;
 pub mod services;
 
-pub use bijux_environment::api::ResolvedImage;
+pub use bijux_env_runtime::api::ResolvedImage;

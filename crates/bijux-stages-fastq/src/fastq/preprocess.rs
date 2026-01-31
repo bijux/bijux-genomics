@@ -77,7 +77,19 @@ where
                 )
             }
             "fastq.filter" => {
-                let plan = crate::fastq::filter::plan_filter(tool, &current_r1, &out_dir)?;
+                let mut filter_options = crate::fastq::filter::FilterPlanOptions::default();
+                if adapter_bank.is_some() {
+                    filter_options.redundant_filters.push("adapter".to_string());
+                }
+                if polyx_bank.is_some() {
+                    filter_options.redundant_filters.push("polyx".to_string());
+                }
+                let plan = crate::fastq::filter::plan_filter(
+                    tool,
+                    &current_r1,
+                    &out_dir,
+                    &filter_options,
+                )?;
                 (
                     plan.clone(),
                     plan.io.outputs[0].path.clone(),

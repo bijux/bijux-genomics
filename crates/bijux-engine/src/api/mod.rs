@@ -45,8 +45,8 @@ pub use bijux_core::StagePlanV1;
 pub use bijux_core::{
     EffectiveConfigV1, FactsRowV1, RetentionReportV1, StageReportV1, TelemetryEventV1,
 };
-pub use bijux_environment::api::{PlatformSpec, ResolvedImage, RunnerKind, ToolImageSpec};
-pub use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
+pub use bijux_env_builder::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
+pub use bijux_env_runtime::api::{PlatformSpec, ResolvedImage, RunnerKind, ToolImageSpec};
 
 pub fn ensure_bench_runner(
     platform: &PlatformSpec,

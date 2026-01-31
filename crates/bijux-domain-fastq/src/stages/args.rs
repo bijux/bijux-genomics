@@ -33,6 +33,9 @@ pub struct BenchFastqFilterArgs {
     pub out: PathBuf,
     pub tools: Vec<String>,
     pub explain: bool,
+    pub max_n: Option<u32>,
+    pub low_complexity_threshold: Option<f64>,
+    pub kmer_ref: Option<PathBuf>,
 }
 
 #[derive(Debug, Clone)]
