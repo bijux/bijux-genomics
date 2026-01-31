@@ -7,8 +7,6 @@ use anyhow::{anyhow, Result};
 use bijux_core::metrics_registry::{metric_semantics, MetricDirection};
 use bijux_core::MetricSemanticsV1;
 
-pub mod metrics;
-
 #[derive(Debug, Clone, Copy, serde::Serialize, serde::Deserialize)]
 pub enum MissingPolicy {
     TreatAsZero,

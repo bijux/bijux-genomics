@@ -6,7 +6,6 @@ pub mod failure;
 pub mod load;
 pub mod model;
 pub mod report;
-pub mod semantic;
 pub use aggregate::*;
 pub use bijux_core::metrics::MetricSet;
 pub use contract::{analyze_contract_v1, AnalyzeContractV1};
@@ -14,7 +13,6 @@ pub use decision::compare::compare_runs;
 pub use failure::*;
 pub use load::*;
 pub use report::*;
-pub use semantic::*;
 pub mod compare {
 pub use crate::decision::compare::*;
 pub mod ranking {
