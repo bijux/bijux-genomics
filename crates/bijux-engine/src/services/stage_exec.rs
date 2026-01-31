@@ -911,6 +911,24 @@ pub fn execute_stage_plan(
         write_stage_event_jsonl(&run_artifacts_dir, event)?;
         Ok(())
     };
+    let emit_artifact = |name: &str, path: &Path| -> Result<()> {
+        emit_event(&bijux_core::TelemetryEventV1 {
+            schema_version: "bijux.telemetry.v1".to_string(),
+            run_id: run_id.clone(),
+            stage_id: plan.stage_id.0.clone(),
+            tool_id: plan.tool_id.0.clone(),
+            event_name: "artifact_written".to_string(),
+            timestamp: Utc::now().to_rfc3339(),
+            duration_ms: None,
+            status: "ok".to_string(),
+            trace_id: trace_id.clone(),
+            span_id: span_id.clone(),
+            attrs: serde_json::json!({
+                "artifact": name,
+                "path": path.display().to_string(),
+            }),
+        })
+    };
     emit_event(&bijux_core::TelemetryEventV1 {
         schema_version: "bijux.telemetry.v1".to_string(),
         run_id: run_id.clone(),
@@ -1102,6 +1120,7 @@ pub fn execute_stage_plan(
         };
         let tool_invocation_path =
             write_tool_invocation_json(&run_artifacts_dir, &plan.stage_id.0, &invocation)?;
+        emit_artifact("tool_invocation", &tool_invocation_path)?;
         let ctx = StageObservabilityContextV1 {
             stage_id: plan.stage_id.0.clone(),
             stage_version: stage_version_i32(plan.stage_version),
@@ -1124,6 +1143,7 @@ pub fn execute_stage_plan(
             &stage_metrics,
             &output_hashes,
         )?;
+        emit_artifact("metrics_envelope", &metrics_envelope_path)?;
         let stage_metrics_payload = StageMetricsV1 {
             schema_version: "bijux.stage_metrics.v1".to_string(),
             stage_id: plan.stage_id.0.clone(),
@@ -1138,6 +1158,7 @@ pub fn execute_stage_plan(
         };
         let stage_metrics_path =
             write_stage_metrics_json(&run_artifacts_dir, &stage_metrics_payload)?;
+        emit_artifact("stage_metrics", &stage_metrics_path)?;
         let metrics_path = run_artifacts_dir.join("metrics.json");
         let facts_row_id = format!("{}:{}:{}", run_id, plan.stage_id.0, plan.tool_id.0);
         let mut subreports: Vec<PathBuf> = Vec::new();
@@ -1186,6 +1207,7 @@ pub fn execute_stage_plan(
             let report_path = reports_dir.join("bank_report.json");
             std::fs::write(&report_path, serde_json::to_vec_pretty(&report_payload)?)
                 .context("write bank_report.json")?;
+            emit_artifact("bank_report", &report_path)?;
             subreports.push(report_path);
         }
         if plan.stage_id.0 == "fastq.trim" {
@@ -1218,6 +1240,7 @@ pub fn execute_stage_plan(
                 adapter_bank_hash,
                 adapter_overrides,
             )?;
+            emit_artifact("trim_report", &report_path)?;
             subreports.push(report_path);
         }
         if plan.stage_id.0 == "fastq.validate_pre" {
@@ -1230,6 +1253,7 @@ pub fn execute_stage_plan(
                 input.reads,
                 0,
             )?;
+            emit_artifact("validate_report", &report_path)?;
             subreports.push(report_path);
         }
         if plan.stage_id.0 == "fastq.merge" {
@@ -1255,6 +1279,7 @@ pub fn execute_stage_plan(
                 reads_unmerged,
                 merge_rate,
             )?;
+            emit_artifact("merge_report", &report_path)?;
             subreports.push(report_path);
         }
         let warnings = warnings_for_plan(plan, &canonical_params);
@@ -1274,6 +1299,24 @@ pub fn execute_stage_plan(
             &warnings,
             &[],
         )?;
+        emit_artifact("stage_report", &stage_report_path)?;
+        for warning in &warnings {
+            emit_event(&bijux_core::TelemetryEventV1 {
+                schema_version: "bijux.telemetry.v1".to_string(),
+                run_id: run_id.clone(),
+                stage_id: plan.stage_id.0.clone(),
+                tool_id: plan.tool_id.0.clone(),
+                event_name: "warn".to_string(),
+                timestamp: Utc::now().to_rfc3339(),
+                duration_ms: None,
+                status: "warn".to_string(),
+                trace_id: trace_id.clone(),
+                span_id: span_id.clone(),
+                attrs: serde_json::json!({
+                    "message": warning,
+                }),
+            })?;
+        }
         let (reads_in, reads_out, bases_in, bases_out, pairs_in, pairs_out) =
             extract_io_deltas(&stage_metrics);
         let retention_report_path = if is_retention_stage(&plan.stage_id.0) {
@@ -1295,6 +1338,9 @@ pub fn execute_stage_plan(
             None
         }
         .transpose()?;
+        if let Some(retention_path) = retention_report_path.as_ref() {
+            emit_artifact("retention_report", retention_path)?;
+        }
         let _observability_manifest = write_observability_manifest(
             &run_artifacts_dir,
             &plan.stage_id.0,
@@ -1336,6 +1382,8 @@ pub fn execute_stage_plan(
                 tool_id: plan.tool_id.0.clone(),
                 tool_version: plan.tool_version.clone(),
                 image_digest: plan.image.digest.clone(),
+                trace_id: trace_id.clone(),
+                span_id: span_id.clone(),
                 params_hash: params_hash.clone(),
                 input_hash: input_hash.clone(),
                 output_hashes: output_hashes.clone(),
@@ -1507,6 +1555,24 @@ pub fn execute_stage_plan(
             "error": telemetry_error.clone(),
         }),
     })?;
+    if let Some(error) = telemetry_error.as_ref() {
+        emit_event(&bijux_core::TelemetryEventV1 {
+            schema_version: "bijux.telemetry.v1".to_string(),
+            run_id: run_id.clone(),
+            stage_id: plan.stage_id.0.clone(),
+            tool_id: plan.tool_id.0.clone(),
+            event_name: "error".to_string(),
+            timestamp: Utc::now().to_rfc3339(),
+            duration_ms: None,
+            status: "error".to_string(),
+            trace_id: trace_id.clone(),
+            span_id: span_id.clone(),
+            attrs: serde_json::json!({
+                "message": error,
+                "exit_code": exit_code,
+            }),
+        })?;
+    }
     result
 }
 

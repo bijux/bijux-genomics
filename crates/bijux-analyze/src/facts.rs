@@ -16,6 +16,9 @@ pub struct FactsSummary {
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct RunSummaryV1 {
     pub schema_version: String,
+    pub facts_path: Option<String>,
+    pub report_path: Option<String>,
+    pub telemetry_path: Option<String>,
     pub runs: usize,
     pub stages: usize,
     pub total_runtime_s: f64,
@@ -89,6 +92,9 @@ pub fn summarize_facts(rows: &[FactsRowV1]) -> FactsSummary {
 /// Returns an error if the file cannot be written.
 pub fn write_run_summary_json(path: &Path, rows: &[FactsRowV1]) -> Result<()> {
     let summary = summarize_facts(rows);
+    let facts_path = Some("facts.jsonl".to_string());
+    let report_path = Some("report.json".to_string());
+    let telemetry_path = Some("telemetry/events.jsonl".to_string());
     let mut stage_rows: Vec<RunSummaryStageRow> = rows
         .iter()
         .map(|row| RunSummaryStageRow {
@@ -123,6 +129,9 @@ pub fn write_run_summary_json(path: &Path, rows: &[FactsRowV1]) -> Result<()> {
     });
     let payload = RunSummaryV1 {
         schema_version: "bijux.run_summary.v1".to_string(),
+        facts_path,
+        report_path,
+        telemetry_path,
         runs: summary.runs,
         stages: summary.stages,
         total_runtime_s: summary.total_runtime_s,

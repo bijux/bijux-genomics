@@ -54,5 +54,48 @@ fn cli_output_matches_stage_registry() -> Result<()> {
             "missing stage entry: {line}"
         );
     }
+    std::env::set_current_dir(repo_root)?;
+    let adapter_selection = bijux::adapter_bank::resolve_adapter_selection(None, None, None)?;
+    let mut adapter_presets: Vec<String> = adapter_selection
+        .presets
+        .presets
+        .iter()
+        .map(|preset| preset.name.clone())
+        .collect();
+    adapter_presets.sort();
+    for preset in adapter_presets {
+        assert!(
+            stdout.contains(&preset),
+            "missing adapter preset in output: {preset}"
+        );
+    }
+    let polyx_selection = bijux::polyx_bank::resolve_polyx_selection(None)?;
+    let mut polyx_presets: Vec<String> = polyx_selection
+        .presets
+        .presets
+        .iter()
+        .map(|preset| preset.name.clone())
+        .collect();
+    polyx_presets.sort();
+    for preset in polyx_presets {
+        assert!(
+            stdout.contains(&preset),
+            "missing polyx preset in output: {preset}"
+        );
+    }
+    let contaminant_selection = bijux::contaminant_bank::resolve_contaminant_selection(None)?;
+    let mut contaminant_presets: Vec<String> = contaminant_selection
+        .presets
+        .presets
+        .iter()
+        .map(|preset| preset.name.clone())
+        .collect();
+    contaminant_presets.sort();
+    for preset in contaminant_presets {
+        assert!(
+            stdout.contains(&preset),
+            "missing contaminant preset in output: {preset}"
+        );
+    }
     Ok(())
 }

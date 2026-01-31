@@ -12,6 +12,7 @@ use bijux_environment::api::RunnerKind;
 use bijux_stages_fastq::fastq::{
     correct, filter, merge, qc_post, screen, stats_neutral, trim, umi, validate_pre,
 };
+use bijux_stages_fastq::{fastq_default_pipeline, DefaultPipelineOptions};
 use tempfile::TempDir;
 
 static ENV_LOCK: Mutex<()> = Mutex::new(());
@@ -411,6 +412,7 @@ fn fastq_stages_emit_observability_contracts() -> Result<()> {
         let mut has_stage_end = false;
         let mut has_tool_start = false;
         let mut has_tool_end = false;
+        let mut has_artifact_written = false;
         for line in telemetry_raw.lines() {
             if line.trim().is_empty() {
                 continue;
@@ -431,11 +433,18 @@ fn fastq_stages_emit_observability_contracts() -> Result<()> {
             if event.event_name == "tool_end" {
                 has_tool_end = true;
             }
+            if event.event_name == "artifact_written" {
+                has_artifact_written = true;
+            }
         }
         assert!(has_stage_start, "missing stage_start telemetry event");
         assert!(has_stage_end, "missing stage_end telemetry event");
         assert!(has_tool_start, "missing tool_start telemetry event");
         assert!(has_tool_end, "missing tool_end telemetry event");
+        assert!(
+            has_artifact_written,
+            "missing artifact_written telemetry event"
+        );
 
         let facts_path = run_artifacts.join("dashboard").join("facts.jsonl");
         assert!(facts_path.exists());
@@ -467,5 +476,49 @@ fn fastq_stages_emit_observability_contracts() -> Result<()> {
     }
 
     std::env::set_var("PATH", original_path);
+    Ok(())
+}
+
+#[test]
+fn preprocess_emits_telemetry_events() -> Result<()> {
+    let _guard = ENV_LOCK
+        .lock()
+        .map_err(|_| anyhow::anyhow!("env lock poisoned"))?;
+    let (dir, r1, _) = temp_inputs()?;
+    let bin_dir = write_fake_docker(dir.path())?;
+    let old_path = std::env::var("PATH").unwrap_or_default();
+    std::env::set_var("PATH", format!("{}:{}", bin_dir.display(), old_path));
+
+    let pipeline = fastq_default_pipeline(DefaultPipelineOptions {
+        paired: false,
+        ..Default::default()
+    });
+    let preprocess_plan = bijux_stages_fastq::fastq::preprocess::PreprocessPlan {
+        r1: r1.clone(),
+        r2: None,
+        pipeline,
+    };
+    let tool = dummy_tool("fastp", &test_image());
+    let plan =
+        bijux_stages_fastq::fastq::preprocess::plan_preprocess_stage(&preprocess_plan, &tool);
+    let _result = execute_plan(&plan, RunnerKind::Docker, None)?;
+
+    let run_artifacts =
+        bijux_engine::services::run_artifacts::run_artifacts_dir_for_out(&plan.out_dir);
+    let telemetry_path = run_artifacts.join("telemetry").join("events.jsonl");
+    assert!(telemetry_path.exists());
+    let telemetry_raw = fs::read_to_string(&telemetry_path)?;
+    let events: Vec<bijux_core::TelemetryEventV1> = telemetry_raw
+        .lines()
+        .filter(|line| !line.trim().is_empty())
+        .map(serde_json::from_str)
+        .collect::<Result<_, _>>()?;
+    assert!(events.len() >= 4, "expected at least 4 telemetry events");
+    assert!(events.iter().any(|e| e.event_name == "stage_start"));
+    assert!(events.iter().any(|e| e.event_name == "stage_end"));
+    assert!(events.iter().any(|e| e.event_name == "tool_start"));
+    assert!(events.iter().any(|e| e.event_name == "tool_end"));
+
+    std::env::set_var("PATH", old_path);
     Ok(())
 }
