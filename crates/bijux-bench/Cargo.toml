@@ -6,5 +6,6 @@ edition = "2021"
 [dependencies]
 anyhow = { workspace = true }
 serde_json = { workspace = true }
+bijux-core = { path = "../bijux-core" }
 bijux-analyze = { path = "../bijux-analyze" }
 bijux-engine = { path = "../bijux-engine" }

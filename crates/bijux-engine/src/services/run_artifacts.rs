@@ -201,7 +201,10 @@ pub fn write_run_manifest(
         "schema_version": "bijux.run_manifest.v1",
         "stage": stage,
         "tool": tool,
-        "artifacts": artifacts
+        "artifacts": artifacts,
+        "telemetry": {
+            "events_jsonl": run_artifacts_dir(run_dirs)?.join("telemetry").join("events.jsonl"),
+        },
     });
     std::fs::write(
         &run_dirs.run_manifest_path,
@@ -452,6 +455,7 @@ pub fn write_stage_report_v1(
     tool_id: &str,
     tool_version: &str,
     metrics_path: &Path,
+    tool_invocation_path: &Path,
     effective_config_path: &Path,
     facts_row_id: Option<&str>,
     outputs: &[PathBuf],
@@ -469,6 +473,7 @@ pub fn write_stage_report_v1(
         tool_id: tool_id.to_string(),
         tool_version: tool_version.to_string(),
         metrics_path: metrics_path.display().to_string(),
+        tool_invocation_path: tool_invocation_path.display().to_string(),
         effective_config_path: effective_config_path.display().to_string(),
         effective_config_hash,
         facts_row_id: facts_row_id.map(str::to_string),

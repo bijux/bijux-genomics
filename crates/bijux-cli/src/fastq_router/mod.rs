@@ -1,27 +1,16 @@
 use std::collections::HashMap;
 use std::fs;
-use std::path::Path;
 
-use crate::adapter_bank::{
-    adapter_bank_provenance_json, resolve_adapter_selection, resolve_effective_adapters,
-};
-use crate::contaminant_bank::{
-    contaminant_bank_provenance_json, resolve_contaminant_selection, resolve_effective_contaminants,
-};
-use crate::polyx_bank::{
-    polyx_bank_provenance_json, resolve_effective_polyx, resolve_polyx_selection,
-};
 use anyhow::{anyhow, Context, Result};
 use bijux_analyze::BenchmarkRecord;
 use bijux_core::ContainerImageRefV1;
-use bijux_engine::api::StageResultV1;
+use bijux_engine::api::resolve_image_for_run;
 use bijux_engine::api::{
     bench_base_dir, bench_tools_dir, build_tool_execution_spec, execute_plan, PlatformSpec,
     RunnerKind, ToolImageSpec,
 };
 use bijux_engine::api::{ensure_bench_runner, filter_tools_by_role, load_registry};
 use bijux_engine::api::{ensure_image_qa_passed, ensure_tool_qa_passed};
-use bijux_engine::api::{hash_file_sha256, resolve_image_for_run, ExplainExclusion, ExplainPlan};
 use bijux_stages_fastq::fastq::correct::{normalize_correct_tool_list, plan_correct};
 use bijux_stages_fastq::fastq::filter::{normalize_filter_tool_list, plan_filter};
 use bijux_stages_fastq::fastq::merge::{normalize_merge_tool_list, plan_merge};
@@ -39,305 +28,20 @@ use bijux_stages_fastq::{
 };
 use bijux_stages_fastq::{FastqArtifact, FastqLayout};
 
+mod banks;
+mod explain;
+mod summary;
+
+use banks::{
+    adapter_bank_context, contaminant_bank_context, polyx_bank_context, polyx_unsupported_warning,
+};
+pub use explain::{write_explain_md, write_explain_plan_json};
+use summary::{write_run_summary, StageExecutionSummary};
 pub struct BenchOutcome<M: bijux_analyze::StageMetricSchema> {
     pub records: Vec<BenchmarkRecord<M>>,
     pub failures: Vec<RawFailure>,
     pub bench_dir: std::path::PathBuf,
     pub explain: bool,
-}
-
-fn adapter_bank_context(
-    adapter_bank_preset: Option<&str>,
-    legacy_adapter_bank: Option<&str>,
-    adapter_bank_file: Option<&Path>,
-    enable: &[String],
-    disable: &[String],
-) -> Result<Option<serde_json::Value>> {
-    let selection =
-        resolve_adapter_selection(adapter_bank_preset, legacy_adapter_bank, adapter_bank_file)?;
-    let effective = resolve_effective_adapters(&selection, enable, disable)?;
-    Ok(Some(adapter_bank_provenance_json(
-        &selection, &effective, enable, disable,
-    )))
-}
-
-fn polyx_bank_context(polyx_preset: Option<&str>) -> Result<Option<serde_json::Value>> {
-    let selection = resolve_polyx_selection(polyx_preset)?;
-    let effective = resolve_effective_polyx(&selection)?;
-    Ok(Some(polyx_bank_provenance_json(&selection, &effective)))
-}
-
-fn contaminant_bank_context(contaminant_preset: Option<&str>) -> Result<Option<serde_json::Value>> {
-    let selection = resolve_contaminant_selection(contaminant_preset)?;
-    let effective = resolve_effective_contaminants(&selection)?;
-    Ok(Some(contaminant_bank_provenance_json(
-        &selection, &effective,
-    )))
-}
-
-fn tool_supports_polyx(tool_id: &str) -> bool {
-    matches!(tool_id, "fastp")
-}
-
-fn polyx_unsupported_warning(
-    tool_id: &str,
-    polyx_bank: Option<&serde_json::Value>,
-    explicit: bool,
-) -> Option<String> {
-    if explicit && polyx_bank.is_some() && !tool_supports_polyx(tool_id) {
-        return Some(format!(
-            "warning: polyx preset requested but tool '{tool_id}' does not advertise polyX support"
-        ));
-    }
-    None
-}
-
-struct StageExecutionSummary {
-    plan: bijux_core::StagePlanV1,
-    result: StageResultV1,
-}
-
-fn read_json_if_exists(path: &Path) -> Option<serde_json::Value> {
-    std::fs::read_to_string(path)
-        .ok()
-        .and_then(|raw| serde_json::from_str(&raw).ok())
-}
-
-fn write_run_summary(
-    out_dir: &Path,
-    stage_runs: &[StageExecutionSummary],
-    failures: &[RawFailure],
-) -> Result<()> {
-    let root = out_dir.join("run_artifacts");
-    fs::create_dir_all(&root).context("create run summary artifacts dir")?;
-    let run_id = stage_runs
-        .first()
-        .map(|entry| entry.result.run_id.clone())
-        .unwrap_or_default();
-    let stages: Vec<serde_json::Value> = stage_runs
-        .iter()
-        .map(|entry| {
-            let artifacts_dir = entry.plan.out_dir.join("run_artifacts");
-            let metrics_path = artifacts_dir.join("metrics_envelope.json");
-            let metrics =
-                read_json_if_exists(&metrics_path).and_then(|value| value.get("metrics").cloned());
-            let stage_report_path = artifacts_dir.join("stage_report.json");
-            let retention_report_path = artifacts_dir
-                .join("reports")
-                .join(format!("{}.retention.json", entry.plan.stage_id.0));
-            serde_json::json!({
-                "stage_id": entry.plan.stage_id.0,
-                "tool_id": entry.plan.tool_id.0,
-                "exit_code": entry.result.exit_code,
-                "runtime_s": entry.result.runtime_s,
-                "memory_mb": entry.result.memory_mb,
-                "out_dir": entry.plan.out_dir,
-                "artifacts": {
-                    "metrics_envelope": metrics_path,
-                    "stage_report": stage_report_path,
-                    "retention_report": retention_report_path
-                },
-                "metrics": metrics.unwrap_or(serde_json::Value::Null)
-            })
-        })
-        .collect();
-    let total_runtime_s: f64 = stage_runs.iter().map(|entry| entry.result.runtime_s).sum();
-    let failures_json: Vec<serde_json::Value> = failures
-        .iter()
-        .map(|failure| {
-            serde_json::json!({
-                "stage": failure.stage,
-                "tool": failure.tool,
-                "reason": failure.reason
-            })
-        })
-        .collect();
-    let summary = serde_json::json!({
-        "schema_version": "bijux.run_summary.v1",
-        "run_id": run_id,
-        "total_runtime_s": total_runtime_s,
-        "stages": stages,
-        "failures": failures_json
-    });
-    let summary_path = root.join("run_summary.json");
-    fs::write(&summary_path, serde_json::to_vec_pretty(&summary)?)
-        .context("write run_summary.json")?;
-    let html_path = root.join("run_summary.html");
-    let html = render_run_summary_html(&summary);
-    fs::write(&html_path, html).context("write run_summary.html")?;
-    write_run_manifest(out_dir, stage_runs, failures)?;
-    Ok(())
-}
-
-fn write_run_manifest(
-    out_dir: &Path,
-    stage_runs: &[StageExecutionSummary],
-    failures: &[RawFailure],
-) -> Result<()> {
-    let run_id = stage_runs
-        .first()
-        .map(|entry| entry.result.run_id.clone())
-        .unwrap_or_default();
-    let stages: Vec<serde_json::Value> = stage_runs
-        .iter()
-        .map(|entry| {
-            let artifacts_dir = entry.plan.out_dir.join("run_artifacts");
-            let mut artifacts = Vec::new();
-            let add_artifact = |artifacts: &mut Vec<serde_json::Value>, name: &str, path: &Path| {
-                if path.exists() {
-                    if let Ok(hash) = hash_file_sha256(path) {
-                        artifacts.push(serde_json::json!({
-                            "name": name,
-                            "path": path,
-                            "sha256": hash,
-                        }));
-                    }
-                }
-            };
-            add_artifact(
-                &mut artifacts,
-                "metrics_envelope",
-                &artifacts_dir.join("metrics_envelope.json"),
-            );
-            add_artifact(
-                &mut artifacts,
-                "metrics",
-                &artifacts_dir.join("metrics.json"),
-            );
-            add_artifact(
-                &mut artifacts,
-                "stage_metrics",
-                &artifacts_dir.join("stage_metrics.json"),
-            );
-            add_artifact(
-                &mut artifacts,
-                "stage_report",
-                &artifacts_dir.join("stage_report.json"),
-            );
-            add_artifact(
-                &mut artifacts,
-                "effective_config",
-                &artifacts_dir.join("effective_config.json"),
-            );
-            add_artifact(
-                &mut artifacts,
-                "retention_report",
-                &artifacts_dir
-                    .join("reports")
-                    .join(format!("{}.retention.json", entry.plan.stage_id.0)),
-            );
-            serde_json::json!({
-                "stage_id": entry.plan.stage_id.0,
-                "tool_id": entry.plan.tool_id.0,
-                "artifacts": artifacts,
-            })
-        })
-        .collect();
-    let failures_json: Vec<serde_json::Value> = failures
-        .iter()
-        .map(|failure| {
-            serde_json::json!({
-                "stage": failure.stage,
-                "tool": failure.tool,
-                "reason": failure.reason
-            })
-        })
-        .collect();
-    let manifest = serde_json::json!({
-        "schema_version": "bijux.run_manifest.v1",
-        "run_id": run_id,
-        "stages": stages,
-        "failures": failures_json
-    });
-    let path = out_dir.join("run_manifest.json");
-    fs::write(&path, serde_json::to_vec_pretty(&manifest)?).context("write run_manifest.json")?;
-    Ok(())
-}
-
-fn render_run_summary_html(summary: &serde_json::Value) -> String {
-    let pretty = serde_json::to_string_pretty(summary).unwrap_or_else(|_| "{}".to_string());
-    format!(
-        r#"<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Bijux Run Summary</title>
-  <style>
-    body {{ font-family: 'Georgia', serif; margin: 2rem; background: #f7f3ef; color: #2b2b2b; }}
-    h1 {{ font-size: 1.8rem; margin-bottom: 1rem; }}
-    pre {{ background: #ffffff; padding: 1rem; border-radius: 8px; overflow-x: auto; }}
-  </style>
-</head>
-<body>
-  <h1>Run Summary</h1>
-  <pre>{pretty}</pre>
-</body>
-</html>"#
-    )
-}
-
-/// # Errors
-/// Returns an error if the explain markdown cannot be written.
-pub(crate) fn write_explain_md(
-    base_dir: &Path,
-    stage: &str,
-    selected: &[String],
-    excluded: &[String],
-    policy: Option<bijux_engine::api::Policy>,
-) -> Result<()> {
-    let path = base_dir.join("explain.md");
-    let mut lines = Vec::new();
-    lines.push(format!("# Explain: {stage}"));
-    if let Some(policy) = policy {
-        lines.push(format!("\nPolicy: `{policy:?}`"));
-    }
-    lines.push("\n## Selected tools".to_string());
-    for tool in selected {
-        lines.push(format!("- {tool}"));
-    }
-    if !excluded.is_empty() {
-        lines.push("\n## Excluded tools".to_string());
-        for tool in excluded {
-            lines.push(format!("- {tool}"));
-        }
-    }
-    std::fs::write(&path, lines.join("\n")).context("write explain.md")?;
-    Ok(())
-}
-
-/// # Errors
-/// Returns an error if the explain plan JSON cannot be written.
-pub(crate) fn write_explain_plan_json(
-    base_dir: &Path,
-    stage: &str,
-    selected: &[String],
-    registry: &bijux_core::ToolRegistry,
-    policy: Option<bijux_engine::api::Policy>,
-) -> Result<()> {
-    let mut excluded = Vec::new();
-    for tool in registry.tools_for_stage(stage) {
-        if !selected.iter().any(|t| t == &tool.tool_id) {
-            excluded.push(ExplainExclusion {
-                tool: tool.tool_id.clone(),
-                reason: "not selected".to_string(),
-            });
-        }
-    }
-    let invariants = vec![
-        "stage_contract".to_string(),
-        "header_inspection".to_string(),
-        "output_normalization".to_string(),
-    ];
-    let plan = ExplainPlan {
-        stage: stage.to_string(),
-        selected_tools: selected.to_vec(),
-        excluded_tools: excluded,
-        policy,
-        invariants,
-    };
-    let path = base_dir.join("explain_plan.json");
-    bijux_engine::api::write_explain_plan(&path, &plan)
 }
 
 /// Build the preprocess pipeline plan.
@@ -1081,7 +785,29 @@ pub fn bench_fastq_stats_neutral<S: ::std::hash::BuildHasher>(
 
 #[cfg(test)]
 mod tests {
-    use super::polyx_unsupported_warning;
+    use super::{fastq_preprocess_plan, polyx_unsupported_warning};
+    use std::path::PathBuf;
+
+    fn base_args() -> bijux_stages_fastq::args::BenchFastqPreprocessArgs {
+        bijux_stages_fastq::args::BenchFastqPreprocessArgs {
+            sample_id: "sample".to_string(),
+            r1: PathBuf::from("reads_R1.fastq.gz"),
+            r2: None,
+            out: PathBuf::from("out"),
+            strict: false,
+            auto: true,
+            objective: bijux_core::selection::Objective::Balanced,
+            bench_corpus: None,
+            allow_partial: false,
+            adapter_bank_preset: None,
+            adapter_bank: None,
+            adapter_bank_file: None,
+            enable_adapters: Vec::new(),
+            disable_adapters: Vec::new(),
+            polyx_preset: None,
+            contaminant_preset: None,
+        }
+    }
 
     #[test]
     fn polyx_warning_emits_for_unsupported_tools() {
@@ -1097,5 +823,21 @@ mod tests {
         assert!(warning.is_none());
         let warning = polyx_unsupported_warning("cutadapt", Some(&polyx_bank), false);
         assert!(warning.is_none());
+    }
+
+    #[test]
+    fn preprocess_plan_single_end_has_no_merge() {
+        let args = base_args();
+        let plan = fastq_preprocess_plan(&args);
+        assert!(plan.stages.contains(&"fastq.trim".to_string()));
+        assert!(!plan.stages.contains(&"fastq.merge".to_string()));
+    }
+
+    #[test]
+    fn preprocess_plan_paired_includes_merge() {
+        let mut args = base_args();
+        args.r2 = Some(PathBuf::from("reads_R2.fastq.gz"));
+        let plan = fastq_preprocess_plan(&args);
+        assert!(plan.stages.contains(&"fastq.merge".to_string()));
     }
 }

@@ -1,0 +1,93 @@
+{
+  "assets_provenance": [
+    {
+      "banks": {
+        "adapters": {
+          "hash": "sha256:adapters",
+          "preset": "default"
+        }
+      },
+      "stage_id": "fastq.trim",
+      "tool_id": "fastp"
+    },
+    {
+      "banks": {},
+      "stage_id": "fastq.validate_pre",
+      "tool_id": "fastqvalidator"
+    },
+    {
+      "banks": {},
+      "stage_id": "fastq.merge",
+      "tool_id": "pear"
+    }
+  ],
+  "retention_context": [
+    {
+      "conditions": {
+        "min_len": 20
+      },
+      "definition": "reads_out / reads_in",
+      "stage_id": "fastq.trim",
+      "tool_id": "fastp"
+    }
+  ],
+  "run_id": "run-1",
+  "schema_version": "bijux.report.v1",
+  "stages": [
+    {
+      "bank_report_path": "/Users/bijan/bijux/bijux-dna/target/test-fixtures/report/bank_report.json",
+      "effective_config_path": "/Users/bijan/bijux/bijux-dna/target/test-fixtures/report/effective_config.json",
+      "exit_code": 0,
+      "input_hash": "input",
+      "memory_mb": 64.0,
+      "metrics_path": "/Users/bijan/bijux/bijux-dna/target/test-fixtures/report/metrics.json",
+      "params_hash": "params",
+      "retention_report_path": "/Users/bijan/bijux/bijux-dna/target/test-fixtures/report/retention_report.json",
+      "runtime_s": 1.0,
+      "stage_id": "fastq.trim",
+      "stage_report_path": "/Users/bijan/bijux/bijux-dna/target/test-fixtures/report/stage_report.json",
+      "tool_id": "fastp",
+      "tool_invocation_path": "/Users/bijan/bijux/bijux-dna/target/test-fixtures/report/tool_invocation.json",
+      "tool_version": "0.23.4"
+    },
+    {
+      "bank_report_path": null,
+      "effective_config_path": "/Users/bijan/bijux/bijux-dna/target/test-fixtures/report/effective_config.json",
+      "exit_code": 0,
+      "input_hash": "input2",
+      "memory_mb": 32.0,
+      "metrics_path": "/Users/bijan/bijux/bijux-dna/target/test-fixtures/report/metrics.json",
+      "params_hash": "params2",
+      "retention_report_path": null,
+      "runtime_s": 2.0,
+      "stage_id": "fastq.validate_pre",
+      "stage_report_path": "/Users/bijan/bijux/bijux-dna/target/test-fixtures/report/stage_report.json",
+      "tool_id": "fastqvalidator",
+      "tool_invocation_path": "/Users/bijan/bijux/bijux-dna/target/test-fixtures/report/tool_invocation.json",
+      "tool_version": "1.0"
+    },
+    {
+      "bank_report_path": null,
+      "effective_config_path": "/Users/bijan/bijux/bijux-dna/target/test-fixtures/report/effective_config.json",
+      "exit_code": 1,
+      "input_hash": "input3",
+      "memory_mb": 128.0,
+      "metrics_path": "/Users/bijan/bijux/bijux-dna/target/test-fixtures/report/metrics.json",
+      "params_hash": "params3",
+      "retention_report_path": null,
+      "runtime_s": 3.0,
+      "stage_id": "fastq.merge",
+      "stage_report_path": "/Users/bijan/bijux/bijux-dna/target/test-fixtures/report/stage_report.json",
+      "tool_id": "pear",
+      "tool_invocation_path": "/Users/bijan/bijux/bijux-dna/target/test-fixtures/report/tool_invocation.json",
+      "tool_version": "0.9"
+    }
+  ],
+  "telemetry": {
+    "events": [
+      "/Users/bijan/bijux/bijux-dna/target/test-fixtures/report/telemetry/events.jsonl",
+      "/Users/bijan/bijux/bijux-dna/target/test-fixtures/report/telemetry/events.jsonl",
+      "/Users/bijan/bijux/bijux-dna/target/test-fixtures/report/telemetry/events.jsonl"
+    ]
+  }
+}

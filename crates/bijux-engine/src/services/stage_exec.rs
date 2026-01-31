@@ -912,6 +912,7 @@ pub fn execute_stage_plan(
         Ok(())
     };
     emit_event(&bijux_core::TelemetryEventV1 {
+        schema_version: "bijux.telemetry.v1".to_string(),
         run_id: run_id.clone(),
         stage_id: plan.stage_id.0.clone(),
         tool_id: plan.tool_id.0.clone(),
@@ -931,6 +932,7 @@ pub fn execute_stage_plan(
         }),
     })?;
     emit_event(&bijux_core::TelemetryEventV1 {
+        schema_version: "bijux.telemetry.v1".to_string(),
         run_id: run_id.clone(),
         stage_id: plan.stage_id.0.clone(),
         tool_id: plan.tool_id.0.clone(),
@@ -1263,6 +1265,7 @@ pub fn execute_stage_plan(
             &plan.tool_id.0,
             &plan.tool_version,
             &metrics_path,
+            &tool_invocation_path,
             &plan_artifacts.effective_config_path,
             Some(&facts_row_id),
             &outputs,
@@ -1327,10 +1330,12 @@ pub fn execute_stage_plan(
         write_facts_jsonl(
             &run_artifacts_dir.join("dashboard").join("facts.jsonl"),
             &FactsRowV1 {
-                schema_version: "bijux.facts_row.v1".to_string(),
+                schema_version: "bijux.facts.v1".to_string(),
                 run_id: run_id.clone(),
                 stage_id: plan.stage_id.0.clone(),
                 tool_id: plan.tool_id.0.clone(),
+                tool_version: plan.tool_version.clone(),
+                image_digest: plan.image.digest.clone(),
                 params_hash: params_hash.clone(),
                 input_hash: input_hash.clone(),
                 output_hashes: output_hashes.clone(),
@@ -1459,6 +1464,7 @@ pub fn execute_stage_plan(
     };
     let exit_code = telemetry_exit_code.unwrap_or(-1);
     emit_event(&bijux_core::TelemetryEventV1 {
+        schema_version: "bijux.telemetry.v1".to_string(),
         run_id: run_id.clone(),
         stage_id: plan.stage_id.0.clone(),
         tool_id: plan.tool_id.0.clone(),
@@ -1480,6 +1486,7 @@ pub fn execute_stage_plan(
         }),
     })?;
     emit_event(&bijux_core::TelemetryEventV1 {
+        schema_version: "bijux.telemetry.v1".to_string(),
         run_id: run_id.clone(),
         stage_id: plan.stage_id.0.clone(),
         tool_id: plan.tool_id.0.clone(),

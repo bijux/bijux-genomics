@@ -73,3 +73,27 @@ fn display_runners(runners: &[RunnerKind]) -> String {
         .collect::<Vec<_>>()
         .join(", ")
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tempfile::TempDir;
+
+    #[test]
+    fn display_runners_is_deterministic() {
+        let runners = vec![RunnerKind::Docker, RunnerKind::Apptainer];
+        assert_eq!(display_runners(&runners), "docker, apptainer");
+    }
+
+    #[test]
+    fn ensure_cache_writable_uses_home() -> Result<(), std::io::Error> {
+        let temp = TempDir::new()?;
+        let original_home = std::env::var_os("HOME");
+        std::env::set_var("HOME", temp.path());
+        assert!(ensure_cache_writable(RunnerKind::Docker));
+        if let Some(value) = original_home {
+            std::env::set_var("HOME", value);
+        }
+        Ok(())
+    }
+}

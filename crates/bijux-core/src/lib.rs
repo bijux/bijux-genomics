@@ -42,7 +42,8 @@ pub use metrics_registry::{
     MetricSemantics, MetricsSchemaId, FASTQ_METRICS_SCHEMAS,
 };
 pub use observability::{
-    canonicalize_json_value, parameters_json_canonicalization, EffectiveConfigV1, FactsRowV1,
+    canonicalize_json_value, parameters_json_canonicalization, AssetsProvenanceV1,
+    EffectiveConfigV1, FactsRowV1, ReportSchemaV1, ReportStageSummaryV1, RetentionContextV1,
     RetentionReportV1, StageObservabilityContextV1, StageObservabilityContractV1, StageReportV1,
     TelemetryEventV1,
 };

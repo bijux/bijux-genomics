@@ -133,7 +133,8 @@ pub fn insert_stage_row(index_path: &Path, row: &StageIndexRow) -> Result<()> {
 /// # Errors
 /// Returns an error if the index cannot be read.
 pub fn query_latest_runs(index_path: &Path, limit: usize) -> Result<Vec<RunIndexEntry>> {
-    let entries = list_runs(index_path)?;
+    let mut entries = list_runs(index_path)?;
+    entries.sort_by(|a, b| a.run_id.cmp(&b.run_id));
     let len = entries.len();
     if limit >= len {
         return Ok(entries);
@@ -148,4 +149,39 @@ pub fn query_latest_runs(index_path: &Path, limit: usize) -> Result<Vec<RunIndex
 pub fn query_run(index_path: &Path, run_id: &str) -> Result<Option<RunIndexEntry>> {
     let entries = list_runs(index_path)?;
     Ok(entries.into_iter().find(|entry| entry.run_id == run_id))
+}
+
+/// Query stage rows from `index.jsonl`.
+///
+/// # Errors
+/// Returns an error if the index cannot be read.
+pub fn query_stage_rows(
+    index_path: &Path,
+    stage: Option<&str>,
+    tool: Option<&str>,
+) -> Result<Vec<StageIndexRow>> {
+    let file = File::open(index_path)
+        .with_context(|| format!("open run index {}", index_path.display()))?;
+    let reader = BufReader::new(file);
+    let mut rows = Vec::new();
+    for line in reader.lines() {
+        let line = line?;
+        if line.trim().is_empty() {
+            continue;
+        }
+        let parsed: RunIndexLine = serde_json::from_str(&line)?;
+        let Some(row) = parsed.stage else { continue };
+        if let Some(stage_id) = stage {
+            if row.stage_id != stage_id {
+                continue;
+            }
+        }
+        if let Some(tool_id) = tool {
+            if row.tool_id != tool_id {
+                continue;
+            }
+        }
+        rows.push(row);
+    }
+    Ok(rows)
 }

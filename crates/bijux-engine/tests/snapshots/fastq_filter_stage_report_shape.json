@@ -18,6 +18,7 @@
     ]
   },
   "tool_id": "string",
+  "tool_invocation_path": "string",
   "tool_version": "string",
   "warnings": []
 }
