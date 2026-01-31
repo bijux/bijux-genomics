@@ -6,6 +6,8 @@
 
 use serde::{Deserialize, Serialize};
 
+use crate::error::BenchError;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct TypedMetricsRef {
@@ -31,4 +33,23 @@ pub struct BenchObservation {
     pub threads: u32,
     pub io_mode: String,
     pub image_digest: String,
+}
+
+impl BenchObservation {
+    /// # Errors
+    /// Returns an error if required confounders are missing.
+    pub fn validate(&self) -> Result<(), BenchError> {
+        if self.platform.trim().is_empty() {
+            return Err(BenchError::MissingConfounder { field: "platform" });
+        }
+        if self.threads == 0 {
+            return Err(BenchError::MissingConfounder { field: "threads" });
+        }
+        if self.image_digest.trim().is_empty() {
+            return Err(BenchError::MissingConfounder {
+                field: "image_digest",
+            });
+        }
+        Ok(())
+    }
 }

@@ -807,6 +807,8 @@ mod tests {
             objective: bijux_core::selection::Objective::Balanced,
             bench_corpus: None,
             allow_partial: false,
+            replicates: 1,
+            ci_bootstrap: None,
             adapter_bank_preset: None,
             adapter_bank: None,
             adapter_bank_file: None,

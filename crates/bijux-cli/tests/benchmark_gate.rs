@@ -64,6 +64,8 @@ fn benchmark_gate_validate_trim_filter() -> Result<()> {
         tools: vec!["fastqvalidator_official".to_string()],
         explain: false,
         strict: false,
+        replicates: 1,
+        ci_bootstrap: None,
     };
     let validate_outcome = bench_fastq_validate_pre(&catalog, &platform, None, &validate_args)?;
     write_validate_report(
@@ -83,6 +85,8 @@ fn benchmark_gate_validate_trim_filter() -> Result<()> {
         out: out_path.clone(),
         tools: vec!["fastp".to_string()],
         explain: false,
+        replicates: 1,
+        ci_bootstrap: None,
         adapter_bank_preset: None,
         adapter_bank: Some("preset:best_practice_adna".to_string()),
         adapter_bank_file: None,
@@ -105,6 +109,8 @@ fn benchmark_gate_validate_trim_filter() -> Result<()> {
         out: out_path.clone(),
         tools: vec!["seqkit".to_string()],
         explain: false,
+        replicates: 1,
+        ci_bootstrap: None,
         max_n: None,
         low_complexity_threshold: None,
         kmer_ref: None,

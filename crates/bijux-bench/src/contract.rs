@@ -8,16 +8,6 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
-pub struct BenchmarkSuiteSpec {
-    pub schema_version: String,
-    pub suite_id: String,
-    pub dataset_hash: String,
-    pub tools: Vec<String>,
-    pub replicates: u32,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 pub struct BenchmarkSummary {
     pub schema_version: String,
     pub suite_id: String,
@@ -32,20 +22,8 @@ pub struct BenchmarkSummary {
 pub struct BenchmarkDecision {
     pub tool: String,
     pub passes: bool,
+    pub missing_metrics: Vec<String>,
     pub rationale: Vec<String>,
-}
-
-impl BenchmarkSuiteSpec {
-    #[must_use]
-    pub fn v1(suite_id: String, dataset_hash: String, tools: Vec<String>, replicates: u32) -> Self {
-        Self {
-            schema_version: "bijux.bench.suite.v1".to_string(),
-            suite_id,
-            dataset_hash,
-            tools,
-            replicates,
-        }
-    }
 }
 
 impl BenchmarkSummary {

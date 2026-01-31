@@ -162,6 +162,10 @@ pub struct BenchFastqTrimArgs {
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
+    #[arg(long, default_value_t = 1)]
+    pub replicates: u32,
+    #[arg(long)]
+    pub ci_bootstrap: Option<u32>,
     #[arg(long, help = "Adapter bank preset name (default: ancientdna-illumina)")]
     pub adapter_bank_preset: Option<String>,
     #[arg(
@@ -193,6 +197,10 @@ pub struct BenchFastqValidateArgs {
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
+    #[arg(long, default_value_t = 1)]
+    pub replicates: u32,
+    #[arg(long)]
+    pub ci_bootstrap: Option<u32>,
     #[arg(long)]
     pub strict: bool,
 }
@@ -209,6 +217,10 @@ pub struct BenchFastqFilterArgs {
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
+    #[arg(long, default_value_t = 1)]
+    pub replicates: u32,
+    #[arg(long)]
+    pub ci_bootstrap: Option<u32>,
     #[arg(long)]
     pub max_n: Option<u32>,
     #[arg(long = "low-complexity-threshold")]
@@ -231,6 +243,10 @@ pub struct BenchFastqMergeArgs {
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
+    #[arg(long, default_value_t = 1)]
+    pub replicates: u32,
+    #[arg(long)]
+    pub ci_bootstrap: Option<u32>,
 }
 
 #[derive(Debug, Args)]
@@ -247,6 +263,10 @@ pub struct BenchFastqCorrectArgs {
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
+    #[arg(long, default_value_t = 1)]
+    pub replicates: u32,
+    #[arg(long)]
+    pub ci_bootstrap: Option<u32>,
 }
 
 #[derive(Debug, Args)]
@@ -261,6 +281,10 @@ pub struct BenchFastqQcPostArgs {
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
+    #[arg(long, default_value_t = 1)]
+    pub replicates: u32,
+    #[arg(long)]
+    pub ci_bootstrap: Option<u32>,
 }
 
 #[derive(Debug, Args)]
@@ -277,6 +301,10 @@ pub struct BenchFastqUmiArgs {
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
+    #[arg(long, default_value_t = 1)]
+    pub replicates: u32,
+    #[arg(long)]
+    pub ci_bootstrap: Option<u32>,
 }
 
 #[derive(Debug, Args)]
@@ -291,6 +319,10 @@ pub struct BenchFastqScreenArgs {
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
+    #[arg(long, default_value_t = 1)]
+    pub replicates: u32,
+    #[arg(long)]
+    pub ci_bootstrap: Option<u32>,
 }
 
 #[derive(Debug, Args)]
@@ -305,6 +337,10 @@ pub struct BenchFastqStatsArgs {
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
+    #[arg(long, default_value_t = 1)]
+    pub replicates: u32,
+    #[arg(long)]
+    pub ci_bootstrap: Option<u32>,
 }
 
 #[derive(Debug, Args)]
@@ -319,6 +355,10 @@ pub struct BenchFastqPreprocessArgs {
     pub out: PathBuf,
     #[arg(long)]
     pub strict: bool,
+    #[arg(long, default_value_t = 1)]
+    pub replicates: u32,
+    #[arg(long)]
+    pub ci_bootstrap: Option<u32>,
     #[arg(long, help = "Adapter bank preset name (default: ancientdna-illumina)")]
     pub adapter_bank_preset: Option<String>,
     #[arg(
