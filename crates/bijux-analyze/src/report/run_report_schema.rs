@@ -2,6 +2,8 @@ use std::collections::BTreeMap;
 
 use bijux_core::{MetricSemanticsV1, ReportCompletenessV1, ReportContractV1, ReportSchemaV1};
 
+use crate::decision::effect::default_thresholds;
+
 pub(super) fn report_contract() -> ReportContractV1 {
     ReportContractV1 {
         schema_version: "bijux.report_contract.v1".to_string(),
@@ -71,7 +73,54 @@ pub(super) fn build_report_sections(
             "completeness": report.completeness,
         }),
     );
+    sections.insert(
+        "method_assumptions".to_string(),
+        method_assumptions_section(report),
+    );
     sections
+}
+
+fn method_assumptions_section(report: &ReportSchemaV1) -> serde_json::Value {
+    let thresholds = default_thresholds();
+    let tools: Vec<serde_json::Value> = report
+        .provenance
+        .iter()
+        .map(|entry| {
+            serde_json::json!({
+                "stage_id": entry.stage_id,
+                "tool_id": entry.tool_id,
+                "tool_version": entry.tool_version,
+                "params_hash": entry.params_hash,
+                "image_digest": entry.image_digest,
+            })
+        })
+        .collect();
+    let presets: Vec<serde_json::Value> = report
+        .stages
+        .iter()
+        .map(|stage| {
+            serde_json::json!({
+                "stage_id": stage.stage_id,
+                "tool_id": stage.tool_id,
+                "tool_version": stage.tool_version,
+                "params_hash": stage.params_hash,
+                "effective_config_path": stage.effective_config_path,
+            })
+        })
+        .collect();
+    serde_json::json!({
+        "compare_objective": "balanced_default",
+        "effect_thresholds": {
+            "absolute": thresholds.absolute,
+            "relative": thresholds.relative,
+        },
+        "tools": tools,
+        "presets": presets,
+        "assumptions": [
+            "compare_objective defaults to balanced when not specified",
+            "effect_size uses absolute/relative thresholds for practical significance",
+        ],
+    })
 }
 
 pub(super) fn report_completeness(

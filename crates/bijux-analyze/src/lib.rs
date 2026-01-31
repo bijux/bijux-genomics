@@ -1,3 +1,10 @@
+//! Analyze pipeline for Bijux runs.
+//!
+//! Contract: `analyze_run` is the single public entrypoint. It accepts typed input paths and
+//! options, enforces the load → validate → compute → report → render pipeline, and returns
+//! versioned artifacts. Outputs are stable, deterministic, and only grow in a backward-compatible
+//! way for published schemas.
+
 pub mod aggregate;
 pub mod contract;
 pub mod decision;
@@ -61,6 +68,7 @@ pub enum AnalyzeMode {
 pub struct RenderOptions {
     pub json: bool,
     pub html: bool,
+    pub output_dir: Option<PathBuf>,
 }
 
 #[derive(Debug, Clone)]

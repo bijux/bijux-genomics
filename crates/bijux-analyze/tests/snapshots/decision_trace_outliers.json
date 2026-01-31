@@ -4,19 +4,34 @@
       "metric_id": "runtime_s",
       "value": 1.0,
       "weight": 1.0,
-      "contribution": 1.0
+      "contribution": 1.0,
+      "effect": {
+        "absolute": 0.0,
+        "relative": 0.0,
+        "practical": false
+      }
     },
     {
       "metric_id": "memory_mb",
       "value": 10.0,
       "weight": 1.0,
-      "contribution": 10.0
+      "contribution": 10.0,
+      "effect": {
+        "absolute": 0.0,
+        "relative": 0.0,
+        "practical": false
+      }
     },
     {
       "metric_id": "read_retention",
       "value": 0.0,
       "weight": 1.0,
-      "contribution": 0.0
+      "contribution": 0.0,
+      "effect": {
+        "absolute": 0.0,
+        "relative": null,
+        "practical": false
+      }
     }
   ],
   "penalties": [

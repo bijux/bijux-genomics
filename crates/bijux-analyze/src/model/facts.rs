@@ -68,21 +68,44 @@ impl FactRow {
             artifacts: self.artifacts.as_value().clone(),
         }
     }
+
+    #[must_use]
+    pub fn order_key(&self) -> (&str, &str, &str, &str, &str) {
+        (
+            self.run_id.as_str(),
+            self.stage_id.as_str(),
+            self.tool_id.as_str(),
+            self.params_hash.as_str(),
+            self.input_hash.as_str(),
+        )
+    }
 }
 
 #[derive(Debug, Clone)]
 pub struct FactTable {
     pub rows: Vec<FactRow>,
-    pub by_identity: BTreeMap<(String, String, String), Vec<usize>>,
+    pub by_identity: BTreeMap<(String, String, String, String, String), Vec<usize>>,
     pub known_stages: BTreeSet<String>,
 }
 
 impl FactTable {
+    #[must_use]
+    pub fn primary_key(row: &FactRow) -> (String, String, String, String, String) {
+        (
+            row.run_id.clone(),
+            row.stage_id.clone(),
+            row.tool_id.clone(),
+            row.params_hash.clone(),
+            row.input_hash.clone(),
+        )
+    }
+
     /// # Errors
     /// Returns an error if a row is missing required identity fields or violates invariants.
     pub fn from_facts(rows: &[FactsRowV1]) -> Result<Self> {
         let mut table = Vec::with_capacity(rows.len());
-        let mut by_identity: BTreeMap<(String, String, String), Vec<usize>> = BTreeMap::new();
+        let mut by_identity: BTreeMap<(String, String, String, String, String), Vec<usize>> =
+            BTreeMap::new();
         let mut known_stages = BTreeSet::new();
         for (idx, row) in rows.iter().enumerate() {
             if row.stage_id.trim().is_empty() || row.tool_id.trim().is_empty() {
@@ -154,6 +177,8 @@ impl FactTable {
                     fact.run_id.clone(),
                     fact.stage_id.clone(),
                     fact.tool_id.clone(),
+                    fact.params_hash.clone(),
+                    fact.input_hash.clone(),
                 ))
                 .or_default()
                 .push(idx);
@@ -164,5 +189,9 @@ impl FactTable {
             by_identity,
             known_stages,
         })
+    }
+
+    pub fn stable_sort(rows: &mut [FactRow]) {
+        rows.sort_by(|a, b| a.order_key().cmp(&b.order_key()));
     }
 }

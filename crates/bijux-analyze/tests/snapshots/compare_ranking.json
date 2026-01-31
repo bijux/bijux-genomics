@@ -10,7 +10,13 @@
     },
     "objective": "balanced",
     "run_a": "/Users/bijan/bijux/bijux-dna/target/test-fixtures/compare_ranking/run_a",
-    "run_b": "/Users/bijan/bijux/bijux-dna/target/test-fixtures/compare_ranking/run_b"
+    "run_b": "/Users/bijan/bijux/bijux-dna/target/test-fixtures/compare_ranking/run_b",
+    "uncertainty": {
+      "memory_ci": null,
+      "note": "ci_not_computed",
+      "read_retention_ci": null,
+      "runtime_ci": null
+    }
   },
   "rankings": {
     "BalancedPareto": [
@@ -21,18 +27,21 @@
           "per_metric": [
             {
               "contribution": 0.5,
+              "effect": null,
               "metric_id": "runtime_s",
               "value": 1.0,
               "weight": 0.5
             },
             {
               "contribution": 0.285,
+              "effect": null,
               "metric_id": "read_retention",
               "value": 0.95,
               "weight": 0.3
             },
             {
               "contribution": 0.2,
+              "effect": null,
               "metric_id": "memory_mb",
               "value": 1.0,
               "weight": 0.2
@@ -75,18 +84,21 @@
           "per_metric": [
             {
               "contribution": 0.5,
+              "effect": null,
               "metric_id": "runtime_s",
               "value": 1.0,
               "weight": 0.5
             },
             {
               "contribution": 0.285,
+              "effect": null,
               "metric_id": "read_retention",
               "value": 0.95,
               "weight": 0.3
             },
             {
               "contribution": 0.2,
+              "effect": null,
               "metric_id": "memory_mb",
               "value": 1.0,
               "weight": 0.2
@@ -134,6 +146,7 @@
           "per_metric": [
             {
               "contribution": 1.0,
+              "effect": null,
               "metric_id": "runtime_s",
               "value": 1.0,
               "weight": 1.0
@@ -164,6 +177,7 @@
           "per_metric": [
             {
               "contribution": 1.0,
+              "effect": null,
               "metric_id": "runtime_s",
               "value": 1.0,
               "weight": 1.0
@@ -199,18 +213,21 @@
           "per_metric": [
             {
               "contribution": 0.95,
+              "effect": null,
               "metric_id": "read_retention",
               "value": 0.95,
               "weight": 1.0
             },
             {
               "contribution": 0.95,
+              "effect": null,
               "metric_id": "base_retention",
               "value": 0.95,
               "weight": 1.0
             },
             {
               "contribution": 0.0022222222222222222,
+              "effect": null,
               "metric_id": "error_reduction_proxy",
               "value": 0.1,
               "weight": 0.022222222222222223
@@ -253,18 +270,21 @@
           "per_metric": [
             {
               "contribution": 0.95,
+              "effect": null,
               "metric_id": "read_retention",
               "value": 0.95,
               "weight": 1.0
             },
             {
               "contribution": 0.95,
+              "effect": null,
               "metric_id": "base_retention",
               "value": 0.95,
               "weight": 1.0
             },
             {
               "contribution": 0.0022222222222222222,
+              "effect": null,
               "metric_id": "error_reduction_proxy",
               "value": 0.1,
               "weight": 0.022222222222222223

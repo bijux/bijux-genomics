@@ -24,6 +24,7 @@ pub(super) fn trace_for_input(
             value: Some(item.value),
             weight: item.weight,
             contribution: item.contribution,
+            effect: None,
         })
         .collect();
     if input.read_retention.is_none() {
