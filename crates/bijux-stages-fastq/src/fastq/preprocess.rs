@@ -18,6 +18,7 @@ pub struct PreprocessPlan {
 pub fn plan_preprocess(args: &crate::args::BenchFastqPreprocessArgs) -> PreprocessPlan {
     let pipeline = crate::fastq_default_pipeline(crate::DefaultPipelineOptions {
         paired: args.r2.is_some(),
+        enable_qc_post: !args.no_qc_post,
         ..Default::default()
     });
     PreprocessPlan {
@@ -55,6 +56,7 @@ where
         ));
     }
     let mut current_r1 = r1.to_path_buf();
+    let raw_r1 = r1.to_path_buf();
     let mut current_r2 = r2.map(|path| path.to_path_buf());
     let mut plans = Vec::new();
     for (stage, tool) in stages.iter().zip(tools.iter()) {
@@ -156,6 +158,7 @@ where
                     &current_r1,
                     &out_dir,
                     stage_aux_images,
+                    Some(raw_r1.as_path()),
                 )?;
                 (
                     plan.clone(),

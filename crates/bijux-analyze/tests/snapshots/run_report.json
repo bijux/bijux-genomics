@@ -11,7 +11,10 @@
       "retention_context",
       "assets_provenance",
       "metric_semantics",
-      "telemetry"
+      "telemetry",
+      "qc_improvement",
+      "filter_interpretation",
+      "adapter_inference"
     ],
     "required_provenance_fields": [
       "tool_id",
@@ -173,5 +176,8 @@
     ],
     "event_count": 0,
     "error_count": 0
-  }
+  },
+  "qc_improvement": {},
+  "filter_interpretation": {},
+  "adapter_inference": {}
 }

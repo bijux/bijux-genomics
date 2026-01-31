@@ -10,7 +10,7 @@ TOOLS_UMI 		?= umi_tools
 TOOLS_STATS 	?= seqkit_stats
 TOOLS_SCREEN 	?= kraken2,centrifuge,metaphlan,kaiju,fastq_screen
 
-EXTRA_GOALS := $(filter-out bench-all benchmark-validate benchmark-trim benchmark-merge benchmark-correct benchmark-filter benchmark-stats benchmark-qc-post benchmark-umi benchmark-screen benchmark-preprocess image-qa build-images test-images lint security test,$(MAKECMDGOALS))
+EXTRA_GOALS := $(filter-out bench-all benchmark-validate benchmark-trim benchmark-merge benchmark-correct benchmark-filter benchmark-stats benchmark-qc-post benchmark-umi benchmark-screen benchmark-preprocess image-qa build-images test-images lint security test coverage,$(MAKECMDGOALS))
 EXTRA_FASTQ_ROOTS := $(EXTRA_GOALS)
 FASTQ_ROOT_OVERRIDE ?= $(EXTRA_FASTQ_ROOTS)
 

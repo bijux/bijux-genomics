@@ -14,6 +14,7 @@ pub fn canonical_pipeline() -> CanonicalPipeline {
             "fastq.trim".to_string(),
             "fastq.filter".to_string(),
             "fastq.stats_neutral".to_string(),
+            "fastq.qc_post".to_string(),
         ],
         optional: vec![
             "fastq.merge".to_string(),
@@ -31,6 +32,7 @@ pub fn canonical_tool_defaults() -> BTreeMap<&'static str, &'static str> {
         ("fastq.trim", "fastp"),
         ("fastq.filter", "fastp"),
         ("fastq.stats_neutral", "seqkit_stats"),
+        ("fastq.qc_post", "multiqc"),
         ("fastq.merge", "vsearch"),
         ("fastq.correct", "rcorrector"),
         ("fastq.umi", "umi_tools"),

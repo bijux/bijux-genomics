@@ -642,6 +642,7 @@ fn explain_fastq_stage(registry: &bijux_core::ToolRegistry, stage_id: &str) -> R
             disable_adapters: Vec::new(),
             polyx_preset: None,
             contaminant_preset: None,
+            no_qc_post: false,
         };
         let plan = crate::fastq_exec::fastq_preprocess_plan(&args);
         println!("stage: {stage_id}");

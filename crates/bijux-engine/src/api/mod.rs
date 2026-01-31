@@ -24,10 +24,10 @@ pub use crate::services::composer::paths::{
 pub use crate::services::composer::replay;
 pub use crate::services::executor::{
     docker_logs, docker_rm, docker_stats_mb, docker_wait, docker_wait_timeout, parse_mem_to_mb,
-    resolve_image_for_run, run_merge_container, run_merge_container_with_timeout,
-    run_multiqc_container, run_multiqc_container_with_timeout, run_tool_container,
-    run_tool_container_with_timeout, run_validate_container, run_validate_container_with_timeout,
-    ExecutionOutput, MergeExecutionOutput,
+    resolve_image_for_run, run_filter_container, run_merge_container,
+    run_merge_container_with_timeout, run_multiqc_container, run_multiqc_container_with_timeout,
+    run_tool_container, run_tool_container_with_timeout, run_validate_container,
+    run_validate_container_with_timeout, ExecutionOutput, MergeExecutionOutput,
 };
 pub use crate::services::observer::{
     hash_file_sha256, input_fastq_stats, length_histogram, output_fastq_stats,
@@ -134,6 +134,18 @@ pub fn run_tool_execution(
     container_name: &str,
 ) -> Result<ExecutionOutput> {
     run_tool_container(tool, image, r1_dir, r1, out_dir, container_name)
+}
+
+pub fn run_filter_execution(
+    tool: &str,
+    image: &ResolvedImage,
+    r1_dir: &std::path::Path,
+    r1: &std::path::Path,
+    out_dir: &std::path::Path,
+    container_name: &str,
+    params: &serde_json::Value,
+) -> Result<ExecutionOutput> {
+    run_filter_container(tool, image, r1_dir, r1, out_dir, container_name, params)
 }
 
 pub fn run_validate_execution(

@@ -16,6 +16,7 @@
   "reads_out": "number",
   "reads_removed_by_entropy": "number",
   "reads_removed_by_kmer": "number",
+  "reads_removed_by_length": "number",
   "reads_removed_by_n": "number",
   "retention": {
     "conditions": {

@@ -34,6 +34,8 @@ metrics:
     meaning: "Reads removed due to low complexity/entropy"
   - name: "reads_removed_by_kmer"
     meaning: "Reads removed due to k-mer contaminant filtering"
+  - name: "reads_removed_by_length"
+    meaning: "Reads removed due to length thresholds"
   - name: "bases_in"
     meaning: "Number of input bases"
   - name: "bases_out"

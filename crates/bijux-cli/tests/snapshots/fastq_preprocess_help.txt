@@ -45,6 +45,8 @@ Options:
           PolyX preset name (default: illumina_twocolor)
       --contaminant-preset <CONTAMINANT_PRESET>
           Contaminant preset name (default: illumina_default)
+      --no-qc-post
+          
   -h, --help
           Print help
 

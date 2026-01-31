@@ -62,6 +62,7 @@ fn preprocess_args_require_required_fields() -> Result<()> {
         disable_adapter: Vec::new(),
         polyx_preset: Some("illumina_twocolor".to_string()),
         contaminant_preset: Some("illumina_default".to_string()),
+        no_qc_post: false,
     };
     let bench = preprocess_args_from_cli(&args)?;
     assert_eq!(bench.sample_id, "s1");

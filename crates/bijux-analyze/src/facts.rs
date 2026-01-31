@@ -3,7 +3,7 @@ use std::io::{BufRead, BufReader};
 use std::path::Path;
 
 use anyhow::{Context, Result};
-use bijux_core::FactsRowV1;
+use bijux_core::{FactsRowV1, StageReportV1};
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct FactsSummary {
@@ -19,6 +19,7 @@ pub struct RunSummaryV1 {
     pub facts_path: Option<String>,
     pub report_path: Option<String>,
     pub telemetry_path: Option<String>,
+    pub final_outputs: Vec<String>,
     pub runs: usize,
     pub stages: usize,
     pub total_runtime_s: f64,
@@ -41,6 +42,26 @@ pub struct RunSummaryStageRow {
     pub exit_code: i32,
     pub reports: serde_json::Value,
     pub deltas: serde_json::Value,
+}
+
+fn stage_report_path(reports: &serde_json::Value) -> Option<String> {
+    reports
+        .get("stage_report")
+        .and_then(|value| value.as_str())
+        .map(str::to_string)
+}
+
+fn stage_outputs_for_row(row: &FactsRowV1) -> Vec<String> {
+    let Some(path) = stage_report_path(&row.reports) else {
+        return Vec::new();
+    };
+    let Ok(report_raw) = std::fs::read_to_string(&path) else {
+        return Vec::new();
+    };
+    let Ok(report) = serde_json::from_str::<StageReportV1>(&report_raw) else {
+        return Vec::new();
+    };
+    report.outputs
 }
 
 /// Load facts rows from a jsonl file.
@@ -120,6 +141,14 @@ pub fn write_run_summary_json(path: &Path, rows: &[FactsRowV1]) -> Result<()> {
             }),
         })
         .collect();
+    let mut final_outputs = Vec::new();
+    for row in rows {
+        if row.stage_id == "fastq.qc_post" {
+            final_outputs.extend(stage_outputs_for_row(row));
+        }
+    }
+    final_outputs.sort();
+    final_outputs.dedup();
     stage_rows.sort_by(|a, b| {
         (a.run_id.clone(), a.stage_id.clone(), a.tool_id.clone()).cmp(&(
             b.run_id.clone(),
@@ -132,6 +161,7 @@ pub fn write_run_summary_json(path: &Path, rows: &[FactsRowV1]) -> Result<()> {
         facts_path,
         report_path,
         telemetry_path,
+        final_outputs,
         runs: summary.runs,
         stages: summary.stages,
         total_runtime_s: summary.total_runtime_s,

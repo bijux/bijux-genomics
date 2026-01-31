@@ -542,7 +542,7 @@ pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
                 );
             }
         }
-        let plan = plan_qc_post(&tool_spec, &args.r1, &out_dir, aux_images)?;
+        let plan = plan_qc_post(&tool_spec, &args.r1, &out_dir, aux_images, None)?;
         let execution = execute_plan(&plan, platform.runner, None)?;
         if execution.exit_code != 0 {
             failures.push(RawFailure {
@@ -814,6 +814,7 @@ mod tests {
             disable_adapters: Vec::new(),
             polyx_preset: None,
             contaminant_preset: None,
+            no_qc_post: false,
         }
     }
 

@@ -193,6 +193,7 @@ fn metrics_schema_matches_stage_and_version_for_all_fastq_stages() {
         reads_removed_by_n: 0,
         reads_removed_by_entropy: 0,
         reads_removed_by_kmer: 0,
+        reads_removed_by_length: 0,
         bases_in: 1000,
         bases_out: 900,
         pairs_in: None,

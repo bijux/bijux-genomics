@@ -188,6 +188,121 @@ pub fn plan_tool_execution(
     })
 }
 
+#[allow(clippy::too_many_lines)]
+pub fn plan_filter_execution(
+    tool: &str,
+    input_path: &str,
+    out_dir: &Path,
+    params: &serde_json::Value,
+) -> Result<StageExecutionPlan> {
+    let max_n = params.get("max_n").and_then(serde_json::Value::as_u64);
+    let low_complexity_threshold = params
+        .get("low_complexity_threshold")
+        .and_then(serde_json::Value::as_f64);
+    let kmer_ref = params
+        .get("kmer_ref")
+        .and_then(|value| value.as_str())
+        .map(str::to_string);
+
+    let (container_args, output, mut expected_outputs) = match tool {
+        "fastp" => {
+            let out_name = "fastp.fastq.gz";
+            let mut args = vec![
+                "fastp".to_string(),
+                "-i".to_string(),
+                input_path.to_string(),
+                "-o".to_string(),
+                format!("/data/output/{out_name}"),
+                "--json".to_string(),
+                "/data/output/fastp.json".to_string(),
+                "--html".to_string(),
+                "/data/output/fastp.html".to_string(),
+            ];
+            if let Some(limit) = max_n {
+                args.push("--n_base_limit".to_string());
+                args.push(limit.to_string());
+            }
+            if let Some(threshold) = low_complexity_threshold {
+                args.push("--low_complexity_filter".to_string());
+                args.push("--complexity_threshold".to_string());
+                args.push(format!("{threshold:.3}"));
+            }
+            let output = out_dir.join(out_name);
+            let mut expected = vec![output.clone(), out_dir.join("fastp.json")];
+            expected.push(out_dir.join("fastp.html"));
+            (args, Some(output), expected)
+        }
+        "bbduk" => {
+            let out_name = "bbduk.fastq.gz";
+            let mut args = vec![
+                format!("in={input_path}"),
+                format!("out=/data/output/{out_name}"),
+                "k=31".to_string(),
+                "stats=/data/output/bbduk.stats".to_string(),
+            ];
+            if let Some(limit) = max_n {
+                args.push(format!("maxns={limit}"));
+            }
+            if let Some(threshold) = low_complexity_threshold {
+                args.push(format!("entropy={threshold:.3}"));
+            }
+            if let Some(ref_path) = kmer_ref {
+                args.push(format!("ref={ref_path}"));
+            }
+            let output = out_dir.join(out_name);
+            let expected = vec![output.clone(), out_dir.join("bbduk.stats")];
+            (args, Some(output), expected)
+        }
+        "prinseq" => {
+            let prefix = "prinseq_good";
+            let mut args = vec![
+                "prinseq++".to_string(),
+                "-fastq".to_string(),
+                input_path.to_string(),
+                "-out_good".to_string(),
+                format!("/data/output/{prefix}"),
+                "-out_bad".to_string(),
+                "/data/output/prinseq_bad".to_string(),
+            ];
+            if let Some(limit) = max_n {
+                args.push("-ns_max_n".to_string());
+                args.push(limit.to_string());
+            }
+            let output = out_dir.join(format!("{prefix}.fastq"));
+            (args, Some(output.clone()), vec![output])
+        }
+        "seqkit" => {
+            let out_name = "seqkit.fastq.gz";
+            let mut args = vec![
+                "seqkit".to_string(),
+                "seq".to_string(),
+                input_path.to_string(),
+                "-o".to_string(),
+                format!("/data/output/{out_name}"),
+            ];
+            if let Some(limit) = max_n {
+                args.push("-n".to_string());
+                args.push(limit.to_string());
+            }
+            let output = out_dir.join(out_name);
+            (args, Some(output.clone()), vec![output])
+        }
+        _ => return Err(anyhow!("unsupported tool: {tool}")),
+    };
+
+    if expected_outputs.is_empty() {
+        expected_outputs = output.iter().cloned().collect();
+    }
+
+    Ok(StageExecutionPlan {
+        tool: tool.to_string(),
+        container_args,
+        expected_outputs,
+        output_fastq: output,
+        env: BTreeMap::new(),
+    })
+}
+
 pub fn plan_validate_execution(
     tool: &str,
     input_path: &str,
@@ -236,7 +351,10 @@ pub fn plan_validate_execution(
 
     let expected_outputs = match tool {
         "fastqc" => vec![out_dir.join("fastqc_data.txt")],
-        "multiqc" => vec![out_dir.join("multiqc_report.html")],
+        "multiqc" => vec![
+            out_dir.join("multiqc_report.html"),
+            out_dir.join("multiqc_data"),
+        ],
         _ => Vec::new(),
     };
 
