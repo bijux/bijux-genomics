@@ -1,47 +1,65 @@
 //! Owner: bijux-bench
-//! Contracted schema for bench artifacts.
-//! Owns stable public output types.
-//! Must not perform IO or depend on compare/gate logic.
-//! Invariants: schema_version is stable and versioned.
+//! Schema versions and contract validators.
+//! Owns validation for bench artifacts and inputs.
+//! Must not perform IO.
 
-use serde::{Deserialize, Serialize};
+use crate::error::BenchError;
+use crate::model::{BenchmarkDecision, BenchmarkObservation, BenchmarkSummary, BenchmarkSuiteSpec};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct BenchmarkSummary {
-    pub schema_version: String,
-    pub suite_id: String,
-    pub dataset_hash: String,
-    pub observations: usize,
-    pub warnings: Vec<String>,
-    pub decisions: Vec<BenchmarkDecision>,
-}
+pub const SUITE_SCHEMA_V1: &str = "bijux.bench.suite.v1";
+pub const OBSERVATION_SCHEMA_V1: &str = "bijux.bench.observation.v1";
+pub const SUMMARY_SCHEMA_V1: &str = "bijux.bench.summary.v1";
+pub const DECISION_SCHEMA_V1: &str = "bijux.bench.decision.v1";
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct BenchmarkDecision {
-    pub tool: String,
-    pub passes: bool,
-    pub missing_metrics: Vec<String>,
-    pub rationale: Vec<String>,
-}
-
-impl BenchmarkSummary {
-    #[must_use]
-    pub fn v1(
-        suite_id: String,
-        dataset_hash: String,
-        observations: usize,
-        warnings: Vec<String>,
-        decisions: Vec<BenchmarkDecision>,
-    ) -> Self {
-        Self {
-            schema_version: "bijux.bench.summary.v1".to_string(),
-            suite_id,
-            dataset_hash,
-            observations,
-            warnings,
-            decisions,
-        }
+/// # Errors
+/// Returns an error if the suite spec violates required fields.
+pub fn validate_suite(suite: &BenchmarkSuiteSpec) -> Result<(), BenchError> {
+    if suite.schema_version != SUITE_SCHEMA_V1 {
+        return Err(BenchError::InvalidPolicy(format!(
+            "suite schema mismatch: {}",
+            suite.schema_version
+        )));
     }
+    if suite.datasets.is_empty() || suite.stages.is_empty() || suite.tools.is_empty() {
+        return Err(BenchError::InvalidPolicy(
+            "suite must include datasets, stages, and tools".to_string(),
+        ));
+    }
+    Ok(())
+}
+
+/// # Errors
+/// Returns an error if required confounders are missing.
+pub fn validate_observation(obs: &BenchmarkObservation) -> Result<(), BenchError> {
+    if obs.schema_version != OBSERVATION_SCHEMA_V1 {
+        return Err(BenchError::InvalidObservation {
+            reason: format!("observation schema mismatch: {}", obs.schema_version),
+        });
+    }
+    obs.validate()?;
+    Ok(())
+}
+
+/// # Errors
+/// Returns an error if summary schema is invalid.
+pub fn validate_summary(summary: &BenchmarkSummary) -> Result<(), BenchError> {
+    if summary.schema_version != SUMMARY_SCHEMA_V1 {
+        return Err(BenchError::InvalidPolicy(format!(
+            "summary schema mismatch: {}",
+            summary.schema_version
+        )));
+    }
+    Ok(())
+}
+
+/// # Errors
+/// Returns an error if decision schema is invalid.
+pub fn validate_decision(decision: &BenchmarkDecision) -> Result<(), BenchError> {
+    if decision.schema_version != DECISION_SCHEMA_V1 {
+        return Err(BenchError::InvalidPolicy(format!(
+            "decision schema mismatch: {}",
+            decision.schema_version
+        )));
+    }
+    Ok(())
 }
