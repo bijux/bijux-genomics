@@ -9,7 +9,9 @@ use crate::services::composer::paths::bench_tools_dir;
 use serde::Serialize;
 use uuid::Uuid;
 
-use bijux_core::observability::{FilterReportV1, MergeReportV1, TrimReportV1, ValidateReportV1};
+use bijux_core::observability::{
+    FilterReportV1, MergeReportV1, QcPostReportV1, TrimReportV1, ValidateReportV1,
+};
 use bijux_core::{
     EffectiveConfigV1, FactsRowV1, RetentionReportV1, StageObservabilityContextV1, StageReportV1,
     TelemetryEventV1,
@@ -623,6 +625,8 @@ pub fn write_filter_report_v1(
     reads_removed_by_n: u64,
     reads_removed_by_entropy: u64,
     reads_removed_by_kmer: u64,
+    reads_removed_by_length: u64,
+    entropy_distribution: serde_json::Value,
     conditions: serde_json::Value,
     redundant_filters: Vec<String>,
 ) -> Result<PathBuf> {
@@ -639,6 +643,8 @@ pub fn write_filter_report_v1(
         reads_removed_by_n,
         reads_removed_by_entropy,
         reads_removed_by_kmer,
+        reads_removed_by_length,
+        entropy_distribution,
         conditions,
         redundant_filters,
     };
@@ -673,6 +679,41 @@ pub fn write_merge_report_v1(
     };
     let path = reports_dir.join(file_name);
     std::fs::write(&path, serde_json::to_vec_pretty(&payload)?).context("write merge report")?;
+    Ok(path)
+}
+
+#[allow(clippy::too_many_arguments)]
+pub fn write_qc_post_report_v1(
+    run_artifacts_dir: &Path,
+    stage_id: &str,
+    tool_id: &str,
+    raw_fastqc_dir: Option<&Path>,
+    trimmed_fastqc_dir: Option<&Path>,
+    multiqc_report: Option<&Path>,
+    multiqc_data: Option<&Path>,
+    fastqc_raw_modules: serde_json::Value,
+    fastqc_trimmed_modules: serde_json::Value,
+    suggested_adapters_path: Option<&Path>,
+    suggested_preset: Option<&str>,
+) -> Result<PathBuf> {
+    let reports_dir = run_artifacts_dir.join("reports");
+    std::fs::create_dir_all(&reports_dir).context("create reports dir")?;
+    let file_name = format!("{stage_id}.qc_post_report.json");
+    let payload = QcPostReportV1 {
+        schema_version: "bijux.qc_post_report.v1".to_string(),
+        stage_id: stage_id.to_string(),
+        tool_id: tool_id.to_string(),
+        raw_fastqc_dir: raw_fastqc_dir.map(|path| path.display().to_string()),
+        trimmed_fastqc_dir: trimmed_fastqc_dir.map(|path| path.display().to_string()),
+        multiqc_report: multiqc_report.map(|path| path.display().to_string()),
+        multiqc_data: multiqc_data.map(|path| path.display().to_string()),
+        fastqc_raw_modules,
+        fastqc_trimmed_modules,
+        suggested_adapters_path: suggested_adapters_path.map(|path| path.display().to_string()),
+        suggested_preset: suggested_preset.map(str::to_string),
+    };
+    let path = reports_dir.join(file_name);
+    std::fs::write(&path, serde_json::to_vec_pretty(&payload)?).context("write qc_post report")?;
     Ok(path)
 }
 

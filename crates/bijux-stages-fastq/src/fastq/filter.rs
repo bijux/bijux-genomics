@@ -15,7 +15,7 @@ pub struct FilterPlanOptions {
 }
 
 pub fn normalize_filter_tool_list(tools: &[String]) -> Result<Vec<String>> {
-    let allowed = ["prinseq", "fastp", "seqkit"];
+    let allowed = ["prinseq", "fastp", "seqkit", "bbduk"];
     normalize_tools_with_allowlist(tools, &allowed)
 }
 
@@ -34,7 +34,8 @@ pub fn plan_filter(
     let output = out_dir.join(output_name);
     let kmer_ref = options
         .kmer_ref
-        .as_ref()
+        .clone()
+        .or_else(default_kmer_ref)
         .map(|path| path.display().to_string());
     Ok(StagePlanV1 {
         stage_id: StageId(STAGE_ID.to_string()),
@@ -73,8 +74,23 @@ fn filter_output_name(tool: &str) -> Option<&'static str> {
         "fastp" => Some("fastp.fastq.gz"),
         "prinseq" => Some("prinseq_good.fastq"),
         "seqkit" => Some("seqkit.fastq.gz"),
+        "bbduk" => Some("bbduk.fastq.gz"),
         _ => None,
     }
+}
+
+fn default_kmer_ref() -> Option<PathBuf> {
+    let dir = crate::contaminant_references_dir();
+    let entries = std::fs::read_dir(dir).ok()?;
+    let mut fasta = Vec::new();
+    for entry in entries.flatten() {
+        let path = entry.path();
+        if path.extension().and_then(|ext| ext.to_str()) == Some("fasta") {
+            fasta.push(path);
+        }
+    }
+    fasta.sort();
+    fasta.into_iter().next()
 }
 
 fn normalize_tools_with_allowlist(tools: &[String], allowlist: &[&str]) -> Result<Vec<String>> {

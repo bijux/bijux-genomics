@@ -167,6 +167,8 @@ pub struct FastqFilterMetricsV1 {
     pub reads_removed_by_entropy: u64,
     #[serde(default)]
     pub reads_removed_by_kmer: u64,
+    #[serde(default)]
+    pub reads_removed_by_length: u64,
     pub bases_in: u64,
     pub bases_out: u64,
     #[serde(default)]

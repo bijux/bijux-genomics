@@ -100,6 +100,10 @@ fn touch(path: &Path) -> Result<()> {
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent)?;
     }
+    if path.extension().is_none() {
+        fs::create_dir_all(path)?;
+        return Ok(());
+    }
     fs::write(path, "")?;
     Ok(())
 }
@@ -150,7 +154,7 @@ fn build_plan(
         "fastq.qc_post" => {
             let mut aux_images = std::collections::BTreeMap::new();
             aux_images.insert("fastqc".to_string(), image.clone());
-            qc_post::plan_qc_post(&dummy_tool("multiqc", image), r1, out_dir, aux_images)?
+            qc_post::plan_qc_post(&dummy_tool("multiqc", image), r1, out_dir, aux_images, None)?
         }
         "fastq.stats_neutral" => {
             stats_neutral::plan_stats_neutral(&dummy_tool("seqkit", image), r1, out_dir)?
@@ -185,8 +189,9 @@ fn metrics_completeness_contract() -> Result<()> {
             touch(output)?;
         }
         if stage.id == "fastq.qc_post" {
-            touch(&out_dir.join("fastqc").join("fastqc_data.txt"))?;
+            touch(&out_dir.join("fastqc_trimmed").join("fastqc_data.txt"))?;
             touch(&out_dir.join("multiqc_report.html"))?;
+            fs::create_dir_all(out_dir.join("multiqc_data"))?;
         }
         if stage.id == "fastq.merge" {
             for output in merge_outputs_for(&plan.tool_id.0, &out_dir) {

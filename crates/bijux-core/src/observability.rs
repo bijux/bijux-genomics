@@ -122,6 +122,24 @@ pub struct ValidateReportV1 {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
+pub struct QcPostReportV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub tool_id: String,
+    pub raw_fastqc_dir: Option<String>,
+    pub trimmed_fastqc_dir: Option<String>,
+    pub multiqc_report: Option<String>,
+    pub multiqc_data: Option<String>,
+    pub fastqc_raw_modules: serde_json::Value,
+    pub fastqc_trimmed_modules: serde_json::Value,
+    #[serde(default)]
+    pub suggested_adapters_path: Option<String>,
+    #[serde(default)]
+    pub suggested_preset: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct FilterReportV1 {
     pub schema_version: String,
     pub stage_id: String,
@@ -132,6 +150,9 @@ pub struct FilterReportV1 {
     pub reads_removed_by_n: u64,
     pub reads_removed_by_entropy: u64,
     pub reads_removed_by_kmer: u64,
+    pub reads_removed_by_length: u64,
+    #[serde(default)]
+    pub entropy_distribution: serde_json::Value,
     pub conditions: serde_json::Value,
     #[serde(default)]
     pub redundant_filters: Vec<String>,
@@ -210,6 +231,12 @@ pub struct ReportSchemaV1 {
     pub metric_semantics: Vec<MetricSemanticsV1>,
     #[serde(default)]
     pub telemetry: serde_json::Value,
+    #[serde(default)]
+    pub qc_improvement: serde_json::Value,
+    #[serde(default)]
+    pub filter_interpretation: serde_json::Value,
+    #[serde(default)]
+    pub adapter_inference: serde_json::Value,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

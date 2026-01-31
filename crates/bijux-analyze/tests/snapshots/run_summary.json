@@ -3,6 +3,7 @@
   "facts_path": "facts.jsonl",
   "report_path": "report.json",
   "telemetry_path": "telemetry/events.jsonl",
+  "final_outputs": [],
   "runs": 1,
   "stages": 2,
   "total_runtime_s": 3.0,

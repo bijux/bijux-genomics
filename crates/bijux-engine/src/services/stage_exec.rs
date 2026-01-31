@@ -11,17 +11,18 @@ use tracing::info;
 use uuid::Uuid;
 
 use crate::api::{
-    cleanup_execution, execution_memory_mb, hash_file_sha256, run_merge_execution,
-    run_multiqc_execution, run_tool_execution, run_validate_execution,
+    cleanup_execution, execution_memory_mb, hash_file_sha256, run_filter_execution,
+    run_merge_execution, run_multiqc_execution, run_tool_execution, run_validate_execution,
 };
 use crate::services::observer::Observer;
 use crate::services::run_artifacts::{
     default_trace_ids, params_hash, run_artifacts_dir_for_out, write_facts_jsonl,
     write_filter_report_v1, write_merge_report_v1, write_metrics_envelope,
     write_observability_manifest, write_plan_artifacts, write_progress_event_jsonl,
-    write_retention_report_v1, write_runs_export_jsonl, write_stage_event_jsonl,
-    write_stage_metrics_json, write_stage_report_v1, write_telemetry_event,
-    write_tool_invocation_json, write_trim_report_v1, write_validate_report_v1,
+    write_qc_post_report_v1, write_retention_report_v1, write_runs_export_jsonl,
+    write_stage_event_jsonl, write_stage_metrics_json, write_stage_report_v1,
+    write_telemetry_event, write_tool_invocation_json, write_trim_report_v1,
+    write_validate_report_v1,
 };
 use bijux_core::run_index::{insert_stage_row, StageIndexRow};
 use bijux_core::{
@@ -235,8 +236,135 @@ fn retention_conditions_from_params(params: &serde_json::Value) -> serde_json::V
     })
 }
 
+fn find_fastqc_summary(dir: &Path) -> Option<PathBuf> {
+    let direct = dir.join("summary.txt");
+    if direct.exists() {
+        return Some(direct);
+    }
+    let entries = std::fs::read_dir(dir).ok()?;
+    for entry in entries.flatten() {
+        let path = entry.path();
+        if path.is_dir() {
+            let candidate = path.join("summary.txt");
+            if candidate.exists() {
+                return Some(candidate);
+            }
+        }
+    }
+    None
+}
+
+fn fastqc_modules_from_dir(dir: &Path) -> serde_json::Value {
+    let Some(path) = find_fastqc_summary(dir) else {
+        return serde_json::json!({});
+    };
+    let Ok(raw) = std::fs::read_to_string(path) else {
+        return serde_json::json!({});
+    };
+    let mut modules = serde_json::Map::new();
+    for line in raw.lines() {
+        let mut parts = line.split('\t');
+        let Some(status) = parts.next() else {
+            continue;
+        };
+        let Some(name) = parts.next() else {
+            continue;
+        };
+        modules.insert(
+            name.to_string(),
+            serde_json::Value::String(status.to_string()),
+        );
+    }
+    serde_json::Value::Object(modules)
+}
+
+fn find_fastqc_data(dir: &Path) -> Option<PathBuf> {
+    let direct = dir.join("fastqc_data.txt");
+    if direct.exists() {
+        return Some(direct);
+    }
+    let entries = std::fs::read_dir(dir).ok()?;
+    for entry in entries.flatten() {
+        let path = entry.path();
+        if path.is_dir() {
+            let candidate = path.join("fastqc_data.txt");
+            if candidate.exists() {
+                return Some(candidate);
+            }
+        }
+    }
+    None
+}
+
+fn adapter_suggestions_from_fastqc(dir: &Path) -> (serde_json::Value, Option<String>) {
+    let Some(path) = find_fastqc_data(dir) else {
+        return (serde_json::json!({}), None);
+    };
+    let Ok(raw) = std::fs::read_to_string(path) else {
+        return (serde_json::json!({}), None);
+    };
+    let mut in_module = false;
+    let mut candidates = Vec::new();
+    for line in raw.lines() {
+        if line.starts_with(">>Overrepresented sequences") {
+            in_module = true;
+            continue;
+        }
+        if in_module && line.starts_with(">>END_MODULE") {
+            break;
+        }
+        if !in_module || line.starts_with('#') || line.trim().is_empty() {
+            continue;
+        }
+        let parts: Vec<&str> = line.split('\t').collect();
+        if parts.len() < 3 {
+            continue;
+        }
+        let sequence = parts[0].to_string();
+        let percent = parts[2].trim_end_matches('%').parse::<f64>().unwrap_or(0.0);
+        let possible_source = parts.get(3).map(ToString::to_string);
+        let confidence = if percent >= 1.0 {
+            "high"
+        } else if percent >= 0.1 {
+            "medium"
+        } else {
+            "low"
+        };
+        let matched_preset = if sequence.contains("AGATCGGAAGAGC") {
+            Some("illumina_twocolor".to_string())
+        } else if sequence.contains("CTGTCTCTTATA") || sequence.contains("TGGAATTCTCGG") {
+            Some("ssdna".to_string())
+        } else {
+            None
+        };
+        candidates.push(serde_json::json!({
+            "sequence": sequence,
+            "percent": percent,
+            "source": possible_source,
+            "matched_preset": matched_preset,
+            "confidence": confidence,
+        }));
+    }
+    let suggested_preset = candidates
+        .iter()
+        .find_map(|entry| entry.get("matched_preset").and_then(|v| v.as_str()))
+        .map(str::to_string);
+    (
+        serde_json::json!({
+            "schema_version": "bijux.adapter_suggestions.v1",
+            "candidates": candidates,
+            "suggested_preset": suggested_preset,
+        }),
+        suggested_preset,
+    )
+}
+
 fn tool_supports_polyx(tool_id: &str) -> bool {
     matches!(tool_id, "fastp")
+}
+
+fn tool_supports_kmer_filter(tool_id: &str) -> bool {
+    matches!(tool_id, "bbduk")
 }
 
 fn polyx_unsupported_warning(tool_id: &str, params: &serde_json::Value) -> Option<String> {
@@ -252,6 +380,12 @@ fn warnings_for_plan(plan: &StagePlanV1, params: &serde_json::Value) -> Vec<Stri
     let mut warnings = Vec::new();
     if let Some(msg) = polyx_unsupported_warning(plan.tool_id.0.as_str(), params) {
         warnings.push(msg);
+    }
+    if params.get("kmer_ref").is_some() && !tool_supports_kmer_filter(plan.tool_id.0.as_str()) {
+        warnings.push(format!(
+            "warning: k-mer filter requested but tool '{}' does not advertise k-mer support",
+            plan.tool_id.0
+        ));
     }
     if let Some(redundant) = params
         .get("redundant_filters")
@@ -271,6 +405,83 @@ fn warnings_for_plan(plan: &StagePlanV1, params: &serde_json::Value) -> Vec<Stri
         }
     }
     warnings
+}
+
+#[derive(Debug, Default, Clone)]
+#[allow(clippy::struct_field_names)]
+struct FilterRemovalCounts {
+    by_n: u64,
+    by_entropy: u64,
+    by_kmer: u64,
+    by_length: u64,
+}
+
+fn filter_removals_from_fastp(path: &Path) -> Option<FilterRemovalCounts> {
+    let raw = std::fs::read_to_string(path).ok()?;
+    let parsed: serde_json::Value = serde_json::from_str(&raw).ok()?;
+    let filtering = parsed.get("filtering_result")?;
+    let by_n = filtering
+        .get("too_many_N_reads")
+        .and_then(serde_json::Value::as_u64)
+        .unwrap_or(0);
+    let by_entropy = filtering
+        .get("low_complexity_reads")
+        .and_then(serde_json::Value::as_u64)
+        .unwrap_or(0);
+    let by_length = filtering
+        .get("too_short_reads")
+        .and_then(serde_json::Value::as_u64)
+        .unwrap_or(0)
+        + filtering
+            .get("too_long_reads")
+            .and_then(serde_json::Value::as_u64)
+            .unwrap_or(0);
+    Some(FilterRemovalCounts {
+        by_n,
+        by_entropy,
+        by_kmer: 0,
+        by_length,
+    })
+}
+
+fn filter_removals_from_bbduk_stats(
+    path: &Path,
+    kmer_ref_used: bool,
+) -> Option<FilterRemovalCounts> {
+    let raw = std::fs::read_to_string(path).ok()?;
+    let mut removed = None;
+    for line in raw.lines() {
+        let line = line.trim();
+        if line.starts_with("Reads Removed") || line.starts_with("Reads removed") {
+            let digits: String = line.chars().filter(char::is_ascii_digit).collect();
+            if !digits.is_empty() {
+                removed = digits.parse::<u64>().ok();
+            }
+        }
+    }
+    let removed = removed?;
+    Some(FilterRemovalCounts {
+        by_n: 0,
+        by_entropy: 0,
+        by_kmer: if kmer_ref_used { removed } else { 0 },
+        by_length: 0,
+    })
+}
+
+fn filter_removals_for_plan(
+    tool_id: &str,
+    out_dir: &Path,
+    params: &serde_json::Value,
+) -> FilterRemovalCounts {
+    match tool_id {
+        "fastp" => filter_removals_from_fastp(&out_dir.join("fastp.json")).unwrap_or_default(),
+        "bbduk" => {
+            let kmer_ref_used = params.get("kmer_ref").is_some();
+            filter_removals_from_bbduk_stats(&out_dir.join("bbduk.stats"), kmer_ref_used)
+                .unwrap_or_default()
+        }
+        _ => FilterRemovalCounts::default(),
+    }
 }
 
 type IoDeltas = (
@@ -531,6 +742,14 @@ fn pair_counts_from_paths(
 fn stats_or_zero(path: Option<&Path>) -> Result<bijux_core::measure::SeqkitMetrics> {
     if let Some(path) = path {
         if path.exists() {
+            if path.is_dir() {
+                return Ok(bijux_core::measure::SeqkitMetrics {
+                    reads: 0,
+                    bases: 0,
+                    mean_q: 0.0,
+                    gc_percent: 0.0,
+                });
+            }
             if std::fs::metadata(path).map(|m| m.len()).unwrap_or(0) == 0 {
                 return Ok(bijux_core::measure::SeqkitMetrics {
                     reads: 0,
@@ -646,51 +865,7 @@ fn stage_metrics_for_plan(
             })?
         }
         "fastq.filter" => {
-            let input = stats_or_zero(inputs.first().map(PathBuf::as_path))?;
-            let output = stats_or_zero(outputs.first().map(PathBuf::as_path))?;
-            let (pairs_in, pairs_out) = pair_counts_from_paths(inputs, outputs)?;
-            let read_retention = if input.reads > 0 {
-                f64_from_u64(output.reads) / f64_from_u64(input.reads)
-            } else {
-                0.0
-            };
-            let base_retention = if input.bases > 0 {
-                f64_from_u64(output.bases) / f64_from_u64(input.bases)
-            } else {
-                0.0
-            };
-            let delta = FastqDeltaMetricsV1 {
-                read_retention,
-                base_retention,
-                mean_q_delta: output.mean_q - input.mean_q,
-                gc_delta: output.gc_percent - input.gc_percent,
-            };
-            let retention = RetentionReportMetricV1 {
-                value: read_retention,
-                numerator_reads: output.reads,
-                denominator_reads: input.reads,
-                numerator_bases: output.bases,
-                denominator_bases: input.bases,
-                definition: "reads_out / reads_in".to_string(),
-                stage_boundary: stage_id.to_string(),
-                conditions: retention_conditions_from_params(params),
-            };
-            serde_json::to_value(FastqFilterMetricsV1 {
-                reads_in: input.reads,
-                reads_out: output.reads,
-                reads_dropped: input.reads.saturating_sub(output.reads),
-                reads_removed_by_n: 0,
-                reads_removed_by_entropy: 0,
-                reads_removed_by_kmer: 0,
-                bases_in: input.bases,
-                bases_out: output.bases,
-                pairs_in,
-                pairs_out,
-                mean_q_before: input.mean_q,
-                mean_q_after: output.mean_q,
-                delta_metrics: delta,
-                retention,
-            })?
+            filter_metrics_with_removals(inputs, outputs, params, &FilterRemovalCounts::default())?
         }
         "fastq.merge" => {
             let r1 = stats_or_zero(inputs.first().map(PathBuf::as_path))?;
@@ -807,6 +982,60 @@ fn stage_metrics_for_plan(
         _ => serde_json::json!({}),
     };
     Ok(metrics)
+}
+
+fn filter_metrics_with_removals(
+    inputs: &[PathBuf],
+    outputs: &[PathBuf],
+    params: &serde_json::Value,
+    removals: &FilterRemovalCounts,
+) -> Result<serde_json::Value> {
+    let input = stats_or_zero(inputs.first().map(PathBuf::as_path))?;
+    let output = stats_or_zero(outputs.first().map(PathBuf::as_path))?;
+    let (pairs_in, pairs_out) = pair_counts_from_paths(inputs, outputs)?;
+    let read_retention = if input.reads > 0 {
+        f64_from_u64(output.reads) / f64_from_u64(input.reads)
+    } else {
+        0.0
+    };
+    let base_retention = if input.bases > 0 {
+        f64_from_u64(output.bases) / f64_from_u64(input.bases)
+    } else {
+        0.0
+    };
+    let delta = FastqDeltaMetricsV1 {
+        read_retention,
+        base_retention,
+        mean_q_delta: output.mean_q - input.mean_q,
+        gc_delta: output.gc_percent - input.gc_percent,
+    };
+    let retention = RetentionReportMetricV1 {
+        value: read_retention,
+        numerator_reads: output.reads,
+        denominator_reads: input.reads,
+        numerator_bases: output.bases,
+        denominator_bases: input.bases,
+        definition: "reads_out / reads_in".to_string(),
+        stage_boundary: "fastq.filter".to_string(),
+        conditions: retention_conditions_from_params(params),
+    };
+    Ok(serde_json::to_value(FastqFilterMetricsV1 {
+        reads_in: input.reads,
+        reads_out: output.reads,
+        reads_dropped: input.reads.saturating_sub(output.reads),
+        reads_removed_by_n: removals.by_n,
+        reads_removed_by_entropy: removals.by_entropy,
+        reads_removed_by_kmer: removals.by_kmer,
+        reads_removed_by_length: removals.by_length,
+        bases_in: input.bases,
+        bases_out: output.bases,
+        pairs_in,
+        pairs_out,
+        mean_q_before: input.mean_q,
+        mean_q_after: output.mean_q,
+        delta_metrics: delta,
+        retention,
+    })?)
 }
 
 fn retention_counts_for_plan(
@@ -1045,23 +1274,54 @@ pub fn execute_stage_plan(
                     .get("fastqc")
                     .ok_or_else(|| anyhow!("fastqc image missing for multiqc qc_post"))?;
                 let fastqc_image = resolved_image_for_plan(fastqc_image, runner);
-                let fastqc_dir = plan.out_dir.join("fastqc");
-                std::fs::create_dir_all(&fastqc_dir)?;
-                let fastqc_container = format!("bijux-stage-fastqc-{}", Uuid::new_v4());
-                let fastqc_exec = run_validate_execution(
+                let fastqc_trimmed_dir = plan.out_dir.join("fastqc_trimmed");
+                std::fs::create_dir_all(&fastqc_trimmed_dir)?;
+                let fastqc_trimmed_container = format!("bijux-stage-fastqc-{}", Uuid::new_v4());
+                let fastqc_trimmed_exec = run_validate_execution(
                     "fastqc",
                     &fastqc_image,
                     r1_dir,
                     r1,
-                    &fastqc_dir,
-                    &fastqc_container,
+                    &fastqc_trimmed_dir,
+                    &fastqc_trimmed_container,
                 )?;
-                cleanup_execution(&fastqc_container)?;
-                if fastqc_exec.exit_code != 0 {
-                    return Err(anyhow!("fastqc exit code {}", fastqc_exec.exit_code));
+                cleanup_execution(&fastqc_trimmed_container)?;
+                if fastqc_trimmed_exec.exit_code != 0 {
+                    return Err(anyhow!(
+                        "fastqc trimmed exit code {}",
+                        fastqc_trimmed_exec.exit_code
+                    ));
                 }
+
+                if let Some(raw_r1) = canonical_params
+                    .get("raw_r1")
+                    .and_then(|value| value.as_str())
+                {
+                    let raw_r1 = PathBuf::from(raw_r1);
+                    if let Some(raw_dir) = raw_r1.parent() {
+                        let fastqc_raw_dir = plan.out_dir.join("fastqc_raw");
+                        std::fs::create_dir_all(&fastqc_raw_dir)?;
+                        let fastqc_raw_container = format!("bijux-stage-fastqc-{}", Uuid::new_v4());
+                        let fastqc_raw_exec = run_validate_execution(
+                            "fastqc",
+                            &fastqc_image,
+                            raw_dir,
+                            &raw_r1,
+                            &fastqc_raw_dir,
+                            &fastqc_raw_container,
+                        )?;
+                        cleanup_execution(&fastqc_raw_container)?;
+                        if fastqc_raw_exec.exit_code != 0 {
+                            return Err(anyhow!(
+                                "fastqc raw exit code {}",
+                                fastqc_raw_exec.exit_code
+                            ));
+                        }
+                    }
+                }
+
                 let exec =
-                    run_multiqc_execution(&image, &fastqc_dir, &plan.out_dir, &container_name)?;
+                    run_multiqc_execution(&image, &plan.out_dir, &plan.out_dir, &container_name)?;
                 ExecutionEnvelope {
                     exit_code: exec.exit_code,
                     stdout: exec.stdout,
@@ -1077,6 +1337,42 @@ pub fn execute_stage_plan(
                     r1,
                     &plan.out_dir,
                     &container_name,
+                )?;
+                ExecutionEnvelope {
+                    exit_code: exec.exit_code,
+                    stdout: exec.stdout,
+                    stderr: exec.stderr,
+                    command: exec.command,
+                }
+            }
+            "fastq.filter" => {
+                let mut filter_params = canonical_params.clone();
+                if let Some(kmer_ref) = canonical_params
+                    .get("kmer_ref")
+                    .and_then(|value| value.as_str())
+                {
+                    let src = PathBuf::from(kmer_ref);
+                    if src.exists() {
+                        let dest = plan.out_dir.join("kmer_ref.fasta");
+                        std::fs::copy(&src, &dest)?;
+                        if let Some(obj) = filter_params.as_object_mut() {
+                            obj.insert(
+                                "kmer_ref".to_string(),
+                                serde_json::Value::String(
+                                    "/data/output/kmer_ref.fasta".to_string(),
+                                ),
+                            );
+                        }
+                    }
+                }
+                let exec = run_filter_execution(
+                    &plan.tool_id.0,
+                    &image,
+                    r1_dir,
+                    r1,
+                    &plan.out_dir,
+                    &container_name,
+                    &filter_params,
                 )?;
                 ExecutionEnvelope {
                     exit_code: exec.exit_code,
@@ -1115,12 +1411,18 @@ pub fn execute_stage_plan(
         });
         let output_hashes = hash_outputs(&outputs)?;
         telemetry_output_hashes.clone_from(&output_hashes);
-        let stage_metrics = stage_metrics_for_plan(
-            plan.stage_id.0.as_str(),
-            &input_paths,
-            &outputs,
-            &canonical_params,
-        )?;
+        let stage_metrics = if plan.stage_id.0 == "fastq.filter" {
+            let removals =
+                filter_removals_for_plan(plan.tool_id.0.as_str(), &plan.out_dir, &canonical_params);
+            filter_metrics_with_removals(&input_paths, &outputs, &canonical_params, &removals)?
+        } else {
+            stage_metrics_for_plan(
+                plan.stage_id.0.as_str(),
+                &input_paths,
+                &outputs,
+                &canonical_params,
+            )?
+        };
         let invocation = ToolInvocationV1 {
             schema_version: "bijux.tool_invocation.v1".to_string(),
             stage_id: plan.stage_id.0.clone(),
@@ -1292,6 +1594,8 @@ pub fn execute_stage_plan(
                         .collect::<Vec<String>>()
                 })
                 .unwrap_or_default();
+            let removals =
+                filter_removals_for_plan(plan.tool_id.0.as_str(), &plan.out_dir, &canonical_params);
             let report_path = write_filter_report_v1(
                 &run_artifacts_dir,
                 &plan.stage_id.0,
@@ -1299,9 +1603,11 @@ pub fn execute_stage_plan(
                 input.reads,
                 output.reads,
                 input.reads.saturating_sub(output.reads),
-                0,
-                0,
-                0,
+                removals.by_n,
+                removals.by_entropy,
+                removals.by_kmer,
+                removals.by_length,
+                serde_json::json!({}),
                 retention_conditions_from_params(&canonical_params),
                 redundant_filters,
             )?;
@@ -1332,6 +1638,59 @@ pub fn execute_stage_plan(
                 merge_rate,
             )?;
             emit_artifact("merge_report", &report_path)?;
+            subreports.push(report_path);
+        }
+        if plan.stage_id.0 == "fastq.qc_post" {
+            let raw_dir = plan.out_dir.join("fastqc_raw");
+            let trimmed_dir = plan.out_dir.join("fastqc_trimmed");
+            let raw_modules = fastqc_modules_from_dir(&raw_dir);
+            let trimmed_modules = fastqc_modules_from_dir(&trimmed_dir);
+            let raw_dir_opt = if raw_dir.exists() {
+                Some(raw_dir.as_path())
+            } else {
+                None
+            };
+            let trimmed_dir_opt = if trimmed_dir.exists() {
+                Some(trimmed_dir.as_path())
+            } else {
+                None
+            };
+            let multiqc_report = plan.out_dir.join("multiqc_report.html");
+            let multiqc_data = plan.out_dir.join("multiqc_data");
+            let (suggested_payload, suggested_preset) = if raw_dir.exists() {
+                adapter_suggestions_from_fastqc(&raw_dir)
+            } else {
+                adapter_suggestions_from_fastqc(&trimmed_dir)
+            };
+            let suggested_path = if suggested_payload
+                .as_object()
+                .is_none_or(serde_json::Map::is_empty)
+            {
+                None
+            } else {
+                let reports_dir = run_artifacts_dir.join("reports");
+                std::fs::create_dir_all(&reports_dir).context("create reports dir")?;
+                let path = reports_dir.join("suggested_adapters.json");
+                std::fs::write(&path, serde_json::to_vec_pretty(&suggested_payload)?)
+                    .context("write suggested adapters")?;
+                emit_artifact("suggested_adapters", &path)?;
+                Some(path)
+            };
+
+            let report_path = write_qc_post_report_v1(
+                &run_artifacts_dir,
+                &plan.stage_id.0,
+                &plan.tool_id.0,
+                raw_dir_opt,
+                trimmed_dir_opt,
+                multiqc_report.exists().then_some(multiqc_report.as_path()),
+                multiqc_data.exists().then_some(multiqc_data.as_path()),
+                raw_modules,
+                trimmed_modules,
+                suggested_path.as_deref(),
+                suggested_preset.as_deref(),
+            )?;
+            emit_artifact("qc_post_report", &report_path)?;
             subreports.push(report_path);
         }
         let warnings = warnings_for_plan(plan, &canonical_params);
@@ -1454,6 +1813,8 @@ pub fn execute_stage_plan(
                     "stage_report": stage_report_path.display().to_string(),
                     "retention_report": retention_report_path.as_ref().map(|path| path.display().to_string()),
                     "bank_report": subreports.iter().find(|path| path.ends_with("bank_report.json")).map(|path| path.display().to_string()),
+                    "qc_post_report": subreports.iter().find(|path| path.ends_with("qc_post_report.json")).map(|path| path.display().to_string()),
+                    "filter_report": subreports.iter().find(|path| path.ends_with("filter_report.json")).map(|path| path.display().to_string()),
                 }),
                 artifacts: serde_json::json!({
                     "metrics_envelope": metrics_envelope_path.display().to_string(),
@@ -1642,7 +2003,7 @@ fn hash_inputs(inputs: &[PathBuf]) -> Result<String> {
 fn hash_outputs(outputs: &[PathBuf]) -> Result<Vec<String>> {
     let mut hashes = Vec::new();
     for output in outputs {
-        if output.exists() {
+        if output.is_file() {
             hashes.push(hash_file_sha256(output)?);
         }
     }

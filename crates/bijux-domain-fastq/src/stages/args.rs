@@ -96,6 +96,7 @@ pub struct BenchFastqStatsArgs {
 }
 
 #[derive(Debug, Clone)]
+#[allow(clippy::struct_excessive_bools)]
 pub struct BenchFastqPreprocessArgs {
     pub sample_id: String,
     pub r1: PathBuf,
@@ -113,4 +114,5 @@ pub struct BenchFastqPreprocessArgs {
     pub disable_adapters: Vec<String>,
     pub polyx_preset: Option<String>,
     pub contaminant_preset: Option<String>,
+    pub no_qc_post: bool,
 }

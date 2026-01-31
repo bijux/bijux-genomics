@@ -78,6 +78,7 @@ pub enum MetricId {
     ReadsRemovedByN,
     ReadsRemovedByEntropy,
     ReadsRemovedByKmer,
+    ReadsRemovedByLength,
     ReadsTotal,
     ReadsValid,
     ReadsInvalid,
@@ -156,7 +157,7 @@ pub struct StageMetricSpec {
     pub invariants: &'static [&'static str],
 }
 
-pub const METRIC_REGISTRY: [MetricSpec; 35] = [
+pub const METRIC_REGISTRY: [MetricSpec; 36] = [
     MetricSpec {
         id: MetricId::RuntimeS,
         name: "runtime_s",
@@ -308,6 +309,19 @@ pub const METRIC_REGISTRY: [MetricSpec; 35] = [
         id: MetricId::ReadsRemovedByKmer,
         name: "reads_removed_by_kmer",
         meaning: "Reads removed due to k-mer contaminant filtering",
+        direction: MetricDirection::LowerBetter,
+        range: Some(MetricRange {
+            min: 0.0,
+            max: f64::INFINITY,
+        }),
+        stages: &["fastq.filter"],
+        measured: true,
+        derived: false,
+    },
+    MetricSpec {
+        id: MetricId::ReadsRemovedByLength,
+        name: "reads_removed_by_length",
+        meaning: "Reads removed due to length thresholds",
         direction: MetricDirection::LowerBetter,
         range: Some(MetricRange {
             min: 0.0,
@@ -723,13 +737,14 @@ pub const FASTQ_VALIDATE_METRICS: [MetricId; 10] = [
     MetricId::MeanQ,
 ];
 
-pub const FASTQ_FILTER_METRICS: [MetricId; 13] = [
+pub const FASTQ_FILTER_METRICS: [MetricId; 14] = [
     MetricId::ReadsIn,
     MetricId::ReadsOut,
     MetricId::ReadsDropped,
     MetricId::ReadsRemovedByN,
     MetricId::ReadsRemovedByEntropy,
     MetricId::ReadsRemovedByKmer,
+    MetricId::ReadsRemovedByLength,
     MetricId::BasesIn,
     MetricId::BasesOut,
     MetricId::PairsIn,
@@ -1271,6 +1286,8 @@ pub struct FastqFilterMetrics {
     pub reads_removed_by_entropy: u64,
     #[serde(default)]
     pub reads_removed_by_kmer: u64,
+    #[serde(default)]
+    pub reads_removed_by_length: u64,
     pub bases_in: u64,
     pub bases_out: u64,
     #[serde(default)]
@@ -1293,8 +1310,10 @@ impl StageMetricSchema for FastqFilterMetrics {
                 "reads_out + reads_dropped must equal reads_in".to_string(),
             ));
         }
-        let removed_breakdown =
-            self.reads_removed_by_n + self.reads_removed_by_entropy + self.reads_removed_by_kmer;
+        let removed_breakdown = self.reads_removed_by_n
+            + self.reads_removed_by_entropy
+            + self.reads_removed_by_kmer
+            + self.reads_removed_by_length;
         if removed_breakdown > self.reads_dropped {
             return Err(BenchError::Validation(
                 "reads_removed_by_* must be <= reads_dropped".to_string(),
@@ -1602,6 +1621,7 @@ mod tests {
             reads_removed_by_n: 10,
             reads_removed_by_entropy: 5,
             reads_removed_by_kmer: 5,
+            reads_removed_by_length: 0,
             bases_in: 1000,
             bases_out: 800,
             pairs_in: None,
@@ -1623,6 +1643,7 @@ mod tests {
             reads_removed_by_n: 10,
             reads_removed_by_entropy: 10,
             reads_removed_by_kmer: 5,
+            reads_removed_by_length: 0,
             bases_in: 1000,
             bases_out: 810,
             pairs_in: None,

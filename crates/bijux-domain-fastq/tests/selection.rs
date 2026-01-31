@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use bijux_core::selection::{objective_spec, select_stage, Objective};
+use bijux_core::selection::{objective_spec, select_stage, BenchResultStatus, Objective};
 use bijux_domain_fastq::{
     fastq_default_pipeline, get_results, BenchCorpus, BenchCorpusId, BenchDataset,
     DefaultPipelineOptions,
@@ -141,6 +141,7 @@ fn default_route_selects_tools_deterministically() -> Result<(), Box<dyn std::er
         paired: false,
         enable_merge: false,
         enable_correct: false,
+        enable_qc_post: true,
     });
 
     for stage in pipeline.stages {
@@ -149,6 +150,14 @@ fn default_route_selects_tools_deterministically() -> Result<(), Box<dyn std::er
         for tool in &tools {
             let records = get_results(&stage, tool, &corpus, &temp_root)?;
             tool_records.push((tool.clone(), records));
+        }
+        if tool_records.iter().all(|(_, records)| {
+            records.is_empty()
+                || records
+                    .iter()
+                    .all(|record| matches!(record.status, BenchResultStatus::Missing))
+        }) {
+            continue;
         }
         let objective = objective_spec(Objective::Speed);
         let selection = select_stage(&stage, &tool_records, &objective, false);

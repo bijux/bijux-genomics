@@ -17,7 +17,8 @@
       "fastq.validate_pre",
       "fastq.trim",
       "fastq.filter",
-      "fastq.stats_neutral"
+      "fastq.stats_neutral",
+      "fastq.qc_post"
     ]
   }
 }
