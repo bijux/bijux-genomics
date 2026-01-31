@@ -1,6 +1,6 @@
-use bijux_analyze::{
-    semantic_trim, semantic_validate, FastqDeltaMetrics, FastqTrimMetrics, FastqValidateMetrics,
-};
+use crate::aggregate::{FastqDeltaMetrics, FastqTrimMetrics, FastqValidateMetrics};
+
+use super::{semantic_trim, semantic_validate, MetricValue};
 
 #[test]
 fn semantic_trim_generates_summary() {
@@ -27,11 +27,11 @@ fn semantic_trim_generates_summary() {
     let summary = semantic_trim(&metrics);
     assert!(matches!(
         summary.integrity.reads_in.value,
-        bijux_analyze::MetricValue::U64(100)
+        MetricValue::U64(100)
     ));
     assert!(matches!(
         summary.integrity.reads_out.value,
-        bijux_analyze::MetricValue::U64(80)
+        MetricValue::U64(80)
     ));
     assert!(summary.quality_shift.is_some());
 }
@@ -53,11 +53,11 @@ fn semantic_validate_generates_summary() {
     let summary = semantic_validate(&metrics);
     assert!(matches!(
         summary.integrity.reads_in.value,
-        bijux_analyze::MetricValue::U64(50)
+        MetricValue::U64(50)
     ));
     assert!(matches!(
         summary.integrity.reads_out.value,
-        bijux_analyze::MetricValue::U64(45)
+        MetricValue::U64(45)
     ));
     assert!(summary.quality_shift.is_none());
 }

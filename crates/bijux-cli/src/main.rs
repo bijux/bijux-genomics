@@ -353,12 +353,10 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
                             None,
                             &bench_args_qc_post(args),
                         )?;
-                        let qc_class = qc_class_label("fastq.qc_post");
                         write_qc_post_report(
                             &outcome.bench_dir,
                             &outcome.records,
                             &outcome.failures,
-                            qc_class,
                             outcome.explain,
                         )?;
                         if !outcome.failures.is_empty() {

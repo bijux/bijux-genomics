@@ -17,7 +17,6 @@
 /tmp/
 *.tmp
 
-data/
 !docs/data/
 !docs/data/**
 artifacts/
