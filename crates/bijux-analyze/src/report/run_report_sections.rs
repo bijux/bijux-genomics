@@ -3,7 +3,7 @@ use bijux_core::{FactsRowV1, FilterReportV1};
 use std::cmp::Ordering;
 use std::fs;
 
-use super::helpers::report_path_for;
+use super::run_report::report_path_for;
 
 pub(super) fn qc_improvement_section(rows: &[FactsRowV1]) -> serde_json::Value {
     let mut report_path = None;

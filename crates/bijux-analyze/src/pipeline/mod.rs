@@ -1,5 +1,8 @@
 //! Owner: bijux-analyze
 //! Canonical analyze pipeline entrypoint.
+//! Owns orchestration and cross-layer wiring only.
+//! Must not be called from other layers; only pipeline crosses load/aggregate/decision/report/failure.
+//! Invariants: pipeline steps are ordered and typed (load → validate → compute → report → render).
 
 use std::path::Path;
 

@@ -53,21 +53,65 @@ test-images-merge:
 	cargo run --bin test_docker_images -- --platform $(PLATFORM) --tools pear,flash2
 
 test:
-	cargo test --workspace
+	@if command -v cargo-nextest >/dev/null 2>&1; then \
+       echo "Running tests with nextest..."; \
+       cargo nextest run --workspace --all-features --no-fail-fast; \
+    else \
+       echo "cargo-nextest not installed; falling back to cargo test"; \
+       cargo test --workspace -- --color always; \
+    fi
 
 coverage:
 	@if command -v cargo-llvm-cov >/dev/null 2>&1; then \
-		cargo llvm-cov --workspace --all-features; \
-	else \
-		echo "cargo-llvm-cov not installed; skipping coverage"; \
-	fi
+        cargo llvm-cov --workspace --all-features --show-missing-lines --html; \
+       echo "Coverage report generated in target/llvm-cov/html/index.html"; \
+    else \
+       echo "cargo-llvm-cov not installed; skipping coverage"; \
+    fi
 
 lint:
+	@echo "Checking formatting..."
 	cargo fmt --all -- --check
+	@echo "Running Clippy (strict)..."
 	cargo clippy --workspace --all-targets --all-features -- -D warnings
+	@if command -v cargo-audit >/dev/null 2>&1; then \
+		echo "Checking advisories (cargo-audit)..."; \
+		if [ -f audit-allowlist.toml ]; then \
+			cargo audit --file audit-allowlist.toml; \
+		else \
+			cargo audit; \
+		fi; \
+	else \
+		echo "cargo-audit not installed; skipping advisory check"; \
+	fi
+	@if command -v cargo-deny >/dev/null 2>&1; then \
+		echo "Checking licenses/duplicates (cargo-deny)..."; \
+		cargo deny check; \
+	else \
+		echo "cargo-deny not installed; skipping deny check"; \
+	fi
+	@if command -v cargo-machete >/dev/null 2>&1; then \
+		echo "Checking unused dependencies (cargo-machete)..."; \
+		cargo machete; \
+	else \
+		echo "cargo-machete not installed; skipping machete check"; \
+	fi
 
 security:
-	cargo audit
+	@if command -v cargo-audit >/dev/null 2>&1; then \
+		if [ -f audit-allowlist.toml ]; then \
+			cargo audit --file audit-allowlist.toml; \
+		else \
+			cargo audit; \
+		fi; \
+	else \
+		echo "cargo-audit not installed; skipping advisory check"; \
+	fi
+	@if command -v cargo-deny >/dev/null 2>&1; then \
+		cargo deny check; \
+	else \
+		echo "cargo-deny not installed; skipping deny check"; \
+	fi
 
 benchmark-trim:
 	@set -e; \

@@ -1,9 +1,18 @@
 //! Owner: bijux-analyze
 //! Metric aggregation and schema validation.
+//! Owns metric schemas, validation, and rollups for analysis.
+//! Must not perform IO or call into load/report/pipeline layers.
+//! Invariants: metrics must validate against registry; rollups are deterministic.
 
 pub mod metrics;
 pub mod registry;
 pub mod stats;
+
+mod metrics_bench;
+mod metrics_fastq;
+#[cfg(test)]
+mod metrics_tests;
+mod registry_defs;
 
 pub type Result<T> = std::result::Result<T, BenchError>;
 

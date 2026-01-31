@@ -1,3 +1,6 @@
+//! Owner: bijux-analyze
+//! Scoring logic for ranking decisions.
+
 use std::collections::BTreeMap;
 
 use anyhow::Result;
@@ -5,12 +8,10 @@ use serde::Serialize;
 
 use crate::decision::DecisionTrace;
 
-mod helpers;
-use helpers::{
+use crate::decision::score_helpers::{
     annotate_why_not_first, assert_metric_semantics, format_optional, min_max, normalize_inverted,
     penalties_for_input, trace_for_input,
 };
-
 #[derive(Debug, Clone, Copy, Serialize)]
 pub enum RankingMode {
     FastestAcceptable,

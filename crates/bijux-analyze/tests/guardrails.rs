@@ -28,31 +28,58 @@ fn no_cross_layer_calls() {
         let Ok(contents) = fs::read_to_string(&file) else {
             continue;
         };
-        if path_str.contains("/load/") {
-            assert!(
-                !contents.contains("crate::decision"),
-                "load must not depend on decision: {path_str}"
-            );
-            assert!(
-                !contents.contains("crate::report"),
-                "load must not depend on report: {path_str}"
-            );
+        if path_str.contains("/pipeline/") {
+            continue;
         }
-        if path_str.contains("/report/") {
-            assert!(
-                !contents.contains("crate::load"),
-                "report must not depend on load: {path_str}"
-            );
-        }
+
+        let depends_on = |needle: &str| contents.contains(needle);
+        let allow_aggregate_for_load = path_str.ends_with("/load/sqlite_queries.rs");
+
         if path_str.contains("/decision/") {
             assert!(
-                !contents.contains("crate::report"),
+                !depends_on("crate::load"),
+                "decision must not depend on load: {path_str}"
+            );
+            assert!(
+                !depends_on("crate::report"),
                 "decision must not depend on report: {path_str}"
             );
             assert!(
-                !contents.contains("crate::load"),
-                "decision must not depend on load: {path_str}"
+                !depends_on("crate::pipeline"),
+                "decision must not depend on pipeline: {path_str}"
             );
+        }
+
+        if path_str.contains("/report/") {
+            assert!(
+                !depends_on("crate::load"),
+                "report must not depend on load: {path_str}"
+            );
+            assert!(
+                !depends_on("crate::pipeline"),
+                "report must not depend on pipeline: {path_str}"
+            );
+        }
+
+        if path_str.contains("/load/") {
+            assert!(
+                !depends_on("crate::decision"),
+                "load must not depend on decision: {path_str}"
+            );
+            assert!(
+                !depends_on("crate::report"),
+                "load must not depend on report: {path_str}"
+            );
+            assert!(
+                !depends_on("crate::pipeline"),
+                "load must not depend on pipeline: {path_str}"
+            );
+            if !allow_aggregate_for_load {
+                assert!(
+                    !depends_on("crate::aggregate"),
+                    "load must not depend on aggregate: {path_str}"
+                );
+            }
         }
     }
 }
@@ -69,11 +96,10 @@ fn public_api_is_small() -> anyhow::Result<()> {
         "pub mod aggregate;",
         "pub mod contract;",
         "pub mod decision;",
-        "pub mod facts;",
+        "pub mod facts_export;",
         "pub mod load;",
         "pub mod model;",
         "pub mod report;",
-        "pub mod semantic;",
         "pub use contract::{analyze_contract_v1, AnalyzeContractV1};",
         "pub struct AnalyzeInput {",
         "pub enum AnalyzeSources {",
@@ -85,7 +111,6 @@ fn public_api_is_small() -> anyhow::Result<()> {
         "pub use aggregate::*;",
         "pub use failure::*;",
         "pub use load::*;",
-        "pub use semantic::*;",
         "pub use report::*;",
         "pub use decision::compare::compare_runs;",
         "pub use bijux_core::metrics::MetricSet;",
@@ -163,21 +188,41 @@ fn no_new_top_level_modules_without_owner() {
     }
 
     let mut offenders = Vec::new();
+    let require_checklist = [
+        "aggregate/mod.rs",
+        "decision/mod.rs",
+        "failure.rs",
+        "load/mod.rs",
+        "model/mod.rs",
+        "pipeline/mod.rs",
+        "report/mod.rs",
+    ];
     for module in modules {
         let Ok(contents) = fs::read_to_string(&module) else {
             continue;
         };
         let mut has_owner = false;
-        for line in contents.lines().take(5) {
+        let mut has_owns = false;
+        let mut has_must_not = false;
+        for line in contents.lines().take(8) {
             if line.trim().starts_with("//!") && line.contains("Owner:") {
                 has_owner = true;
-                break;
+                continue;
+            }
+            if line.trim().starts_with("//!") && line.contains("Owns") {
+                has_owns = true;
+            }
+            if line.trim().starts_with("//!") && line.contains("Must not") {
+                has_must_not = true;
             }
             if !line.trim().is_empty() && !line.trim().starts_with("//!") {
                 break;
             }
         }
-        if !has_owner {
+        let rel = module.strip_prefix(&src_dir).unwrap_or(&module);
+        let rel_str = rel.to_string_lossy();
+        let needs_checklist = require_checklist.iter().any(|name| rel_str.ends_with(name));
+        if !has_owner || (needs_checklist && (!has_owns || !has_must_not)) {
             offenders.push(module.display().to_string());
         }
     }

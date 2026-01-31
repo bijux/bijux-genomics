@@ -63,7 +63,7 @@ pub(crate) fn qa_already_passed(
         .digest
         .as_ref()
         .map_or_else(|| image.full_name.clone(), ToString::to_string);
-    Ok(image_qa_passed(
+    image_qa_passed(
         conn,
         tool,
         stage.stage_id(),
@@ -71,7 +71,7 @@ pub(crate) fn qa_already_passed(
         &platform.name,
         &platform.runner.to_string(),
         input_hash,
-    )?)
+    )
 }
 
 /// Ensure required image QA results exist for a stage/tool set.
