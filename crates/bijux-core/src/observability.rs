@@ -122,6 +122,23 @@ pub struct ValidateReportV1 {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
+pub struct FilterReportV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub tool_id: String,
+    pub reads_in: u64,
+    pub reads_out: u64,
+    pub reads_removed_total: u64,
+    pub reads_removed_by_n: u64,
+    pub reads_removed_by_entropy: u64,
+    pub reads_removed_by_kmer: u64,
+    pub conditions: serde_json::Value,
+    #[serde(default)]
+    pub redundant_filters: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct MergeReportV1 {
     pub schema_version: String,
     pub stage_id: String,

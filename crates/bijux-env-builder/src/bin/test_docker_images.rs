@@ -1,9 +1,8 @@
 use std::path::PathBuf;
 use std::process::{Command, Output};
 
-use bijux_environment::{
-    default_docker_tools, extract_version_from_dockerfile, load_platform, ImageRef, RunnerKind,
-};
+use bijux_env_builder::{default_docker_tools, extract_version_from_dockerfile, DockerToolSpec};
+use bijux_env_runtime::{load_platform, ImageRef, PlatformSpec, RunnerKind};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<String> = std::env::args().collect();
@@ -49,9 +48,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-fn load_platform_spec(
-    platform: Option<&str>,
-) -> Result<bijux_environment::PlatformSpec, Box<dyn std::error::Error>> {
+fn load_platform_spec(platform: Option<&str>) -> Result<PlatformSpec, Box<dyn std::error::Error>> {
     let platform_spec = load_platform(platform)?;
     if platform_spec.runner != RunnerKind::Docker {
         return Err(format!(
@@ -65,7 +62,7 @@ fn load_platform_spec(
 
 fn filter_tools(
     tools_filter: Option<String>,
-) -> Result<Vec<bijux_environment::DockerToolSpec>, Box<dyn std::error::Error>> {
+) -> Result<Vec<DockerToolSpec>, Box<dyn std::error::Error>> {
     let mut tools = default_docker_tools();
     if let Some(filter) = tools_filter {
         let wanted: Vec<String> = filter
@@ -85,9 +82,9 @@ fn filter_tools(
 }
 
 fn build_image_plans(
-    platform_spec: &bijux_environment::PlatformSpec,
+    platform_spec: &PlatformSpec,
     container_dir: &std::path::Path,
-    tools: &[bijux_environment::DockerToolSpec],
+    tools: &[DockerToolSpec],
 ) -> Result<Vec<ImagePlan>, Box<dyn std::error::Error>> {
     let mut plans = Vec::new();
     for tool in tools {

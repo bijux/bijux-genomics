@@ -136,7 +136,8 @@ dependencies = [
  "bijux-bench",
  "bijux-core",
  "bijux-engine",
- "bijux-environment",
+ "bijux-env-builder",
+ "bijux-env-runtime",
  "bijux-stages-fastq",
  "chrono",
  "clap",
@@ -159,6 +160,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bijux-core",
+ "bijux-domain-fastq",
  "rusqlite",
  "serde",
  "serde_json",
@@ -241,7 +243,8 @@ dependencies = [
  "anyhow",
  "assert_cmd",
  "bijux-core",
- "bijux-environment",
+ "bijux-env-builder",
+ "bijux-env-runtime",
  "bijux-stages-fastq",
  "chrono",
  "flate2",
@@ -261,21 +264,32 @@ dependencies = [
 ]
 
 [[package]]
-name = "bijux-environment"
+name = "bijux-env-builder"
 version = "0.1.0"
 dependencies = [
  "anyhow",
  "bijux-analyze",
  "bijux-core",
+ "bijux-env-runtime",
  "regex",
  "rusqlite",
  "serde",
  "serde_json",
  "serde_yaml",
  "sha2",
+ "tempfile",
  "thiserror 1.0.69",
  "tracing",
  "uuid",
+]
+
+[[package]]
+name = "bijux-env-runtime"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_yaml",
+ "thiserror 1.0.69",
 ]
 
 [[package]]

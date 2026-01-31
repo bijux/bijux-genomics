@@ -79,12 +79,12 @@ pub fn validate_stage_graph(graph: &StageGraph) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use bijux_environment::api::RunnerKind;
+    use bijux_env_runtime::api::RunnerKind;
     use std::collections::BTreeMap;
 
     fn context_with_runner(runner: RunnerKind) -> ExecutionContext {
         ExecutionContext {
-            platform: bijux_environment::api::PlatformSpec {
+            platform: bijux_env_runtime::api::PlatformSpec {
                 name: "local".to_string(),
                 runner,
                 container_dir: std::path::PathBuf::from("/tmp"),

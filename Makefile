@@ -54,6 +54,8 @@ test-images-merge:
 
 test:
 	cargo test --workspace
+
+coverage:
 	@if command -v cargo-llvm-cov >/dev/null 2>&1; then \
 		cargo llvm-cov --workspace --all-features; \
 	else \

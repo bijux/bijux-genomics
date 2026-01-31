@@ -17,7 +17,11 @@
   },
   "parameters": {
     "input": "reads.fastq.gz",
+    "kmer_ref": null,
+    "low_complexity_threshold": null,
+    "max_n": null,
     "output": "out/fastp.fastq.gz",
+    "redundant_filters": [],
     "tool": "fastp"
   }
 }

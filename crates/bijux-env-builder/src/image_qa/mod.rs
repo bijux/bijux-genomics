@@ -10,6 +10,10 @@ mod support;
 pub use helpers::{ensure_image_qa_passed, ensure_tool_qa_passed};
 pub use runner::run_image_qa;
 pub(crate) use support::SeqkitMetrics;
+pub use support::{
+    hash_file_sha256, image_qa_base_dir, image_qa_jsonl_path, image_qa_sqlite_path,
+    validate_execution_outputs,
+};
 
 use std::path::PathBuf;
 

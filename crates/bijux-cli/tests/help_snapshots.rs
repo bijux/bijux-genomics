@@ -70,7 +70,13 @@ fn fastq_filter_help_snapshot() -> Result<()> {
     assert_help_contains(
         "filter",
         "tests/snapshots/fastq_filter_help.txt",
-        &["--list-tools", "--dry-run"],
+        &[
+            "--list-tools",
+            "--dry-run",
+            "--max-n",
+            "--low-complexity-threshold",
+            "--kmer-ref",
+        ],
     )?;
     Ok(())
 }

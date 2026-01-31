@@ -3,7 +3,7 @@ use std::path::Path;
 use anyhow::Result;
 use bijux::fastq_exec::{bench_fastq_filter, bench_fastq_trim, bench_fastq_validate_pre};
 use bijux_analyze::{write_filter_report, write_trim_report, write_validate_report};
-use bijux_environment::api::{load_image_catalog, load_platform};
+use bijux_env_runtime::api::{load_image_catalog, load_platform};
 use bijux_stages_fastq::{args as bench_args, qc_class_for_stage, QcClass};
 use tempfile::TempDir;
 
@@ -105,6 +105,9 @@ fn benchmark_gate_validate_trim_filter() -> Result<()> {
         out: out_path.clone(),
         tools: vec!["seqkit".to_string()],
         explain: false,
+        max_n: None,
+        low_complexity_threshold: None,
+        kmer_ref: None,
     };
     let filter_outcome = bench_fastq_filter(&catalog, &platform, None, &filter_args)?;
     write_filter_report(

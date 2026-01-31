@@ -52,8 +52,9 @@ pub const FASTQ_VALIDATE_INVARIANTS: [&str; 3] = [
     "counts are non-negative",
 ];
 
-pub const FASTQ_FILTER_INVARIANTS: [&str; 3] = [
+pub const FASTQ_FILTER_INVARIANTS: [&str; 4] = [
     "reads_out + reads_dropped == reads_in",
+    "reads_removed_by_* <= reads_dropped",
     "mean_q_after >= mean_q_before (warn)",
     "counts are non-negative",
 ];

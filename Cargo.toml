@@ -5,11 +5,14 @@ members = [
   "crates/bijux-cli",
   "crates/bijux-bench",
   "crates/bijux-analyze",
+  "crates/bijux-env-runtime",
+  "crates/bijux-env-builder",
   "crates/bijux-stages-fastq",
   "crates/bijux-domain-bam",
   "crates/bijux-domain-vcf",
   "crates/bijux-domain-fastq",
-  "crates/bijux-environment",
+  "crates/bijux-env-runtime",
+  "crates/bijux-env-builder",
   "crates/bijux-engine",
 ]
 

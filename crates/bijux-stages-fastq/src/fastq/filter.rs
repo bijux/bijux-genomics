@@ -1,10 +1,18 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Result};
 use bijux_core::{ArtifactRef, StageIO, StageId, StagePlanV1, StageVersion, ToolExecutionSpecV1};
 
 pub const STAGE_ID: &str = "fastq.filter";
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
+
+#[derive(Debug, Clone, Default)]
+pub struct FilterPlanOptions {
+    pub max_n: Option<u32>,
+    pub low_complexity_threshold: Option<f64>,
+    pub kmer_ref: Option<PathBuf>,
+    pub redundant_filters: Vec<String>,
+}
 
 pub fn normalize_filter_tool_list(tools: &[String]) -> Result<Vec<String>> {
     let allowed = ["prinseq", "fastp", "seqkit"];
@@ -15,10 +23,19 @@ pub fn normalize_filter_tool_list(tools: &[String]) -> Result<Vec<String>> {
 ///
 /// # Errors
 /// Returns an error if the tool is unsupported.
-pub fn plan_filter(tool: &ToolExecutionSpecV1, r1: &Path, out_dir: &Path) -> Result<StagePlanV1> {
+pub fn plan_filter(
+    tool: &ToolExecutionSpecV1,
+    r1: &Path,
+    out_dir: &Path,
+    options: &FilterPlanOptions,
+) -> Result<StagePlanV1> {
     let output_name =
         filter_output_name(&tool.tool_id.0).ok_or_else(|| anyhow!("unsupported filter tool"))?;
     let output = out_dir.join(output_name);
+    let kmer_ref = options
+        .kmer_ref
+        .as_ref()
+        .map(|path| path.display().to_string());
     Ok(StagePlanV1 {
         stage_id: StageId(STAGE_ID.to_string()),
         stage_version: STAGE_VERSION,
@@ -41,7 +58,11 @@ pub fn plan_filter(tool: &ToolExecutionSpecV1, r1: &Path, out_dir: &Path) -> Res
         params: serde_json::json!({
             "tool": tool.tool_id.0,
             "input": r1,
-            "output": output
+            "output": output,
+            "max_n": options.max_n,
+            "low_complexity_threshold": options.low_complexity_threshold,
+            "kmer_ref": kmer_ref,
+            "redundant_filters": options.redundant_filters,
         }),
         aux_images: std::collections::BTreeMap::new(),
     })

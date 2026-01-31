@@ -11,7 +11,9 @@
   "schema_version": "string",
   "stage_id": "string",
   "stage_version": "number",
-  "subreports": [],
+  "subreports": [
+    "string"
+  ],
   "summary": {
     "outputs": [
       "string"

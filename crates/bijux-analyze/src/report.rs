@@ -16,7 +16,7 @@ use crate::{
 use bijux_core::{
     AssetsProvenanceV1, FactsRowV1, MetricSemanticsV1, RawFailure, ReportCompletenessV1,
     ReportContractV1, ReportProvenanceV1, ReportSchemaV1, ReportStageSummaryV1, RetentionContextV1,
-    RetentionDefinitionV1, RetentionReportV1, StageReportV1,
+    RetentionDefinitionV1, RetentionReportV1, StageReportV1, TelemetryEventV1,
 };
 
 /// Write the trim benchmark report.
@@ -297,6 +297,7 @@ pub fn write_stats_report(
 ///
 /// # Errors
 /// Returns an error if report serialization or file writes fail.
+#[allow(clippy::too_many_lines)]
 pub fn write_run_report_from_facts(base_dir: &Path, rows: &[FactsRowV1]) -> Result<PathBuf> {
     let run_id = rows
         .first()
@@ -386,6 +387,10 @@ pub fn write_run_report_from_facts(base_dir: &Path, rows: &[FactsRowV1]) -> Resu
         });
     }
 
+    telemetry_events.sort();
+    telemetry_events.dedup();
+    let (telemetry_event_count, telemetry_error_count) = telemetry_counts(&telemetry_events);
+
     let metric_semantics = report_metric_semantics();
     let completeness = report_completeness(&missing_metrics, &missing_reports);
     let payload = ReportSchemaV1 {
@@ -400,7 +405,9 @@ pub fn write_run_report_from_facts(base_dir: &Path, rows: &[FactsRowV1]) -> Resu
         assets_provenance,
         metric_semantics,
         telemetry: serde_json::json!({
-            "events": telemetry_events
+            "events": telemetry_events,
+            "event_count": telemetry_event_count,
+            "error_count": telemetry_error_count,
         }),
     };
 
@@ -489,6 +496,28 @@ fn telemetry_path_from_stage_report(path: Option<&str>) -> Option<String> {
                 .to_string()
         })
     })
+}
+
+fn telemetry_counts(paths: &[String]) -> (usize, usize) {
+    let mut total_events = 0usize;
+    let mut error_events = 0usize;
+    for path in paths {
+        let Ok(raw) = fs::read_to_string(path) else {
+            continue;
+        };
+        for line in raw.lines() {
+            if line.trim().is_empty() {
+                continue;
+            }
+            total_events += 1;
+            if let Ok(event) = serde_json::from_str::<TelemetryEventV1>(line) {
+                if event.event_name == "error" || event.status == "error" {
+                    error_events += 1;
+                }
+            }
+        }
+    }
+    (total_events, error_events)
 }
 
 fn report_contract() -> ReportContractV1 {
@@ -1001,6 +1030,42 @@ mod tests {
         let json = bench_schema_json("fastq.trim")?;
         assert_eq!(json["stage"], "fastq.trim");
         assert!(!json["metrics"].as_array().unwrap_or(&Vec::new()).is_empty());
+        Ok(())
+    }
+
+    #[test]
+    fn bench_schema_table_ordering_matches_registry() -> Result<()> {
+        let json = bench_schema_json("fastq.trim")?;
+        let observed: Vec<_> = json["metrics"]
+            .as_array()
+            .unwrap_or(&Vec::new())
+            .iter()
+            .filter_map(|entry| entry["name"].as_str())
+            .map(ToString::to_string)
+            .collect();
+        let kind = metric_kind_for_stage("fastq.trim").ok_or_else(|| anyhow!("stage kind"))?;
+        let spec = stage_metric_spec(kind);
+        let expected: Vec<_> = spec
+            .metrics
+            .iter()
+            .map(|metric_id| metric_spec(*metric_id).name.to_string())
+            .collect();
+        assert_eq!(observed, expected);
+        Ok(())
+    }
+
+    #[test]
+    fn bench_schema_table_omits_range_when_missing() -> Result<()> {
+        let json = bench_schema_json("fastq.trim")?;
+        let empty = Vec::new();
+        let entry = json["metrics"]
+            .as_array()
+            .unwrap_or(&empty)
+            .iter()
+            .find(|metric| metric["name"] == "delta_metrics")
+            .ok_or_else(|| anyhow!("delta_metrics"))?;
+        assert!(entry.get("range").is_some());
+        assert!(entry["range"].is_null());
         Ok(())
     }
 

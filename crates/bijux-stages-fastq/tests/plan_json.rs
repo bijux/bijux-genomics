@@ -47,10 +47,12 @@ fn plan_json_is_emitted_and_stable() -> Result<()> {
 
 #[test]
 fn filter_plan_json_is_emitted_and_stable() -> Result<()> {
+    let options = bijux_stages_fastq::fastq::filter::FilterPlanOptions::default();
     let plan = bijux_stages_fastq::fastq::filter::plan_filter(
         &dummy_tool("fastp"),
         std::path::Path::new("reads.fastq.gz"),
         std::path::Path::new("out"),
+        &options,
     )?;
     let plan_json = bijux_stages_fastq::StagePlanJson::from_plan(&plan);
     let rendered = serde_json::to_string_pretty(&plan_json)?;

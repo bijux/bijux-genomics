@@ -7,7 +7,7 @@ use bijux_core::{
     CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
 };
 use bijux_engine::api::execute_plan;
-use bijux_environment::api::RunnerKind;
+use bijux_env_runtime::api::RunnerKind;
 use bijux_stages_fastq::fastq::{
     correct, filter, merge, qc_post, screen, stats_neutral, trim, umi, validate_pre,
 };
@@ -29,7 +29,7 @@ case "$cmd" in
     exit 0
     ;;
   wait)
-    echo "${BIJUX_TEST_DOCKER_EXIT_CODE:-0}"
+    echo "0"
     exit 0
     ;;
   logs)
@@ -134,7 +134,10 @@ fn build_plan(
 ) -> Result<(bijux_core::StagePlanV1, Vec<PathBuf>)> {
     let plan = match stage_id {
         "fastq.trim" => trim::plan(&dummy_tool("fastp", image), r1, out_dir, None, None, None)?,
-        "fastq.filter" => filter::plan_filter(&dummy_tool("fastp", image), r1, out_dir)?,
+        "fastq.filter" => {
+            let options = bijux_stages_fastq::fastq::filter::FilterPlanOptions::default();
+            filter::plan_filter(&dummy_tool("fastp", image), r1, out_dir, &options)?
+        }
         "fastq.validate_pre" => {
             validate_pre::plan(&dummy_tool("fastqvalidator_official", image), r1, out_dir)
         }
@@ -180,6 +183,10 @@ fn metrics_completeness_contract() -> Result<()> {
         let (plan, outputs) = build_plan(stage.id, &r1, &r2, &out_dir, &image)?;
         for output in &outputs {
             touch(output)?;
+        }
+        if stage.id == "fastq.qc_post" {
+            touch(&out_dir.join("fastqc").join("fastqc_data.txt"))?;
+            touch(&out_dir.join("multiqc_report.html"))?;
         }
         if stage.id == "fastq.merge" {
             for output in merge_outputs_for(&plan.tool_id.0, &out_dir) {
