@@ -1,3 +1,4 @@
+use std::io::{BufRead, BufReader};
 use std::path::Path;
 
 use rusqlite::{params, Connection};
@@ -7,6 +8,8 @@ use sha2::{Digest, Sha256};
 
 use bijux_core::measure::ExecutionMetrics;
 use bijux_core::metrics::MetricSet;
+use bijux_core::run_index::RunIndexLine;
+use bijux_core::FactsRowV1;
 
 use crate::aggregate::{
     BenchError, BenchmarkContext, BenchmarkRecord, FastqCorrectMetrics, FastqFilterMetrics,
@@ -14,6 +17,178 @@ use crate::aggregate::{
     FastqUmiMetrics, FastqValidateMetrics, ImageQaRecord, Result, IMAGE_QA_INPUTS_SCHEMA_VERSION,
     IMAGE_QA_SCHEMA_VERSION,
 };
+use crate::facts::RunSummaryV1;
+use crate::model::FactTable;
+
+#[derive(thiserror::Error, Debug)]
+pub enum AnalyzeError {
+    #[error("missing file: {path}")]
+    MissingFile { path: String },
+    #[error("invalid schema version: {found} (expected {expected})")]
+    InvalidSchemaVersion { found: String, expected: String },
+    #[error("invalid jsonl row at line {line}: {message}")]
+    InvalidJsonlRow { line: usize, message: String },
+    #[error("invalid json: {message}")]
+    InvalidJson { message: String },
+    #[error("unsupported parquet: {message}")]
+    UnsupportedParquet { message: String },
+}
+
+/// # Errors
+/// Returns an error if the facts file is missing or has invalid schema/rows.
+pub fn load_facts(path: &Path) -> std::result::Result<Vec<FactsRowV1>, AnalyzeError> {
+    if !path.exists() {
+        return Err(AnalyzeError::MissingFile {
+            path: path.display().to_string(),
+        });
+    }
+    let file = std::fs::File::open(path).map_err(|err| AnalyzeError::InvalidJson {
+        message: err.to_string(),
+    })?;
+    let reader = BufReader::new(file);
+    let mut rows = Vec::new();
+    for (idx, line) in reader.lines().enumerate() {
+        let line = line.map_err(|err| AnalyzeError::InvalidJson {
+            message: err.to_string(),
+        })?;
+        if line.trim().is_empty() {
+            continue;
+        }
+        let parsed_row: FactsRowV1 =
+            serde_json::from_str(&line).map_err(|err| AnalyzeError::InvalidJsonlRow {
+                line: idx + 1,
+                message: err.to_string(),
+            })?;
+        if parsed_row.schema_version != "bijux.facts.v1" {
+            return Err(AnalyzeError::InvalidSchemaVersion {
+                found: parsed_row.schema_version,
+                expected: "bijux.facts.v1".to_string(),
+            });
+        }
+        rows.push(parsed_row);
+    }
+    Ok(rows)
+}
+
+/// # Errors
+/// Returns an error if the parquet reader is not enabled.
+#[cfg(not(feature = "parquet"))]
+pub fn load_facts_parquet(_path: &Path) -> std::result::Result<Vec<FactsRowV1>, AnalyzeError> {
+    Err(AnalyzeError::UnsupportedParquet {
+        message: "enable the parquet feature to read parquet facts".to_string(),
+    })
+}
+
+/// # Errors
+/// Returns an error if the parquet reader fails.
+#[cfg(feature = "parquet")]
+pub fn load_facts_parquet(path: &Path) -> std::result::Result<Vec<FactsRowV1>, AnalyzeError> {
+    use parquet::file::reader::{FileReader, SerializedFileReader};
+    let file = std::fs::File::open(path).map_err(|err| AnalyzeError::InvalidJson {
+        message: err.to_string(),
+    })?;
+    let reader = SerializedFileReader::new(file).map_err(|err| AnalyzeError::InvalidJson {
+        message: err.to_string(),
+    })?;
+    let mut rows = Vec::new();
+    let iter = reader
+        .get_row_iter(None)
+        .map_err(|err| AnalyzeError::InvalidJson {
+            message: err.to_string(),
+        })?;
+    for record in iter {
+        let record = record.map_err(|err| AnalyzeError::InvalidJson {
+            message: err.to_string(),
+        })?;
+        let value = record.to_json_value();
+        let parsed: FactsRowV1 =
+            serde_json::from_value(value).map_err(|err| AnalyzeError::InvalidJson {
+                message: err.to_string(),
+            })?;
+        if parsed.schema_version != "bijux.facts.v1" {
+            return Err(AnalyzeError::InvalidSchemaVersion {
+                found: parsed.schema_version,
+                expected: "bijux.facts.v1".to_string(),
+            });
+        }
+        rows.push(parsed);
+    }
+    Ok(rows)
+}
+
+/// # Errors
+/// Returns an error if facts cannot be loaded from jsonl or parquet.
+pub fn load_facts_auto(path: &Path) -> std::result::Result<Vec<FactsRowV1>, AnalyzeError> {
+    match path.extension().and_then(|ext| ext.to_str()) {
+        Some("parquet") => load_facts_parquet(path),
+        _ => load_facts(path),
+    }
+}
+
+/// # Errors
+/// Returns an error if facts loading or validation fails.
+pub fn load_fact_table(path: &Path) -> std::result::Result<FactTable, AnalyzeError> {
+    let rows = load_facts(path)?;
+    FactTable::from_facts(&rows).map_err(|err| AnalyzeError::InvalidJson {
+        message: err.to_string(),
+    })
+}
+
+/// # Errors
+/// Returns an error if the run summary is missing or has invalid schema.
+pub fn load_run_summary(path: &Path) -> std::result::Result<RunSummaryV1, AnalyzeError> {
+    if !path.exists() {
+        return Err(AnalyzeError::MissingFile {
+            path: path.display().to_string(),
+        });
+    }
+    let raw = std::fs::read_to_string(path).map_err(|err| AnalyzeError::InvalidJson {
+        message: err.to_string(),
+    })?;
+    let summary: RunSummaryV1 =
+        serde_json::from_str(&raw).map_err(|err| AnalyzeError::InvalidJson {
+            message: err.to_string(),
+        })?;
+    if summary.schema_version != "bijux.run_summary.v1" {
+        return Err(AnalyzeError::InvalidSchemaVersion {
+            found: summary.schema_version,
+            expected: "bijux.run_summary.v1".to_string(),
+        });
+    }
+    Ok(summary)
+}
+
+/// # Errors
+/// Returns an error if the run index is missing or rows are invalid.
+pub fn load_run_index(path: &Path) -> std::result::Result<Vec<RunIndexLine>, AnalyzeError> {
+    if !path.exists() {
+        return Err(AnalyzeError::MissingFile {
+            path: path.display().to_string(),
+        });
+    }
+    let raw = std::fs::read_to_string(path).map_err(|err| AnalyzeError::InvalidJson {
+        message: err.to_string(),
+    })?;
+    let mut rows = Vec::new();
+    for (idx, line) in raw.lines().enumerate() {
+        if line.trim().is_empty() {
+            continue;
+        }
+        let parsed_row: RunIndexLine =
+            serde_json::from_str(line).map_err(|err| AnalyzeError::InvalidJsonlRow {
+                line: idx + 1,
+                message: err.to_string(),
+            })?;
+        if parsed_row.schema_version != 1 {
+            return Err(AnalyzeError::InvalidSchemaVersion {
+                found: parsed_row.schema_version.to_string(),
+                expected: "1".to_string(),
+            });
+        }
+        rows.push(parsed_row);
+    }
+    Ok(rows)
+}
 
 fn json_from_str<T: DeserializeOwned>(value: &str) -> std::result::Result<T, rusqlite::Error> {
     serde_json::from_str(value).map_err(|err| {

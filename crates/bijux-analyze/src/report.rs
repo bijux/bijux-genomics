@@ -22,6 +22,20 @@ use bijux_core::{
     StageReportV1, TelemetryEventV1,
 };
 
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct ReportModel {
+    pub report: ReportSchemaV1,
+    pub sections: BTreeMap<String, serde_json::Value>,
+}
+
+fn render_report_json(model: &ReportModel) -> Result<serde_json::Value> {
+    let mut value = serde_json::to_value(&model.report)?;
+    if let serde_json::Value::Object(ref mut obj) = value {
+        obj.insert("sections".to_string(), serde_json::json!(model.sections));
+    }
+    Ok(value)
+}
+
 /// Write the trim benchmark report.
 ///
 /// # Errors
@@ -399,7 +413,7 @@ pub fn write_run_report_from_facts(base_dir: &Path, rows: &[FactsRowV1]) -> Resu
     let qc_improvement = qc_improvement_section(rows);
     let filter_interpretation = filter_interpretation_section(rows);
     let adapter_inference = adapter_inference_section(rows);
-    let payload = ReportSchemaV1 {
+    let report = ReportSchemaV1 {
         schema_version: "bijux.report.v1".to_string(),
         contract: report_contract(),
         run_id,
@@ -418,10 +432,14 @@ pub fn write_run_report_from_facts(base_dir: &Path, rows: &[FactsRowV1]) -> Resu
         qc_improvement,
         filter_interpretation,
         adapter_inference,
+        sections: serde_json::json!({}),
     };
 
     let path = base_dir.join("report.json");
-    std::fs::write(&path, serde_json::to_vec_pretty(&payload)?).context("write report.json")?;
+    let sections = build_report_sections(&report);
+    let model = ReportModel { report, sections };
+    let json = render_report_json(&model)?;
+    std::fs::write(&path, serde_json::to_vec_pretty(&json)?).context("write report.json")?;
     Ok(path)
 }
 
@@ -710,6 +728,42 @@ fn report_contract() -> ReportContractV1 {
             "bank_hashes".to_string(),
         ],
     }
+}
+
+fn build_report_sections(report: &ReportSchemaV1) -> BTreeMap<String, serde_json::Value> {
+    let mut sections = BTreeMap::new();
+    sections.insert("qc".to_string(), report.qc_improvement.clone());
+    sections.insert(
+        "trimming".to_string(),
+        serde_json::json!({
+            "retention_definition": report.retention_definition.clone(),
+            "retention_context": report.retention_context.clone(),
+        }),
+    );
+    sections.insert(
+        "filtering".to_string(),
+        report.filter_interpretation.clone(),
+    );
+    sections.insert(
+        "contamination".to_string(),
+        serde_json::json!({
+            "assets": report.assets_provenance.clone(),
+        }),
+    );
+    sections.insert(
+        "retention".to_string(),
+        serde_json::json!({
+            "definitions": report.retention_definition.clone(),
+            "contexts": report.retention_context.clone(),
+        }),
+    );
+    sections.insert(
+        "failures".to_string(),
+        serde_json::json!({
+            "completeness": report.completeness,
+        }),
+    );
+    sections
 }
 
 fn report_completeness(

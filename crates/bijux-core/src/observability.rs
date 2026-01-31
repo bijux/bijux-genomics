@@ -237,6 +237,8 @@ pub struct ReportSchemaV1 {
     pub filter_interpretation: serde_json::Value,
     #[serde(default)]
     pub adapter_inference: serde_json::Value,
+    #[serde(default)]
+    pub sections: serde_json::Value,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

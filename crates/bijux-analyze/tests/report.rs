@@ -181,6 +181,64 @@ fn golden_run_report_snapshot_happy_path() -> Result<()> {
 }
 
 #[test]
+fn report_includes_sections_block() -> Result<()> {
+    let root = fixture_root()?;
+    let (stage_report_path, retention_report_path, bank_report_path) = base_reports(&root)?;
+    let rows = vec![FactsRowV1 {
+        schema_version: "bijux.facts.v1".to_string(),
+        run_id: "run-sections".to_string(),
+        stage_id: "fastq.trim".to_string(),
+        tool_id: "fastp".to_string(),
+        tool_version: "0.23.4".to_string(),
+        image_digest: Some("sha256:img".to_string()),
+        trace_id: "trace-1".to_string(),
+        span_id: "span-1".to_string(),
+        params_hash: "params".to_string(),
+        input_hash: "input".to_string(),
+        output_hashes: vec!["out".to_string()],
+        runtime_s: 1.0,
+        memory_mb: 64.0,
+        exit_code: 0,
+        bank_hashes: serde_json::json!({
+            "adapters": "sha256:adapters",
+            "polyx": "sha256:polyx",
+            "contaminants": "sha256:contam"
+        }),
+        reads_in: Some(100),
+        reads_out: Some(80),
+        bases_in: Some(1000),
+        bases_out: Some(800),
+        pairs_in: None,
+        pairs_out: None,
+        metrics: serde_json::json!({"reads_in": 100}),
+        reports: serde_json::json!({
+            "stage_report": stage_report_path.display().to_string(),
+            "retention_report": retention_report_path.display().to_string(),
+            "bank_report": bank_report_path.display().to_string()
+        }),
+        artifacts: serde_json::json!({}),
+    }];
+    let report_value = write_report_fixture(&root, "sections", &rows)?;
+    let Some(sections) = report_value
+        .get("sections")
+        .and_then(|value| value.as_object())
+    else {
+        panic!("sections block missing")
+    };
+    for key in [
+        "qc",
+        "trimming",
+        "filtering",
+        "contamination",
+        "retention",
+        "failures",
+    ] {
+        assert!(sections.contains_key(key), "missing section {key}");
+    }
+    Ok(())
+}
+
+#[test]
 fn golden_run_report_snapshot_tool_failure() -> Result<()> {
     let root = fixture_root()?;
     let (stage_report_path, _, _) = base_reports(&root)?;

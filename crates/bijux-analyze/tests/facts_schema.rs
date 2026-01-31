@@ -45,5 +45,9 @@ fn facts_schema_contract_has_required_fields() -> Result<()> {
     for key in required {
         assert!(value.get(key).is_some(), "missing {key}");
     }
+    assert_eq!(
+        value.get("schema_version").and_then(|v| v.as_str()),
+        Some("bijux.facts.v1")
+    );
     Ok(())
 }
