@@ -77,6 +77,8 @@ pub fn bench_args_trim(args: &BenchFastqTrimArgs) -> engine_args::BenchFastqTrim
         out: args.out.clone(),
         tools: args.tools.clone(),
         explain: args.explain,
+        replicates: args.replicates,
+        ci_bootstrap: args.ci_bootstrap,
         adapter_bank_preset: args.adapter_bank_preset.clone(),
         adapter_bank: args.adapter_bank.clone(),
         adapter_bank_file: args.adapter_bank_file.clone(),
@@ -96,6 +98,8 @@ pub fn bench_args_validate(args: &BenchFastqValidateArgs) -> engine_args::BenchF
         tools: args.tools.clone(),
         explain: args.explain,
         strict: args.strict,
+        replicates: args.replicates,
+        ci_bootstrap: args.ci_bootstrap,
     }
 }
 
@@ -107,6 +111,8 @@ pub fn bench_args_filter(args: &BenchFastqFilterArgs) -> engine_args::BenchFastq
         out: args.out.clone(),
         tools: args.tools.clone(),
         explain: args.explain,
+        replicates: args.replicates,
+        ci_bootstrap: args.ci_bootstrap,
         max_n: args.max_n,
         low_complexity_threshold: args.low_complexity_threshold,
         kmer_ref: args.kmer_ref.clone(),
@@ -122,6 +128,8 @@ pub fn bench_args_merge(args: &BenchFastqMergeArgs) -> engine_args::BenchFastqMe
         out: args.out.clone(),
         tools: args.tools.clone(),
         explain: args.explain,
+        replicates: args.replicates,
+        ci_bootstrap: args.ci_bootstrap,
     }
 }
 
@@ -134,6 +142,8 @@ pub fn bench_args_correct(args: &BenchFastqCorrectArgs) -> engine_args::BenchFas
         out: args.out.clone(),
         tools: args.tools.clone(),
         explain: args.explain,
+        replicates: args.replicates,
+        ci_bootstrap: args.ci_bootstrap,
     }
 }
 
@@ -145,6 +155,8 @@ pub fn bench_args_qc_post(args: &BenchFastqQcPostArgs) -> engine_args::BenchFast
         out: args.out.clone(),
         tools: args.tools.clone(),
         explain: args.explain,
+        replicates: args.replicates,
+        ci_bootstrap: args.ci_bootstrap,
     }
 }
 
@@ -157,6 +169,8 @@ pub fn bench_args_umi(args: &BenchFastqUmiArgs) -> engine_args::BenchFastqUmiArg
         out: args.out.clone(),
         tools: args.tools.clone(),
         explain: args.explain,
+        replicates: args.replicates,
+        ci_bootstrap: args.ci_bootstrap,
     }
 }
 
@@ -168,6 +182,8 @@ pub fn bench_args_screen(args: &BenchFastqScreenArgs) -> engine_args::BenchFastq
         out: args.out.clone(),
         tools: args.tools.clone(),
         explain: args.explain,
+        replicates: args.replicates,
+        ci_bootstrap: args.ci_bootstrap,
     }
 }
 
@@ -179,6 +195,8 @@ pub fn bench_args_stats(args: &BenchFastqStatsArgs) -> engine_args::BenchFastqSt
         out: args.out.clone(),
         tools: args.tools.clone(),
         explain: args.explain,
+        replicates: args.replicates,
+        ci_bootstrap: args.ci_bootstrap,
     }
 }
 
@@ -196,6 +214,8 @@ pub fn bench_args_preprocess(
         objective: bijux_core::selection::Objective::Balanced,
         bench_corpus: None,
         allow_partial: false,
+        replicates: args.replicates,
+        ci_bootstrap: args.ci_bootstrap,
         adapter_bank_preset: args.adapter_bank_preset.clone(),
         adapter_bank: args.adapter_bank.clone(),
         adapter_bank_file: args.adapter_bank_file.clone(),
@@ -225,6 +245,8 @@ pub fn bench_args_from_trim(args: &FastqTrimArgs) -> Result<engine_args::BenchFa
             .ok_or_else(|| anyhow::anyhow!("out required for benchmark"))?,
         tools: args.tools.clone(),
         explain: false,
+        replicates: 1,
+        ci_bootstrap: None,
         adapter_bank_preset: args.adapter_bank_preset.clone(),
         adapter_bank: args.adapter_bank.clone(),
         adapter_bank_file: args.adapter_bank_file.clone(),
@@ -256,6 +278,8 @@ pub fn bench_args_from_validate(
         tools: args.tools.clone(),
         explain: false,
         strict: args.strict,
+        replicates: 1,
+        ci_bootstrap: None,
     })
 }
 
@@ -286,6 +310,8 @@ pub fn preprocess_args_from_cli(
         objective: args.objective.into(),
         bench_corpus: args.bench_corpus.map(Into::into),
         allow_partial: args.allow_partial,
+        replicates: 1,
+        ci_bootstrap: None,
         adapter_bank_preset: args.adapter_bank_preset.clone(),
         adapter_bank: args.adapter_bank.clone(),
         adapter_bank_file: args.adapter_bank_file.clone(),

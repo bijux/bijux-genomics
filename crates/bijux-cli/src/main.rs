@@ -709,6 +709,8 @@ fn explain_fastq_stage(registry: &bijux_core::ToolRegistry, stage_id: &str) -> R
             objective: bijux_core::selection::Objective::Balanced,
             bench_corpus: None,
             allow_partial: false,
+            replicates: 1,
+            ci_bootstrap: None,
             adapter_bank_preset: None,
             adapter_bank: Some(format!(
                 "preset:{}",

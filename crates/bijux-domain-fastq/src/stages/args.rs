@@ -7,6 +7,8 @@ pub struct BenchFastqTrimArgs {
     pub out: PathBuf,
     pub tools: Vec<String>,
     pub explain: bool,
+    pub replicates: u32,
+    pub ci_bootstrap: Option<u32>,
     pub adapter_bank_preset: Option<String>,
     pub adapter_bank: Option<String>,
     pub adapter_bank_file: Option<PathBuf>,
@@ -24,6 +26,8 @@ pub struct BenchFastqValidateArgs {
     pub tools: Vec<String>,
     pub explain: bool,
     pub strict: bool,
+    pub replicates: u32,
+    pub ci_bootstrap: Option<u32>,
 }
 
 #[derive(Debug, Clone)]
@@ -33,6 +37,8 @@ pub struct BenchFastqFilterArgs {
     pub out: PathBuf,
     pub tools: Vec<String>,
     pub explain: bool,
+    pub replicates: u32,
+    pub ci_bootstrap: Option<u32>,
     pub max_n: Option<u32>,
     pub low_complexity_threshold: Option<f64>,
     pub kmer_ref: Option<PathBuf>,
@@ -46,6 +52,8 @@ pub struct BenchFastqMergeArgs {
     pub out: PathBuf,
     pub tools: Vec<String>,
     pub explain: bool,
+    pub replicates: u32,
+    pub ci_bootstrap: Option<u32>,
 }
 
 #[derive(Debug, Clone)]
@@ -56,6 +64,8 @@ pub struct BenchFastqCorrectArgs {
     pub out: PathBuf,
     pub tools: Vec<String>,
     pub explain: bool,
+    pub replicates: u32,
+    pub ci_bootstrap: Option<u32>,
 }
 
 #[derive(Debug, Clone)]
@@ -65,6 +75,8 @@ pub struct BenchFastqQcPostArgs {
     pub out: PathBuf,
     pub tools: Vec<String>,
     pub explain: bool,
+    pub replicates: u32,
+    pub ci_bootstrap: Option<u32>,
 }
 
 #[derive(Debug, Clone)]
@@ -75,6 +87,8 @@ pub struct BenchFastqUmiArgs {
     pub out: PathBuf,
     pub tools: Vec<String>,
     pub explain: bool,
+    pub replicates: u32,
+    pub ci_bootstrap: Option<u32>,
 }
 
 #[derive(Debug, Clone)]
@@ -84,6 +98,8 @@ pub struct BenchFastqScreenArgs {
     pub out: PathBuf,
     pub tools: Vec<String>,
     pub explain: bool,
+    pub replicates: u32,
+    pub ci_bootstrap: Option<u32>,
 }
 
 #[derive(Debug, Clone)]
@@ -93,6 +109,8 @@ pub struct BenchFastqStatsArgs {
     pub out: PathBuf,
     pub tools: Vec<String>,
     pub explain: bool,
+    pub replicates: u32,
+    pub ci_bootstrap: Option<u32>,
 }
 
 #[derive(Debug, Clone)]
@@ -107,6 +125,8 @@ pub struct BenchFastqPreprocessArgs {
     pub objective: bijux_core::selection::Objective,
     pub bench_corpus: Option<crate::pipeline::BenchCorpusId>,
     pub allow_partial: bool,
+    pub replicates: u32,
+    pub ci_bootstrap: Option<u32>,
     pub adapter_bank_preset: Option<String>,
     pub adapter_bank: Option<String>,
     pub adapter_bank_file: Option<PathBuf>,
