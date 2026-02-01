@@ -273,6 +273,7 @@ name = "bijux-analyze"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "bijux-bench",
  "bijux-core",
  "bijux-domain-fastq",
  "parquet",

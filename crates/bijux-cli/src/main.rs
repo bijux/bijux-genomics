@@ -129,6 +129,10 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
             let run_a = args.search_root.join(&args.run_a);
             let run_b = args.search_root.join(&args.run_b);
             let result = compare_runs(&run_a, &run_b, &objective)?;
+            let output_dir = args.output_dir.as_ref().unwrap_or(&args.search_root);
+            std::fs::create_dir_all(output_dir)?;
+            let path = output_dir.join("compare.json");
+            std::fs::write(&path, serde_json::to_vec_pretty(&result)?)?;
             println!("{}", serde_json::to_string_pretty(&result)?);
             Ok(true)
         }
@@ -163,6 +167,10 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
                     let run_a = args.search_root.join(&args.run_a);
                     let run_b = args.search_root.join(&args.run_b);
                     let result = compare_runs(&run_a, &run_b, &objective)?;
+                    let output_dir = args.output_dir.as_ref().unwrap_or(&args.search_root);
+                    std::fs::create_dir_all(output_dir)?;
+                    let path = output_dir.join("compare.json");
+                    std::fs::write(&path, serde_json::to_vec_pretty(&result)?)?;
                     println!("{}", serde_json::to_string_pretty(&result)?);
                 }
                 AnalyzeCommand::Rank(args) => {

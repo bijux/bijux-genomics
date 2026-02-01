@@ -1,9 +1,80 @@
 use bijux_core::observability::QcPostReportV1;
-use bijux_core::{FactsRowV1, FilterReportV1};
+use bijux_core::{FactsRowV1, FilterReportV1, RawFailure, ToolInvocationV1};
 use std::cmp::Ordering;
+use std::collections::BTreeMap;
 use std::fs;
+use std::path::Path;
 
 use super::run_report::report_path_for;
+use crate::failure::{classify_raw_failure, BenchmarkFailure};
+
+pub(super) fn stage_completeness_table(
+    missing_by_stage: &BTreeMap<String, (Vec<String>, Vec<String>)>,
+) -> serde_json::Value {
+    let rows: Vec<serde_json::Value> = missing_by_stage
+        .iter()
+        .map(|(stage_id, (missing_metrics, missing_reports))| {
+            serde_json::json!({
+                "stage_id": stage_id,
+                "status": if missing_metrics.is_empty() && missing_reports.is_empty() { "complete" } else { "incomplete" },
+                "missing_metrics": missing_metrics,
+                "missing_reports": missing_reports,
+            })
+        })
+        .collect();
+    serde_json::json!(rows)
+}
+
+pub(super) fn bench_summary_section(base_dir: &Path) -> serde_json::Value {
+    let path = base_dir.join("bench").join("summary.json");
+    if !path.exists() {
+        return serde_json::json!({});
+    }
+    fs::read_to_string(&path)
+        .ok()
+        .and_then(|raw| serde_json::from_str(&raw).ok())
+        .unwrap_or_else(|| serde_json::json!({}))
+}
+
+pub(super) fn failure_hints_section(rows: &[FactsRowV1]) -> serde_json::Value {
+    let mut failures: Vec<BenchmarkFailure> = Vec::new();
+    for row in rows {
+        if let Some(failures_value) = row.reports.get("failures") {
+            if let Some(array) = failures_value.as_array() {
+                for entry in array {
+                    if let Ok(raw) = serde_json::from_value::<RawFailure>(entry.clone()) {
+                        failures.push(classify_raw_failure(&raw));
+                    }
+                }
+            }
+        }
+    }
+    serde_json::json!({
+        "failures": failures,
+        "count": failures.len(),
+    })
+}
+
+pub(super) fn read_tool_invocation(path: &Path) -> Option<ToolInvocationV1> {
+    fs::read_to_string(path)
+        .ok()
+        .and_then(|raw| serde_json::from_str(&raw).ok())
+}
+
+pub(super) fn params_excerpt(value: &serde_json::Value, limit: usize) -> serde_json::Value {
+    let Some(obj) = value.as_object() else {
+        return value.clone();
+    };
+    let mut keys: Vec<_> = obj.keys().cloned().collect();
+    keys.sort();
+    let mut out = serde_json::Map::new();
+    for key in keys.into_iter().take(limit) {
+        if let Some(v) = obj.get(&key) {
+            out.insert(key, v.clone());
+        }
+    }
+    serde_json::Value::Object(out)
+}
 
 pub(super) fn qc_improvement_section(rows: &[FactsRowV1]) -> serde_json::Value {
     let mut report_path = None;
