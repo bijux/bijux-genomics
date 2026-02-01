@@ -5,7 +5,8 @@ Usage: bijux fastq merge [OPTIONS]
 Options:
       --list-tools          
       --dry-run             
-      --allow-experimental  Allow experimental and silver-tier tools
+      --allow-silver        Allow silver-tier tools
+      --allow-experimental  Allow experimental-tier tools
   -h, --help                Print help
 
 Example:

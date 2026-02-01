@@ -71,23 +71,30 @@ pub fn filter_tools_by_role(
     registry: &bijux_core::ToolRegistry,
     strict: bool,
 ) -> Result<Vec<String>> {
+    let allow_silver = std::env::var("BIJUX_ALLOW_SILVER").is_ok();
     let allow_experimental = std::env::var("BIJUX_EXPERIMENTAL_TOOLS").is_ok();
     let mut filtered = Vec::new();
     for tool in tools {
         let manifest = registry
             .tool_by_id(stage_id, tool)
             .ok_or_else(|| anyhow!("tool {tool} missing from manifests"))?;
-        match manifest.role {
-            ToolRole::Authoritative => filtered.push(tool.clone()),
-            ToolRole::Diagnostic | ToolRole::Experimental => {
-                if allow_experimental {
-                    filtered.push(tool.clone());
-                } else if strict {
-                    return Err(anyhow!(
-                        "non-gold tool {tool} requires BIJUX_EXPERIMENTAL_TOOLS=1"
-                    ));
-                }
-            }
+        let tier = match manifest.role {
+            ToolRole::Authoritative => "gold",
+            ToolRole::Diagnostic => "silver",
+            ToolRole::Experimental => "experimental",
+        };
+        let allowed = match tier {
+            "gold" => true,
+            "silver" => allow_silver || allow_experimental,
+            "experimental" => allow_experimental,
+            _ => false,
+        };
+        if allowed {
+            filtered.push(tool.clone());
+        } else if strict {
+            return Err(anyhow!(
+                "tool {tool} is {tier}; enable --allow-silver or --allow-experimental"
+            ));
         }
     }
     if filtered.is_empty() {

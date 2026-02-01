@@ -51,3 +51,39 @@ fn facts_schema_contract_has_required_fields() -> Result<()> {
     );
     Ok(())
 }
+
+#[test]
+fn facts_schema_allows_unknown_fields() -> Result<()> {
+    let row = FactsRowV1 {
+        schema_version: "bijux.facts.v1".to_string(),
+        run_id: "run-unknown".to_string(),
+        stage_id: "fastq.trim".to_string(),
+        tool_id: "fastp".to_string(),
+        tool_version: "0.23.4".to_string(),
+        image_digest: None,
+        trace_id: "trace".to_string(),
+        span_id: "span".to_string(),
+        params_hash: "params".to_string(),
+        input_hash: "input".to_string(),
+        output_hashes: vec![],
+        runtime_s: 1.0,
+        memory_mb: 1.0,
+        exit_code: 0,
+        bank_hashes: serde_json::json!({}),
+        reads_in: None,
+        reads_out: None,
+        bases_in: None,
+        bases_out: None,
+        pairs_in: None,
+        pairs_out: None,
+        metrics: serde_json::json!({}),
+        reports: serde_json::json!({}),
+        artifacts: serde_json::json!({}),
+    };
+    let mut value = serde_json::to_value(&row)?;
+    if let Some(obj) = value.as_object_mut() {
+        obj.insert("future_field".to_string(), serde_json::json!("ok"));
+    }
+    let _: FactsRowV1 = serde_json::from_value(value)?;
+    Ok(())
+}

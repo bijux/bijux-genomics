@@ -162,6 +162,15 @@
   "schema_version": "bijux.report.v1",
   "sections": {
     "adapter_config": {},
+    "assertions": {
+      "entries": [
+        {
+          "results": [],
+          "stage_id": "fastq.trim",
+          "tool_id": "fastp"
+        }
+      ]
+    },
     "bench_summary": {},
     "contaminant_summary": {
       "kmer_percent_removed": null,
@@ -289,8 +298,11 @@
             "out"
           ],
           "params_hash": "params",
+          "scientific_preset": null,
           "stage_id": "fastq.trim",
+          "tier_rationale": "curated_default",
           "tool_id": "fastp",
+          "tool_tier": "gold",
           "tool_version": "0.23.4"
         }
       ]
@@ -351,15 +363,35 @@
         }
       ]
     },
-    "stage_plots": [
-      {
-        "base_retention": 0.8,
-        "mean_q_delta": null,
-        "read_retention": 0.8,
-        "stage_id": "fastq.trim",
-        "tool_id": "fastp"
-      }
-    ],
+    "stage_confidence": {
+      "entries": [
+        {
+          "bucket": "high",
+          "reasons": [],
+          "score": 1.0,
+          "stage_id": "fastq.trim",
+          "tool_id": "fastp"
+        }
+      ]
+    },
+    "stage_plots": {
+      "entries": [
+        {
+          "base_retention": 0.8,
+          "gc_delta": null,
+          "mean_q_delta": null,
+          "read_retention": 0.8,
+          "stage_id": "fastq.trim",
+          "tool_id": "fastp"
+        }
+      ],
+      "waterfall": [
+        {
+          "read_retention": 0.8,
+          "stage_id": "fastq.trim"
+        }
+      ]
+    },
     "trimming": {
       "retention_context": [
         {

@@ -51,6 +51,7 @@ fn preprocess_args_require_required_fields() -> Result<()> {
         strict: false,
         auto: false,
         objective: ObjectiveArg::Balanced,
+        scientific_preset: None,
         bench_corpus: Some(BenchCorpusArg::Fastq5Set),
         allow_partial: false,
         list_adapter_presets: false,

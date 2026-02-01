@@ -43,6 +43,7 @@ fn fastq_trim_help_snapshot() -> Result<()> {
             "--disable-adapter",
             "--polyx-preset",
             "--contaminant-preset",
+            "--allow-silver",
             "--allow-experimental",
         ],
     )?;
@@ -61,6 +62,8 @@ fn fastq_validate_help_snapshot() -> Result<()> {
             "--tools",
             "--strict",
             "--list-tools",
+            "--allow-silver",
+            "--allow-experimental",
         ],
     )?;
     Ok(())
@@ -77,6 +80,8 @@ fn fastq_filter_help_snapshot() -> Result<()> {
             "--max-n",
             "--low-complexity-threshold",
             "--kmer-ref",
+            "--allow-silver",
+            "--allow-experimental",
         ],
     )?;
     Ok(())
@@ -87,7 +92,15 @@ fn fastq_merge_help_snapshot() -> Result<()> {
     assert_help_contains(
         "merge",
         "tests/snapshots/fastq_merge_help.txt",
-        &["--r1", "--r2", "--out", "--sample-id", "--tools"],
+        &[
+            "--r1",
+            "--r2",
+            "--out",
+            "--sample-id",
+            "--tools",
+            "--allow-silver",
+            "--allow-experimental",
+        ],
     )?;
     Ok(())
 }
@@ -97,7 +110,15 @@ fn fastq_stats_help_snapshot() -> Result<()> {
     assert_help_contains(
         "stats-neutral",
         "tests/snapshots/fastq_stats_help.txt",
-        &["--r1", "--out", "--sample-id", "--tools", "--list-tools"],
+        &[
+            "--r1",
+            "--out",
+            "--sample-id",
+            "--tools",
+            "--list-tools",
+            "--allow-silver",
+            "--allow-experimental",
+        ],
     )?;
     Ok(())
 }
@@ -123,6 +144,8 @@ fn fastq_preprocess_help_snapshot() -> Result<()> {
             "--disable-adapter",
             "--polyx-preset",
             "--contaminant-preset",
+            "--scientific-preset",
+            "--allow-silver",
             "--allow-experimental",
         ],
     )?;

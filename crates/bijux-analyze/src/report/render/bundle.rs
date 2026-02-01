@@ -56,13 +56,14 @@ mod tests {
             .join("run_report_bundle_index.html");
         let expected = fs::read_to_string(snapshot_path)?;
         let extract_json = |doc: &str| -> anyhow::Result<serde_json::Value> {
+            let marker = r#"<script id="report-json" type="application/json">"#;
             let start = doc
-                .find("<pre>")
-                .ok_or_else(|| anyhow::anyhow!("missing <pre>"))?
-                + "<pre>".len();
+                .find(marker)
+                .ok_or_else(|| anyhow::anyhow!("missing report-json script"))?
+                + marker.len();
             let end = doc
-                .find("</pre>")
-                .ok_or_else(|| anyhow::anyhow!("missing </pre>"))?;
+                .find("</script>")
+                .ok_or_else(|| anyhow::anyhow!("missing </script>"))?;
             let json_raw = &doc[start..end];
             Ok(serde_json::from_str(json_raw)?)
         };

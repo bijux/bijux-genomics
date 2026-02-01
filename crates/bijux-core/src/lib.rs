@@ -450,6 +450,38 @@ pub enum ToolStatus {
     Deprecated,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ToolTier {
+    Gold,
+    Silver,
+    Experimental,
+}
+
+#[must_use]
+pub fn tool_tier_from_role(role: ToolRole) -> ToolTier {
+    match role {
+        ToolRole::Authoritative => ToolTier::Gold,
+        ToolRole::Diagnostic => ToolTier::Silver,
+        ToolRole::Experimental => ToolTier::Experimental,
+    }
+}
+
+#[must_use]
+pub fn tool_tier_for(stage_id: &str, tool_id: &str) -> (ToolTier, &'static str) {
+    match (stage_id, tool_id) {
+        ("fastq.trim" | "fastq.filter", "fastp")
+        | ("fastq.validate_pre" | "fastq.qc_post", "fastqc")
+        | ("fastq.filter", "bbduk") => (ToolTier::Gold, "curated_default"),
+        ("fastq.trim", "seqpurge") => (ToolTier::Experimental, "experimental_tool"),
+        ("fastq.validate_pre", "fqtools") => (ToolTier::Silver, "diagnostic_secondary"),
+        ("fastq.merge", "vsearch" | "pear" | "bbmerge") => (ToolTier::Silver, "secondary_merge"),
+        ("fastq.screen", "kraken2") => (ToolTier::Silver, "diagnostic_screen"),
+        ("fastq.stats_neutral", "seqkit_stats") => (ToolTier::Silver, "diagnostic_stats"),
+        _ => (ToolTier::Experimental, "unknown_tool"),
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct ToolRegistry {
     stages: BTreeMap<String, StageManifestV1>,

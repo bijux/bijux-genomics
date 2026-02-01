@@ -1,5 +1,8 @@
 {
   "comparison": {
+    "baseline": null,
+    "baseline_metrics": null,
+    "deltas_vs_baseline": null,
     "metrics_a": {
       "read_retention": 0.95,
       "runtime_s": 1.0
@@ -9,6 +12,7 @@
       "runtime_s": 2.0
     },
     "objective": "balanced",
+    "regression_risk": null,
     "run_a": "/Users/bijan/bijux/bijux-dna/target/test-fixtures/compare_ranking/run_a",
     "run_b": "/Users/bijan/bijux/bijux-dna/target/test-fixtures/compare_ranking/run_b",
     "uncertainty": {

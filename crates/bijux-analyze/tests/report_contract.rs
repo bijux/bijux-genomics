@@ -100,6 +100,21 @@ fn report_sections_exist_for_all_stages() -> Result<()> {
 }
 
 #[test]
+fn report_schema_allows_unknown_fields() -> Result<()> {
+    let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    let snapshot_path = manifest_dir
+        .join("tests")
+        .join("snapshots")
+        .join("run_report.json");
+    let mut value: serde_json::Value = serde_json::from_str(&fs::read_to_string(snapshot_path)?)?;
+    if let Some(obj) = value.as_object_mut() {
+        obj.insert("new_field".to_string(), serde_json::json!({"future": true}));
+    }
+    let _: ReportSchemaV1 = serde_json::from_value(value)?;
+    Ok(())
+}
+
+#[test]
 fn stage_sections_cover_all_executed_stages() -> Result<()> {
     let report = load_report_snapshot()?;
     let stages = report

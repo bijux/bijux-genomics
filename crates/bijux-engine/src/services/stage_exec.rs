@@ -651,6 +651,174 @@ fn extract_io_deltas(metrics: &serde_json::Value) -> IoDeltas {
     )
 }
 
+fn metrics_f64(metrics: &serde_json::Value, key: &str) -> Option<f64> {
+    metrics
+        .get(key)
+        .and_then(serde_json::Value::as_f64)
+        .or_else(|| {
+            metrics
+                .get("delta_metrics")
+                .and_then(|value| value.get(key))
+                .and_then(serde_json::Value::as_f64)
+        })
+}
+
+fn assertion_result(id: &str, status: &str, message: impl Into<String>) -> serde_json::Value {
+    serde_json::json!({
+        "id": id,
+        "status": status,
+        "message": message.into(),
+    })
+}
+
+#[allow(clippy::too_many_lines)]
+fn evaluate_assertions(
+    stage_id: &str,
+    metrics: &serde_json::Value,
+    reads_in: Option<u64>,
+    reads_out: Option<u64>,
+    bases_in: Option<u64>,
+    bases_out: Option<u64>,
+) -> Vec<serde_json::Value> {
+    let mut results = Vec::new();
+    match (reads_in, reads_out) {
+        (Some(input), Some(output)) => {
+            if output > input {
+                results.push(assertion_result(
+                    "reads_monotonic",
+                    "fail",
+                    format!("reads_out ({output}) exceeds reads_in ({input}) for {stage_id}"),
+                ));
+            } else {
+                results.push(assertion_result(
+                    "reads_monotonic",
+                    "pass",
+                    "reads_out <= reads_in".to_string(),
+                ));
+            }
+        }
+        _ => results.push(assertion_result(
+            "reads_monotonic",
+            "warn",
+            "missing reads_in/reads_out".to_string(),
+        )),
+    }
+    match (bases_in, bases_out) {
+        (Some(input), Some(output)) => {
+            if output > input {
+                results.push(assertion_result(
+                    "bases_monotonic",
+                    "fail",
+                    format!("bases_out ({output}) exceeds bases_in ({input}) for {stage_id}"),
+                ));
+            } else {
+                results.push(assertion_result(
+                    "bases_monotonic",
+                    "pass",
+                    "bases_out <= bases_in".to_string(),
+                ));
+            }
+        }
+        _ => results.push(assertion_result(
+            "bases_monotonic",
+            "warn",
+            "missing bases_in/bases_out".to_string(),
+        )),
+    }
+    for key in ["mean_q_before", "mean_q_after"] {
+        if let Some(value) = metrics_f64(metrics, key) {
+            if (0.0..=50.0).contains(&value) {
+                results.push(assertion_result(
+                    "mean_q_range",
+                    "pass",
+                    format!("{key} within expected range"),
+                ));
+            } else {
+                results.push(assertion_result(
+                    "mean_q_range",
+                    "warn",
+                    format!("{key} out of range (0-50): {value:.2}"),
+                ));
+            }
+        } else {
+            results.push(assertion_result(
+                "mean_q_range",
+                "warn",
+                format!("missing {key}"),
+            ));
+        }
+    }
+    for key in ["gc_before", "gc_after"] {
+        if let Some(value) = metrics_f64(metrics, key) {
+            if (0.0..=1.0).contains(&value) {
+                results.push(assertion_result(
+                    "gc_range",
+                    "pass",
+                    format!("{key} within expected range"),
+                ));
+            } else {
+                results.push(assertion_result(
+                    "gc_range",
+                    "warn",
+                    format!("{key} out of range (0-1): {value:.3}"),
+                ));
+            }
+        } else {
+            results.push(assertion_result(
+                "gc_range",
+                "warn",
+                format!("missing {key}"),
+            ));
+        }
+    }
+    if let Some(delta) = metrics_f64(metrics, "mean_q_delta") {
+        if delta.abs() > 20.0 {
+            results.push(assertion_result(
+                "mean_q_delta_bounds",
+                "warn",
+                format!("mean_q_delta {delta:.2} exceeds ±20"),
+            ));
+        } else {
+            results.push(assertion_result(
+                "mean_q_delta_bounds",
+                "pass",
+                "mean_q_delta within ±20".to_string(),
+            ));
+        }
+    }
+    if let Some(delta) = metrics_f64(metrics, "gc_delta") {
+        if delta.abs() > 0.2 {
+            results.push(assertion_result(
+                "gc_delta_bounds",
+                "warn",
+                format!("gc_delta {delta:.3} exceeds ±0.2"),
+            ));
+        } else {
+            results.push(assertion_result(
+                "gc_delta_bounds",
+                "pass",
+                "gc_delta within ±0.2".to_string(),
+            ));
+        }
+    }
+    if let Some(retention) = metrics_f64(metrics, "read_retention") {
+        if (0.0..=1.0).contains(&retention) {
+            results.push(assertion_result(
+                "read_retention_range",
+                "pass",
+                "read_retention within expected range".to_string(),
+            ));
+        } else {
+            results.push(assertion_result(
+                "read_retention_range",
+                "warn",
+                format!("read_retention out of range (0-1): {retention:.3}"),
+            ));
+        }
+    }
+    results
+}
+
 fn write_effective_fasta(
     run_artifacts_dir: &Path,
     name: &str,
@@ -1940,6 +2108,19 @@ pub fn execute_stage_plan(
         warnings.extend(extra_warnings);
         let (reads_in, reads_out, bases_in, bases_out, pairs_in, pairs_out) =
             extract_io_deltas(&stage_metrics);
+        let assertion_results = evaluate_assertions(
+            &plan.stage_id.0,
+            &stage_metrics,
+            reads_in,
+            reads_out,
+            bases_in,
+            bases_out,
+        );
+        let assertions_payload = serde_json::json!({
+            "schema_version": "bijux.assertions.v1",
+            "results": assertion_results,
+        });
+        let scientific_preset = std::env::var("BIJUX_SCIENTIFIC_PRESET").ok();
         if plan.stage_id.0 == "fastq.filter" && canonical_params.get("kmer_ref").is_some() {
             contaminant_action = true;
             emit_event(&bijux_core::TelemetryEventV1 {
@@ -2124,6 +2305,8 @@ pub fn execute_stage_plan(
                     "quality_gate": quality_gate,
                     "adapter_validation": adapter_validation,
                     "contaminant_action": contaminant_action,
+                    "assertions": assertions_payload,
+                    "scientific_preset": scientific_preset,
                 }),
                 artifacts: serde_json::json!({
                     "metrics_envelope": metrics_envelope_path.display().to_string(),
