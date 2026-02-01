@@ -135,4 +135,5 @@ pub struct BenchFastqPreprocessArgs {
     pub polyx_preset: Option<String>,
     pub contaminant_preset: Option<String>,
     pub no_qc_post: bool,
+    pub force_merge: bool,
 }

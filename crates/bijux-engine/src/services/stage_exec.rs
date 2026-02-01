@@ -338,7 +338,7 @@ fn adapter_suggestions_from_fastqc(dir: &Path) -> (serde_json::Value, Option<Str
             "low"
         };
         let matched_preset = if sequence.contains("AGATCGGAAGAGC") {
-            Some("illumina_twocolor".to_string())
+            Some("illumina-default".to_string())
         } else if sequence.contains("CTGTCTCTTATA") || sequence.contains("TGGAATTCTCGG") {
             Some("ssdna".to_string())
         } else {

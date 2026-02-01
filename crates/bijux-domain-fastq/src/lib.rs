@@ -39,10 +39,11 @@ pub use contracts::model::{
     AdapterContributionV1, AdapterTrimmingReportV1, RetentionReportV1, ToolReferenceV1,
 };
 pub use contracts::{
-    contract_for_stage, ensure_umi_headers, infer_input_kind, inspect_headers, log_header_warnings,
-    normalize_outputs, preflight_stage, qc_class_for_stage, FastqArtifact, FastqArtifactKind,
-    FastqLayout, FastqPE, FastqPairedEnd, FastqSE, FastqSampleId, FastqSingleEnd,
-    FastqStageContract, FastqStats, HeaderInspection, NormalizedOutputs, QcClass, RawFailure,
+    assess_merge_suitability, contract_for_stage, ensure_umi_headers, infer_input_kind,
+    inspect_headers, log_header_warnings, normalize_outputs, preflight_stage, qc_class_for_stage,
+    FastqArtifact, FastqArtifactKind, FastqLayout, FastqPE, FastqPairedEnd, FastqSE, FastqSampleId,
+    FastqSingleEnd, FastqStageContract, FastqStats, HeaderInspection, MergeSuitability,
+    NormalizedOutputs, QcClass, RawFailure,
 };
 pub use domain::{canonical_stage_order, optional_branches, stage_semantics};
 pub use metrics::deltas::{compute_delta, ratio_u64};

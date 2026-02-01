@@ -43,6 +43,7 @@ fn fastq_trim_help_snapshot() -> Result<()> {
             "--disable-adapter",
             "--polyx-preset",
             "--contaminant-preset",
+            "--force-merge",
         ],
     )?;
     Ok(())

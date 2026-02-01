@@ -127,6 +127,59 @@ pub fn log_header_warnings(stage_id: &str, inspection: &HeaderInspection) {
     }
 }
 
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct MergeSuitability {
+    pub suitable: bool,
+    pub reason: String,
+    pub r1_mean_len: Option<usize>,
+    pub r2_mean_len: Option<usize>,
+}
+
+/// Assess whether paired-end reads are suitable for merging.
+///
+/// # Errors
+/// Returns an error if inputs cannot be read.
+pub fn assess_merge_suitability(r1: &Path, r2: &Path) -> Result<MergeSuitability> {
+    let (r1_mean, r2_mean) = read_sequence_length_means(r1, r2, 64)?;
+    let (Some(r1_len), Some(r2_len)) = (r1_mean, r2_mean) else {
+        return Ok(MergeSuitability {
+            suitable: false,
+            reason: "missing read length samples".to_string(),
+            r1_mean_len: r1_mean,
+            r2_mean_len: r2_mean,
+        });
+    };
+    if r1_len == 0 || r2_len == 0 {
+        return Ok(MergeSuitability {
+            suitable: false,
+            reason: "zero-length reads detected".to_string(),
+            r1_mean_len: r1_mean,
+            r2_mean_len: r2_mean,
+        });
+    }
+    if r1_len != r2_len {
+        return Ok(MergeSuitability {
+            suitable: false,
+            reason: "read lengths differ between R1 and R2".to_string(),
+            r1_mean_len: r1_mean,
+            r2_mean_len: r2_mean,
+        });
+    }
+    let suitable = r1_len <= 150;
+    let reason = if suitable {
+        "read length suggests overlap is likely".to_string()
+    } else {
+        "read length suggests overlap is unlikely".to_string()
+    };
+    Ok(MergeSuitability {
+        suitable,
+        reason,
+        r1_mean_len: r1_mean,
+        r2_mean_len: r2_mean,
+    })
+}
+
 /// Ensure UMI headers are present before UMI stage execution.
 ///
 /// # Errors
@@ -297,6 +350,38 @@ fn read_header_names(path: &Path, max_records: usize) -> Result<Vec<String>> {
         }
     }
     Ok(names)
+}
+
+fn read_sequence_length_means(
+    r1: &Path,
+    r2: &Path,
+    max_records: usize,
+) -> Result<(Option<usize>, Option<usize>)> {
+    let r1_lengths = read_sequence_lengths(r1, max_records)?;
+    let r2_lengths = read_sequence_lengths(r2, max_records)?;
+    Ok((mean_length(&r1_lengths), mean_length(&r2_lengths)))
+}
+
+fn read_sequence_lengths(path: &Path, max_records: usize) -> Result<Vec<usize>> {
+    let data = std::fs::read_to_string(path)?;
+    let mut lengths = Vec::new();
+    for (idx, line) in data.lines().enumerate() {
+        if idx % 4 == 1 {
+            lengths.push(line.trim().len());
+            if lengths.len() >= max_records {
+                break;
+            }
+        }
+    }
+    Ok(lengths)
+}
+
+fn mean_length(lengths: &[usize]) -> Option<usize> {
+    if lengths.is_empty() {
+        return None;
+    }
+    let sum: usize = lengths.iter().sum();
+    Some(sum / lengths.len())
 }
 
 fn normalize_header(name: &str) -> String {
