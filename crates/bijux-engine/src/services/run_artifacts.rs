@@ -13,8 +13,8 @@ use bijux_core::observability::{
     FilterReportV1, MergeReportV1, QcPostReportV1, TrimReportV1, ValidateReportV1,
 };
 use bijux_core::{
-    EffectiveConfigV1, FactsRowV1, RetentionReportV1, StageObservabilityContextV1, StageReportV1,
-    TelemetryEventV1,
+    metrics::AdapterBankProvenanceV1, EffectiveConfigV1, FactsRowV1, RetentionReportV1,
+    StageObservabilityContextV1, StageReportV1, TelemetryEventV1,
 };
 
 #[derive(Debug)]
@@ -767,6 +767,7 @@ pub fn write_observability_manifest(
     stage_metrics_path: &Path,
     stage_report_path: &Path,
     retention_report_path: Option<&Path>,
+    extra_artifacts: &[serde_json::Value],
 ) -> Result<PathBuf> {
     let mut artifacts = vec![
         serde_json::json!({
@@ -804,6 +805,9 @@ pub fn write_observability_manifest(
             "path": path,
         }));
     }
+    if !extra_artifacts.is_empty() {
+        artifacts.extend(extra_artifacts.iter().cloned());
+    }
     let payload = ObservabilityManifestV1 {
         schema_version: "bijux.observability_manifest.v1",
         stage_id: stage_id.to_string(),
@@ -814,6 +818,49 @@ pub fn write_observability_manifest(
     std::fs::write(&path, serde_json::to_vec_pretty(&payload)?)
         .context("write observability_manifest.json")?;
     Ok(path)
+}
+
+pub fn write_effective_adapters_from_provenance(
+    run_artifacts_dir: &Path,
+    adapter_bank: &AdapterBankProvenanceV1,
+) -> Result<Option<PathBuf>> {
+    if adapter_bank.enabled_entries.is_empty() {
+        return Ok(None);
+    }
+    let adapters_dir = run_artifacts_dir.join("adapters");
+    std::fs::create_dir_all(&adapters_dir).context("create adapters artifact dir")?;
+    let path = adapters_dir.join("effective_adapters.json");
+    let enabled_ids: Vec<String> = adapter_bank
+        .enabled_entries
+        .iter()
+        .map(|entry| entry.id.clone())
+        .collect();
+    let adapters: Vec<serde_json::Value> = adapter_bank
+        .enabled_entries
+        .iter()
+        .map(|entry| {
+            serde_json::json!({
+                "id": entry.id,
+                "sequence": entry.sequence,
+                "rationale": entry.rationale,
+                "source": entry.source,
+            })
+        })
+        .collect();
+    let payload = serde_json::json!({
+        "schema_version": "bijux.effective_adapters.v1",
+        "preset": adapter_bank.preset,
+        "preset_hash": adapter_bank.preset_hash,
+        "bank_id": adapter_bank.bank_id,
+        "bank_version": adapter_bank.bank_version,
+        "bank_hash": adapter_bank.bank_hash,
+        "presets_hash": adapter_bank.presets_hash,
+        "enabled_adapter_ids": enabled_ids,
+        "adapters": adapters,
+    });
+    std::fs::write(&path, serde_json::to_vec_pretty(&payload)?)
+        .context("write effective_adapters.json")?;
+    Ok(Some(path))
 }
 
 pub fn default_trace_ids() -> (String, String) {

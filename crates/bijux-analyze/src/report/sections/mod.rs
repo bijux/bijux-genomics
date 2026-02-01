@@ -19,6 +19,13 @@ pub(crate) fn report_path_for(reports: &serde_json::Value, key: &str) -> Option<
         .map(str::to_string)
 }
 
+pub(crate) fn artifact_path_for(artifacts: &serde_json::Value, key: &str) -> Option<String> {
+    artifacts
+        .get(key)
+        .and_then(|value| value.as_str())
+        .map(str::to_string)
+}
+
 pub(super) fn stage_completeness_table(
     rows: &[FactsRowV1],
     missing_by_stage: &BTreeMap<String, (Vec<String>, Vec<String>)>,
@@ -281,5 +288,28 @@ pub(super) fn adapter_inference_section(rows: &[FactsRowV1]) -> serde_json::Valu
         "suggested_adapters": suggestions,
         "rationale": rationale,
         "safety": "Inference never changes trimming unless --accept-suggested-adapters is set.",
+    })
+}
+
+pub(super) fn adapter_config_section(rows: &[FactsRowV1]) -> serde_json::Value {
+    let mut effective_path = None;
+    for row in rows {
+        effective_path = artifact_path_for(&row.artifacts, "effective_adapters");
+        if effective_path.is_some() {
+            break;
+        }
+    }
+    let Some(path) = effective_path else {
+        return serde_json::json!({});
+    };
+    let Ok(raw) = fs::read_to_string(&path) else {
+        return serde_json::json!({});
+    };
+    let Ok(effective) = serde_json::from_str::<serde_json::Value>(&raw) else {
+        return serde_json::json!({});
+    };
+    serde_json::json!({
+        "effective_adapters_path": path,
+        "effective_adapters": effective,
     })
 }
