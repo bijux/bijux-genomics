@@ -2,14 +2,16 @@
 //! Schema versions and contract validators.
 //! Owns validation for bench artifacts and inputs.
 //! Must not perform IO.
+#![allow(dead_code)]
 
 use crate::error::BenchError;
-use crate::model::{BenchmarkDecision, BenchmarkObservation, BenchmarkSummary, BenchmarkSuiteSpec};
+use crate::model::{BenchmarkObservation, BenchmarkSuiteSpec, BenchmarkSummary};
+use crate::policy::GateDecision;
 
 pub const SUITE_SCHEMA_V1: &str = "bijux.bench.suite.v1";
 pub const OBSERVATION_SCHEMA_V1: &str = "bijux.bench.observation.v1";
 pub const SUMMARY_SCHEMA_V1: &str = "bijux.bench.summary.v1";
-pub const DECISION_SCHEMA_V1: &str = "bijux.bench.decision.v1";
+pub const DECISION_SCHEMA_V1: &str = "bijux.bench.gate.v1";
 
 /// # Errors
 /// Returns an error if the suite spec violates required fields.
@@ -54,7 +56,7 @@ pub fn validate_summary(summary: &BenchmarkSummary) -> Result<(), BenchError> {
 
 /// # Errors
 /// Returns an error if decision schema is invalid.
-pub fn validate_decision(decision: &BenchmarkDecision) -> Result<(), BenchError> {
+pub fn validate_decision(decision: &GateDecision) -> Result<(), BenchError> {
     if decision.schema_version != DECISION_SCHEMA_V1 {
         return Err(BenchError::InvalidPolicy(format!(
             "decision schema mismatch: {}",

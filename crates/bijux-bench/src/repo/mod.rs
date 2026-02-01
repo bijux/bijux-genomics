@@ -4,5 +4,6 @@
 pub mod run_repo;
 pub mod sqlite_run_index;
 
-pub use run_repo::{load_manifest, load_metrics_map, RunRepository};
+pub use run_repo::RunRepository;
+#[allow(unused_imports)]
 pub use sqlite_run_index::RunIndexRepository;

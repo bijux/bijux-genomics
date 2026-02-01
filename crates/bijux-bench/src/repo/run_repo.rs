@@ -3,6 +3,7 @@
 //! Owns access to run metadata and metrics via run_index or facts.
 //! Must not crawl filesystem trees.
 //! Invariants: repository calls are deterministic.
+#![allow(dead_code)]
 
 use std::path::PathBuf;
 
@@ -19,7 +20,9 @@ pub struct RunMetadata {
 }
 
 pub trait RunRepository {
+    fn list_runs(&self) -> Result<Vec<String>>;
     fn run_metadata(&self, run_id: &str) -> Result<RunMetadata>;
+    fn load_observations(&self, run_id: &str) -> Result<Vec<crate::model::BenchmarkObservation>>;
 }
 
 pub fn load_manifest(path: &PathBuf) -> Result<bijux_engine::api::ExecutionManifest> {
@@ -52,4 +55,24 @@ pub fn load_metrics_map(path: &PathBuf) -> Result<BTreeMap<String, f64>> {
         }
     }
     Ok(map)
+}
+
+pub fn load_observations(path: &PathBuf) -> Result<Vec<crate::model::BenchmarkObservation>> {
+    if !path.exists() {
+        return Err(BenchError::MissingMetrics(format!(
+            "observations file missing: {}",
+            path.display()
+        ))
+        .into());
+    }
+    let raw = std::fs::read_to_string(path)?;
+    let mut observations = Vec::new();
+    for line in raw.lines() {
+        if line.trim().is_empty() {
+            continue;
+        }
+        let obs: crate::model::BenchmarkObservation = serde_json::from_str(line)?;
+        observations.push(obs);
+    }
+    Ok(observations)
 }

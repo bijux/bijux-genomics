@@ -1,23 +1,20 @@
 //! Owner: bijux-bench
 //! Bench orchestration helpers: summarize, gate, compare, run_suite.
-
-use std::collections::{BTreeMap, BTreeSet};
-use std::path::Path;
+#![allow(dead_code)]
 
 use anyhow::Result;
+use std::collections::{BTreeMap, BTreeSet};
 
 use crate::artifacts::{
     read_observations_jsonl, write_decision_json, write_observations_jsonl, write_summary_json,
     WriteMode,
 };
-use crate::compare::{compare_runs, CompareReport};
-use crate::contract::{validate_decision, validate_observation, validate_summary, validate_suite};
+use crate::compare::{compare_summaries, CompareReport};
+use crate::contract::{validate_decision, validate_observation, validate_suite, validate_summary};
 use crate::error::BenchError;
-use crate::model::{
-    BenchmarkDecision, BenchmarkObservation, BenchmarkSummary, DecisionRationale, MetricSummary,
-    SummaryRow,
-};
-use crate::policy::GatePolicy;
+use crate::model::{BenchmarkObservation, BenchmarkSummary, MetricSummary, SummaryRow};
+use crate::policy::{GateDecision, GatePolicy};
+use crate::repo::RunRepository;
 use crate::stats::{bootstrap_ci, mad_outliers, robust_stats, seed_from_ids};
 
 #[derive(Debug, Clone)]
@@ -27,6 +24,25 @@ pub struct BenchRunOptions {
     pub force: bool,
     pub ci_bootstrap: Option<usize>,
     pub objective: String,
+}
+
+/// Load observations for a suite from a repository.
+///
+/// # Errors
+/// Returns an error if the repository cannot load observations.
+pub fn load_suite(
+    repo: &dyn RunRepository,
+    run_ids: Option<&[String]>,
+) -> Result<Vec<BenchmarkObservation>> {
+    let ids = match run_ids {
+        Some(ids) => ids.to_vec(),
+        None => repo.list_runs()?,
+    };
+    let mut observations = Vec::new();
+    for run_id in ids {
+        observations.extend(repo.load_observations(&run_id)?);
+    }
+    Ok(observations)
 }
 
 impl Default for BenchRunOptions {
@@ -51,8 +67,22 @@ pub fn summarize(
     options: &BenchRunOptions,
 ) -> Result<BenchmarkSummary> {
     validate_suite(suite)?;
+    let mut scientifically_invalid = false;
+    let mut invalid_reasons = Vec::new();
     for obs in observations {
-        validate_observation(obs)?;
+        if let Err(err) = validate_observation(obs) {
+            match err {
+                BenchError::MissingConfounder { field } => {
+                    scientifically_invalid = true;
+                    invalid_reasons.push(format!("missing_confounder:{field}"));
+                }
+                BenchError::InvalidObservation { reason } => {
+                    scientifically_invalid = true;
+                    invalid_reasons.push(format!("invalid_observation:{reason}"));
+                }
+                other => return Err(other.into()),
+            }
+        }
     }
 
     let mut warnings = Vec::new();
@@ -160,14 +190,25 @@ pub fn summarize(
         };
         let n_effective = group.len().saturating_sub(failures);
         let low_power = n_effective < 3;
+        if low_power {
+            warnings.push(format!("low_power:{stage_id}:{tool_id}:{dataset_id}"));
+        }
         let completeness = if group.is_empty() {
             0.0
         } else {
             n_effective as f64 / group.len() as f64
         };
 
+        let first = group.first().copied();
+        let (dataset_class, read_layout) = match first {
+            Some(obs) => (obs.dataset_class.clone(), obs.read_layout.clone()),
+            None => ("unknown".to_string(), "unknown".to_string()),
+        };
+
         rows.push(SummaryRow {
             dataset_id,
+            dataset_class,
+            read_layout,
             stage_id,
             tool_id,
             params_hash,
@@ -181,24 +222,17 @@ pub fn summarize(
         });
     }
     rows.sort_by(|a, b| {
-        (
-            &a.dataset_id,
-            &a.stage_id,
-            &a.tool_id,
-            &a.params_hash,
-        )
-            .cmp(&(
-                &b.dataset_id,
-                &b.stage_id,
-                &b.tool_id,
-                &b.params_hash,
-            ))
+        (&a.dataset_id, &a.stage_id, &a.tool_id, &a.params_hash).cmp(&(
+            &b.dataset_id,
+            &b.stage_id,
+            &b.tool_id,
+            &b.params_hash,
+        ))
     });
-    Ok(BenchmarkSummary::v1(
-        suite.suite_id.clone(),
-        rows,
-        warnings,
-    ))
+    let mut summary = BenchmarkSummary::v1(suite.suite_id.clone(), rows, warnings);
+    summary.scientifically_invalid = scientifically_invalid;
+    summary.invalid_reasons = invalid_reasons;
+    Ok(summary)
 }
 
 fn bootstrap_if_enabled(
@@ -210,7 +244,7 @@ fn bootstrap_if_enabled(
     samples: Option<usize>,
 ) -> Option<(f64, f64)> {
     let samples = samples.unwrap_or(0);
-    if samples == 0 || values.is_empty() {
+    if samples == 0 || values.len() < 3 {
         return None;
     }
     let seed = seed_from_ids(&suite.suite_id, metric_id, stage_id, tool_id);
@@ -218,10 +252,7 @@ fn bootstrap_if_enabled(
     Some((result.ci_low, result.ci_high))
 }
 
-fn indices_to_replicates(
-    indices: &[usize],
-    group: &[&BenchmarkObservation],
-) -> Vec<String> {
+fn indices_to_replicates(indices: &[usize], group: &[&BenchmarkObservation]) -> Vec<String> {
     let mut replicates = Vec::new();
     for idx in indices {
         if let Some(obs) = group.get(*idx) {
@@ -231,48 +262,34 @@ fn indices_to_replicates(
     replicates
 }
 
-/// Gate observations using a policy.
+/// Gate summary rows using a policy.
 #[must_use]
-pub fn gate(policy: &GatePolicy, obs: &BenchmarkObservation) -> BenchmarkDecision {
-    gate_with_objective(policy, obs, "balanced")
+pub fn gate(policy: &GatePolicy, summary: &BenchmarkSummary) -> Vec<GateDecision> {
+    let mut decisions = Vec::new();
+    for row in &summary.rows {
+        let mut metrics = BTreeMap::new();
+        metrics.insert("runtime_s".to_string(), row.runtime.stats.median);
+        metrics.insert("memory_mb".to_string(), row.memory.stats.median);
+        for metric in &row.metrics {
+            metrics.insert(metric.metric_id.clone(), metric.stats.median);
+        }
+        decisions.push(policy.decide(
+            &row.dataset_id,
+            &row.stage_id,
+            &row.tool_id,
+            &row.params_hash,
+            &metrics,
+        ));
+    }
+    decisions
 }
 
-/// Gate observations using a policy with an explicit objective.
-#[must_use]
-pub fn gate_with_objective(
-    policy: &GatePolicy,
-    obs: &BenchmarkObservation,
-    objective: &str,
-) -> BenchmarkDecision {
-    let decision = policy.decide(Some(&obs.stage_id), &obs.metrics.values);
-    let rationale = decision
-        .rationale_trace
-        .iter()
-        .map(|note| DecisionRationale {
-            metric_id: obs.stage_id.clone(),
-            observed: obs.runtime_s,
-            direction: "unknown".to_string(),
-            note: note.clone(),
-        })
-        .collect();
-    BenchmarkDecision::v1(
-        obs.stage_id.clone(),
-        obs.tool_id.clone(),
-        objective.to_string(),
-        decision.passes,
-        rationale,
-        decision.missing_metrics,
-    )
-}
-
-/// Compare two runs via run_index.
+/// Compare two summaries.
 pub fn compare(
-    run_a: &str,
-    run_b: &str,
-    index_path: &Path,
-    artifacts_root: &Path,
+    summary_a: &BenchmarkSummary,
+    summary_b: &BenchmarkSummary,
 ) -> Result<CompareReport> {
-    compare_runs(run_a, run_b, index_path, artifacts_root)
+    compare_summaries(summary_a, summary_b)
 }
 
 /// Run a suite: summarize, gate, and write artifacts.
@@ -284,7 +301,7 @@ pub fn run_suite(
     observations: &[BenchmarkObservation],
     policy: &GatePolicy,
     options: &BenchRunOptions,
-) -> Result<(BenchmarkSummary, Vec<BenchmarkDecision>)> {
+) -> Result<(BenchmarkSummary, Vec<GateDecision>)> {
     let mut merged = observations.to_vec();
     if options.resume {
         let out_dir = options
@@ -321,10 +338,7 @@ pub fn run_suite(
 
     let summary = summarize(suite, &merged, options)?;
     validate_summary(&summary)?;
-    let mut decisions = Vec::new();
-    for obs in &merged {
-        decisions.push(gate_with_objective(policy, obs, &options.objective));
-    }
+    let decisions = gate(policy, &summary);
     for decision in &decisions {
         validate_decision(decision)?;
     }

@@ -11,13 +11,15 @@ fn gate_rejects_based_on_metric_semantics() {
     thresholds.insert("runtime_s".to_string(), 10.0);
     thresholds.insert("read_retention".to_string(), 0.9);
     let policy = GatePolicy {
+        objective: "balanced".to_string(),
         required_metrics: Vec::new(),
         thresholds,
-        regression_windows: BTreeMap::new(),
+        allowed_regressions: BTreeMap::new(),
         must_not_regress: Vec::new(),
+        semantics_overrides: BTreeMap::new(),
         stage_overrides: BTreeMap::new(),
     };
-    let decision = policy.decide(None, &metrics);
+    let decision = policy.decide("dataset-1", "fastq.trim", "tool-a", "params-a", &metrics);
     assert!(!decision.passes);
     assert_eq!(decision.violations.len(), 2);
 }
