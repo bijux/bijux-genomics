@@ -8,6 +8,7 @@ pub struct BenchFastqTrimArgs {
     pub tools: Vec<String>,
     pub explain: bool,
     pub replicates: u32,
+    pub jobs: u32,
     pub ci_bootstrap: Option<u32>,
     pub adapter_bank_preset: Option<String>,
     pub adapter_bank: Option<String>,
@@ -27,6 +28,7 @@ pub struct BenchFastqValidateArgs {
     pub explain: bool,
     pub strict: bool,
     pub replicates: u32,
+    pub jobs: u32,
     pub ci_bootstrap: Option<u32>,
 }
 
@@ -38,6 +40,7 @@ pub struct BenchFastqFilterArgs {
     pub tools: Vec<String>,
     pub explain: bool,
     pub replicates: u32,
+    pub jobs: u32,
     pub ci_bootstrap: Option<u32>,
     pub max_n: Option<u32>,
     pub low_complexity_threshold: Option<f64>,
@@ -53,6 +56,7 @@ pub struct BenchFastqMergeArgs {
     pub tools: Vec<String>,
     pub explain: bool,
     pub replicates: u32,
+    pub jobs: u32,
     pub ci_bootstrap: Option<u32>,
 }
 
@@ -65,6 +69,7 @@ pub struct BenchFastqCorrectArgs {
     pub tools: Vec<String>,
     pub explain: bool,
     pub replicates: u32,
+    pub jobs: u32,
     pub ci_bootstrap: Option<u32>,
 }
 
@@ -76,6 +81,7 @@ pub struct BenchFastqQcPostArgs {
     pub tools: Vec<String>,
     pub explain: bool,
     pub replicates: u32,
+    pub jobs: u32,
     pub ci_bootstrap: Option<u32>,
 }
 
@@ -88,6 +94,7 @@ pub struct BenchFastqUmiArgs {
     pub tools: Vec<String>,
     pub explain: bool,
     pub replicates: u32,
+    pub jobs: u32,
     pub ci_bootstrap: Option<u32>,
 }
 
@@ -99,6 +106,7 @@ pub struct BenchFastqScreenArgs {
     pub tools: Vec<String>,
     pub explain: bool,
     pub replicates: u32,
+    pub jobs: u32,
     pub ci_bootstrap: Option<u32>,
 }
 
@@ -110,6 +118,7 @@ pub struct BenchFastqStatsArgs {
     pub tools: Vec<String>,
     pub explain: bool,
     pub replicates: u32,
+    pub jobs: u32,
     pub ci_bootstrap: Option<u32>,
 }
 
@@ -126,6 +135,7 @@ pub struct BenchFastqPreprocessArgs {
     pub bench_corpus: Option<crate::pipeline::BenchCorpusId>,
     pub allow_partial: bool,
     pub replicates: u32,
+    pub jobs: u32,
     pub ci_bootstrap: Option<u32>,
     pub adapter_bank_preset: Option<String>,
     pub adapter_bank: Option<String>,

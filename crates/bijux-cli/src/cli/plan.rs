@@ -79,6 +79,7 @@ pub fn bench_args_trim(args: &BenchFastqTrimArgs) -> engine_args::BenchFastqTrim
         tools: args.tools.clone(),
         explain: args.explain,
         replicates: args.replicates,
+        jobs: args.jobs,
         ci_bootstrap: args.ci_bootstrap,
         adapter_bank_preset: args.adapter_bank_preset.clone(),
         adapter_bank: args.adapter_bank.clone(),
@@ -100,6 +101,7 @@ pub fn bench_args_validate(args: &BenchFastqValidateArgs) -> engine_args::BenchF
         explain: args.explain,
         strict: args.strict,
         replicates: args.replicates,
+        jobs: args.jobs,
         ci_bootstrap: args.ci_bootstrap,
     }
 }
@@ -113,6 +115,7 @@ pub fn bench_args_filter(args: &BenchFastqFilterArgs) -> engine_args::BenchFastq
         tools: args.tools.clone(),
         explain: args.explain,
         replicates: args.replicates,
+        jobs: args.jobs,
         ci_bootstrap: args.ci_bootstrap,
         max_n: args.max_n,
         low_complexity_threshold: args.low_complexity_threshold,
@@ -130,6 +133,7 @@ pub fn bench_args_merge(args: &BenchFastqMergeArgs) -> engine_args::BenchFastqMe
         tools: args.tools.clone(),
         explain: args.explain,
         replicates: args.replicates,
+        jobs: args.jobs,
         ci_bootstrap: args.ci_bootstrap,
     }
 }
@@ -144,6 +148,7 @@ pub fn bench_args_correct(args: &BenchFastqCorrectArgs) -> engine_args::BenchFas
         tools: args.tools.clone(),
         explain: args.explain,
         replicates: args.replicates,
+        jobs: args.jobs,
         ci_bootstrap: args.ci_bootstrap,
     }
 }
@@ -157,6 +162,7 @@ pub fn bench_args_qc_post(args: &BenchFastqQcPostArgs) -> engine_args::BenchFast
         tools: args.tools.clone(),
         explain: args.explain,
         replicates: args.replicates,
+        jobs: args.jobs,
         ci_bootstrap: args.ci_bootstrap,
     }
 }
@@ -171,6 +177,7 @@ pub fn bench_args_umi(args: &BenchFastqUmiArgs) -> engine_args::BenchFastqUmiArg
         tools: args.tools.clone(),
         explain: args.explain,
         replicates: args.replicates,
+        jobs: args.jobs,
         ci_bootstrap: args.ci_bootstrap,
     }
 }
@@ -184,6 +191,7 @@ pub fn bench_args_screen(args: &BenchFastqScreenArgs) -> engine_args::BenchFastq
         tools: args.tools.clone(),
         explain: args.explain,
         replicates: args.replicates,
+        jobs: args.jobs,
         ci_bootstrap: args.ci_bootstrap,
     }
 }
@@ -197,6 +205,7 @@ pub fn bench_args_stats(args: &BenchFastqStatsArgs) -> engine_args::BenchFastqSt
         tools: args.tools.clone(),
         explain: args.explain,
         replicates: args.replicates,
+        jobs: args.jobs,
         ci_bootstrap: args.ci_bootstrap,
     }
 }
@@ -216,6 +225,7 @@ pub fn bench_args_preprocess(
         bench_corpus: None,
         allow_partial: false,
         replicates: args.replicates,
+        jobs: args.jobs,
         ci_bootstrap: args.ci_bootstrap,
         adapter_bank_preset: args.adapter_bank_preset.clone(),
         adapter_bank: args.adapter_bank.clone(),
@@ -249,6 +259,7 @@ pub fn bench_args_from_trim(args: &FastqTrimArgs) -> Result<engine_args::BenchFa
         tools: args.tools.clone(),
         explain: false,
         replicates: 1,
+        jobs: 1,
         ci_bootstrap: None,
         adapter_bank_preset: args.adapter_bank_preset.clone(),
         adapter_bank: args.adapter_bank.clone(),
@@ -282,6 +293,7 @@ pub fn bench_args_from_validate(
         explain: false,
         strict: args.strict,
         replicates: 1,
+        jobs: 1,
         ci_bootstrap: None,
     })
 }
@@ -314,6 +326,7 @@ pub fn preprocess_args_from_cli(
         bench_corpus: args.bench_corpus.map(Into::into),
         allow_partial: args.allow_partial,
         replicates: 1,
+        jobs: args.jobs,
         ci_bootstrap: None,
         adapter_bank_preset: args.adapter_bank_preset.clone(),
         adapter_bank: args.adapter_bank.clone(),
