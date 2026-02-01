@@ -16,13 +16,13 @@ use crate::api::{
 };
 use crate::services::observer::Observer;
 use crate::services::run_artifacts::{
-    default_trace_ids, params_hash, run_artifacts_dir_for_out, write_facts_jsonl,
-    write_filter_report_v1, write_merge_report_v1, write_metrics_envelope,
-    write_observability_manifest, write_plan_artifacts, write_progress_event_jsonl,
-    write_qc_post_report_v1, write_retention_report_v1, write_runs_export_jsonl,
-    write_stage_event_jsonl, write_stage_metrics_json, write_stage_report_v1,
-    write_telemetry_event, write_tool_invocation_json, write_trim_report_v1,
-    write_validate_report_v1,
+    default_trace_ids, params_hash, run_artifacts_dir_for_out,
+    write_effective_adapters_from_provenance, write_facts_jsonl, write_filter_report_v1,
+    write_merge_report_v1, write_metrics_envelope, write_observability_manifest,
+    write_plan_artifacts, write_progress_event_jsonl, write_qc_post_report_v1,
+    write_retention_report_v1, write_runs_export_jsonl, write_stage_event_jsonl,
+    write_stage_metrics_json, write_stage_report_v1, write_telemetry_event,
+    write_tool_invocation_json, write_trim_report_v1, write_validate_report_v1,
 };
 use bijux_core::run_index::{insert_stage_row, StageIndexRow};
 use bijux_core::{
@@ -1890,6 +1890,20 @@ pub fn execute_stage_plan(
         if let Some(retention_path) = retention_report_path.as_ref() {
             emit_artifact("retention_report", retention_path)?;
         }
+        let effective_adapters_path = match adapter_bank.as_ref() {
+            Some(bank) => write_effective_adapters_from_provenance(&run_artifacts_dir, bank)?,
+            None => None,
+        };
+        if let Some(path) = effective_adapters_path.as_ref() {
+            emit_artifact("effective_adapters", path)?;
+        }
+        let mut extra_manifest_artifacts = Vec::new();
+        if let Some(path) = effective_adapters_path.as_ref() {
+            extra_manifest_artifacts.push(serde_json::json!({
+                "name": "effective_adapters",
+                "path": path,
+            }));
+        }
         let _observability_manifest = write_observability_manifest(
             &run_artifacts_dir,
             &plan.stage_id.0,
@@ -1902,6 +1916,7 @@ pub fn execute_stage_plan(
             &stage_metrics_path,
             &stage_report_path,
             retention_report_path.as_deref(),
+            &extra_manifest_artifacts,
         )?;
         let _ = insert_stage_row(
             &run_artifacts_dir.join("run_index.jsonl"),
@@ -1919,6 +1934,7 @@ pub fn execute_stage_plan(
                     "metrics_envelope": metrics_envelope_path.display().to_string(),
                     "stage_report": stage_report_path.display().to_string(),
                     "retention_report": retention_report_path.as_ref().map(|path| path.display().to_string()),
+                    "effective_adapters": effective_adapters_path.as_ref().map(|path| path.display().to_string()),
                 }),
             },
         );
@@ -1958,6 +1974,7 @@ pub fn execute_stage_plan(
                     "metrics_envelope": metrics_envelope_path.display().to_string(),
                     "stage_report": stage_report_path.display().to_string(),
                     "retention_report": retention_report_path.as_ref().map(|path| path.display().to_string()),
+                    "effective_adapters": effective_adapters_path.as_ref().map(|path| path.display().to_string()),
                 }),
             },
         )?;

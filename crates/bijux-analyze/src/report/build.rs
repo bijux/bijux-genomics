@@ -18,15 +18,16 @@ use super::sections::schema::{
     build_report_sections, report_completeness, report_contract, report_metric_semantics,
 };
 use super::sections::{
-    adapter_inference_section, bench_summary_section, decision_trace_section,
-    failure_hints_section, filter_interpretation_section, params_excerpt, qc_improvement_section,
-    read_tool_invocation, report_path_for, stage_completeness_table,
+    adapter_config_section, adapter_inference_section, bench_summary_section,
+    decision_trace_section, failure_hints_section, filter_interpretation_section, params_excerpt,
+    qc_improvement_section, read_tool_invocation, report_path_for, stage_completeness_table,
 };
 use crate::export::write_run_summary_json;
 use crate::model::stable_sort_records;
 use crate::model::JsonBlob;
 use crate::report::model::ReportModel;
 use crate::report::render::json::write_report_json;
+use bijux_core::observability::FilterReportV1;
 use bijux_core::{
     AssetsProvenanceV1, FactsRowV1, ReportProvenanceV1, ReportSchemaV1, ReportStageSummaryV1,
     RetentionContextV1, RetentionDefinitionV1, RetentionReportV1, StageReportV1, TelemetryEventV1,
@@ -270,6 +271,10 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
         "contaminant_summary".to_string(),
         JsonBlob::new(contaminant_summary_section(&ordered)),
     );
+    sections.insert(
+        "adapter_config".to_string(),
+        JsonBlob::new(adapter_config_section(&ordered)),
+    );
     model.sections = sections;
     model.tables.insert(
         "stage_completeness".to_string(),
@@ -482,8 +487,25 @@ fn contaminant_summary_section(rows: &[FactsRowV1]) -> serde_json::Value {
     let mut summary = None;
     let mut reads_removed = None;
     let mut percent_removed = None;
+    let mut kmer_removed = None;
+    let mut kmer_percent = None;
     for row in rows {
         if row.stage_id != "fastq.screen" {
+            if row.stage_id == "fastq.filter" {
+                if let Some(path) = report_path_for(&row.reports, "filter_report") {
+                    if let Some(report) = read_json_value(Path::new(&path))
+                        .and_then(|value| serde_json::from_value::<FilterReportV1>(value).ok())
+                    {
+                        kmer_removed = Some(report.reads_removed_contaminant_kmer);
+                        if report.reads_in > 0 {
+                            kmer_percent = Some(
+                                u64_to_f64(report.reads_removed_contaminant_kmer)
+                                    / u64_to_f64(report.reads_in),
+                            );
+                        }
+                    }
+                }
+            }
             continue;
         }
         let reads_in = row.reads_in.unwrap_or(0);
@@ -502,6 +524,8 @@ fn contaminant_summary_section(rows: &[FactsRowV1]) -> serde_json::Value {
     serde_json::json!({
         "reads_removed": reads_removed,
         "percent_removed": percent_removed,
+        "kmer_reads_removed": kmer_removed,
+        "kmer_percent_removed": kmer_percent,
         "top_taxa": summary.unwrap_or_else(|| serde_json::json!({})),
     })
 }

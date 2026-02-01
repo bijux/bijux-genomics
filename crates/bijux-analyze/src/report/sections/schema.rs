@@ -95,6 +95,7 @@ pub(crate) fn build_report_sections(
     );
     sections.insert("qc_delta".to_string(), serde_json::json!({}));
     sections.insert("contaminant_summary".to_string(), serde_json::json!({}));
+    sections.insert("adapter_config".to_string(), serde_json::json!({}));
     sections
 }
 
