@@ -170,7 +170,7 @@ pub struct BenchFastqTrimArgs {
     pub replicates: u32,
     #[arg(long)]
     pub ci_bootstrap: Option<u32>,
-    #[arg(long, help = "Adapter bank preset name (default: ancientdna-illumina)")]
+    #[arg(long, help = "Adapter bank preset name (default: illumina-default)")]
     pub adapter_bank_preset: Option<String>,
     #[arg(
         long,
@@ -363,7 +363,7 @@ pub struct BenchFastqPreprocessArgs {
     pub replicates: u32,
     #[arg(long)]
     pub ci_bootstrap: Option<u32>,
-    #[arg(long, help = "Adapter bank preset name (default: ancientdna-illumina)")]
+    #[arg(long, help = "Adapter bank preset name (default: illumina-default)")]
     pub adapter_bank_preset: Option<String>,
     #[arg(
         long,
@@ -382,6 +382,8 @@ pub struct BenchFastqPreprocessArgs {
     pub contaminant_preset: Option<String>,
     #[arg(long)]
     pub no_qc_post: bool,
+    #[arg(long)]
+    pub force_merge: bool,
 }
 
 #[derive(Debug, Clone, Copy, ValueEnum)]
@@ -466,7 +468,7 @@ pub struct FastqPreprocessArgs {
     pub bench_corpus: Option<BenchCorpusArg>,
     #[arg(long)]
     pub allow_partial: bool,
-    #[arg(long, help = "Adapter bank preset name (default: ancientdna-illumina)")]
+    #[arg(long, help = "Adapter bank preset name (default: illumina-default)")]
     pub adapter_bank_preset: Option<String>,
     #[arg(
         long,
@@ -485,6 +487,8 @@ pub struct FastqPreprocessArgs {
     pub contaminant_preset: Option<String>,
     #[arg(long)]
     pub no_qc_post: bool,
+    #[arg(long)]
+    pub force_merge: bool,
 }
 
 #[derive(Debug, Args, Clone)]
@@ -599,7 +603,7 @@ pub struct FastqTrimArgs {
     pub out: Option<PathBuf>,
     #[arg(long, value_delimiter = ',')]
     pub tools: Vec<String>,
-    #[arg(long, help = "Adapter bank preset name (default: ancientdna-illumina)")]
+    #[arg(long, help = "Adapter bank preset name (default: illumina-default)")]
     pub adapter_bank_preset: Option<String>,
     #[arg(
         long,

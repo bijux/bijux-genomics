@@ -8,6 +8,7 @@ pub(super) fn write_run_summary(
     out_dir: &Path,
     stage_runs: &[StageExecutionSummary],
     failures: &[bijux_stages_fastq::RawFailure],
+    merge_decision: Option<&bijux_stages_fastq::fastq::preprocess::MergeDecisionTrace>,
 ) -> Result<()> {
     let root = out_dir.join("run_artifacts");
     fs::create_dir_all(&root).context("create run summary artifacts dir")?;
@@ -58,7 +59,10 @@ pub(super) fn write_run_summary(
         "run_id": run_id,
         "total_runtime_s": total_runtime_s,
         "stages": stages,
-        "failures": failures_json
+        "failures": failures_json,
+        "pipeline_decisions": {
+            "merge": merge_decision
+        }
     });
     let summary_path = root.join("run_summary.json");
     fs::write(&summary_path, serde_json::to_vec_pretty(&summary)?)

@@ -11,12 +11,12 @@ fn params_hash(params: &serde_json::Value) -> Result<String> {
 #[test]
 fn disabling_adapter_changes_params_hash() -> Result<()> {
     let base = serde_json::json!({
-        "adapter_bank": "preset:ancientdna-illumina",
+        "adapter_bank": "preset:illumina-default",
         "enable_adapters": [],
         "disable_adapters": []
     });
     let disabled = serde_json::json!({
-        "adapter_bank": "preset:ancientdna-illumina",
+        "adapter_bank": "preset:illumina-default",
         "enable_adapters": [],
         "disable_adapters": ["truseq_universal"]
     });
@@ -29,7 +29,7 @@ fn disabling_adapter_changes_params_hash() -> Result<()> {
 #[test]
 fn ssdna_preset_changes_params_hash() -> Result<()> {
     let base = serde_json::json!({
-        "adapter_bank": "preset:ancientdna-illumina",
+        "adapter_bank": "preset:illumina-default",
         "enable_adapters": [],
         "disable_adapters": []
     });
@@ -57,13 +57,8 @@ fn default_adapter_preset_writes_effective_adapters() -> Result<()> {
     let presets_path = bijux_stages_fastq::adapter_presets_path();
     let bank = bijux_stages_fastq::load_adapter_bank(&bank_path)?;
     let presets = bijux_stages_fastq::load_adapter_presets(&presets_path, &bank)?;
-    let effective = bijux_stages_fastq::resolve_adapter_preset(
-        &bank,
-        &presets,
-        "ancientdna-illumina",
-        &[],
-        &[],
-    )?;
+    let effective =
+        bijux_stages_fastq::resolve_adapter_preset(&bank, &presets, "illumina-default", &[], &[])?;
     let tmp = tempfile::TempDir::new()?;
     let tools_root = tmp.path().join("tools");
     let run_dirs = bijux_engine::api::prepare_tool_run_dirs(&tools_root, "fastp", "test-run")?;

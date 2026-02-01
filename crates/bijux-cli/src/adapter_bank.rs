@@ -8,7 +8,7 @@ use bijux_stages_fastq::{
     resolve_adapter_preset, AdapterBankV1, AdapterPresetsV1, EffectiveAdapterSet,
 };
 
-pub const DEFAULT_ADAPTER_PRESET: &str = "ancientdna-illumina";
+pub const DEFAULT_ADAPTER_PRESET: &str = "illumina-default";
 
 pub struct AdapterSelection {
     pub bank: AdapterBankV1,
@@ -60,7 +60,7 @@ pub fn resolve_adapter_selection(
     adapter_bank_file: Option<&Path>,
 ) -> Result<AdapterSelection> {
     let (preset_name, bank_path) = if let Some(path) = adapter_bank_file {
-        ("custom".to_string(), PathBuf::from(path))
+        ("custom-file".to_string(), PathBuf::from(path))
     } else {
         (
             parse_adapter_preset_name(adapter_preset, legacy_adapter_bank)?,

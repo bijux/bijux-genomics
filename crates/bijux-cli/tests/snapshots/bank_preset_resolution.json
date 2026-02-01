@@ -1,8 +1,8 @@
 {
   "adapter_default": {
     "bank_hash": "978e65ec96a81a5d244f366366cad91bdc38ff10d4332f2e18ee8a86250f3dfa",
-    "expected_default": "ancientdna-illumina",
-    "preset": "ancientdna-illumina",
+    "expected_default": "illumina-default",
+    "preset": "illumina-default",
     "preset_hash": "a21bbb7fc760ff7315ed9e9c87a0448217b6b549cb2e4e90fb0a1bbdc0252904",
     "presets_hash": "8ff6e1e33a58d2805a0482b03f81ec671824bd10cce703162d275414fb94dc04"
   },

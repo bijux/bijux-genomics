@@ -5,8 +5,9 @@ pub mod stages;
 
 pub use bijux_core::RawFailure;
 pub use contract::{
-    contract_for_stage, ensure_umi_headers, inspect_headers, log_header_warnings,
-    normalize_outputs, preflight_stage, HeaderInspection, NormalizedOutputs,
+    assess_merge_suitability, contract_for_stage, ensure_umi_headers, inspect_headers,
+    log_header_warnings, normalize_outputs, preflight_stage, HeaderInspection, MergeSuitability,
+    NormalizedOutputs,
 };
 pub use model::{
     FastqArtifact, FastqArtifactKind, FastqLayout, FastqPE, FastqPairedEnd, FastqSE, FastqSampleId,

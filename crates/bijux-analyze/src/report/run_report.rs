@@ -221,6 +221,34 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
         "bench_summary".to_string(),
         JsonBlob::new(bench_summary_section(base_dir)),
     );
+    sections.insert(
+        "pipeline_overview".to_string(),
+        JsonBlob::new(pipeline_overview_section(&ordered)),
+    );
+    sections.insert(
+        "key_findings".to_string(),
+        JsonBlob::new(key_findings_section(
+            &missing_metrics,
+            &missing_reports,
+            &ordered,
+        )),
+    );
+    sections.insert(
+        "stage_plots".to_string(),
+        JsonBlob::new(stage_plots_section(&ordered)),
+    );
+    sections.insert(
+        "reproducibility".to_string(),
+        JsonBlob::new(reproducibility_section(&ordered)),
+    );
+    sections.insert(
+        "data_contract_validation".to_string(),
+        JsonBlob::new(data_contract_validation_section(&completeness)),
+    );
+    sections.insert(
+        "qc_delta".to_string(),
+        JsonBlob::new(qc_delta_section(&ordered)),
+    );
     model.sections = sections;
     model.tables.insert(
         "stage_completeness".to_string(),
@@ -246,6 +274,157 @@ pub fn write_run_report_from_facts(base_dir: &Path, rows: &[FactsRowV1]) -> Resu
 /// Returns an error if the file cannot be written.
 pub fn write_run_summary_from_facts(path: &Path, rows: &[FactsRowV1]) -> Result<()> {
     write_run_summary_json(path, rows)
+}
+
+fn pipeline_overview_section(rows: &[FactsRowV1]) -> serde_json::Value {
+    let stages: Vec<serde_json::Value> = rows
+        .iter()
+        .map(|row| {
+            serde_json::json!({
+                "stage_id": row.stage_id,
+                "tool_id": row.tool_id,
+                "tool_version": row.tool_version,
+                "params_hash": row.params_hash,
+                "image_digest": row.image_digest,
+                "input_hash": row.input_hash,
+                "output_hashes": row.output_hashes,
+            })
+        })
+        .collect();
+    serde_json::json!({
+        "stages": stages,
+    })
+}
+
+fn key_findings_section(
+    missing_metrics: &[String],
+    missing_reports: &[String],
+    rows: &[FactsRowV1],
+) -> serde_json::Value {
+    let mut findings = Vec::new();
+    if !missing_metrics.is_empty() {
+        findings.push(serde_json::json!({
+            "kind": "missing_metrics",
+            "count": missing_metrics.len(),
+            "items": missing_metrics,
+        }));
+    }
+    if !missing_reports.is_empty() {
+        findings.push(serde_json::json!({
+            "kind": "missing_reports",
+            "count": missing_reports.len(),
+            "items": missing_reports,
+        }));
+    }
+    let failed: Vec<String> = rows
+        .iter()
+        .filter(|row| row.exit_code != 0)
+        .map(|row| format!("{}:{}", row.stage_id, row.tool_id))
+        .collect();
+    if !failed.is_empty() {
+        findings.push(serde_json::json!({
+            "kind": "tool_failures",
+            "count": failed.len(),
+            "items": failed,
+        }));
+    }
+    serde_json::Value::Array(findings)
+}
+
+fn stage_plots_section(rows: &[FactsRowV1]) -> serde_json::Value {
+    let mut entries = Vec::new();
+    for row in rows {
+        let read_retention = match (row.reads_in, row.reads_out) {
+            (Some(ri), Some(ro)) if ri > 0 => Some(ro as f64 / ri as f64),
+            _ => None,
+        };
+        let base_retention = match (row.bases_in, row.bases_out) {
+            (Some(bi), Some(bo)) if bi > 0 => Some(bo as f64 / bi as f64),
+            _ => None,
+        };
+        let mean_q_delta = row
+            .metrics
+            .get("mean_q_delta")
+            .and_then(serde_json::Value::as_f64);
+        entries.push(serde_json::json!({
+            "stage_id": row.stage_id,
+            "tool_id": row.tool_id,
+            "read_retention": read_retention,
+            "base_retention": base_retention,
+            "mean_q_delta": mean_q_delta,
+        }));
+    }
+    serde_json::Value::Array(entries)
+}
+
+fn reproducibility_section(rows: &[FactsRowV1]) -> serde_json::Value {
+    let mut tool_versions = Vec::new();
+    let mut image_digests = Vec::new();
+    let mut params_hashes = Vec::new();
+    let mut input_hashes = Vec::new();
+    for row in rows {
+        tool_versions.push(row.tool_version.clone());
+        if let Some(digest) = row.image_digest.clone() {
+            image_digests.push(digest);
+        }
+        params_hashes.push(row.params_hash.clone());
+        input_hashes.push(row.input_hash.clone());
+    }
+    tool_versions.sort();
+    tool_versions.dedup();
+    image_digests.sort();
+    image_digests.dedup();
+    params_hashes.sort();
+    params_hashes.dedup();
+    input_hashes.sort();
+    input_hashes.dedup();
+    serde_json::json!({
+        "command": "unknown",
+        "tool_versions": tool_versions,
+        "image_digests": image_digests,
+        "params_hashes": params_hashes,
+        "input_hashes": input_hashes,
+        "started_at": serde_json::Value::Null,
+        "finished_at": serde_json::Value::Null,
+    })
+}
+
+fn data_contract_validation_section(
+    completeness: &bijux_core::ReportCompletenessV1,
+) -> serde_json::Value {
+    serde_json::json!({
+        "status": completeness.status,
+        "missing_metrics": completeness.missing_metrics,
+        "missing_reports": completeness.missing_reports,
+    })
+}
+
+fn qc_delta_section(rows: &[FactsRowV1]) -> serde_json::Value {
+    let mut validate_mean_q = None;
+    let mut qc_post_mean_q = None;
+    for row in rows {
+        if row.stage_id == "fastq.validate_pre" {
+            validate_mean_q = row
+                .metrics
+                .get("mean_q")
+                .and_then(serde_json::Value::as_f64);
+        }
+        if row.stage_id == "fastq.qc_post" {
+            qc_post_mean_q = row
+                .metrics
+                .get("mean_q")
+                .and_then(serde_json::Value::as_f64);
+        }
+    }
+    let delta = match (validate_mean_q, qc_post_mean_q) {
+        (Some(a), Some(b)) => Some(b - a),
+        _ => None,
+    };
+    serde_json::json!({
+        "validate_pre_mean_q": validate_mean_q,
+        "qc_post_mean_q": qc_post_mean_q,
+        "mean_q_delta": delta,
+    })
 }
 
 fn read_json_value(path: &Path) -> Option<serde_json::Value> {

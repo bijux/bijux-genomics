@@ -1,5 +1,57 @@
 schema_version: bijux.adapter_presets.v1
 presets:
+- name: illumina-default
+  description: Default Illumina adapter set (TruSeq + Nextera core).
+  tags:
+  - truseq
+  - nextera
+  adapter_ids: []
+  rationale: Default Illumina adapters for general FASTQ preprocessing.
+  references:
+  - Internal default policy
+  notes:
+  - Default preset for modern Illumina runs.
+  hash: b55aab88af7c297cdac1a920cdc49e49881b9bcb4456a61428b6383f6ee7d2f9
+  sequences:
+  - AGATCGGAAGAGC
+  - AGATCGGAAGAGCACACGTCTGAACTCCAGTCA
+- name: ssdna
+  description: ssDNA adapters for single-stranded workflows.
+  tags:
+  - ssdna
+  adapter_ids: []
+  rationale: Default ssDNA adapter policy.
+  references:
+  - Library prep protocol notes
+  notes:
+  - Use for ssDNA workflows.
+  hash: 7854c64f2948c6b583d327012dd59879853b9e195b5577bf7b6c843e6f0f4d78
+  sequences:
+  - NNNNNNCCGTAANNNNN
+  - NNNNNNGGTACNNNNN
+- name: none
+  description: Disable adapter trimming.
+  tags: []
+  adapter_ids: []
+  rationale: Explicitly disable adapter trimming.
+  references: []
+  notes:
+  - Use when adapters are known to be absent.
+  hash: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  sequences: []
+- name: custom-file
+  description: Custom adapter preset from user-supplied bank file.
+  tags:
+  - custom
+  adapter_ids: []
+  rationale: Use adapters from a custom bank file.
+  references: []
+  notes:
+  - Populate via --adapter-bank-file.
+  hash: 53c46cb79c1abd97f65825df322afb41510be0f813c5474085d3246a9d58a881
+  sequences:
+  - ACAGTGGTATCAACGCAGAG
+  - GATCGGAAGAGCACACGTCT
 - name: minimal-illumina
   description: Minimal Illumina adapter set (baseline TruSeq only).
   tags:

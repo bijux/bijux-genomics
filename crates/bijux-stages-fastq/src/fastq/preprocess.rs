@@ -3,6 +3,7 @@ use bijux_core::{
     ArtifactRef, ContainerImageRefV1, StageIO, StageId, StagePlanV1, StageVersion,
     ToolExecutionSpecV1,
 };
+use bijux_domain_fastq::assess_merge_suitability;
 
 pub const STAGE_ID: &str = "fastq.preprocess";
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
@@ -12,19 +13,76 @@ pub struct PreprocessPlan {
     pub r1: std::path::PathBuf,
     pub r2: Option<std::path::PathBuf>,
     pub pipeline: PipelineSpec,
+    pub merge_decision: Option<MergeDecisionTrace>,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct MergeDecisionTrace {
+    pub enabled: bool,
+    pub suitable: bool,
+    pub forced: bool,
+    pub reason: String,
+    pub r1_mean_len: Option<usize>,
+    pub r2_mean_len: Option<usize>,
 }
 
 #[must_use]
 pub fn plan_preprocess(args: &crate::args::BenchFastqPreprocessArgs) -> PreprocessPlan {
+    let mut merge_decision = None;
+    let enable_merge = if let Some(r2) = args.r2.as_ref() {
+        if args.force_merge {
+            merge_decision = Some(MergeDecisionTrace {
+                enabled: true,
+                suitable: true,
+                forced: true,
+                reason: "merge forced by flag".to_string(),
+                r1_mean_len: None,
+                r2_mean_len: None,
+            });
+            true
+        } else {
+            match assess_merge_suitability(&args.r1, r2) {
+                Ok(suitability) => {
+                    let enabled = suitability.suitable;
+                    merge_decision = Some(MergeDecisionTrace {
+                        enabled,
+                        suitable: suitability.suitable,
+                        forced: false,
+                        reason: suitability.reason,
+                        r1_mean_len: suitability.r1_mean_len,
+                        r2_mean_len: suitability.r2_mean_len,
+                    });
+                    enabled
+                }
+                Err(err) => {
+                    merge_decision = Some(MergeDecisionTrace {
+                        enabled: false,
+                        suitable: false,
+                        forced: false,
+                        reason: format!("merge suitability check failed: {err}"),
+                        r1_mean_len: None,
+                        r2_mean_len: None,
+                    });
+                    false
+                }
+            }
+        }
+    } else {
+        false
+    };
     let pipeline = crate::fastq_default_pipeline(crate::DefaultPipelineOptions {
         paired: args.r2.is_some(),
+        enable_merge,
         enable_qc_post: !args.no_qc_post,
+        enable_screen: args.contaminant_preset.is_some(),
         ..Default::default()
     });
     PreprocessPlan {
         r1: args.r1.clone(),
         r2: args.r2.clone(),
         pipeline,
+        merge_decision,
     }
 }
 

@@ -254,7 +254,7 @@ fn validate_adapter_presets(presets: &AdapterPresetsV1, bank: &AdapterBankV1) ->
         if preset.rationale.trim().is_empty() {
             return Err(anyhow!("preset {} missing rationale", preset.name));
         }
-        if preset.sequences.is_empty() {
+        if preset.sequences.is_empty() && preset.name != "none" {
             return Err(anyhow!("preset {} missing sequences", preset.name));
         }
         for tag in &preset.tags {
@@ -272,7 +272,7 @@ fn validate_adapter_presets(presets: &AdapterPresetsV1, bank: &AdapterBankV1) ->
             }
         }
         let (_, _, sequences) = resolve_adapter_ids_and_sequences(bank, preset, &[], &[])?;
-        if !preset.sequences.is_empty() {
+        if !preset.sequences.is_empty() || preset.name == "none" {
             let mut expected = sequences.clone();
             expected.sort();
             let mut actual = preset.sequences.clone();

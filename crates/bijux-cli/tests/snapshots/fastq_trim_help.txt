@@ -22,7 +22,7 @@ Options:
       --tools <TOOLS>
           
       --adapter-bank-preset <ADAPTER_BANK_PRESET>
-          Adapter bank preset name (default: ancientdna-illumina)
+          Adapter bank preset name (default: illumina-default)
       --adapter-bank <ADAPTER_BANK>
           Adapter bank selection: preset:<name> (deprecated; use --adapter-bank-preset)
       --adapter-bank-file <ADAPTER_BANK_FILE>

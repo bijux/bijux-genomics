@@ -17,7 +17,7 @@ fn trim_bench_args_preserve_bank_presets() -> Result<()> {
         r1: Some(PathBuf::from("reads.fastq.gz")),
         out: Some(PathBuf::from("out")),
         tools: vec!["fastp".to_string()],
-        adapter_bank_preset: Some("ancientdna-illumina".to_string()),
+        adapter_bank_preset: Some("illumina-default".to_string()),
         adapter_bank: Some("preset:legacy".to_string()),
         adapter_bank_file: None,
         enable_adapter: vec!["adapter1".to_string()],
@@ -28,7 +28,7 @@ fn trim_bench_args_preserve_bank_presets() -> Result<()> {
     let bench = bench_args_from_trim(&args)?;
     assert_eq!(
         bench.adapter_bank_preset.as_deref(),
-        Some("ancientdna-illumina")
+        Some("illumina-default")
     );
     assert_eq!(bench.adapter_bank.as_deref(), Some("preset:legacy"));
     assert_eq!(bench.polyx_preset.as_deref(), Some("illumina_twocolor"));
@@ -55,7 +55,7 @@ fn preprocess_args_require_required_fields() -> Result<()> {
         allow_partial: false,
         list_adapter_presets: false,
         list_adapters: false,
-        adapter_bank_preset: Some("ancientdna-illumina".to_string()),
+        adapter_bank_preset: Some("illumina-default".to_string()),
         adapter_bank: None,
         adapter_bank_file: None,
         enable_adapter: Vec::new(),
@@ -63,12 +63,13 @@ fn preprocess_args_require_required_fields() -> Result<()> {
         polyx_preset: Some("illumina_twocolor".to_string()),
         contaminant_preset: Some("illumina_default".to_string()),
         no_qc_post: false,
+        force_merge: false,
     };
     let bench = preprocess_args_from_cli(&args)?;
     assert_eq!(bench.sample_id, "s1");
     assert_eq!(
         bench.adapter_bank_preset.as_deref(),
-        Some("ancientdna-illumina")
+        Some("illumina-default")
     );
     Ok(())
 }

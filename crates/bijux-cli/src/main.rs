@@ -223,11 +223,29 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
                     let facts_path = run_dir.join("facts.jsonl");
                     let facts = load_facts_auto(&facts_path)?;
                     let report_path = write_run_report_from_facts(&run_dir, &facts)?;
-                    if args.format == "json" {
-                        let raw = std::fs::read_to_string(&report_path)?;
-                        println!("{raw}");
-                    } else {
-                        println!("report written to {}", report_path.display());
+                    match args.format.as_str() {
+                        "json" => {
+                            let raw = std::fs::read_to_string(&report_path)?;
+                            println!("{raw}");
+                        }
+                        "html" | "bundle" => {
+                            let bundle_dir = run_dir.join("report_bundle");
+                            std::fs::create_dir_all(&bundle_dir)?;
+                            let report_raw = std::fs::read_to_string(&report_path)?;
+                            let report_json: serde_json::Value = serde_json::from_str(&report_raw)
+                                .unwrap_or_else(|_| {
+                                    serde_json::json!({
+                                        "error": "failed to parse report.json"
+                                    })
+                                });
+                            let index_html = render_report_bundle_html(&report_json);
+                            std::fs::write(bundle_dir.join("index.html"), index_html)?;
+                            std::fs::write(bundle_dir.join("report.json"), report_raw)?;
+                            println!("report bundle written to {}", bundle_dir.display());
+                        }
+                        _ => {
+                            println!("report written to {}", report_path.display());
+                        }
                     }
                 }
             }
@@ -730,6 +748,7 @@ fn explain_fastq_stage(registry: &bijux_core::ToolRegistry, stage_id: &str) -> R
             polyx_preset: None,
             contaminant_preset: None,
             no_qc_post: false,
+            force_merge: false,
         };
         let plan = crate::fastq_exec::fastq_preprocess_plan(&args);
         println!("stage: {stage_id}");
@@ -756,6 +775,40 @@ fn explain_fastq_stage(registry: &bijux_core::ToolRegistry, stage_id: &str) -> R
         println!("- {} ({})", output.name, output.data_type);
     }
     Ok(())
+}
+
+fn render_report_bundle_html(report: &serde_json::Value) -> String {
+    let pretty = serde_json::to_string_pretty(report).unwrap_or_else(|_| "{}".to_string());
+    format!(
+        r#"<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>bijux analyze report</title>
+  <style>
+    body {{
+      font-family: system-ui, -apple-system, sans-serif;
+      margin: 2rem;
+      line-height: 1.4;
+      background: #f7f7f9;
+      color: #111;
+    }}
+    pre {{
+      padding: 1rem;
+      background: #fff;
+      border-radius: 8px;
+      overflow: auto;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }}
+  </style>
+</head>
+<body>
+  <h1>bijux analyze report</h1>
+  <pre>{}</pre>
+</body>
+</html>"#,
+        pretty
+    )
 }
 
 fn normalize_fastq_stage_id(stage: &str) -> String {

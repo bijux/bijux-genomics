@@ -11,6 +11,7 @@ use bijux_engine::api::{
 };
 use bijux_engine::api::{ensure_bench_runner, filter_tools_by_role, load_registry};
 use bijux_engine::api::{ensure_image_qa_passed, ensure_tool_qa_passed};
+use bijux_engine::api::{run_artifacts_dir_for_out, TelemetryEventV1};
 use bijux_stages_fastq::fastq::correct::{normalize_correct_tool_list, plan_correct};
 use bijux_stages_fastq::fastq::filter::{
     normalize_filter_tool_list, plan_filter, FilterPlanOptions,
@@ -37,6 +38,7 @@ mod summary;
 use banks::{
     adapter_bank_context, contaminant_bank_context, polyx_bank_context, polyx_unsupported_warning,
 };
+use chrono::Utc;
 pub use explain::{write_explain_md, write_explain_plan_json};
 use summary::{write_run_summary, StageExecutionSummary};
 pub struct BenchOutcome<M: bijux_analyze::StageMetricSchema> {
@@ -592,7 +594,8 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
 
     let registry = load_registry(&std::env::current_dir()?.join("domain"))
         .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
-    let pipeline = plan_preprocess(args).pipeline;
+    let preprocess_plan = plan_preprocess(args);
+    let pipeline = preprocess_plan.pipeline.clone();
     let mut selected_tools = select_preprocess_tools(&registry, &pipeline, args)?;
     selected_tools = filter_tools_by_role("fastq.preprocess", &selected_tools, &registry, false)?;
 
@@ -698,7 +701,36 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     }
     pipeline_span.end();
 
-    write_run_summary(&args.out, &stage_runs, &failures)?;
+    write_run_summary(
+        &args.out,
+        &stage_runs,
+        &failures,
+        preprocess_plan.merge_decision.as_ref(),
+    )?;
+    if let Some(decision) = preprocess_plan.merge_decision {
+        let run_id = stage_runs
+            .first()
+            .map(|entry| entry.result.run_id.clone())
+            .unwrap_or_default();
+        let telemetry_path = run_artifacts_dir_for_out(&out_dir)
+            .join("telemetry")
+            .join("events.jsonl");
+        let event = TelemetryEventV1 {
+            schema_version: "bijux.telemetry.v1".to_string(),
+            run_id,
+            stage_id: "fastq.preprocess".to_string(),
+            tool_id: "planner".to_string(),
+            event_name: "merge_decision".to_string(),
+            timestamp: Utc::now().to_rfc3339(),
+            duration_ms: None,
+            status: "ok".to_string(),
+            trace_id: "merge-decision".to_string(),
+            span_id: "merge-decision".to_string(),
+            attrs: serde_json::to_value(decision).unwrap_or_else(|_| serde_json::json!({})),
+        };
+        let _ =
+            bijux_engine::services::run_artifacts::write_telemetry_event(&telemetry_path, &event);
+    }
     if !failures.is_empty() {
         return Err(anyhow!(
             "preprocess pipeline failed: {} failures",
@@ -817,6 +849,7 @@ mod tests {
             polyx_preset: None,
             contaminant_preset: None,
             no_qc_post: false,
+            force_merge: false,
         }
     }
 
@@ -845,9 +878,10 @@ mod tests {
     }
 
     #[test]
-    fn preprocess_plan_paired_includes_merge() {
+    fn preprocess_plan_paired_includes_merge_when_forced() {
         let mut args = base_args();
         args.r2 = Some(PathBuf::from("reads_R2.fastq.gz"));
+        args.force_merge = true;
         let plan = fastq_preprocess_plan(&args);
         assert!(plan.stages.contains(&"fastq.merge".to_string()));
     }
