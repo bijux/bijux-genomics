@@ -3,6 +3,7 @@
 use anyhow::{anyhow, Result};
 use bijux_core::{CommandSpecV1, ContainerImageRefV1, ToolExecutionSpecV1, ToolId, ToolRole};
 use std::collections::HashMap;
+use std::path::Path;
 
 pub use crate::core::composer::{
     load_registry, normalize_correct_tool_list, normalize_filter_tool_list,
@@ -48,6 +49,10 @@ pub use bijux_core::{
 pub use bijux_env_builder::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 pub use bijux_env_runtime::api::{PlatformSpec, ResolvedImage, RunnerKind, ToolImageSpec};
 
+pub fn write_telemetry_event(path: &Path, event: &TelemetryEventV1) -> Result<()> {
+    crate::services::run_artifacts::write_telemetry_event(path, event)
+}
+
 pub fn ensure_bench_runner(
     platform: &PlatformSpec,
     runner_override: Option<RunnerKind>,
@@ -73,21 +78,14 @@ pub fn filter_tools_by_role(
             .ok_or_else(|| anyhow!("tool {tool} missing from manifests"))?;
         match manifest.role {
             ToolRole::Authoritative => filtered.push(tool.clone()),
-            ToolRole::Diagnostic => {
-                if strict {
+            ToolRole::Diagnostic | ToolRole::Experimental => {
+                if allow_experimental {
+                    filtered.push(tool.clone());
+                } else if strict {
                     return Err(anyhow!(
-                        "strict mode requires authoritative tools; {tool} is diagnostic"
+                        "non-gold tool {tool} requires BIJUX_EXPERIMENTAL_TOOLS=1"
                     ));
                 }
-                filtered.push(tool.clone());
-            }
-            ToolRole::Experimental => {
-                if !allow_experimental {
-                    return Err(anyhow!(
-                        "experimental tool {tool} requires BIJUX_EXPERIMENTAL_TOOLS=1"
-                    ));
-                }
-                filtered.push(tool.clone());
             }
         }
     }

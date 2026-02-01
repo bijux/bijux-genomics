@@ -510,6 +510,7 @@ fn preprocess_emits_telemetry_events() -> Result<()> {
         r1: r1.clone(),
         r2: None,
         pipeline,
+        merge_decision: None,
     };
     let tool = dummy_tool("fastp", &test_image());
     let plan =

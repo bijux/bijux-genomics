@@ -21,6 +21,14 @@ pub enum FailureKind {
 
 #[derive(Debug, Clone, Copy, Serialize)]
 #[serde(rename_all = "snake_case")]
+pub enum FailureClass {
+    DataError,
+    ToolError,
+    EnvironmentError,
+}
+
+#[derive(Debug, Clone, Copy, Serialize)]
+#[serde(rename_all = "snake_case")]
 pub enum HintSeverity {
     Low,
     Medium,
@@ -43,6 +51,15 @@ pub struct BenchmarkFailure {
     pub kind: FailureKind,
     pub reason: String,
     pub hints: Vec<Hint>,
+}
+
+#[must_use]
+pub fn failure_class(kind: FailureKind) -> FailureClass {
+    match kind {
+        FailureKind::DataInvalid | FailureKind::ContractViolation => FailureClass::DataError,
+        FailureKind::ImageError | FailureKind::ResourceExhaustion => FailureClass::EnvironmentError,
+        FailureKind::ObserverParse | FailureKind::ToolExit => FailureClass::ToolError,
+    }
 }
 
 #[must_use]

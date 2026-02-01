@@ -43,7 +43,7 @@ fn fastq_trim_help_snapshot() -> Result<()> {
             "--disable-adapter",
             "--polyx-preset",
             "--contaminant-preset",
-            "--force-merge",
+            "--allow-experimental",
         ],
     )?;
     Ok(())
@@ -123,6 +123,7 @@ fn fastq_preprocess_help_snapshot() -> Result<()> {
             "--disable-adapter",
             "--polyx-preset",
             "--contaminant-preset",
+            "--allow-experimental",
         ],
     )?;
     Ok(())

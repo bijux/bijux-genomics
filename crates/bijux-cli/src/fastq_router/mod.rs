@@ -728,8 +728,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
             span_id: "merge-decision".to_string(),
             attrs: serde_json::to_value(decision).unwrap_or_else(|_| serde_json::json!({})),
         };
-        let _ =
-            bijux_engine::services::run_artifacts::write_telemetry_event(&telemetry_path, &event);
+        let _ = bijux_engine::api::write_telemetry_event(&telemetry_path, &event);
     }
     if !failures.is_empty() {
         return Err(anyhow!(

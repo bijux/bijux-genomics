@@ -49,6 +49,7 @@ fn analyze_sources_not_giant() -> std::io::Result<()> {
             1800usize,
         ),
         (src_dir.join("report").join("bench.rs"), 1200usize),
+        (src_dir.join("report").join("run_report.rs"), 700usize),
     ];
     for path in files {
         let content = fs::read_to_string(&path)?;

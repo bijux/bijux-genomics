@@ -162,6 +162,11 @@
   "schema_version": "bijux.report.v1",
   "sections": {
     "bench_summary": {},
+    "contaminant_summary": {
+      "percent_removed": null,
+      "reads_removed": null,
+      "top_taxa": {}
+    },
     "contamination": {
       "assets": [
         {
@@ -203,6 +208,11 @@
         }
       ]
     },
+    "data_contract_validation": {
+      "missing_metrics": [],
+      "missing_reports": [],
+      "status": "complete"
+    },
     "failure_hints": {
       "count": 0,
       "failures": []
@@ -219,6 +229,7 @@
       "adapter_inference": {},
       "qc": {}
     },
+    "key_findings": [],
     "method_assumptions": {
       "assumptions": [
         "compare_objective defaults to balanced when not specified",
@@ -249,7 +260,44 @@
       ]
     },
     "metric_provenance": {},
+    "pipeline_overview": {
+      "stages": [
+        {
+          "image_digest": "sha256:img",
+          "input_hash": "input",
+          "output_hashes": [
+            "out"
+          ],
+          "params_hash": "params",
+          "stage_id": "fastq.trim",
+          "tool_id": "fastp",
+          "tool_version": "0.23.4"
+        }
+      ]
+    },
     "qc": {},
+    "qc_delta": {
+      "mean_q_delta": null,
+      "qc_post_mean_q": null,
+      "validate_pre_mean_q": null
+    },
+    "reproducibility": {
+      "command": "unknown",
+      "finished_at": null,
+      "image_digests": [
+        "sha256:img"
+      ],
+      "input_hashes": [
+        "input"
+      ],
+      "params_hashes": [
+        "params"
+      ],
+      "started_at": null,
+      "tool_versions": [
+        "0.23.4"
+      ]
+    },
     "retention": {
       "contexts": [
         {
@@ -274,6 +322,15 @@
       ]
     },
     "stage_completeness": [],
+    "stage_plots": [
+      {
+        "base_retention": 0.8,
+        "mean_q_delta": null,
+        "read_retention": 0.8,
+        "stage_id": "fastq.trim",
+        "tool_id": "fastp"
+      }
+    ],
     "trimming": {
       "retention_context": [
         {

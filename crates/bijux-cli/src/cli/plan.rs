@@ -15,6 +15,7 @@ pub fn resolve_stage_tool(command: &Commands) -> (StageId, ToolId, CommonArgs) {
         Commands::Fastq { command } => match command {
             FastqCommand::ListStages
             | FastqCommand::Stages
+            | FastqCommand::Doctor
             | FastqCommand::ListTools { .. }
             | FastqCommand::Explain { .. }
             | FastqCommand::Benchmark(_)

@@ -142,6 +142,7 @@ fn default_route_selects_tools_deterministically() -> Result<(), Box<dyn std::er
         enable_merge: false,
         enable_correct: false,
         enable_qc_post: true,
+        enable_screen: false,
     });
 
     for stage in pipeline.stages {
