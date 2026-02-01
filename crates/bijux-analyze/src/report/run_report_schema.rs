@@ -90,6 +90,7 @@ pub(super) fn build_report_sections(
         serde_json::json!({}),
     );
     sections.insert("qc_delta".to_string(), serde_json::json!({}));
+    sections.insert("contaminant_summary".to_string(), serde_json::json!({}));
     sections
 }
 

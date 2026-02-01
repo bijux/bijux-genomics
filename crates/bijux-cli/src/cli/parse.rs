@@ -166,6 +166,8 @@ pub struct BenchFastqTrimArgs {
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
+    #[arg(long, help = "Allow experimental and silver-tier tools")]
+    pub allow_experimental: bool,
     #[arg(long, default_value_t = 1)]
     pub replicates: u32,
     #[arg(long)]
@@ -201,6 +203,8 @@ pub struct BenchFastqValidateArgs {
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
+    #[arg(long, help = "Allow experimental and silver-tier tools")]
+    pub allow_experimental: bool,
     #[arg(long, default_value_t = 1)]
     pub replicates: u32,
     #[arg(long)]
@@ -221,6 +225,8 @@ pub struct BenchFastqFilterArgs {
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
+    #[arg(long, help = "Allow experimental and silver-tier tools")]
+    pub allow_experimental: bool,
     #[arg(long, default_value_t = 1)]
     pub replicates: u32,
     #[arg(long)]
@@ -247,6 +253,8 @@ pub struct BenchFastqMergeArgs {
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
+    #[arg(long, help = "Allow experimental and silver-tier tools")]
+    pub allow_experimental: bool,
     #[arg(long, default_value_t = 1)]
     pub replicates: u32,
     #[arg(long)]
@@ -267,6 +275,8 @@ pub struct BenchFastqCorrectArgs {
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
+    #[arg(long, help = "Allow experimental and silver-tier tools")]
+    pub allow_experimental: bool,
     #[arg(long, default_value_t = 1)]
     pub replicates: u32,
     #[arg(long)]
@@ -285,6 +295,8 @@ pub struct BenchFastqQcPostArgs {
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
+    #[arg(long, help = "Allow experimental and silver-tier tools")]
+    pub allow_experimental: bool,
     #[arg(long, default_value_t = 1)]
     pub replicates: u32,
     #[arg(long)]
@@ -305,6 +317,8 @@ pub struct BenchFastqUmiArgs {
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
+    #[arg(long, help = "Allow experimental and silver-tier tools")]
+    pub allow_experimental: bool,
     #[arg(long, default_value_t = 1)]
     pub replicates: u32,
     #[arg(long)]
@@ -323,6 +337,8 @@ pub struct BenchFastqScreenArgs {
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
+    #[arg(long, help = "Allow experimental and silver-tier tools")]
+    pub allow_experimental: bool,
     #[arg(long, default_value_t = 1)]
     pub replicates: u32,
     #[arg(long)]
@@ -341,6 +357,8 @@ pub struct BenchFastqStatsArgs {
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
+    #[arg(long, help = "Allow experimental and silver-tier tools")]
+    pub allow_experimental: bool,
     #[arg(long, default_value_t = 1)]
     pub replicates: u32,
     #[arg(long)]
@@ -348,6 +366,7 @@ pub struct BenchFastqStatsArgs {
 }
 
 #[derive(Debug, Args)]
+#[allow(clippy::struct_excessive_bools)]
 pub struct BenchFastqPreprocessArgs {
     #[arg(long, alias = "sample")]
     pub sample_id: String,
@@ -359,6 +378,8 @@ pub struct BenchFastqPreprocessArgs {
     pub out: PathBuf,
     #[arg(long)]
     pub strict: bool,
+    #[arg(long, help = "Allow experimental and silver-tier tools")]
+    pub allow_experimental: bool,
     #[arg(long, default_value_t = 1)]
     pub replicates: u32,
     #[arg(long)]
@@ -437,6 +458,8 @@ pub struct CommonArgs {
     pub list_tools: bool,
     #[arg(long)]
     pub dry_run: bool,
+    #[arg(long, help = "Allow experimental and silver-tier tools")]
+    pub allow_experimental: bool,
 }
 
 #[derive(Debug, Args, Clone)]
@@ -523,6 +546,8 @@ pub enum FastqCommand {
     ListStages,
     #[command(about = "List FASTQ stage ids and versions.")]
     Stages,
+    #[command(about = "Check FASTQ prerequisites (runner, cache, image catalog).")]
+    Doctor,
     #[command(about = "List tools for a FASTQ stage.")]
     ListTools {
         #[arg(long)]

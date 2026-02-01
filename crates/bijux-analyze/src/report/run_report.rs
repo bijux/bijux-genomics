@@ -2,6 +2,11 @@ use anyhow::{Context, Result};
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
+#[allow(clippy::cast_precision_loss)]
+fn u64_to_f64(value: u64) -> f64 {
+    value as f64
+}
+
 use super::run_report_schema::{
     build_report_sections, report_completeness, report_contract, report_metric_semantics,
 };
@@ -169,6 +174,7 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
 
     let metric_semantics = report_metric_semantics();
     let completeness = report_completeness(&missing_metrics, &missing_reports);
+    let completeness_clone = completeness.clone();
     let qc_improvement = qc_improvement_section(&ordered);
     let filter_interpretation = filter_interpretation_section(&ordered);
     let adapter_inference = adapter_inference_section(&ordered);
@@ -239,15 +245,19 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
     );
     sections.insert(
         "reproducibility".to_string(),
-        JsonBlob::new(reproducibility_section(&ordered)),
+        JsonBlob::new(reproducibility_section(&ordered, &telemetry_events)),
     );
     sections.insert(
         "data_contract_validation".to_string(),
-        JsonBlob::new(data_contract_validation_section(&completeness)),
+        JsonBlob::new(data_contract_validation_section(&completeness_clone)),
     );
     sections.insert(
         "qc_delta".to_string(),
         JsonBlob::new(qc_delta_section(&ordered)),
+    );
+    sections.insert(
+        "contaminant_summary".to_string(),
+        JsonBlob::new(contaminant_summary_section(&ordered)),
     );
     model.sections = sections;
     model.tables.insert(
@@ -335,11 +345,11 @@ fn stage_plots_section(rows: &[FactsRowV1]) -> serde_json::Value {
     let mut entries = Vec::new();
     for row in rows {
         let read_retention = match (row.reads_in, row.reads_out) {
-            (Some(ri), Some(ro)) if ri > 0 => Some(ro as f64 / ri as f64),
+            (Some(ri), Some(ro)) if ri > 0 => Some(u64_to_f64(ro) / u64_to_f64(ri)),
             _ => None,
         };
         let base_retention = match (row.bases_in, row.bases_out) {
-            (Some(bi), Some(bo)) if bi > 0 => Some(bo as f64 / bi as f64),
+            (Some(bi), Some(bo)) if bi > 0 => Some(u64_to_f64(bo) / u64_to_f64(bi)),
             _ => None,
         };
         let mean_q_delta = row
@@ -357,7 +367,7 @@ fn stage_plots_section(rows: &[FactsRowV1]) -> serde_json::Value {
     serde_json::Value::Array(entries)
 }
 
-fn reproducibility_section(rows: &[FactsRowV1]) -> serde_json::Value {
+fn reproducibility_section(rows: &[FactsRowV1], telemetry_paths: &[String]) -> serde_json::Value {
     let mut tool_versions = Vec::new();
     let mut image_digests = Vec::new();
     let mut params_hashes = Vec::new();
@@ -378,14 +388,15 @@ fn reproducibility_section(rows: &[FactsRowV1]) -> serde_json::Value {
     params_hashes.dedup();
     input_hashes.sort();
     input_hashes.dedup();
+    let (started_at, finished_at) = telemetry_bounds(telemetry_paths);
     serde_json::json!({
         "command": "unknown",
         "tool_versions": tool_versions,
         "image_digests": image_digests,
         "params_hashes": params_hashes,
         "input_hashes": input_hashes,
-        "started_at": serde_json::Value::Null,
-        "finished_at": serde_json::Value::Null,
+        "started_at": started_at,
+        "finished_at": finished_at,
     })
 }
 
@@ -424,6 +435,63 @@ fn qc_delta_section(rows: &[FactsRowV1]) -> serde_json::Value {
         "validate_pre_mean_q": validate_mean_q,
         "qc_post_mean_q": qc_post_mean_q,
         "mean_q_delta": delta,
+    })
+}
+
+fn telemetry_bounds(paths: &[String]) -> (serde_json::Value, serde_json::Value) {
+    let mut earliest: Option<String> = None;
+    let mut latest: Option<String> = None;
+    for path in paths {
+        let Ok(raw) = std::fs::read_to_string(path) else {
+            continue;
+        };
+        for line in raw.lines() {
+            if line.trim().is_empty() {
+                continue;
+            }
+            let Ok(event) = serde_json::from_str::<TelemetryEventV1>(line) else {
+                continue;
+            };
+            let ts = event.timestamp;
+            if earliest.as_ref().is_none_or(|curr| ts < *curr) {
+                earliest = Some(ts.clone());
+            }
+            if latest.as_ref().is_none_or(|curr| ts > *curr) {
+                latest = Some(ts.clone());
+            }
+        }
+    }
+    (
+        earliest.map_or(serde_json::Value::Null, serde_json::Value::String),
+        latest.map_or(serde_json::Value::Null, serde_json::Value::String),
+    )
+}
+
+fn contaminant_summary_section(rows: &[FactsRowV1]) -> serde_json::Value {
+    let mut summary = None;
+    let mut reads_removed = None;
+    let mut percent_removed = None;
+    for row in rows {
+        if row.stage_id != "fastq.screen" {
+            continue;
+        }
+        let reads_in = row.reads_in.unwrap_or(0);
+        let reads_out = row.reads_out.unwrap_or(0);
+        if reads_in > 0 && reads_out <= reads_in {
+            reads_removed = Some(reads_in - reads_out);
+            percent_removed = Some(u64_to_f64(reads_in - reads_out) / u64_to_f64(reads_in));
+        }
+        summary = row
+            .metrics
+            .get("contamination_summary")
+            .cloned()
+            .or_else(|| row.metrics.get("contamination_summary").cloned());
+        break;
+    }
+    serde_json::json!({
+        "reads_removed": reads_removed,
+        "percent_removed": percent_removed,
+        "top_taxa": summary.unwrap_or_else(|| serde_json::json!({})),
     })
 }
 

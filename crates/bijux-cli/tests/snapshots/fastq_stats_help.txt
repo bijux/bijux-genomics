@@ -3,9 +3,10 @@ Summarize FASTQ read statistics (neutral).
 Usage: bijux fastq stats-neutral [OPTIONS]
 
 Options:
-      --list-tools  
-      --dry-run     
-  -h, --help        Print help
+      --list-tools          
+      --dry-run             
+      --allow-experimental  Allow experimental and silver-tier tools
+  -h, --help                Print help
 
 Example:
   bijux fastq stats-neutral --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE --tools seqkit_stats
