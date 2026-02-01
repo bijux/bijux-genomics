@@ -27,6 +27,11 @@ pub fn validate_suite(suite: &BenchmarkSuiteSpec) -> Result<(), BenchError> {
             "suite must include datasets, stages, and tools".to_string(),
         ));
     }
+    if suite.datasets.iter().any(|dataset| dataset.hash.trim().is_empty()) {
+        return Err(BenchError::InvalidPolicy(
+            "suite datasets must include hash".to_string(),
+        ));
+    }
     Ok(())
 }
 

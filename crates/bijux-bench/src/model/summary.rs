@@ -11,12 +11,14 @@ use crate::stats::robust::RobustStats;
 #[serde(deny_unknown_fields)]
 pub struct MetricSummary {
     pub metric_id: String,
+    pub n: usize,
     pub stats: RobustStats,
     pub ci_low: Option<f64>,
     pub ci_high: Option<f64>,
     pub outlier_count: usize,
     pub outlier_replicates: Vec<String>,
     pub practical_threshold: Option<f64>,
+    pub power_warning: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -43,18 +45,34 @@ pub struct BenchmarkSummary {
     pub schema_version: String,
     pub suite_id: String,
     pub rows: Vec<SummaryRow>,
+    pub strata: Vec<SummaryStratum>,
     pub warnings: Vec<String>,
     pub scientifically_invalid: bool,
     pub invalid_reasons: Vec<String>,
 }
 
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct SummaryStratum {
+    pub stage_id: String,
+    pub dataset_class: String,
+    pub row_count: usize,
+    pub low_power_count: usize,
+}
+
 impl BenchmarkSummary {
     #[must_use]
-    pub fn v1(suite_id: String, rows: Vec<SummaryRow>, warnings: Vec<String>) -> Self {
+    pub fn v1(
+        suite_id: String,
+        rows: Vec<SummaryRow>,
+        strata: Vec<SummaryStratum>,
+        warnings: Vec<String>,
+    ) -> Self {
         Self {
             schema_version: "bijux.bench.summary.v1".to_string(),
             suite_id,
             rows,
+            strata,
             warnings,
             scientifically_invalid: false,
             invalid_reasons: Vec::new(),

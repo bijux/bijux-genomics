@@ -10,4 +10,4 @@ pub mod summary;
 pub use decision::BenchmarkDecision;
 pub use observation::BenchmarkObservation;
 pub use suite::BenchmarkSuiteSpec;
-pub use summary::{BenchmarkSummary, MetricSummary, SummaryRow};
+pub use summary::{BenchmarkSummary, MetricSummary, SummaryRow, SummaryStratum};

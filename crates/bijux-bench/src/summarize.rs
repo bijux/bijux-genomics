@@ -12,7 +12,9 @@ use crate::artifacts::{
 use crate::compare::{compare_summaries, CompareReport};
 use crate::contract::{validate_decision, validate_observation, validate_suite, validate_summary};
 use crate::error::BenchError;
-use crate::model::{BenchmarkObservation, BenchmarkSummary, MetricSummary, SummaryRow};
+use crate::model::{
+    BenchmarkObservation, BenchmarkSummary, MetricSummary, SummaryRow, SummaryStratum,
+};
 use crate::policy::{GateDecision, GatePolicy};
 use crate::repo::RunRepository;
 use crate::stats::{bootstrap_ci, mad_outliers, robust_stats, seed_from_ids};
@@ -123,6 +125,9 @@ pub fn summarize(
             &runtimes,
             options.ci_bootstrap,
         );
+        if options.ci_bootstrap.is_some() && runtimes.len() < 5 {
+            warnings.push(format!("ci_min_n:runtime_s:{stage_id}:{tool_id}"));
+        }
         let memory_ci = bootstrap_if_enabled(
             suite,
             &stage_id,
@@ -131,24 +136,31 @@ pub fn summarize(
             &memories,
             options.ci_bootstrap,
         );
+        if options.ci_bootstrap.is_some() && memories.len() < 5 {
+            warnings.push(format!("ci_min_n:memory_mb:{stage_id}:{tool_id}"));
+        }
 
         let runtime_summary = MetricSummary {
             metric_id: "runtime_s".to_string(),
+            n: runtimes.len(),
             stats: runtime_stats,
             ci_low: runtime_ci.map(|ci| ci.0),
             ci_high: runtime_ci.map(|ci| ci.1),
             outlier_count: runtime_outliers.outlier_count,
             outlier_replicates: indices_to_replicates(&runtime_outliers.outlier_indices, &group),
             practical_threshold: Some(0.05),
+            power_warning: runtimes.len() < 5,
         };
         let memory_summary = MetricSummary {
             metric_id: "memory_mb".to_string(),
+            n: memories.len(),
             stats: memory_stats,
             ci_low: memory_ci.map(|ci| ci.0),
             ci_high: memory_ci.map(|ci| ci.1),
             outlier_count: memory_outliers.outlier_count,
             outlier_replicates: indices_to_replicates(&memory_outliers.outlier_indices, &group),
             practical_threshold: Some(0.05),
+            power_warning: memories.len() < 5,
         };
 
         let mut metric_summaries = Vec::new();
@@ -171,14 +183,19 @@ pub fn summarize(
                 &values,
                 options.ci_bootstrap,
             );
+            if options.ci_bootstrap.is_some() && values.len() < 5 {
+                warnings.push(format!("ci_min_n:{metric_id}:{stage_id}:{tool_id}"));
+            }
             metric_summaries.push(MetricSummary {
                 metric_id,
+                n: values.len(),
                 stats,
                 ci_low: ci.map(|c| c.0),
                 ci_high: ci.map(|c| c.1),
                 outlier_count: outliers.outlier_count,
                 outlier_replicates: indices_to_replicates(&outliers.outlier_indices, &group),
                 practical_threshold: Some(0.05),
+                power_warning: values.len() < 5,
             });
         }
 
@@ -229,7 +246,26 @@ pub fn summarize(
             &b.params_hash,
         ))
     });
-    let mut summary = BenchmarkSummary::v1(suite.suite_id.clone(), rows, warnings);
+    let mut strata_map: BTreeMap<(String, String), (usize, usize)> = BTreeMap::new();
+    for row in &rows {
+        let entry = strata_map
+            .entry((row.stage_id.clone(), row.dataset_class.clone()))
+            .or_insert((0, 0));
+        entry.0 += 1;
+        if row.low_power {
+            entry.1 += 1;
+        }
+    }
+    let mut strata = Vec::new();
+    for ((stage_id, dataset_class), (row_count, low_power_count)) in strata_map {
+        strata.push(SummaryStratum {
+            stage_id,
+            dataset_class,
+            row_count,
+            low_power_count,
+        });
+    }
+    let mut summary = BenchmarkSummary::v1(suite.suite_id.clone(), rows, strata, warnings);
     summary.scientifically_invalid = scientifically_invalid;
     summary.invalid_reasons = invalid_reasons;
     Ok(summary)
@@ -244,7 +280,7 @@ fn bootstrap_if_enabled(
     samples: Option<usize>,
 ) -> Option<(f64, f64)> {
     let samples = samples.unwrap_or(0);
-    if samples == 0 || values.len() < 3 {
+    if samples == 0 || values.len() < 5 {
         return None;
     }
     let seed = seed_from_ids(&suite.suite_id, metric_id, stage_id, tool_id);
@@ -360,4 +396,90 @@ pub fn run_suite(
         }
     }
     Ok((summary, decisions))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{run_suite, BenchRunOptions};
+    use std::collections::BTreeMap;
+    use std::path::PathBuf;
+
+    use crate::{DatasetSpec, MetricsEnvelope, ReplicatePolicy};
+    use crate::model::{BenchmarkObservation, BenchmarkSuiteSpec};
+    use crate::policy::GatePolicy;
+
+    #[test]
+    fn artifact_bundle_is_stable() -> anyhow::Result<()> {
+        let suite = BenchmarkSuiteSpec::v1(
+            "suite-bundle".to_string(),
+            vec![DatasetSpec {
+                id: "dataset-1".to_string(),
+                hash: "hash-1".to_string(),
+                size: 100,
+                origin: "synthetic".to_string(),
+            }],
+            vec!["fastq.trim".to_string()],
+            vec!["fastp".to_string()],
+            vec!["params-a".to_string()],
+            ReplicatePolicy {
+                count: 3,
+                warmup: 0,
+                seeds: vec![1, 2, 3],
+            },
+        );
+        let obs = BenchmarkObservation {
+            schema_version: "bijux.bench.observation.v1".to_string(),
+            run_id: "run-1".to_string(),
+            dataset_id: "dataset-1".to_string(),
+            dataset_class: "trueseq".to_string(),
+            read_layout: "paired".to_string(),
+            stage_id: "fastq.trim".to_string(),
+            tool_id: "fastp".to_string(),
+            tool_version: "0.23.4".to_string(),
+            image_digest: "sha256:abc".to_string(),
+            params_hash: "params-a".to_string(),
+            input_hash: "input".to_string(),
+            runtime_s: 1.0,
+            memory_mb: 100.0,
+            exit_code: 0,
+            failure_kind: None,
+            metrics: MetricsEnvelope {
+                stage_id: "fastq.trim".to_string(),
+                schema_version: "metrics.v1".to_string(),
+                values: BTreeMap::new(),
+            },
+            replicate_id: "r1".to_string(),
+            replicate_index: 0,
+            runner: "docker".to_string(),
+            platform: "linux".to_string(),
+            cpu: "x86_64".to_string(),
+            threads: 4,
+            io_mode: "local".to_string(),
+        };
+        let policy = GatePolicy {
+            objective: "balanced".to_string(),
+            required_metrics: Vec::new(),
+            thresholds: BTreeMap::new(),
+            allowed_regressions: BTreeMap::new(),
+            must_not_regress: Vec::new(),
+            semantics_overrides: BTreeMap::new(),
+            stage_overrides: BTreeMap::new(),
+        };
+        let out_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("target")
+            .join("test-fixtures")
+            .join("bench_bundle");
+        let options = BenchRunOptions {
+            output_dir: Some(out_dir.clone()),
+            resume: false,
+            force: true,
+            ci_bootstrap: None,
+            objective: "balanced".to_string(),
+        };
+        let _ = run_suite(&suite, &[obs], &policy, &options)?;
+        assert!(out_dir.join("observations.jsonl").exists());
+        assert!(out_dir.join("summary.json").exists());
+        assert!(out_dir.join("decision.json").exists());
+        Ok(())
+    }
 }
