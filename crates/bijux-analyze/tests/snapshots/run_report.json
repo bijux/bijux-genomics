@@ -7,11 +7,12 @@
           "entries": [
             {
               "enabled": true,
-              "id": "adapter_1"
+              "id": "A1",
+              "sequence": "ACGT"
             }
           ],
           "hash": "sha256:adapters",
-          "preset": "illumina_default"
+          "preset": "default"
         },
         "contaminants": {
           "entries": [
@@ -31,7 +32,7 @@
             }
           ],
           "hash": "sha256:polyx",
-          "preset": "illumina_default"
+          "preset": "illumina_twocolor"
         }
       },
       "stage_id": "fastq.trim",
@@ -142,15 +143,19 @@
   "qc_improvement": {},
   "retention_context": [
     {
-      "conditions": "effective",
-      "definition": "unknown",
+      "conditions": {
+        "min_len": 20
+      },
+      "definition": "reads_out / reads_in",
       "stage_id": "fastq.trim",
       "tool_id": "fastp"
     }
   ],
   "retention_definition": [
     {
-      "conditions": "effective",
+      "conditions": {
+        "min_len": 20
+      },
       "denominator": "reads_in,bases_in",
       "numerator": "reads_out,bases_out",
       "stage_id": "fastq.trim",
@@ -189,11 +194,12 @@
               "entries": [
                 {
                   "enabled": true,
-                  "id": "adapter_1"
+                  "id": "A1",
+                  "sequence": "ACGT"
                 }
               ],
               "hash": "sha256:adapters",
-              "preset": "illumina_default"
+              "preset": "default"
             },
             "contaminants": {
               "entries": [
@@ -213,7 +219,7 @@
                 }
               ],
               "hash": "sha256:polyx",
-              "preset": "illumina_default"
+              "preset": "illumina_twocolor"
             }
           },
           "stage_id": "fastq.trim",
@@ -347,15 +353,19 @@
     "retention": {
       "contexts": [
         {
-          "conditions": "effective",
-          "definition": "unknown",
+          "conditions": {
+            "min_len": 20
+          },
+          "definition": "reads_out / reads_in",
           "stage_id": "fastq.trim",
           "tool_id": "fastp"
         }
       ],
       "definitions": [
         {
-          "conditions": "effective",
+          "conditions": {
+            "min_len": 20
+          },
           "denominator": "reads_in,bases_in",
           "numerator": "reads_out,bases_out",
           "stage_id": "fastq.trim",
@@ -430,15 +440,19 @@
     "trimming": {
       "retention_context": [
         {
-          "conditions": "effective",
-          "definition": "unknown",
+          "conditions": {
+            "min_len": 20
+          },
+          "definition": "reads_out / reads_in",
           "stage_id": "fastq.trim",
           "tool_id": "fastp"
         }
       ],
       "retention_definition": [
         {
-          "conditions": "effective",
+          "conditions": {
+            "min_len": 20
+          },
           "denominator": "reads_in,bases_in",
           "numerator": "reads_out,bases_out",
           "stage_id": "fastq.trim",
