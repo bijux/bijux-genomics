@@ -1,4 +1,4 @@
-use bijux_bench::{BenchmarkSummary, BenchmarkSuiteSpec, DatasetSpec, ReplicatePolicy};
+use bijux_bench::{BenchmarkSuiteSpec, BenchmarkSummary, DatasetSpec, ReplicatePolicy};
 
 #[test]
 fn bench_contract_snapshot() -> anyhow::Result<()> {
@@ -57,8 +57,10 @@ fn bench_contract_snapshot() -> anyhow::Result<()> {
         ]
       },
       "summary": {
+        "invalid_reasons": [],
         "rows": [],
         "schema_version": "bijux.bench.summary.v1",
+        "scientifically_invalid": false,
         "suite_id": "suite-1",
         "warnings": []
       }

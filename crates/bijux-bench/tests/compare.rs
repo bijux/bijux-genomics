@@ -1,108 +1,97 @@
+use std::collections::BTreeMap;
 use std::fs;
 use std::path::PathBuf;
 
 use anyhow::Result;
-use bijux_bench::compare;
-use bijux_core::run_index::{insert_run, RunIndexEntry};
-use bijux_engine::api::ExecutionManifest;
+use bijux_bench::{
+    compare, summarize, BenchRunOptions, BenchmarkObservation, BenchmarkSuiteSpec, DatasetSpec,
+    MetricsEnvelope, ReplicatePolicy,
+};
 
 #[test]
 fn bench_compare_snapshot() -> Result<()> {
     let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    let repo_root = manifest_dir
-        .parent()
-        .and_then(|p| p.parent())
-        .ok_or_else(|| anyhow::anyhow!("repo root not found"))?;
-    let root = repo_root
-        .join("target")
-        .join("test-fixtures")
-        .join("bench_compare");
-    let run_a_dir = root.join("run-a");
-    let run_b_dir = root.join("run-b");
-    fs::create_dir_all(&run_a_dir)?;
-    fs::create_dir_all(&run_b_dir)?;
+    let suite_a = BenchmarkSuiteSpec::v1(
+        "suite-a".to_string(),
+        vec![DatasetSpec {
+            id: "dataset-1".to_string(),
+            hash: "hash-1".to_string(),
+            size: 100,
+            origin: "synthetic".to_string(),
+        }],
+        vec!["fastq.trim".to_string()],
+        vec!["fastp".to_string()],
+        vec!["params-a".to_string()],
+        ReplicatePolicy {
+            count: 3,
+            warmup: 0,
+            seeds: vec![1, 2, 3],
+        },
+    );
+    let suite_b = BenchmarkSuiteSpec::v1(
+        "suite-b".to_string(),
+        vec![DatasetSpec {
+            id: "dataset-1".to_string(),
+            hash: "hash-1".to_string(),
+            size: 100,
+            origin: "synthetic".to_string(),
+        }],
+        vec!["fastq.trim".to_string()],
+        vec!["fastp".to_string()],
+        vec!["params-a".to_string()],
+        ReplicatePolicy {
+            count: 3,
+            warmup: 0,
+            seeds: vec![1, 2, 3],
+        },
+    );
 
-    let manifest_a = ExecutionManifest {
+    let obs_a = BenchmarkObservation {
+        schema_version: "bijux.bench.observation.v1".to_string(),
         run_id: "run-a".to_string(),
-        stage: "fastq.trim".to_string(),
-        tool: "fastp".to_string(),
+        dataset_id: "dataset-1".to_string(),
+        dataset_class: "trueseq".to_string(),
+        read_layout: "paired".to_string(),
+        stage_id: "fastq.trim".to_string(),
+        tool_id: "fastp".to_string(),
         tool_version: "0.23.4".to_string(),
         image_digest: "sha256:abc".to_string(),
-        command: "fastp -i input -o output".to_string(),
-        input_hashes: vec!["ih".to_string()],
-        input_files: vec!["input.fastq.gz".to_string()],
-        output_dir: run_a_dir.display().to_string(),
-        runner: "docker".to_string(),
-        platform: "local".to_string(),
-        arch: "arm64".to_string(),
-    };
-    let manifest_b = ExecutionManifest {
-        run_id: "run-b".to_string(),
-        stage: "fastq.trim".to_string(),
-        tool: "fastp".to_string(),
-        tool_version: "0.23.4".to_string(),
-        image_digest: "sha256:abc".to_string(),
-        command: "fastp -i input -o output".to_string(),
-        input_hashes: vec!["ih".to_string()],
-        input_files: vec!["input.fastq.gz".to_string()],
-        output_dir: run_b_dir.display().to_string(),
-        runner: "docker".to_string(),
-        platform: "local".to_string(),
-        arch: "arm64".to_string(),
-    };
-
-    fs::write(
-        run_a_dir.join("manifest.json"),
-        serde_json::to_string_pretty(&manifest_a)?,
-    )?;
-    fs::write(
-        run_b_dir.join("manifest.json"),
-        serde_json::to_string_pretty(&manifest_b)?,
-    )?;
-    fs::write(
-        run_a_dir.join("metrics.json"),
-        serde_json::to_string_pretty(&serde_json::json!({
-            "runtime_s": 1.0,
-            "memory_mb": 100.0
-        }))?,
-    )?;
-    fs::write(
-        run_b_dir.join("metrics.json"),
-        serde_json::to_string_pretty(&serde_json::json!({
-            "runtime_s": 2.0,
-            "memory_mb": 120.0
-        }))?,
-    )?;
-
-    let run_index = root.join("run_index.jsonl");
-    insert_run(
-        &run_index,
-        &RunIndexEntry {
-            run_id: "run-a".to_string(),
-            domain: "fastq".to_string(),
-            pipeline: "bench".to_string(),
-            stages: vec!["fastq.trim".to_string()],
-            tools: vec!["fastp".to_string()],
-            objective: None,
-            platform: "local".to_string(),
-            success: true,
+        params_hash: "params-a".to_string(),
+        input_hash: "input".to_string(),
+        runtime_s: 1.0,
+        memory_mb: 100.0,
+        exit_code: 0,
+        failure_kind: None,
+        metrics: MetricsEnvelope {
+            stage_id: "fastq.trim".to_string(),
+            schema_version: "metrics.v1".to_string(),
+            values: BTreeMap::new(),
         },
-    )?;
-    insert_run(
-        &run_index,
-        &RunIndexEntry {
-            run_id: "run-b".to_string(),
-            domain: "fastq".to_string(),
-            pipeline: "bench".to_string(),
-            stages: vec!["fastq.trim".to_string()],
-            tools: vec!["fastp".to_string()],
-            objective: None,
-            platform: "local".to_string(),
-            success: true,
-        },
-    )?;
+        replicate_id: "r1".to_string(),
+        replicate_index: 0,
+        runner: "docker".to_string(),
+        platform: "linux".to_string(),
+        cpu: "x86_64".to_string(),
+        threads: 4,
+        io_mode: "local".to_string(),
+    };
+    let obs_b = BenchmarkObservation {
+        runtime_s: 2.0,
+        memory_mb: 120.0,
+        ..obs_a.clone()
+    };
 
-    let comparison = compare("run-a", "run-b", &run_index, &root)?;
+    let summary_a = summarize(
+        &suite_a,
+        &[obs_a.clone(), obs_a.clone(), obs_a],
+        &BenchRunOptions::default(),
+    )?;
+    let summary_b = summarize(
+        &suite_b,
+        &[obs_b.clone(), obs_b.clone(), obs_b],
+        &BenchRunOptions::default(),
+    )?;
+    let comparison = compare(&summary_a, &summary_b)?;
     let rendered = serde_json::to_string_pretty(&comparison)?;
     let snapshot_path = manifest_dir
         .join("tests")

@@ -24,6 +24,8 @@ pub struct BenchmarkObservation {
     pub schema_version: String,
     pub run_id: String,
     pub dataset_id: String,
+    pub dataset_class: String,
+    pub read_layout: String,
     pub stage_id: String,
     pub tool_id: String,
     pub tool_version: String,
@@ -50,6 +52,8 @@ impl BenchmarkObservation {
     pub fn v1(
         run_id: String,
         dataset_id: String,
+        dataset_class: String,
+        read_layout: String,
         stage_id: String,
         tool_id: String,
         tool_version: String,
@@ -73,6 +77,8 @@ impl BenchmarkObservation {
             schema_version: "bijux.bench.observation.v1".to_string(),
             run_id,
             dataset_id,
+            dataset_class,
+            read_layout,
             stage_id,
             tool_id,
             tool_version,
@@ -100,6 +106,16 @@ impl BenchmarkObservation {
         if self.schema_version.trim().is_empty() {
             return Err(BenchError::InvalidObservation {
                 reason: "missing schema_version".to_string(),
+            });
+        }
+        if self.dataset_class.trim().is_empty() {
+            return Err(BenchError::MissingConfounder {
+                field: "dataset_class",
+            });
+        }
+        if self.read_layout.trim().is_empty() {
+            return Err(BenchError::MissingConfounder {
+                field: "read_layout",
             });
         }
         if self.platform.trim().is_empty() {

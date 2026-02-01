@@ -3,12 +3,11 @@
 //! Must not perform IO.
 
 use std::collections::BTreeMap;
-use std::path::Path;
 
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 
 use crate::compare::stratify::CompareStratum;
-use crate::repo::{load_manifest, load_metrics_map, RunIndexRepository, RunRepository};
+use crate::model::{BenchmarkSummary, MetricSummary};
 
 #[derive(Debug, Clone, serde::Serialize)]
 pub struct MetricDiff {
@@ -20,84 +19,91 @@ pub struct MetricDiff {
 
 #[derive(Debug, Clone, serde::Serialize)]
 pub struct CompareReport {
-    pub run_a: String,
-    pub run_b: String,
-    pub tool_changed: bool,
-    pub command_changed: bool,
+    pub suite_a: String,
+    pub suite_b: String,
     pub diffs: Vec<MetricDiff>,
     pub strata: Vec<CompareStratum>,
 }
 
-pub fn compare_runs(
-    run_a: &str,
-    run_b: &str,
-    index_path: &Path,
-    artifacts_root: &Path,
+pub fn compare_summaries(
+    summary_a: &BenchmarkSummary,
+    summary_b: &BenchmarkSummary,
 ) -> Result<CompareReport> {
-    ensure_repo_exists(index_path)?;
-    let repo = RunIndexRepository::new(index_path.to_path_buf(), artifacts_root.to_path_buf());
-    compare_runs_with_repo(run_a, run_b, &repo)
-}
+    let mut diffs = Vec::new();
+    let mut strata = Vec::new();
 
-pub fn compare_runs_with_repo(
-    run_a: &str,
-    run_b: &str,
-    repo: &dyn RunRepository,
-) -> Result<CompareReport> {
-    let meta_a = repo.run_metadata(run_a)?;
-    let meta_b = repo.run_metadata(run_b)?;
-    let manifest_a = load_manifest(&meta_a.manifest_path)?;
-    let manifest_b = load_manifest(&meta_b.manifest_path)?;
-    let metrics_a = load_metrics_map(&meta_a.metrics_path)?;
-    let metrics_b = load_metrics_map(&meta_b.metrics_path)?;
+    let mut index_b: BTreeMap<(String, String, String, String), &crate::model::SummaryRow> =
+        BTreeMap::new();
+    for row in &summary_b.rows {
+        index_b.insert(
+            (
+                row.dataset_id.clone(),
+                row.stage_id.clone(),
+                row.tool_id.clone(),
+                row.params_hash.clone(),
+            ),
+            row,
+        );
+    }
 
-    let tool_changed = manifest_a.tool != manifest_b.tool;
-    let command_changed = manifest_a.command != manifest_b.command;
+    for row_a in &summary_a.rows {
+        let key = (
+            row_a.dataset_id.clone(),
+            row_a.stage_id.clone(),
+            row_a.tool_id.clone(),
+            row_a.params_hash.clone(),
+        );
+        let Some(row_b) = index_b.get(&key) else {
+            continue;
+        };
+        strata.push(CompareStratum {
+            dataset_id: row_a.dataset_id.clone(),
+            dataset_class: row_a.dataset_class.clone(),
+            read_layout: row_a.read_layout.clone(),
+            stage_id: row_a.stage_id.clone(),
+            tool_id: row_a.tool_id.clone(),
+            params_hash: row_a.params_hash.clone(),
+        });
 
-    let diffs = numeric_diff(&metrics_a, &metrics_b, 0.05);
+        diffs.extend(metric_diffs(&row_a.runtime, &row_b.runtime, 0.05));
+        diffs.extend(metric_diffs(&row_a.memory, &row_b.memory, 0.05));
+
+        let mut map_b: BTreeMap<&str, &MetricSummary> = BTreeMap::new();
+        for metric in &row_b.metrics {
+            map_b.insert(metric.metric_id.as_str(), metric);
+        }
+        for metric_a in &row_a.metrics {
+            if let Some(metric_b) = map_b.get(metric_a.metric_id.as_str()) {
+                diffs.extend(metric_diffs(metric_a, metric_b, 0.05));
+            }
+        }
+    }
+
+    diffs.sort_by(|a, b| a.metric_id.cmp(&b.metric_id));
     Ok(CompareReport {
-        run_a: manifest_a.run_id,
-        run_b: manifest_b.run_id,
-        tool_changed,
-        command_changed,
+        suite_a: summary_a.suite_id.clone(),
+        suite_b: summary_b.suite_id.clone(),
         diffs,
-        strata: Vec::new(),
+        strata,
     })
 }
 
-fn numeric_diff(
-    a: &BTreeMap<String, f64>,
-    b: &BTreeMap<String, f64>,
-    practical_threshold: f64,
-) -> Vec<MetricDiff> {
+fn metric_diffs(a: &MetricSummary, b: &MetricSummary, practical_threshold: f64) -> Vec<MetricDiff> {
     let mut diffs = Vec::new();
-    for (metric_id, a_val) in a {
-        if let Some(b_val) = b.get(metric_id) {
-            let absolute = b_val - a_val;
-            let relative = if a_val.abs() > f64::EPSILON {
-                Some(absolute / a_val)
-            } else {
-                None
-            };
-            let practical = absolute.abs() >= practical_threshold;
-            diffs.push(MetricDiff {
-                metric_id: metric_id.clone(),
-                absolute,
-                relative,
-                practical,
-            });
-        }
-    }
-    diffs.sort_by(|a, b| a.metric_id.cmp(&b.metric_id));
+    let a_val = a.stats.median;
+    let b_val = b.stats.median;
+    let absolute = b_val - a_val;
+    let relative = if a_val.abs() > f64::EPSILON {
+        Some(absolute / a_val)
+    } else {
+        None
+    };
+    let practical = absolute.abs() >= practical_threshold;
+    diffs.push(MetricDiff {
+        metric_id: a.metric_id.clone(),
+        absolute,
+        relative,
+        practical,
+    });
     diffs
-}
-
-fn ensure_repo_exists(index_path: &Path) -> Result<()> {
-    if !index_path.exists() {
-        return Err(anyhow!(
-            "run_index.jsonl not found at {}",
-            index_path.display()
-        ));
-    }
-    Ok(())
 }

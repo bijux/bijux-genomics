@@ -4,4 +4,4 @@
 pub mod diff;
 pub mod stratify;
 
-pub use diff::{compare_runs, CompareReport};
+pub use diff::{compare_summaries, CompareReport};

@@ -23,6 +23,8 @@ pub struct MetricSummary {
 #[serde(deny_unknown_fields)]
 pub struct SummaryRow {
     pub dataset_id: String,
+    pub dataset_class: String,
+    pub read_layout: String,
     pub stage_id: String,
     pub tool_id: String,
     pub params_hash: String,
@@ -42,6 +44,8 @@ pub struct BenchmarkSummary {
     pub suite_id: String,
     pub rows: Vec<SummaryRow>,
     pub warnings: Vec<String>,
+    pub scientifically_invalid: bool,
+    pub invalid_reasons: Vec<String>,
 }
 
 impl BenchmarkSummary {
@@ -52,6 +56,8 @@ impl BenchmarkSummary {
             suite_id,
             rows,
             warnings,
+            scientifically_invalid: false,
+            invalid_reasons: Vec::new(),
         }
     }
 }

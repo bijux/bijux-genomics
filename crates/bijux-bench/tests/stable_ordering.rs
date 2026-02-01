@@ -1,14 +1,22 @@
 use std::collections::BTreeMap;
 
-use bijux_bench::{BenchmarkObservation, MetricsEnvelope};
 use bijux_bench::{summarize, BenchRunOptions, BenchmarkSuiteSpec};
+use bijux_bench::{BenchmarkObservation, MetricsEnvelope};
 use bijux_bench::{DatasetSpec, ReplicatePolicy};
 
-fn obs(run_id: &str, dataset_id: &str, stage_id: &str, tool_id: &str, params_hash: &str) -> BenchmarkObservation {
+fn obs(
+    run_id: &str,
+    dataset_id: &str,
+    stage_id: &str,
+    tool_id: &str,
+    params_hash: &str,
+) -> BenchmarkObservation {
     BenchmarkObservation {
         schema_version: "bijux.bench.observation.v1".to_string(),
         run_id: run_id.to_string(),
         dataset_id: dataset_id.to_string(),
+        dataset_class: "trueseq".to_string(),
+        read_layout: "paired".to_string(),
         stage_id: stage_id.to_string(),
         tool_id: tool_id.to_string(),
         tool_version: "1.0".to_string(),
