@@ -180,6 +180,8 @@ pub struct BenchFastqTrimArgs {
     pub allow_experimental: bool,
     #[arg(long, default_value_t = 1)]
     pub replicates: u32,
+    #[arg(long, default_value_t = 1)]
+    pub jobs: u32,
     #[arg(long)]
     pub ci_bootstrap: Option<u32>,
     #[arg(long, help = "Adapter bank preset name (default: illumina-default)")]
@@ -217,6 +219,8 @@ pub struct BenchFastqValidateArgs {
     pub allow_experimental: bool,
     #[arg(long, default_value_t = 1)]
     pub replicates: u32,
+    #[arg(long, default_value_t = 1)]
+    pub jobs: u32,
     #[arg(long)]
     pub ci_bootstrap: Option<u32>,
     #[arg(long)]
@@ -239,6 +243,8 @@ pub struct BenchFastqFilterArgs {
     pub allow_experimental: bool,
     #[arg(long, default_value_t = 1)]
     pub replicates: u32,
+    #[arg(long, default_value_t = 1)]
+    pub jobs: u32,
     #[arg(long)]
     pub ci_bootstrap: Option<u32>,
     #[arg(long)]
@@ -267,6 +273,8 @@ pub struct BenchFastqMergeArgs {
     pub allow_experimental: bool,
     #[arg(long, default_value_t = 1)]
     pub replicates: u32,
+    #[arg(long, default_value_t = 1)]
+    pub jobs: u32,
     #[arg(long)]
     pub ci_bootstrap: Option<u32>,
 }
@@ -289,6 +297,8 @@ pub struct BenchFastqCorrectArgs {
     pub allow_experimental: bool,
     #[arg(long, default_value_t = 1)]
     pub replicates: u32,
+    #[arg(long, default_value_t = 1)]
+    pub jobs: u32,
     #[arg(long)]
     pub ci_bootstrap: Option<u32>,
 }
@@ -309,6 +319,8 @@ pub struct BenchFastqQcPostArgs {
     pub allow_experimental: bool,
     #[arg(long, default_value_t = 1)]
     pub replicates: u32,
+    #[arg(long, default_value_t = 1)]
+    pub jobs: u32,
     #[arg(long)]
     pub ci_bootstrap: Option<u32>,
 }
@@ -331,6 +343,8 @@ pub struct BenchFastqUmiArgs {
     pub allow_experimental: bool,
     #[arg(long, default_value_t = 1)]
     pub replicates: u32,
+    #[arg(long, default_value_t = 1)]
+    pub jobs: u32,
     #[arg(long)]
     pub ci_bootstrap: Option<u32>,
 }
@@ -351,6 +365,8 @@ pub struct BenchFastqScreenArgs {
     pub allow_experimental: bool,
     #[arg(long, default_value_t = 1)]
     pub replicates: u32,
+    #[arg(long, default_value_t = 1)]
+    pub jobs: u32,
     #[arg(long)]
     pub ci_bootstrap: Option<u32>,
 }
@@ -371,6 +387,8 @@ pub struct BenchFastqStatsArgs {
     pub allow_experimental: bool,
     #[arg(long, default_value_t = 1)]
     pub replicates: u32,
+    #[arg(long, default_value_t = 1)]
+    pub jobs: u32,
     #[arg(long)]
     pub ci_bootstrap: Option<u32>,
 }
@@ -392,6 +410,8 @@ pub struct BenchFastqPreprocessArgs {
     pub allow_experimental: bool,
     #[arg(long, default_value_t = 1)]
     pub replicates: u32,
+    #[arg(long, default_value_t = 1)]
+    pub jobs: u32,
     #[arg(long)]
     pub ci_bootstrap: Option<u32>,
     #[arg(long, help = "Adapter bank preset name (default: illumina-default)")]
@@ -527,6 +547,8 @@ pub struct FastqPreprocessArgs {
     pub bench_corpus: Option<BenchCorpusArg>,
     #[arg(long)]
     pub allow_partial: bool,
+    #[arg(long, default_value_t = 1)]
+    pub jobs: u32,
     #[arg(long, help = "Adapter bank preset name (default: illumina-default)")]
     pub adapter_bank_preset: Option<String>,
     #[arg(

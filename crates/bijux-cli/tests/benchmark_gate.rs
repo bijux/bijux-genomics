@@ -40,6 +40,7 @@ fn assert_report_ok(path: &Path) -> Result<()> {
     Ok(())
 }
 
+#[allow(clippy::too_many_lines)]
 #[test]
 fn benchmark_gate_validate_trim_filter() -> Result<()> {
     if std::env::var("BIJUX_REGRESSION").is_err() {
@@ -65,6 +66,7 @@ fn benchmark_gate_validate_trim_filter() -> Result<()> {
         explain: false,
         strict: false,
         replicates: 1,
+        jobs: 1,
         ci_bootstrap: None,
     };
     let validate_outcome = bench_fastq_validate_pre(&catalog, &platform, None, &validate_args)?;
@@ -86,6 +88,7 @@ fn benchmark_gate_validate_trim_filter() -> Result<()> {
         tools: vec!["fastp".to_string()],
         explain: false,
         replicates: 1,
+        jobs: 1,
         ci_bootstrap: None,
         adapter_bank_preset: None,
         adapter_bank: Some("preset:best_practice_adna".to_string()),
@@ -110,6 +113,7 @@ fn benchmark_gate_validate_trim_filter() -> Result<()> {
         tools: vec!["seqkit".to_string()],
         explain: false,
         replicates: 1,
+        jobs: 1,
         ci_bootstrap: None,
         max_n: None,
         low_complexity_threshold: None,

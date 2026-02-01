@@ -33,6 +33,7 @@ use bijux_stages_fastq::{FastqArtifact, FastqLayout};
 
 mod banks;
 mod explain;
+mod jobs;
 mod summary;
 
 use banks::{
@@ -40,6 +41,7 @@ use banks::{
 };
 use chrono::Utc;
 pub use explain::{write_explain_md, write_explain_plan_json};
+use jobs::{bench_jobs, execute_plans_with_jobs, normalize_tool_spec_for_jobs};
 use summary::{write_run_summary, StageExecutionSummary};
 pub struct BenchOutcome<M: bijux_analyze::StageMetricSchema> {
     pub records: Vec<BenchmarkRecord<M>>,
@@ -88,6 +90,7 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
     ensure_image_qa_passed("fastq.trim", &tools, platform, catalog)?;
     ensure_tool_qa_passed("fastq.trim", &tools, platform, catalog)?;
 
+    let jobs = bench_jobs(args.jobs);
     let adapter_bank = adapter_bank_context(
         args.adapter_bank_preset.as_deref(),
         args.adapter_bank.as_deref(),
@@ -99,11 +102,14 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
     let contaminant_bank = contaminant_bank_context(args.contaminant_preset.as_deref())?;
 
     let mut failures = Vec::new();
+    let mut plans = Vec::new();
+    let mut tool_order = Vec::new();
     for tool in &tools {
         let out_dir = tools_root.join(tool);
         fs::create_dir_all(&out_dir).context("create tool output dir")?;
         let tool_spec =
             build_tool_execution_spec("fastq.trim", tool, &registry, catalog, platform)?;
+        let tool_spec = normalize_tool_spec_for_jobs(&tool_spec, jobs);
         if let Some(msg) = polyx_unsupported_warning(
             &tool_spec.tool_id.0,
             polyx_bank.as_ref(),
@@ -119,12 +125,20 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
             polyx_bank.as_ref(),
             contaminant_bank.as_ref(),
         )?;
-        let execution = execute_plan(&plan, platform.runner, None)?;
+        plans.push(plan);
+        tool_order.push(tool.to_string());
+    }
+    let executions = execute_plans_with_jobs(plans, platform.runner, jobs)?;
+    for (tool, execution) in tool_order.into_iter().zip(executions.into_iter()) {
         if execution.exit_code != 0 {
+            let tool_name = tool.clone();
             failures.push(RawFailure {
                 stage: "fastq.trim".to_string(),
-                tool: tool.to_string(),
-                reason: format!("tool {tool} failed with status {}", execution.exit_code),
+                tool,
+                reason: format!(
+                    "tool {tool_name} failed with status {}",
+                    execution.exit_code
+                ),
             });
         }
     }
@@ -169,19 +183,31 @@ pub fn bench_fastq_validate_pre<S: ::std::hash::BuildHasher>(
     ensure_image_qa_passed("fastq.validate_pre", &tools, platform, catalog)?;
     ensure_tool_qa_passed("fastq.validate_pre", &tools, platform, catalog)?;
 
+    let jobs = bench_jobs(args.jobs);
     let mut failures = Vec::new();
+    let mut plans = Vec::new();
+    let mut tool_order = Vec::new();
     for tool in &tools {
         let out_dir = tools_root.join(tool);
         fs::create_dir_all(&out_dir).context("create tool output dir")?;
         let tool_spec =
             build_tool_execution_spec("fastq.validate_pre", tool, &registry, catalog, platform)?;
+        let tool_spec = normalize_tool_spec_for_jobs(&tool_spec, jobs);
         let plan = plan_validate_pre(&tool_spec, &args.r1, &out_dir);
-        let execution = execute_plan(&plan, platform.runner, None)?;
+        plans.push(plan);
+        tool_order.push(tool.to_string());
+    }
+    let executions = execute_plans_with_jobs(plans, platform.runner, jobs)?;
+    for (tool, execution) in tool_order.into_iter().zip(executions.into_iter()) {
         if execution.exit_code != 0 {
+            let tool_name = tool.clone();
             failures.push(RawFailure {
                 stage: "fastq.validate_pre".to_string(),
-                tool: tool.to_string(),
-                reason: format!("tool {tool} failed with status {}", execution.exit_code),
+                tool,
+                reason: format!(
+                    "tool {tool_name} failed with status {}",
+                    execution.exit_code
+                ),
             });
         }
     }
@@ -226,6 +252,7 @@ pub fn bench_fastq_filter<S: ::std::hash::BuildHasher>(
     ensure_image_qa_passed("fastq.filter", &tools, platform, catalog)?;
     ensure_tool_qa_passed("fastq.filter", &tools, platform, catalog)?;
 
+    let jobs = bench_jobs(args.jobs);
     let filter_options = FilterPlanOptions {
         max_n: args.max_n,
         low_complexity_threshold: args.low_complexity_threshold,
@@ -233,18 +260,29 @@ pub fn bench_fastq_filter<S: ::std::hash::BuildHasher>(
         redundant_filters: Vec::new(),
     };
     let mut failures = Vec::new();
+    let mut plans = Vec::new();
+    let mut tool_order = Vec::new();
     for tool in &tools {
         let out_dir = tools_root.join(tool);
         fs::create_dir_all(&out_dir).context("create tool output dir")?;
         let tool_spec =
             build_tool_execution_spec("fastq.filter", tool, &registry, catalog, platform)?;
+        let tool_spec = normalize_tool_spec_for_jobs(&tool_spec, jobs);
         let plan = plan_filter(&tool_spec, &args.r1, &out_dir, &filter_options)?;
-        let execution = execute_plan(&plan, platform.runner, None)?;
+        plans.push(plan);
+        tool_order.push(tool.to_string());
+    }
+    let executions = execute_plans_with_jobs(plans, platform.runner, jobs)?;
+    for (tool, execution) in tool_order.into_iter().zip(executions.into_iter()) {
         if execution.exit_code != 0 {
+            let tool_name = tool.clone();
             failures.push(RawFailure {
                 stage: "fastq.filter".to_string(),
-                tool: tool.to_string(),
-                reason: format!("tool {tool} failed with status {}", execution.exit_code),
+                tool,
+                reason: format!(
+                    "tool {tool_name} failed with status {}",
+                    execution.exit_code
+                ),
             });
         }
     }
@@ -288,19 +326,31 @@ pub fn bench_fastq_merge<S: ::std::hash::BuildHasher>(
     ensure_image_qa_passed("fastq.merge", &tools, platform, catalog)?;
     ensure_tool_qa_passed("fastq.merge", &tools, platform, catalog)?;
 
+    let jobs = bench_jobs(args.jobs);
     let mut failures = Vec::new();
+    let mut plans = Vec::new();
+    let mut tool_order = Vec::new();
     for tool in &tools {
         let out_dir = tools_root.join(tool);
         fs::create_dir_all(&out_dir).context("create tool output dir")?;
         let tool_spec =
             build_tool_execution_spec("fastq.merge", tool, &registry, catalog, platform)?;
+        let tool_spec = normalize_tool_spec_for_jobs(&tool_spec, jobs);
         let plan = plan_merge(&tool_spec, &args.r1, &args.r2, &out_dir)?;
-        let execution = execute_plan(&plan, platform.runner, None)?;
+        plans.push(plan);
+        tool_order.push(tool.to_string());
+    }
+    let executions = execute_plans_with_jobs(plans, platform.runner, jobs)?;
+    for (tool, execution) in tool_order.into_iter().zip(executions.into_iter()) {
         if execution.exit_code != 0 {
+            let tool_name = tool.clone();
             failures.push(RawFailure {
                 stage: "fastq.merge".to_string(),
-                tool: tool.to_string(),
-                reason: format!("tool {tool} failed with status {}", execution.exit_code),
+                tool,
+                reason: format!(
+                    "tool {tool_name} failed with status {}",
+                    execution.exit_code
+                ),
             });
         }
     }
@@ -345,19 +395,31 @@ pub fn bench_fastq_screen<S: ::std::hash::BuildHasher>(
     ensure_image_qa_passed("fastq.screen", &tools, platform, catalog)?;
     ensure_tool_qa_passed("fastq.screen", &tools, platform, catalog)?;
 
+    let jobs = bench_jobs(args.jobs);
     let mut failures = Vec::new();
+    let mut plans = Vec::new();
+    let mut tool_order = Vec::new();
     for tool in &tools {
         let out_dir = tools_root.join(tool);
         fs::create_dir_all(&out_dir).context("create tool output dir")?;
         let tool_spec =
             build_tool_execution_spec("fastq.screen", tool, &registry, catalog, platform)?;
+        let tool_spec = normalize_tool_spec_for_jobs(&tool_spec, jobs);
         let plan = plan_screen(&tool_spec, &args.r1, &out_dir)?;
-        let execution = execute_plan(&plan, platform.runner, None)?;
+        plans.push(plan);
+        tool_order.push(tool.to_string());
+    }
+    let executions = execute_plans_with_jobs(plans, platform.runner, jobs)?;
+    for (tool, execution) in tool_order.into_iter().zip(executions.into_iter()) {
         if execution.exit_code != 0 {
+            let tool_name = tool.clone();
             failures.push(RawFailure {
                 stage: "fastq.screen".to_string(),
-                tool: tool.to_string(),
-                reason: format!("tool {tool} failed with status {}", execution.exit_code),
+                tool,
+                reason: format!(
+                    "tool {tool_name} failed with status {}",
+                    execution.exit_code
+                ),
             });
         }
     }
@@ -406,18 +468,30 @@ pub fn bench_fastq_umi<S: ::std::hash::BuildHasher>(
     ensure_image_qa_passed("fastq.umi", &tools, platform, catalog)?;
     ensure_tool_qa_passed("fastq.umi", &tools, platform, catalog)?;
 
+    let jobs = bench_jobs(args.jobs);
     let mut failures = Vec::new();
+    let mut plans = Vec::new();
+    let mut tool_order = Vec::new();
     for tool in &tools {
         let out_dir = tools_root.join(tool);
         fs::create_dir_all(&out_dir).context("create tool output dir")?;
         let tool_spec = build_tool_execution_spec("fastq.umi", tool, &registry, catalog, platform)?;
+        let tool_spec = normalize_tool_spec_for_jobs(&tool_spec, jobs);
         let plan = plan_umi(&tool_spec, &args.r1, r2, &out_dir)?;
-        let execution = execute_plan(&plan, platform.runner, None)?;
+        plans.push(plan);
+        tool_order.push(tool.to_string());
+    }
+    let executions = execute_plans_with_jobs(plans, platform.runner, jobs)?;
+    for (tool, execution) in tool_order.into_iter().zip(executions.into_iter()) {
         if execution.exit_code != 0 {
+            let tool_name = tool.clone();
             failures.push(RawFailure {
                 stage: "fastq.umi".to_string(),
-                tool: tool.to_string(),
-                reason: format!("tool {tool} failed with status {}", execution.exit_code),
+                tool,
+                reason: format!(
+                    "tool {tool_name} failed with status {}",
+                    execution.exit_code
+                ),
             });
         }
     }
@@ -465,19 +539,31 @@ pub fn bench_fastq_correct<S: ::std::hash::BuildHasher>(
     ensure_image_qa_passed("fastq.correct", &tools, platform, catalog)?;
     ensure_tool_qa_passed("fastq.correct", &tools, platform, catalog)?;
 
+    let jobs = bench_jobs(args.jobs);
     let mut failures = Vec::new();
+    let mut plans = Vec::new();
+    let mut tool_order = Vec::new();
     for tool in &tools {
         let out_dir = tools_root.join(tool);
         fs::create_dir_all(&out_dir).context("create tool output dir")?;
         let tool_spec =
             build_tool_execution_spec("fastq.correct", tool, &registry, catalog, platform)?;
+        let tool_spec = normalize_tool_spec_for_jobs(&tool_spec, jobs);
         let plan = plan_correct(&tool_spec, &args.r1, r2, &out_dir)?;
-        let execution = execute_plan(&plan, platform.runner, None)?;
+        plans.push(plan);
+        tool_order.push(tool.to_string());
+    }
+    let executions = execute_plans_with_jobs(plans, platform.runner, jobs)?;
+    for (tool, execution) in tool_order.into_iter().zip(executions.into_iter()) {
         if execution.exit_code != 0 {
+            let tool_name = tool.clone();
             failures.push(RawFailure {
                 stage: "fastq.correct".to_string(),
-                tool: tool.to_string(),
-                reason: format!("tool {tool} failed with status {}", execution.exit_code),
+                tool,
+                reason: format!(
+                    "tool {tool_name} failed with status {}",
+                    execution.exit_code
+                ),
             });
         }
     }
@@ -522,12 +608,16 @@ pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
     ensure_image_qa_passed("fastq.qc_post", &tools, platform, catalog)?;
     ensure_tool_qa_passed("fastq.qc_post", &tools, platform, catalog)?;
 
+    let jobs = bench_jobs(args.jobs);
     let mut failures = Vec::new();
+    let mut plans = Vec::new();
+    let mut tool_order = Vec::new();
     for tool in &tools {
         let out_dir = tools_root.join(tool);
         fs::create_dir_all(&out_dir).context("create tool output dir")?;
         let tool_spec =
             build_tool_execution_spec("fastq.qc_post", tool, &registry, catalog, platform)?;
+        let tool_spec = normalize_tool_spec_for_jobs(&tool_spec, jobs);
         let mut aux_images = std::collections::BTreeMap::new();
         if tool == "multiqc" {
             for aux_tool in aux_tool_ids() {
@@ -545,12 +635,20 @@ pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
             }
         }
         let plan = plan_qc_post(&tool_spec, &args.r1, &out_dir, aux_images, None)?;
-        let execution = execute_plan(&plan, platform.runner, None)?;
+        plans.push(plan);
+        tool_order.push(tool.to_string());
+    }
+    let executions = execute_plans_with_jobs(plans, platform.runner, jobs)?;
+    for (tool, execution) in tool_order.into_iter().zip(executions.into_iter()) {
         if execution.exit_code != 0 {
+            let tool_name = tool.clone();
             failures.push(RawFailure {
                 stage: "fastq.qc_post".to_string(),
-                tool: tool.to_string(),
-                reason: format!("tool {tool} failed with status {}", execution.exit_code),
+                tool,
+                reason: format!(
+                    "tool {tool_name} failed with status {}",
+                    execution.exit_code
+                ),
             });
         }
     }
@@ -610,6 +708,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     ensure_image_qa_passed("fastq.preprocess", &selected_tools, platform, catalog)?;
     ensure_tool_qa_passed("fastq.preprocess", &selected_tools, platform, catalog)?;
 
+    let jobs = bench_jobs(args.jobs);
     let tools_root = bench_tools_dir(&args.out, "preprocess", &args.sample_id);
     fs::create_dir_all(&tools_root).context("create preprocess tools dir")?;
 
@@ -627,6 +726,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     let mut tool_specs = Vec::new();
     for (stage, tool) in pipeline.stages.iter().zip(selected_tools.iter()) {
         let spec = build_tool_execution_spec(stage, tool, &registry, catalog, platform)?;
+        let spec = normalize_tool_spec_for_jobs(&spec, jobs);
         if stage == "fastq.trim" {
             if let Some(msg) = polyx_unsupported_warning(
                 &spec.tool_id.0,
@@ -840,6 +940,7 @@ mod tests {
             bench_corpus: None,
             allow_partial: false,
             replicates: 1,
+            jobs: 1,
             ci_bootstrap: None,
             adapter_bank_preset: None,
             adapter_bank: None,

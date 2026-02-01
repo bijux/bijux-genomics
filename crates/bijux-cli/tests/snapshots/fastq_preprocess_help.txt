@@ -37,6 +37,8 @@ Options:
           [possible values: fastq_5set]
       --allow-partial
           
+      --jobs <JOBS>
+          [default: 1]
       --adapter-bank-preset <ADAPTER_BANK_PRESET>
           Adapter bank preset name (default: illumina-default)
       --adapter-bank <ADAPTER_BANK>
