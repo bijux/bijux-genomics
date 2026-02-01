@@ -1,5 +1,7 @@
 SHELL 			:= /bin/sh
 PLATFORM 		?= docker-mac-arm64
+JOBS 			?= 8
+NEXTEST_JOBS 	?= $(JOBS)
 TOOLS_TRIM 		?= fastp,cutadapt,bbduk,adapterremoval,trimmomatic,trim_galore,atropos
 TOOLS_VALIDATE 	?= seqtk,fastqc,fastqvalidator,fastqvalidator_official,fqtools
 TOOLS_FILTER 	?= prinseq,fastp,seqkit
@@ -10,74 +12,49 @@ TOOLS_UMI 		?= umi_tools
 TOOLS_STATS 	?= seqkit_stats
 TOOLS_SCREEN 	?= kraken2,centrifuge,metaphlan,kaiju,fastq_screen
 
-EXTRA_GOALS := $(filter-out bench-all benchmark-validate benchmark-trim benchmark-merge benchmark-correct benchmark-filter benchmark-stats benchmark-qc-post benchmark-umi benchmark-screen benchmark-preprocess image-qa build-images test-images lint security test coverage test-fast test-slow test-e2e guardrails,$(MAKECMDGOALS))
+EXTRA_GOALS := $(filter-out bench-all benchmark-validate benchmark-trim benchmark-merge benchmark-correct benchmark-filter benchmark-stats benchmark-qc-post benchmark-umi benchmark-screen benchmark-preprocess image-qa build-images test-images test-images-trim test-images-validate test-images-filter test-images-merge lint security test coverage test-fast test-slow test-e2e guardrails mac-ci,$(MAKECMDGOALS))
 EXTRA_FASTQ_ROOTS := $(EXTRA_GOALS)
 FASTQ_ROOT_OVERRIDE ?= $(EXTRA_FASTQ_ROOTS)
 
 .PHONY: build-images test-images image-qa bench-all benchmark-trim benchmark-validate benchmark-filter benchmark-merge \
 	benchmark-correct benchmark-qc-post benchmark-umi benchmark-stats benchmark-screen benchmark-preprocess \
 	test-images-trim test-images-validate test-images-filter test-images-merge lint quality security test \
-	test-fast test-slow test-e2e guardrails
-
-build-images:
-	cargo run --bin build_docker_images -- --platform $(PLATFORM)
-
-test-images:
-	cargo run --bin test_docker_images -- --platform $(PLATFORM)
-
-image-qa:
-	cargo run --bin image_qa -- --platform $(PLATFORM)
-
-bench-all:
-	@set -e; \
-	$(MAKE) benchmark-validate FASTQ_ROOT_OVERRIDE="$(FASTQ_ROOT_OVERRIDE)"; \
-	$(MAKE) benchmark-trim FASTQ_ROOT_OVERRIDE="$(FASTQ_ROOT_OVERRIDE)"; \
-	$(MAKE) benchmark-merge FASTQ_ROOT_OVERRIDE="$(FASTQ_ROOT_OVERRIDE)"; \
-	$(MAKE) benchmark-correct FASTQ_ROOT_OVERRIDE="$(FASTQ_ROOT_OVERRIDE)"; \
-	$(MAKE) benchmark-filter FASTQ_ROOT_OVERRIDE="$(FASTQ_ROOT_OVERRIDE)"; \
-	$(MAKE) benchmark-stats FASTQ_ROOT_OVERRIDE="$(FASTQ_ROOT_OVERRIDE)"; \
-	$(MAKE) benchmark-qc-post FASTQ_ROOT_OVERRIDE="$(FASTQ_ROOT_OVERRIDE)"; \
-	$(MAKE) benchmark-umi FASTQ_ROOT_OVERRIDE="$(FASTQ_ROOT_OVERRIDE)"; \
-	$(MAKE) benchmark-screen FASTQ_ROOT_OVERRIDE="$(FASTQ_ROOT_OVERRIDE)"; \
-	$(MAKE) benchmark-preprocess FASTQ_ROOT_OVERRIDE="$(FASTQ_ROOT_OVERRIDE)"
-
-test-images-trim:
-	cargo run --bin test_docker_images -- --platform $(PLATFORM) --tools fastp,cutadapt,bbduk,adapterremoval,trimmomatic,trim_galore
-
-test-images-validate:
-	cargo run --bin test_docker_images -- --platform $(PLATFORM) --tools seqtk,fastqc,fastqvalidator,fqtools
-
-test-images-filter:
-	cargo run --bin test_docker_images -- --platform $(PLATFORM) --tools bbduk
-
-test-images-merge:
-	cargo run --bin test_docker_images -- --platform $(PLATFORM) --tools pear,flash2
+	test-fast test-slow test-e2e guardrails mac-ci mac-ci-fast mac-ci-full lint-fast test-full
 
 test:
 	@if command -v cargo-nextest >/dev/null 2>&1; then \
        echo "Running tests with nextest..."; \
-       cargo nextest run --workspace --all-features --no-fail-fast; \
+       CARGO_BUILD_JOBS=$(JOBS) CARGO_INCREMENTAL=1 cargo nextest run --workspace --no-fail-fast --jobs $(NEXTEST_JOBS); \
     else \
        echo "cargo-nextest not installed; falling back to cargo test"; \
-       cargo test --workspace -- --color always; \
+       CARGO_BUILD_JOBS=$(JOBS) CARGO_INCREMENTAL=1 cargo test --workspace -- --color always; \
+    fi
+
+test-full:
+	@if command -v cargo-nextest >/dev/null 2>&1; then \
+       echo "Running full tests with nextest..."; \
+       CARGO_BUILD_JOBS=$(JOBS) CARGO_INCREMENTAL=1 cargo nextest run --workspace --all-features --no-fail-fast --jobs $(NEXTEST_JOBS); \
+    else \
+       echo "cargo-nextest not installed; falling back to cargo test"; \
+       CARGO_BUILD_JOBS=$(JOBS) CARGO_INCREMENTAL=1 cargo test --workspace --all-features -- --color always; \
     fi
 
 test-fast:
 	@if command -v cargo-nextest >/dev/null 2>&1; then \
        echo "Running fast tests with nextest..."; \
-       cargo nextest run --workspace --all-features --no-fail-fast; \
+       CARGO_BUILD_JOBS=$(JOBS) CARGO_INCREMENTAL=1 cargo nextest run --workspace --all-features --no-fail-fast --jobs $(NEXTEST_JOBS); \
     else \
        echo "cargo-nextest not installed; falling back to cargo test"; \
-       cargo test --workspace -- --color always; \
+       CARGO_BUILD_JOBS=$(JOBS) CARGO_INCREMENTAL=1 cargo test --workspace -- --color always; \
     fi
 
 test-slow:
 	@if command -v cargo-nextest >/dev/null 2>&1; then \
        echo "Running slow tests with nextest..."; \
-       cargo nextest run --workspace --all-features --run-ignored ignored-only -E 'test(/_slow_/)'; \
+       CARGO_BUILD_JOBS=$(JOBS) CARGO_INCREMENTAL=1 cargo nextest run --workspace --all-features --run-ignored ignored-only -E 'test(/_slow_/)' --jobs $(NEXTEST_JOBS); \
     else \
        echo "cargo-nextest not installed; falling back to cargo test (ignored-only)"; \
-       cargo test --workspace -- --ignored --color always; \
+       CARGO_BUILD_JOBS=$(JOBS) CARGO_INCREMENTAL=1 cargo test --workspace -- --ignored --color always; \
     fi
 
 test-e2e:
@@ -87,24 +64,24 @@ test-e2e:
 			echo "missing e2e FASTQ fixtures; skipping"; \
 			exit 0; \
 	   fi; \
-       BIJUX_E2E=1 cargo nextest run --workspace --all-features --run-ignored ignored-only -E 'test(/_e2e_/)'; \
+       CARGO_BUILD_JOBS=$(JOBS) CARGO_INCREMENTAL=1 BIJUX_E2E=1 cargo nextest run --workspace --all-features --run-ignored ignored-only -E 'test(/_e2e_/)' --jobs $(NEXTEST_JOBS); \
     else \
        echo "cargo-nextest not installed; falling back to cargo test (ignored-only)"; \
-       BIJUX_E2E=1 cargo test --workspace -- --ignored --color always; \
+       CARGO_BUILD_JOBS=$(JOBS) CARGO_INCREMENTAL=1 BIJUX_E2E=1 cargo test --workspace -- --ignored --color always; \
     fi
 
 guardrails:
 	@if command -v cargo-nextest >/dev/null 2>&1; then \
        echo "Running guardrails..."; \
-       cargo nextest run --workspace --all-features -E 'test(/(no_deep_modules_in_src|file_loc_budget|no_giant_file|no_garbage_module_names|owner_guardrail|public_api_is_small|no_cross_layer_calls|no_new_top_level_modules_without_owner)/)'; \
+       CARGO_BUILD_JOBS=$(JOBS) CARGO_INCREMENTAL=1 cargo nextest run --workspace --all-features -E 'test(/(no_deep_modules_in_src|file_loc_budget|no_giant_file|no_garbage_module_names|owner_guardrail|public_api_is_small|no_cross_layer_calls|no_new_top_level_modules_without_owner)/)' --jobs $(NEXTEST_JOBS); \
     else \
        echo "cargo-nextest not installed; falling back to cargo test"; \
-       cargo test --workspace -- --color always no_deep_modules_in_src file_loc_budget no_giant_file; \
+       CARGO_BUILD_JOBS=$(JOBS) CARGO_INCREMENTAL=1 cargo test --workspace -- --color always no_deep_modules_in_src file_loc_budget no_giant_file; \
     fi
 
 coverage:
 	@if command -v cargo-llvm-cov >/dev/null 2>&1; then \
-       cargo llvm-cov --workspace --all-features --show-missing-lines; \
+       CARGO_BUILD_JOBS=$(JOBS) CARGO_INCREMENTAL=1 cargo llvm-cov --workspace --all-features --show-missing-lines; \
        echo "Coverage report generated in target/llvm-cov/html/index.html"; \
     else \
        echo "cargo-llvm-cov not installed; skipping coverage"; \
@@ -114,7 +91,7 @@ lint:
 	@echo "Checking formatting..."
 	cargo fmt --all -- --check
 	@echo "Running Clippy (strict)..."
-	cargo clippy --workspace --all-targets --all-features -- -D warnings
+	CARGO_BUILD_JOBS=$(JOBS) CARGO_INCREMENTAL=1 cargo clippy --workspace --all-targets --all-features -- -D warnings
 	@if command -v cargo-audit >/dev/null 2>&1; then \
 		echo "Checking advisories (cargo-audit)..."; \
 		if [ -f audit-allowlist.toml ]; then \
@@ -154,246 +131,26 @@ security:
 		echo "cargo-deny not installed; skipping deny check"; \
 	fi
 
-benchmark-trim:
-	@set -e; \
-	TOOLS="$(TOOLS)"; \
-	if [ -z "$$TOOLS" ]; then TOOLS="$(TOOLS_TRIM)"; fi; \
-	OUT_DIR="."; \
-	if [ -n "$(FASTQ_ROOT_OVERRIDE)" ]; then FASTQ_ROOT="$(FASTQ_ROOT_OVERRIDE)"; else FASTQ_ROOT="tests/data/fastq"; fi; \
-	if [ -z "$(FASTQ_ROOT_OVERRIDE)" ] && [ -d tests/data/fastq/canonical ]; then FASTQ_ROOT="tests/data/fastq/canonical"; fi; \
-	ROOTS="$$FASTQ_ROOT"; \
-	ROOTS=$$(echo $$ROOTS | tr "," " "); \
-	FILES=""; \
-	for root in $$ROOTS; do FILES="$$FILES $$(find $$root -type f -name '*_R1.fastq.gz' -o -name '*.fastq.gz')"; done; \
-	FILES=$$(echo $$FILES | tr " " "\n" | sort | uniq); \
-	if [ -z "$$FILES" ]; then \
-		echo "no FASTQ files found in tests/data/fastq"; \
-		exit 1; \
-	fi; \
-	for file in $$FILES; do \
-		sample_id=$$(basename "$$file" .fastq.gz); \
-		echo "→ benchmark trim $$sample_id"; \
-		cargo run --bin bijux -- fastq trim --env docker --tools $$TOOLS --sample-id "$$sample_id" --r1 "$$file" --out "$$OUT_DIR"; \
-	done
+lint-fast:
+	@echo "Checking formatting..."
+	cargo fmt --all -- --check
+	@echo "Running Clippy (fast)..."
+	CARGO_BUILD_JOBS=$(JOBS) CARGO_INCREMENTAL=1 cargo clippy --workspace --all-targets -- -D warnings
 
-benchmark-validate:
+mac-ci-fast:
 	@set -e; \
-	TOOLS="$(TOOLS)"; \
-	if [ -z "$$TOOLS" ]; then TOOLS="$(TOOLS_VALIDATE)"; fi; \
-	OUT_DIR="."; \
-	if [ -n "$(FASTQ_ROOT_OVERRIDE)" ]; then FASTQ_ROOT="$(FASTQ_ROOT_OVERRIDE)"; else FASTQ_ROOT="tests/data/fastq"; fi; \
-	if [ -z "$(FASTQ_ROOT_OVERRIDE)" ] && [ -d tests/data/fastq/canonical ]; then FASTQ_ROOT="tests/data/fastq/canonical"; fi; \
-	ROOTS="$$FASTQ_ROOT"; \
-	ROOTS=$$(echo $$ROOTS | tr "," " "); \
-	FILES=""; \
-	for root in $$ROOTS; do FILES="$$FILES $$(find $$root -type f -name '*_R1.fastq.gz' -o -name '*.fastq.gz')"; done; \
-	FILES=$$(echo $$FILES | tr " " "\n" | sort | uniq); \
-	if [ -z "$$FILES" ]; then \
-		echo "no FASTQ files found in tests/data/fastq"; \
-		exit 1; \
-	fi; \
-	for file in $$FILES; do \
-		sample_id=$$(basename "$$file" .fastq.gz); \
-		echo "→ benchmark validate $$sample_id"; \
-		cargo run --bin bijux -- fastq validate --env docker --tools $$TOOLS --sample-id "$$sample_id" --r1 "$$file" --out "$$OUT_DIR"; \
-	done
+	if command -v sccache >/dev/null 2>&1; then export RUSTC_WRAPPER=sccache; fi; \
+	$(MAKE) lint-fast JOBS=$(JOBS) NEXTEST_JOBS=$(NEXTEST_JOBS); \
+	$(MAKE) test JOBS=$(JOBS) NEXTEST_JOBS=$(NEXTEST_JOBS);
 
-benchmark-filter:
+mac-ci-full:
 	@set -e; \
-	TOOLS="$(TOOLS)"; \
-	if [ -z "$$TOOLS" ]; then TOOLS="$(TOOLS_FILTER)"; fi; \
-	OUT_DIR="."; \
-	if [ -n "$(FASTQ_ROOT_OVERRIDE)" ]; then FASTQ_ROOT="$(FASTQ_ROOT_OVERRIDE)"; else FASTQ_ROOT="tests/data/fastq"; fi; \
-	if [ -z "$(FASTQ_ROOT_OVERRIDE)" ] && [ -d tests/data/fastq/canonical ]; then FASTQ_ROOT="tests/data/fastq/canonical"; fi; \
-	ROOTS="$$FASTQ_ROOT"; \
-	ROOTS=$$(echo $$ROOTS | tr "," " "); \
-	FILES=""; \
-	for root in $$ROOTS; do FILES="$$FILES $$(find $$root -type f -name '*_R1.fastq.gz' -o -name '*.fastq.gz')"; done; \
-	FILES=$$(echo $$FILES | tr " " "\n" | sort | uniq); \
-	if [ -z "$$FILES" ]; then \
-		echo "no FASTQ files found in tests/data/fastq"; \
-		exit 1; \
-	fi; \
-	for file in $$FILES; do \
-		sample_id=$$(basename "$$file" .fastq.gz); \
-		echo "→ benchmark filter $$sample_id"; \
-		cargo run --bin bijux -- bench fastq filter --sample-id "$$sample_id" --r1 "$$file" --out "$$OUT_DIR" --tools $$TOOLS; \
-	done
+	if command -v sccache >/dev/null 2>&1; then export RUSTC_WRAPPER=sccache; fi; \
+	$(MAKE) lint JOBS=$(JOBS) NEXTEST_JOBS=$(NEXTEST_JOBS); \
+	$(MAKE) security JOBS=$(JOBS) NEXTEST_JOBS=$(NEXTEST_JOBS); \
+	$(MAKE) test-full JOBS=$(JOBS) NEXTEST_JOBS=$(NEXTEST_JOBS); \
+	$(MAKE) coverage JOBS=$(JOBS) NEXTEST_JOBS=$(NEXTEST_JOBS);
 
-benchmark-merge:
-	@set -e; \
-	TOOLS="$(TOOLS)"; \
-	if [ -z "$$TOOLS" ]; then TOOLS="$(TOOLS_MERGE)"; fi; \
-	OUT_DIR="."; \
-	if [ -n "$(FASTQ_ROOT_OVERRIDE)" ]; then FASTQ_ROOT="$(FASTQ_ROOT_OVERRIDE)"; else FASTQ_ROOT="tests/data/fastq"; fi; \
-	if [ -z "$(FASTQ_ROOT_OVERRIDE)" ] && [ -d tests/data/fastq/canonical ]; then FASTQ_ROOT="tests/data/fastq/canonical"; fi; \
-	ROOTS="$$FASTQ_ROOT"; \
-	ROOTS=$$(echo $$ROOTS | tr "," " "); \
-	FILES=""; \
-	for root in $$ROOTS; do FILES="$$FILES $$(find $$root -type f -name '*_1.fastq.gz' -o -name '*_R1.fastq.gz')"; done; \
-	FILES=$$(echo $$FILES | tr " " "\n" | sort | uniq); \
-	if [ -z "$$FILES" ]; then \
-		echo "no paired FASTQ files found in tests/data/fastq"; \
-		exit 1; \
-	fi; \
-	for r1 in $$FILES; do \
-		r2=$$(echo "$$r1" | sed 's/_1.fastq.gz/_2.fastq.gz/; s/_R1.fastq.gz/_R2.fastq.gz/'); \
-		if [ ! -f "$$r2" ]; then \
-			echo "missing pair for $$r1 (skip)"; \
-			continue; \
-		fi; \
-		sample_id=$$(basename "$$r1" .fastq.gz | sed 's/_1$$//; s/_R1$$//'); \
-		echo "→ benchmark merge $$sample_id"; \
-		cargo run --bin bijux -- bench fastq merge --sample-id "$$sample_id" --r1 "$$r1" --r2 "$$r2" --out "$$OUT_DIR" --tools $$TOOLS; \
-	done
-
-benchmark-correct:
-	@set -e; \
-	TOOLS="$(TOOLS)"; \
-	if [ -z "$$TOOLS" ]; then TOOLS="$(TOOLS_CORRECT)"; fi; \
-	OUT_DIR="."; \
-	if [ -n "$(FASTQ_ROOT_OVERRIDE)" ]; then FASTQ_ROOT="$(FASTQ_ROOT_OVERRIDE)"; else FASTQ_ROOT="tests/data/fastq"; fi; \
-	if [ -z "$(FASTQ_ROOT_OVERRIDE)" ] && [ -d tests/data/fastq/canonical ]; then FASTQ_ROOT="tests/data/fastq/canonical"; fi; \
-	ROOTS="$$FASTQ_ROOT"; \
-	ROOTS=$$(echo $$ROOTS | tr "," " "); \
-	FILES=""; \
-	for root in $$ROOTS; do FILES="$$FILES $$(find $$root -type f -name '*_R1.fastq.gz' -o -name '*.fastq.gz')"; done; \
-	FILES=$$(echo $$FILES | tr " " "\n" | sort | uniq); \
-	if [ -z "$$FILES" ]; then \
-		echo "no FASTQ files found in tests/data/fastq"; \
-		exit 1; \
-	fi; \
-	for file in $$FILES; do \
-		sample_id=$$(basename "$$file" .fastq.gz); \
-		echo "→ benchmark correct $$sample_id"; \
-		cargo run --bin bijux -- bench fastq correct --sample-id "$$sample_id" --r1 "$$file" --out "$$OUT_DIR" --tools $$TOOLS; \
-	done
-
-benchmark-qc-post:
-	@set -e; \
-	TOOLS="$(TOOLS)"; \
-	if [ -z "$$TOOLS" ]; then TOOLS="$(TOOLS_QC_POST)"; fi; \
-	OUT_DIR="."; \
-	if [ -n "$(FASTQ_ROOT_OVERRIDE)" ]; then FASTQ_ROOT="$(FASTQ_ROOT_OVERRIDE)"; else FASTQ_ROOT="tests/data/fastq"; fi; \
-	if [ -z "$(FASTQ_ROOT_OVERRIDE)" ] && [ -d tests/data/fastq/canonical ]; then FASTQ_ROOT="tests/data/fastq/canonical"; fi; \
-	ROOTS="$$FASTQ_ROOT"; \
-	ROOTS=$$(echo $$ROOTS | tr "," " "); \
-	FILES=""; \
-	for root in $$ROOTS; do FILES="$$FILES $$(find $$root -type f -name '*_R1.fastq.gz' -o -name '*.fastq.gz')"; done; \
-	FILES=$$(echo $$FILES | tr " " "\n" | sort | uniq); \
-	if [ -z "$$FILES" ]; then \
-		echo "no FASTQ files found in tests/data/fastq"; \
-		exit 1; \
-	fi; \
-	for file in $$FILES; do \
-		sample_id=$$(basename "$$file" .fastq.gz); \
-		echo "→ benchmark qc_post $$sample_id"; \
-		cargo run --bin bijux -- bench fastq qc-post --sample-id "$$sample_id" --r1 "$$file" --out "$$OUT_DIR" --tools $$TOOLS; \
-	done
-
-benchmark-umi:
-	@set -e; \
-	TOOLS="$(TOOLS)"; \
-	if [ -z "$$TOOLS" ]; then TOOLS="$(TOOLS_UMI)"; fi; \
-	OUT_DIR="."; \
-	if [ -n "$(FASTQ_ROOT_OVERRIDE)" ]; then FASTQ_ROOT="$(FASTQ_ROOT_OVERRIDE)"; else FASTQ_ROOT="tests/data/fastq"; fi; \
-	if [ -z "$(FASTQ_ROOT_OVERRIDE)" ] && [ -d tests/data/fastq/canonical ]; then FASTQ_ROOT="tests/data/fastq/canonical"; fi; \
-	ROOTS="$$FASTQ_ROOT"; \
-	ROOTS=$$(echo $$ROOTS | tr "," " "); \
-	FILES=""; \
-	for root in $$ROOTS; do FILES="$$FILES $$(find $$root -type f -name '*_R1.fastq.gz' -o -name '*.fastq.gz')"; done; \
-	FILES=$$(echo $$FILES | tr " " "\n" | sort | uniq); \
-	if [ -z "$$FILES" ]; then \
-		echo "no FASTQ files found in tests/data/fastq"; \
-		exit 1; \
-	fi; \
-	for file in $$FILES; do \
-		sample_id=$$(basename "$$file" .fastq.gz); \
-		echo "→ benchmark umi $$sample_id"; \
-		cargo run --bin bijux -- bench fastq umi --sample-id "$$sample_id" --r1 "$$file" --out "$$OUT_DIR" --tools $$TOOLS; \
-	done
-
-benchmark-stats:
-	@set -e; \
-	TOOLS="$(TOOLS)"; \
-	if [ -z "$$TOOLS" ]; then TOOLS="$(TOOLS_STATS)"; fi; \
-	OUT_DIR="."; \
-	if [ -n "$(FASTQ_ROOT_OVERRIDE)" ]; then FASTQ_ROOT="$(FASTQ_ROOT_OVERRIDE)"; else FASTQ_ROOT="tests/data/fastq"; fi; \
-	if [ -z "$(FASTQ_ROOT_OVERRIDE)" ] && [ -d tests/data/fastq/canonical ]; then FASTQ_ROOT="tests/data/fastq/canonical"; fi; \
-	ROOTS="$$FASTQ_ROOT"; \
-	ROOTS=$$(echo $$ROOTS | tr "," " "); \
-	FILES=""; \
-	for root in $$ROOTS; do FILES="$$FILES $$(find $$root -type f -name '*_R1.fastq.gz' -o -name '*.fastq.gz')"; done; \
-	FILES=$$(echo $$FILES | tr " " "\n" | sort | uniq); \
-	if [ -z "$$FILES" ]; then \
-		echo "no FASTQ files found in tests/data/fastq"; \
-		exit 1; \
-	fi; \
-	for file in $$FILES; do \
-		sample_id=$$(basename "$$file" .fastq.gz); \
-		echo "→ benchmark stats $$sample_id"; \
-		cargo run --bin bijux -- bench fastq stats --sample-id "$$sample_id" --r1 "$$file" --out "$$OUT_DIR" --tools $$TOOLS; \
-	done
-
-benchmark-screen:
-	@set -e; \
-	if [ -z "$$BIJUX_SCREEN_DB" ]; then \
-		echo "BIJUX_SCREEN_DB not set; skipping screen benchmark"; \
-		exit 0; \
-	fi; \
-	TOOLS="$(TOOLS)"; \
-	if [ -z "$$TOOLS" ]; then TOOLS="$(TOOLS_SCREEN)"; fi; \
-	OUT_DIR="."; \
-	if [ -n "$(FASTQ_ROOT_OVERRIDE)" ]; then FASTQ_ROOT="$(FASTQ_ROOT_OVERRIDE)"; else FASTQ_ROOT="tests/data/fastq"; fi; \
-	if [ -z "$(FASTQ_ROOT_OVERRIDE)" ] && [ -d tests/data/fastq/canonical ]; then FASTQ_ROOT="tests/data/fastq/canonical"; fi; \
-	ROOTS="$$FASTQ_ROOT"; \
-	ROOTS=$$(echo $$ROOTS | tr "," " "); \
-	FILES=""; \
-	for root in $$ROOTS; do FILES="$$FILES $$(find $$root -type f -name '*_R1.fastq.gz' -o -name '*.fastq.gz')"; done; \
-	FILES=$$(echo $$FILES | tr " " "\n" | sort | uniq); \
-	if [ -z "$$FILES" ]; then \
-		echo "no FASTQ files found in tests/data/fastq"; \
-		exit 1; \
-	fi; \
-	for file in $$FILES; do \
-		sample_id=$$(basename "$$file" .fastq.gz); \
-		echo "→ benchmark screen $$sample_id"; \
-		cargo run --bin bijux -- bench fastq screen --sample-id "$$sample_id" --r1 "$$file" --out "$$OUT_DIR" --tools $$TOOLS; \
-	done
-
-benchmark-preprocess:
-	@set -e; \
-	OUT_DIR="."; \
-	if [ -n "$(FASTQ_ROOT_OVERRIDE)" ]; then FASTQ_ROOT="$(FASTQ_ROOT_OVERRIDE)"; else FASTQ_ROOT="tests/data/fastq"; fi; \
-	if [ -z "$(FASTQ_ROOT_OVERRIDE)" ] && [ -d tests/data/fastq/canonical ]; then FASTQ_ROOT="tests/data/fastq/canonical"; fi; \
-	SE_FILES=$$(find $$FASTQ_ROOT -type f -name '*.fastq.gz' | grep -v '_[12].fastq.gz' | grep -v '_R1.fastq.gz' | grep -v '_R2.fastq.gz' | sort); \
-	if [ -n "$$SE_FILES" ]; then \
-		for file in $$SE_FILES; do \
-			sample_id=$$(basename "$$file" .fastq.gz); \
-			echo "→ benchmark preprocess $$sample_id"; \
-			cargo run --bin bijux -- bench fastq preprocess --sample-id "$$sample_id" --r1 "$$file" --out "$$OUT_DIR"; \
-		done; \
-	fi; \
-	PE_FILES=$$(find $$FASTQ_ROOT -type f -name '*_1.fastq.gz' -o -name '*_R1.fastq.gz' | sort); \
-	if [ -z "$$SE_FILES$$PE_FILES" ]; then \
-		echo "no FASTQ files found in tests/data/fastq"; \
-		exit 1; \
-	fi; \
-	for r1 in $$PE_FILES; do \
-		r2=$$(echo "$$r1" | sed 's/_1.fastq.gz/_2.fastq.gz/; s/_R1.fastq.gz/_R2.fastq.gz/'); \
-		if [ ! -f "$$r2" ]; then \
-			sample_id=$$(basename "$$r1" .fastq.gz | sed 's/_1$$//; s/_R1$$//'); \
-			echo "missing pair for $$r1 (SE preprocess)"; \
-			echo "→ benchmark preprocess $$sample_id"; \
-			cargo run --bin bijux -- bench fastq preprocess --sample-id "$$sample_id" --r1 "$$r1" --out "$$OUT_DIR"; \
-			continue; \
-		fi; \
-		sample_id=$$(basename "$$r1" .fastq.gz | sed 's/_1$$//; s/_R1$$//'); \
-		echo "→ benchmark preprocess $$sample_id"; \
-		cargo run --bin bijux -- bench fastq preprocess --sample-id "$$sample_id" --r1 "$$r1" --r2 "$$r2" --out "$$OUT_DIR"; \
-	done
-
-ifneq ($(strip $(EXTRA_GOALS)),)
-$(EXTRA_GOALS):
-	@:
-endif
+mac-ci: mac-ci-fast
+include makefiles/containers.mk
+include makefiles/benchmarks.mk
