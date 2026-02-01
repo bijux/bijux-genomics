@@ -2,6 +2,7 @@ use std::path::Path;
 
 use anyhow::{anyhow, Result};
 use bijux_core::{ArtifactRef, StageIO, StageId, StagePlanV1, StageVersion, ToolExecutionSpecV1};
+use bijux_domain_fastq::params::{validate::ValidateEffectiveParams, PairedMode};
 
 pub const STAGE_ID: &str = "fastq.umi";
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
@@ -24,6 +25,11 @@ pub fn plan_umi(
     normalize_umi_tool_list(std::slice::from_ref(&tool.tool_id.0))?;
     let output_r1 = out_dir.join("reads_r1.fastq.gz");
     let output_r2 = out_dir.join("reads_r2.fastq.gz");
+    let effective_params = ValidateEffectiveParams {
+        paired_mode: PairedMode::PairedEnd,
+        threads: tool.resources.threads,
+        q_cutoff: None,
+    };
     Ok(StagePlanV1 {
         stage_id: StageId(STAGE_ID.to_string()),
         stage_version: STAGE_VERSION,
@@ -63,6 +69,8 @@ pub fn plan_umi(
             "output_r1": output_r1,
             "output_r2": output_r2
         }),
+        effective_params: serde_json::to_value(&effective_params)
+            .expect("serialize umi effective params"),
         aux_images: std::collections::BTreeMap::new(),
     })
 }

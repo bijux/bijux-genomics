@@ -73,11 +73,17 @@ pub struct ToolInvocationV1 {
     pub stage_id: String,
     pub tool_id: String,
     pub tool_version: String,
+    #[serde(default)]
+    pub resolved_tool_version: Option<String>,
     pub image_digest: String,
     pub runner_kind: String,
     pub platform: String,
     pub parameters_json: serde_json::Value,
     pub parameters_json_normalized: serde_json::Value,
+    #[serde(default)]
+    pub effective_params_json: serde_json::Value,
+    #[serde(default)]
+    pub effective_params_json_normalized: serde_json::Value,
     #[serde(default)]
     pub adapter_bank: Option<AdapterBankProvenanceV1>,
     #[serde(default)]
@@ -88,6 +94,8 @@ pub struct ToolInvocationV1 {
     pub environment: BTreeMap<String, String>,
     pub input_hashes: Vec<String>,
     pub output_hashes: Vec<String>,
+    #[serde(default)]
+    pub executed_command: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

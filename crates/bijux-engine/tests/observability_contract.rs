@@ -287,6 +287,10 @@ fn fastq_stages_emit_observability_contracts() -> Result<()> {
         assert!(effective_config.get("resources").is_some());
         assert!(effective_config.get("parameters_json").is_some());
         assert!(effective_config.get("parameters_json_normalized").is_some());
+        assert!(effective_config.get("effective_params_json").is_some());
+        assert!(effective_config
+            .get("effective_params_json_normalized")
+            .is_some());
         if stage.id == "fastq.trim" {
             assert!(effective_config.get("adapter_bank").is_some());
             assert!(effective_config.get("bank_assets").is_some());
@@ -511,6 +515,7 @@ fn preprocess_emits_telemetry_events() -> Result<()> {
         r2: None,
         pipeline,
         merge_decision: None,
+        enable_contaminant_removal: false,
     };
     let tool = dummy_tool("fastp", &test_image());
     let plan =

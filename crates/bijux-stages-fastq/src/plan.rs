@@ -7,6 +7,7 @@ pub struct StagePlanJson {
     pub stage_version: String,
     pub io: StageIO,
     pub parameters: serde_json::Value,
+    pub effective_params: serde_json::Value,
 }
 
 impl StagePlanJson {
@@ -18,6 +19,7 @@ impl StagePlanJson {
             stage_version,
             io: plan.io.clone(),
             parameters: plan.params.clone(),
+            effective_params: plan.effective_params.clone(),
         }
     }
 }

@@ -31,11 +31,14 @@ fn tool_invocation_roundtrip_and_hash_stability() -> Result<()> {
         stage_id: "fastq.trim".to_string(),
         tool_id: "fastp".to_string(),
         tool_version: "0.23.4".to_string(),
+        resolved_tool_version: Some("0.23.4".to_string()),
         image_digest: "sha256:abc".to_string(),
         runner_kind: "docker".to_string(),
         platform: "local".to_string(),
         parameters_json: canonical_a.clone(),
         parameters_json_normalized: canonical_a.clone(),
+        effective_params_json: serde_json::json!({}),
+        effective_params_json_normalized: serde_json::json!({}),
         adapter_bank: None,
         banks: None,
         bank_assets: None,
@@ -48,6 +51,7 @@ fn tool_invocation_roundtrip_and_hash_stability() -> Result<()> {
         environment: BTreeMap::new(),
         input_hashes: vec!["ih".to_string()],
         output_hashes: vec!["oh".to_string()],
+        executed_command: None,
     };
     let encoded = serde_json::to_string(&invocation)?;
     let decoded: ToolInvocationV1 = serde_json::from_str(&encoded)?;

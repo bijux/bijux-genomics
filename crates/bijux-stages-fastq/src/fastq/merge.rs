@@ -2,6 +2,7 @@ use std::path::Path;
 
 use anyhow::{anyhow, Result};
 use bijux_core::{ArtifactRef, StageIO, StageId, StagePlanV1, StageVersion, ToolExecutionSpecV1};
+use bijux_domain_fastq::params::{merge::MergeEffectiveParams, PairedMode};
 
 pub const STAGE_ID: &str = "fastq.merge";
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
@@ -24,6 +25,12 @@ pub fn plan_merge(
     let output_name =
         merge_output_name(&tool.tool_id.0).ok_or_else(|| anyhow!("unsupported merge tool"))?;
     let output = out_dir.join(output_name);
+    let effective_params = MergeEffectiveParams {
+        paired_mode: PairedMode::PairedEnd,
+        threads: tool.resources.threads,
+        merge_overlap: None,
+        min_len: None,
+    };
     Ok(StagePlanV1 {
         stage_id: StageId(STAGE_ID.to_string()),
         stage_version: STAGE_VERSION,
@@ -55,6 +62,8 @@ pub fn plan_merge(
             "r2": r2,
             "output": output
         }),
+        effective_params: serde_json::to_value(&effective_params)
+            .expect("serialize merge effective params"),
         aux_images: std::collections::BTreeMap::new(),
     })
 }

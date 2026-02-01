@@ -299,6 +299,7 @@ pub fn write_plan_artifacts(
     inputs: &[PathBuf],
     outputs: &[PathBuf],
     params: &serde_json::Value,
+    effective_params: &serde_json::Value,
     adapter_bank: Option<&bijux_core::metrics::AdapterBankProvenanceV1>,
     banks: Option<&serde_json::Value>,
     bank_assets: Option<&serde_json::Value>,
@@ -316,6 +317,7 @@ pub fn write_plan_artifacts(
         "inputs": inputs,
         "outputs": outputs,
         "parameters": params,
+        "effective_params": effective_params,
     });
     std::fs::write(&plan_path, serde_json::to_vec_pretty(&payload)?).context("write plan.json")?;
     let effective_config = EffectiveConfigV1 {
@@ -330,6 +332,10 @@ pub fn write_plan_artifacts(
         resources: resources.clone(),
         parameters_json: params.clone(),
         parameters_json_normalized: bijux_core::parameters_json_canonicalization(params),
+        effective_params_json: effective_params.clone(),
+        effective_params_json_normalized: bijux_core::parameters_json_canonicalization(
+            effective_params,
+        ),
         adapter_bank: adapter_bank.cloned(),
         banks: banks.cloned(),
         bank_assets: bank_assets.cloned(),

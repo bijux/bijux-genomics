@@ -32,6 +32,7 @@ use bijux_core::{
     FastqValidateMetricsV1, MetricContextV1, RetentionReportMetricV1, StageMetricsV1,
     StageObservabilityContextV1, StagePlanV1, ToolInvocationV1,
 };
+use bijux_domain_fastq::parse_effective_params;
 
 #[derive(Debug, Clone)]
 pub struct StageResultV1 {
@@ -220,20 +221,54 @@ fn bank_refs_from_params(params: &serde_json::Value) -> serde_json::Value {
     serde_json::Value::Object(banks)
 }
 
-fn retention_conditions_from_params(params: &serde_json::Value) -> serde_json::Value {
-    serde_json::json!({
-        "min_len": params.get("min_len"),
-        "q": params.get("q"),
-        "max_n": params.get("max_n"),
-        "low_complexity_threshold": params.get("low_complexity_threshold"),
-        "kmer_ref": params.get("kmer_ref"),
-        "merge_policy": params.get("merge_policy"),
-        "adapter_policy": params.get("adapter_policy"),
-        "polyx_policy": params.get("polyx_policy"),
-        "contaminant_policy": params.get("contaminant_policy"),
-        "banks": bank_refs_from_params(params),
-        "parameters": params.clone(),
-    })
+fn retention_conditions_from_effective(
+    stage_id: &str,
+    effective_params: &serde_json::Value,
+    raw_params: &serde_json::Value,
+) -> serde_json::Value {
+    let mut out = serde_json::Map::new();
+    let mut warning = None;
+    if let Some(params) = parse_effective_params(stage_id, effective_params) {
+        if let Some(map) = params.retention_conditions().as_object() {
+            for (key, value) in map {
+                out.insert(key.clone(), value.clone());
+            }
+        }
+        out.insert("parameters".to_string(), effective_params.clone());
+        out.insert(
+            "condition".to_string(),
+            serde_json::Value::String("effective".to_string()),
+        );
+    } else {
+        warning = Some("effective_params_missing");
+        out.insert("parameters".to_string(), raw_params.clone());
+        out.insert(
+            "condition".to_string(),
+            serde_json::Value::String("unknown".to_string()),
+        );
+    }
+    out.insert("banks".to_string(), bank_refs_from_params(raw_params));
+    for key in [
+        "min_len",
+        "q",
+        "max_n",
+        "low_complexity_threshold",
+        "kmer_ref",
+        "merge_policy",
+        "adapter_policy",
+        "polyx_policy",
+        "contaminant_policy",
+    ] {
+        out.entry(key.to_string())
+            .or_insert(serde_json::Value::Null);
+    }
+    if let Some(flag) = warning {
+        out.insert(
+            "warning".to_string(),
+            serde_json::Value::String(flag.to_string()),
+        );
+    }
+    serde_json::Value::Object(out)
 }
 
 fn path_from_params(params: &serde_json::Value, key: &str) -> Option<PathBuf> {
@@ -669,6 +704,33 @@ fn assertion_result(id: &str, status: &str, message: impl Into<String>) -> serde
         "status": status,
         "message": message.into(),
     })
+}
+
+fn param_completeness_assertion(
+    stage_id: &str,
+    effective_params: &serde_json::Value,
+) -> serde_json::Value {
+    let Some(params) = parse_effective_params(stage_id, effective_params) else {
+        return assertion_result(
+            "effective_params_present",
+            "fail",
+            "effective_params missing or malformed",
+        );
+    };
+    let missing = params.missing_required_fields();
+    if missing.is_empty() {
+        assertion_result(
+            "effective_params_present",
+            "pass",
+            "effective_params present with required fields",
+        )
+    } else {
+        assertion_result(
+            "effective_params_present",
+            "fail",
+            format!("missing effective params fields: {}", missing.join(", ")),
+        )
+    }
 }
 
 #[allow(clippy::too_many_lines)]
@@ -1133,6 +1195,7 @@ fn stage_metrics_for_plan(
     inputs: &[PathBuf],
     outputs: &[PathBuf],
     params: &serde_json::Value,
+    effective_params: &serde_json::Value,
 ) -> Result<serde_json::Value> {
     let metrics = match stage_id {
         "fastq.trim" => {
@@ -1163,7 +1226,7 @@ fn stage_metrics_for_plan(
                 denominator_bases: input.bases,
                 definition: "reads_out / reads_in".to_string(),
                 stage_boundary: stage_id.to_string(),
-                conditions: retention_conditions_from_params(params),
+                conditions: retention_conditions_from_effective(stage_id, effective_params, params),
             };
             serde_json::to_value(FastqTrimMetricsV1 {
                 reads_in: input.reads,
@@ -1178,9 +1241,14 @@ fn stage_metrics_for_plan(
                 retention,
             })?
         }
-        "fastq.filter" => {
-            filter_metrics_with_removals(inputs, outputs, params, &FilterRemovalCounts::default())?
-        }
+        "fastq.filter" => filter_metrics_with_removals(
+            stage_id,
+            inputs,
+            outputs,
+            params,
+            effective_params,
+            &FilterRemovalCounts::default(),
+        )?,
         "fastq.merge" => {
             let r1 = stats_or_zero(inputs.first().map(PathBuf::as_path))?;
             let r2 = stats_or_zero(inputs.get(1).map(PathBuf::as_path))?;
@@ -1357,9 +1425,11 @@ fn stage_metrics_for_plan(
 }
 
 fn filter_metrics_with_removals(
+    stage_id: &str,
     inputs: &[PathBuf],
     outputs: &[PathBuf],
     params: &serde_json::Value,
+    effective_params: &serde_json::Value,
     removals: &FilterRemovalCounts,
 ) -> Result<serde_json::Value> {
     let input = stats_or_zero(inputs.first().map(PathBuf::as_path))?;
@@ -1388,8 +1458,8 @@ fn filter_metrics_with_removals(
         numerator_bases: output.bases,
         denominator_bases: input.bases,
         definition: "reads_out / reads_in".to_string(),
-        stage_boundary: "fastq.filter".to_string(),
-        conditions: retention_conditions_from_params(params),
+        stage_boundary: stage_id.to_string(),
+        conditions: retention_conditions_from_effective(stage_id, effective_params, params),
     };
     Ok(serde_json::to_value(FastqFilterMetricsV1 {
         reads_in: input.reads,
@@ -1522,6 +1592,7 @@ pub fn execute_stage_plan(
             .map(|artifact| artifact.path.clone())
             .collect::<Vec<_>>(),
         &canonical_params,
+        &plan.effective_params,
         adapter_bank.as_ref(),
         banks_json.as_ref(),
         bank_assets.as_ref(),
@@ -1788,13 +1859,21 @@ pub fn execute_stage_plan(
         let stage_metrics = if plan.stage_id.0 == "fastq.filter" {
             let removals =
                 filter_removals_for_plan(plan.tool_id.0.as_str(), &plan.out_dir, &canonical_params);
-            filter_metrics_with_removals(&input_paths, &outputs, &canonical_params, &removals)?
+            filter_metrics_with_removals(
+                plan.stage_id.0.as_str(),
+                &input_paths,
+                &outputs,
+                &canonical_params,
+                &plan.effective_params,
+                &removals,
+            )?
         } else {
             stage_metrics_for_plan(
                 plan.stage_id.0.as_str(),
                 &input_paths,
                 &outputs,
                 &canonical_params,
+                &plan.effective_params,
             )?
         };
         let invocation = ToolInvocationV1 {
@@ -1802,12 +1881,17 @@ pub fn execute_stage_plan(
             stage_id: plan.stage_id.0.clone(),
             tool_id: plan.tool_id.0.clone(),
             tool_version: plan.tool_version.clone(),
+            resolved_tool_version: Some(plan.tool_version.clone()),
             image_digest: image_digest.clone(),
             runner_kind: runner.to_string(),
             platform: std::env::var("BIJUX_PLATFORM").unwrap_or_else(|_| "unknown".to_string()),
             parameters_json: canonical_params.clone(),
             parameters_json_normalized: bijux_core::parameters_json_canonicalization(
                 &canonical_params,
+            ),
+            effective_params_json: plan.effective_params.clone(),
+            effective_params_json_normalized: bijux_core::parameters_json_canonicalization(
+                &plan.effective_params,
             ),
             adapter_bank: adapter_bank_from_params(&canonical_params),
             banks: banks_json.clone(),
@@ -1816,6 +1900,7 @@ pub fn execute_stage_plan(
             environment: std::env::vars().collect::<BTreeMap<String, String>>(),
             input_hashes: input_hashes.clone(),
             output_hashes: output_hashes.clone(),
+            executed_command: Some(execution.command.clone()),
         };
         let tool_invocation_path =
             write_tool_invocation_json(&run_artifacts_dir, &plan.stage_id.0, &invocation)?;
@@ -1987,7 +2072,11 @@ pub fn execute_stage_plan(
                 removals.by_contaminant_kmer,
                 removals.by_length,
                 serde_json::json!({}),
-                retention_conditions_from_params(&canonical_params),
+                retention_conditions_from_effective(
+                    &plan.stage_id.0,
+                    &plan.effective_params,
+                    &canonical_params,
+                ),
                 redundant_filters,
             )?;
             emit_artifact("filter_report", &report_path)?;
@@ -2108,7 +2197,7 @@ pub fn execute_stage_plan(
         warnings.extend(extra_warnings);
         let (reads_in, reads_out, bases_in, bases_out, pairs_in, pairs_out) =
             extract_io_deltas(&stage_metrics);
-        let assertion_results = evaluate_assertions(
+        let mut assertion_results = evaluate_assertions(
             &plan.stage_id.0,
             &stage_metrics,
             reads_in,
@@ -2116,6 +2205,10 @@ pub fn execute_stage_plan(
             bases_in,
             bases_out,
         );
+        assertion_results.push(param_completeness_assertion(
+            &plan.stage_id.0,
+            &plan.effective_params,
+        ));
         let assertions_payload = serde_json::json!({
             "schema_version": "bijux.assertions.v1",
             "results": assertion_results,
@@ -2208,7 +2301,11 @@ pub fn execute_stage_plan(
                     &plan.stage_id.0,
                     &plan.tool_id.0,
                     &plan.tool_version,
-                    &retention_conditions_from_params(&canonical_params),
+                    &retention_conditions_from_effective(
+                        &plan.stage_id.0,
+                        &plan.effective_params,
+                        &canonical_params,
+                    ),
                     &canonical_params,
                     counts.reads_in,
                     counts.reads_out,
@@ -2543,6 +2640,12 @@ mod tests {
             },
             out_dir: std::path::PathBuf::from("out"),
             params: serde_json::json!({}),
+            effective_params: serde_json::json!({
+                "paired_mode": "single_end",
+                "threads": 1,
+                "min_len": 0,
+                "adapter_policy": "none"
+            }),
             aux_images: std::collections::BTreeMap::new(),
         };
         let params = serde_json::json!({

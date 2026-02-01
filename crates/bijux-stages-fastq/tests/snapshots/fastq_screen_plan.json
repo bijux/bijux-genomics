@@ -1,6 +1,9 @@
 {
-  "stage_id": "fastq.screen",
-  "stage_version": "1",
+  "effective_params": {
+    "contaminant_db": null,
+    "paired_mode": "single_end",
+    "threads": 1
+  },
   "io": {
     "inputs": [
       {
@@ -20,5 +23,7 @@
     "out_dir": "out",
     "report": "out/screen_report.tsv",
     "tool": "kraken2"
-  }
+  },
+  "stage_id": "fastq.screen",
+  "stage_version": "1"
 }

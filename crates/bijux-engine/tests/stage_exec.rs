@@ -71,6 +71,12 @@ fn execute_plan_runs_trim() -> Result<()> {
         },
         out_dir: out_dir.path().to_path_buf(),
         params: serde_json::json!({}),
+        effective_params: serde_json::json!({
+            "paired_mode": "single_end",
+            "threads": 1,
+            "min_len": 0,
+            "adapter_policy": "none"
+        }),
         aux_images: std::collections::BTreeMap::new(),
     };
     let result = execute_plan(&exec_plan, platform.runner, None)?;
@@ -125,6 +131,10 @@ fn execute_plan_runs_validate() -> Result<()> {
         },
         out_dir: out_dir.path().to_path_buf(),
         params: serde_json::json!({}),
+        effective_params: serde_json::json!({
+            "paired_mode": "single_end",
+            "threads": 1
+        }),
         aux_images: std::collections::BTreeMap::new(),
     };
     let result = execute_plan(&exec_plan, platform.runner, None)?;
@@ -184,6 +194,10 @@ fn execute_plan_runs_merge() -> Result<()> {
         },
         out_dir: out_dir.path().to_path_buf(),
         params: serde_json::json!({}),
+        effective_params: serde_json::json!({
+            "paired_mode": "paired_end",
+            "threads": 1
+        }),
         aux_images: std::collections::BTreeMap::new(),
     };
     let result = execute_plan(&exec_plan, platform.runner, None)?;

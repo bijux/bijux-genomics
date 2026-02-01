@@ -2,6 +2,7 @@ use std::path::Path;
 
 use anyhow::{anyhow, Result};
 use bijux_core::{ArtifactRef, StageIO, StageId, StagePlanV1, StageVersion, ToolExecutionSpecV1};
+use bijux_domain_fastq::params::{screen::ScreenEffectiveParams, PairedMode};
 
 pub const STAGE_ID: &str = "fastq.screen";
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
@@ -24,6 +25,11 @@ pub fn normalize_screen_tool_list(tools: &[String]) -> Result<Vec<String>> {
 pub fn plan_screen(tool: &ToolExecutionSpecV1, r1: &Path, out_dir: &Path) -> Result<StagePlanV1> {
     normalize_screen_tool_list(std::slice::from_ref(&tool.tool_id.0))?;
     let report = out_dir.join("screen_report.tsv");
+    let effective_params = ScreenEffectiveParams {
+        paired_mode: PairedMode::SingleEnd,
+        threads: tool.resources.threads,
+        contaminant_db: None,
+    };
     Ok(StagePlanV1 {
         stage_id: StageId(STAGE_ID.to_string()),
         stage_version: STAGE_VERSION,
@@ -49,6 +55,8 @@ pub fn plan_screen(tool: &ToolExecutionSpecV1, r1: &Path, out_dir: &Path) -> Res
             "out_dir": out_dir,
             "report": report
         }),
+        effective_params: serde_json::to_value(&effective_params)
+            .expect("serialize screen effective params"),
         aux_images: std::collections::BTreeMap::new(),
     })
 }

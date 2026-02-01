@@ -4,6 +4,7 @@ use bijux_core::{
     ToolExecutionSpecV1,
 };
 use bijux_domain_fastq::assess_merge_suitability;
+use bijux_domain_fastq::params::{preprocess::PreprocessEffectiveParams, PairedMode};
 
 pub const STAGE_ID: &str = "fastq.preprocess";
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
@@ -14,6 +15,7 @@ pub struct PreprocessPlan {
     pub r2: Option<std::path::PathBuf>,
     pub pipeline: PipelineSpec,
     pub merge_decision: Option<MergeDecisionTrace>,
+    pub enable_contaminant_removal: bool,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -83,6 +85,7 @@ pub fn plan_preprocess(args: &crate::args::BenchFastqPreprocessArgs) -> Preproce
         r2: args.r2.clone(),
         pipeline,
         merge_decision,
+        enable_contaminant_removal: args.enable_contaminant_removal,
     }
 }
 
@@ -273,6 +276,12 @@ pub fn plan_preprocess_stage(plan: &PreprocessPlan, tool: &ToolExecutionSpecV1) 
             path: r2.clone(),
         });
     }
+    let effective_params = PreprocessEffectiveParams {
+        paired_mode: PairedMode::from_has_r2(plan.r2.is_some()),
+        threads: tool.resources.threads,
+        stages: plan.pipeline.stages.clone(),
+        enable_contaminant_removal: plan.enable_contaminant_removal,
+    };
     StagePlanV1 {
         stage_id: StageId(STAGE_ID.to_string()),
         stage_version: STAGE_VERSION,
@@ -295,6 +304,8 @@ pub fn plan_preprocess_stage(plan: &PreprocessPlan, tool: &ToolExecutionSpecV1) 
             "r2": plan.r2,
             "stages": plan.pipeline.stages,
         }),
+        effective_params: serde_json::to_value(&effective_params)
+            .expect("serialize preprocess effective params"),
         aux_images: std::collections::BTreeMap::new(),
     }
 }

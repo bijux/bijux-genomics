@@ -3,7 +3,10 @@ use std::path::PathBuf;
 
 use anyhow::Result;
 use bijux_analyze::{load::load_facts, report::write_run_report_from_facts};
-use bijux_core::{FactsRowV1, ReportSchemaV1, RetentionReportV1, StageReportV1};
+use bijux_core::{
+    EffectiveConfigV1, FactsRowV1, ReportSchemaV1, RetentionReportV1, StageReportV1,
+    ToolConstraints, ToolInvocationV1,
+};
 
 fn fixture_root() -> Result<PathBuf> {
     let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
@@ -37,6 +40,7 @@ fn write_report_fixture(
     Ok(serde_json::from_str(&report_raw)?)
 }
 
+#[allow(clippy::too_many_lines)]
 fn base_reports(root: &std::path::Path) -> Result<(PathBuf, PathBuf, PathBuf)> {
     let stage_report_path = root.join("stage_report.json");
     let retention_report_path = root.join("retention_report.json");
@@ -63,6 +67,86 @@ fn base_reports(root: &std::path::Path) -> Result<(PathBuf, PathBuf, PathBuf)> {
     fs::write(
         &stage_report_path,
         serde_json::to_vec_pretty(&stage_report)?,
+    )?;
+
+    let effective_config = EffectiveConfigV1 {
+        schema_version: "bijux.effective_config.v1".to_string(),
+        stage_id: "fastq.trim".to_string(),
+        stage_version: 2,
+        tool_id: "fastp".to_string(),
+        tool_version: "0.23.4".to_string(),
+        image_digest: Some("sha256:img".to_string()),
+        runner: "docker".to_string(),
+        platform: "linux".to_string(),
+        resources: ToolConstraints {
+            runtime: "docker".to_string(),
+            mem_gb: 1,
+            tmp_gb: 1,
+            threads: 1,
+        },
+        parameters_json: serde_json::json!({"min_len": 20}),
+        parameters_json_normalized: serde_json::json!({"min_len": 20}),
+        effective_params_json: serde_json::json!({
+            "paired_mode": "single_end",
+            "threads": 1,
+            "min_len": 20,
+            "adapter_policy": "bank"
+        }),
+        effective_params_json_normalized: serde_json::json!({
+            "adapter_policy": "bank",
+            "min_len": 20,
+            "paired_mode": "single_end",
+            "threads": 1
+        }),
+        adapter_bank: None,
+        banks: None,
+        bank_assets: None,
+    };
+    fs::write(
+        root.join("effective_config.json"),
+        serde_json::to_vec_pretty(&effective_config)?,
+    )?;
+
+    let tool_invocation = ToolInvocationV1 {
+        schema_version: "bijux.tool_invocation.v1".to_string(),
+        stage_id: "fastq.trim".to_string(),
+        tool_id: "fastp".to_string(),
+        tool_version: "0.23.4".to_string(),
+        resolved_tool_version: Some("0.23.4".to_string()),
+        image_digest: "sha256:img".to_string(),
+        runner_kind: "docker".to_string(),
+        platform: "linux".to_string(),
+        parameters_json: serde_json::json!({"min_len": 20}),
+        parameters_json_normalized: serde_json::json!({"min_len": 20}),
+        effective_params_json: serde_json::json!({
+            "paired_mode": "single_end",
+            "threads": 1,
+            "min_len": 20,
+            "adapter_policy": "bank"
+        }),
+        effective_params_json_normalized: serde_json::json!({
+            "adapter_policy": "bank",
+            "min_len": 20,
+            "paired_mode": "single_end",
+            "threads": 1
+        }),
+        adapter_bank: None,
+        banks: None,
+        bank_assets: None,
+        resources: ToolConstraints {
+            runtime: "docker".to_string(),
+            mem_gb: 1,
+            tmp_gb: 1,
+            threads: 1,
+        },
+        environment: std::collections::BTreeMap::new(),
+        input_hashes: vec!["input".to_string()],
+        output_hashes: vec!["out".to_string()],
+        executed_command: Some("fastp --in1 reads.fastq.gz".to_string()),
+    };
+    fs::write(
+        root.join("tool_invocation.json"),
+        serde_json::to_vec_pretty(&tool_invocation)?,
     )?;
 
     let retention_report = RetentionReportV1 {

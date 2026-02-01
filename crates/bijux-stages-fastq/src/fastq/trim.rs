@@ -2,6 +2,7 @@ use std::path::Path;
 
 use anyhow::{anyhow, Result};
 use bijux_core::{ArtifactRef, StageIO, StageId, StagePlanV1, StageVersion, ToolExecutionSpecV1};
+use bijux_domain_fastq::params::{trim::TrimEffectiveParams, PairedMode};
 
 pub const STAGE_ID: &str = "fastq.trim";
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
@@ -79,6 +80,20 @@ pub fn plan(
             map.insert("contaminant_bank".to_string(), contaminant_bank.clone());
         }
     }
+    let effective_params = TrimEffectiveParams {
+        paired_mode: PairedMode::SingleEnd,
+        threads: tool.resources.threads,
+        min_len: 0,
+        q_cutoff: None,
+        adapter_policy: if adapter_bank.is_some() {
+            "bank".to_string()
+        } else {
+            "none".to_string()
+        },
+        polyx_policy: polyx_bank.as_ref().map(|_| "bank".to_string()),
+        n_policy: None,
+        contaminant_policy: contaminant_bank.as_ref().map(|_| "bank".to_string()),
+    };
     Ok(StagePlanV1 {
         stage_id: StageId(STAGE_ID.to_string()),
         stage_version: STAGE_VERSION,
@@ -99,6 +114,8 @@ pub fn plan(
         },
         out_dir: out_dir.to_path_buf(),
         params,
+        effective_params: serde_json::to_value(&effective_params)
+            .expect("serialize trim effective params"),
         aux_images: std::collections::BTreeMap::new(),
     })
 }

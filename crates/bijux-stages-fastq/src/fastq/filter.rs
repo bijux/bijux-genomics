@@ -2,6 +2,7 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Result};
 use bijux_core::{ArtifactRef, StageIO, StageId, StagePlanV1, StageVersion, ToolExecutionSpecV1};
+use bijux_domain_fastq::params::{filter::FilterEffectiveParams, PairedMode};
 
 pub const STAGE_ID: &str = "fastq.filter";
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
@@ -36,6 +37,14 @@ pub fn plan_filter(
         .kmer_ref
         .clone()
         .map(|path| path.display().to_string());
+    let effective_params = FilterEffectiveParams {
+        paired_mode: PairedMode::SingleEnd,
+        threads: tool.resources.threads,
+        max_n: options.max_n,
+        low_complexity_threshold: options.low_complexity_threshold,
+        contaminant_db: kmer_ref.clone(),
+        n_policy: None,
+    };
     Ok(StagePlanV1 {
         stage_id: StageId(STAGE_ID.to_string()),
         stage_version: STAGE_VERSION,
@@ -64,6 +73,8 @@ pub fn plan_filter(
             "kmer_ref": kmer_ref,
             "redundant_filters": options.redundant_filters,
         }),
+        effective_params: serde_json::to_value(&effective_params)
+            .expect("serialize filter effective params"),
         aux_images: std::collections::BTreeMap::new(),
     })
 }
