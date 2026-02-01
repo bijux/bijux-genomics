@@ -50,3 +50,16 @@ all = { level = "warn", priority = -1 }
 pedantic = { level = "warn", priority = -1 }
 unwrap_used = "deny"
 expect_used = "deny"
+
+[profile.dev]
+debug = 1
+incremental = true
+codegen-units = 256
+
+[profile.dev.package."*"]
+opt-level = 1
+
+[profile.test]
+debug = 1
+incremental = true
+codegen-units = 256
