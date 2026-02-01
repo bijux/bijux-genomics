@@ -43,6 +43,7 @@ fn find_metrics_json(root: &Path, sample_id: &str) -> PathBuf {
 }
 
 #[test]
+#[ignore = "slow e2e (run with make test-slow)"]
 fn fastq_filter_e2e_emits_removal_metrics() {
     if std::env::var("BIJUX_E2E").is_err() {
         return;

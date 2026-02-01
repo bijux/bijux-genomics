@@ -1,5 +1,20 @@
 # CI Gates
 
+## Test tiers
+
+- **fast**: default for PRs; excludes slow/e2e groups.
+- **slow**: ignored tests that are expensive or data-heavy.
+- **e2e**: full pipeline runs; requires `BIJUX_E2E=1`.
+
+We tag slow tests with `#[ignore]` and a note (e.g. "slow e2e").
+Run them locally via:
+
+```
+make test-fast
+make test-slow
+make test-e2e
+```
+
 ## make test-images
 
 This gate verifies that Docker images are **present and runnable** for the

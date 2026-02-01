@@ -55,6 +55,7 @@ fn find_run_summary(root: &Path, sample_id: &str) -> PathBuf {
 }
 
 #[test]
+#[ignore = "slow data-science validation (run with make test-slow)"]
 fn golden_datasets_science_checks() {
     if std::env::var("BIJUX_E2E").is_err() {
         return;

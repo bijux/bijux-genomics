@@ -161,13 +161,14 @@
   "run_id": "run-1",
   "schema_version": "bijux.report.v1",
   "sections": {
+    "adapter_config": {},
     "bench_summary": {},
     "contaminant_summary": {
+      "kmer_percent_removed": null,
+      "kmer_reads_removed": null,
       "percent_removed": null,
       "reads_removed": null,
-      "top_taxa": {},
-      "kmer_reads_removed": null,
-      "kmer_percent_removed": null
+      "top_taxa": {}
     },
     "contamination": {
       "assets": [
@@ -377,8 +378,7 @@
           "tool_id": "fastp"
         }
       ]
-    },
-    "adapter_config": {}
+    }
   },
   "stages": [
     {
