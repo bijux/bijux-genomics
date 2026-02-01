@@ -257,14 +257,48 @@ pub fn tool_run_artifacts_dir(
 }
 
 pub fn write_execution_logs(run_dirs: &RunDirs, stdout: &str, stderr: &str) -> Result<()> {
-    let log_path = run_dirs.logs_dir.join("tool.log");
-    if stderr.is_empty() {
-        std::fs::write(&log_path, stdout).context("write tool.log")?;
-    } else {
-        std::fs::write(&log_path, format!("{stdout}\n--- stderr ---\n{stderr}"))
-            .context("write tool.log")?;
-    }
+    let _ = write_execution_logs_bounded(&run_dirs.logs_dir, stdout, stderr)?;
     Ok(())
+}
+
+pub fn write_execution_logs_bounded(
+    logs_dir: &Path,
+    stdout: &str,
+    stderr: &str,
+) -> Result<Vec<PathBuf>> {
+    std::fs::create_dir_all(logs_dir).context("create logs dir")?;
+    let tail_kb = log_tail_kb();
+    let stdout_path = logs_dir.join("tool.stdout.log");
+    let stderr_path = logs_dir.join("tool.stderr.log");
+    let combined_path = logs_dir.join("tool.log");
+    let stdout_tail = truncate_tail(stdout, tail_kb);
+    let stderr_tail = truncate_tail(stderr, tail_kb);
+    std::fs::write(&stdout_path, stdout_tail).context("write tool.stdout.log")?;
+    std::fs::write(&stderr_path, stderr_tail).context("write tool.stderr.log")?;
+    let combined = if stderr.is_empty() {
+        truncate_tail(stdout, tail_kb)
+    } else {
+        truncate_tail(&format!("{stdout}\n--- stderr ---\n{stderr}"), tail_kb)
+    };
+    std::fs::write(&combined_path, combined).context("write tool.log")?;
+    Ok(vec![combined_path, stdout_path, stderr_path])
+}
+
+fn log_tail_kb() -> usize {
+    std::env::var("BIJUX_LOG_TAIL_KB")
+        .ok()
+        .and_then(|value| value.parse::<usize>().ok())
+        .map_or(128, |value| value.clamp(1, 4096))
+}
+
+fn truncate_tail(text: &str, tail_kb: usize) -> String {
+    let max_bytes = tail_kb.saturating_mul(1024);
+    if text.len() <= max_bytes {
+        return text.to_string();
+    }
+    let bytes = text.as_bytes();
+    let start = bytes.len().saturating_sub(max_bytes);
+    String::from_utf8_lossy(&bytes[start..]).to_string()
 }
 
 pub fn write_metrics_json<T: serde::Serialize>(

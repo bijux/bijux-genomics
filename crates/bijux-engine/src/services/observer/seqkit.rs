@@ -108,12 +108,12 @@ fn parse_seqkit_stats(output: &str) -> Result<SeqkitMetrics> {
 pub fn parse_fastqvalidator_count(stdout: &str) -> Result<u64> {
     let line = stdout
         .lines()
-        .find(|line| line.contains("Total Reads"))
-        .ok_or_else(|| anyhow!("fastqvalidator output missing"))?;
+        .find(|line| line.to_lowercase().contains("total reads"))
+        .ok_or_else(|| anyhow!("fastqvalidator total reads line missing"))?;
     let count = line
-        .split(':')
-        .nth(1)
-        .ok_or_else(|| anyhow!("fastqvalidator count missing"))?
+        .split_once(':')
+        .ok_or_else(|| anyhow!("fastqvalidator total reads format missing ':'"))?
+        .1
         .trim();
     Ok(count.parse::<u64>()?)
 }
@@ -164,4 +164,33 @@ pub fn length_histogram(
         *counts.entry(length).or_insert(0) += 1;
     }
     Ok(counts.into_iter().collect())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{parse_fastqvalidator_count, parse_seqkit_stats};
+    use anyhow::Result;
+
+    #[test]
+    fn parse_fastqvalidator_count_parses_fixture() -> Result<()> {
+        let stdout = include_str!("../../../tests/fixtures/fastqvalidator/fastqvalidator_v1.txt");
+        let count = parse_fastqvalidator_count(stdout)?;
+        assert_eq!(count, 12345);
+        Ok(())
+    }
+
+    #[test]
+    fn parse_fastqvalidator_count_rejects_missing_marker() {
+        let stdout = "fastqvalidator output without total reads";
+        assert!(parse_fastqvalidator_count(stdout).is_err());
+    }
+
+    #[test]
+    fn parse_seqkit_stats_parses_fixture() -> Result<()> {
+        let stdout = include_str!("../../../tests/fixtures/seqkit/seqkit_stats_v1.txt");
+        let metrics = parse_seqkit_stats(stdout)?;
+        assert_eq!(metrics.reads, 1000);
+        assert_eq!(metrics.bases, 100_000);
+        Ok(())
+    }
 }

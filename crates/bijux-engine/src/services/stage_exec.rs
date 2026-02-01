@@ -1,6 +1,7 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, VecDeque};
 use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
+use std::sync::{Arc, Mutex};
 use std::time::Instant;
 
 use anyhow::{anyhow, Context, Result};
@@ -17,12 +18,13 @@ use crate::api::{
 use crate::services::observer::Observer;
 use crate::services::run_artifacts::{
     default_trace_ids, params_hash, run_artifacts_dir_for_out,
-    write_effective_adapters_from_provenance, write_facts_jsonl, write_filter_report_v1,
-    write_merge_report_v1, write_metrics_envelope, write_observability_manifest,
-    write_plan_artifacts, write_progress_event_jsonl, write_qc_post_report_v1,
-    write_retention_report_v1, write_runs_export_jsonl, write_stage_event_jsonl,
-    write_stage_metrics_json, write_stage_report_v1, write_telemetry_event,
-    write_tool_invocation_json, write_trim_report_v1, write_validate_report_v1,
+    write_effective_adapters_from_provenance, write_execution_logs_bounded, write_facts_jsonl,
+    write_filter_report_v1, write_merge_report_v1, write_metrics_envelope,
+    write_observability_manifest, write_plan_artifacts, write_progress_event_jsonl,
+    write_qc_post_report_v1, write_retention_report_v1, write_runs_export_jsonl,
+    write_stage_event_jsonl, write_stage_metrics_json, write_stage_report_v1,
+    write_telemetry_event, write_tool_invocation_json, write_trim_report_v1,
+    write_validate_report_v1,
 };
 use bijux_core::run_index::{insert_stage_row, StageIndexRow};
 use bijux_core::{
@@ -401,49 +403,93 @@ fn adapter_suggestions_from_fastqc(dir: &Path) -> (serde_json::Value, Option<Str
     )
 }
 
-fn parse_screen_report(path: &Path) -> (f64, serde_json::Value) {
-    let Ok(raw) = std::fs::read_to_string(path) else {
-        return (0.0, serde_json::json!({}));
-    };
+fn parse_screen_report(path: &Path) -> Result<(f64, serde_json::Value)> {
+    let raw = std::fs::read_to_string(path)
+        .with_context(|| format!("screen report missing: {}", path.display()))?;
     let mut entries = Vec::new();
     let mut unmapped_percent = None;
-    for line in raw.lines() {
+    let mut errors = Vec::new();
+    for (idx, line) in raw.lines().enumerate() {
         let line = line.trim();
         if line.is_empty() || line.starts_with('#') {
             continue;
         }
         let parts: Vec<&str> = line.split('\t').collect();
-        if parts.is_empty() {
+        if parts.len() < 3 {
+            errors.push(format!("line {} has {} columns", idx + 1, parts.len()));
             continue;
         }
         let label = parts[0].trim().to_string();
-        let mut percent = None;
-        for part in parts.iter().rev() {
-            let part = part.trim_end_matches('%');
-            if let Ok(value) = part.parse::<f64>() {
-                percent = Some(value);
-                break;
-            }
+        let percent_col = parts
+            .last()
+            .ok_or_else(|| anyhow!("screen report line {} missing percent", idx + 1))?;
+        let percent_str = percent_col.trim().trim_end_matches('%');
+        let percent = percent_str
+            .parse::<f64>()
+            .with_context(|| format!("screen report line {} percent parse", idx + 1))?;
+        let label_lower = label.to_lowercase();
+        if label_lower.contains("unmapped")
+            || (label_lower.contains("no hit") && unmapped_percent.is_none())
+        {
+            unmapped_percent = Some(percent);
         }
-        if let Some(value) = percent {
-            if label.to_lowercase().contains("no hit") || label.to_lowercase().contains("unmapped")
-            {
-                unmapped_percent = Some(value);
-            }
-            entries.push(serde_json::json!({
-                "reference": label,
-                "percent": value,
-            }));
-        }
+        entries.push(serde_json::json!({
+            "reference": label,
+            "percent": percent,
+        }));
+    }
+    if !errors.is_empty() {
+        return Err(anyhow!("screen report parse errors: {}", errors.join("; ")));
+    }
+    if entries.is_empty() {
+        return Ok((
+            0.0,
+            serde_json::json!({
+                "schema_version": "bijux.screen_summary.v1",
+                "entries": entries,
+                "warning": "empty_report",
+            }),
+        ));
     }
     let contamination_rate = unmapped_percent.map_or(0.0, |value| (100.0 - value).max(0.0) / 100.0);
-    (
+    Ok((
         contamination_rate,
         serde_json::json!({
             "schema_version": "bijux.screen_summary.v1",
             "entries": entries,
         }),
-    )
+    ))
+}
+
+#[cfg(test)]
+mod screen_tests {
+    use super::parse_screen_report;
+    use anyhow::Result;
+    use std::fs;
+
+    #[test]
+    fn parse_screen_report_parses_fixture() -> Result<()> {
+        let fixture = include_str!("../../tests/fixtures/screen/screen_report_v1.tsv");
+        let dir = std::env::temp_dir().join("bijux-screen-fixture");
+        fs::create_dir_all(&dir)?;
+        let path = dir.join("screen_report.tsv");
+        fs::write(&path, fixture)?;
+        let (rate, summary) = parse_screen_report(&path)?;
+        assert!((rate - 0.02).abs() < 1e-6);
+        assert!(summary.get("entries").is_some());
+        Ok(())
+    }
+
+    #[test]
+    fn parse_screen_report_rejects_bad_fixture() {
+        let fixture = include_str!("../../tests/fixtures/screen/screen_report_bad.tsv");
+        let dir = std::env::temp_dir().join("bijux-screen-fixture-bad");
+        let _ = fs::create_dir_all(&dir);
+        let path = dir.join("screen_report.tsv");
+        let _ = fs::write(&path, fixture);
+        let result = parse_screen_report(&path);
+        assert!(result.is_err());
+    }
 }
 
 fn tool_supports_polyx(tool_id: &str) -> bool {
@@ -950,6 +996,75 @@ fn stats_or_zero(path: Option<&Path>) -> Result<bijux_core::measure::SeqkitMetri
     })
 }
 
+fn zero_seqkit_metrics() -> bijux_core::measure::SeqkitMetrics {
+    bijux_core::measure::SeqkitMetrics {
+        reads: 0,
+        bases: 0,
+        mean_q: 0.0,
+        gc_percent: 0.0,
+    }
+}
+
+fn observer_jobs() -> usize {
+    std::env::var("BIJUX_OBSERVER_JOBS")
+        .ok()
+        .and_then(|value| value.parse::<usize>().ok())
+        .map_or(2, |value| value.clamp(1, 32))
+}
+
+fn stats_for_paths(paths: &[Option<&Path>]) -> Result<Vec<bijux_core::measure::SeqkitMetrics>> {
+    let tasks: Vec<(usize, Option<PathBuf>)> = paths
+        .iter()
+        .enumerate()
+        .map(|(idx, path)| (idx, path.map(Path::to_path_buf)))
+        .collect();
+    if tasks.len() <= 1 || observer_jobs() == 1 {
+        return tasks
+            .into_iter()
+            .map(|(_, path)| stats_or_zero(path.as_deref()))
+            .collect();
+    }
+    let queue = Arc::new(Mutex::new(VecDeque::from(tasks)));
+    let mut initial = Vec::with_capacity(paths.len());
+    initial.resize_with(paths.len(), || None);
+    let results: Arc<Mutex<Vec<Option<Result<bijux_core::measure::SeqkitMetrics>>>>> =
+        Arc::new(Mutex::new(initial));
+    let mut workers = Vec::new();
+    let job_count = observer_jobs().min(paths.len());
+    for _ in 0..job_count {
+        let queue = Arc::clone(&queue);
+        let results = Arc::clone(&results);
+        workers.push(std::thread::spawn(move || loop {
+            let next = {
+                match queue.lock() {
+                    Ok(mut queue) => queue.pop_front(),
+                    Err(_) => None,
+                }
+            };
+            let Some((idx, path)) = next else {
+                break;
+            };
+            let value = stats_or_zero(path.as_deref());
+            if let Ok(mut results) = results.lock() {
+                results[idx] = Some(value);
+            }
+        }));
+    }
+    for worker in workers {
+        let _ = worker.join();
+    }
+    let results = Arc::try_unwrap(results)
+        .map_err(|_| anyhow!("observer results still shared"))?
+        .into_inner()
+        .unwrap_or_default();
+    let mut out = Vec::with_capacity(results.len());
+    for entry in results {
+        let value = entry.unwrap_or_else(|| Err(anyhow!("observer result missing")))?;
+        out.push(value);
+    }
+    Ok(out)
+}
+
 fn stage_version_i32(version: bijux_core::StageVersion) -> i32 {
     i32::try_from(version.0).unwrap_or(i32::MAX)
 }
@@ -1004,8 +1119,12 @@ fn stage_metrics_for_plan(
 ) -> Result<serde_json::Value> {
     let metrics = match stage_id {
         "fastq.trim" => {
-            let input = stats_or_zero(inputs.first().map(PathBuf::as_path))?;
-            let output = stats_or_zero(outputs.first().map(PathBuf::as_path))?;
+            let stats = stats_for_paths(&[
+                inputs.first().map(PathBuf::as_path),
+                outputs.first().map(PathBuf::as_path),
+            ])?;
+            let input = stats.first().copied().unwrap_or_else(zero_seqkit_metrics);
+            let output = stats.get(1).copied().unwrap_or_else(zero_seqkit_metrics);
             let (pairs_in, pairs_out) = pair_counts_from_paths(inputs, outputs)?;
             let read_retention = if input.reads > 0 {
                 f64_from_u64(output.reads) / f64_from_u64(input.reads)
@@ -1055,11 +1174,18 @@ fn stage_metrics_for_plan(
             &FilterRemovalCounts::default(),
         )?,
         "fastq.merge" => {
-            let r1 = stats_or_zero(inputs.first().map(PathBuf::as_path))?;
-            let r2 = stats_or_zero(inputs.get(1).map(PathBuf::as_path))?;
-            let merged = stats_or_zero(outputs.first().map(PathBuf::as_path))?;
-            let unmerged_r1 = stats_or_zero(outputs.get(1).map(PathBuf::as_path))?;
-            let unmerged_r2 = stats_or_zero(outputs.get(2).map(PathBuf::as_path))?;
+            let stats = stats_for_paths(&[
+                inputs.first().map(PathBuf::as_path),
+                inputs.get(1).map(PathBuf::as_path),
+                outputs.first().map(PathBuf::as_path),
+                outputs.get(1).map(PathBuf::as_path),
+                outputs.get(2).map(PathBuf::as_path),
+            ])?;
+            let r1 = stats.first().copied().unwrap_or_else(zero_seqkit_metrics);
+            let r2 = stats.get(1).copied().unwrap_or_else(zero_seqkit_metrics);
+            let merged = stats.get(2).copied().unwrap_or_else(zero_seqkit_metrics);
+            let unmerged_r1 = stats.get(3).copied().unwrap_or_else(zero_seqkit_metrics);
+            let unmerged_r2 = stats.get(4).copied().unwrap_or_else(zero_seqkit_metrics);
             let reads_unmerged = unmerged_r1.reads.min(unmerged_r2.reads);
             let min_reads = r1.reads.min(r2.reads);
             let merge_rate = if min_reads > 0 {
@@ -1083,7 +1209,8 @@ fn stage_metrics_for_plan(
             })?
         }
         "fastq.validate_pre" => {
-            let input = stats_or_zero(inputs.first().map(PathBuf::as_path))?;
+            let stats = stats_for_paths(&[inputs.first().map(PathBuf::as_path)])?;
+            let input = stats.first().copied().unwrap_or_else(zero_seqkit_metrics);
             let (pairs_in, pairs_out) = pair_counts_from_paths(inputs, outputs)?;
             serde_json::to_value(FastqValidateMetricsV1 {
                 reads_in: input.reads,
@@ -1099,11 +1226,13 @@ fn stage_metrics_for_plan(
             })?
         }
         "fastq.correct" => {
-            let input = stats_or_zero(inputs.first().map(PathBuf::as_path))?;
+            let stats = stats_for_paths(&[inputs.first().map(PathBuf::as_path)])?;
+            let input = stats.first().copied().unwrap_or_else(zero_seqkit_metrics);
             let output = if outputs.is_empty() {
                 input
             } else {
-                stats_or_zero(outputs.first().map(PathBuf::as_path))?
+                let stats = stats_for_paths(&[outputs.first().map(PathBuf::as_path)])?;
+                stats.first().copied().unwrap_or_else(zero_seqkit_metrics)
             };
             let (pairs_in, pairs_out) = pair_counts_from_paths(inputs, outputs)?;
             serde_json::to_value(FastqCorrectMetricsV1 {
@@ -1116,11 +1245,13 @@ fn stage_metrics_for_plan(
             })?
         }
         "fastq.umi" => {
-            let input = stats_or_zero(inputs.first().map(PathBuf::as_path))?;
+            let stats = stats_for_paths(&[inputs.first().map(PathBuf::as_path)])?;
+            let input = stats.first().copied().unwrap_or_else(zero_seqkit_metrics);
             let output = if outputs.is_empty() {
                 input
             } else {
-                stats_or_zero(outputs.first().map(PathBuf::as_path))?
+                let stats = stats_for_paths(&[outputs.first().map(PathBuf::as_path)])?;
+                stats.first().copied().unwrap_or_else(zero_seqkit_metrics)
             };
             let (pairs_in, pairs_out) = pair_counts_from_paths(inputs, outputs)?;
             serde_json::to_value(FastqUmiMetricsV1 {
@@ -1133,11 +1264,13 @@ fn stage_metrics_for_plan(
             })?
         }
         "fastq.preprocess" => {
-            let input = stats_or_zero(inputs.first().map(PathBuf::as_path))?;
+            let stats = stats_for_paths(&[inputs.first().map(PathBuf::as_path)])?;
+            let input = stats.first().copied().unwrap_or_else(zero_seqkit_metrics);
             let output = if outputs.is_empty() {
                 input
             } else {
-                stats_or_zero(outputs.first().map(PathBuf::as_path))?
+                let stats = stats_for_paths(&[outputs.first().map(PathBuf::as_path)])?;
+                stats.first().copied().unwrap_or_else(zero_seqkit_metrics)
             };
             let (pairs_in, pairs_out) = pair_counts_from_paths(inputs, outputs)?;
             serde_json::to_value(FastqPreprocessMetricsV1 {
@@ -1150,11 +1283,13 @@ fn stage_metrics_for_plan(
             })?
         }
         "fastq.qc_post" => {
-            let input = stats_or_zero(inputs.first().map(PathBuf::as_path))?;
+            let stats = stats_for_paths(&[inputs.first().map(PathBuf::as_path)])?;
+            let input = stats.first().copied().unwrap_or_else(zero_seqkit_metrics);
             let output = if outputs.is_empty() {
                 input
             } else {
-                stats_or_zero(outputs.first().map(PathBuf::as_path))?
+                let stats = stats_for_paths(&[outputs.first().map(PathBuf::as_path)])?;
+                stats.first().copied().unwrap_or_else(zero_seqkit_metrics)
             };
             let (pairs_in, pairs_out) = pair_counts_from_paths(inputs, outputs)?;
             let out_dir = path_from_params(params, "out_dir")
@@ -1185,17 +1320,19 @@ fn stage_metrics_for_plan(
             })?
         }
         "fastq.screen" => {
-            let input = stats_or_zero(inputs.first().map(PathBuf::as_path))?;
+            let stats = stats_for_paths(&[inputs.first().map(PathBuf::as_path)])?;
+            let input = stats.first().copied().unwrap_or_else(zero_seqkit_metrics);
             let output = if outputs.is_empty() {
                 input
             } else {
-                stats_or_zero(outputs.first().map(PathBuf::as_path))?
+                let stats = stats_for_paths(&[outputs.first().map(PathBuf::as_path)])?;
+                stats.first().copied().unwrap_or_else(zero_seqkit_metrics)
             };
             let (pairs_in, pairs_out) = pair_counts_from_paths(inputs, outputs)?;
             let report_path = path_from_params(params, "report")
                 .or_else(|| outputs.first().cloned())
                 .unwrap_or_else(|| PathBuf::from("screen_report.tsv"));
-            let (contamination_rate, contamination_summary) = parse_screen_report(&report_path);
+            let (contamination_rate, contamination_summary) = parse_screen_report(&report_path)?;
             serde_json::json!({
                 "reads_in": input.reads,
                 "reads_out": output.reads,
@@ -1208,11 +1345,13 @@ fn stage_metrics_for_plan(
             })
         }
         "fastq.stats_neutral" => {
-            let input = stats_or_zero(inputs.first().map(PathBuf::as_path))?;
+            let stats = stats_for_paths(&[inputs.first().map(PathBuf::as_path)])?;
+            let input = stats.first().copied().unwrap_or_else(zero_seqkit_metrics);
             let output = if outputs.is_empty() {
                 input
             } else {
-                stats_or_zero(outputs.first().map(PathBuf::as_path))?
+                let stats = stats_for_paths(&[outputs.first().map(PathBuf::as_path)])?;
+                stats.first().copied().unwrap_or_else(zero_seqkit_metrics)
             };
             let (pairs_in, pairs_out) = pair_counts_from_paths(inputs, outputs)?;
             serde_json::json!({
@@ -1237,8 +1376,12 @@ fn filter_metrics_with_removals(
     effective_params: &serde_json::Value,
     removals: &FilterRemovalCounts,
 ) -> Result<serde_json::Value> {
-    let input = stats_or_zero(inputs.first().map(PathBuf::as_path))?;
-    let output = stats_or_zero(outputs.first().map(PathBuf::as_path))?;
+    let stats = stats_for_paths(&[
+        inputs.first().map(PathBuf::as_path),
+        outputs.first().map(PathBuf::as_path),
+    ])?;
+    let input = stats.first().copied().unwrap_or_else(zero_seqkit_metrics);
+    let output = stats.get(1).copied().unwrap_or_else(zero_seqkit_metrics);
     let (pairs_in, pairs_out) = pair_counts_from_paths(inputs, outputs)?;
     let read_retention = if input.reads > 0 {
         f64_from_u64(output.reads) / f64_from_u64(input.reads)
@@ -1661,6 +1804,14 @@ pub fn execute_stage_plan(
         });
         let output_hashes = hash_outputs(&outputs)?;
         telemetry_output_hashes.clone_from(&output_hashes);
+        let log_paths = write_execution_logs_bounded(
+            &run_artifacts_dir.join("logs"),
+            &execution.stdout,
+            &execution.stderr,
+        )?;
+        for path in &log_paths {
+            emit_artifact("execution_log", path)?;
+        }
         let stage_metrics = if plan.stage_id.0 == "fastq.filter" {
             let removals =
                 filter_removals_for_plan(plan.tool_id.0.as_str(), &plan.out_dir, &canonical_params);
@@ -2073,7 +2224,7 @@ pub fn execute_stage_plan(
             Some(&facts_row_id),
             &outputs,
             &subreports,
-            &[],
+            &log_paths,
             &warnings,
             &[],
             &assertion_results,
@@ -2135,6 +2286,12 @@ pub fn execute_stage_plan(
             extra_manifest_artifacts.push(serde_json::json!({
                 "name": "effective_adapters",
                 "path": path,
+            }));
+        }
+        if !log_paths.is_empty() {
+            extra_manifest_artifacts.push(serde_json::json!({
+                "name": "execution_logs",
+                "paths": log_paths.iter().map(|p| p.display().to_string()).collect::<Vec<_>>(),
             }));
         }
         let _observability_manifest = write_observability_manifest(
@@ -2213,6 +2370,7 @@ pub fn execute_stage_plan(
                     "stage_report": stage_report_path.display().to_string(),
                     "retention_report": retention_report_path.as_ref().map(|path| path.display().to_string()),
                     "effective_adapters": effective_adapters_path.as_ref().map(|path| path.display().to_string()),
+                    "execution_logs": log_paths.iter().map(|path| path.display().to_string()).collect::<Vec<_>>(),
                 }),
             },
         )?;
