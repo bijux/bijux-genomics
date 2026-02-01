@@ -1,12 +1,14 @@
-use std::path::{Path, PathBuf};
-
 use anyhow::{Context, Result};
+use std::collections::BTreeMap;
+use std::path::{Path, PathBuf};
 
 use super::run_report_schema::{
     build_report_sections, report_completeness, report_contract, report_metric_semantics,
 };
 use super::run_report_sections::{
-    adapter_inference_section, filter_interpretation_section, qc_improvement_section,
+    adapter_inference_section, bench_summary_section, failure_hints_section,
+    filter_interpretation_section, params_excerpt, qc_improvement_section, read_tool_invocation,
+    stage_completeness_table,
 };
 use crate::export::write_run_summary_json;
 use crate::model::stable_sort_records;
@@ -23,7 +25,7 @@ use bijux_core::{
 /// # Errors
 /// Returns an error if report assembly fails.
 #[allow(clippy::too_many_lines)]
-pub fn build_run_report_model(rows: &[FactsRowV1]) -> Result<ReportModel> {
+pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<ReportModel> {
     let mut ordered = rows.to_vec();
     stable_sort_records(&mut ordered, |row| {
         (
@@ -45,11 +47,20 @@ pub fn build_run_report_model(rows: &[FactsRowV1]) -> Result<ReportModel> {
     let mut telemetry_events = Vec::new();
     let mut missing_metrics = Vec::new();
     let mut missing_reports = Vec::new();
+    let mut missing_by_stage: std::collections::BTreeMap<String, (Vec<String>, Vec<String>)> =
+        std::collections::BTreeMap::new();
+    let mut metric_provenance: std::collections::BTreeMap<String, serde_json::Value> =
+        std::collections::BTreeMap::new();
 
     for row in &ordered {
         let stage_report_path = report_path_for(&row.reports, "stage_report");
         if stage_report_path.is_none() {
             missing_reports.push(format!("{}:stage_report", row.stage_id));
+            missing_by_stage
+                .entry(row.stage_id.clone())
+                .or_default()
+                .1
+                .push("stage_report".to_string());
         }
         let stage_report = stage_report_path
             .as_deref()
@@ -58,16 +69,32 @@ pub fn build_run_report_model(rows: &[FactsRowV1]) -> Result<ReportModel> {
 
         let (metrics_path, tool_invocation_path, effective_config_path) =
             stage_report_fields(stage_report.as_ref());
+        let tool_invocation_path_clone = tool_invocation_path.clone();
         if metrics_path.is_empty() {
             missing_reports.push(format!("{}:metrics_path", row.stage_id));
+            missing_by_stage
+                .entry(row.stage_id.clone())
+                .or_default()
+                .1
+                .push("metrics_path".to_string());
         }
         if row.metrics == serde_json::json!({}) {
             missing_metrics.push(format!("{}:metrics", row.stage_id));
+            missing_by_stage
+                .entry(row.stage_id.clone())
+                .or_default()
+                .0
+                .push("metrics".to_string());
         }
 
         let retention_report_path = report_path_for(&row.reports, "retention_report");
         if retention_report_path.is_none() && row.reads_in != row.reads_out {
             missing_reports.push(format!("{}:retention_report", row.stage_id));
+            missing_by_stage
+                .entry(row.stage_id.clone())
+                .or_default()
+                .1
+                .push("retention_report".to_string());
         }
         if let Some((context, definition)) =
             retention_context_from_report(retention_report_path.as_deref())
@@ -120,6 +147,20 @@ pub fn build_run_report_model(rows: &[FactsRowV1]) -> Result<ReportModel> {
             params_hash: row.params_hash.clone(),
             bank_hashes: row.bank_hashes.clone(),
         });
+
+        if !tool_invocation_path_clone.is_empty() {
+            if let Some(invocation) = read_tool_invocation(Path::new(&tool_invocation_path_clone)) {
+                let excerpt = params_excerpt(&invocation.parameters_json_normalized, 6);
+                metric_provenance.insert(
+                    row.stage_id.clone(),
+                    serde_json::json!({
+                        "tool_id": row.tool_id,
+                        "params_hash": row.params_hash,
+                        "normalized_params_excerpt": excerpt,
+                    }),
+                );
+            }
+        }
     }
 
     telemetry_events.sort();
@@ -158,12 +199,33 @@ pub fn build_run_report_model(rows: &[FactsRowV1]) -> Result<ReportModel> {
         sections: serde_json::json!({}),
     };
 
-    let sections = build_report_sections(&report)
+    let mut sections: BTreeMap<String, JsonBlob> = build_report_sections(&report)
         .into_iter()
         .map(|(key, value)| (key, JsonBlob::new(value)))
         .collect();
     let mut model = ReportModel::empty(report);
+    let stage_completeness = stage_completeness_table(&missing_by_stage);
+    sections.insert(
+        "stage_completeness".to_string(),
+        JsonBlob::new(stage_completeness.clone()),
+    );
+    sections.insert(
+        "failure_hints".to_string(),
+        JsonBlob::new(failure_hints_section(&ordered)),
+    );
+    sections.insert(
+        "metric_provenance".to_string(),
+        JsonBlob::new(serde_json::json!(metric_provenance)),
+    );
+    sections.insert(
+        "bench_summary".to_string(),
+        JsonBlob::new(bench_summary_section(base_dir)),
+    );
     model.sections = sections;
+    model.tables.insert(
+        "stage_completeness".to_string(),
+        JsonBlob::new(stage_completeness),
+    );
     Ok(model)
 }
 
@@ -173,7 +235,7 @@ pub fn build_run_report_model(rows: &[FactsRowV1]) -> Result<ReportModel> {
 /// Returns an error if report serialization or file writes fail.
 pub fn write_run_report_from_facts(base_dir: &Path, rows: &[FactsRowV1]) -> Result<PathBuf> {
     let path = base_dir.join("report.json");
-    let model = build_run_report_model(rows)?;
+    let model = build_run_report_model(base_dir, rows)?;
     write_report_json(&path, &model).context("write report.json")?;
     Ok(path)
 }

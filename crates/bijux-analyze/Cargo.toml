@@ -21,6 +21,7 @@ parquet = ["dep:parquet"]
 [dev-dependencies]
 tempfile.workspace = true
 bijux-domain-fastq = { path = "../bijux-domain-fastq" }
+bijux-bench = { path = "../bijux-bench" }
 
 [lints]
 workspace = true

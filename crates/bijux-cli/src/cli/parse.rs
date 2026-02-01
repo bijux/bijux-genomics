@@ -56,6 +56,8 @@ pub struct CompareArgs {
     pub run_b: String,
     #[arg(long, default_value = "artifacts/bench")]
     pub search_root: PathBuf,
+    #[arg(long)]
+    pub output_dir: Option<PathBuf>,
 }
 
 #[derive(Debug, Subcommand)]
@@ -94,6 +96,8 @@ pub struct AnalyzeCompareArgs {
     pub run_b: String,
     #[arg(long, default_value = "artifacts/bench")]
     pub search_root: PathBuf,
+    #[arg(long)]
+    pub output_dir: Option<PathBuf>,
     #[arg(long, value_enum, default_value_t = ObjectiveArg::Balanced)]
     pub objective: ObjectiveArg,
 }

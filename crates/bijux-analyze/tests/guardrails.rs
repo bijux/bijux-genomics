@@ -82,6 +82,20 @@ fn no_cross_layer_calls() {
                 );
             }
         }
+
+        if !path_str.contains("/pipeline/") {
+            let uses_load = depends_on("crate::load");
+            let uses_decision = depends_on("crate::decision");
+            let uses_report = depends_on("crate::report");
+            assert!(
+                !(uses_load && (uses_decision || uses_report)),
+                "only pipeline may import load + decision/report: {path_str}"
+            );
+            assert!(
+                !(uses_decision && uses_report),
+                "only pipeline may import decision + report: {path_str}"
+            );
+        }
     }
 }
 

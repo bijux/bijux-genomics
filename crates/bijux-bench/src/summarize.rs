@@ -404,9 +404,9 @@ mod tests {
     use std::collections::BTreeMap;
     use std::path::PathBuf;
 
-    use crate::{DatasetSpec, MetricsEnvelope, ReplicatePolicy};
     use crate::model::{BenchmarkObservation, BenchmarkSuiteSpec};
     use crate::policy::GatePolicy;
+    use crate::{DatasetSpec, MetricsEnvelope, ReplicatePolicy};
 
     #[test]
     fn artifact_bundle_is_stable() -> anyhow::Result<()> {
