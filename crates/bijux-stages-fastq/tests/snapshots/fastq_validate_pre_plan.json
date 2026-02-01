@@ -1,9 +1,6 @@
 {
-  "effective_params": {
-    "paired_mode": "single_end",
-    "q_cutoff": null,
-    "threads": 1
-  },
+  "stage_id": "fastq.validate_pre",
+  "stage_version": "1",
   "io": {
     "inputs": [
       {
@@ -18,6 +15,9 @@
     "out_dir": "out",
     "tool": "fastqc"
   },
-  "stage_id": "fastq.validate_pre",
-  "stage_version": "1"
+  "effective_params": {
+    "paired_mode": "single_end",
+    "q_cutoff": null,
+    "threads": 1
+  }
 }

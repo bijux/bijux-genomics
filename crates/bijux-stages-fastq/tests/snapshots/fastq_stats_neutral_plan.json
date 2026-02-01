@@ -1,9 +1,6 @@
 {
-  "effective_params": {
-    "paired_mode": "single_end",
-    "q_cutoff": null,
-    "threads": 1
-  },
+  "stage_id": "fastq.stats_neutral",
+  "stage_version": "1",
   "io": {
     "inputs": [
       {
@@ -18,6 +15,9 @@
     "out_dir": "out",
     "tool": "seqkit"
   },
-  "stage_id": "fastq.stats_neutral",
-  "stage_version": "1"
+  "effective_params": {
+    "paired_mode": "single_end",
+    "q_cutoff": null,
+    "threads": 1
+  }
 }
