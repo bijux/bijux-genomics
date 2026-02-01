@@ -36,6 +36,13 @@ fn report_sections_exist_for_all_stages() -> Result<()> {
             summary: serde_json::json!({}),
             warnings: vec![],
             errors: vec![],
+            invariants: vec![],
+            verdict: Some(bijux_core::StageVerdictV1 {
+                stage_id: (*stage_id).to_string(),
+                verdict: bijux_core::InvariantStatusV1::Pass,
+                reasons: Vec::new(),
+                key_metrics: serde_json::json!({}),
+            }),
             outputs: vec![],
             subreports: vec![],
             log_paths: vec![],

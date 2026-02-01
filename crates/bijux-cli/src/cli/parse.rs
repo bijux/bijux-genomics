@@ -119,7 +119,13 @@ pub struct AnalyzeRankArgs {
 pub struct AnalyzeReportArgs {
     #[arg(long, default_value = "artifacts/bench")]
     pub search_root: PathBuf,
-    pub run_id: String,
+    pub run_id: Option<String>,
+    #[arg(long, value_name = "PATH")]
+    pub run_dir: Option<PathBuf>,
+    #[arg(long, value_name = "PATH")]
+    pub facts_path: Option<PathBuf>,
+    #[arg(long, value_name = "PATH")]
+    pub sqlite: Option<PathBuf>,
     #[arg(long, default_value = "json")]
     pub format: String,
 }

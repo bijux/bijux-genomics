@@ -33,8 +33,8 @@ use bijux_analyze::compare::compare_runs_with_baseline;
 use bijux_analyze::{
     compare_runs, load_facts_auto, load_run_summary, print_bench_schema, write_correct_report,
     write_filter_report, write_merge_report, write_qc_post_report, write_run_report_from_facts,
-    write_run_summary_from_facts, write_stats_report, write_trim_report, write_umi_report,
-    write_validate_report, RankInput,
+    write_run_summary_from_facts, write_stage_summary_csv, write_stats_report, write_trim_report,
+    write_umi_report, write_validate_report, RankInput,
 };
 use bijux_core::selection::{objective_spec, Objective};
 use bijux_engine::api::init_logging;
@@ -45,7 +45,7 @@ use cli::{
     bench_args_merge, bench_args_preprocess, bench_args_qc_post, bench_args_screen,
     bench_args_stats, bench_args_trim, bench_args_umi, bench_args_validate,
     is_bench_requested_trim, is_bench_requested_validate, preprocess_args_from_cli, AnalyzeCommand,
-    BenchCommand, BenchFastqCommand, Cli, Commands, EnvCommand, FastqCommand,
+    AnalyzeReportArgs, BenchCommand, BenchFastqCommand, Cli, Commands, EnvCommand, FastqCommand,
 };
 use env::{env_doctor, print_env_images, print_env_info};
 use replay::replay_run;
@@ -230,18 +230,17 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
                     println!("{}", serde_json::to_string_pretty(&rankings)?);
                 }
                 AnalyzeCommand::Report(args) => {
-                    let run_dir = args.search_root.join(&args.run_id);
-                    let facts_path = run_dir.join("facts.jsonl");
+                    let (run_dir, facts_path) = resolve_report_inputs(args)?;
                     let facts = load_facts_auto(&facts_path)?;
                     let report_path = write_run_report_from_facts(&run_dir, &facts)?;
+                    let summary_csv = run_dir.join("summary.csv");
+                    write_stage_summary_csv(&summary_csv, &facts)?;
                     match args.format.as_str() {
                         "json" => {
                             let raw = std::fs::read_to_string(&report_path)?;
                             println!("{raw}");
                         }
                         "html" | "bundle" => {
-                            let bundle_dir = run_dir.join("report_bundle");
-                            std::fs::create_dir_all(&bundle_dir)?;
                             let report_raw = std::fs::read_to_string(&report_path)?;
                             let report_json: serde_json::Value = serde_json::from_str(&report_raw)
                                 .unwrap_or_else(|_| {
@@ -250,9 +249,17 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
                                     })
                                 });
                             let index_html = render_report_bundle_html(&report_json);
-                            std::fs::write(bundle_dir.join("index.html"), index_html)?;
-                            std::fs::write(bundle_dir.join("report.json"), report_raw)?;
-                            println!("report bundle written to {}", bundle_dir.display());
+                            let report_html = run_dir.join("report.html");
+                            std::fs::write(&report_html, &index_html)?;
+                            if args.format == "bundle" {
+                                let bundle_dir = run_dir.join("report_bundle");
+                                std::fs::create_dir_all(&bundle_dir)?;
+                                std::fs::write(bundle_dir.join("index.html"), &index_html)?;
+                                std::fs::write(bundle_dir.join("report.json"), report_raw)?;
+                                println!("report bundle written to {}", bundle_dir.display());
+                            } else {
+                                println!("report html written to {}", report_html.display());
+                            }
                         }
                         _ => {
                             println!("report written to {}", report_path.display());
@@ -953,6 +960,60 @@ fn run_plan(cli: &Cli, registry: &bijux_core::ToolRegistry, domain_dir: &Path) -
     );
 
     Ok(())
+}
+
+fn resolve_report_inputs(args: &AnalyzeReportArgs) -> Result<(PathBuf, PathBuf)> {
+    if let Some(facts_path) = args.facts_path.as_ref() {
+        let base_dir = base_dir_from_facts(facts_path)?;
+        return Ok((base_dir, facts_path.clone()));
+    }
+
+    if let Some(run_dir) = args.run_dir.as_ref() {
+        let facts_path = facts_path_for_run_dir(run_dir)?;
+        return Ok((run_dir.clone(), facts_path));
+    }
+
+    if let Some(sqlite_path) = args.sqlite.as_ref() {
+        let run_dir = sqlite_path
+            .parent()
+            .map(Path::to_path_buf)
+            .ok_or_else(|| anyhow!("sqlite path has no parent directory"))?;
+        let facts_path = facts_path_for_run_dir(&run_dir)?;
+        return Ok((run_dir, facts_path));
+    }
+
+    let run_id = args
+        .run_id
+        .as_ref()
+        .ok_or_else(|| anyhow!("run_id is required when no run_dir or facts_path is provided"))?;
+    let run_dir = args.search_root.join(run_id);
+    let facts_path = facts_path_for_run_dir(&run_dir)?;
+    Ok((run_dir, facts_path))
+}
+
+fn facts_path_for_run_dir(run_dir: &Path) -> Result<PathBuf> {
+    let direct = run_dir.join("facts.jsonl");
+    if direct.exists() {
+        return Ok(direct);
+    }
+    let dashboard = run_dir.join("dashboard").join("facts.jsonl");
+    if dashboard.exists() {
+        return Ok(dashboard);
+    }
+    Err(anyhow!("facts.jsonl not found under {}", run_dir.display()))
+}
+
+fn base_dir_from_facts(facts_path: &Path) -> Result<PathBuf> {
+    let Some(parent) = facts_path.parent() else {
+        return Err(anyhow!("facts path has no parent directory"));
+    };
+    if parent.file_name().and_then(|name| name.to_str()) == Some("dashboard") {
+        return parent
+            .parent()
+            .map(Path::to_path_buf)
+            .ok_or_else(|| anyhow!("facts path dashboard has no parent"));
+    }
+    Ok(parent.to_path_buf())
 }
 fn load_profile_for_cli(cli: &Cli) -> Result<bijux_core::Profile> {
     let cwd = std::env::current_dir().context("resolve current directory")?;

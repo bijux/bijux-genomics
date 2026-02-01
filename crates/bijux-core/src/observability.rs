@@ -68,6 +68,10 @@ pub struct StageReportV1 {
     pub summary: serde_json::Value,
     pub warnings: Vec<String>,
     pub errors: Vec<String>,
+    #[serde(default)]
+    pub invariants: Vec<InvariantResultV1>,
+    #[serde(default)]
+    pub verdict: Option<StageVerdictV1>,
     pub outputs: Vec<String>,
     pub subreports: Vec<String>,
     pub log_paths: Vec<String>,
@@ -246,7 +250,43 @@ pub struct ReportSchemaV1 {
     #[serde(default)]
     pub adapter_inference: serde_json::Value,
     #[serde(default)]
+    pub pipeline_verdict: Option<PipelineVerdictV1>,
+    #[serde(default)]
     pub sections: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
+#[serde(rename_all = "snake_case")]
+pub enum InvariantStatusV1 {
+    Pass,
+    Warn,
+    Fail,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct InvariantResultV1 {
+    pub id: String,
+    pub status: InvariantStatusV1,
+    pub message: String,
+    #[serde(default)]
+    pub remediation: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct StageVerdictV1 {
+    pub stage_id: String,
+    pub verdict: InvariantStatusV1,
+    pub reasons: Vec<String>,
+    pub key_metrics: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct PipelineVerdictV1 {
+    pub verdict: InvariantStatusV1,
+    pub reasons: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -7,12 +7,11 @@
           "entries": [
             {
               "enabled": true,
-              "id": "A1",
-              "sequence": "ACGT"
+              "id": "adapter_1"
             }
           ],
           "hash": "sha256:adapters",
-          "preset": "default"
+          "preset": "illumina_default"
         },
         "contaminants": {
           "entries": [
@@ -32,7 +31,7 @@
             }
           ],
           "hash": "sha256:polyx",
-          "preset": "illumina_twocolor"
+          "preset": "illumina_default"
         }
       },
       "stage_id": "fastq.trim",
@@ -120,6 +119,10 @@
       "units": "mean_q_delta"
     }
   ],
+  "pipeline_verdict": {
+    "reasons": [],
+    "verdict": "pass"
+  },
   "provenance": [
     {
       "bank_hashes": {
@@ -139,19 +142,15 @@
   "qc_improvement": {},
   "retention_context": [
     {
-      "conditions": {
-        "min_len": 20
-      },
-      "definition": "reads_out / reads_in",
+      "conditions": "effective",
+      "definition": "unknown",
       "stage_id": "fastq.trim",
       "tool_id": "fastp"
     }
   ],
   "retention_definition": [
     {
-      "conditions": {
-        "min_len": 20
-      },
+      "conditions": "effective",
       "denominator": "reads_in,bases_in",
       "numerator": "reads_out,bases_out",
       "stage_id": "fastq.trim",
@@ -172,6 +171,9 @@
       ]
     },
     "bench_summary": {},
+    "comparison_view": {
+      "stages": []
+    },
     "contaminant_summary": {
       "kmer_percent_removed": null,
       "kmer_reads_removed": null,
@@ -187,12 +189,11 @@
               "entries": [
                 {
                   "enabled": true,
-                  "id": "A1",
-                  "sequence": "ACGT"
+                  "id": "adapter_1"
                 }
               ],
               "hash": "sha256:adapters",
-              "preset": "default"
+              "preset": "illumina_default"
             },
             "contaminants": {
               "entries": [
@@ -212,7 +213,7 @@
                 }
               ],
               "hash": "sha256:polyx",
-              "preset": "illumina_twocolor"
+              "preset": "illumina_default"
             }
           },
           "stage_id": "fastq.trim",
@@ -315,7 +316,12 @@
         }
       ]
     },
+    "pipeline_verdict": {
+      "reasons": [],
+      "verdict": "pass"
+    },
     "qc": {},
+    "qc_artifacts": {},
     "qc_delta": {
       "mean_q_delta": null,
       "qc_post_mean_q": null,
@@ -341,19 +347,15 @@
     "retention": {
       "contexts": [
         {
-          "conditions": {
-            "min_len": 20
-          },
-          "definition": "reads_out / reads_in",
+          "conditions": "effective",
+          "definition": "unknown",
           "stage_id": "fastq.trim",
           "tool_id": "fastp"
         }
       ],
       "definitions": [
         {
-          "conditions": {
-            "min_len": 20
-          },
+          "conditions": "effective",
           "denominator": "reads_in,bases_in",
           "numerator": "reads_out,bases_out",
           "stage_id": "fastq.trim",
@@ -428,19 +430,15 @@
     "trimming": {
       "retention_context": [
         {
-          "conditions": {
-            "min_len": 20
-          },
-          "definition": "reads_out / reads_in",
+          "conditions": "effective",
+          "definition": "unknown",
           "stage_id": "fastq.trim",
           "tool_id": "fastp"
         }
       ],
       "retention_definition": [
         {
-          "conditions": {
-            "min_len": 20
-          },
+          "conditions": "effective",
           "denominator": "reads_in,bases_in",
           "numerator": "reads_out,bases_out",
           "stage_id": "fastq.trim",

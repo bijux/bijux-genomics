@@ -1,9 +1,10 @@
 //! Owner: bijux-analyze
 //! Facts export and summary helpers.
+use std::fmt::Write;
 use std::path::Path;
 
 use anyhow::{Context, Result};
-use bijux_core::{FactsRowV1, StageReportV1};
+use bijux_core::{FactsRowV1, InvariantStatusV1, StageReportV1, ToolInvocationV1};
 
 use crate::model::{
     stable_sort_records, DashboardFactRow, FactsSummary, JsonBlob, RunSummaryDeltas,
@@ -16,6 +17,32 @@ fn stage_report_path(reports: &JsonBlob) -> Option<String> {
         .get("stage_report")
         .and_then(|value| value.as_str())
         .map(str::to_string)
+}
+
+fn stage_report_for_row(row: &FactsRowV1) -> Option<StageReportV1> {
+    let path = stage_report_path(&JsonBlob::from(row.reports.clone()))?;
+    let report_raw = std::fs::read_to_string(path).ok()?;
+    serde_json::from_str(&report_raw).ok()
+}
+
+fn tool_invocation_for_stage(report: &StageReportV1) -> Option<ToolInvocationV1> {
+    let raw = std::fs::read_to_string(&report.tool_invocation_path).ok()?;
+    serde_json::from_str(&raw).ok()
+}
+
+fn params_excerpt(value: &serde_json::Value, limit: usize) -> serde_json::Value {
+    let Some(obj) = value.as_object() else {
+        return value.clone();
+    };
+    let mut keys: Vec<_> = obj.keys().cloned().collect();
+    keys.sort();
+    let mut out = serde_json::Map::new();
+    for key in keys.into_iter().take(limit) {
+        if let Some(v) = obj.get(&key) {
+            out.insert(key, v.clone());
+        }
+    }
+    serde_json::Value::Object(out)
 }
 
 fn stage_outputs_for_row(row: &FactsRowV1) -> Vec<String> {
@@ -121,6 +148,95 @@ pub fn write_run_summary_json(path: &Path, rows: &[FactsRowV1]) -> Result<()> {
     std::fs::write(path, serde_json::to_vec_pretty(&payload)?)
         .with_context(|| format!("write run summary {}", path.display()))?;
     Ok(())
+}
+
+/// Write a deterministic stage summary CSV from facts rows.
+///
+/// # Errors
+/// Returns an error if the file cannot be written.
+pub fn write_stage_summary_csv(path: &Path, rows: &[FactsRowV1]) -> Result<()> {
+    let mut ordered = rows.to_vec();
+    stable_sort_records(&mut ordered, |row| {
+        (
+            row.run_id.as_str(),
+            row.stage_id.as_str(),
+            row.tool_id.as_str(),
+            row.params_hash.as_str(),
+            "",
+        )
+    });
+    let mut output = String::new();
+    output.push_str("stage,tool,version,input_reads,output_reads,retention,runtime_s,memory_mb,key_params,verdict,notes\n");
+    for row in ordered {
+        let retention = match (row.reads_in, row.reads_out) {
+            #[allow(clippy::cast_precision_loss)]
+            (Some(ri), Some(ro)) if ri > 0 => Some(ro as f64 / ri as f64),
+            _ => None,
+        };
+        let stage_report = stage_report_for_row(&row);
+        let verdict = stage_report
+            .as_ref()
+            .and_then(|report| report.verdict.as_ref())
+            .map_or("", |verdict| match verdict.verdict {
+                InvariantStatusV1::Pass => "pass",
+                InvariantStatusV1::Warn => "warn",
+                InvariantStatusV1::Fail => "fail",
+            });
+        let mut notes = Vec::new();
+        if let Some(report) = stage_report.as_ref() {
+            if let Some(verdict) = report.verdict.as_ref() {
+                notes.extend(verdict.reasons.clone());
+            }
+            notes.extend(report.warnings.clone());
+            notes.extend(report.errors.clone());
+        }
+        let key_params = stage_report
+            .as_ref()
+            .and_then(tool_invocation_for_stage)
+            .map_or_else(
+                || serde_json::json!({}),
+                |invocation| {
+                    let params = if invocation.effective_params_json_normalized.is_null() {
+                        invocation.parameters_json_normalized
+                    } else {
+                        invocation.effective_params_json_normalized
+                    };
+                    params_excerpt(&params, 8)
+                },
+            );
+        let key_params = serde_json::to_string(&key_params).unwrap_or_else(|_| "{}".to_string());
+        let notes = notes.join(" | ");
+        let reads_in = row.reads_in.map(|v| v.to_string()).unwrap_or_default();
+        let reads_out = row.reads_out.map(|v| v.to_string()).unwrap_or_default();
+        let retention = retention.map(|v| format!("{v:.4}")).unwrap_or_default();
+        let _ = writeln!(
+            output,
+            "{},{},{},{},{},{},{:.2},{:.2},{},{},{}",
+            csv_escape(&row.stage_id),
+            csv_escape(&row.tool_id),
+            csv_escape(&row.tool_version),
+            csv_escape(reads_in.as_str()),
+            csv_escape(reads_out.as_str()),
+            csv_escape(&retention),
+            row.runtime_s,
+            row.memory_mb,
+            csv_escape(&key_params),
+            csv_escape(verdict),
+            csv_escape(&notes),
+        );
+    }
+    std::fs::write(path, output)
+        .with_context(|| format!("write stage summary csv {}", path.display()))?;
+    Ok(())
+}
+
+fn csv_escape(value: &str) -> String {
+    if value.contains(',') || value.contains('"') || value.contains('\n') {
+        let escaped = value.replace('"', "\"\"");
+        format!("\"{escaped}\"")
+    } else {
+        value.to_string()
+    }
 }
 
 /// Write a deterministic dashboard facts JSONL file.

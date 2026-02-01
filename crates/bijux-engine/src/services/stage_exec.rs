@@ -32,7 +32,7 @@ use bijux_core::{
     FastqValidateMetricsV1, MetricContextV1, RetentionReportMetricV1, StageMetricsV1,
     StageObservabilityContextV1, StagePlanV1, ToolInvocationV1,
 };
-use bijux_domain_fastq::parse_effective_params;
+use bijux_domain_fastq::{evaluate_invariants, parse_effective_params, thresholds_from_env};
 
 #[derive(Debug, Clone)]
 pub struct StageResultV1 {
@@ -684,201 +684,6 @@ fn extract_io_deltas(metrics: &serde_json::Value) -> IoDeltas {
     (
         reads_in, reads_out, bases_in, bases_out, pairs_in, pairs_out,
     )
-}
-
-fn metrics_f64(metrics: &serde_json::Value, key: &str) -> Option<f64> {
-    metrics
-        .get(key)
-        .and_then(serde_json::Value::as_f64)
-        .or_else(|| {
-            metrics
-                .get("delta_metrics")
-                .and_then(|value| value.get(key))
-                .and_then(serde_json::Value::as_f64)
-        })
-}
-
-fn assertion_result(id: &str, status: &str, message: impl Into<String>) -> serde_json::Value {
-    serde_json::json!({
-        "id": id,
-        "status": status,
-        "message": message.into(),
-    })
-}
-
-fn param_completeness_assertion(
-    stage_id: &str,
-    effective_params: &serde_json::Value,
-) -> serde_json::Value {
-    let Some(params) = parse_effective_params(stage_id, effective_params) else {
-        return assertion_result(
-            "effective_params_present",
-            "fail",
-            "effective_params missing or malformed",
-        );
-    };
-    let missing = params.missing_required_fields();
-    if missing.is_empty() {
-        assertion_result(
-            "effective_params_present",
-            "pass",
-            "effective_params present with required fields",
-        )
-    } else {
-        assertion_result(
-            "effective_params_present",
-            "fail",
-            format!("missing effective params fields: {}", missing.join(", ")),
-        )
-    }
-}
-
-#[allow(clippy::too_many_lines)]
-fn evaluate_assertions(
-    stage_id: &str,
-    metrics: &serde_json::Value,
-    reads_in: Option<u64>,
-    reads_out: Option<u64>,
-    bases_in: Option<u64>,
-    bases_out: Option<u64>,
-) -> Vec<serde_json::Value> {
-    let mut results = Vec::new();
-    match (reads_in, reads_out) {
-        (Some(input), Some(output)) => {
-            if output > input {
-                results.push(assertion_result(
-                    "reads_monotonic",
-                    "fail",
-                    format!("reads_out ({output}) exceeds reads_in ({input}) for {stage_id}"),
-                ));
-            } else {
-                results.push(assertion_result(
-                    "reads_monotonic",
-                    "pass",
-                    "reads_out <= reads_in".to_string(),
-                ));
-            }
-        }
-        _ => results.push(assertion_result(
-            "reads_monotonic",
-            "warn",
-            "missing reads_in/reads_out".to_string(),
-        )),
-    }
-    match (bases_in, bases_out) {
-        (Some(input), Some(output)) => {
-            if output > input {
-                results.push(assertion_result(
-                    "bases_monotonic",
-                    "fail",
-                    format!("bases_out ({output}) exceeds bases_in ({input}) for {stage_id}"),
-                ));
-            } else {
-                results.push(assertion_result(
-                    "bases_monotonic",
-                    "pass",
-                    "bases_out <= bases_in".to_string(),
-                ));
-            }
-        }
-        _ => results.push(assertion_result(
-            "bases_monotonic",
-            "warn",
-            "missing bases_in/bases_out".to_string(),
-        )),
-    }
-    for key in ["mean_q_before", "mean_q_after"] {
-        if let Some(value) = metrics_f64(metrics, key) {
-            if (0.0..=50.0).contains(&value) {
-                results.push(assertion_result(
-                    "mean_q_range",
-                    "pass",
-                    format!("{key} within expected range"),
-                ));
-            } else {
-                results.push(assertion_result(
-                    "mean_q_range",
-                    "warn",
-                    format!("{key} out of range (0-50): {value:.2}"),
-                ));
-            }
-        } else {
-            results.push(assertion_result(
-                "mean_q_range",
-                "warn",
-                format!("missing {key}"),
-            ));
-        }
-    }
-    for key in ["gc_before", "gc_after"] {
-        if let Some(value) = metrics_f64(metrics, key) {
-            if (0.0..=1.0).contains(&value) {
-                results.push(assertion_result(
-                    "gc_range",
-                    "pass",
-                    format!("{key} within expected range"),
-                ));
-            } else {
-                results.push(assertion_result(
-                    "gc_range",
-                    "warn",
-                    format!("{key} out of range (0-1): {value:.3}"),
-                ));
-            }
-        } else {
-            results.push(assertion_result(
-                "gc_range",
-                "warn",
-                format!("missing {key}"),
-            ));
-        }
-    }
-    if let Some(delta) = metrics_f64(metrics, "mean_q_delta") {
-        if delta.abs() > 20.0 {
-            results.push(assertion_result(
-                "mean_q_delta_bounds",
-                "warn",
-                format!("mean_q_delta {delta:.2} exceeds ±20"),
-            ));
-        } else {
-            results.push(assertion_result(
-                "mean_q_delta_bounds",
-                "pass",
-                "mean_q_delta within ±20".to_string(),
-            ));
-        }
-    }
-    if let Some(delta) = metrics_f64(metrics, "gc_delta") {
-        if delta.abs() > 0.2 {
-            results.push(assertion_result(
-                "gc_delta_bounds",
-                "warn",
-                format!("gc_delta {delta:.3} exceeds ±0.2"),
-            ));
-        } else {
-            results.push(assertion_result(
-                "gc_delta_bounds",
-                "pass",
-                "gc_delta within ±0.2".to_string(),
-            ));
-        }
-    }
-    if let Some(retention) = metrics_f64(metrics, "read_retention") {
-        if (0.0..=1.0).contains(&retention) {
-            results.push(assertion_result(
-                "read_retention_range",
-                "pass",
-                "read_retention within expected range".to_string(),
-            ));
-        } else {
-            results.push(assertion_result(
-                "read_retention_range",
-                "warn",
-                format!("read_retention out of range (0-1): {retention:.3}"),
-            ));
-        }
-    }
-    results
 }
 
 fn write_effective_fasta(
@@ -2197,18 +2002,14 @@ pub fn execute_stage_plan(
         warnings.extend(extra_warnings);
         let (reads_in, reads_out, bases_in, bases_out, pairs_in, pairs_out) =
             extract_io_deltas(&stage_metrics);
-        let mut assertion_results = evaluate_assertions(
+        let thresholds = thresholds_from_env();
+        let invariant_eval = evaluate_invariants(
             &plan.stage_id.0,
             &stage_metrics,
-            reads_in,
-            reads_out,
-            bases_in,
-            bases_out,
-        );
-        assertion_results.push(param_completeness_assertion(
-            &plan.stage_id.0,
             &plan.effective_params,
-        ));
+            &thresholds,
+        );
+        let assertion_results = invariant_eval.results.clone();
         let assertions_payload = serde_json::json!({
             "schema_version": "bijux.assertions.v1",
             "results": assertion_results,
@@ -2275,6 +2076,8 @@ pub fn execute_stage_plan(
             &[],
             &warnings,
             &[],
+            &assertion_results,
+            Some(&invariant_eval.verdict),
         )?;
         emit_artifact("stage_report", &stage_report_path)?;
         for warning in &warnings {

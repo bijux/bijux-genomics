@@ -60,6 +60,13 @@ fn base_reports(root: &std::path::Path) -> Result<(PathBuf, PathBuf, PathBuf)> {
         summary: serde_json::json!({"outputs": ["out.fastq.gz"]}),
         warnings: vec!["low_q".to_string()],
         errors: vec![],
+        invariants: vec![],
+        verdict: Some(bijux_core::StageVerdictV1 {
+            stage_id: "fastq.trim".to_string(),
+            verdict: bijux_core::InvariantStatusV1::Pass,
+            reasons: Vec::new(),
+            key_metrics: serde_json::json!({}),
+        }),
         outputs: vec!["out.fastq.gz".to_string()],
         subreports: vec![],
         log_paths: vec![],

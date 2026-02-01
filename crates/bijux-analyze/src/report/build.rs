@@ -19,10 +19,11 @@ use super::sections::schema::{
 };
 use super::sections::{
     adapter_config_section, adapter_inference_section, assertions_section, bench_summary_section,
-    decision_trace_section, failure_hints_section, filter_interpretation_section, params_excerpt,
-    qc_improvement_section, read_tool_invocation, report_path_for, reproducibility_section,
-    scientific_provenance_section, stage_completeness_table, stage_confidence_section,
-    stage_plots_section,
+    comparison_view_section, decision_trace_section, failure_hints_section,
+    filter_interpretation_section, params_excerpt, pipeline_verdict_from_rows,
+    pipeline_verdict_section, qc_artifacts_section, qc_improvement_section, read_tool_invocation,
+    report_path_for, reproducibility_section, scientific_provenance_section,
+    stage_completeness_table, stage_confidence_section, stage_plots_section,
 };
 use crate::export::write_run_summary_json;
 use crate::model::stable_sort_records;
@@ -213,6 +214,7 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
         final_qc_summary,
         filter_interpretation,
         adapter_inference,
+        pipeline_verdict: Some(pipeline_verdict_from_rows(&ordered)),
         sections: serde_json::json!({}),
     };
 
@@ -277,6 +279,10 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
         JsonBlob::new(reproducibility_section(&ordered, &telemetry_events)),
     );
     sections.insert(
+        "pipeline_verdict".to_string(),
+        JsonBlob::new(pipeline_verdict_section(&ordered)),
+    );
+    sections.insert(
         "scientific_provenance".to_string(),
         JsonBlob::new(scientific_provenance_section(&ordered)),
     );
@@ -289,8 +295,16 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
         JsonBlob::new(qc_delta_section(&ordered)),
     );
     sections.insert(
+        "qc_artifacts".to_string(),
+        JsonBlob::new(qc_artifacts_section(&ordered)),
+    );
+    sections.insert(
         "contaminant_summary".to_string(),
         JsonBlob::new(contaminant_summary_section(&ordered)),
+    );
+    sections.insert(
+        "comparison_view".to_string(),
+        JsonBlob::new(comparison_view_section(&ordered)),
     );
     sections.insert(
         "adapter_config".to_string(),
