@@ -1,44 +1,20 @@
-# Bijux Architecture Ledger
+# bijux-analyze Architecture Map
 
-## Overview (ASCII)
+## Ownership map
+- Metrics live in `crates/bijux-analyze/src/aggregate/metrics/` (schemas + invariants).
+- Metric registry tables live in `crates/bijux-analyze/src/aggregate/registry/`.
+- SQL queries live in `crates/bijux-analyze/src/load/sqlite/`.
+- Report builders live in `crates/bijux-analyze/src/report/`.
+- Orchestration lives only in `crates/bijux-analyze/src/pipeline/`.
 
-```
-            +------------------+
-            |    bijux-cli     |
-            |  (orchestration) |
-            +---------+--------+
-                      |
-                      v
-            +------------------+
-            |   bijux-engine   |
-            |  plan/execute    |
-            +---------+--------+
-                      |
-          +-----------+-----------+
-          |                       |
-          v                       v
- +------------------+   +------------------+
- | bijux-domain-*   |   |  bijux-core      |
- | contracts/specs  |   | shared schemas   |
- +------------------+   +------------------+
-```
+## Layer boundaries
+- `load/` does IO + schema validation only.
+- `model/` is typed IR (no IO).
+- `aggregate/` computes rollups and stats.
+- `decision/` compares, scores, explains.
+- `report/` builds report models + renderers.
+- `pipeline/` composes the steps; only place that can cross layers.
 
-## Known Compromises
-
-- CLI currently hosts FASTQ execution orchestration for bench runs.
-- Engine executor contains hardcoded container command logic for some tools.
-- Coverage is improving, but not yet enforced in CI.
-
-## Postponed / Explicitly Deferred
-
-- Scheduler integrations (Slurm, Nextflow, CWL)
-- Distributed execution
-- Cross-domain pipeline composition
-- Report visualizations (dashboards, notebooks)
-
-## Intentional Boundaries
-
-- Domains must be pure: no engine/runtime/container dependencies.
-- Engine must not import domain crates.
-- Core must remain domain-agnostic.
-
+## Module depth rule
+Allowed: `src/a/b/c.rs` plus `mod.rs` at each level.
+Disallowed: deeper than 3 levels (except `mod.rs`).

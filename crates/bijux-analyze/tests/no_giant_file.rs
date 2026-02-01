@@ -97,7 +97,17 @@ fn no_deep_modules_in_src() -> std::io::Result<()> {
         if components.len() <= 3 {
             continue;
         }
-        panic!("module depth exceeds 3 levels: {}", path.display());
+        let is_mod_rs = path
+            .file_name()
+            .and_then(|name| name.to_str())
+            .is_some_and(|name| name == "mod.rs");
+        if components.len() == 4 && is_mod_rs {
+            continue;
+        }
+        panic!(
+            "module depth exceeds allowed rule (src/a/b/c.rs or mod.rs at each level): {}",
+            path.display()
+        );
     }
     Ok(())
 }
