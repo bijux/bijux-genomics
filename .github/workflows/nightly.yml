@@ -6,20 +6,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  slow-tests:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: mozilla/sccache-action@v0.0.6
-      - uses: Swatinem/rust-cache@v2
-        with:
-          shared-key: nightly
-      - name: Install cargo-nextest
-        run: cargo install cargo-nextest --locked
-      - name: Slow tests
-        run: cargo nextest run --workspace --all-features --run-ignored ignored-only --group slow
-
   e2e-tests:
     runs-on: ubuntu-latest
     steps:
@@ -32,7 +18,7 @@ jobs:
       - name: Install cargo-nextest
         run: cargo install cargo-nextest --locked
       - name: E2E tests
-        run: BIJUX_E2E=1 cargo nextest run --workspace --all-features --run-ignored ignored-only --group e2e
+        run: BIJUX_E2E=1 cargo nextest run --workspace --all-features --run-ignored ignored-only -E 'test(/_e2e_/)'
 
   coverage:
     runs-on: ubuntu-latest

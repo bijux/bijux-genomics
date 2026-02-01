@@ -7,6 +7,7 @@ use anyhow::{Context, Result};
 
 use crate::export::write_run_summary_json;
 use crate::report::model::ReportModel;
+use crate::report::render::bundle::write_report_bundle;
 use crate::report::render::json::write_report_json;
 use crate::report::write_run_report_from_facts;
 use crate::AnalyzeMode;
@@ -42,6 +43,8 @@ pub(crate) fn render_outputs(
         if let Some(model) = report_model {
             let report_path = core.base_dir.join("report.json");
             write_report_json(&report_path, &model).context("write report.json")?;
+            let bundle_dir = core.base_dir.join("report_bundle");
+            write_report_bundle(&bundle_dir, &model).context("write report bundle")?;
             rendered.report = Some(report_path);
         } else {
             let report_path = write_run_report_from_facts(&core.base_dir, &core.facts_rows)?;

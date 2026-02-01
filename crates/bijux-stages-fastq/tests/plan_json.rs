@@ -173,6 +173,7 @@ fn preprocess_plan_json_is_emitted_and_stable() -> Result<()> {
         disable_adapters: Vec::new(),
         polyx_preset: None,
         contaminant_preset: None,
+        enable_contaminant_removal: false,
         no_qc_post: false,
         force_merge: false,
     };

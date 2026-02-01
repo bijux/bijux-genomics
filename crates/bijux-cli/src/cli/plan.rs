@@ -224,6 +224,7 @@ pub fn bench_args_preprocess(
         disable_adapters: args.disable_adapter.clone(),
         polyx_preset: args.polyx_preset.clone(),
         contaminant_preset: args.contaminant_preset.clone(),
+        enable_contaminant_removal: args.enable_contaminant_removal,
         no_qc_post: args.no_qc_post,
         force_merge: args.force_merge,
     }
@@ -321,6 +322,7 @@ pub fn preprocess_args_from_cli(
         disable_adapters: args.disable_adapter.clone(),
         polyx_preset: args.polyx_preset.clone(),
         contaminant_preset: args.contaminant_preset.clone(),
+        enable_contaminant_removal: args.enable_contaminant_removal,
         no_qc_post: args.no_qc_post,
         force_merge: args.force_merge,
     })

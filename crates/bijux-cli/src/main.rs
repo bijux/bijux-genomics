@@ -812,6 +812,7 @@ fn explain_fastq_stage(registry: &bijux_core::ToolRegistry, stage_id: &str) -> R
             disable_adapters: Vec::new(),
             polyx_preset: None,
             contaminant_preset: None,
+            enable_contaminant_removal: false,
             no_qc_post: false,
             force_merge: false,
         };

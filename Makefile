@@ -74,7 +74,7 @@ test-fast:
 test-slow:
 	@if command -v cargo-nextest >/dev/null 2>&1; then \
        echo "Running slow tests with nextest..."; \
-       cargo nextest run --workspace --all-features --run-ignored ignored-only -E 'not test(/fastq_e2e_real_data/)'; \
+       cargo nextest run --workspace --all-features --run-ignored ignored-only -E 'test(/_slow_/)'; \
     else \
        echo "cargo-nextest not installed; falling back to cargo test (ignored-only)"; \
        cargo test --workspace -- --ignored --color always; \
@@ -87,7 +87,7 @@ test-e2e:
 			echo "missing e2e FASTQ fixtures; skipping"; \
 			exit 0; \
 	   fi; \
-       BIJUX_E2E=1 cargo nextest run --workspace --all-features --run-ignored ignored-only -E 'test(/fastq_e2e_real_data/)'; \
+       BIJUX_E2E=1 cargo nextest run --workspace --all-features --run-ignored ignored-only -E 'test(/_e2e_/)'; \
     else \
        echo "cargo-nextest not installed; falling back to cargo test (ignored-only)"; \
        BIJUX_E2E=1 cargo test --workspace -- --ignored --color always; \

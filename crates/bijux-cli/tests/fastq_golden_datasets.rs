@@ -56,7 +56,7 @@ fn find_run_summary(root: &Path, sample_id: &str) -> PathBuf {
 
 #[test]
 #[ignore = "slow data-science validation (run with make test-slow)"]
-fn golden_datasets_science_checks() {
+fn golden_datasets_science_checks_science() {
     if std::env::var("BIJUX_E2E").is_err() {
         return;
     }
@@ -118,4 +118,47 @@ fn golden_datasets_science_checks() {
         .as_bool()
         .unwrap_or(false);
     assert!(merge_enabled);
+
+    let se_r1b = root.join("tests/data/fastq/ERR769592/ERR769592.fastq.gz");
+    let mut cmd = assert_cmd::cargo_bin_cmd!("bijux");
+    cmd.current_dir(&root).args([
+        "bench",
+        "fastq",
+        "preprocess",
+        "--sample-id",
+        "golden-se2",
+        "--r1",
+        se_r1b.to_str().unwrap(),
+        "--out",
+        artifacts.to_str().unwrap(),
+    ]);
+    cmd.assert().success();
+    let delta_path = find_metrics_json(&root, "golden-se2");
+    let delta = read_json(&delta_path);
+    let base_retention = delta["delta_metrics"]["base_retention"]
+        .as_f64()
+        .unwrap_or(0.0);
+    assert!((0.5..=1.0).contains(&base_retention));
+
+    let mut cmd = assert_cmd::cargo_bin_cmd!("bijux");
+    cmd.current_dir(&root).args([
+        "bench",
+        "fastq",
+        "preprocess",
+        "--sample-id",
+        "golden-pe-nomerge",
+        "--r1",
+        pe_r1.to_str().unwrap(),
+        "--r2",
+        pe_r2.to_str().unwrap(),
+        "--out",
+        artifacts.to_str().unwrap(),
+    ]);
+    cmd.assert().success();
+    let run_summary_path = find_run_summary(&root, "golden-pe-nomerge");
+    let summary = read_json(&run_summary_path);
+    let merge_forced = summary["pipeline_decisions"]["merge"]["forced"]
+        .as_bool()
+        .unwrap_or(false);
+    assert!(!merge_forced);
 }

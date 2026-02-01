@@ -134,6 +134,7 @@ pub struct BenchFastqPreprocessArgs {
     pub disable_adapters: Vec<String>,
     pub polyx_preset: Option<String>,
     pub contaminant_preset: Option<String>,
+    pub enable_contaminant_removal: bool,
     pub no_qc_post: bool,
     pub force_merge: bool,
 }

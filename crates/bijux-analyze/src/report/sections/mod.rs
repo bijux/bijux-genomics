@@ -52,11 +52,16 @@ pub(super) fn stage_completeness_table(
 pub(super) fn decision_trace_section(
     rows: &[FactsRowV1],
     missing_by_stage: &BTreeMap<String, (Vec<String>, Vec<String>)>,
+    telemetry_decisions: &BTreeMap<String, Vec<serde_json::Value>>,
 ) -> serde_json::Value {
     let mut by_stage: BTreeMap<String, serde_json::Value> = BTreeMap::new();
     for row in rows {
         by_stage.entry(row.stage_id.clone()).or_insert_with(|| {
             let (missing_metrics, missing_reports) = missing_by_stage
+                .get(&row.stage_id)
+                .cloned()
+                .unwrap_or_default();
+            let decisions = telemetry_decisions
                 .get(&row.stage_id)
                 .cloned()
                 .unwrap_or_default();
@@ -66,6 +71,14 @@ pub(super) fn decision_trace_section(
                 "tool_version": row.tool_version,
                 "params_hash": row.params_hash,
                 "input_hash": row.input_hash,
+                "quality_gate": row.reports.get("quality_gate").cloned().unwrap_or_else(|| serde_json::json!({})),
+                "adapter_validation": row.reports.get("adapter_validation").cloned().unwrap_or_else(|| serde_json::json!({})),
+                "contaminant_action": row
+                    .reports
+                    .get("contaminant_action")
+                    .cloned()
+                    .unwrap_or(serde_json::json!(false)),
+                "telemetry_decisions": decisions,
                 "missing_metrics": missing_metrics,
                 "missing_reports": missing_reports,
             })

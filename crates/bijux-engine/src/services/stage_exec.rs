@@ -477,6 +477,76 @@ fn warnings_for_plan(plan: &StagePlanV1, params: &serde_json::Value) -> Vec<Stri
     warnings
 }
 
+fn quality_gate_decision(
+    stage_id: &str,
+    metrics: &serde_json::Value,
+    reads_in: Option<u64>,
+    reads_out: Option<u64>,
+) -> Option<serde_json::Value> {
+    if !matches!(
+        stage_id,
+        "fastq.trim" | "fastq.filter" | "fastq.qc_post" | "fastq.validate_pre"
+    ) {
+        return None;
+    }
+    let mut status = "pass".to_string();
+    let mut reasons = Vec::new();
+    let read_retention = metrics
+        .get("delta_metrics")
+        .and_then(|value| value.get("read_retention"))
+        .and_then(serde_json::Value::as_f64)
+        .or_else(|| {
+            if let (Some(r_in), Some(r_out)) = (reads_in, reads_out) {
+                if r_in > 0 {
+                    return Some(f64_from_u64(r_out) / f64_from_u64(r_in));
+                }
+            }
+            None
+        });
+    if let Some(retention) = read_retention {
+        if retention < 0.4 {
+            status = "fail".to_string();
+            reasons.push(format!("read_retention {retention:.2} < 0.4"));
+        } else if retention < 0.7 {
+            status = "warn".to_string();
+            reasons.push(format!("read_retention {retention:.2} < 0.7"));
+        }
+    }
+    let mean_q = metrics.get("mean_q").and_then(serde_json::Value::as_f64);
+    if let Some(mean_q) = mean_q {
+        if mean_q < 15.0 {
+            status = "fail".to_string();
+            reasons.push(format!("mean_q {mean_q:.1} < 15"));
+        } else if mean_q < 20.0 {
+            status = "warn".to_string();
+            reasons.push(format!("mean_q {mean_q:.1} < 20"));
+        }
+    }
+    let mean_q_delta = metrics
+        .get("delta_metrics")
+        .and_then(|value| value.get("mean_q_delta"))
+        .and_then(serde_json::Value::as_f64);
+    if let Some(delta) = mean_q_delta {
+        if delta < -1.0 {
+            status = "warn".to_string();
+            reasons.push(format!("mean_q_delta {delta:.2} < -1"));
+        }
+    }
+    Some(serde_json::json!({
+        "schema_version": "bijux.quality_gate.v1",
+        "stage_id": stage_id,
+        "status": status,
+        "reasons": reasons,
+        "thresholds": {
+            "read_retention_warn": 0.7,
+            "read_retention_fail": 0.4,
+            "mean_q_warn": 20.0,
+            "mean_q_fail": 15.0,
+            "mean_q_delta_warn": -1.0
+        }
+    }))
+}
+
 #[derive(Debug, Default, Clone)]
 #[allow(clippy::struct_field_names)]
 struct FilterRemovalCounts {
@@ -1623,6 +1693,9 @@ pub fn execute_stage_plan(
         let metrics_path = run_artifacts_dir.join("metrics.json");
         let facts_row_id = format!("{}:{}:{}", run_id, plan.stage_id.0, plan.tool_id.0);
         let mut subreports: Vec<PathBuf> = Vec::new();
+        let mut extra_warnings: Vec<String> = Vec::new();
+        let mut adapter_validation: Option<serde_json::Value> = None;
+        let mut contaminant_action = false;
         if let Some(banks_value) = banks_json.as_ref().and_then(|value| value.as_object()) {
             let mut banks_report = serde_json::Map::new();
             for (bank_name, bank_value) in banks_value {
@@ -1800,6 +1873,38 @@ pub fn execute_stage_plan(
             } else {
                 adapter_suggestions_from_fastqc(&trimmed_dir)
             };
+            if let Some(preset) = suggested_preset.as_deref() {
+                let current = canonical_params
+                    .get("adapter_bank")
+                    .and_then(|value| value.get("preset"))
+                    .and_then(|value| value.as_str());
+                if current == Some("illumina-default") {
+                    adapter_validation = Some(serde_json::json!({
+                        "current_preset": current,
+                        "suggested_preset": preset,
+                        "status": "warn",
+                    }));
+                    extra_warnings.push(format!(
+                        "warning: adapter signal detected; consider preset '{preset}'"
+                    ));
+                    emit_event(&bijux_core::TelemetryEventV1 {
+                        schema_version: "bijux.telemetry.v1".to_string(),
+                        run_id: run_id.clone(),
+                        stage_id: plan.stage_id.0.clone(),
+                        tool_id: plan.tool_id.0.clone(),
+                        event_name: "adapter_validation".to_string(),
+                        timestamp: Utc::now().to_rfc3339(),
+                        duration_ms: None,
+                        status: "warn".to_string(),
+                        trace_id: trace_id.clone(),
+                        span_id: span_id.clone(),
+                        attrs: serde_json::json!({
+                            "current_preset": current,
+                            "suggested_preset": preset,
+                        }),
+                    })?;
+                }
+            }
             let suggested_path = if suggested_payload
                 .as_object()
                 .is_none_or(serde_json::Map::is_empty)
@@ -1831,7 +1936,56 @@ pub fn execute_stage_plan(
             emit_artifact("qc_post_report", &report_path)?;
             subreports.push(report_path);
         }
-        let warnings = warnings_for_plan(plan, &canonical_params);
+        let mut warnings = warnings_for_plan(plan, &canonical_params);
+        warnings.extend(extra_warnings);
+        let (reads_in, reads_out, bases_in, bases_out, pairs_in, pairs_out) =
+            extract_io_deltas(&stage_metrics);
+        if plan.stage_id.0 == "fastq.filter" && canonical_params.get("kmer_ref").is_some() {
+            contaminant_action = true;
+            emit_event(&bijux_core::TelemetryEventV1 {
+                schema_version: "bijux.telemetry.v1".to_string(),
+                run_id: run_id.clone(),
+                stage_id: plan.stage_id.0.clone(),
+                tool_id: plan.tool_id.0.clone(),
+                event_name: "contaminant_action".to_string(),
+                timestamp: Utc::now().to_rfc3339(),
+                duration_ms: None,
+                status: "ok".to_string(),
+                trace_id: trace_id.clone(),
+                span_id: span_id.clone(),
+                attrs: serde_json::json!({
+                    "enabled": true,
+                    "kmer_ref": canonical_params.get("kmer_ref"),
+                }),
+            })?;
+        }
+        let quality_gate =
+            quality_gate_decision(&plan.stage_id.0, &stage_metrics, reads_in, reads_out);
+        if let Some(decision) = quality_gate.as_ref() {
+            let status = decision
+                .get("status")
+                .and_then(|value| value.as_str())
+                .unwrap_or("pass");
+            emit_event(&bijux_core::TelemetryEventV1 {
+                schema_version: "bijux.telemetry.v1".to_string(),
+                run_id: run_id.clone(),
+                stage_id: plan.stage_id.0.clone(),
+                tool_id: plan.tool_id.0.clone(),
+                event_name: "quality_gate".to_string(),
+                timestamp: Utc::now().to_rfc3339(),
+                duration_ms: None,
+                status: status.to_string(),
+                trace_id: trace_id.clone(),
+                span_id: span_id.clone(),
+                attrs: decision.clone(),
+            })?;
+            if status != "pass" {
+                warnings.push(format!(
+                    "warning: quality gate {} for stage {}",
+                    status, plan.stage_id.0
+                ));
+            }
+        }
         let stage_report_path = write_stage_report_v1(
             &run_artifacts_dir,
             &plan.stage_id.0,
@@ -1866,8 +2020,6 @@ pub fn execute_stage_plan(
                 }),
             })?;
         }
-        let (reads_in, reads_out, bases_in, bases_out, pairs_in, pairs_out) =
-            extract_io_deltas(&stage_metrics);
         let retention_report_path = if is_retention_stage(&plan.stage_id.0) {
             retention_counts_for_plan(&plan.stage_id.0, &input_paths, &outputs)?.map(|counts| {
                 write_retention_report_v1(
@@ -1969,6 +2121,9 @@ pub fn execute_stage_plan(
                     "bank_report": subreports.iter().find(|path| path.ends_with("bank_report.json")).map(|path| path.display().to_string()),
                     "qc_post_report": subreports.iter().find(|path| path.ends_with("qc_post_report.json")).map(|path| path.display().to_string()),
                     "filter_report": subreports.iter().find(|path| path.ends_with("filter_report.json")).map(|path| path.display().to_string()),
+                    "quality_gate": quality_gate,
+                    "adapter_validation": adapter_validation,
+                    "contaminant_action": contaminant_action,
                 }),
                 artifacts: serde_json::json!({
                     "metrics_envelope": metrics_envelope_path.display().to_string(),

@@ -659,6 +659,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         adapter_bank.as_ref(),
         polyx_bank.as_ref(),
         contaminant_bank.as_ref(),
+        args.enable_contaminant_removal,
         &args.r1,
         args.r2.as_deref(),
         |stage, tool, _r1, _r2| {
@@ -847,6 +848,7 @@ mod tests {
             disable_adapters: Vec::new(),
             polyx_preset: None,
             contaminant_preset: None,
+            enable_contaminant_removal: false,
             no_qc_post: false,
             force_merge: false,
         }

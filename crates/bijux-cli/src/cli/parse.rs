@@ -401,6 +401,11 @@ pub struct BenchFastqPreprocessArgs {
     pub polyx_preset: Option<String>,
     #[arg(long, help = "Contaminant preset name (default: illumina_default)")]
     pub contaminant_preset: Option<String>,
+    #[arg(
+        long,
+        help = "Enable contaminant k-mer removal when contaminant preset is set."
+    )]
+    pub enable_contaminant_removal: bool,
     #[arg(long)]
     pub no_qc_post: bool,
     #[arg(long)]
@@ -508,6 +513,11 @@ pub struct FastqPreprocessArgs {
     pub polyx_preset: Option<String>,
     #[arg(long, help = "Contaminant preset name (default: illumina_default)")]
     pub contaminant_preset: Option<String>,
+    #[arg(
+        long,
+        help = "Enable contaminant k-mer removal when contaminant preset is set."
+    )]
+    pub enable_contaminant_removal: bool,
     #[arg(long)]
     pub no_qc_post: bool,
     #[arg(long)]
