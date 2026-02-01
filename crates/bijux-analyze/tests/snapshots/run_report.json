@@ -219,11 +219,15 @@
     "decision_trace": {
       "entries": [
         {
+          "adapter_validation": {},
+          "contaminant_action": false,
           "input_hash": "input",
           "missing_metrics": [],
           "missing_reports": [],
           "params_hash": "params",
+          "quality_gate": {},
           "stage_id": "fastq.trim",
+          "telemetry_decisions": [],
           "tool_id": "fastp",
           "tool_version": "0.23.4"
         }

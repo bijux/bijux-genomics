@@ -94,6 +94,7 @@ pub fn plan_preprocess_pipeline<F>(
     adapter_bank: Option<&serde_json::Value>,
     polyx_bank: Option<&serde_json::Value>,
     contaminant_bank: Option<&serde_json::Value>,
+    enable_contaminant_removal: bool,
     r1: &std::path::Path,
     r2: Option<&std::path::Path>,
     mut out_dir_for_stage: F,
@@ -143,6 +144,9 @@ where
                 }
                 if polyx_bank.is_some() {
                     filter_options.redundant_filters.push("polyx".to_string());
+                }
+                if enable_contaminant_removal && contaminant_bank.is_some() {
+                    filter_options.kmer_ref = crate::fastq::filter::default_kmer_ref();
                 }
                 let plan = crate::fastq::filter::plan_filter(
                     tool,

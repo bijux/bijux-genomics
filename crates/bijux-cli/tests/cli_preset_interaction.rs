@@ -62,6 +62,7 @@ fn preprocess_args_require_required_fields() -> Result<()> {
         disable_adapter: Vec::new(),
         polyx_preset: Some("illumina_twocolor".to_string()),
         contaminant_preset: Some("illumina_default".to_string()),
+        enable_contaminant_removal: false,
         no_qc_post: false,
         force_merge: false,
     };

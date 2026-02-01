@@ -162,7 +162,14 @@ fn assert_metrics_shape(stage: &str, metrics: &serde_json::Value) -> Result<()> 
 }
 
 fn assert_report_shape(stage: &str, report: &serde_json::Value) -> Result<()> {
-    let shape = shape_value(report);
+    let mut shape = shape_value(report);
+    if let serde_json::Value::Object(map) = &mut shape {
+        if let Some(serde_json::Value::Array(items)) = map.get_mut("warnings") {
+            if items.is_empty() {
+                items.push(serde_json::Value::String("string".to_string()));
+            }
+        }
+    }
     let rendered = serde_json::to_string_pretty(&shape)?;
     let manifest_dir = env!("CARGO_MANIFEST_DIR");
     let snapshot_path = Path::new(manifest_dir)

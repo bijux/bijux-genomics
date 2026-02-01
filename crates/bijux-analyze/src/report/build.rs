@@ -179,6 +179,7 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
     telemetry_events.sort();
     telemetry_events.dedup();
     let (telemetry_event_count, telemetry_error_count) = telemetry_counts(&telemetry_events);
+    let telemetry_decisions = telemetry_decisions_from_paths(&telemetry_events);
 
     let metric_semantics = report_metric_semantics();
     let completeness = report_completeness(&missing_metrics, &missing_reports);
@@ -225,7 +226,11 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
     );
     sections.insert(
         "decision_trace".to_string(),
-        JsonBlob::new(decision_trace_section(&ordered, &missing_by_stage)),
+        JsonBlob::new(decision_trace_section(
+            &ordered,
+            &missing_by_stage,
+            &telemetry_decisions,
+        )),
     );
     sections.insert(
         "failure_hints".to_string(),
@@ -617,4 +622,39 @@ fn telemetry_counts(paths: &[String]) -> (usize, usize) {
         }
     }
     (total_events, error_events)
+}
+
+fn telemetry_decisions_from_paths(
+    paths: &[String],
+) -> std::collections::BTreeMap<String, Vec<serde_json::Value>> {
+    let mut by_stage: std::collections::BTreeMap<String, Vec<serde_json::Value>> =
+        std::collections::BTreeMap::new();
+    for path in paths {
+        let Ok(raw) = std::fs::read_to_string(path) else {
+            continue;
+        };
+        for line in raw.lines() {
+            if line.trim().is_empty() {
+                continue;
+            }
+            let Ok(event) = serde_json::from_str::<TelemetryEventV1>(line) else {
+                continue;
+            };
+            if !matches!(
+                event.event_name.as_str(),
+                "merge_decision" | "adapter_validation" | "contaminant_action" | "quality_gate"
+            ) {
+                continue;
+            }
+            by_stage
+                .entry(event.stage_id.clone())
+                .or_default()
+                .push(serde_json::json!({
+                    "event": event.event_name,
+                    "status": event.status,
+                    "attrs": event.attrs,
+                }));
+        }
+    }
+    by_stage
 }

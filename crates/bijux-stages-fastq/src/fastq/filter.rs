@@ -35,7 +35,6 @@ pub fn plan_filter(
     let kmer_ref = options
         .kmer_ref
         .clone()
-        .or_else(default_kmer_ref)
         .map(|path| path.display().to_string());
     Ok(StagePlanV1 {
         stage_id: StageId(STAGE_ID.to_string()),
@@ -79,7 +78,7 @@ fn filter_output_name(tool: &str) -> Option<&'static str> {
     }
 }
 
-fn default_kmer_ref() -> Option<PathBuf> {
+pub fn default_kmer_ref() -> Option<PathBuf> {
     let dir = crate::contaminant_references_dir();
     let entries = std::fs::read_dir(dir).ok()?;
     let mut fasta = Vec::new();

@@ -2,9 +2,10 @@
 
 ## Test tiers
 
-- **fast**: default for PRs; excludes slow/e2e groups.
-- **slow**: ignored tests that are expensive or data-heavy.
-- **e2e**: full pipeline runs; requires `BIJUX_E2E=1`.
+- **default**: PR gate; fast deterministic suite.
+- **slow**: ignored tests with `_slow_` in name.
+- **science**: ignored tests with `_science_` in name.
+- **e2e**: ignored tests with `_e2e_` in name; requires `BIJUX_E2E=1`.
 
 We tag slow tests with `#[ignore]` and a note (e.g. "slow e2e").
 Run them locally via:

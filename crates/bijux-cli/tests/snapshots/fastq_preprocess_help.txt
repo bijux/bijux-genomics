@@ -47,6 +47,8 @@ Options:
           PolyX preset name (default: illumina_twocolor)
       --contaminant-preset <CONTAMINANT_PRESET>
           Contaminant preset name (default: illumina_default)
+      --enable-contaminant-removal
+          Enable contaminant k-mer removal when contaminant preset is set.
       --no-qc-post
           
       --force-merge
