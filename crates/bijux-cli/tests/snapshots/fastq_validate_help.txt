@@ -1,3 +1,20 @@
+Validate FASTQ reads (pre).
+
+Usage: bijux fastq validate-pre [OPTIONS]
+
+Options:
+      --list-tools             
+      --dry-run                
+      --allow-silver           Allow silver-tier tools
+      --allow-experimental     Allow experimental-tier tools
+      --env <ENV>              
+      --sample-id <SAMPLE_ID>  
+      --r1 <R1>                
+      --out <OUT>              
+      --tools <TOOLS>          
+      --strict                 
+  -h, --help                   Print help
+
 Examples:
   bijux fastq validate-pre --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE --tools fastqvalidator_official
   bijux fastq validate-pre --list-tools

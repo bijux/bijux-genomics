@@ -58,6 +58,8 @@ pub struct CompareArgs {
     pub search_root: PathBuf,
     #[arg(long)]
     pub output_dir: Option<PathBuf>,
+    #[arg(long)]
+    pub baseline: Option<String>,
 }
 
 #[derive(Debug, Subcommand)]
@@ -100,6 +102,8 @@ pub struct AnalyzeCompareArgs {
     pub output_dir: Option<PathBuf>,
     #[arg(long, value_enum, default_value_t = ObjectiveArg::Balanced)]
     pub objective: ObjectiveArg,
+    #[arg(long)]
+    pub baseline: Option<String>,
 }
 
 #[derive(Debug, Args)]
@@ -420,6 +424,18 @@ pub enum ObjectiveArg {
     Balanced,
 }
 
+#[derive(Debug, Clone, Copy, ValueEnum)]
+pub enum ScientificPresetArg {
+    #[value(name = "ancient_dna")]
+    AncientDna,
+    #[value(name = "amplicon")]
+    Amplicon,
+    #[value(name = "metagenomic")]
+    Metagenomic,
+    #[value(name = "wgs_standard")]
+    WgsStandard,
+}
+
 impl ObjectiveArg {
     #[must_use]
     pub fn as_str(self) -> &'static str {
@@ -458,12 +474,15 @@ impl From<BenchCorpusArg> for bijux_stages_fastq::BenchCorpusId {
 }
 
 #[derive(Debug, Args, Clone, Default)]
+#[allow(clippy::struct_excessive_bools)]
 pub struct CommonArgs {
     #[arg(long)]
     pub list_tools: bool,
     #[arg(long)]
     pub dry_run: bool,
-    #[arg(long, help = "Allow experimental and silver-tier tools")]
+    #[arg(long, help = "Allow silver-tier tools")]
+    pub allow_silver: bool,
+    #[arg(long, help = "Allow experimental-tier tools")]
     pub allow_experimental: bool,
 }
 
@@ -492,6 +511,12 @@ pub struct FastqPreprocessArgs {
     pub auto: bool,
     #[arg(long, value_enum, default_value_t = ObjectiveArg::Balanced)]
     pub objective: ObjectiveArg,
+    #[arg(
+        long,
+        value_enum,
+        help = "Scientific preset profile (ancient_dna, amplicon, metagenomic, wgs_standard)"
+    )]
+    pub scientific_preset: Option<ScientificPresetArg>,
     #[arg(long, value_enum)]
     pub bench_corpus: Option<BenchCorpusArg>,
     #[arg(long)]
@@ -548,6 +573,8 @@ pub struct FastqCompareArgs {
     pub run_b: String,
     #[arg(long, default_value = "runs")]
     pub search_root: PathBuf,
+    #[arg(long)]
+    pub baseline: Option<String>,
 }
 
 #[derive(Debug, Subcommand)]

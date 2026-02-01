@@ -81,7 +81,9 @@ pub(crate) fn build_report_sections(
         method_assumptions_section(report),
     );
     sections.insert("stage_completeness".to_string(), serde_json::json!([]));
+    sections.insert("stage_confidence".to_string(), serde_json::json!([]));
     sections.insert("decision_trace".to_string(), serde_json::json!([]));
+    sections.insert("assertions".to_string(), serde_json::json!({}));
     sections.insert("failure_hints".to_string(), serde_json::json!([]));
     sections.insert("metric_provenance".to_string(), serde_json::json!({}));
     sections.insert("bench_summary".to_string(), serde_json::json!({}));

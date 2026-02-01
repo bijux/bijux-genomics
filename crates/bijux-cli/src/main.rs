@@ -29,6 +29,7 @@ use crate::fastq_exec::{
     bench_fastq_qc_post, bench_fastq_screen, bench_fastq_stats_neutral, bench_fastq_trim,
     bench_fastq_umi, bench_fastq_validate_pre,
 };
+use bijux_analyze::compare::compare_runs_with_baseline;
 use bijux_analyze::{
     compare_runs, load_facts_auto, load_run_summary, print_bench_schema, write_correct_report,
     write_filter_report, write_merge_report, write_qc_post_report, write_run_report_from_facts,
@@ -128,7 +129,12 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
             let objective = objective_spec(Objective::Balanced);
             let run_a = args.search_root.join(&args.run_a);
             let run_b = args.search_root.join(&args.run_b);
-            let result = compare_runs(&run_a, &run_b, &objective)?;
+            let result = if let Some(baseline) = args.baseline.as_ref() {
+                let baseline_dir = args.search_root.join(baseline);
+                compare_runs_with_baseline(&run_a, &run_b, &baseline_dir, &objective)?
+            } else {
+                compare_runs(&run_a, &run_b, &objective)?
+            };
             let output_dir = args.output_dir.as_ref().unwrap_or(&args.search_root);
             std::fs::create_dir_all(output_dir)?;
             let path = output_dir.join("compare.json");
@@ -166,7 +172,12 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
                     let objective = objective_spec(args.objective.into());
                     let run_a = args.search_root.join(&args.run_a);
                     let run_b = args.search_root.join(&args.run_b);
-                    let result = compare_runs(&run_a, &run_b, &objective)?;
+                    let result = if let Some(baseline) = args.baseline.as_ref() {
+                        let baseline_dir = args.search_root.join(baseline);
+                        compare_runs_with_baseline(&run_a, &run_b, &baseline_dir, &objective)?
+                    } else {
+                        compare_runs(&run_a, &run_b, &objective)?
+                    };
                     let output_dir = args.output_dir.as_ref().unwrap_or(&args.search_root);
                     std::fs::create_dir_all(output_dir)?;
                     let path = output_dir.join("compare.json");
@@ -277,7 +288,7 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
             match command {
                 BenchCommand::Fastq { command } => match command {
                     BenchFastqCommand::Trim(args) => {
-                        set_allow_experimental(args.allow_experimental);
+                        set_tool_tier_policy(false, args.allow_experimental);
                         let outcome =
                             bench_fastq_trim(&catalog, &platform, None, &bench_args_trim(args))?;
                         write_trim_report(
@@ -291,7 +302,7 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
                         }
                     }
                     BenchFastqCommand::Validate(args) => {
-                        set_allow_experimental(args.allow_experimental);
+                        set_tool_tier_policy(false, args.allow_experimental);
                         let outcome = bench_fastq_validate_pre(
                             &catalog,
                             &platform,
@@ -311,7 +322,7 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
                         }
                     }
                     BenchFastqCommand::Filter(args) => {
-                        set_allow_experimental(args.allow_experimental);
+                        set_tool_tier_policy(false, args.allow_experimental);
                         let outcome = bench_fastq_filter(
                             &catalog,
                             &platform,
@@ -329,7 +340,7 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
                         }
                     }
                     BenchFastqCommand::Merge(args) => {
-                        set_allow_experimental(args.allow_experimental);
+                        set_tool_tier_policy(false, args.allow_experimental);
                         let outcome =
                             bench_fastq_merge(&catalog, &platform, None, &bench_args_merge(args))?;
                         write_merge_report(
@@ -343,7 +354,7 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
                         }
                     }
                     BenchFastqCommand::Stats(args) => {
-                        set_allow_experimental(args.allow_experimental);
+                        set_tool_tier_policy(false, args.allow_experimental);
                         let outcome = bench_fastq_stats_neutral(
                             &catalog,
                             &platform,
@@ -361,7 +372,7 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
                         }
                     }
                     BenchFastqCommand::Correct(args) => {
-                        set_allow_experimental(args.allow_experimental);
+                        set_tool_tier_policy(false, args.allow_experimental);
                         let outcome = bench_fastq_correct(
                             &catalog,
                             &platform,
@@ -379,7 +390,7 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
                         }
                     }
                     BenchFastqCommand::QcPost(args) => {
-                        set_allow_experimental(args.allow_experimental);
+                        set_tool_tier_policy(false, args.allow_experimental);
                         let outcome = bench_fastq_qc_post(
                             &catalog,
                             &platform,
@@ -397,7 +408,7 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
                         }
                     }
                     BenchFastqCommand::Umi(args) => {
-                        set_allow_experimental(args.allow_experimental);
+                        set_tool_tier_policy(false, args.allow_experimental);
                         let outcome =
                             bench_fastq_umi(&catalog, &platform, None, &bench_args_umi(args))?;
                         write_umi_report(
@@ -411,11 +422,11 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
                         }
                     }
                     BenchFastqCommand::Screen(args) => {
-                        set_allow_experimental(args.allow_experimental);
+                        set_tool_tier_policy(false, args.allow_experimental);
                         bench_fastq_screen(&catalog, &platform, None, &bench_args_screen(args))?;
                     }
                     BenchFastqCommand::Preprocess(args) => {
-                        set_allow_experimental(args.allow_experimental);
+                        set_tool_tier_policy(false, args.allow_experimental);
                         bench_fastq_preprocess(
                             &catalog,
                             &platform,
@@ -444,7 +455,8 @@ fn handle_fastq_bench(
         return Ok(false);
     };
 
-    set_allow_experimental(allow_experimental_for_fastq(command));
+    let (allow_silver, allow_experimental) = tool_tier_policy_for_fastq(command);
+    set_tool_tier_policy(allow_silver, allow_experimental);
 
     if let Some(done) = handle_fastq_discovery(command, registry)? {
         return Ok(done);
@@ -460,7 +472,7 @@ fn handle_fastq_bench(
             Ok(true)
         }
         FastqCommand::Trim(args) if is_bench_requested_trim(args) => {
-            set_allow_experimental(args.common.allow_experimental);
+            set_tool_tier_policy(args.common.allow_silver, args.common.allow_experimental);
             let platform = load_platform(cli.platform.as_deref())
                 .map_err(|err| anyhow!("failed to load platform: {err}"))?;
             let catalog =
@@ -480,7 +492,7 @@ fn handle_fastq_bench(
             Ok(true)
         }
         FastqCommand::ValidatePre(args) if is_bench_requested_validate(args) => {
-            set_allow_experimental(args.common.allow_experimental);
+            set_tool_tier_policy(args.common.allow_silver, args.common.allow_experimental);
             let platform = load_platform(cli.platform.as_deref())
                 .map_err(|err| anyhow!("failed to load platform: {err}"))?;
             let catalog =
@@ -502,7 +514,8 @@ fn handle_fastq_bench(
             Ok(true)
         }
         FastqCommand::Preprocess(args) => {
-            set_allow_experimental(args.common.allow_experimental);
+            set_tool_tier_policy(args.common.allow_silver, args.common.allow_experimental);
+            set_scientific_preset(args.scientific_preset);
             let platform = load_platform(cli.platform.as_deref())
                 .map_err(|err| anyhow!("failed to load platform: {err}"))?;
             let catalog =
@@ -513,7 +526,11 @@ fn handle_fastq_bench(
             Ok(true)
         }
         FastqCommand::Run(args) => {
-            set_allow_experimental(args.args.common.allow_experimental);
+            set_tool_tier_policy(
+                args.args.common.allow_silver,
+                args.args.common.allow_experimental,
+            );
+            set_scientific_preset(args.args.scientific_preset);
             let platform = load_platform(cli.platform.as_deref())
                 .map_err(|err| anyhow!("failed to load platform: {err}"))?;
             let catalog =
@@ -545,7 +562,12 @@ fn handle_fastq_bench(
             let objective = objective_spec(Objective::Balanced);
             let run_a = args.search_root.join(&args.run_a);
             let run_b = args.search_root.join(&args.run_b);
-            let result = compare_runs(&run_a, &run_b, &objective)?;
+            let result = if let Some(baseline) = args.baseline.as_ref() {
+                let baseline_dir = args.search_root.join(baseline);
+                compare_runs_with_baseline(&run_a, &run_b, &baseline_dir, &objective)?
+            } else {
+                compare_runs(&run_a, &run_b, &objective)?
+            };
             println!("{}", serde_json::to_string_pretty(&result)?);
             Ok(true)
         }
@@ -559,7 +581,6 @@ fn handle_fastq_bench(
         }
     }
 }
-
 fn handle_fastq_discovery(
     command: &FastqCommand,
     registry: &bijux_core::ToolRegistry,
@@ -638,21 +659,18 @@ fn handle_fastq_discovery(
         _ => Ok(None),
     }
 }
-
 fn list_fastq_stages() {
     for stage in bijux_stages_fastq::fastq::registry() {
         println!("{}", stage.id);
     }
     print_bank_presets();
 }
-
 fn list_fastq_stage_registry() {
     for stage in bijux_stages_fastq::fastq::registry() {
         println!("{} v{}", stage.id, stage.version.0);
     }
     print_bank_presets();
 }
-
 fn print_bank_presets() {
     if let Ok(selection) = resolve_adapter_selection(None, None, None) {
         let mut presets: Vec<String> = selection
@@ -691,7 +709,6 @@ fn print_bank_presets() {
         }
     }
 }
-
 fn list_fastq_tools(registry: &bijux_core::ToolRegistry, stage_id: &str) {
     let mut tools: Vec<_> = registry
         .tools_for_stage(stage_id)
@@ -703,7 +720,6 @@ fn list_fastq_tools(registry: &bijux_core::ToolRegistry, stage_id: &str) {
         println!("{tool_id}\t{}", tool_tier_label(role));
     }
 }
-
 fn load_adapter_selection(
     adapter_bank_preset: Option<&str>,
     legacy_adapter_bank: Option<&str>,
@@ -711,7 +727,6 @@ fn load_adapter_selection(
 ) -> Result<AdapterSelection> {
     resolve_adapter_selection(adapter_bank_preset, legacy_adapter_bank, adapter_bank_file)
 }
-
 fn list_adapter_presets(presets: &AdapterPresetsV1) {
     for preset in &presets.presets {
         let categories = if preset.tags.is_empty() {
@@ -722,7 +737,6 @@ fn list_adapter_presets(presets: &AdapterPresetsV1) {
         println!("{}: categories: {}", preset.name, categories);
     }
 }
-
 fn list_adapters(effective: &bijux_stages_fastq::EffectiveAdapterSet) {
     println!("preset: {}", effective.preset);
     println!("id\ttags\tname\tread_scope\tenabled_by_default");
@@ -746,7 +760,6 @@ fn list_adapters(effective: &bijux_stages_fastq::EffectiveAdapterSet) {
         );
     }
 }
-
 fn tool_tier_label(role: bijux_core::ToolRole) -> &'static str {
     match role {
         bijux_core::ToolRole::Authoritative => "gold",
@@ -754,40 +767,52 @@ fn tool_tier_label(role: bijux_core::ToolRole) -> &'static str {
         bijux_core::ToolRole::Experimental => "experimental",
     }
 }
-
-fn set_allow_experimental(allow: bool) {
-    if allow {
+fn set_scientific_preset(preset: Option<cli::parse::ScientificPresetArg>) {
+    if let Some(preset) = preset {
+        std::env::set_var(
+            "BIJUX_SCIENTIFIC_PRESET",
+            format!("{preset:?}").to_lowercase(),
+        );
+    } else {
+        std::env::remove_var("BIJUX_SCIENTIFIC_PRESET");
+    }
+}
+fn set_tool_tier_policy(allow_silver: bool, allow_experimental: bool) {
+    if allow_silver || allow_experimental {
+        std::env::set_var("BIJUX_ALLOW_SILVER", "1");
+    } else {
+        std::env::remove_var("BIJUX_ALLOW_SILVER");
+    }
+    if allow_experimental {
         std::env::set_var("BIJUX_EXPERIMENTAL_TOOLS", "1");
     } else {
         std::env::remove_var("BIJUX_EXPERIMENTAL_TOOLS");
     }
 }
-
-fn allow_experimental_for_fastq(command: &FastqCommand) -> bool {
+fn tool_tier_policy_for_fastq(command: &FastqCommand) -> (bool, bool) {
     match command {
-        FastqCommand::Trim(args) => args.common.allow_experimental,
-        FastqCommand::ValidatePre(args) => args.common.allow_experimental,
-        FastqCommand::Filter(args) => args.common.allow_experimental,
-        FastqCommand::Preprocess(args) => args.common.allow_experimental,
-        FastqCommand::Run(args) => args.args.common.allow_experimental,
+        FastqCommand::Trim(args) => (args.common.allow_silver, args.common.allow_experimental),
+        FastqCommand::ValidatePre(args) => {
+            (args.common.allow_silver, args.common.allow_experimental)
+        }
+        FastqCommand::Filter(args) => (args.common.allow_silver, args.common.allow_experimental),
+        FastqCommand::Preprocess(args) => {
+            (args.common.allow_silver, args.common.allow_experimental)
+        }
+        FastqCommand::Run(args) => (
+            args.args.common.allow_silver,
+            args.args.common.allow_experimental,
+        ),
         FastqCommand::Merge(args)
         | FastqCommand::ErrorCorrect(args)
         | FastqCommand::Qc(args)
         | FastqCommand::Umi(args)
         | FastqCommand::Contam(args)
         | FastqCommand::StatsNeutral(args)
-        | FastqCommand::Align(args) => args.allow_experimental,
-        FastqCommand::Benchmark(_)
-        | FastqCommand::Analyze(_)
-        | FastqCommand::Compare(_)
-        | FastqCommand::ListStages
-        | FastqCommand::Stages
-        | FastqCommand::ListTools { .. }
-        | FastqCommand::Explain { .. }
-        | FastqCommand::Doctor => false,
+        | FastqCommand::Align(args) => (args.allow_silver, args.allow_experimental),
+        _ => (false, false),
     }
 }
-
 fn explain_fastq_stage(registry: &bijux_core::ToolRegistry, stage_id: &str) -> Result<()> {
     if stage_id == "fastq.preprocess" {
         let args = bijux_stages_fastq::args::BenchFastqPreprocessArgs {
@@ -842,7 +867,6 @@ fn explain_fastq_stage(registry: &bijux_core::ToolRegistry, stage_id: &str) -> R
     }
     Ok(())
 }
-
 fn render_report_bundle_html(report: &serde_json::Value) -> String {
     let pretty = serde_json::to_string_pretty(report).unwrap_or_else(|_| "{}".to_string());
     format!(
@@ -875,7 +899,6 @@ fn render_report_bundle_html(report: &serde_json::Value) -> String {
 </html>"#
     )
 }
-
 fn normalize_fastq_stage_id(stage: &str) -> String {
     if stage.contains('.') {
         stage.to_string()
@@ -883,7 +906,6 @@ fn normalize_fastq_stage_id(stage: &str) -> String {
         format!("fastq.{stage}")
     }
 }
-
 fn run_plan(cli: &Cli, registry: &bijux_core::ToolRegistry, domain_dir: &Path) -> Result<()> {
     let (stage, tool, common) = cli::resolve_stage_tool(&cli.command);
 
@@ -932,7 +954,6 @@ fn run_plan(cli: &Cli, registry: &bijux_core::ToolRegistry, domain_dir: &Path) -
 
     Ok(())
 }
-
 fn load_profile_for_cli(cli: &Cli) -> Result<bijux_core::Profile> {
     let cwd = std::env::current_dir().context("resolve current directory")?;
     let profile_path = cwd
@@ -944,7 +965,6 @@ fn load_profile_for_cli(cli: &Cli) -> Result<bijux_core::Profile> {
     profile.run_base_dir = normalize_run_base_dir(&cwd, &profile.run_base_dir);
     Ok(profile)
 }
-
 fn ensure_profile_run_base_dir(
     stage: &bijux_core::StageId,
     tool: &bijux_core::ToolId,
@@ -959,7 +979,6 @@ fn ensure_profile_run_base_dir(
         profile.run_base_dir = base.to_path_buf();
     }
 }
-
 fn qc_class_label(stage: &str) -> Option<&'static str> {
     match bijux_stages_fastq::qc_class_for_stage(stage) {
         Some(bijux_stages_fastq::QcClass::Structural) => Some("structural"),

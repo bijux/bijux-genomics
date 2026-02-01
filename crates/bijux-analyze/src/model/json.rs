@@ -44,6 +44,26 @@ impl JsonBlob {
         let json = serde_json::from_str(raw)?;
         Ok(Self(json))
     }
+
+    #[must_use]
+    pub fn numeric_deltas(metrics: &JsonBlob, baseline: &JsonBlob) -> Self {
+        let mut out = serde_json::Map::new();
+        let Some(metrics_map) = metrics.as_value().as_object() else {
+            return Self(serde_json::Value::Object(out));
+        };
+        let Some(baseline_map) = baseline.as_value().as_object() else {
+            return Self(serde_json::Value::Object(out));
+        };
+        for (key, value) in metrics_map {
+            if let (Some(a), Some(b)) = (
+                value.as_f64(),
+                baseline_map.get(key).and_then(serde_json::Value::as_f64),
+            ) {
+                out.insert(key.clone(), serde_json::Value::from(a - b));
+            }
+        }
+        Self(serde_json::Value::Object(out))
+    }
 }
 
 impl From<serde_json::Value> for JsonBlob {

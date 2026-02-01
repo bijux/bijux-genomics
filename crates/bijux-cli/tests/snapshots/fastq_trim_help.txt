@@ -7,8 +7,10 @@ Options:
           
       --dry-run
           
+      --allow-silver
+          Allow silver-tier tools
       --allow-experimental
-          Allow experimental and silver-tier tools
+          Allow experimental-tier tools
       --list-adapter-presets
           
       --list-adapters

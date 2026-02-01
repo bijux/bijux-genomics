@@ -7,8 +7,10 @@ Options:
           
       --dry-run
           
+      --allow-silver
+          Allow silver-tier tools
       --allow-experimental
-          Allow experimental and silver-tier tools
+          Allow experimental-tier tools
       --list-adapter-presets
           
       --list-adapters
@@ -29,6 +31,8 @@ Options:
           
       --objective <OBJECTIVE>
           [default: balanced] [possible values: speed, memory, retention, balanced]
+      --scientific-preset <SCIENTIFIC_PRESET>
+          Scientific preset profile (ancient_dna, amplicon, metagenomic, wgs_standard) [possible values: ancient_dna, amplicon, metagenomic, wgs_standard]
       --bench-corpus <BENCH_CORPUS>
           [possible values: fastq_5set]
       --allow-partial

@@ -4,7 +4,7 @@
 pub mod schema;
 
 use bijux_core::observability::QcPostReportV1;
-use bijux_core::{FactsRowV1, FilterReportV1, RawFailure, ToolInvocationV1};
+use bijux_core::{FactsRowV1, FilterReportV1, RawFailure, TelemetryEventV1, ToolInvocationV1};
 use std::cmp::Ordering;
 use std::collections::BTreeMap;
 use std::fs;
@@ -97,6 +97,236 @@ pub(super) fn bench_summary_section(base_dir: &Path) -> serde_json::Value {
         .ok()
         .and_then(|raw| serde_json::from_str(&raw).ok())
         .unwrap_or_else(|| serde_json::json!({}))
+}
+
+fn assertion_results_from_row(row: &FactsRowV1) -> Vec<serde_json::Value> {
+    row.reports
+        .get("assertions")
+        .and_then(|value| value.get("results"))
+        .and_then(serde_json::Value::as_array)
+        .cloned()
+        .unwrap_or_default()
+}
+
+fn stage_confidence_for_row(row: &FactsRowV1) -> (f64, Vec<String>) {
+    let mut score = 1.0_f64;
+    let mut reasons = Vec::new();
+    if row.exit_code != 0 {
+        return (0.0, vec!["tool_exit_nonzero".to_string()]);
+    }
+    let assertions = assertion_results_from_row(row);
+    let mut fail_count = 0_u32;
+    let mut warn_count = 0_u32;
+    for entry in &assertions {
+        match entry.get("status").and_then(|value| value.as_str()) {
+            Some("fail") => fail_count += 1,
+            Some("warn") => warn_count += 1,
+            _ => {}
+        }
+    }
+    if fail_count > 0 {
+        score -= 0.4 * f64::from(fail_count);
+        reasons.push(format!("assertion_failures:{fail_count}"));
+    }
+    if warn_count > 0 {
+        score -= 0.1 * f64::from(warn_count);
+        reasons.push(format!("assertion_warnings:{warn_count}"));
+    }
+    let mut missing = 0_u32;
+    if row.reads_in.is_none() {
+        missing += 1;
+    }
+    if row.reads_out.is_none() {
+        missing += 1;
+    }
+    if row.bases_in.is_none() {
+        missing += 1;
+    }
+    if row.bases_out.is_none() {
+        missing += 1;
+    }
+    if missing > 0 {
+        score -= 0.05 * f64::from(missing);
+        reasons.push(format!("missing_metrics:{missing}"));
+    }
+    if score < 0.0 {
+        score = 0.0;
+    }
+    (score, reasons)
+}
+
+pub(super) fn assertions_section(rows: &[FactsRowV1]) -> serde_json::Value {
+    let entries: Vec<serde_json::Value> = rows
+        .iter()
+        .map(|row| {
+            serde_json::json!({
+                "stage_id": row.stage_id,
+                "tool_id": row.tool_id,
+                "results": assertion_results_from_row(row),
+            })
+        })
+        .collect();
+    serde_json::json!({ "entries": entries })
+}
+
+pub(super) fn stage_confidence_section(rows: &[FactsRowV1]) -> serde_json::Value {
+    let mut entries: Vec<serde_json::Value> = rows
+        .iter()
+        .map(|row| {
+            let (score, reasons) = stage_confidence_for_row(row);
+            let bucket = if score >= 0.85 {
+                "high"
+            } else if score >= 0.6 {
+                "medium"
+            } else {
+                "low"
+            };
+            serde_json::json!({
+                "stage_id": row.stage_id,
+                "tool_id": row.tool_id,
+                "score": score,
+                "bucket": bucket,
+                "reasons": reasons,
+            })
+        })
+        .collect();
+    entries.sort_by(|a, b| {
+        let a_score = a
+            .get("score")
+            .and_then(serde_json::Value::as_f64)
+            .unwrap_or(0.0);
+        let b_score = b
+            .get("score")
+            .and_then(serde_json::Value::as_f64)
+            .unwrap_or(0.0);
+        b_score
+            .partial_cmp(&a_score)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
+    serde_json::json!({ "entries": entries })
+}
+
+#[allow(clippy::cast_precision_loss)]
+fn u64_to_f64(value: u64) -> f64 {
+    value as f64
+}
+
+pub(super) fn stage_plots_section(rows: &[FactsRowV1]) -> serde_json::Value {
+    let mut entries = Vec::new();
+    let mut waterfall = Vec::new();
+    for row in rows {
+        let read_retention = match (row.reads_in, row.reads_out) {
+            (Some(ri), Some(ro)) if ri > 0 => Some(u64_to_f64(ro) / u64_to_f64(ri)),
+            _ => None,
+        };
+        let base_retention = match (row.bases_in, row.bases_out) {
+            (Some(bi), Some(bo)) if bi > 0 => Some(u64_to_f64(bo) / u64_to_f64(bi)),
+            _ => None,
+        };
+        let mean_q_delta = row
+            .metrics
+            .get("mean_q_delta")
+            .and_then(serde_json::Value::as_f64)
+            .or_else(|| {
+                row.metrics
+                    .get("delta_metrics")
+                    .and_then(|value| value.get("mean_q_delta"))
+                    .and_then(serde_json::Value::as_f64)
+            });
+        let gc_delta = row
+            .metrics
+            .get("gc_delta")
+            .and_then(serde_json::Value::as_f64)
+            .or_else(|| {
+                row.metrics
+                    .get("delta_metrics")
+                    .and_then(|value| value.get("gc_delta"))
+                    .and_then(serde_json::Value::as_f64)
+            });
+        entries.push(serde_json::json!({
+            "stage_id": row.stage_id,
+            "tool_id": row.tool_id,
+            "read_retention": read_retention,
+            "base_retention": base_retention,
+            "mean_q_delta": mean_q_delta,
+            "gc_delta": gc_delta,
+        }));
+        if let Some(value) = read_retention {
+            waterfall.push(serde_json::json!({
+                "stage_id": row.stage_id,
+                "read_retention": value,
+            }));
+        }
+    }
+    serde_json::json!({
+        "entries": entries,
+        "waterfall": waterfall,
+    })
+}
+
+pub(super) fn reproducibility_section(
+    rows: &[FactsRowV1],
+    telemetry_paths: &[String],
+) -> serde_json::Value {
+    let mut tool_versions = Vec::new();
+    let mut image_digests = Vec::new();
+    let mut params_hashes = Vec::new();
+    let mut input_hashes = Vec::new();
+    for row in rows {
+        tool_versions.push(row.tool_version.clone());
+        if let Some(digest) = row.image_digest.clone() {
+            image_digests.push(digest);
+        }
+        params_hashes.push(row.params_hash.clone());
+        input_hashes.push(row.input_hash.clone());
+    }
+    tool_versions.sort();
+    tool_versions.dedup();
+    image_digests.sort();
+    image_digests.dedup();
+    params_hashes.sort();
+    params_hashes.dedup();
+    input_hashes.sort();
+    input_hashes.dedup();
+    let (started_at, finished_at) = telemetry_bounds(telemetry_paths);
+    serde_json::json!({
+        "command": "unknown",
+        "tool_versions": tool_versions,
+        "image_digests": image_digests,
+        "params_hashes": params_hashes,
+        "input_hashes": input_hashes,
+        "started_at": started_at,
+        "finished_at": finished_at,
+    })
+}
+
+fn telemetry_bounds(paths: &[String]) -> (serde_json::Value, serde_json::Value) {
+    let mut earliest: Option<String> = None;
+    let mut latest: Option<String> = None;
+    for path in paths {
+        let Ok(raw) = fs::read_to_string(path) else {
+            continue;
+        };
+        for line in raw.lines() {
+            if line.trim().is_empty() {
+                continue;
+            }
+            let Ok(event) = serde_json::from_str::<TelemetryEventV1>(line) else {
+                continue;
+            };
+            let ts = event.timestamp;
+            if earliest.as_ref().is_none_or(|curr| ts < *curr) {
+                earliest = Some(ts.clone());
+            }
+            if latest.as_ref().is_none_or(|curr| ts > *curr) {
+                latest = Some(ts.clone());
+            }
+        }
+    }
+    (
+        earliest.map_or(serde_json::Value::Null, serde_json::Value::String),
+        latest.map_or(serde_json::Value::Null, serde_json::Value::String),
+    )
 }
 
 pub(super) fn failure_hints_section(rows: &[FactsRowV1]) -> serde_json::Value {

@@ -192,7 +192,6 @@ pub struct TelemetryEventV1 {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 pub struct FactsRowV1 {
     pub schema_version: String,
     pub run_id: String,
@@ -221,7 +220,6 @@ pub struct FactsRowV1 {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 pub struct ReportSchemaV1 {
     pub schema_version: String,
     pub contract: ReportContractV1,

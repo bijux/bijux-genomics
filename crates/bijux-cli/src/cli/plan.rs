@@ -303,7 +303,7 @@ pub fn preprocess_args_from_cli(
         .out
         .clone()
         .ok_or_else(|| anyhow::anyhow!("--out is required"))?;
-    Ok(engine_args::BenchFastqPreprocessArgs {
+    let mut out_args = engine_args::BenchFastqPreprocessArgs {
         sample_id,
         r1,
         r2: args.r2.clone(),
@@ -325,5 +325,35 @@ pub fn preprocess_args_from_cli(
         enable_contaminant_removal: args.enable_contaminant_removal,
         no_qc_post: args.no_qc_post,
         force_merge: args.force_merge,
-    })
+    };
+    if let Some(preset) = args.scientific_preset {
+        apply_scientific_preset(preset, &mut out_args);
+    }
+    Ok(out_args)
+}
+
+fn apply_scientific_preset(
+    preset: crate::cli::parse::ScientificPresetArg,
+    args: &mut engine_args::BenchFastqPreprocessArgs,
+) {
+    match preset {
+        crate::cli::parse::ScientificPresetArg::AncientDna => {
+            if args.adapter_bank_preset.is_none() {
+                args.adapter_bank_preset = Some("ssdna".to_string());
+            }
+            args.enable_contaminant_removal = true;
+            args.force_merge = false;
+        }
+        crate::cli::parse::ScientificPresetArg::Amplicon => {
+            if args.adapter_bank_preset.is_none() {
+                args.adapter_bank_preset = Some("illumina-default".to_string());
+            }
+            args.force_merge = true;
+        }
+        crate::cli::parse::ScientificPresetArg::Metagenomic => {
+            args.enable_contaminant_removal = true;
+            args.force_merge = false;
+        }
+        crate::cli::parse::ScientificPresetArg::WgsStandard => {}
+    }
 }

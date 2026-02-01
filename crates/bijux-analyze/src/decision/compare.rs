@@ -20,6 +20,10 @@ pub struct RunComparison {
     pub run_a: String,
     pub run_b: String,
     pub uncertainty: CompareUncertainty,
+    pub baseline: Option<String>,
+    pub baseline_metrics: Option<JsonBlob>,
+    pub deltas_vs_baseline: Option<CompareBaseline>,
+    pub regression_risk: Option<RegressionRiskSummary>,
 }
 
 #[derive(Debug, Serialize)]
@@ -27,6 +31,26 @@ pub struct CompareUncertainty {
     pub runtime_ci: Option<(f64, f64)>,
     pub memory_ci: Option<(f64, f64)>,
     pub read_retention_ci: Option<(f64, f64)>,
+    pub note: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct CompareBaseline {
+    pub deltas_a: JsonBlob,
+    pub deltas_b: JsonBlob,
+}
+
+#[derive(Debug, Serialize)]
+pub struct RegressionRisk {
+    pub worsened: Vec<String>,
+    pub improved: Vec<String>,
+    pub unchanged: Vec<String>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct RegressionRiskSummary {
+    pub run_a: RegressionRisk,
+    pub run_b: RegressionRisk,
     pub note: String,
 }
 
@@ -67,6 +91,96 @@ pub fn compare_runs(
             read_retention_ci: None,
             note: "ci_not_computed".to_string(),
         },
+        baseline: None,
+        baseline_metrics: None,
+        deltas_vs_baseline: None,
+        regression_risk: None,
+    })
+}
+
+fn regression_risk_for(deltas: &JsonBlob) -> RegressionRisk {
+    let mut worsened = Vec::new();
+    let mut improved = Vec::new();
+    let mut unchanged = Vec::new();
+    let Some(map) = deltas.as_value().as_object() else {
+        return RegressionRisk {
+            worsened,
+            improved,
+            unchanged,
+        };
+    };
+    for (metric, value) in map {
+        let Some(delta) = value.as_f64() else {
+            continue;
+        };
+        let semantics = resolve_semantics(metric);
+        let direction = semantics
+            .as_ref()
+            .map(|spec| spec.direction.as_str())
+            .unwrap_or("HigherBetter");
+        let epsilon = 1e-9_f64;
+        if delta.abs() <= epsilon {
+            unchanged.push(metric.to_string());
+            continue;
+        }
+        let is_worse = match direction {
+            "LowerBetter" => delta > 0.0,
+            _ => delta < 0.0,
+        };
+        if is_worse {
+            worsened.push(metric.to_string());
+        } else {
+            improved.push(metric.to_string());
+        }
+    }
+    worsened.sort();
+    improved.sort();
+    unchanged.sort();
+    RegressionRisk {
+        worsened,
+        improved,
+        unchanged,
+    }
+}
+
+/// Compare two runs against a shared baseline.
+///
+/// # Errors
+/// Returns an error if metrics cannot be loaded.
+pub fn compare_runs_with_baseline(
+    run_a: &Path,
+    run_b: &Path,
+    baseline: &Path,
+    objective: &ObjectiveSpec,
+) -> Result<RunComparison> {
+    let metrics_a = load_json(&run_a.join("summary").join("metrics_deltas.json"))?;
+    let metrics_b = load_json(&run_b.join("summary").join("metrics_deltas.json"))?;
+    let baseline_metrics = load_json(&baseline.join("summary").join("metrics_deltas.json"))?;
+    let deltas_a = JsonBlob::numeric_deltas(&metrics_a, &baseline_metrics);
+    let deltas_b = JsonBlob::numeric_deltas(&metrics_b, &baseline_metrics);
+    Ok(RunComparison {
+        metrics_a,
+        metrics_b,
+        objective: objective.name.clone(),
+        run_a: run_a.display().to_string(),
+        run_b: run_b.display().to_string(),
+        uncertainty: CompareUncertainty {
+            runtime_ci: None,
+            memory_ci: None,
+            read_retention_ci: None,
+            note: "ci_not_computed".to_string(),
+        },
+        baseline: Some(baseline.display().to_string()),
+        baseline_metrics: Some(baseline_metrics),
+        deltas_vs_baseline: Some(CompareBaseline {
+            deltas_a: deltas_a.clone(),
+            deltas_b: deltas_b.clone(),
+        }),
+        regression_risk: Some(RegressionRiskSummary {
+            run_a: regression_risk_for(&deltas_a),
+            run_b: regression_risk_for(&deltas_b),
+            note: "risk_vs_baseline".to_string(),
+        }),
     })
 }
 

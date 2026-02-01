@@ -18,9 +18,10 @@ use super::sections::schema::{
     build_report_sections, report_completeness, report_contract, report_metric_semantics,
 };
 use super::sections::{
-    adapter_config_section, adapter_inference_section, bench_summary_section,
+    adapter_config_section, adapter_inference_section, assertions_section, bench_summary_section,
     decision_trace_section, failure_hints_section, filter_interpretation_section, params_excerpt,
-    qc_improvement_section, read_tool_invocation, report_path_for, stage_completeness_table,
+    qc_improvement_section, read_tool_invocation, report_path_for, reproducibility_section,
+    stage_completeness_table, stage_confidence_section, stage_plots_section,
 };
 use crate::export::write_run_summary_json;
 use crate::model::stable_sort_records;
@@ -220,9 +221,18 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
         .collect();
     let mut model = ReportModel::empty(report);
     let stage_completeness = stage_completeness_table(&ordered, &missing_by_stage);
+    let stage_confidence = stage_confidence_section(&ordered);
     sections.insert(
         "stage_completeness".to_string(),
         JsonBlob::new(stage_completeness.clone()),
+    );
+    sections.insert(
+        "stage_confidence".to_string(),
+        JsonBlob::new(stage_confidence.clone()),
+    );
+    sections.insert(
+        "assertions".to_string(),
+        JsonBlob::new(assertions_section(&ordered)),
     );
     sections.insert(
         "decision_trace".to_string(),
@@ -254,6 +264,7 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
             &missing_metrics,
             &missing_reports,
             &ordered,
+            &stage_confidence,
         )),
     );
     sections.insert(
@@ -293,6 +304,7 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
 /// # Errors
 /// Returns an error if report serialization or file writes fail.
 pub fn write_run_report_from_facts(base_dir: &Path, rows: &[FactsRowV1]) -> Result<PathBuf> {
+    std::fs::create_dir_all(base_dir)?;
     let path = base_dir.join("report.json");
     let model = build_run_report_model(base_dir, rows)?;
     write_report_json(&path, &model).context("write report.json")?;
@@ -311,10 +323,14 @@ fn pipeline_overview_section(rows: &[FactsRowV1]) -> serde_json::Value {
     let stages: Vec<serde_json::Value> = rows
         .iter()
         .map(|row| {
+            let (tier, rationale) = bijux_core::tool_tier_for(&row.stage_id, &row.tool_id);
             serde_json::json!({
                 "stage_id": row.stage_id,
                 "tool_id": row.tool_id,
                 "tool_version": row.tool_version,
+                "tool_tier": format!("{tier:?}").to_lowercase(),
+                "tier_rationale": rationale,
+                "scientific_preset": row.reports.get("scientific_preset").cloned().unwrap_or(serde_json::Value::Null),
                 "params_hash": row.params_hash,
                 "image_digest": row.image_digest,
                 "input_hash": row.input_hash,
@@ -331,6 +347,7 @@ fn key_findings_section(
     missing_metrics: &[String],
     missing_reports: &[String],
     rows: &[FactsRowV1],
+    stage_confidence: &serde_json::Value,
 ) -> serde_json::Value {
     let mut findings = Vec::new();
     if !missing_metrics.is_empty() {
@@ -359,66 +376,30 @@ fn key_findings_section(
             "items": failed,
         }));
     }
-    serde_json::Value::Array(findings)
-}
-
-fn stage_plots_section(rows: &[FactsRowV1]) -> serde_json::Value {
-    let mut entries = Vec::new();
-    for row in rows {
-        let read_retention = match (row.reads_in, row.reads_out) {
-            (Some(ri), Some(ro)) if ri > 0 => Some(u64_to_f64(ro) / u64_to_f64(ri)),
-            _ => None,
-        };
-        let base_retention = match (row.bases_in, row.bases_out) {
-            (Some(bi), Some(bo)) if bi > 0 => Some(u64_to_f64(bo) / u64_to_f64(bi)),
-            _ => None,
-        };
-        let mean_q_delta = row
-            .metrics
-            .get("mean_q_delta")
-            .and_then(serde_json::Value::as_f64);
-        entries.push(serde_json::json!({
-            "stage_id": row.stage_id,
-            "tool_id": row.tool_id,
-            "read_retention": read_retention,
-            "base_retention": base_retention,
-            "mean_q_delta": mean_q_delta,
-        }));
-    }
-    serde_json::Value::Array(entries)
-}
-
-fn reproducibility_section(rows: &[FactsRowV1], telemetry_paths: &[String]) -> serde_json::Value {
-    let mut tool_versions = Vec::new();
-    let mut image_digests = Vec::new();
-    let mut params_hashes = Vec::new();
-    let mut input_hashes = Vec::new();
-    for row in rows {
-        tool_versions.push(row.tool_version.clone());
-        if let Some(digest) = row.image_digest.clone() {
-            image_digests.push(digest);
+    if let Some(entries) = stage_confidence
+        .get("entries")
+        .and_then(serde_json::Value::as_array)
+    {
+        let fragile: Vec<serde_json::Value> = entries
+            .iter()
+            .filter(|entry| {
+                entry
+                    .get("score")
+                    .and_then(serde_json::Value::as_f64)
+                    .unwrap_or(1.0)
+                    < 0.6
+            })
+            .cloned()
+            .collect();
+        if !fragile.is_empty() {
+            findings.push(serde_json::json!({
+                "kind": "low_confidence_stages",
+                "count": fragile.len(),
+                "items": fragile,
+            }));
         }
-        params_hashes.push(row.params_hash.clone());
-        input_hashes.push(row.input_hash.clone());
     }
-    tool_versions.sort();
-    tool_versions.dedup();
-    image_digests.sort();
-    image_digests.dedup();
-    params_hashes.sort();
-    params_hashes.dedup();
-    input_hashes.sort();
-    input_hashes.dedup();
-    let (started_at, finished_at) = telemetry_bounds(telemetry_paths);
-    serde_json::json!({
-        "command": "unknown",
-        "tool_versions": tool_versions,
-        "image_digests": image_digests,
-        "params_hashes": params_hashes,
-        "input_hashes": input_hashes,
-        "started_at": started_at,
-        "finished_at": finished_at,
-    })
+    serde_json::Value::Array(findings)
 }
 
 fn data_contract_validation_section(
@@ -457,35 +438,6 @@ fn qc_delta_section(rows: &[FactsRowV1]) -> serde_json::Value {
         "qc_post_mean_q": qc_post_mean_q,
         "mean_q_delta": delta,
     })
-}
-
-fn telemetry_bounds(paths: &[String]) -> (serde_json::Value, serde_json::Value) {
-    let mut earliest: Option<String> = None;
-    let mut latest: Option<String> = None;
-    for path in paths {
-        let Ok(raw) = std::fs::read_to_string(path) else {
-            continue;
-        };
-        for line in raw.lines() {
-            if line.trim().is_empty() {
-                continue;
-            }
-            let Ok(event) = serde_json::from_str::<TelemetryEventV1>(line) else {
-                continue;
-            };
-            let ts = event.timestamp;
-            if earliest.as_ref().is_none_or(|curr| ts < *curr) {
-                earliest = Some(ts.clone());
-            }
-            if latest.as_ref().is_none_or(|curr| ts > *curr) {
-                latest = Some(ts.clone());
-            }
-        }
-    }
-    (
-        earliest.map_or(serde_json::Value::Null, serde_json::Value::String),
-        latest.map_or(serde_json::Value::Null, serde_json::Value::String),
-    )
 }
 
 fn contaminant_summary_section(rows: &[FactsRowV1]) -> serde_json::Value {
