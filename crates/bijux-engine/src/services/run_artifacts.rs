@@ -474,6 +474,8 @@ pub fn write_stage_report_v1(
     log_paths: &[PathBuf],
     warnings: &[String],
     errors: &[String],
+    invariants: &[bijux_core::InvariantResultV1],
+    verdict: Option<&bijux_core::StageVerdictV1>,
 ) -> Result<PathBuf> {
     let effective_config_hash =
         crate::services::observer::hash_file_sha256(effective_config_path).ok();
@@ -493,6 +495,8 @@ pub fn write_stage_report_v1(
         }),
         warnings: warnings.to_vec(),
         errors: errors.to_vec(),
+        invariants: invariants.to_vec(),
+        verdict: verdict.cloned(),
         outputs: outputs.iter().map(|p| p.display().to_string()).collect(),
         subreports: subreports.iter().map(|p| p.display().to_string()).collect(),
         log_paths: log_paths.iter().map(|p| p.display().to_string()).collect(),

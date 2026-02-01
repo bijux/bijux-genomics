@@ -20,6 +20,7 @@ pub use aggregate::*;
 pub use bijux_core::metrics::MetricSet;
 pub use contract::{analyze_contract_v1, AnalyzeContractV1};
 pub use decision::compare::compare_runs;
+pub use export::write_stage_summary_csv;
 pub use failure::*;
 pub use load::*;
 pub use report::*;

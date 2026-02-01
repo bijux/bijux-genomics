@@ -47,6 +47,9 @@ pub use contracts::{
     NormalizedOutputs, QcClass, RawFailure,
 };
 pub use domain::{canonical_stage_order, optional_branches, stage_semantics};
+pub use invariants::{
+    evaluate_invariants, thresholds_from_env, InvariantEvaluation, InvariantThresholds,
+};
 pub use metrics::deltas::{compute_delta, ratio_u64};
 pub use params::{parse_effective_params, EffectiveParams, PairedMode};
 pub use pipeline::query::get_results;
