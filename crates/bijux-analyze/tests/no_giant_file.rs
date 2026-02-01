@@ -35,7 +35,6 @@ fn analyze_sources_not_giant() -> std::io::Result<()> {
     collect_rs_files(&src_dir, &mut files)?;
     let max_lines = 350usize;
     let max_lines_exceptions = [
-        (src_dir.join("report").join("build.rs"), 400usize),
         (
             src_dir.join("aggregate").join("registry").join("defs.rs"),
             1200usize,
@@ -49,7 +48,11 @@ fn analyze_sources_not_giant() -> std::io::Result<()> {
             1800usize,
         ),
         (src_dir.join("report").join("bench.rs"), 1200usize),
-        (src_dir.join("report").join("run_report.rs"), 700usize),
+        (src_dir.join("report").join("build.rs"), 700usize),
+        (
+            src_dir.join("report").join("sections").join("mod.rs"),
+            700usize,
+        ),
     ];
     for path in files {
         let content = fs::read_to_string(&path)?;

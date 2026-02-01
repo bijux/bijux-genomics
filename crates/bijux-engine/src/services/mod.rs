@@ -1,3 +1,6 @@
+//! Owner: bijux-engine
+//! Execution services and IO boundaries.
+
 pub mod composer;
 pub mod executor;
 pub mod observer;

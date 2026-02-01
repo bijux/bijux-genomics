@@ -1,3 +1,4 @@
+//! Owner: bijux-engine
 //! Stable, intended-for-use engine interfaces.
 
 use anyhow::{anyhow, Result};

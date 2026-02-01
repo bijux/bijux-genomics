@@ -1,3 +1,4 @@
+//! Owner: bijux-engine
 //! Internal engine interfaces. Not a stable API.
 #![doc(hidden)]
 

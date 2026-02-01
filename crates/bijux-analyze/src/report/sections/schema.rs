@@ -1,10 +1,13 @@
+//! Owner: bijux-analyze
+//! Report schema and completeness helpers.
+
 use std::collections::BTreeMap;
 
 use bijux_core::{MetricSemanticsV1, ReportCompletenessV1, ReportContractV1, ReportSchemaV1};
 
 use crate::decision::effect::default_thresholds;
 
-pub(super) fn report_contract() -> ReportContractV1 {
+pub(crate) fn report_contract() -> ReportContractV1 {
     ReportContractV1 {
         schema_version: "bijux.report_contract.v1".to_string(),
         required_sections: vec![
@@ -34,7 +37,7 @@ pub(super) fn report_contract() -> ReportContractV1 {
     }
 }
 
-pub(super) fn build_report_sections(
+pub(crate) fn build_report_sections(
     report: &ReportSchemaV1,
 ) -> BTreeMap<String, serde_json::Value> {
     let mut sections = BTreeMap::new();
@@ -78,6 +81,7 @@ pub(super) fn build_report_sections(
         method_assumptions_section(report),
     );
     sections.insert("stage_completeness".to_string(), serde_json::json!([]));
+    sections.insert("decision_trace".to_string(), serde_json::json!([]));
     sections.insert("failure_hints".to_string(), serde_json::json!([]));
     sections.insert("metric_provenance".to_string(), serde_json::json!({}));
     sections.insert("bench_summary".to_string(), serde_json::json!({}));
@@ -137,7 +141,7 @@ fn method_assumptions_section(report: &ReportSchemaV1) -> serde_json::Value {
     })
 }
 
-pub(super) fn report_completeness(
+pub(crate) fn report_completeness(
     missing_metrics: &[String],
     missing_reports: &[String],
 ) -> ReportCompletenessV1 {
@@ -153,7 +157,7 @@ pub(super) fn report_completeness(
     }
 }
 
-pub(super) fn report_metric_semantics() -> Vec<MetricSemanticsV1> {
+pub(crate) fn report_metric_semantics() -> Vec<MetricSemanticsV1> {
     let metric_ids = [
         "runtime_s",
         "memory_mb",
