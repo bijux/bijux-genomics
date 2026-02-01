@@ -30,6 +30,7 @@ pub struct BenchmarkObservation {
     pub tool_id: String,
     pub tool_version: String,
     pub image_digest: String,
+    pub container_digest: String,
     pub params_hash: String,
     pub input_hash: String,
     pub runtime_s: f64,
@@ -39,6 +40,8 @@ pub struct BenchmarkObservation {
     pub metrics: MetricsEnvelope,
     pub replicate_id: String,
     pub replicate_index: u32,
+    pub warmup_policy: String,
+    pub seed_policy: String,
     pub runner: String,
     pub platform: String,
     pub cpu: String,
@@ -58,6 +61,7 @@ impl BenchmarkObservation {
         tool_id: String,
         tool_version: String,
         image_digest: String,
+        container_digest: String,
         params_hash: String,
         input_hash: String,
         runtime_s: f64,
@@ -67,6 +71,8 @@ impl BenchmarkObservation {
         metrics: MetricsEnvelope,
         replicate_id: String,
         replicate_index: u32,
+        warmup_policy: String,
+        seed_policy: String,
         runner: String,
         platform: String,
         cpu: String,
@@ -83,6 +89,7 @@ impl BenchmarkObservation {
             tool_id,
             tool_version,
             image_digest,
+            container_digest,
             params_hash,
             input_hash,
             runtime_s,
@@ -92,6 +99,8 @@ impl BenchmarkObservation {
             metrics,
             replicate_id,
             replicate_index,
+            warmup_policy,
+            seed_policy,
             runner,
             platform,
             cpu,
@@ -136,6 +145,21 @@ impl BenchmarkObservation {
         if self.image_digest.trim().is_empty() {
             return Err(BenchError::MissingConfounder {
                 field: "image_digest",
+            });
+        }
+        if self.container_digest.trim().is_empty() {
+            return Err(BenchError::MissingConfounder {
+                field: "container_digest",
+            });
+        }
+        if self.warmup_policy.trim().is_empty() {
+            return Err(BenchError::MissingConfounder {
+                field: "warmup_policy",
+            });
+        }
+        if self.seed_policy.trim().is_empty() {
+            return Err(BenchError::MissingConfounder {
+                field: "seed_policy",
             });
         }
         Ok(())
