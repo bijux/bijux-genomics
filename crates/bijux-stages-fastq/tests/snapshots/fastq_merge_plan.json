@@ -1,10 +1,6 @@
 {
-  "effective_params": {
-    "merge_overlap": null,
-    "min_len": null,
-    "paired_mode": "paired_end",
-    "threads": 1
-  },
+  "stage_id": "fastq.merge",
+  "stage_version": "1",
   "io": {
     "inputs": [
       {
@@ -29,6 +25,10 @@
     "r2": "reads_r2.fastq.gz",
     "tool": "pear"
   },
-  "stage_id": "fastq.merge",
-  "stage_version": "1"
+  "effective_params": {
+    "merge_overlap": null,
+    "min_len": null,
+    "paired_mode": "paired_end",
+    "threads": 1
+  }
 }

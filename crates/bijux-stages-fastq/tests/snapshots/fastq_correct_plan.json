@@ -1,9 +1,6 @@
 {
-  "effective_params": {
-    "paired_mode": "paired_end",
-    "q_cutoff": null,
-    "threads": 1
-  },
+  "stage_id": "fastq.correct",
+  "stage_version": "1",
   "io": {
     "inputs": [
       {
@@ -34,6 +31,9 @@
     "r2": "reads_r2.fastq.gz",
     "tool": "rcorrector"
   },
-  "stage_id": "fastq.correct",
-  "stage_version": "1"
+  "effective_params": {
+    "paired_mode": "paired_end",
+    "q_cutoff": null,
+    "threads": 1
+  }
 }

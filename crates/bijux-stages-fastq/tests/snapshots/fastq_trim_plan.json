@@ -1,14 +1,6 @@
 {
-  "effective_params": {
-    "adapter_policy": "none",
-    "contaminant_policy": null,
-    "min_len": 0,
-    "n_policy": null,
-    "paired_mode": "single_end",
-    "polyx_policy": null,
-    "q_cutoff": null,
-    "threads": 1
-  },
+  "stage_id": "fastq.trim",
+  "stage_version": "1",
   "io": {
     "inputs": [
       {
@@ -28,6 +20,14 @@
     "output": "out/fastp.fastq.gz",
     "tool": "fastp"
   },
-  "stage_id": "fastq.trim",
-  "stage_version": "1"
+  "effective_params": {
+    "adapter_policy": "none",
+    "contaminant_policy": null,
+    "min_len": 0,
+    "n_policy": null,
+    "paired_mode": "single_end",
+    "polyx_policy": null,
+    "q_cutoff": null,
+    "threads": 1
+  }
 }

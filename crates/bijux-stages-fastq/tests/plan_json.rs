@@ -165,6 +165,7 @@ fn preprocess_plan_json_is_emitted_and_stable() -> Result<()> {
         bench_corpus: None,
         allow_partial: false,
         replicates: 1,
+        jobs: 1,
         ci_bootstrap: None,
         adapter_bank_preset: None,
         adapter_bank: Some("preset:best_practice_adna".to_string()),
