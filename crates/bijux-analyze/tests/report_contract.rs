@@ -2,6 +2,7 @@ use anyhow::Result;
 use bijux_analyze::{load::load_facts, report::write_run_report_from_facts};
 use bijux_core::{FactsRowV1, ReportSchemaV1, StageReportV1};
 use std::fs;
+use std::path::PathBuf;
 
 #[test]
 fn report_sections_exist_for_all_stages() -> Result<()> {
@@ -96,4 +97,50 @@ fn report_sections_exist_for_all_stages() -> Result<()> {
     }
 
     Ok(())
+}
+
+#[test]
+fn stage_sections_cover_all_executed_stages() -> Result<()> {
+    let report = load_report_snapshot()?;
+    let stages = report
+        .get("stages")
+        .and_then(|value| value.as_array())
+        .ok_or_else(|| anyhow::anyhow!("missing stages"))?;
+    let stage_ids: Vec<String> = stages
+        .iter()
+        .filter_map(|stage| stage.get("stage_id").and_then(|v| v.as_str()))
+        .map(str::to_string)
+        .collect();
+    let stage_completeness = report
+        .get("sections")
+        .and_then(|value| value.get("stage_completeness"))
+        .ok_or_else(|| anyhow::anyhow!("missing stage_completeness rows"))?;
+    let rows = stage_completeness
+        .get("rows")
+        .and_then(|value| value.as_array())
+        .or_else(|| stage_completeness.as_array())
+        .ok_or_else(|| anyhow::anyhow!("missing stage_completeness rows"))?;
+    let mut covered = std::collections::BTreeSet::new();
+    for row in rows {
+        if let Some(stage_id) = row.get("stage_id").and_then(|v| v.as_str()) {
+            covered.insert(stage_id.to_string());
+        }
+    }
+    for stage_id in stage_ids {
+        assert!(
+            covered.contains(&stage_id),
+            "stage_completeness missing stage {stage_id}"
+        );
+    }
+    Ok(())
+}
+
+fn load_report_snapshot() -> Result<serde_json::Value> {
+    let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    let path = manifest_dir
+        .join("tests")
+        .join("snapshots")
+        .join("run_report.json");
+    let raw = fs::read_to_string(&path)?;
+    Ok(serde_json::from_str(&raw)?)
 }

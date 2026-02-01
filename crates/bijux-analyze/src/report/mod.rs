@@ -6,11 +6,9 @@
 
 pub mod build;
 pub(crate) mod model;
-pub(crate) mod render_json;
+pub(crate) mod render;
+pub(crate) mod sections;
 
 mod bench;
-mod run_report;
-mod run_report_schema;
-mod run_report_sections;
 
 pub use build::*;

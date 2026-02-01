@@ -7,7 +7,7 @@ use anyhow::{Context, Result};
 
 use crate::export::write_run_summary_json;
 use crate::report::model::ReportModel;
-use crate::report::render_json::write_report_json;
+use crate::report::render::json::write_report_json;
 use crate::report::write_run_report_from_facts;
 use crate::AnalyzeMode;
 use crate::{AnalyzeOptions, AnalyzeOutput};

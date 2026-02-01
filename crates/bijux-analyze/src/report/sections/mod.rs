@@ -1,3 +1,8 @@
+//! Owner: bijux-analyze
+//! Report sections for run reports.
+
+pub mod schema;
+
 use bijux_core::observability::QcPostReportV1;
 use bijux_core::{FactsRowV1, FilterReportV1, RawFailure, ToolInvocationV1};
 use std::cmp::Ordering;
@@ -5,24 +10,62 @@ use std::collections::BTreeMap;
 use std::fs;
 use std::path::Path;
 
-use super::run_report::report_path_for;
 use crate::failure::{classify_raw_failure, BenchmarkFailure};
 
+pub(crate) fn report_path_for(reports: &serde_json::Value, key: &str) -> Option<String> {
+    reports
+        .get(key)
+        .and_then(|value| value.as_str())
+        .map(str::to_string)
+}
+
 pub(super) fn stage_completeness_table(
+    rows: &[FactsRowV1],
     missing_by_stage: &BTreeMap<String, (Vec<String>, Vec<String>)>,
 ) -> serde_json::Value {
-    let rows: Vec<serde_json::Value> = missing_by_stage
-        .iter()
-        .map(|(stage_id, (missing_metrics, missing_reports))| {
+    let mut by_stage = BTreeMap::new();
+    for row in rows {
+        by_stage.entry(row.stage_id.clone()).or_insert_with(|| {
+            let (missing_metrics, missing_reports) = missing_by_stage
+                .get(&row.stage_id)
+                .cloned()
+                .unwrap_or_default();
             serde_json::json!({
-                "stage_id": stage_id,
+                "stage_id": row.stage_id,
                 "status": if missing_metrics.is_empty() && missing_reports.is_empty() { "complete" } else { "incomplete" },
                 "missing_metrics": missing_metrics,
                 "missing_reports": missing_reports,
             })
-        })
-        .collect();
-    serde_json::json!(rows)
+        });
+    }
+    let rows: Vec<serde_json::Value> = by_stage.into_values().collect();
+    serde_json::json!({ "rows": rows })
+}
+
+pub(super) fn decision_trace_section(
+    rows: &[FactsRowV1],
+    missing_by_stage: &BTreeMap<String, (Vec<String>, Vec<String>)>,
+) -> serde_json::Value {
+    let mut by_stage: BTreeMap<String, serde_json::Value> = BTreeMap::new();
+    for row in rows {
+        by_stage.entry(row.stage_id.clone()).or_insert_with(|| {
+            let (missing_metrics, missing_reports) = missing_by_stage
+                .get(&row.stage_id)
+                .cloned()
+                .unwrap_or_default();
+            serde_json::json!({
+                "stage_id": row.stage_id,
+                "tool_id": row.tool_id,
+                "tool_version": row.tool_version,
+                "params_hash": row.params_hash,
+                "input_hash": row.input_hash,
+                "missing_metrics": missing_metrics,
+                "missing_reports": missing_reports,
+            })
+        });
+    }
+    let entries: Vec<serde_json::Value> = by_stage.into_values().collect();
+    serde_json::json!({ "entries": entries })
 }
 
 pub(super) fn bench_summary_section(base_dir: &Path) -> serde_json::Value {
