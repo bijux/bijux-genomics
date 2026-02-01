@@ -19,7 +19,7 @@ fn bench_contract_snapshot() -> anyhow::Result<()> {
             seeds: vec![1, 2, 3],
         },
     );
-    let summary = BenchmarkSummary::v1("suite-1".to_string(), Vec::new(), Vec::new());
+    let summary = BenchmarkSummary::v1("suite-1".to_string(), Vec::new(), Vec::new(), Vec::new());
     let payload = serde_json::json!({
         "spec": spec,
         "summary": summary,
@@ -61,6 +61,7 @@ fn bench_contract_snapshot() -> anyhow::Result<()> {
         "rows": [],
         "schema_version": "bijux.bench.summary.v1",
         "scientifically_invalid": false,
+        "strata": [],
         "suite_id": "suite-1",
         "warnings": []
       }
