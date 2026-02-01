@@ -2,6 +2,7 @@ use anyhow::Result;
 use std::path::PathBuf;
 
 #[test]
+#[ignore = "slow e2e (run with BIJUX_E2E=1 and make test-e2e)"]
 #[allow(clippy::too_many_lines)]
 fn fastq_e2e_pipeline_real_data() -> Result<()> {
     if std::env::var("BIJUX_E2E").is_err() {

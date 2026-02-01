@@ -1,0 +1,7 @@
+[test-groups]
+fast = { regex = ".*" }
+slow = { regex = "slow|golden_datasets|fastq_filter_e2e|fastq_e2e_real_data|real_data" }
+e2e = { regex = "e2e|real_data" }
+
+[profile.default]
+retries = { count = 1 }
