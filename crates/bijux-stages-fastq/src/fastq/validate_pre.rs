@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Context, Result};
 use bijux_core::measure::SeqkitMetrics;
 use bijux_core::{ArtifactRef, StageIO, StageId, StagePlanV1, StageVersion, ToolExecutionSpecV1};
 use bijux_domain_fastq::params::{validate::ValidateEffectiveParams, PairedMode};
@@ -84,9 +84,8 @@ pub fn plan_from_config(
 pub fn validate_reads_total(tool: &str, input_stats: &SeqkitMetrics, stdout: &str) -> Result<u64> {
     let reads_total = match tool {
         "seqtk" | "fastqc" => input_stats.reads,
-        "fastqvalidator" | "fastqvalidator_official" => {
-            parse_fastqvalidator_count(stdout).unwrap_or(input_stats.reads)
-        }
+        "fastqvalidator" | "fastqvalidator_official" => parse_fastqvalidator_count(stdout)
+            .with_context(|| "fastqvalidator output parse failed")?,
         "fqtools" => stdout
             .lines()
             .next()
@@ -112,18 +111,22 @@ fn normalize_tools_with_allowlist(tools: &[String], allowlist: &[&str]) -> Resul
     Ok(normalized)
 }
 
-fn parse_fastqvalidator_count(stdout: &str) -> Option<u64> {
-    for token in stdout.split_whitespace() {
-        if let Ok(count) = token.parse::<u64>() {
-            return Some(count);
-        }
-    }
-    None
+fn parse_fastqvalidator_count(stdout: &str) -> Result<u64> {
+    let line = stdout
+        .lines()
+        .find(|line| line.to_lowercase().contains("total reads"))
+        .ok_or_else(|| anyhow!("fastqvalidator total reads line missing"))?;
+    let count = line
+        .split_once(':')
+        .ok_or_else(|| anyhow!("fastqvalidator total reads format missing ':'"))?
+        .1
+        .trim();
+    Ok(count.parse::<u64>()?)
 }
 
 #[cfg(test)]
 mod tests {
-    use super::validate_reads_total;
+    use super::{parse_fastqvalidator_count, validate_reads_total};
     use anyhow::Result;
     use bijux_core::measure::SeqkitMetrics;
 
@@ -165,5 +168,20 @@ mod tests {
             Ok(_) => panic!("expected unsupported tool"),
             Err(err) => assert!(err.to_string().contains("unsupported tool")),
         }
+    }
+
+    #[test]
+    fn parse_fastqvalidator_count_parses_fixture() -> Result<()> {
+        let stdout = include_str!("../../tests/fixtures/fastqvalidator/fastqvalidator_v1.txt");
+        let count = parse_fastqvalidator_count(stdout)?;
+        assert_eq!(count, 12345);
+        Ok(())
+    }
+
+    #[test]
+    fn parse_fastqvalidator_count_rejects_missing_marker() -> Result<()> {
+        let stdout = "fastqvalidator output without total reads";
+        assert!(parse_fastqvalidator_count(stdout).is_err());
+        Ok(())
     }
 }

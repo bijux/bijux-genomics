@@ -1,0 +1,3 @@
+fastqvalidator 0.7
+Total Reads: 12345
+Errors: 0
