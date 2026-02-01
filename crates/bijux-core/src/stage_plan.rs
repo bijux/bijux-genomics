@@ -44,5 +44,7 @@ pub struct StagePlanV1 {
     pub out_dir: PathBuf,
     pub params: serde_json::Value,
     #[serde(default)]
+    pub effective_params: serde_json::Value,
+    #[serde(default)]
     pub aux_images: BTreeMap<String, ContainerImageRefV1>,
 }

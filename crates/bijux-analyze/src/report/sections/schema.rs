@@ -91,6 +91,7 @@ pub(crate) fn build_report_sections(
     sections.insert("key_findings".to_string(), serde_json::json!([]));
     sections.insert("stage_plots".to_string(), serde_json::json!([]));
     sections.insert("reproducibility".to_string(), serde_json::json!({}));
+    sections.insert("scientific_provenance".to_string(), serde_json::json!({}));
     sections.insert(
         "data_contract_validation".to_string(),
         serde_json::json!({}),

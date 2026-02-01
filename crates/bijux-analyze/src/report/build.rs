@@ -21,7 +21,8 @@ use super::sections::{
     adapter_config_section, adapter_inference_section, assertions_section, bench_summary_section,
     decision_trace_section, failure_hints_section, filter_interpretation_section, params_excerpt,
     qc_improvement_section, read_tool_invocation, report_path_for, reproducibility_section,
-    stage_completeness_table, stage_confidence_section, stage_plots_section,
+    scientific_provenance_section, stage_completeness_table, stage_confidence_section,
+    stage_plots_section,
 };
 use crate::export::write_run_summary_json;
 use crate::model::stable_sort_records;
@@ -274,6 +275,10 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
     sections.insert(
         "reproducibility".to_string(),
         JsonBlob::new(reproducibility_section(&ordered, &telemetry_events)),
+    );
+    sections.insert(
+        "scientific_provenance".to_string(),
+        JsonBlob::new(scientific_provenance_section(&ordered)),
     );
     sections.insert(
         "data_contract_validation".to_string(),

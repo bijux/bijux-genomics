@@ -2,7 +2,8 @@
 <html lang="en">
 <head><meta charset="utf-8" /><title>bijux analyze report</title></head>
 <body>
-<script id="report-json" type="application/json">{
+<script id="report-json" type="application/json">
+{
   "adapter_inference": {},
   "assets_provenance": [
     {
@@ -292,7 +293,15 @@
         }
       ]
     },
-    "metric_provenance": {},
+    "metric_provenance": {
+      "fastq.trim": {
+        "normalized_params_excerpt": {
+          "min_len": 20
+        },
+        "params_hash": "params",
+        "tool_id": "fastp"
+      }
+    },
     "pipeline_overview": {
       "stages": [
         {
@@ -354,6 +363,31 @@
           "numerator": "reads_out,bases_out",
           "stage_id": "fastq.trim",
           "tool_id": "fastp"
+        }
+      ]
+    },
+    "scientific_provenance": {
+      "entries": [
+        {
+          "effective_params": {
+            "adapter_policy": "bank",
+            "min_len": 20,
+            "paired_mode": "single_end",
+            "threads": 1
+          },
+          "image_digest": "sha256:img",
+          "input_hash": "input",
+          "output_hashes": [
+            "out"
+          ],
+          "params_hash": "params",
+          "raw_params": {
+            "min_len": 20
+          },
+          "resolved_tool_version": "0.23.4",
+          "stage_id": "fastq.trim",
+          "tool_id": "fastp",
+          "tool_version": "0.23.4"
         }
       ]
     },
@@ -445,7 +479,8 @@
       "/Users/bijan/bijux/bijux-dna/target/test-fixtures/report/telemetry/events.jsonl"
     ]
   }
-}</script>
+}
+</script>
 <div>bundle snapshot</div>
 </body>
 </html>

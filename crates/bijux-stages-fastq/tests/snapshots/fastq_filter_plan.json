@@ -1,6 +1,12 @@
 {
-  "stage_id": "fastq.filter",
-  "stage_version": "1",
+  "effective_params": {
+    "contaminant_db": null,
+    "low_complexity_threshold": null,
+    "max_n": null,
+    "n_policy": null,
+    "paired_mode": "single_end",
+    "threads": 1
+  },
   "io": {
     "inputs": [
       {
@@ -23,5 +29,7 @@
     "output": "out/fastp.fastq.gz",
     "redundant_filters": [],
     "tool": "fastp"
-  }
+  },
+  "stage_id": "fastq.filter",
+  "stage_version": "1"
 }

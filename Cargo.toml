@@ -38,6 +38,7 @@ rusqlite = "0.31"
 sha2 = "0.10"
 sysinfo = "0.30"
 tempfile = "3"
+schemars = { version = "0.8", features = ["derive"] }
 
 [workspace.lints.rust]
 unsafe_code = "forbid"

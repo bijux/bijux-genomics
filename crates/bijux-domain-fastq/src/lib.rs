@@ -17,6 +17,7 @@ mod contracts;
 mod domain;
 mod invariants;
 mod metrics;
+pub mod params;
 mod pipeline;
 mod polyx_bank;
 mod stages;
@@ -47,6 +48,7 @@ pub use contracts::{
 };
 pub use domain::{canonical_stage_order, optional_branches, stage_semantics};
 pub use metrics::deltas::{compute_delta, ratio_u64};
+pub use params::{parse_effective_params, EffectiveParams, PairedMode};
 pub use pipeline::query::get_results;
 pub use pipeline::{
     append_event, bench_corpus, benchmark_runs, canonical_pipeline, canonical_tool_defaults,

@@ -40,6 +40,10 @@ pub struct EffectiveConfigV1 {
     pub parameters_json: serde_json::Value,
     pub parameters_json_normalized: serde_json::Value,
     #[serde(default)]
+    pub effective_params_json: serde_json::Value,
+    #[serde(default)]
+    pub effective_params_json_normalized: serde_json::Value,
+    #[serde(default)]
     pub adapter_bank: Option<AdapterBankProvenanceV1>,
     #[serde(default)]
     pub banks: Option<serde_json::Value>,

@@ -134,6 +134,12 @@ fn execute_plan_success_path_uses_public_api() -> Result<()> {
         },
         out_dir: out_dir.clone(),
         params: serde_json::json!({}),
+        effective_params: serde_json::json!({
+            "paired_mode": "single_end",
+            "threads": 1,
+            "min_len": 0,
+            "adapter_policy": "none"
+        }),
         aux_images: std::collections::BTreeMap::new(),
     };
     let result = execute_plan(&exec_plan, RunnerKind::Docker, None)?;
@@ -187,6 +193,12 @@ fn execute_plan_propagates_tool_failure() -> Result<()> {
         },
         out_dir: out_dir.clone(),
         params: serde_json::json!({}),
+        effective_params: serde_json::json!({
+            "paired_mode": "single_end",
+            "threads": 1,
+            "min_len": 0,
+            "adapter_policy": "none"
+        }),
         aux_images: std::collections::BTreeMap::new(),
     };
     let result = execute_plan(&exec_plan, RunnerKind::Docker, None)?;
@@ -235,6 +247,10 @@ fn execute_plan_hits_validate_path() -> Result<()> {
         },
         out_dir: out_dir.clone(),
         params: serde_json::json!({}),
+        effective_params: serde_json::json!({
+            "paired_mode": "single_end",
+            "threads": 1
+        }),
         aux_images: std::collections::BTreeMap::new(),
     };
     let result = execute_plan(&exec_plan, RunnerKind::Docker, None)?;
@@ -301,6 +317,10 @@ fn execute_plan_hits_merge_path() -> Result<()> {
         },
         out_dir: out_dir.clone(),
         params: serde_json::json!({}),
+        effective_params: serde_json::json!({
+            "paired_mode": "paired_end",
+            "threads": 1
+        }),
         aux_images: std::collections::BTreeMap::new(),
     };
     let result = execute_plan(&exec_plan, RunnerKind::Docker, None)?;

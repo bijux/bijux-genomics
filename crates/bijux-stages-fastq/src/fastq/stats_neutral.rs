@@ -2,6 +2,7 @@ use std::path::Path;
 
 use anyhow::Result;
 use bijux_core::{ArtifactRef, StageIO, StageId, StagePlanV1, StageVersion, ToolExecutionSpecV1};
+use bijux_domain_fastq::params::{validate::ValidateEffectiveParams, PairedMode};
 
 pub const STAGE_ID: &str = "fastq.stats_neutral";
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
@@ -15,6 +16,11 @@ pub fn plan_stats_neutral(
     r1: &Path,
     out_dir: &Path,
 ) -> Result<StagePlanV1> {
+    let effective_params = ValidateEffectiveParams {
+        paired_mode: PairedMode::SingleEnd,
+        threads: tool.resources.threads,
+        q_cutoff: None,
+    };
     Ok(StagePlanV1 {
         stage_id: StageId(STAGE_ID.to_string()),
         stage_version: STAGE_VERSION,
@@ -36,6 +42,8 @@ pub fn plan_stats_neutral(
             "input": r1,
             "out_dir": out_dir
         }),
+        effective_params: serde_json::to_value(&effective_params)
+            .expect("serialize stats_neutral effective params"),
         aux_images: std::collections::BTreeMap::new(),
     })
 }

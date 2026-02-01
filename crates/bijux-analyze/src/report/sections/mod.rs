@@ -4,7 +4,9 @@
 pub mod schema;
 
 use bijux_core::observability::QcPostReportV1;
-use bijux_core::{FactsRowV1, FilterReportV1, RawFailure, TelemetryEventV1, ToolInvocationV1};
+use bijux_core::{
+    FactsRowV1, FilterReportV1, RawFailure, StageReportV1, TelemetryEventV1, ToolInvocationV1,
+};
 use std::cmp::Ordering;
 use std::collections::BTreeMap;
 use std::fs;
@@ -327,6 +329,59 @@ fn telemetry_bounds(paths: &[String]) -> (serde_json::Value, serde_json::Value) 
         earliest.map_or(serde_json::Value::Null, serde_json::Value::String),
         latest.map_or(serde_json::Value::Null, serde_json::Value::String),
     )
+}
+
+pub(super) fn scientific_provenance_section(rows: &[FactsRowV1]) -> serde_json::Value {
+    let mut entries = Vec::new();
+    for row in rows {
+        let mut effective_params = serde_json::json!({});
+        let mut raw_params = serde_json::json!({});
+        let mut resolved_tool_version = None;
+        if let Some(stage_report_path) = report_path_for(&row.reports, "stage_report") {
+            if let Some(stage_report_value) = read_json_value(Path::new(&stage_report_path)) {
+                if let Ok(report) = serde_json::from_value::<StageReportV1>(stage_report_value) {
+                    if let Some(invocation_value) =
+                        read_json_value(Path::new(&report.tool_invocation_path))
+                    {
+                        if let Ok(invocation) =
+                            serde_json::from_value::<ToolInvocationV1>(invocation_value)
+                        {
+                            resolved_tool_version = invocation.resolved_tool_version;
+                        }
+                    }
+                    if let Some(config_value) =
+                        read_json_value(Path::new(&report.effective_config_path))
+                    {
+                        if let Some(value) = config_value.get("effective_params_json") {
+                            effective_params = value.clone();
+                        }
+                        if let Some(value) = config_value.get("parameters_json") {
+                            raw_params = value.clone();
+                        }
+                    }
+                }
+            }
+        }
+        entries.push(serde_json::json!({
+            "stage_id": row.stage_id,
+            "tool_id": row.tool_id,
+            "tool_version": row.tool_version,
+            "resolved_tool_version": resolved_tool_version,
+            "image_digest": row.image_digest,
+            "params_hash": row.params_hash,
+            "input_hash": row.input_hash,
+            "output_hashes": row.output_hashes,
+            "effective_params": effective_params,
+            "raw_params": raw_params,
+        }));
+    }
+    serde_json::json!({ "entries": entries })
+}
+
+fn read_json_value(path: &Path) -> Option<serde_json::Value> {
+    fs::read_to_string(path)
+        .ok()
+        .and_then(|raw| serde_json::from_str(&raw).ok())
 }
 
 pub(super) fn failure_hints_section(rows: &[FactsRowV1]) -> serde_json::Value {

@@ -1,24 +1,42 @@
 {
-  "stage_id": "fastq.preprocess",
-  "stage_version": "1",
-  "io": {
-    "inputs": [
-      {
-        "name": "reads_r1",
-        "path": "reads.fastq.gz"
-      }
-    ],
-    "outputs": []
-  },
-  "parameters": {
-    "r1": "reads.fastq.gz",
-    "r2": null,
+  "effective_params": {
+    "enable_contaminant_removal": false,
+    "paired_mode": "paired_end",
     "stages": [
       "fastq.validate_pre",
       "fastq.trim",
       "fastq.filter",
       "fastq.stats_neutral",
-      "fastq.qc_post"
+      "fastq.qc_post",
+      "fastq.correct"
+    ],
+    "threads": 1
+  },
+  "io": {
+    "inputs": [
+      {
+        "name": "reads_r1",
+        "path": "reads_r1.fastq.gz"
+      },
+      {
+        "name": "reads_r2",
+        "path": "reads_r2.fastq.gz"
+      }
+    ],
+    "outputs": []
+  },
+  "parameters": {
+    "r1": "reads_r1.fastq.gz",
+    "r2": "reads_r2.fastq.gz",
+    "stages": [
+      "fastq.validate_pre",
+      "fastq.trim",
+      "fastq.filter",
+      "fastq.stats_neutral",
+      "fastq.qc_post",
+      "fastq.correct"
     ]
-  }
+  },
+  "stage_id": "fastq.preprocess",
+  "stage_version": "1"
 }

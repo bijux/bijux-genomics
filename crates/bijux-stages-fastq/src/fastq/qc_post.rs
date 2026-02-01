@@ -5,6 +5,7 @@ use bijux_core::{
     ArtifactRef, ContainerImageRefV1, StageIO, StageId, StagePlanV1, StageVersion,
     ToolExecutionSpecV1,
 };
+use bijux_domain_fastq::params::{qc_post::QcPostEffectiveParams, PairedMode};
 
 pub const STAGE_ID: &str = "fastq.qc_post";
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
@@ -41,6 +42,10 @@ pub fn plan_qc_post(
     if let Some(raw) = raw_r1 {
         params["raw_r1"] = serde_json::json!(raw);
     }
+    let effective_params = QcPostEffectiveParams {
+        paired_mode: PairedMode::SingleEnd,
+        threads: tool.resources.threads,
+    };
     let outputs = if tool.tool_id.0 == "multiqc" {
         vec![
             ArtifactRef {
@@ -72,6 +77,8 @@ pub fn plan_qc_post(
         },
         out_dir: out_dir.to_path_buf(),
         params,
+        effective_params: serde_json::to_value(&effective_params)
+            .expect("serialize qc_post effective params"),
         aux_images,
     })
 }
