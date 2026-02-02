@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use bijux_core::{ArtifactRef, StageIO, StageId, StagePlanV1, StageVersion, ToolExecutionSpecV1};
+use bijux_core::{CommandSpecV1, StageIO, StageId, StagePlanV1, StageVersion, ToolExecutionSpecV1};
 use bijux_domain_bam::params::DamageEffectiveParams;
 
 pub const STAGE_ID: &str = bijux_domain_bam::BamStage::Damage.as_str();
@@ -14,37 +14,24 @@ pub fn plan(
     out_dir: &Path,
     params: &DamageEffectiveParams,
 ) -> anyhow::Result<StagePlanV1> {
+    let outputs = super::audit_outputs(bijux_domain_bam::BamStage::Damage, out_dir);
+    let out_json = out_dir.join("damage.pydamage.json");
     let plan = StagePlanV1 {
         stage_id: StageId(STAGE_ID.to_string()),
         stage_version: STAGE_VERSION,
         tool_id: tool.tool_id.clone(),
         tool_version: tool.tool_version.clone(),
         image: tool.image.clone(),
-        command: tool.command.clone(),
+        command: CommandSpecV1 {
+            template: super::args::pydamage_args(bam, &out_json, params),
+        },
         resources: tool.resources.clone(),
         io: StageIO {
-            inputs: vec![ArtifactRef {
+            inputs: vec![bijux_core::ArtifactRef {
                 name: "bam".to_string(),
                 path: bam.to_path_buf(),
             }],
-            outputs: vec![
-                ArtifactRef {
-                    name: "damage_report".to_string(),
-                    path: out_dir.join("damage.json"),
-                },
-                ArtifactRef {
-                    name: "damage_pydamage".to_string(),
-                    path: out_dir.join("damage.pydamage.json"),
-                },
-                ArtifactRef {
-                    name: "damage_profiler".to_string(),
-                    path: out_dir.join("damage.profiler.json"),
-                },
-                ArtifactRef {
-                    name: "damage_metrics".to_string(),
-                    path: out_dir.join("damage.metrics.json"),
-                },
-            ],
+            outputs,
         },
         out_dir: out_dir.to_path_buf(),
         params: serde_json::json!({
@@ -55,7 +42,9 @@ pub fn plan(
             "trim_5p": params.trim_5p,
             "trim_3p": params.trim_3p,
         }),
-        effective_params: serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
+        effective_params: super::ensure_effective_params(
+            serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
+        )?,
         aux_images: std::collections::BTreeMap::new(),
     };
     super::ensure_required_outputs(
@@ -64,7 +53,7 @@ pub fn plan(
             "damage_report",
             "damage_pydamage",
             "damage_profiler",
-            "damage_metrics",
+            "summary",
         ],
     )
 }
