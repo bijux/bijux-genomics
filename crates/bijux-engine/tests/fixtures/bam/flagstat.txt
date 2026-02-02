@@ -1,0 +1,5 @@
+1000 + 0 in total (QC-passed reads + QC-failed reads)
+800 + 0 primary
+700 + 0 mapped (70.00% : N/A)
+600 + 0 properly paired (60.00% : N/A)
+50 + 0 duplicates

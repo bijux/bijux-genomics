@@ -11,6 +11,11 @@ struct ReportArtifacts {
     contaminant_action: bool,
 }
 
+struct InvariantOutcome {
+    results: Vec<bijux_core::InvariantResultV1>,
+    verdict: bijux_core::StageVerdictV1,
+}
+
 #[allow(clippy::too_many_arguments, clippy::too_many_lines)]
 fn build_stage_reports_and_warnings(
     plan: &StagePlanV1,
@@ -240,13 +245,28 @@ fn build_stage_reports_and_warnings(
     let mut warnings = warnings_for_plan(plan, canonical_params);
     warnings.extend(extra_warnings);
     let (reads_in, reads_out, ..) = extract_io_deltas(stage_metrics);
-    let thresholds = thresholds_from_env();
-    let invariant_eval = evaluate_invariants(
-        &plan.stage_id.0,
-        stage_metrics,
-        &plan.effective_params,
-        &thresholds,
-    );
+    let invariant_eval = if plan.stage_id.0.starts_with("bam.") {
+        let bam_metrics: BamMetricsV1 = serde_json::from_value(stage_metrics.clone())?;
+        let thresholds = BamInvariantThresholds::default();
+        let outcome = evaluate_bam_invariants(&plan.stage_id.0, &bam_metrics, &thresholds);
+        InvariantOutcome {
+            results: outcome.results,
+            verdict: outcome.verdict,
+        }
+    } else {
+        let thresholds = thresholds_from_env();
+        let outcome = evaluate_invariants(
+            &plan.stage_id.0,
+            stage_metrics,
+            &plan.effective_params,
+            &thresholds,
+        )
+        ;
+        InvariantOutcome {
+            results: outcome.results,
+            verdict: outcome.verdict,
+        }
+    };
     let assertion_results = invariant_eval.results.clone();
     if plan.stage_id.0 == "fastq.filter" && canonical_params.get("kmer_ref").is_some() {
         contaminant_action = true;

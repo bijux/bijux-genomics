@@ -79,6 +79,11 @@ pub fn execute_stage_plan(
         .digest
         .clone()
         .unwrap_or_else(|| "unknown".to_string());
+    let cache_path = run_artifacts_dir.join("stage_cache.json");
+    let resume_enabled = std::env::var("BIJUX_RESUME")
+        .ok()
+        .is_some_and(|value| matches!(value.as_str(), "1" | "true" | "TRUE"));
+    let cache_key = StageCacheKey::new(&input_hash, &params_hash, &image_digest);
     let emit_event = |event: &bijux_core::TelemetryEventV1| -> Result<()> {
         write_telemetry_event(&telemetry_path, event)?;
         write_stage_event_jsonl(&run_artifacts_dir, event)?;
@@ -164,16 +169,37 @@ pub fn execute_stage_plan(
         "stage execution starting"
     );
     let result: Result<StageResultV1> = (|| {
-        let run_result = run_stage_execution(
-            plan,
-            &image,
-            runner,
-            r1_dir,
-            r1,
-            r2,
-            &container_name,
-            &canonical_params,
-        )?;
+        let use_cache = resume_enabled
+            && plan.stage_id.0.starts_with("bam.")
+            && cache_hit(&cache_path, &cache_key, &plan.io.outputs);
+        let run_result = if use_cache {
+            ExecutionRunResult {
+                envelope: ExecutionEnvelope {
+                    exit_code: 0,
+                    stdout: String::new(),
+                    stderr: String::new(),
+                    command: "resume".to_string(),
+                },
+                outputs_override: Some(
+                    plan.io
+                        .outputs
+                        .iter()
+                        .map(|artifact| artifact.path.clone())
+                        .collect(),
+                ),
+            }
+        } else {
+            run_stage_execution(
+                plan,
+                &image,
+                runner,
+                r1_dir,
+                r1,
+                r2,
+                &container_name,
+                &canonical_params,
+            )?
+        };
         telemetry_exit_code = Some(run_result.envelope.exit_code);
         let runtime_s = start.elapsed().as_secs_f64();
         let memory_mb = execution_memory_mb(&container_name)?;
@@ -212,6 +238,9 @@ pub fn execute_stage_plan(
             &emit_event,
             &emit_artifact,
         )?;
+        if plan.stage_id.0.starts_with("bam.") {
+            write_stage_cache(&cache_path, &cache_key, &post.output_hashes)?;
+        }
         telemetry_output_hashes.clone_from(&post.output_hashes);
         let stage_result = post.stage_result;
         if let Some(observer) = observer.as_mut() {
@@ -305,4 +334,51 @@ pub fn execute_stage_plan(
         })?;
     }
     result
+}
+
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+struct StageCacheKey {
+    input_hash: String,
+    params_hash: String,
+    tool_digest: String,
+}
+
+impl StageCacheKey {
+    fn new(input_hash: &str, params_hash: &str, tool_digest: &str) -> Self {
+        Self {
+            input_hash: input_hash.to_string(),
+            params_hash: params_hash.to_string(),
+            tool_digest: tool_digest.to_string(),
+        }
+    }
+}
+
+fn cache_hit(cache_path: &Path, key: &StageCacheKey, outputs: &[ArtifactRef]) -> bool {
+    if !cache_path.exists() {
+        return false;
+    }
+    let Ok(raw) = std::fs::read_to_string(cache_path) else {
+        return false;
+    };
+    let Ok(existing) = serde_json::from_str::<StageCacheKey>(&raw) else {
+        return false;
+    };
+    if existing.input_hash != key.input_hash
+        || existing.params_hash != key.params_hash
+        || existing.tool_digest != key.tool_digest
+    {
+        return false;
+    }
+    outputs.iter().all(|artifact| artifact.path.exists())
+}
+
+fn write_stage_cache(cache_path: &Path, key: &StageCacheKey, output_hashes: &[String]) -> Result<()> {
+    let payload = serde_json::json!({
+        "input_hash": key.input_hash,
+        "params_hash": key.params_hash,
+        "tool_digest": key.tool_digest,
+        "output_hashes": output_hashes,
+    });
+    std::fs::write(cache_path, serde_json::to_vec_pretty(&payload)?)?;
+    Ok(())
 }
