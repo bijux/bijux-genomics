@@ -1,8 +1,7 @@
 //! aDNA-specific invariant presets (pipeline-level, not domain-level).
 
 use bijux_core::{InvariantResultV1, InvariantStatusV1};
-use bijux_domain_bam::metrics::BamMetricsV1;
-use bijux_domain_bam::types::LibraryType;
+use bijux_domain_bam::{BamMetricsV1, LibraryType};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct DamageExpectation {
@@ -48,12 +47,13 @@ pub fn adna_invariants(
         LibraryType::HalfUdg => model.half_udg,
         LibraryType::Udg => model.udg,
     };
-    let status =
-        if damage < expectation.min_terminal_damage || damage > expectation.max_terminal_damage {
-            InvariantStatusV1::Warn
-        } else {
-            InvariantStatusV1::Pass
-        };
+    let status = if damage < expectation.min_terminal_damage {
+        InvariantStatusV1::Warn
+    } else if damage > expectation.max_terminal_damage {
+        InvariantStatusV1::Warn
+    } else {
+        InvariantStatusV1::Pass
+    };
     let message = format!(
         "terminal damage {:.3} outside expected range {:.3}-{:.3}",
         damage, expectation.min_terminal_damage, expectation.max_terminal_damage

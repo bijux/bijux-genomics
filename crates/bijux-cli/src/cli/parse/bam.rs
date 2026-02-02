@@ -166,6 +166,8 @@ impl From<DuplicateActionArg> for bijux_domain_bam::DuplicateAction {
 pub struct BamRunArgs {
     #[arg(long, value_enum, default_value_t = BamStageArg::Validate)]
     pub stage: BamStageArg,
+    #[arg(long, default_value = "default")]
+    pub profile: String,
     #[arg(long)]
     pub bam: PathBuf,
     #[arg(long)]

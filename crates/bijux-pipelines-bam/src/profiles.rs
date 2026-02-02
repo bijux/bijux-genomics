@@ -1,12 +1,10 @@
 //! BAM pipeline profiles and default params.
 
 use anyhow::{anyhow, Result};
-use bijux_domain_bam::params::{
-    BamEffectiveParams, ContaminationScope, DamageEffectiveParams, UdgModel,
-};
-use bijux_domain_bam::stage_spec;
-use bijux_domain_bam::BamStage;
 use serde::Serialize;
+use bijux_domain_bam::{
+    stage_spec, BamEffectiveParams, BamStage, ContaminationScope, DamageEffectiveParams, UdgModel,
+};
 
 #[derive(Debug, Clone, Serialize)]
 pub struct BamStageDefaults {
@@ -67,9 +65,7 @@ pub fn bam_adna_shotgun_profile() -> BamPipelineProfile {
     let mut profile = bam_default_profile();
     profile.id = "adna-shotgun";
     profile.description = "Ancient DNA shotgun defaults";
-    profile
-        .stages
-        .retain(|stage| *stage != BamStage::Recalibration);
+    profile.stages.retain(|stage| *stage != BamStage::Recalibration);
     for entry in &mut profile.defaults {
         match entry.stage {
             BamStage::Filter => {
