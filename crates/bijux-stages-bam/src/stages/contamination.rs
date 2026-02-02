@@ -1,9 +1,9 @@
 use std::path::Path;
 
-use bijux_core::{StageIO, StageId, StagePlanV1, StageVersion, ToolExecutionSpecV1};
-use bijux_domain_bam::params::BqsrEffectiveParams;
+use bijux_core::{CommandSpecV1, StageIO, StageId, StagePlanV1, StageVersion, ToolExecutionSpecV1};
+use bijux_domain_bam::params::ContaminationEffectiveParams;
 
-pub const STAGE_ID: &str = bijux_domain_bam::BamStage::Recalibration.as_str();
+pub const STAGE_ID: &str = bijux_domain_bam::BamStage::Contamination.as_str();
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
 
 /// # Errors
@@ -12,16 +12,19 @@ pub fn plan(
     tool: &ToolExecutionSpecV1,
     bam: &Path,
     out_dir: &Path,
-    params: &BqsrEffectiveParams,
+    params: &ContaminationEffectiveParams,
 ) -> anyhow::Result<StagePlanV1> {
-    let outputs = super::audit_outputs(bijux_domain_bam::BamStage::Recalibration, out_dir);
+    let outputs =
+        crate::stages::support::audit_outputs(bijux_domain_bam::BamStage::Contamination, out_dir);
     let plan = StagePlanV1 {
         stage_id: StageId(STAGE_ID.to_string()),
         stage_version: STAGE_VERSION,
         tool_id: tool.tool_id.clone(),
         tool_version: tool.tool_version.clone(),
         image: tool.image.clone(),
-        command: tool.command.clone(),
+        command: CommandSpecV1 {
+            template: crate::tools::authenticct::args(bam, params),
+        },
         resources: tool.resources.clone(),
         io: StageIO {
             inputs: vec![bijux_core::ArtifactRef {
@@ -33,14 +36,19 @@ pub fn plan(
         out_dir: out_dir.to_path_buf(),
         params: serde_json::json!({
             "bam": bam,
-            "known_sites": params.known_sites,
-            "mode": params.mode,
-            "skip_criteria": params.skip_criteria,
+            "reference_panels": params.reference_panels,
+            "scope": params.scope,
+            "prior": params.prior,
+            "sex_specific": params.sex_specific,
+            "assumptions": params.assumptions,
         }),
-        effective_params: super::ensure_effective_params(
+        effective_params: crate::stages::support::ensure_effective_params(
             serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
         )?,
         aux_images: std::collections::BTreeMap::new(),
     };
-    super::ensure_required_outputs(plan, &["recal_bam", "recal_bai", "recal_report", "summary"])
+    crate::stages::support::ensure_required_outputs(
+        plan,
+        &["contamination_report", "summary", "stage_metrics"],
+    )
 }
