@@ -28,11 +28,7 @@ pub fn bench_bam_stage(
     let stage_id = stage.as_str();
     let mut tools = args.tools.clone();
     if tools.is_empty() {
-        tools = registry
-            .tools_for_stage(stage_id)
-            .iter()
-            .map(|tool| tool.tool_id.clone())
-            .collect();
+        tools = bijux_stages_bam::bam_tools_registry::allowed_tools_for_stage(stage);
     }
     let prev_silver = std::env::var("BIJUX_ALLOW_SILVER").ok();
     let prev_experimental = std::env::var("BIJUX_EXPERIMENTAL_TOOLS").ok();
