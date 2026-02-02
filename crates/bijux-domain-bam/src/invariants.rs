@@ -66,6 +66,28 @@ fn evaluate_bam_invariants_inner(
     let mut results = Vec::new();
     let mut status = InvariantStatusV1::Pass;
 
+    if matches!(
+        stage_id,
+        "bam.sex" | "bam.contamination" | "bam.haplogroups" | "bam.kinship"
+    ) {
+        let sufficient = match stage_id {
+            "bam.sex" => metrics.sex_sufficiency.sufficient,
+            "bam.contamination" => metrics.contamination_sufficiency.sufficient,
+            "bam.haplogroups" => metrics.haplogroup_sufficiency.sufficient,
+            "bam.kinship" => metrics.kinship_sufficiency.sufficient,
+            _ => true,
+        };
+        if !sufficient {
+            results.push(InvariantResultV1 {
+                id: "insufficient_data".to_string(),
+                status: InvariantStatusV1::Warn,
+                message: "insufficient data for reliable inference".to_string(),
+                remediation: Some("increase coverage or provide additional data".to_string()),
+            });
+            status = InvariantStatusV1::Warn;
+        }
+    }
+
     let contamination = metrics.contamination.estimate;
     let contamination_status = if contamination >= thresholds.contamination_fail {
         InvariantStatusV1::Fail
