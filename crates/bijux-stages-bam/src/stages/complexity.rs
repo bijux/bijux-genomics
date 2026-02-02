@@ -1,9 +1,9 @@
 use std::path::Path;
 
-use bijux_core::{CommandSpecV1, StageIO, StageId, StagePlanV1, StageVersion, ToolExecutionSpecV1};
-use bijux_domain_bam::params::DamageEffectiveParams;
+use bijux_core::{StageIO, StageId, StagePlanV1, StageVersion, ToolExecutionSpecV1};
+use bijux_domain_bam::params::ComplexityEffectiveParams;
 
-pub const STAGE_ID: &str = bijux_domain_bam::BamStage::Damage.as_str();
+pub const STAGE_ID: &str = bijux_domain_bam::BamStage::Complexity.as_str();
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
 
 /// # Errors
@@ -12,19 +12,17 @@ pub fn plan(
     tool: &ToolExecutionSpecV1,
     bam: &Path,
     out_dir: &Path,
-    params: &DamageEffectiveParams,
+    params: &ComplexityEffectiveParams,
 ) -> anyhow::Result<StagePlanV1> {
-    let outputs = super::audit_outputs(bijux_domain_bam::BamStage::Damage, out_dir);
-    let out_json = out_dir.join("damage.pydamage.json");
+    let outputs =
+        crate::stages::support::audit_outputs(bijux_domain_bam::BamStage::Complexity, out_dir);
     let plan = StagePlanV1 {
         stage_id: StageId(STAGE_ID.to_string()),
         stage_version: STAGE_VERSION,
         tool_id: tool.tool_id.clone(),
         tool_version: tool.tool_version.clone(),
         image: tool.image.clone(),
-        command: CommandSpecV1 {
-            template: super::args::pydamage_args(bam, &out_json, params),
-        },
+        command: tool.command.clone(),
         resources: tool.resources.clone(),
         io: StageIO {
             inputs: vec![bijux_core::ArtifactRef {
@@ -36,24 +34,16 @@ pub fn plan(
         out_dir: out_dir.to_path_buf(),
         params: serde_json::json!({
             "bam": bam,
-            "udg_model": params.udg_model,
-            "pmd_threshold_5p": params.pmd_threshold_5p,
-            "pmd_threshold_3p": params.pmd_threshold_3p,
-            "trim_5p": params.trim_5p,
-            "trim_3p": params.trim_3p,
+            "min_reads": params.min_reads,
+            "projection_points": params.projection_points,
         }),
-        effective_params: super::ensure_effective_params(
+        effective_params: crate::stages::support::ensure_effective_params(
             serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
         )?,
         aux_images: std::collections::BTreeMap::new(),
     };
-    super::ensure_required_outputs(
+    crate::stages::support::ensure_required_outputs(
         plan,
-        &[
-            "damage_report",
-            "damage_pydamage",
-            "damage_profiler",
-            "summary",
-        ],
+        &["complexity_report", "preseq", "summary"],
     )
 }

@@ -1,9 +1,9 @@
 use std::path::Path;
 
 use bijux_core::{StageIO, StageId, StagePlanV1, StageVersion, ToolExecutionSpecV1};
-use bijux_domain_bam::params::SexEffectiveParams;
+use bijux_domain_bam::params::HaplogroupEffectiveParams;
 
-pub const STAGE_ID: &str = bijux_domain_bam::BamStage::Sex.as_str();
+pub const STAGE_ID: &str = bijux_domain_bam::BamStage::Haplogroups.as_str();
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
 
 /// # Errors
@@ -12,9 +12,10 @@ pub fn plan(
     tool: &ToolExecutionSpecV1,
     bam: &Path,
     out_dir: &Path,
-    params: &SexEffectiveParams,
+    params: &HaplogroupEffectiveParams,
 ) -> anyhow::Result<StagePlanV1> {
-    let outputs = super::audit_outputs(bijux_domain_bam::BamStage::Sex, out_dir);
+    let outputs =
+        crate::stages::support::audit_outputs(bijux_domain_bam::BamStage::Haplogroups, out_dir);
     let plan = StagePlanV1 {
         stage_id: StageId(STAGE_ID.to_string()),
         stage_version: STAGE_VERSION,
@@ -33,13 +34,16 @@ pub fn plan(
         out_dir: out_dir.to_path_buf(),
         params: serde_json::json!({
             "bam": bam,
-            "expected_sex": params.expected_sex,
-            "method": params.method,
+            "reference_panel": params.reference_panel,
+            "min_coverage": params.min_coverage,
         }),
-        effective_params: super::ensure_effective_params(
+        effective_params: crate::stages::support::ensure_effective_params(
             serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
         )?,
         aux_images: std::collections::BTreeMap::new(),
     };
-    super::ensure_required_outputs(plan, &["sex_report", "summary"])
+    crate::stages::support::ensure_required_outputs(
+        plan,
+        &["haplogroups", "summary", "stage_metrics"],
+    )
 }
