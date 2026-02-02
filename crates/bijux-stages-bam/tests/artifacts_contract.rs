@@ -79,9 +79,9 @@ fn bam_stage_artifacts_contract_is_complete() -> Result<()> {
     assert_audit_outputs(BamStage::Filter, &filter);
 
     let markdup_params = MarkDupEffectiveParams {
-        optical_duplicates: bijux_domain_bam::OpticalDuplicatePolicy::MarkOnly,
-        umi_policy: bijux_domain_bam::UmiPolicy::Ignore,
-        duplicate_action: bijux_domain_bam::DuplicateAction::Mark,
+        optical_duplicates: bijux_domain_bam::params::OpticalDuplicatePolicy::MarkOnly,
+        umi_policy: bijux_domain_bam::params::UmiPolicy::Ignore,
+        duplicate_action: bijux_domain_bam::params::DuplicateAction::Mark,
     };
     let markdup =
         bijux_stages_bam::bam::markdup::plan(&dummy_tool("gatk"), bam, out, &markdup_params)?;
@@ -118,7 +118,7 @@ fn bam_stage_artifacts_contract_is_complete() -> Result<()> {
         bijux_stages_bam::bam::damage::plan(&dummy_tool("pydamage"), bam, out, &damage_params)?;
     assert_audit_outputs(BamStage::Damage, &damage);
 
-    let authenticity_params = bijux_domain_bam::AuthenticityEffectiveParams {
+    let authenticity_params = bijux_domain_bam::params::AuthenticityEffectiveParams {
         mode: "aggregate".to_string(),
     };
     let authenticity = bijux_stages_bam::bam::authenticity::plan(
@@ -131,7 +131,7 @@ fn bam_stage_artifacts_contract_is_complete() -> Result<()> {
 
     let contamination_params = ContaminationEffectiveParams {
         reference_panels: vec!["panel.vcf".to_string()],
-        scope: bijux_domain_bam::ContaminationScope::Both,
+        scope: bijux_domain_bam::params::ContaminationScope::Both,
         prior: None,
         sex_specific: false,
         assumptions: None,
@@ -159,10 +159,10 @@ fn bam_stage_artifacts_contract_is_complete() -> Result<()> {
         bijux_stages_bam::bam::bias_mitigation::plan(&dummy_tool("angsd"), bam, out, &bias_params)?;
     assert_audit_outputs(BamStage::BiasMitigation, &bias);
 
-    let recal_params = bijux_domain_bam::BqsrEffectiveParams {
+    let recal_params = bijux_domain_bam::params::BqsrEffectiveParams {
         known_sites: vec!["known.vcf".to_string()],
-        mode: bijux_domain_bam::BqsrMode::Standard,
-        skip_criteria: bijux_domain_bam::RecalibrationSkipCriteria {
+        mode: bijux_domain_bam::params::BqsrMode::Standard,
+        skip_criteria: bijux_domain_bam::params::RecalibrationSkipCriteria {
             min_mean_coverage: 2.0,
             min_breadth_1x: 0.5,
         },
