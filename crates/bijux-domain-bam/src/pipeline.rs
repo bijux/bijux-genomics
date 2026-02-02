@@ -5,23 +5,24 @@ use bijux_core::domain::{PipelineDomain, PipelineSpec};
 use crate::metrics::CoverageMetricsV1;
 use crate::params::{ContaminationScope, RecalibrationSkipCriteria, UdgModel};
 use crate::sample_meta::LibraryType;
+use crate::BamStage;
 
-pub const BAM_CANONICAL_STAGE_ORDER: [&str; 15] = [
-    "bam.validate",
-    "bam.qc_pre",
-    "bam.filter",
-    "bam.markdup",
-    "bam.complexity",
-    "bam.coverage",
-    "bam.damage",
-    "bam.authenticity",
-    "bam.contamination",
-    "bam.sex",
-    "bam.bias_mitigation",
-    "bam.recalibration",
-    "bam.haplogroups",
-    "bam.genotyping",
-    "bam.kinship",
+pub const BAM_CANONICAL_STAGE_ORDER: [BamStage; 15] = [
+    BamStage::Validate,
+    BamStage::QcPre,
+    BamStage::Filter,
+    BamStage::Markdup,
+    BamStage::Complexity,
+    BamStage::Coverage,
+    BamStage::Damage,
+    BamStage::Authenticity,
+    BamStage::Contamination,
+    BamStage::Sex,
+    BamStage::BiasMitigation,
+    BamStage::Recalibration,
+    BamStage::Haplogroups,
+    BamStage::Genotyping,
+    BamStage::Kinship,
 ];
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -33,7 +34,7 @@ pub struct BamBranchRule {
 pub const BAM_BRANCHING_RULES: [BamBranchRule; 2] = [
     BamBranchRule {
         condition: "low coverage detected (coverage.mean < 1x or breadth@1x < 0.1)",
-        action: "skip bam.recalibration by default",
+        action: "skip recalibration by default",
     },
     BamBranchRule {
         condition: "aDNA library type (non-UDG/half-UDG/UDG) set in SampleMeta",
@@ -52,7 +53,7 @@ impl PipelineDomain for BamDomain {
         PipelineSpec {
             stages: BAM_CANONICAL_STAGE_ORDER
                 .iter()
-                .map(|stage| (*stage).to_string())
+                .map(|stage| stage.as_str().to_string())
                 .collect(),
         }
     }
