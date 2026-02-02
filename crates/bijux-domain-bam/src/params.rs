@@ -140,12 +140,6 @@ pub struct BiasMitigationEffectiveParams {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
-pub struct AuthenticityEffectiveParams {
-    pub mode: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
-#[serde(deny_unknown_fields)]
 pub struct RecalibrationSkipCriteria {
     pub min_mean_coverage: f64,
     pub min_breadth_1x: f64,
@@ -194,7 +188,6 @@ pub enum BamEffectiveParams {
     Complexity(ComplexityEffectiveParams),
     Coverage(CoverageEffectiveParams),
     Damage(DamageEffectiveParams),
-    Authenticity(AuthenticityEffectiveParams),
     Contamination(ContaminationEffectiveParams),
     Sex(SexEffectiveParams),
     BiasMitigation(BiasMitigationEffectiveParams),
@@ -232,9 +225,6 @@ pub fn parse_effective_params(
         "bam.damage" => serde_json::from_value::<DamageEffectiveParams>(value.clone())
             .ok()
             .map(BamEffectiveParams::Damage),
-        "bam.authenticity" => serde_json::from_value::<AuthenticityEffectiveParams>(value.clone())
-            .ok()
-            .map(BamEffectiveParams::Authenticity),
         "bam.contamination" => {
             serde_json::from_value::<ContaminationEffectiveParams>(value.clone())
                 .ok()
