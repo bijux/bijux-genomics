@@ -315,7 +315,10 @@ fn stage_metrics_for_plan(
                 .first()
                 .and_then(|path| path.parent())
                 .map_or_else(|| PathBuf::from("."), PathBuf::from);
-            let metrics = bam_metrics_from_dir(&out_dir);
+            let mut metrics = bam_metrics_from_dir(&out_dir);
+            let thresholds = bijux_domain_bam::BamInvariantThresholds::default();
+            let evaluation = bijux_domain_bam::evaluate_bam_invariants(stage_id, &metrics, &thresholds);
+            metrics.stage_verdict = Some(evaluation.verdict.into());
             serde_json::to_value(metrics)?
         }
         _ => serde_json::json!({}),
