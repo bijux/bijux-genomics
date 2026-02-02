@@ -40,7 +40,7 @@ use bijux_core::{
     StageObservabilityContextV1, StagePlanV1, ToolInvocationV1,
 };
 use bijux_domain_bam::metrics::BamMetricsV1;
-use bijux_domain_bam::metrics::{evaluate_bam_invariants, BamInvariantThresholds};
+use bijux_domain_bam::{evaluate_bam_invariants, BamInvariantThresholds};
 use bijux_domain_fastq::{evaluate_invariants, parse_effective_params, thresholds_from_env};
 
 #[derive(Debug, Clone)]
