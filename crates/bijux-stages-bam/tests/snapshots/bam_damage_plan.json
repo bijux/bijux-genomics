@@ -22,8 +22,8 @@
         "path": "out/damage.profiler.json"
       },
       {
-        "name": "damage_metrics",
-        "path": "out/damage.metrics.json"
+        "name": "summary",
+        "path": "out/damage.summary.json"
       }
     ]
   },

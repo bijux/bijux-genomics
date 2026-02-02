@@ -18,12 +18,16 @@
         "path": "out/filtered.bam.bai"
       },
       {
-        "name": "filter_flagstat",
-        "path": "out/filter.flagstat.txt"
+        "name": "flagstat",
+        "path": "out/flagstat.txt"
       },
       {
-        "name": "filter_metrics",
-        "path": "out/filter.metrics.json"
+        "name": "idxstats",
+        "path": "out/idxstats.txt"
+      },
+      {
+        "name": "summary",
+        "path": "out/filter.summary.json"
       }
     ]
   },

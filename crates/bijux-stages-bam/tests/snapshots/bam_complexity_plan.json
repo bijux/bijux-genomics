@@ -14,12 +14,12 @@
         "path": "out/complexity.json"
       },
       {
-        "name": "complexity_preseq",
+        "name": "preseq",
         "path": "out/preseq.txt"
       },
       {
-        "name": "complexity_metrics",
-        "path": "out/complexity.metrics.json"
+        "name": "summary",
+        "path": "out/complexity.summary.json"
       }
     ]
   },
