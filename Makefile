@@ -21,7 +21,7 @@ FASTQ_ROOT_OVERRIDE ?= $(EXTRA_FASTQ_ROOTS)
 	test-images-trim test-images-validate test-images-filter test-images-merge lint quality security test \
 	test-fast test-slow test-e2e guardrails ci-mac ci-mac-fast ci-mac-full lint-fast test-full
 
-CARGO_MAKE ?= cargo make
+CARGO_MAKE ?= cargo make --no-workspace
 CARGO_MAKE_ENV := JOBS=$(JOBS) NEXTEST_JOBS=$(NEXTEST_JOBS)
 
 test:
