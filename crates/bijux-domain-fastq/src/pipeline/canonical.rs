@@ -11,6 +11,7 @@ pub fn canonical_pipeline() -> CanonicalPipeline {
     CanonicalPipeline {
         required: vec![
             "fastq.validate_pre".to_string(),
+            "fastq.detect_adapters".to_string(),
             "fastq.trim".to_string(),
             "fastq.filter".to_string(),
             "fastq.stats_neutral".to_string(),
@@ -29,6 +30,7 @@ pub fn canonical_pipeline() -> CanonicalPipeline {
 pub fn canonical_tool_defaults() -> BTreeMap<&'static str, &'static str> {
     BTreeMap::from([
         ("fastq.validate_pre", "fastqvalidator_official"),
+        ("fastq.detect_adapters", "fastqc"),
         ("fastq.trim", "fastp"),
         ("fastq.filter", "fastp"),
         ("fastq.stats_neutral", "seqkit_stats"),

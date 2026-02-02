@@ -147,4 +147,5 @@ pub struct BenchFastqPreprocessArgs {
     pub enable_contaminant_removal: bool,
     pub no_qc_post: bool,
     pub force_merge: bool,
+    pub enable_correct: bool,
 }

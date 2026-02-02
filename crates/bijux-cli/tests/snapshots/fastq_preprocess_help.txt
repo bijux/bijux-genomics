@@ -59,6 +59,8 @@ Options:
           
       --force-merge
           
+      --enable-correct
+          Enable error correction stage (paired-end only)
   -h, --help
           Print help
 

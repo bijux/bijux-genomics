@@ -9,6 +9,9 @@ pub(super) fn write_run_summary(
     stage_runs: &[StageExecutionSummary],
     failures: &[bijux_stages_fastq::RawFailure],
     merge_decision: Option<&bijux_stages_fastq::fastq::preprocess::MergeDecisionTrace>,
+    correct_decision: Option<&bijux_stages_fastq::fastq::preprocess::CorrectDecisionTrace>,
+    adapter_inference: Option<&serde_json::Value>,
+    stage_skips: &[serde_json::Value],
 ) -> Result<()> {
     let root = out_dir.join("run_artifacts");
     fs::create_dir_all(&root).context("create run summary artifacts dir")?;
@@ -61,7 +64,10 @@ pub(super) fn write_run_summary(
         "stages": stages,
         "failures": failures_json,
         "pipeline_decisions": {
-            "merge": merge_decision
+            "merge": merge_decision,
+            "correct": correct_decision,
+            "adapter_inference": adapter_inference,
+            "stage_skips": stage_skips
         }
     });
     let summary_path = root.join("run_summary.json");
@@ -232,7 +238,7 @@ fn render_run_summary_html(summary: &serde_json::Value) -> String {
 }
 
 #[derive(Clone)]
-pub(super) struct StageExecutionSummary {
+pub(crate) struct StageExecutionSummary {
     pub plan: bijux_core::StagePlanV1,
     pub result: StageResultV1,
 }

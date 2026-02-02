@@ -1,0 +1,17 @@
+schema_version: bijux.qc_thresholds.v1
+adapter_content_warn: 0.1
+adapter_content_fail: 1.0
+mean_q_warn: 20.0
+mean_q_fail: 15.0
+duplication_warn: 0.5
+duplication_fail: 0.8
+n_rate_warn: 0.02
+n_rate_fail: 0.05
+merge_rate_warn_low: 0.1
+merge_rate_warn_high: 0.9
+merge_rate_fail_low: 0.05
+merge_rate_fail_high: 0.98
+retention_warn: 0.7
+retention_fail: 0.4
+mean_q_delta_warn: -1.0
+mean_q_delta_fail: -3.0

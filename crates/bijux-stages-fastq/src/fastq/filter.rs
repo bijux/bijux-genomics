@@ -10,9 +10,13 @@ pub const STAGE_VERSION: StageVersion = StageVersion(1);
 #[derive(Debug, Clone, Default)]
 pub struct FilterPlanOptions {
     pub max_n: Option<u32>,
+    pub max_n_fraction: Option<f64>,
+    pub max_n_count: Option<u32>,
     pub low_complexity_threshold: Option<f64>,
+    pub entropy_threshold: Option<f64>,
     pub kmer_ref: Option<PathBuf>,
     pub redundant_filters: Vec<String>,
+    pub polyx_policy: Option<String>,
 }
 
 pub fn normalize_filter_tool_list(tools: &[String]) -> Result<Vec<String>> {
@@ -41,9 +45,13 @@ pub fn plan_filter(
         paired_mode: PairedMode::SingleEnd,
         threads: tool.resources.threads,
         max_n: options.max_n,
+        max_n_fraction: options.max_n_fraction,
+        max_n_count: options.max_n_count.or(options.max_n),
         low_complexity_threshold: options.low_complexity_threshold,
+        entropy_threshold: options.entropy_threshold,
         contaminant_db: kmer_ref.clone(),
         n_policy: None,
+        polyx_policy: options.polyx_policy.clone(),
     };
     Ok(StagePlanV1 {
         stage_id: StageId(STAGE_ID.to_string()),
@@ -69,9 +77,13 @@ pub fn plan_filter(
             "input": r1,
             "output": output,
             "max_n": options.max_n,
+            "max_n_fraction": options.max_n_fraction,
+            "max_n_count": options.max_n_count,
             "low_complexity_threshold": options.low_complexity_threshold,
+            "entropy_threshold": options.entropy_threshold,
             "kmer_ref": kmer_ref,
             "redundant_filters": options.redundant_filters,
+            "polyx_policy": options.polyx_policy,
         }),
         effective_params: serde_json::to_value(&effective_params)
             .expect("serialize filter effective params"),

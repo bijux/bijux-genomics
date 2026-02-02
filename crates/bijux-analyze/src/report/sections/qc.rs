@@ -137,6 +137,7 @@ pub(crate) fn qc_artifacts_section(rows: &[FactsRowV1]) -> serde_json::Value {
         "multiqc_data": report.multiqc_data,
         "fastqc_raw_modules": report.fastqc_raw_modules,
         "fastqc_trimmed_modules": report.fastqc_trimmed_modules,
+        "fastqc_metrics_v2_path": report.fastqc_metrics_v2_path,
         "top_findings": top_findings_from_invariants(rows, 5),
     })
 }
@@ -191,6 +192,7 @@ pub(crate) fn filter_interpretation_section(rows: &[FactsRowV1]) -> serde_json::
 
 pub(crate) fn adapter_inference_section(rows: &[FactsRowV1]) -> serde_json::Value {
     let mut report_path = None;
+    let mut detect_path = None;
     for row in rows {
         if row.stage_id == "fastq.qc_post" {
             report_path = report_path_for(&row.reports, "qc_post_report");
@@ -198,9 +200,21 @@ pub(crate) fn adapter_inference_section(rows: &[FactsRowV1]) -> serde_json::Valu
                 break;
             }
         }
+        if row.stage_id == "fastq.detect_adapters" {
+            detect_path = report_path_for(&row.reports, "adapter_candidates");
+        }
     }
     let Some(path) = report_path else {
-        return serde_json::json!({});
+        let detect = detect_path
+            .as_deref()
+            .and_then(|path| fs::read_to_string(path).ok())
+            .and_then(|raw| serde_json::from_str::<serde_json::Value>(&raw).ok())
+            .unwrap_or_else(|| serde_json::json!({}));
+        return serde_json::json!({
+            "suggested_adapters": detect,
+            "rationale": "Adapter detection ran before trimming.",
+            "safety": "Inference only applies when adapters are not explicitly set.",
+        });
     };
     let Ok(raw) = fs::read_to_string(&path) else {
         return serde_json::json!({});
@@ -224,11 +238,17 @@ pub(crate) fn adapter_inference_section(rows: &[FactsRowV1]) -> serde_json::Valu
         Some(_) => "Adapter motifs detected in overrepresented sequences.",
         None => "No strong adapter signal detected.",
     };
+    let detect = detect_path
+        .as_deref()
+        .and_then(|path| fs::read_to_string(path).ok())
+        .and_then(|raw| serde_json::from_str::<serde_json::Value>(&raw).ok())
+        .unwrap_or_else(|| serde_json::json!({}));
     serde_json::json!({
         "suggested_preset": report.suggested_preset,
         "suggested_adapters": suggestions,
+        "detect_adapters": detect,
         "rationale": rationale,
-        "safety": "Inference never changes trimming unless --accept-suggested-adapters is set.",
+        "safety": "Inference only applies when adapters are not explicitly set.",
     })
 }
 

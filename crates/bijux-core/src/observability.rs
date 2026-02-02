@@ -141,6 +141,8 @@ pub struct QcPostReportV1 {
     pub fastqc_raw_modules: serde_json::Value,
     pub fastqc_trimmed_modules: serde_json::Value,
     #[serde(default)]
+    pub fastqc_metrics_v2_path: Option<String>,
+    #[serde(default)]
     pub suggested_adapters_path: Option<String>,
     #[serde(default)]
     pub suggested_preset: Option<String>,

@@ -27,6 +27,8 @@ pub struct BenchmarkSummary {
     pub objective: String,
     pub records: Vec<RunBenchmarkRecord>,
     pub ranking: Vec<ToolRanking>,
+    pub recommended_tool: Option<String>,
+    pub recommendation_reason: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -101,11 +103,18 @@ pub fn benchmark_runs(
     }
 
     let ranking = rank_records(&records, objective);
+    let recommended_tool = ranking.first().map(|entry| entry.tool.clone());
+    let recommendation_reason = format!(
+        "ranked by objective {} using median runtime/memory/retention scoring",
+        objective.as_str()
+    );
     Ok(BenchmarkSummary {
         stage: stage.to_string(),
         objective: objective.as_str().to_string(),
         records,
         ranking,
+        recommended_tool,
+        recommendation_reason,
     })
 }
 
@@ -119,6 +128,7 @@ pub fn write_benchmark_exports(
 ) -> Result<(PathBuf, PathBuf)> {
     let json_path = runs_dir.join(format!("benchmark_{}.json", summary.stage));
     let csv_path = runs_dir.join(format!("benchmark_{}.csv", summary.stage));
+    let html_path = runs_dir.join(format!("benchmark_{}.html", summary.stage));
     std::fs::write(&json_path, serde_json::to_string_pretty(summary)?)?;
 
     let mut csv = String::new();
@@ -143,7 +153,67 @@ pub fn write_benchmark_exports(
         )?;
     }
     std::fs::write(&csv_path, csv)?;
+    let html = render_benchmark_html(summary);
+    std::fs::write(&html_path, html)?;
     Ok((json_path, csv_path))
+}
+
+fn render_benchmark_html(summary: &BenchmarkSummary) -> String {
+    use std::fmt::Write;
+    let mut rows = String::new();
+    for entry in &summary.ranking {
+        let runtime = entry
+            .runtime_median
+            .map_or_else(|| "n/a".to_string(), |v| format!("{v:.2}"));
+        let memory = entry
+            .memory_median
+            .map_or_else(|| "n/a".to_string(), |v| format!("{v:.2}"));
+        let retention = entry
+            .retention_median
+            .map_or_else(|| "n/a".to_string(), |v| format!("{v:.3}"));
+        let _ = write!(
+            &mut rows,
+            "<tr><td>{}</td><td>{:.3}</td><td>{}</td><td>{}</td><td>{}</td></tr>",
+            entry.tool, entry.score, runtime, memory, retention
+        );
+    }
+    format!(
+        r#"<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Bijux Benchmark {stage}</title>
+  <style>
+    body {{ font-family: Arial, sans-serif; margin: 24px; }}
+    table {{ border-collapse: collapse; width: 100%; }}
+    th, td {{ border: 1px solid #ddd; padding: 8px; text-align: left; }}
+    th {{ background: #f5f5f5; }}
+  </style>
+</head>
+<body>
+  <h1>Benchmark: {stage}</h1>
+  <p>Objective: {objective}</p>
+  <p>Recommended tool: {recommended}</p>
+  <p>Reason: {reason}</p>
+  <table>
+    <thead>
+      <tr><th>Tool</th><th>Score</th><th>Runtime (median)</th><th>Memory (median)</th><th>Retention (median)</th></tr>
+    </thead>
+    <tbody>
+      {rows}
+    </tbody>
+  </table>
+</body>
+</html>"#,
+        stage = summary.stage,
+        objective = summary.objective,
+        recommended = summary
+            .recommended_tool
+            .clone()
+            .unwrap_or_else(|| "n/a".to_string()),
+        reason = summary.recommendation_reason,
+        rows = rows
+    )
 }
 
 fn rank_records(records: &[RunBenchmarkRecord], objective: Objective) -> Vec<ToolRanking> {

@@ -34,6 +34,7 @@ fn no_cross_layer_calls() {
 
         let depends_on = |needle: &str| contents.contains(needle);
         let allow_aggregate_for_load = path_str.ends_with("/load/sqlite/queries.rs")
+            || path_str.contains("/load/sqlite/queries/")
             || path_str.ends_with("/load/sqlite/rows.rs");
 
         if path_str.contains("/decision/") {

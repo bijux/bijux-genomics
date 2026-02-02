@@ -19,6 +19,7 @@ pub struct StageMetricSpec {
 }
 
 pub const FASTQ_VALIDATE_CLASSES: [MetricClass; 1] = [MetricClass::Integrity];
+pub const FASTQ_DETECT_CLASSES: [MetricClass; 1] = [MetricClass::Composition];
 pub const FASTQ_TRIM_CLASSES: [MetricClass; 3] = [
     MetricClass::Integrity,
     MetricClass::Retention,
@@ -51,6 +52,8 @@ pub const FASTQ_VALIDATE_INVARIANTS: [&str; 3] = [
     "mean_q in [0, 45]",
     "counts are non-negative",
 ];
+pub const FASTQ_DETECT_INVARIANTS: [&str; 2] =
+    ["counts are non-negative", "adapter_content in [0, 100]"];
 
 pub const FASTQ_FILTER_INVARIANTS: [&str; 4] = [
     "reads_out + reads_dropped == reads_in",
@@ -99,6 +102,12 @@ pub fn metric_spec_for_stage(stage_id: &str) -> Option<StageMetricSpec> {
             classes: &FASTQ_VALIDATE_CLASSES,
             invariants: &FASTQ_VALIDATE_INVARIANTS,
             notes: "Validation reports counts; no data is modified.",
+        }),
+        "fastq.detect_adapters" => Some(StageMetricSpec {
+            stage: "fastq.detect_adapters",
+            classes: &FASTQ_DETECT_CLASSES,
+            invariants: &FASTQ_DETECT_INVARIANTS,
+            notes: "Adapter detection inspects reads and reports adapter signals.",
         }),
         "fastq.trim" => Some(StageMetricSpec {
             stage: "fastq.trim",

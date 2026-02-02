@@ -1,4 +1,5 @@
 pub mod correct;
+pub mod detect_adapters;
 pub mod filter;
 pub mod merge;
 pub mod preprocess;
@@ -33,6 +34,11 @@ pub fn registry() -> Vec<StageInfo> {
         StageInfo {
             id: validate_pre::STAGE_ID,
             version: validate_pre::STAGE_VERSION,
+            affects_read_counts: false,
+        },
+        StageInfo {
+            id: detect_adapters::STAGE_ID,
+            version: detect_adapters::STAGE_VERSION,
             affects_read_counts: false,
         },
         StageInfo {
