@@ -57,7 +57,7 @@ fn bam_plan_integration_has_stable_stage_chain() -> Result<()> {
     )?;
     assert_eq!(qc_pre.stage_id.0, "bam.qc_pre");
 
-    let filter_params = bijux_domain_bam::FilterEffectiveParams {
+    let filter_params = bijux_domain_bam::params::FilterEffectiveParams {
         mapq_threshold: 30,
         include_flags: Vec::new(),
         exclude_flags: Vec::new(),
@@ -73,10 +73,10 @@ fn bam_plan_integration_has_stable_stage_chain() -> Result<()> {
     )?;
     assert_eq!(filter.stage_id.0, "bam.filter");
 
-    let markdup_params = bijux_domain_bam::MarkDupEffectiveParams {
-        optical_duplicates: bijux_domain_bam::OpticalDuplicatePolicy::MarkOnly,
-        umi_policy: bijux_domain_bam::UmiPolicy::Ignore,
-        duplicate_action: bijux_domain_bam::DuplicateAction::Mark,
+    let markdup_params = bijux_domain_bam::params::MarkDupEffectiveParams {
+        optical_duplicates: bijux_domain_bam::params::OpticalDuplicatePolicy::MarkOnly,
+        umi_policy: bijux_domain_bam::params::UmiPolicy::Ignore,
+        duplicate_action: bijux_domain_bam::params::DuplicateAction::Mark,
     };
     let markdup = bijux_stages_bam::bam::markdup::plan(
         &dummy_tool("gatk"),
@@ -86,7 +86,7 @@ fn bam_plan_integration_has_stable_stage_chain() -> Result<()> {
     )?;
     assert_eq!(markdup.stage_id.0, "bam.markdup");
 
-    let coverage_params = bijux_domain_bam::CoverageEffectiveParams {
+    let coverage_params = bijux_domain_bam::params::CoverageEffectiveParams {
         regions: None,
         depth_thresholds: vec![1, 3, 5],
     };
@@ -98,8 +98,8 @@ fn bam_plan_integration_has_stable_stage_chain() -> Result<()> {
     )?;
     assert_eq!(coverage.stage_id.0, "bam.coverage");
 
-    let damage_params = bijux_domain_bam::DamageEffectiveParams {
-        udg_model: bijux_domain_bam::UdgModel::NonUdg,
+    let damage_params = bijux_domain_bam::params::DamageEffectiveParams {
+        udg_model: bijux_domain_bam::params::UdgModel::NonUdg,
         pmd_threshold_5p: 0.3,
         pmd_threshold_3p: 0.3,
         trim_5p: 2,

@@ -316,8 +316,8 @@ fn stage_metrics_for_plan(
                 .and_then(|path| path.parent())
                 .map_or_else(|| PathBuf::from("."), PathBuf::from);
             let mut metrics = bam_metrics_from_dir(&out_dir);
-            let thresholds = bijux_domain_bam::BamInvariantThresholds::default();
-            let evaluation = bijux_domain_bam::evaluate_bam_invariants(stage_id, &metrics, &thresholds);
+            let thresholds = bijux_domain_bam::metrics::BamInvariantThresholds::default();
+            let evaluation = bijux_domain_bam::metrics::evaluate_bam_invariants(stage_id, &metrics, &thresholds);
             metrics.stage_verdict = Some(evaluation.verdict.into());
             serde_json::to_value(metrics)?
         }
@@ -389,7 +389,7 @@ fn bam_metrics_from_dir(out_dir: &Path) -> BamMetricsV1 {
         }
     }
 
-    let mut damage_sources: Vec<(String, bijux_domain_bam::DamageMetricsV1)> = Vec::new();
+    let mut damage_sources: Vec<(String, bijux_domain_bam::metrics::DamageMetricsV1)> = Vec::new();
     let pydamage_path = first_existing(out_dir, &["damage.pydamage.json", "pydamage.json"]);
     if let Some(path) = pydamage_path {
         if let Ok(damage) = parse_pydamage_json(&path) {
@@ -494,7 +494,7 @@ fn bam_metrics_from_dir(out_dir: &Path) -> BamMetricsV1 {
         metrics.kinship_sufficiency.sufficient = false;
         metrics.kinship_sufficiency.overlap_snps = metrics.kinship_sufficiency.overlap_snps;
         metrics.kinship_sufficiency.reason = reason;
-        metrics.sex.classification = bijux_domain_bam::SexConfidenceClass::Insufficient;
+        metrics.sex.classification = bijux_domain_bam::metrics::SexConfidenceClass::Insufficient;
         metrics.sex.sufficient_data = false;
     } else {
         metrics.sex_sufficiency.sufficient = metrics.sex.sufficient_data;
@@ -513,10 +513,10 @@ fn bam_metrics_from_dir(out_dir: &Path) -> BamMetricsV1 {
         };
     }
 
-    let authenticity = bijux_domain_bam::authenticity_score(&metrics);
+    let authenticity = bijux_domain_bam::metrics::authenticity_score(&metrics);
     metrics.authenticity = authenticity;
     metrics.contamination_reconciliation.assessment =
-        bijux_domain_bam::contamination_cross_check(
+        bijux_domain_bam::metrics::contamination_cross_check(
             metrics.damage.c_to_t_5p.max(metrics.damage.g_to_a_3p),
             metrics.contamination.estimate,
         );

@@ -1,7 +1,8 @@
 //! aDNA-specific invariant presets (pipeline-level, not domain-level).
 
 use bijux_core::{InvariantResultV1, InvariantStatusV1};
-use bijux_domain_bam::{BamMetricsV1, LibraryType};
+use bijux_domain_bam::metrics::BamMetricsV1;
+use bijux_domain_bam::types::LibraryType;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct DamageExpectation {

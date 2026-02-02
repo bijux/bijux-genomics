@@ -89,7 +89,7 @@ fn bam_mini_run_validate_qc_pre_coverage() -> Result<()> {
     let qc_result = execute_plan(&qc_plan, platform.runner, None)?;
     assert_eq!(qc_result.exit_code, 0);
 
-    let coverage_params = bijux_domain_bam::CoverageEffectiveParams {
+    let coverage_params = bijux_domain_bam::params::CoverageEffectiveParams {
         regions: None,
         depth_thresholds: vec![1, 3, 5],
     };

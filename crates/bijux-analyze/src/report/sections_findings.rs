@@ -1,5 +1,5 @@
 use bijux_domain_bam::metrics::BamMetricsV1;
-use bijux_domain_bam::{evaluate_bam_invariants, BamInvariantThresholds};
+use bijux_domain_bam::metrics::{evaluate_bam_invariants, BamInvariantThresholds};
 
 pub(super) fn accounting_section(rows: &[bijux_core::FactsRowV1]) -> serde_json::Value {
     let mut stages = Vec::new();
