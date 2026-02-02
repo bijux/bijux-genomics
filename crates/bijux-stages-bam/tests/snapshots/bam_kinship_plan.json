@@ -16,6 +16,10 @@
       {
         "name": "summary",
         "path": "out/kinship.summary.json"
+      },
+      {
+        "name": "stage_metrics",
+        "path": "out/stage.metrics.json"
       }
     ]
   },

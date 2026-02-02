@@ -28,6 +28,10 @@
       {
         "name": "summary",
         "path": "out/markdup.summary.json"
+      },
+      {
+        "name": "stage_metrics",
+        "path": "out/stage.metrics.json"
       }
     ]
   },
