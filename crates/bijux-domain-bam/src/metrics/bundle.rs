@@ -15,6 +15,7 @@ use super::sufficiency::{
     ContaminationSufficiencyV1, CoverageSufficiencyV1, HaplogroupSufficiencyV1,
     KinshipSufficiencyV1, SexSufficiencyV1,
 };
+use super::verdict::BamStageVerdictV1;
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
@@ -46,6 +47,8 @@ pub struct BamMetricsBundleV1 {
     pub haplogroup_sufficiency: HaplogroupSufficiencyV1,
     #[serde(default)]
     pub kinship_sufficiency: KinshipSufficiencyV1,
+    #[serde(default)]
+    pub stage_verdict: Option<BamStageVerdictV1>,
     pub genotyping: GenotypingMetricsV1,
 }
 
@@ -71,6 +74,7 @@ impl BamMetricsBundleV1 {
             contamination_sufficiency: ContaminationSufficiencyV1::empty(),
             haplogroup_sufficiency: HaplogroupSufficiencyV1::empty(),
             kinship_sufficiency: KinshipSufficiencyV1::empty(),
+            stage_verdict: None,
             genotyping: GenotypingMetricsV1::empty(),
         }
     }

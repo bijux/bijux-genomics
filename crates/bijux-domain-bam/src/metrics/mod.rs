@@ -12,6 +12,7 @@ mod genotyping;
 mod mapq;
 mod sex;
 mod sufficiency;
+mod verdict;
 
 pub use alignment::AlignmentCountsV1;
 pub use authenticity::{
@@ -30,3 +31,4 @@ pub use sufficiency::{
     ContaminationSufficiencyV1, CoverageSufficiencyV1, HaplogroupSufficiencyV1,
     KinshipSufficiencyV1, SexSufficiencyV1,
 };
+pub use verdict::{BamInvariantStatusV1, BamStageVerdictV1};
