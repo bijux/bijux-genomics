@@ -34,8 +34,8 @@
     ],
     "mode": "skip",
     "skip_criteria": {
-      "min_mean_coverage": 1.0,
-      "min_breadth_1x": 0.1
+      "min_breadth_1x": 0.1,
+      "min_mean_coverage": 1.0
     }
   },
   "effective_params": {
@@ -44,8 +44,8 @@
     ],
     "mode": "skip",
     "skip_criteria": {
-      "min_mean_coverage": 1.0,
-      "min_breadth_1x": 0.1
+      "min_breadth_1x": 0.1,
+      "min_mean_coverage": 1.0
     }
   }
 }
