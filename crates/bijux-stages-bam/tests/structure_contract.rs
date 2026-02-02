@@ -1,17 +1,17 @@
 use std::path::Path;
 
 #[test]
-fn stages_bam_rs_file_counts_are_bounded() {
+fn stages_bam_rs_file_counts_are_bounded() -> anyhow::Result<()> {
     let src = Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
     let mut offenders = Vec::new();
     for entry in walkdir::WalkDir::new(&src).min_depth(0).max_depth(6) {
-        let entry = entry.expect("walk entry");
+        let entry = entry?;
         if !entry.file_type().is_dir() {
             continue;
         }
         let mut count = 0usize;
-        for child in std::fs::read_dir(entry.path()).expect("read dir") {
-            let child = child.expect("child");
+        for child in std::fs::read_dir(entry.path())? {
+            let child = child?;
             let path = child.path();
             if path.extension().and_then(|s| s.to_str()) != Some("rs") {
                 continue;
@@ -28,7 +28,7 @@ fn stages_bam_rs_file_counts_are_bounded() {
     }
     assert!(
         offenders.is_empty(),
-        "rs file count exceeded in dirs: {:?}",
-        offenders
+        "rs file count exceeded in dirs: {offenders:?}"
     );
+    Ok(())
 }
