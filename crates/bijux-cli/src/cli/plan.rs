@@ -3,10 +3,10 @@ use bijux_core::{StageId, ToolId};
 use bijux_stages_fastq::args as engine_args;
 
 use crate::cli::parse::{
-    BenchFastqCorrectArgs, BenchFastqFilterArgs, BenchFastqMergeArgs, BenchFastqPreprocessArgs,
-    BenchFastqQcPostArgs, BenchFastqScreenArgs, BenchFastqStatsArgs, BenchFastqTrimArgs,
-    BenchFastqUmiArgs, BenchFastqValidateArgs, Commands, CommonArgs, FastqCommand,
-    FastqPreprocessArgs, FastqTrimArgs, FastqValidateArgs,
+    BamCommand, BenchFastqCorrectArgs, BenchFastqFilterArgs, BenchFastqMergeArgs,
+    BenchFastqPreprocessArgs, BenchFastqQcPostArgs, BenchFastqScreenArgs, BenchFastqStatsArgs,
+    BenchFastqTrimArgs, BenchFastqUmiArgs, BenchFastqValidateArgs, Commands, CommonArgs,
+    FastqCommand, FastqPreprocessArgs, FastqTrimArgs, FastqValidateArgs,
 };
 
 #[must_use]
@@ -60,6 +60,18 @@ pub fn resolve_stage_tool(command: &Commands) -> (StageId, ToolId, CommonArgs) {
                 StageId("fastq.preprocess".to_string()),
                 ToolId("fastp".to_string()),
                 args.common.clone(),
+            ),
+        },
+        Commands::Bam { command } => match command {
+            BamCommand::ListStages | BamCommand::Explain { .. } => (
+                StageId("bam.validate".to_string()),
+                ToolId("samtools".to_string()),
+                CommonArgs::default(),
+            ),
+            BamCommand::Run(args) => (
+                StageId(args.stage.stage_id().to_string()),
+                ToolId(args.tool.clone().unwrap_or_else(|| "samtools".to_string())),
+                CommonArgs::default(),
             ),
         },
         _ => (

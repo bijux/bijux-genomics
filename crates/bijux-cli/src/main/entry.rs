@@ -35,7 +35,7 @@ use cli::{
     bench_args_merge, bench_args_preprocess, bench_args_qc_post, bench_args_screen,
     bench_args_stats, bench_args_trim, bench_args_umi, bench_args_validate,
     is_bench_requested_trim, is_bench_requested_validate, preprocess_args_from_cli, AnalyzeCommand,
-    BenchCommand, BenchFastqCommand, Cli, Commands, EnvCommand, FastqCommand,
+    BenchBamCommand, BenchCommand, BenchFastqCommand, Cli, Commands, EnvCommand, FastqCommand,
 };
 use env::{env_doctor, print_env_images, print_env_info};
 use main_helpers::{
@@ -82,6 +82,10 @@ fn main() -> Result<()> {
         load_manifests(&domain_dir).map_err(|err| anyhow!("manifest validation failed: {err}"))?;
 
     if handle_fastq_bench(&cli, &registry, &domain_dir)? {
+        return Ok(());
+    }
+
+    if handle_bam_commands(&cli, &registry, &domain_dir)? {
         return Ok(());
     }
 

@@ -19,10 +19,15 @@ pub struct Cli {
 }
 
 #[derive(Debug, Subcommand)]
+#[allow(clippy::large_enum_variant)]
 pub enum Commands {
     Fastq {
         #[command(subcommand)]
         command: FastqCommand,
+    },
+    Bam {
+        #[command(subcommand)]
+        command: BamCommand,
     },
     Analyze {
         #[command(subcommand)]
@@ -143,6 +148,10 @@ pub enum BenchCommand {
     Fastq {
         #[command(subcommand)]
         command: BenchFastqCommand,
+    },
+    Bam {
+        #[command(subcommand)]
+        command: BenchBamCommand,
     },
     Schema {
         stage: String,

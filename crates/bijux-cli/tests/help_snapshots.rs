@@ -23,6 +23,31 @@ fn assert_help_contains(stage: &str, snapshot_path: &str, required_flags: &[&str
     Ok(())
 }
 
+fn assert_bam_help_contains(
+    subcmd: &[&str],
+    snapshot_path: &str,
+    required_flags: &[&str],
+) -> Result<()> {
+    let mut cmd = assert_cmd::cargo::cargo_bin_cmd!("bijux");
+    let mut args = vec!["bam"];
+    args.extend_from_slice(subcmd);
+    args.push("--help");
+    let output = cmd.args(args).output()?;
+    assert!(output.status.success(), "help command failed");
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    for flag in required_flags {
+        assert!(stdout.contains(flag), "missing flag {flag} in help for bam");
+    }
+    let manifest_dir = std::env::var("CARGO_MANIFEST_DIR")?;
+    let snapshot_path = std::path::Path::new(&manifest_dir).join(snapshot_path);
+    let snapshot = fs::read_to_string(&snapshot_path)?;
+    assert!(
+        stdout.contains(snapshot.trim()),
+        "help output for bam missing snapshot content"
+    );
+    Ok(())
+}
+
 #[test]
 fn fastq_trim_help_snapshot() -> Result<()> {
     assert_help_contains(
@@ -147,6 +172,26 @@ fn fastq_preprocess_help_snapshot() -> Result<()> {
             "--scientific-preset",
             "--allow-silver",
             "--allow-experimental",
+        ],
+    )?;
+    Ok(())
+}
+
+#[test]
+fn bam_run_help_snapshot() -> Result<()> {
+    assert_bam_help_contains(
+        &["run"],
+        "tests/snapshots/bam_run_help.txt",
+        &[
+            "--stage",
+            "--bam",
+            "--out",
+            "--tool",
+            "--min-mapq",
+            "--min-length",
+            "--udg-model",
+            "--contamination-scope",
+            "--expected-sex",
         ],
     )?;
     Ok(())

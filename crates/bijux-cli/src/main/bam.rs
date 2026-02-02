@@ -1,0 +1,296 @@
+use bijux_core::ToolRegistry;
+use bijux_engine::api::{build_tool_execution_spec, execute_stage_plan};
+use bijux_env_runtime::api::RunnerKind;
+
+use crate::cli::parse::{BamCommand, BamRunArgs};
+// imports provided by entry.rs
+
+#[allow(clippy::missing_errors_doc)]
+pub fn handle_bam_commands(
+    cli: &Cli,
+    registry: &ToolRegistry,
+    domain_dir: &Path,
+) -> Result<bool> {
+    let Commands::Bam { command } = &cli.command else {
+        return Ok(false);
+    };
+
+    match command {
+        BamCommand::ListStages => {
+            for stage in bijux_domain_bam::BAM_CANONICAL_STAGE_ORDER {
+                println!("{stage}");
+            }
+            Ok(true)
+        }
+        BamCommand::Explain { stage } => {
+            let stage_id = stage.stage_id();
+            let manifest = registry
+                .stages()
+                .get(stage_id)
+                .ok_or_else(|| anyhow!("stage {stage_id} missing from manifests"))?;
+            println!("{}", serde_json::to_string_pretty(manifest)?);
+            Ok(true)
+        }
+        BamCommand::Run(args) => {
+            run_bam_stage(cli, registry, domain_dir, args)?;
+            Ok(true)
+        }
+    }
+}
+
+fn run_bam_stage(
+    cli: &Cli,
+    registry: &ToolRegistry,
+    domain_dir: &Path,
+    args: &BamRunArgs,
+) -> Result<()> {
+    let platform = load_platform(cli.platform.as_deref())
+        .map_err(|err| anyhow!("failed to load platform: {err}"))?;
+    let catalog = load_image_catalog()
+        .map_err(|err| anyhow!("failed to load image catalog: {err}"))?;
+    let stage_id = args.stage.stage_id();
+    let tool_id = args.tool.clone().unwrap_or_else(|| "samtools".to_string());
+    let spec = build_tool_execution_spec(stage_id, &tool_id, registry, &catalog, &platform)?;
+
+    let out_dir = args.out.clone();
+    std::fs::create_dir_all(&out_dir).context("create bam out dir")?;
+    let log_path = out_dir.join("bijux_bam.log");
+    let _log_guard = init_logging(&log_path)?;
+
+    let plan = plan_for_bam_stage(stage_id, &spec, args, out_dir.as_path())?;
+    println!("{}", serde_json::to_string_pretty(&plan)?);
+    println!("manifests: {}", domain_dir.display());
+
+    if args.dry_run {
+        return Ok(());
+    }
+    execute_stage_plan(&plan, RunnerKind::Docker, None)?;
+    Ok(())
+}
+
+#[allow(clippy::too_many_lines)]
+pub(crate) fn plan_for_bam_stage(
+    stage_id: &str,
+    spec: &bijux_core::ToolExecutionSpecV1,
+    args: &BamRunArgs,
+    out_dir: &Path,
+) -> Result<bijux_core::StagePlanV1> {
+    match stage_id {
+        "bam.validate" => Ok(bijux_stages_bam::bam::validate::plan(
+            spec,
+            &args.bam,
+            args.bai.as_deref(),
+            args.reference.as_deref(),
+            out_dir,
+        )),
+        "bam.qc_pre" => Ok(bijux_stages_bam::bam::qc_pre::plan(
+            spec,
+            &args.bam,
+            out_dir,
+        )),
+        "bam.filter" => {
+            let params = bijux_domain_bam::FilterEffectiveParams {
+                mapq_threshold: args.min_mapq.unwrap_or(30),
+                include_flags: args.include_flags.clone(),
+                exclude_flags: args.exclude_flags.clone(),
+                min_length: args.min_length.unwrap_or(30),
+                remove_duplicates: args.remove_duplicates,
+                base_quality_threshold: args.base_quality_threshold.unwrap_or(20),
+            };
+            Ok(bijux_stages_bam::bam::filter::plan(
+                spec,
+                &args.bam,
+                out_dir,
+                &params,
+            ))
+        }
+        "bam.markdup" => {
+            let params = bijux_domain_bam::MarkDupEffectiveParams {
+                optical_duplicates: args
+                    .optical_duplicates
+                    .map_or(bijux_domain_bam::OpticalDuplicatePolicy::MarkOnly, Into::into),
+                umi_policy: args
+                    .umi_policy
+                    .map_or(bijux_domain_bam::UmiPolicy::Ignore, Into::into),
+                duplicate_action: args
+                    .duplicate_action
+                    .map_or(bijux_domain_bam::DuplicateAction::Mark, Into::into),
+            };
+            Ok(bijux_stages_bam::bam::markdup::plan(
+                spec,
+                &args.bam,
+                out_dir,
+                &params,
+            ))
+        }
+        "bam.complexity" => {
+            let params = bijux_domain_bam::ComplexityEffectiveParams {
+                min_reads: args.complexity_min_reads.unwrap_or(100_000),
+                projection_points: if args.complexity_projection_points.is_empty() {
+                    vec![1_000_000, 2_000_000, 5_000_000]
+                } else {
+                    args.complexity_projection_points.clone()
+                },
+            };
+            Ok(bijux_stages_bam::bam::complexity::plan(
+                spec,
+                &args.bam,
+                out_dir,
+                &params,
+            ))
+        }
+        "bam.coverage" => {
+            let params = bijux_domain_bam::CoverageEffectiveParams {
+                regions: args.regions.clone().map(bijux_domain_bam::BedRegions),
+                depth_thresholds: if args.depth_thresholds.is_empty() {
+                    vec![1, 3, 5]
+                } else {
+                    args.depth_thresholds.clone()
+                },
+            };
+            Ok(bijux_stages_bam::bam::coverage::plan(
+                spec,
+                &args.bam,
+                out_dir,
+                &params,
+            ))
+        }
+        "bam.damage" => {
+            let params = bijux_domain_bam::DamageEffectiveParams {
+                udg_model: args
+                    .udg_model
+                    .map_or(bijux_domain_bam::UdgModel::NonUdg, Into::into),
+                pmd_threshold_5p: args.pmd_threshold_5p.unwrap_or(0.3),
+                pmd_threshold_3p: args.pmd_threshold_3p.unwrap_or(0.3),
+                trim_5p: args.trim_5p.unwrap_or(0),
+                trim_3p: args.trim_3p.unwrap_or(0),
+            };
+            Ok(bijux_stages_bam::bam::damage::plan(
+                spec,
+                &args.bam,
+                out_dir,
+                &params,
+            ))
+        }
+        "bam.authenticity" => {
+            let params = bijux_domain_bam::AuthenticityEffectiveParams {
+                mode: args
+                    .authenticity_mode
+                    .clone()
+                    .unwrap_or_else(|| "aggregate".to_string()),
+            };
+            Ok(bijux_stages_bam::bam::authenticity::plan(
+                spec,
+                &args.bam,
+                out_dir,
+                &params,
+            ))
+        }
+        "bam.contamination" => {
+            let params = bijux_domain_bam::ContaminationEffectiveParams {
+                reference_panels: args.contamination_panel.clone(),
+                scope: args
+                    .contamination_scope
+                    .map_or(bijux_domain_bam::ContaminationScope::Both, Into::into),
+                prior: args.contamination_prior,
+                sex_specific: args.sex_specific_contamination,
+                assumptions: args.contamination_assumptions.clone(),
+            };
+            Ok(bijux_stages_bam::bam::contamination::plan(
+                spec,
+                &args.bam,
+                out_dir,
+                &params,
+            ))
+        }
+        "bam.sex" => {
+            let params = bijux_domain_bam::SexEffectiveParams {
+                expected_sex: args.expected_sex.map(Into::into),
+                method: args.sex_method.clone(),
+            };
+            Ok(bijux_stages_bam::bam::sex::plan(
+                spec,
+                &args.bam,
+                out_dir,
+                &params,
+            ))
+        }
+        "bam.bias_mitigation" => {
+            let params = bijux_domain_bam::BiasMitigationEffectiveParams {
+                gc_bias_correction: args.gc_bias_correction,
+                map_bias_correction: args.map_bias_correction,
+            };
+            Ok(bijux_stages_bam::bam::bias_mitigation::plan(
+                spec,
+                &args.bam,
+                out_dir,
+                &params,
+            ))
+        }
+        "bam.recalibration" => {
+            let params = bijux_domain_bam::BqsrEffectiveParams {
+                known_sites: args.known_sites.clone(),
+                mode: args
+                    .bqsr_mode
+                    .map_or(bijux_domain_bam::BqsrMode::Skip, Into::into),
+                skip_criteria: bijux_domain_bam::RecalibrationSkipCriteria {
+                    min_mean_coverage: args.bqsr_min_mean_coverage.unwrap_or(1.0),
+                    min_breadth_1x: args.bqsr_min_breadth_1x.unwrap_or(0.1),
+                },
+            };
+            Ok(bijux_stages_bam::bam::recalibration::plan(
+                spec,
+                &args.bam,
+                out_dir,
+                &params,
+            ))
+        }
+        "bam.haplogroups" => {
+            let params = bijux_domain_bam::HaplogroupEffectiveParams {
+                reference_panel: args
+                    .haplogroup_panel
+                    .clone()
+                    .unwrap_or_else(|| "mito_default".to_string()),
+                min_coverage: args.haplogroup_min_coverage.or(Some(1.0)),
+            };
+            Ok(bijux_stages_bam::bam::haplogroups::plan(
+                spec,
+                &args.bam,
+                out_dir,
+                &params,
+            ))
+        }
+        "bam.genotyping" => {
+            let params = bijux_domain_bam::GenotypingEffectiveParams {
+                caller: args
+                    .caller
+                    .clone()
+                    .unwrap_or_else(|| "angsd".to_string()),
+                min_posterior: args.min_posterior.or(Some(0.9)),
+                min_call_rate: args.min_call_rate.or(Some(0.5)),
+            };
+            Ok(bijux_stages_bam::bam::genotyping::plan(
+                spec,
+                &args.bam,
+                out_dir,
+                &params,
+            ))
+        }
+        "bam.kinship" => {
+            let params = bijux_domain_bam::KinshipEffectiveParams {
+                reference_panel: args
+                    .kinship_panel
+                    .clone()
+                    .unwrap_or_else(|| "king_default".to_string()),
+                min_overlap_snps: args.min_overlap_snps.unwrap_or(1000),
+            };
+            Ok(bijux_stages_bam::bam::kinship::plan(
+                spec,
+                &args.bam,
+                out_dir,
+                &params,
+            ))
+        }
+        _ => Err(anyhow!("unsupported bam stage {stage_id}")),
+    }
+}
