@@ -29,6 +29,7 @@ bijux-stages-bam = { path = "../bijux-stages-bam" }
 bijux-bench = { path = "../bijux-bench" }
 
 [dev-dependencies]
+bijux-guardrails = { path = "../bijux-guardrails" }
 assert_cmd = "2"
 tempfile = "3"
 predicates = "3"

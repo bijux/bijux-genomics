@@ -13,4 +13,5 @@ bijux-analyze = { path = "../bijux-analyze" }
 bijux-engine = { path = "../bijux-engine" }
 
 [dev-dependencies]
+bijux-guardrails = { path = "../bijux-guardrails" }
 insta = { version = "1", features = ["json"] }
