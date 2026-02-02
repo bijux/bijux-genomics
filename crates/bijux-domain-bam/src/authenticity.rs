@@ -4,7 +4,7 @@ use crate::metrics::{
     AuthenticityEvidenceV1, AuthenticityScoreV1, BamMetricsV1, LibraryTypeInferenceV1,
     TrimSuggestionV1,
 };
-use crate::sample_meta::LibraryType;
+use crate::types::LibraryType;
 
 #[must_use]
 pub fn infer_library_type_from_damage(damage_5p: f64, damage_3p: f64) -> LibraryTypeInferenceV1 {
