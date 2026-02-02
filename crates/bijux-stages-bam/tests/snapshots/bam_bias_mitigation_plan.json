@@ -14,8 +14,8 @@
         "path": "out/bias_mitigation.json"
       },
       {
-        "name": "bias_metrics",
-        "path": "out/bias_mitigation.metrics.json"
+        "name": "summary",
+        "path": "out/bias_mitigation.summary.json"
       }
     ]
   },
