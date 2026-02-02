@@ -35,7 +35,14 @@ pub(super) fn bam_accounting_section(rows: &[bijux_core::FactsRowV1]) -> serde_j
         };
         let coverage_mean = metrics.coverage.mean;
         let complexity_reads = metrics.complexity.observed_reads;
-        let verdict = evaluate_bam_invariants(&row.stage_id, &metrics, &thresholds).verdict;
+        let verdict = metrics
+            .stage_verdict
+            .clone()
+            .unwrap_or_else(|| {
+                evaluate_bam_invariants(&row.stage_id, &metrics, &thresholds)
+                    .verdict
+                    .into()
+            });
         entries.push(serde_json::json!({
             "stage_id": row.stage_id,
             "tool_id": row.tool_id,
@@ -93,7 +100,14 @@ pub(super) fn bam_verdict_table(rows: &[bijux_core::FactsRowV1]) -> serde_json::
         }
         let metrics: BamMetricsV1 = serde_json::from_value(row.metrics.clone())
             .unwrap_or_else(|_| BamMetricsV1::empty());
-        let verdict = evaluate_bam_invariants(&row.stage_id, &metrics, &thresholds).verdict;
+        let verdict = metrics
+            .stage_verdict
+            .clone()
+            .unwrap_or_else(|| {
+                evaluate_bam_invariants(&row.stage_id, &metrics, &thresholds)
+                    .verdict
+                    .into()
+            });
         let downstream_ok = metrics.coverage.mean >= 0.5 && metrics.coverage.breadth_1x >= 0.1;
         entries.push(serde_json::json!({
             "stage_id": row.stage_id,
