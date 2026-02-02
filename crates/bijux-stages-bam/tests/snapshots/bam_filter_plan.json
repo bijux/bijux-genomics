@@ -1,0 +1,47 @@
+{
+  "stage_id": "bam.filter",
+  "stage_version": "1",
+  "io": {
+    "inputs": [
+      {
+        "name": "bam",
+        "path": "reads.bam"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "filtered_bam",
+        "path": "out/filtered.bam"
+      },
+      {
+        "name": "filtered_bai",
+        "path": "out/filtered.bam.bai"
+      },
+      {
+        "name": "filter_flagstat",
+        "path": "out/filter.flagstat.txt"
+      },
+      {
+        "name": "filter_metrics",
+        "path": "out/filter.metrics.json"
+      }
+    ]
+  },
+  "parameters": {
+    "bam": "reads.bam",
+    "mapq_threshold": 30,
+    "include_flags": [],
+    "exclude_flags": [],
+    "min_length": 30,
+    "remove_duplicates": false,
+    "base_quality_threshold": 20
+  },
+  "effective_params": {
+    "mapq_threshold": 30,
+    "include_flags": [],
+    "exclude_flags": [],
+    "min_length": 30,
+    "remove_duplicates": false,
+    "base_quality_threshold": 20
+  }
+}

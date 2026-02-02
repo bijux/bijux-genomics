@@ -1,0 +1,45 @@
+{
+  "stage_id": "bam.damage",
+  "stage_version": "1",
+  "io": {
+    "inputs": [
+      {
+        "name": "bam",
+        "path": "reads.bam"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "damage_report",
+        "path": "out/damage.json"
+      },
+      {
+        "name": "damage_pydamage",
+        "path": "out/damage.pydamage.json"
+      },
+      {
+        "name": "damage_profiler",
+        "path": "out/damage.profiler.json"
+      },
+      {
+        "name": "damage_metrics",
+        "path": "out/damage.metrics.json"
+      }
+    ]
+  },
+  "parameters": {
+    "bam": "reads.bam",
+    "udg_model": "non_udg",
+    "pmd_threshold_5p": 0.3,
+    "pmd_threshold_3p": 0.3,
+    "trim_5p": 2,
+    "trim_3p": 2
+  },
+  "effective_params": {
+    "udg_model": "non_udg",
+    "pmd_threshold_5p": 0.3,
+    "pmd_threshold_3p": 0.3,
+    "trim_5p": 2,
+    "trim_3p": 2
+  }
+}

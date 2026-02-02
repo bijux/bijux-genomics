@@ -1,0 +1,37 @@
+{
+  "stage_id": "bam.qc_pre",
+  "stage_version": "1",
+  "io": {
+    "inputs": [
+      {
+        "name": "bam",
+        "path": "reads.bam"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "qc_report",
+        "path": "out/qc_pre.json"
+      },
+      {
+        "name": "qc_flagstat",
+        "path": "out/flagstat.txt"
+      },
+      {
+        "name": "qc_stats",
+        "path": "out/samtools_stats.txt"
+      },
+      {
+        "name": "qc_metrics",
+        "path": "out/qc_pre.metrics.json"
+      }
+    ]
+  },
+  "parameters": {
+    "bam": "reads.bam",
+    "regions": null
+  },
+  "effective_params": {
+    "regions": null
+  }
+}

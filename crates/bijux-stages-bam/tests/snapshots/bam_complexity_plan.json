@@ -1,0 +1,41 @@
+{
+  "stage_id": "bam.complexity",
+  "stage_version": "1",
+  "io": {
+    "inputs": [
+      {
+        "name": "bam",
+        "path": "reads.bam"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "complexity_report",
+        "path": "out/complexity.json"
+      },
+      {
+        "name": "complexity_preseq",
+        "path": "out/preseq.txt"
+      },
+      {
+        "name": "complexity_metrics",
+        "path": "out/complexity.metrics.json"
+      }
+    ]
+  },
+  "parameters": {
+    "bam": "reads.bam",
+    "min_reads": 100000,
+    "projection_points": [
+      1000000,
+      2000000
+    ]
+  },
+  "effective_params": {
+    "min_reads": 100000,
+    "projection_points": [
+      1000000,
+      2000000
+    ]
+  }
+}

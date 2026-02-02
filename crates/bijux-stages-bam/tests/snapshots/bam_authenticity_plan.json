@@ -1,0 +1,29 @@
+{
+  "stage_id": "bam.authenticity",
+  "stage_version": "1",
+  "io": {
+    "inputs": [
+      {
+        "name": "bam",
+        "path": "reads.bam"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "authenticity_report",
+        "path": "out/authenticity.json"
+      },
+      {
+        "name": "authenticity_metrics",
+        "path": "out/authenticity.metrics.json"
+      }
+    ]
+  },
+  "parameters": {
+    "bam": "reads.bam",
+    "mode": "aggregate"
+  },
+  "effective_params": {
+    "mode": "aggregate"
+  }
+}
