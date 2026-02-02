@@ -24,7 +24,8 @@ pub fn bench_bam_stage(
         load_platform(platform_path).map_err(|err| anyhow!("failed to load platform: {err}"))?;
     let catalog =
         load_image_catalog().map_err(|err| anyhow!("failed to load image catalog: {err}"))?;
-    let stage_id = args.stage.stage_id();
+    let stage = args.stage.stage();
+    let stage_id = stage.as_str();
     let mut tools = args.tools.clone();
     if tools.is_empty() {
         tools = registry
@@ -62,7 +63,7 @@ pub fn bench_bam_stage(
                 .join(format!("replicate_{rep}"));
             std::fs::create_dir_all(&run_dir).context("create bam bench run dir")?;
             let run_args: crate::cli::parse::BamRunArgs = args.into();
-            let plan = plan_for_bam_stage(stage_id, &spec, &run_args, run_dir.as_path())?;
+            let plan = plan_for_bam_stage(stage, &spec, &run_args, run_dir.as_path())?;
             if args.explain || args.dry_run {
                 let plan_path = run_dir.join("plan.json");
                 std::fs::write(&plan_path, serde_json::to_vec_pretty(&plan)?)?;

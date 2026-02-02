@@ -21,23 +21,23 @@ pub enum BamStageArg {
 
 impl BamStageArg {
     #[must_use]
-    pub fn stage_id(self) -> &'static str {
+    pub fn stage(self) -> bijux_domain_bam::BamStage {
         match self {
-            BamStageArg::Validate => "bam.validate",
-            BamStageArg::QcPre => "bam.qc_pre",
-            BamStageArg::Filter => "bam.filter",
-            BamStageArg::Markdup => "bam.markdup",
-            BamStageArg::Complexity => "bam.complexity",
-            BamStageArg::Coverage => "bam.coverage",
-            BamStageArg::Damage => "bam.damage",
-            BamStageArg::Authenticity => "bam.authenticity",
-            BamStageArg::Contamination => "bam.contamination",
-            BamStageArg::Sex => "bam.sex",
-            BamStageArg::BiasMitigation => "bam.bias_mitigation",
-            BamStageArg::Recalibration => "bam.recalibration",
-            BamStageArg::Haplogroups => "bam.haplogroups",
-            BamStageArg::Genotyping => "bam.genotyping",
-            BamStageArg::Kinship => "bam.kinship",
+            BamStageArg::Validate => bijux_domain_bam::BamStage::Validate,
+            BamStageArg::QcPre => bijux_domain_bam::BamStage::QcPre,
+            BamStageArg::Filter => bijux_domain_bam::BamStage::Filter,
+            BamStageArg::Markdup => bijux_domain_bam::BamStage::Markdup,
+            BamStageArg::Complexity => bijux_domain_bam::BamStage::Complexity,
+            BamStageArg::Coverage => bijux_domain_bam::BamStage::Coverage,
+            BamStageArg::Damage => bijux_domain_bam::BamStage::Damage,
+            BamStageArg::Authenticity => bijux_domain_bam::BamStage::Authenticity,
+            BamStageArg::Contamination => bijux_domain_bam::BamStage::Contamination,
+            BamStageArg::Sex => bijux_domain_bam::BamStage::Sex,
+            BamStageArg::BiasMitigation => bijux_domain_bam::BamStage::BiasMitigation,
+            BamStageArg::Recalibration => bijux_domain_bam::BamStage::Recalibration,
+            BamStageArg::Haplogroups => bijux_domain_bam::BamStage::Haplogroups,
+            BamStageArg::Genotyping => bijux_domain_bam::BamStage::Genotyping,
+            BamStageArg::Kinship => bijux_domain_bam::BamStage::Kinship,
         }
     }
 }
