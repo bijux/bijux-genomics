@@ -63,6 +63,84 @@ pub const FASTQ_METRICS_SCHEMAS: &[MetricsSchemaId] = &[
     },
 ];
 
+pub const BAM_METRICS_SCHEMAS: &[MetricsSchemaId] = &[
+    MetricsSchemaId {
+        stage_id: "bam.validate",
+        schema: "bam_metrics_v1",
+        version: 1,
+    },
+    MetricsSchemaId {
+        stage_id: "bam.qc_pre",
+        schema: "bam_metrics_v1",
+        version: 1,
+    },
+    MetricsSchemaId {
+        stage_id: "bam.filter",
+        schema: "bam_metrics_v1",
+        version: 1,
+    },
+    MetricsSchemaId {
+        stage_id: "bam.markdup",
+        schema: "bam_metrics_v1",
+        version: 1,
+    },
+    MetricsSchemaId {
+        stage_id: "bam.complexity",
+        schema: "bam_metrics_v1",
+        version: 1,
+    },
+    MetricsSchemaId {
+        stage_id: "bam.coverage",
+        schema: "bam_metrics_v1",
+        version: 1,
+    },
+    MetricsSchemaId {
+        stage_id: "bam.damage",
+        schema: "bam_metrics_v1",
+        version: 1,
+    },
+    MetricsSchemaId {
+        stage_id: "bam.contamination",
+        schema: "bam_metrics_v1",
+        version: 1,
+    },
+    MetricsSchemaId {
+        stage_id: "bam.sex",
+        schema: "bam_metrics_v1",
+        version: 1,
+    },
+    MetricsSchemaId {
+        stage_id: "bam.bias_mitigation",
+        schema: "bam_metrics_v1",
+        version: 1,
+    },
+    MetricsSchemaId {
+        stage_id: "bam.recalibration",
+        schema: "bam_metrics_v1",
+        version: 1,
+    },
+    MetricsSchemaId {
+        stage_id: "bam.haplogroups",
+        schema: "bam_metrics_v1",
+        version: 1,
+    },
+    MetricsSchemaId {
+        stage_id: "bam.genotyping",
+        schema: "bam_metrics_v1",
+        version: 1,
+    },
+    MetricsSchemaId {
+        stage_id: "bam.kinship",
+        schema: "bam_metrics_v1",
+        version: 1,
+    },
+    MetricsSchemaId {
+        stage_id: "bam.authenticity",
+        schema: "bam_metrics_v1",
+        version: 1,
+    },
+];
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MetricDirection {
     HigherBetter,
@@ -127,6 +205,7 @@ pub const COMPARE_METRIC_SEMANTICS: &[MetricSemantics] = &[
 pub fn metrics_schema_for_stage(stage_id: &str) -> Option<&'static MetricsSchemaId> {
     FASTQ_METRICS_SCHEMAS
         .iter()
+        .chain(BAM_METRICS_SCHEMAS.iter())
         .find(|schema| schema.stage_id == stage_id)
 }
 
