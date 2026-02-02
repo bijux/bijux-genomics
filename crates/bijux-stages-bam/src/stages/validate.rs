@@ -1,9 +1,9 @@
 use std::path::Path;
 
 use bijux_core::{CommandSpecV1, StageIO, StageId, StagePlanV1, StageVersion, ToolExecutionSpecV1};
-use bijux_domain_bam::params::CoverageEffectiveParams;
+use bijux_domain_bam::params::ValidateEffectiveParams;
 
-pub const STAGE_ID: &str = bijux_domain_bam::BamStage::Coverage.as_str();
+pub const STAGE_ID: &str = bijux_domain_bam::BamStage::Validate.as_str();
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
 
 /// # Errors
@@ -11,11 +11,15 @@ pub const STAGE_VERSION: StageVersion = StageVersion(1);
 pub fn plan(
     tool: &ToolExecutionSpecV1,
     bam: &Path,
+    bam_index: Option<&Path>,
+    reference: Option<&Path>,
     out_dir: &Path,
-    params: &CoverageEffectiveParams,
 ) -> anyhow::Result<StagePlanV1> {
-    let outputs = super::audit_outputs(bijux_domain_bam::BamStage::Coverage, out_dir);
-    let prefix = out_dir.join("coverage");
+    let effective_params = ValidateEffectiveParams { strict: true };
+    let outputs =
+        crate::stages::support::audit_outputs(bijux_domain_bam::BamStage::Validate, out_dir);
+    let flagstat = out_dir.join("flagstat.txt");
+    let report = out_dir.join("validation.json");
     let plan = StagePlanV1 {
         stage_id: StageId(STAGE_ID.to_string()),
         stage_version: STAGE_VERSION,
@@ -23,7 +27,12 @@ pub fn plan(
         tool_version: tool.tool_version.clone(),
         image: tool.image.clone(),
         command: CommandSpecV1 {
-            template: super::args::mosdepth_args(bam, &prefix, params),
+            template: crate::tools::samtools::validate_args(
+                bam,
+                &flagstat,
+                &report,
+                &effective_params,
+            ),
         },
         resources: tool.resources.clone(),
         io: StageIO {
@@ -36,13 +45,17 @@ pub fn plan(
         out_dir: out_dir.to_path_buf(),
         params: serde_json::json!({
             "bam": bam,
-            "regions": params.regions,
-            "depth_thresholds": params.depth_thresholds,
+            "bai": bam_index,
+            "reference": reference,
+            "strict": effective_params.strict,
         }),
-        effective_params: super::ensure_effective_params(
-            serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
+        effective_params: crate::stages::support::ensure_effective_params(
+            serde_json::to_value(&effective_params).unwrap_or(serde_json::Value::Null),
         )?,
         aux_images: std::collections::BTreeMap::new(),
     };
-    super::ensure_required_outputs(plan, &["coverage_report", "coverage_summary", "summary"])
+    crate::stages::support::ensure_required_outputs(
+        plan,
+        &["validation_report", "flagstat", "stage_metrics"],
+    )
 }

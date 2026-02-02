@@ -14,7 +14,8 @@ pub fn plan(
     out_dir: &Path,
     params: &MarkDupEffectiveParams,
 ) -> anyhow::Result<StagePlanV1> {
-    let outputs = super::audit_outputs(bijux_domain_bam::BamStage::Markdup, out_dir);
+    let outputs =
+        crate::stages::support::audit_outputs(bijux_domain_bam::BamStage::Markdup, out_dir);
     let plan = StagePlanV1 {
         stage_id: StageId(STAGE_ID.to_string()),
         stage_version: STAGE_VERSION,
@@ -37,12 +38,12 @@ pub fn plan(
             "umi_policy": params.umi_policy,
             "duplicate_action": params.duplicate_action,
         }),
-        effective_params: super::ensure_effective_params(
+        effective_params: crate::stages::support::ensure_effective_params(
             serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
         )?,
         aux_images: std::collections::BTreeMap::new(),
     };
-    super::ensure_required_outputs(
+    crate::stages::support::ensure_required_outputs(
         plan,
         &[
             "markdup_bam",
@@ -50,6 +51,7 @@ pub fn plan(
             "flagstat",
             "idxstats",
             "summary",
+            "stage_metrics",
         ],
     )
 }
