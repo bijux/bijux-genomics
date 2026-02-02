@@ -3,7 +3,11 @@
 <head><meta charset="utf-8" /><title>bijux analyze report</title></head>
 <body>
 <script id="report-json" type="application/json">{
-  "adapter_inference": {},
+  "adapter_inference": {
+    "rationale": "Adapter detection ran before trimming.",
+    "safety": "Inference only applies when adapters are not explicitly set.",
+    "suggested_adapters": {}
+  },
   "assets_provenance": [
     {
       "banks": {
@@ -77,7 +81,11 @@
   },
   "filter_interpretation": {},
   "final_qc_summary": {
-    "adapter_inference": {},
+    "adapter_inference": {
+      "rationale": "Adapter detection ran before trimming.",
+      "safety": "Inference only applies when adapters are not explicitly set.",
+      "suggested_adapters": {}
+    },
     "qc": {}
   },
   "metric_semantics": [
@@ -169,6 +177,16 @@
   "run_id": "run-1",
   "schema_version": "bijux.report.v1",
   "sections": {
+    "accounting": {
+      "stages": [
+        {
+          "bases": 800,
+          "reads": 80,
+          "stage_id": "fastq.trim",
+          "tool_id": "fastp"
+        }
+      ]
+    },
     "adapter_config": {},
     "assertions": {
       "entries": [
@@ -266,8 +284,27 @@
     },
     "filtering": {},
     "final_qc_summary": {
-      "adapter_inference": {},
+      "adapter_inference": {
+        "rationale": "Adapter detection ran before trimming.",
+        "safety": "Inference only applies when adapters are not explicitly set.",
+        "suggested_adapters": {}
+      },
       "qc": {}
+    },
+    "findings": {
+      "recommendations": [],
+      "suspected_issues": [],
+      "warnings": []
+    },
+    "impact_metrics": {
+      "impact": [
+        {
+          "bases_dropped": 200,
+          "reads_dropped": 20,
+          "stage_id": "fastq.trim",
+          "tool_id": "fastp"
+        }
+      ]
     },
     "key_findings": [],
     "method_assumptions": {
@@ -490,7 +527,7 @@
       "/Users/bijan/bijux/bijux-dna/target/test-fixtures/report/telemetry/events.jsonl"
     ]
   }
-}</script>
-<div>bundle snapshot</div>
+}
+</script>
 </body>
 </html>

@@ -305,6 +305,10 @@ pub struct FastqDetectAdaptersMetricsV1 {
     pub reads_out: u64,
     pub bases_in: u64,
     pub bases_out: u64,
+    #[serde(default)]
+    pub pairs_in: Option<u64>,
+    #[serde(default)]
+    pub pairs_out: Option<u64>,
     pub mean_q: f64,
     #[serde(default)]
     pub adapter_content_max: Option<f64>,
