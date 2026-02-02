@@ -34,11 +34,16 @@ pub struct BoundaryInvariant {
     pub rule: &'static str,
 }
 
-pub const STAGE_BOUNDARY_INVARIANTS: [BoundaryInvariant; 4] = [
+pub const STAGE_BOUNDARY_INVARIANTS: [BoundaryInvariant; 5] = [
     BoundaryInvariant {
         from: "fastq.validate_pre",
+        to: "fastq.detect_adapters",
+        rule: "validation does not modify reads; adapter detection consumes validated reads",
+    },
+    BoundaryInvariant {
+        from: "fastq.detect_adapters",
         to: "fastq.trim",
-        rule: "validation does not modify reads; trim consumes validated reads",
+        rule: "adapter detection is report-only; trim consumes unchanged reads",
     },
     BoundaryInvariant {
         from: "fastq.trim",
@@ -57,7 +62,7 @@ pub const STAGE_BOUNDARY_INVARIANTS: [BoundaryInvariant; 4] = [
     },
 ];
 
-pub const STAGES: [StageDefinition; 10] = [
+pub const STAGES: [StageDefinition; 11] = [
     StageDefinition {
         stage_id: "fastq.validate_pre",
         kind: FastqStageKind::Core,
@@ -67,6 +72,17 @@ pub const STAGES: [StageDefinition; 10] = [
             consumes_pairs: false,
             produces_reports_only: true,
             affects_metrics: &[MetricClass::Integrity],
+        },
+    },
+    StageDefinition {
+        stage_id: "fastq.detect_adapters",
+        kind: FastqStageKind::Core,
+        criticality: StageCriticality::Essential,
+        semantics: StageSemantics {
+            mutates_fastq: false,
+            consumes_pairs: false,
+            produces_reports_only: true,
+            affects_metrics: &[MetricClass::Composition],
         },
     },
     StageDefinition {

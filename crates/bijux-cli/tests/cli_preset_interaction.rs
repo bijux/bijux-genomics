@@ -66,6 +66,7 @@ fn preprocess_args_require_required_fields() -> Result<()> {
         enable_contaminant_removal: false,
         no_qc_post: false,
         force_merge: false,
+        enable_correct: false,
         jobs: 1,
     };
     let bench = preprocess_args_from_cli(&args)?;

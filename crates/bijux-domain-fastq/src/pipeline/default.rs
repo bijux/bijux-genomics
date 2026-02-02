@@ -17,7 +17,7 @@ impl Default for DefaultPipelineOptions {
         Self {
             paired: false,
             enable_merge: true,
-            enable_correct: true,
+            enable_correct: false,
             enable_qc_post: true,
             enable_screen: false,
         }

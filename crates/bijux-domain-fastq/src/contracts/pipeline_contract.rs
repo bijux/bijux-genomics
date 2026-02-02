@@ -13,6 +13,7 @@ pub enum StageCriticality {
 pub fn canonical_stage_order() -> Vec<&'static str> {
     vec![
         "fastq.validate_pre",
+        "fastq.detect_adapters",
         "fastq.trim",
         "fastq.filter",
         "fastq.stats_neutral",
@@ -44,6 +45,7 @@ pub fn forbidden_transitions() -> Vec<(&'static str, &'static str)> {
 pub fn stage_criticality(stage_id: &str) -> Option<StageCriticality> {
     match stage_id {
         "fastq.validate_pre"
+        | "fastq.detect_adapters"
         | "fastq.trim"
         | "fastq.merge"
         | "fastq.correct"

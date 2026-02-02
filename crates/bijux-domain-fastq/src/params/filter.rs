@@ -11,11 +11,19 @@ pub struct FilterEffectiveParams {
     #[serde(default)]
     pub max_n: Option<u32>,
     #[serde(default)]
+    pub max_n_fraction: Option<f64>,
+    #[serde(default)]
+    pub max_n_count: Option<u32>,
+    #[serde(default)]
     pub low_complexity_threshold: Option<f64>,
+    #[serde(default)]
+    pub entropy_threshold: Option<f64>,
     #[serde(default)]
     pub contaminant_db: Option<String>,
     #[serde(default)]
     pub n_policy: Option<String>,
+    #[serde(default)]
+    pub polyx_policy: Option<String>,
 }
 
 impl FilterEffectiveParams {
@@ -35,9 +43,13 @@ impl FilterEffectiveParams {
     pub fn retention_conditions(&self) -> serde_json::Value {
         serde_json::json!({
             "max_n": self.max_n,
+            "max_n_fraction": self.max_n_fraction,
+            "max_n_count": self.max_n_count,
             "low_complexity_threshold": self.low_complexity_threshold,
+            "entropy_threshold": self.entropy_threshold,
             "kmer_ref": self.contaminant_db,
             "n_policy": self.n_policy,
+            "polyx_policy": self.polyx_policy,
             "paired_mode": self.paired_mode,
             "threads": self.threads,
         })

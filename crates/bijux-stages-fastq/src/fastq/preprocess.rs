@@ -15,6 +15,7 @@ pub struct PreprocessPlan {
     pub r2: Option<std::path::PathBuf>,
     pub pipeline: PipelineSpec,
     pub merge_decision: Option<MergeDecisionTrace>,
+    pub correct_decision: Option<CorrectDecisionTrace>,
     pub enable_contaminant_removal: bool,
 }
 
@@ -27,6 +28,17 @@ pub struct MergeDecisionTrace {
     pub reason: String,
     pub r1_mean_len: Option<usize>,
     pub r2_mean_len: Option<usize>,
+    pub predicted_merge_rate: Option<f64>,
+    pub probe_pairs: Option<usize>,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct CorrectDecisionTrace {
+    pub enabled: bool,
+    pub auto_enabled: bool,
+    pub reason: String,
+    pub mean_q_estimate: Option<f64>,
 }
 
 #[must_use]
@@ -41,6 +53,8 @@ pub fn plan_preprocess(args: &crate::args::BenchFastqPreprocessArgs) -> Preproce
                 reason: "merge forced by flag".to_string(),
                 r1_mean_len: None,
                 r2_mean_len: None,
+                predicted_merge_rate: None,
+                probe_pairs: None,
             });
             true
         } else {
@@ -54,6 +68,8 @@ pub fn plan_preprocess(args: &crate::args::BenchFastqPreprocessArgs) -> Preproce
                         reason: suitability.reason,
                         r1_mean_len: suitability.r1_mean_len,
                         r2_mean_len: suitability.r2_mean_len,
+                        predicted_merge_rate: suitability.predicted_merge_rate,
+                        probe_pairs: suitability.probe_pairs,
                     });
                     enabled
                 }
@@ -65,6 +81,8 @@ pub fn plan_preprocess(args: &crate::args::BenchFastqPreprocessArgs) -> Preproce
                         reason: format!("merge suitability check failed: {err}"),
                         r1_mean_len: None,
                         r2_mean_len: None,
+                        predicted_merge_rate: None,
+                        probe_pairs: None,
                     });
                     false
                 }
@@ -73,20 +91,76 @@ pub fn plan_preprocess(args: &crate::args::BenchFastqPreprocessArgs) -> Preproce
     } else {
         false
     };
+    let mut correct_decision = None;
+    let mut enable_correct = args.enable_correct;
+    if !enable_correct && args.r2.is_some() {
+        let thresholds = bijux_domain_fastq::thresholds_from_env();
+        if let Ok(mean_q) = estimate_mean_q(&args.r1, 256) {
+            if mean_q < thresholds.mean_q_warn {
+                enable_correct = true;
+                correct_decision = Some(CorrectDecisionTrace {
+                    enabled: true,
+                    auto_enabled: true,
+                    reason: format!(
+                        "mean_q estimate {:.2} below warn threshold {:.2}",
+                        mean_q, thresholds.mean_q_warn
+                    ),
+                    mean_q_estimate: Some(mean_q),
+                });
+            } else {
+                correct_decision = Some(CorrectDecisionTrace {
+                    enabled: false,
+                    auto_enabled: false,
+                    reason: "mean_q estimate within expected range".to_string(),
+                    mean_q_estimate: Some(mean_q),
+                });
+            }
+        }
+    } else if enable_correct {
+        correct_decision = Some(CorrectDecisionTrace {
+            enabled: true,
+            auto_enabled: false,
+            reason: "error correction enabled by user flag".to_string(),
+            mean_q_estimate: None,
+        });
+    }
     let pipeline = crate::fastq_default_pipeline(crate::DefaultPipelineOptions {
         paired: args.r2.is_some(),
         enable_merge,
+        enable_correct,
         enable_qc_post: !args.no_qc_post,
         enable_screen: args.contaminant_preset.is_some(),
-        ..Default::default()
     });
     PreprocessPlan {
         r1: args.r1.clone(),
         r2: args.r2.clone(),
         pipeline,
         merge_decision,
+        correct_decision,
         enable_contaminant_removal: args.enable_contaminant_removal,
     }
+}
+
+fn estimate_mean_q(path: &std::path::Path, max_records: usize) -> anyhow::Result<f64> {
+    let raw = std::fs::read_to_string(path)?;
+    let mut total = 0.0;
+    let mut count = 0_u64;
+    for (idx, line) in raw.lines().enumerate() {
+        if idx % 4 == 3 {
+            for byte in line.as_bytes() {
+                let score = (*byte as i32 - 33).max(0) as f64;
+                total += score;
+                count += 1;
+            }
+            if (idx / 4) + 1 >= max_records {
+                break;
+            }
+        }
+    }
+    if count == 0 {
+        return Ok(0.0);
+    }
+    Ok(total / count as f64)
 }
 
 #[allow(clippy::too_many_arguments, clippy::too_many_lines)]
@@ -124,6 +198,15 @@ where
     for (stage, tool) in stages.iter().zip(tools.iter()) {
         let out_dir = out_dir_for_stage(stage, tool, &current_r1, current_r2.as_deref())?;
         let (plan, next_r1, next_r2, stage_version) = match stage.as_str() {
+            "fastq.detect_adapters" => {
+                let plan = crate::fastq::detect_adapters::plan(tool, &current_r1, &out_dir);
+                (
+                    plan.clone(),
+                    current_r1.clone(),
+                    current_r2.clone(),
+                    crate::fastq::detect_adapters::STAGE_VERSION,
+                )
+            }
             "fastq.trim" => {
                 let plan = crate::fastq::trim::plan(
                     tool,

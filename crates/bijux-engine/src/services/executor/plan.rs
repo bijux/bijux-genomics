@@ -195,10 +195,25 @@ pub fn plan_filter_execution(
     out_dir: &Path,
     params: &serde_json::Value,
 ) -> Result<StageExecutionPlan> {
-    let max_n = params.get("max_n").and_then(serde_json::Value::as_u64);
-    let low_complexity_threshold = params
-        .get("low_complexity_threshold")
+    let max_n_count = params
+        .get("max_n_count")
+        .and_then(serde_json::Value::as_u64)
+        .or_else(|| params.get("max_n").and_then(serde_json::Value::as_u64));
+    let _max_n_fraction = params
+        .get("max_n_fraction")
         .and_then(serde_json::Value::as_f64);
+    let low_complexity_threshold = params
+        .get("entropy_threshold")
+        .and_then(serde_json::Value::as_f64)
+        .or_else(|| {
+            params
+                .get("low_complexity_threshold")
+                .and_then(serde_json::Value::as_f64)
+        });
+    let polyx_policy = params
+        .get("polyx_policy")
+        .and_then(serde_json::Value::as_str)
+        .map(str::to_string);
     let kmer_ref = params
         .get("kmer_ref")
         .and_then(|value| value.as_str())
@@ -218,7 +233,7 @@ pub fn plan_filter_execution(
                 "--html".to_string(),
                 "/data/output/fastp.html".to_string(),
             ];
-            if let Some(limit) = max_n {
+            if let Some(limit) = max_n_count {
                 args.push("--n_base_limit".to_string());
                 args.push(limit.to_string());
             }
@@ -226,6 +241,12 @@ pub fn plan_filter_execution(
                 args.push("--low_complexity_filter".to_string());
                 args.push("--complexity_threshold".to_string());
                 args.push(format!("{threshold:.3}"));
+            }
+            if polyx_policy.as_deref() == Some("trim") {
+                args.push("--poly_g_min_len".to_string());
+                args.push("10".to_string());
+                args.push("--poly_x_min_len".to_string());
+                args.push("10".to_string());
             }
             let output = out_dir.join(out_name);
             let mut expected = vec![output.clone(), out_dir.join("fastp.json")];
@@ -240,7 +261,7 @@ pub fn plan_filter_execution(
                 "k=31".to_string(),
                 "stats=/data/output/bbduk.stats".to_string(),
             ];
-            if let Some(limit) = max_n {
+            if let Some(limit) = max_n_count {
                 args.push(format!("maxns={limit}"));
             }
             if let Some(threshold) = low_complexity_threshold {
@@ -264,7 +285,7 @@ pub fn plan_filter_execution(
                 "-out_bad".to_string(),
                 "/data/output/prinseq_bad".to_string(),
             ];
-            if let Some(limit) = max_n {
+            if let Some(limit) = max_n_count {
                 args.push("-ns_max_n".to_string());
                 args.push(limit.to_string());
             }
@@ -280,7 +301,7 @@ pub fn plan_filter_execution(
                 "-o".to_string(),
                 format!("/data/output/{out_name}"),
             ];
-            if let Some(limit) = max_n {
+            if let Some(limit) = max_n_count {
                 args.push("-n".to_string());
                 args.push(limit.to_string());
             }

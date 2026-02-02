@@ -237,6 +237,7 @@ pub fn bench_args_preprocess(
         enable_contaminant_removal: args.enable_contaminant_removal,
         no_qc_post: args.no_qc_post,
         force_merge: args.force_merge,
+        enable_correct: args.enable_correct,
     }
 }
 
@@ -338,6 +339,7 @@ pub fn preprocess_args_from_cli(
         enable_contaminant_removal: args.enable_contaminant_removal,
         no_qc_post: args.no_qc_post,
         force_merge: args.force_merge,
+        enable_correct: args.enable_correct,
     };
     if let Some(preset) = args.scientific_preset {
         apply_scientific_preset(preset, &mut out_args);

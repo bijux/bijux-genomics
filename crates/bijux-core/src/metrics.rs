@@ -223,6 +223,16 @@ pub struct FastqQcPostMetricsV1 {
     pub mean_q: f64,
     pub contamination_rate: f64,
     #[serde(default)]
+    pub adapter_content_max: Option<f64>,
+    #[serde(default)]
+    pub adapter_content_mean: Option<f64>,
+    #[serde(default)]
+    pub duplication_rate: Option<f64>,
+    #[serde(default)]
+    pub n_rate: Option<f64>,
+    #[serde(default)]
+    pub kmer_warning_count: Option<u64>,
+    #[serde(default)]
     pub raw_fastqc_dir: Option<String>,
     #[serde(default)]
     pub trimmed_fastqc_dir: Option<String>,
@@ -286,4 +296,24 @@ pub struct FastqValidateMetricsV1 {
     pub reads_valid: u64,
     pub reads_invalid: u64,
     pub mean_q: f64,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct FastqDetectAdaptersMetricsV1 {
+    pub reads_in: u64,
+    pub reads_out: u64,
+    pub bases_in: u64,
+    pub bases_out: u64,
+    pub mean_q: f64,
+    #[serde(default)]
+    pub adapter_content_max: Option<f64>,
+    #[serde(default)]
+    pub adapter_content_mean: Option<f64>,
+    #[serde(default)]
+    pub duplication_rate: Option<f64>,
+    #[serde(default)]
+    pub n_rate: Option<f64>,
+    #[serde(default)]
+    pub kmer_warning_count: Option<u64>,
 }

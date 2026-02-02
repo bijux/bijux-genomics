@@ -17,6 +17,11 @@ pub const FASTQ_METRICS_SCHEMAS: &[MetricsSchemaId] = &[
         version: 1,
     },
     MetricsSchemaId {
+        stage_id: "fastq.detect_adapters",
+        schema: "fastq_detect_adapters_v1",
+        version: 1,
+    },
+    MetricsSchemaId {
         stage_id: "fastq.filter",
         schema: "fastq_filter_v2",
         version: 2,

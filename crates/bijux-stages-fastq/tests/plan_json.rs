@@ -177,6 +177,7 @@ fn preprocess_plan_json_is_emitted_and_stable() -> Result<()> {
         enable_contaminant_removal: false,
         no_qc_post: false,
         force_merge: false,
+        enable_correct: false,
     };
     let plan = bijux_stages_fastq::fastq::preprocess::plan_preprocess(&args);
     let plan = bijux_stages_fastq::fastq::preprocess::plan_preprocess_stage(
