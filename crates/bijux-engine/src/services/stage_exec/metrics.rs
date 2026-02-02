@@ -315,11 +315,7 @@ fn stage_metrics_for_plan(
                 .first()
                 .and_then(|path| path.parent())
                 .map_or_else(|| PathBuf::from("."), PathBuf::from);
-            let mut metrics = bam_metrics_from_dir(&out_dir);
-            let thresholds = bijux_domain_bam::metrics::BamInvariantThresholds::default();
-            let evaluation =
-                bijux_domain_bam::metrics::evaluate_bam_invariants(stage_id, &metrics, &thresholds);
-            metrics.stage_verdict = Some(evaluation.verdict.into());
+            let metrics = bam_metrics_from_dir(&out_dir);
             serde_json::to_value(metrics)?
         }
         _ => serde_json::json!({}),
@@ -344,98 +340,54 @@ fn stage_metrics_for_plan(
 fn bam_metrics_from_dir(out_dir: &Path) -> BamMetricsV1 {
     let mut metrics = BamMetricsV1::empty();
 
-    let flagstat_path = first_existing(
-        out_dir,
-        &["filter.flagstat.txt", "markdup.flagstat.txt", "flagstat.txt"],
-    );
-    if let Some(path) = flagstat_path {
-        if let Ok(counts) = parse_samtools_flagstat(&path) {
+    let flagstat_path = out_dir.join("flagstat.txt");
+    if flagstat_path.exists() {
+        if let Ok(counts) = parse_samtools_flagstat(&flagstat_path) {
             metrics.alignment = counts;
         }
     }
 
-    let stats_path = first_existing(out_dir, &["samtools_stats.txt"]);
-    if let Some(path) = stats_path {
-        if let Ok((fragment, mapq)) = parse_samtools_stats(&path) {
+    let stats_path = out_dir.join("samtools_stats.txt");
+    if stats_path.exists() {
+        if let Ok((fragment, mapq)) = parse_samtools_stats(&stats_path) {
             metrics.fragment_length = fragment;
             metrics.mapq = mapq;
         }
     }
-    let idxstats_path = first_existing(out_dir, &["idxstats.txt"]);
-    if let Some(path) = idxstats_path {
-        if let Ok(idxstats) = crate::services::observer::parse_samtools_idxstats(&path) {
-            metrics.idxstats = idxstats;
-        }
-    }
 
-    let mosdepth_path =
-        first_existing(out_dir, &["coverage.mosdepth.summary.txt", "mosdepth.summary.txt"]);
-    if let Some(path) = mosdepth_path {
-        if let Ok(coverage) = parse_mosdepth_summary(&path) {
+    let mosdepth_path = out_dir.join("mosdepth.summary.txt");
+    if mosdepth_path.exists() {
+        if let Ok(coverage) = parse_mosdepth_summary(&mosdepth_path) {
             metrics.coverage = coverage;
         }
-    } else {
-        let depth_path = first_existing(out_dir, &["coverage.depth.txt", "depth.txt"]);
-        if let Some(path) = depth_path {
-            if let Ok(coverage) = bijux_domain_bam::metrics::parse_samtools_depth(&path) {
-                metrics.coverage = coverage;
-            }
-        }
     }
 
-    let preseq_path = first_existing(out_dir, &["preseq.txt"]);
-    if let Some(path) = preseq_path {
-        if let Ok(complexity) = parse_preseq_estimates(&path) {
+    let preseq_path = out_dir.join("preseq.txt");
+    if preseq_path.exists() {
+        if let Ok(complexity) = parse_preseq_estimates(&preseq_path) {
             metrics.complexity = complexity;
         }
     }
 
-    let mut damage_sources: Vec<(String, bijux_domain_bam::metrics::DamageMetricsV1)> = Vec::new();
-    let pydamage_path = first_existing(out_dir, &["damage.pydamage.json", "pydamage.json"]);
-    if let Some(path) = pydamage_path {
-        if let Ok(damage) = parse_pydamage_json(&path) {
-            metrics.damage = damage.clone();
-            damage_sources.push(("pydamage".to_string(), damage));
+    let pydamage_path = out_dir.join("pydamage.json");
+    if pydamage_path.exists() {
+        if let Ok(damage) = parse_pydamage_json(&pydamage_path) {
+            metrics.damage = damage;
         }
     }
-    let mapdamage2_path = first_existing(out_dir, &["damage.mapdamage2.txt", "mapdamage2.txt"]);
-    if let Some(path) = mapdamage2_path {
-        if let Ok(damage) = bijux_domain_bam::metrics::parse_mapdamage2_misincorporation(&path) {
-            if damage_sources.is_empty() {
-                metrics.damage = damage.clone();
-            }
-            damage_sources.push(("mapdamage2".to_string(), damage));
+    let damageprofiler_path = out_dir.join("damageprofiler.json");
+    if damageprofiler_path.exists() {
+        if let Ok(damage) = parse_damageprofiler_json(&damageprofiler_path) {
+            metrics.damage = damage;
         }
-    }
-    let damageprofiler_path =
-        first_existing(out_dir, &["damage.profiler.json", "damageprofiler.json"]);
-    if let Some(path) = damageprofiler_path {
-        if let Ok(damage) = parse_damageprofiler_json(&path) {
-            if damage_sources.is_empty() {
-                metrics.damage = damage.clone();
-            }
-            damage_sources.push(("damageprofiler".to_string(), damage));
-        }
-    }
-    if damage_sources.len() >= 2 {
-        let threshold = 0.05;
-        let (tool_a, metrics_a) = &damage_sources[0];
-        let (tool_b, metrics_b) = &damage_sources[1];
-        metrics.damage_comparison = Some(bijux_domain_bam::metrics::compare_damage_metrics(
-            tool_a,
-            metrics_a,
-            tool_b,
-            metrics_b,
-            threshold,
-        ));
     }
 
-    let contamination_path = first_existing(out_dir, &["contamination.json"]);
-    if let Some(path) = contamination_path {
-        if let Ok(contamination) = parse_contamination_json(&path) {
+    let contamination_path = out_dir.join("contamination.json");
+    if contamination_path.exists() {
+        if let Ok(contamination) = parse_contamination_json(&contamination_path) {
             metrics.contamination = contamination;
         }
-        if let Ok(raw) = std::fs::read_to_string(&path) {
+        if let Ok(raw) = std::fs::read_to_string(&contamination_path) {
             if let Ok(value) = serde_json::from_str::<serde_json::Value>(&raw) {
                 metrics.contamination_reconciliation.mt_fraction = value
                     .get("mt_estimate")
@@ -447,9 +399,9 @@ fn bam_metrics_from_dir(out_dir: &Path) -> BamMetricsV1 {
         }
     }
 
-    let sex_path = first_existing(out_dir, &["sex.json"]);
-    if let Some(path) = sex_path {
-        if let Ok(sex) = parse_sex_json(&path) {
+    let sex_path = out_dir.join("sex.json");
+    if sex_path.exists() {
+        if let Ok(sex) = parse_sex_json(&sex_path) {
             metrics.sex = sex;
         }
     }
@@ -469,58 +421,12 @@ fn bam_metrics_from_dir(out_dir: &Path) -> BamMetricsV1 {
             (1.0 - metrics.coverage.breadth_1x).clamp(0.0, 1.0);
         metrics.coverage_uniformity.coefficient_of_variation =
             (1.0 - metrics.coverage.breadth_1x).max(0.0);
-        let sufficient = metrics.coverage.mean >= 1.0 || metrics.coverage.breadth_1x >= 0.1;
-        let reason = if sufficient {
-            "coverage meets minimum thresholds"
-        } else {
-            "coverage below minimum thresholds"
-        };
-        metrics.coverage_sufficiency.sufficient = sufficient;
-        metrics.coverage_sufficiency.mean_coverage = metrics.coverage.mean;
-        metrics.coverage_sufficiency.breadth_1x = metrics.coverage.breadth_1x;
-        metrics.coverage_sufficiency.reason = reason.to_string();
     }
 
-    if metrics.coverage_sufficiency.sufficient {
-        metrics.sex_sufficiency.sufficient = metrics.sex.sufficient_data;
-        metrics.sex_sufficiency.confidence = metrics.sex.confidence;
-        metrics.sex_sufficiency.reason = if metrics.sex.sufficient_data {
-            "sex inference meets thresholds".to_string()
-        } else {
-            "sex inference confidence below threshold".to_string()
-        };
-        metrics.contamination_sufficiency.sufficient = metrics.contamination.estimate > 0.0;
-        metrics.contamination_sufficiency.estimate = metrics.contamination.estimate;
-        metrics.contamination_sufficiency.reason = if metrics.contamination.estimate > 0.0 {
-            "contamination estimate available".to_string()
-        } else {
-            "contamination estimate missing".to_string()
-        };
-    } else {
-        let reason = metrics.coverage_sufficiency.reason.clone();
-        metrics.sex_sufficiency.sufficient = false;
-        metrics.sex_sufficiency.confidence = metrics.sex.confidence;
-        metrics.sex_sufficiency.reason.clone_from(&reason);
-        metrics.contamination_sufficiency.sufficient = false;
-        metrics.contamination_sufficiency.estimate = metrics.contamination.estimate;
-        metrics.contamination_sufficiency
-            .reason
-            .clone_from(&reason);
-        metrics.haplogroup_sufficiency.sufficient = false;
-        metrics.haplogroup_sufficiency.min_coverage = metrics.coverage.mean;
-        metrics.haplogroup_sufficiency
-            .reason
-            .clone_from(&reason);
-        metrics.kinship_sufficiency.sufficient = false;
-        metrics.kinship_sufficiency.reason = reason;
-        metrics.sex.classification = bijux_domain_bam::metrics::SexConfidenceClass::Insufficient;
-        metrics.sex.sufficient_data = false;
-    }
-
-    let authenticity = bijux_domain_bam::metrics::authenticity_score(&metrics);
+    let authenticity = bijux_domain_bam::authenticity_score(&metrics);
     metrics.authenticity = authenticity;
     metrics.contamination_reconciliation.assessment =
-        bijux_domain_bam::metrics::contamination_cross_check(
+        bijux_domain_bam::contamination_cross_check(
             metrics.damage.c_to_t_5p.max(metrics.damage.g_to_a_3p),
             metrics.contamination.estimate,
         );
@@ -533,22 +439,6 @@ fn bam_metrics_from_dir(out_dir: &Path) -> BamMetricsV1 {
                 "mtDNA vs nuclear contamination estimates diverge".to_string();
         }
     }
-    metrics.sex_sufficiency.sufficient = metrics.sex.sufficient_data;
-    metrics.sex_sufficiency.confidence = metrics.sex.confidence;
-    metrics.sex_sufficiency.reason = if metrics.sex.sufficient_data {
-        "sex inference sufficient"
-    } else {
-        "insufficient sex data"
-    }
-    .to_string();
-    metrics.contamination_sufficiency.sufficient = metrics.contamination.estimate > 0.0;
-    metrics.contamination_sufficiency.estimate = metrics.contamination.estimate;
-    metrics.contamination_sufficiency.reason = if metrics.contamination.estimate > 0.0 {
-        "contamination estimate available"
-    } else {
-        "contamination estimate unavailable"
-    }
-    .to_string();
     if metrics.coverage.mean >= 1.0 {
         metrics.haplogroup_sufficiency.sufficient = true;
         metrics.haplogroup_sufficiency.min_coverage = metrics.coverage.mean;
@@ -568,16 +458,6 @@ fn bam_metrics_from_dir(out_dir: &Path) -> BamMetricsV1 {
     }
 
     metrics
-}
-
-fn first_existing(out_dir: &Path, names: &[&str]) -> Option<PathBuf> {
-    for name in names {
-        let candidate = out_dir.join(name);
-        if candidate.exists() {
-            return Some(candidate);
-        }
-    }
-    None
 }
 
 #[allow(clippy::cast_precision_loss)]
