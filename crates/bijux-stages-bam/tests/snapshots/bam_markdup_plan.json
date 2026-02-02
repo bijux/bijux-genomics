@@ -29,13 +29,13 @@
   },
   "parameters": {
     "bam": "reads.bam",
+    "duplicate_action": "mark",
     "optical_duplicates": "mark_only",
-    "umi_policy": "ignore",
-    "duplicate_action": "mark"
+    "umi_policy": "ignore"
   },
   "effective_params": {
+    "duplicate_action": "mark",
     "optical_duplicates": "mark_only",
-    "umi_policy": "ignore",
-    "duplicate_action": "mark"
+    "umi_policy": "ignore"
   }
 }

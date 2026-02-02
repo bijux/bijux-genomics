@@ -8,3 +8,8 @@ pub mod pipeline;
 pub mod run_artifacts;
 pub mod stage_exec;
 pub mod telemetry;
+
+#[allow(dead_code)]
+pub(crate) fn module_id() -> &'static str {
+    "services"
+}
