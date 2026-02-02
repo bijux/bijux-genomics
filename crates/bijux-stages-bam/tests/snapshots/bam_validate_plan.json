@@ -12,20 +12,12 @@
       {
         "name": "validation_report",
         "path": "out/validation.json"
-      },
-      {
-        "name": "flagstat",
-        "path": "out/flagstat.txt"
-      },
-      {
-        "name": "stage_metrics",
-        "path": "out/stage.metrics.json"
       }
     ]
   },
   "parameters": {
-    "bai": null,
     "bam": "reads.bam",
+    "bai": null,
     "reference": null,
     "strict": true
   },

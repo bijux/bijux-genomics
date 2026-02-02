@@ -18,38 +18,30 @@
         "path": "out/filtered.bam.bai"
       },
       {
-        "name": "flagstat",
-        "path": "out/flagstat.txt"
+        "name": "filter_flagstat",
+        "path": "out/filter.flagstat.txt"
       },
       {
-        "name": "idxstats",
-        "path": "out/idxstats.txt"
-      },
-      {
-        "name": "summary",
-        "path": "out/filter.summary.json"
-      },
-      {
-        "name": "stage_metrics",
-        "path": "out/stage.metrics.json"
+        "name": "filter_metrics",
+        "path": "out/filter.metrics.json"
       }
     ]
   },
   "parameters": {
     "bam": "reads.bam",
-    "base_quality_threshold": 20,
-    "exclude_flags": [],
-    "include_flags": [],
     "mapq_threshold": 30,
+    "include_flags": [],
+    "exclude_flags": [],
     "min_length": 30,
-    "remove_duplicates": false
+    "remove_duplicates": false,
+    "base_quality_threshold": 20
   },
   "effective_params": {
-    "base_quality_threshold": 20,
-    "exclude_flags": [],
-    "include_flags": [],
     "mapq_threshold": 30,
+    "include_flags": [],
+    "exclude_flags": [],
     "min_length": 30,
-    "remove_duplicates": false
+    "remove_duplicates": false,
+    "base_quality_threshold": 20
   }
 }

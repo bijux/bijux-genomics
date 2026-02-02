@@ -14,32 +14,28 @@
         "path": "out/contamination.json"
       },
       {
-        "name": "summary",
-        "path": "out/contamination.summary.json"
-      },
-      {
-        "name": "stage_metrics",
-        "path": "out/stage.metrics.json"
+        "name": "contamination_metrics",
+        "path": "out/contamination.metrics.json"
       }
     ]
   },
   "parameters": {
-    "assumptions": null,
     "bam": "reads.bam",
-    "prior": null,
     "reference_panels": [
       "panel.vcf"
     ],
     "scope": "both",
-    "sex_specific": false
+    "prior": null,
+    "sex_specific": false,
+    "assumptions": null
   },
   "effective_params": {
-    "assumptions": null,
-    "prior": null,
     "reference_panels": [
       "panel.vcf"
     ],
     "scope": "both",
-    "sex_specific": false
+    "prior": null,
+    "sex_specific": false,
+    "assumptions": null
   }
 }
