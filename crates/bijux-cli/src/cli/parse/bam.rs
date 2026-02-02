@@ -276,6 +276,7 @@ pub enum BamCommand {
 #[derive(Debug, clap::Subcommand)]
 pub enum BenchBamCommand {
     Stage(BenchBamStageArgs),
+    Pipeline(BenchBamPipelineArgs),
 }
 
 #[derive(Debug, Args, Clone)]
@@ -285,6 +286,33 @@ pub struct BenchBamStageArgs {
     pub sample_id: String,
     #[arg(long, value_enum)]
     pub stage: BamStageArg,
+    #[arg(long)]
+    pub bam: PathBuf,
+    #[arg(long)]
+    pub out: PathBuf,
+    #[arg(long, value_delimiter = ',')]
+    pub tools: Vec<String>,
+    #[arg(long)]
+    pub explain: bool,
+    #[arg(long)]
+    pub allow_silver: bool,
+    #[arg(long)]
+    pub allow_experimental: bool,
+    #[arg(long, default_value_t = 1)]
+    pub replicates: u32,
+    #[arg(long, default_value_t = 1)]
+    pub jobs: u32,
+    #[arg(long)]
+    pub dry_run: bool,
+}
+
+#[derive(Debug, Args, Clone)]
+#[allow(clippy::struct_excessive_bools)]
+pub struct BenchBamPipelineArgs {
+    #[arg(long, alias = "sample")]
+    pub sample_id: String,
+    #[arg(long, default_value = "default")]
+    pub profile: String,
     #[arg(long)]
     pub bam: PathBuf,
     #[arg(long)]
