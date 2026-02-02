@@ -254,6 +254,7 @@ dependencies = [
  "bijux-env-builder",
  "bijux-env-runtime",
  "bijux-guardrails",
+ "bijux-pipelines-bam",
  "bijux-stages-bam",
  "bijux-stages-fastq",
  "chrono",
@@ -438,6 +439,19 @@ dependencies = [
  "regex",
  "serde_json",
  "walkdir",
+]
+
+[[package]]
+name = "bijux-pipelines-bam"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bijux-core",
+ "bijux-domain-bam",
+ "bijux-guardrails",
+ "insta",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

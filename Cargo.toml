@@ -10,6 +10,7 @@ members = [
   "crates/bijux-env-builder",
   "crates/bijux-stages-fastq",
   "crates/bijux-domain-bam",
+  "crates/bijux-pipelines-bam",
   "crates/bijux-stages-bam",
   "crates/bijux-domain-vcf",
   "crates/bijux-domain-fastq",
