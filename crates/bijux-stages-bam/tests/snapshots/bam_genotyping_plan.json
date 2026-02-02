@@ -14,24 +14,20 @@
         "path": "out/genotyping.json"
       },
       {
-        "name": "summary",
-        "path": "out/genotyping.summary.json"
-      },
-      {
-        "name": "stage_metrics",
-        "path": "out/stage.metrics.json"
+        "name": "genotyping_metrics",
+        "path": "out/genotyping.metrics.json"
       }
     ]
   },
   "parameters": {
     "bam": "reads.bam",
     "caller": "angsd",
-    "min_call_rate": 0.5,
-    "min_posterior": 0.9
+    "min_posterior": 0.9,
+    "min_call_rate": 0.5
   },
   "effective_params": {
     "caller": "angsd",
-    "min_call_rate": 0.5,
-    "min_posterior": 0.9
+    "min_posterior": 0.9,
+    "min_call_rate": 0.5
   }
 }

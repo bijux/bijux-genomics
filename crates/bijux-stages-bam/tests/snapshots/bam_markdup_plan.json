@@ -18,32 +18,24 @@
         "path": "out/markdup.bam.bai"
       },
       {
-        "name": "flagstat",
-        "path": "out/flagstat.txt"
+        "name": "markdup_flagstat",
+        "path": "out/markdup.flagstat.txt"
       },
       {
-        "name": "idxstats",
-        "path": "out/idxstats.txt"
-      },
-      {
-        "name": "summary",
-        "path": "out/markdup.summary.json"
-      },
-      {
-        "name": "stage_metrics",
-        "path": "out/stage.metrics.json"
+        "name": "markdup_metrics",
+        "path": "out/markdup.metrics.json"
       }
     ]
   },
   "parameters": {
     "bam": "reads.bam",
-    "duplicate_action": "mark",
     "optical_duplicates": "mark_only",
-    "umi_policy": "ignore"
+    "umi_policy": "ignore",
+    "duplicate_action": "mark"
   },
   "effective_params": {
-    "duplicate_action": "mark",
     "optical_duplicates": "mark_only",
-    "umi_policy": "ignore"
+    "umi_policy": "ignore",
+    "duplicate_action": "mark"
   }
 }
