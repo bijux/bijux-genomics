@@ -12,6 +12,7 @@ rusqlite.workspace = true
 tracing.workspace = true
 anyhow.workspace = true
 bijux-core = { path = "../bijux-core" }
+bijux-domain-bam = { path = "../bijux-domain-bam" }
 sha2.workspace = true
 parquet = { version = "50", optional = true, features = ["json"] }
 

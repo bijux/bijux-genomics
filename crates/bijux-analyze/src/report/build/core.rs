@@ -19,12 +19,12 @@ use super::sections::schema::{
 };
 use super::sections::{
     accounting_section, adapter_config_section, adapter_inference_section, assertions_section,
+    bam_accounting_section, bam_findings_section, bam_plots_section, bam_verdict_table,
     bench_summary_section, comparison_view_section, decision_trace_section, failure_hints_section,
     filter_interpretation_section, findings_section, impact_metrics_section, params_excerpt,
-    pipeline_verdict_from_rows, pipeline_verdict_section, qc_artifacts_section,
-    qc_improvement_section, read_tool_invocation, report_path_for, reproducibility_section,
-    scientific_provenance_section, stage_completeness_table, stage_confidence_section,
-    stage_plots_section,
+    pipeline_verdict_from_rows, pipeline_verdict_section, qc_artifacts_section, qc_improvement_section,
+    read_tool_invocation, report_path_for, reproducibility_section, scientific_provenance_section,
+    stage_completeness_table, stage_confidence_section, stage_plots_section,
 };
 use crate::export::write_run_summary_json;
 use crate::model::stable_sort_records;
@@ -279,6 +279,24 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
         "accounting".to_string(),
         JsonBlob::new(accounting_section(&ordered)),
     );
+    if ordered.iter().any(|row| row.stage_id.starts_with("bam.")) {
+        sections.insert(
+            "bam_accounting".to_string(),
+            JsonBlob::new(bam_accounting_section(&ordered)),
+        );
+        sections.insert(
+            "bam_findings".to_string(),
+            JsonBlob::new(bam_findings_section(&ordered)),
+        );
+        sections.insert(
+            "bam_verdicts".to_string(),
+            JsonBlob::new(bam_verdict_table(&ordered)),
+        );
+        sections.insert(
+            "bam_plots".to_string(),
+            JsonBlob::new(bam_plots_section(&ordered)),
+        );
+    }
     sections.insert(
         "impact_metrics".to_string(),
         JsonBlob::new(impact_metrics_section(&ordered)),
@@ -443,4 +461,3 @@ fn data_contract_validation_section(
         "missing_reports": completeness.missing_reports,
     })
 }
-

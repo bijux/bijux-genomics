@@ -1,3 +1,5 @@
+// imports provided by queries_core.rs
+
 /// Insert an image QA input hash into the v1 table.
 ///
 /// # Errors

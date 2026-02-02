@@ -63,14 +63,108 @@ fn build_section_blocks(
     let mut section_blocks = String::new();
     for key in section_keys {
         if let Some(value) = sections.get(key) {
-            let json = serde_json::to_string_pretty(value)?;
-            let _ = write!(
-                section_blocks,
-                r#"<details id="section-{key}" class="section"><summary>{key}</summary><pre>{json}</pre></details>"#
-            );
+            if key == "bam_plots" {
+                let plots = render_bam_plots(value);
+                let _ = write!(
+                    section_blocks,
+                    r#"<section id="section-{key}" class="section"><h3>{key}</h3>{plots}</section>"#
+                );
+            } else {
+                let json = serde_json::to_string_pretty(value)?;
+                let _ = write!(
+                    section_blocks,
+                    r#"<details id="section-{key}" class="section"><summary>{key}</summary><pre>{json}</pre></details>"#
+                );
+            }
         }
     }
     Ok(section_blocks)
+}
+
+fn render_bam_plots(value: &serde_json::Value) -> String {
+    let mut html = String::new();
+    let entries = value
+        .get("entries")
+        .and_then(serde_json::Value::as_array)
+        .cloned()
+        .unwrap_or_default();
+    for entry in entries {
+        let stage_id = entry
+            .get("stage_id")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or("bam");
+        let damage = entry
+            .get("damage")
+            .cloned()
+            .unwrap_or(serde_json::json!({}));
+        let frag = entry
+            .get("fragment_length")
+            .cloned()
+            .unwrap_or(serde_json::json!({}));
+        let coverage = entry
+            .get("coverage")
+            .cloned()
+            .unwrap_or(serde_json::json!({}));
+        let dup = entry
+            .get("dup_vs_complexity")
+            .cloned()
+            .unwrap_or(serde_json::json!({}));
+        let c_to_t = damage
+            .get("c_to_t_5p")
+            .and_then(serde_json::Value::as_f64)
+            .unwrap_or(0.0);
+        let g_to_a = damage
+            .get("g_to_a_3p")
+            .and_then(serde_json::Value::as_f64)
+            .unwrap_or(0.0);
+        let mean_len = frag
+            .get("mean")
+            .and_then(serde_json::Value::as_f64)
+            .unwrap_or(0.0);
+        let short_frac = frag
+            .get("short_fraction")
+            .and_then(serde_json::Value::as_f64)
+            .unwrap_or(0.0);
+        let cov_mean = coverage
+            .get("mean")
+            .and_then(serde_json::Value::as_f64)
+            .unwrap_or(0.0);
+        let breadth = coverage
+            .get("breadth_1x")
+            .and_then(serde_json::Value::as_f64)
+            .unwrap_or(0.0);
+        let dup_fraction = dup
+            .get("dup_fraction")
+            .and_then(serde_json::Value::as_f64)
+            .unwrap_or(0.0);
+        let short_pct = short_frac * 100.0;
+        let breadth_pct = breadth * 100.0;
+        let dup_pct = dup_fraction * 100.0;
+        let _ = write!(
+            html,
+            r#"<div class="section">
+<h4>{stage_id}</h4>
+<div class="plot">
+<div>damage decay (5' C→T vs 3' G→A)</div>
+<div class="plot-bar"><span style="width:{c_to_t:.0}%"></span></div>
+<div class="plot-bar"><span style="width:{g_to_a:.0}%"></span></div>
+</div>
+<div class="plot">
+<div>fragment length (mean {mean_len:.1}bp, short {short_frac:.2})</div>
+<div class="plot-bar"><span style="width:{short_pct:.0}%"></span></div>
+</div>
+<div class="plot">
+<div>coverage (mean {cov_mean:.2}x, breadth@1x {breadth:.2})</div>
+<div class="plot-bar"><span style="width:{breadth_pct:.0}%"></span></div>
+</div>
+<div class="plot">
+<div>duplication vs complexity (dup fraction {dup_fraction:.2})</div>
+<div class="plot-bar"><span style="width:{dup_pct:.0}%"></span></div>
+</div>
+</div>"#
+        );
+    }
+    html
 }
 
 fn build_stage_tabs(stages: &[ReportStageSummaryV1]) -> String {
