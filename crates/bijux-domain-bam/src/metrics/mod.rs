@@ -9,6 +9,7 @@ mod coverage;
 mod damage;
 mod fragment;
 mod genotyping;
+mod idxstats;
 mod mapq;
 mod sex;
 mod sufficiency;
@@ -25,6 +26,7 @@ pub use coverage::{CoverageMetricsV1, CoverageUniformityV1, EffectiveCoverageV1}
 pub use damage::DamageMetricsV1;
 pub use fragment::FragmentLengthSummaryV1;
 pub use genotyping::GenotypingMetricsV1;
+pub use idxstats::{IdxstatsContigV1, IdxstatsSummaryV1};
 pub use mapq::MapqSummaryV1;
 pub use sex::{SexConfidenceClass, SexInferenceV1};
 pub use sufficiency::{
