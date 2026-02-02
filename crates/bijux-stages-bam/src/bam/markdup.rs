@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use bijux_core::{ArtifactRef, StageIO, StageId, StagePlanV1, StageVersion, ToolExecutionSpecV1};
+use bijux_core::{StageIO, StageId, StagePlanV1, StageVersion, ToolExecutionSpecV1};
 use bijux_domain_bam::params::MarkDupEffectiveParams;
 
 pub const STAGE_ID: &str = bijux_domain_bam::BamStage::Markdup.as_str();
@@ -14,6 +14,7 @@ pub fn plan(
     out_dir: &Path,
     params: &MarkDupEffectiveParams,
 ) -> anyhow::Result<StagePlanV1> {
+    let outputs = super::audit_outputs(bijux_domain_bam::BamStage::Markdup, out_dir);
     let plan = StagePlanV1 {
         stage_id: StageId(STAGE_ID.to_string()),
         stage_version: STAGE_VERSION,
@@ -23,28 +24,11 @@ pub fn plan(
         command: tool.command.clone(),
         resources: tool.resources.clone(),
         io: StageIO {
-            inputs: vec![ArtifactRef {
+            inputs: vec![bijux_core::ArtifactRef {
                 name: "bam".to_string(),
                 path: bam.to_path_buf(),
             }],
-            outputs: vec![
-                ArtifactRef {
-                    name: "markdup_bam".to_string(),
-                    path: out_dir.join("markdup.bam"),
-                },
-                ArtifactRef {
-                    name: "markdup_bai".to_string(),
-                    path: out_dir.join("markdup.bam.bai"),
-                },
-                ArtifactRef {
-                    name: "markdup_flagstat".to_string(),
-                    path: out_dir.join("markdup.flagstat.txt"),
-                },
-                ArtifactRef {
-                    name: "markdup_metrics".to_string(),
-                    path: out_dir.join("markdup.metrics.json"),
-                },
-            ],
+            outputs,
         },
         out_dir: out_dir.to_path_buf(),
         params: serde_json::json!({
@@ -53,7 +37,9 @@ pub fn plan(
             "umi_policy": params.umi_policy,
             "duplicate_action": params.duplicate_action,
         }),
-        effective_params: serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
+        effective_params: super::ensure_effective_params(
+            serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
+        )?,
         aux_images: std::collections::BTreeMap::new(),
     };
     super::ensure_required_outputs(
@@ -61,8 +47,9 @@ pub fn plan(
         &[
             "markdup_bam",
             "markdup_bai",
-            "markdup_flagstat",
-            "markdup_metrics",
+            "flagstat",
+            "idxstats",
+            "summary",
         ],
     )
 }

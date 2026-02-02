@@ -37,7 +37,15 @@ fn snapshot_path(name: &str) -> Result<std::path::PathBuf> {
 fn assert_snapshot(name: &str, plan: &bijux_core::StagePlanV1) -> Result<()> {
     let plan_json = bijux_stages_bam::StagePlanJson::from_plan(plan);
     let rendered = serde_json::to_string_pretty(&plan_json)?;
-    let snapshot = fs::read_to_string(snapshot_path(name)?)?;
+    let path = snapshot_path(name)?;
+    if std::env::var("UPDATE_SNAPSHOTS")
+        .map(|value| value == "1" || value.eq_ignore_ascii_case("true"))
+        .unwrap_or(false)
+    {
+        fs::write(path, rendered)?;
+        return Ok(());
+    }
+    let snapshot = fs::read_to_string(path)?;
     assert_eq!(rendered.trim(), snapshot.trim());
     Ok(())
 }
