@@ -273,10 +273,7 @@ fn check_mod_reexports_only(files: &[PathBuf]) -> Result<()> {
             meaningful += 1;
         }
         if meaningful == 0 {
-            anyhow::bail!(
-                "stages mod.rs contains only re-exports: {}",
-                path.display()
-            );
+            anyhow::bail!("stages mod.rs contains only re-exports: {}", path.display());
         }
     }
     Ok(())

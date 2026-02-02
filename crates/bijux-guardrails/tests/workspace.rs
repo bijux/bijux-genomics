@@ -64,8 +64,7 @@ fn workspace_guardrail_defaults_not_increased() {
         assert!(
             !bad,
             "guardrails defaults increased for {}: {:?}",
-            name,
-            config
+            name, config
         );
     }
 }
