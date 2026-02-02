@@ -2,7 +2,7 @@
 
 use bijux_core::{InvariantResultV1, InvariantStatusV1, StageVerdictV1};
 
-use crate::authenticity::contamination_cross_check;
+use crate::metrics::contamination_cross_check;
 use crate::metrics::BamMetricsV1;
 
 #[derive(Debug, Clone)]
