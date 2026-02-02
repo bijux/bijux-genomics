@@ -15,7 +15,11 @@ use crate::api::{
     cleanup_execution, execution_memory_mb, hash_file_sha256, run_filter_execution,
     run_merge_execution, run_multiqc_execution, run_tool_execution, run_validate_execution,
 };
-use crate::services::observer::Observer;
+use crate::services::observer::{
+    parse_contamination_json, parse_damageprofiler_json, parse_mosdepth_summary,
+    parse_pydamage_json, parse_preseq_estimates, parse_samtools_flagstat, parse_samtools_stats,
+    parse_sex_json, Observer,
+};
 use crate::services::run_artifacts::{
     default_trace_ids, params_hash, run_artifacts_dir_for_out,
     write_effective_adapters_from_provenance, write_execution_logs_bounded, write_facts_jsonl,
@@ -29,12 +33,14 @@ use crate::services::run_artifacts::{
 use bijux_core::metrics::FastqDetectAdaptersMetricsV1;
 use bijux_core::run_index::{insert_stage_row, StageIndexRow};
 use bijux_core::{
-    parameters_json_canonicalization, AdapterBankProvenanceV1, BankRefV1, FactsRowV1,
+    parameters_json_canonicalization, AdapterBankProvenanceV1, ArtifactRef, BankRefV1, FactsRowV1,
     FastqCorrectMetricsV1, FastqDeltaMetricsV1, FastqFilterMetricsV1, FastqMergeMetricsV1,
     FastqPreprocessMetricsV1, FastqQcPostMetricsV1, FastqTrimMetricsV1, FastqUmiMetricsV1,
     FastqValidateMetricsV1, MetricContextV1, RetentionReportMetricV1, StageMetricsV1,
     StageObservabilityContextV1, StagePlanV1, ToolInvocationV1,
 };
+use bijux_domain_bam::metrics::BamMetricsV1;
+use bijux_domain_bam::{evaluate_bam_invariants, BamInvariantThresholds};
 use bijux_domain_fastq::{evaluate_invariants, parse_effective_params, thresholds_from_env};
 
 #[derive(Debug, Clone)]
@@ -438,4 +444,3 @@ fn parse_fastqc_modules(raw: &str) -> BTreeMap<String, Vec<String>> {
     }
     modules
 }
-

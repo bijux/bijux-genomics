@@ -1,6 +1,12 @@
+mod bam;
 mod hash;
 mod seqkit;
 
+pub use bam::{
+    parse_contamination_json, parse_damageprofiler_json, parse_mosdepth_summary,
+    parse_preseq_estimates, parse_pydamage_json, parse_samtools_flagstat, parse_samtools_stats,
+    parse_sex_json,
+};
 pub use bijux_core::measure::SeqkitMetrics;
 pub use hash::hash_file_sha256;
 pub use seqkit::{

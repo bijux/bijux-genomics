@@ -6,7 +6,7 @@ fn stage_metrics_for_plan(
     params: &serde_json::Value,
     effective_params: &serde_json::Value,
 ) -> Result<serde_json::Value> {
-    let metrics = match stage_id {
+    let mut metrics = match stage_id {
         "fastq.trim" => {
             let stats = stats_for_paths(&[
                 inputs.first().map(PathBuf::as_path),
@@ -310,9 +310,159 @@ fn stage_metrics_for_plan(
                 "pairs_out": pairs_out,
             })
         }
+        stage_id if stage_id.starts_with("bam.") => {
+            let out_dir = outputs
+                .first()
+                .and_then(|path| path.parent())
+                .map_or_else(|| PathBuf::from("."), PathBuf::from);
+            let metrics = bam_metrics_from_dir(&out_dir);
+            serde_json::to_value(metrics)?
+        }
         _ => serde_json::json!({}),
     };
+    if stage_id.starts_with("fastq.") {
+        if let Some(obj) = metrics.as_object_mut() {
+            if !obj.contains_key("pairs_in") || !obj.contains_key("pairs_out") {
+                let (pairs_in, pairs_out) = pair_counts_from_paths(inputs, outputs)?;
+                if !obj.contains_key("pairs_in") {
+                    obj.insert("pairs_in".to_string(), serde_json::to_value(pairs_in)?);
+                }
+                if !obj.contains_key("pairs_out") {
+                    obj.insert("pairs_out".to_string(), serde_json::to_value(pairs_out)?);
+                }
+            }
+        }
+    }
     Ok(metrics)
+}
+
+#[allow(clippy::too_many_lines)]
+fn bam_metrics_from_dir(out_dir: &Path) -> BamMetricsV1 {
+    let mut metrics = BamMetricsV1::empty();
+
+    let flagstat_path = out_dir.join("flagstat.txt");
+    if flagstat_path.exists() {
+        if let Ok(counts) = parse_samtools_flagstat(&flagstat_path) {
+            metrics.alignment = counts;
+        }
+    }
+
+    let stats_path = out_dir.join("samtools_stats.txt");
+    if stats_path.exists() {
+        if let Ok((fragment, mapq)) = parse_samtools_stats(&stats_path) {
+            metrics.fragment_length = fragment;
+            metrics.mapq = mapq;
+        }
+    }
+
+    let mosdepth_path = out_dir.join("mosdepth.summary.txt");
+    if mosdepth_path.exists() {
+        if let Ok(coverage) = parse_mosdepth_summary(&mosdepth_path) {
+            metrics.coverage = coverage;
+        }
+    }
+
+    let preseq_path = out_dir.join("preseq.txt");
+    if preseq_path.exists() {
+        if let Ok(complexity) = parse_preseq_estimates(&preseq_path) {
+            metrics.complexity = complexity;
+        }
+    }
+
+    let pydamage_path = out_dir.join("pydamage.json");
+    if pydamage_path.exists() {
+        if let Ok(damage) = parse_pydamage_json(&pydamage_path) {
+            metrics.damage = damage;
+        }
+    }
+    let damageprofiler_path = out_dir.join("damageprofiler.json");
+    if damageprofiler_path.exists() {
+        if let Ok(damage) = parse_damageprofiler_json(&damageprofiler_path) {
+            metrics.damage = damage;
+        }
+    }
+
+    let contamination_path = out_dir.join("contamination.json");
+    if contamination_path.exists() {
+        if let Ok(contamination) = parse_contamination_json(&contamination_path) {
+            metrics.contamination = contamination;
+        }
+        if let Ok(raw) = std::fs::read_to_string(&contamination_path) {
+            if let Ok(value) = serde_json::from_str::<serde_json::Value>(&raw) {
+                metrics.contamination_reconciliation.mt_fraction = value
+                    .get("mt_estimate")
+                    .and_then(serde_json::Value::as_f64);
+                metrics.contamination_reconciliation.nuclear_fraction = value
+                    .get("nuclear_estimate")
+                    .and_then(serde_json::Value::as_f64);
+            }
+        }
+    }
+
+    let sex_path = out_dir.join("sex.json");
+    if sex_path.exists() {
+        if let Ok(sex) = parse_sex_json(&sex_path) {
+            metrics.sex = sex;
+        }
+    }
+
+    if metrics.coverage.mean > 0.0 {
+        metrics.effective_coverage.raw = metrics.coverage.mean;
+        let dup_fraction = if metrics.alignment.total > 0 {
+            u64_to_f64(metrics.alignment.duplicates) / u64_to_f64(metrics.alignment.total)
+        } else {
+            0.0
+        };
+        metrics.effective_coverage.dedup = metrics.coverage.mean * (1.0 - dup_fraction);
+        let damage = metrics.damage.c_to_t_5p.max(metrics.damage.g_to_a_3p);
+        let pmd_retention = if damage >= 0.10 { 0.8 } else { 0.5 };
+        metrics.effective_coverage.pmd_filtered = metrics.coverage.mean * pmd_retention;
+        metrics.coverage_uniformity.dropout_fraction =
+            (1.0 - metrics.coverage.breadth_1x).clamp(0.0, 1.0);
+        metrics.coverage_uniformity.coefficient_of_variation =
+            (1.0 - metrics.coverage.breadth_1x).max(0.0);
+    }
+
+    let authenticity = bijux_domain_bam::authenticity_score(&metrics);
+    metrics.authenticity = authenticity;
+    metrics.contamination_reconciliation.assessment =
+        bijux_domain_bam::contamination_cross_check(
+            metrics.damage.c_to_t_5p.max(metrics.damage.g_to_a_3p),
+            metrics.contamination.estimate,
+        );
+    if let (Some(mt), Some(nuclear)) = (
+        metrics.contamination_reconciliation.mt_fraction,
+        metrics.contamination_reconciliation.nuclear_fraction,
+    ) {
+        if (mt - nuclear).abs() >= 0.1 {
+            metrics.contamination_reconciliation.assessment =
+                "mtDNA vs nuclear contamination estimates diverge".to_string();
+        }
+    }
+    if metrics.coverage.mean >= 1.0 {
+        metrics.haplogroup_sufficiency.sufficient = true;
+        metrics.haplogroup_sufficiency.min_coverage = metrics.coverage.mean;
+        metrics.haplogroup_sufficiency.reason = "coverage meets minimum threshold".to_string();
+        metrics.kinship_sufficiency.sufficient = true;
+        metrics.kinship_sufficiency.overlap_snps = 1000;
+        metrics.kinship_sufficiency.reason = "coverage likely sufficient for kinship".to_string();
+    } else {
+        metrics.haplogroup_sufficiency.sufficient = false;
+        metrics.haplogroup_sufficiency.min_coverage = metrics.coverage.mean;
+        metrics.haplogroup_sufficiency.reason =
+            "coverage below threshold for haplogroup assignment".to_string();
+        metrics.kinship_sufficiency.sufficient = false;
+        metrics.kinship_sufficiency.overlap_snps = 0;
+        metrics.kinship_sufficiency.reason =
+            "coverage below threshold for kinship inference".to_string();
+    }
+
+    metrics
+}
+
+#[allow(clippy::cast_precision_loss)]
+fn u64_to_f64(value: u64) -> f64 {
+    value as f64
 }
 
 fn filter_metrics_with_removals(
