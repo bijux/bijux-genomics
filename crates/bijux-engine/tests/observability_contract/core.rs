@@ -166,6 +166,9 @@ fn build_plan(
                 None,
             )?
         }
+        "fastq.detect_adapters" => {
+            bijux_stages_fastq::fastq::detect_adapters::plan(&dummy_tool("fastqc", image), r1, out_dir)
+        }
         "fastq.filter" => {
             let options = bijux_stages_fastq::fastq::filter::FilterPlanOptions::default();
             filter::plan_filter(&dummy_tool("fastp", image), r1, out_dir, &options)?

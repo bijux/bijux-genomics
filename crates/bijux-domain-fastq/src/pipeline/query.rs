@@ -11,6 +11,7 @@ use super::corpus::BenchCorpus;
 fn table_for_stage(stage: &str) -> Option<&'static str> {
     match stage {
         "fastq.validate_pre" => Some("bench_fastq_validate_v1"),
+        "fastq.detect_adapters" => Some("bench_fastq_detect_adapters_v1"),
         "fastq.trim" => Some("bench_fastq_trim_v2"),
         "fastq.filter" => Some("bench_fastq_filter_v2"),
         "fastq.stats_neutral" => Some("bench_fastq_stats_v1"),
@@ -26,6 +27,7 @@ fn table_for_stage(stage: &str) -> Option<&'static str> {
 fn bench_dir_for_stage(stage: &str) -> Option<&'static str> {
     match stage {
         "fastq.validate_pre" => Some("validate"),
+        "fastq.detect_adapters" => Some("detect_adapters"),
         "fastq.trim" => Some("trim"),
         "fastq.filter" => Some("filter"),
         "fastq.stats_neutral" => Some("stats"),

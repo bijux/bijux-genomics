@@ -16,20 +16,28 @@
     ]
   },
   "parameters": {
+    "entropy_threshold": null,
     "input": "reads.fastq.gz",
     "kmer_ref": null,
     "low_complexity_threshold": null,
     "max_n": null,
+    "max_n_count": null,
+    "max_n_fraction": null,
     "output": "out/fastp.fastq.gz",
+    "polyx_policy": null,
     "redundant_filters": [],
     "tool": "fastp"
   },
   "effective_params": {
     "contaminant_db": null,
+    "entropy_threshold": null,
     "low_complexity_threshold": null,
     "max_n": null,
+    "max_n_count": null,
+    "max_n_fraction": null,
     "n_policy": null,
     "paired_mode": "single_end",
+    "polyx_policy": null,
     "threads": 1
   }
 }
