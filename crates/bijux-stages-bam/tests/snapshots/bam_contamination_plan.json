@@ -20,22 +20,22 @@
     ]
   },
   "parameters": {
+    "assumptions": null,
     "bam": "reads.bam",
+    "prior": null,
     "reference_panels": [
       "panel.vcf"
     ],
     "scope": "both",
-    "prior": null,
-    "sex_specific": false,
-    "assumptions": null
+    "sex_specific": false
   },
   "effective_params": {
+    "assumptions": null,
+    "prior": null,
     "reference_panels": [
       "panel.vcf"
     ],
     "scope": "both",
-    "prior": null,
-    "sex_specific": false,
-    "assumptions": null
+    "sex_specific": false
   }
 }

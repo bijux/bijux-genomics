@@ -29,19 +29,19 @@
   },
   "parameters": {
     "bam": "reads.bam",
-    "mapq_threshold": 30,
-    "include_flags": [],
+    "base_quality_threshold": 20,
     "exclude_flags": [],
+    "include_flags": [],
+    "mapq_threshold": 30,
     "min_length": 30,
-    "remove_duplicates": false,
-    "base_quality_threshold": 20
+    "remove_duplicates": false
   },
   "effective_params": {
-    "mapq_threshold": 30,
-    "include_flags": [],
+    "base_quality_threshold": 20,
     "exclude_flags": [],
+    "include_flags": [],
+    "mapq_threshold": 30,
     "min_length": 30,
-    "remove_duplicates": false,
-    "base_quality_threshold": 20
+    "remove_duplicates": false
   }
 }

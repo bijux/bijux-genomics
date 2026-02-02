@@ -21,11 +21,11 @@
   },
   "parameters": {
     "bam": "reads.bam",
-    "reference_panel": "king_default",
-    "min_overlap_snps": 1000
+    "min_overlap_snps": 1000,
+    "reference_panel": "king_default"
   },
   "effective_params": {
-    "reference_panel": "king_default",
-    "min_overlap_snps": 1000
+    "min_overlap_snps": 1000,
+    "reference_panel": "king_default"
   }
 }
