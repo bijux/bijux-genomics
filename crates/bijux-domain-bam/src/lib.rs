@@ -3,13 +3,27 @@
 //! Owns: BAM stage semantics, effective params, and canonical metrics schema.
 //! Must NOT depend on: bijux-engine or runtime/container execution logic.
 
-mod bam_stage_registry;
-mod invariants;
-pub mod metrics;
-pub mod params;
-pub mod types;
+mod artifacts;
+mod metrics;
+mod params;
+mod pipeline;
+mod sample_meta;
 
-pub use bam_stage_registry::{
-    contract_for_stage, required_audit_artifacts, stage_spec, stage_specs, ArtifactPolicy,
-    AuditArtifact, BamArtifactKind, BamStage, BamStageContract, BamStageSpec,
+pub use artifacts::{BaiPath, BamPath, BedRegions, DictPath, FaiPath, ReferenceFasta};
+pub use metrics::{
+    AlignmentCountsV1, BamMetricsV1, ComplexityMetricsV1, ContaminationMetricsV1,
+    CoverageMetricsV1, DamageMetricsV1, FragmentLengthSummaryV1, GenotypingMetricsV1,
+    MapqSummaryV1, SexInferenceV1,
+};
+pub use params::{
+    BamEffectiveParams, BiasMitigationEffectiveParams, BqsrEffectiveParams, BqsrMode,
+    ComplexityEffectiveParams, ContaminationEffectiveParams, ContaminationScope,
+    CoverageEffectiveParams, DamageEffectiveParams, DuplicateAction, FilterEffectiveParams,
+    GenotypingEffectiveParams, HaplogroupEffectiveParams, KinshipEffectiveParams,
+    MarkDupEffectiveParams, OpticalDuplicatePolicy, QcPreEffectiveParams,
+    RecalibrationSkipCriteria, SexEffectiveParams, UdgModel, UmiPolicy, ValidateEffectiveParams,
+};
+pub use pipeline::{BamBranchRule, BamDomain, BAM_BRANCHING_RULES, BAM_CANONICAL_STAGE_ORDER};
+pub use sample_meta::{
+    CaptureType, ExpectedSex, LibraryType, Platform, ReadGroupPolicy, SampleMeta, Strandedness,
 };
