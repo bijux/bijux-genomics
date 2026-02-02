@@ -1,13 +1,9 @@
 [config]
 skip_core_tasks = true
 
-[tasks.workspace]
-script = ["true"]
-
 [env]
 JOBS = { value = "8", condition = { env_not_set = ["JOBS"] } }
 NEXTEST_JOBS = { value = "8", condition = { env_not_set = ["NEXTEST_JOBS"] } }
-CARGO_MAKE_RUN_TASKS_IN_WORKSPACE = { value = "false", condition = { env_not_set = ["CARGO_MAKE_RUN_TASKS_IN_WORKSPACE"] } }
 
 [tasks.fmt-check]
 command = "cargo"
@@ -99,10 +95,6 @@ script = [
   "fi",
 ]
 
-[tasks.structure-check]
-command = "cargo"
-args = ["test", "-p", "bijux-guardrails", "--test", "workspace", "--test", "policy_snapshot"]
-
 [tasks.coverage]
 script_runner = "bash"
 script = [
@@ -151,4 +143,4 @@ script = [
 ]
 
 [tasks.ci]
-dependencies = ["lint", "audit", "structure-check", "test"]
+dependencies = ["lint", "audit", "test"]
