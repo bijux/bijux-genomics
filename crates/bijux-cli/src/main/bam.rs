@@ -1,6 +1,7 @@
 use bijux_core::ToolRegistry;
 use bijux_engine::api::{build_tool_execution_spec, execute_stage_plan};
 use bijux_env_runtime::api::RunnerKind;
+use bijux_pipelines_bam::{profile_by_id, BamPipelineProfile};
 
 use crate::cli::parse::{BamCommand, BamRunArgs};
 // imports provided by entry.rs
@@ -49,7 +50,13 @@ fn run_bam_stage(
     let catalog = load_image_catalog()
         .map_err(|err| anyhow!("failed to load image catalog: {err}"))?;
     let stage = args.stage.stage();
-    let tool_id = args.tool.clone().unwrap_or_else(|| "samtools".to_string());
+    let profile = profile_by_id(&args.profile)?;
+    let tool_id = args.tool.clone().unwrap_or_else(|| {
+        profile
+            .default_tool(stage)
+            .unwrap_or("samtools")
+            .to_string()
+    });
     let spec =
         build_tool_execution_spec(stage.as_str(), &tool_id, registry, &catalog, &platform)?;
 
@@ -58,7 +65,7 @@ fn run_bam_stage(
     let log_path = out_dir.join("bijux_bam.log");
     let _log_guard = init_logging(&log_path)?;
 
-    let plan = plan_for_bam_stage(stage, &spec, args, out_dir.as_path())?;
+    let plan = plan_for_bam_stage(stage, &spec, &profile, args, out_dir.as_path())?;
     println!("{}", serde_json::to_string_pretty(&plan)?);
     println!("manifests: {}", domain_dir.display());
 
@@ -73,6 +80,7 @@ fn run_bam_stage(
 pub(crate) fn plan_for_bam_stage(
     stage: bijux_domain_bam::BamStage,
     spec: &bijux_core::ToolExecutionSpecV1,
+    profile: &BamPipelineProfile,
     args: &BamRunArgs,
     out_dir: &Path,
 ) -> Result<bijux_core::StagePlanV1> {
