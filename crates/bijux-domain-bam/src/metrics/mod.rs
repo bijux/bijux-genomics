@@ -36,7 +36,7 @@ pub use damage::{
 };
 pub use fragment::FragmentLengthSummaryV1;
 pub use genotyping::GenotypingMetricsV1;
-pub use idxstats::{IdxstatsContigV1, IdxstatsSummaryV1};
+pub use idxstats::{parse_samtools_idxstats, IdxstatsContigV1, IdxstatsSummaryV1};
 pub use mapq::MapqSummaryV1;
 pub use sex::{parse_sex_json, SexConfidenceClass, SexInferenceV1};
 pub use sufficiency::{

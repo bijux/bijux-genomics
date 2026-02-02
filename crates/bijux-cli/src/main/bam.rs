@@ -125,10 +125,10 @@ pub(crate) fn plan_for_bam_stage_with_profile(
                 params.mapq_threshold = value;
             }
             if !args.include_flags.is_empty() {
-                params.include_flags = args.include_flags.clone();
+                params.include_flags.clone_from(&args.include_flags);
             }
             if !args.exclude_flags.is_empty() {
-                params.exclude_flags = args.exclude_flags.clone();
+                params.exclude_flags.clone_from(&args.exclude_flags);
             }
             if let Some(value) = args.min_length {
                 params.min_length = value;
@@ -181,7 +181,9 @@ pub(crate) fn plan_for_bam_stage_with_profile(
                 params.min_reads = value;
             }
             if !args.complexity_projection_points.is_empty() {
-                params.projection_points = args.complexity_projection_points.clone();
+                params
+                    .projection_points
+                    .clone_from(&args.complexity_projection_points);
             }
             bijux_stages_bam::bam::complexity::plan(spec, &args.bam, out_dir, &params)
         }
@@ -201,7 +203,9 @@ pub(crate) fn plan_for_bam_stage_with_profile(
                 params.regions = Some(bijux_domain_bam::types::BedRegions(value));
             }
             if !args.depth_thresholds.is_empty() {
-                params.depth_thresholds = args.depth_thresholds.clone();
+                params
+                    .depth_thresholds
+                    .clone_from(&args.depth_thresholds);
             }
             bijux_stages_bam::bam::coverage::plan(spec, &args.bam, out_dir, &params)
         }
@@ -269,7 +273,9 @@ pub(crate) fn plan_for_bam_stage_with_profile(
                 },
             };
             if !args.contamination_panel.is_empty() {
-                params.reference_panels = args.contamination_panel.clone();
+                params
+                    .reference_panels
+                    .clone_from(&args.contamination_panel);
             }
             if let Some(value) = args.contamination_scope {
                 params.scope = value.into();
@@ -301,7 +307,7 @@ pub(crate) fn plan_for_bam_stage_with_profile(
                 params.expected_sex = Some(value.into());
             }
             if !args.sex_method.is_empty() {
-                params.method = args.sex_method.clone();
+                params.method.clone_from(&args.sex_method);
             }
             bijux_stages_bam::bam::sex::plan(spec, &args.bam, out_dir, &params)
         }
@@ -342,7 +348,7 @@ pub(crate) fn plan_for_bam_stage_with_profile(
                 },
             };
             if !args.known_sites.is_empty() {
-                params.known_sites = args.known_sites.clone();
+                params.known_sites.clone_from(&args.known_sites);
             }
             if let Some(value) = args.bqsr_mode {
                 params.mode = value.into();
