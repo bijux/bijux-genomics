@@ -1,9 +1,9 @@
 use std::path::Path;
 
 use bijux_core::{StageIO, StageId, StagePlanV1, StageVersion, ToolExecutionSpecV1};
-use bijux_domain_bam::params::GenotypingEffectiveParams;
+use bijux_domain_bam::params::SexEffectiveParams;
 
-pub const STAGE_ID: &str = bijux_domain_bam::BamStage::Genotyping.as_str();
+pub const STAGE_ID: &str = bijux_domain_bam::BamStage::Sex.as_str();
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
 
 /// # Errors
@@ -12,9 +12,9 @@ pub fn plan(
     tool: &ToolExecutionSpecV1,
     bam: &Path,
     out_dir: &Path,
-    params: &GenotypingEffectiveParams,
+    params: &SexEffectiveParams,
 ) -> anyhow::Result<StagePlanV1> {
-    let outputs = super::audit_outputs(bijux_domain_bam::BamStage::Genotyping, out_dir);
+    let outputs = crate::stages::support::audit_outputs(bijux_domain_bam::BamStage::Sex, out_dir);
     let plan = StagePlanV1 {
         stage_id: StageId(STAGE_ID.to_string()),
         stage_version: STAGE_VERSION,
@@ -33,14 +33,16 @@ pub fn plan(
         out_dir: out_dir.to_path_buf(),
         params: serde_json::json!({
             "bam": bam,
-            "caller": params.caller,
-            "min_posterior": params.min_posterior,
-            "min_call_rate": params.min_call_rate,
+            "expected_sex": params.expected_sex,
+            "method": params.method,
         }),
-        effective_params: super::ensure_effective_params(
+        effective_params: crate::stages::support::ensure_effective_params(
             serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
         )?,
         aux_images: std::collections::BTreeMap::new(),
     };
-    super::ensure_required_outputs(plan, &["genotyping_report", "summary"])
+    crate::stages::support::ensure_required_outputs(
+        plan,
+        &["sex_report", "summary", "stage_metrics"],
+    )
 }
