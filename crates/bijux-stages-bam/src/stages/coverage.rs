@@ -17,6 +17,11 @@ pub fn plan(
     let outputs =
         crate::stages::support::audit_outputs(bijux_domain_bam::BamStage::Coverage, out_dir);
     let prefix = out_dir.join("coverage");
+    let depth_path = out_dir.join("coverage.depth.txt");
+    let command = match tool.tool_id.0.as_str() {
+        "samtools" => crate::tools::samtools::depth_args(bam, &depth_path),
+        _ => crate::tools::mosdepth::args(bam, &prefix, params),
+    };
     let plan = StagePlanV1 {
         stage_id: StageId(STAGE_ID.to_string()),
         stage_version: STAGE_VERSION,
@@ -24,7 +29,7 @@ pub fn plan(
         tool_version: tool.tool_version.clone(),
         image: tool.image.clone(),
         command: CommandSpecV1 {
-            template: crate::tools::mosdepth::args(bam, &prefix, params),
+            template: command,
         },
         resources: tool.resources.clone(),
         io: StageIO {
@@ -47,6 +52,12 @@ pub fn plan(
     };
     crate::stages::support::ensure_required_outputs(
         plan,
-        &["coverage_report", "coverage_summary", "summary"],
+        &[
+            "coverage_report",
+            "coverage_summary",
+            "coverage_depth",
+            "summary",
+            "stage_metrics",
+        ],
     )
 }
