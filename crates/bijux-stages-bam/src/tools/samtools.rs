@@ -79,3 +79,38 @@ pub fn filter_args(bam: &Path, params: &FilterEffectiveParams, out_bam: &Path) -
     );
     vec!["/bin/sh".to_string(), "-c".to_string(), command]
 }
+
+#[must_use]
+pub fn markdup_args(
+    bam: &Path,
+    out_bam: &Path,
+    flagstat: &Path,
+    idxstats: &Path,
+    params: &bijux_domain_bam::params::MarkDupEffectiveParams,
+) -> Vec<String> {
+    let remove = matches!(params.duplicate_action, bijux_domain_bam::DuplicateAction::Remove);
+    let mut args = vec!["samtools markdup".to_string()];
+    if remove {
+        args.push("-r".to_string());
+    }
+    args.push(bam.display().to_string());
+    args.push(out_bam.display().to_string());
+    let command = format!(
+        "{markdup} && samtools index {out} {out}.bai && samtools flagstat {out} > {flagstat} && samtools idxstats {out} > {idxstats}",
+        markdup = args.join(" "),
+        out = out_bam.display(),
+        flagstat = flagstat.display(),
+        idxstats = idxstats.display()
+    );
+    vec!["/bin/sh".to_string(), "-c".to_string(), command]
+}
+
+#[must_use]
+pub fn depth_args(bam: &Path, depth: &Path) -> Vec<String> {
+    let command = format!(
+        "samtools depth -a {bam} > {depth}",
+        bam = bam.display(),
+        depth = depth.display()
+    );
+    vec!["/bin/sh".to_string(), "-c".to_string(), command]
+}
