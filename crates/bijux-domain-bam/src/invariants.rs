@@ -3,7 +3,9 @@
 use bijux_core::{InvariantResultV1, InvariantStatusV1, StageVerdictV1};
 
 use crate::authenticity::contamination_cross_check;
+use crate::library::LibraryTreatment;
 use crate::metrics::BamMetricsV1;
+use crate::sample_meta::LibraryType;
 
 #[derive(Debug, Clone)]
 pub struct BamInvariantThresholds {
@@ -113,19 +115,24 @@ fn evaluate_bam_invariants_inner(
     });
 
     let complexity = metrics.complexity.observed_reads;
-    if dup_fraction >= thresholds.duplication_warn && complexity >= thresholds.complexity_low {
+    if complexity < thresholds.complexity_low {
+        let message = if dup_fraction >= thresholds.duplication_warn {
+            "low complexity with high duplicates indicates library saturation"
+        } else {
+            "preseq complexity is low; library likely saturated"
+        };
+        results.push(InvariantResultV1 {
+            id: "complexity_vs_duplicates".to_string(),
+            status: InvariantStatusV1::Warn,
+            message: message.to_string(),
+            remediation: Some("consider deeper library prep or avoid over-filtering".to_string()),
+        });
+    } else if dup_fraction >= thresholds.duplication_warn {
         results.push(InvariantResultV1 {
             id: "complexity_vs_duplicates".to_string(),
             status: InvariantStatusV1::Warn,
             message: "duplicates high but preseq complexity suggests high diversity".to_string(),
             remediation: Some("verify markdup configuration or library prep".to_string()),
-        });
-    } else if dup_fraction < 0.2 && complexity < thresholds.complexity_low {
-        results.push(InvariantResultV1 {
-            id: "complexity_vs_duplicates".to_string(),
-            status: InvariantStatusV1::Warn,
-            message: "duplicates low but preseq indicates low complexity".to_string(),
-            remediation: Some("check preseq inputs or library complexity".to_string()),
         });
     }
 
@@ -146,6 +153,47 @@ fn evaluate_bam_invariants_inner(
         message: assessment,
         remediation: Some("review contamination model vs damage profile".to_string()),
     });
+
+    if let Some(inference) = metrics.authenticity.library_type_inference.as_ref() {
+        if let Some(declared) = inference.declared {
+            if declared != inference.inferred {
+                results.push(InvariantResultV1 {
+                    id: "declared_vs_inferred_library".to_string(),
+                    status: InvariantStatusV1::Warn,
+                    message: format!(
+                        "declared library type {:?} conflicts with inferred {:?}",
+                        declared, inference.inferred
+                    ),
+                    remediation: Some(
+                        "verify library metadata or rerun damage-based inference".to_string(),
+                    ),
+                });
+            }
+        }
+        let expected_treatment = match inference.declared.unwrap_or(inference.inferred) {
+            LibraryType::NonUdg => LibraryTreatment::NonUdg,
+            LibraryType::HalfUdg => LibraryTreatment::HalfUdg,
+            LibraryType::Udg => LibraryTreatment::Udg,
+        };
+        let expected = expected_treatment.expected_damage();
+        if damage < expected.min_terminal_damage || damage > expected.max_terminal_damage {
+            results.push(InvariantResultV1 {
+                id: "damage_library_model".to_string(),
+                status: InvariantStatusV1::Warn,
+                message: format!(
+                    "damage {:.3} outside expected range {:.3}-{:.3} for {:?}",
+                    damage,
+                    expected.min_terminal_damage,
+                    expected.max_terminal_damage,
+                    expected_treatment
+                ),
+                remediation: Some(
+                    "review library treatment metadata or adjust damage model assumptions"
+                        .to_string(),
+                ),
+            });
+        }
+    }
 
     if damage < 0.05 && metrics.mapq.mean >= 40.0 {
         results.push(InvariantResultV1 {

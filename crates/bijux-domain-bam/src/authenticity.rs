@@ -32,6 +32,7 @@ pub fn infer_library_type_from_damage(damage_5p: f64, damage_3p: f64) -> Library
         inferred,
         confidence,
         rationale,
+        declared: None,
     }
 }
 
