@@ -357,6 +357,15 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
                                 cli.platform.as_deref(),
                             )?;
                         }
+                        BenchBamCommand::Pipeline(args) => {
+                            let registry = load_manifests(domain_dir)
+                                .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
+                            crate::bam_router::bench_bam_pipeline(
+                                args,
+                                &registry,
+                                cli.platform.as_deref(),
+                            )?;
+                        }
                     }
                 }
                 BenchCommand::Schema { stage } => {
