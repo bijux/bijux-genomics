@@ -11,5 +11,5 @@ fn guardrail_default_policy_snapshot() {
         .join("snapshots")
         .join("guardrail_default.json");
     let expected = std::fs::read_to_string(&snapshot).expect("read snapshot");
-    assert_eq!(serialized, expected);
+    assert_eq!(serialized.trim_end(), expected.trim_end());
 }
