@@ -28,6 +28,10 @@
       {
         "name": "summary",
         "path": "out/filter.summary.json"
+      },
+      {
+        "name": "stage_metrics",
+        "path": "out/stage.metrics.json"
       }
     ]
   },

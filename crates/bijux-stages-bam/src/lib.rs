@@ -2,6 +2,8 @@
 
 pub mod bam;
 mod plan;
+pub mod stages;
+pub mod tools;
 
 pub use bijux_core::{ArtifactRef, StageIO, StagePlanV1};
 pub use plan::StagePlanJson;
