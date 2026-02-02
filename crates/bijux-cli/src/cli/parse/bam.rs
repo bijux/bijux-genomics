@@ -49,12 +49,12 @@ pub enum UdgModelArg {
     Udg,
 }
 
-impl From<UdgModelArg> for bijux_domain_bam::UdgModel {
+impl From<UdgModelArg> for bijux_domain_bam::params::UdgModel {
     fn from(value: UdgModelArg) -> Self {
         match value {
-            UdgModelArg::NonUdg => bijux_domain_bam::UdgModel::NonUdg,
-            UdgModelArg::HalfUdg => bijux_domain_bam::UdgModel::HalfUdg,
-            UdgModelArg::Udg => bijux_domain_bam::UdgModel::Udg,
+            UdgModelArg::NonUdg => bijux_domain_bam::params::UdgModel::NonUdg,
+            UdgModelArg::HalfUdg => bijux_domain_bam::params::UdgModel::HalfUdg,
+            UdgModelArg::Udg => bijux_domain_bam::params::UdgModel::Udg,
         }
     }
 }
@@ -66,12 +66,12 @@ pub enum ContaminationScopeArg {
     Both,
 }
 
-impl From<ContaminationScopeArg> for bijux_domain_bam::ContaminationScope {
+impl From<ContaminationScopeArg> for bijux_domain_bam::params::ContaminationScope {
     fn from(value: ContaminationScopeArg) -> Self {
         match value {
-            ContaminationScopeArg::Mito => bijux_domain_bam::ContaminationScope::Mito,
-            ContaminationScopeArg::Nuclear => bijux_domain_bam::ContaminationScope::Nuclear,
-            ContaminationScopeArg::Both => bijux_domain_bam::ContaminationScope::Both,
+            ContaminationScopeArg::Mito => bijux_domain_bam::params::ContaminationScope::Mito,
+            ContaminationScopeArg::Nuclear => bijux_domain_bam::params::ContaminationScope::Nuclear,
+            ContaminationScopeArg::Both => bijux_domain_bam::params::ContaminationScope::Both,
         }
     }
 }
@@ -83,12 +83,12 @@ pub enum BqsrModeArg {
     EmitOnly,
 }
 
-impl From<BqsrModeArg> for bijux_domain_bam::BqsrMode {
+impl From<BqsrModeArg> for bijux_domain_bam::params::BqsrMode {
     fn from(value: BqsrModeArg) -> Self {
         match value {
-            BqsrModeArg::Standard => bijux_domain_bam::BqsrMode::Standard,
-            BqsrModeArg::Skip => bijux_domain_bam::BqsrMode::Skip,
-            BqsrModeArg::EmitOnly => bijux_domain_bam::BqsrMode::EmitOnly,
+            BqsrModeArg::Standard => bijux_domain_bam::params::BqsrMode::Standard,
+            BqsrModeArg::Skip => bijux_domain_bam::params::BqsrMode::Skip,
+            BqsrModeArg::EmitOnly => bijux_domain_bam::params::BqsrMode::EmitOnly,
         }
     }
 }
@@ -100,12 +100,12 @@ pub enum ExpectedSexArg {
     Unknown,
 }
 
-impl From<ExpectedSexArg> for bijux_domain_bam::ExpectedSex {
+impl From<ExpectedSexArg> for bijux_domain_bam::types::ExpectedSex {
     fn from(value: ExpectedSexArg) -> Self {
         match value {
-            ExpectedSexArg::Xx => bijux_domain_bam::ExpectedSex::XX,
-            ExpectedSexArg::Xy => bijux_domain_bam::ExpectedSex::XY,
-            ExpectedSexArg::Unknown => bijux_domain_bam::ExpectedSex::Unknown,
+            ExpectedSexArg::Xx => bijux_domain_bam::types::ExpectedSex::XX,
+            ExpectedSexArg::Xy => bijux_domain_bam::types::ExpectedSex::XY,
+            ExpectedSexArg::Unknown => bijux_domain_bam::types::ExpectedSex::Unknown,
         }
     }
 }
@@ -117,14 +117,14 @@ pub enum OpticalDuplicatePolicyArg {
     Remove,
 }
 
-impl From<OpticalDuplicatePolicyArg> for bijux_domain_bam::OpticalDuplicatePolicy {
+impl From<OpticalDuplicatePolicyArg> for bijux_domain_bam::params::OpticalDuplicatePolicy {
     fn from(value: OpticalDuplicatePolicyArg) -> Self {
         match value {
-            OpticalDuplicatePolicyArg::None => bijux_domain_bam::OpticalDuplicatePolicy::None,
+            OpticalDuplicatePolicyArg::None => bijux_domain_bam::params::OpticalDuplicatePolicy::None,
             OpticalDuplicatePolicyArg::MarkOnly => {
-                bijux_domain_bam::OpticalDuplicatePolicy::MarkOnly
+                bijux_domain_bam::params::OpticalDuplicatePolicy::MarkOnly
             }
-            OpticalDuplicatePolicyArg::Remove => bijux_domain_bam::OpticalDuplicatePolicy::Remove,
+            OpticalDuplicatePolicyArg::Remove => bijux_domain_bam::params::OpticalDuplicatePolicy::Remove,
         }
     }
 }
@@ -136,12 +136,12 @@ pub enum UmiPolicyArg {
     Collapse,
 }
 
-impl From<UmiPolicyArg> for bijux_domain_bam::UmiPolicy {
+impl From<UmiPolicyArg> for bijux_domain_bam::params::UmiPolicy {
     fn from(value: UmiPolicyArg) -> Self {
         match value {
-            UmiPolicyArg::Ignore => bijux_domain_bam::UmiPolicy::Ignore,
-            UmiPolicyArg::UseTag => bijux_domain_bam::UmiPolicy::UseTag,
-            UmiPolicyArg::Collapse => bijux_domain_bam::UmiPolicy::Collapse,
+            UmiPolicyArg::Ignore => bijux_domain_bam::params::UmiPolicy::Ignore,
+            UmiPolicyArg::UseTag => bijux_domain_bam::params::UmiPolicy::UseTag,
+            UmiPolicyArg::Collapse => bijux_domain_bam::params::UmiPolicy::Collapse,
         }
     }
 }
@@ -152,11 +152,11 @@ pub enum DuplicateActionArg {
     Remove,
 }
 
-impl From<DuplicateActionArg> for bijux_domain_bam::DuplicateAction {
+impl From<DuplicateActionArg> for bijux_domain_bam::params::DuplicateAction {
     fn from(value: DuplicateActionArg) -> Self {
         match value {
-            DuplicateActionArg::Mark => bijux_domain_bam::DuplicateAction::Mark,
-            DuplicateActionArg::Remove => bijux_domain_bam::DuplicateAction::Remove,
+            DuplicateActionArg::Mark => bijux_domain_bam::params::DuplicateAction::Mark,
+            DuplicateActionArg::Remove => bijux_domain_bam::params::DuplicateAction::Remove,
         }
     }
 }
