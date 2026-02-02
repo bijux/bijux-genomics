@@ -16,8 +16,8 @@
     ]
   },
   "parameters": {
-    "bam": "reads.bam",
     "bai": null,
+    "bam": "reads.bam",
     "reference": null,
     "strict": true
   },
