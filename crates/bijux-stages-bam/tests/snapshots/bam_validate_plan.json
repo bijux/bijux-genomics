@@ -1,0 +1,27 @@
+{
+  "stage_id": "bam.validate",
+  "stage_version": "1",
+  "io": {
+    "inputs": [
+      {
+        "name": "bam",
+        "path": "reads.bam"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "validation_report",
+        "path": "out/validation.json"
+      }
+    ]
+  },
+  "parameters": {
+    "bam": "reads.bam",
+    "bai": null,
+    "reference": null,
+    "strict": true
+  },
+  "effective_params": {
+    "strict": true
+  }
+}

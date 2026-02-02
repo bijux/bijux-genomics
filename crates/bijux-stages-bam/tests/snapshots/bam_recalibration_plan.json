@@ -1,0 +1,51 @@
+{
+  "stage_id": "bam.recalibration",
+  "stage_version": "1",
+  "io": {
+    "inputs": [
+      {
+        "name": "bam",
+        "path": "reads.bam"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "recal_bam",
+        "path": "out/recal.bam"
+      },
+      {
+        "name": "recal_bai",
+        "path": "out/recal.bam.bai"
+      },
+      {
+        "name": "recal_report",
+        "path": "out/recalibration.report.json"
+      },
+      {
+        "name": "recal_metrics",
+        "path": "out/recalibration.metrics.json"
+      }
+    ]
+  },
+  "parameters": {
+    "bam": "reads.bam",
+    "known_sites": [
+      "known.vcf"
+    ],
+    "mode": "skip",
+    "skip_criteria": {
+      "min_mean_coverage": 1.0,
+      "min_breadth_1x": 0.1
+    }
+  },
+  "effective_params": {
+    "known_sites": [
+      "known.vcf"
+    ],
+    "mode": "skip",
+    "skip_criteria": {
+      "min_mean_coverage": 1.0,
+      "min_breadth_1x": 0.1
+    }
+  }
+}

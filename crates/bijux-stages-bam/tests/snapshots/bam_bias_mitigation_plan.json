@@ -1,0 +1,31 @@
+{
+  "stage_id": "bam.bias_mitigation",
+  "stage_version": "1",
+  "io": {
+    "inputs": [
+      {
+        "name": "bam",
+        "path": "reads.bam"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "bias_report",
+        "path": "out/bias_mitigation.json"
+      },
+      {
+        "name": "bias_metrics",
+        "path": "out/bias_mitigation.metrics.json"
+      }
+    ]
+  },
+  "parameters": {
+    "bam": "reads.bam",
+    "gc_bias_correction": true,
+    "map_bias_correction": false
+  },
+  "effective_params": {
+    "gc_bias_correction": true,
+    "map_bias_correction": false
+  }
+}

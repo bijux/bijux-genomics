@@ -1,0 +1,31 @@
+{
+  "stage_id": "bam.kinship",
+  "stage_version": "1",
+  "io": {
+    "inputs": [
+      {
+        "name": "bam",
+        "path": "reads.bam"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "kinship_report",
+        "path": "out/kinship.json"
+      },
+      {
+        "name": "kinship_metrics",
+        "path": "out/kinship.metrics.json"
+      }
+    ]
+  },
+  "parameters": {
+    "bam": "reads.bam",
+    "reference_panel": "king_default",
+    "min_overlap_snps": 1000
+  },
+  "effective_params": {
+    "reference_panel": "king_default",
+    "min_overlap_snps": 1000
+  }
+}

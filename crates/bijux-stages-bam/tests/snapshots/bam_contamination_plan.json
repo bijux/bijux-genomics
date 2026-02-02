@@ -1,0 +1,41 @@
+{
+  "stage_id": "bam.contamination",
+  "stage_version": "1",
+  "io": {
+    "inputs": [
+      {
+        "name": "bam",
+        "path": "reads.bam"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "contamination_report",
+        "path": "out/contamination.json"
+      },
+      {
+        "name": "contamination_metrics",
+        "path": "out/contamination.metrics.json"
+      }
+    ]
+  },
+  "parameters": {
+    "bam": "reads.bam",
+    "reference_panels": [
+      "panel.vcf"
+    ],
+    "scope": "both",
+    "prior": null,
+    "sex_specific": false,
+    "assumptions": null
+  },
+  "effective_params": {
+    "reference_panels": [
+      "panel.vcf"
+    ],
+    "scope": "both",
+    "prior": null,
+    "sex_specific": false,
+    "assumptions": null
+  }
+}

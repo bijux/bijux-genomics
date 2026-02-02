@@ -1,0 +1,41 @@
+{
+  "stage_id": "bam.markdup",
+  "stage_version": "1",
+  "io": {
+    "inputs": [
+      {
+        "name": "bam",
+        "path": "reads.bam"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "markdup_bam",
+        "path": "out/markdup.bam"
+      },
+      {
+        "name": "markdup_bai",
+        "path": "out/markdup.bam.bai"
+      },
+      {
+        "name": "markdup_flagstat",
+        "path": "out/markdup.flagstat.txt"
+      },
+      {
+        "name": "markdup_metrics",
+        "path": "out/markdup.metrics.json"
+      }
+    ]
+  },
+  "parameters": {
+    "bam": "reads.bam",
+    "optical_duplicates": "mark_only",
+    "umi_policy": "ignore",
+    "duplicate_action": "mark"
+  },
+  "effective_params": {
+    "optical_duplicates": "mark_only",
+    "umi_policy": "ignore",
+    "duplicate_action": "mark"
+  }
+}

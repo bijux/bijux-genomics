@@ -69,7 +69,7 @@ pub fn resolve_stage_tool(command: &Commands) -> (StageId, ToolId, CommonArgs) {
                 CommonArgs::default(),
             ),
             BamCommand::Run(args) => (
-                StageId(args.stage.stage_id().to_string()),
+                StageId(args.stage.stage().as_str().to_string()),
                 ToolId(args.tool.clone().unwrap_or_else(|| "samtools".to_string())),
                 CommonArgs::default(),
             ),

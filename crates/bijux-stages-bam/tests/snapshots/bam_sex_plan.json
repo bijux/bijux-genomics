@@ -1,0 +1,31 @@
+{
+  "stage_id": "bam.sex",
+  "stage_version": "1",
+  "io": {
+    "inputs": [
+      {
+        "name": "bam",
+        "path": "reads.bam"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "sex_report",
+        "path": "out/sex.json"
+      },
+      {
+        "name": "sex_metrics",
+        "path": "out/sex.metrics.json"
+      }
+    ]
+  },
+  "parameters": {
+    "bam": "reads.bam",
+    "expected_sex": null,
+    "method": "rxy"
+  },
+  "effective_params": {
+    "expected_sex": null,
+    "method": "rxy"
+  }
+}
