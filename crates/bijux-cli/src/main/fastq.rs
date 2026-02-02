@@ -346,12 +346,25 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
                         )?;
                     }
                 },
+                BenchCommand::Bam { command } => {
+                    match command {
+                        BenchBamCommand::Stage(args) => {
+                            let registry = load_manifests(domain_dir)
+                                .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
+                            crate::bam_router::bench_bam_stage(
+                                args,
+                                &registry,
+                                cli.platform.as_deref(),
+                            )?;
+                        }
+                    }
+                }
                 BenchCommand::Schema { stage } => {
                     print_bench_schema(stage)?;
                 }
             }
             Ok(true)
         }
-        Commands::Fastq { .. } => Ok(false),
+        Commands::Fastq { .. } | Commands::Bam { .. } => Ok(false),
     }
 }

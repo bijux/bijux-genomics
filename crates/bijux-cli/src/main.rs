@@ -1,6 +1,7 @@
 // split to keep module size manageable
 
 mod adapter_bank;
+mod bam_router;
 mod cli;
 mod contaminant_bank;
 mod env;
@@ -16,3 +17,4 @@ include!("main/entry.rs");
 include!("main/fastq.rs");
 include!("main/bench.rs");
 include!("main/other.rs");
+include!("main/bam.rs");

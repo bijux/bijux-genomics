@@ -24,6 +24,8 @@ bijux-env-builder = { path = "../bijux-env-builder" }
 bijux-analyze = { path = "../bijux-analyze" }
 bijux-engine = { path = "../bijux-engine" }
 bijux-stages-fastq = { path = "../bijux-stages-fastq" }
+bijux-domain-bam = { path = "../bijux-domain-bam" }
+bijux-stages-bam = { path = "../bijux-stages-bam" }
 bijux-bench = { path = "../bijux-bench" }
 
 [dev-dependencies]

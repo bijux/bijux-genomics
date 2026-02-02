@@ -2,3 +2,4 @@
 
 include!("parse/core.rs");
 include!("parse/fastq.rs");
+include!("parse/bam.rs");
