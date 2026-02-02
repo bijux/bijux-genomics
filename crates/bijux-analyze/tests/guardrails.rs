@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 fn guardrails() -> anyhow::Result<()> {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let config = bijux_guardrails::GuardrailConfig::for_crate(env!("CARGO_PKG_NAME"));
-    bijux_guardrails::check(manifest_dir, config)
+    bijux_guardrails::check(manifest_dir, &config)
 }
 
 fn collect_rs_files(root: &Path, files: &mut Vec<PathBuf>) {
