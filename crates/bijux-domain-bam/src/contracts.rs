@@ -21,30 +21,21 @@ pub struct BamStageContract {
 
 #[must_use]
 pub fn contract_for_stage(stage_id: &str) -> Option<BamStageContract> {
-    match stage_id {
-        "bam.filter" | "bam.markdup" | "bam.recalibration" => Some(BamStageContract {
-            input: BamArtifactKind::Bam,
-            output: BamArtifactKind::Bam,
-            emits_bam: true,
-            emits_report: true,
-        }),
-        "bam.validate"
-        | "bam.qc_pre"
-        | "bam.complexity"
-        | "bam.coverage"
-        | "bam.damage"
-        | "bam.authenticity"
-        | "bam.contamination"
-        | "bam.sex"
-        | "bam.bias_mitigation"
-        | "bam.haplogroups"
-        | "bam.genotyping"
-        | "bam.kinship" => Some(BamStageContract {
+    let stage = crate::BamStage::try_from(stage_id).ok()?;
+    match stage {
+        crate::BamStage::Filter | crate::BamStage::Markdup | crate::BamStage::Recalibration => {
+            Some(BamStageContract {
+                input: BamArtifactKind::Bam,
+                output: BamArtifactKind::Bam,
+                emits_bam: true,
+                emits_report: true,
+            })
+        }
+        _ => Some(BamStageContract {
             input: BamArtifactKind::Bam,
             output: BamArtifactKind::Report,
             emits_bam: false,
             emits_report: true,
         }),
-        _ => None,
     }
 }

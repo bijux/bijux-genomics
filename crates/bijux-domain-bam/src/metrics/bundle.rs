@@ -6,17 +6,15 @@ use super::authenticity::AuthenticityScoreV1;
 use super::complexity::ComplexityMetricsV1;
 use super::contamination::{ContaminationMetricsV1, ContaminationReconciliationV1};
 use super::coverage::{CoverageMetricsV1, CoverageUniformityV1, EffectiveCoverageV1};
-use super::damage::{DamageComparisonV1, DamageMetricsV1};
+use super::damage::DamageMetricsV1;
 use super::fragment::FragmentLengthSummaryV1;
 use super::genotyping::GenotypingMetricsV1;
-use super::idxstats::IdxstatsSummaryV1;
 use super::mapq::MapqSummaryV1;
 use super::sex::SexInferenceV1;
 use super::sufficiency::{
     ContaminationSufficiencyV1, CoverageSufficiencyV1, HaplogroupSufficiencyV1,
     KinshipSufficiencyV1, SexSufficiencyV1,
 };
-use super::verdict::BamStageVerdictV1;
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
@@ -25,16 +23,12 @@ pub struct BamMetricsBundleV1 {
     pub alignment: AlignmentCountsV1,
     pub fragment_length: FragmentLengthSummaryV1,
     pub mapq: MapqSummaryV1,
-    #[serde(default)]
-    pub idxstats: IdxstatsSummaryV1,
     pub coverage: CoverageMetricsV1,
     #[serde(default)]
     pub coverage_uniformity: CoverageUniformityV1,
     #[serde(default)]
     pub effective_coverage: EffectiveCoverageV1,
     pub damage: DamageMetricsV1,
-    #[serde(default)]
-    pub damage_comparison: Option<DamageComparisonV1>,
     pub contamination: ContaminationMetricsV1,
     #[serde(default)]
     pub contamination_reconciliation: ContaminationReconciliationV1,
@@ -52,8 +46,6 @@ pub struct BamMetricsBundleV1 {
     pub haplogroup_sufficiency: HaplogroupSufficiencyV1,
     #[serde(default)]
     pub kinship_sufficiency: KinshipSufficiencyV1,
-    #[serde(default)]
-    pub stage_verdict: Option<BamStageVerdictV1>,
     pub genotyping: GenotypingMetricsV1,
 }
 
@@ -65,12 +57,10 @@ impl BamMetricsBundleV1 {
             alignment: AlignmentCountsV1::empty(),
             fragment_length: FragmentLengthSummaryV1::empty(),
             mapq: MapqSummaryV1::empty(),
-            idxstats: IdxstatsSummaryV1::empty(),
             coverage: CoverageMetricsV1::empty(),
             coverage_uniformity: CoverageUniformityV1::empty(),
             effective_coverage: EffectiveCoverageV1::empty(),
             damage: DamageMetricsV1::empty(),
-            damage_comparison: None,
             contamination: ContaminationMetricsV1::empty(),
             contamination_reconciliation: ContaminationReconciliationV1::empty(),
             sex: SexInferenceV1::empty(),
@@ -81,7 +71,6 @@ impl BamMetricsBundleV1 {
             contamination_sufficiency: ContaminationSufficiencyV1::empty(),
             haplogroup_sufficiency: HaplogroupSufficiencyV1::empty(),
             kinship_sufficiency: KinshipSufficiencyV1::empty(),
-            stage_verdict: None,
             genotyping: GenotypingMetricsV1::empty(),
         }
     }
