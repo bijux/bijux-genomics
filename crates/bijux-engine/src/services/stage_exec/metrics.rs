@@ -373,6 +373,13 @@ fn bam_metrics_from_dir(out_dir: &Path) -> BamMetricsV1 {
         if let Ok(coverage) = parse_mosdepth_summary(&path) {
             metrics.coverage = coverage;
         }
+    } else {
+        let depth_path = first_existing(out_dir, &["coverage.depth.txt", "depth.txt"]);
+        if let Some(path) = depth_path {
+            if let Ok(coverage) = bijux_domain_bam::parse_samtools_depth(&path) {
+                metrics.coverage = coverage;
+            }
+        }
     }
 
     let preseq_path = first_existing(out_dir, &["preseq.txt"]);
@@ -382,18 +389,44 @@ fn bam_metrics_from_dir(out_dir: &Path) -> BamMetricsV1 {
         }
     }
 
+    let mut damage_sources: Vec<(String, bijux_domain_bam::DamageMetricsV1)> = Vec::new();
     let pydamage_path = first_existing(out_dir, &["damage.pydamage.json", "pydamage.json"]);
     if let Some(path) = pydamage_path {
         if let Ok(damage) = parse_pydamage_json(&path) {
-            metrics.damage = damage;
+            metrics.damage = damage.clone();
+            damage_sources.push(("pydamage".to_string(), damage));
+        }
+    }
+    let mapdamage2_path = first_existing(out_dir, &["damage.mapdamage2.txt", "mapdamage2.txt"]);
+    if let Some(path) = mapdamage2_path {
+        if let Ok(damage) = bijux_domain_bam::parse_mapdamage2_misincorporation(&path) {
+            if damage_sources.is_empty() {
+                metrics.damage = damage.clone();
+            }
+            damage_sources.push(("mapdamage2".to_string(), damage));
         }
     }
     let damageprofiler_path =
         first_existing(out_dir, &["damage.profiler.json", "damageprofiler.json"]);
     if let Some(path) = damageprofiler_path {
         if let Ok(damage) = parse_damageprofiler_json(&path) {
-            metrics.damage = damage;
+            if damage_sources.is_empty() {
+                metrics.damage = damage.clone();
+            }
+            damage_sources.push(("damageprofiler".to_string(), damage));
         }
+    }
+    if damage_sources.len() >= 2 {
+        let threshold = 0.05;
+        let (tool_a, metrics_a) = &damage_sources[0];
+        let (tool_b, metrics_b) = &damage_sources[1];
+        metrics.damage_comparison = Some(bijux_domain_bam::compare_damage_metrics(
+            tool_a,
+            metrics_a,
+            tool_b,
+            metrics_b,
+            threshold,
+        ));
     }
 
     let contamination_path = first_existing(out_dir, &["contamination.json"]);
