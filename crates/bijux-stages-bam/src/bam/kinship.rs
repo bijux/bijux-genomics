@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use bijux_core::{ArtifactRef, StageIO, StageId, StagePlanV1, StageVersion, ToolExecutionSpecV1};
+use bijux_core::{StageIO, StageId, StagePlanV1, StageVersion, ToolExecutionSpecV1};
 use bijux_domain_bam::params::KinshipEffectiveParams;
 
 pub const STAGE_ID: &str = bijux_domain_bam::BamStage::Kinship.as_str();
@@ -14,6 +14,7 @@ pub fn plan(
     out_dir: &Path,
     params: &KinshipEffectiveParams,
 ) -> anyhow::Result<StagePlanV1> {
+    let outputs = super::audit_outputs(bijux_domain_bam::BamStage::Kinship, out_dir);
     let plan = StagePlanV1 {
         stage_id: StageId(STAGE_ID.to_string()),
         stage_version: STAGE_VERSION,
@@ -23,20 +24,11 @@ pub fn plan(
         command: tool.command.clone(),
         resources: tool.resources.clone(),
         io: StageIO {
-            inputs: vec![ArtifactRef {
+            inputs: vec![bijux_core::ArtifactRef {
                 name: "bam".to_string(),
                 path: bam.to_path_buf(),
             }],
-            outputs: vec![
-                ArtifactRef {
-                    name: "kinship_report".to_string(),
-                    path: out_dir.join("kinship.json"),
-                },
-                ArtifactRef {
-                    name: "kinship_metrics".to_string(),
-                    path: out_dir.join("kinship.metrics.json"),
-                },
-            ],
+            outputs,
         },
         out_dir: out_dir.to_path_buf(),
         params: serde_json::json!({
@@ -44,8 +36,10 @@ pub fn plan(
             "reference_panel": params.reference_panel,
             "min_overlap_snps": params.min_overlap_snps,
         }),
-        effective_params: serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
+        effective_params: super::ensure_effective_params(
+            serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
+        )?,
         aux_images: std::collections::BTreeMap::new(),
     };
-    super::ensure_required_outputs(plan, &["kinship_report", "kinship_metrics"])
+    super::ensure_required_outputs(plan, &["kinship_report", "summary"])
 }
