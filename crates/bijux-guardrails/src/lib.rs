@@ -44,11 +44,8 @@ impl GuardrailConfig {
     #[must_use]
     pub fn for_crate(name: &str) -> Self {
         let mut config = Self::default();
-        match name {
-            "bijux-domain-bam" => {
-                config.allow_stage_id_paths = vec!["/src/bam_stage_registry.rs".to_string()];
-            }
-            _ => {}
+        if name == "bijux-domain-bam" {
+            config.allow_stage_id_paths = vec!["/src/bam_stage_registry.rs".to_string()];
         }
         config
     }
@@ -273,10 +270,7 @@ fn check_mod_reexports_only(files: &[PathBuf]) -> Result<()> {
             meaningful += 1;
         }
         if meaningful == 0 {
-            anyhow::bail!(
-                "stages mod.rs contains only re-exports: {}",
-                path.display()
-            );
+            anyhow::bail!("stages mod.rs contains only re-exports: {}", path.display());
         }
     }
     Ok(())
