@@ -360,6 +360,12 @@ fn bam_metrics_from_dir(out_dir: &Path) -> BamMetricsV1 {
             metrics.mapq = mapq;
         }
     }
+    let idxstats_path = first_existing(out_dir, &["idxstats.txt"]);
+    if let Some(path) = idxstats_path {
+        if let Ok(idxstats) = crate::services::observer::parse_samtools_idxstats(&path) {
+            metrics.idxstats = idxstats;
+        }
+    }
 
     let mosdepth_path =
         first_existing(out_dir, &["coverage.mosdepth.summary.txt", "mosdepth.summary.txt"]);
