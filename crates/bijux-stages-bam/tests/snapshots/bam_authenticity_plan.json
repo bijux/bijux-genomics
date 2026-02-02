@@ -14,12 +14,8 @@
         "path": "out/authenticity.json"
       },
       {
-        "name": "summary",
-        "path": "out/authenticity.summary.json"
-      },
-      {
-        "name": "stage_metrics",
-        "path": "out/stage.metrics.json"
+        "name": "authenticity_metrics",
+        "path": "out/authenticity.metrics.json"
       }
     ]
   },

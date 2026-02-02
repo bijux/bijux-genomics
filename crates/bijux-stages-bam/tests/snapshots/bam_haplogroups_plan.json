@@ -14,22 +14,18 @@
         "path": "out/haplogroups.json"
       },
       {
-        "name": "summary",
-        "path": "out/haplogroups.summary.json"
-      },
-      {
-        "name": "stage_metrics",
-        "path": "out/stage.metrics.json"
+        "name": "haplogroups_metrics",
+        "path": "out/haplogroups.metrics.json"
       }
     ]
   },
   "parameters": {
     "bam": "reads.bam",
-    "min_coverage": 1.0,
-    "reference_panel": "mito_default"
+    "reference_panel": "mito_default",
+    "min_coverage": 1.0
   },
   "effective_params": {
-    "min_coverage": 1.0,
-    "reference_panel": "mito_default"
+    "reference_panel": "mito_default",
+    "min_coverage": 1.0
   }
 }

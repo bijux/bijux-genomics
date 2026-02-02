@@ -14,12 +14,8 @@
         "path": "out/bias_mitigation.json"
       },
       {
-        "name": "summary",
-        "path": "out/bias_mitigation.summary.json"
-      },
-      {
-        "name": "stage_metrics",
-        "path": "out/stage.metrics.json"
+        "name": "bias_metrics",
+        "path": "out/bias_mitigation.metrics.json"
       }
     ]
   },

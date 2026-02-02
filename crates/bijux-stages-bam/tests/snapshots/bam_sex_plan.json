@@ -14,12 +14,8 @@
         "path": "out/sex.json"
       },
       {
-        "name": "summary",
-        "path": "out/sex.summary.json"
-      },
-      {
-        "name": "stage_metrics",
-        "path": "out/stage.metrics.json"
+        "name": "sex_metrics",
+        "path": "out/sex.metrics.json"
       }
     ]
   },
