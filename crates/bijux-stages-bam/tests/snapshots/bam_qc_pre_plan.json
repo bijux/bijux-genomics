@@ -24,6 +24,10 @@
       {
         "name": "summary",
         "path": "out/qc_pre.summary.json"
+      },
+      {
+        "name": "stage_metrics",
+        "path": "out/stage.metrics.json"
       }
     ]
   },
