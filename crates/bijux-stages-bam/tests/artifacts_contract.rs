@@ -34,12 +34,21 @@ fn dummy_tool(tool: &str) -> ToolExecutionSpecV1 {
 fn assert_audit_outputs(stage: BamStage, plan: &bijux_core::StagePlanV1) {
     let outputs: std::collections::HashSet<_> =
         plan.io.outputs.iter().map(|o| o.name.as_str()).collect();
+    let spec = bijux_domain_bam::stage_spec(stage);
     for artifact in required_audit_artifacts(stage) {
         assert!(
             outputs.contains(artifact.name),
             "stage {} missing required output {}",
             stage.as_str(),
             artifact.name
+        );
+    }
+    for required in spec.artifact_policy.required_outputs {
+        assert!(
+            outputs.contains(*required),
+            "stage {} missing required output {}",
+            stage.as_str(),
+            required
         );
     }
 }

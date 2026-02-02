@@ -24,6 +24,10 @@
       {
         "name": "summary",
         "path": "out/damage.summary.json"
+      },
+      {
+        "name": "stage_metrics",
+        "path": "out/stage.metrics.json"
       }
     ]
   },
