@@ -43,6 +43,7 @@ pub fn check(crate_root: &Path, config: &GuardrailConfig) -> Result<()> {
     check_loc(&files, config)?;
     check_depth(&src_dir, &files, config)?;
     check_modules_per_dir(&src_dir, config)?;
+    check_mod_only_dirs(&src_dir)?;
     check_empty_modules(&files)?;
     check_pub_items(&files, config)?;
     if config.forbid_pub_use_spam {
@@ -128,6 +129,38 @@ fn check_modules_per_dir(src_dir: &Path, config: &GuardrailConfig) -> Result<()>
                 entry.path().display(),
                 count,
                 config.max_modules_per_dir
+            );
+        }
+    }
+    Ok(())
+}
+
+fn check_mod_only_dirs(src_dir: &Path) -> Result<()> {
+    for entry in WalkDir::new(src_dir).min_depth(1).max_depth(10) {
+        let entry = entry?;
+        if !entry.file_type().is_dir() {
+            continue;
+        }
+        let mut rs_files = Vec::new();
+        for child in fs::read_dir(entry.path())? {
+            let child = child?;
+            let path = child.path();
+            if path.is_file() && path.extension().and_then(|s| s.to_str()) == Some("rs") {
+                if let Some(name) = path.file_name().and_then(|s| s.to_str()) {
+                    rs_files.push(name.to_string());
+                }
+            }
+        }
+        if rs_files.is_empty() {
+            continue;
+        }
+        let allowed = rs_files
+            .iter()
+            .all(|name| name == "mod.rs" || name == "tests.rs");
+        if allowed && rs_files.iter().any(|name| name == "mod.rs") && rs_files.len() <= 2 {
+            anyhow::bail!(
+                "module directory contains only mod.rs (and optionally tests.rs): {}",
+                entry.path().display()
             );
         }
     }
