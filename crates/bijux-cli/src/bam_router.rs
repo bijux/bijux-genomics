@@ -7,7 +7,7 @@ use bijux_engine::api::{
 use bijux_env_runtime::api::{load_image_catalog, load_platform, RunnerKind};
 use std::path::PathBuf;
 
-use crate::cli::parse::{BenchBamPipelineArgs, BenchBamStageArgs};
+use crate::cli::parse::BenchBamStageArgs;
 use crate::plan_for_bam_stage;
 
 pub struct BamBenchOutcome {
@@ -28,7 +28,11 @@ pub fn bench_bam_stage(
     let stage_id = stage.as_str();
     let mut tools = args.tools.clone();
     if tools.is_empty() {
-        tools = bijux_stages_bam::bam_tools_registry::allowed_tools_for_stage(stage);
+        tools = registry
+            .tools_for_stage(stage_id)
+            .iter()
+            .map(|tool| tool.tool_id.clone())
+            .collect();
     }
     let prev_silver = std::env::var("BIJUX_ALLOW_SILVER").ok();
     let prev_experimental = std::env::var("BIJUX_EXPERIMENTAL_TOOLS").ok();
@@ -68,36 +72,6 @@ pub fn bench_bam_stage(
             }
             run_dirs.push(run_dir);
         }
-    }
-    Ok(BamBenchOutcome { run_dirs })
-}
-
-pub fn bench_bam_pipeline(
-    args: &BenchBamPipelineArgs,
-    registry: &ToolRegistry,
-    platform_path: Option<&str>,
-) -> Result<BamBenchOutcome> {
-    let profile = bijux_pipelines_bam::profile_by_id(&args.profile)?;
-    let tool_matrix = parse_tool_matrix(&args.tools)?;
-    let mut run_dirs = Vec::new();
-    for stage in profile.stages {
-        let stage_id = stage.as_str();
-        let tools = tool_matrix.get(stage_id).cloned().unwrap_or_default();
-        let stage_args = BenchBamStageArgs {
-            sample_id: args.sample_id.clone(),
-            stage: stage.into(),
-            bam: args.bam.clone(),
-            out: args.out.clone(),
-            tools,
-            explain: args.explain,
-            allow_silver: args.allow_silver,
-            allow_experimental: args.allow_experimental,
-            replicates: args.replicates,
-            jobs: args.jobs,
-            dry_run: args.dry_run,
-        };
-        let outcome = bench_bam_stage(&stage_args, registry, platform_path)?;
-        run_dirs.extend(outcome.run_dirs);
     }
     Ok(BamBenchOutcome { run_dirs })
 }
@@ -155,61 +129,4 @@ impl From<&BenchBamStageArgs> for crate::cli::parse::BamRunArgs {
             dry_run: value.dry_run,
         }
     }
-}
-
-impl From<bijux_domain_bam::BamStage> for crate::cli::parse::BamStageArg {
-    fn from(value: bijux_domain_bam::BamStage) -> Self {
-        match value {
-            bijux_domain_bam::BamStage::Validate => crate::cli::parse::BamStageArg::Validate,
-            bijux_domain_bam::BamStage::QcPre => crate::cli::parse::BamStageArg::QcPre,
-            bijux_domain_bam::BamStage::Filter => crate::cli::parse::BamStageArg::Filter,
-            bijux_domain_bam::BamStage::Markdup => crate::cli::parse::BamStageArg::Markdup,
-            bijux_domain_bam::BamStage::Complexity => crate::cli::parse::BamStageArg::Complexity,
-            bijux_domain_bam::BamStage::Coverage => crate::cli::parse::BamStageArg::Coverage,
-            bijux_domain_bam::BamStage::Damage => crate::cli::parse::BamStageArg::Damage,
-            bijux_domain_bam::BamStage::Authenticity => {
-                crate::cli::parse::BamStageArg::Authenticity
-            }
-            bijux_domain_bam::BamStage::Contamination => {
-                crate::cli::parse::BamStageArg::Contamination
-            }
-            bijux_domain_bam::BamStage::Sex => crate::cli::parse::BamStageArg::Sex,
-            bijux_domain_bam::BamStage::BiasMitigation => {
-                crate::cli::parse::BamStageArg::BiasMitigation
-            }
-            bijux_domain_bam::BamStage::Recalibration => {
-                crate::cli::parse::BamStageArg::Recalibration
-            }
-            bijux_domain_bam::BamStage::Haplogroups => crate::cli::parse::BamStageArg::Haplogroups,
-            bijux_domain_bam::BamStage::Genotyping => crate::cli::parse::BamStageArg::Genotyping,
-            bijux_domain_bam::BamStage::Kinship => crate::cli::parse::BamStageArg::Kinship,
-        }
-    }
-}
-
-fn parse_tool_matrix(
-    entries: &[String],
-) -> Result<std::collections::BTreeMap<String, Vec<String>>> {
-    let mut map = std::collections::BTreeMap::new();
-    for entry in entries {
-        let mut parts = entry.split('=');
-        let stage_raw = parts
-            .next()
-            .ok_or_else(|| anyhow!("invalid tool matrix entry: {entry}"))?;
-        let tools_raw = parts
-            .next()
-            .ok_or_else(|| anyhow!("invalid tool matrix entry: {entry}"))?;
-        let stage_id = if stage_raw.contains('.') {
-            stage_raw.to_string()
-        } else {
-            format!("bam.{stage_raw}")
-        };
-        let tools = tools_raw
-            .split(',')
-            .filter(|s| !s.is_empty())
-            .map(ToString::to_string)
-            .collect::<Vec<_>>();
-        map.insert(stage_id, tools);
-    }
-    Ok(map)
 }
