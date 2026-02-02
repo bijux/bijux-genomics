@@ -249,9 +249,11 @@ dependencies = [
  "bijux-analyze",
  "bijux-bench",
  "bijux-core",
+ "bijux-domain-bam",
  "bijux-engine",
  "bijux-env-builder",
  "bijux-env-runtime",
+ "bijux-stages-bam",
  "bijux-stages-fastq",
  "chrono",
  "clap",
@@ -275,6 +277,7 @@ dependencies = [
  "anyhow",
  "bijux-bench",
  "bijux-core",
+ "bijux-domain-bam",
  "bijux-domain-fastq",
  "parquet",
  "rusqlite",
@@ -365,9 +368,11 @@ dependencies = [
  "anyhow",
  "assert_cmd",
  "bijux-core",
+ "bijux-domain-bam",
  "bijux-domain-fastq",
  "bijux-env-builder",
  "bijux-env-runtime",
+ "bijux-stages-bam",
  "bijux-stages-fastq",
  "chrono",
  "flate2",
@@ -413,6 +418,17 @@ dependencies = [
  "serde",
  "serde_yaml",
  "thiserror 1.0.69",
+]
+
+[[package]]
+name = "bijux-stages-bam"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bijux-core",
+ "bijux-domain-bam",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
