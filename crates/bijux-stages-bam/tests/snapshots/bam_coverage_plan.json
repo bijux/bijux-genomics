@@ -18,6 +18,10 @@
         "path": "out/coverage.mosdepth.summary.txt"
       },
       {
+        "name": "coverage_depth",
+        "path": "out/coverage.depth.txt"
+      },
+      {
         "name": "summary",
         "path": "out/coverage.summary.json"
       },
