@@ -1,0 +1,16 @@
+[package]
+name = "bijux-pipelines-bam"
+version = "0.1.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+anyhow = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+bijux-core = { path = "../bijux-core" }
+bijux-domain-bam = { path = "../bijux-domain-bam" }
+
+[dev-dependencies]
+insta = { version = "1", features = ["json"] }
+bijux-guardrails = { path = "../bijux-guardrails" }
