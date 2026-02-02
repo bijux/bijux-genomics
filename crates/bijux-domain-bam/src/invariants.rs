@@ -178,6 +178,25 @@ fn evaluate_bam_invariants_inner(
         });
     }
 
+    if let Some(comparison) = metrics.damage_comparison.as_ref() {
+        if comparison.exceeds_threshold {
+            results.push(InvariantResultV1 {
+                id: "damage_tool_disagreement".to_string(),
+                status: InvariantStatusV1::Warn,
+                message: format!(
+                    "damage tools {} vs {} disagree (C→T Δ{:.3}, G→A Δ{:.3})",
+                    comparison.tool_a,
+                    comparison.tool_b,
+                    comparison.c_to_t_diff,
+                    comparison.g_to_a_diff
+                ),
+                remediation: Some(
+                    "verify damage tool inputs or rerun with consistent parameters".to_string(),
+                ),
+            });
+        }
+    }
+
     let mut reasons = Vec::new();
     for result in &results {
         if matches!(
