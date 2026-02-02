@@ -99,6 +99,10 @@ script = [
   "fi",
 ]
 
+[tasks.structure-check]
+command = "cargo"
+args = ["test", "-p", "bijux-guardrails", "--test", "workspace", "--test", "policy_snapshot"]
+
 [tasks.coverage]
 script_runner = "bash"
 script = [
@@ -147,4 +151,4 @@ script = [
 ]
 
 [tasks.ci]
-dependencies = ["lint", "audit", "test"]
+dependencies = ["lint", "audit", "structure-check", "test"]
