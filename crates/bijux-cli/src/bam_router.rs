@@ -80,6 +80,7 @@ impl From<&BenchBamStageArgs> for crate::cli::parse::BamRunArgs {
     fn from(value: &BenchBamStageArgs) -> Self {
         crate::cli::parse::BamRunArgs {
             stage: value.stage,
+            profile: "default".to_string(),
             bam: value.bam.clone(),
             out: value.out.clone(),
             tool: None,
