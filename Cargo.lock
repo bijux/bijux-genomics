@@ -253,6 +253,7 @@ dependencies = [
  "bijux-engine",
  "bijux-env-builder",
  "bijux-env-runtime",
+ "bijux-guardrails",
  "bijux-stages-bam",
  "bijux-stages-fastq",
  "chrono",
@@ -279,6 +280,7 @@ dependencies = [
  "bijux-core",
  "bijux-domain-bam",
  "bijux-domain-fastq",
+ "bijux-guardrails",
  "parquet",
  "rusqlite",
  "serde",
@@ -297,6 +299,7 @@ dependencies = [
  "bijux-analyze",
  "bijux-core",
  "bijux-engine",
+ "bijux-guardrails",
  "fastrand",
  "insta",
  "serde",
@@ -309,6 +312,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bijux-analyze",
+ "bijux-guardrails",
  "chrono",
  "regex",
  "serde",
@@ -329,6 +333,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bijux-core",
+ "bijux-guardrails",
  "schemars",
  "serde",
  "serde_json",
@@ -341,6 +346,7 @@ dependencies = [
  "anyhow",
  "bijux-analyze",
  "bijux-core",
+ "bijux-guardrails",
  "chrono",
  "rusqlite",
  "schemars",
@@ -358,6 +364,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bijux-core",
+ "bijux-guardrails",
  "serde_json",
 ]
 
@@ -372,6 +379,7 @@ dependencies = [
  "bijux-domain-fastq",
  "bijux-env-builder",
  "bijux-env-runtime",
+ "bijux-guardrails",
  "bijux-stages-bam",
  "bijux-stages-fastq",
  "chrono",
@@ -399,6 +407,7 @@ dependencies = [
  "bijux-analyze",
  "bijux-core",
  "bijux-env-runtime",
+ "bijux-guardrails",
  "regex",
  "rusqlite",
  "serde",
@@ -415,9 +424,20 @@ dependencies = [
 name = "bijux-env-runtime"
 version = "0.1.0"
 dependencies = [
+ "bijux-guardrails",
  "serde",
  "serde_yaml",
  "thiserror 1.0.69",
+]
+
+[[package]]
+name = "bijux-guardrails"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "regex",
+ "serde_json",
+ "walkdir",
 ]
 
 [[package]]
@@ -427,6 +447,7 @@ dependencies = [
  "anyhow",
  "bijux-core",
  "bijux-domain-bam",
+ "bijux-guardrails",
  "serde",
  "serde_json",
 ]
@@ -440,6 +461,7 @@ dependencies = [
  "bijux-core",
  "bijux-domain-fastq",
  "bijux-engine",
+ "bijux-guardrails",
  "serde",
  "serde_json",
  "sha2",
