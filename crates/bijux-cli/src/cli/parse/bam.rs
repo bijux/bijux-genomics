@@ -21,23 +21,23 @@ pub enum BamStageArg {
 
 impl BamStageArg {
     #[must_use]
-    pub fn stage(self) -> bijux_domain_bam::BamStage {
+    pub fn stage_id(self) -> &'static str {
         match self {
-            BamStageArg::Validate => bijux_domain_bam::BamStage::Validate,
-            BamStageArg::QcPre => bijux_domain_bam::BamStage::QcPre,
-            BamStageArg::Filter => bijux_domain_bam::BamStage::Filter,
-            BamStageArg::Markdup => bijux_domain_bam::BamStage::Markdup,
-            BamStageArg::Complexity => bijux_domain_bam::BamStage::Complexity,
-            BamStageArg::Coverage => bijux_domain_bam::BamStage::Coverage,
-            BamStageArg::Damage => bijux_domain_bam::BamStage::Damage,
-            BamStageArg::Authenticity => bijux_domain_bam::BamStage::Authenticity,
-            BamStageArg::Contamination => bijux_domain_bam::BamStage::Contamination,
-            BamStageArg::Sex => bijux_domain_bam::BamStage::Sex,
-            BamStageArg::BiasMitigation => bijux_domain_bam::BamStage::BiasMitigation,
-            BamStageArg::Recalibration => bijux_domain_bam::BamStage::Recalibration,
-            BamStageArg::Haplogroups => bijux_domain_bam::BamStage::Haplogroups,
-            BamStageArg::Genotyping => bijux_domain_bam::BamStage::Genotyping,
-            BamStageArg::Kinship => bijux_domain_bam::BamStage::Kinship,
+            BamStageArg::Validate => "bam.validate",
+            BamStageArg::QcPre => "bam.qc_pre",
+            BamStageArg::Filter => "bam.filter",
+            BamStageArg::Markdup => "bam.markdup",
+            BamStageArg::Complexity => "bam.complexity",
+            BamStageArg::Coverage => "bam.coverage",
+            BamStageArg::Damage => "bam.damage",
+            BamStageArg::Authenticity => "bam.authenticity",
+            BamStageArg::Contamination => "bam.contamination",
+            BamStageArg::Sex => "bam.sex",
+            BamStageArg::BiasMitigation => "bam.bias_mitigation",
+            BamStageArg::Recalibration => "bam.recalibration",
+            BamStageArg::Haplogroups => "bam.haplogroups",
+            BamStageArg::Genotyping => "bam.genotyping",
+            BamStageArg::Kinship => "bam.kinship",
         }
     }
 }
@@ -49,12 +49,12 @@ pub enum UdgModelArg {
     Udg,
 }
 
-impl From<UdgModelArg> for bijux_domain_bam::params::UdgModel {
+impl From<UdgModelArg> for bijux_domain_bam::UdgModel {
     fn from(value: UdgModelArg) -> Self {
         match value {
-            UdgModelArg::NonUdg => bijux_domain_bam::params::UdgModel::NonUdg,
-            UdgModelArg::HalfUdg => bijux_domain_bam::params::UdgModel::HalfUdg,
-            UdgModelArg::Udg => bijux_domain_bam::params::UdgModel::Udg,
+            UdgModelArg::NonUdg => bijux_domain_bam::UdgModel::NonUdg,
+            UdgModelArg::HalfUdg => bijux_domain_bam::UdgModel::HalfUdg,
+            UdgModelArg::Udg => bijux_domain_bam::UdgModel::Udg,
         }
     }
 }
@@ -66,12 +66,12 @@ pub enum ContaminationScopeArg {
     Both,
 }
 
-impl From<ContaminationScopeArg> for bijux_domain_bam::params::ContaminationScope {
+impl From<ContaminationScopeArg> for bijux_domain_bam::ContaminationScope {
     fn from(value: ContaminationScopeArg) -> Self {
         match value {
-            ContaminationScopeArg::Mito => bijux_domain_bam::params::ContaminationScope::Mito,
-            ContaminationScopeArg::Nuclear => bijux_domain_bam::params::ContaminationScope::Nuclear,
-            ContaminationScopeArg::Both => bijux_domain_bam::params::ContaminationScope::Both,
+            ContaminationScopeArg::Mito => bijux_domain_bam::ContaminationScope::Mito,
+            ContaminationScopeArg::Nuclear => bijux_domain_bam::ContaminationScope::Nuclear,
+            ContaminationScopeArg::Both => bijux_domain_bam::ContaminationScope::Both,
         }
     }
 }
@@ -83,12 +83,12 @@ pub enum BqsrModeArg {
     EmitOnly,
 }
 
-impl From<BqsrModeArg> for bijux_domain_bam::params::BqsrMode {
+impl From<BqsrModeArg> for bijux_domain_bam::BqsrMode {
     fn from(value: BqsrModeArg) -> Self {
         match value {
-            BqsrModeArg::Standard => bijux_domain_bam::params::BqsrMode::Standard,
-            BqsrModeArg::Skip => bijux_domain_bam::params::BqsrMode::Skip,
-            BqsrModeArg::EmitOnly => bijux_domain_bam::params::BqsrMode::EmitOnly,
+            BqsrModeArg::Standard => bijux_domain_bam::BqsrMode::Standard,
+            BqsrModeArg::Skip => bijux_domain_bam::BqsrMode::Skip,
+            BqsrModeArg::EmitOnly => bijux_domain_bam::BqsrMode::EmitOnly,
         }
     }
 }
@@ -100,12 +100,12 @@ pub enum ExpectedSexArg {
     Unknown,
 }
 
-impl From<ExpectedSexArg> for bijux_domain_bam::types::ExpectedSex {
+impl From<ExpectedSexArg> for bijux_domain_bam::ExpectedSex {
     fn from(value: ExpectedSexArg) -> Self {
         match value {
-            ExpectedSexArg::Xx => bijux_domain_bam::types::ExpectedSex::XX,
-            ExpectedSexArg::Xy => bijux_domain_bam::types::ExpectedSex::XY,
-            ExpectedSexArg::Unknown => bijux_domain_bam::types::ExpectedSex::Unknown,
+            ExpectedSexArg::Xx => bijux_domain_bam::ExpectedSex::XX,
+            ExpectedSexArg::Xy => bijux_domain_bam::ExpectedSex::XY,
+            ExpectedSexArg::Unknown => bijux_domain_bam::ExpectedSex::Unknown,
         }
     }
 }
@@ -117,14 +117,14 @@ pub enum OpticalDuplicatePolicyArg {
     Remove,
 }
 
-impl From<OpticalDuplicatePolicyArg> for bijux_domain_bam::params::OpticalDuplicatePolicy {
+impl From<OpticalDuplicatePolicyArg> for bijux_domain_bam::OpticalDuplicatePolicy {
     fn from(value: OpticalDuplicatePolicyArg) -> Self {
         match value {
-            OpticalDuplicatePolicyArg::None => bijux_domain_bam::params::OpticalDuplicatePolicy::None,
+            OpticalDuplicatePolicyArg::None => bijux_domain_bam::OpticalDuplicatePolicy::None,
             OpticalDuplicatePolicyArg::MarkOnly => {
-                bijux_domain_bam::params::OpticalDuplicatePolicy::MarkOnly
+                bijux_domain_bam::OpticalDuplicatePolicy::MarkOnly
             }
-            OpticalDuplicatePolicyArg::Remove => bijux_domain_bam::params::OpticalDuplicatePolicy::Remove,
+            OpticalDuplicatePolicyArg::Remove => bijux_domain_bam::OpticalDuplicatePolicy::Remove,
         }
     }
 }
@@ -136,12 +136,12 @@ pub enum UmiPolicyArg {
     Collapse,
 }
 
-impl From<UmiPolicyArg> for bijux_domain_bam::params::UmiPolicy {
+impl From<UmiPolicyArg> for bijux_domain_bam::UmiPolicy {
     fn from(value: UmiPolicyArg) -> Self {
         match value {
-            UmiPolicyArg::Ignore => bijux_domain_bam::params::UmiPolicy::Ignore,
-            UmiPolicyArg::UseTag => bijux_domain_bam::params::UmiPolicy::UseTag,
-            UmiPolicyArg::Collapse => bijux_domain_bam::params::UmiPolicy::Collapse,
+            UmiPolicyArg::Ignore => bijux_domain_bam::UmiPolicy::Ignore,
+            UmiPolicyArg::UseTag => bijux_domain_bam::UmiPolicy::UseTag,
+            UmiPolicyArg::Collapse => bijux_domain_bam::UmiPolicy::Collapse,
         }
     }
 }
@@ -152,11 +152,11 @@ pub enum DuplicateActionArg {
     Remove,
 }
 
-impl From<DuplicateActionArg> for bijux_domain_bam::params::DuplicateAction {
+impl From<DuplicateActionArg> for bijux_domain_bam::DuplicateAction {
     fn from(value: DuplicateActionArg) -> Self {
         match value {
-            DuplicateActionArg::Mark => bijux_domain_bam::params::DuplicateAction::Mark,
-            DuplicateActionArg::Remove => bijux_domain_bam::params::DuplicateAction::Remove,
+            DuplicateActionArg::Mark => bijux_domain_bam::DuplicateAction::Mark,
+            DuplicateActionArg::Remove => bijux_domain_bam::DuplicateAction::Remove,
         }
     }
 }
@@ -166,8 +166,6 @@ impl From<DuplicateActionArg> for bijux_domain_bam::params::DuplicateAction {
 pub struct BamRunArgs {
     #[arg(long, value_enum, default_value_t = BamStageArg::Validate)]
     pub stage: BamStageArg,
-    #[arg(long, default_value = "default")]
-    pub profile: String,
     #[arg(long)]
     pub bam: PathBuf,
     #[arg(long)]
@@ -276,7 +274,6 @@ pub enum BamCommand {
 #[derive(Debug, clap::Subcommand)]
 pub enum BenchBamCommand {
     Stage(BenchBamStageArgs),
-    Pipeline(BenchBamPipelineArgs),
 }
 
 #[derive(Debug, Args, Clone)]
@@ -286,33 +283,6 @@ pub struct BenchBamStageArgs {
     pub sample_id: String,
     #[arg(long, value_enum)]
     pub stage: BamStageArg,
-    #[arg(long)]
-    pub bam: PathBuf,
-    #[arg(long)]
-    pub out: PathBuf,
-    #[arg(long, value_delimiter = ',')]
-    pub tools: Vec<String>,
-    #[arg(long)]
-    pub explain: bool,
-    #[arg(long)]
-    pub allow_silver: bool,
-    #[arg(long)]
-    pub allow_experimental: bool,
-    #[arg(long, default_value_t = 1)]
-    pub replicates: u32,
-    #[arg(long, default_value_t = 1)]
-    pub jobs: u32,
-    #[arg(long)]
-    pub dry_run: bool,
-}
-
-#[derive(Debug, Args, Clone)]
-#[allow(clippy::struct_excessive_bools)]
-pub struct BenchBamPipelineArgs {
-    #[arg(long, alias = "sample")]
-    pub sample_id: String,
-    #[arg(long, default_value = "default")]
-    pub profile: String,
     #[arg(long)]
     pub bam: PathBuf,
     #[arg(long)]
