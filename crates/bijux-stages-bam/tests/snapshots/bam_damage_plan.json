@@ -18,6 +18,10 @@
         "path": "out/damage.pydamage.json"
       },
       {
+        "name": "damage_mapdamage2",
+        "path": "out/damage.mapdamage2.txt"
+      },
+      {
         "name": "damage_profiler",
         "path": "out/damage.profiler.json"
       },
