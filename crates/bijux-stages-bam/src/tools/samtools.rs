@@ -88,7 +88,10 @@ pub fn markdup_args(
     idxstats: &Path,
     params: &bijux_domain_bam::params::MarkDupEffectiveParams,
 ) -> Vec<String> {
-    let remove = matches!(params.duplicate_action, bijux_domain_bam::params::DuplicateAction::Remove);
+    let remove = matches!(
+        params.duplicate_action,
+        bijux_domain_bam::params::DuplicateAction::Remove
+    );
     let mut args = vec!["samtools markdup".to_string()];
     if remove {
         args.push("-r".to_string());
