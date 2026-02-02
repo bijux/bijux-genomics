@@ -117,6 +117,7 @@ fn stage_metrics_for_plan(
         "fastq.detect_adapters" => {
             let stats = stats_for_paths(&[inputs.first().map(PathBuf::as_path)])?;
             let input = stats.first().copied().unwrap_or_else(zero_seqkit_metrics);
+            let (pairs_in, pairs_out) = pair_counts_from_paths(inputs, outputs)?;
             let out_dir = path_from_params(params, "out_dir")
                 .unwrap_or_else(|| inputs.first().cloned().unwrap_or_default());
             let metrics = fastqc_metrics_v2_from_dir(&out_dir).or_else(|| {
@@ -143,6 +144,8 @@ fn stage_metrics_for_plan(
                 reads_out: input.reads,
                 bases_in: input.bases,
                 bases_out: input.bases,
+                pairs_in,
+                pairs_out,
                 mean_q: input.mean_q,
                 adapter_content_max,
                 adapter_content_mean,
