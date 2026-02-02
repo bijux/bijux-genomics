@@ -1,3 +1,6 @@
+use bijux_domain_bam::metrics::BamMetricsV1;
+use bijux_domain_bam::{evaluate_bam_invariants, BamInvariantThresholds};
+
 pub(super) fn accounting_section(rows: &[bijux_core::FactsRowV1]) -> serde_json::Value {
     let mut stages = Vec::new();
     for row in rows {
@@ -11,6 +14,139 @@ pub(super) fn accounting_section(rows: &[bijux_core::FactsRowV1]) -> serde_json:
         }));
     }
     serde_json::json!({"stages": stages})
+}
+
+pub(super) fn bam_accounting_section(rows: &[bijux_core::FactsRowV1]) -> serde_json::Value {
+    let mut entries = Vec::new();
+    let thresholds = BamInvariantThresholds::default();
+    for row in rows {
+        if !row.stage_id.starts_with("bam.") {
+            continue;
+        }
+        let metrics: BamMetricsV1 = match serde_json::from_value(row.metrics.clone()) {
+            Ok(metrics) => metrics,
+            Err(_) => BamMetricsV1::empty(),
+        };
+        let alignment = &metrics.alignment;
+        let dup_fraction = if alignment.total > 0 {
+            u64_to_f64(alignment.duplicates) / u64_to_f64(alignment.total)
+        } else {
+            0.0
+        };
+        let coverage_mean = metrics.coverage.mean;
+        let complexity_reads = metrics.complexity.observed_reads;
+        let verdict = evaluate_bam_invariants(&row.stage_id, &metrics, &thresholds).verdict;
+        entries.push(serde_json::json!({
+            "stage_id": row.stage_id,
+            "tool_id": row.tool_id,
+            "reads_in": row.reads_in,
+            "reads_out": row.reads_out,
+            "duplicates_fraction": dup_fraction,
+            "coverage_mean": coverage_mean,
+            "complexity_observed_reads": complexity_reads,
+            "verdict": verdict,
+        }));
+    }
+    serde_json::json!({ "entries": entries })
+}
+
+pub(super) fn bam_findings_section(rows: &[bijux_core::FactsRowV1]) -> serde_json::Value {
+    let mut findings = Vec::new();
+    for row in rows {
+        if !row.stage_id.starts_with("bam.") {
+            continue;
+        }
+        let metrics: BamMetricsV1 = serde_json::from_value(row.metrics.clone())
+            .unwrap_or_else(|_| BamMetricsV1::empty());
+        let auth = metrics.authenticity.score;
+        if auth >= 0.6 {
+            findings.push(format!(
+                "Sample shows authentic aDNA characteristics (authenticity score {auth:.2})."
+            ));
+        } else if auth > 0.0 {
+            findings.push(format!(
+                "Authenticity signal is weak (authenticity score {auth:.2}); review damage profile."
+            ));
+        }
+        let dup_fraction = if metrics.alignment.total > 0 {
+            u64_to_f64(metrics.alignment.duplicates) / u64_to_f64(metrics.alignment.total)
+        } else {
+            0.0
+        };
+        if dup_fraction >= 0.5 {
+            findings.push("High duplication suggests low library complexity.".to_string());
+        }
+        if metrics.contamination.estimate >= 0.1 && metrics.damage.c_to_t_5p < 0.05 {
+            findings.push("Contamination likely modern given low damage signal.".to_string());
+        }
+    }
+    findings.truncate(5);
+    serde_json::json!({ "findings": findings })
+}
+
+pub(super) fn bam_verdict_table(rows: &[bijux_core::FactsRowV1]) -> serde_json::Value {
+    let thresholds = BamInvariantThresholds::default();
+    let mut entries = Vec::new();
+    for row in rows {
+        if !row.stage_id.starts_with("bam.") {
+            continue;
+        }
+        let metrics: BamMetricsV1 = serde_json::from_value(row.metrics.clone())
+            .unwrap_or_else(|_| BamMetricsV1::empty());
+        let verdict = evaluate_bam_invariants(&row.stage_id, &metrics, &thresholds).verdict;
+        let downstream_ok = metrics.coverage.mean >= 0.5 && metrics.coverage.breadth_1x >= 0.1;
+        entries.push(serde_json::json!({
+            "stage_id": row.stage_id,
+            "tool_id": row.tool_id,
+            "coverage": metrics.coverage.mean,
+            "dup_fraction": if metrics.alignment.total > 0 {
+                u64_to_f64(metrics.alignment.duplicates) / u64_to_f64(metrics.alignment.total)
+            } else { 0.0 },
+            "damage": metrics.damage.c_to_t_5p.max(metrics.damage.g_to_a_3p),
+            "contamination": metrics.contamination.estimate,
+            "sex_class": metrics.sex.classification,
+            "verdict": verdict,
+            "downstream_suitable": downstream_ok,
+        }));
+    }
+    serde_json::json!({ "entries": entries })
+}
+
+pub(super) fn bam_plots_section(rows: &[bijux_core::FactsRowV1]) -> serde_json::Value {
+    let mut plots = Vec::new();
+    for row in rows {
+        if !row.stage_id.starts_with("bam.") {
+            continue;
+        }
+        let metrics: BamMetricsV1 = serde_json::from_value(row.metrics.clone())
+            .unwrap_or_else(|_| BamMetricsV1::empty());
+        plots.push(serde_json::json!({
+            "stage_id": row.stage_id,
+            "damage": {
+                "c_to_t_5p": metrics.damage.c_to_t_5p,
+                "g_to_a_3p": metrics.damage.g_to_a_3p
+            },
+            "fragment_length": {
+                "mean": metrics.fragment_length.mean,
+                "p10": metrics.fragment_length.p10,
+                "p90": metrics.fragment_length.p90,
+                "short_fraction": metrics.fragment_length.short_fraction
+            },
+            "coverage": {
+                "mean": metrics.coverage.mean,
+                "breadth_1x": metrics.coverage.breadth_1x,
+                "breadth_3x": metrics.coverage.breadth_3x,
+                "breadth_5x": metrics.coverage.breadth_5x
+            },
+            "dup_vs_complexity": {
+                "dup_fraction": if metrics.alignment.total > 0 {
+                    u64_to_f64(metrics.alignment.duplicates) / u64_to_f64(metrics.alignment.total)
+                } else { 0.0 },
+                "observed_reads": metrics.complexity.observed_reads
+            }
+        }));
+    }
+    serde_json::json!({ "entries": plots })
 }
 
 pub(super) fn impact_metrics_section(rows: &[bijux_core::FactsRowV1]) -> serde_json::Value {
