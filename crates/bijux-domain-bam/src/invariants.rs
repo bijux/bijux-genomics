@@ -3,9 +3,7 @@
 use bijux_core::{InvariantResultV1, InvariantStatusV1, StageVerdictV1};
 
 use crate::authenticity::contamination_cross_check;
-use crate::library::LibraryTreatment;
 use crate::metrics::BamMetricsV1;
-use crate::sample_meta::LibraryType;
 
 #[derive(Debug, Clone)]
 pub struct BamInvariantThresholds {
@@ -137,7 +135,6 @@ fn evaluate_bam_invariants_inner(
     }
 
     let damage = metrics.damage.c_to_t_5p.max(metrics.damage.g_to_a_3p);
-    let contamination = metrics.contamination.estimate;
     let assessment = contamination_cross_check(damage, contamination);
     let contam_status = if contamination >= thresholds.contamination_fail && damage < 0.05 {
         InvariantStatusV1::Fail
@@ -169,29 +166,6 @@ fn evaluate_bam_invariants_inner(
                     ),
                 });
             }
-        }
-        let expected_treatment = match inference.declared.unwrap_or(inference.inferred) {
-            LibraryType::NonUdg => LibraryTreatment::NonUdg,
-            LibraryType::HalfUdg => LibraryTreatment::HalfUdg,
-            LibraryType::Udg => LibraryTreatment::Udg,
-        };
-        let expected = expected_treatment.expected_damage();
-        if damage < expected.min_terminal_damage || damage > expected.max_terminal_damage {
-            results.push(InvariantResultV1 {
-                id: "damage_library_model".to_string(),
-                status: InvariantStatusV1::Warn,
-                message: format!(
-                    "damage {:.3} outside expected range {:.3}-{:.3} for {:?}",
-                    damage,
-                    expected.min_terminal_damage,
-                    expected.max_terminal_damage,
-                    expected_treatment
-                ),
-                remediation: Some(
-                    "review library treatment metadata or adjust damage model assumptions"
-                        .to_string(),
-                ),
-            });
         }
     }
 
