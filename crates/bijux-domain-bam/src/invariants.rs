@@ -2,7 +2,7 @@
 
 use bijux_core::{InvariantResultV1, InvariantStatusV1, StageVerdictV1};
 
-use crate::metrics::contamination_cross_check;
+use crate::authenticity::contamination_cross_check;
 use crate::metrics::BamMetricsV1;
 
 #[derive(Debug, Clone)]
@@ -66,28 +66,6 @@ fn evaluate_bam_invariants_inner(
     let mut results = Vec::new();
     let mut status = InvariantStatusV1::Pass;
 
-    if matches!(
-        stage_id,
-        "bam.sex" | "bam.contamination" | "bam.haplogroups" | "bam.kinship"
-    ) {
-        let sufficient = match stage_id {
-            "bam.sex" => metrics.sex_sufficiency.sufficient,
-            "bam.contamination" => metrics.contamination_sufficiency.sufficient,
-            "bam.haplogroups" => metrics.haplogroup_sufficiency.sufficient,
-            "bam.kinship" => metrics.kinship_sufficiency.sufficient,
-            _ => true,
-        };
-        if !sufficient {
-            results.push(InvariantResultV1 {
-                id: "insufficient_data".to_string(),
-                status: InvariantStatusV1::Warn,
-                message: "insufficient data for reliable inference".to_string(),
-                remediation: Some("increase coverage or provide additional data".to_string()),
-            });
-            status = InvariantStatusV1::Warn;
-        }
-    }
-
     let contamination = metrics.contamination.estimate;
     let contamination_status = if contamination >= thresholds.contamination_fail {
         InvariantStatusV1::Fail
@@ -135,28 +113,24 @@ fn evaluate_bam_invariants_inner(
     });
 
     let complexity = metrics.complexity.observed_reads;
-    if complexity < thresholds.complexity_low {
-        let message = if dup_fraction >= thresholds.duplication_warn {
-            "low complexity with high duplicates indicates library saturation"
-        } else {
-            "preseq complexity is low; library likely saturated"
-        };
-        results.push(InvariantResultV1 {
-            id: "complexity_vs_duplicates".to_string(),
-            status: InvariantStatusV1::Warn,
-            message: message.to_string(),
-            remediation: Some("consider deeper library prep or avoid over-filtering".to_string()),
-        });
-    } else if dup_fraction >= thresholds.duplication_warn {
+    if dup_fraction >= thresholds.duplication_warn && complexity >= thresholds.complexity_low {
         results.push(InvariantResultV1 {
             id: "complexity_vs_duplicates".to_string(),
             status: InvariantStatusV1::Warn,
             message: "duplicates high but preseq complexity suggests high diversity".to_string(),
             remediation: Some("verify markdup configuration or library prep".to_string()),
         });
+    } else if dup_fraction < 0.2 && complexity < thresholds.complexity_low {
+        results.push(InvariantResultV1 {
+            id: "complexity_vs_duplicates".to_string(),
+            status: InvariantStatusV1::Warn,
+            message: "duplicates low but preseq indicates low complexity".to_string(),
+            remediation: Some("check preseq inputs or library complexity".to_string()),
+        });
     }
 
     let damage = metrics.damage.c_to_t_5p.max(metrics.damage.g_to_a_3p);
+    let contamination = metrics.contamination.estimate;
     let assessment = contamination_cross_check(damage, contamination);
     let contam_status = if contamination >= thresholds.contamination_fail && damage < 0.05 {
         InvariantStatusV1::Fail
@@ -173,24 +147,6 @@ fn evaluate_bam_invariants_inner(
         remediation: Some("review contamination model vs damage profile".to_string()),
     });
 
-    if let Some(inference) = metrics.authenticity.library_type_inference.as_ref() {
-        if let Some(declared) = inference.declared {
-            if declared != inference.inferred {
-                results.push(InvariantResultV1 {
-                    id: "declared_vs_inferred_library".to_string(),
-                    status: InvariantStatusV1::Warn,
-                    message: format!(
-                        "declared library type {:?} conflicts with inferred {:?}",
-                        declared, inference.inferred
-                    ),
-                    remediation: Some(
-                        "verify library metadata or rerun damage-based inference".to_string(),
-                    ),
-                });
-            }
-        }
-    }
-
     if damage < 0.05 && metrics.mapq.mean >= 40.0 {
         results.push(InvariantResultV1 {
             id: "damage_mapq_correlation".to_string(),
@@ -198,25 +154,6 @@ fn evaluate_bam_invariants_inner(
             message: "high MAPQ with low damage signal suggests modern contamination".to_string(),
             remediation: Some("inspect damage profile and contamination estimates".to_string()),
         });
-    }
-
-    if let Some(comparison) = metrics.damage_comparison.as_ref() {
-        if comparison.exceeds_threshold {
-            results.push(InvariantResultV1 {
-                id: "damage_tool_disagreement".to_string(),
-                status: InvariantStatusV1::Warn,
-                message: format!(
-                    "damage tools {} vs {} disagree (C→T Δ{:.3}, G→A Δ{:.3})",
-                    comparison.tool_a,
-                    comparison.tool_b,
-                    comparison.c_to_t_diff,
-                    comparison.g_to_a_diff
-                ),
-                remediation: Some(
-                    "verify damage tool inputs or rerun with consistent parameters".to_string(),
-                ),
-            });
-        }
     }
 
     let mut reasons = Vec::new();
