@@ -4,12 +4,13 @@ use anyhow::Result;
 use bijux_core::{
     CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
 };
-use bijux_domain_bam::{
-    required_audit_artifacts, BamStage, BiasMitigationEffectiveParams, ComplexityEffectiveParams,
-    ContaminationEffectiveParams, CoverageEffectiveParams, DamageEffectiveParams,
-    FilterEffectiveParams, GenotypingEffectiveParams, HaplogroupEffectiveParams,
-    KinshipEffectiveParams, MarkDupEffectiveParams, SexEffectiveParams, UdgModel,
+use bijux_domain_bam::params::{
+    BiasMitigationEffectiveParams, ComplexityEffectiveParams, ContaminationEffectiveParams,
+    CoverageEffectiveParams, DamageEffectiveParams, FilterEffectiveParams,
+    GenotypingEffectiveParams, HaplogroupEffectiveParams, KinshipEffectiveParams,
+    MarkDupEffectiveParams, SexEffectiveParams, UdgModel,
 };
+use bijux_domain_bam::{required_audit_artifacts, BamStage};
 
 fn dummy_tool(tool: &str) -> ToolExecutionSpecV1 {
     ToolExecutionSpecV1 {
