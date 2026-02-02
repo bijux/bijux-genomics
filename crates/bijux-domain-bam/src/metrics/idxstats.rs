@@ -1,10 +1,6 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use anyhow::{Context, Result};
-use std::fs;
-use std::path::Path;
-
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct IdxstatsContigV1 {
@@ -33,41 +29,4 @@ impl IdxstatsSummaryV1 {
             reference_mismatch: false,
         }
     }
-}
-
-/// # Errors
-/// Returns an error if the file cannot be read or parsed.
-pub fn parse_samtools_idxstats(path: &Path) -> Result<IdxstatsSummaryV1> {
-    let raw = fs::read_to_string(path)
-        .with_context(|| format!("read samtools idxstats: {}", path.display()))?;
-    let mut summary = IdxstatsSummaryV1::empty();
-    for (line_no, line) in raw.lines().enumerate() {
-        let line = line.trim();
-        if line.is_empty() {
-            continue;
-        }
-        let parts: Vec<&str> = line.split('\t').collect();
-        if parts.len() < 4 {
-            anyhow::bail!("invalid idxstats line {}: {}", line_no + 1, line);
-        }
-        let contig = parts[0].to_string();
-        let length: u64 = parts[1].parse().unwrap_or(0);
-        let mapped: u64 = parts[2].parse().unwrap_or(0);
-        let unmapped: u64 = parts[3].parse().unwrap_or(0);
-        if contig != "*" && length == 0 && (mapped > 0 || unmapped > 0) {
-            summary.reference_mismatch = true;
-        }
-        if contig == "*" && (mapped > 0 || unmapped > 0) {
-            summary.reference_mismatch = true;
-        }
-        summary.total_mapped = summary.total_mapped.saturating_add(mapped);
-        summary.total_unmapped = summary.total_unmapped.saturating_add(unmapped);
-        summary.contigs.push(IdxstatsContigV1 {
-            contig,
-            length,
-            mapped,
-            unmapped,
-        });
-    }
-    Ok(summary)
 }

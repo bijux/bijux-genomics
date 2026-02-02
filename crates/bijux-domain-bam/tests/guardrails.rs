@@ -15,7 +15,7 @@ fn guardrails() {
         forbid_panic_expect: true,
         forbid_stage_id_strings: true,
         allow_panic_expect_paths: Vec::new(),
-        allow_stage_id_paths: vec!["/src/stage.rs".to_string()],
+        allow_stage_id_paths: vec!["/src/bam_stage_registry.rs".to_string()],
     };
     check(crate_root, &config).unwrap_or_else(|err| panic!("guardrails failed: {err}"));
 }

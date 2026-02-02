@@ -9,6 +9,7 @@ use super::coverage::{CoverageMetricsV1, CoverageUniformityV1, EffectiveCoverage
 use super::damage::DamageMetricsV1;
 use super::fragment::FragmentLengthSummaryV1;
 use super::genotyping::GenotypingMetricsV1;
+use super::idxstats::IdxstatsSummaryV1;
 use super::mapq::MapqSummaryV1;
 use super::sex::SexInferenceV1;
 use super::sufficiency::{
@@ -24,6 +25,8 @@ pub struct BamMetricsBundleV1 {
     pub alignment: AlignmentCountsV1,
     pub fragment_length: FragmentLengthSummaryV1,
     pub mapq: MapqSummaryV1,
+    #[serde(default)]
+    pub idxstats: IdxstatsSummaryV1,
     pub coverage: CoverageMetricsV1,
     #[serde(default)]
     pub coverage_uniformity: CoverageUniformityV1,
@@ -60,6 +63,7 @@ impl BamMetricsBundleV1 {
             alignment: AlignmentCountsV1::empty(),
             fragment_length: FragmentLengthSummaryV1::empty(),
             mapq: MapqSummaryV1::empty(),
+            idxstats: IdxstatsSummaryV1::empty(),
             coverage: CoverageMetricsV1::empty(),
             coverage_uniformity: CoverageUniformityV1::empty(),
             effective_coverage: EffectiveCoverageV1::empty(),

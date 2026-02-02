@@ -4,7 +4,8 @@ use anyhow::Context;
 
 use crate::metrics::{
     AlignmentCountsV1, ContaminationMetricsV1, CoverageMetricsV1, DamageMetricsV1,
-    FragmentLengthSummaryV1, MapqSummaryV1, SexConfidenceClass, SexInferenceV1,
+    FragmentLengthSummaryV1, IdxstatsContigV1, IdxstatsSummaryV1, MapqSummaryV1,
+    SexConfidenceClass, SexInferenceV1,
 };
 
 fn parse_first_int(text: &str) -> Option<u64> {
@@ -157,36 +158,74 @@ fn summarize_mapq_hist(hist: &[(u8, u64)]) -> MapqSummaryV1 {
 }
 
 /// # Errors
+/// Returns an error if the idxstats file cannot be read or parsed.
+pub fn parse_samtools_idxstats(path: &Path) -> anyhow::Result<IdxstatsSummaryV1> {
+    let raw = std::fs::read_to_string(path).context("read samtools idxstats")?;
+    let mut contigs = Vec::new();
+    let mut total_mapped = 0_u64;
+    let mut total_unmapped = 0_u64;
+    let mut has_unmapped_row = false;
+    for line in raw.lines() {
+        if line.trim().is_empty() {
+            continue;
+        }
+        let parts: Vec<&str> = line.split('\t').collect();
+        if parts.len() < 4 {
+            continue;
+        }
+        let contig = parts[0].to_string();
+        let length = parts[1].parse::<u64>().unwrap_or(0);
+        let mapped = parts[2].parse::<u64>().unwrap_or(0);
+        let unmapped = parts[3].parse::<u64>().unwrap_or(0);
+        if contig == "*" {
+            has_unmapped_row = true;
+        }
+        total_mapped += mapped;
+        total_unmapped += unmapped;
+        contigs.push(IdxstatsContigV1 {
+            contig,
+            length,
+            mapped,
+            unmapped,
+        });
+    }
+    let reference_mismatch = has_unmapped_row
+        || contigs
+            .iter()
+            .all(|contig| contig.length == 0 && contig.mapped == 0);
+    Ok(IdxstatsSummaryV1 {
+        contigs,
+        total_mapped,
+        total_unmapped,
+        reference_mismatch,
+    })
+}
+
+/// # Errors
 /// Returns an error if the mosdepth summary cannot be read.
 pub fn parse_mosdepth_summary(path: &Path) -> anyhow::Result<CoverageMetricsV1> {
     let raw = std::fs::read_to_string(path).context("read mosdepth summary")?;
+    let mut mean = 0.0;
+    let mut breadth_1x = 0.0;
     for line in raw.lines() {
         let parts: Vec<&str> = line.split_whitespace().collect();
         if parts.len() < 4 {
-            continue;
-        }
-        if parts[0] == "total" || parts[0] == "chromosome" {
             continue;
         }
         if parts[0] == "total" || parts[0] == "genome" || parts[0] == "all" {
-            // handled below
-        }
-    }
-    let mut mean = 0.0;
-    for line in raw.lines() {
-        let parts: Vec<&str> = line.split_whitespace().collect();
-        if parts.len() < 4 {
-            continue;
-        }
-        if parts[0] == "total" {
+            let length = parts[1].parse::<f64>().unwrap_or(0.0);
+            let bases_covered = parts[2].parse::<f64>().unwrap_or(0.0);
             mean = parts[3].parse::<f64>().unwrap_or(0.0);
+            if length > 0.0 {
+                breadth_1x = (bases_covered / length).clamp(0.0, 1.0);
+            }
             break;
         }
     }
     Ok(CoverageMetricsV1 {
         mean,
         median: mean,
-        breadth_1x: 0.0,
+        breadth_1x,
         breadth_3x: 0.0,
         breadth_5x: 0.0,
     })
