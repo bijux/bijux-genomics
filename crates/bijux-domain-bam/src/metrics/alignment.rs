@@ -73,17 +73,14 @@ pub fn parse_samtools_stats(
         if line.starts_with("RL") {
             let parts: Vec<&str> = line.split('\t').collect();
             if parts.len() >= 3 {
-                if let (Ok(len), Ok(count)) = (parts[1].parse::<u32>(), parts[2].parse::<u64>())
-                {
+                if let (Ok(len), Ok(count)) = (parts[1].parse::<u32>(), parts[2].parse::<u64>()) {
                     length_hist.push((len, count));
                 }
             }
         } else if line.starts_with("MQ") {
             let parts: Vec<&str> = line.split('\t').collect();
             if parts.len() >= 3 {
-                if let (Ok(score), Ok(count)) =
-                    (parts[1].parse::<u8>(), parts[2].parse::<u64>())
-                {
+                if let (Ok(score), Ok(count)) = (parts[1].parse::<u8>(), parts[2].parse::<u64>()) {
                     mapq_hist.push((score, count));
                 }
             }

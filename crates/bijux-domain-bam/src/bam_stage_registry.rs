@@ -1,8 +1,8 @@
 //! Single source of truth for BAM stage metadata and contracts.
 
 use anyhow::{anyhow, Result};
-use serde::{Deserialize, Serialize};
 use bijux_core::StageId;
+use serde::{Deserialize, Serialize};
 
 use crate::params::{
     AuthenticityEffectiveParams, BamEffectiveParams, BiasMitigationEffectiveParams,

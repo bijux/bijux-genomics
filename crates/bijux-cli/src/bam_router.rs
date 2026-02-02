@@ -82,10 +82,7 @@ pub fn bench_bam_pipeline(
     let mut run_dirs = Vec::new();
     for stage in profile.stages {
         let stage_id = stage.as_str();
-        let tools = tool_matrix
-            .get(stage_id)
-            .cloned()
-            .unwrap_or_default();
+        let tools = tool_matrix.get(stage_id).cloned().unwrap_or_default();
         let stage_args = BenchBamStageArgs {
             sample_id: args.sample_id.clone(),
             stage: stage.into(),
@@ -183,18 +180,16 @@ impl From<bijux_domain_bam::BamStage> for crate::cli::parse::BamStageArg {
             bijux_domain_bam::BamStage::Recalibration => {
                 crate::cli::parse::BamStageArg::Recalibration
             }
-            bijux_domain_bam::BamStage::Haplogroups => {
-                crate::cli::parse::BamStageArg::Haplogroups
-            }
-            bijux_domain_bam::BamStage::Genotyping => {
-                crate::cli::parse::BamStageArg::Genotyping
-            }
+            bijux_domain_bam::BamStage::Haplogroups => crate::cli::parse::BamStageArg::Haplogroups,
+            bijux_domain_bam::BamStage::Genotyping => crate::cli::parse::BamStageArg::Genotyping,
             bijux_domain_bam::BamStage::Kinship => crate::cli::parse::BamStageArg::Kinship,
         }
     }
 }
 
-fn parse_tool_matrix(entries: &[String]) -> Result<std::collections::BTreeMap<String, Vec<String>>> {
+fn parse_tool_matrix(
+    entries: &[String],
+) -> Result<std::collections::BTreeMap<String, Vec<String>>> {
     let mut map = std::collections::BTreeMap::new();
     for entry in entries {
         let mut parts = entry.split('=');

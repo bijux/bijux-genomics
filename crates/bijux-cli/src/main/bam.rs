@@ -18,7 +18,7 @@ pub fn handle_bam_commands(
 
     match command {
         BamCommand::ListStages => {
-            for stage in bijux_domain_bam::BAM_CANONICAL_STAGE_ORDER {
+            for stage in bijux_domain_bam::BamStage::all() {
                 println!("{}", stage.as_str());
             }
             Ok(true)
@@ -111,8 +111,8 @@ pub(crate) fn plan_for_bam_stage_with_profile(
                 .cloned()
                 .unwrap_or_else(|| bijux_domain_bam::stage_spec(stage).default_params);
             let mut params = match default_params {
-                bijux_domain_bam::BamEffectiveParams::Filter(params) => params,
-                _ => bijux_domain_bam::FilterEffectiveParams {
+                bijux_domain_bam::params::BamEffectiveParams::Filter(params) => params,
+                _ => bijux_domain_bam::params::FilterEffectiveParams {
                     mapq_threshold: 30,
                     include_flags: Vec::new(),
                     exclude_flags: Vec::new(),
@@ -147,11 +147,11 @@ pub(crate) fn plan_for_bam_stage_with_profile(
                 .cloned()
                 .unwrap_or_else(|| bijux_domain_bam::stage_spec(stage).default_params);
             let mut params = match default_params {
-                bijux_domain_bam::BamEffectiveParams::Markdup(params) => params,
-                _ => bijux_domain_bam::MarkDupEffectiveParams {
-                    optical_duplicates: bijux_domain_bam::OpticalDuplicatePolicy::MarkOnly,
-                    umi_policy: bijux_domain_bam::UmiPolicy::Ignore,
-                    duplicate_action: bijux_domain_bam::DuplicateAction::Mark,
+                bijux_domain_bam::params::BamEffectiveParams::Markdup(params) => params,
+                _ => bijux_domain_bam::params::MarkDupEffectiveParams {
+                    optical_duplicates: bijux_domain_bam::params::OpticalDuplicatePolicy::MarkOnly,
+                    umi_policy: bijux_domain_bam::params::UmiPolicy::Ignore,
+                    duplicate_action: bijux_domain_bam::params::DuplicateAction::Mark,
                 },
             };
             if let Some(value) = args.optical_duplicates {
@@ -171,8 +171,8 @@ pub(crate) fn plan_for_bam_stage_with_profile(
                 .cloned()
                 .unwrap_or_else(|| bijux_domain_bam::stage_spec(stage).default_params);
             let mut params = match default_params {
-                bijux_domain_bam::BamEffectiveParams::Complexity(params) => params,
-                _ => bijux_domain_bam::ComplexityEffectiveParams {
+                bijux_domain_bam::params::BamEffectiveParams::Complexity(params) => params,
+                _ => bijux_domain_bam::params::ComplexityEffectiveParams {
                     min_reads: 100_000,
                     projection_points: vec![1_000_000, 2_000_000, 5_000_000],
                 },
@@ -191,14 +191,14 @@ pub(crate) fn plan_for_bam_stage_with_profile(
                 .cloned()
                 .unwrap_or_else(|| bijux_domain_bam::stage_spec(stage).default_params);
             let mut params = match default_params {
-                bijux_domain_bam::BamEffectiveParams::Coverage(params) => params,
-                _ => bijux_domain_bam::CoverageEffectiveParams {
+                bijux_domain_bam::params::BamEffectiveParams::Coverage(params) => params,
+                _ => bijux_domain_bam::params::CoverageEffectiveParams {
                     regions: None,
                     depth_thresholds: vec![1, 3, 5],
                 },
             };
             if let Some(value) = args.regions.clone() {
-                params.regions = Some(bijux_domain_bam::BedRegions(value));
+                params.regions = Some(bijux_domain_bam::types::BedRegions(value));
             }
             if !args.depth_thresholds.is_empty() {
                 params.depth_thresholds = args.depth_thresholds.clone();
@@ -211,9 +211,9 @@ pub(crate) fn plan_for_bam_stage_with_profile(
                 .cloned()
                 .unwrap_or_else(|| bijux_domain_bam::stage_spec(stage).default_params);
             let mut params = match default_params {
-                bijux_domain_bam::BamEffectiveParams::Damage(params) => params,
-                _ => bijux_domain_bam::DamageEffectiveParams {
-                    udg_model: bijux_domain_bam::UdgModel::NonUdg,
+                bijux_domain_bam::params::BamEffectiveParams::Damage(params) => params,
+                _ => bijux_domain_bam::params::DamageEffectiveParams {
+                    udg_model: bijux_domain_bam::params::UdgModel::NonUdg,
                     pmd_threshold_5p: 0.3,
                     pmd_threshold_3p: 0.3,
                     trim_5p: 0,
@@ -243,8 +243,8 @@ pub(crate) fn plan_for_bam_stage_with_profile(
                 .cloned()
                 .unwrap_or_else(|| bijux_domain_bam::stage_spec(stage).default_params);
             let mut params = match default_params {
-                bijux_domain_bam::BamEffectiveParams::Authenticity(params) => params,
-                _ => bijux_domain_bam::AuthenticityEffectiveParams {
+                bijux_domain_bam::params::BamEffectiveParams::Authenticity(params) => params,
+                _ => bijux_domain_bam::params::AuthenticityEffectiveParams {
                     mode: "aggregate".to_string(),
                 },
             };
@@ -259,10 +259,10 @@ pub(crate) fn plan_for_bam_stage_with_profile(
                 .cloned()
                 .unwrap_or_else(|| bijux_domain_bam::stage_spec(stage).default_params);
             let mut params = match default_params {
-                bijux_domain_bam::BamEffectiveParams::Contamination(params) => params,
-                _ => bijux_domain_bam::ContaminationEffectiveParams {
+                bijux_domain_bam::params::BamEffectiveParams::Contamination(params) => params,
+                _ => bijux_domain_bam::params::ContaminationEffectiveParams {
                     reference_panels: Vec::new(),
-                    scope: bijux_domain_bam::ContaminationScope::Both,
+                    scope: bijux_domain_bam::params::ContaminationScope::Both,
                     prior: None,
                     sex_specific: false,
                     assumptions: None,
@@ -291,8 +291,8 @@ pub(crate) fn plan_for_bam_stage_with_profile(
                 .cloned()
                 .unwrap_or_else(|| bijux_domain_bam::stage_spec(stage).default_params);
             let mut params = match default_params {
-                bijux_domain_bam::BamEffectiveParams::Sex(params) => params,
-                _ => bijux_domain_bam::SexEffectiveParams {
+                bijux_domain_bam::params::BamEffectiveParams::Sex(params) => params,
+                _ => bijux_domain_bam::params::SexEffectiveParams {
                     expected_sex: None,
                     method: "rxy".to_string(),
                 },
@@ -311,8 +311,8 @@ pub(crate) fn plan_for_bam_stage_with_profile(
                 .cloned()
                 .unwrap_or_else(|| bijux_domain_bam::stage_spec(stage).default_params);
             let mut params = match default_params {
-                bijux_domain_bam::BamEffectiveParams::BiasMitigation(params) => params,
-                _ => bijux_domain_bam::BiasMitigationEffectiveParams {
+                bijux_domain_bam::params::BamEffectiveParams::BiasMitigation(params) => params,
+                _ => bijux_domain_bam::params::BiasMitigationEffectiveParams {
                     gc_bias_correction: false,
                     map_bias_correction: false,
                 },
@@ -331,11 +331,11 @@ pub(crate) fn plan_for_bam_stage_with_profile(
                 .cloned()
                 .unwrap_or_else(|| bijux_domain_bam::stage_spec(stage).default_params);
             let mut params = match default_params {
-                bijux_domain_bam::BamEffectiveParams::Recalibration(params) => params,
-                _ => bijux_domain_bam::BqsrEffectiveParams {
+                bijux_domain_bam::params::BamEffectiveParams::Recalibration(params) => params,
+                _ => bijux_domain_bam::params::BqsrEffectiveParams {
                     known_sites: Vec::new(),
-                    mode: bijux_domain_bam::BqsrMode::Skip,
-                    skip_criteria: bijux_domain_bam::RecalibrationSkipCriteria {
+                    mode: bijux_domain_bam::params::BqsrMode::Skip,
+                    skip_criteria: bijux_domain_bam::params::RecalibrationSkipCriteria {
                         min_mean_coverage: 1.0,
                         min_breadth_1x: 0.1,
                     },
@@ -361,8 +361,8 @@ pub(crate) fn plan_for_bam_stage_with_profile(
                 .cloned()
                 .unwrap_or_else(|| bijux_domain_bam::stage_spec(stage).default_params);
             let mut params = match default_params {
-                bijux_domain_bam::BamEffectiveParams::Haplogroups(params) => params,
-                _ => bijux_domain_bam::HaplogroupEffectiveParams {
+                bijux_domain_bam::params::BamEffectiveParams::Haplogroups(params) => params,
+                _ => bijux_domain_bam::params::HaplogroupEffectiveParams {
                     reference_panel: "mito_default".to_string(),
                     min_coverage: None,
                 },
@@ -381,8 +381,8 @@ pub(crate) fn plan_for_bam_stage_with_profile(
                 .cloned()
                 .unwrap_or_else(|| bijux_domain_bam::stage_spec(stage).default_params);
             let mut params = match default_params {
-                bijux_domain_bam::BamEffectiveParams::Genotyping(params) => params,
-                _ => bijux_domain_bam::GenotypingEffectiveParams {
+                bijux_domain_bam::params::BamEffectiveParams::Genotyping(params) => params,
+                _ => bijux_domain_bam::params::GenotypingEffectiveParams {
                     caller: "angsd".to_string(),
                     min_posterior: None,
                     min_call_rate: None,
@@ -405,8 +405,8 @@ pub(crate) fn plan_for_bam_stage_with_profile(
                 .cloned()
                 .unwrap_or_else(|| bijux_domain_bam::stage_spec(stage).default_params);
             let mut params = match default_params {
-                bijux_domain_bam::BamEffectiveParams::Kinship(params) => params,
-                _ => bijux_domain_bam::KinshipEffectiveParams {
+                bijux_domain_bam::params::BamEffectiveParams::Kinship(params) => params,
+                _ => bijux_domain_bam::params::KinshipEffectiveParams {
                     reference_panel: "king_default".to_string(),
                     min_overlap_snps: 1000,
                 },

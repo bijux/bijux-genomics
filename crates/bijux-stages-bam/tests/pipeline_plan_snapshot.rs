@@ -66,7 +66,7 @@ fn bam_pipeline_plan_snapshot_is_stable() -> Result<()> {
         bam,
         out.join("qc_pre").as_path(),
     )?;
-    let filter_params = bijux_domain_bam::FilterEffectiveParams {
+    let filter_params = bijux_domain_bam::params::FilterEffectiveParams {
         mapq_threshold: 30,
         include_flags: Vec::new(),
         exclude_flags: Vec::new(),
@@ -80,10 +80,10 @@ fn bam_pipeline_plan_snapshot_is_stable() -> Result<()> {
         out.join("filter").as_path(),
         &filter_params,
     )?;
-    let markdup_params = bijux_domain_bam::MarkDupEffectiveParams {
-        optical_duplicates: bijux_domain_bam::OpticalDuplicatePolicy::MarkOnly,
-        umi_policy: bijux_domain_bam::UmiPolicy::Ignore,
-        duplicate_action: bijux_domain_bam::DuplicateAction::Mark,
+    let markdup_params = bijux_domain_bam::params::MarkDupEffectiveParams {
+        optical_duplicates: bijux_domain_bam::params::OpticalDuplicatePolicy::MarkOnly,
+        umi_policy: bijux_domain_bam::params::UmiPolicy::Ignore,
+        duplicate_action: bijux_domain_bam::params::DuplicateAction::Mark,
     };
     let markdup = bijux_stages_bam::bam::markdup::plan(
         &dummy_tool("gatk"),
@@ -91,7 +91,7 @@ fn bam_pipeline_plan_snapshot_is_stable() -> Result<()> {
         out.join("markdup").as_path(),
         &markdup_params,
     )?;
-    let coverage_params = bijux_domain_bam::CoverageEffectiveParams {
+    let coverage_params = bijux_domain_bam::params::CoverageEffectiveParams {
         regions: None,
         depth_thresholds: vec![1, 3, 5],
     };
@@ -101,8 +101,8 @@ fn bam_pipeline_plan_snapshot_is_stable() -> Result<()> {
         out.join("coverage").as_path(),
         &coverage_params,
     )?;
-    let damage_params = bijux_domain_bam::DamageEffectiveParams {
-        udg_model: bijux_domain_bam::UdgModel::NonUdg,
+    let damage_params = bijux_domain_bam::params::DamageEffectiveParams {
+        udg_model: bijux_domain_bam::params::UdgModel::NonUdg,
         pmd_threshold_5p: 0.3,
         pmd_threshold_3p: 0.3,
         trim_5p: 2,
@@ -114,7 +114,7 @@ fn bam_pipeline_plan_snapshot_is_stable() -> Result<()> {
         out.join("damage").as_path(),
         &damage_params,
     )?;
-    let sex_params = bijux_domain_bam::SexEffectiveParams {
+    let sex_params = bijux_domain_bam::params::SexEffectiveParams {
         expected_sex: None,
         method: "rxy".to_string(),
     };
@@ -124,9 +124,9 @@ fn bam_pipeline_plan_snapshot_is_stable() -> Result<()> {
         out.join("sex").as_path(),
         &sex_params,
     )?;
-    let contamination_params = bijux_domain_bam::ContaminationEffectiveParams {
+    let contamination_params = bijux_domain_bam::params::ContaminationEffectiveParams {
         reference_panels: Vec::new(),
-        scope: bijux_domain_bam::ContaminationScope::Both,
+        scope: bijux_domain_bam::params::ContaminationScope::Both,
         prior: None,
         sex_specific: false,
         assumptions: None,
