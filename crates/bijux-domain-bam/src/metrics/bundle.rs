@@ -6,7 +6,7 @@ use super::authenticity::AuthenticityScoreV1;
 use super::complexity::ComplexityMetricsV1;
 use super::contamination::{ContaminationMetricsV1, ContaminationReconciliationV1};
 use super::coverage::{CoverageMetricsV1, CoverageUniformityV1, EffectiveCoverageV1};
-use super::damage::DamageMetricsV1;
+use super::damage::{DamageComparisonV1, DamageMetricsV1};
 use super::fragment::FragmentLengthSummaryV1;
 use super::genotyping::GenotypingMetricsV1;
 use super::idxstats::IdxstatsSummaryV1;
@@ -33,6 +33,8 @@ pub struct BamMetricsBundleV1 {
     #[serde(default)]
     pub effective_coverage: EffectiveCoverageV1,
     pub damage: DamageMetricsV1,
+    #[serde(default)]
+    pub damage_comparison: Option<DamageComparisonV1>,
     pub contamination: ContaminationMetricsV1,
     #[serde(default)]
     pub contamination_reconciliation: ContaminationReconciliationV1,
@@ -68,6 +70,7 @@ impl BamMetricsBundleV1 {
             coverage_uniformity: CoverageUniformityV1::empty(),
             effective_coverage: EffectiveCoverageV1::empty(),
             damage: DamageMetricsV1::empty(),
+            damage_comparison: None,
             contamination: ContaminationMetricsV1::empty(),
             contamination_reconciliation: ContaminationReconciliationV1::empty(),
             sex: SexInferenceV1::empty(),
