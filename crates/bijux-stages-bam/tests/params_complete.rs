@@ -62,7 +62,7 @@ fn qc_pre_params_complete() -> Result<()> {
 
 #[test]
 fn filter_params_complete() -> Result<()> {
-    let params = bijux_domain_bam::params::FilterEffectiveParams {
+    let params = bijux_domain_bam::FilterEffectiveParams {
         mapq_threshold: 30,
         include_flags: Vec::new(),
         exclude_flags: Vec::new(),
@@ -92,10 +92,10 @@ fn filter_params_complete() -> Result<()> {
 
 #[test]
 fn markdup_params_complete() -> Result<()> {
-    let params = bijux_domain_bam::params::MarkDupEffectiveParams {
-        optical_duplicates: bijux_domain_bam::params::OpticalDuplicatePolicy::MarkOnly,
-        umi_policy: bijux_domain_bam::params::UmiPolicy::Ignore,
-        duplicate_action: bijux_domain_bam::params::DuplicateAction::Mark,
+    let params = bijux_domain_bam::MarkDupEffectiveParams {
+        optical_duplicates: bijux_domain_bam::OpticalDuplicatePolicy::MarkOnly,
+        umi_policy: bijux_domain_bam::UmiPolicy::Ignore,
+        duplicate_action: bijux_domain_bam::DuplicateAction::Mark,
     };
     let plan = bijux_stages_bam::bam::markdup::plan(
         &dummy_tool("gatk"),
@@ -112,7 +112,7 @@ fn markdup_params_complete() -> Result<()> {
 
 #[test]
 fn complexity_params_complete() -> Result<()> {
-    let params = bijux_domain_bam::params::ComplexityEffectiveParams {
+    let params = bijux_domain_bam::ComplexityEffectiveParams {
         min_reads: 100_000,
         projection_points: vec![1_000_000, 2_000_000],
     };
@@ -128,7 +128,7 @@ fn complexity_params_complete() -> Result<()> {
 
 #[test]
 fn coverage_params_complete() -> Result<()> {
-    let params = bijux_domain_bam::params::CoverageEffectiveParams {
+    let params = bijux_domain_bam::CoverageEffectiveParams {
         regions: None,
         depth_thresholds: vec![1, 3, 5],
     };
@@ -144,8 +144,8 @@ fn coverage_params_complete() -> Result<()> {
 
 #[test]
 fn damage_params_complete() -> Result<()> {
-    let params = bijux_domain_bam::params::DamageEffectiveParams {
-        udg_model: bijux_domain_bam::params::UdgModel::NonUdg,
+    let params = bijux_domain_bam::DamageEffectiveParams {
+        udg_model: bijux_domain_bam::UdgModel::NonUdg,
         pmd_threshold_5p: 0.3,
         pmd_threshold_3p: 0.3,
         trim_5p: 2,
@@ -172,7 +172,7 @@ fn damage_params_complete() -> Result<()> {
 
 #[test]
 fn authenticity_params_complete() -> Result<()> {
-    let params = bijux_domain_bam::params::AuthenticityEffectiveParams {
+    let params = bijux_domain_bam::AuthenticityEffectiveParams {
         mode: "aggregate".to_string(),
     };
     let plan = bijux_stages_bam::bam::authenticity::plan(
@@ -187,9 +187,9 @@ fn authenticity_params_complete() -> Result<()> {
 
 #[test]
 fn contamination_params_complete() -> Result<()> {
-    let params = bijux_domain_bam::params::ContaminationEffectiveParams {
+    let params = bijux_domain_bam::ContaminationEffectiveParams {
         reference_panels: vec!["panel.vcf".to_string()],
-        scope: bijux_domain_bam::params::ContaminationScope::Both,
+        scope: bijux_domain_bam::ContaminationScope::Both,
         prior: None,
         sex_specific: false,
         assumptions: None,
@@ -215,7 +215,7 @@ fn contamination_params_complete() -> Result<()> {
 
 #[test]
 fn sex_params_complete() -> Result<()> {
-    let params = bijux_domain_bam::params::SexEffectiveParams {
+    let params = bijux_domain_bam::SexEffectiveParams {
         expected_sex: None,
         method: "rxy".to_string(),
     };
@@ -231,7 +231,7 @@ fn sex_params_complete() -> Result<()> {
 
 #[test]
 fn bias_mitigation_params_complete() -> Result<()> {
-    let params = bijux_domain_bam::params::BiasMitigationEffectiveParams {
+    let params = bijux_domain_bam::BiasMitigationEffectiveParams {
         gc_bias_correction: true,
         map_bias_correction: false,
     };
@@ -250,10 +250,10 @@ fn bias_mitigation_params_complete() -> Result<()> {
 
 #[test]
 fn recalibration_params_complete() -> Result<()> {
-    let params = bijux_domain_bam::params::BqsrEffectiveParams {
+    let params = bijux_domain_bam::BqsrEffectiveParams {
         known_sites: vec!["known.vcf".to_string()],
-        mode: bijux_domain_bam::params::BqsrMode::Skip,
-        skip_criteria: bijux_domain_bam::params::RecalibrationSkipCriteria {
+        mode: bijux_domain_bam::BqsrMode::Skip,
+        skip_criteria: bijux_domain_bam::RecalibrationSkipCriteria {
             min_mean_coverage: 1.0,
             min_breadth_1x: 0.1,
         },
@@ -273,7 +273,7 @@ fn recalibration_params_complete() -> Result<()> {
 
 #[test]
 fn haplogroups_params_complete() -> Result<()> {
-    let params = bijux_domain_bam::params::HaplogroupEffectiveParams {
+    let params = bijux_domain_bam::HaplogroupEffectiveParams {
         reference_panel: "mito_default".to_string(),
         min_coverage: Some(1.0),
     };
@@ -289,7 +289,7 @@ fn haplogroups_params_complete() -> Result<()> {
 
 #[test]
 fn genotyping_params_complete() -> Result<()> {
-    let params = bijux_domain_bam::params::GenotypingEffectiveParams {
+    let params = bijux_domain_bam::GenotypingEffectiveParams {
         caller: "angsd".to_string(),
         min_posterior: Some(0.9),
         min_call_rate: Some(0.5),
@@ -309,7 +309,7 @@ fn genotyping_params_complete() -> Result<()> {
 
 #[test]
 fn kinship_params_complete() -> Result<()> {
-    let params = bijux_domain_bam::params::KinshipEffectiveParams {
+    let params = bijux_domain_bam::KinshipEffectiveParams {
         reference_panel: "king_default".to_string(),
         min_overlap_snps: 1000,
     };

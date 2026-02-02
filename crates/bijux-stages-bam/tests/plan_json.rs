@@ -37,15 +37,7 @@ fn snapshot_path(name: &str) -> Result<std::path::PathBuf> {
 fn assert_snapshot(name: &str, plan: &bijux_core::StagePlanV1) -> Result<()> {
     let plan_json = bijux_stages_bam::StagePlanJson::from_plan(plan);
     let rendered = serde_json::to_string_pretty(&plan_json)?;
-    let path = snapshot_path(name)?;
-    if std::env::var("UPDATE_SNAPSHOTS")
-        .map(|value| value == "1" || value.eq_ignore_ascii_case("true"))
-        .unwrap_or(false)
-    {
-        fs::write(path, rendered)?;
-        return Ok(());
-    }
-    let snapshot = fs::read_to_string(path)?;
+    let snapshot = fs::read_to_string(snapshot_path(name)?)?;
     assert_eq!(rendered.trim(), snapshot.trim());
     Ok(())
 }
@@ -74,7 +66,7 @@ fn qc_pre_plan_json_is_emitted_and_stable() -> Result<()> {
 
 #[test]
 fn filter_plan_json_is_emitted_and_stable() -> Result<()> {
-    let params = bijux_domain_bam::params::FilterEffectiveParams {
+    let params = bijux_domain_bam::FilterEffectiveParams {
         mapq_threshold: 30,
         include_flags: Vec::new(),
         exclude_flags: Vec::new(),
@@ -93,10 +85,10 @@ fn filter_plan_json_is_emitted_and_stable() -> Result<()> {
 
 #[test]
 fn markdup_plan_json_is_emitted_and_stable() -> Result<()> {
-    let params = bijux_domain_bam::params::MarkDupEffectiveParams {
-        optical_duplicates: bijux_domain_bam::params::OpticalDuplicatePolicy::MarkOnly,
-        umi_policy: bijux_domain_bam::params::UmiPolicy::Ignore,
-        duplicate_action: bijux_domain_bam::params::DuplicateAction::Mark,
+    let params = bijux_domain_bam::MarkDupEffectiveParams {
+        optical_duplicates: bijux_domain_bam::OpticalDuplicatePolicy::MarkOnly,
+        umi_policy: bijux_domain_bam::UmiPolicy::Ignore,
+        duplicate_action: bijux_domain_bam::DuplicateAction::Mark,
     };
     let plan = bijux_stages_bam::bam::markdup::plan(
         &dummy_tool("gatk"),
@@ -109,7 +101,7 @@ fn markdup_plan_json_is_emitted_and_stable() -> Result<()> {
 
 #[test]
 fn complexity_plan_json_is_emitted_and_stable() -> Result<()> {
-    let params = bijux_domain_bam::params::ComplexityEffectiveParams {
+    let params = bijux_domain_bam::ComplexityEffectiveParams {
         min_reads: 100_000,
         projection_points: vec![1_000_000, 2_000_000],
     };
@@ -124,7 +116,7 @@ fn complexity_plan_json_is_emitted_and_stable() -> Result<()> {
 
 #[test]
 fn coverage_plan_json_is_emitted_and_stable() -> Result<()> {
-    let params = bijux_domain_bam::params::CoverageEffectiveParams {
+    let params = bijux_domain_bam::CoverageEffectiveParams {
         regions: None,
         depth_thresholds: vec![1, 3, 5],
     };
@@ -139,8 +131,8 @@ fn coverage_plan_json_is_emitted_and_stable() -> Result<()> {
 
 #[test]
 fn damage_plan_json_is_emitted_and_stable() -> Result<()> {
-    let params = bijux_domain_bam::params::DamageEffectiveParams {
-        udg_model: bijux_domain_bam::params::UdgModel::NonUdg,
+    let params = bijux_domain_bam::DamageEffectiveParams {
+        udg_model: bijux_domain_bam::UdgModel::NonUdg,
         pmd_threshold_5p: 0.3,
         pmd_threshold_3p: 0.3,
         trim_5p: 2,
@@ -157,7 +149,7 @@ fn damage_plan_json_is_emitted_and_stable() -> Result<()> {
 
 #[test]
 fn authenticity_plan_json_is_emitted_and_stable() -> Result<()> {
-    let params = bijux_domain_bam::params::AuthenticityEffectiveParams {
+    let params = bijux_domain_bam::AuthenticityEffectiveParams {
         mode: "aggregate".to_string(),
     };
     let plan = bijux_stages_bam::bam::authenticity::plan(
@@ -171,9 +163,9 @@ fn authenticity_plan_json_is_emitted_and_stable() -> Result<()> {
 
 #[test]
 fn contamination_plan_json_is_emitted_and_stable() -> Result<()> {
-    let params = bijux_domain_bam::params::ContaminationEffectiveParams {
+    let params = bijux_domain_bam::ContaminationEffectiveParams {
         reference_panels: vec!["panel.vcf".to_string()],
-        scope: bijux_domain_bam::params::ContaminationScope::Both,
+        scope: bijux_domain_bam::ContaminationScope::Both,
         prior: None,
         sex_specific: false,
         assumptions: None,
@@ -189,7 +181,7 @@ fn contamination_plan_json_is_emitted_and_stable() -> Result<()> {
 
 #[test]
 fn sex_plan_json_is_emitted_and_stable() -> Result<()> {
-    let params = bijux_domain_bam::params::SexEffectiveParams {
+    let params = bijux_domain_bam::SexEffectiveParams {
         expected_sex: None,
         method: "rxy".to_string(),
     };
@@ -204,7 +196,7 @@ fn sex_plan_json_is_emitted_and_stable() -> Result<()> {
 
 #[test]
 fn bias_mitigation_plan_json_is_emitted_and_stable() -> Result<()> {
-    let params = bijux_domain_bam::params::BiasMitigationEffectiveParams {
+    let params = bijux_domain_bam::BiasMitigationEffectiveParams {
         gc_bias_correction: true,
         map_bias_correction: false,
     };
@@ -219,10 +211,10 @@ fn bias_mitigation_plan_json_is_emitted_and_stable() -> Result<()> {
 
 #[test]
 fn recalibration_plan_json_is_emitted_and_stable() -> Result<()> {
-    let params = bijux_domain_bam::params::BqsrEffectiveParams {
+    let params = bijux_domain_bam::BqsrEffectiveParams {
         known_sites: vec!["known.vcf".to_string()],
-        mode: bijux_domain_bam::params::BqsrMode::Skip,
-        skip_criteria: bijux_domain_bam::params::RecalibrationSkipCriteria {
+        mode: bijux_domain_bam::BqsrMode::Skip,
+        skip_criteria: bijux_domain_bam::RecalibrationSkipCriteria {
             min_mean_coverage: 1.0,
             min_breadth_1x: 0.1,
         },
@@ -238,7 +230,7 @@ fn recalibration_plan_json_is_emitted_and_stable() -> Result<()> {
 
 #[test]
 fn haplogroups_plan_json_is_emitted_and_stable() -> Result<()> {
-    let params = bijux_domain_bam::params::HaplogroupEffectiveParams {
+    let params = bijux_domain_bam::HaplogroupEffectiveParams {
         reference_panel: "mito_default".to_string(),
         min_coverage: Some(1.0),
     };
@@ -253,7 +245,7 @@ fn haplogroups_plan_json_is_emitted_and_stable() -> Result<()> {
 
 #[test]
 fn genotyping_plan_json_is_emitted_and_stable() -> Result<()> {
-    let params = bijux_domain_bam::params::GenotypingEffectiveParams {
+    let params = bijux_domain_bam::GenotypingEffectiveParams {
         caller: "angsd".to_string(),
         min_posterior: Some(0.9),
         min_call_rate: Some(0.5),
@@ -269,7 +261,7 @@ fn genotyping_plan_json_is_emitted_and_stable() -> Result<()> {
 
 #[test]
 fn kinship_plan_json_is_emitted_and_stable() -> Result<()> {
-    let params = bijux_domain_bam::params::KinshipEffectiveParams {
+    let params = bijux_domain_bam::KinshipEffectiveParams {
         reference_panel: "king_default".to_string(),
         min_overlap_snps: 1000,
     };

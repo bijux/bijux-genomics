@@ -14,20 +14,16 @@
         "path": "out/qc_pre.json"
       },
       {
-        "name": "flagstat",
+        "name": "qc_flagstat",
         "path": "out/flagstat.txt"
       },
       {
-        "name": "stats",
+        "name": "qc_stats",
         "path": "out/samtools_stats.txt"
       },
       {
-        "name": "summary",
-        "path": "out/qc_pre.summary.json"
-      },
-      {
-        "name": "stage_metrics",
-        "path": "out/stage.metrics.json"
+        "name": "qc_metrics",
+        "path": "out/qc_pre.metrics.json"
       }
     ]
   },

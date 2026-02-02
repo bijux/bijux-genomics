@@ -22,12 +22,8 @@
         "path": "out/recalibration.report.json"
       },
       {
-        "name": "summary",
-        "path": "out/recalibration.summary.json"
-      },
-      {
-        "name": "stage_metrics",
-        "path": "out/stage.metrics.json"
+        "name": "recal_metrics",
+        "path": "out/recalibration.metrics.json"
       }
     ]
   },
@@ -38,8 +34,8 @@
     ],
     "mode": "skip",
     "skip_criteria": {
-      "min_breadth_1x": 0.1,
-      "min_mean_coverage": 1.0
+      "min_mean_coverage": 1.0,
+      "min_breadth_1x": 0.1
     }
   },
   "effective_params": {
@@ -48,8 +44,8 @@
     ],
     "mode": "skip",
     "skip_criteria": {
-      "min_breadth_1x": 0.1,
-      "min_mean_coverage": 1.0
+      "min_mean_coverage": 1.0,
+      "min_breadth_1x": 0.1
     }
   }
 }
