@@ -1,9 +1,13 @@
 [config]
 skip_core_tasks = true
 
+[tasks.workspace]
+script = ["true"]
+
 [env]
 JOBS = { value = "8", condition = { env_not_set = ["JOBS"] } }
 NEXTEST_JOBS = { value = "8", condition = { env_not_set = ["NEXTEST_JOBS"] } }
+CARGO_MAKE_RUN_TASKS_IN_WORKSPACE = { value = "false", condition = { env_not_set = ["CARGO_MAKE_RUN_TASKS_IN_WORKSPACE"] } }
 
 [tasks.fmt-check]
 command = "cargo"
