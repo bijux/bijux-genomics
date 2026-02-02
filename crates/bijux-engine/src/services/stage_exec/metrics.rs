@@ -376,7 +376,7 @@ fn bam_metrics_from_dir(out_dir: &Path) -> BamMetricsV1 {
     } else {
         let depth_path = first_existing(out_dir, &["coverage.depth.txt", "depth.txt"]);
         if let Some(path) = depth_path {
-            if let Ok(coverage) = bijux_domain_bam::parse_samtools_depth(&path) {
+            if let Ok(coverage) = bijux_domain_bam::metrics::parse_samtools_depth(&path) {
                 metrics.coverage = coverage;
             }
         }
