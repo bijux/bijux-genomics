@@ -18,12 +18,16 @@
         "path": "out/markdup.bam.bai"
       },
       {
-        "name": "markdup_flagstat",
-        "path": "out/markdup.flagstat.txt"
+        "name": "flagstat",
+        "path": "out/flagstat.txt"
       },
       {
-        "name": "markdup_metrics",
-        "path": "out/markdup.metrics.json"
+        "name": "idxstats",
+        "path": "out/idxstats.txt"
+      },
+      {
+        "name": "summary",
+        "path": "out/markdup.summary.json"
       }
     ]
   },

@@ -12,6 +12,10 @@
       {
         "name": "validation_report",
         "path": "out/validation.json"
+      },
+      {
+        "name": "flagstat",
+        "path": "out/flagstat.txt"
       }
     ]
   },

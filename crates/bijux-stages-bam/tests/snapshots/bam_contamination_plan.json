@@ -14,8 +14,8 @@
         "path": "out/contamination.json"
       },
       {
-        "name": "contamination_metrics",
-        "path": "out/contamination.metrics.json"
+        "name": "summary",
+        "path": "out/contamination.summary.json"
       }
     ]
   },
