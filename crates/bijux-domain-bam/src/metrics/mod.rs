@@ -23,7 +23,7 @@ pub use bundle::{BamMetricsBundleV1, BamMetricsV1};
 pub use complexity::ComplexityMetricsV1;
 pub use contamination::{ContaminationMetricsV1, ContaminationReconciliationV1};
 pub use coverage::{CoverageMetricsV1, CoverageUniformityV1, EffectiveCoverageV1};
-pub use damage::DamageMetricsV1;
+pub use damage::{compare_damage_metrics, DamageComparisonV1, DamageMetricsV1};
 pub use fragment::FragmentLengthSummaryV1;
 pub use genotyping::GenotypingMetricsV1;
 pub use idxstats::{IdxstatsContigV1, IdxstatsSummaryV1};

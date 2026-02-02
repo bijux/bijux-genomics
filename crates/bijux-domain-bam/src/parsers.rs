@@ -232,6 +232,62 @@ pub fn parse_mosdepth_summary(path: &Path) -> anyhow::Result<CoverageMetricsV1> 
 }
 
 /// # Errors
+/// Returns an error if the samtools depth output cannot be read or parsed.
+pub fn parse_samtools_depth(path: &Path) -> anyhow::Result<CoverageMetricsV1> {
+    let raw = std::fs::read_to_string(path).context("read samtools depth")?;
+    let mut total_positions = 0_u64;
+    let mut total_depth = 0_u64;
+    let mut breadth_1x = 0_u64;
+    let mut breadth_3x = 0_u64;
+    let mut breadth_5x = 0_u64;
+    for line in raw.lines() {
+        if line.trim().is_empty() {
+            continue;
+        }
+        let parts: Vec<&str> = line.split_whitespace().collect();
+        if parts.len() < 3 {
+            continue;
+        }
+        let depth = parts[2].parse::<u64>().unwrap_or(0);
+        total_positions += 1;
+        total_depth += depth;
+        if depth >= 1 {
+            breadth_1x += 1;
+        }
+        if depth >= 3 {
+            breadth_3x += 1;
+        }
+        if depth >= 5 {
+            breadth_5x += 1;
+        }
+    }
+    let mean = if total_positions == 0 {
+        0.0
+    } else {
+        u64_to_f64(total_depth) / u64_to_f64(total_positions)
+    };
+    Ok(CoverageMetricsV1 {
+        mean,
+        median: mean,
+        breadth_1x: if total_positions == 0 {
+            0.0
+        } else {
+            (u64_to_f64(breadth_1x) / u64_to_f64(total_positions)).clamp(0.0, 1.0)
+        },
+        breadth_3x: if total_positions == 0 {
+            0.0
+        } else {
+            (u64_to_f64(breadth_3x) / u64_to_f64(total_positions)).clamp(0.0, 1.0)
+        },
+        breadth_5x: if total_positions == 0 {
+            0.0
+        } else {
+            (u64_to_f64(breadth_5x) / u64_to_f64(total_positions)).clamp(0.0, 1.0)
+        },
+    })
+}
+
+/// # Errors
 /// Returns an error if the preseq output cannot be read.
 pub fn parse_preseq_estimates(path: &Path) -> anyhow::Result<crate::metrics::ComplexityMetricsV1> {
     let raw = std::fs::read_to_string(path).context("read preseq output")?;
@@ -289,6 +345,34 @@ pub fn parse_damageprofiler_json(path: &Path) -> anyhow::Result<DamageMetricsV1>
     Ok(DamageMetricsV1 {
         c_to_t_5p: c_to_t,
         g_to_a_3p: g_to_a,
+        pmd_score_histogram: Vec::new(),
+    })
+}
+
+/// # Errors
+/// Returns an error if the `mapDamage2` misincorporation file cannot be read or parsed.
+pub fn parse_mapdamage2_misincorporation(path: &Path) -> anyhow::Result<DamageMetricsV1> {
+    let raw = std::fs::read_to_string(path).context("read mapdamage2 misincorporation")?;
+    let mut c_to_t = None;
+    let mut g_to_a = None;
+    for line in raw.lines() {
+        let trimmed = line.trim();
+        if trimmed.is_empty() || trimmed.starts_with('#') || trimmed.starts_with("pos") {
+            continue;
+        }
+        let parts: Vec<&str> = trimmed.split_whitespace().collect();
+        if parts.len() < 3 {
+            continue;
+        }
+        let c_to_t_val = parts[1].parse::<f64>().unwrap_or(0.0);
+        let g_to_a_val = parts[2].parse::<f64>().unwrap_or(0.0);
+        c_to_t = Some(c_to_t_val);
+        g_to_a = Some(g_to_a_val);
+        break;
+    }
+    Ok(DamageMetricsV1 {
+        c_to_t_5p: c_to_t.unwrap_or(0.0),
+        g_to_a_3p: g_to_a.unwrap_or(0.0),
         pmd_score_histogram: Vec::new(),
     })
 }

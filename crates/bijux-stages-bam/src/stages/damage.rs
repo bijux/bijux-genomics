@@ -17,6 +17,10 @@ pub fn plan(
     let outputs =
         crate::stages::support::audit_outputs(bijux_domain_bam::BamStage::Damage, out_dir);
     let out_json = out_dir.join("damage.pydamage.json");
+    let command = match tool.tool_id.0.as_str() {
+        "mapdamage2" => crate::tools::mapdamage2::damage_args(bam, out_dir, params),
+        _ => crate::tools::pydamage::args(bam, &out_json, params),
+    };
     let plan = StagePlanV1 {
         stage_id: StageId(STAGE_ID.to_string()),
         stage_version: STAGE_VERSION,
@@ -24,7 +28,7 @@ pub fn plan(
         tool_version: tool.tool_version.clone(),
         image: tool.image.clone(),
         command: CommandSpecV1 {
-            template: crate::tools::pydamage::args(bam, &out_json, params),
+            template: command,
         },
         resources: tool.resources.clone(),
         io: StageIO {
@@ -53,6 +57,7 @@ pub fn plan(
         &[
             "damage_report",
             "damage_pydamage",
+            "damage_mapdamage2",
             "damage_profiler",
             "summary",
             "stage_metrics",
