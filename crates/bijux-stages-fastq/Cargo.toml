@@ -11,6 +11,7 @@ serde_json.workspace = true
 anyhow.workspace = true
 
 [dev-dependencies]
+bijux-guardrails = { path = "../bijux-guardrails" }
 anyhow.workspace = true
 serde_json.workspace = true
 walkdir.workspace = true

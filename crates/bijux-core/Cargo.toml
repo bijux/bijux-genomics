@@ -19,6 +19,7 @@ regex.workspace = true
 anyhow.workspace = true
 
 [dev-dependencies]
+bijux-guardrails = { path = "../bijux-guardrails" }
 bijux-analyze = { path = "../bijux-analyze" }
 tempfile.workspace = true
 

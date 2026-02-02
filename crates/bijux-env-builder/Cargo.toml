@@ -20,6 +20,7 @@ bijux-core = { path = "../bijux-core" }
 bijux-env-runtime = { path = "../bijux-env-runtime" }
 
 [dev-dependencies]
+bijux-guardrails = { path = "../bijux-guardrails" }
 tempfile.workspace = true
 
 [lints]
