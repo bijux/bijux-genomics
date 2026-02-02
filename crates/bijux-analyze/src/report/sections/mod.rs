@@ -3,6 +3,6 @@
 mod qc;
 pub mod schema;
 
-include!("sections/core.rs");
-include!("sections/metrics.rs");
-include!("sections/findings.rs");
+include!("../sections_core.rs");
+include!("../sections_metrics.rs");
+include!("../sections_findings.rs");

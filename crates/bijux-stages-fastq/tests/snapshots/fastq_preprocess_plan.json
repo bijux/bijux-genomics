@@ -15,6 +15,7 @@
     "r2": null,
     "stages": [
       "fastq.validate_pre",
+      "fastq.detect_adapters",
       "fastq.trim",
       "fastq.filter",
       "fastq.stats_neutral",
@@ -26,6 +27,7 @@
     "paired_mode": "single_end",
     "stages": [
       "fastq.validate_pre",
+      "fastq.detect_adapters",
       "fastq.trim",
       "fastq.filter",
       "fastq.stats_neutral",

@@ -326,6 +326,8 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bijux-core",
+ "schemars",
+ "serde",
  "serde_json",
 ]
 

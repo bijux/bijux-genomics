@@ -142,6 +142,11 @@ fn build_plan(
             let options = bijux_stages_fastq::fastq::filter::FilterPlanOptions::default();
             filter::plan_filter(&dummy_tool("fastp", image), r1, out_dir, &options)?
         }
+        "fastq.detect_adapters" => bijux_stages_fastq::fastq::detect_adapters::plan(
+            &dummy_tool("fastqc", image),
+            r1,
+            out_dir,
+        ),
         "fastq.validate_pre" => {
             validate_pre::plan(&dummy_tool("fastqvalidator_official", image), r1, out_dir)
         }

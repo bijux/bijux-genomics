@@ -7,6 +7,8 @@ license.workspace = true
 [dependencies]
 bijux-core = { path = "../bijux-core" }
 anyhow.workspace = true
+schemars.workspace = true
+serde.workspace = true
 serde_json.workspace = true
 
 [lints]
