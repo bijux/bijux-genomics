@@ -18,12 +18,14 @@ mod verdict;
 pub use alignment::{parse_samtools_flagstat, parse_samtools_stats, AlignmentCountsV1};
 pub use authenticity::{
     authenticity_score, contamination_cross_check, infer_library_type_from_damage,
-    suggest_trim_from_damage, AuthenticityEvidenceV1, AuthenticityScoreV1,
-    LibraryTypeInferenceV1, TrimSuggestionV1,
+    suggest_trim_from_damage, AuthenticityEvidenceV1, AuthenticityScoreV1, LibraryTypeInferenceV1,
+    TrimSuggestionV1,
 };
 pub use bundle::{BamMetricsBundleV1, BamMetricsV1};
 pub use complexity::{parse_preseq_estimates, ComplexityMetricsV1};
-pub use contamination::{parse_contamination_json, ContaminationMetricsV1, ContaminationReconciliationV1};
+pub use contamination::{
+    parse_contamination_json, ContaminationMetricsV1, ContaminationReconciliationV1,
+};
 pub use coverage::{
     parse_mosdepth_summary, parse_samtools_depth, CoverageMetricsV1, CoverageUniformityV1,
     EffectiveCoverageV1,
