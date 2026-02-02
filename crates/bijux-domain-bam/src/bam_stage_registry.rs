@@ -318,6 +318,10 @@ pub fn required_audit_artifacts(stage: BamStage) -> &'static [AuditArtifact] {
                 filename: "coverage.mosdepth.summary.txt",
             },
             AuditArtifact {
+                name: "coverage_depth",
+                filename: "coverage.depth.txt",
+            },
+            AuditArtifact {
                 name: "summary",
                 filename: "coverage.summary.json",
             },
@@ -334,6 +338,10 @@ pub fn required_audit_artifacts(stage: BamStage) -> &'static [AuditArtifact] {
             AuditArtifact {
                 name: "damage_pydamage",
                 filename: "damage.pydamage.json",
+            },
+            AuditArtifact {
+                name: "damage_mapdamage2",
+                filename: "damage.mapdamage2.txt",
             },
             AuditArtifact {
                 name: "damage_profiler",
@@ -570,7 +578,7 @@ pub fn stage_spec(stage: BamStage) -> BamStageSpec {
                 ],
                 required_audit: required_audit_artifacts(stage),
             },
-            allowed_tools: &["mosdepth"],
+            allowed_tools: &["mosdepth", "samtools"],
             default_tool: "mosdepth",
             default_params: BamEffectiveParams::Coverage(CoverageEffectiveParams {
                 regions: None,
@@ -590,7 +598,7 @@ pub fn stage_spec(stage: BamStage) -> BamStageSpec {
                 ],
                 required_audit: required_audit_artifacts(stage),
             },
-            allowed_tools: &["pydamage"],
+            allowed_tools: &["pydamage", "mapdamage2"],
             default_tool: "pydamage",
             default_params: BamEffectiveParams::Damage(DamageEffectiveParams {
                 udg_model: UdgModel::NonUdg,

@@ -1,9 +1,9 @@
 use std::path::PathBuf;
 
 use bijux_domain_bam::parsers::{
-    parse_contamination_json, parse_damageprofiler_json, parse_mosdepth_summary,
-    parse_preseq_estimates, parse_pydamage_json, parse_samtools_flagstat, parse_samtools_idxstats,
-    parse_samtools_stats, parse_sex_json,
+    parse_contamination_json, parse_damageprofiler_json, parse_mapdamage2_misincorporation,
+    parse_mosdepth_summary, parse_preseq_estimates, parse_pydamage_json, parse_samtools_depth,
+    parse_samtools_flagstat, parse_samtools_idxstats, parse_samtools_stats, parse_sex_json,
 };
 
 fn fixture_path(name: &str) -> PathBuf {
@@ -32,6 +32,9 @@ fn parse_bam_fixtures_roundtrip() -> anyhow::Result<()> {
     assert!(coverage.mean > 0.0);
     assert!(coverage.breadth_1x > 0.0);
 
+    let depth = parse_samtools_depth(&fixture_path("depth.txt"))?;
+    assert!(depth.mean > 0.0);
+
     let complexity = parse_preseq_estimates(&fixture_path("preseq.txt"))?;
     assert_eq!(complexity.projected_reads.len(), 2);
 
@@ -40,6 +43,9 @@ fn parse_bam_fixtures_roundtrip() -> anyhow::Result<()> {
 
     let damageprofiler = parse_damageprofiler_json(&fixture_path("damageprofiler.json"))?;
     assert!(damageprofiler.c_to_t_5p > 0.0);
+
+    let mapdamage2 = parse_mapdamage2_misincorporation(&fixture_path("mapdamage2.txt"))?;
+    assert!(mapdamage2.c_to_t_5p > 0.0);
 
     let contamination = parse_contamination_json(&fixture_path("contamination.json"))?;
     assert!(contamination.estimate > 0.0);
