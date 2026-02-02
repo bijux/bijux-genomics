@@ -10,6 +10,8 @@ bijux-env-runtime = { path = "../bijux-env-runtime" }
 bijux-env-builder = { path = "../bijux-env-builder" }
 bijux-stages-fastq = { path = "../bijux-stages-fastq" }
 bijux-domain-fastq = { path = "../bijux-domain-fastq" }
+bijux-stages-bam = { path = "../bijux-stages-bam" }
+bijux-domain-bam = { path = "../bijux-domain-bam" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 serde_yaml = "0.9"

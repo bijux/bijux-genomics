@@ -44,15 +44,39 @@ fn analyze_sources_not_giant() -> std::io::Result<()> {
             600usize,
         ),
         (
-            src_dir.join("load").join("sqlite").join("queries.rs"),
-            1800usize,
-        ),
-        (src_dir.join("report").join("bench.rs"), 1200usize),
-        (src_dir.join("report").join("build.rs"), 700usize),
-        (
-            src_dir.join("report").join("sections").join("mod.rs"),
+            src_dir.join("load").join("sqlite").join("queries_bench.rs"),
             700usize,
         ),
+        (
+            src_dir
+                .join("load")
+                .join("sqlite")
+                .join("queries_quality.rs"),
+            700usize,
+        ),
+        (
+            src_dir
+                .join("load")
+                .join("sqlite")
+                .join("queries_reports.rs"),
+            700usize,
+        ),
+        (
+            src_dir.join("report").join("bench").join("summary.rs"),
+            700usize,
+        ),
+        (
+            src_dir
+                .join("report")
+                .join("bench")
+                .join("recommendations.rs"),
+            700usize,
+        ),
+        (
+            src_dir.join("report").join("build").join("core.rs"),
+            700usize,
+        ),
+        (src_dir.join("report").join("sections_core.rs"), 700usize),
     ];
     for path in files {
         let content = fs::read_to_string(&path)?;

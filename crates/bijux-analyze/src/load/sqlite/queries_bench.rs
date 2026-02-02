@@ -1,3 +1,5 @@
+// imports provided by queries_core.rs
+
 /// Load a `qc_post` benchmark record from `SQLite` if present.
 ///
 /// # Errors
@@ -439,4 +441,4 @@ pub fn ensure_image_qa_tables(conn: &Connection) -> Result<()> {
     ensure_record_id_column(conn, "image_qa_inputs_v1")?;
     Ok(())
 }
-
+// imports provided by queries_core.rs
