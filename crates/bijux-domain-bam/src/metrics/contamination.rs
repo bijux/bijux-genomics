@@ -1,3 +1,4 @@
+use anyhow::Context;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -47,4 +48,39 @@ impl Default for ContaminationReconciliationV1 {
     fn default() -> Self {
         Self::empty()
     }
+}
+
+/// # Errors
+/// Returns an error if the contamination JSON cannot be read or parsed.
+pub fn parse_contamination_json(path: &std::path::Path) -> anyhow::Result<ContaminationMetricsV1> {
+    let raw = std::fs::read_to_string(path).context("read contamination json")?;
+    let value: serde_json::Value = serde_json::from_str(&raw)?;
+    Ok(ContaminationMetricsV1 {
+        method: value
+            .get("method")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or("unknown")
+            .to_string(),
+        estimate: value
+            .get("estimate")
+            .and_then(serde_json::Value::as_f64)
+            .unwrap_or(0.0),
+        ci_low: value
+            .get("ci_low")
+            .and_then(serde_json::Value::as_f64)
+            .unwrap_or(0.0),
+        ci_high: value
+            .get("ci_high")
+            .and_then(serde_json::Value::as_f64)
+            .unwrap_or(0.0),
+        assumptions: value
+            .get("assumptions")
+            .and_then(|v| v.as_array())
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|v| v.as_str().map(str::to_string))
+                    .collect()
+            })
+            .unwrap_or_default(),
+    })
 }
