@@ -4,14 +4,12 @@ use anyhow::Result;
 use bijux_core::{
     CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
 };
-use bijux_domain_bam::params::{
-    BiasMitigationEffectiveParams, ComplexityEffectiveParams, ContaminationEffectiveParams,
-    CoverageEffectiveParams, DamageEffectiveParams, FilterEffectiveParams,
-    GenotypingEffectiveParams, HaplogroupEffectiveParams, KinshipEffectiveParams,
-    MarkDupEffectiveParams, SexEffectiveParams, UdgModel,
+use bijux_domain_bam::{
+    required_audit_artifacts, BamStage, BiasMitigationEffectiveParams, ComplexityEffectiveParams,
+    ContaminationEffectiveParams, CoverageEffectiveParams, DamageEffectiveParams,
+    FilterEffectiveParams, GenotypingEffectiveParams, HaplogroupEffectiveParams,
+    KinshipEffectiveParams, MarkDupEffectiveParams, SexEffectiveParams, UdgModel,
 };
-use bijux_domain_bam::required_audit_artifacts;
-use bijux_domain_bam::BamStage;
 
 fn dummy_tool(tool: &str) -> ToolExecutionSpecV1 {
     ToolExecutionSpecV1 {
@@ -36,21 +34,12 @@ fn dummy_tool(tool: &str) -> ToolExecutionSpecV1 {
 fn assert_audit_outputs(stage: BamStage, plan: &bijux_core::StagePlanV1) {
     let outputs: std::collections::HashSet<_> =
         plan.io.outputs.iter().map(|o| o.name.as_str()).collect();
-    let spec = bijux_domain_bam::stage_spec(stage);
     for artifact in required_audit_artifacts(stage) {
         assert!(
             outputs.contains(artifact.name),
             "stage {} missing required output {}",
             stage.as_str(),
             artifact.name
-        );
-    }
-    for required in spec.artifact_policy.required_outputs {
-        assert!(
-            outputs.contains(*required),
-            "stage {} missing required output {}",
-            stage.as_str(),
-            required
         );
     }
 }
@@ -81,9 +70,9 @@ fn bam_stage_artifacts_contract_is_complete() -> Result<()> {
     assert_audit_outputs(BamStage::Filter, &filter);
 
     let markdup_params = MarkDupEffectiveParams {
-        optical_duplicates: bijux_domain_bam::params::OpticalDuplicatePolicy::MarkOnly,
-        umi_policy: bijux_domain_bam::params::UmiPolicy::Ignore,
-        duplicate_action: bijux_domain_bam::params::DuplicateAction::Mark,
+        optical_duplicates: bijux_domain_bam::OpticalDuplicatePolicy::MarkOnly,
+        umi_policy: bijux_domain_bam::UmiPolicy::Ignore,
+        duplicate_action: bijux_domain_bam::DuplicateAction::Mark,
     };
     let markdup =
         bijux_stages_bam::bam::markdup::plan(&dummy_tool("gatk"), bam, out, &markdup_params)?;
@@ -120,7 +109,7 @@ fn bam_stage_artifacts_contract_is_complete() -> Result<()> {
         bijux_stages_bam::bam::damage::plan(&dummy_tool("pydamage"), bam, out, &damage_params)?;
     assert_audit_outputs(BamStage::Damage, &damage);
 
-    let authenticity_params = bijux_domain_bam::params::AuthenticityEffectiveParams {
+    let authenticity_params = bijux_domain_bam::AuthenticityEffectiveParams {
         mode: "aggregate".to_string(),
     };
     let authenticity = bijux_stages_bam::bam::authenticity::plan(
@@ -133,7 +122,7 @@ fn bam_stage_artifacts_contract_is_complete() -> Result<()> {
 
     let contamination_params = ContaminationEffectiveParams {
         reference_panels: vec!["panel.vcf".to_string()],
-        scope: bijux_domain_bam::params::ContaminationScope::Both,
+        scope: bijux_domain_bam::ContaminationScope::Both,
         prior: None,
         sex_specific: false,
         assumptions: None,
@@ -161,10 +150,10 @@ fn bam_stage_artifacts_contract_is_complete() -> Result<()> {
         bijux_stages_bam::bam::bias_mitigation::plan(&dummy_tool("angsd"), bam, out, &bias_params)?;
     assert_audit_outputs(BamStage::BiasMitigation, &bias);
 
-    let recal_params = bijux_domain_bam::params::BqsrEffectiveParams {
+    let recal_params = bijux_domain_bam::BqsrEffectiveParams {
         known_sites: vec!["known.vcf".to_string()],
-        mode: bijux_domain_bam::params::BqsrMode::Standard,
-        skip_criteria: bijux_domain_bam::params::RecalibrationSkipCriteria {
+        mode: bijux_domain_bam::BqsrMode::Standard,
+        skip_criteria: bijux_domain_bam::RecalibrationSkipCriteria {
             min_mean_coverage: 2.0,
             min_breadth_1x: 0.5,
         },

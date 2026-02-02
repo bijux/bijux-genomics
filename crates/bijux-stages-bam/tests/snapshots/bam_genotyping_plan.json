@@ -14,8 +14,8 @@
         "path": "out/genotyping.json"
       },
       {
-        "name": "genotyping_metrics",
-        "path": "out/genotyping.metrics.json"
+        "name": "summary",
+        "path": "out/genotyping.summary.json"
       }
     ]
   },

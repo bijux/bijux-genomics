@@ -14,8 +14,8 @@
         "path": "out/kinship.json"
       },
       {
-        "name": "kinship_metrics",
-        "path": "out/kinship.metrics.json"
+        "name": "summary",
+        "path": "out/kinship.summary.json"
       }
     ]
   },

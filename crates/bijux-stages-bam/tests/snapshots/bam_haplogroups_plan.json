@@ -14,8 +14,8 @@
         "path": "out/haplogroups.json"
       },
       {
-        "name": "haplogroups_metrics",
-        "path": "out/haplogroups.metrics.json"
+        "name": "summary",
+        "path": "out/haplogroups.summary.json"
       }
     ]
   },
