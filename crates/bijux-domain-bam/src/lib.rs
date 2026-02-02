@@ -8,6 +8,7 @@ mod invariants;
 pub mod metrics;
 pub mod params;
 pub mod types;
+
 pub use bam_stage_registry::{
     contract_for_stage, required_audit_artifacts, stage_spec, stage_specs, ArtifactPolicy,
     AuditArtifact, BamArtifactKind, BamStage, BamStageContract, BamStageSpec,

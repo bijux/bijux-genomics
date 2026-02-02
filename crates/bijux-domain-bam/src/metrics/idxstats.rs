@@ -1,8 +1,9 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use std::path::Path;
 
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result};
+use std::fs;
+use std::path::Path;
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
@@ -34,62 +35,39 @@ impl IdxstatsSummaryV1 {
     }
 }
 
-/// Parse a samtools idxstats output file into a canonical summary.
-///
 /// # Errors
-/// Returns an error if the file cannot be read or is malformed.
+/// Returns an error if the file cannot be read or parsed.
 pub fn parse_samtools_idxstats(path: &Path) -> Result<IdxstatsSummaryV1> {
-    let raw = std::fs::read_to_string(path)
-        .with_context(|| format!("read samtools idxstats from {}", path.display()))?;
-    let mut contigs = Vec::new();
-    let mut total_mapped = 0u64;
-    let mut total_unmapped = 0u64;
-    let mut reference_mismatch = false;
-
-    for (idx, line) in raw.lines().enumerate() {
-        if line.trim().is_empty() {
+    let raw = fs::read_to_string(path)
+        .with_context(|| format!("read samtools idxstats: {}", path.display()))?;
+    let mut summary = IdxstatsSummaryV1::empty();
+    for (line_no, line) in raw.lines().enumerate() {
+        let line = line.trim();
+        if line.is_empty() {
             continue;
         }
         let parts: Vec<&str> = line.split('\t').collect();
-        if parts.len() != 4 {
-            bail!("idxstats line {} has {} fields", idx + 1, parts.len());
+        if parts.len() < 4 {
+            anyhow::bail!("invalid idxstats line {}: {}", line_no + 1, line);
         }
         let contig = parts[0].to_string();
-        let length: u64 = parts[1].parse().with_context(|| {
-            format!("idxstats line {} invalid length {}", idx + 1, parts[1])
-        })?;
-        let mapped: u64 = parts[2].parse().with_context(|| {
-            format!("idxstats line {} invalid mapped {}", idx + 1, parts[2])
-        })?;
-        let unmapped: u64 = parts[3].parse().with_context(|| {
-            format!(
-                "idxstats line {} invalid unmapped {}",
-                idx + 1,
-                parts[3]
-            )
-        })?;
-
+        let length: u64 = parts[1].parse().unwrap_or(0);
+        let mapped: u64 = parts[2].parse().unwrap_or(0);
+        let unmapped: u64 = parts[3].parse().unwrap_or(0);
+        if contig != "*" && length == 0 && (mapped > 0 || unmapped > 0) {
+            summary.reference_mismatch = true;
+        }
         if contig == "*" && (mapped > 0 || unmapped > 0) {
-            reference_mismatch = true;
+            summary.reference_mismatch = true;
         }
-        if contig != "*" && length == 0 {
-            reference_mismatch = true;
-        }
-
-        total_mapped = total_mapped.saturating_add(mapped);
-        total_unmapped = total_unmapped.saturating_add(unmapped);
-        contigs.push(IdxstatsContigV1 {
+        summary.total_mapped = summary.total_mapped.saturating_add(mapped);
+        summary.total_unmapped = summary.total_unmapped.saturating_add(unmapped);
+        summary.contigs.push(IdxstatsContigV1 {
             contig,
             length,
             mapped,
             unmapped,
         });
     }
-
-    Ok(IdxstatsSummaryV1 {
-        contigs,
-        total_mapped,
-        total_unmapped,
-        reference_mismatch,
-    })
+    Ok(summary)
 }

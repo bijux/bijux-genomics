@@ -10,7 +10,8 @@ use bijux_domain_bam::params::{
     GenotypingEffectiveParams, HaplogroupEffectiveParams, KinshipEffectiveParams,
     MarkDupEffectiveParams, SexEffectiveParams, UdgModel,
 };
-use bijux_domain_bam::{required_audit_artifacts, BamStage};
+use bijux_domain_bam::required_audit_artifacts;
+use bijux_domain_bam::BamStage;
 
 fn dummy_tool(tool: &str) -> ToolExecutionSpecV1 {
     ToolExecutionSpecV1 {

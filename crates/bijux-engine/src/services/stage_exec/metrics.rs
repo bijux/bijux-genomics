@@ -317,7 +317,8 @@ fn stage_metrics_for_plan(
                 .map_or_else(|| PathBuf::from("."), PathBuf::from);
             let mut metrics = bam_metrics_from_dir(&out_dir);
             let thresholds = bijux_domain_bam::metrics::BamInvariantThresholds::default();
-            let evaluation = bijux_domain_bam::metrics::evaluate_bam_invariants(stage_id, &metrics, &thresholds);
+            let evaluation =
+                bijux_domain_bam::metrics::evaluate_bam_invariants(stage_id, &metrics, &thresholds);
             metrics.stage_verdict = Some(evaluation.verdict.into());
             serde_json::to_value(metrics)?
         }
@@ -399,7 +400,7 @@ fn bam_metrics_from_dir(out_dir: &Path) -> BamMetricsV1 {
     }
     let mapdamage2_path = first_existing(out_dir, &["damage.mapdamage2.txt", "mapdamage2.txt"]);
     if let Some(path) = mapdamage2_path {
-        if let Ok(damage) = bijux_domain_bam::parse_mapdamage2_misincorporation(&path) {
+        if let Ok(damage) = bijux_domain_bam::metrics::parse_mapdamage2_misincorporation(&path) {
             if damage_sources.is_empty() {
                 metrics.damage = damage.clone();
             }
