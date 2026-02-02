@@ -5,7 +5,7 @@ pub fn allowed_tools_for_stage(stage: BamStage) -> Vec<String> {
     stage_spec(stage)
         .allowed_tools
         .iter()
-        .map(|tool| (*tool).to_string())
+        .map(|tool| tool.to_string())
         .collect()
 }
 
