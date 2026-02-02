@@ -420,7 +420,7 @@ fn bam_metrics_from_dir(out_dir: &Path) -> BamMetricsV1 {
         let threshold = 0.05;
         let (tool_a, metrics_a) = &damage_sources[0];
         let (tool_b, metrics_b) = &damage_sources[1];
-        metrics.damage_comparison = Some(bijux_domain_bam::compare_damage_metrics(
+        metrics.damage_comparison = Some(bijux_domain_bam::metrics::compare_damage_metrics(
             tool_a,
             metrics_a,
             tool_b,
@@ -478,6 +478,39 @@ fn bam_metrics_from_dir(out_dir: &Path) -> BamMetricsV1 {
         metrics.coverage_sufficiency.mean_coverage = metrics.coverage.mean;
         metrics.coverage_sufficiency.breadth_1x = metrics.coverage.breadth_1x;
         metrics.coverage_sufficiency.reason = reason.to_string();
+    }
+
+    if !metrics.coverage_sufficiency.sufficient {
+        let reason = metrics.coverage_sufficiency.reason.clone();
+        metrics.sex_sufficiency.sufficient = false;
+        metrics.sex_sufficiency.confidence = metrics.sex.confidence;
+        metrics.sex_sufficiency.reason = reason.clone();
+        metrics.contamination_sufficiency.sufficient = false;
+        metrics.contamination_sufficiency.estimate = metrics.contamination.estimate;
+        metrics.contamination_sufficiency.reason = reason.clone();
+        metrics.haplogroup_sufficiency.sufficient = false;
+        metrics.haplogroup_sufficiency.min_coverage = metrics.coverage.mean;
+        metrics.haplogroup_sufficiency.reason = reason.clone();
+        metrics.kinship_sufficiency.sufficient = false;
+        metrics.kinship_sufficiency.overlap_snps = metrics.kinship_sufficiency.overlap_snps;
+        metrics.kinship_sufficiency.reason = reason;
+        metrics.sex.classification = bijux_domain_bam::SexConfidenceClass::Insufficient;
+        metrics.sex.sufficient_data = false;
+    } else {
+        metrics.sex_sufficiency.sufficient = metrics.sex.sufficient_data;
+        metrics.sex_sufficiency.confidence = metrics.sex.confidence;
+        metrics.sex_sufficiency.reason = if metrics.sex.sufficient_data {
+            "sex inference meets thresholds".to_string()
+        } else {
+            "sex inference confidence below threshold".to_string()
+        };
+        metrics.contamination_sufficiency.sufficient = metrics.contamination.estimate > 0.0;
+        metrics.contamination_sufficiency.estimate = metrics.contamination.estimate;
+        metrics.contamination_sufficiency.reason = if metrics.contamination.estimate > 0.0 {
+            "contamination estimate available".to_string()
+        } else {
+            "contamination estimate missing".to_string()
+        };
     }
 
     let authenticity = bijux_domain_bam::authenticity_score(&metrics);
