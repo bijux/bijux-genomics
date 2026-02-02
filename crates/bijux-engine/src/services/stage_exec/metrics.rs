@@ -481,23 +481,7 @@ fn bam_metrics_from_dir(out_dir: &Path) -> BamMetricsV1 {
         metrics.coverage_sufficiency.reason = reason.to_string();
     }
 
-    if !metrics.coverage_sufficiency.sufficient {
-        let reason = metrics.coverage_sufficiency.reason.clone();
-        metrics.sex_sufficiency.sufficient = false;
-        metrics.sex_sufficiency.confidence = metrics.sex.confidence;
-        metrics.sex_sufficiency.reason = reason.clone();
-        metrics.contamination_sufficiency.sufficient = false;
-        metrics.contamination_sufficiency.estimate = metrics.contamination.estimate;
-        metrics.contamination_sufficiency.reason = reason.clone();
-        metrics.haplogroup_sufficiency.sufficient = false;
-        metrics.haplogroup_sufficiency.min_coverage = metrics.coverage.mean;
-        metrics.haplogroup_sufficiency.reason = reason.clone();
-        metrics.kinship_sufficiency.sufficient = false;
-        metrics.kinship_sufficiency.overlap_snps = metrics.kinship_sufficiency.overlap_snps;
-        metrics.kinship_sufficiency.reason = reason;
-        metrics.sex.classification = bijux_domain_bam::metrics::SexConfidenceClass::Insufficient;
-        metrics.sex.sufficient_data = false;
-    } else {
+    if metrics.coverage_sufficiency.sufficient {
         metrics.sex_sufficiency.sufficient = metrics.sex.sufficient_data;
         metrics.sex_sufficiency.confidence = metrics.sex.confidence;
         metrics.sex_sufficiency.reason = if metrics.sex.sufficient_data {
@@ -512,6 +496,25 @@ fn bam_metrics_from_dir(out_dir: &Path) -> BamMetricsV1 {
         } else {
             "contamination estimate missing".to_string()
         };
+    } else {
+        let reason = metrics.coverage_sufficiency.reason.clone();
+        metrics.sex_sufficiency.sufficient = false;
+        metrics.sex_sufficiency.confidence = metrics.sex.confidence;
+        metrics.sex_sufficiency.reason.clone_from(&reason);
+        metrics.contamination_sufficiency.sufficient = false;
+        metrics.contamination_sufficiency.estimate = metrics.contamination.estimate;
+        metrics.contamination_sufficiency
+            .reason
+            .clone_from(&reason);
+        metrics.haplogroup_sufficiency.sufficient = false;
+        metrics.haplogroup_sufficiency.min_coverage = metrics.coverage.mean;
+        metrics.haplogroup_sufficiency
+            .reason
+            .clone_from(&reason);
+        metrics.kinship_sufficiency.sufficient = false;
+        metrics.kinship_sufficiency.reason = reason;
+        metrics.sex.classification = bijux_domain_bam::metrics::SexConfidenceClass::Insufficient;
+        metrics.sex.sufficient_data = false;
     }
 
     let authenticity = bijux_domain_bam::metrics::authenticity_score(&metrics);

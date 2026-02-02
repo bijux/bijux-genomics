@@ -207,7 +207,7 @@ fn parse_tool_matrix(
         let tools = tools_raw
             .split(',')
             .filter(|s| !s.is_empty())
-            .map(|s| s.to_string())
+            .map(ToString::to_string)
             .collect::<Vec<_>>();
         map.insert(stage_id, tools);
     }
