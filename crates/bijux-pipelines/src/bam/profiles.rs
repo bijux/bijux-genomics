@@ -125,6 +125,7 @@ fn filter_defaults(defaults: &mut Vec<BamStageDefault>, stages: &[BamStage]) {
 pub fn bam_default_profile() -> PipelineProfile {
     let mut defaults = base_defaults();
     let mut stages = BamStage::all().to_vec();
+    stages.retain(|stage| *stage != BamStage::Align);
     filter_downstream(&mut stages);
     filter_defaults(&mut defaults, &stages);
     PipelineProfile {
@@ -146,6 +147,7 @@ pub fn bam_default_profile() -> PipelineProfile {
 pub fn bam_adna_shotgun_profile() -> PipelineProfile {
     let mut defaults = base_defaults();
     let mut stages = BamStage::all().to_vec();
+    stages.retain(|stage| *stage != BamStage::Align);
     stages.retain(|stage| *stage != BamStage::Recalibration);
     filter_downstream(&mut stages);
     filter_defaults(&mut defaults, &stages);

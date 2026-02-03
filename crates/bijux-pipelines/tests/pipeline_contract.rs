@@ -56,6 +56,8 @@ fn pipeline_profiles_reference_known_stages_and_defaults() {
                     .unwrap_or_else(|_| panic!("failed to parse BAM params for {stage_id}"));
             } else if stage_id.starts_with("cross.") {
                 // Cross-domain placeholders are allowed without a domain registry.
+            } else if stage_id.starts_with("core.") {
+                // Core stages are validated at runtime.
             } else {
                 panic!("unknown stage prefix for {stage_id}");
             }
