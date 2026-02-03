@@ -247,7 +247,8 @@ fn write_effective_fasta(
             payload.push('\n');
         }
     }
-    std::fs::write(&path, payload).context("write effective bank fasta")?;
+    bijux_io::atomic_write_bytes(&path, payload.as_bytes())
+        .context("write effective bank fasta")?;
     let hash = hash_file_sha256(&path)?;
     Ok(Some((path, hash)))
 }
@@ -297,7 +298,7 @@ fn write_effective_bank_yaml(
         }).collect::<Vec<_>>(),
     });
     let yaml = serde_yaml::to_string(&payload).context("serialize effective bank yaml")?;
-    std::fs::write(&path, yaml).context("write effective bank yaml")?;
+    bijux_io::atomic_write_bytes(&path, yaml.as_bytes()).context("write effective bank yaml")?;
     let hash = hash_file_sha256(&path)?;
     Ok(Some((path, hash)))
 }
@@ -318,7 +319,8 @@ fn write_effective_fasta_list(
         .map(|reference| reference.file.as_str())
         .collect::<Vec<_>>()
         .join("\n");
-    std::fs::write(&path, payload).context("write effective bank fasta list")?;
+    bijux_io::atomic_write_bytes(&path, payload.as_bytes())
+        .context("write effective bank fasta list")?;
     let hash = hash_file_sha256(&path)?;
     Ok(Some((path, hash)))
 }
@@ -433,4 +435,3 @@ fn fastq_stats(path: &Path) -> Result<bijux_core::measure::SeqkitMetrics> {
         gc_percent,
     })
 }
-

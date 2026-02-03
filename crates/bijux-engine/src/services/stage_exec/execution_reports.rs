@@ -88,7 +88,7 @@ fn build_stage_reports_and_warnings(
         let reports_dir = run_artifacts_dir.join("reports");
         std::fs::create_dir_all(&reports_dir).context("create reports dir")?;
         let report_path = reports_dir.join("bank_report.json");
-        std::fs::write(&report_path, serde_json::to_vec_pretty(&report_payload)?)
+        bijux_io::atomic_write_json(&report_path, &report_payload)
             .context("write bank_report.json")?;
         emit_artifact("bank_report", &report_path)?;
         subreports.push(report_path);
@@ -158,7 +158,7 @@ fn build_stage_reports_and_warnings(
                     .cloned()
                     .unwrap_or(serde_json::json!([])),
             });
-            std::fs::write(&path, serde_json::to_vec_pretty(&payload)?)
+            bijux_io::atomic_write_json(&path, &payload)
                 .context("write adapter_candidates.json")?;
             emit_artifact("adapter_candidates", &path)?;
             subreports.push(path);

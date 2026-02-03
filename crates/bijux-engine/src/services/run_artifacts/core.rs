@@ -211,11 +211,8 @@ pub fn write_run_manifest(
             "facts_jsonl": run_artifacts_dir(run_dirs)?.join("dashboard").join("facts.jsonl"),
         },
     });
-    std::fs::write(
-        &run_dirs.run_manifest_path,
-        serde_json::to_vec_pretty(&payload)?,
-    )
-    .context("write run_manifest.json")?;
+    bijux_io::atomic_write_json(&run_dirs.run_manifest_path, &payload)
+        .context("write run_manifest.json")?;
     Ok(())
 }
 
@@ -237,7 +234,7 @@ pub fn write_stage_plan_json<T: Serialize>(
     let path = plans_dir.join(file_name);
     std::fs::create_dir_all(path.parent().unwrap_or(&plans_dir))
         .context("create plan parent dir")?;
-    std::fs::write(&path, serde_json::to_vec_pretty(plan)?).context("write stage plan json")?;
+    bijux_io::atomic_write_json(&path, plan).context("write stage plan json")?;
     Ok(path)
 }
 
@@ -273,14 +270,16 @@ pub fn write_execution_logs_bounded(
     let combined_path = logs_dir.join("tool.log");
     let stdout_tail = truncate_tail(stdout, tail_kb);
     let stderr_tail = truncate_tail(stderr, tail_kb);
-    std::fs::write(&stdout_path, stdout_tail).context("write tool.stdout.log")?;
-    std::fs::write(&stderr_path, stderr_tail).context("write tool.stderr.log")?;
+    bijux_io::atomic_write_bytes(&stdout_path, stdout_tail.as_bytes())
+        .context("write tool.stdout.log")?;
+    bijux_io::atomic_write_bytes(&stderr_path, stderr_tail.as_bytes())
+        .context("write tool.stderr.log")?;
     let combined = if stderr.is_empty() {
         truncate_tail(stdout, tail_kb)
     } else {
         truncate_tail(&format!("{stdout}\n--- stderr ---\n{stderr}"), tail_kb)
     };
-    std::fs::write(&combined_path, combined).context("write tool.log")?;
+    bijux_io::atomic_write_bytes(&combined_path, combined.as_bytes()).context("write tool.log")?;
     Ok(vec![combined_path, stdout_path, stderr_path])
 }
 
@@ -310,7 +309,7 @@ pub fn write_metrics_json<T: serde::Serialize>(
         "execution": execution,
         "metrics": metrics
     });
-    std::fs::write(&run_dirs.metrics_path, serde_json::to_vec_pretty(&payload)?)
+    bijux_io::atomic_write_json(&run_dirs.metrics_path, &payload)
         .context("write metrics.json")?;
     Ok(())
 }
@@ -353,7 +352,7 @@ pub fn write_plan_artifacts(
         "parameters": params,
         "effective_params": effective_params,
     });
-    std::fs::write(&plan_path, serde_json::to_vec_pretty(&payload)?).context("write plan.json")?;
+    bijux_io::atomic_write_json(&plan_path, &payload).context("write plan.json")?;
     let effective_config = EffectiveConfigV1 {
         schema_version: "bijux.effective_config.v1".to_string(),
         stage_id: stage_id.to_string(),
@@ -374,16 +373,10 @@ pub fn write_plan_artifacts(
         banks: banks.cloned(),
         bank_assets: bank_assets.cloned(),
     };
-    std::fs::write(
-        &effective_config_path,
-        serde_json::to_vec_pretty(&effective_config)?,
-    )
-    .context("write effective_config.json")?;
-    std::fs::write(
-        &stage_config_path,
-        serde_json::to_vec_pretty(&effective_config)?,
-    )
-    .context("write effective config artifact")?;
+    bijux_io::atomic_write_json(&effective_config_path, &effective_config)
+        .context("write effective_config.json")?;
+    bijux_io::atomic_write_json(&stage_config_path, &effective_config)
+        .context("write effective config artifact")?;
     Ok(PlanArtifacts {
         plan_path,
         effective_config_path,
@@ -414,8 +407,7 @@ pub fn write_metrics_envelope(
         output_hashes: output_hashes.to_vec(),
     };
     let path = run_artifacts_dir.join("metrics_envelope.json");
-    std::fs::write(&path, serde_json::to_vec_pretty(&payload)?)
-        .context("write metrics_envelope.json")?;
+    bijux_io::atomic_write_json(&path, &payload).context("write metrics_envelope.json")?;
     Ok(path)
 }
 
@@ -426,8 +418,8 @@ pub fn write_stage_metrics_json<T: serde::Serialize>(
     let stage_path = run_artifacts_dir.join("stage_metrics.json");
     let metrics_path = run_artifacts_dir.join("metrics.json");
     let payload = serde_json::to_vec_pretty(metrics)?;
-    std::fs::write(&stage_path, &payload).context("write stage_metrics.json")?;
-    std::fs::write(&metrics_path, &payload).context("write metrics.json")?;
+    bijux_io::atomic_write_bytes(&stage_path, &payload).context("write stage_metrics.json")?;
+    bijux_io::atomic_write_bytes(&metrics_path, &payload).context("write metrics.json")?;
     Ok(stage_path)
 }
 
@@ -440,8 +432,6 @@ pub fn write_tool_invocation_json(
     std::fs::create_dir_all(&invocations_dir).context("create invocations dir")?;
     let file_name = format!("{stage_id}.tool_invocation.json");
     let path = invocations_dir.join(file_name);
-    std::fs::write(&path, serde_json::to_vec_pretty(invocation)?)
-        .context("write tool_invocation.json")?;
+    bijux_io::atomic_write_json(&path, invocation).context("write tool_invocation.json")?;
     Ok(path)
 }
-

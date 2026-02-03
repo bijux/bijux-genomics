@@ -36,8 +36,7 @@ pub fn write_effective_adapters_from_provenance(
         "enabled_adapter_ids": enabled_ids,
         "adapters": adapters,
     });
-    std::fs::write(&path, serde_json::to_vec_pretty(&payload)?)
-        .context("write effective_adapters.json")?;
+    bijux_io::atomic_write_json(&path, &payload).context("write effective_adapters.json")?;
     Ok(Some(path))
 }
 

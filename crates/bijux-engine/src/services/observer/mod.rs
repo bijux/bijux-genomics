@@ -45,6 +45,6 @@ pub fn observe_stage(result: &StageResult) -> Result<MetricSet> {
 /// Returns an error if the file cannot be written.
 pub fn write_explain_plan(path: &Path, plan: &ExplainPlan) -> Result<()> {
     let payload = serde_json::to_vec_pretty(plan)?;
-    std::fs::write(path, payload).context("write explain_plan.json")?;
+    bijux_io::atomic_write_bytes(path, &payload).context("write explain_plan.json")?;
     Ok(())
 }

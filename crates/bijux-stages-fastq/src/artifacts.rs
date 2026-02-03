@@ -37,8 +37,7 @@ pub fn write_effective_adapters(
         "bank_checksum": bank_checksum,
         "presets_checksum": presets_checksum
     });
-    std::fs::write(&path, serde_json::to_vec_pretty(&payload)?)
-        .context("write effective_adapters.json")?;
+    bijux_io::atomic_write_json(&path, &payload).context("write effective_adapters.json")?;
     Ok(path)
 }
 
@@ -69,8 +68,7 @@ pub fn write_adapter_bank_ref(
             "presets_path": presets_path.display().to_string()
         }
     });
-    std::fs::write(&path, serde_json::to_vec_pretty(&payload)?)
-        .context("write adapter_bank_ref.json")?;
+    bijux_io::atomic_write_json(&path, &payload).context("write adapter_bank_ref.json")?;
     Ok(path)
 }
 
@@ -103,8 +101,7 @@ pub fn write_adapter_trimming_report(
             params: params.clone(),
         },
     };
-    std::fs::write(&path, serde_json::to_vec_pretty(&report)?)
-        .context("write adapter_trimming_report.json")?;
+    bijux_io::atomic_write_json(&path, &report).context("write adapter_trimming_report.json")?;
     Ok(path)
 }
 
@@ -116,8 +113,7 @@ pub fn write_retention_report_artifact(
     let reports_dir = root.join("reports");
     std::fs::create_dir_all(&reports_dir).context("create reports artifact dir")?;
     let path = reports_dir.join("retention_report.json");
-    std::fs::write(&path, serde_json::to_vec_pretty(report)?)
-        .context("write retention_report.json")?;
+    bijux_io::atomic_write_json(&path, report).context("write retention_report.json")?;
     Ok(path)
 }
 
@@ -132,6 +128,6 @@ pub fn write_stage_plan_json(
     let path = plans_dir.join(file_name);
     std::fs::create_dir_all(path.parent().unwrap_or(&plans_dir))
         .context("create plan parent dir")?;
-    std::fs::write(&path, serde_json::to_vec_pretty(plan)?).context("write stage plan json")?;
+    bijux_io::atomic_write_json(&path, plan).context("write stage plan json")?;
     Ok(path)
 }

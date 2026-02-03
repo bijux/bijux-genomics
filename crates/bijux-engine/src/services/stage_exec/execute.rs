@@ -379,6 +379,6 @@ fn write_stage_cache(cache_path: &Path, key: &StageCacheKey, output_hashes: &[St
         "tool_digest": key.tool_digest,
         "output_hashes": output_hashes,
     });
-    std::fs::write(cache_path, serde_json::to_vec_pretty(&payload)?)?;
+    bijux_io::atomic_write_json(cache_path, &payload)?;
     Ok(())
 }

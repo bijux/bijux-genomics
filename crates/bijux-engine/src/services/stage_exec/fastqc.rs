@@ -407,7 +407,7 @@ mod screen_tests {
         let dir = std::env::temp_dir().join("bijux-screen-fixture");
         fs::create_dir_all(&dir)?;
         let path = dir.join("screen_report.tsv");
-        fs::write(&path, fixture)?;
+        bijux_io::atomic_write_bytes(&path, fixture.as_bytes())?;
         let (rate, summary) = parse_screen_report(&path)?;
         assert!((rate - 0.02).abs() < 1e-6);
         assert!(summary.get("entries").is_some());
@@ -420,7 +420,7 @@ mod screen_tests {
         let dir = std::env::temp_dir().join("bijux-screen-fixture-bad");
         let _ = fs::create_dir_all(&dir);
         let path = dir.join("screen_report.tsv");
-        let _ = fs::write(&path, fixture);
+        let _ = bijux_io::atomic_write_bytes(&path, fixture.as_bytes());
         let result = parse_screen_report(&path);
         assert!(result.is_err());
     }

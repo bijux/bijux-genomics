@@ -89,8 +89,7 @@ pub fn write_stage_report_v1(
         log_paths: log_paths.iter().map(|p| p.display().to_string()).collect(),
     };
     let path = run_artifacts_dir.join("stage_report.json");
-    std::fs::write(&path, serde_json::to_vec_pretty(&payload)?)
-        .context("write stage_report.json")?;
+    bijux_io::atomic_write_json(&path, &payload).context("write stage_report.json")?;
     Ok(path)
 }
 
@@ -147,8 +146,7 @@ pub fn write_retention_report_v1(
         }),
     };
     let path = reports_dir.join(file_name);
-    std::fs::write(&path, serde_json::to_vec_pretty(&payload)?)
-        .context("write retention report")?;
+    bijux_io::atomic_write_json(&path, &payload).context("write retention report")?;
     Ok(path)
 }
 
@@ -185,7 +183,7 @@ pub fn write_trim_report_v1(
         adapter_overrides,
     };
     let path = reports_dir.join(file_name);
-    std::fs::write(&path, serde_json::to_vec_pretty(&payload)?).context("write trim report")?;
+    bijux_io::atomic_write_json(&path, &payload).context("write trim report")?;
     Ok(path)
 }
 
@@ -210,7 +208,7 @@ pub fn write_validate_report_v1(
         integrity_ok: reads_invalid == 0,
     };
     let path = reports_dir.join(file_name);
-    std::fs::write(&path, serde_json::to_vec_pretty(&payload)?).context("write validate report")?;
+    bijux_io::atomic_write_json(&path, &payload).context("write validate report")?;
     Ok(path)
 }
 
@@ -253,7 +251,7 @@ pub fn write_filter_report_v1(
         redundant_filters,
     };
     let path = reports_dir.join(file_name);
-    std::fs::write(&path, serde_json::to_vec_pretty(&payload)?).context("write filter report")?;
+    bijux_io::atomic_write_json(&path, &payload).context("write filter report")?;
     Ok(path)
 }
 
@@ -282,7 +280,7 @@ pub fn write_merge_report_v1(
         merge_rate,
     };
     let path = reports_dir.join(file_name);
-    std::fs::write(&path, serde_json::to_vec_pretty(&payload)?).context("write merge report")?;
+    bijux_io::atomic_write_json(&path, &payload).context("write merge report")?;
     Ok(path)
 }
 
@@ -319,7 +317,7 @@ pub fn write_qc_post_report_v1(
         suggested_preset: suggested_preset.map(str::to_string),
     };
     let path = reports_dir.join(file_name);
-    std::fs::write(&path, serde_json::to_vec_pretty(&payload)?).context("write qc_post report")?;
+    bijux_io::atomic_write_json(&path, &payload).context("write qc_post report")?;
     Ok(path)
 }
 
@@ -414,8 +412,6 @@ pub fn write_observability_manifest(
         artifacts,
     };
     let path = run_artifacts_dir.join("observability_manifest.json");
-    std::fs::write(&path, serde_json::to_vec_pretty(&payload)?)
-        .context("write observability_manifest.json")?;
+    bijux_io::atomic_write_json(&path, &payload).context("write observability_manifest.json")?;
     Ok(path)
 }
-
