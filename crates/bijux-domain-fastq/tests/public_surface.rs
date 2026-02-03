@@ -22,6 +22,7 @@ fn public_surface_is_constrained() -> anyhow::Result<()> {
     }
 
     let allowed_mods = [
+        "banks",
         "invariants",
         "params",
         "pipeline_contract",

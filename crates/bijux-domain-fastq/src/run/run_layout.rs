@@ -120,7 +120,7 @@ pub fn create_run_layout(base_dir: &Path) -> Result<(String, RunLayout)> {
 /// Returns an error if serialization or writing fails.
 pub fn write_environment(layout: &RunLayout, env: &RunEnvironment) -> Result<()> {
     let payload = serde_json::to_string_pretty(env)?;
-    std::fs::write(&layout.environment_path, payload)?;
+    bijux_io::atomic_write_bytes(&layout.environment_path, payload.as_bytes())?;
     Ok(())
 }
 
@@ -130,7 +130,7 @@ pub fn write_environment(layout: &RunLayout, env: &RunEnvironment) -> Result<()>
 /// Returns an error if serialization or writing fails.
 pub fn write_run_metadata(layout: &RunLayout, metadata: &RunMetadataV1) -> Result<()> {
     let payload = serde_json::to_string_pretty(metadata)?;
-    std::fs::write(&layout.metadata_path, payload)?;
+    bijux_io::atomic_write_bytes(&layout.metadata_path, payload.as_bytes())?;
     Ok(())
 }
 
@@ -140,7 +140,7 @@ pub fn write_run_metadata(layout: &RunLayout, metadata: &RunMetadataV1) -> Resul
 /// Returns an error if serialization or writing fails.
 pub fn write_manifest(layout: &RunLayout, manifest: &RunManifest) -> Result<()> {
     let payload = serde_json::to_string_pretty(manifest)?;
-    std::fs::write(&layout.manifest_path, payload)?;
+    bijux_io::atomic_write_bytes(&layout.manifest_path, payload.as_bytes())?;
     Ok(())
 }
 

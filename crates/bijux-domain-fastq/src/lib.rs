@@ -11,6 +11,7 @@
 // Structural layout of this crate is frozen as of FASTQ v1.
 mod adapter;
 mod adapter_bank;
+pub mod banks;
 mod contaminant_bank;
 pub mod invariants;
 mod metrics;

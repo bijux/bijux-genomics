@@ -15,6 +15,7 @@ rusqlite.workspace = true
 uuid.workspace = true
 chrono.workspace = true
 bijux-core = { path = "../bijux-core" }
+bijux-io = { path = "../bijux-io" }
 schemars.workspace = true
 
 [dev-dependencies]
