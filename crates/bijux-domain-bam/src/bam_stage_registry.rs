@@ -9,8 +9,8 @@ use crate::params::{
     BiasMitigationEffectiveParams, BqsrEffectiveParams, ComplexityEffectiveParams,
     ContaminationEffectiveParams, CoverageEffectiveParams, DamageEffectiveParams,
     FilterEffectiveParams, GenotypingEffectiveParams, HaplogroupEffectiveParams,
-    KinshipEffectiveParams, MarkDupEffectiveParams, QcPreEffectiveParams,
-    SexEffectiveParams, ValidateEffectiveParams,
+    KinshipEffectiveParams, MarkDupEffectiveParams, QcPreEffectiveParams, SexEffectiveParams,
+    ValidateEffectiveParams,
 };
 
 mod specs;

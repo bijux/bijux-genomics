@@ -1,12 +1,12 @@
-use crate::{
-    ArtifactPolicy, AuditArtifact, BamStage, BamStageSpec,
-};
 use crate::params::{
     AlignEffectiveParams, BamEffectiveParams, ComplexityEffectiveParams, CoverageEffectiveParams,
     DuplicateAction, FilterEffectiveParams, MarkDupEffectiveParams, OpticalDuplicatePolicy,
     QcPreEffectiveParams, ReadGroupSpec, UmiPolicy, ValidateEffectiveParams,
 };
+use crate::{ArtifactPolicy, AuditArtifact, BamStage, BamStageSpec};
 
+#[must_use]
+#[allow(clippy::too_many_lines)]
 pub fn required_audit_artifacts(stage: BamStage) -> &'static [AuditArtifact] {
     match stage {
         BamStage::Align => &[

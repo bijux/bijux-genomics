@@ -1,11 +1,10 @@
-use crate::{ArtifactPolicy, BamStage, BamStageSpec};
 use crate::params::{
     AuthenticityEffectiveParams, BamEffectiveParams, BiasMitigationEffectiveParams,
     BqsrEffectiveParams, BqsrMode, ContaminationEffectiveParams, ContaminationScope,
-    DamageEffectiveParams,
-    GenotypingEffectiveParams, HaplogroupEffectiveParams, KinshipEffectiveParams,
-    RecalibrationSkipCriteria, SexEffectiveParams, UdgModel,
+    DamageEffectiveParams, GenotypingEffectiveParams, HaplogroupEffectiveParams,
+    KinshipEffectiveParams, RecalibrationSkipCriteria, SexEffectiveParams, UdgModel,
 };
+use crate::{ArtifactPolicy, BamStage, BamStageSpec};
 
 #[must_use]
 #[allow(clippy::too_many_lines)]
