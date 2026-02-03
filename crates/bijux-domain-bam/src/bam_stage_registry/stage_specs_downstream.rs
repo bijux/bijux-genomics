@@ -8,7 +8,7 @@ use crate::{ArtifactPolicy, BamStage, BamStageSpec};
 
 #[must_use]
 #[allow(clippy::too_many_lines)]
-pub fn stage_spec_part2(stage: BamStage) -> Option<BamStageSpec> {
+pub fn stage_spec_downstream(stage: BamStage) -> Option<BamStageSpec> {
     let spec = match stage {
         BamStage::Damage => BamStageSpec {
             stage,

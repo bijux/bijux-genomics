@@ -306,7 +306,7 @@ pub fn required_audit_artifacts(stage: BamStage) -> &'static [AuditArtifact] {
 
 #[must_use]
 #[allow(clippy::too_many_lines)]
-pub fn stage_spec_part1(stage: BamStage) -> Option<BamStageSpec> {
+pub fn stage_spec_core(stage: BamStage) -> Option<BamStageSpec> {
     let spec = match stage {
         BamStage::Align => BamStageSpec {
             stage,
