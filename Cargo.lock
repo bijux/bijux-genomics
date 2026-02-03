@@ -254,7 +254,7 @@ dependencies = [
  "bijux-env-builder",
  "bijux-env-runtime",
  "bijux-guardrails",
- "bijux-pipelines-bam",
+ "bijux-pipelines",
  "bijux-stages-bam",
  "bijux-stages-fastq",
  "chrono",
@@ -348,6 +348,7 @@ dependencies = [
  "bijux-analyze",
  "bijux-core",
  "bijux-guardrails",
+ "bijux-pipelines",
  "chrono",
  "rusqlite",
  "schemars",
@@ -381,6 +382,7 @@ dependencies = [
  "bijux-env-builder",
  "bijux-env-runtime",
  "bijux-guardrails",
+ "bijux-pipelines",
  "bijux-stages-bam",
  "bijux-stages-fastq",
  "chrono",
@@ -443,12 +445,13 @@ dependencies = [
 ]
 
 [[package]]
-name = "bijux-pipelines-bam"
+name = "bijux-pipelines"
 version = "0.1.0"
 dependencies = [
  "anyhow",
  "bijux-core",
  "bijux-domain-bam",
+ "bijux-domain-fastq",
  "bijux-guardrails",
  "insta",
  "serde",
@@ -478,6 +481,7 @@ dependencies = [
  "bijux-domain-fastq",
  "bijux-engine",
  "bijux-guardrails",
+ "bijux-pipelines",
  "serde",
  "serde_json",
  "sha2",
