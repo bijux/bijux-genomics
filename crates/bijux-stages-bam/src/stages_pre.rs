@@ -23,20 +23,20 @@ pub mod validate {
             crate::stages_support::audit_outputs(bijux_domain_bam::BamStage::Validate, out_dir);
         let flagstat = out_dir.join("flagstat.txt");
         let report = out_dir.join("validation.json");
-        let mut inputs = vec![
-            bijux_core::ArtifactRef {
-                name: "fastq_r1".to_string(),
-                path: r1.to_path_buf(),
-            },
-            bijux_core::ArtifactRef {
+        let mut inputs = vec![bijux_core::ArtifactRef {
+            name: "bam".to_string(),
+            path: bam.to_path_buf(),
+        }];
+        if let Some(reference) = reference {
+            inputs.push(bijux_core::ArtifactRef {
                 name: "reference".to_string(),
                 path: reference.to_path_buf(),
-            },
-        ];
-        if let Some(r2) = r2 {
+            });
+        }
+        if let Some(bam_index) = bam_index {
             inputs.push(bijux_core::ArtifactRef {
-                name: "fastq_r2".to_string(),
-                path: r2.to_path_buf(),
+                name: "bam_bai".to_string(),
+                path: bam_index.to_path_buf(),
             });
         }
         let plan = StagePlanV1 {
@@ -54,13 +54,7 @@ pub mod validate {
                 ),
             },
             resources: tool.resources.clone(),
-            io: StageIO {
-                inputs: vec![bijux_core::ArtifactRef {
-                    name: "bam".to_string(),
-                    path: bam.to_path_buf(),
-                }],
-                outputs,
-            },
+            io: StageIO { inputs, outputs },
             out_dir: out_dir.to_path_buf(),
             params: serde_json::json!({
                 "bam": bam,
@@ -104,11 +98,8 @@ pub mod align {
     ) -> anyhow::Result<StagePlanV1> {
         let outputs =
             crate::stages_support::audit_outputs(bijux_domain_bam::BamStage::Align, out_dir);
-        let _assets = crate::stages_support::ensure_reference_assets(
-            reference,
-            params.build_indices,
-            true,
-        )?;
+        let _assets =
+            crate::stages_support::ensure_reference_assets(reference, params.build_indices, true)?;
         let read_group = if params.read_group.id.is_empty() {
             ReadGroupSpec::with_defaults(sample_id)
         } else {
@@ -123,6 +114,26 @@ pub mod align {
             other => {
                 return Err(anyhow::anyhow!("unsupported align tool: {other}"));
             }
+        };
+
+        let inputs = {
+            let mut items = vec![
+                bijux_core::ArtifactRef {
+                    name: "fastq_r1".to_string(),
+                    path: r1.to_path_buf(),
+                },
+                bijux_core::ArtifactRef {
+                    name: "reference".to_string(),
+                    path: reference.to_path_buf(),
+                },
+            ];
+            if let Some(r2) = r2 {
+                items.push(bijux_core::ArtifactRef {
+                    name: "fastq_r2".to_string(),
+                    path: r2.to_path_buf(),
+                });
+            }
+            items
         };
 
         let plan = StagePlanV1 {

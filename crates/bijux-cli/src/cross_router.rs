@@ -7,8 +7,8 @@ use bijux_core::alignment::AlignmentBoundary;
 use bijux_core::ToolRegistry;
 use bijux_engine::api::{bench_base_dir, hash_file_sha256};
 use bijux_engine::api::{build_tool_execution_spec, execute_stage_plan};
-use bijux_env_runtime::api::{
-    load_image_catalog, load_platform, ReferenceBuildRequest, ReferenceRegistry,
+use bijux_env_runtime::{
+    load_image_catalog, load_platform, ReferenceBuildRequest, ReferenceRecord, ReferenceRegistry,
 };
 use bijux_pipelines::registry;
 use bijux_pipelines::{Domain, PipelineProfile};
@@ -20,6 +20,7 @@ use crate::{downstream_enabled, init_logging, plan_for_bam_stage_with_profile, C
 
 const CROSS_STAGE_ID: &str = "cross.align_stub";
 
+#[allow(clippy::too_many_lines)]
 pub fn run_fastq_to_bam_profile(
     cli: &Cli,
     registry_core: &ToolRegistry,
@@ -40,11 +41,16 @@ pub fn run_fastq_to_bam_profile(
 
     fastq_preprocess_run(&catalog, &platform, runner, &bench_args)?;
 
-    let has_align = profile.graph.iter().any(|node| node.stage_id == "bam.align");
-    let mut boundary_path = None;
-    let mut alignment_boundary = None;
-    let mut prepare_ref_path = None;
+    let summary_path = out_dir.join("run_artifacts").join("run_summary.json");
+    let summary_raw = fs::read_to_string(&summary_path)
+        .with_context(|| format!("read {}", summary_path.display()))?;
+    let summary_json: serde_json::Value =
+        serde_json::from_str(&summary_raw).context("parse run_summary.json")?;
 
+    let has_align = profile
+        .graph
+        .iter()
+        .any(|node| node.stage_id == "bam.align");
     if has_align {
         let reference = args
             .alignment_reference
@@ -60,7 +66,8 @@ pub fn run_fastq_to_bam_profile(
                 build_bowtie2_index: true,
             },
         )?;
-        prepare_ref_path = Some(write_reference_manifest(&out_dir, &record)?);
+        let prepare_ref_path = Some(write_reference_manifest(&out_dir, &record)?);
+        let bam_profile = select_bam_profile(profile)?;
         let bam_stage_runs = run_bam_align_and_truth_stages(
             registry_core,
             &catalog,
@@ -70,7 +77,7 @@ pub fn run_fastq_to_bam_profile(
             args,
             &out_dir,
         )?;
-        alignment_boundary = Some(AlignmentBoundary {
+        let alignment_boundary = AlignmentBoundary {
             bam_path: bam_stage_runs
                 .first()
                 .map(|entry| entry.plan.out_dir.join("align.bam").display().to_string())
@@ -78,16 +85,21 @@ pub fn run_fastq_to_bam_profile(
             bai_path: Some(
                 bam_stage_runs
                     .first()
-                    .map(|entry| entry.plan.out_dir.join("align.bam.bai").display().to_string())
+                    .map(|entry| {
+                        entry
+                            .plan
+                            .out_dir
+                            .join("align.bam.bai")
+                            .display()
+                            .to_string()
+                    })
                     .unwrap_or_default(),
             ),
             reference: Some(record.fasta.display().to_string()),
             rg_policy: args.alignment_rg_policy.clone(),
             aligner_meta: None,
-        });
-        if let Some(boundary) = alignment_boundary.as_ref() {
-            boundary_path = Some(write_alignment_boundary(&out_dir, boundary)?);
-        }
+        };
+        let boundary_path = Some(write_alignment_boundary(&out_dir, &alignment_boundary)?);
         write_cross_run_manifest(
             &out_dir,
             profile,
@@ -115,12 +127,6 @@ pub fn run_fastq_to_bam_profile(
         &alignment_boundary,
         &out_dir,
     )?;
-
-    let summary_path = out_dir.join("run_artifacts").join("run_summary.json");
-    let summary_raw = fs::read_to_string(&summary_path)
-        .with_context(|| format!("read {}", summary_path.display()))?;
-    let summary_json: serde_json::Value =
-        serde_json::from_str(&summary_raw).context("parse run_summary.json")?;
 
     write_cross_run_manifest(
         &out_dir,
@@ -232,6 +238,9 @@ fn run_bam_truth_stages(
         let args = crate::cli::parse::BamRunArgs {
             stage: stage.into(),
             profile: profile.id.to_string(),
+            sample_id: None,
+            r1: None,
+            r2: None,
             bam: bam_path.clone(),
             out: stage_dir.clone(),
             tool: Some(tool_id),
@@ -277,6 +286,13 @@ fn run_bam_truth_stages(
             gc_bias_correction: false,
             map_bias_correction: false,
             authenticity_mode: None,
+            aligner_preset: None,
+            rg_id: None,
+            rg_sm: None,
+            rg_pl: None,
+            rg_lb: None,
+            rg_policy: None,
+            build_reference_indices: false,
             params_json: None,
         };
 
@@ -385,10 +401,7 @@ fn write_cross_run_manifest(
     Ok(())
 }
 
-fn write_reference_manifest(
-    out_dir: &Path,
-    record: &bijux_env_runtime::api::ReferenceRecord,
-) -> Result<PathBuf> {
+fn write_reference_manifest(out_dir: &Path, record: &ReferenceRecord) -> Result<PathBuf> {
     let root = out_dir.join("run_artifacts").join("boundaries");
     fs::create_dir_all(&root).context("create boundaries dir")?;
     let path = root.join("reference_manifest.json");
@@ -397,12 +410,13 @@ fn write_reference_manifest(
     Ok(path)
 }
 
+#[allow(clippy::too_many_lines)]
 fn run_bam_align_and_truth_stages(
     registry_core: &ToolRegistry,
     catalog: &std::collections::HashMap<String, bijux_engine::api::ToolImageSpec>,
     platform: &bijux_engine::api::PlatformSpec,
     profile: &PipelineProfile,
-    reference: &bijux_env_runtime::api::ReferenceRecord,
+    reference: &ReferenceRecord,
     args: &FastqPreprocessArgs,
     out_dir: &Path,
 ) -> Result<Vec<StageExecutionSummary>> {
@@ -410,11 +424,7 @@ fn run_bam_align_and_truth_stages(
         .r1
         .as_ref()
         .ok_or_else(|| anyhow!("--r1 required for cross align"))?;
-    let sample_id = args
-        .sample_id
-        .as_deref()
-        .unwrap_or("sample")
-        .to_string();
+    let sample_id = args.sample_id.as_deref().unwrap_or("sample").to_string();
     let align_out = out_dir.join("bam").join("align");
     fs::create_dir_all(&align_out)?;
     let tool_id = profile
@@ -423,8 +433,7 @@ fn run_bam_align_and_truth_stages(
         .get("bam.align")
         .cloned()
         .unwrap_or_else(|| "bwa".to_string());
-    let spec =
-        build_tool_execution_spec("bam.align", &tool_id, registry_core, catalog, platform)?;
+    let spec = build_tool_execution_spec("bam.align", &tool_id, registry_core, catalog, platform)?;
     let align_args = crate::cli::parse::BamRunArgs {
         stage: bijux_domain_bam::BamStage::Align.into(),
         profile: profile.id.to_string(),
@@ -485,8 +494,13 @@ fn run_bam_align_and_truth_stages(
         params_json: None,
         dry_run: false,
     };
-    let align_plan =
-        plan_for_bam_stage_with_profile(bijux_domain_bam::BamStage::Align, &spec, &align_args, profile, &align_out)?;
+    let align_plan = plan_for_bam_stage_with_profile(
+        bijux_domain_bam::BamStage::Align,
+        &spec,
+        &align_args,
+        profile,
+        &align_out,
+    )?;
     let align_result = execute_stage_plan(&align_plan, platform.runner, None)?;
     let mut runs = vec![StageExecutionSummary {
         plan: align_plan,

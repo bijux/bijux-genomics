@@ -4,7 +4,7 @@ use crate::bam::bam_adna_shotgun_profile;
 use crate::fastq::{fastq_default_profile, DefaultPipelineOptions};
 use crate::{Domain, EffectiveDefaults, PipelineCapabilities, PipelineProfile, StageNode};
 use bijux_domain_bam::params::{AlignEffectiveParams, ReadGroupSpec};
-use bijux_domain_bam::types::sample_meta::ReadGroupPolicy;
+use bijux_domain_bam::types::ReadGroupPolicy;
 
 fn base_defaults() -> (PipelineProfile, PipelineProfile, EffectiveDefaults) {
     let fastq_profile = fastq_default_profile(DefaultPipelineOptions {
@@ -43,7 +43,7 @@ fn align_defaults(preset: &str) -> serde_json::Value {
 
 #[must_use]
 pub fn fastq_to_bam_adna_shotgun_profile() -> PipelineProfile {
-    let (fastq_profile, bam_profile, mut defaults) = base_defaults();
+    let (_fastq_profile, _bam_profile, mut defaults) = base_defaults();
     defaults
         .tools
         .insert("core.prepare_reference".to_string(), "samtools".to_string());

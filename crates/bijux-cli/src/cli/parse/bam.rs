@@ -68,17 +68,17 @@ pub enum ReadGroupPolicyArg {
     Regenerate,
 }
 
-impl From<ReadGroupPolicyArg> for bijux_domain_bam::types::sample_meta::ReadGroupPolicy {
+impl From<ReadGroupPolicyArg> for bijux_domain_bam::types::ReadGroupPolicy {
     fn from(value: ReadGroupPolicyArg) -> Self {
         match value {
             ReadGroupPolicyArg::Preserve => {
-                bijux_domain_bam::types::sample_meta::ReadGroupPolicy::Preserve
+                bijux_domain_bam::types::ReadGroupPolicy::Preserve
             }
             ReadGroupPolicyArg::Merge => {
-                bijux_domain_bam::types::sample_meta::ReadGroupPolicy::Merge
+                bijux_domain_bam::types::ReadGroupPolicy::Merge
             }
             ReadGroupPolicyArg::Regenerate => {
-                bijux_domain_bam::types::sample_meta::ReadGroupPolicy::Regenerate
+                bijux_domain_bam::types::ReadGroupPolicy::Regenerate
             }
         }
     }

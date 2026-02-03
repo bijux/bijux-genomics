@@ -47,6 +47,9 @@ fn to_effective_defaults(defaults: &[BamStageDefault]) -> EffectiveDefaults {
 
 fn bam_params_value(params: &BamEffectiveParams) -> serde_json::Value {
     match params {
+        BamEffectiveParams::Align(inner) => {
+            serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
+        }
         BamEffectiveParams::Validate(inner) => {
             serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
         }

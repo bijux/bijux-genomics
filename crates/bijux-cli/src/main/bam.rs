@@ -136,7 +136,7 @@ pub(crate) fn plan_for_bam_stage_with_profile(
                     threads: 1,
                     reference: reference.display().to_string(),
                     reference_digest: digest.clone(),
-                    rg_policy: bijux_domain_bam::types::sample_meta::ReadGroupPolicy::Regenerate,
+                    rg_policy: bijux_domain_bam::types::ReadGroupPolicy::Regenerate,
                     read_group: bijux_domain_bam::params::ReadGroupSpec::with_defaults(sample_id),
                     build_indices: args.build_reference_indices,
                     emit_stats: true,
@@ -145,24 +145,24 @@ pub(crate) fn plan_for_bam_stage_with_profile(
             params.reference = reference.display().to_string();
             params.reference_digest = digest;
             if let Some(preset) = &args.aligner_preset {
-                params.preset = preset.clone();
+                params.preset.clone_from(preset);
             }
             if let Some(rg) = &args.rg_id {
-                params.read_group.id = rg.clone();
+                params.read_group.id.clone_from(rg);
             }
             if let Some(rg) = &args.rg_sm {
-                params.read_group.sample = rg.clone();
+                params.read_group.sample.clone_from(rg);
             }
             if let Some(rg) = &args.rg_pl {
-                params.read_group.platform = rg.clone();
+                params.read_group.platform.clone_from(rg);
             }
             if let Some(rg) = &args.rg_lb {
-                params.read_group.library = rg.clone();
+                params.read_group.library.clone_from(rg);
             }
             if let Some(policy) = args.rg_policy {
                 params.rg_policy = policy.into();
             }
-            params.aligner = spec.tool_id.0.clone();
+            params.aligner.clone_from(&spec.tool_id.0);
             params.build_indices = args.build_reference_indices;
             bijux_stages_bam::bam::align::plan(
                 spec,

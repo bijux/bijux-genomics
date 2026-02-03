@@ -1,8 +1,8 @@
 //! Owner: bijux-domain-bam
 //! Canonical effective parameters for BAM stages.
 
-mod authenticity;
 mod align;
+mod authenticity;
 mod bias_mitigation;
 mod common;
 mod complexity;
@@ -19,8 +19,8 @@ mod recalibration;
 mod sex;
 mod validate;
 
-pub use authenticity::AuthenticityEffectiveParams;
 pub use align::{AlignEffectiveParams, ReadGroupSpec};
+pub use authenticity::AuthenticityEffectiveParams;
 pub use bias_mitigation::BiasMitigationEffectiveParams;
 pub use common::{
     BqsrMode, ContaminationScope, DuplicateAction, OpticalDuplicatePolicy, UdgModel, UmiPolicy,

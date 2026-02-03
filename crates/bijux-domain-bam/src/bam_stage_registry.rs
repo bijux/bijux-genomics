@@ -531,7 +531,7 @@ pub fn stage_spec(stage: BamStage) -> BamStageSpec {
                 threads: 1,
                 reference: "reference.fasta".to_string(),
                 reference_digest: "unknown".to_string(),
-                rg_policy: crate::types::sample_meta::ReadGroupPolicy::Regenerate,
+                rg_policy: crate::types::ReadGroupPolicy::Regenerate,
                 read_group: ReadGroupSpec::with_defaults("sample"),
                 build_indices: false,
                 emit_stats: true,

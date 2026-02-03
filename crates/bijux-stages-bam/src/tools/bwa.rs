@@ -13,6 +13,7 @@ fn rg_string(params: &AlignEffectiveParams) -> String {
 }
 
 #[must_use]
+#[allow(clippy::too_many_lines)]
 pub fn align_args(
     reference: &Path,
     r1: &Path,
@@ -29,8 +30,8 @@ pub fn align_args(
     let build_index = if params.build_indices {
         format!(
             "if [ ! -f {ref}.fai ]; then samtools faidx {ref}; fi; \
-if [ ! -f {ref}.dict ]; then gatk CreateSequenceDictionary -R {ref} -O {ref}.dict; fi; \
-if [ ! -f {ref}.bwt ]; then bwa index {ref}; fi;",
+        if [ ! -f {ref}.dict ]; then gatk CreateSequenceDictionary -R {ref} -O {ref}.dict; fi; \
+        if [ ! -f {ref}.bwt ]; then bwa index {ref}; fi;",
             ref = reference.display()
         )
     } else {
@@ -49,12 +50,12 @@ if [ ! -f {ref}.bwt ]; then bwa index {ref}; fi;",
             let sai_r2 = out_dir.join("r2.sai");
             format!(
                 "{build}{r1_cmd} && \
-bwa aln -l 1024 -n 0.01 -t {threads} {ref} {r2} > {sai_r2} && \
-bwa sampe -r '{rg}' {ref} {sai_r1} {sai_r2} {r1} {r2} | samtools sort -o {out} && \
-samtools index {out} && \
-samtools flagstat {out} > {flagstat} && samtools idxstats {out} > {idxstats} && \
-samtools stats {out} > {stats} && \
-python - <<'PY' > {metrics}\nimport json\npayload={{\"tool\":\"bwa_aln\",\"preset\":\"adna_short\",\"reference\":\"{ref}\",\"bam\":\"{out}\",\"read_group\":\"{rg}\"}}\nprint(json.dumps(payload, indent=2))\nPY",
+            bwa aln -l 1024 -n 0.01 -t {threads} {ref} {r2} > {sai_r2} && \
+            bwa sampe -r '{rg}' {ref} {sai_r1} {sai_r2} {r1} {r2} | samtools sort -o {out} && \
+            samtools index {out} && \
+            samtools flagstat {out} > {flagstat} && samtools idxstats {out} > {idxstats} && \
+            samtools stats {out} > {stats} && \
+            python - <<'PY' > {metrics}\nimport json\npayload={{\"tool\":\"bwa_aln\",\"preset\":\"adna_short\",\"reference\":\"{ref}\",\"bam\":\"{out}\",\"read_group\":\"{rg}\"}}\nprint(json.dumps(payload, indent=2))\nPY",
                 build = build_index,
                 r1_cmd = r1_cmd,
                 threads = params.threads,
@@ -73,11 +74,11 @@ python - <<'PY' > {metrics}\nimport json\npayload={{\"tool\":\"bwa_aln\",\"prese
         } else {
             format!(
                 "{build}{r1_cmd} && \
-bwa samse -r '{rg}' {ref} {sai_r1} {r1} | samtools sort -o {out} && \
-samtools index {out} && \
-samtools flagstat {out} > {flagstat} && samtools idxstats {out} > {idxstats} && \
-samtools stats {out} > {stats} && \
-python - <<'PY' > {metrics}\nimport json\npayload={{\"tool\":\"bwa_aln\",\"preset\":\"adna_short\",\"reference\":\"{ref}\",\"bam\":\"{out}\",\"read_group\":\"{rg}\"}}\nprint(json.dumps(payload, indent=2))\nPY",
+            bwa samse -r '{rg}' {ref} {sai_r1} {r1} | samtools sort -o {out} && \
+            samtools index {out} && \
+            samtools flagstat {out} > {flagstat} && samtools idxstats {out} > {idxstats} && \
+            samtools stats {out} > {stats} && \
+            python - <<'PY' > {metrics}\nimport json\npayload={{\"tool\":\"bwa_aln\",\"preset\":\"adna_short\",\"reference\":\"{ref}\",\"bam\":\"{out}\",\"read_group\":\"{rg}\"}}\nprint(json.dumps(payload, indent=2))\nPY",
                 build = build_index,
                 r1_cmd = r1_cmd,
                 ref = reference.display(),
@@ -94,10 +95,10 @@ python - <<'PY' > {metrics}\nimport json\npayload={{\"tool\":\"bwa_aln\",\"prese
     } else if let Some(r2) = r2 {
         format!(
             "{build}bwa mem -t {threads} -R '{rg}' {ref} {r1} {r2} | samtools sort -o {out} && \
-samtools index {out} && \
-samtools flagstat {out} > {flagstat} && samtools idxstats {out} > {idxstats} && \
-samtools stats {out} > {stats} && \
-python - <<'PY' > {metrics}\nimport json\npayload={{\"tool\":\"bwa_mem\",\"preset\":\"{preset}\",\"reference\":\"{ref}\",\"bam\":\"{out}\",\"read_group\":\"{rg}\"}}\nprint(json.dumps(payload, indent=2))\nPY",
+        samtools index {out} && \
+        samtools flagstat {out} > {flagstat} && samtools idxstats {out} > {idxstats} && \
+        samtools stats {out} > {stats} && \
+        python - <<'PY' > {metrics}\nimport json\npayload={{\"tool\":\"bwa_mem\",\"preset\":\"{preset}\",\"reference\":\"{ref}\",\"bam\":\"{out}\",\"read_group\":\"{rg}\"}}\nprint(json.dumps(payload, indent=2))\nPY",
             build = build_index,
             threads = params.threads,
             rg = rg,
@@ -114,10 +115,10 @@ python - <<'PY' > {metrics}\nimport json\npayload={{\"tool\":\"bwa_mem\",\"prese
     } else {
         format!(
             "{build}bwa mem -t {threads} -R '{rg}' {ref} {r1} | samtools sort -o {out} && \
-samtools index {out} && \
-samtools flagstat {out} > {flagstat} && samtools idxstats {out} > {idxstats} && \
-samtools stats {out} > {stats} && \
-python - <<'PY' > {metrics}\nimport json\npayload={{\"tool\":\"bwa_mem\",\"preset\":\"{preset}\",\"reference\":\"{ref}\",\"bam\":\"{out}\",\"read_group\":\"{rg}\"}}\nprint(json.dumps(payload, indent=2))\nPY",
+        samtools index {out} && \
+        samtools flagstat {out} > {flagstat} && samtools idxstats {out} > {idxstats} && \
+        samtools stats {out} > {stats} && \
+        python - <<'PY' > {metrics}\nimport json\npayload={{\"tool\":\"bwa_mem\",\"preset\":\"{preset}\",\"reference\":\"{ref}\",\"bam\":\"{out}\",\"read_group\":\"{rg}\"}}\nprint(json.dumps(payload, indent=2))\nPY",
             build = build_index,
             threads = params.threads,
             rg = rg,

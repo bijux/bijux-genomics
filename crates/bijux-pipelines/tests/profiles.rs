@@ -1,7 +1,7 @@
 use bijux_pipelines::bam::{
     bam_adna_capture_profile, bam_adna_shotgun_profile, bam_default_profile,
 };
-use bijux_pipelines::cross::fastq_to_bam_adna_profile;
+use bijux_pipelines::cross::{fastq_to_bam_adna_shotgun_profile, fastq_to_bam_default_profile};
 use bijux_pipelines::fastq::{
     fastq_default_profile, fastq_minimal_profile, DefaultPipelineOptions,
 };
@@ -37,5 +37,16 @@ fn fastq_minimal_profile_snapshot() {
 
 #[test]
 fn cross_fastq_to_bam_adna_profile_snapshot() {
-    assert_json_snapshot!("fastq_to_bam_adna_profile", fastq_to_bam_adna_profile());
+    assert_json_snapshot!(
+        "fastq_to_bam_adna_shotgun_profile",
+        fastq_to_bam_adna_shotgun_profile()
+    );
+}
+
+#[test]
+fn cross_fastq_to_bam_default_profile_snapshot() {
+    assert_json_snapshot!(
+        "fastq_to_bam_default_profile",
+        fastq_to_bam_default_profile()
+    );
 }

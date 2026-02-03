@@ -30,8 +30,8 @@ pub fn align_args(
     let build_index = if params.build_indices {
         format!(
             "if [ ! -f {ref}.fai ]; then samtools faidx {ref}; fi; \
-if [ ! -f {ref}.dict ]; then gatk CreateSequenceDictionary -R {ref} -O {ref}.dict; fi; \
-if [ ! -f {ref}.1.bt2 ]; then bowtie2-build {ref} {ref}; fi;",
+        if [ ! -f {ref}.dict ]; then gatk CreateSequenceDictionary -R {ref} -O {ref}.dict; fi; \
+        if [ ! -f {ref}.1.bt2 ]; then bowtie2-build {ref} {ref}; fi;",
             ref = reference.display()
         )
     } else {
@@ -59,10 +59,10 @@ if [ ! -f {ref}.1.bt2 ]; then bowtie2-build {ref} {ref}; fi;",
     };
     let command = format!(
         "{build}{align} | samtools sort -o {out} && \
-samtools index {out} && \
-samtools flagstat {out} > {flagstat} && samtools idxstats {out} > {idxstats} && \
-samtools stats {out} > {stats} && \
-python - <<'PY' > {metrics}\nimport json\npayload={{\"tool\":\"bowtie2\",\"preset\":\"{preset}\",\"reference\":\"{ref}\",\"bam\":\"{out}\",\"read_group\":\"{rg}\"}}\nprint(json.dumps(payload, indent=2))\nPY",
+    samtools index {out} && \
+    samtools flagstat {out} > {flagstat} && samtools idxstats {out} > {idxstats} && \
+    samtools stats {out} > {stats} && \
+    python - <<'PY' > {metrics}\nimport json\npayload={{\"tool\":\"bowtie2\",\"preset\":\"{preset}\",\"reference\":\"{ref}\",\"bam\":\"{out}\",\"read_group\":\"{rg}\"}}\nprint(json.dumps(payload, indent=2))\nPY",
         build = build_index,
         align = align,
         out = out_bam.display(),

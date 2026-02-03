@@ -4,7 +4,6 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::str::FromStr;
 
-use anyhow::Context;
 use sha2::{Digest, Sha256};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -343,6 +342,7 @@ pub struct ReferenceRecord {
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
+#[allow(clippy::struct_excessive_bools)]
 pub struct ReferenceBuildRequest {
     pub build_fai: bool,
     pub build_dict: bool,
@@ -429,18 +429,18 @@ impl ReferenceRegistry {
     }
 }
 
+impl Default for ReferenceRegistry {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 fn run_command(cmd: &str, args: &[&str]) -> Result<(), EnvError> {
-    let status = Command::new(cmd)
-        .args(args)
-        .status()
-        .with_context(|| format!("run {cmd}"))?;
+    let status = Command::new(cmd).args(args).status()?;
     if status.success() {
         Ok(())
     } else {
-        Err(EnvError::Platform(format!(
-            "command failed: {cmd} {:?}",
-            args
-        )))
+        Err(EnvError::Platform(format!("command failed: {cmd} {args:?}")))
     }
 }
 

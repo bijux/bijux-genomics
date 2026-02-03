@@ -58,9 +58,9 @@ fn align_plan_json_is_emitted_and_stable() -> Result<()> {
         threads: 1,
         reference: "reference.fasta".to_string(),
         reference_digest: "sha256:ref".to_string(),
-        rg_policy: bijux_domain_bam::types::sample_meta::ReadGroupPolicy::Regenerate,
+        rg_policy: bijux_domain_bam::types::ReadGroupPolicy::Regenerate,
         read_group: bijux_domain_bam::params::ReadGroupSpec::with_defaults("sample"),
-        build_indices: false,
+        build_indices: true,
         emit_stats: true,
     };
     let plan = bijux_stages_bam::bam::align::plan(
