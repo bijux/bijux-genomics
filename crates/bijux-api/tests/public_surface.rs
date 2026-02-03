@@ -2,7 +2,7 @@ use std::fs;
 use std::path::PathBuf;
 
 #[test]
-fn public_surface_is_constrained() -> anyhow::Result<()> {
+fn public_surface_is_snapshotted() -> anyhow::Result<()> {
     let lib_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("src")
         .join("lib.rs");
@@ -20,40 +20,14 @@ fn public_surface_is_constrained() -> anyhow::Result<()> {
             pub_use_lines.push(trimmed.to_string());
         }
     }
+    pub_mods.sort();
+    pub_use_lines.sort();
 
-    let allowed_mods = [
-        "args",
-        "bam_plan",
-        "bam_router",
-        "bam_support",
-        "cross_router",
-        "fastq_router",
-        "fastq_stats_neutral",
-        "run",
-    ];
-    for name in &pub_mods {
-        assert!(
-            allowed_mods.contains(&name.as_str()),
-            "unexpected public module: {name}"
-        );
-    }
-
-    let allowed_pub_use = [
-        "RunRequest",
-        "RunResult",
-        "RunMode",
-        "run_pipeline",
-        "BamRunArgs",
-        "BenchBamPipelineArgs",
-        "BenchBamStageArgs",
-        "FastqCrossArgs",
-        "fastq_args",
-    ];
-    for line in &pub_use_lines {
-        assert!(
-            allowed_pub_use.iter().any(|token| line.contains(token)),
-            "unexpected public re-export: {line}"
-        );
-    }
+    let snapshot = format!(
+        "pub mod\\n  {}\\n\\npub use\\n  {}",
+        pub_mods.join("\\n  "),
+        pub_use_lines.join("\\n  ")
+    );
+    insta::assert_snapshot!("public_surface", snapshot);
     Ok(())
 }

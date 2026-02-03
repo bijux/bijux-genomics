@@ -45,7 +45,7 @@ mod tests {
     fn assess_execution_success() -> anyhow::Result<()> {
         let dir = TempDir::new()?;
         let output = dir.path().join("out.fastq");
-        bijux_io::atomic_write_bytes(&output, b"ok")?;
+        bijux_infra::atomic_write_bytes(&output, b"ok")?;
         let assessment = assess_execution(0, &[output]);
         assert!(assessment.success);
         Ok(())
@@ -63,7 +63,7 @@ mod tests {
     fn assess_execution_partial_outputs() -> anyhow::Result<()> {
         let dir = TempDir::new()?;
         let present = dir.path().join("present.fastq");
-        bijux_io::atomic_write_bytes(&present, b"ok")?;
+        bijux_infra::atomic_write_bytes(&present, b"ok")?;
         let missing = dir.path().join("missing.fastq");
         let assessment = assess_execution(0, &[present, missing]);
         assert!(!assessment.success);

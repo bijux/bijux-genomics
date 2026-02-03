@@ -1,11 +1,10 @@
 use std::path::Path;
 
 use anyhow::Result;
-use bijux_analyze::{write_filter_report, write_trim_report, write_validate_report};
 use bijux_api::fastq_args as bench_args;
 use bijux_api::fastq_router::{bench_fastq_filter, bench_fastq_trim, bench_fastq_validate_pre};
-use bijux_domain_fastq::{qc_class_for_stage, QcClass};
-use bijux_env_runtime::api::{load_image_catalog, load_platform};
+use bijux_api::{load_image_catalog, load_platform, qc_class_for_stage, QcClass};
+use bijux_api::{write_filter_report, write_trim_report, write_validate_report};
 use tempfile::TempDir;
 
 fn tempdir_in_repo() -> Result<TempDir> {

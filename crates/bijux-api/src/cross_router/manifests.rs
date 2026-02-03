@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 use anyhow::{Context, Result};
 use bijux_core::alignment::AlignmentBoundary;
 use bijux_env_runtime::ReferenceRecord;
-use bijux_io::hash_file_sha256;
+use bijux_infra::hash_file_sha256;
 use bijux_pipelines::PipelineProfile;
 
 use crate::cross_router::CROSS_STAGE_ID;
@@ -14,7 +14,7 @@ pub fn write_alignment_boundary(out_dir: &Path, boundary: &AlignmentBoundary) ->
     let boundaries_dir = out_dir.join("run_artifacts").join("boundaries");
     fs::create_dir_all(&boundaries_dir).context("create boundaries dir")?;
     let path = boundaries_dir.join("alignment_boundary.json");
-    bijux_io::atomic_write_json(&path, boundary)
+    bijux_infra::atomic_write_json(&path, boundary)
         .with_context(|| "write alignment_boundary.json")?;
     Ok(path)
 }
@@ -22,7 +22,7 @@ pub fn write_alignment_boundary(out_dir: &Path, boundary: &AlignmentBoundary) ->
 pub fn write_defaults_ledger(out_dir: &Path, profile: &PipelineProfile) -> Result<PathBuf> {
     let path = out_dir.join("defaults_ledger.json");
     let ledger = profile.defaults_ledger();
-    bijux_io::atomic_write_json(&path, &ledger).context("write defaults_ledger.json")?;
+    bijux_infra::atomic_write_json(&path, &ledger).context("write defaults_ledger.json")?;
     Ok(path)
 }
 
@@ -125,7 +125,7 @@ pub fn write_cross_run_manifest(
         })),
     });
     let path = out_dir.join("run_manifest.json");
-    bijux_io::atomic_write_json(&path, &manifest).context("write run_manifest.json")?;
+    bijux_infra::atomic_write_json(&path, &manifest).context("write run_manifest.json")?;
     Ok(())
 }
 
@@ -133,6 +133,7 @@ pub fn write_reference_manifest(out_dir: &Path, record: &ReferenceRecord) -> Res
     let root = out_dir.join("run_artifacts").join("boundaries");
     fs::create_dir_all(&root).context("create boundaries dir")?;
     let path = root.join("reference_manifest.json");
-    bijux_io::atomic_write_json(&path, record).with_context(|| "write reference_manifest.json")?;
+    bijux_infra::atomic_write_json(&path, record)
+        .with_context(|| "write reference_manifest.json")?;
     Ok(path)
 }

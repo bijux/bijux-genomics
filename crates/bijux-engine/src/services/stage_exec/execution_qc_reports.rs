@@ -41,7 +41,7 @@ fn write_qc_post_reports(
                 "trimmed": trimmed_metrics_v2,
             });
             let path = reports_dir.join("fastqc_metrics_v2.json");
-            bijux_io::atomic_write_json(&path, &payload)?;
+            bijux_infra::atomic_write_json(&path, &payload)?;
                 .context("write fastqc_metrics_v2.json")?;
             emit_artifact("fastqc_metrics_v2", &path)?;
             subreports.push(path.clone());
@@ -95,7 +95,7 @@ fn write_qc_post_reports(
             let reports_dir = run_artifacts_dir.join("reports");
             std::fs::create_dir_all(&reports_dir).context("create reports dir")?;
             let path = reports_dir.join("suggested_adapters.json");
-            bijux_io::atomic_write_json(&path, &suggested_payload)?;
+            bijux_infra::atomic_write_json(&path, &suggested_payload)?;
                 .context("write suggested adapters")?;
             emit_artifact("suggested_adapters", &path)?;
             Some(path)

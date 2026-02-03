@@ -251,6 +251,36 @@ pub fn normalize_run_base_dir(cwd: &Path, run_base: &Path) -> PathBuf {
     }
 }
 
+#[derive(Debug, Clone)]
+pub struct RunLayoutPaths {
+    pub run_dir: PathBuf,
+    pub artifacts_dir: PathBuf,
+    pub logs_dir: PathBuf,
+    pub tmp_dir: PathBuf,
+}
+
+#[must_use]
+pub fn run_layout_paths(base_dir: &Path, run_id: &str) -> RunLayoutPaths {
+    let run_dir = base_dir.join("runs").join(run_id);
+    RunLayoutPaths {
+        artifacts_dir: run_dir.join("artifacts"),
+        logs_dir: run_dir.join("logs"),
+        tmp_dir: run_dir.join("tmp"),
+        run_dir,
+    }
+}
+
+/// Create a managed temporary directory.
+///
+/// # Errors
+/// Returns an IO error if the temp directory cannot be created.
+pub fn temp_dir(prefix: &str) -> Result<tempfile::TempDir, IoError> {
+    tempfile::Builder::new()
+        .prefix(prefix)
+        .tempdir()
+        .map_err(IoError::from_io)
+}
+
 /// Hash a file using SHA-256.
 ///
 /// # Errors
@@ -349,6 +379,32 @@ mod tests {
             .err()
             .ok_or_else(|| IoError::new(IoErrorKind::Other, "expected lock timeout"))?;
         assert_eq!(err.kind, IoErrorKind::LockTimeout);
+        Ok(())
+    }
+
+    #[test]
+    fn run_layout_is_stable() {
+        let base = Path::new("/tmp/bijux");
+        let layout = run_layout_paths(base, "run-123");
+        assert_eq!(layout.run_dir, base.join("runs").join("run-123"));
+        assert_eq!(
+            layout.artifacts_dir,
+            base.join("runs").join("run-123").join("artifacts")
+        );
+        assert_eq!(
+            layout.logs_dir,
+            base.join("runs").join("run-123").join("logs")
+        );
+        assert_eq!(
+            layout.tmp_dir,
+            base.join("runs").join("run-123").join("tmp")
+        );
+    }
+
+    #[test]
+    fn temp_dir_is_created() -> Result<(), IoError> {
+        let dir = temp_dir("bijux-test")?;
+        assert!(dir.path().exists());
         Ok(())
     }
 }

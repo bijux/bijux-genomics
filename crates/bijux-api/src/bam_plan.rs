@@ -2,7 +2,7 @@ use std::path::Path;
 
 use anyhow::{anyhow, Result};
 use bijux_core::{StagePlanV1, ToolExecutionSpecV1};
-use bijux_io::hash_file_sha256;
+use bijux_infra::hash_file_sha256;
 use bijux_pipelines::registry;
 use bijux_pipelines::PipelineProfile;
 

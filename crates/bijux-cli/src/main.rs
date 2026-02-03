@@ -3,7 +3,6 @@
 mod cli;
 mod env;
 mod main_helpers;
-mod replay;
 
 include!("main/entry.rs");
 include!("main/fastq.rs");

@@ -2,8 +2,10 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use bijux_core::{load_manifests, load_profile, new_run_id, DryRunExecutor, Executor, PathSpec, RunSpec};
-use bijux_env_runtime::api::{load_image_catalog, load_platform};
+use bijux_api::{
+    load_image_catalog, load_manifests, load_platform, load_profile, new_run_id, DryRunExecutor,
+    Executor, PathSpec, RunSpec,
+};
 use clap::Parser;
 use tracing::{info, warn};
 
@@ -13,21 +15,15 @@ use bijux_api::fastq_router::{
     bench_fastq_validate_pre,
 };
 use bijux_api::fastq_stats_neutral::bench_fastq_stats_neutral;
-use bijux_domain_fastq::banks::{
-    resolve_adapter_selection, resolve_effective_adapters, AdapterSelection,
-};
-use bijux_analyze::compare::compare_runs_with_baseline;
-use bijux_analyze::export::write_stage_summary_csv;
-use bijux_analyze::{
-    compare_runs, load_facts_auto, load_run_summary, print_bench_schema, write_correct_report,
+use bijux_api::fastq_banks::{resolve_adapter_selection, resolve_effective_adapters, AdapterSelection};
+use bijux_api::{
+    compare_runs, compare_runs_with_baseline, load_facts_auto, load_run_summary,
+    objective_spec, print_bench_schema, write_benchmark_exports, write_correct_report,
     write_filter_report, write_merge_report, write_qc_post_report, write_run_report_from_facts,
-    write_run_summary_from_facts, write_stats_report, write_trim_report, write_umi_report,
-    write_validate_report, RankInput,
+    write_run_summary_from_facts, write_stage_summary_csv, write_stats_report, write_trim_report,
+    write_umi_report, write_validate_report, AdapterPresetsV1, Objective, RankInput,
 };
-use bijux_core::selection::{objective_spec, Objective};
-use bijux_engine::api::init_logging;
-use bijux_env_builder::image_qa::run_image_qa;
-use bijux_domain_fastq::{benchmark_runs, write_benchmark_exports, AdapterPresetsV1};
+use bijux_api::{benchmark_runs, init_logging, run_image_qa};
 use cli::{
     bench_args_correct, bench_args_filter, bench_args_from_trim, bench_args_from_validate,
     bench_args_merge, bench_args_preprocess, bench_args_qc_post, bench_args_screen,
@@ -42,8 +38,7 @@ use main_helpers::{
     ensure_profile_run_base_dir, load_profile_for_cli, normalize_fastq_stage_id, qc_class_label,
     render_report_bundle_html, resolve_report_inputs,
 };
-use replay::replay_run;
-use bijux_io::normalize_run_base_dir;
+use bijux_api::{normalize_run_base_dir, replay_run};
 
 fn main() -> Result<()> {
     let cli = Cli::parse();

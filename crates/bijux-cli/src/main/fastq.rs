@@ -47,17 +47,15 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
             Ok(true)
         }
         Commands::Pipelines { command } => {
-            let registry = bijux_pipelines::registry::PipelineRegistry::v1();
             match command {
                 PipelinesCommand::List {
                     domain,
                     show_experimental,
                 } => {
-                    let profiles = if let Some(domain) = domain {
-                        registry.list_for_domain(domain.as_domain(), *show_experimental)
-                    } else {
-                        registry.list(*show_experimental)
-                    };
+                    let profiles = bijux_api::select_pipelines(
+                        domain.map(cli::parse::PipelineDomainArg::as_domain),
+                        *show_experimental,
+                    );
                     for profile in profiles {
                         println!(
                             "{}\t{}\t{}",
@@ -69,8 +67,7 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
                     Ok(true)
                 }
                 PipelinesCommand::Explain { id } => {
-                    let profile = registry
-                        .list(true)
+                    let profile = bijux_api::select_pipelines(None, true)
                         .into_iter()
                         .find(|profile| profile.id.as_str() == id)
                         .ok_or_else(|| anyhow!("unknown pipeline profile: {id}"))?;
@@ -87,11 +84,10 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
                     domain,
                     show_experimental,
                 } => {
-                    let profiles = if let Some(domain) = domain {
-                        registry.list_for_domain(domain.as_domain(), *show_experimental)
-                    } else {
-                        registry.list(*show_experimental)
-                    };
+                    let profiles = bijux_api::select_pipelines(
+                        domain.map(cli::parse::PipelineDomainArg::as_domain),
+                        *show_experimental,
+                    );
                     for profile in profiles {
                         println!(
                             "{}\t{}\t{}",
@@ -102,10 +98,10 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
                         for node in &profile.graph {
                             let stage_id = node.stage_id.as_str();
                             if stage_id.starts_with("bam.") {
-                                let stage = bijux_domain_bam::BamStage::try_from(stage_id)
+                                let stage = bijux_api::BamStage::try_from(stage_id)
                                     .map_err(|_| anyhow!("unknown BAM stage {stage_id}"))?;
                                 let completeness =
-                                    bijux_domain_bam::bam_stage_completeness(stage);
+                                    bijux_api::bam_stage_completeness(stage);
                                 println!(
                                     "  {stage_id}\tcomplete={}\targs={}\tartifacts={}\tparsers={}\tinvariants={}",
                                     completeness.is_complete(),
@@ -126,13 +122,13 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
         Commands::Analyze { command } => {
             match command {
                 AnalyzeCommand::Runs(args) => {
-                    let query = bijux_core::run_index::RunQuery {
+                    let query = bijux_api::run_index::RunQuery {
                         stage: args.stage.clone(),
                         tool: args.tool.clone(),
                         objective: args.objective.map(|obj| obj.as_str().to_string()),
                         success: args.success,
                     };
-                    let runs = bijux_core::run_index::query_runs(&args.index, &query)?;
+                    let runs = bijux_api::run_index::query_runs(&args.index, &query)?;
                     println!("{}", serde_json::to_string_pretty(&runs)?);
                 }
                 AnalyzeCommand::Summary(args) => {
@@ -169,7 +165,7 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
                     let run_dir = args.search_root.join(&args.run_id);
                     let facts_path = run_dir.join("facts.jsonl");
                     let facts = load_facts_auto(&facts_path)?;
-                    let mut by_tool: BTreeMap<String, Vec<&bijux_core::FactsRowV1>> =
+                    let mut by_tool: BTreeMap<String, Vec<&bijux_api::FactsRowV1>> =
                         BTreeMap::new();
                     for row in facts.iter().filter(|row| row.stage_id == args.stage) {
                         by_tool.entry(row.tool_id.clone()).or_default().push(row);
@@ -207,7 +203,7 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
                             error_reduction_proxy,
                         });
                     }
-                    let rankings = bijux_analyze::build_rankings(&inputs)?;
+                    let rankings = bijux_api::build_rankings(&inputs)?;
                     println!("{}", serde_json::to_string_pretty(&rankings)?);
                 }
                 AnalyzeCommand::Report(args) => {

@@ -31,7 +31,7 @@ pub fn write_explain_md(
             writeln!(contents, "- {tool}")?;
         }
     }
-    bijux_io::atomic_write_bytes(&path, contents.as_bytes()).context("write explain.md")?;
+    bijux_infra::atomic_write_bytes(&path, contents.as_bytes()).context("write explain.md")?;
     Ok(())
 }
 

@@ -212,7 +212,7 @@ fn process_execution_result(
         "stage": plan.stage_id.0,
         "tool": plan.tool_id.0,
     });
-    bijux_io::atomic_write_json(&marker_path, &marker).context("write engine execution marker")?;
+    bijux_infra::atomic_write_json(&marker_path, &marker).context("write engine execution marker")?;
     let stage_result = StageResultV1 {
         run_id: run_id.to_string(),
         exit_code: execution.exit_code,

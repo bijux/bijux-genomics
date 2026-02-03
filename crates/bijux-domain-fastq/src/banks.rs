@@ -82,8 +82,8 @@ pub fn resolve_adapter_selection(
     let presets_path = crate::adapter_presets_path();
     let bank = crate::load_adapter_bank(&bank_path)?;
     let presets = crate::load_adapter_presets(&presets_path, &bank)?;
-    let bank_checksum = bijux_io::hash_file_sha256(&bank_path)?;
-    let presets_checksum = bijux_io::hash_file_sha256(&presets_path)?;
+    let bank_checksum = bijux_infra::hash_file_sha256(&bank_path)?;
+    let presets_checksum = bijux_infra::hash_file_sha256(&presets_path)?;
     Ok(AdapterSelection {
         bank,
         presets,
@@ -168,8 +168,8 @@ pub fn resolve_contaminant_selection(preset: Option<&str>) -> Result<Contaminant
     let references_dir = crate::contaminant_references_dir();
     let motifs = crate::load_contaminant_motifs(&motifs_path)?;
     let presets = crate::load_contaminant_presets(&presets_path, &motifs, &references_dir)?;
-    let motifs_checksum = bijux_io::hash_file_sha256(&motifs_path)?;
-    let presets_checksum = bijux_io::hash_file_sha256(&presets_path)?;
+    let motifs_checksum = bijux_infra::hash_file_sha256(&motifs_path)?;
+    let presets_checksum = bijux_infra::hash_file_sha256(&presets_path)?;
     Ok(ContaminantSelection {
         motifs,
         presets,
@@ -219,7 +219,8 @@ pub fn contaminant_bank_provenance_json(
         .map(|reference| {
             let path = references_dir.join(&reference.file);
             let fasta = std::fs::read_to_string(&path).unwrap_or_default();
-            let hash = bijux_io::hash_file_sha256(&path).unwrap_or_else(|_| "unknown".to_string());
+            let hash =
+                bijux_infra::hash_file_sha256(&path).unwrap_or_else(|_| "unknown".to_string());
             serde_json::json!({
                 "id": reference.id,
                 "file": reference.file,
@@ -256,8 +257,8 @@ pub fn resolve_polyx_selection(polyx_preset: Option<&str>) -> Result<PolyxSelect
     let presets_path = crate::polyx_presets_path();
     let bank = crate::load_polyx_bank(&bank_path)?;
     let presets = crate::load_polyx_presets(&presets_path, &bank)?;
-    let bank_checksum = bijux_io::hash_file_sha256(&bank_path)?;
-    let presets_checksum = bijux_io::hash_file_sha256(&presets_path)?;
+    let bank_checksum = bijux_infra::hash_file_sha256(&bank_path)?;
+    let presets_checksum = bijux_infra::hash_file_sha256(&presets_path)?;
     Ok(PolyxSelection {
         bank,
         presets,

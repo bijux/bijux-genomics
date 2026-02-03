@@ -71,11 +71,12 @@ pub(super) fn write_run_summary(
         }
     });
     let summary_path = root.join("run_summary.json");
-    bijux_io::atomic_write_json(&summary_path, &summary)
+    bijux_infra::atomic_write_json(&summary_path, &summary)
         .with_context(|| "write run_summary.json")?;
     let html_path = root.join("run_summary.html");
     let html = render_run_summary_html(&summary);
-    bijux_io::atomic_write_bytes(&html_path, html.as_bytes()).context("write run_summary.html")?;
+    bijux_infra::atomic_write_bytes(&html_path, html.as_bytes())
+        .context("write run_summary.html")?;
     write_run_manifest(out_dir, stage_runs, failures)?;
     Ok(())
 }
@@ -193,7 +194,7 @@ pub(super) fn write_run_manifest(
         }
     });
     let path = out_dir.join("run_manifest.json");
-    bijux_io::atomic_write_json(&path, &manifest).context("write run_manifest.json")?;
+    bijux_infra::atomic_write_json(&path, &manifest).context("write run_manifest.json")?;
     Ok(())
 }
 

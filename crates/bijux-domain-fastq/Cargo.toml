@@ -15,15 +15,13 @@ rusqlite.workspace = true
 uuid.workspace = true
 chrono.workspace = true
 bijux-core = { path = "../bijux-core" }
-bijux-io = { path = "../bijux-io" }
+bijux-infra = { path = "../bijux-infra" }
 schemars.workspace = true
 
 [dev-dependencies]
 bijux-guardrails = { path = "../bijux-guardrails" }
 rusqlite = { workspace = true }
 bijux-analyze = { path = "../bijux-analyze" }
-bijux-pipelines = { path = "../bijux-pipelines" }
-bijux-testkit = { path = "../bijux-testkit" }
 
 [lints]
 workspace = true

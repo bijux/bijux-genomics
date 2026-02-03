@@ -6,9 +6,7 @@ license.workspace = true
 default-run = "bijux"
 
 [dependencies]
-bijux-core = { path = "../bijux-core" }
 bijux-api = { path = "../bijux-api" }
-bijux-io = { path = "../bijux-io" }
 anyhow.workspace = true
 clap.workspace = true
 serde.workspace = true
@@ -21,17 +19,9 @@ sha2.workspace = true
 uuid.workspace = true
 rusqlite.workspace = true
 chrono.workspace = true
-bijux-env-runtime = { path = "../bijux-env-runtime" }
-bijux-env-builder = { path = "../bijux-env-builder" }
-bijux-analyze = { path = "../bijux-analyze" }
-bijux-engine = { path = "../bijux-engine" }
-bijux-domain-bam = { path = "../bijux-domain-bam" }
-bijux-domain-fastq = { path = "../bijux-domain-fastq" }
-bijux-pipelines = { path = "../bijux-pipelines" }
-bijux-bench = { path = "../bijux-bench" }
 
 [features]
-bam_downstream = ["bijux-api/bam_downstream", "bijux-pipelines/bam_downstream"]
+bam_downstream = ["bijux-api/bam_downstream"]
 
 [dev-dependencies]
 bijux-guardrails = { path = "../bijux-guardrails" }

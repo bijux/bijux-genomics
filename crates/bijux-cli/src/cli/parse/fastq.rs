@@ -30,13 +30,13 @@ impl ObjectiveArg {
     }
 }
 
-impl From<ObjectiveArg> for bijux_core::selection::Objective {
+impl From<ObjectiveArg> for bijux_api::Objective {
     fn from(value: ObjectiveArg) -> Self {
         match value {
-            ObjectiveArg::Speed => bijux_core::selection::Objective::Speed,
-            ObjectiveArg::Memory => bijux_core::selection::Objective::Memory,
-            ObjectiveArg::Retention => bijux_core::selection::Objective::Retention,
-            ObjectiveArg::Balanced => bijux_core::selection::Objective::Balanced,
+            ObjectiveArg::Speed => bijux_api::Objective::Speed,
+            ObjectiveArg::Memory => bijux_api::Objective::Memory,
+            ObjectiveArg::Retention => bijux_api::Objective::Retention,
+            ObjectiveArg::Balanced => bijux_api::Objective::Balanced,
         }
     }
 }
@@ -47,10 +47,10 @@ pub enum BenchCorpusArg {
     Fastq5Set,
 }
 
-impl From<BenchCorpusArg> for bijux_domain_fastq::BenchCorpusId {
+impl From<BenchCorpusArg> for bijux_api::BenchCorpusId {
     fn from(value: BenchCorpusArg) -> Self {
         match value {
-            BenchCorpusArg::Fastq5Set => bijux_domain_fastq::BenchCorpusId::Fastq5Set,
+            BenchCorpusArg::Fastq5Set => bijux_api::BenchCorpusId::Fastq5Set,
         }
     }
 }

@@ -1,5 +1,5 @@
 use assert_cmd::Command;
-use bijux_engine::api::ExecutionManifest;
+use bijux_api::ExecutionManifest;
 use std::path::Path;
 use tempfile::TempDir;
 

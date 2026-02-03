@@ -379,6 +379,6 @@ fn write_stage_cache(cache_path: &Path, key: &StageCacheKey, output_hashes: &[St
         "tool_digest": key.tool_digest,
         "output_hashes": output_hashes,
     });
-    bijux_io::atomic_write_json(cache_path, &payload)?;
+    bijux_infra::atomic_write_json(cache_path, &payload)?;
     Ok(())
 }

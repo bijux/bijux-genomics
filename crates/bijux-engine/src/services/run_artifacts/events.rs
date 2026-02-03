@@ -36,7 +36,7 @@ pub fn write_effective_adapters_from_provenance(
         "enabled_adapter_ids": enabled_ids,
         "adapters": adapters,
     });
-    bijux_io::atomic_write_json(&path, &payload).context("write effective_adapters.json")?;
+    bijux_infra::atomic_write_json(&path, &payload).context("write effective_adapters.json")?;
     Ok(Some(path))
 }
 

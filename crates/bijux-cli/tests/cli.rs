@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::PathBuf;
 
-use bijux_pipelines::registry::PipelineRegistry;
+use bijux_api::PipelineRegistry;
 use tempfile::TempDir;
 
 fn write_profile(temp: &TempDir) -> Result<PathBuf, Box<dyn std::error::Error>> {

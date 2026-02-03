@@ -21,10 +21,13 @@ bijux-stages-bam = { path = "../bijux-stages-bam" }
 bijux-domain-fastq = { path = "../bijux-domain-fastq" }
 bijux-domain-bam = { path = "../bijux-domain-bam" }
 bijux-pipelines = { path = "../bijux-pipelines" }
-bijux-io = { path = "../bijux-io" }
+bijux-infra = { path = "../bijux-infra" }
 
 [features]
 bam_downstream = ["bijux-stages-bam/bam_downstream", "bijux-pipelines/bam_downstream"]
+
+[dev-dependencies]
+insta = "1"
 
 [lints]
 workspace = true

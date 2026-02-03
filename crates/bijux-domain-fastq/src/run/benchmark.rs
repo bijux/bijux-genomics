@@ -130,7 +130,7 @@ pub fn write_benchmark_exports(
     let csv_path = runs_dir.join(format!("benchmark_{}.csv", summary.stage));
     let html_path = runs_dir.join(format!("benchmark_{}.html", summary.stage));
     let json = serde_json::to_string_pretty(summary)?;
-    bijux_io::atomic_write_bytes(&json_path, json.as_bytes())?;
+    bijux_infra::atomic_write_bytes(&json_path, json.as_bytes())?;
 
     let mut csv = String::new();
     csv.push_str("run_id,stage,tool,runtime_s,memory_mb,read_retention,platform,runner,hostname\n");
@@ -153,9 +153,9 @@ pub fn write_benchmark_exports(
             record.hostname
         )?;
     }
-    bijux_io::atomic_write_bytes(&csv_path, csv.as_bytes())?;
+    bijux_infra::atomic_write_bytes(&csv_path, csv.as_bytes())?;
     let html = render_benchmark_html(summary);
-    bijux_io::atomic_write_bytes(&html_path, html.as_bytes())?;
+    bijux_infra::atomic_write_bytes(&html_path, html.as_bytes())?;
     Ok((json_path, csv_path))
 }
 

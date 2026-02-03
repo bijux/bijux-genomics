@@ -10,5 +10,5 @@ struct Args {
 
 fn main() -> Result<()> {
     let args = Args::parse();
-    bijux_env_builder::image_qa::run_image_qa(args.platform.as_deref())
+    bijux_api::run_image_qa(args.platform.as_deref())
 }

@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use anyhow::Result;
-use bijux_env_runtime::api::{
+use bijux_api::{
     available_runners, cache_dir, docker_image_exists, resolve_image, PlatformSpec, RunnerKind,
     ToolImageSpec,
 };

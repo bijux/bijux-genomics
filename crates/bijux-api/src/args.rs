@@ -119,3 +119,35 @@ pub struct RunResult {
     pub run_dir: PathBuf,
     pub profile_id: String,
 }
+
+#[derive(Debug, Clone)]
+pub struct PlanRunRequest {
+    pub run_spec: bijux_core::RunSpec,
+    pub profile: bijux_core::Profile,
+    pub run_id: bijux_core::RunId,
+}
+
+#[derive(Debug, Clone)]
+pub struct PlanRunResult {
+    pub plan: bijux_core::ExecutionPlan,
+}
+
+#[derive(Debug, Clone)]
+pub struct ExecuteRunRequest {
+    pub plan: bijux_core::StagePlanV1,
+    pub runner: bijux_env_runtime::api::RunnerKind,
+}
+
+#[derive(Debug, Clone)]
+pub struct ExecuteRunResult;
+
+#[derive(Debug, Clone)]
+pub struct RenderReportRequest {
+    pub base_dir: PathBuf,
+    pub facts_path: PathBuf,
+}
+
+#[derive(Debug, Clone)]
+pub struct RenderReportResult {
+    pub report_path: PathBuf,
+}

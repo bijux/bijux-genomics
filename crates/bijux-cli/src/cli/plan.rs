@@ -1,6 +1,6 @@
 use anyhow::Result;
 use bijux_api::fastq_args as engine_args;
-use bijux_core::{StageId, ToolId};
+use bijux_api::{StageId, ToolId};
 
 use crate::cli::parse::{
     BamCommand, BenchFastqCorrectArgs, BenchFastqFilterArgs, BenchFastqMergeArgs,
@@ -234,7 +234,7 @@ pub fn bench_args_preprocess(
         out: args.out.clone(),
         strict: args.strict,
         auto: false,
-        objective: bijux_core::selection::Objective::Balanced,
+        objective: bijux_api::Objective::Balanced,
         bench_corpus: None,
         allow_partial: false,
         replicates: args.replicates,

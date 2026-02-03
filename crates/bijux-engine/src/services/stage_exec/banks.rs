@@ -247,7 +247,7 @@ fn write_effective_fasta(
             payload.push('\n');
         }
     }
-    bijux_io::atomic_write_bytes(&path, payload.as_bytes())
+    bijux_infra::atomic_write_bytes(&path, payload.as_bytes())
         .context("write effective bank fasta")?;
     let hash = hash_file_sha256(&path)?;
     Ok(Some((path, hash)))
@@ -298,7 +298,7 @@ fn write_effective_bank_yaml(
         }).collect::<Vec<_>>(),
     });
     let yaml = serde_yaml::to_string(&payload).context("serialize effective bank yaml")?;
-    bijux_io::atomic_write_bytes(&path, yaml.as_bytes()).context("write effective bank yaml")?;
+    bijux_infra::atomic_write_bytes(&path, yaml.as_bytes()).context("write effective bank yaml")?;
     let hash = hash_file_sha256(&path)?;
     Ok(Some((path, hash)))
 }
@@ -319,7 +319,7 @@ fn write_effective_fasta_list(
         .map(|reference| reference.file.as_str())
         .collect::<Vec<_>>()
         .join("\n");
-    bijux_io::atomic_write_bytes(&path, payload.as_bytes())
+    bijux_infra::atomic_write_bytes(&path, payload.as_bytes())
         .context("write effective bank fasta list")?;
     let hash = hash_file_sha256(&path)?;
     Ok(Some((path, hash)))

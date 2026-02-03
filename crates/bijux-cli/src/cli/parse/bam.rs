@@ -22,24 +22,24 @@ pub enum BamStageArg {
 
 impl BamStageArg {
     #[must_use]
-    pub fn stage(self) -> bijux_domain_bam::BamStage {
+    pub fn stage(self) -> bijux_api::BamStage {
         match self {
-            BamStageArg::Align => bijux_domain_bam::BamStage::Align,
-            BamStageArg::Validate => bijux_domain_bam::BamStage::Validate,
-            BamStageArg::QcPre => bijux_domain_bam::BamStage::QcPre,
-            BamStageArg::Filter => bijux_domain_bam::BamStage::Filter,
-            BamStageArg::Markdup => bijux_domain_bam::BamStage::Markdup,
-            BamStageArg::Complexity => bijux_domain_bam::BamStage::Complexity,
-            BamStageArg::Coverage => bijux_domain_bam::BamStage::Coverage,
-            BamStageArg::Damage => bijux_domain_bam::BamStage::Damage,
-            BamStageArg::Authenticity => bijux_domain_bam::BamStage::Authenticity,
-            BamStageArg::Contamination => bijux_domain_bam::BamStage::Contamination,
-            BamStageArg::Sex => bijux_domain_bam::BamStage::Sex,
-            BamStageArg::BiasMitigation => bijux_domain_bam::BamStage::BiasMitigation,
-            BamStageArg::Recalibration => bijux_domain_bam::BamStage::Recalibration,
-            BamStageArg::Haplogroups => bijux_domain_bam::BamStage::Haplogroups,
-            BamStageArg::Genotyping => bijux_domain_bam::BamStage::Genotyping,
-            BamStageArg::Kinship => bijux_domain_bam::BamStage::Kinship,
+            BamStageArg::Align => bijux_api::BamStage::Align,
+            BamStageArg::Validate => bijux_api::BamStage::Validate,
+            BamStageArg::QcPre => bijux_api::BamStage::QcPre,
+            BamStageArg::Filter => bijux_api::BamStage::Filter,
+            BamStageArg::Markdup => bijux_api::BamStage::Markdup,
+            BamStageArg::Complexity => bijux_api::BamStage::Complexity,
+            BamStageArg::Coverage => bijux_api::BamStage::Coverage,
+            BamStageArg::Damage => bijux_api::BamStage::Damage,
+            BamStageArg::Authenticity => bijux_api::BamStage::Authenticity,
+            BamStageArg::Contamination => bijux_api::BamStage::Contamination,
+            BamStageArg::Sex => bijux_api::BamStage::Sex,
+            BamStageArg::BiasMitigation => bijux_api::BamStage::BiasMitigation,
+            BamStageArg::Recalibration => bijux_api::BamStage::Recalibration,
+            BamStageArg::Haplogroups => bijux_api::BamStage::Haplogroups,
+            BamStageArg::Genotyping => bijux_api::BamStage::Genotyping,
+            BamStageArg::Kinship => bijux_api::BamStage::Kinship,
         }
     }
 }
@@ -51,37 +51,11 @@ pub enum UdgModelArg {
     Udg,
 }
 
-impl From<UdgModelArg> for bijux_domain_bam::params::UdgModel {
-    fn from(value: UdgModelArg) -> Self {
-        match value {
-            UdgModelArg::NonUdg => bijux_domain_bam::params::UdgModel::NonUdg,
-            UdgModelArg::HalfUdg => bijux_domain_bam::params::UdgModel::HalfUdg,
-            UdgModelArg::Udg => bijux_domain_bam::params::UdgModel::Udg,
-        }
-    }
-}
-
 #[derive(Debug, Clone, Copy, ValueEnum)]
 pub enum ReadGroupPolicyArg {
     Preserve,
     Merge,
     Regenerate,
-}
-
-impl From<ReadGroupPolicyArg> for bijux_domain_bam::types::ReadGroupPolicy {
-    fn from(value: ReadGroupPolicyArg) -> Self {
-        match value {
-            ReadGroupPolicyArg::Preserve => {
-                bijux_domain_bam::types::ReadGroupPolicy::Preserve
-            }
-            ReadGroupPolicyArg::Merge => {
-                bijux_domain_bam::types::ReadGroupPolicy::Merge
-            }
-            ReadGroupPolicyArg::Regenerate => {
-                bijux_domain_bam::types::ReadGroupPolicy::Regenerate
-            }
-        }
-    }
 }
 
 #[derive(Debug, Clone, Copy, ValueEnum)]
@@ -91,31 +65,11 @@ pub enum ContaminationScopeArg {
     Both,
 }
 
-impl From<ContaminationScopeArg> for bijux_domain_bam::params::ContaminationScope {
-    fn from(value: ContaminationScopeArg) -> Self {
-        match value {
-            ContaminationScopeArg::Mito => bijux_domain_bam::params::ContaminationScope::Mito,
-            ContaminationScopeArg::Nuclear => bijux_domain_bam::params::ContaminationScope::Nuclear,
-            ContaminationScopeArg::Both => bijux_domain_bam::params::ContaminationScope::Both,
-        }
-    }
-}
-
 #[derive(Debug, Clone, Copy, ValueEnum)]
 pub enum BqsrModeArg {
     Standard,
     Skip,
     EmitOnly,
-}
-
-impl From<BqsrModeArg> for bijux_domain_bam::params::BqsrMode {
-    fn from(value: BqsrModeArg) -> Self {
-        match value {
-            BqsrModeArg::Standard => bijux_domain_bam::params::BqsrMode::Standard,
-            BqsrModeArg::Skip => bijux_domain_bam::params::BqsrMode::Skip,
-            BqsrModeArg::EmitOnly => bijux_domain_bam::params::BqsrMode::EmitOnly,
-        }
-    }
 }
 
 #[derive(Debug, Clone, Copy, ValueEnum)]
@@ -125,33 +79,11 @@ pub enum ExpectedSexArg {
     Unknown,
 }
 
-impl From<ExpectedSexArg> for bijux_domain_bam::types::ExpectedSex {
-    fn from(value: ExpectedSexArg) -> Self {
-        match value {
-            ExpectedSexArg::Xx => bijux_domain_bam::types::ExpectedSex::XX,
-            ExpectedSexArg::Xy => bijux_domain_bam::types::ExpectedSex::XY,
-            ExpectedSexArg::Unknown => bijux_domain_bam::types::ExpectedSex::Unknown,
-        }
-    }
-}
-
 #[derive(Debug, Clone, Copy, ValueEnum)]
 pub enum OpticalDuplicatePolicyArg {
     None,
     MarkOnly,
     Remove,
-}
-
-impl From<OpticalDuplicatePolicyArg> for bijux_domain_bam::params::OpticalDuplicatePolicy {
-    fn from(value: OpticalDuplicatePolicyArg) -> Self {
-        match value {
-            OpticalDuplicatePolicyArg::None => bijux_domain_bam::params::OpticalDuplicatePolicy::None,
-            OpticalDuplicatePolicyArg::MarkOnly => {
-                bijux_domain_bam::params::OpticalDuplicatePolicy::MarkOnly
-            }
-            OpticalDuplicatePolicyArg::Remove => bijux_domain_bam::params::OpticalDuplicatePolicy::Remove,
-        }
-    }
 }
 
 #[derive(Debug, Clone, Copy, ValueEnum)]
@@ -161,29 +93,10 @@ pub enum UmiPolicyArg {
     Collapse,
 }
 
-impl From<UmiPolicyArg> for bijux_domain_bam::params::UmiPolicy {
-    fn from(value: UmiPolicyArg) -> Self {
-        match value {
-            UmiPolicyArg::Ignore => bijux_domain_bam::params::UmiPolicy::Ignore,
-            UmiPolicyArg::UseTag => bijux_domain_bam::params::UmiPolicy::UseTag,
-            UmiPolicyArg::Collapse => bijux_domain_bam::params::UmiPolicy::Collapse,
-        }
-    }
-}
-
 #[derive(Debug, Clone, Copy, ValueEnum)]
 pub enum DuplicateActionArg {
     Mark,
     Remove,
-}
-
-impl From<DuplicateActionArg> for bijux_domain_bam::params::DuplicateAction {
-    fn from(value: DuplicateActionArg) -> Self {
-        match value {
-            DuplicateActionArg::Mark => bijux_domain_bam::params::DuplicateAction::Mark,
-            DuplicateActionArg::Remove => bijux_domain_bam::params::DuplicateAction::Remove,
-        }
-    }
 }
 
 #[derive(Debug, Args, Clone)]
