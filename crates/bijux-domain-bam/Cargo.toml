@@ -16,3 +16,4 @@ workspace = true
 
 [dev-dependencies]
 bijux-guardrails = { path = "../bijux-guardrails" }
+bijux-testkit = { path = "../bijux-testkit" }

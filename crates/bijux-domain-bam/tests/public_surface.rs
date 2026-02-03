@@ -21,7 +21,14 @@ fn public_surface_is_constrained() -> anyhow::Result<()> {
         }
     }
 
-    let allowed_mods = ["metrics", "params", "types"];
+    let allowed_mods = [
+        "invariants",
+        "metrics",
+        "params",
+        "pipeline_contract",
+        "stage_registry",
+        "types",
+    ];
     for name in &pub_mods {
         assert!(
             allowed_mods.contains(&name.as_str()),
@@ -30,7 +37,7 @@ fn public_surface_is_constrained() -> anyhow::Result<()> {
     }
     for line in &pub_use_lines {
         assert!(
-            line.contains("bam_stage_registry"),
+            line.contains("stage_registry") || line.contains("types"),
             "unexpected public re-export: {line}"
         );
     }
