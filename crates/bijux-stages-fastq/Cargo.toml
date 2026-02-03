@@ -17,7 +17,5 @@ bijux-guardrails = { path = "../bijux-guardrails" }
 anyhow.workspace = true
 serde_json.workspace = true
 walkdir.workspace = true
-bijux-analyze = { path = "../bijux-analyze" }
 sha2.workspace = true
 tempfile.workspace = true
-bijux-engine = { path = "../bijux-engine" }

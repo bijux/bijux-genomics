@@ -1,6 +1,8 @@
+pub mod registry;
+
 #[must_use]
 pub fn tools_for_stage(stage_id: &str) -> Vec<String> {
-    crate::fastq_tools_registry::allowed_tools_for_stage(stage_id)
+    registry::allowed_tools_for_stage(stage_id)
 }
 
 #[must_use]

@@ -508,10 +508,8 @@ name = "bijux-stages-fastq"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bijux-analyze",
  "bijux-core",
  "bijux-domain-fastq",
- "bijux-engine",
  "bijux-guardrails",
  "bijux-infra",
  "bijux-pipelines",

@@ -60,14 +60,10 @@ fn default_adapter_preset_writes_effective_adapters() -> Result<()> {
     let effective =
         bijux_stages_fastq::resolve_adapter_preset(&bank, &presets, "illumina-default", &[], &[])?;
     let tmp = tempfile::TempDir::new()?;
-    let tools_root = tmp.path().join("tools");
-    let run_dirs = bijux_engine::api::prepare_tool_run_dirs(&tools_root, "fastp", "test-run")?;
-    let run_dir = run_dirs
-        .manifest_path
-        .parent()
-        .ok_or_else(|| anyhow::anyhow!("run dir missing for manifest"))?;
+    let run_dir = tmp.path().join("run");
+    std::fs::create_dir_all(&run_dir)?;
     let path = bijux_stages_fastq::artifacts::write_effective_adapters(
-        run_dir, &effective, "bank", "presets",
+        &run_dir, &effective, "bank", "presets",
     )?;
     let payload = std::fs::read_to_string(&path)?;
     assert!(payload.contains("truseq_universal"));

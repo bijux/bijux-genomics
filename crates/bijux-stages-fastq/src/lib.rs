@@ -1,5 +1,6 @@
 //! Stage planning and contract access.
 
+pub mod args;
 pub mod artifacts;
 pub mod fastq;
 pub mod fastq_tools_registry;
