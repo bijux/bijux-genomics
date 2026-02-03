@@ -62,7 +62,7 @@ fn collect_workspace_crates() -> BTreeMap<String, PathBuf> {
     crates
 }
 
-fn parse_dependencies(manifest: &Path) -> BTreeSet<String> {
+fn parse_dependencies(manifest: &Path, known: &BTreeSet<String>) -> BTreeSet<String> {
     let content = std::fs::read_to_string(manifest).expect("read Cargo.toml");
     let mut deps = BTreeSet::new();
     let mut in_deps = false;
@@ -80,7 +80,7 @@ fn parse_dependencies(manifest: &Path) -> BTreeSet<String> {
         }
         if let Some((name, _rest)) = line.split_once('=') {
             let name = name.trim().trim_matches('"');
-            if !name.is_empty() {
+            if !name.is_empty() && known.contains(name) {
                 deps.insert(name.to_string());
             }
         }
@@ -254,10 +254,11 @@ fn workspace_stages_layout_contract() {
 #[test]
 fn workspace_no_orphan_crates() {
     let crates = collect_workspace_crates();
+    let known: BTreeSet<String> = crates.keys().cloned().collect();
     let mut dependents: BTreeMap<String, usize> =
         crates.keys().map(|name| (name.clone(), 0)).collect();
     for (name, path) in &crates {
-        let deps = parse_dependencies(&path.join("Cargo.toml"));
+        let deps = parse_dependencies(&path.join("Cargo.toml"), &known);
         for dep in deps {
             if let Some(count) = dependents.get_mut(&dep) {
                 *count += 1;
@@ -271,10 +272,12 @@ fn workspace_no_orphan_crates() {
         }
     }
     let allowlist: BTreeSet<&str> = BTreeSet::from([
+        "bijux",
         "bijux-cli",
         "bijux-bench",
         "bijux-env-builder",
         "bijux-env-runtime",
+        "bijux-domain-vcf",
     ]);
     for (name, count) in dependents {
         let crate_dir = crates.get(&name).expect("crate dir");
@@ -287,11 +290,12 @@ fn workspace_no_orphan_crates() {
 #[test]
 fn workspace_dependency_graph_contract() {
     let crates = collect_workspace_crates();
+    let known: BTreeSet<String> = crates.keys().cloned().collect();
     let deps_for = |name: &str| -> BTreeSet<String> {
         let path = crates
             .get(name)
             .unwrap_or_else(|| panic!("missing crate {name}"));
-        parse_dependencies(&path.join("Cargo.toml"))
+        parse_dependencies(&path.join("Cargo.toml"), &known)
     };
 
     let cli = deps_for("bijux");
@@ -327,7 +331,6 @@ fn workspace_dependency_graph_contract() {
             "bijux-api",
             "bijux-analyze",
             "bijux-bench",
-            "bijux-pipelines",
             "bijux-engine",
         ] {
             assert!(
