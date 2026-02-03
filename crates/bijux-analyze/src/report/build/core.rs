@@ -263,6 +263,10 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
         JsonBlob::new(pipeline_overview_section(&ordered)),
     );
     sections.insert(
+        "pipeline_defaults".to_string(),
+        JsonBlob::new(pipeline_defaults_section(base_dir)),
+    );
+    sections.insert(
         "key_findings".to_string(),
         JsonBlob::new(key_findings_section(
             &missing_metrics,
@@ -382,6 +386,19 @@ fn cross_domain_handoff_section(base_dir: &Path) -> Option<serde_json::Value> {
     }))
 }
 
+fn pipeline_defaults_section(base_dir: &Path) -> serde_json::Value {
+    let defaults_path = base_dir.join("defaults_ledger.json");
+    if let Ok(raw) = std::fs::read_to_string(&defaults_path) {
+        if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&raw) {
+            return parsed;
+        }
+    }
+    serde_json::json!({
+        "defaults_ledger": {},
+        "overrides": [],
+    })
+}
+
 /// Write a deterministic run summary JSON from facts rows.
 ///
 /// # Errors
@@ -472,7 +489,6 @@ fn key_findings_section(
     }
     serde_json::Value::Array(findings)
 }
-
 fn data_contract_validation_section(
     completeness: &bijux_core::ReportCompletenessV1,
 ) -> serde_json::Value {

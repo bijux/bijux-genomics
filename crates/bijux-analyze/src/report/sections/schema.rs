@@ -88,9 +88,11 @@ pub(crate) fn build_report_sections(
     sections.insert("metric_provenance".to_string(), serde_json::json!({}));
     sections.insert("bench_summary".to_string(), serde_json::json!({}));
     sections.insert("pipeline_overview".to_string(), serde_json::json!({}));
+    sections.insert("pipeline_defaults".to_string(), serde_json::json!({}));
     sections.insert("key_findings".to_string(), serde_json::json!([]));
     sections.insert("stage_plots".to_string(), serde_json::json!([]));
     sections.insert("reproducibility".to_string(), serde_json::json!({}));
+    sections.insert("handoff".to_string(), serde_json::json!({}));
     sections.insert("pipeline_verdict".to_string(), serde_json::json!({}));
     sections.insert("scientific_provenance".to_string(), serde_json::json!({}));
     sections.insert(
