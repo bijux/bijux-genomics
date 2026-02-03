@@ -163,6 +163,7 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> anyhow::Result<StagePlanV1> 
 
 /// # Errors
 /// Returns an error if the pipeline cannot be planned with the provided inputs.
+#[allow(clippy::too_many_arguments)]
 pub fn plan_pipeline<F>(
     stages: &[String],
     tools: &[bijux_core::ToolExecutionSpecV1],

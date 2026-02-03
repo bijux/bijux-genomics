@@ -36,11 +36,9 @@ fn read_package_name(manifest: &Path) -> String {
         let line = line.trim();
         if line.starts_with("name") && line.contains('=') {
             let name = line
-                .splitn(2, '=')
-                .nth(1)
-                .unwrap_or("")
-                .trim()
-                .trim_matches('"');
+                .split_once('=')
+                .map(|(_, value)| value.trim().trim_matches('"'))
+                .unwrap_or("");
             if !name.is_empty() {
                 return name.to_string();
             }

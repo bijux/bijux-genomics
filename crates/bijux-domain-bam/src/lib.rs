@@ -15,6 +15,7 @@ pub use stage_registry::{
     AuditArtifact, BamArtifactKind, BamStage, BamStageContract, BamStageSpec,
 };
 
+#[allow(clippy::struct_excessive_bools)]
 #[derive(Debug, Clone, Copy)]
 pub struct StageCompleteness {
     pub has_args_builder: bool,
