@@ -1,0 +1,3 @@
+[tasks.default]
+command = "cargo"
+args = ["test", "-p", "bijux-testkit"]

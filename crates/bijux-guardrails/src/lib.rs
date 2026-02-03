@@ -45,7 +45,7 @@ impl GuardrailConfig {
     pub fn for_crate(name: &str) -> Self {
         let mut config = Self::default();
         if name == "bijux-domain-bam" {
-            config.allow_stage_id_paths = vec!["/src/bam_stage_registry.rs".to_string()];
+            config.allow_stage_id_paths = vec!["/src/stage_registry.rs".to_string()];
         }
         config
     }

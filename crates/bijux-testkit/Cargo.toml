@@ -1,0 +1,10 @@
+[package]
+name = "bijux-testkit"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = { workspace = true }
+
+[dev-dependencies]
+bijux-guardrails = { path = "../bijux-guardrails" }

@@ -14,6 +14,7 @@ members = [
   "crates/bijux-stages-bam",
   "crates/bijux-domain-vcf",
   "crates/bijux-domain-fastq",
+  "crates/bijux-testkit",
   "crates/bijux-env-runtime",
   "crates/bijux-env-builder",
   "crates/bijux-engine",

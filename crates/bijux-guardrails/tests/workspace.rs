@@ -1,15 +1,21 @@
-use std::path::Path;
+use std::collections::{BTreeMap, BTreeSet};
+use std::path::{Path, PathBuf};
 
 use bijux_guardrails::GuardrailConfig;
 
-#[test]
-fn workspace_has_guardrails_tests() {
-    let root = Path::new(env!("CARGO_MANIFEST_DIR"))
+fn workspace_root() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .unwrap()
         .parent()
-        .unwrap();
+        .unwrap()
+        .to_path_buf()
+}
+
+fn crate_dirs() -> Vec<PathBuf> {
+    let root = workspace_root();
     let crates_dir = root.join("crates");
+    let mut dirs = Vec::new();
     for entry in std::fs::read_dir(&crates_dir).expect("read crates dir") {
         let entry = entry.expect("crate entry");
         let path = entry.path();
@@ -19,6 +25,76 @@ fn workspace_has_guardrails_tests() {
         if !path.join("Cargo.toml").exists() {
             continue;
         }
+        dirs.push(path);
+    }
+    dirs
+}
+
+fn read_package_name(manifest: &Path) -> String {
+    let content = std::fs::read_to_string(manifest).expect("read Cargo.toml");
+    for line in content.lines() {
+        let line = line.trim();
+        if line.starts_with("name") && line.contains('=') {
+            let name = line
+                .splitn(2, '=')
+                .nth(1)
+                .unwrap_or("")
+                .trim()
+                .trim_matches('"');
+            if !name.is_empty() {
+                return name.to_string();
+            }
+        }
+    }
+    panic!("missing package name in {}", manifest.display());
+}
+
+fn is_bin_crate(crate_dir: &Path) -> bool {
+    let src = crate_dir.join("src");
+    src.join("main.rs").exists() && !src.join("lib.rs").exists()
+}
+
+fn collect_workspace_crates() -> BTreeMap<String, PathBuf> {
+    let mut crates = BTreeMap::new();
+    for dir in crate_dirs() {
+        let manifest = dir.join("Cargo.toml");
+        let name = read_package_name(&manifest);
+        crates.insert(name, dir);
+    }
+    crates
+}
+
+fn parse_dependencies(manifest: &Path) -> BTreeSet<String> {
+    let content = std::fs::read_to_string(manifest).expect("read Cargo.toml");
+    let mut deps = BTreeSet::new();
+    let mut in_deps = false;
+    for line in content.lines() {
+        let line = line.trim();
+        if line.starts_with('[') {
+            in_deps = matches!(
+                line,
+                "[dependencies]"
+                    | "[dev-dependencies]"
+                    | "[build-dependencies]"
+            );
+            continue;
+        }
+        if !in_deps || line.is_empty() || line.starts_with('#') {
+            continue;
+        }
+        if let Some((name, _rest)) = line.split_once('=') {
+            let name = name.trim().trim_matches('"');
+            if !name.is_empty() {
+                deps.insert(name.to_string());
+            }
+        }
+    }
+    deps
+}
+
+#[test]
+fn workspace_has_guardrails_tests() {
+    for path in crate_dirs() {
         let guardrails = path.join("tests").join("guardrails.rs");
         assert!(
             guardrails.exists(),
@@ -36,23 +112,8 @@ fn workspace_has_guardrails_tests() {
 
 #[test]
 fn workspace_guardrail_defaults_not_increased() {
-    let root = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .unwrap()
-        .parent()
-        .unwrap();
-    let crates_dir = root.join("crates");
     let defaults = GuardrailConfig::default();
-    for entry in std::fs::read_dir(&crates_dir).expect("read crates dir") {
-        let entry = entry.expect("crate entry");
-        let path = entry.path();
-        if !path.is_dir() {
-            continue;
-        }
-        let manifest = path.join("Cargo.toml");
-        if !manifest.exists() {
-            continue;
-        }
+    for path in crate_dirs() {
         let name = path.file_name().and_then(|s| s.to_str()).unwrap_or("");
         let config = GuardrailConfig::for_crate(name);
         let bad = config.max_loc > defaults.max_loc
@@ -66,5 +127,112 @@ fn workspace_guardrail_defaults_not_increased() {
             "guardrails defaults increased for {}: {:?}",
             name, config
         );
+    }
+}
+
+#[test]
+fn workspace_constitution_contract() {
+    let crates = collect_workspace_crates();
+    let mut counts: BTreeMap<&str, usize> = BTreeMap::new();
+    for name in crates.keys() {
+        *counts.entry(name.as_str()).or_insert(0) += 1;
+    }
+    let required = [
+        "bijux-domain-fastq",
+        "bijux-domain-bam",
+        "bijux-stages-fastq",
+        "bijux-stages-bam",
+        "bijux-pipelines",
+        "bijux-core",
+        "bijux-engine",
+        "bijux-analyze",
+        "bijux-bench",
+    ];
+    for name in required {
+        assert!(
+            crates.contains_key(name),
+            "missing required crate: {name}"
+        );
+        assert_eq!(counts.get(name).copied().unwrap_or(0), 1, "duplicate crate: {name}");
+    }
+    let env_crates: Vec<_> = crates
+        .keys()
+        .filter(|name| name.starts_with("bijux-env-"))
+        .collect();
+    assert!(!env_crates.is_empty(), "missing bijux-env-* crates");
+    assert!(
+        !crates.contains_key("bijux-pipelines-bam"),
+        "bijux-pipelines-bam is forbidden"
+    );
+}
+
+#[test]
+fn workspace_bans_pipelines_bam_crate_name() {
+    let crates = collect_workspace_crates();
+    for name in crates.keys() {
+        assert!(
+            !name.contains("pipelines-bam"),
+            "crate name contains forbidden substring: {name}"
+        );
+    }
+}
+
+#[test]
+fn workspace_crate_layout_contract() {
+    for crate_dir in crate_dirs() {
+        let manifest = crate_dir.join("Cargo.toml");
+        assert!(manifest.exists(), "missing Cargo.toml in {}", crate_dir.display());
+        let src_dir = crate_dir.join("src");
+        assert!(src_dir.exists(), "missing src/ in {}", crate_dir.display());
+        if is_bin_crate(&crate_dir) {
+            continue;
+        }
+        let makefile = crate_dir.join("Makefile.toml");
+        assert!(
+            makefile.exists(),
+            "missing Makefile.toml in {}",
+            crate_dir.display()
+        );
+        let tests_dir = crate_dir.join("tests");
+        assert!(
+            tests_dir.exists(),
+            "missing tests/ in {}",
+            crate_dir.display()
+        );
+    }
+}
+
+#[test]
+fn workspace_no_orphan_crates() {
+    let crates = collect_workspace_crates();
+    let mut dependents: BTreeMap<String, usize> = crates
+        .keys()
+        .map(|name| (name.clone(), 0))
+        .collect();
+    for (name, path) in &crates {
+        let deps = parse_dependencies(&path.join("Cargo.toml"));
+        for dep in deps {
+            if let Some(count) = dependents.get_mut(&dep) {
+                *count += 1;
+            }
+        }
+        // Ensure we don't accidentally count self.
+        if let Some(count) = dependents.get_mut(name) {
+            if *count > 0 {
+                *count -= 0;
+            }
+        }
+    }
+    let allowlist: BTreeSet<&str> = BTreeSet::from([
+        "bijux-cli",
+        "bijux-bench",
+        "bijux-env-builder",
+        "bijux-env-runtime",
+    ]);
+    for (name, count) in dependents {
+        let crate_dir = crates.get(&name).expect("crate dir");
+        if count == 0 && !allowlist.contains(name.as_str()) && !is_bin_crate(crate_dir) {
+            panic!("orphan crate without allowlist: {name}");
+        }
     }
 }

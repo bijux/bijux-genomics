@@ -335,6 +335,7 @@ dependencies = [
  "anyhow",
  "bijux-core",
  "bijux-guardrails",
+ "bijux-testkit",
  "schemars",
  "serde",
  "serde_json",
@@ -349,6 +350,7 @@ dependencies = [
  "bijux-core",
  "bijux-guardrails",
  "bijux-pipelines",
+ "bijux-testkit",
  "chrono",
  "rusqlite",
  "schemars",
@@ -489,6 +491,14 @@ dependencies = [
  "sha2",
  "tempfile",
  "walkdir",
+]
+
+[[package]]
+name = "bijux-testkit"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bijux-guardrails",
 ]
 
 [[package]]
