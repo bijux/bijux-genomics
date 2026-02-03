@@ -273,6 +273,8 @@ dependencies = [
  "bijux-domain-bam",
  "bijux-domain-fastq",
  "bijux-guardrails",
+ "bijux-pipelines",
+ "insta",
  "parquet",
  "rusqlite",
  "serde",
