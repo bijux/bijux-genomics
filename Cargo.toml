@@ -1,24 +1,22 @@
 [workspace]
 resolver = "2"
 members = [
-  "crates/bijux-core",
-  "crates/bijux-api",
-  "crates/bijux-infra",
-  "crates/bijux-cli",
-  "crates/bijux-bench",
   "crates/bijux-analyze",
-  "crates/bijux-guardrails",
-  "crates/bijux-env-runtime",
-  "crates/bijux-env-builder",
-  "crates/bijux-stages-fastq",
+  "crates/bijux-api",
+  "crates/bijux-bench",
+  "crates/bijux-cli",
+  "crates/bijux-core",
   "crates/bijux-domain-bam",
+  "crates/bijux-domain-fastq",
+  "crates/bijux-domain-vcf",
+  "crates/bijux-engine",
+  "crates/bijux-env-builder",
+  "crates/bijux-env-runtime",
+  "crates/bijux-guardrails",
+  "crates/bijux-infra",
   "crates/bijux-pipelines",
   "crates/bijux-stages-bam",
-  "crates/bijux-domain-vcf",
-  "crates/bijux-domain-fastq",
-  "crates/bijux-env-runtime",
-  "crates/bijux-env-builder",
-  "crates/bijux-engine",
+  "crates/bijux-stages-fastq",
 ]
 
 [workspace.package]

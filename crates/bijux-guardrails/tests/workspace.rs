@@ -12,6 +12,32 @@ fn workspace_root() -> PathBuf {
         .to_path_buf()
 }
 
+fn parse_workspace_members(root: &Path) -> Vec<String> {
+    let manifest = root.join("Cargo.toml");
+    let content = std::fs::read_to_string(&manifest).expect("read workspace Cargo.toml");
+    let mut members = Vec::new();
+    let mut in_members = false;
+    for line in content.lines() {
+        let line = line.trim();
+        if line.starts_with("members") && line.contains('[') {
+            in_members = true;
+        }
+        if !in_members {
+            continue;
+        }
+        if line.contains(']') {
+            in_members = false;
+        }
+        if let Some(start) = line.find('"') {
+            if let Some(end) = line[start + 1..].find('"') {
+                let member = &line[start + 1..start + 1 + end];
+                members.push(member.to_string());
+            }
+        }
+    }
+    members
+}
+
 fn crate_dirs() -> Vec<PathBuf> {
     let root = workspace_root();
     let crates_dir = root.join("crates");
@@ -124,6 +150,25 @@ fn workspace_guardrail_defaults_not_increased() {
             name, config
         );
     }
+}
+
+#[test]
+fn workspace_members_are_deterministic() {
+    let root = workspace_root();
+    let members = parse_workspace_members(&root);
+    assert!(!members.is_empty(), "workspace members not found");
+    let mut sorted = members.clone();
+    sorted.sort();
+    let mut deduped = sorted.clone();
+    deduped.dedup();
+    assert_eq!(
+        sorted, deduped,
+        "workspace members contain duplicates or are unsorted"
+    );
+    assert_eq!(
+        members, sorted,
+        "workspace members must be sorted and deterministic"
+    );
 }
 
 #[test]
@@ -313,9 +358,9 @@ fn workspace_dependency_graph_contract() {
             "bijux-stages-fastq",
             "bijux-stages-bam",
             "bijux-engine",
-            "bijux-api",
             "bijux",
             "bijux-pipelines",
+            "bijux-api",
         ] {
             assert!(
                 !deps.contains(banned),
@@ -326,13 +371,7 @@ fn workspace_dependency_graph_contract() {
 
     for stages in ["bijux-stages-fastq", "bijux-stages-bam"] {
         let deps = deps_for(stages);
-        for banned in [
-            "bijux",
-            "bijux-api",
-            "bijux-analyze",
-            "bijux-bench",
-            "bijux-engine",
-        ] {
+        for banned in ["bijux", "bijux-api", "bijux-analyze", "bijux-bench"] {
             assert!(
                 !deps.contains(banned),
                 "{stages} must not depend on {banned}"
@@ -347,6 +386,77 @@ fn workspace_dependency_graph_contract() {
             "bijux-pipelines must not depend on {banned}"
         );
     }
+}
+
+#[test]
+fn workspace_no_cross_layer_imports() {
+    let crates = collect_workspace_crates();
+    let root = workspace_root();
+    let mut offenders = Vec::new();
+    for (name, path) in crates {
+        let is_domain = name.starts_with("bijux-domain-");
+        let is_stages = name.starts_with("bijux-stages-");
+        if !is_domain && !is_stages {
+            continue;
+        }
+        for entry in walkdir::WalkDir::new(path.join("src"))
+            .into_iter()
+            .filter_map(Result::ok)
+            .filter(|entry| entry.path().extension().and_then(|s| s.to_str()) == Some("rs"))
+        {
+            let rel = entry.path().strip_prefix(&root).unwrap_or(entry.path());
+            let content = std::fs::read_to_string(entry.path()).unwrap_or_default();
+            if is_domain
+                && (content.contains("bijux_engine::")
+                    || content.contains("bijux_cli::")
+                    || content.contains("bijux_api::"))
+            {
+                offenders.push(rel.display().to_string());
+            }
+            if is_stages && content.contains("bijux_cli::") {
+                offenders.push(rel.display().to_string());
+            }
+        }
+    }
+    assert!(
+        offenders.is_empty(),
+        "cross-layer imports detected: {offenders:?}"
+    );
+}
+
+#[test]
+fn workspace_single_orchestration_surface() {
+    let root = workspace_root();
+    let mut offenders = Vec::new();
+    for path in crate_dirs() {
+        let name = path.file_name().and_then(|s| s.to_str()).unwrap_or("");
+        if name == "bijux-api" {
+            continue;
+        }
+        for entry in walkdir::WalkDir::new(path.join("src"))
+            .into_iter()
+            .filter_map(Result::ok)
+            .filter(|entry| entry.path().extension().and_then(|s| s.to_str()) == Some("rs"))
+        {
+            let rel = entry.path().strip_prefix(&root).unwrap_or(entry.path());
+            let content = std::fs::read_to_string(entry.path()).unwrap_or_default();
+            for needle in [
+                "pub fn select_pipeline(",
+                "pub fn plan_run(",
+                "pub fn execute_run(",
+                "pub fn render_report(",
+            ] {
+                if content.contains(needle) {
+                    offenders.push(rel.display().to_string());
+                    break;
+                }
+            }
+        }
+    }
+    assert!(
+        offenders.is_empty(),
+        "only bijux-api may expose orchestration entrypoints: {offenders:?}"
+    );
 }
 
 #[test]
