@@ -9,7 +9,7 @@ impl PipelineDomain for FastqDomain {
     }
 
     fn canonical_pipeline() -> bijux_core::domain::PipelineSpec {
-        let canonical = crate::pipeline::canonical_pipeline();
+        let canonical = crate::canonical_pipeline();
         bijux_core::domain::PipelineSpec {
             stages: canonical.required,
         }

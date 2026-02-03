@@ -1,4 +1,3 @@
-pub mod canonical;
 pub mod corpus;
 pub mod query;
 pub mod run_layout;
@@ -13,8 +12,6 @@ pub use bijux_core::events::RunEvent;
 pub use bijux_core::input_assessment::{
     assess_input_dir, discover_fastq_files, write_input_assessment, InputAssessmentV1,
 };
-#[allow(unused_imports)]
-pub use canonical::{canonical_pipeline, CanonicalPipeline};
 pub use corpus::{bench_corpus, BenchCorpus, BenchCorpusId, BenchDataset};
 #[allow(unused_imports)]
 pub use run_layout::{

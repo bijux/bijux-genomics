@@ -11,6 +11,7 @@
 // Structural layout of this crate is frozen as of FASTQ v1.
 mod adapter;
 mod adapter_bank;
+mod canonical_pipeline;
 mod contaminant_bank;
 mod contract;
 mod contracts;
@@ -27,6 +28,7 @@ pub use adapter_bank::{
     load_adapter_bank, load_adapter_presets, resolve_adapter_preset, AdapterBankV1, AdapterEntryV1,
     AdapterPresetV1, AdapterPresetsV1, EffectiveAdapterSet, ReadScope,
 };
+pub use canonical_pipeline::{canonical_pipeline, CanonicalPipeline};
 pub use contaminant_bank::{
     contaminant_motifs_path, contaminant_presets_path, contaminant_references_dir,
     load_contaminant_motifs, load_contaminant_presets, resolve_contaminant_preset,
@@ -54,11 +56,11 @@ pub use metrics::deltas::{compute_delta, ratio_u64};
 pub use params::{parse_effective_params, EffectiveParams, PairedMode};
 pub use pipeline::query::get_results;
 pub use pipeline::{
-    append_event, bench_corpus, benchmark_runs, canonical_pipeline, create_run_layout, now_string,
-    update_run_index, write_benchmark_exports, write_environment, write_input_assessment,
-    write_manifest, write_run_metadata, BenchCorpus, BenchCorpusId, BenchDataset,
-    InputAssessmentV1, RunArtifactEntry, RunEnvironment, RunIndexEntry, RunLayout, RunManifest,
-    RunStageEntry, ToolImageDigest,
+    append_event, bench_corpus, benchmark_runs, create_run_layout, now_string, update_run_index,
+    write_benchmark_exports, write_environment, write_input_assessment, write_manifest,
+    write_run_metadata, BenchCorpus, BenchCorpusId, BenchDataset, InputAssessmentV1,
+    RunArtifactEntry, RunEnvironment, RunIndexEntry, RunLayout, RunManifest, RunStageEntry,
+    ToolImageDigest,
 };
 pub use pipeline::{assess_input_dir, discover_fastq_files};
 pub use polyx_bank::{
