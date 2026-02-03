@@ -4,11 +4,15 @@ use anyhow::Result;
 use bijux_core::{
     CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
 };
+#[cfg(feature = "bam_downstream")]
 use bijux_domain_bam::params::{
-    BiasMitigationEffectiveParams, ComplexityEffectiveParams, ContaminationEffectiveParams,
-    CoverageEffectiveParams, DamageEffectiveParams, FilterEffectiveParams,
-    GenotypingEffectiveParams, HaplogroupEffectiveParams, KinshipEffectiveParams,
-    MarkDupEffectiveParams, SexEffectiveParams, UdgModel,
+    BiasMitigationEffectiveParams, GenotypingEffectiveParams, HaplogroupEffectiveParams,
+    KinshipEffectiveParams,
+};
+use bijux_domain_bam::params::{
+    ComplexityEffectiveParams, ContaminationEffectiveParams, CoverageEffectiveParams,
+    DamageEffectiveParams, FilterEffectiveParams, MarkDupEffectiveParams, SexEffectiveParams,
+    UdgModel,
 };
 use bijux_domain_bam::required_audit_artifacts;
 use bijux_domain_bam::BamStage;
@@ -153,13 +157,20 @@ fn bam_stage_artifacts_contract_is_complete() -> Result<()> {
     let sex = bijux_stages_bam::bam::sex::plan(&dummy_tool("rxy"), bam, out, &sex_params)?;
     assert_audit_outputs(BamStage::Sex, &sex);
 
-    let bias_params = BiasMitigationEffectiveParams {
-        gc_bias_correction: true,
-        map_bias_correction: false,
-    };
-    let bias =
-        bijux_stages_bam::bam::bias_mitigation::plan(&dummy_tool("angsd"), bam, out, &bias_params)?;
-    assert_audit_outputs(BamStage::BiasMitigation, &bias);
+    #[cfg(feature = "bam_downstream")]
+    {
+        let bias_params = BiasMitigationEffectiveParams {
+            gc_bias_correction: true,
+            map_bias_correction: false,
+        };
+        let bias = bijux_stages_bam::bam::bias_mitigation::plan(
+            &dummy_tool("angsd"),
+            bam,
+            out,
+            &bias_params,
+        )?;
+        assert_audit_outputs(BamStage::BiasMitigation, &bias);
+    }
 
     let recal_params = bijux_domain_bam::params::BqsrEffectiveParams {
         known_sites: vec!["known.vcf".to_string()],
@@ -173,34 +184,41 @@ fn bam_stage_artifacts_contract_is_complete() -> Result<()> {
         bijux_stages_bam::bam::recalibration::plan(&dummy_tool("gatk"), bam, out, &recal_params)?;
     assert_audit_outputs(BamStage::Recalibration, &recal);
 
-    let haplo_params = HaplogroupEffectiveParams {
-        reference_panel: "rcrs.fasta".to_string(),
-        min_coverage: Some(5.0),
-    };
-    let haplogroups =
-        bijux_stages_bam::bam::haplogroups::plan(&dummy_tool("yleaf"), bam, out, &haplo_params)?;
-    assert_audit_outputs(BamStage::Haplogroups, &haplogroups);
+    #[cfg(feature = "bam_downstream")]
+    {
+        let haplo_params = HaplogroupEffectiveParams {
+            reference_panel: "rcrs.fasta".to_string(),
+            min_coverage: Some(5.0),
+        };
+        let haplogroups = bijux_stages_bam::bam::haplogroups::plan(
+            &dummy_tool("yleaf"),
+            bam,
+            out,
+            &haplo_params,
+        )?;
+        assert_audit_outputs(BamStage::Haplogroups, &haplogroups);
 
-    let genotyping_params = GenotypingEffectiveParams {
-        caller: "angsd".to_string(),
-        min_posterior: Some(0.8),
-        min_call_rate: Some(0.7),
-    };
-    let genotyping = bijux_stages_bam::bam::genotyping::plan(
-        &dummy_tool("angsd"),
-        bam,
-        out,
-        &genotyping_params,
-    )?;
-    assert_audit_outputs(BamStage::Genotyping, &genotyping);
+        let genotyping_params = GenotypingEffectiveParams {
+            caller: "angsd".to_string(),
+            min_posterior: Some(0.8),
+            min_call_rate: Some(0.7),
+        };
+        let genotyping = bijux_stages_bam::bam::genotyping::plan(
+            &dummy_tool("angsd"),
+            bam,
+            out,
+            &genotyping_params,
+        )?;
+        assert_audit_outputs(BamStage::Genotyping, &genotyping);
 
-    let kinship_params = KinshipEffectiveParams {
-        reference_panel: "panel.vcf".to_string(),
-        min_overlap_snps: 200,
-    };
-    let kinship =
-        bijux_stages_bam::bam::kinship::plan(&dummy_tool("king"), bam, out, &kinship_params)?;
-    assert_audit_outputs(BamStage::Kinship, &kinship);
+        let kinship_params = KinshipEffectiveParams {
+            reference_panel: "panel.vcf".to_string(),
+            min_overlap_snps: 200,
+        };
+        let kinship =
+            bijux_stages_bam::bam::kinship::plan(&dummy_tool("king"), bam, out, &kinship_params)?;
+        assert_audit_outputs(BamStage::Kinship, &kinship);
+    }
 
     Ok(())
 }

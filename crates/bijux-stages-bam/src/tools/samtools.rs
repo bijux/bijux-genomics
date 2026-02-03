@@ -109,11 +109,13 @@ pub fn markdup_args(
 }
 
 #[must_use]
-pub fn depth_args(bam: &Path, depth: &Path) -> Vec<String> {
+pub fn depth_args(bam: &Path, depth: &Path, summary: &Path) -> Vec<String> {
     let command = format!(
-        "samtools depth -a {bam} > {depth}",
+        "samtools depth -a {bam} > {depth} && \
+awk '{{sum+=$3; if($3>0) cov++}} END {{mean=(NR>0)?sum/NR:0; print \"total\", NR, cov, mean}}' {depth} > {summary}",
         bam = bam.display(),
-        depth = depth.display()
+        depth = depth.display(),
+        summary = summary.display()
     );
     vec!["/bin/sh".to_string(), "-c".to_string(), command]
 }

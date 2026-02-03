@@ -10,20 +10,16 @@
     ],
     "outputs": [
       {
-        "name": "qc_report",
-        "path": "out/qc_pre.json"
-      },
-      {
         "name": "flagstat",
         "path": "out/flagstat.txt"
       },
       {
-        "name": "stats",
-        "path": "out/samtools_stats.txt"
+        "name": "idxstats",
+        "path": "out/idxstats.txt"
       },
       {
-        "name": "summary",
-        "path": "out/qc_pre.summary.json"
+        "name": "stats",
+        "path": "out/samtools_stats.txt"
       },
       {
         "name": "stage_metrics",

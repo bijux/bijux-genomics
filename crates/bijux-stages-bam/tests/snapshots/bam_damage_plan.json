@@ -10,24 +10,12 @@
     ],
     "outputs": [
       {
-        "name": "damage_report",
-        "path": "out/damage.json"
-      },
-      {
         "name": "damage_pydamage",
         "path": "out/damage.pydamage.json"
       },
       {
         "name": "damage_mapdamage2",
         "path": "out/damage.mapdamage2.txt"
-      },
-      {
-        "name": "damage_profiler",
-        "path": "out/damage.profiler.json"
-      },
-      {
-        "name": "summary",
-        "path": "out/damage.summary.json"
       },
       {
         "name": "stage_metrics",

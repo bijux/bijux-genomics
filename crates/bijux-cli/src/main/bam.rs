@@ -1,6 +1,7 @@
 use bijux_core::ToolRegistry;
 use bijux_engine::api::{build_tool_execution_spec, execute_stage_plan};
-use bijux_pipelines_bam::{profile_by_id, BamPipelineProfile};
+use bijux_pipelines::registry;
+use bijux_pipelines::{Domain, PipelineProfile};
 use bijux_env_runtime::api::RunnerKind;
 
 use crate::cli::parse::{BamCommand, BamRunArgs};
@@ -50,12 +51,14 @@ fn run_bam_stage(
     let catalog = load_image_catalog()
         .map_err(|err| anyhow!("failed to load image catalog: {err}"))?;
     let stage = args.stage.stage();
-    let profile = profile_by_id(&args.profile)?;
+    let profile = registry::profile_by_id(Domain::Bam, &args.profile)?;
     let tool_id = args.tool.clone().unwrap_or_else(|| {
         profile
-            .default_tool(stage)
-            .unwrap_or("samtools")
-            .to_string()
+            .defaults
+            .tools
+            .get(stage.as_str())
+            .cloned()
+            .unwrap_or_else(|| "samtools".to_string())
     });
     let spec =
         build_tool_execution_spec(stage.as_str(), &tool_id, registry, &catalog, &platform)?;
@@ -82,7 +85,7 @@ pub(crate) fn plan_for_bam_stage(
     args: &BamRunArgs,
     out_dir: &Path,
 ) -> Result<bijux_core::StagePlanV1> {
-    let profile = profile_by_id(&args.profile)?;
+    let profile = registry::profile_by_id(Domain::Bam, &args.profile)?;
     plan_for_bam_stage_with_profile(stage, spec, args, &profile, out_dir)
 }
 
@@ -91,9 +94,21 @@ pub(crate) fn plan_for_bam_stage_with_profile(
     stage: bijux_domain_bam::BamStage,
     spec: &bijux_core::ToolExecutionSpecV1,
     args: &BamRunArgs,
-    profile: &BamPipelineProfile,
+    profile: &PipelineProfile,
     out_dir: &Path,
 ) -> Result<bijux_core::StagePlanV1> {
+    if !downstream_enabled()
+        && matches!(
+            stage,
+            bijux_domain_bam::BamStage::Haplogroups
+                | bijux_domain_bam::BamStage::Genotyping
+                | bijux_domain_bam::BamStage::Kinship
+        )
+    {
+        return Err(anyhow!(
+            "downstream BAM stages are disabled (enable feature 'bam_downstream')"
+        ));
+    }
     match stage {
         bijux_domain_bam::BamStage::Validate => bijux_stages_bam::bam::validate::plan(
             spec,
@@ -107,8 +122,10 @@ pub(crate) fn plan_for_bam_stage_with_profile(
         }
         bijux_domain_bam::BamStage::Filter => {
             let default_params = profile
-                .default_params(stage)
-                .cloned()
+                .defaults
+                .params
+                .get(stage.as_str())
+                .and_then(|value| stage.parse_effective_params(value).ok())
                 .unwrap_or_else(|| bijux_domain_bam::stage_spec(stage).default_params);
             let mut params = match default_params {
                 bijux_domain_bam::params::BamEffectiveParams::Filter(params) => params,
@@ -143,8 +160,10 @@ pub(crate) fn plan_for_bam_stage_with_profile(
         }
         bijux_domain_bam::BamStage::Markdup => {
             let default_params = profile
-                .default_params(stage)
-                .cloned()
+                .defaults
+                .params
+                .get(stage.as_str())
+                .and_then(|value| stage.parse_effective_params(value).ok())
                 .unwrap_or_else(|| bijux_domain_bam::stage_spec(stage).default_params);
             let mut params = match default_params {
                 bijux_domain_bam::params::BamEffectiveParams::Markdup(params) => params,
@@ -166,10 +185,7 @@ pub(crate) fn plan_for_bam_stage_with_profile(
             bijux_stages_bam::bam::markdup::plan(spec, &args.bam, out_dir, &params)
         }
         bijux_domain_bam::BamStage::Complexity => {
-            let default_params = profile
-                .default_params(stage)
-                .cloned()
-                .unwrap_or_else(|| bijux_domain_bam::stage_spec(stage).default_params);
+            let default_params = default_params_for_stage(profile, stage);
             let mut params = match default_params {
                 bijux_domain_bam::params::BamEffectiveParams::Complexity(params) => params,
                 _ => bijux_domain_bam::params::ComplexityEffectiveParams {
@@ -188,10 +204,7 @@ pub(crate) fn plan_for_bam_stage_with_profile(
             bijux_stages_bam::bam::complexity::plan(spec, &args.bam, out_dir, &params)
         }
         bijux_domain_bam::BamStage::Coverage => {
-            let default_params = profile
-                .default_params(stage)
-                .cloned()
-                .unwrap_or_else(|| bijux_domain_bam::stage_spec(stage).default_params);
+            let default_params = default_params_for_stage(profile, stage);
             let mut params = match default_params {
                 bijux_domain_bam::params::BamEffectiveParams::Coverage(params) => params,
                 _ => bijux_domain_bam::params::CoverageEffectiveParams {
@@ -210,10 +223,7 @@ pub(crate) fn plan_for_bam_stage_with_profile(
             bijux_stages_bam::bam::coverage::plan(spec, &args.bam, out_dir, &params)
         }
         bijux_domain_bam::BamStage::Damage => {
-            let default_params = profile
-                .default_params(stage)
-                .cloned()
-                .unwrap_or_else(|| bijux_domain_bam::stage_spec(stage).default_params);
+            let default_params = default_params_for_stage(profile, stage);
             let mut params = match default_params {
                 bijux_domain_bam::params::BamEffectiveParams::Damage(params) => params,
                 _ => bijux_domain_bam::params::DamageEffectiveParams {
@@ -242,10 +252,7 @@ pub(crate) fn plan_for_bam_stage_with_profile(
             bijux_stages_bam::bam::damage::plan(spec, &args.bam, out_dir, &params)
         }
         bijux_domain_bam::BamStage::Authenticity => {
-            let default_params = profile
-                .default_params(stage)
-                .cloned()
-                .unwrap_or_else(|| bijux_domain_bam::stage_spec(stage).default_params);
+            let default_params = default_params_for_stage(profile, stage);
             let mut params = match default_params {
                 bijux_domain_bam::params::BamEffectiveParams::Authenticity(params) => params,
                 _ => bijux_domain_bam::params::AuthenticityEffectiveParams {
@@ -258,10 +265,7 @@ pub(crate) fn plan_for_bam_stage_with_profile(
             bijux_stages_bam::bam::authenticity::plan(spec, &args.bam, out_dir, &params)
         }
         bijux_domain_bam::BamStage::Contamination => {
-            let default_params = profile
-                .default_params(stage)
-                .cloned()
-                .unwrap_or_else(|| bijux_domain_bam::stage_spec(stage).default_params);
+            let default_params = default_params_for_stage(profile, stage);
             let mut params = match default_params {
                 bijux_domain_bam::params::BamEffectiveParams::Contamination(params) => params,
                 _ => bijux_domain_bam::params::ContaminationEffectiveParams {
@@ -292,10 +296,7 @@ pub(crate) fn plan_for_bam_stage_with_profile(
             bijux_stages_bam::bam::contamination::plan(spec, &args.bam, out_dir, &params)
         }
         bijux_domain_bam::BamStage::Sex => {
-            let default_params = profile
-                .default_params(stage)
-                .cloned()
-                .unwrap_or_else(|| bijux_domain_bam::stage_spec(stage).default_params);
+            let default_params = default_params_for_stage(profile, stage);
             let mut params = match default_params {
                 bijux_domain_bam::params::BamEffectiveParams::Sex(params) => params,
                 _ => bijux_domain_bam::params::SexEffectiveParams {
@@ -312,10 +313,7 @@ pub(crate) fn plan_for_bam_stage_with_profile(
             bijux_stages_bam::bam::sex::plan(spec, &args.bam, out_dir, &params)
         }
         bijux_domain_bam::BamStage::BiasMitigation => {
-            let default_params = profile
-                .default_params(stage)
-                .cloned()
-                .unwrap_or_else(|| bijux_domain_bam::stage_spec(stage).default_params);
+            let default_params = default_params_for_stage(profile, stage);
             let mut params = match default_params {
                 bijux_domain_bam::params::BamEffectiveParams::BiasMitigation(params) => params,
                 _ => bijux_domain_bam::params::BiasMitigationEffectiveParams {
@@ -332,10 +330,7 @@ pub(crate) fn plan_for_bam_stage_with_profile(
             bijux_stages_bam::bam::bias_mitigation::plan(spec, &args.bam, out_dir, &params)
         }
         bijux_domain_bam::BamStage::Recalibration => {
-            let default_params = profile
-                .default_params(stage)
-                .cloned()
-                .unwrap_or_else(|| bijux_domain_bam::stage_spec(stage).default_params);
+            let default_params = default_params_for_stage(profile, stage);
             let mut params = match default_params {
                 bijux_domain_bam::params::BamEffectiveParams::Recalibration(params) => params,
                 _ => bijux_domain_bam::params::BqsrEffectiveParams {
@@ -361,11 +356,9 @@ pub(crate) fn plan_for_bam_stage_with_profile(
             }
             bijux_stages_bam::bam::recalibration::plan(spec, &args.bam, out_dir, &params)
         }
+        #[cfg(feature = "bam_downstream")]
         bijux_domain_bam::BamStage::Haplogroups => {
-            let default_params = profile
-                .default_params(stage)
-                .cloned()
-                .unwrap_or_else(|| bijux_domain_bam::stage_spec(stage).default_params);
+            let default_params = default_params_for_stage(profile, stage);
             let mut params = match default_params {
                 bijux_domain_bam::params::BamEffectiveParams::Haplogroups(params) => params,
                 _ => bijux_domain_bam::params::HaplogroupEffectiveParams {
@@ -381,11 +374,9 @@ pub(crate) fn plan_for_bam_stage_with_profile(
             }
             bijux_stages_bam::bam::haplogroups::plan(spec, &args.bam, out_dir, &params)
         }
+        #[cfg(feature = "bam_downstream")]
         bijux_domain_bam::BamStage::Genotyping => {
-            let default_params = profile
-                .default_params(stage)
-                .cloned()
-                .unwrap_or_else(|| bijux_domain_bam::stage_spec(stage).default_params);
+            let default_params = default_params_for_stage(profile, stage);
             let mut params = match default_params {
                 bijux_domain_bam::params::BamEffectiveParams::Genotyping(params) => params,
                 _ => bijux_domain_bam::params::GenotypingEffectiveParams {
@@ -405,11 +396,9 @@ pub(crate) fn plan_for_bam_stage_with_profile(
             }
             bijux_stages_bam::bam::genotyping::plan(spec, &args.bam, out_dir, &params)
         }
+        #[cfg(feature = "bam_downstream")]
         bijux_domain_bam::BamStage::Kinship => {
-            let default_params = profile
-                .default_params(stage)
-                .cloned()
-                .unwrap_or_else(|| bijux_domain_bam::stage_spec(stage).default_params);
+            let default_params = default_params_for_stage(profile, stage);
             let mut params = match default_params {
                 bijux_domain_bam::params::BamEffectiveParams::Kinship(params) => params,
                 _ => bijux_domain_bam::params::KinshipEffectiveParams {
@@ -425,5 +414,27 @@ pub(crate) fn plan_for_bam_stage_with_profile(
             }
             bijux_stages_bam::bam::kinship::plan(spec, &args.bam, out_dir, &params)
         }
+        #[cfg(not(feature = "bam_downstream"))]
+        bijux_domain_bam::BamStage::Haplogroups
+        | bijux_domain_bam::BamStage::Genotyping
+        | bijux_domain_bam::BamStage::Kinship => Err(anyhow!(
+            "downstream BAM stages are disabled (enable feature 'bam_downstream')"
+        )),
     }
+}
+
+fn downstream_enabled() -> bool {
+    cfg!(feature = "bam_downstream")
+}
+
+fn default_params_for_stage(
+    profile: &PipelineProfile,
+    stage: bijux_domain_bam::BamStage,
+) -> bijux_domain_bam::params::BamEffectiveParams {
+    profile
+        .defaults
+        .params
+        .get(stage.as_str())
+        .and_then(|value| stage.parse_effective_params(value).ok())
+        .unwrap_or_else(|| bijux_domain_bam::stage_spec(stage).default_params)
 }

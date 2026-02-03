@@ -11,6 +11,9 @@ bijux-domain-bam = { path = "../bijux-domain-bam" }
 serde.workspace = true
 serde_json.workspace = true
 
+[features]
+bam_downstream = []
+
 [lints]
 workspace = true
 

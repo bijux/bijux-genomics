@@ -218,20 +218,16 @@ pub fn required_audit_artifacts(stage: BamStage) -> &'static [AuditArtifact] {
         ],
         BamStage::QcPre => &[
             AuditArtifact {
-                name: "qc_report",
-                filename: "qc_pre.json",
-            },
-            AuditArtifact {
                 name: "flagstat",
                 filename: "flagstat.txt",
             },
             AuditArtifact {
-                name: "stats",
-                filename: "samtools_stats.txt",
+                name: "idxstats",
+                filename: "idxstats.txt",
             },
             AuditArtifact {
-                name: "summary",
-                filename: "qc_pre.summary.json",
+                name: "stats",
+                filename: "samtools_stats.txt",
             },
             AuditArtifact {
                 name: "stage_metrics",
@@ -310,20 +306,8 @@ pub fn required_audit_artifacts(stage: BamStage) -> &'static [AuditArtifact] {
         ],
         BamStage::Coverage => &[
             AuditArtifact {
-                name: "coverage_report",
-                filename: "coverage.json",
-            },
-            AuditArtifact {
                 name: "coverage_summary",
                 filename: "coverage.mosdepth.summary.txt",
-            },
-            AuditArtifact {
-                name: "coverage_depth",
-                filename: "coverage.depth.txt",
-            },
-            AuditArtifact {
-                name: "summary",
-                filename: "coverage.summary.json",
             },
             AuditArtifact {
                 name: "stage_metrics",
@@ -332,24 +316,12 @@ pub fn required_audit_artifacts(stage: BamStage) -> &'static [AuditArtifact] {
         ],
         BamStage::Damage => &[
             AuditArtifact {
-                name: "damage_report",
-                filename: "damage.json",
-            },
-            AuditArtifact {
                 name: "damage_pydamage",
                 filename: "damage.pydamage.json",
             },
             AuditArtifact {
                 name: "damage_mapdamage2",
                 filename: "damage.mapdamage2.txt",
-            },
-            AuditArtifact {
-                name: "damage_profiler",
-                filename: "damage.profiler.json",
-            },
-            AuditArtifact {
-                name: "summary",
-                filename: "damage.summary.json",
             },
             AuditArtifact {
                 name: "stage_metrics",
@@ -498,7 +470,7 @@ pub fn stage_spec(stage: BamStage) -> BamStageSpec {
             stage,
             required_inputs: &["bam"],
             artifact_policy: ArtifactPolicy {
-                required_outputs: &["qc_report", "flagstat", "stats", "summary", "stage_metrics"],
+                required_outputs: &["flagstat", "idxstats", "stats", "stage_metrics"],
                 required_audit: required_audit_artifacts(stage),
             },
             allowed_tools: &["samtools"],
@@ -570,12 +542,7 @@ pub fn stage_spec(stage: BamStage) -> BamStageSpec {
             stage,
             required_inputs: &["bam"],
             artifact_policy: ArtifactPolicy {
-                required_outputs: &[
-                    "coverage_report",
-                    "coverage_summary",
-                    "summary",
-                    "stage_metrics",
-                ],
+                required_outputs: &["coverage_summary", "stage_metrics"],
                 required_audit: required_audit_artifacts(stage),
             },
             allowed_tools: &["mosdepth", "samtools"],
@@ -589,13 +556,7 @@ pub fn stage_spec(stage: BamStage) -> BamStageSpec {
             stage,
             required_inputs: &["bam"],
             artifact_policy: ArtifactPolicy {
-                required_outputs: &[
-                    "damage_report",
-                    "damage_pydamage",
-                    "damage_profiler",
-                    "summary",
-                    "stage_metrics",
-                ],
+                required_outputs: &["damage_pydamage", "damage_mapdamage2", "stage_metrics"],
                 required_audit: required_audit_artifacts(stage),
             },
             allowed_tools: &["pydamage", "mapdamage2"],

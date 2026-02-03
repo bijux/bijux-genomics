@@ -5,6 +5,8 @@ use bijux_engine::api::{
     filter_tools_by_role,
 };
 use bijux_env_runtime::api::{load_image_catalog, load_platform, RunnerKind};
+use bijux_pipelines::registry;
+use bijux_pipelines::Domain;
 use std::path::PathBuf;
 
 use crate::cli::parse::{BenchBamPipelineArgs, BenchBamStageArgs};
@@ -77,10 +79,11 @@ pub fn bench_bam_pipeline(
     registry: &ToolRegistry,
     platform_path: Option<&str>,
 ) -> Result<BamBenchOutcome> {
-    let profile = bijux_pipelines_bam::profile_by_id(&args.profile)?;
+    let profile = registry::profile_by_id(Domain::Bam, &args.profile)?;
     let tool_matrix = parse_tool_matrix(&args.tools)?;
     let mut run_dirs = Vec::new();
-    for stage in profile.stages {
+    for node in profile.graph {
+        let stage = bijux_domain_bam::BamStage::try_from(node.stage_id.as_str())?;
         let stage_id = stage.as_str();
         let tools = tool_matrix.get(stage_id).cloned().unwrap_or_default();
         let stage_args = BenchBamStageArgs {

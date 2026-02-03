@@ -4,6 +4,7 @@ pub mod bam;
 pub mod bam_tools_registry;
 mod plan;
 pub mod stages_adna;
+#[cfg(feature = "bam_downstream")]
 pub mod stages_downstream;
 pub mod stages_post;
 pub mod stages_pre;

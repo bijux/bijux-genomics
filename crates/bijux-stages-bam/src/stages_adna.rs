@@ -55,14 +55,7 @@ pub mod damage {
         };
         crate::stages_support::ensure_required_outputs(
             plan,
-            &[
-                "damage_report",
-                "damage_pydamage",
-                "damage_mapdamage2",
-                "damage_profiler",
-                "summary",
-                "stage_metrics",
-            ],
+            &["damage_pydamage", "damage_mapdamage2", "stage_metrics"],
         )
     }
 }

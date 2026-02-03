@@ -10,20 +10,8 @@
     ],
     "outputs": [
       {
-        "name": "coverage_report",
-        "path": "out/coverage.json"
-      },
-      {
         "name": "coverage_summary",
         "path": "out/coverage.mosdepth.summary.txt"
-      },
-      {
-        "name": "coverage_depth",
-        "path": "out/coverage.depth.txt"
-      },
-      {
-        "name": "summary",
-        "path": "out/coverage.summary.json"
       },
       {
         "name": "stage_metrics",

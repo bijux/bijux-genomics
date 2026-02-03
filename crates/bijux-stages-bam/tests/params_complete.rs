@@ -230,6 +230,7 @@ fn sex_params_complete() -> Result<()> {
 }
 
 #[test]
+#[cfg(feature = "bam_downstream")]
 fn bias_mitigation_params_complete() -> Result<()> {
     let params = bijux_domain_bam::params::BiasMitigationEffectiveParams {
         gc_bias_correction: true,
@@ -272,6 +273,7 @@ fn recalibration_params_complete() -> Result<()> {
 }
 
 #[test]
+#[cfg(feature = "bam_downstream")]
 fn haplogroups_params_complete() -> Result<()> {
     let params = bijux_domain_bam::params::HaplogroupEffectiveParams {
         reference_panel: "mito_default".to_string(),
@@ -288,6 +290,7 @@ fn haplogroups_params_complete() -> Result<()> {
 }
 
 #[test]
+#[cfg(feature = "bam_downstream")]
 fn genotyping_params_complete() -> Result<()> {
     let params = bijux_domain_bam::params::GenotypingEffectiveParams {
         caller: "angsd".to_string(),
@@ -308,6 +311,7 @@ fn genotyping_params_complete() -> Result<()> {
 }
 
 #[test]
+#[cfg(feature = "bam_downstream")]
 fn kinship_params_complete() -> Result<()> {
     let params = bijux_domain_bam::params::KinshipEffectiveParams {
         reference_panel: "king_default".to_string(),

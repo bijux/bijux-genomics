@@ -140,12 +140,19 @@ pub mod coverage {
         out_dir: &Path,
         params: &CoverageEffectiveParams,
     ) -> anyhow::Result<StagePlanV1> {
-        let outputs =
+        let mut outputs =
             crate::stages_support::audit_outputs(bijux_domain_bam::BamStage::Coverage, out_dir);
         let prefix = out_dir.join("coverage");
         let depth_path = out_dir.join("coverage.depth.txt");
+        let summary_path = out_dir.join("coverage.mosdepth.summary.txt");
         let command = match tool.tool_id.0.as_str() {
-            "samtools" => crate::tools::samtools::depth_args(bam, &depth_path),
+            "samtools" => {
+                outputs.push(bijux_core::ArtifactRef {
+                    name: "coverage_depth".to_string(),
+                    path: depth_path.clone(),
+                });
+                crate::tools::samtools::depth_args(bam, &depth_path, &summary_path)
+            }
             _ => crate::tools::mosdepth::args(bam, &prefix, params),
         };
         let plan = StagePlanV1 {
@@ -174,16 +181,7 @@ pub mod coverage {
             )?,
             aux_images: std::collections::BTreeMap::new(),
         };
-        crate::stages_support::ensure_required_outputs(
-            plan,
-            &[
-                "coverage_report",
-                "coverage_summary",
-                "coverage_depth",
-                "summary",
-                "stage_metrics",
-            ],
-        )
+        crate::stages_support::ensure_required_outputs(plan, &["coverage_summary", "stage_metrics"])
     }
 }
 

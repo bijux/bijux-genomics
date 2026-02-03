@@ -47,7 +47,7 @@ fn tool_spec(tool_id: &str, runner: RunnerKind) -> Result<ToolExecutionSpecV1> {
 }
 
 #[test]
-fn bam_mini_run_validate_qc_pre_coverage() -> Result<()> {
+fn bam_mini_run_validate_qc_pre_coverage_damage() -> Result<()> {
     if std::env::var("BIJUX_E2E").is_err() {
         return Ok(());
     }
@@ -70,6 +70,7 @@ fn bam_mini_run_validate_qc_pre_coverage() -> Result<()> {
     let validate_tool = tool_spec("samtools", platform.runner)?;
     let qc_tool = tool_spec("samtools", platform.runner)?;
     let coverage_tool = tool_spec("mosdepth", platform.runner)?;
+    let damage_tool = tool_spec("pydamage", platform.runner)?;
 
     let validate_plan = bijux_stages_bam::bam::validate::plan(
         &validate_tool,
@@ -106,6 +107,28 @@ fn bam_mini_run_validate_qc_pre_coverage() -> Result<()> {
         .path()
         .join("coverage")
         .join("coverage.mosdepth.summary.txt")
+        .exists());
+
+    let damage_params = bijux_domain_bam::params::DamageEffectiveParams {
+        udg_model: bijux_domain_bam::params::UdgModel::NonUdg,
+        pmd_threshold_5p: 0.3,
+        pmd_threshold_3p: 0.3,
+        trim_5p: 2,
+        trim_3p: 2,
+    };
+    let damage_plan = bijux_stages_bam::bam::damage::plan(
+        &damage_tool,
+        input.as_path(),
+        out_dir.path().join("damage").as_path(),
+        &damage_params,
+    )?;
+    let damage_result = execute_plan(&damage_plan, platform.runner, None)?;
+    assert_eq!(damage_result.exit_code, 0);
+
+    assert!(out_dir
+        .path()
+        .join("damage")
+        .join("damage.pydamage.json")
         .exists());
 
     Ok(())

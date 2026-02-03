@@ -123,7 +123,7 @@ pub mod qc_pre {
         };
         crate::stages_support::ensure_required_outputs(
             plan,
-            &["qc_report", "flagstat", "stats", "summary", "stage_metrics"],
+            &["flagstat", "idxstats", "stats", "stage_metrics"],
         )
     }
 }
