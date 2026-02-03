@@ -40,6 +40,7 @@ fn cli_fastq_exec_does_not_introduce_new_modules() -> Result<(), Box<dyn std::er
         "filter.rs",
         "merge.rs",
         "mod.rs",
+        "mod.rs",
         "preprocess.rs",
         "preprocess_exec.rs",
         "qc_post.rs",
