@@ -1,6 +1,7 @@
-use bijux_domain_bam::BamStage;
+use bijux_domain_bam::{bam_stage_is_complete, bam_stage_is_stable, BamStage};
 use bijux_domain_fastq::{contract_for_stage, parse_effective_params};
 use bijux_pipelines::registry::{bam_profiles, cross_profiles, fastq_profiles};
+use bijux_pipelines::{validate_pipeline_id, StabilityTier};
 
 #[test]
 fn pipeline_profiles_reference_known_stages_and_defaults() {
@@ -10,6 +11,8 @@ fn pipeline_profiles_reference_known_stages_and_defaults() {
     profiles.extend(cross_profiles());
 
     for profile in profiles {
+        validate_pipeline_id(profile.id)
+            .unwrap_or_else(|_| panic!("invalid pipeline id {}", profile.id));
         for node in &profile.graph {
             let stage_id = node.stage_id.as_str();
             assert!(
@@ -45,6 +48,18 @@ fn pipeline_profiles_reference_known_stages_and_defaults() {
             } else if stage_id.starts_with("bam.") {
                 let stage = BamStage::try_from(stage_id)
                     .unwrap_or_else(|_| panic!("unknown BAM stage {stage_id}"));
+                if profile.stability == StabilityTier::Stable {
+                    assert!(
+                        bam_stage_is_stable(stage),
+                        "stable pipeline {} includes non-stable BAM stage {stage_id}",
+                        profile.id
+                    );
+                    assert!(
+                        bam_stage_is_complete(stage),
+                        "stable pipeline {} includes incomplete BAM stage {stage_id}",
+                        profile.id
+                    );
+                }
                 let Some(params) = profile.defaults.params.get(stage_id) else {
                     panic!(
                         "missing BAM params for {stage_id} in profile {}",

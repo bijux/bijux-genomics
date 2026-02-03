@@ -3,8 +3,9 @@ source: crates/bijux-pipelines/tests/profiles.rs
 expression: bam_default_profile()
 ---
 {
-  "id": "default",
+  "id": "bam__default__v1",
   "description": "Default BAM pipeline",
+  "stability": "Stable",
   "domains": [
     "Bam"
   ],
@@ -19,70 +20,21 @@ expression: bam_default_profile()
       "stage_id": "bam.filter"
     },
     {
-      "stage_id": "bam.markdup"
-    },
-    {
-      "stage_id": "bam.complexity"
-    },
-    {
       "stage_id": "bam.coverage"
     },
     {
       "stage_id": "bam.damage"
-    },
-    {
-      "stage_id": "bam.authenticity"
-    },
-    {
-      "stage_id": "bam.contamination"
-    },
-    {
-      "stage_id": "bam.sex"
-    },
-    {
-      "stage_id": "bam.bias_mitigation"
-    },
-    {
-      "stage_id": "bam.recalibration"
     }
   ],
   "defaults": {
     "tools": {
-      "bam.authenticity": "authenticity",
-      "bam.bias_mitigation": "angsd",
-      "bam.complexity": "preseq",
-      "bam.contamination": "authenticct",
       "bam.coverage": "mosdepth",
       "bam.damage": "pydamage",
       "bam.filter": "samtools",
-      "bam.markdup": "gatk",
       "bam.qc_pre": "samtools",
-      "bam.recalibration": "gatk",
-      "bam.sex": "rxy",
       "bam.validate": "samtools"
     },
     "params": {
-      "bam.authenticity": {
-        "mode": "aggregate"
-      },
-      "bam.bias_mitigation": {
-        "gc_bias_correction": true,
-        "map_bias_correction": false
-      },
-      "bam.complexity": {
-        "min_reads": 100000,
-        "projection_points": [
-          1000000,
-          2000000
-        ]
-      },
-      "bam.contamination": {
-        "assumptions": null,
-        "prior": null,
-        "reference_panels": [],
-        "scope": "both",
-        "sex_specific": false
-      },
       "bam.coverage": {
         "depth_thresholds": [
           1,
@@ -106,39 +58,38 @@ expression: bam_default_profile()
         "min_length": 30,
         "remove_duplicates": false
       },
-      "bam.markdup": {
-        "duplicate_action": "mark",
-        "optical_duplicates": "mark_only",
-        "umi_policy": "ignore"
-      },
       "bam.qc_pre": {
         "regions": null
-      },
-      "bam.recalibration": {
-        "known_sites": [],
-        "mode": "standard",
-        "skip_criteria": {
-          "min_breadth_1x": 0.5,
-          "min_mean_coverage": 2.0
-        }
-      },
-      "bam.sex": {
-        "expected_sex": null,
-        "method": "rxy"
       },
       "bam.validate": {
         "strict": true
       }
+    },
+    "rationales": {
+      "bam.coverage": "pipeline default",
+      "bam.damage": "pipeline default",
+      "bam.filter": "pipeline default",
+      "bam.qc_pre": "pipeline default",
+      "bam.validate": "pipeline default"
     }
   },
   "invariants_preset": null,
   "capabilities": {
+    "input_domains": [
+      "Bam"
+    ],
+    "output_domains": [
+      "Bam"
+    ],
     "required_inputs": [
       "bam"
     ],
     "produces_outputs": [
       "bam",
       "bam.metrics"
+    ],
+    "report_sections": [
+      "bam"
     ],
     "supports_benchmarking": true
   }

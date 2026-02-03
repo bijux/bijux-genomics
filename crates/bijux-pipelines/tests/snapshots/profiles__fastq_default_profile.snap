@@ -3,8 +3,9 @@ source: crates/bijux-pipelines/tests/profiles.rs
 expression: "fastq_default_profile(DefaultPipelineOptions::default())"
 ---
 {
-  "id": "default",
+  "id": "fastq__default__v1",
   "description": "Default FASTQ pipeline",
+  "stability": "Stable",
   "domains": [
     "Fastq"
   ],
@@ -118,16 +119,38 @@ expression: "fastq_default_profile(DefaultPipelineOptions::default())"
         "q_cutoff": null,
         "threads": 1
       }
+    },
+    "rationales": {
+      "fastq.correct": "pipeline default",
+      "fastq.detect_adapters": "pipeline default",
+      "fastq.filter": "pipeline default",
+      "fastq.merge": "pipeline default",
+      "fastq.preprocess": "pipeline default",
+      "fastq.qc_post": "pipeline default",
+      "fastq.screen": "pipeline default",
+      "fastq.stats_neutral": "pipeline default",
+      "fastq.trim": "pipeline default",
+      "fastq.umi": "pipeline default",
+      "fastq.validate_pre": "pipeline default"
     }
   },
   "invariants_preset": null,
   "capabilities": {
+    "input_domains": [
+      "Fastq"
+    ],
+    "output_domains": [
+      "Fastq"
+    ],
     "required_inputs": [
       "fastq"
     ],
     "produces_outputs": [
       "fastq",
       "fastq.metrics"
+    ],
+    "report_sections": [
+      "fastq"
     ],
     "supports_benchmarking": true
   }

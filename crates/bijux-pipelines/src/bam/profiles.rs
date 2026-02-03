@@ -38,14 +38,23 @@ fn base_defaults() -> Vec<BamStageDefault> {
 fn to_effective_defaults(defaults: &[BamStageDefault]) -> EffectiveDefaults {
     let mut tools = BTreeMap::new();
     let mut params = BTreeMap::new();
+    let mut rationales = BTreeMap::new();
     for entry in defaults {
         tools.insert(entry.stage.as_str().to_string(), entry.tool.to_string());
         params.insert(
             entry.stage.as_str().to_string(),
             bam_params_value(&entry.params),
         );
+        rationales.insert(
+            entry.stage.as_str().to_string(),
+            "pipeline default".to_string(),
+        );
     }
-    EffectiveDefaults { tools, params }
+    EffectiveDefaults {
+        tools,
+        params,
+        rationales,
+    }
 }
 
 fn bam_params_value(params: &BamEffectiveParams) -> serde_json::Value {
@@ -127,12 +136,20 @@ fn filter_defaults(defaults: &mut Vec<BamStageDefault>, stages: &[BamStage]) {
     defaults.retain(|entry| allowed.contains(&entry.stage));
 }
 
+fn stable_bam_stages() -> Vec<BamStage> {
+    vec![
+        BamStage::Validate,
+        BamStage::QcPre,
+        BamStage::Filter,
+        BamStage::Coverage,
+        BamStage::Damage,
+    ]
+}
+
 #[must_use]
 pub fn bam_default_profile() -> PipelineProfile {
     let mut defaults = base_defaults();
-    let mut stages = BamStage::all().to_vec();
-    stages.retain(|stage| *stage != BamStage::Align);
-    filter_downstream(&mut stages);
+    let stages = stable_bam_stages();
     filter_defaults(&mut defaults, &stages);
     PipelineProfile {
         id: PipelineId::new("bam__default__v1"),
@@ -143,6 +160,8 @@ pub fn bam_default_profile() -> PipelineProfile {
         defaults: to_effective_defaults(&defaults),
         invariants_preset: None,
         capabilities: PipelineCapabilities {
+            input_domains: vec![Domain::Bam],
+            output_domains: vec![Domain::Bam],
             required_inputs: vec!["bam"],
             produces_outputs: vec!["bam", "bam.metrics"],
             report_sections: vec!["bam"],
@@ -195,6 +214,8 @@ pub fn bam_adna_shotgun_profile() -> PipelineProfile {
         defaults: to_effective_defaults(&defaults),
         invariants_preset: Some("adna"),
         capabilities: PipelineCapabilities {
+            input_domains: vec![Domain::Bam],
+            output_domains: vec![Domain::Bam],
             required_inputs: vec!["bam"],
             produces_outputs: vec!["bam", "bam.metrics"],
             report_sections: vec!["bam"],

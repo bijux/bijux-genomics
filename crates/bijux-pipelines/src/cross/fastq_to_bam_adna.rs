@@ -24,8 +24,14 @@ fn base_defaults() -> (PipelineProfile, PipelineProfile, EffectiveDefaults) {
     defaults
         .params
         .extend(fastq_profile.defaults.params.clone());
+    defaults
+        .rationales
+        .extend(fastq_profile.defaults.rationales.clone());
     defaults.tools.extend(bam_profile.defaults.tools.clone());
     defaults.params.extend(bam_profile.defaults.params.clone());
+    defaults
+        .rationales
+        .extend(bam_profile.defaults.rationales.clone());
     (fastq_profile, bam_profile, defaults)
 }
 
@@ -59,6 +65,10 @@ pub fn fastq_to_bam_adna_shotgun_profile() -> PipelineProfile {
     defaults
         .params
         .insert("bam.align".to_string(), align_defaults("adna_short"));
+    defaults.rationales.insert(
+        "bam.align".to_string(),
+        "aDNA default alignment preset".to_string(),
+    );
 
     PipelineProfile {
         id: PipelineId::new("fastq-to-bam__adna_shotgun__v1"),
@@ -88,6 +98,8 @@ pub fn fastq_to_bam_adna_shotgun_profile() -> PipelineProfile {
         defaults,
         invariants_preset: Some("adna"),
         capabilities: PipelineCapabilities {
+            input_domains: vec![Domain::Fastq, Domain::Cross],
+            output_domains: vec![Domain::Bam],
             required_inputs: vec!["fastq", "reference"],
             produces_outputs: vec!["fastq", "bam", "bam.metrics"],
             report_sections: vec!["fastq", "bam", "cross.handoff"],
@@ -111,11 +123,15 @@ pub fn fastq_to_bam_default_profile() -> PipelineProfile {
     defaults
         .params
         .insert("bam.align".to_string(), align_defaults("default"));
+    defaults.rationales.insert(
+        "bam.align".to_string(),
+        "modern default alignment preset".to_string(),
+    );
 
     PipelineProfile {
         id: PipelineId::new("fastq-to-bam__default__v1"),
         description: "FASTQ preprocess → align → BAM QC/damage (modern defaults)",
-        stability: StabilityTier::Stable,
+        stability: StabilityTier::Beta,
         domains: vec![Domain::Fastq, Domain::Cross, Domain::Bam],
         graph: vec![
             StageNode {
@@ -140,6 +156,8 @@ pub fn fastq_to_bam_default_profile() -> PipelineProfile {
         defaults,
         invariants_preset: None,
         capabilities: PipelineCapabilities {
+            input_domains: vec![Domain::Fastq, Domain::Cross],
+            output_domains: vec![Domain::Bam],
             required_inputs: vec!["fastq", "reference"],
             produces_outputs: vec!["fastq", "bam", "bam.metrics"],
             report_sections: vec!["fastq", "bam", "cross.handoff"],

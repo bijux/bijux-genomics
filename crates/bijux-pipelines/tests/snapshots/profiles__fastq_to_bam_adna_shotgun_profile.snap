@@ -3,8 +3,9 @@ source: crates/bijux-pipelines/tests/profiles.rs
 expression: fastq_to_bam_adna_shotgun_profile()
 ---
 {
-  "id": "fastq-to-bam-adna-shotgun",
+  "id": "fastq-to-bam__adna_shotgun__v1",
   "description": "FASTQ preprocess → align → BAM QC/damage (aDNA shotgun)",
+  "stability": "Beta",
   "domains": [
     "Fastq",
     "Cross",
@@ -209,10 +210,42 @@ expression: fastq_to_bam_adna_shotgun_profile()
         "q_cutoff": null,
         "threads": 1
       }
+    },
+    "rationales": {
+      "bam.align": "aDNA default alignment preset",
+      "bam.authenticity": "pipeline default",
+      "bam.bias_mitigation": "pipeline default",
+      "bam.complexity": "pipeline default",
+      "bam.contamination": "pipeline default",
+      "bam.coverage": "pipeline default",
+      "bam.damage": "pipeline default",
+      "bam.filter": "pipeline default",
+      "bam.markdup": "pipeline default",
+      "bam.qc_pre": "pipeline default",
+      "bam.sex": "pipeline default",
+      "bam.validate": "pipeline default",
+      "fastq.correct": "pipeline default",
+      "fastq.detect_adapters": "pipeline default",
+      "fastq.filter": "pipeline default",
+      "fastq.merge": "pipeline default",
+      "fastq.preprocess": "pipeline default",
+      "fastq.qc_post": "pipeline default",
+      "fastq.screen": "pipeline default",
+      "fastq.stats_neutral": "pipeline default",
+      "fastq.trim": "pipeline default",
+      "fastq.umi": "pipeline default",
+      "fastq.validate_pre": "pipeline default"
     }
   },
   "invariants_preset": "adna",
   "capabilities": {
+    "input_domains": [
+      "Fastq",
+      "Cross"
+    ],
+    "output_domains": [
+      "Bam"
+    ],
     "required_inputs": [
       "fastq",
       "reference"
@@ -221,6 +254,11 @@ expression: fastq_to_bam_adna_shotgun_profile()
       "fastq",
       "bam",
       "bam.metrics"
+    ],
+    "report_sections": [
+      "fastq",
+      "bam",
+      "cross.handoff"
     ],
     "supports_benchmarking": false
   }

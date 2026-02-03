@@ -205,7 +205,17 @@ fn fastq_defaults(paired: bool) -> EffectiveDefaults {
         })
         .unwrap_or(serde_json::Value::Null),
     );
-    EffectiveDefaults { tools, params }
+    let mut rationales = BTreeMap::new();
+    for stage_id in tools.keys() {
+        rationales
+            .entry(stage_id.to_string())
+            .or_insert_with(|| "pipeline default".to_string());
+    }
+    EffectiveDefaults {
+        tools,
+        params,
+        rationales,
+    }
 }
 
 fn to_graph(stages: &[String]) -> Vec<StageNode> {
@@ -229,6 +239,8 @@ pub fn fastq_minimal_profile() -> PipelineProfile {
         defaults: fastq_defaults(false),
         invariants_preset: None,
         capabilities: PipelineCapabilities {
+            input_domains: vec![Domain::Fastq],
+            output_domains: vec![Domain::Fastq],
             required_inputs: vec!["fastq"],
             produces_outputs: vec!["fastq", "fastq.metrics"],
             report_sections: vec!["fastq"],
@@ -262,6 +274,8 @@ pub fn fastq_default_profile(options: DefaultPipelineOptions) -> PipelineProfile
         defaults: fastq_defaults(options.paired),
         invariants_preset: None,
         capabilities: PipelineCapabilities {
+            input_domains: vec![Domain::Fastq],
+            output_domains: vec![Domain::Fastq],
             required_inputs: vec!["fastq"],
             produces_outputs: vec!["fastq", "fastq.metrics"],
             report_sections: vec!["fastq"],
