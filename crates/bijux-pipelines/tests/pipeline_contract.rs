@@ -1,7 +1,6 @@
 use bijux_domain_bam::{bam_stage_is_complete, bam_stage_is_stable, BamStage};
 use bijux_domain_fastq::{
-    canonical_stage_order, forbidden_transitions, optional_branches, stage_criticality,
-    StageCriticality,
+    canonical_stage_order, fastq_stage_is_stable, forbidden_transitions, optional_branches,
 };
 use bijux_domain_fastq::{contract_for_stage, parse_effective_params};
 use bijux_pipelines::registry::{bam_profiles, cross_profiles, fastq_profiles};
@@ -41,13 +40,11 @@ fn pipeline_profiles_reference_known_stages_and_defaults() {
                     profile.id
                 );
                 if profile.stability == StabilityTier::Stable {
-                    if let Some(criticality) = stage_criticality(stage_id) {
-                        assert!(
-                            criticality != StageCriticality::Experimental,
-                            "stable pipeline {} includes experimental FASTQ stage {stage_id}",
-                            profile.id
-                        );
-                    }
+                    assert!(
+                        fastq_stage_is_stable(stage_id),
+                        "stable pipeline {} includes non-stable FASTQ stage {stage_id}",
+                        profile.id
+                    );
                 }
                 let Some(params) = profile.defaults.params.get(stage_id) else {
                     panic!(
