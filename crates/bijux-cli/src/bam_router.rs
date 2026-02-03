@@ -110,6 +110,9 @@ impl From<&BenchBamStageArgs> for crate::cli::parse::BamRunArgs {
         crate::cli::parse::BamRunArgs {
             stage: value.stage,
             profile: "default".to_string(),
+            sample_id: Some(value.sample_id.clone()),
+            r1: None,
+            r2: None,
             bam: value.bam.clone(),
             out: value.out.clone(),
             tool: None,
@@ -154,6 +157,13 @@ impl From<&BenchBamStageArgs> for crate::cli::parse::BamRunArgs {
             gc_bias_correction: false,
             map_bias_correction: false,
             authenticity_mode: None,
+            aligner_preset: None,
+            rg_id: None,
+            rg_sm: None,
+            rg_pl: None,
+            rg_lb: None,
+            rg_policy: None,
+            build_reference_indices: false,
             params_json: None,
             dry_run: value.dry_run,
         }
@@ -163,6 +173,7 @@ impl From<&BenchBamStageArgs> for crate::cli::parse::BamRunArgs {
 impl From<bijux_domain_bam::BamStage> for crate::cli::parse::BamStageArg {
     fn from(value: bijux_domain_bam::BamStage) -> Self {
         match value {
+            bijux_domain_bam::BamStage::Align => crate::cli::parse::BamStageArg::Align,
             bijux_domain_bam::BamStage::Validate => crate::cli::parse::BamStageArg::Validate,
             bijux_domain_bam::BamStage::QcPre => crate::cli::parse::BamStageArg::QcPre,
             bijux_domain_bam::BamStage::Filter => crate::cli::parse::BamStageArg::Filter,

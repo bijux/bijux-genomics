@@ -41,3 +41,30 @@ pub fn ensure_required_outputs(plan: StagePlanV1, required: &[&str]) -> Result<S
     }
     Ok(plan)
 }
+
+pub struct ReferenceAssets {
+    pub fasta: std::path::PathBuf,
+    pub fai: std::path::PathBuf,
+    pub dict: std::path::PathBuf,
+}
+
+/// # Errors
+/// Returns an error if reference assets are missing and auto-build is disabled.
+pub fn ensure_reference_assets(
+    reference: &Path,
+    build_indices: bool,
+    require_dict: bool,
+) -> Result<ReferenceAssets> {
+    let fasta = reference.to_path_buf();
+    let fai = reference.with_extension("fai");
+    let dict = reference.with_extension("dict");
+    if !build_indices {
+        if !fai.exists() {
+            anyhow::bail!("reference index missing: {}", fai.display());
+        }
+        if require_dict && !dict.exists() {
+            anyhow::bail!("reference dict missing: {}", dict.display());
+        }
+    }
+    Ok(ReferenceAssets { fasta, fai, dict })
+}

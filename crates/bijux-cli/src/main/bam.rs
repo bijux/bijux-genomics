@@ -1,5 +1,5 @@
 use bijux_core::ToolRegistry;
-use bijux_engine::api::{build_tool_execution_spec, execute_stage_plan};
+use bijux_engine::api::{build_tool_execution_spec, execute_stage_plan, hash_file_sha256};
 use bijux_pipelines::registry;
 use bijux_pipelines::{Domain, PipelineProfile};
 use bijux_env_runtime::api::RunnerKind;
@@ -111,6 +111,69 @@ pub(crate) fn plan_for_bam_stage_with_profile(
         ));
     }
     match stage {
+        bijux_domain_bam::BamStage::Align => {
+            let r1 = args
+                .r1
+                .as_deref()
+                .ok_or_else(|| anyhow!("--r1 is required for bam.align"))?;
+            let reference = args
+                .reference
+                .as_deref()
+                .ok_or_else(|| anyhow!("--reference is required for bam.align"))?;
+            let sample_id = args
+                .sample_id
+                .as_deref()
+                .ok_or_else(|| anyhow!("--sample-id is required for bam.align"))?;
+            let digest = hash_file_sha256(reference)?;
+            let mut params = match default_params_for_stage(profile, stage) {
+                bijux_domain_bam::params::BamEffectiveParams::Align(params) => params,
+                _ => bijux_domain_bam::params::AlignEffectiveParams {
+                    aligner: spec.tool_id.0.clone(),
+                    preset: args
+                        .aligner_preset
+                        .clone()
+                        .unwrap_or_else(|| "default".to_string()),
+                    threads: 1,
+                    reference: reference.display().to_string(),
+                    reference_digest: digest.clone(),
+                    rg_policy: bijux_domain_bam::types::sample_meta::ReadGroupPolicy::Regenerate,
+                    read_group: bijux_domain_bam::params::ReadGroupSpec::with_defaults(sample_id),
+                    build_indices: args.build_reference_indices,
+                    emit_stats: true,
+                },
+            };
+            params.reference = reference.display().to_string();
+            params.reference_digest = digest;
+            if let Some(preset) = &args.aligner_preset {
+                params.preset = preset.clone();
+            }
+            if let Some(rg) = &args.rg_id {
+                params.read_group.id = rg.clone();
+            }
+            if let Some(rg) = &args.rg_sm {
+                params.read_group.sample = rg.clone();
+            }
+            if let Some(rg) = &args.rg_pl {
+                params.read_group.platform = rg.clone();
+            }
+            if let Some(rg) = &args.rg_lb {
+                params.read_group.library = rg.clone();
+            }
+            if let Some(policy) = args.rg_policy {
+                params.rg_policy = policy.into();
+            }
+            params.aligner = spec.tool_id.0.clone();
+            params.build_indices = args.build_reference_indices;
+            bijux_stages_bam::bam::align::plan(
+                spec,
+                r1,
+                args.r2.as_deref(),
+                reference,
+                sample_id,
+                &params,
+                out_dir,
+            )
+        }
         bijux_domain_bam::BamStage::Validate => bijux_stages_bam::bam::validate::plan(
             spec,
             &args.bam,

@@ -1,4 +1,6 @@
 pub mod authenticct;
+pub mod bowtie2;
+pub mod bwa;
 pub mod gatk;
 pub mod mapdamage2;
 pub mod mosdepth;
@@ -15,6 +17,8 @@ pub fn available_tools() -> &'static [&'static str] {
         "preseq",
         "pydamage",
         "mapdamage2",
+        "bwa",
+        "bowtie2",
         "gatk",
         "authenticct",
         "rxy",

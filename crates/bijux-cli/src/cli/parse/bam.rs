@@ -2,6 +2,7 @@
 
 #[derive(Debug, Clone, Copy, ValueEnum)]
 pub enum BamStageArg {
+    Align,
     Validate,
     QcPre,
     Filter,
@@ -23,6 +24,7 @@ impl BamStageArg {
     #[must_use]
     pub fn stage(self) -> bijux_domain_bam::BamStage {
         match self {
+            BamStageArg::Align => bijux_domain_bam::BamStage::Align,
             BamStageArg::Validate => bijux_domain_bam::BamStage::Validate,
             BamStageArg::QcPre => bijux_domain_bam::BamStage::QcPre,
             BamStageArg::Filter => bijux_domain_bam::BamStage::Filter,
@@ -55,6 +57,29 @@ impl From<UdgModelArg> for bijux_domain_bam::params::UdgModel {
             UdgModelArg::NonUdg => bijux_domain_bam::params::UdgModel::NonUdg,
             UdgModelArg::HalfUdg => bijux_domain_bam::params::UdgModel::HalfUdg,
             UdgModelArg::Udg => bijux_domain_bam::params::UdgModel::Udg,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, ValueEnum)]
+pub enum ReadGroupPolicyArg {
+    Preserve,
+    Merge,
+    Regenerate,
+}
+
+impl From<ReadGroupPolicyArg> for bijux_domain_bam::types::sample_meta::ReadGroupPolicy {
+    fn from(value: ReadGroupPolicyArg) -> Self {
+        match value {
+            ReadGroupPolicyArg::Preserve => {
+                bijux_domain_bam::types::sample_meta::ReadGroupPolicy::Preserve
+            }
+            ReadGroupPolicyArg::Merge => {
+                bijux_domain_bam::types::sample_meta::ReadGroupPolicy::Merge
+            }
+            ReadGroupPolicyArg::Regenerate => {
+                bijux_domain_bam::types::sample_meta::ReadGroupPolicy::Regenerate
+            }
         }
     }
 }
@@ -168,6 +193,12 @@ pub struct BamRunArgs {
     pub stage: BamStageArg,
     #[arg(long, default_value = "default")]
     pub profile: String,
+    #[arg(long, alias = "sample")]
+    pub sample_id: Option<String>,
+    #[arg(long)]
+    pub r1: Option<PathBuf>,
+    #[arg(long)]
+    pub r2: Option<PathBuf>,
     #[arg(long)]
     pub bam: PathBuf,
     #[arg(long)]
@@ -256,6 +287,20 @@ pub struct BamRunArgs {
     pub map_bias_correction: bool,
     #[arg(long)]
     pub authenticity_mode: Option<String>,
+    #[arg(long)]
+    pub aligner_preset: Option<String>,
+    #[arg(long)]
+    pub rg_id: Option<String>,
+    #[arg(long)]
+    pub rg_sm: Option<String>,
+    #[arg(long)]
+    pub rg_pl: Option<String>,
+    #[arg(long)]
+    pub rg_lb: Option<String>,
+    #[arg(long, value_enum)]
+    pub rg_policy: Option<ReadGroupPolicyArg>,
+    #[arg(long)]
+    pub build_reference_indices: bool,
     #[arg(long, value_name = "PATH")]
     pub params_json: Option<PathBuf>,
     #[arg(long)]

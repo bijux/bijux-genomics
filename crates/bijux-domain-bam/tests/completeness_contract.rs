@@ -17,6 +17,7 @@ fn fixture_path(name: &str) -> PathBuf {
 
 fn params_to_value(params: &BamEffectiveParams) -> anyhow::Result<serde_json::Value> {
     let value = match params {
+        BamEffectiveParams::Align(inner) => serde_json::to_value(inner),
         BamEffectiveParams::Validate(inner) => serde_json::to_value(inner),
         BamEffectiveParams::QcPre(inner) => serde_json::to_value(inner),
         BamEffectiveParams::Filter(inner) => serde_json::to_value(inner),

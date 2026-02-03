@@ -51,6 +51,31 @@ fn assert_snapshot(name: &str, plan: &bijux_core::StagePlanV1) -> Result<()> {
 }
 
 #[test]
+fn align_plan_json_is_emitted_and_stable() -> Result<()> {
+    let params = bijux_domain_bam::params::AlignEffectiveParams {
+        aligner: "bwa".to_string(),
+        preset: "default".to_string(),
+        threads: 1,
+        reference: "reference.fasta".to_string(),
+        reference_digest: "sha256:ref".to_string(),
+        rg_policy: bijux_domain_bam::types::sample_meta::ReadGroupPolicy::Regenerate,
+        read_group: bijux_domain_bam::params::ReadGroupSpec::with_defaults("sample"),
+        build_indices: false,
+        emit_stats: true,
+    };
+    let plan = bijux_stages_bam::bam::align::plan(
+        &dummy_tool("bwa"),
+        Path::new("reads_R1.fastq.gz"),
+        Some(Path::new("reads_R2.fastq.gz")),
+        Path::new("reference.fasta"),
+        "sample",
+        &params,
+        Path::new("out"),
+    )?;
+    assert_snapshot("bam_align_plan.json", &plan)
+}
+
+#[test]
 fn validate_plan_json_is_emitted_and_stable() -> Result<()> {
     let plan = bijux_stages_bam::bam::validate::plan(
         &dummy_tool("samtools"),

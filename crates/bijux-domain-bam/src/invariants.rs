@@ -66,6 +66,16 @@ fn evaluate_bam_invariants_inner(
     let mut results = Vec::new();
     let mut status = InvariantStatusV1::Pass;
 
+    if metrics.idxstats.reference_mismatch {
+        results.push(InvariantResultV1 {
+            id: "reference_mismatch".to_string(),
+            status: InvariantStatusV1::Fail,
+            message: "reference contigs do not match BAM header".to_string(),
+            remediation: Some("verify the reference FASTA used for alignment".to_string()),
+        });
+        status = InvariantStatusV1::Fail;
+    }
+
     if matches!(
         stage_id,
         "bam.sex" | "bam.contamination" | "bam.haplogroups" | "bam.kinship"

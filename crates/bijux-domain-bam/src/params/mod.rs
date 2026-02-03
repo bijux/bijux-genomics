@@ -2,6 +2,7 @@
 //! Canonical effective parameters for BAM stages.
 
 mod authenticity;
+mod align;
 mod bias_mitigation;
 mod common;
 mod complexity;
@@ -19,6 +20,7 @@ mod sex;
 mod validate;
 
 pub use authenticity::AuthenticityEffectiveParams;
+pub use align::{AlignEffectiveParams, ReadGroupSpec};
 pub use bias_mitigation::BiasMitigationEffectiveParams;
 pub use common::{
     BqsrMode, ContaminationScope, DuplicateAction, OpticalDuplicatePolicy, UdgModel, UmiPolicy,
@@ -43,6 +45,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(tag = "stage", rename_all = "snake_case")]
 pub enum BamEffectiveParams {
+    Align(AlignEffectiveParams),
     Validate(ValidateEffectiveParams),
     QcPre(QcPreEffectiveParams),
     Filter(FilterEffectiveParams),

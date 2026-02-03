@@ -65,6 +65,11 @@ pub const FASTQ_METRICS_SCHEMAS: &[MetricsSchemaId] = &[
 
 pub const BAM_METRICS_SCHEMAS: &[MetricsSchemaId] = &[
     MetricsSchemaId {
+        stage_id: "bam.align",
+        schema: "bam_metrics_v1",
+        version: 1,
+    },
+    MetricsSchemaId {
         stage_id: "bam.validate",
         schema: "bam_metrics_v1",
         version: 1,

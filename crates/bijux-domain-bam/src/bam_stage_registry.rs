@@ -5,12 +5,13 @@ use bijux_core::StageId;
 use serde::{Deserialize, Serialize};
 
 use crate::params::{
-    AuthenticityEffectiveParams, BamEffectiveParams, BiasMitigationEffectiveParams,
-    BqsrEffectiveParams, BqsrMode, ComplexityEffectiveParams, ContaminationEffectiveParams,
-    ContaminationScope, CoverageEffectiveParams, DamageEffectiveParams, DuplicateAction,
-    FilterEffectiveParams, GenotypingEffectiveParams, HaplogroupEffectiveParams,
-    KinshipEffectiveParams, MarkDupEffectiveParams, OpticalDuplicatePolicy, QcPreEffectiveParams,
-    RecalibrationSkipCriteria, SexEffectiveParams, UdgModel, UmiPolicy, ValidateEffectiveParams,
+    AlignEffectiveParams, AuthenticityEffectiveParams, BamEffectiveParams,
+    BiasMitigationEffectiveParams, BqsrEffectiveParams, BqsrMode, ComplexityEffectiveParams,
+    ContaminationEffectiveParams, ContaminationScope, CoverageEffectiveParams,
+    DamageEffectiveParams, DuplicateAction, FilterEffectiveParams, GenotypingEffectiveParams,
+    HaplogroupEffectiveParams, KinshipEffectiveParams, MarkDupEffectiveParams,
+    OpticalDuplicatePolicy, QcPreEffectiveParams, ReadGroupSpec, RecalibrationSkipCriteria,
+    SexEffectiveParams, UdgModel, UmiPolicy, ValidateEffectiveParams,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -40,6 +41,7 @@ pub struct AuditArtifact {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum BamStage {
+    Align,
     Validate,
     QcPre,
     Filter,
@@ -61,6 +63,7 @@ impl BamStage {
     #[must_use]
     pub const fn as_str(self) -> &'static str {
         match self {
+            BamStage::Align => "bam.align",
             BamStage::Validate => "bam.validate",
             BamStage::QcPre => "bam.qc_pre",
             BamStage::Filter => "bam.filter",
@@ -87,6 +90,7 @@ impl BamStage {
     #[must_use]
     pub const fn all() -> &'static [BamStage] {
         &[
+            BamStage::Align,
             BamStage::Validate,
             BamStage::QcPre,
             BamStage::Filter,
@@ -110,6 +114,8 @@ impl BamStage {
     /// effective params schema for the stage.
     pub fn parse_effective_params(self, value: &serde_json::Value) -> Result<BamEffectiveParams> {
         match self {
+            BamStage::Align => serde_json::from_value::<AlignEffectiveParams>(value.clone())
+                .map(BamEffectiveParams::Align),
             BamStage::Validate => serde_json::from_value::<ValidateEffectiveParams>(value.clone())
                 .map(BamEffectiveParams::Validate),
             BamStage::QcPre => serde_json::from_value::<QcPreEffectiveParams>(value.clone())
@@ -162,6 +168,7 @@ impl TryFrom<&str> for BamStage {
 
     fn try_from(value: &str) -> Result<Self> {
         match value {
+            "bam.align" => Ok(BamStage::Align),
             "bam.validate" => Ok(BamStage::Validate),
             "bam.qc_pre" => Ok(BamStage::QcPre),
             "bam.filter" => Ok(BamStage::Filter),
@@ -202,6 +209,36 @@ pub struct BamStageSpec {
 #[allow(clippy::too_many_lines)]
 pub fn required_audit_artifacts(stage: BamStage) -> &'static [AuditArtifact] {
     match stage {
+        BamStage::Align => &[
+            AuditArtifact {
+                name: "align_bam",
+                filename: "align.bam",
+            },
+            AuditArtifact {
+                name: "align_bai",
+                filename: "align.bam.bai",
+            },
+            AuditArtifact {
+                name: "flagstat",
+                filename: "flagstat.txt",
+            },
+            AuditArtifact {
+                name: "idxstats",
+                filename: "idxstats.txt",
+            },
+            AuditArtifact {
+                name: "stats",
+                filename: "samtools_stats.txt",
+            },
+            AuditArtifact {
+                name: "align_metrics",
+                filename: "align.metrics.json",
+            },
+            AuditArtifact {
+                name: "stage_metrics",
+                filename: "stage.metrics.json",
+            },
+        ],
         BamStage::Validate => &[
             AuditArtifact {
                 name: "validation_report",
@@ -471,6 +508,35 @@ pub fn required_audit_artifacts(stage: BamStage) -> &'static [AuditArtifact] {
 #[allow(clippy::too_many_lines)]
 pub fn stage_spec(stage: BamStage) -> BamStageSpec {
     match stage {
+        BamStage::Align => BamStageSpec {
+            stage,
+            required_inputs: &["fastq_r1"],
+            artifact_policy: ArtifactPolicy {
+                required_outputs: &[
+                    "align_bam",
+                    "align_bai",
+                    "flagstat",
+                    "idxstats",
+                    "stats",
+                    "align_metrics",
+                    "stage_metrics",
+                ],
+                required_audit: required_audit_artifacts(stage),
+            },
+            allowed_tools: &["bwa", "bowtie2"],
+            default_tool: "bwa",
+            default_params: BamEffectiveParams::Align(AlignEffectiveParams {
+                aligner: "bwa".to_string(),
+                preset: "default".to_string(),
+                threads: 1,
+                reference: "reference.fasta".to_string(),
+                reference_digest: "unknown".to_string(),
+                rg_policy: crate::types::sample_meta::ReadGroupPolicy::Regenerate,
+                read_group: ReadGroupSpec::with_defaults("sample"),
+                build_indices: false,
+                emit_stats: true,
+            }),
+        },
         BamStage::Validate => BamStageSpec {
             stage,
             required_inputs: &["bam"],
