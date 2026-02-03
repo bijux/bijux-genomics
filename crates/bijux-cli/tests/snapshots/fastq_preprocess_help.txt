@@ -11,6 +11,8 @@ Options:
           Allow silver-tier tools
       --allow-experimental
           Allow experimental-tier tools
+      --pipeline-profile <PIPELINE_PROFILE>
+          Pipeline profile id (default, minimal)
       --list-adapter-presets
           
       --list-adapters

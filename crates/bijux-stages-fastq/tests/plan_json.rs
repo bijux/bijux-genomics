@@ -156,6 +156,7 @@ fn correct_plan_json_is_emitted_and_stable() -> Result<()> {
 fn preprocess_plan_json_is_emitted_and_stable() -> Result<()> {
     let args = bijux_stages_fastq::args::BenchFastqPreprocessArgs {
         sample_id: "sample".to_string(),
+        profile: None,
         r1: std::path::PathBuf::from("reads.fastq.gz"),
         r2: None,
         out: std::path::PathBuf::from("artifacts"),

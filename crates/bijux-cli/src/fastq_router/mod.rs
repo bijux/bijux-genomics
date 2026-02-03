@@ -44,6 +44,7 @@ mod tests {
     fn base_args() -> bijux_stages_fastq::args::BenchFastqPreprocessArgs {
         bijux_stages_fastq::args::BenchFastqPreprocessArgs {
             sample_id: "sample".to_string(),
+            profile: None,
             r1: PathBuf::from("reads_R1.fastq.gz"),
             r2: None,
             out: PathBuf::from("out"),

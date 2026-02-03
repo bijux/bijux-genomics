@@ -126,6 +126,7 @@ pub struct BenchFastqStatsArgs {
 #[allow(clippy::struct_excessive_bools)]
 pub struct BenchFastqPreprocessArgs {
     pub sample_id: String,
+    pub profile: Option<String>,
     pub r1: PathBuf,
     pub r2: Option<PathBuf>,
     pub out: PathBuf,

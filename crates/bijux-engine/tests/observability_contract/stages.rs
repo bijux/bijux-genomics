@@ -305,7 +305,7 @@ fn preprocess_emits_telemetry_events() -> Result<()> {
     let old_path = std::env::var("PATH").unwrap_or_default();
     std::env::set_var("PATH", format!("{}:{}", bin_dir.display(), old_path));
 
-    let pipeline = fastq_default_pipeline(DefaultPipelineOptions {
+    let pipeline = bijux_pipelines::fastq::fastq_default_pipeline_spec(DefaultPipelineOptions {
         paired: false,
         ..Default::default()
     });

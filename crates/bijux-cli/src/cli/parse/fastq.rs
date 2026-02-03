@@ -73,6 +73,8 @@ pub struct CommonArgs {
 pub struct FastqPreprocessArgs {
     #[command(flatten)]
     pub common: CommonArgs,
+    #[arg(long, help = "Pipeline profile id (default, minimal)")]
+    pub pipeline_profile: Option<String>,
     #[arg(long)]
     pub list_adapter_presets: bool,
     #[arg(long)]

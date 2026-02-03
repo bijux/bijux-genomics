@@ -228,6 +228,7 @@ pub fn bench_args_preprocess(
 ) -> engine_args::BenchFastqPreprocessArgs {
     engine_args::BenchFastqPreprocessArgs {
         sample_id: args.sample_id.clone(),
+        profile: args.pipeline_profile.clone(),
         r1: args.r1.clone(),
         r2: args.r2.clone(),
         out: args.out.clone(),
@@ -330,6 +331,7 @@ pub fn preprocess_args_from_cli(
         .ok_or_else(|| anyhow::anyhow!("--out is required"))?;
     let mut out_args = engine_args::BenchFastqPreprocessArgs {
         sample_id,
+        profile: args.pipeline_profile.clone(),
         r1,
         r2: args.r2.clone(),
         out,

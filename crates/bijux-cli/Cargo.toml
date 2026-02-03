@@ -25,9 +25,12 @@ bijux-analyze = { path = "../bijux-analyze" }
 bijux-engine = { path = "../bijux-engine" }
 bijux-stages-fastq = { path = "../bijux-stages-fastq" }
 bijux-domain-bam = { path = "../bijux-domain-bam" }
-bijux-pipelines-bam = { path = "../bijux-pipelines-bam" }
+bijux-pipelines = { path = "../bijux-pipelines" }
 bijux-stages-bam = { path = "../bijux-stages-bam" }
 bijux-bench = { path = "../bijux-bench" }
+
+[features]
+bam_downstream = ["bijux-stages-bam/bam_downstream", "bijux-pipelines/bam_downstream"]
 
 [dev-dependencies]
 bijux-guardrails = { path = "../bijux-guardrails" }

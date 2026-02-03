@@ -2,6 +2,8 @@ use bijux_core::domain::PipelineSpec;
 use bijux_core::{ArtifactRef, StageIO, StageId, StagePlanV1, StageVersion, ToolExecutionSpecV1};
 use bijux_domain_fastq::assess_merge_suitability;
 use bijux_domain_fastq::params::{preprocess::PreprocessEffectiveParams, PairedMode};
+use bijux_pipelines::registry;
+use bijux_pipelines::Domain;
 
 pub const STAGE_ID: &str = "fastq.preprocess";
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
@@ -121,13 +123,49 @@ pub fn plan_preprocess(args: &crate::args::BenchFastqPreprocessArgs) -> Preproce
             mean_q_estimate: None,
         });
     }
-    let pipeline = crate::fastq_default_pipeline(crate::DefaultPipelineOptions {
-        paired: args.r2.is_some(),
-        enable_merge,
-        enable_correct,
-        enable_qc_post: !args.no_qc_post,
-        enable_screen: args.contaminant_preset.is_some(),
-    });
+    let pipeline = if let Some(profile_id) = args.profile.as_deref() {
+        match registry::profile_by_id(Domain::Fastq, profile_id) {
+            Ok(profile) => {
+                let mut stages: Vec<String> =
+                    profile.graph.into_iter().map(|node| node.stage_id).collect();
+                if !enable_merge {
+                    stages.retain(|stage| stage != "fastq.merge");
+                }
+                if !enable_correct {
+                    stages.retain(|stage| stage != "fastq.correct");
+                }
+                if args.no_qc_post {
+                    stages.retain(|stage| stage != "fastq.qc_post");
+                }
+                if args.contaminant_preset.is_none() {
+                    stages.retain(|stage| stage != "fastq.screen");
+                }
+                bijux_core::domain::PipelineSpec { stages }
+            }
+            Err(err) => {
+                eprintln!("unknown fastq profile {profile_id}: {err}; using default pipeline");
+                bijux_pipelines::fastq::fastq_default_pipeline_spec(
+                    bijux_pipelines::fastq::DefaultPipelineOptions {
+                        paired: args.r2.is_some(),
+                        enable_merge,
+                        enable_correct,
+                        enable_qc_post: !args.no_qc_post,
+                        enable_screen: args.contaminant_preset.is_some(),
+                    },
+                )
+            }
+        }
+    } else {
+        bijux_pipelines::fastq::fastq_default_pipeline_spec(
+            bijux_pipelines::fastq::DefaultPipelineOptions {
+                paired: args.r2.is_some(),
+                enable_merge,
+                enable_correct,
+                enable_qc_post: !args.no_qc_post,
+                enable_screen: args.contaminant_preset.is_some(),
+            },
+        )
+    };
     PreprocessPlan {
         r1: args.r1.clone(),
         r2: args.r2.clone(),

@@ -407,6 +407,8 @@ pub struct BenchFastqStatsArgs {
 pub struct BenchFastqPreprocessArgs {
     #[arg(long, alias = "sample")]
     pub sample_id: String,
+    #[arg(long, help = "Pipeline profile id (default, minimal)")]
+    pub pipeline_profile: Option<String>,
     #[arg(long)]
     pub r1: PathBuf,
     #[arg(long)]

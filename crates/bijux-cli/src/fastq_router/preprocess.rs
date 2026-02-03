@@ -8,8 +8,9 @@ use bijux_engine::api::{build_tool_execution_spec, PlatformSpec, RunnerKind, Too
 use bijux_engine::api::{ensure_bench_runner, filter_tools_by_role, load_registry};
 use bijux_engine::api::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use bijux_engine::api::{run_artifacts_dir_for_out, TelemetryEventV1};
+use bijux_pipelines::fastq::canonical_tool_defaults;
 use bijux_stages_fastq::fastq::preprocess::{plan_preprocess, plan_preprocess_pipeline};
-use bijux_stages_fastq::{bench_corpus, canonical_tool_defaults, RawFailure};
+use bijux_stages_fastq::{bench_corpus, RawFailure};
 
 use super::banks::{
     adapter_bank_context, contaminant_bank_context, polyx_bank_context, polyx_unsupported_warning,

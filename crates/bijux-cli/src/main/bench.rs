@@ -374,6 +374,7 @@ fn explain_fastq_stage(registry: &bijux_core::ToolRegistry, stage_id: &str) -> R
     if stage_id == "fastq.preprocess" {
         let args = bijux_stages_fastq::args::BenchFastqPreprocessArgs {
             sample_id: "explain".to_string(),
+            profile: None,
             r1: PathBuf::from("reads.fastq.gz"),
             r2: None,
             out: PathBuf::from("artifacts"),

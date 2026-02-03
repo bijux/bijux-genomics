@@ -29,6 +29,7 @@ opentelemetry_sdk = { version = "0.24", optional = true }
 
 [dev-dependencies]
 bijux-guardrails = { path = "../bijux-guardrails" }
+bijux-pipelines = { path = "../bijux-pipelines" }
 assert_cmd = "2"
 tempfile.workspace = true
 

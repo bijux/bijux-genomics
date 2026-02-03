@@ -12,7 +12,7 @@ use bijux_env_runtime::api::RunnerKind;
 use bijux_stages_fastq::fastq::{
     correct, filter, merge, qc_post, screen, stats_neutral, trim, umi, validate_pre,
 };
-use bijux_stages_fastq::{fastq_default_pipeline, DefaultPipelineOptions};
+use bijux_pipelines::fastq::{fastq_default_pipeline_spec, DefaultPipelineOptions};
 use tempfile::TempDir;
 
 static ENV_LOCK: Mutex<()> = Mutex::new(());
