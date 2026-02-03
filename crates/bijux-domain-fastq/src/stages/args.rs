@@ -133,7 +133,7 @@ pub struct BenchFastqPreprocessArgs {
     pub strict: bool,
     pub auto: bool,
     pub objective: bijux_core::selection::Objective,
-    pub bench_corpus: Option<crate::pipeline::BenchCorpusId>,
+    pub bench_corpus: Option<crate::run::BenchCorpusId>,
     pub allow_partial: bool,
     pub replicates: u32,
     pub jobs: u32,

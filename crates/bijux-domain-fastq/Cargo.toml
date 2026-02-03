@@ -22,6 +22,7 @@ bijux-guardrails = { path = "../bijux-guardrails" }
 rusqlite = { workspace = true }
 bijux-analyze = { path = "../bijux-analyze" }
 bijux-pipelines = { path = "../bijux-pipelines" }
+bijux-testkit = { path = "../bijux-testkit" }
 
 [lints]
 workspace = true

@@ -1,9 +1,5 @@
-use crate::domain::FastqStageKind;
-use crate::params::{parse_effective_params, EffectiveParams};
-use bijux_core::{
-    FastqFilterMetricsV1, FastqMergeMetricsV1, FastqTrimMetricsV1, FastqValidateMetricsV1,
-    InvariantResultV1, InvariantStatusV1, StageVerdictV1,
-};
+use crate::params::EffectiveParams;
+use bijux_core::{InvariantResultV1, InvariantStatusV1, StageVerdictV1};
 
 #[derive(Debug, Clone)]
 pub struct InvariantThresholds {
@@ -77,7 +73,7 @@ pub struct InvariantEvaluation {
     pub verdict: StageVerdictV1,
 }
 
-fn result(
+pub(crate) fn result(
     id: &str,
     status: InvariantStatusV1,
     message: String,
@@ -91,11 +87,14 @@ fn result(
     }
 }
 
-fn worst_status(current: InvariantStatusV1, next: &InvariantStatusV1) -> InvariantStatusV1 {
+pub(crate) fn worst_status(
+    current: InvariantStatusV1,
+    next: &InvariantStatusV1,
+) -> InvariantStatusV1 {
     std::cmp::max(current, next.clone())
 }
 
-fn retention_thresholds_for(
+pub(crate) fn retention_thresholds_for(
     params: Option<&EffectiveParams>,
     thresholds: &InvariantThresholds,
 ) -> (f64, f64) {

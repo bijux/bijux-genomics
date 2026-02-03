@@ -1,8 +1,25 @@
-//! Canonical FASTQ pipeline contract.
+//! FASTQ stage registry and contracts.
+
+mod contract;
+mod semantics;
+mod stages;
 
 use serde::{Deserialize, Serialize};
 
-use crate::contracts::FastqArtifactKind;
+use crate::types::FastqArtifactKind;
+
+pub use bijux_core::RawFailure;
+pub use contract::{
+    assess_merge_suitability, contract_for_stage, ensure_umi_headers, inspect_headers,
+    log_header_warnings, normalize_outputs, preflight_stage, HeaderInspection, MergeSuitability,
+    NormalizedOutputs,
+};
+pub use semantics::{
+    fastq_stage_is_stable, stage_criticality, stage_kind, stage_metric_classes,
+    stage_metric_invariants, stage_semantics, BoundaryInvariant, FastqStageKind, StageDefinition,
+    StageSemantics, STAGE_BOUNDARY_INVARIANTS, STAGES,
+};
+pub use stages::{infer_input_kind, qc_class_for_stage, FastqStageContract, QcClass};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum FastqStage {
@@ -32,7 +49,7 @@ pub struct StageContract {
 }
 
 #[must_use]
-pub fn contract_for_stage(stage: FastqStage) -> StageContract {
+pub fn canonical_contract_for_stage(stage: FastqStage) -> StageContract {
     match stage {
         FastqStage::Preprocess => StageContract {
             stage,

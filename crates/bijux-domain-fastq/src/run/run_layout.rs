@@ -10,7 +10,7 @@ use uuid::Uuid;
 use bijux_core::events::RunEvent;
 use bijux_core::RunMetadataV1;
 
-use crate::contracts::FastqLayout;
+use crate::types::FastqLayout;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RunEnvironment {

@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use super::model::FastqArtifactKind;
+use crate::types::FastqArtifactKind;
 
 #[derive(Debug, Clone, Copy, serde::Serialize, serde::Deserialize)]
 pub struct FastqStageContract {

@@ -1,11 +1,10 @@
+pub mod benchmark;
 pub mod corpus;
 pub mod query;
 pub mod run_layout;
 
 #[allow(unused_imports)]
-pub use benchmark::{
-    benchmark_runs, write_benchmark_exports, BenchmarkSummary, RunBenchmarkRecord,
-};
+pub use benchmark::{benchmark_runs, write_benchmark_exports, BenchmarkSummary, RunBenchmarkRecord};
 #[allow(unused_imports)]
 pub use bijux_core::events::RunEvent;
 #[allow(unused_imports)]
@@ -19,5 +18,3 @@ pub use run_layout::{
     write_manifest, write_run_metadata, RunArtifactEntry, RunEnvironment, RunIndexEntry, RunLayout,
     RunManifest, RunStageEntry, ToolImageDigest,
 };
-
-pub mod benchmark;

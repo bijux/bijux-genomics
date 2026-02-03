@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use crate::contracts::pipeline_contract::{self, StageCriticality};
+use crate::pipeline_contract::{self, StageCriticality};
 
 use crate::metrics::spec::{metric_spec_for_stage, MetricClass};
 
@@ -216,6 +216,11 @@ pub fn stage_criticality(stage_id: &str) -> Option<StageCriticality> {
         .iter()
         .find(|stage| stage.stage_id == stage_id)
         .map(|stage| stage.criticality)
+}
+
+#[must_use]
+pub fn fastq_stage_is_stable(stage_id: &str) -> bool {
+    !matches!(stage_criticality(stage_id), Some(StageCriticality::Experimental))
 }
 
 #[must_use]
