@@ -8,6 +8,8 @@ use tracing::info;
 use uuid::Uuid;
 use walkdir::WalkDir;
 
+#[path = "mods/alignment.rs"]
+pub mod alignment;
 pub mod domain;
 pub mod events;
 pub mod input_assessment;
@@ -16,4 +18,5 @@ pub mod metrics;
 pub mod metrics_registry;
 pub mod observability;
 pub mod run_index;
+#[path = "mods/selection.rs"]
 pub mod selection;

@@ -4,7 +4,9 @@ pub mod filter;
 pub mod merge;
 pub mod preprocess;
 pub mod qc_post;
+#[path = "qc/screen.rs"]
 pub mod screen;
+#[path = "qc/stats_neutral.rs"]
 pub mod stats_neutral;
 pub mod trim;
 pub mod umi;

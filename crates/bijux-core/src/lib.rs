@@ -1,5 +1,6 @@
 // split to keep module size manageable
 
+#[path = "mods/alignment.rs"]
 pub mod alignment;
 pub mod domain;
 pub mod events;
@@ -9,6 +10,7 @@ pub mod metrics;
 pub mod metrics_registry;
 pub mod observability;
 pub mod run_index;
+#[path = "mods/selection.rs"]
 pub mod selection;
 pub mod stage_plan;
 

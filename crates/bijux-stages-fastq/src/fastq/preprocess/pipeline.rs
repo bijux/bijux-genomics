@@ -1,4 +1,4 @@
-use bijux_core::ContainerImageRefV1;
+use bijux_core::{ContainerImageRefV1, StagePlanV1, ToolExecutionSpecV1};
 
 #[allow(clippy::too_many_arguments, clippy::too_many_lines)]
 pub fn plan_preprocess_pipeline<F>(
@@ -34,15 +34,11 @@ where
     let mut plans = Vec::new();
     for (stage, tool) in stages.iter().zip(tools.iter()) {
         let out_dir = out_dir_for_stage(stage, tool, &current_r1, current_r2.as_deref())?;
-        let (plan, next_r1, next_r2, stage_version) = match stage.as_str() {
+        let stage_id: &str = stage;
+        let (plan, next_r1, next_r2) = match stage_id {
             "fastq.detect_adapters" => {
                 let plan = crate::fastq::detect_adapters::plan(tool, &current_r1, &out_dir);
-                (
-                    plan.clone(),
-                    current_r1.clone(),
-                    current_r2.clone(),
-                    crate::fastq::detect_adapters::STAGE_VERSION,
-                )
+                (plan, current_r1.clone(), current_r2.clone())
             }
             "fastq.trim" => {
                 let plan = crate::fastq::trim::plan(
@@ -53,12 +49,8 @@ where
                     polyx_bank,
                     contaminant_bank,
                 )?;
-                (
-                    plan.clone(),
-                    plan.io.outputs[0].path.clone(),
-                    None,
-                    crate::fastq::trim::STAGE_VERSION,
-                )
+                let next_r1 = plan.io.outputs[0].path.clone();
+                (plan, next_r1, None)
             }
             "fastq.filter" => {
                 let mut filter_options = crate::fastq::filter::FilterPlanOptions::default();
@@ -77,44 +69,32 @@ where
                     &out_dir,
                     &filter_options,
                 )?;
-                (
-                    plan.clone(),
-                    plan.io.outputs[0].path.clone(),
-                    None,
-                    crate::fastq::filter::STAGE_VERSION,
-                )
+                let next_r1 = plan.io.outputs[0].path.clone();
+                (plan, next_r1, None)
             }
             "fastq.validate_pre" => {
                 let plan = crate::fastq::validate_pre::plan(tool, &current_r1, &out_dir);
-                (
-                    plan.clone(),
-                    current_r1.clone(),
-                    current_r2.clone(),
-                    crate::fastq::validate_pre::STAGE_VERSION,
-                )
+                (plan, current_r1.clone(), current_r2.clone())
             }
             "fastq.merge" => {
                 let r2 = current_r2
                     .as_ref()
                     .ok_or_else(|| anyhow::anyhow!("merge requires r2"))?;
                 let plan = crate::fastq::merge::plan_merge(tool, &current_r1, r2, &out_dir)?;
-                (
-                    plan.clone(),
-                    plan.io.outputs[0].path.clone(),
-                    None,
-                    crate::fastq::merge::STAGE_VERSION,
-                )
+                let next_r1 = plan.io.outputs[0].path.clone();
+                (plan, next_r1, None)
             }
             "fastq.correct" => {
                 let r2 = current_r2
                     .as_ref()
                     .ok_or_else(|| anyhow::anyhow!("correct requires r2"))?;
                 let plan = crate::fastq::correct::plan_correct(tool, &current_r1, r2, &out_dir)?;
+                let next_r1 = plan.io.outputs[0].path.clone();
+                let next_r2 = plan.io.outputs[1].path.clone();
                 (
-                    plan.clone(),
-                    plan.io.outputs[0].path.clone(),
-                    Some(plan.io.outputs[1].path.clone()),
-                    crate::fastq::correct::STAGE_VERSION,
+                    plan,
+                    next_r1,
+                    Some(next_r2),
                 )
             }
             "fastq.umi" => {
@@ -122,11 +102,12 @@ where
                     .as_ref()
                     .ok_or_else(|| anyhow::anyhow!("umi requires r2"))?;
                 let plan = crate::fastq::umi::plan_umi(tool, &current_r1, r2, &out_dir)?;
+                let next_r1 = plan.io.outputs[0].path.clone();
+                let next_r2 = plan.io.outputs[1].path.clone();
                 (
-                    plan.clone(),
-                    plan.io.outputs[0].path.clone(),
-                    Some(plan.io.outputs[1].path.clone()),
-                    crate::fastq::umi::STAGE_VERSION,
+                    plan,
+                    next_r1,
+                    Some(next_r2),
                 )
             }
             "fastq.qc_post" => {
@@ -145,39 +126,22 @@ where
                     stage_aux_images,
                     Some(raw_r1.as_path()),
                 )?;
-                (
-                    plan.clone(),
-                    current_r1.clone(),
-                    current_r2.clone(),
-                    crate::fastq::qc_post::STAGE_VERSION,
-                )
+                (plan, current_r1.clone(), current_r2.clone())
             }
             "fastq.screen" => {
                 let plan = crate::fastq::screen::plan_screen(tool, &current_r1, &out_dir)?;
-                (
-                    plan.clone(),
-                    current_r1.clone(),
-                    current_r2.clone(),
-                    crate::fastq::screen::STAGE_VERSION,
-                )
+                (plan, current_r1.clone(), current_r2.clone())
             }
             "fastq.stats_neutral" => {
                 let plan =
                     crate::fastq::stats_neutral::plan_stats_neutral(tool, &current_r1, &out_dir)?;
-                (
-                    plan.clone(),
-                    current_r1.clone(),
-                    current_r2.clone(),
-                    crate::fastq::stats_neutral::STAGE_VERSION,
-                )
+                (plan, current_r1.clone(), current_r2.clone())
             }
-            _ => return Err(anyhow::anyhow!("unsupported stage {stage}")),
+            _ => {
+                return Err(anyhow::anyhow!("unsupported stage in fastq pipeline: {stage}"));
+            }
         };
-        let mut exec_plan = plan;
-        exec_plan.stage_id = StageId(stage.clone());
-        exec_plan.stage_version = stage_version;
-        exec_plan.out_dir = out_dir;
-        plans.push(exec_plan);
+        plans.push(plan);
         current_r1 = next_r1;
         current_r2 = next_r2;
     }
