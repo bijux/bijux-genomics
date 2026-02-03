@@ -121,6 +121,12 @@ pub(super) fn bam_verdict_table(rows: &[bijux_core::FactsRowV1]) -> serde_json::
             "sex_class": metrics.sex.classification,
             "verdict": verdict,
             "downstream_suitable": downstream_ok,
+            "suitability": {
+                "contamination": metrics.contamination_sufficiency.sufficient,
+                "sex": metrics.sex_sufficiency.sufficient,
+                "haplogroups": metrics.haplogroup_sufficiency.sufficient,
+                "kinship": metrics.kinship_sufficiency.sufficient
+            }
         }));
     }
     serde_json::json!({ "entries": entries })
