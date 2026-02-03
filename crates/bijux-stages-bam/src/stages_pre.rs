@@ -150,6 +150,11 @@ pub mod filter {
         let outputs =
             crate::stages_support::audit_outputs(bijux_domain_bam::BamStage::Filter, out_dir);
         let out_bam = out_dir.join("filtered.bam");
+        let flagstat_before = out_dir.join("flagstat.before.txt");
+        let flagstat_after = out_dir.join("flagstat.after.txt");
+        let idxstats_before = out_dir.join("idxstats.before.txt");
+        let idxstats_after = out_dir.join("idxstats.after.txt");
+        let summary = out_dir.join("filter.summary.json");
         let plan = StagePlanV1 {
             stage_id: StageId(STAGE_ID.to_string()),
             stage_version: STAGE_VERSION,
@@ -157,7 +162,16 @@ pub mod filter {
             tool_version: tool.tool_version.clone(),
             image: tool.image.clone(),
             command: CommandSpecV1 {
-                template: crate::tools::samtools::filter_args(bam, params, &out_bam),
+                template: crate::tools::samtools::filter_args_with_audit(
+                    bam,
+                    params,
+                    &out_bam,
+                    &flagstat_before,
+                    &flagstat_after,
+                    &idxstats_before,
+                    &idxstats_after,
+                    &summary,
+                ),
             },
             resources: tool.resources.clone(),
             io: StageIO {
@@ -187,8 +201,10 @@ pub mod filter {
             &[
                 "filtered_bam",
                 "filtered_bai",
-                "flagstat",
-                "idxstats",
+                "flagstat_before",
+                "flagstat_after",
+                "idxstats_before",
+                "idxstats_after",
                 "summary",
                 "stage_metrics",
             ],

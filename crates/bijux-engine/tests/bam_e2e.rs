@@ -133,3 +133,70 @@ fn bam_mini_run_validate_qc_pre_coverage_damage() -> Result<()> {
 
     Ok(())
 }
+
+#[test]
+fn bam_mini_run_filter_markdup() -> Result<()> {
+    if std::env::var("BIJUX_E2E").is_err() {
+        return Ok(());
+    }
+    if !ensure_docker() {
+        eprintln!("skipping: docker not available");
+        return Ok(());
+    }
+    let input = if let Ok(path) = std::env::var("BIJUX_BAM_E2E_INPUT") {
+        Path::new(&path).canonicalize()?
+    } else {
+        eprintln!("skipping: BIJUX_BAM_E2E_INPUT not set");
+        return Ok(());
+    };
+
+    let platform = load_platform(None)?;
+    let out_dir = tempdir_in_repo()?;
+    let filter_tool = tool_spec("samtools", platform.runner)?;
+    let markdup_tool = tool_spec("samtools", platform.runner)?;
+
+    let filter_params = bijux_domain_bam::params::FilterEffectiveParams {
+        mapq_threshold: 30,
+        include_flags: Vec::new(),
+        exclude_flags: Vec::new(),
+        min_length: 30,
+        remove_duplicates: false,
+        base_quality_threshold: 20,
+    };
+    let filter_plan = bijux_stages_bam::bam::filter::plan(
+        &filter_tool,
+        input.as_path(),
+        out_dir.path().join("filter").as_path(),
+        &filter_params,
+    )?;
+    let filter_result = execute_plan(&filter_plan, platform.runner, None)?;
+    assert_eq!(filter_result.exit_code, 0);
+    assert!(out_dir.path().join("filter").join("filtered.bam").exists());
+    assert!(out_dir
+        .path()
+        .join("filter")
+        .join("flagstat.after.txt")
+        .exists());
+
+    let markdup_params = bijux_domain_bam::params::MarkDupEffectiveParams {
+        optical_duplicates: bijux_domain_bam::params::OpticalDuplicatePolicy::MarkOnly,
+        umi_policy: bijux_domain_bam::params::UmiPolicy::Ignore,
+        duplicate_action: bijux_domain_bam::params::DuplicateAction::Mark,
+    };
+    let markdup_plan = bijux_stages_bam::bam::markdup::plan(
+        &markdup_tool,
+        out_dir.path().join("filter").join("filtered.bam").as_path(),
+        out_dir.path().join("markdup").as_path(),
+        &markdup_params,
+    )?;
+    let markdup_result = execute_plan(&markdup_plan, platform.runner, None)?;
+    assert_eq!(markdup_result.exit_code, 0);
+    assert!(out_dir.path().join("markdup").join("markdup.bam").exists());
+    assert!(out_dir
+        .path()
+        .join("markdup")
+        .join("flagstat.after.txt")
+        .exists());
+
+    Ok(())
+}

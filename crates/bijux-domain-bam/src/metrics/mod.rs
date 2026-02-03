@@ -27,8 +27,8 @@ pub use contamination::{
     parse_contamination_json, ContaminationMetricsV1, ContaminationReconciliationV1,
 };
 pub use coverage::{
-    parse_mosdepth_summary, parse_samtools_depth, CoverageMetricsV1, CoverageUniformityV1,
-    EffectiveCoverageV1,
+    parse_mosdepth_summary, parse_samtools_depth, parse_samtools_depth_with_uniformity,
+    CoverageMetricsV1, CoverageUniformityV1, EffectiveCoverageV1,
 };
 pub use damage::{
     compare_damage_metrics, parse_damageprofiler_json, parse_mapdamage2_misincorporation,

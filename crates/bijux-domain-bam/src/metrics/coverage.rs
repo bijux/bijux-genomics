@@ -111,12 +111,21 @@ pub fn parse_mosdepth_summary(path: &std::path::Path) -> anyhow::Result<Coverage
 /// # Errors
 /// Returns an error if the samtools depth output cannot be read or parsed.
 pub fn parse_samtools_depth(path: &std::path::Path) -> anyhow::Result<CoverageMetricsV1> {
+    Ok(parse_samtools_depth_with_uniformity(path)?.0)
+}
+
+/// # Errors
+/// Returns an error if the samtools depth output cannot be read or parsed.
+pub fn parse_samtools_depth_with_uniformity(
+    path: &std::path::Path,
+) -> anyhow::Result<(CoverageMetricsV1, CoverageUniformityV1)> {
     let raw = std::fs::read_to_string(path).context("read samtools depth")?;
     let mut total_positions = 0_u64;
     let mut total_depth = 0_u64;
     let mut breadth_1x = 0_u64;
     let mut breadth_3x = 0_u64;
     let mut breadth_5x = 0_u64;
+    let mut sum_sq = 0_f64;
     for line in raw.lines() {
         if line.trim().is_empty() {
             continue;
@@ -128,6 +137,7 @@ pub fn parse_samtools_depth(path: &std::path::Path) -> anyhow::Result<CoverageMe
         let depth = parts[2].parse::<u64>().unwrap_or(0);
         total_positions += 1;
         total_depth += depth;
+        sum_sq += u64_to_f64(depth).powi(2);
         if depth >= 1 {
             breadth_1x += 1;
         }
@@ -143,7 +153,19 @@ pub fn parse_samtools_depth(path: &std::path::Path) -> anyhow::Result<CoverageMe
     } else {
         u64_to_f64(total_depth) / u64_to_f64(total_positions)
     };
-    Ok(CoverageMetricsV1 {
+    let variance = if total_positions == 0 {
+        0.0
+    } else {
+        (sum_sq / u64_to_f64(total_positions)) - mean.powi(2)
+    };
+    let stddev = variance.max(0.0).sqrt();
+    let cv = if mean > 0.0 { stddev / mean } else { 0.0 };
+    let dropout_fraction = if total_positions == 0 {
+        0.0
+    } else {
+        1.0 - (u64_to_f64(breadth_1x) / u64_to_f64(total_positions)).clamp(0.0, 1.0)
+    };
+    let coverage = CoverageMetricsV1 {
         mean,
         median: mean,
         breadth_1x: if total_positions == 0 {
@@ -161,5 +183,10 @@ pub fn parse_samtools_depth(path: &std::path::Path) -> anyhow::Result<CoverageMe
         } else {
             (u64_to_f64(breadth_5x) / u64_to_f64(total_positions)).clamp(0.0, 1.0)
         },
-    })
+    };
+    let uniformity = CoverageUniformityV1 {
+        coefficient_of_variation: cv,
+        dropout_fraction,
+    };
+    Ok((coverage, uniformity))
 }

@@ -20,13 +20,32 @@ pub mod markdup {
         let outputs =
             crate::stages_support::audit_outputs(bijux_domain_bam::BamStage::Markdup, out_dir);
         let out_bam = out_dir.join("markdup.bam");
-        let flagstat = out_dir.join("flagstat.txt");
-        let idxstats = out_dir.join("idxstats.txt");
+        let flagstat_before = out_dir.join("flagstat.before.txt");
+        let flagstat_after = out_dir.join("flagstat.after.txt");
+        let idxstats_before = out_dir.join("idxstats.before.txt");
+        let idxstats_after = out_dir.join("idxstats.after.txt");
+        let summary = out_dir.join("markdup.summary.json");
         let command = match tool.tool_id.0.as_str() {
-            "samtools" => {
-                crate::tools::samtools::markdup_args(bam, &out_bam, &flagstat, &idxstats, params)
-            }
-            _ => crate::tools::gatk::markdup_args(bam, &out_bam, &flagstat, &idxstats, params),
+            "samtools" => crate::tools::samtools::markdup_args_with_audit(
+                bam,
+                &out_bam,
+                &flagstat_before,
+                &flagstat_after,
+                &idxstats_before,
+                &idxstats_after,
+                &summary,
+                params,
+            ),
+            _ => crate::tools::gatk::markdup_args_with_audit(
+                bam,
+                &out_bam,
+                &flagstat_before,
+                &flagstat_after,
+                &idxstats_before,
+                &idxstats_after,
+                &summary,
+                params,
+            ),
         };
         let plan = StagePlanV1 {
             stage_id: StageId(STAGE_ID.to_string()),
@@ -60,8 +79,10 @@ pub mod markdup {
             &[
                 "markdup_bam",
                 "markdup_bai",
-                "flagstat",
-                "idxstats",
+                "flagstat_before",
+                "flagstat_after",
+                "idxstats_before",
+                "idxstats_after",
                 "summary",
                 "stage_metrics",
             ],

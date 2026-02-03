@@ -18,12 +18,20 @@
         "path": "out/filtered.bam.bai"
       },
       {
-        "name": "flagstat",
-        "path": "out/flagstat.txt"
+        "name": "flagstat_before",
+        "path": "out/flagstat.before.txt"
       },
       {
-        "name": "idxstats",
-        "path": "out/idxstats.txt"
+        "name": "flagstat_after",
+        "path": "out/flagstat.after.txt"
+      },
+      {
+        "name": "idxstats_before",
+        "path": "out/idxstats.before.txt"
+      },
+      {
+        "name": "idxstats_after",
+        "path": "out/idxstats.after.txt"
       },
       {
         "name": "summary",

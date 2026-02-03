@@ -155,6 +155,17 @@ fn evaluate_bam_invariants_inner(
             remediation: Some("verify markdup configuration or library prep".to_string()),
         });
     }
+    if metrics.complexity.saturation_estimate >= 0.8 {
+        results.push(InvariantResultV1 {
+            id: "sequencing_saturation".to_string(),
+            status: InvariantStatusV1::Warn,
+            message:
+                "preseq suggests sequencing saturation; additional depth may yield few new reads"
+                    .to_string(),
+            remediation: Some("consider alternative library prep or stop sequencing".to_string()),
+        });
+        status = std::cmp::max(status.clone(), InvariantStatusV1::Warn);
+    }
 
     let damage = metrics.damage.c_to_t_5p.max(metrics.damage.g_to_a_3p);
     let assessment = contamination_cross_check(damage, contamination);

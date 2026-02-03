@@ -40,6 +40,35 @@ pub fn qc_pre_args(
 
 #[must_use]
 pub fn filter_args(bam: &Path, params: &FilterEffectiveParams, out_bam: &Path) -> Vec<String> {
+    let flagstat_before = out_bam.with_file_name("flagstat.before.txt");
+    let flagstat_after = out_bam.with_file_name("flagstat.after.txt");
+    let idxstats_before = out_bam.with_file_name("idxstats.before.txt");
+    let idxstats_after = out_bam.with_file_name("idxstats.after.txt");
+    let summary = out_bam.with_file_name("filter.summary.json");
+    filter_args_with_audit(
+        bam,
+        params,
+        out_bam,
+        &flagstat_before,
+        &flagstat_after,
+        &idxstats_before,
+        &idxstats_after,
+        &summary,
+    )
+}
+
+#[must_use]
+#[allow(clippy::too_many_arguments)]
+pub fn filter_args_with_audit(
+    bam: &Path,
+    params: &FilterEffectiveParams,
+    out_bam: &Path,
+    flagstat_before: &Path,
+    flagstat_after: &Path,
+    idxstats_before: &Path,
+    idxstats_after: &Path,
+    summary: &Path,
+) -> Vec<String> {
     let mut view_args = vec![
         "samtools".to_string(),
         "view".to_string(),
@@ -72,10 +101,23 @@ pub fn filter_args(bam: &Path, params: &FilterEffectiveParams, out_bam: &Path) -
     view_args.push(bam.display().to_string());
     let bai_path = format!("{}.bai", out_bam.display());
     let command = format!(
-        "{view} | samtools sort -o {out} && samtools index {out} {bai}",
+        "samtools flagstat {bam} > {flagstat_before} && \
+samtools idxstats {bam} > {idxstats_before} && \
+{view} | samtools sort -o {out} && samtools index {out} {bai} && \
+samtools flagstat {out} > {flagstat_after} && \
+samtools idxstats {out} > {idxstats_after} && \
+python - <<'PY' > {summary}\nimport json\npayload = {{\"input_bam\": \"{bam}\", \"output_bam\": \"{out}\", \"params\": {{\"mapq_threshold\": {mapq}, \"min_length\": {min_len}}}, \"artifacts\": {{\"flagstat_before\": \"{flagstat_before}\", \"flagstat_after\": \"{flagstat_after}\", \"idxstats_before\": \"{idxstats_before}\", \"idxstats_after\": \"{idxstats_after}\"}}}}\nprint(json.dumps(payload, indent=2))\nPY",
         view = view_args.join(" "),
         out = out_bam.display(),
-        bai = bai_path
+        bai = bai_path,
+        bam = bam.display(),
+        flagstat_before = flagstat_before.display(),
+        flagstat_after = flagstat_after.display(),
+        idxstats_before = idxstats_before.display(),
+        idxstats_after = idxstats_after.display(),
+        summary = summary.display(),
+        mapq = params.mapq_threshold,
+        min_len = params.min_length
     );
     vec!["/bin/sh".to_string(), "-c".to_string(), command]
 }
@@ -84,8 +126,37 @@ pub fn filter_args(bam: &Path, params: &FilterEffectiveParams, out_bam: &Path) -
 pub fn markdup_args(
     bam: &Path,
     out_bam: &Path,
-    flagstat: &Path,
-    idxstats: &Path,
+    _flagstat: &Path,
+    _idxstats: &Path,
+    params: &bijux_domain_bam::params::MarkDupEffectiveParams,
+) -> Vec<String> {
+    let flagstat_before = out_bam.with_file_name("flagstat.before.txt");
+    let flagstat_after = out_bam.with_file_name("flagstat.after.txt");
+    let idxstats_before = out_bam.with_file_name("idxstats.before.txt");
+    let idxstats_after = out_bam.with_file_name("idxstats.after.txt");
+    let summary = out_bam.with_file_name("markdup.summary.json");
+    markdup_args_with_audit(
+        bam,
+        out_bam,
+        &flagstat_before,
+        &flagstat_after,
+        &idxstats_before,
+        &idxstats_after,
+        &summary,
+        params,
+    )
+}
+
+#[must_use]
+#[allow(clippy::too_many_arguments)]
+pub fn markdup_args_with_audit(
+    bam: &Path,
+    out_bam: &Path,
+    flagstat_before: &Path,
+    flagstat_after: &Path,
+    idxstats_before: &Path,
+    idxstats_after: &Path,
+    summary: &Path,
     params: &bijux_domain_bam::params::MarkDupEffectiveParams,
 ) -> Vec<String> {
     let remove = matches!(
@@ -99,11 +170,21 @@ pub fn markdup_args(
     args.push(bam.display().to_string());
     args.push(out_bam.display().to_string());
     let command = format!(
-        "{markdup} && samtools index {out} {out}.bai && samtools flagstat {out} > {flagstat} && samtools idxstats {out} > {idxstats}",
+        "samtools flagstat {bam} > {flagstat_before} && \
+samtools idxstats {bam} > {idxstats_before} && \
+{markdup} && samtools index {out} {out}.bai && \
+samtools flagstat {out} > {flagstat_after} && \
+samtools idxstats {out} > {idxstats_after} && \
+python - <<'PY' > {summary}\nimport json\npayload = {{\"input_bam\": \"{bam}\", \"output_bam\": \"{out}\", \"remove_duplicates\": {remove}, \"artifacts\": {{\"flagstat_before\": \"{flagstat_before}\", \"flagstat_after\": \"{flagstat_after}\", \"idxstats_before\": \"{idxstats_before}\", \"idxstats_after\": \"{idxstats_after}\"}}}}\nprint(json.dumps(payload, indent=2))\nPY",
         markdup = args.join(" "),
         out = out_bam.display(),
-        flagstat = flagstat.display(),
-        idxstats = idxstats.display()
+        bam = bam.display(),
+        flagstat_before = flagstat_before.display(),
+        flagstat_after = flagstat_after.display(),
+        idxstats_before = idxstats_before.display(),
+        idxstats_after = idxstats_after.display(),
+        summary = summary.display(),
+        remove = if remove { "true" } else { "false" }
     );
     vec!["/bin/sh".to_string(), "-c".to_string(), command]
 }

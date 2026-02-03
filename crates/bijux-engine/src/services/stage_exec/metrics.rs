@@ -346,7 +346,12 @@ fn bam_metrics_from_dir(out_dir: &Path) -> BamMetricsV1 {
 
     let flagstat_path = first_existing(
         out_dir,
-        &["filter.flagstat.txt", "markdup.flagstat.txt", "flagstat.txt"],
+        &[
+            "flagstat.after.txt",
+            "filter.flagstat.txt",
+            "markdup.flagstat.txt",
+            "flagstat.txt",
+        ],
     );
     if let Some(path) = flagstat_path {
         if let Ok(counts) = parse_samtools_flagstat(&path) {
@@ -361,7 +366,7 @@ fn bam_metrics_from_dir(out_dir: &Path) -> BamMetricsV1 {
             metrics.mapq = mapq;
         }
     }
-    let idxstats_path = first_existing(out_dir, &["idxstats.txt"]);
+    let idxstats_path = first_existing(out_dir, &["idxstats.after.txt", "idxstats.txt"]);
     if let Some(path) = idxstats_path {
         if let Ok(idxstats) = crate::services::observer::parse_samtools_idxstats(&path) {
             metrics.idxstats = idxstats;
@@ -377,8 +382,11 @@ fn bam_metrics_from_dir(out_dir: &Path) -> BamMetricsV1 {
     } else {
         let depth_path = first_existing(out_dir, &["coverage.depth.txt", "depth.txt"]);
         if let Some(path) = depth_path {
-            if let Ok(coverage) = bijux_domain_bam::metrics::parse_samtools_depth(&path) {
+            if let Ok((coverage, uniformity)) =
+                bijux_domain_bam::metrics::parse_samtools_depth_with_uniformity(&path)
+            {
                 metrics.coverage = coverage;
+                metrics.coverage_uniformity = uniformity;
             }
         }
     }

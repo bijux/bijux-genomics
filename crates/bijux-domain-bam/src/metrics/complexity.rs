@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 pub struct ComplexityMetricsV1 {
     pub observed_reads: u64,
     pub projected_reads: Vec<(u64, u64)>,
+    pub saturation_estimate: f64,
 }
 
 impl ComplexityMetricsV1 {
@@ -15,8 +16,14 @@ impl ComplexityMetricsV1 {
         Self {
             observed_reads: 0,
             projected_reads: Vec::new(),
+            saturation_estimate: 0.0,
         }
     }
+}
+
+#[allow(clippy::cast_precision_loss)]
+fn u64_to_f64(value: u64) -> f64 {
+    value as f64
 }
 
 /// # Errors
@@ -35,8 +42,22 @@ pub fn parse_preseq_estimates(path: &std::path::Path) -> anyhow::Result<Complexi
             }
         }
     }
+    let observed = points.first().map_or(0, |(_, y)| *y);
+    let saturation = if points.len() >= 2 {
+        let (x0, y0) = points.first().copied().unwrap_or((0, 0));
+        let (x1, y1) = points.last().copied().unwrap_or((0, 0));
+        if x1 > x0 && y1 > 0 {
+            let gain = u64_to_f64(y1.saturating_sub(y0)) / u64_to_f64(x1 - x0);
+            (1.0 - gain).clamp(0.0, 1.0)
+        } else {
+            0.0
+        }
+    } else {
+        0.0
+    };
     Ok(ComplexityMetricsV1 {
-        observed_reads: points.first().map_or(0, |(_, y)| *y),
+        observed_reads: observed,
         projected_reads: points,
+        saturation_estimate: saturation,
     })
 }

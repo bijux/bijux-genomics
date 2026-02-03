@@ -136,6 +136,8 @@ pub mod contamination {
             bijux_domain_bam::BamStage::Contamination,
             out_dir,
         );
+        let report = out_dir.join("contamination.json");
+        let summary = out_dir.join("contamination.summary.json");
         let plan = StagePlanV1 {
             stage_id: StageId(STAGE_ID.to_string()),
             stage_version: STAGE_VERSION,
@@ -143,7 +145,9 @@ pub mod contamination {
             tool_version: tool.tool_version.clone(),
             image: tool.image.clone(),
             command: CommandSpecV1 {
-                template: crate::tools::authenticct::args(bam, params),
+                template: crate::tools::authenticct::args_with_outputs(
+                    bam, &report, &summary, params,
+                ),
             },
             resources: tool.resources.clone(),
             io: StageIO {
@@ -193,13 +197,17 @@ pub mod sex {
     ) -> anyhow::Result<StagePlanV1> {
         let outputs =
             crate::stages_support::audit_outputs(bijux_domain_bam::BamStage::Sex, out_dir);
+        let report = out_dir.join("sex.json");
+        let summary = out_dir.join("sex.summary.json");
         let plan = StagePlanV1 {
             stage_id: StageId(STAGE_ID.to_string()),
             stage_version: STAGE_VERSION,
             tool_id: tool.tool_id.clone(),
             tool_version: tool.tool_version.clone(),
             image: tool.image.clone(),
-            command: tool.command.clone(),
+            command: bijux_core::CommandSpecV1 {
+                template: crate::tools::rxy::args_with_outputs(bam, &report, &summary, params),
+            },
             resources: tool.resources.clone(),
             io: StageIO {
                 inputs: vec![bijux_core::ArtifactRef {

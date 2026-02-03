@@ -244,12 +244,20 @@ pub fn required_audit_artifacts(stage: BamStage) -> &'static [AuditArtifact] {
                 filename: "filtered.bam.bai",
             },
             AuditArtifact {
-                name: "flagstat",
-                filename: "flagstat.txt",
+                name: "flagstat_before",
+                filename: "flagstat.before.txt",
             },
             AuditArtifact {
-                name: "idxstats",
-                filename: "idxstats.txt",
+                name: "flagstat_after",
+                filename: "flagstat.after.txt",
+            },
+            AuditArtifact {
+                name: "idxstats_before",
+                filename: "idxstats.before.txt",
+            },
+            AuditArtifact {
+                name: "idxstats_after",
+                filename: "idxstats.after.txt",
             },
             AuditArtifact {
                 name: "summary",
@@ -270,12 +278,20 @@ pub fn required_audit_artifacts(stage: BamStage) -> &'static [AuditArtifact] {
                 filename: "markdup.bam.bai",
             },
             AuditArtifact {
-                name: "flagstat",
-                filename: "flagstat.txt",
+                name: "flagstat_before",
+                filename: "flagstat.before.txt",
             },
             AuditArtifact {
-                name: "idxstats",
-                filename: "idxstats.txt",
+                name: "flagstat_after",
+                filename: "flagstat.after.txt",
+            },
+            AuditArtifact {
+                name: "idxstats_before",
+                filename: "idxstats.before.txt",
+            },
+            AuditArtifact {
+                name: "idxstats_after",
+                filename: "idxstats.after.txt",
             },
             AuditArtifact {
                 name: "summary",
@@ -484,8 +500,10 @@ pub fn stage_spec(stage: BamStage) -> BamStageSpec {
                 required_outputs: &[
                     "filtered_bam",
                     "filtered_bai",
-                    "flagstat",
-                    "idxstats",
+                    "flagstat_before",
+                    "flagstat_after",
+                    "idxstats_before",
+                    "idxstats_after",
                     "summary",
                     "stage_metrics",
                 ],
@@ -509,8 +527,10 @@ pub fn stage_spec(stage: BamStage) -> BamStageSpec {
                 required_outputs: &[
                     "markdup_bam",
                     "markdup_bai",
-                    "flagstat",
-                    "idxstats",
+                    "flagstat_before",
+                    "flagstat_after",
+                    "idxstats_before",
+                    "idxstats_after",
                     "summary",
                     "stage_metrics",
                 ],
