@@ -10,8 +10,8 @@ use bijux_domain_bam::stage_spec;
 use bijux_domain_bam::BamStage;
 
 use crate::{
-    Domain, EffectiveDefaults, PipelineCapabilities, PipelineId, PipelineProfile, StageNode,
-    StabilityTier,
+    Domain, EffectiveDefaults, PipelineCapabilities, PipelineId, PipelineProfile, StabilityTier,
+    StageNode,
 };
 
 #[derive(Debug, Clone)]

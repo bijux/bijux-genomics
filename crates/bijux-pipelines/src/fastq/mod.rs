@@ -13,8 +13,8 @@ use bijux_domain_fastq::params::{
 };
 
 use crate::{
-    Domain, EffectiveDefaults, PipelineCapabilities, PipelineId, PipelineProfile, StageNode,
-    StabilityTier,
+    Domain, EffectiveDefaults, PipelineCapabilities, PipelineId, PipelineProfile, StabilityTier,
+    StageNode,
 };
 
 #[derive(Debug, Clone)]

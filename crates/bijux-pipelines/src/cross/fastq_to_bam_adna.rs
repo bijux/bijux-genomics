@@ -3,8 +3,8 @@
 use crate::bam::bam_adna_shotgun_profile;
 use crate::fastq::{fastq_default_profile, DefaultPipelineOptions};
 use crate::{
-    Domain, EffectiveDefaults, PipelineCapabilities, PipelineId, PipelineProfile, StageNode,
-    StabilityTier,
+    Domain, EffectiveDefaults, PipelineCapabilities, PipelineId, PipelineProfile, StabilityTier,
+    StageNode,
 };
 use bijux_domain_bam::params::{AlignEffectiveParams, ReadGroupSpec};
 use bijux_domain_bam::types::ReadGroupPolicy;
