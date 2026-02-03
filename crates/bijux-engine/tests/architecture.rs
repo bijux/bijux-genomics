@@ -4,7 +4,7 @@ use std::path::Path;
 #[test]
 fn engine_api_does_not_expose_domain_types() -> Result<(), Box<dyn std::error::Error>> {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let api_path = manifest_dir.join("src/api/mod.rs");
+    let api_path = manifest_dir.join("src/api.rs");
     let contents = fs::read_to_string(&api_path)?;
     let forbidden = ["bijux_domain_", "bijux_stages_"];
     let mut offenders = Vec::new();
@@ -23,7 +23,7 @@ fn engine_api_does_not_expose_domain_types() -> Result<(), Box<dyn std::error::E
 #[test]
 fn engine_api_uses_core_stage_plan() -> Result<(), Box<dyn std::error::Error>> {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let api_path = manifest_dir.join("src/api/mod.rs");
+    let api_path = manifest_dir.join("src/api.rs");
     let contents = fs::read_to_string(&api_path)?;
     assert!(
         contents.contains("pub use bijux_core::StagePlanV1"),
