@@ -42,7 +42,7 @@ pub use bijux_domain_fastq::{
     polyx_bank_path, polyx_presets_path, qc_class_for_stage, write_benchmark_exports,
     AdapterPresetsV1, BenchCorpusId, EffectiveAdapterSet, QcClass, ReadScope, STAGES,
 };
-pub use bijux_engine::api::{
+pub use bijux_engine::primitives::{
     build_tool_execution_spec, execute_stage_plan, init_logging, replay::replay_run,
     ExecutionManifest,
 };

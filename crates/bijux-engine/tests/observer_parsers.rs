@@ -1,5 +1,5 @@
 use anyhow::Result;
-use bijux_engine::api::parse_fastqvalidator_count;
+use bijux_engine::primitives::parse_fastqvalidator_count;
 
 #[test]
 fn parse_fastqvalidator_count_parses_total_reads() -> Result<()> {

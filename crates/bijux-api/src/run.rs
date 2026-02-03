@@ -64,7 +64,7 @@ pub fn plan_run(request: PlanRunRequest, registry: &ToolRegistry) -> Result<Plan
 /// # Errors
 /// Returns an error if execution fails.
 pub fn execute_run(request: &ExecuteRunRequest) -> Result<ExecuteRunResult> {
-    bijux_engine::api::execute_stage_plan(&request.plan, request.runner, None)?;
+    bijux_engine::primitives::execute_stage_plan(&request.plan, request.runner, None)?;
     Ok(ExecuteRunResult)
 }
 

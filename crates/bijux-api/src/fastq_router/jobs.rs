@@ -3,8 +3,8 @@ use std::sync::{Arc, Mutex};
 
 use anyhow::{anyhow, Result};
 
-use bijux_engine::api::execute_plan;
-use bijux_engine::api::RunnerKind;
+use bijux_engine::primitives::execute_plan;
+use bijux_engine::primitives::RunnerKind;
 
 pub(super) fn bench_jobs(requested: u32) -> usize {
     usize::try_from(requested).unwrap_or(1).clamp(1, 32)
@@ -28,7 +28,7 @@ pub(super) fn execute_plans_with_jobs(
     plans: Vec<bijux_core::StagePlanV1>,
     runner: RunnerKind,
     jobs: usize,
-) -> Result<Vec<bijux_engine::api::StageResultV1>> {
+) -> Result<Vec<bijux_engine::primitives::StageResultV1>> {
     if jobs <= 1 || plans.len() <= 1 {
         return plans
             .iter()
@@ -39,7 +39,7 @@ pub(super) fn execute_plans_with_jobs(
     let queue = Arc::new(Mutex::new(VecDeque::from(
         plans.into_iter().enumerate().collect::<Vec<_>>(),
     )));
-    let results: Arc<Mutex<Vec<Option<Result<bijux_engine::api::StageResultV1>>>>> =
+    let results: Arc<Mutex<Vec<Option<Result<bijux_engine::primitives::StageResultV1>>>>> =
         Arc::new(Mutex::new(Vec::with_capacity(total)));
     {
         let mut guard = results

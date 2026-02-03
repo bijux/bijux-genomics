@@ -2,7 +2,7 @@ use std::fs;
 use std::path::Path;
 
 use anyhow::{Context, Result};
-use bijux_engine::api::StageResultV1;
+use bijux_engine::primitives::StageResultV1;
 
 pub(super) fn write_run_summary(
     out_dir: &Path,
@@ -98,7 +98,7 @@ pub(super) fn write_run_manifest(
             let mut artifacts = Vec::new();
             let add_artifact = |artifacts: &mut Vec<serde_json::Value>, name: &str, path: &Path| {
                 if path.exists() {
-                    if let Ok(hash) = bijux_engine::api::hash_file_sha256(path) {
+                    if let Ok(hash) = bijux_engine::primitives::hash_file_sha256(path) {
                         artifacts.push(serde_json::json!({
                             "name": name,
                             "path": path,

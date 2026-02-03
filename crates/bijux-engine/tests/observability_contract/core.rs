@@ -7,7 +7,7 @@ use bijux_core::{
     parameters_json_canonicalization, CommandSpecV1, ContainerImageRefV1, ToolConstraints,
     ToolExecutionSpecV1, ToolId,
 };
-use bijux_engine::api::{execute_plan, params_hash, StagePlanV1};
+use bijux_engine::primitives::{execute_plan, params_hash, StagePlanV1};
 use bijux_env_runtime::api::RunnerKind;
 use bijux_stages_fastq::fastq::{
     correct, filter, merge, qc_post, screen, stats_neutral, trim, umi, validate_pre,

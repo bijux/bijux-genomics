@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::fs;
 
 use anyhow::{anyhow, Context, Result};
-use bijux_engine::api::{
+use bijux_engine::primitives::{
     bench_base_dir, bench_tools_dir, build_tool_execution_spec, ensure_bench_runner,
     ensure_image_qa_passed, ensure_tool_qa_passed, filter_tools_by_role, load_registry,
     PlatformSpec, RunnerKind, ToolImageSpec,
@@ -26,7 +26,7 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
     runner_override: Option<RunnerKind>,
     args: &bijux_stages_fastq::args::BenchFastqTrimArgs,
 ) -> Result<BenchOutcome<bijux_analyze::FastqTrimMetrics>> {
-    let tools = bijux_engine::api::normalize_trim_tool_list(&args.tools)?;
+    let tools = bijux_engine::primitives::normalize_trim_tool_list(&args.tools)?;
     let artifact = FastqArtifact::single_end(&args.r1);
     preflight_stage("fastq.trim", artifact.kind)?;
     let header = inspect_headers(&args.r1, None, false)?;

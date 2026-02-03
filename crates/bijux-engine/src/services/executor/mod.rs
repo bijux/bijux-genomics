@@ -1,3 +1,5 @@
+#![allow(unused_imports)]
+
 mod docker;
 mod execute;
 mod image;

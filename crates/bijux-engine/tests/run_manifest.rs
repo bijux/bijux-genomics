@@ -1,6 +1,6 @@
 use std::fs;
 
-use bijux_engine::api::{prepare_tool_run_dirs, write_run_manifest, RunArtifactInput};
+use bijux_engine::primitives::{prepare_tool_run_dirs, write_run_manifest, RunArtifactInput};
 use tempfile::TempDir;
 
 #[test]

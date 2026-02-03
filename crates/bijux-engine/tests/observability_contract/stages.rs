@@ -323,7 +323,7 @@ fn preprocess_emits_telemetry_events() -> Result<()> {
     let _result = execute_plan(&plan, RunnerKind::Docker, None)?;
 
     let run_artifacts =
-        bijux_engine::services::run_artifacts::run_artifacts_dir_for_out(&plan.out_dir);
+        bijux_engine::primitives::run_artifacts::run_artifacts_dir_for_out(&plan.out_dir);
     let telemetry_path = run_artifacts.join("telemetry").join("events.jsonl");
     assert!(telemetry_path.exists());
     let telemetry_raw = fs::read_to_string(&telemetry_path)?;

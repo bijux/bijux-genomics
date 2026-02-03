@@ -11,9 +11,8 @@
     clippy::new_without_default
 )]
 
-pub mod api;
-pub mod core;
-pub mod internal;
-pub mod services;
+pub(crate) mod core;
+pub mod primitives;
+pub(crate) mod services;
 
 pub use bijux_env_runtime::api::ResolvedImage;

@@ -6,7 +6,7 @@ use anyhow::Result;
 use bijux_core::{
     CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
 };
-use bijux_engine::api::execute_plan;
+use bijux_engine::primitives::execute_plan;
 use bijux_env_runtime::api::RunnerKind;
 use bijux_stages_fastq::fastq::{filter, merge, trim, validate_pre};
 use tempfile::TempDir;

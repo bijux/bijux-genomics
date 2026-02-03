@@ -11,7 +11,7 @@ use flate2::read::GzDecoder;
 use tracing::info;
 use uuid::Uuid;
 
-use crate::api::{
+use crate::primitives::{
     cleanup_execution, execution_memory_mb, hash_file_sha256, run_filter_execution,
     run_merge_execution, run_multiqc_execution, run_tool_execution, run_validate_execution,
 };

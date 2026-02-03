@@ -1,6 +1,6 @@
 use anyhow::{anyhow, Context, Result};
 use bijux_core::ToolRegistry;
-use bijux_engine::api::{
+use bijux_engine::primitives::{
     build_tool_execution_spec, ensure_image_qa_passed, ensure_tool_qa_passed, execute_stage_plan,
     filter_tools_by_role,
 };

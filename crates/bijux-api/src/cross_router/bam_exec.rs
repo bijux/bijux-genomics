@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Context, Result};
 use bijux_core::alignment::AlignmentBoundary;
 use bijux_core::ToolRegistry;
-use bijux_engine::api::{build_tool_execution_spec, execute_stage_plan};
+use bijux_engine::primitives::{build_tool_execution_spec, execute_stage_plan};
 use bijux_env_runtime::ReferenceRecord;
 use bijux_pipelines::PipelineProfile;
 
@@ -15,8 +15,8 @@ use crate::fastq_router::StageExecutionSummary;
 
 pub fn run_bam_truth_stages<S: std::hash::BuildHasher>(
     registry_core: &ToolRegistry,
-    catalog: &std::collections::HashMap<String, bijux_engine::api::ToolImageSpec, S>,
-    platform: &bijux_engine::api::PlatformSpec,
+    catalog: &std::collections::HashMap<String, bijux_engine::primitives::ToolImageSpec, S>,
+    platform: &bijux_engine::primitives::PlatformSpec,
     profile: &PipelineProfile,
     boundary: &AlignmentBoundary,
     out_dir: &Path,
@@ -127,8 +127,8 @@ pub fn run_bam_truth_stages<S: std::hash::BuildHasher>(
 #[allow(clippy::too_many_lines)]
 pub fn run_bam_align_and_truth_stages<S: std::hash::BuildHasher>(
     registry_core: &ToolRegistry,
-    catalog: &std::collections::HashMap<String, bijux_engine::api::ToolImageSpec, S>,
-    platform: &bijux_engine::api::PlatformSpec,
+    catalog: &std::collections::HashMap<String, bijux_engine::primitives::ToolImageSpec, S>,
+    platform: &bijux_engine::primitives::PlatformSpec,
     profile: &PipelineProfile,
     reference: &ReferenceRecord,
     args: &FastqCrossArgs,

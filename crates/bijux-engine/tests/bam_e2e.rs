@@ -4,7 +4,7 @@ use anyhow::Result;
 use bijux_core::{
     CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
 };
-use bijux_engine::api::{execute_plan, resolve_image_for_run};
+use bijux_engine::primitives::{execute_plan, resolve_image_for_run};
 use bijux_env_runtime::api::{load_image_catalog, load_platform, RunnerKind};
 use tempfile::TempDir;
 

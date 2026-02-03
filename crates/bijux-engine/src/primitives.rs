@@ -1,5 +1,5 @@
 //! Owner: bijux-engine
-//! Stable, intended-for-use engine interfaces.
+//! Low-level engine primitives. Prefer bijux-api for orchestration.
 
 use anyhow::{anyhow, Result};
 use bijux_core::{CommandSpecV1, ContainerImageRefV1, ToolExecutionSpecV1, ToolId, ToolRole};

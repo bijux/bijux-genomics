@@ -5,7 +5,7 @@ use bijux_core::{
     ArtifactRef, CommandSpecV1, ContainerImageRefV1, StageIO, StageId, StageVersion,
     ToolConstraints, ToolId,
 };
-use bijux_engine::api::{execute_plan, resolve_image_for_run, StagePlanV1};
+use bijux_engine::primitives::{execute_plan, resolve_image_for_run, StagePlanV1};
 use bijux_env_runtime::api::{load_image_catalog, load_platform};
 use tempfile::TempDir;
 
