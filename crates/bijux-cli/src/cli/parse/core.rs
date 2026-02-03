@@ -1,7 +1,6 @@
 use clap::ValueEnum;
 use clap::{Args, Parser, Subcommand};
 use std::path::PathBuf;
-
 #[derive(Debug, Parser)]
 #[command(name = "bijux", version, about = "Bijux DNA CLI")]
 pub struct Cli {
@@ -20,7 +19,6 @@ pub struct Cli {
     #[command(subcommand)]
     pub command: Commands,
 }
-
 #[derive(Debug, Subcommand)]
 #[allow(clippy::large_enum_variant)]
 pub enum Commands {
@@ -54,7 +52,6 @@ pub enum Commands {
         command: BenchCommand,
     },
 }
-
 #[derive(Debug, Args)]
 pub struct ReplayArgs {
     pub run_id: String,
