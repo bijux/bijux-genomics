@@ -12,7 +12,10 @@ use bijux_domain_fastq::params::{
     validate::ValidateEffectiveParams, PairedMode,
 };
 
-use crate::{Domain, EffectiveDefaults, PipelineCapabilities, PipelineProfile, StageNode};
+use crate::{
+    Domain, EffectiveDefaults, PipelineCapabilities, PipelineId, PipelineProfile, StageNode,
+    StabilityTier,
+};
 
 #[derive(Debug, Clone)]
 pub struct CanonicalPipeline {
@@ -218,8 +221,9 @@ fn to_graph(stages: &[String]) -> Vec<StageNode> {
 pub fn fastq_minimal_profile() -> PipelineProfile {
     let canonical = canonical_pipeline();
     PipelineProfile {
-        id: "minimal",
+        id: PipelineId::new("fastq__minimal__v1"),
         description: "Minimal FASTQ pipeline",
+        stability: StabilityTier::Stable,
         domains: vec![Domain::Fastq],
         graph: to_graph(&canonical.required),
         defaults: fastq_defaults(false),
@@ -227,6 +231,7 @@ pub fn fastq_minimal_profile() -> PipelineProfile {
         capabilities: PipelineCapabilities {
             required_inputs: vec!["fastq"],
             produces_outputs: vec!["fastq", "fastq.metrics"],
+            report_sections: vec!["fastq"],
             supports_benchmarking: true,
         },
     }
@@ -249,8 +254,9 @@ pub fn fastq_default_profile(options: DefaultPipelineOptions) -> PipelineProfile
         stages.push("fastq.qc_post".to_string());
     }
     PipelineProfile {
-        id: "default",
+        id: PipelineId::new("fastq__default__v1"),
         description: "Default FASTQ pipeline",
+        stability: StabilityTier::Stable,
         domains: vec![Domain::Fastq],
         graph: to_graph(&stages),
         defaults: fastq_defaults(options.paired),
@@ -258,6 +264,7 @@ pub fn fastq_default_profile(options: DefaultPipelineOptions) -> PipelineProfile
         capabilities: PipelineCapabilities {
             required_inputs: vec!["fastq"],
             produces_outputs: vec!["fastq", "fastq.metrics"],
+            report_sections: vec!["fastq"],
             supports_benchmarking: true,
         },
     }
@@ -291,8 +298,8 @@ pub fn fastq_minimal_pipeline_spec() -> PipelineSpec {
 /// Returns an error if the requested profile id is unknown.
 pub fn fastq_profiles_by_id(id: &str) -> anyhow::Result<PipelineProfile> {
     match id {
-        "default" => Ok(fastq_default_profile(DefaultPipelineOptions::default())),
-        "minimal" => Ok(fastq_minimal_profile()),
+        "fastq__default__v1" => Ok(fastq_default_profile(DefaultPipelineOptions::default())),
+        "fastq__minimal__v1" => Ok(fastq_minimal_profile()),
         _ => Err(anyhow::anyhow!("unknown FASTQ profile: {id}")),
     }
 }

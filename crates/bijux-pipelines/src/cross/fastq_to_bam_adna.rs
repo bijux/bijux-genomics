@@ -2,7 +2,10 @@
 
 use crate::bam::bam_adna_shotgun_profile;
 use crate::fastq::{fastq_default_profile, DefaultPipelineOptions};
-use crate::{Domain, EffectiveDefaults, PipelineCapabilities, PipelineProfile, StageNode};
+use crate::{
+    Domain, EffectiveDefaults, PipelineCapabilities, PipelineId, PipelineProfile, StageNode,
+    StabilityTier,
+};
 use bijux_domain_bam::params::{AlignEffectiveParams, ReadGroupSpec};
 use bijux_domain_bam::types::ReadGroupPolicy;
 
@@ -58,8 +61,9 @@ pub fn fastq_to_bam_adna_shotgun_profile() -> PipelineProfile {
         .insert("bam.align".to_string(), align_defaults("adna_short"));
 
     PipelineProfile {
-        id: "fastq-to-bam-adna-shotgun",
+        id: PipelineId::new("fastq-to-bam__adna_shotgun__v1"),
         description: "FASTQ preprocess → align → BAM QC/damage (aDNA shotgun)",
+        stability: StabilityTier::Beta,
         domains: vec![Domain::Fastq, Domain::Cross, Domain::Bam],
         graph: vec![
             StageNode {
@@ -86,6 +90,7 @@ pub fn fastq_to_bam_adna_shotgun_profile() -> PipelineProfile {
         capabilities: PipelineCapabilities {
             required_inputs: vec!["fastq", "reference"],
             produces_outputs: vec!["fastq", "bam", "bam.metrics"],
+            report_sections: vec!["fastq", "bam", "cross.handoff"],
             supports_benchmarking: false,
         },
     }
@@ -108,8 +113,9 @@ pub fn fastq_to_bam_default_profile() -> PipelineProfile {
         .insert("bam.align".to_string(), align_defaults("default"));
 
     PipelineProfile {
-        id: "fastq-to-bam-default",
+        id: PipelineId::new("fastq-to-bam__default__v1"),
         description: "FASTQ preprocess → align → BAM QC/damage (modern defaults)",
+        stability: StabilityTier::Stable,
         domains: vec![Domain::Fastq, Domain::Cross, Domain::Bam],
         graph: vec![
             StageNode {
@@ -136,6 +142,7 @@ pub fn fastq_to_bam_default_profile() -> PipelineProfile {
         capabilities: PipelineCapabilities {
             required_inputs: vec!["fastq", "reference"],
             produces_outputs: vec!["fastq", "bam", "bam.metrics"],
+            report_sections: vec!["fastq", "bam", "cross.handoff"],
             supports_benchmarking: false,
         },
     }

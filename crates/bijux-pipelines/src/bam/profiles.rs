@@ -9,7 +9,10 @@ use bijux_domain_bam::params::{
 use bijux_domain_bam::stage_spec;
 use bijux_domain_bam::BamStage;
 
-use crate::{Domain, EffectiveDefaults, PipelineCapabilities, PipelineProfile, StageNode};
+use crate::{
+    Domain, EffectiveDefaults, PipelineCapabilities, PipelineId, PipelineProfile, StageNode,
+    StabilityTier,
+};
 
 #[derive(Debug, Clone)]
 struct BamStageDefault {
@@ -132,8 +135,9 @@ pub fn bam_default_profile() -> PipelineProfile {
     filter_downstream(&mut stages);
     filter_defaults(&mut defaults, &stages);
     PipelineProfile {
-        id: "default",
+        id: PipelineId::new("bam__default__v1"),
         description: "Default BAM pipeline",
+        stability: StabilityTier::Stable,
         domains: vec![Domain::Bam],
         graph: to_graph(&stages),
         defaults: to_effective_defaults(&defaults),
@@ -141,6 +145,7 @@ pub fn bam_default_profile() -> PipelineProfile {
         capabilities: PipelineCapabilities {
             required_inputs: vec!["bam"],
             produces_outputs: vec!["bam", "bam.metrics"],
+            report_sections: vec!["bam"],
             supports_benchmarking: true,
         },
     }
@@ -182,8 +187,9 @@ pub fn bam_adna_shotgun_profile() -> PipelineProfile {
         }
     }
     PipelineProfile {
-        id: "adna-shotgun",
+        id: PipelineId::new("bam__adna_shotgun__v1"),
         description: "Ancient DNA shotgun defaults",
+        stability: StabilityTier::Beta,
         domains: vec![Domain::Bam],
         graph: to_graph(&stages),
         defaults: to_effective_defaults(&defaults),
@@ -191,6 +197,7 @@ pub fn bam_adna_shotgun_profile() -> PipelineProfile {
         capabilities: PipelineCapabilities {
             required_inputs: vec!["bam"],
             produces_outputs: vec!["bam", "bam.metrics"],
+            report_sections: vec!["bam"],
             supports_benchmarking: true,
         },
     }
@@ -199,7 +206,7 @@ pub fn bam_adna_shotgun_profile() -> PipelineProfile {
 #[must_use]
 pub fn bam_adna_capture_profile() -> PipelineProfile {
     let mut profile = bam_adna_shotgun_profile();
-    profile.id = "adna-capture";
+    profile.id = PipelineId::new("bam__adna_capture__v1");
     profile.description = "Ancient DNA capture defaults";
     for (stage_id, params) in profile.defaults.params.iter_mut() {
         if stage_id == "bam.filter" {
@@ -222,9 +229,9 @@ pub fn bam_adna_capture_profile() -> PipelineProfile {
 /// Returns an error if the requested profile id is unknown.
 pub fn bam_profiles_by_id(id: &str) -> Result<PipelineProfile> {
     match id {
-        "default" => Ok(bam_default_profile()),
-        "adna-shotgun" => Ok(bam_adna_shotgun_profile()),
-        "adna-capture" => Ok(bam_adna_capture_profile()),
+        "bam__default__v1" => Ok(bam_default_profile()),
+        "bam__adna_shotgun__v1" => Ok(bam_adna_shotgun_profile()),
+        "bam__adna_capture__v1" => Ok(bam_adna_capture_profile()),
         _ => Err(anyhow!("unknown BAM profile: {id}")),
     }
 }
