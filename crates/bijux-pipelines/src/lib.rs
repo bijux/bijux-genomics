@@ -36,4 +36,12 @@ pub struct PipelineProfile {
     pub graph: Vec<StageNode>,
     pub defaults: EffectiveDefaults,
     pub invariants_preset: Option<&'static str>,
+    pub capabilities: PipelineCapabilities,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct PipelineCapabilities {
+    pub required_inputs: Vec<&'static str>,
+    pub produces_outputs: Vec<&'static str>,
+    pub supports_benchmarking: bool,
 }

@@ -191,5 +191,17 @@ expression: fastq_to_bam_adna_profile()
       }
     }
   },
-  "invariants_preset": "adna"
+  "invariants_preset": "adna",
+  "capabilities": {
+    "required_inputs": [
+      "fastq",
+      "alignment_boundary"
+    ],
+    "produces_outputs": [
+      "fastq",
+      "bam.metrics",
+      "alignment_boundary"
+    ],
+    "supports_benchmarking": false
+  }
 }

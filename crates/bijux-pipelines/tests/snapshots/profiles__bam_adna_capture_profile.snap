@@ -119,5 +119,15 @@ expression: bam_adna_capture_profile()
       }
     }
   },
-  "invariants_preset": "adna"
+  "invariants_preset": "adna",
+  "capabilities": {
+    "required_inputs": [
+      "bam"
+    ],
+    "produces_outputs": [
+      "bam",
+      "bam.metrics"
+    ],
+    "supports_benchmarking": true
+  }
 }

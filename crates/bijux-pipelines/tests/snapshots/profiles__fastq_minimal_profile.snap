@@ -120,5 +120,15 @@ expression: fastq_minimal_profile()
       }
     }
   },
-  "invariants_preset": null
+  "invariants_preset": null,
+  "capabilities": {
+    "required_inputs": [
+      "fastq"
+    ],
+    "produces_outputs": [
+      "fastq",
+      "fastq.metrics"
+    ],
+    "supports_benchmarking": true
+  }
 }

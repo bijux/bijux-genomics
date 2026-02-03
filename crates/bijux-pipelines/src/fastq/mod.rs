@@ -10,7 +10,7 @@ use bijux_domain_fastq::params::{
     validate::ValidateEffectiveParams, PairedMode,
 };
 
-use crate::{Domain, EffectiveDefaults, PipelineProfile, StageNode};
+use crate::{Domain, EffectiveDefaults, PipelineCapabilities, PipelineProfile, StageNode};
 
 #[derive(Debug, Clone)]
 pub struct CanonicalPipeline {
@@ -95,7 +95,7 @@ fn fastq_defaults(paired: bool) -> EffectiveDefaults {
             threads: 1,
             q_cutoff: None,
         })
-        .expect("serialize validate params"),
+        .unwrap_or(serde_json::Value::Null),
     );
     params.insert(
         "fastq.stats_neutral".to_string(),
@@ -104,7 +104,7 @@ fn fastq_defaults(paired: bool) -> EffectiveDefaults {
             threads: 1,
             q_cutoff: None,
         })
-        .expect("serialize stats params"),
+        .unwrap_or(serde_json::Value::Null),
     );
     params.insert(
         "fastq.correct".to_string(),
@@ -113,7 +113,7 @@ fn fastq_defaults(paired: bool) -> EffectiveDefaults {
             threads: 1,
             q_cutoff: None,
         })
-        .expect("serialize correct params"),
+        .unwrap_or(serde_json::Value::Null),
     );
     params.insert(
         "fastq.umi".to_string(),
@@ -122,7 +122,7 @@ fn fastq_defaults(paired: bool) -> EffectiveDefaults {
             threads: 1,
             q_cutoff: None,
         })
-        .expect("serialize umi params"),
+        .unwrap_or(serde_json::Value::Null),
     );
     params.insert(
         "fastq.detect_adapters".to_string(),
@@ -131,7 +131,7 @@ fn fastq_defaults(paired: bool) -> EffectiveDefaults {
             threads: 1,
             sample_reads: None,
         })
-        .expect("serialize detect adapters params"),
+        .unwrap_or(serde_json::Value::Null),
     );
     params.insert(
         "fastq.trim".to_string(),
@@ -145,7 +145,7 @@ fn fastq_defaults(paired: bool) -> EffectiveDefaults {
             n_policy: None,
             contaminant_policy: None,
         })
-        .expect("serialize trim params"),
+        .unwrap_or(serde_json::Value::Null),
     );
     params.insert(
         "fastq.filter".to_string(),
@@ -161,7 +161,7 @@ fn fastq_defaults(paired: bool) -> EffectiveDefaults {
             n_policy: None,
             polyx_policy: None,
         })
-        .expect("serialize filter params"),
+        .unwrap_or(serde_json::Value::Null),
     );
     params.insert(
         "fastq.qc_post".to_string(),
@@ -169,7 +169,7 @@ fn fastq_defaults(paired: bool) -> EffectiveDefaults {
             paired_mode,
             threads: 1,
         })
-        .expect("serialize qc_post params"),
+        .unwrap_or(serde_json::Value::Null),
     );
     params.insert(
         "fastq.preprocess".to_string(),
@@ -179,7 +179,7 @@ fn fastq_defaults(paired: bool) -> EffectiveDefaults {
             stages: canonical_pipeline().required,
             enable_contaminant_removal: false,
         })
-        .expect("serialize preprocess params"),
+        .unwrap_or(serde_json::Value::Null),
     );
     params.insert(
         "fastq.merge".to_string(),
@@ -189,7 +189,7 @@ fn fastq_defaults(paired: bool) -> EffectiveDefaults {
             merge_overlap: None,
             min_len: None,
         })
-        .expect("serialize merge params"),
+        .unwrap_or(serde_json::Value::Null),
     );
     params.insert(
         "fastq.screen".to_string(),
@@ -198,7 +198,7 @@ fn fastq_defaults(paired: bool) -> EffectiveDefaults {
             threads: 1,
             contaminant_db: None,
         })
-        .expect("serialize screen params"),
+        .unwrap_or(serde_json::Value::Null),
     );
     EffectiveDefaults { tools, params }
 }
@@ -222,6 +222,11 @@ pub fn fastq_minimal_profile() -> PipelineProfile {
         graph: to_graph(&canonical.required),
         defaults: fastq_defaults(false),
         invariants_preset: None,
+        capabilities: PipelineCapabilities {
+            required_inputs: vec!["fastq"],
+            produces_outputs: vec!["fastq", "fastq.metrics"],
+            supports_benchmarking: true,
+        },
     }
 }
 
@@ -248,6 +253,11 @@ pub fn fastq_default_profile(options: DefaultPipelineOptions) -> PipelineProfile
         graph: to_graph(&stages),
         defaults: fastq_defaults(options.paired),
         invariants_preset: None,
+        capabilities: PipelineCapabilities {
+            required_inputs: vec!["fastq"],
+            produces_outputs: vec!["fastq", "fastq.metrics"],
+            supports_benchmarking: true,
+        },
     }
 }
 

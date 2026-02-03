@@ -1,5 +1,6 @@
 // split to keep module size manageable
 
+pub mod alignment;
 pub mod domain;
 pub mod events;
 pub mod input_assessment;

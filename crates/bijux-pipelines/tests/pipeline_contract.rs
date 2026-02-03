@@ -29,11 +29,12 @@ fn pipeline_profiles_reference_known_stages_and_defaults() {
                     "unknown FASTQ stage {stage_id} in profile {}",
                     profile.id
                 );
-                let params = profile
-                    .defaults
-                    .params
-                    .get(stage_id)
-                    .expect("fastq params present");
+                let Some(params) = profile.defaults.params.get(stage_id) else {
+                    panic!(
+                        "missing FASTQ params for {stage_id} in profile {}",
+                        profile.id
+                    );
+                };
                 let parsed = parse_effective_params(stage_id, params)
                     .unwrap_or_else(|| panic!("failed to parse FASTQ params for {stage_id}"));
                 assert!(
@@ -42,13 +43,14 @@ fn pipeline_profiles_reference_known_stages_and_defaults() {
                     profile.id
                 );
             } else if stage_id.starts_with("bam.") {
-                let stage =
-                    BamStage::try_from(stage_id).unwrap_or_else(|_| panic!("unknown BAM stage"));
-                let params = profile
-                    .defaults
-                    .params
-                    .get(stage_id)
-                    .expect("bam params present");
+                let stage = BamStage::try_from(stage_id)
+                    .unwrap_or_else(|_| panic!("unknown BAM stage {stage_id}"));
+                let Some(params) = profile.defaults.params.get(stage_id) else {
+                    panic!(
+                        "missing BAM params for {stage_id} in profile {}",
+                        profile.id
+                    );
+                };
                 stage
                     .parse_effective_params(params)
                     .unwrap_or_else(|_| panic!("failed to parse BAM params for {stage_id}"));

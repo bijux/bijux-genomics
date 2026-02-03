@@ -2,7 +2,7 @@
 
 use crate::bam::bam_adna_shotgun_profile;
 use crate::fastq::{fastq_default_profile, DefaultPipelineOptions};
-use crate::{Domain, EffectiveDefaults, PipelineProfile, StageNode};
+use crate::{Domain, EffectiveDefaults, PipelineCapabilities, PipelineProfile, StageNode};
 
 #[must_use]
 pub fn fastq_to_bam_adna_profile() -> PipelineProfile {
@@ -52,5 +52,10 @@ pub fn fastq_to_bam_adna_profile() -> PipelineProfile {
         ],
         defaults,
         invariants_preset: Some("adna"),
+        capabilities: PipelineCapabilities {
+            required_inputs: vec!["fastq", "alignment_boundary"],
+            produces_outputs: vec!["fastq", "bam.metrics", "alignment_boundary"],
+            supports_benchmarking: false,
+        },
     }
 }

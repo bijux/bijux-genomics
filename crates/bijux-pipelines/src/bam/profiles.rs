@@ -9,7 +9,7 @@ use bijux_domain_bam::params::{
 use bijux_domain_bam::stage_spec;
 use bijux_domain_bam::BamStage;
 
-use crate::{Domain, EffectiveDefaults, PipelineProfile, StageNode};
+use crate::{Domain, EffectiveDefaults, PipelineCapabilities, PipelineProfile, StageNode};
 
 #[derive(Debug, Clone)]
 struct BamStageDefault {
@@ -48,49 +48,49 @@ fn to_effective_defaults(defaults: &[BamStageDefault]) -> EffectiveDefaults {
 fn bam_params_value(params: &BamEffectiveParams) -> serde_json::Value {
     match params {
         BamEffectiveParams::Validate(inner) => {
-            serde_json::to_value(inner).expect("serialize validate params")
+            serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
         }
         BamEffectiveParams::QcPre(inner) => {
-            serde_json::to_value(inner).expect("serialize qc_pre params")
+            serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
         }
         BamEffectiveParams::Filter(inner) => {
-            serde_json::to_value(inner).expect("serialize filter params")
+            serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
         }
         BamEffectiveParams::Markdup(inner) => {
-            serde_json::to_value(inner).expect("serialize markdup params")
+            serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
         }
         BamEffectiveParams::Complexity(inner) => {
-            serde_json::to_value(inner).expect("serialize complexity params")
+            serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
         }
         BamEffectiveParams::Coverage(inner) => {
-            serde_json::to_value(inner).expect("serialize coverage params")
+            serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
         }
         BamEffectiveParams::Damage(inner) => {
-            serde_json::to_value(inner).expect("serialize damage params")
+            serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
         }
         BamEffectiveParams::Authenticity(inner) => {
-            serde_json::to_value(inner).expect("serialize authenticity params")
+            serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
         }
         BamEffectiveParams::Contamination(inner) => {
-            serde_json::to_value(inner).expect("serialize contamination params")
+            serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
         }
         BamEffectiveParams::Sex(inner) => {
-            serde_json::to_value(inner).expect("serialize sex params")
+            serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
         }
         BamEffectiveParams::BiasMitigation(inner) => {
-            serde_json::to_value(inner).expect("serialize bias mitigation params")
+            serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
         }
         BamEffectiveParams::Recalibration(inner) => {
-            serde_json::to_value(inner).expect("serialize recalibration params")
+            serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
         }
         BamEffectiveParams::Haplogroups(inner) => {
-            serde_json::to_value(inner).expect("serialize haplogroups params")
+            serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
         }
         BamEffectiveParams::Genotyping(inner) => {
-            serde_json::to_value(inner).expect("serialize genotyping params")
+            serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
         }
         BamEffectiveParams::Kinship(inner) => {
-            serde_json::to_value(inner).expect("serialize kinship params")
+            serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
         }
     }
 }
@@ -134,6 +134,11 @@ pub fn bam_default_profile() -> PipelineProfile {
         graph: to_graph(&stages),
         defaults: to_effective_defaults(&defaults),
         invariants_preset: None,
+        capabilities: PipelineCapabilities {
+            required_inputs: vec!["bam"],
+            produces_outputs: vec!["bam", "bam.metrics"],
+            supports_benchmarking: true,
+        },
     }
 }
 
@@ -178,6 +183,11 @@ pub fn bam_adna_shotgun_profile() -> PipelineProfile {
         graph: to_graph(&stages),
         defaults: to_effective_defaults(&defaults),
         invariants_preset: Some("adna"),
+        capabilities: PipelineCapabilities {
+            required_inputs: vec!["bam"],
+            produces_outputs: vec!["bam", "bam.metrics"],
+            supports_benchmarking: true,
+        },
     }
 }
 
@@ -188,13 +198,16 @@ pub fn bam_adna_capture_profile() -> PipelineProfile {
     profile.description = "Ancient DNA capture defaults";
     for (stage_id, params) in profile.defaults.params.iter_mut() {
         if stage_id == "bam.filter" {
-            let mut filter = serde_json::from_value::<
+            if let Ok(mut filter) = serde_json::from_value::<
                 bijux_domain_bam::params::FilterEffectiveParams,
             >(params.clone())
-            .expect("parse BAM filter params");
-            filter.min_length = 25;
-            filter.mapq_threshold = 30;
-            *params = serde_json::to_value(&filter).expect("serialize BAM capture filter params");
+            {
+                filter.min_length = 25;
+                filter.mapq_threshold = 30;
+                if let Ok(value) = serde_json::to_value(&filter) {
+                    *params = value;
+                }
+            }
         }
     }
     profile
