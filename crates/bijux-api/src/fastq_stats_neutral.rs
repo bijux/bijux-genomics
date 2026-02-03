@@ -265,11 +265,8 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
         platform: platform.name.clone(),
         arch: platform.arch.clone(),
     };
-    fs::write(
-        &run_dirs.manifest_path,
-        serde_json::to_vec_pretty(&manifest)?,
-    )
-    .context("write execution manifest")?;
+    bijux_io::atomic_write_json(&run_dirs.manifest_path, &manifest)
+        .context("write execution manifest")?;
     write_execution_logs(&run_dirs, &execution.stdout, &execution.stderr)?;
     let context = BenchmarkContext {
         tool: tool.to_string(),

@@ -1,7 +1,6 @@
 use bijux_analyze::BenchmarkRecord;
 use bijux_stages_fastq::RawFailure;
 
-mod banks;
 mod explain;
 mod jobs;
 mod preprocess;
@@ -26,8 +25,8 @@ pub struct BenchOutcome<M: bijux_analyze::StageMetricSchema> {
 
 #[cfg(test)]
 mod tests {
-    use super::banks::polyx_unsupported_warning;
     use super::fastq_preprocess_plan;
+    use bijux_domain_fastq::banks::polyx_unsupported_warning;
     use std::path::PathBuf;
 
     fn base_args() -> bijux_stages_fastq::args::BenchFastqPreprocessArgs {

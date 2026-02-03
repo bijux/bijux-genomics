@@ -9,14 +9,16 @@ use bijux_pipelines::registry;
 use bijux_pipelines::Domain;
 use std::path::PathBuf;
 
-use crate::cli::parse::{BenchBamPipelineArgs, BenchBamStageArgs};
-use crate::plan_for_bam_stage;
+use crate::args::{BamRunArgs, BenchBamPipelineArgs, BenchBamStageArgs};
+use crate::bam_plan::plan_for_bam_stage;
 
 pub struct BamBenchOutcome {
     #[allow(dead_code)]
     pub run_dirs: Vec<PathBuf>,
 }
 
+/// # Errors
+/// Returns an error if planning or execution fails for the requested stage.
 pub fn bench_bam_stage(
     args: &BenchBamStageArgs,
     registry: &ToolRegistry,
@@ -26,7 +28,7 @@ pub fn bench_bam_stage(
         load_platform(platform_path).map_err(|err| anyhow!("failed to load platform: {err}"))?;
     let catalog =
         load_image_catalog().map_err(|err| anyhow!("failed to load image catalog: {err}"))?;
-    let stage = args.stage.stage();
+    let stage = args.stage;
     let stage_id = stage.as_str();
     let mut tools = args.tools.clone();
     if tools.is_empty() {
@@ -60,11 +62,11 @@ pub fn bench_bam_stage(
                 .join(&tool)
                 .join(format!("replicate_{rep}"));
             std::fs::create_dir_all(&run_dir).context("create bam bench run dir")?;
-            let run_args: crate::cli::parse::BamRunArgs = args.into();
+            let run_args: BamRunArgs = args.into();
             let plan = plan_for_bam_stage(stage, &spec, &run_args, run_dir.as_path())?;
             if args.explain || args.dry_run {
                 let plan_path = run_dir.join("plan.json");
-                std::fs::write(&plan_path, serde_json::to_vec_pretty(&plan)?)?;
+                bijux_io::atomic_write_json(&plan_path, &plan)?;
             } else {
                 execute_stage_plan(&plan, RunnerKind::Docker, None)?;
             }
@@ -74,6 +76,8 @@ pub fn bench_bam_stage(
     Ok(BamBenchOutcome { run_dirs })
 }
 
+/// # Errors
+/// Returns an error if planning or execution fails for the requested pipeline.
 pub fn bench_bam_pipeline(
     args: &BenchBamPipelineArgs,
     registry: &ToolRegistry,
@@ -88,7 +92,7 @@ pub fn bench_bam_pipeline(
         let tools = tool_matrix.get(stage_id).cloned().unwrap_or_default();
         let stage_args = BenchBamStageArgs {
             sample_id: args.sample_id.clone(),
-            stage: stage.into(),
+            stage,
             bam: args.bam.clone(),
             out: args.out.clone(),
             tools,
@@ -105,9 +109,9 @@ pub fn bench_bam_pipeline(
     Ok(BamBenchOutcome { run_dirs })
 }
 
-impl From<&BenchBamStageArgs> for crate::cli::parse::BamRunArgs {
+impl From<&BenchBamStageArgs> for BamRunArgs {
     fn from(value: &BenchBamStageArgs) -> Self {
-        crate::cli::parse::BamRunArgs {
+        BamRunArgs {
             stage: value.stage,
             profile: "default".to_string(),
             sample_id: Some(value.sample_id.clone()),
@@ -166,37 +170,6 @@ impl From<&BenchBamStageArgs> for crate::cli::parse::BamRunArgs {
             build_reference_indices: false,
             params_json: None,
             dry_run: value.dry_run,
-        }
-    }
-}
-
-impl From<bijux_domain_bam::BamStage> for crate::cli::parse::BamStageArg {
-    fn from(value: bijux_domain_bam::BamStage) -> Self {
-        match value {
-            bijux_domain_bam::BamStage::Align => crate::cli::parse::BamStageArg::Align,
-            bijux_domain_bam::BamStage::Validate => crate::cli::parse::BamStageArg::Validate,
-            bijux_domain_bam::BamStage::QcPre => crate::cli::parse::BamStageArg::QcPre,
-            bijux_domain_bam::BamStage::Filter => crate::cli::parse::BamStageArg::Filter,
-            bijux_domain_bam::BamStage::Markdup => crate::cli::parse::BamStageArg::Markdup,
-            bijux_domain_bam::BamStage::Complexity => crate::cli::parse::BamStageArg::Complexity,
-            bijux_domain_bam::BamStage::Coverage => crate::cli::parse::BamStageArg::Coverage,
-            bijux_domain_bam::BamStage::Damage => crate::cli::parse::BamStageArg::Damage,
-            bijux_domain_bam::BamStage::Authenticity => {
-                crate::cli::parse::BamStageArg::Authenticity
-            }
-            bijux_domain_bam::BamStage::Contamination => {
-                crate::cli::parse::BamStageArg::Contamination
-            }
-            bijux_domain_bam::BamStage::Sex => crate::cli::parse::BamStageArg::Sex,
-            bijux_domain_bam::BamStage::BiasMitigation => {
-                crate::cli::parse::BamStageArg::BiasMitigation
-            }
-            bijux_domain_bam::BamStage::Recalibration => {
-                crate::cli::parse::BamStageArg::Recalibration
-            }
-            bijux_domain_bam::BamStage::Haplogroups => crate::cli::parse::BamStageArg::Haplogroups,
-            bijux_domain_bam::BamStage::Genotyping => crate::cli::parse::BamStageArg::Genotyping,
-            bijux_domain_bam::BamStage::Kinship => crate::cli::parse::BamStageArg::Kinship,
         }
     }
 }

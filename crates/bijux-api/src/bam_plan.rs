@@ -2,11 +2,11 @@ use std::path::Path;
 
 use anyhow::{anyhow, Result};
 use bijux_core::{StagePlanV1, ToolExecutionSpecV1};
-use bijux_engine::api::hash_file_sha256;
+use bijux_io::hash_file_sha256;
 use bijux_pipelines::registry;
 use bijux_pipelines::PipelineProfile;
 
-use crate::cli::parse::BamRunArgs;
+use crate::args::BamRunArgs;
 
 pub(crate) fn plan_for_bam_stage(
     stage: bijux_domain_bam::BamStage,
@@ -19,14 +19,16 @@ pub(crate) fn plan_for_bam_stage(
 }
 
 #[allow(clippy::too_many_lines)]
-pub(crate) fn plan_for_bam_stage_with_profile(
+/// # Errors
+/// Returns an error if stage arguments are invalid or planning fails.
+pub fn plan_for_bam_stage_with_profile(
     stage: bijux_domain_bam::BamStage,
     spec: &ToolExecutionSpecV1,
     args: &BamRunArgs,
     profile: &PipelineProfile,
     out_dir: &Path,
 ) -> Result<StagePlanV1> {
-    if !crate::downstream_enabled()
+    if !crate::bam_support::downstream_enabled()
         && matches!(
             stage,
             bijux_domain_bam::BamStage::Haplogroups
@@ -88,8 +90,8 @@ pub(crate) fn plan_for_bam_stage_with_profile(
             if let Some(rg) = &args.rg_lb {
                 params.read_group.library.clone_from(rg);
             }
-            if let Some(policy) = args.rg_policy {
-                params.rg_policy = policy.into();
+            if let Some(policy) = args.rg_policy.as_deref() {
+                params.rg_policy = parse_read_group_policy(policy)?;
             }
             params.aligner.clone_from(&spec.tool_id.0);
             params.build_indices = args.build_reference_indices;
@@ -132,13 +134,13 @@ pub(crate) fn plan_for_bam_stage_with_profile(
                 },
             };
             if let Some(value) = args.min_mapq {
-                params.mapq_threshold = value;
+                params.mapq_threshold = value.try_into().unwrap_or(u8::MAX);
             }
             if !args.include_flags.is_empty() {
-                params.include_flags.clone_from(&args.include_flags);
+                params.include_flags = parse_flag_list(&args.include_flags)?;
             }
             if !args.exclude_flags.is_empty() {
-                params.exclude_flags.clone_from(&args.exclude_flags);
+                params.exclude_flags = parse_flag_list(&args.exclude_flags)?;
             }
             if let Some(value) = args.min_length {
                 params.min_length = value;
@@ -166,14 +168,14 @@ pub(crate) fn plan_for_bam_stage_with_profile(
                     duplicate_action: bijux_domain_bam::params::DuplicateAction::Mark,
                 },
             };
-            if let Some(value) = args.optical_duplicates {
-                params.optical_duplicates = value.into();
+            if let Some(value) = args.optical_duplicates.as_deref() {
+                params.optical_duplicates = parse_optical_duplicates(value)?;
             }
-            if let Some(value) = args.umi_policy {
-                params.umi_policy = value.into();
+            if let Some(value) = args.umi_policy.as_deref() {
+                params.umi_policy = parse_umi_policy(value)?;
             }
-            if let Some(value) = args.duplicate_action {
-                params.duplicate_action = value.into();
+            if let Some(value) = args.duplicate_action.as_deref() {
+                params.duplicate_action = parse_duplicate_action(value)?;
             }
             bijux_stages_bam::bam::markdup::plan(spec, &args.bam, out_dir, &params)
         }
@@ -187,7 +189,7 @@ pub(crate) fn plan_for_bam_stage_with_profile(
                 },
             };
             if let Some(value) = args.complexity_min_reads {
-                params.min_reads = value;
+                params.min_reads = u64::from(value);
             }
             if !args.complexity_projection_points.is_empty() {
                 params
@@ -205,8 +207,10 @@ pub(crate) fn plan_for_bam_stage_with_profile(
                     depth_thresholds: vec![1, 3, 5],
                 },
             };
-            if let Some(value) = args.regions.clone() {
-                params.regions = Some(bijux_domain_bam::types::BedRegions(value));
+            if let Some(value) = args.regions.as_deref() {
+                params.regions = Some(bijux_domain_bam::types::BedRegions(
+                    std::path::PathBuf::from(value),
+                ));
             }
             if !args.depth_thresholds.is_empty() {
                 params.depth_thresholds.clone_from(&args.depth_thresholds);
@@ -225,8 +229,8 @@ pub(crate) fn plan_for_bam_stage_with_profile(
                     trim_3p: 0,
                 },
             };
-            if let Some(value) = args.udg_model {
-                params.udg_model = value.into();
+            if let Some(value) = args.udg_model.as_deref() {
+                params.udg_model = parse_udg_model(value)?;
             }
             if let Some(value) = args.pmd_threshold_5p {
                 params.pmd_threshold_5p = value;
@@ -235,10 +239,10 @@ pub(crate) fn plan_for_bam_stage_with_profile(
                 params.pmd_threshold_3p = value;
             }
             if let Some(value) = args.trim_5p {
-                params.trim_5p = value;
+                params.trim_5p = value.try_into().unwrap_or(u8::MAX);
             }
             if let Some(value) = args.trim_3p {
-                params.trim_3p = value;
+                params.trim_3p = value.try_into().unwrap_or(u8::MAX);
             }
             bijux_stages_bam::bam::damage::plan(spec, &args.bam, out_dir, &params)
         }
@@ -272,8 +276,8 @@ pub(crate) fn plan_for_bam_stage_with_profile(
                     .reference_panels
                     .clone_from(&args.contamination_panel);
             }
-            if let Some(value) = args.contamination_scope {
-                params.scope = value.into();
+            if let Some(value) = args.contamination_scope.as_deref() {
+                params.scope = parse_contamination_scope(value)?;
             }
             if let Some(value) = args.contamination_prior {
                 params.prior = Some(value);
@@ -295,8 +299,8 @@ pub(crate) fn plan_for_bam_stage_with_profile(
                     method: "rxy".to_string(),
                 },
             };
-            if let Some(value) = args.expected_sex {
-                params.expected_sex = Some(value.into());
+            if let Some(value) = args.expected_sex.as_deref() {
+                params.expected_sex = Some(parse_expected_sex(value)?);
             }
             if !args.sex_method.is_empty() {
                 params.method.clone_from(&args.sex_method);
@@ -341,8 +345,8 @@ pub(crate) fn plan_for_bam_stage_with_profile(
             if !args.known_sites.is_empty() {
                 params.known_sites.clone_from(&args.known_sites);
             }
-            if let Some(value) = args.bqsr_mode {
-                params.mode = value.into();
+            if let Some(value) = args.bqsr_mode.as_deref() {
+                params.mode = parse_bqsr_mode(value)?;
             }
             if let Some(value) = args.bqsr_min_mean_coverage {
                 params.skip_criteria.min_mean_coverage = value;
@@ -429,4 +433,88 @@ fn default_params_for_stage(
         .get(stage.as_str())
         .and_then(|value| stage.parse_effective_params(value).ok())
         .unwrap_or_else(|| bijux_domain_bam::stage_spec(stage).default_params)
+}
+
+fn parse_read_group_policy(value: &str) -> Result<bijux_domain_bam::types::ReadGroupPolicy> {
+    match value {
+        "preserve" => Ok(bijux_domain_bam::types::ReadGroupPolicy::Preserve),
+        "merge" => Ok(bijux_domain_bam::types::ReadGroupPolicy::Merge),
+        "regenerate" => Ok(bijux_domain_bam::types::ReadGroupPolicy::Regenerate),
+        _ => Err(anyhow!("unknown read group policy: {value}")),
+    }
+}
+
+fn parse_optical_duplicates(
+    value: &str,
+) -> Result<bijux_domain_bam::params::OpticalDuplicatePolicy> {
+    match value {
+        "none" => Ok(bijux_domain_bam::params::OpticalDuplicatePolicy::None),
+        "mark_only" => Ok(bijux_domain_bam::params::OpticalDuplicatePolicy::MarkOnly),
+        "remove" => Ok(bijux_domain_bam::params::OpticalDuplicatePolicy::Remove),
+        _ => Err(anyhow!("unknown optical duplicate policy: {value}")),
+    }
+}
+
+fn parse_umi_policy(value: &str) -> Result<bijux_domain_bam::params::UmiPolicy> {
+    match value {
+        "ignore" => Ok(bijux_domain_bam::params::UmiPolicy::Ignore),
+        "use_tag" => Ok(bijux_domain_bam::params::UmiPolicy::UseTag),
+        "collapse" => Ok(bijux_domain_bam::params::UmiPolicy::Collapse),
+        _ => Err(anyhow!("unknown UMI policy: {value}")),
+    }
+}
+
+fn parse_duplicate_action(value: &str) -> Result<bijux_domain_bam::params::DuplicateAction> {
+    match value {
+        "mark" => Ok(bijux_domain_bam::params::DuplicateAction::Mark),
+        "remove" => Ok(bijux_domain_bam::params::DuplicateAction::Remove),
+        _ => Err(anyhow!("unknown duplicate action: {value}")),
+    }
+}
+
+fn parse_udg_model(value: &str) -> Result<bijux_domain_bam::params::UdgModel> {
+    match value {
+        "non_udg" => Ok(bijux_domain_bam::params::UdgModel::NonUdg),
+        "half_udg" => Ok(bijux_domain_bam::params::UdgModel::HalfUdg),
+        "udg" => Ok(bijux_domain_bam::params::UdgModel::Udg),
+        _ => Err(anyhow!("unknown UDG model: {value}")),
+    }
+}
+
+fn parse_contamination_scope(value: &str) -> Result<bijux_domain_bam::params::ContaminationScope> {
+    match value {
+        "mito" => Ok(bijux_domain_bam::params::ContaminationScope::Mito),
+        "nuclear" => Ok(bijux_domain_bam::params::ContaminationScope::Nuclear),
+        "both" => Ok(bijux_domain_bam::params::ContaminationScope::Both),
+        _ => Err(anyhow!("unknown contamination scope: {value}")),
+    }
+}
+
+fn parse_expected_sex(value: &str) -> Result<bijux_domain_bam::types::ExpectedSex> {
+    match value {
+        "xx" => Ok(bijux_domain_bam::types::ExpectedSex::XX),
+        "xy" => Ok(bijux_domain_bam::types::ExpectedSex::XY),
+        "unknown" => Ok(bijux_domain_bam::types::ExpectedSex::Unknown),
+        _ => Err(anyhow!("unknown expected sex: {value}")),
+    }
+}
+
+fn parse_bqsr_mode(value: &str) -> Result<bijux_domain_bam::params::BqsrMode> {
+    match value {
+        "standard" => Ok(bijux_domain_bam::params::BqsrMode::Standard),
+        "skip" => Ok(bijux_domain_bam::params::BqsrMode::Skip),
+        "emit_only" => Ok(bijux_domain_bam::params::BqsrMode::EmitOnly),
+        _ => Err(anyhow!("unknown BQSR mode: {value}")),
+    }
+}
+
+fn parse_flag_list(values: &[String]) -> Result<Vec<u16>> {
+    values
+        .iter()
+        .map(|value| {
+            value
+                .parse::<u16>()
+                .map_err(|_| anyhow!("invalid flag value: {value}"))
+        })
+        .collect()
 }

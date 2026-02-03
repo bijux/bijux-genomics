@@ -11,7 +11,7 @@ use bijux_stages_fastq::fastq::trim::plan;
 use bijux_stages_fastq::FastqArtifact;
 use bijux_stages_fastq::{inspect_headers, log_header_warnings, preflight_stage, RawFailure};
 
-use super::banks::{
+use bijux_domain_fastq::banks::{
     adapter_bank_context, contaminant_bank_context, polyx_bank_context, polyx_unsupported_warning,
 };
 use super::jobs::execute_plans_with_jobs;

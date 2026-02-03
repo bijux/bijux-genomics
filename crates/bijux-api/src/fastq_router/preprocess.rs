@@ -12,13 +12,13 @@ use bijux_pipelines::fastq::canonical_tool_defaults;
 use bijux_stages_fastq::fastq::preprocess::{plan_preprocess, plan_preprocess_pipeline};
 use bijux_stages_fastq::{bench_corpus, RawFailure};
 
-use super::banks::{
-    adapter_bank_context, contaminant_bank_context, polyx_bank_context, polyx_unsupported_warning,
-};
 use super::jobs::{bench_jobs, normalize_tool_spec_for_jobs};
 use super::smart_pipeline::apply_smart_pipeline_decisions;
 use super::summary::{write_run_summary, StageExecutionSummary};
 use super::write_explain_plan_json;
+use bijux_domain_fastq::banks::{
+    adapter_bank_context, contaminant_bank_context, polyx_bank_context, polyx_unsupported_warning,
+};
 use bijux_engine::api::{bench_base_dir, bench_tools_dir};
 
 /// Build the preprocess pipeline plan.

@@ -1,5 +1,4 @@
 use std::fmt::Write as _;
-use std::fs;
 use std::path::Path;
 
 use anyhow::{Context, Result};
@@ -32,7 +31,7 @@ pub fn write_explain_md(
             writeln!(contents, "- {tool}")?;
         }
     }
-    fs::write(&path, contents).context("write explain.md")?;
+    bijux_io::atomic_write_bytes(&path, contents.as_bytes()).context("write explain.md")?;
     Ok(())
 }
 

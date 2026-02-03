@@ -8,13 +8,14 @@ use bijux_engine::api::{build_tool_execution_spec, execute_stage_plan};
 use bijux_env_runtime::ReferenceRecord;
 use bijux_pipelines::PipelineProfile;
 
-use crate::cli::parse::BamRunArgs;
+use crate::args::{BamRunArgs, FastqCrossArgs};
+use crate::bam_plan::plan_for_bam_stage_with_profile;
+use crate::bam_support::downstream_enabled;
 use crate::fastq_router::StageExecutionSummary;
-use crate::{downstream_enabled, plan_for_bam_stage_with_profile};
 
-pub fn run_bam_truth_stages(
+pub fn run_bam_truth_stages<S: std::hash::BuildHasher>(
     registry_core: &ToolRegistry,
-    catalog: &std::collections::HashMap<String, bijux_engine::api::ToolImageSpec>,
+    catalog: &std::collections::HashMap<String, bijux_engine::api::ToolImageSpec, S>,
     platform: &bijux_engine::api::PlatformSpec,
     profile: &PipelineProfile,
     boundary: &AlignmentBoundary,
@@ -24,14 +25,12 @@ pub fn run_bam_truth_stages(
     let bai_path = boundary.bai_path.as_ref().map(PathBuf::from);
     let reference = boundary.reference.as_ref().map(PathBuf::from);
 
-    let stages = [
-        bijux_domain_bam::BamStage::QcPre,
-        bijux_domain_bam::BamStage::Coverage,
-        bijux_domain_bam::BamStage::Damage,
-    ];
-
     let mut runs = Vec::new();
-    for stage in stages {
+    for node in &profile.graph {
+        let stage = bijux_domain_bam::BamStage::try_from(node.stage_id.as_str())?;
+        if stage == bijux_domain_bam::BamStage::Align {
+            continue;
+        }
         if !downstream_enabled()
             && matches!(
                 stage,
@@ -57,7 +56,7 @@ pub fn run_bam_truth_stages(
         fs::create_dir_all(&stage_dir).context("create bam stage dir")?;
 
         let args = BamRunArgs {
-            stage: stage.into(),
+            stage,
             profile: profile.id.to_string(),
             sample_id: None,
             r1: None,
@@ -126,13 +125,13 @@ pub fn run_bam_truth_stages(
 }
 
 #[allow(clippy::too_many_lines)]
-pub fn run_bam_align_and_truth_stages(
+pub fn run_bam_align_and_truth_stages<S: std::hash::BuildHasher>(
     registry_core: &ToolRegistry,
-    catalog: &std::collections::HashMap<String, bijux_engine::api::ToolImageSpec>,
+    catalog: &std::collections::HashMap<String, bijux_engine::api::ToolImageSpec, S>,
     platform: &bijux_engine::api::PlatformSpec,
     profile: &PipelineProfile,
     reference: &ReferenceRecord,
-    args: &crate::cli::parse::FastqPreprocessArgs,
+    args: &FastqCrossArgs,
     out_dir: &Path,
 ) -> Result<Vec<StageExecutionSummary>> {
     let r1 = args
@@ -150,7 +149,7 @@ pub fn run_bam_align_and_truth_stages(
         .unwrap_or_else(|| "bwa".to_string());
     let spec = build_tool_execution_spec("bam.align", &tool_id, registry_core, catalog, platform)?;
     let align_args = BamRunArgs {
-        stage: bijux_domain_bam::BamStage::Align.into(),
+        stage: bijux_domain_bam::BamStage::Align,
         profile: profile.id.to_string(),
         sample_id: Some(sample_id.clone()),
         r1: Some(r1.clone()),

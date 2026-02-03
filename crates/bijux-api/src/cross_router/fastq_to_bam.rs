@@ -1,46 +1,40 @@
 use std::collections::BTreeMap;
 use std::fs;
 
-use anyhow::{anyhow, Context, Result};
-use bijux_core::alignment::AlignmentBoundary;
-use bijux_core::ToolRegistry;
-use bijux_engine::api::bench_base_dir;
-use bijux_env_runtime::{
-    load_image_catalog, load_platform, ReferenceBuildRequest, ReferenceRegistry,
-};
-use bijux_pipelines::registry;
-use bijux_pipelines::{Domain, PipelineProfile};
-
-use crate::cli::parse::FastqPreprocessArgs;
-use crate::cli::plan::preprocess_args_from_cli;
+use crate::args::FastqCrossArgs;
 use crate::cross_router::bam_exec::{run_bam_align_and_truth_stages, run_bam_truth_stages};
 use crate::cross_router::manifests::{
     write_alignment_boundary, write_cross_run_manifest, write_defaults_ledger,
     write_reference_manifest,
 };
 use crate::fastq_router::fastq_preprocess_run;
-use crate::{init_logging, Cli};
+use anyhow::{anyhow, Context, Result};
+use bijux_core::alignment::AlignmentBoundary;
+use bijux_core::ToolRegistry;
+use bijux_engine::api::bench_base_dir;
+use bijux_env_runtime::{ReferenceBuildRequest, ReferenceRegistry};
+use bijux_pipelines::registry;
+use bijux_pipelines::{Domain, PipelineProfile};
 
 #[allow(clippy::too_many_lines)]
-pub fn run_fastq_to_bam_profile(
-    cli: &Cli,
+/// # Errors
+/// Returns an error if pipeline planning or execution fails.
+pub fn run_fastq_to_bam_profile<S: std::hash::BuildHasher>(
     registry_core: &ToolRegistry,
-    args: &FastqPreprocessArgs,
+    catalog: &std::collections::HashMap<String, bijux_engine::api::ToolImageSpec, S>,
+    platform: &bijux_engine::api::PlatformSpec,
+    runner_override: Option<bijux_env_runtime::api::RunnerKind>,
+    preprocess_args: &bijux_stages_fastq::args::BenchFastqPreprocessArgs,
+    cross_args: &FastqCrossArgs,
     profile: &PipelineProfile,
 ) -> Result<()> {
-    let platform = load_platform(cli.platform.as_deref())
-        .map_err(|err| anyhow!("failed to load platform: {err}"))?;
-    let catalog =
-        load_image_catalog().map_err(|err| anyhow!("failed to load image catalog: {err}"))?;
-    let runner = crate::cli::parse_runner_override(args.env.as_deref())?;
-
-    let bench_args = preprocess_args_from_cli(args)?;
-    let out_dir = bench_base_dir(&bench_args.out, "preprocess", &bench_args.sample_id);
+    let out_dir = bench_base_dir(
+        &preprocess_args.out,
+        "preprocess",
+        &preprocess_args.sample_id,
+    );
     fs::create_dir_all(&out_dir).context("create cross pipeline out dir")?;
-    let log_path = out_dir.join("bijux_cross.log");
-    let _log_guard = init_logging(&log_path)?;
-
-    fastq_preprocess_run(&catalog, &platform, runner, &bench_args)?;
+    fastq_preprocess_run(catalog, platform, runner_override, preprocess_args)?;
 
     let summary_path = out_dir.join("run_artifacts").join("run_summary.json");
     let summary_raw = fs::read_to_string(&summary_path)
@@ -54,7 +48,7 @@ pub fn run_fastq_to_bam_profile(
         .iter()
         .any(|node| node.stage_id == "bam.align");
     if has_align {
-        let reference = args
+        let reference = cross_args
             .alignment_reference
             .as_ref()
             .ok_or_else(|| anyhow!("--alignment-reference required for bam.align profiles"))?;
@@ -72,11 +66,11 @@ pub fn run_fastq_to_bam_profile(
         let bam_profile = select_bam_profile(profile)?;
         let bam_stage_runs = run_bam_align_and_truth_stages(
             registry_core,
-            &catalog,
-            &platform,
+            catalog,
+            platform,
             &bam_profile,
             &record,
-            args,
+            cross_args,
             &out_dir,
         )?;
         let alignment_boundary = AlignmentBoundary {
@@ -98,7 +92,7 @@ pub fn run_fastq_to_bam_profile(
                     .unwrap_or_default(),
             ),
             reference: Some(record.fasta.display().to_string()),
-            rg_policy: args.alignment_rg_policy.clone(),
+            rg_policy: cross_args.alignment_rg_policy.clone(),
             aligner_meta: None,
         };
         let boundary_path = Some(write_alignment_boundary(&out_dir, &alignment_boundary)?);
@@ -117,14 +111,14 @@ pub fn run_fastq_to_bam_profile(
         return Ok(());
     }
 
-    let alignment_boundary = build_alignment_boundary(args)?;
+    let alignment_boundary = build_alignment_boundary(cross_args)?;
     let boundary_path = write_alignment_boundary(&out_dir, &alignment_boundary)?;
 
     let bam_profile = select_bam_profile(profile)?;
     let bam_stage_runs = run_bam_truth_stages(
         registry_core,
-        &catalog,
-        &platform,
+        catalog,
+        platform,
         &bam_profile,
         &alignment_boundary,
         &out_dir,
@@ -144,7 +138,7 @@ pub fn run_fastq_to_bam_profile(
     Ok(())
 }
 
-fn build_alignment_boundary(args: &FastqPreprocessArgs) -> Result<AlignmentBoundary> {
+fn build_alignment_boundary(args: &FastqCrossArgs) -> Result<AlignmentBoundary> {
     let bam_path = args
         .alignment_bam
         .as_ref()
