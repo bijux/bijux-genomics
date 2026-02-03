@@ -19,11 +19,11 @@
       },
       {
         "name": "recal_report",
-        "path": "out/recalibration.report.json"
+        "path": "out/recal.report.txt"
       },
       {
         "name": "summary",
-        "path": "out/recalibration.summary.json"
+        "path": "out/recal.summary.json"
       },
       {
         "name": "stage_metrics",
