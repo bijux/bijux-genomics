@@ -162,6 +162,13 @@ pub enum PipelinesCommand {
     Explain {
         id: String,
     },
+    #[command(about = "Audit pipeline stages and completeness.")]
+    Audit {
+        #[arg(long, value_enum)]
+        domain: Option<PipelineDomainArg>,
+        #[arg(long, help = "Include beta/experimental pipelines")]
+        show_experimental: bool,
+    },
 }
 
 #[derive(Debug, Clone, Copy, ValueEnum)]

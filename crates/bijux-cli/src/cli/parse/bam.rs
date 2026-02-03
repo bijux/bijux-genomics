@@ -191,7 +191,7 @@ impl From<DuplicateActionArg> for bijux_domain_bam::params::DuplicateAction {
 pub struct BamRunArgs {
     #[arg(long, value_enum, default_value_t = BamStageArg::Validate)]
     pub stage: BamStageArg,
-    #[arg(long, default_value = "bam__default__v1")]
+    #[arg(long, default_value = "bam-to-bam__default__v1")]
     pub profile: String,
     #[arg(long, alias = "sample")]
     pub sample_id: Option<String>,
@@ -356,7 +356,7 @@ pub struct BenchBamStageArgs {
 pub struct BenchBamPipelineArgs {
     #[arg(long, alias = "sample")]
     pub sample_id: String,
-    #[arg(long, default_value = "bam__default__v1")]
+    #[arg(long, default_value = "bam-to-bam__default__v1")]
     pub profile: String,
     #[arg(long)]
     pub bam: PathBuf,

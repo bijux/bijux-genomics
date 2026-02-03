@@ -177,9 +177,9 @@ fn build_alignment_boundary(args: &FastqPreprocessArgs) -> Result<AlignmentBound
 
 fn select_bam_profile(profile: &PipelineProfile) -> Result<PipelineProfile> {
     let id = if profile.invariants_preset == Some("adna") {
-        "bam__adna_shotgun__v1"
+        "bam-to-bam__adna_shotgun__v1"
     } else {
-        "bam__default__v1"
+        "bam-to-bam__default__v1"
     };
     registry::profile_by_id(Domain::Bam, id)
 }

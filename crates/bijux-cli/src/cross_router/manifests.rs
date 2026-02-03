@@ -101,11 +101,17 @@ pub fn write_cross_run_manifest(
         .map(hash_file_sha256)
         .transpose()?
         .unwrap_or_default();
+    let mut domains = profile.input_domains.clone();
+    for domain in &profile.output_domains {
+        if !domains.contains(domain) {
+            domains.push(*domain);
+        }
+    }
     let manifest = serde_json::json!({
         "schema_version": "bijux.run_manifest.v2",
         "run_id": run_id,
         "profile_id": profile.id,
-        "domains": profile.domains,
+        "domains": domains,
         "stages": stages,
         "domain_transitions": [{
             "from": "fastq",

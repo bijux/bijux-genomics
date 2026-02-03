@@ -77,9 +77,48 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
                     let payload = serde_json::json!({
                         "profile": profile,
                         "defaults_ledger": profile.defaults_ledger(),
+                        "promised_outputs": profile.capabilities.produces_outputs,
                         "report_sections": profile.capabilities.report_sections,
                     });
                     println!("{}", serde_json::to_string_pretty(&payload)?);
+                    Ok(true)
+                }
+                PipelinesCommand::Audit {
+                    domain,
+                    show_experimental,
+                } => {
+                    let profiles = if let Some(domain) = domain {
+                        registry.list_for_domain(domain.as_domain(), *show_experimental)
+                    } else {
+                        registry.list(*show_experimental)
+                    };
+                    for profile in profiles {
+                        println!(
+                            "{}\t{}\t{}",
+                            profile.id.as_str(),
+                            profile.stability.as_str(),
+                            profile.description
+                        );
+                        for node in &profile.graph {
+                            let stage_id = node.stage_id.as_str();
+                            if stage_id.starts_with("bam.") {
+                                let stage = bijux_domain_bam::BamStage::try_from(stage_id)
+                                    .map_err(|_| anyhow!("unknown BAM stage {stage_id}"))?;
+                                let completeness =
+                                    bijux_domain_bam::bam_stage_completeness(stage);
+                                println!(
+                                    "  {stage_id}\tcomplete={}\targs={}\tartifacts={}\tparsers={}\tinvariants={}",
+                                    completeness.is_complete(),
+                                    completeness.has_args_builder,
+                                    completeness.has_artifact_contract,
+                                    completeness.has_parser_fixtures,
+                                    completeness.has_invariants
+                                );
+                            } else {
+                                println!("  {stage_id}\tcomplete=unknown");
+                            }
+                        }
+                    }
                     Ok(true)
                 }
             }
