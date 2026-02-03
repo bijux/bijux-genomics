@@ -1,0 +1,32 @@
+# adapterremoval Dockerfile (ARM64)
+# License: Apache-2.0
+FROM ubuntu:24.04
+ENV DEBIAN_FRONTEND=noninteractive
+
+ARG ADAPTERREMOVAL_VERSION=2.3.3
+ENV ADAPTERREMOVAL_VERSION=${ADAPTERREMOVAL_VERSION}
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        ca-certificates git build-essential zlib1g-dev libbz2-dev && \
+    for i in 1 2 3; do \
+        git clone https://github.com/MikkelSchubert/adapterremoval.git /opt/adapterremoval && break || \
+        echo "Git clone attempt $i failed, retrying..." && sleep 5; \
+    done || { echo "Failed to clone AdapterRemoval repository after 3 attempts"; exit 1; } && \
+    cd /opt/adapterremoval && \
+    git checkout tags/v${ADAPTERREMOVAL_VERSION} && \
+    make && \
+    mv build/AdapterRemoval /usr/local/bin/adapterremoval-bin && \
+    rm -rf /opt/adapterremoval && \
+    apt-get purge -y git build-essential && \
+    apt-get autoremove -y && \
+    rm -rf /var/lib/apt/lists/*
+
+# Create a wrapper script for unified AdapterRemoval execution
+RUN echo '#!/bin/sh' > /usr/local/bin/adapterremoval && \
+    echo '/usr/local/bin/adapterremoval-bin "$@"' >> /usr/local/bin/adapterremoval && \
+    chmod +x /usr/local/bin/adapterremoval
+
+WORKDIR /data
+ENTRYPOINT ["/bin/sh", "-c", "adapterremoval \"$@\""]
+CMD ["--help"]

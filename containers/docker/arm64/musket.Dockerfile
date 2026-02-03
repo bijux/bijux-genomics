@@ -1,0 +1,40 @@
+# musket Dockerfile (ARM64)
+# License: Apache-2.0
+FROM ubuntu:24.04
+ENV DEBIAN_FRONTEND=noninteractive
+
+ARG VERSION_MUSKET=1.1
+ENV VERSION_MUSKET=${VERSION_MUSKET}
+
+RUN apt-get update -qq && \
+    apt-get install -y --no-install-recommends --no-install-suggests -o Acquire::Retries=3 \
+        wget \
+        ca-certificates \
+        build-essential \
+        zlib1g-dev \
+        libgomp1 && \
+    wget -q https://sourceforge.net/projects/musket/files/musket-${VERSION_MUSKET}.tar.gz/download -O /tmp/musket.tar.gz && \
+    tar -xzf /tmp/musket.tar.gz -C /opt && \
+    cd /opt/musket-${VERSION_MUSKET} && \
+    make && \
+    mv musket /usr/local/bin/musket-bin && \
+    rm -rf /tmp/musket.tar.gz /opt/musket-${VERSION_MUSKET} /var/lib/apt/lists/* && \
+    apt-get purge -y wget ca-certificates build-essential zlib1g-dev && \
+    apt-get autoremove -y
+
+# Create a wrapper script for unified Musket execution
+RUN echo '#!/bin/sh' > /usr/local/bin/musket && \
+    echo 'if [ "$1" = "--version" ]; then' >> /usr/local/bin/musket && \
+    echo '    echo "$VERSION_MUSKET"' >> /usr/local/bin/musket && \
+    echo '    exit 0' >> /usr/local/bin/musket && \
+    echo 'elif [ "$1" = "--help" ]; then' >> /usr/local/bin/musket && \
+    echo '    /usr/local/bin/musket-bin --help' >> /usr/local/bin/musket && \
+    echo '    exit 0' >> /usr/local/bin/musket && \
+    echo 'else' >> /usr/local/bin/musket && \
+    echo '    /usr/local/bin/musket-bin "$@"' >> /usr/local/bin/musket && \
+    echo 'fi' >> /usr/local/bin/musket && \
+    chmod +x /usr/local/bin/musket
+
+WORKDIR /data
+ENTRYPOINT ["/bin/sh", "-c", "musket \"$@\""]
+CMD ["--help"]

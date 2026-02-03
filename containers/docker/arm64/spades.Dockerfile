@@ -1,0 +1,61 @@
+# spades Dockerfile (ARM64)
+# License: Apache-2.0
+FROM ubuntu:24.04
+
+ARG  VERSION_SPADES=4.2.0
+ENV  DEBIAN_FRONTEND=noninteractive \
+     TZ=UTC \
+     VERSION_SPADES=${VERSION_SPADES}
+
+LABEL org.opencontainers.image.source="https://github.com/ablab/spades" \
+      org.opencontainers.image.version="${VERSION_SPADES}"
+
+# ------------------------------------------------------------------
+# 1. Build and install SPAdes
+# ------------------------------------------------------------------
+RUN set -eux; \
+    ### Define build-time vs runtime dependencies
+    BUILD_DEPS="build-essential cmake g++ wget zlib1g-dev libbz2-dev libboost-all-dev" && \
+    RUNTIME_DEPS="libgomp1 python3 python3-setuptools ca-certificates" && \
+    \
+    ### Install all dependencies
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        $BUILD_DEPS \
+        $RUNTIME_DEPS ; \
+    \
+    ### source + compile
+    wget -q https://github.com/ablab/spades/archive/refs/tags/v${VERSION_SPADES}.tar.gz \
+         -O /tmp/spades.tar.gz && \
+    tar -xzf /tmp/spades.tar.gz -C /opt && \
+    cd /opt/spades-${VERSION_SPADES} && \
+    ./spades_compile.sh && \
+    \
+    ### install: copy **everything** from bin so helper modules stay together
+    cp -r bin/* /usr/local/bin/ && \
+    ln -s spades.py        /usr/local/bin/spades && \
+    cp -r share/spades     /usr/local/share/ && \
+    \
+    ### sanity check – abort build if SPAdes can’t start
+    spades --version | grep -q "${VERSION_SPADES}" ; \
+    \
+    ### tidy up: ONLY purge the build-time dependencies
+    cd / && rm -rf /opt/spades-${VERSION_SPADES} /tmp/spades.tar.gz && \
+    apt-get purge -y --auto-remove $BUILD_DEPS && \
+    rm -rf /var/lib/apt/lists/*
+
+# ------------------------------------------------------------------
+# 2. BayesHammer wrapper – keeps CLI uniform in the pipeline
+# ------------------------------------------------------------------
+RUN printf '%s\n' \
+  '#!/usr/bin/env bash' \
+  'case "$1" in' \
+  '  --version)  spades --version; exit 0 ;;' \
+  '  --help|-h)  spades --only-error-correction --help; exit 0 ;;' \
+  'esac' \
+  'exec spades --only-error-correction "$@"' \
+  > /usr/local/bin/bayeshammer && chmod +x /usr/local/bin/bayeshammer
+
+WORKDIR /data
+ENTRYPOINT ["spades.py"]
+CMD ["--help"]

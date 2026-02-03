@@ -1,0 +1,40 @@
+# kaiju Dockerfile (ARM64)
+# License: Apache-2.0
+FROM ubuntu:24.04
+ENV DEBIAN_FRONTEND=noninteractive
+
+ARG VERSION_KAIJU=1.10.0
+ENV VERSION_KAIJU=${VERSION_KAIJU}
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        wget \
+        ca-certificates \
+        build-essential \
+        zlib1g-dev && \
+    wget -q https://github.com/bioinformatics-centre/kaiju/archive/v${VERSION_KAIJU}.tar.gz -O /tmp/kaiju.tar.gz && \
+    tar -xzf /tmp/kaiju.tar.gz -C /opt && \
+    cd /opt/kaiju-${VERSION_KAIJU}/src && \
+    make && \
+    mv ../bin/kaiju /usr/local/bin/kaiju-bin && \
+    mv ../bin/* /usr/local/bin/ && \
+    rm -rf /tmp/kaiju.tar.gz /opt/kaiju-${VERSION_KAIJU} /var/lib/apt/lists/* && \
+    apt-get purge -y wget ca-certificates build-essential && \
+    apt-get autoremove -y
+
+# Create a wrapper script for unified Kaiju execution
+RUN echo '#!/bin/sh' > /usr/local/bin/kaiju && \
+    echo 'if [ "$1" = "--version" ]; then' >> /usr/local/bin/kaiju && \
+    echo '    echo "$VERSION_KAIJU"' >> /usr/local/bin/kaiju && \
+    echo '    exit 0' >> /usr/local/bin/kaiju && \
+    echo 'elif [ "$1" = "--help" ]; then' >> /usr/local/bin/kaiju && \
+    echo '    /usr/local/bin/kaiju-bin --help' >> /usr/local/bin/kaiju && \
+    echo '    exit 0' >> /usr/local/bin/kaiju && \
+    echo 'else' >> /usr/local/bin/kaiju && \
+    echo '    /usr/local/bin/kaiju-bin "$@"' >> /usr/local/bin/kaiju && \
+    echo 'fi' >> /usr/local/bin/kaiju && \
+    chmod +x /usr/local/bin/kaiju
+
+WORKDIR /data
+ENTRYPOINT ["/bin/sh", "-c", "kaiju \"$@\""]
+CMD ["--help"]
