@@ -1,3 +1,6 @@
+[extend]
+path = "../../Makefile.toml"
+
 [tasks.default]
 command = "cargo"
 args = ["test", "-p", "bijux-testkit"]
