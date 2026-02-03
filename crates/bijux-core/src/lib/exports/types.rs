@@ -10,17 +10,17 @@ pub struct ToolId(pub String);
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct RunId(pub String);
 
-pub use metrics::{
+pub use crate::metrics::{
     AdapterBankProvenanceV1, BankEntryV1, BankRefV1, FastqCorrectMetricsV1, FastqDeltaMetricsV1,
     FastqFilterMetricsV1, FastqMergeMetricsV1, FastqPreprocessMetricsV1, FastqQcPostMetricsV1,
     FastqTrimMetricsV1, FastqUmiMetricsV1, FastqValidateMetricsV1, MetricContextV1,
     RetentionReportMetricV1, StageMetricsV1, ToolInvocationV1,
 };
-pub use metrics_registry::{
+pub use crate::metrics_registry::{
     metric_semantics, metrics_schema_for_stage, MetricDirection as MetricSemanticsDirection,
     MetricSemantics, MetricsSchemaId, FASTQ_METRICS_SCHEMAS,
 };
-pub use observability::{
+pub use crate::observability::{
     canonicalize_json_value, parameters_json_canonicalization, AssetsProvenanceV1,
     EffectiveConfigV1, FactsRowV1, FilterReportV1, InvariantResultV1, InvariantStatusV1,
     MetricSemanticsV1, PipelineVerdictV1, ReportCompletenessV1, ReportContractV1,
@@ -28,11 +28,11 @@ pub use observability::{
     RetentionDefinitionV1, RetentionReportV1, StageObservabilityContextV1,
     StageObservabilityContractV1, StageReportV1, StageVerdictV1, TelemetryEventV1,
 };
-pub use selection::{
+pub use crate::selection::{
     objective_spec, BenchResultRecord, BenchResultStatus, Disqualification, Objective,
     ObjectiveSpec, ObjectiveWeights, StageSelection, ToolScore,
 };
-pub use stage_plan::{ArtifactRef, CommandSpecV1, ContainerImageRefV1, StageIO, StagePlanV1};
+pub use crate::stage_plan::{ArtifactRef, CommandSpecV1, ContainerImageRefV1, StageIO, StagePlanV1};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
