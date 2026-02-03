@@ -38,7 +38,6 @@ pub use contaminant_bank::{
 pub use invariants::{
     evaluate_invariants, thresholds_from_env, InvariantEvaluation, InvariantThresholds,
 };
-pub use metrics::deltas::{compute_delta, ratio_u64};
 pub use params::{parse_effective_params, EffectiveParams, PairedMode};
 pub use pipeline_contract::{
     canonical_stage_order, forbidden_transitions, optional_branches, StageCriticality,
@@ -65,7 +64,6 @@ pub use stage_registry::{
     QcClass, StageContract, StageDefinition, StageIO, StageSemantics, STAGES,
     STAGE_BOUNDARY_INVARIANTS,
 };
-pub use stages::args;
 pub use types::{
     AdapterContributionV1, AdapterTrimmingReportV1, FastqArtifact, FastqArtifactKind, FastqLayout,
     FastqPE, FastqPairedEnd, FastqSE, FastqSampleId, FastqSingleEnd, FastqStats, RetentionReportV1,
