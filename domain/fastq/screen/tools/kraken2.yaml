@@ -1,0 +1,36 @@
+schema_version: "bijux.tool.v1"
+tool_id: "kraken2"
+stage_id: "fastq.screen"
+role: "report"
+authoritative: false
+strict_capable: false
+status: "stable"
+capabilities:
+  - "SE"
+  - "PE"
+container:
+  image: "bijuxdna/kraken2"
+  digest: "sha256:pending"
+command_template:
+  - "kraken2"
+  - "--report"
+  - "{{screen_report_tsv}}"
+  - "{{reads_r1}}"
+outputs:
+  - name: "screen_report_tsv"
+    data_type: "tsv"
+    cardinality: "Many"
+metrics_parser: "kraken2_v1"
+constraints:
+  runtime: "local"
+  mem_gb: 16
+  tmp_gb: 8
+  threads: 4
+execution_contract:
+  required_inputs:
+    - "reads_r1"
+  expected_outputs:
+    - "*"
+  forbidden_outputs: []
+  forbid_unexpected_outputs: true
+
