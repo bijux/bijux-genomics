@@ -2,6 +2,8 @@
 
 use std::collections::BTreeMap;
 
+pub mod profiles;
+
 use bijux_core::domain::PipelineSpec;
 use bijux_domain_fastq::params::{
     detect_adapters::DetectAdaptersEffectiveParams, filter::FilterEffectiveParams,
