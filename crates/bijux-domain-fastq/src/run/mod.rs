@@ -4,7 +4,9 @@ pub mod query;
 pub mod run_layout;
 
 #[allow(unused_imports)]
-pub use benchmark::{benchmark_runs, write_benchmark_exports, BenchmarkSummary, RunBenchmarkRecord};
+pub use benchmark::{
+    benchmark_runs, write_benchmark_exports, BenchmarkSummary, RunBenchmarkRecord,
+};
 #[allow(unused_imports)]
 pub use bijux_core::events::RunEvent;
 #[allow(unused_imports)]

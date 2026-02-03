@@ -125,8 +125,7 @@ fn pipeline_profiles_reference_known_stages_and_defaults() {
                 }
             }
             for (a, b) in forbidden_transitions() {
-                if let (Some(a_idx), Some(b_idx)) =
-                    (stage_positions.get(a), stage_positions.get(b))
+                if let (Some(a_idx), Some(b_idx)) = (stage_positions.get(a), stage_positions.get(b))
                 {
                     assert!(
                         a_idx + 1 != *b_idx,

@@ -1,7 +1,7 @@
 use bijux_core::domain::PipelineSpec;
 use bijux_core::{ArtifactRef, StageIO, StageId, StagePlanV1, StageVersion, ToolExecutionSpecV1};
-use bijux_domain_fastq::params::{preprocess::PreprocessEffectiveParams, PairedMode};
 use bijux_domain_fastq::assess_merge_suitability;
+use bijux_domain_fastq::params::{preprocess::PreprocessEffectiveParams, PairedMode};
 use bijux_pipelines::registry;
 use bijux_pipelines::Domain;
 
@@ -181,8 +181,11 @@ pub fn plan_preprocess(args: &crate::args::BenchFastqPreprocessArgs) -> Preproce
     let pipeline = if let Some(profile_id) = args.profile.as_deref() {
         match registry::profile_by_id(Domain::Fastq, profile_id) {
             Ok(profile) => {
-                let mut stages: Vec<String> =
-                    profile.graph.into_iter().map(|node| node.stage_id).collect();
+                let mut stages: Vec<String> = profile
+                    .graph
+                    .into_iter()
+                    .map(|node| node.stage_id)
+                    .collect();
                 if !enable_merge {
                     stages.retain(|stage| stage != "fastq.merge");
                 }

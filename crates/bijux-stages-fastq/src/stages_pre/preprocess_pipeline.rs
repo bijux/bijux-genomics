@@ -53,7 +53,8 @@ where
                 (plan, next_r1, None)
             }
             "fastq.filter" => {
-                let mut filter_options = crate::stages_transform::filter::FilterPlanOptions::default();
+                let mut filter_options =
+                    crate::stages_transform::filter::FilterPlanOptions::default();
                 if adapter_bank.is_some() {
                     filter_options.redundant_filters.push("adapter".to_string());
                 }
@@ -80,7 +81,8 @@ where
                 let r2 = current_r2
                     .as_ref()
                     .ok_or_else(|| anyhow::anyhow!("merge requires r2"))?;
-                let plan = crate::stages_transform::merge::plan_merge(tool, &current_r1, r2, &out_dir)?;
+                let plan =
+                    crate::stages_transform::merge::plan_merge(tool, &current_r1, r2, &out_dir)?;
                 let next_r1 = plan.io.outputs[0].path.clone();
                 (plan, next_r1, None)
             }
@@ -88,14 +90,15 @@ where
                 let r2 = current_r2
                     .as_ref()
                     .ok_or_else(|| anyhow::anyhow!("correct requires r2"))?;
-                let plan = crate::stages_transform::correct::plan_correct(tool, &current_r1, r2, &out_dir)?;
+                let plan = crate::stages_transform::correct::plan_correct(
+                    tool,
+                    &current_r1,
+                    r2,
+                    &out_dir,
+                )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
                 let next_r2 = plan.io.outputs[1].path.clone();
-                (
-                    plan,
-                    next_r1,
-                    Some(next_r2),
-                )
+                (plan, next_r1, Some(next_r2))
             }
             "fastq.umi" => {
                 let r2 = current_r2
@@ -104,11 +107,7 @@ where
                 let plan = crate::stages_transform::umi::plan_umi(tool, &current_r1, r2, &out_dir)?;
                 let next_r1 = plan.io.outputs[0].path.clone();
                 let next_r2 = plan.io.outputs[1].path.clone();
-                (
-                    plan,
-                    next_r1,
-                    Some(next_r2),
-                )
+                (plan, next_r1, Some(next_r2))
             }
             "fastq.qc_post" => {
                 let mut stage_aux_images = std::collections::BTreeMap::new();
@@ -133,12 +132,17 @@ where
                 (plan, current_r1.clone(), current_r2.clone())
             }
             "fastq.stats_neutral" => {
-                let plan =
-                    crate::stages_qc::stats_neutral::plan_stats_neutral(tool, &current_r1, &out_dir)?;
+                let plan = crate::stages_qc::stats_neutral::plan_stats_neutral(
+                    tool,
+                    &current_r1,
+                    &out_dir,
+                )?;
                 (plan, current_r1.clone(), current_r2.clone())
             }
             _ => {
-                return Err(anyhow::anyhow!("unsupported stage in fastq pipeline: {stage}"));
+                return Err(anyhow::anyhow!(
+                    "unsupported stage in fastq pipeline: {stage}"
+                ));
             }
         };
         plans.push(plan);

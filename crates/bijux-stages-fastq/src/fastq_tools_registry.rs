@@ -30,7 +30,13 @@ pub fn allowed_tools_for_stage(stage_id: &str) -> Vec<String> {
         "fastq.merge" => &["pear", "vsearch", "bbmerge", "flash2"],
         "fastq.correct" => &["rcorrector", "spades", "bayeshammer", "lighter", "musket"],
         "fastq.umi" => &["umi_tools"],
-        "fastq.screen" => &["kraken2", "centrifuge", "metaphlan", "kaiju", "fastq_screen"],
+        "fastq.screen" => &[
+            "kraken2",
+            "centrifuge",
+            "metaphlan",
+            "kaiju",
+            "fastq_screen",
+        ],
         _ => &[],
     };
     tools.iter().map(|tool| (*tool).to_string()).collect()

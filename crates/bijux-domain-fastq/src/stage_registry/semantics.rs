@@ -220,7 +220,10 @@ pub fn stage_criticality(stage_id: &str) -> Option<StageCriticality> {
 
 #[must_use]
 pub fn fastq_stage_is_stable(stage_id: &str) -> bool {
-    !matches!(stage_criticality(stage_id), Some(StageCriticality::Experimental))
+    !matches!(
+        stage_criticality(stage_id),
+        Some(StageCriticality::Experimental)
+    )
 }
 
 #[must_use]

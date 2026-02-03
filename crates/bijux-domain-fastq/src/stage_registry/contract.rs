@@ -3,8 +3,8 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Result};
 use tracing::warn;
 
-use crate::types::FastqArtifactKind;
 use super::FastqStageContract;
+use crate::types::FastqArtifactKind;
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct HeaderInspection {

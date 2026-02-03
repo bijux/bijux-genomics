@@ -154,8 +154,5 @@ fn bam_pipeline_plan_snapshot_is_stable() -> Result<()> {
             .map(bijux_stages_bam::StagePlanJson::from_plan)
             .collect::<Vec<_>>()
     });
-    assert_snapshot(
-        "pipeline__bam__bam-to-bam__adna_shotgun__v1.json",
-        &payload,
-    )
+    assert_snapshot("pipeline__bam__bam-to-bam__adna_shotgun__v1.json", &payload)
 }

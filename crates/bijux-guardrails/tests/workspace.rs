@@ -73,9 +73,7 @@ fn parse_dependencies(manifest: &Path) -> BTreeSet<String> {
         if line.starts_with('[') {
             in_deps = matches!(
                 line,
-                "[dependencies]"
-                    | "[dev-dependencies]"
-                    | "[build-dependencies]"
+                "[dependencies]" | "[dev-dependencies]" | "[build-dependencies]"
             );
             continue;
         }
@@ -149,11 +147,12 @@ fn workspace_constitution_contract() {
         "bijux-bench",
     ];
     for name in required {
-        assert!(
-            crates.contains_key(name),
-            "missing required crate: {name}"
+        assert!(crates.contains_key(name), "missing required crate: {name}");
+        assert_eq!(
+            counts.get(name).copied().unwrap_or(0),
+            1,
+            "duplicate crate: {name}"
         );
-        assert_eq!(counts.get(name).copied().unwrap_or(0), 1, "duplicate crate: {name}");
     }
     let env_crates: Vec<_> = crates
         .keys()
@@ -181,7 +180,11 @@ fn workspace_bans_pipelines_bam_crate_name() {
 fn workspace_crate_layout_contract() {
     for crate_dir in crate_dirs() {
         let manifest = crate_dir.join("Cargo.toml");
-        assert!(manifest.exists(), "missing Cargo.toml in {}", crate_dir.display());
+        assert!(
+            manifest.exists(),
+            "missing Cargo.toml in {}",
+            crate_dir.display()
+        );
         let src_dir = crate_dir.join("src");
         assert!(src_dir.exists(), "missing src/ in {}", crate_dir.display());
         if is_bin_crate(&crate_dir) {
@@ -205,10 +208,8 @@ fn workspace_crate_layout_contract() {
 #[test]
 fn workspace_no_orphan_crates() {
     let crates = collect_workspace_crates();
-    let mut dependents: BTreeMap<String, usize> = crates
-        .keys()
-        .map(|name| (name.clone(), 0))
-        .collect();
+    let mut dependents: BTreeMap<String, usize> =
+        crates.keys().map(|name| (name.clone(), 0)).collect();
     for (name, path) in &crates {
         let deps = parse_dependencies(&path.join("Cargo.toml"));
         for dep in deps {

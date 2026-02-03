@@ -3,11 +3,11 @@
 //! Owns: BAM stage semantics, effective params, and canonical metrics schema.
 //! Must NOT depend on: bijux-engine or runtime/container execution logic.
 
-pub mod stage_registry;
 pub mod invariants;
 pub mod metrics;
 pub mod params;
 pub mod pipeline_contract;
+pub mod stage_registry;
 pub mod types;
 
 pub use stage_registry::{
@@ -59,8 +59,8 @@ pub fn bam_stage_has_invariants(stage: BamStage) -> bool {
 #[must_use]
 pub fn bam_stage_completeness(stage: BamStage) -> StageCompleteness {
     let spec = stage_spec(stage);
-    let has_artifacts =
-        !required_audit_artifacts(stage).is_empty() && !spec.artifact_policy.required_outputs.is_empty();
+    let has_artifacts = !required_audit_artifacts(stage).is_empty()
+        && !spec.artifact_policy.required_outputs.is_empty();
     let has_args_builder = matches!(
         stage,
         BamStage::Align

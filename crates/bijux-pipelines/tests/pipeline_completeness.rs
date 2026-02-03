@@ -58,8 +58,7 @@ fn pipeline_profiles_are_complete() {
             profile.id
         );
         assert_eq!(
-            profile.defaults_ledger_ref,
-            "defaults_ledger.json",
+            profile.defaults_ledger_ref, "defaults_ledger.json",
             "unexpected defaults ledger ref for {}",
             profile.id
         );

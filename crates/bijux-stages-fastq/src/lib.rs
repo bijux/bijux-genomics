@@ -41,15 +41,29 @@ pub struct StagePlanRequest<'a> {
 pub fn plan_stage(request: StagePlanRequest<'_>) -> anyhow::Result<StagePlanV1> {
     match request.stage_id {
         "fastq.validate_pre" => {
-            let r1 = request.r1.ok_or_else(|| anyhow::anyhow!("validate_pre requires r1"))?;
-            Ok(stages_pre::validate_pre::plan(request.tool, r1, request.out_dir))
+            let r1 = request
+                .r1
+                .ok_or_else(|| anyhow::anyhow!("validate_pre requires r1"))?;
+            Ok(stages_pre::validate_pre::plan(
+                request.tool,
+                r1,
+                request.out_dir,
+            ))
         }
         "fastq.detect_adapters" => {
-            let r1 = request.r1.ok_or_else(|| anyhow::anyhow!("detect_adapters requires r1"))?;
-            Ok(stages_pre::detect_adapters::plan(request.tool, r1, request.out_dir))
+            let r1 = request
+                .r1
+                .ok_or_else(|| anyhow::anyhow!("detect_adapters requires r1"))?;
+            Ok(stages_pre::detect_adapters::plan(
+                request.tool,
+                r1,
+                request.out_dir,
+            ))
         }
         "fastq.trim" => {
-            let r1 = request.r1.ok_or_else(|| anyhow::anyhow!("trim requires r1"))?;
+            let r1 = request
+                .r1
+                .ok_or_else(|| anyhow::anyhow!("trim requires r1"))?;
             stages_transform::trim::plan(
                 request.tool,
                 r1,
@@ -60,7 +74,9 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> anyhow::Result<StagePlanV1> 
             )
         }
         "fastq.filter" => {
-            let r1 = request.r1.ok_or_else(|| anyhow::anyhow!("filter requires r1"))?;
+            let r1 = request
+                .r1
+                .ok_or_else(|| anyhow::anyhow!("filter requires r1"))?;
             let mut options = stages_transform::filter::FilterPlanOptions::default();
             if request.enable_contaminant_removal && request.contaminant_bank.is_some() {
                 options.kmer_ref = stages_transform::filter::default_kmer_ref();
@@ -68,22 +84,36 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> anyhow::Result<StagePlanV1> 
             stages_transform::filter::plan_filter(request.tool, r1, request.out_dir, &options)
         }
         "fastq.merge" => {
-            let r1 = request.r1.ok_or_else(|| anyhow::anyhow!("merge requires r1"))?;
-            let r2 = request.r2.ok_or_else(|| anyhow::anyhow!("merge requires r2"))?;
+            let r1 = request
+                .r1
+                .ok_or_else(|| anyhow::anyhow!("merge requires r1"))?;
+            let r2 = request
+                .r2
+                .ok_or_else(|| anyhow::anyhow!("merge requires r2"))?;
             stages_transform::merge::plan_merge(request.tool, r1, r2, request.out_dir)
         }
         "fastq.correct" => {
-            let r1 = request.r1.ok_or_else(|| anyhow::anyhow!("correct requires r1"))?;
-            let r2 = request.r2.ok_or_else(|| anyhow::anyhow!("correct requires r2"))?;
+            let r1 = request
+                .r1
+                .ok_or_else(|| anyhow::anyhow!("correct requires r1"))?;
+            let r2 = request
+                .r2
+                .ok_or_else(|| anyhow::anyhow!("correct requires r2"))?;
             stages_transform::correct::plan_correct(request.tool, r1, r2, request.out_dir)
         }
         "fastq.umi" => {
-            let r1 = request.r1.ok_or_else(|| anyhow::anyhow!("umi requires r1"))?;
-            let r2 = request.r2.ok_or_else(|| anyhow::anyhow!("umi requires r2"))?;
+            let r1 = request
+                .r1
+                .ok_or_else(|| anyhow::anyhow!("umi requires r1"))?;
+            let r2 = request
+                .r2
+                .ok_or_else(|| anyhow::anyhow!("umi requires r2"))?;
             stages_transform::umi::plan_umi(request.tool, r1, r2, request.out_dir)
         }
         "fastq.qc_post" => {
-            let r1 = request.r1.ok_or_else(|| anyhow::anyhow!("qc_post requires r1"))?;
+            let r1 = request
+                .r1
+                .ok_or_else(|| anyhow::anyhow!("qc_post requires r1"))?;
             stages_qc::qc_post::plan_qc_post(
                 request.tool,
                 r1,
@@ -93,15 +123,21 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> anyhow::Result<StagePlanV1> 
             )
         }
         "fastq.screen" => {
-            let r1 = request.r1.ok_or_else(|| anyhow::anyhow!("screen requires r1"))?;
+            let r1 = request
+                .r1
+                .ok_or_else(|| anyhow::anyhow!("screen requires r1"))?;
             stages_qc::screen::plan_screen(request.tool, r1, request.out_dir)
         }
         "fastq.stats_neutral" => {
-            let r1 = request.r1.ok_or_else(|| anyhow::anyhow!("stats_neutral requires r1"))?;
+            let r1 = request
+                .r1
+                .ok_or_else(|| anyhow::anyhow!("stats_neutral requires r1"))?;
             stages_qc::stats_neutral::plan_stats_neutral(request.tool, r1, request.out_dir)
         }
         "fastq.preprocess" => {
-            let r1 = request.r1.ok_or_else(|| anyhow::anyhow!("preprocess requires r1"))?;
+            let r1 = request
+                .r1
+                .ok_or_else(|| anyhow::anyhow!("preprocess requires r1"))?;
             let pipeline = request
                 .pipeline
                 .ok_or_else(|| anyhow::anyhow!("preprocess requires pipeline spec"))?;
