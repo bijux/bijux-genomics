@@ -48,20 +48,16 @@
         ],
         "outputs": [
           {
-            "name": "qc_report",
-            "path": "out/qc_pre/qc_pre.json"
-          },
-          {
             "name": "flagstat",
             "path": "out/qc_pre/flagstat.txt"
           },
           {
-            "name": "stats",
-            "path": "out/qc_pre/samtools_stats.txt"
+            "name": "idxstats",
+            "path": "out/qc_pre/idxstats.txt"
           },
           {
-            "name": "summary",
-            "path": "out/qc_pre/qc_pre.summary.json"
+            "name": "stats",
+            "path": "out/qc_pre/samtools_stats.txt"
           },
           {
             "name": "stage_metrics",
@@ -102,12 +98,20 @@
             "path": "out/filter/filtered.bam.bai"
           },
           {
-            "name": "flagstat",
-            "path": "out/filter/flagstat.txt"
+            "name": "flagstat_before",
+            "path": "out/filter/flagstat.before.txt"
           },
           {
-            "name": "idxstats",
-            "path": "out/filter/idxstats.txt"
+            "name": "flagstat_after",
+            "path": "out/filter/flagstat.after.txt"
+          },
+          {
+            "name": "idxstats_before",
+            "path": "out/filter/idxstats.before.txt"
+          },
+          {
+            "name": "idxstats_after",
+            "path": "out/filter/idxstats.after.txt"
           },
           {
             "name": "summary",
@@ -154,12 +158,20 @@
             "path": "out/markdup/markdup.bam.bai"
           },
           {
-            "name": "flagstat",
-            "path": "out/markdup/flagstat.txt"
+            "name": "flagstat_before",
+            "path": "out/markdup/flagstat.before.txt"
           },
           {
-            "name": "idxstats",
-            "path": "out/markdup/idxstats.txt"
+            "name": "flagstat_after",
+            "path": "out/markdup/flagstat.after.txt"
+          },
+          {
+            "name": "idxstats_before",
+            "path": "out/markdup/idxstats.before.txt"
+          },
+          {
+            "name": "idxstats_after",
+            "path": "out/markdup/idxstats.after.txt"
           },
           {
             "name": "summary",
@@ -198,16 +210,8 @@
         ],
         "outputs": [
           {
-            "name": "coverage_report",
-            "path": "out/coverage/coverage.json"
-          },
-          {
             "name": "coverage_summary",
             "path": "out/coverage/coverage.mosdepth.summary.txt"
-          },
-          {
-            "name": "summary",
-            "path": "out/coverage/coverage.summary.json"
           },
           {
             "name": "stage_metrics",
@@ -244,20 +248,12 @@
         ],
         "outputs": [
           {
-            "name": "damage_report",
-            "path": "out/damage/damage.json"
-          },
-          {
             "name": "damage_pydamage",
             "path": "out/damage/damage.pydamage.json"
           },
           {
-            "name": "damage_profiler",
-            "path": "out/damage/damage.profiler.json"
-          },
-          {
-            "name": "summary",
-            "path": "out/damage/damage.summary.json"
+            "name": "damage_mapdamage2",
+            "path": "out/damage/damage.mapdamage2.txt"
           },
           {
             "name": "stage_metrics",

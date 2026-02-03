@@ -1,6 +1,5 @@
+pub mod align;
 pub mod authenticct;
-pub mod bowtie2;
-pub mod bwa;
 pub mod gatk;
 pub mod mapdamage2;
 pub mod mosdepth;
@@ -8,6 +7,9 @@ pub mod preseq;
 pub mod pydamage;
 pub mod rxy;
 pub mod samtools;
+
+pub use align::bowtie2;
+pub use align::bwa;
 
 #[must_use]
 pub fn available_tools() -> &'static [&'static str] {

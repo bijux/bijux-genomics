@@ -1,0 +1,444 @@
+use crate::{
+    ArtifactPolicy, AuditArtifact, BamStage, BamStageSpec,
+};
+use crate::params::{
+    AlignEffectiveParams, BamEffectiveParams, ComplexityEffectiveParams, CoverageEffectiveParams,
+    DuplicateAction, FilterEffectiveParams, MarkDupEffectiveParams, OpticalDuplicatePolicy,
+    QcPreEffectiveParams, ReadGroupSpec, UmiPolicy, ValidateEffectiveParams,
+};
+
+pub fn required_audit_artifacts(stage: BamStage) -> &'static [AuditArtifact] {
+    match stage {
+        BamStage::Align => &[
+            AuditArtifact {
+                name: "align_bam",
+                filename: "align.bam",
+            },
+            AuditArtifact {
+                name: "align_bai",
+                filename: "align.bam.bai",
+            },
+            AuditArtifact {
+                name: "flagstat",
+                filename: "flagstat.txt",
+            },
+            AuditArtifact {
+                name: "idxstats",
+                filename: "idxstats.txt",
+            },
+            AuditArtifact {
+                name: "stats",
+                filename: "samtools_stats.txt",
+            },
+            AuditArtifact {
+                name: "align_metrics",
+                filename: "align.metrics.json",
+            },
+            AuditArtifact {
+                name: "stage_metrics",
+                filename: "stage.metrics.json",
+            },
+        ],
+        BamStage::Validate => &[
+            AuditArtifact {
+                name: "validation_report",
+                filename: "validation.json",
+            },
+            AuditArtifact {
+                name: "flagstat",
+                filename: "flagstat.txt",
+            },
+            AuditArtifact {
+                name: "stage_metrics",
+                filename: "stage.metrics.json",
+            },
+        ],
+        BamStage::QcPre => &[
+            AuditArtifact {
+                name: "flagstat",
+                filename: "flagstat.txt",
+            },
+            AuditArtifact {
+                name: "idxstats",
+                filename: "idxstats.txt",
+            },
+            AuditArtifact {
+                name: "stats",
+                filename: "samtools_stats.txt",
+            },
+            AuditArtifact {
+                name: "stage_metrics",
+                filename: "stage.metrics.json",
+            },
+        ],
+        BamStage::Filter => &[
+            AuditArtifact {
+                name: "filtered_bam",
+                filename: "filtered.bam",
+            },
+            AuditArtifact {
+                name: "filtered_bai",
+                filename: "filtered.bam.bai",
+            },
+            AuditArtifact {
+                name: "flagstat_before",
+                filename: "flagstat.before.txt",
+            },
+            AuditArtifact {
+                name: "flagstat_after",
+                filename: "flagstat.after.txt",
+            },
+            AuditArtifact {
+                name: "idxstats_before",
+                filename: "idxstats.before.txt",
+            },
+            AuditArtifact {
+                name: "idxstats_after",
+                filename: "idxstats.after.txt",
+            },
+            AuditArtifact {
+                name: "summary",
+                filename: "filter.summary.json",
+            },
+            AuditArtifact {
+                name: "stage_metrics",
+                filename: "stage.metrics.json",
+            },
+        ],
+        BamStage::Markdup => &[
+            AuditArtifact {
+                name: "markdup_bam",
+                filename: "markdup.bam",
+            },
+            AuditArtifact {
+                name: "markdup_bai",
+                filename: "markdup.bam.bai",
+            },
+            AuditArtifact {
+                name: "flagstat_before",
+                filename: "flagstat.before.txt",
+            },
+            AuditArtifact {
+                name: "flagstat_after",
+                filename: "flagstat.after.txt",
+            },
+            AuditArtifact {
+                name: "idxstats_before",
+                filename: "idxstats.before.txt",
+            },
+            AuditArtifact {
+                name: "idxstats_after",
+                filename: "idxstats.after.txt",
+            },
+            AuditArtifact {
+                name: "summary",
+                filename: "markdup.summary.json",
+            },
+            AuditArtifact {
+                name: "stage_metrics",
+                filename: "stage.metrics.json",
+            },
+        ],
+        BamStage::Complexity => &[
+            AuditArtifact {
+                name: "complexity_report",
+                filename: "complexity.json",
+            },
+            AuditArtifact {
+                name: "preseq",
+                filename: "preseq.txt",
+            },
+            AuditArtifact {
+                name: "summary",
+                filename: "complexity.summary.json",
+            },
+            AuditArtifact {
+                name: "stage_metrics",
+                filename: "stage.metrics.json",
+            },
+        ],
+        BamStage::Coverage => &[
+            AuditArtifact {
+                name: "coverage_summary",
+                filename: "coverage.mosdepth.summary.txt",
+            },
+            AuditArtifact {
+                name: "stage_metrics",
+                filename: "stage.metrics.json",
+            },
+        ],
+        BamStage::Damage => &[
+            AuditArtifact {
+                name: "damage_pydamage",
+                filename: "damage.pydamage.json",
+            },
+            AuditArtifact {
+                name: "damage_mapdamage2",
+                filename: "damage.mapdamage2.txt",
+            },
+            AuditArtifact {
+                name: "stage_metrics",
+                filename: "stage.metrics.json",
+            },
+        ],
+        BamStage::Authenticity => &[
+            AuditArtifact {
+                name: "authenticity_report",
+                filename: "authenticity.json",
+            },
+            AuditArtifact {
+                name: "summary",
+                filename: "authenticity.summary.json",
+            },
+            AuditArtifact {
+                name: "stage_metrics",
+                filename: "stage.metrics.json",
+            },
+        ],
+        BamStage::Contamination => &[
+            AuditArtifact {
+                name: "contamination_report",
+                filename: "contamination.json",
+            },
+            AuditArtifact {
+                name: "summary",
+                filename: "contamination.summary.json",
+            },
+            AuditArtifact {
+                name: "stage_metrics",
+                filename: "stage.metrics.json",
+            },
+        ],
+        BamStage::Sex => &[
+            AuditArtifact {
+                name: "sex_report",
+                filename: "sex.json",
+            },
+            AuditArtifact {
+                name: "summary",
+                filename: "sex.summary.json",
+            },
+            AuditArtifact {
+                name: "stage_metrics",
+                filename: "stage.metrics.json",
+            },
+        ],
+        BamStage::BiasMitigation => &[
+            AuditArtifact {
+                name: "bias_report",
+                filename: "bias.json",
+            },
+            AuditArtifact {
+                name: "summary",
+                filename: "bias.summary.json",
+            },
+            AuditArtifact {
+                name: "stage_metrics",
+                filename: "stage.metrics.json",
+            },
+        ],
+        BamStage::Recalibration => &[
+            AuditArtifact {
+                name: "recal_bam",
+                filename: "recal.bam",
+            },
+            AuditArtifact {
+                name: "recal_bai",
+                filename: "recal.bam.bai",
+            },
+            AuditArtifact {
+                name: "recal_report",
+                filename: "recal.report.txt",
+            },
+            AuditArtifact {
+                name: "summary",
+                filename: "recal.summary.json",
+            },
+            AuditArtifact {
+                name: "stage_metrics",
+                filename: "stage.metrics.json",
+            },
+        ],
+        BamStage::Haplogroups => &[
+            AuditArtifact {
+                name: "haplogroups",
+                filename: "haplogroups.json",
+            },
+            AuditArtifact {
+                name: "summary",
+                filename: "haplogroups.summary.json",
+            },
+            AuditArtifact {
+                name: "stage_metrics",
+                filename: "stage.metrics.json",
+            },
+        ],
+        BamStage::Genotyping => &[
+            AuditArtifact {
+                name: "genotyping_report",
+                filename: "genotyping.json",
+            },
+            AuditArtifact {
+                name: "summary",
+                filename: "genotyping.summary.json",
+            },
+            AuditArtifact {
+                name: "stage_metrics",
+                filename: "stage.metrics.json",
+            },
+        ],
+        BamStage::Kinship => &[
+            AuditArtifact {
+                name: "kinship_report",
+                filename: "kinship.json",
+            },
+            AuditArtifact {
+                name: "summary",
+                filename: "kinship.summary.json",
+            },
+            AuditArtifact {
+                name: "stage_metrics",
+                filename: "stage.metrics.json",
+            },
+        ],
+    }
+}
+
+#[must_use]
+#[allow(clippy::too_many_lines)]
+pub fn stage_spec_part1(stage: BamStage) -> Option<BamStageSpec> {
+    let spec = match stage {
+        BamStage::Align => BamStageSpec {
+            stage,
+            required_inputs: &["fastq_r1"],
+            artifact_policy: ArtifactPolicy {
+                required_outputs: &[
+                    "align_bam",
+                    "align_bai",
+                    "flagstat",
+                    "idxstats",
+                    "stats",
+                    "align_metrics",
+                    "stage_metrics",
+                ],
+                required_audit: required_audit_artifacts(stage),
+            },
+            allowed_tools: &["bwa", "bowtie2"],
+            default_tool: "bwa",
+            default_params: BamEffectiveParams::Align(AlignEffectiveParams {
+                aligner: "bwa".to_string(),
+                preset: "default".to_string(),
+                threads: 1,
+                reference: "reference.fasta".to_string(),
+                reference_digest: "unknown".to_string(),
+                rg_policy: crate::types::ReadGroupPolicy::Regenerate,
+                read_group: ReadGroupSpec::with_defaults("sample"),
+                build_indices: false,
+                emit_stats: true,
+            }),
+        },
+        BamStage::Validate => BamStageSpec {
+            stage,
+            required_inputs: &["bam"],
+            artifact_policy: ArtifactPolicy {
+                required_outputs: &["validation_report", "flagstat", "stage_metrics"],
+                required_audit: required_audit_artifacts(stage),
+            },
+            allowed_tools: &["samtools"],
+            default_tool: "samtools",
+            default_params: BamEffectiveParams::Validate(ValidateEffectiveParams { strict: true }),
+        },
+        BamStage::QcPre => BamStageSpec {
+            stage,
+            required_inputs: &["bam"],
+            artifact_policy: ArtifactPolicy {
+                required_outputs: &["flagstat", "idxstats", "stats", "stage_metrics"],
+                required_audit: required_audit_artifacts(stage),
+            },
+            allowed_tools: &["samtools"],
+            default_tool: "samtools",
+            default_params: BamEffectiveParams::QcPre(QcPreEffectiveParams { regions: None }),
+        },
+        BamStage::Filter => BamStageSpec {
+            stage,
+            required_inputs: &["bam"],
+            artifact_policy: ArtifactPolicy {
+                required_outputs: &[
+                    "filtered_bam",
+                    "filtered_bai",
+                    "flagstat_before",
+                    "flagstat_after",
+                    "idxstats_before",
+                    "idxstats_after",
+                    "summary",
+                    "stage_metrics",
+                ],
+                required_audit: required_audit_artifacts(stage),
+            },
+            allowed_tools: &["samtools"],
+            default_tool: "samtools",
+            default_params: BamEffectiveParams::Filter(FilterEffectiveParams {
+                mapq_threshold: 30,
+                include_flags: Vec::new(),
+                exclude_flags: Vec::new(),
+                min_length: 30,
+                remove_duplicates: false,
+                base_quality_threshold: 20,
+            }),
+        },
+        BamStage::Markdup => BamStageSpec {
+            stage,
+            required_inputs: &["bam"],
+            artifact_policy: ArtifactPolicy {
+                required_outputs: &[
+                    "markdup_bam",
+                    "markdup_bai",
+                    "flagstat_before",
+                    "flagstat_after",
+                    "idxstats_before",
+                    "idxstats_after",
+                    "summary",
+                    "stage_metrics",
+                ],
+                required_audit: required_audit_artifacts(stage),
+            },
+            allowed_tools: &["gatk", "samtools"],
+            default_tool: "gatk",
+            default_params: BamEffectiveParams::Markdup(MarkDupEffectiveParams {
+                optical_duplicates: OpticalDuplicatePolicy::MarkOnly,
+                umi_policy: UmiPolicy::Ignore,
+                duplicate_action: DuplicateAction::Mark,
+            }),
+        },
+        BamStage::Complexity => BamStageSpec {
+            stage,
+            required_inputs: &["bam"],
+            artifact_policy: ArtifactPolicy {
+                required_outputs: &["complexity_report", "preseq", "summary", "stage_metrics"],
+                required_audit: required_audit_artifacts(stage),
+            },
+            allowed_tools: &["preseq"],
+            default_tool: "preseq",
+            default_params: BamEffectiveParams::Complexity(ComplexityEffectiveParams {
+                min_reads: 100_000,
+                projection_points: vec![1_000_000, 2_000_000],
+            }),
+        },
+        BamStage::Coverage => BamStageSpec {
+            stage,
+            required_inputs: &["bam"],
+            artifact_policy: ArtifactPolicy {
+                required_outputs: &["coverage_summary", "stage_metrics"],
+                required_audit: required_audit_artifacts(stage),
+            },
+            allowed_tools: &["mosdepth", "samtools"],
+            default_tool: "mosdepth",
+            default_params: BamEffectiveParams::Coverage(CoverageEffectiveParams {
+                regions: None,
+                depth_thresholds: vec![1, 3, 5],
+            }),
+        },
+        _ => return None,
+    };
+    Some(spec)
+}
