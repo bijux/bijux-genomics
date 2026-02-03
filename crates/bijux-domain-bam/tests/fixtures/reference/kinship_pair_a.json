@@ -10,7 +10,7 @@
   "contamination": {"method": "authentiCT", "estimate": 0.05, "ci_low": 0.03, "ci_high": 0.07, "assumptions": []},
   "contamination_reconciliation": {"mt_fraction": null, "nuclear_fraction": null, "assessment": "unknown"},
   "sex": {"x_to_y_ratio": 1.6, "confidence": 0.85, "method": "rxy", "classification": "female", "sufficient_data": true},
-  "complexity": {"observed_reads": 1500000, "projected_reads": []},
+  "complexity": {"observed_reads": 1500000, "projected_reads": [], "saturation_estimate": 0.0},
   "authenticity": {"score": 0.0, "confidence": 0.0, "evidence": {"damage_high": false, "fragments_short": false, "mapq_low_with_damage": false}, "library_type_inference": null, "trim_suggestion": null, "rationale": []},
   "haplogroup_sufficiency": {"sufficient": true, "min_coverage": 1.5, "reason": "coverage meets minimum threshold"},
   "kinship_sufficiency": {"sufficient": true, "overlap_snps": 1000, "reason": "coverage likely sufficient for kinship"},

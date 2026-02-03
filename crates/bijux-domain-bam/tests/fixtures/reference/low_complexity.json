@@ -10,7 +10,7 @@
   "contamination": {"method": "authentiCT", "estimate": 0.04, "ci_low": 0.02, "ci_high": 0.06, "assumptions": []},
   "contamination_reconciliation": {"mt_fraction": null, "nuclear_fraction": null, "assessment": "unknown"},
   "sex": {"x_to_y_ratio": 0.5, "confidence": 0.7, "method": "rxy", "classification": "male", "sufficient_data": true},
-  "complexity": {"observed_reads": 10000, "projected_reads": []},
+  "complexity": {"observed_reads": 10000, "projected_reads": [], "saturation_estimate": 0.0},
   "authenticity": {"score": 0.0, "confidence": 0.0, "evidence": {"damage_high": false, "fragments_short": false, "mapq_low_with_damage": false}, "library_type_inference": null, "trim_suggestion": null, "rationale": []},
   "haplogroup_sufficiency": {"sufficient": false, "min_coverage": 0.6, "reason": "coverage below threshold for haplogroup assignment"},
   "kinship_sufficiency": {"sufficient": false, "overlap_snps": 0, "reason": "coverage below threshold for kinship inference"},
