@@ -259,15 +259,59 @@ pub struct RunLayoutPaths {
     pub tmp_dir: PathBuf,
 }
 
+#[derive(Debug, Clone, Copy)]
+pub struct RunLayoutContract {
+    pub runs_dir: &'static str,
+    pub artifacts_dir: &'static str,
+    pub logs_dir: &'static str,
+    pub tmp_dir: &'static str,
+    pub lock_file: &'static str,
+    pub publish_marker: &'static str,
+}
+
+pub const RUN_LAYOUT_CONTRACT: RunLayoutContract = RunLayoutContract {
+    runs_dir: "runs",
+    artifacts_dir: "artifacts",
+    logs_dir: "logs",
+    tmp_dir: "tmp",
+    lock_file: ".run.lock",
+    publish_marker: "published.json",
+};
+
 #[must_use]
 pub fn run_layout_paths(base_dir: &Path, run_id: &str) -> RunLayoutPaths {
-    let run_dir = base_dir.join("runs").join(run_id);
+    let run_dir = base_dir.join(RUN_LAYOUT_CONTRACT.runs_dir).join(run_id);
     RunLayoutPaths {
-        artifacts_dir: run_dir.join("artifacts"),
-        logs_dir: run_dir.join("logs"),
-        tmp_dir: run_dir.join("tmp"),
+        artifacts_dir: run_dir.join(RUN_LAYOUT_CONTRACT.artifacts_dir),
+        logs_dir: run_dir.join(RUN_LAYOUT_CONTRACT.logs_dir),
+        tmp_dir: run_dir.join(RUN_LAYOUT_CONTRACT.tmp_dir),
         run_dir,
     }
+}
+
+/// Acquire the run-level lock for coordinated publish/write operations.
+///
+/// # Errors
+/// Returns an IO error if the lock cannot be acquired within the timeout.
+pub fn lock_run(layout: &RunLayoutPaths, timeout: Duration) -> Result<FileLock, IoError> {
+    FileLock::acquire(&layout.run_dir.join(RUN_LAYOUT_CONTRACT.lock_file), timeout)
+}
+
+/// Publish a run by writing an atomic marker into the artifacts directory.
+///
+/// # Errors
+/// Returns an IO error if the marker cannot be written.
+pub fn publish_run(layout: &RunLayoutPaths, run_id: &str) -> Result<PathBuf, IoError> {
+    ensure_dir(&layout.artifacts_dir)?;
+    let marker = layout
+        .artifacts_dir
+        .join(RUN_LAYOUT_CONTRACT.publish_marker);
+    let payload = serde_json::json!({
+        "schema_version": "bijux.run_publish.v1",
+        "run_id": run_id,
+    });
+    atomic_write_json(&marker, &payload)?;
+    Ok(marker)
 }
 
 /// Create a managed temporary directory.
@@ -399,6 +443,16 @@ mod tests {
             layout.tmp_dir,
             base.join("runs").join("run-123").join("tmp")
         );
+    }
+
+    #[test]
+    fn run_layout_contract_is_enforced() -> Result<(), IoError> {
+        let dir = tempfile::TempDir::new().map_err(IoError::from_io)?;
+        let layout = run_layout_paths(dir.path(), "run-1");
+        let _lock = lock_run(&layout, Duration::from_millis(50))?;
+        let marker = publish_run(&layout, "run-1")?;
+        assert!(marker.ends_with(RUN_LAYOUT_CONTRACT.publish_marker));
+        Ok(())
     }
 
     #[test]
