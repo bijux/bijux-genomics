@@ -1,0 +1,212 @@
+//! BAM pipeline profiles and default params.
+
+use std::collections::BTreeMap;
+
+use anyhow::{anyhow, Result};
+use bijux_domain_bam::params::{
+    BamEffectiveParams, ContaminationScope, DamageEffectiveParams, UdgModel,
+};
+use bijux_domain_bam::stage_spec;
+use bijux_domain_bam::BamStage;
+
+use crate::{Domain, EffectiveDefaults, PipelineProfile, StageNode};
+
+#[derive(Debug, Clone)]
+struct BamStageDefault {
+    stage: BamStage,
+    tool: &'static str,
+    params: BamEffectiveParams,
+}
+
+fn base_defaults() -> Vec<BamStageDefault> {
+    BamStage::all()
+        .iter()
+        .map(|stage| {
+            let spec = stage_spec(*stage);
+            BamStageDefault {
+                stage: *stage,
+                tool: spec.default_tool,
+                params: spec.default_params,
+            }
+        })
+        .collect()
+}
+
+fn to_effective_defaults(defaults: &[BamStageDefault]) -> EffectiveDefaults {
+    let mut tools = BTreeMap::new();
+    let mut params = BTreeMap::new();
+    for entry in defaults {
+        tools.insert(entry.stage.as_str().to_string(), entry.tool.to_string());
+        params.insert(
+            entry.stage.as_str().to_string(),
+            bam_params_value(&entry.params),
+        );
+    }
+    EffectiveDefaults { tools, params }
+}
+
+fn bam_params_value(params: &BamEffectiveParams) -> serde_json::Value {
+    match params {
+        BamEffectiveParams::Validate(inner) => {
+            serde_json::to_value(inner).expect("serialize validate params")
+        }
+        BamEffectiveParams::QcPre(inner) => {
+            serde_json::to_value(inner).expect("serialize qc_pre params")
+        }
+        BamEffectiveParams::Filter(inner) => {
+            serde_json::to_value(inner).expect("serialize filter params")
+        }
+        BamEffectiveParams::Markdup(inner) => {
+            serde_json::to_value(inner).expect("serialize markdup params")
+        }
+        BamEffectiveParams::Complexity(inner) => {
+            serde_json::to_value(inner).expect("serialize complexity params")
+        }
+        BamEffectiveParams::Coverage(inner) => {
+            serde_json::to_value(inner).expect("serialize coverage params")
+        }
+        BamEffectiveParams::Damage(inner) => {
+            serde_json::to_value(inner).expect("serialize damage params")
+        }
+        BamEffectiveParams::Authenticity(inner) => {
+            serde_json::to_value(inner).expect("serialize authenticity params")
+        }
+        BamEffectiveParams::Contamination(inner) => {
+            serde_json::to_value(inner).expect("serialize contamination params")
+        }
+        BamEffectiveParams::Sex(inner) => {
+            serde_json::to_value(inner).expect("serialize sex params")
+        }
+        BamEffectiveParams::BiasMitigation(inner) => {
+            serde_json::to_value(inner).expect("serialize bias mitigation params")
+        }
+        BamEffectiveParams::Recalibration(inner) => {
+            serde_json::to_value(inner).expect("serialize recalibration params")
+        }
+        BamEffectiveParams::Haplogroups(inner) => {
+            serde_json::to_value(inner).expect("serialize haplogroups params")
+        }
+        BamEffectiveParams::Genotyping(inner) => {
+            serde_json::to_value(inner).expect("serialize genotyping params")
+        }
+        BamEffectiveParams::Kinship(inner) => {
+            serde_json::to_value(inner).expect("serialize kinship params")
+        }
+    }
+}
+
+fn to_graph(stages: &[BamStage]) -> Vec<StageNode> {
+    stages
+        .iter()
+        .map(|stage| StageNode {
+            stage_id: stage.as_str().to_string(),
+        })
+        .collect()
+}
+
+fn filter_downstream(stages: &mut Vec<BamStage>) {
+    if cfg!(feature = "bam_downstream") {
+        return;
+    }
+    stages.retain(|stage| {
+        !matches!(
+            stage,
+            BamStage::Haplogroups | BamStage::Genotyping | BamStage::Kinship
+        )
+    });
+}
+
+fn filter_defaults(defaults: &mut Vec<BamStageDefault>, stages: &[BamStage]) {
+    let allowed: std::collections::HashSet<_> = stages.iter().copied().collect();
+    defaults.retain(|entry| allowed.contains(&entry.stage));
+}
+
+#[must_use]
+pub fn bam_default_profile() -> PipelineProfile {
+    let mut defaults = base_defaults();
+    let mut stages = BamStage::all().to_vec();
+    filter_downstream(&mut stages);
+    filter_defaults(&mut defaults, &stages);
+    PipelineProfile {
+        id: "default",
+        description: "Default BAM pipeline",
+        domains: vec![Domain::Bam],
+        graph: to_graph(&stages),
+        defaults: to_effective_defaults(&defaults),
+        invariants_preset: None,
+    }
+}
+
+#[must_use]
+pub fn bam_adna_shotgun_profile() -> PipelineProfile {
+    let mut defaults = base_defaults();
+    let mut stages = BamStage::all().to_vec();
+    stages.retain(|stage| *stage != BamStage::Recalibration);
+    filter_downstream(&mut stages);
+    filter_defaults(&mut defaults, &stages);
+    for entry in &mut defaults {
+        match entry.stage {
+            BamStage::Filter => {
+                if let BamEffectiveParams::Filter(params) = &mut entry.params {
+                    params.min_length = 30;
+                    params.mapq_threshold = 30;
+                }
+            }
+            BamStage::Damage => {
+                if let BamEffectiveParams::Damage(params) = &mut entry.params {
+                    *params = DamageEffectiveParams {
+                        udg_model: UdgModel::NonUdg,
+                        pmd_threshold_5p: 0.3,
+                        pmd_threshold_3p: 0.3,
+                        trim_5p: 2,
+                        trim_3p: 2,
+                    };
+                }
+            }
+            BamStage::Contamination => {
+                if let BamEffectiveParams::Contamination(params) = &mut entry.params {
+                    params.scope = ContaminationScope::Both;
+                }
+            }
+            _ => {}
+        }
+    }
+    PipelineProfile {
+        id: "adna-shotgun",
+        description: "Ancient DNA shotgun defaults",
+        domains: vec![Domain::Bam],
+        graph: to_graph(&stages),
+        defaults: to_effective_defaults(&defaults),
+        invariants_preset: Some("adna"),
+    }
+}
+
+#[must_use]
+pub fn bam_adna_capture_profile() -> PipelineProfile {
+    let mut profile = bam_adna_shotgun_profile();
+    profile.id = "adna-capture";
+    profile.description = "Ancient DNA capture defaults";
+    for (stage_id, params) in profile.defaults.params.iter_mut() {
+        if stage_id == "bam.filter" {
+            let mut filter = serde_json::from_value::<
+                bijux_domain_bam::params::FilterEffectiveParams,
+            >(params.clone())
+            .expect("parse BAM filter params");
+            filter.min_length = 25;
+            filter.mapq_threshold = 30;
+            *params = serde_json::to_value(&filter).expect("serialize BAM capture filter params");
+        }
+    }
+    profile
+}
+
+/// # Errors
+/// Returns an error if the requested profile id is unknown.
+pub fn bam_profiles_by_id(id: &str) -> Result<PipelineProfile> {
+    match id {
+        "default" => Ok(bam_default_profile()),
+        "adna-shotgun" => Ok(bam_adna_shotgun_profile()),
+        "adna-capture" => Ok(bam_adna_capture_profile()),
+        _ => Err(anyhow!("unknown BAM profile: {id}")),
+    }
+}

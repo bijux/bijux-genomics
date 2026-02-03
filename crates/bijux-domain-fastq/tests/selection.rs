@@ -1,10 +1,8 @@
 use std::path::PathBuf;
 
 use bijux_core::selection::{objective_spec, select_stage, BenchResultStatus, Objective};
-use bijux_domain_fastq::{
-    fastq_default_pipeline, get_results, BenchCorpus, BenchCorpusId, BenchDataset,
-    DefaultPipelineOptions,
-};
+use bijux_domain_fastq::{get_results, BenchCorpus, BenchCorpusId, BenchDataset};
+use bijux_pipelines::fastq::{fastq_default_pipeline_spec, DefaultPipelineOptions};
 fn bench_base_dir(out: &std::path::Path, stage: &str, sample_id: &str) -> std::path::PathBuf {
     out.join("artifacts")
         .join("bench")
@@ -137,7 +135,7 @@ fn default_route_selects_tools_deterministically() -> Result<(), Box<dyn std::er
         }
     }
 
-    let pipeline = fastq_default_pipeline(DefaultPipelineOptions {
+    let pipeline = fastq_default_pipeline_spec(DefaultPipelineOptions {
         paired: false,
         enable_merge: false,
         enable_correct: false,

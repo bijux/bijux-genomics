@@ -54,12 +54,11 @@ pub use metrics::deltas::{compute_delta, ratio_u64};
 pub use params::{parse_effective_params, EffectiveParams, PairedMode};
 pub use pipeline::query::get_results;
 pub use pipeline::{
-    append_event, bench_corpus, benchmark_runs, canonical_pipeline, canonical_tool_defaults,
-    create_run_layout, fastq_default_pipeline, fastq_minimal_pipeline, now_string,
+    append_event, bench_corpus, benchmark_runs, canonical_pipeline, create_run_layout, now_string,
     update_run_index, write_benchmark_exports, write_environment, write_input_assessment,
     write_manifest, write_run_metadata, BenchCorpus, BenchCorpusId, BenchDataset,
-    DefaultPipelineOptions, InputAssessmentV1, RunArtifactEntry, RunEnvironment, RunIndexEntry,
-    RunLayout, RunManifest, RunStageEntry, ToolImageDigest,
+    InputAssessmentV1, RunArtifactEntry, RunEnvironment, RunIndexEntry, RunLayout, RunManifest,
+    RunStageEntry, ToolImageDigest,
 };
 pub use pipeline::{assess_input_dir, discover_fastq_files};
 pub use polyx_bank::{

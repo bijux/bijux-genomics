@@ -1,7 +1,5 @@
 pub mod canonical;
 pub mod corpus;
-pub mod default;
-pub mod minimal;
 pub mod query;
 pub mod run_layout;
 
@@ -15,10 +13,9 @@ pub use bijux_core::events::RunEvent;
 pub use bijux_core::input_assessment::{
     assess_input_dir, discover_fastq_files, write_input_assessment, InputAssessmentV1,
 };
-pub use canonical::{canonical_pipeline, canonical_tool_defaults};
+#[allow(unused_imports)]
+pub use canonical::{canonical_pipeline, CanonicalPipeline};
 pub use corpus::{bench_corpus, BenchCorpus, BenchCorpusId, BenchDataset};
-pub use default::{fastq_default_pipeline, DefaultPipelineOptions};
-pub use minimal::fastq_minimal_pipeline;
 #[allow(unused_imports)]
 pub use run_layout::{
     append_event, create_run_layout, now_string, update_run_index, write_environment,
