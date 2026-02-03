@@ -72,7 +72,7 @@ fn align_plan_json_is_emitted_and_stable() -> Result<()> {
         &params,
         Path::new("out"),
     )?;
-    assert_snapshot("bam_align_plan.json", &plan)
+    assert_snapshot("stage__bam__bam.align.json", &plan)
 }
 
 #[test]
@@ -84,7 +84,7 @@ fn validate_plan_json_is_emitted_and_stable() -> Result<()> {
         None,
         Path::new("out"),
     )?;
-    assert_snapshot("bam_validate_plan.json", &plan)
+    assert_snapshot("stage__bam__bam.validate.json", &plan)
 }
 
 #[test]
@@ -94,7 +94,7 @@ fn qc_pre_plan_json_is_emitted_and_stable() -> Result<()> {
         Path::new("reads.bam"),
         Path::new("out"),
     )?;
-    assert_snapshot("bam_qc_pre_plan.json", &plan)
+    assert_snapshot("stage__bam__bam.qc_pre.json", &plan)
 }
 
 #[test]
@@ -113,7 +113,7 @@ fn filter_plan_json_is_emitted_and_stable() -> Result<()> {
         Path::new("out"),
         &params,
     )?;
-    assert_snapshot("bam_filter_plan.json", &plan)
+    assert_snapshot("stage__bam__bam.filter.json", &plan)
 }
 
 #[test]
@@ -129,7 +129,7 @@ fn markdup_plan_json_is_emitted_and_stable() -> Result<()> {
         Path::new("out"),
         &params,
     )?;
-    assert_snapshot("bam_markdup_plan.json", &plan)
+    assert_snapshot("stage__bam__bam.markdup.json", &plan)
 }
 
 #[test]
@@ -144,7 +144,7 @@ fn complexity_plan_json_is_emitted_and_stable() -> Result<()> {
         Path::new("out"),
         &params,
     )?;
-    assert_snapshot("bam_complexity_plan.json", &plan)
+    assert_snapshot("stage__bam__bam.complexity.json", &plan)
 }
 
 #[test]
@@ -159,7 +159,7 @@ fn coverage_plan_json_is_emitted_and_stable() -> Result<()> {
         Path::new("out"),
         &params,
     )?;
-    assert_snapshot("bam_coverage_plan.json", &plan)
+    assert_snapshot("stage__bam__bam.coverage.json", &plan)
 }
 
 #[test]
@@ -177,7 +177,7 @@ fn damage_plan_json_is_emitted_and_stable() -> Result<()> {
         Path::new("out"),
         &params,
     )?;
-    assert_snapshot("bam_damage_plan.json", &plan)
+    assert_snapshot("stage__bam__bam.damage.json", &plan)
 }
 
 #[test]
@@ -191,7 +191,7 @@ fn authenticity_plan_json_is_emitted_and_stable() -> Result<()> {
         Path::new("out"),
         &params,
     )?;
-    assert_snapshot("bam_authenticity_plan.json", &plan)
+    assert_snapshot("stage__bam__bam.authenticity.json", &plan)
 }
 
 #[test]
@@ -209,7 +209,7 @@ fn contamination_plan_json_is_emitted_and_stable() -> Result<()> {
         Path::new("out"),
         &params,
     )?;
-    assert_snapshot("bam_contamination_plan.json", &plan)
+    assert_snapshot("stage__bam__bam.contamination.json", &plan)
 }
 
 #[test]
@@ -224,7 +224,7 @@ fn sex_plan_json_is_emitted_and_stable() -> Result<()> {
         Path::new("out"),
         &params,
     )?;
-    assert_snapshot("bam_sex_plan.json", &plan)
+    assert_snapshot("stage__bam__bam.sex.json", &plan)
 }
 
 #[test]
@@ -240,7 +240,7 @@ fn bias_mitigation_plan_json_is_emitted_and_stable() -> Result<()> {
         Path::new("out"),
         &params,
     )?;
-    assert_snapshot("bam_bias_mitigation_plan.json", &plan)
+    assert_snapshot("stage__bam__bam.bias_mitigation.json", &plan)
 }
 
 #[test]
@@ -259,7 +259,7 @@ fn recalibration_plan_json_is_emitted_and_stable() -> Result<()> {
         Path::new("out"),
         &params,
     )?;
-    assert_snapshot("bam_recalibration_plan.json", &plan)
+    assert_snapshot("stage__bam__bam.recalibration.json", &plan)
 }
 
 #[test]
@@ -275,7 +275,7 @@ fn haplogroups_plan_json_is_emitted_and_stable() -> Result<()> {
         Path::new("out"),
         &params,
     )?;
-    assert_snapshot("bam_haplogroups_plan.json", &plan)
+    assert_snapshot("stage__bam__bam.haplogroups.json", &plan)
 }
 
 #[test]
@@ -292,7 +292,7 @@ fn genotyping_plan_json_is_emitted_and_stable() -> Result<()> {
         Path::new("out"),
         &params,
     )?;
-    assert_snapshot("bam_genotyping_plan.json", &plan)
+    assert_snapshot("stage__bam__bam.genotyping.json", &plan)
 }
 
 #[test]
@@ -308,5 +308,5 @@ fn kinship_plan_json_is_emitted_and_stable() -> Result<()> {
         Path::new("out"),
         &params,
     )?;
-    assert_snapshot("bam_kinship_plan.json", &plan)
+    assert_snapshot("stage__bam__bam.kinship.json", &plan)
 }
