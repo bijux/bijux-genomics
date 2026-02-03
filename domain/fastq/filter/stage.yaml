@@ -1,0 +1,27 @@
+schema_version: "bijux.stage.v1"
+stage_id: "fastq.filter"
+domain: "fastq"
+inputs:
+  - name: "reads"
+    data_type: "fastq"
+    cardinality: "Many"
+outputs:
+  - name: "filtered_reads"
+    data_type: "fastq"
+    cardinality: "Many"
+parameters:
+  - name: "min_quality"
+    param_type: "int"
+    default: "20"
+metrics:
+  - name: "reads_in"
+    meaning: "Number of input reads"
+  - name: "reads_out"
+    meaning: "Number of output reads"
+  - name: "reads_dropped"
+    meaning: "Number of reads removed by filtering"
+  - name: "mean_q_before"
+    meaning: "Mean base quality before filtering"
+  - name: "mean_q_after"
+    meaning: "Mean base quality after filtering"
+description: "FASTQ stage for filtering reads."
