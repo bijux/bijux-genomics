@@ -47,10 +47,10 @@ pub enum BenchCorpusArg {
     Fastq5Set,
 }
 
-impl From<BenchCorpusArg> for bijux_stages_fastq::BenchCorpusId {
+impl From<BenchCorpusArg> for bijux_domain_fastq::BenchCorpusId {
     fn from(value: BenchCorpusArg) -> Self {
         match value {
-            BenchCorpusArg::Fastq5Set => bijux_stages_fastq::BenchCorpusId::Fastq5Set,
+            BenchCorpusArg::Fastq5Set => bijux_domain_fastq::BenchCorpusId::Fastq5Set,
         }
     }
 }

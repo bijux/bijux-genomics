@@ -1,6 +1,7 @@
 use std::fs;
 use std::path::PathBuf;
 
+use bijux_pipelines::registry::PipelineRegistry;
 use tempfile::TempDir;
 
 fn write_profile(temp: &TempDir) -> Result<PathBuf, Box<dyn std::error::Error>> {
@@ -118,5 +119,37 @@ fn fastq_trim_creates_run_artifacts() -> Result<(), Box<dyn std::error::Error>> 
     assert!(stage_dir.is_dir(), "stage dir missing");
     assert!(report_path.is_file(), "report.json missing");
     assert!(log_path.is_file(), "bijux.log missing");
+    Ok(())
+}
+
+#[test]
+fn pipelines_list_matches_registry() -> Result<(), Box<dyn std::error::Error>> {
+    let registry = PipelineRegistry::v1();
+    let mut expected: Vec<String> = registry
+        .list(false)
+        .into_iter()
+        .map(|profile| {
+            format!(
+                "{}\t{}\t{}",
+                profile.id.as_str(),
+                profile.stability.as_str(),
+                profile.description
+            )
+        })
+        .collect();
+    expected.sort();
+
+    let mut cmd = assert_cmd::cargo_bin_cmd!("bijux");
+    let output = cmd.args(["pipelines", "list"]).output()?;
+    assert!(output.status.success(), "pipelines list failed");
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let mut actual: Vec<String> = stdout
+        .lines()
+        .map(str::trim)
+        .filter(|line| !line.is_empty())
+        .map(String::from)
+        .collect();
+    actual.sort();
+    assert_eq!(actual, expected);
     Ok(())
 }

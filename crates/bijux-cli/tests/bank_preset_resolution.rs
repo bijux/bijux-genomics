@@ -1,13 +1,11 @@
 use std::fs;
 
 use anyhow::Result;
-use bijux::adapter_bank::{
-    resolve_adapter_selection, resolve_effective_adapters, DEFAULT_ADAPTER_PRESET,
+use bijux_domain_fastq::banks::{
+    resolve_adapter_selection, resolve_contaminant_selection, resolve_effective_adapters,
+    resolve_effective_contaminants, resolve_effective_polyx, resolve_polyx_selection,
+    DEFAULT_ADAPTER_PRESET, DEFAULT_CONTAMINANT_PRESET, DEFAULT_POLYX_PRESET,
 };
-use bijux::contaminant_bank::{
-    resolve_contaminant_selection, resolve_effective_contaminants, DEFAULT_CONTAMINANT_PRESET,
-};
-use bijux::polyx_bank::{resolve_effective_polyx, resolve_polyx_selection, DEFAULT_POLYX_PRESET};
 
 #[test]
 fn bank_preset_resolution_is_stable() -> Result<()> {

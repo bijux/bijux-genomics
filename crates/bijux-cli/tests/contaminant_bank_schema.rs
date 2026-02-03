@@ -9,11 +9,11 @@ fn contaminant_bank_parses() -> Result<()> {
         .ok_or_else(|| anyhow::anyhow!("repo root not found"))?;
     let prev_dir = std::env::current_dir()?;
     std::env::set_current_dir(repo_root)?;
-    let motifs_path = bijux_stages_fastq::contaminant_motifs_path();
-    let presets_path = bijux_stages_fastq::contaminant_presets_path();
-    let refs_dir = bijux_stages_fastq::contaminant_references_dir();
-    let motifs = bijux_stages_fastq::load_contaminant_motifs(&motifs_path)?;
-    let _presets = bijux_stages_fastq::load_contaminant_presets(&presets_path, &motifs, &refs_dir)?;
+    let motifs_path = bijux_domain_fastq::contaminant_motifs_path();
+    let presets_path = bijux_domain_fastq::contaminant_presets_path();
+    let refs_dir = bijux_domain_fastq::contaminant_references_dir();
+    let motifs = bijux_domain_fastq::load_contaminant_motifs(&motifs_path)?;
+    let _presets = bijux_domain_fastq::load_contaminant_presets(&presets_path, &motifs, &refs_dir)?;
     std::env::set_current_dir(prev_dir)?;
     Ok(())
 }

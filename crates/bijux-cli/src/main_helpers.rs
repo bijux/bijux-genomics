@@ -5,7 +5,7 @@ use anyhow::{anyhow, Context, Result};
 use bijux_core::load_profile;
 
 use crate::cli::{AnalyzeReportArgs, Cli};
-use crate::utils::normalize_run_base_dir;
+use bijux_io::normalize_run_base_dir;
 
 pub(crate) fn render_report_bundle_html(report: &serde_json::Value) -> String {
     let pretty = serde_json::to_string_pretty(report).unwrap_or_else(|_| "{}".to_string());
@@ -135,9 +135,9 @@ pub(crate) fn ensure_profile_run_base_dir(
 }
 
 pub(crate) fn qc_class_label(stage: &str) -> Option<&'static str> {
-    match bijux_stages_fastq::qc_class_for_stage(stage) {
-        Some(bijux_stages_fastq::QcClass::Structural) => Some("structural"),
-        Some(bijux_stages_fastq::QcClass::Statistical) => Some("statistical"),
+    match bijux_domain_fastq::qc_class_for_stage(stage) {
+        Some(bijux_domain_fastq::QcClass::Structural) => Some("structural"),
+        Some(bijux_domain_fastq::QcClass::Statistical) => Some("statistical"),
         None => None,
     }
 }

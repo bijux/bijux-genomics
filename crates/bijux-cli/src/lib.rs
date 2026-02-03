@@ -1,10 +1,4 @@
-pub mod adapter_bank;
 pub mod cli;
-pub mod contaminant_bank;
 pub mod env;
-pub mod fastq_exec;
-pub mod fastq_router;
-pub mod fastq_stats_neutral;
-pub mod polyx_bank;
 pub mod replay;
-pub mod utils;
+// CLI library intentionally thin; execution logic lives in bijux-api.

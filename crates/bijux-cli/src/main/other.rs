@@ -15,7 +15,7 @@ fn run_plan(cli: &Cli, registry: &bijux_core::ToolRegistry, domain_dir: &Path) -
 
     let mut profile = load_profile_for_cli(cli)?;
     ensure_profile_run_base_dir(&stage, &tool, &mut profile);
-    let plan = build_execution_plan(run_spec, registry, profile, run_id.clone())
+    let plan = bijux_api::run::build_stage_plan(run_spec, registry, profile, run_id.clone())
         .map_err(|err| anyhow!("failed to build plan: {err}"))?;
 
     std::fs::create_dir_all(&plan.logs_dir).context("create logs directory")?;

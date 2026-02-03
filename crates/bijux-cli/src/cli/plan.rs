@@ -1,6 +1,6 @@
 use anyhow::Result;
+use bijux_api::fastq_args as engine_args;
 use bijux_core::{StageId, ToolId};
-use bijux_stages_fastq::args as engine_args;
 
 use crate::cli::parse::{
     BamCommand, BenchFastqCorrectArgs, BenchFastqFilterArgs, BenchFastqMergeArgs,
@@ -359,6 +359,20 @@ pub fn preprocess_args_from_cli(
         apply_scientific_preset(preset, &mut out_args);
     }
     Ok(out_args)
+}
+
+#[must_use]
+pub fn fastq_cross_args_from_cli(args: &FastqPreprocessArgs) -> bijux_api::FastqCrossArgs {
+    bijux_api::FastqCrossArgs {
+        sample_id: args.sample_id.clone(),
+        r1: args.r1.clone(),
+        r2: args.r2.clone(),
+        alignment_bam: args.alignment_bam.clone(),
+        alignment_bai: args.alignment_bai.clone(),
+        alignment_reference: args.alignment_reference.clone(),
+        alignment_rg_policy: args.alignment_rg_policy.clone(),
+        alignment_meta: args.alignment_meta.clone(),
+    }
 }
 
 fn apply_scientific_preset(

@@ -428,8 +428,8 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
                         BenchBamCommand::Stage(args) => {
                             let registry = load_manifests(domain_dir)
                                 .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
-                            crate::bam_router::bench_bam_stage(
-                                args,
+                            bijux_api::bam_router::bench_bam_stage(
+                                &bench_bam_stage_args_to_api(args),
                                 &registry,
                                 cli.platform.as_deref(),
                             )?;
@@ -437,8 +437,8 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
                         BenchBamCommand::Pipeline(args) => {
                             let registry = load_manifests(domain_dir)
                                 .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
-                            crate::bam_router::bench_bam_pipeline(
-                                args,
+                            bijux_api::bam_router::bench_bam_pipeline(
+                                &bench_bam_pipeline_args_to_api(args),
                                 &registry,
                                 cli.platform.as_deref(),
                             )?;
@@ -452,5 +452,41 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
             Ok(true)
         }
         Commands::Fastq { .. } | Commands::Bam { .. } => Ok(false),
+    }
+}
+
+fn bench_bam_stage_args_to_api(
+    args: &crate::cli::parse::BenchBamStageArgs,
+) -> bijux_api::BenchBamStageArgs {
+    bijux_api::BenchBamStageArgs {
+        sample_id: args.sample_id.clone(),
+        stage: args.stage.stage(),
+        bam: args.bam.clone(),
+        out: args.out.clone(),
+        tools: args.tools.clone(),
+        explain: args.explain,
+        allow_silver: args.allow_silver,
+        allow_experimental: args.allow_experimental,
+        replicates: args.replicates,
+        jobs: args.jobs,
+        dry_run: args.dry_run,
+    }
+}
+
+fn bench_bam_pipeline_args_to_api(
+    args: &crate::cli::parse::BenchBamPipelineArgs,
+) -> bijux_api::BenchBamPipelineArgs {
+    bijux_api::BenchBamPipelineArgs {
+        profile: args.profile.clone(),
+        sample_id: args.sample_id.clone(),
+        bam: args.bam.clone(),
+        out: args.out.clone(),
+        tools: args.tools.clone(),
+        explain: args.explain,
+        allow_silver: args.allow_silver,
+        allow_experimental: args.allow_experimental,
+        replicates: args.replicates,
+        jobs: args.jobs,
+        dry_run: args.dry_run,
     }
 }
