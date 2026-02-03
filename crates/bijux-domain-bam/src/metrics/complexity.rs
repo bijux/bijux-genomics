@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 pub struct ComplexityMetricsV1 {
     pub observed_reads: u64,
     pub projected_reads: Vec<(u64, u64)>,
+    #[serde(default)]
     pub saturation_estimate: f64,
 }
 

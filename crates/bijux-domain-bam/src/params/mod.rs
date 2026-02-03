@@ -2,7 +2,9 @@
 //! Canonical effective parameters for BAM stages.
 
 mod align;
+#[path = "derived/authenticity.rs"]
 mod authenticity;
+#[path = "derived/bias_mitigation.rs"]
 mod bias_mitigation;
 mod common;
 mod complexity;
@@ -10,12 +12,18 @@ mod contamination;
 mod coverage;
 mod damage;
 mod filter;
+#[path = "derived/genotyping.rs"]
 mod genotyping;
+#[path = "derived/haplogroups.rs"]
 mod haplogroups;
+#[path = "derived/kinship.rs"]
 mod kinship;
 mod markdup;
+#[path = "derived/qc_pre.rs"]
 mod qc_pre;
+#[path = "derived/recalibration.rs"]
 mod recalibration;
+#[path = "derived/sex.rs"]
 mod sex;
 mod validate;
 

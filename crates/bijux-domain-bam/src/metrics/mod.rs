@@ -1,17 +1,22 @@
 //! Canonical BAM metrics schema v1.
 
 mod alignment;
+#[path = "derived/authenticity.rs"]
 mod authenticity;
 mod bundle;
 mod complexity;
 mod contamination;
 mod coverage;
 mod damage;
+#[path = "derived/fragment.rs"]
 mod fragment;
 mod genotyping;
+#[path = "derived/idxstats.rs"]
 mod idxstats;
+#[path = "derived/mapq.rs"]
 mod mapq;
 mod sex;
+#[path = "derived/sufficiency.rs"]
 mod sufficiency;
 mod verdict;
 
