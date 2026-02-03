@@ -5,6 +5,8 @@ edition.workspace = true
 license.workspace = true
 
 [dependencies]
+anyhow.workspace = true
+sha2.workspace = true
 serde.workspace = true
 serde_yaml.workspace = true
 thiserror.workspace = true
