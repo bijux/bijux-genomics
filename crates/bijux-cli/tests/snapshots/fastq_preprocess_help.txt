@@ -63,6 +63,16 @@ Options:
           
       --enable-correct
           Enable error correction stage (paired-end only)
+      --alignment-bam <PATH>
+          Alignment boundary BAM path (cross-domain profiles)
+      --alignment-bai <PATH>
+          Alignment boundary BAI path (optional)
+      --alignment-reference <PATH>
+          Alignment boundary reference (optional)
+      --alignment-rg-policy <ALIGNMENT_RG_POLICY>
+          Alignment boundary read-group policy (optional)
+      --alignment-meta <KEY=VALUE>
+          Alignment boundary aligner metadata (repeatable)
   -h, --help
           Print help
 

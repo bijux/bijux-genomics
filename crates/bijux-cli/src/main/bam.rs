@@ -103,6 +103,7 @@ pub(crate) fn plan_for_bam_stage_with_profile(
             bijux_domain_bam::BamStage::Haplogroups
                 | bijux_domain_bam::BamStage::Genotyping
                 | bijux_domain_bam::BamStage::Kinship
+                | bijux_domain_bam::BamStage::BiasMitigation
         )
     {
         return Err(anyhow!(
@@ -312,6 +313,7 @@ pub(crate) fn plan_for_bam_stage_with_profile(
             }
             bijux_stages_bam::bam::sex::plan(spec, &args.bam, out_dir, &params)
         }
+        #[cfg(feature = "bam_downstream")]
         bijux_domain_bam::BamStage::BiasMitigation => {
             let default_params = default_params_for_stage(profile, stage);
             let mut params = match default_params {
@@ -329,6 +331,10 @@ pub(crate) fn plan_for_bam_stage_with_profile(
             }
             bijux_stages_bam::bam::bias_mitigation::plan(spec, &args.bam, out_dir, &params)
         }
+        #[cfg(not(feature = "bam_downstream"))]
+        bijux_domain_bam::BamStage::BiasMitigation => Err(anyhow!(
+            "bam.bias_mitigation is disabled without feature 'bam_downstream'"
+        )),
         bijux_domain_bam::BamStage::Recalibration => {
             let default_params = default_params_for_stage(profile, stage);
             let mut params = match default_params {
@@ -423,7 +429,7 @@ pub(crate) fn plan_for_bam_stage_with_profile(
     }
 }
 
-fn downstream_enabled() -> bool {
+pub(crate) fn downstream_enabled() -> bool {
     cfg!(feature = "bam_downstream")
 }
 

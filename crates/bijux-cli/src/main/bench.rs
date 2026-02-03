@@ -2,7 +2,6 @@
 fn handle_fastq_bench(
     cli: &Cli,
     registry: &bijux_core::ToolRegistry,
-    _domain_dir: &Path,
 ) -> Result<bool> {
     let Commands::Fastq { command } = &cli.command else {
         return Ok(false);
@@ -69,6 +68,20 @@ fn handle_fastq_bench(
         FastqCommand::Preprocess(args) => {
             set_tool_tier_policy(args.common.allow_silver, args.common.allow_experimental);
             set_scientific_preset(args.scientific_preset);
+            if let Some(profile_id) = args.pipeline_profile.as_ref() {
+                if let Ok(profile) = bijux_pipelines::registry::profile_by_id(
+                    bijux_pipelines::Domain::Cross,
+                    profile_id,
+                ) {
+                    crate::cross_router::run_fastq_to_bam_profile(
+                        cli,
+                        registry,
+                        args,
+                        &profile,
+                    )?;
+                    return Ok(true);
+                }
+            }
             let platform = load_platform(cli.platform.as_deref())
                 .map_err(|err| anyhow!("failed to load platform: {err}"))?;
             let catalog =
@@ -84,6 +97,20 @@ fn handle_fastq_bench(
                 args.args.common.allow_experimental,
             );
             set_scientific_preset(args.args.scientific_preset);
+            if let Some(profile_id) = args.args.pipeline_profile.as_ref() {
+                if let Ok(profile) = bijux_pipelines::registry::profile_by_id(
+                    bijux_pipelines::Domain::Cross,
+                    profile_id,
+                ) {
+                    crate::cross_router::run_fastq_to_bam_profile(
+                        cli,
+                        registry,
+                        &args.args,
+                        &profile,
+                    )?;
+                    return Ok(true);
+                }
+            }
             let platform = load_platform(cli.platform.as_deref())
                 .map_err(|err| anyhow!("failed to load platform: {err}"))?;
             let catalog =

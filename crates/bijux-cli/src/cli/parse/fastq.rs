@@ -135,6 +135,20 @@ pub struct FastqPreprocessArgs {
     pub force_merge: bool,
     #[arg(long, help = "Enable error correction stage (paired-end only)")]
     pub enable_correct: bool,
+    #[arg(long, value_name = "PATH", help = "Alignment boundary BAM path (cross-domain profiles)")]
+    pub alignment_bam: Option<PathBuf>,
+    #[arg(long, value_name = "PATH", help = "Alignment boundary BAI path (optional)")]
+    pub alignment_bai: Option<PathBuf>,
+    #[arg(long, value_name = "PATH", help = "Alignment boundary reference (optional)")]
+    pub alignment_reference: Option<PathBuf>,
+    #[arg(long, help = "Alignment boundary read-group policy (optional)")]
+    pub alignment_rg_policy: Option<String>,
+    #[arg(
+        long,
+        value_name = "KEY=VALUE",
+        help = "Alignment boundary aligner metadata (repeatable)"
+    )]
+    pub alignment_meta: Vec<String>,
 }
 
 #[derive(Debug, Args, Clone)]

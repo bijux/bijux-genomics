@@ -81,7 +81,7 @@ fn main() -> Result<()> {
     let registry =
         load_manifests(&domain_dir).map_err(|err| anyhow!("manifest validation failed: {err}"))?;
 
-    if handle_fastq_bench(&cli, &registry, &domain_dir)? {
+    if handle_fastq_bench(&cli, &registry)? {
         return Ok(());
     }
 

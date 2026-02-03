@@ -4,6 +4,7 @@ mod adapter_bank;
 mod bam_router;
 mod cli;
 mod contaminant_bank;
+mod cross_router;
 mod env;
 mod fastq_exec;
 mod fastq_router;

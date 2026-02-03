@@ -25,6 +25,7 @@ pub use preprocess::{bench_fastq_preprocess, fastq_preprocess_plan, fastq_prepro
 pub use qc_post::bench_fastq_qc_post;
 pub use screen::bench_fastq_screen;
 pub use stats_neutral::bench_fastq_stats_neutral;
+pub use summary::StageExecutionSummary;
 pub use trim::bench_fastq_trim;
 pub use umi::bench_fastq_umi;
 pub use validate_pre::bench_fastq_validate_pre;

@@ -238,7 +238,7 @@ fn render_run_summary_html(summary: &serde_json::Value) -> String {
 }
 
 #[derive(Clone)]
-pub(crate) struct StageExecutionSummary {
+pub struct StageExecutionSummary {
     pub plan: bijux_core::StagePlanV1,
     pub result: StageResultV1,
 }

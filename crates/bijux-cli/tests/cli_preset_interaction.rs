@@ -68,6 +68,11 @@ fn preprocess_args_require_required_fields() -> Result<()> {
         no_qc_post: false,
         force_merge: false,
         enable_correct: false,
+        alignment_bam: None,
+        alignment_bai: None,
+        alignment_reference: None,
+        alignment_rg_policy: None,
+        alignment_meta: Vec::new(),
         jobs: 1,
     };
     let bench = preprocess_args_from_cli(&args)?;
