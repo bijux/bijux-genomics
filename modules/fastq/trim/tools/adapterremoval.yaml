@@ -1,0 +1,30 @@
+schema_version: "bijux.tool.v1"
+tool_id: "adapterremoval"
+stage_id: "fastq.trim"
+role: "transform"
+authoritative: false
+strict_capable: false
+status: "stable"
+capabilities:
+  - "SE"
+  - "PE"
+  - "adapters"
+container:
+  image: "bijuxdna/adapterremoval"
+  digest: "sha256:5b618834ce9fc6376c9605c3a69d738236b9be48fdf493c1bc0945568a50808d"
+command_template:
+  - "AdapterRemoval"
+  - "--file1"
+  - "{{reads}}"
+  - "--output1"
+  - "{{trimmed_reads}}"
+outputs:
+  - name: "trimmed_reads"
+    data_type: "fastq"
+    cardinality: "Many"
+metrics_parser: "fastq_trim_v1"
+constraints:
+  runtime: "local"
+  mem_gb: 8
+  tmp_gb: 4
+  threads: 4

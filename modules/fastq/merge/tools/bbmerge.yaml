@@ -1,0 +1,35 @@
+schema_version: "bijux.tool.v1"
+tool_id: "bbmerge"
+stage_id: "fastq.merge"
+role: "transform"
+authoritative: false
+strict_capable: false
+status: "stable"
+capabilities:
+  - "PE"
+container:
+  image: "bijuxdna/bbmerge"
+  digest: "sha256:6182848b989c8dbf094e06c486190b5d54243ac8eea542daa2c5c059a11bba54"
+command_template:
+  - "bbmerge"
+  - "in1={{reads_r1}}"
+  - "in2={{reads_r2}}"
+  - "out={{merged_reads}}"
+  - "outu1={{unmerged_reads_r1}}"
+  - "outu2={{unmerged_reads_r2}}"
+outputs:
+  - name: "merged_reads"
+    data_type: "fastq"
+    cardinality: "Many"
+  - name: "unmerged_reads_r1"
+    data_type: "fastq"
+    cardinality: "Many"
+  - name: "unmerged_reads_r2"
+    data_type: "fastq"
+    cardinality: "Many"
+metrics_parser: "bbmerge_v1"
+constraints:
+  runtime: "local"
+  mem_gb: 8
+  tmp_gb: 4
+  threads: 2
