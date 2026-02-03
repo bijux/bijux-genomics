@@ -1,23 +1,29 @@
-# Dependency Arrows
+# Dependency Contract
 
-Allowed dependency direction is strictly:
+This is the single source of truth for crate dependency direction. Every crate
+must follow these rules; CI enforces them.
 
-core -> domain -> stages -> engine -> cli
+## Allowed dependency map
 
-## Rules
+- `bijux-core` is the base layer.
+- `bijux-domain-*` may depend on `bijux-core` and `bijux-infra` only.
+- `bijux-stages-*` may depend on `bijux-domain-*`, `bijux-core`, and `bijux-infra` only.
+- `bijux-pipelines` may depend on `bijux-domain-*`, `bijux-stages-*`, and `bijux-core`.
+- `bijux-api` may depend on `bijux-core`, `bijux-domain-*`, `bijux-stages-*`,
+  `bijux-pipelines`, `bijux-engine`, `bijux-analyze`, and `bijux-infra`.
+- `bijux-cli` may depend on `bijux-api` only (no direct domain/stages/pipelines).
 
-- A crate may only depend on crates to its left.
-- Skip layers only when necessary (e.g., engine -> core).
-- No reverse dependencies.
+## Prohibited edges
 
-## Examples
+- `bijux-domain-*` must not depend on `bijux-stages-*`, `bijux-engine`,
+  `bijux-api`, `bijux-cli`, or `bijux-pipelines`.
+- `bijux-stages-*` must not depend on `bijux-cli`, `bijux-api`, `bijux-analyze`,
+  `bijux-bench`, or `bijux-pipelines`.
+- `bijux-pipelines` must not depend on `bijux-engine` or `bijux-cli`.
+- `bijux-cli` must not depend on `bijux-domain-*`, `bijux-stages-*`,
+  `bijux-pipelines`, or `bijux-engine`.
 
-Allowed:
-- bijux-stages-fastq -> bijux-domain-fastq -> bijux-core
-- bijux-engine -> bijux-core
-- bijux-cli -> bijux-engine -> bijux-core
+## Rationale
 
-Not allowed:
-- bijux-domain-fastq -> bijux-engine
-- bijux-engine -> bijux-stages-fastq
-- bijux-cli -> bijux-stages-fastq (must go through engine)
+This keeps domain/stage logic pure, makes pipelines the only scenario layer,
+and makes `bijux-api` the single orchestration surface.

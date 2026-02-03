@@ -1,0 +1,15 @@
+#[must_use]
+pub fn tools_for_stage(stage_id: &str) -> Vec<String> {
+    crate::fastq_tools_registry::allowed_tools_for_stage(stage_id)
+}
+
+#[must_use]
+pub fn available_tools() -> Vec<String> {
+    let mut all = Vec::new();
+    for stage in crate::fastq::registry() {
+        all.extend(tools_for_stage(stage.id));
+    }
+    all.sort();
+    all.dedup();
+    all
+}

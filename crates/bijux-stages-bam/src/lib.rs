@@ -178,16 +178,16 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> anyhow::Result<StagePlanV1> 
             stages_adna::sex::plan(request.tool, bam, request.out_dir, &params)
         }
         bijux_domain_bam::BamStage::BiasMitigation => {
-            let bam = request
-                .bam
-                .ok_or_else(|| anyhow::anyhow!("bias_mitigation requires bam"))?;
-            let params = effective_params_for_stage(stage, request.params)?;
-            let bijux_domain_bam::params::BamEffectiveParams::BiasMitigation(params) = params
-            else {
-                return Err(anyhow::anyhow!("bias_mitigation params mismatch"));
-            };
             #[cfg(feature = "bam_downstream")]
             {
+                let bam = request
+                    .bam
+                    .ok_or_else(|| anyhow::anyhow!("bias_mitigation requires bam"))?;
+                let params = effective_params_for_stage(stage, request.params)?;
+                let bijux_domain_bam::params::BamEffectiveParams::BiasMitigation(params) = params
+                else {
+                    return Err(anyhow::anyhow!("bias_mitigation params mismatch"));
+                };
                 stages_downstream::bias_mitigation::plan(
                     request.tool,
                     bam,
@@ -203,15 +203,16 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> anyhow::Result<StagePlanV1> 
             }
         }
         bijux_domain_bam::BamStage::Haplogroups => {
-            let bam = request
-                .bam
-                .ok_or_else(|| anyhow::anyhow!("haplogroups requires bam"))?;
-            let params = effective_params_for_stage(stage, request.params)?;
-            let bijux_domain_bam::params::BamEffectiveParams::Haplogroups(params) = params else {
-                return Err(anyhow::anyhow!("haplogroups params mismatch"));
-            };
             #[cfg(feature = "bam_downstream")]
             {
+                let bam = request
+                    .bam
+                    .ok_or_else(|| anyhow::anyhow!("haplogroups requires bam"))?;
+                let params = effective_params_for_stage(stage, request.params)?;
+                let bijux_domain_bam::params::BamEffectiveParams::Haplogroups(params) = params
+                else {
+                    return Err(anyhow::anyhow!("haplogroups params mismatch"));
+                };
                 stages_downstream::haplogroups::plan(request.tool, bam, request.out_dir, &params)
             }
             #[cfg(not(feature = "bam_downstream"))]
@@ -222,15 +223,16 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> anyhow::Result<StagePlanV1> 
             }
         }
         bijux_domain_bam::BamStage::Genotyping => {
-            let bam = request
-                .bam
-                .ok_or_else(|| anyhow::anyhow!("genotyping requires bam"))?;
-            let params = effective_params_for_stage(stage, request.params)?;
-            let bijux_domain_bam::params::BamEffectiveParams::Genotyping(params) = params else {
-                return Err(anyhow::anyhow!("genotyping params mismatch"));
-            };
             #[cfg(feature = "bam_downstream")]
             {
+                let bam = request
+                    .bam
+                    .ok_or_else(|| anyhow::anyhow!("genotyping requires bam"))?;
+                let params = effective_params_for_stage(stage, request.params)?;
+                let bijux_domain_bam::params::BamEffectiveParams::Genotyping(params) = params
+                else {
+                    return Err(anyhow::anyhow!("genotyping params mismatch"));
+                };
                 stages_downstream::genotyping::plan(request.tool, bam, request.out_dir, &params)
             }
             #[cfg(not(feature = "bam_downstream"))]
@@ -241,15 +243,15 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> anyhow::Result<StagePlanV1> 
             }
         }
         bijux_domain_bam::BamStage::Kinship => {
-            let bam = request
-                .bam
-                .ok_or_else(|| anyhow::anyhow!("kinship requires bam"))?;
-            let params = effective_params_for_stage(stage, request.params)?;
-            let bijux_domain_bam::params::BamEffectiveParams::Kinship(params) = params else {
-                return Err(anyhow::anyhow!("kinship params mismatch"));
-            };
             #[cfg(feature = "bam_downstream")]
             {
+                let bam = request
+                    .bam
+                    .ok_or_else(|| anyhow::anyhow!("kinship requires bam"))?;
+                let params = effective_params_for_stage(stage, request.params)?;
+                let bijux_domain_bam::params::BamEffectiveParams::Kinship(params) = params else {
+                    return Err(anyhow::anyhow!("kinship params mismatch"));
+                };
                 stages_downstream::kinship::plan(request.tool, bam, request.out_dir, &params)
             }
             #[cfg(not(feature = "bam_downstream"))]

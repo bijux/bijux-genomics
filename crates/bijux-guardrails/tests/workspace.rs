@@ -140,7 +140,7 @@ fn workspace_constitution_contract() {
         "bijux-stages-bam",
         "bijux-pipelines",
         "bijux-api",
-        "bijux-io",
+        "bijux-infra",
         "bijux-core",
         "bijux-engine",
         "bijux-analyze",
@@ -162,6 +162,10 @@ fn workspace_constitution_contract() {
     assert!(
         !crates.contains_key("bijux-pipelines-bam"),
         "bijux-pipelines-bam is forbidden"
+    );
+    assert!(
+        !crates.contains_key("bijux-testkit"),
+        "shared testkit crate is not allowed"
     );
 }
 
@@ -202,6 +206,48 @@ fn workspace_crate_layout_contract() {
             "missing tests/ in {}",
             crate_dir.display()
         );
+    }
+}
+
+#[test]
+fn workspace_domain_layout_contract() {
+    let crates = collect_workspace_crates();
+    for name in ["bijux-domain-fastq", "bijux-domain-bam"] {
+        let Some(path) = crates.get(name) else {
+            panic!("missing crate {name}");
+        };
+        for dir in ["metrics", "params", "invariants", "stage_registry", "types"] {
+            let path = path.join("src").join(dir);
+            assert!(path.exists(), "{name} missing src/{dir}");
+        }
+        let lib = path.join("src").join("lib.rs");
+        assert!(lib.exists(), "{name} missing src/lib.rs");
+    }
+}
+
+#[test]
+fn workspace_stages_layout_contract() {
+    let crates = collect_workspace_crates();
+    for name in ["bijux-stages-fastq", "bijux-stages-bam"] {
+        let Some(path) = crates.get(name) else {
+            panic!("missing crate {name}");
+        };
+        let src = path.join("src");
+        assert!(src.join("plan.rs").exists(), "{name} missing src/plan.rs");
+        assert!(src.join("tools").is_dir(), "{name} missing src/tools/");
+        let has_registry = std::fs::read_dir(&src)
+            .ok()
+            .into_iter()
+            .flatten()
+            .filter_map(|entry| entry.ok())
+            .any(|entry| {
+                entry
+                    .file_name()
+                    .to_str()
+                    .map(|name| name.ends_with("_tools_registry.rs"))
+                    .unwrap_or(false)
+            });
+        assert!(has_registry, "{name} missing *_tools_registry.rs");
     }
 }
 
@@ -250,56 +296,85 @@ fn workspace_dependency_graph_contract() {
 
     let cli = deps_for("bijux");
     assert!(cli.contains("bijux-api"), "cli must depend on bijux-api");
-    assert!(
-        !cli.contains("bijux-stages-fastq"),
-        "cli must not depend on bijux-stages-fastq"
-    );
-    assert!(
-        !cli.contains("bijux-stages-bam"),
-        "cli must not depend on bijux-stages-bam"
-    );
+    for dep in &cli {
+        assert!(
+            dep == "bijux-api" || dep == "bijux-guardrails",
+            "cli must not depend on workspace crate {dep}"
+        );
+    }
 
     for domain in ["bijux-domain-fastq", "bijux-domain-bam", "bijux-domain-vcf"] {
         let deps = deps_for(domain);
-        assert!(
-            !deps.contains("bijux-engine"),
-            "{domain} must not depend on bijux-engine"
-        );
-        assert!(!deps.contains("bijux"), "{domain} must not depend on bijux");
+        for banned in [
+            "bijux-stages-fastq",
+            "bijux-stages-bam",
+            "bijux-engine",
+            "bijux-api",
+            "bijux",
+            "bijux-pipelines",
+        ] {
+            assert!(
+                !deps.contains(banned),
+                "{domain} must not depend on {banned}"
+            );
+        }
+    }
+
+    for stages in ["bijux-stages-fastq", "bijux-stages-bam"] {
+        let deps = deps_for(stages);
+        for banned in [
+            "bijux",
+            "bijux-api",
+            "bijux-analyze",
+            "bijux-bench",
+            "bijux-pipelines",
+            "bijux-engine",
+        ] {
+            assert!(
+                !deps.contains(banned),
+                "{stages} must not depend on {banned}"
+            );
+        }
     }
 
     let pipelines = deps_for("bijux-pipelines");
-    assert!(
-        !pipelines.contains("bijux-engine"),
-        "bijux-pipelines must not depend on bijux-engine"
-    );
-
-    let stages_fastq = deps_for("bijux-stages-fastq");
-    assert!(
-        stages_fastq.contains("bijux-domain-fastq"),
-        "bijux-stages-fastq must depend on bijux-domain-fastq"
-    );
-    let stages_bam = deps_for("bijux-stages-bam");
-    assert!(
-        stages_bam.contains("bijux-domain-bam"),
-        "bijux-stages-bam must depend on bijux-domain-bam"
-    );
-    let domain_fastq = deps_for("bijux-domain-fastq");
-    assert!(
-        !domain_fastq.contains("bijux-stages-fastq"),
-        "bijux-domain-fastq must not depend on bijux-stages-fastq"
-    );
-    let domain_bam = deps_for("bijux-domain-bam");
-    assert!(
-        !domain_bam.contains("bijux-stages-bam"),
-        "bijux-domain-bam must not depend on bijux-stages-bam"
-    );
-
-    let testkit = deps_for("bijux-testkit");
-    for banned in ["bijux-engine", "bijux", "bijux-analyze"] {
+    for banned in ["bijux-engine", "bijux"] {
         assert!(
-            !testkit.contains(banned),
-            "bijux-testkit must not depend on {banned}"
+            !pipelines.contains(banned),
+            "bijux-pipelines must not depend on {banned}"
         );
     }
+}
+
+#[test]
+fn workspace_bans_thin_mod_rs() {
+    let mut offenders = Vec::new();
+    for path in crate_dirs() {
+        for mod_path in walkdir::WalkDir::new(path.join("src"))
+            .into_iter()
+            .filter_map(Result::ok)
+            .filter(|entry| entry.file_name() == "mod.rs")
+        {
+            let content = std::fs::read_to_string(mod_path.path()).unwrap_or_default();
+            let mut lines = Vec::new();
+            for line in content.lines() {
+                let line = line.trim();
+                if line.is_empty()
+                    || line.starts_with("//")
+                    || line.starts_with("#[")
+                    || line.starts_with("/*")
+                {
+                    continue;
+                }
+                lines.push(line.to_string());
+            }
+            if lines.len() == 1 && lines[0].starts_with("pub use ") {
+                offenders.push(mod_path.path().display().to_string());
+            }
+        }
+    }
+    assert!(
+        offenders.is_empty(),
+        "thin mod.rs files are not allowed: {offenders:?}"
+    );
 }
