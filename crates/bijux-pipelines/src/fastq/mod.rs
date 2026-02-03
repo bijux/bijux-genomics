@@ -231,12 +231,14 @@ fn to_graph(stages: &[String]) -> Vec<StageNode> {
 pub fn fastq_minimal_profile() -> PipelineProfile {
     let canonical = canonical_pipeline();
     PipelineProfile {
-        id: PipelineId::new("fastq__minimal__v1"),
+        id: PipelineId::new("fastq-to-fastq__minimal__v1"),
         description: "Minimal FASTQ pipeline",
         stability: StabilityTier::Stable,
-        domains: vec![Domain::Fastq],
+        input_domains: vec![Domain::Fastq],
+        output_domains: vec![Domain::Fastq],
         graph: to_graph(&canonical.required),
         defaults: fastq_defaults(false),
+        defaults_ledger_ref: "defaults_ledger.json",
         invariants_preset: None,
         capabilities: PipelineCapabilities {
             input_domains: vec![Domain::Fastq],
@@ -266,12 +268,14 @@ pub fn fastq_default_profile(options: DefaultPipelineOptions) -> PipelineProfile
         stages.push("fastq.qc_post".to_string());
     }
     PipelineProfile {
-        id: PipelineId::new("fastq__default__v1"),
+        id: PipelineId::new("fastq-to-fastq__default__v1"),
         description: "Default FASTQ pipeline",
         stability: StabilityTier::Stable,
-        domains: vec![Domain::Fastq],
+        input_domains: vec![Domain::Fastq],
+        output_domains: vec![Domain::Fastq],
         graph: to_graph(&stages),
         defaults: fastq_defaults(options.paired),
+        defaults_ledger_ref: "defaults_ledger.json",
         invariants_preset: None,
         capabilities: PipelineCapabilities {
             input_domains: vec![Domain::Fastq],
@@ -312,8 +316,10 @@ pub fn fastq_minimal_pipeline_spec() -> PipelineSpec {
 /// Returns an error if the requested profile id is unknown.
 pub fn fastq_profiles_by_id(id: &str) -> anyhow::Result<PipelineProfile> {
     match id {
-        "fastq__default__v1" => Ok(fastq_default_profile(DefaultPipelineOptions::default())),
-        "fastq__minimal__v1" => Ok(fastq_minimal_profile()),
+        "fastq-to-fastq__default__v1" => {
+            Ok(fastq_default_profile(DefaultPipelineOptions::default()))
+        }
+        "fastq-to-fastq__minimal__v1" => Ok(fastq_minimal_profile()),
         _ => Err(anyhow::anyhow!("unknown FASTQ profile: {id}")),
     }
 }

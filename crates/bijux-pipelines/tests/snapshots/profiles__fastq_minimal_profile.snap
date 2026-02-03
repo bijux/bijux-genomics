@@ -3,13 +3,16 @@ source: crates/bijux-pipelines/tests/profiles.rs
 expression: fastq_minimal_profile()
 ---
 {
-  "id": "fastq__minimal__v1",
+  "id": "fastq-to-fastq__minimal__v1",
   "description": "Minimal FASTQ pipeline",
   "stability": "Stable",
-  "domains": [
+  "input_domains": [
     "Fastq"
   ],
-  "graph": [
+  "output_domains": [
+    "Fastq"
+  ],
+  "stage_graph": [
     {
       "stage_id": "fastq.validate_pre"
     },
@@ -134,6 +137,7 @@ expression: fastq_minimal_profile()
       "fastq.validate_pre": "pipeline default"
     }
   },
+  "defaults_ledger_ref": "defaults_ledger.json",
   "invariants_preset": null,
   "capabilities": {
     "input_domains": [

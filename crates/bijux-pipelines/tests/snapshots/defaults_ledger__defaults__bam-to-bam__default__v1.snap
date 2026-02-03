@@ -3,7 +3,7 @@ source: crates/bijux-pipelines/tests/defaults_ledger.rs
 expression: ledger
 ---
 {
-  "pipeline_id": "bam__default__v1",
+  "pipeline_id": "bam-to-bam__default__v1",
   "tools": {
     "bam.coverage": "mosdepth",
     "bam.damage": "pydamage",
@@ -42,6 +42,7 @@ expression: ledger
       "strict": true
     }
   },
+  "thresholds": {},
   "rationales": {
     "bam.coverage": "pipeline default",
     "bam.damage": "pipeline default",

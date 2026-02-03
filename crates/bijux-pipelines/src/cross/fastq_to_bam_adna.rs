@@ -74,7 +74,8 @@ pub fn fastq_to_bam_adna_shotgun_profile() -> PipelineProfile {
         id: PipelineId::new("fastq-to-bam__adna_shotgun__v1"),
         description: "FASTQ preprocess → align → BAM QC/damage (aDNA shotgun)",
         stability: StabilityTier::Beta,
-        domains: vec![Domain::Fastq, Domain::Cross, Domain::Bam],
+        input_domains: vec![Domain::Fastq, Domain::Cross],
+        output_domains: vec![Domain::Bam],
         graph: vec![
             StageNode {
                 stage_id: "fastq.preprocess".to_string(),
@@ -96,6 +97,7 @@ pub fn fastq_to_bam_adna_shotgun_profile() -> PipelineProfile {
             },
         ],
         defaults,
+        defaults_ledger_ref: "defaults_ledger.json",
         invariants_preset: Some("adna"),
         capabilities: PipelineCapabilities {
             input_domains: vec![Domain::Fastq, Domain::Cross],
@@ -132,7 +134,8 @@ pub fn fastq_to_bam_default_profile() -> PipelineProfile {
         id: PipelineId::new("fastq-to-bam__default__v1"),
         description: "FASTQ preprocess → align → BAM QC/damage (modern defaults)",
         stability: StabilityTier::Beta,
-        domains: vec![Domain::Fastq, Domain::Cross, Domain::Bam],
+        input_domains: vec![Domain::Fastq, Domain::Cross],
+        output_domains: vec![Domain::Bam],
         graph: vec![
             StageNode {
                 stage_id: "fastq.preprocess".to_string(),
@@ -154,6 +157,7 @@ pub fn fastq_to_bam_default_profile() -> PipelineProfile {
             },
         ],
         defaults,
+        defaults_ledger_ref: "defaults_ledger.json",
         invariants_preset: None,
         capabilities: PipelineCapabilities {
             input_domains: vec![Domain::Fastq, Domain::Cross],

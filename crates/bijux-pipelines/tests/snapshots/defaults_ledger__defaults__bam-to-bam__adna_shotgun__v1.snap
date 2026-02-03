@@ -3,7 +3,7 @@ source: crates/bijux-pipelines/tests/defaults_ledger.rs
 expression: ledger
 ---
 {
-  "pipeline_id": "bam__adna_shotgun__v1",
+  "pipeline_id": "bam-to-bam__adna_shotgun__v1",
   "tools": {
     "bam.authenticity": "authenticity",
     "bam.bias_mitigation": "angsd",
@@ -78,6 +78,7 @@ expression: ledger
       "strict": true
     }
   },
+  "thresholds": {},
   "rationales": {
     "bam.authenticity": "pipeline default",
     "bam.bias_mitigation": "pipeline default",

@@ -38,7 +38,9 @@ impl PipelineRegistry {
     ) -> Vec<&PipelineProfile> {
         self.list(include_experimental)
             .into_iter()
-            .filter(|profile| profile.domains.contains(&domain))
+            .filter(|profile| {
+                profile.input_domains.contains(&domain) || profile.output_domains.contains(&domain)
+            })
             .collect()
     }
 }

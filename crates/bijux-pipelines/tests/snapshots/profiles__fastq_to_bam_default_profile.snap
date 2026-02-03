@@ -6,12 +6,14 @@ expression: fastq_to_bam_default_profile()
   "id": "fastq-to-bam__default__v1",
   "description": "FASTQ preprocess → align → BAM QC/damage (modern defaults)",
   "stability": "Beta",
-  "domains": [
+  "input_domains": [
     "Fastq",
-    "Cross",
+    "Cross"
+  ],
+  "output_domains": [
     "Bam"
   ],
-  "graph": [
+  "stage_graph": [
     {
       "stage_id": "fastq.preprocess"
     },
@@ -237,6 +239,7 @@ expression: fastq_to_bam_default_profile()
       "fastq.validate_pre": "pipeline default"
     }
   },
+  "defaults_ledger_ref": "defaults_ledger.json",
   "invariants_preset": null,
   "capabilities": {
     "input_domains": [

@@ -39,6 +39,8 @@ impl std::fmt::Display for PipelineId {
     }
 }
 
+pub type PipelineProfileV1 = PipelineProfile;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 pub enum StabilityTier {
     Stable,
@@ -74,9 +76,12 @@ pub struct PipelineProfile {
     pub id: PipelineId,
     pub description: &'static str,
     pub stability: StabilityTier,
-    pub domains: Vec<Domain>,
+    pub input_domains: Vec<Domain>,
+    pub output_domains: Vec<Domain>,
+    #[serde(rename = "stage_graph")]
     pub graph: Vec<StageNode>,
     pub defaults: EffectiveDefaults,
+    pub defaults_ledger_ref: &'static str,
     pub invariants_preset: Option<&'static str>,
     pub capabilities: PipelineCapabilities,
 }
@@ -86,6 +91,8 @@ pub struct DefaultsLedgerV1 {
     pub pipeline_id: PipelineId,
     pub tools: BTreeMap<String, String>,
     pub params: BTreeMap<String, serde_json::Value>,
+    #[serde(default)]
+    pub thresholds: BTreeMap<String, serde_json::Value>,
     pub rationales: BTreeMap<String, String>,
 }
 
@@ -106,6 +113,7 @@ impl PipelineProfile {
             pipeline_id: self.id,
             tools: self.defaults.tools.clone(),
             params: self.defaults.params.clone(),
+            thresholds: BTreeMap::new(),
             rationales: self.defaults.rationales.clone(),
         }
     }
@@ -161,11 +169,8 @@ pub fn validate_pipeline_id_str(id: &str) -> Result<()> {
     let graph = parts[0];
     let flavor = parts[1];
     let version = parts[2];
-    let single_domain = matches!(graph, "fastq" | "bam" | "vcf");
-    if !graph.contains("-to-") && !single_domain {
-        return Err(anyhow!(
-            "pipeline id graph must contain '-to-' or be a single domain id"
-        ));
+    if !graph.contains("-to-") {
+        return Err(anyhow!("pipeline id graph must contain '-to-'"));
     }
     if !version.starts_with('v') || version.len() < 2 || !version[1..].chars().all(char::is_numeric)
     {

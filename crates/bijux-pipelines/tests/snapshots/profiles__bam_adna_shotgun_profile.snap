@@ -3,13 +3,16 @@ source: crates/bijux-pipelines/tests/profiles.rs
 expression: bam_adna_shotgun_profile()
 ---
 {
-  "id": "bam__adna_shotgun__v1",
+  "id": "bam-to-bam__adna_shotgun__v1",
   "description": "Ancient DNA shotgun defaults",
   "stability": "Beta",
-  "domains": [
+  "input_domains": [
     "Bam"
   ],
-  "graph": [
+  "output_domains": [
+    "Bam"
+  ],
+  "stage_graph": [
     {
       "stage_id": "bam.validate"
     },
@@ -133,6 +136,7 @@ expression: bam_adna_shotgun_profile()
       "bam.validate": "pipeline default"
     }
   },
+  "defaults_ledger_ref": "defaults_ledger.json",
   "invariants_preset": "adna",
   "capabilities": {
     "input_domains": [

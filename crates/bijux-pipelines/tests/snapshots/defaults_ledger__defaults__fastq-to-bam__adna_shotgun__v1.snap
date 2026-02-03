@@ -183,6 +183,7 @@ expression: ledger
       "threads": 1
     }
   },
+  "thresholds": {},
   "rationales": {
     "bam.align": "aDNA default alignment preset",
     "bam.authenticity": "pipeline default",
