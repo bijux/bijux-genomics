@@ -11,7 +11,6 @@
 // Structural layout of this crate is frozen as of FASTQ v1.
 mod adapter;
 mod adapter_bank;
-mod canonical_pipeline;
 mod contaminant_bank;
 mod contract;
 mod contracts;
@@ -28,7 +27,6 @@ pub use adapter_bank::{
     load_adapter_bank, load_adapter_presets, resolve_adapter_preset, AdapterBankV1, AdapterEntryV1,
     AdapterPresetV1, AdapterPresetsV1, EffectiveAdapterSet, ReadScope,
 };
-pub use canonical_pipeline::{canonical_pipeline, CanonicalPipeline};
 pub use contaminant_bank::{
     contaminant_motifs_path, contaminant_presets_path, contaminant_references_dir,
     load_contaminant_motifs, load_contaminant_presets, resolve_contaminant_preset,
@@ -41,6 +39,10 @@ pub use contract::{
 pub use contracts::model::{
     AdapterContributionV1, AdapterTrimmingReportV1, RetentionReportV1, ToolReferenceV1,
 };
+pub use contracts::pipeline_contract::{
+    canonical_stage_order, forbidden_transitions, optional_branches, stage_criticality,
+    StageCriticality,
+};
 pub use contracts::{
     assess_merge_suitability, contract_for_stage, ensure_umi_headers, infer_input_kind,
     inspect_headers, log_header_warnings, normalize_outputs, preflight_stage, qc_class_for_stage,
@@ -48,7 +50,7 @@ pub use contracts::{
     FastqSingleEnd, FastqStageContract, FastqStats, HeaderInspection, MergeSuitability,
     NormalizedOutputs, QcClass, RawFailure,
 };
-pub use domain::{canonical_stage_order, optional_branches, stage_semantics};
+pub use domain::stage_semantics;
 pub use invariants::{
     evaluate_invariants, thresholds_from_env, InvariantEvaluation, InvariantThresholds,
 };
