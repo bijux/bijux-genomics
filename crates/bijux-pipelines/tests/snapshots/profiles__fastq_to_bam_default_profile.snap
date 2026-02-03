@@ -263,6 +263,23 @@ expression: fastq_to_bam_default_profile()
       "bam",
       "cross.handoff"
     ],
+    "required_stages": [
+      "fastq.preprocess",
+      "core.prepare_reference",
+      "bam.align",
+      "bam.qc_pre",
+      "bam.coverage",
+      "bam.damage"
+    ],
+    "required_metrics": [
+      "fastq.metrics",
+      "bam.metrics"
+    ],
+    "required_artifacts": [
+      "report.json",
+      "run_manifest.json",
+      "stage_summaries.json"
+    ],
     "supports_benchmarking": false
   }
 }

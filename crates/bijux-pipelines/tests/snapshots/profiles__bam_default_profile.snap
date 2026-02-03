@@ -95,6 +95,21 @@ expression: bam_default_profile()
     "report_sections": [
       "bam"
     ],
+    "required_stages": [
+      "bam.validate",
+      "bam.qc_pre",
+      "bam.filter",
+      "bam.coverage",
+      "bam.damage"
+    ],
+    "required_metrics": [
+      "bam.metrics"
+    ],
+    "required_artifacts": [
+      "report.json",
+      "run_manifest.json",
+      "stage_summaries.json"
+    ],
     "supports_benchmarking": true
   }
 }

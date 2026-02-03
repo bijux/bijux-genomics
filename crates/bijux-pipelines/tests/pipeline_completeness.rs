@@ -83,6 +83,28 @@ fn pipeline_profiles_are_complete() {
                 profile.id
             );
         }
+        assert!(
+            !profile.capabilities.required_stages.is_empty(),
+            "missing required stages for {}",
+            profile.id
+        );
+        for stage in &profile.capabilities.required_stages {
+            assert!(
+                profile.graph.iter().any(|node| node.stage_id == *stage),
+                "required stage {stage} missing from graph for {}",
+                profile.id
+            );
+        }
+        assert!(
+            !profile.capabilities.required_metrics.is_empty(),
+            "missing required metrics for {}",
+            profile.id
+        );
+        assert!(
+            !profile.capabilities.required_artifacts.is_empty(),
+            "missing required artifacts for {}",
+            profile.id
+        );
         assert_report_sections(&profile);
     }
 }

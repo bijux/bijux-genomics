@@ -1,0 +1,17 @@
+---
+source: crates/bijux-pipelines/tests/override_precedence.rs
+expression: snapshot
+---
+{
+  "params": {
+    "fastq.trim": {
+      "min_len": 10
+    }
+  },
+  "rationales": {
+    "fastq.trim": "cli override"
+  },
+  "tools": {
+    "fastq.trim": "fastp"
+  }
+}

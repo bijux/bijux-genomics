@@ -155,6 +155,27 @@ expression: bam_adna_capture_profile()
     "report_sections": [
       "bam"
     ],
+    "required_stages": [
+      "bam.validate",
+      "bam.qc_pre",
+      "bam.filter",
+      "bam.markdup",
+      "bam.complexity",
+      "bam.coverage",
+      "bam.damage",
+      "bam.authenticity",
+      "bam.contamination",
+      "bam.sex",
+      "bam.bias_mitigation"
+    ],
+    "required_metrics": [
+      "bam.metrics"
+    ],
+    "required_artifacts": [
+      "report.json",
+      "run_manifest.json",
+      "stage_summaries.json"
+    ],
     "supports_benchmarking": true
   }
 }

@@ -156,6 +156,22 @@ expression: "fastq_default_profile(DefaultPipelineOptions::default())"
     "report_sections": [
       "fastq"
     ],
+    "required_stages": [
+      "fastq.validate_pre",
+      "fastq.detect_adapters",
+      "fastq.trim",
+      "fastq.filter",
+      "fastq.stats_neutral",
+      "fastq.qc_post"
+    ],
+    "required_metrics": [
+      "fastq.metrics"
+    ],
+    "required_artifacts": [
+      "report.json",
+      "run_manifest.json",
+      "stage_summaries.json"
+    ],
     "supports_benchmarking": true
   }
 }

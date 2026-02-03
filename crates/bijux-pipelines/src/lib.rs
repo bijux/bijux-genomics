@@ -78,6 +78,9 @@ pub struct PipelineCapabilities {
     pub required_inputs: Vec<&'static str>,
     pub produces_outputs: Vec<&'static str>,
     pub report_sections: Vec<&'static str>,
+    pub required_stages: Vec<&'static str>,
+    pub required_metrics: Vec<&'static str>,
+    pub required_artifacts: Vec<&'static str>,
     pub supports_benchmarking: bool,
 }
 

@@ -151,6 +151,7 @@ pub fn bam_default_profile() -> PipelineProfile {
     let mut defaults = base_defaults();
     let stages = stable_bam_stages();
     filter_defaults(&mut defaults, &stages);
+    let required_stages: Vec<&'static str> = stages.iter().map(|stage| stage.as_str()).collect();
     PipelineProfile {
         id: PipelineId::new("bam-to-bam__default__v1"),
         description: "Default BAM pipeline",
@@ -167,6 +168,9 @@ pub fn bam_default_profile() -> PipelineProfile {
             required_inputs: vec!["bam"],
             produces_outputs: vec!["bam", "bam.metrics"],
             report_sections: vec!["bam"],
+            required_stages,
+            required_metrics: vec!["bam.metrics"],
+            required_artifacts: vec!["report.json", "run_manifest.json", "stage_summaries.json"],
             supports_benchmarking: true,
         },
     }
@@ -180,6 +184,7 @@ pub fn bam_adna_shotgun_profile() -> PipelineProfile {
     stages.retain(|stage| *stage != BamStage::Recalibration);
     filter_downstream(&mut stages);
     filter_defaults(&mut defaults, &stages);
+    let required_stages: Vec<&'static str> = stages.iter().map(|stage| stage.as_str()).collect();
     for entry in &mut defaults {
         match entry.stage {
             BamStage::Filter => {
@@ -223,6 +228,9 @@ pub fn bam_adna_shotgun_profile() -> PipelineProfile {
             required_inputs: vec!["bam"],
             produces_outputs: vec!["bam", "bam.metrics"],
             report_sections: vec!["bam"],
+            required_stages,
+            required_metrics: vec!["bam.metrics"],
+            required_artifacts: vec!["report.json", "run_manifest.json", "stage_summaries.json"],
             supports_benchmarking: true,
         },
     }

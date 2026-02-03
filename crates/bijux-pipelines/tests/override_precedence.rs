@@ -1,4 +1,5 @@
 use bijux_pipelines::{merge_effective_defaults, EffectiveDefaults};
+
 #[test]
 fn overrides_apply_in_expected_order() {
     let mut base = EffectiveDefaults::default();
@@ -31,4 +32,11 @@ fn overrides_apply_in_expected_order() {
         merged.rationales.get("fastq.trim"),
         Some(&"cli override".to_string())
     );
+
+    let snapshot = serde_json::json!({
+        "tools": merged.tools,
+        "params": merged.params,
+        "rationales": merged.rationales,
+    });
+    insta::assert_json_snapshot!("override_precedence", snapshot);
 }

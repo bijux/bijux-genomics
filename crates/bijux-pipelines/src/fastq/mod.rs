@@ -246,6 +246,16 @@ pub fn fastq_minimal_profile() -> PipelineProfile {
             required_inputs: vec!["fastq"],
             produces_outputs: vec!["fastq", "fastq.metrics"],
             report_sections: vec!["fastq"],
+            required_stages: vec![
+                "fastq.validate_pre",
+                "fastq.detect_adapters",
+                "fastq.trim",
+                "fastq.filter",
+                "fastq.stats_neutral",
+                "fastq.qc_post",
+            ],
+            required_metrics: vec!["fastq.metrics"],
+            required_artifacts: vec!["report.json", "run_manifest.json", "stage_summaries.json"],
             supports_benchmarking: true,
         },
     }
@@ -255,14 +265,25 @@ pub fn fastq_minimal_profile() -> PipelineProfile {
 pub fn fastq_default_profile(options: DefaultPipelineOptions) -> PipelineProfile {
     let canonical = canonical_pipeline();
     let mut stages = canonical.required;
+    let mut required_stages = vec![
+        "fastq.validate_pre",
+        "fastq.detect_adapters",
+        "fastq.trim",
+        "fastq.filter",
+        "fastq.stats_neutral",
+        "fastq.qc_post",
+    ];
     if options.paired && options.enable_correct {
         stages.push("fastq.correct".to_string());
+        required_stages.push("fastq.correct");
     }
     if options.paired && options.enable_merge {
         stages.push("fastq.merge".to_string());
+        required_stages.push("fastq.merge");
     }
     if options.enable_screen && !stages.iter().any(|stage| stage == "fastq.screen") {
         stages.push("fastq.screen".to_string());
+        required_stages.push("fastq.screen");
     }
     if options.enable_qc_post && !stages.iter().any(|stage| stage == "fastq.qc_post") {
         stages.push("fastq.qc_post".to_string());
@@ -283,6 +304,9 @@ pub fn fastq_default_profile(options: DefaultPipelineOptions) -> PipelineProfile
             required_inputs: vec!["fastq"],
             produces_outputs: vec!["fastq", "fastq.metrics"],
             report_sections: vec!["fastq"],
+            required_stages,
+            required_metrics: vec!["fastq.metrics"],
+            required_artifacts: vec!["report.json", "run_manifest.json", "stage_summaries.json"],
             supports_benchmarking: true,
         },
     }

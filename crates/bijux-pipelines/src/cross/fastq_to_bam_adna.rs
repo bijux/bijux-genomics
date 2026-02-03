@@ -105,6 +105,16 @@ pub fn fastq_to_bam_adna_shotgun_profile() -> PipelineProfile {
             required_inputs: vec!["fastq", "reference"],
             produces_outputs: vec!["fastq", "bam", "bam.metrics"],
             report_sections: vec!["fastq", "bam", "cross.handoff"],
+            required_stages: vec![
+                "fastq.preprocess",
+                "core.prepare_reference",
+                "bam.align",
+                "bam.qc_pre",
+                "bam.coverage",
+                "bam.damage",
+            ],
+            required_metrics: vec!["fastq.metrics", "bam.metrics"],
+            required_artifacts: vec!["report.json", "run_manifest.json", "stage_summaries.json"],
             supports_benchmarking: false,
         },
     }
@@ -165,6 +175,16 @@ pub fn fastq_to_bam_default_profile() -> PipelineProfile {
             required_inputs: vec!["fastq", "reference"],
             produces_outputs: vec!["fastq", "bam", "bam.metrics"],
             report_sections: vec!["fastq", "bam", "cross.handoff"],
+            required_stages: vec![
+                "fastq.preprocess",
+                "core.prepare_reference",
+                "bam.align",
+                "bam.qc_pre",
+                "bam.coverage",
+                "bam.damage",
+            ],
+            required_metrics: vec!["fastq.metrics", "bam.metrics"],
+            required_artifacts: vec!["report.json", "run_manifest.json", "stage_summaries.json"],
             supports_benchmarking: false,
         },
     }
