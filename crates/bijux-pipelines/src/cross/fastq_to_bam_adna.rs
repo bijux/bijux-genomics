@@ -3,8 +3,8 @@
 use crate::bam::bam_adna_shotgun_profile;
 use crate::fastq::{fastq_default_profile, DefaultPipelineOptions};
 use crate::{
-    Domain, EffectiveDefaults, PipelineCapabilities, PipelineId, PipelineProfile, StabilityTier,
-    StageNode,
+    ArtifactType, Domain, EffectiveDefaults, MetricsBundle, PipelineCapabilities, PipelineId,
+    PipelineProfile, ReportSection, StabilityTier, StageNode,
 };
 use bijux_domain_bam::params::{AlignEffectiveParams, ReadGroupSpec};
 use bijux_domain_bam::types::ReadGroupPolicy;
@@ -102,9 +102,18 @@ pub fn fastq_to_bam_adna_shotgun_profile() -> PipelineProfile {
         capabilities: PipelineCapabilities {
             input_domains: vec![Domain::Fastq, Domain::Cross],
             output_domains: vec![Domain::Bam],
+            input_artifacts: vec![ArtifactType::FastqReads, ArtifactType::Bam],
+            output_artifacts: vec![ArtifactType::Bam, ArtifactType::MetricsBundle],
             required_inputs: vec!["fastq", "reference"],
             produces_outputs: vec!["fastq", "bam", "bam.metrics"],
             report_sections: vec!["fastq", "bam", "cross.handoff"],
+            required_report_sections: vec![
+                ReportSection::Fastq,
+                ReportSection::Bam,
+                ReportSection::Handoff,
+                ReportSection::PipelineDefaults,
+            ],
+            required_metrics_bundles: vec![MetricsBundle::FastqCore, MetricsBundle::BamAdna],
             required_stages: vec![
                 "fastq.preprocess",
                 "core.prepare_reference",
@@ -172,9 +181,18 @@ pub fn fastq_to_bam_default_profile() -> PipelineProfile {
         capabilities: PipelineCapabilities {
             input_domains: vec![Domain::Fastq, Domain::Cross],
             output_domains: vec![Domain::Bam],
+            input_artifacts: vec![ArtifactType::FastqReads, ArtifactType::Bam],
+            output_artifacts: vec![ArtifactType::Bam, ArtifactType::MetricsBundle],
             required_inputs: vec!["fastq", "reference"],
             produces_outputs: vec!["fastq", "bam", "bam.metrics"],
             report_sections: vec!["fastq", "bam", "cross.handoff"],
+            required_report_sections: vec![
+                ReportSection::Fastq,
+                ReportSection::Bam,
+                ReportSection::Handoff,
+                ReportSection::PipelineDefaults,
+            ],
+            required_metrics_bundles: vec![MetricsBundle::FastqCore, MetricsBundle::BamCore],
             required_stages: vec![
                 "fastq.preprocess",
                 "core.prepare_reference",

@@ -249,6 +249,14 @@ expression: fastq_to_bam_default_profile()
     "output_domains": [
       "Bam"
     ],
+    "input_artifacts": [
+      "FastqReads",
+      "Bam"
+    ],
+    "output_artifacts": [
+      "Bam",
+      "MetricsBundle"
+    ],
     "required_inputs": [
       "fastq",
       "reference"
@@ -262,6 +270,16 @@ expression: fastq_to_bam_default_profile()
       "fastq",
       "bam",
       "cross.handoff"
+    ],
+    "required_report_sections": [
+      "Fastq",
+      "Bam",
+      "Handoff",
+      "PipelineDefaults"
+    ],
+    "required_metrics_bundles": [
+      "FastqCore",
+      "BamCore"
     ],
     "required_stages": [
       "fastq.preprocess",

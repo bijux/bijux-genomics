@@ -145,6 +145,13 @@ expression: bam_adna_shotgun_profile()
     "output_domains": [
       "Bam"
     ],
+    "input_artifacts": [
+      "Bam"
+    ],
+    "output_artifacts": [
+      "Bam",
+      "MetricsBundle"
+    ],
     "required_inputs": [
       "bam"
     ],
@@ -154,6 +161,13 @@ expression: bam_adna_shotgun_profile()
     ],
     "report_sections": [
       "bam"
+    ],
+    "required_report_sections": [
+      "Bam",
+      "PipelineDefaults"
+    ],
+    "required_metrics_bundles": [
+      "BamAdna"
     ],
     "required_stages": [
       "bam.validate",

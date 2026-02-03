@@ -10,8 +10,8 @@ use bijux_domain_bam::stage_spec;
 use bijux_domain_bam::BamStage;
 
 use crate::{
-    Domain, EffectiveDefaults, PipelineCapabilities, PipelineId, PipelineProfile, StabilityTier,
-    StageNode,
+    ArtifactType, Domain, EffectiveDefaults, MetricsBundle, PipelineCapabilities, PipelineId,
+    PipelineProfile, ReportSection, StabilityTier, StageNode,
 };
 
 #[derive(Debug, Clone)]
@@ -165,9 +165,13 @@ pub fn bam_default_profile() -> PipelineProfile {
         capabilities: PipelineCapabilities {
             input_domains: vec![Domain::Bam],
             output_domains: vec![Domain::Bam],
+            input_artifacts: vec![ArtifactType::Bam],
+            output_artifacts: vec![ArtifactType::Bam, ArtifactType::MetricsBundle],
             required_inputs: vec!["bam"],
             produces_outputs: vec!["bam", "bam.metrics"],
             report_sections: vec!["bam"],
+            required_report_sections: vec![ReportSection::Bam, ReportSection::PipelineDefaults],
+            required_metrics_bundles: vec![MetricsBundle::BamCore],
             required_stages,
             required_metrics: vec!["bam.metrics"],
             required_artifacts: vec!["report.json", "run_manifest.json", "stage_summaries.json"],
@@ -225,9 +229,13 @@ pub fn bam_adna_shotgun_profile() -> PipelineProfile {
         capabilities: PipelineCapabilities {
             input_domains: vec![Domain::Bam],
             output_domains: vec![Domain::Bam],
+            input_artifacts: vec![ArtifactType::Bam],
+            output_artifacts: vec![ArtifactType::Bam, ArtifactType::MetricsBundle],
             required_inputs: vec!["bam"],
             produces_outputs: vec!["bam", "bam.metrics"],
             report_sections: vec!["bam"],
+            required_report_sections: vec![ReportSection::Bam, ReportSection::PipelineDefaults],
+            required_metrics_bundles: vec![MetricsBundle::BamAdna],
             required_stages,
             required_metrics: vec!["bam.metrics"],
             required_artifacts: vec!["report.json", "run_manifest.json", "stage_summaries.json"],

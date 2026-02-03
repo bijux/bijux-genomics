@@ -44,6 +44,33 @@ impl StabilityTier {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+pub enum ArtifactType {
+    FastqReads,
+    Bam,
+    ReportJson,
+    RunManifestJson,
+    StageSummariesJson,
+    MetricsBundle,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+pub enum MetricsBundle {
+    FastqCore,
+    BamCore,
+    BamAdna,
+    CrossHandoff,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+pub enum ReportSection {
+    Fastq,
+    Bam,
+    Cross,
+    Handoff,
+    PipelineDefaults,
+}
+
 #[derive(Debug, Clone, Serialize)]
 pub struct StageNode {
     pub stage_id: String,
@@ -75,9 +102,13 @@ pub struct PipelineProfile {
 pub struct PipelineCapabilities {
     pub input_domains: Vec<Domain>,
     pub output_domains: Vec<Domain>,
+    pub input_artifacts: Vec<ArtifactType>,
+    pub output_artifacts: Vec<ArtifactType>,
     pub required_inputs: Vec<&'static str>,
     pub produces_outputs: Vec<&'static str>,
     pub report_sections: Vec<&'static str>,
+    pub required_report_sections: Vec<ReportSection>,
+    pub required_metrics_bundles: Vec<MetricsBundle>,
     pub required_stages: Vec<&'static str>,
     pub required_metrics: Vec<&'static str>,
     pub required_artifacts: Vec<&'static str>,

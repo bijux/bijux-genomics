@@ -146,6 +146,13 @@ expression: "fastq_default_profile(DefaultPipelineOptions::default())"
     "output_domains": [
       "Fastq"
     ],
+    "input_artifacts": [
+      "FastqReads"
+    ],
+    "output_artifacts": [
+      "FastqReads",
+      "MetricsBundle"
+    ],
     "required_inputs": [
       "fastq"
     ],
@@ -155,6 +162,13 @@ expression: "fastq_default_profile(DefaultPipelineOptions::default())"
     ],
     "report_sections": [
       "fastq"
+    ],
+    "required_report_sections": [
+      "Fastq",
+      "PipelineDefaults"
+    ],
+    "required_metrics_bundles": [
+      "FastqCore"
     ],
     "required_stages": [
       "fastq.validate_pre",

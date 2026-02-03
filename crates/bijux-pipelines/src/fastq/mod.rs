@@ -13,8 +13,8 @@ use bijux_domain_fastq::params::{
 };
 
 use crate::{
-    Domain, EffectiveDefaults, PipelineCapabilities, PipelineId, PipelineProfile, StabilityTier,
-    StageNode,
+    ArtifactType, Domain, EffectiveDefaults, MetricsBundle, PipelineCapabilities, PipelineId,
+    PipelineProfile, ReportSection, StabilityTier, StageNode,
 };
 
 #[derive(Debug, Clone)]
@@ -243,9 +243,13 @@ pub fn fastq_minimal_profile() -> PipelineProfile {
         capabilities: PipelineCapabilities {
             input_domains: vec![Domain::Fastq],
             output_domains: vec![Domain::Fastq],
+            input_artifacts: vec![ArtifactType::FastqReads],
+            output_artifacts: vec![ArtifactType::FastqReads, ArtifactType::MetricsBundle],
             required_inputs: vec!["fastq"],
             produces_outputs: vec!["fastq", "fastq.metrics"],
             report_sections: vec!["fastq"],
+            required_report_sections: vec![ReportSection::Fastq, ReportSection::PipelineDefaults],
+            required_metrics_bundles: vec![MetricsBundle::FastqCore],
             required_stages: vec![
                 "fastq.validate_pre",
                 "fastq.detect_adapters",
@@ -301,9 +305,13 @@ pub fn fastq_default_profile(options: DefaultPipelineOptions) -> PipelineProfile
         capabilities: PipelineCapabilities {
             input_domains: vec![Domain::Fastq],
             output_domains: vec![Domain::Fastq],
+            input_artifacts: vec![ArtifactType::FastqReads],
+            output_artifacts: vec![ArtifactType::FastqReads, ArtifactType::MetricsBundle],
             required_inputs: vec!["fastq"],
             produces_outputs: vec!["fastq", "fastq.metrics"],
             report_sections: vec!["fastq"],
+            required_report_sections: vec![ReportSection::Fastq, ReportSection::PipelineDefaults],
+            required_metrics_bundles: vec![MetricsBundle::FastqCore],
             required_stages,
             required_metrics: vec!["fastq.metrics"],
             required_artifacts: vec!["report.json", "run_manifest.json", "stage_summaries.json"],

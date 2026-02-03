@@ -105,6 +105,26 @@ fn pipeline_profiles_are_complete() {
             "missing required artifacts for {}",
             profile.id
         );
+        assert!(
+            !profile.capabilities.input_artifacts.is_empty(),
+            "missing input artifacts for {}",
+            profile.id
+        );
+        assert!(
+            !profile.capabilities.output_artifacts.is_empty(),
+            "missing output artifacts for {}",
+            profile.id
+        );
+        assert!(
+            !profile.capabilities.required_report_sections.is_empty(),
+            "missing required report sections for {}",
+            profile.id
+        );
+        assert!(
+            !profile.capabilities.required_metrics_bundles.is_empty(),
+            "missing required metrics bundles for {}",
+            profile.id
+        );
         assert_report_sections(&profile);
     }
 }
