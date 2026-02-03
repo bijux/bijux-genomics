@@ -292,6 +292,7 @@
       "suspected_issues": [],
       "warnings": []
     },
+    "handoff": {},
     "impact_metrics": {
       "impact": [
         {
@@ -340,6 +341,10 @@
         "params_hash": "params",
         "tool_id": "fastp"
       }
+    },
+    "pipeline_defaults": {
+      "defaults_ledger": {},
+      "overrides": []
     },
     "pipeline_overview": {
       "stages": [
