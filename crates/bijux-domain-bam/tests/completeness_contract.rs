@@ -15,8 +15,8 @@ fn fixture_path(name: &str) -> PathBuf {
         .join(name)
 }
 
-fn params_to_value(params: &BamEffectiveParams) -> serde_json::Value {
-    match params {
+fn params_to_value(params: &BamEffectiveParams) -> anyhow::Result<serde_json::Value> {
+    let value = match params {
         BamEffectiveParams::Validate(inner) => serde_json::to_value(inner),
         BamEffectiveParams::QcPre(inner) => serde_json::to_value(inner),
         BamEffectiveParams::Filter(inner) => serde_json::to_value(inner),
@@ -32,12 +32,12 @@ fn params_to_value(params: &BamEffectiveParams) -> serde_json::Value {
         BamEffectiveParams::Haplogroups(inner) => serde_json::to_value(inner),
         BamEffectiveParams::Genotyping(inner) => serde_json::to_value(inner),
         BamEffectiveParams::Kinship(inner) => serde_json::to_value(inner),
-    }
-    .expect("serialize bam effective params")
+    }?;
+    Ok(value)
 }
 
 #[test]
-fn bam_stages_meet_completeness_contract() {
+fn bam_stages_meet_completeness_contract() -> anyhow::Result<()> {
     for stage in BamStage::all() {
         let spec = stage_spec(*stage);
         let audit = required_audit_artifacts(*stage);
@@ -51,11 +51,12 @@ fn bam_stages_meet_completeness_contract() {
             "stage {} missing required outputs",
             stage.as_str()
         );
-        let params_value = params_to_value(&spec.default_params);
+        let params_value = params_to_value(&spec.default_params)?;
         stage
             .parse_effective_params(&params_value)
             .unwrap_or_else(|_| panic!("default params invalid for {}", stage.as_str()));
     }
+    Ok(())
 }
 
 #[test]

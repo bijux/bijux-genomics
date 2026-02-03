@@ -43,6 +43,7 @@ fn trim_bench_args_preserve_bank_presets() -> Result<()> {
 fn preprocess_args_require_required_fields() -> Result<()> {
     let args = FastqPreprocessArgs {
         common: CommonArgs::default(),
+        pipeline_profile: None,
         env: None,
         sample_id: Some("s1".to_string()),
         r1: Some(PathBuf::from("reads.fastq.gz")),
