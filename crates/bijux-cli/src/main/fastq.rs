@@ -46,6 +46,44 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
             println!("{}", serde_json::to_string_pretty(&result)?);
             Ok(true)
         }
+        Commands::Pipelines { command } => {
+            let registry = bijux_pipelines::registry::PipelineRegistry::v1();
+            match command {
+                PipelinesCommand::List {
+                    domain,
+                    show_experimental,
+                } => {
+                    let profiles = if let Some(domain) = domain {
+                        registry.list_for_domain(domain.as_domain(), *show_experimental)
+                    } else {
+                        registry.list(*show_experimental)
+                    };
+                    for profile in profiles {
+                        println!(
+                            "{}\t{}\t{}",
+                            profile.id.as_str(),
+                            profile.stability.as_str(),
+                            profile.description
+                        );
+                    }
+                    Ok(true)
+                }
+                PipelinesCommand::Explain { id } => {
+                    let profile = registry
+                        .list(true)
+                        .into_iter()
+                        .find(|profile| profile.id.as_str() == id)
+                        .ok_or_else(|| anyhow!("unknown pipeline profile: {id}"))?;
+                    let payload = serde_json::json!({
+                        "profile": profile,
+                        "defaults_ledger": profile.defaults_ledger(),
+                        "report_sections": profile.capabilities.report_sections,
+                    });
+                    println!("{}", serde_json::to_string_pretty(&payload)?);
+                    Ok(true)
+                }
+            }
+        }
         Commands::Analyze { command } => {
             match command {
                 AnalyzeCommand::Runs(args) => {

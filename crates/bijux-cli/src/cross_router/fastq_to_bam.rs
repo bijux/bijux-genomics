@@ -15,7 +15,8 @@ use crate::cli::parse::FastqPreprocessArgs;
 use crate::cli::plan::preprocess_args_from_cli;
 use crate::cross_router::bam_exec::{run_bam_align_and_truth_stages, run_bam_truth_stages};
 use crate::cross_router::manifests::{
-    write_alignment_boundary, write_cross_run_manifest, write_reference_manifest,
+    write_alignment_boundary, write_cross_run_manifest, write_defaults_ledger,
+    write_reference_manifest,
 };
 use crate::fastq_router::fastq_preprocess_run;
 use crate::{init_logging, Cli};
@@ -46,6 +47,7 @@ pub fn run_fastq_to_bam_profile(
         .with_context(|| format!("read {}", summary_path.display()))?;
     let summary_json: serde_json::Value =
         serde_json::from_str(&summary_raw).context("parse run_summary.json")?;
+    let _defaults_ledger_path = write_defaults_ledger(&out_dir, profile)?;
 
     let has_align = profile
         .graph
@@ -175,9 +177,9 @@ fn build_alignment_boundary(args: &FastqPreprocessArgs) -> Result<AlignmentBound
 
 fn select_bam_profile(profile: &PipelineProfile) -> Result<PipelineProfile> {
     let id = if profile.invariants_preset == Some("adna") {
-        "adna-shotgun"
+        "bam__adna_shotgun__v1"
     } else {
-        "default"
+        "bam__default__v1"
     };
     registry::profile_by_id(Domain::Bam, id)
 }

@@ -14,6 +14,9 @@ pub struct Cli {
     #[arg(long, verbatim_doc_comment)]
     /// Print resolved config JSON (skeleton for future defaults).
     pub print_effective_config: bool,
+    #[arg(long, verbatim_doc_comment)]
+    /// Dump effective config JSON (alias for --print-effective-config).
+    pub dump_effective_config: bool,
     #[command(subcommand)]
     pub command: Commands,
 }
@@ -28,6 +31,10 @@ pub enum Commands {
     Bam {
         #[command(subcommand)]
         command: BamCommand,
+    },
+    Pipelines {
+        #[command(subcommand)]
+        command: PipelinesCommand,
     },
     Analyze {
         #[command(subcommand)]
@@ -140,6 +147,39 @@ pub enum EnvCommand {
     Images,
     Info,
     Doctor,
+}
+
+#[derive(Debug, Subcommand)]
+pub enum PipelinesCommand {
+    #[command(about = "List pipeline profiles.")]
+    List {
+        #[arg(long, value_enum)]
+        domain: Option<PipelineDomainArg>,
+        #[arg(long, help = "Include beta/experimental pipelines")]
+        show_experimental: bool,
+    },
+    #[command(about = "Explain a pipeline profile.")]
+    Explain {
+        id: String,
+    },
+}
+
+#[derive(Debug, Clone, Copy, ValueEnum)]
+pub enum PipelineDomainArg {
+    Fastq,
+    Bam,
+    Cross,
+}
+
+impl PipelineDomainArg {
+    #[must_use]
+    pub fn as_domain(self) -> bijux_pipelines::Domain {
+        match self {
+            Self::Fastq => bijux_pipelines::Domain::Fastq,
+            Self::Bam => bijux_pipelines::Domain::Bam,
+            Self::Cross => bijux_pipelines::Domain::Cross,
+        }
+    }
 }
 
 #[derive(Debug, Subcommand)]

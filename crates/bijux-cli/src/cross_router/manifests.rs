@@ -19,6 +19,13 @@ pub fn write_alignment_boundary(out_dir: &Path, boundary: &AlignmentBoundary) ->
     Ok(path)
 }
 
+pub fn write_defaults_ledger(out_dir: &Path, profile: &PipelineProfile) -> Result<PathBuf> {
+    let path = out_dir.join("defaults_ledger.json");
+    let ledger = profile.defaults_ledger();
+    fs::write(&path, serde_json::to_vec_pretty(&ledger)?).context("write defaults_ledger.json")?;
+    Ok(path)
+}
+
 pub fn write_cross_run_manifest(
     out_dir: &Path,
     profile: &PipelineProfile,

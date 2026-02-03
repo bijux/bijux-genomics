@@ -36,6 +36,7 @@ use cli::{
     bench_args_stats, bench_args_trim, bench_args_umi, bench_args_validate,
     is_bench_requested_trim, is_bench_requested_validate, preprocess_args_from_cli, AnalyzeCommand,
     BenchBamCommand, BenchCommand, BenchFastqCommand, Cli, Commands, EnvCommand, FastqCommand,
+    PipelinesCommand,
 };
 use env::{env_doctor, print_env_images, print_env_info};
 use main_helpers::{
@@ -69,7 +70,7 @@ fn main() -> Result<()> {
     let mut profile = load_profile(&profile_path)
         .map_err(|err| anyhow!("failed to load profile {}: {err}", profile_path.display()))?;
     profile.run_base_dir = normalize_run_base_dir(&cwd, &profile.run_base_dir);
-    if cli.print_effective_config {
+    if cli.print_effective_config || cli.dump_effective_config {
         let payload = serde_json::json!({
             "profile": profile,
             "platform": cli.platform,
