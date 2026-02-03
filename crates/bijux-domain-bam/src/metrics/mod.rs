@@ -18,6 +18,7 @@ mod mapq;
 mod sex;
 #[path = "derived/sufficiency.rs"]
 mod sufficiency;
+#[path = "derived/verdict.rs"]
 mod verdict;
 
 pub use alignment::{parse_samtools_flagstat, parse_samtools_stats, AlignmentCountsV1};
