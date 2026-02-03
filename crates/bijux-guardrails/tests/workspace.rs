@@ -139,6 +139,8 @@ fn workspace_constitution_contract() {
         "bijux-stages-fastq",
         "bijux-stages-bam",
         "bijux-pipelines",
+        "bijux-api",
+        "bijux-io",
         "bijux-core",
         "bijux-engine",
         "bijux-analyze",
@@ -233,5 +235,71 @@ fn workspace_no_orphan_crates() {
         if count == 0 && !allowlist.contains(name.as_str()) && !is_bin_crate(crate_dir) {
             panic!("orphan crate without allowlist: {name}");
         }
+    }
+}
+
+#[test]
+fn workspace_dependency_graph_contract() {
+    let crates = collect_workspace_crates();
+    let deps_for = |name: &str| -> BTreeSet<String> {
+        let path = crates
+            .get(name)
+            .unwrap_or_else(|| panic!("missing crate {name}"));
+        parse_dependencies(&path.join("Cargo.toml"))
+    };
+
+    let cli = deps_for("bijux");
+    assert!(cli.contains("bijux-api"), "cli must depend on bijux-api");
+    assert!(
+        !cli.contains("bijux-stages-fastq"),
+        "cli must not depend on bijux-stages-fastq"
+    );
+    assert!(
+        !cli.contains("bijux-stages-bam"),
+        "cli must not depend on bijux-stages-bam"
+    );
+
+    for domain in ["bijux-domain-fastq", "bijux-domain-bam", "bijux-domain-vcf"] {
+        let deps = deps_for(domain);
+        assert!(
+            !deps.contains("bijux-engine"),
+            "{domain} must not depend on bijux-engine"
+        );
+        assert!(!deps.contains("bijux"), "{domain} must not depend on bijux");
+    }
+
+    let pipelines = deps_for("bijux-pipelines");
+    assert!(
+        !pipelines.contains("bijux-engine"),
+        "bijux-pipelines must not depend on bijux-engine"
+    );
+
+    let stages_fastq = deps_for("bijux-stages-fastq");
+    assert!(
+        stages_fastq.contains("bijux-domain-fastq"),
+        "bijux-stages-fastq must depend on bijux-domain-fastq"
+    );
+    let stages_bam = deps_for("bijux-stages-bam");
+    assert!(
+        stages_bam.contains("bijux-domain-bam"),
+        "bijux-stages-bam must depend on bijux-domain-bam"
+    );
+    let domain_fastq = deps_for("bijux-domain-fastq");
+    assert!(
+        !domain_fastq.contains("bijux-stages-fastq"),
+        "bijux-domain-fastq must not depend on bijux-stages-fastq"
+    );
+    let domain_bam = deps_for("bijux-domain-bam");
+    assert!(
+        !domain_bam.contains("bijux-stages-bam"),
+        "bijux-domain-bam must not depend on bijux-stages-bam"
+    );
+
+    let testkit = deps_for("bijux-testkit");
+    for banned in ["bijux-engine", "bijux", "bijux-analyze"] {
+        assert!(
+            !testkit.contains(banned),
+            "bijux-testkit must not depend on {banned}"
+        );
     }
 }
