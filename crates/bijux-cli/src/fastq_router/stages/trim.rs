@@ -11,12 +11,12 @@ use bijux_stages_fastq::fastq::trim::plan;
 use bijux_stages_fastq::FastqArtifact;
 use bijux_stages_fastq::{inspect_headers, log_header_warnings, preflight_stage, RawFailure};
 
-use super::banks::{
+use crate::fastq_router::banks::{
     adapter_bank_context, contaminant_bank_context, polyx_bank_context, polyx_unsupported_warning,
 };
-use super::jobs::execute_plans_with_jobs;
-use super::jobs::{bench_jobs, normalize_tool_spec_for_jobs};
-use super::{write_explain_md, write_explain_plan_json, BenchOutcome};
+use crate::fastq_router::jobs::execute_plans_with_jobs;
+use crate::fastq_router::jobs::{bench_jobs, normalize_tool_spec_for_jobs};
+use crate::fastq_router::{write_explain_md, write_explain_plan_json, BenchOutcome};
 
 /// # Errors
 /// Returns an error if planning or execution fails.

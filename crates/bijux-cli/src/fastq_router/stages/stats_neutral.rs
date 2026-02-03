@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use anyhow::Result;
 use bijux_engine::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 
-use super::BenchOutcome;
+use crate::fastq_router::BenchOutcome;
 
 /// Run the stats-neutral pipeline.
 ///

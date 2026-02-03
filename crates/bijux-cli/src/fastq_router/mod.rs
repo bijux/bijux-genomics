@@ -2,33 +2,21 @@ use bijux_analyze::BenchmarkRecord;
 use bijux_stages_fastq::RawFailure;
 
 mod banks;
-mod correct;
 mod explain;
-mod filter;
 mod jobs;
-mod merge;
 mod preprocess;
-mod qc_post;
-mod screen;
 mod smart_pipeline;
-mod stats_neutral;
+mod stages;
 mod summary;
-mod trim;
-mod umi;
-mod validate_pre;
 
-pub use correct::bench_fastq_correct;
 pub use explain::{write_explain_md, write_explain_plan_json};
-pub use filter::bench_fastq_filter;
-pub use merge::bench_fastq_merge;
 pub use preprocess::{bench_fastq_preprocess, fastq_preprocess_plan, fastq_preprocess_run};
-pub use qc_post::bench_fastq_qc_post;
-pub use screen::bench_fastq_screen;
-pub use stats_neutral::bench_fastq_stats_neutral;
+pub use stages::{
+    bench_fastq_correct, bench_fastq_filter, bench_fastq_merge, bench_fastq_qc_post,
+    bench_fastq_screen, bench_fastq_stats_neutral, bench_fastq_trim, bench_fastq_umi,
+    bench_fastq_validate_pre,
+};
 pub use summary::StageExecutionSummary;
-pub use trim::bench_fastq_trim;
-pub use umi::bench_fastq_umi;
-pub use validate_pre::bench_fastq_validate_pre;
 pub struct BenchOutcome<M: bijux_analyze::StageMetricSchema> {
     pub records: Vec<BenchmarkRecord<M>>,
     pub failures: Vec<RawFailure>,
