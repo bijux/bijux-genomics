@@ -39,7 +39,7 @@ fn plan_json_is_emitted_and_stable() -> Result<()> {
     let rendered = serde_json::to_string_pretty(&plan_json)?;
     let manifest_dir = std::env::var("CARGO_MANIFEST_DIR")?;
     let snapshot_path =
-        std::path::Path::new(&manifest_dir).join("tests/snapshots/fastq_trim_plan.json");
+        std::path::Path::new(&manifest_dir).join("tests/snapshots/stage__fastq__fastq.trim.json");
     let snapshot = fs::read_to_string(&snapshot_path)?;
     assert_eq!(rendered.trim(), snapshot.trim());
     Ok(())
@@ -58,7 +58,7 @@ fn filter_plan_json_is_emitted_and_stable() -> Result<()> {
     let rendered = serde_json::to_string_pretty(&plan_json)?;
     let manifest_dir = std::env::var("CARGO_MANIFEST_DIR")?;
     let snapshot_path =
-        std::path::Path::new(&manifest_dir).join("tests/snapshots/fastq_filter_plan.json");
+        std::path::Path::new(&manifest_dir).join("tests/snapshots/stage__fastq__fastq.filter.json");
     let snapshot = fs::read_to_string(&snapshot_path)?;
     assert_eq!(rendered.trim(), snapshot.trim());
     Ok(())
@@ -76,7 +76,7 @@ fn merge_plan_json_is_emitted_and_stable() -> Result<()> {
     let rendered = serde_json::to_string_pretty(&plan_json)?;
     let manifest_dir = std::env::var("CARGO_MANIFEST_DIR")?;
     let snapshot_path =
-        std::path::Path::new(&manifest_dir).join("tests/snapshots/fastq_merge_plan.json");
+        std::path::Path::new(&manifest_dir).join("tests/snapshots/stage__fastq__fastq.merge.json");
     let snapshot = fs::read_to_string(&snapshot_path)?;
     assert_eq!(rendered.trim(), snapshot.trim());
     Ok(())
@@ -93,7 +93,8 @@ fn validate_pre_plan_json_is_emitted_and_stable() -> Result<()> {
     let rendered = serde_json::to_string_pretty(&plan_json)?;
     let manifest_dir = std::env::var("CARGO_MANIFEST_DIR")?;
     let snapshot_path =
-        std::path::Path::new(&manifest_dir).join("tests/snapshots/fastq_validate_pre_plan.json");
+        std::path::Path::new(&manifest_dir)
+            .join("tests/snapshots/stage__fastq__fastq.validate_pre.json");
     let snapshot = fs::read_to_string(&snapshot_path)?;
     assert_eq!(rendered.trim(), snapshot.trim());
     Ok(())
@@ -110,7 +111,7 @@ fn screen_plan_json_is_emitted_and_stable() -> Result<()> {
     let rendered = serde_json::to_string_pretty(&plan_json)?;
     let manifest_dir = std::env::var("CARGO_MANIFEST_DIR")?;
     let snapshot_path =
-        std::path::Path::new(&manifest_dir).join("tests/snapshots/fastq_screen_plan.json");
+        std::path::Path::new(&manifest_dir).join("tests/snapshots/stage__fastq__fastq.screen.json");
     let snapshot = fs::read_to_string(&snapshot_path)?;
     assert_eq!(rendered.trim(), snapshot.trim());
     Ok(())
@@ -128,7 +129,7 @@ fn umi_plan_json_is_emitted_and_stable() -> Result<()> {
     let rendered = serde_json::to_string_pretty(&plan_json)?;
     let manifest_dir = std::env::var("CARGO_MANIFEST_DIR")?;
     let snapshot_path =
-        std::path::Path::new(&manifest_dir).join("tests/snapshots/fastq_umi_plan.json");
+        std::path::Path::new(&manifest_dir).join("tests/snapshots/stage__fastq__fastq.umi.json");
     let snapshot = fs::read_to_string(&snapshot_path)?;
     assert_eq!(rendered.trim(), snapshot.trim());
     Ok(())
@@ -146,7 +147,8 @@ fn correct_plan_json_is_emitted_and_stable() -> Result<()> {
     let rendered = serde_json::to_string_pretty(&plan_json)?;
     let manifest_dir = std::env::var("CARGO_MANIFEST_DIR")?;
     let snapshot_path =
-        std::path::Path::new(&manifest_dir).join("tests/snapshots/fastq_correct_plan.json");
+        std::path::Path::new(&manifest_dir)
+            .join("tests/snapshots/stage__fastq__fastq.correct.json");
     let snapshot = fs::read_to_string(&snapshot_path)?;
     assert_eq!(rendered.trim(), snapshot.trim());
     Ok(())
@@ -189,7 +191,8 @@ fn preprocess_plan_json_is_emitted_and_stable() -> Result<()> {
     let rendered = serde_json::to_string_pretty(&plan_json)?;
     let manifest_dir = std::env::var("CARGO_MANIFEST_DIR")?;
     let snapshot_path =
-        std::path::Path::new(&manifest_dir).join("tests/snapshots/fastq_preprocess_plan.json");
+        std::path::Path::new(&manifest_dir)
+            .join("tests/snapshots/stage__fastq__fastq.preprocess.json");
     let snapshot = fs::read_to_string(&snapshot_path)?;
     assert_eq!(rendered.trim(), snapshot.trim());
     Ok(())
@@ -208,7 +211,8 @@ fn qc_post_plan_json_is_emitted_and_stable() -> Result<()> {
     let rendered = serde_json::to_string_pretty(&plan_json)?;
     let manifest_dir = std::env::var("CARGO_MANIFEST_DIR")?;
     let snapshot_path =
-        std::path::Path::new(&manifest_dir).join("tests/snapshots/fastq_qc_post_plan.json");
+        std::path::Path::new(&manifest_dir)
+            .join("tests/snapshots/stage__fastq__fastq.qc_post.json");
     let snapshot = fs::read_to_string(&snapshot_path)?;
     assert_eq!(rendered.trim(), snapshot.trim());
     Ok(())
@@ -225,7 +229,8 @@ fn stats_neutral_plan_json_is_emitted_and_stable() -> Result<()> {
     let rendered = serde_json::to_string_pretty(&plan_json)?;
     let manifest_dir = std::env::var("CARGO_MANIFEST_DIR")?;
     let snapshot_path =
-        std::path::Path::new(&manifest_dir).join("tests/snapshots/fastq_stats_neutral_plan.json");
+        std::path::Path::new(&manifest_dir)
+            .join("tests/snapshots/stage__fastq__fastq.stats_neutral.json");
     let snapshot = fs::read_to_string(&snapshot_path)?;
     assert_eq!(rendered.trim(), snapshot.trim());
     Ok(())
