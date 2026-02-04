@@ -1,5 +1,5 @@
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use anyhow::Result;
 use bijux_analyze::load::load_facts;
@@ -50,11 +50,7 @@ fn fact_for_stage(stage_id: &str, tool_id: &str, run_id: &str) -> FactsRowV1 {
     }
 }
 
-fn write_stage_report(
-    stage_dir: &PathBuf,
-    stage_id: &str,
-    tool_id: &str,
-) -> Result<PathBuf> {
+fn write_stage_report(stage_dir: &Path, stage_id: &str, tool_id: &str) -> Result<PathBuf> {
     let metrics_path = stage_dir.join("metrics.json");
     let invocation_path = stage_dir.join("tool_invocation.json");
     let config_path = stage_dir.join("effective_config.json");
@@ -106,8 +102,7 @@ fn write_pipeline_report(domain: Domain, pipeline_id: &str) -> Result<serde_json
             .defaults
             .tools
             .get(&node.stage_id)
-            .map(|tool| tool.as_str())
-            .unwrap_or("unknown");
+            .map_or("unknown", String::as_str);
         let stage_dir = base_dir.join(format!("stage_{idx}"));
         bijux_infra::ensure_dir(&stage_dir)?;
         let stage_report_path = write_stage_report(&stage_dir, &node.stage_id, tool)?;

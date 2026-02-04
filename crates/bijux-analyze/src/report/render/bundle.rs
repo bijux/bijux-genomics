@@ -74,9 +74,8 @@ mod tests {
         };
         let expected_json = extract_json(&expected)?;
         let actual_json = extract_json(&actual)?;
-        let update = std::env::var("INSTA_UPDATE").is_ok_and(|value| {
-            matches!(value.as_str(), "always" | "1" | "new" | "unseen")
-        });
+        let update = std::env::var("INSTA_UPDATE")
+            .is_ok_and(|value| matches!(value.as_str(), "always" | "1" | "new" | "unseen"));
         if update {
             fs::write(&snapshot_path, actual)?;
         } else {

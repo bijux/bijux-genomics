@@ -1,5 +1,5 @@
-use std::fmt::Write;
 use bijux_analyze::load::load_facts;
+use std::fmt::Write;
 
 #[test]
 fn load_facts_handles_large_jsonl() -> anyhow::Result<()> {

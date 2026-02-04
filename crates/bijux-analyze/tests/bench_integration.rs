@@ -8,6 +8,7 @@ use bijux_core::FactsRowV1;
 use std::collections::BTreeMap;
 
 #[test]
+#[allow(clippy::too_many_lines)]
 fn analyze_consumes_bench_summary() -> anyhow::Result<()> {
     let temp = bijux_infra::temp_dir("bijux")?;
     let base_dir = temp.path();

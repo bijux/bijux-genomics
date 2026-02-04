@@ -17,7 +17,7 @@ fn median(sorted: &[f64]) -> f64 {
     }
     let mid = sorted.len() / 2;
     if sorted.len() % 2 == 0 {
-        sorted[mid - 1].midpoint(sorted[mid])
+        (sorted[mid - 1] + sorted[mid]) * 0.5
     } else {
         sorted[mid]
     }

@@ -27,7 +27,6 @@ pub enum FailureClass {
     EnvironmentError,
 }
 
-
 #[derive(Debug, Clone, Serialize)]
 pub struct BenchmarkFailure {
     pub stage: String,

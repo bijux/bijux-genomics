@@ -62,7 +62,7 @@ pub(super) fn bam_findings_section(rows: &[bijux_core::FactsRowV1]) -> serde_jso
     let summaries: Vec<String> = findings
         .iter()
         .filter_map(|entry| entry.get("statement").and_then(serde_json::Value::as_str))
-        .map(|value| value.to_string())
+        .map(std::string::ToString::to_string)
         .take(5)
         .collect();
     serde_json::json!({

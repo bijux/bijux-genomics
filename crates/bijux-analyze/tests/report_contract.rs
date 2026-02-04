@@ -5,6 +5,7 @@ use std::fs;
 use std::path::PathBuf;
 
 #[test]
+#[allow(clippy::too_many_lines)]
 fn report_sections_exist_for_all_stages() -> Result<()> {
     let dir = bijux_infra::temp_dir("bijux")?;
     let stage_dir = dir.path();

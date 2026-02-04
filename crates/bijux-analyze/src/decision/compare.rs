@@ -120,7 +120,7 @@ fn regression_risk_for(deltas: &JsonBlob) -> RegressionRisk {
             .unwrap_or("HigherBetter");
         let epsilon = 1e-9_f64;
         if delta.abs() <= epsilon {
-            unchanged.push(metric.to_string());
+            unchanged.push(metric.clone());
             continue;
         }
         let is_worse = match direction {
@@ -128,9 +128,9 @@ fn regression_risk_for(deltas: &JsonBlob) -> RegressionRisk {
             _ => delta < 0.0,
         };
         if is_worse {
-            worsened.push(metric.to_string());
+            worsened.push(metric.clone());
         } else {
-            improved.push(metric.to_string());
+            improved.push(metric.clone());
         }
     }
     worsened.sort();

@@ -5,9 +5,9 @@ use std::time::Instant;
 use anyhow::Result;
 use bijux_analyze::{load::load_facts, report::write_run_report_from_facts};
 
-fn fixture_root() -> Result<PathBuf> {
+fn fixture_root() -> PathBuf {
     let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    Ok(manifest_dir.join("tests").join("fixtures").join("report"))
+    manifest_dir.join("tests").join("fixtures").join("report")
 }
 
 #[test]
@@ -15,7 +15,7 @@ fn report_build_is_within_budget() -> Result<()> {
     if std::env::var("BIJUX_PERF_SKIP").is_ok() {
         return Ok(());
     }
-    let root = fixture_root()?;
+    let root = fixture_root();
     let facts_path = root.join("happy").join("facts.jsonl");
     let facts = load_facts(&facts_path).map_err(|err| anyhow::anyhow!(err.to_string()))?;
     let output_dir = root.join("perf_budget");

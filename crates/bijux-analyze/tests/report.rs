@@ -8,9 +8,9 @@ use bijux_core::{
     ToolConstraints, ToolInvocationV1,
 };
 
-fn fixture_root() -> Result<PathBuf> {
+fn fixture_root() -> PathBuf {
     let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    Ok(manifest_dir.join("tests").join("fixtures").join("report"))
+    manifest_dir.join("tests").join("fixtures").join("report")
 }
 
 fn write_report_fixture(
@@ -226,7 +226,7 @@ fn base_reports(root: &std::path::Path) -> Result<(PathBuf, PathBuf, PathBuf)> {
 #[test]
 #[allow(clippy::too_many_lines)]
 fn golden_run_report_snapshot_happy_path() -> Result<()> {
-    let root = fixture_root()?;
+    let root = fixture_root();
     bijux_infra::ensure_dir(&root)?;
     let (stage_report_path, retention_report_path, bank_report_path) = base_reports(&root)?;
 
@@ -280,7 +280,7 @@ fn golden_run_report_snapshot_happy_path() -> Result<()> {
 
 #[test]
 fn report_includes_sections_block() -> Result<()> {
-    let root = fixture_root()?;
+    let root = fixture_root();
     let (stage_report_path, retention_report_path, bank_report_path) = base_reports(&root)?;
     let rows = vec![FactsRowV1 {
         schema_version: "bijux.facts.v1".to_string(),
@@ -338,7 +338,7 @@ fn report_includes_sections_block() -> Result<()> {
 
 #[test]
 fn golden_run_report_snapshot_tool_failure() -> Result<()> {
-    let root = fixture_root()?;
+    let root = fixture_root();
     let (stage_report_path, _, _) = base_reports(&root)?;
     let rows = vec![FactsRowV1 {
         schema_version: "bijux.facts.v1".to_string(),
@@ -375,7 +375,7 @@ fn golden_run_report_snapshot_tool_failure() -> Result<()> {
 
 #[test]
 fn golden_run_report_snapshot_missing_metrics() -> Result<()> {
-    let root = fixture_root()?;
+    let root = fixture_root();
     let (stage_report_path, _, _) = base_reports(&root)?;
     let rows = vec![FactsRowV1 {
         schema_version: "bijux.facts.v1".to_string(),
@@ -412,7 +412,7 @@ fn golden_run_report_snapshot_missing_metrics() -> Result<()> {
 
 #[test]
 fn report_provenance_is_complete() -> Result<()> {
-    let root = fixture_root()?;
+    let root = fixture_root();
     let (stage_report_path, retention_report_path, bank_report_path) = base_reports(&root)?;
     let rows = vec![FactsRowV1 {
         schema_version: "bijux.facts.v1".to_string(),

@@ -3,9 +3,9 @@
 
 use std::path::Path;
 
+use anyhow::{anyhow, Result};
 use rusqlite::Connection;
 use serde::de::DeserializeOwned;
-use anyhow::{anyhow, Result};
 
 mod queries;
 mod rows;
