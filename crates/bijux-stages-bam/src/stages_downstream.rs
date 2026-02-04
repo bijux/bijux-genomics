@@ -42,6 +42,7 @@ pub mod haplogroups {
                 serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
             )?,
             aux_images: std::collections::BTreeMap::new(),
+            reason: bijux_core::PlanDecisionReason::default(),
         };
         crate::stages_support::ensure_required_outputs(
             plan,
@@ -95,6 +96,7 @@ pub mod genotyping {
                 serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
             )?,
             aux_images: std::collections::BTreeMap::new(),
+            reason: bijux_core::PlanDecisionReason::default(),
         };
         crate::stages_support::ensure_required_outputs(
             plan,
@@ -147,6 +149,7 @@ pub mod kinship {
                 serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
             )?,
             aux_images: std::collections::BTreeMap::new(),
+            reason: bijux_core::PlanDecisionReason::default(),
         };
         crate::stages_support::ensure_required_outputs(
             plan,
@@ -201,6 +204,7 @@ pub mod bias_mitigation {
                 serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
             )?,
             aux_images: std::collections::BTreeMap::new(),
+            reason: bijux_core::PlanDecisionReason::default(),
         };
         crate::stages_support::ensure_required_outputs(
             plan,

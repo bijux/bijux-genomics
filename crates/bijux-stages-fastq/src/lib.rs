@@ -149,8 +149,6 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> anyhow::Result<StagePlanV1> 
                 r1: r1.to_path_buf(),
                 r2: request.r2.map(|path| path.to_path_buf()),
                 pipeline: pipeline.clone(),
-                merge_decision: None,
-                correct_decision: None,
                 enable_contaminant_removal: request.enable_contaminant_removal,
             };
             Ok(stages_pre::preprocess_plan::plan_preprocess_stage(
@@ -163,41 +161,4 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> anyhow::Result<StagePlanV1> 
             request.stage_id
         )),
     }
-}
-
-/// # Errors
-/// Returns an error if the pipeline cannot be planned with the provided inputs.
-#[allow(clippy::too_many_arguments)]
-pub fn plan_pipeline<F>(
-    stages: &[String],
-    tools: &[bijux_core::ToolExecutionSpecV1],
-    aux_images: &std::collections::BTreeMap<String, bijux_core::ContainerImageRefV1>,
-    adapter_bank: Option<&serde_json::Value>,
-    polyx_bank: Option<&serde_json::Value>,
-    contaminant_bank: Option<&serde_json::Value>,
-    enable_contaminant_removal: bool,
-    r1: &std::path::Path,
-    r2: Option<&std::path::Path>,
-    out_dir_for_stage: F,
-) -> anyhow::Result<Vec<StagePlanV1>>
-where
-    F: FnMut(
-        &str,
-        &bijux_core::ToolExecutionSpecV1,
-        &std::path::Path,
-        Option<&std::path::Path>,
-    ) -> anyhow::Result<std::path::PathBuf>,
-{
-    stages_pre::preprocess_pipeline::plan_preprocess_pipeline(
-        stages,
-        tools,
-        aux_images,
-        adapter_bank,
-        polyx_bank,
-        contaminant_bank,
-        enable_contaminant_removal,
-        r1,
-        r2,
-        out_dir_for_stage,
-    )
 }

@@ -324,8 +324,6 @@ fn preprocess_emits_telemetry_events() -> Result<()> {
         r1: r1.clone(),
         r2: None,
         pipeline,
-        merge_decision: None,
-        correct_decision: None,
         enable_contaminant_removal: false,
     };
     let tool = dummy_tool("fastp", &test_image());

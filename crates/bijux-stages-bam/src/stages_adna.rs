@@ -52,6 +52,7 @@ pub mod damage {
                 serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
             )?,
             aux_images: std::collections::BTreeMap::new(),
+            reason: bijux_core::PlanDecisionReason::default(),
         };
         crate::stages_support::ensure_required_outputs(
             plan,
@@ -105,6 +106,7 @@ pub mod authenticity {
                 serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
             )?,
             aux_images: std::collections::BTreeMap::new(),
+            reason: bijux_core::PlanDecisionReason::default(),
         };
         crate::stages_support::ensure_required_outputs(
             plan,
@@ -170,6 +172,7 @@ pub mod contamination {
                 serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
             )?,
             aux_images: std::collections::BTreeMap::new(),
+            reason: bijux_core::PlanDecisionReason::default(),
         };
         crate::stages_support::ensure_required_outputs(
             plan,
@@ -226,6 +229,7 @@ pub mod sex {
                 serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
             )?,
             aux_images: std::collections::BTreeMap::new(),
+            reason: bijux_core::PlanDecisionReason::default(),
         };
         crate::stages_support::ensure_required_outputs(
             plan,

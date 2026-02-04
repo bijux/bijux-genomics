@@ -265,12 +265,3 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> anyhow::Result<StagePlanV1> 
         }
     }
 }
-
-/// # Errors
-/// Returns an error because BAM pipeline planning is not implemented yet.
-pub fn plan_pipeline(
-    _stages: &[String],
-    _tools: &[bijux_core::ToolExecutionSpecV1],
-) -> anyhow::Result<Vec<StagePlanV1>> {
-    Err(anyhow::anyhow!("bam pipeline planning is not implemented"))
-}

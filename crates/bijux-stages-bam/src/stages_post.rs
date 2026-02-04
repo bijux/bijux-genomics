@@ -73,6 +73,7 @@ pub mod markdup {
                 serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
             )?,
             aux_images: std::collections::BTreeMap::new(),
+            reason: bijux_core::PlanDecisionReason::default(),
         };
         crate::stages_support::ensure_required_outputs(
             plan,
@@ -134,6 +135,7 @@ pub mod complexity {
                 serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
             )?,
             aux_images: std::collections::BTreeMap::new(),
+            reason: bijux_core::PlanDecisionReason::default(),
         };
         crate::stages_support::ensure_required_outputs(
             plan,
@@ -201,6 +203,7 @@ pub mod coverage {
                 serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
             )?,
             aux_images: std::collections::BTreeMap::new(),
+            reason: bijux_core::PlanDecisionReason::default(),
         };
         crate::stages_support::ensure_required_outputs(plan, &["coverage_summary", "stage_metrics"])
     }
@@ -253,6 +256,7 @@ pub mod recalibration {
                 serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
             )?,
             aux_images: std::collections::BTreeMap::new(),
+            reason: bijux_core::PlanDecisionReason::default(),
         };
         crate::stages_support::ensure_required_outputs(
             plan,

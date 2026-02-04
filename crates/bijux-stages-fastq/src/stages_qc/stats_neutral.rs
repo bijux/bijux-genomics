@@ -34,7 +34,10 @@ pub fn plan_stats_neutral(
                 name: "reads_r1".to_string(),
                 path: r1.to_path_buf(),
             }],
-            outputs: Vec::new(),
+            outputs: vec![ArtifactRef {
+                name: "stats_json".to_string(),
+                path: out_dir.join("stats.json"),
+            }],
         },
         out_dir: out_dir.to_path_buf(),
         params: serde_json::json!({
@@ -45,5 +48,6 @@ pub fn plan_stats_neutral(
         effective_params: serde_json::to_value(&effective_params)
             .expect("serialize stats_neutral effective params"),
         aux_images: std::collections::BTreeMap::new(),
+        reason: bijux_core::PlanDecisionReason::default(),
     })
 }

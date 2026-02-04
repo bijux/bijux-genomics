@@ -180,7 +180,7 @@ fn preprocess_plan_json_is_emitted_and_stable() -> Result<()> {
         force_merge: false,
         enable_correct: false,
     };
-    let decisions = bijux_stages_fastq::fastq::preprocess::preprocess_decisions(&args);
+    let _ = bijux_planner_fastq::preprocess_decisions(&args);
     let pipeline = bijux_core::domain::PipelineSpec {
         stages: vec![
             "fastq.validate_pre".to_string(),
@@ -191,7 +191,7 @@ fn preprocess_plan_json_is_emitted_and_stable() -> Result<()> {
             "fastq.qc_post".to_string(),
         ],
     };
-    let plan = bijux_stages_fastq::fastq::preprocess::plan_preprocess(&args, pipeline, decisions);
+    let plan = bijux_planner_fastq::plan_preprocess(&args, pipeline);
     let plan = bijux_stages_fastq::fastq::preprocess::plan_preprocess_stage(
         &plan,
         &dummy_tool("pipeline"),
