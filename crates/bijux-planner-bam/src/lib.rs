@@ -1,6 +1,13 @@
-use anyhow::Result;
+use std::collections::BTreeMap;
+use std::path::PathBuf;
+
+use anyhow::{anyhow, Result};
 use bijux_core::execution_plan::{default_edges_for_stages, ExecutionPlan, PlanPolicy};
+use bijux_core::{PlanExplainStageV1, PlanExplainV1};
 use bijux_core::StagePlanV1;
+use bijux_pipelines::bam::{bam_adna_capture_profile, bam_adna_shotgun_profile};
+use bijux_pipelines::PipelineProfile;
+use bijux_stages_bam::StagePlanRequest;
 
 pub const PLANNER_VERSION: &str = "bijux-planner-bam.v1";
 
@@ -25,5 +32,122 @@ impl BamPlanner {
             config.stages.clone(),
             edges,
         )
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct BamPipelineInputs {
+    pub policy: PlanPolicy,
+    pub tool_specs: BTreeMap<String, bijux_core::ToolExecutionSpecV1>,
+    pub params_overrides: BTreeMap<String, serde_json::Value>,
+    pub bam: PathBuf,
+    pub bam_index: Option<PathBuf>,
+    pub reference: Option<PathBuf>,
+    pub sample_id: Option<String>,
+    pub out_dir: PathBuf,
+}
+
+/// # Errors
+/// Returns an error if pipeline planning fails.
+#[allow(non_snake_case)]
+pub fn plan_bam_to_bam__adna_shotgun__v1(inputs: &BamPipelineInputs) -> Result<ExecutionPlan> {
+    let profile = bam_adna_shotgun_profile();
+    build_bam_plan(&profile, inputs)
+}
+
+/// # Errors
+/// Returns an error if pipeline planning fails.
+#[allow(non_snake_case)]
+pub fn plan_bam_to_bam__adna_capture__v1(inputs: &BamPipelineInputs) -> Result<ExecutionPlan> {
+    let profile = bam_adna_capture_profile();
+    build_bam_plan(&profile, inputs)
+}
+
+fn build_bam_plan(profile: &PipelineProfile, inputs: &BamPipelineInputs) -> Result<ExecutionPlan> {
+    let mut bam = inputs.bam.clone();
+    let mut bam_index = inputs.bam_index.clone();
+    let mut stages = Vec::new();
+    for node in &profile.graph {
+        let stage_id = node.stage_id.as_str();
+        let tool = inputs
+            .tool_specs
+            .get(stage_id)
+            .ok_or_else(|| anyhow!("missing tool spec for stage {stage_id}"))?;
+        let params = inputs
+            .params_overrides
+            .get(stage_id)
+            .or_else(|| profile.defaults.params.get(stage_id));
+        let stage_dir = inputs.out_dir.join(stage_id.replace('.', "_"));
+        let plan = bijux_stages_bam::plan_stage(StagePlanRequest {
+            stage_id,
+            tool,
+            out_dir: &stage_dir,
+            bam: Some(&bam),
+            bam_index: bam_index.as_deref(),
+            r1: None,
+            r2: None,
+            reference: inputs.reference.as_deref(),
+            sample_id: inputs.sample_id.as_deref(),
+            params,
+        })?;
+        let next_bam = plan
+            .io
+            .outputs
+            .iter()
+            .find(|output| output.path.extension().is_some_and(|ext| ext == "bam"))
+            .map(|output| output.path.clone());
+        let next_bai = plan
+            .io
+            .outputs
+            .iter()
+            .find(|output| output.path.extension().is_some_and(|ext| ext == "bai"))
+            .map(|output| output.path.clone());
+        if let Some(path) = next_bam {
+            bam = path;
+        }
+        if let Some(path) = next_bai {
+            bam_index = Some(path);
+        }
+        stages.push(plan);
+    }
+    let edges = default_edges_for_stages(&stages);
+    ExecutionPlan::new(
+        profile.id.as_str(),
+        PLANNER_VERSION,
+        inputs.policy,
+        stages,
+        edges,
+    )
+}
+
+#[must_use]
+pub fn explain_plan(plan: &ExecutionPlan) -> PlanExplainV1 {
+    let stages = plan
+        .stages()
+        .iter()
+        .map(|stage| PlanExplainStageV1 {
+            stage_id: stage.stage_id.0.clone(),
+            tool_id: stage.tool_id.0.clone(),
+            tool_version: stage.tool_version.clone(),
+            image: stage.image.digest.clone().or_else(|| {
+                if stage.image.image.is_empty() {
+                    None
+                } else {
+                    Some(stage.image.image.clone())
+                }
+            }),
+            reason: stage.reason.clone(),
+            parameters_json: stage.params.clone(),
+            effective_parameters_json: stage.effective_params.clone(),
+            inputs: stage.io.inputs.clone(),
+            outputs: stage.io.outputs.clone(),
+        })
+        .collect();
+    PlanExplainV1 {
+        schema_version: "bijux.plan_explain.v1".to_string(),
+        pipeline_id: plan.pipeline_id().to_string(),
+        planner_version: plan.planner_version().to_string(),
+        policy: plan.policy(),
+        stages,
     }
 }

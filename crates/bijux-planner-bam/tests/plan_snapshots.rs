@@ -5,7 +5,11 @@ use bijux_core::execution_plan::PlanPolicy;
 use bijux_core::{
     CommandSpecV1, ContainerImageRefV1, StageId, StagePlanV1, StageVersion, ToolConstraints, ToolId,
 };
-use bijux_planner_bam::{BamPlanConfig, BamPlanner};
+use bijux_planner_bam::{
+    plan_bam_to_bam__adna_capture__v1, plan_bam_to_bam__adna_shotgun__v1, BamPipelineInputs,
+    BamPlanConfig, BamPlanner,
+};
+use bijux_pipelines::bam::{bam_adna_capture_profile, bam_adna_shotgun_profile};
 
 fn plan_for(stage_id: &str, tool_id: &str) -> StagePlanV1 {
     StagePlanV1 {
@@ -40,6 +44,7 @@ fn plan_for(stage_id: &str, tool_id: &str) -> StagePlanV1 {
         params: serde_json::json!({"sample_id":"s1"}),
         effective_params: serde_json::json!({}),
         aux_images: BTreeMap::new(),
+        reason: bijux_core::PlanDecisionReason::default(),
     }
 }
 
@@ -57,4 +62,86 @@ fn bam_planner_plan_snapshot() {
     let plan = BamPlanner::plan(&config).expect("plan");
     let json = serde_json::to_value(&plan).expect("serialize");
     insta::assert_json_snapshot!(json);
+}
+
+#[test]
+fn adna_shotgun_plan_snapshot_is_stable() {
+    let profile = bam_adna_shotgun_profile();
+    let mut tool_specs = BTreeMap::new();
+    for node in &profile.graph {
+        let stage_id = node.stage_id.clone();
+        tool_specs.insert(
+            stage_id.clone(),
+            bijux_core::ToolExecutionSpecV1 {
+                tool_id: ToolId(format!("{stage_id}.tool")),
+                tool_version: "0.0.0".to_string(),
+                image: ContainerImageRefV1 {
+                    image: "bijux/test".to_string(),
+                    digest: Some("sha256:bam".to_string()),
+                },
+                command: CommandSpecV1 {
+                    template: vec!["echo".to_string()],
+                },
+                resources: ToolConstraints {
+                    runtime: "docker".to_string(),
+                    mem_gb: 1,
+                    tmp_gb: 1,
+                    threads: 1,
+                },
+            },
+        );
+    }
+    let inputs = BamPipelineInputs {
+        policy: PlanPolicy::PreferAccuracy,
+        tool_specs,
+        params_overrides: BTreeMap::new(),
+        bam: PathBuf::from("input.bam"),
+        bam_index: Some(PathBuf::from("input.bam.bai")),
+        reference: Some(PathBuf::from("ref.fa")),
+        sample_id: Some("sample".to_string()),
+        out_dir: PathBuf::from("out"),
+    };
+    let plan = plan_bam_to_bam__adna_shotgun__v1(&inputs).expect("plan");
+    insta::assert_json_snapshot!("bam_adna_shotgun_plan", plan);
+}
+
+#[test]
+fn adna_capture_plan_snapshot_is_stable() {
+    let profile = bam_adna_capture_profile();
+    let mut tool_specs = BTreeMap::new();
+    for node in &profile.graph {
+        let stage_id = node.stage_id.clone();
+        tool_specs.insert(
+            stage_id.clone(),
+            bijux_core::ToolExecutionSpecV1 {
+                tool_id: ToolId(format!("{stage_id}.tool")),
+                tool_version: "0.0.0".to_string(),
+                image: ContainerImageRefV1 {
+                    image: "bijux/test".to_string(),
+                    digest: Some("sha256:bam".to_string()),
+                },
+                command: CommandSpecV1 {
+                    template: vec!["echo".to_string()],
+                },
+                resources: ToolConstraints {
+                    runtime: "docker".to_string(),
+                    mem_gb: 1,
+                    tmp_gb: 1,
+                    threads: 1,
+                },
+            },
+        );
+    }
+    let inputs = BamPipelineInputs {
+        policy: PlanPolicy::PreferAccuracy,
+        tool_specs,
+        params_overrides: BTreeMap::new(),
+        bam: PathBuf::from("input.bam"),
+        bam_index: Some(PathBuf::from("input.bam.bai")),
+        reference: Some(PathBuf::from("ref.fa")),
+        sample_id: Some("sample".to_string()),
+        out_dir: PathBuf::from("out"),
+    };
+    let plan = plan_bam_to_bam__adna_capture__v1(&inputs).expect("plan");
+    insta::assert_json_snapshot!("bam_adna_capture_plan", plan);
 }

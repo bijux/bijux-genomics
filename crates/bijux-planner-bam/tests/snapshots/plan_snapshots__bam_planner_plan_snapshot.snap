@@ -1,0 +1,110 @@
+---
+source: crates/bijux-planner-bam/tests/plan_snapshots.rs
+expression: json
+---
+{
+  "edges": [
+    {
+      "from": "bam.qc_pre",
+      "to": "bam.qc_post"
+    }
+  ],
+  "pipeline_id": "bam.qc.v1",
+  "planner_version": "bijux-planner-bam.v1",
+  "policy": "prefer_accuracy",
+  "schema_version": "bijux.execution_plan.v1",
+  "stages": [
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "mosdepth"
+        ]
+      },
+      "effective_params": {},
+      "image": {
+        "digest": null,
+        "image": "mosdepth:latest"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "input",
+            "path": "input.bam"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "output",
+            "path": "output.bam"
+          }
+        ]
+      },
+      "out_dir": "out",
+      "params": {
+        "sample_id": "s1"
+      },
+      "reason": {
+        "details": {},
+        "kind": "default",
+        "summary": "planner default"
+      },
+      "resources": {
+        "mem_gb": 1,
+        "runtime": "docker",
+        "threads": 1,
+        "tmp_gb": 1
+      },
+      "stage_id": "bam.qc_post",
+      "stage_version": 1,
+      "tool_id": "mosdepth",
+      "tool_version": "0.0.0"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "samtools"
+        ]
+      },
+      "effective_params": {},
+      "image": {
+        "digest": null,
+        "image": "samtools:latest"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "input",
+            "path": "input.bam"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "output",
+            "path": "output.bam"
+          }
+        ]
+      },
+      "out_dir": "out",
+      "params": {
+        "sample_id": "s1"
+      },
+      "reason": {
+        "details": {},
+        "kind": "default",
+        "summary": "planner default"
+      },
+      "resources": {
+        "mem_gb": 1,
+        "runtime": "docker",
+        "threads": 1,
+        "tmp_gb": 1
+      },
+      "stage_id": "bam.qc_pre",
+      "stage_version": 1,
+      "tool_id": "samtools",
+      "tool_version": "0.0.0"
+    }
+  ]
+}

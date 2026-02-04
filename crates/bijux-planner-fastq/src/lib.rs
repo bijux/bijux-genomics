@@ -4,7 +4,13 @@ use std::path::PathBuf;
 use anyhow::{anyhow, Result};
 use bijux_core::domain::PipelineSpec;
 use bijux_core::execution_plan::{default_edges_for_stages, ExecutionPlan, PlanPolicy};
-use bijux_core::{ContainerImageRefV1, ToolExecutionSpecV1};
+use bijux_core::input_assessment::{assess_input_dir, FastqLayout};
+use bijux_core::{
+    ContainerImageRefV1, PlanDecisionReason, PlanReasonKind, StagePlanV1, ToolExecutionSpecV1,
+};
+use bijux_core::{PlanExplainStageV1, PlanExplainV1};
+use bijux_domain_fastq::assess_merge_suitability;
+use bijux_pipelines::fastq::canonical_tool_defaults;
 
 pub const PLANNER_VERSION: &str = "bijux-planner-fastq.v1";
 
@@ -111,6 +117,242 @@ pub fn apply_preprocess_policy(
 }
 
 #[derive(Debug, Clone)]
+pub struct PreprocessDecisions {
+    pub enable_merge: bool,
+    pub enable_correct: bool,
+    pub merge_decision: Option<MergeDecisionTrace>,
+    pub correct_decision: Option<CorrectDecisionTrace>,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct MergeDecisionTrace {
+    pub enabled: bool,
+    pub suitable: bool,
+    pub forced: bool,
+    pub reason: String,
+    pub r1_mean_len: Option<usize>,
+    pub r2_mean_len: Option<usize>,
+    pub predicted_merge_rate: Option<f64>,
+    pub probe_pairs: Option<usize>,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct CorrectDecisionTrace {
+    pub enabled: bool,
+    pub auto_enabled: bool,
+    pub reason: String,
+    pub mean_q_estimate: Option<f64>,
+}
+
+#[must_use]
+pub fn preprocess_decisions(
+    args: &bijux_stages_fastq::args::BenchFastqPreprocessArgs,
+) -> PreprocessDecisions {
+    let mut merge_decision = None;
+    let enable_merge = if let Some(r2) = args.r2.as_ref() {
+        if args.force_merge {
+            merge_decision = Some(MergeDecisionTrace {
+                enabled: true,
+                suitable: true,
+                forced: true,
+                reason: "merge forced by flag".to_string(),
+                r1_mean_len: None,
+                r2_mean_len: None,
+                predicted_merge_rate: None,
+                probe_pairs: None,
+            });
+            true
+        } else {
+            match assess_merge_suitability(&args.r1, r2) {
+                Ok(suitability) => {
+                    let enabled = suitability.suitable;
+                    merge_decision = Some(MergeDecisionTrace {
+                        enabled,
+                        suitable: suitability.suitable,
+                        forced: false,
+                        reason: suitability.reason,
+                        r1_mean_len: suitability.r1_mean_len,
+                        r2_mean_len: suitability.r2_mean_len,
+                        predicted_merge_rate: suitability.predicted_merge_rate,
+                        probe_pairs: suitability.probe_pairs,
+                    });
+                    enabled
+                }
+                Err(err) => {
+                    merge_decision = Some(MergeDecisionTrace {
+                        enabled: false,
+                        suitable: false,
+                        forced: false,
+                        reason: format!("merge suitability check failed: {err}"),
+                        r1_mean_len: None,
+                        r2_mean_len: None,
+                        predicted_merge_rate: None,
+                        probe_pairs: None,
+                    });
+                    false
+                }
+            }
+        }
+    } else {
+        false
+    };
+    let mut enable_merge = enable_merge;
+    if enable_merge {
+        if let Some(parent) = args.r1.parent() {
+            if let Ok(assessment) = assess_input_dir(parent) {
+                let paired = assessment
+                    .samples
+                    .iter()
+                    .any(|sample| sample.id.layout == FastqLayout::PairedEnd);
+                if !paired {
+                    enable_merge = false;
+                    merge_decision = Some(MergeDecisionTrace {
+                        enabled: false,
+                        suitable: false,
+                        forced: false,
+                        reason: "input assessment indicates single-end reads".to_string(),
+                        r1_mean_len: None,
+                        r2_mean_len: None,
+                        predicted_merge_rate: None,
+                        probe_pairs: None,
+                    });
+                }
+            }
+        }
+    }
+
+    let mut correct_decision = None;
+    let mut enable_correct = args.enable_correct;
+    if !enable_correct && args.r2.is_some() {
+        let thresholds = bijux_domain_fastq::thresholds_from_env();
+        if let Ok(mean_q) = estimate_mean_q(&args.r1, 256) {
+            if mean_q < thresholds.mean_q_warn {
+                enable_correct = true;
+                correct_decision = Some(CorrectDecisionTrace {
+                    enabled: true,
+                    auto_enabled: true,
+                    reason: format!(
+                        "mean_q estimate {:.2} below warn threshold {:.2}",
+                        mean_q, thresholds.mean_q_warn
+                    ),
+                    mean_q_estimate: Some(mean_q),
+                });
+            } else {
+                correct_decision = Some(CorrectDecisionTrace {
+                    enabled: false,
+                    auto_enabled: false,
+                    reason: "mean_q estimate within expected range".to_string(),
+                    mean_q_estimate: Some(mean_q),
+                });
+            }
+        }
+    } else if enable_correct {
+        correct_decision = Some(CorrectDecisionTrace {
+            enabled: true,
+            auto_enabled: false,
+            reason: "error correction enabled by user flag".to_string(),
+            mean_q_estimate: None,
+        });
+    }
+    PreprocessDecisions {
+        enable_merge,
+        enable_correct,
+        merge_decision,
+        correct_decision,
+    }
+}
+
+#[must_use]
+pub fn plan_preprocess(
+    args: &bijux_stages_fastq::args::BenchFastqPreprocessArgs,
+    pipeline: PipelineSpec,
+) -> bijux_stages_fastq::fastq::preprocess::PreprocessPlan {
+    bijux_stages_fastq::fastq::preprocess::PreprocessPlan {
+        r1: args.r1.clone(),
+        r2: args.r2.clone(),
+        pipeline,
+        enable_contaminant_removal: args.enable_contaminant_removal,
+    }
+}
+
+#[must_use]
+pub fn resolve_preprocess_pipeline(
+    args: &bijux_stages_fastq::args::BenchFastqPreprocessArgs,
+    decisions: &PreprocessDecisions,
+) -> PipelineSpec {
+    let enable_merge = decisions.enable_merge;
+    let enable_correct = decisions.enable_correct;
+    let enable_qc_post = !args.no_qc_post;
+    let enable_screen = args.contaminant_preset.is_some();
+    if let Some(profile_id) = args.profile.as_deref() {
+        match bijux_pipelines::registry::profile_by_id(bijux_pipelines::Domain::Fastq, profile_id) {
+            Ok(profile) => {
+                let mut stages: Vec<String> = profile
+                    .graph
+                    .into_iter()
+                    .map(|node| node.stage_id)
+                    .collect();
+                if !enable_merge {
+                    stages.retain(|stage| stage != "fastq.merge");
+                }
+                if !enable_correct {
+                    stages.retain(|stage| stage != "fastq.correct");
+                }
+                if !enable_qc_post {
+                    stages.retain(|stage| stage != "fastq.qc_post");
+                }
+                if !enable_screen {
+                    stages.retain(|stage| stage != "fastq.screen");
+                }
+                PipelineSpec { stages }
+            }
+            Err(err) => {
+                eprintln!("unknown fastq profile {profile_id}: {err}; using default pipeline");
+                default_pipeline_spec(DefaultPipelineOptions {
+                    paired: args.r2.is_some(),
+                    enable_merge,
+                    enable_correct,
+                    enable_qc_post,
+                    enable_screen,
+                })
+            }
+        }
+    } else {
+        default_pipeline_spec(DefaultPipelineOptions {
+            paired: args.r2.is_some(),
+            enable_merge,
+            enable_correct,
+            enable_qc_post,
+            enable_screen,
+        })
+    }
+}
+
+fn estimate_mean_q(path: &std::path::Path, max_records: usize) -> anyhow::Result<f64> {
+    let raw = std::fs::read_to_string(path)?;
+    let mut total = 0.0;
+    let mut count = 0_u64;
+    for (idx, line) in raw.lines().enumerate() {
+        if idx % 4 == 3 {
+            for byte in line.as_bytes() {
+                let score = (*byte as i32 - 33).max(0) as f64;
+                total += score;
+                count += 1;
+            }
+            if (idx / 4) + 1 >= max_records {
+                break;
+            }
+        }
+    }
+    if count == 0 {
+        return Ok(0.0);
+    }
+    Ok(total / count as f64)
+}
+
+#[derive(Debug, Clone)]
 pub struct FastqPlanConfig {
     pub pipeline_id: String,
     pub policy: PlanPolicy,
@@ -124,6 +366,7 @@ pub struct FastqPlanConfig {
     pub r1: PathBuf,
     pub r2: Option<PathBuf>,
     pub out_dir: PathBuf,
+    pub tool_reasons: Option<Vec<PlanDecisionReason>>,
 }
 
 pub struct FastqPlanner;
@@ -140,10 +383,11 @@ impl FastqPlanner {
             ));
         }
         let out_dir = config.out_dir.clone();
-        let plans = bijux_stages_fastq::fastq::preprocess::plan_preprocess_pipeline(
+        let plans = plan_preprocess_pipeline(
             &config.stages,
             &config.tools,
             &config.aux_images,
+            config.tool_reasons.as_deref(),
             config.adapter_bank.as_ref(),
             config.polyx_bank.as_ref(),
             config.contaminant_bank.as_ref(),
@@ -164,6 +408,342 @@ impl FastqPlanner {
             edges,
         )
     }
+}
+
+#[derive(Debug, Clone)]
+pub struct FastqPipelineInputs {
+    pub policy: PlanPolicy,
+    pub tools: Vec<ToolExecutionSpecV1>,
+    pub aux_images: BTreeMap<String, ContainerImageRefV1>,
+    pub adapter_bank: Option<serde_json::Value>,
+    pub polyx_bank: Option<serde_json::Value>,
+    pub contaminant_bank: Option<serde_json::Value>,
+    pub enable_contaminant_removal: bool,
+    pub r1: PathBuf,
+    pub r2: Option<PathBuf>,
+    pub out_dir: PathBuf,
+    pub tool_reasons: Option<Vec<PlanDecisionReason>>,
+}
+
+/// # Errors
+/// Returns an error if planning fails.
+#[allow(non_snake_case)]
+pub fn plan_fastq_to_fastq__default__v1(
+    inputs: &FastqPipelineInputs,
+    options: DefaultPipelineOptions,
+) -> Result<ExecutionPlan> {
+    let pipeline = default_pipeline_spec(options);
+    let config = FastqPlanConfig {
+        pipeline_id: "fastq-to-fastq__default__v1".to_string(),
+        policy: inputs.policy,
+        stages: pipeline.stages,
+        tools: inputs.tools.clone(),
+        aux_images: inputs.aux_images.clone(),
+        adapter_bank: inputs.adapter_bank.clone(),
+        polyx_bank: inputs.polyx_bank.clone(),
+        contaminant_bank: inputs.contaminant_bank.clone(),
+        enable_contaminant_removal: inputs.enable_contaminant_removal,
+        r1: inputs.r1.clone(),
+        r2: inputs.r2.clone(),
+        out_dir: inputs.out_dir.clone(),
+        tool_reasons: inputs.tool_reasons.clone(),
+    };
+    FastqPlanner::plan(&config)
+}
+
+/// # Errors
+/// Returns an error if planning fails.
+#[allow(non_snake_case)]
+pub fn plan_fastq_to_bam__default__v1(
+    stages: Vec<StagePlanV1>,
+    policy: PlanPolicy,
+) -> Result<ExecutionPlan> {
+    let edges = default_edges_for_stages(&stages);
+    ExecutionPlan::new(
+        "fastq-to-bam__default__v1",
+        PLANNER_VERSION,
+        policy,
+        stages,
+        edges,
+    )
+}
+
+#[must_use]
+pub fn explain_plan(plan: &ExecutionPlan) -> PlanExplainV1 {
+    let stages = plan
+        .stages()
+        .iter()
+        .map(|stage| PlanExplainStageV1 {
+            stage_id: stage.stage_id.0.clone(),
+            tool_id: stage.tool_id.0.clone(),
+            tool_version: stage.tool_version.clone(),
+            image: stage.image.digest.clone().or_else(|| {
+                if stage.image.image.is_empty() {
+                    None
+                } else {
+                    Some(stage.image.image.clone())
+                }
+            }),
+            reason: stage.reason.clone(),
+            parameters_json: stage.params.clone(),
+            effective_parameters_json: stage.effective_params.clone(),
+            inputs: stage.io.inputs.clone(),
+            outputs: stage.io.outputs.clone(),
+        })
+        .collect();
+    PlanExplainV1 {
+        schema_version: "bijux.plan_explain.v1".to_string(),
+        pipeline_id: plan.pipeline_id().to_string(),
+        planner_version: plan.planner_version().to_string(),
+        policy: plan.policy(),
+        stages,
+    }
+}
+
+#[allow(clippy::too_many_arguments, clippy::too_many_lines)]
+pub fn plan_preprocess_pipeline<F>(
+    stages: &[String],
+    tools: &[ToolExecutionSpecV1],
+    aux_images: &BTreeMap<String, ContainerImageRefV1>,
+    tool_reasons: Option<&[PlanDecisionReason]>,
+    adapter_bank: Option<&serde_json::Value>,
+    polyx_bank: Option<&serde_json::Value>,
+    contaminant_bank: Option<&serde_json::Value>,
+    enable_contaminant_removal: bool,
+    r1: &std::path::Path,
+    r2: Option<&std::path::Path>,
+    mut out_dir_for_stage: F,
+) -> Result<Vec<bijux_core::StagePlanV1>>
+where
+    F: FnMut(
+        &str,
+        &ToolExecutionSpecV1,
+        &std::path::Path,
+        Option<&std::path::Path>,
+    ) -> Result<PathBuf>,
+{
+    if stages.len() != tools.len() {
+        return Err(anyhow!(
+            "pipeline stages/tools length mismatch: {} vs {}",
+            stages.len(),
+            tools.len()
+        ));
+    }
+    let mut current_r1 = r1.to_path_buf();
+    let raw_r1 = r1.to_path_buf();
+    let mut current_r2 = r2.map(|path| path.to_path_buf());
+    let mut plans = Vec::new();
+    for (idx, (stage, tool)) in stages.iter().zip(tools.iter()).enumerate() {
+        let out_dir = out_dir_for_stage(stage, tool, &current_r1, current_r2.as_deref())?;
+        let stage_id: &str = stage;
+        let (plan, next_r1, next_r2) = match stage_id {
+            "fastq.detect_adapters" => {
+                let plan =
+                    bijux_stages_fastq::fastq::detect_adapters::plan(tool, &current_r1, &out_dir);
+                (plan, current_r1.clone(), current_r2.clone())
+            }
+            "fastq.trim" => {
+                let plan = bijux_stages_fastq::fastq::trim::plan(
+                    tool,
+                    &current_r1,
+                    &out_dir,
+                    adapter_bank,
+                    polyx_bank,
+                    contaminant_bank,
+                )?;
+                let next_r1 = plan.io.outputs[0].path.clone();
+                (plan, next_r1, None)
+            }
+            "fastq.filter" => {
+                let mut filter_options =
+                    bijux_stages_fastq::fastq::filter::FilterPlanOptions::default();
+                if adapter_bank.is_some() {
+                    filter_options.redundant_filters.push("adapter".to_string());
+                }
+                if polyx_bank.is_some() {
+                    filter_options.redundant_filters.push("polyx".to_string());
+                }
+                if enable_contaminant_removal && contaminant_bank.is_some() {
+                    filter_options.kmer_ref = bijux_stages_fastq::fastq::filter::default_kmer_ref();
+                }
+                let plan = bijux_stages_fastq::fastq::filter::plan_filter(
+                    tool,
+                    &current_r1,
+                    &out_dir,
+                    &filter_options,
+                )?;
+                let next_r1 = plan.io.outputs[0].path.clone();
+                (plan, next_r1, None)
+            }
+            "fastq.validate_pre" => {
+                let plan =
+                    bijux_stages_fastq::fastq::validate_pre::plan(tool, &current_r1, &out_dir);
+                (plan, current_r1.clone(), current_r2.clone())
+            }
+            "fastq.merge" => {
+                let r2 = current_r2
+                    .as_ref()
+                    .ok_or_else(|| anyhow!("merge requires r2"))?;
+                let plan =
+                    bijux_stages_fastq::fastq::merge::plan_merge(tool, &current_r1, r2, &out_dir)?;
+                let next_r1 = plan.io.outputs[0].path.clone();
+                (plan, next_r1, None)
+            }
+            "fastq.correct" => {
+                let r2 = current_r2
+                    .as_ref()
+                    .ok_or_else(|| anyhow!("correct requires r2"))?;
+                let plan = bijux_stages_fastq::fastq::correct::plan_correct(
+                    tool,
+                    &current_r1,
+                    r2,
+                    &out_dir,
+                )?;
+                let next_r1 = plan.io.outputs[0].path.clone();
+                let next_r2 = plan.io.outputs[1].path.clone();
+                (plan, next_r1, Some(next_r2))
+            }
+            "fastq.umi" => {
+                let r2 = current_r2
+                    .as_ref()
+                    .ok_or_else(|| anyhow!("umi requires r2"))?;
+                let plan =
+                    bijux_stages_fastq::fastq::umi::plan_umi(tool, &current_r1, r2, &out_dir)?;
+                let next_r1 = plan.io.outputs[0].path.clone();
+                let next_r2 = plan.io.outputs[1].path.clone();
+                (plan, next_r1, Some(next_r2))
+            }
+            "fastq.qc_post" => {
+                let mut stage_aux_images = std::collections::BTreeMap::new();
+                if tool.tool_id.0 == "multiqc" {
+                    for aux_tool in bijux_stages_fastq::fastq::qc_post::aux_tool_ids() {
+                        if let Some(image) = aux_images.get(*aux_tool) {
+                            stage_aux_images.insert(aux_tool.to_string(), image.clone());
+                        }
+                    }
+                }
+                let plan = bijux_stages_fastq::fastq::qc_post::plan_qc_post(
+                    tool,
+                    &current_r1,
+                    &out_dir,
+                    stage_aux_images,
+                    Some(raw_r1.as_path()),
+                )?;
+                (plan, current_r1.clone(), current_r2.clone())
+            }
+            "fastq.screen" => {
+                let plan =
+                    bijux_stages_fastq::fastq::screen::plan_screen(tool, &current_r1, &out_dir)?;
+                (plan, current_r1.clone(), current_r2.clone())
+            }
+            "fastq.stats_neutral" => {
+                let plan = bijux_stages_fastq::fastq::stats_neutral::plan_stats_neutral(
+                    tool,
+                    &current_r1,
+                    &out_dir,
+                )?;
+                (plan, current_r1.clone(), current_r2.clone())
+            }
+            _ => {
+                return Err(anyhow!("unsupported stage in fastq pipeline: {stage}"));
+            }
+        };
+        let mut plan = plan;
+        if let Some(reasons) = tool_reasons {
+            if let Some(reason) = reasons.get(idx) {
+                plan.reason = reason.clone();
+            }
+        } else {
+            plan.reason = PlanDecisionReason::new(
+                PlanReasonKind::Default,
+                format!("tool {} selected by planner", plan.tool_id.0),
+            );
+        }
+        plans.push(plan);
+        current_r1 = next_r1;
+        current_r2 = next_r2;
+    }
+    Ok(plans)
+}
+
+#[derive(Debug, Clone)]
+pub struct ToolSelection {
+    pub tool_id: String,
+    pub reason: PlanDecisionReason,
+}
+
+/// # Errors
+/// Returns an error if tool selection fails.
+pub fn select_preprocess_tools(
+    registry: &bijux_core::ToolRegistry,
+    pipeline: &PipelineSpec,
+    args: &bijux_stages_fastq::args::BenchFastqPreprocessArgs,
+) -> Result<Vec<ToolSelection>> {
+    let defaults = canonical_tool_defaults();
+    let mut selected_tools: Vec<ToolSelection> = pipeline
+        .stages
+        .iter()
+        .map(|stage| {
+            let tool_id = defaults
+                .get(stage.as_str())
+                .map(|tool| (*tool).to_string())
+                .or_else(|| {
+                    registry
+                        .tools_for_stage(stage)
+                        .first()
+                        .map(|tool| tool.tool_id.clone())
+                })
+                .ok_or_else(|| anyhow!("no default tool for stage {stage}"))?;
+            Ok(ToolSelection {
+                tool_id,
+                reason: PlanDecisionReason::new(
+                    PlanReasonKind::Default,
+                    "default tool from pipeline catalog",
+                ),
+            })
+        })
+        .collect::<Result<_>>()?;
+
+    if args.auto {
+        let corpus_id = args
+            .bench_corpus
+            .ok_or_else(|| anyhow!("--bench-corpus is required with --auto"))?;
+        let corpus = bijux_stages_fastq::bench_corpus(corpus_id);
+        let objective = bijux_core::selection::objective_spec(args.objective);
+        let mut selections = Vec::new();
+        for stage in &pipeline.stages {
+            let tool_ids: Vec<String> = registry
+                .tools_for_stage(stage)
+                .iter()
+                .map(|tool| tool.tool_id.clone())
+                .collect();
+            let mut tool_records = Vec::new();
+            for tool in &tool_ids {
+                let records = bijux_stages_fastq::get_results(stage, tool, &corpus, &args.out)?;
+                tool_records.push((tool.clone(), records));
+            }
+            let selection = bijux_core::selection::select_stage(
+                stage,
+                &tool_records,
+                &objective,
+                args.allow_partial,
+            );
+            selections.push(selection);
+        }
+        for (idx, selection) in selections.into_iter().enumerate() {
+            if let Some(selected) = selection.selected {
+                selected_tools[idx] = ToolSelection {
+                    tool_id: selected,
+                    reason: PlanDecisionReason::new(
+                        PlanReasonKind::InputAssessed,
+                        "auto-selected from benchmark corpus",
+                    ),
+                };
+            }
+        }
+    }
+
+    Ok(selected_tools)
 }
 
 pub fn select_trim_tools(tools: &[String]) -> Result<Vec<String>> {
@@ -265,6 +845,26 @@ fn select_tools_with_allowlist(tools: &[String], allowlist: &[&str]) -> Result<V
         }
     }
     Ok(normalized)
+}
+
+#[must_use]
+pub fn apply_tool_overrides(
+    base: BTreeMap<String, String>,
+    profile: BTreeMap<String, String>,
+    cli_overrides: BTreeMap<String, String>,
+    forced_overrides: BTreeMap<String, String>,
+) -> BTreeMap<String, String> {
+    let mut merged = base;
+    for (stage, tool) in profile {
+        merged.insert(stage, tool);
+    }
+    for (stage, tool) in cli_overrides {
+        merged.insert(stage, tool);
+    }
+    for (stage, tool) in forced_overrides {
+        merged.insert(stage, tool);
+    }
+    merged
 }
 
 #[cfg(test)]

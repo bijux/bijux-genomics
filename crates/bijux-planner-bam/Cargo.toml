@@ -6,7 +6,9 @@ edition = "2021"
 [dependencies]
 anyhow = { workspace = true }
 bijux-core = { path = "../bijux-core" }
-bijux-stages-bam = { path = "../bijux-stages-bam" }
+bijux-stages-bam = { path = "../bijux-stages-bam", features = ["bam_downstream"] }
+bijux-pipelines = { path = "../bijux-pipelines" }
+serde_json = { workspace = true }
 
 [dev-dependencies]
 bijux-guardrails = { path = "../bijux-guardrails" }
