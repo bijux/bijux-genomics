@@ -352,12 +352,48 @@ fn workspace_dependency_graph_contract() {
         );
     }
 
+    if let Some(cli_dir) = crates.get("bijux-cli") {
+        let cli_deps = parse_dependencies(&cli_dir.join("Cargo.toml"), &known);
+        assert!(cli_deps.contains("bijux-api"), "bijux-cli must depend on bijux-api");
+        for dep in &cli_deps {
+            assert!(
+                dep == "bijux-api" || dep == "bijux-guardrails",
+                "bijux-cli must not depend on workspace crate {dep}"
+            );
+        }
+    }
+
+    let api = deps_for("bijux-api");
+    let api_allowed: BTreeSet<&str> = BTreeSet::from([
+        "bijux-core",
+        "bijux-engine",
+        "bijux-env-runtime",
+        "bijux-env-builder",
+        "bijux-analyze",
+        "bijux-stages-fastq",
+        "bijux-stages-bam",
+        "bijux-domain-fastq",
+        "bijux-domain-bam",
+        "bijux-domain-vcf",
+        "bijux-pipelines",
+        "bijux-infra",
+        "bijux-guardrails",
+    ]);
+    for dep in &api {
+        assert!(
+            api_allowed.contains(dep.as_str()),
+            "bijux-api must not depend on workspace crate {dep}"
+        );
+    }
+
     for domain in ["bijux-domain-fastq", "bijux-domain-bam", "bijux-domain-vcf"] {
         let deps = deps_for(domain);
         for banned in [
             "bijux-stages-fastq",
             "bijux-stages-bam",
             "bijux-engine",
+            "bijux-env-builder",
+            "bijux-env-runtime",
             "bijux",
             "bijux-pipelines",
             "bijux-api",
@@ -508,6 +544,16 @@ fn workspace_single_orchestration_surface() {
 fn workspace_no_ad_hoc_fs_write() {
     let root = workspace_root();
     let mut offenders = Vec::new();
+    let needles = [
+        "std::fs::write(",
+        "fs::write(",
+        "std::fs::rename(",
+        "fs::rename(",
+        "std::fs::remove_file(",
+        "fs::remove_file(",
+        "std::fs::create_dir_all(",
+        "fs::create_dir_all(",
+    ];
     for path in crate_dirs() {
         let name = path.file_name().and_then(|s| s.to_str()).unwrap_or("");
         if name == "bijux-infra" {
@@ -515,19 +561,20 @@ fn workspace_no_ad_hoc_fs_write() {
         }
         for entry in walkdir::WalkDir::new(path.join("src"))
             .into_iter()
+            .chain(walkdir::WalkDir::new(path.join("tests")).into_iter())
             .filter_map(Result::ok)
             .filter(|entry| entry.path().extension().and_then(|s| s.to_str()) == Some("rs"))
         {
             let rel = entry.path().strip_prefix(&root).unwrap_or(entry.path());
             let content = std::fs::read_to_string(entry.path()).unwrap_or_default();
-            if content.contains("std::fs::write(") || content.contains("fs::write(") {
+            if needles.iter().any(|needle| content.contains(needle)) {
                 offenders.push(rel.display().to_string());
             }
         }
     }
     assert!(
         offenders.is_empty(),
-        "ad-hoc fs::write is forbidden outside bijux-infra: {offenders:?}"
+        "ad-hoc fs writes/renames/removals/dir-creation are forbidden outside bijux-infra: {offenders:?}"
     );
 }
 
@@ -561,5 +608,66 @@ fn workspace_bans_thin_mod_rs() {
     assert!(
         offenders.is_empty(),
         "thin mod.rs files are not allowed: {offenders:?}"
+    );
+}
+
+#[test]
+fn workspace_domain_symmetry_contract() {
+    let root = workspace_root();
+    let domains = ["bijux-domain-fastq", "bijux-domain-bam"];
+    let required = [
+        "metrics",
+        "params",
+        "types",
+        "invariants",
+        "stage_registry",
+        "pipeline_contract.rs",
+    ];
+    let mut domain_sets = Vec::new();
+    for name in domains {
+        let crate_dir = crate_dirs()
+            .into_iter()
+            .find(|dir| {
+                dir.file_name()
+                    .and_then(|s| s.to_str())
+                    .map(|s| s == name)
+                    .unwrap_or(false)
+            })
+            .unwrap_or_else(|| panic!("missing crate dir for {name}"));
+        let src = crate_dir.join("src");
+        let mut present = BTreeSet::new();
+        for item in required {
+            let exists = if item.ends_with(".rs") {
+                src.join(item).exists()
+            } else {
+                src.join(item).exists() || src.join(format!("{item}.rs")).exists()
+            };
+            if exists {
+                present.insert(item.to_string());
+            }
+        }
+        assert_eq!(
+            present.len(),
+            required.len(),
+            "domain {name} missing required modules: {:?}",
+            required
+                .iter()
+                .filter(|item| !present.contains(**item))
+                .collect::<Vec<_>>()
+        );
+        domain_sets.push((name, present));
+    }
+    let base = &domain_sets[0].1;
+    for (name, set) in &domain_sets[1..] {
+        assert_eq!(
+            base, set,
+            "domain module symmetry mismatch between {} and {}: {:?} vs {:?}",
+            domain_sets[0].0, name, base, set
+        );
+    }
+    let rel = root.join("docs").join("domain_template_checklist.md");
+    assert!(
+        rel.exists(),
+        "missing docs/domain_template_checklist.md"
     );
 }
