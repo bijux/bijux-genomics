@@ -390,6 +390,8 @@ pub struct MetricSemanticsV1 {
     pub units: String,
     pub range: String,
     pub missing_data_policy: String,
+    #[serde(default)]
+    pub influencing_params: Vec<String>,
 }
 
 pub fn canonicalize_json_value(value: &serde_json::Value) -> serde_json::Value {

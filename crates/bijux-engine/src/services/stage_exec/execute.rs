@@ -22,6 +22,7 @@ pub fn execute_stage_plan(
         |_| run_artifacts_dir.join("telemetry").join("events.jsonl"),
         PathBuf::from,
     );
+    ensure_telemetry_bundle(&run_artifacts_dir)?;
     let canonical_params = parameters_json_canonicalization(&plan.params);
     let sample_id = canonical_params
         .get("sample_id")
@@ -168,7 +169,7 @@ pub fn execute_stage_plan(
         input_hash = %input_hash,
         "stage execution starting"
     );
-    let result: Result<StageResultV1> = (|| {
+    let mut result: Result<StageResultV1> = (|| {
         let use_cache = resume_enabled
             && plan.stage_id.0.starts_with("bam.")
             && cache_hit(&cache_path, &cache_key, &plan.io.outputs);
@@ -333,7 +334,112 @@ pub fn execute_stage_plan(
             }),
         })?;
     }
+    if let Ok(stage_result) = result.as_mut() {
+        if stage_result.exit_code != 0 {
+            let keep_partial = keep_partial_outputs();
+            if !keep_partial {
+                let removed = purge_partial_outputs(&stage_result.outputs)?;
+                if removed > 0 {
+                    stage_result.outputs.clear();
+                    emit_event(&bijux_core::TelemetryEventV1 {
+                        schema_version: "bijux.telemetry.v1".to_string(),
+                        run_id: run_id.clone(),
+                        stage_id: plan.stage_id.0.clone(),
+                        tool_id: plan.tool_id.0.clone(),
+                        event_name: "partial_outputs_purged".to_string(),
+                        timestamp: Utc::now().to_rfc3339(),
+                        duration_ms: None,
+                        status: "ok".to_string(),
+                        trace_id: trace_id.clone(),
+                        span_id: span_id.clone(),
+                        attrs: serde_json::json!({
+                            "removed": removed,
+                            "policy": "purge_on_failure",
+                        }),
+                    })?;
+                }
+            } else {
+                emit_event(&bijux_core::TelemetryEventV1 {
+                    schema_version: "bijux.telemetry.v1".to_string(),
+                    run_id: run_id.clone(),
+                    stage_id: plan.stage_id.0.clone(),
+                    tool_id: plan.tool_id.0.clone(),
+                    event_name: "partial_outputs_kept".to_string(),
+                    timestamp: Utc::now().to_rfc3339(),
+                    duration_ms: None,
+                    status: "ok".to_string(),
+                    trace_id: trace_id.clone(),
+                    span_id: span_id.clone(),
+                    attrs: serde_json::json!({
+                        "policy": "keep_on_failure",
+                    }),
+                })?;
+            }
+        }
+    }
     result
+}
+
+fn keep_partial_outputs() -> bool {
+    std::env::var("BIJUX_KEEP_PARTIAL")
+        .ok()
+        .is_some_and(|value| matches!(value.as_str(), "1" | "true" | "TRUE"))
+}
+
+fn ensure_telemetry_bundle(run_artifacts_dir: &Path) -> Result<()> {
+    let telemetry_dir = run_artifacts_dir.join("telemetry");
+    bijux_infra::ensure_dir(&telemetry_dir).context("create telemetry dir")?;
+    bijux_infra::atomic_write_json(&telemetry_dir.join("timings.json"), &serde_json::json!([]))
+        .context("write telemetry timings")?;
+    bijux_infra::atomic_write_json(&telemetry_dir.join("resources.json"), &serde_json::json!([]))
+        .context("write telemetry resources")?;
+    bijux_infra::atomic_write_json(&telemetry_dir.join("errors.json"), &serde_json::json!([]))
+        .context("write telemetry errors")?;
+    if !telemetry_dir.join("events.jsonl").exists() {
+        bijux_infra::atomic_write_bytes(&telemetry_dir.join("events.jsonl"), b"")
+            .context("write telemetry events")?;
+    }
+    Ok(())
+}
+
+fn purge_partial_outputs(outputs: &[PathBuf]) -> Result<usize> {
+    let mut removed = 0usize;
+    for path in outputs {
+        if path.exists() {
+            bijux_infra::remove_path_if_exists(path)
+                .with_context(|| format!("purge partial output {}", path.display()))?;
+            removed += 1;
+        }
+    }
+    Ok(removed)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{keep_partial_outputs, purge_partial_outputs};
+
+    #[test]
+    fn purge_partial_outputs_removes_files_and_dirs() -> anyhow::Result<()> {
+        let dir = bijux_infra::temp_dir("bijux-partial-policy")?;
+        let file_path = dir.path().join("out.txt");
+        let dir_path = dir.path().join("out_dir");
+        bijux_infra::atomic_write_bytes(&file_path, b"data")?;
+        bijux_infra::ensure_dir(&dir_path)?;
+        let removed = purge_partial_outputs(&vec![file_path.clone(), dir_path.clone()])?;
+        assert_eq!(removed, 2);
+        assert!(!file_path.exists());
+        assert!(!dir_path.exists());
+        Ok(())
+    }
+
+    #[test]
+    fn keep_partial_outputs_respects_env() {
+        std::env::remove_var("BIJUX_KEEP_PARTIAL");
+        assert!(!keep_partial_outputs());
+        std::env::set_var("BIJUX_KEEP_PARTIAL", "1");
+        assert!(keep_partial_outputs());
+        std::env::remove_var("BIJUX_KEEP_PARTIAL");
+    }
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]

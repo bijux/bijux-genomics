@@ -63,6 +63,11 @@ fn fastq_stages_emit_observability_contracts() -> Result<()> {
             .join(format!("{}.tool_invocation.json", stage.id));
         assert!(invocation_path.exists());
         assert!(run_artifacts.join("stage_events.jsonl").exists());
+        let telemetry_dir = run_artifacts.join("telemetry");
+        assert!(telemetry_dir.join("events.jsonl").exists());
+        assert!(telemetry_dir.join("timings.json").exists());
+        assert!(telemetry_dir.join("resources.json").exists());
+        assert!(telemetry_dir.join("errors.json").exists());
         let stage_config = run_artifacts
             .join("config")
             .join(format!("{}.effective.json", stage.id));
@@ -235,8 +240,12 @@ fn fastq_stages_emit_observability_contracts() -> Result<()> {
             }
             let event: bijux_core::TelemetryEventV1 = serde_json::from_str(line)?;
             assert_eq!(event.schema_version, "bijux.telemetry.v1");
+            assert!(!event.run_id.is_empty());
+            assert_eq!(event.stage_id, stage.id);
+            assert_eq!(event.tool_id, exec_plan.tool_id.0);
             assert!(!event.trace_id.is_empty());
             assert!(!event.span_id.is_empty());
+            assert!(!event.timestamp.is_empty());
             if event.event_name == "stage_start" {
                 has_stage_start = true;
             }
