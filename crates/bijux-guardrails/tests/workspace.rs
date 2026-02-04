@@ -361,6 +361,10 @@ fn workspace_dependency_graph_contract() {
             "bijux",
             "bijux-pipelines",
             "bijux-api",
+            "bijux-env-builder",
+            "bijux-env-runtime",
+            "bijux-analyze",
+            "bijux-bench",
         ] {
             assert!(
                 !deps.contains(banned),
@@ -371,7 +375,16 @@ fn workspace_dependency_graph_contract() {
 
     for stages in ["bijux-stages-fastq", "bijux-stages-bam"] {
         let deps = deps_for(stages);
-        for banned in ["bijux", "bijux-api", "bijux-analyze", "bijux-bench"] {
+        for banned in [
+            "bijux",
+            "bijux-api",
+            "bijux-analyze",
+            "bijux-bench",
+            "bijux-engine",
+            "bijux-env-builder",
+            "bijux-env-runtime",
+            "bijux-pipelines",
+        ] {
             assert!(
                 !deps.contains(banned),
                 "{stages} must not depend on {banned}"
@@ -380,10 +393,31 @@ fn workspace_dependency_graph_contract() {
     }
 
     let pipelines = deps_for("bijux-pipelines");
-    for banned in ["bijux-engine", "bijux"] {
+    for banned in [
+        "bijux-engine",
+        "bijux",
+        "bijux-stages-fastq",
+        "bijux-stages-bam",
+    ] {
         assert!(
             !pipelines.contains(banned),
             "bijux-pipelines must not depend on {banned}"
+        );
+    }
+
+    let analyze = deps_for("bijux-analyze");
+    for banned in ["bijux-engine", "bijux-env-builder", "bijux-env-runtime"] {
+        assert!(
+            !analyze.contains(banned),
+            "bijux-analyze must not depend on {banned}"
+        );
+    }
+
+    let engine = deps_for("bijux-engine");
+    for banned in ["bijux-analyze", "bijux-bench"] {
+        assert!(
+            !engine.contains(banned),
+            "bijux-engine must not depend on {banned}"
         );
     }
 }
@@ -409,11 +443,22 @@ fn workspace_no_cross_layer_imports() {
             if is_domain
                 && (content.contains("bijux_engine::")
                     || content.contains("bijux_cli::")
-                    || content.contains("bijux_api::"))
+                    || content.contains("bijux_api::")
+                    || content.contains("bijux_analyze::")
+                    || content.contains("bijux_bench::")
+                    || content.contains("bijux_env_builder::")
+                    || content.contains("bijux_env_runtime::"))
             {
                 offenders.push(rel.display().to_string());
             }
-            if is_stages && content.contains("bijux_cli::") {
+            if is_stages
+                && (content.contains("bijux_cli::")
+                    || content.contains("bijux_api::")
+                    || content.contains("bijux_engine::")
+                    || content.contains("bijux_pipelines::")
+                    || content.contains("bijux_env_builder::")
+                    || content.contains("bijux_env_runtime::"))
+            {
                 offenders.push(rel.display().to_string());
             }
         }
@@ -456,6 +501,33 @@ fn workspace_single_orchestration_surface() {
     assert!(
         offenders.is_empty(),
         "only bijux-api may expose orchestration entrypoints: {offenders:?}"
+    );
+}
+
+#[test]
+fn workspace_no_ad_hoc_fs_write() {
+    let root = workspace_root();
+    let mut offenders = Vec::new();
+    for path in crate_dirs() {
+        let name = path.file_name().and_then(|s| s.to_str()).unwrap_or("");
+        if name == "bijux-infra" {
+            continue;
+        }
+        for entry in walkdir::WalkDir::new(path.join("src"))
+            .into_iter()
+            .filter_map(Result::ok)
+            .filter(|entry| entry.path().extension().and_then(|s| s.to_str()) == Some("rs"))
+        {
+            let rel = entry.path().strip_prefix(&root).unwrap_or(entry.path());
+            let content = std::fs::read_to_string(entry.path()).unwrap_or_default();
+            if content.contains("std::fs::write(") || content.contains("fs::write(") {
+                offenders.push(rel.display().to_string());
+            }
+        }
+    }
+    assert!(
+        offenders.is_empty(),
+        "ad-hoc fs::write is forbidden outside bijux-infra: {offenders:?}"
     );
 }
 

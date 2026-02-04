@@ -21,7 +21,6 @@ schemars.workspace = true
 [dev-dependencies]
 bijux-guardrails = { path = "../bijux-guardrails" }
 rusqlite = { workspace = true }
-bijux-analyze = { path = "../bijux-analyze" }
 
 [lints]
 workspace = true
