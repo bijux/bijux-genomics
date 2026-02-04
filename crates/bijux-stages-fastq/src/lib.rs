@@ -4,11 +4,12 @@ pub mod args;
 pub mod artifacts;
 pub mod fastq;
 pub mod fastq_tools_registry;
+pub mod metrics;
+pub mod observer;
+pub mod plugin;
 pub mod stages_pre;
 pub mod stages_qc;
 pub mod stages_transform;
-pub mod plugin;
-pub mod metrics;
 pub mod tools;
 
 pub use bijux_core::{ArtifactRef, StageIO, StagePlanJsonV1, StagePlanV1};

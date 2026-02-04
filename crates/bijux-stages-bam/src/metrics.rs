@@ -2,6 +2,7 @@ use std::path::{Path, PathBuf};
 
 use bijux_domain_bam::metrics::BamMetricsV1;
 
+#[allow(clippy::too_many_lines)]
 pub fn bam_metrics_from_dir(out_dir: &Path) -> BamMetricsV1 {
     let mut metrics = BamMetricsV1::empty();
 
@@ -34,8 +35,10 @@ pub fn bam_metrics_from_dir(out_dir: &Path) -> BamMetricsV1 {
         }
     }
 
-    let mosdepth_path =
-        first_existing(out_dir, &["coverage.mosdepth.summary.txt", "mosdepth.summary.txt"]);
+    let mosdepth_path = first_existing(
+        out_dir,
+        &["coverage.mosdepth.summary.txt", "mosdepth.summary.txt"],
+    );
     if let Some(path) = mosdepth_path {
         if let Ok(coverage) = bijux_domain_bam::metrics::parse_mosdepth_summary(&path) {
             metrics.coverage = coverage;
@@ -91,11 +94,7 @@ pub fn bam_metrics_from_dir(out_dir: &Path) -> BamMetricsV1 {
         let (tool_a, metrics_a) = &damage_sources[0];
         let (tool_b, metrics_b) = &damage_sources[1];
         metrics.damage_comparison = Some(bijux_domain_bam::metrics::compare_damage_metrics(
-            tool_a,
-            metrics_a,
-            tool_b,
-            metrics_b,
-            threshold,
+            tool_a, metrics_a, tool_b, metrics_b, threshold,
         ));
     }
 
@@ -106,9 +105,8 @@ pub fn bam_metrics_from_dir(out_dir: &Path) -> BamMetricsV1 {
         }
         if let Ok(raw) = std::fs::read_to_string(&path) {
             if let Ok(value) = serde_json::from_str::<serde_json::Value>(&raw) {
-                metrics.contamination_reconciliation.mt_fraction = value
-                    .get("mt_estimate")
-                    .and_then(serde_json::Value::as_f64);
+                metrics.contamination_reconciliation.mt_fraction =
+                    value.get("mt_estimate").and_then(serde_json::Value::as_f64);
                 metrics.contamination_reconciliation.nuclear_fraction = value
                     .get("nuclear_estimate")
                     .and_then(serde_json::Value::as_f64);
@@ -135,4 +133,3 @@ fn first_existing(out_dir: &Path, names: &[&str]) -> Option<PathBuf> {
     }
     None
 }
-

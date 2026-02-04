@@ -5,6 +5,7 @@ use std::sync::{Arc, Mutex};
 
 use anyhow::{anyhow, Context, Result};
 use flate2::read::GzDecoder;
+use serde::Serialize;
 
 use bijux_core::metrics::*;
 use bijux_core::StagePlanV1;
@@ -18,6 +19,73 @@ pub struct FilterRemovalCounts {
     pub by_kmer: u64,
     pub by_contaminant_kmer: u64,
     pub by_length: u64,
+}
+
+#[derive(Debug, Clone, Serialize)]
+struct FastqcMetricsV2 {
+    schema_version: String,
+    source: String,
+    per_base_quality: Option<PerBaseQualitySummary>,
+    gc_distribution: Option<GcDistributionSummary>,
+    adapter_content: Option<AdapterContentSummary>,
+    duplication: Option<DuplicationSummary>,
+    n_content: Option<NContentSummary>,
+    kmer_content: Option<KmerContentSummary>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+struct PerBaseQualitySummary {
+    mean_min: f64,
+    mean_max: f64,
+    mean_mean: f64,
+    bases_below_q20: u64,
+    bases_below_q30: u64,
+}
+
+#[derive(Debug, Clone, Serialize)]
+struct GcDistributionSummary {
+    mean_gc: f64,
+    std_gc: f64,
+    outlier: bool,
+}
+
+#[derive(Debug, Clone, Serialize)]
+struct AdapterContentSummary {
+    max_percent: f64,
+    mean_percent: f64,
+    adapters: Vec<AdapterSignal>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+struct AdapterSignal {
+    name: String,
+    max_percent: f64,
+    mean_percent: f64,
+}
+
+#[derive(Debug, Clone, Serialize)]
+struct DuplicationSummary {
+    unique_fraction: f64,
+    duplication_rate: f64,
+}
+
+#[derive(Debug, Clone, Serialize)]
+struct NContentSummary {
+    mean_percent: f64,
+    max_percent: f64,
+}
+
+#[derive(Debug, Clone, Serialize)]
+struct KmerContentSummary {
+    warning_count: u64,
+    kmers: Vec<KmerSignal>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+struct KmerSignal {
+    kmer: String,
+    count: u64,
+    percent: f64,
 }
 
 pub fn stage_metrics_for_plan(
@@ -78,11 +146,8 @@ pub fn stage_metrics_for_plan(
             })?
         }
         "fastq.filter" => {
-            let removals = filter_removals_for_plan(
-                plan.tool_id.0.as_str(),
-                &plan.out_dir,
-                &plan.params,
-            );
+            let removals =
+                filter_removals_for_plan(plan.tool_id.0.as_str(), &plan.out_dir, &plan.params);
             filter_metrics_with_removals(
                 &plan.stage_id.0,
                 inputs,
@@ -804,8 +869,7 @@ fn parse_screen_report(path: &Path) -> Result<(f64, serde_json::Value)> {
             }),
         ));
     }
-    let contamination_rate =
-        unmapped_percent.map_or(0.0, |value| (100.0 - value).max(0.0) / 100.0);
+    let contamination_rate = unmapped_percent.map_or(0.0, |value| (100.0 - value).max(0.0) / 100.0);
     Ok((
         contamination_rate,
         serde_json::json!({
@@ -857,12 +921,7 @@ fn find_fastqc_data(dir: &Path) -> Option<PathBuf> {
         dir.join("fastqc_data"),
         dir.join("fastqc_data.txt.gz"),
     ];
-    for candidate in candidates {
-        if candidate.exists() {
-            return Some(candidate);
-        }
-    }
-    None
+    candidates.into_iter().find(|candidate| candidate.exists())
 }
 
 fn parse_fastqc_modules(raw: &str) -> BTreeMap<String, Vec<String>> {
@@ -873,7 +932,11 @@ fn parse_fastqc_modules(raw: &str) -> BTreeMap<String, Vec<String>> {
             if line.starts_with(">>END_MODULE") {
                 current = None;
             } else {
-                let name = line.trim_start_matches(">>").split('\t').next().unwrap_or("");
+                let name = line
+                    .trim_start_matches(">>")
+                    .split('\t')
+                    .next()
+                    .unwrap_or("");
                 if !name.is_empty() {
                     modules.insert(name.to_string(), Vec::new());
                     current = Some(name.to_string());
@@ -882,7 +945,10 @@ fn parse_fastqc_modules(raw: &str) -> BTreeMap<String, Vec<String>> {
             continue;
         }
         if let Some(name) = &current {
-            modules.entry(name.clone()).or_default().push(line.to_string());
+            modules
+                .entry(name.clone())
+                .or_default()
+                .push(line.to_string());
         }
     }
     modules

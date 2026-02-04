@@ -138,7 +138,7 @@ fn bam_pipeline_plan_snapshot_is_stable() -> Result<()> {
         &contamination_params,
     )?;
 
-    let plans = vec![
+    let plans = [
         validate,
         qc_pre,
         filter,

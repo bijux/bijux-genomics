@@ -19,15 +19,32 @@ impl StagePlugin for FastqStagePlugin {
         })
     }
 
-    fn parse_outputs(&self, plan: &StagePlanV1, _outputs: &[ArtifactRef]) -> Result<StagePluginOutputV1> {
-        let input_paths: Vec<std::path::PathBuf> =
-            plan.io.inputs.iter().map(|input| input.path.clone()).collect();
-        let output_paths: Vec<std::path::PathBuf> =
-            plan.io.outputs.iter().map(|output| output.path.clone()).collect();
+    fn parse_outputs(
+        &self,
+        plan: &StagePlanV1,
+        _outputs: &[ArtifactRef],
+    ) -> Result<StagePluginOutputV1> {
+        let input_paths: Vec<std::path::PathBuf> = plan
+            .io
+            .inputs
+            .iter()
+            .map(|input| input.path.clone())
+            .collect();
+        let output_paths: Vec<std::path::PathBuf> = plan
+            .io
+            .outputs
+            .iter()
+            .map(|output| output.path.clone())
+            .collect();
         let metrics = metrics::stage_metrics_for_plan(plan, &input_paths, &output_paths)?;
         Ok(StagePluginOutputV1 {
             metrics,
             artifacts: Vec::new(),
+            report_parts: Vec::new(),
+            warnings: Vec::new(),
+            invariants: Vec::new(),
+            verdict: None,
+            event_hints: Vec::new(),
         })
     }
 }
