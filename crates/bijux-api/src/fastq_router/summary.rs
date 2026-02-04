@@ -14,7 +14,7 @@ pub(super) fn write_run_summary(
     stage_skips: &[serde_json::Value],
 ) -> Result<()> {
     let root = out_dir.join("run_artifacts");
-    fs::create_dir_all(&root).context("create run summary artifacts dir")?;
+    bijux_infra::ensure_dir(&root).context("create run summary artifacts dir")?;
     let run_id = stage_runs
         .first()
         .map(|entry| entry.result.run_id.clone())
@@ -239,6 +239,9 @@ fn render_run_summary_html(summary: &serde_json::Value) -> String {
 }
 
 #[derive(Clone)]
+/// Summarized stage execution for run summaries.
+///
+/// Stability: v1 (stable).
 pub struct StageExecutionSummary {
     pub plan: bijux_core::StagePlanV1,
     pub result: StageResultV1,

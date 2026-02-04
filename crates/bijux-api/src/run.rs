@@ -10,6 +10,9 @@ use bijux_pipelines::registry::PipelineRegistry;
 use bijux_pipelines::{Domain, PipelineProfile};
 
 #[derive(Debug, Clone, Copy)]
+/// Execution mode for pipeline runs.
+///
+/// Stability: v1 (stable).
 pub enum RunMode {
     PlanOnly,
     Execute,
@@ -21,6 +24,9 @@ pub fn run_pipeline(request: RunRequest, _mode: RunMode) -> Result<RunResult> {
     let profile = bijux_pipelines::registry::profile_by_id(request.domain, &request.profile_id)
         .map_err(|err| anyhow!("unknown pipeline profile {}: {err}", request.profile_id))?;
     bijux_infra::ensure_dir(&request.run_dir)?;
+    let ledger_path = request.run_dir.join("defaults_ledger.json");
+    let defaults = profile.defaults_ledger();
+    bijux_infra::atomic_write_json(&ledger_path, &defaults)?;
     Ok(RunResult {
         run_dir: request.run_dir,
         profile_id: profile.id.to_string(),

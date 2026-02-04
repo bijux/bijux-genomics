@@ -15,7 +15,7 @@ fn e2e_inputs() -> Result<(PathBuf, PathBuf, PathBuf)> {
     if !r1.exists() || !r2.exists() {
         return Err(anyhow::anyhow!("missing test FASTQ inputs"));
     }
-    let tmp = tempfile::tempdir()?;
+    let tmp = bijux_infra::temp_dir("bijux")?;
     Ok((r1, r2, tmp.keep()))
 }
 

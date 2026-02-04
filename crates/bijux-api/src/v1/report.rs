@@ -1,4 +1,6 @@
 //! Reporting and analysis helpers for v1.
+//!
+//! Stability: v1 (stable).
 
 pub use crate::args::{RenderReportRequest, RenderReportResult};
 pub use crate::run::render_report;

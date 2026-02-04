@@ -1,14 +1,13 @@
 use std::fs;
 use std::path::PathBuf;
 
-use bijux_api::v1::pipelines::PipelineRegistry;
-use tempfile::TempDir;
+use bijux_api::v1::plan::PipelineRegistry;
 
-fn write_profile(temp: &TempDir) -> Result<PathBuf, Box<dyn std::error::Error>> {
+fn write_profile(temp: &tempfile::TempDir) -> Result<PathBuf, Box<dyn std::error::Error>> {
     let configs_dir = temp.path().join("configs").join("profiles");
-    fs::create_dir_all(&configs_dir)?;
+    bijux_infra::ensure_dir(&configs_dir)?;
     let profile_path = configs_dir.join("local.yaml");
-    fs::write(
+    bijux_infra::write_bytes(
         &profile_path,
         "container_runtime: \"docker\"\n\
 default_threads: 4\n\
@@ -19,13 +18,13 @@ run_base_dir: \"./runs\"\n",
     Ok(profile_path)
 }
 
-fn write_manifests(temp: &TempDir) -> Result<(), Box<dyn std::error::Error>> {
+fn write_manifests(temp: &tempfile::TempDir) -> Result<(), Box<dyn std::error::Error>> {
     let domain_dir = temp.path().join("domain").join("fastq");
     let stages_dir = domain_dir.join("stages");
     let tools_dir = domain_dir.join("tools");
-    fs::create_dir_all(&stages_dir)?;
-    fs::create_dir_all(&tools_dir)?;
-    fs::write(
+    bijux_infra::ensure_dir(&stages_dir)?;
+    bijux_infra::ensure_dir(&tools_dir)?;
+    bijux_infra::write_bytes(
         stages_dir.join("trim.yaml"),
         r#"schema_version: "bijux.stage.v1"
 stage_id: "fastq.trim"
@@ -50,7 +49,7 @@ metrics:
 description: "FASTQ stage for trimming and preprocessing reads."
 "#,
     )?;
-    fs::write(
+    bijux_infra::write_bytes(
         tools_dir.join("fastp.yaml"),
         r#"schema_version: "bijux.tool.v1"
 tool_id: "fastp"
@@ -96,7 +95,7 @@ execution_contract:
 
 #[test]
 fn fastq_trim_creates_run_artifacts() -> Result<(), Box<dyn std::error::Error>> {
-    let temp = TempDir::new()?;
+    let temp = bijux_infra::temp_dir("bijux")?;
     let _profile_path = write_profile(&temp)?;
     write_manifests(&temp)?;
 
@@ -106,7 +105,7 @@ fn fastq_trim_creates_run_artifacts() -> Result<(), Box<dyn std::error::Error>> 
 
     cmd.assert().success();
 
-    let runs_dir = temp.path().join("runs");
+    let runs_dir = temp.path().join(bijux_infra::RUN_LAYOUT_CONTRACT.runs_dir);
     let mut entries = fs::read_dir(&runs_dir)?;
     let run_entry = entries.next().ok_or_else(|| {
         std::io::Error::new(std::io::ErrorKind::NotFound, "run dir entry missing")

@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::fs;
 
 use anyhow::{anyhow, Context, Result};
 use bijux_engine::primitives::{
@@ -35,8 +34,8 @@ pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
 
     let bench_dir = bench_base_dir(&args.out, "qc_post", &args.sample_id);
     let tools_root = bench_tools_dir(&args.out, "qc_post", &args.sample_id);
-    fs::create_dir_all(&bench_dir).context("create bench output dir")?;
-    fs::create_dir_all(&tools_root).context("create tools output dir")?;
+    bijux_infra::ensure_dir(&bench_dir).context("create bench output dir")?;
+    bijux_infra::ensure_dir(&tools_root).context("create tools output dir")?;
 
     if args.explain {
         write_explain_md(&bench_dir, "fastq.qc_post", &tools, &[], None)?;
@@ -68,7 +67,7 @@ pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
     let mut tool_order = Vec::new();
     for tool in &tools {
         let out_dir = tools_root.join(tool);
-        fs::create_dir_all(&out_dir).context("create tool output dir")?;
+        bijux_infra::ensure_dir(&out_dir).context("create tool output dir")?;
         let tool_spec =
             build_tool_execution_spec("fastq.qc_post", tool, &registry, catalog, platform)?;
         let tool_spec = normalize_tool_spec_for_jobs(&tool_spec, jobs);

@@ -2,6 +2,9 @@ use std::path::PathBuf;
 
 #[derive(Debug, Clone)]
 #[allow(clippy::struct_excessive_bools)]
+/// Benchmark a single BAM stage.
+///
+/// Stability: v1 (stable).
 pub struct BenchBamStageArgs {
     pub sample_id: String,
     pub stage: bijux_domain_bam::BamStage,
@@ -18,6 +21,9 @@ pub struct BenchBamStageArgs {
 
 #[derive(Debug, Clone)]
 #[allow(clippy::struct_excessive_bools)]
+/// Benchmark a full BAM pipeline.
+///
+/// Stability: v1 (stable).
 pub struct BenchBamPipelineArgs {
     pub profile: String,
     pub sample_id: String,
@@ -34,6 +40,9 @@ pub struct BenchBamPipelineArgs {
 
 #[derive(Debug, Clone)]
 #[allow(clippy::struct_excessive_bools)]
+/// Run a BAM pipeline with explicit tool selection.
+///
+/// Stability: v1 (stable).
 pub struct BamRunArgs {
     pub stage: bijux_domain_bam::BamStage,
     pub profile: String,
@@ -96,6 +105,9 @@ pub struct BamRunArgs {
 }
 
 #[derive(Debug, Clone)]
+/// Plan a cross-domain FASTQ→BAM run.
+///
+/// Stability: v1 (stable).
 pub struct FastqCrossArgs {
     pub sample_id: Option<String>,
     pub r1: Option<PathBuf>,
@@ -108,6 +120,9 @@ pub struct FastqCrossArgs {
 }
 
 #[derive(Debug, Clone)]
+/// Execute a pipeline run request.
+///
+/// Stability: v1 (stable).
 pub struct RunRequest {
     pub profile_id: String,
     pub domain: bijux_pipelines::Domain,
@@ -115,12 +130,18 @@ pub struct RunRequest {
 }
 
 #[derive(Debug, Clone)]
+/// Result for a completed run execution.
+///
+/// Stability: v1 (stable).
 pub struct RunResult {
     pub run_dir: PathBuf,
     pub profile_id: String,
 }
 
 #[derive(Debug, Clone)]
+/// Plan a pipeline execution.
+///
+/// Stability: v1 (stable).
 pub struct PlanRunRequest {
     pub run_spec: bijux_core::RunSpec,
     pub profile: bijux_core::Profile,
@@ -128,26 +149,41 @@ pub struct PlanRunRequest {
 }
 
 #[derive(Debug, Clone)]
+/// Planned stages and inferred outputs for a pipeline.
+///
+/// Stability: v1 (stable).
 pub struct PlanRunResult {
     pub plan: bijux_core::ExecutionPlan,
 }
 
 #[derive(Debug, Clone)]
+/// Execute a plan run request.
+///
+/// Stability: v1 (stable).
 pub struct ExecuteRunRequest {
     pub plan: bijux_core::StagePlanV1,
     pub runner: bijux_env_runtime::api::RunnerKind,
 }
 
 #[derive(Debug, Clone)]
+/// Result of executing a plan run request.
+///
+/// Stability: v1 (stable).
 pub struct ExecuteRunResult;
 
 #[derive(Debug, Clone)]
+/// Render a report bundle from facts rows.
+///
+/// Stability: v1 (stable).
 pub struct RenderReportRequest {
     pub base_dir: PathBuf,
     pub facts_path: PathBuf,
 }
 
 #[derive(Debug, Clone)]
+/// Output paths from report rendering.
+///
+/// Stability: v1 (stable).
 pub struct RenderReportResult {
     pub report_path: PathBuf,
 }

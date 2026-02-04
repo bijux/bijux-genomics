@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use anyhow::Result;
-use bijux_api::v1::env::{
+use bijux_api::v1::run::{
     available_runners, cache_dir, docker_image_exists, resolve_image, PlatformSpec, RunnerKind,
     ToolImageSpec,
 };
@@ -55,7 +55,7 @@ pub fn env_doctor<S: ::std::hash::BuildHasher>(
 
 fn ensure_cache_writable(runner: RunnerKind) -> bool {
     let cache_dir = cache_dir(runner);
-    std::fs::create_dir_all(&cache_dir).is_ok()
+    bijux_infra::ensure_dir(&cache_dir).is_ok()
 }
 
 fn print_check(name: &str, ok: bool) {
@@ -77,7 +77,6 @@ fn display_runners(runners: &[RunnerKind]) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tempfile::TempDir;
 
     #[test]
     fn display_runners_is_deterministic() {
@@ -87,7 +86,7 @@ mod tests {
 
     #[test]
     fn ensure_cache_writable_uses_home() -> Result<(), std::io::Error> {
-        let temp = TempDir::new()?;
+        let temp = bijux_infra::temp_dir("bijux")?;
         let original_home = std::env::var_os("HOME");
         std::env::set_var("HOME", temp.path());
         assert!(ensure_cache_writable(RunnerKind::Docker));

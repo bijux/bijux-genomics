@@ -22,24 +22,24 @@ pub enum BamStageArg {
 
 impl BamStageArg {
     #[must_use]
-    pub fn stage(self) -> bijux_api::v1::bam::BamStage {
+    pub fn stage(self) -> bijux_api::v1::bench::BamStage {
         match self {
-            BamStageArg::Align => bijux_api::v1::bam::BamStage::Align,
-            BamStageArg::Validate => bijux_api::v1::bam::BamStage::Validate,
-            BamStageArg::QcPre => bijux_api::v1::bam::BamStage::QcPre,
-            BamStageArg::Filter => bijux_api::v1::bam::BamStage::Filter,
-            BamStageArg::Markdup => bijux_api::v1::bam::BamStage::Markdup,
-            BamStageArg::Complexity => bijux_api::v1::bam::BamStage::Complexity,
-            BamStageArg::Coverage => bijux_api::v1::bam::BamStage::Coverage,
-            BamStageArg::Damage => bijux_api::v1::bam::BamStage::Damage,
-            BamStageArg::Authenticity => bijux_api::v1::bam::BamStage::Authenticity,
-            BamStageArg::Contamination => bijux_api::v1::bam::BamStage::Contamination,
-            BamStageArg::Sex => bijux_api::v1::bam::BamStage::Sex,
-            BamStageArg::BiasMitigation => bijux_api::v1::bam::BamStage::BiasMitigation,
-            BamStageArg::Recalibration => bijux_api::v1::bam::BamStage::Recalibration,
-            BamStageArg::Haplogroups => bijux_api::v1::bam::BamStage::Haplogroups,
-            BamStageArg::Genotyping => bijux_api::v1::bam::BamStage::Genotyping,
-            BamStageArg::Kinship => bijux_api::v1::bam::BamStage::Kinship,
+            BamStageArg::Align => bijux_api::v1::bench::BamStage::Align,
+            BamStageArg::Validate => bijux_api::v1::bench::BamStage::Validate,
+            BamStageArg::QcPre => bijux_api::v1::bench::BamStage::QcPre,
+            BamStageArg::Filter => bijux_api::v1::bench::BamStage::Filter,
+            BamStageArg::Markdup => bijux_api::v1::bench::BamStage::Markdup,
+            BamStageArg::Complexity => bijux_api::v1::bench::BamStage::Complexity,
+            BamStageArg::Coverage => bijux_api::v1::bench::BamStage::Coverage,
+            BamStageArg::Damage => bijux_api::v1::bench::BamStage::Damage,
+            BamStageArg::Authenticity => bijux_api::v1::bench::BamStage::Authenticity,
+            BamStageArg::Contamination => bijux_api::v1::bench::BamStage::Contamination,
+            BamStageArg::Sex => bijux_api::v1::bench::BamStage::Sex,
+            BamStageArg::BiasMitigation => bijux_api::v1::bench::BamStage::BiasMitigation,
+            BamStageArg::Recalibration => bijux_api::v1::bench::BamStage::Recalibration,
+            BamStageArg::Haplogroups => bijux_api::v1::bench::BamStage::Haplogroups,
+            BamStageArg::Genotyping => bijux_api::v1::bench::BamStage::Genotyping,
+            BamStageArg::Kinship => bijux_api::v1::bench::BamStage::Kinship,
         }
     }
 }

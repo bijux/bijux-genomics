@@ -2,7 +2,7 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
 
-use bijux_api::v1::core::load_profile;
+use bijux_api::v1::run::load_profile;
 
 use crate::cli::{AnalyzeReportArgs, Cli};
 use bijux_api::v1::run::normalize_run_base_dir;
@@ -102,7 +102,7 @@ fn base_dir_from_facts(facts_path: &Path) -> Result<PathBuf> {
     Ok(parent.to_path_buf())
 }
 
-pub(crate) fn load_profile_for_cli(cli: &Cli) -> Result<bijux_api::v1::types::Profile> {
+pub(crate) fn load_profile_for_cli(cli: &Cli) -> Result<bijux_api::v1::run::Profile> {
     let cwd = std::env::current_dir().context("resolve current directory")?;
     let profile_path = cwd
         .join("configs")
@@ -115,17 +115,17 @@ pub(crate) fn load_profile_for_cli(cli: &Cli) -> Result<bijux_api::v1::types::Pr
 }
 
 pub(crate) fn ensure_profile_run_base_dir(
-    stage: &bijux_api::v1::types::StageId,
-    tool: &bijux_api::v1::types::ToolId,
-    profile: &mut bijux_api::v1::types::Profile,
+    stage: &bijux_api::v1::run::StageId,
+    tool: &bijux_api::v1::run::ToolId,
+    profile: &mut bijux_api::v1::run::Profile,
 ) {
-    let run_dir = bijux_api::v1::core::run_dir(
+    let run_dir = bijux_api::v1::run::run_dir(
         &profile.run_base_dir,
-        &bijux_api::v1::core::new_run_id(),
+        &bijux_api::v1::run::new_run_id(),
         stage,
         tool,
     );
-    if run_dir.starts_with(profile.run_base_dir.join("runs")) {
+    if run_dir.starts_with(profile.run_base_dir.join(bijux_infra::RUN_LAYOUT_CONTRACT.runs_dir)) {
         let base = profile
             .run_base_dir
             .parent()
@@ -135,9 +135,9 @@ pub(crate) fn ensure_profile_run_base_dir(
 }
 
 pub(crate) fn qc_class_label(stage: &str) -> Option<&'static str> {
-    match bijux_api::v1::fastq::qc_class_for_stage(stage) {
-        Some(bijux_api::v1::fastq::QcClass::Structural) => Some("structural"),
-        Some(bijux_api::v1::fastq::QcClass::Statistical) => Some("statistical"),
+    match bijux_api::v1::bench::qc_class_for_stage(stage) {
+        Some(bijux_api::v1::bench::QcClass::Structural) => Some("structural"),
+        Some(bijux_api::v1::bench::QcClass::Statistical) => Some("statistical"),
         None => None,
     }
 }

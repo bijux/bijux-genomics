@@ -16,6 +16,9 @@ pub use stages::{
     bench_fastq_validate_pre,
 };
 pub use summary::StageExecutionSummary;
+/// Benchmarking result for a FASTQ stage.
+///
+/// Stability: v1 (stable).
 pub struct BenchOutcome<M: bijux_analyze::StageMetricSchema> {
     pub records: Vec<BenchmarkRecord<M>>,
     pub failures: Vec<RawFailure>,

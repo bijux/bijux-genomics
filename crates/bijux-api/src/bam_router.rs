@@ -12,6 +12,9 @@ use std::path::PathBuf;
 use crate::args::{BamRunArgs, BenchBamPipelineArgs, BenchBamStageArgs};
 use crate::bam_plan::plan_for_bam_stage;
 
+/// Output paths for BAM benchmarking.
+///
+/// Stability: v1 (stable).
 pub struct BamBenchOutcome {
     #[allow(dead_code)]
     pub run_dirs: Vec<PathBuf>,
@@ -61,7 +64,7 @@ pub fn bench_bam_stage(
                 .join(stage_id.trim_start_matches("bam."))
                 .join(&tool)
                 .join(format!("replicate_{rep}"));
-            std::fs::create_dir_all(&run_dir).context("create bam bench run dir")?;
+            bijux_infra::ensure_dir(&run_dir).context("create bam bench run dir")?;
             let run_args: BamRunArgs = args.into();
             let plan = plan_for_bam_stage(stage, &spec, &run_args, run_dir.as_path())?;
             if args.explain || args.dry_run {

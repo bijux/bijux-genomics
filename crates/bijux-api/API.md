@@ -11,11 +11,10 @@ Rules:
 5. The API surface should remain compatible within a version namespace (v1, v2, ...).
 
 Modules:
+v1 surface (curated modules only):
 - v1::plan: pipeline selection + plan building.
-- v1::run: execution entrypoints.
+- v1::run: execution entrypoints + runtime helpers.
 - v1::report: report rendering and report helpers.
-- v1::bench: comparison/benchmark helpers.
-- v1::env: runtime + image resolution helpers.
-- v1::fastq/bam: domain-specific helpers needed by CLI.
+- v1::bench: comparison/benchmark helpers + domain constants for benchmarking.
 
 Anything outside `v1` is internal and not part of the public contract.

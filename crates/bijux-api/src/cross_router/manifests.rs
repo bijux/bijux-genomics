@@ -1,4 +1,3 @@
-use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
@@ -12,7 +11,7 @@ use crate::fastq_router::StageExecutionSummary;
 
 pub fn write_alignment_boundary(out_dir: &Path, boundary: &AlignmentBoundary) -> Result<PathBuf> {
     let boundaries_dir = out_dir.join("run_artifacts").join("boundaries");
-    fs::create_dir_all(&boundaries_dir).context("create boundaries dir")?;
+    bijux_infra::ensure_dir(&boundaries_dir).context("create boundaries dir")?;
     let path = boundaries_dir.join("alignment_boundary.json");
     bijux_infra::atomic_write_json(&path, boundary)
         .with_context(|| "write alignment_boundary.json")?;
@@ -131,7 +130,7 @@ pub fn write_cross_run_manifest(
 
 pub fn write_reference_manifest(out_dir: &Path, record: &ReferenceRecord) -> Result<PathBuf> {
     let root = out_dir.join("run_artifacts").join("boundaries");
-    fs::create_dir_all(&root).context("create boundaries dir")?;
+    bijux_infra::ensure_dir(&root).context("create boundaries dir")?;
     let path = root.join("reference_manifest.json");
     bijux_infra::atomic_write_json(&path, record)
         .with_context(|| "write reference_manifest.json")?;

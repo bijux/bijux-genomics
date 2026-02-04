@@ -3,11 +3,11 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
 use bijux_api::v1::run::atomic_write_bytes;
-use bijux_api::v1::core::{
+use bijux_api::v1::run::{
     load_manifests, load_profile, new_run_id, DryRunExecutor, Executor,
 };
-use bijux_api::v1::env::{load_image_catalog, load_platform};
-use bijux_api::v1::types::{PathSpec, RunSpec};
+use bijux_api::v1::run::{load_image_catalog, load_platform};
+use bijux_api::v1::run::{PathSpec, RunSpec};
 use clap::Parser;
 use tracing::{info, warn};
 
@@ -17,19 +17,19 @@ use bijux_api::v1::bench::{
     bench_fastq_umi, bench_fastq_validate_pre, compare_runs, compare_runs_with_baseline,
     print_bench_schema, RankInput,
 };
-use bijux_api::v1::fastq::fastq_banks::{
+use bijux_api::v1::bench::fastq_banks::{
     resolve_adapter_selection, resolve_effective_adapters, AdapterSelection,
 };
-use bijux_api::v1::fastq::{benchmark_runs, write_benchmark_exports, AdapterPresetsV1};
+use bijux_api::v1::bench::{benchmark_runs, write_benchmark_exports, AdapterPresetsV1};
 use bijux_api::v1::report::{
     load_facts_auto, load_run_summary, write_correct_report, write_filter_report,
     write_merge_report, write_qc_post_report, write_run_report_from_facts,
     write_run_summary_from_facts, write_stage_summary_csv, write_stats_report, write_trim_report,
     write_umi_report, write_validate_report,
 };
-use bijux_api::v1::env::run_image_qa;
+use bijux_api::v1::run::run_image_qa;
 use bijux_api::v1::run::init_logging;
-use bijux_api::v1::types::{objective_spec, Objective};
+use bijux_api::v1::run::{objective_spec, Objective};
 use cli::{
     bench_args_correct, bench_args_filter, bench_args_from_trim, bench_args_from_validate,
     bench_args_merge, bench_args_preprocess, bench_args_qc_post, bench_args_screen,

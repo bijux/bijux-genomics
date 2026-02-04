@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::fs;
 use std::path::PathBuf;
 
 use anyhow::{anyhow, Context, Result};
@@ -160,8 +159,8 @@ fn prepare_stats_bench<S: ::std::hash::BuildHasher>(
     let runner = ensure_bench_runner(platform, runner_override)?;
     let bench_dir = bench_base_dir(&args.out, "stats", &args.sample_id);
     let tools_root = bench_tools_dir(&args.out, "stats", &args.sample_id);
-    fs::create_dir_all(&bench_dir).context("create bench output dir")?;
-    fs::create_dir_all(&tools_root).context("create tools output dir")?;
+    bijux_infra::ensure_dir(&bench_dir).context("create bench output dir")?;
+    bijux_infra::ensure_dir(&tools_root).context("create tools output dir")?;
 
     println!(
         "planned tools: {}",

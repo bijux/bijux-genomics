@@ -40,7 +40,7 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
                 compare_runs(&run_a, &run_b, &objective)?
             };
             let output_dir = args.output_dir.as_ref().unwrap_or(&args.search_root);
-            std::fs::create_dir_all(output_dir)?;
+            bijux_infra::ensure_dir(output_dir)?;
             let path = output_dir.join("compare.json");
             atomic_write_bytes(&path, &serde_json::to_vec_pretty(&result)?)
                 .map_err(anyhow::Error::from)?;
@@ -53,7 +53,7 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
                     domain,
                     show_experimental,
                 } => {
-                    let profiles = bijux_api::v1::pipelines::select_pipelines(
+                    let profiles = bijux_api::v1::plan::select_pipelines(
                         domain.map(cli::parse::PipelineDomainArg::as_domain),
                         *show_experimental,
                     );
@@ -68,7 +68,7 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
                     Ok(true)
                 }
                 PipelinesCommand::Explain { id } => {
-                    let profile = bijux_api::v1::pipelines::select_pipelines(None, true)
+                    let profile = bijux_api::v1::plan::select_pipelines(None, true)
                         .into_iter()
                         .find(|profile| profile.id.as_str() == id)
                         .ok_or_else(|| anyhow!("unknown pipeline profile: {id}"))?;
@@ -85,7 +85,7 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
                     domain,
                     show_experimental,
                 } => {
-                    let profiles = bijux_api::v1::pipelines::select_pipelines(
+                    let profiles = bijux_api::v1::plan::select_pipelines(
                         domain.map(cli::parse::PipelineDomainArg::as_domain),
                         *show_experimental,
                     );
@@ -99,10 +99,10 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
                         for node in &profile.graph {
                             let stage_id = node.stage_id.as_str();
                             if stage_id.starts_with("bam.") {
-                                let stage = bijux_api::v1::bam::BamStage::try_from(stage_id)
+                                let stage = bijux_api::v1::bench::BamStage::try_from(stage_id)
                                     .map_err(|_| anyhow!("unknown BAM stage {stage_id}"))?;
                                 let completeness =
-                                    bijux_api::v1::bam::bam_stage_completeness(stage);
+                                    bijux_api::v1::bench::bam_stage_completeness(stage);
                                 println!(
                                     "  {stage_id}\tcomplete={}\targs={}\tartifacts={}\tparsers={}\tinvariants={}",
                                     completeness.is_complete(),
@@ -123,13 +123,13 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
         Commands::Analyze { command } => {
             match command {
                 AnalyzeCommand::Runs(args) => {
-                    let query = bijux_api::v1::run_index::RunQuery {
+                    let query = bijux_api::v1::run::RunQuery {
                         stage: args.stage.clone(),
                         tool: args.tool.clone(),
                         objective: args.objective.map(|obj| obj.as_str().to_string()),
                         success: args.success,
                     };
-                    let runs = bijux_api::v1::run_index::query_runs(&args.index, &query)?;
+                    let runs = bijux_api::v1::run::query_runs(&args.index, &query)?;
                     println!("{}", serde_json::to_string_pretty(&runs)?);
                 }
                 AnalyzeCommand::Summary(args) => {
@@ -157,7 +157,7 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
                         compare_runs(&run_a, &run_b, &objective)?
                     };
                     let output_dir = args.output_dir.as_ref().unwrap_or(&args.search_root);
-                    std::fs::create_dir_all(output_dir)?;
+                    bijux_infra::ensure_dir(output_dir)?;
                     let path = output_dir.join("compare.json");
                     atomic_write_bytes(&path, &serde_json::to_vec_pretty(&result)?)
                         .map_err(anyhow::Error::from)?;
@@ -167,7 +167,7 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
                     let run_dir = args.search_root.join(&args.run_id);
                     let facts_path = run_dir.join("facts.jsonl");
                     let facts = load_facts_auto(&facts_path)?;
-                    let mut by_tool: BTreeMap<String, Vec<&bijux_api::v1::types::FactsRowV1>> =
+                    let mut by_tool: BTreeMap<String, Vec<&bijux_api::v1::run::FactsRowV1>> =
                         BTreeMap::new();
                     for row in facts.iter().filter(|row| row.stage_id == args.stage) {
                         by_tool.entry(row.tool_id.clone()).or_default().push(row);
@@ -233,7 +233,7 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
                                 .map_err(anyhow::Error::from)?;
                             if args.format == "bundle" {
                                 let bundle_dir = run_dir.join("report_bundle");
-                                std::fs::create_dir_all(&bundle_dir)?;
+                                bijux_infra::ensure_dir(&bundle_dir)?;
                                 atomic_write_bytes(
                                     &bundle_dir.join("index.html"),
                                     index_html.as_bytes(),
@@ -464,8 +464,8 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
 
 fn bench_bam_stage_args_to_api(
     args: &crate::cli::parse::BenchBamStageArgs,
-) -> bijux_api::v1::bam::BenchBamStageArgs {
-    bijux_api::v1::bam::BenchBamStageArgs {
+) -> bijux_api::v1::bench::BenchBamStageArgs {
+    bijux_api::v1::bench::BenchBamStageArgs {
         sample_id: args.sample_id.clone(),
         stage: args.stage.stage(),
         bam: args.bam.clone(),
@@ -482,8 +482,8 @@ fn bench_bam_stage_args_to_api(
 
 fn bench_bam_pipeline_args_to_api(
     args: &crate::cli::parse::BenchBamPipelineArgs,
-) -> bijux_api::v1::bam::BenchBamPipelineArgs {
-    bijux_api::v1::bam::BenchBamPipelineArgs {
+) -> bijux_api::v1::bench::BenchBamPipelineArgs {
+    bijux_api::v1::bench::BenchBamPipelineArgs {
         profile: args.profile.clone(),
         sample_id: args.sample_id.clone(),
         bam: args.bam.clone(),

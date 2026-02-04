@@ -1,4 +1,3 @@
-use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
@@ -53,7 +52,7 @@ pub fn run_bam_truth_stages<S: std::hash::BuildHasher>(
         let stage_dir = out_dir
             .join("bam")
             .join(stage.as_str().trim_start_matches("bam."));
-        fs::create_dir_all(&stage_dir).context("create bam stage dir")?;
+        bijux_infra::ensure_dir(&stage_dir).context("create bam stage dir")?;
 
         let args = BamRunArgs {
             stage,
@@ -140,7 +139,7 @@ pub fn run_bam_align_and_truth_stages<S: std::hash::BuildHasher>(
         .ok_or_else(|| anyhow!("--r1 required for cross align"))?;
     let sample_id = args.sample_id.as_deref().unwrap_or("sample").to_string();
     let align_out = out_dir.join("bam").join("align");
-    fs::create_dir_all(&align_out)?;
+    bijux_infra::ensure_dir(&align_out)?;
     let tool_id = profile
         .defaults
         .tools

@@ -1,22 +1,21 @@
 use assert_cmd::Command;
 use bijux_api::v1::run::ExecutionManifest;
 use std::path::Path;
-use tempfile::TempDir;
 
-fn tempdir_in_repo() -> Result<TempDir, Box<dyn std::error::Error>> {
+fn tempdir_in_repo() -> Result<tempfile::TempDir, Box<dyn std::error::Error>> {
     let cwd = Path::new(env!("CARGO_MANIFEST_DIR")).join("..").join("..");
     let base = cwd.join("target").join("test-tmp");
-    std::fs::create_dir_all(&base)?;
-    Ok(TempDir::new_in(base)?)
+    bijux_infra::ensure_dir(&base)?;
+    Ok(bijux_infra::temp_dir_in(base, "bijux")?)
 }
 
 #[test]
 fn replay_runs_manifest_command_and_reproduces_outputs() -> Result<(), Box<dyn std::error::Error>> {
     let tmp = tempdir_in_repo()?;
     let run_dir = tmp.path().join("run").join("abc");
-    std::fs::create_dir_all(&run_dir)?;
+    bijux_infra::ensure_dir(&run_dir)?;
     let output_dir = tmp.path().join("out");
-    std::fs::create_dir_all(&output_dir)?;
+    bijux_infra::ensure_dir(&output_dir)?;
 
     let run_id = "run-123".to_string();
     let output_path = output_dir.join("output.txt");
@@ -42,7 +41,7 @@ fn replay_runs_manifest_command_and_reproduces_outputs() -> Result<(), Box<dyn s
         arch: "arm64".to_string(),
     };
     let manifest_path = run_dir.join("manifest.json");
-    std::fs::write(&manifest_path, serde_json::to_vec_pretty(&manifest)?)?;
+    bijux_infra::write_bytes(&manifest_path, serde_json::to_vec_pretty(&manifest)?)?;
 
     let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("bijux"));
     cmd.args([

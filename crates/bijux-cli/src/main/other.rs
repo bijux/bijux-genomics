@@ -1,4 +1,4 @@
-fn run_plan(cli: &Cli, registry: &bijux_api::v1::types::ToolRegistry, domain_dir: &Path) -> Result<()> {
+fn run_plan(cli: &Cli, registry: &bijux_api::v1::run::ToolRegistry, domain_dir: &Path) -> Result<()> {
     let (stage, tool, common) = cli::resolve_stage_tool(&cli.command);
 
     let run_id = new_run_id();
@@ -26,8 +26,8 @@ fn run_plan(cli: &Cli, registry: &bijux_api::v1::types::ToolRegistry, domain_dir
     .map_err(|err| anyhow!("failed to build plan: {err}"))?
     .plan;
 
-    std::fs::create_dir_all(&plan.logs_dir).context("create logs directory")?;
-    std::fs::create_dir_all(&plan.artifacts_dir).context("create artifacts directory")?;
+    bijux_infra::ensure_dir(&plan.logs_dir).context("create logs directory")?;
+    bijux_infra::ensure_dir(&plan.artifacts_dir).context("create artifacts directory")?;
     let log_path = plan.logs_dir.join("bijux.log");
     let _log_guard = init_logging(&log_path)?;
 

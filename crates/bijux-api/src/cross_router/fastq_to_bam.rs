@@ -33,7 +33,7 @@ pub fn run_fastq_to_bam_profile<S: std::hash::BuildHasher>(
         "preprocess",
         &preprocess_args.sample_id,
     );
-    fs::create_dir_all(&out_dir).context("create cross pipeline out dir")?;
+    bijux_infra::ensure_dir(&out_dir).context("create cross pipeline out dir")?;
     fastq_preprocess_run(catalog, platform, runner_override, preprocess_args)?;
 
     let summary_path = out_dir.join("run_artifacts").join("run_summary.json");

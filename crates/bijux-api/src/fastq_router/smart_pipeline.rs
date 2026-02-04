@@ -6,6 +6,9 @@ use bijux_engine::primitives::{
     bench_tools_dir, build_tool_execution_spec, execute_plan, PlatformSpec, ToolImageSpec,
 };
 
+/// Output from the smart pipeline selection.
+///
+/// Stability: v1 (stable).
 pub struct SmartPipelineResult {
     pub adapter_inference: Option<serde_json::Value>,
     pub adapter_bank_preset_override: Option<String>,
@@ -60,7 +63,7 @@ pub fn apply_smart_pipeline_decisions<S: ::std::hash::BuildHasher>(
             let spec = normalize_tool_spec_for_jobs(&spec, jobs);
             let stage_root = bench_tools_dir(&args.out, "detect_adapters", &args.sample_id);
             let out_dir = stage_root.join(&spec.tool_id.0);
-            std::fs::create_dir_all(&out_dir).context("create detect_adapters output dir")?;
+            bijux_infra::ensure_dir(&out_dir).context("create detect_adapters output dir")?;
             let plan = bijux_stages_fastq::fastq::detect_adapters::plan(&spec, &args.r1, &out_dir);
             let execution = execute_plan(&plan, platform.runner, None)?;
             if execution.exit_code == 0 {

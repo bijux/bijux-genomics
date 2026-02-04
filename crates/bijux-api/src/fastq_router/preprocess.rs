@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::fs;
 
 use anyhow::{anyhow, Context, Result};
 use bijux_core::ContainerImageRefV1;
@@ -117,7 +116,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     args: &bijux_stages_fastq::args::BenchFastqPreprocessArgs,
 ) -> Result<()> {
     let out_dir = bench_base_dir(&args.out, "preprocess", &args.sample_id);
-    fs::create_dir_all(&out_dir).context("create preprocess output dir")?;
+    bijux_infra::ensure_dir(&out_dir).context("create preprocess output dir")?;
 
     ensure_bench_runner(platform, runner_override)?;
 
@@ -143,7 +142,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
 
     let jobs = bench_jobs(args.jobs);
     let tools_root = bench_tools_dir(&args.out, "preprocess", &args.sample_id);
-    fs::create_dir_all(&tools_root).context("create preprocess tools dir")?;
+    bijux_infra::ensure_dir(&tools_root).context("create preprocess tools dir")?;
 
     let smart = apply_smart_pipeline_decisions(
         catalog,
@@ -225,7 +224,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
             let stage_dir = stage.trim_start_matches("fastq.");
             let stage_root = bench_tools_dir(&args.out, stage_dir, &args.sample_id);
             let out_dir = stage_root.join(&tool.tool_id.0);
-            fs::create_dir_all(&out_dir).context("create stage output dir")?;
+            bijux_infra::ensure_dir(&out_dir).context("create stage output dir")?;
             Ok(out_dir)
         },
     )?;
