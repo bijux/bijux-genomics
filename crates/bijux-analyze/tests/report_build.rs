@@ -55,7 +55,7 @@ fn bench_schema_table_omits_range_when_missing() -> Result<()> {
 
 #[test]
 fn run_summary_aggregation_works() -> Result<()> {
-    let dir = tempfile::TempDir::new()?;
+    let dir = bijux_infra::temp_dir("bijux")?;
     let rows = vec![FactsRowV1 {
         schema_version: "bijux.facts.v1".to_string(),
         run_id: "run-1".to_string(),

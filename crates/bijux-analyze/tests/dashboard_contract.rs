@@ -3,7 +3,7 @@ use bijux_core::FactsRowV1;
 
 #[test]
 fn dashboard_contract_has_required_fields_and_sorting() -> anyhow::Result<()> {
-    let dir = tempfile::TempDir::new()?;
+    let dir = bijux_infra::temp_dir("bijux")?;
     let path = dir.path().join("dashboard.jsonl");
     let rows = vec![
         FactsRowV1 {

@@ -4,11 +4,10 @@ use std::path::PathBuf;
 use bijux_analyze::export::{summarize_facts, write_run_summary_json};
 use bijux_analyze::load::load_facts;
 use bijux_core::FactsRowV1;
-use tempfile::TempDir;
 
 #[test]
 fn facts_loader_and_summary_work() -> anyhow::Result<()> {
-    let dir = TempDir::new()?;
+    let dir = bijux_infra::temp_dir("bijux")?;
     let path = dir.path().join("facts.jsonl");
     let row = FactsRowV1 {
         schema_version: "bijux.facts.v1".to_string(),
@@ -40,7 +39,7 @@ fn facts_loader_and_summary_work() -> anyhow::Result<()> {
         artifacts: serde_json::json!({"metrics_envelope": "metrics.json"}),
     };
     let payload = serde_json::to_string(&row)?;
-    fs::write(&path, format!("{payload}\n"))?;
+    bijux_infra::write_bytes(&path, format!("{payload}\n"))?;
 
     let rows = load_facts(&path).map_err(|err| anyhow::anyhow!(err.to_string()))?;
     assert_eq!(rows.len(), 1);
@@ -70,7 +69,7 @@ fn facts_loader_and_summary_work() -> anyhow::Result<()> {
 
 #[test]
 fn run_summary_snapshot_is_stable() -> anyhow::Result<()> {
-    let dir = TempDir::new()?;
+    let dir = bijux_infra::temp_dir("bijux")?;
     let summary_path = dir.path().join("run_summary.json");
     let rows = vec![
         FactsRowV1 {

@@ -16,6 +16,7 @@ pub(crate) fn report_contract() -> ReportContractV1 {
             "completeness".to_string(),
             "stages".to_string(),
             "provenance".to_string(),
+            "decision_config".to_string(),
             "retention_definition".to_string(),
             "retention_context".to_string(),
             "assets_provenance".to_string(),
@@ -81,6 +82,7 @@ pub(crate) fn build_report_sections(
         "method_assumptions".to_string(),
         method_assumptions_section(report),
     );
+    sections.insert("decision_config".to_string(), decision_config_section());
     sections.insert("stage_completeness".to_string(), serde_json::json!([]));
     sections.insert("stage_confidence".to_string(), serde_json::json!([]));
     sections.insert("decision_trace".to_string(), serde_json::json!([]));
@@ -165,6 +167,25 @@ fn method_assumptions_section(report: &ReportSchemaV1) -> serde_json::Value {
             "bootstrap confidence intervals are disabled by default",
             "tie-breaks are resolved by tool_id when scores are equal",
         ],
+    })
+}
+
+fn decision_config_section() -> serde_json::Value {
+    let objective = objective_spec(Objective::Balanced);
+    serde_json::json!({
+        "schema_version": "bijux.decision_config.v1",
+        "compare_objective": "balanced_default",
+        "objective_spec": objective,
+        "tie_break_policy": ["tool_id"],
+        "outlier_policy": {
+            "method": "mad",
+            "threshold": 3.5,
+        },
+        "bootstrap_policy": {
+            "enabled": false,
+            "samples": null,
+            "min_samples": 5,
+        },
     })
 }
 

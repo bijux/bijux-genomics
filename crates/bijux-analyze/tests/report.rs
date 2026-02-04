@@ -26,14 +26,28 @@ fn write_report_fixture(
     rows: &[FactsRowV1],
 ) -> Result<serde_json::Value> {
     let dir = root.join(suffix);
-    fs::create_dir_all(&dir)?;
+    bijux_infra::ensure_dir(&dir)?;
     let facts_path = dir.join("facts.jsonl");
     let mut facts_raw = String::new();
     for row in rows {
         facts_raw.push_str(&serde_json::to_string(row)?);
         facts_raw.push('\n');
     }
-    fs::write(&facts_path, facts_raw)?;
+    bijux_infra::write_bytes(&facts_path, facts_raw)?;
+    let defaults = serde_json::json!({
+        "pipeline_id": "fastq-to-fastq__default__v1",
+        "tools": {},
+        "params": {},
+        "thresholds": {},
+        "tool_provenance": {},
+        "param_provenance": {},
+        "assumptions": [],
+        "citations": {},
+    });
+    bijux_infra::write_bytes(
+        dir.join("defaults_ledger.json"),
+        serde_json::to_vec_pretty(&defaults)?,
+    )?;
     let loaded = load_facts(&facts_path).map_err(|err| anyhow::anyhow!(err.to_string()))?;
     let report_path = write_run_report_from_facts(&dir, &loaded)?;
     let report_raw = fs::read_to_string(report_path)?;
@@ -71,7 +85,7 @@ fn base_reports(root: &std::path::Path) -> Result<(PathBuf, PathBuf, PathBuf)> {
         subreports: vec![],
         log_paths: vec![],
     };
-    fs::write(
+    bijux_infra::write_bytes(
         &stage_report_path,
         serde_json::to_vec_pretty(&stage_report)?,
     )?;
@@ -109,7 +123,7 @@ fn base_reports(root: &std::path::Path) -> Result<(PathBuf, PathBuf, PathBuf)> {
         banks: None,
         bank_assets: None,
     };
-    fs::write(
+    bijux_infra::write_bytes(
         root.join("effective_config.json"),
         serde_json::to_vec_pretty(&effective_config)?,
     )?;
@@ -151,7 +165,7 @@ fn base_reports(root: &std::path::Path) -> Result<(PathBuf, PathBuf, PathBuf)> {
         output_hashes: vec!["out".to_string()],
         executed_command: Some("fastp --in1 reads.fastq.gz".to_string()),
     };
-    fs::write(
+    bijux_infra::write_bytes(
         root.join("tool_invocation.json"),
         serde_json::to_vec_pretty(&tool_invocation)?,
     )?;
@@ -178,7 +192,7 @@ fn base_reports(root: &std::path::Path) -> Result<(PathBuf, PathBuf, PathBuf)> {
             conditions: serde_json::json!({"min_len": 20}),
         }),
     };
-    fs::write(
+    bijux_infra::write_bytes(
         &retention_report_path,
         serde_json::to_vec_pretty(&retention_report)?,
     )?;
@@ -211,7 +225,7 @@ fn base_reports(root: &std::path::Path) -> Result<(PathBuf, PathBuf, PathBuf)> {
             }
         }
     });
-    fs::write(&bank_report_path, serde_json::to_vec_pretty(&bank_report)?)?;
+    bijux_infra::write_bytes(&bank_report_path, serde_json::to_vec_pretty(&bank_report)?)?;
 
     Ok((stage_report_path, retention_report_path, bank_report_path))
 }
@@ -220,7 +234,7 @@ fn base_reports(root: &std::path::Path) -> Result<(PathBuf, PathBuf, PathBuf)> {
 #[allow(clippy::too_many_lines)]
 fn golden_run_report_snapshot_happy_path() -> Result<()> {
     let root = fixture_root()?;
-    fs::create_dir_all(&root)?;
+    bijux_infra::ensure_dir(&root)?;
     let (stage_report_path, retention_report_path, bank_report_path) = base_reports(&root)?;
 
     let rows = vec![FactsRowV1 {

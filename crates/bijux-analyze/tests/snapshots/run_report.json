@@ -63,6 +63,7 @@
       "completeness",
       "stages",
       "provenance",
+      "decision_config",
       "retention_definition",
       "retention_context",
       "assets_provenance",
@@ -250,6 +251,30 @@
       "missing_reports": [],
       "status": "complete"
     },
+    "decision_config": {
+      "bootstrap_policy": {
+        "enabled": false,
+        "min_samples": 5,
+        "samples": null
+      },
+      "compare_objective": "balanced_default",
+      "objective_spec": {
+        "name": "balanced",
+        "weights": {
+          "memory": 1.0,
+          "retention": -100.0,
+          "runtime": 1.0
+        }
+      },
+      "outlier_policy": {
+        "method": "mad",
+        "threshold": 3.5
+      },
+      "schema_version": "bijux.decision_config.v1",
+      "tie_break_policy": [
+        "tool_id"
+      ]
+    },
     "decision_trace": {
       "entries": [
         {
@@ -312,10 +337,28 @@
         "bootstrap confidence intervals are disabled by default",
         "tie-breaks are resolved by tool_id when scores are equal"
       ],
+      "bootstrap_policy": {
+        "enabled": false,
+        "min_samples": 5,
+        "samples": null
+      },
       "compare_objective": "balanced_default",
+      "decision_policy_version": "bijux.decision_policy.v1",
       "effect_thresholds": {
         "absolute": 0.05,
         "relative": 0.05
+      },
+      "objective_spec": {
+        "name": "balanced",
+        "weights": {
+          "memory": 1.0,
+          "retention": -100.0,
+          "runtime": 1.0
+        }
+      },
+      "outlier_policy": {
+        "method": "mad",
+        "threshold": 3.5
       },
       "presets": [
         {
@@ -326,6 +369,9 @@
           "tool_version": "0.23.4"
         }
       ],
+      "tie_break_policy": [
+        "tool_id"
+      ],
       "tools": [
         {
           "image_digest": "sha256:img",
@@ -334,28 +380,7 @@
           "tool_id": "fastp",
           "tool_version": "0.23.4"
         }
-      ],
-      "decision_policy_version": "bijux.decision_policy.v1",
-      "objective_spec": {
-        "name": "balanced",
-        "weights": {
-          "runtime": 1.0,
-          "memory": 1.0,
-          "retention": -100.0
-        }
-      },
-      "tie_break_policy": [
-        "tool_id"
-      ],
-      "outlier_policy": {
-        "method": "mad",
-        "threshold": 3.5
-      },
-      "bootstrap_policy": {
-        "enabled": false,
-        "samples": null,
-        "min_samples": 5
-      }
+      ]
     },
     "metric_provenance": {
       "fastq.trim": {
@@ -367,7 +392,16 @@
       }
     },
     "pipeline_defaults": {
-      "defaults_ledger": {},
+      "defaults_ledger": {
+        "assumptions": [],
+        "citations": {},
+        "param_provenance": {},
+        "params": {},
+        "pipeline_id": "fastq-to-fastq__default__v1",
+        "thresholds": {},
+        "tool_provenance": {},
+        "tools": {}
+      },
       "overrides": []
     },
     "pipeline_overview": {

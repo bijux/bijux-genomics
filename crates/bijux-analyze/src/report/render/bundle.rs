@@ -10,7 +10,7 @@ use crate::report::model::ReportModel;
 use crate::report::render::html::render_report_html;
 
 pub fn write_report_bundle(dir: &Path, model: &ReportModel) -> Result<()> {
-    std::fs::create_dir_all(dir).context("create report bundle dir")?;
+    bijux_infra::ensure_dir(dir).context("create report bundle dir")?;
     let html = render_report_html(model)?;
     let index_path = dir.join("index.html");
     atomic_write_bytes(&index_path, html.as_bytes())
@@ -22,7 +22,7 @@ pub fn write_report_bundle(dir: &Path, model: &ReportModel) -> Result<()> {
         .map_err(anyhow::Error::from)
         .context("write report bundle report.json")?;
     let assets_dir = dir.join("assets");
-    std::fs::create_dir_all(&assets_dir).context("create report assets dir")?;
+    bijux_infra::ensure_dir(&assets_dir).context("create report assets dir")?;
     let style_path = assets_dir.join("style.css");
     atomic_write_bytes(
         &style_path,
@@ -51,7 +51,7 @@ mod tests {
         let raw = fs::read_to_string(&report_path)?;
         let report: ReportSchemaV1 = serde_json::from_str(&raw)?;
         let model = ReportModel::empty(report);
-        let tmp = tempfile::tempdir()?;
+        let tmp = bijux_infra::temp_dir("bijux")?;
         let bundle_dir = tmp.path().join("bundle");
         write_report_bundle(&bundle_dir, &model)?;
         let index_path = bundle_dir.join("index.html");

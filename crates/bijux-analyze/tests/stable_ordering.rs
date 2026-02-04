@@ -73,8 +73,26 @@ fn reordered_facts_produce_identical_report_and_rankings() -> Result<()> {
     let mut rows_reordered = rows.clone();
     rows_reordered.reverse();
 
-    let dir_a = tempfile::tempdir()?;
-    let dir_b = tempfile::tempdir()?;
+    let dir_a = bijux_infra::temp_dir("bijux")?;
+    let dir_b = bijux_infra::temp_dir("bijux")?;
+    let defaults = serde_json::json!({
+        "pipeline_id": "fastq-to-fastq__default__v1",
+        "tools": {},
+        "params": {},
+        "thresholds": {},
+        "tool_provenance": {},
+        "param_provenance": {},
+        "assumptions": [],
+        "citations": {},
+    });
+    bijux_infra::write_bytes(
+        dir_a.path().join("defaults_ledger.json"),
+        serde_json::to_vec_pretty(&defaults)?,
+    )?;
+    bijux_infra::write_bytes(
+        dir_b.path().join("defaults_ledger.json"),
+        serde_json::to_vec_pretty(&defaults)?,
+    )?;
 
     let report_a = write_run_report_from_facts(dir_a.path(), &rows)?;
     let report_b = write_run_report_from_facts(dir_b.path(), &rows_reordered)?;

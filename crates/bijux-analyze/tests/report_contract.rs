@@ -6,21 +6,21 @@ use std::path::PathBuf;
 
 #[test]
 fn report_sections_exist_for_all_stages() -> Result<()> {
-    let dir = tempfile::TempDir::new()?;
+    let dir = bijux_infra::temp_dir("bijux")?;
     let stage_dir = dir.path();
     let stages = bijux_domain_fastq::canonical_stage_order();
 
     let mut rows = Vec::new();
     for (idx, stage_id) in stages.iter().enumerate() {
         let stage_path = stage_dir.join(format!("stage_{idx}"));
-        fs::create_dir_all(&stage_path)?;
+        bijux_infra::ensure_dir(&stage_path)?;
 
         let metrics_path = stage_path.join("metrics.json");
         let invocation_path = stage_path.join("tool_invocation.json");
         let config_path = stage_path.join("effective_config.json");
-        fs::write(&metrics_path, "{}")?;
-        fs::write(&invocation_path, "{}")?;
-        fs::write(&config_path, "{}")?;
+        bijux_infra::write_bytes(&metrics_path, "{}")?;
+        bijux_infra::write_bytes(&invocation_path, "{}")?;
+        bijux_infra::write_bytes(&config_path, "{}")?;
 
         let stage_report = StageReportV1 {
             schema_version: "bijux.stage_report.v1".to_string(),
@@ -48,7 +48,7 @@ fn report_sections_exist_for_all_stages() -> Result<()> {
             log_paths: vec![],
         };
         let stage_report_path = stage_path.join("stage_report.json");
-        fs::write(
+        bijux_infra::write_bytes(
             &stage_report_path,
             serde_json::to_vec_pretty(&stage_report)?,
         )?;
@@ -89,7 +89,21 @@ fn report_sections_exist_for_all_stages() -> Result<()> {
         facts_raw.push_str(&serde_json::to_string(row)?);
         facts_raw.push('\n');
     }
-    fs::write(&facts_path, facts_raw)?;
+    bijux_infra::write_bytes(&facts_path, facts_raw)?;
+    let defaults = serde_json::json!({
+        "pipeline_id": "fastq-to-fastq__default__v1",
+        "tools": {},
+        "params": {},
+        "thresholds": {},
+        "tool_provenance": {},
+        "param_provenance": {},
+        "assumptions": [],
+        "citations": {},
+    });
+    bijux_infra::write_bytes(
+        stage_dir.join("defaults_ledger.json"),
+        serde_json::to_vec_pretty(&defaults)?,
+    )?;
     let loaded = load_facts(&facts_path).map_err(|err| anyhow::anyhow!(err.to_string()))?;
     let report_path = write_run_report_from_facts(stage_dir, &loaded)?;
     let report_raw = fs::read_to_string(report_path)?;

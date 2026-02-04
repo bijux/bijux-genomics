@@ -8,10 +8,10 @@ use std::collections::BTreeMap;
 
 #[test]
 fn analyze_consumes_bench_summary() -> anyhow::Result<()> {
-    let temp = tempfile::tempdir()?;
+    let temp = bijux_infra::temp_dir("bijux")?;
     let base_dir = temp.path();
     let bench_dir = base_dir.join("bench");
-    std::fs::create_dir_all(&bench_dir)?;
+    bijux_infra::ensure_dir(&bench_dir)?;
 
     let suite = BenchmarkSuiteSpec::v1(
         "suite-1".to_string(),
@@ -68,7 +68,7 @@ fn analyze_consumes_bench_summary() -> anyhow::Result<()> {
         &BenchRunOptions::default(),
     )?;
     let summary_path = bench_dir.join("summary.json");
-    std::fs::write(&summary_path, serde_json::to_vec_pretty(&summary)?)?;
+    bijux_infra::write_bytes(&summary_path, serde_json::to_vec_pretty(&summary)?)?;
 
     let facts = vec![FactsRowV1 {
         schema_version: "bijux.facts.v1".to_string(),
@@ -96,6 +96,21 @@ fn analyze_consumes_bench_summary() -> anyhow::Result<()> {
         reports: serde_json::json!({}),
         artifacts: serde_json::json!({}),
     }];
+
+    let defaults = serde_json::json!({
+        "pipeline_id": "fastq-to-fastq__default__v1",
+        "tools": {},
+        "params": {},
+        "thresholds": {},
+        "tool_provenance": {},
+        "param_provenance": {},
+        "assumptions": [],
+        "citations": {},
+    });
+    bijux_infra::write_bytes(
+        base_dir.join("defaults_ledger.json"),
+        serde_json::to_vec_pretty(&defaults)?,
+    )?;
 
     let report_path = write_run_report_from_facts(base_dir, &facts)?;
     let report_raw = std::fs::read_to_string(report_path)?;

@@ -81,14 +81,19 @@ fn write_pipeline_report(domain: Domain, pipeline_id: &str) -> Result<serde_json
     }
     let root = fixture_root()?;
     let dir = root.join(pipeline_id);
-    fs::create_dir_all(&dir)?;
+    bijux_infra::ensure_dir(&dir)?;
     let facts_path = dir.join("facts.jsonl");
     let mut facts_raw = String::new();
     for row in &rows {
         facts_raw.push_str(&serde_json::to_string(row)?);
         facts_raw.push('\n');
     }
-    fs::write(&facts_path, facts_raw)?;
+    bijux_infra::write_bytes(&facts_path, facts_raw)?;
+    let defaults = profile.defaults_ledger();
+    bijux_infra::write_bytes(
+        dir.join("defaults_ledger.json"),
+        serde_json::to_vec_pretty(&defaults)?,
+    )?;
     let loaded = load_facts(&facts_path).map_err(|err| anyhow::anyhow!(err.to_string()))?;
     let report_path = write_run_report_from_facts(&dir, &loaded)?;
     let report_raw = fs::read_to_string(report_path)?;

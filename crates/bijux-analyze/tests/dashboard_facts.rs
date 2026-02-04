@@ -3,7 +3,6 @@ use std::path::PathBuf;
 
 use bijux_analyze::export::write_dashboard_facts_jsonl;
 use bijux_core::FactsRowV1;
-use tempfile::TempDir;
 
 fn facts_row(run_id: &str, stage_id: &str, tool_id: &str, params: &str) -> FactsRowV1 {
     FactsRowV1 {
@@ -36,7 +35,7 @@ fn facts_row(run_id: &str, stage_id: &str, tool_id: &str, params: &str) -> Facts
 
 #[test]
 fn dashboard_facts_snapshot_is_stable() -> anyhow::Result<()> {
-    let dir = TempDir::new()?;
+    let dir = bijux_infra::temp_dir("bijux")?;
     let path = dir.path().join("facts.jsonl");
     let rows = vec![
         facts_row("run-2", "fastq.trim", "fastp", "b"),

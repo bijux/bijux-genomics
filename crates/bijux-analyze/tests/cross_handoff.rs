@@ -1,13 +1,12 @@
 use anyhow::Result;
 use bijux_analyze::write_run_report_from_facts;
-use tempfile::TempDir;
 
 #[test]
 fn cross_domain_handoff_section_is_emitted() -> Result<()> {
     if std::env::var("BIJUX_E2E").is_err() {
         return Ok(());
     }
-    let temp = TempDir::new()?;
+    let temp = bijux_infra::temp_dir("bijux")?;
     let base = temp.path();
     let manifest = serde_json::json!({
         "schema_version": "bijux.run_manifest.v2",
@@ -26,9 +25,23 @@ fn cross_domain_handoff_section_is_emitted() -> Result<()> {
             "sha256": "sha256:dummy"
         }]
     });
-    std::fs::write(
+    bijux_infra::write_bytes(
         base.join("run_manifest.json"),
         serde_json::to_vec_pretty(&manifest)?,
+    )?;
+    let defaults = serde_json::json!({
+        "pipeline_id": "fastq-to-bam__default__v1",
+        "tools": {},
+        "params": {},
+        "thresholds": {},
+        "tool_provenance": {},
+        "param_provenance": {},
+        "assumptions": [],
+        "citations": {},
+    });
+    bijux_infra::write_bytes(
+        base.join("defaults_ledger.json"),
+        serde_json::to_vec_pretty(&defaults)?,
     )?;
     let report_path = write_run_report_from_facts(base, &[])?;
     let report_raw = std::fs::read_to_string(&report_path)?;

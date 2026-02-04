@@ -21,7 +21,7 @@ pub enum Domain {
     Cross,
 }
 
-pub use defaults_ledger::DefaultsLedgerV1;
+pub use defaults_ledger::{DefaultProvenanceV1, DefaultsLedgerV1};
 pub use id::{validate_pipeline_id, validate_pipeline_id_str, PipelineId};
 
 pub type PipelineProfileV1 = PipelineProfile;
@@ -115,17 +115,77 @@ pub struct PipelineCapabilities {
     pub supports_benchmarking: bool,
 }
 
+#[derive(Debug, Clone, Serialize)]
+pub struct PipelineContract {
+    pub pipeline_id: PipelineId,
+    pub required_stages: Vec<String>,
+    pub required_artifacts: Vec<String>,
+    pub required_metrics_bundles: Vec<MetricsBundle>,
+    pub required_report_sections: Vec<ReportSection>,
+}
+
 impl PipelineProfile {
     #[must_use]
     pub fn defaults_ledger(&self) -> DefaultsLedgerV1 {
+        let mut tool_provenance = BTreeMap::new();
+        let mut param_provenance = BTreeMap::new();
+        for (stage, rationale) in &self.defaults.rationales {
+            let provenance = DefaultProvenanceV1 {
+                rationale: rationale.clone(),
+                assumptions: Vec::new(),
+                comparability_implications: Vec::new(),
+            };
+            if self.defaults.tools.contains_key(stage) {
+                tool_provenance.insert(stage.clone(), provenance.clone());
+            }
+            if self.defaults.params.contains_key(stage) {
+                param_provenance.insert(stage.clone(), provenance);
+            }
+        }
+        for stage in self.defaults.tools.keys() {
+            tool_provenance.entry(stage.clone()).or_insert_with(|| DefaultProvenanceV1 {
+                rationale: "unspecified".to_string(),
+                assumptions: Vec::new(),
+                comparability_implications: Vec::new(),
+            });
+        }
+        for stage in self.defaults.params.keys() {
+            param_provenance.entry(stage.clone()).or_insert_with(|| DefaultProvenanceV1 {
+                rationale: "unspecified".to_string(),
+                assumptions: Vec::new(),
+                comparability_implications: Vec::new(),
+            });
+        }
         DefaultsLedgerV1 {
             pipeline_id: self.id,
             tools: self.defaults.tools.clone(),
             params: self.defaults.params.clone(),
             thresholds: BTreeMap::new(),
-            rationales: self.defaults.rationales.clone(),
+            tool_provenance,
+            param_provenance,
             assumptions: Vec::new(),
             citations: BTreeMap::new(),
+        }
+    }
+
+    #[must_use]
+    pub fn contract(&self) -> PipelineContract {
+        PipelineContract {
+            pipeline_id: self.id,
+            required_stages: self
+                .capabilities
+                .required_stages
+                .iter()
+                .map(|stage| (*stage).to_string())
+                .collect(),
+            required_artifacts: self
+                .capabilities
+                .required_artifacts
+                .iter()
+                .map(|artifact| (*artifact).to_string())
+                .collect(),
+            required_metrics_bundles: self.capabilities.required_metrics_bundles.clone(),
+            required_report_sections: self.capabilities.required_report_sections.clone(),
         }
     }
 }

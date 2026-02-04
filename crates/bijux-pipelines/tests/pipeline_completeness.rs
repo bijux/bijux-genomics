@@ -82,7 +82,29 @@ fn pipeline_profiles_are_complete() {
                 node.stage_id,
                 profile.id
             );
+            assert!(
+                ledger.tool_provenance.contains_key(&node.stage_id),
+                "defaults ledger missing tool provenance for {} in {}",
+                node.stage_id,
+                profile.id
+            );
+            assert!(
+                ledger.param_provenance.contains_key(&node.stage_id),
+                "defaults ledger missing params provenance for {} in {}",
+                node.stage_id,
+                profile.id
+            );
         }
+        assert!(
+            !profile.graph.is_empty(),
+            "missing stage list for {}",
+            profile.id
+        );
+        assert!(
+            !profile.capabilities.report_sections.is_empty(),
+            "missing report sections for {}",
+            profile.id
+        );
         assert!(
             !profile.capabilities.required_stages.is_empty(),
             "missing required stages for {}",
@@ -112,7 +134,7 @@ fn pipeline_profiles_are_complete() {
         );
         assert!(
             !profile.capabilities.output_artifacts.is_empty(),
-            "missing output artifacts for {}",
+            "missing mandatory outputs for {}",
             profile.id
         );
         assert!(
@@ -126,5 +148,26 @@ fn pipeline_profiles_are_complete() {
             profile.id
         );
         assert_report_sections(&profile);
+        let contract = profile.contract();
+        assert!(
+            !contract.required_stages.is_empty(),
+            "pipeline contract missing stages for {}",
+            profile.id
+        );
+        assert!(
+            !contract.required_artifacts.is_empty(),
+            "pipeline contract missing required artifacts for {}",
+            profile.id
+        );
+        assert!(
+            !contract.required_metrics_bundles.is_empty(),
+            "pipeline contract missing required metrics bundles for {}",
+            profile.id
+        );
+        assert!(
+            !contract.required_report_sections.is_empty(),
+            "pipeline contract missing report sections for {}",
+            profile.id
+        );
     }
 }

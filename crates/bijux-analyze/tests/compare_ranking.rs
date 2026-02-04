@@ -18,17 +18,17 @@ fn compare_and_ranking_snapshot() -> Result<()> {
         .join("compare_ranking");
     let run_a = root.join("run_a");
     let run_b = root.join("run_b");
-    fs::create_dir_all(run_a.join("summary"))?;
-    fs::create_dir_all(run_b.join("summary"))?;
+    bijux_infra::ensure_dir(run_a.join("summary"))?;
+    bijux_infra::ensure_dir(run_b.join("summary"))?;
 
-    fs::write(
+    bijux_infra::write_bytes(
         run_a.join("summary").join("metrics_deltas.json"),
         serde_json::to_string_pretty(&serde_json::json!({
             "runtime_s": 1.0,
             "read_retention": 0.95,
         }))?,
     )?;
-    fs::write(
+    bijux_infra::write_bytes(
         run_b.join("summary").join("metrics_deltas.json"),
         serde_json::to_string_pretty(&serde_json::json!({
             "runtime_s": 2.0,

@@ -5,13 +5,23 @@ use serde::Serialize;
 use crate::PipelineId;
 
 #[derive(Debug, Clone, Serialize)]
+pub struct DefaultProvenanceV1 {
+    pub rationale: String,
+    #[serde(default)]
+    pub assumptions: Vec<String>,
+    #[serde(default)]
+    pub comparability_implications: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize)]
 pub struct DefaultsLedgerV1 {
     pub pipeline_id: PipelineId,
     pub tools: BTreeMap<String, String>,
     pub params: BTreeMap<String, serde_json::Value>,
     #[serde(default)]
     pub thresholds: BTreeMap<String, serde_json::Value>,
-    pub rationales: BTreeMap<String, String>,
+    pub tool_provenance: BTreeMap<String, DefaultProvenanceV1>,
+    pub param_provenance: BTreeMap<String, DefaultProvenanceV1>,
     #[serde(default)]
     pub assumptions: Vec<String>,
     #[serde(default)]

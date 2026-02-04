@@ -43,12 +43,59 @@ expression: ledger
     }
   },
   "thresholds": {},
-  "rationales": {
-    "bam.coverage": "pipeline default",
-    "bam.damage": "pipeline default",
-    "bam.filter": "pipeline default",
-    "bam.qc_pre": "pipeline default",
-    "bam.validate": "pipeline default"
+  "tool_provenance": {
+    "bam.coverage": {
+      "rationale": "pipeline default",
+      "assumptions": [],
+      "comparability_implications": []
+    },
+    "bam.damage": {
+      "rationale": "pipeline default",
+      "assumptions": [],
+      "comparability_implications": []
+    },
+    "bam.filter": {
+      "rationale": "pipeline default",
+      "assumptions": [],
+      "comparability_implications": []
+    },
+    "bam.qc_pre": {
+      "rationale": "pipeline default",
+      "assumptions": [],
+      "comparability_implications": []
+    },
+    "bam.validate": {
+      "rationale": "pipeline default",
+      "assumptions": [],
+      "comparability_implications": []
+    }
+  },
+  "param_provenance": {
+    "bam.coverage": {
+      "rationale": "pipeline default",
+      "assumptions": [],
+      "comparability_implications": []
+    },
+    "bam.damage": {
+      "rationale": "pipeline default",
+      "assumptions": [],
+      "comparability_implications": []
+    },
+    "bam.filter": {
+      "rationale": "pipeline default",
+      "assumptions": [],
+      "comparability_implications": []
+    },
+    "bam.qc_pre": {
+      "rationale": "pipeline default",
+      "assumptions": [],
+      "comparability_implications": []
+    },
+    "bam.validate": {
+      "rationale": "pipeline default",
+      "assumptions": [],
+      "comparability_implications": []
+    }
   },
   "assumptions": [],
   "citations": {}

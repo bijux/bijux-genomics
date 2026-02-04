@@ -79,18 +79,119 @@ expression: ledger
     }
   },
   "thresholds": {},
-  "rationales": {
-    "bam.authenticity": "pipeline default",
-    "bam.bias_mitigation": "pipeline default",
-    "bam.complexity": "pipeline default",
-    "bam.contamination": "pipeline default",
-    "bam.coverage": "pipeline default",
-    "bam.damage": "pipeline default",
-    "bam.filter": "pipeline default",
-    "bam.markdup": "pipeline default",
-    "bam.qc_pre": "pipeline default",
-    "bam.sex": "pipeline default",
-    "bam.validate": "pipeline default"
+  "tool_provenance": {
+    "bam.authenticity": {
+      "rationale": "pipeline default",
+      "assumptions": [],
+      "comparability_implications": []
+    },
+    "bam.bias_mitigation": {
+      "rationale": "pipeline default",
+      "assumptions": [],
+      "comparability_implications": []
+    },
+    "bam.complexity": {
+      "rationale": "pipeline default",
+      "assumptions": [],
+      "comparability_implications": []
+    },
+    "bam.contamination": {
+      "rationale": "pipeline default",
+      "assumptions": [],
+      "comparability_implications": []
+    },
+    "bam.coverage": {
+      "rationale": "pipeline default",
+      "assumptions": [],
+      "comparability_implications": []
+    },
+    "bam.damage": {
+      "rationale": "pipeline default",
+      "assumptions": [],
+      "comparability_implications": []
+    },
+    "bam.filter": {
+      "rationale": "pipeline default",
+      "assumptions": [],
+      "comparability_implications": []
+    },
+    "bam.markdup": {
+      "rationale": "pipeline default",
+      "assumptions": [],
+      "comparability_implications": []
+    },
+    "bam.qc_pre": {
+      "rationale": "pipeline default",
+      "assumptions": [],
+      "comparability_implications": []
+    },
+    "bam.sex": {
+      "rationale": "pipeline default",
+      "assumptions": [],
+      "comparability_implications": []
+    },
+    "bam.validate": {
+      "rationale": "pipeline default",
+      "assumptions": [],
+      "comparability_implications": []
+    }
+  },
+  "param_provenance": {
+    "bam.authenticity": {
+      "rationale": "pipeline default",
+      "assumptions": [],
+      "comparability_implications": []
+    },
+    "bam.bias_mitigation": {
+      "rationale": "pipeline default",
+      "assumptions": [],
+      "comparability_implications": []
+    },
+    "bam.complexity": {
+      "rationale": "pipeline default",
+      "assumptions": [],
+      "comparability_implications": []
+    },
+    "bam.contamination": {
+      "rationale": "pipeline default",
+      "assumptions": [],
+      "comparability_implications": []
+    },
+    "bam.coverage": {
+      "rationale": "pipeline default",
+      "assumptions": [],
+      "comparability_implications": []
+    },
+    "bam.damage": {
+      "rationale": "pipeline default",
+      "assumptions": [],
+      "comparability_implications": []
+    },
+    "bam.filter": {
+      "rationale": "pipeline default",
+      "assumptions": [],
+      "comparability_implications": []
+    },
+    "bam.markdup": {
+      "rationale": "pipeline default",
+      "assumptions": [],
+      "comparability_implications": []
+    },
+    "bam.qc_pre": {
+      "rationale": "pipeline default",
+      "assumptions": [],
+      "comparability_implications": []
+    },
+    "bam.sex": {
+      "rationale": "pipeline default",
+      "assumptions": [],
+      "comparability_implications": []
+    },
+    "bam.validate": {
+      "rationale": "pipeline default",
+      "assumptions": [],
+      "comparability_implications": []
+    }
   },
   "assumptions": [],
   "citations": {}

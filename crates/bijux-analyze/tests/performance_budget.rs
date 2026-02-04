@@ -25,8 +25,24 @@ fn report_build_is_within_budget() -> Result<()> {
     let root = fixture_root()?;
     let facts_path = root.join("happy").join("facts.jsonl");
     let facts = load_facts(&facts_path).map_err(|err| anyhow::anyhow!(err.to_string()))?;
+    let output_dir = root.join("perf_budget");
+    bijux_infra::ensure_dir(&output_dir)?;
+    let defaults = serde_json::json!({
+        "pipeline_id": "fastq-to-fastq__default__v1",
+        "tools": {},
+        "params": {},
+        "thresholds": {},
+        "tool_provenance": {},
+        "param_provenance": {},
+        "assumptions": [],
+        "citations": {},
+    });
+    bijux_infra::write_bytes(
+        output_dir.join("defaults_ledger.json"),
+        serde_json::to_vec_pretty(&defaults)?,
+    )?;
     let start = Instant::now();
-    let _ = write_run_report_from_facts(&root.join("perf_budget"), &facts)?;
+    let _ = write_run_report_from_facts(&output_dir, &facts)?;
     let elapsed = start.elapsed();
     assert!(
         elapsed.as_secs_f64() < 3.0,

@@ -264,7 +264,7 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
     );
     sections.insert(
         "pipeline_defaults".to_string(),
-        JsonBlob::new(pipeline_defaults_section(base_dir)),
+        JsonBlob::new(pipeline_defaults_section(base_dir)?),
     );
     sections.insert(
         "key_findings".to_string(),
@@ -361,7 +361,7 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
 /// # Errors
 /// Returns an error if report serialization or file writes fail.
 pub fn write_run_report_from_facts(base_dir: &Path, rows: &[FactsRowV1]) -> Result<PathBuf> {
-    std::fs::create_dir_all(base_dir)?;
+    bijux_infra::ensure_dir(base_dir)?;
     let path = base_dir.join("report.json");
     let model = build_run_report_model(base_dir, rows)?;
     write_report_json(&path, &model).context("write report.json")?;
@@ -386,17 +386,16 @@ fn cross_domain_handoff_section(base_dir: &Path) -> Option<serde_json::Value> {
     }))
 }
 
-fn pipeline_defaults_section(base_dir: &Path) -> serde_json::Value {
+fn pipeline_defaults_section(base_dir: &Path) -> Result<serde_json::Value> {
     let defaults_path = base_dir.join("defaults_ledger.json");
-    if let Ok(raw) = std::fs::read_to_string(&defaults_path) {
-        if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&raw) {
-            return parsed;
-        }
-    }
-    serde_json::json!({
-        "defaults_ledger": {},
+    let raw = std::fs::read_to_string(&defaults_path)
+        .with_context(|| format!("missing defaults ledger at {}", defaults_path.display()))?;
+    let parsed = serde_json::from_str::<serde_json::Value>(&raw)
+        .context("parse defaults ledger json")?;
+    Ok(serde_json::json!({
+        "defaults_ledger": parsed,
         "overrides": [],
-    })
+    }))
 }
 
 /// Write a deterministic run summary JSON from facts rows.
