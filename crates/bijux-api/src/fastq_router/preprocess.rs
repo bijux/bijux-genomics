@@ -3,17 +3,17 @@ use std::collections::HashMap;
 use anyhow::{anyhow, Context, Result};
 use bijux_core::ErrorCategory;
 use bijux_core::ContainerImageRefV1;
-use bijux_engine::primitives::resolve_image_for_run;
-use bijux_engine::primitives::{
-    build_tool_execution_spec, PlatformSpec, RunnerKind, ToolImageSpec,
-};
+use bijux_engine::primitives::{PlatformSpec, RunnerKind, ToolImageSpec};
+use bijux_runner_docker::primitives::{build_tool_execution_spec, resolve_image_for_run};
 use bijux_engine::primitives::{ensure_bench_runner, filter_tools_by_role, load_registry};
 use bijux_engine::primitives::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use bijux_engine::primitives::{run_artifacts_dir_for_out, TelemetryEventV1};
 use bijux_pipelines::fastq::canonical_tool_defaults;
 use bijux_pipelines::registry;
 use bijux_pipelines::Domain;
-use bijux_stages_fastq::fastq::preprocess::{plan_preprocess, plan_preprocess_pipeline};
+use bijux_stages_fastq::fastq::preprocess::plan_preprocess;
+use bijux_core::execution_plan::PlanPolicy;
+use bijux_planner_fastq::{FastqPlanConfig, FastqPlanner};
 use bijux_stages_fastq::{bench_corpus, RawFailure};
 
 use super::jobs::{bench_jobs, normalize_tool_spec_for_jobs};
@@ -212,24 +212,23 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
             },
         );
     }
-    let planned_stages = plan_preprocess_pipeline(
-        &smart.pipeline_stages,
-        &tool_specs,
-        &aux_tools,
-        adapter_bank.as_ref(),
-        polyx_bank.as_ref(),
-        contaminant_bank.as_ref(),
-        args.enable_contaminant_removal,
-        &args.r1,
-        args.r2.as_deref(),
-        |stage, tool, _r1, _r2| {
-            let stage_dir = stage.trim_start_matches("fastq.");
-            let stage_root = bench_tools_dir(&args.out, stage_dir, &args.sample_id);
-            let out_dir = stage_root.join(&tool.tool_id.0);
-            bijux_infra::ensure_dir(&out_dir).context("create stage output dir")?;
-            Ok(out_dir)
-        },
-    )?;
+    let planner_config = FastqPlanConfig {
+        pipeline_id: "fastq.preprocess".to_string(),
+        policy: PlanPolicy::PreferAccuracy,
+        stages: smart.pipeline_stages.clone(),
+        tools: tool_specs.clone(),
+        aux_images: aux_tools.clone(),
+        adapter_bank: adapter_bank.clone(),
+        polyx_bank: polyx_bank.clone(),
+        contaminant_bank: contaminant_bank.clone(),
+        enable_contaminant_removal: args.enable_contaminant_removal,
+        r1: args.r1.clone(),
+        r2: args.r2.clone(),
+        out_dir: bench_tools_dir(&args.out, "preprocess", &args.sample_id),
+    };
+    let pipeline_plan = FastqPlanner::plan(&planner_config)?;
+    let planned_stages = pipeline_plan.stages().to_vec();
+    std::env::set_var("BIJUX_PLANNER_VERSION", bijux_planner_fastq::PLANNER_VERSION);
 
     let telemetry = bijux_engine::primitives::build_telemetry_adapter();
     let mut pipeline_attrs = std::collections::BTreeMap::new();
@@ -245,7 +244,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         stage_attrs.insert("stage".to_string(), stage_id.clone());
         stage_attrs.insert("tool".to_string(), tool.clone());
         let stage_span = telemetry.start_stage(&stage_id, &stage_attrs);
-        let execution = bijux_engine::primitives::execute_plan(&planned, platform.runner, None);
+        let execution = bijux_runner_docker::primitives::execute_plan(&planned, platform.runner, None);
         stage_span.end();
         let execution = execution?;
         if execution.exit_code != 0 {

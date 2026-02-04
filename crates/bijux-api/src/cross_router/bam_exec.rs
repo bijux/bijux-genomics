@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Context, Result};
 use bijux_core::alignment::AlignmentBoundary;
 use bijux_core::ToolRegistry;
-use bijux_engine::primitives::{build_tool_execution_spec, execute_stage_plan};
+use bijux_runner_docker::primitives::{build_tool_execution_spec, execute_stage_plan};
 use bijux_env_runtime::ReferenceRecord;
 use bijux_pipelines::PipelineProfile;
 

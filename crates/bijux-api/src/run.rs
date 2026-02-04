@@ -5,7 +5,9 @@ use crate::args::{
     ExecuteRunRequest, ExecuteRunResult, PlanRunRequest, PlanRunResult, RenderReportRequest,
     RenderReportResult, RunRequest, RunResult,
 };
-use bijux_core::{build_execution_plan, ExecutionPlan, Profile, RunId, RunSpec, ToolRegistry};
+use bijux_core::{
+    build_run_execution_plan, Profile, RunExecutionPlan, RunId, RunSpec, ToolRegistry,
+};
 use bijux_pipelines::registry::PipelineRegistry;
 use bijux_pipelines::{Domain, PipelineProfile};
 
@@ -63,14 +65,15 @@ pub fn select_pipelines(
 /// # Errors
 /// Returns an error if planning fails for the requested run.
 pub fn plan_run(request: PlanRunRequest, registry: &ToolRegistry) -> Result<PlanRunResult> {
-    let plan = build_execution_plan(request.run_spec, registry, request.profile, request.run_id)?;
+    let plan =
+        build_run_execution_plan(request.run_spec, registry, request.profile, request.run_id)?;
     Ok(PlanRunResult { plan })
 }
 
 /// # Errors
 /// Returns an error if execution fails.
 pub fn execute_run(request: &ExecuteRunRequest) -> Result<ExecuteRunResult> {
-    bijux_engine::primitives::execute_stage_plan(&request.plan, request.runner, None)?;
+    bijux_runner_docker::primitives::execute_stage_plan(&request.plan, request.runner, None)?;
     Ok(ExecuteRunResult)
 }
 
@@ -94,6 +97,6 @@ pub fn build_stage_plan(
     registry: &ToolRegistry,
     profile: Profile,
     run_id: RunId,
-) -> Result<ExecutionPlan> {
-    Ok(build_execution_plan(run_spec, registry, profile, run_id)?)
+) -> Result<RunExecutionPlan> {
+    Ok(build_run_execution_plan(run_spec, registry, profile, run_id)?)
 }

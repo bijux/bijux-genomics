@@ -17,7 +17,5 @@ pub use bijux_core::{
     StageId, StagePlanV1, ToolId, ToolRegistry, ToolRole,
 };
 
-pub use bijux_engine::primitives::{
-    build_tool_execution_spec, execute_stage_plan, init_logging, replay::replay_run,
-    ExecutionManifest,
-};
+pub use bijux_engine::primitives::{init_logging, ExecutionManifest};
+pub use bijux_runner_docker::primitives::{build_tool_execution_spec, execute_stage_plan, replay_run};

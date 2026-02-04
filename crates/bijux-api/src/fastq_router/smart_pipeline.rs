@@ -2,9 +2,8 @@ use anyhow::{Context, Result};
 
 use crate::fastq_router::jobs::normalize_tool_spec_for_jobs;
 use crate::fastq_router::summary::StageExecutionSummary;
-use bijux_engine::primitives::{
-    bench_tools_dir, build_tool_execution_spec, execute_plan, PlatformSpec, ToolImageSpec,
-};
+use bijux_engine::primitives::{bench_tools_dir, PlatformSpec, ToolImageSpec};
+use bijux_runner_docker::primitives::{build_tool_execution_spec, execute_plan};
 
 /// Output from the smart pipeline selection.
 ///

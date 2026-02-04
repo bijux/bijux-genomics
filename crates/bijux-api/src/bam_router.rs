@@ -1,9 +1,7 @@
 use anyhow::{anyhow, Context, Result};
 use bijux_core::ToolRegistry;
-use bijux_engine::primitives::{
-    build_tool_execution_spec, ensure_image_qa_passed, ensure_tool_qa_passed, execute_stage_plan,
-    filter_tools_by_role,
-};
+use bijux_engine::primitives::{ensure_image_qa_passed, ensure_tool_qa_passed, filter_tools_by_role};
+use bijux_runner_docker::primitives::{build_tool_execution_spec, execute_stage_plan};
 use bijux_env_runtime::api::{load_image_catalog, load_platform, RunnerKind};
 use bijux_pipelines::registry;
 use bijux_pipelines::Domain;

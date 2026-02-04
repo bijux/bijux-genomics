@@ -21,6 +21,8 @@ bijux-stages-fastq = { path = "../bijux-stages-fastq" }
 bijux-stages-bam = { path = "../bijux-stages-bam" }
 bijux-domain-fastq = { path = "../bijux-domain-fastq" }
 bijux-domain-bam = { path = "../bijux-domain-bam" }
+bijux-planner-fastq = { path = "../bijux-planner-fastq" }
+bijux-runner-docker = { path = "../bijux-runner-docker" }
 bijux-pipelines = { path = "../bijux-pipelines" }
 bijux-infra = { path = "../bijux-infra" }
 

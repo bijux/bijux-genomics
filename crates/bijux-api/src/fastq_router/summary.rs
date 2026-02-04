@@ -2,7 +2,9 @@ use std::fs;
 use std::path::Path;
 
 use anyhow::{Context, Result};
-use bijux_engine::primitives::StageResultV1;
+use bijux_runner_docker::primitives::StageResultV1;
+use bijux_core::scientific_provenance::ScientificProvenanceV1;
+use bijux_core::ToolInvocationV1;
 
 pub(super) fn write_run_summary(
     out_dir: &Path,
@@ -81,6 +83,7 @@ pub(super) fn write_run_summary(
     bijux_infra::atomic_write_bytes(&html_path, html.as_bytes())
         .context("write run_summary.html")?;
     write_run_manifest(out_dir, stage_runs, failures)?;
+    write_scientific_provenance(out_dir, stage_runs)?;
     Ok(())
 }
 
@@ -101,7 +104,7 @@ pub(super) fn write_run_manifest(
             let mut artifacts = Vec::new();
             let add_artifact = |artifacts: &mut Vec<serde_json::Value>, name: &str, path: &Path| {
                 if path.exists() {
-                    if let Ok(hash) = bijux_engine::primitives::hash_file_sha256(path) {
+                    if let Ok(hash) = bijux_runner_docker::primitives::hash_file_sha256(path) {
                         artifacts.push(serde_json::json!({
                             "name": name,
                             "path": relative_path_string(out_dir, path),
@@ -215,6 +218,58 @@ pub(super) fn write_run_manifest(
     });
     let path = out_dir.join("run_manifest.json");
     bijux_infra::atomic_write_json(&path, &manifest).context("write run_manifest.json")?;
+    Ok(())
+}
+
+fn write_scientific_provenance(
+    out_dir: &Path,
+    stage_runs: &[StageExecutionSummary],
+) -> Result<()> {
+    let defaults_path = out_dir.join("defaults_ledger.json");
+    let (pipeline_id, planner_version) = if defaults_path.exists() {
+        let raw = fs::read_to_string(&defaults_path)?;
+        let value: serde_json::Value = serde_json::from_str(&raw)?;
+        let pipeline_id = value
+            .get("pipeline_id")
+            .and_then(|v| v.as_str())
+            .unwrap_or("unknown")
+            .to_string();
+        let planner_version = std::env::var("BIJUX_PLANNER_VERSION")
+            .unwrap_or_else(|_| "unknown".to_string());
+        (pipeline_id, planner_version)
+    } else {
+        ("unknown".to_string(), "unknown".to_string())
+    };
+    let mut invocations = Vec::new();
+    let mut params_hashes = std::collections::BTreeMap::new();
+    for entry in stage_runs {
+        let artifacts_dir = entry.plan.out_dir.join("run_artifacts");
+        let invocation_path = artifacts_dir
+            .join("invocations")
+            .join(format!("{}.tool_invocation.json", entry.plan.stage_id.0));
+        if invocation_path.exists() {
+            let raw = fs::read_to_string(&invocation_path)?;
+            let invocation: ToolInvocationV1 = serde_json::from_str(&raw)?;
+            let key = format!("{}:{}", invocation.stage_id, invocation.tool_id);
+            let metrics_path = artifacts_dir.join("metrics_envelope.json");
+            if metrics_path.exists() {
+                let metrics_raw = fs::read_to_string(&metrics_path)?;
+                if let Ok(metrics) = serde_json::from_str::<serde_json::Value>(&metrics_raw) {
+                    if let Some(params_hash) = metrics
+                        .get("context")
+                        .and_then(|ctx| ctx.get("params_hash"))
+                        .and_then(|v| v.as_str())
+                    {
+                        params_hashes.insert(key, params_hash.to_string());
+                    }
+                }
+            }
+            invocations.push(invocation);
+        }
+    }
+    let provenance =
+        ScientificProvenanceV1::from_invocations(pipeline_id, planner_version, &params_hashes, &invocations);
+    bijux_engine::primitives::write_scientific_provenance(out_dir, &provenance)?;
     Ok(())
 }
 
@@ -337,13 +392,13 @@ pub struct StageExecutionSummary {
 
 #[cfg(test)]
 mod tests {
-    use super::write_run_manifest;
+    use super::{write_run_manifest, write_scientific_provenance};
     use super::StageExecutionSummary;
     use bijux_core::{
-        CommandSpecV1, ContainerImageRefV1, StageId, StageIO, StagePlanV1, StageVersion,
-        ToolConstraints, ToolId,
+        AdapterBankProvenanceV1, CommandSpecV1, ContainerImageRefV1, StageId, StageIO, StagePlanV1,
+        StageVersion, ToolConstraints, ToolId, ToolInvocationV1,
     };
-    use bijux_engine::primitives::StageResultV1;
+    use bijux_runner_docker::primitives::StageResultV1;
     use std::path::PathBuf;
 
     #[test]
@@ -410,6 +465,135 @@ mod tests {
         assert!(manifest.get("defaults_ledger").is_some());
         assert!(manifest.get("defaults_ledger_sha256").is_some());
         assert_no_absolute_paths(&manifest);
+        Ok(())
+    }
+
+    #[test]
+    fn scientific_provenance_contract_is_written() -> anyhow::Result<()> {
+        let temp = bijux_infra::temp_dir("bijux-scientific-provenance")?;
+        let out_dir = temp.path();
+        let defaults = serde_json::json!({
+            "pipeline_id": "fastq-to-fastq__default__v1",
+            "tools": {},
+            "params": {},
+            "thresholds": {},
+            "tool_provenance": {},
+            "param_provenance": {},
+            "assumptions": [],
+            "citations": {},
+        });
+        bijux_infra::write_bytes(
+            &out_dir.join("defaults_ledger.json"),
+            serde_json::to_vec_pretty(&defaults)?,
+        )?;
+        std::env::set_var("BIJUX_PLANNER_VERSION", "planner.v1");
+
+        let stage_out = out_dir.join("stage");
+        let artifacts = stage_out.join("run_artifacts");
+        let invocations = artifacts.join("invocations");
+        bijux_infra::ensure_dir(&invocations)?;
+        let plan = StagePlanV1 {
+            stage_id: StageId("fastq.trim".to_string()),
+            stage_version: StageVersion(1),
+            tool_id: ToolId("fastp".to_string()),
+            tool_version: "0.0.0".to_string(),
+            image: ContainerImageRefV1 {
+                image: "tool:latest".to_string(),
+                digest: Some("sha256:img".to_string()),
+            },
+            command: CommandSpecV1 { template: vec!["fastp".to_string()] },
+            resources: ToolConstraints {
+                runtime: "1h".to_string(),
+                mem_gb: 1,
+                tmp_gb: 1,
+                threads: 1,
+            },
+            io: StageIO {
+                inputs: vec![bijux_core::ArtifactRef {
+                    name: "input".to_string(),
+                    path: PathBuf::from("input.fastq.gz"),
+                }],
+                outputs: vec![bijux_core::ArtifactRef {
+                    name: "output".to_string(),
+                    path: PathBuf::from("output.fastq.gz"),
+                }],
+            },
+            out_dir: stage_out.clone(),
+            params: serde_json::json!({"sample_id":"s1"}),
+            effective_params: serde_json::json!({}),
+            aux_images: std::collections::BTreeMap::new(),
+        };
+        let invocation = ToolInvocationV1 {
+            schema_version: "bijux.tool_invocation.v1".to_string(),
+            stage_id: plan.stage_id.0.clone(),
+            tool_id: plan.tool_id.0.clone(),
+            tool_version: plan.tool_version.clone(),
+            resolved_tool_version: Some(plan.tool_version.clone()),
+            image_digest: "sha256:img".to_string(),
+            runner_kind: "docker".to_string(),
+            platform: "test".to_string(),
+            parameters_json: serde_json::json!({"min_len": 10}),
+            parameters_json_normalized: serde_json::json!({"min_len": 10}),
+            effective_params_json: serde_json::json!({}),
+            effective_params_json_normalized: serde_json::json!({}),
+            adapter_bank: Some(AdapterBankProvenanceV1 {
+                bank_id: "bank".to_string(),
+                bank_version: "v1".to_string(),
+                bank_hash: "sha256:bank".to_string(),
+                presets_hash: "sha256:presets".to_string(),
+                preset: "default".to_string(),
+                preset_hash: "sha256:preset".to_string(),
+                enabled_categories: Vec::new(),
+                disabled_categories: Vec::new(),
+                enable_adapters: Vec::new(),
+                disable_adapters: Vec::new(),
+                enabled_entries: Vec::new(),
+            }),
+            banks: None,
+            bank_assets: None,
+            resources: plan.resources.clone(),
+            environment: std::collections::BTreeMap::new(),
+            input_hashes: vec!["sha256:input".to_string()],
+            output_hashes: vec!["sha256:output".to_string()],
+            executed_command: Some("fastp".to_string()),
+        };
+        bijux_infra::atomic_write_json(
+            &invocations.join(format!("{}.tool_invocation.json", plan.stage_id.0)),
+            &invocation,
+        )?;
+        let metrics_envelope = serde_json::json!({
+            "context": {
+                "params_hash": "params"
+            }
+        });
+        bijux_infra::atomic_write_json(&artifacts.join("metrics_envelope.json"), &metrics_envelope)?;
+
+        let summary = StageExecutionSummary {
+            plan,
+            result: StageResultV1 {
+                run_id: "run-1".to_string(),
+                exit_code: 0,
+                runtime_s: 1.0,
+                memory_mb: 1.0,
+                outputs: Vec::new(),
+                metrics_path: None,
+                stdout: String::new(),
+                stderr: String::new(),
+                command: "fastp".to_string(),
+            },
+        };
+        write_scientific_provenance(out_dir, &[summary])?;
+        let raw = std::fs::read_to_string(out_dir.join("scientific_provenance.json"))?;
+        let payload: serde_json::Value = serde_json::from_str(&raw)?;
+        assert_eq!(
+            payload.get("pipeline_id").and_then(|v| v.as_str()),
+            Some("fastq-to-fastq__default__v1")
+        );
+        assert_eq!(
+            payload.get("planner_version").and_then(|v| v.as_str()),
+            Some("planner.v1")
+        );
+        insta::assert_json_snapshot!(payload);
         Ok(())
     }
 

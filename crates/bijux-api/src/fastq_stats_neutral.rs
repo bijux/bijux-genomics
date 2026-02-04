@@ -9,19 +9,22 @@ use bijux_analyze::{
 };
 use bijux_core::measure::ExecutionMetrics;
 use bijux_core::{MetricContextV1, StageObservabilityContextV1};
-use bijux_engine::primitives::{
-    build_tool_execution_spec, ensure_bench_runner, filter_tools_by_role, load_registry,
-};
+use bijux_engine::primitives::{ensure_bench_runner, filter_tools_by_role, load_registry};
+use bijux_runner_docker::primitives::build_tool_execution_spec;
 use bijux_engine::primitives::{PlatformSpec, RunnerKind, ToolImageSpec};
 use uuid::Uuid;
 
 use bijux_engine::primitives::validate_execution_outputs;
 use bijux_engine::primitives::{
-    bench_base_dir, bench_tools_dir, compute_run_id, execute_plan, hash_file_sha256,
-    input_fastq_stats, length_histogram, normalize_stats_tool_list, prepare_tool_run_dirs,
-    resolve_image_for_run, write_execution_logs, write_metrics_envelope, write_metrics_json,
-    write_retention_report_placeholder, write_run_manifest, write_stage_plan_json, SeqkitMetrics,
+    bench_base_dir, bench_tools_dir, compute_run_id, prepare_tool_run_dirs, write_execution_logs,
+    write_metrics_envelope, write_metrics_json, write_retention_report_placeholder,
+    write_run_manifest, write_stage_plan_json,
 };
+use bijux_runner_docker::primitives::{
+    execute_plan, hash_file_sha256, input_fastq_stats, length_histogram, resolve_image_for_run,
+    SeqkitMetrics,
+};
+use bijux_planner_fastq::normalize_stats_tool_list;
 use bijux_engine::primitives::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use bijux_stages_fastq::fastq::stats_neutral::plan_stats_neutral;
 use bijux_stages_fastq::StagePlanJson;

@@ -3,10 +3,12 @@ use std::collections::HashMap;
 use anyhow::{anyhow, Context, Result};
 use bijux_core::ErrorCategory;
 use bijux_engine::primitives::{
-    bench_base_dir, bench_tools_dir, build_tool_execution_spec, ensure_bench_runner,
-    ensure_image_qa_passed, ensure_tool_qa_passed, filter_tools_by_role, load_registry,
-    PlatformSpec, RunnerKind, ToolImageSpec,
+    bench_base_dir, bench_tools_dir, ensure_bench_runner, ensure_image_qa_passed,
+    ensure_tool_qa_passed, filter_tools_by_role, load_registry, PlatformSpec, RunnerKind,
+    ToolImageSpec,
 };
+use bijux_runner_docker::primitives::build_tool_execution_spec;
+use bijux_planner_fastq::normalize_trim_tool_list;
 use bijux_stages_fastq::fastq::trim::plan;
 use bijux_stages_fastq::FastqArtifact;
 use bijux_stages_fastq::{inspect_headers, log_header_warnings, preflight_stage, RawFailure};
@@ -26,7 +28,7 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
     runner_override: Option<RunnerKind>,
     args: &bijux_stages_fastq::args::BenchFastqTrimArgs,
 ) -> Result<BenchOutcome<bijux_analyze::FastqTrimMetrics>> {
-    let tools = bijux_engine::primitives::normalize_trim_tool_list(&args.tools)?;
+    let tools = normalize_trim_tool_list(&args.tools)?;
     let artifact = FastqArtifact::single_end(&args.r1);
     preflight_stage("fastq.trim", artifact.kind)?;
     let header = inspect_headers(&args.r1, None, false)?;

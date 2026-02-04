@@ -3,13 +3,13 @@ use std::collections::HashMap;
 use anyhow::{anyhow, Context, Result};
 use bijux_core::ErrorCategory;
 use bijux_engine::primitives::{
-    bench_base_dir, bench_tools_dir, build_tool_execution_spec, ensure_bench_runner,
-    ensure_image_qa_passed, ensure_tool_qa_passed, filter_tools_by_role, load_registry,
-    PlatformSpec, RunnerKind, ToolImageSpec,
+    bench_base_dir, bench_tools_dir, ensure_bench_runner, ensure_image_qa_passed,
+    ensure_tool_qa_passed, filter_tools_by_role, load_registry, PlatformSpec, RunnerKind,
+    ToolImageSpec,
 };
-use bijux_stages_fastq::fastq::filter::{
-    normalize_filter_tool_list, plan_filter, FilterPlanOptions,
-};
+use bijux_runner_docker::primitives::build_tool_execution_spec;
+use bijux_planner_fastq::normalize_filter_tool_list;
+use bijux_stages_fastq::fastq::filter::{plan_filter, FilterPlanOptions};
 use bijux_stages_fastq::FastqArtifact;
 use bijux_stages_fastq::{inspect_headers, log_header_warnings, preflight_stage, RawFailure};
 
