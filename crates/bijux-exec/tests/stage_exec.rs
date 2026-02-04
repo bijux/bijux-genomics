@@ -1,13 +1,14 @@
 use std::path::Path;
 
 use anyhow::Result;
+use bijux_core::StagePlanV1;
 use bijux_core::{
     ArtifactRef, CommandSpecV1, ContainerImageRefV1, StageIO, StageId, StageVersion,
     ToolConstraints, ToolId,
 };
-use bijux_runner_docker::primitives::{execute_plan, resolve_image_for_run};
-use bijux_core::StagePlanV1;
 use bijux_env_runtime::api::{load_image_catalog, load_platform};
+use bijux_exec::primitives::execute_stage_plan;
+use bijux_runner_docker::primitives::resolve_image_for_run;
 
 fn ensure_docker() -> bool {
     let status = std::process::Command::new("docker").arg("version").status();
@@ -18,7 +19,7 @@ fn tempdir_in_repo() -> Result<tempfile::TempDir> {
     let cwd = std::env::current_dir()?;
     let base = cwd.join("target").join("test-tmp");
     bijux_infra::ensure_dir(&base)?;
-    Ok(bijux_infra::temp_dir_in(base, "bijux")?)
+    Ok(bijux_infra::temp_dir_in(&base, "bijux")?)
 }
 
 #[test]
@@ -79,7 +80,7 @@ fn execute_plan_runs_trim() -> Result<()> {
         }),
         aux_images: std::collections::BTreeMap::new(),
     };
-    let result = execute_plan(&exec_plan, platform.runner, None)?;
+    let result = execute_stage_plan(&exec_plan, platform.runner, None)?;
     assert_eq!(result.exit_code, 0);
     assert!(output_path.exists());
     assert!(out_dir.path().join("engine_execution.json").exists());
@@ -137,7 +138,7 @@ fn execute_plan_runs_validate() -> Result<()> {
         }),
         aux_images: std::collections::BTreeMap::new(),
     };
-    let result = execute_plan(&exec_plan, platform.runner, None)?;
+    let result = execute_stage_plan(&exec_plan, platform.runner, None)?;
     assert_eq!(result.exit_code, 0);
     Ok(())
 }
@@ -200,7 +201,7 @@ fn execute_plan_runs_merge() -> Result<()> {
         }),
         aux_images: std::collections::BTreeMap::new(),
     };
-    let result = execute_plan(&exec_plan, platform.runner, None)?;
+    let result = execute_stage_plan(&exec_plan, platform.runner, None)?;
     assert_eq!(result.exit_code, 0);
     Ok(())
 }

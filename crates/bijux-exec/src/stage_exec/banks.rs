@@ -1,6 +1,12 @@
+use bijux_stages_fastq::banks::polyx_unsupported_warning;
+
 fn warnings_for_plan(plan: &StagePlanV1, params: &serde_json::Value) -> Vec<String> {
     let mut warnings = Vec::new();
-    if let Some(msg) = polyx_unsupported_warning(plan.tool_id.0.as_str(), params) {
+    if let Some(msg) = polyx_unsupported_warning(
+        plan.tool_id.0.as_str(),
+        params.get("polyx_bank"),
+        true,
+    ) {
         warnings.push(msg);
     }
     if plan.stage_id.0 == "fastq.filter" {
@@ -47,6 +53,11 @@ fn warnings_for_plan(plan: &StagePlanV1, params: &serde_json::Value) -> Vec<Stri
     warnings
 }
 
+fn tool_supports_kmer_filter(_tool_id: &str) -> bool {
+    true
+}
+
+#[allow(clippy::cast_precision_loss)]
 fn f64_from_u64(value: u64) -> f64 {
     value as f64
 }

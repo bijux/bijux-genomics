@@ -3,10 +3,10 @@ use std::process::Command;
 
 use anyhow::{anyhow, Context, Result};
 
-use bijux_engine::core::types::ExecutionManifest;
+use bijux_core::ExecutionManifest;
 
 pub fn replay_run(run_id: &str, search_root: &Path) -> Result<()> {
-    if bijux_engine::core::types::trace_enabled() {
+    if std::env::var("BIJUX_TRACE_ENGINE").is_ok() {
         println!("[engine][composer] replay run_id={run_id}");
     }
     let manifest_path = find_manifest(search_root, run_id)?

@@ -9,4 +9,3 @@ pub fn select_stage_plugin(stage_id: &str) -> Option<Box<dyn StagePlugin>> {
         .into_iter()
         .find(|plugin| plugin.handles_stage(stage_id))
 }
-

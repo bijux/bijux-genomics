@@ -337,7 +337,23 @@ pub fn execute_stage_plan(
     if let Ok(stage_result) = result.as_mut() {
         if stage_result.exit_code != 0 {
             let keep_partial = keep_partial_outputs();
-            if !keep_partial {
+            if keep_partial {
+                emit_event(&bijux_core::TelemetryEventV1 {
+                    schema_version: "bijux.telemetry.v1".to_string(),
+                    run_id: run_id.clone(),
+                    stage_id: plan.stage_id.0.clone(),
+                    tool_id: plan.tool_id.0.clone(),
+                    event_name: "partial_outputs_kept".to_string(),
+                    timestamp: Utc::now().to_rfc3339(),
+                    duration_ms: None,
+                    status: "ok".to_string(),
+                    trace_id: trace_id.clone(),
+                    span_id: span_id.clone(),
+                    attrs: serde_json::json!({
+                        "policy": "keep_on_failure",
+                    }),
+                })?;
+            } else {
                 let removed = purge_partial_outputs(&stage_result.outputs)?;
                 if removed > 0 {
                     stage_result.outputs.clear();
@@ -358,22 +374,6 @@ pub fn execute_stage_plan(
                         }),
                     })?;
                 }
-            } else {
-                emit_event(&bijux_core::TelemetryEventV1 {
-                    schema_version: "bijux.telemetry.v1".to_string(),
-                    run_id: run_id.clone(),
-                    stage_id: plan.stage_id.0.clone(),
-                    tool_id: plan.tool_id.0.clone(),
-                    event_name: "partial_outputs_kept".to_string(),
-                    timestamp: Utc::now().to_rfc3339(),
-                    duration_ms: None,
-                    status: "ok".to_string(),
-                    trace_id: trace_id.clone(),
-                    span_id: span_id.clone(),
-                    attrs: serde_json::json!({
-                        "policy": "keep_on_failure",
-                    }),
-                })?;
             }
         }
     }
@@ -415,7 +415,7 @@ fn purge_partial_outputs(outputs: &[PathBuf]) -> Result<usize> {
 }
 
 #[cfg(test)]
-mod tests {
+mod execute_tests {
     use super::{keep_partial_outputs, purge_partial_outputs};
 
     #[test]
@@ -425,7 +425,7 @@ mod tests {
         let dir_path = dir.path().join("out_dir");
         bijux_infra::atomic_write_bytes(&file_path, b"data")?;
         bijux_infra::ensure_dir(&dir_path)?;
-        let removed = purge_partial_outputs(&vec![file_path.clone(), dir_path.clone()])?;
+        let removed = purge_partial_outputs(&[file_path.clone(), dir_path.clone()])?;
         assert_eq!(removed, 2);
         assert!(!file_path.exists());
         assert!(!dir_path.exists());
@@ -456,6 +456,25 @@ impl StageCacheKey {
             params_hash: params_hash.to_string(),
             tool_digest: tool_digest.to_string(),
         }
+    }
+}
+
+fn observer_result_from_plan(
+    plan: &StagePlanV1,
+    outputs: Vec<PathBuf>,
+    exit_code: i32,
+    stdout: String,
+    stderr: String,
+) -> crate::observer::StageResult {
+    crate::observer::StageResult {
+        invocation: crate::observer::ToolInvocation {
+            stage_id: plan.stage_id.0.clone(),
+            tool_id: plan.tool_id.0.clone(),
+        },
+        exit_code,
+        stdout,
+        stderr,
+        outputs,
     }
 }
 

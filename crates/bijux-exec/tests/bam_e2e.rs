@@ -4,8 +4,9 @@ use anyhow::Result;
 use bijux_core::{
     CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
 };
-use bijux_runner_docker::primitives::{execute_plan, resolve_image_for_run};
 use bijux_env_runtime::api::{load_image_catalog, load_platform, RunnerKind};
+use bijux_exec::primitives::execute_stage_plan;
+use bijux_runner_docker::primitives::resolve_image_for_run;
 
 fn ensure_docker() -> bool {
     let status = std::process::Command::new("docker").arg("version").status();
@@ -16,7 +17,7 @@ fn tempdir_in_repo() -> Result<tempfile::TempDir> {
     let cwd = std::env::current_dir()?;
     let base = cwd.join("target").join("test-tmp");
     bijux_infra::ensure_dir(&base)?;
-    Ok(bijux_infra::temp_dir_in(base, "bijux")?)
+    Ok(bijux_infra::temp_dir_in(&base, "bijux")?)
 }
 
 fn tool_spec(tool_id: &str, runner: RunnerKind) -> Result<ToolExecutionSpecV1> {
@@ -78,7 +79,7 @@ fn bam_mini_run_validate_qc_pre_coverage_damage() -> Result<()> {
         None,
         out_dir.path().join("validate").as_path(),
     )?;
-    let validate_result = execute_plan(&validate_plan, platform.runner, None)?;
+    let validate_result = execute_stage_plan(&validate_plan, platform.runner, None)?;
     assert_eq!(validate_result.exit_code, 0);
 
     let qc_plan = bijux_stages_bam::bam::qc_pre::plan(
@@ -86,7 +87,7 @@ fn bam_mini_run_validate_qc_pre_coverage_damage() -> Result<()> {
         input.as_path(),
         out_dir.path().join("qc_pre").as_path(),
     )?;
-    let qc_result = execute_plan(&qc_plan, platform.runner, None)?;
+    let qc_result = execute_stage_plan(&qc_plan, platform.runner, None)?;
     assert_eq!(qc_result.exit_code, 0);
 
     let coverage_params = bijux_domain_bam::params::CoverageEffectiveParams {
@@ -99,7 +100,7 @@ fn bam_mini_run_validate_qc_pre_coverage_damage() -> Result<()> {
         out_dir.path().join("coverage").as_path(),
         &coverage_params,
     )?;
-    let coverage_result = execute_plan(&coverage_plan, platform.runner, None)?;
+    let coverage_result = execute_stage_plan(&coverage_plan, platform.runner, None)?;
     assert_eq!(coverage_result.exit_code, 0);
 
     assert!(out_dir
@@ -121,7 +122,7 @@ fn bam_mini_run_validate_qc_pre_coverage_damage() -> Result<()> {
         out_dir.path().join("damage").as_path(),
         &damage_params,
     )?;
-    let damage_result = execute_plan(&damage_plan, platform.runner, None)?;
+    let damage_result = execute_stage_plan(&damage_plan, platform.runner, None)?;
     assert_eq!(damage_result.exit_code, 0);
 
     assert!(out_dir
@@ -168,7 +169,7 @@ fn bam_mini_run_filter_markdup() -> Result<()> {
         out_dir.path().join("filter").as_path(),
         &filter_params,
     )?;
-    let filter_result = execute_plan(&filter_plan, platform.runner, None)?;
+    let filter_result = execute_stage_plan(&filter_plan, platform.runner, None)?;
     assert_eq!(filter_result.exit_code, 0);
     assert!(out_dir.path().join("filter").join("filtered.bam").exists());
     assert!(out_dir
@@ -188,7 +189,7 @@ fn bam_mini_run_filter_markdup() -> Result<()> {
         out_dir.path().join("markdup").as_path(),
         &markdup_params,
     )?;
-    let markdup_result = execute_plan(&markdup_plan, platform.runner, None)?;
+    let markdup_result = execute_stage_plan(&markdup_plan, platform.runner, None)?;
     assert_eq!(markdup_result.exit_code, 0);
     assert!(out_dir.path().join("markdup").join("markdup.bam").exists());
     assert!(out_dir

@@ -6,8 +6,8 @@ use anyhow::Result;
 use bijux_core::{
     CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
 };
-use bijux_runner_docker::primitives::execute_plan;
 use bijux_env_runtime::api::RunnerKind;
+use bijux_exec::primitives::execute_stage_plan;
 use bijux_stages_fastq::fastq::trim;
 
 static ENV_LOCK: Mutex<()> = Mutex::new(());
@@ -106,7 +106,7 @@ fn observer_populates_key_metrics_fields() -> Result<()> {
     for output in &plan.io.outputs {
         bijux_infra::write_bytes(&output.path, "")?;
     }
-    let _ = execute_plan(&plan, RunnerKind::Docker, None)?;
+    let _ = execute_stage_plan(&plan, RunnerKind::Docker, None)?;
 
     let metrics_raw = fs::read_to_string(out_dir.join("run_artifacts").join("stage_metrics.json"))?;
     let metrics: serde_json::Value = serde_json::from_str(&metrics_raw)?;

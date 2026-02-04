@@ -86,9 +86,10 @@ fn write_qc_post_reports(
                 })?;
             }
         }
+        #[allow(clippy::unnecessary_map_or)]
         let suggested_path = if suggested_payload
             .as_object()
-            .is_none_or(serde_json::Map::is_empty)
+            .map_or(true, serde_json::Map::is_empty)
         {
             None
         } else {

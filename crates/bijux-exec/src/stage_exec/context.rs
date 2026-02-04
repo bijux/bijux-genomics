@@ -1,25 +1,18 @@
-use std::collections::{BTreeMap, VecDeque};
-use std::io::{BufRead, BufReader};
+use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
-use std::sync::{Arc, Mutex};
 use std::time::Instant;
 
 use anyhow::{anyhow, Context, Result};
 use bijux_env_runtime::api::{ResolvedImage, RunnerKind};
 use chrono::Utc;
-use flate2::read::GzDecoder;
 use tracing::info;
 use uuid::Uuid;
 
-use crate::primitives::{
-    cleanup_execution, execution_memory_mb, hash_file_sha256, run_filter_execution,
-    run_merge_execution, run_multiqc_execution, run_tool_execution, run_validate_execution,
+use bijux_runner_docker::primitives::{
+    cleanup_execution, execution_memory_mb, run_filter_execution, run_merge_execution,
+    run_multiqc_execution, run_tool_execution, run_validate_execution,
 };
-use crate::observer::{
-    parse_contamination_json, parse_damageprofiler_json, parse_mosdepth_summary,
-    parse_pydamage_json, parse_preseq_estimates, parse_samtools_flagstat, parse_samtools_stats,
-    parse_sex_json, Observer,
-};
+use crate::observer::{hash_file_sha256, Observer};
 use bijux_engine::services::run_artifacts::{
     default_trace_ids, run_artifacts_dir_for_out, write_effective_adapters_from_provenance,
     write_execution_logs_bounded, write_facts_jsonl, write_filter_report_v1, write_merge_report_v1,
@@ -34,7 +27,7 @@ use bijux_core::{
     parameters_json_canonicalization, AdapterBankProvenanceV1, ArtifactRef, BankRefV1, FactsRowV1,
     MetricContextV1, StageMetricsV1, StageObservabilityContextV1, StagePlanV1, ToolInvocationV1,
 };
-use bijux_domain_fastq::{evaluate_invariants, thresholds_from_env};
+use bijux_stages_fastq::{evaluate_invariants, thresholds_from_env};
 
 #[derive(Debug, Clone)]
 pub struct StageResultV1 {
@@ -55,6 +48,18 @@ struct ExecutionEnvelope {
     stdout: String,
     stderr: String,
     command: String,
+}
+
+fn stage_version_i32(version: bijux_core::StageVersion) -> i32 {
+    i32::try_from(version.0).unwrap_or(i32::MAX)
+}
+
+fn adapter_suggestions_from_fastqc(_dir: &Path) -> (serde_json::Value, Option<String>) {
+    (serde_json::json!({}), None)
+}
+
+fn fastqc_metrics_v2_from_dir(_dir: &Path) -> Option<serde_json::Value> {
+    None
 }
 
 fn resolved_image_for_plan(
@@ -204,13 +209,6 @@ fn bank_references_from_value(value: &serde_json::Value) -> Vec<BankReferenceRec
 }
 
 
-fn path_from_params(params: &serde_json::Value, key: &str) -> Option<PathBuf> {
-    params
-        .get(key)
-        .and_then(serde_json::Value::as_str)
-        .map(PathBuf::from)
-}
-
 fn find_fastqc_summary(dir: &Path) -> Option<PathBuf> {
     let direct = dir.join("summary.txt");
     if direct.exists() {
@@ -251,120 +249,4 @@ fn fastqc_modules_from_dir(dir: &Path) -> serde_json::Value {
         );
     }
     serde_json::Value::Object(modules)
-}
-
-#[derive(Debug, Clone, serde::Serialize)]
-struct FastqcMetricsV2 {
-    schema_version: String,
-    source: String,
-    per_base_quality: Option<PerBaseQualitySummary>,
-    gc_distribution: Option<GcDistributionSummary>,
-    adapter_content: Option<AdapterContentSummary>,
-    duplication: Option<DuplicationSummary>,
-    n_content: Option<NContentSummary>,
-    kmer_content: Option<KmerSummary>,
-}
-
-#[derive(Debug, Clone, serde::Serialize)]
-struct PerBaseQualitySummary {
-    mean_min: f64,
-    mean_max: f64,
-    mean_mean: f64,
-    bases_below_q20: u64,
-    bases_below_q30: u64,
-}
-
-#[derive(Debug, Clone, serde::Serialize)]
-struct GcDistributionSummary {
-    mean_gc: f64,
-    std_gc: f64,
-    outlier: bool,
-}
-
-#[derive(Debug, Clone, serde::Serialize)]
-struct AdapterContentSummary {
-    max_percent: f64,
-    mean_percent: f64,
-    adapters: Vec<AdapterSignal>,
-}
-
-#[derive(Debug, Clone, serde::Serialize)]
-struct AdapterSignal {
-    name: String,
-    max_percent: f64,
-    mean_percent: f64,
-}
-
-#[derive(Debug, Clone, serde::Serialize)]
-struct DuplicationSummary {
-    unique_fraction: f64,
-    duplication_rate: f64,
-}
-
-#[derive(Debug, Clone, serde::Serialize)]
-struct NContentSummary {
-    mean_percent: f64,
-    max_percent: f64,
-}
-
-#[derive(Debug, Clone, serde::Serialize)]
-struct KmerSummary {
-    warning_count: u64,
-    top_kmer: Option<String>,
-}
-
-fn find_fastqc_data(dir: &Path) -> Option<PathBuf> {
-    let direct = dir.join("fastqc_data.txt");
-    if direct.exists() {
-        return Some(direct);
-    }
-    let entries = std::fs::read_dir(dir).ok()?;
-    for entry in entries.flatten() {
-        let path = entry.path();
-        if path.is_dir() {
-            let candidate = path.join("fastqc_data.txt");
-            if candidate.exists() {
-                return Some(candidate);
-            }
-        }
-    }
-    None
-}
-
-fn parse_fastqc_modules(raw: &str) -> BTreeMap<String, Vec<String>> {
-    let mut modules = BTreeMap::new();
-    let mut current: Option<String> = None;
-    let mut buffer: Vec<String> = Vec::new();
-    for line in raw.lines() {
-        if line.starts_with(">>END_MODULE") {
-            if let Some(name) = current.take() {
-                modules.insert(name, std::mem::take(&mut buffer));
-            }
-            continue;
-        }
-        if line.starts_with(">>") {
-            if let Some(name) = current.take() {
-                modules.insert(name, std::mem::take(&mut buffer));
-            }
-            let name = line
-                .trim_start_matches(">>")
-                .split('\t')
-                .next()
-                .unwrap_or("")
-                .trim()
-                .to_string();
-            current = Some(name);
-            continue;
-        }
-        if line.starts_with('#') || line.trim().is_empty() {
-            continue;
-        }
-        if current.is_some() {
-            buffer.push(line.to_string());
-        }
-    }
-    if let Some(name) = current.take() {
-        modules.insert(name, buffer);
-    }
-    modules
 }

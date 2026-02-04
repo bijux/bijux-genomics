@@ -2,18 +2,15 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 
-use anyhow::{Context, Result};
+use anyhow::Result;
 use bijux_core::{
-    parameters_json_canonicalization, params_hash, CommandSpecV1, ContainerImageRefV1,
-    ToolConstraints, ToolExecutionSpecV1, ToolId,
+    CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
 };
-use bijux_runner_docker::primitives::execute_plan;
-use bijux_core::StagePlanV1;
 use bijux_env_runtime::api::RunnerKind;
+use bijux_exec::primitives::execute_stage_plan;
 use bijux_stages_fastq::fastq::{
     correct, filter, merge, qc_post, screen, stats_neutral, trim, umi, validate_pre,
 };
-use bijux_pipelines::fastq::DefaultPipelineOptions;
 
 static ENV_LOCK: Mutex<()> = Mutex::new(());
 
@@ -131,48 +128,24 @@ fn merge_outputs_for(tool: &str, out_dir: &Path) -> Vec<PathBuf> {
     }
 }
 
-fn stage_version_i32(version: bijux_core::StageVersion) -> i32 {
-    i32::try_from(version.0).unwrap_or(i32::MAX)
-}
-
-#[allow(clippy::too_many_lines)]
 fn build_plan(
     stage_id: &str,
     r1: &Path,
     r2: &Path,
     out_dir: &Path,
     image: &ContainerImageRefV1,
-) -> Result<(StagePlanV1, Vec<PathBuf>, bool)> {
+) -> Result<(bijux_core::StagePlanV1, Vec<PathBuf>)> {
     let plan = match stage_id {
-        "fastq.trim" => {
-            let adapter_bank = serde_json::json!({
-                "bank_id": "bank",
-                "bank_version": "1",
-                "bank_hash": "hash",
-                "presets_hash": "preset_hashes",
-                "preset": "ancientdna-illumina",
-                "preset_hash": "preset_hash",
-                "enabled_categories": ["truseq"],
-                "disabled_categories": ["custom"],
-                "enable_adapters": [],
-                "disable_adapters": [],
-            });
-            trim::plan(
-                &dummy_tool("fastp", image),
-                r1,
-                out_dir,
-                Some(&adapter_bank),
-                None,
-                None,
-            )?
-        }
-        "fastq.detect_adapters" => {
-            bijux_stages_fastq::fastq::detect_adapters::plan(&dummy_tool("fastqc", image), r1, out_dir)
-        }
+        "fastq.trim" => trim::plan(&dummy_tool("fastp", image), r1, out_dir, None, None, None)?,
         "fastq.filter" => {
             let options = bijux_stages_fastq::fastq::filter::FilterPlanOptions::default();
             filter::plan_filter(&dummy_tool("fastp", image), r1, out_dir, &options)?
         }
+        "fastq.detect_adapters" => bijux_stages_fastq::fastq::detect_adapters::plan(
+            &dummy_tool("fastqc", image),
+            r1,
+            out_dir,
+        ),
         "fastq.validate_pre" => {
             validate_pre::plan(&dummy_tool("fastqvalidator_official", image), r1, out_dir)
         }
@@ -194,10 +167,71 @@ fn build_plan(
     };
 
     let outputs: Vec<PathBuf> = plan.io.outputs.iter().map(|o| o.path.clone()).collect();
-    let is_retention = matches!(
-        stage_id,
-        "fastq.trim" | "fastq.filter" | "fastq.merge" | "fastq.correct" | "fastq.umi"
-    );
+    Ok((plan, outputs))
+}
 
-    Ok((plan, outputs, is_retention))
+#[test]
+#[allow(clippy::too_many_lines)]
+fn metrics_completeness_contract() -> Result<()> {
+    let _guard = ENV_LOCK
+        .lock()
+        .map_err(|_| anyhow::anyhow!("env lock poisoned"))?;
+    let (dir, r1, r2) = temp_inputs()?;
+    let bin_dir = write_fake_docker(dir.path())?;
+    let original_path = std::env::var("PATH").unwrap_or_default();
+    std::env::set_var("PATH", format!("{}:{}", bin_dir.display(), original_path));
+
+    let image = test_image();
+    for stage in bijux_stages_fastq::fastq::registry() {
+        if stage.id == "fastq.preprocess" {
+            continue;
+        }
+        let out_dir = dir.path().join(stage.id.replace('.', "_"));
+        bijux_infra::ensure_dir(&out_dir)?;
+        let (plan, outputs) = build_plan(stage.id, &r1, &r2, &out_dir, &image)?;
+        for output in &outputs {
+            touch(output)?;
+        }
+        if stage.id == "fastq.qc_post" {
+            touch(&out_dir.join("fastqc_trimmed").join("fastqc_data.txt"))?;
+            touch(&out_dir.join("multiqc_report.html"))?;
+            bijux_infra::ensure_dir(out_dir.join("multiqc_data"))?;
+        }
+        if stage.id == "fastq.merge" {
+            for output in merge_outputs_for(&plan.tool_id.0, &out_dir) {
+                touch(&output)?;
+            }
+        }
+
+        let _result = execute_stage_plan(&plan, RunnerKind::Docker, None)?;
+        let stage_metrics_path = out_dir.join("run_artifacts").join("stage_metrics.json");
+        let stage_metrics_raw = fs::read_to_string(&stage_metrics_path)?;
+        let stage_metrics: serde_json::Value = serde_json::from_str(&stage_metrics_raw)?;
+        let execution = stage_metrics.get("execution").and_then(|v| v.as_object());
+        assert!(execution.is_some());
+        let metrics = stage_metrics["metrics"]
+            .as_object()
+            .ok_or_else(|| anyhow::anyhow!("metrics missing"))?;
+        assert!(metrics.contains_key("reads_in"));
+        assert!(metrics.contains_key("reads_out"));
+        assert!(metrics.contains_key("bases_in"));
+        assert!(metrics.contains_key("bases_out"));
+        assert!(metrics.contains_key("pairs_in"));
+        assert!(metrics.contains_key("pairs_out"));
+        if stage.affects_read_counts && matches!(stage.id, "fastq.trim" | "fastq.filter") {
+            let retention = metrics
+                .get("retention")
+                .and_then(|value| value.as_object())
+                .ok_or_else(|| anyhow::anyhow!("retention missing"))?;
+            assert!(retention.contains_key("value"));
+            assert!(retention.contains_key("numerator_reads"));
+            assert!(retention.contains_key("denominator_reads"));
+            assert!(retention.contains_key("definition"));
+            assert!(retention.contains_key("stage_boundary"));
+            assert!(retention.contains_key("conditions"));
+        }
+    }
+
+    std::env::set_var("PATH", original_path);
+    Ok(())
 }

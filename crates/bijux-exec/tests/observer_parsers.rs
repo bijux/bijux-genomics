@@ -1,5 +1,5 @@
 use anyhow::Result;
-use bijux_runner_docker::primitives::parse_fastqvalidator_count;
+use bijux_stages_fastq::observer::parse_fastqvalidator_count;
 
 #[test]
 fn parse_fastqvalidator_count_parses_total_reads() -> Result<()> {

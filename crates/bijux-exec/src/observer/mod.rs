@@ -1,32 +1,40 @@
-mod bam;
 mod hash;
-mod seqkit;
-
-pub use bam::{
-    parse_contamination_json, parse_damageprofiler_json, parse_mosdepth_summary,
-    parse_preseq_estimates, parse_pydamage_json, parse_samtools_flagstat, parse_samtools_idxstats,
-    parse_samtools_stats, parse_sex_json,
-};
-pub use bijux_core::measure::SeqkitMetrics;
 pub use hash::hash_file_sha256;
-pub use seqkit::{
-    input_fastq_stats, length_histogram, output_fastq_stats, parse_fastqvalidator_count,
-};
 
 use anyhow::{Context, Result};
 use std::path::Path;
 
-use bijux_engine::core::types::{ExplainPlan, MetricSet, StageResult};
+use bijux_core::metrics::MetricSet;
+use bijux_core::ExplainPlan;
+
+#[derive(Debug, Clone)]
+pub struct ToolInvocation {
+    pub stage_id: String,
+    pub tool_id: String,
+}
+
+#[derive(Debug, Clone)]
+pub struct StageResult {
+    pub invocation: ToolInvocation,
+    pub exit_code: i32,
+    pub stdout: String,
+    pub stderr: String,
+    pub outputs: Vec<std::path::PathBuf>,
+}
 
 #[allow(dead_code)]
 pub trait Observer {
     fn on_stage_start(&mut self, stage: &StageResult) -> Result<()>;
     fn on_stage_end(&mut self, stage: &StageResult) -> Result<()>;
-    fn on_metric(&mut self, stage: &StageResult, metrics: &MetricSet) -> Result<()>;
+    fn on_metric(
+        &mut self,
+        stage: &StageResult,
+        metrics: &MetricSet<serde_json::Value>,
+    ) -> Result<()>;
 }
 
-pub fn observe_stage(result: &StageResult) -> Result<MetricSet> {
-    if bijux_engine::core::types::trace_enabled() {
+pub fn observe_stage(result: &StageResult) -> Result<MetricSet<serde_json::Value>> {
+    if std::env::var("BIJUX_TRACE_ENGINE").is_ok() {
         println!(
             "[engine][observer] stage={} tool={}",
             result.invocation.stage_id, result.invocation.tool_id

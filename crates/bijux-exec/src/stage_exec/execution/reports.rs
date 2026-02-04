@@ -1,3 +1,6 @@
+use bijux_stages_bam::domain_bam::metrics::{
+    evaluate_bam_invariants, BamInvariantThresholds, BamMetricsV1,
+};
 use bijux_stages_fastq::metrics::{
     filter_removals_for_plan, retention_conditions_from_effective, stats_or_zero,
 };
@@ -355,7 +358,7 @@ fn build_stage_reports_and_warnings(
         })?;
     }
     let retention_report_path = if is_retention_stage(&plan.stage_id.0) {
-        retention_counts_for_plan(&plan.stage_id.0, input_paths, outputs)?.map(|counts| {
+        retention_counts_for_plan(input_paths, outputs)?.map(|counts| {
             write_retention_report_v1(
                 run_artifacts_dir,
                 &plan.stage_id.0,
@@ -455,6 +458,23 @@ fn build_stage_reports_and_warnings(
     })
 }
 
-fn f64_from_u64(value: u64) -> f64 {
-    value as f64
+struct RetentionCounts {
+    reads_in: u64,
+    reads_out: u64,
+    bases_in: u64,
+    bases_out: u64,
+}
+
+fn retention_counts_for_plan(
+    input_paths: &[PathBuf],
+    outputs: &[PathBuf],
+) -> Result<Option<RetentionCounts>> {
+    let input = stats_or_zero(input_paths.first().map(PathBuf::as_path))?;
+    let output = stats_or_zero(outputs.first().map(PathBuf::as_path))?;
+    Ok(Some(RetentionCounts {
+        reads_in: input.reads,
+        reads_out: output.reads,
+        bases_in: input.bases,
+        bases_out: output.bases,
+    }))
 }

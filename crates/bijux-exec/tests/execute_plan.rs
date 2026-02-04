@@ -8,8 +8,8 @@ use bijux_core::{
     ArtifactRef, CommandSpecV1, ContainerImageRefV1, StageIO, StageId, StagePlanV1, StageVersion,
     ToolConstraints, ToolId,
 };
-use bijux_runner_docker::primitives::execute_plan;
 use bijux_env_runtime::api::RunnerKind;
+use bijux_exec::primitives::execute_stage_plan;
 use flate2::write::GzEncoder;
 use flate2::Compression;
 
@@ -141,7 +141,7 @@ fn execute_plan_success_path_uses_public_api() -> Result<()> {
         }),
         aux_images: std::collections::BTreeMap::new(),
     };
-    let result = execute_plan(&exec_plan, RunnerKind::Docker, None)?;
+    let result = execute_stage_plan(&exec_plan, RunnerKind::Docker, None)?;
     assert_eq!(result.exit_code, 0);
     assert_eq!(result.outputs, vec![output_path]);
     assert!(out_dir.join("engine_execution.json").exists());
@@ -200,7 +200,7 @@ fn execute_plan_propagates_tool_failure() -> Result<()> {
         }),
         aux_images: std::collections::BTreeMap::new(),
     };
-    let result = execute_plan(&exec_plan, RunnerKind::Docker, None)?;
+    let result = execute_stage_plan(&exec_plan, RunnerKind::Docker, None)?;
     assert_eq!(result.exit_code, 1);
 
     std::env::remove_var("BIJUX_TEST_DOCKER_EXIT_CODE");
@@ -252,7 +252,7 @@ fn execute_plan_hits_validate_path() -> Result<()> {
         }),
         aux_images: std::collections::BTreeMap::new(),
     };
-    let result = execute_plan(&exec_plan, RunnerKind::Docker, None)?;
+    let result = execute_stage_plan(&exec_plan, RunnerKind::Docker, None)?;
     assert_eq!(result.exit_code, 0);
     assert!(result.command.contains("fastq-validator"));
     let log = fs::read_to_string(&log_path)?;
@@ -322,7 +322,7 @@ fn execute_plan_hits_merge_path() -> Result<()> {
         }),
         aux_images: std::collections::BTreeMap::new(),
     };
-    let result = execute_plan(&exec_plan, RunnerKind::Docker, None)?;
+    let result = execute_stage_plan(&exec_plan, RunnerKind::Docker, None)?;
     assert_eq!(result.exit_code, 0);
     assert!(result.command.contains("pear"));
     let log = fs::read_to_string(&log_path)?;

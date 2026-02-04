@@ -1,5 +1,5 @@
 use anyhow::Result;
-use bijux_engine::core::types::ExecutionManifest;
+use bijux_core::ExecutionManifest;
 use bijux_runner_docker::primitives::replay_run;
 
 #[test]

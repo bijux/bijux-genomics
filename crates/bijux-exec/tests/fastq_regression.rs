@@ -1,12 +1,12 @@
 use std::path::Path;
 
 use anyhow::Result;
-use bijux_runner_docker::primitives::{
-    docker_rm, docker_stats_mb, output_fastq_stats, parse_fastqvalidator_count,
-    run_merge_container, run_tool_container, run_validate_container,
-};
-use bijux_engine::core::types::ExecutionManifest;
+use bijux_core::ExecutionManifest;
 use bijux_env_runtime::api::{load_image_catalog, load_platform};
+use bijux_runner_docker::primitives::{
+    docker_rm, docker_stats_mb, run_merge_container, run_tool_container, run_validate_container,
+};
+use bijux_stages_fastq::observer::{output_fastq_stats, parse_fastqvalidator_count};
 use sha2::{Digest, Sha256};
 use uuid::Uuid;
 
@@ -14,7 +14,7 @@ fn tempdir_in_repo() -> Result<tempfile::TempDir> {
     let cwd = std::env::current_dir()?;
     let base = cwd.join("target").join("test-tmp");
     bijux_infra::ensure_dir(&base)?;
-    Ok(bijux_infra::temp_dir_in(base, "bijux")?)
+    Ok(bijux_infra::temp_dir_in(&base, "bijux")?)
 }
 
 fn ensure_docker() -> bool {
