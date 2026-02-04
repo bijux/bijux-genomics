@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Context, Result};
 use sha2::Digest;
 
-use crate::services::composer::paths::bench_tools_dir;
+use bijux_infra::bench_tools_dir;
 
 use serde::Serialize;
 use uuid::Uuid;

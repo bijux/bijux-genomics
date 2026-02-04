@@ -1,6 +1,7 @@
 use thiserror::Error;
 
 #[derive(Debug, Error)]
+#[allow(dead_code)]
 pub enum EngineError {
     #[error("planning error: {0}")]
     Planning(String),

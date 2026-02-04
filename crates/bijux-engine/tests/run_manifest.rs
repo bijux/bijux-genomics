@@ -1,7 +1,9 @@
 use std::fs;
 
-use bijux_engine::primitives::{prepare_tool_run_dirs, write_run_manifest, RunArtifactInput};
 use bijux_core::RunProvenanceV1;
+use bijux_engine::services::run_artifacts::{
+    prepare_tool_run_dirs, write_run_manifest, RunArtifactInput,
+};
 
 #[test]
 fn run_manifest_includes_telemetry_and_facts() -> anyhow::Result<()> {

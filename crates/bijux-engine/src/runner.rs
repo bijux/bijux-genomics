@@ -2,21 +2,12 @@ use std::collections::{HashMap, HashSet, VecDeque};
 
 use anyhow::{anyhow, Result};
 use bijux_core::execution_plan::{ExecutionPlan, PlanEdge};
-use bijux_core::StagePlanV1;
+use bijux_core::{RunRecordV1, StageExecutionRecordV1, StagePlanV1};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct ExecutionOptions {
     pub retries: u32,
     pub resume: bool,
-}
-
-impl Default for ExecutionOptions {
-    fn default() -> Self {
-        Self {
-            retries: 0,
-            resume: false,
-        }
-    }
 }
 
 #[derive(Debug, Clone)]
@@ -36,12 +27,12 @@ pub fn execute_plan(
     plan: &ExecutionPlan,
     runner: &dyn Runner,
     options: &ExecutionOptions,
-) -> Result<Vec<StageExecution>> {
+) -> Result<RunRecordV1> {
     let ordered = topo_order(plan.stages(), plan.edges())?;
     let mut results = Vec::with_capacity(ordered.len());
     for stage in ordered {
         if options.resume && runner.is_cached(stage) {
-            results.push(StageExecution {
+            results.push(StageExecutionRecordV1 {
                 stage_id: stage.stage_id.0.clone(),
                 attempt: 0,
                 success: true,
@@ -50,23 +41,25 @@ pub fn execute_plan(
             continue;
         }
         let mut attempt = 0;
-        let mut last = None;
-        loop {
+        let last = loop {
             let outcome = runner.run(stage, attempt)?;
-            let success = outcome.success;
-            last = Some(outcome);
-            if success {
-                break;
+            if outcome.success {
+                break outcome;
             }
             if attempt >= options.retries {
                 let stage_id = stage.stage_id.0.clone();
                 return Err(anyhow!("stage failed after retries: {stage_id}"));
             }
             attempt += 1;
-        }
-        results.push(last.expect("execution result"));
+        };
+        results.push(StageExecutionRecordV1 {
+            stage_id: last.stage_id.clone(),
+            attempt: last.attempt,
+            success: last.success,
+            cached: last.cached,
+        });
     }
-    Ok(results)
+    Ok(RunRecordV1::new(results))
 }
 
 fn topo_order<'a>(
@@ -93,7 +86,13 @@ fn topo_order<'a>(
     }
     let mut queue: VecDeque<&str> = stages
         .iter()
-        .filter(|stage| indegree.get(stage.stage_id.0.as_str()).copied().unwrap_or(0) == 0)
+        .filter(|stage| {
+            indegree
+                .get(stage.stage_id.0.as_str())
+                .copied()
+                .unwrap_or(0)
+                == 0
+        })
         .map(|stage| stage.stage_id.0.as_str())
         .collect();
     let mut order = Vec::with_capacity(stages.len());
