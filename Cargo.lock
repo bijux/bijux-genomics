@@ -247,6 +247,9 @@ dependencies = [
  "anyhow",
  "assert_cmd",
  "bijux-api",
+ "bijux-core",
+ "bijux-env-builder",
+ "bijux-env-runtime",
  "bijux-guardrails",
  "bijux-infra",
  "clap",
@@ -293,6 +296,8 @@ dependencies = [
  "bijux-engine",
  "bijux-env-builder",
  "bijux-env-runtime",
+ "bijux-exec",
+ "bijux-guardrails",
  "bijux-infra",
  "bijux-pipelines",
  "bijux-planner-fastq",
@@ -436,6 +441,32 @@ dependencies = [
 ]
 
 [[package]]
+name = "bijux-exec"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bijux-core",
+ "bijux-domain-bam",
+ "bijux-engine",
+ "bijux-env-builder",
+ "bijux-env-runtime",
+ "bijux-guardrails",
+ "bijux-infra",
+ "bijux-pipelines",
+ "bijux-runner-docker",
+ "bijux-stages-bam",
+ "bijux-stages-fastq",
+ "chrono",
+ "flate2",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tempfile",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
 name = "bijux-guardrails"
 version = "0.1.0"
 dependencies = [
@@ -451,6 +482,7 @@ name = "bijux-infra"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "bijux-guardrails",
  "fs4",
  "serde",
  "serde_json",
@@ -459,6 +491,8 @@ dependencies = [
  "tempfile",
  "thiserror 1.0.69",
  "toml",
+ "tracing-appender",
+ "tracing-subscriber",
 ]
 
 [[package]]
@@ -558,6 +592,7 @@ dependencies = [
  "anyhow",
  "bijux-core",
  "bijux-domain-fastq",
+ "bijux-env-runtime",
  "bijux-guardrails",
  "bijux-infra",
  "flate2",
@@ -565,6 +600,7 @@ dependencies = [
  "serde_json",
  "sha2",
  "tempfile",
+ "tracing",
  "walkdir",
 ]
 
