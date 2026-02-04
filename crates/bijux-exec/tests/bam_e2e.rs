@@ -4,9 +4,9 @@ use anyhow::Result;
 use bijux_core::{
     CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
 };
-use bijux_env_runtime::api::{load_image_catalog, load_platform, RunnerKind};
+use bijux_environment::api::{load_image_catalog, load_platform, RunnerKind};
 use bijux_exec::primitives::execute_stage_plan;
-use bijux_runner_docker::primitives::resolve_image_for_run;
+use bijux_runner::primitives::resolve_image_for_run;
 
 fn ensure_docker() -> bool {
     let status = std::process::Command::new("docker").arg("version").status();

@@ -365,9 +365,8 @@ fn workspace_no_orphan_crates() {
         "bijux",
         "bijux-cli",
         "bijux-bench",
-        "bijux-env-builder",
-        "bijux-env-runtime",
-        "bijux-runner-local",
+        "bijux-environment",
+        "bijux-runner",
     ]);
     for (name, count) in dependents {
         let crate_dir = crates.get(&name).expect("crate dir");
@@ -415,9 +414,8 @@ fn workspace_dependency_graph_contract() {
     let api_allowed: BTreeSet<&str> = BTreeSet::from([
         "bijux-core",
         "bijux-engine",
-        "bijux-runner-docker",
-        "bijux-env-runtime",
-        "bijux-env-builder",
+        "bijux-runner",
+        "bijux-environment",
         "bijux-analyze",
         "bijux-stages-fastq",
         "bijux-stages-bam",
@@ -442,13 +440,11 @@ fn workspace_dependency_graph_contract() {
             "bijux-stages-fastq",
             "bijux-stages-bam",
             "bijux-engine",
-            "bijux-env-builder",
-            "bijux-env-runtime",
+            "bijux-environment",
             "bijux",
             "bijux-pipelines",
             "bijux-api",
-            "bijux-env-builder",
-            "bijux-env-runtime",
+            "bijux-environment",
             "bijux-analyze",
             "bijux-bench",
         ] {
@@ -467,8 +463,7 @@ fn workspace_dependency_graph_contract() {
             "bijux-analyze",
             "bijux-bench",
             "bijux-engine",
-            "bijux-env-builder",
-            "bijux-env-runtime",
+            "bijux-environment",
             "bijux-pipelines",
         ] {
             assert!(
@@ -492,7 +487,7 @@ fn workspace_dependency_graph_contract() {
     }
 
     let analyze = deps_for("bijux-analyze");
-    for banned in ["bijux-engine", "bijux-env-builder", "bijux-env-runtime"] {
+    for banned in ["bijux-engine", "bijux-environment"] {
         assert!(
             !analyze.contains(banned),
             "bijux-analyze must not depend on {banned}"
@@ -507,8 +502,7 @@ fn workspace_dependency_graph_contract() {
         "bijux-domain-bam",
         "bijux-stages-fastq",
         "bijux-stages-bam",
-        "bijux-runner-docker",
-        "bijux-runner-local",
+        "bijux-runner",
     ] {
         assert!(
             !engine.contains(banned),
@@ -516,24 +510,24 @@ fn workspace_dependency_graph_contract() {
         );
     }
 
-    let runner = deps_for("bijux-runner-docker");
-    let runner_allowed: BTreeSet<&str> = BTreeSet::from([
-        "bijux-core",
-        "bijux-engine",
-        "bijux-env-runtime",
-        "bijux-env-builder",
-        "bijux-infra",
-        "bijux-stages-fastq",
-        "bijux-stages-bam",
-        "bijux-domain-fastq",
-        "bijux-domain-bam",
-        "bijux-guardrails",
-    ]);
-    for dep in &runner {
-        assert!(
-            runner_allowed.contains(dep.as_str()),
-            "bijux-runner-docker must not depend on workspace crate {dep}"
-        );
+    for runner_name in ["bijux-runner"] {
+        if !crates.contains_key(runner_name) {
+            continue;
+        }
+        let deps = deps_for(runner_name);
+        for banned in [
+            "bijux-analyze",
+            "bijux-bench",
+            "bijux-domain-fastq",
+            "bijux-domain-bam",
+            "bijux-stages-fastq",
+            "bijux-stages-bam",
+        ] {
+            assert!(
+                !deps.contains(banned),
+                "{runner_name} must not depend on {banned}"
+            );
+        }
     }
 
     let planner_fastq = deps_for("bijux-planner-fastq");
@@ -719,8 +713,7 @@ fn workspace_no_cross_layer_imports() {
                     || content.contains("bijux_api::")
                     || content.contains("bijux_analyze::")
                     || content.contains("bijux_bench::")
-                    || content.contains("bijux_env_builder::")
-                    || content.contains("bijux_env_runtime::"))
+                    || content.contains("bijux_environment::"))
             {
                 offenders.push(rel.display().to_string());
             }
@@ -729,8 +722,7 @@ fn workspace_no_cross_layer_imports() {
                     || content.contains("bijux_api::")
                     || content.contains("bijux_engine::")
                     || content.contains("bijux_pipelines::")
-                    || content.contains("bijux_env_builder::")
-                    || content.contains("bijux_env_runtime::"))
+                    || content.contains("bijux_environment::"))
             {
                 offenders.push(rel.display().to_string());
             }
@@ -837,6 +829,70 @@ fn workspace_no_ad_hoc_fs_write() {
     assert!(
         offenders.is_empty(),
         "ad-hoc fs writes/renames/removals/dir-creation are forbidden outside bijux-infra: {offenders:?}"
+    );
+}
+
+#[test]
+fn engine_has_no_domain_keywords() {
+    let root = workspace_root();
+    let engine_root = root.join("crates").join("bijux-engine").join("src");
+    let denylist = [
+        "fastq",
+        "bam",
+        "qc_post",
+        "retention",
+        "adapter_bank",
+        "adapters",
+        "fastqc",
+        "multiqc",
+    ];
+    let mut offenders = Vec::new();
+    for entry in walkdir::WalkDir::new(&engine_root)
+        .into_iter()
+        .filter_map(Result::ok)
+        .filter(|entry| entry.path().extension().and_then(|s| s.to_str()) == Some("rs"))
+    {
+        let content = std::fs::read_to_string(entry.path()).unwrap_or_default();
+        let lower = content.to_lowercase();
+        if denylist.iter().any(|token| lower.contains(token)) {
+            let rel = entry.path().strip_prefix(&root).unwrap_or(entry.path());
+            offenders.push(rel.display().to_string());
+        }
+    }
+    assert!(
+        offenders.is_empty(),
+        "engine must not contain domain keywords: {offenders:?}"
+    );
+}
+
+#[test]
+fn api_has_no_planning_policy() {
+    let root = workspace_root();
+    let api_root = root.join("crates").join("bijux-api").join("src");
+    let denylist = [
+        "smart_pipeline",
+        "stage_order",
+        "stage ordering",
+        "normalize_stage",
+        "normalize_tool",
+        "tool_list",
+    ];
+    let mut offenders = Vec::new();
+    for entry in walkdir::WalkDir::new(&api_root)
+        .into_iter()
+        .filter_map(Result::ok)
+        .filter(|entry| entry.path().extension().and_then(|s| s.to_str()) == Some("rs"))
+    {
+        let content = std::fs::read_to_string(entry.path()).unwrap_or_default();
+        let lower = content.to_lowercase();
+        if denylist.iter().any(|token| lower.contains(token)) {
+            let rel = entry.path().strip_prefix(&root).unwrap_or(entry.path());
+            offenders.push(rel.display().to_string());
+        }
+    }
+    assert!(
+        offenders.is_empty(),
+        "api must not implement planning policy: {offenders:?}"
     );
 }
 

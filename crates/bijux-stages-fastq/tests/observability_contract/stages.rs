@@ -314,10 +314,12 @@ fn preprocess_emits_telemetry_events() -> Result<()> {
     let old_path = std::env::var("PATH").unwrap_or_default();
     std::env::set_var("PATH", format!("{}:{}", bin_dir.display(), old_path));
 
-    let pipeline = bijux_pipelines::fastq::fastq_default_pipeline_spec(DefaultPipelineOptions {
-        paired: false,
-        ..Default::default()
-    });
+    let pipeline = bijux_planner_fastq::default_pipeline_spec(
+        bijux_planner_fastq::DefaultPipelineOptions {
+            paired: false,
+            ..Default::default()
+        },
+    );
     let preprocess_plan = bijux_stages_fastq::fastq::preprocess::PreprocessPlan {
         r1: r1.clone(),
         r2: None,
@@ -331,8 +333,7 @@ fn preprocess_emits_telemetry_events() -> Result<()> {
         bijux_stages_fastq::fastq::preprocess::plan_preprocess_stage(&preprocess_plan, &tool);
     let _result = execute_plan(&plan, RunnerKind::Docker, None)?;
 
-    let run_artifacts =
-        bijux_engine::services::run_artifacts::run_artifacts_dir_for_out(&plan.out_dir);
+    let run_artifacts = bijux_exec::run_artifacts::run_artifacts_dir_for_out(&plan.out_dir);
     let telemetry_path = run_artifacts.join("telemetry").join("events.jsonl");
     assert!(telemetry_path.exists());
     let telemetry_raw = fs::read_to_string(&telemetry_path)?;

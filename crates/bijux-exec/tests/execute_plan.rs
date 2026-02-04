@@ -8,7 +8,7 @@ use bijux_core::{
     ArtifactRef, CommandSpecV1, ContainerImageRefV1, StageIO, StageId, StagePlanV1, StageVersion,
     ToolConstraints, ToolId,
 };
-use bijux_env_runtime::api::RunnerKind;
+use bijux_environment::api::RunnerKind;
 use bijux_exec::primitives::execute_stage_plan;
 use flate2::write::GzEncoder;
 use flate2::Compression;

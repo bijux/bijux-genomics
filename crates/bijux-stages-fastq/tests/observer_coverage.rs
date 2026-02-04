@@ -6,7 +6,7 @@ use anyhow::Result;
 use bijux_core::{
     CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
 };
-use bijux_env_runtime::api::RunnerKind;
+use bijux_environment::api::RunnerKind;
 use bijux_exec::primitives::execute_stage_plan;
 use bijux_stages_fastq::fastq::trim;
 

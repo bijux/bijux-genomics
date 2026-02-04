@@ -6,9 +6,9 @@ use bijux_core::{
     ArtifactRef, CommandSpecV1, ContainerImageRefV1, StageIO, StageId, StageVersion,
     ToolConstraints, ToolId,
 };
-use bijux_env_runtime::api::{load_image_catalog, load_platform};
+use bijux_environment::api::{load_image_catalog, load_platform};
 use bijux_exec::primitives::execute_stage_plan;
-use bijux_runner_docker::primitives::resolve_image_for_run;
+use bijux_runner::primitives::resolve_image_for_run;
 
 fn ensure_docker() -> bool {
     let status = std::process::Command::new("docker").arg("version").status();
