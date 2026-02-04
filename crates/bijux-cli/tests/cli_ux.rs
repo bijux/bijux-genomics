@@ -44,7 +44,7 @@ fn cli_output_matches_stage_registry() -> Result<()> {
     let output = cmd.output()?;
     assert!(output.status.success(), "fastq stages failed");
     let stdout = String::from_utf8_lossy(&output.stdout);
-    let expected: Vec<String> = bijux_api::STAGES
+    let expected: Vec<String> = bijux_api::v1::fastq::STAGES
         .iter()
         .map(|stage| stage.stage_id.to_string())
         .collect();
@@ -55,7 +55,8 @@ fn cli_output_matches_stage_registry() -> Result<()> {
         );
     }
     std::env::set_current_dir(repo_root)?;
-    let adapter_selection = bijux_api::fastq_banks::resolve_adapter_selection(None, None, None)?;
+    let adapter_selection =
+        bijux_api::v1::fastq::fastq_banks::resolve_adapter_selection(None, None, None)?;
     let mut adapter_presets: Vec<String> = adapter_selection
         .presets
         .presets
@@ -69,7 +70,7 @@ fn cli_output_matches_stage_registry() -> Result<()> {
             "missing adapter preset in output: {preset}"
         );
     }
-    let polyx_selection = bijux_api::fastq_banks::resolve_polyx_selection(None)?;
+    let polyx_selection = bijux_api::v1::fastq::fastq_banks::resolve_polyx_selection(None)?;
     let mut polyx_presets: Vec<String> = polyx_selection
         .presets
         .presets
@@ -83,7 +84,8 @@ fn cli_output_matches_stage_registry() -> Result<()> {
             "missing polyx preset in output: {preset}"
         );
     }
-    let contaminant_selection = bijux_api::fastq_banks::resolve_contaminant_selection(None)?;
+    let contaminant_selection =
+        bijux_api::v1::fastq::fastq_banks::resolve_contaminant_selection(None)?;
     let mut contaminant_presets: Vec<String> = contaminant_selection
         .presets
         .presets

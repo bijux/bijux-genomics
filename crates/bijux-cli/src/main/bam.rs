@@ -1,6 +1,7 @@
-use bijux_api::ToolRegistry;
-use bijux_api::{build_tool_execution_spec, execute_stage_plan, RunnerKind};
-use bijux_api::Domain;
+use bijux_api::v1::types::ToolRegistry;
+use bijux_api::v1::env::RunnerKind;
+use bijux_api::v1::run::{build_tool_execution_spec, execute_stage_plan};
+use bijux_api::v1::pipelines::Domain;
 
 use crate::cli::parse::{BamCommand, BamRunArgs};
 // imports provided by entry.rs
@@ -17,7 +18,7 @@ pub fn handle_bam_commands(
 
     match command {
         BamCommand::ListStages => {
-            for stage in bijux_api::BamStage::all() {
+            for stage in bijux_api::v1::bam::BamStage::all() {
                 println!("{}", stage.as_str());
             }
             Ok(true)
@@ -49,7 +50,7 @@ fn run_bam_stage(
     let catalog =
         load_image_catalog().map_err(|err| anyhow!("failed to load image catalog: {err}"))?;
     let stage = args.stage.stage();
-    let profile = bijux_api::select_pipeline(Domain::Bam, &args.profile)?;
+    let profile = bijux_api::v1::pipelines::select_pipeline(Domain::Bam, &args.profile)?;
     let tool_id = args.tool.clone().unwrap_or_else(|| {
         profile
             .defaults
@@ -66,7 +67,7 @@ fn run_bam_stage(
     let log_path = out_dir.join("bijux_bam.log");
     let _log_guard = init_logging(&log_path)?;
 
-    let plan = bijux_api::bam_plan::plan_for_bam_stage_with_profile(
+    let plan = bijux_api::v1::plan::plan_for_bam_stage_with_profile(
         stage,
         &spec,
         &bam_run_args_to_api(args),
@@ -83,8 +84,8 @@ fn run_bam_stage(
     Ok(())
 }
 
-fn bam_run_args_to_api(args: &BamRunArgs) -> bijux_api::BamRunArgs {
-    bijux_api::BamRunArgs {
+fn bam_run_args_to_api(args: &BamRunArgs) -> bijux_api::v1::bam::BamRunArgs {
+    bijux_api::v1::bam::BamRunArgs {
         stage: args.stage.stage(),
         profile: args.profile.clone(),
         sample_id: args.sample_id.clone(),

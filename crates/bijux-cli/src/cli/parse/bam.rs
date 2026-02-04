@@ -22,24 +22,24 @@ pub enum BamStageArg {
 
 impl BamStageArg {
     #[must_use]
-    pub fn stage(self) -> bijux_api::BamStage {
+    pub fn stage(self) -> bijux_api::v1::bam::BamStage {
         match self {
-            BamStageArg::Align => bijux_api::BamStage::Align,
-            BamStageArg::Validate => bijux_api::BamStage::Validate,
-            BamStageArg::QcPre => bijux_api::BamStage::QcPre,
-            BamStageArg::Filter => bijux_api::BamStage::Filter,
-            BamStageArg::Markdup => bijux_api::BamStage::Markdup,
-            BamStageArg::Complexity => bijux_api::BamStage::Complexity,
-            BamStageArg::Coverage => bijux_api::BamStage::Coverage,
-            BamStageArg::Damage => bijux_api::BamStage::Damage,
-            BamStageArg::Authenticity => bijux_api::BamStage::Authenticity,
-            BamStageArg::Contamination => bijux_api::BamStage::Contamination,
-            BamStageArg::Sex => bijux_api::BamStage::Sex,
-            BamStageArg::BiasMitigation => bijux_api::BamStage::BiasMitigation,
-            BamStageArg::Recalibration => bijux_api::BamStage::Recalibration,
-            BamStageArg::Haplogroups => bijux_api::BamStage::Haplogroups,
-            BamStageArg::Genotyping => bijux_api::BamStage::Genotyping,
-            BamStageArg::Kinship => bijux_api::BamStage::Kinship,
+            BamStageArg::Align => bijux_api::v1::bam::BamStage::Align,
+            BamStageArg::Validate => bijux_api::v1::bam::BamStage::Validate,
+            BamStageArg::QcPre => bijux_api::v1::bam::BamStage::QcPre,
+            BamStageArg::Filter => bijux_api::v1::bam::BamStage::Filter,
+            BamStageArg::Markdup => bijux_api::v1::bam::BamStage::Markdup,
+            BamStageArg::Complexity => bijux_api::v1::bam::BamStage::Complexity,
+            BamStageArg::Coverage => bijux_api::v1::bam::BamStage::Coverage,
+            BamStageArg::Damage => bijux_api::v1::bam::BamStage::Damage,
+            BamStageArg::Authenticity => bijux_api::v1::bam::BamStage::Authenticity,
+            BamStageArg::Contamination => bijux_api::v1::bam::BamStage::Contamination,
+            BamStageArg::Sex => bijux_api::v1::bam::BamStage::Sex,
+            BamStageArg::BiasMitigation => bijux_api::v1::bam::BamStage::BiasMitigation,
+            BamStageArg::Recalibration => bijux_api::v1::bam::BamStage::Recalibration,
+            BamStageArg::Haplogroups => bijux_api::v1::bam::BamStage::Haplogroups,
+            BamStageArg::Genotyping => bijux_api::v1::bam::BamStage::Genotyping,
+            BamStageArg::Kinship => bijux_api::v1::bam::BamStage::Kinship,
         }
     }
 }

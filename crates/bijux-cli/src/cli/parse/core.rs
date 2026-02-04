@@ -177,11 +177,11 @@ pub enum PipelineDomainArg {
 
 impl PipelineDomainArg {
     #[must_use]
-    pub fn as_domain(self) -> bijux_api::Domain {
+    pub fn as_domain(self) -> bijux_api::v1::pipelines::Domain {
         match self {
-            Self::Fastq => bijux_api::Domain::Fastq,
-            Self::Bam => bijux_api::Domain::Bam,
-            Self::Cross => bijux_api::Domain::Cross,
+            Self::Fastq => bijux_api::v1::pipelines::Domain::Fastq,
+            Self::Bam => bijux_api::v1::pipelines::Domain::Bam,
+            Self::Cross => bijux_api::v1::pipelines::Domain::Cross,
         }
     }
 }

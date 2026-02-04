@@ -42,7 +42,8 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
             let output_dir = args.output_dir.as_ref().unwrap_or(&args.search_root);
             std::fs::create_dir_all(output_dir)?;
             let path = output_dir.join("compare.json");
-            std::fs::write(&path, serde_json::to_vec_pretty(&result)?)?;
+            atomic_write_bytes(&path, &serde_json::to_vec_pretty(&result)?)
+                .map_err(anyhow::Error::from)?;
             println!("{}", serde_json::to_string_pretty(&result)?);
             Ok(true)
         }
@@ -52,7 +53,7 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
                     domain,
                     show_experimental,
                 } => {
-                    let profiles = bijux_api::select_pipelines(
+                    let profiles = bijux_api::v1::pipelines::select_pipelines(
                         domain.map(cli::parse::PipelineDomainArg::as_domain),
                         *show_experimental,
                     );
@@ -67,7 +68,7 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
                     Ok(true)
                 }
                 PipelinesCommand::Explain { id } => {
-                    let profile = bijux_api::select_pipelines(None, true)
+                    let profile = bijux_api::v1::pipelines::select_pipelines(None, true)
                         .into_iter()
                         .find(|profile| profile.id.as_str() == id)
                         .ok_or_else(|| anyhow!("unknown pipeline profile: {id}"))?;
@@ -84,7 +85,7 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
                     domain,
                     show_experimental,
                 } => {
-                    let profiles = bijux_api::select_pipelines(
+                    let profiles = bijux_api::v1::pipelines::select_pipelines(
                         domain.map(cli::parse::PipelineDomainArg::as_domain),
                         *show_experimental,
                     );
@@ -98,10 +99,10 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
                         for node in &profile.graph {
                             let stage_id = node.stage_id.as_str();
                             if stage_id.starts_with("bam.") {
-                                let stage = bijux_api::BamStage::try_from(stage_id)
+                                let stage = bijux_api::v1::bam::BamStage::try_from(stage_id)
                                     .map_err(|_| anyhow!("unknown BAM stage {stage_id}"))?;
                                 let completeness =
-                                    bijux_api::bam_stage_completeness(stage);
+                                    bijux_api::v1::bam::bam_stage_completeness(stage);
                                 println!(
                                     "  {stage_id}\tcomplete={}\targs={}\tartifacts={}\tparsers={}\tinvariants={}",
                                     completeness.is_complete(),
@@ -122,13 +123,13 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
         Commands::Analyze { command } => {
             match command {
                 AnalyzeCommand::Runs(args) => {
-                    let query = bijux_api::run_index::RunQuery {
+                    let query = bijux_api::v1::run_index::RunQuery {
                         stage: args.stage.clone(),
                         tool: args.tool.clone(),
                         objective: args.objective.map(|obj| obj.as_str().to_string()),
                         success: args.success,
                     };
-                    let runs = bijux_api::run_index::query_runs(&args.index, &query)?;
+                    let runs = bijux_api::v1::run_index::query_runs(&args.index, &query)?;
                     println!("{}", serde_json::to_string_pretty(&runs)?);
                 }
                 AnalyzeCommand::Summary(args) => {
@@ -158,14 +159,15 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
                     let output_dir = args.output_dir.as_ref().unwrap_or(&args.search_root);
                     std::fs::create_dir_all(output_dir)?;
                     let path = output_dir.join("compare.json");
-                    std::fs::write(&path, serde_json::to_vec_pretty(&result)?)?;
+                    atomic_write_bytes(&path, &serde_json::to_vec_pretty(&result)?)
+                        .map_err(anyhow::Error::from)?;
                     println!("{}", serde_json::to_string_pretty(&result)?);
                 }
                 AnalyzeCommand::Rank(args) => {
                     let run_dir = args.search_root.join(&args.run_id);
                     let facts_path = run_dir.join("facts.jsonl");
                     let facts = load_facts_auto(&facts_path)?;
-                    let mut by_tool: BTreeMap<String, Vec<&bijux_api::FactsRowV1>> =
+                    let mut by_tool: BTreeMap<String, Vec<&bijux_api::v1::types::FactsRowV1>> =
                         BTreeMap::new();
                     for row in facts.iter().filter(|row| row.stage_id == args.stage) {
                         by_tool.entry(row.tool_id.clone()).or_default().push(row);
@@ -203,7 +205,7 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
                             error_reduction_proxy,
                         });
                     }
-                    let rankings = bijux_api::build_rankings(&inputs)?;
+                    let rankings = bijux_api::v1::bench::build_rankings(&inputs)?;
                     println!("{}", serde_json::to_string_pretty(&rankings)?);
                 }
                 AnalyzeCommand::Report(args) => {
@@ -227,12 +229,21 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
                                 });
                             let index_html = render_report_bundle_html(&report_json);
                             let report_html = run_dir.join("report.html");
-                            std::fs::write(&report_html, &index_html)?;
+                            atomic_write_bytes(&report_html, index_html.as_bytes())
+                                .map_err(anyhow::Error::from)?;
                             if args.format == "bundle" {
                                 let bundle_dir = run_dir.join("report_bundle");
                                 std::fs::create_dir_all(&bundle_dir)?;
-                                std::fs::write(bundle_dir.join("index.html"), &index_html)?;
-                                std::fs::write(bundle_dir.join("report.json"), report_raw)?;
+                                atomic_write_bytes(
+                                    &bundle_dir.join("index.html"),
+                                    index_html.as_bytes(),
+                                )
+                                .map_err(anyhow::Error::from)?;
+                                atomic_write_bytes(
+                                    &bundle_dir.join("report.json"),
+                                    report_raw.as_bytes(),
+                                )
+                                .map_err(anyhow::Error::from)?;
                                 println!("report bundle written to {}", bundle_dir.display());
                             } else {
                                 println!("report html written to {}", report_html.display());
@@ -424,7 +435,7 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
                         BenchBamCommand::Stage(args) => {
                             let registry = load_manifests(domain_dir)
                                 .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
-                            bijux_api::bam_router::bench_bam_stage(
+                            bijux_api::v1::bench::bench_bam_stage(
                                 &bench_bam_stage_args_to_api(args),
                                 &registry,
                                 cli.platform.as_deref(),
@@ -433,7 +444,7 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
                         BenchBamCommand::Pipeline(args) => {
                             let registry = load_manifests(domain_dir)
                                 .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
-                            bijux_api::bam_router::bench_bam_pipeline(
+                            bijux_api::v1::bench::bench_bam_pipeline(
                                 &bench_bam_pipeline_args_to_api(args),
                                 &registry,
                                 cli.platform.as_deref(),
@@ -453,8 +464,8 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
 
 fn bench_bam_stage_args_to_api(
     args: &crate::cli::parse::BenchBamStageArgs,
-) -> bijux_api::BenchBamStageArgs {
-    bijux_api::BenchBamStageArgs {
+) -> bijux_api::v1::bam::BenchBamStageArgs {
+    bijux_api::v1::bam::BenchBamStageArgs {
         sample_id: args.sample_id.clone(),
         stage: args.stage.stage(),
         bam: args.bam.clone(),
@@ -471,8 +482,8 @@ fn bench_bam_stage_args_to_api(
 
 fn bench_bam_pipeline_args_to_api(
     args: &crate::cli::parse::BenchBamPipelineArgs,
-) -> bijux_api::BenchBamPipelineArgs {
-    bijux_api::BenchBamPipelineArgs {
+) -> bijux_api::v1::bam::BenchBamPipelineArgs {
+    bijux_api::v1::bam::BenchBamPipelineArgs {
         profile: args.profile.clone(),
         sample_id: args.sample_id.clone(),
         bam: args.bam.clone(),

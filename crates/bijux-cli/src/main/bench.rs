@@ -1,7 +1,7 @@
 #[allow(clippy::too_many_lines)]
 fn handle_fastq_bench(
     cli: &Cli,
-    registry: &bijux_api::ToolRegistry,
+    registry: &bijux_api::v1::types::ToolRegistry,
 ) -> Result<bool> {
     let Commands::Fastq { command } = &cli.command else {
         return Ok(false);
@@ -70,7 +70,7 @@ fn handle_fastq_bench(
             set_scientific_preset(args.scientific_preset);
             if let Some(profile_id) = args.pipeline_profile.as_ref() {
                 if let Ok(profile) =
-                    bijux_api::select_pipeline(bijux_api::Domain::Cross, profile_id)
+                    bijux_api::v1::pipelines::select_pipeline(bijux_api::v1::pipelines::Domain::Cross, profile_id)
                 {
                     let platform = load_platform(cli.platform.as_deref())
                         .map_err(|err| anyhow!("failed to load platform: {err}"))?;
@@ -79,7 +79,7 @@ fn handle_fastq_bench(
                     let runner = cli::parse_runner_override(args.env.as_deref())?;
                     let bench_args = preprocess_args_from_cli(args)?;
                     let cross_args = fastq_cross_args_from_cli(args);
-                    bijux_api::cross_router::run_fastq_to_bam_profile(
+                    bijux_api::v1::run::run_fastq_to_bam_profile(
                         registry,
                         &catalog,
                         &platform,
@@ -108,7 +108,7 @@ fn handle_fastq_bench(
             set_scientific_preset(args.args.scientific_preset);
             if let Some(profile_id) = args.args.pipeline_profile.as_ref() {
                 if let Ok(profile) =
-                    bijux_api::select_pipeline(bijux_api::Domain::Cross, profile_id)
+                    bijux_api::v1::pipelines::select_pipeline(bijux_api::v1::pipelines::Domain::Cross, profile_id)
                 {
                     let platform = load_platform(cli.platform.as_deref())
                         .map_err(|err| anyhow!("failed to load platform: {err}"))?;
@@ -117,7 +117,7 @@ fn handle_fastq_bench(
                     let runner = cli::parse_runner_override(args.args.env.as_deref())?;
                     let bench_args = preprocess_args_from_cli(&args.args)?;
                     let cross_args = fastq_cross_args_from_cli(&args.args);
-                    bijux_api::cross_router::run_fastq_to_bam_profile(
+                    bijux_api::v1::run::run_fastq_to_bam_profile(
                         registry,
                         &catalog,
                         &platform,
@@ -185,7 +185,7 @@ fn handle_fastq_bench(
 }
 fn handle_fastq_discovery(
     command: &FastqCommand,
-    registry: &bijux_api::ToolRegistry,
+    registry: &bijux_api::v1::types::ToolRegistry,
 ) -> Result<Option<bool>> {
     match command {
         FastqCommand::ListStages => {
@@ -262,13 +262,13 @@ fn handle_fastq_discovery(
     }
 }
 fn list_fastq_stages() {
-    for stage in &bijux_api::STAGES {
+    for stage in &bijux_api::v1::fastq::STAGES {
         println!("{}", stage.stage_id);
     }
     print_bank_presets();
 }
 fn list_fastq_stage_registry() {
-    for stage in &bijux_api::STAGES {
+    for stage in &bijux_api::v1::fastq::STAGES {
         println!("{}", stage.stage_id);
     }
     print_bank_presets();
@@ -286,7 +286,7 @@ fn print_bank_presets() {
             println!("adapter_presets: {}", presets.join(", "));
         }
     }
-    if let Ok(selection) = bijux_api::fastq_banks::resolve_polyx_selection(None) {
+    if let Ok(selection) = bijux_api::v1::fastq::fastq_banks::resolve_polyx_selection(None) {
         let mut presets: Vec<String> = selection
             .presets
             .presets
@@ -298,7 +298,7 @@ fn print_bank_presets() {
             println!("polyx_presets: {}", presets.join(", "));
         }
     }
-    if let Ok(selection) = bijux_api::fastq_banks::resolve_contaminant_selection(None) {
+    if let Ok(selection) = bijux_api::v1::fastq::fastq_banks::resolve_contaminant_selection(None) {
         let mut presets: Vec<String> = selection
             .presets
             .presets
@@ -311,7 +311,7 @@ fn print_bank_presets() {
         }
     }
 }
-fn list_fastq_tools(registry: &bijux_api::ToolRegistry, stage_id: &str) {
+fn list_fastq_tools(registry: &bijux_api::v1::types::ToolRegistry, stage_id: &str) {
     let mut tools: Vec<_> = registry
         .tools_for_stage(stage_id)
         .into_iter()
@@ -339,17 +339,17 @@ fn list_adapter_presets(presets: &AdapterPresetsV1) {
         println!("{}: categories: {}", preset.name, categories);
     }
 }
-fn list_adapters(effective: &bijux_api::EffectiveAdapterSet) {
+fn list_adapters(effective: &bijux_api::v1::fastq::EffectiveAdapterSet) {
     println!("preset: {}", effective.preset);
     println!("id\ttags\tname\tread_scope\tenabled_by_default");
     for adapter in &effective.adapters {
         let read_scope = match adapter.read_scope {
-            bijux_api::ReadScope::R1 => "r1",
-            bijux_api::ReadScope::R2 => "r2",
-            bijux_api::ReadScope::Both => "both",
-            bijux_api::ReadScope::SingleEnd => "single_end",
-            bijux_api::ReadScope::PairedEnd => "paired_end",
-            bijux_api::ReadScope::Unknown => "unknown",
+            bijux_api::v1::fastq::ReadScope::R1 => "r1",
+            bijux_api::v1::fastq::ReadScope::R2 => "r2",
+            bijux_api::v1::fastq::ReadScope::Both => "both",
+            bijux_api::v1::fastq::ReadScope::SingleEnd => "single_end",
+            bijux_api::v1::fastq::ReadScope::PairedEnd => "paired_end",
+            bijux_api::v1::fastq::ReadScope::Unknown => "unknown",
         };
         let tags = if adapter.tags.is_empty() {
             "none".to_string()
@@ -362,11 +362,11 @@ fn list_adapters(effective: &bijux_api::EffectiveAdapterSet) {
         );
     }
 }
-fn tool_tier_label(role: bijux_api::ToolRole) -> &'static str {
+fn tool_tier_label(role: bijux_api::v1::types::ToolRole) -> &'static str {
     match role {
-        bijux_api::ToolRole::Authoritative => "gold",
-        bijux_api::ToolRole::Diagnostic => "silver",
-        bijux_api::ToolRole::Experimental => "experimental",
+        bijux_api::v1::types::ToolRole::Authoritative => "gold",
+        bijux_api::v1::types::ToolRole::Diagnostic => "silver",
+        bijux_api::v1::types::ToolRole::Experimental => "experimental",
     }
 }
 fn set_scientific_preset(preset: Option<cli::parse::ScientificPresetArg>) {
@@ -415,9 +415,9 @@ fn tool_tier_policy_for_fastq(command: &FastqCommand) -> (bool, bool) {
         _ => (false, false),
     }
 }
-fn explain_fastq_stage(registry: &bijux_api::ToolRegistry, stage_id: &str) -> Result<()> {
+fn explain_fastq_stage(registry: &bijux_api::v1::types::ToolRegistry, stage_id: &str) -> Result<()> {
     if stage_id == "fastq.preprocess" {
-        let args = bijux_api::fastq_args::BenchFastqPreprocessArgs {
+        let args = bijux_api::v1::fastq::fastq_args::BenchFastqPreprocessArgs {
             sample_id: "explain".to_string(),
             profile: None,
             r1: PathBuf::from("reads.fastq.gz"),
@@ -425,7 +425,7 @@ fn explain_fastq_stage(registry: &bijux_api::ToolRegistry, stage_id: &str) -> Re
             out: PathBuf::from("artifacts"),
             strict: false,
             auto: false,
-            objective: bijux_api::Objective::Balanced,
+            objective: bijux_api::v1::types::Objective::Balanced,
             bench_corpus: None,
             allow_partial: false,
             replicates: 1,
@@ -434,7 +434,7 @@ fn explain_fastq_stage(registry: &bijux_api::ToolRegistry, stage_id: &str) -> Re
             adapter_bank_preset: None,
             adapter_bank: Some(format!(
                 "preset:{}",
-                bijux_api::fastq_banks::DEFAULT_ADAPTER_PRESET
+                bijux_api::v1::fastq::fastq_banks::DEFAULT_ADAPTER_PRESET
             )),
             adapter_bank_file: None,
             enable_adapters: Vec::new(),
@@ -446,7 +446,7 @@ fn explain_fastq_stage(registry: &bijux_api::ToolRegistry, stage_id: &str) -> Re
             force_merge: false,
             enable_correct: false,
         };
-        let plan = bijux_api::fastq_router::fastq_preprocess_plan(&args);
+        let plan = bijux_api::v1::plan::fastq_preprocess_plan(&args);
         println!("stage: {stage_id}");
         println!("pipeline:");
         for step in plan.stages {

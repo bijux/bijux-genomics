@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use anyhow::{anyhow, Result};
-use bijux_api::RunnerKind;
+use bijux_api::v1::env::RunnerKind;
 
 /// # Errors
 /// Returns an error if the runner override is not a valid runner kind.

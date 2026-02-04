@@ -1,4 +1,4 @@
-fn run_plan(cli: &Cli, registry: &bijux_api::ToolRegistry, domain_dir: &Path) -> Result<()> {
+fn run_plan(cli: &Cli, registry: &bijux_api::v1::types::ToolRegistry, domain_dir: &Path) -> Result<()> {
     let (stage, tool, common) = cli::resolve_stage_tool(&cli.command);
 
     let run_id = new_run_id();
@@ -15,8 +15,8 @@ fn run_plan(cli: &Cli, registry: &bijux_api::ToolRegistry, domain_dir: &Path) ->
 
     let mut profile = load_profile_for_cli(cli)?;
     ensure_profile_run_base_dir(&stage, &tool, &mut profile);
-    let plan = bijux_api::plan_run(
-        bijux_api::PlanRunRequest {
+    let plan = bijux_api::v1::plan::plan_run(
+        bijux_api::v1::plan::PlanRunRequest {
             run_spec,
             profile,
             run_id: run_id.clone(),
