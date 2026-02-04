@@ -7,24 +7,28 @@ use bijux_core::ContainerImageRefV1;
 use bijux_core::ErrorCategory;
 use bijux_core::TelemetryEventV1;
 use bijux_engine::services::run_artifacts::run_artifacts_dir_for_out;
-use bijux_env_builder::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
-use bijux_env_runtime::api::{PlatformSpec, RunnerKind, ToolImageSpec};
+use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
+use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
+use bijux_exec::run_artifacts::write_telemetry_event;
 use bijux_pipelines::fastq::canonical_tool_defaults;
 use bijux_pipelines::registry;
 use bijux_pipelines::Domain;
-use bijux_planner_fastq::{FastqPlanConfig, FastqPlanner};
-use bijux_runner_docker::primitives::{build_tool_execution_spec, resolve_image_for_run};
+use bijux_planner_fastq::{
+    apply_preprocess_policy, default_pipeline_spec, DefaultPipelineOptions, FastqPlanConfig,
+    FastqPlanner,
+};
+use bijux_runner::primitives::{build_tool_execution_spec, resolve_image_for_run};
 use bijux_stages_fastq::fastq::preprocess::plan_preprocess;
 use bijux_stages_fastq::{bench_corpus, RawFailure};
 
-use super::jobs::{bench_jobs, normalize_tool_spec_for_jobs};
-use super::smart_pipeline::apply_smart_pipeline_decisions;
+use super::jobs::bench_jobs;
 use super::summary::{write_run_summary, StageExecutionSummary};
 use super::write_explain_plan_json;
 use bijux_domain_fastq::banks::{
     adapter_bank_context, contaminant_bank_context, polyx_bank_context, polyx_unsupported_warning,
 };
 use bijux_infra::{bench_base_dir, bench_tools_dir};
+use bijux_planner_fastq::scale_tool_spec_for_jobs;
 
 #[must_use]
 fn resolve_preprocess_pipeline(
@@ -59,27 +63,23 @@ fn resolve_preprocess_pipeline(
             }
             Err(err) => {
                 eprintln!("unknown fastq profile {profile_id}: {err}; using default pipeline");
-                bijux_pipelines::fastq::fastq_default_pipeline_spec(
-                    bijux_pipelines::fastq::DefaultPipelineOptions {
-                        paired: args.r2.is_some(),
-                        enable_merge,
-                        enable_correct,
-                        enable_qc_post,
-                        enable_screen,
-                    },
-                )
+                default_pipeline_spec(DefaultPipelineOptions {
+                    paired: args.r2.is_some(),
+                    enable_merge,
+                    enable_correct,
+                    enable_qc_post,
+                    enable_screen,
+                })
             }
         }
     } else {
-        bijux_pipelines::fastq::fastq_default_pipeline_spec(
-            bijux_pipelines::fastq::DefaultPipelineOptions {
-                paired: args.r2.is_some(),
-                enable_merge,
-                enable_correct,
-                enable_qc_post,
-                enable_screen,
-            },
-        )
+        default_pipeline_spec(DefaultPipelineOptions {
+            paired: args.r2.is_some(),
+            enable_merge,
+            enable_correct,
+            enable_qc_post,
+            enable_screen,
+        })
     }
 }
 
@@ -146,18 +146,10 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     let tools_root = bench_tools_dir(&args.out, "preprocess", &args.sample_id);
     bijux_infra::ensure_dir(&tools_root).context("create preprocess tools dir")?;
 
-    let smart = apply_smart_pipeline_decisions(
-        catalog,
-        platform,
-        &registry,
-        args,
-        jobs,
-        pipeline.stages.clone(),
-        selected_tools.clone(),
-    )?;
+    let policy = apply_preprocess_policy(pipeline.stages.clone(), selected_tools.clone());
 
     let adapter_bank = adapter_bank_context(
-        smart
+        policy
             .adapter_bank_preset_override
             .as_deref()
             .or(args.adapter_bank_preset.as_deref()),
@@ -170,24 +162,14 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     let contaminant_bank = contaminant_bank_context(args.contaminant_preset.as_deref())?;
 
     let mut failures = Vec::new();
-    for entry in &smart.preplanned_stage_runs {
-        if entry.result.exit_code != 0 {
-            failures.push(RawFailure {
-                stage: entry.plan.stage_id.0.clone(),
-                tool: entry.plan.tool_id.0.clone(),
-                reason: format!("tool failed with status {}", entry.result.exit_code),
-                category: ErrorCategory::ToolError,
-            });
-        }
-    }
     let mut tool_specs = Vec::new();
-    for (stage, tool) in smart
+    for (stage, tool) in policy
         .pipeline_stages
         .iter()
-        .zip(smart.pipeline_tools.iter())
+        .zip(policy.pipeline_tools.iter())
     {
         let spec = build_tool_execution_spec(stage, tool, &registry, catalog, platform)?;
-        let spec = normalize_tool_spec_for_jobs(&spec, jobs);
+        let spec = scale_tool_spec_for_jobs(&spec, jobs);
         if stage == "fastq.trim" {
             if let Some(msg) = polyx_unsupported_warning(
                 &spec.tool_id.0,
@@ -216,7 +198,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     let planner_config = FastqPlanConfig {
         pipeline_id: "fastq.preprocess".to_string(),
         policy: PlanPolicy::PreferAccuracy,
-        stages: smart.pipeline_stages.clone(),
+        stages: policy.pipeline_stages.clone(),
         tools: tool_specs.clone(),
         aux_images: aux_tools.clone(),
         adapter_bank: adapter_bank.clone(),
@@ -240,7 +222,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     pipeline_attrs.insert("pipeline".to_string(), "fastq.preprocess".to_string());
     let pipeline_span = telemetry.start_pipeline("fastq.preprocess", &pipeline_attrs);
 
-    let mut stage_runs = smart.preplanned_stage_runs;
+    let mut stage_runs = Vec::new();
     for planned in planned_stages {
         let stage_id = planned.stage_id.0.clone();
         let tool = planned.tool_id.0.clone();
@@ -272,8 +254,8 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         &failures,
         preprocess_plan.merge_decision.as_ref(),
         preprocess_plan.correct_decision.as_ref(),
-        smart.adapter_inference.as_ref(),
-        &smart.stage_skips,
+        policy.adapter_inference.as_ref(),
+        &policy.stage_skips,
     )?;
     if let Some(decision) = preprocess_plan.merge_decision {
         let run_id = stage_runs
@@ -296,8 +278,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
             span_id: "merge-decision".to_string(),
             attrs: serde_json::to_value(decision).unwrap_or_else(|_| serde_json::json!({})),
         };
-        let _ =
-            bijux_engine::services::run_artifacts::write_telemetry_event(&telemetry_path, &event);
+        let _ = write_telemetry_event(&telemetry_path, &event);
     }
     if !failures.is_empty() {
         return Err(anyhow!(

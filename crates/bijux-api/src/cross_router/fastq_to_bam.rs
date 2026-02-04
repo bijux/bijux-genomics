@@ -11,7 +11,7 @@ use crate::fastq_router::fastq_preprocess_run;
 use anyhow::{anyhow, Context, Result};
 use bijux_core::alignment::AlignmentBoundary;
 use bijux_core::ToolRegistry;
-use bijux_env_runtime::{ReferenceBuildRequest, ReferenceRegistry};
+use bijux_environment::resolve::{ReferenceBuildRequest, ReferenceRegistry};
 use bijux_infra::bench_base_dir;
 use bijux_pipelines::registry;
 use bijux_pipelines::{Domain, PipelineProfile};
@@ -21,9 +21,9 @@ use bijux_pipelines::{Domain, PipelineProfile};
 /// Returns an error if pipeline planning or execution fails.
 pub fn run_fastq_to_bam_profile<S: std::hash::BuildHasher>(
     registry_core: &ToolRegistry,
-    catalog: &std::collections::HashMap<String, bijux_env_runtime::api::ToolImageSpec, S>,
-    platform: &bijux_env_runtime::api::PlatformSpec,
-    runner_override: Option<bijux_env_runtime::api::RunnerKind>,
+    catalog: &std::collections::HashMap<String, bijux_environment::api::ToolImageSpec, S>,
+    platform: &bijux_environment::api::PlatformSpec,
+    runner_override: Option<bijux_environment::api::RunnerKind>,
     preprocess_args: &bijux_stages_fastq::args::BenchFastqPreprocessArgs,
     cross_args: &FastqCrossArgs,
     profile: &PipelineProfile,

@@ -162,7 +162,7 @@ pub struct PlanRunResult {
 /// Stability: v1 (stable).
 pub struct ExecuteRunRequest {
     pub plan: bijux_core::StagePlanV1,
-    pub runner: bijux_env_runtime::api::RunnerKind,
+    pub runner: bijux_environment::api::RunnerKind,
 }
 
 #[derive(Debug, Clone)]

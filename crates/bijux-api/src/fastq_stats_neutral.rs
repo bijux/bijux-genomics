@@ -10,23 +10,22 @@ use bijux_analyze::{
 use bijux_core::measure::ExecutionMetrics;
 use bijux_core::ErrorCategory;
 use bijux_core::{MetricContextV1, RunProvenanceV1, StageObservabilityContextV1};
-use bijux_env_runtime::api::{PlatformSpec, RunnerKind, ToolImageSpec};
-use bijux_runner_docker::primitives::build_tool_execution_spec;
+use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
+use bijux_runner::primitives::build_tool_execution_spec;
 use uuid::Uuid;
 
 use bijux_core::measure::SeqkitMetrics;
 use bijux_core::validate_execution_outputs;
 use bijux_engine::services::run_artifacts::{
     compute_run_id, prepare_tool_run_dirs, write_execution_logs, write_metrics_envelope,
-    write_metrics_json, write_retention_report_placeholder, write_run_manifest,
-    write_stage_plan_json,
+    write_metrics_json, write_run_manifest, write_stage_plan_json, RunArtifactInput,
 };
-use bijux_env_builder::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
+use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use bijux_exec::primitives::execute_stage_plan;
 use bijux_exec::primitives::hash_file_sha256;
 use bijux_infra::{bench_base_dir, bench_tools_dir};
-use bijux_planner_fastq::normalize_stats_tool_list;
-use bijux_runner_docker::primitives::resolve_image_for_run;
+use bijux_planner_fastq::select_stats_tools;
+use bijux_runner::primitives::resolve_image_for_run;
 use bijux_stages_fastq::fastq::stats_neutral::plan_stats_neutral;
 use bijux_stages_fastq::observer::{input_fastq_stats, length_histogram};
 use bijux_stages_fastq::StagePlanJson;
@@ -46,7 +45,7 @@ pub fn bench_fastq_stats_neutral<S: ::std::hash::BuildHasher>(
     runner_override: Option<RunnerKind>,
     args: &bijux_stages_fastq::args::BenchFastqStatsArgs,
 ) -> Result<BenchOutcome<FastqStatsMetrics>> {
-    let tools = normalize_stats_tool_list(&args.tools)?;
+    let tools = select_stats_tools(&args.tools)?;
     let artifact = FastqArtifact::single_end(&args.r1);
     preflight_stage("fastq.stats_neutral", artifact.kind)?;
     let header = inspect_headers(&args.r1, None, false)?;
@@ -171,7 +170,7 @@ fn prepare_stats_bench<S: ::std::hash::BuildHasher>(
 
     println!(
         "planned tools: {}",
-        normalize_stats_tool_list(&args.tools)?.join(", ")
+        select_stats_tools(&args.tools)?.join(", ")
     );
 
     let r1 = args.r1.canonicalize().context("resolve r1 path")?;
@@ -319,7 +318,6 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
     )?;
     let envelope = &metric_set;
     write_metrics_json(&run_dirs, &execution_metrics, envelope)?;
-    write_retention_report_placeholder(&run_dirs, "fastq.stats_neutral", tool, &params)?;
     let adapter_bank_path = bijux_stages_fastq::adapter_bank_path();
     let run_provenance = RunProvenanceV1 {
         schema_version: "bijux.run_provenance.v1".to_string(),
@@ -333,13 +331,16 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
         build_profile: std::env::var("BIJUX_BUILD_PROFILE")
             .unwrap_or_else(|_| "unknown".to_string()),
     };
+    let extra_artifacts = [RunArtifactInput {
+        name: "adapter_bank",
+        path: adapter_bank_path,
+    }];
     write_run_manifest(
         &run_dirs,
         "fastq.stats_neutral",
         tool,
-        &adapter_bank_path,
         &run_provenance,
-        &[],
+        &extra_artifacts,
     )?;
     let record = BenchmarkRecord {
         context,

@@ -3,19 +3,20 @@ use std::collections::HashMap;
 use crate::tooling::{ensure_bench_runner, filter_tools_by_role, load_registry};
 use anyhow::{anyhow, Context, Result};
 use bijux_core::ErrorCategory;
-use bijux_env_builder::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
-use bijux_env_runtime::api::{PlatformSpec, RunnerKind, ToolImageSpec};
+use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
+use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use bijux_infra::{bench_base_dir, bench_tools_dir};
-use bijux_planner_fastq::normalize_correct_tool_list;
-use bijux_runner_docker::primitives::build_tool_execution_spec;
+use bijux_planner_fastq::select_correct_tools;
+use bijux_runner::primitives::build_tool_execution_spec;
 use bijux_stages_fastq::fastq::correct::plan_correct;
 use bijux_stages_fastq::FastqArtifactKind;
 use bijux_stages_fastq::{inspect_headers, log_header_warnings, preflight_stage, RawFailure};
 
 use super::jobs::execute_plans_with_jobs;
 
-use super::jobs::{bench_jobs, normalize_tool_spec_for_jobs};
+use super::jobs::bench_jobs;
 use super::{write_explain_md, write_explain_plan_json, BenchOutcome};
+use bijux_planner_fastq::scale_tool_spec_for_jobs;
 
 /// # Errors
 /// Returns an error if planning or execution fails.
@@ -25,7 +26,7 @@ pub fn bench_fastq_correct<S: ::std::hash::BuildHasher>(
     runner_override: Option<RunnerKind>,
     args: &bijux_stages_fastq::args::BenchFastqCorrectArgs,
 ) -> Result<BenchOutcome<bijux_analyze::FastqCorrectMetrics>> {
-    let tools = normalize_correct_tool_list(&args.tools)?;
+    let tools = select_correct_tools(&args.tools)?;
     let artifact = FastqArtifactKind::PairedEnd;
     preflight_stage("fastq.correct", artifact)?;
     let r2 = args
@@ -62,7 +63,7 @@ pub fn bench_fastq_correct<S: ::std::hash::BuildHasher>(
         bijux_infra::ensure_dir(&out_dir).context("create tool output dir")?;
         let tool_spec =
             build_tool_execution_spec("fastq.correct", tool, &registry, catalog, platform)?;
-        let tool_spec = normalize_tool_spec_for_jobs(&tool_spec, jobs);
+        let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
         let plan = plan_correct(&tool_spec, &args.r1, r2, &out_dir)?;
         plans.push(plan);
         tool_order.push(tool.clone());

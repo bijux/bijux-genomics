@@ -1,12 +1,12 @@
 use crate::tooling::filter_tools_by_role;
 use anyhow::{anyhow, Context, Result};
 use bijux_core::ToolRegistry;
-use bijux_env_builder::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
-use bijux_env_runtime::api::{load_image_catalog, load_platform, RunnerKind};
+use bijux_environment::api::{load_image_catalog, load_platform, RunnerKind};
+use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use bijux_exec::primitives::execute_stage_plan;
 use bijux_pipelines::registry;
 use bijux_pipelines::Domain;
-use bijux_runner_docker::primitives::build_tool_execution_spec;
+use bijux_runner::primitives::build_tool_execution_spec;
 use std::path::PathBuf;
 
 use crate::args::{BamRunArgs, BenchBamPipelineArgs, BenchBamStageArgs};

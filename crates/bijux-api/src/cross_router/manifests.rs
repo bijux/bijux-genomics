@@ -2,7 +2,7 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
 use bijux_core::alignment::AlignmentBoundary;
-use bijux_env_runtime::ReferenceRecord;
+use bijux_environment::resolve::ReferenceRecord;
 use bijux_infra::hash_file_sha256;
 use bijux_pipelines::PipelineProfile;
 

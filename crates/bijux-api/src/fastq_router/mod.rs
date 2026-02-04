@@ -9,7 +9,6 @@ mod merge;
 mod preprocess;
 mod qc_post;
 mod screen;
-mod smart_pipeline;
 mod stats_neutral;
 mod summary;
 mod trim;

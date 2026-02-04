@@ -3,25 +3,11 @@ use std::sync::{Arc, Mutex};
 
 use anyhow::{anyhow, Result};
 
-use bijux_env_runtime::api::RunnerKind;
+use bijux_environment::api::RunnerKind;
 use bijux_exec::primitives::{execute_stage_plan as execute_plan, StageResultV1};
 
 pub(super) fn bench_jobs(requested: u32) -> usize {
     usize::try_from(requested).unwrap_or(1).clamp(1, 32)
-}
-
-pub(super) fn normalize_tool_spec_for_jobs(
-    tool: &bijux_core::ToolExecutionSpecV1,
-    jobs: usize,
-) -> bijux_core::ToolExecutionSpecV1 {
-    if jobs <= 1 {
-        return tool.clone();
-    }
-    let mut normalized = tool.clone();
-    let threads = normalized.resources.threads;
-    let denom = u32::try_from(jobs).unwrap_or(1);
-    normalized.resources.threads = (threads / denom).max(1);
-    normalized
 }
 
 pub(super) fn execute_plans_with_jobs(

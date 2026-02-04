@@ -2,10 +2,113 @@ use std::collections::BTreeMap;
 use std::path::PathBuf;
 
 use anyhow::{anyhow, Result};
+use bijux_core::domain::PipelineSpec;
 use bijux_core::execution_plan::{default_edges_for_stages, ExecutionPlan, PlanPolicy};
 use bijux_core::{ContainerImageRefV1, ToolExecutionSpecV1};
 
 pub const PLANNER_VERSION: &str = "bijux-planner-fastq.v1";
+
+fn required_stage_ids() -> Vec<String> {
+    vec![
+        "fastq.validate_pre".to_string(),
+        "fastq.detect_adapters".to_string(),
+        "fastq.trim".to_string(),
+        "fastq.filter".to_string(),
+        "fastq.stats_neutral".to_string(),
+        "fastq.qc_post".to_string(),
+    ]
+}
+
+#[derive(Debug, Clone, Copy)]
+#[allow(clippy::struct_excessive_bools)]
+pub struct DefaultPipelineOptions {
+    pub paired: bool,
+    pub enable_merge: bool,
+    pub enable_correct: bool,
+    pub enable_qc_post: bool,
+    pub enable_screen: bool,
+}
+
+impl Default for DefaultPipelineOptions {
+    fn default() -> Self {
+        Self {
+            paired: false,
+            enable_merge: true,
+            enable_correct: false,
+            enable_qc_post: true,
+            enable_screen: false,
+        }
+    }
+}
+
+#[must_use]
+pub fn default_pipeline_spec(options: DefaultPipelineOptions) -> PipelineSpec {
+    let mut stages = required_stage_ids();
+    if options.paired && options.enable_correct {
+        stages.push("fastq.correct".to_string());
+    }
+    if options.paired && options.enable_merge {
+        stages.push("fastq.merge".to_string());
+    }
+    if options.enable_screen && !stages.iter().any(|stage| stage == "fastq.screen") {
+        stages.push("fastq.screen".to_string());
+    }
+    if options.enable_qc_post && !stages.iter().any(|stage| stage == "fastq.qc_post") {
+        stages.push("fastq.qc_post".to_string());
+    }
+    PipelineSpec { stages }
+}
+
+#[derive(Debug, Clone)]
+pub struct PreprocessPolicyDecision {
+    pub adapter_inference: Option<serde_json::Value>,
+    pub adapter_bank_preset_override: Option<String>,
+    pub pipeline_stages: Vec<String>,
+    pub pipeline_tools: Vec<String>,
+    pub stage_skips: Vec<serde_json::Value>,
+}
+
+#[must_use]
+pub fn apply_preprocess_policy(
+    pipeline_stages: Vec<String>,
+    pipeline_tools: Vec<String>,
+) -> PreprocessPolicyDecision {
+    let mut pipeline_stages = pipeline_stages;
+    let mut pipeline_tools = pipeline_tools;
+    let mut stage_skips = Vec::new();
+
+    if let (Some(trim_idx), Some(filter_idx)) = (
+        pipeline_stages
+            .iter()
+            .position(|stage| stage == "fastq.trim"),
+        pipeline_stages
+            .iter()
+            .position(|stage| stage == "fastq.filter"),
+    ) {
+        let trim_tool = pipeline_tools.get(trim_idx).map(String::as_str);
+        let filter_tool = pipeline_tools.get(filter_idx).map(String::as_str);
+        if trim_tool == Some("fastp") && filter_tool == Some("fastp") {
+            let skipped_stage = pipeline_stages.remove(filter_idx);
+            let skipped_tool = pipeline_tools.remove(filter_idx);
+            stage_skips.push(serde_json::json!({
+                "stage_id": skipped_stage,
+                "tool_id": skipped_tool,
+                "reason": "fastp trimming already performs quality filtering; filter stage skipped",
+                "equivalent_params": {
+                    "quality_filtering": true
+                }
+            }));
+        }
+    }
+
+    PreprocessPolicyDecision {
+        adapter_inference: None,
+        adapter_bank_preset_override: None,
+        pipeline_stages,
+        pipeline_tools,
+        stage_skips,
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct FastqPlanConfig {
@@ -63,7 +166,7 @@ impl FastqPlanner {
     }
 }
 
-pub fn normalize_trim_tool_list(tools: &[String]) -> Result<Vec<String>> {
+pub fn select_trim_tools(tools: &[String]) -> Result<Vec<String>> {
     let allowed = [
         "fastp",
         "cutadapt",
@@ -78,10 +181,10 @@ pub fn normalize_trim_tool_list(tools: &[String]) -> Result<Vec<String>> {
     if std::env::var("BIJUX_EXPERIMENTAL_TOOLS").is_err() {
         allowlist.retain(|tool| *tool != "seqpurge");
     }
-    normalize_tools_with_allowlist(tools, &allowlist)
+    select_tools_with_allowlist(tools, &allowlist)
 }
 
-pub fn normalize_validate_tool_list(tools: &[String]) -> Result<Vec<String>> {
+pub fn select_validate_tools(tools: &[String]) -> Result<Vec<String>> {
     let allowed = [
         "seqtk",
         "fastqc",
@@ -89,39 +192,39 @@ pub fn normalize_validate_tool_list(tools: &[String]) -> Result<Vec<String>> {
         "fastqvalidator_official",
         "fqtools",
     ];
-    normalize_tools_with_allowlist(tools, &allowed)
+    select_tools_with_allowlist(tools, &allowed)
 }
 
-pub fn normalize_filter_tool_list(tools: &[String]) -> Result<Vec<String>> {
+pub fn select_filter_tools(tools: &[String]) -> Result<Vec<String>> {
     let allowed = ["prinseq", "fastp", "seqkit"];
-    normalize_tools_with_allowlist(tools, &allowed)
+    select_tools_with_allowlist(tools, &allowed)
 }
 
-pub fn normalize_merge_tool_list(tools: &[String]) -> Result<Vec<String>> {
+pub fn select_merge_tools(tools: &[String]) -> Result<Vec<String>> {
     let allowed = ["pear", "vsearch", "bbmerge", "flash2"];
-    normalize_tools_with_allowlist(tools, &allowed)
+    select_tools_with_allowlist(tools, &allowed)
 }
 
-pub fn normalize_correct_tool_list(tools: &[String]) -> Result<Vec<String>> {
+pub fn select_correct_tools(tools: &[String]) -> Result<Vec<String>> {
     let allowed = ["rcorrector", "spades", "bayeshammer", "lighter", "musket"];
     let mut allowlist = allowed.to_vec();
     if std::env::var("BIJUX_EXPERIMENTAL_TOOLS").is_err() {
         allowlist.retain(|tool| *tool == "rcorrector");
     }
-    normalize_tools_with_allowlist(tools, &allowlist)
+    select_tools_with_allowlist(tools, &allowlist)
 }
 
-pub fn normalize_qc_post_tool_list(tools: &[String]) -> Result<Vec<String>> {
+pub fn select_qc_post_tools(tools: &[String]) -> Result<Vec<String>> {
     let allowed = ["fastqc", "multiqc"];
-    normalize_tools_with_allowlist(tools, &allowed)
+    select_tools_with_allowlist(tools, &allowed)
 }
 
-pub fn normalize_umi_tool_list(tools: &[String]) -> Result<Vec<String>> {
+pub fn select_umi_tools(tools: &[String]) -> Result<Vec<String>> {
     let allowed = ["umi_tools"];
-    normalize_tools_with_allowlist(tools, &allowed)
+    select_tools_with_allowlist(tools, &allowed)
 }
 
-pub fn normalize_screen_tool_list(tools: &[String]) -> Result<Vec<String>> {
+pub fn select_screen_tools(tools: &[String]) -> Result<Vec<String>> {
     let allowed = [
         "kraken2",
         "centrifuge",
@@ -129,15 +232,27 @@ pub fn normalize_screen_tool_list(tools: &[String]) -> Result<Vec<String>> {
         "kaiju",
         "fastq_screen",
     ];
-    normalize_tools_with_allowlist(tools, &allowed)
+    select_tools_with_allowlist(tools, &allowed)
 }
 
-pub fn normalize_stats_tool_list(tools: &[String]) -> Result<Vec<String>> {
+pub fn select_stats_tools(tools: &[String]) -> Result<Vec<String>> {
     let allowed = ["seqkit_stats"];
-    normalize_tools_with_allowlist(tools, &allowed)
+    select_tools_with_allowlist(tools, &allowed)
 }
 
-fn normalize_tools_with_allowlist(tools: &[String], allowlist: &[&str]) -> Result<Vec<String>> {
+#[must_use]
+pub fn scale_tool_spec_for_jobs(tool: &ToolExecutionSpecV1, jobs: usize) -> ToolExecutionSpecV1 {
+    if jobs <= 1 {
+        return tool.clone();
+    }
+    let mut scaled = tool.clone();
+    let threads = scaled.resources.threads;
+    let denom = u32::try_from(jobs).unwrap_or(1);
+    scaled.resources.threads = (threads / denom).max(1);
+    scaled
+}
+
+fn select_tools_with_allowlist(tools: &[String], allowlist: &[&str]) -> Result<Vec<String>> {
     let mut normalized: Vec<String> = tools.iter().map(|tool| tool.to_lowercase()).collect();
     normalized.sort();
     normalized.dedup();
@@ -160,13 +275,13 @@ mod tests {
     static ENV_LOCK: Mutex<()> = Mutex::new(());
 
     #[test]
-    fn normalize_trim_tools_dedup_and_sort() {
+    fn select_trim_tools_dedup_and_sort() {
         let tools = vec![
             "fastp".to_string(),
             "FASTP".to_string(),
             "cutadapt".to_string(),
         ];
-        match normalize_trim_tool_list(&tools) {
+        match select_trim_tools(&tools) {
             Ok(normalized) => {
                 assert_eq!(
                     normalized,
@@ -178,27 +293,27 @@ mod tests {
     }
 
     #[test]
-    fn normalize_trim_tools_blocks_experimental_by_default() {
+    fn select_trim_tools_blocks_experimental_by_default() {
         let _guard = ENV_LOCK
             .lock()
             .unwrap_or_else(std::sync::PoisonError::into_inner);
         std::env::remove_var("BIJUX_EXPERIMENTAL_TOOLS");
         let tools = vec!["seqpurge".to_string()];
-        match normalize_trim_tool_list(&tools) {
+        match select_trim_tools(&tools) {
             Ok(_) => panic!("expected failure"),
             Err(err) => assert!(err.to_string().contains("unsupported tool")),
         }
     }
 
     #[test]
-    fn normalize_trim_tools_allows_experimental_when_enabled() {
+    fn select_trim_tools_allows_experimental_when_enabled() {
         let _guard = ENV_LOCK
             .lock()
             .unwrap_or_else(std::sync::PoisonError::into_inner);
         let prev = std::env::var("BIJUX_EXPERIMENTAL_TOOLS").ok();
         std::env::set_var("BIJUX_EXPERIMENTAL_TOOLS", "1");
         let tools = vec!["seqpurge".to_string()];
-        match normalize_trim_tool_list(&tools) {
+        match select_trim_tools(&tools) {
             Ok(normalized) => assert_eq!(normalized, vec!["seqpurge".to_string()]),
             Err(err) => panic!("normalize failed: {err}"),
         }
@@ -209,8 +324,8 @@ mod tests {
     }
 
     #[test]
-    fn normalize_tools_rejects_empty() {
-        match normalize_validate_tool_list(&[]) {
+    fn select_tools_rejects_empty() {
+        match select_validate_tools(&[]) {
             Ok(_) => panic!("expected empty failure"),
             Err(err) => assert!(err.to_string().contains("no tools specified")),
         }

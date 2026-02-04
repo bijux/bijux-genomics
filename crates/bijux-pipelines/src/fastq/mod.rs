@@ -4,7 +4,6 @@ use std::collections::BTreeMap;
 
 pub mod profiles;
 
-use bijux_core::domain::PipelineSpec;
 use bijux_domain_fastq::params::{
     detect_adapters::DetectAdaptersEffectiveParams, filter::FilterEffectiveParams,
     merge::MergeEffectiveParams, preprocess::PreprocessEffectiveParams,
@@ -17,52 +16,15 @@ use crate::{
     PipelineProfile, ReportSection, StabilityTier, StageNode,
 };
 
-#[derive(Debug, Clone)]
-pub struct CanonicalPipeline {
-    pub required: Vec<String>,
-    pub optional: Vec<String>,
-}
-
-#[derive(Debug, Clone, Copy)]
-#[allow(clippy::struct_excessive_bools)]
-pub struct DefaultPipelineOptions {
-    pub paired: bool,
-    pub enable_merge: bool,
-    pub enable_correct: bool,
-    pub enable_qc_post: bool,
-    pub enable_screen: bool,
-}
-
-impl Default for DefaultPipelineOptions {
-    fn default() -> Self {
-        Self {
-            paired: false,
-            enable_merge: true,
-            enable_correct: false,
-            enable_qc_post: true,
-            enable_screen: false,
-        }
-    }
-}
-
-#[must_use]
-pub fn canonical_pipeline() -> CanonicalPipeline {
-    CanonicalPipeline {
-        required: vec![
-            "fastq.validate_pre".to_string(),
-            "fastq.detect_adapters".to_string(),
-            "fastq.trim".to_string(),
-            "fastq.filter".to_string(),
-            "fastq.stats_neutral".to_string(),
-            "fastq.qc_post".to_string(),
-        ],
-        optional: vec![
-            "fastq.merge".to_string(),
-            "fastq.correct".to_string(),
-            "fastq.umi".to_string(),
-            "fastq.screen".to_string(),
-        ],
-    }
+fn required_stage_ids() -> Vec<String> {
+    vec![
+        "fastq.validate_pre".to_string(),
+        "fastq.detect_adapters".to_string(),
+        "fastq.trim".to_string(),
+        "fastq.filter".to_string(),
+        "fastq.stats_neutral".to_string(),
+        "fastq.qc_post".to_string(),
+    ]
 }
 
 #[must_use]
@@ -181,7 +143,7 @@ fn fastq_defaults(paired: bool) -> EffectiveDefaults {
         serde_json::to_value(PreprocessEffectiveParams {
             paired_mode,
             threads: 1,
-            stages: canonical_pipeline().required,
+            stages: required_stage_ids(),
             enable_contaminant_removal: false,
         })
         .unwrap_or(serde_json::Value::Null),
@@ -229,14 +191,13 @@ fn to_graph(stages: &[String]) -> Vec<StageNode> {
 
 #[must_use]
 pub fn fastq_minimal_profile() -> PipelineProfile {
-    let canonical = canonical_pipeline();
     PipelineProfile {
         id: PipelineId::new("fastq-to-fastq__minimal__v1"),
         description: "Minimal FASTQ pipeline",
         stability: StabilityTier::Stable,
         input_domains: vec![Domain::Fastq],
         output_domains: vec![Domain::Fastq],
-        graph: to_graph(&canonical.required),
+        graph: to_graph(&required_stage_ids()),
         defaults: fastq_defaults(false),
         defaults_ledger_ref: "defaults_ledger.json",
         invariants_preset: None,
@@ -266,10 +227,9 @@ pub fn fastq_minimal_profile() -> PipelineProfile {
 }
 
 #[must_use]
-pub fn fastq_default_profile(options: DefaultPipelineOptions) -> PipelineProfile {
-    let canonical = canonical_pipeline();
-    let mut stages = canonical.required;
-    let mut required_stages = vec![
+pub fn fastq_default_profile() -> PipelineProfile {
+    let stages = required_stage_ids();
+    let required_stages = vec![
         "fastq.validate_pre",
         "fastq.detect_adapters",
         "fastq.trim",
@@ -277,21 +237,6 @@ pub fn fastq_default_profile(options: DefaultPipelineOptions) -> PipelineProfile
         "fastq.stats_neutral",
         "fastq.qc_post",
     ];
-    if options.paired && options.enable_correct {
-        stages.push("fastq.correct".to_string());
-        required_stages.push("fastq.correct");
-    }
-    if options.paired && options.enable_merge {
-        stages.push("fastq.merge".to_string());
-        required_stages.push("fastq.merge");
-    }
-    if options.enable_screen && !stages.iter().any(|stage| stage == "fastq.screen") {
-        stages.push("fastq.screen".to_string());
-        required_stages.push("fastq.screen");
-    }
-    if options.enable_qc_post && !stages.iter().any(|stage| stage == "fastq.qc_post") {
-        stages.push("fastq.qc_post".to_string());
-    }
     PipelineProfile {
         id: PipelineId::new("fastq-to-fastq__default__v1"),
         description: "Default FASTQ pipeline",
@@ -299,7 +244,7 @@ pub fn fastq_default_profile(options: DefaultPipelineOptions) -> PipelineProfile
         input_domains: vec![Domain::Fastq],
         output_domains: vec![Domain::Fastq],
         graph: to_graph(&stages),
-        defaults: fastq_defaults(options.paired),
+        defaults: fastq_defaults(false),
         defaults_ledger_ref: "defaults_ledger.json",
         invariants_preset: None,
         capabilities: PipelineCapabilities {
@@ -321,36 +266,20 @@ pub fn fastq_default_profile(options: DefaultPipelineOptions) -> PipelineProfile
 }
 
 #[must_use]
-pub fn fastq_default_pipeline_spec(options: DefaultPipelineOptions) -> PipelineSpec {
-    let profile = fastq_default_profile(options);
-    PipelineSpec {
-        stages: profile
-            .graph
-            .iter()
-            .map(|node| node.stage_id.clone())
-            .collect(),
-    }
+pub fn fastq_default_pipeline_stage_ids() -> Vec<String> {
+    required_stage_ids()
 }
 
 #[must_use]
-pub fn fastq_minimal_pipeline_spec() -> PipelineSpec {
-    let profile = fastq_minimal_profile();
-    PipelineSpec {
-        stages: profile
-            .graph
-            .iter()
-            .map(|node| node.stage_id.clone())
-            .collect(),
-    }
+pub fn fastq_minimal_pipeline_stage_ids() -> Vec<String> {
+    required_stage_ids()
 }
 
 /// # Errors
 /// Returns an error if the requested profile id is unknown.
 pub fn fastq_profiles_by_id(id: &str) -> anyhow::Result<PipelineProfile> {
     match id {
-        "fastq-to-fastq__default__v1" => {
-            Ok(fastq_default_profile(DefaultPipelineOptions::default()))
-        }
+        "fastq-to-fastq__default__v1" => Ok(fastq_default_profile()),
         "fastq-to-fastq__minimal__v1" => Ok(fastq_minimal_profile()),
         _ => Err(anyhow::anyhow!("unknown FASTQ profile: {id}")),
     }

@@ -3,18 +3,19 @@ use std::collections::HashMap;
 use crate::tooling::{ensure_bench_runner, filter_tools_by_role, load_registry};
 use anyhow::{anyhow, Context, Result};
 use bijux_core::ErrorCategory;
-use bijux_env_builder::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
-use bijux_env_runtime::api::{PlatformSpec, RunnerKind, ToolImageSpec};
+use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
+use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use bijux_infra::{bench_base_dir, bench_tools_dir};
-use bijux_planner_fastq::normalize_qc_post_tool_list;
-use bijux_runner_docker::primitives::{build_tool_execution_spec, resolve_image_for_run};
+use bijux_planner_fastq::select_qc_post_tools;
+use bijux_runner::primitives::{build_tool_execution_spec, resolve_image_for_run};
 use bijux_stages_fastq::fastq::qc_post::{aux_tool_ids, plan_qc_post};
 use bijux_stages_fastq::FastqArtifact;
 use bijux_stages_fastq::{inspect_headers, log_header_warnings, preflight_stage, RawFailure};
 
+use super::jobs::bench_jobs;
 use super::jobs::execute_plans_with_jobs;
-use super::jobs::{bench_jobs, normalize_tool_spec_for_jobs};
 use super::{write_explain_md, write_explain_plan_json, BenchOutcome};
+use bijux_planner_fastq::scale_tool_spec_for_jobs;
 
 /// # Errors
 /// Returns an error if planning or execution fails.
@@ -24,7 +25,7 @@ pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
     runner_override: Option<RunnerKind>,
     args: &bijux_stages_fastq::args::BenchFastqQcPostArgs,
 ) -> Result<BenchOutcome<bijux_analyze::FastqQcPostMetrics>> {
-    let tools = normalize_qc_post_tool_list(&args.tools)?;
+    let tools = select_qc_post_tools(&args.tools)?;
     let artifact = FastqArtifact::single_end(&args.r1);
     preflight_stage("fastq.qc_post", artifact.kind)?;
     let header = inspect_headers(&args.r1, None, false)?;
@@ -72,7 +73,7 @@ pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
         bijux_infra::ensure_dir(&out_dir).context("create tool output dir")?;
         let tool_spec =
             build_tool_execution_spec("fastq.qc_post", tool, &registry, catalog, platform)?;
-        let tool_spec = normalize_tool_spec_for_jobs(&tool_spec, jobs);
+        let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
         let plan = plan_qc_post(&tool_spec, &args.r1, &out_dir, aux_tools.clone(), None)?;
         plans.push(plan);
         tool_order.push(tool.clone());

@@ -10,3 +10,5 @@ bijux-stages-bam = { path = "../bijux-stages-bam" }
 
 [dev-dependencies]
 bijux-guardrails = { path = "../bijux-guardrails" }
+insta = { version = "1", features = ["json"] }
+serde_json.workspace = true

@@ -4,7 +4,7 @@ use anyhow::{anyhow, Result};
 
 use crate::bam::{bam_adna_capture_profile, bam_adna_shotgun_profile, bam_default_profile};
 use crate::cross::{fastq_to_bam_adna_shotgun_profile, fastq_to_bam_default_profile};
-use crate::fastq::{fastq_default_profile, fastq_minimal_profile, DefaultPipelineOptions};
+use crate::fastq::{fastq_default_profile, fastq_minimal_profile};
 use crate::{Domain, PipelineProfile, StabilityTier};
 
 #[derive(Debug, Clone)]
@@ -47,10 +47,7 @@ impl PipelineRegistry {
 
 #[must_use]
 pub fn fastq_profiles() -> Vec<PipelineProfile> {
-    vec![
-        fastq_default_profile(DefaultPipelineOptions::default()),
-        fastq_minimal_profile(),
-    ]
+    vec![fastq_default_profile(), fastq_minimal_profile()]
 }
 
 #[must_use]

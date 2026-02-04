@@ -1,6 +1,6 @@
 ---
 source: crates/bijux-pipelines/tests/profiles.rs
-expression: "fastq_default_profile(DefaultPipelineOptions::default())"
+expression: "fastq_default_profile()"
 ---
 {
   "id": "fastq-to-fastq__default__v1",
