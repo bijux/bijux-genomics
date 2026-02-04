@@ -1,7 +1,7 @@
 pub struct DryRunExecutor;
 
 impl Executor for DryRunExecutor {
-    fn run(&self, plan: &ExecutionPlan) -> Result<RunReport, BijuxError> {
+    fn run(&self, plan: &RunExecutionPlan) -> Result<RunReport, BijuxError> {
         ensure_run_dirs(plan)?;
         let rendered = plan.tool.command_template.join(" ");
         info!(

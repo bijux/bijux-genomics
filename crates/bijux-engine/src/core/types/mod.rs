@@ -58,18 +58,6 @@ pub struct Dependency {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExecutionPlan {
-    pub stages: Vec<StageNode>,
-    pub edges: Vec<Dependency>,
-    pub policy: Policy,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PipelineSpec {
-    pub stages: Vec<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RunPlan {
     pub invocation: ToolInvocation,
     pub image_digest: String,

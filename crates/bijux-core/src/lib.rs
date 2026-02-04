@@ -2,6 +2,9 @@
 
 pub mod alignment;
 pub mod domain;
+pub mod execution_plan;
+pub mod scientific_provenance;
+pub mod stage_plugin;
 pub mod events;
 pub mod hashing;
 pub mod errors;

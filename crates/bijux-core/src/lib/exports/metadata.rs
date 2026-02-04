@@ -281,7 +281,7 @@ fn validate_tool_manifest(path: &Path, manifest: &ToolManifestV1) -> Result<(), 
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExecutionPlan {
+pub struct RunExecutionPlan {
     pub run_id: RunId,
     pub stage: StageManifestV1,
     pub tool: ToolManifestV1,
@@ -299,12 +299,12 @@ pub struct ExecutionPlan {
 ///
 /// # Errors
 /// Returns an error if the stage or tool cannot be resolved or manifests are invalid.
-pub fn build_execution_plan(
+pub fn build_run_execution_plan(
     run_spec: RunSpec,
     registry: &ToolRegistry,
     profile: Profile,
     run_id: RunId,
-) -> Result<ExecutionPlan, BijuxError> {
+) -> Result<RunExecutionPlan, BijuxError> {
     let stage = registry
         .stages()
         .get(&run_spec.stage.0)
@@ -340,7 +340,7 @@ pub fn build_execution_plan(
 
     let container = resolve_container_spec(&tool, &run_spec.paths, &tmp_dir, &profile)?;
 
-    Ok(ExecutionPlan {
+    Ok(RunExecutionPlan {
         run_id,
         stage,
         tool,
@@ -418,7 +418,7 @@ fn path_list_to_mount(paths: &[PathBuf]) -> String {
 ///
 /// # Errors
 /// Returns an error if directories cannot be created.
-pub fn ensure_run_dirs(plan: &ExecutionPlan) -> Result<(), BijuxError> {
+pub fn ensure_run_dirs(plan: &RunExecutionPlan) -> Result<(), BijuxError> {
     bijux_infra::ensure_dir(&plan.logs_dir)?;
     bijux_infra::ensure_dir(&plan.artifacts_dir)?;
     bijux_infra::ensure_dir(&plan.tmp_dir)?;
@@ -430,5 +430,5 @@ pub trait Executor {
     ///
     /// # Errors
     /// Returns an error if execution fails.
-    fn run(&self, plan: &ExecutionPlan) -> Result<RunReport, BijuxError>;
+    fn run(&self, plan: &RunExecutionPlan) -> Result<RunReport, BijuxError>;
 }
