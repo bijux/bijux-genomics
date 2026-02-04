@@ -16,7 +16,10 @@ mod summarize;
 pub use error::BenchError;
 pub use model::decision::DecisionRationale;
 pub use model::observation::MetricsEnvelope;
-pub use model::suite::{DatasetSpec, ReplicatePolicy};
+pub use model::suite::{
+    AnalysisRequirements, DatasetSpec, DiversityRequirements, ReplicatePolicy,
+    StratificationRequirement,
+};
 pub use model::summary::{MetricSummary, SummaryRow};
 pub use model::{BenchmarkDecision, BenchmarkObservation, BenchmarkSuiteSpec, BenchmarkSummary};
 pub use policy::{GateDecision, GatePolicy, GatePolicyOverrides, GateViolation};

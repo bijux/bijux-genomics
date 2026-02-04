@@ -1,7 +1,8 @@
 use bijux_analyze::report::write_run_report_from_facts;
 use bijux_bench::{
-    summarize, BenchRunOptions, BenchmarkObservation, BenchmarkSuiteSpec, DatasetSpec,
-    MetricsEnvelope, ReplicatePolicy,
+    summarize, AnalysisRequirements, BenchRunOptions, BenchmarkObservation, BenchmarkSuiteSpec,
+    DatasetSpec, DiversityRequirements, MetricsEnvelope, ReplicatePolicy,
+    StratificationRequirement,
 };
 use bijux_core::FactsRowV1;
 use std::collections::BTreeMap;
@@ -20,6 +21,8 @@ fn analyze_consumes_bench_summary() -> anyhow::Result<()> {
             hash: "hash-1".to_string(),
             size: 100,
             origin: "synthetic".to_string(),
+            class_label: "trueseq".to_string(),
+            read_layout: "paired".to_string(),
         }],
         vec!["fastq.trim".to_string()],
         vec!["fastp".to_string()],
@@ -28,6 +31,20 @@ fn analyze_consumes_bench_summary() -> anyhow::Result<()> {
             count: 3,
             warmup: 0,
             seeds: vec![1, 2, 3],
+        },
+        DiversityRequirements {
+            min_dataset_count: 1,
+            min_classes: 1,
+            min_read_layouts: 1,
+        },
+        vec![StratificationRequirement {
+            key: "dataset_class".to_string(),
+            required_values: vec!["trueseq".to_string()],
+        }],
+        AnalysisRequirements {
+            require_bootstrap: false,
+            require_outlier_detection: true,
+            min_replicates_for_bootstrap: 5,
         },
     );
     let obs = BenchmarkObservation {

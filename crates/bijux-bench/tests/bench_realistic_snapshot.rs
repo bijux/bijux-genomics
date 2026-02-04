@@ -1,8 +1,9 @@
 use std::collections::BTreeMap;
 
 use bijux_bench::{
-    summarize, BenchRunOptions, BenchmarkObservation, BenchmarkSuiteSpec, DatasetSpec,
-    MetricsEnvelope, ReplicatePolicy,
+    summarize, AnalysisRequirements, BenchRunOptions, BenchmarkObservation, BenchmarkSuiteSpec,
+    DatasetSpec, DiversityRequirements, MetricsEnvelope, ReplicatePolicy,
+    StratificationRequirement,
 };
 
 fn observation(
@@ -58,12 +59,16 @@ fn realistic_suite_snapshot() -> anyhow::Result<()> {
                 hash: "hash-1".to_string(),
                 size: 100,
                 origin: "synthetic".to_string(),
+                class_label: "trueseq".to_string(),
+                read_layout: "paired".to_string(),
             },
             DatasetSpec {
                 id: "ds-2".to_string(),
                 hash: "hash-2".to_string(),
                 size: 200,
                 origin: "synthetic".to_string(),
+                class_label: "nextera".to_string(),
+                read_layout: "paired".to_string(),
             },
         ],
         vec!["fastq.trim".to_string()],
@@ -73,6 +78,20 @@ fn realistic_suite_snapshot() -> anyhow::Result<()> {
             count: 3,
             warmup: 0,
             seeds: vec![1, 2, 3],
+        },
+        DiversityRequirements {
+            min_dataset_count: 2,
+            min_classes: 2,
+            min_read_layouts: 1,
+        },
+        vec![StratificationRequirement {
+            key: "dataset_class".to_string(),
+            required_values: vec!["trueseq".to_string(), "nextera".to_string()],
+        }],
+        AnalysisRequirements {
+            require_bootstrap: false,
+            require_outlier_detection: true,
+            min_replicates_for_bootstrap: 5,
         },
     );
 

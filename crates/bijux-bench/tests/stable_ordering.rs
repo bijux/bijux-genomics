@@ -2,7 +2,10 @@ use std::collections::BTreeMap;
 
 use bijux_bench::{summarize, BenchRunOptions, BenchmarkSuiteSpec};
 use bijux_bench::{BenchmarkObservation, MetricsEnvelope};
-use bijux_bench::{DatasetSpec, ReplicatePolicy};
+use bijux_bench::{
+    AnalysisRequirements, DatasetSpec, DiversityRequirements, ReplicatePolicy,
+    StratificationRequirement,
+};
 
 fn obs(
     run_id: &str,
@@ -54,6 +57,8 @@ fn summary_is_deterministic_across_ordering() -> anyhow::Result<()> {
             hash: "hash".to_string(),
             size: 1,
             origin: "test".to_string(),
+            class_label: "trueseq".to_string(),
+            read_layout: "paired".to_string(),
         }],
         vec!["stage".to_string()],
         vec!["tool".to_string()],
@@ -62,6 +67,20 @@ fn summary_is_deterministic_across_ordering() -> anyhow::Result<()> {
             count: 1,
             warmup: 0,
             seeds: vec![1],
+        },
+        DiversityRequirements {
+            min_dataset_count: 1,
+            min_classes: 1,
+            min_read_layouts: 1,
+        },
+        vec![StratificationRequirement {
+            key: "dataset_class".to_string(),
+            required_values: vec!["trueseq".to_string()],
+        }],
+        AnalysisRequirements {
+            require_bootstrap: false,
+            require_outlier_detection: false,
+            min_replicates_for_bootstrap: 5,
         },
     );
 

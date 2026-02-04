@@ -13,6 +13,8 @@ pub struct DatasetSpec {
     pub hash: String,
     pub size: u64,
     pub origin: String,
+    pub class_label: String,
+    pub read_layout: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -25,6 +27,29 @@ pub struct ReplicatePolicy {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
+pub struct DiversityRequirements {
+    pub min_dataset_count: usize,
+    pub min_classes: usize,
+    pub min_read_layouts: usize,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct StratificationRequirement {
+    pub key: String,
+    pub required_values: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct AnalysisRequirements {
+    pub require_bootstrap: bool,
+    pub require_outlier_detection: bool,
+    pub min_replicates_for_bootstrap: u32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct BenchmarkSuiteSpec {
     pub schema_version: String,
     pub suite_id: String,
@@ -33,6 +58,9 @@ pub struct BenchmarkSuiteSpec {
     pub tools: Vec<String>,
     pub params: Vec<String>,
     pub replicate_policy: ReplicatePolicy,
+    pub diversity: DiversityRequirements,
+    pub stratifications: Vec<StratificationRequirement>,
+    pub analysis_requirements: AnalysisRequirements,
 }
 
 impl BenchmarkSuiteSpec {
@@ -44,6 +72,9 @@ impl BenchmarkSuiteSpec {
         tools: Vec<String>,
         params: Vec<String>,
         replicate_policy: ReplicatePolicy,
+        diversity: DiversityRequirements,
+        stratifications: Vec<StratificationRequirement>,
+        analysis_requirements: AnalysisRequirements,
     ) -> Self {
         Self {
             schema_version: "bijux.bench.suite.v1".to_string(),
@@ -53,6 +84,9 @@ impl BenchmarkSuiteSpec {
             tools,
             params,
             replicate_policy,
+            diversity,
+            stratifications,
+            analysis_requirements,
         }
     }
 }

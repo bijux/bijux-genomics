@@ -12,6 +12,8 @@ pub struct DecisionRationale {
     pub observed: f64,
     pub direction: String,
     pub note: String,
+    pub weight: f64,
+    pub contribution: f64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

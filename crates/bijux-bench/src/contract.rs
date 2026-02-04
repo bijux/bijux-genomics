@@ -36,6 +36,71 @@ pub fn validate_suite(suite: &BenchmarkSuiteSpec) -> Result<(), BenchError> {
             "suite datasets must include hash".to_string(),
         ));
     }
+    if suite.datasets.len() < suite.diversity.min_dataset_count {
+        return Err(BenchError::InvalidPolicy(format!(
+            "suite must include at least {} datasets",
+            suite.diversity.min_dataset_count
+        )));
+    }
+    let mut classes = std::collections::BTreeSet::new();
+    let mut layouts = std::collections::BTreeSet::new();
+    for dataset in &suite.datasets {
+        classes.insert(dataset.class_label.as_str());
+        layouts.insert(dataset.read_layout.as_str());
+    }
+    if classes.len() < suite.diversity.min_classes {
+        return Err(BenchError::InvalidPolicy(format!(
+            "suite must include at least {} dataset classes",
+            suite.diversity.min_classes
+        )));
+    }
+    if layouts.len() < suite.diversity.min_read_layouts {
+        return Err(BenchError::InvalidPolicy(format!(
+            "suite must include at least {} read layouts",
+            suite.diversity.min_read_layouts
+        )));
+    }
+    for requirement in &suite.stratifications {
+        let values: std::collections::BTreeSet<&str> = match requirement.key.as_str() {
+            "dataset_class" => suite
+                .datasets
+                .iter()
+                .map(|dataset| dataset.class_label.as_str())
+                .collect(),
+            "read_layout" => suite
+                .datasets
+                .iter()
+                .map(|dataset| dataset.read_layout.as_str())
+                .collect(),
+            _ => {
+                return Err(BenchError::InvalidPolicy(format!(
+                    "unsupported stratification key {}",
+                    requirement.key
+                )))
+            }
+        };
+        for required in &requirement.required_values {
+            if !values.contains(required.as_str()) {
+                return Err(BenchError::InvalidPolicy(format!(
+                    "suite missing required stratification value {} for {}",
+                    required, requirement.key
+                )));
+            }
+        }
+    }
+    if suite.analysis_requirements.require_bootstrap
+        && suite.replicate_policy.count < suite.analysis_requirements.min_replicates_for_bootstrap
+    {
+        return Err(BenchError::InvalidPolicy(format!(
+            "suite requires bootstrap with at least {} replicates",
+            suite.analysis_requirements.min_replicates_for_bootstrap
+        )));
+    }
+    if suite.analysis_requirements.require_outlier_detection && suite.replicate_policy.count < 3 {
+        return Err(BenchError::InvalidPolicy(
+            "suite requires outlier detection with at least 3 replicates".to_string(),
+        ));
+    }
     Ok(())
 }
 
