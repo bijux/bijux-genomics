@@ -29,6 +29,7 @@ pub use crate::observability::{
     StageObservabilityContractV1, StageReportV1, StageVerdictV1, TelemetryEventV1,
     RunProvenanceV1,
 };
+pub use crate::invariants::InvariantSpecV1;
 pub use crate::selection::{
     objective_spec, BenchResultRecord, BenchResultStatus, Disqualification, Objective,
     ObjectiveSpec, ObjectiveWeights, StageSelection, ToolScore,
@@ -37,7 +38,9 @@ pub use crate::stage_plan::{
     ArtifactRef, CommandSpecV1, ContainerImageRefV1, StageIO, StagePlanJsonV1, StagePlanV1,
 };
 pub use crate::hashing::{params_hash, run_id_from_hashes};
-pub use crate::errors::{ErrorCategory, ErrorHintV1, HintSeverity};
+pub use crate::errors::{
+    remediation_hints_for_failure, CategorizedError, ErrorCategory, ErrorHintV1, HintSeverity,
+};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -107,6 +110,12 @@ pub struct RawFailure {
     pub stage: String,
     pub tool: String,
     pub reason: String,
+    #[serde(default = "default_error_category")]
+    pub category: crate::errors::ErrorCategory,
+}
+
+fn default_error_category() -> crate::errors::ErrorCategory {
+    crate::errors::ErrorCategory::ToolError
 }
 
 #[must_use]

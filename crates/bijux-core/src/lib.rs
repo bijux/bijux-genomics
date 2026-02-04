@@ -6,6 +6,7 @@ pub mod events;
 pub mod hashing;
 pub mod errors;
 pub mod input_assessment;
+pub mod invariants;
 pub mod measure;
 pub mod metrics;
 pub mod metrics_registry;

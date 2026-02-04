@@ -2,6 +2,7 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
+use bijux_core::{CategorizedError, ErrorCategory};
 use bijux_api::v1::run::atomic_write_bytes;
 use bijux_api::v1::run::{
     load_manifests, load_profile, new_run_id, DryRunExecutor, Executor,
@@ -54,6 +55,15 @@ fn main() {
 }
 
 fn exit_code_for_error(err: &anyhow::Error) -> i32 {
+    if let Some(category) = error_category_from_chain(err) {
+        return match category {
+            ErrorCategory::UserError => 2,
+            ErrorCategory::DataError => 3,
+            ErrorCategory::ToolError => 4,
+            ErrorCategory::InfraError => 5,
+            ErrorCategory::Bug => 70,
+        };
+    }
     let msg = err.to_string().to_lowercase();
     if msg.contains("invalid arg") || msg.contains("usage:") {
         2
@@ -66,6 +76,24 @@ fn exit_code_for_error(err: &anyhow::Error) -> i32 {
     } else {
         70
     }
+}
+
+fn error_category_from_chain(err: &anyhow::Error) -> Option<ErrorCategory> {
+    if let Some(cat) = err.downcast_ref::<ErrorCategory>() {
+        return Some(*cat);
+    }
+    if let Some(categorized) = err.downcast_ref::<CategorizedError>() {
+        return Some(categorized.category);
+    }
+    for cause in err.chain() {
+        if let Some(cat) = cause.downcast_ref::<ErrorCategory>() {
+            return Some(*cat);
+        }
+        if let Some(categorized) = cause.downcast_ref::<CategorizedError>() {
+            return Some(categorized.category);
+        }
+    }
+    None
 }
 
 fn run() -> Result<()> {
@@ -89,8 +117,12 @@ fn run() -> Result<()> {
         .join("configs")
         .join("profiles")
         .join(format!("{}.toml", cli.profile));
-    let mut profile = load_profile(&profile_path)
-        .map_err(|err| anyhow!("failed to load profile {}: {err}", profile_path.display()))?;
+    let mut profile = load_profile(&profile_path).map_err(|err| {
+        anyhow!(CategorizedError::new(
+            ErrorCategory::UserError,
+            format!("failed to load profile {}: {err}", profile_path.display())
+        ))
+    })?;
     profile.run_base_dir = normalize_run_base_dir(&cwd, &profile.run_base_dir);
     if cli.print_effective_config || cli.dump_effective_config {
         let payload = serde_json::json!({
@@ -101,8 +133,12 @@ fn run() -> Result<()> {
         return Ok(());
     }
 
-    let registry =
-        load_manifests(&domain_dir).map_err(|err| anyhow!("manifest validation failed: {err}"))?;
+    let registry = load_manifests(&domain_dir).map_err(|err| {
+        anyhow!(CategorizedError::new(
+            ErrorCategory::DataError,
+            format!("manifest validation failed: {err}")
+        ))
+    })?;
 
     if handle_fastq_bench(&cli, &registry)? {
         return Ok(());

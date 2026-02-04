@@ -6,7 +6,7 @@
 
 use serde::Serialize;
 
-use bijux_core::{ErrorCategory, ErrorHintV1, HintSeverity, RawFailure};
+use bijux_core::{remediation_hints_for_failure, ErrorCategory, ErrorHintV1, RawFailure};
 
 #[derive(Debug, Clone, Copy, Serialize)]
 #[serde(rename_all = "snake_case")]
@@ -58,6 +58,12 @@ pub fn error_category(kind: FailureKind) -> ErrorCategory {
 #[must_use]
 pub fn classify_raw_failure(raw: &RawFailure) -> BenchmarkFailure {
     let msg = raw.reason.to_lowercase();
+    let kind = match raw.category {
+        ErrorCategory::UserError | ErrorCategory::DataError => FailureKind::DataInvalid,
+        ErrorCategory::ToolError => FailureKind::ToolExit,
+        ErrorCategory::InfraError => FailureKind::ResourceExhaustion,
+        ErrorCategory::Bug => FailureKind::ContractViolation,
+    };
     let kind = if msg.contains("timeout") || msg.contains("out of memory") {
         FailureKind::ResourceExhaustion
     } else if msg.contains("docker image not found")
@@ -80,63 +86,15 @@ pub fn classify_raw_failure(raw: &RawFailure) -> BenchmarkFailure {
     } else if msg.contains("parse") || msg.contains("observer") {
         FailureKind::ObserverParse
     } else {
-        FailureKind::ToolExit
+        kind
     };
     BenchmarkFailure {
         stage: raw.stage.clone(),
         tool: raw.tool.clone(),
         kind,
         reason: raw.reason.clone(),
-        hints: remediation_hints(raw),
+        hints: remediation_hints_for_failure(raw),
     }
-}
-
-fn remediation_hints(raw: &RawFailure) -> Vec<ErrorHintV1> {
-    let msg = raw.reason.to_lowercase();
-    let mut hints = Vec::new();
-    if msg.contains("adapter") || msg.contains("adapter preset") {
-        hints.push(ErrorHintV1 {
-            id: "adapter_preset_missing".to_string(),
-            category: ErrorCategory::DataError,
-            severity: HintSeverity::Medium,
-            message: "Adapter preset missing or invalid".to_string(),
-            suggested_action: "Configure a valid adapter preset or supply an adapter file"
-                .to_string(),
-            docs_link_key: Some("adapters".to_string()),
-        });
-    }
-    if msg.contains("polyg") || msg.contains("poly-g") {
-        hints.push(ErrorHintV1 {
-            id: "polyg_artifact".to_string(),
-            category: ErrorCategory::DataError,
-            severity: HintSeverity::Low,
-            message: "Poly-G artifact suspected".to_string(),
-            suggested_action: "Enable illumina_twocolor or configure polyG filtering".to_string(),
-            docs_link_key: Some("polyg".to_string()),
-        });
-    }
-    if raw.stage == "fastq.screen" || msg.contains("contaminant") {
-        hints.push(ErrorHintV1 {
-            id: "contamination_screen".to_string(),
-            category: ErrorCategory::DataError,
-            severity: HintSeverity::Medium,
-            message: "Contamination suspected".to_string(),
-            suggested_action: "Run the screen stage or update contamination databases".to_string(),
-            docs_link_key: Some("screen".to_string()),
-        });
-    }
-    if msg.contains("missing output") || msg.contains("output not found") {
-        hints.push(ErrorHintV1 {
-            id: "missing_output".to_string(),
-            category: ErrorCategory::ToolError,
-            severity: HintSeverity::High,
-            message: "Expected outputs missing".to_string(),
-            suggested_action: "Check tool output paths, permissions, and working directory"
-                .to_string(),
-            docs_link_key: Some("outputs".to_string()),
-        });
-    }
-    hints
 }
 
 #[cfg(test)]
@@ -149,6 +107,7 @@ mod tests {
             stage: "fastq.validate_pre".to_string(),
             tool: "fastqvalidator".to_string(),
             reason: "strict validation failed for fastqvalidator".to_string(),
+            category: ErrorCategory::DataError,
         };
         let failure = classify_raw_failure(&raw);
         assert!(matches!(failure.kind, FailureKind::DataInvalid));
@@ -159,7 +118,8 @@ mod tests {
         let raw = RawFailure {
             stage: "fastq.trim".to_string(),
             tool: "fastp".to_string(),
-            reason: "reads_out must be <= reads_in".to_string(),
+            reason: "invariant failed: reads_out must be <= reads_in".to_string(),
+            category: ErrorCategory::DataError,
         };
         let failure = classify_raw_failure(&raw);
         assert!(matches!(failure.kind, FailureKind::ContractViolation));
@@ -171,6 +131,7 @@ mod tests {
             stage: "fastq.trim".to_string(),
             tool: "fastp".to_string(),
             reason: "unexpected crash".to_string(),
+            category: ErrorCategory::ToolError,
         };
         let failure = classify_raw_failure(&raw);
         assert!(matches!(failure.kind, FailureKind::ToolExit));
@@ -182,6 +143,7 @@ mod tests {
             stage: "fastq.trim".to_string(),
             tool: "fastp".to_string(),
             reason: "adapter preset missing".to_string(),
+            category: ErrorCategory::DataError,
         };
         let failure = classify_raw_failure(&raw);
         assert!(failure
