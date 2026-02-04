@@ -65,7 +65,7 @@ pub fn write_stage_report_v1(
     verdict: Option<&bijux_core::StageVerdictV1>,
 ) -> Result<PathBuf> {
     let effective_config_hash =
-        crate::services::observer::hash_file_sha256(effective_config_path).ok();
+        crate::services::run_artifacts::core::hash_file_sha256(effective_config_path).ok();
     let payload = StageReportV1 {
         schema_version: "bijux.stage_report.v1".to_string(),
         stage_id: stage_id.to_string(),

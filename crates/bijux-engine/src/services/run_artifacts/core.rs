@@ -157,35 +157,34 @@ pub fn write_run_manifest(
     let has_retention_override = extra_artifacts
         .iter()
         .any(|artifact| artifact.name == "retention_report");
-    let manifest_hash = crate::services::observer::hash_file_sha256(&run_dirs.manifest_path)?;
+    let manifest_hash = hash_file_sha256(&run_dirs.manifest_path)?;
     artifacts.push(serde_json::json!({
         "name": "execution_manifest",
         "path": run_dirs.manifest_path,
         "sha256": manifest_hash
     }));
-    let metrics_hash = crate::services::observer::hash_file_sha256(&run_dirs.metrics_path)?;
+    let metrics_hash = hash_file_sha256(&run_dirs.metrics_path)?;
     artifacts.push(serde_json::json!({
         "name": "metrics",
         "path": run_dirs.metrics_path,
         "sha256": metrics_hash
     }));
     if !has_retention_override {
-        let retention_hash =
-            crate::services::observer::hash_file_sha256(&run_dirs.retention_report_path)?;
+        let retention_hash = hash_file_sha256(&run_dirs.retention_report_path)?;
         artifacts.push(serde_json::json!({
             "name": "retention_report",
             "path": run_dirs.retention_report_path,
             "sha256": retention_hash
         }));
     }
-    let adapter_hash = crate::services::observer::hash_file_sha256(adapter_bank_path)?;
+    let adapter_hash = hash_file_sha256(adapter_bank_path)?;
     artifacts.push(serde_json::json!({
         "name": "adapter_bank",
         "path": adapter_bank_path,
         "sha256": adapter_hash
     }));
     for artifact in extra_artifacts {
-        let hash = crate::services::observer::hash_file_sha256(&artifact.path)?;
+        let hash = hash_file_sha256(&artifact.path)?;
         artifacts.push(serde_json::json!({
             "name": artifact.name,
             "path": artifact.path,
@@ -218,6 +217,30 @@ pub fn write_run_manifest(
     bijux_infra::atomic_write_json(&run_dirs.run_manifest_path, &payload)
         .context("write run_manifest.json")?;
     Ok(())
+}
+
+pub fn write_scientific_provenance(
+    run_dir: &Path,
+    provenance: &bijux_core::scientific_provenance::ScientificProvenanceV1,
+) -> Result<PathBuf> {
+    let path = run_dir.join("scientific_provenance.json");
+    bijux_infra::atomic_write_json(&path, provenance).context("write scientific_provenance.json")?;
+    Ok(path)
+}
+
+pub(crate) fn hash_file_sha256(path: &Path) -> Result<String> {
+    let mut file = std::fs::File::open(path).with_context(|| format!("open {}", path.display()))?;
+    let mut hasher = sha2::Sha256::new();
+    let mut buf = [0u8; 8192];
+    loop {
+        let read = std::io::Read::read(&mut file, &mut buf)
+            .with_context(|| format!("read {}", path.display()))?;
+        if read == 0 {
+            break;
+        }
+        hasher.update(&buf[..read]);
+    }
+    Ok(format!("{:x}", hasher.finalize()))
 }
 
 fn run_artifacts_dir(run_dirs: &RunDirs) -> Result<PathBuf> {

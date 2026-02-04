@@ -9,10 +9,6 @@ anyhow = "1"
 bijux-core = { path = "../bijux-core" }
 bijux-env-runtime = { path = "../bijux-env-runtime" }
 bijux-env-builder = { path = "../bijux-env-builder" }
-bijux-stages-fastq = { path = "../bijux-stages-fastq" }
-bijux-domain-fastq = { path = "../bijux-domain-fastq" }
-bijux-stages-bam = { path = "../bijux-stages-bam" }
-bijux-domain-bam = { path = "../bijux-domain-bam" }
 bijux-infra = { path = "../bijux-infra" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
@@ -30,7 +26,6 @@ opentelemetry_sdk = { version = "0.24", optional = true }
 
 [dev-dependencies]
 bijux-guardrails = { path = "../bijux-guardrails" }
-bijux-pipelines = { path = "../bijux-pipelines" }
 assert_cmd = "2"
 tempfile.workspace = true
 
