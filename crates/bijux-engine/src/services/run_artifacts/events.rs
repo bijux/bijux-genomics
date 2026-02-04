@@ -6,7 +6,7 @@ pub fn write_effective_adapters_from_provenance(
         return Ok(None);
     }
     let adapters_dir = run_artifacts_dir.join("adapters");
-    std::fs::create_dir_all(&adapters_dir).context("create adapters artifact dir")?;
+    bijux_infra::ensure_dir(&adapters_dir).context("create adapters artifact dir")?;
     let path = adapters_dir.join("effective_adapters.json");
     let enabled_ids: Vec<String> = adapter_bank
         .enabled_entries

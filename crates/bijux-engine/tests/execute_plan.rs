@@ -12,11 +12,10 @@ use bijux_engine::primitives::execute_plan;
 use bijux_env_runtime::api::RunnerKind;
 use flate2::write::GzEncoder;
 use flate2::Compression;
-use tempfile::TempDir;
 
 fn write_fake_docker(dir: &Path) -> Result<PathBuf> {
     let bin_dir = dir.join("bin");
-    fs::create_dir_all(&bin_dir)?;
+    bijux_infra::ensure_dir(&bin_dir)?;
     let docker_path = bin_dir.join("docker");
     let script = r#"#!/bin/sh
 set -e
@@ -54,7 +53,7 @@ case "$cmd" in
     ;;
  esac
 "#;
-    fs::write(&docker_path, script)?;
+    bijux_infra::write_bytes(&docker_path, script)?;
     let mut perms = fs::metadata(&docker_path)?.permissions();
     #[cfg(unix)]
     {
@@ -65,12 +64,12 @@ case "$cmd" in
     Ok(bin_dir)
 }
 
-fn temp_inputs() -> Result<(TempDir, PathBuf, PathBuf)> {
-    let dir = TempDir::new()?;
+fn temp_inputs() -> Result<(tempfile::TempDir, PathBuf, PathBuf)> {
+    let dir = bijux_infra::temp_dir("bijux")?;
     let r1 = dir.path().join("input_r1.fastq");
     let r2 = dir.path().join("input_r2.fastq");
-    fs::write(&r1, "@r1\nACGT\n+\n!!!!\n")?;
-    fs::write(&r2, "@r2\nTGCA\n+\n!!!!\n")?;
+    bijux_infra::write_bytes(&r1, "@r1\nACGT\n+\n!!!!\n")?;
+    bijux_infra::write_bytes(&r2, "@r2\nTGCA\n+\n!!!!\n")?;
     Ok((dir, r1, r2))
 }
 
@@ -104,7 +103,7 @@ fn execute_plan_success_path_uses_public_api() -> Result<()> {
     std::env::set_var("PATH", format!("{}:{}", bin_dir.display(), original_path));
 
     let out_dir = dir.path().join("out");
-    fs::create_dir_all(&out_dir)?;
+    bijux_infra::ensure_dir(&out_dir)?;
     let output_path = out_dir.join("fastp.fastq.gz");
     write_gzip(&output_path, "@r1\nACGT\n+\n!!!!\n")?;
     let exec_plan = StagePlanV1 {
@@ -164,7 +163,7 @@ fn execute_plan_propagates_tool_failure() -> Result<()> {
     std::env::set_var("PATH", format!("{}:{}", bin_dir.display(), original_path));
 
     let out_dir = dir.path().join("out_fail");
-    fs::create_dir_all(&out_dir)?;
+    bijux_infra::ensure_dir(&out_dir)?;
     let output_path = out_dir.join("fastp.fastq.gz");
     let exec_plan = StagePlanV1 {
         stage_id: StageId("fastq.trim".to_string()),
@@ -222,7 +221,7 @@ fn execute_plan_hits_validate_path() -> Result<()> {
     std::env::set_var("PATH", format!("{}:{}", bin_dir.display(), original_path));
 
     let out_dir = dir.path().join("validate");
-    fs::create_dir_all(&out_dir)?;
+    bijux_infra::ensure_dir(&out_dir)?;
     let exec_plan = StagePlanV1 {
         stage_id: StageId("fastq.validate_pre".to_string()),
         stage_version: StageVersion(1),
@@ -277,13 +276,13 @@ fn execute_plan_hits_merge_path() -> Result<()> {
     std::env::set_var("PATH", format!("{}:{}", bin_dir.display(), original_path));
 
     let out_dir = dir.path().join("merge");
-    fs::create_dir_all(&out_dir)?;
-    fs::write(out_dir.join("pear.assembled.fastq"), "@r1\nACGT\n+\n!!!!\n")?;
-    fs::write(
+    bijux_infra::ensure_dir(&out_dir)?;
+    bijux_infra::write_bytes(out_dir.join("pear.assembled.fastq"), "@r1\nACGT\n+\n!!!!\n")?;
+    bijux_infra::write_bytes(
         out_dir.join("pear.unassembled.forward.fastq"),
         "@r1\nACGT\n+\n!!!!\n",
     )?;
-    fs::write(
+    bijux_infra::write_bytes(
         out_dir.join("pear.unassembled.reverse.fastq"),
         "@r2\nTGCA\n+\n!!!!\n",
     )?;

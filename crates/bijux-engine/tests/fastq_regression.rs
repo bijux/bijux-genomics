@@ -7,14 +7,13 @@ use bijux_engine::primitives::{
 };
 use bijux_env_runtime::api::{load_image_catalog, load_platform};
 use sha2::{Digest, Sha256};
-use tempfile::TempDir;
 use uuid::Uuid;
 
-fn tempdir_in_repo() -> Result<TempDir> {
+fn tempdir_in_repo() -> Result<tempfile::TempDir> {
     let cwd = std::env::current_dir()?;
     let base = cwd.join("target").join("test-tmp");
-    std::fs::create_dir_all(&base)?;
-    Ok(TempDir::new_in(base)?)
+    bijux_infra::ensure_dir(&base)?;
+    Ok(bijux_infra::temp_dir_in(base, "bijux")?)
 }
 
 fn ensure_docker() -> bool {
@@ -32,7 +31,7 @@ fn hash_file(path: &Path) -> Result<String> {
 fn write_broken_fastq(dir: &Path, name: &str) -> Result<std::path::PathBuf> {
     let path = dir.join(name);
     let contents = b"@broken\nACGT\n+\n";
-    std::fs::write(&path, contents)?;
+    bijux_infra::write_bytes(&path, contents)?;
     Ok(path)
 }
 
@@ -40,7 +39,7 @@ fn write_truncated_gzip(dir: &Path, name: &str, source: &Path) -> Result<std::pa
     let path = dir.join(name);
     let bytes = std::fs::read(source)?;
     let truncated = &bytes[..std::cmp::min(20, bytes.len())];
-    std::fs::write(&path, truncated)?;
+    bijux_infra::write_bytes(&path, truncated)?;
     Ok(path)
 }
 

@@ -131,6 +131,12 @@ pub enum EnvError {
     Image(String),
 }
 
+impl From<bijux_infra::IoError> for EnvError {
+    fn from(err: bijux_infra::IoError) -> Self {
+        Self::Io(std::io::Error::new(std::io::ErrorKind::Other, err))
+    }
+}
+
 /// Load platforms from configs/platforms.yaml and resolve the selected platform.
 ///
 /// # Errors

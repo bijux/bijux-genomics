@@ -15,7 +15,7 @@ fn fastq_stages_emit_observability_contracts() -> Result<()> {
             continue;
         }
         let out_dir = dir.path().join(stage.id.replace('.', "_"));
-        fs::create_dir_all(&out_dir).context("create out dir")?;
+        bijux_infra::ensure_dir(&out_dir).context("create out dir")?;
         let (exec_plan, outputs, is_retention) = build_plan(stage.id, &r1, &r2, &out_dir, &image)?;
         for output in &outputs {
             touch(output).context("touch output")?;
@@ -24,7 +24,7 @@ fn fastq_stages_emit_observability_contracts() -> Result<()> {
             touch(&out_dir.join("fastqc_trimmed").join("fastqc_data.txt"))
                 .context("touch fastqc output")?;
             touch(&out_dir.join("multiqc_report.html")).context("touch multiqc output")?;
-            fs::create_dir_all(out_dir.join("multiqc_data")).context("touch multiqc data")?;
+            bijux_infra::ensure_dir(out_dir.join("multiqc_data")).context("touch multiqc data")?;
         }
         if stage.id == "fastq.merge" {
             for output in merge_outputs_for(&exec_plan.tool_id.0, &out_dir) {

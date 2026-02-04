@@ -316,7 +316,7 @@ fn rename_if_needed(src: &Path, dst: &Path) -> Result<PathBuf> {
     if dst.exists() {
         return Ok(dst.to_path_buf());
     }
-    std::fs::rename(src, dst).map_err(|err| {
+    bijux_infra::rename(src, dst).map_err(|err| {
         anyhow!(
             "rename {} -> {} failed: {err}",
             src.display(),

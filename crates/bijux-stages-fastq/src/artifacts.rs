@@ -17,7 +17,7 @@ pub fn write_effective_adapters(
 ) -> Result<PathBuf> {
     let root = run_artifacts_dir(run_dir);
     let adapters_dir = root.join("adapters");
-    std::fs::create_dir_all(&adapters_dir).context("create adapters artifact dir")?;
+    bijux_infra::ensure_dir(&adapters_dir).context("create adapters artifact dir")?;
     let path = adapters_dir.join("effective_adapters.json");
     let adapters: Vec<serde_json::Value> = effective
         .adapters
@@ -52,7 +52,7 @@ pub fn write_adapter_bank_ref(
 ) -> Result<PathBuf> {
     let root = run_artifacts_dir(run_dir);
     let adapters_dir = root.join("adapters");
-    std::fs::create_dir_all(&adapters_dir).context("create adapters artifact dir")?;
+    bijux_infra::ensure_dir(&adapters_dir).context("create adapters artifact dir")?;
     let path = adapters_dir.join("adapter_bank_ref.json");
     let payload = serde_json::json!({
         "schema_version": "bijux.adapter_bank_ref.v1",
@@ -85,7 +85,7 @@ pub fn write_adapter_trimming_report(
 ) -> Result<PathBuf> {
     let root = run_artifacts_dir(run_dir);
     let reports_dir = root.join("reports");
-    std::fs::create_dir_all(&reports_dir).context("create reports artifact dir")?;
+    bijux_infra::ensure_dir(&reports_dir).context("create reports artifact dir")?;
     let path = reports_dir.join("adapter_trimming_report.json");
     let report = AdapterTrimmingReportV1 {
         schema_version: "bijux.adapter_trimming_report.v1".to_string(),
@@ -111,7 +111,7 @@ pub fn write_retention_report_artifact(
 ) -> Result<PathBuf> {
     let root = run_artifacts_dir(run_dir);
     let reports_dir = root.join("reports");
-    std::fs::create_dir_all(&reports_dir).context("create reports artifact dir")?;
+    bijux_infra::ensure_dir(&reports_dir).context("create reports artifact dir")?;
     let path = reports_dir.join("retention_report.json");
     bijux_infra::atomic_write_json(&path, report).context("write retention_report.json")?;
     Ok(path)
@@ -124,9 +124,9 @@ pub fn write_stage_plan_json(
 ) -> Result<PathBuf> {
     let root = run_artifacts_dir(run_dir);
     let plans_dir = root.join("plans");
-    std::fs::create_dir_all(&plans_dir).context("create plans artifact dir")?;
+    bijux_infra::ensure_dir(&plans_dir).context("create plans artifact dir")?;
     let path = plans_dir.join(file_name);
-    std::fs::create_dir_all(path.parent().unwrap_or(&plans_dir))
+    bijux_infra::ensure_dir(path.parent().unwrap_or(&plans_dir))
         .context("create plan parent dir")?;
     bijux_infra::atomic_write_json(&path, plan).context("write stage plan json")?;
     Ok(path)

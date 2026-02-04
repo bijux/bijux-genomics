@@ -125,8 +125,8 @@ pub fn backoff_delay(policy: &RetryPolicy, attempt: u32) -> Duration {
 ///
 /// # Errors
 /// Returns an IO error if the directory cannot be created.
-pub fn ensure_dir(path: &Path) -> Result<(), IoError> {
-    std::fs::create_dir_all(path).map_err(IoError::from_io)
+pub fn ensure_dir<P: AsRef<Path>>(path: P) -> Result<(), IoError> {
+    std::fs::create_dir_all(path.as_ref()).map_err(IoError::from_io)
 }
 
 /// Atomically write bytes to a path (temp + rename).
@@ -135,6 +135,25 @@ pub fn ensure_dir(path: &Path) -> Result<(), IoError> {
 /// Returns an IO error if the write or rename fails.
 pub fn atomic_write_bytes(path: &Path, bytes: &[u8]) -> Result<(), IoError> {
     atomic_write_with(path, |file| file.write_all(bytes))
+}
+
+/// Write bytes to a path with the standard atomic write policy.
+///
+/// # Errors
+/// Returns an IO error if serialization or writing fails.
+pub fn write_bytes<P: AsRef<Path>, B: AsRef<[u8]>>(
+    path: P,
+    bytes: B,
+) -> Result<(), IoError> {
+    atomic_write_bytes(path.as_ref(), bytes.as_ref())
+}
+
+/// Write a UTF-8 string to a path with the standard atomic write policy.
+///
+/// # Errors
+/// Returns an IO error if writing fails.
+pub fn write_string<P: AsRef<Path>>(path: P, contents: &str) -> Result<(), IoError> {
+    write_bytes(path, contents.as_bytes())
 }
 
 /// Atomically write JSON to a path (temp + rename).
@@ -201,6 +220,34 @@ pub fn read_to_end_bounded(path: &Path, max_bytes: usize) -> Result<Vec<u8>, IoE
         ));
     }
     Ok(buffer)
+}
+
+/// Rename a filesystem path.
+///
+/// # Errors
+/// Returns an IO error if the rename fails.
+pub fn rename(src: &Path, dst: &Path) -> Result<(), IoError> {
+    std::fs::rename(src, dst).map_err(IoError::from_io)
+}
+
+/// Remove a file.
+///
+/// # Errors
+/// Returns an IO error if the removal fails.
+pub fn remove_file(path: &Path) -> Result<(), IoError> {
+    std::fs::remove_file(path).map_err(IoError::from_io)
+}
+
+/// Remove a file if it exists.
+///
+/// # Errors
+/// Returns an IO error for failures other than missing files.
+pub fn remove_file_if_exists(path: &Path) -> Result<(), IoError> {
+    match std::fs::remove_file(path) {
+        Ok(()) => Ok(()),
+        Err(err) if err.kind() == std::io::ErrorKind::NotFound => Ok(()),
+        Err(err) => Err(IoError::from_io(err)),
+    }
 }
 
 #[derive(Debug)]
@@ -289,6 +336,14 @@ pub fn run_layout_paths(base_dir: &Path, run_id: &str) -> RunLayoutPaths {
     }
 }
 
+#[must_use]
+pub fn run_stage_dir(base_dir: &Path, run_id: &str, stage: &str, tool: &str) -> PathBuf {
+    run_layout_paths(base_dir, run_id)
+        .run_dir
+        .join(stage)
+        .join(tool)
+}
+
 /// Acquire the run-level lock for coordinated publish/write operations.
 ///
 /// # Errors
@@ -322,6 +377,17 @@ pub fn temp_dir(prefix: &str) -> Result<tempfile::TempDir, IoError> {
     tempfile::Builder::new()
         .prefix(prefix)
         .tempdir()
+        .map_err(IoError::from_io)
+}
+
+/// Create a managed temporary directory under a base path.
+///
+/// # Errors
+/// Returns an IO error if the temp directory cannot be created.
+pub fn temp_dir_in(base: &Path, prefix: &str) -> Result<tempfile::TempDir, IoError> {
+    tempfile::Builder::new()
+        .prefix(prefix)
+        .tempdir_in(base)
         .map_err(IoError::from_io)
 }
 
@@ -404,7 +470,7 @@ mod tests {
 
     #[test]
     fn atomic_write_failure_does_not_clobber() -> Result<(), IoError> {
-        let dir = tempfile::tempdir().map_err(IoError::from_io)?;
+        let dir = bijux_infra::temp_dir("bijux").map_err(IoError::from_io)?;
         let target = dir.path().join("payload.json");
         atomic_write_bytes(&target, b"stable")?;
         let result = atomic_write_with(&target, |_| Err(std::io::Error::other("boom")));
@@ -416,7 +482,7 @@ mod tests {
 
     #[test]
     fn lock_acquisition_times_out() -> Result<(), IoError> {
-        let dir = tempfile::tempdir().map_err(IoError::from_io)?;
+        let dir = bijux_infra::temp_dir("bijux").map_err(IoError::from_io)?;
         let lock_path = dir.path().join("lockfile");
         let _lock = FileLock::acquire(&lock_path, Duration::from_millis(50))?;
         let err = FileLock::acquire(&lock_path, Duration::from_millis(50))
@@ -447,7 +513,7 @@ mod tests {
 
     #[test]
     fn run_layout_contract_is_enforced() -> Result<(), IoError> {
-        let dir = tempfile::TempDir::new().map_err(IoError::from_io)?;
+        let dir = bijux_infra::temp_dir("bijux").map_err(IoError::from_io)?;
         let layout = run_layout_paths(dir.path(), "run-1");
         let _lock = lock_run(&layout, Duration::from_millis(50))?;
         let marker = publish_run(&layout, "run-1")?;

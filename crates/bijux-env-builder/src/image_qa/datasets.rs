@@ -125,11 +125,11 @@ pub(crate) fn hydrate_datasets(
     seqkit_image: &super::support::ResolvedImage,
 ) -> Result<()> {
     let qa_root = PathBuf::from("artifacts/image-qa/inputs");
-    std::fs::create_dir_all(&qa_root).context("create image qa inputs dir")?;
+    bijux_infra::ensure_dir(&qa_root).context("create image qa inputs dir")?;
     for dataset in datasets {
         let r1 = dataset.r1.canonicalize().context("resolve r1 path")?;
         let subset_dir = qa_root.join(&dataset.name);
-        std::fs::create_dir_all(&subset_dir).context("create dataset qa dir")?;
+        bijux_infra::ensure_dir(&subset_dir).context("create dataset qa dir")?;
         let subset_dir = subset_dir
             .canonicalize()
             .context("resolve dataset qa dir")?;

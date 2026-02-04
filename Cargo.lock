@@ -248,6 +248,7 @@ dependencies = [
  "assert_cmd",
  "bijux-api",
  "bijux-guardrails",
+ "bijux-infra",
  "chrono",
  "clap",
  "predicates",
@@ -308,6 +309,7 @@ dependencies = [
  "serde_json",
  "tracing",
  "uuid",
+ "walkdir",
 ]
 
 [[package]]
@@ -319,6 +321,7 @@ dependencies = [
  "bijux-core",
  "bijux-engine",
  "bijux-guardrails",
+ "bijux-infra",
  "fastrand",
  "insta",
  "serde",
@@ -503,6 +506,7 @@ dependencies = [
  "bijux-core",
  "bijux-domain-bam",
  "bijux-guardrails",
+ "bijux-infra",
  "serde",
  "serde_json",
  "walkdir",

@@ -86,7 +86,7 @@ fn build_stage_reports_and_warnings(
             "banks": banks_report,
         });
         let reports_dir = run_artifacts_dir.join("reports");
-        std::fs::create_dir_all(&reports_dir).context("create reports dir")?;
+        bijux_infra::ensure_dir(&reports_dir).context("create reports dir")?;
         let report_path = reports_dir.join("bank_report.json");
         bijux_infra::atomic_write_json(&report_path, &report_payload)
             .context("write bank_report.json")?;
@@ -146,7 +146,7 @@ fn build_stage_reports_and_warnings(
             .is_some_and(|map| !map.is_empty())
         {
             let reports_dir = run_artifacts_dir.join("reports");
-            std::fs::create_dir_all(&reports_dir).context("create reports dir")?;
+            bijux_infra::ensure_dir(&reports_dir).context("create reports dir")?;
             let path = reports_dir.join("adapter_candidates.json");
             let payload = serde_json::json!({
                 "schema_version": "bijux.adapter_candidates.v1",

@@ -1,4 +1,3 @@
-use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Result};
@@ -6,17 +5,17 @@ use bijux_core::input_assessment::{
     assess_input_dir, discover_fastq_files, is_fastq_path, is_gzip_path, FastqLayout,
 };
 
-fn temp_dir() -> std::io::Result<PathBuf> {
+fn temp_dir() -> Result<PathBuf> {
     let base = std::env::temp_dir().join(format!("bijux-core-test-{}", uuid::Uuid::new_v4()));
-    fs::create_dir_all(&base)?;
+    bijux_infra::ensure_dir(&base)?;
     Ok(base)
 }
 
-fn write_file(path: &Path, contents: &[u8]) -> std::io::Result<()> {
+fn write_file(path: &Path, contents: &[u8]) -> Result<()> {
     if let Some(parent) = path.parent() {
-        fs::create_dir_all(parent)?;
+        bijux_infra::ensure_dir(parent)?;
     }
-    fs::write(path, contents)?;
+    bijux_infra::write_bytes(path, contents)?;
     Ok(())
 }
 
@@ -44,7 +43,7 @@ fn gzip_detection_is_extension_based() {
 }
 
 #[test]
-fn discover_fastq_files_finds_nested_inputs() -> std::io::Result<()> {
+fn discover_fastq_files_finds_nested_inputs() -> Result<()> {
     let root = temp_dir()?;
     write_file(&root.join("a.fastq"), b"@r1\nACGT\n+\n!!!!\n")?;
     write_file(&root.join("nested").join("b.fq.gz"), b"dummy")?;

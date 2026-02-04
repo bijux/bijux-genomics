@@ -42,7 +42,7 @@ fn assert_snapshot(name: &str, plan: &bijux_core::StagePlanV1) -> Result<()> {
         .map(|value| value == "1" || value.eq_ignore_ascii_case("true"))
         .unwrap_or(false)
     {
-        fs::write(path, rendered)?;
+        bijux_infra::write_bytes(path, rendered)?;
         return Ok(());
     }
     let snapshot = fs::read_to_string(path)?;

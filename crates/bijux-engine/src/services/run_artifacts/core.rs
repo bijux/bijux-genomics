@@ -119,8 +119,8 @@ pub fn prepare_tool_run_dirs(tools_root: &Path, tool: &str, run_id: &str) -> Res
     let run_dir = tool_dir.join("run").join(run_id);
     let artifacts_dir = run_dir.join("artifacts");
     let logs_dir = run_dir.join("logs");
-    std::fs::create_dir_all(&artifacts_dir).context("create artifacts dir")?;
-    std::fs::create_dir_all(&logs_dir).context("create logs dir")?;
+    bijux_infra::ensure_dir(&artifacts_dir).context("create artifacts dir")?;
+    bijux_infra::ensure_dir(&logs_dir).context("create logs dir")?;
     Ok(RunDirs {
         artifacts_dir,
         logs_dir: logs_dir.clone(),
@@ -230,9 +230,9 @@ pub fn write_stage_plan_json<T: Serialize>(
 ) -> Result<PathBuf> {
     let root = run_artifacts_dir(run_dirs)?;
     let plans_dir = root.join("plans");
-    std::fs::create_dir_all(&plans_dir).context("create plans artifact dir")?;
+    bijux_infra::ensure_dir(&plans_dir).context("create plans artifact dir")?;
     let path = plans_dir.join(file_name);
-    std::fs::create_dir_all(path.parent().unwrap_or(&plans_dir))
+    bijux_infra::ensure_dir(path.parent().unwrap_or(&plans_dir))
         .context("create plan parent dir")?;
     bijux_infra::atomic_write_json(&path, plan).context("write stage plan json")?;
     Ok(path)
@@ -263,7 +263,7 @@ pub fn write_execution_logs_bounded(
     stdout: &str,
     stderr: &str,
 ) -> Result<Vec<PathBuf>> {
-    std::fs::create_dir_all(logs_dir).context("create logs dir")?;
+    bijux_infra::ensure_dir(logs_dir).context("create logs dir")?;
     let tail_kb = log_tail_kb();
     let stdout_path = logs_dir.join("tool.stdout.log");
     let stderr_path = logs_dir.join("tool.stderr.log");
@@ -337,11 +337,11 @@ pub fn write_plan_artifacts(
     banks: Option<&serde_json::Value>,
     bank_assets: Option<&serde_json::Value>,
 ) -> Result<PlanArtifacts> {
-    std::fs::create_dir_all(run_artifacts_dir).context("create run_artifacts dir")?;
+    bijux_infra::ensure_dir(run_artifacts_dir).context("create run_artifacts dir")?;
     let plan_path = run_artifacts_dir.join("plan.json");
     let effective_config_path = run_artifacts_dir.join("effective_config.json");
     let config_dir = run_artifacts_dir.join("config");
-    std::fs::create_dir_all(&config_dir).context("create config artifact dir")?;
+    bijux_infra::ensure_dir(&config_dir).context("create config artifact dir")?;
     let stage_config_path = config_dir.join(format!("{stage_id}.effective.json"));
     let payload = serde_json::json!({
         "stage_id": stage_id,
@@ -429,7 +429,7 @@ pub fn write_tool_invocation_json(
     invocation: &bijux_core::ToolInvocationV1,
 ) -> Result<PathBuf> {
     let invocations_dir = run_artifacts_dir.join("invocations");
-    std::fs::create_dir_all(&invocations_dir).context("create invocations dir")?;
+    bijux_infra::ensure_dir(&invocations_dir).context("create invocations dir")?;
     let file_name = format!("{stage_id}.tool_invocation.json");
     let path = invocations_dir.join(file_name);
     bijux_infra::atomic_write_json(&path, invocation).context("write tool_invocation.json")?;

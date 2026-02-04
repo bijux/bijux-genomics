@@ -55,7 +55,7 @@ fn run_image_qa_with(
     let qa_dir = qa_sqlite
         .parent()
         .ok_or_else(|| anyhow!("missing image QA directory"))?;
-    std::fs::create_dir_all(qa_dir).context("create image qa dir")?;
+    bijux_infra::ensure_dir(qa_dir).context("create image qa dir")?;
 
     let conn = open_sqlite(&qa_sqlite).context("open image qa sqlite")?;
     ensure_image_qa_tables(&conn).context("ensure image qa tables")?;

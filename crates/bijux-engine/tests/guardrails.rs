@@ -20,12 +20,20 @@ fn no_ad_hoc_fs_writes_in_services() {
         .filter(|entry| entry.path().extension().and_then(|s| s.to_str()) == Some("rs"))
     {
         let content = std::fs::read_to_string(entry.path()).unwrap_or_default();
-        if content.contains("std::fs::write(") {
+        if content.contains("std::fs::write(")
+            || content.contains("fs::write(")
+            || content.contains("std::fs::rename(")
+            || content.contains("fs::rename(")
+            || content.contains("std::fs::remove_file(")
+            || content.contains("fs::remove_file(")
+            || content.contains("std::fs::create_dir_all(")
+            || content.contains("fs::create_dir_all(")
+        {
             offenders.push(entry.path().display().to_string());
         }
     }
     assert!(
         offenders.is_empty(),
-        "direct std::fs::write is forbidden in engine services: {offenders:?}"
+        "direct std::fs writes/renames/removals/dir-creation are forbidden in engine services: {offenders:?}"
     );
 }

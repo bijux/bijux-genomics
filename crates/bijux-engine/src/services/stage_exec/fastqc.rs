@@ -405,7 +405,7 @@ mod screen_tests {
     fn parse_screen_report_parses_fixture() -> Result<()> {
         let fixture = include_str!("../../../tests/fixtures/screen/screen_report_v1.tsv");
         let dir = std::env::temp_dir().join("bijux-screen-fixture");
-        fs::create_dir_all(&dir)?;
+        bijux_infra::ensure_dir(&dir)?;
         let path = dir.join("screen_report.tsv");
         bijux_infra::atomic_write_bytes(&path, fixture.as_bytes())?;
         let (rate, summary) = parse_screen_report(&path)?;
@@ -418,7 +418,7 @@ mod screen_tests {
     fn parse_screen_report_rejects_bad_fixture() {
         let fixture = include_str!("../../../tests/fixtures/screen/screen_report_bad.tsv");
         let dir = std::env::temp_dir().join("bijux-screen-fixture-bad");
-        let _ = fs::create_dir_all(&dir);
+        let _ = bijux_infra::ensure_dir(&dir);
         let path = dir.join("screen_report.tsv");
         let _ = bijux_infra::atomic_write_bytes(&path, fixture.as_bytes());
         let result = parse_screen_report(&path);

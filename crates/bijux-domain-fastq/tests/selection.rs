@@ -68,7 +68,7 @@ fn create_bench_db(
 #[test]
 fn default_route_selects_tools_deterministically() -> Result<(), Box<dyn std::error::Error>> {
     let temp_root = std::env::temp_dir().join(format!("bijux-select-{}", Uuid::new_v4()));
-    std::fs::create_dir_all(&temp_root)?;
+    bijux_infra::ensure_dir(&temp_root)?;
 
     let corpus = BenchCorpus::new(
         BenchCorpusId::Fastq5Set,
@@ -109,7 +109,7 @@ fn default_route_selects_tools_deterministically() -> Result<(), Box<dyn std::er
                 _ => "unknown",
             };
             let bench_dir = bench_base_dir(&temp_root, bench_dir_name, dataset.id);
-            std::fs::create_dir_all(&bench_dir)?;
+            bijux_infra::ensure_dir(&bench_dir)?;
             let sqlite_path = bench_dir.join("bench.sqlite");
             create_bench_db(
                 &sqlite_path,

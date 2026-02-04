@@ -34,7 +34,7 @@ fn write_qc_post_reports(
         let trimmed_metrics_v2 = fastqc_metrics_v2_from_dir(&trimmed_dir);
         let fastqc_metrics_path = if raw_metrics_v2.is_some() || trimmed_metrics_v2.is_some() {
             let reports_dir = run_artifacts_dir.join("reports");
-            std::fs::create_dir_all(&reports_dir).context("create reports dir")?;
+            bijux_infra::ensure_dir(&reports_dir).context("create reports dir")?;
             let payload = serde_json::json!({
                 "schema_version": "bijux.fastqc_metrics.v2",
                 "raw": raw_metrics_v2,
@@ -93,7 +93,7 @@ fn write_qc_post_reports(
             None
         } else {
             let reports_dir = run_artifacts_dir.join("reports");
-            std::fs::create_dir_all(&reports_dir).context("create reports dir")?;
+            bijux_infra::ensure_dir(&reports_dir).context("create reports dir")?;
             let path = reports_dir.join("suggested_adapters.json");
             bijux_infra::atomic_write_json(&path, &suggested_payload)
                 .context("write suggested adapters")?;

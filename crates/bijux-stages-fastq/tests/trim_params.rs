@@ -59,9 +59,9 @@ fn default_adapter_preset_writes_effective_adapters() -> Result<()> {
     let presets = bijux_stages_fastq::load_adapter_presets(&presets_path, &bank)?;
     let effective =
         bijux_stages_fastq::resolve_adapter_preset(&bank, &presets, "illumina-default", &[], &[])?;
-    let tmp = tempfile::TempDir::new()?;
+    let tmp = bijux_infra::temp_dir("bijux")?;
     let run_dir = tmp.path().join("run");
-    std::fs::create_dir_all(&run_dir)?;
+    bijux_infra::ensure_dir(&run_dir)?;
     let path = bijux_stages_fastq::artifacts::write_effective_adapters(
         &run_dir, &effective, "bank", "presets",
     )?;

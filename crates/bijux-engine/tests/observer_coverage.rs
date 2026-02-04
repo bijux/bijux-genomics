@@ -9,13 +9,12 @@ use bijux_core::{
 use bijux_engine::primitives::execute_plan;
 use bijux_env_runtime::api::RunnerKind;
 use bijux_stages_fastq::fastq::trim;
-use tempfile::TempDir;
 
 static ENV_LOCK: Mutex<()> = Mutex::new(());
 
 fn write_fake_docker(dir: &Path) -> Result<PathBuf> {
     let bin_dir = dir.join("bin");
-    fs::create_dir_all(&bin_dir)?;
+    bijux_infra::ensure_dir(&bin_dir)?;
     let docker_path = bin_dir.join("docker");
     let script = r#"#!/bin/sh
 set -e
@@ -50,7 +49,7 @@ case "$cmd" in
     ;;
  esac
 "#;
-    fs::write(&docker_path, script)?;
+    bijux_infra::write_bytes(&docker_path, script)?;
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;
@@ -83,15 +82,15 @@ fn observer_populates_key_metrics_fields() -> Result<()> {
     let _guard = ENV_LOCK
         .lock()
         .map_err(|_| anyhow::anyhow!("env lock poisoned"))?;
-    let dir = TempDir::new()?;
+    let dir = bijux_infra::temp_dir("bijux")?;
     let bin_dir = write_fake_docker(dir.path())?;
     let original_path = std::env::var("PATH").unwrap_or_default();
     std::env::set_var("PATH", format!("{}:{}", bin_dir.display(), original_path));
 
     let r1 = dir.path().join("input.fastq");
-    fs::write(&r1, "@r1\nACGT\n+\n!!!!\n")?;
+    bijux_infra::write_bytes(&r1, "@r1\nACGT\n+\n!!!!\n")?;
     let out_dir = dir.path().join("out");
-    fs::create_dir_all(&out_dir)?;
+    bijux_infra::ensure_dir(&out_dir)?;
     let image = ContainerImageRefV1 {
         image: "bijux/test:latest".to_string(),
         digest: None,
@@ -105,7 +104,7 @@ fn observer_populates_key_metrics_fields() -> Result<()> {
         None,
     )?;
     for output in &plan.io.outputs {
-        fs::write(&output.path, "")?;
+        bijux_infra::write_bytes(&output.path, "")?;
     }
     let _ = execute_plan(&plan, RunnerKind::Docker, None)?;
 

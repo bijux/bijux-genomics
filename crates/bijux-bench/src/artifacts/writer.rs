@@ -5,7 +5,7 @@
 //! Invariants: writes are atomic and stable.
 #![allow(dead_code)]
 
-use std::fs::{self, File};
+use std::fs::File;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 
@@ -22,13 +22,13 @@ fn write_atomic_bytes(path: &Path, bytes: &[u8]) -> Result<()> {
     let dir = path
         .parent()
         .ok_or_else(|| anyhow::anyhow!("missing parent for {}", path.display()))?;
-    fs::create_dir_all(dir)?;
+    bijux_infra::ensure_dir(dir)?;
     let mut temp = PathBuf::from(path);
     temp.set_extension("tmp");
     let mut file = File::create(&temp)?;
     file.write_all(bytes)?;
     file.sync_all()?;
-    fs::rename(&temp, path)?;
+    bijux_infra::rename(&temp, path)?;
     Ok(())
 }
 
@@ -201,7 +201,7 @@ mod tests {
             .join("target")
             .join("test-fixtures")
             .join("bench_artifacts");
-        std::fs::create_dir_all(&out_dir)?;
+        bijux_infra::ensure_dir(&out_dir)?;
 
         let obs = BenchmarkObservation {
             schema_version: "bijux.bench.observation.v1".to_string(),

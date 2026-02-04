@@ -19,7 +19,7 @@ fn qa_qc_post_tool(
             .ok_or_else(|| anyhow!("fastqc missing from images.yaml"))?;
         let fastqc_image = resolve_image_for_run(fastqc_spec, platform)?;
         let fastqc_dir = out_dir.join("fastqc");
-        std::fs::create_dir_all(&fastqc_dir).context("create fastqc output dir")?;
+        bijux_infra::ensure_dir(&fastqc_dir).context("create fastqc output dir")?;
         let fastqc_container = format!("bijux-qa-qc_post-fastqc-{}", Uuid::new_v4());
         let fastqc_exec = match run_validate_container_with_timeout(
             "fastqc",

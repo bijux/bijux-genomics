@@ -46,7 +46,7 @@ fn run_stage_execution(
                 .ok_or_else(|| anyhow!("fastqc image missing for multiqc qc_post"))?;
             let fastqc_image = resolved_image_for_plan(fastqc_image, runner);
             let fastqc_trimmed_dir = plan.out_dir.join("fastqc_trimmed");
-            std::fs::create_dir_all(&fastqc_trimmed_dir)?;
+            bijux_infra::ensure_dir(&fastqc_trimmed_dir)?;
             let fastqc_trimmed_container = format!("bijux-stage-fastqc-{}", Uuid::new_v4());
             let fastqc_trimmed_exec = run_validate_execution(
                 "fastqc",
@@ -71,7 +71,7 @@ fn run_stage_execution(
                 let raw_r1 = PathBuf::from(raw_r1);
                 if let Some(raw_dir) = raw_r1.parent() {
                     let fastqc_raw_dir = plan.out_dir.join("fastqc_raw");
-                    std::fs::create_dir_all(&fastqc_raw_dir)?;
+                    bijux_infra::ensure_dir(&fastqc_raw_dir)?;
                     let fastqc_raw_container = format!("bijux-stage-fastqc-{}", Uuid::new_v4());
                     let fastqc_raw_exec = run_validate_execution(
                         "fastqc",

@@ -187,6 +187,12 @@ pub enum BijuxError {
     Yaml(#[from] serde_yaml::Error),
 }
 
+impl From<bijux_infra::IoError> for BijuxError {
+    fn from(err: bijux_infra::IoError) -> Self {
+        Self::Io(std::io::Error::new(std::io::ErrorKind::Other, err))
+    }
+}
+
 #[must_use]
 pub fn new_run_id() -> RunId {
     RunId(Uuid::new_v4().to_string())
@@ -194,10 +200,7 @@ pub fn new_run_id() -> RunId {
 
 #[must_use]
 pub fn run_dir(base: &Path, run_id: &RunId, stage: &StageId, tool: &ToolId) -> PathBuf {
-    base.join("runs")
-        .join(&run_id.0)
-        .join(&stage.0)
-        .join(&tool.0)
+    bijux_infra::run_stage_dir(base, &run_id.0, &stage.0, &tool.0)
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

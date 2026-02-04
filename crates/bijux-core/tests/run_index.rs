@@ -4,11 +4,10 @@ use bijux_core::run_index::{
     insert_run, insert_stage_row, list_runs, query_latest_runs, query_run, query_stage_rows,
     RunIndexEntry, StageIndexRow,
 };
-use tempfile::TempDir;
 
 #[test]
 fn run_index_insert_and_query() -> anyhow::Result<()> {
-    let dir = TempDir::new()?;
+    let dir = bijux_infra::temp_dir("bijux")?;
     let index_path = dir.path().join("index.jsonl");
 
     let run = RunIndexEntry {
@@ -56,7 +55,7 @@ fn run_index_insert_and_query() -> anyhow::Result<()> {
 
 #[test]
 fn run_index_latest_run_is_deterministic() -> anyhow::Result<()> {
-    let dir = TempDir::new()?;
+    let dir = bijux_infra::temp_dir("bijux")?;
     let index_path = dir.path().join("index.jsonl");
 
     for run_id in ["run-2", "run-1", "run-3"] {
@@ -84,7 +83,7 @@ fn run_index_latest_run_is_deterministic() -> anyhow::Result<()> {
 
 #[test]
 fn run_index_query_by_stage_and_tool() -> anyhow::Result<()> {
-    let dir = TempDir::new()?;
+    let dir = bijux_infra::temp_dir("bijux")?;
     let index_path = dir.path().join("index.jsonl");
 
     insert_stage_row(

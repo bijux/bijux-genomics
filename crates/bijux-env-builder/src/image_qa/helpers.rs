@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::fs;
 use std::path::PathBuf;
 
 use crate::api::{PlatformSpec, ToolImageSpec};
@@ -12,9 +11,9 @@ use super::QaStage;
 
 pub(crate) fn temp_out_dir(stage: &str, tool: &str) -> Result<PathBuf> {
     let base = std::env::temp_dir().join("bijux-image-qa").join(stage);
-    fs::create_dir_all(&base)?;
+    bijux_infra::ensure_dir(&base)?;
     let path = base.join(format!("{tool}-{}", Uuid::new_v4()));
-    fs::create_dir_all(&path)?;
+    bijux_infra::ensure_dir(&path)?;
     Ok(path)
 }
 

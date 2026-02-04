@@ -39,11 +39,10 @@ pub fn assess_execution(exit_code: i32, expected_outputs: &[PathBuf]) -> Executi
 mod tests {
     use super::assess_execution;
     use std::path::PathBuf;
-    use tempfile::TempDir;
 
     #[test]
     fn assess_execution_success() -> anyhow::Result<()> {
-        let dir = TempDir::new()?;
+        let dir = bijux_infra::temp_dir("bijux")?;
         let output = dir.path().join("out.fastq");
         bijux_infra::atomic_write_bytes(&output, b"ok")?;
         let assessment = assess_execution(0, &[output]);
@@ -61,7 +60,7 @@ mod tests {
 
     #[test]
     fn assess_execution_partial_outputs() -> anyhow::Result<()> {
-        let dir = TempDir::new()?;
+        let dir = bijux_infra::temp_dir("bijux")?;
         let present = dir.path().join("present.fastq");
         bijux_infra::atomic_write_bytes(&present, b"ok")?;
         let missing = dir.path().join("missing.fastq");

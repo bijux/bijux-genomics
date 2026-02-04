@@ -7,18 +7,17 @@ use bijux_core::{
 };
 use bijux_engine::primitives::{execute_plan, resolve_image_for_run, StagePlanV1};
 use bijux_env_runtime::api::{load_image_catalog, load_platform};
-use tempfile::TempDir;
 
 fn ensure_docker() -> bool {
     let status = std::process::Command::new("docker").arg("version").status();
     matches!(status, Ok(s) if s.success())
 }
 
-fn tempdir_in_repo() -> Result<TempDir> {
+fn tempdir_in_repo() -> Result<tempfile::TempDir> {
     let cwd = std::env::current_dir()?;
     let base = cwd.join("target").join("test-tmp");
-    std::fs::create_dir_all(&base)?;
-    Ok(TempDir::new_in(base)?)
+    bijux_infra::ensure_dir(&base)?;
+    Ok(bijux_infra::temp_dir_in(base, "bijux")?)
 }
 
 #[test]

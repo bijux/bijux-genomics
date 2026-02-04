@@ -1,4 +1,3 @@
-use std::fs;
 use std::path::PathBuf;
 
 use bijux_core::ExecutionContract;
@@ -20,9 +19,9 @@ fn image_qa_paths_are_stable() {
 
 #[test]
 fn hash_file_sha256_matches_content() -> Result<(), Box<dyn std::error::Error>> {
-    let dir = tempfile::TempDir::new()?;
+    let dir = bijux_infra::temp_dir("bijux")?;
     let path = dir.path().join("sample.txt");
-    fs::write(&path, "hello")?;
+    bijux_infra::write_bytes(&path, "hello")?;
     let hash = hash_file_sha256(&path)?;
     assert_eq!(
         hash,
@@ -33,10 +32,10 @@ fn hash_file_sha256_matches_content() -> Result<(), Box<dyn std::error::Error>> 
 
 #[test]
 fn validate_execution_outputs_enforces_contract() -> Result<(), Box<dyn std::error::Error>> {
-    let dir = tempfile::TempDir::new()?;
+    let dir = bijux_infra::temp_dir("bijux")?;
     let out_dir = dir.path();
     let expected = out_dir.join("out.fastq.gz");
-    fs::write(&expected, "data")?;
+    bijux_infra::write_bytes(&expected, "data")?;
 
     let contract = ExecutionContract {
         required_inputs: vec![],
@@ -48,7 +47,7 @@ fn validate_execution_outputs_enforces_contract() -> Result<(), Box<dyn std::err
     validate_execution_outputs(&contract, out_dir)?;
 
     let unexpected = out_dir.join("extra.txt");
-    fs::write(&unexpected, "extra")?;
+    bijux_infra::write_bytes(&unexpected, "extra")?;
     assert!(validate_execution_outputs(&contract, out_dir).is_err());
     Ok(())
 }

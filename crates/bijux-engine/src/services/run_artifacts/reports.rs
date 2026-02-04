@@ -4,7 +4,7 @@ pub fn write_stage_event_jsonl(
 ) -> Result<PathBuf> {
     let path = run_artifacts_dir.join("stage_events.jsonl");
     if let Some(parent) = path.parent() {
-        std::fs::create_dir_all(parent).context("create stage_events dir")?;
+        bijux_infra::ensure_dir(parent).context("create stage_events dir")?;
     }
     let mut file = std::fs::OpenOptions::new()
         .create(true)
@@ -21,7 +21,7 @@ pub fn write_progress_event_jsonl(
 ) -> Result<PathBuf> {
     let path = run_artifacts_dir.join("progress.jsonl");
     if let Some(parent) = path.parent() {
-        std::fs::create_dir_all(parent).context("create progress dir")?;
+        bijux_infra::ensure_dir(parent).context("create progress dir")?;
     }
     let mut file = std::fs::OpenOptions::new()
         .create(true)
@@ -34,7 +34,7 @@ pub fn write_progress_event_jsonl(
 
 pub fn write_runs_export_jsonl(run_artifacts_dir: &Path, row: &RunsExportRowV1) -> Result<PathBuf> {
     let dashboard_dir = run_artifacts_dir.join("dashboard");
-    std::fs::create_dir_all(&dashboard_dir).context("create dashboard dir")?;
+    bijux_infra::ensure_dir(&dashboard_dir).context("create dashboard dir")?;
     let path = dashboard_dir.join("runs.jsonl");
     let mut file = std::fs::OpenOptions::new()
         .create(true)
@@ -107,7 +107,7 @@ pub fn write_retention_report_v1(
     bases_out: u64,
 ) -> Result<PathBuf> {
     let reports_dir = run_artifacts_dir.join("reports");
-    std::fs::create_dir_all(&reports_dir).context("create reports dir")?;
+    bijux_infra::ensure_dir(&reports_dir).context("create reports dir")?;
     let file_name = format!("{stage_id}.retention.json");
     let payload = RetentionReportV1 {
         schema_version: "bijux.retention_report.v1".to_string(),
@@ -165,7 +165,7 @@ pub fn write_trim_report_v1(
     adapter_overrides: Option<serde_json::Value>,
 ) -> Result<PathBuf> {
     let reports_dir = run_artifacts_dir.join("reports");
-    std::fs::create_dir_all(&reports_dir).context("create reports dir")?;
+    bijux_infra::ensure_dir(&reports_dir).context("create reports dir")?;
     let file_name = format!("{stage_id}.trim_report.json");
     let payload = TrimReportV1 {
         schema_version: "bijux.trim_report.v1".to_string(),
@@ -196,7 +196,7 @@ pub fn write_validate_report_v1(
     reads_invalid: u64,
 ) -> Result<PathBuf> {
     let reports_dir = run_artifacts_dir.join("reports");
-    std::fs::create_dir_all(&reports_dir).context("create reports dir")?;
+    bijux_infra::ensure_dir(&reports_dir).context("create reports dir")?;
     let file_name = format!("{stage_id}.validate_report.json");
     let payload = ValidateReportV1 {
         schema_version: "bijux.validate_report.v1".to_string(),
@@ -231,7 +231,7 @@ pub fn write_filter_report_v1(
     redundant_filters: Vec<String>,
 ) -> Result<PathBuf> {
     let reports_dir = run_artifacts_dir.join("reports");
-    std::fs::create_dir_all(&reports_dir).context("create reports dir")?;
+    bijux_infra::ensure_dir(&reports_dir).context("create reports dir")?;
     let file_name = format!("{stage_id}.filter_report.json");
     let payload = FilterReportV1 {
         schema_version: "bijux.filter_report.v1".to_string(),
@@ -267,7 +267,7 @@ pub fn write_merge_report_v1(
     merge_rate: f64,
 ) -> Result<PathBuf> {
     let reports_dir = run_artifacts_dir.join("reports");
-    std::fs::create_dir_all(&reports_dir).context("create reports dir")?;
+    bijux_infra::ensure_dir(&reports_dir).context("create reports dir")?;
     let file_name = format!("{stage_id}.merge_report.json");
     let payload = MergeReportV1 {
         schema_version: "bijux.merge_report.v1".to_string(),
@@ -300,7 +300,7 @@ pub fn write_qc_post_report_v1(
     suggested_preset: Option<&str>,
 ) -> Result<PathBuf> {
     let reports_dir = run_artifacts_dir.join("reports");
-    std::fs::create_dir_all(&reports_dir).context("create reports dir")?;
+    bijux_infra::ensure_dir(&reports_dir).context("create reports dir")?;
     let file_name = format!("{stage_id}.qc_post_report.json");
     let payload = QcPostReportV1 {
         schema_version: "bijux.qc_post_report.v1".to_string(),
@@ -323,7 +323,7 @@ pub fn write_qc_post_report_v1(
 
 pub fn write_telemetry_event(path: &Path, event: &TelemetryEventV1) -> Result<()> {
     if let Some(parent) = path.parent() {
-        std::fs::create_dir_all(parent).context("create telemetry dir")?;
+        bijux_infra::ensure_dir(parent).context("create telemetry dir")?;
     }
     let line = serde_json::to_string(event)?;
     std::fs::OpenOptions::new()
@@ -338,7 +338,7 @@ pub fn write_telemetry_event(path: &Path, event: &TelemetryEventV1) -> Result<()
 
 pub fn write_facts_jsonl(path: &Path, fact: &FactsRowV1) -> Result<()> {
     if let Some(parent) = path.parent() {
-        std::fs::create_dir_all(parent).context("create dashboard dir")?;
+        bijux_infra::ensure_dir(parent).context("create dashboard dir")?;
     }
     let line = serde_json::to_string(fact)?;
     std::fs::OpenOptions::new()

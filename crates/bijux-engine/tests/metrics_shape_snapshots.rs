@@ -9,13 +9,12 @@ use bijux_core::{
 use bijux_engine::primitives::execute_plan;
 use bijux_env_runtime::api::RunnerKind;
 use bijux_stages_fastq::fastq::{filter, merge, trim, validate_pre};
-use tempfile::TempDir;
 
 static ENV_LOCK: Mutex<()> = Mutex::new(());
 
 fn write_fake_docker(dir: &Path) -> Result<PathBuf> {
     let bin_dir = dir.join("bin");
-    fs::create_dir_all(&bin_dir)?;
+    bijux_infra::ensure_dir(&bin_dir)?;
     let docker_path = bin_dir.join("docker");
     let script = r#"#!/bin/sh
 set -e
@@ -50,7 +49,7 @@ case "$cmd" in
     ;;
  esac
 "#;
-    fs::write(&docker_path, script)?;
+    bijux_infra::write_bytes(&docker_path, script)?;
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;
@@ -61,12 +60,12 @@ case "$cmd" in
     Ok(bin_dir)
 }
 
-fn temp_inputs() -> Result<(TempDir, PathBuf, PathBuf)> {
-    let dir = TempDir::new()?;
+fn temp_inputs() -> Result<(tempfile::TempDir, PathBuf, PathBuf)> {
+    let dir = bijux_infra::temp_dir("bijux")?;
     let r1 = dir.path().join("input_r1.fastq");
     let r2 = dir.path().join("input_r2.fastq");
-    fs::write(&r1, "@r1\nACGT\n+\n!!!!\n")?;
-    fs::write(&r2, "@r2\nTGCA\n+\n!!!!\n")?;
+    bijux_infra::write_bytes(&r1, "@r1\nACGT\n+\n!!!!\n")?;
+    bijux_infra::write_bytes(&r2, "@r2\nTGCA\n+\n!!!!\n")?;
     Ok((dir, r1, r2))
 }
 
@@ -96,9 +95,9 @@ fn dummy_tool(tool: &str, image: &ContainerImageRefV1) -> ToolExecutionSpecV1 {
 
 fn touch(path: &Path) -> Result<()> {
     if let Some(parent) = path.parent() {
-        fs::create_dir_all(parent)?;
+        bijux_infra::ensure_dir(parent)?;
     }
-    fs::write(path, "")?;
+    bijux_infra::write_bytes(path, "")?;
     Ok(())
 }
 
@@ -194,7 +193,7 @@ fn metrics_shape_snapshots() -> Result<()> {
     let image = test_image();
 
     let trim_out = dir.path().join("trim");
-    fs::create_dir_all(&trim_out)?;
+    bijux_infra::ensure_dir(&trim_out)?;
     let trim_plan = trim::plan(
         &dummy_tool("fastp", &image),
         &r1,
@@ -217,7 +216,7 @@ fn metrics_shape_snapshots() -> Result<()> {
     assert_report_shape("fastq_trim", &trim_report)?;
 
     let filter_out = dir.path().join("filter");
-    fs::create_dir_all(&filter_out)?;
+    bijux_infra::ensure_dir(&filter_out)?;
     let filter_options = bijux_stages_fastq::fastq::filter::FilterPlanOptions::default();
     let filter_plan = filter::plan_filter(
         &dummy_tool("fastp", &image),
@@ -239,7 +238,7 @@ fn metrics_shape_snapshots() -> Result<()> {
     assert_report_shape("fastq_filter", &filter_report)?;
 
     let merge_out = dir.path().join("merge");
-    fs::create_dir_all(&merge_out)?;
+    bijux_infra::ensure_dir(&merge_out)?;
     let merge_plan = merge::plan_merge(&dummy_tool("pear", &image), &r1, &r2, &merge_out)?;
     for output in &merge_plan.io.outputs {
         touch(&output.path)?;
@@ -258,7 +257,7 @@ fn metrics_shape_snapshots() -> Result<()> {
     assert_report_shape("fastq_merge", &merge_report)?;
 
     let validate_out = dir.path().join("validate");
-    fs::create_dir_all(&validate_out)?;
+    bijux_infra::ensure_dir(&validate_out)?;
     let validate_plan = validate_pre::plan(
         &dummy_tool("fastqvalidator_official", &image),
         &r1,

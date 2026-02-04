@@ -200,7 +200,7 @@ mod tests {
             .map_err(|err| std::io::Error::new(std::io::ErrorKind::Other, err))?;
         let version = extract_version_from_dockerfile(&path, "fastp")?;
         assert_eq!(version, "0.23.4");
-        let _ = std::fs::remove_file(&path);
+        let _ = bijux_infra::remove_file(&path);
         Ok(())
     }
 }

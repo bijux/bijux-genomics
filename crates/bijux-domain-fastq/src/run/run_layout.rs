@@ -96,11 +96,11 @@ pub struct RunLayout {
 /// Returns an error if directories cannot be created.
 pub fn create_run_layout(base_dir: &Path) -> Result<(String, RunLayout)> {
     let run_id = Uuid::new_v4().to_string();
-    let run_dir = base_dir.join("runs").join(&run_id);
+    let run_dir = bijux_infra::run_layout_paths(base_dir, &run_id).run_dir;
     let stages_dir = run_dir.join("stages");
     let summary_dir = run_dir.join("summary");
-    std::fs::create_dir_all(&stages_dir).context("create run stages dir")?;
-    std::fs::create_dir_all(&summary_dir).context("create run summary dir")?;
+    bijux_infra::ensure_dir(&stages_dir).context("create run stages dir")?;
+    bijux_infra::ensure_dir(&summary_dir).context("create run summary dir")?;
     let layout = RunLayout {
         assessment_path: run_dir.join("input_assessment.json"),
         manifest_path: run_dir.join("execution_manifest.json"),
@@ -151,7 +151,7 @@ pub fn write_manifest(layout: &RunLayout, manifest: &RunManifest) -> Result<()> 
 pub fn update_run_index(base_dir: &Path, entry: RunIndexEntry) -> Result<()> {
     let index_path = base_dir.join("bijux-runs").join("index.jsonl");
     if let Some(parent) = index_path.parent() {
-        std::fs::create_dir_all(parent)?;
+        bijux_infra::ensure_dir(parent)?;
     }
     let line = RunIndexLine {
         schema_version: 1,

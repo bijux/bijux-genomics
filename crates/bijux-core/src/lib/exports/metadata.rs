@@ -417,9 +417,9 @@ fn path_list_to_mount(paths: &[PathBuf]) -> String {
 /// # Errors
 /// Returns an error if directories cannot be created.
 pub fn ensure_run_dirs(plan: &ExecutionPlan) -> Result<(), BijuxError> {
-    std::fs::create_dir_all(&plan.logs_dir)?;
-    std::fs::create_dir_all(&plan.artifacts_dir)?;
-    std::fs::create_dir_all(&plan.tmp_dir)?;
+    bijux_infra::ensure_dir(&plan.logs_dir)?;
+    bijux_infra::ensure_dir(&plan.artifacts_dir)?;
+    bijux_infra::ensure_dir(&plan.tmp_dir)?;
     Ok(())
 }
 

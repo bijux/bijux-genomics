@@ -13,13 +13,12 @@ use bijux_stages_fastq::fastq::{
     correct, filter, merge, qc_post, screen, stats_neutral, trim, umi, validate_pre,
 };
 use bijux_pipelines::fastq::DefaultPipelineOptions;
-use tempfile::TempDir;
 
 static ENV_LOCK: Mutex<()> = Mutex::new(());
 
 fn write_fake_docker(dir: &Path) -> Result<PathBuf> {
     let bin_dir = dir.join("bin");
-    fs::create_dir_all(&bin_dir)?;
+    bijux_infra::ensure_dir(&bin_dir)?;
     let docker_path = bin_dir.join("docker");
     let script = r#"#!/bin/sh
 set -e
@@ -54,7 +53,7 @@ case "$cmd" in
     ;;
  esac
 "#;
-    fs::write(&docker_path, script)?;
+    bijux_infra::write_bytes(&docker_path, script)?;
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;
@@ -65,12 +64,12 @@ case "$cmd" in
     Ok(bin_dir)
 }
 
-fn temp_inputs() -> Result<(TempDir, PathBuf, PathBuf)> {
-    let dir = TempDir::new()?;
+fn temp_inputs() -> Result<(tempfile::TempDir, PathBuf, PathBuf)> {
+    let dir = bijux_infra::temp_dir("bijux")?;
     let r1 = dir.path().join("input_r1.fastq");
     let r2 = dir.path().join("input_r2.fastq");
-    fs::write(&r1, "@r1\nACGT\n+\n!!!!\n")?;
-    fs::write(&r2, "@r2\nTGCA\n+\n!!!!\n")?;
+    bijux_infra::write_bytes(&r1, "@r1\nACGT\n+\n!!!!\n")?;
+    bijux_infra::write_bytes(&r2, "@r2\nTGCA\n+\n!!!!\n")?;
     Ok((dir, r1, r2))
 }
 
@@ -100,13 +99,13 @@ fn dummy_tool(tool: &str, image: &ContainerImageRefV1) -> ToolExecutionSpecV1 {
 
 fn touch(path: &Path) -> Result<()> {
     if let Some(parent) = path.parent() {
-        fs::create_dir_all(parent)?;
+        bijux_infra::ensure_dir(parent)?;
     }
     if path.extension().is_none() {
-        fs::create_dir_all(path)?;
+        bijux_infra::ensure_dir(path)?;
         return Ok(());
     }
-    fs::write(path, "")?;
+    bijux_infra::write_bytes(path, "")?;
     Ok(())
 }
 

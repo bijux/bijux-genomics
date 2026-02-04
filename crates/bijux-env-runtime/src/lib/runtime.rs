@@ -136,7 +136,7 @@ arch: arm64
         .map_err(|err| std::io::Error::new(std::io::ErrorKind::Other, err))?;
         let catalog = load_image_catalog_from_file(&path)?;
         assert!(catalog.contains_key("fastp"));
-        let _ = std::fs::remove_file(&path);
+        let _ = bijux_infra::remove_file(&path);
         Ok(())
     }
 
@@ -181,7 +181,7 @@ arch: arm64
     #[test]
     fn cache_dir_is_deterministic() -> Result<(), EnvError> {
         let home = std::env::temp_dir().join("bijux_home");
-        std::fs::create_dir_all(&home)?;
+        bijux_infra::ensure_dir(&home)?;
         let original = std::env::var_os("HOME");
         std::env::set_var("HOME", &home);
         let docker = cache_dir(RunnerKind::Docker);

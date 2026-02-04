@@ -54,10 +54,10 @@ impl ReferenceRegistry {
         fasta: &Path,
         request: &ReferenceBuildRequest,
     ) -> Result<ReferenceRecord, EnvError> {
-        std::fs::create_dir_all(&self.root)?;
+        bijux_infra::ensure_dir(&self.root)?;
         let digest = hash_file_sha256(fasta)?;
         let ref_root = self.root.join(&digest);
-        std::fs::create_dir_all(&ref_root)?;
+        bijux_infra::ensure_dir(&ref_root)?;
         let fasta_target = ref_root.join(
             fasta
                 .file_name()

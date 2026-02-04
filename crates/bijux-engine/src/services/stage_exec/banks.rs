@@ -231,7 +231,7 @@ fn write_effective_fasta(
         return Ok(None);
     }
     let banks_dir = run_artifacts_dir.join("banks");
-    std::fs::create_dir_all(&banks_dir).context("create banks dir")?;
+    bijux_infra::ensure_dir(&banks_dir).context("create banks dir")?;
     let path = banks_dir.join(format!("effective_{name}.fasta"));
     let mut payload = String::new();
     for entry in entries {
@@ -272,7 +272,7 @@ fn write_effective_bank_yaml(
         return Ok(None);
     }
     let banks_dir = run_artifacts_dir.join("banks");
-    std::fs::create_dir_all(&banks_dir).context("create banks dir")?;
+    bijux_infra::ensure_dir(&banks_dir).context("create banks dir")?;
     let path = banks_dir.join(format!("effective_{name}.yaml"));
     let payload = serde_json::json!({
         "bank_id": bank_value.get("bank_id"),
@@ -312,7 +312,7 @@ fn write_effective_fasta_list(
         return Ok(None);
     }
     let banks_dir = run_artifacts_dir.join("banks");
-    std::fs::create_dir_all(&banks_dir).context("create banks dir")?;
+    bijux_infra::ensure_dir(&banks_dir).context("create banks dir")?;
     let path = banks_dir.join(format!("effective_{name}.fasta.list"));
     let payload = references
         .iter()

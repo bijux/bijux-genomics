@@ -1,19 +1,18 @@
 use std::fs;
 
 use bijux_engine::primitives::{prepare_tool_run_dirs, write_run_manifest, RunArtifactInput};
-use tempfile::TempDir;
 
 #[test]
 fn run_manifest_includes_telemetry_and_facts() -> anyhow::Result<()> {
-    let dir = TempDir::new()?;
+    let dir = bijux_infra::temp_dir("bijux")?;
     let out_dir = dir.path().join("out");
-    fs::create_dir_all(&out_dir)?;
+    bijux_infra::ensure_dir(&out_dir)?;
     let run_dirs = prepare_tool_run_dirs(&out_dir, "stage", "tool")?;
     let adapter_bank = out_dir.join("adapter_bank.yaml");
-    fs::write(&adapter_bank, "bank")?;
-    fs::write(&run_dirs.manifest_path, "{}")?;
-    fs::write(&run_dirs.metrics_path, "{}")?;
-    fs::write(&run_dirs.retention_report_path, "{}")?;
+    bijux_infra::write_bytes(&adapter_bank, "bank")?;
+    bijux_infra::write_bytes(&run_dirs.manifest_path, "{}")?;
+    bijux_infra::write_bytes(&run_dirs.metrics_path, "{}")?;
+    bijux_infra::write_bytes(&run_dirs.retention_report_path, "{}")?;
     write_run_manifest(
         &run_dirs,
         "stage",
