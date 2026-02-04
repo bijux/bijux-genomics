@@ -40,7 +40,7 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
                 compare_runs(&run_a, &run_b, &objective)?
             };
             let output_dir = args.output_dir.as_ref().unwrap_or(&args.search_root);
-            bijux_infra::ensure_dir(output_dir)?;
+            bijux_api::v1::run::ensure_dir(output_dir)?;
             let path = output_dir.join("compare.json");
             atomic_write_bytes(&path, &serde_json::to_vec_pretty(&result)?)
                 .map_err(anyhow::Error::from)?;
@@ -157,7 +157,7 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
                         compare_runs(&run_a, &run_b, &objective)?
                     };
                     let output_dir = args.output_dir.as_ref().unwrap_or(&args.search_root);
-                    bijux_infra::ensure_dir(output_dir)?;
+                    bijux_api::v1::run::ensure_dir(output_dir)?;
                     let path = output_dir.join("compare.json");
                     atomic_write_bytes(&path, &serde_json::to_vec_pretty(&result)?)
                         .map_err(anyhow::Error::from)?;
@@ -233,7 +233,7 @@ fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
                                 .map_err(anyhow::Error::from)?;
                             if args.format == "bundle" {
                                 let bundle_dir = run_dir.join("report_bundle");
-                                bijux_infra::ensure_dir(&bundle_dir)?;
+                                bijux_api::v1::run::ensure_dir(&bundle_dir)?;
                                 atomic_write_bytes(
                                     &bundle_dir.join("index.html"),
                                     index_html.as_bytes(),

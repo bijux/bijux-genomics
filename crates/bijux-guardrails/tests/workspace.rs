@@ -114,6 +114,47 @@ fn parse_dependencies(manifest: &Path, known: &BTreeSet<String>) -> BTreeSet<Str
     deps
 }
 
+fn parse_boundary_contract() -> BTreeMap<String, BTreeSet<String>> {
+    let root = workspace_root();
+    let path = root.join("crates").join("bijux-core").join("src").join("boundaries.md");
+    let content = std::fs::read_to_string(&path).expect("read boundaries.md");
+    let mut lines = Vec::new();
+    let mut in_block = false;
+    for line in content.lines() {
+        if line.trim() == "```boundaries" {
+            in_block = true;
+            continue;
+        }
+        if in_block && line.trim() == "```" {
+            break;
+        }
+        if in_block {
+            lines.push(line.trim().to_string());
+        }
+    }
+    assert!(
+        in_block && !lines.is_empty(),
+        "missing executable boundaries block in {}",
+        path.display()
+    );
+    let mut map = BTreeMap::new();
+    for line in lines {
+        if line.is_empty() || line.starts_with('#') {
+            continue;
+        }
+        let (name, deps) = line
+            .split_once(':')
+            .unwrap_or_else(|| panic!("invalid boundaries line: {line}"));
+        let deps = deps
+            .split_whitespace()
+            .filter(|dep| !dep.is_empty())
+            .map(|dep| dep.to_string())
+            .collect::<BTreeSet<_>>();
+        map.insert(name.trim().to_string(), deps);
+    }
+    map
+}
+
 #[test]
 fn workspace_has_guardrails_tests() {
     for path in crate_dirs() {
@@ -455,6 +496,25 @@ fn workspace_dependency_graph_contract() {
             !engine.contains(banned),
             "bijux-engine must not depend on {banned}"
         );
+    }
+}
+
+#[test]
+fn workspace_boundary_contract_matches_docs() {
+    let crates = collect_workspace_crates();
+    let known: BTreeSet<String> = crates.keys().cloned().collect();
+    let contract = parse_boundary_contract();
+    for (crate_name, path) in &crates {
+        let Some(allowed) = contract.get(crate_name) else {
+            panic!("missing boundaries entry for {crate_name}");
+        };
+        let deps = parse_dependencies(&path.join("Cargo.toml"), &known);
+        for dep in deps {
+            assert!(
+                allowed.contains(&dep),
+                "boundary violation: {crate_name} depends on {dep}, allowed: {allowed:?}"
+            );
+        }
     }
 }
 

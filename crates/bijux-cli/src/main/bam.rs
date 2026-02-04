@@ -63,7 +63,7 @@ fn run_bam_stage(
         build_tool_execution_spec(stage.as_str(), &tool_id, registry, &catalog, &platform)?;
 
     let out_dir = args.out.clone();
-    bijux_infra::ensure_dir(&out_dir).context("create bam out dir")?;
+    bijux_api::v1::run::ensure_dir(&out_dir).context("create bam out dir")?;
     let log_path = out_dir.join("bijux_bam.log");
     let _log_guard = init_logging(&log_path)?;
 

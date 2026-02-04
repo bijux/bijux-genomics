@@ -9,17 +9,10 @@ default-run = "bijux"
 bijux-api = { path = "../bijux-api" }
 anyhow.workspace = true
 clap.workspace = true
-serde.workspace = true
-serde_json.workspace = true
-serde_yaml.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true
 tracing-appender.workspace = true
-sha2.workspace = true
-uuid.workspace = true
-rusqlite.workspace = true
-chrono.workspace = true
-bijux-infra = { path = "../bijux-infra" }
+serde_json.workspace = true
 
 [features]
 bam_downstream = ["bijux-api/bam_downstream"]
@@ -29,6 +22,7 @@ bijux-guardrails = { path = "../bijux-guardrails" }
 assert_cmd = "2"
 tempfile = "3"
 predicates = "3"
+bijux-infra = { path = "../bijux-infra" }
 
 [lints]
 workspace = true

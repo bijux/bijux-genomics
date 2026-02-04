@@ -125,7 +125,7 @@ pub(crate) fn ensure_profile_run_base_dir(
         stage,
         tool,
     );
-    if run_dir.starts_with(profile.run_base_dir.join(bijux_infra::RUN_LAYOUT_CONTRACT.runs_dir)) {
+    if run_dir.starts_with(profile.run_base_dir.join(bijux_api::v1::run::RUN_LAYOUT_CONTRACT.runs_dir)) {
         let base = profile
             .run_base_dir
             .parent()
