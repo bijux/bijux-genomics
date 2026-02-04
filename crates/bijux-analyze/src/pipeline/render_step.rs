@@ -4,6 +4,7 @@
 use std::path::PathBuf;
 
 use anyhow::{Context, Result};
+use bijux_infra::atomic_write_bytes;
 
 use crate::export::write_run_summary_json;
 use crate::report::model::ReportModel;
@@ -54,7 +55,8 @@ pub(crate) fn render_outputs(
 
     if let Some(rankings) = &core.rankings {
         let rank_path = core.base_dir.join("ranking.json");
-        std::fs::write(&rank_path, serde_json::to_vec_pretty(rankings)?)
+        atomic_write_bytes(&rank_path, &serde_json::to_vec_pretty(rankings)?)
+            .map_err(anyhow::Error::from)
             .context("write ranking.json")?;
         rendered.ranking = Some(rank_path);
     }

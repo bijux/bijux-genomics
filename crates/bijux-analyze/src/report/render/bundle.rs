@@ -4,6 +4,7 @@
 use std::path::Path;
 
 use anyhow::{Context, Result};
+use bijux_infra::atomic_write_bytes;
 
 use crate::report::model::ReportModel;
 use crate::report::render::html::render_report_html;
@@ -12,17 +13,22 @@ pub fn write_report_bundle(dir: &Path, model: &ReportModel) -> Result<()> {
     std::fs::create_dir_all(dir).context("create report bundle dir")?;
     let html = render_report_html(model)?;
     let index_path = dir.join("index.html");
-    std::fs::write(&index_path, html).context("write report bundle index.html")?;
+    atomic_write_bytes(&index_path, html.as_bytes())
+        .map_err(anyhow::Error::from)
+        .context("write report bundle index.html")?;
     let report_json = serde_json::to_vec_pretty(&model.report)?;
     let report_path = dir.join("report.json");
-    std::fs::write(&report_path, report_json).context("write report bundle report.json")?;
+    atomic_write_bytes(&report_path, &report_json)
+        .map_err(anyhow::Error::from)
+        .context("write report bundle report.json")?;
     let assets_dir = dir.join("assets");
     std::fs::create_dir_all(&assets_dir).context("create report assets dir")?;
     let style_path = assets_dir.join("style.css");
-    std::fs::write(
+    atomic_write_bytes(
         &style_path,
-        "body{font-family:system-ui,-apple-system,sans-serif;margin:2rem;background:#f7f7f9;color:#111}pre{padding:1rem;background:#fff;border-radius:8px;overflow:auto;box-shadow:0 1px 4px rgba(0,0,0,0.08)}",
+        b"body{font-family:system-ui,-apple-system,sans-serif;margin:2rem;background:#f7f7f9;color:#111}pre{padding:1rem;background:#fff;border-radius:8px;overflow:auto;box-shadow:0 1px 4px rgba(0,0,0,0.08)}",
     )
+    .map_err(anyhow::Error::from)
     .context("write report bundle css")?;
     Ok(())
 }

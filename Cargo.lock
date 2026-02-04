@@ -273,6 +273,7 @@ dependencies = [
  "bijux-domain-bam",
  "bijux-domain-fastq",
  "bijux-guardrails",
+ "bijux-infra",
  "bijux-pipelines",
  "insta",
  "parquet",
@@ -331,6 +332,7 @@ dependencies = [
  "anyhow",
  "bijux-analyze",
  "bijux-guardrails",
+ "bijux-infra",
  "chrono",
  "regex",
  "serde",
@@ -362,7 +364,6 @@ name = "bijux-domain-fastq"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bijux-analyze",
  "bijux-core",
  "bijux-guardrails",
  "bijux-infra",
@@ -429,6 +430,7 @@ dependencies = [
  "bijux-core",
  "bijux-env-runtime",
  "bijux-guardrails",
+ "bijux-infra",
  "regex",
  "rusqlite",
  "serde",
@@ -447,6 +449,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bijux-guardrails",
+ "bijux-infra",
  "serde",
  "serde_yaml",
  "sha2",
@@ -514,7 +517,6 @@ dependencies = [
  "bijux-domain-fastq",
  "bijux-guardrails",
  "bijux-infra",
- "bijux-pipelines",
  "serde",
  "serde_json",
  "sha2",

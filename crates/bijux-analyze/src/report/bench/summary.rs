@@ -2,10 +2,10 @@
 // Benchmark reporting helpers.
 
 use std::collections::BTreeMap;
-use std::fs;
 use std::path::Path;
 
 use anyhow::{anyhow, Context, Result};
+use bijux_infra::atomic_write_bytes;
 use bijux_core::RawFailure;
 
 use crate::aggregate::{
@@ -430,4 +430,3 @@ pub fn rank_validate_tools(
         .collect::<Vec<_>>();
     build_rankings(&inputs)
 }
-

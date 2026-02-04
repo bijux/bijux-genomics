@@ -7,6 +7,7 @@ use bijux_analyze::{
     append_image_qa_jsonl, ensure_image_qa_tables, insert_image_qa_input_v1, insert_image_qa_v1,
     open_sqlite, ImageQaOutcome, ImageQaRecord,
 };
+use bijux_infra::atomic_write_bytes;
 
 use super::support::{
     image_qa_jsonl_path, image_qa_sqlite_path, resolve_image_for_run, trace_enabled, StdoutLogger,
@@ -176,7 +177,9 @@ fn run_image_qa_with(
         "fail": fail,
         "records": summary_records,
     });
-    std::fs::write(&qa_json, serde_json::to_vec_pretty(&summary)?).context("write qa.json")?;
+    atomic_write_bytes(&qa_json, &serde_json::to_vec_pretty(&summary)?)
+        .map_err(anyhow::Error::from)
+        .context("write qa.json")?;
 
     println!("QA PASS: {pass}");
     println!("QA FAIL: {fail}");

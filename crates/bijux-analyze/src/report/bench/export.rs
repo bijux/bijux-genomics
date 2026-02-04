@@ -30,7 +30,7 @@ pub fn write_validate_report(
     let rankings = rank_validate_tools(records)?;
     report.insert("rankings", serde_json::to_value(&rankings)?);
     let json = serde_json::to_string_pretty(&report)?;
-    fs::write(&path, json).context("write report.json")?;
+    atomic_write_bytes(&path, json.as_bytes()).map_err(anyhow::Error::from).context("write report.json")?;
     if explain {
         crate::decision::score::print_rank_explain("fastq.validate_pre", &rankings);
     }
@@ -67,7 +67,7 @@ pub fn write_filter_report(
     let rankings = rank_filter_tools(records)?;
     report.insert("rankings", serde_json::to_value(&rankings)?);
     let json = serde_json::to_string_pretty(&report)?;
-    fs::write(&path, json).context("write report.json")?;
+    atomic_write_bytes(&path, json.as_bytes()).map_err(anyhow::Error::from).context("write report.json")?;
     if explain {
         crate::decision::score::print_rank_explain("fastq.filter", &rankings);
     }
@@ -99,7 +99,7 @@ pub fn write_merge_report(
     let rankings = rank_merge_tools(records)?;
     report.insert("rankings", serde_json::to_value(&rankings)?);
     let json = serde_json::to_string_pretty(&report)?;
-    fs::write(&path, json).context("write report.json")?;
+    atomic_write_bytes(&path, json.as_bytes()).map_err(anyhow::Error::from).context("write report.json")?;
     if explain {
         crate::decision::score::print_rank_explain("fastq.merge", &rankings);
     }
@@ -131,7 +131,7 @@ pub fn write_correct_report(
     let rankings = rank_correct_tools(records)?;
     report.insert("rankings", serde_json::to_value(&rankings)?);
     let json = serde_json::to_string_pretty(&report)?;
-    fs::write(&path, json).context("write report.json")?;
+    atomic_write_bytes(&path, json.as_bytes()).map_err(anyhow::Error::from).context("write report.json")?;
     if explain {
         crate::decision::score::print_rank_explain("fastq.correct", &rankings);
     }
@@ -159,7 +159,7 @@ pub fn write_qc_post_report(
         serde_json::to_value(sanity_flags_qc_post(records))?,
     );
     let json = serde_json::to_string_pretty(&report)?;
-    fs::write(&path, json).context("write report.json")?;
+    atomic_write_bytes(&path, json.as_bytes()).map_err(anyhow::Error::from).context("write report.json")?;
     if explain {
         crate::decision::score::print_rank_explain("fastq.qc_post", &BTreeMap::new());
     }
@@ -191,7 +191,7 @@ pub fn write_umi_report(
     let rankings = rank_umi_tools(records)?;
     report.insert("rankings", serde_json::to_value(&rankings)?);
     let json = serde_json::to_string_pretty(&report)?;
-    fs::write(&path, json).context("write report.json")?;
+    atomic_write_bytes(&path, json.as_bytes()).map_err(anyhow::Error::from).context("write report.json")?;
     if explain {
         crate::decision::score::print_rank_explain("fastq.umi", &rankings);
     }
@@ -224,7 +224,7 @@ pub fn write_stats_report(
         .collect();
     report.insert("semantic_metrics", serde_json::to_value(&semantic)?);
     let json = serde_json::to_string_pretty(&report)?;
-    fs::write(&path, json).context("write report.json")?;
+    atomic_write_bytes(&path, json.as_bytes()).map_err(anyhow::Error::from).context("write report.json")?;
     if explain {
         crate::decision::score::print_rank_explain("fastq.stats_neutral", &BTreeMap::new());
     }

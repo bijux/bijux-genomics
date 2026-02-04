@@ -420,10 +420,11 @@ pub fn write_trim_report(
     let rankings = rank_trim_tools(records)?;
     report.insert("rankings", serde_json::to_value(&rankings)?);
     let json = serde_json::to_string_pretty(&report)?;
-    fs::write(&path, json).context("write report.json")?;
+    atomic_write_bytes(&path, json.as_bytes())
+        .map_err(anyhow::Error::from)
+        .context("write report.json")?;
     if explain {
         crate::decision::score::print_rank_explain("fastq.trim", &rankings);
     }
     Ok(())
 }
-

@@ -7,6 +7,7 @@
 use std::path::Path;
 
 use anyhow::{Context, Result};
+use bijux_infra::atomic_write_bytes;
 
 use bijux_core::selection::{objective_spec, Objective};
 
@@ -43,7 +44,8 @@ pub fn analyze_run_pipeline(input: &AnalyzeInput) -> Result<AnalyzeOutput> {
             .clone()
             .context("compare output_dir must be set in RenderOptions")?;
         let path = output_dir.join("compare.json");
-        std::fs::write(&path, serde_json::to_vec_pretty(&comparison)?)
+        atomic_write_bytes(&path, &serde_json::to_vec_pretty(&comparison)?)
+            .map_err(anyhow::Error::from)
             .context("write compare.json")?;
         output.compare_json = Some(path);
         return Ok(output);

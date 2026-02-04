@@ -2,6 +2,7 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use anyhow::Result;
+use bijux_infra::atomic_write_bytes;
 use chrono::Utc;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
@@ -212,7 +213,7 @@ pub fn assess_input_dir(root: &Path) -> Result<InputAssessmentV1> {
 /// Returns an error if serialization or writing fails.
 pub fn write_input_assessment(path: &Path, assessment: &InputAssessmentV1) -> Result<()> {
     let payload = serde_json::to_string_pretty(assessment)?;
-    std::fs::write(path, payload)?;
+    atomic_write_bytes(path, payload.as_bytes()).map_err(anyhow::Error::from)?;
     Ok(())
 }
 

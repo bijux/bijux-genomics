@@ -196,7 +196,8 @@ mod tests {
     fn extract_version_from_dockerfile_parses() -> Result<(), EnvError> {
         let temp_dir = std::env::temp_dir();
         let path = temp_dir.join("bijux_test_fastp.Dockerfile");
-        std::fs::write(&path, "FROM ubuntu:20.04\nARG VERSION_FASTP=0.23.4\n")?;
+        bijux_infra::atomic_write_bytes(&path, b"FROM ubuntu:20.04\nARG VERSION_FASTP=0.23.4\n")
+            .map_err(|err| std::io::Error::new(std::io::ErrorKind::Other, err))?;
         let version = extract_version_from_dockerfile(&path, "fastp")?;
         assert_eq!(version, "0.23.4");
         let _ = std::fs::remove_file(&path);

@@ -1,6 +1,7 @@
 #[cfg(test)]
 mod tests {
     use super::*;
+    use bijux_infra::atomic_write_bytes;
 
     #[test]
     fn runner_kind_from_str() -> Result<(), EnvError> {
@@ -128,10 +129,11 @@ arch: arm64
     fn load_image_catalog_parses() -> Result<(), EnvError> {
         let temp_dir = std::env::temp_dir();
         let path = temp_dir.join("bijux_images.yaml");
-        std::fs::write(
+        atomic_write_bytes(
             &path,
-            "fastp:\n  version: \"0.23.4\"\n  digest: \"sha256:abc123\"\n\nbwa:\n  version: \"0.7.17\"\n",
-        )?;
+            b"fastp:\n  version: \"0.23.4\"\n  digest: \"sha256:abc123\"\n\nbwa:\n  version: \"0.7.17\"\n",
+        )
+        .map_err(|err| std::io::Error::new(std::io::ErrorKind::Other, err))?;
         let catalog = load_image_catalog_from_file(&path)?;
         assert!(catalog.contains_key("fastp"));
         let _ = std::fs::remove_file(&path);

@@ -10,6 +10,7 @@ sha2.workspace = true
 serde.workspace = true
 serde_yaml.workspace = true
 thiserror.workspace = true
+bijux-infra = { path = "../bijux-infra" }
 
 [lints]
 workspace = true

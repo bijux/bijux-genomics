@@ -19,7 +19,9 @@ impl Executor for DryRunExecutor {
             RunStatus::Skipped,
         );
         let report_path = plan.run_dir.join("report.json");
-        std::fs::write(report_path, serde_json::to_string_pretty(&report)?)?;
+        let payload = serde_json::to_string_pretty(&report)?;
+        bijux_infra::atomic_write_bytes(&report_path, payload.as_bytes())
+            .map_err(|err| std::io::Error::new(std::io::ErrorKind::Other, err))?;
         Ok(report)
     }
 }

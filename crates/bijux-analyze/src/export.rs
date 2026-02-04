@@ -5,6 +5,7 @@ use std::path::Path;
 
 use anyhow::{Context, Result};
 use bijux_core::{FactsRowV1, InvariantStatusV1, StageReportV1, ToolInvocationV1};
+use bijux_infra::atomic_write_bytes;
 
 use crate::model::{
     stable_sort_records, DashboardFactRow, FactsSummary, JsonBlob, RunSummaryDeltas,
@@ -145,7 +146,8 @@ pub fn write_run_summary_json(path: &Path, rows: &[FactsRowV1]) -> Result<()> {
         avg_runtime_s: summary.avg_runtime_s,
         stage_rows,
     };
-    std::fs::write(path, serde_json::to_vec_pretty(&payload)?)
+    atomic_write_bytes(path, &serde_json::to_vec_pretty(&payload)?)
+        .map_err(anyhow::Error::from)
         .with_context(|| format!("write run summary {}", path.display()))?;
     Ok(())
 }
@@ -225,7 +227,8 @@ pub fn write_stage_summary_csv(path: &Path, rows: &[FactsRowV1]) -> Result<()> {
             csv_escape(&notes),
         );
     }
-    std::fs::write(path, output)
+    atomic_write_bytes(path, output.as_bytes())
+        .map_err(anyhow::Error::from)
         .with_context(|| format!("write stage summary csv {}", path.display()))?;
     Ok(())
 }
@@ -272,6 +275,6 @@ pub fn write_dashboard_facts_jsonl(path: &Path, rows: &[FactsRowV1]) -> Result<(
         payload.push_str(&serde_json::to_string(&row)?);
         payload.push('\n');
     }
-    std::fs::write(path, payload)?;
+    atomic_write_bytes(path, payload.as_bytes()).map_err(anyhow::Error::from)?;
     Ok(())
 }
