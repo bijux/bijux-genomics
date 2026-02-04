@@ -295,6 +295,8 @@ dependencies = [
  "bijux-env-runtime",
  "bijux-infra",
  "bijux-pipelines",
+ "bijux-planner-fastq",
+ "bijux-runner-docker",
  "bijux-stages-bam",
  "bijux-stages-fastq",
  "chrono",
@@ -390,15 +392,10 @@ dependencies = [
  "anyhow",
  "assert_cmd",
  "bijux-core",
- "bijux-domain-bam",
- "bijux-domain-fastq",
  "bijux-env-builder",
  "bijux-env-runtime",
  "bijux-guardrails",
  "bijux-infra",
- "bijux-pipelines",
- "bijux-stages-bam",
- "bijux-stages-fastq",
  "chrono",
  "flate2",
  "opentelemetry",
@@ -487,6 +484,67 @@ dependencies = [
  "serde",
  "serde_json",
  "walkdir",
+]
+
+[[package]]
+name = "bijux-planner-bam"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bijux-core",
+ "bijux-guardrails",
+ "bijux-stages-bam",
+]
+
+[[package]]
+name = "bijux-planner-fastq"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bijux-core",
+ "bijux-guardrails",
+ "bijux-pipelines",
+ "bijux-stages-fastq",
+ "insta",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "bijux-runner-docker"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "assert_cmd",
+ "bijux-core",
+ "bijux-domain-bam",
+ "bijux-domain-fastq",
+ "bijux-engine",
+ "bijux-env-builder",
+ "bijux-env-runtime",
+ "bijux-guardrails",
+ "bijux-infra",
+ "bijux-pipelines",
+ "bijux-stages-bam",
+ "bijux-stages-fastq",
+ "chrono",
+ "flate2",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tempfile",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
+name = "bijux-runner-local"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bijux-core",
+ "bijux-engine",
+ "bijux-guardrails",
 ]
 
 [[package]]

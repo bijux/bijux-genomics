@@ -17,15 +17,25 @@ This document defines ownership and allowed dependencies. Treat it as an API con
 - Does not own: execution, CLI UX, environment detection.
 - Allowed deps: core + domain + infra.
 
+## bijux-planner-*
+- Owns: pipeline planning and tool selection for a domain.
+- Does not own: execution, CLI UX, environment detection.
+- Allowed deps: core + stages + pipelines + infra.
+
 ## bijux-api
 - Owns: orchestration surface (plan/run/report/bench) and stable public API.
 - Does not own: stage specs, domain rules, CLI UX.
-- Allowed deps: core + stages + engine + env + analyze + pipelines + infra.
+- Allowed deps: core + stages + planner + engine + runner + env + analyze + pipelines + infra.
 
 ## bijux-engine
-- Owns: execution, observation, artifact emission, telemetry, failure mapping.
-- Does not own: CLI argument parsing, domain business rules.
-- Allowed deps: core + stages + environment + infra.
+- Owns: pure execution scheduling, observability contracts, artifact helpers.
+- Does not own: CLI argument parsing, domain business rules, execution adapters.
+- Allowed deps: core + environment + infra.
+
+## bijux-runner-*
+- Owns: execution adapters (docker/local), observation, replay, stage plugins.
+- Does not own: CLI UX, orchestration.
+- Allowed deps: engine + env + stages + domain + infra.
 
 ## bijux-env-runtime / bijux-env-builder
 - Owns: runner/platform discovery, image resolution.
@@ -50,13 +60,17 @@ bijux-domain-bam: bijux-core bijux-infra
 bijux-domain-vcf: bijux-core bijux-infra
 bijux-stages-fastq: bijux-core bijux-domain-fastq bijux-infra
 bijux-stages-bam: bijux-core bijux-domain-bam bijux-infra
-bijux-engine: bijux-core bijux-stages-fastq bijux-stages-bam bijux-env-runtime bijux-env-builder bijux-infra
+bijux-planner-fastq: bijux-core bijux-stages-fastq bijux-pipelines bijux-infra
+bijux-planner-bam: bijux-core bijux-stages-bam bijux-infra
+bijux-engine: bijux-core bijux-env-runtime bijux-env-builder bijux-infra
+bijux-runner-docker: bijux-engine bijux-env-runtime bijux-env-builder bijux-stages-fastq bijux-stages-bam bijux-domain-fastq bijux-domain-bam bijux-infra
+bijux-runner-local: bijux-engine bijux-core
 bijux-env-runtime: bijux-core bijux-infra
 bijux-env-builder: bijux-core bijux-infra
 bijux-pipelines: bijux-core bijux-domain-fastq bijux-domain-bam bijux-domain-vcf
 bijux-analyze: bijux-core bijux-domain-fastq bijux-domain-bam bijux-domain-vcf bijux-infra
 bijux-bench: bijux-core bijux-analyze bijux-engine bijux-infra
-bijux-api: bijux-core bijux-engine bijux-env-runtime bijux-env-builder bijux-analyze bijux-stages-fastq bijux-stages-bam bijux-domain-fastq bijux-domain-bam bijux-domain-vcf bijux-pipelines bijux-infra
+bijux-api: bijux-core bijux-engine bijux-runner-docker bijux-env-runtime bijux-env-builder bijux-analyze bijux-stages-fastq bijux-stages-bam bijux-domain-fastq bijux-domain-bam bijux-domain-vcf bijux-pipelines bijux-infra bijux-planner-fastq
 bijux-cli: bijux-api
 bijux: bijux-api
 ```
