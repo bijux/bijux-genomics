@@ -7,6 +7,7 @@ pub mod fastq_tools_registry;
 pub mod stages_pre;
 pub mod stages_qc;
 pub mod stages_transform;
+pub mod plugin;
 pub mod tools;
 
 pub use bijux_core::{ArtifactRef, StageIO, StagePlanJsonV1, StagePlanV1};
