@@ -116,7 +116,11 @@ fn parse_dependencies(manifest: &Path, known: &BTreeSet<String>) -> BTreeSet<Str
 
 fn parse_boundary_contract() -> BTreeMap<String, BTreeSet<String>> {
     let root = workspace_root();
-    let path = root.join("crates").join("bijux-core").join("src").join("boundaries.md");
+    let path = root
+        .join("crates")
+        .join("bijux-core")
+        .join("src")
+        .join("boundaries.md");
     let content = std::fs::read_to_string(&path).expect("read boundaries.md");
     let mut lines = Vec::new();
     let mut in_block = false;
@@ -395,7 +399,10 @@ fn workspace_dependency_graph_contract() {
 
     if let Some(cli_dir) = crates.get("bijux-cli") {
         let cli_deps = parse_dependencies(&cli_dir.join("Cargo.toml"), &known);
-        assert!(cli_deps.contains("bijux-api"), "bijux-cli must depend on bijux-api");
+        assert!(
+            cli_deps.contains("bijux-api"),
+            "bijux-cli must depend on bijux-api"
+        );
         for dep in &cli_deps {
             assert!(
                 dep == "bijux-api" || dep == "bijux-guardrails",
@@ -652,11 +659,7 @@ fn crate_root_contents_allowlist() {
             if allowed.contains(entry_name.as_ref()) {
                 continue;
             }
-            offenders.push(format!(
-                "{}: {}",
-                name,
-                entry_name.as_ref()
-            ));
+            offenders.push(format!("{}: {}", name, entry_name.as_ref()));
         }
     }
     assert!(
@@ -669,7 +672,7 @@ fn crate_root_contents_allowlist() {
 fn fixtures_policy_enforced() {
     let root = workspace_root();
     let mut offenders = Vec::new();
-    for (name, path) in collect_workspace_crates() {
+    for (_name, path) in collect_workspace_crates() {
         for entry in walkdir::WalkDir::new(path.join("src").parent().unwrap())
             .into_iter()
             .filter_map(Result::ok)
@@ -925,10 +928,7 @@ fn workspace_domain_symmetry_contract() {
         );
     }
     let rel = root.join("docs").join("domain_template_checklist.md");
-    assert!(
-        rel.exists(),
-        "missing docs/domain_template_checklist.md"
-    );
+    assert!(rel.exists(), "missing docs/domain_template_checklist.md");
 }
 
 #[test]
@@ -965,13 +965,14 @@ fn engine_has_no_tool_normalization_policy() {
     let root = workspace_root();
     let engine_src = root.join("crates").join("bijux-engine").join("src");
     let mut offenders = Vec::new();
+    let banned_tokens = ["normalize_", "tool_list"];
     for entry in walkdir::WalkDir::new(&engine_src)
         .into_iter()
         .filter_map(Result::ok)
         .filter(|entry| entry.path().extension().and_then(|s| s.to_str()) == Some("rs"))
     {
         let content = std::fs::read_to_string(entry.path()).unwrap_or_default();
-        if content.contains("normalize_") && content.contains("_tool_list") {
+        if banned_tokens.iter().any(|token| content.contains(token)) {
             offenders.push(
                 entry
                     .path()
