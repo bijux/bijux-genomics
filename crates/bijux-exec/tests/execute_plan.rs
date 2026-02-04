@@ -140,6 +140,7 @@ fn execute_plan_success_path_uses_public_api() -> Result<()> {
             "adapter_policy": "none"
         }),
         aux_images: std::collections::BTreeMap::new(),
+        reason: bijux_core::PlanDecisionReason::default(),
     };
     let result = execute_stage_plan(&exec_plan, RunnerKind::Docker, None)?;
     assert_eq!(result.exit_code, 0);
@@ -199,6 +200,7 @@ fn execute_plan_propagates_tool_failure() -> Result<()> {
             "adapter_policy": "none"
         }),
         aux_images: std::collections::BTreeMap::new(),
+        reason: bijux_core::PlanDecisionReason::default(),
     };
     let result = execute_stage_plan(&exec_plan, RunnerKind::Docker, None)?;
     assert_eq!(result.exit_code, 1);
@@ -251,6 +253,7 @@ fn execute_plan_hits_validate_path() -> Result<()> {
             "threads": 1
         }),
         aux_images: std::collections::BTreeMap::new(),
+        reason: bijux_core::PlanDecisionReason::default(),
     };
     let result = execute_stage_plan(&exec_plan, RunnerKind::Docker, None)?;
     assert_eq!(result.exit_code, 0);
@@ -321,6 +324,7 @@ fn execute_plan_hits_merge_path() -> Result<()> {
             "threads": 1
         }),
         aux_images: std::collections::BTreeMap::new(),
+        reason: bijux_core::PlanDecisionReason::default(),
     };
     let result = execute_stage_plan(&exec_plan, RunnerKind::Docker, None)?;
     assert_eq!(result.exit_code, 0);

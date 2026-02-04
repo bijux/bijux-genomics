@@ -361,7 +361,7 @@ pub fn write_observability_manifest(
     tool_invocation_path: &Path,
     metrics_envelope_path: &Path,
     stage_metrics_path: &Path,
-    stage_report_path: &Path,
+    stage_report_path: Option<&Path>,
     retention_report_path: Option<&Path>,
     extra_artifacts: &[serde_json::Value],
 ) -> Result<PathBuf> {
@@ -390,11 +390,13 @@ pub fn write_observability_manifest(
             "name": "stage_metrics",
             "path": stage_metrics_path,
         }),
-        serde_json::json!({
-            "name": "stage_report",
-            "path": stage_report_path,
-        }),
     ];
+    if let Some(path) = stage_report_path {
+        artifacts.push(serde_json::json!({
+            "name": "stage_report",
+            "path": path,
+        }));
+    }
     if let Some(path) = retention_report_path {
         artifacts.push(serde_json::json!({
             "name": "retention_report",

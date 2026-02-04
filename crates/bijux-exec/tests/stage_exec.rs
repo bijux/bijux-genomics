@@ -79,6 +79,7 @@ fn execute_plan_runs_trim() -> Result<()> {
             "adapter_policy": "none"
         }),
         aux_images: std::collections::BTreeMap::new(),
+        reason: bijux_core::PlanDecisionReason::default(),
     };
     let result = execute_stage_plan(&exec_plan, platform.runner, None)?;
     assert_eq!(result.exit_code, 0);
@@ -137,6 +138,7 @@ fn execute_plan_runs_validate() -> Result<()> {
             "threads": 1
         }),
         aux_images: std::collections::BTreeMap::new(),
+        reason: bijux_core::PlanDecisionReason::default(),
     };
     let result = execute_stage_plan(&exec_plan, platform.runner, None)?;
     assert_eq!(result.exit_code, 0);
@@ -200,6 +202,7 @@ fn execute_plan_runs_merge() -> Result<()> {
             "threads": 1
         }),
         aux_images: std::collections::BTreeMap::new(),
+        reason: bijux_core::PlanDecisionReason::default(),
     };
     let result = execute_stage_plan(&exec_plan, platform.runner, None)?;
     assert_eq!(result.exit_code, 0);

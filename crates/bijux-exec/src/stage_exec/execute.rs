@@ -225,7 +225,6 @@ pub fn execute_stage_plan(
             adapter_bank.as_ref(),
             banks_json.as_ref(),
             bank_assets.as_ref(),
-            &input_paths,
             &input_hashes,
             &input_hash,
             &metric_context,

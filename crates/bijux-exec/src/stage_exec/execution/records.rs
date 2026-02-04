@@ -6,7 +6,6 @@ fn write_facts_and_records(
     run_artifacts_dir: &Path,
     trace_id: &str,
     span_id: &str,
-    canonical_params: &serde_json::Value,
     params_hash: &str,
     input_hash: &str,
     output_hashes: &[String],
@@ -15,16 +14,12 @@ fn write_facts_and_records(
     execution: &ExecutionEnvelope,
     stage_metrics: &serde_json::Value,
     metrics_envelope_path: &Path,
-    stage_report_path: &Path,
-    retention_report_path: Option<&Path>,
-    effective_adapters_path: Option<&Path>,
     log_paths: &[PathBuf],
-    quality_gate: Option<&serde_json::Value>,
-    adapter_validation: Option<&serde_json::Value>,
-    contaminant_action: bool,
-    assertion_results: &[bijux_core::InvariantResultV1],
-    _invariant_verdict: &bijux_core::StageVerdictV1,
-    subreports: &[PathBuf],
+    report_parts: &serde_json::Value,
+    plugin_artifacts: &serde_json::Value,
+    warnings: &[String],
+    invariants: &[bijux_core::InvariantResultV1],
+    verdict: Option<&bijux_core::StageVerdictV1>,
     reads_in: u64,
     reads_out: u64,
     bases_in: u64,
@@ -32,10 +27,6 @@ fn write_facts_and_records(
     pairs_in: u64,
     pairs_out: u64,
 ) -> Result<()> {
-    let assertions_payload = serde_json::json!({
-        "schema_version": "bijux.assertions.v1",
-        "results": assertion_results,
-    });
     let scientific_preset = std::env::var("BIJUX_SCIENTIFIC_PRESET").ok();
     write_facts_jsonl(
         &run_artifacts_dir.join("dashboard").join("facts.jsonl"),
@@ -54,7 +45,7 @@ fn write_facts_and_records(
             runtime_s,
             memory_mb,
             exit_code: execution.exit_code,
-            bank_hashes: bijux_stages_fastq::metrics::bank_refs_from_params(canonical_params),
+            bank_hashes: serde_json::json!({}),
             reads_in: Some(reads_in),
             reads_out: Some(reads_out),
             bases_in: Some(bases_in),
@@ -63,49 +54,23 @@ fn write_facts_and_records(
             pairs_out: Some(pairs_out),
             metrics: stage_metrics.clone(),
             reports: serde_json::json!({
-                "stage_report": stage_report_path.display().to_string(),
-                "retention_report": retention_report_path
-                    .as_ref()
-                    .map(|path| path.display().to_string()),
-                "bank_report": subreports
-                    .iter()
-                    .find(|path| path.ends_with("bank_report.json"))
-                    .map(|path| path.display().to_string()),
-                "qc_post_report": subreports
-                    .iter()
-                    .find(|path| path.ends_with("qc_post_report.json"))
-                    .map(|path| path.display().to_string()),
-                "filter_report": subreports
-                    .iter()
-                    .find(|path| path.ends_with("filter_report.json"))
-                    .map(|path| path.display().to_string()),
-                "adapter_candidates": subreports
-                    .iter()
-                    .find(|path| path.ends_with("adapter_candidates.json"))
-                    .map(|path| path.display().to_string()),
-                "fastqc_metrics_v2": subreports
-                    .iter()
-                    .find(|path| path.ends_with("fastqc_metrics_v2.json"))
-                    .map(|path| path.display().to_string()),
-                "quality_gate": quality_gate.cloned(),
-                "adapter_validation": adapter_validation.cloned(),
-                "contaminant_action": contaminant_action,
-                "assertions": assertions_payload,
+                "parts": report_parts,
+                "warnings": warnings,
+                "invariants": invariants,
+                "verdict": verdict,
                 "scientific_preset": scientific_preset,
             }),
             artifacts: serde_json::json!({
                 "metrics_envelope": metrics_envelope_path.display().to_string(),
-                "stage_report": stage_report_path.display().to_string(),
-                "retention_report": retention_report_path
-                    .as_ref()
-                    .map(|path| path.display().to_string()),
-                "effective_adapters": effective_adapters_path
-                    .as_ref()
-                    .map(|path| path.display().to_string()),
+                "stage_metrics": run_artifacts_dir
+                    .join("stage_metrics.json")
+                    .display()
+                    .to_string(),
                 "execution_logs": log_paths
                     .iter()
                     .map(|path| path.display().to_string())
                     .collect::<Vec<_>>(),
+                "plugin_artifacts": plugin_artifacts,
             }),
         },
     )?;
