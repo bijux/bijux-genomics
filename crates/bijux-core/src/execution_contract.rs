@@ -1,8 +1,11 @@
 use std::path::Path;
 
 use anyhow::{anyhow, Context, Result};
-use bijux_core::ExecutionContract;
 
+use crate::ExecutionContract;
+
+/// # Errors
+/// Returns an error if expected outputs are missing or invalid.
 pub fn validate_execution_outputs(contract: &ExecutionContract, out_dir: &Path) -> Result<()> {
     let outputs = collect_outputs(out_dir)?;
 

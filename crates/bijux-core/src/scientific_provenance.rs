@@ -66,10 +66,7 @@ impl ScientificProvenanceV1 {
                 if let Some(obj) = banks.as_object() {
                     for (name, entry) in obj {
                         if let Some(hash) = entry.get("bank_hash").and_then(|v| v.as_str()) {
-                            reference_hashes.insert(
-                                format!("bank:{name}"),
-                                hash.to_string(),
-                            );
+                            reference_hashes.insert(format!("bank:{name}"), hash.to_string());
                         }
                     }
                 }

@@ -201,7 +201,7 @@ pub enum BijuxError {
 
 impl From<bijux_infra::IoError> for BijuxError {
     fn from(err: bijux_infra::IoError) -> Self {
-        Self::Io(std::io::Error::new(std::io::ErrorKind::Other, err))
+        Self::Io(std::io::Error::other(err))
     }
 }
 

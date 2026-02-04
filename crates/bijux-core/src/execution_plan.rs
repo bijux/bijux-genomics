@@ -1,4 +1,4 @@
-use std::collections::{BTreeSet, HashMap, HashSet};
+use std::collections::{HashMap, HashSet};
 
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
@@ -82,6 +82,8 @@ impl ExecutionPlan {
         &self.edges
     }
 
+    /// # Errors
+    /// Returns an error if the plan fails validation checks.
     pub fn new(
         pipeline_id: impl Into<String>,
         planner_version: impl Into<String>,
@@ -89,6 +91,13 @@ impl ExecutionPlan {
         stages: Vec<StagePlanV1>,
         edges: Vec<PlanEdge>,
     ) -> Result<Self> {
+        let mut stages = stages;
+        stages.sort_by(|a, b| a.stage_id.0.cmp(&b.stage_id.0));
+        let mut edges = edges;
+        edges.sort_by(|a, b| match a.from.cmp(&b.from) {
+            std::cmp::Ordering::Equal => a.to.cmp(&b.to),
+            other => other,
+        });
         let plan = Self {
             schema_version: "bijux.execution_plan.v1".to_string(),
             pipeline_id: pipeline_id.into(),
@@ -102,6 +111,8 @@ impl ExecutionPlan {
     }
 }
 
+/// # Errors
+/// Returns an error if the plan fails validation checks.
 pub fn lint_execution_plan(plan: &ExecutionPlan) -> Result<()> {
     if plan.pipeline_id.trim().is_empty() {
         return Err(anyhow!("execution plan pipeline_id is empty"));
@@ -127,10 +138,7 @@ pub fn lint_execution_plan(plan: &ExecutionPlan) -> Result<()> {
             ));
         }
         if stage.resources.mem_gb == 0 || stage.resources.threads == 0 {
-            return Err(anyhow!(
-                "stage {} missing resource hints",
-                stage.stage_id.0
-            ));
+            return Err(anyhow!("stage {} missing resource hints", stage.stage_id.0));
         }
     }
     let mut edges = Vec::new();
@@ -189,11 +197,15 @@ fn visit<'a>(
     Ok(())
 }
 
+#[must_use]
 pub fn default_edges_for_stages(stages: &[StagePlanV1]) -> Vec<PlanEdge> {
     let mut edges = Vec::new();
     for window in stages.windows(2) {
         if let [from, to] = window {
-            edges.push(PlanEdge::new(from.stage_id.0.clone(), to.stage_id.0.clone()));
+            edges.push(PlanEdge::new(
+                from.stage_id.0.clone(),
+                to.stage_id.0.clone(),
+            ));
         }
     }
     edges
