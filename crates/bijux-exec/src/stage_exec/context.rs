@@ -3,17 +3,17 @@ use std::path::{Path, PathBuf};
 use std::time::Instant;
 
 use anyhow::{anyhow, Context, Result};
-use bijux_env_runtime::api::{ResolvedImage, RunnerKind};
+use bijux_environment::api::{ResolvedImage, RunnerKind};
 use chrono::Utc;
 use tracing::info;
 use uuid::Uuid;
 
-use bijux_runner_docker::primitives::{
+use crate::exec_helpers::{
     cleanup_execution, execution_memory_mb, run_filter_execution, run_merge_execution,
     run_multiqc_execution, run_tool_execution, run_validate_execution,
 };
 use crate::observer::{hash_file_sha256, Observer};
-use bijux_engine::services::run_artifacts::{
+use crate::run_artifacts::{
     default_trace_ids, run_artifacts_dir_for_out, write_effective_adapters_from_provenance,
     write_execution_logs_bounded, write_facts_jsonl, write_filter_report_v1, write_merge_report_v1,
     write_metrics_envelope, write_observability_manifest, write_plan_artifacts,

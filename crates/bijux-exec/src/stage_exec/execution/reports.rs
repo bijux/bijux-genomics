@@ -437,10 +437,10 @@ fn build_stage_reports_and_warnings(
                 "stage_report": stage_report_path.display().to_string(),
                 "retention_report": retention_report_path
                     .as_ref()
-                    .map(|path| path.display().to_string()),
+                    .map(|path: &PathBuf| path.display().to_string()),
                 "effective_adapters": effective_adapters_path
                     .as_ref()
-                    .map(|path| path.display().to_string()),
+                    .map(|path: &PathBuf| path.display().to_string()),
             }),
         },
     );

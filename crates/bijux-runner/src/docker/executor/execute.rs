@@ -2,11 +2,18 @@ use std::path::Path;
 use std::process::Command;
 
 use anyhow::{anyhow, Context, Result};
-use bijux_env_runtime::api::ResolvedImage;
+use bijux_environment::api::ResolvedImage;
 
 use super::docker::{command_string, docker_logs, docker_wait, docker_wait_timeout, push_arg};
 use super::plan::StageExecutionPlan;
-use super::run_tool::ExecutionOutput;
+
+#[derive(Debug, Clone)]
+pub struct ExecutionOutput {
+    pub exit_code: i32,
+    pub stdout: String,
+    pub stderr: String,
+    pub command: String,
+}
 
 pub fn execute_plan(
     plan: &StageExecutionPlan,
@@ -54,7 +61,6 @@ pub fn execute_plan(
         exit_code,
         stdout,
         stderr,
-        output_fastq: plan.output_fastq.clone(),
         command,
     })
 }
@@ -106,7 +112,6 @@ pub fn execute_plan_with_timeout(
         exit_code,
         stdout,
         stderr,
-        output_fastq: plan.output_fastq.clone(),
         command,
     })
 }

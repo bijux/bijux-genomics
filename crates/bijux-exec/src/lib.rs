@@ -3,8 +3,11 @@
 
 #![allow(clippy::missing_errors_doc)]
 
+pub mod docker_exec;
+pub mod exec_helpers;
 pub mod observer;
 mod plugins;
+pub mod run_artifacts;
 pub mod stage_exec;
 
 pub mod primitives {

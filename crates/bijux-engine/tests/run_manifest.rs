@@ -11,11 +11,8 @@ fn run_manifest_includes_telemetry_and_facts() -> anyhow::Result<()> {
     let out_dir = dir.path().join("out");
     bijux_infra::ensure_dir(&out_dir)?;
     let run_dirs = prepare_tool_run_dirs(&out_dir, "stage", "tool")?;
-    let adapter_bank = out_dir.join("adapter_bank.yaml");
-    bijux_infra::write_bytes(&adapter_bank, "bank")?;
     bijux_infra::write_bytes(&run_dirs.manifest_path, "{}")?;
     bijux_infra::write_bytes(&run_dirs.metrics_path, "{}")?;
-    bijux_infra::write_bytes(&run_dirs.retention_report_path, "{}")?;
     let run_provenance = RunProvenanceV1 {
         schema_version: "bijux.run_provenance.v1".to_string(),
         tool_image_digest: None,
@@ -31,7 +28,6 @@ fn run_manifest_includes_telemetry_and_facts() -> anyhow::Result<()> {
         &run_dirs,
         "stage",
         "tool",
-        &adapter_bank,
         &run_provenance,
         &[] as &[RunArtifactInput],
     )?;

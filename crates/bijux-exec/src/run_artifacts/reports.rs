@@ -64,8 +64,7 @@ pub fn write_stage_report_v1(
     invariants: &[bijux_core::InvariantResultV1],
     verdict: Option<&bijux_core::StageVerdictV1>,
 ) -> Result<PathBuf> {
-    let effective_config_hash =
-        crate::services::run_artifacts::hash_file_sha256(effective_config_path).ok();
+    let effective_config_hash = hash_file_sha256(effective_config_path).ok();
     let payload = StageReportV1 {
         schema_version: "bijux.stage_report.v1".to_string(),
         stage_id: stage_id.to_string(),
@@ -415,3 +414,17 @@ pub fn write_observability_manifest(
     bijux_infra::atomic_write_json(&path, &payload).context("write observability_manifest.json")?;
     Ok(path)
 }
+use std::io::Write;
+use std::path::{Path, PathBuf};
+
+use anyhow::{Context, Result};
+
+use crate::observer::hash_file_sha256;
+use bijux_core::observability::{
+    FilterReportV1, MergeReportV1, QcPostReportV1, RetentionReportV1, StageReportV1, TrimReportV1,
+    ValidateReportV1,
+};
+use bijux_core::{FactsRowV1, TelemetryEventV1};
+use bijux_engine::services::run_artifacts::{
+    ObservabilityManifestV1, ProgressEventV1, RunsExportRowV1,
+};

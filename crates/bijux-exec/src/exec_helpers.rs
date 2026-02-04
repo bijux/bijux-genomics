@@ -1,10 +1,12 @@
 use anyhow::Result;
-use bijux_env_runtime::api::ResolvedImage;
+use bijux_environment::api::ResolvedImage;
 
-use crate::executor::{
-    docker_rm, docker_stats_mb, run_filter_container, run_merge_container, run_multiqc_container,
-    run_tool_container, run_validate_container, ExecutionOutput, MergeExecutionOutput,
+use crate::docker_exec::run_tool::ExecutionOutput;
+use crate::docker_exec::{
+    run_filter_container, run_merge_container, run_multiqc_container, run_tool_container,
+    run_validate_container, MergeExecutionOutput,
 };
+use bijux_runner::docker::executor::{docker_rm, docker_stats_mb};
 
 pub fn run_tool_execution(
     tool: &str,

@@ -1,5 +1,5 @@
 [package]
-name = "bijux-exec"
+name = "bijux-runner"
 version = "0.1.0"
 edition = "2021"
 
@@ -11,19 +11,14 @@ tracing.workspace = true
 uuid.workspace = true
 chrono.workspace = true
 bijux-core = { path = "../bijux-core" }
-bijux-engine = { path = "../bijux-engine" }
 bijux-environment = { path = "../bijux-environment" }
 bijux-infra = { path = "../bijux-infra" }
-bijux-runner = { path = "../bijux-runner" }
-bijux-stages-fastq = { path = "../bijux-stages-fastq" }
-bijux-stages-bam = { path = "../bijux-stages-bam" }
 sha2.workspace = true
 flate2 = "1"
 
 [dev-dependencies]
 bijux-guardrails = { path = "../bijux-guardrails" }
-bijux-domain-bam = { path = "../bijux-domain-bam" }
-bijux-pipelines = { path = "../bijux-pipelines" }
+assert_cmd = "2"
 tempfile.workspace = true
 
 [lints]

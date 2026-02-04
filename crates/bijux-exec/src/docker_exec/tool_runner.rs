@@ -1,12 +1,13 @@
 use std::time::Duration;
 
 use anyhow::Result;
-use bijux_env_runtime::api::ResolvedImage;
+use bijux_environment::api::ResolvedImage;
 
-use super::execute::{execute_plan, execute_plan_with_timeout};
-use super::plan::StageExecutionPlan;
-use super::process::assess_execution;
 use super::run_tool::ExecutionOutput;
+use bijux_runner::docker::executor::{
+    assess_execution, execute_plan, execute_plan_with_timeout, ExecutionOutput as RunnerOutput,
+    StageExecutionPlan,
+};
 
 pub trait ToolRunner {
     fn run(
@@ -48,7 +49,13 @@ impl ToolRunner for DockerToolRunner {
                 .reason
                 .unwrap_or_else(|| "execution_failed".to_string());
         }
-        Ok(output)
+        Ok(ExecutionOutput {
+            exit_code: output.exit_code,
+            stdout: output.stdout,
+            stderr: output.stderr,
+            output_fastq: plan.output_fastq.clone(),
+            command: output.command,
+        })
     }
 
     fn run_with_timeout(
@@ -60,7 +67,7 @@ impl ToolRunner for DockerToolRunner {
         container_name: &str,
         timeout: Duration,
     ) -> Result<ExecutionOutput> {
-        let mut output = execute_plan_with_timeout(
+        let mut output: RunnerOutput = execute_plan_with_timeout(
             plan,
             image,
             input_mount,
@@ -75,6 +82,12 @@ impl ToolRunner for DockerToolRunner {
                 .reason
                 .unwrap_or_else(|| "execution_failed".to_string());
         }
-        Ok(output)
+        Ok(ExecutionOutput {
+            exit_code: output.exit_code,
+            stdout: output.stdout,
+            stderr: output.stderr,
+            output_fastq: plan.output_fastq.clone(),
+            command: output.command,
+        })
     }
 }

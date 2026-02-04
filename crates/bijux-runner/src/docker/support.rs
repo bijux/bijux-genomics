@@ -2,9 +2,9 @@ use std::collections::HashMap;
 
 use anyhow::{anyhow, Result};
 use bijux_core::{CommandSpecV1, ContainerImageRefV1, ToolExecutionSpecV1, ToolId};
-use bijux_env_runtime::api::{PlatformSpec, ToolImageSpec};
+use bijux_environment::api::{PlatformSpec, ToolImageSpec};
 
-use crate::executor::resolve_image_for_run;
+use crate::docker::executor::resolve_image_for_run;
 
 pub fn build_tool_execution_spec<S: ::std::hash::BuildHasher>(
     stage_id: &str,

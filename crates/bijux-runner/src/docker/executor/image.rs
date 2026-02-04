@@ -1,5 +1,5 @@
 use anyhow::{anyhow, Result};
-use bijux_env_runtime::api::{
+use bijux_environment::api::{
     docker_image_exists, resolve_image, PlatformSpec, ResolvedImage, ToolImageSpec,
 };
 use tracing::warn;

@@ -1,4 +1,4 @@
-//! Owner: bijux-runner-local
+//! Owner: bijux-runner
 //! Local runner placeholder (no docker).
 
 #[must_use]

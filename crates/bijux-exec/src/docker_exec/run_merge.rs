@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use anyhow::Result;
-use bijux_env_runtime::api::ResolvedImage;
+use bijux_environment::api::ResolvedImage;
 
 use super::plan::plan_merge_execution;
 use super::tool_runner::{DockerToolRunner, ToolRunner};

@@ -1,6 +1,6 @@
 use anyhow::Result;
 use bijux_core::ExecutionManifest;
-use bijux_runner_docker::primitives::replay_run;
+use bijux_runner::primitives::replay_run;
 
 #[test]
 fn replay_regenerates_outputs_from_manifest() -> Result<()> {

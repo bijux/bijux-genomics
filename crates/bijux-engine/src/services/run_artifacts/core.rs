@@ -1,4 +1,3 @@
-use std::io::Write;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
@@ -7,15 +6,7 @@ use sha2::Digest;
 use bijux_infra::bench_tools_dir;
 
 use serde::Serialize;
-use uuid::Uuid;
-
-use bijux_core::observability::{
-    FilterReportV1, MergeReportV1, QcPostReportV1, TrimReportV1, ValidateReportV1,
-};
-use bijux_core::{
-    metrics::AdapterBankProvenanceV1, EffectiveConfigV1, FactsRowV1, RetentionReportV1,
-    StageObservabilityContextV1, StageReportV1, TelemetryEventV1,
-};
+use bijux_core::StageObservabilityContextV1;
 
 #[derive(Debug)]
 pub struct RunDirs {
@@ -24,7 +15,6 @@ pub struct RunDirs {
     pub manifest_path: PathBuf,
     pub metrics_path: PathBuf,
     pub run_manifest_path: PathBuf,
-    pub retention_report_path: PathBuf,
 }
 
 #[derive(Debug)]
@@ -119,44 +109,17 @@ pub fn prepare_tool_run_dirs(tools_root: &Path, tool: &str, run_id: &str) -> Res
         manifest_path: run_dir.join("manifest.json"),
         metrics_path: run_dir.join("metrics.json"),
         run_manifest_path: run_dir.join("run_manifest.json"),
-        retention_report_path: run_dir.join("retention_report.json"),
     })
-}
-
-pub fn write_retention_report_placeholder(
-    run_dirs: &RunDirs,
-    stage: &str,
-    tool: &str,
-    params: &serde_json::Value,
-) -> Result<()> {
-    let path = write_retention_report_v1(
-        &run_artifacts_dir(run_dirs)?,
-        stage,
-        tool,
-        "unknown/TBD",
-        params,
-        params,
-        0,
-        0,
-        0,
-        0,
-    )?;
-    std::fs::copy(&path, &run_dirs.retention_report_path).context("copy retention_report.json")?;
-    Ok(())
 }
 
 pub fn write_run_manifest(
     run_dirs: &RunDirs,
     stage: &str,
     tool: &str,
-    adapter_bank_path: &Path,
     run_provenance: &bijux_core::RunProvenanceV1,
     extra_artifacts: &[RunArtifactInput],
 ) -> Result<()> {
     let mut artifacts = Vec::new();
-    let has_retention_override = extra_artifacts
-        .iter()
-        .any(|artifact| artifact.name == "retention_report");
     let manifest_hash = hash_file_sha256(&run_dirs.manifest_path)?;
     artifacts.push(serde_json::json!({
         "name": "execution_manifest",
@@ -168,20 +131,6 @@ pub fn write_run_manifest(
         "name": "metrics",
         "path": run_dirs.metrics_path,
         "sha256": metrics_hash
-    }));
-    if !has_retention_override {
-        let retention_hash = hash_file_sha256(&run_dirs.retention_report_path)?;
-        artifacts.push(serde_json::json!({
-            "name": "retention_report",
-            "path": run_dirs.retention_report_path,
-            "sha256": retention_hash
-        }));
-    }
-    let adapter_hash = hash_file_sha256(adapter_bank_path)?;
-    artifacts.push(serde_json::json!({
-        "name": "adapter_bank",
-        "path": adapter_bank_path,
-        "sha256": adapter_hash
     }));
     for artifact in extra_artifacts {
         let hash = hash_file_sha256(&artifact.path)?;
@@ -343,72 +292,6 @@ pub fn write_metrics_json<T: serde::Serialize>(
 
 pub fn run_artifacts_dir_for_out(out_dir: &Path) -> PathBuf {
     out_dir.join("run_artifacts")
-}
-
-#[allow(clippy::too_many_arguments)]
-pub fn write_plan_artifacts(
-    run_artifacts_dir: &Path,
-    stage_id: &str,
-    stage_version: i32,
-    tool_id: &str,
-    tool_version: &str,
-    image_digest: Option<String>,
-    runner: &str,
-    platform: &str,
-    resources: &bijux_core::ToolConstraints,
-    inputs: &[PathBuf],
-    outputs: &[PathBuf],
-    params: &serde_json::Value,
-    effective_params: &serde_json::Value,
-    adapter_bank: Option<&bijux_core::metrics::AdapterBankProvenanceV1>,
-    banks: Option<&serde_json::Value>,
-    bank_assets: Option<&serde_json::Value>,
-) -> Result<PlanArtifacts> {
-    bijux_infra::ensure_dir(run_artifacts_dir).context("create run_artifacts dir")?;
-    let plan_path = run_artifacts_dir.join("plan.json");
-    let effective_config_path = run_artifacts_dir.join("effective_config.json");
-    let config_dir = run_artifacts_dir.join("config");
-    bijux_infra::ensure_dir(&config_dir).context("create config artifact dir")?;
-    let stage_config_path = config_dir.join(format!("{stage_id}.effective.json"));
-    let payload = serde_json::json!({
-        "stage_id": stage_id,
-        "stage_version": stage_version,
-        "tool_id": tool_id,
-        "inputs": inputs,
-        "outputs": outputs,
-        "parameters": params,
-        "effective_params": effective_params,
-    });
-    bijux_infra::atomic_write_json(&plan_path, &payload).context("write plan.json")?;
-    let effective_config = EffectiveConfigV1 {
-        schema_version: "bijux.effective_config.v1".to_string(),
-        stage_id: stage_id.to_string(),
-        stage_version,
-        tool_id: tool_id.to_string(),
-        tool_version: tool_version.to_string(),
-        image_digest,
-        runner: runner.to_string(),
-        platform: platform.to_string(),
-        resources: resources.clone(),
-        parameters_json: params.clone(),
-        parameters_json_normalized: bijux_core::parameters_json_canonicalization(params),
-        effective_params_json: effective_params.clone(),
-        effective_params_json_normalized: bijux_core::parameters_json_canonicalization(
-            effective_params,
-        ),
-        adapter_bank: adapter_bank.cloned(),
-        banks: banks.cloned(),
-        bank_assets: bank_assets.cloned(),
-    };
-    bijux_infra::atomic_write_json(&effective_config_path, &effective_config)
-        .context("write effective_config.json")?;
-    bijux_infra::atomic_write_json(&stage_config_path, &effective_config)
-        .context("write effective config artifact")?;
-    Ok(PlanArtifacts {
-        plan_path,
-        effective_config_path,
-        stage_config_path,
-    })
 }
 
 pub fn write_metrics_envelope(

@@ -17,7 +17,7 @@ pub fn execute_stage_plan(
     let container_name = format!("bijux-stage-{}-{}", plan.stage_id.0, Uuid::new_v4());
     let run_artifacts_dir = run_artifacts_dir_for_out(&plan.out_dir);
     bijux_infra::ensure_dir(&run_artifacts_dir).context("create run_artifacts dir")?;
-    let (trace_id, span_id) = default_trace_ids();
+    let (trace_id, span_id): (String, String) = default_trace_ids();
     let telemetry_path = std::env::var("BIJUX_TELEMETRY_JSONL").map_or_else(
         |_| run_artifacts_dir.join("telemetry").join("events.jsonl"),
         PathBuf::from,

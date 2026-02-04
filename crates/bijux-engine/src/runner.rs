@@ -3,24 +3,12 @@ use std::collections::{HashMap, HashSet, VecDeque};
 use anyhow::{anyhow, Result};
 use bijux_core::execution_plan::{ExecutionPlan, PlanEdge};
 use bijux_core::{RunRecordV1, StageExecutionRecordV1, StagePlanV1};
+use bijux_runner::{Invocation, Runner};
 
 #[derive(Debug, Clone, Default)]
 pub struct ExecutionOptions {
     pub retries: u32,
     pub resume: bool,
-}
-
-#[derive(Debug, Clone)]
-pub struct StageExecution {
-    pub stage_id: String,
-    pub attempt: u32,
-    pub success: bool,
-    pub cached: bool,
-}
-
-pub trait Runner {
-    fn is_cached(&self, plan: &StagePlanV1) -> bool;
-    fn run(&self, plan: &StagePlanV1, attempt: u32) -> Result<StageExecution>;
 }
 
 pub fn execute_plan(
@@ -31,20 +19,16 @@ pub fn execute_plan(
     let ordered = topo_order(plan.stages(), plan.edges())?;
     let mut results = Vec::with_capacity(ordered.len());
     for stage in ordered {
-        if options.resume && runner.is_cached(stage) {
-            results.push(StageExecutionRecordV1 {
-                stage_id: stage.stage_id.0.clone(),
-                attempt: 0,
-                success: true,
-                cached: true,
-            });
-            continue;
-        }
         let mut attempt = 0;
-        let last = loop {
-            let outcome = runner.run(stage, attempt)?;
-            if outcome.success {
-                break outcome;
+        let last_success = loop {
+            let invocation = Invocation {
+                stage: stage.clone(),
+                attempt,
+            };
+            let outcome = runner.run(&invocation)?;
+            let success = outcome.exit_code == 0;
+            if success {
+                break success;
             }
             if attempt >= options.retries {
                 let stage_id = stage.stage_id.0.clone();
@@ -53,10 +37,10 @@ pub fn execute_plan(
             attempt += 1;
         };
         results.push(StageExecutionRecordV1 {
-            stage_id: last.stage_id.clone(),
-            attempt: last.attempt,
-            success: last.success,
-            cached: last.cached,
+            stage_id: stage.stage_id.0.clone(),
+            attempt,
+            success: last_success,
+            cached: false,
         });
     }
     Ok(RunRecordV1::new(results))

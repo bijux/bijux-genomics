@@ -40,6 +40,13 @@ pub fn write_effective_adapters_from_provenance(
     Ok(Some(path))
 }
 
+#[must_use]
 pub fn default_trace_ids() -> (String, String) {
     (Uuid::new_v4().to_string(), Uuid::new_v4().to_string())
 }
+use std::path::{Path, PathBuf};
+
+use anyhow::{Context, Result};
+use uuid::Uuid;
+
+use bijux_core::metrics::AdapterBankProvenanceV1;
