@@ -46,6 +46,7 @@ sysinfo = "0.30"
 tempfile = "3"
 schemars = { version = "0.8", features = ["derive"] }
 toml = "0.8"
+bijux-guardrails = { path = "crates/bijux-guardrails" }
 
 [workspace.lints.rust]
 unsafe_code = "forbid"

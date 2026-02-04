@@ -5,6 +5,12 @@ use std::time::{Duration, Instant};
 
 use thiserror::Error;
 
+mod bench_paths;
+mod logging;
+
+pub use bench_paths::{bench_base_dir, bench_tools_dir};
+pub use logging::init_logging;
+
 pub mod formats;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -143,10 +149,7 @@ pub fn atomic_write_bytes(path: &Path, bytes: &[u8]) -> Result<(), IoError> {
 ///
 /// # Errors
 /// Returns an IO error if serialization or writing fails.
-pub fn write_bytes<P: AsRef<Path>, B: AsRef<[u8]>>(
-    path: P,
-    bytes: B,
-) -> Result<(), IoError> {
+pub fn write_bytes<P: AsRef<Path>, B: AsRef<[u8]>>(path: P, bytes: B) -> Result<(), IoError> {
     atomic_write_bytes(path.as_ref(), bytes.as_ref())
 }
 
@@ -530,7 +533,7 @@ mod tests {
 
     #[test]
     fn atomic_write_failure_does_not_clobber() -> Result<(), IoError> {
-        let dir = bijux_infra::temp_dir("bijux").map_err(IoError::from_io)?;
+        let dir = crate::temp_dir("bijux")?;
         let target = dir.path().join("payload.json");
         atomic_write_bytes(&target, b"stable")?;
         let result = atomic_write_with(&target, |_| Err(std::io::Error::other("boom")));
@@ -542,7 +545,7 @@ mod tests {
 
     #[test]
     fn lock_acquisition_times_out() -> Result<(), IoError> {
-        let dir = bijux_infra::temp_dir("bijux").map_err(IoError::from_io)?;
+        let dir = crate::temp_dir("bijux")?;
         let lock_path = dir.path().join("lockfile");
         let _lock = FileLock::acquire(&lock_path, Duration::from_millis(50))?;
         let err = FileLock::acquire(&lock_path, Duration::from_millis(50))
@@ -573,7 +576,7 @@ mod tests {
 
     #[test]
     fn run_layout_contract_is_enforced() -> Result<(), IoError> {
-        let dir = bijux_infra::temp_dir("bijux").map_err(IoError::from_io)?;
+        let dir = crate::temp_dir("bijux")?;
         let layout = run_layout_paths(dir.path(), "run-1");
         let _lock = lock_run(&layout, Duration::from_millis(50))?;
         let marker = publish_run(&layout, "run-1")?;
@@ -592,7 +595,10 @@ mod tests {
                 .join("sample-1")
                 .join("run-abc")
         );
-        assert_eq!(PIPELINE_RUN_DIR_TEMPLATE, "{pipeline_id}/{sample_id}/{run_id}");
+        assert_eq!(
+            PIPELINE_RUN_DIR_TEMPLATE,
+            "{pipeline_id}/{sample_id}/{run_id}"
+        );
     }
 
     #[test]
