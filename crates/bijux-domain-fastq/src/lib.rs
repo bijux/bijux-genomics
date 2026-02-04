@@ -36,7 +36,8 @@ pub use contaminant_bank::{
     ContaminantReferenceSpecV1, EffectiveContaminantSet,
 };
 pub use invariants::{
-    evaluate_invariants, thresholds_from_env, InvariantEvaluation, InvariantThresholds,
+    evaluate_invariants, fastq_invariant_specs, thresholds_from_env, InvariantEvaluation,
+    InvariantThresholds,
 };
 pub use params::{parse_effective_params, EffectiveParams, PairedMode};
 pub use pipeline_contract::{

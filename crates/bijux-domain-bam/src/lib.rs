@@ -14,6 +14,7 @@ pub use stage_registry::{
     contract_for_stage, required_audit_artifacts, stage_spec, stage_specs, ArtifactPolicy,
     AuditArtifact, BamArtifactKind, BamStage, BamStageContract, BamStageSpec,
 };
+pub use invariants::bam_invariant_specs;
 
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Debug, Clone, Copy)]

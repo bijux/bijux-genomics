@@ -1,8 +1,10 @@
 //! BAM invariants and thresholds.
 
 mod model;
+mod specs;
 
 pub use model::{BamInvariantEvaluation, BamInvariantThresholds};
+pub use specs::bam_invariant_specs;
 
 use bijux_core::{InvariantResultV1, InvariantStatusV1, StageVerdictV1};
 
