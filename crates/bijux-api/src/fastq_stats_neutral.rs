@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 
 use anyhow::{anyhow, Context, Result};
+use bijux_core::ErrorCategory;
 use bijux_analyze::{
     append_jsonl, fetch_fastq_stats_v1, insert_fastq_stats_v1, metric_set, BenchmarkContext,
     BenchmarkRecord, FastqStatsMetrics, LengthHistogramBin,
@@ -117,6 +118,7 @@ pub fn bench_fastq_stats_neutral<S: ::std::hash::BuildHasher>(
                 stage: "fastq.stats_neutral".to_string(),
                 tool: tool.to_string(),
                 reason: err.to_string(),
+                category: ErrorCategory::ToolError,
             }),
         }
     }

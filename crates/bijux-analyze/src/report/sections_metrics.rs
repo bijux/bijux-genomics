@@ -33,7 +33,17 @@ pub(super) fn pipeline_verdict_from_rows(rows: &[FactsRowV1]) -> PipelineVerdict
 
 pub(super) fn pipeline_verdict_section(rows: &[FactsRowV1]) -> serde_json::Value {
     let verdict = pipeline_verdict_from_rows(rows);
-    serde_json::to_value(verdict).unwrap_or_else(|_| serde_json::json!({}))
+    serde_json::json!({
+        "verdict": verdict.verdict,
+        "reasons": verdict.reasons,
+        "aggregation_policy": {
+            "schema_version": "bijux.pipeline_verdict_policy.v1",
+            "rule": "worst_status",
+            "pass_condition": "all stages pass",
+            "warn_condition": "any stage warn and no stage fail",
+            "fail_condition": "any stage fail",
+        }
+    })
 }
 
 pub(super) fn comparison_view_section(rows: &[FactsRowV1]) -> serde_json::Value {

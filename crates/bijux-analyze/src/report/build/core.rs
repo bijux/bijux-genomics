@@ -20,11 +20,12 @@ use super::sections::schema::{
 use super::sections::{
     accounting_section, adapter_config_section, adapter_inference_section, assertions_section,
     bam_accounting_section, bam_findings_section, bam_plots_section, bam_verdict_table,
-    bench_summary_section, comparison_view_section, decision_trace_section, failure_hints_section,
-    filter_interpretation_section, findings_section, impact_metrics_section, params_excerpt,
-    pipeline_verdict_from_rows, pipeline_verdict_section, qc_artifacts_section, qc_improvement_section,
-    read_tool_invocation, report_path_for, reproducibility_section, scientific_provenance_section,
-    stage_completeness_table, stage_confidence_section, stage_plots_section,
+    bench_summary_section, claims_registry_section, comparison_view_section, decision_trace_section,
+    failure_hints_section, filter_interpretation_section, findings_section, impact_metrics_section,
+    params_excerpt, pipeline_verdict_from_rows, pipeline_verdict_section, qc_artifacts_section,
+    qc_improvement_section, read_tool_invocation, report_path_for, reproducibility_section,
+    scientific_provenance_section, stage_completeness_table, stage_confidence_section,
+    stage_plots_section,
 };
 use crate::export::write_run_summary_json;
 use crate::model::stable_sort_records;
@@ -86,6 +87,9 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
 
         let (metrics_path, tool_invocation_path, effective_config_path) =
             stage_report_fields(stage_report.as_ref());
+        let metrics_path = normalize_report_path(base_dir, &metrics_path);
+        let tool_invocation_path = normalize_report_path(base_dir, &tool_invocation_path);
+        let effective_config_path = normalize_report_path(base_dir, &effective_config_path);
         let tool_invocation_path_clone = tool_invocation_path.clone();
         if metrics_path.is_empty() {
             missing_reports.push(format!("{}:metrics_path", row.stage_id));
@@ -132,6 +136,16 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
             telemetry_events.push(path);
         }
 
+        let stage_report_path = stage_report_path
+            .as_deref()
+            .map(|path| normalize_report_path(base_dir, path))
+            .unwrap_or_default();
+        let retention_report_path = retention_report_path
+            .as_deref()
+            .map(|path| normalize_report_path(base_dir, path));
+        let bank_report_path = bank_report_path
+            .as_deref()
+            .map(|path| normalize_report_path(base_dir, path));
         stages.push(ReportStageSummaryV1 {
             stage_id: row.stage_id.clone(),
             tool_id: row.tool_id.clone(),
@@ -144,9 +158,7 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
             metrics_path,
             tool_invocation_path,
             effective_config_path,
-            stage_report_path: stage_report_path
-                .as_deref()
-                .map_or_else(String::new, ToString::to_string),
+            stage_report_path,
             retention_report_path,
             bank_report_path,
         });
@@ -309,6 +321,10 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
         "findings".to_string(),
         JsonBlob::new(findings_section(&ordered)),
     );
+    sections.insert(
+        "claims_registry".to_string(),
+        JsonBlob::new(claims_registry_section(&ordered)),
+    );
     if let Some(handoff) = cross_domain_handoff_section(base_dir) {
         sections.insert("handoff".to_string(), JsonBlob::new(handoff));
     }
@@ -348,6 +364,10 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
         "adapter_config".to_string(),
         JsonBlob::new(adapter_config_section(&ordered)),
     );
+    sections.insert(
+        "run_provenance".to_string(),
+        JsonBlob::new(run_provenance_section(base_dir)),
+    );
     model.sections = sections;
     model.tables.insert(
         "stage_completeness".to_string(),
@@ -386,6 +406,15 @@ fn cross_domain_handoff_section(base_dir: &Path) -> Option<serde_json::Value> {
     }))
 }
 
+fn run_provenance_section(base_dir: &Path) -> serde_json::Value {
+    let manifest_path = base_dir.join("run_manifest.json");
+    let raw = std::fs::read_to_string(&manifest_path).ok();
+    let manifest: Option<serde_json::Value> = raw.as_deref().and_then(|raw| serde_json::from_str(raw).ok());
+    manifest
+        .and_then(|value| value.get("run_provenance").cloned())
+        .unwrap_or_else(|| serde_json::json!({}))
+}
+
 fn pipeline_defaults_section(base_dir: &Path) -> Result<serde_json::Value> {
     let defaults_path = base_dir.join("defaults_ledger.json");
     let raw = std::fs::read_to_string(&defaults_path)
@@ -396,6 +425,16 @@ fn pipeline_defaults_section(base_dir: &Path) -> Result<serde_json::Value> {
         "defaults_ledger": parsed,
         "overrides": [],
     }))
+}
+
+fn normalize_report_path(base_dir: &Path, raw: &str) -> String {
+    let path = Path::new(raw);
+    if path.is_absolute() {
+        if let Ok(stripped) = path.strip_prefix(base_dir) {
+            return stripped.display().to_string();
+        }
+    }
+    raw.to_string()
 }
 
 /// Write a deterministic run summary JSON from facts rows.

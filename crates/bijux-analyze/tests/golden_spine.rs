@@ -93,7 +93,7 @@ fn write_stage_report(
 }
 
 fn write_facts(base_dir: &Path, profile: &bijux_pipelines::PipelineProfile) -> Result<PathBuf> {
-    let run_id = profile.id.0.as_str();
+    let run_id = profile.id.as_str();
     let mut rows = Vec::new();
     for (idx, node) in profile.graph.iter().enumerate() {
         let tool = profile
@@ -130,13 +130,17 @@ fn write_defaults(base_dir: &Path, profile: &bijux_pipelines::PipelineProfile) -
     Ok(())
 }
 
-fn write_manifest(base_dir: &Path, profile: &bijux_pipelines::PipelineProfile, domain: Domain) -> Result<()> {
-    let run_id = profile.id.0.as_str();
+fn write_manifest(
+    base_dir: &Path,
+    profile: &bijux_pipelines::PipelineProfile,
+    domain: Domain,
+) -> Result<()> {
+    let run_id = profile.id.as_str();
     let manifest = match domain {
         Domain::Cross => serde_json::json!({
             "schema_version": "bijux.run_manifest.v2",
             "run_id": run_id,
-            "profile_id": profile.id.0,
+            "profile_id": profile.id.as_str(),
             "domain_transitions": [{
                 "from": "fastq",
                 "to": "bam",
@@ -147,7 +151,7 @@ fn write_manifest(base_dir: &Path, profile: &bijux_pipelines::PipelineProfile, d
         _ => serde_json::json!({
             "schema_version": "bijux.run_manifest.v1",
             "run_id": run_id,
-            "pipeline_id": profile.id.0,
+            "pipeline_id": profile.id.as_str(),
             "stages": profile.graph.iter().map(|node| node.stage_id.clone()).collect::<Vec<_>>(),
         }),
     };

@@ -20,8 +20,15 @@ pub fn render_report_html(model: &ReportModel) -> Result<String> {
 
     let nav_items = build_nav_items(&section_keys);
     let section_blocks = build_section_blocks(&sections, &section_keys)?;
-    let stage_tabs = build_stage_tabs(&report.stages);
-    let stage_panels = build_stage_panels(&report.stages);
+    let mut stages = report.stages.clone();
+    stages.sort_by(|left, right| {
+        match left.stage_id.cmp(&right.stage_id) {
+            std::cmp::Ordering::Equal => left.tool_id.cmp(&right.tool_id),
+            ordering => ordering,
+        }
+    });
+    let stage_tabs = build_stage_tabs(&stages);
+    let stage_panels = build_stage_panels(&stages);
 
     let stage_plots = sections
         .get("stage_plots")

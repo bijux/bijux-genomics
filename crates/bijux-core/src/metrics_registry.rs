@@ -159,6 +159,7 @@ pub struct MetricSemantics {
     pub units: &'static str,
     pub range: &'static str,
     pub missing_data_policy: &'static str,
+    pub influencing_params: &'static [&'static str],
 }
 
 pub const COMPARE_METRIC_SEMANTICS: &[MetricSemantics] = &[
@@ -168,6 +169,7 @@ pub const COMPARE_METRIC_SEMANTICS: &[MetricSemantics] = &[
         units: "seconds",
         range: ">= 0",
         missing_data_policy: "treat_as_infinite",
+        influencing_params: &[],
     },
     MetricSemantics {
         metric_id: "memory_mb",
@@ -175,6 +177,7 @@ pub const COMPARE_METRIC_SEMANTICS: &[MetricSemantics] = &[
         units: "MB",
         range: ">= 0",
         missing_data_policy: "treat_as_infinite",
+        influencing_params: &[],
     },
     MetricSemantics {
         metric_id: "read_retention",
@@ -182,6 +185,7 @@ pub const COMPARE_METRIC_SEMANTICS: &[MetricSemantics] = &[
         units: "ratio",
         range: "[0, 1]",
         missing_data_policy: "treat_as_0.0",
+        influencing_params: &["adapter_bank", "trim_settings", "filter_settings"],
     },
     MetricSemantics {
         metric_id: "base_retention",
@@ -189,6 +193,7 @@ pub const COMPARE_METRIC_SEMANTICS: &[MetricSemantics] = &[
         units: "ratio",
         range: "[0, 1]",
         missing_data_policy: "treat_as_0.0",
+        influencing_params: &["adapter_bank", "trim_settings", "filter_settings"],
     },
     MetricSemantics {
         metric_id: "merge_rate",
@@ -196,6 +201,7 @@ pub const COMPARE_METRIC_SEMANTICS: &[MetricSemantics] = &[
         units: "ratio",
         range: "[0, 1]",
         missing_data_policy: "treat_as_0.0",
+        influencing_params: &["merge_policy"],
     },
     MetricSemantics {
         metric_id: "error_reduction_proxy",
@@ -203,6 +209,7 @@ pub const COMPARE_METRIC_SEMANTICS: &[MetricSemantics] = &[
         units: "mean_q_delta",
         range: "[0, 45]",
         missing_data_policy: "treat_as_0.0",
+        influencing_params: &["corrector_settings"],
     },
 ];
 

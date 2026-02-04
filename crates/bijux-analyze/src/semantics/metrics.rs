@@ -34,6 +34,11 @@ pub fn resolve_semantics(metric_id: &str) -> Result<MetricSemanticsV1> {
             units: spec.units.to_string(),
             range: spec.range.to_string(),
             missing_data_policy: spec.missing_data_policy.to_string(),
+            influencing_params: spec
+                .influencing_params
+                .iter()
+                .map(|param| (*param).to_string())
+                .collect(),
         })
         .ok_or_else(|| {
             anyhow!(

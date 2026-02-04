@@ -16,6 +16,7 @@ pub(crate) fn report_contract() -> ReportContractV1 {
             "completeness".to_string(),
             "stages".to_string(),
             "provenance".to_string(),
+            "run_provenance".to_string(),
             "decision_config".to_string(),
             "retention_definition".to_string(),
             "retention_context".to_string(),
@@ -26,6 +27,7 @@ pub(crate) fn report_contract() -> ReportContractV1 {
             "final_qc_summary".to_string(),
             "filter_interpretation".to_string(),
             "adapter_inference".to_string(),
+            "claims_registry".to_string(),
         ],
         required_provenance_fields: vec![
             "tool_id".to_string(),
@@ -98,6 +100,7 @@ pub(crate) fn build_report_sections(
     sections.insert("handoff".to_string(), serde_json::json!({}));
     sections.insert("pipeline_verdict".to_string(), serde_json::json!({}));
     sections.insert("scientific_provenance".to_string(), serde_json::json!({}));
+    sections.insert("run_provenance".to_string(), serde_json::json!({}));
     sections.insert(
         "data_contract_validation".to_string(),
         serde_json::json!({}),
@@ -108,6 +111,7 @@ pub(crate) fn build_report_sections(
     sections.insert("accounting".to_string(), serde_json::json!({}));
     sections.insert("impact_metrics".to_string(), serde_json::json!({}));
     sections.insert("findings".to_string(), serde_json::json!({}));
+    sections.insert("claims_registry".to_string(), serde_json::json!({}));
     sections
 }
 
@@ -223,6 +227,11 @@ pub(crate) fn report_metric_semantics() -> Vec<MetricSemanticsV1> {
                 units: spec.units.to_string(),
                 range: spec.range.to_string(),
                 missing_data_policy: spec.missing_data_policy.to_string(),
+                influencing_params: spec
+                    .influencing_params
+                    .iter()
+                    .map(|param| (*param).to_string())
+                    .collect(),
             })
         })
         .collect()

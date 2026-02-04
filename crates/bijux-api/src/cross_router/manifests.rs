@@ -89,9 +89,9 @@ pub fn write_cross_run_manifest(
             "tool_id": entry.plan.tool_id.0,
             "domain": "bam",
             "artifacts": {
-                "out_dir": entry.plan.out_dir,
-                "metrics": entry.plan.out_dir.join("run_artifacts").join("metrics.json"),
-                "stage_report": entry.plan.out_dir.join("run_artifacts").join("stage_report.json"),
+                "out_dir": relative_path_string(out_dir, &entry.plan.out_dir),
+                "metrics": relative_path_string(out_dir, &entry.plan.out_dir.join("run_artifacts").join("metrics.json")),
+                "stage_report": relative_path_string(out_dir, &entry.plan.out_dir.join("run_artifacts").join("stage_report.json")),
             },
         }));
     }
@@ -108,22 +108,28 @@ pub fn write_cross_run_manifest(
     }
     let defaults_path = out_dir.join("defaults_ledger.json");
     let defaults_hash = hash_file_sha256(&defaults_path)?;
+    let pipeline_id = profile.id.0.clone();
+    let git_commit = std::env::var("BIJUX_GIT_COMMIT").unwrap_or_else(|_| "unknown".to_string());
+    let build_profile =
+        std::env::var("BIJUX_BUILD_PROFILE").unwrap_or_else(|_| "unknown".to_string());
+    let run_provenance = run_provenance_from_cross(out_dir, fastq_summary, bam_runs, &pipeline_id);
     let manifest = serde_json::json!({
         "schema_version": "bijux.run_manifest.v2",
         "run_id": run_id,
         "profile_id": profile.id,
         "domains": domains,
         "stages": stages,
-        "defaults_ledger": defaults_path,
+        "defaults_ledger": relative_path_string(out_dir, &defaults_path),
         "defaults_ledger_sha256": defaults_hash,
+        "run_provenance": run_provenance,
         "domain_transitions": [{
             "from": "fastq",
             "to": "bam",
-            "boundary": boundary_path,
+            "boundary": boundary_path.map(|path| relative_path_string(out_dir, path)),
         }],
         "boundaries": boundary_path.map(|path| serde_json::json!({
             "name": "alignment_boundary",
-            "path": path,
+            "path": relative_path_string(out_dir, path),
             "sha256": boundary_hash,
         })),
     });
@@ -139,6 +145,96 @@ pub fn write_reference_manifest(out_dir: &Path, record: &ReferenceRecord) -> Res
     bijux_infra::atomic_write_json(&path, record)
         .with_context(|| "write reference_manifest.json")?;
     Ok(path)
+}
+
+fn relative_path_string(base: &Path, path: &Path) -> String {
+    path.strip_prefix(base)
+        .unwrap_or(path)
+        .to_string_lossy()
+        .to_string()
+}
+
+fn run_provenance_from_cross(
+    out_dir: &Path,
+    fastq_summary: &serde_json::Value,
+    bam_runs: &[StageExecutionSummary],
+    pipeline_id: &str,
+) -> serde_json::Value {
+    let mut params_by_stage = std::collections::BTreeMap::new();
+    let mut input_hashes = Vec::new();
+    let mut tool_versions = std::collections::BTreeSet::new();
+    let mut image_digests = std::collections::BTreeSet::new();
+    if let Some(fastq_prov) = fastq_summary.get("run_provenance") {
+        if let Some(hash) = fastq_prov.get("params_hash").and_then(serde_json::Value::as_str) {
+            params_by_stage.insert("fastq".to_string(), hash.to_string());
+        }
+        if let Some(inputs) = fastq_prov.get("input_hashes").and_then(serde_json::Value::as_array) {
+            for input in inputs {
+                if let Some(value) = input.as_str() {
+                    input_hashes.push(value.to_string());
+                }
+            }
+        }
+        if let Some(value) = fastq_prov.get("tool_version").and_then(serde_json::Value::as_str) {
+            tool_versions.insert(value.to_string());
+        }
+        if let Some(value) = fastq_prov.get("tool_image_digest").and_then(serde_json::Value::as_str)
+        {
+            image_digests.insert(value.to_string());
+        }
+    }
+    for entry in bam_runs {
+        tool_versions.insert(entry.plan.tool_version.clone());
+        if let Some(digest) = entry.plan.image.digest.clone() {
+            image_digests.insert(digest);
+        }
+        let envelope_path = entry
+            .plan
+            .out_dir
+            .join("run_artifacts")
+            .join("metrics_envelope.json");
+        if let Ok(raw) = std::fs::read_to_string(&envelope_path) {
+            if let Ok(value) = serde_json::from_str::<serde_json::Value>(&raw) {
+                if let Some(hash) = value.get("input_hash").and_then(serde_json::Value::as_str) {
+                    input_hashes.push(hash.to_string());
+                }
+                if let Some(hash) = value.get("params_hash").and_then(serde_json::Value::as_str) {
+                    params_by_stage.insert(entry.plan.stage_id.0.clone(), hash.to_string());
+                }
+            }
+        }
+    }
+    input_hashes.sort();
+    input_hashes.dedup();
+    let params_hash = bijux_core::params_hash(&serde_json::json!(params_by_stage));
+    let tool_version = if tool_versions.len() == 1 {
+        tool_versions
+            .into_iter()
+            .next()
+            .unwrap_or_else(|| "unknown".to_string())
+    } else {
+        "multiple".to_string()
+    };
+    let tool_image_digest = if image_digests.len() == 1 {
+        image_digests.into_iter().next()
+    } else {
+        None
+    };
+    let git_commit = std::env::var("BIJUX_GIT_COMMIT").unwrap_or_else(|_| "unknown".to_string());
+    let build_profile =
+        std::env::var("BIJUX_BUILD_PROFILE").unwrap_or_else(|_| "unknown".to_string());
+    let reference_genome = std::env::var("BIJUX_REFERENCE_GENOME").ok();
+    serde_json::json!({
+        "schema_version": "bijux.run_provenance.v1",
+        "tool_image_digest": tool_image_digest,
+        "tool_version": tool_version,
+        "params_hash": params_hash,
+        "input_hashes": input_hashes,
+        "reference_genome": reference_genome,
+        "pipeline_id": pipeline_id,
+        "git_commit": git_commit,
+        "build_profile": build_profile,
+    })
 }
 
 #[cfg(test)]

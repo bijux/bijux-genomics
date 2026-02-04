@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use anyhow::{anyhow, Context, Result};
+use bijux_core::ErrorCategory;
 use bijux_core::ContainerImageRefV1;
 use bijux_engine::primitives::resolve_image_for_run;
 use bijux_engine::primitives::{
@@ -174,6 +175,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
                 stage: entry.plan.stage_id.0.clone(),
                 tool: entry.plan.tool_id.0.clone(),
                 reason: format!("tool failed with status {}", entry.result.exit_code),
+                category: ErrorCategory::ToolError,
             });
         }
     }
@@ -251,6 +253,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
                 stage: stage_id,
                 tool: tool.clone(),
                 reason: format!("tool failed with status {}", execution.exit_code),
+                category: ErrorCategory::ToolError,
             });
         }
         stage_runs.push(StageExecutionSummary {

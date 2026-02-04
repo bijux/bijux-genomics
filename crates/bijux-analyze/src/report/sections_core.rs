@@ -302,6 +302,12 @@ pub(super) fn reproducibility_section(
         "input_hashes": input_hashes,
         "started_at": started_at,
         "finished_at": finished_at,
+        "determinism_policy": {
+            "json_canonicalization": "sorted_keys",
+            "html_table_order": "stage_id,tool_id",
+            "float_format": "fixed_3",
+            "timestamp_format": "rfc3339_utc",
+        },
     })
 }
 

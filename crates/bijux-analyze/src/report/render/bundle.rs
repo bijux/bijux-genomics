@@ -16,9 +16,8 @@ pub fn write_report_bundle(dir: &Path, model: &ReportModel) -> Result<()> {
     atomic_write_bytes(&index_path, html.as_bytes())
         .map_err(anyhow::Error::from)
         .context("write report bundle index.html")?;
-    let report_json = serde_json::to_vec_pretty(&model.report)?;
     let report_path = dir.join("report.json");
-    atomic_write_bytes(&report_path, &report_json)
+    bijux_infra::atomic_write_json(&report_path, &model.report)
         .map_err(anyhow::Error::from)
         .context("write report bundle report.json")?;
     let assets_dir = dir.join("assets");
@@ -60,7 +59,7 @@ mod tests {
             .join("tests")
             .join("snapshots")
             .join("run_report_bundle_index.html");
-        let expected = fs::read_to_string(snapshot_path)?;
+        let expected = fs::read_to_string(&snapshot_path)?;
         let extract_json = |doc: &str| -> anyhow::Result<serde_json::Value> {
             let marker = r#"<script id="report-json" type="application/json">"#;
             let start = doc
@@ -75,7 +74,14 @@ mod tests {
         };
         let expected_json = extract_json(&expected)?;
         let actual_json = extract_json(&actual)?;
-        assert_eq!(expected_json, actual_json);
+        let update = std::env::var("INSTA_UPDATE").is_ok_and(|value| {
+            matches!(value.as_str(), "always" | "1" | "new" | "unseen")
+        });
+        if update {
+            fs::write(&snapshot_path, actual)?;
+        } else {
+            assert_eq!(expected_json, actual_json);
+        }
         Ok(())
     }
 }

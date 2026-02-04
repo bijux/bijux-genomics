@@ -36,11 +36,11 @@ pub(super) fn write_run_summary(
                 "exit_code": entry.result.exit_code,
                 "runtime_s": entry.result.runtime_s,
                 "memory_mb": entry.result.memory_mb,
-                "out_dir": entry.plan.out_dir,
+                "out_dir": relative_path_string(out_dir, &entry.plan.out_dir),
                 "artifacts": {
-                    "metrics_envelope": metrics_path,
-                    "stage_report": stage_report_path,
-                    "retention_report": retention_report_path
+                    "metrics_envelope": relative_path_string(out_dir, &metrics_path),
+                    "stage_report": relative_path_string(out_dir, &stage_report_path),
+                    "retention_report": relative_path_string(out_dir, &retention_report_path)
                 },
                 "metrics": metrics.unwrap_or(serde_json::Value::Null)
             })
@@ -53,16 +53,19 @@ pub(super) fn write_run_summary(
             serde_json::json!({
                 "stage": failure.stage,
                 "tool": failure.tool,
-                "reason": failure.reason
+                "reason": failure.reason,
+                "category": format!("{:?}", failure.category),
             })
         })
         .collect();
+    let run_provenance = run_provenance_from_stage_runs(out_dir, stage_runs);
     let summary = serde_json::json!({
         "schema_version": "bijux.run_summary.v1",
         "run_id": run_id,
         "total_runtime_s": total_runtime_s,
         "stages": stages,
         "failures": failures_json,
+        "run_provenance": run_provenance,
         "pipeline_decisions": {
             "merge": merge_decision,
             "correct": correct_decision,
@@ -101,7 +104,7 @@ pub(super) fn write_run_manifest(
                     if let Ok(hash) = bijux_engine::primitives::hash_file_sha256(path) {
                         artifacts.push(serde_json::json!({
                             "name": name,
-                            "path": path,
+                            "path": relative_path_string(out_dir, path),
                             "sha256": hash,
                         }));
                     }
@@ -150,15 +153,15 @@ pub(super) fn write_run_manifest(
                     .join("reports")
                     .join(format!("{}.qc_post_report.json", entry.plan.stage_id.0));
                 if qc_report.exists() {
-                    primary_outputs.push(qc_report);
+                    primary_outputs.push(relative_path_string(out_dir, &qc_report));
                 }
                 let multiqc_report = entry.plan.out_dir.join("multiqc_report.html");
                 if multiqc_report.exists() {
-                    primary_outputs.push(multiqc_report);
+                    primary_outputs.push(relative_path_string(out_dir, &multiqc_report));
                 }
                 let multiqc_data = entry.plan.out_dir.join("multiqc_data");
                 if multiqc_data.exists() {
-                    primary_outputs.push(multiqc_data);
+                    primary_outputs.push(relative_path_string(out_dir, &multiqc_data));
                 }
             }
             serde_json::json!({
@@ -175,26 +178,38 @@ pub(super) fn write_run_manifest(
             serde_json::json!({
                 "stage": failure.stage,
                 "tool": failure.tool,
-                "reason": failure.reason
+                "reason": failure.reason,
+                "category": format!("{:?}", failure.category),
             })
         })
         .collect();
     let defaults_path = out_dir.join("defaults_ledger.json");
     let defaults_hash = bijux_infra::hash_file_sha256(&defaults_path)
         .context("hash defaults_ledger.json")?;
+    let pipeline_id = std::env::var("BIJUX_PIPELINE_ID").unwrap_or_else(|_| "unknown".to_string());
+    let git_commit = std::env::var("BIJUX_GIT_COMMIT").unwrap_or_else(|_| "unknown".to_string());
+    let build_profile =
+        std::env::var("BIJUX_BUILD_PROFILE").unwrap_or_else(|_| "unknown".to_string());
+    let run_provenance = run_provenance_from_stage_runs(out_dir, stage_runs);
     let manifest = serde_json::json!({
         "schema_version": "bijux.run_manifest.v1",
         "run_id": run_id,
         "stages": stages,
         "failures": failures_json,
-        "defaults_ledger": defaults_path,
+        "defaults_ledger": relative_path_string(out_dir, &defaults_path),
         "defaults_ledger_sha256": defaults_hash,
+        "run_provenance": run_provenance,
         "telemetry": {
             "events": stage_runs.iter().map(|entry| {
-                entry.plan.out_dir
-                    .join("run_artifacts")
-                    .join("telemetry")
-                    .join("events.jsonl")
+                relative_path_string(
+                    out_dir,
+                    &entry
+                        .plan
+                        .out_dir
+                        .join("run_artifacts")
+                        .join("telemetry")
+                        .join("events.jsonl"),
+                )
             }).collect::<Vec<_>>()
         }
     });
@@ -207,6 +222,74 @@ fn read_json_if_exists(path: &Path) -> Option<serde_json::Value> {
     std::fs::read_to_string(path)
         .ok()
         .and_then(|raw| serde_json::from_str(&raw).ok())
+}
+
+fn relative_path_string(base: &Path, path: &Path) -> String {
+    path.strip_prefix(base)
+        .unwrap_or(path)
+        .to_string_lossy()
+        .to_string()
+}
+
+fn run_provenance_from_stage_runs(
+    out_dir: &Path,
+    stage_runs: &[StageExecutionSummary],
+) -> serde_json::Value {
+    let mut params_by_stage = std::collections::BTreeMap::new();
+    let mut input_hashes = Vec::new();
+    let mut tool_versions = std::collections::BTreeSet::new();
+    let mut image_digests = std::collections::BTreeSet::new();
+    for entry in stage_runs {
+        tool_versions.insert(entry.plan.tool_version.clone());
+        if let Some(digest) = entry.plan.image.digest.clone() {
+            image_digests.insert(digest);
+        }
+        let envelope_path = entry
+            .plan
+            .out_dir
+            .join("run_artifacts")
+            .join("metrics_envelope.json");
+        if let Some(value) = read_json_if_exists(&envelope_path) {
+            if let Some(hash) = value.get("input_hash").and_then(serde_json::Value::as_str) {
+                input_hashes.push(hash.to_string());
+            }
+            if let Some(hash) = value.get("params_hash").and_then(serde_json::Value::as_str) {
+                params_by_stage.insert(entry.plan.stage_id.0.clone(), hash.to_string());
+            }
+        }
+    }
+    input_hashes.sort();
+    input_hashes.dedup();
+    let params_hash = bijux_core::params_hash(&serde_json::json!(params_by_stage));
+    let tool_version = if tool_versions.len() == 1 {
+        tool_versions
+            .into_iter()
+            .next()
+            .unwrap_or_else(|| "unknown".to_string())
+    } else {
+        "multiple".to_string()
+    };
+    let tool_image_digest = if image_digests.len() == 1 {
+        image_digests.into_iter().next()
+    } else {
+        None
+    };
+    let pipeline_id = std::env::var("BIJUX_PIPELINE_ID").unwrap_or_else(|_| "unknown".to_string());
+    let git_commit = std::env::var("BIJUX_GIT_COMMIT").unwrap_or_else(|_| "unknown".to_string());
+    let build_profile =
+        std::env::var("BIJUX_BUILD_PROFILE").unwrap_or_else(|_| "unknown".to_string());
+    let reference_genome = std::env::var("BIJUX_REFERENCE_GENOME").ok();
+    serde_json::json!({
+        "schema_version": "bijux.run_provenance.v1",
+        "tool_image_digest": tool_image_digest,
+        "tool_version": tool_version,
+        "params_hash": params_hash,
+        "input_hashes": input_hashes,
+        "reference_genome": reference_genome,
+        "pipeline_id": pipeline_id,
+        "git_commit": git_commit,
+        "build_profile": build_profile,
+    })
 }
 
 fn render_run_summary_html(summary: &serde_json::Value) -> String {
@@ -314,8 +397,11 @@ mod tests {
             exit_code: 0,
             runtime_s: 1.0,
             memory_mb: 1.0,
-            failure_kind: None,
-            output_hash: None,
+            outputs: Vec::new(),
+            metrics_path: None,
+            stdout: String::new(),
+            stderr: String::new(),
+            command: String::new(),
         };
         let stage_runs = vec![StageExecutionSummary { plan, result }];
         write_run_manifest(out_dir, &stage_runs, &[])?;
@@ -323,6 +409,31 @@ mod tests {
         let manifest: serde_json::Value = serde_json::from_str(&manifest_raw)?;
         assert!(manifest.get("defaults_ledger").is_some());
         assert!(manifest.get("defaults_ledger_sha256").is_some());
+        assert_no_absolute_paths(&manifest);
         Ok(())
+    }
+
+    fn assert_no_absolute_paths(value: &serde_json::Value) {
+        match value {
+            serde_json::Value::String(s) => {
+                if s.starts_with('/') && !s.starts_with("//") {
+                    panic!("absolute path found: {s}");
+                }
+                if s.contains(":\\") {
+                    panic!("windows absolute path found: {s}");
+                }
+            }
+            serde_json::Value::Array(items) => {
+                for item in items {
+                    assert_no_absolute_paths(item);
+                }
+            }
+            serde_json::Value::Object(map) => {
+                for (_, value) in map {
+                    assert_no_absolute_paths(value);
+                }
+            }
+            _ => {}
+        }
     }
 }

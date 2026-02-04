@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use anyhow::{anyhow, Context, Result};
+use bijux_core::ErrorCategory;
 use bijux_engine::primitives::{
     bench_base_dir, bench_tools_dir, build_tool_execution_spec, ensure_bench_runner,
     ensure_image_qa_passed, ensure_tool_qa_passed, filter_tools_by_role, load_registry,
@@ -83,6 +84,7 @@ pub fn bench_fastq_filter<S: ::std::hash::BuildHasher>(
                     "tool {tool_name} failed with status {}",
                     execution.exit_code
                 ),
+                category: ErrorCategory::ToolError,
             });
         }
     }

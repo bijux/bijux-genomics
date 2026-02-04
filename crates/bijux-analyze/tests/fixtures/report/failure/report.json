@@ -306,7 +306,7 @@
       },
       "presets": [
         {
-          "effective_config_path": "/Users/bijan/bijux/bijux-dna/target/test-fixtures/report/effective_config.json",
+          "effective_config_path": "tests/fixtures/report/effective_config.json",
           "params_hash": "params2",
           "stage_id": "fastq.merge",
           "tool_id": "pear",
@@ -474,18 +474,18 @@
   "stages": [
     {
       "bank_report_path": null,
-      "effective_config_path": "/Users/bijan/bijux/bijux-dna/target/test-fixtures/report/effective_config.json",
+      "effective_config_path": "tests/fixtures/report/effective_config.json",
       "exit_code": 1,
       "input_hash": "input2",
       "memory_mb": 128.0,
-      "metrics_path": "/Users/bijan/bijux/bijux-dna/target/test-fixtures/report/metrics.json",
+      "metrics_path": "tests/fixtures/report/metrics.json",
       "params_hash": "params2",
       "retention_report_path": null,
       "runtime_s": 2.0,
       "stage_id": "fastq.merge",
-      "stage_report_path": "/Users/bijan/bijux/bijux-dna/target/test-fixtures/report/stage_report.json",
+      "stage_report_path": "tests/fixtures/report/stage_report.json",
       "tool_id": "pear",
-      "tool_invocation_path": "/Users/bijan/bijux/bijux-dna/target/test-fixtures/report/tool_invocation.json",
+      "tool_invocation_path": "tests/fixtures/report/tool_invocation.json",
       "tool_version": "0.9"
     }
   ],
@@ -493,7 +493,7 @@
     "error_count": 0,
     "event_count": 0,
     "events": [
-      "/Users/bijan/bijux/bijux-dna/target/test-fixtures/report/telemetry/events.jsonl"
+      "tests/fixtures/report/telemetry/events.jsonl"
     ]
   }
 }

@@ -263,6 +263,29 @@ pub fn remove_file(path: &Path) -> Result<(), IoError> {
     std::fs::remove_file(path).map_err(IoError::from_io)
 }
 
+/// Remove a directory and all contents.
+///
+/// # Errors
+/// Returns an IO error if removal fails.
+pub fn remove_dir_all(path: &Path) -> Result<(), IoError> {
+    std::fs::remove_dir_all(path).map_err(IoError::from_io)
+}
+
+/// Remove a file or directory if it exists.
+///
+/// # Errors
+/// Returns an IO error if removal fails.
+pub fn remove_path_if_exists(path: &Path) -> Result<(), IoError> {
+    if !path.exists() {
+        return Ok(());
+    }
+    if path.is_dir() {
+        remove_dir_all(path)
+    } else {
+        remove_file(path)
+    }
+}
+
 /// Remove a file if it exists.
 ///
 /// # Errors

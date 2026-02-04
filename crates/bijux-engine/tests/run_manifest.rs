@@ -1,6 +1,7 @@
 use std::fs;
 
 use bijux_engine::primitives::{prepare_tool_run_dirs, write_run_manifest, RunArtifactInput};
+use bijux_core::RunProvenanceV1;
 
 #[test]
 fn run_manifest_includes_telemetry_and_facts() -> anyhow::Result<()> {
@@ -13,11 +14,23 @@ fn run_manifest_includes_telemetry_and_facts() -> anyhow::Result<()> {
     bijux_infra::write_bytes(&run_dirs.manifest_path, "{}")?;
     bijux_infra::write_bytes(&run_dirs.metrics_path, "{}")?;
     bijux_infra::write_bytes(&run_dirs.retention_report_path, "{}")?;
+    let run_provenance = RunProvenanceV1 {
+        schema_version: "bijux.run_provenance.v1".to_string(),
+        tool_image_digest: None,
+        tool_version: "tool".to_string(),
+        params_hash: "params".to_string(),
+        input_hashes: vec!["input".to_string()],
+        reference_genome: None,
+        pipeline_id: "pipeline".to_string(),
+        git_commit: "commit".to_string(),
+        build_profile: "test".to_string(),
+    };
     write_run_manifest(
         &run_dirs,
         "stage",
         "tool",
         &adapter_bank,
+        &run_provenance,
         &[] as &[RunArtifactInput],
     )?;
     let raw = fs::read_to_string(&run_dirs.run_manifest_path)?;

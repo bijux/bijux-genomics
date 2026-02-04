@@ -150,6 +150,7 @@ pub fn write_run_manifest(
     stage: &str,
     tool: &str,
     adapter_bank_path: &Path,
+    run_provenance: &bijux_core::RunProvenanceV1,
     extra_artifacts: &[RunArtifactInput],
 ) -> Result<()> {
     let mut artifacts = Vec::new();
@@ -196,6 +197,7 @@ pub fn write_run_manifest(
         "stage": stage,
         "tool": tool,
         "artifacts": artifacts,
+        "run_provenance": run_provenance,
         "telemetry": {
             "events_jsonl": run_artifacts_dir(run_dirs)?.join("telemetry").join("events.jsonl"),
         },
@@ -203,6 +205,16 @@ pub fn write_run_manifest(
             "facts_jsonl": run_artifacts_dir(run_dirs)?.join("dashboard").join("facts.jsonl"),
         },
     });
+    let telemetry_dir = run_artifacts_dir(run_dirs)?.join("telemetry");
+    bijux_infra::ensure_dir(&telemetry_dir).context("create telemetry dir")?;
+    bijux_infra::atomic_write_json(&telemetry_dir.join("timings.json"), &serde_json::json!([]))
+        .context("write timings.json")?;
+    bijux_infra::atomic_write_json(&telemetry_dir.join("resources.json"), &serde_json::json!([]))
+        .context("write resources.json")?;
+    bijux_infra::atomic_write_json(&telemetry_dir.join("errors.json"), &serde_json::json!([]))
+        .context("write errors.json")?;
+    bijux_infra::atomic_write_bytes(&telemetry_dir.join("events.jsonl"), b"")
+        .context("write events.jsonl")?;
     bijux_infra::atomic_write_json(&run_dirs.run_manifest_path, &payload)
         .context("write run_manifest.json")?;
     Ok(())
