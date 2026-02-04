@@ -519,6 +519,41 @@ fn workspace_boundary_contract_matches_docs() {
 }
 
 #[test]
+fn stage_spec_and_registry_defs_scoped() {
+    let crates = collect_workspace_crates();
+    let root = workspace_root();
+    let mut offenders = Vec::new();
+    for (name, path) in crates {
+        let is_domain = name.starts_with("bijux-domain-");
+        let is_stages = name.starts_with("bijux-stages-");
+        for entry in walkdir::WalkDir::new(path.join("src"))
+            .into_iter()
+            .filter_map(Result::ok)
+            .filter(|entry| entry.path().extension().and_then(|s| s.to_str()) == Some("rs"))
+        {
+            let rel = entry.path().strip_prefix(&root).unwrap_or(entry.path());
+            let file_name = entry
+                .path()
+                .file_name()
+                .and_then(|s| s.to_str())
+                .unwrap_or("");
+            if file_name.ends_with("_tools_registry.rs") && !is_stages {
+                offenders.push(rel.display().to_string());
+                continue;
+            }
+            let content = std::fs::read_to_string(entry.path()).unwrap_or_default();
+            if !is_domain && content.contains("fn stage_spec") {
+                offenders.push(rel.display().to_string());
+            }
+        }
+    }
+    assert!(
+        offenders.is_empty(),
+        "stage specs/tool registries must live in domains or stages only: {offenders:?}"
+    );
+}
+
+#[test]
 fn workspace_no_cross_layer_imports() {
     let crates = collect_workspace_crates();
     let root = workspace_root();

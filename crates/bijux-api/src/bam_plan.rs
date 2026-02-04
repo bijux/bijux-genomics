@@ -5,6 +5,7 @@ use bijux_core::{StagePlanV1, ToolExecutionSpecV1};
 use bijux_infra::hash_file_sha256;
 use bijux_pipelines::registry;
 use bijux_pipelines::PipelineProfile;
+use bijux_stages_bam::StagePlanRequest;
 
 use crate::args::BamRunArgs;
 
@@ -41,6 +42,7 @@ pub fn plan_for_bam_stage_with_profile(
             "downstream BAM stages are disabled (enable feature 'bam_downstream')"
         ));
     }
+    let mut plan = |request: StagePlanRequest<'_>| bijux_stages_bam::plan_stage(request);
     match stage {
         bijux_domain_bam::BamStage::Align => {
             let r1 = args
@@ -95,26 +97,44 @@ pub fn plan_for_bam_stage_with_profile(
             }
             params.aligner.clone_from(&spec.tool_id.0);
             params.build_indices = args.build_reference_indices;
-            bijux_stages_bam::bam::align::plan(
-                spec,
-                r1,
-                args.r2.as_deref(),
-                reference,
-                sample_id,
-                &params,
+            let params_json = serde_json::to_value(&params)?;
+            plan(StagePlanRequest {
+                stage_id: stage.as_str(),
+                tool: spec,
                 out_dir,
-            )
+                bam: None,
+                bam_index: None,
+                r1: Some(r1),
+                r2: args.r2.as_deref(),
+                reference: Some(reference),
+                sample_id: Some(sample_id),
+                params: Some(&params_json),
+            })
         }
-        bijux_domain_bam::BamStage::Validate => bijux_stages_bam::bam::validate::plan(
-            spec,
-            &args.bam,
-            args.bai.as_deref(),
-            args.reference.as_deref(),
+        bijux_domain_bam::BamStage::Validate => plan(StagePlanRequest {
+            stage_id: stage.as_str(),
+            tool: spec,
             out_dir,
-        ),
-        bijux_domain_bam::BamStage::QcPre => {
-            bijux_stages_bam::bam::qc_pre::plan(spec, &args.bam, out_dir)
-        }
+            bam: Some(&args.bam),
+            bam_index: args.bai.as_deref(),
+            r1: None,
+            r2: None,
+            reference: args.reference.as_deref(),
+            sample_id: args.sample_id.as_deref(),
+            params: None,
+        }),
+        bijux_domain_bam::BamStage::QcPre => plan(StagePlanRequest {
+            stage_id: stage.as_str(),
+            tool: spec,
+            out_dir,
+            bam: Some(&args.bam),
+            bam_index: args.bai.as_deref(),
+            r1: None,
+            r2: None,
+            reference: None,
+            sample_id: args.sample_id.as_deref(),
+            params: None,
+        }),
         bijux_domain_bam::BamStage::Filter => {
             let default_params = profile
                 .defaults
@@ -151,7 +171,19 @@ pub fn plan_for_bam_stage_with_profile(
             if let Some(value) = args.base_quality_threshold {
                 params.base_quality_threshold = value;
             }
-            bijux_stages_bam::bam::filter::plan(spec, &args.bam, out_dir, &params)
+            let params_json = serde_json::to_value(&params)?;
+            plan(StagePlanRequest {
+                stage_id: stage.as_str(),
+                tool: spec,
+                out_dir,
+                bam: Some(&args.bam),
+                bam_index: args.bai.as_deref(),
+                r1: None,
+                r2: None,
+                reference: None,
+                sample_id: args.sample_id.as_deref(),
+                params: Some(&params_json),
+            })
         }
         bijux_domain_bam::BamStage::Markdup => {
             let default_params = profile
@@ -177,7 +209,19 @@ pub fn plan_for_bam_stage_with_profile(
             if let Some(value) = args.duplicate_action.as_deref() {
                 params.duplicate_action = parse_duplicate_action(value)?;
             }
-            bijux_stages_bam::bam::markdup::plan(spec, &args.bam, out_dir, &params)
+            let params_json = serde_json::to_value(&params)?;
+            plan(StagePlanRequest {
+                stage_id: stage.as_str(),
+                tool: spec,
+                out_dir,
+                bam: Some(&args.bam),
+                bam_index: args.bai.as_deref(),
+                r1: None,
+                r2: None,
+                reference: None,
+                sample_id: args.sample_id.as_deref(),
+                params: Some(&params_json),
+            })
         }
         bijux_domain_bam::BamStage::Complexity => {
             let default_params = default_params_for_stage(profile, stage);
@@ -196,7 +240,19 @@ pub fn plan_for_bam_stage_with_profile(
                     .projection_points
                     .clone_from(&args.complexity_projection_points);
             }
-            bijux_stages_bam::bam::complexity::plan(spec, &args.bam, out_dir, &params)
+            let params_json = serde_json::to_value(&params)?;
+            plan(StagePlanRequest {
+                stage_id: stage.as_str(),
+                tool: spec,
+                out_dir,
+                bam: Some(&args.bam),
+                bam_index: args.bai.as_deref(),
+                r1: None,
+                r2: None,
+                reference: None,
+                sample_id: args.sample_id.as_deref(),
+                params: Some(&params_json),
+            })
         }
         bijux_domain_bam::BamStage::Coverage => {
             let default_params = default_params_for_stage(profile, stage);
@@ -215,7 +271,19 @@ pub fn plan_for_bam_stage_with_profile(
             if !args.depth_thresholds.is_empty() {
                 params.depth_thresholds.clone_from(&args.depth_thresholds);
             }
-            bijux_stages_bam::bam::coverage::plan(spec, &args.bam, out_dir, &params)
+            let params_json = serde_json::to_value(&params)?;
+            plan(StagePlanRequest {
+                stage_id: stage.as_str(),
+                tool: spec,
+                out_dir,
+                bam: Some(&args.bam),
+                bam_index: args.bai.as_deref(),
+                r1: None,
+                r2: None,
+                reference: None,
+                sample_id: args.sample_id.as_deref(),
+                params: Some(&params_json),
+            })
         }
         bijux_domain_bam::BamStage::Damage => {
             let default_params = default_params_for_stage(profile, stage);
@@ -244,7 +312,19 @@ pub fn plan_for_bam_stage_with_profile(
             if let Some(value) = args.trim_3p {
                 params.trim_3p = value.try_into().unwrap_or(u8::MAX);
             }
-            bijux_stages_bam::bam::damage::plan(spec, &args.bam, out_dir, &params)
+            let params_json = serde_json::to_value(&params)?;
+            plan(StagePlanRequest {
+                stage_id: stage.as_str(),
+                tool: spec,
+                out_dir,
+                bam: Some(&args.bam),
+                bam_index: args.bai.as_deref(),
+                r1: None,
+                r2: None,
+                reference: None,
+                sample_id: args.sample_id.as_deref(),
+                params: Some(&params_json),
+            })
         }
         bijux_domain_bam::BamStage::Authenticity => {
             let default_params = default_params_for_stage(profile, stage);
@@ -257,7 +337,19 @@ pub fn plan_for_bam_stage_with_profile(
             if let Some(value) = args.authenticity_mode.clone() {
                 params.mode = value;
             }
-            bijux_stages_bam::bam::authenticity::plan(spec, &args.bam, out_dir, &params)
+            let params_json = serde_json::to_value(&params)?;
+            plan(StagePlanRequest {
+                stage_id: stage.as_str(),
+                tool: spec,
+                out_dir,
+                bam: Some(&args.bam),
+                bam_index: args.bai.as_deref(),
+                r1: None,
+                r2: None,
+                reference: None,
+                sample_id: args.sample_id.as_deref(),
+                params: Some(&params_json),
+            })
         }
         bijux_domain_bam::BamStage::Contamination => {
             let default_params = default_params_for_stage(profile, stage);
@@ -288,7 +380,19 @@ pub fn plan_for_bam_stage_with_profile(
             if let Some(value) = args.contamination_assumptions.clone() {
                 params.assumptions = Some(value);
             }
-            bijux_stages_bam::bam::contamination::plan(spec, &args.bam, out_dir, &params)
+            let params_json = serde_json::to_value(&params)?;
+            plan(StagePlanRequest {
+                stage_id: stage.as_str(),
+                tool: spec,
+                out_dir,
+                bam: Some(&args.bam),
+                bam_index: args.bai.as_deref(),
+                r1: None,
+                r2: None,
+                reference: None,
+                sample_id: args.sample_id.as_deref(),
+                params: Some(&params_json),
+            })
         }
         bijux_domain_bam::BamStage::Sex => {
             let default_params = default_params_for_stage(profile, stage);
@@ -305,7 +409,19 @@ pub fn plan_for_bam_stage_with_profile(
             if !args.sex_method.is_empty() {
                 params.method.clone_from(&args.sex_method);
             }
-            bijux_stages_bam::bam::sex::plan(spec, &args.bam, out_dir, &params)
+            let params_json = serde_json::to_value(&params)?;
+            plan(StagePlanRequest {
+                stage_id: stage.as_str(),
+                tool: spec,
+                out_dir,
+                bam: Some(&args.bam),
+                bam_index: args.bai.as_deref(),
+                r1: None,
+                r2: None,
+                reference: None,
+                sample_id: args.sample_id.as_deref(),
+                params: Some(&params_json),
+            })
         }
         #[cfg(feature = "bam_downstream")]
         bijux_domain_bam::BamStage::BiasMitigation => {
@@ -323,7 +439,19 @@ pub fn plan_for_bam_stage_with_profile(
             if args.map_bias_correction {
                 params.map_bias_correction = true;
             }
-            bijux_stages_bam::bam::bias_mitigation::plan(spec, &args.bam, out_dir, &params)
+            let params_json = serde_json::to_value(&params)?;
+            plan(StagePlanRequest {
+                stage_id: stage.as_str(),
+                tool: spec,
+                out_dir,
+                bam: Some(&args.bam),
+                bam_index: args.bai.as_deref(),
+                r1: None,
+                r2: None,
+                reference: None,
+                sample_id: args.sample_id.as_deref(),
+                params: Some(&params_json),
+            })
         }
         #[cfg(not(feature = "bam_downstream"))]
         bijux_domain_bam::BamStage::BiasMitigation => Err(anyhow!(
@@ -354,7 +482,19 @@ pub fn plan_for_bam_stage_with_profile(
             if let Some(value) = args.bqsr_min_breadth_1x {
                 params.skip_criteria.min_breadth_1x = value;
             }
-            bijux_stages_bam::bam::recalibration::plan(spec, &args.bam, out_dir, &params)
+            let params_json = serde_json::to_value(&params)?;
+            plan(StagePlanRequest {
+                stage_id: stage.as_str(),
+                tool: spec,
+                out_dir,
+                bam: Some(&args.bam),
+                bam_index: args.bai.as_deref(),
+                r1: None,
+                r2: None,
+                reference: None,
+                sample_id: args.sample_id.as_deref(),
+                params: Some(&params_json),
+            })
         }
         #[cfg(feature = "bam_downstream")]
         bijux_domain_bam::BamStage::Haplogroups => {
@@ -372,7 +512,19 @@ pub fn plan_for_bam_stage_with_profile(
             if let Some(value) = args.haplogroup_min_coverage {
                 params.min_coverage = Some(value);
             }
-            bijux_stages_bam::bam::haplogroups::plan(spec, &args.bam, out_dir, &params)
+            let params_json = serde_json::to_value(&params)?;
+            plan(StagePlanRequest {
+                stage_id: stage.as_str(),
+                tool: spec,
+                out_dir,
+                bam: Some(&args.bam),
+                bam_index: args.bai.as_deref(),
+                r1: None,
+                r2: None,
+                reference: None,
+                sample_id: args.sample_id.as_deref(),
+                params: Some(&params_json),
+            })
         }
         #[cfg(feature = "bam_downstream")]
         bijux_domain_bam::BamStage::Genotyping => {
@@ -394,7 +546,19 @@ pub fn plan_for_bam_stage_with_profile(
             if let Some(value) = args.min_call_rate {
                 params.min_call_rate = Some(value);
             }
-            bijux_stages_bam::bam::genotyping::plan(spec, &args.bam, out_dir, &params)
+            let params_json = serde_json::to_value(&params)?;
+            plan(StagePlanRequest {
+                stage_id: stage.as_str(),
+                tool: spec,
+                out_dir,
+                bam: Some(&args.bam),
+                bam_index: args.bai.as_deref(),
+                r1: None,
+                r2: None,
+                reference: None,
+                sample_id: args.sample_id.as_deref(),
+                params: Some(&params_json),
+            })
         }
         #[cfg(feature = "bam_downstream")]
         bijux_domain_bam::BamStage::Kinship => {
@@ -412,7 +576,19 @@ pub fn plan_for_bam_stage_with_profile(
             if let Some(value) = args.min_overlap_snps {
                 params.min_overlap_snps = value;
             }
-            bijux_stages_bam::bam::kinship::plan(spec, &args.bam, out_dir, &params)
+            let params_json = serde_json::to_value(&params)?;
+            plan(StagePlanRequest {
+                stage_id: stage.as_str(),
+                tool: spec,
+                out_dir,
+                bam: Some(&args.bam),
+                bam_index: args.bai.as_deref(),
+                r1: None,
+                r2: None,
+                reference: None,
+                sample_id: args.sample_id.as_deref(),
+                params: Some(&params_json),
+            })
         }
         #[cfg(not(feature = "bam_downstream"))]
         bijux_domain_bam::BamStage::Haplogroups

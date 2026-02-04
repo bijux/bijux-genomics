@@ -2,7 +2,6 @@
 
 pub mod bam;
 pub mod bam_tools_registry;
-mod plan;
 pub mod stages_adna;
 #[cfg(feature = "bam_downstream")]
 pub mod stages_downstream;
@@ -11,8 +10,8 @@ pub mod stages_pre;
 pub mod stages_support;
 pub mod tools;
 
-pub use bijux_core::{ArtifactRef, StageIO, StagePlanV1};
-pub use plan::StagePlanJson;
+pub use bijux_core::{ArtifactRef, StageIO, StagePlanJsonV1, StagePlanV1};
+pub type StagePlanJson = StagePlanJsonV1;
 
 pub use bijux_domain_bam as domain_bam;
 

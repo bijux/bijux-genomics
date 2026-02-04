@@ -32,7 +32,9 @@ pub use crate::selection::{
     objective_spec, BenchResultRecord, BenchResultStatus, Disqualification, Objective,
     ObjectiveSpec, ObjectiveWeights, StageSelection, ToolScore,
 };
-pub use crate::stage_plan::{ArtifactRef, CommandSpecV1, ContainerImageRefV1, StageIO, StagePlanV1};
+pub use crate::stage_plan::{
+    ArtifactRef, CommandSpecV1, ContainerImageRefV1, StageIO, StagePlanJsonV1, StagePlanV1,
+};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
