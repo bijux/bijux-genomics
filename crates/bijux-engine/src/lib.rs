@@ -15,4 +15,4 @@ pub(crate) mod core;
 pub mod runner;
 pub mod services;
 
-pub use bijux_env_runtime::api::ResolvedImage;
+pub use bijux_environment::api::ResolvedImage;
