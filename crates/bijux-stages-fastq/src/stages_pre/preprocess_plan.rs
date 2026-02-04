@@ -2,8 +2,6 @@ use bijux_core::domain::PipelineSpec;
 use bijux_core::{ArtifactRef, StageIO, StageId, StagePlanV1, StageVersion, ToolExecutionSpecV1};
 use bijux_domain_fastq::assess_merge_suitability;
 use bijux_domain_fastq::params::{preprocess::PreprocessEffectiveParams, PairedMode};
-use bijux_pipelines::registry;
-use bijux_pipelines::Domain;
 
 pub const STAGE_ID: &str = "fastq.preprocess";
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
@@ -16,6 +14,14 @@ pub struct PreprocessPlan {
     pub merge_decision: Option<MergeDecisionTrace>,
     pub correct_decision: Option<CorrectDecisionTrace>,
     pub enable_contaminant_removal: bool,
+}
+
+#[derive(Debug, Clone)]
+pub struct PreprocessDecisions {
+    pub enable_merge: bool,
+    pub enable_correct: bool,
+    pub merge_decision: Option<MergeDecisionTrace>,
+    pub correct_decision: Option<CorrectDecisionTrace>,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -96,7 +102,7 @@ pub fn plan_preprocess_stage(plan: &PreprocessPlan, tool: &ToolExecutionSpecV1) 
 }
 
 #[must_use]
-pub fn plan_preprocess(args: &crate::args::BenchFastqPreprocessArgs) -> PreprocessPlan {
+pub fn preprocess_decisions(args: &crate::args::BenchFastqPreprocessArgs) -> PreprocessDecisions {
     let mut merge_decision = None;
     let enable_merge = if let Some(r2) = args.r2.as_ref() {
         if args.force_merge {
@@ -178,58 +184,26 @@ pub fn plan_preprocess(args: &crate::args::BenchFastqPreprocessArgs) -> Preproce
             mean_q_estimate: None,
         });
     }
-    let pipeline = if let Some(profile_id) = args.profile.as_deref() {
-        match registry::profile_by_id(Domain::Fastq, profile_id) {
-            Ok(profile) => {
-                let mut stages: Vec<String> = profile
-                    .graph
-                    .into_iter()
-                    .map(|node| node.stage_id)
-                    .collect();
-                if !enable_merge {
-                    stages.retain(|stage| stage != "fastq.merge");
-                }
-                if !enable_correct {
-                    stages.retain(|stage| stage != "fastq.correct");
-                }
-                if args.no_qc_post {
-                    stages.retain(|stage| stage != "fastq.qc_post");
-                }
-                if args.contaminant_preset.is_none() {
-                    stages.retain(|stage| stage != "fastq.screen");
-                }
-                bijux_core::domain::PipelineSpec { stages }
-            }
-            Err(err) => {
-                eprintln!("unknown fastq profile {profile_id}: {err}; using default pipeline");
-                bijux_pipelines::fastq::fastq_default_pipeline_spec(
-                    bijux_pipelines::fastq::DefaultPipelineOptions {
-                        paired: args.r2.is_some(),
-                        enable_merge,
-                        enable_correct,
-                        enable_qc_post: !args.no_qc_post,
-                        enable_screen: args.contaminant_preset.is_some(),
-                    },
-                )
-            }
-        }
-    } else {
-        bijux_pipelines::fastq::fastq_default_pipeline_spec(
-            bijux_pipelines::fastq::DefaultPipelineOptions {
-                paired: args.r2.is_some(),
-                enable_merge,
-                enable_correct,
-                enable_qc_post: !args.no_qc_post,
-                enable_screen: args.contaminant_preset.is_some(),
-            },
-        )
-    };
+    PreprocessDecisions {
+        enable_merge,
+        enable_correct,
+        merge_decision,
+        correct_decision,
+    }
+}
+
+#[must_use]
+pub fn plan_preprocess(
+    args: &crate::args::BenchFastqPreprocessArgs,
+    pipeline: PipelineSpec,
+    decisions: PreprocessDecisions,
+) -> PreprocessPlan {
     PreprocessPlan {
         r1: args.r1.clone(),
         r2: args.r2.clone(),
         pipeline,
-        merge_decision,
-        correct_decision,
+        merge_decision: decisions.merge_decision,
+        correct_decision: decisions.correct_decision,
         enable_contaminant_removal: args.enable_contaminant_removal,
     }
 }

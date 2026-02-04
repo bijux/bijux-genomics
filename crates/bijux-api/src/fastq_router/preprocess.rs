@@ -11,6 +11,8 @@ use bijux_engine::primitives::{ensure_bench_runner, filter_tools_by_role, load_r
 use bijux_engine::primitives::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use bijux_engine::primitives::{run_artifacts_dir_for_out, TelemetryEventV1};
 use bijux_pipelines::fastq::canonical_tool_defaults;
+use bijux_pipelines::registry;
+use bijux_pipelines::Domain;
 use bijux_stages_fastq::fastq::preprocess::{plan_preprocess, plan_preprocess_pipeline};
 use bijux_stages_fastq::{bench_corpus, RawFailure};
 
@@ -23,12 +25,71 @@ use bijux_domain_fastq::banks::{
 };
 use bijux_engine::primitives::{bench_base_dir, bench_tools_dir};
 
+#[must_use]
+fn resolve_preprocess_pipeline(
+    args: &bijux_stages_fastq::args::BenchFastqPreprocessArgs,
+    decisions: &bijux_stages_fastq::fastq::preprocess::PreprocessDecisions,
+) -> bijux_core::domain::PipelineSpec {
+    let enable_merge = decisions.enable_merge;
+    let enable_correct = decisions.enable_correct;
+    let enable_qc_post = !args.no_qc_post;
+    let enable_screen = args.contaminant_preset.is_some();
+    if let Some(profile_id) = args.profile.as_deref() {
+        match registry::profile_by_id(Domain::Fastq, profile_id) {
+            Ok(profile) => {
+                let mut stages: Vec<String> = profile
+                    .graph
+                    .into_iter()
+                    .map(|node| node.stage_id)
+                    .collect();
+                if !enable_merge {
+                    stages.retain(|stage| stage != "fastq.merge");
+                }
+                if !enable_correct {
+                    stages.retain(|stage| stage != "fastq.correct");
+                }
+                if !enable_qc_post {
+                    stages.retain(|stage| stage != "fastq.qc_post");
+                }
+                if !enable_screen {
+                    stages.retain(|stage| stage != "fastq.screen");
+                }
+                bijux_core::domain::PipelineSpec { stages }
+            }
+            Err(err) => {
+                eprintln!("unknown fastq profile {profile_id}: {err}; using default pipeline");
+                bijux_pipelines::fastq::fastq_default_pipeline_spec(
+                    bijux_pipelines::fastq::DefaultPipelineOptions {
+                        paired: args.r2.is_some(),
+                        enable_merge,
+                        enable_correct,
+                        enable_qc_post,
+                        enable_screen,
+                    },
+                )
+            }
+        }
+    } else {
+        bijux_pipelines::fastq::fastq_default_pipeline_spec(
+            bijux_pipelines::fastq::DefaultPipelineOptions {
+                paired: args.r2.is_some(),
+                enable_merge,
+                enable_correct,
+                enable_qc_post,
+                enable_screen,
+            },
+        )
+    }
+}
+
 /// Build the preprocess pipeline plan.
 #[must_use]
 pub fn fastq_preprocess_plan(
     args: &bijux_stages_fastq::args::BenchFastqPreprocessArgs,
 ) -> bijux_core::domain::PipelineSpec {
-    plan_preprocess(args).pipeline
+    let decisions = bijux_stages_fastq::fastq::preprocess::preprocess_decisions(args);
+    let pipeline = resolve_preprocess_pipeline(args, &decisions);
+    plan_preprocess(args, pipeline.clone(), decisions).pipeline
 }
 
 /// Run the preprocess pipeline.
@@ -62,7 +123,9 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
 
     let registry = load_registry(&std::env::current_dir()?.join("domain"))
         .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
-    let preprocess_plan = plan_preprocess(args);
+    let decisions = bijux_stages_fastq::fastq::preprocess::preprocess_decisions(args);
+    let pipeline = resolve_preprocess_pipeline(args, &decisions);
+    let preprocess_plan = plan_preprocess(args, pipeline.clone(), decisions);
     let pipeline = preprocess_plan.pipeline.clone();
     let mut selected_tools = select_preprocess_tools(&registry, &pipeline, args)?;
     selected_tools = filter_tools_by_role("fastq.preprocess", &selected_tools, &registry, false)?;

@@ -1,5 +1,3 @@
-use bijux_pipelines::fastq::canonical_tool_defaults;
-
 #[must_use]
 pub fn allowed_tools_for_stage(stage_id: &str) -> Vec<String> {
     let tools: &[&str] = match stage_id {
@@ -47,7 +45,5 @@ pub fn default_tool_for_stage(stage_id: &str) -> Option<String> {
     if stage_id == "fastq.preprocess" {
         return Some("planner".to_string());
     }
-    canonical_tool_defaults()
-        .get(stage_id)
-        .map(|tool| (*tool).to_string())
+    None
 }

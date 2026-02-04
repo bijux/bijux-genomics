@@ -6,7 +6,6 @@ edition = "2021"
 [dependencies]
 bijux-core = { path = "../bijux-core" }
 bijux-domain-fastq = { path = "../bijux-domain-fastq" }
-bijux-pipelines = { path = "../bijux-pipelines" }
 bijux-infra = { path = "../bijux-infra" }
 serde.workspace = true
 serde_json.workspace = true
