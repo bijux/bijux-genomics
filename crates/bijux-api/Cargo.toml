@@ -25,6 +25,7 @@ bijux-infra = { path = "../bijux-infra" }
 
 [features]
 bam_downstream = ["bijux-stages-bam/bam_downstream", "bijux-pipelines/bam_downstream"]
+api_internal = []
 
 [dev-dependencies]
 insta = "1"
