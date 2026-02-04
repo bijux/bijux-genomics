@@ -82,6 +82,7 @@ fn plan_for(stage_id: &str) -> StagePlanV1 {
         params: serde_json::json!({"sample_id":"s1"}),
         effective_params: serde_json::json!({}),
         aux_images: BTreeMap::new(),
+        reason: bijux_core::PlanDecisionReason::default(),
     }
 }
 

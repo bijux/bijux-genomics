@@ -298,6 +298,7 @@ dependencies = [
  "bijux-guardrails",
  "bijux-infra",
  "bijux-pipelines",
+ "bijux-planner-bam",
  "bijux-planner-fastq",
  "bijux-runner",
  "bijux-stages-bam",
@@ -501,6 +502,7 @@ dependencies = [
  "anyhow",
  "bijux-core",
  "bijux-guardrails",
+ "bijux-pipelines",
  "bijux-stages-bam",
  "insta",
  "serde_json",
@@ -512,6 +514,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bijux-core",
+ "bijux-domain-fastq",
  "bijux-guardrails",
  "bijux-pipelines",
  "bijux-stages-fastq",
@@ -538,6 +541,7 @@ dependencies = [
  "tempfile",
  "tracing",
  "uuid",
+ "walkdir",
 ]
 
 [[package]]
