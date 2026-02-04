@@ -44,14 +44,7 @@ expression: report
     "missing_metrics": [
       "core.prepare_reference:metrics"
     ],
-    "missing_reports": [
-      "bam.align:metrics_path",
-      "bam.coverage:metrics_path",
-      "bam.damage:metrics_path",
-      "bam.qc_pre:metrics_path",
-      "core.prepare_reference:metrics_path",
-      "fastq.preprocess:metrics_path"
-    ],
+    "missing_reports": [],
     "status": "incomplete"
   },
   "contract": {
@@ -210,38 +203,38 @@ expression: report
     "accounting": {
       "stages": [
         {
-          "bases": 800,
-          "reads": 80,
+          "bases": 1000,
+          "reads": 100,
           "stage_id": "bam.align",
           "tool_id": "bwa"
         },
         {
-          "bases": 800,
-          "reads": 80,
+          "bases": 1000,
+          "reads": 100,
           "stage_id": "bam.coverage",
           "tool_id": "mosdepth"
         },
         {
-          "bases": 800,
-          "reads": 80,
+          "bases": 1000,
+          "reads": 100,
           "stage_id": "bam.damage",
           "tool_id": "pydamage"
         },
         {
-          "bases": 800,
-          "reads": 80,
+          "bases": 1000,
+          "reads": 100,
           "stage_id": "bam.qc_pre",
           "tool_id": "samtools"
         },
         {
-          "bases": 800,
-          "reads": 80,
+          "bases": 1000,
+          "reads": 100,
           "stage_id": "core.prepare_reference",
           "tool_id": "samtools"
         },
         {
-          "bases": 800,
-          "reads": 80,
+          "bases": 1000,
+          "reads": 100,
           "stage_id": "fastq.preprocess",
           "tool_id": "planner"
         }
@@ -289,7 +282,7 @@ expression: report
           "coverage_mean": 0.0,
           "duplicates_fraction": 0.0,
           "reads_in": 100,
-          "reads_out": 80,
+          "reads_out": 100,
           "stage_id": "bam.align",
           "tool_id": "bwa",
           "verdict": {
@@ -311,7 +304,7 @@ expression: report
           "coverage_mean": 0.0,
           "duplicates_fraction": 0.0,
           "reads_in": 100,
-          "reads_out": 80,
+          "reads_out": 100,
           "stage_id": "bam.coverage",
           "tool_id": "mosdepth",
           "verdict": {
@@ -333,7 +326,7 @@ expression: report
           "coverage_mean": 0.0,
           "duplicates_fraction": 0.0,
           "reads_in": 100,
-          "reads_out": 80,
+          "reads_out": 100,
           "stage_id": "bam.damage",
           "tool_id": "pydamage",
           "verdict": {
@@ -355,7 +348,7 @@ expression: report
           "coverage_mean": 0.0,
           "duplicates_fraction": 0.0,
           "reads_in": 100,
-          "reads_out": 80,
+          "reads_out": 100,
           "stage_id": "bam.qc_pre",
           "tool_id": "samtools",
           "verdict": {
@@ -642,14 +635,7 @@ expression: report
       "missing_metrics": [
         "core.prepare_reference:metrics"
       ],
-      "missing_reports": [
-        "bam.align:metrics_path",
-        "bam.coverage:metrics_path",
-        "bam.damage:metrics_path",
-        "bam.qc_pre:metrics_path",
-        "core.prepare_reference:metrics_path",
-        "fastq.preprocess:metrics_path"
-      ],
+      "missing_reports": [],
       "status": "incomplete"
     },
     "decision_config": {
@@ -683,9 +669,7 @@ expression: report
           "contaminant_action": false,
           "input_hash": "input",
           "missing_metrics": [],
-          "missing_reports": [
-            "metrics_path"
-          ],
+          "missing_reports": [],
           "params_hash": "params",
           "quality_gate": {},
           "stage_id": "bam.align",
@@ -698,9 +682,7 @@ expression: report
           "contaminant_action": false,
           "input_hash": "input",
           "missing_metrics": [],
-          "missing_reports": [
-            "metrics_path"
-          ],
+          "missing_reports": [],
           "params_hash": "params",
           "quality_gate": {},
           "stage_id": "bam.coverage",
@@ -713,9 +695,7 @@ expression: report
           "contaminant_action": false,
           "input_hash": "input",
           "missing_metrics": [],
-          "missing_reports": [
-            "metrics_path"
-          ],
+          "missing_reports": [],
           "params_hash": "params",
           "quality_gate": {},
           "stage_id": "bam.damage",
@@ -728,9 +708,7 @@ expression: report
           "contaminant_action": false,
           "input_hash": "input",
           "missing_metrics": [],
-          "missing_reports": [
-            "metrics_path"
-          ],
+          "missing_reports": [],
           "params_hash": "params",
           "quality_gate": {},
           "stage_id": "bam.qc_pre",
@@ -745,9 +723,7 @@ expression: report
           "missing_metrics": [
             "metrics"
           ],
-          "missing_reports": [
-            "metrics_path"
-          ],
+          "missing_reports": [],
           "params_hash": "params",
           "quality_gate": {},
           "stage_id": "core.prepare_reference",
@@ -760,9 +736,7 @@ expression: report
           "contaminant_action": false,
           "input_hash": "input",
           "missing_metrics": [],
-          "missing_reports": [
-            "metrics_path"
-          ],
+          "missing_reports": [],
           "params_hash": "params",
           "quality_gate": {},
           "stage_id": "fastq.preprocess",
@@ -781,14 +755,7 @@ expression: report
         "missing_metrics": [
           "core.prepare_reference:metrics"
         ],
-        "missing_reports": [
-          "bam.align:metrics_path",
-          "bam.coverage:metrics_path",
-          "bam.damage:metrics_path",
-          "bam.qc_pre:metrics_path",
-          "core.prepare_reference:metrics_path",
-          "fastq.preprocess:metrics_path"
-        ],
+        "missing_reports": [],
         "status": "incomplete"
       }
     },
@@ -817,18 +784,6 @@ expression: report
           "core.prepare_reference:metrics"
         ],
         "kind": "missing_metrics"
-      },
-      {
-        "count": 6,
-        "items": [
-          "bam.align:metrics_path",
-          "bam.coverage:metrics_path",
-          "bam.damage:metrics_path",
-          "bam.qc_pre:metrics_path",
-          "core.prepare_reference:metrics_path",
-          "fastq.preprocess:metrics_path"
-        ],
-        "kind": "missing_reports"
       }
     ],
     "method_assumptions": {
@@ -864,42 +819,42 @@ expression: report
       },
       "presets": [
         {
-          "effective_config_path": "",
+          "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpxNDTeh/pipeline/stage_2/effective_config.json",
           "params_hash": "params",
           "stage_id": "bam.align",
           "tool_id": "bwa",
           "tool_version": "0.0.0"
         },
         {
-          "effective_config_path": "",
+          "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpxNDTeh/pipeline/stage_4/effective_config.json",
           "params_hash": "params",
           "stage_id": "bam.coverage",
           "tool_id": "mosdepth",
           "tool_version": "0.0.0"
         },
         {
-          "effective_config_path": "",
+          "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpxNDTeh/pipeline/stage_5/effective_config.json",
           "params_hash": "params",
           "stage_id": "bam.damage",
           "tool_id": "pydamage",
           "tool_version": "0.0.0"
         },
         {
-          "effective_config_path": "",
+          "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpxNDTeh/pipeline/stage_3/effective_config.json",
           "params_hash": "params",
           "stage_id": "bam.qc_pre",
           "tool_id": "samtools",
           "tool_version": "0.0.0"
         },
         {
-          "effective_config_path": "",
+          "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpxNDTeh/pipeline/stage_1/effective_config.json",
           "params_hash": "params",
           "stage_id": "core.prepare_reference",
           "tool_id": "samtools",
           "tool_version": "0.0.0"
         },
         {
-          "effective_config_path": "",
+          "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpxNDTeh/pipeline/stage_0/effective_config.json",
           "params_hash": "params",
           "stage_id": "fastq.preprocess",
           "tool_id": "planner",
@@ -1599,53 +1554,41 @@ expression: report
       "rows": [
         {
           "missing_metrics": [],
-          "missing_reports": [
-            "metrics_path"
-          ],
+          "missing_reports": [],
           "stage_id": "bam.align",
-          "status": "incomplete"
+          "status": "complete"
         },
         {
           "missing_metrics": [],
-          "missing_reports": [
-            "metrics_path"
-          ],
+          "missing_reports": [],
           "stage_id": "bam.coverage",
-          "status": "incomplete"
+          "status": "complete"
         },
         {
           "missing_metrics": [],
-          "missing_reports": [
-            "metrics_path"
-          ],
+          "missing_reports": [],
           "stage_id": "bam.damage",
-          "status": "incomplete"
+          "status": "complete"
         },
         {
           "missing_metrics": [],
-          "missing_reports": [
-            "metrics_path"
-          ],
+          "missing_reports": [],
           "stage_id": "bam.qc_pre",
-          "status": "incomplete"
+          "status": "complete"
         },
         {
           "missing_metrics": [
             "metrics"
           ],
-          "missing_reports": [
-            "metrics_path"
-          ],
+          "missing_reports": [],
           "stage_id": "core.prepare_reference",
           "status": "incomplete"
         },
         {
           "missing_metrics": [],
-          "missing_reports": [
-            "metrics_path"
-          ],
+          "missing_reports": [],
           "stage_id": "fastq.preprocess",
-          "status": "incomplete"
+          "status": "complete"
         }
       ]
     },
@@ -1698,77 +1641,77 @@ expression: report
     "stage_plots": {
       "entries": [
         {
-          "base_retention": 0.8,
+          "base_retention": 1.0,
           "gc_delta": null,
           "mean_q_delta": null,
-          "read_retention": 0.8,
+          "read_retention": 1.0,
           "stage_id": "bam.align",
           "tool_id": "bwa"
         },
         {
-          "base_retention": 0.8,
+          "base_retention": 1.0,
           "gc_delta": null,
           "mean_q_delta": null,
-          "read_retention": 0.8,
+          "read_retention": 1.0,
           "stage_id": "bam.coverage",
           "tool_id": "mosdepth"
         },
         {
-          "base_retention": 0.8,
+          "base_retention": 1.0,
           "gc_delta": null,
           "mean_q_delta": null,
-          "read_retention": 0.8,
+          "read_retention": 1.0,
           "stage_id": "bam.damage",
           "tool_id": "pydamage"
         },
         {
-          "base_retention": 0.8,
+          "base_retention": 1.0,
           "gc_delta": null,
           "mean_q_delta": null,
-          "read_retention": 0.8,
+          "read_retention": 1.0,
           "stage_id": "bam.qc_pre",
           "tool_id": "samtools"
         },
         {
-          "base_retention": 0.8,
+          "base_retention": 1.0,
           "gc_delta": null,
           "mean_q_delta": null,
-          "read_retention": 0.8,
+          "read_retention": 1.0,
           "stage_id": "core.prepare_reference",
           "tool_id": "samtools"
         },
         {
-          "base_retention": 0.8,
+          "base_retention": 1.0,
           "gc_delta": null,
           "mean_q_delta": null,
-          "read_retention": 0.8,
+          "read_retention": 1.0,
           "stage_id": "fastq.preprocess",
           "tool_id": "planner"
         }
       ],
       "waterfall": [
         {
-          "read_retention": 0.8,
+          "read_retention": 1.0,
           "stage_id": "bam.align"
         },
         {
-          "read_retention": 0.8,
+          "read_retention": 1.0,
           "stage_id": "bam.coverage"
         },
         {
-          "read_retention": 0.8,
+          "read_retention": 1.0,
           "stage_id": "bam.damage"
         },
         {
-          "read_retention": 0.8,
+          "read_retention": 1.0,
           "stage_id": "bam.qc_pre"
         },
         {
-          "read_retention": 0.8,
+          "read_retention": 1.0,
           "stage_id": "core.prepare_reference"
         },
         {
-          "read_retention": 0.8,
+          "read_retention": 1.0,
           "stage_id": "fastq.preprocess"
         }
       ]
@@ -1780,99 +1723,99 @@ expression: report
   },
   "stages": [
     {
-      "bank_report_path": "/tmp/bank_report.json",
-      "effective_config_path": "",
+      "bank_report_path": null,
+      "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpxNDTeh/pipeline/stage_2/effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "",
+      "metrics_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpxNDTeh/pipeline/stage_2/metrics.json",
       "params_hash": "params",
-      "retention_report_path": "/tmp/retention_report.json",
+      "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "bam.align",
-      "stage_report_path": "/tmp/stage_report.json",
+      "stage_report_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpxNDTeh/pipeline/stage_2/stage_report.json",
       "tool_id": "bwa",
-      "tool_invocation_path": "",
+      "tool_invocation_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpxNDTeh/pipeline/stage_2/tool_invocation.json",
       "tool_version": "0.0.0"
     },
     {
-      "bank_report_path": "/tmp/bank_report.json",
-      "effective_config_path": "",
+      "bank_report_path": null,
+      "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpxNDTeh/pipeline/stage_4/effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "",
+      "metrics_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpxNDTeh/pipeline/stage_4/metrics.json",
       "params_hash": "params",
-      "retention_report_path": "/tmp/retention_report.json",
+      "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "bam.coverage",
-      "stage_report_path": "/tmp/stage_report.json",
+      "stage_report_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpxNDTeh/pipeline/stage_4/stage_report.json",
       "tool_id": "mosdepth",
-      "tool_invocation_path": "",
+      "tool_invocation_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpxNDTeh/pipeline/stage_4/tool_invocation.json",
       "tool_version": "0.0.0"
     },
     {
-      "bank_report_path": "/tmp/bank_report.json",
-      "effective_config_path": "",
+      "bank_report_path": null,
+      "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpxNDTeh/pipeline/stage_5/effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "",
+      "metrics_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpxNDTeh/pipeline/stage_5/metrics.json",
       "params_hash": "params",
-      "retention_report_path": "/tmp/retention_report.json",
+      "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "bam.damage",
-      "stage_report_path": "/tmp/stage_report.json",
+      "stage_report_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpxNDTeh/pipeline/stage_5/stage_report.json",
       "tool_id": "pydamage",
-      "tool_invocation_path": "",
+      "tool_invocation_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpxNDTeh/pipeline/stage_5/tool_invocation.json",
       "tool_version": "0.0.0"
     },
     {
-      "bank_report_path": "/tmp/bank_report.json",
-      "effective_config_path": "",
+      "bank_report_path": null,
+      "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpxNDTeh/pipeline/stage_3/effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "",
+      "metrics_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpxNDTeh/pipeline/stage_3/metrics.json",
       "params_hash": "params",
-      "retention_report_path": "/tmp/retention_report.json",
+      "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "bam.qc_pre",
-      "stage_report_path": "/tmp/stage_report.json",
+      "stage_report_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpxNDTeh/pipeline/stage_3/stage_report.json",
       "tool_id": "samtools",
-      "tool_invocation_path": "",
+      "tool_invocation_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpxNDTeh/pipeline/stage_3/tool_invocation.json",
       "tool_version": "0.0.0"
     },
     {
-      "bank_report_path": "/tmp/bank_report.json",
-      "effective_config_path": "",
+      "bank_report_path": null,
+      "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpxNDTeh/pipeline/stage_1/effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "",
+      "metrics_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpxNDTeh/pipeline/stage_1/metrics.json",
       "params_hash": "params",
-      "retention_report_path": "/tmp/retention_report.json",
+      "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "core.prepare_reference",
-      "stage_report_path": "/tmp/stage_report.json",
+      "stage_report_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpxNDTeh/pipeline/stage_1/stage_report.json",
       "tool_id": "samtools",
-      "tool_invocation_path": "",
+      "tool_invocation_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpxNDTeh/pipeline/stage_1/tool_invocation.json",
       "tool_version": "0.0.0"
     },
     {
-      "bank_report_path": "/tmp/bank_report.json",
-      "effective_config_path": "",
+      "bank_report_path": null,
+      "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpxNDTeh/pipeline/stage_0/effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "",
+      "metrics_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpxNDTeh/pipeline/stage_0/metrics.json",
       "params_hash": "params",
-      "retention_report_path": "/tmp/retention_report.json",
+      "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "fastq.preprocess",
-      "stage_report_path": "/tmp/stage_report.json",
+      "stage_report_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpxNDTeh/pipeline/stage_0/stage_report.json",
       "tool_id": "planner",
-      "tool_invocation_path": "",
+      "tool_invocation_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpxNDTeh/pipeline/stage_0/tool_invocation.json",
       "tool_version": "0.0.0"
     }
   ],
@@ -1880,7 +1823,12 @@ expression: report
     "error_count": 0,
     "event_count": 0,
     "events": [
-      "/tmp/telemetry/events.jsonl"
+      "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpxNDTeh/pipeline/stage_0/telemetry/events.jsonl",
+      "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpxNDTeh/pipeline/stage_1/telemetry/events.jsonl",
+      "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpxNDTeh/pipeline/stage_2/telemetry/events.jsonl",
+      "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpxNDTeh/pipeline/stage_3/telemetry/events.jsonl",
+      "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpxNDTeh/pipeline/stage_4/telemetry/events.jsonl",
+      "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpxNDTeh/pipeline/stage_5/telemetry/events.jsonl"
     ]
   }
 }

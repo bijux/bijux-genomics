@@ -7,8 +7,6 @@ use rusqlite::Connection;
 use serde::de::DeserializeOwned;
 use anyhow::{anyhow, Result};
 
-use crate::model::JsonBlob;
-
 mod queries;
 mod rows;
 

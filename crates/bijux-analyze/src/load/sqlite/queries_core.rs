@@ -18,7 +18,7 @@ use crate::{
 use super::rows::benchmark_record_from_row;
 use super::{
     ensure_identity_index, ensure_image_qa_identity_index, ensure_inserted_at_column,
-    ensure_params_hash_column, ensure_record_id_column, params_hash,
+    ensure_params_hash_column, ensure_record_id_column,
 };
 
 include!("queries_core_trim.rs");

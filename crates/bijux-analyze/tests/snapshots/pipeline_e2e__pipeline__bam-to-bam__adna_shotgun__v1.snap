@@ -67,20 +67,8 @@ expression: report
   ],
   "completeness": {
     "missing_metrics": [],
-    "missing_reports": [
-      "bam.authenticity:metrics_path",
-      "bam.bias_mitigation:metrics_path",
-      "bam.complexity:metrics_path",
-      "bam.contamination:metrics_path",
-      "bam.coverage:metrics_path",
-      "bam.damage:metrics_path",
-      "bam.filter:metrics_path",
-      "bam.markdup:metrics_path",
-      "bam.qc_pre:metrics_path",
-      "bam.sex:metrics_path",
-      "bam.validate:metrics_path"
-    ],
-    "status": "incomplete"
+    "missing_reports": [],
+    "status": "complete"
   },
   "contract": {
     "required_provenance_fields": [
@@ -288,68 +276,68 @@ expression: report
     "accounting": {
       "stages": [
         {
-          "bases": 800,
-          "reads": 80,
+          "bases": 1000,
+          "reads": 100,
           "stage_id": "bam.authenticity",
           "tool_id": "authenticity"
         },
         {
-          "bases": 800,
-          "reads": 80,
+          "bases": 1000,
+          "reads": 100,
           "stage_id": "bam.bias_mitigation",
           "tool_id": "angsd"
         },
         {
-          "bases": 800,
-          "reads": 80,
+          "bases": 1000,
+          "reads": 100,
           "stage_id": "bam.complexity",
           "tool_id": "preseq"
         },
         {
-          "bases": 800,
-          "reads": 80,
+          "bases": 1000,
+          "reads": 100,
           "stage_id": "bam.contamination",
           "tool_id": "authenticct"
         },
         {
-          "bases": 800,
-          "reads": 80,
+          "bases": 1000,
+          "reads": 100,
           "stage_id": "bam.coverage",
           "tool_id": "mosdepth"
         },
         {
-          "bases": 800,
-          "reads": 80,
+          "bases": 1000,
+          "reads": 100,
           "stage_id": "bam.damage",
           "tool_id": "pydamage"
         },
         {
-          "bases": 800,
-          "reads": 80,
+          "bases": 1000,
+          "reads": 100,
           "stage_id": "bam.filter",
           "tool_id": "samtools"
         },
         {
-          "bases": 800,
-          "reads": 80,
+          "bases": 1000,
+          "reads": 100,
           "stage_id": "bam.markdup",
           "tool_id": "gatk"
         },
         {
-          "bases": 800,
-          "reads": 80,
+          "bases": 1000,
+          "reads": 100,
           "stage_id": "bam.qc_pre",
           "tool_id": "samtools"
         },
         {
-          "bases": 800,
-          "reads": 80,
+          "bases": 1000,
+          "reads": 100,
           "stage_id": "bam.sex",
           "tool_id": "rxy"
         },
         {
-          "bases": 800,
-          "reads": 80,
+          "bases": 1000,
+          "reads": 100,
           "stage_id": "bam.validate",
           "tool_id": "samtools"
         }
@@ -422,7 +410,7 @@ expression: report
           "coverage_mean": 0.0,
           "duplicates_fraction": 0.0,
           "reads_in": 100,
-          "reads_out": 80,
+          "reads_out": 100,
           "stage_id": "bam.authenticity",
           "tool_id": "authenticity",
           "verdict": {
@@ -444,7 +432,7 @@ expression: report
           "coverage_mean": 0.0,
           "duplicates_fraction": 0.0,
           "reads_in": 100,
-          "reads_out": 80,
+          "reads_out": 100,
           "stage_id": "bam.bias_mitigation",
           "tool_id": "angsd",
           "verdict": {
@@ -466,7 +454,7 @@ expression: report
           "coverage_mean": 0.0,
           "duplicates_fraction": 0.0,
           "reads_in": 100,
-          "reads_out": 80,
+          "reads_out": 100,
           "stage_id": "bam.complexity",
           "tool_id": "preseq",
           "verdict": {
@@ -488,7 +476,7 @@ expression: report
           "coverage_mean": 0.0,
           "duplicates_fraction": 0.0,
           "reads_in": 100,
-          "reads_out": 80,
+          "reads_out": 100,
           "stage_id": "bam.contamination",
           "tool_id": "authenticct",
           "verdict": {
@@ -511,7 +499,7 @@ expression: report
           "coverage_mean": 0.0,
           "duplicates_fraction": 0.0,
           "reads_in": 100,
-          "reads_out": 80,
+          "reads_out": 100,
           "stage_id": "bam.coverage",
           "tool_id": "mosdepth",
           "verdict": {
@@ -533,7 +521,7 @@ expression: report
           "coverage_mean": 0.0,
           "duplicates_fraction": 0.0,
           "reads_in": 100,
-          "reads_out": 80,
+          "reads_out": 100,
           "stage_id": "bam.damage",
           "tool_id": "pydamage",
           "verdict": {
@@ -555,7 +543,7 @@ expression: report
           "coverage_mean": 0.0,
           "duplicates_fraction": 0.0,
           "reads_in": 100,
-          "reads_out": 80,
+          "reads_out": 100,
           "stage_id": "bam.filter",
           "tool_id": "samtools",
           "verdict": {
@@ -577,7 +565,7 @@ expression: report
           "coverage_mean": 0.0,
           "duplicates_fraction": 0.0,
           "reads_in": 100,
-          "reads_out": 80,
+          "reads_out": 100,
           "stage_id": "bam.markdup",
           "tool_id": "gatk",
           "verdict": {
@@ -599,7 +587,7 @@ expression: report
           "coverage_mean": 0.0,
           "duplicates_fraction": 0.0,
           "reads_in": 100,
-          "reads_out": 80,
+          "reads_out": 100,
           "stage_id": "bam.qc_pre",
           "tool_id": "samtools",
           "verdict": {
@@ -621,7 +609,7 @@ expression: report
           "coverage_mean": 0.0,
           "duplicates_fraction": 0.0,
           "reads_in": 100,
-          "reads_out": 80,
+          "reads_out": 100,
           "stage_id": "bam.sex",
           "tool_id": "rxy",
           "verdict": {
@@ -644,7 +632,7 @@ expression: report
           "coverage_mean": 0.0,
           "duplicates_fraction": 0.0,
           "reads_in": 100,
-          "reads_out": 80,
+          "reads_out": 100,
           "stage_id": "bam.validate",
           "tool_id": "samtools",
           "verdict": {
@@ -1320,20 +1308,8 @@ expression: report
     },
     "data_contract_validation": {
       "missing_metrics": [],
-      "missing_reports": [
-        "bam.authenticity:metrics_path",
-        "bam.bias_mitigation:metrics_path",
-        "bam.complexity:metrics_path",
-        "bam.contamination:metrics_path",
-        "bam.coverage:metrics_path",
-        "bam.damage:metrics_path",
-        "bam.filter:metrics_path",
-        "bam.markdup:metrics_path",
-        "bam.qc_pre:metrics_path",
-        "bam.sex:metrics_path",
-        "bam.validate:metrics_path"
-      ],
-      "status": "incomplete"
+      "missing_reports": [],
+      "status": "complete"
     },
     "decision_config": {
       "bootstrap_policy": {
@@ -1366,9 +1342,7 @@ expression: report
           "contaminant_action": false,
           "input_hash": "input",
           "missing_metrics": [],
-          "missing_reports": [
-            "metrics_path"
-          ],
+          "missing_reports": [],
           "params_hash": "params",
           "quality_gate": {},
           "stage_id": "bam.authenticity",
@@ -1381,9 +1355,7 @@ expression: report
           "contaminant_action": false,
           "input_hash": "input",
           "missing_metrics": [],
-          "missing_reports": [
-            "metrics_path"
-          ],
+          "missing_reports": [],
           "params_hash": "params",
           "quality_gate": {},
           "stage_id": "bam.bias_mitigation",
@@ -1396,9 +1368,7 @@ expression: report
           "contaminant_action": false,
           "input_hash": "input",
           "missing_metrics": [],
-          "missing_reports": [
-            "metrics_path"
-          ],
+          "missing_reports": [],
           "params_hash": "params",
           "quality_gate": {},
           "stage_id": "bam.complexity",
@@ -1411,9 +1381,7 @@ expression: report
           "contaminant_action": false,
           "input_hash": "input",
           "missing_metrics": [],
-          "missing_reports": [
-            "metrics_path"
-          ],
+          "missing_reports": [],
           "params_hash": "params",
           "quality_gate": {},
           "stage_id": "bam.contamination",
@@ -1426,9 +1394,7 @@ expression: report
           "contaminant_action": false,
           "input_hash": "input",
           "missing_metrics": [],
-          "missing_reports": [
-            "metrics_path"
-          ],
+          "missing_reports": [],
           "params_hash": "params",
           "quality_gate": {},
           "stage_id": "bam.coverage",
@@ -1441,9 +1407,7 @@ expression: report
           "contaminant_action": false,
           "input_hash": "input",
           "missing_metrics": [],
-          "missing_reports": [
-            "metrics_path"
-          ],
+          "missing_reports": [],
           "params_hash": "params",
           "quality_gate": {},
           "stage_id": "bam.damage",
@@ -1456,9 +1420,7 @@ expression: report
           "contaminant_action": false,
           "input_hash": "input",
           "missing_metrics": [],
-          "missing_reports": [
-            "metrics_path"
-          ],
+          "missing_reports": [],
           "params_hash": "params",
           "quality_gate": {},
           "stage_id": "bam.filter",
@@ -1471,9 +1433,7 @@ expression: report
           "contaminant_action": false,
           "input_hash": "input",
           "missing_metrics": [],
-          "missing_reports": [
-            "metrics_path"
-          ],
+          "missing_reports": [],
           "params_hash": "params",
           "quality_gate": {},
           "stage_id": "bam.markdup",
@@ -1486,9 +1446,7 @@ expression: report
           "contaminant_action": false,
           "input_hash": "input",
           "missing_metrics": [],
-          "missing_reports": [
-            "metrics_path"
-          ],
+          "missing_reports": [],
           "params_hash": "params",
           "quality_gate": {},
           "stage_id": "bam.qc_pre",
@@ -1501,9 +1459,7 @@ expression: report
           "contaminant_action": false,
           "input_hash": "input",
           "missing_metrics": [],
-          "missing_reports": [
-            "metrics_path"
-          ],
+          "missing_reports": [],
           "params_hash": "params",
           "quality_gate": {},
           "stage_id": "bam.sex",
@@ -1516,9 +1472,7 @@ expression: report
           "contaminant_action": false,
           "input_hash": "input",
           "missing_metrics": [],
-          "missing_reports": [
-            "metrics_path"
-          ],
+          "missing_reports": [],
           "params_hash": "params",
           "quality_gate": {},
           "stage_id": "bam.validate",
@@ -1535,20 +1489,8 @@ expression: report
     "failures": {
       "completeness": {
         "missing_metrics": [],
-        "missing_reports": [
-          "bam.authenticity:metrics_path",
-          "bam.bias_mitigation:metrics_path",
-          "bam.complexity:metrics_path",
-          "bam.contamination:metrics_path",
-          "bam.coverage:metrics_path",
-          "bam.damage:metrics_path",
-          "bam.filter:metrics_path",
-          "bam.markdup:metrics_path",
-          "bam.qc_pre:metrics_path",
-          "bam.sex:metrics_path",
-          "bam.validate:metrics_path"
-        ],
-        "status": "incomplete"
+        "missing_reports": [],
+        "status": "complete"
       }
     },
     "filtering": {},
@@ -1569,25 +1511,7 @@ expression: report
     "impact_metrics": {
       "impact": []
     },
-    "key_findings": [
-      {
-        "count": 11,
-        "items": [
-          "bam.authenticity:metrics_path",
-          "bam.bias_mitigation:metrics_path",
-          "bam.complexity:metrics_path",
-          "bam.contamination:metrics_path",
-          "bam.coverage:metrics_path",
-          "bam.damage:metrics_path",
-          "bam.filter:metrics_path",
-          "bam.markdup:metrics_path",
-          "bam.qc_pre:metrics_path",
-          "bam.sex:metrics_path",
-          "bam.validate:metrics_path"
-        ],
-        "kind": "missing_reports"
-      }
-    ],
+    "key_findings": [],
     "method_assumptions": {
       "assumptions": [
         "compare_objective defaults to balanced when not specified",
@@ -1621,77 +1545,77 @@ expression: report
       },
       "presets": [
         {
-          "effective_config_path": "",
+          "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_7/effective_config.json",
           "params_hash": "params",
           "stage_id": "bam.authenticity",
           "tool_id": "authenticity",
           "tool_version": "0.0.0"
         },
         {
-          "effective_config_path": "",
+          "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_10/effective_config.json",
           "params_hash": "params",
           "stage_id": "bam.bias_mitigation",
           "tool_id": "angsd",
           "tool_version": "0.0.0"
         },
         {
-          "effective_config_path": "",
+          "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_4/effective_config.json",
           "params_hash": "params",
           "stage_id": "bam.complexity",
           "tool_id": "preseq",
           "tool_version": "0.0.0"
         },
         {
-          "effective_config_path": "",
+          "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_8/effective_config.json",
           "params_hash": "params",
           "stage_id": "bam.contamination",
           "tool_id": "authenticct",
           "tool_version": "0.0.0"
         },
         {
-          "effective_config_path": "",
+          "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_5/effective_config.json",
           "params_hash": "params",
           "stage_id": "bam.coverage",
           "tool_id": "mosdepth",
           "tool_version": "0.0.0"
         },
         {
-          "effective_config_path": "",
+          "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_6/effective_config.json",
           "params_hash": "params",
           "stage_id": "bam.damage",
           "tool_id": "pydamage",
           "tool_version": "0.0.0"
         },
         {
-          "effective_config_path": "",
+          "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_2/effective_config.json",
           "params_hash": "params",
           "stage_id": "bam.filter",
           "tool_id": "samtools",
           "tool_version": "0.0.0"
         },
         {
-          "effective_config_path": "",
+          "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_3/effective_config.json",
           "params_hash": "params",
           "stage_id": "bam.markdup",
           "tool_id": "gatk",
           "tool_version": "0.0.0"
         },
         {
-          "effective_config_path": "",
+          "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_1/effective_config.json",
           "params_hash": "params",
           "stage_id": "bam.qc_pre",
           "tool_id": "samtools",
           "tool_version": "0.0.0"
         },
         {
-          "effective_config_path": "",
+          "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_9/effective_config.json",
           "params_hash": "params",
           "stage_id": "bam.sex",
           "tool_id": "rxy",
           "tool_version": "0.0.0"
         },
         {
-          "effective_config_path": "",
+          "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_0/effective_config.json",
           "params_hash": "params",
           "stage_id": "bam.validate",
           "tool_id": "samtools",
@@ -2331,91 +2255,69 @@ expression: report
       "rows": [
         {
           "missing_metrics": [],
-          "missing_reports": [
-            "metrics_path"
-          ],
+          "missing_reports": [],
           "stage_id": "bam.authenticity",
-          "status": "incomplete"
+          "status": "complete"
         },
         {
           "missing_metrics": [],
-          "missing_reports": [
-            "metrics_path"
-          ],
+          "missing_reports": [],
           "stage_id": "bam.bias_mitigation",
-          "status": "incomplete"
+          "status": "complete"
         },
         {
           "missing_metrics": [],
-          "missing_reports": [
-            "metrics_path"
-          ],
+          "missing_reports": [],
           "stage_id": "bam.complexity",
-          "status": "incomplete"
+          "status": "complete"
         },
         {
           "missing_metrics": [],
-          "missing_reports": [
-            "metrics_path"
-          ],
+          "missing_reports": [],
           "stage_id": "bam.contamination",
-          "status": "incomplete"
+          "status": "complete"
         },
         {
           "missing_metrics": [],
-          "missing_reports": [
-            "metrics_path"
-          ],
+          "missing_reports": [],
           "stage_id": "bam.coverage",
-          "status": "incomplete"
+          "status": "complete"
         },
         {
           "missing_metrics": [],
-          "missing_reports": [
-            "metrics_path"
-          ],
+          "missing_reports": [],
           "stage_id": "bam.damage",
-          "status": "incomplete"
+          "status": "complete"
         },
         {
           "missing_metrics": [],
-          "missing_reports": [
-            "metrics_path"
-          ],
+          "missing_reports": [],
           "stage_id": "bam.filter",
-          "status": "incomplete"
+          "status": "complete"
         },
         {
           "missing_metrics": [],
-          "missing_reports": [
-            "metrics_path"
-          ],
+          "missing_reports": [],
           "stage_id": "bam.markdup",
-          "status": "incomplete"
+          "status": "complete"
         },
         {
           "missing_metrics": [],
-          "missing_reports": [
-            "metrics_path"
-          ],
+          "missing_reports": [],
           "stage_id": "bam.qc_pre",
-          "status": "incomplete"
+          "status": "complete"
         },
         {
           "missing_metrics": [],
-          "missing_reports": [
-            "metrics_path"
-          ],
+          "missing_reports": [],
           "stage_id": "bam.sex",
-          "status": "incomplete"
+          "status": "complete"
         },
         {
           "missing_metrics": [],
-          "missing_reports": [
-            "metrics_path"
-          ],
+          "missing_reports": [],
           "stage_id": "bam.validate",
-          "status": "incomplete"
+          "status": "complete"
         }
       ]
     },
@@ -2503,137 +2405,137 @@ expression: report
     "stage_plots": {
       "entries": [
         {
-          "base_retention": 0.8,
+          "base_retention": 1.0,
           "gc_delta": null,
           "mean_q_delta": null,
-          "read_retention": 0.8,
+          "read_retention": 1.0,
           "stage_id": "bam.authenticity",
           "tool_id": "authenticity"
         },
         {
-          "base_retention": 0.8,
+          "base_retention": 1.0,
           "gc_delta": null,
           "mean_q_delta": null,
-          "read_retention": 0.8,
+          "read_retention": 1.0,
           "stage_id": "bam.bias_mitigation",
           "tool_id": "angsd"
         },
         {
-          "base_retention": 0.8,
+          "base_retention": 1.0,
           "gc_delta": null,
           "mean_q_delta": null,
-          "read_retention": 0.8,
+          "read_retention": 1.0,
           "stage_id": "bam.complexity",
           "tool_id": "preseq"
         },
         {
-          "base_retention": 0.8,
+          "base_retention": 1.0,
           "gc_delta": null,
           "mean_q_delta": null,
-          "read_retention": 0.8,
+          "read_retention": 1.0,
           "stage_id": "bam.contamination",
           "tool_id": "authenticct"
         },
         {
-          "base_retention": 0.8,
+          "base_retention": 1.0,
           "gc_delta": null,
           "mean_q_delta": null,
-          "read_retention": 0.8,
+          "read_retention": 1.0,
           "stage_id": "bam.coverage",
           "tool_id": "mosdepth"
         },
         {
-          "base_retention": 0.8,
+          "base_retention": 1.0,
           "gc_delta": null,
           "mean_q_delta": null,
-          "read_retention": 0.8,
+          "read_retention": 1.0,
           "stage_id": "bam.damage",
           "tool_id": "pydamage"
         },
         {
-          "base_retention": 0.8,
+          "base_retention": 1.0,
           "gc_delta": null,
           "mean_q_delta": null,
-          "read_retention": 0.8,
+          "read_retention": 1.0,
           "stage_id": "bam.filter",
           "tool_id": "samtools"
         },
         {
-          "base_retention": 0.8,
+          "base_retention": 1.0,
           "gc_delta": null,
           "mean_q_delta": null,
-          "read_retention": 0.8,
+          "read_retention": 1.0,
           "stage_id": "bam.markdup",
           "tool_id": "gatk"
         },
         {
-          "base_retention": 0.8,
+          "base_retention": 1.0,
           "gc_delta": null,
           "mean_q_delta": null,
-          "read_retention": 0.8,
+          "read_retention": 1.0,
           "stage_id": "bam.qc_pre",
           "tool_id": "samtools"
         },
         {
-          "base_retention": 0.8,
+          "base_retention": 1.0,
           "gc_delta": null,
           "mean_q_delta": null,
-          "read_retention": 0.8,
+          "read_retention": 1.0,
           "stage_id": "bam.sex",
           "tool_id": "rxy"
         },
         {
-          "base_retention": 0.8,
+          "base_retention": 1.0,
           "gc_delta": null,
           "mean_q_delta": null,
-          "read_retention": 0.8,
+          "read_retention": 1.0,
           "stage_id": "bam.validate",
           "tool_id": "samtools"
         }
       ],
       "waterfall": [
         {
-          "read_retention": 0.8,
+          "read_retention": 1.0,
           "stage_id": "bam.authenticity"
         },
         {
-          "read_retention": 0.8,
+          "read_retention": 1.0,
           "stage_id": "bam.bias_mitigation"
         },
         {
-          "read_retention": 0.8,
+          "read_retention": 1.0,
           "stage_id": "bam.complexity"
         },
         {
-          "read_retention": 0.8,
+          "read_retention": 1.0,
           "stage_id": "bam.contamination"
         },
         {
-          "read_retention": 0.8,
+          "read_retention": 1.0,
           "stage_id": "bam.coverage"
         },
         {
-          "read_retention": 0.8,
+          "read_retention": 1.0,
           "stage_id": "bam.damage"
         },
         {
-          "read_retention": 0.8,
+          "read_retention": 1.0,
           "stage_id": "bam.filter"
         },
         {
-          "read_retention": 0.8,
+          "read_retention": 1.0,
           "stage_id": "bam.markdup"
         },
         {
-          "read_retention": 0.8,
+          "read_retention": 1.0,
           "stage_id": "bam.qc_pre"
         },
         {
-          "read_retention": 0.8,
+          "read_retention": 1.0,
           "stage_id": "bam.sex"
         },
         {
-          "read_retention": 0.8,
+          "read_retention": 1.0,
           "stage_id": "bam.validate"
         }
       ]
@@ -2645,179 +2547,179 @@ expression: report
   },
   "stages": [
     {
-      "bank_report_path": "/tmp/bank_report.json",
-      "effective_config_path": "",
+      "bank_report_path": null,
+      "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_7/effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "",
+      "metrics_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_7/metrics.json",
       "params_hash": "params",
-      "retention_report_path": "/tmp/retention_report.json",
+      "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "bam.authenticity",
-      "stage_report_path": "/tmp/stage_report.json",
+      "stage_report_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_7/stage_report.json",
       "tool_id": "authenticity",
-      "tool_invocation_path": "",
+      "tool_invocation_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_7/tool_invocation.json",
       "tool_version": "0.0.0"
     },
     {
-      "bank_report_path": "/tmp/bank_report.json",
-      "effective_config_path": "",
+      "bank_report_path": null,
+      "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_10/effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "",
+      "metrics_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_10/metrics.json",
       "params_hash": "params",
-      "retention_report_path": "/tmp/retention_report.json",
+      "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "bam.bias_mitigation",
-      "stage_report_path": "/tmp/stage_report.json",
+      "stage_report_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_10/stage_report.json",
       "tool_id": "angsd",
-      "tool_invocation_path": "",
+      "tool_invocation_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_10/tool_invocation.json",
       "tool_version": "0.0.0"
     },
     {
-      "bank_report_path": "/tmp/bank_report.json",
-      "effective_config_path": "",
+      "bank_report_path": null,
+      "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_4/effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "",
+      "metrics_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_4/metrics.json",
       "params_hash": "params",
-      "retention_report_path": "/tmp/retention_report.json",
+      "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "bam.complexity",
-      "stage_report_path": "/tmp/stage_report.json",
+      "stage_report_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_4/stage_report.json",
       "tool_id": "preseq",
-      "tool_invocation_path": "",
+      "tool_invocation_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_4/tool_invocation.json",
       "tool_version": "0.0.0"
     },
     {
-      "bank_report_path": "/tmp/bank_report.json",
-      "effective_config_path": "",
+      "bank_report_path": null,
+      "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_8/effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "",
+      "metrics_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_8/metrics.json",
       "params_hash": "params",
-      "retention_report_path": "/tmp/retention_report.json",
+      "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "bam.contamination",
-      "stage_report_path": "/tmp/stage_report.json",
+      "stage_report_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_8/stage_report.json",
       "tool_id": "authenticct",
-      "tool_invocation_path": "",
+      "tool_invocation_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_8/tool_invocation.json",
       "tool_version": "0.0.0"
     },
     {
-      "bank_report_path": "/tmp/bank_report.json",
-      "effective_config_path": "",
+      "bank_report_path": null,
+      "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_5/effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "",
+      "metrics_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_5/metrics.json",
       "params_hash": "params",
-      "retention_report_path": "/tmp/retention_report.json",
+      "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "bam.coverage",
-      "stage_report_path": "/tmp/stage_report.json",
+      "stage_report_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_5/stage_report.json",
       "tool_id": "mosdepth",
-      "tool_invocation_path": "",
+      "tool_invocation_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_5/tool_invocation.json",
       "tool_version": "0.0.0"
     },
     {
-      "bank_report_path": "/tmp/bank_report.json",
-      "effective_config_path": "",
+      "bank_report_path": null,
+      "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_6/effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "",
+      "metrics_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_6/metrics.json",
       "params_hash": "params",
-      "retention_report_path": "/tmp/retention_report.json",
+      "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "bam.damage",
-      "stage_report_path": "/tmp/stage_report.json",
+      "stage_report_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_6/stage_report.json",
       "tool_id": "pydamage",
-      "tool_invocation_path": "",
+      "tool_invocation_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_6/tool_invocation.json",
       "tool_version": "0.0.0"
     },
     {
-      "bank_report_path": "/tmp/bank_report.json",
-      "effective_config_path": "",
+      "bank_report_path": null,
+      "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_2/effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "",
+      "metrics_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_2/metrics.json",
       "params_hash": "params",
-      "retention_report_path": "/tmp/retention_report.json",
+      "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "bam.filter",
-      "stage_report_path": "/tmp/stage_report.json",
+      "stage_report_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_2/stage_report.json",
       "tool_id": "samtools",
-      "tool_invocation_path": "",
+      "tool_invocation_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_2/tool_invocation.json",
       "tool_version": "0.0.0"
     },
     {
-      "bank_report_path": "/tmp/bank_report.json",
-      "effective_config_path": "",
+      "bank_report_path": null,
+      "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_3/effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "",
+      "metrics_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_3/metrics.json",
       "params_hash": "params",
-      "retention_report_path": "/tmp/retention_report.json",
+      "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "bam.markdup",
-      "stage_report_path": "/tmp/stage_report.json",
+      "stage_report_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_3/stage_report.json",
       "tool_id": "gatk",
-      "tool_invocation_path": "",
+      "tool_invocation_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_3/tool_invocation.json",
       "tool_version": "0.0.0"
     },
     {
-      "bank_report_path": "/tmp/bank_report.json",
-      "effective_config_path": "",
+      "bank_report_path": null,
+      "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_1/effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "",
+      "metrics_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_1/metrics.json",
       "params_hash": "params",
-      "retention_report_path": "/tmp/retention_report.json",
+      "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "bam.qc_pre",
-      "stage_report_path": "/tmp/stage_report.json",
+      "stage_report_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_1/stage_report.json",
       "tool_id": "samtools",
-      "tool_invocation_path": "",
+      "tool_invocation_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_1/tool_invocation.json",
       "tool_version": "0.0.0"
     },
     {
-      "bank_report_path": "/tmp/bank_report.json",
-      "effective_config_path": "",
+      "bank_report_path": null,
+      "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_9/effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "",
+      "metrics_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_9/metrics.json",
       "params_hash": "params",
-      "retention_report_path": "/tmp/retention_report.json",
+      "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "bam.sex",
-      "stage_report_path": "/tmp/stage_report.json",
+      "stage_report_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_9/stage_report.json",
       "tool_id": "rxy",
-      "tool_invocation_path": "",
+      "tool_invocation_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_9/tool_invocation.json",
       "tool_version": "0.0.0"
     },
     {
-      "bank_report_path": "/tmp/bank_report.json",
-      "effective_config_path": "",
+      "bank_report_path": null,
+      "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_0/effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "",
+      "metrics_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_0/metrics.json",
       "params_hash": "params",
-      "retention_report_path": "/tmp/retention_report.json",
+      "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "bam.validate",
-      "stage_report_path": "/tmp/stage_report.json",
+      "stage_report_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_0/stage_report.json",
       "tool_id": "samtools",
-      "tool_invocation_path": "",
+      "tool_invocation_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_0/tool_invocation.json",
       "tool_version": "0.0.0"
     }
   ],
@@ -2825,7 +2727,17 @@ expression: report
     "error_count": 0,
     "event_count": 0,
     "events": [
-      "/tmp/telemetry/events.jsonl"
+      "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_0/telemetry/events.jsonl",
+      "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_1/telemetry/events.jsonl",
+      "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_10/telemetry/events.jsonl",
+      "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_2/telemetry/events.jsonl",
+      "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_3/telemetry/events.jsonl",
+      "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_4/telemetry/events.jsonl",
+      "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_5/telemetry/events.jsonl",
+      "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_6/telemetry/events.jsonl",
+      "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_7/telemetry/events.jsonl",
+      "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_8/telemetry/events.jsonl",
+      "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp0CYDAY/pipeline/stage_9/telemetry/events.jsonl"
     ]
   }
 }
