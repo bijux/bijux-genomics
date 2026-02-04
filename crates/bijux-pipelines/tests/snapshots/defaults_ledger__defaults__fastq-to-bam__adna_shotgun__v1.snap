@@ -208,5 +208,7 @@ expression: ledger
     "fastq.trim": "pipeline default",
     "fastq.umi": "pipeline default",
     "fastq.validate_pre": "pipeline default"
-  }
+  },
+  "assumptions": [],
+  "citations": {}
 }

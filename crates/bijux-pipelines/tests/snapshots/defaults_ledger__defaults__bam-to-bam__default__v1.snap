@@ -49,5 +49,7 @@ expression: ledger
     "bam.filter": "pipeline default",
     "bam.qc_pre": "pipeline default",
     "bam.validate": "pipeline default"
-  }
+  },
+  "assumptions": [],
+  "citations": {}
 }

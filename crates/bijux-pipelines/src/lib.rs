@@ -124,6 +124,8 @@ impl PipelineProfile {
             params: self.defaults.params.clone(),
             thresholds: BTreeMap::new(),
             rationales: self.defaults.rationales.clone(),
+            assumptions: Vec::new(),
+            citations: BTreeMap::new(),
         }
     }
 }

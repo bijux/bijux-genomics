@@ -12,4 +12,8 @@ pub struct DefaultsLedgerV1 {
     #[serde(default)]
     pub thresholds: BTreeMap<String, serde_json::Value>,
     pub rationales: BTreeMap<String, String>,
+    #[serde(default)]
+    pub assumptions: Vec<String>,
+    #[serde(default)]
+    pub citations: BTreeMap<String, String>,
 }

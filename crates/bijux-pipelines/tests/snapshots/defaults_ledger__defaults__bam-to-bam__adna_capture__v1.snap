@@ -91,5 +91,7 @@ expression: ledger
     "bam.qc_pre": "pipeline default",
     "bam.sex": "pipeline default",
     "bam.validate": "pipeline default"
-  }
+  },
+  "assumptions": [],
+  "citations": {}
 }
