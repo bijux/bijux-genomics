@@ -160,6 +160,32 @@ fn parse_boundary_contract() -> BTreeMap<String, BTreeSet<String>> {
 }
 
 #[test]
+fn engine_and_runner_have_no_domain_deps() {
+    let crates = collect_workspace_crates();
+    let known: BTreeSet<String> = crates.keys().cloned().collect();
+    let forbidden = [
+        "bijux-domain-fastq",
+        "bijux-domain-bam",
+        "bijux-stages-fastq",
+        "bijux-stages-bam",
+        "bijux-analyze",
+        "bijux-bench",
+    ];
+    for name in ["bijux-engine", "bijux-runner"] {
+        let crate_dir = crates
+            .get(name)
+            .unwrap_or_else(|| panic!("missing crate {name}"));
+        let deps = parse_dependencies(&crate_dir.join("Cargo.toml"), &known);
+        for banned in &forbidden {
+            assert!(
+                !deps.contains(*banned),
+                "{name} must not depend on {banned}"
+            );
+        }
+    }
+}
+
+#[test]
 fn workspace_has_guardrails_tests() {
     for path in crate_dirs() {
         let guardrails = path.join("tests").join("guardrails.rs");

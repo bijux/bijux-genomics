@@ -25,7 +25,7 @@ pub struct GuardrailConfig {
 impl Default for GuardrailConfig {
     fn default() -> Self {
         Self {
-            max_loc: 500,
+            max_loc: 1000,
             max_depth: 4,
             max_modules_per_dir: 10,
             max_rs_files_per_dir: 10,

@@ -23,6 +23,7 @@ fn run_manifest_includes_telemetry_and_facts() -> anyhow::Result<()> {
         pipeline_id: "pipeline".to_string(),
         git_commit: "commit".to_string(),
         build_profile: "test".to_string(),
+        plan_hash: None,
     };
     write_run_manifest(
         &run_dirs,

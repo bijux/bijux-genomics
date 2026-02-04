@@ -37,3 +37,36 @@ fn no_ad_hoc_fs_writes_in_services() {
         "direct std::fs writes/renames/removals/dir-creation are forbidden in engine services: {offenders:?}"
     );
 }
+
+#[test]
+fn engine_has_no_domain_keywords() {
+    let crate_root = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let src_dir = crate_root.join("src");
+    let denylist = [
+        "fastq.",
+        "bam.",
+        "qc_",
+        "qc.",
+        "retention",
+        "adapter",
+        "tool_list",
+        "normalize_",
+    ];
+    let mut offenders = Vec::new();
+    for entry in walkdir::WalkDir::new(&src_dir)
+        .into_iter()
+        .filter_map(Result::ok)
+        .filter(|entry| entry.path().extension().and_then(|s| s.to_str()) == Some("rs"))
+    {
+        let content = std::fs::read_to_string(entry.path()).unwrap_or_default();
+        for needle in &denylist {
+            if content.contains(needle) {
+                offenders.push(format!("{}::{needle}", entry.path().display()));
+            }
+        }
+    }
+    assert!(
+        offenders.is_empty(),
+        "engine must not contain domain keywords or stage IDs: {offenders:?}"
+    );
+}
