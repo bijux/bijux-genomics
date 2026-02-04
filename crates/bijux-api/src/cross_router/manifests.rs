@@ -236,6 +236,7 @@ fn run_provenance_from_cross(
     let build_profile =
         std::env::var("BIJUX_BUILD_PROFILE").unwrap_or_else(|_| "unknown".to_string());
     let reference_genome = std::env::var("BIJUX_REFERENCE_GENOME").ok();
+    let plan_hash = std::env::var("BIJUX_PLAN_HASH").ok();
     serde_json::json!({
         "schema_version": "bijux.run_provenance.v1",
         "tool_image_digest": tool_image_digest,
@@ -246,6 +247,7 @@ fn run_provenance_from_cross(
         "pipeline_id": pipeline_id,
         "git_commit": git_commit,
         "build_profile": build_profile,
+        "plan_hash": plan_hash,
     })
 }
 

@@ -10,16 +10,12 @@ use bijux_engine::services::run_artifacts::run_artifacts_dir_for_out;
 use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use bijux_exec::run_artifacts::write_telemetry_event;
-use bijux_pipelines::fastq::canonical_tool_defaults;
-use bijux_pipelines::registry;
-use bijux_pipelines::Domain;
 use bijux_planner_fastq::{
-    apply_preprocess_policy, default_pipeline_spec, DefaultPipelineOptions, FastqPlanConfig,
-    FastqPlanner,
+    apply_preprocess_policy, plan_preprocess, preprocess_decisions, resolve_preprocess_pipeline,
+    select_preprocess_tools, FastqPlanConfig, FastqPlanner, ToolSelection,
 };
 use bijux_runner::primitives::{build_tool_execution_spec, resolve_image_for_run};
-use bijux_stages_fastq::fastq::preprocess::plan_preprocess;
-use bijux_stages_fastq::{bench_corpus, RawFailure};
+use bijux_stages_fastq::RawFailure;
 
 use super::jobs::bench_jobs;
 use super::summary::{write_run_summary, StageExecutionSummary};
@@ -30,67 +26,14 @@ use bijux_domain_fastq::banks::{
 use bijux_infra::{bench_base_dir, bench_tools_dir};
 use bijux_planner_fastq::scale_tool_spec_for_jobs;
 
-#[must_use]
-fn resolve_preprocess_pipeline(
-    args: &bijux_stages_fastq::args::BenchFastqPreprocessArgs,
-    decisions: &bijux_stages_fastq::fastq::preprocess::PreprocessDecisions,
-) -> bijux_core::domain::PipelineSpec {
-    let enable_merge = decisions.enable_merge;
-    let enable_correct = decisions.enable_correct;
-    let enable_qc_post = !args.no_qc_post;
-    let enable_screen = args.contaminant_preset.is_some();
-    if let Some(profile_id) = args.profile.as_deref() {
-        match registry::profile_by_id(Domain::Fastq, profile_id) {
-            Ok(profile) => {
-                let mut stages: Vec<String> = profile
-                    .graph
-                    .into_iter()
-                    .map(|node| node.stage_id)
-                    .collect();
-                if !enable_merge {
-                    stages.retain(|stage| stage != "fastq.merge");
-                }
-                if !enable_correct {
-                    stages.retain(|stage| stage != "fastq.correct");
-                }
-                if !enable_qc_post {
-                    stages.retain(|stage| stage != "fastq.qc_post");
-                }
-                if !enable_screen {
-                    stages.retain(|stage| stage != "fastq.screen");
-                }
-                bijux_core::domain::PipelineSpec { stages }
-            }
-            Err(err) => {
-                eprintln!("unknown fastq profile {profile_id}: {err}; using default pipeline");
-                default_pipeline_spec(DefaultPipelineOptions {
-                    paired: args.r2.is_some(),
-                    enable_merge,
-                    enable_correct,
-                    enable_qc_post,
-                    enable_screen,
-                })
-            }
-        }
-    } else {
-        default_pipeline_spec(DefaultPipelineOptions {
-            paired: args.r2.is_some(),
-            enable_merge,
-            enable_correct,
-            enable_qc_post,
-            enable_screen,
-        })
-    }
-}
-
 /// Build the preprocess pipeline plan.
 #[must_use]
 pub fn fastq_preprocess_plan(
     args: &bijux_stages_fastq::args::BenchFastqPreprocessArgs,
 ) -> bijux_core::domain::PipelineSpec {
-    let decisions = bijux_stages_fastq::fastq::preprocess::preprocess_decisions(args);
+    let decisions = preprocess_decisions(args);
     let pipeline = resolve_preprocess_pipeline(args, &decisions);
-    plan_preprocess(args, pipeline.clone(), decisions).pipeline
+    plan_preprocess(args, pipeline.clone()).pipeline
 }
 
 /// Run the preprocess pipeline.
@@ -124,29 +67,59 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
 
     let registry = load_registry(&std::env::current_dir()?.join("domain"))
         .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
-    let decisions = bijux_stages_fastq::fastq::preprocess::preprocess_decisions(args);
+    let decisions = preprocess_decisions(args);
     let pipeline = resolve_preprocess_pipeline(args, &decisions);
-    let preprocess_plan = plan_preprocess(args, pipeline.clone(), decisions);
+    let preprocess_plan = plan_preprocess(args, pipeline.clone());
     let pipeline = preprocess_plan.pipeline.clone();
     let mut selected_tools = select_preprocess_tools(&registry, &pipeline, args)?;
-    selected_tools = filter_tools_by_role("fastq.preprocess", &selected_tools, &registry, false)?;
+    let mut tool_ids: Vec<String> = selected_tools
+        .iter()
+        .map(|selection| selection.tool_id.clone())
+        .collect();
+    tool_ids = filter_tools_by_role("fastq.preprocess", &tool_ids, &registry, false)?;
+    let mut reasons_by_tool = std::collections::HashMap::new();
+    for selection in selected_tools.drain(..) {
+        reasons_by_tool.insert(selection.tool_id, selection.reason);
+    }
+    let mut tool_reasons = Vec::new();
+    let mut filtered_selections = Vec::new();
+    for tool_id in &tool_ids {
+        let reason = reasons_by_tool.remove(tool_id).unwrap_or_else(|| {
+            bijux_core::PlanDecisionReason::new(
+                bijux_core::PlanReasonKind::Fallback,
+                "selected by role filter",
+            )
+        });
+        tool_reasons.push(reason.clone());
+        filtered_selections.push(ToolSelection {
+            tool_id: tool_id.clone(),
+            reason,
+        });
+    }
+    selected_tools = filtered_selections;
 
     write_explain_plan_json(
         &out_dir,
         "fastq.preprocess",
-        &selected_tools,
+        &tool_ids,
         &registry,
         None,
     )?;
 
-    ensure_image_qa_passed("fastq.preprocess", &selected_tools, platform, catalog)?;
-    ensure_tool_qa_passed("fastq.preprocess", &selected_tools, platform, catalog)?;
+    ensure_image_qa_passed("fastq.preprocess", &tool_ids, platform, catalog)?;
+    ensure_tool_qa_passed("fastq.preprocess", &tool_ids, platform, catalog)?;
 
     let jobs = bench_jobs(args.jobs);
     let tools_root = bench_tools_dir(&args.out, "preprocess", &args.sample_id);
     bijux_infra::ensure_dir(&tools_root).context("create preprocess tools dir")?;
 
-    let policy = apply_preprocess_policy(pipeline.stages.clone(), selected_tools.clone());
+    let policy = apply_preprocess_policy(
+        pipeline.stages.clone(),
+        selected_tools
+            .iter()
+            .map(|selection| selection.tool_id.clone())
+            .collect(),
+    );
 
     let adapter_bank = adapter_bank_context(
         policy
@@ -208,6 +181,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         r1: args.r1.clone(),
         r2: args.r2.clone(),
         out_dir: bench_tools_dir(&args.out, "preprocess", &args.sample_id),
+        tool_reasons: Some(tool_reasons),
     };
     let pipeline_plan = FastqPlanner::plan(&planner_config)?;
     let planned_stages = pipeline_plan.stages().to_vec();
@@ -252,12 +226,12 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         &args.out,
         &stage_runs,
         &failures,
-        preprocess_plan.merge_decision.as_ref(),
-        preprocess_plan.correct_decision.as_ref(),
+        decisions.merge_decision.as_ref(),
+        decisions.correct_decision.as_ref(),
         policy.adapter_inference.as_ref(),
         &policy.stage_skips,
     )?;
-    if let Some(decision) = preprocess_plan.merge_decision {
+    if let Some(decision) = decisions.merge_decision {
         let run_id = stage_runs
             .first()
             .map(|entry| entry.result.run_id.clone())
@@ -288,63 +262,4 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     }
 
     Ok(())
-}
-
-fn select_preprocess_tools(
-    registry: &bijux_core::ToolRegistry,
-    pipeline: &bijux_core::domain::PipelineSpec,
-    args: &bijux_stages_fastq::args::BenchFastqPreprocessArgs,
-) -> Result<Vec<String>> {
-    let defaults = canonical_tool_defaults();
-    let mut selected_tools: Vec<String> = pipeline
-        .stages
-        .iter()
-        .map(|stage| {
-            defaults
-                .get(stage.as_str())
-                .map(|tool| (*tool).to_string())
-                .or_else(|| {
-                    registry
-                        .tools_for_stage(stage)
-                        .first()
-                        .map(|tool| tool.tool_id.clone())
-                })
-                .ok_or_else(|| anyhow!("no default tool for stage {stage}"))
-        })
-        .collect::<Result<_>>()?;
-
-    if args.auto {
-        let corpus_id = args
-            .bench_corpus
-            .ok_or_else(|| anyhow!("--bench-corpus is required with --auto"))?;
-        let corpus = bench_corpus(corpus_id);
-        let objective = bijux_core::selection::objective_spec(args.objective);
-        let mut selections = Vec::new();
-        for stage in &pipeline.stages {
-            let tool_ids: Vec<String> = registry
-                .tools_for_stage(stage)
-                .iter()
-                .map(|tool| tool.tool_id.clone())
-                .collect();
-            let mut tool_records = Vec::new();
-            for tool in &tool_ids {
-                let records = bijux_stages_fastq::get_results(stage, tool, &corpus, &args.out)?;
-                tool_records.push((tool.clone(), records));
-            }
-            let selection = bijux_core::selection::select_stage(
-                stage,
-                &tool_records,
-                &objective,
-                args.allow_partial,
-            );
-            selections.push(selection);
-        }
-        for (idx, selection) in selections.into_iter().enumerate() {
-            if let Some(selected) = selection.selected {
-                selected_tools[idx] = selected;
-            }
-        }
-    }
-
-    Ok(selected_tools)
 }

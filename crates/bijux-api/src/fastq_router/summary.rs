@@ -5,13 +5,14 @@ use anyhow::{Context, Result};
 use bijux_core::scientific_provenance::ScientificProvenanceV1;
 use bijux_core::ToolInvocationV1;
 use bijux_exec::primitives::StageResultV1;
+use bijux_planner_fastq::{CorrectDecisionTrace, MergeDecisionTrace};
 
 pub(super) fn write_run_summary(
     out_dir: &Path,
     stage_runs: &[StageExecutionSummary],
     failures: &[bijux_stages_fastq::RawFailure],
-    merge_decision: Option<&bijux_stages_fastq::fastq::preprocess::MergeDecisionTrace>,
-    correct_decision: Option<&bijux_stages_fastq::fastq::preprocess::CorrectDecisionTrace>,
+    merge_decision: Option<&MergeDecisionTrace>,
+    correct_decision: Option<&CorrectDecisionTrace>,
     adapter_inference: Option<&serde_json::Value>,
     stage_skips: &[serde_json::Value],
 ) -> Result<()> {
@@ -336,6 +337,7 @@ fn run_provenance_from_stage_runs(
     let build_profile =
         std::env::var("BIJUX_BUILD_PROFILE").unwrap_or_else(|_| "unknown".to_string());
     let reference_genome = std::env::var("BIJUX_REFERENCE_GENOME").ok();
+    let plan_hash = std::env::var("BIJUX_PLAN_HASH").ok();
     serde_json::json!({
         "schema_version": "bijux.run_provenance.v1",
         "tool_image_digest": tool_image_digest,
@@ -346,6 +348,7 @@ fn run_provenance_from_stage_runs(
         "pipeline_id": pipeline_id,
         "git_commit": git_commit,
         "build_profile": build_profile,
+        "plan_hash": plan_hash,
     })
 }
 
@@ -448,6 +451,7 @@ mod tests {
             params: serde_json::json!({}),
             effective_params: serde_json::json!({}),
             aux_images: std::collections::BTreeMap::new(),
+            reason: bijux_core::PlanDecisionReason::default(),
         };
         let result = StageResultV1 {
             run_id: "run-1".to_string(),
@@ -527,6 +531,7 @@ mod tests {
             params: serde_json::json!({"sample_id":"s1"}),
             effective_params: serde_json::json!({}),
             aux_images: std::collections::BTreeMap::new(),
+            reason: bijux_core::PlanDecisionReason::default(),
         };
         let invocation = ToolInvocationV1 {
             schema_version: "bijux.tool_invocation.v1".to_string(),
