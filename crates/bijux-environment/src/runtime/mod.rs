@@ -1,6 +1,14 @@
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use std::collections::HashMap;
+    use std::path::PathBuf;
+    use std::str::FromStr;
+
+    use crate::resolve::{
+        apptainer_sif_path, available_runners_with, cache_dir, docker_image_exists_with,
+        load_image_catalog_from_file, resolve_image, select_best_runner, validate_images_for_stage,
+        EnvError, ImageRef, PlatformSpec, ResolvedImage, RunnerKind, ToolImageSpec,
+    };
     use bijux_infra::atomic_write_bytes;
 
     #[test]
@@ -208,7 +216,7 @@ arch = "arm64"
             arch: "arm64".to_string(),
             runner: RunnerKind::Docker,
         };
-        let exists = super::docker_image_exists_with(&image, |args| {
+        let exists = docker_image_exists_with(&image, |args| {
             args == ["image", "inspect", "bijuxdna/fastp:0.23.4-arm64"]
         });
         assert!(exists);

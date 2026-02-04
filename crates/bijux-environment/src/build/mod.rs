@@ -1,10 +1,10 @@
 use std::path::Path;
 
-use bijux_env_runtime::EnvError;
+use crate::resolve::EnvError;
 use regex::Regex;
 
 pub mod api {
-    pub use bijux_env_runtime::api::*;
+    pub use crate::resolve::*;
 }
 
 pub mod image_qa;

@@ -37,7 +37,7 @@ This document defines ownership and allowed dependencies. Treat it as an API con
 - Does not own: CLI UX, orchestration.
 - Allowed deps: engine + env + stages + domain + infra.
 
-## bijux-env-runtime / bijux-env-builder
+## bijux-environment
 - Owns: runner/platform discovery, image resolution.
 - Does not own: domain planning or CLI.
 - Allowed deps: core + infra.
@@ -61,15 +61,13 @@ bijux-stages-fastq: bijux-core bijux-domain-fastq bijux-infra
 bijux-stages-bam: bijux-core bijux-domain-bam bijux-infra
 bijux-planner-fastq: bijux-core bijux-stages-fastq bijux-pipelines bijux-infra
 bijux-planner-bam: bijux-core bijux-stages-bam bijux-infra
-bijux-engine: bijux-core bijux-env-runtime bijux-env-builder bijux-infra
-bijux-runner-docker: bijux-engine bijux-env-runtime bijux-env-builder bijux-stages-fastq bijux-stages-bam bijux-domain-fastq bijux-domain-bam bijux-infra
-bijux-runner-local: bijux-engine bijux-core
-bijux-env-runtime: bijux-core bijux-infra
-bijux-env-builder: bijux-core bijux-infra
+bijux-engine: bijux-core bijux-environment bijux-infra
+bijux-runner: bijux-engine bijux-environment bijux-infra
+bijux-environment: bijux-core bijux-infra
 bijux-pipelines: bijux-core bijux-domain-fastq bijux-domain-bam
 bijux-analyze: bijux-core bijux-domain-fastq bijux-domain-bam bijux-infra
 bijux-bench: bijux-core bijux-analyze bijux-engine bijux-infra
-bijux-api: bijux-core bijux-engine bijux-runner-docker bijux-env-runtime bijux-env-builder bijux-analyze bijux-stages-fastq bijux-stages-bam bijux-domain-fastq bijux-domain-bam bijux-pipelines bijux-infra bijux-planner-fastq
+bijux-api: bijux-core bijux-engine bijux-runner bijux-environment bijux-analyze bijux-stages-fastq bijux-stages-bam bijux-domain-fastq bijux-domain-bam bijux-pipelines bijux-infra bijux-planner-fastq
 bijux-cli: bijux-api
 bijux: bijux-api
 ```

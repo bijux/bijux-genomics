@@ -1,8 +1,8 @@
 use std::path::PathBuf;
 use std::process::{Command, Output};
 
-use bijux_env_builder::{default_docker_tools, extract_version_from_dockerfile, DockerToolSpec};
-use bijux_env_runtime::{load_platform, ImageRef, PlatformSpec, RunnerKind};
+use bijux_environment::build::{default_docker_tools, extract_version_from_dockerfile, DockerToolSpec};
+use bijux_environment::resolve::{load_platform, ImageRef, PlatformSpec, RunnerKind};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<String> = std::env::args().collect();
@@ -367,4 +367,3 @@ fn parse_arg_value(args: &[String], name: &str) -> Option<String> {
 fn log_info(logger: &mut dyn Logger, line: &str) {
     logger.log(LogLevel::Info, line);
 }
-

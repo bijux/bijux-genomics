@@ -8,7 +8,9 @@ use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 mod reference;
-pub use reference::{reference_cache_dir, ReferenceBuildRequest, ReferenceRecord, ReferenceRegistry};
+pub use reference::{
+    reference_cache_dir, ReferenceBuildRequest, ReferenceRecord, ReferenceRegistry,
+};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -153,8 +155,8 @@ pub(crate) fn load_platform_from_file(
     name: Option<&str>,
 ) -> Result<PlatformSpec, EnvError> {
     let contents = std::fs::read_to_string(path)?;
-    let file: PlatformsFile = bijux_infra::formats::parse_toml(&contents)
-        .map_err(|err| EnvError::Parse(err.message))?;
+    let file: PlatformsFile =
+        bijux_infra::formats::parse_toml(&contents).map_err(|err| EnvError::Parse(err.message))?;
     let selected = name.unwrap_or(&file.default);
     let raw = file
         .platforms
@@ -272,8 +274,8 @@ pub(crate) fn load_image_catalog_from_file(
     path: &Path,
 ) -> Result<HashMap<String, ToolImageSpec>, EnvError> {
     let contents = std::fs::read_to_string(path)?;
-    let raw: HashMap<String, ToolImageSpec> = bijux_infra::formats::parse_toml(&contents)
-        .map_err(|err| EnvError::Parse(err.message))?;
+    let raw: HashMap<String, ToolImageSpec> =
+        bijux_infra::formats::parse_toml(&contents).map_err(|err| EnvError::Parse(err.message))?;
     let mut catalog = HashMap::new();
     for (key, mut spec) in raw {
         if key.trim().is_empty() {
@@ -329,7 +331,6 @@ pub fn cache_dir(runner: RunnerKind) -> PathBuf {
             .join("sif"),
     }
 }
-
 
 #[must_use]
 pub fn docker_image_exists(image: &ResolvedImage) -> bool {

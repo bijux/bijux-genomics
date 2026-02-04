@@ -4,7 +4,7 @@ use std::process::Command;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
-use crate::EnvError;
+use super::EnvError;
 
 #[must_use]
 pub fn reference_cache_dir() -> PathBuf {
@@ -89,9 +89,7 @@ impl ReferenceRegistry {
         if request.build_bwa_index && !bwa_prefix.with_extension("bwt").exists() {
             run_command("bwa", &["index", fasta_target.to_str().unwrap_or("")])?;
         }
-        if request.build_bowtie2_index
-            && !bowtie2_prefix.with_extension("1.bt2").exists()
-        {
+        if request.build_bowtie2_index && !bowtie2_prefix.with_extension("1.bt2").exists() {
             run_command(
                 "bowtie2-build",
                 &[
@@ -124,7 +122,9 @@ fn run_command(cmd: &str, args: &[&str]) -> Result<(), EnvError> {
     if status.success() {
         Ok(())
     } else {
-        Err(EnvError::Platform(format!("command failed: {cmd} {args:?}")))
+        Err(EnvError::Platform(format!(
+            "command failed: {cmd} {args:?}"
+        )))
     }
 }
 

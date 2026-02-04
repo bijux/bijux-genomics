@@ -2,8 +2,10 @@ use std::collections::HashSet;
 use std::path::PathBuf;
 use std::process::Command;
 
-use bijux_env_builder::{default_docker_tools, extract_version_from_dockerfile, DockerToolSpec};
-use bijux_env_runtime::{load_platform, ImageRef, RunnerKind};
+use bijux_environment::build::{
+    default_docker_tools, extract_version_from_dockerfile, DockerToolSpec,
+};
+use bijux_environment::resolve::{load_platform, ImageRef, RunnerKind};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<String> = std::env::args().collect();
