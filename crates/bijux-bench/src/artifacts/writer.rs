@@ -198,8 +198,8 @@ mod tests {
     fn artifacts_are_stable_and_atomic() -> anyhow::Result<()> {
         let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         let out_dir = manifest_dir
-            .join("target")
-            .join("test-fixtures")
+            .join("tests")
+            .join("fixtures")
             .join("bench_artifacts");
         bijux_infra::ensure_dir(&out_dir)?;
 

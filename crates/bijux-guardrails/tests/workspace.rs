@@ -554,6 +554,85 @@ fn stage_spec_and_registry_defs_scoped() {
 }
 
 #[test]
+fn workspace_has_no_target_dirs() {
+    let root = workspace_root();
+    let mut offenders = Vec::new();
+    for entry in walkdir::WalkDir::new(root.join("crates"))
+        .into_iter()
+        .filter_map(Result::ok)
+        .filter(|entry| entry.file_type().is_dir())
+    {
+        if entry.file_name() == "target" {
+            offenders.push(entry.path().display().to_string());
+        }
+    }
+    assert!(
+        offenders.is_empty(),
+        "target/ directories must not exist in crates: {offenders:?}"
+    );
+}
+
+#[test]
+fn crate_root_contents_allowlist() {
+    let allowed = BTreeSet::from([
+        "Cargo.toml",
+        "Makefile.toml",
+        "src",
+        "tests",
+        "README.md",
+        "API.md",
+        "PIPELINE_VERSIONING.md",
+    ]);
+    let mut offenders = Vec::new();
+    for (name, path) in collect_workspace_crates() {
+        let entries = std::fs::read_dir(&path).unwrap_or_else(|_| panic!("read {name}"));
+        for entry in entries.filter_map(Result::ok) {
+            let entry_name = entry.file_name();
+            let entry_name = entry_name.to_string_lossy();
+            if allowed.contains(entry_name.as_ref()) {
+                continue;
+            }
+            offenders.push(format!(
+                "{}: {}",
+                name,
+                entry_name.as_ref()
+            ));
+        }
+    }
+    assert!(
+        offenders.is_empty(),
+        "crate roots must only contain allowlisted entries: {offenders:?}"
+    );
+}
+
+#[test]
+fn fixtures_policy_enforced() {
+    let root = workspace_root();
+    let mut offenders = Vec::new();
+    for (name, path) in collect_workspace_crates() {
+        for entry in walkdir::WalkDir::new(path.join("src").parent().unwrap())
+            .into_iter()
+            .filter_map(Result::ok)
+            .filter(|entry| entry.file_type().is_dir())
+        {
+            if entry.file_name() != "fixtures" {
+                continue;
+            }
+            let rel = entry.path().strip_prefix(&root).unwrap_or(entry.path());
+            let rel_str = rel.to_string_lossy();
+            if rel_str.ends_with("/tests/fixtures") || rel_str.ends_with("/fixtures") {
+                continue;
+            }
+            offenders.push(rel.display().to_string());
+        }
+    }
+    assert!(
+        offenders.is_empty(),
+        "fixtures must live under tests/fixtures or fixtures/: {offenders:?}"
+    );
+}
+
+#[test]
 fn workspace_no_cross_layer_imports() {
     let crates = collect_workspace_crates();
     let root = workspace_root();

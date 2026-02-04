@@ -469,8 +469,8 @@ mod tests {
             stage_overrides: BTreeMap::new(),
         };
         let out_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("target")
-            .join("test-fixtures")
+            .join("tests")
+            .join("fixtures")
             .join("bench_bundle");
         let options = BenchRunOptions {
             output_dir: Some(out_dir.clone()),
