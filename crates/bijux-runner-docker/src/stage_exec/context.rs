@@ -29,18 +29,12 @@ use bijux_engine::services::run_artifacts::{
     write_stage_report_v1, write_telemetry_event, write_tool_invocation_json, write_trim_report_v1,
     write_validate_report_v1,
 };
-use bijux_core::metrics::FastqDetectAdaptersMetricsV1;
 use bijux_core::run_index::{insert_stage_row, StageIndexRow};
 use bijux_core::{
     parameters_json_canonicalization, AdapterBankProvenanceV1, ArtifactRef, BankRefV1, FactsRowV1,
-    FastqCorrectMetricsV1, FastqDeltaMetricsV1, FastqFilterMetricsV1, FastqMergeMetricsV1,
-    FastqPreprocessMetricsV1, FastqQcPostMetricsV1, FastqTrimMetricsV1, FastqUmiMetricsV1,
-    FastqValidateMetricsV1, MetricContextV1, RetentionReportMetricV1, StageMetricsV1,
-    StageObservabilityContextV1, StagePlanV1, ToolInvocationV1,
+    MetricContextV1, StageMetricsV1, StageObservabilityContextV1, StagePlanV1, ToolInvocationV1,
 };
-use bijux_domain_bam::metrics::BamMetricsV1;
-use bijux_domain_bam::metrics::{evaluate_bam_invariants, BamInvariantThresholds};
-use bijux_domain_fastq::{evaluate_invariants, parse_effective_params, thresholds_from_env};
+use bijux_domain_fastq::{evaluate_invariants, thresholds_from_env};
 
 #[derive(Debug, Clone)]
 pub struct StageResultV1 {
@@ -209,75 +203,6 @@ fn bank_references_from_value(value: &serde_json::Value) -> Vec<BankReferenceRec
         .unwrap_or_default()
 }
 
-fn bank_refs_from_params(params: &serde_json::Value) -> serde_json::Value {
-    let mut banks = serde_json::Map::new();
-    for (key, field) in [
-        ("adapter", "adapter_bank"),
-        ("polyx", "polyx_bank"),
-        ("contaminant", "contaminant_bank"),
-    ] {
-        if let Some(bank) = params.get(field) {
-            let entry = serde_json::json!({
-                "bank_id": bank.get("bank_id"),
-                "bank_hash": bank.get("bank_hash"),
-                "preset": bank.get("preset"),
-                "preset_hash": bank.get("preset_hash"),
-            });
-            banks.insert(key.to_string(), entry);
-        }
-    }
-    serde_json::Value::Object(banks)
-}
-
-fn retention_conditions_from_effective(
-    stage_id: &str,
-    effective_params: &serde_json::Value,
-    raw_params: &serde_json::Value,
-) -> serde_json::Value {
-    let mut out = serde_json::Map::new();
-    let mut warning = None;
-    if let Some(params) = parse_effective_params(stage_id, effective_params) {
-        if let Some(map) = params.retention_conditions().as_object() {
-            for (key, value) in map {
-                out.insert(key.clone(), value.clone());
-            }
-        }
-        out.insert("parameters".to_string(), effective_params.clone());
-        out.insert(
-            "condition".to_string(),
-            serde_json::Value::String("effective".to_string()),
-        );
-    } else {
-        warning = Some("effective_params_missing");
-        out.insert("parameters".to_string(), raw_params.clone());
-        out.insert(
-            "condition".to_string(),
-            serde_json::Value::String("unknown".to_string()),
-        );
-    }
-    out.insert("banks".to_string(), bank_refs_from_params(raw_params));
-    for key in [
-        "min_len",
-        "q",
-        "max_n",
-        "low_complexity_threshold",
-        "kmer_ref",
-        "merge_policy",
-        "adapter_policy",
-        "polyx_policy",
-        "contaminant_policy",
-    ] {
-        out.entry(key.to_string())
-            .or_insert(serde_json::Value::Null);
-    }
-    if let Some(flag) = warning {
-        out.insert(
-            "warning".to_string(),
-            serde_json::Value::String(flag.to_string()),
-        );
-    }
-    serde_json::Value::Object(out)
-}
 
 fn path_from_params(params: &serde_json::Value, key: &str) -> Option<PathBuf> {
     params

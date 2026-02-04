@@ -57,7 +57,6 @@ This document defines ownership and allowed dependencies. Treat it as an API con
 bijux-core: bijux-infra
 bijux-domain-fastq: bijux-core bijux-infra
 bijux-domain-bam: bijux-core bijux-infra
-bijux-domain-vcf: bijux-core bijux-infra
 bijux-stages-fastq: bijux-core bijux-domain-fastq bijux-infra
 bijux-stages-bam: bijux-core bijux-domain-bam bijux-infra
 bijux-planner-fastq: bijux-core bijux-stages-fastq bijux-pipelines bijux-infra
@@ -67,10 +66,10 @@ bijux-runner-docker: bijux-engine bijux-env-runtime bijux-env-builder bijux-stag
 bijux-runner-local: bijux-engine bijux-core
 bijux-env-runtime: bijux-core bijux-infra
 bijux-env-builder: bijux-core bijux-infra
-bijux-pipelines: bijux-core bijux-domain-fastq bijux-domain-bam bijux-domain-vcf
-bijux-analyze: bijux-core bijux-domain-fastq bijux-domain-bam bijux-domain-vcf bijux-infra
+bijux-pipelines: bijux-core bijux-domain-fastq bijux-domain-bam
+bijux-analyze: bijux-core bijux-domain-fastq bijux-domain-bam bijux-infra
 bijux-bench: bijux-core bijux-analyze bijux-engine bijux-infra
-bijux-api: bijux-core bijux-engine bijux-runner-docker bijux-env-runtime bijux-env-builder bijux-analyze bijux-stages-fastq bijux-stages-bam bijux-domain-fastq bijux-domain-bam bijux-domain-vcf bijux-pipelines bijux-infra bijux-planner-fastq
+bijux-api: bijux-core bijux-engine bijux-runner-docker bijux-env-runtime bijux-env-builder bijux-analyze bijux-stages-fastq bijux-stages-bam bijux-domain-fastq bijux-domain-bam bijux-pipelines bijux-infra bijux-planner-fastq
 bijux-cli: bijux-api
 bijux: bijux-api
 ```

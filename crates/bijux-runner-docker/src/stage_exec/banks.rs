@@ -47,6 +47,10 @@ fn warnings_for_plan(plan: &StagePlanV1, params: &serde_json::Value) -> Vec<Stri
     warnings
 }
 
+fn f64_from_u64(value: u64) -> f64 {
+    value as f64
+}
+
 fn quality_gate_decision(
     stage_id: &str,
     metrics: &serde_json::Value,
@@ -115,89 +119,6 @@ fn quality_gate_decision(
             "mean_q_delta_warn": -1.0
         }
     }))
-}
-
-#[derive(Debug, Default, Clone)]
-#[allow(clippy::struct_field_names)]
-struct FilterRemovalCounts {
-    by_n: u64,
-    by_entropy: u64,
-    by_low_complexity: u64,
-    by_kmer: u64,
-    by_contaminant_kmer: u64,
-    by_length: u64,
-}
-
-fn filter_removals_from_fastp(path: &Path) -> Option<FilterRemovalCounts> {
-    let raw = std::fs::read_to_string(path).ok()?;
-    let parsed: serde_json::Value = serde_json::from_str(&raw).ok()?;
-    let filtering = parsed.get("filtering_result")?;
-    let by_n = filtering
-        .get("too_many_N_reads")
-        .and_then(serde_json::Value::as_u64)
-        .unwrap_or(0);
-    let by_entropy = filtering
-        .get("low_complexity_reads")
-        .and_then(serde_json::Value::as_u64)
-        .unwrap_or(0);
-    let by_length = filtering
-        .get("too_short_reads")
-        .and_then(serde_json::Value::as_u64)
-        .unwrap_or(0)
-        + filtering
-            .get("too_long_reads")
-            .and_then(serde_json::Value::as_u64)
-            .unwrap_or(0);
-    Some(FilterRemovalCounts {
-        by_n,
-        by_entropy,
-        by_low_complexity: by_entropy,
-        by_kmer: 0,
-        by_contaminant_kmer: 0,
-        by_length,
-    })
-}
-
-fn filter_removals_from_bbduk_stats(
-    path: &Path,
-    kmer_ref_used: bool,
-) -> Option<FilterRemovalCounts> {
-    let raw = std::fs::read_to_string(path).ok()?;
-    let mut removed = None;
-    for line in raw.lines() {
-        let line = line.trim();
-        if line.starts_with("Reads Removed") || line.starts_with("Reads removed") {
-            let digits: String = line.chars().filter(char::is_ascii_digit).collect();
-            if !digits.is_empty() {
-                removed = digits.parse::<u64>().ok();
-            }
-        }
-    }
-    let removed = removed?;
-    Some(FilterRemovalCounts {
-        by_n: 0,
-        by_entropy: 0,
-        by_low_complexity: 0,
-        by_kmer: if kmer_ref_used { removed } else { 0 },
-        by_contaminant_kmer: if kmer_ref_used { removed } else { 0 },
-        by_length: 0,
-    })
-}
-
-fn filter_removals_for_plan(
-    tool_id: &str,
-    out_dir: &Path,
-    params: &serde_json::Value,
-) -> FilterRemovalCounts {
-    match tool_id {
-        "fastp" => filter_removals_from_fastp(&out_dir.join("fastp.json")).unwrap_or_default(),
-        "bbduk" => {
-            let kmer_ref_used = params.get("kmer_ref").is_some();
-            filter_removals_from_bbduk_stats(&out_dir.join("bbduk.stats"), kmer_ref_used)
-                .unwrap_or_default()
-        }
-        _ => FilterRemovalCounts::default(),
-    }
 }
 
 type IoDeltas = (
@@ -373,67 +294,4 @@ fn materialize_bank_assets(
         assets.insert(bank_name.clone(), record);
     }
     Ok(Some(serde_json::Value::Object(assets)))
-}
-
-fn fastq_stats(path: &Path) -> Result<bijux_core::measure::SeqkitMetrics> {
-    let file = std::fs::File::open(path).context("open fastq")?;
-    let reader: Box<dyn std::io::Read> = if path
-        .extension()
-        .and_then(|ext| ext.to_str())
-        .is_some_and(|ext| ext.eq_ignore_ascii_case("gz"))
-    {
-        Box::new(GzDecoder::new(file))
-    } else {
-        Box::new(file)
-    };
-    let mut reads: u64 = 0;
-    let mut bases: u64 = 0;
-    let mut gc: u64 = 0;
-    let mut q_sum: u64 = 0;
-    let mut lines = BufReader::new(reader).lines();
-    while let Some(line) = lines.next() {
-        let header = line?;
-        if header.is_empty() {
-            continue;
-        }
-        let seq = lines
-            .next()
-            .ok_or_else(|| anyhow!("fastq missing sequence line"))??;
-        let _plus = lines
-            .next()
-            .ok_or_else(|| anyhow!("fastq missing plus line"))??;
-        let qual = lines
-            .next()
-            .ok_or_else(|| anyhow!("fastq missing quality line"))??;
-        reads += 1;
-        let seq_bytes = seq.as_bytes();
-        bases += seq_bytes.len() as u64;
-        for base in seq_bytes {
-            match base {
-                b'G' | b'g' | b'C' | b'c' => gc += 1,
-                _ => {}
-            }
-        }
-        for q in qual.as_bytes() {
-            if *q >= 33 {
-                q_sum += u64::from(q - 33);
-            }
-        }
-    }
-    let mean_q = if bases > 0 {
-        f64_from_u64(q_sum) / f64_from_u64(bases)
-    } else {
-        0.0
-    };
-    let gc_percent = if bases > 0 {
-        (f64_from_u64(gc) / f64_from_u64(bases)) * 100.0
-    } else {
-        0.0
-    };
-    Ok(bijux_core::measure::SeqkitMetrics {
-        reads,
-        bases,
-        mean_q,
-        gc_percent,
-    })
 }

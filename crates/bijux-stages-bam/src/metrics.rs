@@ -1,9 +1,8 @@
-// Consolidated helpers to keep stage_exec dir within module-count guardrails.
+use std::path::{Path, PathBuf};
 
-// --- metrics_bam.rs ---
+use bijux_domain_bam::metrics::BamMetricsV1;
 
-#[allow(clippy::too_many_lines)]
-pub(super) fn bam_metrics_from_dir(out_dir: &Path) -> BamMetricsV1 {
+pub fn bam_metrics_from_dir(out_dir: &Path) -> BamMetricsV1 {
     let mut metrics = BamMetricsV1::empty();
 
     let flagstat_path = first_existing(
@@ -16,21 +15,21 @@ pub(super) fn bam_metrics_from_dir(out_dir: &Path) -> BamMetricsV1 {
         ],
     );
     if let Some(path) = flagstat_path {
-        if let Ok(counts) = parse_samtools_flagstat(&path) {
+        if let Ok(counts) = bijux_domain_bam::metrics::parse_samtools_flagstat(&path) {
             metrics.alignment = counts;
         }
     }
 
     let stats_path = first_existing(out_dir, &["samtools_stats.txt"]);
     if let Some(path) = stats_path {
-        if let Ok((fragment, mapq)) = parse_samtools_stats(&path) {
+        if let Ok((fragment, mapq)) = bijux_domain_bam::metrics::parse_samtools_stats(&path) {
             metrics.fragment_length = fragment;
             metrics.mapq = mapq;
         }
     }
     let idxstats_path = first_existing(out_dir, &["idxstats.after.txt", "idxstats.txt"]);
     if let Some(path) = idxstats_path {
-        if let Ok(idxstats) = crate::observer::parse_samtools_idxstats(&path) {
+        if let Ok(idxstats) = bijux_domain_bam::metrics::parse_samtools_idxstats(&path) {
             metrics.idxstats = idxstats;
         }
     }
@@ -38,7 +37,7 @@ pub(super) fn bam_metrics_from_dir(out_dir: &Path) -> BamMetricsV1 {
     let mosdepth_path =
         first_existing(out_dir, &["coverage.mosdepth.summary.txt", "mosdepth.summary.txt"]);
     if let Some(path) = mosdepth_path {
-        if let Ok(coverage) = parse_mosdepth_summary(&path) {
+        if let Ok(coverage) = bijux_domain_bam::metrics::parse_mosdepth_summary(&path) {
             metrics.coverage = coverage;
         }
     } else {
@@ -55,7 +54,7 @@ pub(super) fn bam_metrics_from_dir(out_dir: &Path) -> BamMetricsV1 {
 
     let preseq_path = first_existing(out_dir, &["preseq.txt"]);
     if let Some(path) = preseq_path {
-        if let Ok(complexity) = parse_preseq_estimates(&path) {
+        if let Ok(complexity) = bijux_domain_bam::metrics::parse_preseq_estimates(&path) {
             metrics.complexity = complexity;
         }
     }
@@ -63,7 +62,7 @@ pub(super) fn bam_metrics_from_dir(out_dir: &Path) -> BamMetricsV1 {
     let mut damage_sources: Vec<(String, bijux_domain_bam::metrics::DamageMetricsV1)> = Vec::new();
     let pydamage_path = first_existing(out_dir, &["damage.pydamage.json", "pydamage.json"]);
     if let Some(path) = pydamage_path {
-        if let Ok(damage) = parse_pydamage_json(&path) {
+        if let Ok(damage) = bijux_domain_bam::metrics::parse_pydamage_json(&path) {
             metrics.damage = damage.clone();
             damage_sources.push(("pydamage".to_string(), damage));
         }
@@ -80,7 +79,7 @@ pub(super) fn bam_metrics_from_dir(out_dir: &Path) -> BamMetricsV1 {
     let damageprofiler_path =
         first_existing(out_dir, &["damage.profiler.json", "damageprofiler.json"]);
     if let Some(path) = damageprofiler_path {
-        if let Ok(damage) = parse_damageprofiler_json(&path) {
+        if let Ok(damage) = bijux_domain_bam::metrics::parse_damageprofiler_json(&path) {
             if damage_sources.is_empty() {
                 metrics.damage = damage.clone();
             }
@@ -102,7 +101,7 @@ pub(super) fn bam_metrics_from_dir(out_dir: &Path) -> BamMetricsV1 {
 
     let contamination_path = first_existing(out_dir, &["contamination.json"]);
     if let Some(path) = contamination_path {
-        if let Ok(contamination) = parse_contamination_json(&path) {
+        if let Ok(contamination) = bijux_domain_bam::metrics::parse_contamination_json(&path) {
             metrics.contamination = contamination;
         }
         if let Ok(raw) = std::fs::read_to_string(&path) {
@@ -119,53 +118,21 @@ pub(super) fn bam_metrics_from_dir(out_dir: &Path) -> BamMetricsV1 {
 
     let sex_path = first_existing(out_dir, &["sex.json"]);
     if let Some(path) = sex_path {
-        if let Ok(sex) = parse_sex_json(&path) {
+        if let Ok(sex) = bijux_domain_bam::metrics::parse_sex_json(&path) {
             metrics.sex = sex;
         }
     }
 
-    if metrics.coverage.mean > 0.0 {
-        metrics.effective_coverage.raw = metrics.coverage.mean;
-        let dup_fraction = if metrics.alignment.total > 0 {
-            u64_to_f64(metrics.alignment.duplicates) / u64_to_f64(metrics.alignment.total)
-        } else {
-            0.0
-        };
-        metrics.effective_coverage.dedup = metrics.coverage.mean * (1.0 - dup_fraction);
-        let damage = metrics.damage.c_to_t_5p.max(metrics.damage.g_to_a_3p);
-        let pmd_retention = if damage >= 0.10 { 0.8 } else { 0.5 };
-        metrics.effective_coverage.pmd_filtered = metrics.coverage.mean * pmd_retention;
-        metrics.coverage_uniformity.dropout_fraction =
-            (1.0 - metrics.coverage.breadth_1x).clamp(0.0, 1.0);
-        metrics.coverage_uniformity.coefficient_of_variation =
-            (1.0 - metrics.coverage.breadth_1x).max(0.0);
-        let sufficient = metrics.coverage.mean >= 1.0 || metrics.coverage.breadth_1x >= 0.1;
-        let reason = if sufficient {
-            "coverage meets minimum thresholds"
-        } else {
-            "coverage below minimum thresholds"
-        };
-        metrics.coverage_sufficiency.sufficient = sufficient;
-        metrics.coverage_sufficiency.mean_coverage = metrics.coverage.mean;
-        metrics.coverage_sufficiency.breadth_1x = metrics.coverage.breadth_1x;
-        metrics.coverage_sufficiency.reason = reason.to_string();
-    }
-
-    if metrics.coverage_sufficiency.sufficient {
-        metrics.sex_sufficiency.sufficient = metrics.sex.sufficient_data;
-        metrics.sex_sufficiency.confidence = metrics.sex.confidence;
-        metrics.sex_sufficiency.reason = if metrics.sex.sufficient_data {
-            "sex inference meets thresholds".to_string()
-        } else {
-            "sex inference confidence below threshold".to_string()
-        };
-        metrics.contamination_sufficiency.sufficient = metrics.contamination.estimate > 0.0;
-        metrics.contamination_sufficiency.reason = if metrics.contamination.estimate > 0.0 {
-            "contamination estimate available".to_string()
-        } else {
-            "contamination estimate unavailable".to_string()
-        };
-    }
-
     metrics
 }
+
+fn first_existing(out_dir: &Path, names: &[&str]) -> Option<PathBuf> {
+    for name in names {
+        let candidate = out_dir.join(name);
+        if candidate.exists() {
+            return Some(candidate);
+        }
+    }
+    None
+}
+

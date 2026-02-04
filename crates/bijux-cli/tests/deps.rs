@@ -25,7 +25,6 @@ fn cli_forbids_internal_deps() {
     let forbidden = [
         "bijux-domain-fastq",
         "bijux-domain-bam",
-        "bijux-domain-vcf",
         "bijux-stages-fastq",
         "bijux-stages-bam",
         "bijux-engine",

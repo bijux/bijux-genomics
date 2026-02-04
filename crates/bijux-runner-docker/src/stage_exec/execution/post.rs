@@ -40,25 +40,13 @@ fn process_execution_result(
     for path in &log_paths {
         emit_artifact("execution_log", path)?;
     }
-    let stage_metrics = if plan.stage_id.0 == "fastq.filter" {
-        let removals =
-            filter_removals_for_plan(plan.tool_id.0.as_str(), &plan.out_dir, canonical_params);
-        filter_metrics_with_removals(
-            plan.stage_id.0.as_str(),
-            input_paths,
-            &outputs,
-            canonical_params,
-            &plan.effective_params,
-            &removals,
-        )?
+    let stage_metrics = if let Some(plugin) = crate::plugins::select_stage_plugin(&plan.stage_id.0)
+    {
+        let output_refs = plan.io.outputs.clone();
+        let parsed = plugin.parse_outputs(plan, &output_refs)?;
+        parsed.metrics
     } else {
-        stage_metrics_for_plan(
-            plan.stage_id.0.as_str(),
-            input_paths,
-            &outputs,
-            canonical_params,
-            &plan.effective_params,
-        )?
+        serde_json::json!({})
     };
     let invocation = ToolInvocationV1 {
         schema_version: "bijux.tool_invocation.v1".to_string(),

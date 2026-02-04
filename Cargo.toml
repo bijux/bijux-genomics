@@ -8,7 +8,6 @@ members = [
   "crates/bijux-core",
   "crates/bijux-domain-bam",
   "crates/bijux-domain-fastq",
-  "crates/bijux-domain-vcf",
   "crates/bijux-engine",
   "crates/bijux-env-builder",
   "crates/bijux-env-runtime",

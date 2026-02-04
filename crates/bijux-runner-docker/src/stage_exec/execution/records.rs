@@ -54,7 +54,7 @@ fn write_facts_and_records(
             runtime_s,
             memory_mb,
             exit_code: execution.exit_code,
-            bank_hashes: bank_refs_from_params(canonical_params),
+            bank_hashes: bijux_stages_fastq::metrics::bank_refs_from_params(canonical_params),
             reads_in: Some(reads_in),
             reads_out: Some(reads_out),
             bases_in: Some(bases_in),

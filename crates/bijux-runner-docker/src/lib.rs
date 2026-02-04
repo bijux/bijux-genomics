@@ -3,6 +3,7 @@
 
 pub mod executor;
 pub mod exec_helpers;
+mod plugins;
 pub mod observer;
 pub mod replay;
 pub mod stage_exec;

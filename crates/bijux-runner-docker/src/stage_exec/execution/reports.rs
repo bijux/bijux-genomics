@@ -1,3 +1,6 @@
+use bijux_stages_fastq::metrics::{
+    filter_removals_for_plan, retention_conditions_from_effective, stats_or_zero,
+};
 
 struct ReportArtifacts {
     subreports: Vec<PathBuf>,
@@ -450,4 +453,8 @@ fn build_stage_reports_and_warnings(
         adapter_validation,
         contaminant_action,
     })
+}
+
+fn f64_from_u64(value: u64) -> f64 {
+    value as f64
 }

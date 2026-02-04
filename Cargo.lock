@@ -376,16 +376,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "bijux-domain-vcf"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "bijux-core",
- "bijux-guardrails",
- "serde_json",
-]
-
-[[package]]
 name = "bijux-engine"
 version = "0.1.0"
 dependencies = [
@@ -570,6 +560,7 @@ dependencies = [
  "bijux-domain-fastq",
  "bijux-guardrails",
  "bijux-infra",
+ "flate2",
  "serde",
  "serde_json",
  "sha2",

@@ -1,8 +1,8 @@
-use std::collections::BTreeMap;
-
 use anyhow::Result;
 use bijux_core::stage_plugin::{StageInvocationV1, StagePlugin, StagePluginOutputV1};
 use bijux_core::{ArtifactRef, StagePlanV1};
+
+use crate::metrics;
 
 pub struct FastqStagePlugin;
 
@@ -14,14 +14,19 @@ impl StagePlugin for FastqStagePlugin {
     fn materialize(&self, plan: &StagePlanV1) -> Result<StageInvocationV1> {
         Ok(StageInvocationV1 {
             command: plan.command.template.clone(),
-            env: BTreeMap::new(),
+            env: std::collections::BTreeMap::new(),
             expected_outputs: plan.io.outputs.clone(),
         })
     }
 
-    fn parse_outputs(&self, _plan: &StagePlanV1, _outputs: &[ArtifactRef]) -> Result<StagePluginOutputV1> {
+    fn parse_outputs(&self, plan: &StagePlanV1, _outputs: &[ArtifactRef]) -> Result<StagePluginOutputV1> {
+        let input_paths: Vec<std::path::PathBuf> =
+            plan.io.inputs.iter().map(|input| input.path.clone()).collect();
+        let output_paths: Vec<std::path::PathBuf> =
+            plan.io.outputs.iter().map(|output| output.path.clone()).collect();
+        let metrics = metrics::stage_metrics_for_plan(plan, &input_paths, &output_paths)?;
         Ok(StagePluginOutputV1 {
-            metrics: serde_json::json!({}),
+            metrics,
             artifacts: Vec::new(),
         })
     }

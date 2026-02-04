@@ -363,7 +363,6 @@ fn workspace_no_orphan_crates() {
         "bijux-bench",
         "bijux-env-builder",
         "bijux-env-runtime",
-        "bijux-domain-vcf",
         "bijux-runner-local",
     ]);
     for (name, count) in dependents {
@@ -417,7 +416,6 @@ fn workspace_dependency_graph_contract() {
         "bijux-stages-bam",
         "bijux-domain-fastq",
         "bijux-domain-bam",
-        "bijux-domain-vcf",
         "bijux-planner-fastq",
         "bijux-planner-bam",
         "bijux-pipelines",
@@ -431,7 +429,7 @@ fn workspace_dependency_graph_contract() {
         );
     }
 
-    for domain in ["bijux-domain-fastq", "bijux-domain-bam", "bijux-domain-vcf"] {
+    for domain in ["bijux-domain-fastq", "bijux-domain-bam"] {
         let deps = deps_for(domain);
         for banned in [
             "bijux-stages-fastq",
@@ -500,7 +498,6 @@ fn workspace_dependency_graph_contract() {
         "bijux-bench",
         "bijux-domain-fastq",
         "bijux-domain-bam",
-        "bijux-domain-vcf",
         "bijux-stages-fastq",
         "bijux-stages-bam",
         "bijux-runner-docker",

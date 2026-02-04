@@ -9,6 +9,7 @@ pub mod stages_post;
 pub mod stages_pre;
 pub mod stages_support;
 pub mod plugin;
+pub mod metrics;
 pub mod tools;
 
 pub use bijux_core::{ArtifactRef, StageIO, StagePlanJsonV1, StagePlanV1};
