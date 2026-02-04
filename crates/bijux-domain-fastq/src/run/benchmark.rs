@@ -279,7 +279,7 @@ fn median(values: Vec<f64>) -> Option<f64> {
     sorted.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
     let mid = sorted.len() / 2;
     if sorted.len() % 2 == 0 {
-        Some(f64::midpoint(sorted[mid - 1], sorted[mid]))
+        Some((sorted[mid - 1] + sorted[mid]) * 0.5)
     } else {
         Some(sorted[mid])
     }

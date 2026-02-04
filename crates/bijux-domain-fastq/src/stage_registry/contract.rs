@@ -178,8 +178,11 @@ pub fn assess_merge_suitability(r1: &Path, r2: &Path) -> Result<MergeSuitability
         });
     }
     let overlap_threshold = 0.05;
-    let suitable =
-        r1_len <= 150 && predicted_merge_rate.is_none_or(|rate| rate >= overlap_threshold);
+    let suitable = if let Some(rate) = predicted_merge_rate {
+        r1_len <= 150 && rate >= overlap_threshold
+    } else {
+        r1_len <= 150
+    };
     let reason = if let Some(rate) = predicted_merge_rate {
         if rate < overlap_threshold {
             format!("overlap probe predicts merge rate {rate:.2} < {overlap_threshold:.2}")

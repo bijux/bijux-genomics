@@ -23,9 +23,8 @@ pub fn fastq_invariant_specs() -> Vec<InvariantSpecV1> {
             id: "validate_malformed_reads".to_string(),
             definition: "Validation reports malformed reads proportion below threshold."
                 .to_string(),
-            threshold_provenance:
-                "Default thresholds in bijux_domain_fastq::InvariantThresholds."
-                    .to_string(),
+            threshold_provenance: "Default thresholds in bijux_domain_fastq::InvariantThresholds."
+                .to_string(),
             severity: InvariantStatusV1::Fail,
             next_steps: "Inspect input FASTQ integrity and rerun validation.".to_string(),
         },
@@ -33,8 +32,7 @@ pub fn fastq_invariant_specs() -> Vec<InvariantSpecV1> {
             id: "retention_sanity".to_string(),
             definition: "Read retention remains within expected bounds.".to_string(),
             threshold_provenance:
-                "Warn/fail thresholds from InvariantThresholds, override via env."
-                    .to_string(),
+                "Warn/fail thresholds from InvariantThresholds, override via env.".to_string(),
             severity: InvariantStatusV1::Warn,
             next_steps: "Review trimming/filter settings and input quality.".to_string(),
         },
@@ -42,8 +40,7 @@ pub fn fastq_invariant_specs() -> Vec<InvariantSpecV1> {
             id: "quality_direction".to_string(),
             definition: "Mean quality delta does not regress beyond thresholds.".to_string(),
             threshold_provenance:
-                "Warn/fail thresholds from InvariantThresholds, override via env."
-                    .to_string(),
+                "Warn/fail thresholds from InvariantThresholds, override via env.".to_string(),
             severity: InvariantStatusV1::Warn,
             next_steps: "Inspect trimming parameters and quality regression reports.".to_string(),
         },
@@ -58,8 +55,7 @@ pub fn fastq_invariant_specs() -> Vec<InvariantSpecV1> {
             id: "n_rate_sanity".to_string(),
             definition: "N-base rate remains within expected bounds.".to_string(),
             threshold_provenance:
-                "Warn/fail thresholds from InvariantThresholds, override via env."
-                    .to_string(),
+                "Warn/fail thresholds from InvariantThresholds, override via env.".to_string(),
             severity: InvariantStatusV1::Warn,
             next_steps: "Inspect filtering thresholds and input quality.".to_string(),
         },

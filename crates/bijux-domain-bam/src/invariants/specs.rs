@@ -8,8 +8,7 @@ pub fn bam_invariant_specs() -> Vec<InvariantSpecV1> {
             definition: "Input data meets minimum coverage/reads required for analysis."
                 .to_string(),
             threshold_provenance:
-                "Thresholds in BamInvariantThresholds (defaults, override via env)."
-                    .to_string(),
+                "Thresholds in BamInvariantThresholds (defaults, override via env).".to_string(),
             severity: InvariantStatusV1::Fail,
             next_steps: "Collect more data or relax minimum coverage thresholds.".to_string(),
         },
@@ -17,8 +16,7 @@ pub fn bam_invariant_specs() -> Vec<InvariantSpecV1> {
             id: "coverage_mean".to_string(),
             definition: "Mean coverage exceeds minimum thresholds.".to_string(),
             threshold_provenance:
-                "Thresholds in BamInvariantThresholds (defaults, override via env)."
-                    .to_string(),
+                "Thresholds in BamInvariantThresholds (defaults, override via env).".to_string(),
             severity: InvariantStatusV1::Warn,
             next_steps: "Inspect coverage plots and consider deeper sequencing.".to_string(),
         },
@@ -26,8 +24,7 @@ pub fn bam_invariant_specs() -> Vec<InvariantSpecV1> {
             id: "duplicate_fraction".to_string(),
             definition: "Duplicate fraction remains within expected bounds.".to_string(),
             threshold_provenance:
-                "Thresholds in BamInvariantThresholds (defaults, override via env)."
-                    .to_string(),
+                "Thresholds in BamInvariantThresholds (defaults, override via env).".to_string(),
             severity: InvariantStatusV1::Warn,
             next_steps: "Review library complexity and deduplication settings.".to_string(),
         },
@@ -41,8 +38,7 @@ pub fn bam_invariant_specs() -> Vec<InvariantSpecV1> {
         },
         InvariantSpecV1 {
             id: "sequencing_saturation".to_string(),
-            definition: "Sequencing saturation metrics indicate sufficient complexity."
-                .to_string(),
+            definition: "Sequencing saturation metrics indicate sufficient complexity.".to_string(),
             threshold_provenance: "Heuristic check in bam invariants evaluation.".to_string(),
             severity: InvariantStatusV1::Warn,
             next_steps: "Inspect preseq curves and saturation estimates.".to_string(),
@@ -51,8 +47,7 @@ pub fn bam_invariant_specs() -> Vec<InvariantSpecV1> {
             id: "contamination_rate".to_string(),
             definition: "Contamination estimate within expected range.".to_string(),
             threshold_provenance:
-                "Thresholds in BamInvariantThresholds (defaults, override via env)."
-                    .to_string(),
+                "Thresholds in BamInvariantThresholds (defaults, override via env).".to_string(),
             severity: InvariantStatusV1::Warn,
             next_steps: "Review contamination reports and references.".to_string(),
         },
@@ -65,8 +60,7 @@ pub fn bam_invariant_specs() -> Vec<InvariantSpecV1> {
         },
         InvariantSpecV1 {
             id: "damage_mapq_correlation".to_string(),
-            definition: "Damage signal is not driven solely by low MAPQ reads."
-                .to_string(),
+            definition: "Damage signal is not driven solely by low MAPQ reads.".to_string(),
             threshold_provenance: "Heuristic in bam invariants evaluation.".to_string(),
             severity: InvariantStatusV1::Warn,
             next_steps: "Check MAPQ filters and damage stratification.".to_string(),
@@ -90,8 +84,7 @@ pub fn bam_invariant_specs() -> Vec<InvariantSpecV1> {
             definition: "Alignment reference matches expected genome.".to_string(),
             threshold_provenance: "Heuristic in bam invariants evaluation.".to_string(),
             severity: InvariantStatusV1::Fail,
-            next_steps: "Verify reference genome selection and re-align if needed."
-                .to_string(),
+            next_steps: "Verify reference genome selection and re-align if needed.".to_string(),
         },
     ]
 }

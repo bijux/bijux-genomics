@@ -1,3 +1,5 @@
+#![allow(clippy::map_unwrap_or, clippy::unnecessary_wraps)]
+
 use anyhow::Result;
 use bijux_domain_bam::invariants::{bam_invariant_specs, BamInvariantThresholds};
 use bijux_domain_bam::metrics::{
@@ -99,7 +101,11 @@ fn bam_invariants_have_specs_and_fixtures() -> Result<()> {
     let thresholds = BamInvariantThresholds::default();
     let mut ids = std::collections::BTreeSet::new();
     for spec in &specs {
-        assert!(ids.insert(spec.id.clone()), "duplicate invariant {}", spec.id);
+        assert!(
+            ids.insert(spec.id.clone()),
+            "duplicate invariant {}",
+            spec.id
+        );
         assert!(!spec.definition.trim().is_empty());
         assert!(!spec.threshold_provenance.trim().is_empty());
         assert!(!spec.next_steps.trim().is_empty());

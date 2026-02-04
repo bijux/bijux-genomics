@@ -2,19 +2,14 @@ use anyhow::Context;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Default)]
 #[serde(rename_all = "snake_case")]
 pub enum SexConfidenceClass {
     Male,
     Female,
     Ambiguous,
+    #[default]
     Insufficient,
-}
-
-impl Default for SexConfidenceClass {
-    fn default() -> Self {
-        Self::Insufficient
-    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
