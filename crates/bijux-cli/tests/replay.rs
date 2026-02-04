@@ -6,7 +6,7 @@ fn tempdir_in_repo() -> Result<tempfile::TempDir, Box<dyn std::error::Error>> {
     let cwd = Path::new(env!("CARGO_MANIFEST_DIR")).join("..").join("..");
     let base = cwd.join("target").join("test-tmp");
     bijux_infra::ensure_dir(&base)?;
-    Ok(bijux_infra::temp_dir_in(base, "bijux")?)
+    Ok(bijux_infra::temp_dir_in(&base, "bijux")?)
 }
 
 #[test]

@@ -2,13 +2,11 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use bijux_core::{CategorizedError, ErrorCategory};
-use bijux_api::v1::run::atomic_write_bytes;
-use bijux_api::v1::run::{
-    load_manifests, load_profile, new_run_id, DryRunExecutor, Executor,
-};
-use bijux_api::v1::run::{load_image_catalog, load_platform};
-use bijux_api::v1::run::{PathSpec, RunSpec};
+use bijux_api::v1::bench::{objective_spec, Objective};
+use bijux_api::v1::run::{atomic_write_bytes, load_manifests, load_profile, new_run_id, PathSpec, RunSpec};
+use bijux_env_builder::image_qa::run_image_qa;
+use bijux_env_runtime::api::{load_image_catalog, load_platform};
+use bijux_core::{CategorizedError, DryRunExecutor, ErrorCategory, Executor};
 use clap::Parser;
 use tracing::{info, warn};
 
@@ -28,9 +26,7 @@ use bijux_api::v1::report::{
     write_run_summary_from_facts, write_stage_summary_csv, write_stats_report, write_trim_report,
     write_umi_report, write_validate_report,
 };
-use bijux_api::v1::run::run_image_qa;
 use bijux_api::v1::run::init_logging;
-use bijux_api::v1::run::{objective_spec, Objective};
 use cli::{
     bench_args_correct, bench_args_filter, bench_args_from_trim, bench_args_from_validate,
     bench_args_merge, bench_args_preprocess, bench_args_qc_post, bench_args_screen,
@@ -79,16 +75,10 @@ fn exit_code_for_error(err: &anyhow::Error) -> i32 {
 }
 
 fn error_category_from_chain(err: &anyhow::Error) -> Option<ErrorCategory> {
-    if let Some(cat) = err.downcast_ref::<ErrorCategory>() {
-        return Some(*cat);
-    }
     if let Some(categorized) = err.downcast_ref::<CategorizedError>() {
         return Some(categorized.category);
     }
     for cause in err.chain() {
-        if let Some(cat) = cause.downcast_ref::<ErrorCategory>() {
-            return Some(*cat);
-        }
         if let Some(categorized) = cause.downcast_ref::<CategorizedError>() {
             return Some(categorized.category);
         }

@@ -1,9 +1,11 @@
 use std::path::Path;
 
+use anyhow::Result;
+
 #[test]
-fn cli_forbids_internal_deps() {
+fn cli_forbids_internal_deps() -> Result<()> {
     let manifest = Path::new(env!("CARGO_MANIFEST_DIR")).join("Cargo.toml");
-    let content = std::fs::read_to_string(&manifest).expect("read Cargo.toml");
+    let content = std::fs::read_to_string(&manifest)?;
     let mut in_deps = false;
     let mut deps = Vec::new();
     for line in content.lines() {
@@ -36,4 +38,5 @@ fn cli_forbids_internal_deps() {
             "cli must not depend on {dep}"
         );
     }
+    Ok(())
 }

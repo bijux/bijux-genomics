@@ -138,18 +138,7 @@ fn handle_fastq_bench(
             bench_fastq_preprocess(&catalog, &platform, runner, &bench_args)?;
             Ok(true)
         }
-        FastqCommand::Benchmark(args) => {
-            let stage_id = normalize_fastq_stage_id(&args.stage);
-            let summary = benchmark_runs(&args.runs, &stage_id, args.objective.into())?;
-            let (json_path, csv_path) = write_benchmark_exports(&args.runs, &summary)?;
-            let html_path = args.runs.join(format!("benchmark_{}.html", summary.stage));
-            println!("{}", serde_json::to_string_pretty(&summary)?);
-            println!("benchmark_json: {}", json_path.display());
-            println!("benchmark_csv: {}", csv_path.display());
-            println!("benchmark_html: {}", html_path.display());
-            Ok(true)
-        }
-        FastqCommand::Analyze(args) => {
+        FastqCommand::Benchmark(args) | FastqCommand::Analyze(args) => {
             let stage_id = normalize_fastq_stage_id(&args.stage);
             let summary = benchmark_runs(&args.runs, &stage_id, args.objective.into())?;
             let (json_path, csv_path) = write_benchmark_exports(&args.runs, &summary)?;
