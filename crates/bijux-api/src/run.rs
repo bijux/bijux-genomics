@@ -73,7 +73,7 @@ pub fn plan_run(request: PlanRunRequest, registry: &ToolRegistry) -> Result<Plan
 /// # Errors
 /// Returns an error if execution fails.
 pub fn execute_run(request: &ExecuteRunRequest) -> Result<ExecuteRunResult> {
-    bijux_runner_docker::primitives::execute_stage_plan(&request.plan, request.runner, None)?;
+    bijux_exec::primitives::execute_stage_plan(&request.plan, request.runner, None)?;
     Ok(ExecuteRunResult)
 }
 
@@ -92,11 +92,14 @@ fn render_report_from_facts(base_dir: &Path, facts_path: &Path) -> Result<PathBu
 
 /// # Errors
 /// Returns an error if the tool registry or profile are invalid for the run spec.
+#[allow(dead_code)]
 pub fn build_stage_plan(
     run_spec: RunSpec,
     registry: &ToolRegistry,
     profile: Profile,
     run_id: RunId,
 ) -> Result<RunExecutionPlan> {
-    Ok(build_run_execution_plan(run_spec, registry, profile, run_id)?)
+    Ok(build_run_execution_plan(
+        run_spec, registry, profile, run_id,
+    )?)
 }

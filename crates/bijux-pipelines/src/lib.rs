@@ -143,18 +143,22 @@ impl PipelineProfile {
             }
         }
         for stage in self.defaults.tools.keys() {
-            tool_provenance.entry(stage.clone()).or_insert_with(|| DefaultProvenanceV1 {
-                rationale: "unspecified".to_string(),
-                assumptions: Vec::new(),
-                comparability_implications: Vec::new(),
-            });
+            tool_provenance
+                .entry(stage.clone())
+                .or_insert_with(|| DefaultProvenanceV1 {
+                    rationale: "unspecified".to_string(),
+                    assumptions: Vec::new(),
+                    comparability_implications: Vec::new(),
+                });
         }
         for stage in self.defaults.params.keys() {
-            param_provenance.entry(stage.clone()).or_insert_with(|| DefaultProvenanceV1 {
-                rationale: "unspecified".to_string(),
-                assumptions: Vec::new(),
-                comparability_implications: Vec::new(),
-            });
+            param_provenance
+                .entry(stage.clone())
+                .or_insert_with(|| DefaultProvenanceV1 {
+                    rationale: "unspecified".to_string(),
+                    assumptions: Vec::new(),
+                    comparability_implications: Vec::new(),
+                });
         }
         DefaultsLedgerV1 {
             pipeline_id: self.id,

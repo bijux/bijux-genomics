@@ -42,7 +42,7 @@ pub fn plan_for_bam_stage_with_profile(
             "downstream BAM stages are disabled (enable feature 'bam_downstream')"
         ));
     }
-    let mut plan = |request: StagePlanRequest<'_>| bijux_stages_bam::plan_stage(request);
+    let plan = |request: StagePlanRequest<'_>| bijux_stages_bam::plan_stage(request);
     match stage {
         bijux_domain_bam::BamStage::Align => {
             let r1 = args

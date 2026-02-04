@@ -1,10 +1,9 @@
 use std::collections::BTreeMap;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use anyhow::{anyhow, Result};
 use bijux_core::execution_plan::{default_edges_for_stages, ExecutionPlan, PlanPolicy};
-use bijux_core::{ContainerImageRefV1, StagePlanV1, ToolExecutionSpecV1};
-use bijux_pipelines::Domain;
+use bijux_core::{ContainerImageRefV1, ToolExecutionSpecV1};
 
 pub const PLANNER_VERSION: &str = "bijux-planner-fastq.v1";
 

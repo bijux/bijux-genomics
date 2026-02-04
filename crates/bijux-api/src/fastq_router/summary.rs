@@ -2,9 +2,9 @@ use std::fs;
 use std::path::Path;
 
 use anyhow::{Context, Result};
-use bijux_runner_docker::primitives::StageResultV1;
 use bijux_core::scientific_provenance::ScientificProvenanceV1;
 use bijux_core::ToolInvocationV1;
+use bijux_exec::primitives::StageResultV1;
 
 pub(super) fn write_run_summary(
     out_dir: &Path,
@@ -104,7 +104,7 @@ pub(super) fn write_run_manifest(
             let mut artifacts = Vec::new();
             let add_artifact = |artifacts: &mut Vec<serde_json::Value>, name: &str, path: &Path| {
                 if path.exists() {
-                    if let Ok(hash) = bijux_runner_docker::primitives::hash_file_sha256(path) {
+                    if let Ok(hash) = bijux_infra::hash_file_sha256(path) {
                         artifacts.push(serde_json::json!({
                             "name": name,
                             "path": relative_path_string(out_dir, path),
@@ -187,11 +187,11 @@ pub(super) fn write_run_manifest(
         })
         .collect();
     let defaults_path = out_dir.join("defaults_ledger.json");
-    let defaults_hash = bijux_infra::hash_file_sha256(&defaults_path)
-        .context("hash defaults_ledger.json")?;
-    let pipeline_id = std::env::var("BIJUX_PIPELINE_ID").unwrap_or_else(|_| "unknown".to_string());
-    let git_commit = std::env::var("BIJUX_GIT_COMMIT").unwrap_or_else(|_| "unknown".to_string());
-    let build_profile =
+    let defaults_hash =
+        bijux_infra::hash_file_sha256(&defaults_path).context("hash defaults_ledger.json")?;
+    let _pipeline_id = std::env::var("BIJUX_PIPELINE_ID").unwrap_or_else(|_| "unknown".to_string());
+    let _git_commit = std::env::var("BIJUX_GIT_COMMIT").unwrap_or_else(|_| "unknown".to_string());
+    let _build_profile =
         std::env::var("BIJUX_BUILD_PROFILE").unwrap_or_else(|_| "unknown".to_string());
     let run_provenance = run_provenance_from_stage_runs(out_dir, stage_runs);
     let manifest = serde_json::json!({
@@ -221,10 +221,7 @@ pub(super) fn write_run_manifest(
     Ok(())
 }
 
-fn write_scientific_provenance(
-    out_dir: &Path,
-    stage_runs: &[StageExecutionSummary],
-) -> Result<()> {
+fn write_scientific_provenance(out_dir: &Path, stage_runs: &[StageExecutionSummary]) -> Result<()> {
     let defaults_path = out_dir.join("defaults_ledger.json");
     let (pipeline_id, planner_version) = if defaults_path.exists() {
         let raw = fs::read_to_string(&defaults_path)?;
@@ -234,8 +231,8 @@ fn write_scientific_provenance(
             .and_then(|v| v.as_str())
             .unwrap_or("unknown")
             .to_string();
-        let planner_version = std::env::var("BIJUX_PLANNER_VERSION")
-            .unwrap_or_else(|_| "unknown".to_string());
+        let planner_version =
+            std::env::var("BIJUX_PLANNER_VERSION").unwrap_or_else(|_| "unknown".to_string());
         (pipeline_id, planner_version)
     } else {
         ("unknown".to_string(), "unknown".to_string())
@@ -267,9 +264,13 @@ fn write_scientific_provenance(
             invocations.push(invocation);
         }
     }
-    let provenance =
-        ScientificProvenanceV1::from_invocations(pipeline_id, planner_version, &params_hashes, &invocations);
-    bijux_engine::primitives::write_scientific_provenance(out_dir, &provenance)?;
+    let provenance = ScientificProvenanceV1::from_invocations(
+        pipeline_id,
+        planner_version,
+        &params_hashes,
+        &invocations,
+    );
+    bijux_engine::services::run_artifacts::write_scientific_provenance(out_dir, &provenance)?;
     Ok(())
 }
 
@@ -287,7 +288,7 @@ fn relative_path_string(base: &Path, path: &Path) -> String {
 }
 
 fn run_provenance_from_stage_runs(
-    out_dir: &Path,
+    _out_dir: &Path,
     stage_runs: &[StageExecutionSummary],
 ) -> serde_json::Value {
     let mut params_by_stage = std::collections::BTreeMap::new();
@@ -315,7 +316,8 @@ fn run_provenance_from_stage_runs(
     }
     input_hashes.sort();
     input_hashes.dedup();
-    let params_hash = bijux_core::params_hash(&serde_json::json!(params_by_stage));
+    let params_hash = bijux_core::params_hash(&serde_json::json!(params_by_stage))
+        .unwrap_or_else(|_| "unknown".to_string());
     let tool_version = if tool_versions.len() == 1 {
         tool_versions
             .into_iter()
@@ -392,13 +394,13 @@ pub struct StageExecutionSummary {
 
 #[cfg(test)]
 mod tests {
-    use super::{write_run_manifest, write_scientific_provenance};
     use super::StageExecutionSummary;
+    use super::{write_run_manifest, write_scientific_provenance};
     use bijux_core::{
-        AdapterBankProvenanceV1, CommandSpecV1, ContainerImageRefV1, StageId, StageIO, StagePlanV1,
+        AdapterBankProvenanceV1, CommandSpecV1, ContainerImageRefV1, StageIO, StageId, StagePlanV1,
         StageVersion, ToolConstraints, ToolId, ToolInvocationV1,
     };
-    use bijux_runner_docker::primitives::StageResultV1;
+    use bijux_exec::primitives::StageResultV1;
     use std::path::PathBuf;
 
     #[test]
@@ -416,7 +418,7 @@ mod tests {
             "citations": {},
         });
         bijux_infra::write_bytes(
-            &out_dir.join("defaults_ledger.json"),
+            out_dir.join("defaults_ledger.json"),
             serde_json::to_vec_pretty(&defaults)?,
         )?;
 
@@ -469,6 +471,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::too_many_lines)]
     fn scientific_provenance_contract_is_written() -> anyhow::Result<()> {
         let temp = bijux_infra::temp_dir("bijux-scientific-provenance")?;
         let out_dir = temp.path();
@@ -483,7 +486,7 @@ mod tests {
             "citations": {},
         });
         bijux_infra::write_bytes(
-            &out_dir.join("defaults_ledger.json"),
+            out_dir.join("defaults_ledger.json"),
             serde_json::to_vec_pretty(&defaults)?,
         )?;
         std::env::set_var("BIJUX_PLANNER_VERSION", "planner.v1");
@@ -501,7 +504,9 @@ mod tests {
                 image: "tool:latest".to_string(),
                 digest: Some("sha256:img".to_string()),
             },
-            command: CommandSpecV1 { template: vec!["fastp".to_string()] },
+            command: CommandSpecV1 {
+                template: vec!["fastp".to_string()],
+            },
             resources: ToolConstraints {
                 runtime: "1h".to_string(),
                 mem_gb: 1,
@@ -566,7 +571,10 @@ mod tests {
                 "params_hash": "params"
             }
         });
-        bijux_infra::atomic_write_json(&artifacts.join("metrics_envelope.json"), &metrics_envelope)?;
+        bijux_infra::atomic_write_json(
+            &artifacts.join("metrics_envelope.json"),
+            &metrics_envelope,
+        )?;
 
         let summary = StageExecutionSummary {
             plan,
@@ -600,12 +608,11 @@ mod tests {
     fn assert_no_absolute_paths(value: &serde_json::Value) {
         match value {
             serde_json::Value::String(s) => {
-                if s.starts_with('/') && !s.starts_with("//") {
-                    panic!("absolute path found: {s}");
-                }
-                if s.contains(":\\") {
-                    panic!("windows absolute path found: {s}");
-                }
+                assert!(
+                    !s.starts_with('/') || s.starts_with("//"),
+                    "absolute path found: {s}"
+                );
+                assert!(!s.contains(":\\"), "windows absolute path found: {s}");
             }
             serde_json::Value::Array(items) => {
                 for item in items {

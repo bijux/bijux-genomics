@@ -1,19 +1,20 @@
 use std::collections::HashMap;
 
+use crate::tooling::{ensure_bench_runner, filter_tools_by_role, load_registry};
 use anyhow::{anyhow, Context, Result};
-use bijux_core::ErrorCategory;
+use bijux_core::execution_plan::PlanPolicy;
 use bijux_core::ContainerImageRefV1;
-use bijux_engine::primitives::{PlatformSpec, RunnerKind, ToolImageSpec};
-use bijux_runner_docker::primitives::{build_tool_execution_spec, resolve_image_for_run};
-use bijux_engine::primitives::{ensure_bench_runner, filter_tools_by_role, load_registry};
-use bijux_engine::primitives::{ensure_image_qa_passed, ensure_tool_qa_passed};
-use bijux_engine::primitives::{run_artifacts_dir_for_out, TelemetryEventV1};
+use bijux_core::ErrorCategory;
+use bijux_core::TelemetryEventV1;
+use bijux_engine::services::run_artifacts::run_artifacts_dir_for_out;
+use bijux_env_builder::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
+use bijux_env_runtime::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 use bijux_pipelines::fastq::canonical_tool_defaults;
 use bijux_pipelines::registry;
 use bijux_pipelines::Domain;
-use bijux_stages_fastq::fastq::preprocess::plan_preprocess;
-use bijux_core::execution_plan::PlanPolicy;
 use bijux_planner_fastq::{FastqPlanConfig, FastqPlanner};
+use bijux_runner_docker::primitives::{build_tool_execution_spec, resolve_image_for_run};
+use bijux_stages_fastq::fastq::preprocess::plan_preprocess;
 use bijux_stages_fastq::{bench_corpus, RawFailure};
 
 use super::jobs::{bench_jobs, normalize_tool_spec_for_jobs};
@@ -23,7 +24,7 @@ use super::write_explain_plan_json;
 use bijux_domain_fastq::banks::{
     adapter_bank_context, contaminant_bank_context, polyx_bank_context, polyx_unsupported_warning,
 };
-use bijux_engine::primitives::{bench_base_dir, bench_tools_dir};
+use bijux_infra::{bench_base_dir, bench_tools_dir};
 
 #[must_use]
 fn resolve_preprocess_pipeline(
@@ -228,9 +229,12 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     };
     let pipeline_plan = FastqPlanner::plan(&planner_config)?;
     let planned_stages = pipeline_plan.stages().to_vec();
-    std::env::set_var("BIJUX_PLANNER_VERSION", bijux_planner_fastq::PLANNER_VERSION);
+    std::env::set_var(
+        "BIJUX_PLANNER_VERSION",
+        bijux_planner_fastq::PLANNER_VERSION,
+    );
 
-    let telemetry = bijux_engine::primitives::build_telemetry_adapter();
+    let telemetry = bijux_engine::services::telemetry::build_telemetry_adapter();
     let mut pipeline_attrs = std::collections::BTreeMap::new();
     pipeline_attrs.insert("sample_id".to_string(), args.sample_id.clone());
     pipeline_attrs.insert("pipeline".to_string(), "fastq.preprocess".to_string());
@@ -244,7 +248,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         stage_attrs.insert("stage".to_string(), stage_id.clone());
         stage_attrs.insert("tool".to_string(), tool.clone());
         let stage_span = telemetry.start_stage(&stage_id, &stage_attrs);
-        let execution = bijux_runner_docker::primitives::execute_plan(&planned, platform.runner, None);
+        let execution = bijux_exec::primitives::execute_stage_plan(&planned, platform.runner, None);
         stage_span.end();
         let execution = execution?;
         if execution.exit_code != 0 {
@@ -292,7 +296,8 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
             span_id: "merge-decision".to_string(),
             attrs: serde_json::to_value(decision).unwrap_or_else(|_| serde_json::json!({})),
         };
-        let _ = bijux_engine::primitives::write_telemetry_event(&telemetry_path, &event);
+        let _ =
+            bijux_engine::services::run_artifacts::write_telemetry_event(&telemetry_path, &event);
     }
     if !failures.is_empty() {
         return Err(anyhow!(

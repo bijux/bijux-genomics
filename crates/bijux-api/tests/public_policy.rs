@@ -3,7 +3,9 @@ use std::path::PathBuf;
 use anyhow::Result;
 
 fn v1_surface() -> Result<String> {
-    let base = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("src").join("v1");
+    let base = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("src")
+        .join("v1");
     let mut contents = String::new();
     for module in ["plan.rs", "run.rs", "report.rs", "bench.rs"] {
         contents.push_str(&std::fs::read_to_string(base.join(module))?);
@@ -23,7 +25,7 @@ fn public_types_are_documented_and_v1_scoped() -> Result<()> {
         .filter(|entry| entry.path().extension().and_then(|s| s.to_str()) == Some("rs"))
     {
         let content = std::fs::read_to_string(entry.path())?;
-        let mut lines: Vec<&str> = content.lines().collect();
+        let lines: Vec<&str> = content.lines().collect();
         for (idx, line) in lines.iter().enumerate() {
             let trimmed = line.trim_start();
             if trimmed.starts_with("pub struct ")
@@ -45,18 +47,14 @@ fn public_types_are_documented_and_v1_scoped() -> Result<()> {
                     if doc.starts_with("///") {
                         doc_block.push(doc.to_string());
                     } else if doc.is_empty() {
-                        continue;
+                        // keep scanning
                     } else {
                         break;
                     }
                 }
                 let has_stability = doc_block.iter().any(|doc| doc.contains("Stability:"));
                 if !has_stability || !v1_surface.contains(name) {
-                    offenders.push(format!(
-                        "{}:{} ({name})",
-                        entry.path().display(),
-                        idx + 1
-                    ));
+                    offenders.push(format!("{}:{} ({name})", entry.path().display(), idx + 1));
                 }
             }
         }

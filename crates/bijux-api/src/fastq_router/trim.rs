@@ -1,24 +1,23 @@
 use std::collections::HashMap;
 
+use crate::tooling::{ensure_bench_runner, filter_tools_by_role, load_registry};
 use anyhow::{anyhow, Context, Result};
 use bijux_core::ErrorCategory;
-use bijux_engine::primitives::{
-    bench_base_dir, bench_tools_dir, ensure_bench_runner, ensure_image_qa_passed,
-    ensure_tool_qa_passed, filter_tools_by_role, load_registry, PlatformSpec, RunnerKind,
-    ToolImageSpec,
-};
-use bijux_runner_docker::primitives::build_tool_execution_spec;
+use bijux_env_builder::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
+use bijux_env_runtime::api::{PlatformSpec, RunnerKind, ToolImageSpec};
+use bijux_infra::{bench_base_dir, bench_tools_dir};
 use bijux_planner_fastq::normalize_trim_tool_list;
+use bijux_runner_docker::primitives::build_tool_execution_spec;
 use bijux_stages_fastq::fastq::trim::plan;
 use bijux_stages_fastq::FastqArtifact;
 use bijux_stages_fastq::{inspect_headers, log_header_warnings, preflight_stage, RawFailure};
 
-use bijux_domain_fastq::banks::{
-    adapter_bank_context, contaminant_bank_context, polyx_bank_context, polyx_unsupported_warning,
-};
 use super::jobs::execute_plans_with_jobs;
 use super::jobs::{bench_jobs, normalize_tool_spec_for_jobs};
 use super::{write_explain_md, write_explain_plan_json, BenchOutcome};
+use bijux_domain_fastq::banks::{
+    adapter_bank_context, contaminant_bank_context, polyx_bank_context, polyx_unsupported_warning,
+};
 
 /// # Errors
 /// Returns an error if planning or execution fails.
@@ -88,7 +87,7 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
             contaminant_bank.as_ref(),
         )?;
         plans.push(plan);
-        tool_order.push(tool.to_string());
+        tool_order.push(tool.clone());
     }
     let executions = execute_plans_with_jobs(plans, platform.runner, jobs)?;
     for (tool, execution) in tool_order.into_iter().zip(executions.into_iter()) {

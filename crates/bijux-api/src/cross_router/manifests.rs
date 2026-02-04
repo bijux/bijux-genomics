@@ -108,9 +108,9 @@ pub fn write_cross_run_manifest(
     }
     let defaults_path = out_dir.join("defaults_ledger.json");
     let defaults_hash = hash_file_sha256(&defaults_path)?;
-    let pipeline_id = profile.id.0.clone();
-    let git_commit = std::env::var("BIJUX_GIT_COMMIT").unwrap_or_else(|_| "unknown".to_string());
-    let build_profile =
+    let pipeline_id = profile.id.as_str().to_string();
+    let _git_commit = std::env::var("BIJUX_GIT_COMMIT").unwrap_or_else(|_| "unknown".to_string());
+    let _build_profile =
         std::env::var("BIJUX_BUILD_PROFILE").unwrap_or_else(|_| "unknown".to_string());
     let run_provenance = run_provenance_from_cross(out_dir, fastq_summary, bam_runs, &pipeline_id);
     let manifest = serde_json::json!({
@@ -155,7 +155,7 @@ fn relative_path_string(base: &Path, path: &Path) -> String {
 }
 
 fn run_provenance_from_cross(
-    out_dir: &Path,
+    _out_dir: &Path,
     fastq_summary: &serde_json::Value,
     bam_runs: &[StageExecutionSummary],
     pipeline_id: &str,
@@ -165,20 +165,31 @@ fn run_provenance_from_cross(
     let mut tool_versions = std::collections::BTreeSet::new();
     let mut image_digests = std::collections::BTreeSet::new();
     if let Some(fastq_prov) = fastq_summary.get("run_provenance") {
-        if let Some(hash) = fastq_prov.get("params_hash").and_then(serde_json::Value::as_str) {
+        if let Some(hash) = fastq_prov
+            .get("params_hash")
+            .and_then(serde_json::Value::as_str)
+        {
             params_by_stage.insert("fastq".to_string(), hash.to_string());
         }
-        if let Some(inputs) = fastq_prov.get("input_hashes").and_then(serde_json::Value::as_array) {
+        if let Some(inputs) = fastq_prov
+            .get("input_hashes")
+            .and_then(serde_json::Value::as_array)
+        {
             for input in inputs {
                 if let Some(value) = input.as_str() {
                     input_hashes.push(value.to_string());
                 }
             }
         }
-        if let Some(value) = fastq_prov.get("tool_version").and_then(serde_json::Value::as_str) {
+        if let Some(value) = fastq_prov
+            .get("tool_version")
+            .and_then(serde_json::Value::as_str)
+        {
             tool_versions.insert(value.to_string());
         }
-        if let Some(value) = fastq_prov.get("tool_image_digest").and_then(serde_json::Value::as_str)
+        if let Some(value) = fastq_prov
+            .get("tool_image_digest")
+            .and_then(serde_json::Value::as_str)
         {
             image_digests.insert(value.to_string());
         }
@@ -206,7 +217,8 @@ fn run_provenance_from_cross(
     }
     input_hashes.sort();
     input_hashes.dedup();
-    let params_hash = bijux_core::params_hash(&serde_json::json!(params_by_stage));
+    let params_hash = bijux_core::params_hash(&serde_json::json!(params_by_stage))
+        .unwrap_or_else(|_| "unknown".to_string());
     let tool_version = if tool_versions.len() == 1 {
         tool_versions
             .into_iter()

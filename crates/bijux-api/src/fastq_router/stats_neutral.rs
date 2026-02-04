@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use anyhow::Result;
-use bijux_engine::primitives::{PlatformSpec, RunnerKind, ToolImageSpec};
+use bijux_env_runtime::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 
 use super::BenchOutcome;
 

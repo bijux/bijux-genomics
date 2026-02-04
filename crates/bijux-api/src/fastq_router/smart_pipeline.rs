@@ -2,8 +2,9 @@ use anyhow::{Context, Result};
 
 use crate::fastq_router::jobs::normalize_tool_spec_for_jobs;
 use crate::fastq_router::summary::StageExecutionSummary;
-use bijux_engine::primitives::{bench_tools_dir, PlatformSpec, ToolImageSpec};
-use bijux_runner_docker::primitives::{build_tool_execution_spec, execute_plan};
+use bijux_env_runtime::api::{PlatformSpec, ToolImageSpec};
+use bijux_infra::bench_tools_dir;
+use bijux_runner_docker::primitives::build_tool_execution_spec;
 
 /// Output from the smart pipeline selection.
 ///
@@ -64,7 +65,8 @@ pub fn apply_smart_pipeline_decisions<S: ::std::hash::BuildHasher>(
             let out_dir = stage_root.join(&spec.tool_id.0);
             bijux_infra::ensure_dir(&out_dir).context("create detect_adapters output dir")?;
             let plan = bijux_stages_fastq::fastq::detect_adapters::plan(&spec, &args.r1, &out_dir);
-            let execution = execute_plan(&plan, platform.runner, None)?;
+            let execution =
+                bijux_exec::primitives::execute_stage_plan(&plan, platform.runner, None)?;
             if execution.exit_code == 0 {
                 let candidates_path = out_dir
                     .join("run_artifacts")

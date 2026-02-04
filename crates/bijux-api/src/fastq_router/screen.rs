@@ -1,14 +1,13 @@
 use std::collections::HashMap;
 
+use crate::tooling::{ensure_bench_runner, filter_tools_by_role, load_registry};
 use anyhow::{anyhow, Context, Result};
 use bijux_core::ErrorCategory;
-use bijux_engine::primitives::{
-    bench_base_dir, bench_tools_dir, ensure_bench_runner, ensure_image_qa_passed,
-    ensure_tool_qa_passed, filter_tools_by_role, load_registry, PlatformSpec, RunnerKind,
-    ToolImageSpec,
-};
-use bijux_runner_docker::primitives::build_tool_execution_spec;
+use bijux_env_builder::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
+use bijux_env_runtime::api::{PlatformSpec, RunnerKind, ToolImageSpec};
+use bijux_infra::{bench_base_dir, bench_tools_dir};
 use bijux_planner_fastq::normalize_screen_tool_list;
+use bijux_runner_docker::primitives::build_tool_execution_spec;
 use bijux_stages_fastq::fastq::screen::plan_screen;
 use bijux_stages_fastq::FastqArtifact;
 use bijux_stages_fastq::{inspect_headers, log_header_warnings, preflight_stage, RawFailure};
@@ -61,7 +60,7 @@ pub fn bench_fastq_screen<S: ::std::hash::BuildHasher>(
         let tool_spec = normalize_tool_spec_for_jobs(&tool_spec, jobs);
         let plan = plan_screen(&tool_spec, &args.r1, &out_dir)?;
         plans.push(plan);
-        tool_order.push(tool.to_string());
+        tool_order.push(tool.clone());
     }
     let executions = execute_plans_with_jobs(plans, platform.runner, jobs)?;
     for (tool, execution) in tool_order.into_iter().zip(executions.into_iter()) {

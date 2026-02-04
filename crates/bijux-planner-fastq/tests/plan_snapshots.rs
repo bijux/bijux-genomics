@@ -2,7 +2,9 @@ use std::collections::BTreeMap;
 use std::path::PathBuf;
 
 use bijux_core::execution_plan::PlanPolicy;
-use bijux_core::{CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId};
+use bijux_core::{
+    CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
+};
 use bijux_planner_fastq::{FastqPlanConfig, FastqPlanner};
 
 #[test]

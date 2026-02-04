@@ -1,37 +1,39 @@
 use std::collections::HashMap;
 use std::path::PathBuf;
 
+use crate::tooling::{ensure_bench_runner, filter_tools_by_role, load_registry};
 use anyhow::{anyhow, Context, Result};
-use bijux_core::ErrorCategory;
 use bijux_analyze::{
     append_jsonl, fetch_fastq_stats_v1, insert_fastq_stats_v1, metric_set, BenchmarkContext,
     BenchmarkRecord, FastqStatsMetrics, LengthHistogramBin,
 };
 use bijux_core::measure::ExecutionMetrics;
-use bijux_core::{MetricContextV1, StageObservabilityContextV1};
-use bijux_engine::primitives::{ensure_bench_runner, filter_tools_by_role, load_registry};
+use bijux_core::ErrorCategory;
+use bijux_core::{MetricContextV1, RunProvenanceV1, StageObservabilityContextV1};
+use bijux_env_runtime::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 use bijux_runner_docker::primitives::build_tool_execution_spec;
-use bijux_engine::primitives::{PlatformSpec, RunnerKind, ToolImageSpec};
 use uuid::Uuid;
 
-use bijux_engine::primitives::validate_execution_outputs;
-use bijux_engine::primitives::{
-    bench_base_dir, bench_tools_dir, compute_run_id, prepare_tool_run_dirs, write_execution_logs,
-    write_metrics_envelope, write_metrics_json, write_retention_report_placeholder,
-    write_run_manifest, write_stage_plan_json,
+use bijux_core::measure::SeqkitMetrics;
+use bijux_core::validate_execution_outputs;
+use bijux_engine::services::run_artifacts::{
+    compute_run_id, prepare_tool_run_dirs, write_execution_logs, write_metrics_envelope,
+    write_metrics_json, write_retention_report_placeholder, write_run_manifest,
+    write_stage_plan_json,
 };
-use bijux_runner_docker::primitives::{
-    execute_plan, hash_file_sha256, input_fastq_stats, length_histogram, resolve_image_for_run,
-    SeqkitMetrics,
-};
+use bijux_env_builder::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
+use bijux_exec::primitives::execute_stage_plan;
+use bijux_exec::primitives::hash_file_sha256;
+use bijux_infra::{bench_base_dir, bench_tools_dir};
 use bijux_planner_fastq::normalize_stats_tool_list;
-use bijux_engine::primitives::{ensure_image_qa_passed, ensure_tool_qa_passed};
+use bijux_runner_docker::primitives::resolve_image_for_run;
 use bijux_stages_fastq::fastq::stats_neutral::plan_stats_neutral;
+use bijux_stages_fastq::observer::{input_fastq_stats, length_histogram};
 use bijux_stages_fastq::StagePlanJson;
 use bijux_stages_fastq::{inspect_headers, log_header_warnings, preflight_stage, FastqArtifact};
 
 use crate::fastq_router::{write_explain_md, write_explain_plan_json, BenchOutcome};
-use bijux_engine::primitives::ExecutionManifest;
+use bijux_core::ExecutionManifest;
 use bijux_stages_fastq::RawFailure;
 
 /// Run the FASTQ benchmark stage.
@@ -100,7 +102,7 @@ pub fn bench_fastq_stats_neutral<S: ::std::hash::BuildHasher>(
             .digest
             .as_ref()
             .ok_or_else(|| anyhow!("image digest missing for tool {tool}"))?
-            .to_string();
+            .clone();
         let cached = fetch_fastq_stats_v1(
             &conn,
             &tool,
@@ -119,7 +121,7 @@ pub fn bench_fastq_stats_neutral<S: ::std::hash::BuildHasher>(
             Ok(record) => new_records.push(record),
             Err(err) => failures.push(RawFailure {
                 stage: "fastq.stats_neutral".to_string(),
-                tool: tool.to_string(),
+                tool: tool.clone(),
                 reason: err.to_string(),
                 category: ErrorCategory::ToolError,
             }),
@@ -227,7 +229,7 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
         .digest
         .as_ref()
         .ok_or_else(|| anyhow!("image digest missing for tool {tool}"))?
-        .to_string();
+        .clone();
     let run_id = compute_run_id(
         "fastq.stats_neutral",
         tool,
@@ -238,7 +240,7 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
     let run_dirs = prepare_tool_run_dirs(&bench_inputs.tools_root, tool, &run_id)?;
     let out_dir = run_dirs.artifacts_dir.clone();
     let _plan_path = write_stage_plan_json(&run_dirs, "fastq_stats_neutral.plan.json", &plan_json)?;
-    let execution = execute_plan(&plan, bench_inputs.runner, None)?;
+    let execution = execute_stage_plan(&plan, bench_inputs.runner, None)?;
 
     let metrics = FastqStatsMetrics {
         reads_total: bench_inputs.input_stats.reads,
@@ -319,11 +321,24 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
     write_metrics_json(&run_dirs, &execution_metrics, envelope)?;
     write_retention_report_placeholder(&run_dirs, "fastq.stats_neutral", tool, &params)?;
     let adapter_bank_path = bijux_stages_fastq::adapter_bank_path();
+    let run_provenance = RunProvenanceV1 {
+        schema_version: "bijux.run_provenance.v1".to_string(),
+        tool_image_digest: Some(image_digest.clone()),
+        tool_version: tool_spec.tool_version.clone(),
+        params_hash: param_hash.clone(),
+        input_hashes: vec![bench_inputs.input_hash.clone()],
+        reference_genome: None,
+        pipeline_id: "fastq.stats_neutral".to_string(),
+        git_commit: std::env::var("BIJUX_GIT_COMMIT").unwrap_or_else(|_| "unknown".to_string()),
+        build_profile: std::env::var("BIJUX_BUILD_PROFILE")
+            .unwrap_or_else(|_| "unknown".to_string()),
+    };
     write_run_manifest(
         &run_dirs,
         "fastq.stats_neutral",
         tool,
         &adapter_bank_path,
+        &run_provenance,
         &[],
     )?;
     let record = BenchmarkRecord {

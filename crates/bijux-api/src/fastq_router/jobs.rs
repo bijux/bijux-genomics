@@ -3,8 +3,8 @@ use std::sync::{Arc, Mutex};
 
 use anyhow::{anyhow, Result};
 
-use bijux_engine::primitives::RunnerKind;
-use bijux_runner_docker::primitives::{execute_plan, StageResultV1};
+use bijux_env_runtime::api::RunnerKind;
+use bijux_exec::primitives::{execute_stage_plan as execute_plan, StageResultV1};
 
 pub(super) fn bench_jobs(requested: u32) -> usize {
     usize::try_from(requested).unwrap_or(1).clamp(1, 32)
@@ -28,7 +28,7 @@ pub(super) fn execute_plans_with_jobs(
     plans: Vec<bijux_core::StagePlanV1>,
     runner: RunnerKind,
     jobs: usize,
-) -> Result<Vec<bijux_engine::primitives::StageResultV1>> {
+) -> Result<Vec<StageResultV1>> {
     if jobs <= 1 || plans.len() <= 1 {
         return plans
             .iter()
