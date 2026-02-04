@@ -1,0 +1,50 @@
+{
+  "effective_config_hash": "string",
+  "effective_config_path": "string",
+  "errors": [],
+  "facts_row_id": "string",
+  "invariants": [
+    {
+      "id": "string",
+      "message": "string",
+      "remediation": "null",
+      "status": "string"
+    }
+  ],
+  "log_paths": [
+    "string"
+  ],
+  "metrics_path": "string",
+  "outputs": [
+    "string"
+  ],
+  "schema_version": "string",
+  "stage_id": "string",
+  "stage_version": "number",
+  "subreports": [
+    "string"
+  ],
+  "summary": {
+    "outputs": [
+      "string"
+    ]
+  },
+  "tool_id": "string",
+  "tool_invocation_path": "string",
+  "tool_version": "string",
+  "verdict": {
+    "key_metrics": {
+      "base_retention": "number",
+      "mean_q_delta": "number",
+      "read_retention": "number"
+    },
+    "reasons": [
+      "string"
+    ],
+    "stage_id": "string",
+    "verdict": "string"
+  },
+  "warnings": [
+    "string"
+  ]
+}

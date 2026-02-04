@@ -1,0 +1,35 @@
+[package]
+name = "bijux-runner-docker"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tracing.workspace = true
+uuid.workspace = true
+chrono.workspace = true
+bijux-core = { path = "../bijux-core" }
+bijux-engine = { path = "../bijux-engine" }
+bijux-env-runtime = { path = "../bijux-env-runtime" }
+bijux-env-builder = { path = "../bijux-env-builder" }
+bijux-infra = { path = "../bijux-infra" }
+bijux-stages-fastq = { path = "../bijux-stages-fastq" }
+bijux-stages-bam = { path = "../bijux-stages-bam" }
+bijux-domain-fastq = { path = "../bijux-domain-fastq" }
+bijux-domain-bam = { path = "../bijux-domain-bam" }
+sha2.workspace = true
+flate2 = "1"
+
+[dev-dependencies]
+bijux-guardrails = { path = "../bijux-guardrails" }
+bijux-pipelines = { path = "../bijux-pipelines" }
+assert_cmd = "2"
+tempfile.workspace = true
+
+[features]
+otel = ["bijux-engine/otel"]
+
+[lints]
+workspace = true

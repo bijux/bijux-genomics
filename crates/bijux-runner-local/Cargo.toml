@@ -1,0 +1,15 @@
+[package]
+name = "bijux-runner-local"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow.workspace = true
+bijux-core = { path = "../bijux-core" }
+bijux-engine = { path = "../bijux-engine" }
+
+[dev-dependencies]
+bijux-guardrails = { path = "../bijux-guardrails" }
+
+[lints]
+workspace = true
