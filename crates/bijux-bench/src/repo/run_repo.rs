@@ -25,9 +25,9 @@ pub trait RunRepository {
     fn load_observations(&self, run_id: &str) -> Result<Vec<crate::model::BenchmarkObservation>>;
 }
 
-pub fn load_manifest(path: &PathBuf) -> Result<bijux_engine::primitives::ExecutionManifest> {
+pub fn load_manifest(path: &PathBuf) -> Result<bijux_core::ExecutionManifest> {
     let bytes = std::fs::read(path).with_context(|| format!("read manifest {}", path.display()))?;
-    let manifest: bijux_engine::primitives::ExecutionManifest = serde_json::from_slice(&bytes)
+    let manifest: bijux_core::ExecutionManifest = serde_json::from_slice(&bytes)
         .with_context(|| format!("parse manifest {}", path.display()))?;
     Ok(manifest)
 }

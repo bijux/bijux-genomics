@@ -145,5 +145,8 @@ fn suite_requires_stratification_metadata() {
         },
     );
     let result = bijux_bench::summarize(&suite, &[], &bijux_bench::BenchRunOptions::default());
-    assert!(result.is_err(), "suite validation should fail on missing strata");
+    assert!(
+        result.is_err(),
+        "suite validation should fail on missing strata"
+    );
 }

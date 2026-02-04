@@ -65,6 +65,7 @@ pub struct BenchmarkSuiteSpec {
 
 impl BenchmarkSuiteSpec {
     #[must_use]
+    #[allow(clippy::too_many_arguments)]
     pub fn v1(
         suite_id: String,
         datasets: Vec<DatasetSpec>,
