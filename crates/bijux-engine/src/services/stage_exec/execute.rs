@@ -28,7 +28,7 @@ pub fn execute_stage_plan(
         .and_then(|value| value.as_str())
         .unwrap_or("unknown")
         .to_string();
-    let params_hash = params_hash(&canonical_params)?;
+    let params_hash = bijux_core::params_hash(&canonical_params)?;
     let adapter_bank = adapter_bank_from_params(&canonical_params);
     let banks_json = banks_from_params(&canonical_params);
     let bank_assets = materialize_bank_assets(&run_artifacts_dir, banks_json.as_ref())?;

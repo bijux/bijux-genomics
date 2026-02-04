@@ -8,7 +8,7 @@ fn qa_qc_post_tool(
     let contract = tool_contract(registry, "fastq.qc_post", tool)?;
     let spec = catalog
         .get(tool)
-        .ok_or_else(|| anyhow!("tool {tool} missing from images.yaml"))?;
+        .ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
     let image = resolve_image_for_run(spec, platform)?;
     let out_dir = temp_out_dir("qc_post", tool)?;
     let container_name = format!("bijux-qa-qc_post-{}-{}", tool, Uuid::new_v4());
@@ -16,7 +16,7 @@ fn qa_qc_post_tool(
     if tool == "multiqc" {
         let fastqc_spec = catalog
             .get("fastqc")
-            .ok_or_else(|| anyhow!("fastqc missing from images.yaml"))?;
+            .ok_or_else(|| anyhow!("fastqc missing from images.toml"))?;
         let fastqc_image = resolve_image_for_run(fastqc_spec, platform)?;
         let fastqc_dir = out_dir.join("fastqc");
         bijux_infra::ensure_dir(&fastqc_dir).context("create fastqc output dir")?;
@@ -101,7 +101,7 @@ fn qa_umi_tool(
     let contract = tool_contract(registry, "fastq.umi", tool)?;
     let spec = catalog
         .get(tool)
-        .ok_or_else(|| anyhow!("tool {tool} missing from images.yaml"))?;
+        .ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
     let image = resolve_image_for_run(spec, platform)?;
     let out_dir = temp_out_dir("umi", tool)?;
     let container_name = format!("bijux-qa-umi-{}-{}", tool, Uuid::new_v4());
@@ -153,7 +153,7 @@ fn qa_stats_tool(
     let contract = tool_contract(registry, "fastq.stats_neutral", tool)?;
     let spec = catalog
         .get(tool)
-        .ok_or_else(|| anyhow!("tool {tool} missing from images.yaml"))?;
+        .ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
     let image = resolve_image_for_run(spec, platform)?;
     let out_dir = temp_out_dir("stats", tool)?;
     let container_name = format!("bijux-qa-stats-{}-{}", tool, Uuid::new_v4());

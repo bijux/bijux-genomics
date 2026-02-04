@@ -107,7 +107,7 @@ pub(crate) fn load_profile_for_cli(cli: &Cli) -> Result<bijux_api::v1::run::Prof
     let profile_path = cwd
         .join("configs")
         .join("profiles")
-        .join(format!("{}.yaml", cli.profile));
+        .join(format!("{}.toml", cli.profile));
     let mut profile = load_profile(&profile_path)
         .map_err(|err| anyhow!("failed to load profile {}: {err}", profile_path.display()))?;
     profile.run_base_dir = normalize_run_base_dir(&cwd, &profile.run_base_dir);

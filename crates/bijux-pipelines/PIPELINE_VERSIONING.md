@@ -11,3 +11,13 @@ Rules:
 4. Migration notes must be recorded in release notes and, when possible, in the defaults ledger
    provenance assumptions.
 5. Experimental or beta profiles must be explicitly named and must not replace stable IDs.
+
+## Blessed Pipelines (Canonical Entrypoints)
+
+These IDs are the single-source canonical entrypoints for each scope target:
+
+- `fastq-to-fastq__default__v1`
+- `fastq-to-bam__default__v1`
+- `bam-to-bam__adna_shotgun__v1`
+
+Use these IDs when documenting commands, examples, and default run recipes.

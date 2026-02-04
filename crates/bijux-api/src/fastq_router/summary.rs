@@ -179,11 +179,16 @@ pub(super) fn write_run_manifest(
             })
         })
         .collect();
+    let defaults_path = out_dir.join("defaults_ledger.json");
+    let defaults_hash = bijux_infra::hash_file_sha256(&defaults_path)
+        .context("hash defaults_ledger.json")?;
     let manifest = serde_json::json!({
         "schema_version": "bijux.run_manifest.v1",
         "run_id": run_id,
         "stages": stages,
         "failures": failures_json,
+        "defaults_ledger": defaults_path,
+        "defaults_ledger_sha256": defaults_hash,
         "telemetry": {
             "events": stage_runs.iter().map(|entry| {
                 entry.plan.out_dir
@@ -245,4 +250,79 @@ fn render_run_summary_html(summary: &serde_json::Value) -> String {
 pub struct StageExecutionSummary {
     pub plan: bijux_core::StagePlanV1,
     pub result: StageResultV1,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::write_run_manifest;
+    use super::StageExecutionSummary;
+    use bijux_core::{
+        CommandSpecV1, ContainerImageRefV1, StageId, StageIO, StagePlanV1, StageVersion,
+        ToolConstraints, ToolId,
+    };
+    use bijux_engine::primitives::StageResultV1;
+    use std::path::PathBuf;
+
+    #[test]
+    fn run_manifest_includes_defaults_ledger() -> anyhow::Result<()> {
+        let temp = bijux_infra::temp_dir("bijux-run-manifest")?;
+        let out_dir = temp.path();
+        let defaults = serde_json::json!({
+            "pipeline_id": "fastq-to-fastq__default__v1",
+            "tools": {},
+            "params": {},
+            "thresholds": {},
+            "tool_provenance": {},
+            "param_provenance": {},
+            "assumptions": [],
+            "citations": {},
+        });
+        bijux_infra::write_bytes(
+            &out_dir.join("defaults_ledger.json"),
+            serde_json::to_vec_pretty(&defaults)?,
+        )?;
+
+        let stage_out = out_dir.join("stage");
+        bijux_infra::ensure_dir(&stage_out)?;
+        let plan = StagePlanV1 {
+            stage_id: StageId("fastq.trim".to_string()),
+            stage_version: StageVersion(1),
+            tool_id: ToolId("fastp".to_string()),
+            tool_version: "0.0.0".to_string(),
+            image: ContainerImageRefV1 {
+                image: "tool:latest".to_string(),
+                digest: None,
+            },
+            command: CommandSpecV1 { template: vec![] },
+            resources: ToolConstraints {
+                runtime: "1h".to_string(),
+                mem_gb: 1,
+                tmp_gb: 1,
+                threads: 1,
+            },
+            io: StageIO {
+                inputs: Vec::new(),
+                outputs: Vec::new(),
+            },
+            out_dir: stage_out,
+            params: serde_json::json!({}),
+            effective_params: serde_json::json!({}),
+            aux_images: std::collections::BTreeMap::new(),
+        };
+        let result = StageResultV1 {
+            run_id: "run-1".to_string(),
+            exit_code: 0,
+            runtime_s: 1.0,
+            memory_mb: 1.0,
+            failure_kind: None,
+            output_hash: None,
+        };
+        let stage_runs = vec![StageExecutionSummary { plan, result }];
+        write_run_manifest(out_dir, &stage_runs, &[])?;
+        let manifest_raw = std::fs::read_to_string(out_dir.join("run_manifest.json"))?;
+        let manifest: serde_json::Value = serde_json::from_str(&manifest_raw)?;
+        assert!(manifest.get("defaults_ledger").is_some());
+        assert!(manifest.get("defaults_ledger_sha256").is_some());
+        Ok(())
+    }
 }

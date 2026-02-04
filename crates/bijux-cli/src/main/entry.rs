@@ -46,7 +46,29 @@ use main_helpers::{
 };
 use bijux_api::v1::run::{normalize_run_base_dir, replay_run};
 
-fn main() -> Result<()> {
+fn main() {
+    if let Err(err) = run() {
+        eprintln!("{err}");
+        std::process::exit(exit_code_for_error(&err));
+    }
+}
+
+fn exit_code_for_error(err: &anyhow::Error) -> i32 {
+    let msg = err.to_string().to_lowercase();
+    if msg.contains("invalid arg") || msg.contains("usage:") {
+        2
+    } else if msg.contains("invalid") || msg.contains("missing") || msg.contains("not found") {
+        3
+    } else if msg.contains("tool") && msg.contains("failed") {
+        4
+    } else if msg.contains("contract") || msg.contains("invariant") {
+        5
+    } else {
+        70
+    }
+}
+
+fn run() -> Result<()> {
     let cli = Cli::parse();
     let cwd = std::env::current_dir().context("resolve current directory")?;
     if let Some(path) = &cli.telemetry_jsonl {
@@ -66,7 +88,7 @@ fn main() -> Result<()> {
     let profile_path = cwd
         .join("configs")
         .join("profiles")
-        .join(format!("{}.yaml", cli.profile));
+        .join(format!("{}.toml", cli.profile));
     let mut profile = load_profile(&profile_path)
         .map_err(|err| anyhow!("failed to load profile {}: {err}", profile_path.display()))?;
     profile.run_base_dir = normalize_run_base_dir(&cwd, &profile.run_base_dir);

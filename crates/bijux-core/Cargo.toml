@@ -3,11 +3,11 @@ name = "bijux-core"
 version = "0.1.0"
 edition.workspace = true
 license.workspace = true
+rust-version.workspace = true
 
 [dependencies]
 serde.workspace = true
 serde_json.workspace = true
-serde_yaml.workspace = true
 thiserror.workspace = true
 uuid.workspace = true
 chrono.workspace = true
@@ -17,7 +17,7 @@ sysinfo.workspace = true
 sha2.workspace = true
 regex.workspace = true
 anyhow.workspace = true
-bijux-infra = { path = "../bijux-infra" }
+bijux-infra = { path = "../bijux-infra", features = ["yaml"] }
 
 [dev-dependencies]
 bijux-guardrails = { path = "../bijux-guardrails" }

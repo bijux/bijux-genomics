@@ -8,13 +8,9 @@ use bijux_core::{objective_spec, Objective};
 #[test]
 fn compare_and_ranking_snapshot() -> Result<()> {
     let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    let repo_root = manifest_dir
-        .parent()
-        .and_then(|p| p.parent())
-        .ok_or_else(|| anyhow::anyhow!("repo root not found"))?;
-    let root = repo_root
-        .join("target")
-        .join("test-fixtures")
+    let root = manifest_dir
+        .join("tests")
+        .join("fixtures")
         .join("compare_ranking");
     let run_a = root.join("run_a");
     let run_b = root.join("run_b");

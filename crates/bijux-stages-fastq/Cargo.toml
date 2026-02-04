@@ -3,6 +3,7 @@ name = "bijux-stages-fastq"
 version = "0.1.0"
 edition = "2021"
 
+rust-version.workspace = true
 [dependencies]
 bijux-core = { path = "../bijux-core" }
 bijux-domain-fastq = { path = "../bijux-domain-fastq" }

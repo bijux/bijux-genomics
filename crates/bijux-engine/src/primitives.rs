@@ -36,11 +36,12 @@ pub use crate::services::observer::{
     parse_fastqvalidator_count, write_explain_plan, Observer, SeqkitMetrics,
 };
 pub use crate::services::run_artifacts::{
-    compute_run_id, params_hash, prepare_tool_run_dirs, run_artifacts_dir_for_out,
+    compute_run_id, prepare_tool_run_dirs, run_artifacts_dir_for_out,
     tool_run_artifacts_dir, write_execution_logs, write_metrics_envelope, write_metrics_json,
     write_retention_report_placeholder, write_run_manifest, write_stage_plan_json,
     MetricsEnvelopeV1, RunArtifactInput, RunDirs,
 };
+pub use bijux_core::params_hash;
 pub use crate::services::stage_exec::{execute_stage_plan, StageResultV1};
 pub use crate::services::telemetry::{build_telemetry_adapter, TelemetryAdapter, TelemetrySpan};
 pub use bijux_core::StagePlanV1;
@@ -115,7 +116,7 @@ pub fn build_tool_execution_spec<S: ::std::hash::BuildHasher>(
         .ok_or_else(|| anyhow!("tool {tool_id} missing from manifest for {stage_id}"))?;
     let spec = catalog
         .get(tool_id)
-        .ok_or_else(|| anyhow!("tool {tool_id} missing from images.yaml"))?;
+        .ok_or_else(|| anyhow!("tool {tool_id} missing from images.toml"))?;
     let image = resolve_image_for_run(spec, platform)?;
     Ok(ToolExecutionSpecV1 {
         tool_id: ToolId(tool_id.to_string()),

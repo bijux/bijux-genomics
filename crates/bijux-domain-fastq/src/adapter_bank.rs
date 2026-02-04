@@ -101,7 +101,8 @@ pub fn adapter_presets_path() -> std::path::PathBuf {
 pub fn load_adapter_bank(path: &Path) -> Result<AdapterBankV1> {
     let contents = std::fs::read_to_string(path)
         .with_context(|| format!("read adapter bank {}", path.display()))?;
-    let bank: AdapterBankV1 = serde_yaml::from_str(&contents).context("parse adapter bank yaml")?;
+    let bank: AdapterBankV1 =
+        bijux_infra::formats::parse_yaml(&contents).context("parse adapter bank yaml")?;
     validate_adapter_bank(&bank)?;
     Ok(bank)
 }
@@ -114,7 +115,7 @@ pub fn load_adapter_presets(path: &Path, bank: &AdapterBankV1) -> Result<Adapter
     let contents = std::fs::read_to_string(path)
         .with_context(|| format!("read adapter presets {}", path.display()))?;
     let presets: AdapterPresetsV1 =
-        serde_yaml::from_str(&contents).context("parse adapter presets yaml")?;
+        bijux_infra::formats::parse_yaml(&contents).context("parse adapter presets yaml")?;
     validate_adapter_presets(&presets, bank)?;
     Ok(presets)
 }

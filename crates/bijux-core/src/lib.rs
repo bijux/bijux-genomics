@@ -3,6 +3,8 @@
 pub mod alignment;
 pub mod domain;
 pub mod events;
+pub mod hashing;
+pub mod errors;
 pub mod input_assessment;
 pub mod measure;
 pub mod metrics;

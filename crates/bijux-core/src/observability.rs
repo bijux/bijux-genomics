@@ -370,6 +370,20 @@ pub struct AssetsProvenanceV1 {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
+pub struct RunProvenanceV1 {
+    pub schema_version: String,
+    pub tool_image_digest: Option<String>,
+    pub tool_version: String,
+    pub params_hash: String,
+    pub input_hashes: Vec<String>,
+    pub reference_genome: Option<String>,
+    pub pipeline_id: String,
+    pub git_commit: String,
+    pub build_profile: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct MetricSemanticsV1 {
     pub metric_id: String,
     pub direction: String,

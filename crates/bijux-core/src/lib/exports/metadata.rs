@@ -96,8 +96,8 @@ pub fn load_manifests(modules_dir: &Path) -> Result<ToolRegistry, BijuxError> {
                 == Some("tools");
             if is_tool && path.extension().and_then(|ext| ext.to_str()) == Some("yaml") {
                 let contents = std::fs::read_to_string(path)?;
-                let manifest: ToolManifestV1 = serde_yaml::from_str(&contents)
-                    .map_err(|err| BijuxError::Manifest(format!("{}: {err}", path.display())))?;
+                let manifest: ToolManifestV1 = bijux_infra::formats::parse_yaml(&contents)
+                    .map_err(|err| BijuxError::Manifest(format!("{}: {}", path.display(), err.message)))?;
                 validate_tool_manifest(path, &manifest)?;
                 if !stages.contains_key(&manifest.stage_id) {
                     return Err(BijuxError::Manifest(format!(
@@ -130,8 +130,8 @@ pub fn load_manifests(modules_dir: &Path) -> Result<ToolRegistry, BijuxError> {
 
 fn load_stage_manifest(path: &Path) -> Result<Option<StageManifestV1>, BijuxError> {
     let contents = std::fs::read_to_string(path)?;
-    let doc: StageManifestDoc = serde_yaml::from_str(&contents)
-        .map_err(|err| BijuxError::Manifest(format!("{}: {err}", path.display())))?;
+    let doc: StageManifestDoc = bijux_infra::formats::parse_yaml(&contents)
+        .map_err(|err| BijuxError::Manifest(format!("{}: {}", path.display(), err.message)))?;
     if doc.stage_id.is_none() && doc.extends.is_none() {
         return Ok(None);
     }
@@ -146,8 +146,10 @@ fn resolve_stage_doc(path: &Path, doc: StageManifestDoc) -> Result<StageManifest
             .ok_or_else(|| BijuxError::Manifest(format!("{} has no parent", path.display())))?
             .join(extends);
         let base_contents = std::fs::read_to_string(&base_path)?;
-        let base_doc: StageManifestDoc = serde_yaml::from_str(&base_contents)
-            .map_err(|err| BijuxError::Manifest(format!("{}: {err}", base_path.display())))?;
+        let base_doc: StageManifestDoc = bijux_infra::formats::parse_yaml(&base_contents)
+            .map_err(|err| {
+                BijuxError::Manifest(format!("{}: {}", base_path.display(), err.message))
+            })?;
         let resolved_base = resolve_stage_doc(&base_path, base_doc)?;
         return Ok(merge_stage_docs(resolved_base, doc));
     }

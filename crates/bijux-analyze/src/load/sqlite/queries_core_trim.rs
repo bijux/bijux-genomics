@@ -33,7 +33,7 @@ pub fn insert_fastq_trim_v1(
 
     let metrics_json = serde_json::to_string(&record.metrics)?;
     let parameters_json = serde_json::to_string(&record.context.parameters)?;
-    let params_hash = params_hash(&record.context.parameters)?;
+    let params_hash = bijux_core::params_hash(record.context.parameters.as_value())?;
 
     conn.execute(
         "INSERT INTO bench_fastq_trim_v1 (\
@@ -94,7 +94,7 @@ pub fn insert_fastq_trim_v2(
 
     let metrics_json = serde_json::to_string(&record.metrics)?;
     let parameters_json = serde_json::to_string(&record.context.parameters)?;
-    let params_hash = params_hash(&record.context.parameters)?;
+    let params_hash = bijux_core::params_hash(record.context.parameters.as_value())?;
 
     conn.execute(
         "INSERT INTO bench_fastq_trim_v2 (\

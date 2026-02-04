@@ -90,7 +90,7 @@ fn regression_fastq_validate_deterministic() -> Result<()> {
     let catalog = load_image_catalog()?;
     let spec = catalog
         .get("fastqvalidator_official")
-        .ok_or_else(|| anyhow::anyhow!("fastqvalidator_official missing from images.yaml"))?;
+        .ok_or_else(|| anyhow::anyhow!("fastqvalidator_official missing from images.toml"))?;
     let image = bijux_engine::primitives::resolve_image_for_run(spec, &platform)?;
 
     let input = Path::new("tests/data/fastq/canonical/BIJUX_SE_R1.fastq.gz").canonicalize()?;
@@ -151,7 +151,7 @@ fn regression_fastq_trim_deterministic() -> Result<()> {
     let catalog = load_image_catalog()?;
     let spec = catalog
         .get("fastp")
-        .ok_or_else(|| anyhow::anyhow!("fastp missing from images.yaml"))?;
+        .ok_or_else(|| anyhow::anyhow!("fastp missing from images.toml"))?;
     let image = bijux_engine::primitives::resolve_image_for_run(spec, &platform)?;
 
     let input = Path::new("tests/data/fastq/canonical/BIJUX_SE_R1.fastq.gz").canonicalize()?;
@@ -204,7 +204,7 @@ fn regression_fastq_filter_deterministic() -> Result<()> {
     let catalog = load_image_catalog()?;
     let spec = catalog
         .get("seqkit")
-        .ok_or_else(|| anyhow::anyhow!("seqkit missing from images.yaml"))?;
+        .ok_or_else(|| anyhow::anyhow!("seqkit missing from images.toml"))?;
     let image = bijux_engine::primitives::resolve_image_for_run(spec, &platform)?;
 
     let input = Path::new("tests/data/fastq/canonical/BIJUX_SE_R1.fastq.gz").canonicalize()?;
@@ -258,7 +258,7 @@ fn regression_fastq_validate_rejects_broken_fastq() -> Result<()> {
     let catalog = load_image_catalog()?;
     let spec = catalog
         .get("fastqvalidator_official")
-        .ok_or_else(|| anyhow::anyhow!("fastqvalidator_official missing from images.yaml"))?;
+        .ok_or_else(|| anyhow::anyhow!("fastqvalidator_official missing from images.toml"))?;
     let image = bijux_engine::primitives::resolve_image_for_run(spec, &platform)?;
 
     let out_dir = tempdir_in_repo()?;
@@ -295,7 +295,7 @@ fn regression_fastq_validate_rejects_truncated_gzip() -> Result<()> {
     let catalog = load_image_catalog()?;
     let spec = catalog
         .get("fastqvalidator_official")
-        .ok_or_else(|| anyhow::anyhow!("fastqvalidator_official missing from images.yaml"))?;
+        .ok_or_else(|| anyhow::anyhow!("fastqvalidator_official missing from images.toml"))?;
     let image = bijux_engine::primitives::resolve_image_for_run(spec, &platform)?;
 
     let out_dir = tempdir_in_repo()?;
@@ -333,7 +333,7 @@ fn regression_fastq_merge_requires_r2() -> Result<()> {
     let catalog = load_image_catalog()?;
     let spec = catalog
         .get("pear")
-        .ok_or_else(|| anyhow::anyhow!("pear missing from images.yaml"))?;
+        .ok_or_else(|| anyhow::anyhow!("pear missing from images.toml"))?;
     let image = bijux_engine::primitives::resolve_image_for_run(spec, &platform)?;
 
     let out_dir = tempdir_in_repo()?;
@@ -364,7 +364,7 @@ fn regression_resource_measurements_are_consistent() -> Result<()> {
     let catalog = load_image_catalog()?;
     let spec = catalog
         .get("seqkit")
-        .ok_or_else(|| anyhow::anyhow!("seqkit missing from images.yaml"))?;
+        .ok_or_else(|| anyhow::anyhow!("seqkit missing from images.toml"))?;
     let image = bijux_engine::primitives::resolve_image_for_run(spec, &platform)?;
 
     let input = Path::new("tests/data/fastq/canonical/BIJUX_SE_R1.fastq.gz").canonicalize()?;

@@ -28,3 +28,21 @@ jobs:
         run: |
           cargo nextest run --workspace --all-features \
             --partition count:2/${{ matrix.shard }}
+
+  policy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install cargo-deny
+        run: cargo install cargo-deny --locked
+      - name: Dependency Policy
+        run: cargo deny check
+
+  msrv:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.76.0
+      - name: MSRV Check
+        run: cargo check --workspace --all-targets

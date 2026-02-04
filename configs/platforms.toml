@@ -1,0 +1,7 @@
+default = "docker-mac-arm64"
+
+[platforms.docker-mac-arm64]
+runner = "docker"
+container_dir = "containers/docker/arm64"
+image_prefix = "bijuxdna"
+arch = "arm64"

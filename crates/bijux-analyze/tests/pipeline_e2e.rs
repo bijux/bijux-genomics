@@ -1,25 +1,12 @@
 use std::fs;
-use std::path::PathBuf;
 
 use anyhow::Result;
 use bijux_analyze::load::load_facts;
 use bijux_analyze::report::write_run_report_from_facts;
-use bijux_core::FactsRowV1;
+use bijux_core::{FactsRowV1, InvariantStatusV1, StageReportV1, StageVerdictV1};
 use bijux_domain_bam::metrics::BamMetricsV1;
 use bijux_pipelines::registry::profile_by_id;
 use bijux_pipelines::Domain;
-
-fn fixture_root() -> Result<PathBuf> {
-    let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    let repo_root = manifest_dir
-        .parent()
-        .and_then(|p| p.parent())
-        .ok_or_else(|| anyhow::anyhow!("repo root not found"))?;
-    Ok(repo_root
-        .join("target")
-        .join("test-fixtures")
-        .join("pipelines"))
-}
 
 fn metrics_for_stage(stage_id: &str) -> serde_json::Value {
     if stage_id.starts_with("bam.") {
@@ -49,40 +36,87 @@ fn fact_for_stage(stage_id: &str, tool_id: &str, run_id: &str) -> FactsRowV1 {
         exit_code: 0,
         bank_hashes: serde_json::json!({}),
         reads_in: Some(100),
-        reads_out: Some(80),
+        reads_out: Some(100),
         bases_in: Some(1000),
-        bases_out: Some(800),
+        bases_out: Some(1000),
         pairs_in: None,
         pairs_out: None,
         metrics: metrics_for_stage(stage_id),
-        reports: serde_json::json!({
-            "stage_report": "/tmp/stage_report.json",
-            "retention_report": "/tmp/retention_report.json",
-            "bank_report": "/tmp/bank_report.json"
-        }),
+        reports: serde_json::json!({}),
         artifacts: serde_json::json!({
             "metrics_envelope": "/tmp/metrics_envelope.json"
         }),
     }
 }
 
+fn write_stage_report(
+    stage_dir: &PathBuf,
+    stage_id: &str,
+    tool_id: &str,
+) -> Result<PathBuf> {
+    let metrics_path = stage_dir.join("metrics.json");
+    let invocation_path = stage_dir.join("tool_invocation.json");
+    let config_path = stage_dir.join("effective_config.json");
+    bijux_infra::write_bytes(&metrics_path, "{}")?;
+    bijux_infra::write_bytes(&invocation_path, "{}")?;
+    bijux_infra::write_bytes(&config_path, "{}")?;
+    let stage_report = StageReportV1 {
+        schema_version: "bijux.stage_report.v1".to_string(),
+        stage_id: stage_id.to_string(),
+        stage_version: 1,
+        tool_id: tool_id.to_string(),
+        tool_version: "0.0.0".to_string(),
+        metrics_path: metrics_path.display().to_string(),
+        tool_invocation_path: invocation_path.display().to_string(),
+        effective_config_path: config_path.display().to_string(),
+        effective_config_hash: None,
+        facts_row_id: None,
+        summary: serde_json::json!({}),
+        warnings: Vec::new(),
+        errors: Vec::new(),
+        invariants: Vec::new(),
+        verdict: Some(StageVerdictV1 {
+            stage_id: stage_id.to_string(),
+            verdict: InvariantStatusV1::Pass,
+            reasons: Vec::new(),
+            key_metrics: serde_json::json!({}),
+        }),
+        outputs: Vec::new(),
+        subreports: Vec::new(),
+        log_paths: Vec::new(),
+    };
+    let stage_report_path = stage_dir.join("stage_report.json");
+    bijux_infra::write_bytes(
+        &stage_report_path,
+        serde_json::to_vec_pretty(&stage_report)?,
+    )?;
+    Ok(stage_report_path)
+}
+
 fn write_pipeline_report(domain: Domain, pipeline_id: &str) -> Result<serde_json::Value> {
     let profile = profile_by_id(domain, pipeline_id)?;
     let run_id = pipeline_id;
     let mut rows = Vec::new();
-    for node in &profile.graph {
+    let dir = tempfile::tempdir()?;
+    let base_dir = dir.path().join("pipeline");
+    bijux_infra::ensure_dir(&base_dir)?;
+    for (idx, node) in profile.graph.iter().enumerate() {
         let tool = profile
             .defaults
             .tools
             .get(&node.stage_id)
             .map(|tool| tool.as_str())
             .unwrap_or("unknown");
-        rows.push(fact_for_stage(&node.stage_id, tool, run_id));
+        let stage_dir = base_dir.join(format!("stage_{idx}"));
+        bijux_infra::ensure_dir(&stage_dir)?;
+        let stage_report_path = write_stage_report(&stage_dir, &node.stage_id, tool)?;
+        let mut row = fact_for_stage(&node.stage_id, tool, run_id);
+        row.reports = serde_json::json!({
+            "stage_report": stage_report_path.display().to_string()
+        });
+        rows.push(row);
     }
-    let root = fixture_root()?;
-    let dir = root.join(pipeline_id);
-    bijux_infra::ensure_dir(&dir)?;
-    let facts_path = dir.join("facts.jsonl");
+    let facts_path = base_dir.join("facts.jsonl");
     let mut facts_raw = String::new();
     for row in &rows {
         facts_raw.push_str(&serde_json::to_string(row)?);
@@ -91,11 +125,11 @@ fn write_pipeline_report(domain: Domain, pipeline_id: &str) -> Result<serde_json
     bijux_infra::write_bytes(&facts_path, facts_raw)?;
     let defaults = profile.defaults_ledger();
     bijux_infra::write_bytes(
-        dir.join("defaults_ledger.json"),
+        base_dir.join("defaults_ledger.json"),
         serde_json::to_vec_pretty(&defaults)?,
     )?;
     let loaded = load_facts(&facts_path).map_err(|err| anyhow::anyhow!(err.to_string()))?;
-    let report_path = write_run_report_from_facts(&dir, &loaded)?;
+    let report_path = write_run_report_from_facts(&base_dir, &loaded)?;
     let report_raw = fs::read_to_string(report_path)?;
     Ok(serde_json::from_str(&report_raw)?)
 }

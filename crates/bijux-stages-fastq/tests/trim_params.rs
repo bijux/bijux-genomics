@@ -1,12 +1,5 @@
 use anyhow::Result;
-use sha2::Digest;
-
-fn params_hash(params: &serde_json::Value) -> Result<String> {
-    let bytes = serde_json::to_vec(params)?;
-    let mut hasher = sha2::Sha256::new();
-    hasher.update(bytes);
-    Ok(format!("{:x}", hasher.finalize()))
-}
+use bijux_core::params_hash;
 
 #[test]
 fn disabling_adapter_changes_params_hash() -> Result<()> {

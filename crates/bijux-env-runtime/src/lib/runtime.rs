@@ -15,19 +15,22 @@ mod tests {
     }
 
     #[test]
-    fn platform_spec_yaml_roundtrip() -> Result<(), EnvError> {
-        let yaml = r"
-name: docker-mac-arm64
-runner: docker
-container_dir: containers/docker/arm64
-image_prefix: bijuxdna
-arch: arm64
-";
-        let spec: PlatformSpec = serde_yaml::from_str(yaml)?;
+    fn platform_spec_toml_roundtrip() -> Result<(), EnvError> {
+        let toml = r#"
+name = "docker-mac-arm64"
+runner = "docker"
+container_dir = "containers/docker/arm64"
+image_prefix = "bijuxdna"
+arch = "arm64"
+"#;
+        let spec: PlatformSpec =
+            bijux_infra::formats::parse_toml(toml).map_err(|err| EnvError::Parse(err.message))?;
         assert_eq!(spec.name, "docker-mac-arm64");
         assert_eq!(spec.runner, RunnerKind::Docker);
-        let out = serde_yaml::to_string(&spec)?;
-        let spec2: PlatformSpec = serde_yaml::from_str(&out)?;
+        let out = bijux_infra::formats::to_toml_string(&spec)
+            .map_err(|err| EnvError::Parse(err.message))?;
+        let spec2: PlatformSpec =
+            bijux_infra::formats::parse_toml(&out).map_err(|err| EnvError::Parse(err.message))?;
         assert_eq!(spec2.name, spec.name);
         Ok(())
     }
@@ -128,10 +131,10 @@ arch: arm64
     #[test]
     fn load_image_catalog_parses() -> Result<(), EnvError> {
         let temp_dir = std::env::temp_dir();
-        let path = temp_dir.join("bijux_images.yaml");
+        let path = temp_dir.join("bijux_images.toml");
         atomic_write_bytes(
             &path,
-            b"fastp:\n  version: \"0.23.4\"\n  digest: \"sha256:abc123\"\n\nbwa:\n  version: \"0.7.17\"\n",
+            b"[fastp]\nversion = \"0.23.4\"\ndigest = \"sha256:abc123\"\n\n[bwa]\nversion = \"0.7.17\"\n",
         )
         .map_err(|err| std::io::Error::new(std::io::ErrorKind::Other, err))?;
         let catalog = load_image_catalog_from_file(&path)?;

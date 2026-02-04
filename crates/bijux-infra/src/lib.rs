@@ -5,6 +5,8 @@ use std::time::{Duration, Instant};
 
 use thiserror::Error;
 
+pub mod formats;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum IoErrorKind {
     Permission,
@@ -161,9 +163,32 @@ pub fn write_string<P: AsRef<Path>>(path: P, contents: &str) -> Result<(), IoErr
 /// # Errors
 /// Returns an IO error if serialization or writing fails.
 pub fn atomic_write_json<T: serde::Serialize>(path: &Path, value: &T) -> Result<(), IoError> {
-    let payload = serde_json::to_vec_pretty(value)
+    let raw = serde_json::to_value(value)
+        .map_err(|err| IoError::new(IoErrorKind::Corruption, format!("serialize json: {err}")))?;
+    let canonical = canonicalize_json_value(&raw);
+    let payload = serde_json::to_vec_pretty(&canonical)
         .map_err(|err| IoError::new(IoErrorKind::Corruption, format!("serialize json: {err}")))?;
     atomic_write_bytes(path, &payload)
+}
+
+#[must_use]
+pub fn canonicalize_json_value(value: &serde_json::Value) -> serde_json::Value {
+    match value {
+        serde_json::Value::Object(map) => {
+            let mut keys: Vec<&String> = map.keys().collect();
+            keys.sort();
+            let mut ordered = serde_json::Map::new();
+            for key in keys {
+                let val = map.get(key).unwrap_or(&serde_json::Value::Null);
+                ordered.insert(key.clone(), canonicalize_json_value(val));
+            }
+            serde_json::Value::Object(ordered)
+        }
+        serde_json::Value::Array(items) => {
+            serde_json::Value::Array(items.iter().map(canonicalize_json_value).collect())
+        }
+        _ => value.clone(),
+    }
 }
 
 /// Atomically write using a custom writer function.
@@ -324,6 +349,18 @@ pub const RUN_LAYOUT_CONTRACT: RunLayoutContract = RunLayoutContract {
     lock_file: ".run.lock",
     publish_marker: "published.json",
 };
+
+pub const PIPELINE_RUN_DIR_TEMPLATE: &str = "{pipeline_id}/{sample_id}/{run_id}";
+
+#[must_use]
+pub fn pipeline_run_dir(
+    base_dir: &Path,
+    pipeline_id: &str,
+    sample_id: &str,
+    run_id: &str,
+) -> PathBuf {
+    base_dir.join(pipeline_id).join(sample_id).join(run_id)
+}
 
 #[must_use]
 pub fn run_layout_paths(base_dir: &Path, run_id: &str) -> RunLayoutPaths {
@@ -519,6 +556,20 @@ mod tests {
         let marker = publish_run(&layout, "run-1")?;
         assert!(marker.ends_with(RUN_LAYOUT_CONTRACT.publish_marker));
         Ok(())
+    }
+
+    #[test]
+    fn pipeline_run_dir_contract_is_stable() {
+        let base = Path::new("/tmp/bijux");
+        let path = pipeline_run_dir(base, "fastq-to-fastq__default__v1", "sample-1", "run-abc");
+        assert_eq!(
+            path,
+            PathBuf::from("/tmp/bijux")
+                .join("fastq-to-fastq__default__v1")
+                .join("sample-1")
+                .join("run-abc")
+        );
+        assert_eq!(PIPELINE_RUN_DIR_TEMPLATE, "{pipeline_id}/{sample_id}/{run_id}");
     }
 
     #[test]

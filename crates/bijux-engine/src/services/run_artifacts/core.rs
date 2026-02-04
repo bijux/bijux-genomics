@@ -93,14 +93,6 @@ pub struct RunsExportRowV1 {
     pub metrics_path: Option<String>,
 }
 
-pub fn params_hash(params: &serde_json::Value) -> Result<String> {
-    let canonical = bijux_core::parameters_json_canonicalization(params);
-    let bytes = serde_json::to_vec(&canonical).context("serialize params")?;
-    let mut hasher = sha2::Sha256::new();
-    hasher.update(bytes);
-    Ok(format!("{:x}", hasher.finalize()))
-}
-
 pub fn compute_run_id(
     stage: &str,
     tool: &str,

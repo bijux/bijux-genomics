@@ -17,10 +17,9 @@ use uuid::Uuid;
 use bijux_engine::primitives::validate_execution_outputs;
 use bijux_engine::primitives::{
     bench_base_dir, bench_tools_dir, compute_run_id, execute_plan, hash_file_sha256,
-    input_fastq_stats, length_histogram, normalize_stats_tool_list, params_hash,
-    prepare_tool_run_dirs, resolve_image_for_run, write_execution_logs, write_metrics_envelope,
-    write_metrics_json, write_retention_report_placeholder, write_run_manifest,
-    write_stage_plan_json, SeqkitMetrics,
+    input_fastq_stats, length_histogram, normalize_stats_tool_list, prepare_tool_run_dirs,
+    resolve_image_for_run, write_execution_logs, write_metrics_envelope, write_metrics_json,
+    write_retention_report_placeholder, write_run_manifest, write_stage_plan_json, SeqkitMetrics,
 };
 use bijux_engine::primitives::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use bijux_stages_fastq::fastq::stats_neutral::plan_stats_neutral;
@@ -90,7 +89,8 @@ pub fn bench_fastq_stats_neutral<S: ::std::hash::BuildHasher>(
             build_tool_execution_spec("fastq.stats_neutral", &tool, &registry, catalog, platform)?;
         let tool_dir = bench_inputs.tools_root.join(&tool);
         let plan = plan_stats_neutral(&tool_spec, &bench_inputs.r1, &tool_dir)?;
-        let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
+        let params_hash =
+            bijux_core::params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
         let image_digest = tool_spec
             .image
             .digest
@@ -176,7 +176,7 @@ fn prepare_stats_bench<S: ::std::hash::BuildHasher>(
     let tool_id = bijux_stages_fastq::TOOL_SEQKIT;
     let tool_spec = catalog
         .get(tool_id)
-        .ok_or_else(|| anyhow!("{tool_id} missing from images.yaml"))?;
+        .ok_or_else(|| anyhow!("{tool_id} missing from images.toml"))?;
     let tool_image = resolve_image_for_run(tool_spec, platform)?;
 
     let input_hash = hash_file_sha256(&r1)?;
@@ -215,7 +215,8 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
     let plan = plan_stats_neutral(&tool_spec, &bench_inputs.r1, &tool_dir)?;
     let plan_json = StagePlanJson::from_plan(&plan);
     let params = plan.params.clone();
-    let param_hash = params_hash(&params).unwrap_or_else(|_| Uuid::new_v4().to_string());
+    let param_hash =
+        bijux_core::params_hash(&params).unwrap_or_else(|_| Uuid::new_v4().to_string());
     let image_digest = tool_spec
         .image
         .digest

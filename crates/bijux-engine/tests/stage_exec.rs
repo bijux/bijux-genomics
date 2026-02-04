@@ -33,7 +33,7 @@ fn execute_plan_runs_trim() -> Result<()> {
     let catalog = load_image_catalog()?;
     let spec = catalog
         .get("fastp")
-        .ok_or_else(|| anyhow::anyhow!("fastp missing from images.yaml"))?;
+        .ok_or_else(|| anyhow::anyhow!("fastp missing from images.toml"))?;
     let image = resolve_image_for_run(spec, &platform)?;
 
     let input = Path::new("tests/data/fastq/ERR769587/ERR769587.fastq.gz").canonicalize()?;
@@ -98,7 +98,7 @@ fn execute_plan_runs_validate() -> Result<()> {
     let catalog = load_image_catalog()?;
     let spec = catalog
         .get("fastqvalidator_official")
-        .ok_or_else(|| anyhow::anyhow!("fastqvalidator_official missing from images.yaml"))?;
+        .ok_or_else(|| anyhow::anyhow!("fastqvalidator_official missing from images.toml"))?;
     let image = resolve_image_for_run(spec, &platform)?;
 
     let input = Path::new("tests/data/fastq/canonical/BIJUX_SE_R1.fastq.gz").canonicalize()?;
@@ -154,7 +154,7 @@ fn execute_plan_runs_merge() -> Result<()> {
     let catalog = load_image_catalog()?;
     let spec = catalog
         .get("pear")
-        .ok_or_else(|| anyhow::anyhow!("pear missing from images.yaml"))?;
+        .ok_or_else(|| anyhow::anyhow!("pear missing from images.toml"))?;
     let image = resolve_image_for_run(spec, &platform)?;
 
     let r1 = Path::new("tests/data/fastq/canonical/BIJUX_PE_R1.fastq.gz").canonicalize()?;

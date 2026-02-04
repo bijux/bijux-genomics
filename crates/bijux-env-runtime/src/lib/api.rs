@@ -117,8 +117,6 @@ impl ResolvedImage {
 pub enum EnvError {
     #[error("io error: {0}")]
     Io(#[from] std::io::Error),
-    #[error("yaml error: {0}")]
-    Yaml(#[from] serde_yaml::Error),
     #[error("parse error: {0}")]
     Parse(String),
     #[error("platform error: {0}")]
@@ -137,12 +135,12 @@ impl From<bijux_infra::IoError> for EnvError {
     }
 }
 
-/// Load platforms from configs/platforms.yaml and resolve the selected platform.
+/// Load platforms from configs/platforms.toml and resolve the selected platform.
 ///
 /// # Errors
 /// Returns an error if the config file cannot be read or parsed, or if the platform is missing.
 pub fn load_platform(name: Option<&str>) -> Result<PlatformSpec, EnvError> {
-    let path = Path::new("configs").join("platforms.yaml");
+    let path = Path::new("configs").join("platforms.toml");
     load_platform_from_file(&path, name)
 }
 
@@ -155,7 +153,8 @@ pub(crate) fn load_platform_from_file(
     name: Option<&str>,
 ) -> Result<PlatformSpec, EnvError> {
     let contents = std::fs::read_to_string(path)?;
-    let file: PlatformsFile = serde_yaml::from_str(&contents)?;
+    let file: PlatformsFile = bijux_infra::formats::parse_toml(&contents)
+        .map_err(|err| EnvError::Parse(err.message))?;
     let selected = name.unwrap_or(&file.default);
     let raw = file
         .platforms
@@ -256,16 +255,16 @@ pub fn resolve_image(
     })
 }
 
-/// Load tool images from configs/images.yaml.
+/// Load tool images from configs/images.toml.
 ///
 /// # Errors
 /// Returns an error if the file cannot be read, parsed, or contains invalid entries.
 pub fn load_image_catalog() -> Result<HashMap<String, ToolImageSpec>, EnvError> {
-    let path = Path::new("configs").join("images.yaml");
+    let path = Path::new("configs").join("images.toml");
     load_image_catalog_from_file(&path)
 }
 
-/// Load tool images from a specific YAML file.
+/// Load tool images from a specific TOML file.
 ///
 /// # Errors
 /// Returns an error if the file cannot be read, parsed, or contains invalid entries.
@@ -273,12 +272,13 @@ pub(crate) fn load_image_catalog_from_file(
     path: &Path,
 ) -> Result<HashMap<String, ToolImageSpec>, EnvError> {
     let contents = std::fs::read_to_string(path)?;
-    let raw: HashMap<String, ToolImageSpec> = serde_yaml::from_str(&contents)?;
+    let raw: HashMap<String, ToolImageSpec> = bijux_infra::formats::parse_toml(&contents)
+        .map_err(|err| EnvError::Parse(err.message))?;
     let mut catalog = HashMap::new();
     for (key, mut spec) in raw {
         if key.trim().is_empty() {
             return Err(EnvError::Image(
-                "empty tool name in images.yaml".to_string(),
+                "empty tool name in images.toml".to_string(),
             ));
         }
         if spec.version.trim().is_empty() {

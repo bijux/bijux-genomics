@@ -6,14 +6,14 @@ use bijux_api::v1::plan::PipelineRegistry;
 fn write_profile(temp: &tempfile::TempDir) -> Result<PathBuf, Box<dyn std::error::Error>> {
     let configs_dir = temp.path().join("configs").join("profiles");
     bijux_infra::ensure_dir(&configs_dir)?;
-    let profile_path = configs_dir.join("local.yaml");
+    let profile_path = configs_dir.join("local.toml");
     bijux_infra::write_bytes(
         &profile_path,
-        "container_runtime: \"docker\"\n\
-default_threads: 4\n\
-default_mem_gb: 8\n\
-default_time_minutes: 60\n\
-run_base_dir: \"./runs\"\n",
+        "container_runtime = \"docker\"\n\
+default_threads = 4\n\
+default_mem_gb = 8\n\
+default_time_minutes = 60\n\
+run_base_dir = \"./runs\"\n",
     )?;
     Ok(profile_path)
 }

@@ -59,7 +59,7 @@ fn qa_trim_tool(
     let contract = tool_contract(registry, "fastq.trim", tool)?;
     let spec = catalog
         .get(tool)
-        .ok_or_else(|| anyhow!("tool {tool} missing from images.yaml"))?;
+        .ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
     let image = resolve_image_for_run(spec, platform)?;
     let out_dir = temp_out_dir("trim", tool)?;
     let container_name = format!("bijux-qa-trim-{}-{}", tool, Uuid::new_v4());
@@ -169,7 +169,7 @@ fn qa_validate_tool(
     let contract = tool_contract(registry, "fastq.validate_pre", tool)?;
     let spec = catalog
         .get(tool)
-        .ok_or_else(|| anyhow!("tool {tool} missing from images.yaml"))?;
+        .ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
     let image = resolve_image_for_run(spec, platform)?;
     let out_dir = temp_out_dir("validate", tool)?;
     let container_name = format!("bijux-qa-validate-{}-{}", tool, Uuid::new_v4());
@@ -208,7 +208,7 @@ fn qa_filter_tool(
     let contract = tool_contract(registry, "fastq.filter", tool)?;
     let spec = catalog
         .get(tool)
-        .ok_or_else(|| anyhow!("tool {tool} missing from images.yaml"))?;
+        .ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
     let image = resolve_image_for_run(spec, platform)?;
     let out_dir = temp_out_dir("filter", tool)?;
     let container_name = format!("bijux-qa-filter-{}-{}", tool, Uuid::new_v4());
@@ -268,7 +268,7 @@ fn qa_merge_tool(
     let contract = tool_contract(registry, "fastq.merge", tool)?;
     let spec = catalog
         .get(tool)
-        .ok_or_else(|| anyhow!("tool {tool} missing from images.yaml"))?;
+        .ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
     let image = resolve_image_for_run(spec, platform)?;
     let r2 = dataset
         .r2
@@ -335,7 +335,7 @@ fn qa_correct_tool(
     let contract = tool_contract(registry, "fastq.correct", tool)?;
     let spec = catalog
         .get(tool)
-        .ok_or_else(|| anyhow!("tool {tool} missing from images.yaml"))?;
+        .ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
     let image = resolve_image_for_run(spec, platform)?;
     let out_dir = temp_out_dir("correct", tool)?;
     let container_name = format!("bijux-qa-correct-{}-{}", tool, Uuid::new_v4());

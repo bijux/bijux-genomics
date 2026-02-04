@@ -23,7 +23,7 @@ fn tool_spec(tool_id: &str, runner: RunnerKind) -> Result<ToolExecutionSpecV1> {
     let catalog = load_image_catalog()?;
     let spec = catalog
         .get(tool_id)
-        .ok_or_else(|| anyhow::anyhow!("{tool_id} missing from images.yaml"))?;
+        .ok_or_else(|| anyhow::anyhow!("{tool_id} missing from images.toml"))?;
     let platform = load_platform(None)?;
     let image = resolve_image_for_run(spec, &platform)?;
     Ok(ToolExecutionSpecV1 {

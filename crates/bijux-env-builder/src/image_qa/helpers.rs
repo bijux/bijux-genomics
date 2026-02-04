@@ -27,7 +27,7 @@ pub(crate) fn build_qa_record(
 ) -> Result<ImageQaRecord> {
     let spec = catalog
         .get(tool)
-        .ok_or_else(|| anyhow!("tool {tool} missing from images.yaml"))?;
+        .ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
     let image = resolve_image_for_run(spec, platform)?;
     let tool_version = spec.version.clone();
     let image_digest = spec
@@ -56,7 +56,7 @@ pub(crate) fn qa_already_passed(
 ) -> Result<bool> {
     let spec = catalog
         .get(tool)
-        .ok_or_else(|| anyhow!("tool {tool} missing from images.yaml"))?;
+        .ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
     let image = resolve_image_for_run(spec, platform)?;
     let image_digest = spec
         .digest
@@ -112,7 +112,7 @@ pub fn ensure_image_qa_passed<S: ::std::hash::BuildHasher>(
     for tool in tools {
         let spec = catalog
             .get(tool)
-            .ok_or_else(|| anyhow!("tool {tool} missing from images.yaml"))?;
+            .ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
         let image = resolve_image_for_run(spec, platform)?;
         let image_digest = spec
             .digest

@@ -106,12 +106,16 @@ pub fn write_cross_run_manifest(
             domains.push(*domain);
         }
     }
+    let defaults_path = out_dir.join("defaults_ledger.json");
+    let defaults_hash = hash_file_sha256(&defaults_path)?;
     let manifest = serde_json::json!({
         "schema_version": "bijux.run_manifest.v2",
         "run_id": run_id,
         "profile_id": profile.id,
         "domains": domains,
         "stages": stages,
+        "defaults_ledger": defaults_path,
+        "defaults_ledger_sha256": defaults_hash,
         "domain_transitions": [{
             "from": "fastq",
             "to": "bam",
@@ -135,4 +139,33 @@ pub fn write_reference_manifest(out_dir: &Path, record: &ReferenceRecord) -> Res
     bijux_infra::atomic_write_json(&path, record)
         .with_context(|| "write reference_manifest.json")?;
     Ok(path)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{write_cross_run_manifest, write_defaults_ledger};
+    use bijux_pipelines::registry::profile_by_id;
+    use bijux_pipelines::Domain;
+
+    #[test]
+    fn cross_run_manifest_includes_defaults_ledger() -> anyhow::Result<()> {
+        let temp = bijux_infra::temp_dir("bijux-cross-manifest")?;
+        let out_dir = temp.path();
+        let profile = profile_by_id(Domain::Cross, "fastq-to-bam__default__v1")?;
+        write_defaults_ledger(out_dir, &profile)?;
+        let fastq_summary = serde_json::json!({
+            "run_id": "run-1",
+            "stages": [{
+                "stage_id": "fastq.trim",
+                "tool_id": "fastp",
+                "artifacts": {},
+            }]
+        });
+        write_cross_run_manifest(out_dir, &profile, &fastq_summary, &[], None, None)?;
+        let manifest_raw = std::fs::read_to_string(out_dir.join("run_manifest.json"))?;
+        let manifest: serde_json::Value = serde_json::from_str(&manifest_raw)?;
+        assert!(manifest.get("defaults_ledger").is_some());
+        assert!(manifest.get("defaults_ledger_sha256").is_some());
+        Ok(())
+    }
 }

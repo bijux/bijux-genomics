@@ -17,6 +17,7 @@ use crate::{AnalyzeInput, AnalyzeMode, AnalyzeOutput};
 pub(crate) mod compute_step;
 pub(crate) mod load_step;
 pub(crate) mod render_step;
+pub(crate) mod report_step;
 pub(crate) mod validate_step;
 
 pub fn analyze_run_pipeline(input: &AnalyzeInput) -> Result<AnalyzeOutput> {
@@ -54,7 +55,8 @@ pub fn analyze_run_pipeline(input: &AnalyzeInput) -> Result<AnalyzeOutput> {
     let loaded = load_step::load_inputs(&input.sources)?;
     let validated = validate_step::validate_inputs(loaded)?;
     let core = compute_step::compute_core(validated, &input.options)?;
-    let rendered = render_step::render_outputs(&core, None, &input.options)?;
+    let report_model = report_step::build_report(&core, &input.options)?;
+    let rendered = render_step::render_outputs(&core, report_model, &input.options)?;
     render_step::merge_output(&mut output, rendered);
 
     Ok(output)

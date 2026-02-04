@@ -200,7 +200,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     for aux_tool in bijux_stages_fastq::fastq::qc_post::aux_tool_ids() {
         let spec = catalog
             .get(*aux_tool)
-            .ok_or_else(|| anyhow!("tool {aux_tool} missing from images.yaml"))?;
+            .ok_or_else(|| anyhow!("tool {aux_tool} missing from images.toml"))?;
         let image = resolve_image_for_run(spec, platform)?;
         aux_tools.insert(
             (*aux_tool).to_string(),

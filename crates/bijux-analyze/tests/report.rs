@@ -10,14 +10,7 @@ use bijux_core::{
 
 fn fixture_root() -> Result<PathBuf> {
     let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    let repo_root = manifest_dir
-        .parent()
-        .and_then(|p| p.parent())
-        .ok_or_else(|| anyhow::anyhow!("repo root not found"))?;
-    Ok(repo_root
-        .join("target")
-        .join("test-fixtures")
-        .join("report"))
+    Ok(manifest_dir.join("tests").join("fixtures").join("report"))
 }
 
 fn write_report_fixture(

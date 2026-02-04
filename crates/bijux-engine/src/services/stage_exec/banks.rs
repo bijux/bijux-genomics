@@ -261,7 +261,7 @@ fn bank_asset_name(bank_name: &str) -> &str {
     }
 }
 
-fn write_effective_bank_yaml(
+fn write_effective_bank_json(
     run_artifacts_dir: &Path,
     name: &str,
     bank_value: &serde_json::Value,
@@ -273,7 +273,7 @@ fn write_effective_bank_yaml(
     }
     let banks_dir = run_artifacts_dir.join("banks");
     bijux_infra::ensure_dir(&banks_dir).context("create banks dir")?;
-    let path = banks_dir.join(format!("effective_{name}.yaml"));
+    let path = banks_dir.join(format!("effective_{name}.json"));
     let payload = serde_json::json!({
         "bank_id": bank_value.get("bank_id"),
         "bank_hash": bank_value.get("bank_hash"),
@@ -297,8 +297,10 @@ fn write_effective_bank_yaml(
             })
         }).collect::<Vec<_>>(),
     });
-    let yaml = serde_yaml::to_string(&payload).context("serialize effective bank yaml")?;
-    bijux_infra::atomic_write_bytes(&path, yaml.as_bytes()).context("write effective bank yaml")?;
+    let json =
+        bijux_infra::formats::to_json_pretty(&payload).context("serialize effective bank json")?;
+    bijux_infra::atomic_write_bytes(&path, json.as_bytes())
+        .context("write effective bank json")?;
     let hash = hash_file_sha256(&path)?;
     Ok(Some((path, hash)))
 }
@@ -342,7 +344,7 @@ fn materialize_bank_assets(
             .filter_map(|reference| reference.fasta.clone())
             .collect();
         let fasta = write_effective_fasta(run_artifacts_dir, asset_name, &entries, &extra_fasta)?;
-        let yaml = write_effective_bank_yaml(
+        let json = write_effective_bank_json(
             run_artifacts_dir,
             asset_name,
             bank_value,
@@ -355,7 +357,7 @@ fn materialize_bank_assets(
             None
         };
         let record = serde_json::json!({
-            "yaml": yaml.as_ref().map(|(path, hash)| serde_json::json!({
+            "json": json.as_ref().map(|(path, hash)| serde_json::json!({
                 "path": path.display().to_string(),
                 "sha256": hash,
             })),

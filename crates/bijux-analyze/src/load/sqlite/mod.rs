@@ -5,8 +5,6 @@ use std::path::Path;
 
 use rusqlite::Connection;
 use serde::de::DeserializeOwned;
-use sha2::{Digest, Sha256};
-
 use anyhow::{anyhow, Result};
 
 use crate::model::JsonBlob;
@@ -105,12 +103,4 @@ pub(super) fn ensure_image_qa_identity_index(conn: &Connection) -> Result<()> {
                ON image_qa_v1 (tool, stage, tool_version, image_digest, runner, platform, input_hash)";
     conn.execute(sql, [])?;
     Ok(())
-}
-
-pub(super) fn params_hash(parameters: &JsonBlob) -> Result<String> {
-    let canonical = bijux_core::parameters_json_canonicalization(parameters.as_value());
-    let bytes = serde_json::to_vec(&canonical)?;
-    let mut hasher = Sha256::new();
-    hasher.update(bytes);
-    Ok(format!("{:x}", hasher.finalize()))
 }

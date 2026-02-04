@@ -18,4 +18,4 @@ Test images (Docker):
 TODO (digests)
 - We can’t populate `sha256:` repo digests for all images without pushing them to a registry.
 - Missing digests currently: `bwa`, `seqtk`, `fastqvalidator`, `fqtools`.
-- Once registry access is available, build + push, then update `configs/images.yaml` with repo digests.
+- Once registry access is available, build + push, then update `configs/images.toml` with repo digests.

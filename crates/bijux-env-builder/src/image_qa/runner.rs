@@ -72,7 +72,7 @@ fn run_image_qa_with(
 
     let seqkit_spec = catalog
         .get("seqkit")
-        .ok_or_else(|| anyhow!("seqkit missing from images.yaml"))?;
+        .ok_or_else(|| anyhow!("seqkit missing from images.toml"))?;
     let seqkit_image = resolve_image_for_run(seqkit_spec, platform)?;
 
     let registry = load_manifests(&std::env::current_dir()?.join("domain"))

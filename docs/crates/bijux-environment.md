@@ -1,9 +1,9 @@
 # bijux-environment
 
 This crate owns:
-- Platform selection (platforms.yaml)
+- Platform selection (platforms.toml)
 - Runner kinds and availability probes
-- Image catalog (images.yaml) and resolution into fully qualified image names
+- Image catalog (images.toml) and resolution into fully qualified image names
 - Lightweight validation for image presence in the catalog
 
 This crate does NOT own:

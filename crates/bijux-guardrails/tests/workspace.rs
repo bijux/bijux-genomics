@@ -680,6 +680,31 @@ fn workspace_no_cross_layer_imports() {
 }
 
 #[test]
+fn params_hash_only_defined_in_core() {
+    let root = workspace_root();
+    let mut offenders = Vec::new();
+    for entry in walkdir::WalkDir::new(root.join("crates"))
+        .into_iter()
+        .filter_map(Result::ok)
+        .filter(|entry| entry.path().extension().and_then(|s| s.to_str()) == Some("rs"))
+    {
+        let rel = entry.path().strip_prefix(&root).unwrap_or(entry.path());
+        let rel_str = rel.to_string_lossy();
+        if rel_str.ends_with("crates/bijux-core/src/hashing.rs") {
+            continue;
+        }
+        let content = std::fs::read_to_string(entry.path()).unwrap_or_default();
+        if content.contains("fn params_hash") {
+            offenders.push(rel.display().to_string());
+        }
+    }
+    assert!(
+        offenders.is_empty(),
+        "params_hash must only be defined in bijux-core: {offenders:?}"
+    );
+}
+
+#[test]
 fn workspace_single_orchestration_surface() {
     let root = workspace_root();
     let mut offenders = Vec::new();

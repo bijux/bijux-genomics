@@ -1,0 +1,45 @@
+{
+  "schema_version": "bijux.tool_invocation.v1",
+  "stage_id": "fastq.trim",
+  "tool_id": "fastp",
+  "tool_version": "0.23.4",
+  "resolved_tool_version": "0.23.4",
+  "image_digest": "sha256:img",
+  "runner_kind": "docker",
+  "platform": "linux",
+  "parameters_json": {
+    "min_len": 20
+  },
+  "parameters_json_normalized": {
+    "min_len": 20
+  },
+  "effective_params_json": {
+    "adapter_policy": "bank",
+    "min_len": 20,
+    "paired_mode": "single_end",
+    "threads": 1
+  },
+  "effective_params_json_normalized": {
+    "adapter_policy": "bank",
+    "min_len": 20,
+    "paired_mode": "single_end",
+    "threads": 1
+  },
+  "adapter_bank": null,
+  "banks": null,
+  "bank_assets": null,
+  "resources": {
+    "runtime": "docker",
+    "mem_gb": 1,
+    "tmp_gb": 1,
+    "threads": 1
+  },
+  "environment": {},
+  "input_hashes": [
+    "input"
+  ],
+  "output_hashes": [
+    "out"
+  ],
+  "executed_command": "fastp --in1 reads.fastq.gz"
+}

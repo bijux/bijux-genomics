@@ -81,7 +81,8 @@ pub fn polyx_presets_path() -> std::path::PathBuf {
 pub fn load_polyx_bank(path: &Path) -> Result<PolyxBankV1> {
     let contents = std::fs::read_to_string(path)
         .with_context(|| format!("read polyx bank {}", path.display()))?;
-    let bank: PolyxBankV1 = serde_yaml::from_str(&contents).context("parse polyx bank yaml")?;
+    let bank: PolyxBankV1 =
+        bijux_infra::formats::parse_yaml(&contents).context("parse polyx bank yaml")?;
     validate_polyx_bank(&bank)?;
     Ok(bank)
 }
@@ -94,7 +95,7 @@ pub fn load_polyx_presets(path: &Path, bank: &PolyxBankV1) -> Result<PolyxPreset
     let contents = std::fs::read_to_string(path)
         .with_context(|| format!("read polyx presets {}", path.display()))?;
     let presets: PolyxPresetsV1 =
-        serde_yaml::from_str(&contents).context("parse polyx presets yaml")?;
+        bijux_infra::formats::parse_yaml(&contents).context("parse polyx presets yaml")?;
     validate_polyx_presets(&presets, bank)?;
     Ok(presets)
 }

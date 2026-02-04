@@ -95,7 +95,7 @@ pub fn load_contaminant_motifs(path: &Path) -> Result<ContaminantMotifBankV1> {
     let contents = std::fs::read_to_string(path)
         .with_context(|| format!("read contaminant motifs {}", path.display()))?;
     let bank: ContaminantMotifBankV1 =
-        serde_yaml::from_str(&contents).context("parse contaminant motifs yaml")?;
+        bijux_infra::formats::parse_yaml(&contents).context("parse contaminant motifs yaml")?;
     validate_contaminant_motifs(&bank)?;
     Ok(bank)
 }
@@ -112,7 +112,7 @@ pub fn load_contaminant_presets(
     let contents = std::fs::read_to_string(path)
         .with_context(|| format!("read contaminant presets {}", path.display()))?;
     let presets: ContaminantPresetsV1 =
-        serde_yaml::from_str(&contents).context("parse contaminant presets yaml")?;
+        bijux_infra::formats::parse_yaml(&contents).context("parse contaminant presets yaml")?;
     validate_contaminant_presets(&presets, bank, references_dir)?;
     Ok(presets)
 }

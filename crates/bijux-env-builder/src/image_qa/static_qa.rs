@@ -14,7 +14,7 @@ pub(crate) fn run_static_qa(
 ) -> Result<()> {
     let spec = catalog
         .get(tool)
-        .ok_or_else(|| anyhow!("tool {tool} missing from images.yaml"))?;
+        .ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
     let image = resolve_image_for_run(spec, platform)?;
     if !docker_image_exists(&image) {
         return Err(anyhow!(

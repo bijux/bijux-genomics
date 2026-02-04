@@ -27,6 +27,7 @@ pub use crate::observability::{
     ReportProvenanceV1, ReportSchemaV1, ReportStageSummaryV1, RetentionContextV1,
     RetentionDefinitionV1, RetentionReportV1, StageObservabilityContextV1,
     StageObservabilityContractV1, StageReportV1, StageVerdictV1, TelemetryEventV1,
+    RunProvenanceV1,
 };
 pub use crate::selection::{
     objective_spec, BenchResultRecord, BenchResultStatus, Disqualification, Objective,
@@ -35,6 +36,8 @@ pub use crate::selection::{
 pub use crate::stage_plan::{
     ArtifactRef, CommandSpecV1, ContainerImageRefV1, StageIO, StagePlanJsonV1, StagePlanV1,
 };
+pub use crate::hashing::{params_hash, run_id_from_hashes};
+pub use crate::errors::{ErrorCategory, ErrorHintV1, HintSeverity};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -185,8 +188,6 @@ pub enum BijuxError {
     Io(#[from] std::io::Error),
     #[error("json error: {0}")]
     Json(#[from] serde_json::Error),
-    #[error("yaml error: {0}")]
-    Yaml(#[from] serde_yaml::Error),
 }
 
 impl From<bijux_infra::IoError> for BijuxError {
@@ -274,13 +275,14 @@ fn default_pull_policy() -> ImagePullPolicy {
     ImagePullPolicy::IfMissing
 }
 
-/// Load a profile from the given YAML file.
+/// Load a profile from the given TOML file.
 ///
 /// # Errors
-/// Returns an error if the file cannot be read or parsed as YAML.
+/// Returns an error if the file cannot be read or parsed as TOML.
 pub fn load_profile(path: &Path) -> Result<Profile, BijuxError> {
     let contents = std::fs::read_to_string(path)?;
-    let profile: Profile = serde_yaml::from_str(&contents)?;
+    let profile: Profile =
+        bijux_infra::formats::parse_toml(&contents).map_err(|err| BijuxError::Profile(err.message))?;
     Ok(profile)
 }
 
