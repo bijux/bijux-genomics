@@ -3,6 +3,7 @@
 
 use std::collections::BTreeMap;
 
+use bijux_core::selection::{objective_spec, Objective};
 use bijux_core::{MetricSemanticsV1, ReportCompletenessV1, ReportContractV1, ReportSchemaV1};
 
 use crate::decision::effect::default_thresholds;
@@ -110,6 +111,7 @@ pub(crate) fn build_report_sections(
 
 fn method_assumptions_section(report: &ReportSchemaV1) -> serde_json::Value {
     let thresholds = default_thresholds();
+    let objective = objective_spec(Objective::Balanced);
     let tools: Vec<serde_json::Value> = report
         .provenance
         .iter()
@@ -137,7 +139,19 @@ fn method_assumptions_section(report: &ReportSchemaV1) -> serde_json::Value {
         })
         .collect();
     serde_json::json!({
+        "decision_policy_version": "bijux.decision_policy.v1",
         "compare_objective": "balanced_default",
+        "objective_spec": objective,
+        "tie_break_policy": ["tool_id"],
+        "outlier_policy": {
+            "method": "mad",
+            "threshold": 3.5,
+        },
+        "bootstrap_policy": {
+            "enabled": false,
+            "samples": null,
+            "min_samples": 5,
+        },
         "effect_thresholds": {
             "absolute": thresholds.absolute,
             "relative": thresholds.relative,
@@ -147,6 +161,9 @@ fn method_assumptions_section(report: &ReportSchemaV1) -> serde_json::Value {
         "assumptions": [
             "compare_objective defaults to balanced when not specified",
             "effect_size uses absolute/relative thresholds for practical significance",
+            "outliers use MAD threshold 3.5",
+            "bootstrap confidence intervals are disabled by default",
+            "tie-breaks are resolved by tool_id when scores are equal",
         ],
     })
 }

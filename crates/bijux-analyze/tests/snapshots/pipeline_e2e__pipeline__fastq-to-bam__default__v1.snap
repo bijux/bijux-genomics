@@ -809,12 +809,33 @@ expression: report
     "method_assumptions": {
       "assumptions": [
         "compare_objective defaults to balanced when not specified",
-        "effect_size uses absolute/relative thresholds for practical significance"
+        "effect_size uses absolute/relative thresholds for practical significance",
+        "outliers use MAD threshold 3.5",
+        "bootstrap confidence intervals are disabled by default",
+        "tie-breaks are resolved by tool_id when scores are equal"
       ],
+      "bootstrap_policy": {
+        "enabled": false,
+        "min_samples": 5,
+        "samples": null
+      },
       "compare_objective": "balanced_default",
+      "decision_policy_version": "bijux.decision_policy.v1",
       "effect_thresholds": {
         "absolute": 0.05,
         "relative": 0.05
+      },
+      "objective_spec": {
+        "name": "balanced",
+        "weights": {
+          "memory": 1.0,
+          "retention": -100.0,
+          "runtime": 1.0
+        }
+      },
+      "outlier_policy": {
+        "method": "mad",
+        "threshold": 3.5
       },
       "presets": [
         {
@@ -859,6 +880,9 @@ expression: report
           "tool_id": "planner",
           "tool_version": "0.0.0"
         }
+      ],
+      "tie_break_policy": [
+        "tool_id"
       ],
       "tools": [
         {
