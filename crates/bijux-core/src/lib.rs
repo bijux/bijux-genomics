@@ -24,7 +24,7 @@ pub mod stage_plugin;
 
 pub use execution_contract::validate_execution_outputs;
 pub use execution_manifest::ExecutionManifest;
-pub use explain::{ExplainExclusion, ExplainPlan};
+pub use explain::{ExplainExclusion, ExplainPlan, PlanExplainStageV1, PlanExplainV1};
 pub use run_record::{RunRecordV1, StageExecutionRecordV1};
 
 use chrono::{DateTime, Utc};

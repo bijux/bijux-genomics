@@ -35,7 +35,8 @@ pub use crate::selection::{
     ObjectiveSpec, ObjectiveWeights, StageSelection, ToolScore,
 };
 pub use crate::stage_plan::{
-    ArtifactRef, CommandSpecV1, ContainerImageRefV1, StageIO, StagePlanJsonV1, StagePlanV1,
+    ArtifactRef, CommandSpecV1, ContainerImageRefV1, PlanDecisionReason, PlanReasonKind, StageIO,
+    StagePlanJsonV1, StagePlanV1,
 };
 pub use crate::hashing::{params_hash, run_id_from_hashes};
 pub use crate::errors::{

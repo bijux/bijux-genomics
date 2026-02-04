@@ -5,6 +5,47 @@ use serde::{Deserialize, Serialize};
 
 use crate::{StageId, StageVersion, ToolConstraints, ToolId};
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum PlanReasonKind {
+    Default,
+    Profile,
+    Override,
+    Fallback,
+    Compatibility,
+    InputAssessed,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct PlanDecisionReason {
+    pub kind: PlanReasonKind,
+    pub summary: String,
+    #[serde(default)]
+    pub details: serde_json::Value,
+}
+
+impl PlanDecisionReason {
+    #[must_use]
+    pub fn new(kind: PlanReasonKind, summary: impl Into<String>) -> Self {
+        Self {
+            kind,
+            summary: summary.into(),
+            details: serde_json::Value::Object(serde_json::Map::new()),
+        }
+    }
+}
+
+impl Default for PlanDecisionReason {
+    fn default() -> Self {
+        Self {
+            kind: PlanReasonKind::Default,
+            summary: "planner default".to_string(),
+            details: serde_json::Value::Object(serde_json::Map::new()),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct ArtifactRef {
     pub name: String,
@@ -47,15 +88,19 @@ pub struct StagePlanV1 {
     pub effective_params: serde_json::Value,
     #[serde(default)]
     pub aux_images: BTreeMap<String, ContainerImageRefV1>,
+    #[serde(default)]
+    pub reason: PlanDecisionReason,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StagePlanJsonV1 {
     pub stage_id: String,
     pub stage_version: String,
     pub io: StageIO,
     pub parameters: serde_json::Value,
     pub effective_params: serde_json::Value,
+    #[serde(default)]
+    pub reason: PlanDecisionReason,
 }
 
 impl StagePlanJsonV1 {
@@ -69,6 +114,7 @@ impl StagePlanJsonV1 {
             io: plan.io.clone(),
             parameters: plan.params.clone(),
             effective_params: plan.effective_params.clone(),
+            reason: plan.reason.clone(),
         }
     }
 }

@@ -43,6 +43,7 @@ fn execution_plan_roundtrip_is_canonical() -> anyhow::Result<()> {
             params: serde_json::json!({"sample_id": "sample-1"}),
             effective_params: serde_json::json!({"sample_id": "sample-1"}),
             aux_images: std::collections::BTreeMap::new(),
+            reason: bijux_core::PlanDecisionReason::default(),
         }],
         vec![PlanEdge::new("fastq.trim", "fastq.trim")],
     );
@@ -85,6 +86,7 @@ fn execution_plan_roundtrip_is_canonical() -> anyhow::Result<()> {
                 params: serde_json::json!({"sample_id": "sample-1"}),
                 effective_params: serde_json::json!({"sample_id": "sample-1"}),
                 aux_images: std::collections::BTreeMap::new(),
+                reason: bijux_core::PlanDecisionReason::default(),
             },
             StagePlanV1 {
                 stage_id: StageId("fastq.trim".to_string()),
@@ -118,6 +120,7 @@ fn execution_plan_roundtrip_is_canonical() -> anyhow::Result<()> {
                 params: serde_json::json!({"sample_id": "sample-1"}),
                 effective_params: serde_json::json!({"sample_id": "sample-1"}),
                 aux_images: std::collections::BTreeMap::new(),
+                reason: bijux_core::PlanDecisionReason::default(),
             },
         ],
         vec![PlanEdge::new("fastq.trim", "fastq.filter")],
@@ -130,5 +133,8 @@ fn execution_plan_roundtrip_is_canonical() -> anyhow::Result<()> {
         encoded, reencoded,
         "execution plan roundtrip must be canonical"
     );
+    let hash_before = plan.plan_hash()?;
+    let hash_after = decoded.plan_hash()?;
+    assert_eq!(hash_before, hash_after, "plan_hash must be stable");
     Ok(())
 }

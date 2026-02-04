@@ -380,6 +380,8 @@ pub struct RunProvenanceV1 {
     pub pipeline_id: String,
     pub git_commit: String,
     pub build_profile: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub plan_hash: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

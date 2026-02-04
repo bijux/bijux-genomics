@@ -3,7 +3,52 @@ use std::collections::{HashMap, HashSet};
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 
-use crate::StagePlanV1;
+use crate::{
+    ArtifactRef, ContainerImageRefV1, PlanDecisionReason, StagePlanV1, ToolConstraints,
+};
+use sha2::Digest;
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct PlannerContractV1 {
+    pub stage_id: String,
+    pub tool_id: String,
+    pub tool_version: Option<String>,
+    pub image_ref: Option<ContainerImageRefV1>,
+    pub parameters_json: serde_json::Value,
+    pub effective_parameters_json: serde_json::Value,
+    pub inputs: Vec<ArtifactRef>,
+    pub outputs: Vec<ArtifactRef>,
+    pub resources: ToolConstraints,
+    pub reason: PlanDecisionReason,
+}
+
+impl From<&StagePlanV1> for PlannerContractV1 {
+    fn from(stage: &StagePlanV1) -> Self {
+        let tool_version = if stage.tool_version.trim().is_empty() {
+            None
+        } else {
+            Some(stage.tool_version.clone())
+        };
+        let image_ref = if stage.image.image.trim().is_empty() {
+            None
+        } else {
+            Some(stage.image.clone())
+        };
+        Self {
+            stage_id: stage.stage_id.0.clone(),
+            tool_id: stage.tool_id.0.clone(),
+            tool_version,
+            image_ref,
+            parameters_json: stage.params.clone(),
+            effective_parameters_json: stage.effective_params.clone(),
+            inputs: stage.io.inputs.clone(),
+            outputs: stage.io.outputs.clone(),
+            resources: stage.resources.clone(),
+            reason: stage.reason.clone(),
+        }
+    }
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -49,6 +94,12 @@ pub struct ExecutionPlan {
     policy: PlanPolicy,
     stages: Vec<StagePlanV1>,
     edges: Vec<PlanEdge>,
+}
+
+#[derive(Debug, Clone)]
+pub struct PlanValidationContext<'a> {
+    pub allowed_stage_ids: Option<&'a HashSet<String>>,
+    pub allowed_tool_ids: Option<&'a HashSet<String>>,
 }
 
 impl ExecutionPlan {
@@ -108,6 +159,88 @@ impl ExecutionPlan {
         };
         lint_execution_plan(&plan)?;
         Ok(plan)
+    }
+
+    /// # Errors
+    /// Returns an error if the plan violates strict completeness requirements.
+    pub fn validate_strict(&self, context: PlanValidationContext<'_>) -> Result<()> {
+        lint_execution_plan(self)?;
+        let mut stage_ids = HashSet::new();
+        for stage in &self.stages {
+            stage_ids.insert(stage.stage_id.0.clone());
+            if stage.tool_id.0.trim().is_empty() {
+                return Err(anyhow!("stage {} missing tool_id", stage.stage_id.0));
+            }
+            if stage.tool_version.trim().is_empty() && stage.image.image.trim().is_empty() {
+                return Err(anyhow!(
+                    "stage {} missing tool_version or image_ref",
+                    stage.stage_id.0
+                ));
+            }
+            if stage.params.is_null() {
+                return Err(anyhow!(
+                    "stage {} missing parameters_json",
+                    stage.stage_id.0
+                ));
+            }
+            if stage.effective_params.is_null() {
+                return Err(anyhow!(
+                    "stage {} missing effective_parameters_json",
+                    stage.stage_id.0
+                ));
+            }
+            if stage.io.inputs.is_empty() || stage.io.outputs.is_empty() {
+                return Err(anyhow!(
+                    "stage {} missing declared inputs/outputs",
+                    stage.stage_id.0
+                ));
+            }
+            if stage.resources.runtime.trim().is_empty()
+                || stage.resources.mem_gb == 0
+                || stage.resources.tmp_gb == 0
+                || stage.resources.threads == 0
+            {
+                return Err(anyhow!(
+                    "stage {} missing complete resources",
+                    stage.stage_id.0
+                ));
+            }
+            if stage.reason.summary.trim().is_empty() {
+                return Err(anyhow!("stage {} missing reason", stage.stage_id.0));
+            }
+        }
+        if let Some(allowed) = context.allowed_stage_ids {
+            for stage_id in &stage_ids {
+                if !allowed.contains(stage_id) {
+                    return Err(anyhow!("unknown stage id in plan: {stage_id}"));
+                }
+            }
+        }
+        if let Some(allowed) = context.allowed_tool_ids {
+            for stage in &self.stages {
+                if !allowed.contains(&stage.tool_id.0) {
+                    return Err(anyhow!("unknown tool id in plan: {}", stage.tool_id.0));
+                }
+            }
+        }
+        Ok(())
+    }
+
+    /// # Errors
+    /// Returns an error if canonical JSON serialization fails.
+    pub fn canonical_json(&self) -> Result<serde_json::Value> {
+        let value = serde_json::to_value(self)?;
+        Ok(crate::observability::canonicalize_json_value(&value))
+    }
+
+    /// # Errors
+    /// Returns an error if canonical JSON serialization fails.
+    pub fn plan_hash(&self) -> Result<String> {
+        let canonical = self.canonical_json()?;
+        let bytes = serde_json::to_vec(&canonical)?;
+        let mut hasher = sha2::Sha256::new();
+        hasher.update(bytes);
+        Ok(format!("{:x}", hasher.finalize()))
     }
 }
 
