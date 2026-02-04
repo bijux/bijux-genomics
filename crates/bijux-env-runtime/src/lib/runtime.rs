@@ -136,7 +136,7 @@ arch = "arm64"
             &path,
             b"[fastp]\nversion = \"0.23.4\"\ndigest = \"sha256:abc123\"\n\n[bwa]\nversion = \"0.7.17\"\n",
         )
-        .map_err(|err| std::io::Error::new(std::io::ErrorKind::Other, err))?;
+        .map_err(std::io::Error::other)?;
         let catalog = load_image_catalog_from_file(&path)?;
         assert!(catalog.contains_key("fastp"));
         let _ = bijux_infra::remove_file(&path);
