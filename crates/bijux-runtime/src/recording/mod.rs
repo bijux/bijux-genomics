@@ -211,8 +211,8 @@ pub fn write_plan_provenance(run_dir: &Path, plan: &ExecutionPlan) -> Result<Pat
             .unwrap_or_else(|| "unknown".to_string());
         invocations.push(ToolInvocationV1 {
             schema_version: "bijux.tool_invocation.v1".to_string(),
-            stage_id: stage.stage_id.0.clone(),
-            tool_id: stage.tool_id.0.clone(),
+            stage_id: stage.stage_id.to_string(),
+            tool_id: stage.tool_id.to_string(),
             tool_version: stage.tool_version.clone(),
             resolved_tool_version: None,
             image_digest,

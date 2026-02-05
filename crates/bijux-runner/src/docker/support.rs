@@ -21,7 +21,7 @@ pub fn build_tool_execution_spec<S: ::std::hash::BuildHasher>(
         .ok_or_else(|| anyhow!("tool {tool_id} missing from images.toml"))?;
     let image = resolve_image_for_run(spec, platform)?;
     Ok(ToolExecutionSpecV1 {
-        tool_id: ToolId(tool_id.to_string()),
+        tool_id: ToolId::new(tool_id),
         tool_version: spec.version.clone(),
         image: ContainerImageRefV1 {
             image: image.full_name,

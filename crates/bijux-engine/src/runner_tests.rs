@@ -35,10 +35,9 @@ impl Runner for FakeRunner {
             .borrow_mut()
             .push(format!("{}:{}", plan.stage_id.0, attempt));
         let mut fail_first = self.fail_first.borrow_mut();
-        let should_fail =
-            fail_first.iter().any(|id| id == plan.stage_id.0.as_str()) && attempt == 0;
+        let should_fail = fail_first.iter().any(|id| id == plan.stage_id.as_str()) && attempt == 0;
         if should_fail {
-            fail_first.retain(|id| id != plan.stage_id.0.as_str());
+            fail_first.retain(|id| id != plan.stage_id.as_str());
         }
         Ok(RunnerResult {
             exit_code: i32::from(should_fail),
@@ -52,9 +51,9 @@ impl Runner for FakeRunner {
 
 fn plan_for(stage_id: &str) -> StagePlanV1 {
     StagePlanV1 {
-        stage_id: StageId(stage_id.to_string()),
+        stage_id: StageId::new(stage_id),
         stage_version: StageVersion(1),
-        tool_id: ToolId("tool".to_string()),
+        tool_id: ToolId::from_static("tool"),
         tool_version: "0.0.0".to_string(),
         image: ContainerImageRefV1 {
             image: "tool".to_string(),

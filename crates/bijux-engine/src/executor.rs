@@ -30,13 +30,13 @@ pub fn execute_plan(
                 break success;
             }
             if attempt >= options.retries {
-                let stage_id = stage.stage_id.0.clone();
+                let stage_id = stage.stage_id.to_string();
                 return Err(anyhow!("stage failed after retries: {stage_id}"));
             }
             attempt += 1;
         };
         results.push(StageExecutionRecordV1 {
-            stage_id: stage.stage_id.0.clone(),
+            stage_id: stage.stage_id.to_string(),
             attempt,
             success: last_success,
             cached: false,
@@ -51,11 +51,11 @@ fn topo_order<'a>(
 ) -> Result<Vec<&'a StagePlanV1>> {
     let mut by_id: HashMap<&str, &StagePlanV1> = HashMap::new();
     for stage in stages {
-        by_id.insert(stage.stage_id.0.as_str(), stage);
+        by_id.insert(stage.stage_id.as_str(), stage);
     }
     let mut indegree: HashMap<&str, usize> = stages
         .iter()
-        .map(|stage| (stage.stage_id.0.as_str(), 0))
+        .map(|stage| (stage.stage_id.as_str(), 0))
         .collect();
     let mut adjacency: HashMap<&str, Vec<&str>> = HashMap::new();
     for edge in edges {
@@ -69,14 +69,8 @@ fn topo_order<'a>(
     }
     let mut queue: VecDeque<&str> = stages
         .iter()
-        .filter(|stage| {
-            indegree
-                .get(stage.stage_id.0.as_str())
-                .copied()
-                .unwrap_or(0)
-                == 0
-        })
-        .map(|stage| stage.stage_id.0.as_str())
+        .filter(|stage| indegree.get(stage.stage_id.as_str()).copied().unwrap_or(0) == 0)
+        .map(|stage| stage.stage_id.as_str())
         .collect();
     let mut order = Vec::with_capacity(stages.len());
     let mut seen = HashSet::new();
