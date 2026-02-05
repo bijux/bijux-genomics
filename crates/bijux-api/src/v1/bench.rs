@@ -6,25 +6,14 @@ pub use bijux_analyze::compare::compare_runs_with_baseline;
 pub use bijux_analyze::{build_rankings, compare_runs, print_bench_schema, RankInput};
 
 pub use crate::args::{BamRunArgs, BenchBamPipelineArgs, BenchBamStageArgs};
+pub use bijux_benchmark::{benchmark_runs, write_benchmark_exports};
 pub use bijux_core::contract::{Objective, ObjectiveSpec, ObjectiveWeights};
 pub use bijux_core::selection::objective_spec;
 pub use bijux_planner_bam::stage_api::{bam_stage_completeness, BamStage};
 pub use bijux_planner_fastq::stage_api as fastq_banks;
 pub use bijux_planner_fastq::stage_api::args as fastq_args;
-pub use bijux_planner_fastq::stage_api::banks::{
-    resolve_adapter_selection, resolve_contaminant_selection, resolve_polyx_selection,
-};
-pub use bijux_planner_fastq::stage_api::{
-    adapter_bank_path, adapter_presets_path, benchmark_runs, contaminant_motifs_path,
-    contaminant_presets_path, contaminant_references_dir, load_adapter_bank, load_adapter_presets,
-    load_contaminant_motifs, load_contaminant_presets, load_polyx_bank, load_polyx_presets,
-    polyx_bank_path, polyx_presets_path, qc_class_for_stage, write_benchmark_exports,
-    AdapterPresetsV1, BenchCorpusId, EffectiveAdapterSet, QcClass, ReadScope, STAGES,
-};
+pub use bijux_planner_fastq::stage_api::banks as fastq_bank_ops;
+pub use bijux_planner_fastq::stage_api::*;
 
 pub use crate::handlers::bam::{bench_bam_pipeline, bench_bam_stage};
-pub use crate::handlers::fastq::{
-    bench_fastq_correct, bench_fastq_filter, bench_fastq_merge, bench_fastq_preprocess,
-    bench_fastq_qc_post, bench_fastq_screen, bench_fastq_stats_neutral, bench_fastq_trim,
-    bench_fastq_umi, bench_fastq_validate_pre,
-};
+pub use crate::handlers::fastq::*;
