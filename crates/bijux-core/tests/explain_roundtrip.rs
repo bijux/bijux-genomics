@@ -8,9 +8,9 @@ use std::path::PathBuf;
 #[test]
 fn explain_roundtrip_is_deterministic() -> anyhow::Result<()> {
     let stage = StagePlanV1 {
-        stage_id: StageId("stage.a".to_string()),
+        stage_id: StageId::from_static("stage.a"),
         stage_version: StageVersion(1),
-        tool_id: ToolId("tool".to_string()),
+        tool_id: ToolId::from_static("tool"),
         tool_version: "1.0.0".to_string(),
         image: ContainerImageRefV1 {
             image: "tool:1.0.0".to_string(),

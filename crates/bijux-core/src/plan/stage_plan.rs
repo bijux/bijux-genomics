@@ -107,7 +107,7 @@ pub struct StagePlanJsonV1 {
 impl StagePlanJsonV1 {
     #[must_use]
     pub fn from_plan(plan: &StagePlanV1) -> Self {
-        let stage_id = plan.stage_id.0.clone();
+        let stage_id = plan.stage_id.to_string();
         let stage_version = plan.stage_version.0.to_string();
         Self {
             stage_id,

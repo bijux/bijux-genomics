@@ -35,8 +35,8 @@ impl From<&StagePlanV1> for PlannerContractV1 {
             Some(stage.image.clone())
         };
         Self {
-            stage_id: stage.stage_id.0.clone(),
-            tool_id: stage.tool_id.0.clone(),
+            stage_id: stage.stage_id.to_string(),
+            tool_id: stage.tool_id.to_string(),
             tool_version,
             image_ref,
             parameters_json: stage.params.clone(),
@@ -166,7 +166,7 @@ impl ExecutionPlan {
         lint_execution_plan(self)?;
         let mut stage_ids = HashSet::new();
         for stage in &self.stages {
-            stage_ids.insert(stage.stage_id.0.clone());
+            stage_ids.insert(stage.stage_id.to_string());
             if stage.tool_id.0.trim().is_empty() {
                 return Err(anyhow!("stage {} missing tool_id", stage.stage_id.0));
             }
@@ -217,7 +217,7 @@ impl ExecutionPlan {
         }
         if let Some(allowed) = context.allowed_tool_ids {
             for stage in &self.stages {
-                if !allowed.contains(&stage.tool_id.0) {
+                if !allowed.contains(stage.tool_id.as_str()) {
                     return Err(anyhow!("unknown tool id in plan: {}", stage.tool_id.0));
                 }
             }
@@ -254,7 +254,7 @@ pub fn lint_execution_plan(plan: &ExecutionPlan) -> Result<()> {
     }
     let mut stage_ids = HashSet::new();
     for stage in &plan.stages {
-        if !stage_ids.insert(stage.stage_id.0.clone()) {
+        if !stage_ids.insert(stage.stage_id.to_string()) {
             return Err(anyhow!("duplicate stage id in plan: {}", stage.stage_id.0));
         }
         if stage.io.inputs.is_empty() {
@@ -335,8 +335,8 @@ pub fn default_edges_for_stages(stages: &[StagePlanV1]) -> Vec<PlanEdge> {
     for window in stages.windows(2) {
         if let [from, to] = window {
             edges.push(PlanEdge::new(
-                from.stage_id.0.clone(),
-                to.stage_id.0.clone(),
+                from.stage_id.to_string(),
+                to.stage_id.to_string(),
             ));
         }
     }

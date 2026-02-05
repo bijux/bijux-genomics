@@ -7,7 +7,7 @@ pub mod run_record;
 pub mod selection;
 pub mod tooling;
 
-pub use crate::ids::{RunId, StageId, StageVersion, ToolId};
+pub use crate::ids::{PipelineId, RunId, StageId, StageVersion, ToolId};
 pub use crate::metadata::{
     RunMetadataV1, StageMetadataV1, ToolExecutionMetadataV1, ToolInvocationMetadataV1,
 };

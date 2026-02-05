@@ -12,9 +12,9 @@ fn execution_plan_roundtrip_is_canonical() -> anyhow::Result<()> {
         "planner-fastq@1",
         PlanPolicy::PreferAccuracy,
         vec![StagePlanV1 {
-            stage_id: StageId("fastq.trim".to_string()),
+            stage_id: StageId::from_static("fastq.trim"),
             stage_version: StageVersion(1),
-            tool_id: ToolId("fastp".to_string()),
+            tool_id: ToolId::from_static("fastp"),
             tool_version: "0.23.4".to_string(),
             image: ContainerImageRefV1 {
                 image: "bijux/fastp".to_string(),
@@ -55,9 +55,9 @@ fn execution_plan_roundtrip_is_canonical() -> anyhow::Result<()> {
         PlanPolicy::PreferAccuracy,
         vec![
             StagePlanV1 {
-                stage_id: StageId("fastq.filter".to_string()),
+                stage_id: StageId::from_static("fastq.filter"),
                 stage_version: StageVersion(1),
-                tool_id: ToolId("fastp".to_string()),
+                tool_id: ToolId::from_static("fastp"),
                 tool_version: "0.23.4".to_string(),
                 image: ContainerImageRefV1 {
                     image: "bijux/fastp".to_string(),
@@ -89,9 +89,9 @@ fn execution_plan_roundtrip_is_canonical() -> anyhow::Result<()> {
                 reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
             },
             StagePlanV1 {
-                stage_id: StageId("fastq.trim".to_string()),
+                stage_id: StageId::from_static("fastq.trim"),
                 stage_version: StageVersion(1),
-                tool_id: ToolId("fastp".to_string()),
+                tool_id: ToolId::from_static("fastp"),
                 tool_version: "0.23.4".to_string(),
                 image: ContainerImageRefV1 {
                     image: "bijux/fastp".to_string(),

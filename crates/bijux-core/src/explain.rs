@@ -44,8 +44,8 @@ impl PlanExplainV1 {
             .stages()
             .iter()
             .map(|stage| PlanExplainStageV1 {
-                stage_id: stage.stage_id.0.clone(),
-                tool_id: stage.tool_id.0.clone(),
+                stage_id: stage.stage_id.to_string(),
+                tool_id: stage.tool_id.to_string(),
                 tool_version: stage.tool_version.clone(),
                 image: if stage.image.image.is_empty() {
                     None

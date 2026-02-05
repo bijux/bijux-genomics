@@ -63,10 +63,10 @@ pub fn build_run_execution_plan(
 ) -> Result<RunExecutionPlan> {
     let stage_spec = registry
         .stages()
-        .get(run_spec.stage.0.as_str())
+        .get(run_spec.stage.as_str())
         .ok_or_else(|| anyhow!("missing stage {}", run_spec.stage.0))?;
     let tool_manifest = registry
-        .tool_by_id(run_spec.stage.0.as_str(), run_spec.tool.0.as_str())
+        .tool_by_id(run_spec.stage.as_str(), run_spec.tool.as_str())
         .ok_or_else(|| anyhow!("missing tool {} for {}", run_spec.tool.0, run_spec.stage.0))?;
 
     let run_dir = run_dir(
