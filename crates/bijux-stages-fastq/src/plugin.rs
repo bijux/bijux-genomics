@@ -1,5 +1,5 @@
 use anyhow::Result;
-use bijux_core::stage_plugin::{StageInvocationV1, StagePlugin, StagePluginOutputV1};
+use bijux_core::plan::stage_plugin::{StageInvocationV1, StagePlugin, StagePluginOutputV1};
 use bijux_core::{ArtifactRef, StagePlanV1};
 
 use crate::metrics;

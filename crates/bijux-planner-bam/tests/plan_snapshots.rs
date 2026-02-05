@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 
-use bijux_core::execution_plan::PlanPolicy;
+use bijux_core::plan::execution_plan::PlanPolicy;
 use bijux_core::{
     CommandSpecV1, ContainerImageRefV1, StageId, StagePlanV1, StageVersion, ToolConstraints, ToolId,
 };

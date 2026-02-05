@@ -3,12 +3,12 @@ use std::path::PathBuf;
 
 use anyhow::{anyhow, Result};
 use bijux_core::domain::PipelineSpec;
-use bijux_core::execution_plan::{default_edges_for_stages, ExecutionPlan, PlanPolicy};
 use bijux_core::input_assessment::{assess_input_dir, FastqLayout};
+use bijux_core::plan::execution_plan::{default_edges_for_stages, ExecutionPlan, PlanPolicy};
+use bijux_core::PlanExplainV1;
 use bijux_core::{
     ContainerImageRefV1, PlanDecisionReason, PlanReasonKind, StagePlanV1, ToolExecutionSpecV1,
 };
-use bijux_core::{PlanExplainStageV1, PlanExplainV1};
 use bijux_domain_fastq::assess_merge_suitability;
 use bijux_pipelines::fastq::canonical_tool_defaults;
 
@@ -490,34 +490,7 @@ pub fn plan_fastq_to_bam__default__v1(
 
 #[must_use]
 pub fn explain_plan(plan: &ExecutionPlan) -> PlanExplainV1 {
-    let stages = plan
-        .stages()
-        .iter()
-        .map(|stage| PlanExplainStageV1 {
-            stage_id: stage.stage_id.0.clone(),
-            tool_id: stage.tool_id.0.clone(),
-            tool_version: stage.tool_version.clone(),
-            image: stage.image.digest.clone().or_else(|| {
-                if stage.image.image.is_empty() {
-                    None
-                } else {
-                    Some(stage.image.image.clone())
-                }
-            }),
-            reason: stage.reason.clone(),
-            parameters_json: stage.params.clone(),
-            effective_parameters_json: stage.effective_params.clone(),
-            inputs: stage.io.inputs.clone(),
-            outputs: stage.io.outputs.clone(),
-        })
-        .collect();
-    PlanExplainV1 {
-        schema_version: "bijux.plan_explain.v1".to_string(),
-        pipeline_id: plan.pipeline_id().to_string(),
-        planner_version: plan.planner_version().to_string(),
-        policy: plan.policy(),
-        stages,
-    }
+    PlanExplainV1::from_plan(plan)
 }
 
 #[must_use]

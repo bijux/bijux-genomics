@@ -2,9 +2,9 @@ use std::collections::BTreeMap;
 use std::path::PathBuf;
 
 use anyhow::{anyhow, Result};
-use bijux_core::execution_plan::{default_edges_for_stages, ExecutionPlan, PlanPolicy};
+use bijux_core::plan::execution_plan::{default_edges_for_stages, ExecutionPlan, PlanPolicy};
+use bijux_core::PlanExplainV1;
 use bijux_core::StagePlanV1;
-use bijux_core::{PlanExplainStageV1, PlanExplainV1};
 use bijux_domain_bam::BamStage;
 use bijux_pipelines::bam::{bam_adna_capture_profile, bam_adna_shotgun_profile};
 use bijux_pipelines::PipelineProfile;
@@ -168,32 +168,5 @@ fn build_bam_plan(profile: &PipelineProfile, inputs: &BamPipelineInputs) -> Resu
 
 #[must_use]
 pub fn explain_plan(plan: &ExecutionPlan) -> PlanExplainV1 {
-    let stages = plan
-        .stages()
-        .iter()
-        .map(|stage| PlanExplainStageV1 {
-            stage_id: stage.stage_id.0.clone(),
-            tool_id: stage.tool_id.0.clone(),
-            tool_version: stage.tool_version.clone(),
-            image: stage.image.digest.clone().or_else(|| {
-                if stage.image.image.is_empty() {
-                    None
-                } else {
-                    Some(stage.image.image.clone())
-                }
-            }),
-            reason: stage.reason.clone(),
-            parameters_json: stage.params.clone(),
-            effective_parameters_json: stage.effective_params.clone(),
-            inputs: stage.io.inputs.clone(),
-            outputs: stage.io.outputs.clone(),
-        })
-        .collect();
-    PlanExplainV1 {
-        schema_version: "bijux.plan_explain.v1".to_string(),
-        pipeline_id: plan.pipeline_id().to_string(),
-        planner_version: plan.planner_version().to_string(),
-        policy: plan.policy(),
-        stages,
-    }
+    PlanExplainV1::from_plan(plan)
 }
