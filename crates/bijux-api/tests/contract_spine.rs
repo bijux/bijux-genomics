@@ -152,9 +152,11 @@ fn golden_spine_contract() -> Result<()> {
 
     let provenance_raw = std::fs::read(&provenance_path)?;
     let provenance_json: serde_json::Value = serde_json::from_slice(&provenance_raw)?;
-    assert!(provenance_json["tools"].as_array().unwrap_or(&Vec::new()).iter().any(|tool| {
-        tool["image_digest"] == "sha256:deadbeef"
-    }));
+    assert!(provenance_json["tools"]
+        .as_array()
+        .unwrap_or(&Vec::new())
+        .iter()
+        .any(|tool| { tool["image_digest"] == "sha256:deadbeef" }));
 
     Ok(())
 }

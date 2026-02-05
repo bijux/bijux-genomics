@@ -6,8 +6,8 @@
 //! - report: report rendering + export helpers.
 //! - bench: benchmarking + comparison helpers.
 
-pub mod bench;
 pub mod bam;
+pub mod bench;
 pub mod fastq;
 pub mod plan;
 pub mod report;

@@ -9,9 +9,9 @@ use bijux_runner::primitives::build_tool_execution_spec;
 use bijux_runner::primitives::execute_stage_plan;
 
 use crate::args::{BamRunArgs, FastqCrossArgs};
-use crate::v1::bam::plan_for_bam_stage_with_profile;
-use crate::v1::bam::downstream_enabled;
 use crate::fastq_router::StageExecutionSummary;
+use crate::v1::bam::downstream_enabled;
+use crate::v1::bam::plan_for_bam_stage_with_profile;
 
 pub fn run_bam_truth_stages<S: std::hash::BuildHasher>(
     registry_core: &ToolRegistry,
