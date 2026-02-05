@@ -292,11 +292,8 @@ dependencies = [
  "anyhow",
  "bijux-analyze",
  "bijux-core",
- "bijux-domain-bam",
- "bijux-domain-fastq",
  "bijux-engine",
  "bijux-environment",
- "bijux-exec",
  "bijux-guardrails",
  "bijux-infra",
  "bijux-pipelines",
@@ -427,31 +424,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "bijux-exec"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "bijux-core",
- "bijux-domain-bam",
- "bijux-engine",
- "bijux-environment",
- "bijux-guardrails",
- "bijux-infra",
- "bijux-pipelines",
- "bijux-runner",
- "bijux-stages-bam",
- "bijux-stages-fastq",
- "chrono",
- "flate2",
- "serde",
- "serde_json",
- "sha2",
- "tempfile",
- "tracing",
- "uuid",
-]
-
-[[package]]
 name = "bijux-guardrails"
 version = "0.1.0"
 dependencies = [
@@ -567,7 +539,6 @@ dependencies = [
  "bijux-core",
  "bijux-domain-fastq",
  "bijux-environment",
- "bijux-exec",
  "bijux-guardrails",
  "bijux-infra",
  "bijux-pipelines",
