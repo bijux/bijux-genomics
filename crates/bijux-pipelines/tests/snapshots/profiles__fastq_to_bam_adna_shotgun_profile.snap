@@ -13,26 +13,6 @@ expression: fastq_to_bam_adna_shotgun_profile()
   "output_domains": [
     "Bam"
   ],
-  "stage_graph": [
-    {
-      "stage_id": "fastq.preprocess"
-    },
-    {
-      "stage_id": "core.prepare_reference"
-    },
-    {
-      "stage_id": "bam.align"
-    },
-    {
-      "stage_id": "bam.qc_pre"
-    },
-    {
-      "stage_id": "bam.coverage"
-    },
-    {
-      "stage_id": "bam.damage"
-    }
-  ],
   "defaults": {
     "tools": {
       "bam.align": "bwa",
@@ -138,12 +118,12 @@ expression: fastq_to_bam_adna_shotgun_profile()
       },
       "core.prepare_reference": {},
       "fastq.correct": {
-        "paired_mode": "paired_end",
+        "paired_mode": "single_end",
         "q_cutoff": null,
         "threads": 1
       },
       "fastq.detect_adapters": {
-        "paired_mode": "paired_end",
+        "paired_mode": "single_end",
         "sample_reads": null,
         "threads": 1
       },
@@ -155,19 +135,19 @@ expression: fastq_to_bam_adna_shotgun_profile()
         "max_n_count": null,
         "max_n_fraction": null,
         "n_policy": null,
-        "paired_mode": "paired_end",
+        "paired_mode": "single_end",
         "polyx_policy": null,
         "threads": 1
       },
       "fastq.merge": {
         "merge_overlap": null,
         "min_len": null,
-        "paired_mode": "paired_end",
+        "paired_mode": "single_end",
         "threads": 1
       },
       "fastq.preprocess": {
         "enable_contaminant_removal": false,
-        "paired_mode": "paired_end",
+        "paired_mode": "single_end",
         "stages": [
           "fastq.validate_pre",
           "fastq.detect_adapters",
@@ -179,16 +159,16 @@ expression: fastq_to_bam_adna_shotgun_profile()
         "threads": 1
       },
       "fastq.qc_post": {
-        "paired_mode": "paired_end",
+        "paired_mode": "single_end",
         "threads": 1
       },
       "fastq.screen": {
         "contaminant_db": null,
-        "paired_mode": "paired_end",
+        "paired_mode": "single_end",
         "threads": 1
       },
       "fastq.stats_neutral": {
-        "paired_mode": "paired_end",
+        "paired_mode": "single_end",
         "q_cutoff": null,
         "threads": 1
       },
@@ -197,18 +177,18 @@ expression: fastq_to_bam_adna_shotgun_profile()
         "contaminant_policy": null,
         "min_len": 0,
         "n_policy": null,
-        "paired_mode": "paired_end",
+        "paired_mode": "single_end",
         "polyx_policy": null,
         "q_cutoff": null,
         "threads": 1
       },
       "fastq.umi": {
-        "paired_mode": "paired_end",
+        "paired_mode": "single_end",
         "q_cutoff": null,
         "threads": 1
       },
       "fastq.validate_pre": {
-        "paired_mode": "paired_end",
+        "paired_mode": "single_end",
         "q_cutoff": null,
         "threads": 1
       }

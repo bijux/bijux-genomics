@@ -69,34 +69,34 @@ fn pipeline_profiles_are_complete() {
             "defaults ledger id mismatch for {}",
             profile.id
         );
-        for node in &profile.graph {
+        for node in &profile.capabilities.required_stages {
             assert!(
-                ledger.tools.contains_key(&node.stage_id),
+                ledger.tools.contains_key(*node),
                 "defaults ledger missing tool for {} in {}",
-                node.stage_id,
+                node,
                 profile.id
             );
             assert!(
-                ledger.params.contains_key(&node.stage_id),
+                ledger.params.contains_key(*node),
                 "defaults ledger missing params for {} in {}",
-                node.stage_id,
+                node,
                 profile.id
             );
             assert!(
-                ledger.tool_provenance.contains_key(&node.stage_id),
+                ledger.tool_provenance.contains_key(*node),
                 "defaults ledger missing tool provenance for {} in {}",
-                node.stage_id,
+                node,
                 profile.id
             );
             assert!(
-                ledger.param_provenance.contains_key(&node.stage_id),
+                ledger.param_provenance.contains_key(*node),
                 "defaults ledger missing params provenance for {} in {}",
-                node.stage_id,
+                node,
                 profile.id
             );
         }
         assert!(
-            !profile.graph.is_empty(),
+            !profile.capabilities.required_stages.is_empty(),
             "missing stage list for {}",
             profile.id
         );
@@ -110,13 +110,6 @@ fn pipeline_profiles_are_complete() {
             "missing required stages for {}",
             profile.id
         );
-        for stage in &profile.capabilities.required_stages {
-            assert!(
-                profile.graph.iter().any(|node| node.stage_id == *stage),
-                "required stage {stage} missing from graph for {}",
-                profile.id
-            );
-        }
         assert!(
             !profile.capabilities.required_metrics.is_empty(),
             "missing required metrics for {}",

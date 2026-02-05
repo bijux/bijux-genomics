@@ -4,7 +4,7 @@ use crate::bam::bam_adna_shotgun_profile;
 use crate::fastq::fastq_default_profile;
 use crate::{
     ArtifactType, Domain, EffectiveDefaults, MetricsBundle, PipelineCapabilities, PipelineId,
-    PipelineProfile, ReportSection, StabilityTier, StageNode,
+    PipelineProfile, ReportSection, StabilityTier,
 };
 use bijux_domain_bam::params::{AlignEffectiveParams, ReadGroupSpec};
 use bijux_domain_bam::types::ReadGroupPolicy;
@@ -70,26 +70,6 @@ pub fn fastq_to_bam_adna_shotgun_profile() -> PipelineProfile {
         stability: StabilityTier::Beta,
         input_domains: vec![Domain::Fastq, Domain::Cross],
         output_domains: vec![Domain::Bam],
-        graph: vec![
-            StageNode {
-                stage_id: "fastq.preprocess".to_string(),
-            },
-            StageNode {
-                stage_id: "core.prepare_reference".to_string(),
-            },
-            StageNode {
-                stage_id: "bam.align".to_string(),
-            },
-            StageNode {
-                stage_id: "bam.qc_pre".to_string(),
-            },
-            StageNode {
-                stage_id: "bam.coverage".to_string(),
-            },
-            StageNode {
-                stage_id: "bam.damage".to_string(),
-            },
-        ],
         defaults,
         defaults_ledger_ref: "defaults_ledger.json",
         invariants_preset: Some("adna"),
@@ -149,26 +129,6 @@ pub fn fastq_to_bam_default_profile() -> PipelineProfile {
         stability: StabilityTier::Beta,
         input_domains: vec![Domain::Fastq, Domain::Cross],
         output_domains: vec![Domain::Bam],
-        graph: vec![
-            StageNode {
-                stage_id: "fastq.preprocess".to_string(),
-            },
-            StageNode {
-                stage_id: "core.prepare_reference".to_string(),
-            },
-            StageNode {
-                stage_id: "bam.align".to_string(),
-            },
-            StageNode {
-                stage_id: "bam.qc_pre".to_string(),
-            },
-            StageNode {
-                stage_id: "bam.coverage".to_string(),
-            },
-            StageNode {
-                stage_id: "bam.damage".to_string(),
-            },
-        ],
         defaults,
         defaults_ledger_ref: "defaults_ledger.json",
         invariants_preset: None,

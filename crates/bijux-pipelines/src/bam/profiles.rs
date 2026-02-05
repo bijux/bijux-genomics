@@ -11,7 +11,7 @@ use bijux_domain_bam::BamStage;
 
 use crate::{
     ArtifactType, Domain, EffectiveDefaults, MetricsBundle, PipelineCapabilities, PipelineId,
-    PipelineProfile, ReportSection, StabilityTier, StageNode,
+    PipelineProfile, ReportSection, StabilityTier,
 };
 
 #[derive(Debug, Clone)]
@@ -110,15 +110,6 @@ fn bam_params_value(params: &BamEffectiveParams) -> serde_json::Value {
     }
 }
 
-fn to_graph(stages: &[BamStage]) -> Vec<StageNode> {
-    stages
-        .iter()
-        .map(|stage| StageNode {
-            stage_id: stage.as_str().to_string(),
-        })
-        .collect()
-}
-
 fn filter_downstream(stages: &mut Vec<BamStage>) {
     if cfg!(feature = "bam_downstream") {
         return;
@@ -158,7 +149,6 @@ pub fn bam_default_profile() -> PipelineProfile {
         stability: StabilityTier::Stable,
         input_domains: vec![Domain::Bam],
         output_domains: vec![Domain::Bam],
-        graph: to_graph(&stages),
         defaults: to_effective_defaults(&defaults),
         defaults_ledger_ref: "defaults_ledger.json",
         invariants_preset: None,
@@ -222,7 +212,6 @@ pub fn bam_adna_shotgun_profile() -> PipelineProfile {
         stability: StabilityTier::Beta,
         input_domains: vec![Domain::Bam],
         output_domains: vec![Domain::Bam],
-        graph: to_graph(&stages),
         defaults: to_effective_defaults(&defaults),
         defaults_ledger_ref: "defaults_ledger.json",
         invariants_preset: Some("adna"),

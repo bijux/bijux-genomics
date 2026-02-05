@@ -71,11 +71,6 @@ pub enum ReportSection {
     PipelineDefaults,
 }
 
-#[derive(Debug, Clone, Serialize)]
-pub struct StageNode {
-    pub stage_id: String,
-}
-
 #[derive(Debug, Clone, Default, Serialize)]
 pub struct EffectiveDefaults {
     pub tools: BTreeMap<String, String>,
@@ -90,8 +85,6 @@ pub struct PipelineProfile {
     pub stability: StabilityTier,
     pub input_domains: Vec<Domain>,
     pub output_domains: Vec<Domain>,
-    #[serde(rename = "stage_graph")]
-    pub graph: Vec<StageNode>,
     pub defaults: EffectiveDefaults,
     pub defaults_ledger_ref: &'static str,
     pub invariants_preset: Option<&'static str>,

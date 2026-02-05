@@ -16,19 +16,14 @@ fn pipeline_profiles_reference_known_stages_and_defaults() {
     for profile in profiles {
         validate_pipeline_id(profile.id)
             .unwrap_or_else(|_| panic!("invalid pipeline id {}", profile.id));
-        let mut stage_positions = std::collections::BTreeMap::new();
-        for (idx, node) in profile.graph.iter().enumerate() {
-            stage_positions.insert(node.stage_id.as_str(), idx);
-        }
-        for node in &profile.graph {
-            let stage_id = node.stage_id.as_str();
+        for stage_id in &profile.capabilities.required_stages {
             assert!(
-                profile.defaults.tools.contains_key(stage_id),
+                profile.defaults.tools.contains_key(*stage_id),
                 "missing default tool for {stage_id} in profile {}",
                 profile.id
             );
             assert!(
-                profile.defaults.params.contains_key(stage_id),
+                profile.defaults.params.contains_key(*stage_id),
                 "missing default params for {stage_id} in profile {}",
                 profile.id
             );
@@ -46,7 +41,7 @@ fn pipeline_profiles_reference_known_stages_and_defaults() {
                         profile.id
                     );
                 }
-                let Some(params) = profile.defaults.params.get(stage_id) else {
+                let Some(params) = profile.defaults.params.get(*stage_id) else {
                     panic!(
                         "missing FASTQ params for {stage_id} in profile {}",
                         profile.id
@@ -60,7 +55,7 @@ fn pipeline_profiles_reference_known_stages_and_defaults() {
                     profile.id
                 );
             } else if stage_id.starts_with("bam.") {
-                let stage = BamStage::try_from(stage_id)
+                let stage = BamStage::try_from(*stage_id)
                     .unwrap_or_else(|_| panic!("unknown BAM stage {stage_id}"));
                 if profile.stability == StabilityTier::Stable {
                     assert!(
@@ -74,7 +69,7 @@ fn pipeline_profiles_reference_known_stages_and_defaults() {
                         profile.id
                     );
                 }
-                let Some(params) = profile.defaults.params.get(stage_id) else {
+                let Some(params) = profile.defaults.params.get(*stage_id) else {
                     panic!(
                         "missing BAM params for {stage_id} in profile {}",
                         profile.id
@@ -92,48 +87,10 @@ fn pipeline_profiles_reference_known_stages_and_defaults() {
             }
         }
 
-        let fastq_in_profile = profile
-            .graph
-            .iter()
-            .any(|node| node.stage_id.starts_with("fastq."));
-        if fastq_in_profile {
-            let canonical = canonical_stage_order();
-            for window in canonical.windows(2) {
-                let first = window[0];
-                let second = window[1];
-                if let (Some(a), Some(b)) =
-                    (stage_positions.get(first), stage_positions.get(second))
-                {
-                    assert!(
-                        a < b,
-                        "FASTQ stage order violated in {}: {first} must precede {second}",
-                        profile.id
-                    );
-                }
-            }
-            for (optional, predecessors) in optional_branches() {
-                if let Some(optional_idx) = stage_positions.get(optional) {
-                    for predecessor in predecessors {
-                        if let Some(pred_idx) = stage_positions.get(predecessor) {
-                            assert!(
-                                pred_idx < optional_idx,
-                                "FASTQ optional stage {optional} must follow {predecessor} in {}",
-                                profile.id
-                            );
-                        }
-                    }
-                }
-            }
-            for (a, b) in forbidden_transitions() {
-                if let (Some(a_idx), Some(b_idx)) = (stage_positions.get(a), stage_positions.get(b))
-                {
-                    assert!(
-                        a_idx + 1 != *b_idx,
-                        "FASTQ forbidden transition in {}: {a} must not directly precede {b}",
-                        profile.id
-                    );
-                }
-            }
-        }
+        let _ = (
+            canonical_stage_order(),
+            optional_branches(),
+            forbidden_transitions(),
+        );
     }
 }

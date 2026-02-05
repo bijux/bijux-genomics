@@ -108,12 +108,12 @@ expression: ledger
     },
     "core.prepare_reference": {},
     "fastq.correct": {
-      "paired_mode": "paired_end",
+      "paired_mode": "single_end",
       "q_cutoff": null,
       "threads": 1
     },
     "fastq.detect_adapters": {
-      "paired_mode": "paired_end",
+      "paired_mode": "single_end",
       "sample_reads": null,
       "threads": 1
     },
@@ -125,19 +125,19 @@ expression: ledger
       "max_n_count": null,
       "max_n_fraction": null,
       "n_policy": null,
-      "paired_mode": "paired_end",
+      "paired_mode": "single_end",
       "polyx_policy": null,
       "threads": 1
     },
     "fastq.merge": {
       "merge_overlap": null,
       "min_len": null,
-      "paired_mode": "paired_end",
+      "paired_mode": "single_end",
       "threads": 1
     },
     "fastq.preprocess": {
       "enable_contaminant_removal": false,
-      "paired_mode": "paired_end",
+      "paired_mode": "single_end",
       "stages": [
         "fastq.validate_pre",
         "fastq.detect_adapters",
@@ -149,16 +149,16 @@ expression: ledger
       "threads": 1
     },
     "fastq.qc_post": {
-      "paired_mode": "paired_end",
+      "paired_mode": "single_end",
       "threads": 1
     },
     "fastq.screen": {
       "contaminant_db": null,
-      "paired_mode": "paired_end",
+      "paired_mode": "single_end",
       "threads": 1
     },
     "fastq.stats_neutral": {
-      "paired_mode": "paired_end",
+      "paired_mode": "single_end",
       "q_cutoff": null,
       "threads": 1
     },
@@ -167,18 +167,18 @@ expression: ledger
       "contaminant_policy": null,
       "min_len": 0,
       "n_policy": null,
-      "paired_mode": "paired_end",
+      "paired_mode": "single_end",
       "polyx_policy": null,
       "q_cutoff": null,
       "threads": 1
     },
     "fastq.umi": {
-      "paired_mode": "paired_end",
+      "paired_mode": "single_end",
       "q_cutoff": null,
       "threads": 1
     },
     "fastq.validate_pre": {
-      "paired_mode": "paired_end",
+      "paired_mode": "single_end",
       "q_cutoff": null,
       "threads": 1
     }

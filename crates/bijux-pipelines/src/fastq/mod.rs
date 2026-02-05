@@ -13,7 +13,7 @@ use bijux_domain_fastq::params::{
 
 use crate::{
     ArtifactType, Domain, EffectiveDefaults, MetricsBundle, PipelineCapabilities, PipelineId,
-    PipelineProfile, ReportSection, StabilityTier, StageNode,
+    PipelineProfile, ReportSection, StabilityTier,
 };
 
 fn required_stage_ids() -> Vec<String> {
@@ -180,15 +180,6 @@ fn fastq_defaults(paired: bool) -> EffectiveDefaults {
     }
 }
 
-fn to_graph(stages: &[String]) -> Vec<StageNode> {
-    stages
-        .iter()
-        .map(|stage| StageNode {
-            stage_id: stage.clone(),
-        })
-        .collect()
-}
-
 #[must_use]
 pub fn fastq_minimal_profile() -> PipelineProfile {
     PipelineProfile {
@@ -197,7 +188,6 @@ pub fn fastq_minimal_profile() -> PipelineProfile {
         stability: StabilityTier::Stable,
         input_domains: vec![Domain::Fastq],
         output_domains: vec![Domain::Fastq],
-        graph: to_graph(&required_stage_ids()),
         defaults: fastq_defaults(false),
         defaults_ledger_ref: "defaults_ledger.json",
         invariants_preset: None,
@@ -228,7 +218,6 @@ pub fn fastq_minimal_profile() -> PipelineProfile {
 
 #[must_use]
 pub fn fastq_default_profile() -> PipelineProfile {
-    let stages = required_stage_ids();
     let required_stages = vec![
         "fastq.validate_pre",
         "fastq.detect_adapters",
@@ -243,7 +232,6 @@ pub fn fastq_default_profile() -> PipelineProfile {
         stability: StabilityTier::Stable,
         input_domains: vec![Domain::Fastq],
         output_domains: vec![Domain::Fastq],
-        graph: to_graph(&stages),
         defaults: fastq_defaults(false),
         defaults_ledger_ref: "defaults_ledger.json",
         invariants_preset: None,
@@ -263,16 +251,6 @@ pub fn fastq_default_profile() -> PipelineProfile {
             supports_benchmarking: true,
         },
     }
-}
-
-#[must_use]
-pub fn fastq_default_pipeline_stage_ids() -> Vec<String> {
-    required_stage_ids()
-}
-
-#[must_use]
-pub fn fastq_minimal_pipeline_stage_ids() -> Vec<String> {
-    required_stage_ids()
 }
 
 /// # Errors

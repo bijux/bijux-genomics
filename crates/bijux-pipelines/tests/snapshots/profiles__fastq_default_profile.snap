@@ -1,6 +1,6 @@
 ---
 source: crates/bijux-pipelines/tests/profiles.rs
-expression: "fastq_default_profile()"
+expression: fastq_default_profile()
 ---
 {
   "id": "fastq-to-fastq__default__v1",
@@ -11,26 +11,6 @@ expression: "fastq_default_profile()"
   ],
   "output_domains": [
     "Fastq"
-  ],
-  "stage_graph": [
-    {
-      "stage_id": "fastq.validate_pre"
-    },
-    {
-      "stage_id": "fastq.detect_adapters"
-    },
-    {
-      "stage_id": "fastq.trim"
-    },
-    {
-      "stage_id": "fastq.filter"
-    },
-    {
-      "stage_id": "fastq.stats_neutral"
-    },
-    {
-      "stage_id": "fastq.qc_post"
-    }
   ],
   "defaults": {
     "tools": {
