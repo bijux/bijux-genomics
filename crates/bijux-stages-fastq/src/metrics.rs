@@ -93,7 +93,7 @@ pub fn stage_metrics_for_plan(
     inputs: &[PathBuf],
     outputs: &[PathBuf],
 ) -> Result<serde_json::Value> {
-    let mut metrics = match plan.stage_id.0.as_str() {
+    let mut metrics = match plan.stage_id.as_str() {
         "fastq.trim" => {
             let stats = stats_for_paths(&[
                 inputs.first().map(PathBuf::as_path),
@@ -125,9 +125,9 @@ pub fn stage_metrics_for_plan(
                 numerator_bases: output.bases,
                 denominator_bases: input.bases,
                 definition: "reads_out / reads_in".to_string(),
-                stage_boundary: plan.stage_id.0.clone(),
+                stage_boundary: plan.stage_id.to_string(),
                 conditions: retention_conditions_from_effective(
-                    &plan.stage_id.0,
+                    &plan.stage_id,
                     &plan.effective_params,
                     &plan.params,
                 ),
@@ -147,9 +147,9 @@ pub fn stage_metrics_for_plan(
         }
         "fastq.filter" => {
             let removals =
-                filter_removals_for_plan(plan.tool_id.0.as_str(), &plan.out_dir, &plan.params);
+                filter_removals_for_plan(plan.tool_id.as_str(), &plan.out_dir, &plan.params);
             filter_metrics_with_removals(
-                &plan.stage_id.0,
+                &plan.stage_id,
                 inputs,
                 outputs,
                 &plan.params,
@@ -309,9 +309,9 @@ pub fn stage_metrics_for_plan(
                 numerator_bases: output.bases,
                 denominator_bases: input.bases,
                 definition: "reads_out / reads_in".to_string(),
-                stage_boundary: plan.stage_id.0.clone(),
+                stage_boundary: plan.stage_id.to_string(),
                 conditions: retention_conditions_from_effective(
-                    &plan.stage_id.0,
+                    &plan.stage_id,
                     &plan.effective_params,
                     &plan.params,
                 ),
@@ -362,9 +362,9 @@ pub fn stage_metrics_for_plan(
                 numerator_bases: output.bases,
                 denominator_bases: input.bases,
                 definition: "reads_out / reads_in".to_string(),
-                stage_boundary: plan.stage_id.0.clone(),
+                stage_boundary: plan.stage_id.to_string(),
                 conditions: retention_conditions_from_effective(
-                    &plan.stage_id.0,
+                    &plan.stage_id,
                     &plan.effective_params,
                     &plan.params,
                 ),
@@ -434,9 +434,9 @@ pub fn stage_metrics_for_plan(
                 numerator_bases: output.bases,
                 denominator_bases: input.bases,
                 definition: "reads_out / reads_in".to_string(),
-                stage_boundary: plan.stage_id.0.clone(),
+                stage_boundary: plan.stage_id.to_string(),
                 conditions: retention_conditions_from_effective(
-                    &plan.stage_id.0,
+                    &plan.stage_id,
                     &plan.effective_params,
                     &plan.params,
                 ),
@@ -534,7 +534,7 @@ pub fn stage_metrics_for_plan(
 }
 
 pub fn retention_conditions_from_effective(
-    stage_id: &str,
+    stage_id: &bijux_core::ids::StageId,
     effective_params: &serde_json::Value,
     raw_params: &serde_json::Value,
 ) -> serde_json::Value {
@@ -867,7 +867,7 @@ fn filter_removals_from_bbduk_stats(
 }
 
 fn filter_metrics_with_removals(
-    stage_id: &str,
+    stage_id: &bijux_core::ids::StageId,
     inputs: &[PathBuf],
     outputs: &[PathBuf],
     params: &serde_json::Value,

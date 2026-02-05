@@ -26,7 +26,8 @@ pub fn plan_correct(
     r2: &Path,
     out_dir: &Path,
 ) -> Result<StagePlanV1> {
-    normalize_correct_tool_list(std::slice::from_ref(&tool.tool_id.0))?;
+    let tool_id = tool.tool_id.to_string();
+    normalize_correct_tool_list(std::slice::from_ref(&tool_id))?;
     let output_r1 = out_dir.join("reads_r1.fastq.gz");
     let output_r2 = out_dir.join("reads_r2.fastq.gz");
     let effective_params = ValidateEffectiveParams {
@@ -35,7 +36,7 @@ pub fn plan_correct(
         q_cutoff: None,
     };
     Ok(StagePlanV1 {
-        stage_id: StageId(STAGE_ID.to_string()),
+        stage_id: StageId::from_static(STAGE_ID),
         stage_version: STAGE_VERSION,
         tool_id: tool.tool_id.clone(),
         tool_version: tool.tool_version.clone(),

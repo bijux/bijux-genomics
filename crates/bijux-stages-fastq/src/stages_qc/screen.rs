@@ -23,7 +23,8 @@ pub fn normalize_screen_tool_list(tools: &[String]) -> Result<Vec<String>> {
 /// # Errors
 /// Returns an error if the tool is unsupported.
 pub fn plan_screen(tool: &ToolExecutionSpecV1, r1: &Path, out_dir: &Path) -> Result<StagePlanV1> {
-    normalize_screen_tool_list(std::slice::from_ref(&tool.tool_id.0))?;
+    let tool_id = tool.tool_id.to_string();
+    normalize_screen_tool_list(std::slice::from_ref(&tool_id))?;
     let report = out_dir.join("screen_report.tsv");
     let effective_params = ScreenEffectiveParams {
         paired_mode: PairedMode::SingleEnd,
@@ -31,7 +32,7 @@ pub fn plan_screen(tool: &ToolExecutionSpecV1, r1: &Path, out_dir: &Path) -> Res
         contaminant_db: None,
     };
     Ok(StagePlanV1 {
-        stage_id: StageId(STAGE_ID.to_string()),
+        stage_id: StageId::from_static(STAGE_ID),
         stage_version: STAGE_VERSION,
         tool_id: tool.tool_id.clone(),
         tool_version: tool.tool_version.clone(),

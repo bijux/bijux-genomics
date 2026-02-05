@@ -32,7 +32,7 @@ pub fn plan_merge(
         min_len: None,
     };
     Ok(StagePlanV1 {
-        stage_id: StageId(STAGE_ID.to_string()),
+        stage_id: StageId::from_static(STAGE_ID),
         stage_version: STAGE_VERSION,
         tool_id: tool.tool_id.clone(),
         tool_version: tool.tool_version.clone(),

@@ -1,4 +1,4 @@
-use bijux_core::contract::StageVersion;
+use bijux_core::{contract::StageVersion, ids::StageId};
 
 pub mod preprocess {
     pub use crate::stages_pre::preprocess::*;
@@ -46,7 +46,7 @@ pub mod screen {
 
 #[derive(Debug, Clone)]
 pub struct StageInfo {
-    pub id: &'static str,
+    pub id: StageId,
     pub version: StageVersion,
     pub affects_read_counts: bool,
 }
@@ -54,57 +54,57 @@ pub struct StageInfo {
 pub fn registry() -> Vec<StageInfo> {
     vec![
         StageInfo {
-            id: crate::stages_transform::correct::STAGE_ID,
+            id: StageId::from_static(crate::stages_transform::correct::STAGE_ID),
             version: crate::stages_transform::correct::STAGE_VERSION,
             affects_read_counts: true,
         },
         StageInfo {
-            id: crate::stages_transform::trim::STAGE_ID,
+            id: StageId::from_static(crate::stages_transform::trim::STAGE_ID),
             version: crate::stages_transform::trim::STAGE_VERSION,
             affects_read_counts: true,
         },
         StageInfo {
-            id: crate::stages_pre::validate_pre::STAGE_ID,
+            id: StageId::from_static(crate::stages_pre::validate_pre::STAGE_ID),
             version: crate::stages_pre::validate_pre::STAGE_VERSION,
             affects_read_counts: false,
         },
         StageInfo {
-            id: crate::stages_pre::detect_adapters::STAGE_ID,
+            id: StageId::from_static(crate::stages_pre::detect_adapters::STAGE_ID),
             version: crate::stages_pre::detect_adapters::STAGE_VERSION,
             affects_read_counts: false,
         },
         StageInfo {
-            id: crate::stages_transform::filter::STAGE_ID,
+            id: StageId::from_static(crate::stages_transform::filter::STAGE_ID),
             version: crate::stages_transform::filter::STAGE_VERSION,
             affects_read_counts: true,
         },
         StageInfo {
-            id: crate::stages_transform::merge::STAGE_ID,
+            id: StageId::from_static(crate::stages_transform::merge::STAGE_ID),
             version: crate::stages_transform::merge::STAGE_VERSION,
             affects_read_counts: true,
         },
         StageInfo {
-            id: crate::stages_transform::umi::STAGE_ID,
+            id: StageId::from_static(crate::stages_transform::umi::STAGE_ID),
             version: crate::stages_transform::umi::STAGE_VERSION,
             affects_read_counts: true,
         },
         StageInfo {
-            id: crate::stages_qc::screen::STAGE_ID,
+            id: StageId::from_static(crate::stages_qc::screen::STAGE_ID),
             version: crate::stages_qc::screen::STAGE_VERSION,
             affects_read_counts: false,
         },
         StageInfo {
-            id: crate::stages_qc::stats_neutral::STAGE_ID,
+            id: StageId::from_static(crate::stages_qc::stats_neutral::STAGE_ID),
             version: crate::stages_qc::stats_neutral::STAGE_VERSION,
             affects_read_counts: false,
         },
         StageInfo {
-            id: crate::stages_pre::preprocess::STAGE_ID,
+            id: StageId::from_static(crate::stages_pre::preprocess::STAGE_ID),
             version: crate::stages_pre::preprocess::STAGE_VERSION,
             affects_read_counts: true,
         },
         StageInfo {
-            id: crate::stages_qc::qc_post::STAGE_ID,
+            id: StageId::from_static(crate::stages_qc::qc_post::STAGE_ID),
             version: crate::stages_qc::qc_post::STAGE_VERSION,
             affects_read_counts: false,
         },

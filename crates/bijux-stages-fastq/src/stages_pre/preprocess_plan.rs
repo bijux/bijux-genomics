@@ -31,7 +31,7 @@ pub fn plan_preprocess_stage(plan: &PreprocessPlan, tool: &ToolExecutionSpecV1) 
         .unwrap_or_else(|| std::path::Path::new("."))
         .join("out");
     StagePlanV1 {
-        stage_id: StageId(STAGE_ID.to_string()),
+        stage_id: StageId::from_static(STAGE_ID),
         stage_version: STAGE_VERSION,
         tool_id: tool.tool_id.clone(),
         tool_version: tool.tool_version.clone(),

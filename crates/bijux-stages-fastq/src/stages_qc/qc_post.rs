@@ -31,7 +31,8 @@ pub fn plan_qc_post(
     aux_images: std::collections::BTreeMap<String, ContainerImageRefV1>,
     raw_r1: Option<&Path>,
 ) -> Result<StagePlanV1> {
-    if normalize_qc_post_tool_list(std::slice::from_ref(&tool.tool_id.0))?.is_empty() {
+    let tool_id = tool.tool_id.to_string();
+    if normalize_qc_post_tool_list(std::slice::from_ref(&tool_id))?.is_empty() {
         return Err(anyhow!("unsupported qc_post tool"));
     }
     let mut params = serde_json::json!({
@@ -61,7 +62,7 @@ pub fn plan_qc_post(
         Vec::new()
     };
     Ok(StagePlanV1 {
-        stage_id: StageId(STAGE_ID.to_string()),
+        stage_id: StageId::from_static(STAGE_ID),
         stage_version: STAGE_VERSION,
         tool_id: tool.tool_id.clone(),
         tool_version: tool.tool_version.clone(),
