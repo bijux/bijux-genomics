@@ -1,0 +1,34 @@
+---
+source: crates/bijux-api/src/handlers/fastq/summary.rs
+assertion_line: 609
+expression: payload
+---
+{
+  "input_hashes": [
+    "sha256:input"
+  ],
+  "pipeline_id": "fastq-to-fastq__default__v1",
+  "planner_version": "planner.v1",
+  "reference_hashes": {},
+  "schema_version": "bijux.scientific_provenance.v1",
+  "tools": [
+    {
+      "bank_assets": null,
+      "banks": null,
+      "image_digest": "sha256:img",
+      "input_hashes": [
+        "sha256:input"
+      ],
+      "output_hashes": [
+        "sha256:output"
+      ],
+      "parameters_json": {
+        "min_len": 10
+      },
+      "params_hash": "params",
+      "stage_id": "fastq.trim",
+      "tool_id": "fastp",
+      "tool_version": "0.0.0"
+    }
+  ]
+}

@@ -17,10 +17,10 @@ use bijux_runner::primitives::{build_tool_execution_spec, resolve_image_for_run}
 use bijux_runtime::recording::run_artifacts_dir_for_out;
 use bijux_runtime::recording::write_telemetry_event;
 
-use super::jobs::bench_jobs;
-use super::summary::{write_run_summary, StageExecutionSummary};
-use super::write_explain_plan_json;
-use super::{STAGE_PREPROCESS, STAGE_TRIM};
+use super::super::jobs::bench_jobs;
+use super::super::summary::{write_run_summary, StageExecutionSummary};
+use super::super::write_explain_plan_json;
+use super::super::{STAGE_PREPROCESS, STAGE_TRIM};
 use bijux_infra::{bench_base_dir, bench_tools_dir};
 use bijux_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_planner_fastq::stage_api::{

@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use anyhow::Result;
 use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 
-use super::BenchOutcome;
+use super::super::BenchOutcome;
 
 /// Run the stats-neutral pipeline.
 ///
