@@ -12,3 +12,6 @@ pub mod fastq;
 pub mod plan;
 pub mod report;
 pub mod run;
+
+// Keep this module non-empty to satisfy guardrails and clarify intent.
+pub const API_V1_BANNER: &str = "bijux-api v1";
