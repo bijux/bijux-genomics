@@ -21,13 +21,21 @@ jobs:
       - name: Install cargo-nextest
         run: cargo install cargo-nextest --locked
       - name: Format
-        run: make lint-full
-      - name: Clippy
-        run: make lint-full
-      - name: Tests (default)
-        run: make test
+        run: make fmt-check
+      - name: Clippy (core)
+        run: make clippy
+      - name: Tests (tier 1)
+        run: make test-ci
 
   policy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Policies (fast)
+        run: make policies
+
+  audit:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

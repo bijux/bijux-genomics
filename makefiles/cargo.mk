@@ -41,6 +41,15 @@ endef
 test: ## Run standard tests (default features)
 	$(call NEXTEST_OR_TEST,Running standard tests with nextest...,"", "")
 
+test-ci: ## Run fast CI tests with nextest profile
+	@if command -v cargo-nextest >/dev/null 2>&1; then \
+		echo "Running CI tests with nextest profile..."; \
+		CARGO_BUILD_JOBS=$(JOBS) cargo nextest run --workspace --profile ci --no-fail-fast --jobs $(NEXTEST_JOBS); \
+	else \
+		echo "cargo-nextest not installed; falling back to cargo test"; \
+		CARGO_BUILD_JOBS=$(JOBS) cargo test --workspace --no-fail-fast -- --color always; \
+	fi
+
 test-full: ## Run tests with all features
 	$(call NEXTEST_OR_TEST,Running tests with all features...,--all-features,--all-features)
 
@@ -57,20 +66,9 @@ test-slow: ## Run only slow tests
 		CARGO_BUILD_JOBS=$(JOBS) cargo test --workspace --all-features --ignored -- --color always; \
 	fi
 
-test-e2e: ## Run end-to-end tests (requires ERR2112797 FASTQ fixtures)
-	@if [ ! -f tests/data/fastq/ERR2112797/ERR2112797_1.fastq.gz ] || \
-	    [ ! -f tests/data/fastq/ERR2112797/ERR2112797_2.fastq.gz ]; then \
-		echo "Missing e2e FASTQ fixtures; skipping e2e tests"; \
-		exit 0; \
-	fi
-	@if command -v cargo-nextest >/dev/null 2>&1; then \
-		echo "Running e2e tests with nextest..."; \
-		CARGO_BUILD_JOBS=$(JOBS) BIJUX_E2E=1 cargo nextest run --workspace --all-features \
-			--run-ignored ignored-only -E 'test(/_e2e_/)' --jobs $(NEXTEST_JOBS); \
-	else \
-		echo "cargo-nextest not installed; running ignored tests as fallback"; \
-		CARGO_BUILD_JOBS=$(JOBS) BIJUX_E2E=1 cargo test --workspace --all-features --ignored -- --color always; \
-	fi
+test-e2e: ## Run end-to-end lab harness (requires CORPUS_ROOT)
+	@echo "Use 'make lab-fastq' with CORPUS_ROOT set (see lab/README.md)."
+	@exit 1
 
 test-science: ## Run science-specific tests
 	@if command -v cargo-nextest >/dev/null 2>&1; then \
@@ -101,6 +99,9 @@ guardrails: ## Run architectural guardrail tests
 
 structure-check: ## Run repository policy snapshot tests
 	cargo test -p bijux-policies --test workspace --test policy_snapshot
+
+policies: ## Run policy test suite
+	cargo test -p bijux-policies
 
 coverage: ## Generate test coverage report (prefers nextest)
 	@if command -v cargo-llvm-cov >/dev/null 2>&1; then \
