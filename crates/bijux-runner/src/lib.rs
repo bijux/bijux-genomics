@@ -8,8 +8,8 @@ use anyhow::Result;
 use bijux_core::StagePlanV1;
 
 pub mod docker;
-pub mod local;
 pub mod execute;
+pub mod local;
 
 #[derive(Debug, Clone)]
 pub struct Invocation {
