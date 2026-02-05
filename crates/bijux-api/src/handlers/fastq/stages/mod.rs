@@ -9,4 +9,5 @@ pub mod umi;
 pub mod validate_pre;
 
 // Non-empty module marker for guardrails.
+#[allow(dead_code)]
 pub const FASTQ_STAGE_MODULES: usize = 10;
