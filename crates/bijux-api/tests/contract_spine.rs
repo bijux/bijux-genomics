@@ -10,7 +10,6 @@ use bijux_core::plan::stage_plan::{
     ArtifactRef, CommandSpecV1, ContainerImageRefV1, PlanDecisionReason, StageIO, StagePlanV1,
 };
 use bijux_core::{FactsRowV1, StageId, StageVersion, ToolConstraints, ToolId};
-use bijux_engine;
 use bijux_environment::resolve::PlatformSpec;
 use bijux_environment::resolve::RunnerKind;
 use bijux_runner::{Artifact, Invocation, Runner, RunnerResult};
@@ -136,8 +135,8 @@ fn golden_spine_contract() -> Result<()> {
     };
 
     let facts_path = base_dir.join("facts.jsonl");
-    let facts_raw = format!("{}\n", serde_json::to_string(&facts_row)?);
-    bijux_infra::write_bytes(&facts_path, facts_raw.as_bytes())?;
+    let facts_line = format!("{}\n", serde_json::to_string(&facts_row)?);
+    bijux_infra::write_bytes(&facts_path, facts_line.as_bytes())?;
 
     let report_path = bijux_analyze::write_run_report_from_facts(base_dir, &[facts_row])?;
     assert!(report_path.exists());

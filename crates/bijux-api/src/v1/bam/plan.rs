@@ -9,7 +9,9 @@ use bijux_planner_bam::stage_api::StagePlanRequest;
 
 use crate::args::BamRunArgs;
 
-pub(crate) fn plan_for_bam_stage(
+/// # Errors
+/// Returns an error if planning fails for the stage.
+pub fn plan_for_bam_stage(
     stage: bijux_planner_bam::stage_api::BamStage,
     spec: &ToolExecutionSpecV1,
     args: &BamRunArgs,
