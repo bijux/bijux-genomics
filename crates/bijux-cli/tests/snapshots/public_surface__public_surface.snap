@@ -1,0 +1,5 @@
+---
+source: crates/bijux-cli/tests/public_surface.rs
+expression: snapshot
+---
+pub mod\n  cli\n  commands\n  env\n  render\n\npub use\n  pub use crate::commands::cli::*;

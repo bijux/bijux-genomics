@@ -40,14 +40,15 @@ use crate::commands::cli::{
     preprocess_args_from_cli, AnalyzeCommand, BenchBamCommand, BenchCommand, BenchFastqCommand,
     Cli, Commands, EnvCommand, FastqCommand, PipelinesCommand,
 };
-use crate::env::{env_doctor, print_env_images, print_env_info};
-use crate::main_helpers::{
+use crate::commands::helpers::{
     ensure_profile_run_base_dir, load_profile_for_cli, normalize_fastq_stage_id, qc_class_label,
     resolve_report_inputs,
 };
+use crate::env::{env_doctor, print_env_images, print_env_info};
 use crate::render;
 
 pub mod cli;
+pub(crate) mod helpers;
 
 include!("bench.rs");
 include!("fastq.rs");
