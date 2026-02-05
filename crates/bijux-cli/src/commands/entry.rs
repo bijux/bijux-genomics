@@ -1,5 +1,5 @@
 use anyhow::{anyhow, Context, Result};
-use bijux_api::v1::run::{load_manifests, load_profile, normalize_run_base_dir};
+use bijux_api::v1::run::{load_manifests, load_profile, resolve_run_base_dir};
 use bijux_core::{CategorizedError, ErrorCategory};
 use clap::Parser;
 
@@ -76,7 +76,7 @@ fn run() -> Result<()> {
             format!("failed to load profile {}: {err}", profile_path.display())
         ))
     })?;
-    profile.run_base_dir = normalize_run_base_dir(&cwd, &profile.run_base_dir);
+    profile.run_base_dir = resolve_run_base_dir(&cwd, &profile.run_base_dir);
     if cli.print_effective_config || cli.dump_effective_config {
         let payload = serde_json::json!({
             "profile": profile,
