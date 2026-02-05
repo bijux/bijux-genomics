@@ -1,3 +1,4 @@
+use crate::ids::StageId;
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
@@ -71,7 +72,7 @@ pub struct Disqualification {
 
 #[derive(Debug, Clone, Serialize)]
 pub struct StageSelection {
-    pub stage: String,
+    pub stage: StageId,
     pub selected: Option<String>,
     pub scores: Vec<ToolScore>,
     pub disqualified: Vec<Disqualification>,

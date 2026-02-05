@@ -51,7 +51,7 @@ pub fn objective_spec(objective: Objective) -> ObjectiveSpec {
 
 #[must_use]
 pub fn select_stage(
-    stage: &str,
+    stage: &crate::ids::StageId,
     tool_records: &[(String, Vec<BenchResultRecord>)],
     objective: &ObjectiveSpec,
     allow_partial: bool,
@@ -118,7 +118,7 @@ pub fn select_stage(
     let selected = scores.first().map(|entry| entry.tool.clone());
 
     StageSelection {
-        stage: stage.to_string(),
+        stage: stage.clone(),
         selected,
         scores,
         disqualified,
