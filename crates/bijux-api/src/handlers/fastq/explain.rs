@@ -43,7 +43,7 @@ pub fn write_explain_plan_json(
     base_dir: &Path,
     stage: &str,
     selected: &[String],
-    registry: &bijux_core::ToolRegistry,
+    registry: &bijux_core::contract::ToolRegistry,
     _policy: Option<&str>,
 ) -> Result<()> {
     let mut excluded = Vec::new();

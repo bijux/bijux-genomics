@@ -390,7 +390,7 @@ fn render_run_summary_html(summary: &serde_json::Value) -> String {
 ///
 /// Stability: v1 (stable).
 pub struct StageExecutionSummary {
-    pub plan: bijux_core::StagePlanV1,
+    pub plan: bijux_core::plan::stage_plan::StagePlanV1,
     pub result: StageResultV1,
 }
 
@@ -451,7 +451,7 @@ mod tests {
             params: serde_json::json!({}),
             effective_params: serde_json::json!({}),
             aux_images: std::collections::BTreeMap::new(),
-            reason: bijux_core::PlanDecisionReason::default(),
+            reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
         };
         let result = StageResultV1 {
             run_id: "run-1".to_string(),
@@ -518,11 +518,11 @@ mod tests {
                 threads: 1,
             },
             io: StageIO {
-                inputs: vec![bijux_core::ArtifactRef {
+                inputs: vec![bijux_core::plan::stage_plan::ArtifactRef {
                     name: "input".to_string(),
                     path: PathBuf::from("input.fastq.gz"),
                 }],
-                outputs: vec![bijux_core::ArtifactRef {
+                outputs: vec![bijux_core::plan::stage_plan::ArtifactRef {
                     name: "output".to_string(),
                     path: PathBuf::from("output.fastq.gz"),
                 }],
@@ -531,7 +531,7 @@ mod tests {
             params: serde_json::json!({"sample_id":"s1"}),
             effective_params: serde_json::json!({}),
             aux_images: std::collections::BTreeMap::new(),
-            reason: bijux_core::PlanDecisionReason::default(),
+            reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
         };
         let invocation = ToolInvocationV1 {
             schema_version: "bijux.tool_invocation.v1".to_string(),

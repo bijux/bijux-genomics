@@ -1,16 +1,16 @@
 use std::collections::BTreeMap;
 use std::fs;
 
-use crate::args::FastqCrossArgs;
-use crate::cross_router::bam_exec::{run_bam_align_and_truth_stages, run_bam_truth_stages};
-use crate::cross_router::manifests::{
+use super::bam_exec::{run_bam_align_and_truth_stages, run_bam_truth_stages};
+use super::manifests::{
     write_alignment_boundary, write_cross_run_manifest, write_defaults_ledger,
     write_reference_manifest,
 };
-use crate::cross_router::AlignmentBoundary;
+use super::AlignmentBoundary;
+use crate::args::FastqCrossArgs;
 use crate::handlers::fastq::fastq_preprocess_run;
 use anyhow::{anyhow, Context, Result};
-use bijux_core::ToolRegistry;
+use bijux_core::contract::ToolRegistry;
 use bijux_environment::resolve::{ReferenceBuildRequest, ReferenceRegistry};
 use bijux_infra::bench_base_dir;
 use bijux_pipelines::registry;

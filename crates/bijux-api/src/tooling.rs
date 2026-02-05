@@ -1,7 +1,7 @@
 use anyhow::{anyhow, Result};
-use bijux_core::ToolRole;
+use bijux_core::contract::ToolRole;
 
-pub fn load_registry(domain_root: &std::path::Path) -> Result<bijux_core::ToolRegistry> {
+pub fn load_registry(domain_root: &std::path::Path) -> Result<bijux_core::contract::ToolRegistry> {
     bijux_runtime::manifests::load_manifests(domain_root)
         .map_err(|err| anyhow!("manifest validation failed: {err}"))
 }
@@ -20,7 +20,7 @@ pub fn ensure_bench_runner(
 pub fn filter_tools_by_role(
     stage_id: &str,
     tools: &[String],
-    registry: &bijux_core::ToolRegistry,
+    registry: &bijux_core::contract::ToolRegistry,
     strict: bool,
 ) -> Result<Vec<String>> {
     let allow_silver = std::env::var("BIJUX_ALLOW_SILVER").is_ok();

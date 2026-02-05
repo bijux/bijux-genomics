@@ -35,7 +35,7 @@ use bijux_runtime::recording::{
 };
 
 use crate::handlers::fastq::{write_explain_md, write_explain_plan_json, BenchOutcome};
-use bijux_core::ExecutionManifest;
+use bijux_core::contract::ExecutionManifest;
 use bijux_planner_fastq::stage_api::RawFailure;
 
 /// Run the FASTQ benchmark stage.

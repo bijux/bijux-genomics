@@ -1,12 +1,12 @@
 use std::path::{Path, PathBuf};
 
-use crate::cross_router::AlignmentBoundary;
+use super::AlignmentBoundary;
 use anyhow::{Context, Result};
 use bijux_environment::resolve::ReferenceRecord;
 use bijux_infra::hash_file_sha256;
 use bijux_pipelines::PipelineProfile;
 
-use crate::cross_router::CROSS_STAGE_ID;
+use super::CROSS_STAGE_ID;
 use crate::handlers::fastq::StageExecutionSummary;
 
 pub fn write_alignment_boundary(out_dir: &Path, boundary: &AlignmentBoundary) -> Result<PathBuf> {

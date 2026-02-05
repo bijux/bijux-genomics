@@ -1,8 +1,8 @@
 use std::path::{Path, PathBuf};
 
-use crate::cross_router::AlignmentBoundary;
+use super::AlignmentBoundary;
 use anyhow::{anyhow, Context, Result};
-use bijux_core::ToolRegistry;
+use bijux_core::contract::ToolRegistry;
 use bijux_environment::resolve::ReferenceRecord;
 use bijux_pipelines::PipelineProfile;
 use bijux_runner::primitives::build_tool_execution_spec;

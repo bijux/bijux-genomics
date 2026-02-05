@@ -143,9 +143,9 @@ pub struct RunResult {
 ///
 /// Stability: v1 (stable).
 pub struct PlanRunRequest {
-    pub run_spec: bijux_core::RunSpec,
-    pub profile: bijux_core::Profile,
-    pub run_id: bijux_core::RunId,
+    pub run_spec: bijux_core::contract::RunSpec,
+    pub profile: bijux_core::contract::Profile,
+    pub run_id: bijux_core::contract::RunId,
 }
 
 #[derive(Debug, Clone)]
@@ -153,7 +153,7 @@ pub struct PlanRunRequest {
 ///
 /// Stability: v1 (stable).
 pub struct PlanRunResult {
-    pub plan: bijux_core::RunExecutionPlan,
+    pub plan: bijux_core::contract::RunExecutionPlan,
 }
 
 #[derive(Debug, Clone)]
@@ -161,7 +161,7 @@ pub struct PlanRunResult {
 ///
 /// Stability: v1 (stable).
 pub struct ExecuteRunRequest {
-    pub plan: bijux_core::StagePlanV1,
+    pub plan: bijux_core::plan::stage_plan::StagePlanV1,
     pub runner: bijux_environment::api::RunnerKind,
 }
 

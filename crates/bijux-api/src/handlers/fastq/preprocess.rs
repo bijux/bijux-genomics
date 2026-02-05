@@ -4,8 +4,8 @@ use std::collections::HashMap;
 use crate::tooling::{ensure_bench_runner, filter_tools_by_role, load_registry};
 use anyhow::{anyhow, Context, Result};
 use bijux_core::plan::execution_plan::PlanPolicy;
+use bijux_core::plan::stage_plan::ContainerImageRefV1;
 use bijux_core::primitives::errors::ErrorCategory;
-use bijux_core::ContainerImageRefV1;
 use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use bijux_planner_fastq::stage_api::RawFailure;
@@ -73,8 +73,8 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     let mut filtered_selections = Vec::new();
     for tool_id in &tool_ids {
         let reason = reasons_by_tool.remove(tool_id).unwrap_or_else(|| {
-            bijux_core::PlanDecisionReason::new(
-                bijux_core::PlanReasonKind::Fallback,
+            bijux_core::plan::stage_plan::PlanDecisionReason::new(
+                bijux_core::plan::stage_plan::PlanReasonKind::Fallback,
                 "selected by role filter",
             )
         });

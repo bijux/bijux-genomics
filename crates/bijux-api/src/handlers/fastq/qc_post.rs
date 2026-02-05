@@ -60,7 +60,7 @@ pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
         let image = resolve_image_for_run(spec, platform)?;
         aux_tools.insert(
             (*aux_tool).to_string(),
-            bijux_core::ContainerImageRefV1 {
+            bijux_core::plan::stage_plan::ContainerImageRefV1 {
                 image: image.full_name,
                 digest: spec.digest.clone(),
             },
