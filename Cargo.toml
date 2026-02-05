@@ -16,6 +16,7 @@ members = [
   "crates/bijux-planner-fastq",
   "crates/bijux-runner",
   "crates/bijux-pipelines",
+  "crates/bijux-runtime",
   "crates/bijux-stages-bam",
   "crates/bijux-stages-fastq",
 ]

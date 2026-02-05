@@ -6,9 +6,11 @@ use sha2::Digest;
 
 use bijux_infra::bench_tools_dir;
 
-use crate::{
-    hashing::params_hash, plan::execution_plan::ExecutionPlan,
-    scientific_provenance::ScientificProvenanceV1, StageObservabilityContextV1, ToolInvocationV1,
+use crate::StageObservabilityContextV1;
+use bijux_core::primitives::hashing::params_hash;
+use bijux_core::{
+    plan::execution_plan::ExecutionPlan, scientific_provenance::ScientificProvenanceV1,
+    ToolInvocationV1,
 };
 use serde::Serialize;
 
@@ -34,11 +36,11 @@ pub struct MetricsEnvelopeV1 {
     pub stage_version: i32,
     pub tool_id: String,
     pub tool_version: String,
-    pub context: crate::metrics::MetricContextV1,
+    pub context: bijux_core::metrics::MetricContextV1,
     pub input_hash: String,
     pub params_hash: String,
     pub parameters_json: serde_json::Value,
-    pub execution: crate::measure::ExecutionMetrics,
+    pub execution: bijux_core::primitives::measure::ExecutionMetrics,
     pub metrics: serde_json::Value,
     pub output_hashes: Vec<String>,
 }
@@ -184,7 +186,7 @@ pub fn write_run_manifest(
 /// Returns an error if the provenance file cannot be written.
 pub fn write_scientific_provenance(
     run_dir: &Path,
-    provenance: &crate::scientific_provenance::ScientificProvenanceV1,
+    provenance: &bijux_core::scientific_provenance::ScientificProvenanceV1,
 ) -> Result<PathBuf> {
     let path = run_dir.join("scientific_provenance.json");
     bijux_infra::atomic_write_json(&path, provenance)
@@ -369,8 +371,8 @@ fn truncate_tail(text: &str, tail_kb: usize) -> String {
 /// Returns an error if metrics JSON cannot be written.
 pub fn write_metrics_json<T: serde::Serialize>(
     run_dirs: &RunDirs,
-    execution: &crate::measure::ExecutionMetrics,
-    metrics: &crate::metrics::MetricEnvelope<T>,
+    execution: &bijux_core::primitives::measure::ExecutionMetrics,
+    metrics: &bijux_core::metrics::MetricEnvelope<T>,
 ) -> Result<()> {
     let payload = serde_json::json!({
         "execution": execution,
@@ -391,11 +393,12 @@ pub fn run_artifacts_dir_for_out(out_dir: &Path) -> PathBuf {
 pub fn write_metrics_envelope(
     run_artifacts_dir: &Path,
     ctx: &StageObservabilityContextV1,
-    execution: &crate::measure::ExecutionMetrics,
+    execution: &bijux_core::primitives::measure::ExecutionMetrics,
     metrics: &serde_json::Value,
     output_hashes: &[String],
 ) -> Result<PathBuf> {
-    let canonical_params = crate::parameters_json_canonicalization(&ctx.parameters_json);
+    let canonical_params =
+        bijux_core::primitives::hashing::parameters_json_canonicalization(&ctx.parameters_json);
     let payload = MetricsEnvelopeV1 {
         schema_version: "bijux.metrics_envelope.v1",
         stage_id: ctx.stage_id.clone(),
@@ -419,7 +422,7 @@ pub fn write_metrics_envelope(
 /// Returns an error if stage metrics cannot be written.
 pub fn write_stage_metrics_json<T: serde::Serialize>(
     run_artifacts_dir: &Path,
-    metrics: &crate::metrics::StageMetricsV1<T>,
+    metrics: &bijux_core::metrics::StageMetricsV1<T>,
 ) -> Result<PathBuf> {
     let stage_path = run_artifacts_dir.join("stage_metrics.json");
     let metrics_path = run_artifacts_dir.join("metrics.json");
@@ -434,7 +437,7 @@ pub fn write_stage_metrics_json<T: serde::Serialize>(
 pub fn write_tool_invocation_json(
     run_artifacts_dir: &Path,
     stage_id: &str,
-    invocation: &crate::ToolInvocationV1,
+    invocation: &bijux_core::ToolInvocationV1,
 ) -> Result<PathBuf> {
     let invocations_dir = run_artifacts_dir.join("invocations");
     bijux_infra::ensure_dir(&invocations_dir).context("create invocations dir")?;

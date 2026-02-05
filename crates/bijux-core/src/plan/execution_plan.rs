@@ -228,7 +228,7 @@ impl ExecutionPlan {
     /// Returns an error if canonical JSON serialization fails.
     pub fn canonical_json(&self) -> Result<serde_json::Value> {
         let value = serde_json::to_value(self)?;
-        Ok(crate::observability::canonicalize_json_value(&value))
+        Ok(crate::primitives::hashing::canonicalize_json_value(&value))
     }
 
     /// # Errors

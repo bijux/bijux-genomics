@@ -1,9 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    metrics::{AdapterBankProvenanceV1, MetricContextV1},
-    ToolConstraints,
-};
+use bijux_core::metrics::{AdapterBankProvenanceV1, MetricContextV1};
+use bijux_core::primitives::invariants::{InvariantResultV1, InvariantStatusV1, StageVerdictV1};
+use bijux_core::ToolConstraints;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -91,7 +90,7 @@ pub struct RetentionReportV1 {
     pub condition: serde_json::Value,
     pub parameters_json: serde_json::Value,
     #[serde(default)]
-    pub retention: Option<crate::metrics::RetentionReportMetricV1>,
+    pub retention: Option<serde_json::Value>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -257,33 +256,6 @@ pub struct ReportSchemaV1 {
     pub sections: serde_json::Value,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
-#[serde(rename_all = "snake_case")]
-pub enum InvariantStatusV1 {
-    Pass,
-    Warn,
-    Fail,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct InvariantResultV1 {
-    pub id: String,
-    pub status: InvariantStatusV1,
-    pub message: String,
-    #[serde(default)]
-    pub remediation: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct StageVerdictV1 {
-    pub stage_id: String,
-    pub verdict: InvariantStatusV1,
-    pub reasons: Vec<String>,
-    pub key_metrics: serde_json::Value,
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct PipelineVerdictV1 {
@@ -394,55 +366,4 @@ pub struct MetricSemanticsV1 {
     pub missing_data_policy: String,
     #[serde(default)]
     pub influencing_params: Vec<String>,
-}
-
-pub fn canonicalize_json_value(value: &serde_json::Value) -> serde_json::Value {
-    match value {
-        serde_json::Value::Object(map) => {
-            let mut keys: Vec<&String> = map.keys().collect();
-            keys.sort();
-            let mut ordered = serde_json::Map::new();
-            for key in keys {
-                let val = map.get(key).unwrap_or(&serde_json::Value::Null);
-                ordered.insert(key.clone(), canonicalize_json_value(val));
-            }
-            serde_json::Value::Object(ordered)
-        }
-        serde_json::Value::Array(items) => {
-            serde_json::Value::Array(items.iter().map(canonicalize_json_value).collect())
-        }
-        _ => value.clone(),
-    }
-}
-
-#[must_use]
-pub fn parameters_json_canonicalization(value: &serde_json::Value) -> serde_json::Value {
-    fn normalize_numbers(value: &serde_json::Value) -> serde_json::Value {
-        match value {
-            serde_json::Value::Number(num) => {
-                if let Some(f) = num.as_f64() {
-                    serde_json::Number::from_f64(f).map_or_else(
-                        || serde_json::Value::Number(num.clone()),
-                        serde_json::Value::Number,
-                    )
-                } else {
-                    serde_json::Value::Number(num.clone())
-                }
-            }
-            serde_json::Value::Array(items) => {
-                serde_json::Value::Array(items.iter().map(normalize_numbers).collect())
-            }
-            serde_json::Value::Object(map) => {
-                let mut ordered = serde_json::Map::new();
-                for (key, val) in map {
-                    ordered.insert(key.clone(), normalize_numbers(val));
-                }
-                serde_json::Value::Object(ordered)
-            }
-            _ => value.clone(),
-        }
-    }
-
-    let canonical = canonicalize_json_value(value);
-    normalize_numbers(&canonical)
 }

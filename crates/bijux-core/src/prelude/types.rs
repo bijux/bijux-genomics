@@ -11,25 +11,14 @@ pub struct ToolId(pub String);
 pub struct RunId(pub String);
 
 pub use crate::metrics::{
-    AdapterBankProvenanceV1, BankEntryV1, BankRefV1, FastqCorrectMetricsV1, FastqDeltaMetricsV1,
-    FastqFilterMetricsV1, FastqMergeMetricsV1, FastqPreprocessMetricsV1, FastqQcPostMetricsV1,
-    FastqTrimMetricsV1, FastqUmiMetricsV1, FastqValidateMetricsV1, MetricContextV1,
-    RetentionReportMetricV1, StageMetricsV1, ToolInvocationV1,
+    AdapterBankProvenanceV1, BankEntryV1, BankRefV1, MetricContextV1, StageMetricsV1,
+    ToolInvocationV1,
 };
-pub use crate::metrics_registry::{
-    metric_semantics, metrics_schema_for_stage, MetricDirection as MetricSemanticsDirection,
-    MetricSemantics, MetricsSchemaId, FASTQ_METRICS_SCHEMAS,
+pub use crate::metrics_registry::{metrics_schema_for_stage, MetricsSchemaId, FASTQ_METRICS_SCHEMAS};
+pub use crate::primitives::hashing::{canonicalize_json_value, parameters_json_canonicalization};
+pub use crate::primitives::invariants::{
+    InvariantResultV1, InvariantSpecV1, InvariantStatusV1, StageVerdictV1,
 };
-pub use crate::observability::{
-    canonicalize_json_value, parameters_json_canonicalization, AssetsProvenanceV1,
-    EffectiveConfigV1, FactsRowV1, FilterReportV1, InvariantResultV1, InvariantStatusV1,
-    MetricSemanticsV1, PipelineVerdictV1, ReportCompletenessV1, ReportContractV1,
-    ReportProvenanceV1, ReportSchemaV1, ReportStageSummaryV1, RetentionContextV1,
-    RetentionDefinitionV1, RetentionReportV1, StageObservabilityContextV1,
-    StageObservabilityContractV1, StageReportV1, StageVerdictV1, TelemetryEventV1,
-    RunProvenanceV1,
-};
-pub use crate::invariants::InvariantSpecV1;
 pub use crate::selection::{
     objective_spec, BenchResultRecord, BenchResultStatus, Disqualification, Objective,
     ObjectiveSpec, ObjectiveWeights, StageSelection, ToolScore,
@@ -38,10 +27,8 @@ pub use crate::plan::stage_plan::{
     ArtifactRef, CommandSpecV1, ContainerImageRefV1, PlanDecisionReason, PlanReasonKind, StageIO,
     StagePlanJsonV1, StagePlanV1,
 };
-pub use crate::hashing::{params_hash, run_id_from_hashes};
-pub use crate::errors::{
-    remediation_hints_for_failure, CategorizedError, ErrorCategory, ErrorHintV1, HintSeverity,
-};
+pub use crate::primitives::hashing::{params_hash, run_id_from_hashes};
+pub use crate::primitives::errors::{CategorizedError, ErrorCategory, ErrorHintV1, HintSeverity};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -112,11 +99,11 @@ pub struct RawFailure {
     pub tool: String,
     pub reason: String,
     #[serde(default = "default_error_category")]
-    pub category: crate::errors::ErrorCategory,
+    pub category: crate::primitives::errors::ErrorCategory,
 }
 
-fn default_error_category() -> crate::errors::ErrorCategory {
-    crate::errors::ErrorCategory::ToolError
+fn default_error_category() -> crate::primitives::errors::ErrorCategory {
+    crate::primitives::errors::ErrorCategory::ToolError
 }
 
 #[must_use]

@@ -1,7 +1,7 @@
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Result};
-use bijux_core::input_assessment::{
+use bijux_core::primitives::input_assessment::{
     assess_input_dir, discover_fastq_files, is_fastq_path, is_gzip_path, FastqLayout,
 };
 

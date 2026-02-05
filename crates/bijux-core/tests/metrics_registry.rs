@@ -1,6 +1,4 @@
-use bijux_core::metrics_registry::{
-    metric_semantics, metrics_schema_for_stage, FASTQ_METRICS_SCHEMAS,
-};
+use bijux_core::metrics_registry::{metrics_schema_for_stage, FASTQ_METRICS_SCHEMAS};
 
 #[test]
 fn metrics_registry_resolves_all_fastq_schemas() {
@@ -10,23 +8,5 @@ fn metrics_registry_resolves_all_fastq_schemas() {
         };
         assert_eq!(resolved.schema, schema.schema);
         assert_eq!(resolved.version, schema.version);
-    }
-}
-
-#[test]
-fn metrics_registry_exposes_compare_semantics() {
-    let metric_ids = [
-        "runtime_s",
-        "memory_mb",
-        "read_retention",
-        "base_retention",
-        "merge_rate",
-        "error_reduction_proxy",
-    ];
-    for metric_id in metric_ids {
-        assert!(
-            metric_semantics(metric_id).is_some(),
-            "missing semantics for {metric_id}"
-        );
     }
 }

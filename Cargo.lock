@@ -275,6 +275,7 @@ dependencies = [
  "bijux-pipelines",
  "bijux-planner-bam",
  "bijux-planner-fastq",
+ "bijux-runtime",
  "insta",
  "parquet",
  "rusqlite",
@@ -301,6 +302,7 @@ dependencies = [
  "bijux-planner-bam",
  "bijux-planner-fastq",
  "bijux-runner",
+ "bijux-runtime",
  "chrono",
  "insta",
  "serde",
@@ -356,6 +358,7 @@ dependencies = [
  "anyhow",
  "bijux-core",
  "bijux-guardrails",
+ "bijux-runtime",
  "schemars",
  "serde",
  "serde_json",
@@ -369,6 +372,7 @@ dependencies = [
  "bijux-core",
  "bijux-guardrails",
  "bijux-infra",
+ "bijux-runtime",
  "chrono",
  "rusqlite",
  "schemars",
@@ -390,6 +394,7 @@ dependencies = [
  "bijux-guardrails",
  "bijux-infra",
  "bijux-runner",
+ "bijux-runtime",
  "chrono",
  "flate2",
  "opentelemetry 0.24.0",
@@ -518,6 +523,19 @@ dependencies = [
  "tracing",
  "uuid",
  "walkdir",
+]
+
+[[package]]
+name = "bijux-runtime"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bijux-core",
+ "bijux-infra",
+ "opentelemetry 0.22.0",
+ "serde",
+ "serde_json",
+ "sha2",
 ]
 
 [[package]]
