@@ -4,7 +4,8 @@ use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 
 use crate::contract::ToolConstraints;
-use crate::plan::stage_plan::{ArtifactRef, ContainerImageRefV1, PlanDecisionReason, StagePlanV1};
+use crate::plan::stage_plan::{ArtifactRef, PlanDecisionReason, StagePlanV1};
+use crate::primitives::ContainerImageRefV1;
 use sha2::Digest;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

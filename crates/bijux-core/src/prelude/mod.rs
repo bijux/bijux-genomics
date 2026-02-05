@@ -1,3 +1,5 @@
+#![allow(ambiguous_glob_reexports)]
+
 pub use crate::contract::*;
 pub use crate::helpers::metadata::*;
 pub use crate::ids::*;

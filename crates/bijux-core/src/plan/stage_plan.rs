@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::contract::ToolConstraints;
 use crate::ids::{StageId, StageVersion, ToolId};
+use crate::primitives::{CommandSpecV1, ContainerImageRefV1};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -57,19 +58,6 @@ pub struct ArtifactRef {
 pub struct StageIO {
     pub inputs: Vec<ArtifactRef>,
     pub outputs: Vec<ArtifactRef>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct CommandSpecV1 {
-    pub template: Vec<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct ContainerImageRefV1 {
-    pub image: String,
-    pub digest: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -208,7 +208,7 @@ pub mod sex {
             tool_id: tool.tool_id.clone(),
             tool_version: tool.tool_version.clone(),
             image: tool.image.clone(),
-            command: bijux_core::plan::stage_plan::CommandSpecV1 {
+            command: bijux_core::CommandSpecV1 {
                 template: crate::tools::rxy::args_with_outputs(bam, &report, &summary, params),
             },
             resources: tool.resources.clone(),

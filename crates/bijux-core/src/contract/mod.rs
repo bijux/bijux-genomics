@@ -15,9 +15,7 @@ pub use domain::{PipelineDomain, PipelineSpec};
 pub use execution_contract::validate_execution_outputs;
 pub use execution_manifest::ExecutionManifest;
 pub use provenance::{ScientificProvenanceV1, ToolProvenanceV1};
-pub use run::{
-    build_run_execution_plan, run_dir, DryRunExecutor, Executor, Profile, RunExecutionPlan, RunSpec,
-};
+pub use run::{run_dir, Profile, RunSpec};
 pub use run_record::{RunRecordV1, StageExecutionRecordV1};
 pub use selection::{
     BenchResultRecord, BenchResultStatus, Disqualification, Objective, ObjectiveSpec,
