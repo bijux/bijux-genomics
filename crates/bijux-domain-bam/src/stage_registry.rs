@@ -61,6 +61,8 @@ pub enum BamStage {
     Kinship,
 }
 
+pub const STAGE_PREFIX: &str = "bam.";
+
 impl BamStage {
     #[must_use]
     pub const fn as_str(self) -> &'static str {
@@ -86,7 +88,7 @@ impl BamStage {
 
     #[must_use]
     pub fn id(self) -> StageId {
-        StageId(self.as_str().to_string())
+        StageId::from_static(self.as_str())
     }
 
     #[must_use]
@@ -205,6 +207,30 @@ pub struct BamStageSpec {
     pub allowed_tools: &'static [&'static str],
     pub default_tool: &'static str,
     pub default_params: BamEffectiveParams,
+}
+
+#[derive(Debug, Clone)]
+pub struct StageSpec {
+    pub id: StageId,
+    pub stage: BamStage,
+    pub contract: BamStageContract,
+}
+
+#[must_use]
+pub fn stage_registry() -> Vec<StageSpec> {
+    BamStage::all()
+        .iter()
+        .map(|stage| StageSpec {
+            id: stage.id(),
+            stage: *stage,
+            contract: contract_for_stage(stage.as_str()).unwrap_or(BamStageContract {
+                input: BamArtifactKind::Bam,
+                output: BamArtifactKind::Report,
+                emits_bam: false,
+                emits_report: true,
+            }),
+        })
+        .collect()
 }
 
 #[must_use]
