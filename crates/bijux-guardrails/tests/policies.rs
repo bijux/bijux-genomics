@@ -104,6 +104,59 @@ fn engine_does_not_depend_on_runner_or_environment() {
 }
 
 #[test]
+fn core_does_not_depend_on_runtime() {
+    let root = workspace_root();
+    let metadata = MetadataCommand::new()
+        .manifest_path(root.join("Cargo.toml"))
+        .exec()
+        .expect("load cargo metadata");
+
+    let core = metadata
+        .packages
+        .iter()
+        .find(|pkg| pkg.name == "bijux-core")
+        .expect("bijux-core package");
+    let deps: BTreeSet<_> = core
+        .dependencies
+        .iter()
+        .map(|dep| dep.name.as_str())
+        .collect();
+    assert!(
+        !deps.contains("bijux-runtime"),
+        "bijux-core must not depend on bijux-runtime"
+    );
+}
+
+#[test]
+fn domains_do_not_depend_on_stages_or_runner() {
+    let root = workspace_root();
+    let metadata = MetadataCommand::new()
+        .manifest_path(root.join("Cargo.toml"))
+        .exec()
+        .expect("load cargo metadata");
+    let domains = ["bijux-domain-fastq", "bijux-domain-bam"];
+    for domain in domains {
+        let pkg = metadata
+            .packages
+            .iter()
+            .find(|pkg| pkg.name == domain)
+            .unwrap_or_else(|| panic!("{domain} package"));
+        let deps: BTreeSet<_> = pkg
+            .dependencies
+            .iter()
+            .map(|dep| dep.name.as_str())
+            .collect();
+        let forbidden = ["bijux-stages-fastq", "bijux-stages-bam", "bijux-runner"];
+        for banned in forbidden {
+            assert!(
+                !deps.contains(banned),
+                "{domain} must not depend on {banned}"
+            );
+        }
+    }
+}
+
+#[test]
 fn public_modules_live_in_lib_rs() {
     let root = workspace_root();
     let crates = ["bijux-core", "bijux-engine", "bijux-runtime"];
@@ -131,7 +184,7 @@ fn public_modules_live_in_lib_rs() {
 #[test]
 fn litmus_doc_exists_and_lists_rules() {
     let root = workspace_root();
-    let path = root.join("ARCHITECTURE_LITMUS.md");
+    let path = root.join("../../../docs/ARCHITECTURE_LITMUS.md");
     let content = std::fs::read_to_string(&path).expect("read ARCHITECTURE_LITMUS.md");
     let required = [
         "engine does not depend on runner or environment",
