@@ -1,4 +1,6 @@
-bench-all:
+##@ Performance Benchmarks
+
+benchmark-all: ## Run all individual benchmarks sequentially
 	@set -e; \
 	$(MAKE) benchmark-validate FASTQ_ROOT_OVERRIDE="$(FASTQ_ROOT_OVERRIDE)"; \
 	$(MAKE) benchmark-trim FASTQ_ROOT_OVERRIDE="$(FASTQ_ROOT_OVERRIDE)"; \
@@ -11,7 +13,7 @@ bench-all:
 	$(MAKE) benchmark-screen FASTQ_ROOT_OVERRIDE="$(FASTQ_ROOT_OVERRIDE)"; \
 	$(MAKE) benchmark-preprocess FASTQ_ROOT_OVERRIDE="$(FASTQ_ROOT_OVERRIDE)"
 
-benchmark-trim:
+benchmark-trim: ## Benchmark adapter/quality trimming tools
 	@set -e; \
 	TOOLS="$(TOOLS)"; \
 	if [ -z "$$TOOLS" ]; then TOOLS="$(TOOLS_TRIM)"; fi; \
@@ -33,7 +35,7 @@ benchmark-trim:
 		cargo run --bin bijux -- fastq trim --env docker --tools $$TOOLS --sample-id "$$sample_id" --r1 "$$file" --out "$$OUT_DIR"; \
 	done
 
-benchmark-validate:
+benchmark-validate: ## Benchmark read validation tools
 	@set -e; \
 	TOOLS="$(TOOLS)"; \
 	if [ -z "$$TOOLS" ]; then TOOLS="$(TOOLS_VALIDATE)"; fi; \
@@ -55,7 +57,7 @@ benchmark-validate:
 		cargo run --bin bijux -- fastq validate --env docker --tools $$TOOLS --sample-id "$$sample_id" --r1 "$$file" --out "$$OUT_DIR"; \
 	done
 
-benchmark-filter:
+benchmark-filter: ## Benchmark contaminant filtering tools
 	@set -e; \
 	TOOLS="$(TOOLS)"; \
 	if [ -z "$$TOOLS" ]; then TOOLS="$(TOOLS_FILTER)"; fi; \
@@ -77,7 +79,7 @@ benchmark-filter:
 		cargo run --bin bijux -- bench fastq filter --sample-id "$$sample_id" --r1 "$$file" --out "$$OUT_DIR" --tools $$TOOLS; \
 	done
 
-benchmark-merge:
+benchmark-merge: ## Benchmark read merging tools (paired-end)
 	@set -e; \
 	TOOLS="$(TOOLS)"; \
 	if [ -z "$$TOOLS" ]; then TOOLS="$(TOOLS_MERGE)"; fi; \
@@ -100,7 +102,7 @@ benchmark-merge:
 		cargo run --bin bijux -- bench fastq merge --sample-id "$$sample_id" --r1 "$$r1" --r2 "$$r2" --out "$$OUT_DIR" --tools $$TOOLS; \
 	done
 
-benchmark-correct:
+benchmark-correct: ## Benchmark error correction tools (paired-end)
 	@set -e; \
 	TOOLS="$(TOOLS)"; \
 	if [ -z "$$TOOLS" ]; then TOOLS="$(TOOLS_CORRECT)"; fi; \
@@ -123,7 +125,7 @@ benchmark-correct:
 		cargo run --bin bijux -- bench fastq correct --sample-id "$$sample_id" --r1 "$$r1" --r2 "$$r2" --out "$$OUT_DIR" --tools $$TOOLS; \
 	done
 
-benchmark-qc-post:
+benchmark-qc-post: ## Benchmark post-processing QC tools
 	@set -e; \
 	TOOLS="$(TOOLS)"; \
 	if [ -z "$$TOOLS" ]; then TOOLS="$(TOOLS_QC_POST)"; fi; \
@@ -145,7 +147,7 @@ benchmark-qc-post:
 		cargo run --bin bijux -- bench fastq qc-post --sample-id "$$sample_id" --r1 "$$file" --out "$$OUT_DIR" --tools $$TOOLS; \
 	done
 
-benchmark-umi:
+benchmark-umi: ## Benchmark UMI processing tools (paired-end)
 	@set -e; \
 	TOOLS="$(TOOLS)"; \
 	if [ -z "$$TOOLS" ]; then TOOLS="$(TOOLS_UMI)"; fi; \
@@ -168,7 +170,7 @@ benchmark-umi:
 		cargo run --bin bijux -- bench fastq umi --sample-id "$$sample_id" --r1 "$$r1" --r2 "$$r2" --out "$$OUT_DIR" --tools $$TOOLS; \
 	done
 
-benchmark-stats:
+benchmark-stats: ## Benchmark statistics computation tools
 	@set -e; \
 	TOOLS="$(TOOLS)"; \
 	if [ -z "$$TOOLS" ]; then TOOLS="$(TOOLS_STATS)"; fi; \
@@ -190,7 +192,7 @@ benchmark-stats:
 		cargo run --bin bijux -- bench fastq stats --sample-id "$$sample_id" --r1 "$$file" --out "$$OUT_DIR" --tools $$TOOLS; \
 	done
 
-benchmark-screen:
+benchmark-screen: ## Benchmark screening tools
 	@set -e; \
 	TOOLS="$(TOOLS)"; \
 	if [ -z "$$TOOLS" ]; then TOOLS="$(TOOLS_SCREEN)"; fi; \
@@ -212,7 +214,7 @@ benchmark-screen:
 		cargo run --bin bijux -- bench fastq screen --sample-id "$$sample_id" --r1 "$$file" --out "$$OUT_DIR" --tools $$TOOLS; \
 	done
 
-benchmark-preprocess:
+benchmark-preprocess: ## Benchmark full preprocessing pipeline
 	@set -e; \
 	OUT_DIR="."; \
 	if [ -n "$(FASTQ_ROOT_OVERRIDE)" ]; then FASTQ_ROOT="$(FASTQ_ROOT_OVERRIDE)"; else FASTQ_ROOT="tests/data/fastq"; fi; \
@@ -231,3 +233,7 @@ benchmark-preprocess:
 		echo "→ benchmark preprocess $$sample_id"; \
 		cargo run --bin bijux -- fastq preprocess --sample-id "$$sample_id" --r1 "$$file" --out "$$OUT_DIR"; \
 	done
+
+.PHONY: benchmark-all benchmark-trim benchmark-validate benchmark-filter \
+        benchmark-merge benchmark-correct benchmark-qc-post benchmark-umi \
+        benchmark-stats benchmark-screen benchmark-preprocess
