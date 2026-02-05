@@ -54,3 +54,52 @@ fn command_spawning_is_confined_to_runner_and_env_tooling() {
         offenders.join("\n")
     );
 }
+
+#[test]
+fn crate_tests_do_not_spawn_external_commands() {
+    let root = workspace_root();
+    let mut offenders = Vec::new();
+    let needles = [
+        "std::process::Command",
+        "Command::new",
+        "tokio::process::Command",
+        "assert_cmd",
+        "duct::cmd",
+        "DockerRunner",
+        "docker::",
+        "bollard::",
+        "apptainer",
+    ];
+
+    for entry in WalkDir::new(root.join("crates"))
+        .into_iter()
+        .filter_map(Result::ok)
+    {
+        if !entry.file_type().is_file() {
+            continue;
+        }
+        let path = entry.path();
+        if path.extension().and_then(|ext| ext.to_str()) != Some("rs") {
+            continue;
+        }
+        let path_str = path.to_string_lossy();
+        if !path_str.contains("/tests/") {
+            continue;
+        }
+        if path_str.contains("/crates/bijux-policies/tests/")
+            || path_str.contains("/crates/bijux-stages-fastq/tests/architecture.rs")
+        {
+            continue;
+        }
+        let content = std::fs::read_to_string(path).expect("read source");
+        if needles.iter().any(|needle| content.contains(needle)) {
+            offenders.push(path.display().to_string());
+        }
+    }
+
+    assert!(
+        offenders.is_empty(),
+        "crate tests must not spawn external commands (use lab/ harness instead):\n{}",
+        offenders.join("\n")
+    );
+}

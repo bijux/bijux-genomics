@@ -84,3 +84,38 @@ fn write_locations_are_confined_to_runtime_and_engine() {
         offenders.join("\n")
     );
 }
+
+#[test]
+fn crates_do_not_reference_removed_fastq_test_paths() {
+    let root = workspace_root();
+    let mut offenders = Vec::new();
+    let needles = ["tests/data/fastq/"];
+    let exts = ["rs", "toml", "md"];
+
+    for entry in WalkDir::new(root.join("crates"))
+        .into_iter()
+        .filter_map(|entry| entry.ok())
+    {
+        if !entry.file_type().is_file() {
+            continue;
+        }
+        let path = entry.path();
+        let ext = match path.extension().and_then(|ext| ext.to_str()) {
+            Some(ext) => ext,
+            None => continue,
+        };
+        if !exts.contains(&ext) {
+            continue;
+        }
+        let content = std::fs::read_to_string(path).expect("read source");
+        if needles.iter().any(|needle| content.contains(needle)) {
+            offenders.push(path.display().to_string());
+        }
+    }
+
+    assert!(
+        offenders.is_empty(),
+        "crates must not reference tests/data/fastq paths:\n{}",
+        offenders.join("\n")
+    );
+}
