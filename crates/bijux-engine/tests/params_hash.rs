@@ -43,7 +43,7 @@ fn tool_invocation_roundtrip_and_hash_stability() -> Result<()> {
         adapter_bank: None,
         banks: None,
         bank_assets: None,
-        resources: bijux_core::ToolConstraints {
+        resources: bijux_core::contract::ToolConstraints {
             runtime: "docker".to_string(),
             mem_gb: 1,
             tmp_gb: 1,

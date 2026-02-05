@@ -3,7 +3,7 @@ use std::process::Command;
 
 use anyhow::{anyhow, Context, Result};
 
-use bijux_core::ExecutionManifest;
+use bijux_core::contract::ExecutionManifest;
 
 pub fn replay_run(run_id: &str, search_root: &Path) -> Result<()> {
     if std::env::var("BIJUX_TRACE_ENGINE").is_ok() {

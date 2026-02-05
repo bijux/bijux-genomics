@@ -13,15 +13,16 @@
 
 pub(crate) mod errors;
 pub(crate) mod executor;
+pub mod runner;
 pub(crate) mod services;
 
 #[cfg(test)]
 mod runner_tests;
 
+use crate::runner::Runner;
 use anyhow::Result;
 use bijux_core::contract::RunRecordV1;
 use bijux_core::plan::execution_plan::ExecutionPlan;
-use bijux_runtime::runner::Runner;
 
 pub fn validate(plan: &ExecutionPlan) -> Result<()> {
     let context = bijux_core::plan::execution_plan::PlanValidationContext {

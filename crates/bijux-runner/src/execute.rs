@@ -3,8 +3,8 @@ use std::process::Command;
 use std::time::{Duration, Instant};
 
 use anyhow::{anyhow, Context, Result};
+use bijux_core::plan::stage_plan::StagePlanV1;
 use bijux_core::primitives::hashing::{params_hash, run_id_from_hashes};
-use bijux_core::StagePlanV1;
 use bijux_environment::api::RunnerKind;
 use uuid::Uuid;
 

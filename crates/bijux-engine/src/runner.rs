@@ -2,7 +2,7 @@ use std::path::PathBuf;
 use std::time::Duration;
 
 use anyhow::Result;
-use bijux_core::StagePlanV1;
+use bijux_core::plan::stage_plan::StagePlanV1;
 
 #[derive(Debug, Clone)]
 pub struct Invocation {

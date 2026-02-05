@@ -9,7 +9,7 @@ use crate::docker::executor::resolve_image_for_run;
 pub fn build_tool_execution_spec<S: ::std::hash::BuildHasher>(
     stage_id: &str,
     tool_id: &str,
-    registry: &bijux_core::ToolRegistry,
+    registry: &bijux_core::contract::ToolRegistry,
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
 ) -> Result<ToolExecutionSpecV1> {

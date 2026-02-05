@@ -7,7 +7,6 @@ pub mod observability;
 pub mod provenance;
 pub mod recording;
 pub mod run;
-pub mod runner;
 pub mod telemetry;
 
 pub use events::*;

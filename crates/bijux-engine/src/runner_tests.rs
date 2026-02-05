@@ -5,11 +5,11 @@ use std::collections::BTreeMap;
 use std::path::PathBuf;
 use std::time::Duration;
 
+use crate::runner::{Invocation, Runner, RunnerResult};
 use bijux_core::plan::execution_plan::{ExecutionPlan, PlanEdge, PlanPolicy};
 use bijux_core::{
     CommandSpecV1, ContainerImageRefV1, StageId, StagePlanV1, StageVersion, ToolConstraints, ToolId,
 };
-use bijux_runtime::runner::{Invocation, Runner, RunnerResult};
 
 use crate::executor::{execute_plan, ExecutionOptions};
 
@@ -69,12 +69,12 @@ fn plan_for(stage_id: &str) -> StagePlanV1 {
             tmp_gb: 1,
             threads: 1,
         },
-        io: bijux_core::StageIO {
-            inputs: vec![bijux_core::ArtifactRef {
+        io: bijux_core::plan::stage_plan::StageIO {
+            inputs: vec![bijux_core::plan::stage_plan::ArtifactRef {
                 name: "input".to_string(),
                 path: PathBuf::from("input"),
             }],
-            outputs: vec![bijux_core::ArtifactRef {
+            outputs: vec![bijux_core::plan::stage_plan::ArtifactRef {
                 name: "output".to_string(),
                 path: PathBuf::from("output"),
             }],
@@ -83,7 +83,7 @@ fn plan_for(stage_id: &str) -> StagePlanV1 {
         params: serde_json::json!({"sample_id":"s1"}),
         effective_params: serde_json::json!({}),
         aux_images: BTreeMap::new(),
-        reason: bijux_core::PlanDecisionReason::default(),
+        reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
     }
 }
 

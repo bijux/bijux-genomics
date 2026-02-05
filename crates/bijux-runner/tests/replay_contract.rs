@@ -1,5 +1,5 @@
 use anyhow::Result;
-use bijux_core::ExecutionManifest;
+use bijux_core::contract::ExecutionManifest;
 use bijux_runner::primitives::replay_run;
 
 #[test]

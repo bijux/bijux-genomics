@@ -1,9 +1,9 @@
 use std::collections::{HashMap, HashSet, VecDeque};
 
+use crate::runner::{Invocation, Runner};
 use anyhow::{anyhow, Result};
 use bijux_core::plan::execution_plan::{ExecutionPlan, PlanEdge};
 use bijux_core::{RunRecordV1, StageExecutionRecordV1, StagePlanV1};
-use bijux_runtime::runner::{Invocation, Runner};
 
 #[derive(Debug, Clone, Default)]
 pub struct ExecutionOptions {
