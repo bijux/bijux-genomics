@@ -1,37 +1,28 @@
 use bijux_analyze::BenchmarkRecord;
 use bijux_planner_fastq::stage_api::RawFailure;
 
-mod correct;
 mod explain;
-mod filter;
 mod jobs;
-mod merge;
-mod preprocess;
-mod qc_post;
-mod screen;
-mod stats_neutral;
+mod stages;
 mod summary;
-mod trim;
-mod umi;
-mod validate_pre;
 
 pub use bijux_planner_fastq::stage_api::{
     STAGE_CORRECT, STAGE_FILTER, STAGE_MERGE, STAGE_PREPROCESS, STAGE_QC_POST, STAGE_SCREEN,
     STAGE_STATS_NEUTRAL, STAGE_TRIM, STAGE_UMI, STAGE_VALIDATE_PRE,
 };
 
-pub use correct::bench_fastq_correct;
 pub use explain::{write_explain_md, write_explain_plan_json};
-pub use filter::bench_fastq_filter;
-pub use merge::bench_fastq_merge;
-pub use preprocess::{bench_fastq_preprocess, fastq_preprocess_run};
-pub use qc_post::bench_fastq_qc_post;
-pub use screen::bench_fastq_screen;
-pub use stats_neutral::bench_fastq_stats_neutral;
+pub use stages::correct::bench_fastq_correct;
+pub use stages::filter::bench_fastq_filter;
+pub use stages::merge::bench_fastq_merge;
+pub use stages::preprocess::{bench_fastq_preprocess, fastq_preprocess_run};
+pub use stages::qc_post::bench_fastq_qc_post;
+pub use stages::screen::bench_fastq_screen;
+pub use stages::stats_neutral::bench_fastq_stats_neutral;
+pub use stages::trim::bench_fastq_trim;
+pub use stages::umi::bench_fastq_umi;
+pub use stages::validate_pre::bench_fastq_validate_pre;
 pub use summary::StageExecutionSummary;
-pub use trim::bench_fastq_trim;
-pub use umi::bench_fastq_umi;
-pub use validate_pre::bench_fastq_validate_pre;
 /// Benchmarking result for a FASTQ stage.
 ///
 /// Stability: v1 (stable).
