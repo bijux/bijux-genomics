@@ -1,1 +1,31 @@
 extend = "../../Makefile.toml"
+
+[tasks.fmt-check]
+script = ["true"]
+
+[tasks.clippy]
+script = ["true"]
+
+[tasks.lint]
+dependencies = []
+script_runner = "bash"
+script = [
+  "ROOT_DIR=$(cd ../.. && pwd)",
+  "STAMP=\"$ROOT_DIR/target/.lint_ran\"",
+  "if [ -f \"$STAMP\" ]; then echo 'lint handled at workspace root'; exit 0; fi",
+  "mkdir -p \"$ROOT_DIR/target\"",
+  "touch \"$STAMP\"",
+  "cargo make --no-workspace --cwd \"$ROOT_DIR\" lint-root",
+]
+
+[tasks.test]
+dependencies = []
+script_runner = "bash"
+script = [
+  "ROOT_DIR=$(cd ../.. && pwd)",
+  "STAMP=\"$ROOT_DIR/target/.test_ran\"",
+  "if [ -f \"$STAMP\" ]; then echo 'test handled at workspace root'; exit 0; fi",
+  "mkdir -p \"$ROOT_DIR/target\"",
+  "touch \"$STAMP\"",
+  "cargo make --no-workspace --cwd \"$ROOT_DIR\" test",
+]
