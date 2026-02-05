@@ -1,4 +1,4 @@
-//! Shared guardrail checks across crates.
+//! Shared contract/policy checks across crates (enforces ownership and interfaces).
 
 use anyhow::Result;
 use regex::Regex;
