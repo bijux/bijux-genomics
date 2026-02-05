@@ -1,0 +1,4 @@
+corpus_root = "/path/to/lab/corpus"
+runner_kind = "docker"
+pipeline_ids = ["fastq-to-fastq__default__v1", "bam-to-bam__default__v1"]
+output_dir = "/path/to/lab/output"

@@ -1,6 +1,7 @@
 # Bijux canonical FASTQ dataset
 
-Tiny FASTQ fixtures used across QA, benchmarks, regression tests, and CI.
+Tiny FASTQ fixtures used for QA and lab benchmarks. These fixtures are no
+longer checked into the repo; place them under `lab/corpus/fastq`.
 
 Files (SHA-256):
 - BIJUX_SE_R1.fastq.gz: aa0d377ec155f3205f02fb4fa9cb9bc9f1216b15e1ae4e047679184ae1f53af2
@@ -9,6 +10,6 @@ Files (SHA-256):
 
 Intended usage:
 - QA: `bijux image-qa`
-- Bench: `make bench-all` (sample inputs)
-- Regression: stage-level tests in `crates/bijux-cli/tests`
-- CI: deterministic fixtures
+- Bench: `make bench-all` with `CORPUS_ROOT=lab/corpus/fastq`
+- Regression: inline fixtures in tests
+- CI: deterministic fixtures (small inline strings only)

@@ -7,6 +7,7 @@ NEXTEST_JOBS ?= $(JOBS)
 include makefiles/cargo.mk
 include makefiles/containers.mk
 include makefiles/benchmarks.mk
+include makefiles/lab.mk
 
 .DEFAULT_GOAL := help
 
