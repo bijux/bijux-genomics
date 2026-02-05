@@ -7,7 +7,6 @@ rust-version.workspace = true
 [dependencies]
 bijux-core = { path = "../bijux-core" }
 bijux-domain-fastq = { path = "../bijux-domain-fastq" }
-bijux-environment = { path = "../bijux-environment" }
 bijux-infra = { path = "../bijux-infra" }
 bijux-runtime = { path = "../bijux-runtime" }
 serde.workspace = true
