@@ -26,15 +26,6 @@ use bijux_planner_fastq::stage_api::{
     adapter_bank_context, contaminant_bank_context, polyx_bank_context, polyx_unsupported_warning,
 };
 
-/// Build the preprocess pipeline plan.
-#[must_use]
-pub fn fastq_preprocess_plan(
-    args: &bijux_planner_fastq::stage_api::args::BenchFastqPreprocessArgs,
-) -> bijux_core::domain::PipelineSpec {
-    let decisions = preprocess_decisions(args);
-    resolve_preprocess_pipeline(args, &decisions)
-}
-
 /// Run the preprocess pipeline.
 ///
 /// # Errors

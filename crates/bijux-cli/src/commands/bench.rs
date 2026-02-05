@@ -435,10 +435,14 @@ fn explain_fastq_stage(registry: &bijux_api::v1::run::ToolRegistry, stage_id: &s
             force_merge: false,
             enable_correct: false,
         };
-        let plan = bijux_api::v1::plan::fastq_preprocess_plan(&args);
+        let pipeline_id = args
+            .profile
+            .as_deref()
+            .unwrap_or("fastq-to-fastq__default__v1");
+        let stages = bijux_api::v1::plan::fastq_pipeline_stage_ids(pipeline_id);
         println!("stage: {stage_id}");
         println!("pipeline:");
-        for step in plan.stages {
+        for step in stages {
             println!("- {step}");
         }
         return Ok(());

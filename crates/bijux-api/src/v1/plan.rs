@@ -6,10 +6,9 @@ pub use crate::args::{
     BamRunArgs, BenchBamPipelineArgs, BenchBamStageArgs, FastqCrossArgs, PlanRunRequest,
     PlanRunResult,
 };
-pub use crate::fastq_router::fastq_preprocess_plan;
 pub use crate::run::plan_run;
 pub use crate::run::{select_pipeline, select_pipelines};
-pub use crate::v1::bam::plan_for_bam_stage_with_profile;
+pub use crate::v1::bam::plan::plan_for_bam_stage_with_profile;
 pub use bijux_core::plan::execution_plan::ExecutionPlan;
 pub use bijux_core::PlanExplainV1;
 pub use bijux_pipelines::registry::PipelineRegistry;
