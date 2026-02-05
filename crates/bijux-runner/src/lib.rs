@@ -9,6 +9,7 @@ use bijux_core::StagePlanV1;
 
 pub mod docker;
 pub mod local;
+pub mod execute;
 
 #[derive(Debug, Clone)]
 pub struct Invocation {
@@ -45,4 +46,5 @@ pub mod primitives {
     };
     pub use crate::docker::replay::replay_run;
     pub use crate::docker::support::build_tool_execution_spec;
+    pub use crate::execute::{execute_stage_plan, StageResultV1};
 }

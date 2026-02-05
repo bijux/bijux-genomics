@@ -1,4 +1,5 @@
 use std::path::{Path, PathBuf};
+use std::io::Write;
 
 use anyhow::{anyhow, Context, Result};
 use sha2::Digest;
@@ -175,6 +176,21 @@ pub fn write_scientific_provenance(
     let path = run_dir.join("scientific_provenance.json");
     bijux_infra::atomic_write_json(&path, provenance).context("write scientific_provenance.json")?;
     Ok(path)
+}
+
+pub fn write_telemetry_event(path: &Path, event: &bijux_core::TelemetryEventV1) -> Result<()> {
+    if let Some(parent) = path.parent() {
+        bijux_infra::ensure_dir(parent).context("create telemetry dir")?;
+    }
+    let line = serde_json::to_string(event)?;
+    std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(path)
+        .context("open telemetry jsonl")?
+        .write_all(format!("{line}\n").as_bytes())
+        .context("append telemetry jsonl")?;
+    Ok(())
 }
 
 pub(crate) fn hash_file_sha256(path: &Path) -> Result<String> {
