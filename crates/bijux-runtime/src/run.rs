@@ -18,3 +18,8 @@ pub fn load_profile(path: &Path) -> Result<Profile> {
 pub fn new_run_id() -> RunId {
     RunId(format!("run-{}", uuid::Uuid::new_v4()))
 }
+
+#[must_use]
+pub fn resolve_run_base_dir(cwd: &Path, run_base: &Path) -> std::path::PathBuf {
+    bijux_infra::normalize_run_base_dir(cwd, run_base)
+}

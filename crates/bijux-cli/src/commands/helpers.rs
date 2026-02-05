@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Context, Result};
 
 use crate::commands::cli::{AnalyzeReportArgs, Cli};
-use bijux_api::v1::run::{load_profile, normalize_run_base_dir};
+use bijux_api::v1::run::{load_profile, resolve_run_base_dir};
 
 pub(crate) fn normalize_fastq_stage_id(stage: &str) -> String {
     if stage.contains('.') {
@@ -75,7 +75,7 @@ pub(crate) fn load_profile_for_cli(cli: &Cli) -> Result<bijux_api::v1::run::Prof
         .join(format!("{}.toml", cli.profile));
     let mut profile = load_profile(&profile_path)
         .map_err(|err| anyhow!("failed to load profile {}: {err}", profile_path.display()))?;
-    profile.run_base_dir = normalize_run_base_dir(&cwd, &profile.run_base_dir);
+    profile.run_base_dir = resolve_run_base_dir(&cwd, &profile.run_base_dir);
     Ok(profile)
 }
 
