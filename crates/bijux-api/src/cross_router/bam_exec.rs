@@ -26,8 +26,8 @@ pub fn run_bam_truth_stages<S: std::hash::BuildHasher>(
     let reference = boundary.reference.as_ref().map(PathBuf::from);
 
     let mut runs = Vec::new();
-    for node in &profile.graph {
-        let stage = bijux_domain_bam::BamStage::try_from(node.stage_id.as_str())?;
+    for stage_id in bijux_planner_bam::pipeline_stage_ids(profile.id.as_str()) {
+        let stage = bijux_domain_bam::BamStage::try_from(stage_id.as_str())?;
         if stage == bijux_domain_bam::BamStage::Align {
             continue;
         }

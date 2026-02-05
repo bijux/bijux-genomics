@@ -14,9 +14,11 @@ pub use bijux_pipelines::registry::PipelineRegistry;
 pub use bijux_pipelines::{Domain, PipelineProfile};
 pub use bijux_planner_bam::{
     explain_plan as explain_bam_plan, plan_bam_to_bam__adna_capture__v1,
-    plan_bam_to_bam__adna_shotgun__v1, BamPipelineInputs,
+    plan_bam_to_bam__adna_shotgun__v1, pipeline_stage_ids as bam_pipeline_stage_ids,
+    BamPipelineInputs,
 };
 pub use bijux_planner_fastq::{
     explain_plan as explain_fastq_plan, plan_fastq_to_bam__default__v1,
-    plan_fastq_to_fastq__default__v1, DefaultPipelineOptions, FastqPipelineInputs,
+    plan_fastq_to_fastq__default__v1, cross_fastq_to_bam_stage_ids,
+    fastq_pipeline_stage_ids, DefaultPipelineOptions, FastqPipelineInputs,
 };

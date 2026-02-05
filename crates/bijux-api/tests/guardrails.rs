@@ -13,7 +13,13 @@ fn guardrails() {
 fn api_has_no_planning_policy_keywords() {
     let crate_root = Path::new(env!("CARGO_MANIFEST_DIR"));
     let src_dir = crate_root.join("src");
-    let denylist = ["smart_pipeline", "normalize_", "tool_list", "stage ordering"];
+    let denylist = [
+        "smart_pipeline",
+        "normalize_",
+        "tool_list",
+        "stage ordering",
+        "bijux_stages_",
+    ];
     let mut offenders = Vec::new();
     for entry in walkdir::WalkDir::new(&src_dir)
         .into_iter()

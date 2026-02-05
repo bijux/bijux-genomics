@@ -5,7 +5,7 @@ use bijux_core::{StagePlanV1, ToolExecutionSpecV1};
 use bijux_infra::hash_file_sha256;
 use bijux_pipelines::registry;
 use bijux_pipelines::PipelineProfile;
-use bijux_stages_bam::StagePlanRequest;
+use bijux_planner_bam::stage_api::StagePlanRequest;
 
 use crate::args::BamRunArgs;
 
@@ -42,7 +42,7 @@ pub fn plan_for_bam_stage_with_profile(
             "downstream BAM stages are disabled (enable feature 'bam_downstream')"
         ));
     }
-    let plan = |request: StagePlanRequest<'_>| bijux_stages_bam::plan_stage(request);
+    let plan = |request: StagePlanRequest<'_>| bijux_planner_bam::stage_api::plan_stage(request);
     match stage {
         bijux_domain_bam::BamStage::Align => {
             let r1 = args

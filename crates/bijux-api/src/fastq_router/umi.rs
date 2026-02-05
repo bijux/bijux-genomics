@@ -8,9 +8,9 @@ use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed}
 use bijux_infra::{bench_base_dir, bench_tools_dir};
 use bijux_planner_fastq::select_umi_tools;
 use bijux_runner::primitives::build_tool_execution_spec;
-use bijux_stages_fastq::fastq::umi::plan_umi;
-use bijux_stages_fastq::FastqArtifact;
-use bijux_stages_fastq::{
+use bijux_planner_fastq::stage_api::fastq::umi::plan_umi;
+use bijux_planner_fastq::stage_api::FastqArtifact;
+use bijux_planner_fastq::stage_api::{
     ensure_umi_headers, inspect_headers, log_header_warnings, preflight_stage, RawFailure,
 };
 
@@ -25,7 +25,7 @@ pub fn bench_fastq_umi<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
     runner_override: Option<RunnerKind>,
-    args: &bijux_stages_fastq::args::BenchFastqUmiArgs,
+    args: &bijux_planner_fastq::stage_api::args::BenchFastqUmiArgs,
 ) -> Result<BenchOutcome<bijux_analyze::FastqUmiMetrics>> {
     let tools = select_umi_tools(&args.tools)?;
     let artifact = FastqArtifact::single_end(&args.r1);

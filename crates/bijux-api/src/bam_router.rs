@@ -35,7 +35,7 @@ pub fn bench_bam_stage(
     let stage_id = stage.as_str();
     let mut tools = args.tools.clone();
     if tools.is_empty() {
-        tools = bijux_stages_bam::bam_tools_registry::allowed_tools_for_stage(stage);
+        tools = bijux_planner_bam::stage_api::allowed_tools_for_stage(stage);
     }
     let prev_silver = std::env::var("BIJUX_ALLOW_SILVER").ok();
     let prev_experimental = std::env::var("BIJUX_EXPERIMENTAL_TOOLS").ok();
@@ -89,8 +89,8 @@ pub fn bench_bam_pipeline(
     let profile = registry::profile_by_id(Domain::Bam, &args.profile)?;
     let tool_matrix = parse_tool_matrix(&args.tools)?;
     let mut run_dirs = Vec::new();
-    for node in profile.graph {
-        let stage = bijux_domain_bam::BamStage::try_from(node.stage_id.as_str())?;
+    for stage_id in bijux_planner_bam::pipeline_stage_ids(profile.id.as_str()) {
+        let stage = bijux_domain_bam::BamStage::try_from(stage_id.as_str())?;
         let stage_id = stage.as_str();
         let tools = tool_matrix.get(stage_id).cloned().unwrap_or_default();
         let stage_args = BenchBamStageArgs {

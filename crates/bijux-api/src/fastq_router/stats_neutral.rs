@@ -13,7 +13,7 @@ pub fn bench_fastq_stats_neutral<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
     runner_override: Option<RunnerKind>,
-    args: &bijux_stages_fastq::args::BenchFastqStatsArgs,
+    args: &bijux_planner_fastq::stage_api::args::BenchFastqStatsArgs,
 ) -> Result<BenchOutcome<bijux_analyze::FastqStatsMetrics>> {
     crate::fastq_stats_neutral::bench_fastq_stats_neutral(catalog, platform, runner_override, args)
 }

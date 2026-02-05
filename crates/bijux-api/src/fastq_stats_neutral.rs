@@ -26,14 +26,16 @@ use bijux_exec::primitives::hash_file_sha256;
 use bijux_infra::{bench_base_dir, bench_tools_dir};
 use bijux_planner_fastq::select_stats_tools;
 use bijux_runner::primitives::resolve_image_for_run;
-use bijux_stages_fastq::fastq::stats_neutral::plan_stats_neutral;
-use bijux_stages_fastq::observer::{input_fastq_stats, length_histogram};
-use bijux_stages_fastq::StagePlanJson;
-use bijux_stages_fastq::{inspect_headers, log_header_warnings, preflight_stage, FastqArtifact};
+use bijux_planner_fastq::stage_api::fastq::stats_neutral::plan_stats_neutral;
+use bijux_planner_fastq::stage_api::observer::{input_fastq_stats, length_histogram};
+use bijux_planner_fastq::stage_api::StagePlanJson;
+use bijux_planner_fastq::stage_api::{
+    inspect_headers, log_header_warnings, preflight_stage, FastqArtifact,
+};
 
 use crate::fastq_router::{write_explain_md, write_explain_plan_json, BenchOutcome};
 use bijux_core::ExecutionManifest;
-use bijux_stages_fastq::RawFailure;
+use bijux_planner_fastq::stage_api::RawFailure;
 
 /// Run the FASTQ benchmark stage.
 ///
@@ -43,7 +45,7 @@ pub fn bench_fastq_stats_neutral<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
     runner_override: Option<RunnerKind>,
-    args: &bijux_stages_fastq::args::BenchFastqStatsArgs,
+    args: &bijux_planner_fastq::stage_api::args::BenchFastqStatsArgs,
 ) -> Result<BenchOutcome<FastqStatsMetrics>> {
     let tools = select_stats_tools(&args.tools)?;
     let artifact = FastqArtifact::single_end(&args.r1);
@@ -160,7 +162,7 @@ fn prepare_stats_bench<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
     runner_override: Option<RunnerKind>,
-    args: &bijux_stages_fastq::args::BenchFastqStatsArgs,
+    args: &bijux_planner_fastq::stage_api::args::BenchFastqStatsArgs,
 ) -> Result<StatsBenchInputs> {
     let runner = ensure_bench_runner(platform, runner_override)?;
     let bench_dir = bench_base_dir(&args.out, "stats", &args.sample_id);
@@ -179,7 +181,7 @@ fn prepare_stats_bench<S: ::std::hash::BuildHasher>(
         .ok_or_else(|| anyhow!("r1 has no parent"))?
         .to_path_buf();
 
-    let tool_id = bijux_stages_fastq::TOOL_SEQKIT;
+    let tool_id = bijux_planner_fastq::stage_api::TOOL_SEQKIT;
     let tool_spec = catalog
         .get(tool_id)
         .ok_or_else(|| anyhow!("{tool_id} missing from images.toml"))?;
@@ -207,7 +209,7 @@ fn prepare_stats_bench<S: ::std::hash::BuildHasher>(
 fn run_stats_tool<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
-    _args: &bijux_stages_fastq::args::BenchFastqStatsArgs,
+    _args: &bijux_planner_fastq::stage_api::args::BenchFastqStatsArgs,
     bench_inputs: &StatsBenchInputs,
     tool: &str,
 ) -> Result<BenchmarkRecord<FastqStatsMetrics>> {
@@ -318,7 +320,7 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
     )?;
     let envelope = &metric_set;
     write_metrics_json(&run_dirs, &execution_metrics, envelope)?;
-    let adapter_bank_path = bijux_stages_fastq::adapter_bank_path();
+    let adapter_bank_path = bijux_planner_fastq::stage_api::adapter_bank_path();
     let run_provenance = RunProvenanceV1 {
         schema_version: "bijux.run_provenance.v1".to_string(),
         tool_image_digest: Some(image_digest.clone()),

@@ -24,7 +24,7 @@ pub fn run_fastq_to_bam_profile<S: std::hash::BuildHasher>(
     catalog: &std::collections::HashMap<String, bijux_environment::api::ToolImageSpec, S>,
     platform: &bijux_environment::api::PlatformSpec,
     runner_override: Option<bijux_environment::api::RunnerKind>,
-    preprocess_args: &bijux_stages_fastq::args::BenchFastqPreprocessArgs,
+    preprocess_args: &bijux_planner_fastq::stage_api::args::BenchFastqPreprocessArgs,
     cross_args: &FastqCrossArgs,
     profile: &PipelineProfile,
 ) -> Result<()> {
@@ -43,10 +43,8 @@ pub fn run_fastq_to_bam_profile<S: std::hash::BuildHasher>(
         serde_json::from_str(&summary_raw).context("parse run_summary.json")?;
     let _defaults_ledger_path = write_defaults_ledger(&out_dir, profile)?;
 
-    let has_align = profile
-        .graph
-        .iter()
-        .any(|node| node.stage_id == "bam.align");
+    let pipeline = bijux_planner_fastq::cross_fastq_to_bam_stage_ids(profile.id.as_str());
+    let has_align = pipeline.iter().any(|stage| stage == "bam.align");
     if has_align {
         let reference = cross_args
             .alignment_reference

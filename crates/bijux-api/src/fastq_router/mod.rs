@@ -1,5 +1,5 @@
 use bijux_analyze::BenchmarkRecord;
-use bijux_stages_fastq::RawFailure;
+use bijux_planner_fastq::stage_api::RawFailure;
 
 mod correct;
 mod explain;
@@ -43,8 +43,8 @@ mod tests {
     use bijux_domain_fastq::banks::polyx_unsupported_warning;
     use std::path::PathBuf;
 
-    fn base_args() -> bijux_stages_fastq::args::BenchFastqPreprocessArgs {
-        bijux_stages_fastq::args::BenchFastqPreprocessArgs {
+    fn base_args() -> bijux_planner_fastq::stage_api::args::BenchFastqPreprocessArgs {
+        bijux_planner_fastq::stage_api::args::BenchFastqPreprocessArgs {
             sample_id: "sample".to_string(),
             profile: None,
             r1: PathBuf::from("reads_R1.fastq.gz"),

@@ -10,7 +10,7 @@ use bijux_planner_fastq::{CorrectDecisionTrace, MergeDecisionTrace};
 pub(super) fn write_run_summary(
     out_dir: &Path,
     stage_runs: &[StageExecutionSummary],
-    failures: &[bijux_stages_fastq::RawFailure],
+    failures: &[bijux_planner_fastq::stage_api::RawFailure],
     merge_decision: Option<&MergeDecisionTrace>,
     correct_decision: Option<&CorrectDecisionTrace>,
     adapter_inference: Option<&serde_json::Value>,
@@ -92,7 +92,7 @@ pub(super) fn write_run_summary(
 pub(super) fn write_run_manifest(
     out_dir: &Path,
     stage_runs: &[StageExecutionSummary],
-    failures: &[bijux_stages_fastq::RawFailure],
+    failures: &[bijux_planner_fastq::stage_api::RawFailure],
 ) -> Result<()> {
     let run_id = stage_runs
         .first()

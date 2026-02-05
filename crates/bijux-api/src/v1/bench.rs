@@ -16,7 +16,7 @@ pub use bijux_domain_fastq::{
     polyx_bank_path, polyx_presets_path, qc_class_for_stage, write_benchmark_exports,
     AdapterPresetsV1, BenchCorpusId, EffectiveAdapterSet, QcClass, ReadScope, STAGES,
 };
-pub use bijux_stages_fastq::args as fastq_args;
+pub use bijux_planner_fastq::stage_api::args as fastq_args;
 
 pub use crate::bam_router::{bench_bam_pipeline, bench_bam_stage};
 pub use crate::fastq_router::{

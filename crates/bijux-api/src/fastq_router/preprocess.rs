@@ -15,7 +15,7 @@ use bijux_planner_fastq::{
     select_preprocess_tools, FastqPlanConfig, FastqPlanner, ToolSelection,
 };
 use bijux_runner::primitives::{build_tool_execution_spec, resolve_image_for_run};
-use bijux_stages_fastq::RawFailure;
+use bijux_planner_fastq::stage_api::RawFailure;
 
 use super::jobs::bench_jobs;
 use super::summary::{write_run_summary, StageExecutionSummary};
@@ -29,7 +29,7 @@ use bijux_planner_fastq::scale_tool_spec_for_jobs;
 /// Build the preprocess pipeline plan.
 #[must_use]
 pub fn fastq_preprocess_plan(
-    args: &bijux_stages_fastq::args::BenchFastqPreprocessArgs,
+    args: &bijux_planner_fastq::stage_api::args::BenchFastqPreprocessArgs,
 ) -> bijux_core::domain::PipelineSpec {
     let decisions = preprocess_decisions(args);
     let pipeline = resolve_preprocess_pipeline(args, &decisions);
@@ -44,7 +44,7 @@ pub fn bench_fastq_preprocess<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
     runner_override: Option<RunnerKind>,
-    args: &bijux_stages_fastq::args::BenchFastqPreprocessArgs,
+    args: &bijux_planner_fastq::stage_api::args::BenchFastqPreprocessArgs,
 ) -> Result<()> {
     fastq_preprocess_run(catalog, platform, runner_override, args)
 }
@@ -58,7 +58,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
     runner_override: Option<RunnerKind>,
-    args: &bijux_stages_fastq::args::BenchFastqPreprocessArgs,
+    args: &bijux_planner_fastq::stage_api::args::BenchFastqPreprocessArgs,
 ) -> Result<()> {
     let out_dir = bench_base_dir(&args.out, "preprocess", &args.sample_id);
     bijux_infra::ensure_dir(&out_dir).context("create preprocess output dir")?;
@@ -155,7 +155,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         tool_specs.push(spec);
     }
     let mut aux_tools = std::collections::BTreeMap::new();
-    for aux_tool in bijux_stages_fastq::fastq::qc_post::aux_tool_ids() {
+    for aux_tool in bijux_planner_fastq::stage_api::fastq::qc_post::aux_tool_ids() {
         let spec = catalog
             .get(*aux_tool)
             .ok_or_else(|| anyhow!("tool {aux_tool} missing from images.toml"))?;

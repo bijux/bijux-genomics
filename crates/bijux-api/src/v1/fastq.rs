@@ -9,4 +9,4 @@ pub use bijux_domain_fastq::{
     AdapterPresetsV1, BenchCorpusId, EffectiveAdapterSet, QcClass, ReadScope, STAGES,
 };
 
-pub use bijux_stages_fastq::args as fastq_args;
+pub use bijux_planner_fastq::stage_api::args as fastq_args;

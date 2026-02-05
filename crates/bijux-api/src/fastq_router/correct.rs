@@ -8,9 +8,11 @@ use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed}
 use bijux_infra::{bench_base_dir, bench_tools_dir};
 use bijux_planner_fastq::select_correct_tools;
 use bijux_runner::primitives::build_tool_execution_spec;
-use bijux_stages_fastq::fastq::correct::plan_correct;
-use bijux_stages_fastq::FastqArtifactKind;
-use bijux_stages_fastq::{inspect_headers, log_header_warnings, preflight_stage, RawFailure};
+use bijux_planner_fastq::stage_api::fastq::correct::plan_correct;
+use bijux_planner_fastq::stage_api::FastqArtifactKind;
+use bijux_planner_fastq::stage_api::{
+    inspect_headers, log_header_warnings, preflight_stage, RawFailure,
+};
 
 use super::jobs::execute_plans_with_jobs;
 
@@ -24,7 +26,7 @@ pub fn bench_fastq_correct<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
     runner_override: Option<RunnerKind>,
-    args: &bijux_stages_fastq::args::BenchFastqCorrectArgs,
+    args: &bijux_planner_fastq::stage_api::args::BenchFastqCorrectArgs,
 ) -> Result<BenchOutcome<bijux_analyze::FastqCorrectMetrics>> {
     let tools = select_correct_tools(&args.tools)?;
     let artifact = FastqArtifactKind::PairedEnd;

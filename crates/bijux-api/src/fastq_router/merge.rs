@@ -8,9 +8,11 @@ use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed}
 use bijux_infra::{bench_base_dir, bench_tools_dir};
 use bijux_planner_fastq::select_merge_tools;
 use bijux_runner::primitives::build_tool_execution_spec;
-use bijux_stages_fastq::fastq::merge::plan_merge;
-use bijux_stages_fastq::FastqArtifactKind;
-use bijux_stages_fastq::{inspect_headers, log_header_warnings, preflight_stage, RawFailure};
+use bijux_planner_fastq::stage_api::fastq::merge::plan_merge;
+use bijux_planner_fastq::stage_api::FastqArtifactKind;
+use bijux_planner_fastq::stage_api::{
+    inspect_headers, log_header_warnings, preflight_stage, RawFailure,
+};
 
 use super::jobs::bench_jobs;
 use super::jobs::execute_plans_with_jobs;
@@ -23,7 +25,7 @@ pub fn bench_fastq_merge<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
     runner_override: Option<RunnerKind>,
-    args: &bijux_stages_fastq::args::BenchFastqMergeArgs,
+    args: &bijux_planner_fastq::stage_api::args::BenchFastqMergeArgs,
 ) -> Result<BenchOutcome<bijux_analyze::FastqMergeMetrics>> {
     let tools = select_merge_tools(&args.tools)?;
     preflight_stage("fastq.merge", FastqArtifactKind::PairedEnd)?;
