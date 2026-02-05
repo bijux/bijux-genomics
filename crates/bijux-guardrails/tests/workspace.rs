@@ -531,6 +531,7 @@ fn workspace_dependency_graph_contract() {
         "bijux-pipelines",
         "bijux-infra",
         "bijux-guardrails",
+        "bijux-runtime",
     ]);
     for dep in &api {
         assert!(
@@ -599,6 +600,25 @@ fn workspace_dependency_graph_contract() {
         );
     }
 
+    if crates.contains_key("bijux-runtime") {
+        let runtime = deps_for("bijux-runtime");
+        for banned in [
+            "bijux-engine",
+            "bijux-environment",
+            "bijux-stages-fastq",
+            "bijux-stages-bam",
+            "bijux-planner-fastq",
+            "bijux-planner-bam",
+            "bijux-api",
+            "bijux-cli",
+        ] {
+            assert!(
+                !runtime.contains(banned),
+                "bijux-runtime must not depend on {banned}"
+            );
+        }
+    }
+
     let engine = deps_for("bijux-engine");
     for banned in [
         "bijux-analyze",
@@ -607,7 +627,6 @@ fn workspace_dependency_graph_contract() {
         "bijux-domain-bam",
         "bijux-stages-fastq",
         "bijux-stages-bam",
-        "bijux-runner",
     ] {
         assert!(
             !engine.contains(banned),
