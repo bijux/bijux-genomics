@@ -1,6 +1,6 @@
 //! Execution engine for Bijux.
 //!
-//! Owns: planning, execution services, validation gates, and observability hooks.
+//! Owns: execution services, validation gates, and observability hooks.
 //! Must NOT depend on: bijux-domain-* crates or domain semantics.
 
 #![allow(
@@ -12,7 +12,30 @@
 )]
 
 pub(crate) mod core;
-pub mod runner;
-pub mod services;
+pub(crate) mod runner;
+pub(crate) mod services;
 
-pub use bijux_environment::api::ResolvedImage;
+#[cfg(test)]
+mod runner_tests;
+
+use anyhow::Result;
+use bijux_core::contract::RunRecordV1;
+use bijux_core::plan::execution_plan::ExecutionPlan;
+use bijux_runner::Runner;
+
+pub fn validate(plan: &ExecutionPlan) -> Result<()> {
+    let context = bijux_core::plan::execution_plan::PlanValidationContext {
+        allowed_stage_ids: None,
+        allowed_tool_ids: None,
+    };
+    plan.validate_strict(&context)
+}
+
+pub fn execute(
+    plan: &ExecutionPlan,
+    runner: &dyn Runner,
+    _environment: &bijux_environment::api::PlatformSpec,
+    _output_dir: &std::path::Path,
+) -> Result<RunRecordV1> {
+    runner::execute_plan(plan, runner, &runner::ExecutionOptions::default())
+}

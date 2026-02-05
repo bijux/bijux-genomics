@@ -5,12 +5,13 @@ use std::collections::BTreeMap;
 use std::path::PathBuf;
 use std::time::Duration;
 
-use bijux_core::execution_plan::{ExecutionPlan, PlanEdge, PlanPolicy};
+use bijux_core::plan::execution_plan::{ExecutionPlan, PlanEdge, PlanPolicy};
 use bijux_core::{
     CommandSpecV1, ContainerImageRefV1, StageId, StagePlanV1, StageVersion, ToolConstraints, ToolId,
 };
-use bijux_engine::runner::{execute_plan, ExecutionOptions};
 use bijux_runner::{Invocation, Runner, RunnerResult};
+
+use crate::runner::{execute_plan, ExecutionOptions};
 
 struct FakeRunner {
     calls: RefCell<Vec<String>>,

@@ -1,9 +1,7 @@
 //! Owner: bijux-engine
 //! Execution services and IO boundaries.
 
-pub mod pipeline;
-pub mod run_artifacts;
-pub mod telemetry;
+pub mod recording;
 
 #[allow(dead_code)]
 pub(crate) fn module_id() -> &'static str {

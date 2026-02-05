@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet, VecDeque};
 
 use anyhow::{anyhow, Result};
-use bijux_core::execution_plan::{ExecutionPlan, PlanEdge};
+use bijux_core::plan::execution_plan::{ExecutionPlan, PlanEdge};
 use bijux_core::{RunRecordV1, StageExecutionRecordV1, StagePlanV1};
 use bijux_runner::{Invocation, Runner};
 
