@@ -25,7 +25,7 @@ fn is_allowed_path(path: &Path) -> bool {
     if path_str.contains("/crates/bijux-analyze/") {
         return true;
     }
-    if path_str.contains("/crates/bijux-bench/") {
+    if path_str.contains("/crates/bijux-benchmark/") {
         return true;
     }
     if path_str.contains("/crates/bijux-cli/") {

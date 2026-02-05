@@ -1,11 +1,11 @@
 use std::collections::BTreeMap;
 
-use bijux_bench::{summarize, BenchRunOptions, BenchmarkSuiteSpec};
-use bijux_bench::{
+use bijux_benchmark::{summarize, BenchRunOptions, BenchmarkSuiteSpec};
+use bijux_benchmark::{
     AnalysisRequirements, DatasetSpec, DiversityRequirements, ReplicatePolicy,
     StratificationRequirement,
 };
-use bijux_bench::{BenchmarkObservation, MetricsEnvelope};
+use bijux_benchmark::{BenchmarkObservation, MetricsEnvelope};
 
 fn obs(
     run_id: &str,

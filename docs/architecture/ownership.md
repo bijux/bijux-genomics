@@ -10,7 +10,7 @@ This page defines who owns what at the crate level. Ownership means: source of t
 - bijux-engine: execution, observation, tool invocation, runtime metrics, and artifact materialization. Owns execution semantics.
 - bijux-cli: UX adapter only. Parses args, displays errors, and delegates to engine/stages.
 - bijux-analyze: analysis and reporting over artifacts and metrics. Pure consumer.
-- bijux-bench: benchmarking orchestration for experiments. Pure consumer.
+- bijux-benchmark: benchmarking orchestration for experiments. Pure consumer.
 - bijux-environment: runtime environment, tool images, and platform capabilities.
 
 ## Ownership guardrails

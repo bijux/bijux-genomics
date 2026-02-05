@@ -32,7 +32,7 @@ Each crate below lists responsibilities, forbidden responsibilities, and allowed
 - Forbidden: execution/runtime, CLI parsing.
 - Allowed deps: bijux-core, serde/serde_json, rusqlite.
 
-## bijux-bench
+## bijux-benchmark
 - Responsibilities: benchmark harnesses and gates.
 - Forbidden: engine execution, domain parsing.
 - Allowed deps: bijux-core, bijux-analyze.

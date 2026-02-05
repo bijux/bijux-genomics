@@ -1,4 +1,4 @@
-//! Owner: bijux-bench
+//! Owner: bijux-benchmark
 //! Typed diffs and effect sizes between runs.
 //! Must not perform IO.
 

@@ -1,4 +1,4 @@
-//! Owner: bijux-bench
+//! Owner: bijux-benchmark
 //! Comparison utilities for bench.
 
 pub mod diff;

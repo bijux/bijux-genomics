@@ -23,7 +23,7 @@ serde.workspace = true
 bam_downstream = ["bijux-api/bam_downstream"]
 
 [dev-dependencies]
-bijux-guardrails = { path = "../bijux-guardrails" }
+bijux-policies = { path = "../bijux-policies" }
 assert_cmd = "2"
 tempfile = "3"
 predicates = "3"

@@ -1,4 +1,4 @@
-//! Owner: bijux-bench
+//! Owner: bijux-benchmark
 //! Statistics utilities for bench (robust stats + bootstrap + outliers).
 
 pub mod bootstrap;

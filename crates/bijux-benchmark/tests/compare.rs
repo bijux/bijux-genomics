@@ -3,7 +3,7 @@ use std::fs;
 use std::path::PathBuf;
 
 use anyhow::Result;
-use bijux_bench::{
+use bijux_benchmark::{
     compare, summarize, AnalysisRequirements, BenchRunOptions, BenchmarkObservation,
     BenchmarkSuiteSpec, DatasetSpec, DiversityRequirements, MetricsEnvelope, ReplicatePolicy,
     StratificationRequirement,

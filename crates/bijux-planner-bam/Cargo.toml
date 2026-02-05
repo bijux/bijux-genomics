@@ -12,7 +12,7 @@ bijux-pipelines = { path = "../bijux-pipelines" }
 serde_json = { workspace = true }
 
 [dev-dependencies]
-bijux-guardrails = { path = "../bijux-guardrails" }
+bijux-policies = { path = "../bijux-policies" }
 insta = { version = "1", features = ["json"] }
 serde_json.workspace = true
 

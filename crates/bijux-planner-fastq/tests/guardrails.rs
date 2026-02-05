@@ -1,4 +1,4 @@
-use bijux_guardrails::{check, GuardrailConfig};
+use bijux_policies::{check, GuardrailConfig};
 
 #[test]
 fn guardrails() {

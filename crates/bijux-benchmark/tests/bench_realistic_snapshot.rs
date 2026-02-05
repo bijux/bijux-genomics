@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use bijux_bench::{
+use bijux_benchmark::{
     summarize, AnalysisRequirements, BenchRunOptions, BenchmarkObservation, BenchmarkSuiteSpec,
     DatasetSpec, DiversityRequirements, MetricsEnvelope, ReplicatePolicy,
     StratificationRequirement,

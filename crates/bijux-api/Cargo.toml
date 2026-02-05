@@ -13,7 +13,6 @@ tracing.workspace = true
 uuid.workspace = true
 chrono.workspace = true
 bijux-core = { path = "../bijux-core" }
-bijux-selection = { path = "../bijux-selection" }
 bijux-engine = { path = "../bijux-engine" }
 bijux-environment = { path = "../bijux-environment" }
 bijux-analyze = { path = "../bijux-analyze" }
@@ -31,7 +30,7 @@ api_internal = []
 [dev-dependencies]
 insta = "1"
 walkdir = { workspace = true }
-bijux-guardrails = { path = "../bijux-guardrails" }
+bijux-policies = { path = "../bijux-policies" }
 tempfile = { workspace = true }
 
 [lints]

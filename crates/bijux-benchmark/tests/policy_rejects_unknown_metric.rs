@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use bijux_bench::GatePolicy;
+use bijux_benchmark::GatePolicy;
 
 #[test]
 fn policy_rejects_unknown_metric() {

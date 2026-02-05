@@ -1,5 +1,5 @@
 [package]
-name = "bijux-bench"
+name = "bijux-benchmark"
 version = "0.1.0"
 edition = "2021"
 
@@ -15,5 +15,5 @@ bijux-engine = { path = "../bijux-engine" }
 bijux-infra = { path = "../bijux-infra" }
 
 [dev-dependencies]
-bijux-guardrails = { path = "../bijux-guardrails" }
+bijux-policies = { path = "../bijux-policies" }
 insta = { version = "1", features = ["json"] }

@@ -21,7 +21,7 @@ bijux-runtime = { path = "../bijux-runtime" }
 bijux-infra = { path = "../bijux-infra", features = ["yaml"] }
 
 [dev-dependencies]
-bijux-guardrails = { path = "../bijux-guardrails" }
+bijux-policies = { path = "../bijux-policies" }
 tempfile.workspace = true
 
 [lints]

@@ -1,4 +1,4 @@
-//! Owner: bijux-bench
+//! Owner: bijux-benchmark
 //! Policy engine for bench gating.
 
 pub mod gate_decision;

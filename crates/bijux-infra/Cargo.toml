@@ -19,7 +19,7 @@ tracing-appender.workspace = true
 tracing-subscriber.workspace = true
 
 [dev-dependencies]
-bijux-guardrails.workspace = true
+bijux-policies.workspace = true
 
 [lints]
 workspace = true

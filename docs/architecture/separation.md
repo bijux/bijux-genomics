@@ -69,7 +69,7 @@ Allowed deps:
 - bijux-stages-fastq
 - bijux-core
 
-## bijux-analyze / bijux-bench
+## bijux-analyze / bijux-benchmark
 
 Owns:
 - Reporting, benchmarking, and analysis over produced artifacts.

@@ -1,7 +1,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
-use bijux_guardrails::GuardrailConfig;
+use bijux_policies::GuardrailConfig;
 use walkdir::WalkDir;
 
 fn workspace_root() -> PathBuf {
@@ -252,7 +252,7 @@ fn engine_and_runner_have_no_domain_deps() {
         "bijux-stages-fastq",
         "bijux-stages-bam",
         "bijux-analyze",
-        "bijux-bench",
+        "bijux-benchmark",
     ];
     for name in ["bijux-engine", "bijux-runner"] {
         let crate_dir = crates
@@ -343,9 +343,8 @@ fn workspace_constitution_contract() {
         "bijux-core",
         "bijux-engine",
         "bijux-runtime",
-        "bijux-selection",
         "bijux-analyze",
-        "bijux-bench",
+        "bijux-benchmark",
     ];
     for name in required {
         assert!(crates.contains_key(name), "missing required crate: {name}");
@@ -482,11 +481,10 @@ fn workspace_no_orphan_crates() {
     let allowlist: BTreeSet<&str> = BTreeSet::from([
         "bijux",
         "bijux-cli",
-        "bijux-bench",
+        "bijux-benchmark",
         "bijux-environment",
         "bijux-runner",
         "bijux-runtime",
-        "bijux-selection",
     ]);
     for (name, count) in dependents {
         let crate_dir = crates.get(&name).expect("crate dir");
@@ -506,13 +504,13 @@ fn workspace_dependency_graph_contract() {
             .unwrap_or_else(|| panic!("missing crate {name}"));
         parse_dependencies(&path.join("Cargo.toml"), &known)
     };
-    let is_guardrails = |dep: &str| dep == "bijux-guardrails";
+    let is_guardrails = |dep: &str| dep == "bijux-policies";
 
     let cli = deps_for("bijux");
     assert!(cli.contains("bijux-api"), "cli must depend on bijux-api");
     for dep in &cli {
         assert!(
-            dep == "bijux-api" || dep == "bijux-guardrails",
+            dep == "bijux-api" || dep == "bijux-policies",
             "cli must not depend on workspace crate {dep}"
         );
     }
@@ -525,7 +523,7 @@ fn workspace_dependency_graph_contract() {
         );
         for dep in &cli_deps {
             assert!(
-                dep == "bijux-api" || dep == "bijux-guardrails",
+                dep == "bijux-api" || dep == "bijux-policies",
                 "bijux-cli must not depend on workspace crate {dep}"
             );
         }
@@ -553,17 +551,6 @@ fn workspace_dependency_graph_contract() {
         );
     }
 
-    let selection = deps_for("bijux-selection");
-    for dep in &selection {
-        if is_guardrails(dep) {
-            continue;
-        }
-        assert!(
-            dep == "bijux-core",
-            "bijux-selection must not depend on workspace crate {dep}"
-        );
-    }
-
     let engine = deps_for("bijux-engine");
     for dep in &engine {
         if is_guardrails(dep) {
@@ -582,7 +569,6 @@ fn workspace_dependency_graph_contract() {
         }
         assert!(
             dep == "bijux-core"
-                || dep == "bijux-selection"
                 || dep == "bijux-stages-fastq"
                 || dep == "bijux-pipelines"
                 || dep == "bijux-infra",
@@ -596,10 +582,7 @@ fn workspace_dependency_graph_contract() {
             continue;
         }
         assert!(
-            dep == "bijux-core"
-                || dep == "bijux-selection"
-                || dep == "bijux-stages-bam"
-                || dep == "bijux-infra",
+            dep == "bijux-core" || dep == "bijux-stages-bam" || dep == "bijux-infra",
             "bijux-planner-bam must not depend on workspace crate {dep}"
         );
     }
@@ -611,7 +594,6 @@ fn workspace_dependency_graph_contract() {
         }
         assert!(
             dep == "bijux-core"
-                || dep == "bijux-selection"
                 || dep == "bijux-planner-fastq"
                 || dep == "bijux-planner-bam"
                 || dep == "bijux-engine"
@@ -619,7 +601,7 @@ fn workspace_dependency_graph_contract() {
                 || dep == "bijux-runner"
                 || dep == "bijux-environment"
                 || dep == "bijux-analyze"
-                || dep == "bijux-bench"
+                || dep == "bijux-benchmark"
                 || dep == "bijux-pipelines"
                 || dep == "bijux-infra",
             "bijux-api must not depend on workspace crate {dep}"
@@ -647,7 +629,6 @@ fn workspace_dependency_graph_contract() {
         }
         assert!(
             dep == "bijux-core"
-                || dep == "bijux-selection"
                 || dep == "bijux-domain-fastq"
                 || dep == "bijux-domain-bam"
                 || dep == "bijux-infra"
@@ -656,19 +637,18 @@ fn workspace_dependency_graph_contract() {
         );
     }
 
-    let bench = deps_for("bijux-bench");
+    let bench = deps_for("bijux-benchmark");
     for dep in &bench {
         if is_guardrails(dep) {
             continue;
         }
         assert!(
             dep == "bijux-core"
-                || dep == "bijux-selection"
                 || dep == "bijux-analyze"
                 || dep == "bijux-engine"
                 || dep == "bijux-infra"
                 || dep == "bijux-runtime",
-            "bijux-bench must not depend on workspace crate {dep}"
+            "bijux-benchmark must not depend on workspace crate {dep}"
         );
     }
 
@@ -683,7 +663,7 @@ fn workspace_dependency_graph_contract() {
         "bijux-planner-bam",
         "bijux-pipelines",
         "bijux-infra",
-        "bijux-guardrails",
+        "bijux-policies",
         "bijux-runtime",
     ]);
     for dep in &api {
@@ -705,7 +685,7 @@ fn workspace_dependency_graph_contract() {
             "bijux-api",
             "bijux-environment",
             "bijux-analyze",
-            "bijux-bench",
+            "bijux-benchmark",
         ] {
             assert!(
                 !deps.contains(banned),
@@ -720,7 +700,7 @@ fn workspace_dependency_graph_contract() {
             "bijux",
             "bijux-api",
             "bijux-analyze",
-            "bijux-bench",
+            "bijux-benchmark",
             "bijux-engine",
             "bijux-environment",
             "bijux-pipelines",
@@ -775,7 +755,7 @@ fn workspace_dependency_graph_contract() {
     let engine = deps_for("bijux-engine");
     for banned in [
         "bijux-analyze",
-        "bijux-bench",
+        "bijux-benchmark",
         "bijux-domain-fastq",
         "bijux-domain-bam",
         "bijux-stages-fastq",
@@ -794,7 +774,7 @@ fn workspace_dependency_graph_contract() {
         let deps = deps_for(runner_name);
         for banned in [
             "bijux-analyze",
-            "bijux-bench",
+            "bijux-benchmark",
             "bijux-domain-fastq",
             "bijux-domain-bam",
             "bijux-stages-fastq",
@@ -813,7 +793,7 @@ fn workspace_dependency_graph_contract() {
         "bijux-stages-fastq",
         "bijux-pipelines",
         "bijux-infra",
-        "bijux-guardrails",
+        "bijux-policies",
     ]);
     for dep in &planner_fastq {
         assert!(
@@ -827,7 +807,7 @@ fn workspace_dependency_graph_contract() {
         "bijux-core",
         "bijux-stages-bam",
         "bijux-infra",
-        "bijux-guardrails",
+        "bijux-policies",
     ]);
     for dep in &planner_bam {
         assert!(
@@ -989,7 +969,7 @@ fn workspace_no_cross_layer_imports() {
                     || content.contains("bijux_cli::")
                     || content.contains("bijux_api::")
                     || content.contains("bijux_analyze::")
-                    || content.contains("bijux_bench::")
+                    || content.contains("bijux_benchmark::")
                     || content.contains("bijux_environment::"))
             {
                 offenders.push(rel.display().to_string());

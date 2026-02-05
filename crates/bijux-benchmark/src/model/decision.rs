@@ -1,4 +1,4 @@
-//! Owner: bijux-bench
+//! Owner: bijux-benchmark
 //! Benchmark decision model (versioned).
 //! Owns choice outputs and rationale trace.
 //! Must not perform IO or depend on compare/gate logic.

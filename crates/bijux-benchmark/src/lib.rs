@@ -1,4 +1,4 @@
-//! Owner: bijux-bench
+//! Owner: bijux-benchmark
 //! Public API for benchmark loading, summarization, comparison, and gating.
 //! Contract: inputs are typed, outputs are deterministic, and raw JSON is confined to repo/artifacts.
 

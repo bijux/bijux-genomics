@@ -3,21 +3,20 @@ resolver = "2"
 members = [
   "crates/bijux-analyze",
   "crates/bijux-api",
-  "crates/bijux-bench",
+  "crates/bijux-benchmark",
   "crates/bijux-cli",
   "crates/bijux-core",
   "crates/bijux-domain-bam",
   "crates/bijux-domain-fastq",
   "crates/bijux-engine",
   "crates/bijux-environment",
-  "crates/bijux-guardrails",
+  "crates/bijux-policies",
   "crates/bijux-infra",
   "crates/bijux-pipelines",
   "crates/bijux-planner-bam",
   "crates/bijux-planner-fastq",
   "crates/bijux-runner",
   "crates/bijux-runtime",
-  "crates/bijux-selection",
   "crates/bijux-stages-bam",
   "crates/bijux-stages-fastq",
 ]
@@ -48,7 +47,7 @@ schemars = { version = "0.8", features = ["derive"] }
 toml = "0.8"
 opentelemetry = "0.22"
 insta = "1"
-bijux-guardrails = { path = "crates/bijux-guardrails" }
+bijux-policies = { path = "crates/bijux-policies" }
 
 [workspace.lints.rust]
 unsafe_code = "forbid"

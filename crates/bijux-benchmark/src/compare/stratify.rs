@@ -1,4 +1,4 @@
-//! Owner: bijux-bench
+//! Owner: bijux-benchmark
 //! Stratification helpers for comparisons.
 
 #[derive(Debug, Clone, serde::Serialize)]

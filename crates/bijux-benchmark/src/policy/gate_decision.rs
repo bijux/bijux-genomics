@@ -1,4 +1,4 @@
-//! Owner: bijux-bench
+//! Owner: bijux-benchmark
 //! Gate decision outputs.
 
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]

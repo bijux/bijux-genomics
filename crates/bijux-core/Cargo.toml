@@ -24,7 +24,7 @@ opentelemetry = { workspace = true, optional = true }
 otel = ["opentelemetry"]
 
 [dev-dependencies]
-bijux-guardrails = { path = "../bijux-guardrails" }
+bijux-policies = { path = "../bijux-policies" }
 tempfile.workspace = true
 insta.workspace = true
 
