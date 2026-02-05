@@ -4,11 +4,11 @@ use std::time::Duration;
 
 use anyhow::Result;
 use bijux_core::plan::execution_plan::{ExecutionPlan, PlanPolicy};
-use bijux_core::plan::stage_plan::{
-    ArtifactRef, CommandSpecV1, ContainerImageRefV1, PlanDecisionReason, StageIO, StagePlanV1,
-};
+use bijux_core::plan::stage_plan::{ArtifactRef, PlanDecisionReason, StageIO, StagePlanV1};
 use bijux_core::primitives::hashing::params_hash;
-use bijux_core::{PipelineId, StageId, StageVersion, ToolConstraints, ToolId};
+use bijux_core::{
+    CommandSpecV1, ContainerImageRefV1, PipelineId, StageId, StageVersion, ToolConstraints, ToolId,
+};
 use bijux_pipelines::DefaultsLedgerV1;
 use bijux_runner::{Artifact, Invocation, Runner, RunnerResult};
 use bijux_runtime::recording::write_plan_provenance;
