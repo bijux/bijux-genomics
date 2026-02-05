@@ -576,7 +576,6 @@ dependencies = [
  "anyhow",
  "bijux-core",
  "bijux-domain-fastq",
- "bijux-environment",
  "bijux-infra",
  "bijux-pipelines",
  "bijux-planner-fastq",
