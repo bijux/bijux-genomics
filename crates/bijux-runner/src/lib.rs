@@ -65,5 +65,7 @@ pub mod primitives {
     };
     pub use crate::docker::replay::replay_run;
     pub use crate::docker::support::build_tool_execution_spec;
-    pub use crate::execute::{execute_stage_plan, StageResultV1};
+    pub use crate::execute::{
+        execute_observer_command, execute_stage_plan, CommandOutputV1, StageResultV1,
+    };
 }

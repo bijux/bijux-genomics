@@ -21,14 +21,17 @@ use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed}
 use bijux_infra::hash_file_sha256;
 use bijux_infra::{bench_base_dir, bench_tools_dir};
 use bijux_planner_fastq::select_stats_tools;
+use bijux_planner_fastq::stage_api::bench_dir_name;
 use bijux_planner_fastq::stage_api::fastq::stats_neutral::plan_stats_neutral;
-use bijux_planner_fastq::stage_api::observer::{input_fastq_stats, length_histogram};
+use bijux_planner_fastq::stage_api::observer::{
+    input_fastq_stats, length_histogram_command, parse_length_histogram, parse_seqkit_stats,
+};
 use bijux_planner_fastq::stage_api::StagePlanJson;
 use bijux_planner_fastq::stage_api::{
     inspect_headers, log_header_warnings, preflight_stage, FastqArtifact,
 };
-use bijux_runner::primitives::execute_stage_plan;
 use bijux_runner::primitives::resolve_image_for_run;
+use bijux_runner::primitives::{execute_observer_command, execute_stage_plan};
 use bijux_runtime::recording::{
     compute_run_id, prepare_tool_run_dirs, write_execution_logs, write_metrics_envelope,
     write_metrics_json, write_run_manifest, write_stage_plan_json, RunArtifactInput,
@@ -173,8 +176,10 @@ fn prepare_stats_bench<S: ::std::hash::BuildHasher>(
     args: &bijux_planner_fastq::stage_api::args::BenchFastqStatsArgs,
 ) -> Result<StatsBenchInputs> {
     let runner = ensure_bench_runner(platform, runner_override)?;
-    let bench_dir = bench_base_dir(&args.out, "stats", &args.sample_id);
-    let tools_root = bench_tools_dir(&args.out, "stats", &args.sample_id);
+    let bench_dir_name = bench_dir_name(&STAGE_STATS_NEUTRAL)
+        .ok_or_else(|| anyhow!("bench dir missing for {}", STAGE_STATS_NEUTRAL.as_str()))?;
+    let bench_dir = bench_base_dir(&args.out, bench_dir_name, &args.sample_id);
+    let tools_root = bench_tools_dir(&args.out, bench_dir_name, &args.sample_id);
     bijux_infra::ensure_dir(&bench_dir).context("create bench output dir")?;
     bijux_infra::ensure_dir(&tools_root).context("create tools output dir")?;
 
@@ -196,8 +201,32 @@ fn prepare_stats_bench<S: ::std::hash::BuildHasher>(
     let tool_image = resolve_image_for_run(tool_spec, platform)?;
 
     let input_hash = hash_file_sha256(&r1)?;
-    let input_stats = input_fastq_stats(&tool_image, &r1_dir, &r1)?;
-    let length_hist = length_histogram(&tool_image, &r1_dir, &r1)?
+    let stats_spec = input_fastq_stats(&r1_dir, &r1)?;
+    let stats_output = execute_observer_command(
+        &tool_image.full_name,
+        &stats_spec.mount_dir,
+        &stats_spec.args,
+        runner,
+    )?;
+    if stats_output.exit_code != 0 {
+        return Err(anyhow!("seqkit stats failed: {}", stats_output.stderr));
+    }
+    let input_stats = parse_seqkit_stats(&stats_output.stdout)?;
+
+    let hist_spec = length_histogram_command(&r1_dir, &r1)?;
+    let hist_output = execute_observer_command(
+        &tool_image.full_name,
+        &hist_spec.mount_dir,
+        &hist_spec.args,
+        runner,
+    )?;
+    if hist_output.exit_code != 0 {
+        return Err(anyhow!(
+            "seqkit length histogram failed: {}",
+            hist_output.stderr
+        ));
+    }
+    let length_hist = parse_length_histogram(&hist_output.stdout)?
         .into_iter()
         .map(|(length, count)| LengthHistogramBin { length, count })
         .collect();
