@@ -124,6 +124,7 @@ impl DerivedMetricId {
     }
 }
 
+#[must_use]
 pub fn parse_metric_id(value: &str) -> Option<MetricId> {
     match value {
         "runtime_s" => Some(MetricId::RuntimeS),
@@ -173,6 +174,7 @@ pub fn parse_metric_id(value: &str) -> Option<MetricId> {
     }
 }
 
+#[must_use]
 pub fn parse_derived_metric_id(value: &str) -> Option<DerivedMetricId> {
     match value {
         "read_retention" => Some(DerivedMetricId::ReadRetention),
@@ -183,11 +185,15 @@ pub fn parse_derived_metric_id(value: &str) -> Option<DerivedMetricId> {
     }
 }
 
+/// # Errors
+/// Returns an error if the metric id is unknown.
 pub fn validate_metric_id_str(value: &str) -> Result<()> {
     parse_metric_id(value).ok_or_else(|| anyhow!("unknown metric id {value}"))?;
     Ok(())
 }
 
+/// # Errors
+/// Returns an error if the derived metric id is unknown.
 pub fn validate_derived_metric_id_str(value: &str) -> Result<()> {
     parse_derived_metric_id(value).ok_or_else(|| anyhow!("unknown derived metric id {value}"))?;
     Ok(())
