@@ -19,6 +19,8 @@ fn api_has_no_planning_policy_keywords() {
         "tool_list",
         "stage ordering",
         "bijux_stages_",
+        "bijux_domain_",
+        "bijux_exec",
     ];
     let mut offenders = Vec::new();
     for entry in walkdir::WalkDir::new(&src_dir)

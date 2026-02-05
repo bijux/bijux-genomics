@@ -3,7 +3,7 @@ use anyhow::{anyhow, Context, Result};
 use bijux_core::ToolRegistry;
 use bijux_environment::api::{load_image_catalog, load_platform, RunnerKind};
 use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
-use bijux_exec::primitives::execute_stage_plan;
+use bijux_runner::primitives::execute_stage_plan;
 use bijux_pipelines::registry;
 use bijux_pipelines::Domain;
 use bijux_runner::primitives::build_tool_execution_spec;
@@ -90,7 +90,7 @@ pub fn bench_bam_pipeline(
     let tool_matrix = parse_tool_matrix(&args.tools)?;
     let mut run_dirs = Vec::new();
     for stage_id in bijux_planner_bam::pipeline_stage_ids(profile.id.as_str()) {
-        let stage = bijux_domain_bam::BamStage::try_from(stage_id.as_str())?;
+        let stage = bijux_planner_bam::stage_api::BamStage::try_from(stage_id.as_str())?;
         let stage_id = stage.as_str();
         let tools = tool_matrix.get(stage_id).cloned().unwrap_or_default();
         let stage_args = BenchBamStageArgs {

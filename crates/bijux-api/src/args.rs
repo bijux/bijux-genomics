@@ -7,7 +7,7 @@ use std::path::PathBuf;
 /// Stability: v1 (stable).
 pub struct BenchBamStageArgs {
     pub sample_id: String,
-    pub stage: bijux_domain_bam::BamStage,
+    pub stage: bijux_planner_bam::stage_api::BamStage,
     pub bam: PathBuf,
     pub out: PathBuf,
     pub tools: Vec<String>,
@@ -44,7 +44,7 @@ pub struct BenchBamPipelineArgs {
 ///
 /// Stability: v1 (stable).
 pub struct BamRunArgs {
-    pub stage: bijux_domain_bam::BamStage,
+    pub stage: bijux_planner_bam::stage_api::BamStage,
     pub profile: String,
     pub sample_id: Option<String>,
     pub r1: Option<PathBuf>,

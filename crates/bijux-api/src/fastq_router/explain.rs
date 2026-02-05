@@ -3,7 +3,6 @@ use std::path::Path;
 
 use anyhow::{Context, Result};
 use bijux_core::{ExplainExclusion, ExplainPlan};
-use bijux_exec::primitives::write_explain_plan;
 
 /// Write a human-readable plan explanation.
 ///
@@ -69,5 +68,7 @@ pub fn write_explain_plan_json(
         invariants,
     };
     let path = base_dir.join("explain_plan.json");
-    write_explain_plan(&path, &plan)
+    let payload = serde_json::to_vec_pretty(&plan)?;
+    bijux_infra::atomic_write_bytes(&path, &payload).context("write explain_plan.json")?;
+    Ok(())
 }

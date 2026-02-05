@@ -4,7 +4,7 @@ use anyhow::{anyhow, Context, Result};
 use bijux_core::alignment::AlignmentBoundary;
 use bijux_core::ToolRegistry;
 use bijux_environment::resolve::ReferenceRecord;
-use bijux_exec::primitives::execute_stage_plan;
+use bijux_runner::primitives::execute_stage_plan;
 use bijux_pipelines::PipelineProfile;
 use bijux_runner::primitives::build_tool_execution_spec;
 
@@ -27,16 +27,16 @@ pub fn run_bam_truth_stages<S: std::hash::BuildHasher>(
 
     let mut runs = Vec::new();
     for stage_id in bijux_planner_bam::pipeline_stage_ids(profile.id.as_str()) {
-        let stage = bijux_domain_bam::BamStage::try_from(stage_id.as_str())?;
-        if stage == bijux_domain_bam::BamStage::Align {
+        let stage = bijux_planner_bam::stage_api::BamStage::try_from(stage_id.as_str())?;
+        if stage == bijux_planner_bam::stage_api::BamStage::Align {
             continue;
         }
         if !downstream_enabled()
             && matches!(
                 stage,
-                bijux_domain_bam::BamStage::Haplogroups
-                    | bijux_domain_bam::BamStage::Genotyping
-                    | bijux_domain_bam::BamStage::Kinship
+                bijux_planner_bam::stage_api::BamStage::Haplogroups
+                    | bijux_planner_bam::stage_api::BamStage::Genotyping
+                    | bijux_planner_bam::stage_api::BamStage::Kinship
             )
         {
             continue;
@@ -46,7 +46,7 @@ pub fn run_bam_truth_stages<S: std::hash::BuildHasher>(
             .tools
             .get(stage.as_str())
             .cloned()
-            .unwrap_or_else(|| bijux_domain_bam::stage_spec(stage).default_tool.to_string());
+            .unwrap_or_else(|| bijux_planner_bam::stage_api::stage_spec(stage).default_tool.to_string());
         let spec =
             build_tool_execution_spec(stage.as_str(), &tool_id, registry_core, catalog, platform)?;
 
@@ -149,7 +149,7 @@ pub fn run_bam_align_and_truth_stages<S: std::hash::BuildHasher>(
         .unwrap_or_else(|| "bwa".to_string());
     let spec = build_tool_execution_spec("bam.align", &tool_id, registry_core, catalog, platform)?;
     let align_args = BamRunArgs {
-        stage: bijux_domain_bam::BamStage::Align,
+        stage: bijux_planner_bam::stage_api::BamStage::Align,
         profile: profile.id.to_string(),
         sample_id: Some(sample_id.clone()),
         r1: Some(r1.clone()),
@@ -209,7 +209,7 @@ pub fn run_bam_align_and_truth_stages<S: std::hash::BuildHasher>(
         dry_run: false,
     };
     let align_plan = plan_for_bam_stage_with_profile(
-        bijux_domain_bam::BamStage::Align,
+        bijux_planner_bam::stage_api::BamStage::Align,
         &spec,
         &align_args,
         profile,

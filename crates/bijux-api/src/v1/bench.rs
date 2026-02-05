@@ -7,9 +7,9 @@ pub use bijux_analyze::{build_rankings, compare_runs, print_bench_schema, RankIn
 
 pub use crate::args::{BamRunArgs, BenchBamPipelineArgs, BenchBamStageArgs};
 pub use bijux_core::selection::{objective_spec, Objective, ObjectiveSpec, ObjectiveWeights};
-pub use bijux_domain_bam::{bam_stage_completeness, BamStage};
-pub use bijux_domain_fastq::banks as fastq_banks;
-pub use bijux_domain_fastq::{
+pub use bijux_planner_bam::stage_api::{bam_stage_completeness, BamStage};
+pub use bijux_planner_fastq::stage_api as fastq_banks;
+pub use bijux_planner_fastq::stage_api::{
     adapter_bank_path, adapter_presets_path, benchmark_runs, contaminant_motifs_path,
     contaminant_presets_path, contaminant_references_dir, load_adapter_bank, load_adapter_presets,
     load_contaminant_motifs, load_contaminant_presets, load_polyx_bank, load_polyx_presets,

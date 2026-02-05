@@ -16,11 +16,8 @@ bijux-core = { path = "../bijux-core" }
 bijux-engine = { path = "../bijux-engine" }
 bijux-environment = { path = "../bijux-environment" }
 bijux-analyze = { path = "../bijux-analyze" }
-bijux-domain-fastq = { path = "../bijux-domain-fastq" }
-bijux-domain-bam = { path = "../bijux-domain-bam" }
 bijux-planner-fastq = { path = "../bijux-planner-fastq" }
 bijux-planner-bam = { path = "../bijux-planner-bam" }
-bijux-exec = { path = "../bijux-exec" }
 bijux-runner = { path = "../bijux-runner" }
 bijux-pipelines = { path = "../bijux-pipelines" }
 bijux-infra = { path = "../bijux-infra" }

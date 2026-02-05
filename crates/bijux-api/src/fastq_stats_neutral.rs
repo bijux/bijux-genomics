@@ -21,8 +21,8 @@ use bijux_engine::services::run_artifacts::{
     write_metrics_json, write_run_manifest, write_stage_plan_json, RunArtifactInput,
 };
 use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
-use bijux_exec::primitives::execute_stage_plan;
-use bijux_exec::primitives::hash_file_sha256;
+use bijux_runner::primitives::execute_stage_plan;
+use bijux_infra::hash_file_sha256;
 use bijux_infra::{bench_base_dir, bench_tools_dir};
 use bijux_planner_fastq::select_stats_tools;
 use bijux_runner::primitives::resolve_image_for_run;

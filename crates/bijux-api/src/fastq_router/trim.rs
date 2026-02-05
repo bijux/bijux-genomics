@@ -17,7 +17,7 @@ use bijux_planner_fastq::stage_api::{
 use super::jobs::bench_jobs;
 use super::jobs::execute_plans_with_jobs;
 use super::{write_explain_md, write_explain_plan_json, BenchOutcome};
-use bijux_domain_fastq::banks::{
+use bijux_planner_fastq::stage_api::{
     adapter_bank_context, contaminant_bank_context, polyx_bank_context, polyx_unsupported_warning,
 };
 use bijux_planner_fastq::scale_tool_spec_for_jobs;

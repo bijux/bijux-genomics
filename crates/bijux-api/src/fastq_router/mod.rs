@@ -40,7 +40,7 @@ pub struct BenchOutcome<M: bijux_analyze::StageMetricSchema> {
 #[cfg(test)]
 mod tests {
     use super::fastq_preprocess_plan;
-    use bijux_domain_fastq::banks::polyx_unsupported_warning;
+    use bijux_planner_fastq::stage_api::polyx_unsupported_warning;
     use std::path::PathBuf;
 
     fn base_args() -> bijux_planner_fastq::stage_api::args::BenchFastqPreprocessArgs {

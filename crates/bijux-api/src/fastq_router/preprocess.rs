@@ -9,7 +9,7 @@ use bijux_core::TelemetryEventV1;
 use bijux_engine::services::run_artifacts::run_artifacts_dir_for_out;
 use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
-use bijux_exec::run_artifacts::write_telemetry_event;
+use bijux_engine::services::run_artifacts::write_telemetry_event;
 use bijux_planner_fastq::{
     apply_preprocess_policy, plan_preprocess, preprocess_decisions, resolve_preprocess_pipeline,
     select_preprocess_tools, FastqPlanConfig, FastqPlanner, ToolSelection,
@@ -20,7 +20,7 @@ use bijux_planner_fastq::stage_api::RawFailure;
 use super::jobs::bench_jobs;
 use super::summary::{write_run_summary, StageExecutionSummary};
 use super::write_explain_plan_json;
-use bijux_domain_fastq::banks::{
+use bijux_planner_fastq::stage_api::{
     adapter_bank_context, contaminant_bank_context, polyx_bank_context, polyx_unsupported_warning,
 };
 use bijux_infra::{bench_base_dir, bench_tools_dir};
@@ -204,7 +204,11 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         stage_attrs.insert("stage".to_string(), stage_id.clone());
         stage_attrs.insert("tool".to_string(), tool.clone());
         let stage_span = telemetry.start_stage(&stage_id, &stage_attrs);
-        let execution = bijux_exec::primitives::execute_stage_plan(&planned, platform.runner, None);
+        let execution = bijux_runner::primitives::execute_stage_plan(
+            &planned,
+            platform.runner,
+            None,
+        );
         stage_span.end();
         let execution = execution?;
         if execution.exit_code != 0 {
