@@ -3,7 +3,8 @@ use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
 
-use crate::{StageId, StageVersion, ToolConstraints, ToolId};
+use crate::contract::ToolConstraints;
+use crate::ids::{StageId, StageVersion, ToolId};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]

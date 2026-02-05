@@ -34,7 +34,7 @@ fn snapshot_path(name: &str) -> Result<std::path::PathBuf> {
         .join(name))
 }
 
-fn assert_snapshot(name: &str, plan: &bijux_core::StagePlanV1) -> Result<()> {
+fn assert_snapshot(name: &str, plan: &bijux_core::plan::stage_plan::StagePlanV1) -> Result<()> {
     let plan_json = bijux_stages_bam::StagePlanJson::from_plan(plan);
     let rendered = serde_json::to_string_pretty(&plan_json)?;
     let path = snapshot_path(name)?;

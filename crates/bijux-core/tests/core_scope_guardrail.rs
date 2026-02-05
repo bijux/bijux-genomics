@@ -6,7 +6,7 @@ use anyhow::Result;
 fn core_scope_only_allows_contracts_and_primitives() -> Result<()> {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
     let src = root.join("src");
-    let allow_dirs = ["contract", "plan", "primitives"];
+    let allow_dirs = ["contract", "plan", "primitives", "prelude", "helpers"];
     let allow_files = [
         "lib.rs",
         "boundaries.md",
@@ -14,6 +14,8 @@ fn core_scope_only_allows_contracts_and_primitives() -> Result<()> {
         "metrics.rs",
         "metrics_registry.rs",
         "run_index.rs",
+        "ids.rs",
+        "metadata.rs",
     ];
 
     for entry in std::fs::read_dir(&src)? {
@@ -33,6 +35,38 @@ fn core_scope_only_allows_contracts_and_primitives() -> Result<()> {
                 "core scope violation: unexpected file {name}"
             );
         }
+    }
+
+    let lib_path = src.join("lib.rs");
+    let content = std::fs::read_to_string(&lib_path)?;
+    let mut pub_mods = Vec::new();
+    for line in content.lines() {
+        let trimmed = line.trim();
+        if let Some(rest) = trimmed.strip_prefix("pub mod ") {
+            if let Some(name) = rest.split([';', ' ']).next() {
+                pub_mods.push(name.to_string());
+            }
+        }
+    }
+    pub_mods.sort();
+    let allowed_pub_mods = [
+        "contract",
+        "explain",
+        "helpers",
+        "ids",
+        "metadata",
+        "metrics",
+        "metrics_registry",
+        "plan",
+        "prelude",
+        "primitives",
+        "run_index",
+    ];
+    for module in pub_mods {
+        assert!(
+            allowed_pub_mods.contains(&module.as_str()),
+            "core public module not allowed: {module}"
+        );
     }
     Ok(())
 }

@@ -20,7 +20,7 @@ pub use bijux_domain_bam as domain_bam;
 
 pub struct StagePlanRequest<'a> {
     pub stage_id: &'a str,
-    pub tool: &'a bijux_core::ToolExecutionSpecV1,
+    pub tool: &'a bijux_core::contract::ToolExecutionSpecV1,
     pub out_dir: &'a std::path::Path,
     pub bam: Option<&'a std::path::Path>,
     pub bam_index: Option<&'a std::path::Path>,

@@ -27,7 +27,7 @@ pub mod contracts {
 
 pub struct StagePlanRequest<'a> {
     pub stage_id: &'a str,
-    pub tool: &'a bijux_core::ToolExecutionSpecV1,
+    pub tool: &'a bijux_core::contract::ToolExecutionSpecV1,
     pub r1: Option<&'a std::path::Path>,
     pub r2: Option<&'a std::path::Path>,
     pub out_dir: &'a std::path::Path,
@@ -35,7 +35,8 @@ pub struct StagePlanRequest<'a> {
     pub polyx_bank: Option<&'a serde_json::Value>,
     pub contaminant_bank: Option<&'a serde_json::Value>,
     pub enable_contaminant_removal: bool,
-    pub aux_images: &'a std::collections::BTreeMap<String, bijux_core::ContainerImageRefV1>,
+    pub aux_images:
+        &'a std::collections::BTreeMap<String, bijux_core::plan::stage_plan::ContainerImageRefV1>,
     pub raw_r1: Option<&'a std::path::Path>,
     pub pipeline_stages: Option<&'a [String]>,
 }

@@ -4,7 +4,7 @@ use std::path::PathBuf;
 use anyhow::{anyhow, Result};
 use bijux_core::explain::PlanExplainV1;
 use bijux_core::plan::execution_plan::{default_edges_for_stages, ExecutionPlan, PlanPolicy};
-use bijux_core::StagePlanV1;
+use bijux_core::plan::stage_plan::StagePlanV1;
 use bijux_domain_bam::BamStage;
 use bijux_pipelines::bam::{bam_adna_capture_profile, bam_adna_shotgun_profile};
 use bijux_pipelines::PipelineProfile;
@@ -49,7 +49,7 @@ impl BamPlanner {
 #[derive(Debug, Clone)]
 pub struct BamPipelineInputs {
     pub policy: PlanPolicy,
-    pub tool_specs: BTreeMap<String, bijux_core::ToolExecutionSpecV1>,
+    pub tool_specs: BTreeMap<String, bijux_core::contract::ToolExecutionSpecV1>,
     pub params_overrides: BTreeMap<String, serde_json::Value>,
     pub bam: PathBuf,
     pub bam_index: Option<PathBuf>,

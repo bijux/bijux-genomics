@@ -7,7 +7,7 @@
 use serde::Serialize;
 
 use bijux_core::primitives::errors::{ErrorCategory, ErrorHintV1, HintSeverity};
-use bijux_core::RawFailure;
+use bijux_core::primitives::RawFailure;
 
 #[derive(Debug, Clone, Copy, Serialize)]
 #[serde(rename_all = "snake_case")]

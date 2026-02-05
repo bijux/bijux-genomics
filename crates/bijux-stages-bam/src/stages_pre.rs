@@ -23,18 +23,18 @@ pub mod validate {
             crate::stages_support::audit_outputs(bijux_domain_bam::BamStage::Validate, out_dir);
         let flagstat = out_dir.join("flagstat.txt");
         let report = out_dir.join("validation.json");
-        let mut inputs = vec![bijux_core::ArtifactRef {
+        let mut inputs = vec![bijux_core::plan::stage_plan::ArtifactRef {
             name: "bam".to_string(),
             path: bam.to_path_buf(),
         }];
         if let Some(reference) = reference {
-            inputs.push(bijux_core::ArtifactRef {
+            inputs.push(bijux_core::plan::stage_plan::ArtifactRef {
                 name: "reference".to_string(),
                 path: reference.to_path_buf(),
             });
         }
         if let Some(bam_index) = bam_index {
-            inputs.push(bijux_core::ArtifactRef {
+            inputs.push(bijux_core::plan::stage_plan::ArtifactRef {
                 name: "bam_bai".to_string(),
                 path: bam_index.to_path_buf(),
             });
@@ -66,7 +66,7 @@ pub mod validate {
                 serde_json::to_value(&effective_params).unwrap_or(serde_json::Value::Null),
             )?,
             aux_images: std::collections::BTreeMap::new(),
-            reason: bijux_core::PlanDecisionReason::default(),
+            reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
         };
         crate::stages_support::ensure_required_outputs(
             plan,
@@ -119,17 +119,17 @@ pub mod align {
 
         let inputs = {
             let mut items = vec![
-                bijux_core::ArtifactRef {
+                bijux_core::plan::stage_plan::ArtifactRef {
                     name: "fastq_r1".to_string(),
                     path: r1.to_path_buf(),
                 },
-                bijux_core::ArtifactRef {
+                bijux_core::plan::stage_plan::ArtifactRef {
                     name: "reference".to_string(),
                     path: reference.to_path_buf(),
                 },
             ];
             if let Some(r2) = r2 {
-                items.push(bijux_core::ArtifactRef {
+                items.push(bijux_core::plan::stage_plan::ArtifactRef {
                     name: "fastq_r2".to_string(),
                     path: r2.to_path_buf(),
                 });
@@ -167,7 +167,7 @@ pub mod align {
                 serde_json::to_value(&effective).unwrap_or(serde_json::Value::Null),
             )?,
             aux_images: std::collections::BTreeMap::new(),
-            reason: bijux_core::PlanDecisionReason::default(),
+            reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
         };
         crate::stages_support::ensure_required_outputs(
             plan,
@@ -225,7 +225,7 @@ pub mod qc_pre {
             },
             resources: tool.resources.clone(),
             io: StageIO {
-                inputs: vec![bijux_core::ArtifactRef {
+                inputs: vec![bijux_core::plan::stage_plan::ArtifactRef {
                     name: "bam".to_string(),
                     path: bam.to_path_buf(),
                 }],
@@ -240,7 +240,7 @@ pub mod qc_pre {
                 serde_json::to_value(&effective_params).unwrap_or(serde_json::Value::Null),
             )?,
             aux_images: std::collections::BTreeMap::new(),
-            reason: bijux_core::PlanDecisionReason::default(),
+            reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
         };
         crate::stages_support::ensure_required_outputs(
             plan,
@@ -296,7 +296,7 @@ pub mod filter {
             },
             resources: tool.resources.clone(),
             io: StageIO {
-                inputs: vec![bijux_core::ArtifactRef {
+                inputs: vec![bijux_core::plan::stage_plan::ArtifactRef {
                     name: "bam".to_string(),
                     path: bam.to_path_buf(),
                 }],
@@ -316,7 +316,7 @@ pub mod filter {
                 serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
             )?,
             aux_images: std::collections::BTreeMap::new(),
-            reason: bijux_core::PlanDecisionReason::default(),
+            reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
         };
         crate::stages_support::ensure_required_outputs(
             plan,

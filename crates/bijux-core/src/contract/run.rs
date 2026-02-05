@@ -4,9 +4,8 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 
-use crate::contract::tooling::{
-    PathSpec, StageId, StageVersion, ToolExecutionSpecV1, ToolId, ToolRegistry,
-};
+use crate::contract::tooling::{PathSpec, ToolExecutionSpecV1, ToolRegistry};
+use crate::ids::{RunId, StageId, StageVersion, ToolId};
 use crate::plan::stage_plan::{ArtifactRef, StageIO, StagePlanV1};
 use crate::plan::stage_plan::{CommandSpecV1, ContainerImageRefV1};
 
@@ -27,15 +26,6 @@ pub struct RunSpec {
     pub paths: PathSpec,
     #[serde(default)]
     pub params: BTreeMap<String, String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
-pub struct RunId(pub String);
-
-impl std::fmt::Display for RunId {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -123,7 +113,7 @@ pub fn build_run_execution_plan(
         params: serde_json::to_value(&run_spec.params).unwrap_or_else(|_| serde_json::json!({})),
         effective_params: serde_json::json!({}),
         aux_images: BTreeMap::new(),
-        reason: crate::PlanDecisionReason::default(),
+        reason: crate::plan::stage_plan::PlanDecisionReason::default(),
     };
 
     let tool = ToolExecutionSpecV1 {

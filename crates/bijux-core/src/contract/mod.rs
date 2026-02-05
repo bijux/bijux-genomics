@@ -1,23 +1,22 @@
 pub mod domain;
 pub mod execution_contract;
 pub mod execution_manifest;
-pub mod metadata;
 pub mod provenance;
 pub mod run;
 pub mod run_record;
 pub mod selection;
 pub mod tooling;
 
+pub use crate::ids::{RunId, StageId, StageVersion, ToolId};
+pub use crate::metadata::{
+    RunMetadataV1, StageMetadataV1, ToolExecutionMetadataV1, ToolInvocationMetadataV1,
+};
 pub use domain::{PipelineDomain, PipelineSpec};
 pub use execution_contract::validate_execution_outputs;
 pub use execution_manifest::ExecutionManifest;
-pub use metadata::{
-    RunMetadataV1, StageMetadataV1, ToolExecutionMetadataV1, ToolInvocationMetadataV1,
-};
 pub use provenance::{ScientificProvenanceV1, ToolProvenanceV1};
 pub use run::{
-    build_run_execution_plan, run_dir, DryRunExecutor, Executor, Profile, RunExecutionPlan, RunId,
-    RunSpec,
+    build_run_execution_plan, run_dir, DryRunExecutor, Executor, Profile, RunExecutionPlan, RunSpec,
 };
 pub use run_record::{RunRecordV1, StageExecutionRecordV1};
 pub use selection::{
@@ -25,6 +24,6 @@ pub use selection::{
     ObjectiveWeights, StageSelection, ToolScore,
 };
 pub use tooling::{
-    Cardinality, ExecutionContract, PathSpec, PortSpec, StageId, StageSpec, StageVersion,
-    ToolConstraints, ToolExecutionSpecV1, ToolId, ToolManifest, ToolRegistry, ToolRole,
+    Cardinality, ExecutionContract, PathSpec, PortSpec, StageSpec, ToolConstraints,
+    ToolExecutionSpecV1, ToolManifest, ToolRegistry, ToolRole,
 };

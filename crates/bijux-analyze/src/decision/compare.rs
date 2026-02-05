@@ -4,7 +4,7 @@ use std::path::Path;
 use anyhow::{Context, Result};
 use serde::Serialize;
 
-use bijux_core::ObjectiveSpec;
+use bijux_core::contract::ObjectiveSpec;
 
 use crate::aggregate::stats::{robust_summary, RobustSummary};
 use crate::decision::effect::{default_thresholds, effect_size};

@@ -3,7 +3,8 @@ use std::collections::{HashMap, HashSet};
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 
-use crate::{ArtifactRef, ContainerImageRefV1, PlanDecisionReason, StagePlanV1, ToolConstraints};
+use crate::contract::ToolConstraints;
+use crate::plan::stage_plan::{ArtifactRef, ContainerImageRefV1, PlanDecisionReason, StagePlanV1};
 use sha2::Digest;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

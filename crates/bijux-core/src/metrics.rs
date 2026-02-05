@@ -2,8 +2,8 @@ use std::collections::BTreeMap;
 
 use serde::{Deserialize, Serialize};
 
+use crate::contract::ToolConstraints;
 use crate::primitives::measure::ExecutionMetrics;
-use crate::ToolConstraints;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]

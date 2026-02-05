@@ -33,7 +33,7 @@ pub mod damage {
             command: CommandSpecV1 { template: command },
             resources: tool.resources.clone(),
             io: StageIO {
-                inputs: vec![bijux_core::ArtifactRef {
+                inputs: vec![bijux_core::plan::stage_plan::ArtifactRef {
                     name: "bam".to_string(),
                     path: bam.to_path_buf(),
                 }],
@@ -52,7 +52,7 @@ pub mod damage {
                 serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
             )?,
             aux_images: std::collections::BTreeMap::new(),
-            reason: bijux_core::PlanDecisionReason::default(),
+            reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
         };
         crate::stages_support::ensure_required_outputs(
             plan,
@@ -91,7 +91,7 @@ pub mod authenticity {
             command: tool.command.clone(),
             resources: tool.resources.clone(),
             io: StageIO {
-                inputs: vec![bijux_core::ArtifactRef {
+                inputs: vec![bijux_core::plan::stage_plan::ArtifactRef {
                     name: "bam".to_string(),
                     path: bam.to_path_buf(),
                 }],
@@ -106,7 +106,7 @@ pub mod authenticity {
                 serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
             )?,
             aux_images: std::collections::BTreeMap::new(),
-            reason: bijux_core::PlanDecisionReason::default(),
+            reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
         };
         crate::stages_support::ensure_required_outputs(
             plan,
@@ -153,7 +153,7 @@ pub mod contamination {
             },
             resources: tool.resources.clone(),
             io: StageIO {
-                inputs: vec![bijux_core::ArtifactRef {
+                inputs: vec![bijux_core::plan::stage_plan::ArtifactRef {
                     name: "bam".to_string(),
                     path: bam.to_path_buf(),
                 }],
@@ -172,7 +172,7 @@ pub mod contamination {
                 serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
             )?,
             aux_images: std::collections::BTreeMap::new(),
-            reason: bijux_core::PlanDecisionReason::default(),
+            reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
         };
         crate::stages_support::ensure_required_outputs(
             plan,
@@ -208,12 +208,12 @@ pub mod sex {
             tool_id: tool.tool_id.clone(),
             tool_version: tool.tool_version.clone(),
             image: tool.image.clone(),
-            command: bijux_core::CommandSpecV1 {
+            command: bijux_core::plan::stage_plan::CommandSpecV1 {
                 template: crate::tools::rxy::args_with_outputs(bam, &report, &summary, params),
             },
             resources: tool.resources.clone(),
             io: StageIO {
-                inputs: vec![bijux_core::ArtifactRef {
+                inputs: vec![bijux_core::plan::stage_plan::ArtifactRef {
                     name: "bam".to_string(),
                     path: bam.to_path_buf(),
                 }],
@@ -229,7 +229,7 @@ pub mod sex {
                 serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
             )?,
             aux_images: std::collections::BTreeMap::new(),
-            reason: bijux_core::PlanDecisionReason::default(),
+            reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
         };
         crate::stages_support::ensure_required_outputs(
             plan,

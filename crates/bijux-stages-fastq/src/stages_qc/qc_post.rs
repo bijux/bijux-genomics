@@ -80,7 +80,7 @@ pub fn plan_qc_post(
         effective_params: serde_json::to_value(&effective_params)
             .expect("serialize qc_post effective params"),
         aux_images,
-        reason: bijux_core::PlanDecisionReason::default(),
+        reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
     })
 }
 

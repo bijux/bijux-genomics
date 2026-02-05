@@ -3,8 +3,8 @@ use std::collections::BTreeMap;
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
+use crate::plan::stage_plan::{ArtifactRef, StagePlanV1};
 use crate::primitives::invariants::{InvariantResultV1, StageVerdictV1};
-use crate::{ArtifactRef, StagePlanV1};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]

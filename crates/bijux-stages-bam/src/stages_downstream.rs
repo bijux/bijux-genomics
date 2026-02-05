@@ -26,7 +26,7 @@ pub mod haplogroups {
             command: tool.command.clone(),
             resources: tool.resources.clone(),
             io: StageIO {
-                inputs: vec![bijux_core::ArtifactRef {
+                inputs: vec![bijux_core::plan::stage_plan::ArtifactRef {
                     name: "bam".to_string(),
                     path: bam.to_path_buf(),
                 }],
@@ -42,7 +42,7 @@ pub mod haplogroups {
                 serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
             )?,
             aux_images: std::collections::BTreeMap::new(),
-            reason: bijux_core::PlanDecisionReason::default(),
+            reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
         };
         crate::stages_support::ensure_required_outputs(
             plan,
@@ -79,7 +79,7 @@ pub mod genotyping {
             command: tool.command.clone(),
             resources: tool.resources.clone(),
             io: StageIO {
-                inputs: vec![bijux_core::ArtifactRef {
+                inputs: vec![bijux_core::plan::stage_plan::ArtifactRef {
                     name: "bam".to_string(),
                     path: bam.to_path_buf(),
                 }],
@@ -96,7 +96,7 @@ pub mod genotyping {
                 serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
             )?,
             aux_images: std::collections::BTreeMap::new(),
-            reason: bijux_core::PlanDecisionReason::default(),
+            reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
         };
         crate::stages_support::ensure_required_outputs(
             plan,
@@ -133,7 +133,7 @@ pub mod kinship {
             command: tool.command.clone(),
             resources: tool.resources.clone(),
             io: StageIO {
-                inputs: vec![bijux_core::ArtifactRef {
+                inputs: vec![bijux_core::plan::stage_plan::ArtifactRef {
                     name: "bam".to_string(),
                     path: bam.to_path_buf(),
                 }],
@@ -149,7 +149,7 @@ pub mod kinship {
                 serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
             )?,
             aux_images: std::collections::BTreeMap::new(),
-            reason: bijux_core::PlanDecisionReason::default(),
+            reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
         };
         crate::stages_support::ensure_required_outputs(
             plan,
@@ -188,7 +188,7 @@ pub mod bias_mitigation {
             command: tool.command.clone(),
             resources: tool.resources.clone(),
             io: StageIO {
-                inputs: vec![bijux_core::ArtifactRef {
+                inputs: vec![bijux_core::plan::stage_plan::ArtifactRef {
                     name: "bam".to_string(),
                     path: bam.to_path_buf(),
                 }],
@@ -204,7 +204,7 @@ pub mod bias_mitigation {
                 serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
             )?,
             aux_images: std::collections::BTreeMap::new(),
-            reason: bijux_core::PlanDecisionReason::default(),
+            reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
         };
         crate::stages_support::ensure_required_outputs(
             plan,

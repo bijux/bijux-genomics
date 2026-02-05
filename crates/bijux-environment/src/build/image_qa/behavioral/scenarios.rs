@@ -4,7 +4,7 @@ use std::time::Duration;
 use crate::api::{PlatformSpec, ToolImageSpec};
 use anyhow::{anyhow, Context, Result};
 use bijux_analyze::ImageQaOutcome;
-use bijux_core::ToolRegistry;
+use bijux_core::contract::ToolRegistry;
 use uuid::Uuid;
 
 use super::support::{

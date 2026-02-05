@@ -3,7 +3,7 @@ use std::process::Command;
 use std::time::Duration;
 
 use anyhow::{anyhow, Context, Result};
-use bijux_core::ExecutionContract;
+use bijux_core::contract::ExecutionContract;
 use sha2::Digest;
 use tracing::warn;
 

@@ -29,12 +29,12 @@ fn plan_for(stage_id: &str, tool_id: &str) -> StagePlanV1 {
             tmp_gb: 1,
             threads: 1,
         },
-        io: bijux_core::StageIO {
-            inputs: vec![bijux_core::ArtifactRef {
+        io: bijux_core::plan::stage_plan::StageIO {
+            inputs: vec![bijux_core::plan::stage_plan::ArtifactRef {
                 name: "input".to_string(),
                 path: PathBuf::from("input.bam"),
             }],
-            outputs: vec![bijux_core::ArtifactRef {
+            outputs: vec![bijux_core::plan::stage_plan::ArtifactRef {
                 name: "output".to_string(),
                 path: PathBuf::from("output.bam"),
             }],
@@ -43,7 +43,7 @@ fn plan_for(stage_id: &str, tool_id: &str) -> StagePlanV1 {
         params: serde_json::json!({"sample_id":"s1"}),
         effective_params: serde_json::json!({}),
         aux_images: BTreeMap::new(),
-        reason: bijux_core::PlanDecisionReason::default(),
+        reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
     }
 }
 
@@ -69,7 +69,7 @@ fn adna_shotgun_plan_snapshot_is_stable() {
     for stage_id in pipeline_stage_ids("bam-to-bam__adna_shotgun__v1") {
         tool_specs.insert(
             stage_id.clone(),
-            bijux_core::ToolExecutionSpecV1 {
+            bijux_core::contract::ToolExecutionSpecV1 {
                 tool_id: ToolId(format!("{stage_id}.tool")),
                 tool_version: "0.0.0".to_string(),
                 image: ContainerImageRefV1 {
@@ -108,7 +108,7 @@ fn adna_capture_plan_snapshot_is_stable() {
     for stage_id in pipeline_stage_ids("bam-to-bam__adna_capture__v1") {
         tool_specs.insert(
             stage_id.clone(),
-            bijux_core::ToolExecutionSpecV1 {
+            bijux_core::contract::ToolExecutionSpecV1 {
                 tool_id: ToolId(format!("{stage_id}.tool")),
                 tool_version: "0.0.0".to_string(),
                 image: ContainerImageRefV1 {

@@ -34,8 +34,8 @@ This document defines ownership and allowed dependencies. Treat it as an API con
 
 ## bijux-runner-*
 - Owns: execution adapters (docker/local), replay.
-- Does not own: CLI UX, orchestration.
-- Allowed deps: core + runtime + env + infra.
+- Does not own: CLI UX, orchestration, execution scheduling.
+- Allowed deps: engine + core + env + infra.
 
 ## bijux-environment
 - Owns: runner/platform discovery, image resolution.
@@ -69,7 +69,7 @@ bijux-stages-bam: bijux-core bijux-domain-bam bijux-infra
 bijux-planner-fastq: bijux-core bijux-selection bijux-stages-fastq bijux-pipelines bijux-infra
 bijux-planner-bam: bijux-core bijux-selection bijux-stages-bam bijux-infra
 bijux-engine: bijux-core bijux-runtime bijux-infra
-bijux-runner: bijux-core bijux-runtime bijux-environment bijux-infra
+bijux-runner: bijux-core bijux-engine bijux-environment bijux-infra
 bijux-environment: bijux-core bijux-infra
 bijux-pipelines: bijux-core bijux-domain-fastq bijux-domain-bam
 bijux-analyze: bijux-core bijux-selection bijux-domain-fastq bijux-domain-bam bijux-infra bijux-runtime

@@ -72,7 +72,7 @@ pub fn plan_umi(
         effective_params: serde_json::to_value(&effective_params)
             .expect("serialize umi effective params"),
         aux_images: std::collections::BTreeMap::new(),
-        reason: bijux_core::PlanDecisionReason::default(),
+        reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
     })
 }
 

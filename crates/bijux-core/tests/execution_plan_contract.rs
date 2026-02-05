@@ -43,7 +43,7 @@ fn execution_plan_roundtrip_is_canonical() -> anyhow::Result<()> {
             params: serde_json::json!({"sample_id": "sample-1"}),
             effective_params: serde_json::json!({"sample_id": "sample-1"}),
             aux_images: std::collections::BTreeMap::new(),
-            reason: bijux_core::PlanDecisionReason::default(),
+            reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
         }],
         vec![PlanEdge::new("fastq.trim", "fastq.trim")],
     );
@@ -86,7 +86,7 @@ fn execution_plan_roundtrip_is_canonical() -> anyhow::Result<()> {
                 params: serde_json::json!({"sample_id": "sample-1"}),
                 effective_params: serde_json::json!({"sample_id": "sample-1"}),
                 aux_images: std::collections::BTreeMap::new(),
-                reason: bijux_core::PlanDecisionReason::default(),
+                reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
             },
             StagePlanV1 {
                 stage_id: StageId("fastq.trim".to_string()),
@@ -120,7 +120,7 @@ fn execution_plan_roundtrip_is_canonical() -> anyhow::Result<()> {
                 params: serde_json::json!({"sample_id": "sample-1"}),
                 effective_params: serde_json::json!({"sample_id": "sample-1"}),
                 aux_images: std::collections::BTreeMap::new(),
-                reason: bijux_core::PlanDecisionReason::default(),
+                reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
             },
         ],
         vec![PlanEdge::new("fastq.trim", "fastq.filter")],

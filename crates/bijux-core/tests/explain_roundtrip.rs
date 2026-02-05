@@ -25,12 +25,12 @@ fn explain_roundtrip_is_deterministic() -> anyhow::Result<()> {
             tmp_gb: 1,
             threads: 1,
         },
-        io: bijux_core::StageIO {
-            inputs: vec![bijux_core::ArtifactRef {
+        io: bijux_core::plan::stage_plan::StageIO {
+            inputs: vec![bijux_core::plan::stage_plan::ArtifactRef {
                 name: "input".to_string(),
                 path: PathBuf::from("input"),
             }],
-            outputs: vec![bijux_core::ArtifactRef {
+            outputs: vec![bijux_core::plan::stage_plan::ArtifactRef {
                 name: "output".to_string(),
                 path: PathBuf::from("output"),
             }],
@@ -39,7 +39,7 @@ fn explain_roundtrip_is_deterministic() -> anyhow::Result<()> {
         params: serde_json::json!({"a": 1}),
         effective_params: serde_json::json!({"a": 1}),
         aux_images: std::collections::BTreeMap::new(),
-        reason: bijux_core::PlanDecisionReason::default(),
+        reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
     };
     let plan = ExecutionPlan::new(
         "pipeline",

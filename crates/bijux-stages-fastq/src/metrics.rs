@@ -7,7 +7,7 @@ use anyhow::{anyhow, Context, Result};
 use flate2::read::GzDecoder;
 use serde::Serialize;
 
-use bijux_core::StagePlanV1;
+use bijux_core::plan::stage_plan::StagePlanV1;
 use bijux_domain_fastq::metrics::*;
 use bijux_domain_fastq::parse_effective_params;
 

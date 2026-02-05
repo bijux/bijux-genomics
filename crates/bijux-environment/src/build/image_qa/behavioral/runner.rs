@@ -197,7 +197,7 @@ fn tool_contract<'a>(
     registry: &'a ToolRegistry,
     stage_id: &str,
     tool_id: &str,
-) -> Result<&'a bijux_core::ExecutionContract> {
+) -> Result<&'a bijux_core::contract::ExecutionContract> {
     let tool = registry
         .tool_by_id(stage_id, tool_id)
         .ok_or_else(|| anyhow!("tool {tool_id} missing from manifests"))?;

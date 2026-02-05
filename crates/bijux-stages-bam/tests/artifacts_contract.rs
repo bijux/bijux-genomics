@@ -37,7 +37,7 @@ fn dummy_tool(tool: &str) -> ToolExecutionSpecV1 {
     }
 }
 
-fn assert_audit_outputs(stage: BamStage, plan: &bijux_core::StagePlanV1) {
+fn assert_audit_outputs(stage: BamStage, plan: &bijux_core::plan::stage_plan::StagePlanV1) {
     let outputs: std::collections::HashSet<_> =
         plan.io.outputs.iter().map(|o| o.name.as_str()).collect();
     let spec = bijux_domain_bam::stage_spec(stage);

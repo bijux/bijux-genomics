@@ -1,4 +1,4 @@
-use bijux_core::RawFailure;
+use bijux_core::primitives::RawFailure;
 use std::fs;
 use std::path::PathBuf;
 

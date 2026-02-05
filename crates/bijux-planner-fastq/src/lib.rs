@@ -15,7 +15,7 @@ use bijux_pipelines::fastq::canonical_tool_defaults;
 pub const PLANNER_VERSION: &str = "bijux-planner-fastq.v1";
 
 pub mod stage_api {
-    pub use bijux_core::RawFailure;
+    pub use bijux_core::primitives::RawFailure;
     pub use bijux_domain_fastq::banks;
     pub use bijux_domain_fastq::banks::{
         adapter_bank_context, contaminant_bank_context, polyx_bank_context,
@@ -522,7 +522,7 @@ pub fn compose_fastq_pipeline_steps<F>(
     r1: &std::path::Path,
     r2: Option<&std::path::Path>,
     mut out_dir_for_stage: F,
-) -> Result<Vec<bijux_core::StagePlanV1>>
+) -> Result<Vec<bijux_core::plan::stage_plan::StagePlanV1>>
 where
     F: FnMut(
         &str,
@@ -684,7 +684,7 @@ pub struct ToolSelection {
 /// # Errors
 /// Returns an error if tool selection fails.
 pub fn select_preprocess_tools(
-    registry: &bijux_core::ToolRegistry,
+    registry: &bijux_core::contract::ToolRegistry,
     pipeline: &PipelineSpec,
     args: &bijux_stages_fastq::args::BenchFastqPreprocessArgs,
 ) -> Result<Vec<ToolSelection>> {

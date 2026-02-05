@@ -21,11 +21,11 @@ pub struct PlanExplainStageV1 {
     pub tool_id: String,
     pub tool_version: String,
     pub image: Option<String>,
-    pub reason: crate::PlanDecisionReason,
+    pub reason: crate::plan::stage_plan::PlanDecisionReason,
     pub parameters_json: serde_json::Value,
     pub effective_parameters_json: serde_json::Value,
-    pub inputs: Vec<crate::ArtifactRef>,
-    pub outputs: Vec<crate::ArtifactRef>,
+    pub inputs: Vec<crate::plan::stage_plan::ArtifactRef>,
+    pub outputs: Vec<crate::plan::stage_plan::ArtifactRef>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

@@ -56,7 +56,7 @@ pub mod markdup {
             command: CommandSpecV1 { template: command },
             resources: tool.resources.clone(),
             io: StageIO {
-                inputs: vec![bijux_core::ArtifactRef {
+                inputs: vec![bijux_core::plan::stage_plan::ArtifactRef {
                     name: "bam".to_string(),
                     path: bam.to_path_buf(),
                 }],
@@ -73,7 +73,7 @@ pub mod markdup {
                 serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
             )?,
             aux_images: std::collections::BTreeMap::new(),
-            reason: bijux_core::PlanDecisionReason::default(),
+            reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
         };
         crate::stages_support::ensure_required_outputs(
             plan,
@@ -119,7 +119,7 @@ pub mod complexity {
             command: tool.command.clone(),
             resources: tool.resources.clone(),
             io: StageIO {
-                inputs: vec![bijux_core::ArtifactRef {
+                inputs: vec![bijux_core::plan::stage_plan::ArtifactRef {
                     name: "bam".to_string(),
                     path: bam.to_path_buf(),
                 }],
@@ -135,7 +135,7 @@ pub mod complexity {
                 serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
             )?,
             aux_images: std::collections::BTreeMap::new(),
-            reason: bijux_core::PlanDecisionReason::default(),
+            reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
         };
         crate::stages_support::ensure_required_outputs(
             plan,
@@ -170,7 +170,7 @@ pub mod coverage {
         let summary_path = out_dir.join("coverage.mosdepth.summary.txt");
         let command = match tool.tool_id.0.as_str() {
             "samtools" => {
-                outputs.push(bijux_core::ArtifactRef {
+                outputs.push(bijux_core::plan::stage_plan::ArtifactRef {
                     name: "coverage_depth".to_string(),
                     path: depth_path.clone(),
                 });
@@ -187,7 +187,7 @@ pub mod coverage {
             command: CommandSpecV1 { template: command },
             resources: tool.resources.clone(),
             io: StageIO {
-                inputs: vec![bijux_core::ArtifactRef {
+                inputs: vec![bijux_core::plan::stage_plan::ArtifactRef {
                     name: "bam".to_string(),
                     path: bam.to_path_buf(),
                 }],
@@ -203,7 +203,7 @@ pub mod coverage {
                 serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
             )?,
             aux_images: std::collections::BTreeMap::new(),
-            reason: bijux_core::PlanDecisionReason::default(),
+            reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
         };
         crate::stages_support::ensure_required_outputs(plan, &["coverage_summary", "stage_metrics"])
     }
@@ -239,7 +239,7 @@ pub mod recalibration {
             command: tool.command.clone(),
             resources: tool.resources.clone(),
             io: StageIO {
-                inputs: vec![bijux_core::ArtifactRef {
+                inputs: vec![bijux_core::plan::stage_plan::ArtifactRef {
                     name: "bam".to_string(),
                     path: bam.to_path_buf(),
                 }],
@@ -256,7 +256,7 @@ pub mod recalibration {
                 serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
             )?,
             aux_images: std::collections::BTreeMap::new(),
-            reason: bijux_core::PlanDecisionReason::default(),
+            reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
         };
         crate::stages_support::ensure_required_outputs(
             plan,

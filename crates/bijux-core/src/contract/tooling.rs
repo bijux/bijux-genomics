@@ -3,26 +3,7 @@ use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
-pub struct StageId(pub String);
-
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
-pub struct ToolId(pub String);
-
-impl std::fmt::Display for StageId {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
-
-impl std::fmt::Display for ToolId {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-pub struct StageVersion(pub i32);
+use crate::ids::ToolId;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ToolConstraints {
@@ -148,7 +129,7 @@ pub struct ToolManifest {
 pub struct ToolExecutionSpecV1 {
     pub tool_id: ToolId,
     pub tool_version: String,
-    pub image: crate::ContainerImageRefV1,
+    pub image: crate::plan::stage_plan::ContainerImageRefV1,
     pub command: crate::CommandSpecV1,
     pub resources: ToolConstraints,
 }
