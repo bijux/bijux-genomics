@@ -3,9 +3,7 @@ use std::collections::{HashMap, HashSet};
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    ArtifactRef, ContainerImageRefV1, PlanDecisionReason, StagePlanV1, ToolConstraints,
-};
+use crate::{ArtifactRef, ContainerImageRefV1, PlanDecisionReason, StagePlanV1, ToolConstraints};
 use sha2::Digest;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -163,7 +161,7 @@ impl ExecutionPlan {
 
     /// # Errors
     /// Returns an error if the plan violates strict completeness requirements.
-    pub fn validate_strict(&self, context: PlanValidationContext<'_>) -> Result<()> {
+    pub fn validate_strict(&self, context: &PlanValidationContext<'_>) -> Result<()> {
         lint_execution_plan(self)?;
         let mut stage_ids = HashSet::new();
         for stage in &self.stages {

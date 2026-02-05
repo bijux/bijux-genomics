@@ -186,12 +186,12 @@ fn blessed_pipelines_report_completeness() -> Result<()> {
             }
             _ => Vec::new(),
         };
-        for stage_id in stage_ids.iter() {
+        for stage_id in &stage_ids {
             let summary = report
                 .stages
                 .iter()
                 .find(|stage| stage.stage_id == *stage_id)
-                .ok_or_else(|| anyhow::anyhow!("missing stage summary for {}", stage_id))?;
+                .ok_or_else(|| anyhow::anyhow!("missing stage summary for {stage_id}"))?;
             assert!(!summary.stage_report_path.is_empty());
             assert!(!summary.metrics_path.is_empty());
             assert!(!summary.tool_invocation_path.is_empty());

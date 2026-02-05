@@ -84,7 +84,7 @@ fn tool_override_precedence_is_stable() {
 
 #[test]
 fn default_pipeline_plan_snapshot_is_stable() {
-    let stages = vec![
+    let stages = [
         "fastq.validate_pre",
         "fastq.detect_adapters",
         "fastq.trim",

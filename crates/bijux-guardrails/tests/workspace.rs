@@ -178,11 +178,7 @@ fn assert_no_domain_terms(crate_root: &Path, denylist: &[&str]) {
         let lowered = content.to_lowercase();
         for term in denylist {
             if lowered.contains(term) {
-                panic!(
-                    "domain term '{}' found in {}",
-                    term,
-                    file.display()
-                );
+                panic!("domain term '{}' found in {}", term, file.display());
             }
         }
     }
