@@ -4,9 +4,9 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Context, Result};
 use serde::{Deserialize, Serialize};
 
-use super::run_layout::{RunIndexLine, RunManifest};
 use bijux_core::contract::Objective;
 use bijux_core::metadata::RunMetadataV1;
+use bijux_runtime::run_layout::{RunIndexLine, RunManifest};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RunBenchmarkRecord {

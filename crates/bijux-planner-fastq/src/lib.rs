@@ -2,8 +2,8 @@ use std::collections::BTreeMap;
 use std::path::PathBuf;
 
 use anyhow::{anyhow, Result};
+use bijux_analyze::load::sqlite::BenchResultsRepository;
 use bijux_core::contract::PipelineSpec;
-use bijux_core::explain::PlanExplainV1;
 use bijux_core::plan::execution_plan::{default_edges_for_stages, ExecutionPlan, PlanPolicy};
 use bijux_core::primitives::input_assessment::{assess_input_dir, FastqLayout};
 use bijux_core::{
@@ -496,11 +496,6 @@ pub fn plan_fastq_to_bam__default__v1(
 }
 
 #[must_use]
-pub fn explain_plan(plan: &ExecutionPlan) -> PlanExplainV1 {
-    PlanExplainV1::from_plan(plan)
-}
-
-#[must_use]
 pub fn cross_fastq_to_bam_stage_ids(profile_id: &str) -> Vec<String> {
     match profile_id {
         "fastq-to-bam__adna_shotgun__v1" | "fastq-to-bam__default__v1" => vec![
@@ -725,8 +720,10 @@ pub fn select_preprocess_tools(
             .ok_or_else(|| anyhow!("--bench-corpus is required with --auto"))?;
         let corpus = bijux_stages_fastq::bench_corpus(corpus_id);
         let objective = bijux_core::selection::objective_spec(args.objective);
+        let repo = bijux_analyze::load::sqlite::SqliteBenchResultsRepository::new(args.out.clone());
         let mut selections = Vec::new();
         for stage in &pipeline.stages {
+            let stage_id = bijux_core::ids::StageId::new(stage.clone());
             let tool_ids: Vec<String> = registry
                 .tools_for_stage(stage)
                 .iter()
@@ -734,11 +731,11 @@ pub fn select_preprocess_tools(
                 .collect();
             let mut tool_records = Vec::new();
             for tool in &tool_ids {
-                let records = bijux_stages_fastq::get_results(stage, tool, &corpus, &args.out)?;
+                let records = repo.bench_results(stage, tool, &corpus)?;
                 tool_records.push((tool.clone(), records));
             }
             let selection = bijux_core::selection::select_stage(
-                stage,
+                &stage_id,
                 &tool_records,
                 &objective,
                 args.allow_partial,

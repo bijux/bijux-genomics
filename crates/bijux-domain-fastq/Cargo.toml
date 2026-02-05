@@ -11,9 +11,7 @@ serde.workspace = true
 serde_json.workspace = true
 sha2.workspace = true
 tracing.workspace = true
-rusqlite.workspace = true
 uuid.workspace = true
-chrono.workspace = true
 bijux-core = { path = "../bijux-core" }
 bijux-infra = { path = "../bijux-infra", features = ["yaml"] }
 bijux-runtime = { path = "../bijux-runtime" }
@@ -21,7 +19,6 @@ schemars.workspace = true
 
 [dev-dependencies]
 bijux-policies = { path = "../bijux-policies" }
-rusqlite = { workspace = true }
 bijux-runtime = { path = "../bijux-runtime" }
 
 [lints]

@@ -1,12 +1,42 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
-use anyhow::{anyhow, Context, Result};
-use rusqlite::{params, Connection};
+use anyhow::{anyhow, Context};
 use serde_json::Value as JsonValue;
 
 use bijux_core::contract::{BenchResultRecord, BenchResultStatus};
+use bijux_domain_fastq::BenchCorpus;
 
-use super::corpus::BenchCorpus;
+pub trait BenchResultsRepository {
+    fn bench_results(
+        &self,
+        stage: &str,
+        tool: &str,
+        corpus: &BenchCorpus,
+    ) -> Result<Vec<BenchResultRecord>>;
+}
+
+#[derive(Debug, Clone)]
+pub struct SqliteBenchResultsRepository {
+    root_dir: PathBuf,
+}
+
+impl SqliteBenchResultsRepository {
+    #[must_use]
+    pub fn new(root_dir: PathBuf) -> Self {
+        Self { root_dir }
+    }
+}
+
+impl BenchResultsRepository for SqliteBenchResultsRepository {
+    fn bench_results(
+        &self,
+        stage: &str,
+        tool: &str,
+        corpus: &BenchCorpus,
+    ) -> Result<Vec<BenchResultRecord>> {
+        get_results_from_sqlite(stage, tool, corpus, &self.root_dir)
+    }
+}
 
 fn table_for_stage(stage: &str) -> Option<&'static str> {
     match stage {
@@ -40,7 +70,7 @@ fn bench_dir_for_stage(stage: &str) -> Option<&'static str> {
     }
 }
 
-fn bench_base_dir(out: &Path, stage: &str, sample_id: &str) -> std::path::PathBuf {
+fn bench_base_dir(out: &Path, stage: &str, sample_id: &str) -> PathBuf {
     out.join("artifacts")
         .join("bench")
         .join(stage)
@@ -51,7 +81,7 @@ fn bench_base_dir(out: &Path, stage: &str, sample_id: &str) -> std::path::PathBu
 ///
 /// # Errors
 /// Returns an error if the bench database cannot be opened or parsed.
-pub fn get_results(
+pub fn get_results_from_sqlite(
     stage: &str,
     tool: &str,
     corpus: &BenchCorpus,
