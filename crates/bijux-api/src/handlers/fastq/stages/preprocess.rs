@@ -4,10 +4,11 @@ use std::collections::HashMap;
 use crate::tooling::{ensure_bench_runner, filter_tools_by_role, load_registry};
 use anyhow::{anyhow, Context, Result};
 use bijux_core::plan::execution_plan::PlanPolicy;
-use bijux_core::plan::stage_plan::ContainerImageRefV1;
 use bijux_core::primitives::errors::ErrorCategory;
+use bijux_core::ContainerImageRefV1;
 use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
+use bijux_planner_fastq::stage_api::bench_dir_name;
 use bijux_planner_fastq::stage_api::RawFailure;
 use bijux_planner_fastq::{
     apply_preprocess_policy, preprocess_decisions, resolve_preprocess_pipeline,
@@ -51,7 +52,9 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     runner_override: Option<RunnerKind>,
     args: &bijux_planner_fastq::stage_api::args::BenchFastqPreprocessArgs,
 ) -> Result<()> {
-    let out_dir = bench_base_dir(&args.out, "preprocess", &args.sample_id);
+    let bench_dir_name = bench_dir_name(&STAGE_PREPROCESS)
+        .ok_or_else(|| anyhow!("bench dir missing for {}", STAGE_PREPROCESS.as_str()))?;
+    let out_dir = bench_base_dir(&args.out, bench_dir_name, &args.sample_id);
     bijux_infra::ensure_dir(&out_dir).context("create preprocess output dir")?;
 
     ensure_bench_runner(platform, runner_override)?;
@@ -99,7 +102,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     ensure_tool_qa_passed(STAGE_PREPROCESS.as_str(), &tool_ids, platform, catalog)?;
 
     let jobs = bench_jobs(args.jobs);
-    let tools_root = bench_tools_dir(&args.out, "preprocess", &args.sample_id);
+    let tools_root = bench_tools_dir(&args.out, bench_dir_name, &args.sample_id);
     bijux_infra::ensure_dir(&tools_root).context("create preprocess tools dir")?;
 
     let policy = apply_preprocess_policy(
@@ -169,7 +172,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         enable_contaminant_removal: args.enable_contaminant_removal,
         r1: args.r1.clone(),
         r2: args.r2.clone(),
-        out_dir: bench_tools_dir(&args.out, "preprocess", &args.sample_id),
+        out_dir: bench_tools_dir(&args.out, bench_dir_name, &args.sample_id),
         tool_reasons: Some(tool_reasons),
     };
     let pipeline_plan = FastqPlanner::plan(&planner_config)?;

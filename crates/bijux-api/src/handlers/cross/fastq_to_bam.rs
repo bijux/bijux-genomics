@@ -16,6 +16,7 @@ use bijux_infra::bench_base_dir;
 use bijux_pipelines::registry;
 use bijux_pipelines::{Domain, PipelineProfile};
 use bijux_planner_bam::stage_api::BamStage;
+use bijux_planner_fastq::stage_api::bench_dir_name;
 
 #[allow(clippy::too_many_lines)]
 /// # Errors
@@ -29,9 +30,11 @@ pub fn run_fastq_to_bam_profile<S: std::hash::BuildHasher>(
     cross_args: &FastqCrossArgs,
     profile: &PipelineProfile,
 ) -> Result<()> {
+    let bench_dir_name = bench_dir_name(&bijux_planner_fastq::stage_api::STAGE_PREPROCESS)
+        .ok_or_else(|| anyhow!("bench dir missing for fastq.preprocess"))?;
     let out_dir = bench_base_dir(
         &preprocess_args.out,
-        "preprocess",
+        bench_dir_name,
         &preprocess_args.sample_id,
     );
     bijux_infra::ensure_dir(&out_dir).context("create cross pipeline out dir")?;

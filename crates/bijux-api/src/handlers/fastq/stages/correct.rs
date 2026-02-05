@@ -7,6 +7,7 @@ use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use bijux_infra::{bench_base_dir, bench_tools_dir};
 use bijux_planner_fastq::select_correct_tools;
+use bijux_planner_fastq::stage_api::bench_dir_name;
 use bijux_planner_fastq::stage_api::fastq::correct::plan_correct;
 use bijux_planner_fastq::stage_api::FastqArtifactKind;
 use bijux_planner_fastq::stage_api::{
@@ -43,8 +44,10 @@ pub fn bench_fastq_correct<S: ::std::hash::BuildHasher>(
         .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let tools = filter_tools_by_role(STAGE_CORRECT.as_str(), &tools, &registry, false)?;
 
-    let bench_dir = bench_base_dir(&args.out, "correct", &args.sample_id);
-    let tools_root = bench_tools_dir(&args.out, "correct", &args.sample_id);
+    let bench_dir_name = bench_dir_name(&STAGE_CORRECT)
+        .ok_or_else(|| anyhow!("bench dir missing for {}", STAGE_CORRECT.as_str()))?;
+    let bench_dir = bench_base_dir(&args.out, bench_dir_name, &args.sample_id);
+    let tools_root = bench_tools_dir(&args.out, bench_dir_name, &args.sample_id);
     bijux_infra::ensure_dir(&bench_dir).context("create bench output dir")?;
     bijux_infra::ensure_dir(&tools_root).context("create tools output dir")?;
 

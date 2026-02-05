@@ -25,6 +25,7 @@ parquet = ["dep:parquet"]
 
 [dev-dependencies]
 bijux-policies = { path = "../bijux-policies" }
+uuid = { workspace = true }
 tempfile.workspace = true
 bijux-domain-fastq = { path = "../bijux-domain-fastq" }
 bijux-benchmark = { path = "../bijux-benchmark" }
@@ -32,7 +33,6 @@ insta = { version = "1", features = ["json"] }
 bijux-pipelines = { path = "../bijux-pipelines" }
 bijux-planner-fastq = { path = "../bijux-planner-fastq" }
 bijux-planner-bam = { path = "../bijux-planner-bam" }
-uuid.workspace = true
 
 [lints]
 workspace = true

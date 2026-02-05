@@ -28,3 +28,32 @@ pub const STAGES: [StageId; 11] = [
     STAGE_QC_POST,
     STAGE_PREPROCESS,
 ];
+
+#[must_use]
+pub fn bench_dir_name(stage: &StageId) -> Option<&'static str> {
+    if stage == &STAGE_VALIDATE_PRE {
+        Some("validate_pre")
+    } else if stage == &STAGE_DETECT_ADAPTERS {
+        Some("detect_adapters")
+    } else if stage == &STAGE_TRIM {
+        Some("trim")
+    } else if stage == &STAGE_FILTER {
+        Some("filter")
+    } else if stage == &STAGE_STATS_NEUTRAL {
+        Some("stats")
+    } else if stage == &STAGE_MERGE {
+        Some("merge")
+    } else if stage == &STAGE_CORRECT {
+        Some("correct")
+    } else if stage == &STAGE_QC_POST {
+        Some("qc_post")
+    } else if stage == &STAGE_UMI {
+        Some("umi")
+    } else if stage == &STAGE_SCREEN {
+        Some("screen")
+    } else if stage == &STAGE_PREPROCESS {
+        Some("preprocess")
+    } else {
+        None
+    }
+}
