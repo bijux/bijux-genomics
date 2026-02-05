@@ -10,7 +10,7 @@ use bijux_runner::primitives::execute_stage_plan;
 use std::path::PathBuf;
 
 use crate::args::{BamRunArgs, BenchBamPipelineArgs, BenchBamStageArgs};
-use crate::bam_plan::plan_for_bam_stage;
+use crate::v1::bam::plan_for_bam_stage;
 
 /// Output paths for BAM benchmarking.
 ///

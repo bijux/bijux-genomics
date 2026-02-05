@@ -7,6 +7,8 @@
 //! - bench: benchmarking + comparison helpers.
 
 pub mod bench;
+pub mod bam;
+pub mod fastq;
 pub mod plan;
 pub mod report;
 pub mod run;

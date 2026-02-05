@@ -49,7 +49,17 @@ fn public_surface_is_snapshotted() -> anyhow::Result<()> {
             .join("src")
             .join("v1")
             .join(format!("{module}.rs"));
-        let Ok(contents) = fs::read_to_string(&path) else {
+        let contents = if path.exists() {
+            fs::read_to_string(&path).ok()
+        } else {
+            let mod_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                .join("src")
+                .join("v1")
+                .join(module)
+                .join("mod.rs");
+            fs::read_to_string(mod_path).ok()
+        };
+        let Some(contents) = contents else {
             continue;
         };
         for line in contents.lines() {
