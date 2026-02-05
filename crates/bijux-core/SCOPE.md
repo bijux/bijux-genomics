@@ -14,3 +14,11 @@
 - Database access, web servers, or CLI concerns.
 
 If a feature needs IO, runtime configuration, or domain semantics, it does not belong in core.
+
+## OWNERSHIP (SSoT)
+- IDs (PipelineId/StageId/ToolId/MetricId): bijux-core
+- defaults/profiles: bijux-pipelines
+- param schemas: bijux-domain-*
+- metric semantics: bijux-analyze
+- artifact layout: bijux-runtime
+- report schema/rendering: bijux-analyze

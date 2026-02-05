@@ -3,6 +3,8 @@
 
 use serde::{Deserialize, Serialize};
 
+pub use bijux_core::metrics::{DerivedMetricId, MetricId};
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum StageMetricKind {
     FastqTrim,
@@ -16,60 +18,6 @@ pub enum StageMetricKind {
     FastqStats,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum MetricId {
-    RuntimeS,
-    MemoryMb,
-    ExitCode,
-    ReadsIn,
-    ReadsOut,
-    ReadsDropped,
-    ReadsRemovedByN,
-    ReadsRemovedByEntropy,
-    ReadsRemovedLowComplexity,
-    ReadsRemovedByKmer,
-    ReadsRemovedContaminantKmer,
-    ReadsRemovedByLength,
-    ReadsTotal,
-    ReadsValid,
-    ReadsInvalid,
-    BasesIn,
-    BasesOut,
-    BasesTotal,
-    PairsIn,
-    PairsOut,
-    ReadsR1,
-    ReadsR2,
-    ReadsMerged,
-    ReadsUnmerged,
-    MeanQBefore,
-    MeanQAfter,
-    MeanQ,
-    MergeRate,
-    DedupRate,
-    KmerFixRate,
-    ContaminationRate,
-    ContaminationSummary,
-    GcPercent,
-    LengthHistogram,
-    DeltaMetrics,
-    AdapterPreset,
-    AdapterBankId,
-    AdapterBankHash,
-    AdapterOverrides,
-    QcRawDir,
-    QcTrimmedDir,
-    MultiqcReport,
-    MultiqcData,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum DerivedMetricId {
-    ReadRetention,
-    BaseRetention,
-    MergeEfficiency,
-    ErrorReductionProxy,
-}
 
 #[derive(Debug, Clone, Copy)]
 pub enum MetricDirection {
