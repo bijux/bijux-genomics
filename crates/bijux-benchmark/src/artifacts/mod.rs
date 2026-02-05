@@ -1,4 +1,4 @@
-//! Owner: bijux-bench
+//! Owner: bijux-benchmark
 //! Artifact writers for bench.
 
 pub mod writer;

@@ -1,4 +1,4 @@
-//! Owner: bijux-bench
+//! Owner: bijux-benchmark
 //! Gate policy engine for benchmark decisions.
 //! Owns typed gating decisions with rationale trace.
 //! Must not panic on missing metrics.

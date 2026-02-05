@@ -17,4 +17,4 @@ serde_json.workspace = true
 workspace = true
 
 [dev-dependencies]
-bijux-guardrails = { path = "../bijux-guardrails" }
+bijux-policies = { path = "../bijux-policies" }

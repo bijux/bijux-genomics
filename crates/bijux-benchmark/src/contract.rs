@@ -1,4 +1,4 @@
-//! Owner: bijux-bench
+//! Owner: bijux-benchmark
 //! Schema versions and contract validators.
 //! Owns validation for bench artifacts and inputs.
 //! Must not perform IO.

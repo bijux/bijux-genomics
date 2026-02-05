@@ -15,6 +15,10 @@ fn workspace_root() -> PathBuf {
 fn only_root_makefile_exists() {
     let root = workspace_root();
     let mut offenders = Vec::new();
+    let root_makefile = root.join("Makefile.toml");
+    if root_makefile.exists() {
+        offenders.push(root_makefile.display().to_string());
+    }
     for entry in WalkDir::new(root.join("crates"))
         .into_iter()
         .filter_map(|entry| entry.ok())
@@ -35,6 +39,10 @@ fn root_makefile_is_single_source() {
     let root = workspace_root();
     let makefile = root.join("Makefile");
     let content = std::fs::read_to_string(&makefile).expect("read Makefile");
+    assert!(
+        content.contains("include makefiles/cargo.mk"),
+        "Makefile must include makefiles/cargo.mk"
+    );
     let forbidden_targets = [
         "lint:",
         "test:",

@@ -1,4 +1,4 @@
-//! Owner: bijux-bench
+//! Owner: bijux-benchmark
 //! Run repository abstraction for bench.
 //! Owns access to run metadata and metrics via run_index or facts.
 //! Must not crawl filesystem trees.

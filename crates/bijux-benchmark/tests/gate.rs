@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use bijux_bench::GatePolicy;
+use bijux_benchmark::GatePolicy;
 
 #[test]
 fn gate_rejects_based_on_metric_semantics() {

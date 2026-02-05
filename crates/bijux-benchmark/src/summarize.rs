@@ -1,4 +1,4 @@
-//! Owner: bijux-bench
+//! Owner: bijux-benchmark
 //! Bench orchestration helpers: summarize, gate, compare, run_suite.
 #![allow(dead_code)]
 

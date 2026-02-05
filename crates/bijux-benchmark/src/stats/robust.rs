@@ -1,4 +1,4 @@
-//! Owner: bijux-bench
+//! Owner: bijux-benchmark
 //! Robust statistics.
 //! Owns stable stats computations.
 //! Must not perform IO or depend on compare/gate logic.

@@ -1,4 +1,4 @@
-//! Owner: bijux-bench
+//! Owner: bijux-benchmark
 //! Run repository backed by bijux-core run_index.
 #![allow(dead_code)]
 

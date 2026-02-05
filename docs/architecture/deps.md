@@ -18,7 +18,7 @@ must follow these rules; CI enforces them.
 - `bijux-domain-*` must not depend on `bijux-stages-*`, `bijux-engine`,
   `bijux-api`, `bijux-cli`, or `bijux-pipelines`.
 - `bijux-stages-*` must not depend on `bijux-cli`, `bijux-api`, `bijux-analyze`,
-  `bijux-bench`, or `bijux-pipelines`.
+  `bijux-benchmark`, or `bijux-pipelines`.
 - `bijux-pipelines` must not depend on `bijux-engine` or `bijux-cli`.
 - `bijux-cli` must not depend on `bijux-domain-*`, `bijux-stages-*`,
   `bijux-pipelines`, or `bijux-engine`.

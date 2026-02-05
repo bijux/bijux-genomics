@@ -1,5 +1,5 @@
 use bijux_analyze::report::write_run_report_from_facts;
-use bijux_bench::{
+use bijux_benchmark::{
     summarize, AnalysisRequirements, BenchRunOptions, BenchmarkObservation, BenchmarkSuiteSpec,
     DatasetSpec, DiversityRequirements, MetricsEnvelope, ReplicatePolicy,
     StratificationRequirement,

@@ -13,7 +13,6 @@ rusqlite.workspace = true
 tracing.workspace = true
 anyhow.workspace = true
 bijux-core = { path = "../bijux-core" }
-bijux-selection = { path = "../bijux-selection" }
 bijux-domain-bam = { path = "../bijux-domain-bam" }
 bijux-infra = { path = "../bijux-infra" }
 bijux-runtime = { path = "../bijux-runtime" }
@@ -24,10 +23,10 @@ parquet = { version = "50", optional = true, features = ["json"] }
 parquet = ["dep:parquet"]
 
 [dev-dependencies]
-bijux-guardrails = { path = "../bijux-guardrails" }
+bijux-policies = { path = "../bijux-policies" }
 tempfile.workspace = true
 bijux-domain-fastq = { path = "../bijux-domain-fastq" }
-bijux-bench = { path = "../bijux-bench" }
+bijux-benchmark = { path = "../bijux-benchmark" }
 insta = { version = "1", features = ["json"] }
 bijux-pipelines = { path = "../bijux-pipelines" }
 bijux-planner-fastq = { path = "../bijux-planner-fastq" }

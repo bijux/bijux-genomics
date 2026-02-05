@@ -16,7 +16,7 @@ flate2 = "1"
 tracing.workspace = true
 
 [dev-dependencies]
-bijux-guardrails = { path = "../bijux-guardrails" }
+bijux-policies = { path = "../bijux-policies" }
 bijux-planner-fastq = { path = "../bijux-planner-fastq" }
 bijux-pipelines = { path = "../bijux-pipelines" }
 anyhow.workspace = true

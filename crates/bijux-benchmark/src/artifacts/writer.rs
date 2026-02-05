@@ -1,4 +1,4 @@
-//! Owner: bijux-bench
+//! Owner: bijux-benchmark
 //! Deterministic, atomic artifact writers.
 //! Owns bench output serialization.
 //! Must not perform analysis logic.

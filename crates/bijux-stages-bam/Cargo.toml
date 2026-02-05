@@ -19,6 +19,6 @@ bam_downstream = []
 workspace = true
 
 [dev-dependencies]
-bijux-guardrails = { path = "../bijux-guardrails" }
+bijux-policies = { path = "../bijux-policies" }
 walkdir = { workspace = true }
 bijux-infra = { path = "../bijux-infra" }

@@ -1,4 +1,4 @@
-//! Owner: bijux-bench
+//! Owner: bijux-benchmark
 //! Benchmark summary model (versioned).
 //! Owns aggregate stats and completeness for observations.
 //! Must not perform IO or depend on compare/gate logic.

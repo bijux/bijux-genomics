@@ -18,5 +18,5 @@ bam_downstream = []
 
 [dev-dependencies]
 insta = { version = "1", features = ["json"] }
-bijux-guardrails = { path = "../bijux-guardrails" }
+bijux-policies = { path = "../bijux-policies" }
 walkdir.workspace = true

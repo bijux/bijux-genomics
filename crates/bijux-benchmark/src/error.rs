@@ -1,4 +1,4 @@
-//! Owner: bijux-bench
+//! Owner: bijux-benchmark
 //! Error types for bench workflows.
 //! Owns stable error codes for bench validation.
 //! Must not perform IO.

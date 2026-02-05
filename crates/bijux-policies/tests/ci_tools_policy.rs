@@ -12,7 +12,7 @@ fn workspace_root() -> PathBuf {
 }
 
 #[test]
-fn workflows_use_tools_scripts_only() {
+fn workflows_use_make_only() {
     let root = workspace_root();
     let workflows_dir = root.join(".github").join("workflows");
     let mut offenders = Vec::new();
@@ -35,7 +35,7 @@ fn workflows_use_tools_scripts_only() {
         {
             offenders.push(entry.path().display().to_string());
         }
-        if !content.contains("tools/") {
+        if !content.contains("make ") {
             offenders.push(entry.path().display().to_string());
         }
     }
@@ -43,7 +43,7 @@ fn workflows_use_tools_scripts_only() {
     offenders.dedup();
     assert!(
         offenders.is_empty(),
-        "CI workflows must use tools/* entrypoints only: {:?}",
+        "CI workflows must use Makefile entrypoints only: {:?}",
         offenders
     );
 }

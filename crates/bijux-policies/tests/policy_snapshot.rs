@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use bijux_guardrails::GuardrailConfig;
+use bijux_policies::GuardrailConfig;
 
 #[test]
 fn guardrail_default_policy_snapshot() {

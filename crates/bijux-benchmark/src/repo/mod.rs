@@ -1,4 +1,4 @@
-//! Owner: bijux-bench
+//! Owner: bijux-benchmark
 //! Run repositories for bench.
 
 pub mod run_repo;

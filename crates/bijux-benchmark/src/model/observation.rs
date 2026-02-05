@@ -1,4 +1,4 @@
-//! Owner: bijux-bench
+//! Owner: bijux-benchmark
 //! Typed benchmark observations and invariants.
 //! Owns bench core data model only.
 //! Must not perform IO or depend on compare/gate logic.

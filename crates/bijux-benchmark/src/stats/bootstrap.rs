@@ -1,4 +1,4 @@
-//! Owner: bijux-bench
+//! Owner: bijux-benchmark
 //! Deterministic bootstrap confidence intervals.
 //! Must not perform IO or depend on compare/gate logic.
 

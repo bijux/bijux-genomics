@@ -20,9 +20,8 @@ bijux-runtime = { path = "../bijux-runtime" }
 schemars.workspace = true
 
 [dev-dependencies]
-bijux-guardrails = { path = "../bijux-guardrails" }
+bijux-policies = { path = "../bijux-policies" }
 rusqlite = { workspace = true }
-bijux-selection = { path = "../bijux-selection" }
 bijux-runtime = { path = "../bijux-runtime" }
 
 [lints]
