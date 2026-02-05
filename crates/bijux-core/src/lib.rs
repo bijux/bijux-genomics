@@ -1,7 +1,6 @@
 // split to keep module size manageable
 
 pub mod contract;
-pub mod explain;
 pub mod helpers;
 pub mod ids;
 pub mod metadata;
