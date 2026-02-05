@@ -1,6 +1,5 @@
 // split to keep module size manageable
 
-mod cli;
 mod commands;
 mod env;
 mod main_helpers;

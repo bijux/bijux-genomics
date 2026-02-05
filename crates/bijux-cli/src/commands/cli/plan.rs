@@ -2,7 +2,7 @@ use anyhow::Result;
 use bijux_api::v1::bench::fastq_args as engine_args;
 use bijux_api::v1::run::{StageId, ToolId};
 
-use crate::cli::parse::{
+use crate::commands::cli::parse::{
     BamCommand, BenchFastqCorrectArgs, BenchFastqFilterArgs, BenchFastqMergeArgs,
     BenchFastqPreprocessArgs, BenchFastqQcPostArgs, BenchFastqScreenArgs, BenchFastqStatsArgs,
     BenchFastqTrimArgs, BenchFastqUmiArgs, BenchFastqValidateArgs, Commands, CommonArgs,
@@ -378,27 +378,27 @@ pub fn fastq_cross_args_from_cli(
 }
 
 fn apply_scientific_preset(
-    preset: crate::cli::parse::ScientificPresetArg,
+    preset: crate::commands::cli::parse::ScientificPresetArg,
     args: &mut engine_args::BenchFastqPreprocessArgs,
 ) {
     match preset {
-        crate::cli::parse::ScientificPresetArg::AncientDna => {
+        crate::commands::cli::parse::ScientificPresetArg::AncientDna => {
             if args.adapter_bank_preset.is_none() {
                 args.adapter_bank_preset = Some("ssdna".to_string());
             }
             args.enable_contaminant_removal = true;
             args.force_merge = false;
         }
-        crate::cli::parse::ScientificPresetArg::Amplicon => {
+        crate::commands::cli::parse::ScientificPresetArg::Amplicon => {
             if args.adapter_bank_preset.is_none() {
                 args.adapter_bank_preset = Some("illumina-default".to_string());
             }
             args.force_merge = true;
         }
-        crate::cli::parse::ScientificPresetArg::Metagenomic => {
+        crate::commands::cli::parse::ScientificPresetArg::Metagenomic => {
             args.enable_contaminant_removal = true;
             args.force_merge = false;
         }
-        crate::cli::parse::ScientificPresetArg::WgsStandard => {}
+        crate::commands::cli::parse::ScientificPresetArg::WgsStandard => {}
     }
 }

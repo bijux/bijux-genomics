@@ -303,7 +303,7 @@ fn print_bank_presets() {
 fn list_fastq_tools(registry: &bijux_api::v1::run::ToolRegistry, stage_id: &str) {
     let mut tools: Vec<_> = registry
         .tools_for_stage(stage_id)
-        .into_iter()
+        .iter()
         .map(|tool| (tool.tool_id.clone(), tool.role))
         .collect();
     tools.sort_by(|a, b| a.0.cmp(&b.0));
@@ -452,8 +452,10 @@ fn explain_fastq_stage(registry: &bijux_api::v1::run::ToolRegistry, stage_id: &s
         .get(stage_id)
         .ok_or_else(|| anyhow!("unknown stage {stage_id}"))?;
     println!("stage: {}", stage.stage_id);
-    if !stage.description.is_empty() {
-        println!("description: {}", stage.description);
+    if let Some(description) = stage.description.as_ref() {
+        if !description.is_empty() {
+            println!("description: {description}");
+        }
     }
     println!("inputs:");
     for input in &stage.inputs {

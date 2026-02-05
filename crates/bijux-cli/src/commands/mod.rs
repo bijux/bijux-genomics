@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
@@ -30,8 +32,7 @@ use bijux_api::v1::report::{
 };
 use bijux_api::v1::run::init_logging;
 
-use crate::cli;
-use crate::cli::{
+use crate::commands::cli::{
     bench_args_correct, bench_args_filter, bench_args_from_trim, bench_args_from_validate,
     bench_args_merge, bench_args_preprocess, bench_args_qc_post, bench_args_screen,
     bench_args_stats, bench_args_trim, bench_args_umi, bench_args_validate,
@@ -45,6 +46,8 @@ use crate::main_helpers::{
     resolve_report_inputs,
 };
 use crate::render;
+
+pub mod cli;
 
 include!("bench.rs");
 include!("fastq.rs");

@@ -1,4 +1,4 @@
-use crate::cli::parse::{FastqTrimArgs, FastqValidateArgs};
+use crate::commands::cli::parse::{FastqTrimArgs, FastqValidateArgs};
 
 #[must_use]
 pub fn is_bench_requested_trim(args: &FastqTrimArgs) -> bool {

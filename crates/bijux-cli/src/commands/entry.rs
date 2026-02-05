@@ -4,7 +4,7 @@ use bijux_core::{CategorizedError, ErrorCategory};
 use clap::Parser;
 
 use crate::commands::{handle_bam_commands, handle_fastq_bench, handle_meta_commands, run_plan};
-use crate::cli::Cli;
+use crate::commands::cli::Cli;
 
 fn main() {
     if let Err(err) = run() {

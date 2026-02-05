@@ -3,7 +3,7 @@ use bijux_api::v1::run::RunnerKind;
 use bijux_api::v1::run::{build_tool_execution_spec, execute_stage_plan};
 use bijux_api::v1::plan::Domain;
 
-use crate::cli::parse::{BamCommand, BamRunArgs};
+use crate::commands::cli::parse::{BamCommand, BamRunArgs};
 // imports provided by entry.rs
 
 #[allow(clippy::missing_errors_doc)]
@@ -149,75 +149,75 @@ fn bam_run_args_to_api(args: &BamRunArgs) -> bijux_api::v1::bench::BamRunArgs {
     }
 }
 
-fn udg_model_to_string(value: crate::cli::parse::UdgModelArg) -> String {
+fn udg_model_to_string(value: crate::commands::cli::parse::UdgModelArg) -> String {
     match value {
-        crate::cli::parse::UdgModelArg::NonUdg => "non_udg",
-        crate::cli::parse::UdgModelArg::HalfUdg => "half_udg",
-        crate::cli::parse::UdgModelArg::Udg => "udg",
+        crate::commands::cli::parse::UdgModelArg::NonUdg => "non_udg",
+        crate::commands::cli::parse::UdgModelArg::HalfUdg => "half_udg",
+        crate::commands::cli::parse::UdgModelArg::Udg => "udg",
     }
     .to_string()
 }
 
-fn contamination_scope_to_string(value: crate::cli::parse::ContaminationScopeArg) -> String {
+fn contamination_scope_to_string(value: crate::commands::cli::parse::ContaminationScopeArg) -> String {
     match value {
-        crate::cli::parse::ContaminationScopeArg::Mito => "mito",
-        crate::cli::parse::ContaminationScopeArg::Nuclear => "nuclear",
-        crate::cli::parse::ContaminationScopeArg::Both => "both",
+        crate::commands::cli::parse::ContaminationScopeArg::Mito => "mito",
+        crate::commands::cli::parse::ContaminationScopeArg::Nuclear => "nuclear",
+        crate::commands::cli::parse::ContaminationScopeArg::Both => "both",
     }
     .to_string()
 }
 
-fn expected_sex_to_string(value: crate::cli::parse::ExpectedSexArg) -> String {
+fn expected_sex_to_string(value: crate::commands::cli::parse::ExpectedSexArg) -> String {
     match value {
-        crate::cli::parse::ExpectedSexArg::Xx => "xx",
-        crate::cli::parse::ExpectedSexArg::Xy => "xy",
-        crate::cli::parse::ExpectedSexArg::Unknown => "unknown",
+        crate::commands::cli::parse::ExpectedSexArg::Xx => "xx",
+        crate::commands::cli::parse::ExpectedSexArg::Xy => "xy",
+        crate::commands::cli::parse::ExpectedSexArg::Unknown => "unknown",
     }
     .to_string()
 }
 
 fn optical_duplicates_to_string(
-    value: crate::cli::parse::OpticalDuplicatePolicyArg,
+    value: crate::commands::cli::parse::OpticalDuplicatePolicyArg,
 ) -> String {
     match value {
-        crate::cli::parse::OpticalDuplicatePolicyArg::None => "none",
-        crate::cli::parse::OpticalDuplicatePolicyArg::MarkOnly => "mark_only",
-        crate::cli::parse::OpticalDuplicatePolicyArg::Remove => "remove",
+        crate::commands::cli::parse::OpticalDuplicatePolicyArg::None => "none",
+        crate::commands::cli::parse::OpticalDuplicatePolicyArg::MarkOnly => "mark_only",
+        crate::commands::cli::parse::OpticalDuplicatePolicyArg::Remove => "remove",
     }
     .to_string()
 }
 
-fn umi_policy_to_string(value: crate::cli::parse::UmiPolicyArg) -> String {
+fn umi_policy_to_string(value: crate::commands::cli::parse::UmiPolicyArg) -> String {
     match value {
-        crate::cli::parse::UmiPolicyArg::Ignore => "ignore",
-        crate::cli::parse::UmiPolicyArg::UseTag => "use_tag",
-        crate::cli::parse::UmiPolicyArg::Collapse => "collapse",
+        crate::commands::cli::parse::UmiPolicyArg::Ignore => "ignore",
+        crate::commands::cli::parse::UmiPolicyArg::UseTag => "use_tag",
+        crate::commands::cli::parse::UmiPolicyArg::Collapse => "collapse",
     }
     .to_string()
 }
 
-fn duplicate_action_to_string(value: crate::cli::parse::DuplicateActionArg) -> String {
+fn duplicate_action_to_string(value: crate::commands::cli::parse::DuplicateActionArg) -> String {
     match value {
-        crate::cli::parse::DuplicateActionArg::Mark => "mark",
-        crate::cli::parse::DuplicateActionArg::Remove => "remove",
+        crate::commands::cli::parse::DuplicateActionArg::Mark => "mark",
+        crate::commands::cli::parse::DuplicateActionArg::Remove => "remove",
     }
     .to_string()
 }
 
-fn bqsr_mode_to_string(value: crate::cli::parse::BqsrModeArg) -> String {
+fn bqsr_mode_to_string(value: crate::commands::cli::parse::BqsrModeArg) -> String {
     match value {
-        crate::cli::parse::BqsrModeArg::Standard => "standard",
-        crate::cli::parse::BqsrModeArg::Skip => "skip",
-        crate::cli::parse::BqsrModeArg::EmitOnly => "emit_only",
+        crate::commands::cli::parse::BqsrModeArg::Standard => "standard",
+        crate::commands::cli::parse::BqsrModeArg::Skip => "skip",
+        crate::commands::cli::parse::BqsrModeArg::EmitOnly => "emit_only",
     }
     .to_string()
 }
 
-fn read_group_policy_to_string(value: crate::cli::parse::ReadGroupPolicyArg) -> String {
+fn read_group_policy_to_string(value: crate::commands::cli::parse::ReadGroupPolicyArg) -> String {
     match value {
-        crate::cli::parse::ReadGroupPolicyArg::Preserve => "preserve",
-        crate::cli::parse::ReadGroupPolicyArg::Merge => "merge",
-        crate::cli::parse::ReadGroupPolicyArg::Regenerate => "regenerate",
+        crate::commands::cli::parse::ReadGroupPolicyArg::Preserve => "preserve",
+        crate::commands::cli::parse::ReadGroupPolicyArg::Merge => "merge",
+        crate::commands::cli::parse::ReadGroupPolicyArg::Regenerate => "regenerate",
     }
     .to_string()
 }

@@ -1,10 +1,12 @@
+#![allow(dead_code)]
+
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
 
 use bijux_api::v1::run::load_profile;
 
-use crate::cli::{AnalyzeReportArgs, Cli};
+use crate::commands::cli::{AnalyzeReportArgs, Cli};
 use bijux_api::v1::run::normalize_run_base_dir;
 
 pub(crate) fn normalize_fastq_stage_id(stage: &str) -> String {

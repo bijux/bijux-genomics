@@ -479,7 +479,7 @@ pub(crate) fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool>
 }
 
 fn bench_bam_stage_args_to_api(
-    args: &crate::cli::parse::BenchBamStageArgs,
+    args: &crate::commands::cli::parse::BenchBamStageArgs,
 ) -> bijux_api::v1::bench::BenchBamStageArgs {
     bijux_api::v1::bench::BenchBamStageArgs {
         sample_id: args.sample_id.clone(),
@@ -497,7 +497,7 @@ fn bench_bam_stage_args_to_api(
 }
 
 fn bench_bam_pipeline_args_to_api(
-    args: &crate::cli::parse::BenchBamPipelineArgs,
+    args: &crate::commands::cli::parse::BenchBamPipelineArgs,
 ) -> bijux_api::v1::bench::BenchBamPipelineArgs {
     bijux_api::v1::bench::BenchBamPipelineArgs {
         profile: args.profile.clone(),
