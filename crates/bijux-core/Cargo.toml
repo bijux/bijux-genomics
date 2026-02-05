@@ -18,6 +18,10 @@ sha2.workspace = true
 regex.workspace = true
 anyhow.workspace = true
 bijux-infra = { path = "../bijux-infra", features = ["yaml"] }
+opentelemetry = { workspace = true, optional = true }
+
+[features]
+otel = ["opentelemetry"]
 
 [dev-dependencies]
 bijux-guardrails = { path = "../bijux-guardrails" }

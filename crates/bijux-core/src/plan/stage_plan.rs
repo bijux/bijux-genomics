@@ -16,7 +16,7 @@ pub enum PlanReasonKind {
     InputAssessed,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct PlanDecisionReason {
     pub kind: PlanReasonKind,

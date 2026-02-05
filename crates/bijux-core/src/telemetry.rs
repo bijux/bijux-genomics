@@ -40,6 +40,7 @@ pub struct OtelTelemetryAdapter {
 
 #[cfg(feature = "otel")]
 impl OtelTelemetryAdapter {
+    #[must_use]
     pub fn new() -> Self {
         let tracer = opentelemetry::global::tracer("bijux-core");
         Self { tracer }
@@ -64,6 +65,13 @@ impl TelemetryAdapter for OtelTelemetryAdapter {
 
     fn start_stage(&self, name: &str, attrs: &BTreeMap<String, String>) -> TelemetrySpan {
         self.start_span(name, attrs)
+    }
+}
+
+#[cfg(feature = "otel")]
+impl Default for OtelTelemetryAdapter {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
