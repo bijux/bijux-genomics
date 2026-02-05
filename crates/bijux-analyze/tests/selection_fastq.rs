@@ -3,16 +3,13 @@ use std::path::PathBuf;
 use bijux_analyze::load::sqlite::{BenchResultsRepository, SqliteBenchResultsRepository};
 use bijux_core::contract::{BenchResultStatus, Objective};
 use bijux_core::selection::{objective_spec, select_stage};
+use bijux_domain_fastq::stage_registry::{
+    bench_dir_name, STAGE_DETECT_ADAPTERS, STAGE_FILTER, STAGE_QC_POST, STAGE_STATS_NEUTRAL,
+    STAGE_TRIM, STAGE_VALIDATE_PRE,
+};
 use bijux_domain_fastq::{BenchCorpus, BenchCorpusId, BenchDataset};
 use rusqlite::{params, Connection};
 use uuid::Uuid;
-
-fn bench_base_dir(out: &std::path::Path, stage: &str, sample_id: &str) -> std::path::PathBuf {
-    out.join("artifacts")
-        .join("bench")
-        .join(stage)
-        .join(sample_id)
-}
 
 fn create_bench_db(
     path: &PathBuf,
@@ -96,22 +93,16 @@ fn default_route_selects_tools_deterministically() -> Result<(), Box<dyn std::er
     );
 
     let stages = [
-        ("fastq.validate_pre", "bench_fastq_validate_v1"),
-        ("fastq.trim", "bench_fastq_trim_v2"),
-        ("fastq.filter", "bench_fastq_filter_v2"),
-        ("fastq.stats_neutral", "bench_fastq_stats_v1"),
+        (STAGE_VALIDATE_PRE, "bench_fastq_validate_v1"),
+        (STAGE_TRIM, "bench_fastq_trim_v2"),
+        (STAGE_FILTER, "bench_fastq_filter_v2"),
+        (STAGE_STATS_NEUTRAL, "bench_fastq_stats_v1"),
     ];
 
     for (stage, table) in stages {
         for dataset in &corpus.datasets {
-            let bench_dir_name = match stage {
-                "fastq.validate_pre" => "validate",
-                "fastq.trim" => "trim",
-                "fastq.filter" => "filter",
-                "fastq.stats_neutral" => "stats",
-                _ => "unknown",
-            };
-            let bench_dir = bench_base_dir(&temp_root, bench_dir_name, dataset.id);
+            let bench_dir_name = bench_dir_name(&stage).unwrap_or("unknown");
+            let bench_dir = bijux_infra::bench_base_dir(&temp_root, bench_dir_name, dataset.id);
             bijux_infra::ensure_dir(&bench_dir)?;
             let sqlite_path = bench_dir.join("bench.sqlite");
             create_bench_db(
@@ -138,12 +129,12 @@ fn default_route_selects_tools_deterministically() -> Result<(), Box<dyn std::er
     }
 
     let pipeline_stages = vec![
-        "fastq.validate_pre",
-        "fastq.detect_adapters",
-        "fastq.trim",
-        "fastq.filter",
-        "fastq.stats_neutral",
-        "fastq.qc_post",
+        STAGE_VALIDATE_PRE,
+        STAGE_DETECT_ADAPTERS,
+        STAGE_TRIM,
+        STAGE_FILTER,
+        STAGE_STATS_NEUTRAL,
+        STAGE_QC_POST,
     ];
 
     let repo = SqliteBenchResultsRepository::new(temp_root.clone());
@@ -151,7 +142,7 @@ fn default_route_selects_tools_deterministically() -> Result<(), Box<dyn std::er
         let tools = vec!["tool_fast".to_string(), "tool_slow".to_string()];
         let mut tool_records = Vec::new();
         for tool in &tools {
-            let records = repo.bench_results(stage, tool, &corpus)?;
+            let records = repo.bench_results(&stage, tool, &corpus)?;
             tool_records.push((tool.clone(), records));
         }
         if tool_records.iter().all(|(_, records)| {
@@ -163,8 +154,7 @@ fn default_route_selects_tools_deterministically() -> Result<(), Box<dyn std::er
             continue;
         }
         let objective = objective_spec(Objective::Speed);
-        let stage_id = bijux_core::ids::StageId::new(stage.to_string());
-        let selection = select_stage(&stage_id, &tool_records, &objective, false);
+        let selection = select_stage(&stage, &tool_records, &objective, false);
         assert_eq!(selection.selected, Some("tool_fast".to_string()));
     }
 

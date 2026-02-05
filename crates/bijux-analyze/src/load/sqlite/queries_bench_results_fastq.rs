@@ -4,12 +4,13 @@ use anyhow::{anyhow, Context};
 use serde_json::Value as JsonValue;
 
 use bijux_core::contract::{BenchResultRecord, BenchResultStatus};
+use bijux_core::ids::StageId;
 use bijux_domain_fastq::BenchCorpus;
 
 pub trait BenchResultsRepository {
     fn bench_results(
         &self,
-        stage: &str,
+        stage: &StageId,
         tool: &str,
         corpus: &BenchCorpus,
     ) -> Result<Vec<BenchResultRecord>>;
@@ -30,7 +31,7 @@ impl SqliteBenchResultsRepository {
 impl BenchResultsRepository for SqliteBenchResultsRepository {
     fn bench_results(
         &self,
-        stage: &str,
+        stage: &StageId,
         tool: &str,
         corpus: &BenchCorpus,
     ) -> Result<Vec<BenchResultRecord>> {
@@ -38,43 +39,30 @@ impl BenchResultsRepository for SqliteBenchResultsRepository {
     }
 }
 
-fn table_for_stage(stage: &str) -> Option<&'static str> {
-    match stage {
-        "fastq.validate_pre" => Some("bench_fastq_validate_v1"),
-        "fastq.detect_adapters" => Some("bench_fastq_detect_adapters_v1"),
-        "fastq.trim" => Some("bench_fastq_trim_v2"),
-        "fastq.filter" => Some("bench_fastq_filter_v2"),
-        "fastq.stats_neutral" => Some("bench_fastq_stats_v1"),
-        "fastq.merge" => Some("bench_fastq_merge_v1"),
-        "fastq.correct" => Some("bench_fastq_correct_v1"),
-        "fastq.qc_post" => Some("bench_fastq_qc_post_v1"),
-        "fastq.umi" => Some("bench_fastq_umi_v1"),
-        "fastq.screen" => Some("bench_fastq_screen_v1"),
-        _ => None,
+fn table_for_stage(stage: &StageId) -> Option<&'static str> {
+    if stage == &bijux_domain_fastq::STAGE_VALIDATE_PRE {
+        Some("bench_fastq_validate_v1")
+    } else if stage == &bijux_domain_fastq::STAGE_DETECT_ADAPTERS {
+        Some("bench_fastq_detect_adapters_v1")
+    } else if stage == &bijux_domain_fastq::STAGE_TRIM {
+        Some("bench_fastq_trim_v2")
+    } else if stage == &bijux_domain_fastq::STAGE_FILTER {
+        Some("bench_fastq_filter_v2")
+    } else if stage == &bijux_domain_fastq::STAGE_STATS_NEUTRAL {
+        Some("bench_fastq_stats_v1")
+    } else if stage == &bijux_domain_fastq::STAGE_MERGE {
+        Some("bench_fastq_merge_v1")
+    } else if stage == &bijux_domain_fastq::STAGE_CORRECT {
+        Some("bench_fastq_correct_v1")
+    } else if stage == &bijux_domain_fastq::STAGE_QC_POST {
+        Some("bench_fastq_qc_post_v1")
+    } else if stage == &bijux_domain_fastq::STAGE_UMI {
+        Some("bench_fastq_umi_v1")
+    } else if stage == &bijux_domain_fastq::STAGE_SCREEN {
+        Some("bench_fastq_screen_v1")
+    } else {
+        None
     }
-}
-
-fn bench_dir_for_stage(stage: &str) -> Option<&'static str> {
-    match stage {
-        "fastq.validate_pre" => Some("validate"),
-        "fastq.detect_adapters" => Some("detect_adapters"),
-        "fastq.trim" => Some("trim"),
-        "fastq.filter" => Some("filter"),
-        "fastq.stats_neutral" => Some("stats"),
-        "fastq.merge" => Some("merge"),
-        "fastq.correct" => Some("correct"),
-        "fastq.qc_post" => Some("qc_post"),
-        "fastq.umi" => Some("umi"),
-        "fastq.screen" => Some("screen"),
-        _ => None,
-    }
-}
-
-fn bench_base_dir(out: &Path, stage: &str, sample_id: &str) -> PathBuf {
-    out.join("artifacts")
-        .join("bench")
-        .join(stage)
-        .join(sample_id)
 }
 
 /// Load bench results for a stage/tool across the corpus.
@@ -82,19 +70,19 @@ fn bench_base_dir(out: &Path, stage: &str, sample_id: &str) -> PathBuf {
 /// # Errors
 /// Returns an error if the bench database cannot be opened or parsed.
 pub fn get_results_from_sqlite(
-    stage: &str,
+    stage: &StageId,
     tool: &str,
     corpus: &BenchCorpus,
     out_dir: &Path,
 ) -> Result<Vec<BenchResultRecord>> {
     let table = table_for_stage(stage)
-        .ok_or_else(|| anyhow!("unsupported stage for bench query: {stage}"))?;
-    let bench_dir_name = bench_dir_for_stage(stage)
-        .ok_or_else(|| anyhow!("unsupported stage for bench dir: {stage}"))?;
+        .ok_or_else(|| anyhow!("unsupported stage for bench query: {}", stage.as_str()))?;
+    let bench_dir_name = bijux_domain_fastq::stage_registry::bench_dir_name(stage)
+        .ok_or_else(|| anyhow!("unsupported stage for bench dir: {}", stage.as_str()))?;
     let mut records = Vec::with_capacity(corpus.datasets.len());
 
     for dataset in &corpus.datasets {
-        let bench_dir = bench_base_dir(out_dir, bench_dir_name, dataset.id);
+        let bench_dir = bijux_infra::bench_base_dir(out_dir, bench_dir_name, dataset.id);
         let sqlite_path = bench_dir.join("bench.sqlite");
         if !sqlite_path.exists() {
             records.push(BenchResultRecord {
