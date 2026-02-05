@@ -47,34 +47,28 @@ This document defines ownership and allowed dependencies. Treat it as an API con
 - Does not own: planning logic, execution, environment inspection.
 - Allowed deps: api + clap + logging only.
 
-## bijux-analyze / bijux-bench
+## bijux-analyze / bijux-benchmark
 - Owns: analysis/bench evaluation and reporting.
 - Does not own: planning, execution, CLI UX.
-- Allowed deps: core + selection + domain + infra + runtime (no engine/stages).
-
-## bijux-selection
-- Owns: deterministic tool selection utilities and scoring helpers.
-- Does not own: planning, execution, CLI UX, or domain semantics.
-- Allowed deps: core only.
+- Allowed deps: core + domain + infra + runtime (no engine/stages).
 
 ## Executable dependency map
 ```boundaries
 bijux-core: bijux-infra
 bijux-runtime: bijux-core bijux-infra
-bijux-selection: bijux-core
 bijux-domain-fastq: bijux-core bijux-infra
 bijux-domain-bam: bijux-core bijux-infra
 bijux-stages-fastq: bijux-core bijux-domain-fastq bijux-infra
 bijux-stages-bam: bijux-core bijux-domain-bam bijux-infra
-bijux-planner-fastq: bijux-core bijux-selection bijux-stages-fastq bijux-pipelines bijux-infra
-bijux-planner-bam: bijux-core bijux-selection bijux-stages-bam bijux-infra
+bijux-planner-fastq: bijux-core bijux-stages-fastq bijux-pipelines bijux-infra
+bijux-planner-bam: bijux-core bijux-stages-bam bijux-infra
 bijux-engine: bijux-core bijux-runtime bijux-infra
 bijux-runner: bijux-core bijux-engine bijux-environment bijux-infra
 bijux-environment: bijux-core bijux-infra
 bijux-pipelines: bijux-core bijux-domain-fastq bijux-domain-bam
-bijux-analyze: bijux-core bijux-selection bijux-domain-fastq bijux-domain-bam bijux-infra bijux-runtime
-bijux-bench: bijux-core bijux-selection bijux-analyze bijux-engine bijux-infra bijux-runtime
-bijux-api: bijux-core bijux-selection bijux-engine bijux-runner bijux-environment bijux-analyze bijux-pipelines bijux-infra bijux-planner-fastq bijux-planner-bam bijux-runtime
+bijux-analyze: bijux-core bijux-domain-fastq bijux-domain-bam bijux-infra bijux-runtime
+bijux-benchmark: bijux-core bijux-analyze bijux-engine bijux-infra bijux-runtime
+bijux-api: bijux-core bijux-engine bijux-runner bijux-environment bijux-analyze bijux-pipelines bijux-infra bijux-planner-fastq bijux-planner-bam bijux-runtime
 bijux-cli: bijux-api
 bijux: bijux-api
 ```
