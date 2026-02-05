@@ -499,6 +499,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bijux-core",
+ "bijux-domain-bam",
  "bijux-domain-fastq",
  "bijux-guardrails",
  "bijux-pipelines",
