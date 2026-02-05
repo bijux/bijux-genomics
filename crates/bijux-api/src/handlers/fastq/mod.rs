@@ -11,6 +11,7 @@ pub use bijux_planner_fastq::stage_api::{
     STAGE_STATS_NEUTRAL, STAGE_TRIM, STAGE_UMI, STAGE_VALIDATE_PRE,
 };
 
+pub use crate::fastq_stats_neutral::bench_fastq_stats_neutral;
 pub use explain::{write_explain_md, write_explain_plan_json};
 pub use stages::correct::bench_fastq_correct;
 pub use stages::filter::bench_fastq_filter;
@@ -18,7 +19,6 @@ pub use stages::merge::bench_fastq_merge;
 pub use stages::preprocess::{bench_fastq_preprocess, fastq_preprocess_run};
 pub use stages::qc_post::bench_fastq_qc_post;
 pub use stages::screen::bench_fastq_screen;
-pub use stages::stats_neutral::bench_fastq_stats_neutral;
 pub use stages::trim::bench_fastq_trim;
 pub use stages::umi::bench_fastq_umi;
 pub use stages::validate_pre::bench_fastq_validate_pre;
