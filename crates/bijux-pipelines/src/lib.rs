@@ -154,7 +154,7 @@ impl PipelineProfile {
                 });
         }
         DefaultsLedgerV1 {
-            pipeline_id: self.id,
+            pipeline_id: self.id.clone(),
             tools: self.defaults.tools.clone(),
             params: self.defaults.params.clone(),
             thresholds: BTreeMap::new(),
@@ -168,7 +168,7 @@ impl PipelineProfile {
     #[must_use]
     pub fn contract(&self) -> PipelineContract {
         PipelineContract {
-            pipeline_id: self.id,
+            pipeline_id: self.id.clone(),
             required_stages: self
                 .capabilities
                 .required_stages

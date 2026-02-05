@@ -1,28 +1,7 @@
 use anyhow::{anyhow, Result};
-use serde::Serialize;
+pub use bijux_core::ids::PipelineId;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize)]
-pub struct PipelineId(&'static str);
-
-impl PipelineId {
-    #[must_use]
-    pub const fn new(id: &'static str) -> Self {
-        Self(id)
-    }
-
-    #[must_use]
-    pub const fn as_str(&self) -> &'static str {
-        self.0
-    }
-}
-
-impl std::fmt::Display for PipelineId {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(self.0)
-    }
-}
-
-pub fn validate_pipeline_id(id: PipelineId) -> Result<()> {
+pub fn validate_pipeline_id(id: &PipelineId) -> Result<()> {
     validate_pipeline_id_str(id.as_str())
 }
 

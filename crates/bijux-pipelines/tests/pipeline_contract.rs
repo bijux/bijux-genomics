@@ -1,3 +1,4 @@
+use bijux_core::ids::StageId;
 use bijux_domain_bam::{bam_stage_is_complete, bam_stage_is_stable, BamStage};
 use bijux_domain_fastq::{
     canonical_stage_order, fastq_stage_is_stable, forbidden_transitions, optional_branches,
@@ -14,7 +15,7 @@ fn pipeline_profiles_reference_known_stages_and_defaults() {
     profiles.extend(cross_profiles());
 
     for profile in profiles {
-        validate_pipeline_id(profile.id)
+        validate_pipeline_id(&profile.id)
             .unwrap_or_else(|_| panic!("invalid pipeline id {}", profile.id));
         for stage_id in &profile.capabilities.required_stages {
             assert!(
@@ -29,6 +30,7 @@ fn pipeline_profiles_reference_known_stages_and_defaults() {
             );
 
             if stage_id.starts_with("fastq.") {
+                let stage = StageId::new(*stage_id);
                 assert!(
                     contract_for_stage(stage_id).is_some(),
                     "unknown FASTQ stage {stage_id} in profile {}",
@@ -36,7 +38,7 @@ fn pipeline_profiles_reference_known_stages_and_defaults() {
                 );
                 if profile.stability == StabilityTier::Stable {
                     assert!(
-                        fastq_stage_is_stable(stage_id),
+                        fastq_stage_is_stable(&stage),
                         "stable pipeline {} includes non-stable FASTQ stage {stage_id}",
                         profile.id
                     );
@@ -47,7 +49,7 @@ fn pipeline_profiles_reference_known_stages_and_defaults() {
                         profile.id
                     );
                 };
-                let parsed = parse_effective_params(stage_id, params)
+                let parsed = parse_effective_params(&stage, params)
                     .unwrap_or_else(|| panic!("failed to parse FASTQ params for {stage_id}"));
                 assert!(
                     parsed.missing_required_fields().is_empty(),
