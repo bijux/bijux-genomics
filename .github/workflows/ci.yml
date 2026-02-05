@@ -21,13 +21,11 @@ jobs:
       - name: Install cargo-nextest
         run: cargo install cargo-nextest --locked
       - name: Format
-        run: cargo fmt --all -- --check
+        run: tools/lint
       - name: Clippy
-        run: cargo clippy --workspace --all-targets --all-features -- -D warnings
+        run: tools/lint
       - name: Tests (default)
-        run: |
-          cargo nextest run --workspace --all-features \
-            --partition count:2/${{ matrix.shard }}
+        run: tools/test
 
   policy:
     runs-on: ubuntu-latest
@@ -37,7 +35,7 @@ jobs:
       - name: Install cargo-deny
         run: cargo install cargo-deny --locked
       - name: Dependency Policy
-        run: cargo deny check
+        run: tools/audit
 
   msrv:
     runs-on: ubuntu-latest
@@ -45,4 +43,4 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@1.76.0
       - name: MSRV Check
-        run: cargo check --workspace --all-targets
+        run: tools/msrv

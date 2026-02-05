@@ -87,6 +87,22 @@ script = [
   "fi",
 ]
 
+[tasks.test-science]
+script_runner = "bash"
+script = [
+  "if command -v cargo-nextest >/dev/null 2>&1; then",
+  "  echo 'Running science tests with nextest...';",
+  "  CARGO_BUILD_JOBS=${JOBS} cargo nextest run --workspace --all-features --run-ignored ignored-only -E 'test(/_science_/)' --jobs ${NEXTEST_JOBS};",
+  "else",
+  "  echo 'cargo-nextest not installed; falling back to cargo test (ignored-only)';",
+  "  CARGO_BUILD_JOBS=${JOBS} cargo test --workspace -- --ignored --color always;",
+  "fi",
+]
+
+[tasks.msrv]
+command = "cargo"
+args = ["check", "--workspace", "--all-targets"]
+
 [tasks.guardrails]
 script_runner = "bash"
 script = [
@@ -155,3 +171,4 @@ script = [
 
 [tasks.ci]
 dependencies = ["lint", "audit", "structure-check", "test"]
+

@@ -8,4 +8,3 @@ This document is the single checklist for architectural truth.
 - prelude is exports-only (no functions or impl blocks)
 - defaults live only in bijux-pipelines
 - composition roots are only in API/CLI
-- no AppleDouble or .DS_Store files in repo
