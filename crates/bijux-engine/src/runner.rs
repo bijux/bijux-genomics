@@ -8,7 +8,6 @@ use bijux_runner::{Invocation, Runner};
 #[derive(Debug, Clone, Default)]
 pub struct ExecutionOptions {
     pub retries: u32,
-    pub resume: bool,
 }
 
 pub fn execute_plan(
