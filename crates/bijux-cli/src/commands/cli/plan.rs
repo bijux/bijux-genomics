@@ -22,28 +22,28 @@ pub fn resolve_stage_tool(command: &Commands) -> (StageId, ToolId, CommonArgs) {
             | FastqCommand::Analyze(_)
             | FastqCommand::Compare(_)
             | FastqCommand::Run(_) => (
-                StageId("fastq.trim".to_string()),
-                ToolId("fastp".to_string()),
+                StageId::from_static("fastq.trim"),
+                ToolId::from_static("fastp"),
                 CommonArgs::default(),
             ),
             FastqCommand::Trim(args) => (
-                StageId("fastq.trim".to_string()),
-                ToolId("fastp".to_string()),
+                StageId::from_static("fastq.trim"),
+                ToolId::from_static("fastp"),
                 args.common.clone(),
             ),
             FastqCommand::ValidatePre(args) => (
-                StageId("fastq.validate_pre".to_string()),
-                ToolId("fastqvalidator".to_string()),
+                StageId::from_static("fastq.validate_pre"),
+                ToolId::from_static("fastqvalidator"),
                 args.common.clone(),
             ),
             FastqCommand::StatsNeutral(common) => (
-                StageId("fastq.stats_neutral".to_string()),
-                ToolId("seqkit_stats".to_string()),
+                StageId::from_static("fastq.stats_neutral"),
+                ToolId::from_static("seqkit_stats"),
                 common.clone(),
             ),
             FastqCommand::Filter(args) => (
-                StageId("fastq.trim".to_string()),
-                ToolId("fastp".to_string()),
+                StageId::from_static("fastq.trim"),
+                ToolId::from_static("fastp"),
                 args.common.clone(),
             ),
             FastqCommand::Merge(common)
@@ -52,31 +52,31 @@ pub fn resolve_stage_tool(command: &Commands) -> (StageId, ToolId, CommonArgs) {
             | FastqCommand::ErrorCorrect(common)
             | FastqCommand::Qc(common)
             | FastqCommand::Align(common) => (
-                StageId("fastq.trim".to_string()),
-                ToolId("fastp".to_string()),
+                StageId::from_static("fastq.trim"),
+                ToolId::from_static("fastp"),
                 common.clone(),
             ),
             FastqCommand::Preprocess(args) => (
-                StageId("fastq.preprocess".to_string()),
-                ToolId("fastp".to_string()),
+                StageId::from_static("fastq.preprocess"),
+                ToolId::from_static("fastp"),
                 args.common.clone(),
             ),
         },
         Commands::Bam { command } => match command {
             BamCommand::ListStages | BamCommand::Explain { .. } => (
-                StageId("bam.validate".to_string()),
-                ToolId("samtools".to_string()),
+                StageId::from_static("bam.validate"),
+                ToolId::from_static("samtools"),
                 CommonArgs::default(),
             ),
             BamCommand::Run(args) => (
-                StageId(args.stage.stage().as_str().to_string()),
-                ToolId(args.tool.clone().unwrap_or_else(|| "samtools".to_string())),
+                StageId::new(args.stage.stage().as_str()),
+                ToolId::new(args.tool.clone().unwrap_or_else(|| "samtools".to_string())),
                 CommonArgs::default(),
             ),
         },
         _ => (
-            StageId("fastq.trim".to_string()),
-            ToolId("fastp".to_string()),
+            StageId::from_static("fastq.trim"),
+            ToolId::from_static("fastp"),
             CommonArgs::default(),
         ),
     }

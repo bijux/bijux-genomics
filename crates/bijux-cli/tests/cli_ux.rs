@@ -46,7 +46,7 @@ fn cli_output_matches_stage_registry() -> Result<()> {
     let stdout = String::from_utf8_lossy(&output.stdout);
     let expected: Vec<String> = bijux_api::v1::bench::STAGES
         .iter()
-        .map(|stage| stage.stage_id.to_string())
+        .map(|stage| stage.as_str().to_string())
         .collect();
     for line in expected {
         assert!(

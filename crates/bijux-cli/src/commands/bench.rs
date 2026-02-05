@@ -252,13 +252,13 @@ fn handle_fastq_discovery(
 }
 fn list_fastq_stages() {
     for stage in &bijux_api::v1::bench::STAGES {
-        println!("{}", stage.stage_id);
+        println!("{}", stage.as_str());
     }
     print_bank_presets();
 }
 fn list_fastq_stage_registry() {
     for stage in &bijux_api::v1::bench::STAGES {
-        println!("{}", stage.stage_id);
+        println!("{}", stage.as_str());
     }
     print_bank_presets();
 }
