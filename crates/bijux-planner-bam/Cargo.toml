@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 anyhow = { workspace = true }
 bijux-core = { path = "../bijux-core" }
+bijux-domain-bam = { path = "../bijux-domain-bam" }
 bijux-stages-bam = { path = "../bijux-stages-bam", features = ["bam_downstream"] }
 bijux-pipelines = { path = "../bijux-pipelines" }
 serde_json = { workspace = true }
@@ -14,3 +15,6 @@ serde_json = { workspace = true }
 bijux-guardrails = { path = "../bijux-guardrails" }
 insta = { version = "1", features = ["json"] }
 serde_json.workspace = true
+
+[features]
+bam_downstream = ["bijux-stages-bam/bam_downstream"]

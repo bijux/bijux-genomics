@@ -14,6 +14,21 @@ use bijux_pipelines::fastq::canonical_tool_defaults;
 
 pub const PLANNER_VERSION: &str = "bijux-planner-fastq.v1";
 
+pub mod stage_api {
+    pub use bijux_stages_fastq::args;
+    pub use bijux_stages_fastq::observer;
+    pub use bijux_stages_fastq::{
+        ensure_umi_headers, inspect_headers, log_header_warnings, preflight_stage, FastqArtifact,
+        FastqArtifactKind, RawFailure, StagePlanJson, TOOL_SEQKIT,
+    };
+    pub mod fastq {
+        pub use bijux_stages_fastq::fastq::*;
+    }
+    pub fn adapter_bank_path() -> std::path::PathBuf {
+        bijux_stages_fastq::adapter_bank_path()
+    }
+}
+
 fn required_stage_ids() -> Vec<String> {
     vec![
         "fastq.validate_pre".to_string(),
@@ -289,11 +304,8 @@ pub fn resolve_preprocess_pipeline(
     if let Some(profile_id) = args.profile.as_deref() {
         match bijux_pipelines::registry::profile_by_id(bijux_pipelines::Domain::Fastq, profile_id) {
             Ok(profile) => {
-                let mut stages: Vec<String> = profile
-                    .graph
-                    .into_iter()
-                    .map(|node| node.stage_id)
-                    .collect();
+                let mut stages: Vec<String> =
+                    fastq_pipeline_stage_ids(profile.id.as_str());
                 if !enable_merge {
                     stages.retain(|stage| stage != "fastq.merge");
                 }
@@ -497,6 +509,21 @@ pub fn explain_plan(plan: &ExecutionPlan) -> PlanExplainV1 {
         planner_version: plan.planner_version().to_string(),
         policy: plan.policy(),
         stages,
+    }
+}
+
+#[must_use]
+pub fn cross_fastq_to_bam_stage_ids(profile_id: &str) -> Vec<String> {
+    match profile_id {
+        "fastq-to-bam__adna_shotgun__v1" | "fastq-to-bam__default__v1" => vec![
+            "fastq.preprocess".to_string(),
+            "core.prepare_reference".to_string(),
+            "bam.align".to_string(),
+            "bam.qc_pre".to_string(),
+            "bam.coverage".to_string(),
+            "bam.damage".to_string(),
+        ],
+        _ => Vec::new(),
     }
 }
 
@@ -929,5 +956,13 @@ mod tests {
             Ok(_) => panic!("expected empty failure"),
             Err(err) => assert!(err.to_string().contains("no tools specified")),
         }
+    }
+}
+
+#[must_use]
+pub fn fastq_pipeline_stage_ids(profile_id: &str) -> Vec<String> {
+    match profile_id {
+        "fastq-to-fastq__default__v1" | "fastq-to-fastq__minimal__v1" => required_stage_ids(),
+        _ => required_stage_ids(),
     }
 }

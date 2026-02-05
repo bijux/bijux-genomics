@@ -8,8 +8,15 @@ use bijux_core::StagePlanV1;
 use bijux_pipelines::bam::{bam_adna_capture_profile, bam_adna_shotgun_profile};
 use bijux_pipelines::PipelineProfile;
 use bijux_stages_bam::StagePlanRequest;
+use bijux_domain_bam::BamStage;
 
 pub const PLANNER_VERSION: &str = "bijux-planner-bam.v1";
+
+pub mod stage_api {
+    pub use bijux_stages_bam::bam_tools_registry::allowed_tools_for_stage;
+    pub use bijux_stages_bam::plan_stage;
+    pub use bijux_stages_bam::StagePlanRequest;
+}
 
 #[derive(Debug, Clone)]
 pub struct BamPlanConfig {
@@ -63,12 +70,47 @@ pub fn plan_bam_to_bam__adna_capture__v1(inputs: &BamPipelineInputs) -> Result<E
     build_bam_plan(&profile, inputs)
 }
 
+fn stage_order_for_profile(profile_id: &str) -> Vec<BamStage> {
+    match profile_id {
+        "bam-to-bam__default__v1" => vec![
+            BamStage::Validate,
+            BamStage::QcPre,
+            BamStage::Filter,
+            BamStage::Coverage,
+            BamStage::Damage,
+        ],
+        "bam-to-bam__adna_shotgun__v1" | "bam-to-bam__adna_capture__v1" => {
+            let mut stages = BamStage::all().to_vec();
+            stages.retain(|stage| *stage != BamStage::Align);
+            stages.retain(|stage| *stage != BamStage::Recalibration);
+            if !cfg!(feature = "bam_downstream") {
+                stages.retain(|stage| {
+                    !matches!(
+                        stage,
+                        BamStage::Haplogroups | BamStage::Genotyping | BamStage::Kinship
+                    )
+                });
+            }
+            stages
+        }
+        _ => BamStage::all().to_vec(),
+    }
+}
+
+#[must_use]
+pub fn pipeline_stage_ids(profile_id: &str) -> Vec<String> {
+    stage_order_for_profile(profile_id)
+        .iter()
+        .map(|stage| stage.as_str().to_string())
+        .collect()
+}
+
 fn build_bam_plan(profile: &PipelineProfile, inputs: &BamPipelineInputs) -> Result<ExecutionPlan> {
     let mut bam = inputs.bam.clone();
     let mut bam_index = inputs.bam_index.clone();
     let mut stages = Vec::new();
-    for node in &profile.graph {
-        let stage_id = node.stage_id.as_str();
+    for stage in stage_order_for_profile(profile.id.as_str()) {
+        let stage_id = stage.as_str();
         let tool = inputs
             .tool_specs
             .get(stage_id)
