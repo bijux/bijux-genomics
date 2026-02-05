@@ -1,4 +1,4 @@
-use bijux_domain_fastq::InputAssessmentV1;
+use bijux_core::primitives::input_assessment::InputAssessmentV1;
 
 #[test]
 fn input_assessment_v1_requires_fields() {
