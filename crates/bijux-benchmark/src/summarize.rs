@@ -9,15 +9,17 @@ use crate::artifacts::{
     read_observations_jsonl, write_decision_json, write_observations_jsonl, write_summary_json,
     WriteMode,
 };
-use crate::compare::{compare_summaries, CompareReport};
-use crate::contract::{validate_decision, validate_observation, validate_suite, validate_summary};
-use crate::error::BenchError;
-use crate::model::{
-    BenchmarkObservation, BenchmarkSummary, MetricSummary, SummaryRow, SummaryStratum,
-};
-use crate::policy::{GateDecision, GatePolicy};
 use crate::repo::RunRepository;
-use crate::stats::{bootstrap_ci, mad_outliers, robust_stats, seed_from_ids};
+use bijux_benchmark_model::compare::{compare_summaries, CompareReport};
+use bijux_benchmark_model::contract::{
+    validate_decision, validate_observation, validate_suite, validate_summary,
+};
+use bijux_benchmark_model::policy::{GateDecision, GatePolicy};
+use bijux_benchmark_model::stats::{bootstrap_ci, mad_outliers, robust_stats, seed_from_ids};
+use bijux_benchmark_model::{
+    BenchError, BenchmarkObservation, BenchmarkSuiteSpec, BenchmarkSummary, MetricSummary,
+    SummaryRow, SummaryStratum,
+};
 
 #[derive(Debug, Clone)]
 pub struct BenchRunOptions {
@@ -64,7 +66,7 @@ impl Default for BenchRunOptions {
 /// # Errors
 /// Returns an error if observations violate contract.
 pub fn summarize(
-    suite: &crate::model::BenchmarkSuiteSpec,
+    suite: &BenchmarkSuiteSpec,
     observations: &[BenchmarkObservation],
     options: &BenchRunOptions,
 ) -> Result<BenchmarkSummary> {
@@ -272,7 +274,7 @@ pub fn summarize(
 }
 
 fn bootstrap_if_enabled(
-    suite: &crate::model::BenchmarkSuiteSpec,
+    suite: &BenchmarkSuiteSpec,
     stage_id: &str,
     tool_id: &str,
     metric_id: &str,
@@ -333,7 +335,7 @@ pub fn compare(
 /// # Errors
 /// Returns an error if contracts fail or artifacts cannot be written.
 pub fn run_suite(
-    suite: &crate::model::BenchmarkSuiteSpec,
+    suite: &BenchmarkSuiteSpec,
     observations: &[BenchmarkObservation],
     policy: &GatePolicy,
     options: &BenchRunOptions,
@@ -404,11 +406,10 @@ mod tests {
     use std::collections::BTreeMap;
     use std::path::PathBuf;
 
-    use crate::model::{BenchmarkObservation, BenchmarkSuiteSpec};
-    use crate::policy::GatePolicy;
-    use crate::{
-        AnalysisRequirements, DatasetSpec, DiversityRequirements, MetricsEnvelope, ReplicatePolicy,
-        StratificationRequirement,
+    use bijux_benchmark_model::GatePolicy;
+    use bijux_benchmark_model::{
+        AnalysisRequirements, BenchmarkObservation, BenchmarkSuiteSpec, DatasetSpec,
+        DiversityRequirements, MetricsEnvelope, ReplicatePolicy, StratificationRequirement,
     };
 
     #[test]

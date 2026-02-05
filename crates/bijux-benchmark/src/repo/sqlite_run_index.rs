@@ -47,7 +47,10 @@ impl RunRepository for RunIndexRepository {
         Ok(self.resolve_run(&run))
     }
 
-    fn load_observations(&self, run_id: &str) -> Result<Vec<crate::model::BenchmarkObservation>> {
+    fn load_observations(
+        &self,
+        run_id: &str,
+    ) -> Result<Vec<bijux_benchmark_model::BenchmarkObservation>> {
         let observations_path = self.artifacts_root.join(run_id).join("observations.jsonl");
         load_observations(&observations_path)
     }

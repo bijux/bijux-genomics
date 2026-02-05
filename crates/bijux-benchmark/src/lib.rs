@@ -3,24 +3,18 @@
 //! Contract: inputs are typed, outputs are deterministic, and raw JSON is confined to repo/artifacts.
 
 mod artifacts;
-mod compare;
-mod contract;
-mod error;
-mod model;
-mod policy;
+mod legacy_fastq;
 mod repo;
-mod stats;
-
 mod summarize;
 
-pub use error::BenchError;
-pub use model::decision::DecisionRationale;
-pub use model::observation::MetricsEnvelope;
-pub use model::suite::{
-    AnalysisRequirements, DatasetSpec, DiversityRequirements, ReplicatePolicy,
-    StratificationRequirement,
+pub use bijux_benchmark_model::{
+    AnalysisRequirements, BenchError, BenchmarkDecision, BenchmarkObservation, BenchmarkSuiteSpec,
+    BenchmarkSummary, DatasetSpec, DecisionRationale, DiversityRequirements, GateDecision,
+    GatePolicy, GatePolicyOverrides, GateViolation, MetricSummary, MetricsEnvelope,
+    ReplicatePolicy, StratificationRequirement, SummaryRow,
 };
-pub use model::summary::{MetricSummary, SummaryRow};
-pub use model::{BenchmarkDecision, BenchmarkObservation, BenchmarkSuiteSpec, BenchmarkSummary};
-pub use policy::{GateDecision, GatePolicy, GatePolicyOverrides, GateViolation};
+pub use legacy_fastq::{
+    benchmark_runs, write_benchmark_exports, BenchmarkSummary as LegacyBenchmarkSummary,
+    RunBenchmarkRecord, ToolRanking,
+};
 pub use summarize::{compare, gate, load_suite, summarize, BenchRunOptions};
