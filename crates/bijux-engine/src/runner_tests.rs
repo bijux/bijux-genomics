@@ -118,10 +118,7 @@ fn execute_plan_retries_failures() {
     .expect("plan");
     let runner = FakeRunner::new();
     runner.fail_first.borrow_mut().push("A".to_string());
-    let options = ExecutionOptions {
-        retries: 1,
-        resume: false,
-    };
+    let options = ExecutionOptions { retries: 1 };
     let result = execute_plan(&plan, &runner, &options).expect("run");
     assert_eq!(result.stages[0].attempt, 1);
     assert!(result.stages[0].success);
@@ -140,10 +137,7 @@ fn execute_plan_stops_on_failure() {
     .expect("plan");
     let runner = FakeRunner::new();
     runner.fail_first.borrow_mut().push("A".to_string());
-    let options = ExecutionOptions {
-        retries: 0,
-        resume: false,
-    };
+    let options = ExecutionOptions { retries: 0 };
     let err = execute_plan(&plan, &runner, &options).expect_err("expected failure");
     assert!(err.to_string().contains("stage failed"));
     let calls = runner.calls.borrow().clone();
@@ -163,10 +157,7 @@ fn execute_plan_respects_resume_cache() {
     )
     .expect("plan");
     let runner = FakeRunner::new();
-    let options = ExecutionOptions {
-        retries: 0,
-        resume: true,
-    };
+    let options = ExecutionOptions { retries: 0 };
     let result = execute_plan(&plan, &runner, &options).expect("run");
     let calls = runner.calls.borrow().clone();
     assert_eq!(calls.len(), 2);
