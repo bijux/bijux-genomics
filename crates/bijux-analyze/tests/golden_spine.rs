@@ -88,19 +88,36 @@ fn write_stage_report(stage_dir: &Path, stage_id: &str, tool_id: &str) -> Result
     Ok(stage_report_path)
 }
 
+fn stage_ids_for_profile(profile: &bijux_pipelines::PipelineProfile) -> Vec<String> {
+    match profile.id.as_str() {
+        "fastq-to-fastq__default__v1" | "fastq-to-fastq__minimal__v1" => {
+            bijux_planner_fastq::fastq_pipeline_stage_ids(profile.id.as_str())
+        }
+        "fastq-to-bam__default__v1" | "fastq-to-bam__adna_shotgun__v1" => {
+            bijux_planner_fastq::cross_fastq_to_bam_stage_ids(profile.id.as_str())
+        }
+        "bam-to-bam__default__v1"
+        | "bam-to-bam__adna_shotgun__v1"
+        | "bam-to-bam__adna_capture__v1" => {
+            bijux_planner_bam::pipeline_stage_ids(profile.id.as_str())
+        }
+        _ => Vec::new(),
+    }
+}
+
 fn write_facts(base_dir: &Path, profile: &bijux_pipelines::PipelineProfile) -> Result<PathBuf> {
     let run_id = profile.id.as_str();
     let mut rows = Vec::new();
-    for (idx, node) in profile.graph.iter().enumerate() {
+    for (idx, stage_id) in stage_ids_for_profile(profile).iter().enumerate() {
         let tool = profile
             .defaults
             .tools
-            .get(&node.stage_id)
+            .get(stage_id)
             .map_or("unknown", String::as_str);
         let stage_dir = base_dir.join(format!("stage_{idx}"));
         bijux_infra::ensure_dir(&stage_dir)?;
-        let stage_report_path = write_stage_report(&stage_dir, &node.stage_id, tool)?;
-        let mut row = fact_for_stage(&node.stage_id, tool, run_id);
+        let stage_report_path = write_stage_report(&stage_dir, stage_id, tool)?;
+        let mut row = fact_for_stage(stage_id, tool, run_id);
         row.reports = serde_json::json!({
             "stage_report": stage_report_path.display().to_string()
         });
@@ -147,7 +164,7 @@ fn write_manifest(
             "schema_version": "bijux.run_manifest.v1",
             "run_id": run_id,
             "pipeline_id": profile.id.as_str(),
-            "stages": profile.graph.iter().map(|node| node.stage_id.clone()).collect::<Vec<_>>(),
+            "stages": stage_ids_for_profile(profile),
         }),
     };
     bijux_infra::atomic_write_json(&base_dir.join("run_manifest.json"), &manifest)?;

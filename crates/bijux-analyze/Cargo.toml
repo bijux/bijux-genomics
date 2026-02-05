@@ -28,6 +28,8 @@ bijux-domain-fastq = { path = "../bijux-domain-fastq" }
 bijux-bench = { path = "../bijux-bench" }
 insta = { version = "1", features = ["json"] }
 bijux-pipelines = { path = "../bijux-pipelines" }
+bijux-planner-fastq = { path = "../bijux-planner-fastq" }
+bijux-planner-bam = { path = "../bijux-planner-bam" }
 
 [lints]
 workspace = true

@@ -94,16 +94,30 @@ fn write_pipeline_report(domain: Domain, pipeline_id: &str) -> Result<serde_json
     let dir = tempfile::tempdir()?;
     let base_dir = dir.path().join("pipeline");
     bijux_infra::ensure_dir(&base_dir)?;
-    for (idx, node) in profile.graph.iter().enumerate() {
+    let stage_ids = match profile.id.as_str() {
+        "fastq-to-fastq__default__v1" | "fastq-to-fastq__minimal__v1" => {
+            bijux_planner_fastq::fastq_pipeline_stage_ids(profile.id.as_str())
+        }
+        "fastq-to-bam__default__v1" | "fastq-to-bam__adna_shotgun__v1" => {
+            bijux_planner_fastq::cross_fastq_to_bam_stage_ids(profile.id.as_str())
+        }
+        "bam-to-bam__default__v1"
+        | "bam-to-bam__adna_shotgun__v1"
+        | "bam-to-bam__adna_capture__v1" => {
+            bijux_planner_bam::pipeline_stage_ids(profile.id.as_str())
+        }
+        _ => Vec::new(),
+    };
+    for (idx, stage_id) in stage_ids.iter().enumerate() {
         let tool = profile
             .defaults
             .tools
-            .get(&node.stage_id)
+            .get(stage_id)
             .map_or("unknown", String::as_str);
         let stage_dir = base_dir.join(format!("stage_{idx}"));
         bijux_infra::ensure_dir(&stage_dir)?;
-        let stage_report_path = write_stage_report(&stage_dir, &node.stage_id, tool)?;
-        let mut row = fact_for_stage(&node.stage_id, tool, run_id);
+        let stage_report_path = write_stage_report(&stage_dir, stage_id, tool)?;
+        let mut row = fact_for_stage(stage_id, tool, run_id);
         row.reports = serde_json::json!({
             "stage_report": stage_report_path.display().to_string()
         });
