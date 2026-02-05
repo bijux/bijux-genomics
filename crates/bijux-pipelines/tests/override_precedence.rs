@@ -22,15 +22,24 @@ fn overrides_apply_in_expected_order() {
     cli.params
         .insert("fastq.trim".to_string(), serde_json::json!({"min_len": 10}));
 
-    let merged = merge_effective_defaults(&base, Some(&config), Some(&cli));
-    assert_eq!(merged.tools.get("fastq.trim"), Some(&"fastp".to_string()));
+    let mut api = EffectiveDefaults::default();
+    api.tools
+        .insert("fastq.trim".to_string(), "cutadapt".to_string());
+    api.params
+        .insert("fastq.trim".to_string(), serde_json::json!({"min_len": 20}));
+
+    let merged = merge_effective_defaults(&base, Some(&config), Some(&cli), Some(&api)).unwrap();
+    assert_eq!(
+        merged.tools.get("fastq.trim"),
+        Some(&"cutadapt".to_string())
+    );
     assert_eq!(
         merged.params.get("fastq.trim"),
-        Some(&serde_json::json!({"min_len": 10}))
+        Some(&serde_json::json!({"min_len": 20}))
     );
     assert_eq!(
         merged.rationales.get("fastq.trim"),
-        Some(&"cli override".to_string())
+        Some(&"api override".to_string())
     );
 
     let snapshot = serde_json::json!({
