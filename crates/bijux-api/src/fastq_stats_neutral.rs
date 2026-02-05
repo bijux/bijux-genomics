@@ -7,18 +7,15 @@ use bijux_analyze::{
     append_jsonl, fetch_fastq_stats_v1, insert_fastq_stats_v1, metric_set, BenchmarkContext,
     BenchmarkRecord, FastqStatsMetrics, LengthHistogramBin,
 };
-use bijux_core::measure::ExecutionMetrics;
-use bijux_core::ErrorCategory;
-use bijux_core::{MetricContextV1, RunProvenanceV1, StageObservabilityContextV1};
+use bijux_core::primitives::errors::ErrorCategory;
+use bijux_core::primitives::measure::ExecutionMetrics;
+use bijux_core::MetricContextV1;
 use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 use bijux_runner::primitives::build_tool_execution_spec;
+use bijux_runtime::{RunProvenanceV1, StageObservabilityContextV1};
 use uuid::Uuid;
 
-use bijux_core::contract::recording::{
-    compute_run_id, prepare_tool_run_dirs, write_execution_logs, write_metrics_envelope,
-    write_metrics_json, write_run_manifest, write_stage_plan_json, RunArtifactInput,
-};
-use bijux_core::measure::SeqkitMetrics;
+use bijux_core::primitives::measure::SeqkitMetrics;
 use bijux_core::validate_execution_outputs;
 use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use bijux_infra::hash_file_sha256;
@@ -32,6 +29,10 @@ use bijux_planner_fastq::stage_api::{
 };
 use bijux_runner::primitives::execute_stage_plan;
 use bijux_runner::primitives::resolve_image_for_run;
+use bijux_runtime::recording::{
+    compute_run_id, prepare_tool_run_dirs, write_execution_logs, write_metrics_envelope,
+    write_metrics_json, write_run_manifest, write_stage_plan_json, RunArtifactInput,
+};
 
 use crate::fastq_router::{write_explain_md, write_explain_plan_json, BenchOutcome};
 use bijux_core::ExecutionManifest;

@@ -21,6 +21,7 @@ bijux-planner-bam = { path = "../bijux-planner-bam" }
 bijux-runner = { path = "../bijux-runner" }
 bijux-pipelines = { path = "../bijux-pipelines" }
 bijux-infra = { path = "../bijux-infra" }
+bijux-runtime = { path = "../bijux-runtime" }
 
 [features]
 bam_downstream = ["bijux-planner-bam/bam_downstream", "bijux-pipelines/bam_downstream"]

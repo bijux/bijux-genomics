@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::tooling::{ensure_bench_runner, filter_tools_by_role, load_registry};
 use anyhow::{anyhow, Context, Result};
-use bijux_core::ErrorCategory;
+use bijux_core::primitives::errors::ErrorCategory;
 use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use bijux_infra::{bench_base_dir, bench_tools_dir};

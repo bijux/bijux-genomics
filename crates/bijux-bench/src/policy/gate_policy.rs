@@ -6,7 +6,7 @@
 
 use std::collections::BTreeMap;
 
-use bijux_core::{metric_semantics, MetricSemanticsDirection};
+use bijux_analyze::semantics::metrics::{metric_semantics, MetricDirection};
 
 use crate::error::BenchError;
 use crate::policy::gate_decision::{GateDecision, GateViolation};
@@ -18,7 +18,7 @@ pub struct GatePolicy {
     pub thresholds: BTreeMap<String, f64>,
     pub allowed_regressions: BTreeMap<String, f64>,
     pub must_not_regress: Vec<String>,
-    pub semantics_overrides: BTreeMap<String, MetricSemanticsDirection>,
+    pub semantics_overrides: BTreeMap<String, MetricDirection>,
     pub stage_overrides: BTreeMap<String, GatePolicyOverrides>,
 }
 
@@ -28,7 +28,7 @@ pub struct GatePolicyOverrides {
     pub thresholds: BTreeMap<String, f64>,
     pub allowed_regressions: BTreeMap<String, f64>,
     pub must_not_regress: Vec<String>,
-    pub semantics_overrides: BTreeMap<String, MetricSemanticsDirection>,
+    pub semantics_overrides: BTreeMap<String, MetricDirection>,
 }
 
 impl GatePolicy {
@@ -126,8 +126,8 @@ impl GatePolicy {
                 continue;
             };
             let passes = match semantics {
-                MetricSemanticsDirection::HigherBetter => *observed >= *threshold,
-                MetricSemanticsDirection::LowerBetter => *observed <= *threshold,
+                MetricDirection::HigherBetter => *observed >= *threshold,
+                MetricDirection::LowerBetter => *observed <= *threshold,
             };
             rationale_trace.push(format!(
                 "metric:{metric_id}:{observed} threshold:{threshold}"
@@ -158,8 +158,8 @@ impl GatePolicy {
                 continue;
             };
             let passes = match semantics {
-                MetricSemanticsDirection::HigherBetter => *observed >= 1.0 - window,
-                MetricSemanticsDirection::LowerBetter => *observed <= 1.0 + window,
+                MetricDirection::HigherBetter => *observed >= 1.0 - window,
+                MetricDirection::LowerBetter => *observed <= 1.0 + window,
             };
             rationale_trace.push(format!("window:{metric_id}:{observed} limit:{window}"));
             if !passes {

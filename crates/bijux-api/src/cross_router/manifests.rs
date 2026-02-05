@@ -1,7 +1,7 @@
 use std::path::{Path, PathBuf};
 
+use crate::cross_router::AlignmentBoundary;
 use anyhow::{Context, Result};
-use bijux_core::alignment::AlignmentBoundary;
 use bijux_environment::resolve::ReferenceRecord;
 use bijux_infra::hash_file_sha256;
 use bijux_pipelines::PipelineProfile;

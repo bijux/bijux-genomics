@@ -1,13 +1,11 @@
+use bijux_runtime::{build_telemetry_adapter, TelemetryEventV1};
 use std::collections::HashMap;
 
 use crate::tooling::{ensure_bench_runner, filter_tools_by_role, load_registry};
 use anyhow::{anyhow, Context, Result};
-use bijux_core::contract::recording::run_artifacts_dir_for_out;
-use bijux_core::contract::recording::write_telemetry_event;
 use bijux_core::plan::execution_plan::PlanPolicy;
+use bijux_core::primitives::errors::ErrorCategory;
 use bijux_core::ContainerImageRefV1;
-use bijux_core::ErrorCategory;
-use bijux_core::TelemetryEventV1;
 use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use bijux_planner_fastq::stage_api::RawFailure;
@@ -16,6 +14,8 @@ use bijux_planner_fastq::{
     select_preprocess_tools, FastqPlanConfig, FastqPlanner, ToolSelection,
 };
 use bijux_runner::primitives::{build_tool_execution_spec, resolve_image_for_run};
+use bijux_runtime::recording::run_artifacts_dir_for_out;
+use bijux_runtime::recording::write_telemetry_event;
 
 use super::jobs::bench_jobs;
 use super::summary::{write_run_summary, StageExecutionSummary};
@@ -181,7 +181,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         bijux_planner_fastq::PLANNER_VERSION,
     );
 
-    let telemetry = bijux_core::telemetry::build_telemetry_adapter();
+    let telemetry = build_telemetry_adapter();
     let mut pipeline_attrs = std::collections::BTreeMap::new();
     pipeline_attrs.insert("sample_id".to_string(), args.sample_id.clone());
     pipeline_attrs.insert("pipeline".to_string(), "fastq.preprocess".to_string());

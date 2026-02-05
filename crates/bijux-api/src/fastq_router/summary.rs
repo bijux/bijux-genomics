@@ -271,7 +271,7 @@ fn write_scientific_provenance(out_dir: &Path, stage_runs: &[StageExecutionSumma
         &params_hashes,
         &invocations,
     );
-    bijux_core::contract::recording::write_scientific_provenance(out_dir, &provenance)?;
+    bijux_runtime::recording::write_scientific_provenance(out_dir, &provenance)?;
     Ok(())
 }
 

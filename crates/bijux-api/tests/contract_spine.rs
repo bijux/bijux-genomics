@@ -3,16 +3,17 @@ use std::path::Path;
 use std::time::Duration;
 
 use anyhow::Result;
-use bijux_core::contract::recording::write_plan_provenance;
-use bijux_core::hashing::params_hash;
 use bijux_core::plan::execution_plan::{ExecutionPlan, PlanPolicy};
 use bijux_core::plan::stage_plan::{
     ArtifactRef, CommandSpecV1, ContainerImageRefV1, PlanDecisionReason, StageIO, StagePlanV1,
 };
-use bijux_core::{FactsRowV1, StageId, StageVersion, ToolConstraints, ToolId};
+use bijux_core::primitives::hashing::params_hash;
+use bijux_core::{StageId, StageVersion, ToolConstraints, ToolId};
 use bijux_environment::resolve::PlatformSpec;
 use bijux_environment::resolve::RunnerKind;
 use bijux_runner::{Artifact, Invocation, Runner, RunnerResult};
+use bijux_runtime::recording::write_plan_provenance;
+use bijux_runtime::FactsRowV1;
 
 struct FakeRunner;
 

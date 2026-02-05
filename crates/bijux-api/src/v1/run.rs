@@ -13,9 +13,10 @@ pub use bijux_infra::{
 
 pub use bijux_core::run_index::*;
 pub use bijux_core::{
-    load_manifests, load_profile, new_run_id, run_dir, FactsRowV1, PathSpec, Profile, RunSpec,
-    StageId, StagePlanV1, ToolId, ToolRegistry, ToolRole,
+    load_manifests, load_profile, new_run_id, run_dir, PathSpec, Profile, RunSpec, StageId,
+    StagePlanV1, ToolId, ToolRegistry, ToolRole,
 };
+pub use bijux_runtime::FactsRowV1;
 
 pub use bijux_core::ExecutionManifest;
 pub use bijux_infra::init_logging;

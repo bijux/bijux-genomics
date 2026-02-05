@@ -7,9 +7,9 @@ use crate::cross_router::manifests::{
     write_alignment_boundary, write_cross_run_manifest, write_defaults_ledger,
     write_reference_manifest,
 };
+use crate::cross_router::AlignmentBoundary;
 use crate::fastq_router::fastq_preprocess_run;
 use anyhow::{anyhow, Context, Result};
-use bijux_core::alignment::AlignmentBoundary;
 use bijux_core::ToolRegistry;
 use bijux_environment::resolve::{ReferenceBuildRequest, ReferenceRegistry};
 use bijux_infra::bench_base_dir;

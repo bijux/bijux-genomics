@@ -3,8 +3,8 @@ use std::path::PathBuf;
 
 use anyhow::{anyhow, Result};
 use bijux_core::domain::PipelineSpec;
-use bijux_core::input_assessment::{assess_input_dir, FastqLayout};
 use bijux_core::plan::execution_plan::{default_edges_for_stages, ExecutionPlan, PlanPolicy};
+use bijux_core::primitives::input_assessment::{assess_input_dir, FastqLayout};
 use bijux_core::PlanExplainV1;
 use bijux_core::{
     ContainerImageRefV1, PlanDecisionReason, PlanReasonKind, StagePlanV1, ToolExecutionSpecV1,
@@ -15,6 +15,7 @@ use bijux_pipelines::fastq::canonical_tool_defaults;
 pub const PLANNER_VERSION: &str = "bijux-planner-fastq.v1";
 
 pub mod stage_api {
+    pub use bijux_core::RawFailure;
     pub use bijux_domain_fastq::banks;
     pub use bijux_domain_fastq::banks::{
         adapter_bank_context, contaminant_bank_context, polyx_bank_context,
@@ -28,7 +29,7 @@ pub mod stage_api {
     pub use bijux_stages_fastq::observer;
     pub use bijux_stages_fastq::{
         ensure_umi_headers, inspect_headers, log_header_warnings, preflight_stage, FastqArtifact,
-        FastqArtifactKind, RawFailure, StagePlanJson, TOOL_SEQKIT,
+        FastqArtifactKind, StagePlanJson, TOOL_SEQKIT,
     };
     pub mod fastq {
         pub use bijux_stages_fastq::fastq::*;
