@@ -12,9 +12,9 @@ use bijux_planner_bam::{
 
 fn plan_for(stage_id: &str, tool_id: &str) -> StagePlanV1 {
     StagePlanV1 {
-        stage_id: StageId(stage_id.to_string()),
+        stage_id: StageId::new(stage_id),
         stage_version: StageVersion(1),
-        tool_id: ToolId(tool_id.to_string()),
+        tool_id: ToolId::new(tool_id),
         tool_version: "0.0.0".to_string(),
         image: ContainerImageRefV1 {
             image: format!("{tool_id}:latest"),
@@ -70,7 +70,7 @@ fn adna_shotgun_plan_snapshot_is_stable() {
         tool_specs.insert(
             stage_id.clone(),
             bijux_core::contract::ToolExecutionSpecV1 {
-                tool_id: ToolId(format!("{stage_id}.tool")),
+                tool_id: ToolId::new(format!("{stage_id}.tool")),
                 tool_version: "0.0.0".to_string(),
                 image: ContainerImageRefV1 {
                     image: "bijux/test".to_string(),
@@ -109,7 +109,7 @@ fn adna_capture_plan_snapshot_is_stable() {
         tool_specs.insert(
             stage_id.clone(),
             bijux_core::contract::ToolExecutionSpecV1 {
-                tool_id: ToolId(format!("{stage_id}.tool")),
+                tool_id: ToolId::new(format!("{stage_id}.tool")),
                 tool_version: "0.0.0".to_string(),
                 image: ContainerImageRefV1 {
                     image: "bijux/test".to_string(),

@@ -9,7 +9,13 @@ use bijux_core::primitives::input_assessment::{assess_input_dir, FastqLayout};
 use bijux_core::{
     ContainerImageRefV1, PlanDecisionReason, PlanReasonKind, StagePlanV1, ToolExecutionSpecV1,
 };
-use bijux_domain_fastq::assess_merge_suitability;
+use bijux_domain_bam::BamStage;
+use bijux_domain_fastq::stage_registry::{
+    STAGE_CORRECT, STAGE_DETECT_ADAPTERS, STAGE_FILTER, STAGE_MERGE, STAGE_PREFIX,
+    STAGE_PREPROCESS, STAGE_QC_POST, STAGE_SCREEN, STAGE_STATS_NEUTRAL, STAGE_TRIM, STAGE_UMI,
+    STAGE_VALIDATE_PRE,
+};
+use bijux_domain_fastq::{assess_merge_suitability, canonical_stage_order};
 use bijux_pipelines::fastq::canonical_tool_defaults;
 
 pub const PLANNER_VERSION: &str = "bijux-planner-fastq.v1";
@@ -40,14 +46,14 @@ pub mod stage_api {
 }
 
 fn required_stage_ids() -> Vec<String> {
-    vec![
-        "fastq.validate_pre".to_string(),
-        "fastq.detect_adapters".to_string(),
-        "fastq.trim".to_string(),
-        "fastq.filter".to_string(),
-        "fastq.stats_neutral".to_string(),
-        "fastq.qc_post".to_string(),
-    ]
+    let mut stages: Vec<String> = canonical_stage_order()
+        .into_iter()
+        .map(|stage| stage.as_str().to_string())
+        .collect();
+    if !stages.iter().any(|stage| stage == STAGE_QC_POST.as_str()) {
+        stages.push(STAGE_QC_POST.as_str().to_string());
+    }
+    stages
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -76,16 +82,16 @@ impl Default for DefaultPipelineOptions {
 pub fn default_pipeline_spec(options: DefaultPipelineOptions) -> PipelineSpec {
     let mut stages = required_stage_ids();
     if options.paired && options.enable_correct {
-        stages.push("fastq.correct".to_string());
+        stages.push(STAGE_CORRECT.as_str().to_string());
     }
     if options.paired && options.enable_merge {
-        stages.push("fastq.merge".to_string());
+        stages.push(STAGE_MERGE.as_str().to_string());
     }
-    if options.enable_screen && !stages.iter().any(|stage| stage == "fastq.screen") {
-        stages.push("fastq.screen".to_string());
+    if options.enable_screen && !stages.iter().any(|stage| stage == STAGE_SCREEN.as_str()) {
+        stages.push(STAGE_SCREEN.as_str().to_string());
     }
-    if options.enable_qc_post && !stages.iter().any(|stage| stage == "fastq.qc_post") {
-        stages.push("fastq.qc_post".to_string());
+    if options.enable_qc_post && !stages.iter().any(|stage| stage == STAGE_QC_POST.as_str()) {
+        stages.push(STAGE_QC_POST.as_str().to_string());
     }
     PipelineSpec { stages }
 }
@@ -111,10 +117,10 @@ pub fn apply_preprocess_policy(
     if let (Some(trim_idx), Some(filter_idx)) = (
         pipeline_stages
             .iter()
-            .position(|stage| stage == "fastq.trim"),
+            .position(|stage| stage == STAGE_TRIM.as_str()),
         pipeline_stages
             .iter()
-            .position(|stage| stage == "fastq.filter"),
+            .position(|stage| stage == STAGE_FILTER.as_str()),
     ) {
         let trim_tool = pipeline_tools.get(trim_idx).map(String::as_str);
         let filter_tool = pipeline_tools.get(filter_idx).map(String::as_str);
@@ -316,16 +322,16 @@ pub fn resolve_preprocess_pipeline(
             Ok(profile) => {
                 let mut stages: Vec<String> = fastq_pipeline_stage_ids(profile.id.as_str());
                 if !enable_merge {
-                    stages.retain(|stage| stage != "fastq.merge");
+                    stages.retain(|stage| stage != STAGE_MERGE.as_str());
                 }
                 if !enable_correct {
-                    stages.retain(|stage| stage != "fastq.correct");
+                    stages.retain(|stage| stage != STAGE_CORRECT.as_str());
                 }
                 if !enable_qc_post {
-                    stages.retain(|stage| stage != "fastq.qc_post");
+                    stages.retain(|stage| stage != STAGE_QC_POST.as_str());
                 }
                 if !enable_screen {
-                    stages.retain(|stage| stage != "fastq.screen");
+                    stages.retain(|stage| stage != STAGE_SCREEN.as_str());
                 }
                 PipelineSpec { stages }
             }
@@ -416,8 +422,8 @@ impl FastqPlanner {
             &config.r1,
             config.r2.as_deref(),
             |stage, tool, _r1, _r2| {
-                let stage_dir = stage.trim_start_matches("fastq.");
-                Ok(out_dir.join(stage_dir).join(&tool.tool_id.0))
+                let stage_dir = stage.trim_start_matches(STAGE_PREFIX);
+                Ok(out_dir.join(stage_dir).join(tool.tool_id.as_str()))
             },
         )?;
         let edges = default_edges_for_stages(&plans);
@@ -498,12 +504,12 @@ pub fn explain_plan(plan: &ExecutionPlan) -> PlanExplainV1 {
 pub fn cross_fastq_to_bam_stage_ids(profile_id: &str) -> Vec<String> {
     match profile_id {
         "fastq-to-bam__adna_shotgun__v1" | "fastq-to-bam__default__v1" => vec![
-            "fastq.preprocess".to_string(),
+            STAGE_PREPROCESS.as_str().to_string(),
             "core.prepare_reference".to_string(),
-            "bam.align".to_string(),
-            "bam.qc_pre".to_string(),
-            "bam.coverage".to_string(),
-            "bam.damage".to_string(),
+            BamStage::Align.as_str().to_string(),
+            BamStage::QcPre.as_str().to_string(),
+            BamStage::Coverage.as_str().to_string(),
+            BamStage::Damage.as_str().to_string(),
         ],
         _ => Vec::new(),
     }
@@ -546,12 +552,12 @@ where
         let out_dir = out_dir_for_stage(stage, tool, &current_r1, current_r2.as_deref())?;
         let stage_id: &str = stage;
         let (plan, next_r1, next_r2) = match stage_id {
-            "fastq.detect_adapters" => {
+            stage if stage == STAGE_DETECT_ADAPTERS.as_str() => {
                 let plan =
                     bijux_stages_fastq::fastq::detect_adapters::plan(tool, &current_r1, &out_dir);
                 (plan, current_r1.clone(), current_r2.clone())
             }
-            "fastq.trim" => {
+            stage if stage == STAGE_TRIM.as_str() => {
                 let plan = bijux_stages_fastq::fastq::trim::plan(
                     tool,
                     &current_r1,
@@ -563,7 +569,7 @@ where
                 let next_r1 = plan.io.outputs[0].path.clone();
                 (plan, next_r1, None)
             }
-            "fastq.filter" => {
+            stage if stage == STAGE_FILTER.as_str() => {
                 let mut filter_options =
                     bijux_stages_fastq::fastq::filter::FilterPlanOptions::default();
                 if adapter_bank.is_some() {
@@ -584,12 +590,12 @@ where
                 let next_r1 = plan.io.outputs[0].path.clone();
                 (plan, next_r1, None)
             }
-            "fastq.validate_pre" => {
+            stage if stage == STAGE_VALIDATE_PRE.as_str() => {
                 let plan =
                     bijux_stages_fastq::fastq::validate_pre::plan(tool, &current_r1, &out_dir);
                 (plan, current_r1.clone(), current_r2.clone())
             }
-            "fastq.merge" => {
+            stage if stage == STAGE_MERGE.as_str() => {
                 let r2 = current_r2
                     .as_ref()
                     .ok_or_else(|| anyhow!("merge requires r2"))?;
@@ -598,7 +604,7 @@ where
                 let next_r1 = plan.io.outputs[0].path.clone();
                 (plan, next_r1, None)
             }
-            "fastq.correct" => {
+            stage if stage == STAGE_CORRECT.as_str() => {
                 let r2 = current_r2
                     .as_ref()
                     .ok_or_else(|| anyhow!("correct requires r2"))?;
@@ -612,7 +618,7 @@ where
                 let next_r2 = plan.io.outputs[1].path.clone();
                 (plan, next_r1, Some(next_r2))
             }
-            "fastq.umi" => {
+            stage if stage == STAGE_UMI.as_str() => {
                 let r2 = current_r2
                     .as_ref()
                     .ok_or_else(|| anyhow!("umi requires r2"))?;
@@ -622,7 +628,7 @@ where
                 let next_r2 = plan.io.outputs[1].path.clone();
                 (plan, next_r1, Some(next_r2))
             }
-            "fastq.qc_post" => {
+            stage if stage == STAGE_QC_POST.as_str() => {
                 let mut stage_aux_images = std::collections::BTreeMap::new();
                 if tool.tool_id.0 == "multiqc" {
                     for aux_tool in bijux_stages_fastq::fastq::qc_post::aux_tool_ids() {
@@ -640,12 +646,12 @@ where
                 )?;
                 (plan, current_r1.clone(), current_r2.clone())
             }
-            "fastq.screen" => {
+            stage if stage == STAGE_SCREEN.as_str() => {
                 let plan =
                     bijux_stages_fastq::fastq::screen::plan_screen(tool, &current_r1, &out_dir)?;
                 (plan, current_r1.clone(), current_r2.clone())
             }
-            "fastq.stats_neutral" => {
+            stage if stage == STAGE_STATS_NEUTRAL.as_str() => {
                 let plan = bijux_stages_fastq::fastq::stats_neutral::plan_stats_neutral(
                     tool,
                     &current_r1,

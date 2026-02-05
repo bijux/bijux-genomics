@@ -13,7 +13,7 @@ use bijux_planner_fastq::{
 #[test]
 fn fastq_plan_snapshot() {
     let tool_trim = ToolExecutionSpecV1 {
-        tool_id: ToolId("fastp".to_string()),
+        tool_id: ToolId::from_static("fastp"),
         tool_version: "0.23.4".to_string(),
         image: ContainerImageRefV1 {
             image: "bijux/fastp".to_string(),
@@ -30,7 +30,7 @@ fn fastq_plan_snapshot() {
         },
     };
     let tool_validate = ToolExecutionSpecV1 {
-        tool_id: ToolId("fastqvalidator_official".to_string()),
+        tool_id: ToolId::from_static("fastqvalidator_official"),
         tool_version: "1.0.0".to_string(),
         image: ContainerImageRefV1 {
             image: "bijux/fastqvalidator".to_string(),
@@ -106,7 +106,7 @@ fn default_pipeline_plan_snapshot_is_stable() {
     let tools: Vec<ToolExecutionSpecV1> = stages
         .iter()
         .map(|stage| ToolExecutionSpecV1 {
-            tool_id: ToolId(tool_id_for_stage(stage).to_string()),
+            tool_id: ToolId::new(tool_id_for_stage(stage)),
             tool_version: "0.0.0".to_string(),
             image: ContainerImageRefV1 {
                 image: "bijux/test".to_string(),
