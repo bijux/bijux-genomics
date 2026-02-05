@@ -2,6 +2,14 @@
 
 This document defines ownership and allowed dependencies. Treat it as an API contract.
 
+## OWNERSHIP
+- IDs (PipelineId/StageId/ToolId/MetricId): bijux-core
+- Defaults/profiles: bijux-pipelines
+- Param schemas: bijux-domain-*
+- Metric semantics: bijux-domain-* (definitions) + bijux-analyze (evaluation rules)
+- Artifact layout: bijux-infra (path builders) + bijux-runtime (recording)
+- Report schema/rendering: bijux-api (schema) + bijux-cli (rendering)
+
 ## bijux-core
 - Owns: shared data types, schemas, hashing, stage plans.
 - Does not own: domain rules, planning heuristics, execution, I/O side effects.
@@ -67,7 +75,8 @@ bijux-runner: bijux-core bijux-engine bijux-environment bijux-infra
 bijux-environment: bijux-core bijux-infra
 bijux-pipelines: bijux-core bijux-domain-fastq bijux-domain-bam
 bijux-analyze: bijux-core bijux-domain-fastq bijux-domain-bam bijux-infra bijux-runtime
-bijux-benchmark: bijux-core bijux-analyze bijux-engine bijux-infra bijux-runtime
+bijux-benchmark-model: bijux-analyze
+bijux-benchmark: bijux-core bijux-analyze bijux-benchmark-model bijux-infra bijux-runtime
 bijux-api: bijux-core bijux-engine bijux-runner bijux-environment bijux-analyze bijux-pipelines bijux-infra bijux-planner-fastq bijux-planner-bam bijux-runtime
 bijux-cli: bijux-api
 bijux: bijux-api

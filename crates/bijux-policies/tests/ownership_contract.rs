@@ -32,6 +32,36 @@ fn is_domain_params_path(path: &Path) -> bool {
 }
 
 #[test]
+fn ownership_contract_is_complete() {
+    let root = workspace_root();
+    let contract_path = root
+        .join("crates")
+        .join("bijux-core")
+        .join("src")
+        .join("boundaries.md");
+    let content = std::fs::read_to_string(&contract_path).expect("read boundaries.md");
+    let required = [
+        "## OWNERSHIP",
+        "IDs (PipelineId/StageId/ToolId/MetricId):",
+        "Defaults/profiles:",
+        "Param schemas:",
+        "Metric semantics:",
+        "Artifact layout:",
+        "Report schema/rendering:",
+    ];
+    let missing: Vec<&str> = required
+        .iter()
+        .copied()
+        .filter(|needle| !content.contains(needle))
+        .collect();
+    assert!(
+        missing.is_empty(),
+        "ownership contract missing entries: {:?}",
+        missing
+    );
+}
+
+#[test]
 fn id_definitions_live_in_core_only() {
     let root = workspace_root();
     let mut offenders = Vec::new();
