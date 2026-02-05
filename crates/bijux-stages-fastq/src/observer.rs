@@ -1,29 +1,38 @@
 use std::path::Path;
-use std::process::Command;
 
 use anyhow::{anyhow, Context, Result};
-use bijux_environment::api::ResolvedImage;
 use tracing::warn;
 
 use bijux_core::primitives::measure::SeqkitMetrics;
 
-pub fn input_fastq_stats(
-    image: &ResolvedImage,
-    mount_dir: &Path,
-    fastq: &Path,
-) -> Result<SeqkitMetrics> {
-    seqkit_stats(image, mount_dir, fastq)
+#[derive(Debug, Clone)]
+pub struct ObserverCommandSpec {
+    pub image: String,
+    pub mount_dir: std::path::PathBuf,
+    pub args: Vec<String>,
 }
 
-pub fn output_fastq_stats(
-    image: &ResolvedImage,
-    mount_dir: &Path,
-    fastq: &Path,
-) -> Result<SeqkitMetrics> {
-    seqkit_stats(image, mount_dir, fastq)
+#[derive(Debug, Clone)]
+pub struct ObserverCommandOutput {
+    pub stdout: String,
+    pub stderr: String,
+    pub exit_code: i32,
 }
 
-fn seqkit_stats(image: &ResolvedImage, mount_dir: &Path, fastq: &Path) -> Result<SeqkitMetrics> {
+pub enum ObserverCommandKind {
+    SeqkitStats,
+    SeqkitLengthHistogram,
+}
+
+pub fn input_fastq_stats(mount_dir: &Path, fastq: &Path) -> Result<ObserverCommandSpec> {
+    seqkit_stats_command(mount_dir, fastq)
+}
+
+pub fn output_fastq_stats(mount_dir: &Path, fastq: &Path) -> Result<ObserverCommandSpec> {
+    seqkit_stats_command(mount_dir, fastq)
+}
+
+fn seqkit_stats_command(mount_dir: &Path, fastq: &Path) -> Result<ObserverCommandSpec> {
     let mount_dir = mount_dir
         .canonicalize()
         .context("resolve mount directory")?;
@@ -34,27 +43,45 @@ fn seqkit_stats(image: &ResolvedImage, mount_dir: &Path, fastq: &Path) -> Result
         .to_string_lossy()
         .to_string();
 
-    let mut cmd = Command::new("docker");
-    cmd.arg("run")
-        .arg("--rm")
-        .arg("-v")
-        .arg(format!("{}:/data:ro", mount_dir.display()))
-        .arg(&image.full_name)
-        .arg("seqkit")
-        .arg("stats")
-        .arg("-a")
-        .arg("-T")
-        .arg(format!("/data/{fastq_name}"));
-
-    let output = cmd.output().context("run seqkit stats")?;
-    if !output.status.success() {
-        return Err(anyhow!("seqkit stats failed"));
-    }
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    parse_seqkit_stats(&stdout)
+    Ok(ObserverCommandSpec {
+        image: "seqkit".to_string(),
+        mount_dir,
+        args: vec![
+            "seqkit".to_string(),
+            "stats".to_string(),
+            "-a".to_string(),
+            "-T".to_string(),
+            format!("/data/{fastq_name}"),
+        ],
+    })
 }
 
-fn parse_seqkit_stats(output: &str) -> Result<SeqkitMetrics> {
+pub fn length_histogram_command(mount_dir: &Path, fastq: &Path) -> Result<ObserverCommandSpec> {
+    let mount_dir = mount_dir
+        .canonicalize()
+        .context("resolve mount directory")?;
+    let fastq = fastq.canonicalize().context("resolve fastq path")?;
+    let fastq_name = fastq
+        .file_name()
+        .ok_or_else(|| anyhow!("fastq missing filename"))?
+        .to_string_lossy()
+        .to_string();
+
+    Ok(ObserverCommandSpec {
+        image: "seqkit".to_string(),
+        mount_dir,
+        args: vec![
+            "seqkit".to_string(),
+            "fx2tab".to_string(),
+            "-l".to_string(),
+            format!("/data/{fastq_name}"),
+        ],
+    })
+}
+
+/// # Errors
+/// Returns an error if stdout cannot be parsed.
+pub fn parse_seqkit_stats(output: &str) -> Result<SeqkitMetrics> {
     let mut lines = output.lines();
     let header = lines.next().ok_or_else(|| anyhow!("empty seqkit output"))?;
     let data = lines.next().ok_or_else(|| anyhow!("missing seqkit data"))?;
@@ -105,52 +132,11 @@ fn parse_seqkit_stats(output: &str) -> Result<SeqkitMetrics> {
     })
 }
 
-pub fn parse_fastqvalidator_count(stdout: &str) -> Result<u64> {
-    let line = stdout
-        .lines()
-        .find(|line| line.to_lowercase().contains("total reads"))
-        .ok_or_else(|| anyhow!("fastqvalidator total reads line missing"))?;
-    let count = line
-        .split_once(':')
-        .ok_or_else(|| anyhow!("fastqvalidator total reads format missing ':'"))?
-        .1
-        .trim();
-    Ok(count.parse::<u64>()?)
-}
-
-pub fn length_histogram(
-    image: &ResolvedImage,
-    mount_dir: &Path,
-    fastq: &Path,
-) -> Result<Vec<(u64, u64)>> {
-    let mount_dir = mount_dir
-        .canonicalize()
-        .context("resolve mount directory")?;
-    let fastq = fastq.canonicalize().context("resolve fastq path")?;
-    let fastq_name = fastq
-        .file_name()
-        .ok_or_else(|| anyhow!("fastq missing filename"))?
-        .to_string_lossy()
-        .to_string();
-
-    let mut cmd = Command::new("docker");
-    cmd.arg("run")
-        .arg("--rm")
-        .arg("-v")
-        .arg(format!("{}:/data:ro", mount_dir.display()))
-        .arg(&image.full_name)
-        .arg("seqkit")
-        .arg("fx2tab")
-        .arg("-l")
-        .arg(format!("/data/{fastq_name}"));
-
-    let output = cmd.output().context("run seqkit fx2tab")?;
-    if !output.status.success() {
-        return Err(anyhow!("seqkit fx2tab failed"));
-    }
-    let stdout = String::from_utf8_lossy(&output.stdout);
+/// # Errors
+/// Returns an error if stdout cannot be parsed.
+pub fn parse_length_histogram(output: &str) -> Result<Vec<(u64, u64)>> {
     let mut counts: std::collections::BTreeMap<u64, u64> = std::collections::BTreeMap::new();
-    for line in stdout.lines() {
+    for line in output.lines() {
         let mut parts = line.split('\t');
         let _id = parts.next();
         let len = parts
@@ -166,9 +152,24 @@ pub fn length_histogram(
     Ok(counts.into_iter().collect())
 }
 
+/// # Errors
+/// Returns an error if stdout cannot be parsed.
+pub fn parse_fastqvalidator_count(stdout: &str) -> Result<u64> {
+    let line = stdout
+        .lines()
+        .find(|line| line.to_lowercase().contains("total reads"))
+        .ok_or_else(|| anyhow!("fastqvalidator total reads line missing"))?;
+    let count = line
+        .split_once(':')
+        .ok_or_else(|| anyhow!("fastqvalidator total reads format missing ':'"))?
+        .1
+        .trim();
+    Ok(count.parse::<u64>()?)
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{parse_fastqvalidator_count, parse_seqkit_stats};
+    use super::{parse_fastqvalidator_count, parse_length_histogram, parse_seqkit_stats};
     use anyhow::Result;
 
     #[test]
@@ -191,6 +192,14 @@ mod tests {
         let metrics = parse_seqkit_stats(stdout)?;
         assert_eq!(metrics.reads, 1000);
         assert_eq!(metrics.bases, 100_000);
+        Ok(())
+    }
+
+    #[test]
+    fn parse_length_histogram_parses_fixture() -> Result<()> {
+        let stdout = "readA\t100\nreadB\t100\nreadC\t50\n";
+        let metrics = parse_length_histogram(stdout)?;
+        assert_eq!(metrics.len(), 2);
         Ok(())
     }
 }

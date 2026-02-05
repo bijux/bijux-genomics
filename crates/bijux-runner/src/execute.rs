@@ -23,6 +23,15 @@ pub struct StageResultV1 {
     pub command: String,
 }
 
+#[derive(Debug, Clone)]
+pub struct CommandOutputV1 {
+    pub stdout: String,
+    pub stderr: String,
+    pub exit_code: i32,
+    pub runtime_s: f64,
+    pub command: String,
+}
+
 fn common_parent(paths: &[PathBuf]) -> Option<PathBuf> {
     let mut iter = paths.iter();
     let first = iter.next()?.clone();
@@ -144,5 +153,46 @@ pub fn execute_stage_plan(
         stdout,
         stderr,
         command: build_command_string(&args),
+    })
+}
+
+/// Execute a lightweight observer command using docker.
+///
+/// # Errors
+/// Returns an error if execution fails or docker is unavailable.
+pub fn execute_observer_command(
+    image: &str,
+    mount_dir: &PathBuf,
+    args: &[String],
+    runner: RunnerKind,
+) -> Result<CommandOutputV1> {
+    if runner != RunnerKind::Docker {
+        return Err(anyhow!(
+            "runner {runner:?} not supported for observer execution"
+        ));
+    }
+    let mount_dir = mount_dir.canonicalize().context("resolve mount dir")?;
+    let mount_arg = format!("{}:/data:ro", mount_dir.display());
+    let mut cmd = Command::new("docker");
+    let mut command_args: Vec<String> = vec![
+        "run".to_string(),
+        "--rm".to_string(),
+        "-v".to_string(),
+        mount_arg,
+        image.to_string(),
+    ];
+    command_args.extend(args.iter().cloned());
+    let start = Instant::now();
+    let output = cmd.args(&command_args).output().context("docker run")?;
+    let runtime_s = start.elapsed().as_secs_f64();
+    let exit_code = output.status.code().unwrap_or(-1);
+    let stdout = String::from_utf8_lossy(&output.stdout).to_string();
+    let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+    Ok(CommandOutputV1 {
+        stdout,
+        stderr,
+        exit_code,
+        runtime_s,
+        command: build_command_string(&command_args),
     })
 }
