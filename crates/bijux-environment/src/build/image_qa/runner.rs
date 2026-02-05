@@ -23,7 +23,7 @@ use super::logging::{
 };
 use super::static_qa::run_static_qa;
 use super::QaStage;
-use bijux_core::load_manifests;
+use bijux_runtime::manifests::load_manifests;
 
 /// Run image QA for the FASTQ domain.
 ///

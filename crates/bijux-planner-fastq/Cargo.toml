@@ -8,6 +8,7 @@ anyhow = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 bijux-core = { path = "../bijux-core" }
+bijux-selection = { path = "../bijux-selection" }
 bijux-domain-fastq = { path = "../bijux-domain-fastq" }
 bijux-pipelines = { path = "../bijux-pipelines" }
 bijux-stages-fastq = { path = "../bijux-stages-fastq" }

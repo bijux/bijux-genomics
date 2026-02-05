@@ -162,7 +162,7 @@ fn preprocess_plan_json_is_emitted_and_stable() -> Result<()> {
         out: std::path::PathBuf::from("artifacts"),
         strict: false,
         auto: false,
-        objective: bijux_core::selection::Objective::Balanced,
+        objective: bijux_core::contract::Objective::Balanced,
         bench_corpus: None,
         allow_partial: false,
         replicates: 1,
@@ -181,7 +181,7 @@ fn preprocess_plan_json_is_emitted_and_stable() -> Result<()> {
         enable_correct: false,
     };
     let _ = bijux_planner_fastq::preprocess_decisions(&args);
-    let pipeline = bijux_core::domain::PipelineSpec {
+    let pipeline = bijux_core::contract::PipelineSpec {
         stages: vec![
             "fastq.validate_pre".to_string(),
             "fastq.detect_adapters".to_string(),

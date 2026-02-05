@@ -7,11 +7,9 @@ use sha2::Digest;
 use bijux_infra::bench_tools_dir;
 
 use crate::StageObservabilityContextV1;
+use bijux_core::metrics::ToolInvocationV1;
+use bijux_core::plan::execution_plan::ExecutionPlan;
 use bijux_core::primitives::hashing::params_hash;
-use bijux_core::{
-    plan::execution_plan::ExecutionPlan, scientific_provenance::ScientificProvenanceV1,
-    ToolInvocationV1,
-};
 use serde::Serialize;
 
 #[derive(Debug)]
@@ -186,7 +184,7 @@ pub fn write_run_manifest(
 /// Returns an error if the provenance file cannot be written.
 pub fn write_scientific_provenance(
     run_dir: &Path,
-    provenance: &bijux_core::scientific_provenance::ScientificProvenanceV1,
+    provenance: &bijux_core::contract::ScientificProvenanceV1,
 ) -> Result<PathBuf> {
     let path = run_dir.join("scientific_provenance.json");
     bijux_infra::atomic_write_json(&path, provenance)
@@ -234,7 +232,7 @@ pub fn write_plan_provenance(run_dir: &Path, plan: &ExecutionPlan) -> Result<Pat
             executed_command: None,
         });
     }
-    let provenance = ScientificProvenanceV1::from_invocations(
+    let provenance = crate::provenance::build_scientific_provenance(
         plan.pipeline_id().to_string(),
         plan.planner_version().to_string(),
         &params_hashes,
@@ -437,7 +435,7 @@ pub fn write_stage_metrics_json<T: serde::Serialize>(
 pub fn write_tool_invocation_json(
     run_artifacts_dir: &Path,
     stage_id: &str,
-    invocation: &bijux_core::ToolInvocationV1,
+    invocation: &ToolInvocationV1,
 ) -> Result<PathBuf> {
     let invocations_dir = run_artifacts_dir.join("invocations");
     bijux_infra::ensure_dir(&invocations_dir).context("create invocations dir")?;

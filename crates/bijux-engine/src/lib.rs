@@ -11,8 +11,8 @@
     clippy::new_without_default
 )]
 
-pub(crate) mod core;
-pub(crate) mod runner;
+pub(crate) mod errors;
+pub(crate) mod executor;
 pub(crate) mod services;
 
 #[cfg(test)]
@@ -21,7 +21,7 @@ mod runner_tests;
 use anyhow::Result;
 use bijux_core::contract::RunRecordV1;
 use bijux_core::plan::execution_plan::ExecutionPlan;
-use bijux_runner::Runner;
+use bijux_runtime::runner::Runner;
 
 pub fn validate(plan: &ExecutionPlan) -> Result<()> {
     let context = bijux_core::plan::execution_plan::PlanValidationContext {
@@ -34,8 +34,8 @@ pub fn validate(plan: &ExecutionPlan) -> Result<()> {
 pub fn execute(
     plan: &ExecutionPlan,
     runner: &dyn Runner,
-    _environment: &bijux_environment::api::PlatformSpec,
+    _environment: &bijux_runtime::environment::ExecutionEnvironment,
     _output_dir: &std::path::Path,
 ) -> Result<RunRecordV1> {
-    runner::execute_plan(plan, runner, &runner::ExecutionOptions::default())
+    executor::execute_plan(plan, runner, &executor::ExecutionOptions::default())
 }

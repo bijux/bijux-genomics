@@ -3,8 +3,9 @@
 
 use std::collections::BTreeMap;
 
-use bijux_core::selection::{objective_spec, Objective};
+use bijux_core::contract::Objective;
 use bijux_runtime::{MetricSemanticsV1, ReportCompletenessV1, ReportContractV1, ReportSchemaV1};
+use bijux_selection::objective_spec;
 
 use crate::decision::effect::default_thresholds;
 use crate::semantics::metrics::resolve_semantics;

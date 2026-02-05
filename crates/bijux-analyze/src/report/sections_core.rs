@@ -1,7 +1,8 @@
 // Owner: bijux-analyze
 // Report sections for run reports.
 
-use bijux_core::{InvariantStatusV1, RawFailure, ToolInvocationV1};
+use bijux_core::metrics::ToolInvocationV1;
+use bijux_core::{InvariantStatusV1, RawFailure};
 use bijux_runtime::{FactsRowV1, PipelineVerdictV1, StageReportV1, TelemetryEventV1};
 use std::collections::BTreeMap;
 use std::fs;

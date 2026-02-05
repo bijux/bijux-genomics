@@ -276,6 +276,7 @@ dependencies = [
  "bijux-planner-bam",
  "bijux-planner-fastq",
  "bijux-runtime",
+ "bijux-selection",
  "insta",
  "parquet",
  "rusqlite",
@@ -303,6 +304,7 @@ dependencies = [
  "bijux-planner-fastq",
  "bijux-runner",
  "bijux-runtime",
+ "bijux-selection",
  "chrono",
  "insta",
  "serde",
@@ -334,7 +336,6 @@ name = "bijux-core"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bijux-analyze",
  "bijux-guardrails",
  "bijux-infra",
  "chrono",
@@ -373,6 +374,7 @@ dependencies = [
  "bijux-guardrails",
  "bijux-infra",
  "bijux-runtime",
+ "bijux-selection",
  "chrono",
  "rusqlite",
  "schemars",
@@ -390,10 +392,8 @@ dependencies = [
  "anyhow",
  "assert_cmd",
  "bijux-core",
- "bijux-environment",
  "bijux-guardrails",
  "bijux-infra",
- "bijux-runner",
  "bijux-runtime",
  "chrono",
  "flate2",
@@ -420,6 +420,7 @@ dependencies = [
  "bijux-core",
  "bijux-guardrails",
  "bijux-infra",
+ "bijux-runtime",
  "regex",
  "rusqlite",
  "serde",
@@ -498,6 +499,7 @@ dependencies = [
  "bijux-domain-fastq",
  "bijux-guardrails",
  "bijux-pipelines",
+ "bijux-selection",
  "bijux-stages-fastq",
  "insta",
  "serde",
@@ -514,6 +516,7 @@ dependencies = [
  "bijux-environment",
  "bijux-guardrails",
  "bijux-infra",
+ "bijux-runtime",
  "chrono",
  "flate2",
  "serde",
@@ -536,6 +539,17 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2",
+ "toml",
+ "uuid",
+]
+
+[[package]]
+name = "bijux-selection"
+version = "0.1.0"
+dependencies = [
+ "bijux-core",
+ "bijux-guardrails",
+ "serde_json",
 ]
 
 [[package]]

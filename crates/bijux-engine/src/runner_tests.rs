@@ -9,9 +9,9 @@ use bijux_core::plan::execution_plan::{ExecutionPlan, PlanEdge, PlanPolicy};
 use bijux_core::{
     CommandSpecV1, ContainerImageRefV1, StageId, StagePlanV1, StageVersion, ToolConstraints, ToolId,
 };
-use bijux_runner::{Invocation, Runner, RunnerResult};
+use bijux_runtime::runner::{Invocation, Runner, RunnerResult};
 
-use crate::runner::{execute_plan, ExecutionOptions};
+use crate::executor::{execute_plan, ExecutionOptions};
 
 struct FakeRunner {
     calls: RefCell<Vec<String>>,

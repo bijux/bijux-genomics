@@ -4,7 +4,7 @@ use anyhow::{anyhow, Context, Result};
 use rusqlite::{params, Connection};
 use serde_json::Value as JsonValue;
 
-use bijux_core::selection::{BenchResultRecord, BenchResultStatus};
+use bijux_core::contract::{BenchResultRecord, BenchResultStatus};
 
 use super::corpus::BenchCorpus;
 

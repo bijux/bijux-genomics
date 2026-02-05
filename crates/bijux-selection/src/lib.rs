@@ -1,10 +1,14 @@
 use std::cmp::Ordering;
 
-mod model;
-
-pub use model::{
+use bijux_core::contract::{
     BenchResultRecord, BenchResultStatus, Disqualification, Objective, ObjectiveSpec,
     ObjectiveWeights, StageSelection, ToolScore,
+};
+
+pub use bijux_core::contract::{
+    BenchResultRecord as BenchRecord, BenchResultStatus as BenchStatus, Objective as ObjectiveKind,
+    ObjectiveSpec as ObjectiveSchema, ObjectiveWeights as ObjectiveWeighting,
+    StageSelection as Selection,
 };
 
 #[must_use]

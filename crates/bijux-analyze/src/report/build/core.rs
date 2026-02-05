@@ -445,11 +445,26 @@ pub fn write_run_summary_from_facts(path: &Path, rows: &[FactsRowV1]) -> Result<
     write_run_summary_json(path, rows)
 }
 
+#[derive(Debug, Clone, Copy)]
+enum ToolTier {
+    Gold,
+    Silver,
+    Experimental,
+}
+
+fn tool_tier_for(stage_id: &str, tool_id: &str) -> (ToolTier, &'static str) {
+    match (stage_id, tool_id) {
+        ("fastq.trim" | "fastq.filter", "fastp") => (ToolTier::Gold, "curated_default"),
+        ("fastq.stats_neutral", "seqkit_stats") => (ToolTier::Silver, "diagnostic_stats"),
+        _ => (ToolTier::Experimental, "unknown_tool"),
+    }
+}
+
 fn pipeline_overview_section(rows: &[FactsRowV1]) -> serde_json::Value {
     let stages: Vec<serde_json::Value> = rows
         .iter()
         .map(|row| {
-            let (tier, rationale) = bijux_core::tool_tier_for(&row.stage_id, &row.tool_id);
+            let (tier, rationale) = tool_tier_for(&row.stage_id, &row.tool_id);
             serde_json::json!({
                 "stage_id": row.stage_id,
                 "tool_id": row.tool_id,

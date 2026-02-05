@@ -342,6 +342,8 @@ fn workspace_constitution_contract() {
         "bijux-infra",
         "bijux-core",
         "bijux-engine",
+        "bijux-runtime",
+        "bijux-selection",
         "bijux-analyze",
         "bijux-bench",
     ];
@@ -353,11 +355,18 @@ fn workspace_constitution_contract() {
             "duplicate crate: {name}"
         );
     }
+    assert!(
+        crates.contains_key("bijux-environment"),
+        "missing bijux-environment crate"
+    );
     let env_crates: Vec<_> = crates
         .keys()
         .filter(|name| name.starts_with("bijux-env-"))
         .collect();
-    assert!(!env_crates.is_empty(), "missing bijux-env-* crates");
+    assert!(
+        env_crates.is_empty(),
+        "legacy bijux-env-* crates are forbidden"
+    );
     assert!(
         !crates.contains_key("bijux-pipelines-bam"),
         "bijux-pipelines-bam is forbidden"
@@ -476,6 +485,8 @@ fn workspace_no_orphan_crates() {
         "bijux-bench",
         "bijux-environment",
         "bijux-runner",
+        "bijux-runtime",
+        "bijux-selection",
     ]);
     for (name, count) in dependents {
         let crate_dir = crates.get(&name).expect("crate dir");
@@ -495,6 +506,7 @@ fn workspace_dependency_graph_contract() {
             .unwrap_or_else(|| panic!("missing crate {name}"));
         parse_dependencies(&path.join("Cargo.toml"), &known)
     };
+    let is_guardrails = |dep: &str| dep == "bijux-guardrails";
 
     let cli = deps_for("bijux");
     assert!(cli.contains("bijux-api"), "cli must depend on bijux-api");
@@ -517,6 +529,147 @@ fn workspace_dependency_graph_contract() {
                 "bijux-cli must not depend on workspace crate {dep}"
             );
         }
+    }
+
+    let core = deps_for("bijux-core");
+    for dep in &core {
+        if is_guardrails(dep) {
+            continue;
+        }
+        assert!(
+            dep == "bijux-infra",
+            "bijux-core must not depend on workspace crate {dep}"
+        );
+    }
+
+    let runtime = deps_for("bijux-runtime");
+    for dep in &runtime {
+        if is_guardrails(dep) {
+            continue;
+        }
+        assert!(
+            dep == "bijux-core" || dep == "bijux-infra",
+            "bijux-runtime must not depend on workspace crate {dep}"
+        );
+    }
+
+    let selection = deps_for("bijux-selection");
+    for dep in &selection {
+        if is_guardrails(dep) {
+            continue;
+        }
+        assert!(
+            dep == "bijux-core",
+            "bijux-selection must not depend on workspace crate {dep}"
+        );
+    }
+
+    let engine = deps_for("bijux-engine");
+    for dep in &engine {
+        if is_guardrails(dep) {
+            continue;
+        }
+        assert!(
+            dep == "bijux-core" || dep == "bijux-runtime",
+            "bijux-engine must not depend on workspace crate {dep}"
+        );
+    }
+
+    let planner_fastq = deps_for("bijux-planner-fastq");
+    for dep in &planner_fastq {
+        if is_guardrails(dep) {
+            continue;
+        }
+        assert!(
+            dep == "bijux-core"
+                || dep == "bijux-selection"
+                || dep == "bijux-stages-fastq"
+                || dep == "bijux-pipelines"
+                || dep == "bijux-infra",
+            "bijux-planner-fastq must not depend on workspace crate {dep}"
+        );
+    }
+
+    let planner_bam = deps_for("bijux-planner-bam");
+    for dep in &planner_bam {
+        if is_guardrails(dep) {
+            continue;
+        }
+        assert!(
+            dep == "bijux-core"
+                || dep == "bijux-selection"
+                || dep == "bijux-stages-bam"
+                || dep == "bijux-infra",
+            "bijux-planner-bam must not depend on workspace crate {dep}"
+        );
+    }
+
+    let api = deps_for("bijux-api");
+    for dep in &api {
+        if is_guardrails(dep) {
+            continue;
+        }
+        assert!(
+            dep == "bijux-core"
+                || dep == "bijux-selection"
+                || dep == "bijux-planner-fastq"
+                || dep == "bijux-planner-bam"
+                || dep == "bijux-engine"
+                || dep == "bijux-runtime"
+                || dep == "bijux-runner"
+                || dep == "bijux-environment"
+                || dep == "bijux-analyze"
+                || dep == "bijux-bench"
+                || dep == "bijux-pipelines"
+                || dep == "bijux-infra",
+            "bijux-api must not depend on workspace crate {dep}"
+        );
+    }
+
+    let runner = deps_for("bijux-runner");
+    for dep in &runner {
+        if is_guardrails(dep) {
+            continue;
+        }
+        assert!(
+            dep == "bijux-core"
+                || dep == "bijux-runtime"
+                || dep == "bijux-environment"
+                || dep == "bijux-infra",
+            "bijux-runner must not depend on workspace crate {dep}"
+        );
+    }
+
+    let analyze = deps_for("bijux-analyze");
+    for dep in &analyze {
+        if is_guardrails(dep) {
+            continue;
+        }
+        assert!(
+            dep == "bijux-core"
+                || dep == "bijux-selection"
+                || dep == "bijux-domain-fastq"
+                || dep == "bijux-domain-bam"
+                || dep == "bijux-infra"
+                || dep == "bijux-runtime",
+            "bijux-analyze must not depend on workspace crate {dep}"
+        );
+    }
+
+    let bench = deps_for("bijux-bench");
+    for dep in &bench {
+        if is_guardrails(dep) {
+            continue;
+        }
+        assert!(
+            dep == "bijux-core"
+                || dep == "bijux-selection"
+                || dep == "bijux-analyze"
+                || dep == "bijux-engine"
+                || dep == "bijux-infra"
+                || dep == "bijux-runtime",
+            "bijux-bench must not depend on workspace crate {dep}"
+        );
     }
 
     let api = deps_for("bijux-api");

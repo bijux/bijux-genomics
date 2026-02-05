@@ -3,7 +3,8 @@ use std::path::PathBuf;
 
 use anyhow::Result;
 use bijux_analyze::{load::load_facts, report::write_run_report_from_facts};
-use bijux_core::{InvariantStatusV1, StageVerdictV1, ToolConstraints, ToolInvocationV1};
+use bijux_core::metrics::ToolInvocationV1;
+use bijux_core::{InvariantStatusV1, StageVerdictV1, ToolConstraints};
 use bijux_runtime::{
     EffectiveConfigV1, FactsRowV1, ReportSchemaV1, RetentionReportV1, StageReportV1,
 };

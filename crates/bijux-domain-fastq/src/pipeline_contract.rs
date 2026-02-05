@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use bijux_core::domain::PipelineSpec;
+use bijux_core::contract::PipelineSpec;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum StageCriticality {

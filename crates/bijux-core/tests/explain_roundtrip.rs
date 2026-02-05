@@ -1,5 +1,5 @@
+use bijux_core::explain::PlanExplainV1;
 use bijux_core::plan::execution_plan::{ExecutionPlan, PlanPolicy};
-use bijux_core::PlanExplainV1;
 use bijux_core::{
     CommandSpecV1, ContainerImageRefV1, StageId, StagePlanV1, StageVersion, ToolConstraints, ToolId,
 };

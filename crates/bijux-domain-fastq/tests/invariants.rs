@@ -4,7 +4,7 @@ fn legacy_manifests_still_load() {
         .join("..")
         .join("..")
         .join("domain");
-    let registry = bijux_core::load_manifests(&domain);
+    let registry = bijux_runtime::manifests::load_manifests(&domain);
     assert!(registry.is_ok());
 }
 
@@ -14,7 +14,7 @@ fn domain_onboarding_checklist_is_satisfied() {
         .join("..")
         .join("..")
         .join("domain");
-    let registry = bijux_core::load_manifests(&domain);
+    let registry = bijux_runtime::manifests::load_manifests(&domain);
     assert!(registry.is_ok(), "stage registry missing");
 
     let mut stages = bijux_domain_fastq::canonical_stage_order();
@@ -26,7 +26,7 @@ fn domain_onboarding_checklist_is_satisfied() {
 
     for stage in stages {
         assert!(
-            bijux_core::metrics_schema_for_stage(stage).is_some(),
+            bijux_core::metrics_registry::metrics_schema_for_stage(stage).is_some(),
             "missing metrics schema for {stage}"
         );
         assert!(

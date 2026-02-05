@@ -17,7 +17,8 @@ uuid.workspace = true
 rusqlite.workspace = true
 bijux-analyze = { path = "../bijux-analyze" }
 bijux-core = { path = "../bijux-core" }
-bijux-infra = { path = "../bijux-infra" }
+bijux-runtime = { path = "../bijux-runtime" }
+bijux-infra = { path = "../bijux-infra", features = ["yaml"] }
 
 [dev-dependencies]
 bijux-guardrails = { path = "../bijux-guardrails" }

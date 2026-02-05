@@ -30,6 +30,15 @@ pub struct ErrorHintV1 {
     pub docs_link_key: Option<String>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct RawFailure {
+    pub stage: String,
+    pub tool: String,
+    pub reason: String,
+    pub category: ErrorCategory,
+}
+
 #[derive(Debug, Error)]
 #[error("{category:?}: {message}")]
 pub struct CategorizedError {

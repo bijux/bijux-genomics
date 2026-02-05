@@ -5,7 +5,7 @@ use anyhow::{anyhow, Context, Result};
 use serde::{Deserialize, Serialize};
 
 use super::run_layout::{RunIndexLine, RunManifest};
-use bijux_core::selection::Objective;
+use bijux_core::contract::Objective;
 use bijux_core::RunMetadataV1;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

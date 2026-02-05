@@ -1,6 +1,7 @@
 use anyhow::Result;
+use bijux_core::metrics::ToolInvocationV1;
+use bijux_core::parameters_json_canonicalization;
 use bijux_core::params_hash;
-use bijux_core::{parameters_json_canonicalization, ToolInvocationV1};
 use std::collections::BTreeMap;
 
 #[test]

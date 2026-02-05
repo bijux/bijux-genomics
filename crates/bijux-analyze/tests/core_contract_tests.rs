@@ -2,7 +2,8 @@ use std::collections::BTreeSet;
 use std::path::Path;
 
 use bijux_analyze::StageMetricRegistry;
-use bijux_core::{load_manifests, Cardinality, PortSpec};
+use bijux_core::{Cardinality, PortSpec};
+use bijux_runtime::manifests::load_manifests;
 
 fn domain_root() -> std::path::PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -15,7 +16,7 @@ fn port_map(ports: &[PortSpec]) -> std::collections::BTreeMap<String, &PortSpec>
     ports.iter().map(|port| (port.name.clone(), port)).collect()
 }
 
-fn cardinality_eq(a: &Cardinality, b: &Cardinality) -> bool {
+fn cardinality_eq(a: Cardinality, b: Cardinality) -> bool {
     matches!(
         (a, b),
         (Cardinality::One, Cardinality::One) | (Cardinality::Many, Cardinality::Many)
@@ -58,7 +59,7 @@ fn tool_contracts_match_stage_inputs_outputs() -> Result<(), Box<dyn std::error:
                     tool.tool_id, output.name
                 );
                 assert!(
-                    cardinality_eq(&stage_output.cardinality, &output.cardinality),
+                    cardinality_eq(stage_output.cardinality, output.cardinality),
                     "tool {} output {} cardinality mismatch",
                     tool.tool_id,
                     output.name

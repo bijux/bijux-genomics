@@ -25,7 +25,6 @@ otel = ["opentelemetry"]
 
 [dev-dependencies]
 bijux-guardrails = { path = "../bijux-guardrails" }
-bijux-analyze = { path = "../bijux-analyze" }
 tempfile.workspace = true
 
 [lints]

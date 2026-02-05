@@ -12,7 +12,9 @@ opentelemetry = { workspace = true, optional = true }
 bijux-core = { path = "../bijux-core" }
 anyhow.workspace = true
 sha2.workspace = true
-bijux-infra = { path = "../bijux-infra" }
+bijux-infra = { path = "../bijux-infra", features = ["yaml"] }
+toml.workspace = true
+uuid.workspace = true
 
 [features]
 otel = ["opentelemetry"]

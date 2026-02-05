@@ -7,9 +7,7 @@ rust-version.workspace = true
 [dependencies]
 anyhow = "1"
 bijux-core = { path = "../bijux-core" }
-bijux-environment = { path = "../bijux-environment" }
-bijux-infra = { path = "../bijux-infra" }
-bijux-runner = { path = "../bijux-runner" }
+bijux-runtime = { path = "../bijux-runtime" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tracing = "0.1"
@@ -26,7 +24,7 @@ opentelemetry_sdk = { version = "0.24", optional = true }
 
 [dev-dependencies]
 bijux-guardrails = { path = "../bijux-guardrails" }
-bijux-runtime = { path = "../bijux-runtime" }
+bijux-infra = { path = "../bijux-infra" }
 assert_cmd = "2"
 tempfile.workspace = true
 

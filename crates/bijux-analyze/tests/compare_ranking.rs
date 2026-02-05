@@ -3,7 +3,8 @@ use std::path::PathBuf;
 
 use anyhow::Result;
 use bijux_analyze::{compare::compare_runs, ranking::build_rankings, ranking::RankInput};
-use bijux_core::{objective_spec, Objective};
+use bijux_core::contract::Objective;
+use bijux_selection::objective_spec;
 
 #[test]
 fn compare_and_ranking_snapshot() -> Result<()> {

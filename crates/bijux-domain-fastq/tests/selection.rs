@@ -1,7 +1,8 @@
 use std::path::PathBuf;
 
-use bijux_core::selection::{objective_spec, select_stage, BenchResultStatus, Objective};
+use bijux_core::contract::{BenchResultStatus, Objective};
 use bijux_domain_fastq::{get_results, BenchCorpus, BenchCorpusId, BenchDataset};
+use bijux_selection::{objective_spec, select_stage};
 fn bench_base_dir(out: &std::path::Path, stage: &str, sample_id: &str) -> std::path::PathBuf {
     out.join("artifacts")
         .join("bench")

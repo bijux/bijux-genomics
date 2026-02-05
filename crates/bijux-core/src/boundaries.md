@@ -20,7 +20,7 @@ This document defines ownership and allowed dependencies. Treat it as an API con
 ## bijux-planner-*
 - Owns: pipeline planning and tool selection for a domain.
 - Does not own: execution, CLI UX, environment detection.
-- Allowed deps: core + stages + pipelines + infra.
+- Allowed deps: core + stages + pipelines + selection + infra.
 
 ## bijux-api
 - Owns: orchestration surface (plan/run/report/bench) and stable public API.
@@ -30,12 +30,12 @@ This document defines ownership and allowed dependencies. Treat it as an API con
 ## bijux-engine
 - Owns: pure execution scheduling, artifact helpers.
 - Does not own: CLI argument parsing, domain business rules, execution adapters.
-- Allowed deps: core + environment + infra.
+- Allowed deps: core + runtime + infra.
 
 ## bijux-runner-*
 - Owns: execution adapters (docker/local), replay.
 - Does not own: CLI UX, orchestration.
-- Allowed deps: engine + env + stages + domain + infra.
+- Allowed deps: core + runtime + env + infra.
 
 ## bijux-environment
 - Owns: runner/platform discovery, image resolution.
@@ -50,25 +50,31 @@ This document defines ownership and allowed dependencies. Treat it as an API con
 ## bijux-analyze / bijux-bench
 - Owns: analysis/bench evaluation and reporting.
 - Does not own: planning, execution, CLI UX.
-- Allowed deps: core + domain + infra + runtime (no engine/stages).
+- Allowed deps: core + selection + domain + infra + runtime (no engine/stages).
+
+## bijux-selection
+- Owns: deterministic tool selection utilities and scoring helpers.
+- Does not own: planning, execution, CLI UX, or domain semantics.
+- Allowed deps: core only.
 
 ## Executable dependency map
 ```boundaries
 bijux-core: bijux-infra
 bijux-runtime: bijux-core bijux-infra
+bijux-selection: bijux-core
 bijux-domain-fastq: bijux-core bijux-infra
 bijux-domain-bam: bijux-core bijux-infra
 bijux-stages-fastq: bijux-core bijux-domain-fastq bijux-infra
 bijux-stages-bam: bijux-core bijux-domain-bam bijux-infra
-bijux-planner-fastq: bijux-core bijux-stages-fastq bijux-pipelines bijux-infra
-bijux-planner-bam: bijux-core bijux-stages-bam bijux-infra
-bijux-engine: bijux-core bijux-environment bijux-infra bijux-runner
-bijux-runner: bijux-engine bijux-environment bijux-infra
+bijux-planner-fastq: bijux-core bijux-selection bijux-stages-fastq bijux-pipelines bijux-infra
+bijux-planner-bam: bijux-core bijux-selection bijux-stages-bam bijux-infra
+bijux-engine: bijux-core bijux-runtime bijux-infra
+bijux-runner: bijux-core bijux-runtime bijux-environment bijux-infra
 bijux-environment: bijux-core bijux-infra
 bijux-pipelines: bijux-core bijux-domain-fastq bijux-domain-bam
-bijux-analyze: bijux-core bijux-domain-fastq bijux-domain-bam bijux-infra bijux-runtime
-bijux-bench: bijux-core bijux-analyze bijux-engine bijux-infra bijux-runtime
-bijux-api: bijux-core bijux-engine bijux-runner bijux-environment bijux-analyze bijux-pipelines bijux-infra bijux-planner-fastq bijux-planner-bam bijux-runtime
+bijux-analyze: bijux-core bijux-selection bijux-domain-fastq bijux-domain-bam bijux-infra bijux-runtime
+bijux-bench: bijux-core bijux-selection bijux-analyze bijux-engine bijux-infra bijux-runtime
+bijux-api: bijux-core bijux-selection bijux-engine bijux-runner bijux-environment bijux-analyze bijux-pipelines bijux-infra bijux-planner-fastq bijux-planner-bam bijux-runtime
 bijux-cli: bijux-api
 bijux: bijux-api
 ```

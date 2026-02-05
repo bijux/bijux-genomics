@@ -2,10 +2,10 @@ use std::collections::BTreeMap;
 use std::path::PathBuf;
 
 use anyhow::{anyhow, Result};
-use bijux_core::domain::PipelineSpec;
+use bijux_core::contract::PipelineSpec;
+use bijux_core::explain::PlanExplainV1;
 use bijux_core::plan::execution_plan::{default_edges_for_stages, ExecutionPlan, PlanPolicy};
 use bijux_core::primitives::input_assessment::{assess_input_dir, FastqLayout};
-use bijux_core::PlanExplainV1;
 use bijux_core::{
     ContainerImageRefV1, PlanDecisionReason, PlanReasonKind, StagePlanV1, ToolExecutionSpecV1,
 };
@@ -718,7 +718,7 @@ pub fn select_preprocess_tools(
             .bench_corpus
             .ok_or_else(|| anyhow!("--bench-corpus is required with --auto"))?;
         let corpus = bijux_stages_fastq::bench_corpus(corpus_id);
-        let objective = bijux_core::selection::objective_spec(args.objective);
+        let objective = bijux_selection::objective_spec(args.objective);
         let mut selections = Vec::new();
         for stage in &pipeline.stages {
             let tool_ids: Vec<String> = registry
@@ -731,12 +731,8 @@ pub fn select_preprocess_tools(
                 let records = bijux_stages_fastq::get_results(stage, tool, &corpus, &args.out)?;
                 tool_records.push((tool.clone(), records));
             }
-            let selection = bijux_core::selection::select_stage(
-                stage,
-                &tool_records,
-                &objective,
-                args.allow_partial,
-            );
+            let selection =
+                bijux_selection::select_stage(stage, &tool_records, &objective, args.allow_partial);
             selections.push(selection);
         }
         for (idx, selection) in selections.into_iter().enumerate() {
