@@ -70,33 +70,47 @@ impl PipelineId {
     }
 }
 
+/// # Errors
+/// Returns an error if the stage id is invalid.
 pub fn parse_stage_id(value: &str) -> Result<StageId> {
     validate_stage_id_str(value)?;
     Ok(StageId::new(value.to_string()))
 }
 
+/// # Errors
+/// Returns an error if the tool id is invalid.
 pub fn parse_tool_id(value: &str) -> Result<ToolId> {
     validate_tool_id_str(value)?;
     Ok(ToolId::new(value.to_string()))
 }
 
+/// # Errors
+/// Returns an error if the pipeline id is invalid.
 pub fn parse_pipeline_id(value: &str) -> Result<PipelineId> {
     validate_pipeline_id_str(value)?;
     Ok(PipelineId::new(value.to_string()))
 }
 
+/// # Errors
+/// Returns an error if the stage id is invalid.
 pub fn validate_stage_id(id: &StageId) -> Result<()> {
     validate_stage_id_str(id.as_str())
 }
 
+/// # Errors
+/// Returns an error if the tool id is invalid.
 pub fn validate_tool_id(id: &ToolId) -> Result<()> {
     validate_tool_id_str(id.as_str())
 }
 
+/// # Errors
+/// Returns an error if the pipeline id is invalid.
 pub fn validate_pipeline_id(id: &PipelineId) -> Result<()> {
     validate_pipeline_id_str(id.as_str())
 }
 
+/// # Errors
+/// Returns an error if the stage id is invalid.
 pub fn validate_stage_id_str(id: &str) -> Result<()> {
     if id.is_empty() {
         return Err(anyhow!("stage id cannot be empty"));
@@ -112,6 +126,8 @@ pub fn validate_stage_id_str(id: &str) -> Result<()> {
     Ok(())
 }
 
+/// # Errors
+/// Returns an error if the tool id is invalid.
 pub fn validate_tool_id_str(id: &str) -> Result<()> {
     if id.is_empty() {
         return Err(anyhow!("tool id cannot be empty"));
@@ -124,6 +140,8 @@ pub fn validate_tool_id_str(id: &str) -> Result<()> {
     Ok(())
 }
 
+/// # Errors
+/// Returns an error if the pipeline id is invalid.
 pub fn validate_pipeline_id_str(id: &str) -> Result<()> {
     let parts: Vec<&str> = id.split("__").collect();
     if parts.len() != 3 {
