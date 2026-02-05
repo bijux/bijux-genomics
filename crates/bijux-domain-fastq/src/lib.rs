@@ -22,6 +22,7 @@ pub mod prelude;
 pub mod run;
 pub mod stage_registry;
 mod stages;
+pub mod tool_registry;
 pub mod types;
 
 pub use adapter_bank::{
@@ -47,7 +48,6 @@ pub use polyx_bank::{
     load_polyx_bank, load_polyx_presets, polyx_bank_path, polyx_presets_path, resolve_polyx_preset,
     EffectivePolyxSet, PolyxBankV1, PolyxEntryV1, PolyxPresetV1, PolyxPresetsV1,
 };
-pub use run::query::get_results;
 pub use run::{
     append_event, bench_corpus, benchmark_runs, create_run_layout, now_string, update_run_index,
     write_benchmark_exports, write_environment, write_input_assessment, write_manifest,
@@ -67,6 +67,7 @@ pub use stage_registry::{
     STAGE_PREFIX, STAGE_PREPROCESS, STAGE_QC_POST, STAGE_RRNA, STAGE_SCREEN, STAGE_STATS_NEUTRAL,
     STAGE_TRIM, STAGE_UMI, STAGE_VALIDATE_PRE,
 };
+pub use tool_registry::{canonical_tools_for_stage, default_tool_for_stage};
 pub use types::{
     AdapterContributionV1, AdapterTrimmingReportV1, FastqArtifact, FastqArtifactKind, FastqLayout,
     FastqPE, FastqPairedEnd, FastqSE, FastqSampleId, FastqSingleEnd, FastqStats, RetentionReportV1,

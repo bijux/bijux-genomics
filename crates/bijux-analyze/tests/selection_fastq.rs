@@ -1,16 +1,18 @@
 use std::path::PathBuf;
 
+use bijux_analyze::load::sqlite::{BenchResultsRepository, SqliteBenchResultsRepository};
 use bijux_core::contract::{BenchResultStatus, Objective};
 use bijux_core::selection::{objective_spec, select_stage};
-use bijux_domain_fastq::{get_results, BenchCorpus, BenchCorpusId, BenchDataset};
+use bijux_domain_fastq::{BenchCorpus, BenchCorpusId, BenchDataset};
+use rusqlite::{params, Connection};
+use uuid::Uuid;
+
 fn bench_base_dir(out: &std::path::Path, stage: &str, sample_id: &str) -> std::path::PathBuf {
     out.join("artifacts")
         .join("bench")
         .join(stage)
         .join(sample_id)
 }
-use rusqlite::{params, Connection};
-use uuid::Uuid;
 
 fn create_bench_db(
     path: &PathBuf,
@@ -144,11 +146,12 @@ fn default_route_selects_tools_deterministically() -> Result<(), Box<dyn std::er
         "fastq.qc_post",
     ];
 
+    let repo = SqliteBenchResultsRepository::new(temp_root.clone());
     for stage in pipeline_stages {
         let tools = vec!["tool_fast".to_string(), "tool_slow".to_string()];
         let mut tool_records = Vec::new();
         for tool in &tools {
-            let records = get_results(stage, tool, &corpus, &temp_root)?;
+            let records = repo.bench_results(stage, tool, &corpus)?;
             tool_records.push((tool.clone(), records));
         }
         if tool_records.iter().all(|(_, records)| {
@@ -160,7 +163,8 @@ fn default_route_selects_tools_deterministically() -> Result<(), Box<dyn std::er
             continue;
         }
         let objective = objective_spec(Objective::Speed);
-        let selection = select_stage(stage, &tool_records, &objective, false);
+        let stage_id = bijux_core::ids::StageId::new(stage.to_string());
+        let selection = select_stage(&stage_id, &tool_records, &objective, false);
         assert_eq!(selection.selected, Some("tool_fast".to_string()));
     }
 

@@ -14,6 +14,7 @@ tracing.workspace = true
 anyhow.workspace = true
 bijux-core = { path = "../bijux-core" }
 bijux-domain-bam = { path = "../bijux-domain-bam" }
+bijux-domain-fastq = { path = "../bijux-domain-fastq" }
 bijux-infra = { path = "../bijux-infra" }
 bijux-runtime = { path = "../bijux-runtime" }
 sha2.workspace = true
@@ -31,6 +32,7 @@ insta = { version = "1", features = ["json"] }
 bijux-pipelines = { path = "../bijux-pipelines" }
 bijux-planner-fastq = { path = "../bijux-planner-fastq" }
 bijux-planner-bam = { path = "../bijux-planner-bam" }
+uuid.workspace = true
 
 [lints]
 workspace = true
