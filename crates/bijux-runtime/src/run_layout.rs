@@ -8,9 +8,9 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use bijux_core::metadata::RunMetadataV1;
-use bijux_runtime::events::RunEvent;
+use bijux_core::primitives::input_assessment::FastqLayout;
 
-use crate::types::FastqLayout;
+use crate::events::RunEvent;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RunEnvironment {
