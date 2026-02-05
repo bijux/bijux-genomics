@@ -1,6 +1,10 @@
 [profile.default]
 retries = { count = 1 }
 
+[profile.ci]
+retries = { count = 1 }
+default-filter = "not test-group(slow) and not test-group(e2e) and not test-group(science) and not package(bijux-environment)"
+
 [profile.slow]
 retries = { count = 1 }
 
