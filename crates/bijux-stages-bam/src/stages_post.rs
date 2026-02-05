@@ -25,7 +25,7 @@ pub mod markdup {
         let idxstats_before = out_dir.join("idxstats.before.txt");
         let idxstats_after = out_dir.join("idxstats.after.txt");
         let summary = out_dir.join("markdup.summary.json");
-        let command = match tool.tool_id.0.as_str() {
+        let command = match tool.tool_id.as_str() {
             "samtools" => crate::tools::samtools::markdup_args_with_audit(
                 bam,
                 &out_bam,
@@ -48,7 +48,7 @@ pub mod markdup {
             ),
         };
         let plan = StagePlanV1 {
-            stage_id: StageId(STAGE_ID.to_string()),
+            stage_id: StageId::from_static(STAGE_ID),
             stage_version: STAGE_VERSION,
             tool_id: tool.tool_id.clone(),
             tool_version: tool.tool_version.clone(),
@@ -111,7 +111,7 @@ pub mod complexity {
         let outputs =
             crate::stages_support::audit_outputs(bijux_domain_bam::BamStage::Complexity, out_dir);
         let plan = StagePlanV1 {
-            stage_id: StageId(STAGE_ID.to_string()),
+            stage_id: StageId::from_static(STAGE_ID),
             stage_version: STAGE_VERSION,
             tool_id: tool.tool_id.clone(),
             tool_version: tool.tool_version.clone(),
@@ -168,7 +168,7 @@ pub mod coverage {
         let prefix = out_dir.join("coverage");
         let depth_path = out_dir.join("coverage.depth.txt");
         let summary_path = out_dir.join("coverage.mosdepth.summary.txt");
-        let command = match tool.tool_id.0.as_str() {
+        let command = match tool.tool_id.as_str() {
             "samtools" => {
                 outputs.push(bijux_core::plan::stage_plan::ArtifactRef {
                     name: "coverage_depth".to_string(),
@@ -179,7 +179,7 @@ pub mod coverage {
             _ => crate::tools::mosdepth::args(bam, &prefix, params),
         };
         let plan = StagePlanV1 {
-            stage_id: StageId(STAGE_ID.to_string()),
+            stage_id: StageId::from_static(STAGE_ID),
             stage_version: STAGE_VERSION,
             tool_id: tool.tool_id.clone(),
             tool_version: tool.tool_version.clone(),
@@ -231,7 +231,7 @@ pub mod recalibration {
             out_dir,
         );
         let plan = StagePlanV1 {
-            stage_id: StageId(STAGE_ID.to_string()),
+            stage_id: StageId::from_static(STAGE_ID),
             stage_version: STAGE_VERSION,
             tool_id: tool.tool_id.clone(),
             tool_version: tool.tool_version.clone(),

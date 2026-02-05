@@ -8,7 +8,7 @@ use bijux_core::{
 
 fn dummy_tool(tool: &str) -> ToolExecutionSpecV1 {
     ToolExecutionSpecV1 {
-        tool_id: ToolId(tool.to_string()),
+        tool_id: ToolId::new(tool),
         tool_version: "1.0.0".to_string(),
         image: ContainerImageRefV1 {
             image: "bijux/test:latest".to_string(),

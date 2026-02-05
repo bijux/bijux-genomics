@@ -18,7 +18,7 @@ pub mod haplogroups {
         let outputs =
             crate::stages_support::audit_outputs(bijux_domain_bam::BamStage::Haplogroups, out_dir);
         let plan = StagePlanV1 {
-            stage_id: StageId(STAGE_ID.to_string()),
+            stage_id: StageId::from_static(STAGE_ID),
             stage_version: STAGE_VERSION,
             tool_id: tool.tool_id.clone(),
             tool_version: tool.tool_version.clone(),
@@ -71,7 +71,7 @@ pub mod genotyping {
         let outputs =
             crate::stages_support::audit_outputs(bijux_domain_bam::BamStage::Genotyping, out_dir);
         let plan = StagePlanV1 {
-            stage_id: StageId(STAGE_ID.to_string()),
+            stage_id: StageId::from_static(STAGE_ID),
             stage_version: STAGE_VERSION,
             tool_id: tool.tool_id.clone(),
             tool_version: tool.tool_version.clone(),
@@ -125,7 +125,7 @@ pub mod kinship {
         let outputs =
             crate::stages_support::audit_outputs(bijux_domain_bam::BamStage::Kinship, out_dir);
         let plan = StagePlanV1 {
-            stage_id: StageId(STAGE_ID.to_string()),
+            stage_id: StageId::from_static(STAGE_ID),
             stage_version: STAGE_VERSION,
             tool_id: tool.tool_id.clone(),
             tool_version: tool.tool_version.clone(),
@@ -180,7 +180,7 @@ pub mod bias_mitigation {
             out_dir,
         );
         let plan = StagePlanV1 {
-            stage_id: StageId(STAGE_ID.to_string()),
+            stage_id: StageId::from_static(STAGE_ID),
             stage_version: STAGE_VERSION,
             tool_id: tool.tool_id.clone(),
             tool_version: tool.tool_version.clone(),

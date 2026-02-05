@@ -40,7 +40,7 @@ pub mod validate {
             });
         }
         let plan = StagePlanV1 {
-            stage_id: StageId(STAGE_ID.to_string()),
+            stage_id: StageId::from_static(STAGE_ID),
             stage_version: STAGE_VERSION,
             tool_id: tool.tool_id.clone(),
             tool_version: tool.tool_version.clone(),
@@ -109,7 +109,7 @@ pub mod align {
         let mut effective = params.clone();
         effective.read_group = read_group;
 
-        let command = match tool.tool_id.0.as_str() {
+        let command = match tool.tool_id.as_str() {
             "bwa" => crate::tools::bwa::align_args(reference, r1, r2, out_dir, &effective),
             "bowtie2" => crate::tools::bowtie2::align_args(reference, r1, r2, out_dir, &effective),
             other => {
@@ -138,7 +138,7 @@ pub mod align {
         };
 
         let plan = StagePlanV1 {
-            stage_id: StageId(STAGE_ID.to_string()),
+            stage_id: StageId::from_static(STAGE_ID),
             stage_version: STAGE_VERSION,
             tool_id: tool.tool_id.clone(),
             tool_version: tool.tool_version.clone(),
@@ -209,7 +209,7 @@ pub mod qc_pre {
         let idxstats = out_dir.join("idxstats.txt");
         let stats = out_dir.join("samtools_stats.txt");
         let plan = StagePlanV1 {
-            stage_id: StageId(STAGE_ID.to_string()),
+            stage_id: StageId::from_static(STAGE_ID),
             stage_version: STAGE_VERSION,
             tool_id: tool.tool_id.clone(),
             tool_version: tool.tool_version.clone(),
@@ -277,7 +277,7 @@ pub mod filter {
         let idxstats_after = out_dir.join("idxstats.after.txt");
         let summary = out_dir.join("filter.summary.json");
         let plan = StagePlanV1 {
-            stage_id: StageId(STAGE_ID.to_string()),
+            stage_id: StageId::from_static(STAGE_ID),
             stage_version: STAGE_VERSION,
             tool_id: tool.tool_id.clone(),
             tool_version: tool.tool_version.clone(),

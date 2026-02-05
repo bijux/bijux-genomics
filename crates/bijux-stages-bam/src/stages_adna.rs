@@ -20,12 +20,12 @@ pub mod damage {
         let outputs =
             crate::stages_support::audit_outputs(bijux_domain_bam::BamStage::Damage, out_dir);
         let out_json = out_dir.join("damage.pydamage.json");
-        let command = match tool.tool_id.0.as_str() {
+        let command = match tool.tool_id.as_str() {
             "mapdamage2" => crate::tools::mapdamage2::damage_args(bam, out_dir, params),
             _ => crate::tools::pydamage::args(bam, &out_json, params),
         };
         let plan = StagePlanV1 {
-            stage_id: StageId(STAGE_ID.to_string()),
+            stage_id: StageId::from_static(STAGE_ID),
             stage_version: STAGE_VERSION,
             tool_id: tool.tool_id.clone(),
             tool_version: tool.tool_version.clone(),
@@ -83,7 +83,7 @@ pub mod authenticity {
         let outputs =
             crate::stages_support::audit_outputs(bijux_domain_bam::BamStage::Authenticity, out_dir);
         let plan = StagePlanV1 {
-            stage_id: StageId(STAGE_ID.to_string()),
+            stage_id: StageId::from_static(STAGE_ID),
             stage_version: STAGE_VERSION,
             tool_id: tool.tool_id.clone(),
             tool_version: tool.tool_version.clone(),
@@ -141,7 +141,7 @@ pub mod contamination {
         let report = out_dir.join("contamination.json");
         let summary = out_dir.join("contamination.summary.json");
         let plan = StagePlanV1 {
-            stage_id: StageId(STAGE_ID.to_string()),
+            stage_id: StageId::from_static(STAGE_ID),
             stage_version: STAGE_VERSION,
             tool_id: tool.tool_id.clone(),
             tool_version: tool.tool_version.clone(),
@@ -203,7 +203,7 @@ pub mod sex {
         let report = out_dir.join("sex.json");
         let summary = out_dir.join("sex.summary.json");
         let plan = StagePlanV1 {
-            stage_id: StageId(STAGE_ID.to_string()),
+            stage_id: StageId::from_static(STAGE_ID),
             stage_version: STAGE_VERSION,
             tool_id: tool.tool_id.clone(),
             tool_version: tool.tool_version.clone(),
