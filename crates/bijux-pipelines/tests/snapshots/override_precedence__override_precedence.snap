@@ -5,13 +5,13 @@ expression: snapshot
 {
   "params": {
     "fastq.trim": {
-      "min_len": 10
+      "min_len": 20
     }
   },
   "rationales": {
-    "fastq.trim": "cli override"
+    "fastq.trim": "api override"
   },
   "tools": {
-    "fastq.trim": "fastp"
+    "fastq.trim": "cutadapt"
   }
 }
