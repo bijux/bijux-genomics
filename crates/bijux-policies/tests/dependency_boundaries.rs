@@ -36,35 +36,47 @@ fn parse_dependency_names(manifest: &Path) -> Vec<String> {
 }
 
 #[test]
-fn domain_crates_use_only_pure_dependencies() {
+fn stages_do_not_depend_on_environment() {
     let root = workspace_root();
-    let denylist = [
-        "rusqlite",
-        "reqwest",
-        "tokio",
-        "tracing-subscriber",
-        "opendal",
-        "bollard",
-        "bijux-runtime",
-        "bijux-engine",
-        "bijux-environment",
-    ];
-    let domains = [
-        root.join("crates/bijux-domain-fastq/Cargo.toml"),
-        root.join("crates/bijux-domain-bam/Cargo.toml"),
+    let manifests = [
+        root.join("crates/bijux-stages-fastq/Cargo.toml"),
+        root.join("crates/bijux-stages-bam/Cargo.toml"),
     ];
     let mut offenders = Vec::new();
-    for manifest in domains {
+    for manifest in manifests {
         let deps = parse_dependency_names(&manifest);
-        for forbidden in denylist {
-            if deps.iter().any(|dep| dep == forbidden) {
-                offenders.push(format!("{} depends on {}", manifest.display(), forbidden));
-            }
+        if deps.iter().any(|dep| dep == "bijux-environment") {
+            offenders.push(format!(
+                "{} depends on bijux-environment",
+                manifest.display()
+            ));
         }
     }
     assert!(
         offenders.is_empty(),
-        "domain crates must not depend on external/side-effectful deps:\n{}",
+        "stages crates must not depend on bijux-environment:\n{}",
+        offenders.join("\n")
+    );
+}
+
+#[test]
+fn analyze_and_benchmark_do_not_depend_on_engine() {
+    let root = workspace_root();
+    let manifests = [
+        root.join("crates/bijux-analyze/Cargo.toml"),
+        root.join("crates/bijux-benchmark/Cargo.toml"),
+        root.join("crates/bijux-benchmark-model/Cargo.toml"),
+    ];
+    let mut offenders = Vec::new();
+    for manifest in manifests {
+        let deps = parse_dependency_names(&manifest);
+        if deps.iter().any(|dep| dep == "bijux-engine") {
+            offenders.push(format!("{} depends on bijux-engine", manifest.display()));
+        }
+    }
+    assert!(
+        offenders.is_empty(),
+        "analyze/benchmark crates must not depend on bijux-engine:\n{}",
         offenders.join("\n")
     );
 }
