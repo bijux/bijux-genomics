@@ -48,21 +48,15 @@ pub use polyx_bank::{
     load_polyx_bank, load_polyx_presets, polyx_bank_path, polyx_presets_path, resolve_polyx_preset,
     EffectivePolyxSet, PolyxBankV1, PolyxEntryV1, PolyxPresetV1, PolyxPresetsV1,
 };
-pub use run::{
-    append_event, bench_corpus, benchmark_runs, create_run_layout, now_string, update_run_index,
-    write_benchmark_exports, write_environment, write_input_assessment, write_manifest,
-    write_run_metadata, BenchCorpus, BenchCorpusId, BenchDataset, InputAssessmentV1,
-    RunArtifactEntry, RunEnvironment, RunIndexEntry, RunLayout, RunManifest, RunStageEntry,
-    ToolImageDigest,
-};
 pub use run::{assess_input_dir, discover_fastq_files};
+pub use run::{bench_corpus, BenchCorpus, BenchCorpusId, BenchDataset};
 pub use stage_registry::{
-    assess_merge_suitability, canonical_contract_for_stage, contract_for_stage, ensure_umi_headers,
-    fastq_stage_is_stable, infer_input_kind, inspect_headers, log_header_warnings,
-    normalize_outputs, preflight_stage, qc_class_for_stage, stage_criticality, stage_kind,
-    stage_metric_classes, stage_metric_invariants, stage_semantics, BoundaryInvariant, FastqStage,
-    FastqStageContract, FastqStageKind, HeaderInspection, MergeSuitability, NormalizedOutputs,
-    QcClass, StageContract, StageDefinition, StageIO, StageSemantics, STAGES,
+    assess_merge_suitability, bench_dir_name, canonical_contract_for_stage, contract_for_stage,
+    ensure_umi_headers, fastq_stage_is_stable, infer_input_kind, inspect_headers,
+    log_header_warnings, normalize_outputs, preflight_stage, qc_class_for_stage, stage_criticality,
+    stage_kind, stage_metric_classes, stage_metric_invariants, stage_semantics, BoundaryInvariant,
+    FastqStage, FastqStageContract, FastqStageKind, HeaderInspection, MergeSuitability,
+    NormalizedOutputs, QcClass, StageContract, StageDefinition, StageIO, StageSemantics, STAGES,
     STAGE_BOUNDARY_INVARIANTS, STAGE_CORRECT, STAGE_DETECT_ADAPTERS, STAGE_FILTER, STAGE_MERGE,
     STAGE_PREFIX, STAGE_PREPROCESS, STAGE_QC_POST, STAGE_RRNA, STAGE_SCREEN, STAGE_STATS_NEUTRAL,
     STAGE_TRIM, STAGE_UMI, STAGE_VALIDATE_PRE,

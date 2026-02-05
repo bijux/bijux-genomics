@@ -7,7 +7,6 @@ rust-version.workspace = true
 
 [dependencies]
 bijux-core = { path = "../bijux-core" }
-bijux-runtime = { path = "../bijux-runtime" }
 anyhow.workspace = true
 schemars.workspace = true
 serde.workspace = true
