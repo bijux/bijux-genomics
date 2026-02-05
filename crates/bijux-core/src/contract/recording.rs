@@ -6,7 +6,10 @@ use sha2::Digest;
 
 use bijux_infra::bench_tools_dir;
 
-use bijux_core::StageObservabilityContextV1;
+use bijux_core::{
+    hashing::params_hash, plan::execution_plan::ExecutionPlan,
+    scientific_provenance::ScientificProvenanceV1, StageObservabilityContextV1, ToolInvocationV1,
+};
 use serde::Serialize;
 
 #[derive(Debug)]
@@ -180,6 +183,53 @@ pub fn write_scientific_provenance(
     bijux_infra::atomic_write_json(&path, provenance)
         .context("write scientific_provenance.json")?;
     Ok(path)
+}
+
+/// Build and write a minimal scientific provenance file derived from the plan.
+///
+/// This is intended for contract tests and dry-run validation.
+pub fn write_plan_provenance(run_dir: &Path, plan: &ExecutionPlan) -> Result<PathBuf> {
+    let mut invocations = Vec::new();
+    let mut params_hashes = std::collections::BTreeMap::new();
+    for stage in plan.stages() {
+        let key = format!("{}:{}", stage.stage_id.0, stage.tool_id.0);
+        let hash = params_hash(&stage.params)?;
+        params_hashes.insert(key, hash);
+        let image_digest = stage
+            .image
+            .digest
+            .clone()
+            .unwrap_or_else(|| "unknown".to_string());
+        invocations.push(ToolInvocationV1 {
+            schema_version: "bijux.tool_invocation.v1".to_string(),
+            stage_id: stage.stage_id.0.clone(),
+            tool_id: stage.tool_id.0.clone(),
+            tool_version: stage.tool_version.clone(),
+            resolved_tool_version: None,
+            image_digest,
+            runner_kind: "fake".to_string(),
+            platform: "unknown".to_string(),
+            parameters_json: stage.params.clone(),
+            parameters_json_normalized: stage.params.clone(),
+            effective_params_json: stage.effective_params.clone(),
+            effective_params_json_normalized: stage.effective_params.clone(),
+            adapter_bank: None,
+            banks: None,
+            bank_assets: None,
+            resources: stage.resources.clone(),
+            environment: std::collections::BTreeMap::new(),
+            input_hashes: Vec::new(),
+            output_hashes: Vec::new(),
+            executed_command: None,
+        });
+    }
+    let provenance = ScientificProvenanceV1::from_invocations(
+        plan.pipeline_id().to_string(),
+        plan.planner_version().to_string(),
+        &params_hashes,
+        &invocations,
+    );
+    write_scientific_provenance(run_dir, &provenance)
 }
 
 pub fn write_telemetry_event(path: &Path, event: &bijux_core::TelemetryEventV1) -> Result<()> {
