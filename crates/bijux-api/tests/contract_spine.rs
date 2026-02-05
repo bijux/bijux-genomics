@@ -8,7 +8,8 @@ use bijux_core::plan::stage_plan::{
     ArtifactRef, CommandSpecV1, ContainerImageRefV1, PlanDecisionReason, StageIO, StagePlanV1,
 };
 use bijux_core::primitives::hashing::params_hash;
-use bijux_core::{StageId, StageVersion, ToolConstraints, ToolId};
+use bijux_core::{PipelineId, StageId, StageVersion, ToolConstraints, ToolId};
+use bijux_pipelines::DefaultsLedgerV1;
 use bijux_runner::{Artifact, Invocation, Runner, RunnerResult};
 use bijux_runtime::recording::write_plan_provenance;
 use bijux_runtime::FactsRowV1;
@@ -126,6 +127,19 @@ fn golden_spine_contract() -> Result<()> {
     let facts_path = base_dir.join("facts.jsonl");
     let facts_line = format!("{}\n", serde_json::to_string(&facts_row)?);
     bijux_infra::write_bytes(&facts_path, facts_line.as_bytes())?;
+
+    let defaults_path = base_dir.join("defaults_ledger.json");
+    let defaults = DefaultsLedgerV1 {
+        pipeline_id: PipelineId::new("pipeline.test"),
+        tools: BTreeMap::new(),
+        params: BTreeMap::new(),
+        thresholds: BTreeMap::new(),
+        tool_provenance: BTreeMap::new(),
+        param_provenance: BTreeMap::new(),
+        assumptions: Vec::new(),
+        citations: BTreeMap::new(),
+    };
+    bijux_infra::write_bytes(&defaults_path, serde_json::to_vec(&defaults)?)?;
 
     let report_path = bijux_analyze::write_run_report_from_facts(base_dir, &[facts_row])?;
     assert!(report_path.exists());
