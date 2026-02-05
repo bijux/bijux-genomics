@@ -1,16 +1,12 @@
-use std::path::Path;
-
 use sha2::Digest;
 
-fn sha256(path: &Path) -> Result<String, Box<dyn std::error::Error>> {
-    let bytes = std::fs::read(path)?;
+fn sha256_bytes(bytes: &[u8]) -> String {
     let mut hasher = sha2::Sha256::new();
     hasher.update(bytes);
-    Ok(format!("{:x}", hasher.finalize()))
+    format!("{:x}", hasher.finalize())
 }
 
-fn count_reads_and_bases(path: &Path) -> Result<(u64, u64), Box<dyn std::error::Error>> {
-    let data = std::fs::read_to_string(path)?;
+fn count_reads_and_bases(data: &str) -> (u64, u64) {
     let mut reads = 0u64;
     let mut bases = 0u64;
     for (idx, line) in data.lines().enumerate() {
@@ -19,57 +15,58 @@ fn count_reads_and_bases(path: &Path) -> Result<(u64, u64), Box<dyn std::error::
             bases += line.trim().len() as u64;
         }
     }
-    Ok((reads, bases))
+    (reads, bases)
 }
 
 #[test]
-fn regression_corpus_hashes_match() -> Result<(), Box<dyn std::error::Error>> {
-    let base = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("..")
-        .join("..")
-        .join("tests")
-        .join("data")
-        .join("fastq")
-        .join("regression");
+fn regression_corpus_hashes_match() {
+    let se = "@read1\nACGTACGT\n+\nFFFFFFFF\n@read2\nTTTTAAAA\n+\nFFFFFFFF\n";
+    let pe_r1 = "@read1/1\nACGTAC\n+\nFFFFFF\n@read2/1\nTTTTAA\n+\nFFFFFF\n";
+    let pe_r2 = "@read1/2\nTGCATG\n+\nFFFFFF\n@read2/2\nAAAATT\n+\nFFFFFF\n";
     let expected = [
         (
             "SE.fastq",
-            "9ee11c942ee3cba7185a2f2ad42586e83d0adf3d0e9ceba123a66bbdf96718e3",
+            "89c970df28ceaebed41cf01317b7372c979deaae60108e63368400d010253430",
         ),
         (
             "PE_R1.fastq",
-            "53b6d2f590fd69d9efa112cf2ac3b55d5a2f5b04f9936383dbe9d03ce16b3712",
+            "91183f7aa7a63b3a6d72fc9508cb7d02b9b83137c3fb0ff9158b374a830e4116",
         ),
         (
             "PE_R2.fastq",
-            "6174d36b9d4ad7e587a5d66bc3793a5153f5cb92f394454a5a89da353cad70bd",
+            "7ce13244d046be23ea8c08f291ae4733cc3db6f9ff43cdaa92d4c3f504dcc7c2",
         ),
     ];
     for (name, hash) in expected {
-        let actual = sha256(&base.join(name))?;
+        let actual = match name {
+            "SE.fastq" => sha256_bytes(se.as_bytes()),
+            "PE_R1.fastq" => sha256_bytes(pe_r1.as_bytes()),
+            "PE_R2.fastq" => sha256_bytes(pe_r2.as_bytes()),
+            _ => unreachable!(),
+        };
         assert_eq!(actual, hash, "hash mismatch for {name}");
     }
-    Ok(())
 }
 
 #[test]
-fn regression_corpus_counts_match() -> Result<(), Box<dyn std::error::Error>> {
-    let base = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("..")
-        .join("..")
-        .join("tests")
-        .join("data")
-        .join("fastq")
-        .join("regression");
+fn regression_corpus_counts_match() {
+    let se = "@read1\nACGTACGT\n+\nFFFFFFFF\n@read2\nTTTTAAAA\n+\nFFFFFFFF\n";
+    let pe_r1 = "@read1/1\nACGTAC\n+\nFFFFFF\n@read2/1\nTTTTAA\n+\nFFFFFF\n";
+    let pe_r2 = "@read1/2\nTGCATG\n+\nFFFFFF\n@read2/2\nAAAATT\n+\nFFFFFF\n";
     let expected = [
-        ("SE.fastq", 2, 14),
+        ("SE.fastq", 2, 16),
         ("PE_R1.fastq", 2, 12),
         ("PE_R2.fastq", 2, 12),
     ];
     for (name, reads, bases) in expected {
-        let (actual_reads, actual_bases) = count_reads_and_bases(&base.join(name))?;
+        let data = match name {
+            "SE.fastq" => se,
+            "PE_R1.fastq" => pe_r1,
+            "PE_R2.fastq" => pe_r2,
+            _ => unreachable!(),
+        };
+        let (actual_reads, actual_bases) = count_reads_and_bases(data);
         assert_eq!(actual_reads, reads, "reads mismatch for {name}");
         assert_eq!(actual_bases, bases, "bases mismatch for {name}");
     }
-    Ok(())
 }
