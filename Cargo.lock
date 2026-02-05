@@ -295,6 +295,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bijux-analyze",
+ "bijux-benchmark",
  "bijux-core",
  "bijux-engine",
  "bijux-environment",
@@ -321,11 +322,24 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bijux-analyze",
+ "bijux-benchmark-model",
  "bijux-core",
  "bijux-infra",
  "bijux-policies",
+ "bijux-runtime",
  "fastrand",
  "insta",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "bijux-benchmark-model"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bijux-analyze",
+ "fastrand",
  "serde",
  "serde_json",
 ]
@@ -359,7 +373,6 @@ dependencies = [
  "anyhow",
  "bijux-core",
  "bijux-policies",
- "bijux-runtime",
  "schemars",
  "serde",
  "serde_json",
@@ -373,7 +386,6 @@ dependencies = [
  "bijux-core",
  "bijux-infra",
  "bijux-policies",
- "bijux-runtime",
  "schemars",
  "serde",
  "serde_json",
