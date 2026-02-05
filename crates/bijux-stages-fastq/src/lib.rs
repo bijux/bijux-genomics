@@ -35,8 +35,7 @@ pub struct StagePlanRequest<'a> {
     pub polyx_bank: Option<&'a serde_json::Value>,
     pub contaminant_bank: Option<&'a serde_json::Value>,
     pub enable_contaminant_removal: bool,
-    pub aux_images:
-        &'a std::collections::BTreeMap<String, bijux_core::plan::stage_plan::ContainerImageRefV1>,
+    pub aux_images: &'a std::collections::BTreeMap<String, bijux_core::ContainerImageRefV1>,
     pub raw_r1: Option<&'a std::path::Path>,
     pub pipeline_stages: Option<&'a [String]>,
 }

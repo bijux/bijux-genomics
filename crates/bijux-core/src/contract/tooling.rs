@@ -129,8 +129,8 @@ pub struct ToolManifest {
 pub struct ToolExecutionSpecV1 {
     pub tool_id: ToolId,
     pub tool_version: String,
-    pub image: crate::plan::stage_plan::ContainerImageRefV1,
-    pub command: crate::CommandSpecV1,
+    pub image: crate::primitives::ContainerImageRefV1,
+    pub command: crate::primitives::CommandSpecV1,
     pub resources: ToolConstraints,
 }
 
