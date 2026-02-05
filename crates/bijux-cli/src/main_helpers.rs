@@ -7,39 +7,6 @@ use bijux_api::v1::run::load_profile;
 use crate::cli::{AnalyzeReportArgs, Cli};
 use bijux_api::v1::run::normalize_run_base_dir;
 
-pub(crate) fn render_report_bundle_html(report: &serde_json::Value) -> String {
-    let pretty = serde_json::to_string_pretty(report).unwrap_or_else(|_| "{}".to_string());
-    format!(
-        r#"<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <title>bijux analyze report</title>
-  <style>
-    body {{
-      font-family: system-ui, -apple-system, sans-serif;
-      margin: 2rem;
-      line-height: 1.4;
-      background: #f7f7f9;
-      color: #111;
-    }}
-    pre {{
-      padding: 1rem;
-      background: #fff;
-      border-radius: 8px;
-      overflow: auto;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-    }}
-  </style>
-</head>
-<body>
-  <h1>bijux analyze report</h1>
-  <pre>{pretty}</pre>
-</body>
-</html>"#
-    )
-}
-
 pub(crate) fn normalize_fastq_stage_id(stage: &str) -> String {
     if stage.contains('.') {
         stage.to_string()

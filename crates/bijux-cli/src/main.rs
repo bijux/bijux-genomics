@@ -1,11 +1,9 @@
 // split to keep module size manageable
 
 mod cli;
+mod commands;
 mod env;
 mod main_helpers;
+mod render;
 
-include!("main/entry.rs");
-include!("main/fastq.rs");
-include!("main/bench.rs");
-include!("main/other.rs");
-include!("main/bam.rs");
+include!("commands/entry.rs");
