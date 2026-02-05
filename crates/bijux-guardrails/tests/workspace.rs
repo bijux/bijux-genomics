@@ -2,6 +2,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
 use bijux_guardrails::GuardrailConfig;
+use walkdir::WalkDir;
 
 fn workspace_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -157,6 +158,92 @@ fn parse_boundary_contract() -> BTreeMap<String, BTreeSet<String>> {
         map.insert(name.trim().to_string(), deps);
     }
     map
+}
+
+fn rs_files_under(path: &Path) -> Vec<PathBuf> {
+    WalkDir::new(path)
+        .into_iter()
+        .filter_map(|entry| entry.ok())
+        .filter(|entry| entry.file_type().is_file())
+        .filter(|entry| entry.path().extension().and_then(|s| s.to_str()) == Some("rs"))
+        .map(|entry| entry.into_path())
+        .collect()
+}
+
+fn assert_no_domain_terms(crate_root: &Path, denylist: &[&str]) {
+    let src = crate_root.join("src");
+    let files = rs_files_under(&src);
+    for file in files {
+        let content = std::fs::read_to_string(&file).expect("read source file");
+        let lowered = content.to_lowercase();
+        for term in denylist {
+            if lowered.contains(term) {
+                panic!(
+                    "domain term '{}' found in {}",
+                    term,
+                    file.display()
+                );
+            }
+        }
+    }
+}
+
+#[test]
+fn workspace_no_macos_dotfiles() {
+    let root = workspace_root();
+    let mut offenders = Vec::new();
+    for entry in WalkDir::new(&root)
+        .into_iter()
+        .filter_map(|entry| entry.ok())
+    {
+        if !entry.file_type().is_file() {
+            continue;
+        }
+        let name = entry.file_name().to_string_lossy();
+        if name == ".DS_Store" || name.starts_with("._") {
+            offenders.push(entry.path().display().to_string());
+        }
+    }
+    if !offenders.is_empty() {
+        panic!(
+            "macOS dotfiles are forbidden in repo:\n{}",
+            offenders.join("\n")
+        );
+    }
+}
+
+#[test]
+fn engine_has_no_domain_terms() {
+    let root = workspace_root();
+    let engine = root.join("crates").join("bijux-engine");
+    let denylist = [
+        "fastq",
+        "bam",
+        "qc",
+        "retention",
+        "adapter",
+        "contaminant",
+        "umi",
+        "polyx",
+    ];
+    assert_no_domain_terms(&engine, &denylist);
+}
+
+#[test]
+fn runner_has_no_domain_terms() {
+    let root = workspace_root();
+    let runner = root.join("crates").join("bijux-runner");
+    let denylist = [
+        "fastq",
+        "bam",
+        "qc",
+        "retention",
+        "adapter",
+        "contaminant",
+        "umi",
+        "polyx",
+    ];
+    assert_no_domain_terms(&runner, &denylist);
 }
 
 #[test]
@@ -443,10 +530,6 @@ fn workspace_dependency_graph_contract() {
         "bijux-runner",
         "bijux-environment",
         "bijux-analyze",
-        "bijux-stages-fastq",
-        "bijux-stages-bam",
-        "bijux-domain-fastq",
-        "bijux-domain-bam",
         "bijux-planner-fastq",
         "bijux-planner-bam",
         "bijux-pipelines",
