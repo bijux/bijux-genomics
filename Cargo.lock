@@ -304,6 +304,7 @@ dependencies = [
  "insta",
  "serde",
  "serde_json",
+ "tempfile",
  "tracing",
  "uuid",
  "walkdir",

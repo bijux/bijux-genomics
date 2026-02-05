@@ -30,6 +30,7 @@ api_internal = []
 insta = "1"
 walkdir = { workspace = true }
 bijux-guardrails = { path = "../bijux-guardrails" }
+tempfile = { workspace = true }
 
 [lints]
 workspace = true
