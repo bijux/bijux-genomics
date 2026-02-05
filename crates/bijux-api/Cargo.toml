@@ -29,7 +29,7 @@ bam_downstream = ["bijux-planner-bam/bam_downstream", "bijux-pipelines/bam_downs
 api_internal = []
 
 [dev-dependencies]
-insta = "1"
+insta = { version = "1", features = ["json"] }
 walkdir = { workspace = true }
 bijux-policies = { path = "../bijux-policies" }
 tempfile = { workspace = true }
