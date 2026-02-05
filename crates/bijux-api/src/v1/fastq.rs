@@ -17,7 +17,7 @@ use std::hash::BuildHasher;
 use anyhow::Result;
 use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 
-use crate::fastq_router::BenchOutcome;
+use crate::handlers::fastq::BenchOutcome;
 
 /// # Errors
 /// Returns an error if planning or execution fails.
@@ -27,7 +27,7 @@ pub fn bench_fastq_correct<S: BuildHasher>(
     runner_override: Option<RunnerKind>,
     args: &bijux_planner_fastq::stage_api::args::BenchFastqCorrectArgs,
 ) -> Result<BenchOutcome<bijux_analyze::FastqCorrectMetrics>> {
-    crate::fastq_router::bench_fastq_correct(catalog, platform, runner_override, args)
+    crate::handlers::fastq::bench_fastq_correct(catalog, platform, runner_override, args)
 }
 
 /// # Errors
@@ -38,7 +38,7 @@ pub fn bench_fastq_filter<S: BuildHasher>(
     runner_override: Option<RunnerKind>,
     args: &bijux_planner_fastq::stage_api::args::BenchFastqFilterArgs,
 ) -> Result<BenchOutcome<bijux_analyze::FastqFilterMetrics>> {
-    crate::fastq_router::bench_fastq_filter(catalog, platform, runner_override, args)
+    crate::handlers::fastq::bench_fastq_filter(catalog, platform, runner_override, args)
 }
 
 /// # Errors
@@ -49,7 +49,7 @@ pub fn bench_fastq_merge<S: BuildHasher>(
     runner_override: Option<RunnerKind>,
     args: &bijux_planner_fastq::stage_api::args::BenchFastqMergeArgs,
 ) -> Result<BenchOutcome<bijux_analyze::FastqMergeMetrics>> {
-    crate::fastq_router::bench_fastq_merge(catalog, platform, runner_override, args)
+    crate::handlers::fastq::bench_fastq_merge(catalog, platform, runner_override, args)
 }
 
 /// # Errors
@@ -60,7 +60,7 @@ pub fn bench_fastq_preprocess<S: BuildHasher>(
     runner_override: Option<RunnerKind>,
     args: &bijux_planner_fastq::stage_api::args::BenchFastqPreprocessArgs,
 ) -> Result<()> {
-    crate::fastq_router::bench_fastq_preprocess(catalog, platform, runner_override, args)
+    crate::handlers::fastq::bench_fastq_preprocess(catalog, platform, runner_override, args)
 }
 
 /// # Errors
@@ -71,7 +71,7 @@ pub fn bench_fastq_qc_post<S: BuildHasher>(
     runner_override: Option<RunnerKind>,
     args: &bijux_planner_fastq::stage_api::args::BenchFastqQcPostArgs,
 ) -> Result<BenchOutcome<bijux_analyze::FastqQcPostMetrics>> {
-    crate::fastq_router::bench_fastq_qc_post(catalog, platform, runner_override, args)
+    crate::handlers::fastq::bench_fastq_qc_post(catalog, platform, runner_override, args)
 }
 
 /// # Errors
@@ -82,7 +82,7 @@ pub fn bench_fastq_screen<S: BuildHasher>(
     runner_override: Option<RunnerKind>,
     args: &bijux_planner_fastq::stage_api::args::BenchFastqScreenArgs,
 ) -> Result<BenchOutcome<bijux_analyze::FastqScreenMetrics>> {
-    crate::fastq_router::bench_fastq_screen(catalog, platform, runner_override, args)
+    crate::handlers::fastq::bench_fastq_screen(catalog, platform, runner_override, args)
 }
 
 /// # Errors
@@ -93,7 +93,7 @@ pub fn bench_fastq_stats_neutral<S: BuildHasher>(
     runner_override: Option<RunnerKind>,
     args: &bijux_planner_fastq::stage_api::args::BenchFastqStatsArgs,
 ) -> Result<BenchOutcome<bijux_analyze::FastqStatsMetrics>> {
-    crate::fastq_router::bench_fastq_stats_neutral(catalog, platform, runner_override, args)
+    crate::handlers::fastq::bench_fastq_stats_neutral(catalog, platform, runner_override, args)
 }
 
 /// # Errors
@@ -104,7 +104,7 @@ pub fn bench_fastq_trim<S: BuildHasher>(
     runner_override: Option<RunnerKind>,
     args: &bijux_planner_fastq::stage_api::args::BenchFastqTrimArgs,
 ) -> Result<BenchOutcome<bijux_analyze::FastqTrimMetrics>> {
-    crate::fastq_router::bench_fastq_trim(catalog, platform, runner_override, args)
+    crate::handlers::fastq::bench_fastq_trim(catalog, platform, runner_override, args)
 }
 
 /// # Errors
@@ -115,7 +115,7 @@ pub fn bench_fastq_umi<S: BuildHasher>(
     runner_override: Option<RunnerKind>,
     args: &bijux_planner_fastq::stage_api::args::BenchFastqUmiArgs,
 ) -> Result<BenchOutcome<bijux_analyze::FastqUmiMetrics>> {
-    crate::fastq_router::bench_fastq_umi(catalog, platform, runner_override, args)
+    crate::handlers::fastq::bench_fastq_umi(catalog, platform, runner_override, args)
 }
 
 /// # Errors
@@ -126,7 +126,7 @@ pub fn bench_fastq_validate_pre<S: BuildHasher>(
     runner_override: Option<RunnerKind>,
     args: &bijux_planner_fastq::stage_api::args::BenchFastqValidateArgs,
 ) -> Result<BenchOutcome<bijux_analyze::FastqValidateMetrics>> {
-    crate::fastq_router::bench_fastq_validate_pre(catalog, platform, runner_override, args)
+    crate::handlers::fastq::bench_fastq_validate_pre(catalog, platform, runner_override, args)
 }
 
 /// # Errors
@@ -137,5 +137,5 @@ pub fn fastq_preprocess_run<S: BuildHasher>(
     runner_override: Option<RunnerKind>,
     args: &bijux_planner_fastq::stage_api::args::BenchFastqPreprocessArgs,
 ) -> Result<()> {
-    crate::fastq_router::fastq_preprocess_run(catalog, platform, runner_override, args)
+    crate::handlers::fastq::fastq_preprocess_run(catalog, platform, runner_override, args)
 }

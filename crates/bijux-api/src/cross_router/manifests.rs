@@ -7,7 +7,7 @@ use bijux_infra::hash_file_sha256;
 use bijux_pipelines::PipelineProfile;
 
 use crate::cross_router::CROSS_STAGE_ID;
-use crate::fastq_router::StageExecutionSummary;
+use crate::handlers::fastq::StageExecutionSummary;
 
 pub fn write_alignment_boundary(out_dir: &Path, boundary: &AlignmentBoundary) -> Result<PathBuf> {
     let boundaries_dir = out_dir.join("run_artifacts").join("boundaries");

@@ -65,8 +65,12 @@ pub fn select_pipelines(
 /// # Errors
 /// Returns an error if planning fails for the requested run.
 pub fn plan_run(request: PlanRunRequest, registry: &ToolRegistry) -> Result<PlanRunResult> {
-    let plan =
-        build_run_execution_plan(request.run_spec, registry, request.profile, request.run_id)?;
+    let plan = build_run_execution_plan(
+        &request.run_spec,
+        registry,
+        &request.profile,
+        request.run_id,
+    )?;
     Ok(PlanRunResult { plan })
 }
 
@@ -94,12 +98,10 @@ fn render_report_from_facts(base_dir: &Path, facts_path: &Path) -> Result<PathBu
 /// Returns an error if the tool registry or profile are invalid for the run spec.
 #[allow(dead_code)]
 pub fn build_stage_plan(
-    run_spec: RunSpec,
+    run_spec: &RunSpec,
     registry: &ToolRegistry,
-    profile: Profile,
+    profile: &Profile,
     run_id: RunId,
 ) -> Result<RunExecutionPlan> {
-    Ok(build_run_execution_plan(
-        run_spec, registry, profile, run_id,
-    )?)
+    build_run_execution_plan(run_spec, registry, profile, run_id)
 }

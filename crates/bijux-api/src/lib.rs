@@ -8,15 +8,12 @@
 #![allow(hidden_glob_reexports)]
 
 pub(crate) mod args;
-pub(crate) mod bam_router;
 pub(crate) mod cross_router;
-pub(crate) mod fastq_router;
 pub(crate) mod fastq_stats_neutral;
 pub(crate) mod handlers;
 pub(crate) mod run;
 pub(crate) mod tooling;
 
-pub mod prelude;
 pub mod v1;
 pub use v1::*;
 

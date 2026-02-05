@@ -2,7 +2,7 @@ use std::fmt::Write as _;
 use std::path::Path;
 
 use anyhow::{Context, Result};
-use bijux_core::{ExplainExclusion, ExplainPlan};
+use bijux_core::explain::{ExplainExclusion, ExplainPlan};
 
 /// Write a human-readable plan explanation.
 ///

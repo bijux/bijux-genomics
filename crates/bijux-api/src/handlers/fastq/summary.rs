@@ -2,8 +2,7 @@ use std::fs;
 use std::path::Path;
 
 use anyhow::{Context, Result};
-use bijux_core::scientific_provenance::ScientificProvenanceV1;
-use bijux_core::ToolInvocationV1;
+use bijux_core::metrics::ToolInvocationV1;
 use bijux_planner_fastq::{CorrectDecisionTrace, MergeDecisionTrace};
 use bijux_runner::primitives::StageResultV1;
 
@@ -265,7 +264,7 @@ fn write_scientific_provenance(out_dir: &Path, stage_runs: &[StageExecutionSumma
             invocations.push(invocation);
         }
     }
-    let provenance = ScientificProvenanceV1::from_invocations(
+    let provenance = bijux_runtime::provenance::build_scientific_provenance(
         pipeline_id,
         planner_version,
         &params_hashes,
@@ -399,9 +398,10 @@ pub struct StageExecutionSummary {
 mod tests {
     use super::StageExecutionSummary;
     use super::{write_run_manifest, write_scientific_provenance};
+    use bijux_core::metrics::{AdapterBankProvenanceV1, ToolInvocationV1};
     use bijux_core::{
-        AdapterBankProvenanceV1, CommandSpecV1, ContainerImageRefV1, StageIO, StageId, StagePlanV1,
-        StageVersion, ToolConstraints, ToolId, ToolInvocationV1,
+        CommandSpecV1, ContainerImageRefV1, StageIO, StageId, StagePlanV1, StageVersion,
+        ToolConstraints, ToolId,
     };
     use bijux_runner::primitives::StageResultV1;
     use std::path::PathBuf;

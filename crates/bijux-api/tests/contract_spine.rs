@@ -9,8 +9,6 @@ use bijux_core::plan::stage_plan::{
 };
 use bijux_core::primitives::hashing::params_hash;
 use bijux_core::{StageId, StageVersion, ToolConstraints, ToolId};
-use bijux_environment::resolve::PlatformSpec;
-use bijux_environment::resolve::RunnerKind;
 use bijux_runner::{Artifact, Invocation, Runner, RunnerResult};
 use bijux_runtime::recording::write_plan_provenance;
 use bijux_runtime::FactsRowV1;
@@ -77,16 +75,6 @@ fn build_plan(base_dir: &Path) -> Result<ExecutionPlan> {
     )
 }
 
-fn platform_stub(base_dir: &Path) -> PlatformSpec {
-    PlatformSpec {
-        name: "test".to_string(),
-        runner: RunnerKind::Docker,
-        container_dir: base_dir.join("containers"),
-        image_prefix: "example".to_string(),
-        arch: "x86_64".to_string(),
-    }
-}
-
 #[test]
 fn golden_spine_contract() -> Result<()> {
     let tmp = tempfile::tempdir()?;
@@ -96,8 +84,8 @@ fn golden_spine_contract() -> Result<()> {
     bijux_engine::validate(&plan)?;
 
     let runner = FakeRunner;
-    let platform = platform_stub(base_dir);
-    let _record = bijux_engine::execute(&plan, &runner, &platform, base_dir)?;
+    let environment = bijux_runtime::environment::ExecutionEnvironment;
+    let _record = bijux_engine::execute(&plan, &runner, &environment, base_dir)?;
 
     let provenance_path = write_plan_provenance(base_dir, &plan)?;
     assert!(provenance_path.exists());

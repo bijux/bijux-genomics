@@ -2,7 +2,7 @@ use anyhow::{anyhow, Result};
 use bijux_core::ToolRole;
 
 pub fn load_registry(domain_root: &std::path::Path) -> Result<bijux_core::ToolRegistry> {
-    bijux_core::load_manifests(domain_root)
+    bijux_runtime::manifests::load_manifests(domain_root)
         .map_err(|err| anyhow!("manifest validation failed: {err}"))
 }
 

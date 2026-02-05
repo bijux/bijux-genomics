@@ -7,9 +7,9 @@ use bijux_analyze::{
     append_jsonl, fetch_fastq_stats_v1, insert_fastq_stats_v1, metric_set, BenchmarkContext,
     BenchmarkRecord, FastqStatsMetrics, LengthHistogramBin,
 };
+use bijux_core::metrics::MetricContextV1;
 use bijux_core::primitives::errors::ErrorCategory;
 use bijux_core::primitives::measure::ExecutionMetrics;
-use bijux_core::MetricContextV1;
 use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 use bijux_runner::primitives::build_tool_execution_spec;
 use bijux_runtime::{RunProvenanceV1, StageObservabilityContextV1};
@@ -34,7 +34,7 @@ use bijux_runtime::recording::{
     write_metrics_json, write_run_manifest, write_stage_plan_json, RunArtifactInput,
 };
 
-use crate::fastq_router::{write_explain_md, write_explain_plan_json, BenchOutcome};
+use crate::handlers::fastq::{write_explain_md, write_explain_plan_json, BenchOutcome};
 use bijux_core::ExecutionManifest;
 use bijux_planner_fastq::stage_api::RawFailure;
 
@@ -294,7 +294,7 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
     let metrics_json = serde_json::to_value(&metric_set)?;
     let stage_ctx = StageObservabilityContextV1 {
         stage_id: "fastq.stats_neutral".to_string(),
-        stage_version: i32::try_from(plan.stage_version.0).unwrap_or(i32::MAX),
+        stage_version: plan.stage_version.0,
         tool_id: tool.to_string(),
         tool_version: tool_spec.tool_version.clone(),
         input_hash: bench_inputs.input_hash.clone(),
