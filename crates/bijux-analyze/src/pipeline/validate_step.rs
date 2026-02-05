@@ -2,7 +2,7 @@
 //! Validate step for analyze pipeline.
 
 use anyhow::{anyhow, Result};
-use bijux_core::FactsRowV1;
+use bijux_runtime::FactsRowV1;
 
 use crate::model::FactTable;
 

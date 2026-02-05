@@ -36,7 +36,7 @@ pub fn write_report_bundle(dir: &Path, model: &ReportModel) -> Result<()> {
 mod tests {
     use super::write_report_bundle;
     use crate::report::model::ReportModel;
-    use bijux_core::ReportSchemaV1;
+    use bijux_runtime::ReportSchemaV1;
     use std::fs;
     use std::path::PathBuf;
 

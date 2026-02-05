@@ -15,6 +15,7 @@ anyhow.workspace = true
 bijux-core = { path = "../bijux-core" }
 bijux-domain-bam = { path = "../bijux-domain-bam" }
 bijux-infra = { path = "../bijux-infra" }
+bijux-runtime = { path = "../bijux-runtime" }
 sha2.workspace = true
 parquet = { version = "50", optional = true, features = ["json"] }
 

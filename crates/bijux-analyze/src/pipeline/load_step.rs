@@ -1,10 +1,10 @@
 //! Owner: bijux-analyze
 //! Load step for analyze pipeline.
 
+use bijux_runtime::FactsRowV1;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Result};
-use bijux_core::FactsRowV1;
 
 use crate::load::{load_facts, load_facts_parquet, load_run_summary, AnalyzeError};
 use crate::AnalyzeSources;

@@ -1,6 +1,7 @@
 use anyhow::Result;
 use bijux_analyze::{load::load_facts, report::write_run_report_from_facts};
-use bijux_core::{FactsRowV1, ReportSchemaV1, StageReportV1};
+use bijux_core::{InvariantStatusV1, StageVerdictV1};
+use bijux_runtime::{FactsRowV1, ReportSchemaV1, StageReportV1};
 use std::fs;
 use std::path::PathBuf;
 
@@ -38,9 +39,9 @@ fn report_sections_exist_for_all_stages() -> Result<()> {
             warnings: vec![],
             errors: vec![],
             invariants: vec![],
-            verdict: Some(bijux_core::StageVerdictV1 {
+            verdict: Some(StageVerdictV1 {
                 stage_id: (*stage_id).to_string(),
-                verdict: bijux_core::InvariantStatusV1::Pass,
+                verdict: InvariantStatusV1::Pass,
                 reasons: Vec::new(),
                 key_metrics: serde_json::json!({}),
             }),

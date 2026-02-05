@@ -1,5 +1,5 @@
 use anyhow::Result;
-use bijux_core::FactsRowV1;
+use bijux_runtime::*;
 
 #[test]
 fn facts_schema_contract_has_required_fields() -> Result<()> {

@@ -6,7 +6,6 @@ use std::path::Path;
 
 use anyhow::{anyhow, Context, Result};
 use bijux_infra::atomic_write_bytes;
-use bijux_core::RawFailure;
 
 use crate::aggregate::{
     derived_metric_spec, derived_metrics_for_stage, metric_kind_for_stage, metric_spec,

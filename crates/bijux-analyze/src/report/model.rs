@@ -1,10 +1,8 @@
 //! Owner: bijux-analyze
 //! Typed report model for renderers.
 
+use bijux_runtime::{ReportProvenanceV1, ReportSchemaV1};
 use std::collections::BTreeMap;
-
-use bijux_core::ReportProvenanceV1;
-use bijux_core::ReportSchemaV1;
 
 use crate::model::JsonBlob;
 

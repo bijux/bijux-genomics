@@ -1,8 +1,8 @@
+use bijux_runtime::*;
 use std::fs;
 use std::path::PathBuf;
 
 use bijux_analyze::export::write_dashboard_facts_jsonl;
-use bijux_core::FactsRowV1;
 
 fn facts_row(run_id: &str, stage_id: &str, tool_id: &str, params: &str) -> FactsRowV1 {
     FactsRowV1 {

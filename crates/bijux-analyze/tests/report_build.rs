@@ -1,13 +1,13 @@
 use anyhow::{anyhow, Result};
+use bijux_runtime::*;
 
 use bijux_analyze::aggregate::{
     metric_kind_for_stage, metric_spec, stage_metric_spec, BenchmarkContext, BenchmarkRecord,
     FastqTrimMetrics,
 };
 use bijux_analyze::report::{bench_schema_json, rank_trim_tools, write_run_summary_from_facts};
-use bijux_core::measure::ExecutionMetrics;
 use bijux_core::metrics::MetricSet;
-use bijux_core::FactsRowV1;
+use bijux_core::primitives::measure::ExecutionMetrics;
 
 #[test]
 fn bench_schema_table_has_metrics() -> Result<()> {

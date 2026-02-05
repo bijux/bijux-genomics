@@ -32,10 +32,10 @@ use crate::model::stable_sort_records;
 use crate::model::JsonBlob;
 use crate::report::model::ReportModel;
 use crate::report::render::json::write_report_json;
-use bijux_core::observability::FilterReportV1;
-use bijux_core::{
-    AssetsProvenanceV1, FactsRowV1, ReportProvenanceV1, ReportSchemaV1, ReportStageSummaryV1,
-    RetentionContextV1, RetentionDefinitionV1, RetentionReportV1, StageReportV1, TelemetryEventV1,
+use bijux_runtime::{
+    AssetsProvenanceV1, FactsRowV1, FilterReportV1, ReportProvenanceV1, ReportSchemaV1,
+    ReportStageSummaryV1, RetentionContextV1, RetentionDefinitionV1, RetentionReportV1,
+    StageReportV1, TelemetryEventV1,
 };
 
 /// Build a run report model from facts rows.
@@ -527,9 +527,7 @@ fn key_findings_section(
     }
     serde_json::Value::Array(findings)
 }
-fn data_contract_validation_section(
-    completeness: &bijux_core::ReportCompletenessV1,
-) -> serde_json::Value {
+fn data_contract_validation_section(completeness: &bijux_runtime::ReportCompletenessV1) -> serde_json::Value {
     serde_json::json!({
         "status": completeness.status,
         "missing_metrics": completeness.missing_metrics,

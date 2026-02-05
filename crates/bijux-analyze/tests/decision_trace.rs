@@ -1,10 +1,10 @@
+use bijux_runtime::*;
 use std::fs;
 use std::path::PathBuf;
 
 use anyhow::Result;
 use bijux_analyze::decision::compare::{compare_robust_stats, trace_for_robust_stats};
 use bijux_analyze::decision::score::{decision_trace_for_input, RankInput, RankingMode};
-use bijux_core::FactsRowV1;
 
 fn snapshot_path(name: &str) -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))

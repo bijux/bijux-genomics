@@ -4,8 +4,9 @@ use std::fmt::Write;
 use std::path::Path;
 
 use anyhow::{Context, Result};
-use bijux_core::{FactsRowV1, InvariantStatusV1, StageReportV1, ToolInvocationV1};
+use bijux_core::{InvariantStatusV1, ToolInvocationV1};
 use bijux_infra::atomic_write_bytes;
+use bijux_runtime::{FactsRowV1, StageReportV1};
 
 use crate::model::{
     stable_sort_records, DashboardFactRow, FactsSummary, JsonBlob, RunSummaryDeltas,

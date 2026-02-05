@@ -3,9 +3,9 @@ use std::path::PathBuf;
 
 use anyhow::Result;
 use bijux_analyze::{load::load_facts, report::write_run_report_from_facts};
-use bijux_core::{
+use bijux_core::{InvariantStatusV1, StageVerdictV1, ToolConstraints, ToolInvocationV1};
+use bijux_runtime::{
     EffectiveConfigV1, FactsRowV1, ReportSchemaV1, RetentionReportV1, StageReportV1,
-    ToolConstraints, ToolInvocationV1,
 };
 
 fn fixture_root() -> PathBuf {
@@ -68,9 +68,9 @@ fn base_reports(root: &std::path::Path) -> Result<(PathBuf, PathBuf, PathBuf)> {
         warnings: vec!["low_q".to_string()],
         errors: vec![],
         invariants: vec![],
-        verdict: Some(bijux_core::StageVerdictV1 {
+        verdict: Some(StageVerdictV1 {
             stage_id: "fastq.trim".to_string(),
-            verdict: bijux_core::InvariantStatusV1::Pass,
+            verdict: InvariantStatusV1::Pass,
             reasons: Vec::new(),
             key_metrics: serde_json::json!({}),
         }),
@@ -174,16 +174,18 @@ fn base_reports(root: &std::path::Path) -> Result<(PathBuf, PathBuf, PathBuf)> {
         scope: "reads+bases".to_string(),
         condition: serde_json::json!({"min_len": 20}),
         parameters_json: serde_json::json!({"min_len": 20}),
-        retention: Some(bijux_core::RetentionReportMetricV1 {
-            value: 0.8,
-            numerator_reads: 80,
-            denominator_reads: 100,
-            numerator_bases: 800,
-            denominator_bases: 1000,
-            definition: "reads_out / reads_in".to_string(),
-            stage_boundary: "fastq.trim".to_string(),
-            conditions: serde_json::json!({"min_len": 20}),
-        }),
+        retention: Some(serde_json::to_value(
+            bijux_domain_fastq::metrics::RetentionReportMetricV1 {
+                value: 0.8,
+                numerator_reads: 80,
+                denominator_reads: 100,
+                numerator_bases: 800,
+                denominator_bases: 1000,
+                definition: "reads_out / reads_in".to_string(),
+                stage_boundary: "fastq.trim".to_string(),
+                conditions: serde_json::json!({"min_len": 20}),
+            },
+        )?),
     };
     bijux_infra::write_bytes(
         &retention_report_path,

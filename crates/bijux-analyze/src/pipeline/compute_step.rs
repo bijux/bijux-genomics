@@ -1,10 +1,10 @@
 //! Owner: bijux-analyze
 //! Compute step for analyze pipeline.
 
+use bijux_runtime::FactsRowV1;
 use std::collections::BTreeMap;
 
 use anyhow::Result;
-use bijux_core::FactsRowV1;
 
 use crate::decision::score::{build_rankings, RankInput, RankingEntry};
 use crate::model::FactRow;

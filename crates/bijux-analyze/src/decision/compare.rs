@@ -1,9 +1,9 @@
+use bijux_runtime::FactsRowV1;
 use std::path::Path;
 
 use anyhow::{Context, Result};
 use serde::Serialize;
 
-use bijux_core::FactsRowV1;
 use bijux_core::ObjectiveSpec;
 
 use crate::aggregate::stats::{robust_summary, RobustSummary};

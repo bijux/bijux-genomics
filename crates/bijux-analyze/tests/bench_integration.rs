@@ -4,7 +4,7 @@ use bijux_bench::{
     DatasetSpec, DiversityRequirements, MetricsEnvelope, ReplicatePolicy,
     StratificationRequirement,
 };
-use bijux_core::FactsRowV1;
+use bijux_runtime::*;
 use std::collections::BTreeMap;
 
 #[test]

@@ -1,5 +1,5 @@
 use bijux_analyze::export::write_dashboard_facts_jsonl;
-use bijux_core::FactsRowV1;
+use bijux_runtime::*;
 
 #[test]
 fn dashboard_contract_has_required_fields_and_sorting() -> anyhow::Result<()> {

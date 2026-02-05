@@ -1,3 +1,4 @@
+use bijux_core::RawFailure;
 /// Rank filter tools by metrics and execution stats.
 ///
 /// # Errors

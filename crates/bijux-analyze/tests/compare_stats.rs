@@ -1,5 +1,5 @@
 use bijux_analyze::compare::compare_robust_stats;
-use bijux_core::FactsRowV1;
+use bijux_runtime::*;
 
 fn row(runtime: f64, memory: f64, reads_in: u64, reads_out: u64) -> FactsRowV1 {
     FactsRowV1 {

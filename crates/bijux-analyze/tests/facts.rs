@@ -1,9 +1,9 @@
+use bijux_runtime::*;
 use std::fs;
 use std::path::PathBuf;
 
 use bijux_analyze::export::{summarize_facts, write_run_summary_json};
 use bijux_analyze::load::load_facts;
-use bijux_core::FactsRowV1;
 
 #[test]
 fn facts_loader_and_summary_work() -> anyhow::Result<()> {

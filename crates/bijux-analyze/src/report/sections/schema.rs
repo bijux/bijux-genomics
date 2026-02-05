@@ -4,9 +4,10 @@
 use std::collections::BTreeMap;
 
 use bijux_core::selection::{objective_spec, Objective};
-use bijux_core::{MetricSemanticsV1, ReportCompletenessV1, ReportContractV1, ReportSchemaV1};
+use bijux_runtime::{MetricSemanticsV1, ReportCompletenessV1, ReportContractV1, ReportSchemaV1};
 
 use crate::decision::effect::default_thresholds;
+use crate::semantics::metrics::resolve_semantics;
 
 pub(crate) fn report_contract() -> ReportContractV1 {
     ReportContractV1 {
@@ -220,19 +221,6 @@ pub(crate) fn report_metric_semantics() -> Vec<MetricSemanticsV1> {
     ];
     metric_ids
         .iter()
-        .filter_map(|metric_id| {
-            bijux_core::metric_semantics(metric_id).map(|spec| MetricSemanticsV1 {
-                metric_id: spec.metric_id.to_string(),
-                direction: format!("{:?}", spec.direction),
-                units: spec.units.to_string(),
-                range: spec.range.to_string(),
-                missing_data_policy: spec.missing_data_policy.to_string(),
-                influencing_params: spec
-                    .influencing_params
-                    .iter()
-                    .map(|param| (*param).to_string())
-                    .collect(),
-            })
-        })
+        .filter_map(|metric_id| resolve_semantics(metric_id).ok())
         .collect()
 }

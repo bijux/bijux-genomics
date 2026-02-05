@@ -1,5 +1,5 @@
 use bijux_analyze::model::FactTable;
-use bijux_core::FactsRowV1;
+use bijux_runtime::*;
 
 #[test]
 fn fact_table_rejects_missing_ids() {

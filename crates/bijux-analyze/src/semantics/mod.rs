@@ -3,6 +3,6 @@
 //! Owns: semantics lookup, normalization, missing-data policies.
 //! Must not: perform IO.
 
-mod metrics;
+pub mod metrics;
 
 pub use metrics::*;

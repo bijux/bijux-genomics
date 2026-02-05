@@ -3,7 +3,7 @@ use bijux_analyze::{
     metric_set, BenchmarkContext, BenchmarkRecord, FastqDeltaMetrics, FastqFilterMetrics,
     FastqMergeMetrics, FastqTrimMetrics, Result, StageMetricSchema,
 };
-use bijux_core::measure::ExecutionMetrics;
+use bijux_core::primitives::measure::ExecutionMetrics;
 
 #[test]
 fn record_serializes() -> Result<()> {

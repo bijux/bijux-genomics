@@ -5,8 +5,8 @@ use std::fs::OpenOptions;
 use std::io::Write;
 use std::path::Path;
 
-use bijux_core::measure::ExecutionMetrics;
 use bijux_core::metrics::MetricSet;
+use bijux_core::primitives::measure::ExecutionMetrics;
 use serde::{Deserialize, Serialize};
 
 use crate::aggregate::{validate_metric_set, Result, StageMetricSchema};

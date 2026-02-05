@@ -1,8 +1,8 @@
 use std::cmp::Ordering;
 use std::fs;
 
-use bijux_core::observability::QcPostReportV1;
-use bijux_core::{FactsRowV1, FilterReportV1, InvariantStatusV1};
+use bijux_core::InvariantStatusV1;
+use bijux_runtime::{FactsRowV1, FilterReportV1, QcPostReportV1};
 
 use super::{artifact_path_for, report_path_for, stage_report_for_row};
 

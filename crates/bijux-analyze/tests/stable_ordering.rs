@@ -1,9 +1,9 @@
+use bijux_runtime::*;
 use std::fs;
 
 use anyhow::Result;
 use bijux_analyze::decision::score::{build_rankings, RankInput};
 use bijux_analyze::report::write_run_report_from_facts;
-use bijux_core::FactsRowV1;
 
 fn row(tool: &str, runtime: f64, reads_in: u64, reads_out: u64) -> FactsRowV1 {
     FactsRowV1 {

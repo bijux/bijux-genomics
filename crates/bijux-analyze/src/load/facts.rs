@@ -1,10 +1,10 @@
 //! Owner: bijux-analyze
 //! Facts loaders.
 
+use bijux_runtime::FactsRowV1;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
 
-use bijux_core::FactsRowV1;
 use serde_json;
 
 use super::AnalyzeError;

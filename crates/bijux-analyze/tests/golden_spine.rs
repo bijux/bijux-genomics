@@ -2,10 +2,11 @@ use std::path::{Path, PathBuf};
 
 use anyhow::Result;
 use bijux_analyze::{AnalyzeInput, AnalyzeMode, AnalyzeOptions, AnalyzeSources, RenderOptions};
-use bijux_core::{FactsRowV1, InvariantStatusV1, StageReportV1, StageVerdictV1};
+use bijux_core::{InvariantStatusV1, StageVerdictV1};
 use bijux_domain_bam::metrics::BamMetricsV1;
 use bijux_pipelines::registry::profile_by_id;
 use bijux_pipelines::Domain;
+use bijux_runtime::{FactsRowV1, StageReportV1};
 
 fn metrics_for_stage(stage_id: &str) -> serde_json::Value {
     if stage_id.starts_with("bam.") {

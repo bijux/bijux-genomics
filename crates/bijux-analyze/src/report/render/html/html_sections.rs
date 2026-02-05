@@ -1,6 +1,5 @@
+use bijux_runtime::ReportStageSummaryV1;
 use std::fmt::Write;
-
-use bijux_core::ReportStageSummaryV1;
 
 pub(super) fn build_nav_items(section_keys: &[String]) -> String {
     let mut nav_items = String::new();

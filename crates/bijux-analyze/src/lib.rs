@@ -14,7 +14,7 @@ pub mod load;
 pub mod model;
 mod pipeline;
 pub mod report;
-mod semantics;
+pub mod semantics;
 
 pub use aggregate::*;
 pub use bijux_core::metrics::MetricSet;

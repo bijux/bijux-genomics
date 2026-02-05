@@ -101,11 +101,15 @@ fn retention_context_from_report(
     let definition = report
         .retention
         .as_ref()
-        .map_or_else(|| "unknown".to_string(), |ret| ret.definition.clone());
+        .and_then(|ret| ret.get("definition"))
+        .and_then(serde_json::Value::as_str)
+        .map_or_else(|| "unknown".to_string(), std::string::ToString::to_string);
     let conditions = report
         .retention
         .as_ref()
-        .map_or_else(|| report.condition.clone(), |ret| ret.conditions.clone());
+        .and_then(|ret| ret.get("conditions"))
+        .cloned()
+        .unwrap_or_else(|| report.condition.clone());
     let context = RetentionContextV1 {
         stage_id: report.stage_id,
         tool_id: report.tool_id,
