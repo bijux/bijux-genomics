@@ -2,7 +2,6 @@ use std::collections::BTreeMap;
 use std::path::PathBuf;
 
 use anyhow::{anyhow, Result};
-use bijux_core::explain::PlanExplainV1;
 use bijux_core::plan::execution_plan::{default_edges_for_stages, ExecutionPlan, PlanPolicy};
 use bijux_core::plan::stage_plan::StagePlanV1;
 use bijux_domain_bam::BamStage;
@@ -101,7 +100,6 @@ fn stage_order_for_profile(profile_id: &str) -> Vec<BamStage> {
     }
 }
 
-#[must_use]
 pub fn pipeline_stage_ids(profile_id: &str) -> Vec<String> {
     stage_order_for_profile(profile_id)
         .iter()
@@ -164,9 +162,4 @@ fn build_bam_plan(profile: &PipelineProfile, inputs: &BamPipelineInputs) -> Resu
         stages,
         edges,
     )
-}
-
-#[must_use]
-pub fn explain_plan(plan: &ExecutionPlan) -> PlanExplainV1 {
-    PlanExplainV1::from_plan(plan)
 }

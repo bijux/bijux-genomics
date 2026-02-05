@@ -21,11 +21,11 @@ pub struct PlanExplainStageV1 {
     pub tool_id: String,
     pub tool_version: String,
     pub image: Option<String>,
-    pub reason: crate::plan::stage_plan::PlanDecisionReason,
+    pub reason: bijux_core::plan::stage_plan::PlanDecisionReason,
     pub parameters_json: serde_json::Value,
     pub effective_parameters_json: serde_json::Value,
-    pub inputs: Vec<crate::plan::stage_plan::ArtifactRef>,
-    pub outputs: Vec<crate::plan::stage_plan::ArtifactRef>,
+    pub inputs: Vec<bijux_core::plan::stage_plan::ArtifactRef>,
+    pub outputs: Vec<bijux_core::plan::stage_plan::ArtifactRef>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -33,13 +33,13 @@ pub struct PlanExplainV1 {
     pub schema_version: String,
     pub pipeline_id: String,
     pub planner_version: String,
-    pub policy: crate::plan::execution_plan::PlanPolicy,
+    pub policy: bijux_core::plan::execution_plan::PlanPolicy,
     pub stages: Vec<PlanExplainStageV1>,
 }
 
 impl PlanExplainV1 {
     #[must_use]
-    pub fn from_plan(plan: &crate::plan::execution_plan::ExecutionPlan) -> Self {
+    pub fn from_plan(plan: &bijux_core::plan::execution_plan::ExecutionPlan) -> Self {
         let stages = plan
             .stages()
             .iter()
