@@ -7,24 +7,24 @@ use bijux_core::ContainerImageRefV1;
 use bijux_core::ErrorCategory;
 use bijux_core::TelemetryEventV1;
 use bijux_engine::services::run_artifacts::run_artifacts_dir_for_out;
+use bijux_engine::services::run_artifacts::write_telemetry_event;
 use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
-use bijux_engine::services::run_artifacts::write_telemetry_event;
+use bijux_planner_fastq::stage_api::RawFailure;
 use bijux_planner_fastq::{
-    apply_preprocess_policy, plan_preprocess, preprocess_decisions, resolve_preprocess_pipeline,
+    apply_preprocess_policy, preprocess_decisions, resolve_preprocess_pipeline,
     select_preprocess_tools, FastqPlanConfig, FastqPlanner, ToolSelection,
 };
 use bijux_runner::primitives::{build_tool_execution_spec, resolve_image_for_run};
-use bijux_planner_fastq::stage_api::RawFailure;
 
 use super::jobs::bench_jobs;
 use super::summary::{write_run_summary, StageExecutionSummary};
 use super::write_explain_plan_json;
+use bijux_infra::{bench_base_dir, bench_tools_dir};
+use bijux_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_planner_fastq::stage_api::{
     adapter_bank_context, contaminant_bank_context, polyx_bank_context, polyx_unsupported_warning,
 };
-use bijux_infra::{bench_base_dir, bench_tools_dir};
-use bijux_planner_fastq::scale_tool_spec_for_jobs;
 
 /// Build the preprocess pipeline plan.
 #[must_use]
@@ -32,8 +32,7 @@ pub fn fastq_preprocess_plan(
     args: &bijux_planner_fastq::stage_api::args::BenchFastqPreprocessArgs,
 ) -> bijux_core::domain::PipelineSpec {
     let decisions = preprocess_decisions(args);
-    let pipeline = resolve_preprocess_pipeline(args, &decisions);
-    plan_preprocess(args, pipeline.clone()).pipeline
+    resolve_preprocess_pipeline(args, &decisions)
 }
 
 /// Run the preprocess pipeline.
@@ -69,8 +68,6 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let decisions = preprocess_decisions(args);
     let pipeline = resolve_preprocess_pipeline(args, &decisions);
-    let preprocess_plan = plan_preprocess(args, pipeline.clone());
-    let pipeline = preprocess_plan.pipeline.clone();
     let mut selected_tools = select_preprocess_tools(&registry, &pipeline, args)?;
     let mut tool_ids: Vec<String> = selected_tools
         .iter()
@@ -98,13 +95,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     }
     selected_tools = filtered_selections;
 
-    write_explain_plan_json(
-        &out_dir,
-        "fastq.preprocess",
-        &tool_ids,
-        &registry,
-        None,
-    )?;
+    write_explain_plan_json(&out_dir, "fastq.preprocess", &tool_ids, &registry, None)?;
 
     ensure_image_qa_passed("fastq.preprocess", &tool_ids, platform, catalog)?;
     ensure_tool_qa_passed("fastq.preprocess", &tool_ids, platform, catalog)?;
@@ -204,11 +195,8 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         stage_attrs.insert("stage".to_string(), stage_id.clone());
         stage_attrs.insert("tool".to_string(), tool.clone());
         let stage_span = telemetry.start_stage(&stage_id, &stage_attrs);
-        let execution = bijux_runner::primitives::execute_stage_plan(
-            &planned,
-            platform.runner,
-            None,
-        );
+        let execution =
+            bijux_runner::primitives::execute_stage_plan(&planned, platform.runner, None);
         stage_span.end();
         let execution = execution?;
         if execution.exit_code != 0 {

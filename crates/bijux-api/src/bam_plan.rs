@@ -70,7 +70,9 @@ pub fn plan_for_bam_stage_with_profile(
                     reference: reference.display().to_string(),
                     reference_digest: digest.clone(),
                     rg_policy: bijux_planner_bam::stage_api::types::ReadGroupPolicy::Regenerate,
-                    read_group: bijux_planner_bam::stage_api::params::ReadGroupSpec::with_defaults(sample_id),
+                    read_group: bijux_planner_bam::stage_api::params::ReadGroupSpec::with_defaults(
+                        sample_id,
+                    ),
                     build_indices: args.build_reference_indices,
                     emit_stats: true,
                 },
@@ -195,7 +197,8 @@ pub fn plan_for_bam_stage_with_profile(
             let mut params = match default_params {
                 bijux_planner_bam::stage_api::params::BamEffectiveParams::Markdup(params) => params,
                 _ => bijux_planner_bam::stage_api::params::MarkDupEffectiveParams {
-                    optical_duplicates: bijux_planner_bam::stage_api::params::OpticalDuplicatePolicy::MarkOnly,
+                    optical_duplicates:
+                        bijux_planner_bam::stage_api::params::OpticalDuplicatePolicy::MarkOnly,
                     umi_policy: bijux_planner_bam::stage_api::params::UmiPolicy::Ignore,
                     duplicate_action: bijux_planner_bam::stage_api::params::DuplicateAction::Mark,
                 },
@@ -226,7 +229,9 @@ pub fn plan_for_bam_stage_with_profile(
         bijux_planner_bam::stage_api::BamStage::Complexity => {
             let default_params = default_params_for_stage(profile, stage);
             let mut params = match default_params {
-                bijux_planner_bam::stage_api::params::BamEffectiveParams::Complexity(params) => params,
+                bijux_planner_bam::stage_api::params::BamEffectiveParams::Complexity(params) => {
+                    params
+                }
                 _ => bijux_planner_bam::stage_api::params::ComplexityEffectiveParams {
                     min_reads: 100_000,
                     projection_points: vec![1_000_000, 2_000_000, 5_000_000],
@@ -257,7 +262,9 @@ pub fn plan_for_bam_stage_with_profile(
         bijux_planner_bam::stage_api::BamStage::Coverage => {
             let default_params = default_params_for_stage(profile, stage);
             let mut params = match default_params {
-                bijux_planner_bam::stage_api::params::BamEffectiveParams::Coverage(params) => params,
+                bijux_planner_bam::stage_api::params::BamEffectiveParams::Coverage(params) => {
+                    params
+                }
                 _ => bijux_planner_bam::stage_api::params::CoverageEffectiveParams {
                     regions: None,
                     depth_thresholds: vec![1, 3, 5],
@@ -329,7 +336,9 @@ pub fn plan_for_bam_stage_with_profile(
         bijux_planner_bam::stage_api::BamStage::Authenticity => {
             let default_params = default_params_for_stage(profile, stage);
             let mut params = match default_params {
-                bijux_planner_bam::stage_api::params::BamEffectiveParams::Authenticity(params) => params,
+                bijux_planner_bam::stage_api::params::BamEffectiveParams::Authenticity(params) => {
+                    params
+                }
                 _ => bijux_planner_bam::stage_api::params::AuthenticityEffectiveParams {
                     mode: "aggregate".to_string(),
                 },
@@ -354,7 +363,9 @@ pub fn plan_for_bam_stage_with_profile(
         bijux_planner_bam::stage_api::BamStage::Contamination => {
             let default_params = default_params_for_stage(profile, stage);
             let mut params = match default_params {
-                bijux_planner_bam::stage_api::params::BamEffectiveParams::Contamination(params) => params,
+                bijux_planner_bam::stage_api::params::BamEffectiveParams::Contamination(params) => {
+                    params
+                }
                 _ => bijux_planner_bam::stage_api::params::ContaminationEffectiveParams {
                     reference_panels: Vec::new(),
                     scope: bijux_planner_bam::stage_api::params::ContaminationScope::Both,
@@ -427,7 +438,9 @@ pub fn plan_for_bam_stage_with_profile(
         bijux_planner_bam::stage_api::BamStage::BiasMitigation => {
             let default_params = default_params_for_stage(profile, stage);
             let mut params = match default_params {
-                bijux_planner_bam::stage_api::params::BamEffectiveParams::BiasMitigation(params) => params,
+                bijux_planner_bam::stage_api::params::BamEffectiveParams::BiasMitigation(
+                    params,
+                ) => params,
                 _ => bijux_planner_bam::stage_api::params::BiasMitigationEffectiveParams {
                     gc_bias_correction: false,
                     map_bias_correction: false,
@@ -460,14 +473,17 @@ pub fn plan_for_bam_stage_with_profile(
         bijux_planner_bam::stage_api::BamStage::Recalibration => {
             let default_params = default_params_for_stage(profile, stage);
             let mut params = match default_params {
-                bijux_planner_bam::stage_api::params::BamEffectiveParams::Recalibration(params) => params,
+                bijux_planner_bam::stage_api::params::BamEffectiveParams::Recalibration(params) => {
+                    params
+                }
                 _ => bijux_planner_bam::stage_api::params::BqsrEffectiveParams {
                     known_sites: Vec::new(),
                     mode: bijux_planner_bam::stage_api::params::BqsrMode::Skip,
-                    skip_criteria: bijux_planner_bam::stage_api::params::RecalibrationSkipCriteria {
-                        min_mean_coverage: 1.0,
-                        min_breadth_1x: 0.1,
-                    },
+                    skip_criteria:
+                        bijux_planner_bam::stage_api::params::RecalibrationSkipCriteria {
+                            min_mean_coverage: 1.0,
+                            min_breadth_1x: 0.1,
+                        },
                 },
             };
             if !args.known_sites.is_empty() {
@@ -500,7 +516,9 @@ pub fn plan_for_bam_stage_with_profile(
         bijux_planner_bam::stage_api::BamStage::Haplogroups => {
             let default_params = default_params_for_stage(profile, stage);
             let mut params = match default_params {
-                bijux_planner_bam::stage_api::params::BamEffectiveParams::Haplogroups(params) => params,
+                bijux_planner_bam::stage_api::params::BamEffectiveParams::Haplogroups(params) => {
+                    params
+                }
                 _ => bijux_planner_bam::stage_api::params::HaplogroupEffectiveParams {
                     reference_panel: "mito_default".to_string(),
                     min_coverage: None,
@@ -530,7 +548,9 @@ pub fn plan_for_bam_stage_with_profile(
         bijux_planner_bam::stage_api::BamStage::Genotyping => {
             let default_params = default_params_for_stage(profile, stage);
             let mut params = match default_params {
-                bijux_planner_bam::stage_api::params::BamEffectiveParams::Genotyping(params) => params,
+                bijux_planner_bam::stage_api::params::BamEffectiveParams::Genotyping(params) => {
+                    params
+                }
                 _ => bijux_planner_bam::stage_api::params::GenotypingEffectiveParams {
                     caller: "angsd".to_string(),
                     min_posterior: None,
@@ -611,7 +631,9 @@ fn default_params_for_stage(
         .unwrap_or_else(|| bijux_planner_bam::stage_api::stage_spec(stage).default_params)
 }
 
-fn parse_read_group_policy(value: &str) -> Result<bijux_planner_bam::stage_api::types::ReadGroupPolicy> {
+fn parse_read_group_policy(
+    value: &str,
+) -> Result<bijux_planner_bam::stage_api::types::ReadGroupPolicy> {
     match value {
         "preserve" => Ok(bijux_planner_bam::stage_api::types::ReadGroupPolicy::Preserve),
         "merge" => Ok(bijux_planner_bam::stage_api::types::ReadGroupPolicy::Merge),
@@ -640,7 +662,9 @@ fn parse_umi_policy(value: &str) -> Result<bijux_planner_bam::stage_api::params:
     }
 }
 
-fn parse_duplicate_action(value: &str) -> Result<bijux_planner_bam::stage_api::params::DuplicateAction> {
+fn parse_duplicate_action(
+    value: &str,
+) -> Result<bijux_planner_bam::stage_api::params::DuplicateAction> {
     match value {
         "mark" => Ok(bijux_planner_bam::stage_api::params::DuplicateAction::Mark),
         "remove" => Ok(bijux_planner_bam::stage_api::params::DuplicateAction::Remove),
@@ -657,7 +681,9 @@ fn parse_udg_model(value: &str) -> Result<bijux_planner_bam::stage_api::params::
     }
 }
 
-fn parse_contamination_scope(value: &str) -> Result<bijux_planner_bam::stage_api::params::ContaminationScope> {
+fn parse_contamination_scope(
+    value: &str,
+) -> Result<bijux_planner_bam::stage_api::params::ContaminationScope> {
     match value {
         "mito" => Ok(bijux_planner_bam::stage_api::params::ContaminationScope::Mito),
         "nuclear" => Ok(bijux_planner_bam::stage_api::params::ContaminationScope::Nuclear),

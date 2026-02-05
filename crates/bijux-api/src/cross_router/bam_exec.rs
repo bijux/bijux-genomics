@@ -4,9 +4,9 @@ use anyhow::{anyhow, Context, Result};
 use bijux_core::alignment::AlignmentBoundary;
 use bijux_core::ToolRegistry;
 use bijux_environment::resolve::ReferenceRecord;
-use bijux_runner::primitives::execute_stage_plan;
 use bijux_pipelines::PipelineProfile;
 use bijux_runner::primitives::build_tool_execution_spec;
+use bijux_runner::primitives::execute_stage_plan;
 
 use crate::args::{BamRunArgs, FastqCrossArgs};
 use crate::bam_plan::plan_for_bam_stage_with_profile;
@@ -46,7 +46,11 @@ pub fn run_bam_truth_stages<S: std::hash::BuildHasher>(
             .tools
             .get(stage.as_str())
             .cloned()
-            .unwrap_or_else(|| bijux_planner_bam::stage_api::stage_spec(stage).default_tool.to_string());
+            .unwrap_or_else(|| {
+                bijux_planner_bam::stage_api::stage_spec(stage)
+                    .default_tool
+                    .to_string()
+            });
         let spec =
             build_tool_execution_spec(stage.as_str(), &tool_id, registry_core, catalog, platform)?;
 

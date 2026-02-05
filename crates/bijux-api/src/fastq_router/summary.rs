@@ -4,8 +4,8 @@ use std::path::Path;
 use anyhow::{Context, Result};
 use bijux_core::scientific_provenance::ScientificProvenanceV1;
 use bijux_core::ToolInvocationV1;
-use bijux_runner::primitives::StageResultV1;
 use bijux_planner_fastq::{CorrectDecisionTrace, MergeDecisionTrace};
+use bijux_runner::primitives::StageResultV1;
 
 pub(super) fn write_run_summary(
     out_dir: &Path,

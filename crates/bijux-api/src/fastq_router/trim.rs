@@ -7,20 +7,20 @@ use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use bijux_infra::{bench_base_dir, bench_tools_dir};
 use bijux_planner_fastq::select_trim_tools;
-use bijux_runner::primitives::build_tool_execution_spec;
 use bijux_planner_fastq::stage_api::fastq::trim::plan;
 use bijux_planner_fastq::stage_api::FastqArtifact;
 use bijux_planner_fastq::stage_api::{
     inspect_headers, log_header_warnings, preflight_stage, RawFailure,
 };
+use bijux_runner::primitives::build_tool_execution_spec;
 
 use super::jobs::bench_jobs;
 use super::jobs::execute_plans_with_jobs;
 use super::{write_explain_md, write_explain_plan_json, BenchOutcome};
+use bijux_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_planner_fastq::stage_api::{
     adapter_bank_context, contaminant_bank_context, polyx_bank_context, polyx_unsupported_warning,
 };
-use bijux_planner_fastq::scale_tool_spec_for_jobs;
 
 /// # Errors
 /// Returns an error if planning or execution fails.
@@ -30,7 +30,8 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
     runner_override: Option<RunnerKind>,
     args: &bijux_planner_fastq::stage_api::args::BenchFastqTrimArgs,
 ) -> Result<BenchOutcome<bijux_analyze::FastqTrimMetrics>> {
-    let tools = select_trim_tools(&args.tools)?;
+    let allow_experimental = std::env::var("BIJUX_EXPERIMENTAL_TOOLS").is_ok();
+    let tools = select_trim_tools(&args.tools, allow_experimental)?;
     let artifact = FastqArtifact::single_end(&args.r1);
     preflight_stage("fastq.trim", artifact.kind)?;
     let header = inspect_headers(&args.r1, None, false)?;

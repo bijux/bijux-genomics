@@ -3,23 +3,23 @@ use std::path::PathBuf;
 
 use anyhow::{anyhow, Result};
 use bijux_core::execution_plan::{default_edges_for_stages, ExecutionPlan, PlanPolicy};
-use bijux_core::{PlanExplainStageV1, PlanExplainV1};
 use bijux_core::StagePlanV1;
+use bijux_core::{PlanExplainStageV1, PlanExplainV1};
+use bijux_domain_bam::BamStage;
 use bijux_pipelines::bam::{bam_adna_capture_profile, bam_adna_shotgun_profile};
 use bijux_pipelines::PipelineProfile;
 use bijux_stages_bam::StagePlanRequest;
-use bijux_domain_bam::BamStage;
 
 pub const PLANNER_VERSION: &str = "bijux-planner-bam.v1";
 
 pub mod stage_api {
+    pub use bijux_domain_bam::params;
+    pub use bijux_domain_bam::types;
+    pub use bijux_domain_bam::*;
+    pub use bijux_domain_bam::{bam_stage_completeness, stage_spec, BamStage};
     pub use bijux_stages_bam::bam_tools_registry::allowed_tools_for_stage;
     pub use bijux_stages_bam::plan_stage;
     pub use bijux_stages_bam::StagePlanRequest;
-    pub use bijux_domain_bam::*;
-    pub use bijux_domain_bam::{bam_stage_completeness, stage_spec, BamStage};
-    pub use bijux_domain_bam::params;
-    pub use bijux_domain_bam::types;
 }
 
 #[derive(Debug, Clone)]

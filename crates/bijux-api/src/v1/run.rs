@@ -18,6 +18,6 @@ pub use bijux_core::{
 };
 
 pub use bijux_core::ExecutionManifest;
-pub use bijux_runner::primitives::execute_stage_plan;
 pub use bijux_infra::init_logging;
+pub use bijux_runner::primitives::execute_stage_plan;
 pub use bijux_runner::primitives::{build_tool_execution_spec, replay_run};

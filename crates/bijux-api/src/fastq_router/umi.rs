@@ -7,12 +7,12 @@ use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use bijux_infra::{bench_base_dir, bench_tools_dir};
 use bijux_planner_fastq::select_umi_tools;
-use bijux_runner::primitives::build_tool_execution_spec;
 use bijux_planner_fastq::stage_api::fastq::umi::plan_umi;
 use bijux_planner_fastq::stage_api::FastqArtifact;
 use bijux_planner_fastq::stage_api::{
     ensure_umi_headers, inspect_headers, log_header_warnings, preflight_stage, RawFailure,
 };
+use bijux_runner::primitives::build_tool_execution_spec;
 
 use super::jobs::bench_jobs;
 use super::jobs::execute_plans_with_jobs;

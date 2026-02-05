@@ -15,17 +15,20 @@ use bijux_pipelines::fastq::canonical_tool_defaults;
 pub const PLANNER_VERSION: &str = "bijux-planner-fastq.v1";
 
 pub mod stage_api {
+    pub use bijux_domain_fastq::banks;
+    pub use bijux_domain_fastq::banks::{
+        adapter_bank_context, contaminant_bank_context, polyx_bank_context,
+        polyx_unsupported_warning, resolve_adapter_selection, resolve_contaminant_selection,
+        resolve_effective_adapters, resolve_effective_contaminants, resolve_effective_polyx,
+        resolve_polyx_selection, AdapterSelection, DEFAULT_ADAPTER_PRESET,
+        DEFAULT_CONTAMINANT_PRESET, DEFAULT_POLYX_PRESET,
+    };
+    pub use bijux_domain_fastq::*;
     pub use bijux_stages_fastq::args;
     pub use bijux_stages_fastq::observer;
     pub use bijux_stages_fastq::{
         ensure_umi_headers, inspect_headers, log_header_warnings, preflight_stage, FastqArtifact,
         FastqArtifactKind, RawFailure, StagePlanJson, TOOL_SEQKIT,
-    };
-    pub use bijux_domain_fastq::*;
-    pub use bijux_domain_fastq::banks;
-    pub use bijux_domain_fastq::banks::{
-        adapter_bank_context, contaminant_bank_context, polyx_bank_context,
-        polyx_unsupported_warning,
     };
     pub mod fastq {
         pub use bijux_stages_fastq::fastq::*;
@@ -293,7 +296,7 @@ pub fn plan_preprocess(
     bijux_stages_fastq::fastq::preprocess::PreprocessPlan {
         r1: args.r1.clone(),
         r2: args.r2.clone(),
-        pipeline,
+        stages: pipeline.stages,
         enable_contaminant_removal: args.enable_contaminant_removal,
     }
 }
@@ -310,8 +313,7 @@ pub fn resolve_preprocess_pipeline(
     if let Some(profile_id) = args.profile.as_deref() {
         match bijux_pipelines::registry::profile_by_id(bijux_pipelines::Domain::Fastq, profile_id) {
             Ok(profile) => {
-                let mut stages: Vec<String> =
-                    fastq_pipeline_stage_ids(profile.id.as_str());
+                let mut stages: Vec<String> = fastq_pipeline_stage_ids(profile.id.as_str());
                 if !enable_merge {
                     stages.retain(|stage| stage != "fastq.merge");
                 }
@@ -900,6 +902,14 @@ pub fn apply_tool_overrides(
     merged
 }
 
+#[must_use]
+pub fn fastq_pipeline_stage_ids(profile_id: &str) -> Vec<String> {
+    match profile_id {
+        "fastq-to-fastq__default__v1" | "fastq-to-fastq__minimal__v1" => required_stage_ids(),
+        _ => required_stage_ids(),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -945,13 +955,5 @@ mod tests {
             Ok(_) => panic!("expected empty failure"),
             Err(err) => assert!(err.to_string().contains("no tools specified")),
         }
-    }
-}
-
-#[must_use]
-pub fn fastq_pipeline_stage_ids(profile_id: &str) -> Vec<String> {
-    match profile_id {
-        "fastq-to-fastq__default__v1" | "fastq-to-fastq__minimal__v1" => required_stage_ids(),
-        _ => required_stage_ids(),
     }
 }
