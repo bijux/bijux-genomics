@@ -4,9 +4,9 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Context, Result};
 use bijux_api::v1::bench::{objective_spec, Objective};
 use bijux_api::v1::run::{
-    atomic_write_bytes, load_manifests, load_profile, new_run_id, PathSpec, RunSpec,
+    atomic_write_bytes, load_manifests, new_run_id, replay_run, PathSpec, RunSpec,
 };
-use bijux_core::DryRunExecutor;
+use bijux_core::{DryRunExecutor, Executor};
 use bijux_environment::api::{load_image_catalog, load_platform};
 use bijux_environment::image_qa::run_image_qa;
 use tracing::{info, warn};
@@ -31,7 +31,7 @@ use bijux_api::v1::report::{
 use bijux_api::v1::run::init_logging;
 
 use crate::cli;
-use crate::cli::parse::{
+use crate::cli::{
     bench_args_correct, bench_args_filter, bench_args_from_trim, bench_args_from_validate,
     bench_args_merge, bench_args_preprocess, bench_args_qc_post, bench_args_screen,
     bench_args_stats, bench_args_trim, bench_args_umi, bench_args_validate,
@@ -50,8 +50,3 @@ include!("bench.rs");
 include!("fastq.rs");
 include!("bam.rs");
 include!("other.rs");
-
-pub(crate) use handle_bam_commands;
-pub(crate) use handle_fastq_bench;
-pub(crate) use handle_meta_commands;
-pub(crate) use run_plan;

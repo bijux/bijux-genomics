@@ -6,7 +6,3 @@ pub(crate) fn print_pretty<T: Serialize>(value: &T) -> Result<()> {
     println!("{payload}");
     Ok(())
 }
-
-pub(crate) fn print_raw(raw: &str) {
-    println!("{raw}");
-}

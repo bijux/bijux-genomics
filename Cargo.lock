@@ -253,6 +253,7 @@ dependencies = [
  "bijux-infra",
  "clap",
  "predicates",
+ "serde",
  "serde_json",
  "tempfile",
  "tracing",
