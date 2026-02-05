@@ -8,11 +8,12 @@
 )]
 
 use anyhow::Result;
-use bijux_core::{
+use bijux_core::InvariantStatusV1;
+use bijux_domain_fastq::invariants::{evaluate_invariants, thresholds_from_env};
+use bijux_domain_fastq::metrics::{
     FastqDeltaMetricsV1, FastqFilterMetricsV1, FastqMergeMetricsV1, FastqTrimMetricsV1,
     FastqValidateMetricsV1, RetentionReportMetricV1,
 };
-use bijux_domain_fastq::invariants::{evaluate_invariants, thresholds_from_env};
 use bijux_domain_fastq::params::filter::FilterEffectiveParams;
 use bijux_domain_fastq::params::merge::MergeEffectiveParams;
 use bijux_domain_fastq::params::trim::TrimEffectiveParams;
@@ -87,13 +88,15 @@ fn merge_metrics(merge_rate: f64) -> FastqMergeMetricsV1 {
         reads_out: 100,
         bases_in: 1000,
         bases_out: 1000,
-        pairs_in: 50,
-        pairs_out: 50,
+        pairs_in: Some(50),
+        pairs_out: Some(50),
         reads_r1: 50,
         reads_r2: 50,
         reads_merged: 60,
         reads_unmerged: 40,
+        reads_discarded: 0,
         merge_rate,
+        merge_q_delta: 0.0,
     }
 }
 
@@ -224,7 +227,7 @@ fn fastq_invariants_have_specs_and_fixtures() -> Result<()> {
             .map(|entry| entry.status.clone())
             .unwrap_or_else(|| panic!("missing invariant {} for {stage_id}", spec.id));
         assert!(
-            status != bijux_core::InvariantStatusV1::Pass,
+            status != InvariantStatusV1::Pass,
             "fixture did not trigger {}",
             spec.id
         );

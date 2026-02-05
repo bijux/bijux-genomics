@@ -7,8 +7,8 @@ use anyhow::{anyhow, Context, Result};
 use flate2::read::GzDecoder;
 use serde::Serialize;
 
-use bijux_core::metrics::*;
 use bijux_core::StagePlanV1;
+use bijux_domain_fastq::metrics::*;
 use bijux_domain_fastq::parse_effective_params;
 
 #[derive(Debug, Default, Clone)]
@@ -178,18 +178,22 @@ pub fn stage_metrics_for_plan(
                 0.0
             };
             let bases_in = r1.bases.min(r2.bases);
+            let mean_q_in = (r1.mean_q + r2.mean_q) / 2.0;
+            let merge_q_delta = merged.mean_q - mean_q_in;
             serde_json::to_value(FastqMergeMetricsV1 {
                 reads_in: min_reads,
                 reads_out: merged.reads,
                 bases_in,
                 bases_out: merged.bases,
-                pairs_in: min_reads,
-                pairs_out: merged.reads,
+                pairs_in: Some(min_reads),
+                pairs_out: Some(merged.reads),
                 reads_r1: r1.reads,
                 reads_r2: r2.reads,
                 reads_merged: merged.reads,
                 reads_unmerged,
+                reads_discarded: 0,
                 merge_rate,
+                merge_q_delta,
             })?
         }
         "fastq.validate_pre" => {
@@ -266,6 +270,10 @@ pub fn stage_metrics_for_plan(
                 bases_out: output.bases,
                 pairs_in,
                 pairs_out,
+                reads_corrected: output.reads,
+                reads_uncorrected: input.reads.saturating_sub(output.reads),
+                bases_corrected: output.bases,
+                bases_uncorrected: input.bases.saturating_sub(output.bases),
             })?
         }
         "fastq.umi" => {
@@ -278,6 +286,36 @@ pub fn stage_metrics_for_plan(
                 stats.first().copied().unwrap_or_else(zero_seqkit_metrics)
             };
             let (pairs_in, pairs_out) = pair_counts_from_paths(inputs, outputs)?;
+            let read_retention = if input.reads > 0 {
+                f64_from_u64(output.reads) / f64_from_u64(input.reads)
+            } else {
+                0.0
+            };
+            let base_retention = if input.bases > 0 {
+                f64_from_u64(output.bases) / f64_from_u64(input.bases)
+            } else {
+                0.0
+            };
+            let delta = FastqDeltaMetricsV1 {
+                read_retention,
+                base_retention,
+                mean_q_delta: output.mean_q - input.mean_q,
+                gc_delta: output.gc_percent - input.gc_percent,
+            };
+            let retention = RetentionReportMetricV1 {
+                value: read_retention,
+                numerator_reads: output.reads,
+                denominator_reads: input.reads,
+                numerator_bases: output.bases,
+                denominator_bases: input.bases,
+                definition: "reads_out / reads_in".to_string(),
+                stage_boundary: plan.stage_id.0.clone(),
+                conditions: retention_conditions_from_effective(
+                    &plan.stage_id.0,
+                    &plan.effective_params,
+                    &plan.params,
+                ),
+            };
             serde_json::to_value(FastqUmiMetricsV1 {
                 reads_in: input.reads,
                 reads_out: output.reads,
@@ -285,6 +323,10 @@ pub fn stage_metrics_for_plan(
                 bases_out: output.bases,
                 pairs_in,
                 pairs_out,
+                mean_q_before: input.mean_q,
+                mean_q_after: output.mean_q,
+                delta_metrics: delta,
+                retention,
             })?
         }
         "fastq.preprocess" => {
@@ -297,6 +339,36 @@ pub fn stage_metrics_for_plan(
                 stats.first().copied().unwrap_or_else(zero_seqkit_metrics)
             };
             let (pairs_in, pairs_out) = pair_counts_from_paths(inputs, outputs)?;
+            let read_retention = if input.reads > 0 {
+                f64_from_u64(output.reads) / f64_from_u64(input.reads)
+            } else {
+                0.0
+            };
+            let base_retention = if input.bases > 0 {
+                f64_from_u64(output.bases) / f64_from_u64(input.bases)
+            } else {
+                0.0
+            };
+            let delta = FastqDeltaMetricsV1 {
+                read_retention,
+                base_retention,
+                mean_q_delta: output.mean_q - input.mean_q,
+                gc_delta: output.gc_percent - input.gc_percent,
+            };
+            let retention = RetentionReportMetricV1 {
+                value: read_retention,
+                numerator_reads: output.reads,
+                denominator_reads: input.reads,
+                numerator_bases: output.bases,
+                denominator_bases: input.bases,
+                definition: "reads_out / reads_in".to_string(),
+                stage_boundary: plan.stage_id.0.clone(),
+                conditions: retention_conditions_from_effective(
+                    &plan.stage_id.0,
+                    &plan.effective_params,
+                    &plan.params,
+                ),
+            };
             serde_json::to_value(FastqPreprocessMetricsV1 {
                 reads_in: input.reads,
                 reads_out: output.reads,
@@ -304,6 +376,10 @@ pub fn stage_metrics_for_plan(
                 bases_out: output.bases,
                 pairs_in,
                 pairs_out,
+                mean_q_before: input.mean_q,
+                mean_q_after: output.mean_q,
+                delta_metrics: delta,
+                retention,
             })?
         }
         "fastq.qc_post" => {
@@ -335,6 +411,36 @@ pub fn stage_metrics_for_plan(
                 metrics_source.and_then(|m| m.n_content.as_ref().map(|n| n.mean_percent / 100.0));
             let kmer_warning_count =
                 metrics_source.and_then(|m| m.kmer_content.as_ref().map(|k| k.warning_count));
+            let read_retention = if input.reads > 0 {
+                f64_from_u64(output.reads) / f64_from_u64(input.reads)
+            } else {
+                0.0
+            };
+            let base_retention = if input.bases > 0 {
+                f64_from_u64(output.bases) / f64_from_u64(input.bases)
+            } else {
+                0.0
+            };
+            let delta = FastqDeltaMetricsV1 {
+                read_retention,
+                base_retention,
+                mean_q_delta: output.mean_q - input.mean_q,
+                gc_delta: output.gc_percent - input.gc_percent,
+            };
+            let retention = RetentionReportMetricV1 {
+                value: read_retention,
+                numerator_reads: output.reads,
+                denominator_reads: input.reads,
+                numerator_bases: output.bases,
+                denominator_bases: input.bases,
+                definition: "reads_out / reads_in".to_string(),
+                stage_boundary: plan.stage_id.0.clone(),
+                conditions: retention_conditions_from_effective(
+                    &plan.stage_id.0,
+                    &plan.effective_params,
+                    &plan.params,
+                ),
+            };
             serde_json::to_value(FastqQcPostMetricsV1 {
                 reads_in: input.reads,
                 reads_out: output.reads,
@@ -342,8 +448,12 @@ pub fn stage_metrics_for_plan(
                 bases_out: output.bases,
                 pairs_in,
                 pairs_out,
-                mean_q: input.mean_q,
-                contamination_rate: 0.0,
+                mean_q: Some(output.mean_q),
+                mean_q_before: input.mean_q,
+                mean_q_after: output.mean_q,
+                delta_metrics: delta,
+                retention,
+                contamination_rate: Some(0.0),
                 adapter_content_max,
                 adapter_content_mean,
                 duplication_rate,
@@ -509,11 +619,13 @@ pub fn filter_removals_for_plan(
     }
 }
 
-pub fn stats_or_zero(path: Option<&Path>) -> Result<bijux_core::measure::SeqkitMetrics> {
+pub fn stats_or_zero(
+    path: Option<&Path>,
+) -> Result<bijux_core::primitives::measure::SeqkitMetrics> {
     if let Some(path) = path {
         if path.exists() {
             if path.is_dir() {
-                return Ok(bijux_core::measure::SeqkitMetrics {
+                return Ok(bijux_core::primitives::measure::SeqkitMetrics {
                     reads: 0,
                     bases: 0,
                     mean_q: 0.0,
@@ -521,7 +633,7 @@ pub fn stats_or_zero(path: Option<&Path>) -> Result<bijux_core::measure::SeqkitM
                 });
             }
             if std::fs::metadata(path).map(|m| m.len()).unwrap_or(0) == 0 {
-                return Ok(bijux_core::measure::SeqkitMetrics {
+                return Ok(bijux_core::primitives::measure::SeqkitMetrics {
                     reads: 0,
                     bases: 0,
                     mean_q: 0.0,
@@ -531,7 +643,7 @@ pub fn stats_or_zero(path: Option<&Path>) -> Result<bijux_core::measure::SeqkitM
             return fastq_stats(path);
         }
     }
-    Ok(bijux_core::measure::SeqkitMetrics {
+    Ok(bijux_core::primitives::measure::SeqkitMetrics {
         reads: 0,
         bases: 0,
         mean_q: 0.0,
@@ -539,7 +651,9 @@ pub fn stats_or_zero(path: Option<&Path>) -> Result<bijux_core::measure::SeqkitM
     })
 }
 
-fn stats_for_paths(paths: &[Option<&Path>]) -> Result<Vec<bijux_core::measure::SeqkitMetrics>> {
+fn stats_for_paths(
+    paths: &[Option<&Path>],
+) -> Result<Vec<bijux_core::primitives::measure::SeqkitMetrics>> {
     let tasks: Vec<(usize, Option<PathBuf>)> = paths
         .iter()
         .enumerate()
@@ -554,7 +668,7 @@ fn stats_for_paths(paths: &[Option<&Path>]) -> Result<Vec<bijux_core::measure::S
     let queue = Arc::new(Mutex::new(VecDeque::from(tasks)));
     let mut initial = Vec::with_capacity(paths.len());
     initial.resize_with(paths.len(), || None);
-    let results: Arc<Mutex<Vec<Option<Result<bijux_core::measure::SeqkitMetrics>>>>> =
+    let results: Arc<Mutex<Vec<Option<Result<bijux_core::primitives::measure::SeqkitMetrics>>>>> =
         Arc::new(Mutex::new(initial));
     let mut workers = Vec::new();
     let job_count = observer_jobs().min(paths.len());
@@ -613,8 +727,8 @@ fn pair_counts_from_paths(
     Ok((pairs_in, pairs_out))
 }
 
-fn zero_seqkit_metrics() -> bijux_core::measure::SeqkitMetrics {
-    bijux_core::measure::SeqkitMetrics {
+fn zero_seqkit_metrics() -> bijux_core::primitives::measure::SeqkitMetrics {
+    bijux_core::primitives::measure::SeqkitMetrics {
         reads: 0,
         bases: 0,
         mean_q: 0.0,
@@ -633,7 +747,7 @@ fn f64_from_u64(value: u64) -> f64 {
     value as f64
 }
 
-fn fastq_stats(path: &Path) -> Result<bijux_core::measure::SeqkitMetrics> {
+fn fastq_stats(path: &Path) -> Result<bijux_core::primitives::measure::SeqkitMetrics> {
     let file = std::fs::File::open(path).context("open fastq")?;
     let reader: Box<dyn std::io::Read> = if path
         .extension()
@@ -688,7 +802,7 @@ fn fastq_stats(path: &Path) -> Result<bijux_core::measure::SeqkitMetrics> {
     } else {
         0.0
     };
-    Ok(bijux_core::measure::SeqkitMetrics {
+    Ok(bijux_core::primitives::measure::SeqkitMetrics {
         reads,
         bases,
         mean_q,

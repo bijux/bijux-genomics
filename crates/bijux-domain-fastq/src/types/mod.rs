@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-pub use bijux_core::input_assessment::{FastqLayout, FastqSampleId};
+pub use bijux_core::primitives::input_assessment::{FastqLayout, FastqSampleId};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum FastqArtifactKind {

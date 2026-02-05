@@ -3,6 +3,7 @@
 //! Owns: BAM stage semantics, effective params, and canonical metrics schema.
 //! Must NOT depend on: bijux-engine or runtime/container execution logic.
 
+pub mod alignment;
 pub mod invariants;
 pub mod metrics;
 pub mod params;

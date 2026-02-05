@@ -16,6 +16,7 @@ uuid.workspace = true
 chrono.workspace = true
 bijux-core = { path = "../bijux-core" }
 bijux-infra = { path = "../bijux-infra", features = ["yaml"] }
+bijux-runtime = { path = "../bijux-runtime" }
 schemars.workspace = true
 
 [dev-dependencies]

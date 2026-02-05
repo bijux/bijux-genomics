@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use anyhow::{anyhow, Context, Result};
-use bijux_core::measure::SeqkitMetrics;
+use bijux_core::primitives::measure::SeqkitMetrics;
 use bijux_core::{ArtifactRef, StageIO, StageId, StagePlanV1, StageVersion, ToolExecutionSpecV1};
 use bijux_domain_fastq::params::{validate::ValidateEffectiveParams, PairedMode};
 
@@ -132,7 +132,7 @@ fn parse_fastqvalidator_count(stdout: &str) -> Result<u64> {
 mod tests {
     use super::{parse_fastqvalidator_count, validate_reads_total};
     use anyhow::Result;
-    use bijux_core::measure::SeqkitMetrics;
+    use bijux_core::primitives::measure::SeqkitMetrics;
 
     #[test]
     fn validate_reads_total_uses_input_for_fastqc() -> Result<()> {

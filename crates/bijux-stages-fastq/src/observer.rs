@@ -5,7 +5,7 @@ use anyhow::{anyhow, Context, Result};
 use bijux_environment::api::ResolvedImage;
 use tracing::warn;
 
-use bijux_core::measure::SeqkitMetrics;
+use bijux_core::primitives::measure::SeqkitMetrics;
 
 pub fn input_fastq_stats(
     image: &ResolvedImage,

@@ -8,7 +8,6 @@ use serde::{Deserialize, Serialize};
 
 use crate::types::FastqArtifactKind;
 
-pub use bijux_core::RawFailure;
 pub use contract::{
     assess_merge_suitability, contract_for_stage, ensure_umi_headers, inspect_headers,
     log_header_warnings, normalize_outputs, preflight_stage, HeaderInspection, MergeSuitability,

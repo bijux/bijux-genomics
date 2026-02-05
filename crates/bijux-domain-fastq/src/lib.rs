@@ -14,7 +14,7 @@ mod adapter_bank;
 pub mod banks;
 mod contaminant_bank;
 pub mod invariants;
-mod metrics;
+pub mod metrics;
 pub mod params;
 pub mod pipeline_contract;
 mod polyx_bank;
@@ -28,7 +28,6 @@ pub use adapter_bank::{
     load_adapter_bank, load_adapter_presets, resolve_adapter_preset, AdapterBankV1, AdapterEntryV1,
     AdapterPresetV1, AdapterPresetsV1, EffectiveAdapterSet, ReadScope,
 };
-pub use bijux_core::RawFailure;
 pub use contaminant_bank::{
     contaminant_motifs_path, contaminant_presets_path, contaminant_references_dir,
     load_contaminant_motifs, load_contaminant_presets, resolve_contaminant_preset,

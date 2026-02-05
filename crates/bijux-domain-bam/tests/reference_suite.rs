@@ -2,6 +2,7 @@ use std::fs;
 use std::path::PathBuf;
 
 use anyhow::Result;
+use bijux_core::InvariantStatusV1;
 use bijux_domain_bam::metrics::{
     authenticity_score, evaluate_bam_invariants, BamInvariantThresholds, BamMetricsV1,
     SexConfidenceClass,
@@ -36,7 +37,7 @@ fn reference_modern_contaminated_flags_issue() -> Result<()> {
     assert!(eval
         .results
         .iter()
-        .any(|r| matches!(r.status, bijux_core::InvariantStatusV1::Fail)));
+        .any(|r| matches!(r.status, InvariantStatusV1::Fail)));
     Ok(())
 }
 

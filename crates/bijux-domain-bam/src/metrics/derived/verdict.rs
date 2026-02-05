@@ -1,3 +1,4 @@
+use bijux_core::{InvariantStatusV1, StageVerdictV1};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -9,12 +10,12 @@ pub enum BamInvariantStatusV1 {
     Fail,
 }
 
-impl From<bijux_core::InvariantStatusV1> for BamInvariantStatusV1 {
-    fn from(value: bijux_core::InvariantStatusV1) -> Self {
+impl From<InvariantStatusV1> for BamInvariantStatusV1 {
+    fn from(value: InvariantStatusV1) -> Self {
         match value {
-            bijux_core::InvariantStatusV1::Pass => Self::Pass,
-            bijux_core::InvariantStatusV1::Warn => Self::Warn,
-            bijux_core::InvariantStatusV1::Fail => Self::Fail,
+            InvariantStatusV1::Pass => Self::Pass,
+            InvariantStatusV1::Warn => Self::Warn,
+            InvariantStatusV1::Fail => Self::Fail,
         }
     }
 }
@@ -28,8 +29,8 @@ pub struct BamStageVerdictV1 {
     pub key_metrics: serde_json::Value,
 }
 
-impl From<bijux_core::StageVerdictV1> for BamStageVerdictV1 {
-    fn from(verdict: bijux_core::StageVerdictV1) -> Self {
+impl From<StageVerdictV1> for BamStageVerdictV1 {
+    fn from(verdict: StageVerdictV1) -> Self {
         Self {
             stage_id: verdict.stage_id,
             verdict: verdict.verdict.into(),
