@@ -11,7 +11,7 @@ use anyhow::{Context, Result};
 
 use std::collections::BTreeMap;
 
-use crate::error::BenchError;
+use bijux_benchmark_model::BenchError;
 
 #[derive(Debug, Clone)]
 pub struct RunMetadata {
@@ -22,7 +22,10 @@ pub struct RunMetadata {
 pub trait RunRepository {
     fn list_runs(&self) -> Result<Vec<String>>;
     fn run_metadata(&self, run_id: &str) -> Result<RunMetadata>;
-    fn load_observations(&self, run_id: &str) -> Result<Vec<crate::model::BenchmarkObservation>>;
+    fn load_observations(
+        &self,
+        run_id: &str,
+    ) -> Result<Vec<bijux_benchmark_model::BenchmarkObservation>>;
 }
 
 pub fn load_manifest(path: &PathBuf) -> Result<bijux_core::contract::ExecutionManifest> {
@@ -57,7 +60,9 @@ pub fn load_metrics_map(path: &PathBuf) -> Result<BTreeMap<String, f64>> {
     Ok(map)
 }
 
-pub fn load_observations(path: &PathBuf) -> Result<Vec<crate::model::BenchmarkObservation>> {
+pub fn load_observations(
+    path: &PathBuf,
+) -> Result<Vec<bijux_benchmark_model::BenchmarkObservation>> {
     if !path.exists() {
         return Err(BenchError::MissingMetrics(format!(
             "observations file missing: {}",
@@ -71,7 +76,7 @@ pub fn load_observations(path: &PathBuf) -> Result<Vec<crate::model::BenchmarkOb
         if line.trim().is_empty() {
             continue;
         }
-        let obs: crate::model::BenchmarkObservation = serde_json::from_str(line)?;
+        let obs: bijux_benchmark_model::BenchmarkObservation = serde_json::from_str(line)?;
         observations.push(obs);
     }
     Ok(observations)

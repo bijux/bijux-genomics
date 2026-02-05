@@ -12,6 +12,8 @@ serde = { workspace = true, features = ["derive"] }
 bijux-core = { path = "../bijux-core" }
 bijux-analyze = { path = "../bijux-analyze" }
 bijux-infra = { path = "../bijux-infra" }
+bijux-runtime = { path = "../bijux-runtime" }
+bijux-benchmark-model = { path = "../bijux-benchmark-model" }
 
 [dev-dependencies]
 bijux-policies = { path = "../bijux-policies" }

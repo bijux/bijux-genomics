@@ -13,8 +13,7 @@ use anyhow::{Context, Result};
 
 use std::collections::BTreeSet;
 
-use crate::model::{BenchmarkObservation, BenchmarkSummary};
-use crate::policy::GateDecision;
+use bijux_benchmark_model::{BenchmarkObservation, BenchmarkSummary, GateDecision};
 
 type ObservationKey = (String, String, String, String, String);
 
@@ -189,10 +188,11 @@ mod tests {
     use std::collections::BTreeMap;
     use std::path::PathBuf;
 
-    use crate::model::{BenchmarkObservation, BenchmarkSummary, MetricSummary, SummaryRow};
-    use crate::policy::GateDecision;
-    use crate::stats::robust_stats;
     use crate::MetricsEnvelope;
+    use bijux_benchmark_model::{
+        robust_stats, BenchmarkObservation, BenchmarkSummary, GateDecision, MetricSummary,
+        SummaryRow,
+    };
 
     #[test]
     fn artifacts_are_stable_and_atomic() -> anyhow::Result<()> {
