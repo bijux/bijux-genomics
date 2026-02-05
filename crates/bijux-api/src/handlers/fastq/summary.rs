@@ -16,7 +16,7 @@ pub(super) fn write_run_summary(
     adapter_inference: Option<&serde_json::Value>,
     stage_skips: &[serde_json::Value],
 ) -> Result<()> {
-    let root = out_dir.join("run_artifacts");
+    let root = bijux_runtime::recording::run_artifacts_dir_for_out(out_dir);
     bijux_infra::ensure_dir(&root).context("create run summary artifacts dir")?;
     let run_id = stage_runs
         .first()
@@ -25,7 +25,8 @@ pub(super) fn write_run_summary(
     let stages: Vec<serde_json::Value> = stage_runs
         .iter()
         .map(|entry| {
-            let artifacts_dir = entry.plan.out_dir.join("run_artifacts");
+            let artifacts_dir =
+                bijux_runtime::recording::run_artifacts_dir_for_out(&entry.plan.out_dir);
             let metrics_path = artifacts_dir.join("metrics_envelope.json");
             let metrics =
                 read_json_if_exists(&metrics_path).and_then(|value| value.get("metrics").cloned());
@@ -101,7 +102,8 @@ pub(super) fn write_run_manifest(
     let stages: Vec<serde_json::Value> = stage_runs
         .iter()
         .map(|entry| {
-            let artifacts_dir = entry.plan.out_dir.join("run_artifacts");
+            let artifacts_dir =
+                bijux_runtime::recording::run_artifacts_dir_for_out(&entry.plan.out_dir);
             let mut artifacts = Vec::new();
             let add_artifact = |artifacts: &mut Vec<serde_json::Value>, name: &str, path: &Path| {
                 if path.exists() {
@@ -207,10 +209,7 @@ pub(super) fn write_run_manifest(
             "events": stage_runs.iter().map(|entry| {
                 relative_path_string(
                     out_dir,
-                    &entry
-                        .plan
-                        .out_dir
-                        .join("run_artifacts")
+                    &bijux_runtime::recording::run_artifacts_dir_for_out(&entry.plan.out_dir)
                         .join("telemetry")
                         .join("events.jsonl"),
                 )
@@ -241,7 +240,8 @@ fn write_scientific_provenance(out_dir: &Path, stage_runs: &[StageExecutionSumma
     let mut invocations = Vec::new();
     let mut params_hashes = std::collections::BTreeMap::new();
     for entry in stage_runs {
-        let artifacts_dir = entry.plan.out_dir.join("run_artifacts");
+        let artifacts_dir =
+            bijux_runtime::recording::run_artifacts_dir_for_out(&entry.plan.out_dir);
         let invocation_path = artifacts_dir
             .join("invocations")
             .join(format!("{}.tool_invocation.json", entry.plan.stage_id.0));
@@ -301,11 +301,9 @@ fn run_provenance_from_stage_runs(
         if let Some(digest) = entry.plan.image.digest.clone() {
             image_digests.insert(digest);
         }
-        let envelope_path = entry
-            .plan
-            .out_dir
-            .join("run_artifacts")
-            .join("metrics_envelope.json");
+        let envelope_path =
+            bijux_runtime::recording::run_artifacts_dir_for_out(&entry.plan.out_dir)
+                .join("metrics_envelope.json");
         if let Some(value) = read_json_if_exists(&envelope_path) {
             if let Some(hash) = value.get("input_hash").and_then(serde_json::Value::as_str) {
                 input_hashes.push(hash.to_string());
@@ -498,7 +496,7 @@ mod tests {
         std::env::set_var("BIJUX_PLANNER_VERSION", "planner.v1");
 
         let stage_out = out_dir.join("stage");
-        let artifacts = stage_out.join("run_artifacts");
+        let artifacts = bijux_runtime::recording::run_artifacts_dir_for_out(&stage_out);
         let invocations = artifacts.join("invocations");
         bijux_infra::ensure_dir(&invocations)?;
         let plan = StagePlanV1 {
