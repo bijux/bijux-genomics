@@ -5,7 +5,7 @@ use bijux_core::{StagePlanV1, ToolExecutionSpecV1};
 use bijux_infra::hash_file_sha256;
 use bijux_pipelines::registry;
 use bijux_pipelines::PipelineProfile;
-use bijux_planner_bam::stage_api::StagePlanRequest;
+use bijux_planner_bam::stage_api::{BamStage, StagePlanRequest};
 
 use crate::args::BamRunArgs;
 
@@ -50,20 +50,18 @@ pub fn plan_for_bam_stage_with_profile(
             let r1 = args
                 .r1
                 .as_deref()
-                .ok_or_else(|| anyhow!("--r1 is required for bam.align"))?;
-            let reference = args
-                .reference
-                .as_deref()
-                .ok_or_else(|| anyhow!("--reference is required for bam.align"))?;
-            let sample_id = args
-                .sample_id
-                .as_deref()
-                .ok_or_else(|| anyhow!("--sample-id is required for bam.align"))?;
+                .ok_or_else(|| anyhow!("--r1 is required for {}", BamStage::Align.as_str()))?;
+            let reference = args.reference.as_deref().ok_or_else(|| {
+                anyhow!("--reference is required for {}", BamStage::Align.as_str())
+            })?;
+            let sample_id = args.sample_id.as_deref().ok_or_else(|| {
+                anyhow!("--sample-id is required for {}", BamStage::Align.as_str())
+            })?;
             let digest = hash_file_sha256(reference)?;
             let mut params = match default_params_for_stage(profile, stage) {
                 bijux_planner_bam::stage_api::params::BamEffectiveParams::Align(params) => params,
                 _ => bijux_planner_bam::stage_api::params::AlignEffectiveParams {
-                    aligner: spec.tool_id.0.clone(),
+                    aligner: spec.tool_id.to_string(),
                     preset: args
                         .aligner_preset
                         .clone()
@@ -99,7 +97,7 @@ pub fn plan_for_bam_stage_with_profile(
             if let Some(policy) = args.rg_policy.as_deref() {
                 params.rg_policy = parse_read_group_policy(policy)?;
             }
-            params.aligner.clone_from(&spec.tool_id.0);
+            params.aligner = spec.tool_id.to_string();
             params.build_indices = args.build_reference_indices;
             let params_json = serde_json::to_value(&params)?;
             plan(StagePlanRequest {
@@ -469,9 +467,10 @@ pub fn plan_for_bam_stage_with_profile(
             })
         }
         #[cfg(not(feature = "bam_downstream"))]
-        bijux_planner_bam::stage_api::BamStage::BiasMitigation => Err(anyhow!(
-            "bam.bias_mitigation is disabled without feature 'bam_downstream'"
-        )),
+        bijux_planner_bam::stage_api::BamStage::BiasMitigation => Err(anyhow!(format!(
+            "{} is disabled without feature 'bam_downstream'",
+            BamStage::BiasMitigation.as_str()
+        ))),
         bijux_planner_bam::stage_api::BamStage::Recalibration => {
             let default_params = default_params_for_stage(profile, stage);
             let mut params = match default_params {

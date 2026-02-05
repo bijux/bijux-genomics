@@ -20,6 +20,7 @@ use bijux_runtime::recording::write_telemetry_event;
 use super::jobs::bench_jobs;
 use super::summary::{write_run_summary, StageExecutionSummary};
 use super::write_explain_plan_json;
+use super::{STAGE_PREPROCESS, STAGE_TRIM};
 use bijux_infra::{bench_base_dir, bench_tools_dir};
 use bijux_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_planner_fastq::stage_api::{
@@ -64,7 +65,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         .iter()
         .map(|selection| selection.tool_id.clone())
         .collect();
-    tool_ids = filter_tools_by_role("fastq.preprocess", &tool_ids, &registry, false)?;
+    tool_ids = filter_tools_by_role(STAGE_PREPROCESS.as_str(), &tool_ids, &registry, false)?;
     let mut reasons_by_tool = std::collections::HashMap::new();
     for selection in selected_tools.drain(..) {
         reasons_by_tool.insert(selection.tool_id, selection.reason);
@@ -86,10 +87,16 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     }
     selected_tools = filtered_selections;
 
-    write_explain_plan_json(&out_dir, "fastq.preprocess", &tool_ids, &registry, None)?;
+    write_explain_plan_json(
+        &out_dir,
+        STAGE_PREPROCESS.as_str(),
+        &tool_ids,
+        &registry,
+        None,
+    )?;
 
-    ensure_image_qa_passed("fastq.preprocess", &tool_ids, platform, catalog)?;
-    ensure_tool_qa_passed("fastq.preprocess", &tool_ids, platform, catalog)?;
+    ensure_image_qa_passed(STAGE_PREPROCESS.as_str(), &tool_ids, platform, catalog)?;
+    ensure_tool_qa_passed(STAGE_PREPROCESS.as_str(), &tool_ids, platform, catalog)?;
 
     let jobs = bench_jobs(args.jobs);
     let tools_root = bench_tools_dir(&args.out, "preprocess", &args.sample_id);
@@ -125,7 +132,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     {
         let spec = build_tool_execution_spec(stage, tool, &registry, catalog, platform)?;
         let spec = scale_tool_spec_for_jobs(&spec, jobs);
-        if stage == "fastq.trim" {
+        if stage == STAGE_TRIM.as_str() {
             if let Some(msg) = polyx_unsupported_warning(
                 &spec.tool_id.0,
                 polyx_bank.as_ref(),
@@ -151,7 +158,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         );
     }
     let planner_config = FastqPlanConfig {
-        pipeline_id: "fastq.preprocess".to_string(),
+        pipeline_id: STAGE_PREPROCESS.as_str().to_string(),
         policy: PlanPolicy::PreferAccuracy,
         stages: policy.pipeline_stages.clone(),
         tools: tool_specs.clone(),
@@ -175,13 +182,16 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     let telemetry = build_telemetry_adapter();
     let mut pipeline_attrs = std::collections::BTreeMap::new();
     pipeline_attrs.insert("sample_id".to_string(), args.sample_id.clone());
-    pipeline_attrs.insert("pipeline".to_string(), "fastq.preprocess".to_string());
-    let pipeline_span = telemetry.start_pipeline("fastq.preprocess", &pipeline_attrs);
+    pipeline_attrs.insert(
+        "pipeline".to_string(),
+        STAGE_PREPROCESS.as_str().to_string(),
+    );
+    let pipeline_span = telemetry.start_pipeline(STAGE_PREPROCESS.as_str(), &pipeline_attrs);
 
     let mut stage_runs = Vec::new();
     for planned in planned_stages {
-        let stage_id = planned.stage_id.0.clone();
-        let tool = planned.tool_id.0.clone();
+        let stage_id = planned.stage_id.to_string();
+        let tool = planned.tool_id.to_string();
         let mut stage_attrs = std::collections::BTreeMap::new();
         stage_attrs.insert("stage".to_string(), stage_id.clone());
         stage_attrs.insert("tool".to_string(), tool.clone());
@@ -225,7 +235,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         let event = TelemetryEventV1 {
             schema_version: "bijux.telemetry.v1".to_string(),
             run_id,
-            stage_id: "fastq.preprocess".to_string(),
+            stage_id: STAGE_PREPROCESS.as_str().to_string(),
             tool_id: "planner".to_string(),
             event_name: "merge_decision".to_string(),
             timestamp: chrono::Utc::now().to_rfc3339(),

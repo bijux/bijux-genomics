@@ -16,7 +16,7 @@ use bijux_runner::primitives::build_tool_execution_spec;
 
 use super::jobs::bench_jobs;
 use super::jobs::execute_plans_with_jobs;
-use super::{write_explain_md, write_explain_plan_json, BenchOutcome};
+use super::{write_explain_md, write_explain_plan_json, BenchOutcome, STAGE_MERGE};
 use bijux_planner_fastq::scale_tool_spec_for_jobs;
 
 /// # Errors
@@ -28,13 +28,13 @@ pub fn bench_fastq_merge<S: ::std::hash::BuildHasher>(
     args: &bijux_planner_fastq::stage_api::args::BenchFastqMergeArgs,
 ) -> Result<BenchOutcome<bijux_analyze::FastqMergeMetrics>> {
     let tools = select_merge_tools(&args.tools)?;
-    preflight_stage("fastq.merge", FastqArtifactKind::PairedEnd)?;
+    preflight_stage(STAGE_MERGE.as_str(), FastqArtifactKind::PairedEnd)?;
     let header = inspect_headers(&args.r1, Some(&args.r2), false)?;
-    log_header_warnings("fastq.merge", &header);
+    log_header_warnings(STAGE_MERGE.as_str(), &header);
 
     let registry = load_registry(&std::env::current_dir()?.join("domain"))
         .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
-    let tools = filter_tools_by_role("fastq.merge", &tools, &registry, false)?;
+    let tools = filter_tools_by_role(STAGE_MERGE.as_str(), &tools, &registry, false)?;
 
     let bench_dir = bench_base_dir(&args.out, "merge", &args.sample_id);
     let tools_root = bench_tools_dir(&args.out, "merge", &args.sample_id);
@@ -42,13 +42,13 @@ pub fn bench_fastq_merge<S: ::std::hash::BuildHasher>(
     bijux_infra::ensure_dir(&tools_root).context("create tools output dir")?;
 
     if args.explain {
-        write_explain_md(&bench_dir, "fastq.merge", &tools, &[], None)?;
-        write_explain_plan_json(&bench_dir, "fastq.merge", &tools, &registry, None)?;
+        write_explain_md(&bench_dir, STAGE_MERGE.as_str(), &tools, &[], None)?;
+        write_explain_plan_json(&bench_dir, STAGE_MERGE.as_str(), &tools, &registry, None)?;
     }
 
     ensure_bench_runner(platform, runner_override)?;
-    ensure_image_qa_passed("fastq.merge", &tools, platform, catalog)?;
-    ensure_tool_qa_passed("fastq.merge", &tools, platform, catalog)?;
+    ensure_image_qa_passed(STAGE_MERGE.as_str(), &tools, platform, catalog)?;
+    ensure_tool_qa_passed(STAGE_MERGE.as_str(), &tools, platform, catalog)?;
 
     let jobs = bench_jobs(args.jobs);
     let mut failures = Vec::new();
@@ -58,7 +58,7 @@ pub fn bench_fastq_merge<S: ::std::hash::BuildHasher>(
         let out_dir = tools_root.join(tool);
         bijux_infra::ensure_dir(&out_dir).context("create tool output dir")?;
         let tool_spec =
-            build_tool_execution_spec("fastq.merge", tool, &registry, catalog, platform)?;
+            build_tool_execution_spec(STAGE_MERGE.as_str(), tool, &registry, catalog, platform)?;
         let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
         let plan = plan_merge(&tool_spec, &args.r1, &args.r2, &out_dir)?;
         plans.push(plan);
@@ -69,7 +69,7 @@ pub fn bench_fastq_merge<S: ::std::hash::BuildHasher>(
         if execution.exit_code != 0 {
             let tool_name = tool.clone();
             failures.push(RawFailure {
-                stage: "fastq.merge".to_string(),
+                stage: STAGE_MERGE.as_str().to_string(),
                 tool,
                 reason: format!(
                     "tool {tool_name} failed with status {}",

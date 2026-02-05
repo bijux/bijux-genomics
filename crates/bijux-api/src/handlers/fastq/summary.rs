@@ -1,6 +1,7 @@
 use std::fs;
 use std::path::Path;
 
+use super::STAGE_QC_POST;
 use anyhow::{Context, Result};
 use bijux_core::metrics::ToolInvocationV1;
 use bijux_planner_fastq::{CorrectDecisionTrace, MergeDecisionTrace};
@@ -151,7 +152,7 @@ pub(super) fn write_run_manifest(
                 &artifacts_dir.join("telemetry").join("events.jsonl"),
             );
             let mut primary_outputs = Vec::new();
-            if entry.plan.stage_id.0 == "fastq.qc_post" {
+            if entry.plan.stage_id.as_str() == STAGE_QC_POST.as_str() {
                 let qc_report = artifacts_dir
                     .join("reports")
                     .join(format!("{}.qc_post_report.json", entry.plan.stage_id.0));
@@ -310,7 +311,7 @@ fn run_provenance_from_stage_runs(
                 input_hashes.push(hash.to_string());
             }
             if let Some(hash) = value.get("params_hash").and_then(serde_json::Value::as_str) {
-                params_by_stage.insert(entry.plan.stage_id.0.clone(), hash.to_string());
+                params_by_stage.insert(entry.plan.stage_id.to_string(), hash.to_string());
             }
         }
     }
@@ -400,9 +401,10 @@ mod tests {
     use super::{write_run_manifest, write_scientific_provenance};
     use bijux_core::metrics::{AdapterBankProvenanceV1, ToolInvocationV1};
     use bijux_core::{
-        CommandSpecV1, ContainerImageRefV1, StageIO, StageId, StagePlanV1, StageVersion,
-        ToolConstraints, ToolId,
+        CommandSpecV1, ContainerImageRefV1, StageIO, StagePlanV1, StageVersion, ToolConstraints,
+        ToolId,
     };
+    use bijux_planner_fastq::stage_api::STAGE_TRIM;
     use bijux_runner::primitives::StageResultV1;
     use std::path::PathBuf;
 
@@ -428,9 +430,9 @@ mod tests {
         let stage_out = out_dir.join("stage");
         bijux_infra::ensure_dir(&stage_out)?;
         let plan = StagePlanV1 {
-            stage_id: StageId("fastq.trim".to_string()),
+            stage_id: STAGE_TRIM.clone(),
             stage_version: StageVersion(1),
-            tool_id: ToolId("fastp".to_string()),
+            tool_id: ToolId::from_static("fastp"),
             tool_version: "0.0.0".to_string(),
             image: ContainerImageRefV1 {
                 image: "tool:latest".to_string(),
@@ -500,9 +502,9 @@ mod tests {
         let invocations = artifacts.join("invocations");
         bijux_infra::ensure_dir(&invocations)?;
         let plan = StagePlanV1 {
-            stage_id: StageId("fastq.trim".to_string()),
+            stage_id: STAGE_TRIM.clone(),
             stage_version: StageVersion(1),
-            tool_id: ToolId("fastp".to_string()),
+            tool_id: ToolId::from_static("fastp"),
             tool_version: "0.0.0".to_string(),
             image: ContainerImageRefV1 {
                 image: "tool:latest".to_string(),
@@ -535,8 +537,8 @@ mod tests {
         };
         let invocation = ToolInvocationV1 {
             schema_version: "bijux.tool_invocation.v1".to_string(),
-            stage_id: plan.stage_id.0.clone(),
-            tool_id: plan.tool_id.0.clone(),
+            stage_id: plan.stage_id.to_string(),
+            tool_id: plan.tool_id.to_string(),
             tool_version: plan.tool_version.clone(),
             resolved_tool_version: Some(plan.tool_version.clone()),
             image_digest: "sha256:img".to_string(),

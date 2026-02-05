@@ -16,7 +16,7 @@ use bijux_runner::primitives::build_tool_execution_spec;
 
 use super::jobs::bench_jobs;
 use super::jobs::execute_plans_with_jobs;
-use super::{write_explain_md, write_explain_plan_json, BenchOutcome};
+use super::{write_explain_md, write_explain_plan_json, BenchOutcome, STAGE_UMI};
 use bijux_planner_fastq::scale_tool_spec_for_jobs;
 
 /// # Errors
@@ -29,17 +29,17 @@ pub fn bench_fastq_umi<S: ::std::hash::BuildHasher>(
 ) -> Result<BenchOutcome<bijux_analyze::FastqUmiMetrics>> {
     let tools = select_umi_tools(&args.tools)?;
     let artifact = FastqArtifact::single_end(&args.r1);
-    preflight_stage("fastq.umi", artifact.kind)?;
+    preflight_stage(STAGE_UMI.as_str(), artifact.kind)?;
     let r2 = args
         .r2
         .as_deref()
         .ok_or_else(|| anyhow!("umi stage requires paired-end input"))?;
     let header = inspect_headers(&args.r1, Some(r2), false)?;
-    log_header_warnings("fastq.umi", &header);
+    log_header_warnings(STAGE_UMI.as_str(), &header);
 
     let registry = load_registry(&std::env::current_dir()?.join("domain"))
         .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
-    let tools = filter_tools_by_role("fastq.umi", &tools, &registry, false)?;
+    let tools = filter_tools_by_role(STAGE_UMI.as_str(), &tools, &registry, false)?;
 
     let bench_dir = bench_base_dir(&args.out, "umi", &args.sample_id);
     let tools_root = bench_tools_dir(&args.out, "umi", &args.sample_id);
@@ -47,13 +47,13 @@ pub fn bench_fastq_umi<S: ::std::hash::BuildHasher>(
     bijux_infra::ensure_dir(&tools_root).context("create tools output dir")?;
 
     if args.explain {
-        write_explain_md(&bench_dir, "fastq.umi", &tools, &[], None)?;
-        write_explain_plan_json(&bench_dir, "fastq.umi", &tools, &registry, None)?;
+        write_explain_md(&bench_dir, STAGE_UMI.as_str(), &tools, &[], None)?;
+        write_explain_plan_json(&bench_dir, STAGE_UMI.as_str(), &tools, &registry, None)?;
     }
 
     ensure_bench_runner(platform, runner_override)?;
-    ensure_image_qa_passed("fastq.umi", &tools, platform, catalog)?;
-    ensure_tool_qa_passed("fastq.umi", &tools, platform, catalog)?;
+    ensure_image_qa_passed(STAGE_UMI.as_str(), &tools, platform, catalog)?;
+    ensure_tool_qa_passed(STAGE_UMI.as_str(), &tools, platform, catalog)?;
 
     ensure_umi_headers(&args.r1, args.r2.as_deref())?;
 
@@ -64,7 +64,8 @@ pub fn bench_fastq_umi<S: ::std::hash::BuildHasher>(
     for tool in &tools {
         let out_dir = tools_root.join(tool);
         bijux_infra::ensure_dir(&out_dir).context("create tool output dir")?;
-        let tool_spec = build_tool_execution_spec("fastq.umi", tool, &registry, catalog, platform)?;
+        let tool_spec =
+            build_tool_execution_spec(STAGE_UMI.as_str(), tool, &registry, catalog, platform)?;
         let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
         let plan = plan_umi(&tool_spec, &args.r1, r2, &out_dir)?;
         plans.push(plan);
@@ -75,7 +76,7 @@ pub fn bench_fastq_umi<S: ::std::hash::BuildHasher>(
         if execution.exit_code != 0 {
             let tool_name = tool.clone();
             failures.push(RawFailure {
-                stage: "fastq.umi".to_string(),
+                stage: STAGE_UMI.as_str().to_string(),
                 tool,
                 reason: format!(
                     "tool {tool_name} failed with status {}",

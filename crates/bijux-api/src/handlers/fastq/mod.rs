@@ -15,6 +15,11 @@ mod trim;
 mod umi;
 mod validate_pre;
 
+pub use bijux_planner_fastq::stage_api::{
+    STAGE_CORRECT, STAGE_FILTER, STAGE_MERGE, STAGE_PREPROCESS, STAGE_QC_POST, STAGE_SCREEN,
+    STAGE_STATS_NEUTRAL, STAGE_TRIM, STAGE_UMI, STAGE_VALIDATE_PRE,
+};
+
 pub use correct::bench_fastq_correct;
 pub use explain::{write_explain_md, write_explain_plan_json};
 pub use filter::bench_fastq_filter;
@@ -39,7 +44,7 @@ pub struct BenchOutcome<M: bijux_analyze::StageMetricSchema> {
 
 #[cfg(test)]
 mod plan_tests {
-    use bijux_planner_fastq::stage_api::polyx_unsupported_warning;
+    use bijux_planner_fastq::stage_api::{polyx_unsupported_warning, STAGE_TRIM};
 
     #[test]
     fn polyx_warning_emits_for_unsupported_tools() {
@@ -60,6 +65,6 @@ mod plan_tests {
     #[test]
     fn pipeline_stage_ids_are_stable_for_default_fastq() {
         let stages = bijux_planner_fastq::fastq_pipeline_stage_ids("fastq-to-fastq__default__v1");
-        assert!(stages.contains(&"fastq.trim".to_string()));
+        assert!(stages.contains(&STAGE_TRIM.as_str().to_string()));
     }
 }

@@ -15,6 +15,7 @@ use bijux_environment::resolve::{ReferenceBuildRequest, ReferenceRegistry};
 use bijux_infra::bench_base_dir;
 use bijux_pipelines::registry;
 use bijux_pipelines::{Domain, PipelineProfile};
+use bijux_planner_bam::stage_api::BamStage;
 
 #[allow(clippy::too_many_lines)]
 /// # Errors
@@ -44,12 +45,16 @@ pub fn run_fastq_to_bam_profile<S: std::hash::BuildHasher>(
     let _defaults_ledger_path = write_defaults_ledger(&out_dir, profile)?;
 
     let pipeline = bijux_planner_fastq::cross_fastq_to_bam_stage_ids(profile.id.as_str());
-    let has_align = pipeline.iter().any(|stage| stage == "bam.align");
+    let has_align = pipeline
+        .iter()
+        .any(|stage| stage == BamStage::Align.as_str());
     if has_align {
-        let reference = cross_args
-            .alignment_reference
-            .as_ref()
-            .ok_or_else(|| anyhow!("--alignment-reference required for bam.align profiles"))?;
+        let reference = cross_args.alignment_reference.as_ref().ok_or_else(|| {
+            anyhow!(
+                "--alignment-reference required for {} profiles",
+                BamStage::Align.as_str()
+            )
+        })?;
         let registry = ReferenceRegistry::new();
         let record = registry.prepare_reference(
             reference,

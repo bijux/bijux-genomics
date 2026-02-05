@@ -32,9 +32,9 @@ impl Runner for FakeRunner {
 
 fn build_plan(base_dir: &Path) -> Result<ExecutionPlan> {
     let stage = StagePlanV1 {
-        stage_id: StageId("core.test".to_string()),
+        stage_id: StageId::from_static("core.test"),
         stage_version: StageVersion(1),
-        tool_id: ToolId("tool.test".to_string()),
+        tool_id: ToolId::from_static("tool.test"),
         tool_version: "0.0.0".to_string(),
         image: ContainerImageRefV1 {
             image: "example/tool:test".to_string(),

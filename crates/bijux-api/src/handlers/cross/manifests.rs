@@ -210,7 +210,7 @@ fn run_provenance_from_cross(
                     input_hashes.push(hash.to_string());
                 }
                 if let Some(hash) = value.get("params_hash").and_then(serde_json::Value::as_str) {
-                    params_by_stage.insert(entry.plan.stage_id.0.clone(), hash.to_string());
+                    params_by_stage.insert(entry.plan.stage_id.to_string(), hash.to_string());
                 }
             }
         }
@@ -256,6 +256,7 @@ mod tests {
     use super::{write_cross_run_manifest, write_defaults_ledger};
     use bijux_pipelines::registry::profile_by_id;
     use bijux_pipelines::Domain;
+    use bijux_planner_fastq::stage_api::STAGE_TRIM;
 
     #[test]
     fn cross_run_manifest_includes_defaults_ledger() -> anyhow::Result<()> {
@@ -266,7 +267,7 @@ mod tests {
         let fastq_summary = serde_json::json!({
             "run_id": "run-1",
             "stages": [{
-                "stage_id": "fastq.trim",
+                "stage_id": STAGE_TRIM.as_str(),
                 "tool_id": "fastp",
                 "artifacts": {},
             }]

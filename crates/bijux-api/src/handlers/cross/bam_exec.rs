@@ -12,6 +12,7 @@ use crate::args::{BamRunArgs, FastqCrossArgs};
 use crate::handlers::fastq::StageExecutionSummary;
 use crate::v1::bam::downstream_enabled;
 use crate::v1::bam::plan::plan_for_bam_stage_with_profile;
+use bijux_planner_bam::stage_api::STAGE_PREFIX;
 
 pub fn run_bam_truth_stages<S: std::hash::BuildHasher>(
     registry_core: &ToolRegistry,
@@ -56,7 +57,7 @@ pub fn run_bam_truth_stages<S: std::hash::BuildHasher>(
 
         let stage_dir = out_dir
             .join("bam")
-            .join(stage.as_str().trim_start_matches("bam."));
+            .join(stage.as_str().trim_start_matches(STAGE_PREFIX));
         bijux_infra::ensure_dir(&stage_dir).context("create bam stage dir")?;
 
         let args = BamRunArgs {
@@ -148,10 +149,16 @@ pub fn run_bam_align_and_truth_stages<S: std::hash::BuildHasher>(
     let tool_id = profile
         .defaults
         .tools
-        .get("bam.align")
+        .get(bijux_planner_bam::stage_api::BamStage::Align.as_str())
         .cloned()
         .unwrap_or_else(|| "bwa".to_string());
-    let spec = build_tool_execution_spec("bam.align", &tool_id, registry_core, catalog, platform)?;
+    let spec = build_tool_execution_spec(
+        bijux_planner_bam::stage_api::BamStage::Align.as_str(),
+        &tool_id,
+        registry_core,
+        catalog,
+        platform,
+    )?;
     let align_args = BamRunArgs {
         stage: bijux_planner_bam::stage_api::BamStage::Align,
         profile: profile.id.to_string(),

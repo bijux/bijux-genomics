@@ -5,6 +5,7 @@ use bijux_environment::api::{load_image_catalog, load_platform, RunnerKind};
 use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use bijux_pipelines::registry;
 use bijux_pipelines::Domain;
+use bijux_planner_bam::stage_api::STAGE_PREFIX;
 use bijux_runner::primitives::build_tool_execution_spec;
 use bijux_runner::primitives::execute_stage_plan;
 use std::path::PathBuf;
@@ -61,7 +62,7 @@ pub fn bench_bam_stage(
             let spec = build_tool_execution_spec(stage_id, &tool, registry, &catalog, &platform)?;
             let run_dir = args
                 .out
-                .join(stage_id.trim_start_matches("bam."))
+                .join(stage_id.trim_start_matches(STAGE_PREFIX))
                 .join(&tool)
                 .join(format!("replicate_{rep}"));
             bijux_infra::ensure_dir(&run_dir).context("create bam bench run dir")?;
@@ -192,7 +193,7 @@ fn parse_tool_matrix(
         let stage_id = if stage_raw.contains('.') {
             stage_raw.to_string()
         } else {
-            format!("bam.{stage_raw}")
+            format!("{STAGE_PREFIX}{stage_raw}")
         };
         let tools = tools_raw
             .split(',')

@@ -16,7 +16,7 @@ use bijux_runner::primitives::{build_tool_execution_spec, resolve_image_for_run}
 
 use super::jobs::bench_jobs;
 use super::jobs::execute_plans_with_jobs;
-use super::{write_explain_md, write_explain_plan_json, BenchOutcome};
+use super::{write_explain_md, write_explain_plan_json, BenchOutcome, STAGE_QC_POST};
 use bijux_planner_fastq::scale_tool_spec_for_jobs;
 
 /// # Errors
@@ -29,13 +29,13 @@ pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
 ) -> Result<BenchOutcome<bijux_analyze::FastqQcPostMetrics>> {
     let tools = select_qc_post_tools(&args.tools)?;
     let artifact = FastqArtifact::single_end(&args.r1);
-    preflight_stage("fastq.qc_post", artifact.kind)?;
+    preflight_stage(STAGE_QC_POST.as_str(), artifact.kind)?;
     let header = inspect_headers(&args.r1, None, false)?;
-    log_header_warnings("fastq.qc_post", &header);
+    log_header_warnings(STAGE_QC_POST.as_str(), &header);
 
     let registry = load_registry(&std::env::current_dir()?.join("domain"))
         .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
-    let tools = filter_tools_by_role("fastq.qc_post", &tools, &registry, false)?;
+    let tools = filter_tools_by_role(STAGE_QC_POST.as_str(), &tools, &registry, false)?;
 
     let bench_dir = bench_base_dir(&args.out, "qc_post", &args.sample_id);
     let tools_root = bench_tools_dir(&args.out, "qc_post", &args.sample_id);
@@ -43,13 +43,13 @@ pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
     bijux_infra::ensure_dir(&tools_root).context("create tools output dir")?;
 
     if args.explain {
-        write_explain_md(&bench_dir, "fastq.qc_post", &tools, &[], None)?;
-        write_explain_plan_json(&bench_dir, "fastq.qc_post", &tools, &registry, None)?;
+        write_explain_md(&bench_dir, STAGE_QC_POST.as_str(), &tools, &[], None)?;
+        write_explain_plan_json(&bench_dir, STAGE_QC_POST.as_str(), &tools, &registry, None)?;
     }
 
     ensure_bench_runner(platform, runner_override)?;
-    ensure_image_qa_passed("fastq.qc_post", &tools, platform, catalog)?;
-    ensure_tool_qa_passed("fastq.qc_post", &tools, platform, catalog)?;
+    ensure_image_qa_passed(STAGE_QC_POST.as_str(), &tools, platform, catalog)?;
+    ensure_tool_qa_passed(STAGE_QC_POST.as_str(), &tools, platform, catalog)?;
 
     let jobs = bench_jobs(args.jobs);
     let mut aux_tools = std::collections::BTreeMap::new();
@@ -74,7 +74,7 @@ pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
         let out_dir = tools_root.join(tool);
         bijux_infra::ensure_dir(&out_dir).context("create tool output dir")?;
         let tool_spec =
-            build_tool_execution_spec("fastq.qc_post", tool, &registry, catalog, platform)?;
+            build_tool_execution_spec(STAGE_QC_POST.as_str(), tool, &registry, catalog, platform)?;
         let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
         let plan = plan_qc_post(&tool_spec, &args.r1, &out_dir, aux_tools.clone(), None)?;
         plans.push(plan);
@@ -85,7 +85,7 @@ pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
         if execution.exit_code != 0 {
             let tool_name = tool.clone();
             failures.push(RawFailure {
-                stage: "fastq.qc_post".to_string(),
+                stage: STAGE_QC_POST.as_str().to_string(),
                 tool,
                 reason: format!(
                     "tool {tool_name} failed with status {}",

@@ -34,7 +34,9 @@ use bijux_runtime::recording::{
     write_metrics_json, write_run_manifest, write_stage_plan_json, RunArtifactInput,
 };
 
-use crate::handlers::fastq::{write_explain_md, write_explain_plan_json, BenchOutcome};
+use crate::handlers::fastq::{
+    write_explain_md, write_explain_plan_json, BenchOutcome, STAGE_STATS_NEUTRAL,
+};
 use bijux_core::contract::ExecutionManifest;
 use bijux_planner_fastq::stage_api::RawFailure;
 
@@ -50,16 +52,16 @@ pub fn bench_fastq_stats_neutral<S: ::std::hash::BuildHasher>(
 ) -> Result<BenchOutcome<FastqStatsMetrics>> {
     let tools = select_stats_tools(&args.tools)?;
     let artifact = FastqArtifact::single_end(&args.r1);
-    preflight_stage("fastq.stats_neutral", artifact.kind)?;
+    preflight_stage(STAGE_STATS_NEUTRAL.as_str(), artifact.kind)?;
     let header = inspect_headers(&args.r1, None, false)?;
-    log_header_warnings("fastq.stats_neutral", &header);
+    log_header_warnings(STAGE_STATS_NEUTRAL.as_str(), &header);
     let registry = load_registry(&std::env::current_dir()?.join("domain"))
         .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
-    let tools = filter_tools_by_role("fastq.stats_neutral", &tools, &registry, false)?;
+    let tools = filter_tools_by_role(STAGE_STATS_NEUTRAL.as_str(), &tools, &registry, false)?;
     let bench_inputs = prepare_stats_bench(catalog, platform, runner_override, args)?;
     let selected = tools.clone();
     let all_tools: Vec<String> = registry
-        .tools_for_stage("fastq.stats_neutral")
+        .tools_for_stage(STAGE_STATS_NEUTRAL.as_str())
         .iter()
         .map(|tool| tool.tool_id.clone())
         .collect();
@@ -69,20 +71,20 @@ pub fn bench_fastq_stats_neutral<S: ::std::hash::BuildHasher>(
         .collect();
     write_explain_md(
         &bench_inputs.bench_dir,
-        "fastq.stats_neutral",
+        STAGE_STATS_NEUTRAL.as_str(),
         &selected,
         &excluded,
         None,
     )?;
     write_explain_plan_json(
         &bench_inputs.bench_dir,
-        "fastq.stats_neutral",
+        STAGE_STATS_NEUTRAL.as_str(),
         &selected,
         &registry,
         None,
     )?;
-    ensure_image_qa_passed("fastq.stats_neutral", &tools, platform, catalog)?;
-    ensure_tool_qa_passed("fastq.stats_neutral", &tools, platform, catalog)?;
+    ensure_image_qa_passed(STAGE_STATS_NEUTRAL.as_str(), &tools, platform, catalog)?;
+    ensure_tool_qa_passed(STAGE_STATS_NEUTRAL.as_str(), &tools, platform, catalog)?;
 
     let sqlite_path = bench_inputs.bench_dir.join("bench.sqlite");
     let conn = bijux_analyze::open_sqlite(&sqlite_path).context("open bench sqlite")?;
@@ -93,8 +95,13 @@ pub fn bench_fastq_stats_neutral<S: ::std::hash::BuildHasher>(
     let runner = bench_inputs.runner.to_string();
     let platform_name = platform.name.clone();
     for tool in tools {
-        let tool_spec =
-            build_tool_execution_spec("fastq.stats_neutral", &tool, &registry, catalog, platform)?;
+        let tool_spec = build_tool_execution_spec(
+            STAGE_STATS_NEUTRAL.as_str(),
+            &tool,
+            &registry,
+            catalog,
+            platform,
+        )?;
         let tool_dir = bench_inputs.tools_root.join(&tool);
         let plan = plan_stats_neutral(&tool_spec, &bench_inputs.r1, &tool_dir)?;
         let params_hash =
@@ -122,7 +129,7 @@ pub fn bench_fastq_stats_neutral<S: ::std::hash::BuildHasher>(
         match run_stats_tool(catalog, platform, args, &bench_inputs, &tool) {
             Ok(record) => new_records.push(record),
             Err(err) => failures.push(RawFailure {
-                stage: "fastq.stats_neutral".to_string(),
+                stage: STAGE_STATS_NEUTRAL.as_str().to_string(),
                 tool: tool.clone(),
                 reason: err.to_string(),
                 category: ErrorCategory::ToolError,
@@ -216,8 +223,13 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
 ) -> Result<BenchmarkRecord<FastqStatsMetrics>> {
     let registry = load_registry(&std::env::current_dir()?.join("domain"))
         .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
-    let tool_spec =
-        build_tool_execution_spec("fastq.stats_neutral", tool, &registry, catalog, platform)?;
+    let tool_spec = build_tool_execution_spec(
+        STAGE_STATS_NEUTRAL.as_str(),
+        tool,
+        &registry,
+        catalog,
+        platform,
+    )?;
 
     println!("→ stats {tool}");
     let tool_dir = bench_inputs.tools_root.join(tool);
@@ -233,7 +245,7 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
         .ok_or_else(|| anyhow!("image digest missing for tool {tool}"))?
         .clone();
     let run_id = compute_run_id(
-        "fastq.stats_neutral",
+        STAGE_STATS_NEUTRAL.as_str(),
         tool,
         &image_digest,
         &bench_inputs.input_hash,
@@ -257,12 +269,12 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
     let registry = load_registry(&std::env::current_dir()?.join("domain"))
         .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let tool_manifest = registry
-        .tool_by_id("fastq.stats_neutral", tool)
+        .tool_by_id(STAGE_STATS_NEUTRAL.as_str(), tool)
         .ok_or_else(|| anyhow!("tool {tool} missing from manifests"))?;
     validate_execution_outputs(&tool_manifest.execution_contract, &out_dir)?;
     let manifest = ExecutionManifest {
         run_id: run_id.clone(),
-        stage: "fastq.stats_neutral".to_string(),
+        stage: STAGE_STATS_NEUTRAL.as_str().to_string(),
         tool: tool.to_string(),
         tool_version: tool_spec.tool_version.clone(),
         image_digest: image_digest.clone(),
@@ -293,7 +305,7 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
     };
     let metrics_json = serde_json::to_value(&metric_set)?;
     let stage_ctx = StageObservabilityContextV1 {
-        stage_id: "fastq.stats_neutral".to_string(),
+        stage_id: STAGE_STATS_NEUTRAL.as_str().to_string(),
         stage_version: plan.stage_version.0,
         tool_id: tool.to_string(),
         tool_version: tool_spec.tool_version.clone(),
@@ -329,7 +341,7 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
         params_hash: param_hash.clone(),
         input_hashes: vec![bench_inputs.input_hash.clone()],
         reference_genome: None,
-        pipeline_id: "fastq.stats_neutral".to_string(),
+        pipeline_id: STAGE_STATS_NEUTRAL.as_str().to_string(),
         git_commit: std::env::var("BIJUX_GIT_COMMIT").unwrap_or_else(|_| "unknown".to_string()),
         build_profile: std::env::var("BIJUX_BUILD_PROFILE")
             .unwrap_or_else(|_| "unknown".to_string()),
@@ -341,7 +353,7 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
     }];
     write_run_manifest(
         &run_dirs,
-        "fastq.stats_neutral",
+        STAGE_STATS_NEUTRAL.as_str(),
         tool,
         &run_provenance,
         &extra_artifacts,
