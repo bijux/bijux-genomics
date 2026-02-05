@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use bijux_core::contract::PipelineSpec;
+use bijux_core::{contract::PipelineSpec, ids::StageId};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum StageCriticality {
@@ -10,40 +10,70 @@ pub enum StageCriticality {
 }
 
 #[must_use]
-pub fn canonical_stage_order() -> Vec<&'static str> {
+pub fn canonical_stage_order() -> Vec<StageId> {
     vec![
-        "fastq.validate_pre",
-        "fastq.detect_adapters",
-        "fastq.trim",
-        "fastq.filter",
-        "fastq.stats_neutral",
+        StageId::from_static("fastq.validate_pre"),
+        StageId::from_static("fastq.detect_adapters"),
+        StageId::from_static("fastq.trim"),
+        StageId::from_static("fastq.filter"),
+        StageId::from_static("fastq.stats_neutral"),
     ]
 }
 
 #[must_use]
-pub fn optional_branches() -> Vec<(&'static str, &'static [&'static str])> {
+pub fn optional_branches() -> Vec<(StageId, Vec<StageId>)> {
     vec![
-        ("fastq.merge", &["fastq.trim", "fastq.filter"]),
-        ("fastq.correct", &["fastq.trim"]),
-        ("fastq.umi", &["fastq.trim"]),
-        ("fastq.qc_post", &["fastq.validate_pre"]),
-        ("fastq.screen", &["fastq.validate_pre"]),
+        (
+            StageId::from_static("fastq.merge"),
+            vec![
+                StageId::from_static("fastq.trim"),
+                StageId::from_static("fastq.filter"),
+            ],
+        ),
+        (
+            StageId::from_static("fastq.correct"),
+            vec![StageId::from_static("fastq.trim")],
+        ),
+        (
+            StageId::from_static("fastq.umi"),
+            vec![StageId::from_static("fastq.trim")],
+        ),
+        (
+            StageId::from_static("fastq.qc_post"),
+            vec![StageId::from_static("fastq.validate_pre")],
+        ),
+        (
+            StageId::from_static("fastq.screen"),
+            vec![StageId::from_static("fastq.validate_pre")],
+        ),
     ]
 }
 
 #[must_use]
-pub fn forbidden_transitions() -> Vec<(&'static str, &'static str)> {
+pub fn forbidden_transitions() -> Vec<(StageId, StageId)> {
     vec![
-        ("fastq.validate_pre", "fastq.merge"),
-        ("fastq.stats_neutral", "fastq.trim"),
-        ("fastq.stats_neutral", "fastq.filter"),
-        ("fastq.stats_neutral", "fastq.merge"),
+        (
+            StageId::from_static("fastq.validate_pre"),
+            StageId::from_static("fastq.merge"),
+        ),
+        (
+            StageId::from_static("fastq.stats_neutral"),
+            StageId::from_static("fastq.trim"),
+        ),
+        (
+            StageId::from_static("fastq.stats_neutral"),
+            StageId::from_static("fastq.filter"),
+        ),
+        (
+            StageId::from_static("fastq.stats_neutral"),
+            StageId::from_static("fastq.merge"),
+        ),
     ]
 }
 
 #[must_use]
-pub fn stage_criticality(stage_id: &str) -> Option<StageCriticality> {
-    match stage_id {
+pub fn stage_criticality(stage_id: &StageId) -> Option<StageCriticality> {
+    match stage_id.as_str() {
         "fastq.validate_pre"
         | "fastq.detect_adapters"
         | "fastq.trim"
@@ -62,7 +92,7 @@ pub fn preprocess_pipeline() -> PipelineSpec {
     PipelineSpec {
         stages: canonical_stage_order()
             .into_iter()
-            .map(str::to_string)
+            .map(|stage| stage.as_str().to_string())
             .collect(),
     }
 }

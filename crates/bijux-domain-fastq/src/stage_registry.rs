@@ -1,6 +1,7 @@
 //! FASTQ stage registry and contracts.
 
 mod contract;
+mod ids;
 mod semantics;
 mod stages;
 
@@ -13,10 +14,15 @@ pub use contract::{
     log_header_warnings, normalize_outputs, preflight_stage, HeaderInspection, MergeSuitability,
     NormalizedOutputs,
 };
+pub use ids::{
+    STAGES, STAGE_CORRECT, STAGE_DETECT_ADAPTERS, STAGE_FILTER, STAGE_MERGE, STAGE_PREFIX,
+    STAGE_PREPROCESS, STAGE_QC_POST, STAGE_RRNA, STAGE_SCREEN, STAGE_STATS_NEUTRAL, STAGE_TRIM,
+    STAGE_UMI, STAGE_VALIDATE_PRE,
+};
 pub use semantics::{
     fastq_stage_is_stable, stage_criticality, stage_kind, stage_metric_classes,
     stage_metric_invariants, stage_semantics, BoundaryInvariant, FastqStageKind, StageDefinition,
-    StageSemantics, STAGES, STAGE_BOUNDARY_INVARIANTS,
+    StageSemantics, STAGE_BOUNDARY_INVARIANTS,
 };
 pub use stages::{infer_input_kind, qc_class_for_stage, FastqStageContract, QcClass};
 

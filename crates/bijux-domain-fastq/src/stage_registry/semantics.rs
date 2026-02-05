@@ -1,8 +1,8 @@
 #![allow(dead_code)]
 
-use crate::pipeline_contract::{self, StageCriticality};
-
 use crate::metrics::spec::{metric_spec_for_stage, MetricClass};
+use crate::pipeline_contract::{self, StageCriticality};
+use bijux_core::ids::StageId;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum FastqStageKind {
@@ -19,52 +19,52 @@ pub struct StageSemantics {
     pub affects_metrics: &'static [MetricClass],
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct StageDefinition {
-    pub stage_id: &'static str,
+    pub stage_id: StageId,
     pub kind: FastqStageKind,
     pub criticality: StageCriticality,
     pub semantics: StageSemantics,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct BoundaryInvariant {
-    pub from: &'static str,
-    pub to: &'static str,
+    pub from: StageId,
+    pub to: StageId,
     pub rule: &'static str,
 }
 
 pub const STAGE_BOUNDARY_INVARIANTS: [BoundaryInvariant; 5] = [
     BoundaryInvariant {
-        from: "fastq.validate_pre",
-        to: "fastq.detect_adapters",
+        from: StageId::from_static("fastq.validate_pre"),
+        to: StageId::from_static("fastq.detect_adapters"),
         rule: "validation does not modify reads; adapter detection consumes validated reads",
     },
     BoundaryInvariant {
-        from: "fastq.detect_adapters",
-        to: "fastq.trim",
+        from: StageId::from_static("fastq.detect_adapters"),
+        to: StageId::from_static("fastq.trim"),
         rule: "adapter detection is report-only; trim consumes unchanged reads",
     },
     BoundaryInvariant {
-        from: "fastq.trim",
-        to: "fastq.filter",
+        from: StageId::from_static("fastq.trim"),
+        to: StageId::from_static("fastq.filter"),
         rule: "trim output must remain FASTQ and preserve pairing",
     },
     BoundaryInvariant {
-        from: "fastq.filter",
-        to: "fastq.stats_neutral",
+        from: StageId::from_static("fastq.filter"),
+        to: StageId::from_static("fastq.stats_neutral"),
         rule: "filter output remains FASTQ; stats is report-only",
     },
     BoundaryInvariant {
-        from: "fastq.merge",
-        to: "fastq.stats_neutral",
+        from: StageId::from_static("fastq.merge"),
+        to: StageId::from_static("fastq.stats_neutral"),
         rule: "merge produces merged reads; stats accepts merged FASTQ",
     },
 ];
 
 pub const STAGES: [StageDefinition; 11] = [
     StageDefinition {
-        stage_id: "fastq.validate_pre",
+        stage_id: StageId::from_static("fastq.validate_pre"),
         kind: FastqStageKind::Core,
         criticality: StageCriticality::Essential,
         semantics: StageSemantics {
@@ -75,7 +75,7 @@ pub const STAGES: [StageDefinition; 11] = [
         },
     },
     StageDefinition {
-        stage_id: "fastq.detect_adapters",
+        stage_id: StageId::from_static("fastq.detect_adapters"),
         kind: FastqStageKind::Core,
         criticality: StageCriticality::Essential,
         semantics: StageSemantics {
@@ -86,7 +86,7 @@ pub const STAGES: [StageDefinition; 11] = [
         },
     },
     StageDefinition {
-        stage_id: "fastq.trim",
+        stage_id: StageId::from_static("fastq.trim"),
         kind: FastqStageKind::Core,
         criticality: StageCriticality::Essential,
         semantics: StageSemantics {
@@ -101,7 +101,7 @@ pub const STAGES: [StageDefinition; 11] = [
         },
     },
     StageDefinition {
-        stage_id: "fastq.filter",
+        stage_id: StageId::from_static("fastq.filter"),
         kind: FastqStageKind::Core,
         criticality: StageCriticality::Essential,
         semantics: StageSemantics {
@@ -116,7 +116,7 @@ pub const STAGES: [StageDefinition; 11] = [
         },
     },
     StageDefinition {
-        stage_id: "fastq.stats_neutral",
+        stage_id: StageId::from_static("fastq.stats_neutral"),
         kind: FastqStageKind::Core,
         criticality: StageCriticality::Essential,
         semantics: StageSemantics {
@@ -127,7 +127,7 @@ pub const STAGES: [StageDefinition; 11] = [
         },
     },
     StageDefinition {
-        stage_id: "fastq.merge",
+        stage_id: StageId::from_static("fastq.merge"),
         kind: FastqStageKind::Core,
         criticality: StageCriticality::Essential,
         semantics: StageSemantics {
@@ -138,7 +138,7 @@ pub const STAGES: [StageDefinition; 11] = [
         },
     },
     StageDefinition {
-        stage_id: "fastq.correct",
+        stage_id: StageId::from_static("fastq.correct"),
         kind: FastqStageKind::Core,
         criticality: StageCriticality::Essential,
         semantics: StageSemantics {
@@ -149,7 +149,7 @@ pub const STAGES: [StageDefinition; 11] = [
         },
     },
     StageDefinition {
-        stage_id: "fastq.umi",
+        stage_id: StageId::from_static("fastq.umi"),
         kind: FastqStageKind::Optional,
         criticality: StageCriticality::Optional,
         semantics: StageSemantics {
@@ -160,7 +160,7 @@ pub const STAGES: [StageDefinition; 11] = [
         },
     },
     StageDefinition {
-        stage_id: "fastq.screen",
+        stage_id: StageId::from_static("fastq.screen"),
         kind: FastqStageKind::Optional,
         criticality: StageCriticality::Experimental,
         semantics: StageSemantics {
@@ -171,7 +171,7 @@ pub const STAGES: [StageDefinition; 11] = [
         },
     },
     StageDefinition {
-        stage_id: "fastq.qc_post",
+        stage_id: StageId::from_static("fastq.qc_post"),
         kind: FastqStageKind::Optional,
         criticality: StageCriticality::Optional,
         semantics: StageSemantics {
@@ -182,7 +182,7 @@ pub const STAGES: [StageDefinition; 11] = [
         },
     },
     StageDefinition {
-        stage_id: "fastq.preprocess",
+        stage_id: StageId::from_static("fastq.preprocess"),
         kind: FastqStageKind::Meta,
         criticality: StageCriticality::Optional,
         semantics: StageSemantics {
@@ -195,31 +195,31 @@ pub const STAGES: [StageDefinition; 11] = [
 ];
 
 #[must_use]
-pub fn stage_semantics(stage_id: &str) -> Option<StageSemantics> {
+pub fn stage_semantics(stage_id: &StageId) -> Option<StageSemantics> {
     STAGES
         .iter()
-        .find(|stage| stage.stage_id == stage_id)
+        .find(|stage| stage.stage_id.as_str() == stage_id.as_str())
         .map(|stage| stage.semantics)
 }
 
 #[must_use]
-pub fn stage_kind(stage_id: &str) -> Option<FastqStageKind> {
+pub fn stage_kind(stage_id: &StageId) -> Option<FastqStageKind> {
     STAGES
         .iter()
-        .find(|stage| stage.stage_id == stage_id)
+        .find(|stage| stage.stage_id.as_str() == stage_id.as_str())
         .map(|stage| stage.kind)
 }
 
 #[must_use]
-pub fn stage_criticality(stage_id: &str) -> Option<StageCriticality> {
+pub fn stage_criticality(stage_id: &StageId) -> Option<StageCriticality> {
     STAGES
         .iter()
-        .find(|stage| stage.stage_id == stage_id)
+        .find(|stage| stage.stage_id.as_str() == stage_id.as_str())
         .map(|stage| stage.criticality)
 }
 
 #[must_use]
-pub fn fastq_stage_is_stable(stage_id: &str) -> bool {
+pub fn fastq_stage_is_stable(stage_id: &StageId) -> bool {
     !matches!(
         stage_criticality(stage_id),
         Some(StageCriticality::Experimental)
@@ -227,21 +227,21 @@ pub fn fastq_stage_is_stable(stage_id: &str) -> bool {
 }
 
 #[must_use]
-pub fn stage_metric_classes(stage_id: &str) -> Option<&'static [MetricClass]> {
+pub fn stage_metric_classes(stage_id: &StageId) -> Option<&'static [MetricClass]> {
     stage_semantics(stage_id).map(|semantics| semantics.affects_metrics)
 }
 
 #[must_use]
-pub fn stage_metric_invariants(stage_id: &str) -> Option<&'static [&'static str]> {
-    metric_spec_for_stage(stage_id).map(|spec| spec.invariants)
+pub fn stage_metric_invariants(stage_id: &StageId) -> Option<&'static [&'static str]> {
+    metric_spec_for_stage(stage_id.as_str()).map(|spec| spec.invariants)
 }
 
 #[must_use]
-pub fn canonical_stage_order() -> Vec<&'static str> {
+pub fn canonical_stage_order() -> Vec<StageId> {
     pipeline_contract::canonical_stage_order()
 }
 
 #[must_use]
-pub fn optional_branches() -> Vec<(&'static str, &'static [&'static str])> {
+pub fn optional_branches() -> Vec<(StageId, Vec<StageId>)> {
     pipeline_contract::optional_branches()
 }

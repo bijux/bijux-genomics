@@ -8,7 +8,7 @@
 )]
 
 use anyhow::Result;
-use bijux_core::primitives::invariants::InvariantStatusV1;
+use bijux_core::{ids::StageId, primitives::invariants::InvariantStatusV1};
 use bijux_domain_fastq::invariants::{evaluate_invariants, thresholds_from_env};
 use bijux_domain_fastq::metrics::{
     FastqDeltaMetricsV1, FastqFilterMetricsV1, FastqMergeMetricsV1, FastqTrimMetricsV1,
@@ -219,6 +219,7 @@ fn fastq_invariants_have_specs_and_fixtures() -> Result<()> {
         assert!(!spec.threshold_provenance.trim().is_empty());
         assert!(!spec.next_steps.trim().is_empty());
         let (stage_id, metrics, params) = fixture_for_invariant(&spec.id);
+        let stage_id = StageId::new(stage_id);
         let eval = evaluate_invariants(&stage_id, &metrics, &params, &thresholds_from_env());
         let status = eval
             .results

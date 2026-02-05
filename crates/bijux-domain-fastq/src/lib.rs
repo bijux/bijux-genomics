@@ -18,6 +18,7 @@ pub mod metrics;
 pub mod params;
 pub mod pipeline_contract;
 mod polyx_bank;
+pub mod prelude;
 pub mod run;
 pub mod stage_registry;
 mod stages;
@@ -62,7 +63,9 @@ pub use stage_registry::{
     stage_metric_classes, stage_metric_invariants, stage_semantics, BoundaryInvariant, FastqStage,
     FastqStageContract, FastqStageKind, HeaderInspection, MergeSuitability, NormalizedOutputs,
     QcClass, StageContract, StageDefinition, StageIO, StageSemantics, STAGES,
-    STAGE_BOUNDARY_INVARIANTS,
+    STAGE_BOUNDARY_INVARIANTS, STAGE_CORRECT, STAGE_DETECT_ADAPTERS, STAGE_FILTER, STAGE_MERGE,
+    STAGE_PREFIX, STAGE_PREPROCESS, STAGE_QC_POST, STAGE_RRNA, STAGE_SCREEN, STAGE_STATS_NEUTRAL,
+    STAGE_TRIM, STAGE_UMI, STAGE_VALIDATE_PRE,
 };
 pub use types::{
     AdapterContributionV1, AdapterTrimmingReportV1, FastqArtifact, FastqArtifactKind, FastqLayout,

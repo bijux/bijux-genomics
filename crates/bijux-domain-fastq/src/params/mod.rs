@@ -4,6 +4,13 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
+use crate::stage_registry::{
+    STAGE_CORRECT, STAGE_DETECT_ADAPTERS, STAGE_FILTER, STAGE_MERGE, STAGE_PREPROCESS,
+    STAGE_QC_POST, STAGE_RRNA, STAGE_SCREEN, STAGE_STATS_NEUTRAL, STAGE_TRIM, STAGE_UMI,
+    STAGE_VALIDATE_PRE,
+};
+use bijux_core::ids::StageId;
+
 pub mod detect_adapters;
 pub mod filter;
 pub mod merge;
@@ -81,43 +88,59 @@ impl EffectiveParams {
 
 #[must_use]
 pub fn parse_effective_params(
-    stage_id: &str,
+    stage_id: &StageId,
     value: &serde_json::Value,
 ) -> Option<EffectiveParams> {
-    match stage_id {
-        "fastq.validate_pre" | "fastq.stats_neutral" | "fastq.correct" | "fastq.umi" => {
-            serde_json::from_value::<validate::ValidateEffectiveParams>(value.clone())
-                .ok()
-                .map(EffectiveParams::Validate)
-        }
-        "fastq.detect_adapters" => {
-            serde_json::from_value::<detect_adapters::DetectAdaptersEffectiveParams>(value.clone())
-                .ok()
-                .map(EffectiveParams::DetectAdapters)
-        }
-        "fastq.trim" => serde_json::from_value::<trim::TrimEffectiveParams>(value.clone())
+    if stage_id == &STAGE_VALIDATE_PRE
+        || stage_id == &STAGE_STATS_NEUTRAL
+        || stage_id == &STAGE_CORRECT
+        || stage_id == &STAGE_UMI
+    {
+        return serde_json::from_value::<validate::ValidateEffectiveParams>(value.clone())
             .ok()
-            .map(EffectiveParams::Trim),
-        "fastq.filter" => serde_json::from_value::<filter::FilterEffectiveParams>(value.clone())
-            .ok()
-            .map(EffectiveParams::Filter),
-        "fastq.merge" => serde_json::from_value::<merge::MergeEffectiveParams>(value.clone())
-            .ok()
-            .map(EffectiveParams::Merge),
-        "fastq.rrna" => serde_json::from_value::<rrna::RrnaEffectiveParams>(value.clone())
-            .ok()
-            .map(EffectiveParams::Rrna),
-        "fastq.screen" => serde_json::from_value::<screen::ScreenEffectiveParams>(value.clone())
-            .ok()
-            .map(EffectiveParams::Screen),
-        "fastq.qc_post" => serde_json::from_value::<qc_post::QcPostEffectiveParams>(value.clone())
-            .ok()
-            .map(EffectiveParams::QcPost),
-        "fastq.preprocess" => {
-            serde_json::from_value::<preprocess::PreprocessEffectiveParams>(value.clone())
-                .ok()
-                .map(EffectiveParams::Preprocess)
-        }
-        _ => None,
+            .map(EffectiveParams::Validate);
     }
+    if stage_id == &STAGE_DETECT_ADAPTERS {
+        return serde_json::from_value::<detect_adapters::DetectAdaptersEffectiveParams>(
+            value.clone(),
+        )
+        .ok()
+        .map(EffectiveParams::DetectAdapters);
+    }
+    if stage_id == &STAGE_TRIM {
+        return serde_json::from_value::<trim::TrimEffectiveParams>(value.clone())
+            .ok()
+            .map(EffectiveParams::Trim);
+    }
+    if stage_id == &STAGE_FILTER {
+        return serde_json::from_value::<filter::FilterEffectiveParams>(value.clone())
+            .ok()
+            .map(EffectiveParams::Filter);
+    }
+    if stage_id == &STAGE_MERGE {
+        return serde_json::from_value::<merge::MergeEffectiveParams>(value.clone())
+            .ok()
+            .map(EffectiveParams::Merge);
+    }
+    if stage_id == &STAGE_RRNA {
+        return serde_json::from_value::<rrna::RrnaEffectiveParams>(value.clone())
+            .ok()
+            .map(EffectiveParams::Rrna);
+    }
+    if stage_id == &STAGE_SCREEN {
+        return serde_json::from_value::<screen::ScreenEffectiveParams>(value.clone())
+            .ok()
+            .map(EffectiveParams::Screen);
+    }
+    if stage_id == &STAGE_QC_POST {
+        return serde_json::from_value::<qc_post::QcPostEffectiveParams>(value.clone())
+            .ok()
+            .map(EffectiveParams::QcPost);
+    }
+    if stage_id == &STAGE_PREPROCESS {
+        return serde_json::from_value::<preprocess::PreprocessEffectiveParams>(value.clone())
+            .ok()
+            .map(EffectiveParams::Preprocess);
+    }
+    None
 }
