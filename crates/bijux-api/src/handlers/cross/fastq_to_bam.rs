@@ -37,7 +37,8 @@ pub fn run_fastq_to_bam_profile<S: std::hash::BuildHasher>(
     bijux_infra::ensure_dir(&out_dir).context("create cross pipeline out dir")?;
     fastq_preprocess_run(catalog, platform, runner_override, preprocess_args)?;
 
-    let summary_path = out_dir.join("run_artifacts").join("run_summary.json");
+    let summary_path =
+        bijux_runtime::recording::run_artifacts_dir_for_out(&out_dir).join("run_summary.json");
     let summary_raw = fs::read_to_string(&summary_path)
         .with_context(|| format!("read {}", summary_path.display()))?;
     let summary_json: serde_json::Value =

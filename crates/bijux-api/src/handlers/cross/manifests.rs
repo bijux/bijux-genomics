@@ -10,7 +10,8 @@ use super::CROSS_STAGE_ID;
 use crate::handlers::fastq::StageExecutionSummary;
 
 pub fn write_alignment_boundary(out_dir: &Path, boundary: &AlignmentBoundary) -> Result<PathBuf> {
-    let boundaries_dir = out_dir.join("run_artifacts").join("boundaries");
+    let boundaries_dir =
+        bijux_runtime::recording::run_artifacts_dir_for_out(out_dir).join("boundaries");
     bijux_infra::ensure_dir(&boundaries_dir).context("create boundaries dir")?;
     let path = boundaries_dir.join("alignment_boundary.json");
     bijux_infra::atomic_write_json(&path, boundary)
@@ -90,8 +91,8 @@ pub fn write_cross_run_manifest(
             "domain": "bam",
             "artifacts": {
                 "out_dir": relative_path_string(out_dir, &entry.plan.out_dir),
-                "metrics": relative_path_string(out_dir, &entry.plan.out_dir.join("run_artifacts").join("metrics.json")),
-                "stage_report": relative_path_string(out_dir, &entry.plan.out_dir.join("run_artifacts").join("stage_report.json")),
+                "metrics": relative_path_string(out_dir, &bijux_runtime::recording::run_artifacts_dir_for_out(&entry.plan.out_dir).join("metrics.json")),
+                "stage_report": relative_path_string(out_dir, &bijux_runtime::recording::run_artifacts_dir_for_out(&entry.plan.out_dir).join("stage_report.json")),
             },
         }));
     }
@@ -139,7 +140,7 @@ pub fn write_cross_run_manifest(
 }
 
 pub fn write_reference_manifest(out_dir: &Path, record: &ReferenceRecord) -> Result<PathBuf> {
-    let root = out_dir.join("run_artifacts").join("boundaries");
+    let root = bijux_runtime::recording::run_artifacts_dir_for_out(out_dir).join("boundaries");
     bijux_infra::ensure_dir(&root).context("create boundaries dir")?;
     let path = root.join("reference_manifest.json");
     bijux_infra::atomic_write_json(&path, record)
@@ -199,11 +200,9 @@ fn run_provenance_from_cross(
         if let Some(digest) = entry.plan.image.digest.clone() {
             image_digests.insert(digest);
         }
-        let envelope_path = entry
-            .plan
-            .out_dir
-            .join("run_artifacts")
-            .join("metrics_envelope.json");
+        let envelope_path =
+            bijux_runtime::recording::run_artifacts_dir_for_out(&entry.plan.out_dir)
+                .join("metrics_envelope.json");
         if let Ok(raw) = std::fs::read_to_string(&envelope_path) {
             if let Ok(value) = serde_json::from_str::<serde_json::Value>(&raw) {
                 if let Some(hash) = value.get("input_hash").and_then(serde_json::Value::as_str) {

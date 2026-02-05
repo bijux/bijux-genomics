@@ -6,7 +6,7 @@ use crate::{AdapterBankV1, AdapterTrimmingReportV1, EffectiveAdapterSet, Retenti
 use crate::{StagePlanJson, ToolReferenceV1};
 
 fn run_artifacts_dir(run_dir: &Path) -> PathBuf {
-    run_dir.join("run_artifacts")
+    bijux_runtime::recording::run_artifacts_dir_for_out(run_dir)
 }
 
 pub fn write_effective_adapters(

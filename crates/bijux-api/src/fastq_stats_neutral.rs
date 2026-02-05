@@ -325,7 +325,7 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
         },
     };
     let _metrics_envelope_path = write_metrics_envelope(
-        &out_dir.join("run_artifacts"),
+        &bijux_runtime::recording::run_artifacts_dir_for_out(&out_dir),
         &stage_ctx,
         &execution_metrics,
         &metrics_json,
