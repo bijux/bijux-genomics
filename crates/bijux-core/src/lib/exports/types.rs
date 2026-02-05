@@ -34,7 +34,7 @@ pub use crate::selection::{
     objective_spec, BenchResultRecord, BenchResultStatus, Disqualification, Objective,
     ObjectiveSpec, ObjectiveWeights, StageSelection, ToolScore,
 };
-pub use crate::stage_plan::{
+pub use crate::plan::stage_plan::{
     ArtifactRef, CommandSpecV1, ContainerImageRefV1, PlanDecisionReason, PlanReasonKind, StageIO,
     StagePlanJsonV1, StagePlanV1,
 };

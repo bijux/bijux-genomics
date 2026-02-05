@@ -1,4 +1,4 @@
-use bijux_core::execution_plan::{ExecutionPlan, PlanEdge, PlanPolicy};
+use bijux_core::plan::execution_plan::{ExecutionPlan, PlanEdge, PlanPolicy};
 use bijux_core::{
     ArtifactRef, CommandSpecV1, ContainerImageRefV1, StageIO, StageId, StagePlanV1, StageVersion,
     ToolConstraints, ToolId,
