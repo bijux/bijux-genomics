@@ -9,7 +9,7 @@ use bijux_domain_fastq::stage_registry::{
 };
 use bijux_domain_fastq::{BenchCorpus, BenchCorpusId, BenchDataset};
 use rusqlite::{params, Connection};
-use uuid::Uuid;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 fn create_bench_db(
     path: &PathBuf,
@@ -67,7 +67,11 @@ fn create_bench_db(
 
 #[test]
 fn default_route_selects_tools_deterministically() -> Result<(), Box<dyn std::error::Error>> {
-    let temp_root = std::env::temp_dir().join(format!("bijux-select-{}", Uuid::new_v4()));
+    let stamp = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_nanos();
+    let temp_root = std::env::temp_dir().join(format!("bijux-select-{stamp}"));
     bijux_infra::ensure_dir(&temp_root)?;
 
     let corpus = BenchCorpus::new(
