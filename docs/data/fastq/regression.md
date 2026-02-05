@@ -1,13 +1,14 @@
 # FASTQ Regression Corpus
 
-Tiny immutable FASTQ fixtures for regression checks.
+Minimal FASTQ fixtures used for regression checks. These are now embedded as
+inline strings in tests rather than checked in as files.
 
-SHA256:
-- SE.fastq: 9ee11c942ee3cba7185a2f2ad42586e83d0adf3d0e9ceba123a66bbdf96718e3
-- PE_R1.fastq: 53b6d2f590fd69d9efa112cf2ac3b55d5a2f5b04f9936383dbe9d03ce16b3712
-- PE_R2.fastq: 6174d36b9d4ad7e587a5d66bc3793a5153f5cb92f394454a5a89da353cad70bd
+SHA256 (inline fixtures):
+- SE.fastq: 89c970df28ceaebed41cf01317b7372c979deaae60108e63368400d010253430
+- PE_R1.fastq: 91183f7aa7a63b3a6d72fc9508cb7d02b9b83137c3fb0ff9158b374a830e4116
+- PE_R2.fastq: 7ce13244d046be23ea8c08f291ae4733cc3db6f9ff43cdaa92d4c3f504dcc7c2
 
-Expected counts:
-- SE.fastq: 2 reads, 14 bases
+Expected counts (inline fixtures):
+- SE.fastq: 2 reads, 16 bases
 - PE_R1.fastq: 2 reads, 12 bases
 - PE_R2.fastq: 2 reads, 12 bases
