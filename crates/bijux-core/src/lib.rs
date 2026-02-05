@@ -11,4 +11,5 @@ pub mod plan;
 pub mod prelude;
 pub mod primitives;
 pub mod run_index;
+pub mod selection;
 pub use prelude::*;

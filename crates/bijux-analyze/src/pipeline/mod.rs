@@ -10,7 +10,7 @@ use anyhow::{Context, Result};
 use bijux_infra::atomic_write_bytes;
 
 use bijux_core::contract::Objective;
-use bijux_selection::objective_spec;
+use bijux_core::selection::objective_spec;
 
 use crate::decision::compare::compare_runs;
 use crate::{AnalyzeInput, AnalyzeMode, AnalyzeOutput};
