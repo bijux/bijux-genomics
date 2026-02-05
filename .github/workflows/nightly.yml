@@ -18,7 +18,7 @@ jobs:
       - name: Install cargo-nextest
         run: cargo install cargo-nextest --locked
       - name: E2E tests
-        run: BIJUX_E2E=1 tools/test-e2e
+        run: BIJUX_E2E=1 make test-e2e
 
   coverage:
     runs-on: ubuntu-latest
@@ -33,7 +33,7 @@ jobs:
         run: cargo install cargo-llvm-cov --locked
       - name: Coverage floor
         run: |
-          tools/coverage
+          make coverage
           python3 - <<'PY'
           import json
           data=json.load(open("target/coverage.json"))

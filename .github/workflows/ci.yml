@@ -21,11 +21,11 @@ jobs:
       - name: Install cargo-nextest
         run: cargo install cargo-nextest --locked
       - name: Format
-        run: tools/lint
+        run: make lint-full
       - name: Clippy
-        run: tools/lint
+        run: make lint-full
       - name: Tests (default)
-        run: tools/test
+        run: make test
 
   policy:
     runs-on: ubuntu-latest
@@ -35,7 +35,7 @@ jobs:
       - name: Install cargo-deny
         run: cargo install cargo-deny --locked
       - name: Dependency Policy
-        run: tools/audit
+        run: make audit
 
   msrv:
     runs-on: ubuntu-latest
@@ -43,4 +43,4 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@1.76.0
       - name: MSRV Check
-        run: tools/msrv
+        run: make msrv
