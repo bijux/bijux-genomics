@@ -16,6 +16,10 @@ pub mod stage_api {
     pub use bijux_stages_bam::bam_tools_registry::allowed_tools_for_stage;
     pub use bijux_stages_bam::plan_stage;
     pub use bijux_stages_bam::StagePlanRequest;
+    pub use bijux_domain_bam::*;
+    pub use bijux_domain_bam::{bam_stage_completeness, stage_spec, BamStage};
+    pub use bijux_domain_bam::params;
+    pub use bijux_domain_bam::types;
 }
 
 #[derive(Debug, Clone)]

@@ -21,6 +21,12 @@ pub mod stage_api {
         ensure_umi_headers, inspect_headers, log_header_warnings, preflight_stage, FastqArtifact,
         FastqArtifactKind, RawFailure, StagePlanJson, TOOL_SEQKIT,
     };
+    pub use bijux_domain_fastq::*;
+    pub use bijux_domain_fastq::banks;
+    pub use bijux_domain_fastq::banks::{
+        adapter_bank_context, contaminant_bank_context, polyx_bank_context,
+        polyx_unsupported_warning,
+    };
     pub mod fastq {
         pub use bijux_stages_fastq::fastq::*;
     }
@@ -395,7 +401,7 @@ impl FastqPlanner {
             ));
         }
         let out_dir = config.out_dir.clone();
-        let plans = plan_preprocess_pipeline(
+        let plans = compose_fastq_pipeline_steps(
             &config.stages,
             &config.tools,
             &config.aux_images,
@@ -528,7 +534,7 @@ pub fn cross_fastq_to_bam_stage_ids(profile_id: &str) -> Vec<String> {
 }
 
 #[allow(clippy::too_many_arguments, clippy::too_many_lines)]
-pub fn plan_preprocess_pipeline<F>(
+pub fn compose_fastq_pipeline_steps<F>(
     stages: &[String],
     tools: &[ToolExecutionSpecV1],
     aux_images: &BTreeMap<String, ContainerImageRefV1>,
@@ -773,7 +779,7 @@ pub fn select_preprocess_tools(
     Ok(selected_tools)
 }
 
-pub fn select_trim_tools(tools: &[String]) -> Result<Vec<String>> {
+pub fn select_trim_tools(tools: &[String], allow_experimental: bool) -> Result<Vec<String>> {
     let allowed = [
         "fastp",
         "cutadapt",
@@ -785,7 +791,7 @@ pub fn select_trim_tools(tools: &[String]) -> Result<Vec<String>> {
         "seqpurge",
     ];
     let mut allowlist = allowed.to_vec();
-    if std::env::var("BIJUX_EXPERIMENTAL_TOOLS").is_err() {
+    if !allow_experimental {
         allowlist.retain(|tool| *tool != "seqpurge");
     }
     select_tools_with_allowlist(tools, &allowlist)
@@ -812,10 +818,10 @@ pub fn select_merge_tools(tools: &[String]) -> Result<Vec<String>> {
     select_tools_with_allowlist(tools, &allowed)
 }
 
-pub fn select_correct_tools(tools: &[String]) -> Result<Vec<String>> {
+pub fn select_correct_tools(tools: &[String], allow_experimental: bool) -> Result<Vec<String>> {
     let allowed = ["rcorrector", "spades", "bayeshammer", "lighter", "musket"];
     let mut allowlist = allowed.to_vec();
-    if std::env::var("BIJUX_EXPERIMENTAL_TOOLS").is_err() {
+    if !allow_experimental {
         allowlist.retain(|tool| *tool == "rcorrector");
     }
     select_tools_with_allowlist(tools, &allowlist)
@@ -897,10 +903,6 @@ pub fn apply_tool_overrides(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::sync::Mutex;
-
-    static ENV_LOCK: Mutex<()> = Mutex::new(());
-
     #[test]
     fn select_trim_tools_dedup_and_sort() {
         let tools = vec![
@@ -908,7 +910,7 @@ mod tests {
             "FASTP".to_string(),
             "cutadapt".to_string(),
         ];
-        match select_trim_tools(&tools) {
+        match select_trim_tools(&tools, false) {
             Ok(normalized) => {
                 assert_eq!(
                     normalized,
@@ -921,12 +923,8 @@ mod tests {
 
     #[test]
     fn select_trim_tools_blocks_experimental_by_default() {
-        let _guard = ENV_LOCK
-            .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner);
-        std::env::remove_var("BIJUX_EXPERIMENTAL_TOOLS");
         let tools = vec!["seqpurge".to_string()];
-        match select_trim_tools(&tools) {
+        match select_trim_tools(&tools, false) {
             Ok(_) => panic!("expected failure"),
             Err(err) => assert!(err.to_string().contains("unsupported tool")),
         }
@@ -934,19 +932,10 @@ mod tests {
 
     #[test]
     fn select_trim_tools_allows_experimental_when_enabled() {
-        let _guard = ENV_LOCK
-            .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner);
-        let prev = std::env::var("BIJUX_EXPERIMENTAL_TOOLS").ok();
-        std::env::set_var("BIJUX_EXPERIMENTAL_TOOLS", "1");
         let tools = vec!["seqpurge".to_string()];
-        match select_trim_tools(&tools) {
+        match select_trim_tools(&tools, true) {
             Ok(normalized) => assert_eq!(normalized, vec!["seqpurge".to_string()]),
             Err(err) => panic!("normalize failed: {err}"),
-        }
-        match prev {
-            Some(value) => std::env::set_var("BIJUX_EXPERIMENTAL_TOOLS", value),
-            None => std::env::remove_var("BIJUX_EXPERIMENTAL_TOOLS"),
         }
     }
 

@@ -37,7 +37,7 @@ pub struct StagePlanRequest<'a> {
     pub enable_contaminant_removal: bool,
     pub aux_images: &'a std::collections::BTreeMap<String, bijux_core::ContainerImageRefV1>,
     pub raw_r1: Option<&'a std::path::Path>,
-    pub pipeline: Option<&'a bijux_core::domain::PipelineSpec>,
+    pub pipeline_stages: Option<&'a [String]>,
 }
 
 /// # Errors
@@ -142,13 +142,13 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> anyhow::Result<StagePlanV1> 
             let r1 = request
                 .r1
                 .ok_or_else(|| anyhow::anyhow!("preprocess requires r1"))?;
-            let pipeline = request
-                .pipeline
-                .ok_or_else(|| anyhow::anyhow!("preprocess requires pipeline spec"))?;
+            let stages = request
+                .pipeline_stages
+                .ok_or_else(|| anyhow::anyhow!("preprocess requires pipeline stages"))?;
             let plan = stages_pre::preprocess_plan::PreprocessPlan {
                 r1: r1.to_path_buf(),
                 r2: request.r2.map(|path| path.to_path_buf()),
-                pipeline: pipeline.clone(),
+                stages: stages.to_vec(),
                 enable_contaminant_removal: request.enable_contaminant_removal,
             };
             Ok(stages_pre::preprocess_plan::plan_preprocess_stage(

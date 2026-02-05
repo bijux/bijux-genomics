@@ -1,4 +1,3 @@
-use bijux_core::domain::PipelineSpec;
 use bijux_core::{ArtifactRef, StageIO, StageId, StagePlanV1, StageVersion, ToolExecutionSpecV1};
 use bijux_domain_fastq::params::{preprocess::PreprocessEffectiveParams, PairedMode};
 
@@ -9,7 +8,7 @@ pub const STAGE_VERSION: StageVersion = StageVersion(1);
 pub struct PreprocessPlan {
     pub r1: std::path::PathBuf,
     pub r2: Option<std::path::PathBuf>,
-    pub pipeline: PipelineSpec,
+    pub stages: Vec<String>,
     pub enable_contaminant_removal: bool,
 }
 
@@ -23,7 +22,7 @@ pub fn plan_preprocess_stage(plan: &PreprocessPlan, tool: &ToolExecutionSpecV1) 
     let effective_params = PreprocessEffectiveParams {
         enable_contaminant_removal: plan.enable_contaminant_removal,
         paired_mode,
-        stages: plan.pipeline.stages.clone(),
+        stages: plan.stages.clone(),
         threads: tool.resources.threads,
     };
     let out_dir = plan
@@ -60,7 +59,7 @@ pub fn plan_preprocess_stage(plan: &PreprocessPlan, tool: &ToolExecutionSpecV1) 
         params: serde_json::json!({
             "r1": plan.r1,
             "r2": plan.r2,
-            "stages": plan.pipeline.stages,
+            "stages": plan.stages,
         }),
         effective_params: serde_json::to_value(&effective_params)
             .expect("serialize preprocess effective params"),
