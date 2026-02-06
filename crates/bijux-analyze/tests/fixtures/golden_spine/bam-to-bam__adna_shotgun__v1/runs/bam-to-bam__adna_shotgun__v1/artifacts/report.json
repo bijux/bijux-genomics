@@ -78,6 +78,7 @@
       "provenance",
       "run_provenance",
       "decision_config",
+      "analysis_selection_contract",
       "retention_definition",
       "retention_context",
       "assets_provenance",
@@ -339,6 +340,57 @@
       ]
     },
     "adapter_config": {},
+    "analysis_selection_contract": {
+      "criteria": [
+        "runtime_s",
+        "memory_mb",
+        "retention_ratio"
+      ],
+      "notes": "Selection uses bench medians per tool and the configured objective weights.",
+      "objectives": [
+        {
+          "objective": "speed",
+          "ranking": "lower score is better",
+          "scoring": "weighted_sum(runtime, memory, retention)",
+          "weights": {
+            "memory": 0.0,
+            "retention": 0.0,
+            "runtime": 1.0
+          }
+        },
+        {
+          "objective": "memory",
+          "ranking": "lower score is better",
+          "scoring": "weighted_sum(runtime, memory, retention)",
+          "weights": {
+            "memory": 1.0,
+            "retention": 0.0,
+            "runtime": 0.0
+          }
+        },
+        {
+          "objective": "retention",
+          "ranking": "lower score is better",
+          "scoring": "weighted_sum(runtime, memory, retention)",
+          "weights": {
+            "memory": 0.0,
+            "retention": -1.0,
+            "runtime": 0.0
+          }
+        },
+        {
+          "objective": "balanced",
+          "ranking": "lower score is better",
+          "scoring": "weighted_sum(runtime, memory, retention)",
+          "weights": {
+            "memory": 1.0,
+            "retention": -100.0,
+            "runtime": 1.0
+          }
+        }
+      ],
+      "selection_strategy": "objective_weights"
+    },
     "assertions": {
       "entries": [
         {
@@ -1913,7 +1965,11 @@
       "contexts": [],
       "definitions": []
     },
-    "run_provenance": {},
+    "run_provenance": {
+      "graph_hash": "unknown",
+      "input_hashes": [],
+      "stage_contracts": {}
+    },
     "scientific_provenance": {
       "entries": [
         {

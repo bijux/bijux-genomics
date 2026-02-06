@@ -76,7 +76,7 @@ fn tool_contracts_match_stage_inputs_outputs() -> Result<(), Box<dyn std::error:
 fn stage_metrics_align_with_bench_schema() -> Result<(), Box<dyn std::error::Error>> {
     let registry = load_manifests(&domain_root())?;
     for stage in registry.stages().values() {
-        let Some(spec) = StageMetricRegistry::spec_for_stage(&stage.stage_id) else {
+        let Some(spec) = StageMetricRegistry::spec_for_stage(stage.stage_id.as_str()) else {
             continue;
         };
         let stage_metrics: BTreeSet<String> =
