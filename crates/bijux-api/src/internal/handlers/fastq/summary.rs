@@ -862,7 +862,7 @@ mod tests {
             payload.get("planner_version").and_then(|v| v.as_str()),
             Some("planner.v1")
         );
-        insta::assert_json_snapshot!(payload);
+        insta::assert_json_snapshot!("scientific_provenance_contract", payload);
         Ok(())
     }
 
