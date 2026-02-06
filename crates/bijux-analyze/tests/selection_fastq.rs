@@ -3,8 +3,8 @@
 use std::path::PathBuf;
 
 use bijux_analyze::load::sqlite::SqliteBenchResultsRepository;
+use bijux_core::contract::{objective_spec, select_stage};
 use bijux_core::contract::{BenchResultStatus, Objective};
-use bijux_core::selection::{objective_spec, select_stage};
 use bijux_domain_fastq::BenchResultsRepository;
 use bijux_domain_fastq::{
     bench_dir_name, STAGE_DETECT_ADAPTERS, STAGE_FILTER, STAGE_QC_POST, STAGE_STATS_NEUTRAL,

@@ -6,7 +6,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use anyhow::Result;
 
-use bijux_core::metrics_registry::metrics_schema_for_stage;
+use bijux_core::metrics::metrics_schema_for_stage;
 
 use crate::model::JsonBlob;
 

@@ -1,3 +1,4 @@
+
 // imports provided by queries_core.rs
 
 /// Load a `qc_post` benchmark record from `SQLite` if present.
@@ -77,7 +78,7 @@ pub fn insert_fastq_umi_v1(
 
     let metrics_json = serde_json::to_string(&record.metrics)?;
     let parameters_json = serde_json::to_string(&record.context.parameters)?;
-    let params_hash = bijux_core::params_hash(record.context.parameters.as_value())?;
+    let params_hash = params_hash(record.context.parameters.as_value())?;
 
     conn.execute(
         "INSERT INTO bench_fastq_umi_v1 (\
@@ -181,7 +182,7 @@ pub fn insert_fastq_screen_v1(
 
     let metrics_json = serde_json::to_string(&record.metrics)?;
     let parameters_json = serde_json::to_string(&record.context.parameters)?;
-    let params_hash = bijux_core::params_hash(record.context.parameters.as_value())?;
+    let params_hash = params_hash(record.context.parameters.as_value())?;
 
     conn.execute(
         "INSERT INTO bench_fastq_screen_v1 (\
@@ -284,7 +285,7 @@ pub fn insert_fastq_stats_v1(
 
     let metrics_json = serde_json::to_string(&record.metrics)?;
     let parameters_json = serde_json::to_string(&record.context.parameters)?;
-    let params_hash = bijux_core::params_hash(record.context.parameters.as_value())?;
+    let params_hash = params_hash(record.context.parameters.as_value())?;
 
     conn.execute(
         "INSERT INTO bench_fastq_stats_v1 (\

@@ -4,7 +4,7 @@ use bijux_analyze::{
 };
 use bijux_analyze::{FastqDeltaMetrics, FastqTrimMetrics, StageMetricSchema};
 #[cfg(feature = "sqlite")]
-use bijux_core::primitives::measure::ExecutionMetrics;
+use bijux_core::foundation::measure::ExecutionMetrics;
 
 #[test]
 fn fastq_trim_metrics_invariants_fail() {

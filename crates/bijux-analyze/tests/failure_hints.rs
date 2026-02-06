@@ -1,4 +1,4 @@
-use bijux_core::primitives::RawFailure;
+use bijux_core::foundation::RawFailure;
 use std::fs;
 use std::path::PathBuf;
 
@@ -25,7 +25,7 @@ fn failure_hint_adapter_snapshot() -> Result<()> {
         stage: "fastq.trim".to_string(),
         tool: "fastp".to_string(),
         reason: "adapter preset missing".to_string(),
-        category: bijux_core::primitives::errors::ErrorCategory::ContractError,
+        category: bijux_core::foundation::errors::ErrorCategory::ContractError,
     };
     let failure = classify_raw_failure(&raw);
     assert_snapshot("failure_hint_adapter.json", &failure)
@@ -37,7 +37,7 @@ fn failure_hint_timeout_snapshot() -> Result<()> {
         stage: "fastq.trim".to_string(),
         tool: "fastp".to_string(),
         reason: "timeout while running tool".to_string(),
-        category: bijux_core::primitives::errors::ErrorCategory::ToolError,
+        category: bijux_core::foundation::errors::ErrorCategory::ToolError,
     };
     let failure = classify_raw_failure(&raw);
     assert_snapshot("failure_hint_timeout.json", &failure)
@@ -49,7 +49,7 @@ fn failure_hint_invalid_snapshot() -> Result<()> {
         stage: "fastq.validate_pre".to_string(),
         tool: "fastqvalidator".to_string(),
         reason: "invalid fastq record".to_string(),
-        category: bijux_core::primitives::errors::ErrorCategory::ContractError,
+        category: bijux_core::foundation::errors::ErrorCategory::ContractError,
     };
     let failure = classify_raw_failure(&raw);
     assert_snapshot("failure_hint_invalid.json", &failure)
