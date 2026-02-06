@@ -160,7 +160,7 @@ pub mod contamination {
             tool_version: tool.tool_version.clone(),
             image: tool.image.clone(),
             command: CommandSpecV1 {
-                template: crate::tool_adapters::tools::authenticct::args_with_outputs(
+                template: crate::tool_adapters::tools::authenticity::args_with_outputs(
                     bam, &report, &summary, params,
                 ),
             },
