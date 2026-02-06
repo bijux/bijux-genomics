@@ -6,6 +6,7 @@ edition = "2021"
 rust-version.workspace = true
 [dependencies]
 bijux-core = { path = "../bijux-core" }
+bijux-stage-contract = { path = "../bijux-stage-contract" }
 bijux-domain-fastq = { path = "../bijux-domain-fastq" }
 bijux-infra = { path = "../bijux-infra" }
 bijux-runtime = { path = "../bijux-runtime" }
@@ -18,7 +19,6 @@ tracing.workspace = true
 [dev-dependencies]
 bijux-policies = { path = "../bijux-policies" }
 bijux-planner-fastq = { path = "../bijux-planner-fastq" }
-bijux-pipelines = { path = "../bijux-pipelines" }
 anyhow.workspace = true
 serde_json.workspace = true
 walkdir.workspace = true
