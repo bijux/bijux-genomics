@@ -80,7 +80,7 @@ pub fn default_tool_for_stage(stage_id: &StageId) -> Option<String> {
     } else if stage_id == &STAGE_TRIM {
         Some("fastp".to_string())
     } else if stage_id == &STAGE_FILTER {
-        Some("fastp".to_string())
+        Some("seqkit".to_string())
     } else if stage_id == &STAGE_STATS_NEUTRAL {
         Some("seqkit_stats".to_string())
     } else if stage_id == &STAGE_QC_POST {
