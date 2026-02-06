@@ -10,7 +10,6 @@ pub mod primitives;
 pub mod run_index;
 pub mod selection;
 
-mod helpers;
 mod prelude;
 
 pub use prelude::*;

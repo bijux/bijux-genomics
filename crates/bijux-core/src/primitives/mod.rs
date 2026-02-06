@@ -12,7 +12,7 @@ pub use errors::{
     BijuxError, CategorizedError, ErrorCategory, ErrorHintV1, HintSeverity, RawFailure, Result,
 };
 pub use hashing::{
-    canonicalize_json_value, canonicalize_truth_json, input_fingerprint,
-    parameters_fingerprint, parameters_json_canonicalization, params_hash, to_canonical_json_bytes,
+    canonicalize_json_value, canonicalize_truth_json, input_fingerprint, parameters_fingerprint,
+    parameters_json_canonicalization, params_hash, to_canonical_json_bytes,
 };
 pub use invariants::{InvariantResultV1, InvariantSpecV1, InvariantStatusV1, StageVerdictV1};

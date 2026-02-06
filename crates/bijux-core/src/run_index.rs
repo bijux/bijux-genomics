@@ -51,9 +51,8 @@ pub struct RunQuery {
 /// # Errors
 /// Returns an error if the index cannot be read.
 pub fn list_runs(index_path: &Path) -> Result<Vec<RunIndexEntry>> {
-    let file = File::open(index_path).map_err(|err| {
-        BijuxError::Io(format!("open run index {}: {err}", index_path.display()))
-    })?;
+    let file = File::open(index_path)
+        .map_err(|err| BijuxError::Io(format!("open run index {}: {err}", index_path.display())))?;
     let reader = BufReader::new(file);
     let mut entries = Vec::new();
     for line in reader.lines() {
@@ -124,9 +123,8 @@ pub fn query_stage_rows(
     stage: Option<&str>,
     tool: Option<&str>,
 ) -> Result<Vec<StageIndexRow>> {
-    let file = File::open(index_path).map_err(|err| {
-        BijuxError::Io(format!("open run index {}: {err}", index_path.display()))
-    })?;
+    let file = File::open(index_path)
+        .map_err(|err| BijuxError::Io(format!("open run index {}: {err}", index_path.display())))?;
     let reader = BufReader::new(file);
     let mut rows = Vec::new();
     for line in reader.lines() {
