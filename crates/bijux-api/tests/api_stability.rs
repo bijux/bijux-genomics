@@ -2,9 +2,9 @@ use std::collections::BTreeMap;
 use std::path::PathBuf;
 
 use bijux_api::v1::run::{plan, ExecuteResponse, PlanRequest};
+use bijux_core::contract::PlanPolicy;
 use bijux_core::contract::{ArtifactRef, ArtifactRole, StageIO, ToolConstraints};
-use bijux_core::execution::execution_graph::{ExecutionEdge, ExecutionGraph, ExecutionStep};
-use bijux_core::execution::PlanPolicy;
+use bijux_core::contract::{ExecutionEdge, ExecutionGraph, ExecutionStep};
 use bijux_core::{ArtifactId, CommandSpecV1, ContainerImageRefV1, StageId, StepId};
 
 fn minimal_graph() -> ExecutionGraph {

@@ -1,8 +1,8 @@
 use crate::tooling::filter_tools_by_role;
 use anyhow::{anyhow, Context, Result};
+use bijux_core::contract::PlanPolicy;
 use bijux_core::contract::ToolRegistry;
-use bijux_core::execution::execution_graph::{ExecutionEdge, ExecutionGraph};
-use bijux_core::execution::PlanPolicy;
+use bijux_core::contract::{ExecutionEdge, ExecutionGraph};
 use bijux_environment::api::{load_image_catalog, load_platform, RunnerKind};
 use bijux_environment_qa::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use bijux_pipelines::registry;
@@ -108,7 +108,7 @@ pub fn bench_bam_stage(
                     "pipeline_id": stage_id,
                     "profile_id": args.stage.as_str(),
                     "graph_hash": graph.hash().unwrap_or_default(),
-                    "cache_key": bijux_core::primitives::CacheKey::new("unknown", "unknown", "unknown", "unknown"),
+                    "cache_key": bijux_core::foundation::CacheKey::new("unknown", "unknown", "unknown", "unknown"),
                     "stage_contract_hash": stage_contract_hash,
                     "toolchain_versions": [],
                     "dataset_fingerprints": [],
@@ -118,7 +118,7 @@ pub fn bench_bam_stage(
                     "failures": [],
                 });
                 let manifest_path = run_dir.join("run_manifest.json");
-                let payload = bijux_core::primitives::to_canonical_json_bytes(&manifest)?;
+                let payload = bijux_core::contract::canonical::to_canonical_json_bytes(&manifest)?;
                 bijux_infra::atomic_write_bytes(&manifest_path, payload.as_slice())?;
             } else {
                 let step = bijux_stage_contract::execution_step_from_stage_plan(&plan);

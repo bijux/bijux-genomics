@@ -33,7 +33,7 @@ pub struct PlanExplainV1 {
     pub schema_version: String,
     pub pipeline_id: String,
     pub planner_version: String,
-    pub policy: bijux_core::execution::PlanPolicy,
+    pub policy: bijux_core::contract::PlanPolicy,
     pub stages: Vec<PlanExplainStageV1>,
 }
 
@@ -54,7 +54,7 @@ pub struct ExplainResponse {
 
 impl PlanExplainV1 {
     #[must_use]
-    pub fn from_plan(plan: &bijux_core::execution::execution_graph::ExecutionGraph) -> Self {
+    pub fn from_plan(plan: &bijux_core::contract::ExecutionGraph) -> Self {
         let stages = plan
             .steps()
             .iter()
@@ -84,7 +84,7 @@ impl PlanExplainV1 {
 
 #[must_use]
 pub fn explain_bundle(
-    plan: &bijux_core::execution::execution_graph::ExecutionGraph,
+    plan: &bijux_core::contract::ExecutionGraph,
     defaults_ledger: Option<&serde_json::Value>,
 ) -> ExplainResponse {
     let selected_tools = plan

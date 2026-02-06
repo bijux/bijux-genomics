@@ -1,3 +1,5 @@
+use bijux_core::prelude::params_hash;
+
 use std::path::{Path, PathBuf};
 
 use super::AlignmentBoundary;
@@ -217,8 +219,8 @@ pub fn write_cross_run_manifest(
             .get("tool_image_digest")
             .and_then(serde_json::Value::as_str)
             .unwrap_or("unknown");
-        bijux_core::primitives::CacheKey::new(
-            bijux_core::primitives::input_fingerprint(&input_hashes),
+        bijux_core::foundation::CacheKey::new(
+            bijux_core::foundation::input_fingerprint(&input_hashes),
             params_hash,
             tool_version,
             env_digest,
@@ -253,7 +255,7 @@ pub fn write_cross_run_manifest(
         })),
     });
     let path = out_dir.join("run_manifest.json");
-    let payload = bijux_core::primitives::to_canonical_json_bytes(&manifest)?;
+    let payload = bijux_core::contract::canonical::to_canonical_json_bytes(&manifest)?;
     bijux_infra::atomic_write_bytes(&path, payload.as_slice())
         .context("write run_manifest.json")?;
     Ok(())
@@ -342,8 +344,8 @@ fn run_provenance_from_cross(
     }
     input_hashes.sort();
     input_hashes.dedup();
-    let params_hash = bijux_core::params_hash(&serde_json::json!(params_by_stage))
-        .unwrap_or_else(|_| "unknown".to_string());
+    let params_hash =
+        params_hash(&serde_json::json!(params_by_stage)).unwrap_or_else(|_| "unknown".to_string());
     let tool_version = if tool_versions.len() == 1 {
         tool_versions
             .into_iter()

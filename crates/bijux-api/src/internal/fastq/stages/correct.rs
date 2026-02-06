@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::tooling::{ensure_bench_runner, filter_tools_by_role, load_registry};
 use anyhow::{anyhow, Context, Result};
-use bijux_core::primitives::errors::ErrorCategory;
+use bijux_core::foundation::errors::ErrorCategory;
 use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 use bijux_environment_qa::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use bijux_infra::{bench_base_dir, bench_tools_dir};
@@ -15,10 +15,12 @@ use bijux_planner_fastq::stage_api::{
 };
 use bijux_runner::primitives::build_tool_execution_spec;
 
-use super::super::jobs::execute_plans_with_jobs;
+use crate::handlers::fastq::jobs::execute_plans_with_jobs;
 
-use super::super::jobs::bench_jobs;
-use super::super::{write_explain_md, write_explain_plan_json, BenchOutcome, STAGE_CORRECT};
+use crate::handlers::fastq::jobs::bench_jobs;
+use crate::handlers::fastq::{
+    write_explain_md, write_explain_plan_json, BenchOutcome, STAGE_CORRECT,
+};
 use bijux_planner_fastq::scale_tool_spec_for_jobs;
 
 /// # Errors
@@ -63,7 +65,7 @@ pub fn bench_fastq_correct<S: ::std::hash::BuildHasher>(
     let jobs = bench_jobs(args.jobs);
     let mut failures = Vec::new();
     let mut plans = Vec::new();
-    let mut tool_order = Vec::new();
+    let mut tool_order: Vec<String> = Vec::new();
     for tool in &tools {
         let out_dir = tools_root.join(tool);
         bijux_infra::ensure_dir(&out_dir).context("create tool output dir")?;

@@ -2,84 +2,70 @@ use std::collections::HashMap;
 
 use crate::tooling::{ensure_bench_runner, filter_tools_by_role, load_registry};
 use anyhow::{anyhow, Context, Result};
-use bijux_core::primitives::errors::ErrorCategory;
+use bijux_core::foundation::errors::ErrorCategory;
 use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 use bijux_environment_qa::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use bijux_infra::{bench_base_dir, bench_tools_dir};
-use bijux_planner_fastq::select_qc_post_tools;
+use bijux_planner_fastq::select_merge_tools;
 use bijux_planner_fastq::stage_api::bench_dir_name;
-use bijux_planner_fastq::stage_api::fastq::qc_post::{aux_tool_ids, plan_qc_post};
-use bijux_planner_fastq::stage_api::FastqArtifact;
+use bijux_planner_fastq::stage_api::fastq::merge::plan_merge;
+use bijux_planner_fastq::stage_api::FastqArtifactKind;
 use bijux_planner_fastq::stage_api::{
     inspect_headers, log_header_warnings, preflight_stage, RawFailure,
 };
-use bijux_runner::primitives::{build_tool_execution_spec, resolve_image_for_run};
+use bijux_runner::primitives::build_tool_execution_spec;
 
-use super::super::jobs::bench_jobs;
-use super::super::jobs::execute_plans_with_jobs;
-use super::super::{write_explain_md, write_explain_plan_json, BenchOutcome, STAGE_QC_POST};
+use crate::handlers::fastq::jobs::bench_jobs;
+use crate::handlers::fastq::jobs::execute_plans_with_jobs;
+use crate::handlers::fastq::{
+    write_explain_md, write_explain_plan_json, BenchOutcome, STAGE_MERGE,
+};
 use bijux_planner_fastq::scale_tool_spec_for_jobs;
 
 /// # Errors
 /// Returns an error if planning or execution fails.
-pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
+pub fn bench_fastq_merge<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
     runner_override: Option<RunnerKind>,
-    args: &bijux_planner_fastq::stage_api::args::BenchFastqQcPostArgs,
-) -> Result<BenchOutcome<bijux_analyze::FastqQcPostMetrics>> {
-    let tools = select_qc_post_tools(&args.tools)?;
-    let artifact = FastqArtifact::single_end(&args.r1);
-    preflight_stage(STAGE_QC_POST.as_str(), artifact.kind)?;
-    let header = inspect_headers(&args.r1, None, false)?;
-    log_header_warnings(STAGE_QC_POST.as_str(), &header);
+    args: &bijux_planner_fastq::stage_api::args::BenchFastqMergeArgs,
+) -> Result<BenchOutcome<bijux_analyze::FastqMergeMetrics>> {
+    let tools = select_merge_tools(&args.tools)?;
+    preflight_stage(STAGE_MERGE.as_str(), FastqArtifactKind::PairedEnd)?;
+    let header = inspect_headers(&args.r1, Some(&args.r2), false)?;
+    log_header_warnings(STAGE_MERGE.as_str(), &header);
 
     let registry = load_registry(&std::env::current_dir()?.join("domain"))
         .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
-    let tools = filter_tools_by_role(STAGE_QC_POST.as_str(), &tools, &registry, false)?;
+    let tools = filter_tools_by_role(STAGE_MERGE.as_str(), &tools, &registry, false)?;
 
-    let bench_dir_name = bench_dir_name(&STAGE_QC_POST)
-        .ok_or_else(|| anyhow!("bench dir missing for {}", STAGE_QC_POST.as_str()))?;
+    let bench_dir_name = bench_dir_name(&STAGE_MERGE)
+        .ok_or_else(|| anyhow!("bench dir missing for {}", STAGE_MERGE.as_str()))?;
     let bench_dir = bench_base_dir(&args.out, bench_dir_name, &args.sample_id);
     let tools_root = bench_tools_dir(&args.out, bench_dir_name, &args.sample_id);
     bijux_infra::ensure_dir(&bench_dir).context("create bench output dir")?;
     bijux_infra::ensure_dir(&tools_root).context("create tools output dir")?;
 
     if args.explain {
-        write_explain_md(&bench_dir, STAGE_QC_POST.as_str(), &tools, &[], None)?;
-        write_explain_plan_json(&bench_dir, STAGE_QC_POST.as_str(), &tools, &registry, None)?;
+        write_explain_md(&bench_dir, STAGE_MERGE.as_str(), &tools, &[], None)?;
+        write_explain_plan_json(&bench_dir, STAGE_MERGE.as_str(), &tools, &registry, None)?;
     }
 
     ensure_bench_runner(platform, runner_override)?;
-    ensure_image_qa_passed(STAGE_QC_POST.as_str(), &tools, platform, catalog)?;
-    ensure_tool_qa_passed(STAGE_QC_POST.as_str(), &tools, platform, catalog)?;
+    ensure_image_qa_passed(STAGE_MERGE.as_str(), &tools, platform, catalog)?;
+    ensure_tool_qa_passed(STAGE_MERGE.as_str(), &tools, platform, catalog)?;
 
     let jobs = bench_jobs(args.jobs);
-    let mut aux_tools = std::collections::BTreeMap::new();
-    for aux_tool in aux_tool_ids() {
-        let spec = catalog
-            .get(*aux_tool)
-            .ok_or_else(|| anyhow!("tool {aux_tool} missing from images.toml"))?;
-        let image = resolve_image_for_run(spec, platform)?;
-        aux_tools.insert(
-            (*aux_tool).to_string(),
-            bijux_core::ContainerImageRefV1 {
-                image: image.full_name,
-                digest: spec.digest.clone(),
-            },
-        );
-    }
-
     let mut failures = Vec::new();
     let mut plans = Vec::new();
-    let mut tool_order = Vec::new();
+    let mut tool_order: Vec<String> = Vec::new();
     for tool in &tools {
         let out_dir = tools_root.join(tool);
         bijux_infra::ensure_dir(&out_dir).context("create tool output dir")?;
         let tool_spec =
-            build_tool_execution_spec(STAGE_QC_POST.as_str(), tool, &registry, catalog, platform)?;
+            build_tool_execution_spec(STAGE_MERGE.as_str(), tool, &registry, catalog, platform)?;
         let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
-        let plan = plan_qc_post(&tool_spec, &args.r1, &out_dir, aux_tools.clone(), None)?;
+        let plan = plan_merge(&tool_spec, &args.r1, &args.r2, &out_dir)?;
         plans.push(bijux_stage_contract::execution_step_from_stage_plan(&plan));
         tool_order.push(tool.clone());
     }
@@ -88,7 +74,7 @@ pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
         if execution.exit_code != 0 {
             let tool_name = tool.clone();
             failures.push(RawFailure {
-                stage: STAGE_QC_POST.as_str().to_string(),
+                stage: STAGE_MERGE.as_str().to_string(),
                 tool,
                 reason: format!(
                     "tool {tool_name} failed with status {}",

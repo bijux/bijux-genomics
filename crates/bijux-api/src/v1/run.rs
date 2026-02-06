@@ -15,8 +15,8 @@ pub use bijux_environment::api::{load_image_catalog, load_platform, RunnerKind};
 pub use bijux_infra::RUN_LAYOUT_CONTRACT;
 pub use bijux_infra::{atomic_write_bytes, ensure_dir, temp_dir, temp_dir_in, write_bytes};
 
-pub use bijux_core::run_index::*;
-pub use bijux_core::{
+pub use bijux_core::contract::*;
+pub use bijux_core::prelude::{
     run_dir, PathSpec, Profile, RunSpec, StageId, ToolId, ToolRegistry, ToolRole,
 };
 pub use bijux_runtime::manifests::load_manifests;
@@ -26,7 +26,7 @@ pub use bijux_stage_contract::StagePlanV1;
 pub use bijux_stage_contract::{execution_step_from_stage_plan, DryRunExecutor, Executor};
 
 pub use bijux_core::contract::ExecutionManifest;
-pub use bijux_core::{CategorizedError, ErrorCategory};
+pub use bijux_core::prelude::{CategorizedError, ErrorCategory};
 pub use bijux_infra::init_logging;
 pub use bijux_runner::primitives::execute_step;
 pub use bijux_runner::primitives::{build_tool_execution_spec, replay_run};

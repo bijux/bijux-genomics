@@ -204,7 +204,7 @@ pub struct RunStatus {
 ///
 /// Stability: v1 (stable).
 pub struct PlanRequest {
-    pub graph: bijux_core::execution::execution_graph::ExecutionGraph,
+    pub graph: bijux_core::contract::ExecutionGraph,
     pub profile_id: String,
 }
 
@@ -213,7 +213,7 @@ pub struct PlanRequest {
 ///
 /// Stability: v1 (stable).
 pub struct PlanResponse {
-    pub graph: bijux_core::execution::execution_graph::ExecutionGraph,
+    pub graph: bijux_core::contract::ExecutionGraph,
     pub graph_hash: String,
     pub manifest: serde_json::Value,
 }
@@ -223,7 +223,7 @@ pub struct PlanResponse {
 ///
 /// Stability: v1 (stable).
 pub struct ExecuteRequest {
-    pub graph: bijux_core::execution::execution_graph::ExecutionGraph,
+    pub graph: bijux_core::contract::ExecutionGraph,
     pub runner: bijux_environment::api::RunnerKind,
     pub run_dir: PathBuf,
 }
@@ -243,7 +243,7 @@ pub struct ExecuteResponse {
 ///
 /// Stability: v1 (stable).
 pub struct DryRunRequest {
-    pub graph: bijux_core::execution::execution_graph::ExecutionGraph,
+    pub graph: bijux_core::contract::ExecutionGraph,
     pub run_dir: PathBuf,
     pub profile_id: String,
 }
