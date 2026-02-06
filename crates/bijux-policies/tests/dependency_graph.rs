@@ -139,3 +139,46 @@ fn runner_has_no_engine_edge() {
             .unwrap_or("bijux-engine")
     );
 }
+
+#[test]
+fn engine_has_no_domain_or_planner_edges() {
+    let root = workspace_root();
+    let metadata = MetadataCommand::new()
+        .manifest_path(root.join("Cargo.toml"))
+        .exec()
+        .expect("load cargo metadata");
+    let mut engine_id = None;
+    for pkg in &metadata.packages {
+        if pkg.name == "bijux-engine" {
+            engine_id = Some(pkg.id.clone());
+            break;
+        }
+    }
+    let engine_id = engine_id.expect("bijux-engine missing");
+    let resolve = metadata.resolve.as_ref().expect("resolve graph missing");
+    let node = resolve
+        .nodes
+        .iter()
+        .find(|node| node.id == engine_id)
+        .expect("engine node missing");
+    let denylist = [
+        "bijux-domain-fastq",
+        "bijux-domain-bam",
+        "bijux-stages-fastq",
+        "bijux-stages-bam",
+        "bijux-planner-fastq",
+        "bijux-planner-bam",
+    ];
+    for dep in &node.deps {
+        let dep_name = metadata
+            .packages
+            .iter()
+            .find(|pkg| pkg.id == dep.pkg)
+            .map(|pkg| pkg.name.as_str())
+            .unwrap_or("");
+        assert!(
+            !denylist.contains(&dep_name),
+            "bijux-engine must not depend on {dep_name}"
+        );
+    }
+}

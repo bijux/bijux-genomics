@@ -28,7 +28,11 @@ fn core_layering_is_enforced() {
     let contract_dir = root.join("crates/bijux-core/src/contract");
     let mut offenders = Vec::new();
 
-    let forbidden_in_primitives = ["crate::contract", "crate::plan", "crate::metrics_registry"];
+    let forbidden_in_primitives = [
+        "crate::contract",
+        "crate::execution",
+        "crate::metrics_registry",
+    ];
     for file in collect_rs_files(&primitives_dir) {
         let content = std::fs::read_to_string(&file).expect("read source");
         for needle in &forbidden_in_primitives {
@@ -38,7 +42,7 @@ fn core_layering_is_enforced() {
         }
     }
 
-    let forbidden_in_contract = ["crate::plan"];
+    let forbidden_in_contract = ["crate::execution"];
     for file in collect_rs_files(&contract_dir) {
         let content = std::fs::read_to_string(&file).expect("read source");
         for needle in &forbidden_in_contract {
