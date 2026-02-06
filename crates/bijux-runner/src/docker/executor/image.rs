@@ -9,6 +9,9 @@ pub fn resolve_image_for_run(
     platform: &PlatformSpec,
 ) -> Result<ResolvedImage> {
     let image = resolve_image(spec, platform)?;
+    if std::env::var("BIJUX_SKIP_IMAGE_CHECK").is_ok() {
+        return Ok(image);
+    }
     if docker_image_exists(&image) {
         return Ok(image);
     }

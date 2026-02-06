@@ -50,6 +50,9 @@ pub fn filter_tools_by_role(
         }
     }
     if filtered.is_empty() {
+        if !strict {
+            return Ok(tools.to_vec());
+        }
         return Err(anyhow!("no tools available after role filtering"));
     }
     Ok(filtered)
