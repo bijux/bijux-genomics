@@ -8,7 +8,7 @@ use bijux_infra::bench_tools_dir;
 
 use crate::StageObservabilityContextV1;
 use bijux_core::metrics::ToolInvocationV1;
-use bijux_core::plan::execution_plan::ExecutionPlan;
+use bijux_core::plan::execution_graph::ExecutionGraph;
 use bijux_core::primitives::hashing::params_hash;
 use serde::Serialize;
 
@@ -197,35 +197,36 @@ pub fn write_scientific_provenance(
 /// This is intended for contract tests and dry-run validation.
 /// # Errors
 /// Returns an error if provenance serialization or writing fails.
-pub fn write_plan_provenance(run_dir: &Path, plan: &ExecutionPlan) -> Result<PathBuf> {
+pub fn write_plan_provenance(run_dir: &Path, plan: &ExecutionGraph) -> Result<PathBuf> {
     let mut invocations = Vec::new();
     let mut params_hashes = std::collections::BTreeMap::new();
-    for stage in plan.stages() {
-        let key = format!("{}:{}", stage.stage_id.0, stage.tool_id.0);
-        let hash = params_hash(&stage.params)?;
+    for step in plan.steps() {
+        let params = serde_json::json!({ "command": step.command.template });
+        let key = format!("{}:{}", step.step_id.0, step.image.image);
+        let hash = params_hash(&params)?;
         params_hashes.insert(key, hash);
-        let image_digest = stage
+        let image_digest = step
             .image
             .digest
             .clone()
             .unwrap_or_else(|| "unknown".to_string());
         invocations.push(ToolInvocationV1 {
             schema_version: "bijux.tool_invocation.v1".to_string(),
-            stage_id: stage.stage_id.to_string(),
-            tool_id: stage.tool_id.to_string(),
-            tool_version: stage.tool_version.clone(),
+            stage_id: step.step_id.to_string(),
+            tool_id: "unknown".to_string(),
+            tool_version: "unknown".to_string(),
             resolved_tool_version: None,
             image_digest,
             runner_kind: "fake".to_string(),
             platform: "unknown".to_string(),
-            parameters_json: stage.params.clone(),
-            parameters_json_normalized: stage.params.clone(),
-            effective_params_json: stage.effective_params.clone(),
-            effective_params_json_normalized: stage.effective_params.clone(),
+            parameters_json: params.clone(),
+            parameters_json_normalized: params.clone(),
+            effective_params_json: params.clone(),
+            effective_params_json_normalized: params.clone(),
             adapter_bank: None,
             banks: None,
             bank_assets: None,
-            resources: stage.resources.clone(),
+            resources: step.resources.clone(),
             environment: std::collections::BTreeMap::new(),
             input_hashes: Vec::new(),
             output_hashes: Vec::new(),
