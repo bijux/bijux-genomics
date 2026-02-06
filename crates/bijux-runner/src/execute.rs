@@ -216,6 +216,14 @@ fn write_minimum_run_artifacts(
     let tool_invocation_path = run_artifacts_dir.join("tool_invocation.json");
     if !tool_invocation_path.exists() {
         let parameters_json = serde_json::json!({ "command": step.command.template });
+        let params_provenance = serde_json::json!({
+            "tool_params": parameters_json,
+            "defaults": serde_json::json!({}),
+            "overrides": serde_json::json!({}),
+            "effective_params": serde_json::json!({}),
+        });
+        let params_provenance_normalized =
+            bijux_core::primitives::hashing::canonicalize_json_value(&params_provenance);
         let invocation = ToolInvocationV1 {
             schema_version: "bijux.tool_invocation.v1".to_string(),
             stage_id: step.step_id.to_string(),
@@ -233,6 +241,8 @@ fn write_minimum_run_artifacts(
             parameters_json_normalized: parameters_json,
             effective_params_json: serde_json::json!({}),
             effective_params_json_normalized: serde_json::json!({}),
+            params_provenance,
+            params_provenance_normalized,
             adapter_bank: None,
             banks: None,
             bank_assets: None,
