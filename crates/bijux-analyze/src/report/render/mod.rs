@@ -5,6 +5,7 @@
 pub mod bundle;
 pub mod html;
 pub mod json;
+pub mod markdown;
 
 /// Stable render namespace used in reports and tests.
 #[allow(dead_code)]

@@ -388,6 +388,12 @@ pub fn write_run_report_from_facts(base_dir: &Path, rows: &[FactsRowV1]) -> Resu
     let path = base_dir.join("report.json");
     let model = build_run_report_model(base_dir, rows)?;
     write_report_json(&path, &model).context("write report.json")?;
+    let html_path = base_dir.join("report.html");
+    crate::report::render::html::write_report_html(&html_path, &model)
+        .context("write report.html")?;
+    let md_path = base_dir.join("report.md");
+    crate::report::render::markdown::write_report_markdown(&md_path, &model)
+        .context("write report.md")?;
     Ok(path)
 }
 
