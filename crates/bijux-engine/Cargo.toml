@@ -24,6 +24,7 @@ opentelemetry_sdk = { version = "0.24", optional = true }
 [dev-dependencies]
 bijux-policies = { path = "../bijux-policies" }
 bijux-infra = { path = "../bijux-infra" }
+bijux-runtime = { path = "../bijux-runtime" }
 assert_cmd = "2"
 tempfile.workspace = true
 
