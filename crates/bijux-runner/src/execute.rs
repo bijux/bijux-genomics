@@ -2,8 +2,8 @@ use std::path::PathBuf;
 use std::time::Duration;
 
 use anyhow::{anyhow, Context, Result};
+use bijux_core::execution::execution_graph::ExecutionStep;
 use bijux_core::metrics::ToolInvocationV1;
-use bijux_core::plan::execution_graph::ExecutionStep;
 use bijux_core::primitives::cache::CacheKey;
 use bijux_core::primitives::hashing::{
     input_fingerprint, parameters_fingerprint, run_id_from_hashes,
