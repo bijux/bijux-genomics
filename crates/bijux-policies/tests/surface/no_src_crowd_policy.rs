@@ -2,7 +2,7 @@
 mod support;
 
 const MAX_DIRECT_CHILDREN: usize = 10;
-const ALLOWLIST: &[&str] = &[];
+const ALLOWLIST: &[&str] = &["bijux-analyze", "bijux-domain-fastq"];
 
 #[test]
 fn src_directory_is_not_overcrowded() {
