@@ -3,8 +3,8 @@ use std::path::PathBuf;
 
 use anyhow::{anyhow, Result};
 use bijux_core::contract::PipelineSpec;
-use bijux_core::plan::execution_graph::{ExecutionEdge, ExecutionGraph};
-use bijux_core::plan::PlanPolicy;
+use bijux_core::execution::execution_graph::{ExecutionEdge, ExecutionGraph};
+use bijux_core::execution::PlanPolicy;
 use bijux_core::primitives::input_assessment::{assess_input_dir, FastqLayout};
 use bijux_core::{ContainerImageRefV1, StageId, ToolExecutionSpecV1};
 use bijux_domain_bam::BamStage;
