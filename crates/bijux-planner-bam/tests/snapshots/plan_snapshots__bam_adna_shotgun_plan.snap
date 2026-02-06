@@ -3,24 +3,21 @@ source: crates/bijux-planner-bam/tests/plan_snapshots.rs
 expression: plan
 ---
 {
-  "schema_version": "bijux.execution_plan.v1",
+  "schema_version": "bijux.execution_graph.v1",
   "pipeline_id": "bam-to-bam__adna_shotgun__v1",
   "planner_version": "bijux-planner-bam.v1",
   "policy": "prefer_accuracy",
-  "stages": [
+  "steps": [
     {
-      "stage_id": "bam.authenticity",
-      "stage_version": 1,
-      "tool_id": "bam.authenticity.tool",
-      "tool_version": "0.0.0",
-      "image": {
-        "image": "bijux/test",
-        "digest": "sha256:bam"
-      },
+      "step_id": "bam.authenticity",
       "command": {
         "template": [
           "echo"
         ]
+      },
+      "image": {
+        "image": "bijux/test",
+        "digest": "sha256:bam"
       },
       "resources": {
         "runtime": "docker",
@@ -51,33 +48,20 @@ expression: plan
         ]
       },
       "out_dir": "out/bam_authenticity",
-      "params": {
-        "bam": "out/bam_markdup/markdup.bam",
-        "mode": "aggregate"
-      },
-      "effective_params": {
-        "mode": "aggregate"
-      },
       "aux_images": {},
-      "reason": {
-        "kind": "default",
-        "summary": "planner default",
-        "details": {}
-      }
+      "expected_artifact_ids": [],
+      "metrics_schema_ids": []
     },
     {
-      "stage_id": "bam.bias_mitigation",
-      "stage_version": 1,
-      "tool_id": "bam.bias_mitigation.tool",
-      "tool_version": "0.0.0",
-      "image": {
-        "image": "bijux/test",
-        "digest": "sha256:bam"
-      },
+      "step_id": "bam.bias_mitigation",
       "command": {
         "template": [
           "echo"
         ]
+      },
+      "image": {
+        "image": "bijux/test",
+        "digest": "sha256:bam"
       },
       "resources": {
         "runtime": "docker",
@@ -108,35 +92,20 @@ expression: plan
         ]
       },
       "out_dir": "out/bam_bias_mitigation",
-      "params": {
-        "bam": "out/bam_markdup/markdup.bam",
-        "gc_bias_correction": true,
-        "map_bias_correction": false
-      },
-      "effective_params": {
-        "gc_bias_correction": true,
-        "map_bias_correction": false
-      },
       "aux_images": {},
-      "reason": {
-        "kind": "default",
-        "summary": "planner default",
-        "details": {}
-      }
+      "expected_artifact_ids": [],
+      "metrics_schema_ids": []
     },
     {
-      "stage_id": "bam.complexity",
-      "stage_version": 1,
-      "tool_id": "bam.complexity.tool",
-      "tool_version": "0.0.0",
-      "image": {
-        "image": "bijux/test",
-        "digest": "sha256:bam"
-      },
+      "step_id": "bam.complexity",
       "command": {
         "template": [
           "echo"
         ]
+      },
+      "image": {
+        "image": "bijux/test",
+        "digest": "sha256:bam"
       },
       "resources": {
         "runtime": "docker",
@@ -171,43 +140,22 @@ expression: plan
         ]
       },
       "out_dir": "out/bam_complexity",
-      "params": {
-        "bam": "out/bam_markdup/markdup.bam",
-        "min_reads": 100000,
-        "projection_points": [
-          1000000,
-          2000000
-        ]
-      },
-      "effective_params": {
-        "min_reads": 100000,
-        "projection_points": [
-          1000000,
-          2000000
-        ]
-      },
       "aux_images": {},
-      "reason": {
-        "kind": "default",
-        "summary": "planner default",
-        "details": {}
-      }
+      "expected_artifact_ids": [],
+      "metrics_schema_ids": []
     },
     {
-      "stage_id": "bam.contamination",
-      "stage_version": 1,
-      "tool_id": "bam.contamination.tool",
-      "tool_version": "0.0.0",
-      "image": {
-        "image": "bijux/test",
-        "digest": "sha256:bam"
-      },
+      "step_id": "bam.contamination",
       "command": {
         "template": [
           "/bin/sh",
           "-c",
           "contamination_tool --input out/bam_markdup/markdup.bam > out/bam_contamination/contamination.json && python - <<'PY' > out/bam_contamination/contamination.summary.json\nimport json\npayload = {\"method\": \"authenticct\", \"estimate\": 0.0, \"ci_low\": 0.0, \"ci_high\": 0.0, \"assumptions\": []}\nprint(json.dumps(payload, indent=2))\nPY"
         ]
+      },
+      "image": {
+        "image": "bijux/test",
+        "digest": "sha256:bam"
       },
       "resources": {
         "runtime": "docker",
@@ -238,37 +186,12 @@ expression: plan
         ]
       },
       "out_dir": "out/bam_contamination",
-      "params": {
-        "assumptions": null,
-        "bam": "out/bam_markdup/markdup.bam",
-        "prior": null,
-        "reference_panels": [],
-        "scope": "both",
-        "sex_specific": false
-      },
-      "effective_params": {
-        "assumptions": null,
-        "prior": null,
-        "reference_panels": [],
-        "scope": "both",
-        "sex_specific": false
-      },
       "aux_images": {},
-      "reason": {
-        "kind": "default",
-        "summary": "planner default",
-        "details": {}
-      }
+      "expected_artifact_ids": [],
+      "metrics_schema_ids": []
     },
     {
-      "stage_id": "bam.coverage",
-      "stage_version": 1,
-      "tool_id": "bam.coverage.tool",
-      "tool_version": "0.0.0",
-      "image": {
-        "image": "bijux/test",
-        "digest": "sha256:bam"
-      },
+      "step_id": "bam.coverage",
       "command": {
         "template": [
           "mosdepth",
@@ -276,6 +199,10 @@ expression: plan
           "out/bam_coverage/coverage",
           "out/bam_markdup/markdup.bam"
         ]
+      },
+      "image": {
+        "image": "bijux/test",
+        "digest": "sha256:bam"
       },
       "resources": {
         "runtime": "docker",
@@ -302,39 +229,12 @@ expression: plan
         ]
       },
       "out_dir": "out/bam_coverage",
-      "params": {
-        "bam": "out/bam_markdup/markdup.bam",
-        "depth_thresholds": [
-          1,
-          3,
-          5
-        ],
-        "regions": null
-      },
-      "effective_params": {
-        "depth_thresholds": [
-          1,
-          3,
-          5
-        ],
-        "regions": null
-      },
       "aux_images": {},
-      "reason": {
-        "kind": "default",
-        "summary": "planner default",
-        "details": {}
-      }
+      "expected_artifact_ids": [],
+      "metrics_schema_ids": []
     },
     {
-      "stage_id": "bam.damage",
-      "stage_version": 1,
-      "tool_id": "bam.damage.tool",
-      "tool_version": "0.0.0",
-      "image": {
-        "image": "bijux/test",
-        "digest": "sha256:bam"
-      },
+      "step_id": "bam.damage",
       "command": {
         "template": [
           "pydamage",
@@ -346,6 +246,10 @@ expression: plan
           "--min-mapq",
           "0.3"
         ]
+      },
+      "image": {
+        "image": "bijux/test",
+        "digest": "sha256:bam"
       },
       "resources": {
         "runtime": "docker",
@@ -376,43 +280,22 @@ expression: plan
         ]
       },
       "out_dir": "out/bam_damage",
-      "params": {
-        "bam": "out/bam_markdup/markdup.bam",
-        "pmd_threshold_3p": 0.3,
-        "pmd_threshold_5p": 0.3,
-        "trim_3p": 2,
-        "trim_5p": 2,
-        "udg_model": "non_udg"
-      },
-      "effective_params": {
-        "pmd_threshold_3p": 0.3,
-        "pmd_threshold_5p": 0.3,
-        "trim_3p": 2,
-        "trim_5p": 2,
-        "udg_model": "non_udg"
-      },
       "aux_images": {},
-      "reason": {
-        "kind": "default",
-        "summary": "planner default",
-        "details": {}
-      }
+      "expected_artifact_ids": [],
+      "metrics_schema_ids": []
     },
     {
-      "stage_id": "bam.filter",
-      "stage_version": 1,
-      "tool_id": "bam.filter.tool",
-      "tool_version": "0.0.0",
-      "image": {
-        "image": "bijux/test",
-        "digest": "sha256:bam"
-      },
+      "step_id": "bam.filter",
       "command": {
         "template": [
           "/bin/sh",
           "-c",
           "samtools flagstat input.bam > out/bam_filter/flagstat.before.txt && samtools idxstats input.bam > out/bam_filter/idxstats.before.txt && samtools view -b -q 30 input.bam | samtools sort -o out/bam_filter/filtered.bam && samtools index out/bam_filter/filtered.bam out/bam_filter/filtered.bam.bai && samtools flagstat out/bam_filter/filtered.bam > out/bam_filter/flagstat.after.txt && samtools idxstats out/bam_filter/filtered.bam > out/bam_filter/idxstats.after.txt && python - <<'PY' > out/bam_filter/filter.summary.json\nimport json\npayload = {\"input_bam\": \"input.bam\", \"output_bam\": \"out/bam_filter/filtered.bam\", \"params\": {\"mapq_threshold\": 30, \"min_length\": 30}, \"artifacts\": {\"flagstat_before\": \"out/bam_filter/flagstat.before.txt\", \"flagstat_after\": \"out/bam_filter/flagstat.after.txt\", \"idxstats_before\": \"out/bam_filter/idxstats.before.txt\", \"idxstats_after\": \"out/bam_filter/idxstats.after.txt\"}}\nprint(json.dumps(payload, indent=2))\nPY"
         ]
+      },
+      "image": {
+        "image": "bijux/test",
+        "digest": "sha256:bam"
       },
       "resources": {
         "runtime": "docker",
@@ -463,45 +346,22 @@ expression: plan
         ]
       },
       "out_dir": "out/bam_filter",
-      "params": {
-        "bam": "input.bam",
-        "base_quality_threshold": 20,
-        "exclude_flags": [],
-        "include_flags": [],
-        "mapq_threshold": 30,
-        "min_length": 30,
-        "remove_duplicates": false
-      },
-      "effective_params": {
-        "base_quality_threshold": 20,
-        "exclude_flags": [],
-        "include_flags": [],
-        "mapq_threshold": 30,
-        "min_length": 30,
-        "remove_duplicates": false
-      },
       "aux_images": {},
-      "reason": {
-        "kind": "default",
-        "summary": "planner default",
-        "details": {}
-      }
+      "expected_artifact_ids": [],
+      "metrics_schema_ids": []
     },
     {
-      "stage_id": "bam.markdup",
-      "stage_version": 1,
-      "tool_id": "bam.markdup.tool",
-      "tool_version": "0.0.0",
-      "image": {
-        "image": "bijux/test",
-        "digest": "sha256:bam"
-      },
+      "step_id": "bam.markdup",
       "command": {
         "template": [
           "/bin/sh",
           "-c",
           "samtools flagstat out/bam_filter/filtered.bam > out/bam_markdup/flagstat.before.txt && samtools idxstats out/bam_filter/filtered.bam > out/bam_markdup/idxstats.before.txt && gatk MarkDuplicatesSpark -I out/bam_filter/filtered.bam -O out/bam_markdup/markdup.bam --REMOVE_DUPLICATES false --CREATE_INDEX true && samtools flagstat out/bam_markdup/markdup.bam > out/bam_markdup/flagstat.after.txt && samtools idxstats out/bam_markdup/markdup.bam > out/bam_markdup/idxstats.after.txt && python - <<'PY' > out/bam_markdup/markdup.summary.json\nimport json\npayload = {\"input_bam\": \"out/bam_filter/filtered.bam\", \"output_bam\": \"out/bam_markdup/markdup.bam\", \"remove_duplicates\": false, \"artifacts\": {\"flagstat_before\": \"out/bam_markdup/flagstat.before.txt\", \"flagstat_after\": \"out/bam_markdup/flagstat.after.txt\", \"idxstats_before\": \"out/bam_markdup/idxstats.before.txt\", \"idxstats_after\": \"out/bam_markdup/idxstats.after.txt\"}}\nprint(json.dumps(payload, indent=2))\nPY"
         ]
+      },
+      "image": {
+        "image": "bijux/test",
+        "digest": "sha256:bam"
       },
       "resources": {
         "runtime": "docker",
@@ -552,39 +412,22 @@ expression: plan
         ]
       },
       "out_dir": "out/bam_markdup",
-      "params": {
-        "bam": "out/bam_filter/filtered.bam",
-        "duplicate_action": "mark",
-        "optical_duplicates": "mark_only",
-        "umi_policy": "ignore"
-      },
-      "effective_params": {
-        "duplicate_action": "mark",
-        "optical_duplicates": "mark_only",
-        "umi_policy": "ignore"
-      },
       "aux_images": {},
-      "reason": {
-        "kind": "default",
-        "summary": "planner default",
-        "details": {}
-      }
+      "expected_artifact_ids": [],
+      "metrics_schema_ids": []
     },
     {
-      "stage_id": "bam.qc_pre",
-      "stage_version": 1,
-      "tool_id": "bam.qc_pre.tool",
-      "tool_version": "0.0.0",
-      "image": {
-        "image": "bijux/test",
-        "digest": "sha256:bam"
-      },
+      "step_id": "bam.qc_pre",
       "command": {
         "template": [
           "/bin/sh",
           "-c",
           "samtools flagstat input.bam > out/bam_qc_pre/flagstat.txt && samtools idxstats input.bam > out/bam_qc_pre/idxstats.txt && samtools stats input.bam > out/bam_qc_pre/samtools_stats.txt"
         ]
+      },
+      "image": {
+        "image": "bijux/test",
+        "digest": "sha256:bam"
       },
       "resources": {
         "runtime": "docker",
@@ -619,35 +462,22 @@ expression: plan
         ]
       },
       "out_dir": "out/bam_qc_pre",
-      "params": {
-        "bam": "input.bam",
-        "regions": null
-      },
-      "effective_params": {
-        "regions": null
-      },
       "aux_images": {},
-      "reason": {
-        "kind": "default",
-        "summary": "planner default",
-        "details": {}
-      }
+      "expected_artifact_ids": [],
+      "metrics_schema_ids": []
     },
     {
-      "stage_id": "bam.sex",
-      "stage_version": 1,
-      "tool_id": "bam.sex.tool",
-      "tool_version": "0.0.0",
-      "image": {
-        "image": "bijux/test",
-        "digest": "sha256:bam"
-      },
+      "step_id": "bam.sex",
       "command": {
         "template": [
           "/bin/sh",
           "-c",
           "rxy --input out/bam_markdup/markdup.bam > out/bam_sex/sex.json && python - <<'PY' > out/bam_sex/sex.summary.json\nimport json\npayload = {\"method\": \"rxy\", \"x_to_y_ratio\": 0.0, \"confidence\": 0.0}\nprint(json.dumps(payload, indent=2))\nPY"
         ]
+      },
+      "image": {
+        "image": "bijux/test",
+        "digest": "sha256:bam"
       },
       "resources": {
         "runtime": "docker",
@@ -678,37 +508,22 @@ expression: plan
         ]
       },
       "out_dir": "out/bam_sex",
-      "params": {
-        "bam": "out/bam_markdup/markdup.bam",
-        "expected_sex": null,
-        "method": "rxy"
-      },
-      "effective_params": {
-        "expected_sex": null,
-        "method": "rxy"
-      },
       "aux_images": {},
-      "reason": {
-        "kind": "default",
-        "summary": "planner default",
-        "details": {}
-      }
+      "expected_artifact_ids": [],
+      "metrics_schema_ids": []
     },
     {
-      "stage_id": "bam.validate",
-      "stage_version": 1,
-      "tool_id": "bam.validate.tool",
-      "tool_version": "0.0.0",
-      "image": {
-        "image": "bijux/test",
-        "digest": "sha256:bam"
-      },
+      "step_id": "bam.validate",
       "command": {
         "template": [
           "/bin/sh",
           "-c",
           "samtools quickcheck -v input.bam > out/bam_validate/validation.json && samtools flagstat input.bam > out/bam_validate/flagstat.txt"
         ]
+      },
+      "image": {
+        "image": "bijux/test",
+        "digest": "sha256:bam"
       },
       "resources": {
         "runtime": "docker",
@@ -747,21 +562,9 @@ expression: plan
         ]
       },
       "out_dir": "out/bam_validate",
-      "params": {
-        "bai": "input.bam.bai",
-        "bam": "input.bam",
-        "reference": "ref.fa",
-        "strict": true
-      },
-      "effective_params": {
-        "strict": true
-      },
       "aux_images": {},
-      "reason": {
-        "kind": "default",
-        "summary": "planner default",
-        "details": {}
-      }
+      "expected_artifact_ids": [],
+      "metrics_schema_ids": []
     }
   ],
   "edges": [

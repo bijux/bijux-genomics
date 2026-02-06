@@ -41,7 +41,7 @@ fn bam_plan_integration_has_stable_stage_chain() -> Result<()> {
     let out = Path::new("out");
     let input = Path::new("reads.bam");
 
-    let validate = bijux_stages_bam::bam::validate::plan(
+    let validate = bijux_planner_bam::tool_adapters::bam::validate::plan(
         &dummy_tool("samtools"),
         input,
         None,
@@ -50,7 +50,7 @@ fn bam_plan_integration_has_stable_stage_chain() -> Result<()> {
     )?;
     assert_eq!(validate.stage_id.0, "bam.validate");
 
-    let qc_pre = bijux_stages_bam::bam::qc_pre::plan(
+    let qc_pre = bijux_planner_bam::tool_adapters::bam::qc_pre::plan(
         &dummy_tool("samtools"),
         input,
         out.join("qc_pre").as_path(),
@@ -65,7 +65,7 @@ fn bam_plan_integration_has_stable_stage_chain() -> Result<()> {
         remove_duplicates: false,
         base_quality_threshold: 20,
     };
-    let filter = bijux_stages_bam::bam::filter::plan(
+    let filter = bijux_planner_bam::tool_adapters::bam::filter::plan(
         &dummy_tool("samtools"),
         input,
         out.join("filter").as_path(),
@@ -78,7 +78,7 @@ fn bam_plan_integration_has_stable_stage_chain() -> Result<()> {
         umi_policy: bijux_domain_bam::params::UmiPolicy::Ignore,
         duplicate_action: bijux_domain_bam::params::DuplicateAction::Mark,
     };
-    let markdup = bijux_stages_bam::bam::markdup::plan(
+    let markdup = bijux_planner_bam::tool_adapters::bam::markdup::plan(
         &dummy_tool("gatk"),
         output_path(&filter, "filtered_bam").as_path(),
         out.join("markdup").as_path(),
@@ -90,7 +90,7 @@ fn bam_plan_integration_has_stable_stage_chain() -> Result<()> {
         regions: None,
         depth_thresholds: vec![1, 3, 5],
     };
-    let coverage = bijux_stages_bam::bam::coverage::plan(
+    let coverage = bijux_planner_bam::tool_adapters::bam::coverage::plan(
         &dummy_tool("mosdepth"),
         output_path(&markdup, "markdup_bam").as_path(),
         out.join("coverage").as_path(),
@@ -105,7 +105,7 @@ fn bam_plan_integration_has_stable_stage_chain() -> Result<()> {
         trim_5p: 2,
         trim_3p: 2,
     };
-    let damage = bijux_stages_bam::bam::damage::plan(
+    let damage = bijux_planner_bam::tool_adapters::bam::damage::plan(
         &dummy_tool("pydamage"),
         output_path(&markdup, "markdup_bam").as_path(),
         out.join("damage").as_path(),

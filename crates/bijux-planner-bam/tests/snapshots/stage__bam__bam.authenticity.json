@@ -29,5 +29,10 @@
   },
   "effective_params": {
     "mode": "aggregate"
+  },
+  "reason": {
+    "kind": "default",
+    "summary": "planner default",
+    "details": {}
   }
 }

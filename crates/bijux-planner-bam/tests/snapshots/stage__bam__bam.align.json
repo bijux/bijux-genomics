@@ -78,5 +78,10 @@
     "reference_digest": "sha256:ref",
     "rg_policy": "regenerate",
     "threads": 1
+  },
+  "reason": {
+    "kind": "default",
+    "summary": "planner default",
+    "details": {}
   }
 }

@@ -1,5 +1,5 @@
 {
-  "stage_id": "bam.markdup",
+  "stage_id": "bam.filter",
   "stage_version": "1",
   "io": {
     "inputs": [
@@ -10,12 +10,12 @@
     ],
     "outputs": [
       {
-        "name": "markdup_bam",
-        "path": "out/markdup.bam"
+        "name": "filtered_bam",
+        "path": "out/filtered.bam"
       },
       {
-        "name": "markdup_bai",
-        "path": "out/markdup.bam.bai"
+        "name": "filtered_bai",
+        "path": "out/filtered.bam.bai"
       },
       {
         "name": "flagstat_before",
@@ -35,7 +35,7 @@
       },
       {
         "name": "summary",
-        "path": "out/markdup.summary.json"
+        "path": "out/filter.summary.json"
       },
       {
         "name": "stage_metrics",
@@ -45,13 +45,24 @@
   },
   "parameters": {
     "bam": "reads.bam",
-    "duplicate_action": "mark",
-    "optical_duplicates": "mark_only",
-    "umi_policy": "ignore"
+    "base_quality_threshold": 20,
+    "exclude_flags": [],
+    "include_flags": [],
+    "mapq_threshold": 30,
+    "min_length": 30,
+    "remove_duplicates": false
   },
   "effective_params": {
-    "duplicate_action": "mark",
-    "optical_duplicates": "mark_only",
-    "umi_policy": "ignore"
+    "base_quality_threshold": 20,
+    "exclude_flags": [],
+    "include_flags": [],
+    "mapq_threshold": 30,
+    "min_length": 30,
+    "remove_duplicates": false
+  },
+  "reason": {
+    "kind": "default",
+    "summary": "planner default",
+    "details": {}
   }
 }

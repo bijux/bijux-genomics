@@ -1,5 +1,5 @@
 {
-  "stage_id": "bam.validate",
+  "stage_id": "bam.qc_pre",
   "stage_version": "1",
   "io": {
     "inputs": [
@@ -10,12 +10,16 @@
     ],
     "outputs": [
       {
-        "name": "validation_report",
-        "path": "out/validation.json"
-      },
-      {
         "name": "flagstat",
         "path": "out/flagstat.txt"
+      },
+      {
+        "name": "idxstats",
+        "path": "out/idxstats.txt"
+      },
+      {
+        "name": "stats",
+        "path": "out/samtools_stats.txt"
       },
       {
         "name": "stage_metrics",
@@ -24,12 +28,15 @@
     ]
   },
   "parameters": {
-    "bai": null,
     "bam": "reads.bam",
-    "reference": null,
-    "strict": true
+    "regions": null
   },
   "effective_params": {
-    "strict": true
+    "regions": null
+  },
+  "reason": {
+    "kind": "default",
+    "summary": "planner default",
+    "details": {}
   }
 }

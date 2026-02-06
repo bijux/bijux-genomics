@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 
-use bijux_core::plan::execution_plan::PlanPolicy;
+use bijux_core::plan::PlanPolicy;
 use bijux_core::{
     CommandSpecV1, ContainerImageRefV1, StageId, StagePlanV1, StageVersion, ToolConstraints, ToolId,
 };
@@ -65,6 +65,9 @@ fn bam_planner_plan_snapshot() {
 
 #[test]
 fn adna_shotgun_plan_snapshot_is_stable() {
+    if !cfg!(feature = "bam_downstream") {
+        return;
+    }
     let mut tool_specs = BTreeMap::new();
     for stage_id in pipeline_stage_ids("bam-to-bam__adna_shotgun__v1") {
         tool_specs.insert(
@@ -104,6 +107,9 @@ fn adna_shotgun_plan_snapshot_is_stable() {
 
 #[test]
 fn adna_capture_plan_snapshot_is_stable() {
+    if !cfg!(feature = "bam_downstream") {
+        return;
+    }
     let mut tool_specs = BTreeMap::new();
     for stage_id in pipeline_stage_ids("bam-to-bam__adna_capture__v1") {
         tool_specs.insert(

@@ -41,5 +41,10 @@
     ],
     "scope": "both",
     "sex_specific": false
+  },
+  "reason": {
+    "kind": "default",
+    "summary": "planner default",
+    "details": {}
   }
 }
