@@ -26,9 +26,9 @@ pub const STAGE_REPORT_AGGREGATE: StageId = StageId::from_static("report.aggrega
 pub use bijux_domain_fastq::BenchResultsRepository;
 
 pub mod args;
+mod report_stage;
 pub mod tool_adapters;
 mod tool_registry;
-mod report_stage;
 
 pub use report_stage::report_stage_step;
 
