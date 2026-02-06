@@ -2,6 +2,8 @@ use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
 
+use crate::ids::ArtifactId;
+
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
 #[serde(rename_all = "snake_case")]
 pub enum ArtifactRole {
@@ -46,7 +48,7 @@ impl ArtifactRole {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct ArtifactSpec {
-    pub name: String,
+    pub name: ArtifactId,
     pub path: PathBuf,
     pub role: ArtifactRole,
     #[serde(default)]
@@ -55,9 +57,9 @@ pub struct ArtifactSpec {
 
 impl ArtifactSpec {
     #[must_use]
-    pub fn required(name: impl Into<String>, path: PathBuf, role: ArtifactRole) -> Self {
+    pub fn required(name: ArtifactId, path: PathBuf, role: ArtifactRole) -> Self {
         Self {
-            name: name.into(),
+            name,
             path,
             role,
             optional: false,
@@ -65,9 +67,9 @@ impl ArtifactSpec {
     }
 
     #[must_use]
-    pub fn optional(name: impl Into<String>, path: PathBuf, role: ArtifactRole) -> Self {
+    pub fn optional(name: ArtifactId, path: PathBuf, role: ArtifactRole) -> Self {
         Self {
-            name: name.into(),
+            name,
             path,
             role,
             optional: true,

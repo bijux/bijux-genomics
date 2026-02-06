@@ -1,10 +1,10 @@
 use std::collections::BTreeMap;
 
-use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 
-use crate::contract::ToolConstraints;
-use crate::primitives::measure::ExecutionMetrics;
+use crate::contract::{ContractVersion, ToolConstraints};
+use crate::ids::{StageId, ToolId};
+use crate::primitives::{measure::ExecutionMetrics, BijuxError, Result};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum MetricId {
@@ -188,7 +188,8 @@ pub fn parse_derived_metric_id(value: &str) -> Option<DerivedMetricId> {
 /// # Errors
 /// Returns an error if the metric id is unknown.
 pub fn validate_metric_id_str(value: &str) -> Result<()> {
-    parse_metric_id(value).ok_or_else(|| anyhow!("unknown metric id {value}"))?;
+    parse_metric_id(value)
+        .ok_or_else(|| BijuxError::validation(format!("unknown metric id {value}")))?;
     Ok(())
 }
 
@@ -197,7 +198,8 @@ pub fn validate_metric_id_str(value: &str) -> Result<()> {
 /// # Errors
 /// Returns an error if the derived metric id is unknown.
 pub fn validate_derived_metric_id_str(value: &str) -> Result<()> {
-    parse_derived_metric_id(value).ok_or_else(|| anyhow!("unknown derived metric id {value}"))?;
+    parse_derived_metric_id(value)
+        .ok_or_else(|| BijuxError::validation(format!("unknown derived metric id {value}")))?;
     Ok(())
 }
 
@@ -284,8 +286,9 @@ pub struct StageMetricsV1<T> {
 #[serde(deny_unknown_fields)]
 pub struct ToolInvocationV1 {
     pub schema_version: String,
-    pub stage_id: String,
-    pub tool_id: String,
+    pub contract_version: ContractVersion,
+    pub stage_id: StageId,
+    pub tool_id: ToolId,
     pub tool_version: String,
     #[serde(default)]
     pub resolved_tool_version: Option<String>,

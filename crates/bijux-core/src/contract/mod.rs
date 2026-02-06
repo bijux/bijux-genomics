@@ -7,8 +7,12 @@ mod run;
 mod run_record;
 mod selection;
 mod tooling;
+mod version;
 
-pub use crate::ids::{ImageDigest, PipelineId, RunId, StageId, StageVersion, ToolId, ToolVersion};
+pub use crate::ids::{
+    ArtifactId, ImageDigest, PipelineId, ProfileId, RunId, StageId, StageVersion, StepId, ToolId,
+    ToolVersion,
+};
 pub use crate::metadata::{
     RunMetadataV1, StageMetadataV1, ToolExecutionMetadataV1, ToolInvocationMetadataV1,
 };
@@ -27,3 +31,4 @@ pub use tooling::{
     Cardinality, ExecutionContract, PathSpec, PortSpec, StageSpec, ToolConstraints,
     ToolExecutionSpecV1, ToolManifest, ToolRegistry, ToolRole,
 };
+pub use version::ContractVersion;

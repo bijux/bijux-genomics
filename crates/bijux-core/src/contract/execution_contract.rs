@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use anyhow::{anyhow, Context, Result};
+use crate::primitives::{BijuxError, Result};
 
 use crate::ExecutionContract;
 
@@ -11,13 +11,17 @@ pub fn validate_execution_outputs(contract: &ExecutionContract, out_dir: &Path) 
 
     for forbidden in &contract.forbidden_outputs {
         if outputs.iter().any(|path| matches_pattern(path, forbidden)) {
-            return Err(anyhow!("forbidden output produced: {forbidden}"));
+            return Err(BijuxError::contract(format!(
+                "forbidden output produced: {forbidden}"
+            )));
         }
     }
 
     for expected in &contract.expected_outputs {
         if !outputs.iter().any(|path| matches_pattern(path, expected)) {
-            return Err(anyhow!("expected output missing: {expected}"));
+            return Err(BijuxError::contract(format!(
+                "expected output missing: {expected}"
+            )));
         }
     }
 
@@ -28,7 +32,9 @@ pub fn validate_execution_outputs(contract: &ExecutionContract, out_dir: &Path) 
                 .iter()
                 .any(|pattern| matches_pattern(output, pattern))
             {
-                return Err(anyhow!("unexpected output produced: {output}"));
+                return Err(BijuxError::contract(format!(
+                    "unexpected output produced: {output}"
+                )));
             }
         }
     }
@@ -43,7 +49,9 @@ fn collect_outputs(root: &Path) -> Result<Vec<String>> {
 }
 
 fn walk_outputs(root: &Path, dir: &Path, out: &mut Vec<String>) -> Result<()> {
-    for entry in std::fs::read_dir(dir).with_context(|| format!("read dir {}", dir.display()))? {
+    for entry in std::fs::read_dir(dir).map_err(|err| {
+        BijuxError::Io(format!("read dir {}: {err}", dir.display()))
+    })? {
         let entry = entry?;
         let path = entry.path();
         let rel = path

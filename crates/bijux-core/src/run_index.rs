@@ -2,16 +2,17 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
 
-use anyhow::{Context, Result};
+use crate::ids::{PipelineId, RunId, StageId, ToolId};
+use crate::primitives::{BijuxError, Result};
 
 #[derive(Debug, Clone, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct RunIndexEntry {
-    pub run_id: String,
+    pub run_id: RunId,
     pub domain: String,
-    pub pipeline: String,
-    pub stages: Vec<String>,
-    pub tools: Vec<String>,
+    pub pipeline: PipelineId,
+    pub stages: Vec<StageId>,
+    pub tools: Vec<ToolId>,
     pub objective: Option<String>,
     pub platform: String,
     pub success: bool,
@@ -28,9 +29,9 @@ pub struct RunIndexLine {
 #[derive(Debug, Clone, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct StageIndexRow {
-    pub run_id: String,
-    pub stage_id: String,
-    pub tool_id: String,
+    pub run_id: RunId,
+    pub stage_id: StageId,
+    pub tool_id: ToolId,
     pub params_hash: String,
     pub input_hash: String,
     pub output_hashes: Vec<String>,
@@ -50,8 +51,9 @@ pub struct RunQuery {
 /// # Errors
 /// Returns an error if the index cannot be read.
 pub fn list_runs(index_path: &Path) -> Result<Vec<RunIndexEntry>> {
-    let file = File::open(index_path)
-        .with_context(|| format!("open run index {}", index_path.display()))?;
+    let file = File::open(index_path).map_err(|err| {
+        BijuxError::Io(format!("open run index {}: {err}", index_path.display()))
+    })?;
     let reader = BufReader::new(file);
     let mut entries = Vec::new();
     for line in reader.lines() {
@@ -74,10 +76,10 @@ pub fn list_runs(index_path: &Path) -> Result<Vec<RunIndexEntry>> {
 pub fn query_runs(index_path: &Path, query: &RunQuery) -> Result<Vec<RunIndexEntry>> {
     let mut entries = list_runs(index_path)?;
     if let Some(stage) = &query.stage {
-        entries.retain(|entry| entry.stages.iter().any(|s| s == stage));
+        entries.retain(|entry| entry.stages.iter().any(|s| s.as_str() == stage));
     }
     if let Some(tool) = &query.tool {
-        entries.retain(|entry| entry.tools.iter().any(|t| t == tool));
+        entries.retain(|entry| entry.tools.iter().any(|t| t.as_str() == tool));
     }
     if let Some(objective) = &query.objective {
         entries.retain(|entry| entry.objective.as_deref() == Some(objective.as_str()));
@@ -108,7 +110,9 @@ pub fn query_latest_runs(index_path: &Path, limit: usize) -> Result<Vec<RunIndex
 /// Returns an error if the index cannot be read.
 pub fn query_run(index_path: &Path, run_id: &str) -> Result<Option<RunIndexEntry>> {
     let entries = list_runs(index_path)?;
-    Ok(entries.into_iter().find(|entry| entry.run_id == run_id))
+    Ok(entries
+        .into_iter()
+        .find(|entry| entry.run_id.as_str() == run_id))
 }
 
 /// Query stage rows from `index.jsonl`.
@@ -120,8 +124,9 @@ pub fn query_stage_rows(
     stage: Option<&str>,
     tool: Option<&str>,
 ) -> Result<Vec<StageIndexRow>> {
-    let file = File::open(index_path)
-        .with_context(|| format!("open run index {}", index_path.display()))?;
+    let file = File::open(index_path).map_err(|err| {
+        BijuxError::Io(format!("open run index {}: {err}", index_path.display()))
+    })?;
     let reader = BufReader::new(file);
     let mut rows = Vec::new();
     for line in reader.lines() {
@@ -132,12 +137,12 @@ pub fn query_stage_rows(
         let parsed: RunIndexLine = serde_json::from_str(&line)?;
         let Some(row) = parsed.stage else { continue };
         if let Some(stage_id) = stage {
-            if row.stage_id != stage_id {
+            if row.stage_id.as_str() != stage_id {
                 continue;
             }
         }
         if let Some(tool_id) = tool {
-            if row.tool_id != tool_id {
+            if row.tool_id.as_str() != tool_id {
                 continue;
             }
         }
