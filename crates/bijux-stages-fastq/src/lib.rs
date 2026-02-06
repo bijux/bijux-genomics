@@ -1,24 +1,15 @@
-//! Stage planning and contract access.
+//! Stage specs, metrics, and observers for FASTQ.
 
-pub mod args;
 pub mod artifacts;
-pub mod fastq;
-pub mod fastq_tools_registry;
 pub mod metrics;
 pub mod observer;
 pub mod plugin;
-pub mod stages_pre;
-pub mod stages_qc;
-pub mod stages_transform;
-pub mod tools;
+pub mod stage_specs;
 
-pub use bijux_core::{ArtifactRef, StageIO, StagePlanJsonV1, StagePlanV1};
-pub type StagePlanJson = StagePlanJsonV1;
+pub use bijux_core::StagePlanJsonV1 as StagePlanJson;
 
 pub use bijux_domain_fastq as domain_fastq;
 pub use bijux_domain_fastq::*;
-
-pub const TOOL_SEQKIT: &str = "seqkit";
 
 #[must_use]
 pub fn implemented_stages() -> Vec<bijux_core::ids::StageId> {
@@ -40,142 +31,4 @@ pub fn implemented_stages() -> Vec<bijux_core::ids::StageId> {
 pub mod contracts {
     pub use bijux_domain_fastq::contract_for_stage;
     pub use bijux_domain_fastq::FastqStageContract as StageContract;
-}
-
-pub struct StagePlanRequest<'a> {
-    pub stage_id: &'a str,
-    pub tool: &'a bijux_core::contract::ToolExecutionSpecV1,
-    pub r1: Option<&'a std::path::Path>,
-    pub r2: Option<&'a std::path::Path>,
-    pub out_dir: &'a std::path::Path,
-    pub adapter_bank: Option<&'a serde_json::Value>,
-    pub polyx_bank: Option<&'a serde_json::Value>,
-    pub contaminant_bank: Option<&'a serde_json::Value>,
-    pub enable_contaminant_removal: bool,
-    pub aux_images: &'a std::collections::BTreeMap<String, bijux_core::ContainerImageRefV1>,
-    pub raw_r1: Option<&'a std::path::Path>,
-    pub pipeline_stages: Option<&'a [String]>,
-}
-
-/// # Errors
-/// Returns an error if the stage cannot be planned with the provided inputs.
-pub fn plan_stage(request: StagePlanRequest<'_>) -> anyhow::Result<StagePlanV1> {
-    match request.stage_id {
-        "fastq.validate_pre" => {
-            let r1 = request
-                .r1
-                .ok_or_else(|| anyhow::anyhow!("validate_pre requires r1"))?;
-            Ok(stages_pre::validate_pre::plan(
-                request.tool,
-                r1,
-                request.out_dir,
-            ))
-        }
-        "fastq.detect_adapters" => {
-            let r1 = request
-                .r1
-                .ok_or_else(|| anyhow::anyhow!("detect_adapters requires r1"))?;
-            Ok(stages_pre::detect_adapters::plan(
-                request.tool,
-                r1,
-                request.out_dir,
-            ))
-        }
-        "fastq.trim" => {
-            let r1 = request
-                .r1
-                .ok_or_else(|| anyhow::anyhow!("trim requires r1"))?;
-            stages_transform::trim::plan(
-                request.tool,
-                r1,
-                request.out_dir,
-                request.adapter_bank,
-                request.polyx_bank,
-                request.contaminant_bank,
-            )
-        }
-        "fastq.filter" => {
-            let r1 = request
-                .r1
-                .ok_or_else(|| anyhow::anyhow!("filter requires r1"))?;
-            let mut options = stages_transform::filter::FilterPlanOptions::default();
-            if request.enable_contaminant_removal && request.contaminant_bank.is_some() {
-                options.kmer_ref = stages_transform::filter::default_kmer_ref();
-            }
-            stages_transform::filter::plan_filter(request.tool, r1, request.out_dir, &options)
-        }
-        "fastq.merge" => {
-            let r1 = request
-                .r1
-                .ok_or_else(|| anyhow::anyhow!("merge requires r1"))?;
-            let r2 = request
-                .r2
-                .ok_or_else(|| anyhow::anyhow!("merge requires r2"))?;
-            stages_transform::merge::plan_merge(request.tool, r1, r2, request.out_dir)
-        }
-        "fastq.correct" => {
-            let r1 = request
-                .r1
-                .ok_or_else(|| anyhow::anyhow!("correct requires r1"))?;
-            let r2 = request
-                .r2
-                .ok_or_else(|| anyhow::anyhow!("correct requires r2"))?;
-            stages_transform::correct::plan_correct(request.tool, r1, r2, request.out_dir)
-        }
-        "fastq.umi" => {
-            let r1 = request
-                .r1
-                .ok_or_else(|| anyhow::anyhow!("umi requires r1"))?;
-            let r2 = request
-                .r2
-                .ok_or_else(|| anyhow::anyhow!("umi requires r2"))?;
-            stages_transform::umi::plan_umi(request.tool, r1, r2, request.out_dir)
-        }
-        "fastq.qc_post" => {
-            let r1 = request
-                .r1
-                .ok_or_else(|| anyhow::anyhow!("qc_post requires r1"))?;
-            stages_qc::qc_post::plan_qc_post(
-                request.tool,
-                r1,
-                request.out_dir,
-                request.aux_images.clone(),
-                request.raw_r1,
-            )
-        }
-        "fastq.screen" => {
-            let r1 = request
-                .r1
-                .ok_or_else(|| anyhow::anyhow!("screen requires r1"))?;
-            stages_qc::screen::plan_screen(request.tool, r1, request.out_dir)
-        }
-        "fastq.stats_neutral" => {
-            let r1 = request
-                .r1
-                .ok_or_else(|| anyhow::anyhow!("stats_neutral requires r1"))?;
-            stages_qc::stats_neutral::plan_stats_neutral(request.tool, r1, request.out_dir)
-        }
-        "fastq.preprocess" => {
-            let r1 = request
-                .r1
-                .ok_or_else(|| anyhow::anyhow!("preprocess requires r1"))?;
-            let stages = request
-                .pipeline_stages
-                .ok_or_else(|| anyhow::anyhow!("preprocess requires pipeline stages"))?;
-            let plan = stages_pre::preprocess_plan::PreprocessPlan {
-                r1: r1.to_path_buf(),
-                r2: request.r2.map(|path| path.to_path_buf()),
-                stages: stages.to_vec(),
-                enable_contaminant_removal: request.enable_contaminant_removal,
-            };
-            Ok(stages_pre::preprocess_plan::plan_preprocess_stage(
-                &plan,
-                request.tool,
-            ))
-        }
-        _ => Err(anyhow::anyhow!(
-            "unsupported fastq stage for planner: {}",
-            request.stage_id
-        )),
-    }
 }
