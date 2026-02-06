@@ -38,7 +38,7 @@ use bijux_runtime::recording::{
     write_metrics_json, write_run_manifest, write_stage_plan_json, RunArtifactInput,
 };
 
-use crate::handlers::fastq::{
+use crate::internal::handlers::fastq::{
     write_explain_md, write_explain_plan_json, BenchOutcome, STAGE_STATS_NEUTRAL,
 };
 use bijux_core::contract::{ContractVersion, ExecutionManifest};

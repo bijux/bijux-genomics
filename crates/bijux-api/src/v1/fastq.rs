@@ -6,4 +6,4 @@ pub use bijux_planner_fastq::stage_api::args as fastq_args;
 pub use bijux_planner_fastq::stage_api::banks as fastq_bank_ops;
 pub use bijux_planner_fastq::stage_api::*;
 
-pub use crate::handlers::fastq::*;
+pub use crate::internal::handlers::fastq::*;

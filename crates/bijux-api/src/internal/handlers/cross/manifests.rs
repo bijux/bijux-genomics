@@ -8,7 +8,7 @@ use bijux_environment::resolve::ReferenceRecord;
 use bijux_infra::hash_file_sha256;
 use bijux_pipelines::PipelineProfile;
 
-use crate::handlers::fastq::StageExecutionSummary;
+use crate::internal::handlers::fastq::StageExecutionSummary;
 use bijux_pipelines::STAGE_CORE_PREPARE_REFERENCE;
 use bijux_pipelines::STAGE_CROSS_ALIGN_STUB;
 

@@ -8,9 +8,9 @@ use super::manifests::{
 };
 use super::AlignmentBoundary;
 use crate::args::FastqCrossArgs;
-use crate::handlers::bam_summary::{render_bam_summary, report_stage_step};
-use crate::handlers::fastq::fastq_preprocess_run;
-use crate::handlers::fastq::StageExecutionSummary;
+use crate::internal::handlers::bam_summary::{render_bam_summary, report_stage_step};
+use crate::internal::handlers::fastq::fastq_preprocess_run;
+use crate::internal::handlers::fastq::StageExecutionSummary;
 use anyhow::{anyhow, Context, Result};
 use bijux_core::contract::ToolRegistry;
 use bijux_environment::resolve::{ReferenceBuildRequest, ReferenceRegistry};

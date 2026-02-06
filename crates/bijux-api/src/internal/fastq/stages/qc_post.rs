@@ -17,9 +17,9 @@ use bijux_planner_fastq::stage_api::{
 };
 use bijux_runner::primitives::{build_tool_execution_spec, resolve_image_for_run};
 
-use crate::handlers::fastq::jobs::bench_jobs;
-use crate::handlers::fastq::jobs::execute_plans_with_jobs;
-use crate::handlers::fastq::{
+use crate::internal::handlers::fastq::jobs::bench_jobs;
+use crate::internal::handlers::fastq::jobs::execute_plans_with_jobs;
+use crate::internal::handlers::fastq::{
     write_explain_md, write_explain_plan_json, BenchOutcome, STAGE_QC_POST,
 };
 use bijux_planner_fastq::scale_tool_spec_for_jobs;
