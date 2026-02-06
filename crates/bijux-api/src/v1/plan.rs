@@ -10,7 +10,7 @@ pub use crate::explain::{PlanExplainStageV1, PlanExplainV1};
 pub use crate::run::plan_run;
 pub use crate::run::{select_pipeline, select_pipelines};
 pub use crate::v1::bam::plan::plan_for_bam_stage_with_profile;
-pub use bijux_core::plan::execution_plan::ExecutionPlan;
+pub use bijux_core::plan::execution_graph::ExecutionGraph;
 pub use bijux_pipelines::registry::PipelineRegistry;
 pub use bijux_pipelines::{Domain, PipelineProfile};
 pub use bijux_planner_bam::{
@@ -23,6 +23,6 @@ pub use bijux_planner_fastq::{
 };
 
 #[must_use]
-pub fn explain(plan: &ExecutionPlan) -> PlanExplainV1 {
+pub fn explain(plan: &ExecutionGraph) -> PlanExplainV1 {
     PlanExplainV1::from_plan(plan)
 }

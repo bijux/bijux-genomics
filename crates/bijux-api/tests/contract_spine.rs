@@ -3,8 +3,9 @@ use std::path::Path;
 use std::time::Duration;
 
 use anyhow::Result;
-use bijux_core::plan::execution_plan::{ExecutionPlan, PlanPolicy};
+use bijux_core::plan::execution_graph::{ExecutionEdge, ExecutionGraph};
 use bijux_core::plan::stage_plan::{ArtifactRef, PlanDecisionReason, StageIO, StagePlanV1};
+use bijux_core::plan::PlanPolicy;
 use bijux_core::primitives::hashing::params_hash;
 use bijux_core::{
     CommandSpecV1, ContainerImageRefV1, PipelineId, StageId, StageVersion, ToolConstraints, ToolId,
@@ -24,14 +25,14 @@ impl Runner for FakeRunner {
             stderr: String::new(),
             duration: Duration::from_millis(1),
             artifacts: vec![Artifact {
-                path: invocation.stage.out_dir.join("output.txt"),
+                path: invocation.step.out_dir.join("output.txt"),
                 sha256: "deadbeef".to_string(),
             }],
         })
     }
 }
 
-fn build_plan(base_dir: &Path) -> Result<ExecutionPlan> {
+fn build_plan(base_dir: &Path) -> Result<ExecutionGraph> {
     let stage = StagePlanV1 {
         stage_id: StageId::from_static("core.test"),
         stage_version: StageVersion(1),
@@ -67,12 +68,12 @@ fn build_plan(base_dir: &Path) -> Result<ExecutionPlan> {
         reason: PlanDecisionReason::default(),
     };
 
-    ExecutionPlan::new(
+    ExecutionGraph::new(
         "pipeline.test",
         "planner.test",
         PlanPolicy::PreferAccuracy,
-        vec![stage],
-        Vec::new(),
+        vec![stage.into()],
+        Vec::<ExecutionEdge>::new(),
     )
 }
 
@@ -85,8 +86,8 @@ fn golden_spine_contract() -> Result<()> {
     bijux_engine::validate(&plan)?;
 
     let runner = FakeRunner;
-    let environment = bijux_runtime::environment::ExecutionEnvironment;
-    let _record = bijux_engine::execute(&plan, &runner, &environment, base_dir)?;
+    let services = bijux_engine::RuntimeServices { runner: &runner };
+    let _record = bijux_engine::execute(&plan, &services)?;
 
     let provenance_path = write_plan_provenance(base_dir, &plan)?;
     assert!(provenance_path.exists());

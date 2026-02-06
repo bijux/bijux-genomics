@@ -93,7 +93,9 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
             polyx_bank.as_ref(),
             contaminant_bank.as_ref(),
         )?;
-        plans.push(plan);
+        plans.push(bijux_core::plan::execution_graph::ExecutionStep::from(
+            &plan,
+        ));
         tool_order.push(tool.clone());
     }
     let executions = execute_plans_with_jobs(plans, platform.runner, jobs)?;

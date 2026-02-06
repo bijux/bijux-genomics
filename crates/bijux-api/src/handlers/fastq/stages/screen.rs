@@ -65,7 +65,9 @@ pub fn bench_fastq_screen<S: ::std::hash::BuildHasher>(
             build_tool_execution_spec(STAGE_SCREEN.as_str(), tool, &registry, catalog, platform)?;
         let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
         let plan = plan_screen(&tool_spec, &args.r1, &out_dir)?;
-        plans.push(plan);
+        plans.push(bijux_core::plan::execution_graph::ExecutionStep::from(
+            &plan,
+        ));
         tool_order.push(tool.clone());
     }
     let executions = execute_plans_with_jobs(plans, platform.runner, jobs)?;

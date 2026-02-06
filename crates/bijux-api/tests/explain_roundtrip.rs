@@ -1,5 +1,6 @@
 use bijux_api::v1::plan::PlanExplainV1;
-use bijux_core::plan::execution_plan::{ExecutionPlan, PlanPolicy};
+use bijux_core::plan::execution_graph::{ExecutionEdge, ExecutionGraph};
+use bijux_core::plan::PlanPolicy;
 use bijux_core::{
     CommandSpecV1, ContainerImageRefV1, StageId, StagePlanV1, StageVersion, ToolConstraints, ToolId,
 };
@@ -41,12 +42,12 @@ fn explain_roundtrip_is_deterministic() -> anyhow::Result<()> {
         aux_images: std::collections::BTreeMap::new(),
         reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
     };
-    let plan = ExecutionPlan::new(
+    let plan = ExecutionGraph::new(
         "pipeline",
         "planner",
         PlanPolicy::PreferAccuracy,
-        vec![stage],
-        Vec::new(),
+        vec![stage.into()],
+        Vec::<ExecutionEdge>::new(),
     )?;
 
     let explain = PlanExplainV1::from_plan(&plan);

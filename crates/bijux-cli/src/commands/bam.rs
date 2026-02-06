@@ -80,7 +80,8 @@ fn run_bam_stage(
     if args.dry_run {
         return Ok(());
     }
-    execute_stage_plan(&plan, RunnerKind::Docker, None)?;
+    let step = bijux_core::plan::execution_graph::ExecutionStep::from(&plan);
+    execute_stage_plan(&step, RunnerKind::Docker, None)?;
     Ok(())
 }
 

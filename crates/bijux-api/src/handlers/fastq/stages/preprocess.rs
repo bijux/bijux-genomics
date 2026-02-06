@@ -176,7 +176,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         tool_reasons: Some(tool_reasons),
     };
     let pipeline_plan = FastqPlanner::plan(&planner_config)?;
-    let planned_stages = pipeline_plan.stages().to_vec();
+    let planned_stages = pipeline_plan.steps().to_vec();
     std::env::set_var(
         "BIJUX_PLANNER_VERSION",
         bijux_planner_fastq::PLANNER_VERSION,
@@ -193,8 +193,8 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
 
     let mut stage_runs = Vec::new();
     for planned in planned_stages {
-        let stage_id = planned.stage_id.to_string();
-        let tool = planned.tool_id.to_string();
+        let stage_id = planned.step_id.to_string();
+        let tool = planned.image.image.clone();
         let mut stage_attrs = std::collections::BTreeMap::new();
         stage_attrs.insert("stage".to_string(), stage_id.clone());
         stage_attrs.insert("tool".to_string(), tool.clone());
