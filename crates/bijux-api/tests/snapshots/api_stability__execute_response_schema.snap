@@ -1,0 +1,9 @@
+---
+source: crates/bijux-api/tests/api_stability.rs
+expression: json
+---
+{
+  "manifest_path": "runs/run-1/run_manifest.json",
+  "report_path": "runs/run-1/run_artifacts/report.html",
+  "run_id": "run-1"
+}
