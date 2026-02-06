@@ -5,6 +5,8 @@ use std::path::{Component, Path};
 
 use crate::foundation::Result;
 
+pub const CANONICAL_JSON_VERSION: &str = "v1";
+
 /// Canonicalize a JSON value by sorting keys and normalizing numbers/paths.
 #[must_use]
 pub fn canonicalize_json_value(value: &serde_json::Value) -> serde_json::Value {
