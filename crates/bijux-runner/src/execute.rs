@@ -2,12 +2,12 @@ use std::path::PathBuf;
 use std::time::Duration;
 
 use anyhow::{anyhow, Context, Result};
-use bijux_core::execution::execution_graph::ExecutionStep;
-use bijux_core::metrics::ToolInvocationV1;
-use bijux_core::primitives::cache::CacheKey;
-use bijux_core::primitives::hashing::{
+use bijux_core::contract::ExecutionStep;
+use bijux_core::foundation::cache::CacheKey;
+use bijux_core::foundation::hashing::{
     input_fingerprint, parameters_fingerprint, run_id_from_hashes,
 };
+use bijux_core::metrics::ToolInvocationV1;
 use bijux_environment::api::RunnerKind;
 use uuid::Uuid;
 
@@ -223,7 +223,7 @@ fn write_minimum_run_artifacts(
             "effective_params": serde_json::json!({}),
         });
         let params_provenance_normalized =
-            bijux_core::primitives::hashing::canonicalize_json_value(&params_provenance);
+            bijux_core::contract::canonical::canonicalize_json_value(&params_provenance);
         let invocation = ToolInvocationV1 {
             schema_version: "bijux.tool_invocation.v1".to_string(),
             contract_version: bijux_core::contract::ContractVersion::v1(),
