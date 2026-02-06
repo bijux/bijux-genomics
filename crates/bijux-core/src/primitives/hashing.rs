@@ -1,6 +1,8 @@
-use anyhow::Result;
+use serde::Serialize;
 use sha2::Digest;
 use std::path::{Component, Path};
+
+use crate::primitives::Result;
 
 /// Canonical params hash for run identity.
 ///
@@ -83,41 +85,12 @@ pub fn canonicalize_json_value(value: &serde_json::Value) -> serde_json::Value {
 
 #[must_use]
 pub fn parameters_json_canonicalization(value: &serde_json::Value) -> serde_json::Value {
-    fn normalize_numbers_and_paths(value: &serde_json::Value) -> serde_json::Value {
-        match value {
-            serde_json::Value::Number(num) => {
-                if let Some(f) = num.as_f64() {
-                    serde_json::Number::from_f64(f).map_or_else(
-                        || serde_json::Value::Number(num.clone()),
-                        serde_json::Value::Number,
-                    )
-                } else {
-                    serde_json::Value::Number(num.clone())
-                }
-            }
-            serde_json::Value::String(s) => {
-                if looks_like_path(s) {
-                    serde_json::Value::String(normalize_path_string(s))
-                } else {
-                    serde_json::Value::String(s.clone())
-                }
-            }
-            serde_json::Value::Array(items) => {
-                serde_json::Value::Array(items.iter().map(normalize_numbers_and_paths).collect())
-            }
-            serde_json::Value::Object(map) => {
-                let mut ordered = serde_json::Map::new();
-                for (key, val) in map {
-                    ordered.insert(key.clone(), normalize_numbers_and_paths(val));
-                }
-                serde_json::Value::Object(ordered)
-            }
-            _ => value.clone(),
-        }
-    }
+    normalize_numbers_and_paths(&canonicalize_json_value(value))
+}
 
-    let canonical = canonicalize_json_value(value);
-    normalize_numbers_and_paths(&canonical)
+#[must_use]
+pub fn canonicalize_truth_json(value: &serde_json::Value) -> serde_json::Value {
+    normalize_numbers_and_paths(&canonicalize_json_value(value))
 }
 
 fn looks_like_path(value: &str) -> bool {
@@ -156,4 +129,47 @@ fn normalize_path_string(value: &str) -> String {
         normalized = format!("/{normalized}");
     }
     normalized
+}
+
+fn normalize_numbers_and_paths(value: &serde_json::Value) -> serde_json::Value {
+    match value {
+        serde_json::Value::Number(num) => {
+            if let Some(f) = num.as_f64() {
+                serde_json::Number::from_f64(f).map_or_else(
+                    || serde_json::Value::Number(num.clone()),
+                    serde_json::Value::Number,
+                )
+            } else {
+                serde_json::Value::Number(num.clone())
+            }
+        }
+        serde_json::Value::String(s) => {
+            if looks_like_path(s) {
+                serde_json::Value::String(normalize_path_string(s))
+            } else {
+                serde_json::Value::String(s.clone())
+            }
+        }
+        serde_json::Value::Array(items) => {
+            serde_json::Value::Array(items.iter().map(normalize_numbers_and_paths).collect())
+        }
+        serde_json::Value::Object(map) => {
+            let mut ordered = serde_json::Map::new();
+            for (key, val) in map {
+                ordered.insert(key.clone(), normalize_numbers_and_paths(val));
+            }
+            serde_json::Value::Object(ordered)
+        }
+        _ => value.clone(),
+    }
+}
+
+/// Canonical serializer for truth artifacts.
+///
+/// # Errors
+/// Returns an error if serialization fails.
+pub fn to_canonical_json_bytes<T: Serialize>(value: &T) -> Result<Vec<u8>> {
+    let json = serde_json::to_value(value)?;
+    let canonical = canonicalize_truth_json(&json);
+    Ok(serde_json::to_vec(&canonical)?)
 }

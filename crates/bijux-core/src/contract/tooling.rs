@@ -2,8 +2,10 @@ use std::collections::BTreeMap;
 use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
+use sha2::Digest;
 
-use crate::ids::{ToolId, ToolVersion};
+use crate::ids::{StageId, ToolId, ToolVersion};
+use crate::primitives::{hashing::to_canonical_json_bytes, Result};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ToolConstraints {
@@ -63,7 +65,7 @@ pub struct ImageRequirements {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StageSpec {
-    pub stage_id: String,
+    pub stage_id: StageId,
     #[serde(default)]
     pub inputs: Vec<PortSpec>,
     #[serde(default)]
@@ -83,7 +85,18 @@ pub struct StageSpec {
     #[serde(default)]
     pub image_requirements: Option<ImageRequirements>,
     #[serde(default)]
-    pub extends: Option<String>,
+    pub extends: Option<StageId>,
+}
+
+impl StageSpec {
+    /// # Errors
+    /// Returns an error if serialization fails.
+    pub fn hash(&self) -> Result<String> {
+        let bytes = to_canonical_json_bytes(self)?;
+        let mut hasher = sha2::Sha256::new();
+        hasher.update(bytes);
+        Ok(format!("{:x}", hasher.finalize()))
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
@@ -109,8 +122,8 @@ pub struct ExecutionContract {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ToolManifest {
-    pub tool_id: String,
-    pub stage_id: String,
+    pub tool_id: ToolId,
+    pub stage_id: StageId,
     #[serde(default)]
     pub role: ToolRole,
     #[serde(default)]
@@ -136,26 +149,26 @@ pub struct ToolExecutionSpecV1 {
 
 #[derive(Debug, Clone, Default)]
 pub struct ToolRegistry {
-    stages: BTreeMap<String, StageSpec>,
-    tools: BTreeMap<String, Vec<ToolManifest>>,
+    stages: BTreeMap<StageId, StageSpec>,
+    tools: BTreeMap<StageId, Vec<ToolManifest>>,
 }
 
 impl ToolRegistry {
     #[must_use]
-    pub fn stages(&self) -> &BTreeMap<String, StageSpec> {
+    pub fn stages(&self) -> &BTreeMap<StageId, StageSpec> {
         &self.stages
     }
 
     #[must_use]
-    pub fn tools_for_stage(&self, stage_id: &str) -> &[ToolManifest] {
+    pub fn tools_for_stage(&self, stage_id: &StageId) -> &[ToolManifest] {
         self.tools.get(stage_id).map_or(&[], Vec::as_slice)
     }
 
     #[must_use]
-    pub fn tool_by_id(&self, stage_id: &str, tool_id: &str) -> Option<&ToolManifest> {
+    pub fn tool_by_id(&self, stage_id: &StageId, tool_id: &ToolId) -> Option<&ToolManifest> {
         self.tools_for_stage(stage_id)
             .iter()
-            .find(|tool| tool.tool_id == tool_id)
+            .find(|tool| &tool.tool_id == tool_id)
     }
 
     pub fn insert_stage(&mut self, stage: StageSpec) {
