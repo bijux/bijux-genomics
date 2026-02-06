@@ -7,8 +7,8 @@ use bijux_core::contract::{ArtifactRef, ArtifactRole};
 use bijux_core::metrics::ToolInvocationV1;
 use bijux_core::plan::execution_graph::{ExecutionGraph, ExecutionStep};
 use bijux_core::plan::PlanPolicy;
-use bijux_planner_fastq::{CorrectDecisionTrace, MergeDecisionTrace};
 use bijux_planner_fastq::report_stage_step as build_report_stage_step;
+use bijux_planner_fastq::{CorrectDecisionTrace, MergeDecisionTrace};
 use bijux_runner::primitives::StageResultV1;
 
 pub(super) fn render_run_summary(

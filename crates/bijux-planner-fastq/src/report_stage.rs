@@ -6,7 +6,11 @@ use bijux_core::primitives::{CommandSpecV1, ContainerImageRefV1};
 use bijux_core::StageId;
 
 #[must_use]
-pub fn report_stage_step(out_dir: &Path, inputs: Vec<ArtifactRef>, outputs: Vec<ArtifactRef>) -> ExecutionStep {
+pub fn report_stage_step(
+    out_dir: &Path,
+    inputs: Vec<ArtifactRef>,
+    outputs: Vec<ArtifactRef>,
+) -> ExecutionStep {
     ExecutionStep {
         step_id: StageId::new("report.aggregate"),
         command: CommandSpecV1 {

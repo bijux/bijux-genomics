@@ -129,7 +129,10 @@ fn planners_only_build_execution_steps() {
         if rel_str.ends_with("_tests.rs") {
             continue;
         }
-        if allowlist.iter().any(|crate_name| rel_str.contains(crate_name)) {
+        if allowlist
+            .iter()
+            .any(|crate_name| rel_str.contains(crate_name))
+        {
             continue;
         }
         let content = std::fs::read_to_string(path).expect("read source");

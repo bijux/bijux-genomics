@@ -1,4 +1,6 @@
-use bijux_domain_bam::{contract_for_stage, BamArtifactKind, BamStage, BamStageContract, StageSpec};
+use bijux_domain_bam::{
+    contract_for_stage, BamArtifactKind, BamStage, BamStageContract, StageSpec,
+};
 
 #[must_use]
 pub fn stage_registry() -> Vec<StageSpec> {
