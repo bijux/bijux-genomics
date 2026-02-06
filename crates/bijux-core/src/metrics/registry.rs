@@ -146,6 +146,7 @@ pub const BAM_METRICS_SCHEMAS: &[MetricsSchemaId] = &[
     },
 ];
 
+#[allow(dead_code)]
 #[must_use]
 pub fn metrics_schema_for_stage(stage_id: &str) -> Option<&'static MetricsSchemaId> {
     FASTQ_METRICS_SCHEMAS

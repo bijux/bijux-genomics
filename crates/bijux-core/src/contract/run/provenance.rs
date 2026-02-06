@@ -2,6 +2,8 @@ use std::collections::BTreeMap;
 
 use serde::{Deserialize, Serialize};
 
+use crate::contract::ContractVersion;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ToolProvenanceV1 {
@@ -23,6 +25,8 @@ pub struct ToolProvenanceV1 {
 #[serde(deny_unknown_fields)]
 pub struct ScientificProvenanceV1 {
     pub schema_version: String,
+    #[serde(default = "ContractVersion::v1")]
+    pub contract_version: ContractVersion,
     pub pipeline_id: String,
     pub planner_version: String,
     pub tools: Vec<ToolProvenanceV1>,

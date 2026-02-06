@@ -1,15 +1,14 @@
-// split to keep module size manageable
+//! Bijux core contracts and foundation types.
 
+#![deny(missing_docs)]
+
+/// Contract bible (stable, serialized interfaces).
 pub mod contract;
-pub mod execution;
+/// Foundation primitives for core (hashing, errors, IO-agnostic helpers).
+pub mod foundation;
+/// Strongly typed identifiers.
 pub mod ids;
-pub mod metadata;
+/// Metrics types and registries.
 pub mod metrics;
-pub mod metrics_registry;
-pub mod primitives;
-pub mod run_index;
-pub mod selection;
-
-mod prelude;
-
-pub use prelude::*;
+/// Public prelude for stable imports.
+pub mod prelude;

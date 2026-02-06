@@ -2,8 +2,9 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
 
+use crate::contract::ContractVersion;
+use crate::foundation::{BijuxError, Result};
 use crate::ids::{PipelineId, RunId, StageId, ToolId};
-use crate::primitives::{BijuxError, Result};
 
 #[derive(Debug, Clone, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
@@ -22,6 +23,8 @@ pub struct RunIndexEntry {
 #[serde(deny_unknown_fields)]
 pub struct RunIndexLine {
     pub schema_version: u32,
+    #[serde(default = "ContractVersion::v1")]
+    pub contract_version: ContractVersion,
     pub run: Option<RunIndexEntry>,
     pub stage: Option<StageIndexRow>,
 }

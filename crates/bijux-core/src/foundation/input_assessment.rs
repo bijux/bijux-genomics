@@ -1,7 +1,8 @@
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
-use crate::primitives::Result;
+use crate::contract::ContractVersion;
+use crate::foundation::Result;
 use bijux_infra::atomic_write_bytes;
 use chrono::Utc;
 use regex::Regex;
@@ -44,6 +45,8 @@ pub struct FastqSampleAssessment {
 #[serde(deny_unknown_fields)]
 pub struct InputAssessmentV1 {
     pub schema_version: u32,
+    #[serde(default = "ContractVersion::v1")]
+    pub contract_version: ContractVersion,
     pub created_at: String,
     pub samples: Vec<FastqSampleAssessment>,
     pub unpaired_files: Vec<PathBuf>,
@@ -200,6 +203,7 @@ pub fn assess_input_dir(root: &Path) -> Result<InputAssessmentV1> {
 
     Ok(InputAssessmentV1 {
         schema_version: 1,
+        contract_version: ContractVersion::v1(),
         created_at: Utc::now().to_rfc3339(),
         samples,
         unpaired_files: unpaired,
@@ -214,7 +218,7 @@ pub fn assess_input_dir(root: &Path) -> Result<InputAssessmentV1> {
 pub fn write_input_assessment(path: &Path, assessment: &InputAssessmentV1) -> Result<()> {
     let payload = serde_json::to_string_pretty(assessment)?;
     atomic_write_bytes(path, payload.as_bytes()).map_err(|err| {
-        crate::primitives::BijuxError::Io(format!("write input assessment: {err}"))
+        crate::foundation::BijuxError::Io(format!("write input assessment: {err}"))
     })?;
     Ok(())
 }
