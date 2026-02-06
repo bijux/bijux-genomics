@@ -1,3 +1,5 @@
+//! Owner: bijux-engine
+
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::fs;
 

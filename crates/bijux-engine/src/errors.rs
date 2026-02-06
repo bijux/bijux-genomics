@@ -1,3 +1,5 @@
+//! Owner: bijux-engine
+
 use thiserror::Error;
 
 #[derive(Debug, Error)]
