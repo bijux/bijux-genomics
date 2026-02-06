@@ -383,11 +383,14 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
         name: "adapter_bank",
         path: adapter_bank_path,
     }];
+    let stage_contract_hash = bijux_domain_fastq::stage_contract_hash(STAGE_STATS_NEUTRAL.as_str())
+        .and_then(|result| result.ok());
     write_run_manifest(
         &run_dirs,
         STAGE_STATS_NEUTRAL.as_str(),
         tool,
         &run_provenance,
+        stage_contract_hash,
         &extra_artifacts,
     )?;
     let record = BenchmarkRecord {
