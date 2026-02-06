@@ -8,7 +8,9 @@ use super::manifests::{
 };
 use super::AlignmentBoundary;
 use crate::args::FastqCrossArgs;
+use crate::handlers::bam_summary::{render_bam_summary, report_stage_step};
 use crate::handlers::fastq::fastq_preprocess_run;
+use crate::handlers::fastq::StageExecutionSummary;
 use anyhow::{anyhow, Context, Result};
 use bijux_core::contract::ToolRegistry;
 use bijux_environment::resolve::{ReferenceBuildRequest, ReferenceRegistry};
@@ -39,6 +41,9 @@ pub fn run_fastq_to_bam_profile<S: std::hash::BuildHasher>(
     );
     bijux_infra::ensure_dir(&out_dir).context("create cross pipeline out dir")?;
     fastq_preprocess_run(catalog, platform, runner_override, preprocess_args)?;
+    if preprocess_args.dry_run {
+        return Ok(());
+    }
 
     let summary_path =
         bijux_runtime::recording::run_artifacts_dir_for_out(&out_dir).join("run_summary.json");
@@ -71,7 +76,7 @@ pub fn run_fastq_to_bam_profile<S: std::hash::BuildHasher>(
         )?;
         let prepare_ref_path = Some(write_reference_manifest(&out_dir, &record)?);
         let bam_profile = select_bam_profile(profile)?;
-        let bam_stage_runs = run_bam_align_and_truth_stages(
+        let mut bam_stage_runs = run_bam_align_and_truth_stages(
             registry_core,
             catalog,
             platform,
@@ -80,6 +85,30 @@ pub fn run_fastq_to_bam_profile<S: std::hash::BuildHasher>(
             cross_args,
             &out_dir,
         )?;
+        let bam_out_dir = out_dir.join("bam");
+        let failures = Vec::new();
+        let _ = render_bam_summary(&bam_out_dir, &bam_stage_runs, &failures)?;
+        let report_step = report_stage_step(
+            &bam_out_dir,
+            &bam_stage_runs
+                .iter()
+                .map(|r| r.plan.clone())
+                .collect::<Vec<_>>(),
+        );
+        bam_stage_runs.push(StageExecutionSummary {
+            plan: report_step,
+            result: bijux_runner::primitives::StageResultV1 {
+                run_id: "report.aggregate".to_string(),
+                exit_code: 0,
+                runtime_s: 0.0,
+                memory_mb: 0.0,
+                outputs: Vec::new(),
+                metrics_path: None,
+                stdout: String::new(),
+                stderr: String::new(),
+                command: "report-aggregate".to_string(),
+            },
+        });
         let alignment_boundary = AlignmentBoundary {
             bam_path: bam_stage_runs
                 .first()
@@ -122,7 +151,7 @@ pub fn run_fastq_to_bam_profile<S: std::hash::BuildHasher>(
     let boundary_path = write_alignment_boundary(&out_dir, &alignment_boundary)?;
 
     let bam_profile = select_bam_profile(profile)?;
-    let bam_stage_runs = run_bam_truth_stages(
+    let mut bam_stage_runs = run_bam_truth_stages(
         registry_core,
         catalog,
         platform,
@@ -130,6 +159,30 @@ pub fn run_fastq_to_bam_profile<S: std::hash::BuildHasher>(
         &alignment_boundary,
         &out_dir,
     )?;
+    let bam_out_dir = out_dir.join("bam");
+    let failures = Vec::new();
+    let _ = render_bam_summary(&bam_out_dir, &bam_stage_runs, &failures)?;
+    let report_step = report_stage_step(
+        &bam_out_dir,
+        &bam_stage_runs
+            .iter()
+            .map(|r| r.plan.clone())
+            .collect::<Vec<_>>(),
+    );
+    bam_stage_runs.push(StageExecutionSummary {
+        plan: report_step,
+        result: bijux_runner::primitives::StageResultV1 {
+            run_id: "report.aggregate".to_string(),
+            exit_code: 0,
+            runtime_s: 0.0,
+            memory_mb: 0.0,
+            outputs: Vec::new(),
+            metrics_path: None,
+            stdout: String::new(),
+            stderr: String::new(),
+            command: "report-aggregate".to_string(),
+        },
+    });
 
     write_cross_run_manifest(
         &out_dir,
