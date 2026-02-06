@@ -3,9 +3,11 @@ use std::collections::{HashMap, HashSet};
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 
-use crate::contract::ToolConstraints;
-use crate::plan::stage_plan::{ArtifactRef, PlanDecisionReason, StagePlanV1};
-use crate::primitives::ContainerImageRefV1;
+use bijux_core::contract::{ArtifactRef, ToolConstraints};
+use bijux_core::plan::policy::PlanPolicy;
+use bijux_core::primitives::ContainerImageRefV1;
+
+use crate::stage_plan::{PlanDecisionReason, StagePlanV1};
 use sha2::Digest;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -75,14 +77,6 @@ impl PlanEdge {
     pub fn to(&self) -> &str {
         &self.to
     }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum PlanPolicy {
-    PreferAccuracy,
-    PreferSpeed,
-    PreferMemory,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -230,7 +224,9 @@ impl ExecutionPlan {
     /// Returns an error if canonical JSON serialization fails.
     pub fn canonical_json(&self) -> Result<serde_json::Value> {
         let value = serde_json::to_value(self)?;
-        Ok(crate::primitives::hashing::canonicalize_json_value(&value))
+        Ok(bijux_core::primitives::hashing::canonicalize_json_value(
+            &value,
+        ))
     }
 
     /// # Errors

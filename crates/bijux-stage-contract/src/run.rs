@@ -4,11 +4,13 @@ use std::path::PathBuf;
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 
-use crate::contract::tooling::{ToolExecutionSpecV1, ToolRegistry};
-use crate::contract::{run_dir, Profile, RunSpec};
-use crate::ids::{RunId, StageVersion};
-use crate::plan::stage_plan::{ArtifactRef, StageIO, StagePlanV1};
-use crate::primitives::{CommandSpecV1, ContainerImageRefV1};
+use bijux_core::contract::{run_dir, Profile, RunSpec};
+use bijux_core::contract::{ToolExecutionSpecV1, ToolRegistry};
+use bijux_core::ids::{RunId, StageVersion};
+use bijux_core::primitives::{CommandSpecV1, ContainerImageRefV1};
+
+use crate::stage_plan::StagePlanV1;
+use bijux_core::contract::{ArtifactRef, StageIO};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RunExecutionPlan {
@@ -95,7 +97,7 @@ pub fn build_run_execution_plan(
         params: serde_json::to_value(&run_spec.params).unwrap_or_else(|_| serde_json::json!({})),
         effective_params: serde_json::json!({}),
         aux_images: BTreeMap::new(),
-        reason: crate::plan::stage_plan::PlanDecisionReason::default(),
+        reason: crate::stage_plan::PlanDecisionReason::default(),
     };
 
     let tool = ToolExecutionSpecV1 {
