@@ -99,7 +99,7 @@ fn default_tool_for_stage(stage_id: &str) -> Option<String> {
     }
     if stage_id.starts_with("bam.") {
         if let Ok(stage) = BamStage::try_from(stage_id) {
-            return Some(bijux_domain_bam::stage_spec(stage).default_tool.to_string());
+            return Some(bijux_planner_bam::stage_api::default_tool_for_stage(stage));
         }
     }
     None

@@ -154,11 +154,7 @@ fn run_bam_truth_stage<S: std::hash::BuildHasher>(
         .tools
         .get(stage.as_str())
         .cloned()
-        .unwrap_or_else(|| {
-            bijux_planner_bam::stage_api::stage_spec(stage)
-                .default_tool
-                .to_string()
-        });
+        .unwrap_or_else(|| bijux_planner_bam::stage_api::default_tool_for_stage(stage));
     let spec =
         build_tool_execution_spec(stage.as_str(), &tool_id, registry_core, catalog, platform)?;
 
