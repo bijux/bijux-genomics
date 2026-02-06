@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use anyhow::{anyhow, Result};
-use bijux_core::{ArtifactId, StageId, StageVersion, ToolExecutionSpecV1};
+use bijux_core::prelude::{ArtifactId, ArtifactRole, StageId, StageVersion, ToolExecutionSpecV1};
 use bijux_domain_fastq::params::{merge::MergeEffectiveParams, PairedMode};
 use bijux_domain_fastq::STAGE_MERGE;
 use bijux_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
@@ -46,18 +46,18 @@ pub fn plan_merge(
                 ArtifactRef::required(
                     ArtifactId::from_static("reads_r1"),
                     r1.to_path_buf(),
-                    bijux_core::ArtifactRole::Reads,
+                    ArtifactRole::Reads,
                 ),
                 ArtifactRef::required(
                     ArtifactId::from_static("reads_r2"),
                     r2.to_path_buf(),
-                    bijux_core::ArtifactRole::Reads,
+                    ArtifactRole::Reads,
                 ),
             ],
             outputs: vec![ArtifactRef::required(
                 ArtifactId::from_static("merged_reads"),
                 output.clone(),
-                bijux_core::ArtifactRole::Reads,
+                ArtifactRole::Reads,
             )],
         },
         out_dir: out_dir.to_path_buf(),

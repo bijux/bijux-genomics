@@ -1,4 +1,4 @@
-use bijux_core::{contract::StageVersion, ids::StageId};
+use bijux_core::prelude::{StageId, StageVersion};
 
 pub mod preprocess {
     pub use crate::tool_adapters::stages_pre::preprocess::*;

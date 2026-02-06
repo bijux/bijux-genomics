@@ -1,7 +1,9 @@
 pub mod damage {
     use std::path::Path;
 
-    use bijux_core::{ArtifactId, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1};
+    use bijux_core::prelude::{
+        ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
+    };
     use bijux_domain_bam::params::DamageEffectiveParams;
     use bijux_stage_contract::{StageIO, StagePlanV1};
 
@@ -39,7 +41,7 @@ pub mod damage {
                 inputs: vec![bijux_stage_contract::ArtifactRef::required(
                     ArtifactId::from_static("bam"),
                     bam.to_path_buf(),
-                    bijux_core::ArtifactRole::Bam,
+                    ArtifactRole::Bam,
                 )],
                 outputs,
             },
@@ -70,7 +72,9 @@ pub mod authenticity {
 
     use std::path::Path;
 
-    use bijux_core::{ArtifactId, StageId, StageVersion, ToolExecutionSpecV1};
+    use bijux_core::prelude::{
+        ArtifactId, ArtifactRole, StageId, StageVersion, ToolExecutionSpecV1,
+    };
     use bijux_domain_bam::params::AuthenticityEffectiveParams;
     use bijux_stage_contract::{StageIO, StagePlanV1};
 
@@ -101,7 +105,7 @@ pub mod authenticity {
                 inputs: vec![bijux_stage_contract::ArtifactRef::required(
                     ArtifactId::from_static("bam"),
                     bam.to_path_buf(),
-                    bijux_core::ArtifactRole::Bam,
+                    ArtifactRole::Bam,
                 )],
                 outputs,
             },
@@ -126,7 +130,9 @@ pub mod authenticity {
 pub mod contamination {
     use std::path::Path;
 
-    use bijux_core::{ArtifactId, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1};
+    use bijux_core::prelude::{
+        ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
+    };
     use bijux_domain_bam::params::ContaminationEffectiveParams;
     use bijux_stage_contract::{StageIO, StagePlanV1};
 
@@ -163,7 +169,7 @@ pub mod contamination {
                 inputs: vec![bijux_stage_contract::ArtifactRef::required(
                     ArtifactId::from_static("bam"),
                     bam.to_path_buf(),
-                    bijux_core::ArtifactRole::Bam,
+                    ArtifactRole::Bam,
                 )],
                 outputs,
             },
@@ -192,7 +198,9 @@ pub mod contamination {
 pub mod sex {
     use std::path::Path;
 
-    use bijux_core::{ArtifactId, StageId, StageVersion, ToolExecutionSpecV1};
+    use bijux_core::prelude::{
+        ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
+    };
     use bijux_domain_bam::params::SexEffectiveParams;
     use bijux_stage_contract::{StageIO, StagePlanV1};
 
@@ -219,7 +227,7 @@ pub mod sex {
             tool_id: tool.tool_id.clone(),
             tool_version: tool.tool_version.clone(),
             image: tool.image.clone(),
-            command: bijux_core::CommandSpecV1 {
+            command: CommandSpecV1 {
                 template: crate::tool_adapters::tools::rxy::args_with_outputs(
                     bam, &report, &summary, params,
                 ),
@@ -229,7 +237,7 @@ pub mod sex {
                 inputs: vec![bijux_stage_contract::ArtifactRef::required(
                     ArtifactId::from_static("bam"),
                     bam.to_path_buf(),
-                    bijux_core::ArtifactRole::Bam,
+                    ArtifactRole::Bam,
                 )],
                 outputs,
             },

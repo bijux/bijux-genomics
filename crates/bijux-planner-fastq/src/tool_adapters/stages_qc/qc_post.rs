@@ -1,8 +1,9 @@
 use std::path::Path;
 
 use anyhow::{anyhow, Result};
-use bijux_core::{
-    ArtifactId, ArtifactRef, ContainerImageRefV1, StageId, StageVersion, ToolExecutionSpecV1,
+use bijux_core::prelude::{
+    ArtifactId, ArtifactRef, ArtifactRole, ContainerImageRefV1, StageId, StageVersion,
+    ToolExecutionSpecV1,
 };
 use bijux_domain_fastq::params::{qc_post::QcPostEffectiveParams, PairedMode};
 use bijux_domain_fastq::STAGE_QC_POST;
@@ -53,12 +54,12 @@ pub fn plan_qc_post(
             ArtifactRef::optional(
                 ArtifactId::from_static("multiqc_report"),
                 out_dir.join("multiqc_report.html"),
-                bijux_core::ArtifactRole::ReportHtml,
+                ArtifactRole::ReportHtml,
             ),
             ArtifactRef::optional(
                 ArtifactId::from_static("multiqc_data"),
                 out_dir.join("multiqc_data"),
-                bijux_core::ArtifactRole::Index,
+                ArtifactRole::Index,
             ),
         ]
     } else {
@@ -76,7 +77,7 @@ pub fn plan_qc_post(
             inputs: vec![ArtifactRef::required(
                 ArtifactId::from_static("reads_r1"),
                 r1.to_path_buf(),
-                bijux_core::ArtifactRole::Reads,
+                ArtifactRole::Reads,
             )],
             outputs,
         },

@@ -1,5 +1,5 @@
 use anyhow::Result;
-use bijux_core::{
+use bijux_core::prelude::{
     CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
 };
 

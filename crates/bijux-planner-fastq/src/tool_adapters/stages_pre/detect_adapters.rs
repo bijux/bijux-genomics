@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use bijux_core::{ArtifactId, StageId, StageVersion, ToolExecutionSpecV1};
+use bijux_core::prelude::{ArtifactId, ArtifactRole, StageId, StageVersion, ToolExecutionSpecV1};
 use bijux_domain_fastq::params::{detect_adapters::DetectAdaptersEffectiveParams, PairedMode};
 use bijux_domain_fastq::STAGE_DETECT_ADAPTERS;
 use bijux_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
@@ -26,12 +26,12 @@ pub fn plan(tool: &ToolExecutionSpecV1, r1: &Path, out_dir: &Path) -> StagePlanV
             inputs: vec![ArtifactRef::required(
                 ArtifactId::from_static("reads_r1"),
                 r1.to_path_buf(),
-                bijux_core::ArtifactRole::Reads,
+                ArtifactRole::Reads,
             )],
             outputs: vec![ArtifactRef::required(
                 ArtifactId::from_static("fastqc_dir"),
                 out_dir.join("fastqc"),
-                bijux_core::ArtifactRole::Index,
+                ArtifactRole::Index,
             )],
         },
         out_dir: out_dir.to_path_buf(),

@@ -3,10 +3,10 @@ use std::path::PathBuf;
 
 use anyhow::{anyhow, Result};
 use bijux_core::contract::PipelineSpec;
-use bijux_core::execution::execution_graph::{ExecutionEdge, ExecutionGraph};
-use bijux_core::execution::PlanPolicy;
-use bijux_core::primitives::input_assessment::{assess_input_dir, FastqLayout};
-use bijux_core::{ContainerImageRefV1, StageId, StepId, ToolExecutionSpecV1};
+use bijux_core::contract::PlanPolicy;
+use bijux_core::contract::{ExecutionEdge, ExecutionGraph};
+use bijux_core::foundation::input_assessment::{assess_input_dir, FastqLayout};
+use bijux_core::prelude::{ContainerImageRefV1, StageId, StepId, ToolExecutionSpecV1};
 use bijux_domain_bam::BamStage;
 use bijux_domain_fastq::{assess_merge_suitability, canonical_stage_order};
 use bijux_domain_fastq::{
@@ -40,7 +40,7 @@ pub mod stage_api {
     pub use crate::tool_selection::{allowed_tools_for_stage, default_tool_for_stage};
     pub use crate::STAGE_REPORT_AGGREGATE;
     pub use crate::TOOL_SEQKIT;
-    pub use bijux_core::primitives::RawFailure;
+    pub use bijux_core::foundation::RawFailure;
     pub use bijux_domain_fastq::banks;
     pub use bijux_domain_fastq::banks::{
         adapter_bank_context, contaminant_bank_context, polyx_bank_context,
@@ -774,7 +774,7 @@ pub fn select_preprocess_tools(
             .bench_corpus
             .ok_or_else(|| anyhow!("--bench-corpus is required with --auto"))?;
         let corpus = bijux_domain_fastq::bench_corpus(corpus_id);
-        let objective = bijux_core::selection::objective_spec(args.objective);
+        let objective = bijux_core::contract::objective_spec(args.objective);
         let repo = bench_repo.ok_or_else(|| {
             anyhow!("bench results repository required for --auto tool selection")
         })?;
@@ -791,7 +791,7 @@ pub fn select_preprocess_tools(
                 let records = repo.bench_results(&stage_id, tool, &corpus)?;
                 tool_records.push((tool.clone(), records));
             }
-            let selection = bijux_core::selection::select_stage(
+            let selection = bijux_core::contract::select_stage(
                 &stage_id,
                 &tool_records,
                 &objective,
