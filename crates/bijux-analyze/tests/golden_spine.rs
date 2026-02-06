@@ -155,7 +155,7 @@ fn write_manifest(
     let run_id = profile.id.as_str();
     let manifest = match domain {
         Domain::Cross => serde_json::json!({
-            "schema_version": "bijux.run_manifest.v2",
+            "schema_version": "bijux.run_manifest.v3",
             "run_id": run_id,
             "profile_id": profile.id.as_str(),
             "domain_transitions": [{

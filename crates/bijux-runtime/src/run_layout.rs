@@ -5,9 +5,13 @@ use std::path::{Path, PathBuf};
 use anyhow::{Context, Result};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use sha2::Digest;
 use uuid::Uuid;
 
+use bijux_core::contract::ContractVersion;
 use bijux_core::metadata::RunMetadataV1;
+use bijux_core::metrics::ToolInvocationV1;
+use bijux_core::primitives::{to_canonical_json_bytes, CacheKey, Result as CoreResult};
 use bijux_core::primitives::input_assessment::FastqLayout;
 
 use crate::events::RunEvent;
@@ -42,12 +46,19 @@ pub struct RunStageEntry {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RunManifest {
+    pub schema_version: String,
+    pub contract_version: ContractVersion,
     pub run_id: String,
     pub started_at: String,
     pub finished_at: String,
     pub pipeline: String,
+    pub graph_hash: String,
+    #[serde(default)]
+    pub cache_key: Option<CacheKey>,
     pub layout: FastqLayout,
     pub stages: Vec<RunStageEntry>,
+    #[serde(default)]
+    pub tool_invocations: Vec<ToolInvocationV1>,
     #[serde(default)]
     pub artifacts: Vec<RunArtifactEntry>,
 }
@@ -139,9 +150,48 @@ pub fn write_run_metadata(layout: &RunLayout, metadata: &RunMetadataV1) -> Resul
 /// # Errors
 /// Returns an error if serialization or writing fails.
 pub fn write_manifest(layout: &RunLayout, manifest: &RunManifest) -> Result<()> {
-    let payload = serde_json::to_string_pretty(manifest)?;
-    bijux_infra::atomic_write_bytes(&layout.manifest_path, payload.as_bytes())?;
+    let payload = to_canonical_json_bytes(manifest)?;
+    bijux_infra::atomic_write_bytes(&layout.manifest_path, payload.as_slice())?;
     Ok(())
+}
+
+impl RunManifest {
+    /// # Errors
+    /// Returns an error if validation fails.
+    pub fn validate(&self) -> CoreResult<()> {
+        if self.graph_hash.trim().is_empty() {
+            return Err(bijux_core::primitives::BijuxError::validation(
+                "run manifest graph_hash is empty",
+            ));
+        }
+        if self.artifacts.is_empty() {
+            return Err(bijux_core::primitives::BijuxError::validation(
+                "run manifest artifacts list is empty",
+            ));
+        }
+        for artifact in &self.artifacts {
+            if artifact.name.trim().is_empty() {
+                return Err(bijux_core::primitives::BijuxError::validation(
+                    "run manifest artifact name is empty",
+                ));
+            }
+            if artifact.sha256.trim().is_empty() {
+                return Err(bijux_core::primitives::BijuxError::validation(
+                    "run manifest artifact hash is empty",
+                ));
+            }
+        }
+        Ok(())
+    }
+
+    /// # Errors
+    /// Returns an error if canonical serialization fails.
+    pub fn hash(&self) -> CoreResult<String> {
+        let bytes = to_canonical_json_bytes(self)?;
+        let mut hasher = sha2::Sha256::new();
+        hasher.update(bytes);
+        Ok(format!("{:x}", hasher.finalize()))
+    }
 }
 
 /// Append a run entry to `bijux-runs/index.jsonl`.

@@ -368,14 +368,55 @@ pub(super) fn write_run_manifest(
         }));
     }
     let run_provenance = run_provenance_from_stage_runs(out_dir, stage_runs);
+    let tool_invocations: Vec<bijux_core::metrics::ToolInvocationV1> = stage_runs
+        .iter()
+        .filter_map(|entry| {
+            let path =
+                bijux_runtime::recording::run_artifacts_dir_for_out(&entry.plan.out_dir)
+                    .join("tool_invocation.json");
+            let raw = std::fs::read_to_string(&path).ok()?;
+            serde_json::from_str(&raw).ok()
+        })
+        .collect();
+    let cache_key = {
+        let params_hash = run_provenance
+            .get("params_hash")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or("unknown");
+        let input_hashes = run_provenance
+            .get("input_hashes")
+            .and_then(serde_json::Value::as_array)
+            .cloned()
+            .unwrap_or_default()
+            .into_iter()
+            .filter_map(|value| value.as_str().map(|s| s.to_string()))
+            .collect::<Vec<_>>();
+        let tool_version = run_provenance
+            .get("tool_version")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or("unknown");
+        let env_digest = run_provenance
+            .get("tool_image_digest")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or("unknown");
+        bijux_core::primitives::CacheKey::new(
+            bijux_core::primitives::input_fingerprint(&input_hashes),
+            params_hash,
+            tool_version,
+            env_digest,
+        )
+    };
     let manifest = serde_json::json!({
-        "schema_version": "bijux.run_manifest.v2",
+        "schema_version": "bijux.run_manifest.v3",
+        "contract_version": bijux_core::contract::ContractVersion::v1(),
         "run_id": run_id,
         "pipeline_id": pipeline_id,
         "profile_id": profile_id,
         "graph_hash": graph_hash,
+        "cache_key": cache_key,
         "toolchain_versions": toolchain_versions,
         "dataset_fingerprints": dataset_fingerprints,
+        "tool_invocations": tool_invocations,
         "output_artifacts": output_artifacts,
         "stages": stages,
         "failures": failures_json,
@@ -394,7 +435,8 @@ pub(super) fn write_run_manifest(
         }
     });
     let path = out_dir.join("run_manifest.json");
-    bijux_infra::atomic_write_json(&path, &manifest).context("write run_manifest.json")?;
+    let payload = bijux_core::primitives::to_canonical_json_bytes(&manifest)?;
+    bijux_infra::atomic_write_bytes(&path, payload.as_slice()).context("write run_manifest.json")?;
     Ok(())
 }
 

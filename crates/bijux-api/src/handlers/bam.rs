@@ -91,8 +91,8 @@ pub fn bench_bam_stage(
                     .iter()
                     .map(|artifact| {
                         serde_json::json!({
-                            "stage_id": step.step_id.0,
-                            "name": artifact.name,
+                            "stage_id": step.step_id.to_string(),
+                            "name": artifact.name.to_string(),
                             "role": artifact.role.as_str(),
                             "optional": artifact.optional,
                             "path": artifact.path,
@@ -103,20 +103,24 @@ pub fn bench_bam_stage(
                 let stage_contract_hash =
                     bijux_domain_bam::stage_contract_hash(stage_id).and_then(|result| result.ok());
                 let manifest = serde_json::json!({
-                    "schema_version": "bijux.run_manifest.v2",
+                    "schema_version": "bijux.run_manifest.v3",
+                    "contract_version": bijux_core::contract::ContractVersion::v1(),
                     "run_id": "dry-run",
                     "pipeline_id": stage_id,
                     "profile_id": args.stage.as_str(),
                     "graph_hash": graph.hash().unwrap_or_default(),
+                    "cache_key": bijux_core::primitives::CacheKey::new("unknown", "unknown", "unknown", "unknown"),
                     "stage_contract_hash": stage_contract_hash,
                     "toolchain_versions": [],
                     "dataset_fingerprints": [],
+                    "tool_invocations": [],
                     "output_artifacts": output_artifacts,
                     "stages": [],
                     "failures": [],
                 });
                 let manifest_path = run_dir.join("run_manifest.json");
-                bijux_infra::atomic_write_json(&manifest_path, &manifest)?;
+                let payload = bijux_core::primitives::to_canonical_json_bytes(&manifest)?;
+                bijux_infra::atomic_write_bytes(&manifest_path, payload.as_slice())?;
             } else {
                 let step = bijux_stage_contract::execution_step_from_stage_plan(&plan);
                 execute_step(&step, RunnerKind::Docker, None)?;

@@ -58,7 +58,7 @@ fn report_completeness_policy_requires_provenance_and_contracts() -> Result<()> 
     )?;
 
     let run_manifest = serde_json::json!({
-        "schema_version": "bijux.run_manifest.v2",
+        "schema_version": "bijux.run_manifest.v3",
         "run_id": "run-1",
         "pipeline_id": "fastq-to-fastq__default__v1",
         "profile_id": "default",

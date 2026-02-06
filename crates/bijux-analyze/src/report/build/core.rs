@@ -442,11 +442,11 @@ fn cross_domain_handoff_section(base_dir: &Path) -> Option<serde_json::Value> {
     let manifest_path = base_dir.join("run_manifest.json");
     let raw = std::fs::read_to_string(&manifest_path).ok()?;
     let manifest: serde_json::Value = serde_json::from_str(&raw).ok()?;
-    if manifest
+    let schema = manifest
         .get("schema_version")
         .and_then(serde_json::Value::as_str)
-        != Some("bijux.run_manifest.v2")
-    {
+        .unwrap_or_default();
+    if schema != "bijux.run_manifest.v2" && schema != "bijux.run_manifest.v3" {
         return None;
     }
     Some(serde_json::json!({
