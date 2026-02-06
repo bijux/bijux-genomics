@@ -1,5 +1,5 @@
 {
-  "stage_id": "fastq.screen",
+  "stage_id": "fastq.stats_neutral",
   "stage_version": "1",
   "io": {
     "inputs": [
@@ -10,20 +10,24 @@
     ],
     "outputs": [
       {
-        "name": "screen_report_tsv",
-        "path": "out/screen_report.tsv"
+        "name": "stats_json",
+        "path": "out/stats.json"
       }
     ]
   },
   "parameters": {
     "input": "reads.fastq.gz",
     "out_dir": "out",
-    "report": "out/screen_report.tsv",
-    "tool": "kraken2"
+    "tool": "seqkit"
   },
   "effective_params": {
-    "contaminant_db": null,
     "paired_mode": "single_end",
+    "q_cutoff": null,
     "threads": 1
+  },
+  "reason": {
+    "kind": "default",
+    "summary": "planner default",
+    "details": {}
   }
 }

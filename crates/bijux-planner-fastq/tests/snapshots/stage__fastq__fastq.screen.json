@@ -1,0 +1,34 @@
+{
+  "stage_id": "fastq.screen",
+  "stage_version": "1",
+  "io": {
+    "inputs": [
+      {
+        "name": "reads_r1",
+        "path": "reads.fastq.gz"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "screen_report_tsv",
+        "path": "out/screen_report.tsv"
+      }
+    ]
+  },
+  "parameters": {
+    "input": "reads.fastq.gz",
+    "out_dir": "out",
+    "report": "out/screen_report.tsv",
+    "tool": "kraken2"
+  },
+  "effective_params": {
+    "contaminant_db": null,
+    "paired_mode": "single_end",
+    "threads": 1
+  },
+  "reason": {
+    "kind": "default",
+    "summary": "planner default",
+    "details": {}
+  }
+}

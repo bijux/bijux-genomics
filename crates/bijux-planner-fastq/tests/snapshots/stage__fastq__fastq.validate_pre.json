@@ -1,5 +1,5 @@
 {
-  "stage_id": "fastq.qc_post",
+  "stage_id": "fastq.validate_pre",
   "stage_version": "1",
   "io": {
     "inputs": [
@@ -8,7 +8,12 @@
         "path": "reads.fastq.gz"
       }
     ],
-    "outputs": []
+    "outputs": [
+      {
+        "name": "validation_report",
+        "path": "out/validation.json"
+      }
+    ]
   },
   "parameters": {
     "input": "reads.fastq.gz",
@@ -17,6 +22,12 @@
   },
   "effective_params": {
     "paired_mode": "single_end",
+    "q_cutoff": null,
     "threads": 1
+  },
+  "reason": {
+    "kind": "default",
+    "summary": "planner default",
+    "details": {}
   }
 }

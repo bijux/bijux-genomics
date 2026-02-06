@@ -29,5 +29,10 @@
     "polyx_policy": null,
     "q_cutoff": null,
     "threads": 1
+  },
+  "reason": {
+    "kind": "default",
+    "summary": "planner default",
+    "details": {}
   }
 }

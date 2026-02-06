@@ -39,5 +39,10 @@
     "paired_mode": "single_end",
     "polyx_policy": null,
     "threads": 1
+  },
+  "reason": {
+    "kind": "default",
+    "summary": "planner default",
+    "details": {}
   }
 }
