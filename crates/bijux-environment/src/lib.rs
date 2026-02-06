@@ -8,7 +8,3 @@ pub mod runtime;
 pub mod api {
     pub use crate::resolve::*;
 }
-
-pub mod image_qa {
-    pub use crate::build::image_qa::*;
-}

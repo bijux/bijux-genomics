@@ -56,7 +56,7 @@ fn qa_trim_tool(
     dataset: &QaDataset,
     seqkit_image: &ResolvedImage,
 ) -> Result<()> {
-    let contract = tool_contract(registry, "fastq.trim", tool)?;
+    let contract = tool_contract(registry, STAGE_TRIM.as_str(), tool)?;
     let spec = catalog
         .get(tool)
         .ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
@@ -166,7 +166,7 @@ fn qa_validate_tool(
     registry: &ToolRegistry,
     dataset: &QaDataset,
 ) -> Result<()> {
-    let contract = tool_contract(registry, "fastq.validate_pre", tool)?;
+    let contract = tool_contract(registry, STAGE_VALIDATE_PRE.as_str(), tool)?;
     let spec = catalog
         .get(tool)
         .ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
@@ -205,7 +205,7 @@ fn qa_filter_tool(
     dataset: &QaDataset,
     seqkit_image: &ResolvedImage,
 ) -> Result<()> {
-    let contract = tool_contract(registry, "fastq.filter", tool)?;
+    let contract = tool_contract(registry, STAGE_FILTER.as_str(), tool)?;
     let spec = catalog
         .get(tool)
         .ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
@@ -265,7 +265,7 @@ fn qa_merge_tool(
     dataset: &QaDataset,
     seqkit_image: &ResolvedImage,
 ) -> Result<()> {
-    let contract = tool_contract(registry, "fastq.merge", tool)?;
+    let contract = tool_contract(registry, STAGE_MERGE.as_str(), tool)?;
     let spec = catalog
         .get(tool)
         .ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
@@ -332,7 +332,7 @@ fn qa_correct_tool(
     dataset: &QaDataset,
     seqkit_image: &ResolvedImage,
 ) -> Result<()> {
-    let contract = tool_contract(registry, "fastq.correct", tool)?;
+    let contract = tool_contract(registry, STAGE_CORRECT.as_str(), tool)?;
     let spec = catalog
         .get(tool)
         .ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
@@ -375,4 +375,3 @@ fn qa_correct_tool(
     }
     Ok(())
 }
-

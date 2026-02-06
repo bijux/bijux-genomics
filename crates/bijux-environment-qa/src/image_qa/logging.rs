@@ -25,7 +25,8 @@ pub(crate) fn log_header(
 }
 
 pub(crate) fn log_stage_header(logger: &StdoutLogger, stage: QaStage) {
-    logger.info(&format!("[bijux][image-qa] Stage: {}", stage.stage_id()));
+    let stage_id = stage.stage_id();
+    logger.info(&format!("[bijux][image-qa] Stage: {}", stage_id.as_str()));
 }
 
 pub(crate) fn log_dataset(logger: &StdoutLogger, dataset: &QaDataset) {
@@ -33,9 +34,10 @@ pub(crate) fn log_dataset(logger: &StdoutLogger, dataset: &QaDataset) {
 }
 
 pub(crate) fn log_tool(logger: &StdoutLogger, stage: QaStage, tool: &str) {
+    let stage_id = stage.stage_id();
     logger.debug(&format!(
         "[bijux][image-qa][run] {}::{tool}",
-        stage.stage_id()
+        stage_id.as_str()
     ));
 }
 
@@ -46,13 +48,14 @@ pub(crate) fn log_tool_result(
     dataset: &QaDataset,
     outcome: &ImageQaOutcome,
 ) {
+    let stage_id = stage.stage_id();
     let status = match outcome {
         ImageQaOutcome::Pass => "pass",
         ImageQaOutcome::Fail(_) => "fail",
     };
     let mut line = format!(
         "[bijux][image-qa][{status}] {}::{tool} ({})",
-        stage.stage_id(),
+        stage_id.as_str(),
         dataset.name
     );
     if let ImageQaOutcome::Fail(reason) = outcome {
@@ -67,9 +70,10 @@ pub(crate) fn log_tool_skip(
     tool: &str,
     dataset: &QaDataset,
 ) {
+    let stage_id = stage.stage_id();
     logger.info(&format!(
         "[bijux][image-qa][skip] {}::{tool} ({})",
-        stage.stage_id(),
+        stage_id.as_str(),
         dataset.name
     ));
 }

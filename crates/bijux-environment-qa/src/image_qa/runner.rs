@@ -101,6 +101,7 @@ fn run_image_qa_with(
     }
 
     for stage in stages {
+        let stage_id = stage.stage_id();
         log_stage_header(logger, stage);
         let stage_datasets = datasets_for_stage(stage, &datasets);
         for dataset in stage_datasets {
@@ -108,7 +109,7 @@ fn run_image_qa_with(
             let input_hash = dataset_input_hash(stage, &dataset);
             insert_image_qa_input_v1(
                 &conn,
-                stage.stage_id(),
+                stage_id.as_str(),
                 &platform.name,
                 &platform.runner.to_string(),
                 &input_hash,
@@ -148,7 +149,7 @@ fn run_image_qa_with(
                         outcome = ImageQaOutcome::Fail(err.to_string());
                         ImageQaRecord {
                             tool: tool.to_string(),
-                            stage: stage.stage_id().to_string(),
+                            stage: stage_id.as_str().to_string(),
                             tool_version: "unknown".to_string(),
                             image_digest: "unknown".to_string(),
                             runner: platform.runner.to_string(),

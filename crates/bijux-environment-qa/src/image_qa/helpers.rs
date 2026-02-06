@@ -25,6 +25,7 @@ pub(crate) fn build_qa_record(
     input_hash: &str,
     outcome: ImageQaOutcome,
 ) -> Result<ImageQaRecord> {
+    let stage_id = stage.stage_id();
     let spec = catalog
         .get(tool)
         .ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
@@ -36,7 +37,7 @@ pub(crate) fn build_qa_record(
         .map_or_else(|| image.full_name.clone(), ToString::to_string);
     Ok(ImageQaRecord {
         tool: tool.to_string(),
-        stage: stage.stage_id().to_string(),
+        stage: stage_id.as_str().to_string(),
         tool_version,
         image_digest,
         runner: platform.runner.to_string(),
@@ -54,6 +55,7 @@ pub(crate) fn qa_already_passed(
     catalog: &HashMap<String, ToolImageSpec>,
     input_hash: &str,
 ) -> Result<bool> {
+    let stage_id = stage.stage_id();
     let spec = catalog
         .get(tool)
         .ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
@@ -65,7 +67,7 @@ pub(crate) fn qa_already_passed(
     image_qa_passed(
         conn,
         tool,
-        stage.stage_id(),
+        stage_id.as_str(),
         &image_digest,
         &platform.name,
         &platform.runner.to_string(),
