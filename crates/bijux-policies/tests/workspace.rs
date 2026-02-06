@@ -347,6 +347,7 @@ fn workspace_constitution_contract() {
         "bijux-analyze",
         "bijux-benchmark",
         "bijux-benchmark-model",
+        "bijux-testkit",
     ];
     for name in required {
         assert!(crates.contains_key(name), "missing required crate: {name}");
@@ -377,8 +378,8 @@ fn workspace_constitution_contract() {
         "bijux-pipelines-bam is forbidden"
     );
     assert!(
-        !crates.contains_key("bijux-testkit"),
-        "shared testkit crate is not allowed"
+        crates.contains_key("bijux-testkit"),
+        "missing bijux-testkit crate"
     );
 }
 
