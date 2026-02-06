@@ -8,7 +8,7 @@
 )]
 
 use anyhow::Result;
-use bijux_core::{ids::StageId, primitives::invariants::InvariantStatusV1};
+use bijux_core::{foundation::invariants::InvariantStatusV1, ids::StageId};
 use bijux_domain_fastq::invariants::{evaluate_invariants, thresholds_from_env};
 use bijux_domain_fastq::metrics::{
     FastqDeltaMetricsV1, FastqFilterMetricsV1, FastqMergeMetricsV1, FastqTrimMetricsV1,

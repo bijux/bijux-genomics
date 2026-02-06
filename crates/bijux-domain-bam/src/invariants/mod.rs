@@ -6,7 +6,7 @@ mod specs;
 pub use model::{BamInvariantEvaluation, BamInvariantThresholds};
 pub use specs::bam_invariant_specs;
 
-use bijux_core::primitives::invariants::{InvariantResultV1, InvariantStatusV1, StageVerdictV1};
+use bijux_core::foundation::invariants::{InvariantResultV1, InvariantStatusV1, StageVerdictV1};
 
 use crate::metrics::contamination_cross_check;
 use crate::metrics::BamMetricsV1;

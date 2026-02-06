@@ -1,4 +1,4 @@
-use bijux_core::primitives::invariants::{InvariantStatusV1, StageVerdictV1};
+use bijux_core::foundation::invariants::{InvariantStatusV1, StageVerdictV1};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 

@@ -19,7 +19,7 @@ fn domain_onboarding_checklist_is_satisfied() {
 
     for stage in stages {
         assert!(
-            bijux_core::metrics_registry::metrics_schema_for_stage(stage.as_str()).is_some(),
+            bijux_core::metrics::metrics_schema_for_stage(stage.as_str()).is_some(),
             "missing metrics schema for {stage}"
         );
         assert!(
