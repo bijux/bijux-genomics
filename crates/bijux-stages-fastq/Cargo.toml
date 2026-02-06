@@ -18,7 +18,7 @@ tracing.workspace = true
 
 [dev-dependencies]
 bijux-policies = { path = "../bijux-policies" }
-bijux-planner-fastq = { path = "../bijux-planner-fastq" }
+bijux-testkit = { path = "../bijux-testkit" }
 anyhow.workspace = true
 serde_json.workspace = true
 walkdir.workspace = true

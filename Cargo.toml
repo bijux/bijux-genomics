@@ -22,6 +22,7 @@ members = [
   "crates/bijux-stage-contract",
   "crates/bijux-stages-bam",
   "crates/bijux-stages-fastq",
+  "crates/bijux-testkit",
 ]
 
 [workspace.package]

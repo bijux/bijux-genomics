@@ -8,6 +8,7 @@ include makefiles/cargo.mk
 include makefiles/containers.mk
 include makefiles/benchmarks.mk
 include makefiles/lab.mk
+include makefiles/policies.mk
 
 .DEFAULT_GOAL := help
 
