@@ -6,7 +6,7 @@
 
 use std::collections::BTreeMap;
 
-use bijux_analyze::semantics::metrics::{metric_semantics, MetricDirection};
+use bijux_analyze::{metric_semantics, MetricDirection};
 
 use crate::error::BenchError;
 use crate::policy::gate_decision::{GateDecision, GateViolation};

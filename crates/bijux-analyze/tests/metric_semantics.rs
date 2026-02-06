@@ -1,4 +1,4 @@
-use bijux_analyze::semantics::metric_semantics;
+use bijux_analyze::metric_semantics;
 
 #[test]
 fn metrics_used_for_ranking_have_semantics() {

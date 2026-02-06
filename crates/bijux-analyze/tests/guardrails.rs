@@ -138,6 +138,7 @@ fn public_api_is_small() -> anyhow::Result<()> {
         "pub use report::*;",
         "pub use decision::compare::compare_runs;",
         "pub use bijux_core::metrics::MetricSet;",
+        "pub use semantics::metrics::{metric_semantics, MetricDirection};",
         "pub mod failure;",
         "pub use crate::decision::score::{",
         "pub mod compare {",
