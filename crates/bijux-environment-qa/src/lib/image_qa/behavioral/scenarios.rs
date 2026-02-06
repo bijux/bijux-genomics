@@ -14,7 +14,7 @@ use super::support::{
     run_validate_container_with_timeout, validate_execution_outputs, ResolvedImage,
 };
 
-use super::helpers::temp_out_dir;
+use super::super::fs::temp_out_dir;
 use super::{QaDataset, QaStage};
 
 const QA_TIMEOUT_SECS: u64 = 300;
