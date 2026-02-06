@@ -389,7 +389,7 @@ fn render_run_summary_html(summary: &serde_json::Value) -> String {
 /// Summarized stage execution for run summaries.
 ///
 /// Stability: v1 (stable).
-pub struct StageExecutionSummary {
+pub(crate) struct StageExecutionSummary {
     pub plan: ExecutionStep,
     pub result: StageResultV1,
 }
@@ -399,12 +399,10 @@ mod tests {
     use super::StageExecutionSummary;
     use super::{write_run_manifest, write_scientific_provenance};
     use bijux_core::metrics::{AdapterBankProvenanceV1, ToolInvocationV1};
-    use bijux_core::{
-        CommandSpecV1, ContainerImageRefV1, StageIO, StagePlanV1, StageVersion, ToolConstraints,
-        ToolId,
-    };
+    use bijux_core::{CommandSpecV1, ContainerImageRefV1, StageVersion, ToolConstraints, ToolId};
     use bijux_planner_fastq::stage_api::STAGE_TRIM;
     use bijux_runner::primitives::StageResultV1;
+    use bijux_stage_contract::{StageIO, StagePlanV1};
     use std::path::PathBuf;
 
     #[test]
@@ -452,7 +450,7 @@ mod tests {
             params: serde_json::json!({}),
             effective_params: serde_json::json!({}),
             aux_images: std::collections::BTreeMap::new(),
-            reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
+            reason: bijux_stage_contract::PlanDecisionReason::default(),
         };
         let result = StageResultV1 {
             run_id: "run-1".to_string(),
@@ -466,7 +464,7 @@ mod tests {
             command: String::new(),
         };
         let stage_runs = vec![StageExecutionSummary {
-            plan: bijux_core::plan::execution_graph::ExecutionStep::from(&plan),
+            plan: bijux_stage_contract::execution_step_from_stage_plan(&plan),
             result,
         }];
         write_run_manifest(out_dir, &stage_runs, &[])?;
@@ -522,11 +520,11 @@ mod tests {
                 threads: 1,
             },
             io: StageIO {
-                inputs: vec![bijux_core::plan::stage_plan::ArtifactRef {
+                inputs: vec![bijux_stage_contract::ArtifactRef {
                     name: "input".to_string(),
                     path: PathBuf::from("input.fastq.gz"),
                 }],
-                outputs: vec![bijux_core::plan::stage_plan::ArtifactRef {
+                outputs: vec![bijux_stage_contract::ArtifactRef {
                     name: "output".to_string(),
                     path: PathBuf::from("output.fastq.gz"),
                 }],
@@ -535,7 +533,7 @@ mod tests {
             params: serde_json::json!({"sample_id":"s1"}),
             effective_params: serde_json::json!({}),
             aux_images: std::collections::BTreeMap::new(),
-            reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
+            reason: bijux_stage_contract::PlanDecisionReason::default(),
         };
         let invocation = ToolInvocationV1 {
             schema_version: "bijux.tool_invocation.v1".to_string(),
@@ -586,7 +584,7 @@ mod tests {
         )?;
 
         let summary = StageExecutionSummary {
-            plan: bijux_core::plan::execution_graph::ExecutionStep::from(&plan),
+            plan: bijux_stage_contract::execution_step_from_stage_plan(&plan),
             result: StageResultV1 {
                 run_id: "run-1".to_string(),
                 exit_code: 0,

@@ -1,18 +1,14 @@
 use bijux_api::v1::plan::PlanExplainV1;
-use bijux_core::plan::execution_graph::{ExecutionEdge, ExecutionGraph};
+use bijux_core::contract::{ArtifactRef, StageIO, ToolConstraints};
+use bijux_core::plan::execution_graph::{ExecutionEdge, ExecutionGraph, ExecutionStep};
 use bijux_core::plan::PlanPolicy;
-use bijux_core::{
-    CommandSpecV1, ContainerImageRefV1, StageId, StagePlanV1, StageVersion, ToolConstraints, ToolId,
-};
+use bijux_core::{CommandSpecV1, ContainerImageRefV1, StageId};
 use std::path::PathBuf;
 
 #[test]
 fn explain_roundtrip_is_deterministic() -> anyhow::Result<()> {
-    let stage = StagePlanV1 {
-        stage_id: StageId::from_static("stage.a"),
-        stage_version: StageVersion(1),
-        tool_id: ToolId::from_static("tool"),
-        tool_version: "1.0.0".to_string(),
+    let stage = ExecutionStep {
+        step_id: StageId::from_static("stage.a"),
         image: ContainerImageRefV1 {
             image: "tool:1.0.0".to_string(),
             digest: None,
@@ -26,27 +22,26 @@ fn explain_roundtrip_is_deterministic() -> anyhow::Result<()> {
             tmp_gb: 1,
             threads: 1,
         },
-        io: bijux_core::plan::stage_plan::StageIO {
-            inputs: vec![bijux_core::plan::stage_plan::ArtifactRef {
+        io: StageIO {
+            inputs: vec![ArtifactRef {
                 name: "input".to_string(),
                 path: PathBuf::from("input"),
             }],
-            outputs: vec![bijux_core::plan::stage_plan::ArtifactRef {
+            outputs: vec![ArtifactRef {
                 name: "output".to_string(),
                 path: PathBuf::from("output"),
             }],
         },
         out_dir: PathBuf::from("out"),
-        params: serde_json::json!({"a": 1}),
-        effective_params: serde_json::json!({"a": 1}),
         aux_images: std::collections::BTreeMap::new(),
-        reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
+        expected_artifact_ids: Vec::new(),
+        metrics_schema_ids: Vec::new(),
     };
     let plan = ExecutionGraph::new(
         "pipeline",
         "planner",
         PlanPolicy::PreferAccuracy,
-        vec![stage.into()],
+        vec![stage],
         Vec::<ExecutionEdge>::new(),
     )?;
 

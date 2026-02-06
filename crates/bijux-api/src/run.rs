@@ -7,9 +7,9 @@ use crate::args::{
 };
 use bijux_core::contract::{Profile, RunSpec, ToolRegistry};
 use bijux_core::ids::RunId;
-use bijux_core::plan::{build_run_execution_plan, RunExecutionPlan};
 use bijux_pipelines::registry::PipelineRegistry;
 use bijux_pipelines::{Domain, PipelineProfile};
+use bijux_stage_contract::{build_run_execution_plan, RunExecutionPlan};
 
 #[derive(Debug, Clone, Copy)]
 /// Execution mode for pipeline runs.
@@ -77,8 +77,8 @@ pub fn plan_run(request: PlanRunRequest, registry: &ToolRegistry) -> Result<Plan
 /// # Errors
 /// Returns an error if execution fails.
 pub fn execute_run(request: &ExecuteRunRequest) -> Result<ExecuteRunResult> {
-    let step = bijux_core::plan::execution_graph::ExecutionStep::from(&request.plan);
-    bijux_runner::primitives::execute_stage_plan(&step, request.runner, None)?;
+    let step = bijux_stage_contract::execution_step_from_stage_plan(&request.plan);
+    bijux_runner::primitives::execute_step(&step, request.runner, None)?;
     Ok(ExecuteRunResult)
 }
 

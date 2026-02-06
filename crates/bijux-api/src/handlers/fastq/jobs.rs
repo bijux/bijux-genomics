@@ -4,7 +4,7 @@ use std::sync::{Arc, Mutex};
 use anyhow::{anyhow, Result};
 
 use bijux_environment::api::RunnerKind;
-use bijux_runner::primitives::{execute_stage_plan as execute_plan, StageResultV1};
+use bijux_runner::primitives::{execute_step as execute_plan, StageResultV1};
 
 pub(super) fn bench_jobs(requested: u32) -> usize {
     usize::try_from(requested).unwrap_or(1).clamp(1, 32)

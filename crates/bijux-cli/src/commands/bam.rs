@@ -1,6 +1,6 @@
 use bijux_api::v1::run::ToolRegistry;
 use bijux_api::v1::run::RunnerKind;
-use bijux_api::v1::run::{build_tool_execution_spec, execute_stage_plan};
+use bijux_api::v1::run::{build_tool_execution_spec, execute_step};
 use bijux_api::v1::plan::Domain;
 
 use crate::commands::cli::parse::{BamCommand, BamRunArgs};
@@ -80,8 +80,8 @@ fn run_bam_stage(
     if args.dry_run {
         return Ok(());
     }
-    let step = bijux_core::plan::execution_graph::ExecutionStep::from(&plan);
-    execute_stage_plan(&step, RunnerKind::Docker, None)?;
+    let step = bijux_stage_contract::execution_step_from_stage_plan(&plan);
+    execute_step(&step, RunnerKind::Docker, None)?;
     Ok(())
 }
 

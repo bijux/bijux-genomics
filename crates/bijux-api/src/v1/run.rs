@@ -11,13 +11,14 @@ pub use bijux_infra::{atomic_write_bytes, ensure_dir, temp_dir, temp_dir_in, wri
 
 pub use bijux_core::run_index::*;
 pub use bijux_core::{
-    run_dir, PathSpec, Profile, RunSpec, StageId, StagePlanV1, ToolId, ToolRegistry, ToolRole,
+    run_dir, PathSpec, Profile, RunSpec, StageId, ToolId, ToolRegistry, ToolRole,
 };
 pub use bijux_runtime::manifests::load_manifests;
 pub use bijux_runtime::run::{load_profile, new_run_id, resolve_run_base_dir};
 pub use bijux_runtime::FactsRowV1;
+pub use bijux_stage_contract::StagePlanV1;
 
 pub use bijux_core::contract::ExecutionManifest;
 pub use bijux_infra::init_logging;
-pub use bijux_runner::primitives::execute_stage_plan;
+pub use bijux_runner::primitives::execute_step;
 pub use bijux_runner::primitives::{build_tool_execution_spec, replay_run};

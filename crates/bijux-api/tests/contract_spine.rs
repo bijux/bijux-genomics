@@ -3,13 +3,11 @@ use std::path::Path;
 use std::time::Duration;
 
 use anyhow::Result;
-use bijux_core::plan::execution_graph::{ExecutionEdge, ExecutionGraph};
-use bijux_core::plan::stage_plan::{ArtifactRef, PlanDecisionReason, StageIO, StagePlanV1};
+use bijux_core::contract::{ArtifactRef, StageIO, ToolConstraints};
+use bijux_core::plan::execution_graph::{ExecutionEdge, ExecutionGraph, ExecutionStep};
 use bijux_core::plan::PlanPolicy;
 use bijux_core::primitives::hashing::params_hash;
-use bijux_core::{
-    CommandSpecV1, ContainerImageRefV1, PipelineId, StageId, StageVersion, ToolConstraints, ToolId,
-};
+use bijux_core::{CommandSpecV1, ContainerImageRefV1, PipelineId, StageId};
 use bijux_pipelines::DefaultsLedgerV1;
 use bijux_runner::{Artifact, Invocation, Runner, RunnerResult};
 use bijux_runtime::recording::write_plan_provenance;
@@ -33,11 +31,8 @@ impl Runner for FakeRunner {
 }
 
 fn build_plan(base_dir: &Path) -> Result<ExecutionGraph> {
-    let stage = StagePlanV1 {
-        stage_id: StageId::from_static("core.test"),
-        stage_version: StageVersion(1),
-        tool_id: ToolId::from_static("tool.test"),
-        tool_version: "0.0.0".to_string(),
+    let stage = ExecutionStep {
+        step_id: StageId::from_static("core.test"),
         image: ContainerImageRefV1 {
             image: "example/tool:test".to_string(),
             digest: Some("sha256:deadbeef".to_string()),
@@ -62,17 +57,16 @@ fn build_plan(base_dir: &Path) -> Result<ExecutionGraph> {
             }],
         },
         out_dir: base_dir.join("out"),
-        params: serde_json::json!({"k": 1}),
-        effective_params: serde_json::json!({"k": 1}),
         aux_images: BTreeMap::new(),
-        reason: PlanDecisionReason::default(),
+        expected_artifact_ids: Vec::new(),
+        metrics_schema_ids: Vec::new(),
     };
 
     ExecutionGraph::new(
         "pipeline.test",
         "planner.test",
         PlanPolicy::PreferAccuracy,
-        vec![stage.into()],
+        vec![stage],
         Vec::<ExecutionEdge>::new(),
     )
 }

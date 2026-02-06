@@ -3,11 +3,12 @@ use std::collections::HashMap;
 
 use crate::tooling::{ensure_bench_runner, filter_tools_by_role, load_registry};
 use anyhow::{anyhow, Context, Result};
-use bijux_core::plan::execution_plan::PlanPolicy;
+use bijux_analyze::load::sqlite::SqliteBenchResultsRepository;
+use bijux_core::plan::PlanPolicy;
 use bijux_core::primitives::errors::ErrorCategory;
 use bijux_core::ContainerImageRefV1;
 use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
-use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
+use bijux_environment_qa::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use bijux_planner_fastq::stage_api::bench_dir_name;
 use bijux_planner_fastq::stage_api::RawFailure;
 use bijux_planner_fastq::{
@@ -63,7 +64,19 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let decisions = preprocess_decisions(args);
     let pipeline = resolve_preprocess_pipeline(args, &decisions);
-    let mut selected_tools = select_preprocess_tools(&registry, &pipeline, args)?;
+    let bench_repo = if args.auto {
+        Some(SqliteBenchResultsRepository::new(args.out.clone()))
+    } else {
+        None
+    };
+    let mut selected_tools = select_preprocess_tools(
+        &registry,
+        &pipeline,
+        args,
+        bench_repo
+            .as_ref()
+            .map(|repo| repo as &dyn bijux_planner_fastq::BenchResultsRepository),
+    )?;
     let mut tool_ids: Vec<String> = selected_tools
         .iter()
         .map(|selection| selection.tool_id.clone())
@@ -77,8 +90,8 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     let mut filtered_selections = Vec::new();
     for tool_id in &tool_ids {
         let reason = reasons_by_tool.remove(tool_id).unwrap_or_else(|| {
-            bijux_core::plan::stage_plan::PlanDecisionReason::new(
-                bijux_core::plan::stage_plan::PlanReasonKind::Fallback,
+            bijux_stage_contract::PlanDecisionReason::new(
+                bijux_stage_contract::PlanReasonKind::Fallback,
                 "selected by role filter",
             )
         });
@@ -199,8 +212,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         stage_attrs.insert("stage".to_string(), stage_id.clone());
         stage_attrs.insert("tool".to_string(), tool.clone());
         let stage_span = telemetry.start_stage(&stage_id, &stage_attrs);
-        let execution =
-            bijux_runner::primitives::execute_stage_plan(&planned, platform.runner, None);
+        let execution = bijux_runner::primitives::execute_step(&planned, platform.runner, None);
         stage_span.end();
         let execution = execution?;
         if execution.exit_code != 0 {

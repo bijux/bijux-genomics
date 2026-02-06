@@ -2,12 +2,12 @@ use crate::tooling::filter_tools_by_role;
 use anyhow::{anyhow, Context, Result};
 use bijux_core::contract::ToolRegistry;
 use bijux_environment::api::{load_image_catalog, load_platform, RunnerKind};
-use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
+use bijux_environment_qa::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use bijux_pipelines::registry;
 use bijux_pipelines::Domain;
 use bijux_planner_bam::stage_api::STAGE_PREFIX;
 use bijux_runner::primitives::build_tool_execution_spec;
-use bijux_runner::primitives::execute_stage_plan;
+use bijux_runner::primitives::execute_step;
 use std::path::PathBuf;
 
 use crate::args::{BamRunArgs, BenchBamPipelineArgs, BenchBamStageArgs};
@@ -16,6 +16,7 @@ use crate::v1::bam::plan::plan_for_bam_stage;
 /// Output paths for BAM benchmarking.
 ///
 /// Stability: v1 (stable).
+/// Stability: v1
 pub struct BamBenchOutcome {
     #[allow(dead_code)]
     pub run_dirs: Vec<PathBuf>,
@@ -72,8 +73,8 @@ pub fn bench_bam_stage(
                 let plan_path = run_dir.join("plan.json");
                 bijux_infra::atomic_write_json(&plan_path, &plan)?;
             } else {
-                let step = bijux_core::plan::execution_graph::ExecutionStep::from(&plan);
-                execute_stage_plan(&step, RunnerKind::Docker, None)?;
+                let step = bijux_stage_contract::execution_step_from_stage_plan(&plan);
+                execute_step(&step, RunnerKind::Docker, None)?;
             }
             run_dirs.push(run_dir);
         }
