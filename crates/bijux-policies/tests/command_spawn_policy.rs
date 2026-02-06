@@ -17,6 +17,8 @@ fn is_allowed_command_path(path: &Path) -> bool {
         || path_str.contains("/crates/bijux-environment/src/build/")
         || path_str.contains("/crates/bijux-environment/src/bin/")
         || path_str.contains("/crates/bijux-environment/src/resolve/")
+        || path_str.contains("/crates/bijux-environment-qa/src/bin/")
+        || path_str.contains("/crates/bijux-environment-qa/src/image_qa/")
 }
 
 #[test]

@@ -249,8 +249,10 @@ dependencies = [
  "bijux-api",
  "bijux-core",
  "bijux-environment",
+ "bijux-environment-qa",
  "bijux-infra",
  "bijux-policies",
+ "bijux-stage-contract",
  "clap",
  "insta",
  "predicates",
@@ -267,7 +269,6 @@ name = "bijux-analyze"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bijux-benchmark",
  "bijux-core",
  "bijux-domain-bam",
  "bijux-domain-fastq",
@@ -299,6 +300,7 @@ dependencies = [
  "bijux-core",
  "bijux-engine",
  "bijux-environment",
+ "bijux-environment-qa",
  "bijux-infra",
  "bijux-pipelines",
  "bijux-planner-bam",
@@ -306,6 +308,7 @@ dependencies = [
  "bijux-policies",
  "bijux-runner",
  "bijux-runtime",
+ "bijux-stage-contract",
  "chrono",
  "insta",
  "serde",
@@ -424,8 +427,29 @@ name = "bijux-environment"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "bijux-core",
+ "bijux-infra",
+ "bijux-policies",
+ "bijux-runtime",
+ "regex",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tempfile",
+ "thiserror 1.0.69",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
+name = "bijux-environment-qa"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
  "bijux-analyze",
  "bijux-core",
+ "bijux-domain-fastq",
+ "bijux-environment",
  "bijux-infra",
  "bijux-policies",
  "bijux-runtime",
@@ -483,6 +507,7 @@ dependencies = [
  "bijux-infra",
  "bijux-pipelines",
  "bijux-policies",
+ "bijux-stage-contract",
  "bijux-stages-bam",
  "insta",
  "serde_json",
@@ -493,13 +518,13 @@ name = "bijux-planner-fastq"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bijux-analyze",
  "bijux-core",
  "bijux-domain-bam",
  "bijux-domain-fastq",
  "bijux-infra",
  "bijux-pipelines",
  "bijux-policies",
+ "bijux-stage-contract",
  "bijux-stages-fastq",
  "insta",
  "serde",
@@ -525,7 +550,6 @@ dependencies = [
  "anyhow",
  "assert_cmd",
  "bijux-core",
- "bijux-engine",
  "bijux-environment",
  "bijux-infra",
  "bijux-policies",
@@ -557,6 +581,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "bijux-stage-contract"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bijux-core",
+ "serde",
+ "serde_json",
+ "sha2",
+]
+
+[[package]]
 name = "bijux-stages-bam"
 version = "0.1.0"
 dependencies = [
@@ -565,6 +600,7 @@ dependencies = [
  "bijux-domain-bam",
  "bijux-infra",
  "bijux-policies",
+ "bijux-stage-contract",
  "serde",
  "serde_json",
  "walkdir",
@@ -578,10 +614,10 @@ dependencies = [
  "bijux-core",
  "bijux-domain-fastq",
  "bijux-infra",
- "bijux-pipelines",
  "bijux-planner-fastq",
  "bijux-policies",
  "bijux-runtime",
+ "bijux-stage-contract",
  "flate2",
  "serde",
  "serde_json",
@@ -1187,6 +1223,7 @@ checksum = "e82db8c87c7f1ccecb34ce0c24399b8a73081427f3c7c50a5d597925356115e4"
 dependencies = [
  "console",
  "once_cell",
+ "regex",
  "serde",
  "similar",
  "tempfile",

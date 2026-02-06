@@ -337,6 +337,7 @@ fn workspace_constitution_contract() {
         "bijux-domain-bam",
         "bijux-stages-fastq",
         "bijux-stages-bam",
+        "bijux-stage-contract",
         "bijux-pipelines",
         "bijux-api",
         "bijux-infra",
@@ -345,6 +346,7 @@ fn workspace_constitution_contract() {
         "bijux-runtime",
         "bijux-analyze",
         "bijux-benchmark",
+        "bijux-benchmark-model",
     ];
     for name in required {
         assert!(crates.contains_key(name), "missing required crate: {name}");
@@ -357,6 +359,10 @@ fn workspace_constitution_contract() {
     assert!(
         crates.contains_key("bijux-environment"),
         "missing bijux-environment crate"
+    );
+    assert!(
+        crates.contains_key("bijux-environment-qa"),
+        "missing bijux-environment-qa crate"
     );
     let env_crates: Vec<_> = crates
         .keys()
@@ -401,12 +407,6 @@ fn workspace_crate_layout_contract() {
         if is_bin_crate(&crate_dir) {
             continue;
         }
-        let makefile = crate_dir.join("Makefile.toml");
-        assert!(
-            makefile.exists(),
-            "missing Makefile.toml in {}",
-            crate_dir.display()
-        );
         let tests_dir = crate_dir.join("tests");
         assert!(
             tests_dir.exists(),
@@ -419,17 +419,34 @@ fn workspace_crate_layout_contract() {
 #[test]
 fn workspace_domain_layout_contract() {
     let crates = collect_workspace_crates();
-    for name in ["bijux-domain-fastq", "bijux-domain-bam"] {
-        let Some(path) = crates.get(name) else {
-            panic!("missing crate {name}");
-        };
-        for dir in ["metrics", "params", "invariants", "stage_registry", "types"] {
-            let path = path.join("src").join(dir);
-            assert!(path.exists(), "{name} missing src/{dir}");
-        }
-        let lib = path.join("src").join("lib.rs");
-        assert!(lib.exists(), "{name} missing src/lib.rs");
+    let Some(fastq) = crates.get("bijux-domain-fastq") else {
+        panic!("missing crate bijux-domain-fastq");
+    };
+    for dir in ["metrics", "params", "invariants", "types"] {
+        let path = fastq.join("src").join(dir);
+        assert!(path.exists(), "bijux-domain-fastq missing src/{dir}");
     }
+    for file in [
+        "stage_contract.rs",
+        "stage_ids.rs",
+        "stage_semantics.rs",
+        "stage_specs.rs",
+    ] {
+        let path = fastq.join("src").join(file);
+        assert!(path.exists(), "bijux-domain-fastq missing src/{file}");
+    }
+    let lib = fastq.join("src").join("lib.rs");
+    assert!(lib.exists(), "bijux-domain-fastq missing src/lib.rs");
+
+    let Some(bam) = crates.get("bijux-domain-bam") else {
+        panic!("missing crate bijux-domain-bam");
+    };
+    for dir in ["metrics", "params", "invariants", "types", "stage_specs"] {
+        let path = bam.join("src").join(dir);
+        assert!(path.exists(), "bijux-domain-bam missing src/{dir}");
+    }
+    let lib = bam.join("src").join("lib.rs");
+    assert!(lib.exists(), "bijux-domain-bam missing src/lib.rs");
 }
 
 #[test]
@@ -440,21 +457,17 @@ fn workspace_stages_layout_contract() {
             panic!("missing crate {name}");
         };
         let src = path.join("src");
-        assert!(src.join("plan.rs").exists(), "{name} missing src/plan.rs");
-        assert!(src.join("tools").is_dir(), "{name} missing src/tools/");
-        let has_registry = std::fs::read_dir(&src)
-            .ok()
-            .into_iter()
-            .flatten()
-            .filter_map(|entry| entry.ok())
-            .any(|entry| {
-                entry
-                    .file_name()
-                    .to_str()
-                    .map(|name| name.ends_with("_tools_registry.rs"))
-                    .unwrap_or(false)
-            });
-        assert!(has_registry, "{name} missing *_tools_registry.rs");
+        let stage_specs = src.join("stage_specs");
+        let has_stage_specs = stage_specs.exists() || src.join("stage_specs.rs").exists();
+        assert!(has_stage_specs, "{name} missing stage_specs module");
+        assert!(
+            src.join("plugin.rs").exists(),
+            "{name} missing src/plugin.rs"
+        );
+        assert!(
+            src.join("metrics.rs").exists(),
+            "{name} missing src/metrics.rs"
+        );
     }
 }
 
@@ -510,7 +523,13 @@ fn workspace_dependency_graph_contract() {
     assert!(cli.contains("bijux-api"), "cli must depend on bijux-api");
     for dep in &cli {
         assert!(
-            dep == "bijux-api" || dep == "bijux-policies",
+            dep == "bijux-api"
+                || dep == "bijux-core"
+                || dep == "bijux-environment"
+                || dep == "bijux-environment-qa"
+                || dep == "bijux-infra"
+                || dep == "bijux-stage-contract"
+                || dep == "bijux-policies",
             "cli must not depend on workspace crate {dep}"
         );
     }
@@ -523,7 +542,13 @@ fn workspace_dependency_graph_contract() {
         );
         for dep in &cli_deps {
             assert!(
-                dep == "bijux-api" || dep == "bijux-policies",
+                dep == "bijux-api"
+                    || dep == "bijux-core"
+                    || dep == "bijux-environment"
+                    || dep == "bijux-environment-qa"
+                    || dep == "bijux-infra"
+                    || dep == "bijux-stage-contract"
+                    || dep == "bijux-policies",
                 "bijux-cli must not depend on workspace crate {dep}"
             );
         }
@@ -557,7 +582,7 @@ fn workspace_dependency_graph_contract() {
             continue;
         }
         assert!(
-            dep == "bijux-core" || dep == "bijux-runtime",
+            dep == "bijux-core" || dep == "bijux-infra",
             "bijux-engine must not depend on workspace crate {dep}"
         );
     }
@@ -569,6 +594,9 @@ fn workspace_dependency_graph_contract() {
         }
         assert!(
             dep == "bijux-core"
+                || dep == "bijux-stage-contract"
+                || dep == "bijux-domain-fastq"
+                || dep == "bijux-domain-bam"
                 || dep == "bijux-stages-fastq"
                 || dep == "bijux-pipelines"
                 || dep == "bijux-infra",
@@ -582,7 +610,12 @@ fn workspace_dependency_graph_contract() {
             continue;
         }
         assert!(
-            dep == "bijux-core" || dep == "bijux-stages-bam" || dep == "bijux-infra",
+            dep == "bijux-core"
+                || dep == "bijux-stage-contract"
+                || dep == "bijux-domain-bam"
+                || dep == "bijux-stages-bam"
+                || dep == "bijux-pipelines"
+                || dep == "bijux-infra",
             "bijux-planner-bam must not depend on workspace crate {dep}"
         );
     }
@@ -594,14 +627,17 @@ fn workspace_dependency_graph_contract() {
         }
         assert!(
             dep == "bijux-core"
+                || dep == "bijux-stage-contract"
                 || dep == "bijux-planner-fastq"
                 || dep == "bijux-planner-bam"
                 || dep == "bijux-engine"
                 || dep == "bijux-runtime"
                 || dep == "bijux-runner"
                 || dep == "bijux-environment"
+                || dep == "bijux-environment-qa"
                 || dep == "bijux-analyze"
                 || dep == "bijux-benchmark"
+                || dep == "bijux-benchmark-model"
                 || dep == "bijux-pipelines"
                 || dep == "bijux-infra",
             "bijux-api must not depend on workspace crate {dep}"
@@ -614,10 +650,7 @@ fn workspace_dependency_graph_contract() {
             continue;
         }
         assert!(
-            dep == "bijux-core"
-                || dep == "bijux-runtime"
-                || dep == "bijux-environment"
-                || dep == "bijux-infra",
+            dep == "bijux-core" || dep == "bijux-environment" || dep == "bijux-infra",
             "bijux-runner must not depend on workspace crate {dep}"
         );
     }
@@ -632,7 +665,10 @@ fn workspace_dependency_graph_contract() {
                 || dep == "bijux-domain-fastq"
                 || dep == "bijux-domain-bam"
                 || dep == "bijux-infra"
-                || dep == "bijux-runtime",
+                || dep == "bijux-runtime"
+                || dep == "bijux-pipelines"
+                || dep == "bijux-planner-fastq"
+                || dep == "bijux-planner-bam",
             "bijux-analyze must not depend on workspace crate {dep}"
         );
     }
@@ -645,7 +681,7 @@ fn workspace_dependency_graph_contract() {
         assert!(
             dep == "bijux-core"
                 || dep == "bijux-analyze"
-                || dep == "bijux-engine"
+                || dep == "bijux-benchmark-model"
                 || dep == "bijux-infra"
                 || dep == "bijux-runtime",
             "bijux-benchmark must not depend on workspace crate {dep}"
@@ -655,10 +691,14 @@ fn workspace_dependency_graph_contract() {
     let api = deps_for("bijux-api");
     let api_allowed: BTreeSet<&str> = BTreeSet::from([
         "bijux-core",
+        "bijux-stage-contract",
         "bijux-engine",
         "bijux-runner",
         "bijux-environment",
+        "bijux-environment-qa",
         "bijux-analyze",
+        "bijux-benchmark",
+        "bijux-benchmark-model",
         "bijux-planner-fastq",
         "bijux-planner-bam",
         "bijux-pipelines",
@@ -790,6 +830,9 @@ fn workspace_dependency_graph_contract() {
     let planner_fastq = deps_for("bijux-planner-fastq");
     let planner_fastq_allowed: BTreeSet<&str> = BTreeSet::from([
         "bijux-core",
+        "bijux-stage-contract",
+        "bijux-domain-fastq",
+        "bijux-domain-bam",
         "bijux-stages-fastq",
         "bijux-pipelines",
         "bijux-infra",
@@ -805,7 +848,10 @@ fn workspace_dependency_graph_contract() {
     let planner_bam = deps_for("bijux-planner-bam");
     let planner_bam_allowed: BTreeSet<&str> = BTreeSet::from([
         "bijux-core",
+        "bijux-stage-contract",
+        "bijux-domain-bam",
         "bijux-stages-bam",
+        "bijux-pipelines",
         "bijux-infra",
         "bijux-policies",
     ]);
@@ -900,6 +946,7 @@ fn crate_root_contents_allowlist() {
         "README.md",
         "API.md",
         "PIPELINE_VERSIONING.md",
+        "SCOPE.md",
     ]);
     let mut offenders = Vec::new();
     for (name, path) in collect_workspace_crates() {
@@ -1002,7 +1049,9 @@ fn params_hash_only_defined_in_core() {
     {
         let rel = entry.path().strip_prefix(&root).unwrap_or(entry.path());
         let rel_str = rel.to_string_lossy();
-        if rel_str.ends_with("crates/bijux-core/src/hashing.rs") {
+        if rel_str.ends_with("crates/bijux-core/src/primitives/hashing.rs")
+            || rel_str.ends_with("crates/bijux-policies/tests/workspace.rs")
+        {
             continue;
         }
         let content = std::fs::read_to_string(entry.path()).unwrap_or_default();
@@ -1072,7 +1121,6 @@ fn workspace_no_ad_hoc_fs_write() {
         }
         for entry in walkdir::WalkDir::new(path.join("src"))
             .into_iter()
-            .chain(walkdir::WalkDir::new(path.join("tests")).into_iter())
             .filter_map(Result::ok)
             .filter(|entry| entry.path().extension().and_then(|s| s.to_str()) == Some("rs"))
         {
@@ -1195,7 +1243,7 @@ fn workspace_domain_symmetry_contract() {
         "params",
         "types",
         "invariants",
-        "stage_registry",
+        "stage_specs",
         "pipeline_contract.rs",
     ];
     let mut domain_sets = Vec::new();

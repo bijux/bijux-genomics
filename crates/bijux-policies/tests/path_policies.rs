@@ -16,6 +16,11 @@ fn is_allowed_writer_path(path: &Path) -> bool {
     path_str.contains("/crates/bijux-runtime/") || path_str.contains("/crates/bijux-engine/")
 }
 
+fn is_path_policies_test(path: &Path) -> bool {
+    path.to_string_lossy()
+        .ends_with("/crates/bijux-policies/tests/path_policies.rs")
+}
+
 #[test]
 fn run_artifacts_paths_use_runtime_helpers() {
     let root = workspace_root();
@@ -108,6 +113,9 @@ fn crates_do_not_reference_removed_fastq_test_paths() {
             continue;
         }
         let content = std::fs::read_to_string(path).expect("read source");
+        if is_path_policies_test(path) {
+            continue;
+        }
         if needles.iter().any(|needle| content.contains(needle)) {
             offenders.push(path.display().to_string());
         }

@@ -25,7 +25,15 @@ fn collect_rs_files(root: &Path) -> Vec<PathBuf> {
 fn engine_has_no_domain_strings() {
     let root = workspace_root();
     let mut offenders = Vec::new();
-    let needles = ["fastq", "bam", "stage_registry", "tool_registry"];
+    let needles = [
+        "fastq",
+        "bam",
+        "stage_specs",
+        "stage_registry",
+        "stage_plan",
+        "stage_plugin",
+        "tool_registry",
+    ];
     for file in collect_rs_files(&root.join("crates/bijux-engine/src")) {
         let content = std::fs::read_to_string(&file).expect("read source");
         if needles.iter().any(|needle| content.contains(needle)) {
@@ -43,7 +51,15 @@ fn engine_has_no_domain_strings() {
 fn runner_has_no_domain_strings() {
     let root = workspace_root();
     let mut offenders = Vec::new();
-    let needles = ["fastq", "bam", "stage_registry", "tool_registry"];
+    let needles = [
+        "fastq",
+        "bam",
+        "stage_specs",
+        "stage_registry",
+        "stage_plan",
+        "stage_plugin",
+        "tool_registry",
+    ];
     for file in collect_rs_files(&root.join("crates/bijux-runner/src")) {
         let content = std::fs::read_to_string(&file).expect("read source");
         if needles.iter().any(|needle| content.contains(needle)) {
@@ -53,6 +69,68 @@ fn runner_has_no_domain_strings() {
     assert!(
         offenders.is_empty(),
         "bijux-runner must not reference domain/stage strings:\n{}",
+        offenders.join("\n")
+    );
+}
+
+#[test]
+fn pipelines_do_not_embed_tool_names() {
+    let root = workspace_root();
+    let mut offenders = Vec::new();
+    let tool_ids = [
+        "adapterremoval",
+        "angsd",
+        "authenticct",
+        "authenticity",
+        "bbduk",
+        "bbmerge",
+        "bayeshammer",
+        "bwa",
+        "cutadapt",
+        "centrifuge",
+        "fastp",
+        "fastqc",
+        "fastq_screen",
+        "fastqvalidator",
+        "fastqvalidator_official",
+        "flash2",
+        "fqtools",
+        "gatk",
+        "kaiju",
+        "king",
+        "kraken2",
+        "lighter",
+        "metaphlan",
+        "mosdepth",
+        "musket",
+        "multiqc",
+        "pear",
+        "preseq",
+        "prinseq",
+        "pydamage",
+        "rcorrector",
+        "rxy",
+        "samtools",
+        "seqkit",
+        "seqkit_stats",
+        "seqpurge",
+        "seqtk",
+        "spades",
+        "trim_galore",
+        "trimmomatic",
+        "umi_tools",
+        "vsearch",
+        "yleaf",
+    ];
+    for file in collect_rs_files(&root.join("crates/bijux-pipelines/src")) {
+        let content = std::fs::read_to_string(&file).expect("read source");
+        if tool_ids.iter().any(|tool| content.contains(tool)) {
+            offenders.push(file.display().to_string());
+        }
+    }
+    assert!(
+        offenders.is_empty(),
+        "bijux-pipelines must not embed tool ids in source:\n{}",
         offenders.join("\n")
     );
 }

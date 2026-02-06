@@ -31,6 +31,11 @@ fn is_domain_params_path(path: &Path) -> bool {
     path_str.contains("/crates/bijux-domain-") && path_str.contains("/params/")
 }
 
+fn is_policies_ownership_test(path: &Path) -> bool {
+    path.to_string_lossy()
+        .ends_with("/crates/bijux-policies/tests/ownership_contract.rs")
+}
+
 #[test]
 fn ownership_contract_is_complete() {
     let root = workspace_root();
@@ -86,7 +91,10 @@ fn id_definitions_live_in_core_only() {
         if entry.path().extension().and_then(|s| s.to_str()) != Some("rs") {
             continue;
         }
-        if is_core_ids_path(entry.path()) || is_core_metrics_path(entry.path()) {
+        if is_core_ids_path(entry.path())
+            || is_core_metrics_path(entry.path())
+            || is_policies_ownership_test(entry.path())
+        {
             continue;
         }
         let content = std::fs::read_to_string(entry.path()).expect("read source");
@@ -123,7 +131,10 @@ fn id_parsing_and_validation_live_in_core_only() {
         if entry.path().to_string_lossy().contains("/tests/") {
             continue;
         }
-        if is_core_ids_path(entry.path()) || is_core_metrics_path(entry.path()) {
+        if is_core_ids_path(entry.path())
+            || is_core_metrics_path(entry.path())
+            || is_policies_ownership_test(entry.path())
+        {
             continue;
         }
         let content = std::fs::read_to_string(entry.path()).expect("read source");
@@ -217,6 +228,9 @@ fn registry_of_truth_markers_are_unique() {
             continue;
         }
         if entry.path().extension().and_then(|s| s.to_str()) != Some("rs") {
+            continue;
+        }
+        if is_policies_ownership_test(entry.path()) {
             continue;
         }
         let content = std::fs::read_to_string(entry.path()).expect("read source");
