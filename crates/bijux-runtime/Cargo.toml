@@ -17,6 +17,9 @@ toml.workspace = true
 uuid.workspace = true
 chrono.workspace = true
 
+[dev-dependencies]
+bijux-policies = { path = "../bijux-policies" }
+
 [features]
 otel = ["opentelemetry"]
 

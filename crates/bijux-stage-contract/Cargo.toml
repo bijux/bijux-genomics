@@ -9,3 +9,6 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 bijux-core = { path = "../bijux-core" }
 sha2 = { workspace = true }
+
+[dev-dependencies]
+bijux-policies = { path = "../bijux-policies" }

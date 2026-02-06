@@ -337,6 +337,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bijux-analyze",
+ "bijux-policies",
  "fastrand",
  "serde",
  "serde_json",
@@ -401,6 +402,7 @@ dependencies = [
  "bijux-core",
  "bijux-infra",
  "bijux-policies",
+ "bijux-runtime",
  "chrono",
  "flate2",
  "opentelemetry 0.24.0",
@@ -568,6 +570,7 @@ dependencies = [
  "anyhow",
  "bijux-core",
  "bijux-infra",
+ "bijux-policies",
  "chrono",
  "opentelemetry 0.22.0",
  "serde",
@@ -583,6 +586,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bijux-core",
+ "bijux-policies",
  "serde",
  "serde_json",
  "sha2",
