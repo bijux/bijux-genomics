@@ -74,6 +74,45 @@ fn runner_has_no_domain_strings() {
 }
 
 #[test]
+fn core_plan_has_no_stage_contract_imports() {
+    let root = workspace_root();
+    let mut offenders = Vec::new();
+    for file in collect_rs_files(&root.join("crates/bijux-core/src/plan")) {
+        let content = std::fs::read_to_string(&file).expect("read source");
+        if content.contains("bijux_stage_contract") {
+            offenders.push(file.display().to_string());
+        }
+    }
+    assert!(
+        offenders.is_empty(),
+        "bijux-core plan must not import bijux-stage-contract:\n{}",
+        offenders.join("\n")
+    );
+}
+
+#[test]
+fn engine_has_no_stage_contract_imports() {
+    let root = workspace_root();
+    let mut offenders = Vec::new();
+    let needles = [
+        "bijux_stage_contract",
+        "bijux_stages_fastq",
+        "bijux_stages_bam",
+    ];
+    for file in collect_rs_files(&root.join("crates/bijux-engine/src")) {
+        let content = std::fs::read_to_string(&file).expect("read source");
+        if needles.iter().any(|needle| content.contains(needle)) {
+            offenders.push(file.display().to_string());
+        }
+    }
+    assert!(
+        offenders.is_empty(),
+        "bijux-engine must not import stage-contract or stage crates:\n{}",
+        offenders.join("\n")
+    );
+}
+
+#[test]
 fn stage_specs_have_no_command_building() {
     let root = workspace_root();
     let mut offenders = Vec::new();
