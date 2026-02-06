@@ -31,5 +31,10 @@
   "effective_params": {
     "expected_sex": null,
     "method": "rxy"
+  },
+  "reason": {
+    "kind": "default",
+    "summary": "planner default",
+    "details": {}
   }
 }

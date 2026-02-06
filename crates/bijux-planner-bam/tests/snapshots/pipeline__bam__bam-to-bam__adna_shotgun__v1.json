@@ -32,6 +32,11 @@
         "reference": null,
         "strict": true
       },
+      "reason": {
+        "details": {},
+        "kind": "default",
+        "summary": "planner default"
+      },
       "stage_id": "bam.validate",
       "stage_version": "1"
     },
@@ -68,6 +73,11 @@
       "parameters": {
         "bam": "reads.bam",
         "regions": null
+      },
+      "reason": {
+        "details": {},
+        "kind": "default",
+        "summary": "planner default"
       },
       "stage_id": "bam.qc_pre",
       "stage_version": "1"
@@ -132,6 +142,11 @@
         "min_length": 30,
         "remove_duplicates": false
       },
+      "reason": {
+        "details": {},
+        "kind": "default",
+        "summary": "planner default"
+      },
       "stage_id": "bam.filter",
       "stage_version": "1"
     },
@@ -189,6 +204,11 @@
         "optical_duplicates": "mark_only",
         "umi_policy": "ignore"
       },
+      "reason": {
+        "details": {},
+        "kind": "default",
+        "summary": "planner default"
+      },
       "stage_id": "bam.markdup",
       "stage_version": "1"
     },
@@ -227,6 +247,11 @@
           5
         ],
         "regions": null
+      },
+      "reason": {
+        "details": {},
+        "kind": "default",
+        "summary": "planner default"
       },
       "stage_id": "bam.coverage",
       "stage_version": "1"
@@ -269,6 +294,11 @@
         "trim_5p": 2,
         "udg_model": "non_udg"
       },
+      "reason": {
+        "details": {},
+        "kind": "default",
+        "summary": "planner default"
+      },
       "stage_id": "bam.damage",
       "stage_version": "1"
     },
@@ -303,6 +333,11 @@
         "bam": "reads.bam",
         "expected_sex": null,
         "method": "rxy"
+      },
+      "reason": {
+        "details": {},
+        "kind": "default",
+        "summary": "planner default"
       },
       "stage_id": "bam.sex",
       "stage_version": "1"
@@ -344,6 +379,11 @@
         "reference_panels": [],
         "scope": "both",
         "sex_specific": false
+      },
+      "reason": {
+        "details": {},
+        "kind": "default",
+        "summary": "planner default"
       },
       "stage_id": "bam.contamination",
       "stage_version": "1"

@@ -51,5 +51,10 @@
       "min_breadth_1x": 0.1,
       "min_mean_coverage": 1.0
     }
+  },
+  "reason": {
+    "kind": "default",
+    "summary": "planner default",
+    "details": {}
   }
 }

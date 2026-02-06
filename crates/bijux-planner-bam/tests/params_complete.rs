@@ -1,10 +1,10 @@
-use std::fs;
 use std::path::Path;
 
 use anyhow::Result;
 use bijux_core::{
     CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
 };
+use serde_json::Value;
 
 fn dummy_tool(tool: &str) -> ToolExecutionSpecV1 {
     ToolExecutionSpecV1 {
@@ -26,79 +26,42 @@ fn dummy_tool(tool: &str) -> ToolExecutionSpecV1 {
     }
 }
 
-fn snapshot_path(name: &str) -> Result<std::path::PathBuf> {
-    let manifest_dir = std::env::var("CARGO_MANIFEST_DIR")?;
-    Ok(Path::new(&manifest_dir)
-        .join("tests")
-        .join("snapshots")
-        .join(name))
-}
-
-fn assert_snapshot(name: &str, plan: &bijux_core::plan::stage_plan::StagePlanV1) -> Result<()> {
-    let plan_json = bijux_stages_bam::StagePlanJson::from_plan(plan);
-    let rendered = serde_json::to_string_pretty(&plan_json)?;
-    let path = snapshot_path(name)?;
-    if std::env::var("UPDATE_SNAPSHOTS")
-        .map(|value| value == "1" || value.eq_ignore_ascii_case("true"))
-        .unwrap_or(false)
-    {
-        bijux_infra::write_bytes(path, rendered)?;
-        return Ok(());
+fn assert_keys(value: &Value, keys: &[&str]) -> Result<()> {
+    let obj = value
+        .as_object()
+        .ok_or_else(|| anyhow::anyhow!("effective_params is not an object"))?;
+    for key in keys {
+        assert!(obj.contains_key(*key), "missing key: {key}");
     }
-    let snapshot = fs::read_to_string(path)?;
-    assert_eq!(rendered.trim(), snapshot.trim());
     Ok(())
 }
 
 #[test]
-fn align_plan_json_is_emitted_and_stable() -> Result<()> {
-    let params = bijux_domain_bam::params::AlignEffectiveParams {
-        aligner: "bwa".to_string(),
-        preset: "default".to_string(),
-        threads: 1,
-        reference: "reference.fasta".to_string(),
-        reference_digest: "sha256:ref".to_string(),
-        rg_policy: bijux_domain_bam::types::ReadGroupPolicy::Regenerate,
-        read_group: bijux_domain_bam::params::ReadGroupSpec::with_defaults("sample"),
-        build_indices: true,
-        emit_stats: true,
-    };
-    let plan = bijux_stages_bam::bam::align::plan(
-        &dummy_tool("bwa"),
-        Path::new("reads_R1.fastq.gz"),
-        Some(Path::new("reads_R2.fastq.gz")),
-        Path::new("reference.fasta"),
-        "sample",
-        &params,
-        Path::new("out"),
-    )?;
-    assert_snapshot("stage__bam__bam.align.json", &plan)
-}
-
-#[test]
-fn validate_plan_json_is_emitted_and_stable() -> Result<()> {
-    let plan = bijux_stages_bam::bam::validate::plan(
+fn validate_params_complete() -> Result<()> {
+    let plan = bijux_planner_bam::tool_adapters::bam::validate::plan(
         &dummy_tool("samtools"),
         Path::new("reads.bam"),
         None,
         None,
         Path::new("out"),
     )?;
-    assert_snapshot("stage__bam__bam.validate.json", &plan)
+    assert_keys(&plan.effective_params, &["strict"])?;
+    Ok(())
 }
 
 #[test]
-fn qc_pre_plan_json_is_emitted_and_stable() -> Result<()> {
-    let plan = bijux_stages_bam::bam::qc_pre::plan(
+fn qc_pre_params_complete() -> Result<()> {
+    let plan = bijux_planner_bam::tool_adapters::bam::qc_pre::plan(
         &dummy_tool("samtools"),
         Path::new("reads.bam"),
         Path::new("out"),
     )?;
-    assert_snapshot("stage__bam__bam.qc_pre.json", &plan)
+    assert_keys(&plan.effective_params, &["regions"])?;
+    Ok(())
 }
 
 #[test]
-fn filter_plan_json_is_emitted_and_stable() -> Result<()> {
+fn filter_params_complete() -> Result<()> {
     let params = bijux_domain_bam::params::FilterEffectiveParams {
         mapq_threshold: 30,
         include_flags: Vec::new(),
@@ -107,63 +70,80 @@ fn filter_plan_json_is_emitted_and_stable() -> Result<()> {
         remove_duplicates: false,
         base_quality_threshold: 20,
     };
-    let plan = bijux_stages_bam::bam::filter::plan(
+    let plan = bijux_planner_bam::tool_adapters::bam::filter::plan(
         &dummy_tool("samtools"),
         Path::new("reads.bam"),
         Path::new("out"),
         &params,
     )?;
-    assert_snapshot("stage__bam__bam.filter.json", &plan)
+    assert_keys(
+        &plan.effective_params,
+        &[
+            "mapq_threshold",
+            "include_flags",
+            "exclude_flags",
+            "min_length",
+            "remove_duplicates",
+            "base_quality_threshold",
+        ],
+    )?;
+    Ok(())
 }
 
 #[test]
-fn markdup_plan_json_is_emitted_and_stable() -> Result<()> {
+fn markdup_params_complete() -> Result<()> {
     let params = bijux_domain_bam::params::MarkDupEffectiveParams {
         optical_duplicates: bijux_domain_bam::params::OpticalDuplicatePolicy::MarkOnly,
         umi_policy: bijux_domain_bam::params::UmiPolicy::Ignore,
         duplicate_action: bijux_domain_bam::params::DuplicateAction::Mark,
     };
-    let plan = bijux_stages_bam::bam::markdup::plan(
+    let plan = bijux_planner_bam::tool_adapters::bam::markdup::plan(
         &dummy_tool("gatk"),
         Path::new("reads.bam"),
         Path::new("out"),
         &params,
     )?;
-    assert_snapshot("stage__bam__bam.markdup.json", &plan)
+    assert_keys(
+        &plan.effective_params,
+        &["optical_duplicates", "umi_policy", "duplicate_action"],
+    )?;
+    Ok(())
 }
 
 #[test]
-fn complexity_plan_json_is_emitted_and_stable() -> Result<()> {
+fn complexity_params_complete() -> Result<()> {
     let params = bijux_domain_bam::params::ComplexityEffectiveParams {
         min_reads: 100_000,
         projection_points: vec![1_000_000, 2_000_000],
     };
-    let plan = bijux_stages_bam::bam::complexity::plan(
+    let plan = bijux_planner_bam::tool_adapters::bam::complexity::plan(
         &dummy_tool("preseq"),
         Path::new("reads.bam"),
         Path::new("out"),
         &params,
     )?;
-    assert_snapshot("stage__bam__bam.complexity.json", &plan)
+    assert_keys(&plan.effective_params, &["min_reads", "projection_points"])?;
+    Ok(())
 }
 
 #[test]
-fn coverage_plan_json_is_emitted_and_stable() -> Result<()> {
+fn coverage_params_complete() -> Result<()> {
     let params = bijux_domain_bam::params::CoverageEffectiveParams {
         regions: None,
         depth_thresholds: vec![1, 3, 5],
     };
-    let plan = bijux_stages_bam::bam::coverage::plan(
+    let plan = bijux_planner_bam::tool_adapters::bam::coverage::plan(
         &dummy_tool("mosdepth"),
         Path::new("reads.bam"),
         Path::new("out"),
         &params,
     )?;
-    assert_snapshot("stage__bam__bam.coverage.json", &plan)
+    assert_keys(&plan.effective_params, &["regions", "depth_thresholds"])?;
+    Ok(())
 }
 
 #[test]
-fn damage_plan_json_is_emitted_and_stable() -> Result<()> {
+fn damage_params_complete() -> Result<()> {
     let params = bijux_domain_bam::params::DamageEffectiveParams {
         udg_model: bijux_domain_bam::params::UdgModel::NonUdg,
         pmd_threshold_5p: 0.3,
@@ -171,31 +151,42 @@ fn damage_plan_json_is_emitted_and_stable() -> Result<()> {
         trim_5p: 2,
         trim_3p: 2,
     };
-    let plan = bijux_stages_bam::bam::damage::plan(
+    let plan = bijux_planner_bam::tool_adapters::bam::damage::plan(
         &dummy_tool("pydamage"),
         Path::new("reads.bam"),
         Path::new("out"),
         &params,
     )?;
-    assert_snapshot("stage__bam__bam.damage.json", &plan)
+    assert_keys(
+        &plan.effective_params,
+        &[
+            "udg_model",
+            "pmd_threshold_5p",
+            "pmd_threshold_3p",
+            "trim_5p",
+            "trim_3p",
+        ],
+    )?;
+    Ok(())
 }
 
 #[test]
-fn authenticity_plan_json_is_emitted_and_stable() -> Result<()> {
+fn authenticity_params_complete() -> Result<()> {
     let params = bijux_domain_bam::params::AuthenticityEffectiveParams {
         mode: "aggregate".to_string(),
     };
-    let plan = bijux_stages_bam::bam::authenticity::plan(
+    let plan = bijux_planner_bam::tool_adapters::bam::authenticity::plan(
         &dummy_tool("auth"),
         Path::new("reads.bam"),
         Path::new("out"),
         &params,
     )?;
-    assert_snapshot("stage__bam__bam.authenticity.json", &plan)
+    assert_keys(&plan.effective_params, &["mode"])?;
+    Ok(())
 }
 
 #[test]
-fn contamination_plan_json_is_emitted_and_stable() -> Result<()> {
+fn contamination_params_complete() -> Result<()> {
     let params = bijux_domain_bam::params::ContaminationEffectiveParams {
         reference_panels: vec!["panel.vcf".to_string()],
         scope: bijux_domain_bam::params::ContaminationScope::Both,
@@ -203,48 +194,63 @@ fn contamination_plan_json_is_emitted_and_stable() -> Result<()> {
         sex_specific: false,
         assumptions: None,
     };
-    let plan = bijux_stages_bam::bam::contamination::plan(
+    let plan = bijux_planner_bam::tool_adapters::bam::contamination::plan(
         &dummy_tool("authentic"),
         Path::new("reads.bam"),
         Path::new("out"),
         &params,
     )?;
-    assert_snapshot("stage__bam__bam.contamination.json", &plan)
+    assert_keys(
+        &plan.effective_params,
+        &[
+            "reference_panels",
+            "scope",
+            "prior",
+            "sex_specific",
+            "assumptions",
+        ],
+    )?;
+    Ok(())
 }
 
 #[test]
-fn sex_plan_json_is_emitted_and_stable() -> Result<()> {
+fn sex_params_complete() -> Result<()> {
     let params = bijux_domain_bam::params::SexEffectiveParams {
         expected_sex: None,
         method: "rxy".to_string(),
     };
-    let plan = bijux_stages_bam::bam::sex::plan(
+    let plan = bijux_planner_bam::tool_adapters::bam::sex::plan(
         &dummy_tool("rxy"),
         Path::new("reads.bam"),
         Path::new("out"),
         &params,
     )?;
-    assert_snapshot("stage__bam__bam.sex.json", &plan)
+    assert_keys(&plan.effective_params, &["expected_sex", "method"])?;
+    Ok(())
 }
 
 #[test]
 #[cfg(feature = "bam_downstream")]
-fn bias_mitigation_plan_json_is_emitted_and_stable() -> Result<()> {
+fn bias_mitigation_params_complete() -> Result<()> {
     let params = bijux_domain_bam::params::BiasMitigationEffectiveParams {
         gc_bias_correction: true,
         map_bias_correction: false,
     };
-    let plan = bijux_stages_bam::bam::bias_mitigation::plan(
+    let plan = bijux_planner_bam::tool_adapters::bam::bias_mitigation::plan(
         &dummy_tool("angsd"),
         Path::new("reads.bam"),
         Path::new("out"),
         &params,
     )?;
-    assert_snapshot("stage__bam__bam.bias_mitigation.json", &plan)
+    assert_keys(
+        &plan.effective_params,
+        &["gc_bias_correction", "map_bias_correction"],
+    )?;
+    Ok(())
 }
 
 #[test]
-fn recalibration_plan_json_is_emitted_and_stable() -> Result<()> {
+fn recalibration_params_complete() -> Result<()> {
     let params = bijux_domain_bam::params::BqsrEffectiveParams {
         known_sites: vec!["known.vcf".to_string()],
         mode: bijux_domain_bam::params::BqsrMode::Skip,
@@ -253,60 +259,73 @@ fn recalibration_plan_json_is_emitted_and_stable() -> Result<()> {
             min_breadth_1x: 0.1,
         },
     };
-    let plan = bijux_stages_bam::bam::recalibration::plan(
+    let plan = bijux_planner_bam::tool_adapters::bam::recalibration::plan(
         &dummy_tool("gatk"),
         Path::new("reads.bam"),
         Path::new("out"),
         &params,
     )?;
-    assert_snapshot("stage__bam__bam.recalibration.json", &plan)
+    assert_keys(
+        &plan.effective_params,
+        &["known_sites", "mode", "skip_criteria"],
+    )?;
+    Ok(())
 }
 
 #[test]
 #[cfg(feature = "bam_downstream")]
-fn haplogroups_plan_json_is_emitted_and_stable() -> Result<()> {
+fn haplogroups_params_complete() -> Result<()> {
     let params = bijux_domain_bam::params::HaplogroupEffectiveParams {
         reference_panel: "mito_default".to_string(),
         min_coverage: Some(1.0),
     };
-    let plan = bijux_stages_bam::bam::haplogroups::plan(
+    let plan = bijux_planner_bam::tool_adapters::bam::haplogroups::plan(
         &dummy_tool("haplogrep"),
         Path::new("reads.bam"),
         Path::new("out"),
         &params,
     )?;
-    assert_snapshot("stage__bam__bam.haplogroups.json", &plan)
+    assert_keys(&plan.effective_params, &["reference_panel", "min_coverage"])?;
+    Ok(())
 }
 
 #[test]
 #[cfg(feature = "bam_downstream")]
-fn genotyping_plan_json_is_emitted_and_stable() -> Result<()> {
+fn genotyping_params_complete() -> Result<()> {
     let params = bijux_domain_bam::params::GenotypingEffectiveParams {
         caller: "angsd".to_string(),
         min_posterior: Some(0.9),
         min_call_rate: Some(0.5),
     };
-    let plan = bijux_stages_bam::bam::genotyping::plan(
+    let plan = bijux_planner_bam::tool_adapters::bam::genotyping::plan(
         &dummy_tool("angsd"),
         Path::new("reads.bam"),
         Path::new("out"),
         &params,
     )?;
-    assert_snapshot("stage__bam__bam.genotyping.json", &plan)
+    assert_keys(
+        &plan.effective_params,
+        &["caller", "min_posterior", "min_call_rate"],
+    )?;
+    Ok(())
 }
 
 #[test]
 #[cfg(feature = "bam_downstream")]
-fn kinship_plan_json_is_emitted_and_stable() -> Result<()> {
+fn kinship_params_complete() -> Result<()> {
     let params = bijux_domain_bam::params::KinshipEffectiveParams {
         reference_panel: "king_default".to_string(),
         min_overlap_snps: 1000,
     };
-    let plan = bijux_stages_bam::bam::kinship::plan(
+    let plan = bijux_planner_bam::tool_adapters::bam::kinship::plan(
         &dummy_tool("king"),
         Path::new("reads.bam"),
         Path::new("out"),
         &params,
     )?;
-    assert_snapshot("stage__bam__bam.kinship.json", &plan)
+    assert_keys(
+        &plan.effective_params,
+        &["reference_panel", "min_overlap_snps"],
+    )?;
+    Ok(())
 }

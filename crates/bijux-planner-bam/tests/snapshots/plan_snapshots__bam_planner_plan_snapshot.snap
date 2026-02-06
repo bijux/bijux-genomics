@@ -12,8 +12,8 @@ expression: json
   "pipeline_id": "bam.qc.v1",
   "planner_version": "bijux-planner-bam.v1",
   "policy": "prefer_accuracy",
-  "schema_version": "bijux.execution_plan.v1",
-  "stages": [
+  "schema_version": "bijux.execution_graph.v1",
+  "steps": [
     {
       "aux_images": {},
       "command": {
@@ -21,7 +21,7 @@ expression: json
           "mosdepth"
         ]
       },
-      "effective_params": {},
+      "expected_artifact_ids": [],
       "image": {
         "digest": null,
         "image": "mosdepth:latest"
@@ -40,25 +40,15 @@ expression: json
           }
         ]
       },
+      "metrics_schema_ids": [],
       "out_dir": "out",
-      "params": {
-        "sample_id": "s1"
-      },
-      "reason": {
-        "details": {},
-        "kind": "default",
-        "summary": "planner default"
-      },
       "resources": {
         "mem_gb": 1,
         "runtime": "docker",
         "threads": 1,
         "tmp_gb": 1
       },
-      "stage_id": "bam.qc_post",
-      "stage_version": 1,
-      "tool_id": "mosdepth",
-      "tool_version": "0.0.0"
+      "step_id": "bam.qc_post"
     },
     {
       "aux_images": {},
@@ -67,7 +57,7 @@ expression: json
           "samtools"
         ]
       },
-      "effective_params": {},
+      "expected_artifact_ids": [],
       "image": {
         "digest": null,
         "image": "samtools:latest"
@@ -86,25 +76,15 @@ expression: json
           }
         ]
       },
+      "metrics_schema_ids": [],
       "out_dir": "out",
-      "params": {
-        "sample_id": "s1"
-      },
-      "reason": {
-        "details": {},
-        "kind": "default",
-        "summary": "planner default"
-      },
       "resources": {
         "mem_gb": 1,
         "runtime": "docker",
         "threads": 1,
         "tmp_gb": 1
       },
-      "stage_id": "bam.qc_pre",
-      "stage_version": 1,
-      "tool_id": "samtools",
-      "tool_version": "0.0.0"
+      "step_id": "bam.qc_pre"
     }
   ]
 }

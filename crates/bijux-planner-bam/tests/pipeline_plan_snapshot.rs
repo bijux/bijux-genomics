@@ -3,7 +3,8 @@ use std::path::Path;
 
 use anyhow::Result;
 use bijux_core::{
-    CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
+    CommandSpecV1, ContainerImageRefV1, StagePlanJsonV1 as StagePlanJson, ToolConstraints,
+    ToolExecutionSpecV1, ToolId,
 };
 
 fn dummy_tool(tool: &str) -> ToolExecutionSpecV1 {
@@ -54,14 +55,14 @@ fn assert_snapshot(name: &str, payload: &serde_json::Value) -> Result<()> {
 fn bam_pipeline_plan_snapshot_is_stable() -> Result<()> {
     let bam = Path::new("reads.bam");
     let out = Path::new("out");
-    let validate = bijux_stages_bam::bam::validate::plan(
+    let validate = bijux_planner_bam::tool_adapters::bam::validate::plan(
         &dummy_tool("samtools"),
         bam,
         None,
         None,
         out.join("validate").as_path(),
     )?;
-    let qc_pre = bijux_stages_bam::bam::qc_pre::plan(
+    let qc_pre = bijux_planner_bam::tool_adapters::bam::qc_pre::plan(
         &dummy_tool("samtools"),
         bam,
         out.join("qc_pre").as_path(),
@@ -74,7 +75,7 @@ fn bam_pipeline_plan_snapshot_is_stable() -> Result<()> {
         remove_duplicates: false,
         base_quality_threshold: 20,
     };
-    let filter = bijux_stages_bam::bam::filter::plan(
+    let filter = bijux_planner_bam::tool_adapters::bam::filter::plan(
         &dummy_tool("samtools"),
         bam,
         out.join("filter").as_path(),
@@ -85,7 +86,7 @@ fn bam_pipeline_plan_snapshot_is_stable() -> Result<()> {
         umi_policy: bijux_domain_bam::params::UmiPolicy::Ignore,
         duplicate_action: bijux_domain_bam::params::DuplicateAction::Mark,
     };
-    let markdup = bijux_stages_bam::bam::markdup::plan(
+    let markdup = bijux_planner_bam::tool_adapters::bam::markdup::plan(
         &dummy_tool("gatk"),
         bam,
         out.join("markdup").as_path(),
@@ -95,7 +96,7 @@ fn bam_pipeline_plan_snapshot_is_stable() -> Result<()> {
         regions: None,
         depth_thresholds: vec![1, 3, 5],
     };
-    let coverage = bijux_stages_bam::bam::coverage::plan(
+    let coverage = bijux_planner_bam::tool_adapters::bam::coverage::plan(
         &dummy_tool("mosdepth"),
         bam,
         out.join("coverage").as_path(),
@@ -108,7 +109,7 @@ fn bam_pipeline_plan_snapshot_is_stable() -> Result<()> {
         trim_5p: 2,
         trim_3p: 2,
     };
-    let damage = bijux_stages_bam::bam::damage::plan(
+    let damage = bijux_planner_bam::tool_adapters::bam::damage::plan(
         &dummy_tool("pydamage"),
         bam,
         out.join("damage").as_path(),
@@ -118,7 +119,7 @@ fn bam_pipeline_plan_snapshot_is_stable() -> Result<()> {
         expected_sex: None,
         method: "rxy".to_string(),
     };
-    let sex = bijux_stages_bam::bam::sex::plan(
+    let sex = bijux_planner_bam::tool_adapters::bam::sex::plan(
         &dummy_tool("rxy"),
         bam,
         out.join("sex").as_path(),
@@ -131,7 +132,7 @@ fn bam_pipeline_plan_snapshot_is_stable() -> Result<()> {
         sex_specific: false,
         assumptions: None,
     };
-    let contamination = bijux_stages_bam::bam::contamination::plan(
+    let contamination = bijux_planner_bam::tool_adapters::bam::contamination::plan(
         &dummy_tool("authenticct"),
         bam,
         out.join("contam").as_path(),
@@ -151,7 +152,7 @@ fn bam_pipeline_plan_snapshot_is_stable() -> Result<()> {
     let payload = serde_json::json!({
         "stages": plans
             .iter()
-            .map(bijux_stages_bam::StagePlanJson::from_plan)
+            .map(StagePlanJson::from_plan)
             .collect::<Vec<_>>()
     });
     assert_snapshot("pipeline__bam__bam-to-bam__adna_shotgun__v1.json", &payload)

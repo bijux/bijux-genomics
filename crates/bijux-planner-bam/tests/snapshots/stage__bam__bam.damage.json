@@ -37,5 +37,10 @@
     "trim_3p": 2,
     "trim_5p": 2,
     "udg_model": "non_udg"
+  },
+  "reason": {
+    "kind": "default",
+    "summary": "planner default",
+    "details": {}
   }
 }
