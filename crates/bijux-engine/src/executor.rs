@@ -2,26 +2,40 @@
 
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::fs;
+use std::time::Instant;
 
 use anyhow::{anyhow, Result};
 use bijux_core::execution::execution_graph::{ExecutionEdge, ExecutionGraph, ExecutionStep};
 use bijux_core::{RunRecordV1, StageExecutionRecordV1};
 use bijux_runtime::{Invocation, Runner};
+use chrono::Utc;
+use bijux_infra;
 
-#[derive(Debug, Clone, Default)]
-pub struct ExecutionOptions {
-    pub retries: u32,
-}
+use crate::{CancellationToken, EngineEvent, EngineHooks};
 
 pub fn execute_plan(
     graph: &ExecutionGraph,
     runner: &dyn Runner,
-    options: &ExecutionOptions,
+    hooks: Option<&dyn EngineHooks>,
+    cancel: Option<&CancellationToken>,
 ) -> Result<RunRecordV1> {
     let graph = graph.normalize()?;
-    let ordered = topo_order(graph.steps(), graph.edges())?;
+    let ordered = topo_order(
+        graph.steps(),
+        graph.edges(),
+        graph.deterministic_scheduler(),
+    )?;
     let mut results = Vec::with_capacity(ordered.len());
     for step in ordered {
+        if cancel.is_some_and(|token| token.is_cancelled()) {
+            return Err(anyhow!("execution cancelled before {}", step.step_id.0));
+        }
+        if let Some(hooks) = hooks {
+            hooks.on_event(EngineEvent::StepStart {
+                step_id: step.step_id.clone(),
+                attempt: 0,
+            });
+        }
         tracing::info!(
             target: "exec.step",
             stage_id = %step.step_id.0,
@@ -30,19 +44,62 @@ pub fn execute_plan(
         );
         let mut attempt = 0;
         let last_success = loop {
+            if cancel.is_some_and(|token| token.is_cancelled()) {
+                return Err(anyhow!("execution cancelled during {}", step.step_id.0));
+            }
+            let start = Instant::now();
+            let started_at = Utc::now().to_rfc3339();
             let invocation = Invocation {
                 step: step.clone(),
                 attempt,
             };
             let outcome = runner.run(&invocation)?;
+            let duration = outcome.duration;
+            let finished_at = Utc::now().to_rfc3339();
+            record_execution(
+                step,
+                attempt,
+                &started_at,
+                &finished_at,
+                duration.as_secs_f64(),
+                outcome.exit_code,
+            )?;
             let success = outcome.exit_code == 0;
+            if let Some(timeout_s) = graph.step_timeout_s() {
+                if duration.as_secs() > timeout_s {
+                    return Err(anyhow!(
+                        "step {} exceeded timeout {}s",
+                        step.step_id.0,
+                        timeout_s
+                    ));
+                }
+            }
             if success {
                 enforce_contract(step)?;
+                if let Some(hooks) = hooks {
+                    hooks.on_event(EngineEvent::StepEnd {
+                        step_id: step.step_id.clone(),
+                        attempt,
+                        success: true,
+                    });
+                }
                 break success;
             }
-            if attempt >= options.retries {
+            let retry_policy = graph.retry_policy();
+            let allow_retry = retry_policy
+                .retry_on_exit_codes
+                .iter()
+                .any(|code| *code == outcome.exit_code);
+            if !allow_retry || attempt + 1 >= retry_policy.max_attempts {
                 let step_id = step.step_id.to_string();
                 return Err(anyhow!("step failed after retries: {step_id}"));
+            }
+            if let Some(hooks) = hooks {
+                hooks.on_event(EngineEvent::Retry {
+                    step_id: step.step_id.clone(),
+                    attempt: attempt + 1,
+                    exit_code: outcome.exit_code,
+                });
             }
             attempt += 1;
         };
@@ -81,6 +138,12 @@ fn enforce_contract(step: &ExecutionStep) -> Result<()> {
                 output.path.display()
             ));
         }
+        tracing::info!(
+            target: "exec.contract",
+            stage_id = %step.step_id.0,
+            path = %output.path.display(),
+            "artifact verified"
+        );
         if matches!(
             output.role,
             bijux_core::contract::ArtifactRole::MetricsJson
@@ -129,6 +192,10 @@ fn enforce_contract(step: &ExecutionStep) -> Result<()> {
             "tool_invocation.json",
             run_artifacts_dir.join("tool_invocation.json"),
         ),
+        (
+            "execution_record.json",
+            run_artifacts_dir.join("execution_record.json"),
+        ),
     ];
     for (label, path) in required {
         if !path.exists() {
@@ -158,6 +225,7 @@ fn enforce_contract(step: &ExecutionStep) -> Result<()> {
 fn topo_order<'a>(
     steps: &'a [ExecutionStep],
     edges: &'a [ExecutionEdge],
+    deterministic: bool,
 ) -> Result<Vec<&'a ExecutionStep>> {
     let mut by_id: HashMap<&str, &ExecutionStep> = HashMap::new();
     for step in steps {
@@ -182,6 +250,11 @@ fn topo_order<'a>(
         .filter(|step| indegree.get(step.step_id.as_str()).copied().unwrap_or(0) == 0)
         .map(|step| step.step_id.as_str())
         .collect();
+    if deterministic {
+        let mut ordered: Vec<&str> = queue.drain(..).collect();
+        ordered.sort();
+        queue.extend(ordered);
+    }
     let mut order = Vec::with_capacity(steps.len());
     let mut seen = HashSet::new();
     while let Some(node) = queue.pop_front() {
@@ -192,6 +265,10 @@ fn topo_order<'a>(
             order.push(*stage);
         }
         if let Some(children) = adjacency.get(node) {
+            let mut children = children.clone();
+            if deterministic {
+                children.sort();
+            }
             for child in children {
                 let entry = indegree.entry(child).or_insert(0);
                 *entry = entry.saturating_sub(1);
@@ -205,4 +282,29 @@ fn topo_order<'a>(
         return Err(anyhow!("execution plan contains a cycle"));
     }
     Ok(order)
+}
+
+fn record_execution(
+    step: &ExecutionStep,
+    attempt: u32,
+    started_at: &str,
+    finished_at: &str,
+    duration_s: f64,
+    exit_code: i32,
+) -> Result<()> {
+    let run_artifacts_dir = step.out_dir.join("run_artifacts");
+    bijux_infra::ensure_dir(&run_artifacts_dir)?;
+    let payload = serde_json::json!({
+        "schema_version": "bijux.execution_record.v1",
+        "step_id": step.step_id.to_string(),
+        "stage_id": step.stage_id.to_string(),
+        "attempt": attempt,
+        "started_at": started_at,
+        "finished_at": finished_at,
+        "duration_s": duration_s,
+        "exit_code": exit_code,
+    });
+    let path = run_artifacts_dir.join("execution_record.json");
+    bijux_infra::atomic_write_json(&path, &payload)?;
+    Ok(())
 }
