@@ -28,6 +28,7 @@ fn run_manifest_includes_telemetry_and_facts() -> anyhow::Result<()> {
         "stage",
         "tool",
         &run_provenance,
+        None,
         &[] as &[RunArtifactInput],
     )?;
     let raw = fs::read_to_string(&run_dirs.run_manifest_path)?;
