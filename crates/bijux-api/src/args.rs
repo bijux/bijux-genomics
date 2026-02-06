@@ -198,3 +198,61 @@ pub struct RunStatus {
     pub report_path: Option<PathBuf>,
     pub has_failures: bool,
 }
+
+#[derive(Debug, Clone)]
+/// Canonical plan request.
+///
+/// Stability: v1 (stable).
+pub struct PlanRequest {
+    pub graph: bijux_core::execution::execution_graph::ExecutionGraph,
+    pub profile_id: String,
+}
+
+#[derive(Debug, Clone)]
+/// Canonical plan response.
+///
+/// Stability: v1 (stable).
+pub struct PlanResponse {
+    pub graph: bijux_core::execution::execution_graph::ExecutionGraph,
+    pub graph_hash: String,
+    pub manifest: serde_json::Value,
+}
+
+#[derive(Debug, Clone)]
+/// Canonical execute request.
+///
+/// Stability: v1 (stable).
+pub struct ExecuteRequest {
+    pub graph: bijux_core::execution::execution_graph::ExecutionGraph,
+    pub runner: bijux_environment::api::RunnerKind,
+    pub run_dir: PathBuf,
+}
+
+#[derive(Debug, Clone)]
+/// Canonical execute response.
+///
+/// Stability: v1 (stable).
+pub struct ExecuteResponse {
+    pub run_id: String,
+    pub manifest_path: PathBuf,
+    pub report_path: Option<PathBuf>,
+}
+
+#[derive(Debug, Clone)]
+/// Canonical dry-run request.
+///
+/// Stability: v1 (stable).
+pub struct DryRunRequest {
+    pub graph: bijux_core::execution::execution_graph::ExecutionGraph,
+    pub run_dir: PathBuf,
+    pub profile_id: String,
+}
+
+#[derive(Debug, Clone)]
+/// Canonical dry-run response.
+///
+/// Stability: v1 (stable).
+pub struct DryRunResponse {
+    pub graph_path: PathBuf,
+    pub manifest_path: PathBuf,
+}

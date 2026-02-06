@@ -1,5 +1,8 @@
 use serde::{Deserialize, Serialize};
 
+use bijux_domain_bam;
+use bijux_domain_fastq;
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub(crate) struct ExplainExclusion {
     pub tool: String,
@@ -37,6 +40,21 @@ pub struct PlanExplainV1 {
     pub stages: Vec<PlanExplainStageV1>,
 }
 
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct ExplainToolSelection {
+    pub stage_id: String,
+    pub tool_id: String,
+    #[serde(default)]
+    pub reason: Option<String>,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct ExplainResponse {
+    pub selected_tools: Vec<ExplainToolSelection>,
+    pub defaults_ledger_diff: serde_json::Value,
+    pub stage_contracts: serde_json::Value,
+}
+
 impl PlanExplainV1 {
     #[must_use]
     pub fn from_plan(plan: &bijux_core::execution::execution_graph::ExecutionGraph) -> Self {
@@ -64,5 +82,41 @@ impl PlanExplainV1 {
             policy: plan.policy(),
             stages,
         }
+    }
+}
+
+#[must_use]
+pub fn explain_bundle(
+    plan: &bijux_core::execution::execution_graph::ExecutionGraph,
+    defaults_ledger: Option<&serde_json::Value>,
+) -> ExplainResponse {
+    let selected_tools = plan
+        .steps()
+        .iter()
+        .map(|step| ExplainToolSelection {
+            stage_id: step.stage_id.to_string(),
+            tool_id: step.image.image.clone(),
+            reason: None,
+        })
+        .collect::<Vec<_>>();
+    let stage_contracts = plan
+        .steps()
+        .iter()
+        .filter_map(|step| {
+            let stage_id = step.stage_id.to_string();
+            let hash = if stage_id.starts_with("fastq.") || stage_id.starts_with("core.") {
+                bijux_domain_fastq::stage_contract_hash(&stage_id).and_then(|result| result.ok())
+            } else if stage_id.starts_with("bam.") {
+                bijux_domain_bam::stage_contract_hash(&stage_id).and_then(|result| result.ok())
+            } else {
+                None
+            };
+            hash.map(|hash| (stage_id, serde_json::Value::String(hash)))
+        })
+        .collect::<serde_json::Map<_, _>>();
+    ExplainResponse {
+        selected_tools,
+        defaults_ledger_diff: defaults_ledger.cloned().unwrap_or_else(|| serde_json::json!({})),
+        stage_contracts: serde_json::Value::Object(stage_contracts),
     }
 }
