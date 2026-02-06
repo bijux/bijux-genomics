@@ -9,9 +9,9 @@ use bijux_core::plan::PlanPolicy;
 use bijux_core::primitives::hashing::params_hash;
 use bijux_core::{CommandSpecV1, ContainerImageRefV1, PipelineId, StageId};
 use bijux_pipelines::DefaultsLedgerV1;
-use bijux_runner::{Artifact, Invocation, Runner, RunnerResult};
 use bijux_runtime::recording::write_plan_provenance;
 use bijux_runtime::FactsRowV1;
+use bijux_runtime::{Artifact, Invocation, Runner, RunnerResult};
 
 struct FakeRunner;
 
