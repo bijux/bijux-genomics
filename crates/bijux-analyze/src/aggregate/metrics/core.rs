@@ -5,7 +5,7 @@ use bijux_core::foundation::measure::ExecutionMetrics;
 use bijux_core::metrics::MetricSet;
 use serde::{Deserialize, Serialize};
 
-use crate::aggregate::registry::{metric_spec, StageMetricKind, StageMetricRegistry};
+use crate::aggregate::schema::{metric_spec, StageMetricKind, StageMetricRegistry};
 use crate::aggregate::{BenchError, Result};
 
 pub use super::bench::*;
