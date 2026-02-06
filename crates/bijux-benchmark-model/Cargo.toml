@@ -10,7 +10,9 @@ fastrand = "2"
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 bijux-analyze = { path = "../bijux-analyze" }
-bijux-policies = { path = "../bijux-policies" }
 
 [lints]
 workspace = true
+
+[dev-dependencies]
+bijux-policies = { path = "../bijux-policies" }
