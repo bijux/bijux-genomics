@@ -1,13 +1,15 @@
 mod apptainer;
 mod behavioral;
 mod datasets;
-mod helpers;
+mod fs;
 mod logging;
+mod records;
 mod runner;
 mod static_qa;
 mod support;
+mod validation;
 
-pub use helpers::{ensure_image_qa_passed, ensure_tool_qa_passed};
+pub use validation::{ensure_image_qa_passed, ensure_tool_qa_passed};
 pub use runner::run_image_qa;
 pub(crate) use support::SeqkitMetrics;
 pub use support::{

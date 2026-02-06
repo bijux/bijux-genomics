@@ -17,7 +17,7 @@ use super::behavioral::run_behavioral_qa;
 use super::datasets::{
     dataset_input_hash, datasets_for_stage, discover_qa_datasets, hydrate_datasets,
 };
-use super::helpers::{build_qa_record, qa_already_passed};
+use super::records::{build_qa_record, qa_already_passed};
 use super::logging::{
     log_dataset, log_header, log_stage_header, log_tool, log_tool_result, log_tool_skip,
 };
