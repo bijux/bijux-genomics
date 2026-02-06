@@ -1,5 +1,7 @@
 use std::path::Path;
 
+pub mod artifacts;
+
 use anyhow::{anyhow, Context, Result};
 use tracing::warn;
 
