@@ -31,6 +31,7 @@ pub fn analyze_contract_v1() -> AnalyzeContractV1 {
             "ranking.json".to_string(),
             "report.json".to_string(),
             "report.html(optional)".to_string(),
+            "report.md(optional)".to_string(),
         ],
         compatibility: vec![
             "minor additions must be optional".to_string(),

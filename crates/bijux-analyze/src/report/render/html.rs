@@ -54,3 +54,9 @@ pub fn render_report_html(model: &ReportModel) -> Result<String> {
         command,
     ))
 }
+
+#[allow(dead_code)]
+pub fn write_report_html(path: &std::path::Path, model: &ReportModel) -> Result<()> {
+    let rendered = render_report_html(model)?;
+    bijux_infra::atomic_write_bytes(path, rendered.as_bytes()).map_err(anyhow::Error::from)
+}
