@@ -49,9 +49,9 @@ fn collect_outputs(root: &Path) -> Result<Vec<String>> {
 }
 
 fn walk_outputs(root: &Path, dir: &Path, out: &mut Vec<String>) -> Result<()> {
-    for entry in std::fs::read_dir(dir).map_err(|err| {
-        BijuxError::Io(format!("read dir {}: {err}", dir.display()))
-    })? {
+    for entry in std::fs::read_dir(dir)
+        .map_err(|err| BijuxError::Io(format!("read dir {}: {err}", dir.display())))?
+    {
         let entry = entry?;
         let path = entry.path();
         let rel = path

@@ -141,7 +141,7 @@ impl ExecutionGraph {
         let graph = Self {
             schema_version: "bijux.execution_graph.v1".to_string(),
             contract_version: ContractVersion::v1(),
-            pipeline_id: pipeline_id.into(),
+            pipeline_id,
             planner_version: planner_version.into(),
             policy,
             deterministic_scheduler: true,
@@ -172,13 +172,14 @@ impl ExecutionGraph {
     /// # Errors
     /// Returns an error if the normalized graph fails validation.
     pub fn normalize(&self) -> Result<Self> {
-        ExecutionGraph::new(
-            self.pipeline_id.as_str(),
-            self.planner_version.clone(),
-            self.policy,
-            self.steps.clone(),
-            self.edges.clone(),
-        )
+        let mut graph = self.clone();
+        graph.steps.sort_by(|a, b| a.step_id.0.cmp(&b.step_id.0));
+        graph.edges.sort_by(|a, b| match a.from.0.cmp(&b.from.0) {
+            std::cmp::Ordering::Equal => a.to.0.cmp(&b.to.0),
+            other => other,
+        });
+        graph.validate()?;
+        Ok(graph)
     }
 
     #[must_use]
@@ -294,9 +295,7 @@ fn validate_acyclic(graph: &ExecutionGraph) -> Result<()> {
         }
     }
     if visited != graph.steps.len() {
-        return Err(BijuxError::validation(
-            "execution graph contains a cycle",
-        ));
+        return Err(BijuxError::validation("execution graph contains a cycle"));
     }
     Ok(())
 }
