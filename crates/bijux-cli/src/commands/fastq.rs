@@ -26,7 +26,15 @@ pub(crate) fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool>
             Ok(true)
         }
         Commands::Replay(args) => {
-            replay_run(&args.run_id, &args.search_root)?;
+            if let Some(manifest_path) = args.manifest.as_ref() {
+                bijux_api::v1::run::replay_manifest(manifest_path, args.verify_only)?;
+                return Ok(true);
+            }
+            let manifest_path = args
+                .search_root
+                .join(&args.run_id)
+                .join("run_manifest.json");
+            bijux_api::v1::run::replay_manifest(&manifest_path, args.verify_only)?;
             Ok(true)
         }
         Commands::Compare(args) => {
@@ -45,6 +53,14 @@ pub(crate) fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool>
             atomic_write_bytes(&path, &serde_json::to_vec_pretty(&result)?)
                 .map_err(anyhow::Error::from)?;
             render::json::print_pretty(&result)?;
+            Ok(true)
+        }
+        Commands::Policies { command } => {
+            match command {
+                PoliciesCommand::Audit { out } => {
+                    workspace_audit(out)?;
+                }
+            }
             Ok(true)
         }
         Commands::Pipelines { command } => {

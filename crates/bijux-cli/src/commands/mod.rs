@@ -5,12 +5,9 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
 use bijux_api::v1::bench::{objective_spec, Objective};
-use bijux_api::v1::run::{
-    atomic_write_bytes, load_manifests, new_run_id, replay_run, PathSpec, RunSpec,
-};
-use bijux_environment::api::{load_image_catalog, load_platform};
-use bijux_environment_qa::image_qa::run_image_qa;
-use bijux_stage_contract::{DryRunExecutor, Executor};
+use bijux_api::v1::env::{load_image_catalog, load_platform, run_image_qa};
+use bijux_api::v1::run::{atomic_write_bytes, load_manifests, new_run_id, PathSpec, RunSpec};
+use bijux_api::v1::run::{DryRunExecutor, Executor};
 use tracing::{info, warn};
 
 use bijux_api::v1::bench::fastq_banks::{
@@ -38,7 +35,7 @@ use crate::commands::cli::{
     bench_args_stats, bench_args_trim, bench_args_umi, bench_args_validate,
     fastq_cross_args_from_cli, is_bench_requested_trim, is_bench_requested_validate,
     preprocess_args_from_cli, AnalyzeCommand, BenchBamCommand, BenchCommand, BenchFastqCommand,
-    Cli, Commands, EnvCommand, FastqCommand, PipelinesCommand,
+    Cli, Commands, EnvCommand, FastqCommand, PipelinesCommand, PoliciesCommand,
 };
 use crate::commands::helpers::{
     ensure_profile_run_base_dir, load_profile_for_cli, normalize_fastq_stage_id, qc_class_label,
@@ -54,3 +51,4 @@ include!("bench.rs");
 include!("fastq.rs");
 include!("bam.rs");
 include!("other.rs");
+include!("policies.rs");

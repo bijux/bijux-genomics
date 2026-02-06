@@ -51,12 +51,29 @@ pub enum Commands {
         #[command(subcommand)]
         command: BenchCommand,
     },
+    Policies {
+        #[command(subcommand)]
+        command: PoliciesCommand,
+    },
+}
+
+#[derive(Debug, Subcommand)]
+pub enum PoliciesCommand {
+    #[command(about = "Audit workspace boundaries and output a DOT graph.")]
+    Audit {
+        #[arg(long, default_value = "artifacts/workspace")]
+        out: PathBuf,
+    },
 }
 #[derive(Debug, Args)]
 pub struct ReplayArgs {
     pub run_id: String,
     #[arg(long, default_value = "artifacts/bench")]
     pub search_root: PathBuf,
+    #[arg(long)]
+    pub manifest: Option<PathBuf>,
+    #[arg(long)]
+    pub verify_only: bool,
 }
 
 #[derive(Debug, Args)]
