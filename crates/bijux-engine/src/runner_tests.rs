@@ -1,3 +1,4 @@
+//! Owner: bijux-engine
 #![allow(clippy::expect_used)]
 
 use std::cell::RefCell;
@@ -71,7 +72,7 @@ fn plan_for(stage_id: &str) -> ExecutionStep {
                 PathBuf::from("input"),
                 ArtifactRole::Unknown,
             )],
-            outputs: vec![ArtifactRef::required(
+            outputs: vec![ArtifactRef::optional(
                 "output",
                 PathBuf::from("output"),
                 ArtifactRole::Unknown,
@@ -139,7 +140,7 @@ fn execute_plan_stops_on_failure() {
     runner.fail_first.borrow_mut().push("A".to_string());
     let options = ExecutionOptions { retries: 0 };
     let err = execute_plan(&plan, &runner, &options).expect_err("expected failure");
-    assert!(err.to_string().contains("stage failed"));
+    assert!(err.to_string().contains("step failed"));
     let calls = runner.calls.borrow().clone();
     assert_eq!(calls.len(), 1);
     assert!(calls[0].starts_with("A:"));

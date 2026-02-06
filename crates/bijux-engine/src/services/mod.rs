@@ -1,7 +1,11 @@
 //! Owner: bijux-engine
-//! Execution services and IO boundaries.
+//! Engine service modules.
+
+pub mod runtime;
+
+pub use runtime::EngineServices;
 
 #[allow(dead_code)]
-pub(crate) fn module_id() -> &'static str {
-    "services"
+pub fn default_services() -> EngineServices {
+    EngineServices
 }
