@@ -343,5 +343,5 @@ pub fn stage_contract_json(stage_id: &str) -> Option<serde_json::Value> {
 pub fn stage_contract_hash(stage_id: &str) -> Option<anyhow::Result<String>> {
     let json = stage_contract_json(stage_id)?;
     let canonical = canonicalize_json_value(&json);
-    Some(params_hash(&canonical))
+    Some(params_hash(&canonical).map_err(anyhow::Error::from))
 }

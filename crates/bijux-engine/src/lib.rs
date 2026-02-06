@@ -24,7 +24,7 @@ use bijux_core::execution::execution_graph::ExecutionGraph;
 use bijux_runtime::Runner;
 
 pub fn validate(graph: &ExecutionGraph) -> Result<()> {
-    graph.validate_strict()
+    Ok(graph.validate_strict()?)
 }
 
 pub fn execute(graph: &ExecutionGraph, services: &RuntimeServices<'_>) -> Result<RunRecordV1> {

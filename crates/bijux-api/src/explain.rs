@@ -49,7 +49,11 @@ impl PlanExplainV1 {
                 command: step.command.template.clone(),
                 inputs: step.io.inputs.clone(),
                 outputs: step.io.outputs.clone(),
-                expected_artifact_ids: step.expected_artifact_ids.clone(),
+                expected_artifact_ids: step
+                    .expected_artifact_ids
+                    .iter()
+                    .map(|artifact| artifact.to_string())
+                    .collect(),
                 metrics_schema_ids: step.metrics_schema_ids.clone(),
             })
             .collect();
