@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use anyhow::Result;
-use bijux_core::ArtifactId;
+use bijux_core::prelude::{ArtifactId, ArtifactRole};
 use bijux_stage_contract::{ArtifactRef, StagePlanV1};
 
 #[must_use]
@@ -19,21 +19,21 @@ pub fn audit_outputs(stage: bijux_domain_bam::BamStage, out_dir: &Path) -> Vec<A
         .collect()
 }
 
-fn role_for_artifact_name(name: &str) -> bijux_core::ArtifactRole {
+fn role_for_artifact_name(name: &str) -> ArtifactRole {
     let name = name.to_ascii_lowercase();
     if name.contains("bam") {
-        return bijux_core::ArtifactRole::Bam;
+        return ArtifactRole::Bam;
     }
     if name.contains("bai") || name.contains("index") || name.ends_with("_idx") {
-        return bijux_core::ArtifactRole::Index;
+        return ArtifactRole::Index;
     }
     if name.contains("metrics") {
-        return bijux_core::ArtifactRole::MetricsJson;
+        return ArtifactRole::MetricsJson;
     }
     if name.contains("report") || name.contains("summary") || name.contains("flagstat") {
-        return bijux_core::ArtifactRole::ReportJson;
+        return ArtifactRole::ReportJson;
     }
-    bijux_core::ArtifactRole::Unknown
+    ArtifactRole::Unknown
 }
 
 /// # Errors

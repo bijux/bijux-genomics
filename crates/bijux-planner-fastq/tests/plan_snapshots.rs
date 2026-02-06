@@ -1,8 +1,8 @@
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 
-use bijux_core::execution::PlanPolicy;
-use bijux_core::{
+use bijux_core::contract::PlanPolicy;
+use bijux_core::prelude::{
     CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
 };
 use bijux_planner_fastq::{

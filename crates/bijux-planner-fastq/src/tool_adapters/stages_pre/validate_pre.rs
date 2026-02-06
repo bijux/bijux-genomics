@@ -1,8 +1,8 @@
 use std::path::Path;
 
 use anyhow::{anyhow, Context, Result};
-use bijux_core::primitives::measure::SeqkitMetrics;
-use bijux_core::{ArtifactId, StageId, StageVersion, ToolExecutionSpecV1};
+use bijux_core::foundation::measure::SeqkitMetrics;
+use bijux_core::prelude::{ArtifactId, ArtifactRole, StageId, StageVersion, ToolExecutionSpecV1};
 use bijux_domain_fastq::params::{validate::ValidateEffectiveParams, PairedMode};
 use bijux_domain_fastq::STAGE_VALIDATE_PRE;
 use bijux_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
@@ -42,12 +42,12 @@ pub fn plan(tool: &ToolExecutionSpecV1, r1: &Path, out_dir: &Path) -> StagePlanV
             inputs: vec![ArtifactRef::required(
                 ArtifactId::from_static("reads_r1"),
                 r1.to_path_buf(),
-                bijux_core::ArtifactRole::Reads,
+                ArtifactRole::Reads,
             )],
             outputs: vec![ArtifactRef::required(
                 ArtifactId::from_static("validation_report"),
                 out_dir.join("validation.json"),
-                bijux_core::ArtifactRole::ReportJson,
+                ArtifactRole::ReportJson,
             )],
         },
         out_dir: out_dir.to_path_buf(),
@@ -136,7 +136,7 @@ fn parse_fastqvalidator_count(stdout: &str) -> Result<u64> {
 mod tests {
     use super::{parse_fastqvalidator_count, validate_reads_total};
     use anyhow::Result;
-    use bijux_core::primitives::measure::SeqkitMetrics;
+    use bijux_core::foundation::measure::SeqkitMetrics;
 
     #[test]
     fn validate_reads_total_uses_input_for_fastqc() -> Result<()> {

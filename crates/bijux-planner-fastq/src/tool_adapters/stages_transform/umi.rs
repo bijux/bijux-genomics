@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use anyhow::{anyhow, Result};
-use bijux_core::{ArtifactId, StageId, StageVersion, ToolExecutionSpecV1};
+use bijux_core::prelude::{ArtifactId, ArtifactRole, StageId, StageVersion, ToolExecutionSpecV1};
 use bijux_domain_fastq::params::{validate::ValidateEffectiveParams, PairedMode};
 use bijux_domain_fastq::STAGE_UMI;
 use bijux_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
@@ -46,24 +46,24 @@ pub fn plan_umi(
                 ArtifactRef::required(
                     ArtifactId::from_static("reads_r1"),
                     r1.to_path_buf(),
-                    bijux_core::ArtifactRole::Reads,
+                    ArtifactRole::Reads,
                 ),
                 ArtifactRef::required(
                     ArtifactId::from_static("reads_r2"),
                     r2.to_path_buf(),
-                    bijux_core::ArtifactRole::Reads,
+                    ArtifactRole::Reads,
                 ),
             ],
             outputs: vec![
                 ArtifactRef::required(
                     ArtifactId::from_static("dedup_reads_r1"),
                     output_r1.clone(),
-                    bijux_core::ArtifactRole::Reads,
+                    ArtifactRole::Reads,
                 ),
                 ArtifactRef::required(
                     ArtifactId::from_static("dedup_reads_r2"),
                     output_r2.clone(),
-                    bijux_core::ArtifactRole::Reads,
+                    ArtifactRole::Reads,
                 ),
             ],
         },

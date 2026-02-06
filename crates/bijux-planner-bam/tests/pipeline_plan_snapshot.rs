@@ -2,7 +2,7 @@ use std::fs;
 use std::path::Path;
 
 use anyhow::Result;
-use bijux_core::{
+use bijux_core::prelude::{
     CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
 };
 use bijux_stage_contract::StagePlanJsonV1 as StagePlanJson;

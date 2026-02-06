@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use anyhow::Result;
-use bijux_core::{ArtifactId, StageId, StageVersion, ToolExecutionSpecV1};
+use bijux_core::prelude::{ArtifactId, ArtifactRole, StageId, StageVersion, ToolExecutionSpecV1};
 use bijux_domain_fastq::params::{validate::ValidateEffectiveParams, PairedMode};
 use bijux_domain_fastq::STAGE_STATS_NEUTRAL;
 use bijux_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
@@ -35,12 +35,12 @@ pub fn plan_stats_neutral(
             inputs: vec![ArtifactRef::required(
                 ArtifactId::from_static("reads_r1"),
                 r1.to_path_buf(),
-                bijux_core::ArtifactRole::Reads,
+                ArtifactRole::Reads,
             )],
             outputs: vec![ArtifactRef::required(
                 ArtifactId::from_static("stats_json"),
                 out_dir.join("stats.json"),
-                bijux_core::ArtifactRole::MetricsJson,
+                ArtifactRole::MetricsJson,
             )],
         },
         out_dir: out_dir.to_path_buf(),
