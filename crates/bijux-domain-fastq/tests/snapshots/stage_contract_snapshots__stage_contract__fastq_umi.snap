@@ -1,0 +1,44 @@
+---
+source: crates/bijux-domain-fastq/tests/stage_contract_snapshots.rs
+expression: json
+---
+{
+  "inputs": {
+    "kind": "PairedEnd"
+  },
+  "metrics": {
+    "classes": [
+      "Integrity",
+      "Retention"
+    ],
+    "invariants": [
+      "reads_out <= reads_in",
+      "dedup_rate in [0, 1]",
+      "counts are non-negative"
+    ],
+    "notes": "UMI processing may drop reads during deduplication."
+  },
+  "outputs": {
+    "emits_fastq": true,
+    "kind": "PairedEnd"
+  },
+  "retention": {
+    "definition": "reads_out / reads_in; bases_out / bases_in",
+    "may_drop": [
+      "reads",
+      "pairs",
+      "bases"
+    ],
+    "may_drop_reads": true,
+    "must_preserve_pairing": true,
+    "preserves": [
+      "pairing_metadata"
+    ],
+    "units": "reads,bases"
+  },
+  "schema_version": "bijux.stage_contract.v1",
+  "stage_id": "fastq.umi",
+  "tool_ids": [
+    "umi_tools"
+  ]
+}

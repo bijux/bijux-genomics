@@ -15,9 +15,9 @@ pub mod types;
 
 pub use invariants::bam_invariant_specs;
 pub use stage_specs::{
-    contract_for_stage, required_audit_artifacts, stage_spec, stage_specs, ArtifactPolicy,
-    AuditArtifact, BamArtifactKind, BamStage, BamStageContract, BamStageSpec, StageSpec,
-    STAGE_PREFIX,
+    contract_for_stage, required_audit_artifacts, stage_contract_hash, stage_contract_json,
+    stage_spec, stage_specs, ArtifactPolicy, AuditArtifact, BamArtifactKind, BamStage,
+    BamStageContract, BamStageSpec, StageSpec, STAGE_PREFIX,
 };
 
 #[allow(clippy::struct_excessive_bools)]
