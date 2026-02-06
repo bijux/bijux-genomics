@@ -4,10 +4,13 @@ use std::path::PathBuf;
 use anyhow::{anyhow, Result};
 use bijux_analyze::load::sqlite::BenchResultsRepository;
 use bijux_core::contract::PipelineSpec;
-use bijux_core::plan::execution_plan::{default_edges_for_stages, ExecutionPlan, PlanPolicy};
+use bijux_core::plan::execution_graph::{ExecutionEdge, ExecutionGraph, ExecutionStep};
+use bijux_core::plan::execution_plan::default_edges_for_stages;
+use bijux_core::plan::PlanPolicy;
 use bijux_core::primitives::input_assessment::{assess_input_dir, FastqLayout};
 use bijux_core::{
-    ContainerImageRefV1, PlanDecisionReason, PlanReasonKind, StagePlanV1, ToolExecutionSpecV1,
+    ContainerImageRefV1, PlanDecisionReason, PlanReasonKind, StageId, StagePlanV1,
+    ToolExecutionSpecV1,
 };
 use bijux_domain_bam::BamStage;
 use bijux_domain_fastq::stage_registry::{
@@ -19,8 +22,18 @@ use bijux_domain_fastq::{assess_merge_suitability, canonical_stage_order};
 use bijux_pipelines::fastq::canonical_tool_defaults;
 
 pub const PLANNER_VERSION: &str = "bijux-planner-fastq.v1";
+pub const TOOL_SEQKIT: &str = "seqkit";
+
+pub mod args;
+pub mod tool_adapters;
+mod tool_registry;
 
 pub mod stage_api {
+    pub use crate::args;
+    pub use crate::tool_adapters::fastq;
+    pub use crate::tool_adapters::fastq::StageInfo;
+    pub use crate::tool_registry::{allowed_tools_for_stage, default_tool_for_stage};
+    pub use crate::TOOL_SEQKIT;
     pub use bijux_core::primitives::RawFailure;
     pub use bijux_domain_fastq::banks;
     pub use bijux_domain_fastq::banks::{
@@ -30,18 +43,14 @@ pub mod stage_api {
         resolve_polyx_selection, AdapterSelection, DEFAULT_ADAPTER_PRESET,
         DEFAULT_CONTAMINANT_PRESET, DEFAULT_POLYX_PRESET,
     };
-    pub use bijux_domain_fastq::*;
-    pub use bijux_stages_fastq::args;
-    pub use bijux_stages_fastq::observer;
-    pub use bijux_stages_fastq::{
+    pub use bijux_domain_fastq::{
         ensure_umi_headers, inspect_headers, log_header_warnings, preflight_stage, FastqArtifact,
-        FastqArtifactKind, StagePlanJson, TOOL_SEQKIT,
+        FastqArtifactKind,
     };
-    pub mod fastq {
-        pub use bijux_stages_fastq::fastq::*;
-    }
+    pub use bijux_stages_fastq::stage_specs::*;
+    pub type StagePlanJson = bijux_core::StagePlanJsonV1;
     pub fn adapter_bank_path() -> std::path::PathBuf {
-        bijux_stages_fastq::adapter_bank_path()
+        bijux_domain_fastq::adapter_bank_path()
     }
 }
 
@@ -178,9 +187,7 @@ pub struct CorrectDecisionTrace {
 }
 
 #[must_use]
-pub fn preprocess_decisions(
-    args: &bijux_stages_fastq::args::BenchFastqPreprocessArgs,
-) -> PreprocessDecisions {
+pub fn preprocess_decisions(args: &crate::args::BenchFastqPreprocessArgs) -> PreprocessDecisions {
     let mut merge_decision = None;
     let enable_merge = if let Some(r2) = args.r2.as_ref() {
         if args.force_merge {
@@ -297,10 +304,10 @@ pub fn preprocess_decisions(
 
 #[must_use]
 pub fn plan_preprocess(
-    args: &bijux_stages_fastq::args::BenchFastqPreprocessArgs,
+    args: &crate::args::BenchFastqPreprocessArgs,
     pipeline: PipelineSpec,
-) -> bijux_stages_fastq::fastq::preprocess::PreprocessPlan {
-    bijux_stages_fastq::fastq::preprocess::PreprocessPlan {
+) -> crate::tool_adapters::fastq::preprocess::PreprocessPlan {
+    crate::tool_adapters::fastq::preprocess::PreprocessPlan {
         r1: args.r1.clone(),
         r2: args.r2.clone(),
         stages: pipeline.stages,
@@ -310,7 +317,7 @@ pub fn plan_preprocess(
 
 #[must_use]
 pub fn resolve_preprocess_pipeline(
-    args: &bijux_stages_fastq::args::BenchFastqPreprocessArgs,
+    args: &crate::args::BenchFastqPreprocessArgs,
     decisions: &PreprocessDecisions,
 ) -> PipelineSpec {
     let enable_merge = decisions.enable_merge;
@@ -401,7 +408,7 @@ pub struct FastqPlanner;
 impl FastqPlanner {
     /// # Errors
     /// Returns an error if planning fails or the plan lint fails.
-    pub fn plan(config: &FastqPlanConfig) -> Result<ExecutionPlan> {
+    pub fn plan(config: &FastqPlanConfig) -> Result<ExecutionGraph> {
         if config.stages.len() != config.tools.len() {
             return Err(anyhow!(
                 "pipeline stages/tools length mismatch: {} vs {}",
@@ -427,12 +434,20 @@ impl FastqPlanner {
             },
         )?;
         let edges = default_edges_for_stages(&plans);
-        ExecutionPlan::new(
+        ExecutionGraph::new(
             config.pipeline_id.clone(),
             PLANNER_VERSION,
             config.policy,
-            plans,
-            edges,
+            plans.iter().map(ExecutionStep::from).collect(),
+            edges
+                .into_iter()
+                .map(|edge| {
+                    ExecutionEdge::new(
+                        StageId::new(edge.from().to_string()),
+                        StageId::new(edge.to().to_string()),
+                    )
+                })
+                .collect(),
         )
     }
 }
@@ -458,7 +473,7 @@ pub struct FastqPipelineInputs {
 pub fn plan_fastq_to_fastq__default__v1(
     inputs: &FastqPipelineInputs,
     options: DefaultPipelineOptions,
-) -> Result<ExecutionPlan> {
+) -> Result<ExecutionGraph> {
     let pipeline = default_pipeline_spec(options);
     let config = FastqPlanConfig {
         pipeline_id: "fastq-to-fastq__default__v1".to_string(),
@@ -484,14 +499,22 @@ pub fn plan_fastq_to_fastq__default__v1(
 pub fn plan_fastq_to_bam__default__v1(
     stages: Vec<StagePlanV1>,
     policy: PlanPolicy,
-) -> Result<ExecutionPlan> {
+) -> Result<ExecutionGraph> {
     let edges = default_edges_for_stages(&stages);
-    ExecutionPlan::new(
+    ExecutionGraph::new(
         "fastq-to-bam__default__v1",
         PLANNER_VERSION,
         policy,
-        stages,
-        edges,
+        stages.iter().map(ExecutionStep::from).collect(),
+        edges
+            .into_iter()
+            .map(|edge| {
+                ExecutionEdge::new(
+                    StageId::new(edge.from().to_string()),
+                    StageId::new(edge.to().to_string()),
+                )
+            })
+            .collect(),
     )
 }
 
@@ -549,11 +572,11 @@ where
         let (plan, next_r1, next_r2) = match stage_id {
             stage if stage == STAGE_DETECT_ADAPTERS.as_str() => {
                 let plan =
-                    bijux_stages_fastq::fastq::detect_adapters::plan(tool, &current_r1, &out_dir);
+                    crate::tool_adapters::fastq::detect_adapters::plan(tool, &current_r1, &out_dir);
                 (plan, current_r1.clone(), current_r2.clone())
             }
             stage if stage == STAGE_TRIM.as_str() => {
-                let plan = bijux_stages_fastq::fastq::trim::plan(
+                let plan = crate::tool_adapters::fastq::trim::plan(
                     tool,
                     &current_r1,
                     &out_dir,
@@ -566,7 +589,7 @@ where
             }
             stage if stage == STAGE_FILTER.as_str() => {
                 let mut filter_options =
-                    bijux_stages_fastq::fastq::filter::FilterPlanOptions::default();
+                    crate::tool_adapters::fastq::filter::FilterPlanOptions::default();
                 if adapter_bank.is_some() {
                     filter_options.redundant_filters.push("adapter".to_string());
                 }
@@ -574,9 +597,10 @@ where
                     filter_options.redundant_filters.push("polyx".to_string());
                 }
                 if enable_contaminant_removal && contaminant_bank.is_some() {
-                    filter_options.kmer_ref = bijux_stages_fastq::fastq::filter::default_kmer_ref();
+                    filter_options.kmer_ref =
+                        crate::tool_adapters::fastq::filter::default_kmer_ref();
                 }
-                let plan = bijux_stages_fastq::fastq::filter::plan_filter(
+                let plan = crate::tool_adapters::fastq::filter::plan_filter(
                     tool,
                     &current_r1,
                     &out_dir,
@@ -587,15 +611,19 @@ where
             }
             stage if stage == STAGE_VALIDATE_PRE.as_str() => {
                 let plan =
-                    bijux_stages_fastq::fastq::validate_pre::plan(tool, &current_r1, &out_dir);
+                    crate::tool_adapters::fastq::validate_pre::plan(tool, &current_r1, &out_dir);
                 (plan, current_r1.clone(), current_r2.clone())
             }
             stage if stage == STAGE_MERGE.as_str() => {
                 let r2 = current_r2
                     .as_ref()
                     .ok_or_else(|| anyhow!("merge requires r2"))?;
-                let plan =
-                    bijux_stages_fastq::fastq::merge::plan_merge(tool, &current_r1, r2, &out_dir)?;
+                let plan = crate::tool_adapters::fastq::merge::plan_merge(
+                    tool,
+                    &current_r1,
+                    r2,
+                    &out_dir,
+                )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
                 (plan, next_r1, None)
             }
@@ -603,7 +631,7 @@ where
                 let r2 = current_r2
                     .as_ref()
                     .ok_or_else(|| anyhow!("correct requires r2"))?;
-                let plan = bijux_stages_fastq::fastq::correct::plan_correct(
+                let plan = crate::tool_adapters::fastq::correct::plan_correct(
                     tool,
                     &current_r1,
                     r2,
@@ -618,7 +646,7 @@ where
                     .as_ref()
                     .ok_or_else(|| anyhow!("umi requires r2"))?;
                 let plan =
-                    bijux_stages_fastq::fastq::umi::plan_umi(tool, &current_r1, r2, &out_dir)?;
+                    crate::tool_adapters::fastq::umi::plan_umi(tool, &current_r1, r2, &out_dir)?;
                 let next_r1 = plan.io.outputs[0].path.clone();
                 let next_r2 = plan.io.outputs[1].path.clone();
                 (plan, next_r1, Some(next_r2))
@@ -626,13 +654,13 @@ where
             stage if stage == STAGE_QC_POST.as_str() => {
                 let mut stage_aux_images = std::collections::BTreeMap::new();
                 if tool.tool_id.0 == "multiqc" {
-                    for aux_tool in bijux_stages_fastq::fastq::qc_post::aux_tool_ids() {
+                    for aux_tool in crate::tool_adapters::fastq::qc_post::aux_tool_ids() {
                         if let Some(image) = aux_images.get(*aux_tool) {
                             stage_aux_images.insert(aux_tool.to_string(), image.clone());
                         }
                     }
                 }
-                let plan = bijux_stages_fastq::fastq::qc_post::plan_qc_post(
+                let plan = crate::tool_adapters::fastq::qc_post::plan_qc_post(
                     tool,
                     &current_r1,
                     &out_dir,
@@ -643,11 +671,11 @@ where
             }
             stage if stage == STAGE_SCREEN.as_str() => {
                 let plan =
-                    bijux_stages_fastq::fastq::screen::plan_screen(tool, &current_r1, &out_dir)?;
+                    crate::tool_adapters::fastq::screen::plan_screen(tool, &current_r1, &out_dir)?;
                 (plan, current_r1.clone(), current_r2.clone())
             }
             stage if stage == STAGE_STATS_NEUTRAL.as_str() => {
-                let plan = bijux_stages_fastq::fastq::stats_neutral::plan_stats_neutral(
+                let plan = crate::tool_adapters::fastq::stats_neutral::plan_stats_neutral(
                     tool,
                     &current_r1,
                     &out_dir,
@@ -687,7 +715,7 @@ pub struct ToolSelection {
 pub fn select_preprocess_tools(
     registry: &bijux_core::contract::ToolRegistry,
     pipeline: &PipelineSpec,
-    args: &bijux_stages_fastq::args::BenchFastqPreprocessArgs,
+    args: &crate::args::BenchFastqPreprocessArgs,
 ) -> Result<Vec<ToolSelection>> {
     let defaults = canonical_tool_defaults();
     let mut selected_tools: Vec<ToolSelection> = pipeline
@@ -718,7 +746,7 @@ pub fn select_preprocess_tools(
         let corpus_id = args
             .bench_corpus
             .ok_or_else(|| anyhow!("--bench-corpus is required with --auto"))?;
-        let corpus = bijux_stages_fastq::bench_corpus(corpus_id);
+        let corpus = bijux_domain_fastq::bench_corpus(corpus_id);
         let objective = bijux_core::selection::objective_spec(args.objective);
         let repo = bijux_analyze::load::sqlite::SqliteBenchResultsRepository::new(args.out.clone());
         let mut selections = Vec::new();

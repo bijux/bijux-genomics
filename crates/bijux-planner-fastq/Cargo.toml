@@ -16,4 +16,5 @@ bijux-stages-fastq = { path = "../bijux-stages-fastq" }
 
 [dev-dependencies]
 bijux-policies = { path = "../bijux-policies" }
+bijux-infra = { path = "../bijux-infra" }
 insta = { version = "1", features = ["json"] }
