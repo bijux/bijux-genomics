@@ -3,7 +3,7 @@ use std::time::Duration;
 
 use anyhow::Result;
 
-use bijux_core::execution::execution_graph::ExecutionStep;
+use bijux_core::contract::ExecutionStep;
 
 #[derive(Debug, Clone)]
 pub struct Invocation {

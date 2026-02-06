@@ -3,9 +3,9 @@ use std::collections::{HashMap, HashSet};
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 
+use bijux_core::contract::PlanPolicy;
 use bijux_core::contract::{ArtifactRef, ToolConstraints};
-use bijux_core::execution::policy::PlanPolicy;
-use bijux_core::primitives::ContainerImageRefV1;
+use bijux_core::foundation::ContainerImageRefV1;
 
 use crate::stage_plan::{PlanDecisionReason, StagePlanV1};
 use sha2::Digest;
@@ -224,7 +224,7 @@ impl ExecutionPlan {
     /// Returns an error if canonical JSON serialization fails.
     pub fn canonical_json(&self) -> Result<serde_json::Value> {
         let value = serde_json::to_value(self)?;
-        Ok(bijux_core::primitives::hashing::canonicalize_json_value(
+        Ok(bijux_core::contract::canonical::canonicalize_json_value(
             &value,
         ))
     }

@@ -8,10 +8,10 @@ use sha2::Digest;
 use bijux_infra::bench_tools_dir;
 
 use crate::StageObservabilityContextV1;
-use bijux_core::execution::execution_graph::ExecutionGraph;
+use bijux_core::contract::{ContractVersion, ExecutionGraph};
+use bijux_core::foundation::hashing::{input_fingerprint, params_hash};
+use bijux_core::foundation::CacheKey;
 use bijux_core::metrics::{MetricsEnvelope, ToolInvocationV1};
-use bijux_core::primitives::hashing::{input_fingerprint, params_hash};
-use bijux_core::primitives::CacheKey;
 use serde::Serialize;
 
 #[derive(Debug)]
@@ -244,7 +244,7 @@ pub fn write_run_manifest(
         .context("write errors.json")?;
     bijux_infra::atomic_write_bytes(&telemetry_dir.join("events.jsonl"), b"")
         .context("write events.jsonl")?;
-    let payload = bijux_core::primitives::to_canonical_json_bytes(&payload)?;
+    let payload = bijux_core::contract::canonical::to_canonical_json_bytes(&payload)?;
     bijux_infra::atomic_write_bytes(&run_dirs.run_manifest_path, payload.as_slice())
         .context("write run_manifest.json")?;
     Ok(())
@@ -287,7 +287,7 @@ pub fn write_plan_provenance(run_dir: &Path, plan: &ExecutionGraph) -> Result<Pa
             "effective_params": params.clone(),
         });
         let params_provenance_normalized =
-            bijux_core::primitives::hashing::canonicalize_json_value(&params_provenance);
+            bijux_core::contract::canonical::canonicalize_json_value(&params_provenance);
         invocations.push(ToolInvocationV1 {
             schema_version: "bijux.tool_invocation.v1".to_string(),
             contract_version: bijux_core::contract::ContractVersion::v1(),
@@ -451,7 +451,7 @@ fn truncate_tail(text: &str, tail_kb: usize) -> String {
 /// Returns an error if metrics JSON cannot be written.
 pub fn write_metrics_json<T: serde::Serialize>(
     run_dirs: &RunDirs,
-    execution: &bijux_core::primitives::measure::ExecutionMetrics,
+    execution: &bijux_core::foundation::measure::ExecutionMetrics,
     metrics: &bijux_core::metrics::MetricEnvelope<T>,
 ) -> Result<()> {
     let payload = serde_json::json!({
@@ -478,6 +478,7 @@ pub fn write_metrics_envelope(
 ) -> Result<PathBuf> {
     let payload: MetricsEnvelope<serde_json::Value> = MetricsEnvelope {
         schema_version: "bijux.metrics_envelope.v2".to_string(),
+        contract_version: ContractVersion::v1(),
         stage_id: ctx.stage_id.clone(),
         stage_version: ctx.stage_version,
         tool_id: ctx.tool_id.clone(),
