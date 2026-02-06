@@ -12,7 +12,7 @@ pub use stage_plan::*;
 #[allow(unused_imports)]
 pub use stage_plugin::*;
 
-use bijux_core::execution::execution_graph::ExecutionStep;
+use bijux_core::contract::ExecutionStep;
 use bijux_core::ids::StepId;
 
 #[must_use]

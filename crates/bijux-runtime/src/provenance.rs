@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use bijux_core::contract::{ScientificProvenanceV1, ToolProvenanceV1};
+use bijux_core::contract::{ContractVersion, ScientificProvenanceV1, ToolProvenanceV1};
 use bijux_core::metrics::ToolInvocationV1;
 
 #[must_use]
@@ -47,6 +47,7 @@ pub fn build_scientific_provenance(
     tools.sort_by(|a, b| a.stage_id.cmp(&b.stage_id).then(a.tool_id.cmp(&b.tool_id)));
     ScientificProvenanceV1 {
         schema_version: "bijux.scientific_provenance.v1".to_string(),
+        contract_version: ContractVersion::v1(),
         pipeline_id,
         planner_version,
         tools,
