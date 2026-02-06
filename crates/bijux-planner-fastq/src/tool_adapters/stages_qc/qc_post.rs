@@ -48,14 +48,16 @@ pub fn plan_qc_post(
     };
     let outputs = if tool.tool_id.0 == "multiqc" {
         vec![
-            ArtifactRef {
-                name: "multiqc_report".to_string(),
-                path: out_dir.join("multiqc_report.html"),
-            },
-            ArtifactRef {
-                name: "multiqc_data".to_string(),
-                path: out_dir.join("multiqc_data"),
-            },
+            ArtifactRef::optional(
+                "multiqc_report",
+                out_dir.join("multiqc_report.html"),
+                bijux_core::ArtifactRole::ReportHtml,
+            ),
+            ArtifactRef::optional(
+                "multiqc_data",
+                out_dir.join("multiqc_data"),
+                bijux_core::ArtifactRole::Index,
+            ),
         ]
     } else {
         Vec::new()
@@ -69,10 +71,11 @@ pub fn plan_qc_post(
         command: tool.command.clone(),
         resources: tool.resources.clone(),
         io: StageIO {
-            inputs: vec![ArtifactRef {
-                name: "reads_r1".to_string(),
-                path: r1.to_path_buf(),
-            }],
+            inputs: vec![ArtifactRef::required(
+                "reads_r1",
+                r1.to_path_buf(),
+                bijux_core::ArtifactRole::Reads,
+            )],
             outputs,
         },
         out_dir: out_dir.to_path_buf(),

@@ -23,14 +23,16 @@ pub fn plan(tool: &ToolExecutionSpecV1, r1: &Path, out_dir: &Path) -> StagePlanV
         command: tool.command.clone(),
         resources: tool.resources.clone(),
         io: StageIO {
-            inputs: vec![ArtifactRef {
-                name: "reads_r1".to_string(),
-                path: r1.to_path_buf(),
-            }],
-            outputs: vec![ArtifactRef {
-                name: "fastqc_dir".to_string(),
-                path: out_dir.join("fastqc"),
-            }],
+            inputs: vec![ArtifactRef::required(
+                "reads_r1",
+                r1.to_path_buf(),
+                bijux_core::ArtifactRole::Reads,
+            )],
+            outputs: vec![ArtifactRef::required(
+                "fastqc_dir",
+                out_dir.join("fastqc"),
+                bijux_core::ArtifactRole::Index,
+            )],
         },
         out_dir: out_dir.to_path_buf(),
         params: serde_json::json!({

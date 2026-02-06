@@ -42,14 +42,16 @@ pub fn plan_screen(tool: &ToolExecutionSpecV1, r1: &Path, out_dir: &Path) -> Res
         command: tool.command.clone(),
         resources: tool.resources.clone(),
         io: StageIO {
-            inputs: vec![ArtifactRef {
-                name: "reads_r1".to_string(),
-                path: r1.to_path_buf(),
-            }],
-            outputs: vec![ArtifactRef {
-                name: "screen_report_tsv".to_string(),
-                path: report.clone(),
-            }],
+            inputs: vec![ArtifactRef::required(
+                "reads_r1",
+                r1.to_path_buf(),
+                bijux_core::ArtifactRole::Reads,
+            )],
+            outputs: vec![ArtifactRef::required(
+                "screen_report_tsv",
+                report.clone(),
+                bijux_core::ArtifactRole::ReportJson,
+            )],
         },
         out_dir: out_dir.to_path_buf(),
         params: serde_json::json!({

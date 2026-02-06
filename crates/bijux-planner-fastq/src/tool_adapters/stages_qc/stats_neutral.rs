@@ -32,14 +32,16 @@ pub fn plan_stats_neutral(
         command: tool.command.clone(),
         resources: tool.resources.clone(),
         io: StageIO {
-            inputs: vec![ArtifactRef {
-                name: "reads_r1".to_string(),
-                path: r1.to_path_buf(),
-            }],
-            outputs: vec![ArtifactRef {
-                name: "stats_json".to_string(),
-                path: out_dir.join("stats.json"),
-            }],
+            inputs: vec![ArtifactRef::required(
+                "reads_r1",
+                r1.to_path_buf(),
+                bijux_core::ArtifactRole::Reads,
+            )],
+            outputs: vec![ArtifactRef::required(
+                "stats_json",
+                out_dir.join("stats.json"),
+                bijux_core::ArtifactRole::MetricsJson,
+            )],
         },
         out_dir: out_dir.to_path_buf(),
         params: serde_json::json!({

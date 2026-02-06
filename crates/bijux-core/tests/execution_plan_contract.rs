@@ -1,4 +1,4 @@
-use bijux_core::contract::{ArtifactRef, StageIO, ToolConstraints};
+use bijux_core::contract::{ArtifactRef, ArtifactRole, StageIO, ToolConstraints};
 use bijux_core::plan::execution_graph::{ExecutionEdge, ExecutionGraph, ExecutionStep};
 use bijux_core::plan::PlanPolicy;
 use bijux_core::{CommandSpecV1, ContainerImageRefV1, StageId};
@@ -26,14 +26,16 @@ fn execution_plan_roundtrip_is_canonical() -> anyhow::Result<()> {
                 threads: 2,
             },
             io: StageIO {
-                inputs: vec![ArtifactRef {
-                    name: "r1".to_string(),
-                    path: "/data/input.fastq.gz".into(),
-                }],
-                outputs: vec![ArtifactRef {
-                    name: "trimmed".to_string(),
-                    path: "/data/trimmed.fastq.gz".into(),
-                }],
+                inputs: vec![ArtifactRef::required(
+                    "r1",
+                    "/data/input.fastq.gz".into(),
+                    ArtifactRole::Reads,
+                )],
+                outputs: vec![ArtifactRef::required(
+                    "trimmed",
+                    "/data/trimmed.fastq.gz".into(),
+                    ArtifactRole::TrimmedReads,
+                )],
             },
             out_dir: "/tmp/out".into(),
             aux_images: std::collections::BTreeMap::new(),
@@ -68,14 +70,16 @@ fn execution_plan_roundtrip_is_canonical() -> anyhow::Result<()> {
                     threads: 2,
                 },
                 io: StageIO {
-                    inputs: vec![ArtifactRef {
-                        name: "r1".to_string(),
-                        path: "/data/input.fastq.gz".into(),
-                    }],
-                    outputs: vec![ArtifactRef {
-                        name: "filtered".to_string(),
-                        path: "/data/filtered.fastq.gz".into(),
-                    }],
+                    inputs: vec![ArtifactRef::required(
+                        "r1",
+                        "/data/input.fastq.gz".into(),
+                        ArtifactRole::Reads,
+                    )],
+                    outputs: vec![ArtifactRef::required(
+                        "filtered",
+                        "/data/filtered.fastq.gz".into(),
+                        ArtifactRole::Reads,
+                    )],
                 },
                 out_dir: "/tmp/out".into(),
                 aux_images: std::collections::BTreeMap::new(),
@@ -98,14 +102,16 @@ fn execution_plan_roundtrip_is_canonical() -> anyhow::Result<()> {
                     threads: 2,
                 },
                 io: StageIO {
-                    inputs: vec![ArtifactRef {
-                        name: "r1".to_string(),
-                        path: "/data/input.fastq.gz".into(),
-                    }],
-                    outputs: vec![ArtifactRef {
-                        name: "trimmed".to_string(),
-                        path: "/data/trimmed.fastq.gz".into(),
-                    }],
+                    inputs: vec![ArtifactRef::required(
+                        "r1",
+                        "/data/input.fastq.gz".into(),
+                        ArtifactRole::Reads,
+                    )],
+                    outputs: vec![ArtifactRef::required(
+                        "trimmed",
+                        "/data/trimmed.fastq.gz".into(),
+                        ArtifactRole::TrimmedReads,
+                    )],
                 },
                 out_dir: "/tmp/out".into(),
                 aux_images: std::collections::BTreeMap::new(),

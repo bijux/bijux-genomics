@@ -36,10 +36,11 @@ pub mod damage {
             command: CommandSpecV1 { template: command },
             resources: tool.resources.clone(),
             io: StageIO {
-                inputs: vec![bijux_stage_contract::ArtifactRef {
-                    name: "bam".to_string(),
-                    path: bam.to_path_buf(),
-                }],
+                inputs: vec![bijux_stage_contract::ArtifactRef::required(
+                    "bam",
+                    bam.to_path_buf(),
+                    bijux_core::ArtifactRole::Bam,
+                )],
                 outputs,
             },
             out_dir: out_dir.to_path_buf(),
@@ -97,10 +98,11 @@ pub mod authenticity {
             command: tool.command.clone(),
             resources: tool.resources.clone(),
             io: StageIO {
-                inputs: vec![bijux_stage_contract::ArtifactRef {
-                    name: "bam".to_string(),
-                    path: bam.to_path_buf(),
-                }],
+                inputs: vec![bijux_stage_contract::ArtifactRef::required(
+                    "bam",
+                    bam.to_path_buf(),
+                    bijux_core::ArtifactRole::Bam,
+                )],
                 outputs,
             },
             out_dir: out_dir.to_path_buf(),
@@ -158,10 +160,11 @@ pub mod contamination {
             },
             resources: tool.resources.clone(),
             io: StageIO {
-                inputs: vec![bijux_stage_contract::ArtifactRef {
-                    name: "bam".to_string(),
-                    path: bam.to_path_buf(),
-                }],
+                inputs: vec![bijux_stage_contract::ArtifactRef::required(
+                    "bam",
+                    bam.to_path_buf(),
+                    bijux_core::ArtifactRole::Bam,
+                )],
                 outputs,
             },
             out_dir: out_dir.to_path_buf(),
@@ -223,10 +226,11 @@ pub mod sex {
             },
             resources: tool.resources.clone(),
             io: StageIO {
-                inputs: vec![bijux_stage_contract::ArtifactRef {
-                    name: "bam".to_string(),
-                    path: bam.to_path_buf(),
-                }],
+                inputs: vec![bijux_stage_contract::ArtifactRef::required(
+                    "bam",
+                    bam.to_path_buf(),
+                    bijux_core::ArtifactRole::Bam,
+                )],
                 outputs,
             },
             out_dir: out_dir.to_path_buf(),

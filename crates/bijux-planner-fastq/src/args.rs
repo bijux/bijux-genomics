@@ -135,6 +135,7 @@ pub struct BenchFastqPreprocessArgs {
     pub objective: bijux_core::contract::Objective,
     pub bench_corpus: Option<bijux_domain_fastq::BenchCorpusId>,
     pub allow_partial: bool,
+    pub dry_run: bool,
     pub replicates: u32,
     pub jobs: u32,
     pub ci_bootstrap: Option<u32>,

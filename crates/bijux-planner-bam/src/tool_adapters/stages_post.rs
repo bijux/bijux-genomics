@@ -57,10 +57,11 @@ pub mod markdup {
             command: CommandSpecV1 { template: command },
             resources: tool.resources.clone(),
             io: StageIO {
-                inputs: vec![bijux_stage_contract::ArtifactRef {
-                    name: "bam".to_string(),
-                    path: bam.to_path_buf(),
-                }],
+                inputs: vec![bijux_stage_contract::ArtifactRef::required(
+                    "bam",
+                    bam.to_path_buf(),
+                    bijux_core::ArtifactRole::Bam,
+                )],
                 outputs,
             },
             out_dir: out_dir.to_path_buf(),
@@ -123,10 +124,11 @@ pub mod complexity {
             command: tool.command.clone(),
             resources: tool.resources.clone(),
             io: StageIO {
-                inputs: vec![bijux_stage_contract::ArtifactRef {
-                    name: "bam".to_string(),
-                    path: bam.to_path_buf(),
-                }],
+                inputs: vec![bijux_stage_contract::ArtifactRef::required(
+                    "bam",
+                    bam.to_path_buf(),
+                    bijux_core::ArtifactRole::Bam,
+                )],
                 outputs,
             },
             out_dir: out_dir.to_path_buf(),
@@ -175,10 +177,11 @@ pub mod coverage {
         let summary_path = out_dir.join("coverage.mosdepth.summary.txt");
         let command = match tool.tool_id.as_str() {
             "samtools" => {
-                outputs.push(bijux_stage_contract::ArtifactRef {
-                    name: "coverage_depth".to_string(),
-                    path: depth_path.clone(),
-                });
+                outputs.push(bijux_stage_contract::ArtifactRef::required(
+                    "coverage_depth",
+                    depth_path.clone(),
+                    bijux_core::ArtifactRole::ReportJson,
+                ));
                 crate::tool_adapters::tools::samtools::depth_args(bam, &depth_path, &summary_path)
             }
             _ => crate::tool_adapters::tools::mosdepth::args(bam, &prefix, params),
@@ -192,10 +195,11 @@ pub mod coverage {
             command: CommandSpecV1 { template: command },
             resources: tool.resources.clone(),
             io: StageIO {
-                inputs: vec![bijux_stage_contract::ArtifactRef {
-                    name: "bam".to_string(),
-                    path: bam.to_path_buf(),
-                }],
+                inputs: vec![bijux_stage_contract::ArtifactRef::required(
+                    "bam",
+                    bam.to_path_buf(),
+                    bijux_core::ArtifactRole::Bam,
+                )],
                 outputs,
             },
             out_dir: out_dir.to_path_buf(),
@@ -248,10 +252,11 @@ pub mod recalibration {
             command: tool.command.clone(),
             resources: tool.resources.clone(),
             io: StageIO {
-                inputs: vec![bijux_stage_contract::ArtifactRef {
-                    name: "bam".to_string(),
-                    path: bam.to_path_buf(),
-                }],
+                inputs: vec![bijux_stage_contract::ArtifactRef::required(
+                    "bam",
+                    bam.to_path_buf(),
+                    bijux_core::ArtifactRole::Bam,
+                )],
                 outputs,
             },
             out_dir: out_dir.to_path_buf(),

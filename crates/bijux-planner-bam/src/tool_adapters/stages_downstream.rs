@@ -29,10 +29,11 @@ pub mod haplogroups {
             command: tool.command.clone(),
             resources: tool.resources.clone(),
             io: StageIO {
-                inputs: vec![bijux_stage_contract::ArtifactRef {
-                    name: "bam".to_string(),
-                    path: bam.to_path_buf(),
-                }],
+                inputs: vec![bijux_stage_contract::ArtifactRef::required(
+                    "bam",
+                    bam.to_path_buf(),
+                    bijux_core::ArtifactRole::Bam,
+                )],
                 outputs,
             },
             out_dir: out_dir.to_path_buf(),
@@ -85,10 +86,11 @@ pub mod genotyping {
             command: tool.command.clone(),
             resources: tool.resources.clone(),
             io: StageIO {
-                inputs: vec![bijux_stage_contract::ArtifactRef {
-                    name: "bam".to_string(),
-                    path: bam.to_path_buf(),
-                }],
+                inputs: vec![bijux_stage_contract::ArtifactRef::required(
+                    "bam",
+                    bam.to_path_buf(),
+                    bijux_core::ArtifactRole::Bam,
+                )],
                 outputs,
             },
             out_dir: out_dir.to_path_buf(),
@@ -142,10 +144,11 @@ pub mod kinship {
             command: tool.command.clone(),
             resources: tool.resources.clone(),
             io: StageIO {
-                inputs: vec![bijux_stage_contract::ArtifactRef {
-                    name: "bam".to_string(),
-                    path: bam.to_path_buf(),
-                }],
+                inputs: vec![bijux_stage_contract::ArtifactRef::required(
+                    "bam",
+                    bam.to_path_buf(),
+                    bijux_core::ArtifactRole::Bam,
+                )],
                 outputs,
             },
             out_dir: out_dir.to_path_buf(),
@@ -198,10 +201,11 @@ pub mod bias_mitigation {
             command: tool.command.clone(),
             resources: tool.resources.clone(),
             io: StageIO {
-                inputs: vec![bijux_stage_contract::ArtifactRef {
-                    name: "bam".to_string(),
-                    path: bam.to_path_buf(),
-                }],
+                inputs: vec![bijux_stage_contract::ArtifactRef::required(
+                    "bam",
+                    bam.to_path_buf(),
+                    bijux_core::ArtifactRole::Bam,
+                )],
                 outputs,
             },
             out_dir: out_dir.to_path_buf(),

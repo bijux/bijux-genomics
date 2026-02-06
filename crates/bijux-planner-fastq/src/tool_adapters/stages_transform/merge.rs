@@ -43,19 +43,22 @@ pub fn plan_merge(
         resources: tool.resources.clone(),
         io: StageIO {
             inputs: vec![
-                ArtifactRef {
-                    name: "reads_r1".to_string(),
-                    path: r1.to_path_buf(),
-                },
-                ArtifactRef {
-                    name: "reads_r2".to_string(),
-                    path: r2.to_path_buf(),
-                },
+                ArtifactRef::required(
+                    "reads_r1",
+                    r1.to_path_buf(),
+                    bijux_core::ArtifactRole::Reads,
+                ),
+                ArtifactRef::required(
+                    "reads_r2",
+                    r2.to_path_buf(),
+                    bijux_core::ArtifactRole::Reads,
+                ),
             ],
-            outputs: vec![ArtifactRef {
-                name: "merged_reads".to_string(),
-                path: output.clone(),
-            }],
+            outputs: vec![ArtifactRef::required(
+                "merged_reads",
+                output.clone(),
+                bijux_core::ArtifactRole::Reads,
+            )],
         },
         out_dir: out_dir.to_path_buf(),
         params: serde_json::json!({

@@ -43,15 +43,17 @@ pub fn plan_preprocess_stage(plan: &PreprocessPlan, tool: &ToolExecutionSpecV1) 
         io: StageIO {
             inputs: {
                 let mut inputs = Vec::new();
-                inputs.push(ArtifactRef {
-                    name: "reads_r1".to_string(),
-                    path: plan.r1.clone(),
-                });
+                inputs.push(ArtifactRef::required(
+                    "reads_r1",
+                    plan.r1.clone(),
+                    bijux_core::ArtifactRole::Reads,
+                ));
                 if let Some(r2) = plan.r2.as_ref() {
-                    inputs.push(ArtifactRef {
-                        name: "reads_r2".to_string(),
-                        path: r2.clone(),
-                    });
+                    inputs.push(ArtifactRef::required(
+                        "reads_r2",
+                        r2.clone(),
+                        bijux_core::ArtifactRole::Reads,
+                    ));
                 }
                 inputs
             },

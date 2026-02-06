@@ -31,14 +31,16 @@ fn plan_for(stage_id: &str, tool_id: &str) -> StagePlanV1 {
             threads: 1,
         },
         io: bijux_stage_contract::StageIO {
-            inputs: vec![bijux_stage_contract::ArtifactRef {
-                name: "input".to_string(),
-                path: PathBuf::from("input.bam"),
-            }],
-            outputs: vec![bijux_stage_contract::ArtifactRef {
-                name: "output".to_string(),
-                path: PathBuf::from("output.bam"),
-            }],
+            inputs: vec![bijux_stage_contract::ArtifactRef::required(
+                "input",
+                PathBuf::from("input.bam"),
+                bijux_core::contract::ArtifactRole::Bam,
+            )],
+            outputs: vec![bijux_stage_contract::ArtifactRef::required(
+                "output",
+                PathBuf::from("output.bam"),
+                bijux_core::contract::ArtifactRole::Bam,
+            )],
         },
         out_dir: PathBuf::from("out"),
         params: serde_json::json!({"sample_id":"s1"}),

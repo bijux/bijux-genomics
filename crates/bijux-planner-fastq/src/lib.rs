@@ -21,6 +21,7 @@ use bijux_stage_contract::{
 
 pub const PLANNER_VERSION: &str = "bijux-planner-fastq.v1";
 pub const TOOL_SEQKIT: &str = "seqkit";
+pub const STAGE_REPORT_AGGREGATE: StageId = StageId::from_static("report.aggregate");
 
 pub use bijux_domain_fastq::BenchResultsRepository;
 
@@ -33,6 +34,7 @@ pub mod stage_api {
     pub use crate::tool_adapters::fastq;
     pub use crate::tool_adapters::fastq::StageInfo;
     pub use crate::tool_registry::{allowed_tools_for_stage, default_tool_for_stage};
+    pub use crate::STAGE_REPORT_AGGREGATE;
     pub use crate::TOOL_SEQKIT;
     pub use bijux_core::primitives::RawFailure;
     pub use bijux_domain_fastq::banks;
@@ -434,7 +436,7 @@ impl FastqPlanner {
             },
         )?;
         let edges = default_edges_for_stages(&plans);
-        ExecutionGraph::new(
+        let graph = ExecutionGraph::new(
             config.pipeline_id.clone(),
             PLANNER_VERSION,
             config.policy,
@@ -451,7 +453,15 @@ impl FastqPlanner {
                     )
                 })
                 .collect(),
-        )
+        )?;
+        tracing::info!(
+            target: "plan.graph",
+            pipeline_id = %graph.pipeline_id(),
+            steps = graph.steps().len(),
+            edges = graph.edges().len(),
+            "planned fastq execution graph"
+        );
+        Ok(graph)
     }
 }
 
@@ -504,7 +514,7 @@ pub fn plan_fastq_to_bam__default__v1(
     policy: PlanPolicy,
 ) -> Result<ExecutionGraph> {
     let edges = default_edges_for_stages(&stages);
-    ExecutionGraph::new(
+    let graph = ExecutionGraph::new(
         "fastq-to-bam__default__v1",
         PLANNER_VERSION,
         policy,
@@ -521,7 +531,15 @@ pub fn plan_fastq_to_bam__default__v1(
                 )
             })
             .collect(),
-    )
+    )?;
+    tracing::info!(
+        target: "plan.graph",
+        pipeline_id = %graph.pipeline_id(),
+        steps = graph.steps().len(),
+        edges = graph.edges().len(),
+        "planned fastq-to-bam execution graph"
+    );
+    Ok(graph)
 }
 
 #[must_use]

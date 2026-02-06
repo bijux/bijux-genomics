@@ -7,11 +7,32 @@ use bijux_stage_contract::{ArtifactRef, StagePlanV1};
 pub fn audit_outputs(stage: bijux_domain_bam::BamStage, out_dir: &Path) -> Vec<ArtifactRef> {
     bijux_domain_bam::required_audit_artifacts(stage)
         .iter()
-        .map(|artifact| ArtifactRef {
-            name: artifact.name.to_string(),
-            path: out_dir.join(artifact.filename),
+        .map(|artifact| {
+            let role = role_for_artifact_name(artifact.name);
+            ArtifactRef::required(
+                artifact.name.to_string(),
+                out_dir.join(artifact.filename),
+                role,
+            )
         })
         .collect()
+}
+
+fn role_for_artifact_name(name: &str) -> bijux_core::ArtifactRole {
+    let name = name.to_ascii_lowercase();
+    if name.contains("bam") {
+        return bijux_core::ArtifactRole::Bam;
+    }
+    if name.contains("bai") || name.contains("index") || name.ends_with("_idx") {
+        return bijux_core::ArtifactRole::Index;
+    }
+    if name.contains("metrics") {
+        return bijux_core::ArtifactRole::MetricsJson;
+    }
+    if name.contains("report") || name.contains("summary") || name.contains("flagstat") {
+        return bijux_core::ArtifactRole::ReportJson;
+    }
+    bijux_core::ArtifactRole::Unknown
 }
 
 /// # Errors
