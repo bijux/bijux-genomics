@@ -80,3 +80,81 @@ fn analyze_and_benchmark_do_not_depend_on_engine() {
         offenders.join("\n")
     );
 }
+
+#[test]
+fn engine_has_no_domain_or_stage_dependencies() {
+    let root = workspace_root();
+    let manifest = root.join("crates/bijux-engine/Cargo.toml");
+    let deps = parse_dependency_names(&manifest);
+    let denylist = [
+        "bijux-domain-fastq",
+        "bijux-domain-bam",
+        "bijux-stages-fastq",
+        "bijux-stages-bam",
+        "bijux-pipelines",
+        "bijux-planner-fastq",
+        "bijux-planner-bam",
+    ];
+    let offenders: Vec<String> = denylist
+        .iter()
+        .filter(|dep| deps.iter().any(|name| name == **dep))
+        .map(|dep| format!("{} depends on {}", manifest.display(), dep))
+        .collect();
+    assert!(
+        offenders.is_empty(),
+        "bijux-engine must not depend on domain/stages/pipelines:\n{}",
+        offenders.join("\n")
+    );
+}
+
+#[test]
+fn runner_has_no_domain_or_stage_dependencies() {
+    let root = workspace_root();
+    let manifest = root.join("crates/bijux-runner/Cargo.toml");
+    let deps = parse_dependency_names(&manifest);
+    let denylist = [
+        "bijux-domain-fastq",
+        "bijux-domain-bam",
+        "bijux-stages-fastq",
+        "bijux-stages-bam",
+        "bijux-pipelines",
+        "bijux-planner-fastq",
+        "bijux-planner-bam",
+    ];
+    let offenders: Vec<String> = denylist
+        .iter()
+        .filter(|dep| deps.iter().any(|name| name == **dep))
+        .map(|dep| format!("{} depends on {}", manifest.display(), dep))
+        .collect();
+    assert!(
+        offenders.is_empty(),
+        "bijux-runner must not depend on domain/stages/pipelines:\n{}",
+        offenders.join("\n")
+    );
+}
+
+#[test]
+fn pipelines_do_not_depend_on_stages_or_execution() {
+    let root = workspace_root();
+    let manifest = root.join("crates/bijux-pipelines/Cargo.toml");
+    let deps = parse_dependency_names(&manifest);
+    let denylist = [
+        "bijux-stages-fastq",
+        "bijux-stages-bam",
+        "bijux-engine",
+        "bijux-runner",
+        "bijux-environment",
+        "bijux-planner-fastq",
+        "bijux-planner-bam",
+    ];
+    let offenders: Vec<String> = denylist
+        .iter()
+        .filter(|dep| deps.iter().any(|name| name == **dep))
+        .map(|dep| format!("{} depends on {}", manifest.display(), dep))
+        .collect();
+    assert!(
+        offenders.is_empty(),
+        "bijux-pipelines must not depend on stages/engine/runner:\n{}",
+        offenders.join("\n")
+    );
+}
