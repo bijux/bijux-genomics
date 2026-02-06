@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use bijux_core::contract::ToolRegistry;
-use bijux_core::{Cardinality, PortSpec, StageId};
+use bijux_core::prelude::{Cardinality, PortSpec, StageId};
 use bijux_runtime::manifests::load_manifests;
 
 fn domain_root() -> std::path::PathBuf {

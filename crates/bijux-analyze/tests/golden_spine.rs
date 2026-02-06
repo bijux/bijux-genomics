@@ -2,7 +2,7 @@ use std::path::{Path, PathBuf};
 
 use anyhow::Result;
 use bijux_analyze::{AnalyzeInput, AnalyzeMode, AnalyzeOptions, AnalyzeSources, RenderOptions};
-use bijux_core::{InvariantStatusV1, StageVerdictV1};
+use bijux_core::prelude::{InvariantStatusV1, StageVerdictV1};
 use bijux_domain_bam::metrics::BamMetricsV1;
 use bijux_pipelines::registry::profile_by_id;
 use bijux_pipelines::Domain;

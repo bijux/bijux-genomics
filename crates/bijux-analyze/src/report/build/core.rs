@@ -33,7 +33,7 @@ use crate::model::JsonBlob;
 use crate::report::model::ReportModel;
 use crate::report::render::json::write_report_json;
 use bijux_core::contract::Objective;
-use bijux_core::selection::objective_spec;
+use bijux_core::contract::objective_spec;
 use bijux_runtime::{
     AssetsProvenanceV1, FactsRowV1, FilterReportV1, ReportProvenanceV1, ReportSchemaV1,
     ReportStageSummaryV1, RetentionContextV1, RetentionDefinitionV1, RetentionReportV1,

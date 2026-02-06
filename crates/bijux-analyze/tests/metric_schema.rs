@@ -3,7 +3,7 @@ use bijux_analyze::{
     FastqMergeMetrics, FastqQcPostMetrics, FastqScreenMetrics, FastqStatsMetrics, FastqTrimMetrics,
     FastqUmiMetrics, FastqValidateMetrics, LengthHistogramBin, MetricSet,
 };
-use bijux_core::primitives::measure::ExecutionMetrics;
+use bijux_core::foundation::measure::ExecutionMetrics;
 
 fn base_record(metrics: MetricSet<FastqTrimMetrics>) -> BenchmarkRecord<FastqTrimMetrics> {
     BenchmarkRecord {

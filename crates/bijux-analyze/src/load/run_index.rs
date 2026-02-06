@@ -3,7 +3,7 @@
 
 use std::path::Path;
 
-use bijux_core::run_index::RunIndexLine;
+use bijux_core::contract::RunIndexLine;
 use serde_json;
 
 use super::AnalyzeError;

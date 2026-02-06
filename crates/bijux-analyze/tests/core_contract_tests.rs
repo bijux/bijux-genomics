@@ -2,7 +2,7 @@ use std::collections::BTreeSet;
 use std::path::Path;
 
 use bijux_analyze::StageMetricRegistry;
-use bijux_core::{Cardinality, PortSpec};
+use bijux_core::prelude::{Cardinality, PortSpec};
 use bijux_runtime::manifests::load_manifests;
 
 fn domain_root() -> std::path::PathBuf {

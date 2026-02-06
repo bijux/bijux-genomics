@@ -1,3 +1,4 @@
+
 // imports provided by queries_core.rs
 
 /// Insert a `FastQ` filter benchmark record into the v2 table.
@@ -35,7 +36,7 @@ pub fn insert_fastq_filter_v2(
 
     let metrics_json = serde_json::to_string(&record.metrics)?;
     let parameters_json = serde_json::to_string(&record.context.parameters)?;
-    let params_hash = bijux_core::params_hash(record.context.parameters.as_value())?;
+    let params_hash = params_hash(record.context.parameters.as_value())?;
 
     conn.execute(
         "INSERT INTO bench_fastq_filter_v2 (\
@@ -181,7 +182,7 @@ pub fn insert_fastq_merge_v1(
 
     let metrics_json = serde_json::to_string(&record.metrics)?;
     let parameters_json = serde_json::to_string(&record.context.parameters)?;
-    let params_hash = bijux_core::params_hash(record.context.parameters.as_value())?;
+    let params_hash = params_hash(record.context.parameters.as_value())?;
 
     conn.execute(
         "INSERT INTO bench_fastq_merge_v1 (\
@@ -285,7 +286,7 @@ pub fn insert_fastq_correct_v1(
 
     let metrics_json = serde_json::to_string(&record.metrics)?;
     let parameters_json = serde_json::to_string(&record.context.parameters)?;
-    let params_hash = bijux_core::params_hash(record.context.parameters.as_value())?;
+    let params_hash = params_hash(record.context.parameters.as_value())?;
 
     conn.execute(
         "INSERT INTO bench_fastq_correct_v1 (\
@@ -388,7 +389,7 @@ pub fn insert_fastq_qc_post_v1(
 
     let metrics_json = serde_json::to_string(&record.metrics)?;
     let parameters_json = serde_json::to_string(&record.context.parameters)?;
-    let params_hash = bijux_core::params_hash(record.context.parameters.as_value())?;
+    let params_hash = params_hash(record.context.parameters.as_value())?;
 
     conn.execute(
         "INSERT INTO bench_fastq_qc_post_v1 (\

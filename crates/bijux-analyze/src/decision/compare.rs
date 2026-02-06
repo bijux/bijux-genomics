@@ -268,7 +268,7 @@ fn assert_metric_semantics(metric_ids: &[&str]) -> Result<()> {
     for metric_id in metric_ids {
         resolve_semantics(metric_id).with_context(|| {
             format!(
-                "missing metric semantics for {metric_id}; remediation: register in bijux-core metrics_registry"
+                "missing metric semantics for {metric_id}; remediation: register in bijux-core metrics/registry"
             )
         })?;
     }

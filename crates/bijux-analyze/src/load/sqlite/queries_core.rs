@@ -1,3 +1,5 @@
+use bijux_core::prelude::params_hash;
+
 // Owner: bijux-analyze
 // `SQLite` query helpers for benchmark storage.
 
