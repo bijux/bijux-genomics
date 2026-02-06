@@ -134,6 +134,17 @@ fn runner_has_no_domain_or_stage_dependencies() {
 }
 
 #[test]
+fn runner_does_not_depend_on_engine() {
+    let root = workspace_root();
+    let manifest = root.join("crates/bijux-runner/Cargo.toml");
+    let deps = parse_dependency_names(&manifest);
+    assert!(
+        deps.iter().all(|dep| dep != "bijux-engine"),
+        "bijux-runner must not depend on bijux-engine"
+    );
+}
+
+#[test]
 fn pipelines_do_not_depend_on_stages_or_execution() {
     let root = workspace_root();
     let manifest = root.join("crates/bijux-pipelines/Cargo.toml");

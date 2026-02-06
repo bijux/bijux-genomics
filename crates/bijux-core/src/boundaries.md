@@ -27,12 +27,12 @@ This document defines ownership and allowed dependencies. Treat it as an API con
 - Allowed deps: core + infra + domain‑local dependencies.
 
 ## bijux-stages-*
-- Owns: stage planning (defaults, outputs, contracts), registry.
+- Owns: stage defaults, outputs, and contracts (no registries).
 - Does not own: execution, CLI UX, environment detection.
 - Allowed deps: core + domain + infra.
 
 ## bijux-planner-*
-- Owns: pipeline planning and tool selection for a domain.
+- Owns: pipeline planning, stage registries, and tool selection for a domain.
 - Does not own: execution, CLI UX, environment detection.
 - Allowed deps: core + stages + pipelines + selection + infra.
 

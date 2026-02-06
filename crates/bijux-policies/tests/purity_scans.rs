@@ -74,6 +74,82 @@ fn runner_has_no_domain_strings() {
 }
 
 #[test]
+fn stage_specs_have_no_command_building() {
+    let root = workspace_root();
+    let mut offenders = Vec::new();
+    let needles = ["CommandSpecV1", "ContainerImageRefV1", "argv"];
+    for entry in WalkDir::new(root.join("crates"))
+        .into_iter()
+        .filter_map(Result::ok)
+        .filter(|entry| entry.file_type().is_file())
+    {
+        let path = entry.path();
+        if path.extension().and_then(|ext| ext.to_str()) != Some("rs") {
+            continue;
+        }
+        if !path.to_string_lossy().contains("stage_specs") {
+            continue;
+        }
+        let content = std::fs::read_to_string(path).expect("read stage_specs source");
+        if needles.iter().any(|needle| content.contains(needle)) {
+            offenders.push(path.display().to_string());
+        }
+    }
+    assert!(
+        offenders.is_empty(),
+        "stage_specs must not build commands/images:\n{}",
+        offenders.join("\n")
+    );
+}
+
+#[test]
+fn planners_only_build_execution_steps() {
+    let root = workspace_root();
+    let allowlist = [
+        "bijux-core",
+        "bijux-planner-fastq",
+        "bijux-planner-bam",
+        "bijux-stage-contract",
+    ];
+    let mut offenders = Vec::new();
+    for entry in WalkDir::new(root.join("crates"))
+        .into_iter()
+        .filter_map(Result::ok)
+        .filter(|entry| entry.file_type().is_file())
+    {
+        let path = entry.path();
+        if path.extension().and_then(|ext| ext.to_str()) != Some("rs") {
+            continue;
+        }
+        let rel = path.strip_prefix(&root).unwrap_or(path);
+        let rel_str = rel.to_string_lossy();
+        if !rel_str.contains("/src/") {
+            continue;
+        }
+        if rel_str.ends_with("_tests.rs") {
+            continue;
+        }
+        if allowlist.iter().any(|crate_name| rel_str.contains(crate_name)) {
+            continue;
+        }
+        let content = std::fs::read_to_string(path).expect("read source");
+        if content.contains("#[cfg(test)]") {
+            continue;
+        }
+        if content.contains("ExecutionStep {")
+            && (content.contains("command:") || content.contains("image:"))
+        {
+            offenders.push(rel_str.to_string());
+        }
+    }
+    assert!(
+        offenders.is_empty(),
+        "ExecutionStep construction must live in planners/stage-contract:\n{}",
+        offenders.join("\n")
+    );
+}
+
+#[test]
 fn pipelines_do_not_embed_tool_names() {
     let root = workspace_root();
     let mut offenders = Vec::new();
