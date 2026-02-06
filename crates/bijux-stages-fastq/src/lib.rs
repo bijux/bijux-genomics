@@ -2,6 +2,7 @@
 
 pub mod metrics;
 pub mod observer;
+pub mod observer_artifacts;
 mod plugin;
 pub mod stage_specs;
 
