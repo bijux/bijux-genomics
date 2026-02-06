@@ -1,8 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-use bijux_domain_bam;
-use bijux_domain_fastq;
-
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub(crate) struct ExplainExclusion {
     pub tool: String,
@@ -70,7 +67,7 @@ impl PlanExplainV1 {
                 expected_artifact_ids: step
                     .expected_artifact_ids
                     .iter()
-                    .map(|artifact| artifact.to_string())
+                    .map(std::string::ToString::to_string)
                     .collect(),
                 metrics_schema_ids: step.metrics_schema_ids.clone(),
             })
@@ -105,9 +102,9 @@ pub fn explain_bundle(
         .filter_map(|step| {
             let stage_id = step.stage_id.to_string();
             let hash = if stage_id.starts_with("fastq.") || stage_id.starts_with("core.") {
-                bijux_domain_fastq::stage_contract_hash(&stage_id).and_then(|result| result.ok())
+                bijux_domain_fastq::stage_contract_hash(&stage_id).and_then(std::result::Result::ok)
             } else if stage_id.starts_with("bam.") {
-                bijux_domain_bam::stage_contract_hash(&stage_id).and_then(|result| result.ok())
+                bijux_domain_bam::stage_contract_hash(&stage_id).and_then(std::result::Result::ok)
             } else {
                 None
             };
@@ -116,7 +113,9 @@ pub fn explain_bundle(
         .collect::<serde_json::Map<_, _>>();
     ExplainResponse {
         selected_tools,
-        defaults_ledger_diff: defaults_ledger.cloned().unwrap_or_else(|| serde_json::json!({})),
+        defaults_ledger_diff: defaults_ledger
+            .cloned()
+            .unwrap_or_else(|| serde_json::json!({})),
         stage_contracts: serde_json::Value::Object(stage_contracts),
     }
 }

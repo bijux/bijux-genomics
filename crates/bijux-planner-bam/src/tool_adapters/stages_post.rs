@@ -1,9 +1,7 @@
 pub mod markdup {
     use std::path::Path;
 
-    use bijux_core::{
-        ArtifactId, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
-    };
+    use bijux_core::{ArtifactId, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1};
     use bijux_domain_bam::params::MarkDupEffectiveParams;
     use bijux_stage_contract::{StageIO, StagePlanV1};
 
@@ -155,9 +153,7 @@ pub mod complexity {
 pub mod coverage {
     use std::path::Path;
 
-    use bijux_core::{
-        ArtifactId, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
-    };
+    use bijux_core::{ArtifactId, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1};
     use bijux_domain_bam::params::CoverageEffectiveParams;
     use bijux_stage_contract::{StageIO, StagePlanV1};
 

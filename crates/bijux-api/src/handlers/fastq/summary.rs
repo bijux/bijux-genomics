@@ -4,12 +4,10 @@ use std::path::Path;
 use super::STAGE_QC_POST;
 use anyhow::{Context, Result};
 use bijux_core::contract::{ArtifactRef, ArtifactRole};
-use bijux_core::ArtifactId;
 use bijux_core::execution::execution_graph::{ExecutionGraph, ExecutionStep};
 use bijux_core::execution::PlanPolicy;
 use bijux_core::metrics::ToolInvocationV1;
-use bijux_domain_bam;
-use bijux_domain_fastq;
+use bijux_core::ArtifactId;
 use bijux_planner_fastq::report_stage_step as build_report_stage_step;
 use bijux_planner_fastq::{CorrectDecisionTrace, MergeDecisionTrace};
 use bijux_runner::primitives::StageResultV1;
@@ -123,10 +121,10 @@ pub(super) fn render_run_summary(
 
 fn stage_contract_hash_for(stage_id: &str) -> Option<String> {
     if stage_id.starts_with("fastq.") || stage_id.starts_with("core.") {
-        return bijux_domain_fastq::stage_contract_hash(stage_id).and_then(|result| result.ok());
+        return bijux_domain_fastq::stage_contract_hash(stage_id).and_then(std::result::Result::ok);
     }
     if stage_id.starts_with("bam.") {
-        return bijux_domain_bam::stage_contract_hash(stage_id).and_then(|result| result.ok());
+        return bijux_domain_bam::stage_contract_hash(stage_id).and_then(std::result::Result::ok);
     }
     None
 }
@@ -371,9 +369,8 @@ pub(super) fn write_run_manifest(
     let tool_invocations: Vec<bijux_core::metrics::ToolInvocationV1> = stage_runs
         .iter()
         .filter_map(|entry| {
-            let path =
-                bijux_runtime::recording::run_artifacts_dir_for_out(&entry.plan.out_dir)
-                    .join("tool_invocation.json");
+            let path = bijux_runtime::recording::run_artifacts_dir_for_out(&entry.plan.out_dir)
+                .join("tool_invocation.json");
             let raw = std::fs::read_to_string(&path).ok()?;
             serde_json::from_str(&raw).ok()
         })
@@ -389,7 +386,7 @@ pub(super) fn write_run_manifest(
             .cloned()
             .unwrap_or_default()
             .into_iter()
-            .filter_map(|value| value.as_str().map(|s| s.to_string()))
+            .filter_map(|value| value.as_str().map(std::string::ToString::to_string))
             .collect::<Vec<_>>();
         let tool_version = run_provenance
             .get("tool_version")
@@ -436,7 +433,8 @@ pub(super) fn write_run_manifest(
     });
     let path = out_dir.join("run_manifest.json");
     let payload = bijux_core::primitives::to_canonical_json_bytes(&manifest)?;
-    bijux_infra::atomic_write_bytes(&path, payload.as_slice()).context("write run_manifest.json")?;
+    bijux_infra::atomic_write_bytes(&path, payload.as_slice())
+        .context("write run_manifest.json")?;
     Ok(())
 }
 

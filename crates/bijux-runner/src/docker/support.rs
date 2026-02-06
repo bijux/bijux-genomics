@@ -13,8 +13,7 @@ pub fn build_tool_execution_spec<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
 ) -> Result<ToolExecutionSpecV1> {
-    let stage_id =
-        bijux_core::ids::StageId::try_from(stage_id).map_err(|err| anyhow!("{err}"))?;
+    let stage_id = bijux_core::ids::StageId::try_from(stage_id).map_err(|err| anyhow!("{err}"))?;
     let tool_id = bijux_core::ids::ToolId::try_from(tool_id).map_err(|err| anyhow!("{err}"))?;
     let manifest = registry
         .tool_by_id(&stage_id, &tool_id)

@@ -3,7 +3,6 @@ use anyhow::{anyhow, Context, Result};
 use bijux_core::contract::ToolRegistry;
 use bijux_core::execution::execution_graph::{ExecutionEdge, ExecutionGraph};
 use bijux_core::execution::PlanPolicy;
-use bijux_domain_bam;
 use bijux_environment::api::{load_image_catalog, load_platform, RunnerKind};
 use bijux_environment_qa::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use bijux_pipelines::registry;
@@ -100,8 +99,8 @@ pub fn bench_bam_stage(
                         })
                     })
                     .collect();
-                let stage_contract_hash =
-                    bijux_domain_bam::stage_contract_hash(stage_id).and_then(|result| result.ok());
+                let stage_contract_hash = bijux_domain_bam::stage_contract_hash(stage_id)
+                    .and_then(std::result::Result::ok);
                 let manifest = serde_json::json!({
                     "schema_version": "bijux.run_manifest.v3",
                     "contract_version": bijux_core::contract::ContractVersion::v1(),

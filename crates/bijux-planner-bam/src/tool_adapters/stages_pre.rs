@@ -82,9 +82,7 @@ pub mod validate {
 pub mod align {
     use std::path::Path;
 
-    use bijux_core::{
-        ArtifactId, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
-    };
+    use bijux_core::{ArtifactId, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1};
     use bijux_domain_bam::params::{AlignEffectiveParams, ReadGroupSpec};
     use bijux_stage_contract::{StageIO, StagePlanV1};
 
@@ -204,9 +202,7 @@ pub mod align {
 pub mod qc_pre {
     use std::path::Path;
 
-    use bijux_core::{
-        ArtifactId, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
-    };
+    use bijux_core::{ArtifactId, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1};
     use bijux_domain_bam::params::QcPreEffectiveParams;
     use bijux_stage_contract::{StageIO, StagePlanV1};
 
@@ -273,9 +269,7 @@ pub mod qc_pre {
 pub mod filter {
     use std::path::Path;
 
-    use bijux_core::{
-        ArtifactId, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
-    };
+    use bijux_core::{ArtifactId, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1};
     use bijux_domain_bam::params::FilterEffectiveParams;
     use bijux_stage_contract::{StageIO, StagePlanV1};
 

@@ -1,9 +1,7 @@
 pub mod damage {
     use std::path::Path;
 
-    use bijux_core::{
-        ArtifactId, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
-    };
+    use bijux_core::{ArtifactId, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1};
     use bijux_domain_bam::params::DamageEffectiveParams;
     use bijux_stage_contract::{StageIO, StagePlanV1};
 
@@ -128,9 +126,7 @@ pub mod authenticity {
 pub mod contamination {
     use std::path::Path;
 
-    use bijux_core::{
-        ArtifactId, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
-    };
+    use bijux_core::{ArtifactId, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1};
     use bijux_domain_bam::params::ContaminationEffectiveParams;
     use bijux_stage_contract::{StageIO, StagePlanV1};
 
