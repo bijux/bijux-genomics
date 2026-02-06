@@ -6,3 +6,5 @@ Out of scope:
 - Pipeline execution or orchestration.
 - Tool selection logic (belongs to planners).
 - Domain invariants (belongs to domain crates).
+
+See STYLE.md for workspace conventions.

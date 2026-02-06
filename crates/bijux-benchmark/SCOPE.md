@@ -9,3 +9,5 @@ In scope:
 Out of scope:
 - Orchestration/execution.
 - Domain definitions.
+
+See STYLE.md for workspace conventions.
