@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use anyhow::{anyhow, Result};
-use bijux_core::ToolExecutionSpecV1;
+use bijux_core::prelude::ToolExecutionSpecV1;
 use bijux_infra::hash_file_sha256;
 use bijux_pipelines::registry;
 use bijux_pipelines::PipelineProfile;

@@ -3,10 +3,10 @@ use std::path::Path;
 use std::time::Duration;
 
 use anyhow::Result;
+use bijux_core::contract::PlanPolicy;
 use bijux_core::contract::{ArtifactRef, ArtifactRole, StageIO, ToolConstraints};
-use bijux_core::execution::execution_graph::{ExecutionEdge, ExecutionGraph, ExecutionStep};
-use bijux_core::execution::PlanPolicy;
-use bijux_core::primitives::hashing::params_hash;
+use bijux_core::contract::{ExecutionEdge, ExecutionGraph, ExecutionStep};
+use bijux_core::foundation::hashing::params_hash;
 use bijux_core::{ArtifactId, CommandSpecV1, ContainerImageRefV1, PipelineId, StageId, StepId};
 use bijux_engine::Engine;
 use bijux_pipelines::DefaultsLedgerV1;
@@ -92,7 +92,7 @@ fn golden_spine_contract() -> Result<()> {
         metadata_path: base_dir.join("run_metadata.json"),
         events_path: base_dir.join("events.jsonl"),
     };
-    let _record = Engine::execute(&plan, &runner, &layout, None, None)?;
+    let _record = Engine::default().execute(&plan, &runner, &layout, None, None)?;
 
     let provenance_path = write_plan_provenance(base_dir, &plan)?;
     assert!(provenance_path.exists());

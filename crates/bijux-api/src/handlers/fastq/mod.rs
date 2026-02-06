@@ -1,10 +1,10 @@
 use bijux_analyze::BenchmarkRecord;
 use bijux_planner_fastq::stage_api::RawFailure;
 
-mod explain;
-mod jobs;
-mod stages;
-mod summary;
+pub(crate) mod explain;
+pub(crate) mod jobs;
+use crate::internal::fastq::stages;
+pub(crate) mod summary;
 
 pub use bijux_planner_fastq::stage_api::{
     STAGE_CORRECT, STAGE_FILTER, STAGE_MERGE, STAGE_PREPROCESS, STAGE_QC_POST, STAGE_SCREEN,

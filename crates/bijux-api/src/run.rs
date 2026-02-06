@@ -6,8 +6,8 @@ use crate::args::{
     ExecuteRunResult, PlanRequest, PlanResponse, PlanRunRequest, PlanRunResult,
     RenderReportRequest, RenderReportResult, RunRequest, RunResult, RunStatus,
 };
+use bijux_core::contract::ExecutionGraph;
 use bijux_core::contract::{Profile, RunSpec, ToolRegistry};
-use bijux_core::execution::execution_graph::ExecutionGraph;
 use bijux_core::ids::RunId;
 use bijux_engine::Engine;
 use bijux_pipelines::registry::PipelineRegistry;
@@ -189,7 +189,7 @@ pub fn replay_manifest(manifest_path: &Path, verify_only: bool) -> Result<()> {
         serde_json::from_str(&graph_raw).map_err(|err| anyhow!("parse graph.json: {err}"))?;
     let runner = DockerRunner::new(None);
     let layout = run_layout_from_dir(base_dir);
-    Engine::execute(&graph, &runner, &layout, None, None)?;
+    Engine::default().execute(&graph, &runner, &layout, None, None)?;
     Ok(())
 }
 
@@ -204,7 +204,7 @@ pub fn plan(request: PlanRequest) -> Result<PlanResponse> {
         "pipeline_id": request.graph.pipeline_id().to_string(),
         "profile_id": request.profile_id,
         "graph_hash": graph_hash,
-        "cache_key": bijux_core::primitives::CacheKey::new("unknown", "unknown", "unknown", "unknown"),
+        "cache_key": bijux_core::foundation::CacheKey::new("unknown", "unknown", "unknown", "unknown"),
         "toolchain_versions": [],
         "dataset_fingerprints": [],
         "tool_invocations": [],
@@ -229,7 +229,7 @@ pub fn execute(request: &ExecuteRequest) -> Result<ExecuteResponse> {
             return Err(anyhow!("runner {other} not supported for execute"));
         }
     };
-    Engine::execute(&request.graph, runner.as_ref(), &layout, None, None)?;
+    Engine::default().execute(&request.graph, runner.as_ref(), &layout, None, None)?;
     Ok(ExecuteResponse {
         run_id,
         manifest_path: layout.manifest_path,
@@ -242,7 +242,7 @@ pub fn execute(request: &ExecuteRequest) -> Result<ExecuteResponse> {
 pub fn dry_run(request: &DryRunRequest) -> Result<DryRunResponse> {
     let graph_hash = request.graph.hash()?;
     let graph_path = request.run_dir.join("graph.json");
-    let graph_payload = bijux_core::primitives::to_canonical_json_bytes(&request.graph)?;
+    let graph_payload = bijux_core::contract::canonical::to_canonical_json_bytes(&request.graph)?;
     bijux_infra::atomic_write_bytes(&graph_path, graph_payload.as_slice())?;
     let manifest = serde_json::json!({
         "schema_version": "bijux.run_manifest.v3",
@@ -251,7 +251,7 @@ pub fn dry_run(request: &DryRunRequest) -> Result<DryRunResponse> {
         "pipeline_id": request.graph.pipeline_id().to_string(),
         "profile_id": request.profile_id,
         "graph_hash": graph_hash,
-        "cache_key": bijux_core::primitives::CacheKey::new("unknown", "unknown", "unknown", "unknown"),
+        "cache_key": bijux_core::foundation::CacheKey::new("unknown", "unknown", "unknown", "unknown"),
         "toolchain_versions": [],
         "dataset_fingerprints": [],
         "tool_invocations": [],
@@ -260,7 +260,7 @@ pub fn dry_run(request: &DryRunRequest) -> Result<DryRunResponse> {
         "failures": [],
     });
     let manifest_path = request.run_dir.join("run_manifest.json");
-    let payload = bijux_core::primitives::to_canonical_json_bytes(&manifest)?;
+    let payload = bijux_core::contract::canonical::to_canonical_json_bytes(&manifest)?;
     bijux_infra::atomic_write_bytes(&manifest_path, payload.as_slice())?;
     Ok(DryRunResponse {
         graph_path,

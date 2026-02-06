@@ -11,11 +11,9 @@ pub(crate) mod args;
 pub(crate) mod explain;
 pub(crate) mod fastq_stats_neutral;
 pub(crate) mod handlers;
+pub(crate) mod internal;
 pub(crate) mod run;
 pub(crate) mod tooling;
 
+pub mod api;
 pub mod v1;
-pub use v1::*;
-
-#[cfg(feature = "api_internal")]
-pub mod api_internal;

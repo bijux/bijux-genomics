@@ -6,12 +6,12 @@ use anyhow::{anyhow, Result};
 use bijux_environment::api::RunnerKind;
 use bijux_runner::primitives::{execute_step as execute_plan, StageResultV1};
 
-pub(super) fn bench_jobs(requested: u32) -> usize {
+pub(crate) fn bench_jobs(requested: u32) -> usize {
     usize::try_from(requested).unwrap_or(1).clamp(1, 32)
 }
 
-pub(super) fn execute_plans_with_jobs(
-    plans: Vec<bijux_core::execution::execution_graph::ExecutionStep>,
+pub(crate) fn execute_plans_with_jobs(
+    plans: Vec<bijux_core::contract::ExecutionStep>,
     runner: RunnerKind,
     jobs: usize,
 ) -> Result<Vec<StageResultV1>> {

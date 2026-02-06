@@ -1,18 +1,20 @@
+use bijux_core::prelude::params_hash;
+
 use std::fs;
 use std::path::Path;
 
 use super::STAGE_QC_POST;
 use anyhow::{Context, Result};
+use bijux_core::contract::PlanPolicy;
 use bijux_core::contract::{ArtifactRef, ArtifactRole};
-use bijux_core::execution::execution_graph::{ExecutionGraph, ExecutionStep};
-use bijux_core::execution::PlanPolicy;
+use bijux_core::contract::{ExecutionGraph, ExecutionStep};
 use bijux_core::metrics::ToolInvocationV1;
-use bijux_core::ArtifactId;
+use bijux_core::prelude::ArtifactId;
 use bijux_planner_fastq::report_stage_step as build_report_stage_step;
 use bijux_planner_fastq::{CorrectDecisionTrace, MergeDecisionTrace};
 use bijux_runner::primitives::StageResultV1;
 
-pub(super) fn render_run_summary(
+pub(crate) fn render_run_summary(
     out_dir: &Path,
     stage_runs: &[StageExecutionSummary],
     failures: &[bijux_planner_fastq::stage_api::RawFailure],
@@ -129,7 +131,7 @@ fn stage_contract_hash_for(stage_id: &str) -> Option<String> {
     None
 }
 
-pub(super) fn report_stage_step(out_dir: &Path, steps: &[ExecutionStep]) -> ExecutionStep {
+pub(crate) fn report_stage_step(out_dir: &Path, steps: &[ExecutionStep]) -> ExecutionStep {
     let mut inputs = Vec::new();
     for entry in steps {
         let artifacts_dir = bijux_runtime::recording::run_artifacts_dir_for_out(&entry.out_dir);
@@ -162,7 +164,7 @@ pub(super) fn report_stage_step(out_dir: &Path, steps: &[ExecutionStep]) -> Exec
 }
 
 #[allow(clippy::too_many_lines)]
-pub(super) fn write_run_manifest(
+pub(crate) fn write_run_manifest(
     out_dir: &Path,
     stage_runs: &[StageExecutionSummary],
     failures: &[bijux_planner_fastq::stage_api::RawFailure],
@@ -396,8 +398,8 @@ pub(super) fn write_run_manifest(
             .get("tool_image_digest")
             .and_then(serde_json::Value::as_str)
             .unwrap_or("unknown");
-        bijux_core::primitives::CacheKey::new(
-            bijux_core::primitives::input_fingerprint(&input_hashes),
+        bijux_core::foundation::CacheKey::new(
+            bijux_core::foundation::input_fingerprint(&input_hashes),
             params_hash,
             tool_version,
             env_digest,
@@ -432,13 +434,13 @@ pub(super) fn write_run_manifest(
         }
     });
     let path = out_dir.join("run_manifest.json");
-    let payload = bijux_core::primitives::to_canonical_json_bytes(&manifest)?;
+    let payload = bijux_core::contract::canonical::to_canonical_json_bytes(&manifest)?;
     bijux_infra::atomic_write_bytes(&path, payload.as_slice())
         .context("write run_manifest.json")?;
     Ok(())
 }
 
-pub(super) fn write_scientific_provenance(
+pub(crate) fn write_scientific_provenance(
     out_dir: &Path,
     stage_runs: &[StageExecutionSummary],
 ) -> Result<()> {
@@ -540,8 +542,8 @@ fn run_provenance_from_stage_runs(
     }
     input_hashes.sort();
     input_hashes.dedup();
-    let params_hash = bijux_core::params_hash(&serde_json::json!(params_by_stage))
-        .unwrap_or_else(|_| "unknown".to_string());
+    let params_hash =
+        params_hash(&serde_json::json!(params_by_stage)).unwrap_or_else(|_| "unknown".to_string());
     let tool_version = if tool_versions.len() == 1 {
         tool_versions
             .into_iter()
@@ -620,7 +622,7 @@ pub(crate) struct StageExecutionSummary {
 
 #[derive(Debug, Clone)]
 #[allow(dead_code, clippy::struct_field_names)]
-pub(super) struct ReportArtifacts {
+pub(crate) struct ReportArtifacts {
     pub run_summary_path: std::path::PathBuf,
     pub run_summary_html_path: std::path::PathBuf,
     pub summary_json_path: std::path::PathBuf,

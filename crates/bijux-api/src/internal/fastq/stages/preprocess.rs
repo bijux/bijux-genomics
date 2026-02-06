@@ -4,10 +4,10 @@ use std::collections::HashMap;
 use crate::tooling::{ensure_bench_runner, filter_tools_by_role, load_registry};
 use anyhow::{anyhow, Context, Result};
 use bijux_analyze::load::sqlite::SqliteBenchResultsRepository;
-use bijux_core::execution::execution_graph::{ExecutionEdge, ExecutionGraph};
-use bijux_core::execution::PlanPolicy;
-use bijux_core::primitives::errors::ErrorCategory;
-use bijux_core::ContainerImageRefV1;
+use bijux_core::contract::PlanPolicy;
+use bijux_core::contract::{ExecutionEdge, ExecutionGraph};
+use bijux_core::foundation::errors::ErrorCategory;
+use bijux_core::prelude::ContainerImageRefV1;
 use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 use bijux_environment_qa::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use bijux_planner_fastq::stage_api::bench_dir_name;
@@ -20,13 +20,13 @@ use bijux_runner::primitives::{build_tool_execution_spec, resolve_image_for_run,
 use bijux_runtime::recording::run_artifacts_dir_for_out;
 use bijux_runtime::recording::write_telemetry_event;
 
-use super::super::jobs::bench_jobs;
-use super::super::summary::{
+use crate::handlers::fastq::jobs::bench_jobs;
+use crate::handlers::fastq::summary::{
     render_run_summary, report_stage_step, write_run_manifest, write_scientific_provenance,
     StageExecutionSummary,
 };
-use super::super::write_explain_plan_json;
-use super::super::{STAGE_PREPROCESS, STAGE_TRIM};
+use crate::handlers::fastq::write_explain_plan_json;
+use crate::handlers::fastq::{STAGE_PREPROCESS, STAGE_TRIM};
 use bijux_infra::{bench_base_dir, bench_tools_dir};
 use bijux_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_planner_fastq::stage_api::{
