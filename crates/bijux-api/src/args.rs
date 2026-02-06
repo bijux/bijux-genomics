@@ -199,7 +199,7 @@ pub struct RunStatus {
     pub has_failures: bool,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 /// Canonical plan request.
 ///
 /// Stability: v1 (stable).
@@ -208,7 +208,7 @@ pub struct PlanRequest {
     pub profile_id: String,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 /// Canonical plan response.
 ///
 /// Stability: v1 (stable).
@@ -218,7 +218,7 @@ pub struct PlanResponse {
     pub manifest: serde_json::Value,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 /// Canonical execute request.
 ///
 /// Stability: v1 (stable).
@@ -228,7 +228,7 @@ pub struct ExecuteRequest {
     pub run_dir: PathBuf,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 /// Canonical execute response.
 ///
 /// Stability: v1 (stable).
@@ -238,7 +238,7 @@ pub struct ExecuteResponse {
     pub report_path: Option<PathBuf>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 /// Canonical dry-run request.
 ///
 /// Stability: v1 (stable).
@@ -248,7 +248,7 @@ pub struct DryRunRequest {
     pub profile_id: String,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 /// Canonical dry-run response.
 ///
 /// Stability: v1 (stable).
