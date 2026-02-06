@@ -4,7 +4,7 @@
 
 pub(crate) use crate::args;
 pub(crate) use crate::fastq_stats_neutral;
-pub(crate) use crate::handlers::bam;
-pub(crate) use crate::handlers::cross;
-pub(crate) use crate::handlers::fastq;
+pub(crate) use crate::internal::handlers::bam;
+pub(crate) use crate::internal::handlers::cross;
+pub(crate) use crate::internal::handlers::fastq;
 pub(crate) use crate::run;

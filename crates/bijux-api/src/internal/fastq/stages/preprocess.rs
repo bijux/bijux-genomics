@@ -20,13 +20,13 @@ use bijux_runner::primitives::{build_tool_execution_spec, resolve_image_for_run,
 use bijux_runtime::recording::run_artifacts_dir_for_out;
 use bijux_runtime::recording::write_telemetry_event;
 
-use crate::handlers::fastq::jobs::bench_jobs;
-use crate::handlers::fastq::summary::{
+use crate::internal::handlers::fastq::jobs::bench_jobs;
+use crate::internal::handlers::fastq::summary::{
     render_run_summary, report_stage_step, write_run_manifest, write_scientific_provenance,
     StageExecutionSummary,
 };
-use crate::handlers::fastq::write_explain_plan_json;
-use crate::handlers::fastq::{STAGE_PREPROCESS, STAGE_TRIM};
+use crate::internal::handlers::fastq::write_explain_plan_json;
+use crate::internal::handlers::fastq::{STAGE_PREPROCESS, STAGE_TRIM};
 use bijux_infra::{bench_base_dir, bench_tools_dir};
 use bijux_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_planner_fastq::stage_api::{
