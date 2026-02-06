@@ -3,8 +3,9 @@ use std::collections::BTreeMap;
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
-use crate::plan::stage_plan::{ArtifactRef, StagePlanV1};
-use crate::primitives::invariants::{InvariantResultV1, StageVerdictV1};
+use crate::stage_plan::StagePlanV1;
+use bijux_core::contract::ArtifactRef;
+use bijux_core::primitives::invariants::{InvariantResultV1, StageVerdictV1};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]

@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
 
-use crate::contract::tooling::PathSpec;
+use crate::contract::PathSpec;
 use crate::ids::{RunId, StageId, ToolId};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

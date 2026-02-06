@@ -3,9 +3,9 @@ use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
 
-use crate::contract::ToolConstraints;
-use crate::ids::{StageId, StageVersion, ToolId};
-use crate::primitives::{CommandSpecV1, ContainerImageRefV1};
+use bijux_core::contract::{StageIO, ToolConstraints};
+use bijux_core::ids::{StageId, StageVersion, ToolId};
+use bijux_core::primitives::{CommandSpecV1, ContainerImageRefV1};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -46,18 +46,6 @@ impl Default for PlanDecisionReason {
             details: serde_json::Value::Object(serde_json::Map::new()),
         }
     }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct ArtifactRef {
-    pub name: String,
-    pub path: PathBuf,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct StageIO {
-    pub inputs: Vec<ArtifactRef>,
-    pub outputs: Vec<ArtifactRef>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

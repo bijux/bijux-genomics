@@ -5,9 +5,8 @@ use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 use sha2::Digest;
 
-use crate::contract::ToolConstraints;
+use crate::contract::{StageIO, ToolConstraints};
 use crate::ids::StageId;
-use crate::plan::stage_plan::{StageIO, StagePlanV1};
 use crate::plan::PlanPolicy;
 use crate::primitives::{CommandSpecV1, ContainerImageRefV1};
 
@@ -61,22 +60,6 @@ pub struct ExecutionGraph {
     policy: PlanPolicy,
     steps: Vec<ExecutionStep>,
     edges: Vec<ExecutionEdge>,
-}
-
-impl From<&StagePlanV1> for ExecutionStep {
-    fn from(plan: &StagePlanV1) -> Self {
-        Self {
-            step_id: plan.stage_id.clone(),
-            command: plan.command.clone(),
-            image: plan.image.clone(),
-            resources: plan.resources.clone(),
-            io: plan.io.clone(),
-            out_dir: plan.out_dir.clone(),
-            aux_images: plan.aux_images.clone(),
-            expected_artifact_ids: Vec::new(),
-            metrics_schema_ids: Vec::new(),
-        }
-    }
 }
 
 impl ExecutionGraph {
