@@ -2,7 +2,6 @@
 
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::fs;
-use std::time::Instant;
 
 use anyhow::{anyhow, Result};
 use bijux_core::execution::execution_graph::{ExecutionEdge, ExecutionGraph, ExecutionStep};
@@ -47,7 +46,6 @@ pub fn execute_plan(
             if cancel.is_some_and(|token| token.is_cancelled()) {
                 return Err(anyhow!("execution cancelled during {}", step.step_id.0));
             }
-            let start = Instant::now();
             let started_at = Utc::now().to_rfc3339();
             let invocation = Invocation {
                 step: step.clone(),
