@@ -4,16 +4,17 @@
 //! Must NOT depend on: bijux-engine or runtime/container execution logic.
 
 pub mod alignment;
+pub mod defaults;
 pub mod invariants;
 pub mod metrics;
 pub mod params;
 pub mod pipeline_contract;
 pub mod prelude;
-pub mod stage_registry;
+pub mod stage_specs;
 pub mod types;
 
 pub use invariants::bam_invariant_specs;
-pub use stage_registry::{
+pub use stage_specs::{
     contract_for_stage, required_audit_artifacts, stage_registry, stage_spec, stage_specs,
     ArtifactPolicy, AuditArtifact, BamArtifactKind, BamStage, BamStageContract, BamStageSpec,
     StageSpec, STAGE_PREFIX,

@@ -27,7 +27,10 @@ fn public_surface_is_constrained() -> anyhow::Result<()> {
         "params",
         "pipeline_contract",
         "run",
-        "stage_registry",
+        "stage_contract",
+        "stage_ids",
+        "stage_semantics",
+        "stage_specs",
         "types",
     ];
     for name in &pub_mods {
@@ -40,7 +43,10 @@ fn public_surface_is_constrained() -> anyhow::Result<()> {
         "adapter_bank",
         "contaminant_bank",
         "polyx_bank",
-        "stage_registry",
+        "stage_contract",
+        "stage_ids",
+        "stage_semantics",
+        "stage_specs",
         "pipeline_contract",
         "types",
         "run",
