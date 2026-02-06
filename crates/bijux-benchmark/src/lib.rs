@@ -3,7 +3,7 @@
 //! Contract: inputs are typed, outputs are deterministic, and raw JSON is confined to repo/artifacts.
 
 mod artifacts;
-mod legacy_fastq;
+mod legacy;
 mod repo;
 mod summarize;
 
@@ -13,7 +13,7 @@ pub use bijux_benchmark_model::{
     GatePolicy, GatePolicyOverrides, GateViolation, MetricSummary, MetricsEnvelope,
     ReplicatePolicy, StratificationRequirement, SummaryRow,
 };
-pub use legacy_fastq::{
+pub use legacy::fastq::{
     benchmark_runs, write_benchmark_exports, BenchmarkSummary as LegacyBenchmarkSummary,
     RunBenchmarkRecord, ToolRanking,
 };
