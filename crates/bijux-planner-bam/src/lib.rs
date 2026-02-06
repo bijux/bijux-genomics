@@ -15,9 +15,13 @@ pub const PLANNER_VERSION: &str = "bijux-planner-bam.v1";
 
 pub mod tool_adapters;
 mod tool_registry;
+mod report_stage;
+mod stage_registry;
 
 pub mod stage_api {
-    pub use crate::tool_registry::allowed_tools_for_stage;
+pub use crate::tool_registry::allowed_tools_for_stage;
+pub use crate::report_stage::report_stage_step;
+pub use crate::stage_registry::stage_registry;
     pub use crate::{plan_stage, StagePlanRequest};
     pub use bijux_stages_bam::stage_specs::*;
 }
