@@ -8,3 +8,5 @@ Top-level modules:
 - `metrics/`: metrics schemas and envelopes.
 - `ids.rs`: strongly typed identifiers.
 - `prelude/`: curated reexports.
+
+Boundary rules live in `BOUNDARIES.md`.
