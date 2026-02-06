@@ -1,6 +1,5 @@
 //! Stage specs, metrics, and observers for FASTQ.
 
-pub mod artifacts;
 pub mod metrics;
 pub mod observer;
 mod plugin;
