@@ -3,7 +3,7 @@ use std::path::Path;
 use anyhow::{anyhow, Context, Result};
 use tracing::warn;
 
-use bijux_core::primitives::measure::SeqkitMetrics;
+use bijux_core::foundation::measure::SeqkitMetrics;
 
 #[derive(Debug, Clone)]
 pub struct ObserverCommandSpec {

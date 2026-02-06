@@ -621,11 +621,11 @@ pub fn filter_removals_for_plan(
 
 pub fn stats_or_zero(
     path: Option<&Path>,
-) -> Result<bijux_core::primitives::measure::SeqkitMetrics> {
+) -> Result<bijux_core::foundation::measure::SeqkitMetrics> {
     if let Some(path) = path {
         if path.exists() {
             if path.is_dir() {
-                return Ok(bijux_core::primitives::measure::SeqkitMetrics {
+                return Ok(bijux_core::foundation::measure::SeqkitMetrics {
                     reads: 0,
                     bases: 0,
                     mean_q: 0.0,
@@ -633,7 +633,7 @@ pub fn stats_or_zero(
                 });
             }
             if std::fs::metadata(path).map(|m| m.len()).unwrap_or(0) == 0 {
-                return Ok(bijux_core::primitives::measure::SeqkitMetrics {
+                return Ok(bijux_core::foundation::measure::SeqkitMetrics {
                     reads: 0,
                     bases: 0,
                     mean_q: 0.0,
@@ -643,7 +643,7 @@ pub fn stats_or_zero(
             return fastq_stats(path);
         }
     }
-    Ok(bijux_core::primitives::measure::SeqkitMetrics {
+    Ok(bijux_core::foundation::measure::SeqkitMetrics {
         reads: 0,
         bases: 0,
         mean_q: 0.0,
@@ -653,7 +653,7 @@ pub fn stats_or_zero(
 
 fn stats_for_paths(
     paths: &[Option<&Path>],
-) -> Result<Vec<bijux_core::primitives::measure::SeqkitMetrics>> {
+) -> Result<Vec<bijux_core::foundation::measure::SeqkitMetrics>> {
     let tasks: Vec<(usize, Option<PathBuf>)> = paths
         .iter()
         .enumerate()
@@ -668,7 +668,7 @@ fn stats_for_paths(
     let queue = Arc::new(Mutex::new(VecDeque::from(tasks)));
     let mut initial = Vec::with_capacity(paths.len());
     initial.resize_with(paths.len(), || None);
-    let results: Arc<Mutex<Vec<Option<Result<bijux_core::primitives::measure::SeqkitMetrics>>>>> =
+    let results: Arc<Mutex<Vec<Option<Result<bijux_core::foundation::measure::SeqkitMetrics>>>>> =
         Arc::new(Mutex::new(initial));
     let mut workers = Vec::new();
     let job_count = observer_jobs().min(paths.len());
@@ -727,8 +727,8 @@ fn pair_counts_from_paths(
     Ok((pairs_in, pairs_out))
 }
 
-fn zero_seqkit_metrics() -> bijux_core::primitives::measure::SeqkitMetrics {
-    bijux_core::primitives::measure::SeqkitMetrics {
+fn zero_seqkit_metrics() -> bijux_core::foundation::measure::SeqkitMetrics {
+    bijux_core::foundation::measure::SeqkitMetrics {
         reads: 0,
         bases: 0,
         mean_q: 0.0,
@@ -747,7 +747,7 @@ fn f64_from_u64(value: u64) -> f64 {
     value as f64
 }
 
-fn fastq_stats(path: &Path) -> Result<bijux_core::primitives::measure::SeqkitMetrics> {
+fn fastq_stats(path: &Path) -> Result<bijux_core::foundation::measure::SeqkitMetrics> {
     let file = std::fs::File::open(path).context("open fastq")?;
     let reader: Box<dyn std::io::Read> = if path
         .extension()
@@ -802,7 +802,7 @@ fn fastq_stats(path: &Path) -> Result<bijux_core::primitives::measure::SeqkitMet
     } else {
         0.0
     };
-    Ok(bijux_core::primitives::measure::SeqkitMetrics {
+    Ok(bijux_core::foundation::measure::SeqkitMetrics {
         reads,
         bases,
         mean_q,
