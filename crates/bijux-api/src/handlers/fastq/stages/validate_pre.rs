@@ -76,7 +76,9 @@ pub fn bench_fastq_validate_pre<S: ::std::hash::BuildHasher>(
         )?;
         let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
         let plan = plan_validate_pre(&tool_spec, &args.r1, &out_dir);
-        plans.push(plan);
+        plans.push(bijux_core::plan::execution_graph::ExecutionStep::from(
+            &plan,
+        ));
         tool_order.push(tool.clone());
     }
     let executions = execute_plans_with_jobs(plans, platform.runner, jobs)?;

@@ -283,7 +283,8 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
     let run_dirs = prepare_tool_run_dirs(&bench_inputs.tools_root, tool, &run_id)?;
     let out_dir = run_dirs.artifacts_dir.clone();
     let _plan_path = write_stage_plan_json(&run_dirs, "fastq_stats_neutral.plan.json", &plan_json)?;
-    let execution = execute_stage_plan(&plan, bench_inputs.runner, None)?;
+    let step = bijux_core::plan::execution_graph::ExecutionStep::from(&plan);
+    let execution = execute_stage_plan(&step, bench_inputs.runner, None)?;
 
     let metrics = FastqStatsMetrics {
         reads_total: bench_inputs.input_stats.reads,

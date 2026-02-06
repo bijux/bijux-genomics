@@ -122,8 +122,9 @@ pub fn run_bam_truth_stages<S: std::hash::BuildHasher>(
         };
 
         let plan = plan_for_bam_stage_with_profile(stage, &spec, &args, profile, &stage_dir)?;
-        let result = execute_stage_plan(&plan, platform.runner, None)?;
-        runs.push(StageExecutionSummary { plan, result });
+        let step = bijux_core::plan::execution_graph::ExecutionStep::from(&plan);
+        let result = execute_stage_plan(&step, platform.runner, None)?;
+        runs.push(StageExecutionSummary { plan: step, result });
     }
 
     Ok(runs)
@@ -226,9 +227,10 @@ pub fn run_bam_align_and_truth_stages<S: std::hash::BuildHasher>(
         profile,
         &align_out,
     )?;
-    let align_result = execute_stage_plan(&align_plan, platform.runner, None)?;
+    let align_step = bijux_core::plan::execution_graph::ExecutionStep::from(&align_plan);
+    let align_result = execute_stage_plan(&align_step, platform.runner, None)?;
     let mut runs = vec![StageExecutionSummary {
-        plan: align_plan,
+        plan: align_step,
         result: align_result,
     }];
 

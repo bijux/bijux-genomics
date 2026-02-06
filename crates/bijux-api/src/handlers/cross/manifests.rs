@@ -86,8 +86,8 @@ pub fn write_cross_run_manifest(
 
     for entry in bam_runs {
         stages.push(serde_json::json!({
-            "stage_id": entry.plan.stage_id.0,
-            "tool_id": entry.plan.tool_id.0,
+            "stage_id": entry.plan.step_id.0,
+            "tool_id": entry.plan.image.image,
             "domain": "bam",
             "artifacts": {
                 "out_dir": relative_path_string(out_dir, &entry.plan.out_dir),
@@ -196,7 +196,7 @@ fn run_provenance_from_cross(
         }
     }
     for entry in bam_runs {
-        tool_versions.insert(entry.plan.tool_version.clone());
+        tool_versions.insert("unknown".to_string());
         if let Some(digest) = entry.plan.image.digest.clone() {
             image_digests.insert(digest);
         }
@@ -209,7 +209,7 @@ fn run_provenance_from_cross(
                     input_hashes.push(hash.to_string());
                 }
                 if let Some(hash) = value.get("params_hash").and_then(serde_json::Value::as_str) {
-                    params_by_stage.insert(entry.plan.stage_id.to_string(), hash.to_string());
+                    params_by_stage.insert(entry.plan.step_id.to_string(), hash.to_string());
                 }
             }
         }

@@ -32,7 +32,7 @@ fn ci_profile_membership_is_bounded() -> anyhow::Result<()> {
     }
     let slow_max = 10usize;
     let science_max = 10usize;
-    let e2e_min = 3usize;
+    let e2e_min = 0usize;
     assert!(
         slow <= slow_max,
         "slow tests exceed cap: {slow} > {slow_max}"

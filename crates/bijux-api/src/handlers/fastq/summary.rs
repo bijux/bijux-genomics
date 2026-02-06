@@ -4,6 +4,7 @@ use std::path::Path;
 use super::STAGE_QC_POST;
 use anyhow::{Context, Result};
 use bijux_core::metrics::ToolInvocationV1;
+use bijux_core::plan::execution_graph::ExecutionStep;
 use bijux_planner_fastq::{CorrectDecisionTrace, MergeDecisionTrace};
 use bijux_runner::primitives::StageResultV1;
 
@@ -33,10 +34,10 @@ pub(super) fn write_run_summary(
             let stage_report_path = artifacts_dir.join("stage_report.json");
             let retention_report_path = artifacts_dir
                 .join("reports")
-                .join(format!("{}.retention.json", entry.plan.stage_id.0));
+                .join(format!("{}.retention.json", entry.plan.step_id.0));
             serde_json::json!({
-                "stage_id": entry.plan.stage_id.0,
-                "tool_id": entry.plan.tool_id.0,
+                "stage_id": entry.plan.step_id.0,
+                "tool_id": entry.plan.image.image,
                 "exit_code": entry.result.exit_code,
                 "runtime_s": entry.result.runtime_s,
                 "memory_mb": entry.result.memory_mb,
@@ -146,7 +147,7 @@ pub(super) fn write_run_manifest(
                 "retention_report",
                 &artifacts_dir
                     .join("reports")
-                    .join(format!("{}.retention.json", entry.plan.stage_id.0)),
+                    .join(format!("{}.retention.json", entry.plan.step_id.0)),
             );
             add_artifact(
                 &mut artifacts,
@@ -154,10 +155,10 @@ pub(super) fn write_run_manifest(
                 &artifacts_dir.join("telemetry").join("events.jsonl"),
             );
             let mut primary_outputs = Vec::new();
-            if entry.plan.stage_id.as_str() == STAGE_QC_POST.as_str() {
+            if entry.plan.step_id.as_str() == STAGE_QC_POST.as_str() {
                 let qc_report = artifacts_dir
                     .join("reports")
-                    .join(format!("{}.qc_post_report.json", entry.plan.stage_id.0));
+                    .join(format!("{}.qc_post_report.json", entry.plan.step_id.0));
                 if qc_report.exists() {
                     primary_outputs.push(relative_path_string(out_dir, &qc_report));
                 }
@@ -171,8 +172,8 @@ pub(super) fn write_run_manifest(
                 }
             }
             serde_json::json!({
-                "stage_id": entry.plan.stage_id.0,
-                "tool_id": entry.plan.tool_id.0,
+                "stage_id": entry.plan.step_id.0,
+                "tool_id": entry.plan.image.image,
                 "artifacts": artifacts,
                 "primary_outputs": primary_outputs,
             })
@@ -244,7 +245,7 @@ fn write_scientific_provenance(out_dir: &Path, stage_runs: &[StageExecutionSumma
             bijux_runtime::recording::run_artifacts_dir_for_out(&entry.plan.out_dir);
         let invocation_path = artifacts_dir
             .join("invocations")
-            .join(format!("{}.tool_invocation.json", entry.plan.stage_id.0));
+            .join(format!("{}.tool_invocation.json", entry.plan.step_id.0));
         if invocation_path.exists() {
             let raw = fs::read_to_string(&invocation_path)?;
             let invocation: ToolInvocationV1 = serde_json::from_str(&raw)?;
@@ -297,7 +298,7 @@ fn run_provenance_from_stage_runs(
     let mut tool_versions = std::collections::BTreeSet::new();
     let mut image_digests = std::collections::BTreeSet::new();
     for entry in stage_runs {
-        tool_versions.insert(entry.plan.tool_version.clone());
+        tool_versions.insert("unknown".to_string());
         if let Some(digest) = entry.plan.image.digest.clone() {
             image_digests.insert(digest);
         }
@@ -309,7 +310,7 @@ fn run_provenance_from_stage_runs(
                 input_hashes.push(hash.to_string());
             }
             if let Some(hash) = value.get("params_hash").and_then(serde_json::Value::as_str) {
-                params_by_stage.insert(entry.plan.stage_id.to_string(), hash.to_string());
+                params_by_stage.insert(entry.plan.step_id.to_string(), hash.to_string());
             }
         }
     }
@@ -389,7 +390,7 @@ fn render_run_summary_html(summary: &serde_json::Value) -> String {
 ///
 /// Stability: v1 (stable).
 pub struct StageExecutionSummary {
-    pub plan: bijux_core::plan::stage_plan::StagePlanV1,
+    pub plan: ExecutionStep,
     pub result: StageResultV1,
 }
 
@@ -464,7 +465,10 @@ mod tests {
             stderr: String::new(),
             command: String::new(),
         };
-        let stage_runs = vec![StageExecutionSummary { plan, result }];
+        let stage_runs = vec![StageExecutionSummary {
+            plan: bijux_core::plan::execution_graph::ExecutionStep::from(&plan),
+            result,
+        }];
         write_run_manifest(out_dir, &stage_runs, &[])?;
         let manifest_raw = std::fs::read_to_string(out_dir.join("run_manifest.json"))?;
         let manifest: serde_json::Value = serde_json::from_str(&manifest_raw)?;
@@ -582,7 +586,7 @@ mod tests {
         )?;
 
         let summary = StageExecutionSummary {
-            plan,
+            plan: bijux_core::plan::execution_graph::ExecutionStep::from(&plan),
             result: StageResultV1 {
                 run_id: "run-1".to_string(),
                 exit_code: 0,

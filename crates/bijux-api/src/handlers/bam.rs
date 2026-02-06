@@ -72,7 +72,8 @@ pub fn bench_bam_stage(
                 let plan_path = run_dir.join("plan.json");
                 bijux_infra::atomic_write_json(&plan_path, &plan)?;
             } else {
-                execute_stage_plan(&plan, RunnerKind::Docker, None)?;
+                let step = bijux_core::plan::execution_graph::ExecutionStep::from(&plan);
+                execute_stage_plan(&step, RunnerKind::Docker, None)?;
             }
             run_dirs.push(run_dir);
         }
