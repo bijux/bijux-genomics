@@ -1,4 +1,5 @@
-use bijux_core::plan::execution_plan::{ExecutionPlan, PlanEdge, PlanPolicy};
+use bijux_core::plan::execution_graph::{ExecutionEdge, ExecutionGraph};
+use bijux_core::plan::PlanPolicy;
 use bijux_core::{
     ArtifactRef, CommandSpecV1, ContainerImageRefV1, StageIO, StageId, StagePlanV1, StageVersion,
     ToolConstraints, ToolId,
@@ -7,7 +8,7 @@ use bijux_core::{
 #[test]
 #[allow(clippy::too_many_lines)]
 fn execution_plan_roundtrip_is_canonical() -> anyhow::Result<()> {
-    let plan = ExecutionPlan::new(
+    let plan = ExecutionGraph::new(
         "fastq-to-bam__default__v1",
         "planner-fastq@1",
         PlanPolicy::PreferAccuracy,
@@ -44,12 +45,16 @@ fn execution_plan_roundtrip_is_canonical() -> anyhow::Result<()> {
             effective_params: serde_json::json!({"sample_id": "sample-1"}),
             aux_images: std::collections::BTreeMap::new(),
             reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
-        }],
-        vec![PlanEdge::new("fastq.trim", "fastq.trim")],
+        }
+        .into()],
+        vec![ExecutionEdge::new(
+            StageId::from_static("fastq.trim"),
+            StageId::from_static("fastq.trim"),
+        )],
     );
     assert!(plan.is_err(), "self-loop should be rejected");
 
-    let plan = ExecutionPlan::new(
+    let plan = ExecutionGraph::new(
         "fastq-to-bam__default__v1",
         "planner-fastq@1",
         PlanPolicy::PreferAccuracy,
@@ -87,7 +92,8 @@ fn execution_plan_roundtrip_is_canonical() -> anyhow::Result<()> {
                 effective_params: serde_json::json!({"sample_id": "sample-1"}),
                 aux_images: std::collections::BTreeMap::new(),
                 reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
-            },
+            }
+            .into(),
             StagePlanV1 {
                 stage_id: StageId::from_static("fastq.trim"),
                 stage_version: StageVersion(1),
@@ -121,13 +127,17 @@ fn execution_plan_roundtrip_is_canonical() -> anyhow::Result<()> {
                 effective_params: serde_json::json!({"sample_id": "sample-1"}),
                 aux_images: std::collections::BTreeMap::new(),
                 reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
-            },
+            }
+            .into(),
         ],
-        vec![PlanEdge::new("fastq.trim", "fastq.filter")],
+        vec![ExecutionEdge::new(
+            StageId::from_static("fastq.trim"),
+            StageId::from_static("fastq.filter"),
+        )],
     )?;
 
     let encoded = serde_json::to_string_pretty(&plan)?;
-    let decoded: ExecutionPlan = serde_json::from_str(&encoded)?;
+    let decoded: ExecutionGraph = serde_json::from_str(&encoded)?;
     let reencoded = serde_json::to_string_pretty(&decoded)?;
     assert_eq!(
         encoded, reencoded,
