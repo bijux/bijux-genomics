@@ -60,7 +60,10 @@ impl Default for CancellationToken {
 #[derive(Debug, Clone, serde::Serialize)]
 #[serde(tag = "event", rename_all = "snake_case")]
 pub enum EngineEvent {
-    StepStart { step_id: StepId, attempt: u32 },
+    StepStart {
+        step_id: StepId,
+        attempt: u32,
+    },
     StepEnd {
         step_id: StepId,
         attempt: u32,
@@ -71,7 +74,10 @@ pub enum EngineEvent {
         attempt: u32,
         exit_code: i32,
     },
-    ArtifactVerified { step_id: StepId, path: String },
+    ArtifactVerified {
+        step_id: StepId,
+        path: String,
+    },
 }
 
 pub trait EngineHooks: Send + Sync {
