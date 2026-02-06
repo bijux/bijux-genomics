@@ -1,4 +1,6 @@
 use anyhow::Result;
+use bijux_core::contract::ContractVersion;
+use bijux_core::ids::{StageId, ToolId};
 use bijux_core::metrics::ToolInvocationV1;
 use bijux_core::parameters_json_canonicalization;
 use bijux_core::params_hash;
@@ -29,8 +31,9 @@ fn tool_invocation_roundtrip_and_hash_stability() -> Result<()> {
 
     let invocation = ToolInvocationV1 {
         schema_version: "bijux.tool_invocation.v1".to_string(),
-        stage_id: "fastq.trim".to_string(),
-        tool_id: "fastp".to_string(),
+        contract_version: ContractVersion::v1(),
+        stage_id: StageId::from_static("fastq.trim"),
+        tool_id: ToolId::from_static("fastp"),
         tool_version: "0.23.4".to_string(),
         resolved_tool_version: Some("0.23.4".to_string()),
         image_digest: "sha256:abc".to_string(),

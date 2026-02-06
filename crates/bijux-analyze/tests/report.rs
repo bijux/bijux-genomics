@@ -136,8 +136,9 @@ fn base_reports(root: &std::path::Path) -> Result<(PathBuf, PathBuf, PathBuf)> {
 
     let tool_invocation = ToolInvocationV1 {
         schema_version: "bijux.tool_invocation.v1".to_string(),
-        stage_id: "fastq.trim".to_string(),
-        tool_id: "fastp".to_string(),
+        contract_version: bijux_core::contract::ContractVersion::v1(),
+        stage_id: bijux_core::ids::StageId::from_static("fastq.trim"),
+        tool_id: bijux_core::ids::ToolId::from_static("fastp"),
         tool_version: "0.23.4".to_string(),
         resolved_tool_version: Some("0.23.4".to_string()),
         image_digest: "sha256:img".to_string(),
@@ -157,6 +158,8 @@ fn base_reports(root: &std::path::Path) -> Result<(PathBuf, PathBuf, PathBuf)> {
             "paired_mode": "single_end",
             "threads": 1
         }),
+        params_provenance: serde_json::json!({}),
+        params_provenance_normalized: serde_json::json!({}),
         adapter_bank: None,
         banks: None,
         bank_assets: None,
