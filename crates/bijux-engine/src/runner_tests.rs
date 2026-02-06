@@ -5,12 +5,11 @@ use std::collections::BTreeMap;
 use std::path::PathBuf;
 use std::time::Duration;
 
-use crate::runner::{Invocation, Runner, RunnerResult};
+use bijux_core::contract::{ArtifactRef, StageIO, ToolConstraints};
 use bijux_core::plan::execution_graph::{ExecutionEdge, ExecutionGraph, ExecutionStep};
 use bijux_core::plan::PlanPolicy;
-use bijux_core::{
-    CommandSpecV1, ContainerImageRefV1, StageId, StagePlanV1, StageVersion, ToolConstraints, ToolId,
-};
+use bijux_core::plan::{Invocation, Runner, RunnerResult};
+use bijux_core::{CommandSpecV1, ContainerImageRefV1, StageId};
 
 use crate::executor::{execute_plan, ExecutionOptions};
 
@@ -51,11 +50,8 @@ impl Runner for FakeRunner {
 }
 
 fn plan_for(stage_id: &str) -> ExecutionStep {
-    StagePlanV1 {
-        stage_id: StageId::new(stage_id),
-        stage_version: StageVersion(1),
-        tool_id: ToolId::from_static("tool"),
-        tool_version: "0.0.0".to_string(),
+    ExecutionStep {
+        step_id: StageId::new(stage_id),
         image: ContainerImageRefV1 {
             image: "tool".to_string(),
             digest: Some("sha256:img".to_string()),
@@ -69,23 +65,21 @@ fn plan_for(stage_id: &str) -> ExecutionStep {
             tmp_gb: 1,
             threads: 1,
         },
-        io: bijux_core::plan::stage_plan::StageIO {
-            inputs: vec![bijux_core::plan::stage_plan::ArtifactRef {
+        io: StageIO {
+            inputs: vec![ArtifactRef {
                 name: "input".to_string(),
                 path: PathBuf::from("input"),
             }],
-            outputs: vec![bijux_core::plan::stage_plan::ArtifactRef {
+            outputs: vec![ArtifactRef {
                 name: "output".to_string(),
                 path: PathBuf::from("output"),
             }],
         },
         out_dir: PathBuf::from("out"),
-        params: serde_json::json!({"sample_id":"s1"}),
-        effective_params: serde_json::json!({}),
         aux_images: BTreeMap::new(),
-        reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
+        expected_artifact_ids: Vec::new(),
+        metrics_schema_ids: Vec::new(),
     }
-    .into()
 }
 
 #[test]

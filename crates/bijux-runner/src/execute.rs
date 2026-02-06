@@ -50,18 +50,18 @@ fn hash_inputs(inputs: &[PathBuf]) -> Result<Vec<String>> {
     Ok(hashes)
 }
 
-/// Execute a single stage plan using docker.
+/// Execute a single step using docker.
 ///
 /// # Errors
 /// Returns an error if execution fails or docker is unavailable.
-pub fn execute_stage_plan(
+pub fn execute_step(
     step: &ExecutionStep,
     runner: RunnerKind,
     timeout: Option<Duration>,
 ) -> Result<StageResultV1> {
     if runner != RunnerKind::Docker {
         return Err(anyhow!(
-            "runner {runner:?} not supported for stage execution"
+            "runner {runner:?} not supported for step execution"
         ));
     }
     let out_dir = &step.out_dir;
