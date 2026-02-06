@@ -266,8 +266,9 @@ pub fn write_plan_provenance(run_dir: &Path, plan: &ExecutionGraph) -> Result<Pa
             bijux_core::primitives::hashing::canonicalize_json_value(&params_provenance);
         invocations.push(ToolInvocationV1 {
             schema_version: "bijux.tool_invocation.v1".to_string(),
-            stage_id: step.step_id.to_string(),
-            tool_id: "unknown".to_string(),
+            contract_version: bijux_core::contract::ContractVersion::v1(),
+            stage_id: step.stage_id.clone(),
+            tool_id: bijux_core::ids::ToolId::from_static("unknown"),
             tool_version: "unknown".to_string(),
             resolved_tool_version: None,
             image_digest,

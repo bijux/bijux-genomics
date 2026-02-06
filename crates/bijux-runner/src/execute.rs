@@ -226,8 +226,9 @@ fn write_minimum_run_artifacts(
             bijux_core::primitives::hashing::canonicalize_json_value(&params_provenance);
         let invocation = ToolInvocationV1 {
             schema_version: "bijux.tool_invocation.v1".to_string(),
-            stage_id: step.step_id.to_string(),
-            tool_id: step.image.image.clone(),
+            contract_version: bijux_core::contract::ContractVersion::v1(),
+            stage_id: step.stage_id.clone(),
+            tool_id: bijux_core::ids::ToolId::new(step.image.image.clone()),
             tool_version: "unknown".to_string(),
             resolved_tool_version: None,
             image_digest: step
@@ -260,7 +261,7 @@ fn write_minimum_run_artifacts(
     if !stage_report_path.exists() {
         let payload = serde_json::json!({
             "schema_version": "bijux.stage_report.v1",
-            "stage_id": step.step_id.to_string(),
+            "stage_id": step.stage_id.to_string(),
             "stage_version": 1,
             "tool_id": step.image.image,
             "tool_version": "unknown",
