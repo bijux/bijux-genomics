@@ -8,7 +8,7 @@ mod run_record;
 mod selection;
 mod tooling;
 
-pub use crate::ids::{PipelineId, RunId, StageId, StageVersion, ToolId};
+pub use crate::ids::{ImageDigest, PipelineId, RunId, StageId, StageVersion, ToolId, ToolVersion};
 pub use crate::metadata::{
     RunMetadataV1, StageMetadataV1, ToolExecutionMetadataV1, ToolInvocationMetadataV1,
 };

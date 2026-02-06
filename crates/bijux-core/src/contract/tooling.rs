@@ -3,7 +3,7 @@ use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
 
-use crate::ids::ToolId;
+use crate::ids::{ToolId, ToolVersion};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ToolConstraints {
@@ -128,7 +128,7 @@ pub struct ToolManifest {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ToolExecutionSpecV1 {
     pub tool_id: ToolId,
-    pub tool_version: String,
+    pub tool_version: ToolVersion,
     pub image: crate::primitives::ContainerImageRefV1,
     pub command: crate::primitives::CommandSpecV1,
     pub resources: ToolConstraints,

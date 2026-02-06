@@ -10,6 +10,9 @@ pub struct StageId(pub Cow<'static, str>);
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct ToolId(pub Cow<'static, str>);
 
+pub type ToolVersion = String;
+pub type ImageDigest = String;
+
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct PipelineId(pub Cow<'static, str>);
 
