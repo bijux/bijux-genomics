@@ -23,7 +23,7 @@ pub enum FailureKind {
 #[derive(Debug, Clone, Copy, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum FailureClass {
-    DataError,
+    ContractError,
     ToolError,
     EnvironmentError,
 }
@@ -40,7 +40,7 @@ pub struct BenchmarkFailure {
 #[must_use]
 pub fn failure_class(kind: FailureKind) -> FailureClass {
     match kind {
-        FailureKind::DataInvalid | FailureKind::ContractViolation => FailureClass::DataError,
+        FailureKind::DataInvalid | FailureKind::ContractViolation => FailureClass::ContractError,
         FailureKind::ImageError | FailureKind::ResourceExhaustion => FailureClass::EnvironmentError,
         FailureKind::ObserverParse | FailureKind::ToolExit => FailureClass::ToolError,
     }
@@ -49,9 +49,10 @@ pub fn failure_class(kind: FailureKind) -> FailureClass {
 #[must_use]
 pub fn error_category(kind: FailureKind) -> ErrorCategory {
     match kind {
-        FailureKind::DataInvalid | FailureKind::ContractViolation => ErrorCategory::DataError,
+        FailureKind::DataInvalid | FailureKind::ContractViolation => ErrorCategory::ContractError,
         FailureKind::ImageError | FailureKind::ResourceExhaustion => ErrorCategory::InfraError,
-        FailureKind::ObserverParse | FailureKind::ToolExit => ErrorCategory::ToolError,
+        FailureKind::ObserverParse => ErrorCategory::ParseError,
+        FailureKind::ToolExit => ErrorCategory::ToolError,
     }
 }
 
@@ -59,10 +60,11 @@ pub fn error_category(kind: FailureKind) -> ErrorCategory {
 pub fn classify_raw_failure(raw: &RawFailure) -> BenchmarkFailure {
     let msg = raw.reason.to_lowercase();
     let kind = match raw.category {
-        ErrorCategory::UserError | ErrorCategory::DataError => FailureKind::DataInvalid,
+        ErrorCategory::PlanError => FailureKind::DataInvalid,
+        ErrorCategory::ContractError => FailureKind::ContractViolation,
+        ErrorCategory::ParseError => FailureKind::ObserverParse,
         ErrorCategory::ToolError => FailureKind::ToolExit,
         ErrorCategory::InfraError => FailureKind::ResourceExhaustion,
-        ErrorCategory::Bug => FailureKind::ContractViolation,
     };
     let kind = if msg.contains("timeout") || msg.contains("out of memory") {
         FailureKind::ResourceExhaustion
@@ -104,7 +106,7 @@ fn remediation_hints_for_failure(raw: &RawFailure) -> Vec<ErrorHintV1> {
     if msg.contains("adapter") || msg.contains("adapter preset") {
         hints.push(ErrorHintV1 {
             id: "adapter_preset_missing".to_string(),
-            category: ErrorCategory::DataError,
+            category: ErrorCategory::ContractError,
             severity: HintSeverity::Medium,
             message: "Adapter preset missing or invalid".to_string(),
             suggested_action: "Configure a valid adapter preset or supply an adapter file"
@@ -115,7 +117,7 @@ fn remediation_hints_for_failure(raw: &RawFailure) -> Vec<ErrorHintV1> {
     if msg.contains("polyg") || msg.contains("poly-g") {
         hints.push(ErrorHintV1 {
             id: "polyg_artifact".to_string(),
-            category: ErrorCategory::DataError,
+            category: ErrorCategory::ContractError,
             severity: HintSeverity::Low,
             message: "Poly-G artifact suspected".to_string(),
             suggested_action: "Enable illumina_twocolor or configure polyG filtering".to_string(),
@@ -125,7 +127,7 @@ fn remediation_hints_for_failure(raw: &RawFailure) -> Vec<ErrorHintV1> {
     if raw.stage == "fastq.screen" || msg.contains("contaminant") {
         hints.push(ErrorHintV1 {
             id: "contamination_screen".to_string(),
-            category: ErrorCategory::DataError,
+            category: ErrorCategory::ContractError,
             severity: HintSeverity::Medium,
             message: "Potential contaminant signal detected".to_string(),
             suggested_action: "Review contaminant screen output and adjust contaminant bank"
@@ -157,7 +159,7 @@ mod tests {
             stage: "fastq.validate_pre".to_string(),
             tool: "fastqvalidator".to_string(),
             reason: "strict validation failed for fastqvalidator".to_string(),
-            category: ErrorCategory::DataError,
+            category: ErrorCategory::ContractError,
         };
         let failure = classify_raw_failure(&raw);
         assert!(matches!(failure.kind, FailureKind::DataInvalid));
@@ -169,7 +171,7 @@ mod tests {
             stage: "fastq.trim".to_string(),
             tool: "fastp".to_string(),
             reason: "invariant failed: reads_out must be <= reads_in".to_string(),
-            category: ErrorCategory::DataError,
+            category: ErrorCategory::ContractError,
         };
         let failure = classify_raw_failure(&raw);
         assert!(matches!(failure.kind, FailureKind::ContractViolation));
@@ -193,7 +195,7 @@ mod tests {
             stage: "fastq.trim".to_string(),
             tool: "fastp".to_string(),
             reason: "adapter preset missing".to_string(),
-            category: ErrorCategory::DataError,
+            category: ErrorCategory::ContractError,
         };
         let failure = classify_raw_failure(&raw);
         assert!(failure

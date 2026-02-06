@@ -172,21 +172,10 @@ fn base_reports(root: &std::path::Path) -> Result<(PathBuf, PathBuf, PathBuf)> {
         boundary: "pre/post".to_string(),
         numerator: serde_json::json!({"reads_out": 80, "bases_out": 800}),
         denominator: serde_json::json!({"reads_in": 100, "bases_in": 1000}),
+        units: "reads".to_string(),
         scope: "reads+bases".to_string(),
         condition: serde_json::json!({"min_len": 20}),
         parameters_json: serde_json::json!({"min_len": 20}),
-        retention: Some(serde_json::to_value(
-            bijux_domain_fastq::metrics::RetentionReportMetricV1 {
-                value: 0.8,
-                numerator_reads: 80,
-                denominator_reads: 100,
-                numerator_bases: 800,
-                denominator_bases: 1000,
-                definition: "reads_out / reads_in".to_string(),
-                stage_boundary: "fastq.trim".to_string(),
-                conditions: serde_json::json!({"min_len": 20}),
-            },
-        )?),
     };
     bijux_infra::write_bytes(
         &retention_report_path,
