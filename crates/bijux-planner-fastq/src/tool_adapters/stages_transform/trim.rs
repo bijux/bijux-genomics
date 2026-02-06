@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use anyhow::{anyhow, Result};
-use bijux_core::{StageId, StageVersion, ToolExecutionSpecV1};
+use bijux_core::{ArtifactId, StageId, StageVersion, ToolExecutionSpecV1};
 use bijux_domain_fastq::params::{trim::TrimEffectiveParams, PairedMode};
 use bijux_domain_fastq::STAGE_TRIM;
 use bijux_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
@@ -106,12 +106,12 @@ pub fn plan(
         resources: tool.resources.clone(),
         io: StageIO {
             inputs: vec![ArtifactRef::required(
-                "reads_r1",
+                ArtifactId::from_static("reads_r1"),
                 r1.to_path_buf(),
                 bijux_core::ArtifactRole::Reads,
             )],
             outputs: vec![ArtifactRef::required(
-                "trimmed_reads",
+                ArtifactId::from_static("trimmed_reads"),
                 output.clone(),
                 bijux_core::ArtifactRole::TrimmedReads,
             )],

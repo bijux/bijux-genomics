@@ -13,11 +13,13 @@ pub use stage_plan::*;
 pub use stage_plugin::*;
 
 use bijux_core::execution::execution_graph::ExecutionStep;
+use bijux_core::ids::StepId;
 
 #[must_use]
 pub fn execution_step_from_stage_plan(plan: &crate::StagePlanV1) -> ExecutionStep {
     ExecutionStep {
-        step_id: plan.stage_id.clone(),
+        step_id: StepId::new(plan.stage_id.to_string()),
+        stage_id: plan.stage_id.clone(),
         command: plan.command.clone(),
         image: plan.image.clone(),
         resources: plan.resources.clone(),

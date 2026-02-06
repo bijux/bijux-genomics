@@ -59,7 +59,8 @@ fn fastq_default_pipeline_graph_is_pure() -> anyhow::Result<()> {
     };
 
     let graph = plan_fastq_to_fastq__default__v1(&inputs, DefaultPipelineOptions::default())?;
-    let json = graph.canonical_json()?;
+    let json = serde_json::to_value(&graph)?;
+    let json = bijux_core::primitives::hashing::canonicalize_truth_json(&json);
     let mut settings = insta::Settings::new();
     settings.add_filter(temp.path().to_str().unwrap_or_default(), "<temp>");
     settings.bind(|| {

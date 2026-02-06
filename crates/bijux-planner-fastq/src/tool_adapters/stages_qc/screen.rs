@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use anyhow::{anyhow, Result};
-use bijux_core::{StageId, StageVersion, ToolExecutionSpecV1};
+use bijux_core::{ArtifactId, StageId, StageVersion, ToolExecutionSpecV1};
 use bijux_domain_fastq::params::{screen::ScreenEffectiveParams, PairedMode};
 use bijux_domain_fastq::STAGE_SCREEN;
 use bijux_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
@@ -43,12 +43,12 @@ pub fn plan_screen(tool: &ToolExecutionSpecV1, r1: &Path, out_dir: &Path) -> Res
         resources: tool.resources.clone(),
         io: StageIO {
             inputs: vec![ArtifactRef::required(
-                "reads_r1",
+                ArtifactId::from_static("reads_r1"),
                 r1.to_path_buf(),
                 bijux_core::ArtifactRole::Reads,
             )],
             outputs: vec![ArtifactRef::required(
-                "screen_report_tsv",
+                ArtifactId::from_static("screen_report_tsv"),
                 report.clone(),
                 bijux_core::ArtifactRole::ReportJson,
             )],

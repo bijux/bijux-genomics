@@ -6,7 +6,7 @@ use bijux_core::contract::PipelineSpec;
 use bijux_core::execution::execution_graph::{ExecutionEdge, ExecutionGraph};
 use bijux_core::execution::PlanPolicy;
 use bijux_core::primitives::input_assessment::{assess_input_dir, FastqLayout};
-use bijux_core::{ContainerImageRefV1, StageId, ToolExecutionSpecV1};
+use bijux_core::{ContainerImageRefV1, StageId, StepId, ToolExecutionSpecV1};
 use bijux_domain_bam::BamStage;
 use bijux_domain_fastq::{assess_merge_suitability, canonical_stage_order};
 use bijux_domain_fastq::{
@@ -452,8 +452,8 @@ impl FastqPlanner {
                 .into_iter()
                 .map(|edge| {
                     ExecutionEdge::new(
-                        StageId::new(edge.from().to_string()),
-                        StageId::new(edge.to().to_string()),
+                        StepId::new(edge.from().to_string()),
+                        StepId::new(edge.to().to_string()),
                     )
                 })
                 .collect(),
@@ -530,8 +530,8 @@ pub fn plan_fastq_to_bam__default__v1(
             .into_iter()
             .map(|edge| {
                 ExecutionEdge::new(
-                    StageId::new(edge.from().to_string()),
-                    StageId::new(edge.to().to_string()),
+                    StepId::new(edge.from().to_string()),
+                    StepId::new(edge.to().to_string()),
                 )
             })
             .collect(),
@@ -754,9 +754,9 @@ pub fn select_preprocess_tools(
             let tool_id = crate::tool_selection::default_tool_for_stage(&stage_id)
                 .or_else(|| {
                     registry
-                        .tools_for_stage(stage)
+                        .tools_for_stage(&stage_id)
                         .first()
-                        .map(|tool| tool.tool_id.clone())
+                        .map(|tool| tool.tool_id.to_string())
                 })
                 .ok_or_else(|| anyhow!("no default tool for stage {stage}"))?;
             Ok(ToolSelection {
@@ -782,9 +782,9 @@ pub fn select_preprocess_tools(
         for stage in &pipeline.stages {
             let stage_id = bijux_core::ids::StageId::new(stage.clone());
             let tool_ids: Vec<String> = registry
-                .tools_for_stage(stage)
+                .tools_for_stage(&stage_id)
                 .iter()
-                .map(|tool| tool.tool_id.clone())
+                .map(|tool| tool.tool_id.to_string())
                 .collect();
             let mut tool_records = Vec::new();
             for tool in &tool_ids {

@@ -3,7 +3,7 @@ use std::path::Path;
 use bijux_core::contract::{ArtifactRef, StageIO, ToolConstraints};
 use bijux_core::execution::execution_graph::ExecutionStep;
 use bijux_core::primitives::{CommandSpecV1, ContainerImageRefV1};
-use bijux_core::StageId;
+use bijux_core::{StageId, StepId};
 
 #[must_use]
 pub fn report_stage_step(
@@ -12,7 +12,8 @@ pub fn report_stage_step(
     outputs: Vec<ArtifactRef>,
 ) -> ExecutionStep {
     ExecutionStep {
-        step_id: StageId::new("report.aggregate"),
+        step_id: StepId::new("report.aggregate"),
+        stage_id: StageId::new("report.aggregate"),
         command: CommandSpecV1 {
             template: vec!["report-aggregate".to_string()],
         },
