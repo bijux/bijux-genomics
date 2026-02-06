@@ -1,6 +1,6 @@
 use anyhow::Result;
-use bijux_core::plan::stage_plugin::{StageInvocationV1, StagePlugin, StagePluginOutputV1};
-use bijux_core::{ArtifactRef, StagePlanV1};
+use bijux_stage_contract::{ArtifactRef, StagePlanV1};
+use bijux_stage_contract::{StageInvocationV1, StagePlugin, StagePluginOutputV1};
 
 use crate::metrics;
 

@@ -6,7 +6,7 @@ pub mod observer;
 pub mod plugin;
 pub mod stage_specs;
 
-pub use bijux_core::StagePlanJsonV1 as StagePlanJson;
+pub use bijux_stage_contract::StagePlanJsonV1 as StagePlanJson;
 
 pub use bijux_domain_fastq as domain_fastq;
 pub use bijux_domain_fastq::*;
