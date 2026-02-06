@@ -21,8 +21,8 @@ pub fn build_scientific_provenance(
             .cloned()
             .unwrap_or_else(|| "unknown".to_string());
         tools.push(ToolProvenanceV1 {
-            stage_id: invocation.stage_id.clone(),
-            tool_id: invocation.tool_id.clone(),
+            stage_id: invocation.stage_id.to_string(),
+            tool_id: invocation.tool_id.to_string(),
             tool_version: invocation.tool_version.clone(),
             image_digest: invocation.image_digest.clone(),
             params_hash,

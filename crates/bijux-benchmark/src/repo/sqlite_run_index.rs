@@ -26,8 +26,14 @@ impl RunIndexRepository {
     }
 
     fn resolve_run(&self, run: &RunIndexEntry) -> RunMetadata {
-        let manifest_path = self.artifacts_root.join(&run.run_id).join("manifest.json");
-        let metrics_path = self.artifacts_root.join(&run.run_id).join("metrics.json");
+        let manifest_path = self
+            .artifacts_root
+            .join(run.run_id.as_str())
+            .join("manifest.json");
+        let metrics_path = self
+            .artifacts_root
+            .join(run.run_id.as_str())
+            .join("metrics.json");
         RunMetadata {
             manifest_path,
             metrics_path,
@@ -38,7 +44,10 @@ impl RunIndexRepository {
 impl RunRepository for RunIndexRepository {
     fn list_runs(&self) -> Result<Vec<String>> {
         let entries = list_runs(&self.index_path)?;
-        Ok(entries.into_iter().map(|entry| entry.run_id).collect())
+        Ok(entries
+            .into_iter()
+            .map(|entry| entry.run_id.to_string())
+            .collect())
     }
 
     fn run_metadata(&self, run_id: &str) -> Result<RunMetadata> {

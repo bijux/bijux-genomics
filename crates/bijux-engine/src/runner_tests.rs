@@ -10,7 +10,7 @@ use std::time::Duration;
 use bijux_core::contract::{ArtifactRef, ArtifactRole, StageIO, ToolConstraints};
 use bijux_core::execution::execution_graph::{ExecutionEdge, ExecutionGraph, ExecutionStep};
 use bijux_core::execution::PlanPolicy;
-use bijux_core::{CommandSpecV1, ContainerImageRefV1, StageId};
+use bijux_core::{ArtifactId, CommandSpecV1, ContainerImageRefV1, StageId, StepId};
 use bijux_runtime::{Invocation, Runner, RunnerResult};
 
 use crate::executor::{execute_plan, ExecutionOptions};
@@ -67,7 +67,8 @@ fn plan_for(stage_id: &str) -> ExecutionStep {
     let suffix = COUNTER.fetch_add(1, Ordering::Relaxed);
     let out_dir = std::env::temp_dir().join(format!("bijux-engine-test-{stage_id}-{suffix}"));
     ExecutionStep {
-        step_id: StageId::new(stage_id),
+        step_id: StepId::new(stage_id),
+        stage_id: StageId::new(stage_id),
         image: ContainerImageRefV1 {
             image: "tool".to_string(),
             digest: Some("sha256:img".to_string()),
@@ -83,12 +84,12 @@ fn plan_for(stage_id: &str) -> ExecutionStep {
         },
         io: StageIO {
             inputs: vec![ArtifactRef::required(
-                "input",
+                ArtifactId::from_static("input"),
                 PathBuf::from("input"),
                 ArtifactRole::Unknown,
             )],
             outputs: vec![ArtifactRef::optional(
-                "output",
+                ArtifactId::from_static("output"),
                 PathBuf::from("output"),
                 ArtifactRole::Unknown,
             )],
@@ -104,11 +105,11 @@ fn plan_for(stage_id: &str) -> ExecutionStep {
 fn execute_plan_orders_dag() {
     let stages = vec![plan_for("A"), plan_for("B"), plan_for("C")];
     let edges = vec![
-        ExecutionEdge::new(StageId::new("A"), StageId::new("C")),
-        ExecutionEdge::new(StageId::new("B"), StageId::new("C")),
+        ExecutionEdge::new(StepId::new("A"), StepId::new("C")),
+        ExecutionEdge::new(StepId::new("B"), StepId::new("C")),
     ];
     let plan = ExecutionGraph::new(
-        "pipeline",
+        "fastq-to-fastq__default__v1",
         "planner",
         PlanPolicy::PreferAccuracy,
         stages,
@@ -125,7 +126,7 @@ fn execute_plan_orders_dag() {
 fn execute_plan_retries_failures() {
     let stages = vec![plan_for("A")];
     let plan = ExecutionGraph::new(
-        "pipeline",
+        "fastq-to-fastq__default__v1",
         "planner",
         PlanPolicy::PreferAccuracy,
         stages,
@@ -144,11 +145,11 @@ fn execute_plan_retries_failures() {
 fn execute_plan_stops_on_failure() {
     let stages = vec![plan_for("A"), plan_for("B")];
     let plan = ExecutionGraph::new(
-        "pipeline",
+        "fastq-to-fastq__default__v1",
         "planner",
         PlanPolicy::PreferAccuracy,
         stages,
-        vec![ExecutionEdge::new(StageId::new("A"), StageId::new("B"))],
+        vec![ExecutionEdge::new(StepId::new("A"), StepId::new("B"))],
     )
     .expect("plan");
     let runner = FakeRunner::new();
@@ -165,11 +166,11 @@ fn execute_plan_stops_on_failure() {
 fn execute_plan_respects_resume_cache() {
     let stages = vec![plan_for("A"), plan_for("B")];
     let plan = ExecutionGraph::new(
-        "pipeline",
+        "fastq-to-fastq__default__v1",
         "planner",
         PlanPolicy::PreferAccuracy,
         stages,
-        vec![ExecutionEdge::new(StageId::new("A"), StageId::new("B"))],
+        vec![ExecutionEdge::new(StepId::new("A"), StepId::new("B"))],
     )
     .expect("plan");
     let runner = FakeRunner::new();
@@ -184,11 +185,11 @@ fn execute_plan_respects_resume_cache() {
 fn execute_plan_is_deterministic() {
     let stages = vec![plan_for("A"), plan_for("B"), plan_for("C")];
     let edges = vec![
-        ExecutionEdge::new(StageId::new("A"), StageId::new("C")),
-        ExecutionEdge::new(StageId::new("B"), StageId::new("C")),
+        ExecutionEdge::new(StepId::new("A"), StepId::new("C")),
+        ExecutionEdge::new(StepId::new("B"), StepId::new("C")),
     ];
     let plan = ExecutionGraph::new(
-        "pipeline",
+        "fastq-to-fastq__default__v1",
         "planner",
         PlanPolicy::PreferAccuracy,
         stages,
