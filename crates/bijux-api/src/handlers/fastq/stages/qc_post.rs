@@ -4,7 +4,7 @@ use crate::tooling::{ensure_bench_runner, filter_tools_by_role, load_registry};
 use anyhow::{anyhow, Context, Result};
 use bijux_core::primitives::errors::ErrorCategory;
 use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
-use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
+use bijux_environment_qa::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use bijux_infra::{bench_base_dir, bench_tools_dir};
 use bijux_planner_fastq::select_qc_post_tools;
 use bijux_planner_fastq::stage_api::bench_dir_name;
@@ -80,9 +80,7 @@ pub fn bench_fastq_qc_post<S: ::std::hash::BuildHasher>(
             build_tool_execution_spec(STAGE_QC_POST.as_str(), tool, &registry, catalog, platform)?;
         let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
         let plan = plan_qc_post(&tool_spec, &args.r1, &out_dir, aux_tools.clone(), None)?;
-        plans.push(bijux_core::plan::execution_graph::ExecutionStep::from(
-            &plan,
-        ));
+        plans.push(bijux_stage_contract::execution_step_from_stage_plan(&plan));
         tool_order.push(tool.clone());
     }
     let executions = execute_plans_with_jobs(plans, platform.runner, jobs)?;

@@ -6,8 +6,9 @@ use bijux_environment::resolve::ReferenceRecord;
 use bijux_infra::hash_file_sha256;
 use bijux_pipelines::PipelineProfile;
 
-use super::CROSS_STAGE_ID;
 use crate::handlers::fastq::StageExecutionSummary;
+use bijux_pipelines::STAGE_CORE_PREPARE_REFERENCE;
+use bijux_pipelines::STAGE_CROSS_ALIGN_STUB;
 
 pub fn write_alignment_boundary(out_dir: &Path, boundary: &AlignmentBoundary) -> Result<PathBuf> {
     let boundaries_dir =
@@ -65,7 +66,7 @@ pub fn write_cross_run_manifest(
 
     if let Some(boundary_path) = boundary_path {
         stages.push(serde_json::json!({
-            "stage_id": CROSS_STAGE_ID,
+            "stage_id": STAGE_CROSS_ALIGN_STUB,
             "tool_id": "alignment_boundary",
             "domain": "cross",
             "artifacts": {
@@ -75,7 +76,7 @@ pub fn write_cross_run_manifest(
     }
     if let Some(reference_path) = prepare_reference_path {
         stages.push(serde_json::json!({
-            "stage_id": "core.prepare_reference",
+            "stage_id": STAGE_CORE_PREPARE_REFERENCE,
             "tool_id": "reference_registry",
             "domain": "cross",
             "artifacts": {

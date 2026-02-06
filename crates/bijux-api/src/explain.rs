@@ -1,13 +1,13 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct ExplainExclusion {
+pub(crate) struct ExplainExclusion {
     pub tool: String,
     pub reason: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct ExplainPlan {
+pub(crate) struct ExplainPlan {
     pub stage: String,
     pub selected_tools: Vec<String>,
     pub excluded_tools: Vec<ExplainExclusion>,
@@ -16,17 +16,19 @@ pub struct ExplainPlan {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+/// Stability: v1
 pub struct PlanExplainStageV1 {
     pub step_id: String,
     pub image: String,
     pub command: Vec<String>,
-    pub inputs: Vec<bijux_core::plan::stage_plan::ArtifactRef>,
-    pub outputs: Vec<bijux_core::plan::stage_plan::ArtifactRef>,
+    pub inputs: Vec<bijux_stage_contract::ArtifactRef>,
+    pub outputs: Vec<bijux_stage_contract::ArtifactRef>,
     pub expected_artifact_ids: Vec<String>,
     pub metrics_schema_ids: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+/// Stability: v1
 pub struct PlanExplainV1 {
     pub schema_version: String,
     pub pipeline_id: String,

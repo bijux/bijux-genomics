@@ -15,5 +15,9 @@ pub use bijux_planner_fastq::stage_api::args as fastq_args;
 pub use bijux_planner_fastq::stage_api::banks as fastq_bank_ops;
 pub use bijux_planner_fastq::stage_api::*;
 
+pub use crate::handlers::bam::BamBenchOutcome;
 pub use crate::handlers::bam::{bench_bam_pipeline, bench_bam_stage};
+/// Stability: v1 (stable).
+/// Alias for `BenchOutcome<M: StageMetricSchema>` from the fastq handlers.
+pub type BenchOutcome<M> = crate::handlers::fastq::BenchOutcome<M>;
 pub use crate::handlers::fastq::*;

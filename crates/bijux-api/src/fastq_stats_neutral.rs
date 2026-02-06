@@ -17,7 +17,7 @@ use uuid::Uuid;
 
 use bijux_core::primitives::measure::SeqkitMetrics;
 use bijux_core::validate_execution_outputs;
-use bijux_environment::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
+use bijux_environment_qa::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use bijux_infra::hash_file_sha256;
 use bijux_infra::{bench_base_dir, bench_tools_dir};
 use bijux_planner_fastq::select_stats_tools;
@@ -31,7 +31,7 @@ use bijux_planner_fastq::stage_api::{
     inspect_headers, log_header_warnings, preflight_stage, FastqArtifact,
 };
 use bijux_runner::primitives::resolve_image_for_run;
-use bijux_runner::primitives::{execute_observer_command, execute_stage_plan};
+use bijux_runner::primitives::{execute_observer_command, execute_step};
 use bijux_runtime::recording::{
     compute_run_id, prepare_tool_run_dirs, write_execution_logs, write_metrics_envelope,
     write_metrics_json, write_run_manifest, write_stage_plan_json, RunArtifactInput,
@@ -283,8 +283,8 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
     let run_dirs = prepare_tool_run_dirs(&bench_inputs.tools_root, tool, &run_id)?;
     let out_dir = run_dirs.artifacts_dir.clone();
     let _plan_path = write_stage_plan_json(&run_dirs, "fastq_stats_neutral.plan.json", &plan_json)?;
-    let step = bijux_core::plan::execution_graph::ExecutionStep::from(&plan);
-    let execution = execute_stage_plan(&step, bench_inputs.runner, None)?;
+    let step = bijux_stage_contract::execution_step_from_stage_plan(&plan);
+    let execution = execute_step(&step, bench_inputs.runner, None)?;
 
     let metrics = FastqStatsMetrics {
         reads_total: bench_inputs.input_stats.reads,

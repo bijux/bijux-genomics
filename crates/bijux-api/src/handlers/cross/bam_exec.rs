@@ -6,7 +6,7 @@ use bijux_core::contract::ToolRegistry;
 use bijux_environment::resolve::ReferenceRecord;
 use bijux_pipelines::PipelineProfile;
 use bijux_runner::primitives::build_tool_execution_spec;
-use bijux_runner::primitives::execute_stage_plan;
+use bijux_runner::primitives::execute_step;
 
 use crate::args::{BamRunArgs, FastqCrossArgs};
 use crate::handlers::fastq::StageExecutionSummary;
@@ -84,7 +84,8 @@ fn base_bam_args(
     }
 }
 
-pub fn run_bam_truth_stages<S: std::hash::BuildHasher>(
+#[allow(clippy::too_many_lines)]
+pub(crate) fn run_bam_truth_stages<S: std::hash::BuildHasher>(
     registry_core: &ToolRegistry,
     catalog: &std::collections::HashMap<String, bijux_environment::api::ToolImageSpec, S>,
     platform: &bijux_environment::api::PlatformSpec,
@@ -99,58 +100,91 @@ pub fn run_bam_truth_stages<S: std::hash::BuildHasher>(
     let mut runs = Vec::new();
     for stage_id in bijux_planner_bam::pipeline_stage_ids(profile.id.as_str()) {
         let stage = bijux_planner_bam::stage_api::BamStage::try_from(stage_id.as_str())?;
-        if stage == bijux_planner_bam::stage_api::BamStage::Align {
+        if should_skip_bam_truth_stage(stage) {
             continue;
         }
-        if !downstream_enabled()
-            && matches!(
-                stage,
-                bijux_planner_bam::stage_api::BamStage::Haplogroups
-                    | bijux_planner_bam::stage_api::BamStage::Genotyping
-                    | bijux_planner_bam::stage_api::BamStage::Kinship
-            )
-        {
-            continue;
-        }
-        let tool_id = profile
-            .defaults
-            .tools
-            .get(stage.as_str())
-            .cloned()
-            .unwrap_or_else(|| {
-                bijux_planner_bam::stage_api::stage_spec(stage)
-                    .default_tool
-                    .to_string()
-            });
-        let spec =
-            build_tool_execution_spec(stage.as_str(), &tool_id, registry_core, catalog, platform)?;
-
-        let stage_dir = out_dir
-            .join("bam")
-            .join(stage.as_str().trim_start_matches(STAGE_PREFIX));
-        bijux_infra::ensure_dir(&stage_dir).context("create bam stage dir")?;
-
-        let mut args = base_bam_args(
-            stage,
+        let summary = run_bam_truth_stage(
+            registry_core,
+            catalog,
+            platform,
             profile,
-            bam_path.clone(),
-            stage_dir.clone(),
-            bai_path.clone(),
-            reference.clone(),
-        );
-        args.tool = Some(tool_id);
-
-        let plan = plan_for_bam_stage_with_profile(stage, &spec, &args, profile, &stage_dir)?;
-        let step = bijux_core::plan::execution_graph::ExecutionStep::from(&plan);
-        let result = execute_stage_plan(&step, platform.runner, None)?;
-        runs.push(StageExecutionSummary { plan: step, result });
+            stage,
+            &bam_path,
+            bai_path.as_ref(),
+            reference.as_ref(),
+            out_dir,
+        )?;
+        runs.push(summary);
     }
 
     Ok(runs)
 }
 
+fn should_skip_bam_truth_stage(stage: bijux_planner_bam::stage_api::BamStage) -> bool {
+    if stage == bijux_planner_bam::stage_api::BamStage::Align {
+        return true;
+    }
+    if !downstream_enabled()
+        && matches!(
+            stage,
+            bijux_planner_bam::stage_api::BamStage::Haplogroups
+                | bijux_planner_bam::stage_api::BamStage::Genotyping
+                | bijux_planner_bam::stage_api::BamStage::Kinship
+        )
+    {
+        return true;
+    }
+    false
+}
+
+#[allow(clippy::too_many_arguments)]
+fn run_bam_truth_stage<S: std::hash::BuildHasher>(
+    registry_core: &ToolRegistry,
+    catalog: &std::collections::HashMap<String, bijux_environment::api::ToolImageSpec, S>,
+    platform: &bijux_environment::api::PlatformSpec,
+    profile: &PipelineProfile,
+    stage: bijux_planner_bam::stage_api::BamStage,
+    bam_path: &Path,
+    bai_path: Option<&PathBuf>,
+    reference: Option<&PathBuf>,
+    out_dir: &Path,
+) -> Result<StageExecutionSummary> {
+    let tool_id = profile
+        .defaults
+        .tools
+        .get(stage.as_str())
+        .cloned()
+        .unwrap_or_else(|| {
+            bijux_planner_bam::stage_api::stage_spec(stage)
+                .default_tool
+                .to_string()
+        });
+    let spec =
+        build_tool_execution_spec(stage.as_str(), &tool_id, registry_core, catalog, platform)?;
+
+    let stage_dir = out_dir
+        .join("bam")
+        .join(stage.as_str().trim_start_matches(STAGE_PREFIX));
+    bijux_infra::ensure_dir(&stage_dir).context("create bam stage dir")?;
+
+    let mut args = base_bam_args(
+        stage,
+        profile,
+        bam_path.to_path_buf(),
+        stage_dir.clone(),
+        bai_path.cloned(),
+        reference.cloned(),
+    );
+    args.tool = Some(tool_id);
+
+    let plan = plan_for_bam_stage_with_profile(stage, &spec, &args, profile, &stage_dir)?;
+    let step = bijux_stage_contract::execution_step_from_stage_plan(&plan);
+    let result = execute_step(&step, platform.runner, None)?;
+    Ok(StageExecutionSummary { plan: step, result })
+}
+
 #[allow(clippy::too_many_lines)]
-pub fn run_bam_align_and_truth_stages<S: std::hash::BuildHasher>(
+pub(crate) fn run_bam_align_and_truth_stages<S: std::hash::BuildHasher>(
     registry_core: &ToolRegistry,
     catalog: &std::collections::HashMap<String, bijux_environment::api::ToolImageSpec, S>,
     platform: &bijux_environment::api::PlatformSpec,
@@ -189,7 +223,7 @@ pub fn run_bam_align_and_truth_stages<S: std::hash::BuildHasher>(
     );
     align_args.sample_id = Some(sample_id.clone());
     align_args.r1 = Some(r1.clone());
-    align_args.r2 = args.r2.clone();
+    align_args.r2.clone_from(&args.r2);
     align_args.tool = Some(tool_id);
     align_args.build_reference_indices = true;
     let align_plan = plan_for_bam_stage_with_profile(
@@ -199,8 +233,8 @@ pub fn run_bam_align_and_truth_stages<S: std::hash::BuildHasher>(
         profile,
         &align_out,
     )?;
-    let align_step = bijux_core::plan::execution_graph::ExecutionStep::from(&align_plan);
-    let align_result = execute_stage_plan(&align_step, platform.runner, None)?;
+    let align_step = bijux_stage_contract::execution_step_from_stage_plan(&align_plan);
+    let align_result = execute_step(&align_step, platform.runner, None)?;
     let mut runs = vec![StageExecutionSummary {
         plan: align_step,
         result: align_result,

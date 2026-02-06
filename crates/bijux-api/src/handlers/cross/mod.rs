@@ -1,7 +1,5 @@
 //! Cross-domain pipeline runner entrypoints.
 
-pub(crate) const CROSS_STAGE_ID: &str = "cross.align_stub";
-
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct AlignmentBoundary {

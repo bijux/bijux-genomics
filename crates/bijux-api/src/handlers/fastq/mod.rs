@@ -22,10 +22,11 @@ pub use stages::screen::bench_fastq_screen;
 pub use stages::trim::bench_fastq_trim;
 pub use stages::umi::bench_fastq_umi;
 pub use stages::validate_pre::bench_fastq_validate_pre;
-pub use summary::StageExecutionSummary;
+pub(crate) use summary::StageExecutionSummary;
 /// Benchmarking result for a FASTQ stage.
 ///
 /// Stability: v1 (stable).
+/// Stability: v1
 pub struct BenchOutcome<M: bijux_analyze::StageMetricSchema> {
     pub records: Vec<BenchmarkRecord<M>>,
     pub failures: Vec<RawFailure>,
