@@ -36,7 +36,7 @@ impl BamPlanner {
     /// Returns an error if the plan lint fails.
     pub fn plan(config: &BamPlanConfig) -> Result<ExecutionGraph> {
         let edges = default_edges_for_stages(&config.stages);
-        ExecutionGraph::new(
+        let graph = ExecutionGraph::new(
             config.pipeline_id.clone(),
             PLANNER_VERSION,
             config.policy,
@@ -54,7 +54,15 @@ impl BamPlanner {
                     )
                 })
                 .collect(),
-        )
+        )?;
+        tracing::info!(
+            target: "plan.graph",
+            pipeline_id = %graph.pipeline_id(),
+            steps = graph.steps().len(),
+            edges = graph.edges().len(),
+            "planned bam execution graph"
+        );
+        Ok(graph)
     }
 }
 
@@ -432,7 +440,7 @@ fn build_bam_plan(profile: &PipelineProfile, inputs: &BamPipelineInputs) -> Resu
         stages.push(plan);
     }
     let edges = default_edges_for_stages(&stages);
-    ExecutionGraph::new(
+    let graph = ExecutionGraph::new(
         profile.id.as_str(),
         PLANNER_VERSION,
         inputs.policy,
@@ -449,5 +457,13 @@ fn build_bam_plan(profile: &PipelineProfile, inputs: &BamPipelineInputs) -> Resu
                 )
             })
             .collect(),
-    )
+    )?;
+    tracing::info!(
+        target: "plan.graph",
+        pipeline_id = %graph.pipeline_id(),
+        steps = graph.steps().len(),
+        edges = graph.edges().len(),
+        "planned bam pipeline graph"
+    );
+    Ok(graph)
 }

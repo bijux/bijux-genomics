@@ -105,14 +105,16 @@ pub fn plan(
         command: tool.command.clone(),
         resources: tool.resources.clone(),
         io: StageIO {
-            inputs: vec![ArtifactRef {
-                name: "reads_r1".to_string(),
-                path: r1.to_path_buf(),
-            }],
-            outputs: vec![ArtifactRef {
-                name: "trimmed_reads".to_string(),
-                path: output.clone(),
-            }],
+            inputs: vec![ArtifactRef::required(
+                "reads_r1",
+                r1.to_path_buf(),
+                bijux_core::ArtifactRole::Reads,
+            )],
+            outputs: vec![ArtifactRef::required(
+                "trimmed_reads",
+                output.clone(),
+                bijux_core::ArtifactRole::TrimmedReads,
+            )],
         },
         out_dir: out_dir.to_path_buf(),
         params,

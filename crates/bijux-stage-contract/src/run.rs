@@ -10,7 +10,7 @@ use bijux_core::ids::{RunId, StageVersion};
 use bijux_core::primitives::{CommandSpecV1, ContainerImageRefV1};
 
 use crate::stage_plan::StagePlanV1;
-use bijux_core::contract::{ArtifactRef, StageIO};
+use bijux_core::contract::{ArtifactRef, ArtifactRole, StageIO};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RunExecutionPlan {
@@ -65,17 +65,23 @@ pub fn build_run_execution_plan(
     let inputs = stage_spec
         .inputs
         .iter()
-        .map(|port| ArtifactRef {
-            name: port.name.clone(),
-            path: PathBuf::from(&port.name),
+        .map(|port| {
+            ArtifactRef::required(
+                port.name.clone(),
+                PathBuf::from(&port.name),
+                ArtifactRole::Unknown,
+            )
         })
         .collect();
     let outputs = stage_spec
         .outputs
         .iter()
-        .map(|port| ArtifactRef {
-            name: port.name.clone(),
-            path: PathBuf::from(&port.name),
+        .map(|port| {
+            ArtifactRef::required(
+                port.name.clone(),
+                PathBuf::from(&port.name),
+                ArtifactRole::Unknown,
+            )
         })
         .collect();
 

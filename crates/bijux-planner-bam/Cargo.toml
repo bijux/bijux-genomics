@@ -11,6 +11,7 @@ bijux-domain-bam = { path = "../bijux-domain-bam" }
 bijux-stages-bam = { path = "../bijux-stages-bam", features = ["bam_downstream"] }
 bijux-pipelines = { path = "../bijux-pipelines" }
 serde_json = { workspace = true }
+tracing = { workspace = true }
 
 [dev-dependencies]
 bijux-policies = { path = "../bijux-policies" }

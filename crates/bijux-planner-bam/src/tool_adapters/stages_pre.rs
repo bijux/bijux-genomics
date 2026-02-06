@@ -24,21 +24,24 @@ pub mod validate {
         );
         let flagstat = out_dir.join("flagstat.txt");
         let report = out_dir.join("validation.json");
-        let mut inputs = vec![bijux_stage_contract::ArtifactRef {
-            name: "bam".to_string(),
-            path: bam.to_path_buf(),
-        }];
+        let mut inputs = vec![bijux_stage_contract::ArtifactRef::required(
+            "bam",
+            bam.to_path_buf(),
+            bijux_core::ArtifactRole::Bam,
+        )];
         if let Some(reference) = reference {
-            inputs.push(bijux_stage_contract::ArtifactRef {
-                name: "reference".to_string(),
-                path: reference.to_path_buf(),
-            });
+            inputs.push(bijux_stage_contract::ArtifactRef::required(
+                "reference",
+                reference.to_path_buf(),
+                bijux_core::ArtifactRole::Index,
+            ));
         }
         if let Some(bam_index) = bam_index {
-            inputs.push(bijux_stage_contract::ArtifactRef {
-                name: "bam_bai".to_string(),
-                path: bam_index.to_path_buf(),
-            });
+            inputs.push(bijux_stage_contract::ArtifactRef::required(
+                "bam_bai",
+                bam_index.to_path_buf(),
+                bijux_core::ArtifactRole::Index,
+            ));
         }
         let plan = StagePlanV1 {
             stage_id: StageId::from_static(STAGE_ID),
@@ -128,20 +131,23 @@ pub mod align {
 
         let inputs = {
             let mut items = vec![
-                bijux_stage_contract::ArtifactRef {
-                    name: "fastq_r1".to_string(),
-                    path: r1.to_path_buf(),
-                },
-                bijux_stage_contract::ArtifactRef {
-                    name: "reference".to_string(),
-                    path: reference.to_path_buf(),
-                },
+                bijux_stage_contract::ArtifactRef::required(
+                    "fastq_r1",
+                    r1.to_path_buf(),
+                    bijux_core::ArtifactRole::Reads,
+                ),
+                bijux_stage_contract::ArtifactRef::required(
+                    "reference",
+                    reference.to_path_buf(),
+                    bijux_core::ArtifactRole::Index,
+                ),
             ];
             if let Some(r2) = r2 {
-                items.push(bijux_stage_contract::ArtifactRef {
-                    name: "fastq_r2".to_string(),
-                    path: r2.to_path_buf(),
-                });
+                items.push(bijux_stage_contract::ArtifactRef::required(
+                    "fastq_r2",
+                    r2.to_path_buf(),
+                    bijux_core::ArtifactRole::Reads,
+                ));
             }
             items
         };
@@ -235,10 +241,11 @@ pub mod qc_pre {
             },
             resources: tool.resources.clone(),
             io: StageIO {
-                inputs: vec![bijux_stage_contract::ArtifactRef {
-                    name: "bam".to_string(),
-                    path: bam.to_path_buf(),
-                }],
+                inputs: vec![bijux_stage_contract::ArtifactRef::required(
+                    "bam",
+                    bam.to_path_buf(),
+                    bijux_core::ArtifactRole::Bam,
+                )],
                 outputs,
             },
             out_dir: out_dir.to_path_buf(),
@@ -307,10 +314,11 @@ pub mod filter {
             },
             resources: tool.resources.clone(),
             io: StageIO {
-                inputs: vec![bijux_stage_contract::ArtifactRef {
-                    name: "bam".to_string(),
-                    path: bam.to_path_buf(),
-                }],
+                inputs: vec![bijux_stage_contract::ArtifactRef::required(
+                    "bam",
+                    bam.to_path_buf(),
+                    bijux_core::ArtifactRole::Bam,
+                )],
                 outputs,
             },
             out_dir: out_dir.to_path_buf(),

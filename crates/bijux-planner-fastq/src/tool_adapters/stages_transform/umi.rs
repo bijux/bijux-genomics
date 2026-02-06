@@ -43,24 +43,28 @@ pub fn plan_umi(
         resources: tool.resources.clone(),
         io: StageIO {
             inputs: vec![
-                ArtifactRef {
-                    name: "reads_r1".to_string(),
-                    path: r1.to_path_buf(),
-                },
-                ArtifactRef {
-                    name: "reads_r2".to_string(),
-                    path: r2.to_path_buf(),
-                },
+                ArtifactRef::required(
+                    "reads_r1",
+                    r1.to_path_buf(),
+                    bijux_core::ArtifactRole::Reads,
+                ),
+                ArtifactRef::required(
+                    "reads_r2",
+                    r2.to_path_buf(),
+                    bijux_core::ArtifactRole::Reads,
+                ),
             ],
             outputs: vec![
-                ArtifactRef {
-                    name: "dedup_reads_r1".to_string(),
-                    path: output_r1.clone(),
-                },
-                ArtifactRef {
-                    name: "dedup_reads_r2".to_string(),
-                    path: output_r2.clone(),
-                },
+                ArtifactRef::required(
+                    "dedup_reads_r1",
+                    output_r1.clone(),
+                    bijux_core::ArtifactRole::Reads,
+                ),
+                ArtifactRef::required(
+                    "dedup_reads_r2",
+                    output_r2.clone(),
+                    bijux_core::ArtifactRole::Reads,
+                ),
             ],
         },
         out_dir: out_dir.to_path_buf(),

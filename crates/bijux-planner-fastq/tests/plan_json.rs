@@ -142,6 +142,7 @@ fn preprocess_plan_json_is_emitted_and_stable() -> Result<()> {
         objective: bijux_core::contract::Objective::Balanced,
         bench_corpus: None,
         allow_partial: false,
+        dry_run: false,
         replicates: 1,
         jobs: 1,
         ci_bootstrap: None,
