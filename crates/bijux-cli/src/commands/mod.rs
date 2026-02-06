@@ -31,6 +31,7 @@ use bijux_api::v1::report::{
 };
 use bijux_api::v1::run::init_logging;
 
+use crate::commands::cli::env::{env_doctor, print_env_images, print_env_info};
 use crate::commands::cli::{
     bench_args_correct, bench_args_filter, bench_args_from_trim, bench_args_from_validate,
     bench_args_merge, bench_args_preprocess, bench_args_qc_post, bench_args_screen,
@@ -39,15 +40,15 @@ use crate::commands::cli::{
     preprocess_args_from_cli, AnalyzeCommand, BenchBamCommand, BenchCommand, BenchFastqCommand,
     Cli, Commands, EnvCommand, FastqCommand, PipelinesCommand, PoliciesCommand,
 };
-use crate::commands::helpers::{
-    ensure_profile_run_base_dir, load_profile_for_cli, normalize_fastq_stage_id, qc_class_label,
-    resolve_report_inputs,
-};
-use crate::env::{env_doctor, print_env_images, print_env_info};
+use crate::commands::formatting::{normalize_fastq_stage_id, qc_class_label};
+use crate::commands::rendering::resolve_report_inputs;
+use crate::commands::validation::{ensure_profile_run_base_dir, load_profile_for_cli};
 use crate::render;
 
 pub mod cli;
-pub(crate) mod helpers;
+pub(crate) mod formatting;
+pub(crate) mod rendering;
+pub(crate) mod validation;
 
 include!("bench.rs");
 include!("fastq.rs");
