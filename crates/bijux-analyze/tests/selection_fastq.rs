@@ -1,3 +1,5 @@
+#![cfg(feature = "sqlite")]
+
 use std::path::PathBuf;
 
 use bijux_analyze::load::sqlite::SqliteBenchResultsRepository;
