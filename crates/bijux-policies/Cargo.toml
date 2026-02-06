@@ -13,3 +13,4 @@ serde_json = { workspace = true }
 cargo_metadata = "0.18"
 
 [dev-dependencies]
+insta = { version = "1.38", features = ["glob"] }
