@@ -1,5 +1,5 @@
-use bijux_core::metrics_registry::metrics_schema_for_stage;
-use bijux_core::primitives::hashing::{canonicalize_json_value, parameters_json_canonicalization};
+use bijux_core::contract::canonical::{canonicalize_json_value, parameters_json_canonicalization};
+use bijux_core::metrics::metrics_schema_for_stage;
 
 #[test]
 fn canonicalize_json_value_sorts_keys() {

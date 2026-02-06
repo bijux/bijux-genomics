@@ -40,7 +40,7 @@ fn cli_does_not_import_engine_internals() {
         &[
             "bijux_engine::internal",
             "bijux_engine::core::",
-            "bijux_engine::primitives::",
+            "bijux_engine::foundation::",
         ],
     );
 }

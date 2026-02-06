@@ -24,15 +24,11 @@ fn collect_rs_files(dir: &Path) -> Vec<PathBuf> {
 #[test]
 fn core_layering_is_enforced() {
     let root = workspace_root();
-    let primitives_dir = root.join("crates/bijux-core/src/primitives");
+    let primitives_dir = root.join("crates/bijux-core/src/foundation");
     let contract_dir = root.join("crates/bijux-core/src/contract");
     let mut offenders = Vec::new();
 
-    let forbidden_in_primitives = [
-        "crate::contract",
-        "crate::execution",
-        "crate::metrics_registry",
-    ];
+    let forbidden_in_primitives = ["crate::contract", "crate::metrics::registry"];
     for file in collect_rs_files(&primitives_dir) {
         let content = std::fs::read_to_string(&file).expect("read source");
         for needle in &forbidden_in_primitives {
@@ -42,7 +38,7 @@ fn core_layering_is_enforced() {
         }
     }
 
-    let forbidden_in_contract = ["crate::execution"];
+    let forbidden_in_contract = ["crate::foundation::invariants"];
     for file in collect_rs_files(&contract_dir) {
         let content = std::fs::read_to_string(&file).expect("read source");
         for needle in &forbidden_in_contract {

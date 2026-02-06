@@ -1084,7 +1084,7 @@ fn params_hash_only_defined_in_core() {
     {
         let rel = entry.path().strip_prefix(&root).unwrap_or(entry.path());
         let rel_str = rel.to_string_lossy();
-        if rel_str.ends_with("crates/bijux-core/src/primitives/hashing.rs")
+        if rel_str.ends_with("crates/bijux-core/src/foundation/hashing.rs")
             || rel_str.ends_with("crates/bijux-policies/tests/workspace.rs")
         {
             continue;
