@@ -33,13 +33,13 @@ pub struct PlanExplainV1 {
     pub schema_version: String,
     pub pipeline_id: String,
     pub planner_version: String,
-    pub policy: bijux_core::plan::PlanPolicy,
+    pub policy: bijux_core::execution::PlanPolicy,
     pub stages: Vec<PlanExplainStageV1>,
 }
 
 impl PlanExplainV1 {
     #[must_use]
-    pub fn from_plan(plan: &bijux_core::plan::execution_graph::ExecutionGraph) -> Self {
+    pub fn from_plan(plan: &bijux_core::execution::execution_graph::ExecutionGraph) -> Self {
         let stages = plan
             .steps()
             .iter()

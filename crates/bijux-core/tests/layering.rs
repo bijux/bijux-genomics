@@ -22,7 +22,7 @@ fn primitives_do_not_depend_on_plan_or_contract() {
     let mut offenders = Vec::new();
     for path in collect_rs_files(&root) {
         let content = std::fs::read_to_string(&path).expect("read source");
-        if content.contains("crate::plan") || content.contains("crate::contract") {
+        if content.contains("crate::execution") || content.contains("crate::contract") {
             offenders.push(path.display().to_string());
         }
     }
@@ -39,7 +39,7 @@ fn contract_does_not_depend_on_plan() {
     let mut offenders = Vec::new();
     for path in collect_rs_files(&root) {
         let content = std::fs::read_to_string(&path).expect("read source");
-        if content.contains("crate::plan") {
+        if content.contains("crate::execution") {
             offenders.push(path.display().to_string());
         }
     }

@@ -11,7 +11,7 @@ pub(super) fn bench_jobs(requested: u32) -> usize {
 }
 
 pub(super) fn execute_plans_with_jobs(
-    plans: Vec<bijux_core::plan::execution_graph::ExecutionStep>,
+    plans: Vec<bijux_core::execution::execution_graph::ExecutionStep>,
     runner: RunnerKind,
     jobs: usize,
 ) -> Result<Vec<StageResultV1>> {

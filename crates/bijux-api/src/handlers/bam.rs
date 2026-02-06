@@ -1,8 +1,8 @@
 use crate::tooling::filter_tools_by_role;
 use anyhow::{anyhow, Context, Result};
 use bijux_core::contract::ToolRegistry;
-use bijux_core::plan::execution_graph::{ExecutionEdge, ExecutionGraph};
-use bijux_core::plan::PlanPolicy;
+use bijux_core::execution::execution_graph::{ExecutionEdge, ExecutionGraph};
+use bijux_core::execution::PlanPolicy;
 use bijux_environment::api::{load_image_catalog, load_platform, RunnerKind};
 use bijux_environment_qa::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use bijux_pipelines::registry;

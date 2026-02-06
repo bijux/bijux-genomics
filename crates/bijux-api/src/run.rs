@@ -6,8 +6,8 @@ use crate::args::{
     RenderReportResult, RunRequest, RunResult, RunStatus,
 };
 use bijux_core::contract::{Profile, RunSpec, ToolRegistry};
+use bijux_core::execution::execution_graph::ExecutionGraph;
 use bijux_core::ids::RunId;
-use bijux_core::plan::execution_graph::ExecutionGraph;
 use bijux_engine::RuntimeServices;
 use bijux_pipelines::registry::PipelineRegistry;
 use bijux_pipelines::{Domain, PipelineProfile};

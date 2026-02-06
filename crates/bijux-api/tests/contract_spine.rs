@@ -4,8 +4,8 @@ use std::time::Duration;
 
 use anyhow::Result;
 use bijux_core::contract::{ArtifactRef, ArtifactRole, StageIO, ToolConstraints};
-use bijux_core::plan::execution_graph::{ExecutionEdge, ExecutionGraph, ExecutionStep};
-use bijux_core::plan::PlanPolicy;
+use bijux_core::execution::execution_graph::{ExecutionEdge, ExecutionGraph, ExecutionStep};
+use bijux_core::execution::PlanPolicy;
 use bijux_core::primitives::hashing::params_hash;
 use bijux_core::{CommandSpecV1, ContainerImageRefV1, PipelineId, StageId};
 use bijux_pipelines::DefaultsLedgerV1;

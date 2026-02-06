@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use bijux_core::plan::PlanPolicy;
+use bijux_core::execution::PlanPolicy;
 use bijux_core::{
     CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
 };
