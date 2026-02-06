@@ -1,5 +1,7 @@
 use std::collections::BTreeMap;
 
+pub mod events;
+
 pub trait TelemetryAdapter: Send + Sync {
     fn start_pipeline(&self, name: &str, attrs: &BTreeMap<String, String>) -> TelemetrySpan;
     fn start_stage(&self, name: &str, attrs: &BTreeMap<String, String>) -> TelemetrySpan;
