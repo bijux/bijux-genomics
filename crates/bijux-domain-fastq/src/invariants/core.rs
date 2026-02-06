@@ -1,5 +1,5 @@
 use crate::params::EffectiveParams;
-use bijux_core::primitives::invariants::{InvariantResultV1, InvariantStatusV1, StageVerdictV1};
+use bijux_core::foundation::invariants::{InvariantResultV1, InvariantStatusV1, StageVerdictV1};
 
 #[derive(Debug, Clone)]
 pub struct InvariantThresholds {
