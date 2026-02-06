@@ -1,9 +1,39 @@
 use std::fs;
+use std::io::Write;
 
 use bijux_core::run_index::{
-    insert_run, insert_stage_row, list_runs, query_latest_runs, query_run, query_stage_rows,
-    RunIndexEntry, StageIndexRow,
+    list_runs, query_latest_runs, query_run, query_stage_rows, RunIndexEntry, RunIndexLine,
+    StageIndexRow,
 };
+
+fn append_line(path: &std::path::Path, line: &str) -> anyhow::Result<()> {
+    let mut file = std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(path)?;
+    writeln!(file, "{line}")?;
+    Ok(())
+}
+
+fn write_run(path: &std::path::Path, run: &RunIndexEntry) -> anyhow::Result<()> {
+    let line = RunIndexLine {
+        schema_version: 1,
+        run: Some(run.clone()),
+        stage: None,
+    };
+    let payload = serde_json::to_string(&line)?;
+    append_line(path, &payload)
+}
+
+fn write_stage_row(path: &std::path::Path, row: &StageIndexRow) -> anyhow::Result<()> {
+    let line = RunIndexLine {
+        schema_version: 1,
+        run: None,
+        stage: Some(row.clone()),
+    };
+    let payload = serde_json::to_string(&line)?;
+    append_line(path, &payload)
+}
 
 #[test]
 fn run_index_insert_and_query() -> anyhow::Result<()> {
@@ -20,7 +50,7 @@ fn run_index_insert_and_query() -> anyhow::Result<()> {
         platform: "local".to_string(),
         success: true,
     };
-    insert_run(&index_path, &run)?;
+    write_run(&index_path, &run)?;
 
     let row = StageIndexRow {
         run_id: "run-1".to_string(),
@@ -31,7 +61,7 @@ fn run_index_insert_and_query() -> anyhow::Result<()> {
         output_hashes: vec!["out".to_string()],
         artifacts: serde_json::json!({"plan": "plan.json"}),
     };
-    insert_stage_row(&index_path, &row)?;
+    write_stage_row(&index_path, &row)?;
 
     let runs = list_runs(&index_path)?;
     assert_eq!(runs.len(), 1);
@@ -59,7 +89,7 @@ fn run_index_latest_run_is_deterministic() -> anyhow::Result<()> {
     let index_path = dir.path().join("index.jsonl");
 
     for run_id in ["run-2", "run-1", "run-3"] {
-        insert_run(
+        write_run(
             &index_path,
             &RunIndexEntry {
                 run_id: run_id.to_string(),
@@ -86,7 +116,7 @@ fn run_index_query_by_stage_and_tool() -> anyhow::Result<()> {
     let dir = bijux_infra::temp_dir("bijux")?;
     let index_path = dir.path().join("index.jsonl");
 
-    insert_stage_row(
+    write_stage_row(
         &index_path,
         &StageIndexRow {
             run_id: "run-1".to_string(),
@@ -98,7 +128,7 @@ fn run_index_query_by_stage_and_tool() -> anyhow::Result<()> {
             artifacts: serde_json::json!({}),
         },
     )?;
-    insert_stage_row(
+    write_stage_row(
         &index_path,
         &StageIndexRow {
             run_id: "run-2".to_string(),

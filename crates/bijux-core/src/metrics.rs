@@ -194,6 +194,8 @@ pub fn validate_metric_id_str(value: &str) -> Result<()> {
 
 /// # Errors
 /// Returns an error if the derived metric id is unknown.
+/// # Errors
+/// Returns an error if the derived metric id is unknown.
 pub fn validate_derived_metric_id_str(value: &str) -> Result<()> {
     parse_derived_metric_id(value).ok_or_else(|| anyhow!("unknown derived metric id {value}"))?;
     Ok(())

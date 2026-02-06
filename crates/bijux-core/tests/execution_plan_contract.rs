@@ -1,9 +1,7 @@
-use bijux_core::plan::execution_graph::{ExecutionEdge, ExecutionGraph};
+use bijux_core::contract::{ArtifactRef, StageIO, ToolConstraints};
+use bijux_core::plan::execution_graph::{ExecutionEdge, ExecutionGraph, ExecutionStep};
 use bijux_core::plan::PlanPolicy;
-use bijux_core::{
-    ArtifactRef, CommandSpecV1, ContainerImageRefV1, StageIO, StageId, StagePlanV1, StageVersion,
-    ToolConstraints, ToolId,
-};
+use bijux_core::{CommandSpecV1, ContainerImageRefV1, StageId};
 
 #[test]
 #[allow(clippy::too_many_lines)]
@@ -12,11 +10,8 @@ fn execution_plan_roundtrip_is_canonical() -> anyhow::Result<()> {
         "fastq-to-bam__default__v1",
         "planner-fastq@1",
         PlanPolicy::PreferAccuracy,
-        vec![StagePlanV1 {
-            stage_id: StageId::from_static("fastq.trim"),
-            stage_version: StageVersion(1),
-            tool_id: ToolId::from_static("fastp"),
-            tool_version: "0.23.4".to_string(),
+        vec![ExecutionStep {
+            step_id: StageId::from_static("fastq.trim"),
             image: ContainerImageRefV1 {
                 image: "bijux/fastp".to_string(),
                 digest: Some("sha256:abc".to_string()),
@@ -41,12 +36,10 @@ fn execution_plan_roundtrip_is_canonical() -> anyhow::Result<()> {
                 }],
             },
             out_dir: "/tmp/out".into(),
-            params: serde_json::json!({"sample_id": "sample-1"}),
-            effective_params: serde_json::json!({"sample_id": "sample-1"}),
             aux_images: std::collections::BTreeMap::new(),
-            reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
-        }
-        .into()],
+            expected_artifact_ids: Vec::new(),
+            metrics_schema_ids: Vec::new(),
+        }],
         vec![ExecutionEdge::new(
             StageId::from_static("fastq.trim"),
             StageId::from_static("fastq.trim"),
@@ -59,11 +52,8 @@ fn execution_plan_roundtrip_is_canonical() -> anyhow::Result<()> {
         "planner-fastq@1",
         PlanPolicy::PreferAccuracy,
         vec![
-            StagePlanV1 {
-                stage_id: StageId::from_static("fastq.filter"),
-                stage_version: StageVersion(1),
-                tool_id: ToolId::from_static("fastp"),
-                tool_version: "0.23.4".to_string(),
+            ExecutionStep {
+                step_id: StageId::from_static("fastq.filter"),
                 image: ContainerImageRefV1 {
                     image: "bijux/fastp".to_string(),
                     digest: Some("sha256:abc".to_string()),
@@ -88,17 +78,12 @@ fn execution_plan_roundtrip_is_canonical() -> anyhow::Result<()> {
                     }],
                 },
                 out_dir: "/tmp/out".into(),
-                params: serde_json::json!({"sample_id": "sample-1"}),
-                effective_params: serde_json::json!({"sample_id": "sample-1"}),
                 aux_images: std::collections::BTreeMap::new(),
-                reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
-            }
-            .into(),
-            StagePlanV1 {
-                stage_id: StageId::from_static("fastq.trim"),
-                stage_version: StageVersion(1),
-                tool_id: ToolId::from_static("fastp"),
-                tool_version: "0.23.4".to_string(),
+                expected_artifact_ids: Vec::new(),
+                metrics_schema_ids: Vec::new(),
+            },
+            ExecutionStep {
+                step_id: StageId::from_static("fastq.trim"),
                 image: ContainerImageRefV1 {
                     image: "bijux/fastp".to_string(),
                     digest: Some("sha256:def".to_string()),
@@ -123,12 +108,10 @@ fn execution_plan_roundtrip_is_canonical() -> anyhow::Result<()> {
                     }],
                 },
                 out_dir: "/tmp/out".into(),
-                params: serde_json::json!({"sample_id": "sample-1"}),
-                effective_params: serde_json::json!({"sample_id": "sample-1"}),
                 aux_images: std::collections::BTreeMap::new(),
-                reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
-            }
-            .into(),
+                expected_artifact_ids: Vec::new(),
+                metrics_schema_ids: Vec::new(),
+            },
         ],
         vec![ExecutionEdge::new(
             StageId::from_static("fastq.trim"),
