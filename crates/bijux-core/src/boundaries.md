@@ -54,12 +54,12 @@ This document defines ownership and allowed dependencies. Treat it as an API con
 ## bijux-engine
 - Owns: pure execution scheduling, artifact helpers.
 - Does not own: CLI argument parsing, domain business rules, execution adapters.
-- Allowed deps: core + infra.
+- Allowed deps: core + runtime + infra.
 
 ## bijux-runner-*
 - Owns: execution adapters (docker/local), replay.
 - Does not own: CLI UX, orchestration, execution scheduling.
-- Allowed deps: core + env + infra.
+- Allowed deps: core + runtime + env + infra.
 
 ## bijux-environment
 - Owns: runner/platform discovery, image resolution.
@@ -86,21 +86,21 @@ This document defines ownership and allowed dependencies. Treat it as an API con
 bijux-core: bijux-infra bijux-policies
 bijux-infra: bijux-policies
 bijux-policies:
-bijux-stage-contract: bijux-core
-bijux-runtime: bijux-core bijux-infra
+bijux-stage-contract: bijux-core bijux-policies
+bijux-runtime: bijux-core bijux-infra bijux-policies
 bijux-domain-fastq: bijux-core bijux-infra bijux-policies
 bijux-domain-bam: bijux-core bijux-infra bijux-policies
 bijux-stages-fastq: bijux-core bijux-domain-fastq bijux-stage-contract bijux-infra bijux-runtime bijux-planner-fastq bijux-policies
 bijux-stages-bam: bijux-core bijux-domain-bam bijux-stage-contract bijux-infra bijux-policies
 bijux-planner-fastq: bijux-core bijux-stage-contract bijux-domain-fastq bijux-domain-bam bijux-stages-fastq bijux-pipelines bijux-infra bijux-policies
 bijux-planner-bam: bijux-core bijux-stage-contract bijux-domain-bam bijux-stages-bam bijux-pipelines bijux-infra bijux-policies
-bijux-engine: bijux-core bijux-infra bijux-policies
-bijux-runner: bijux-core bijux-environment bijux-infra bijux-policies
+bijux-engine: bijux-core bijux-runtime bijux-infra bijux-policies
+bijux-runner: bijux-core bijux-runtime bijux-environment bijux-infra bijux-policies
 bijux-environment: bijux-core bijux-infra bijux-runtime bijux-policies
 bijux-environment-qa: bijux-environment bijux-analyze bijux-core bijux-domain-fastq bijux-infra bijux-runtime bijux-policies
 bijux-pipelines: bijux-core bijux-domain-fastq bijux-domain-bam bijux-policies
-bijux-analyze: bijux-core bijux-domain-fastq bijux-domain-bam bijux-infra bijux-runtime bijux-pipelines bijux-planner-fastq bijux-planner-bam bijux-policies
-bijux-benchmark-model: bijux-analyze
+bijux-analyze: bijux-core bijux-domain-fastq bijux-domain-bam bijux-infra bijux-runtime bijux-pipelines bijux-planner-fastq bijux-planner-bam bijux-benchmark bijux-policies
+bijux-benchmark-model: bijux-analyze bijux-policies
 bijux-benchmark: bijux-core bijux-analyze bijux-benchmark-model bijux-infra bijux-runtime bijux-policies
 bijux-api: bijux-core bijux-stage-contract bijux-engine bijux-runner bijux-environment bijux-environment-qa bijux-analyze bijux-benchmark bijux-pipelines bijux-infra bijux-planner-fastq bijux-planner-bam bijux-runtime bijux-policies
 bijux-cli: bijux-api

@@ -95,3 +95,47 @@ fn dependency_dag_matches_boundaries() {
         );
     }
 }
+
+#[test]
+fn runner_has_no_engine_edge() {
+    let root = workspace_root();
+    let metadata = MetadataCommand::new()
+        .manifest_path(root.join("Cargo.toml"))
+        .exec()
+        .expect("load cargo metadata");
+    let mut id_to_name = BTreeMap::new();
+    for pkg in &metadata.packages {
+        id_to_name.insert(pkg.id.clone(), pkg.name.clone());
+    }
+    let mut runner_id = None;
+    let mut engine_id = None;
+    for pkg in &metadata.packages {
+        if pkg.name == "bijux-runner" {
+            runner_id = Some(pkg.id.clone());
+        }
+        if pkg.name == "bijux-engine" {
+            engine_id = Some(pkg.id.clone());
+        }
+    }
+    let runner_id = runner_id.expect("bijux-runner missing");
+    let engine_id = engine_id.expect("bijux-engine missing");
+    let resolve = metadata.resolve.as_ref().expect("resolve graph missing");
+    let node = resolve
+        .nodes
+        .iter()
+        .find(|node| node.id == runner_id)
+        .expect("runner node missing");
+    let has_edge = node.deps.iter().any(|dep| dep.pkg == engine_id);
+    assert!(
+        !has_edge,
+        "{} must not depend on {}",
+        id_to_name
+            .get(&runner_id)
+            .map(String::as_str)
+            .unwrap_or("bijux-runner"),
+        id_to_name
+            .get(&engine_id)
+            .map(String::as_str)
+            .unwrap_or("bijux-engine")
+    );
+}

@@ -264,6 +264,7 @@ name = "bijux-analyze"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "bijux-benchmark",
  "bijux-core",
  "bijux-domain-bam",
  "bijux-domain-fastq",
@@ -552,6 +553,7 @@ dependencies = [
  "bijux-environment",
  "bijux-infra",
  "bijux-policies",
+ "bijux-runtime",
  "chrono",
  "flate2",
  "serde",
