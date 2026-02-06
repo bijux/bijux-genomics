@@ -268,6 +268,34 @@ pub fn dry_run(request: DryRunRequest) -> Result<DryRunResponse> {
     })
 }
 
+/// # Errors
+/// Returns an error if policy checks fail or cannot be executed.
+pub fn policy_audit() -> Result<serde_json::Value> {
+    let workspace = std::env::current_dir()?;
+    let mut guardrails = serde_json::Map::new();
+    for crate_name in ["bijux-core", "bijux-engine", "bijux-api"] {
+        let crate_root = workspace.join("crates").join(crate_name);
+        let result = bijux_policies::check(
+            &crate_root,
+            &bijux_policies::GuardrailConfig::for_crate(crate_name),
+        );
+        let (status, error) = match result {
+            Ok(()) => ("ok", None),
+            Err(err) => ("fail", Some(err.to_string())),
+        };
+        guardrails.insert(
+            crate_name.to_string(),
+            serde_json::json!({
+                "status": status,
+                "error": error,
+            }),
+        );
+    }
+    Ok(serde_json::json!({
+        "guardrails": guardrails,
+    }))
+}
+
 fn render_report_from_facts(base_dir: &Path, facts_path: &Path) -> Result<PathBuf> {
     let facts = bijux_analyze::load::load_facts(facts_path)?;
     let report_path = bijux_analyze::report::write_run_report_from_facts(base_dir, &facts)?;
