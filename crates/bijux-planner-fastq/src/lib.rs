@@ -27,17 +27,16 @@ pub use bijux_domain_fastq::BenchResultsRepository;
 
 pub mod args;
 mod report_stage;
+mod selection;
 pub mod tool_adapters;
-mod tool_registry;
-mod tool_selection;
 
 pub use report_stage::report_stage_step;
 
 pub mod stage_api {
     pub use crate::args;
+    pub use crate::selection::{allowed_tools_for_stage, default_tool_for_stage};
     pub use crate::tool_adapters::fastq;
     pub use crate::tool_adapters::fastq::StageInfo;
-    pub use crate::tool_selection::{allowed_tools_for_stage, default_tool_for_stage};
     pub use crate::STAGE_REPORT_AGGREGATE;
     pub use crate::TOOL_SEQKIT;
     pub use bijux_core::foundation::RawFailure;
@@ -751,7 +750,7 @@ pub fn select_preprocess_tools(
         .iter()
         .map(|stage| {
             let stage_id = StageId::new(stage.clone());
-            let tool_id = crate::tool_selection::default_tool_for_stage(&stage_id)
+            let tool_id = crate::selection::default_tool_for_stage(&stage_id)
                 .or_else(|| {
                     registry
                         .tools_for_stage(&stage_id)
