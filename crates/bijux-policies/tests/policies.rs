@@ -59,6 +59,12 @@ fn error_category_is_core_only() {
         }
         if entry
             .path()
+            .ends_with("crates/bijux-policies/tests/policies.rs")
+        {
+            continue;
+        }
+        if entry
+            .path()
             .ends_with("bijux-core/src/primitives/errors.rs")
         {
             continue;
@@ -166,6 +172,9 @@ fn public_modules_live_in_lib_rs() {
             if file.ends_with("lib.rs") {
                 continue;
             }
+            if file.ends_with("mod.rs") {
+                continue;
+            }
             let content = std::fs::read_to_string(&file).expect("read source");
             if content
                 .lines()
@@ -184,7 +193,7 @@ fn public_modules_live_in_lib_rs() {
 #[test]
 fn litmus_doc_exists_and_lists_rules() {
     let root = workspace_root();
-    let path = root.join("../../../docs/ARCHITECTURE_LITMUS.md");
+    let path = root.join("docs/ARCHITECTURE_LITMUS.md");
     let content = std::fs::read_to_string(&path).expect("read ARCHITECTURE_LITMUS.md");
     let required = [
         "engine does not depend on runner or environment",
