@@ -47,10 +47,13 @@ pub fn write_explain_plan_json(
     _policy: Option<&str>,
 ) -> Result<()> {
     let mut excluded = Vec::new();
-    for tool in registry.tools_for_stage(stage) {
-        if !selected.iter().any(|t| t == &tool.tool_id) {
+    let stage_id = bijux_core::ids::StageId::try_from(stage)
+        .map_err(|err| anyhow::anyhow!("invalid stage id: {err}"))?;
+    for tool in registry.tools_for_stage(&stage_id) {
+        let tool_id = tool.tool_id.to_string();
+        if !selected.iter().any(|t| t == &tool_id) {
             excluded.push(ExplainExclusion {
-                tool: tool.tool_id.clone(),
+                tool: tool_id,
                 reason: "not selected".to_string(),
             });
         }

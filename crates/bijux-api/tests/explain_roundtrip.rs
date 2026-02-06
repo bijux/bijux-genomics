@@ -2,13 +2,14 @@ use bijux_api::v1::plan::PlanExplainV1;
 use bijux_core::contract::{ArtifactRef, ArtifactRole, StageIO, ToolConstraints};
 use bijux_core::execution::execution_graph::{ExecutionEdge, ExecutionGraph, ExecutionStep};
 use bijux_core::execution::PlanPolicy;
-use bijux_core::{CommandSpecV1, ContainerImageRefV1, StageId};
+use bijux_core::{ArtifactId, CommandSpecV1, ContainerImageRefV1, StageId, StepId};
 use std::path::PathBuf;
 
 #[test]
 fn explain_roundtrip_is_deterministic() -> anyhow::Result<()> {
     let stage = ExecutionStep {
-        step_id: StageId::from_static("stage.a"),
+        step_id: StepId::from_static("stage.a"),
+        stage_id: StageId::from_static("stage.a"),
         image: ContainerImageRefV1 {
             image: "tool:1.0.0".to_string(),
             digest: None,
@@ -24,12 +25,12 @@ fn explain_roundtrip_is_deterministic() -> anyhow::Result<()> {
         },
         io: StageIO {
             inputs: vec![ArtifactRef::required(
-                "input",
+                ArtifactId::from_static("input"),
                 PathBuf::from("input"),
                 ArtifactRole::Unknown,
             )],
             outputs: vec![ArtifactRef::required(
-                "output",
+                ArtifactId::from_static("output"),
                 PathBuf::from("output"),
                 ArtifactRole::Unknown,
             )],
@@ -40,7 +41,7 @@ fn explain_roundtrip_is_deterministic() -> anyhow::Result<()> {
         metrics_schema_ids: Vec::new(),
     };
     let plan = ExecutionGraph::new(
-        "pipeline",
+        "fastq-to-fastq__default__v1",
         "planner",
         PlanPolicy::PreferAccuracy,
         vec![stage],
