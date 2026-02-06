@@ -34,5 +34,10 @@
       "fastq.qc_post"
     ],
     "threads": 1
+  },
+  "reason": {
+    "kind": "default",
+    "summary": "planner default",
+    "details": {}
   }
 }

@@ -1,5 +1,6 @@
 use anyhow::Result;
 use bijux_core::params_hash;
+use bijux_domain_fastq;
 
 #[test]
 fn disabling_adapter_changes_params_hash() -> Result<()> {
@@ -46,12 +47,12 @@ fn default_adapter_preset_writes_effective_adapters() -> Result<()> {
         .ok_or_else(|| anyhow::anyhow!("repo root not found"))?;
     let prev_dir = std::env::current_dir()?;
     std::env::set_current_dir(repo_root)?;
-    let bank_path = bijux_stages_fastq::adapter_bank_path();
-    let presets_path = bijux_stages_fastq::adapter_presets_path();
-    let bank = bijux_stages_fastq::load_adapter_bank(&bank_path)?;
-    let presets = bijux_stages_fastq::load_adapter_presets(&presets_path, &bank)?;
+    let bank_path = bijux_domain_fastq::adapter_bank_path();
+    let presets_path = bijux_domain_fastq::adapter_presets_path();
+    let bank = bijux_domain_fastq::load_adapter_bank(&bank_path)?;
+    let presets = bijux_domain_fastq::load_adapter_presets(&presets_path, &bank)?;
     let effective =
-        bijux_stages_fastq::resolve_adapter_preset(&bank, &presets, "illumina-default", &[], &[])?;
+        bijux_domain_fastq::resolve_adapter_preset(&bank, &presets, "illumina-default", &[], &[])?;
     let tmp = bijux_infra::temp_dir("bijux")?;
     let run_dir = tmp.path().join("run");
     bijux_infra::ensure_dir(&run_dir)?;

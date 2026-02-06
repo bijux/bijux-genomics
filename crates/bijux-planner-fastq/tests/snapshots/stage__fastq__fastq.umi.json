@@ -1,5 +1,5 @@
 {
-  "stage_id": "fastq.correct",
+  "stage_id": "fastq.umi",
   "stage_version": "1",
   "io": {
     "inputs": [
@@ -14,11 +14,11 @@
     ],
     "outputs": [
       {
-        "name": "corrected_reads_r1",
+        "name": "dedup_reads_r1",
         "path": "out/reads_r1.fastq.gz"
       },
       {
-        "name": "corrected_reads_r2",
+        "name": "dedup_reads_r2",
         "path": "out/reads_r2.fastq.gz"
       }
     ]
@@ -29,11 +29,16 @@
     "output_r2": "out/reads_r2.fastq.gz",
     "r1": "reads_r1.fastq.gz",
     "r2": "reads_r2.fastq.gz",
-    "tool": "rcorrector"
+    "tool": "umi_tools"
   },
   "effective_params": {
     "paired_mode": "paired_end",
     "q_cutoff": null,
     "threads": 1
+  },
+  "reason": {
+    "kind": "default",
+    "summary": "planner default",
+    "details": {}
   }
 }

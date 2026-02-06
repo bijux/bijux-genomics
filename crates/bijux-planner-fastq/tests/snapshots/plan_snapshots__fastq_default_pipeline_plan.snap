@@ -3,24 +3,21 @@ source: crates/bijux-planner-fastq/tests/plan_snapshots.rs
 expression: plan
 ---
 {
-  "schema_version": "bijux.execution_plan.v1",
+  "schema_version": "bijux.execution_graph.v1",
   "pipeline_id": "fastq-to-fastq__default__v1",
   "planner_version": "bijux-planner-fastq.v1",
   "policy": "prefer_accuracy",
-  "stages": [
+  "steps": [
     {
-      "stage_id": "fastq.detect_adapters",
-      "stage_version": 1,
-      "tool_id": "fastqc",
-      "tool_version": "0.0.0",
-      "image": {
-        "image": "bijux/test",
-        "digest": "sha256:plan"
-      },
+      "step_id": "fastq.detect_adapters",
       "command": {
         "template": [
           "echo"
         ]
+      },
+      "image": {
+        "image": "bijux/test",
+        "digest": "sha256:plan"
       },
       "resources": {
         "runtime": "docker",
@@ -43,37 +40,20 @@ expression: plan
         ]
       },
       "out_dir": "out/detect_adapters/fastqc",
-      "params": {
-        "input": "reads_R1.fastq.gz",
-        "out_dir": "out/detect_adapters/fastqc",
-        "sample_reads": 100000,
-        "tool": "fastqc"
-      },
-      "effective_params": {
-        "paired_mode": "single_end",
-        "sample_reads": 100000,
-        "threads": 1
-      },
       "aux_images": {},
-      "reason": {
-        "kind": "default",
-        "summary": "tool fastqc selected by planner",
-        "details": {}
-      }
+      "expected_artifact_ids": [],
+      "metrics_schema_ids": []
     },
     {
-      "stage_id": "fastq.filter",
-      "stage_version": 1,
-      "tool_id": "fastp",
-      "tool_version": "0.0.0",
-      "image": {
-        "image": "bijux/test",
-        "digest": "sha256:plan"
-      },
+      "step_id": "fastq.filter",
       "command": {
         "template": [
           "echo"
         ]
+      },
+      "image": {
+        "image": "bijux/test",
+        "digest": "sha256:plan"
       },
       "resources": {
         "runtime": "docker",
@@ -96,51 +76,20 @@ expression: plan
         ]
       },
       "out_dir": "out/filter/fastp",
-      "params": {
-        "entropy_threshold": null,
-        "input": "out/trim/fastp/fastp.fastq.gz",
-        "kmer_ref": null,
-        "low_complexity_threshold": null,
-        "max_n": null,
-        "max_n_count": null,
-        "max_n_fraction": null,
-        "output": "out/filter/fastp/fastp.fastq.gz",
-        "polyx_policy": null,
-        "redundant_filters": [],
-        "tool": "fastp"
-      },
-      "effective_params": {
-        "contaminant_db": null,
-        "entropy_threshold": null,
-        "low_complexity_threshold": null,
-        "max_n": null,
-        "max_n_count": null,
-        "max_n_fraction": null,
-        "n_policy": null,
-        "paired_mode": "single_end",
-        "polyx_policy": null,
-        "threads": 1
-      },
       "aux_images": {},
-      "reason": {
-        "kind": "default",
-        "summary": "tool fastp selected by planner",
-        "details": {}
-      }
+      "expected_artifact_ids": [],
+      "metrics_schema_ids": []
     },
     {
-      "stage_id": "fastq.qc_post",
-      "stage_version": 1,
-      "tool_id": "multiqc",
-      "tool_version": "0.0.0",
-      "image": {
-        "image": "bijux/test",
-        "digest": "sha256:plan"
-      },
+      "step_id": "fastq.qc_post",
       "command": {
         "template": [
           "echo"
         ]
+      },
+      "image": {
+        "image": "bijux/test",
+        "digest": "sha256:plan"
       },
       "resources": {
         "runtime": "docker",
@@ -167,36 +116,20 @@ expression: plan
         ]
       },
       "out_dir": "out/qc_post/multiqc",
-      "params": {
-        "input": "out/filter/fastp/fastp.fastq.gz",
-        "out_dir": "out/qc_post/multiqc",
-        "raw_r1": "reads_R1.fastq.gz",
-        "tool": "multiqc"
-      },
-      "effective_params": {
-        "paired_mode": "single_end",
-        "threads": 1
-      },
       "aux_images": {},
-      "reason": {
-        "kind": "default",
-        "summary": "tool multiqc selected by planner",
-        "details": {}
-      }
+      "expected_artifact_ids": [],
+      "metrics_schema_ids": []
     },
     {
-      "stage_id": "fastq.stats_neutral",
-      "stage_version": 1,
-      "tool_id": "seqkit_stats",
-      "tool_version": "0.0.0",
-      "image": {
-        "image": "bijux/test",
-        "digest": "sha256:plan"
-      },
+      "step_id": "fastq.stats_neutral",
       "command": {
         "template": [
           "echo"
         ]
+      },
+      "image": {
+        "image": "bijux/test",
+        "digest": "sha256:plan"
       },
       "resources": {
         "runtime": "docker",
@@ -219,36 +152,20 @@ expression: plan
         ]
       },
       "out_dir": "out/stats_neutral/seqkit_stats",
-      "params": {
-        "input": "out/filter/fastp/fastp.fastq.gz",
-        "out_dir": "out/stats_neutral/seqkit_stats",
-        "tool": "seqkit_stats"
-      },
-      "effective_params": {
-        "paired_mode": "single_end",
-        "q_cutoff": null,
-        "threads": 1
-      },
       "aux_images": {},
-      "reason": {
-        "kind": "default",
-        "summary": "tool seqkit_stats selected by planner",
-        "details": {}
-      }
+      "expected_artifact_ids": [],
+      "metrics_schema_ids": []
     },
     {
-      "stage_id": "fastq.trim",
-      "stage_version": 1,
-      "tool_id": "fastp",
-      "tool_version": "0.0.0",
-      "image": {
-        "image": "bijux/test",
-        "digest": "sha256:plan"
-      },
+      "step_id": "fastq.trim",
       "command": {
         "template": [
           "echo"
         ]
+      },
+      "image": {
+        "image": "bijux/test",
+        "digest": "sha256:plan"
       },
       "resources": {
         "runtime": "docker",
@@ -271,41 +188,20 @@ expression: plan
         ]
       },
       "out_dir": "out/trim/fastp",
-      "params": {
-        "input": "reads_R1.fastq.gz",
-        "output": "out/trim/fastp/fastp.fastq.gz",
-        "tool": "fastp"
-      },
-      "effective_params": {
-        "adapter_policy": "none",
-        "contaminant_policy": null,
-        "min_len": 0,
-        "n_policy": null,
-        "paired_mode": "single_end",
-        "polyx_policy": null,
-        "q_cutoff": null,
-        "threads": 1
-      },
       "aux_images": {},
-      "reason": {
-        "kind": "default",
-        "summary": "tool fastp selected by planner",
-        "details": {}
-      }
+      "expected_artifact_ids": [],
+      "metrics_schema_ids": []
     },
     {
-      "stage_id": "fastq.validate_pre",
-      "stage_version": 1,
-      "tool_id": "fastqvalidator_official",
-      "tool_version": "0.0.0",
-      "image": {
-        "image": "bijux/test",
-        "digest": "sha256:plan"
-      },
+      "step_id": "fastq.validate_pre",
       "command": {
         "template": [
           "echo"
         ]
+      },
+      "image": {
+        "image": "bijux/test",
+        "digest": "sha256:plan"
       },
       "resources": {
         "runtime": "docker",
@@ -328,22 +224,9 @@ expression: plan
         ]
       },
       "out_dir": "out/validate_pre/fastqvalidator_official",
-      "params": {
-        "input": "reads_R1.fastq.gz",
-        "out_dir": "out/validate_pre/fastqvalidator_official",
-        "tool": "fastqvalidator_official"
-      },
-      "effective_params": {
-        "paired_mode": "single_end",
-        "q_cutoff": null,
-        "threads": 1
-      },
       "aux_images": {},
-      "reason": {
-        "kind": "default",
-        "summary": "tool fastqvalidator_official selected by planner",
-        "details": {}
-      }
+      "expected_artifact_ids": [],
+      "metrics_schema_ids": []
     }
   ],
   "edges": [

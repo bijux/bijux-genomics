@@ -3,24 +3,21 @@ source: crates/bijux-planner-fastq/tests/plan_snapshots.rs
 expression: plan
 ---
 {
-  "schema_version": "bijux.execution_plan.v1",
+  "schema_version": "bijux.execution_graph.v1",
   "pipeline_id": "fastq-to-fastq__default__v1",
   "planner_version": "bijux-planner-fastq.v1",
   "policy": "prefer_accuracy",
-  "stages": [
+  "steps": [
     {
-      "stage_id": "fastq.trim",
-      "stage_version": 1,
-      "tool_id": "fastp",
-      "tool_version": "0.23.4",
-      "image": {
-        "image": "bijux/fastp",
-        "digest": "sha256:fastp"
-      },
+      "step_id": "fastq.trim",
       "command": {
         "template": [
           "fastp"
         ]
+      },
+      "image": {
+        "image": "bijux/fastp",
+        "digest": "sha256:fastp"
       },
       "resources": {
         "runtime": "short",
@@ -43,41 +40,20 @@ expression: plan
         ]
       },
       "out_dir": "out/trim/fastp",
-      "params": {
-        "input": "reads_R1.fastq.gz",
-        "output": "out/trim/fastp/fastp.fastq.gz",
-        "tool": "fastp"
-      },
-      "effective_params": {
-        "adapter_policy": "none",
-        "contaminant_policy": null,
-        "min_len": 0,
-        "n_policy": null,
-        "paired_mode": "single_end",
-        "polyx_policy": null,
-        "q_cutoff": null,
-        "threads": 2
-      },
       "aux_images": {},
-      "reason": {
-        "kind": "default",
-        "summary": "tool fastp selected by planner",
-        "details": {}
-      }
+      "expected_artifact_ids": [],
+      "metrics_schema_ids": []
     },
     {
-      "stage_id": "fastq.validate_pre",
-      "stage_version": 1,
-      "tool_id": "fastqvalidator_official",
-      "tool_version": "1.0.0",
-      "image": {
-        "image": "bijux/fastqvalidator",
-        "digest": "sha256:fastqvalidator"
-      },
+      "step_id": "fastq.validate_pre",
       "command": {
         "template": [
           "fastqvalidator"
         ]
+      },
+      "image": {
+        "image": "bijux/fastqvalidator",
+        "digest": "sha256:fastqvalidator"
       },
       "resources": {
         "runtime": "short",
@@ -100,22 +76,9 @@ expression: plan
         ]
       },
       "out_dir": "out/validate_pre/fastqvalidator_official",
-      "params": {
-        "input": "reads_R1.fastq.gz",
-        "out_dir": "out/validate_pre/fastqvalidator_official",
-        "tool": "fastqvalidator_official"
-      },
-      "effective_params": {
-        "paired_mode": "single_end",
-        "q_cutoff": null,
-        "threads": 1
-      },
       "aux_images": {},
-      "reason": {
-        "kind": "default",
-        "summary": "tool fastqvalidator_official selected by planner",
-        "details": {}
-      }
+      "expected_artifact_ids": [],
+      "metrics_schema_ids": []
     }
   ],
   "edges": [

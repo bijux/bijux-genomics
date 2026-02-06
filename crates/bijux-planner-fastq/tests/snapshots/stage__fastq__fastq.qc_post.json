@@ -1,5 +1,5 @@
 {
-  "stage_id": "fastq.stats_neutral",
+  "stage_id": "fastq.qc_post",
   "stage_version": "1",
   "io": {
     "inputs": [
@@ -13,11 +13,15 @@
   "parameters": {
     "input": "reads.fastq.gz",
     "out_dir": "out",
-    "tool": "seqkit"
+    "tool": "fastqc"
   },
   "effective_params": {
     "paired_mode": "single_end",
-    "q_cutoff": null,
     "threads": 1
+  },
+  "reason": {
+    "kind": "default",
+    "summary": "planner default",
+    "details": {}
   }
 }

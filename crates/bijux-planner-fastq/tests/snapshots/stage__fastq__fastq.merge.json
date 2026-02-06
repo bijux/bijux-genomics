@@ -30,5 +30,10 @@
     "min_len": null,
     "paired_mode": "paired_end",
     "threads": 1
+  },
+  "reason": {
+    "kind": "default",
+    "summary": "planner default",
+    "details": {}
   }
 }
