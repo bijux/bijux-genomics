@@ -1,3 +1,3 @@
-pub mod authenticct;
+pub mod authenticity;
 pub mod gatk;
 pub mod rxy;

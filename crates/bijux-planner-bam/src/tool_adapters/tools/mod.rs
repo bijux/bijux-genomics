@@ -5,7 +5,7 @@ pub mod pre;
 
 pub use align::{bowtie2, bwa};
 pub use core::{mapdamage2, mosdepth, preseq, pydamage};
-pub use downstream::{authenticct, gatk, rxy};
+pub use downstream::{authenticity, gatk, rxy};
 pub use pre::samtools;
 
 #[must_use]
