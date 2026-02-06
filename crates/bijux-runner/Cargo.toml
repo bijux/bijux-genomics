@@ -22,5 +22,9 @@ assert_cmd = "2"
 tempfile.workspace = true
 walkdir = { workspace = true }
 
+[features]
+docker-runner = []
+default = []
+
 [lints]
 workspace = true

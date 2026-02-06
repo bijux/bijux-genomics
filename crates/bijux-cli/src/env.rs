@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use anyhow::Result;
-use bijux_environment::api::{
+use bijux_api::v1::env::{
     available_runners, cache_dir, docker_image_exists, resolve_image, PlatformSpec, RunnerKind,
     ToolImageSpec,
 };
@@ -86,7 +86,7 @@ mod tests {
 
     #[test]
     fn ensure_cache_writable_uses_home() -> anyhow::Result<()> {
-        let temp = bijux_infra::temp_dir("bijux")?;
+        let temp = bijux_api::v1::run::temp_dir("bijux")?;
         let original_home = std::env::var_os("HOME");
         std::env::set_var("HOME", temp.path());
         assert!(ensure_cache_writable(RunnerKind::Docker));

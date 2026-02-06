@@ -8,11 +8,6 @@ default-run = "bijux"
 
 [dependencies]
 bijux-api = { path = "../bijux-api" }
-bijux-environment = { path = "../bijux-environment" }
-bijux-environment-qa = { path = "../bijux-environment-qa" }
-bijux-infra = { path = "../bijux-infra" }
-bijux-core = { path = "../bijux-core" }
-bijux-stage-contract = { path = "../bijux-stage-contract" }
 anyhow.workspace = true
 clap.workspace = true
 tracing.workspace = true
@@ -23,13 +18,16 @@ serde.workspace = true
 
 [features]
 bam_downstream = ["bijux-api/bam_downstream"]
+bench = ["bijux-api/bench"]
+docker-runner = ["bijux-api/docker-runner"]
+report-html = ["bijux-api/report-html"]
+default = []
 
 [dev-dependencies]
 bijux-policies = { path = "../bijux-policies" }
 assert_cmd = "2"
 tempfile = "3"
 predicates = "3"
-bijux-infra = { path = "../bijux-infra" }
 insta.workspace = true
 
 [lints]

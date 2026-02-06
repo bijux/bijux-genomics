@@ -80,7 +80,7 @@ fn run_bam_stage(
     if args.dry_run {
         return Ok(());
     }
-    let step = bijux_stage_contract::execution_step_from_stage_plan(&plan);
+    let step = bijux_api::v1::run::execution_step_from_stage_plan(&plan);
     execute_step(&step, RunnerKind::Docker, None)?;
     Ok(())
 }
