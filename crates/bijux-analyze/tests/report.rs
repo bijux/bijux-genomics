@@ -263,6 +263,11 @@ fn golden_run_report_snapshot_happy_path() -> Result<()> {
         .join("tests")
         .join("snapshots")
         .join("run_report.json");
+    if std::env::var("UPDATE_GOLDEN_REPORT").is_ok() {
+        let pretty = serde_json::to_string_pretty(&report_value)?;
+        fs::write(&snapshot_path, pretty)?;
+        return Ok(());
+    }
     let snapshot_raw = fs::read_to_string(&snapshot_path)?;
     let snapshot_value: serde_json::Value = serde_json::from_str(&snapshot_raw)?;
     assert_eq!(report_value, snapshot_value);

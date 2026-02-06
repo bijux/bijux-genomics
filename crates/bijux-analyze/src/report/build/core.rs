@@ -133,7 +133,10 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
         });
 
         if let Some(path) = telemetry_path_from_stage_report(stage_report_path.as_deref()) {
-            telemetry_events.push(path);
+            let normalized = normalize_report_path(base_dir, &path);
+            if !normalized.is_empty() {
+                telemetry_events.push(normalized);
+            }
         }
 
         let stage_report_path = stage_report_path

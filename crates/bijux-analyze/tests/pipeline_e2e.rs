@@ -10,6 +10,7 @@ use bijux_domain_bam::BamStage;
 use bijux_pipelines::registry::profile_by_id;
 use bijux_pipelines::Domain;
 use bijux_runtime::{FactsRowV1, StageReportV1};
+use serde_json::Value;
 
 fn metrics_for_stage(stage_id: &str) -> serde_json::Value {
     if stage_id.starts_with("bam.") {
@@ -105,6 +106,27 @@ fn default_tool_for_stage(stage_id: &str) -> Option<String> {
     None
 }
 
+fn scrub_telemetry_paths(value: &mut Value) {
+    match value {
+        Value::String(text) => {
+            if text.contains("/telemetry/events.jsonl") {
+                *text = "telemetry/events.jsonl".to_string();
+            }
+        }
+        Value::Array(items) => {
+            for item in items {
+                scrub_telemetry_paths(item);
+            }
+        }
+        Value::Object(map) => {
+            for (_, value) in map.iter_mut() {
+                scrub_telemetry_paths(value);
+            }
+        }
+        _ => {}
+    }
+}
+
 fn write_pipeline_report(domain: Domain, pipeline_id: &str) -> Result<serde_json::Value> {
     let profile = profile_by_id(domain, pipeline_id)?;
     let run_id = pipeline_id;
@@ -158,7 +180,9 @@ fn write_pipeline_report(domain: Domain, pipeline_id: &str) -> Result<serde_json
     let loaded = load_facts(&facts_path).map_err(|err| anyhow::anyhow!(err.to_string()))?;
     let report_path = write_run_report_from_facts(&base_dir, &loaded)?;
     let report_raw = fs::read_to_string(report_path)?;
-    Ok(serde_json::from_str(&report_raw)?)
+    let mut report = serde_json::from_str(&report_raw)?;
+    scrub_telemetry_paths(&mut report);
+    Ok(report)
 }
 
 #[test]

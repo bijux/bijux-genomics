@@ -22,7 +22,7 @@ fn report_size_budget_is_bounded() -> anyhow::Result<()> {
         .get("sections")
         .and_then(|v| v.as_object())
         .ok_or_else(|| anyhow::anyhow!("missing sections"))?;
-    let expected_sections = 30usize;
+    let expected_sections = 35usize;
     assert_eq!(sections.len(), expected_sections, "section count changed");
     Ok(())
 }

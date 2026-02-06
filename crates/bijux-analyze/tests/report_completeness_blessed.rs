@@ -150,9 +150,9 @@ fn build_report(domain: Domain, pipeline_id: &str) -> Result<ReportSchemaV1> {
 
 fn section_key(section: ReportSection) -> &'static str {
     match section {
-        ReportSection::Fastq => "fastq",
-        ReportSection::Bam => "bam",
-        ReportSection::Cross => "cross",
+        ReportSection::Fastq => "trimming",
+        ReportSection::Bam => "qc",
+        ReportSection::Cross => "handoff",
         ReportSection::Handoff => "handoff",
         ReportSection::PipelineDefaults => "pipeline_defaults",
     }
