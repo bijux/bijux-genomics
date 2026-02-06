@@ -8,9 +8,9 @@ use bijux_api::v1::bench::{objective_spec, Objective};
 use bijux_api::v1::run::{
     atomic_write_bytes, load_manifests, new_run_id, replay_run, PathSpec, RunSpec,
 };
-use bijux_core::{DryRunExecutor, Executor};
 use bijux_environment::api::{load_image_catalog, load_platform};
-use bijux_environment::image_qa::run_image_qa;
+use bijux_environment_qa::image_qa::run_image_qa;
+use bijux_stage_contract::{DryRunExecutor, Executor};
 use tracing::{info, warn};
 
 use bijux_api::v1::bench::fastq_banks::{

@@ -17,6 +17,11 @@ pub use support::{
 
 use std::path::PathBuf;
 
+use bijux_domain_fastq::{
+    STAGE_CORRECT, STAGE_FILTER, STAGE_MERGE, STAGE_QC_POST, STAGE_SCREEN, STAGE_STATS_NEUTRAL,
+    STAGE_TRIM, STAGE_UMI, STAGE_VALIDATE_PRE,
+};
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum QaStage {
     Trim,
@@ -31,17 +36,17 @@ pub(crate) enum QaStage {
 }
 
 impl QaStage {
-    pub(crate) fn stage_id(self) -> &'static str {
+    pub(crate) fn stage_id(self) -> bijux_core::ids::StageId {
         match self {
-            QaStage::Trim => "fastq.trim",
-            QaStage::Validate => "fastq.validate_pre",
-            QaStage::Filter => "fastq.filter",
-            QaStage::Merge => "fastq.merge",
-            QaStage::Correct => "fastq.correct",
-            QaStage::QcPost => "fastq.qc_post",
-            QaStage::Umi => "fastq.umi",
-            QaStage::Stats => "fastq.stats_neutral",
-            QaStage::Screen => "fastq.screen",
+            QaStage::Trim => STAGE_TRIM.clone(),
+            QaStage::Validate => STAGE_VALIDATE_PRE.clone(),
+            QaStage::Filter => STAGE_FILTER.clone(),
+            QaStage::Merge => STAGE_MERGE.clone(),
+            QaStage::Correct => STAGE_CORRECT.clone(),
+            QaStage::QcPost => STAGE_QC_POST.clone(),
+            QaStage::Umi => STAGE_UMI.clone(),
+            QaStage::Stats => STAGE_STATS_NEUTRAL.clone(),
+            QaStage::Screen => STAGE_SCREEN.clone(),
         }
     }
 

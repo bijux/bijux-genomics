@@ -7,8 +7,6 @@ pub mod api {
     pub use crate::resolve::*;
 }
 
-pub mod image_qa;
-
 #[derive(Debug, Clone)]
 pub struct DockerToolSpec {
     pub name: String,

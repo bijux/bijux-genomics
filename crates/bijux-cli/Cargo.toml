@@ -9,8 +9,10 @@ default-run = "bijux"
 [dependencies]
 bijux-api = { path = "../bijux-api" }
 bijux-environment = { path = "../bijux-environment" }
+bijux-environment-qa = { path = "../bijux-environment-qa" }
 bijux-infra = { path = "../bijux-infra" }
 bijux-core = { path = "../bijux-core" }
+bijux-stage-contract = { path = "../bijux-stage-contract" }
 anyhow.workspace = true
 clap.workspace = true
 tracing.workspace = true

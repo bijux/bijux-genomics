@@ -5,7 +5,7 @@ fn qa_qc_post_tool(
     registry: &ToolRegistry,
     dataset: &QaDataset,
 ) -> Result<()> {
-    let contract = tool_contract(registry, "fastq.qc_post", tool)?;
+    let contract = tool_contract(registry, STAGE_QC_POST.as_str(), tool)?;
     let spec = catalog
         .get(tool)
         .ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
@@ -98,7 +98,7 @@ fn qa_umi_tool(
     dataset: &QaDataset,
     seqkit_image: &ResolvedImage,
 ) -> Result<()> {
-    let contract = tool_contract(registry, "fastq.umi", tool)?;
+    let contract = tool_contract(registry, STAGE_UMI.as_str(), tool)?;
     let spec = catalog
         .get(tool)
         .ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
@@ -150,7 +150,7 @@ fn qa_stats_tool(
     registry: &ToolRegistry,
     dataset: &QaDataset,
 ) -> Result<()> {
-    let contract = tool_contract(registry, "fastq.stats_neutral", tool)?;
+    let contract = tool_contract(registry, STAGE_STATS_NEUTRAL.as_str(), tool)?;
     let spec = catalog
         .get(tool)
         .ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
