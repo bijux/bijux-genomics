@@ -182,3 +182,36 @@ fn engine_has_no_domain_or_planner_edges() {
         );
     }
 }
+
+#[test]
+fn cli_depends_only_on_api() {
+    let root = workspace_root();
+    let metadata = MetadataCommand::new()
+        .manifest_path(root.join("Cargo.toml"))
+        .exec()
+        .expect("load cargo metadata");
+    let workspace_members: BTreeSet<String> = metadata
+        .workspace_members
+        .iter()
+        .filter_map(|id| metadata.packages.iter().find(|pkg| &pkg.id == id))
+        .map(|pkg| pkg.name.clone())
+        .collect();
+    let cli = metadata
+        .packages
+        .iter()
+        .find(|pkg| pkg.name == "bijux")
+        .expect("bijux cli missing");
+    let allowed = BTreeSet::from(["bijux-api".to_string()]);
+    let actual: BTreeSet<String> = cli
+        .dependencies
+        .iter()
+        .filter(|dep| workspace_members.contains(&dep.name))
+        .map(|dep| dep.name.clone())
+        .collect();
+    let unexpected: BTreeSet<_> = actual.difference(&allowed).cloned().collect();
+    assert!(
+        unexpected.is_empty(),
+        "bijux CLI depends on unexpected workspace crates: {:?}",
+        unexpected
+    );
+}

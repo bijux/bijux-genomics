@@ -13,6 +13,8 @@ tracing.workspace = true
 uuid.workspace = true
 chrono.workspace = true
 bijux-core = { path = "../bijux-core" }
+bijux-domain-bam = { path = "../bijux-domain-bam" }
+bijux-domain-fastq = { path = "../bijux-domain-fastq" }
 bijux-stage-contract = { path = "../bijux-stage-contract" }
 bijux-engine = { path = "../bijux-engine" }
 bijux-environment = { path = "../bijux-environment" }
@@ -23,7 +25,7 @@ bijux-planner-fastq = { path = "../bijux-planner-fastq" }
 bijux-planner-bam = { path = "../bijux-planner-bam" }
 bijux-runner = { path = "../bijux-runner" }
 bijux-pipelines = { path = "../bijux-pipelines" }
-bijux-infra = { path = "../bijux-infra" }
+bijux-infra = { path = "../bijux-infra", features = ["tracing"] }
 bijux-runtime = { path = "../bijux-runtime" }
 
 [features]
