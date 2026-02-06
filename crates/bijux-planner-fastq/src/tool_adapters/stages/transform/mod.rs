@@ -4,4 +4,4 @@ pub mod merge;
 pub mod trim;
 pub mod umi;
 
-pub const MODULE: &str = "stages_transform";
+pub const MODULE: &str = "stages/transform";
