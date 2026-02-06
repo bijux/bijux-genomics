@@ -11,7 +11,6 @@ tracing.workspace = true
 uuid.workspace = true
 chrono.workspace = true
 bijux-core = { path = "../bijux-core" }
-bijux-engine = { path = "../bijux-engine" }
 bijux-environment = { path = "../bijux-environment" }
 bijux-infra = { path = "../bijux-infra" }
 sha2.workspace = true

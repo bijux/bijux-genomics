@@ -1,8 +1,8 @@
 use std::collections::{HashMap, HashSet, VecDeque};
 
-use crate::runner::{Invocation, Runner};
 use anyhow::{anyhow, Result};
 use bijux_core::plan::execution_graph::{ExecutionEdge, ExecutionGraph, ExecutionStep};
+use bijux_core::plan::{Invocation, Runner};
 use bijux_core::{RunRecordV1, StageExecutionRecordV1};
 
 #[derive(Debug, Clone, Default)]

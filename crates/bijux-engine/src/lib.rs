@@ -13,16 +13,15 @@
 
 pub(crate) mod errors;
 pub(crate) mod executor;
-pub mod runner;
 pub(crate) mod services;
 
 #[cfg(test)]
 mod runner_tests;
 
-use crate::runner::Runner;
 use anyhow::Result;
 use bijux_core::contract::RunRecordV1;
 use bijux_core::plan::execution_graph::ExecutionGraph;
+use bijux_core::plan::Runner;
 
 pub fn validate(graph: &ExecutionGraph) -> Result<()> {
     graph.validate_strict()

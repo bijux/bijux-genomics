@@ -1,7 +1,7 @@
 //! Owner: bijux-runner
 //! Runner abstraction with docker/local backends.
 
-pub use bijux_engine::runner::{Artifact, Invocation, Runner, RunnerResult};
+pub use bijux_core::plan::{Artifact, Invocation, Runner, RunnerResult};
 use std::time::Duration;
 
 pub mod docker;
@@ -23,7 +23,7 @@ impl DockerRunner {
 
 impl Runner for DockerRunner {
     fn run(&self, invocation: &Invocation) -> anyhow::Result<RunnerResult> {
-        let result = execute::execute_stage_plan(
+        let result = execute::execute_step(
             &invocation.step,
             bijux_environment::api::RunnerKind::Docker,
             self.timeout,
@@ -66,6 +66,6 @@ pub mod primitives {
     };
     pub use crate::docker::replay::replay_run;
     pub use crate::docker::support::build_tool_execution_spec;
-    pub use crate::execute::{execute_observer_command, execute_stage_plan, StageResultV1};
+    pub use crate::execute::{execute_observer_command, execute_step, StageResultV1};
     pub use crate::runner_core::CommandOutputV1;
 }
