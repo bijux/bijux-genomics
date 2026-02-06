@@ -113,8 +113,9 @@ fn report_sections_exist_for_all_stages() -> Result<()> {
     let schema: ReportSchemaV1 = serde_json::from_value(report.clone())?;
 
     for section in schema.contract.required_sections {
+        let in_sections = report.get("sections").and_then(|value| value.get(&section));
         assert!(
-            report.get(&section).is_some(),
+            report.get(&section).is_some() || in_sections.is_some(),
             "missing required report section {section}"
         );
     }
