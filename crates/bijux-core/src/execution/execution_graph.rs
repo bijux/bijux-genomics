@@ -6,8 +6,8 @@ use serde::{Deserialize, Serialize};
 use sha2::Digest;
 
 use crate::contract::{StageIO, ToolConstraints};
+use crate::execution::PlanPolicy;
 use crate::ids::StageId;
-use crate::plan::PlanPolicy;
 use crate::primitives::{CommandSpecV1, ContainerImageRefV1};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

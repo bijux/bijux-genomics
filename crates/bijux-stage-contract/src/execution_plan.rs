@@ -4,7 +4,7 @@ use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 
 use bijux_core::contract::{ArtifactRef, ToolConstraints};
-use bijux_core::plan::policy::PlanPolicy;
+use bijux_core::execution::policy::PlanPolicy;
 use bijux_core::primitives::ContainerImageRefV1;
 
 use crate::stage_plan::{PlanDecisionReason, StagePlanV1};

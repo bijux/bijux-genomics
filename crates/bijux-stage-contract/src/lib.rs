@@ -12,7 +12,7 @@ pub use stage_plan::*;
 #[allow(unused_imports)]
 pub use stage_plugin::*;
 
-use bijux_core::plan::execution_graph::ExecutionStep;
+use bijux_core::execution::execution_graph::ExecutionStep;
 
 #[must_use]
 pub fn execution_step_from_stage_plan(plan: &crate::StagePlanV1) -> ExecutionStep {

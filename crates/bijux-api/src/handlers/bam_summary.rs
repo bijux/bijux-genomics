@@ -2,7 +2,7 @@ use std::path::Path;
 
 use anyhow::{Context, Result};
 use bijux_core::contract::{ArtifactRef, ArtifactRole};
-use bijux_core::plan::execution_graph::ExecutionStep;
+use bijux_core::execution::execution_graph::ExecutionStep;
 use bijux_planner_bam::report_stage_step as build_report_stage_step;
 
 use super::fastq::StageExecutionSummary;
