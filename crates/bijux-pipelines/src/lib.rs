@@ -10,7 +10,6 @@ pub mod bam;
 pub mod cross;
 pub mod defaults_ledger;
 pub mod fastq;
-pub mod id;
 pub mod registry;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
@@ -25,7 +24,7 @@ pub const STAGE_CORE_PREPARE_REFERENCE: &str = "core.prepare_reference";
 pub const STAGE_CROSS_ALIGN_STUB: &str = "cross.align_stub";
 
 pub use defaults_ledger::{DefaultProvenanceV1, DefaultsLedgerV1};
-pub use id::{validate_pipeline_id, validate_pipeline_id_str, PipelineId};
+pub use registry::id::{validate_pipeline_id, validate_pipeline_id_str, PipelineId};
 
 pub type PipelineProfileV1 = PipelineProfile;
 

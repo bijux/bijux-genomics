@@ -1,5 +1,7 @@
 //! Pipeline registry for FASTQ, BAM, and cross-domain profiles.
 
+pub mod id;
+
 use anyhow::{anyhow, Result};
 
 use crate::bam::{bam_adna_capture_profile, bam_adna_shotgun_profile, bam_default_profile};

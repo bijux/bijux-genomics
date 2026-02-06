@@ -2,6 +2,7 @@
 
 use std::collections::BTreeMap;
 
+pub mod invariants;
 pub mod profiles;
 
 use bijux_domain_fastq::params::defaults::{
