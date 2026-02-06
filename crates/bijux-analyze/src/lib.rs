@@ -14,7 +14,7 @@ pub mod load;
 pub mod model;
 mod pipeline;
 pub mod report;
-pub mod semantics;
+mod semantics;
 
 pub use aggregate::*;
 pub use bijux_core::metrics::MetricSet;
@@ -23,6 +23,7 @@ pub use decision::compare::compare_runs;
 pub use failure::*;
 pub use load::*;
 pub use report::*;
+pub use semantics::metrics::{metric_semantics, MetricDirection};
 
 pub mod compare {
     pub use crate::decision::compare::*;
