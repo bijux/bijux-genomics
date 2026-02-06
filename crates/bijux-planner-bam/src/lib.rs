@@ -17,13 +17,14 @@ mod report_stage;
 mod stage_registry;
 pub mod tool_adapters;
 mod tool_registry;
+mod tool_selection;
 
 pub use report_stage::report_stage_step;
 
 pub mod stage_api {
     pub use crate::report_stage::report_stage_step;
     pub use crate::stage_registry::stage_registry;
-    pub use crate::tool_registry::allowed_tools_for_stage;
+    pub use crate::tool_selection::{allowed_tools_for_stage, default_tool_for_stage};
     pub use crate::{plan_stage, StagePlanRequest};
     pub use bijux_stages_bam::stage_specs::*;
 }

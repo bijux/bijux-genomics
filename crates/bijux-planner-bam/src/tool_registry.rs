@@ -1,16 +1,39 @@
-use bijux_domain_bam::{stage_spec, BamStage};
+use std::collections::BTreeMap;
 
-#[must_use]
-pub fn allowed_tools_for_stage(stage: BamStage) -> Vec<String> {
-    stage_spec(stage)
-        .allowed_tools
-        .iter()
-        .map(|tool| (*tool).to_string())
-        .collect()
+#[allow(dead_code)]
+#[derive(Debug, Clone)]
+pub struct ToolAdapterEntry {
+    pub tool_id: &'static str,
+    pub adapter_id: &'static str,
 }
 
 #[must_use]
 #[allow(dead_code)]
-pub fn default_tool_for_stage(stage: BamStage) -> String {
-    stage_spec(stage).default_tool.to_string()
+pub fn tool_registry() -> BTreeMap<&'static str, ToolAdapterEntry> {
+    let mut map = BTreeMap::new();
+    for (tool_id, adapter_id) in [
+        ("bwa", "bam.align"),
+        ("bowtie2", "bam.align"),
+        ("samtools", "bam.validate"),
+        ("picard", "bam.markdup"),
+        ("gatk", "bam.recalibration"),
+        ("mosdepth", "bam.coverage"),
+        ("pydamage", "bam.damage"),
+        ("mapdamage2", "bam.damage"),
+        ("preseq", "bam.complexity"),
+        ("authenticct", "bam.authenticity"),
+        ("yleaf", "bam.haplogroups"),
+        ("king", "bam.kinship"),
+        ("angsd", "bam.contamination"),
+        ("rxy", "bam.sex"),
+    ] {
+        map.insert(
+            tool_id,
+            ToolAdapterEntry {
+                tool_id,
+                adapter_id,
+            },
+        );
+    }
+    map
 }

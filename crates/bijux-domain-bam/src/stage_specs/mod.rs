@@ -204,8 +204,6 @@ pub struct BamStageSpec {
     pub stage: BamStage,
     pub required_inputs: &'static [&'static str],
     pub artifact_policy: ArtifactPolicy,
-    pub allowed_tools: &'static [&'static str],
-    pub default_tool: &'static str,
     pub default_params: BamEffectiveParams,
 }
 

@@ -17,8 +17,6 @@ pub fn stage_spec_downstream(stage: BamStage) -> Option<BamStageSpec> {
                 required_outputs: &["damage_pydamage", "damage_mapdamage2", "stage_metrics"],
                 required_audit: super::required_audit_artifacts(stage),
             },
-            allowed_tools: &["pydamage", "mapdamage2"],
-            default_tool: "pydamage",
             default_params: BamEffectiveParams::Damage(DamageEffectiveParams {
                 udg_model: UdgModel::NonUdg,
                 pmd_threshold_5p: 0.3,
@@ -34,8 +32,6 @@ pub fn stage_spec_downstream(stage: BamStage) -> Option<BamStageSpec> {
                 required_outputs: &["authenticity_report", "summary", "stage_metrics"],
                 required_audit: super::required_audit_artifacts(stage),
             },
-            allowed_tools: &["authenticity"],
-            default_tool: "authenticity",
             default_params: BamEffectiveParams::Authenticity(AuthenticityEffectiveParams {
                 mode: "aggregate".to_string(),
             }),
@@ -47,8 +43,6 @@ pub fn stage_spec_downstream(stage: BamStage) -> Option<BamStageSpec> {
                 required_outputs: &["contamination_report", "summary", "stage_metrics"],
                 required_audit: super::required_audit_artifacts(stage),
             },
-            allowed_tools: &["authenticct"],
-            default_tool: "authenticct",
             default_params: BamEffectiveParams::Contamination(ContaminationEffectiveParams {
                 reference_panels: Vec::new(),
                 scope: ContaminationScope::Both,
@@ -64,8 +58,6 @@ pub fn stage_spec_downstream(stage: BamStage) -> Option<BamStageSpec> {
                 required_outputs: &["sex_report", "summary", "stage_metrics"],
                 required_audit: super::required_audit_artifacts(stage),
             },
-            allowed_tools: &["rxy"],
-            default_tool: "rxy",
             default_params: BamEffectiveParams::Sex(SexEffectiveParams {
                 expected_sex: None,
                 method: "rxy".to_string(),
@@ -78,8 +70,6 @@ pub fn stage_spec_downstream(stage: BamStage) -> Option<BamStageSpec> {
                 required_outputs: &["bias_report", "summary", "stage_metrics"],
                 required_audit: super::required_audit_artifacts(stage),
             },
-            allowed_tools: &["angsd"],
-            default_tool: "angsd",
             default_params: BamEffectiveParams::BiasMitigation(BiasMitigationEffectiveParams {
                 gc_bias_correction: true,
                 map_bias_correction: false,
@@ -98,8 +88,6 @@ pub fn stage_spec_downstream(stage: BamStage) -> Option<BamStageSpec> {
                 ],
                 required_audit: super::required_audit_artifacts(stage),
             },
-            allowed_tools: &["gatk"],
-            default_tool: "gatk",
             default_params: BamEffectiveParams::Recalibration(BqsrEffectiveParams {
                 known_sites: Vec::new(),
                 mode: BqsrMode::Standard,
@@ -116,8 +104,6 @@ pub fn stage_spec_downstream(stage: BamStage) -> Option<BamStageSpec> {
                 required_outputs: &["haplogroups", "summary", "stage_metrics"],
                 required_audit: super::required_audit_artifacts(stage),
             },
-            allowed_tools: &["yleaf"],
-            default_tool: "yleaf",
             default_params: BamEffectiveParams::Haplogroups(HaplogroupEffectiveParams {
                 reference_panel: "rcrs.fasta".to_string(),
                 min_coverage: Some(5.0),
@@ -130,8 +116,6 @@ pub fn stage_spec_downstream(stage: BamStage) -> Option<BamStageSpec> {
                 required_outputs: &["genotyping_report", "summary", "stage_metrics"],
                 required_audit: super::required_audit_artifacts(stage),
             },
-            allowed_tools: &["angsd"],
-            default_tool: "angsd",
             default_params: BamEffectiveParams::Genotyping(GenotypingEffectiveParams {
                 caller: "angsd".to_string(),
                 min_posterior: Some(0.8),
@@ -145,8 +129,6 @@ pub fn stage_spec_downstream(stage: BamStage) -> Option<BamStageSpec> {
                 required_outputs: &["kinship_report", "summary", "stage_metrics"],
                 required_audit: super::required_audit_artifacts(stage),
             },
-            allowed_tools: &["king"],
-            default_tool: "king",
             default_params: BamEffectiveParams::Kinship(KinshipEffectiveParams {
                 reference_panel: "panel.vcf".to_string(),
                 min_overlap_snps: 200,

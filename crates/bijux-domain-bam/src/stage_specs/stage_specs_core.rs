@@ -323,8 +323,6 @@ pub fn stage_spec_core(stage: BamStage) -> Option<BamStageSpec> {
                 ],
                 required_audit: required_audit_artifacts(stage),
             },
-            allowed_tools: &["bwa", "bowtie2"],
-            default_tool: "bwa",
             default_params: BamEffectiveParams::Align(AlignEffectiveParams {
                 aligner: "bwa".to_string(),
                 preset: "default".to_string(),
@@ -344,8 +342,6 @@ pub fn stage_spec_core(stage: BamStage) -> Option<BamStageSpec> {
                 required_outputs: &["validation_report", "flagstat", "stage_metrics"],
                 required_audit: required_audit_artifacts(stage),
             },
-            allowed_tools: &["samtools"],
-            default_tool: "samtools",
             default_params: BamEffectiveParams::Validate(ValidateEffectiveParams { strict: true }),
         },
         BamStage::QcPre => BamStageSpec {
@@ -355,8 +351,6 @@ pub fn stage_spec_core(stage: BamStage) -> Option<BamStageSpec> {
                 required_outputs: &["flagstat", "idxstats", "stats", "stage_metrics"],
                 required_audit: required_audit_artifacts(stage),
             },
-            allowed_tools: &["samtools"],
-            default_tool: "samtools",
             default_params: BamEffectiveParams::QcPre(QcPreEffectiveParams { regions: None }),
         },
         BamStage::Filter => BamStageSpec {
@@ -375,8 +369,6 @@ pub fn stage_spec_core(stage: BamStage) -> Option<BamStageSpec> {
                 ],
                 required_audit: required_audit_artifacts(stage),
             },
-            allowed_tools: &["samtools"],
-            default_tool: "samtools",
             default_params: BamEffectiveParams::Filter(FilterEffectiveParams {
                 mapq_threshold: 30,
                 include_flags: Vec::new(),
@@ -402,8 +394,6 @@ pub fn stage_spec_core(stage: BamStage) -> Option<BamStageSpec> {
                 ],
                 required_audit: required_audit_artifacts(stage),
             },
-            allowed_tools: &["gatk", "samtools"],
-            default_tool: "gatk",
             default_params: BamEffectiveParams::Markdup(MarkDupEffectiveParams {
                 optical_duplicates: OpticalDuplicatePolicy::MarkOnly,
                 umi_policy: UmiPolicy::Ignore,
@@ -417,8 +407,6 @@ pub fn stage_spec_core(stage: BamStage) -> Option<BamStageSpec> {
                 required_outputs: &["complexity_report", "preseq", "summary", "stage_metrics"],
                 required_audit: required_audit_artifacts(stage),
             },
-            allowed_tools: &["preseq"],
-            default_tool: "preseq",
             default_params: BamEffectiveParams::Complexity(ComplexityEffectiveParams {
                 min_reads: 100_000,
                 projection_points: vec![1_000_000, 2_000_000],
@@ -431,8 +419,6 @@ pub fn stage_spec_core(stage: BamStage) -> Option<BamStageSpec> {
                 required_outputs: &["coverage_summary", "stage_metrics"],
                 required_audit: required_audit_artifacts(stage),
             },
-            allowed_tools: &["mosdepth", "samtools"],
-            default_tool: "mosdepth",
             default_params: BamEffectiveParams::Coverage(CoverageEffectiveParams {
                 regions: None,
                 depth_thresholds: vec![1, 3, 5],
