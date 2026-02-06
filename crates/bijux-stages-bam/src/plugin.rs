@@ -10,6 +10,7 @@ use bijux_stage_contract::{StageInvocationV1, StagePlugin, StagePluginOutputV1};
 
 use crate::metrics::bam_metrics_from_dir;
 
+#[allow(dead_code)]
 pub struct BamStagePlugin;
 
 impl StagePlugin for BamStagePlugin {

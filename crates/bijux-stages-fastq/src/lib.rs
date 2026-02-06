@@ -3,13 +3,10 @@
 pub mod artifacts;
 pub mod metrics;
 pub mod observer;
-pub mod plugin;
+mod plugin;
 pub mod stage_specs;
 
 pub use bijux_stage_contract::StagePlanJsonV1 as StagePlanJson;
-
-pub use bijux_domain_fastq as domain_fastq;
-pub use bijux_domain_fastq::*;
 
 #[must_use]
 pub fn implemented_stages() -> Vec<bijux_core::ids::StageId> {
