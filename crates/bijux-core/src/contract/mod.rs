@@ -15,7 +15,7 @@ pub use crate::metadata::{
 pub use domain::{PipelineDomain, PipelineSpec};
 pub use execution_contract::validate_execution_outputs;
 pub use execution_manifest::ExecutionManifest;
-pub use io::{ArtifactRef, StageIO};
+pub use io::{ArtifactRef, ArtifactRole, ArtifactSpec, StageIO};
 pub use provenance::{ScientificProvenanceV1, ToolProvenanceV1};
 pub use run::{run_dir, Profile, RunSpec};
 pub use run_record::{RunRecordV1, StageExecutionRecordV1};
