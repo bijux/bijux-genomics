@@ -60,6 +60,7 @@ expression: report
       "completeness",
       "stages",
       "provenance",
+      "run_provenance",
       "decision_config",
       "retention_definition",
       "retention_context",
@@ -69,7 +70,8 @@ expression: report
       "qc_improvement",
       "final_qc_summary",
       "filter_interpretation",
-      "adapter_inference"
+      "adapter_inference",
+      "claims_registry"
     ],
     "schema_version": "bijux.report_contract.v1"
   },
@@ -85,6 +87,7 @@ expression: report
   "metric_semantics": [
     {
       "direction": "LowerBetter",
+      "influencing_params": [],
       "metric_id": "runtime_s",
       "missing_data_policy": "treat_as_infinite",
       "range": ">= 0",
@@ -92,6 +95,7 @@ expression: report
     },
     {
       "direction": "LowerBetter",
+      "influencing_params": [],
       "metric_id": "memory_mb",
       "missing_data_policy": "treat_as_infinite",
       "range": ">= 0",
@@ -99,6 +103,11 @@ expression: report
     },
     {
       "direction": "HigherBetter",
+      "influencing_params": [
+        "adapter_bank",
+        "trim_settings",
+        "filter_settings"
+      ],
       "metric_id": "read_retention",
       "missing_data_policy": "treat_as_0.0",
       "range": "[0, 1]",
@@ -106,6 +115,11 @@ expression: report
     },
     {
       "direction": "HigherBetter",
+      "influencing_params": [
+        "adapter_bank",
+        "trim_settings",
+        "filter_settings"
+      ],
       "metric_id": "base_retention",
       "missing_data_policy": "treat_as_0.0",
       "range": "[0, 1]",
@@ -113,6 +127,9 @@ expression: report
     },
     {
       "direction": "HigherBetter",
+      "influencing_params": [
+        "merge_policy"
+      ],
       "metric_id": "merge_rate",
       "missing_data_policy": "treat_as_0.0",
       "range": "[0, 1]",
@@ -120,6 +137,9 @@ expression: report
     },
     {
       "direction": "HigherBetter",
+      "influencing_params": [
+        "corrector_settings"
+      ],
       "metric_id": "error_reduction_proxy",
       "missing_data_policy": "treat_as_0.0",
       "range": "[0, 45]",
@@ -274,6 +294,9 @@ expression: report
       ]
     },
     "bench_summary": {},
+    "claims_registry": {
+      "claims": []
+    },
     "comparison_view": {
       "stages": []
     },
@@ -450,6 +473,7 @@ expression: report
       "qc": {}
     },
     "findings": {
+      "claims": [],
       "recommendations": [],
       "suspected_issues": [],
       "warnings": []
@@ -505,42 +529,42 @@ expression: report
       },
       "presets": [
         {
-          "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpSqf0Tx/pipeline/stage_1/effective_config.json",
+          "effective_config_path": "stage_1/effective_config.json",
           "params_hash": "params",
           "stage_id": "fastq.detect_adapters",
           "tool_id": "fastqc",
           "tool_version": "0.0.0"
         },
         {
-          "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpSqf0Tx/pipeline/stage_3/effective_config.json",
+          "effective_config_path": "stage_3/effective_config.json",
           "params_hash": "params",
           "stage_id": "fastq.filter",
           "tool_id": "fastp",
           "tool_version": "0.0.0"
         },
         {
-          "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpSqf0Tx/pipeline/stage_5/effective_config.json",
+          "effective_config_path": "stage_5/effective_config.json",
           "params_hash": "params",
           "stage_id": "fastq.qc_post",
           "tool_id": "multiqc",
           "tool_version": "0.0.0"
         },
         {
-          "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpSqf0Tx/pipeline/stage_4/effective_config.json",
+          "effective_config_path": "stage_4/effective_config.json",
           "params_hash": "params",
           "stage_id": "fastq.stats_neutral",
           "tool_id": "seqkit_stats",
           "tool_version": "0.0.0"
         },
         {
-          "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpSqf0Tx/pipeline/stage_2/effective_config.json",
+          "effective_config_path": "stage_2/effective_config.json",
           "params_hash": "params",
           "stage_id": "fastq.trim",
           "tool_id": "fastp",
           "tool_version": "0.0.0"
         },
         {
-          "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpSqf0Tx/pipeline/stage_0/effective_config.json",
+          "effective_config_path": "stage_0/effective_config.json",
           "params_hash": "params",
           "stage_id": "fastq.validate_pre",
           "tool_id": "fastqvalidator_official",
@@ -736,76 +760,8 @@ expression: report
         },
         "pipeline_id": "fastq-to-fastq__default__v1",
         "thresholds": {},
-        "tool_provenance": {
-          "fastq.correct": {
-            "assumptions": [],
-            "comparability_implications": [],
-            "rationale": "pipeline default"
-          },
-          "fastq.detect_adapters": {
-            "assumptions": [],
-            "comparability_implications": [],
-            "rationale": "pipeline default"
-          },
-          "fastq.filter": {
-            "assumptions": [],
-            "comparability_implications": [],
-            "rationale": "pipeline default"
-          },
-          "fastq.merge": {
-            "assumptions": [],
-            "comparability_implications": [],
-            "rationale": "pipeline default"
-          },
-          "fastq.preprocess": {
-            "assumptions": [],
-            "comparability_implications": [],
-            "rationale": "pipeline default"
-          },
-          "fastq.qc_post": {
-            "assumptions": [],
-            "comparability_implications": [],
-            "rationale": "pipeline default"
-          },
-          "fastq.screen": {
-            "assumptions": [],
-            "comparability_implications": [],
-            "rationale": "pipeline default"
-          },
-          "fastq.stats_neutral": {
-            "assumptions": [],
-            "comparability_implications": [],
-            "rationale": "pipeline default"
-          },
-          "fastq.trim": {
-            "assumptions": [],
-            "comparability_implications": [],
-            "rationale": "pipeline default"
-          },
-          "fastq.umi": {
-            "assumptions": [],
-            "comparability_implications": [],
-            "rationale": "pipeline default"
-          },
-          "fastq.validate_pre": {
-            "assumptions": [],
-            "comparability_implications": [],
-            "rationale": "pipeline default"
-          }
-        },
-        "tools": {
-          "fastq.correct": "rcorrector",
-          "fastq.detect_adapters": "fastqc",
-          "fastq.filter": "fastp",
-          "fastq.merge": "vsearch",
-          "fastq.preprocess": "planner",
-          "fastq.qc_post": "multiqc",
-          "fastq.screen": "kraken2",
-          "fastq.stats_neutral": "seqkit_stats",
-          "fastq.trim": "fastp",
-          "fastq.umi": "umi_tools",
-          "fastq.validate_pre": "fastqvalidator_official"
-        }
+        "tool_provenance": {},
+        "tools": {}
       },
       "overrides": []
     },
@@ -898,6 +854,13 @@ expression: report
       ]
     },
     "pipeline_verdict": {
+      "aggregation_policy": {
+        "fail_condition": "any stage fail",
+        "pass_condition": "all stages pass",
+        "rule": "worst_status",
+        "schema_version": "bijux.pipeline_verdict_policy.v1",
+        "warn_condition": "any stage warn and no stage fail"
+      },
       "reasons": [],
       "verdict": "pass"
     },
@@ -910,6 +873,12 @@ expression: report
     },
     "reproducibility": {
       "command": "unknown",
+      "determinism_policy": {
+        "float_format": "fixed_3",
+        "html_table_order": "stage_id,tool_id",
+        "json_canonicalization": "sorted_keys",
+        "timestamp_format": "rfc3339_utc"
+      },
       "finished_at": null,
       "image_digests": [
         "sha256:img"
@@ -929,6 +898,7 @@ expression: report
       "contexts": [],
       "definitions": []
     },
+    "run_provenance": {},
     "scientific_provenance": {
       "entries": [
         {
@@ -1189,98 +1159,98 @@ expression: report
   "stages": [
     {
       "bank_report_path": null,
-      "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpSqf0Tx/pipeline/stage_1/effective_config.json",
+      "effective_config_path": "stage_1/effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpSqf0Tx/pipeline/stage_1/metrics.json",
+      "metrics_path": "stage_1/metrics.json",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "fastq.detect_adapters",
-      "stage_report_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpSqf0Tx/pipeline/stage_1/stage_report.json",
+      "stage_report_path": "stage_1/stage_report.json",
       "tool_id": "fastqc",
-      "tool_invocation_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpSqf0Tx/pipeline/stage_1/tool_invocation.json",
+      "tool_invocation_path": "stage_1/tool_invocation.json",
       "tool_version": "0.0.0"
     },
     {
       "bank_report_path": null,
-      "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpSqf0Tx/pipeline/stage_3/effective_config.json",
+      "effective_config_path": "stage_3/effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpSqf0Tx/pipeline/stage_3/metrics.json",
+      "metrics_path": "stage_3/metrics.json",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "fastq.filter",
-      "stage_report_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpSqf0Tx/pipeline/stage_3/stage_report.json",
+      "stage_report_path": "stage_3/stage_report.json",
       "tool_id": "fastp",
-      "tool_invocation_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpSqf0Tx/pipeline/stage_3/tool_invocation.json",
+      "tool_invocation_path": "stage_3/tool_invocation.json",
       "tool_version": "0.0.0"
     },
     {
       "bank_report_path": null,
-      "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpSqf0Tx/pipeline/stage_5/effective_config.json",
+      "effective_config_path": "stage_5/effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpSqf0Tx/pipeline/stage_5/metrics.json",
+      "metrics_path": "stage_5/metrics.json",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "fastq.qc_post",
-      "stage_report_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpSqf0Tx/pipeline/stage_5/stage_report.json",
+      "stage_report_path": "stage_5/stage_report.json",
       "tool_id": "multiqc",
-      "tool_invocation_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpSqf0Tx/pipeline/stage_5/tool_invocation.json",
+      "tool_invocation_path": "stage_5/tool_invocation.json",
       "tool_version": "0.0.0"
     },
     {
       "bank_report_path": null,
-      "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpSqf0Tx/pipeline/stage_4/effective_config.json",
+      "effective_config_path": "stage_4/effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpSqf0Tx/pipeline/stage_4/metrics.json",
+      "metrics_path": "stage_4/metrics.json",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "fastq.stats_neutral",
-      "stage_report_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpSqf0Tx/pipeline/stage_4/stage_report.json",
+      "stage_report_path": "stage_4/stage_report.json",
       "tool_id": "seqkit_stats",
-      "tool_invocation_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpSqf0Tx/pipeline/stage_4/tool_invocation.json",
+      "tool_invocation_path": "stage_4/tool_invocation.json",
       "tool_version": "0.0.0"
     },
     {
       "bank_report_path": null,
-      "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpSqf0Tx/pipeline/stage_2/effective_config.json",
+      "effective_config_path": "stage_2/effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpSqf0Tx/pipeline/stage_2/metrics.json",
+      "metrics_path": "stage_2/metrics.json",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "fastq.trim",
-      "stage_report_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpSqf0Tx/pipeline/stage_2/stage_report.json",
+      "stage_report_path": "stage_2/stage_report.json",
       "tool_id": "fastp",
-      "tool_invocation_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpSqf0Tx/pipeline/stage_2/tool_invocation.json",
+      "tool_invocation_path": "stage_2/tool_invocation.json",
       "tool_version": "0.0.0"
     },
     {
       "bank_report_path": null,
-      "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpSqf0Tx/pipeline/stage_0/effective_config.json",
+      "effective_config_path": "stage_0/effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpSqf0Tx/pipeline/stage_0/metrics.json",
+      "metrics_path": "stage_0/metrics.json",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "fastq.validate_pre",
-      "stage_report_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpSqf0Tx/pipeline/stage_0/stage_report.json",
+      "stage_report_path": "stage_0/stage_report.json",
       "tool_id": "fastqvalidator_official",
-      "tool_invocation_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpSqf0Tx/pipeline/stage_0/tool_invocation.json",
+      "tool_invocation_path": "stage_0/tool_invocation.json",
       "tool_version": "0.0.0"
     }
   ],
@@ -1288,12 +1258,12 @@ expression: report
     "error_count": 0,
     "event_count": 0,
     "events": [
-      "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpSqf0Tx/pipeline/stage_0/telemetry/events.jsonl",
-      "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpSqf0Tx/pipeline/stage_1/telemetry/events.jsonl",
-      "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpSqf0Tx/pipeline/stage_2/telemetry/events.jsonl",
-      "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpSqf0Tx/pipeline/stage_3/telemetry/events.jsonl",
-      "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpSqf0Tx/pipeline/stage_4/telemetry/events.jsonl",
-      "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpSqf0Tx/pipeline/stage_5/telemetry/events.jsonl"
+      "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpTagt0I/pipeline/stage_0/telemetry/events.jsonl",
+      "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpTagt0I/pipeline/stage_1/telemetry/events.jsonl",
+      "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpTagt0I/pipeline/stage_2/telemetry/events.jsonl",
+      "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpTagt0I/pipeline/stage_3/telemetry/events.jsonl",
+      "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpTagt0I/pipeline/stage_4/telemetry/events.jsonl",
+      "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpTagt0I/pipeline/stage_5/telemetry/events.jsonl"
     ]
   }
 }

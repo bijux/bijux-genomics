@@ -4,8 +4,9 @@ use std::path::{Path, PathBuf};
 use anyhow::Result;
 use bijux_analyze::load::load_facts;
 use bijux_analyze::report::write_run_report_from_facts;
-use bijux_core::{InvariantStatusV1, StageVerdictV1};
+use bijux_core::{InvariantStatusV1, StageId, StageVerdictV1};
 use bijux_domain_bam::metrics::BamMetricsV1;
+use bijux_domain_bam::BamStage;
 use bijux_pipelines::registry::profile_by_id;
 use bijux_pipelines::Domain;
 use bijux_runtime::{FactsRowV1, StageReportV1};
@@ -91,6 +92,19 @@ fn write_stage_report(stage_dir: &Path, stage_id: &str, tool_id: &str) -> Result
     Ok(stage_report_path)
 }
 
+fn default_tool_for_stage(stage_id: &str) -> Option<String> {
+    if stage_id.starts_with("fastq.") || stage_id.starts_with("core.") {
+        let id = StageId::new(stage_id.to_string());
+        return bijux_planner_fastq::stage_api::default_tool_for_stage(&id);
+    }
+    if stage_id.starts_with("bam.") {
+        if let Ok(stage) = BamStage::try_from(stage_id) {
+            return Some(bijux_domain_bam::stage_spec(stage).default_tool.to_string());
+        }
+    }
+    None
+}
+
 fn write_pipeline_report(domain: Domain, pipeline_id: &str) -> Result<serde_json::Value> {
     let profile = profile_by_id(domain, pipeline_id)?;
     let run_id = pipeline_id;
@@ -117,11 +131,13 @@ fn write_pipeline_report(domain: Domain, pipeline_id: &str) -> Result<serde_json
             .defaults
             .tools
             .get(stage_id)
-            .map_or("unknown", String::as_str);
+            .cloned()
+            .or_else(|| default_tool_for_stage(stage_id))
+            .unwrap_or_else(|| "unknown".to_string());
         let stage_dir = base_dir.join(format!("stage_{idx}"));
         bijux_infra::ensure_dir(&stage_dir)?;
-        let stage_report_path = write_stage_report(&stage_dir, stage_id, tool)?;
-        let mut row = fact_for_stage(stage_id, tool, run_id);
+        let stage_report_path = write_stage_report(&stage_dir, stage_id, &tool)?;
+        let mut row = fact_for_stage(stage_id, &tool, run_id);
         row.reports = serde_json::json!({
             "stage_report": stage_report_path.display().to_string()
         });

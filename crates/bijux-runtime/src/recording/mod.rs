@@ -1,3 +1,4 @@
+use std::fs::OpenOptions;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 
@@ -85,6 +86,34 @@ pub struct RunsExportRowV1 {
     pub params_hash: String,
     pub input_hash: String,
     pub metrics_path: Option<String>,
+}
+
+/// Append a line to a JSONL file (create if missing).
+///
+/// # Errors
+/// Returns an error if the file cannot be opened or written.
+pub fn append_jsonl_line(path: &Path, line: &str) -> std::io::Result<()> {
+    let mut file = OpenOptions::new().create(true).append(true).open(path)?;
+    writeln!(file, "{line}")?;
+    Ok(())
+}
+
+/// Write bytes atomically by writing a temp file and renaming.
+///
+/// # Errors
+/// Returns an error if the target cannot be written.
+pub fn write_atomic_bytes(path: &Path, bytes: &[u8]) -> Result<()> {
+    let dir = path
+        .parent()
+        .ok_or_else(|| anyhow!("missing parent for {}", path.display()))?;
+    bijux_infra::ensure_dir(dir)?;
+    let mut temp = PathBuf::from(path);
+    temp.set_extension("tmp");
+    let mut file = std::fs::File::create(&temp)?;
+    file.write_all(bytes)?;
+    file.sync_all()?;
+    bijux_infra::rename(&temp, path)?;
+    Ok(())
 }
 
 #[must_use]

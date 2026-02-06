@@ -5,16 +5,7 @@ use serde_json::Value as JsonValue;
 
 use bijux_core::contract::{BenchResultRecord, BenchResultStatus};
 use bijux_core::ids::StageId;
-use bijux_domain_fastq::BenchCorpus;
-
-pub trait BenchResultsRepository {
-    fn bench_results(
-        &self,
-        stage: &StageId,
-        tool: &str,
-        corpus: &BenchCorpus,
-    ) -> Result<Vec<BenchResultRecord>>;
-}
+use bijux_domain_fastq::{BenchCorpus, BenchResultsRepository};
 
 #[derive(Debug, Clone)]
 pub struct SqliteBenchResultsRepository {
@@ -77,7 +68,7 @@ pub fn get_results_from_sqlite(
 ) -> Result<Vec<BenchResultRecord>> {
     let table = table_for_stage(stage)
         .ok_or_else(|| anyhow!("unsupported stage for bench query: {}", stage.as_str()))?;
-    let bench_dir_name = bijux_domain_fastq::stage_registry::bench_dir_name(stage)
+    let bench_dir_name = bijux_domain_fastq::bench_dir_name(stage)
         .ok_or_else(|| anyhow!("unsupported stage for bench dir: {}", stage.as_str()))?;
     let mut records = Vec::with_capacity(corpus.datasets.len());
 

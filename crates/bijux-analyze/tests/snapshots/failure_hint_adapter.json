@@ -1,11 +1,12 @@
 {
   "stage": "fastq.trim",
   "tool": "fastp",
-  "kind": "tool_exit",
+  "kind": "data_invalid",
   "reason": "adapter preset missing",
   "hints": [
     {
       "id": "adapter_preset_missing",
+      "category": "data_error",
       "severity": "medium",
       "message": "Adapter preset missing or invalid",
       "suggested_action": "Configure a valid adapter preset or supply an adapter file",

@@ -16,11 +16,6 @@ expression: report
     },
     {
       "banks": {},
-      "stage_id": "bam.bias_mitigation",
-      "tool_id": "angsd"
-    },
-    {
-      "banks": {},
       "stage_id": "bam.complexity",
       "tool_id": "preseq"
     },
@@ -85,6 +80,7 @@ expression: report
       "completeness",
       "stages",
       "provenance",
+      "run_provenance",
       "decision_config",
       "retention_definition",
       "retention_context",
@@ -94,7 +90,8 @@ expression: report
       "qc_improvement",
       "final_qc_summary",
       "filter_interpretation",
-      "adapter_inference"
+      "adapter_inference",
+      "claims_registry"
     ],
     "schema_version": "bijux.report_contract.v1"
   },
@@ -110,6 +107,7 @@ expression: report
   "metric_semantics": [
     {
       "direction": "LowerBetter",
+      "influencing_params": [],
       "metric_id": "runtime_s",
       "missing_data_policy": "treat_as_infinite",
       "range": ">= 0",
@@ -117,6 +115,7 @@ expression: report
     },
     {
       "direction": "LowerBetter",
+      "influencing_params": [],
       "metric_id": "memory_mb",
       "missing_data_policy": "treat_as_infinite",
       "range": ">= 0",
@@ -124,6 +123,11 @@ expression: report
     },
     {
       "direction": "HigherBetter",
+      "influencing_params": [
+        "adapter_bank",
+        "trim_settings",
+        "filter_settings"
+      ],
       "metric_id": "read_retention",
       "missing_data_policy": "treat_as_0.0",
       "range": "[0, 1]",
@@ -131,6 +135,11 @@ expression: report
     },
     {
       "direction": "HigherBetter",
+      "influencing_params": [
+        "adapter_bank",
+        "trim_settings",
+        "filter_settings"
+      ],
       "metric_id": "base_retention",
       "missing_data_policy": "treat_as_0.0",
       "range": "[0, 1]",
@@ -138,6 +147,9 @@ expression: report
     },
     {
       "direction": "HigherBetter",
+      "influencing_params": [
+        "merge_policy"
+      ],
       "metric_id": "merge_rate",
       "missing_data_policy": "treat_as_0.0",
       "range": "[0, 1]",
@@ -145,6 +157,9 @@ expression: report
     },
     {
       "direction": "HigherBetter",
+      "influencing_params": [
+        "corrector_settings"
+      ],
       "metric_id": "error_reduction_proxy",
       "missing_data_policy": "treat_as_0.0",
       "range": "[0, 45]",
@@ -163,16 +178,6 @@ expression: report
       "span_id": "span-bam.authenticity",
       "stage_id": "bam.authenticity",
       "tool_id": "authenticity",
-      "tool_version": "0.0.0",
-      "trace_id": "trace-1"
-    },
-    {
-      "bank_hashes": {},
-      "image_digest": "sha256:img",
-      "params_hash": "params",
-      "span_id": "span-bam.bias_mitigation",
-      "stage_id": "bam.bias_mitigation",
-      "tool_id": "angsd",
       "tool_version": "0.0.0",
       "trace_id": "trace-1"
     },
@@ -284,12 +289,6 @@ expression: report
         {
           "bases": 1000,
           "reads": 100,
-          "stage_id": "bam.bias_mitigation",
-          "tool_id": "angsd"
-        },
-        {
-          "bases": 1000,
-          "reads": 100,
           "stage_id": "bam.complexity",
           "tool_id": "preseq"
         },
@@ -350,11 +349,6 @@ expression: report
           "results": [],
           "stage_id": "bam.authenticity",
           "tool_id": "authenticity"
-        },
-        {
-          "results": [],
-          "stage_id": "bam.bias_mitigation",
-          "tool_id": "angsd"
         },
         {
           "results": [],
@@ -424,28 +418,6 @@ expression: report
               "complexity_vs_duplicates"
             ],
             "stage_id": "bam.authenticity",
-            "verdict": "fail"
-          }
-        },
-        {
-          "complexity_observed_reads": 0,
-          "coverage_mean": 0.0,
-          "duplicates_fraction": 0.0,
-          "reads_in": 100,
-          "reads_out": 100,
-          "stage_id": "bam.bias_mitigation",
-          "tool_id": "angsd",
-          "verdict": {
-            "key_metrics": {
-              "contamination": 0.0,
-              "coverage_mean": 0.0,
-              "dup_fraction": 0.0
-            },
-            "reasons": [
-              "coverage_mean",
-              "complexity_vs_duplicates"
-            ],
-            "stage_id": "bam.bias_mitigation",
             "verdict": "fail"
           }
         },
@@ -652,6 +624,7 @@ expression: report
       ]
     },
     "bam_findings": {
+      "claims": [],
       "findings": []
     },
     "bam_plots": {
@@ -678,29 +651,6 @@ expression: report
             "short_fraction": 0.0
           },
           "stage_id": "bam.authenticity"
-        },
-        {
-          "coverage": {
-            "breadth_1x": 0.0,
-            "breadth_3x": 0.0,
-            "breadth_5x": 0.0,
-            "mean": 0.0
-          },
-          "damage": {
-            "c_to_t_5p": 0.0,
-            "g_to_a_3p": 0.0
-          },
-          "dup_vs_complexity": {
-            "dup_fraction": 0.0,
-            "observed_reads": 0
-          },
-          "fragment_length": {
-            "mean": 0.0,
-            "p10": 0.0,
-            "p90": 0.0,
-            "short_fraction": 0.0
-          },
-          "stage_id": "bam.bias_mitigation"
         },
         {
           "coverage": {
@@ -939,35 +889,6 @@ expression: report
               "complexity_vs_duplicates"
             ],
             "stage_id": "bam.authenticity",
-            "verdict": "fail"
-          }
-        },
-        {
-          "contamination": 0.0,
-          "coverage": 0.0,
-          "damage": 0.0,
-          "downstream_suitable": false,
-          "dup_fraction": 0.0,
-          "sex_class": "insufficient",
-          "stage_id": "bam.bias_mitigation",
-          "suitability": {
-            "contamination": false,
-            "haplogroups": false,
-            "kinship": false,
-            "sex": false
-          },
-          "tool_id": "angsd",
-          "verdict": {
-            "key_metrics": {
-              "contamination": 0.0,
-              "coverage_mean": 0.0,
-              "dup_fraction": 0.0
-            },
-            "reasons": [
-              "coverage_mean",
-              "complexity_vs_duplicates"
-            ],
-            "stage_id": "bam.bias_mitigation",
             "verdict": "fail"
           }
         },
@@ -1237,6 +1158,9 @@ expression: report
       ]
     },
     "bench_summary": {},
+    "claims_registry": {
+      "claims": []
+    },
     "comparison_view": {
       "stages": []
     },
@@ -1253,11 +1177,6 @@ expression: report
           "banks": {},
           "stage_id": "bam.authenticity",
           "tool_id": "authenticity"
-        },
-        {
-          "banks": {},
-          "stage_id": "bam.bias_mitigation",
-          "tool_id": "angsd"
         },
         {
           "banks": {},
@@ -1348,19 +1267,6 @@ expression: report
           "stage_id": "bam.authenticity",
           "telemetry_decisions": [],
           "tool_id": "authenticity",
-          "tool_version": "0.0.0"
-        },
-        {
-          "adapter_validation": {},
-          "contaminant_action": false,
-          "input_hash": "input",
-          "missing_metrics": [],
-          "missing_reports": [],
-          "params_hash": "params",
-          "quality_gate": {},
-          "stage_id": "bam.bias_mitigation",
-          "telemetry_decisions": [],
-          "tool_id": "angsd",
           "tool_version": "0.0.0"
         },
         {
@@ -1503,6 +1409,7 @@ expression: report
       "qc": {}
     },
     "findings": {
+      "claims": [],
       "recommendations": [],
       "suspected_issues": [],
       "warnings": []
@@ -1545,77 +1452,70 @@ expression: report
       },
       "presets": [
         {
-          "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_7/effective_config.json",
+          "effective_config_path": "stage_7/effective_config.json",
           "params_hash": "params",
           "stage_id": "bam.authenticity",
           "tool_id": "authenticity",
           "tool_version": "0.0.0"
         },
         {
-          "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_10/effective_config.json",
-          "params_hash": "params",
-          "stage_id": "bam.bias_mitigation",
-          "tool_id": "angsd",
-          "tool_version": "0.0.0"
-        },
-        {
-          "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_4/effective_config.json",
+          "effective_config_path": "stage_4/effective_config.json",
           "params_hash": "params",
           "stage_id": "bam.complexity",
           "tool_id": "preseq",
           "tool_version": "0.0.0"
         },
         {
-          "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_8/effective_config.json",
+          "effective_config_path": "stage_8/effective_config.json",
           "params_hash": "params",
           "stage_id": "bam.contamination",
           "tool_id": "authenticct",
           "tool_version": "0.0.0"
         },
         {
-          "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_5/effective_config.json",
+          "effective_config_path": "stage_5/effective_config.json",
           "params_hash": "params",
           "stage_id": "bam.coverage",
           "tool_id": "mosdepth",
           "tool_version": "0.0.0"
         },
         {
-          "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_6/effective_config.json",
+          "effective_config_path": "stage_6/effective_config.json",
           "params_hash": "params",
           "stage_id": "bam.damage",
           "tool_id": "pydamage",
           "tool_version": "0.0.0"
         },
         {
-          "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_2/effective_config.json",
+          "effective_config_path": "stage_2/effective_config.json",
           "params_hash": "params",
           "stage_id": "bam.filter",
           "tool_id": "samtools",
           "tool_version": "0.0.0"
         },
         {
-          "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_3/effective_config.json",
+          "effective_config_path": "stage_3/effective_config.json",
           "params_hash": "params",
           "stage_id": "bam.markdup",
           "tool_id": "gatk",
           "tool_version": "0.0.0"
         },
         {
-          "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_1/effective_config.json",
+          "effective_config_path": "stage_1/effective_config.json",
           "params_hash": "params",
           "stage_id": "bam.qc_pre",
           "tool_id": "samtools",
           "tool_version": "0.0.0"
         },
         {
-          "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_9/effective_config.json",
+          "effective_config_path": "stage_9/effective_config.json",
           "params_hash": "params",
           "stage_id": "bam.sex",
           "tool_id": "rxy",
           "tool_version": "0.0.0"
         },
         {
-          "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_0/effective_config.json",
+          "effective_config_path": "stage_0/effective_config.json",
           "params_hash": "params",
           "stage_id": "bam.validate",
           "tool_id": "samtools",
@@ -1631,13 +1531,6 @@ expression: report
           "params_hash": "params",
           "stage_id": "bam.authenticity",
           "tool_id": "authenticity",
-          "tool_version": "0.0.0"
-        },
-        {
-          "image_digest": "sha256:img",
-          "params_hash": "params",
-          "stage_id": "bam.bias_mitigation",
-          "tool_id": "angsd",
           "tool_version": "0.0.0"
         },
         {
@@ -1830,76 +1723,8 @@ expression: report
         },
         "pipeline_id": "bam-to-bam__adna_capture__v1",
         "thresholds": {},
-        "tool_provenance": {
-          "bam.authenticity": {
-            "assumptions": [],
-            "comparability_implications": [],
-            "rationale": "pipeline default"
-          },
-          "bam.bias_mitigation": {
-            "assumptions": [],
-            "comparability_implications": [],
-            "rationale": "pipeline default"
-          },
-          "bam.complexity": {
-            "assumptions": [],
-            "comparability_implications": [],
-            "rationale": "pipeline default"
-          },
-          "bam.contamination": {
-            "assumptions": [],
-            "comparability_implications": [],
-            "rationale": "pipeline default"
-          },
-          "bam.coverage": {
-            "assumptions": [],
-            "comparability_implications": [],
-            "rationale": "pipeline default"
-          },
-          "bam.damage": {
-            "assumptions": [],
-            "comparability_implications": [],
-            "rationale": "pipeline default"
-          },
-          "bam.filter": {
-            "assumptions": [],
-            "comparability_implications": [],
-            "rationale": "pipeline default"
-          },
-          "bam.markdup": {
-            "assumptions": [],
-            "comparability_implications": [],
-            "rationale": "pipeline default"
-          },
-          "bam.qc_pre": {
-            "assumptions": [],
-            "comparability_implications": [],
-            "rationale": "pipeline default"
-          },
-          "bam.sex": {
-            "assumptions": [],
-            "comparability_implications": [],
-            "rationale": "pipeline default"
-          },
-          "bam.validate": {
-            "assumptions": [],
-            "comparability_implications": [],
-            "rationale": "pipeline default"
-          }
-        },
-        "tools": {
-          "bam.authenticity": "authenticity",
-          "bam.bias_mitigation": "angsd",
-          "bam.complexity": "preseq",
-          "bam.contamination": "authenticct",
-          "bam.coverage": "mosdepth",
-          "bam.damage": "pydamage",
-          "bam.filter": "samtools",
-          "bam.markdup": "gatk",
-          "bam.qc_pre": "samtools",
-          "bam.sex": "rxy",
-          "bam.validate": "samtools"
-        }
+        "tool_provenance": {},
+        "tools": {}
       },
       "overrides": []
     },
@@ -1916,20 +1741,6 @@ expression: report
           "stage_id": "bam.authenticity",
           "tier_rationale": "unknown_tool",
           "tool_id": "authenticity",
-          "tool_tier": "experimental",
-          "tool_version": "0.0.0"
-        },
-        {
-          "image_digest": "sha256:img",
-          "input_hash": "input",
-          "output_hashes": [
-            "out"
-          ],
-          "params_hash": "params",
-          "scientific_preset": null,
-          "stage_id": "bam.bias_mitigation",
-          "tier_rationale": "unknown_tool",
-          "tool_id": "angsd",
           "tool_tier": "experimental",
           "tool_version": "0.0.0"
         },
@@ -2062,6 +1873,13 @@ expression: report
       ]
     },
     "pipeline_verdict": {
+      "aggregation_policy": {
+        "fail_condition": "any stage fail",
+        "pass_condition": "all stages pass",
+        "rule": "worst_status",
+        "schema_version": "bijux.pipeline_verdict_policy.v1",
+        "warn_condition": "any stage warn and no stage fail"
+      },
       "reasons": [],
       "verdict": "pass"
     },
@@ -2074,6 +1892,12 @@ expression: report
     },
     "reproducibility": {
       "command": "unknown",
+      "determinism_policy": {
+        "float_format": "fixed_3",
+        "html_table_order": "stage_id,tool_id",
+        "json_canonicalization": "sorted_keys",
+        "timestamp_format": "rfc3339_utc"
+      },
       "finished_at": null,
       "image_digests": [
         "sha256:img"
@@ -2093,6 +1917,7 @@ expression: report
       "contexts": [],
       "definitions": []
     },
+    "run_provenance": {},
     "scientific_provenance": {
       "entries": [
         {
@@ -2107,20 +1932,6 @@ expression: report
           "resolved_tool_version": null,
           "stage_id": "bam.authenticity",
           "tool_id": "authenticity",
-          "tool_version": "0.0.0"
-        },
-        {
-          "effective_params": {},
-          "image_digest": "sha256:img",
-          "input_hash": "input",
-          "output_hashes": [
-            "out"
-          ],
-          "params_hash": "params",
-          "raw_params": {},
-          "resolved_tool_version": null,
-          "stage_id": "bam.bias_mitigation",
-          "tool_id": "angsd",
           "tool_version": "0.0.0"
         },
         {
@@ -2262,12 +2073,6 @@ expression: report
         {
           "missing_metrics": [],
           "missing_reports": [],
-          "stage_id": "bam.bias_mitigation",
-          "status": "complete"
-        },
-        {
-          "missing_metrics": [],
-          "missing_reports": [],
           "stage_id": "bam.complexity",
           "status": "complete"
         },
@@ -2329,13 +2134,6 @@ expression: report
           "score": 1.0,
           "stage_id": "bam.authenticity",
           "tool_id": "authenticity"
-        },
-        {
-          "bucket": "high",
-          "reasons": [],
-          "score": 1.0,
-          "stage_id": "bam.bias_mitigation",
-          "tool_id": "angsd"
         },
         {
           "bucket": "high",
@@ -2417,14 +2215,6 @@ expression: report
           "gc_delta": null,
           "mean_q_delta": null,
           "read_retention": 1.0,
-          "stage_id": "bam.bias_mitigation",
-          "tool_id": "angsd"
-        },
-        {
-          "base_retention": 1.0,
-          "gc_delta": null,
-          "mean_q_delta": null,
-          "read_retention": 1.0,
           "stage_id": "bam.complexity",
           "tool_id": "preseq"
         },
@@ -2500,10 +2290,6 @@ expression: report
         },
         {
           "read_retention": 1.0,
-          "stage_id": "bam.bias_mitigation"
-        },
-        {
-          "read_retention": 1.0,
           "stage_id": "bam.complexity"
         },
         {
@@ -2548,178 +2334,162 @@ expression: report
   "stages": [
     {
       "bank_report_path": null,
-      "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_7/effective_config.json",
+      "effective_config_path": "stage_7/effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_7/metrics.json",
+      "metrics_path": "stage_7/metrics.json",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "bam.authenticity",
-      "stage_report_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_7/stage_report.json",
+      "stage_report_path": "stage_7/stage_report.json",
       "tool_id": "authenticity",
-      "tool_invocation_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_7/tool_invocation.json",
+      "tool_invocation_path": "stage_7/tool_invocation.json",
       "tool_version": "0.0.0"
     },
     {
       "bank_report_path": null,
-      "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_10/effective_config.json",
+      "effective_config_path": "stage_4/effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_10/metrics.json",
-      "params_hash": "params",
-      "retention_report_path": null,
-      "runtime_s": 1.0,
-      "stage_id": "bam.bias_mitigation",
-      "stage_report_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_10/stage_report.json",
-      "tool_id": "angsd",
-      "tool_invocation_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_10/tool_invocation.json",
-      "tool_version": "0.0.0"
-    },
-    {
-      "bank_report_path": null,
-      "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_4/effective_config.json",
-      "exit_code": 0,
-      "input_hash": "input",
-      "memory_mb": 64.0,
-      "metrics_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_4/metrics.json",
+      "metrics_path": "stage_4/metrics.json",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "bam.complexity",
-      "stage_report_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_4/stage_report.json",
+      "stage_report_path": "stage_4/stage_report.json",
       "tool_id": "preseq",
-      "tool_invocation_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_4/tool_invocation.json",
+      "tool_invocation_path": "stage_4/tool_invocation.json",
       "tool_version": "0.0.0"
     },
     {
       "bank_report_path": null,
-      "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_8/effective_config.json",
+      "effective_config_path": "stage_8/effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_8/metrics.json",
+      "metrics_path": "stage_8/metrics.json",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "bam.contamination",
-      "stage_report_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_8/stage_report.json",
+      "stage_report_path": "stage_8/stage_report.json",
       "tool_id": "authenticct",
-      "tool_invocation_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_8/tool_invocation.json",
+      "tool_invocation_path": "stage_8/tool_invocation.json",
       "tool_version": "0.0.0"
     },
     {
       "bank_report_path": null,
-      "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_5/effective_config.json",
+      "effective_config_path": "stage_5/effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_5/metrics.json",
+      "metrics_path": "stage_5/metrics.json",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "bam.coverage",
-      "stage_report_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_5/stage_report.json",
+      "stage_report_path": "stage_5/stage_report.json",
       "tool_id": "mosdepth",
-      "tool_invocation_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_5/tool_invocation.json",
+      "tool_invocation_path": "stage_5/tool_invocation.json",
       "tool_version": "0.0.0"
     },
     {
       "bank_report_path": null,
-      "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_6/effective_config.json",
+      "effective_config_path": "stage_6/effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_6/metrics.json",
+      "metrics_path": "stage_6/metrics.json",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "bam.damage",
-      "stage_report_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_6/stage_report.json",
+      "stage_report_path": "stage_6/stage_report.json",
       "tool_id": "pydamage",
-      "tool_invocation_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_6/tool_invocation.json",
+      "tool_invocation_path": "stage_6/tool_invocation.json",
       "tool_version": "0.0.0"
     },
     {
       "bank_report_path": null,
-      "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_2/effective_config.json",
+      "effective_config_path": "stage_2/effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_2/metrics.json",
+      "metrics_path": "stage_2/metrics.json",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "bam.filter",
-      "stage_report_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_2/stage_report.json",
+      "stage_report_path": "stage_2/stage_report.json",
       "tool_id": "samtools",
-      "tool_invocation_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_2/tool_invocation.json",
+      "tool_invocation_path": "stage_2/tool_invocation.json",
       "tool_version": "0.0.0"
     },
     {
       "bank_report_path": null,
-      "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_3/effective_config.json",
+      "effective_config_path": "stage_3/effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_3/metrics.json",
+      "metrics_path": "stage_3/metrics.json",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "bam.markdup",
-      "stage_report_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_3/stage_report.json",
+      "stage_report_path": "stage_3/stage_report.json",
       "tool_id": "gatk",
-      "tool_invocation_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_3/tool_invocation.json",
+      "tool_invocation_path": "stage_3/tool_invocation.json",
       "tool_version": "0.0.0"
     },
     {
       "bank_report_path": null,
-      "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_1/effective_config.json",
+      "effective_config_path": "stage_1/effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_1/metrics.json",
+      "metrics_path": "stage_1/metrics.json",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "bam.qc_pre",
-      "stage_report_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_1/stage_report.json",
+      "stage_report_path": "stage_1/stage_report.json",
       "tool_id": "samtools",
-      "tool_invocation_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_1/tool_invocation.json",
+      "tool_invocation_path": "stage_1/tool_invocation.json",
       "tool_version": "0.0.0"
     },
     {
       "bank_report_path": null,
-      "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_9/effective_config.json",
+      "effective_config_path": "stage_9/effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_9/metrics.json",
+      "metrics_path": "stage_9/metrics.json",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "bam.sex",
-      "stage_report_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_9/stage_report.json",
+      "stage_report_path": "stage_9/stage_report.json",
       "tool_id": "rxy",
-      "tool_invocation_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_9/tool_invocation.json",
+      "tool_invocation_path": "stage_9/tool_invocation.json",
       "tool_version": "0.0.0"
     },
     {
       "bank_report_path": null,
-      "effective_config_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_0/effective_config.json",
+      "effective_config_path": "stage_0/effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_0/metrics.json",
+      "metrics_path": "stage_0/metrics.json",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "bam.validate",
-      "stage_report_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_0/stage_report.json",
+      "stage_report_path": "stage_0/stage_report.json",
       "tool_id": "samtools",
-      "tool_invocation_path": "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_0/tool_invocation.json",
+      "tool_invocation_path": "stage_0/tool_invocation.json",
       "tool_version": "0.0.0"
     }
   ],
@@ -2727,17 +2497,16 @@ expression: report
     "error_count": 0,
     "event_count": 0,
     "events": [
-      "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_0/telemetry/events.jsonl",
-      "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_1/telemetry/events.jsonl",
-      "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_10/telemetry/events.jsonl",
-      "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_2/telemetry/events.jsonl",
-      "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_3/telemetry/events.jsonl",
-      "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_4/telemetry/events.jsonl",
-      "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_5/telemetry/events.jsonl",
-      "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_6/telemetry/events.jsonl",
-      "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_7/telemetry/events.jsonl",
-      "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_8/telemetry/events.jsonl",
-      "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpaGzBl2/pipeline/stage_9/telemetry/events.jsonl"
+      "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp8Zxaip/pipeline/stage_0/telemetry/events.jsonl",
+      "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp8Zxaip/pipeline/stage_1/telemetry/events.jsonl",
+      "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp8Zxaip/pipeline/stage_2/telemetry/events.jsonl",
+      "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp8Zxaip/pipeline/stage_3/telemetry/events.jsonl",
+      "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp8Zxaip/pipeline/stage_4/telemetry/events.jsonl",
+      "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp8Zxaip/pipeline/stage_5/telemetry/events.jsonl",
+      "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp8Zxaip/pipeline/stage_6/telemetry/events.jsonl",
+      "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp8Zxaip/pipeline/stage_7/telemetry/events.jsonl",
+      "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp8Zxaip/pipeline/stage_8/telemetry/events.jsonl",
+      "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmp8Zxaip/pipeline/stage_9/telemetry/events.jsonl"
     ]
   }
 }
