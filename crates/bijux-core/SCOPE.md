@@ -22,3 +22,5 @@ If a feature needs IO, runtime configuration, or domain semantics, it does not b
 - metric semantics: bijux-analyze
 - artifact layout: bijux-runtime
 - report schema/rendering: bijux-analyze
+
+See STYLE.md for workspace conventions.

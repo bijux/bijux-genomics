@@ -9,3 +9,5 @@ In scope:
 Out of scope:
 - Domain semantics (domain crates).
 - Execution transport (runner).
+
+See STYLE.md for workspace conventions.
