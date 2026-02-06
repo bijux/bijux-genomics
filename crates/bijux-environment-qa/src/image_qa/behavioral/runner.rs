@@ -198,8 +198,12 @@ fn tool_contract<'a>(
     stage_id: &str,
     tool_id: &str,
 ) -> Result<&'a bijux_core::contract::ExecutionContract> {
+    let stage_id = bijux_core::ids::StageId::try_from(stage_id)
+        .map_err(|err| anyhow!("invalid stage id: {err}"))?;
+    let tool_id = bijux_core::ids::ToolId::try_from(tool_id)
+        .map_err(|err| anyhow!("invalid tool id: {err}"))?;
     let tool = registry
-        .tool_by_id(stage_id, tool_id)
+        .tool_by_id(&stage_id, &tool_id)
         .ok_or_else(|| anyhow!("tool {tool_id} missing from manifests"))?;
     Ok(&tool.execution_contract)
 }

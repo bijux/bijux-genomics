@@ -63,7 +63,7 @@ pub fn bench_fastq_stats_neutral<S: ::std::hash::BuildHasher>(
     let tools = filter_tools_by_role(STAGE_STATS_NEUTRAL.as_str(), &tools, &registry, false)?;
     let bench_inputs = prepare_stats_bench(catalog, platform, runner_override, args)?;
     let selected = tools.clone();
-    let stage_id = bijux_core::ids::StageId::from_static(STAGE_STATS_NEUTRAL.as_str());
+    let stage_id = bijux_core::ids::StageId::new(STAGE_STATS_NEUTRAL.as_str());
     let all_tools: Vec<String> = registry
         .tools_for_stage(&stage_id)
         .iter()
@@ -299,8 +299,9 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
 
     let registry = load_registry(&std::env::current_dir()?.join("domain"))
         .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
+    let stage_id = bijux_core::ids::StageId::new(STAGE_STATS_NEUTRAL.as_str());
     let tool_manifest = registry
-        .tool_by_id(STAGE_STATS_NEUTRAL.as_str(), tool)
+        .tool_by_id(&stage_id, &bijux_core::ids::ToolId::new(tool))
         .ok_or_else(|| anyhow!("tool {tool} missing from manifests"))?;
     validate_execution_outputs(&tool_manifest.execution_contract, &out_dir)?;
     let manifest = ExecutionManifest {

@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use anyhow::{anyhow, Result};
-use bijux_core::{CommandSpecV1, ContainerImageRefV1, ToolExecutionSpecV1, ToolId};
+use bijux_core::{CommandSpecV1, ContainerImageRefV1, ToolExecutionSpecV1};
 use bijux_environment::api::{PlatformSpec, ToolImageSpec};
 
 use crate::docker::executor::resolve_image_for_run;
@@ -13,15 +13,18 @@ pub fn build_tool_execution_spec<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
 ) -> Result<ToolExecutionSpecV1> {
+    let stage_id =
+        bijux_core::ids::StageId::try_from(stage_id).map_err(|err| anyhow!("{err}"))?;
+    let tool_id = bijux_core::ids::ToolId::try_from(tool_id).map_err(|err| anyhow!("{err}"))?;
     let manifest = registry
-        .tool_by_id(stage_id, tool_id)
+        .tool_by_id(&stage_id, &tool_id)
         .ok_or_else(|| anyhow!("tool {tool_id} missing from manifest for {stage_id}"))?;
     let spec = catalog
-        .get(tool_id)
+        .get(tool_id.as_str())
         .ok_or_else(|| anyhow!("tool {tool_id} missing from images.toml"))?;
     let image = resolve_image_for_run(spec, platform)?;
     Ok(ToolExecutionSpecV1 {
-        tool_id: ToolId::new(tool_id),
+        tool_id: tool_id.clone(),
         tool_version: spec.version.clone(),
         image: ContainerImageRefV1 {
             image: image.full_name,
