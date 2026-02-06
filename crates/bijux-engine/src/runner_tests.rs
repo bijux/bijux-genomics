@@ -4,13 +4,14 @@
 use std::cell::RefCell;
 use std::collections::BTreeMap;
 use std::path::PathBuf;
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::Duration;
 
 use bijux_core::contract::{ArtifactRef, ArtifactRole, StageIO, ToolConstraints};
 use bijux_core::plan::execution_graph::{ExecutionEdge, ExecutionGraph, ExecutionStep};
 use bijux_core::plan::PlanPolicy;
-use bijux_core::plan::{Invocation, Runner, RunnerResult};
 use bijux_core::{CommandSpecV1, ContainerImageRefV1, StageId};
+use bijux_runtime::{Invocation, Runner, RunnerResult};
 
 use crate::executor::{execute_plan, ExecutionOptions};
 
@@ -40,6 +41,17 @@ impl Runner for FakeRunner {
         if should_fail {
             fail_first.retain(|id| id != plan.step_id.as_str());
         }
+        let run_artifacts = plan.out_dir.join("run_artifacts");
+        std::fs::create_dir_all(&run_artifacts)?;
+        for name in [
+            "metrics.json",
+            "effective_config.json",
+            "stage_report.json",
+            "tool_invocation.json",
+        ] {
+            let path = run_artifacts.join(name);
+            std::fs::write(path, "{}")?;
+        }
         Ok(RunnerResult {
             exit_code: i32::from(should_fail),
             stdout: String::new(),
@@ -51,6 +63,9 @@ impl Runner for FakeRunner {
 }
 
 fn plan_for(stage_id: &str) -> ExecutionStep {
+    static COUNTER: AtomicUsize = AtomicUsize::new(1);
+    let suffix = COUNTER.fetch_add(1, Ordering::Relaxed);
+    let out_dir = std::env::temp_dir().join(format!("bijux-engine-test-{stage_id}-{suffix}"));
     ExecutionStep {
         step_id: StageId::new(stage_id),
         image: ContainerImageRefV1 {
@@ -78,7 +93,7 @@ fn plan_for(stage_id: &str) -> ExecutionStep {
                 ArtifactRole::Unknown,
             )],
         },
-        out_dir: PathBuf::from("out"),
+        out_dir,
         aux_images: BTreeMap::new(),
         expected_artifact_ids: Vec::new(),
         metrics_schema_ids: Vec::new(),

@@ -1,7 +1,7 @@
 //! Owner: bijux-runner
 //! Runner abstraction with docker/local backends.
 
-pub use bijux_core::plan::{Artifact, Invocation, Runner, RunnerResult};
+pub use bijux_runtime::{Artifact, Invocation, Runner, RunnerResult};
 use std::time::Duration;
 
 pub mod docker;

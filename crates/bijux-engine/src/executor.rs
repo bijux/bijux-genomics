@@ -5,8 +5,8 @@ use std::fs;
 
 use anyhow::{anyhow, Result};
 use bijux_core::plan::execution_graph::{ExecutionEdge, ExecutionGraph, ExecutionStep};
-use bijux_core::plan::{Invocation, Runner};
 use bijux_core::{RunRecordV1, StageExecutionRecordV1};
+use bijux_runtime::{Invocation, Runner};
 
 #[derive(Debug, Clone, Default)]
 pub struct ExecutionOptions {
@@ -113,6 +113,44 @@ fn enforce_contract(step: &ExecutionStep) -> Result<()> {
                 step.step_id.0
             )
         })?;
+    }
+    let run_artifacts_dir = step.out_dir.join("run_artifacts");
+    let required = [
+        ("metrics.json", run_artifacts_dir.join("metrics.json")),
+        (
+            "effective_config.json",
+            run_artifacts_dir.join("effective_config.json"),
+        ),
+        (
+            "stage_report.json",
+            run_artifacts_dir.join("stage_report.json"),
+        ),
+        (
+            "tool_invocation.json",
+            run_artifacts_dir.join("tool_invocation.json"),
+        ),
+    ];
+    for (label, path) in required {
+        if !path.exists() {
+            return Err(anyhow!(
+                "contract error: missing {label} for {} at {}",
+                step.step_id.0,
+                path.display()
+            ));
+        }
+        let metadata = fs::metadata(&path).map_err(|err| {
+            anyhow!(
+                "contract error: unable to stat {label} for {}: {err}",
+                step.step_id.0
+            )
+        })?;
+        if metadata.len() == 0 {
+            return Err(anyhow!(
+                "contract error: {label} empty for {} at {}",
+                step.step_id.0,
+                path.display()
+            ));
+        }
     }
     Ok(())
 }
