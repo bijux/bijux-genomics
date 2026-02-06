@@ -8,8 +8,8 @@ use sha2::Digest;
 use bijux_infra::bench_tools_dir;
 
 use crate::StageObservabilityContextV1;
+use bijux_core::execution::execution_graph::ExecutionGraph;
 use bijux_core::metrics::{MetricsEnvelope, ToolInvocationV1};
-use bijux_core::plan::execution_graph::ExecutionGraph;
 use bijux_core::primitives::hashing::params_hash;
 use serde::Serialize;
 
