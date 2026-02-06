@@ -3,7 +3,10 @@ use std::time::Duration;
 
 use anyhow::{anyhow, Context, Result};
 use bijux_core::plan::execution_graph::ExecutionStep;
-use bijux_core::primitives::hashing::{params_hash, run_id_from_hashes};
+use bijux_core::primitives::cache::CacheKey;
+use bijux_core::primitives::hashing::{
+    input_fingerprint, parameters_fingerprint, run_id_from_hashes,
+};
 use bijux_environment::api::RunnerKind;
 use uuid::Uuid;
 
@@ -116,11 +119,24 @@ pub fn execute_step(
         .map(|output| output.path.clone())
         .collect();
     let input_hashes = hash_inputs(&inputs)?;
-    let params_hash = params_hash(&serde_json::json!({ "command": step.command.template }))?;
+    let params_fingerprint =
+        parameters_fingerprint(&serde_json::json!({ "command": step.command.template }))?;
+    let input_fingerprint = input_fingerprint(&input_hashes);
+    let env_digest = step
+        .image
+        .digest
+        .clone()
+        .unwrap_or_else(|| step.image.image.clone());
+    let _cache_key = CacheKey::new(
+        input_fingerprint,
+        params_fingerprint.clone(),
+        step.image.image.clone(),
+        env_digest,
+    );
     let run_id = run_id_from_hashes(
         "unknown_pipeline",
         "unknown_sample",
-        &params_hash,
+        &params_fingerprint,
         &input_hashes,
         None,
     );

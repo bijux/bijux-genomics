@@ -1,4 +1,5 @@
 use std::collections::{HashMap, HashSet, VecDeque};
+use std::fs;
 
 use anyhow::{anyhow, Result};
 use bijux_core::plan::execution_graph::{ExecutionEdge, ExecutionGraph, ExecutionStep};
@@ -15,9 +16,16 @@ pub fn execute_plan(
     runner: &dyn Runner,
     options: &ExecutionOptions,
 ) -> Result<RunRecordV1> {
+    let graph = graph.normalize()?;
     let ordered = topo_order(graph.steps(), graph.edges())?;
     let mut results = Vec::with_capacity(ordered.len());
     for step in ordered {
+        tracing::info!(
+            target: "exec.step",
+            stage_id = %step.step_id.0,
+            tool = %step.image.image,
+            "execute step"
+        );
         let mut attempt = 0;
         let last_success = loop {
             let invocation = Invocation {
@@ -27,6 +35,7 @@ pub fn execute_plan(
             let outcome = runner.run(&invocation)?;
             let success = outcome.exit_code == 0;
             if success {
+                enforce_contract(step)?;
                 break success;
             }
             if attempt >= options.retries {
@@ -43,6 +52,67 @@ pub fn execute_plan(
         });
     }
     Ok(RunRecordV1::new(results))
+}
+
+fn enforce_contract(step: &ExecutionStep) -> Result<()> {
+    for output in &step.io.outputs {
+        if output.optional && !output.path.exists() {
+            continue;
+        }
+        if !output.path.exists() {
+            return Err(anyhow!(
+                "contract error: missing output {} at {}",
+                output.name,
+                output.path.display()
+            ));
+        }
+        let metadata = fs::metadata(&output.path).map_err(|err| {
+            anyhow!(
+                "contract error: unable to stat output {}: {err}",
+                output.path.display()
+            )
+        })?;
+        if metadata.len() == 0 {
+            return Err(anyhow!(
+                "contract error: output {} is empty at {}",
+                output.name,
+                output.path.display()
+            ));
+        }
+        if matches!(
+            output.role,
+            bijux_core::contract::ArtifactRole::MetricsJson
+                | bijux_core::contract::ArtifactRole::MetricsEnvelope
+        ) {
+            let raw = fs::read_to_string(&output.path)?;
+            serde_json::from_str::<serde_json::Value>(&raw).map_err(|err| {
+                anyhow!(
+                    "contract error: metrics output {} not parseable: {err}",
+                    output.path.display()
+                )
+            })?;
+        }
+    }
+    if !step.metrics_schema_ids.is_empty() {
+        let metrics_path = step
+            .out_dir
+            .join("run_artifacts")
+            .join("metrics_envelope.json");
+        if !metrics_path.exists() {
+            return Err(anyhow!(
+                "contract error: missing metrics_envelope.json for {}",
+                step.step_id.0
+            ));
+        }
+        let raw = fs::read_to_string(&metrics_path)?;
+        serde_json::from_str::<serde_json::Value>(&raw).map_err(|err| {
+            anyhow!(
+                "contract error: metrics_envelope.json parse failed for {}: {err}",
+                step.step_id.0
+            )
+        })?;
+    }
+    Ok(())
 }
 
 fn topo_order<'a>(

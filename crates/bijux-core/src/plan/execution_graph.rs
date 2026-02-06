@@ -143,6 +143,18 @@ impl ExecutionGraph {
         hasher.update(bytes);
         Ok(format!("{:x}", hasher.finalize()))
     }
+
+    /// # Errors
+    /// Returns an error if the normalized graph fails validation.
+    pub fn normalize(&self) -> Result<Self> {
+        ExecutionGraph::new(
+            self.pipeline_id.clone(),
+            self.planner_version.clone(),
+            self.policy,
+            self.steps.clone(),
+            self.edges.clone(),
+        )
+    }
 }
 
 /// # Errors
