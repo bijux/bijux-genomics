@@ -113,6 +113,18 @@ fn base_reports(root: &std::path::Path) -> Result<(PathBuf, PathBuf, PathBuf)> {
             "paired_mode": "single_end",
             "threads": 1
         }),
+        params_provenance: serde_json::json!({
+            "tool_params": serde_json::json!({"min_len": 20}),
+            "defaults": serde_json::json!({}),
+            "overrides": serde_json::json!({}),
+            "effective_params": serde_json::json!({
+                "paired_mode": "single_end",
+                "threads": 1,
+                "min_len": 20,
+                "adapter_policy": "bank"
+            }),
+        }),
+        params_provenance_normalized: serde_json::json!({}),
         adapter_bank: None,
         banks: None,
         bank_assets: None,

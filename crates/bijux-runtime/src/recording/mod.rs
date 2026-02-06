@@ -139,6 +139,7 @@ pub fn write_run_manifest(
     stage: &str,
     _tool: &str,
     run_provenance: &crate::RunProvenanceV1,
+    stage_contract_hash: Option<String>,
     extra_artifacts: &[RunArtifactInput],
 ) -> Result<()> {
     let mut artifacts = Vec::new();
@@ -190,6 +191,7 @@ pub fn write_run_manifest(
         "pipeline_id": pipeline_id,
         "profile_id": profile_id,
         "graph_hash": graph_hash,
+        "stage_contract_hash": stage_contract_hash,
         "toolchain_versions": {
             "planner": std::env::var("BIJUX_PLANNER_VERSION").unwrap_or_else(|_| "unknown".to_string()),
             "engine": std::env::var("BIJUX_ENGINE_VERSION").unwrap_or_else(|_| "unknown".to_string()),
@@ -254,6 +256,14 @@ pub fn write_plan_provenance(run_dir: &Path, plan: &ExecutionGraph) -> Result<Pa
             .digest
             .clone()
             .unwrap_or_else(|| "unknown".to_string());
+        let params_provenance = serde_json::json!({
+            "tool_params": params.clone(),
+            "defaults": serde_json::json!({}),
+            "overrides": serde_json::json!({}),
+            "effective_params": params.clone(),
+        });
+        let params_provenance_normalized =
+            bijux_core::primitives::hashing::canonicalize_json_value(&params_provenance);
         invocations.push(ToolInvocationV1 {
             schema_version: "bijux.tool_invocation.v1".to_string(),
             stage_id: step.step_id.to_string(),
@@ -267,6 +277,8 @@ pub fn write_plan_provenance(run_dir: &Path, plan: &ExecutionGraph) -> Result<Pa
             parameters_json_normalized: params.clone(),
             effective_params_json: params.clone(),
             effective_params_json_normalized: params.clone(),
+            params_provenance,
+            params_provenance_normalized,
             adapter_bank: None,
             banks: None,
             bank_assets: None,

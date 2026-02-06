@@ -7,6 +7,8 @@ use bijux_core::contract::{ArtifactRef, ArtifactRole};
 use bijux_core::execution::execution_graph::{ExecutionGraph, ExecutionStep};
 use bijux_core::execution::PlanPolicy;
 use bijux_core::metrics::ToolInvocationV1;
+use bijux_domain_bam;
+use bijux_domain_fastq;
 use bijux_planner_fastq::report_stage_step as build_report_stage_step;
 use bijux_planner_fastq::{CorrectDecisionTrace, MergeDecisionTrace};
 use bijux_runner::primitives::StageResultV1;
@@ -116,6 +118,16 @@ pub(super) fn render_run_summary(
         summary_tsv_path,
         report_html_path,
     })
+}
+
+fn stage_contract_hash_for(stage_id: &str) -> Option<String> {
+    if stage_id.starts_with("fastq.") || stage_id.starts_with("core.") {
+        return bijux_domain_fastq::stage_contract_hash(stage_id).and_then(|result| result.ok());
+    }
+    if stage_id.starts_with("bam.") {
+        return bijux_domain_bam::stage_contract_hash(stage_id).and_then(|result| result.ok());
+    }
+    None
 }
 
 pub(super) fn report_stage_step(out_dir: &Path, steps: &[ExecutionStep]) -> ExecutionStep {
@@ -231,8 +243,10 @@ pub(super) fn write_run_manifest(
                     primary_outputs.push(relative_path_string(out_dir, &multiqc_data));
                 }
             }
+            let contract_hash = stage_contract_hash_for(entry.plan.step_id.as_str());
             serde_json::json!({
                 "stage_id": entry.plan.step_id.0,
+                "stage_contract_hash": contract_hash,
                 "tool_id": entry.plan.image.image,
                 "artifacts": artifacts,
                 "primary_outputs": primary_outputs,
@@ -729,6 +743,13 @@ mod tests {
             parameters_json_normalized: serde_json::json!({"min_len": 10}),
             effective_params_json: serde_json::json!({}),
             effective_params_json_normalized: serde_json::json!({}),
+            params_provenance: serde_json::json!({
+                "tool_params": serde_json::json!({"min_len": 10}),
+                "defaults": serde_json::json!({}),
+                "overrides": serde_json::json!({}),
+                "effective_params": serde_json::json!({}),
+            }),
+            params_provenance_normalized: serde_json::json!({}),
             adapter_bank: Some(AdapterBankProvenanceV1 {
                 bank_id: "bank".to_string(),
                 bank_version: "v1".to_string(),

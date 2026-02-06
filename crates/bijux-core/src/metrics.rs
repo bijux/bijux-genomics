@@ -299,6 +299,10 @@ pub struct ToolInvocationV1 {
     #[serde(default)]
     pub effective_params_json_normalized: serde_json::Value,
     #[serde(default)]
+    pub params_provenance: serde_json::Value,
+    #[serde(default)]
+    pub params_provenance_normalized: serde_json::Value,
+    #[serde(default)]
     pub adapter_bank: Option<AdapterBankProvenanceV1>,
     #[serde(default)]
     pub banks: Option<serde_json::Value>,

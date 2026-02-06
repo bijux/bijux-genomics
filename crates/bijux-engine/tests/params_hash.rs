@@ -40,6 +40,13 @@ fn tool_invocation_roundtrip_and_hash_stability() -> Result<()> {
         parameters_json_normalized: canonical_a.clone(),
         effective_params_json: serde_json::json!({}),
         effective_params_json_normalized: serde_json::json!({}),
+        params_provenance: serde_json::json!({
+            "tool_params": canonical_a.clone(),
+            "defaults": serde_json::json!({}),
+            "overrides": serde_json::json!({}),
+            "effective_params": serde_json::json!({}),
+        }),
+        params_provenance_normalized: serde_json::json!({}),
         adapter_bank: None,
         banks: None,
         bank_assets: None,
