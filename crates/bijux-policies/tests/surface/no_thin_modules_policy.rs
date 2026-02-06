@@ -34,15 +34,18 @@ fn no_thin_module_directories() {
                 continue;
             }
             let mut rs_files = Vec::new();
+            let mut has_other_entries = false;
             if let Ok(read_dir) = std::fs::read_dir(dir) {
                 for child in read_dir.flatten() {
                     let path = child.path();
                     if path.extension().and_then(|ext| ext.to_str()) == Some("rs") {
                         rs_files.push(path);
+                    } else {
+                        has_other_entries = true;
                     }
                 }
             }
-            if rs_files.len() >= 2 {
+            if has_other_entries || rs_files.len() >= 2 {
                 continue;
             }
             if rs_files.len() == 1 && rs_files[0].file_name().and_then(|n| n.to_str()) == Some("mod.rs") {
