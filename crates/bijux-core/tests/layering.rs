@@ -17,35 +17,35 @@ fn collect_rs_files(root: &Path) -> Vec<PathBuf> {
 }
 
 #[test]
-fn primitives_do_not_depend_on_plan_or_contract() {
-    let root = crate_root().join("src").join("primitives");
+fn foundation_does_not_depend_on_contract() {
+    let root = crate_root().join("src").join("foundation");
     let mut offenders = Vec::new();
     for path in collect_rs_files(&root) {
         let content = std::fs::read_to_string(&path).expect("read source");
-        if content.contains("crate::execution") || content.contains("crate::contract") {
+        if content.contains("crate::contract") {
             offenders.push(path.display().to_string());
         }
     }
     assert!(
         offenders.is_empty(),
-        "primitives must not depend on plan/contract:\n{}",
+        "foundation must not depend on contract:\n{}",
         offenders.join("\n")
     );
 }
 
 #[test]
-fn contract_does_not_depend_on_plan() {
+fn contract_does_not_depend_on_foundation_internals() {
     let root = crate_root().join("src").join("contract");
     let mut offenders = Vec::new();
     for path in collect_rs_files(&root) {
         let content = std::fs::read_to_string(&path).expect("read source");
-        if content.contains("crate::execution") {
+        if content.contains("crate::foundation::invariants") {
             offenders.push(path.display().to_string());
         }
     }
     assert!(
         offenders.is_empty(),
-        "contract must not depend on plan:\n{}",
+        "contract must not depend on foundation invariants:\n{}",
         offenders.join("\n")
     );
 }

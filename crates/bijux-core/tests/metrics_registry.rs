@@ -1,4 +1,4 @@
-use bijux_core::metrics_registry::{metrics_schema_for_stage, FASTQ_METRICS_SCHEMAS};
+use bijux_core::metrics::{metrics_schema_for_stage, FASTQ_METRICS_SCHEMAS};
 
 #[test]
 fn metrics_registry_resolves_all_fastq_schemas() {

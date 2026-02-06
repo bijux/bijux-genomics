@@ -65,7 +65,7 @@ fn error_category_is_core_only() {
         }
         if entry
             .path()
-            .ends_with("bijux-core/src/primitives/errors.rs")
+            .ends_with("bijux-core/src/foundation/errors.rs")
         {
             continue;
         }

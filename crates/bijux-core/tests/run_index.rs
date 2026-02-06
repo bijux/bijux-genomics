@@ -1,7 +1,7 @@
 use std::fs;
 use std::io::Write;
 
-use bijux_core::run_index::{
+use bijux_core::contract::{
     list_runs, query_latest_runs, query_run, query_stage_rows, RunIndexEntry, RunIndexLine,
     StageIndexRow,
 };

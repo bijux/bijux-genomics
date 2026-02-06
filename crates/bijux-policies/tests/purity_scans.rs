@@ -74,10 +74,10 @@ fn runner_has_no_domain_strings() {
 }
 
 #[test]
-fn core_plan_has_no_stage_contract_imports() {
+fn core_execution_contract_has_no_stage_contract_imports() {
     let root = workspace_root();
     let mut offenders = Vec::new();
-    for file in collect_rs_files(&root.join("crates/bijux-core/src/execution")) {
+    for file in collect_rs_files(&root.join("crates/bijux-core/src/contract/execution")) {
         let content = std::fs::read_to_string(&file).expect("read source");
         if content.contains("bijux_stage_contract") {
             offenders.push(file.display().to_string());
@@ -85,7 +85,7 @@ fn core_plan_has_no_stage_contract_imports() {
     }
     assert!(
         offenders.is_empty(),
-        "bijux-core plan must not import bijux-stage-contract:\n{}",
+        "bijux-core execution contracts must not import bijux-stage-contract:\n{}",
         offenders.join("\n")
     );
 }
@@ -116,7 +116,7 @@ fn engine_has_no_stage_contract_imports() {
 #[test]
 fn execution_graph_has_no_stage_contract_symbols() {
     let root = workspace_root();
-    let path = root.join("crates/bijux-core/src/execution/execution_graph.rs");
+    let path = root.join("crates/bijux-core/src/contract/execution/graph.rs");
     let content = std::fs::read_to_string(&path).expect("read execution_graph.rs");
     let needles = ["StagePlanV1", "StagePlugin"];
     assert!(

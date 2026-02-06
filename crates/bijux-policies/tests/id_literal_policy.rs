@@ -31,7 +31,7 @@ fn is_allowed_path(path: &Path) -> bool {
     if path_str.contains("/crates/bijux-cli/") {
         return true;
     }
-    if path_str.ends_with("/crates/bijux-core/src/metrics_registry.rs") {
+    if path_str.ends_with("/crates/bijux-core/src/metrics/registry.rs") {
         return true;
     }
     if path_str.contains("/tests/") {

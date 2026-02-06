@@ -3,20 +3,11 @@ use std::path::Path;
 use anyhow::Result;
 
 #[test]
-fn core_scope_only_allows_contracts_and_primitives() -> Result<()> {
+fn core_scope_only_allows_contracts_and_foundation() -> Result<()> {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
     let src = root.join("src");
-    let allow_dirs = ["contract", "plan", "primitives", "prelude", "helpers"];
-    let allow_files = [
-        "lib.rs",
-        "boundaries.md",
-        "explain.rs",
-        "metrics.rs",
-        "metrics_registry.rs",
-        "run_index.rs",
-        "ids.rs",
-        "metadata.rs",
-    ];
+    let allow_dirs = ["contract", "foundation", "metrics", "prelude"];
+    let allow_files = ["lib.rs", "boundaries.md", "ids.rs"];
 
     for entry in std::fs::read_dir(&src)? {
         let entry = entry?;
@@ -49,19 +40,7 @@ fn core_scope_only_allows_contracts_and_primitives() -> Result<()> {
         }
     }
     pub_mods.sort();
-    let allowed_pub_mods = [
-        "contract",
-        "explain",
-        "helpers",
-        "ids",
-        "metadata",
-        "metrics",
-        "metrics_registry",
-        "plan",
-        "prelude",
-        "primitives",
-        "run_index",
-    ];
+    let allowed_pub_mods = ["contract", "foundation", "ids", "metrics", "prelude"];
     for module in pub_mods {
         assert!(
             allowed_pub_mods.contains(&module.as_str()),
