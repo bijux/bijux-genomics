@@ -1,16 +1,24 @@
 use anyhow::Result;
 use sha2::Digest;
+use std::path::{Component, Path};
 
 /// Canonical params hash for run identity.
 ///
 /// # Errors
 /// Returns an error if serialization fails.
 pub fn params_hash(params: &serde_json::Value) -> Result<String> {
-    let canonical = parameters_json_canonicalization(params);
-    let bytes = serde_json::to_vec(&canonical)?;
+    let bytes = serde_json::to_vec(&parameters_json_canonicalization(params))?;
     let mut hasher = sha2::Sha256::new();
     hasher.update(bytes);
     Ok(format!("{:x}", hasher.finalize()))
+}
+
+/// Deterministic parameters fingerprint for cache keys.
+///
+/// # Errors
+/// Returns an error if serialization fails.
+pub fn parameters_fingerprint(params: &serde_json::Value) -> Result<String> {
+    params_hash(params)
 }
 
 /// Deterministic run id derived from pipeline identity and hashes.
@@ -41,6 +49,19 @@ pub fn run_id_from_hashes(
 }
 
 #[must_use]
+pub fn input_fingerprint(input_hashes: &[String]) -> String {
+    let mut input_hashes_sorted = input_hashes.to_vec();
+    input_hashes_sorted.sort();
+    input_hashes_sorted.dedup();
+    let mut hasher = sha2::Sha256::new();
+    for hash in input_hashes_sorted {
+        hasher.update(hash.as_bytes());
+        hasher.update(b",");
+    }
+    format!("{:x}", hasher.finalize())
+}
+
+#[must_use]
 pub fn canonicalize_json_value(value: &serde_json::Value) -> serde_json::Value {
     match value {
         serde_json::Value::Object(map) => {
@@ -62,7 +83,7 @@ pub fn canonicalize_json_value(value: &serde_json::Value) -> serde_json::Value {
 
 #[must_use]
 pub fn parameters_json_canonicalization(value: &serde_json::Value) -> serde_json::Value {
-    fn normalize_numbers(value: &serde_json::Value) -> serde_json::Value {
+    fn normalize_numbers_and_paths(value: &serde_json::Value) -> serde_json::Value {
         match value {
             serde_json::Value::Number(num) => {
                 if let Some(f) = num.as_f64() {
@@ -74,13 +95,20 @@ pub fn parameters_json_canonicalization(value: &serde_json::Value) -> serde_json
                     serde_json::Value::Number(num.clone())
                 }
             }
+            serde_json::Value::String(s) => {
+                if looks_like_path(s) {
+                    serde_json::Value::String(normalize_path_string(s))
+                } else {
+                    serde_json::Value::String(s.clone())
+                }
+            }
             serde_json::Value::Array(items) => {
-                serde_json::Value::Array(items.iter().map(normalize_numbers).collect())
+                serde_json::Value::Array(items.iter().map(normalize_numbers_and_paths).collect())
             }
             serde_json::Value::Object(map) => {
                 let mut ordered = serde_json::Map::new();
                 for (key, val) in map {
-                    ordered.insert(key.clone(), normalize_numbers(val));
+                    ordered.insert(key.clone(), normalize_numbers_and_paths(val));
                 }
                 serde_json::Value::Object(ordered)
             }
@@ -89,5 +117,43 @@ pub fn parameters_json_canonicalization(value: &serde_json::Value) -> serde_json
     }
 
     let canonical = canonicalize_json_value(value);
-    normalize_numbers(&canonical)
+    normalize_numbers_and_paths(&canonical)
+}
+
+fn looks_like_path(value: &str) -> bool {
+    value.contains('/') || value.contains('\\')
+}
+
+fn normalize_path_string(value: &str) -> String {
+    let path = Path::new(value);
+    let mut components: Vec<String> = Vec::new();
+    let mut prefix: Option<String> = None;
+    for comp in path.components() {
+        match comp {
+            Component::Prefix(prefix_component) => {
+                prefix = Some(prefix_component.as_os_str().to_string_lossy().to_string());
+            }
+            Component::RootDir => {
+                // Preserve root with empty marker.
+                if components.is_empty() {
+                    components.push(String::new());
+                }
+            }
+            Component::CurDir => {}
+            Component::ParentDir => {
+                components.pop();
+            }
+            Component::Normal(part) => {
+                components.push(part.to_string_lossy().to_string());
+            }
+        }
+    }
+    let mut normalized = components.join("/");
+    if let Some(prefix) = prefix {
+        normalized = format!("{prefix}/{normalized}");
+    }
+    if path.is_absolute() && !normalized.starts_with('/') {
+        normalized = format!("/{normalized}");
+    }
+    normalized
 }

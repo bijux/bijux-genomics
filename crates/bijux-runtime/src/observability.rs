@@ -18,9 +18,10 @@ pub struct StageObservabilityContextV1 {
     pub stage_version: i32,
     pub tool_id: String,
     pub tool_version: String,
-    pub input_hash: String,
-    pub params_hash: String,
+    pub input_fingerprint: String,
+    pub parameters_fingerprint: String,
     pub parameters_json: serde_json::Value,
+    pub parameters_json_normalized: serde_json::Value,
     pub metric_context: MetricContextV1,
 }
 
@@ -86,11 +87,10 @@ pub struct RetentionReportV1 {
     pub boundary: String,
     pub numerator: serde_json::Value,
     pub denominator: serde_json::Value,
+    pub units: String,
     pub scope: String,
     pub condition: serde_json::Value,
     pub parameters_json: serde_json::Value,
-    #[serde(default)]
-    pub retention: Option<serde_json::Value>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

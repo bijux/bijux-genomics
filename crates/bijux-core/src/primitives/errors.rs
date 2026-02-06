@@ -4,10 +4,10 @@ use thiserror::Error;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ErrorCategory {
-    UserError,
-    DataError,
+    PlanError,
     ToolError,
-    Bug,
+    ContractError,
+    ParseError,
     InfraError,
 }
 

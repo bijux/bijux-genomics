@@ -247,6 +247,24 @@ pub type MetricEnvelope<T> = MetricSet<T>;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
+pub struct MetricsEnvelope<T> {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub stage_version: i32,
+    pub tool_id: String,
+    pub tool_version: String,
+    pub image_digest: String,
+    pub parameters_fingerprint: String,
+    pub input_fingerprint: String,
+    #[serde(default)]
+    pub parameters_json_normalized: serde_json::Value,
+    #[serde(default)]
+    pub input_hashes: Vec<String>,
+    pub metrics: T,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct StageMetricsV1<T> {
     pub schema_version: String,
     pub stage_id: String,
