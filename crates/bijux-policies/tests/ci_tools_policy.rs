@@ -47,3 +47,37 @@ fn workflows_use_make_only() {
         offenders
     );
 }
+
+#[test]
+fn serde_yaml_is_scoped() {
+    let root = workspace_root();
+    let allowed = ["bijux-infra"];
+    let mut offenders = Vec::new();
+    for entry in WalkDir::new(root.join("crates"))
+        .into_iter()
+        .filter_map(|entry| entry.ok())
+    {
+        if entry.file_name() != "Cargo.toml" {
+            continue;
+        }
+        let content = std::fs::read_to_string(entry.path()).expect("read Cargo.toml");
+        if !content.contains("serde_yaml") && !content.contains("serde-yaml") {
+            continue;
+        }
+        let name = entry
+            .path()
+            .parent()
+            .and_then(|path| path.file_name())
+            .and_then(|name| name.to_str())
+            .unwrap_or("");
+        if !allowed.contains(&name) {
+            offenders.push(entry.path().display().to_string());
+        }
+    }
+    assert!(
+        offenders.is_empty(),
+        "serde_yaml must be scoped to {:?}: {:?}",
+        allowed,
+        offenders
+    );
+}
