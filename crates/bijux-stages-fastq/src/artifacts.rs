@@ -2,8 +2,10 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
 
-use crate::{AdapterBankV1, AdapterTrimmingReportV1, EffectiveAdapterSet, RetentionReportV1};
-use crate::{StagePlanJson, ToolReferenceV1};
+use crate::stage_specs::{
+    AdapterBankV1, AdapterTrimmingReportV1, EffectiveAdapterSet, RetentionReportV1, ToolReferenceV1,
+};
+use crate::StagePlanJson;
 
 fn run_artifacts_dir(run_dir: &Path) -> PathBuf {
     bijux_runtime::recording::run_artifacts_dir_for_out(run_dir)

@@ -8,6 +8,7 @@ use bijux_stage_contract::{StageInvocationV1, StagePlugin, StagePluginOutputV1};
 
 use crate::metrics;
 
+#[allow(dead_code)]
 pub struct FastqStagePlugin;
 
 impl StagePlugin for FastqStagePlugin {
