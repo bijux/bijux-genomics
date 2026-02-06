@@ -3,7 +3,7 @@ use std::path::Path;
 use std::time::Duration;
 
 use anyhow::Result;
-use bijux_core::contract::{ArtifactRef, StageIO, ToolConstraints};
+use bijux_core::contract::{ArtifactRef, ArtifactRole, StageIO, ToolConstraints};
 use bijux_core::plan::execution_graph::{ExecutionEdge, ExecutionGraph, ExecutionStep};
 use bijux_core::plan::PlanPolicy;
 use bijux_core::primitives::hashing::params_hash;
@@ -47,14 +47,16 @@ fn build_plan(base_dir: &Path) -> Result<ExecutionGraph> {
             threads: 1,
         },
         io: StageIO {
-            inputs: vec![ArtifactRef {
-                name: "input".to_string(),
-                path: base_dir.join("input.fq"),
-            }],
-            outputs: vec![ArtifactRef {
-                name: "output".to_string(),
-                path: base_dir.join("output.fq"),
-            }],
+            inputs: vec![ArtifactRef::required(
+                "input",
+                base_dir.join("input.fq"),
+                ArtifactRole::Reads,
+            )],
+            outputs: vec![ArtifactRef::required(
+                "output",
+                base_dir.join("output.fq"),
+                ArtifactRole::Reads,
+            )],
         },
         out_dir: base_dir.join("out"),
         aux_images: BTreeMap::new(),

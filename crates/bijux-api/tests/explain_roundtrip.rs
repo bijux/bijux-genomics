@@ -1,5 +1,5 @@
 use bijux_api::v1::plan::PlanExplainV1;
-use bijux_core::contract::{ArtifactRef, StageIO, ToolConstraints};
+use bijux_core::contract::{ArtifactRef, ArtifactRole, StageIO, ToolConstraints};
 use bijux_core::plan::execution_graph::{ExecutionEdge, ExecutionGraph, ExecutionStep};
 use bijux_core::plan::PlanPolicy;
 use bijux_core::{CommandSpecV1, ContainerImageRefV1, StageId};
@@ -23,14 +23,16 @@ fn explain_roundtrip_is_deterministic() -> anyhow::Result<()> {
             threads: 1,
         },
         io: StageIO {
-            inputs: vec![ArtifactRef {
-                name: "input".to_string(),
-                path: PathBuf::from("input"),
-            }],
-            outputs: vec![ArtifactRef {
-                name: "output".to_string(),
-                path: PathBuf::from("output"),
-            }],
+            inputs: vec![ArtifactRef::required(
+                "input",
+                PathBuf::from("input"),
+                ArtifactRole::Unknown,
+            )],
+            outputs: vec![ArtifactRef::required(
+                "output",
+                PathBuf::from("output"),
+                ArtifactRole::Unknown,
+            )],
         },
         out_dir: PathBuf::from("out"),
         aux_images: std::collections::BTreeMap::new(),

@@ -1,6 +1,6 @@
 use anyhow::{anyhow, Context, Result};
 use bijux_api::v1::run::{load_manifests, load_profile, resolve_run_base_dir};
-use bijux_core::{CategorizedError, ErrorCategory};
+use bijux_api::v1::run::{CategorizedError, ErrorCategory};
 use clap::Parser;
 
 use crate::commands::{handle_bam_commands, handle_fastq_bench, handle_meta_commands, run_plan};
@@ -16,11 +16,11 @@ fn main() {
 fn exit_code_for_error(err: &anyhow::Error) -> i32 {
     if let Some(category) = error_category_from_chain(err) {
         return match category {
-            ErrorCategory::UserError => 2,
-            ErrorCategory::DataError => 3,
-            ErrorCategory::ToolError => 4,
-            ErrorCategory::InfraError => 5,
-            ErrorCategory::Bug => 70,
+            ErrorCategory::PlanError => 2,
+            ErrorCategory::ContractError => 3,
+            ErrorCategory::ParseError => 4,
+            ErrorCategory::ToolError => 5,
+            ErrorCategory::InfraError => 70,
         };
     }
     let msg = err.to_string().to_lowercase();
@@ -72,7 +72,7 @@ fn run() -> Result<()> {
         .join(format!("{}.toml", cli.profile));
     let mut profile = load_profile(&profile_path).map_err(|err| {
         anyhow!(CategorizedError::new(
-            ErrorCategory::UserError,
+            ErrorCategory::PlanError,
             format!("failed to load profile {}: {err}", profile_path.display())
         ))
     })?;
@@ -88,7 +88,7 @@ fn run() -> Result<()> {
 
     let registry = load_manifests(&domain_dir).map_err(|err| {
         anyhow!(CategorizedError::new(
-            ErrorCategory::DataError,
+            ErrorCategory::ContractError,
             format!("manifest validation failed: {err}")
         ))
     })?;

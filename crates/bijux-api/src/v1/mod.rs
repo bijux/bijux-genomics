@@ -8,6 +8,7 @@
 
 pub mod bam;
 pub mod bench;
+pub mod env;
 pub mod fastq;
 pub mod plan;
 pub mod report;

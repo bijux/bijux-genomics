@@ -28,7 +28,11 @@ bijux-runtime = { path = "../bijux-runtime" }
 
 [features]
 bam_downstream = ["bijux-planner-bam/bam_downstream", "bijux-pipelines/bam_downstream"]
+bench = []
+docker-runner = []
+report-html = []
 api_internal = []
+default = []
 
 [dev-dependencies]
 insta = { version = "1", features = ["json"] }

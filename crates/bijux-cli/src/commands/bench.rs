@@ -417,6 +417,7 @@ fn explain_fastq_stage(registry: &bijux_api::v1::run::ToolRegistry, stage_id: &s
             objective: bijux_api::v1::bench::Objective::Balanced,
             bench_corpus: None,
             allow_partial: false,
+            dry_run: false,
             replicates: 1,
             jobs: 1,
             ci_bootstrap: None,
