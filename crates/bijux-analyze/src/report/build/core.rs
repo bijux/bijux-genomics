@@ -32,6 +32,8 @@ use crate::model::stable_sort_records;
 use crate::model::JsonBlob;
 use crate::report::model::ReportModel;
 use crate::report::render::json::write_report_json;
+use bijux_core::contract::Objective;
+use bijux_core::selection::objective_spec;
 use bijux_runtime::{
     AssetsProvenanceV1, FactsRowV1, FilterReportV1, ReportProvenanceV1, ReportSchemaV1,
     ReportStageSummaryV1, RetentionContextV1, RetentionDefinitionV1, RetentionReportV1,
@@ -262,6 +264,10 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
         )),
     );
     sections.insert(
+        "analysis_selection_contract".to_string(),
+        JsonBlob::new(analysis_selection_contract_section()),
+    );
+    sections.insert(
         "failure_hints".to_string(),
         JsonBlob::new(failure_hints_section(&ordered)),
     );
@@ -397,6 +403,41 @@ pub fn write_run_report_from_facts(base_dir: &Path, rows: &[FactsRowV1]) -> Resu
     Ok(path)
 }
 
+fn analysis_selection_contract_section() -> serde_json::Value {
+    let objectives = [
+        Objective::Speed,
+        Objective::Memory,
+        Objective::Retention,
+        Objective::Balanced,
+    ]
+    .iter()
+    .map(|objective| {
+        let spec = objective_spec(*objective);
+        serde_json::json!({
+            "objective": objective.as_str(),
+            "weights": {
+                "runtime": spec.weights.runtime,
+                "memory": spec.weights.memory,
+                "retention": spec.weights.retention,
+            },
+            "scoring": "weighted_sum(runtime, memory, retention)",
+            "ranking": "lower score is better",
+        })
+    })
+    .collect::<Vec<_>>();
+
+    serde_json::json!({
+        "selection_strategy": "objective_weights",
+        "criteria": [
+            "runtime_s",
+            "memory_mb",
+            "retention_ratio",
+        ],
+        "objectives": objectives,
+        "notes": "Selection uses bench medians per tool and the configured objective weights.",
+    })
+}
+
 fn cross_domain_handoff_section(base_dir: &Path) -> Option<serde_json::Value> {
     let manifest_path = base_dir.join("run_manifest.json");
     let raw = std::fs::read_to_string(&manifest_path).ok()?;
@@ -418,10 +459,47 @@ fn cross_domain_handoff_section(base_dir: &Path) -> Option<serde_json::Value> {
 fn run_provenance_section(base_dir: &Path) -> serde_json::Value {
     let manifest_path = base_dir.join("run_manifest.json");
     let raw = std::fs::read_to_string(&manifest_path).ok();
-    let manifest: Option<serde_json::Value> = raw.as_deref().and_then(|raw| serde_json::from_str(raw).ok());
-    manifest
+    let manifest: Option<serde_json::Value> =
+        raw.as_deref().and_then(|raw| serde_json::from_str(raw).ok());
+    let mut base = manifest
+        .as_ref()
         .and_then(|value| value.get("run_provenance").cloned())
-        .unwrap_or_else(|| serde_json::json!({}))
+        .unwrap_or_else(|| serde_json::json!({}));
+    let graph_hash = manifest
+        .as_ref()
+        .and_then(|value| value.get("graph_hash"))
+        .cloned()
+        .unwrap_or_else(|| serde_json::json!("unknown"));
+    let input_hashes = manifest
+        .as_ref()
+        .and_then(|value| value.get("dataset_fingerprints"))
+        .cloned()
+        .or_else(|| manifest.as_ref().and_then(|value| value.get("input_hashes")).cloned())
+        .unwrap_or_else(|| serde_json::json!([]));
+    let stage_contracts = manifest
+        .as_ref()
+        .and_then(|value| value.get("stage_contracts"))
+        .cloned()
+        .or_else(|| {
+            manifest.as_ref().and_then(|value| {
+                value.get("stages").and_then(|stages| {
+                    let mut map = serde_json::Map::new();
+                    for stage in stages.as_array()? {
+                        let stage_id = stage.get("stage_id")?.as_str()?;
+                        let contract_hash = stage.get("stage_contract_hash")?.clone();
+                        map.insert(stage_id.to_string(), contract_hash);
+                    }
+                    Some(serde_json::Value::Object(map))
+                })
+            })
+        })
+        .unwrap_or_else(|| serde_json::json!({}));
+    if let serde_json::Value::Object(obj) = &mut base {
+        obj.insert("graph_hash".to_string(), graph_hash);
+        obj.insert("input_hashes".to_string(), input_hashes);
+        obj.insert("stage_contracts".to_string(), stage_contracts);
+    }
+    base
 }
 
 fn pipeline_defaults_section(base_dir: &Path) -> Result<serde_json::Value> {

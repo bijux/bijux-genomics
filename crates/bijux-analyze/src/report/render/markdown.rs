@@ -16,7 +16,7 @@ pub fn render_report_markdown(model: &ReportModel) -> Result<String> {
     lines.push(format!("- Stages: {}", report.stages.len()));
     lines.push(format!("- Completeness: `{}`", report.completeness.status));
     if let Some(verdict) = &report.pipeline_verdict {
-        lines.push(format!("- Pipeline Verdict: `{}`", verdict.verdict));
+        lines.push(format!("- Pipeline Verdict: `{:?}`", verdict.verdict));
         if !verdict.reasons.is_empty() {
             lines.push("\n## Verdict Reasons".to_string());
             for reason in &verdict.reasons {

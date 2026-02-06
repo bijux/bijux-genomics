@@ -20,6 +20,7 @@ pub(crate) fn report_contract() -> ReportContractV1 {
             "provenance".to_string(),
             "run_provenance".to_string(),
             "decision_config".to_string(),
+            "analysis_selection_contract".to_string(),
             "retention_definition".to_string(),
             "retention_context".to_string(),
             "assets_provenance".to_string(),
@@ -87,6 +88,10 @@ pub(crate) fn build_report_sections(
         method_assumptions_section(report),
     );
     sections.insert("decision_config".to_string(), decision_config_section());
+    sections.insert(
+        "analysis_selection_contract".to_string(),
+        serde_json::json!({}),
+    );
     sections.insert("stage_completeness".to_string(), serde_json::json!([]));
     sections.insert("stage_confidence".to_string(), serde_json::json!([]));
     sections.insert("decision_trace".to_string(), serde_json::json!([]));
