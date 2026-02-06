@@ -6,24 +6,20 @@ change without notice.
 
 ## Public Modules
 - `contract`
-- `execution`
 - `ids`
-- `metadata`
 - `metrics`
-- `metrics_registry`
-- `primitives`
-- `run_index`
-- `selection`
+- `foundation`
+- `prelude`
 
 ## Core Contract Types
 - `contract::ContractVersion`
-- `execution::ExecutionGraph`, `execution::ExecutionStep`, `execution::ExecutionEdge`
-- `execution::PlanPolicy`, `execution::RetryPolicy`
+- `contract::ExecutionGraph`, `contract::ExecutionStep`, `contract::ExecutionEdge`
+- `contract::PlanPolicy`, `contract::RetryPolicy`
 - `metrics::ToolInvocationV1`, `metrics::MetricsEnvelope`
 - `contract::StageSpec`, `contract::StageIO`, `contract::ArtifactSpec`
-- `primitives::CacheKey`, `primitives::CommandSpecV1`, `primitives::ContainerImageRefV1`
+- `foundation::CacheKey`, `foundation::CommandSpecV1`, `foundation::ContainerImageRefV1`
 - `ids::*` (RunId, StepId, StageId, ToolId, ArtifactId, ProfileId, PipelineId)
-- `primitives::BijuxError`, `primitives::Result`
+- `foundation::BijuxError`, `foundation::Result`
 
 If you need a new public type, update this file and add a compatibility note in
 `docs/contract_compatibility.md`.

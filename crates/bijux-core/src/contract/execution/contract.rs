@@ -1,8 +1,8 @@
 use std::path::Path;
 
-use crate::primitives::{BijuxError, Result};
+use crate::foundation::{BijuxError, Result};
 
-use crate::ExecutionContract;
+use crate::contract::ExecutionContract;
 
 /// # Errors
 /// Returns an error if expected outputs are missing or invalid.

@@ -1,11 +1,17 @@
+#![allow(missing_docs)]
+
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
 use sha2::Digest;
 
+use crate::contract::canonical::to_canonical_json_bytes;
+use crate::foundation::Result;
 use crate::ids::{StageId, ToolId, ToolVersion};
-use crate::primitives::{hashing::to_canonical_json_bytes, Result};
+
+mod selection;
+pub use selection::*;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ToolConstraints {
@@ -142,8 +148,8 @@ pub struct ToolManifest {
 pub struct ToolExecutionSpecV1 {
     pub tool_id: ToolId,
     pub tool_version: ToolVersion,
-    pub image: crate::primitives::ContainerImageRefV1,
-    pub command: crate::primitives::CommandSpecV1,
+    pub image: crate::foundation::ContainerImageRefV1,
+    pub command: crate::foundation::CommandSpecV1,
     pub resources: ToolConstraints,
 }
 

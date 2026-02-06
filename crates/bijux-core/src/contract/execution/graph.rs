@@ -5,9 +5,10 @@ use serde::{Deserialize, Serialize};
 use sha2::Digest;
 
 use crate::contract::{ContractVersion, StageIO, ToolConstraints};
-use crate::execution::{PlanPolicy, RetryPolicy};
+use crate::foundation::{BijuxError, CommandSpecV1, ContainerImageRefV1, Result};
 use crate::ids::{ArtifactId, PipelineId, StageId, StepId};
-use crate::primitives::{BijuxError, CommandSpecV1, ContainerImageRefV1, Result};
+
+use super::policy::{PlanPolicy, RetryPolicy};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -163,7 +164,7 @@ impl ExecutionGraph {
     /// # Errors
     /// Returns an error if canonical JSON serialization fails.
     pub fn hash(&self) -> Result<String> {
-        let bytes = crate::primitives::hashing::to_canonical_json_bytes(self)?;
+        let bytes = crate::contract::canonical::to_canonical_json_bytes(self)?;
         let mut hasher = sha2::Sha256::new();
         hasher.update(bytes);
         Ok(format!("{:x}", hasher.finalize()))

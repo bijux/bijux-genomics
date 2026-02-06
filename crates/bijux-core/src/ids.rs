@@ -1,8 +1,10 @@
+#![allow(missing_docs)]
+
 use std::borrow::Cow;
 
 use serde::{Deserialize, Serialize};
 
-use crate::primitives::{BijuxError, Result};
+use crate::foundation::{BijuxError, Result};
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct StageId(pub Cow<'static, str>);

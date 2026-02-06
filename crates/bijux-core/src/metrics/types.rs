@@ -3,8 +3,9 @@ use std::collections::BTreeMap;
 use serde::{Deserialize, Serialize};
 
 use crate::contract::{ContractVersion, ToolConstraints};
+use crate::foundation::{measure::ExecutionMetrics, BijuxError, Result};
 use crate::ids::{StageId, ToolId};
-use crate::primitives::{measure::ExecutionMetrics, BijuxError, Result};
+use crate::metrics::MetricContextV1;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum MetricId {
@@ -205,29 +206,6 @@ pub fn validate_derived_metric_id_str(value: &str) -> Result<()> {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
-pub struct BankRefV1 {
-    pub bank_id: String,
-    pub bank_hash: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct MetricContextV1 {
-    pub tool_id: String,
-    pub tool_version: String,
-    pub image_digest: Option<String>,
-    pub runner: String,
-    pub platform: String,
-    pub input_hash: String,
-    pub params_hash: String,
-    #[serde(default)]
-    pub presets: std::collections::BTreeMap<String, String>,
-    #[serde(default)]
-    pub banks: std::collections::BTreeMap<String, BankRefV1>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
 pub struct MetricSet<T> {
     pub metrics_schema: String,
     pub version: i32,
@@ -251,6 +229,8 @@ pub type MetricEnvelope<T> = MetricSet<T>;
 #[serde(deny_unknown_fields)]
 pub struct MetricsEnvelope<T> {
     pub schema_version: String,
+    #[serde(default = "ContractVersion::v1")]
+    pub contract_version: ContractVersion,
     pub stage_id: String,
     pub stage_version: i32,
     pub tool_id: String,

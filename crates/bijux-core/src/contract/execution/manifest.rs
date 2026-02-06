@@ -1,8 +1,12 @@
 use serde::{Deserialize, Serialize};
 
+use crate::contract::ContractVersion;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ExecutionManifest {
+    #[serde(default = "ContractVersion::v1")]
+    pub contract_version: ContractVersion,
     pub run_id: String,
     pub stage: String,
     pub tool: String,
