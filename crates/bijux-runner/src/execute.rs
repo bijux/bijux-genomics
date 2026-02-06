@@ -2,6 +2,7 @@ use std::path::PathBuf;
 use std::time::Duration;
 
 use anyhow::{anyhow, Context, Result};
+use bijux_core::metrics::ToolInvocationV1;
 use bijux_core::plan::execution_graph::ExecutionStep;
 use bijux_core::primitives::cache::CacheKey;
 use bijux_core::primitives::hashing::{
@@ -119,6 +120,7 @@ pub fn execute_step(
         .map(|output| output.path.clone())
         .collect();
     let input_hashes = hash_inputs(&inputs)?;
+    let output_hashes = hash_inputs(&outputs)?;
     let params_fingerprint =
         parameters_fingerprint(&serde_json::json!({ "command": step.command.template }))?;
     let input_fingerprint = input_fingerprint(&input_hashes);
@@ -140,6 +142,7 @@ pub fn execute_step(
         &input_hashes,
         None,
     );
+    write_minimum_run_artifacts(step, &input_hashes, &output_hashes, runner, &output.command)?;
 
     Ok(StageResultV1 {
         run_id,
@@ -181,4 +184,98 @@ pub fn execute_observer_command(
     command_args.extend(args.iter().cloned());
     let output = run_command("docker", &command_args).context("docker run")?;
     Ok(output)
+}
+
+fn write_minimum_run_artifacts(
+    step: &ExecutionStep,
+    input_hashes: &[String],
+    output_hashes: &[String],
+    runner: RunnerKind,
+    command: &str,
+) -> Result<()> {
+    let run_artifacts_dir = step.out_dir.join("run_artifacts");
+    bijux_infra::ensure_dir(&run_artifacts_dir).context("ensure run_artifacts dir")?;
+
+    let metrics_path = run_artifacts_dir.join("metrics.json");
+    if !metrics_path.exists() {
+        bijux_infra::atomic_write_json(&metrics_path, &serde_json::json!({}))
+            .context("write metrics.json")?;
+    }
+
+    let effective_config_path = run_artifacts_dir.join("effective_config.json");
+    if !effective_config_path.exists() {
+        let payload = serde_json::json!({
+            "command": step.command.template,
+            "image": step.image,
+            "resources": step.resources,
+        });
+        bijux_infra::atomic_write_json(&effective_config_path, &payload)
+            .context("write effective_config.json")?;
+    }
+
+    let tool_invocation_path = run_artifacts_dir.join("tool_invocation.json");
+    if !tool_invocation_path.exists() {
+        let parameters_json = serde_json::json!({ "command": step.command.template });
+        let invocation = ToolInvocationV1 {
+            schema_version: "bijux.tool_invocation.v1".to_string(),
+            stage_id: step.step_id.to_string(),
+            tool_id: step.image.image.clone(),
+            tool_version: "unknown".to_string(),
+            resolved_tool_version: None,
+            image_digest: step
+                .image
+                .digest
+                .clone()
+                .unwrap_or_else(|| step.image.image.clone()),
+            runner_kind: format!("{runner:?}"),
+            platform: "unknown".to_string(),
+            parameters_json: parameters_json.clone(),
+            parameters_json_normalized: parameters_json,
+            effective_params_json: serde_json::json!({}),
+            effective_params_json_normalized: serde_json::json!({}),
+            adapter_bank: None,
+            banks: None,
+            bank_assets: None,
+            resources: step.resources.clone(),
+            environment: std::collections::BTreeMap::new(),
+            input_hashes: input_hashes.to_vec(),
+            output_hashes: output_hashes.to_vec(),
+            executed_command: Some(command.to_string()),
+        };
+        bijux_infra::atomic_write_json(&tool_invocation_path, &invocation)
+            .context("write tool_invocation.json")?;
+    }
+
+    let stage_report_path = run_artifacts_dir.join("stage_report.json");
+    if !stage_report_path.exists() {
+        let payload = serde_json::json!({
+            "schema_version": "bijux.stage_report.v1",
+            "stage_id": step.step_id.to_string(),
+            "stage_version": 1,
+            "tool_id": step.image.image,
+            "tool_version": "unknown",
+            "metrics_path": metrics_path.display().to_string(),
+            "tool_invocation_path": tool_invocation_path.display().to_string(),
+            "effective_config_path": effective_config_path.display().to_string(),
+            "effective_config_hash": null,
+            "facts_row_id": null,
+            "summary": {},
+            "warnings": [],
+            "errors": [],
+            "invariants": [],
+            "verdict": null,
+            "outputs": step
+                .io
+                .outputs
+                .iter()
+                .map(|output| output.path.display().to_string())
+                .collect::<Vec<_>>(),
+            "subreports": [],
+            "log_paths": [],
+        });
+        bijux_infra::atomic_write_json(&stage_report_path, &payload)
+            .context("write stage_report.json")?;
+    }
+
+    Ok(())
 }
