@@ -15,7 +15,7 @@ use bijux_core::foundation::input_assessment::FastqLayout;
 use bijux_core::foundation::{CacheKey, Result as CoreResult};
 use bijux_core::metrics::ToolInvocationV1;
 
-use crate::events::RunEvent;
+use crate::telemetry::events::RunEvent;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RunEnvironment {
