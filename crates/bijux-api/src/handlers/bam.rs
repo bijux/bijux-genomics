@@ -1,6 +1,8 @@
 use crate::tooling::filter_tools_by_role;
 use anyhow::{anyhow, Context, Result};
 use bijux_core::contract::ToolRegistry;
+use bijux_core::plan::execution_graph::{ExecutionEdge, ExecutionGraph};
+use bijux_core::plan::PlanPolicy;
 use bijux_environment::api::{load_image_catalog, load_platform, RunnerKind};
 use bijux_environment_qa::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use bijux_pipelines::registry;
@@ -72,6 +74,45 @@ pub fn bench_bam_stage(
             if args.explain || args.dry_run {
                 let plan_path = run_dir.join("plan.json");
                 bijux_infra::atomic_write_json(&plan_path, &plan)?;
+                let step = bijux_stage_contract::execution_step_from_stage_plan(&plan);
+                let graph = ExecutionGraph::new(
+                    stage_id.to_string(),
+                    bijux_planner_bam::PLANNER_VERSION,
+                    PlanPolicy::PreferAccuracy,
+                    vec![step.clone()],
+                    Vec::<ExecutionEdge>::new(),
+                )?;
+                let graph_path = run_dir.join("graph.json");
+                bijux_infra::atomic_write_json(&graph_path, &graph)?;
+                let output_artifacts: Vec<serde_json::Value> = step
+                    .io
+                    .outputs
+                    .iter()
+                    .map(|artifact| {
+                        serde_json::json!({
+                            "stage_id": step.step_id.0,
+                            "name": artifact.name,
+                            "role": artifact.role.as_str(),
+                            "optional": artifact.optional,
+                            "path": artifact.path,
+                            "sha256": serde_json::Value::Null,
+                        })
+                    })
+                    .collect();
+                let manifest = serde_json::json!({
+                    "schema_version": "bijux.run_manifest.v2",
+                    "run_id": "dry-run",
+                    "pipeline_id": stage_id,
+                    "profile_id": args.stage.as_str(),
+                    "graph_hash": graph.plan_hash().unwrap_or_default(),
+                    "toolchain_versions": [],
+                    "dataset_fingerprints": [],
+                    "output_artifacts": output_artifacts,
+                    "stages": [],
+                    "failures": [],
+                });
+                let manifest_path = run_dir.join("run_manifest.json");
+                bijux_infra::atomic_write_json(&manifest_path, &manifest)?;
             } else {
                 let step = bijux_stage_contract::execution_step_from_stage_plan(&plan);
                 execute_step(&step, RunnerKind::Docker, None)?;

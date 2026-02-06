@@ -27,6 +27,7 @@ pub fn write_defaults_ledger(out_dir: &Path, profile: &PipelineProfile) -> Resul
     Ok(path)
 }
 
+#[allow(clippy::too_many_lines)]
 pub fn write_cross_run_manifest(
     out_dir: &Path,
     profile: &PipelineProfile,
@@ -115,10 +116,86 @@ pub fn write_cross_run_manifest(
     let _build_profile =
         std::env::var("BIJUX_BUILD_PROFILE").unwrap_or_else(|_| "unknown".to_string());
     let run_provenance = run_provenance_from_cross(out_dir, fastq_summary, bam_runs, &pipeline_id);
+    let graph_hash = std::env::var("BIJUX_PLAN_HASH")
+        .ok()
+        .unwrap_or_else(|| "unknown".to_string());
+    let toolchain_versions = serde_json::json!({
+        "planner": std::env::var("BIJUX_PLANNER_VERSION").unwrap_or_else(|_| "unknown".to_string()),
+        "engine": std::env::var("BIJUX_ENGINE_VERSION").unwrap_or_else(|_| "unknown".to_string()),
+        "runner": std::env::var("BIJUX_RUNNER_VERSION").unwrap_or_else(|_| "unknown".to_string()),
+    });
+    let mut dataset_fingerprints = Vec::new();
+    if let Some(value) = run_provenance
+        .get("input_hashes")
+        .and_then(serde_json::Value::as_array)
+    {
+        for item in value {
+            if let Some(hash) = item.as_str() {
+                dataset_fingerprints.push(hash.to_string());
+            }
+        }
+    }
+    dataset_fingerprints.sort();
+    dataset_fingerprints.dedup();
+    let mut output_artifacts: Vec<serde_json::Value> = Vec::new();
+    for entry in bam_runs {
+        for artifact in &entry.plan.io.outputs {
+            let sha256 = artifact
+                .path
+                .exists()
+                .then(|| bijux_infra::hash_file_sha256(&artifact.path).ok())
+                .flatten();
+            output_artifacts.push(serde_json::json!({
+                "stage_id": entry.plan.step_id.0,
+                "name": artifact.name,
+                "role": artifact.role.as_str(),
+                "optional": artifact.optional,
+                "path": relative_path_string(out_dir, &artifact.path),
+                "sha256": sha256,
+            }));
+        }
+    }
+    let bam_out_dir = out_dir.join("bam");
+    let bam_root = bijux_runtime::recording::run_artifacts_dir_for_out(&bam_out_dir);
+    for (name, role, path) in [
+        (
+            "summary",
+            bijux_core::contract::ArtifactRole::SummaryJson,
+            bam_root.join("summary.json"),
+        ),
+        (
+            "summary_tsv",
+            bijux_core::contract::ArtifactRole::SummaryTsv,
+            bam_root.join("summary.tsv"),
+        ),
+        (
+            "report_html",
+            bijux_core::contract::ArtifactRole::ReportHtml,
+            bam_root.join("report.html"),
+        ),
+    ] {
+        let sha256 = path
+            .exists()
+            .then(|| bijux_infra::hash_file_sha256(&path).ok())
+            .flatten();
+        output_artifacts.push(serde_json::json!({
+            "stage_id": "report.aggregate",
+            "name": name,
+            "role": role.as_str(),
+            "optional": false,
+            "path": relative_path_string(out_dir, &path),
+            "sha256": sha256,
+        }));
+    }
     let manifest = serde_json::json!({
         "schema_version": "bijux.run_manifest.v2",
         "run_id": run_id,
+        "pipeline_id": pipeline_id,
         "profile_id": profile.id,
+        "graph_hash": graph_hash,
+        "toolchain_versions": toolchain_versions,
+        "dataset_fingerprints": dataset_fingerprints,
+        "output_artifacts": output_artifacts,
         "domains": domains,
         "stages": stages,
         "defaults_ledger": relative_path_string(out_dir, &defaults_path),
@@ -168,7 +245,7 @@ fn run_provenance_from_cross(
     let mut image_digests = std::collections::BTreeSet::new();
     if let Some(fastq_prov) = fastq_summary.get("run_provenance") {
         if let Some(hash) = fastq_prov
-            .get("params_hash")
+            .get("parameters_fingerprint")
             .and_then(serde_json::Value::as_str)
         {
             params_by_stage.insert("fastq".to_string(), hash.to_string());
@@ -206,10 +283,16 @@ fn run_provenance_from_cross(
                 .join("metrics_envelope.json");
         if let Ok(raw) = std::fs::read_to_string(&envelope_path) {
             if let Ok(value) = serde_json::from_str::<serde_json::Value>(&raw) {
-                if let Some(hash) = value.get("input_hash").and_then(serde_json::Value::as_str) {
+                if let Some(hash) = value
+                    .get("input_fingerprint")
+                    .and_then(serde_json::Value::as_str)
+                {
                     input_hashes.push(hash.to_string());
                 }
-                if let Some(hash) = value.get("params_hash").and_then(serde_json::Value::as_str) {
+                if let Some(hash) = value
+                    .get("parameters_fingerprint")
+                    .and_then(serde_json::Value::as_str)
+                {
                     params_by_stage.insert(entry.plan.step_id.to_string(), hash.to_string());
                 }
             }
