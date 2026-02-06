@@ -1,4 +1,3 @@
-use std::fs;
 use std::path::PathBuf;
 
 use anyhow::Result;
@@ -60,11 +59,6 @@ fn compare_and_ranking_snapshot() -> Result<()> {
         "rankings": rankings,
     });
     let rendered = serde_json::to_string_pretty(&payload)?;
-    let snapshot_path = manifest_dir
-        .join("tests")
-        .join("snapshots")
-        .join("compare_ranking.json");
-    let snapshot = fs::read_to_string(&snapshot_path)?;
-    assert_eq!(rendered.trim(), snapshot.trim());
+    insta::assert_snapshot!("compare_ranking", rendered);
     Ok(())
 }

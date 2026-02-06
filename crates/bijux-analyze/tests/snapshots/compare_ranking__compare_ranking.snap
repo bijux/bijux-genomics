@@ -1,3 +1,7 @@
+---
+source: crates/bijux-analyze/tests/compare_ranking.rs
+expression: rendered
+---
 {
   "comparison": {
     "baseline": null,
@@ -13,8 +17,8 @@
     },
     "objective": "balanced",
     "regression_risk": null,
-    "run_a": "/Users/bijan/bijux/bijux-dna/target/test-fixtures/compare_ranking/run_a",
-    "run_b": "/Users/bijan/bijux/bijux-dna/target/test-fixtures/compare_ranking/run_b",
+    "run_a": "/Users/bijan/bijux/bijux-dna/crates/bijux-analyze/tests/fixtures/compare_ranking/run_a",
+    "run_b": "/Users/bijan/bijux/bijux-dna/crates/bijux-analyze/tests/fixtures/compare_ranking/run_b",
     "uncertainty": {
       "memory_ci": null,
       "note": "ci_not_computed",

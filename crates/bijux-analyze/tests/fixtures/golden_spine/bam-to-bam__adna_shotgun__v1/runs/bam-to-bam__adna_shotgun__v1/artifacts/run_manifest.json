@@ -1,0 +1,17 @@
+{
+  "pipeline_id": "bam-to-bam__adna_shotgun__v1",
+  "run_id": "bam-to-bam__adna_shotgun__v1",
+  "schema_version": "bijux.run_manifest.v1",
+  "stages": [
+    "bam.validate",
+    "bam.qc_pre",
+    "bam.filter",
+    "bam.markdup",
+    "bam.complexity",
+    "bam.coverage",
+    "bam.damage",
+    "bam.authenticity",
+    "bam.contamination",
+    "bam.sex"
+  ]
+}

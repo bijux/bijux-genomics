@@ -109,7 +109,11 @@ fn stage_ids_for_profile(profile: &bijux_pipelines::PipelineProfile) -> Vec<Stri
 fn write_facts(base_dir: &Path, profile: &bijux_pipelines::PipelineProfile) -> Result<PathBuf> {
     let run_id = profile.id.as_str();
     let mut rows = Vec::new();
-    for (idx, stage_id) in stage_ids_for_profile(profile).iter().enumerate() {
+    for (idx, stage_id) in stage_ids_for_profile(profile)
+        .iter()
+        .filter(|stage_id| !stage_id.starts_with("core."))
+        .enumerate()
+    {
         let tool = profile
             .defaults
             .tools
@@ -178,9 +182,17 @@ fn hash_file(path: &Path) -> Result<String> {
 
 fn run_pipeline_case(domain: Domain, pipeline_id: &str) -> Result<(String, String)> {
     let profile = profile_by_id(domain, pipeline_id)?;
-    let tmp = tempfile::tempdir()?;
     let run_id = pipeline_id;
-    let layout = bijux_infra::run_layout_paths(tmp.path(), run_id);
+    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("tests")
+        .join("fixtures")
+        .join("golden_spine")
+        .join(pipeline_id);
+    if root.exists() {
+        std::fs::remove_dir_all(&root)?;
+    }
+    bijux_infra::ensure_dir(&root)?;
+    let layout = bijux_infra::run_layout_paths(&root, run_id);
     bijux_infra::ensure_dir(&layout.artifacts_dir)?;
     bijux_infra::ensure_dir(&layout.logs_dir)?;
     bijux_infra::ensure_dir(&layout.tmp_dir)?;

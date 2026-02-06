@@ -1,0 +1,25 @@
+{
+  "schema_version": "bijux.stage_report.v1",
+  "stage_id": "bam.validate",
+  "stage_version": 1,
+  "tool_id": "unknown",
+  "tool_version": "0.0.0",
+  "metrics_path": "/Users/bijan/bijux/bijux-dna/crates/bijux-analyze/tests/fixtures/golden_spine/bam-to-bam__adna_shotgun__v1/runs/bam-to-bam__adna_shotgun__v1/artifacts/stage_0/metrics.json",
+  "tool_invocation_path": "/Users/bijan/bijux/bijux-dna/crates/bijux-analyze/tests/fixtures/golden_spine/bam-to-bam__adna_shotgun__v1/runs/bam-to-bam__adna_shotgun__v1/artifacts/stage_0/tool_invocation.json",
+  "effective_config_path": "/Users/bijan/bijux/bijux-dna/crates/bijux-analyze/tests/fixtures/golden_spine/bam-to-bam__adna_shotgun__v1/runs/bam-to-bam__adna_shotgun__v1/artifacts/stage_0/effective_config.json",
+  "effective_config_hash": null,
+  "facts_row_id": null,
+  "summary": {},
+  "warnings": [],
+  "errors": [],
+  "invariants": [],
+  "verdict": {
+    "stage_id": "bam.validate",
+    "verdict": "pass",
+    "reasons": [],
+    "key_metrics": {}
+  },
+  "outputs": [],
+  "subreports": [],
+  "log_paths": []
+}

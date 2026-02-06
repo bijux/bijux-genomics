@@ -1,0 +1,133 @@
+{
+  "schema_version": "bijux.run_summary.v1",
+  "facts_path": "facts.jsonl",
+  "report_path": "report.json",
+  "telemetry_path": "telemetry/events.jsonl",
+  "final_outputs": [],
+  "runs": 1,
+  "stages": 5,
+  "total_runtime_s": 5.0,
+  "avg_runtime_s": 1.0,
+  "stage_rows": [
+    {
+      "run_id": "fastq-to-bam__default__v1",
+      "stage_id": "bam.align",
+      "tool_id": "unknown",
+      "tool_version": "0.0.0",
+      "image_digest": "sha256:img",
+      "params_hash": "params",
+      "input_hash": "input",
+      "bank_hashes": {},
+      "runtime_s": 1.0,
+      "memory_mb": 64.0,
+      "exit_code": 0,
+      "reports": {
+        "stage_report": "/Users/bijan/bijux/bijux-dna/crates/bijux-analyze/tests/fixtures/golden_spine/fastq-to-bam__default__v1/runs/fastq-to-bam__default__v1/artifacts/stage_1/stage_report.json"
+      },
+      "deltas": {
+        "reads_in": 100,
+        "reads_out": 100,
+        "bases_in": 1000,
+        "bases_out": 1000,
+        "pairs_in": null,
+        "pairs_out": null
+      }
+    },
+    {
+      "run_id": "fastq-to-bam__default__v1",
+      "stage_id": "bam.coverage",
+      "tool_id": "unknown",
+      "tool_version": "0.0.0",
+      "image_digest": "sha256:img",
+      "params_hash": "params",
+      "input_hash": "input",
+      "bank_hashes": {},
+      "runtime_s": 1.0,
+      "memory_mb": 64.0,
+      "exit_code": 0,
+      "reports": {
+        "stage_report": "/Users/bijan/bijux/bijux-dna/crates/bijux-analyze/tests/fixtures/golden_spine/fastq-to-bam__default__v1/runs/fastq-to-bam__default__v1/artifacts/stage_3/stage_report.json"
+      },
+      "deltas": {
+        "reads_in": 100,
+        "reads_out": 100,
+        "bases_in": 1000,
+        "bases_out": 1000,
+        "pairs_in": null,
+        "pairs_out": null
+      }
+    },
+    {
+      "run_id": "fastq-to-bam__default__v1",
+      "stage_id": "bam.damage",
+      "tool_id": "unknown",
+      "tool_version": "0.0.0",
+      "image_digest": "sha256:img",
+      "params_hash": "params",
+      "input_hash": "input",
+      "bank_hashes": {},
+      "runtime_s": 1.0,
+      "memory_mb": 64.0,
+      "exit_code": 0,
+      "reports": {
+        "stage_report": "/Users/bijan/bijux/bijux-dna/crates/bijux-analyze/tests/fixtures/golden_spine/fastq-to-bam__default__v1/runs/fastq-to-bam__default__v1/artifacts/stage_4/stage_report.json"
+      },
+      "deltas": {
+        "reads_in": 100,
+        "reads_out": 100,
+        "bases_in": 1000,
+        "bases_out": 1000,
+        "pairs_in": null,
+        "pairs_out": null
+      }
+    },
+    {
+      "run_id": "fastq-to-bam__default__v1",
+      "stage_id": "bam.qc_pre",
+      "tool_id": "unknown",
+      "tool_version": "0.0.0",
+      "image_digest": "sha256:img",
+      "params_hash": "params",
+      "input_hash": "input",
+      "bank_hashes": {},
+      "runtime_s": 1.0,
+      "memory_mb": 64.0,
+      "exit_code": 0,
+      "reports": {
+        "stage_report": "/Users/bijan/bijux/bijux-dna/crates/bijux-analyze/tests/fixtures/golden_spine/fastq-to-bam__default__v1/runs/fastq-to-bam__default__v1/artifacts/stage_2/stage_report.json"
+      },
+      "deltas": {
+        "reads_in": 100,
+        "reads_out": 100,
+        "bases_in": 1000,
+        "bases_out": 1000,
+        "pairs_in": null,
+        "pairs_out": null
+      }
+    },
+    {
+      "run_id": "fastq-to-bam__default__v1",
+      "stage_id": "fastq.preprocess",
+      "tool_id": "unknown",
+      "tool_version": "0.0.0",
+      "image_digest": "sha256:img",
+      "params_hash": "params",
+      "input_hash": "input",
+      "bank_hashes": {},
+      "runtime_s": 1.0,
+      "memory_mb": 64.0,
+      "exit_code": 0,
+      "reports": {
+        "stage_report": "/Users/bijan/bijux/bijux-dna/crates/bijux-analyze/tests/fixtures/golden_spine/fastq-to-bam__default__v1/runs/fastq-to-bam__default__v1/artifacts/stage_0/stage_report.json"
+      },
+      "deltas": {
+        "reads_in": 100,
+        "reads_out": 100,
+        "bases_in": 1000,
+        "bases_out": 1000,
+        "pairs_in": null,
+        "pairs_out": null
+      }
+    }
+  ]
+}

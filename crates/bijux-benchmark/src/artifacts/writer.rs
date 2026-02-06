@@ -5,31 +5,18 @@
 //! Invariants: writes are atomic and stable.
 #![allow(dead_code)]
 
-use std::fs::File;
-use std::io::Write;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use anyhow::{Context, Result};
 
 use std::collections::BTreeSet;
 
 use bijux_benchmark_model::{BenchmarkObservation, BenchmarkSummary, GateDecision};
+use bijux_runtime::recording::write_atomic_bytes;
 
 type ObservationKey = (String, String, String, String, String);
 
-fn write_atomic_bytes(path: &Path, bytes: &[u8]) -> Result<()> {
-    let dir = path
-        .parent()
-        .ok_or_else(|| anyhow::anyhow!("missing parent for {}", path.display()))?;
-    bijux_infra::ensure_dir(dir)?;
-    let mut temp = PathBuf::from(path);
-    temp.set_extension("tmp");
-    let mut file = File::create(&temp)?;
-    file.write_all(bytes)?;
-    file.sync_all()?;
-    bijux_infra::rename(&temp, path)?;
-    Ok(())
-}
+// write_atomic_bytes lives in bijux-runtime::recording.
 
 /// Write observations as deterministic JSONL.
 ///

@@ -1,12 +1,11 @@
 //! Owner: bijux-analyze
 //! Benchmark records and image QA schemas.
 
-use std::fs::OpenOptions;
-use std::io::Write;
 use std::path::Path;
 
 use bijux_core::metrics::MetricSet;
 use bijux_core::primitives::measure::ExecutionMetrics;
+use bijux_runtime::recording::append_jsonl_line;
 use serde::{Deserialize, Serialize};
 
 use crate::aggregate::{validate_metric_set, Result, StageMetricSchema};
@@ -54,10 +53,8 @@ pub fn append_jsonl<T>(path: &Path, record: &BenchmarkRecord<T>) -> Result<()>
 where
     T: StageMetricSchema + Serialize,
 {
-    let mut file = OpenOptions::new().create(true).append(true).open(path)?;
     let line = serde_json::to_string(record)?;
-    writeln!(file, "{line}")?;
-    Ok(())
+    append_jsonl_line(path, &line).map_err(Into::into)
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -102,10 +99,8 @@ pub struct ImageQaRecord {
 /// # Errors
 /// Returns an error if the file cannot be written.
 pub fn append_image_qa_jsonl(path: &Path, record: &ImageQaRecord) -> Result<()> {
-    let mut file = OpenOptions::new().create(true).append(true).open(path)?;
     let line = serde_json::to_string(record)?;
-    writeln!(file, "{line}")?;
-    Ok(())
+    append_jsonl_line(path, &line).map_err(Into::into)
 }
 
 pub const IMAGE_QA_SCHEMA_VERSION: i32 = 1;

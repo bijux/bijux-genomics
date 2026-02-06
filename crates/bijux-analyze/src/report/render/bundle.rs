@@ -77,7 +77,7 @@ mod tests {
         let update = std::env::var("INSTA_UPDATE")
             .is_ok_and(|value| matches!(value.as_str(), "always" | "1" | "new" | "unseen"));
         if update {
-            fs::write(&snapshot_path, actual)?;
+            bijux_infra::write_bytes(&snapshot_path, actual.as_bytes())?;
         } else {
             assert_eq!(expected_json, actual_json);
         }
