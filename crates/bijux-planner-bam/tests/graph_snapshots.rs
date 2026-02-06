@@ -50,7 +50,8 @@ fn bam_adna_shotgun_graph_is_pure() -> anyhow::Result<()> {
     };
 
     let graph = plan_bam_to_bam__adna_shotgun__v1(&inputs)?;
-    let json = graph.canonical_json()?;
+    let json = serde_json::to_value(&graph)?;
+    let json = bijux_core::primitives::hashing::canonicalize_truth_json(&json);
     let mut settings = insta::Settings::new();
     settings.add_filter(temp.path().to_str().unwrap_or_default(), "<temp>");
     settings.bind(|| {

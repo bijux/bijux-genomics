@@ -1,7 +1,9 @@
 pub mod markdup {
     use std::path::Path;
 
-    use bijux_core::{CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1};
+    use bijux_core::{
+        ArtifactId, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
+    };
     use bijux_domain_bam::params::MarkDupEffectiveParams;
     use bijux_stage_contract::{StageIO, StagePlanV1};
 
@@ -58,7 +60,7 @@ pub mod markdup {
             resources: tool.resources.clone(),
             io: StageIO {
                 inputs: vec![bijux_stage_contract::ArtifactRef::required(
-                    "bam",
+                    ArtifactId::from_static("bam"),
                     bam.to_path_buf(),
                     bijux_core::ArtifactRole::Bam,
                 )],
@@ -96,7 +98,7 @@ pub mod markdup {
 pub mod complexity {
     use std::path::Path;
 
-    use bijux_core::{StageId, StageVersion, ToolExecutionSpecV1};
+    use bijux_core::{ArtifactId, StageId, StageVersion, ToolExecutionSpecV1};
     use bijux_domain_bam::params::ComplexityEffectiveParams;
     use bijux_stage_contract::{StageIO, StagePlanV1};
 
@@ -125,7 +127,7 @@ pub mod complexity {
             resources: tool.resources.clone(),
             io: StageIO {
                 inputs: vec![bijux_stage_contract::ArtifactRef::required(
-                    "bam",
+                    ArtifactId::from_static("bam"),
                     bam.to_path_buf(),
                     bijux_core::ArtifactRole::Bam,
                 )],
@@ -153,7 +155,9 @@ pub mod complexity {
 pub mod coverage {
     use std::path::Path;
 
-    use bijux_core::{CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1};
+    use bijux_core::{
+        ArtifactId, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
+    };
     use bijux_domain_bam::params::CoverageEffectiveParams;
     use bijux_stage_contract::{StageIO, StagePlanV1};
 
@@ -178,7 +182,7 @@ pub mod coverage {
         let command = match tool.tool_id.as_str() {
             "samtools" => {
                 outputs.push(bijux_stage_contract::ArtifactRef::required(
-                    "coverage_depth",
+                    ArtifactId::from_static("coverage_depth"),
                     depth_path.clone(),
                     bijux_core::ArtifactRole::ReportJson,
                 ));
@@ -196,7 +200,7 @@ pub mod coverage {
             resources: tool.resources.clone(),
             io: StageIO {
                 inputs: vec![bijux_stage_contract::ArtifactRef::required(
-                    "bam",
+                    ArtifactId::from_static("bam"),
                     bam.to_path_buf(),
                     bijux_core::ArtifactRole::Bam,
                 )],
@@ -224,7 +228,7 @@ pub mod coverage {
 pub mod recalibration {
     use std::path::Path;
 
-    use bijux_core::{StageId, StageVersion, ToolExecutionSpecV1};
+    use bijux_core::{ArtifactId, StageId, StageVersion, ToolExecutionSpecV1};
     use bijux_domain_bam::params::BqsrEffectiveParams;
     use bijux_stage_contract::{StageIO, StagePlanV1};
 
@@ -253,7 +257,7 @@ pub mod recalibration {
             resources: tool.resources.clone(),
             io: StageIO {
                 inputs: vec![bijux_stage_contract::ArtifactRef::required(
-                    "bam",
+                    ArtifactId::from_static("bam"),
                     bam.to_path_buf(),
                     bijux_core::ArtifactRole::Bam,
                 )],

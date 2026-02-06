@@ -1,6 +1,7 @@
 use std::path::Path;
 
 use anyhow::Result;
+use bijux_core::ArtifactId;
 use bijux_stage_contract::{ArtifactRef, StagePlanV1};
 
 #[must_use]
@@ -10,7 +11,7 @@ pub fn audit_outputs(stage: bijux_domain_bam::BamStage, out_dir: &Path) -> Vec<A
         .map(|artifact| {
             let role = role_for_artifact_name(artifact.name);
             ArtifactRef::required(
-                artifact.name.to_string(),
+                ArtifactId::new(artifact.name.to_string()),
                 out_dir.join(artifact.filename),
                 role,
             )
@@ -49,14 +50,19 @@ pub fn ensure_effective_params(value: serde_json::Value) -> Result<serde_json::V
 pub fn ensure_required_outputs(plan: StagePlanV1, required: &[&str]) -> Result<StagePlanV1> {
     let mut missing = Vec::new();
     for name in required {
-        if !plan.io.outputs.iter().any(|output| output.name == *name) {
+        if !plan
+            .io
+            .outputs
+            .iter()
+            .any(|output| output.name.as_str() == *name)
+        {
             missing.push(*name);
         }
     }
     if !missing.is_empty() {
         anyhow::bail!(
             "stage {} missing required outputs: {}",
-            plan.stage_id.0,
+            plan.stage_id.as_str(),
             missing.join(", ")
         );
     }

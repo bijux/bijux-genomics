@@ -3,7 +3,7 @@ use std::path::PathBuf;
 
 use bijux_core::execution::PlanPolicy;
 use bijux_core::{
-    CommandSpecV1, ContainerImageRefV1, StageId, StageVersion, ToolConstraints, ToolId,
+    ArtifactId, CommandSpecV1, ContainerImageRefV1, StageId, StageVersion, ToolConstraints, ToolId,
 };
 use bijux_planner_bam::{
     pipeline_stage_ids, plan_bam_to_bam__adna_capture__v1, plan_bam_to_bam__adna_shotgun__v1,
@@ -32,12 +32,12 @@ fn plan_for(stage_id: &str, tool_id: &str) -> StagePlanV1 {
         },
         io: bijux_stage_contract::StageIO {
             inputs: vec![bijux_stage_contract::ArtifactRef::required(
-                "input",
+                ArtifactId::from_static("input"),
                 PathBuf::from("input.bam"),
                 bijux_core::contract::ArtifactRole::Bam,
             )],
             outputs: vec![bijux_stage_contract::ArtifactRef::required(
-                "output",
+                ArtifactId::from_static("output"),
                 PathBuf::from("output.bam"),
                 bijux_core::contract::ArtifactRole::Bam,
             )],

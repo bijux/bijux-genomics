@@ -1,7 +1,7 @@
 pub mod haplogroups {
     use std::path::Path;
 
-    use bijux_core::{StageId, StageVersion, ToolExecutionSpecV1};
+    use bijux_core::{ArtifactId, StageId, StageVersion, ToolExecutionSpecV1};
     use bijux_domain_bam::params::HaplogroupEffectiveParams;
     use bijux_stage_contract::{StageIO, StagePlanV1};
 
@@ -30,7 +30,7 @@ pub mod haplogroups {
             resources: tool.resources.clone(),
             io: StageIO {
                 inputs: vec![bijux_stage_contract::ArtifactRef::required(
-                    "bam",
+                    ArtifactId::from_static("bam"),
                     bam.to_path_buf(),
                     bijux_core::ArtifactRole::Bam,
                 )],
@@ -58,7 +58,7 @@ pub mod haplogroups {
 pub mod genotyping {
     use std::path::Path;
 
-    use bijux_core::{StageId, StageVersion, ToolExecutionSpecV1};
+    use bijux_core::{ArtifactId, StageId, StageVersion, ToolExecutionSpecV1};
     use bijux_domain_bam::params::GenotypingEffectiveParams;
     use bijux_stage_contract::{StageIO, StagePlanV1};
 
@@ -87,7 +87,7 @@ pub mod genotyping {
             resources: tool.resources.clone(),
             io: StageIO {
                 inputs: vec![bijux_stage_contract::ArtifactRef::required(
-                    "bam",
+                    ArtifactId::from_static("bam"),
                     bam.to_path_buf(),
                     bijux_core::ArtifactRole::Bam,
                 )],
@@ -116,7 +116,7 @@ pub mod genotyping {
 pub mod kinship {
     use std::path::Path;
 
-    use bijux_core::{StageId, StageVersion, ToolExecutionSpecV1};
+    use bijux_core::{ArtifactId, StageId, StageVersion, ToolExecutionSpecV1};
     use bijux_domain_bam::params::KinshipEffectiveParams;
     use bijux_stage_contract::{StageIO, StagePlanV1};
 
@@ -145,7 +145,7 @@ pub mod kinship {
             resources: tool.resources.clone(),
             io: StageIO {
                 inputs: vec![bijux_stage_contract::ArtifactRef::required(
-                    "bam",
+                    ArtifactId::from_static("bam"),
                     bam.to_path_buf(),
                     bijux_core::ArtifactRole::Bam,
                 )],
@@ -173,7 +173,7 @@ pub mod kinship {
 pub mod bias_mitigation {
     use std::path::Path;
 
-    use bijux_core::{StageId, StageVersion, ToolExecutionSpecV1};
+    use bijux_core::{ArtifactId, StageId, StageVersion, ToolExecutionSpecV1};
     use bijux_domain_bam::params::BiasMitigationEffectiveParams;
     use bijux_stage_contract::{StageIO, StagePlanV1};
 
@@ -202,7 +202,7 @@ pub mod bias_mitigation {
             resources: tool.resources.clone(),
             io: StageIO {
                 inputs: vec![bijux_stage_contract::ArtifactRef::required(
-                    "bam",
+                    ArtifactId::from_static("bam"),
                     bam.to_path_buf(),
                     bijux_core::ArtifactRole::Bam,
                 )],

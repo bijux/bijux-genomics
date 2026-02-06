@@ -1,4 +1,4 @@
-use bijux_core::{StageId, StageVersion, ToolExecutionSpecV1};
+use bijux_core::{ArtifactId, StageId, StageVersion, ToolExecutionSpecV1};
 use bijux_domain_fastq::params::{preprocess::PreprocessEffectiveParams, PairedMode};
 use bijux_domain_fastq::STAGE_PREPROCESS;
 use bijux_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
@@ -44,13 +44,13 @@ pub fn plan_preprocess_stage(plan: &PreprocessPlan, tool: &ToolExecutionSpecV1) 
             inputs: {
                 let mut inputs = Vec::new();
                 inputs.push(ArtifactRef::required(
-                    "reads_r1",
+                    ArtifactId::from_static("reads_r1"),
                     plan.r1.clone(),
                     bijux_core::ArtifactRole::Reads,
                 ));
                 if let Some(r2) = plan.r2.as_ref() {
                     inputs.push(ArtifactRef::required(
-                        "reads_r2",
+                        ArtifactId::from_static("reads_r2"),
                         r2.clone(),
                         bijux_core::ArtifactRole::Reads,
                     ));

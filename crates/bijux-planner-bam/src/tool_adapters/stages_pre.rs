@@ -1,7 +1,7 @@
 pub mod validate {
     use std::path::Path;
 
-    use bijux_core::{CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1};
+    use bijux_core::{ArtifactId, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1};
     use bijux_domain_bam::params::ValidateEffectiveParams;
     use bijux_stage_contract::{StageIO, StagePlanV1};
 
@@ -25,20 +25,20 @@ pub mod validate {
         let flagstat = out_dir.join("flagstat.txt");
         let report = out_dir.join("validation.json");
         let mut inputs = vec![bijux_stage_contract::ArtifactRef::required(
-            "bam",
+            ArtifactId::from_static("bam"),
             bam.to_path_buf(),
             bijux_core::ArtifactRole::Bam,
         )];
         if let Some(reference) = reference {
             inputs.push(bijux_stage_contract::ArtifactRef::required(
-                "reference",
+                ArtifactId::from_static("reference"),
                 reference.to_path_buf(),
                 bijux_core::ArtifactRole::Index,
             ));
         }
         if let Some(bam_index) = bam_index {
             inputs.push(bijux_stage_contract::ArtifactRef::required(
-                "bam_bai",
+                ArtifactId::from_static("bam_bai"),
                 bam_index.to_path_buf(),
                 bijux_core::ArtifactRole::Index,
             ));
@@ -82,7 +82,9 @@ pub mod validate {
 pub mod align {
     use std::path::Path;
 
-    use bijux_core::{CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1};
+    use bijux_core::{
+        ArtifactId, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
+    };
     use bijux_domain_bam::params::{AlignEffectiveParams, ReadGroupSpec};
     use bijux_stage_contract::{StageIO, StagePlanV1};
 
@@ -132,19 +134,19 @@ pub mod align {
         let inputs = {
             let mut items = vec![
                 bijux_stage_contract::ArtifactRef::required(
-                    "fastq_r1",
+                    ArtifactId::from_static("fastq_r1"),
                     r1.to_path_buf(),
                     bijux_core::ArtifactRole::Reads,
                 ),
                 bijux_stage_contract::ArtifactRef::required(
-                    "reference",
+                    ArtifactId::from_static("reference"),
                     reference.to_path_buf(),
                     bijux_core::ArtifactRole::Index,
                 ),
             ];
             if let Some(r2) = r2 {
                 items.push(bijux_stage_contract::ArtifactRef::required(
-                    "fastq_r2",
+                    ArtifactId::from_static("fastq_r2"),
                     r2.to_path_buf(),
                     bijux_core::ArtifactRole::Reads,
                 ));
@@ -202,7 +204,9 @@ pub mod align {
 pub mod qc_pre {
     use std::path::Path;
 
-    use bijux_core::{CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1};
+    use bijux_core::{
+        ArtifactId, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
+    };
     use bijux_domain_bam::params::QcPreEffectiveParams;
     use bijux_stage_contract::{StageIO, StagePlanV1};
 
@@ -242,7 +246,7 @@ pub mod qc_pre {
             resources: tool.resources.clone(),
             io: StageIO {
                 inputs: vec![bijux_stage_contract::ArtifactRef::required(
-                    "bam",
+                    ArtifactId::from_static("bam"),
                     bam.to_path_buf(),
                     bijux_core::ArtifactRole::Bam,
                 )],
@@ -269,7 +273,9 @@ pub mod qc_pre {
 pub mod filter {
     use std::path::Path;
 
-    use bijux_core::{CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1};
+    use bijux_core::{
+        ArtifactId, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
+    };
     use bijux_domain_bam::params::FilterEffectiveParams;
     use bijux_stage_contract::{StageIO, StagePlanV1};
 
@@ -315,7 +321,7 @@ pub mod filter {
             resources: tool.resources.clone(),
             io: StageIO {
                 inputs: vec![bijux_stage_contract::ArtifactRef::required(
-                    "bam",
+                    ArtifactId::from_static("bam"),
                     bam.to_path_buf(),
                     bijux_core::ArtifactRole::Bam,
                 )],

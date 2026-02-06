@@ -1,7 +1,9 @@
 use std::path::Path;
 
 use anyhow::{anyhow, Result};
-use bijux_core::{ArtifactRef, ContainerImageRefV1, StageId, StageVersion, ToolExecutionSpecV1};
+use bijux_core::{
+    ArtifactId, ArtifactRef, ContainerImageRefV1, StageId, StageVersion, ToolExecutionSpecV1,
+};
 use bijux_domain_fastq::params::{qc_post::QcPostEffectiveParams, PairedMode};
 use bijux_domain_fastq::STAGE_QC_POST;
 use bijux_stage_contract::{StageIO, StagePlanV1};
@@ -49,12 +51,12 @@ pub fn plan_qc_post(
     let outputs = if tool.tool_id.0 == "multiqc" {
         vec![
             ArtifactRef::optional(
-                "multiqc_report",
+                ArtifactId::from_static("multiqc_report"),
                 out_dir.join("multiqc_report.html"),
                 bijux_core::ArtifactRole::ReportHtml,
             ),
             ArtifactRef::optional(
-                "multiqc_data",
+                ArtifactId::from_static("multiqc_data"),
                 out_dir.join("multiqc_data"),
                 bijux_core::ArtifactRole::Index,
             ),
@@ -72,7 +74,7 @@ pub fn plan_qc_post(
         resources: tool.resources.clone(),
         io: StageIO {
             inputs: vec![ArtifactRef::required(
-                "reads_r1",
+                ArtifactId::from_static("reads_r1"),
                 r1.to_path_buf(),
                 bijux_core::ArtifactRole::Reads,
             )],
