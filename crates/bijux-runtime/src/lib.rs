@@ -14,5 +14,5 @@ pub use observability::*;
 pub use recording::*;
 pub use run_layout::*;
 pub use runner::*;
-pub use telemetry::*;
 pub use telemetry::events::*;
+pub use telemetry::*;

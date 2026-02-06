@@ -6,5 +6,9 @@ pub mod specs;
 
 pub use contract::*;
 pub use ids::*;
-pub use semantics::*;
+pub use semantics::{
+    fastq_stage_is_stable, stage_criticality, stage_kind, stage_metric_classes,
+    stage_metric_invariants, stage_semantics, BoundaryInvariant, FastqStageKind, StageDefinition,
+    StageSemantics, STAGE_BOUNDARY_INVARIANTS,
+};
 pub use specs::*;

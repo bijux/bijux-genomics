@@ -1,22 +1,17 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use super::alignment::AlignmentCountsV1;
-use super::authenticity::AuthenticityScoreV1;
 use super::complexity::ComplexityMetricsV1;
-use super::contamination::{ContaminationMetricsV1, ContaminationReconciliationV1};
 use super::coverage::{CoverageMetricsV1, CoverageUniformityV1, EffectiveCoverageV1};
 use super::damage::{DamageComparisonV1, DamageMetricsV1};
-use super::fragment::FragmentLengthSummaryV1;
-use super::genotyping::GenotypingMetricsV1;
-use super::idxstats::IdxstatsSummaryV1;
-use super::mapq::MapqSummaryV1;
-use super::sex::SexInferenceV1;
-use super::sufficiency::{
-    ContaminationSufficiencyV1, CoverageSufficiencyV1, HaplogroupSufficiencyV1,
-    KinshipSufficiencyV1, SexSufficiencyV1,
+use crate::metrics::downstream::{
+    AuthenticityScoreV1, BamStageVerdictV1, ContaminationMetricsV1, ContaminationReconciliationV1,
+    ContaminationSufficiencyV1, CoverageSufficiencyV1, GenotypingMetricsV1,
+    HaplogroupSufficiencyV1, KinshipSufficiencyV1, SexInferenceV1, SexSufficiencyV1,
 };
-use super::verdict::BamStageVerdictV1;
+use crate::metrics::pre::{
+    AlignmentCountsV1, FragmentLengthSummaryV1, IdxstatsSummaryV1, MapqSummaryV1,
+};
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]

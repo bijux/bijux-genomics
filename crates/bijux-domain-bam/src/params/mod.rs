@@ -10,9 +10,10 @@ pub use core::{
     DuplicateAction, MarkDupEffectiveParams, OpticalDuplicatePolicy, UdgModel, UmiPolicy,
 };
 pub use downstream::{
-    AuthenticityEffectiveParams, BiasMitigationEffectiveParams, ContaminationEffectiveParams,
-    CoverageEffectiveParams, GenotypingEffectiveParams, HaplogroupEffectiveParams,
-    KinshipEffectiveParams, RecalibrationSkipCriteria, SexEffectiveParams,
+    AuthenticityEffectiveParams, BiasMitigationEffectiveParams, BqsrEffectiveParams,
+    ContaminationEffectiveParams, CoverageEffectiveParams, GenotypingEffectiveParams,
+    HaplogroupEffectiveParams, KinshipEffectiveParams, RecalibrationSkipCriteria,
+    SexEffectiveParams,
 };
 pub use pre::{
     AlignEffectiveParams, FilterEffectiveParams, QcPreEffectiveParams, ReadGroupSpec,
