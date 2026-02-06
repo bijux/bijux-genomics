@@ -41,12 +41,10 @@ impl EnvironmentResolver {
     /// # Errors
     /// Returns an error if validation fails.
     pub fn validate_images_for_stage(
-        stage_id: &str,
-        stage_tools: &[String],
         catalog: &HashMap<String, ToolImageSpec>,
-        platform: &PlatformSpec,
-    ) -> Result<Vec<ResolvedImage>, EnvError> {
-        validate_images_for_stage(stage_id, stage_tools, catalog, platform)
+        tools: &[&str],
+    ) -> Result<(), EnvError> {
+        validate_images_for_stage(catalog, tools)
     }
 }
 
