@@ -28,6 +28,9 @@ pub use bijux_domain_fastq::BenchResultsRepository;
 pub mod args;
 pub mod tool_adapters;
 mod tool_registry;
+mod report_stage;
+
+pub use report_stage::report_stage_step;
 
 pub mod stage_api {
     pub use crate::args;

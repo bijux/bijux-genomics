@@ -3,13 +3,12 @@ use std::path::Path;
 
 use super::STAGE_QC_POST;
 use anyhow::{Context, Result};
-use bijux_core::contract::{ArtifactRef, ArtifactRole, ToolConstraints};
+use bijux_core::contract::{ArtifactRef, ArtifactRole};
 use bijux_core::metrics::ToolInvocationV1;
 use bijux_core::plan::execution_graph::{ExecutionGraph, ExecutionStep};
 use bijux_core::plan::PlanPolicy;
-use bijux_core::primitives::{CommandSpecV1, ContainerImageRefV1};
-use bijux_core::StageId;
 use bijux_planner_fastq::{CorrectDecisionTrace, MergeDecisionTrace};
+use bijux_planner_fastq::report_stage_step as build_report_stage_step;
 use bijux_runner::primitives::StageResultV1;
 
 pub(super) fn render_run_summary(
@@ -148,22 +147,7 @@ pub(super) fn report_stage_step(out_dir: &Path, steps: &[ExecutionStep]) -> Exec
             ArtifactRole::ReportHtml,
         ),
     ];
-    ExecutionStep {
-        step_id: StageId::new("report.aggregate"),
-        command: CommandSpecV1 {
-            template: vec!["report-aggregate".to_string()],
-        },
-        image: ContainerImageRefV1 {
-            image: "bijux-report".to_string(),
-            digest: None,
-        },
-        resources: ToolConstraints::default(),
-        io: bijux_core::contract::StageIO { inputs, outputs },
-        out_dir: out_dir.to_path_buf(),
-        aux_images: std::collections::BTreeMap::new(),
-        expected_artifact_ids: Vec::new(),
-        metrics_schema_ids: Vec::new(),
-    }
+    build_report_stage_step(out_dir, inputs, outputs)
 }
 
 #[allow(clippy::too_many_lines)]
