@@ -12,6 +12,44 @@ pub use reference::{
     reference_cache_dir, ReferenceBuildRequest, ReferenceRecord, ReferenceRegistry,
 };
 
+/// Resolver entrypoint for environment specs and image catalog.
+#[derive(Debug, Default, Clone, Copy)]
+pub struct EnvironmentResolver;
+
+impl EnvironmentResolver {
+    /// # Errors
+    /// Returns an error if the platform cannot be loaded.
+    pub fn load_platform(name: Option<&str>) -> Result<PlatformSpec, EnvError> {
+        load_platform(name)
+    }
+
+    /// # Errors
+    /// Returns an error if the image catalog cannot be loaded.
+    pub fn load_image_catalog() -> Result<HashMap<String, ToolImageSpec>, EnvError> {
+        load_image_catalog()
+    }
+
+    /// # Errors
+    /// Returns an error if the image cannot be resolved.
+    pub fn resolve_image(
+        tool: &ToolImageSpec,
+        platform: &PlatformSpec,
+    ) -> Result<ResolvedImage, EnvError> {
+        resolve_image(tool, platform)
+    }
+
+    /// # Errors
+    /// Returns an error if validation fails.
+    pub fn validate_images_for_stage(
+        stage_id: &str,
+        stage_tools: &[String],
+        catalog: &HashMap<String, ToolImageSpec>,
+        platform: &PlatformSpec,
+    ) -> Result<Vec<ResolvedImage>, EnvError> {
+        validate_images_for_stage(stage_id, stage_tools, catalog, platform)
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum RunnerKind {

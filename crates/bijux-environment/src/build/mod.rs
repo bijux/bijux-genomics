@@ -17,6 +17,26 @@ pub struct DockerToolSpec {
     pub probe_expected_exit: Vec<i32>,
 }
 
+/// Builder entrypoint for environment definitions.
+#[derive(Debug, Default, Clone, Copy)]
+pub struct EnvironmentBuilder;
+
+impl EnvironmentBuilder {
+    #[must_use]
+    pub fn default_docker_tools() -> Vec<DockerToolSpec> {
+        default_docker_tools()
+    }
+
+    /// # Errors
+    /// Returns an error if the dockerfile cannot be parsed.
+    pub fn extract_version_from_dockerfile(
+        dockerfile: &Path,
+        tool: &str,
+    ) -> Result<String, EnvError> {
+        extract_version_from_dockerfile(dockerfile, tool)
+    }
+}
+
 #[allow(clippy::too_many_lines)]
 #[must_use]
 pub fn default_docker_tools() -> Vec<DockerToolSpec> {

@@ -1,3 +1,19 @@
+use crate::resolve::{PlatformSpec, RunnerKind};
+
+/// Runtime specification for execution environments.
+#[derive(Debug, Clone)]
+pub struct RuntimeSpec {
+    pub runner: RunnerKind,
+    pub platform: PlatformSpec,
+}
+
+impl RuntimeSpec {
+    #[must_use]
+    pub fn new(runner: RunnerKind, platform: PlatformSpec) -> Self {
+        Self { runner, platform }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::collections::HashMap;
