@@ -12,23 +12,12 @@
     "bases_in": 1000,
     "reads_in": 100
   },
+  "units": "reads",
   "scope": "reads+bases",
   "condition": {
     "min_len": 20
   },
   "parameters_json": {
     "min_len": 20
-  },
-  "retention": {
-    "value": 0.8,
-    "numerator_reads": 80,
-    "denominator_reads": 100,
-    "numerator_bases": 800,
-    "denominator_bases": 1000,
-    "definition": "reads_out / reads_in",
-    "stage_boundary": "fastq.trim",
-    "conditions": {
-      "min_len": 20
-    }
   }
 }

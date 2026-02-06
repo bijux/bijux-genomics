@@ -98,18 +98,13 @@ fn retention_context_from_report(
     let report = path
         .and_then(|path| read_json_value(Path::new(path)))
         .and_then(|value| serde_json::from_value::<RetentionReportV1>(value).ok())?;
-    let definition = report
-        .retention
-        .as_ref()
-        .and_then(|ret| ret.get("definition"))
-        .and_then(serde_json::Value::as_str)
-        .map_or_else(|| "unknown".to_string(), std::string::ToString::to_string);
-    let conditions = report
-        .retention
-        .as_ref()
-        .and_then(|ret| ret.get("conditions"))
-        .cloned()
-        .unwrap_or_else(|| report.condition.clone());
+    let definition = format!(
+        "{} / {} ({})",
+        serde_json::to_string(&report.numerator).unwrap_or_else(|_| "unknown".to_string()),
+        serde_json::to_string(&report.denominator).unwrap_or_else(|_| "unknown".to_string()),
+        report.units
+    );
+    let conditions = report.condition.clone();
     let context = RetentionContextV1 {
         stage_id: report.stage_id,
         tool_id: report.tool_id,
@@ -119,8 +114,10 @@ fn retention_context_from_report(
     let definition = RetentionDefinitionV1 {
         stage_id: context.stage_id.clone(),
         tool_id: context.tool_id.clone(),
-        numerator: "reads_out,bases_out".to_string(),
-        denominator: "reads_in,bases_in".to_string(),
+        numerator: serde_json::to_string(&report.numerator)
+            .unwrap_or_else(|_| "unknown".to_string()),
+        denominator: serde_json::to_string(&report.denominator)
+            .unwrap_or_else(|_| "unknown".to_string()),
         conditions: context.conditions.clone(),
     };
     Some((context, definition))

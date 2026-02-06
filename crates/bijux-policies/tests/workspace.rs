@@ -1039,6 +1039,40 @@ fn workspace_no_cross_layer_imports() {
 }
 
 #[test]
+fn retention_reports_require_context() {
+    let root = workspace_root();
+    let mut offenders = Vec::new();
+    for entry in walkdir::WalkDir::new(&root)
+        .into_iter()
+        .filter_map(Result::ok)
+        .filter(|entry| entry.file_type().is_file())
+    {
+        if entry.file_name() != "retention_report.json" {
+            continue;
+        }
+        let raw = std::fs::read_to_string(entry.path()).unwrap_or_default();
+        let value: serde_json::Value = match serde_json::from_str(&raw) {
+            Ok(value) => value,
+            Err(_) => {
+                offenders.push(format!("{} (invalid json)", entry.path().display()));
+                continue;
+            }
+        };
+        let has_context = value.get("numerator").is_some()
+            && value.get("denominator").is_some()
+            && value.get("units").is_some()
+            && value.get("parameters_json").is_some();
+        if !has_context {
+            offenders.push(entry.path().display().to_string());
+        }
+    }
+    assert!(
+        offenders.is_empty(),
+        "retention_report.json must include numerator/denominator/units/parameters_json: {offenders:?}"
+    );
+}
+
+#[test]
 fn params_hash_only_defined_in_core() {
     let root = workspace_root();
     let mut offenders = Vec::new();

@@ -25,7 +25,7 @@ fn failure_hint_adapter_snapshot() -> Result<()> {
         stage: "fastq.trim".to_string(),
         tool: "fastp".to_string(),
         reason: "adapter preset missing".to_string(),
-        category: bijux_core::primitives::errors::ErrorCategory::DataError,
+        category: bijux_core::primitives::errors::ErrorCategory::ContractError,
     };
     let failure = classify_raw_failure(&raw);
     assert_snapshot("failure_hint_adapter.json", &failure)
@@ -49,7 +49,7 @@ fn failure_hint_invalid_snapshot() -> Result<()> {
         stage: "fastq.validate_pre".to_string(),
         tool: "fastqvalidator".to_string(),
         reason: "invalid fastq record".to_string(),
-        category: bijux_core::primitives::errors::ErrorCategory::DataError,
+        category: bijux_core::primitives::errors::ErrorCategory::ContractError,
     };
     let failure = classify_raw_failure(&raw);
     assert_snapshot("failure_hint_invalid.json", &failure)

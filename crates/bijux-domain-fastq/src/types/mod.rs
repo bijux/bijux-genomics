@@ -78,6 +78,7 @@ pub struct RetentionReportV1 {
     pub definition: String,
     pub numerator: serde_json::Value,
     pub denominator: serde_json::Value,
+    pub units: String,
     pub scope: String,
     pub stage_boundary: String,
     pub tool: ToolReferenceV1,
