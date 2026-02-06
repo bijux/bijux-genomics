@@ -6,7 +6,9 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Context, Result};
 use bijux_api::v1::bench::{objective_spec, Objective};
 use bijux_api::v1::env::{load_image_catalog, load_platform, run_image_qa};
-use bijux_api::v1::run::{atomic_write_bytes, load_manifests, new_run_id, PathSpec, RunSpec};
+use bijux_api::v1::run::{
+    atomic_write_bytes, load_manifests, new_run_id, PathSpec, RunSpec, StageId,
+};
 use bijux_api::v1::run::{DryRunExecutor, Executor};
 use tracing::{info, warn};
 
