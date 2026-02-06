@@ -14,6 +14,13 @@ pub fn stage_registry() -> Vec<StageSpec> {
                 output: BamArtifactKind::Report,
                 emits_bam: false,
                 emits_report: true,
+                sorting: "accepts_unsorted_bam",
+                indexing: "index_optional",
+                read_group_policy: "requires_read_groups_for_sample_metadata",
+                duplicate_policy: "no_duplicate_marking",
+                mapping_quality_policy: "no_mapping_quality_filter",
+                deterministic: true,
+                nondeterminism_reason: None,
             }),
         })
         .collect()
