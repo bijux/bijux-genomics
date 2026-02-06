@@ -217,23 +217,6 @@ pub struct StageSpec {
 }
 
 #[must_use]
-pub fn stage_registry() -> Vec<StageSpec> {
-    BamStage::all()
-        .iter()
-        .map(|stage| StageSpec {
-            id: stage.id(),
-            stage: *stage,
-            contract: contract_for_stage(stage.as_str()).unwrap_or(BamStageContract {
-                input: BamArtifactKind::Bam,
-                output: BamArtifactKind::Report,
-                emits_bam: false,
-                emits_report: true,
-            }),
-        })
-        .collect()
-}
-
-#[must_use]
 pub fn contract_for_stage(stage_id: &str) -> Option<BamStageContract> {
     let stage = BamStage::try_from(stage_id).ok()?;
     match stage {
