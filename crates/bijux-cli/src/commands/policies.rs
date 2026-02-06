@@ -67,11 +67,28 @@ pub fn workspace_audit(out_dir: &Path) -> Result<()> {
         }
     }
 
+    let allowed = parse_boundary_contract()?;
+    let mut violations = Vec::new();
+    for (from, to) in &edges {
+        let Some(allowed_deps) = allowed.get(from) else {
+            continue;
+        };
+        if !allowed_deps.contains(to) {
+            violations.push(format!("{from} -> {to}"));
+        }
+    }
     println!("allowed edges (workspace): {}", edges.len());
     for (from, to) in &edges {
         println!("  {from} -> {to}");
     }
-    println!("violations: none (no allowlist configured)");
+    if violations.is_empty() {
+        println!("violations: none");
+    } else {
+        println!("violations: {}", violations.len());
+        for violation in &violations {
+            println!("  {violation}");
+        }
+    }
 
     let dot_path = out_dir.join("graph.dot");
     let mut dot = String::from("digraph workspace {\n");
@@ -84,5 +101,54 @@ pub fn workspace_audit(out_dir: &Path) -> Result<()> {
     dot.push_str("}\n");
     std::fs::write(&dot_path, dot).context("write graph.dot")?;
     println!("graph: {}", dot_path.display());
+    if !violations.is_empty() {
+        return Err(anyhow!("workspace boundary violations detected"));
+    }
     Ok(())
+}
+
+fn parse_boundary_contract() -> Result<BTreeMap<String, BTreeSet<String>>> {
+    let root = std::env::current_dir().context("resolve workspace root")?;
+    let path = root
+        .join("crates")
+        .join("bijux-core")
+        .join("src")
+        .join("boundaries.md");
+    let content = std::fs::read_to_string(&path).context("read boundaries.md")?;
+    let mut lines = Vec::new();
+    let mut in_block = false;
+    for line in content.lines() {
+        if line.trim() == "```boundaries" {
+            in_block = true;
+            continue;
+        }
+        if in_block && line.trim() == "```" {
+            break;
+        }
+        if in_block {
+            lines.push(line.trim().to_string());
+        }
+    }
+    if !in_block || lines.is_empty() {
+        return Err(anyhow!(
+            "missing executable boundaries block in {}",
+            path.display()
+        ));
+    }
+    let mut map = BTreeMap::new();
+    for line in lines {
+        if line.is_empty() || line.starts_with('#') {
+            continue;
+        }
+        let (name, deps) = line
+            .split_once(':')
+            .ok_or_else(|| anyhow!("invalid boundaries line: {line}"))?;
+        let deps = deps
+            .split_whitespace()
+            .filter(|dep| !dep.is_empty())
+            .map(std::string::ToString::to_string)
+            .collect::<BTreeSet<_>>();
+        map.insert(name.trim().to_string(), deps);
+    }
+    Ok(map)
 }
