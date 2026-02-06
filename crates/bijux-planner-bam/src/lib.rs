@@ -18,6 +18,8 @@ mod stage_registry;
 pub mod tool_adapters;
 mod tool_registry;
 
+pub use report_stage::report_stage_step;
+
 pub mod stage_api {
     pub use crate::report_stage::report_stage_step;
     pub use crate::stage_registry::stage_registry;
