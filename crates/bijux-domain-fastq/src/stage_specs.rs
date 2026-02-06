@@ -1,32 +1,8 @@
-//! FASTQ stage registry and contracts.
-
-mod contract;
-mod ids;
-mod semantics;
-mod stages;
-
-use serde::{Deserialize, Serialize};
+use std::path::Path;
 
 use crate::types::FastqArtifactKind;
 
-pub use contract::{
-    assess_merge_suitability, contract_for_stage, ensure_umi_headers, inspect_headers,
-    log_header_warnings, normalize_outputs, preflight_stage, HeaderInspection, MergeSuitability,
-    NormalizedOutputs,
-};
-pub use ids::{
-    bench_dir_name, STAGES, STAGE_CORRECT, STAGE_DETECT_ADAPTERS, STAGE_FILTER, STAGE_MERGE,
-    STAGE_PREFIX, STAGE_PREPROCESS, STAGE_QC_POST, STAGE_RRNA, STAGE_SCREEN, STAGE_STATS_NEUTRAL,
-    STAGE_TRIM, STAGE_UMI, STAGE_VALIDATE_PRE,
-};
-pub use semantics::{
-    fastq_stage_is_stable, stage_criticality, stage_kind, stage_metric_classes,
-    stage_metric_invariants, stage_semantics, BoundaryInvariant, FastqStageKind, StageDefinition,
-    StageSemantics, STAGE_BOUNDARY_INVARIANTS,
-};
-pub use stages::{infer_input_kind, qc_class_for_stage, FastqStageContract, QcClass};
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub enum FastqStage {
     Preprocess,
     ValidatePre,
@@ -40,14 +16,14 @@ pub enum FastqStage {
     Screen,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct StageIO {
     pub inputs: Vec<FastqArtifactKind>,
     pub outputs: Vec<FastqArtifactKind>,
     pub optional_outputs: Option<Vec<FastqArtifactKind>>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct StageContract {
     pub stage: FastqStage,
     pub io: StageIO,
@@ -96,5 +72,38 @@ pub fn canonical_contract_for_stage(stage: FastqStage) -> StageContract {
                 optional_outputs: None,
             },
         },
+    }
+}
+
+#[derive(Debug, Clone, Copy, serde::Serialize, serde::Deserialize)]
+pub struct FastqStageContract {
+    pub input_kind: FastqArtifactKind,
+    pub output_kind: FastqArtifactKind,
+    pub may_drop_reads: bool,
+    pub must_preserve_pairing: bool,
+    pub emits_fastq: bool,
+}
+
+#[derive(Debug, Clone, Copy, serde::Serialize, serde::Deserialize)]
+pub enum QcClass {
+    Structural,
+    Statistical,
+}
+
+#[must_use]
+pub fn qc_class_for_stage(stage_id: &str) -> Option<QcClass> {
+    match stage_id {
+        "fastq.validate_pre" => Some(QcClass::Structural),
+        "fastq.detect_adapters" | "fastq.qc_post" => Some(QcClass::Statistical),
+        _ => None,
+    }
+}
+
+#[must_use]
+pub fn infer_input_kind(r2: Option<&Path>) -> FastqArtifactKind {
+    if r2.is_some() {
+        FastqArtifactKind::PairedEnd
+    } else {
+        FastqArtifactKind::SingleEnd
     }
 }

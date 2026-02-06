@@ -1,4 +1,4 @@
-use crate::stage_registry::FastqStageKind;
+use crate::stage_semantics::FastqStageKind;
 use bijux_core::ids::StageId;
 
 use super::metrics::{CORE_STAGES, META_STAGES, OPTIONAL_STAGES};

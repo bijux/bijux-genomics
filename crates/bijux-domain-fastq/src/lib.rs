@@ -12,6 +12,7 @@
 mod adapter;
 mod adapter_bank;
 pub mod banks;
+pub mod bench_repo;
 mod contaminant_bank;
 pub mod invariants;
 pub mod metrics;
@@ -20,9 +21,11 @@ pub mod pipeline_contract;
 mod polyx_bank;
 pub mod prelude;
 pub mod run;
-pub mod stage_registry;
+pub mod stage_contract;
+pub mod stage_ids;
+pub mod stage_semantics;
+pub mod stage_specs;
 mod stages;
-pub mod tool_registry;
 pub mod types;
 
 pub use adapter_bank::{
@@ -30,6 +33,7 @@ pub use adapter_bank::{
     load_adapter_bank, load_adapter_presets, resolve_adapter_preset, AdapterBankV1, AdapterEntryV1,
     AdapterPresetV1, AdapterPresetsV1, EffectiveAdapterSet, ReadScope,
 };
+pub use bench_repo::BenchResultsRepository;
 pub use contaminant_bank::{
     contaminant_motifs_path, contaminant_presets_path, contaminant_references_dir,
     load_contaminant_motifs, load_contaminant_presets, resolve_contaminant_preset,
@@ -50,18 +54,25 @@ pub use polyx_bank::{
 };
 pub use run::{assess_input_dir, discover_fastq_files};
 pub use run::{bench_corpus, BenchCorpus, BenchCorpusId, BenchDataset};
-pub use stage_registry::{
-    assess_merge_suitability, bench_dir_name, canonical_contract_for_stage, contract_for_stage,
-    ensure_umi_headers, fastq_stage_is_stable, infer_input_kind, inspect_headers,
-    log_header_warnings, normalize_outputs, preflight_stage, qc_class_for_stage, stage_criticality,
-    stage_kind, stage_metric_classes, stage_metric_invariants, stage_semantics, BoundaryInvariant,
-    FastqStage, FastqStageContract, FastqStageKind, HeaderInspection, MergeSuitability,
-    NormalizedOutputs, QcClass, StageContract, StageDefinition, StageIO, StageSemantics, STAGES,
-    STAGE_BOUNDARY_INVARIANTS, STAGE_CORRECT, STAGE_DETECT_ADAPTERS, STAGE_FILTER, STAGE_MERGE,
+pub use stage_contract::{
+    assess_merge_suitability, contract_for_stage, ensure_umi_headers, inspect_headers,
+    log_header_warnings, normalize_outputs, preflight_stage, HeaderInspection, MergeSuitability,
+    NormalizedOutputs,
+};
+pub use stage_ids::{
+    bench_dir_name, STAGES, STAGE_CORRECT, STAGE_DETECT_ADAPTERS, STAGE_FILTER, STAGE_MERGE,
     STAGE_PREFIX, STAGE_PREPROCESS, STAGE_QC_POST, STAGE_RRNA, STAGE_SCREEN, STAGE_STATS_NEUTRAL,
     STAGE_TRIM, STAGE_UMI, STAGE_VALIDATE_PRE,
 };
-pub use tool_registry::{canonical_tools_for_stage, default_tool_for_stage};
+pub use stage_semantics::{
+    fastq_stage_is_stable, stage_criticality, stage_kind, stage_metric_classes,
+    stage_metric_invariants, stage_semantics, BoundaryInvariant, FastqStageKind, StageDefinition,
+    StageSemantics, STAGE_BOUNDARY_INVARIANTS,
+};
+pub use stage_specs::{
+    canonical_contract_for_stage, infer_input_kind, qc_class_for_stage, FastqStage,
+    FastqStageContract, QcClass, StageContract, StageIO,
+};
 pub use types::{
     AdapterContributionV1, AdapterTrimmingReportV1, FastqArtifact, FastqArtifactKind, FastqLayout,
     FastqPE, FastqPairedEnd, FastqSE, FastqSampleId, FastqSingleEnd, FastqStats, RetentionReportV1,
