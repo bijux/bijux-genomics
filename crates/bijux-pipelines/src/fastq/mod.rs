@@ -117,12 +117,57 @@ pub fn fastq_default_profile() -> PipelineProfile {
     }
 }
 
+#[must_use]
+pub fn fastq_adna_profile() -> PipelineProfile {
+    let mut defaults = fastq_defaults(false);
+    if let Some(params) = defaults.params.get_mut("fastq.trim") {
+        params["damage_mode"] = serde_json::json!("adna");
+        params["min_len"] = serde_json::json!(25);
+    }
+    if let Some(params) = defaults.params.get_mut("fastq.filter") {
+        params["damage_mode"] = serde_json::json!("adna");
+    }
+    PipelineProfile {
+        id: PipelineId::new("fastq-to-fastq__adna__v1"),
+        description: "aDNA-oriented FASTQ pipeline defaults",
+        stability: StabilityTier::Beta,
+        input_domains: vec![Domain::Fastq],
+        output_domains: vec![Domain::Fastq],
+        defaults,
+        defaults_ledger_ref: "defaults_ledger.json",
+        invariants_preset: Some("adna"),
+        capabilities: PipelineCapabilities {
+            input_domains: vec![Domain::Fastq],
+            output_domains: vec![Domain::Fastq],
+            input_artifacts: vec![ArtifactType::FastqReads],
+            output_artifacts: vec![ArtifactType::FastqReads, ArtifactType::MetricsBundle],
+            required_inputs: vec!["fastq"],
+            produces_outputs: vec!["fastq", "fastq.metrics"],
+            report_sections: vec!["fastq"],
+            required_report_sections: vec![ReportSection::Fastq, ReportSection::PipelineDefaults],
+            required_metrics_bundles: vec![MetricsBundle::FastqCore],
+            required_stages: vec![
+                "fastq.validate_pre",
+                "fastq.detect_adapters",
+                "fastq.trim",
+                "fastq.filter",
+                "fastq.stats_neutral",
+                "fastq.qc_post",
+            ],
+            required_metrics: vec!["fastq.metrics"],
+            required_artifacts: vec!["report.json", "run_manifest.json", "stage_summaries.json"],
+            supports_benchmarks: true,
+        },
+    }
+}
+
 /// # Errors
 /// Returns an error if the requested profile id is unknown.
 pub fn fastq_profiles_by_id(id: &str) -> anyhow::Result<PipelineProfile> {
     match id {
         "fastq-to-fastq__default__v1" => Ok(fastq_default_profile()),
         "fastq-to-fastq__minimal__v1" => Ok(fastq_minimal_profile()),
+        "fastq-to-fastq__adna__v1" => Ok(fastq_adna_profile()),
         _ => Err(anyhow::anyhow!("unknown FASTQ profile: {id}")),
     }
 }
