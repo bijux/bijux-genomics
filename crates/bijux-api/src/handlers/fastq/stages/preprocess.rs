@@ -85,7 +85,14 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         .iter()
         .map(|selection| selection.tool_id.clone())
         .collect();
-    tool_ids = filter_tools_by_role(STAGE_PREPROCESS.as_str(), &tool_ids, &registry, false)?;
+    let mut filtered_by_role = Vec::new();
+    for (stage_id, tool_id) in pipeline.stages.iter().zip(tool_ids.iter()) {
+        let mut allowed = filter_tools_by_role(stage_id, &[tool_id.clone()], &registry, false)?;
+        if let Some(selected) = allowed.pop() {
+            filtered_by_role.push(selected);
+        }
+    }
+    tool_ids = filtered_by_role;
     let mut reasons_by_tool = std::collections::HashMap::new();
     for selection in selected_tools.drain(..) {
         reasons_by_tool.insert(selection.tool_id, selection.reason);
