@@ -6,9 +6,9 @@ use std::fs;
 use anyhow::{anyhow, Result};
 use bijux_core::execution::execution_graph::{ExecutionEdge, ExecutionGraph, ExecutionStep};
 use bijux_core::{RunRecordV1, StageExecutionRecordV1};
+use bijux_infra::{atomic_write_json, ensure_dir};
 use bijux_runtime::{Invocation, Runner};
 use chrono::Utc;
-use bijux_infra;
 
 use crate::{CancellationToken, EngineEvent, EngineHooks};
 
@@ -26,7 +26,7 @@ pub fn execute_plan(
     )?;
     let mut results = Vec::with_capacity(ordered.len());
     for step in ordered {
-        if cancel.is_some_and(|token| token.is_cancelled()) {
+        if cancel.is_some_and(CancellationToken::is_cancelled) {
             return Err(anyhow!("execution cancelled before {}", step.step_id.0));
         }
         if let Some(hooks) = hooks {
@@ -43,7 +43,7 @@ pub fn execute_plan(
         );
         let mut attempt = 0;
         let last_success = loop {
-            if cancel.is_some_and(|token| token.is_cancelled()) {
+            if cancel.is_some_and(CancellationToken::is_cancelled) {
                 return Err(anyhow!("execution cancelled during {}", step.step_id.0));
             }
             let started_at = Utc::now().to_rfc3339();
@@ -86,8 +86,7 @@ pub fn execute_plan(
             let retry_policy = graph.retry_policy();
             let allow_retry = retry_policy
                 .retry_on_exit_codes
-                .iter()
-                .any(|code| *code == outcome.exit_code);
+                .contains(&outcome.exit_code);
             if !allow_retry || attempt + 1 >= retry_policy.max_attempts {
                 let step_id = step.step_id.to_string();
                 return Err(anyhow!("step failed after retries: {step_id}"));
@@ -112,6 +111,100 @@ pub fn execute_plan(
 }
 
 fn enforce_contract(step: &ExecutionStep) -> Result<()> {
+    verify_outputs(step)?;
+    verify_metrics_envelope(step)?;
+    verify_required_run_artifacts(step)?;
+    Ok(())
+}
+
+fn topo_order<'a>(
+    steps: &'a [ExecutionStep],
+    edges: &'a [ExecutionEdge],
+    deterministic: bool,
+) -> Result<Vec<&'a ExecutionStep>> {
+    let mut by_id: HashMap<&str, &ExecutionStep> = HashMap::new();
+    for step in steps {
+        by_id.insert(step.step_id.as_str(), step);
+    }
+    let mut indegree: HashMap<&str, usize> = steps
+        .iter()
+        .map(|step| (step.step_id.as_str(), 0))
+        .collect();
+    let mut adjacency: HashMap<&str, Vec<&str>> = HashMap::new();
+    for edge in edges {
+        let from = edge.from().as_str();
+        let to = edge.to().as_str();
+        if !by_id.contains_key(from) || !by_id.contains_key(to) {
+            return Err(anyhow!("edge references unknown step: {from} -> {to}"));
+        }
+        adjacency.entry(from).or_default().push(to);
+        *indegree.entry(to).or_insert(0) += 1;
+    }
+    let mut queue: VecDeque<&str> = steps
+        .iter()
+        .filter(|step| indegree.get(step.step_id.as_str()).copied().unwrap_or(0) == 0)
+        .map(|step| step.step_id.as_str())
+        .collect();
+    if deterministic {
+        let mut ordered: Vec<&str> = queue.drain(..).collect();
+        ordered.sort_unstable();
+        queue.extend(ordered);
+    }
+    let mut order = Vec::with_capacity(steps.len());
+    let mut seen = HashSet::new();
+    while let Some(node) = queue.pop_front() {
+        if !seen.insert(node) {
+            continue;
+        }
+        if let Some(stage) = by_id.get(node) {
+            order.push(*stage);
+        }
+        if let Some(children) = adjacency.get(node) {
+            let mut children = children.clone();
+            if deterministic {
+                children.sort_unstable();
+            }
+            for child in children {
+                let entry = indegree.entry(child).or_insert(0);
+                *entry = entry.saturating_sub(1);
+                if *entry == 0 {
+                    queue.push_back(child);
+                }
+            }
+        }
+    }
+    if order.len() != steps.len() {
+        return Err(anyhow!("execution plan contains a cycle"));
+    }
+    Ok(order)
+}
+
+fn record_execution(
+    step: &ExecutionStep,
+    attempt: u32,
+    started_at: &str,
+    finished_at: &str,
+    duration_s: f64,
+    exit_code: i32,
+) -> Result<()> {
+    let run_artifacts_dir = step.out_dir.join("run_artifacts");
+    ensure_dir(&run_artifacts_dir)?;
+    let payload = serde_json::json!({
+        "schema_version": "bijux.execution_record.v1",
+        "step_id": step.step_id.to_string(),
+        "stage_id": step.stage_id.to_string(),
+        "attempt": attempt,
+        "started_at": started_at,
+        "finished_at": finished_at,
+        "duration_s": duration_s,
+        "exit_code": exit_code,
+    });
+    let path = run_artifacts_dir.join("execution_record.json");
+    atomic_write_json(&path, &payload)?;
+    Ok(())
+}
+
+fn verify_outputs(step: &ExecutionStep) -> Result<()> {
     for output in &step.io.outputs {
         if output.optional && !output.path.exists() {
             continue;
@@ -156,25 +249,34 @@ fn enforce_contract(step: &ExecutionStep) -> Result<()> {
             })?;
         }
     }
-    if !step.metrics_schema_ids.is_empty() {
-        let metrics_path = step
-            .out_dir
-            .join("run_artifacts")
-            .join("metrics_envelope.json");
-        if !metrics_path.exists() {
-            return Err(anyhow!(
-                "contract error: missing metrics_envelope.json for {}",
-                step.step_id.0
-            ));
-        }
-        let raw = fs::read_to_string(&metrics_path)?;
-        serde_json::from_str::<serde_json::Value>(&raw).map_err(|err| {
-            anyhow!(
-                "contract error: metrics_envelope.json parse failed for {}: {err}",
-                step.step_id.0
-            )
-        })?;
+    Ok(())
+}
+
+fn verify_metrics_envelope(step: &ExecutionStep) -> Result<()> {
+    if step.metrics_schema_ids.is_empty() {
+        return Ok(());
     }
+    let metrics_path = step
+        .out_dir
+        .join("run_artifacts")
+        .join("metrics_envelope.json");
+    if !metrics_path.exists() {
+        return Err(anyhow!(
+            "contract error: missing metrics_envelope.json for {}",
+            step.step_id.0
+        ));
+    }
+    let raw = fs::read_to_string(&metrics_path)?;
+    serde_json::from_str::<serde_json::Value>(&raw).map_err(|err| {
+        anyhow!(
+            "contract error: metrics_envelope.json parse failed for {}: {err}",
+            step.step_id.0
+        )
+    })?;
+    Ok(())
+}
+
+fn verify_required_run_artifacts(step: &ExecutionStep) -> Result<()> {
     let run_artifacts_dir = step.out_dir.join("run_artifacts");
     let required = [
         ("metrics.json", run_artifacts_dir.join("metrics.json")),
@@ -217,92 +319,5 @@ fn enforce_contract(step: &ExecutionStep) -> Result<()> {
             ));
         }
     }
-    Ok(())
-}
-
-fn topo_order<'a>(
-    steps: &'a [ExecutionStep],
-    edges: &'a [ExecutionEdge],
-    deterministic: bool,
-) -> Result<Vec<&'a ExecutionStep>> {
-    let mut by_id: HashMap<&str, &ExecutionStep> = HashMap::new();
-    for step in steps {
-        by_id.insert(step.step_id.as_str(), step);
-    }
-    let mut indegree: HashMap<&str, usize> = steps
-        .iter()
-        .map(|step| (step.step_id.as_str(), 0))
-        .collect();
-    let mut adjacency: HashMap<&str, Vec<&str>> = HashMap::new();
-    for edge in edges {
-        let from = edge.from().as_str();
-        let to = edge.to().as_str();
-        if !by_id.contains_key(from) || !by_id.contains_key(to) {
-            return Err(anyhow!("edge references unknown step: {from} -> {to}"));
-        }
-        adjacency.entry(from).or_default().push(to);
-        *indegree.entry(to).or_insert(0) += 1;
-    }
-    let mut queue: VecDeque<&str> = steps
-        .iter()
-        .filter(|step| indegree.get(step.step_id.as_str()).copied().unwrap_or(0) == 0)
-        .map(|step| step.step_id.as_str())
-        .collect();
-    if deterministic {
-        let mut ordered: Vec<&str> = queue.drain(..).collect();
-        ordered.sort();
-        queue.extend(ordered);
-    }
-    let mut order = Vec::with_capacity(steps.len());
-    let mut seen = HashSet::new();
-    while let Some(node) = queue.pop_front() {
-        if !seen.insert(node) {
-            continue;
-        }
-        if let Some(stage) = by_id.get(node) {
-            order.push(*stage);
-        }
-        if let Some(children) = adjacency.get(node) {
-            let mut children = children.clone();
-            if deterministic {
-                children.sort();
-            }
-            for child in children {
-                let entry = indegree.entry(child).or_insert(0);
-                *entry = entry.saturating_sub(1);
-                if *entry == 0 {
-                    queue.push_back(child);
-                }
-            }
-        }
-    }
-    if order.len() != steps.len() {
-        return Err(anyhow!("execution plan contains a cycle"));
-    }
-    Ok(order)
-}
-
-fn record_execution(
-    step: &ExecutionStep,
-    attempt: u32,
-    started_at: &str,
-    finished_at: &str,
-    duration_s: f64,
-    exit_code: i32,
-) -> Result<()> {
-    let run_artifacts_dir = step.out_dir.join("run_artifacts");
-    bijux_infra::ensure_dir(&run_artifacts_dir)?;
-    let payload = serde_json::json!({
-        "schema_version": "bijux.execution_record.v1",
-        "step_id": step.step_id.to_string(),
-        "stage_id": step.stage_id.to_string(),
-        "attempt": attempt,
-        "started_at": started_at,
-        "finished_at": finished_at,
-        "duration_s": duration_s,
-        "exit_code": exit_code,
-    });
-    let path = run_artifacts_dir.join("execution_record.json");
-    bijux_infra::atomic_write_json(&path, &payload)?;
     Ok(())
 }
