@@ -3,12 +3,16 @@ use std::path::Path;
 
 use super::STAGE_QC_POST;
 use anyhow::{Context, Result};
+use bijux_core::contract::{ArtifactRef, ArtifactRole, ToolConstraints};
 use bijux_core::metrics::ToolInvocationV1;
-use bijux_core::plan::execution_graph::ExecutionStep;
+use bijux_core::plan::execution_graph::{ExecutionGraph, ExecutionStep};
+use bijux_core::plan::PlanPolicy;
+use bijux_core::primitives::{CommandSpecV1, ContainerImageRefV1};
+use bijux_core::StageId;
 use bijux_planner_fastq::{CorrectDecisionTrace, MergeDecisionTrace};
 use bijux_runner::primitives::StageResultV1;
 
-pub(super) fn write_run_summary(
+pub(super) fn render_run_summary(
     out_dir: &Path,
     stage_runs: &[StageExecutionSummary],
     failures: &[bijux_planner_fastq::stage_api::RawFailure],
@@ -16,7 +20,7 @@ pub(super) fn write_run_summary(
     correct_decision: Option<&CorrectDecisionTrace>,
     adapter_inference: Option<&serde_json::Value>,
     stage_skips: &[serde_json::Value],
-) -> Result<()> {
+) -> Result<ReportArtifacts> {
     let root = bijux_runtime::recording::run_artifacts_dir_for_out(out_dir);
     bijux_infra::ensure_dir(&root).context("create run summary artifacts dir")?;
     let run_id = stage_runs
@@ -85,9 +89,81 @@ pub(super) fn write_run_summary(
     let html = render_run_summary_html(&summary);
     bijux_infra::atomic_write_bytes(&html_path, html.as_bytes())
         .context("write run_summary.html")?;
-    write_run_manifest(out_dir, stage_runs, failures)?;
-    write_scientific_provenance(out_dir, stage_runs)?;
-    Ok(())
+    let summary_json_path = root.join("summary.json");
+    bijux_infra::atomic_write_json(&summary_json_path, &summary).context("write summary.json")?;
+    let summary_tsv_path = root.join("summary.tsv");
+    let mut tsv = String::from("stage_id\ttool_id\truntime_s\texit_code\n");
+    for entry in stage_runs {
+        let _ = std::fmt::Write::write_fmt(
+            &mut tsv,
+            format_args!(
+                "{}\t{}\t{:.3}\t{}\n",
+                entry.plan.step_id.0,
+                entry.plan.image.image,
+                entry.result.runtime_s,
+                entry.result.exit_code
+            ),
+        );
+    }
+    bijux_infra::atomic_write_bytes(&summary_tsv_path, tsv.as_bytes())
+        .context("write summary.tsv")?;
+    let report_html_path = root.join("report.html");
+    bijux_infra::atomic_write_bytes(&report_html_path, html.as_bytes())
+        .context("write report.html")?;
+    Ok(ReportArtifacts {
+        run_summary_path: summary_path,
+        run_summary_html_path: html_path,
+        summary_json_path,
+        summary_tsv_path,
+        report_html_path,
+    })
+}
+
+pub(super) fn report_stage_step(out_dir: &Path, steps: &[ExecutionStep]) -> ExecutionStep {
+    let mut inputs = Vec::new();
+    for entry in steps {
+        let artifacts_dir = bijux_runtime::recording::run_artifacts_dir_for_out(&entry.out_dir);
+        let metrics_path = artifacts_dir.join("metrics_envelope.json");
+        inputs.push(ArtifactRef::optional(
+            format!("metrics_envelope_{}", entry.step_id.0),
+            metrics_path,
+            ArtifactRole::MetricsEnvelope,
+        ));
+    }
+    let root = bijux_runtime::recording::run_artifacts_dir_for_out(out_dir);
+    let outputs = vec![
+        ArtifactRef::required(
+            "summary",
+            root.join("summary.json"),
+            ArtifactRole::SummaryJson,
+        ),
+        ArtifactRef::required(
+            "summary_tsv",
+            root.join("summary.tsv"),
+            ArtifactRole::SummaryTsv,
+        ),
+        ArtifactRef::required(
+            "report_html",
+            root.join("report.html"),
+            ArtifactRole::ReportHtml,
+        ),
+    ];
+    ExecutionStep {
+        step_id: StageId::new("report.aggregate"),
+        command: CommandSpecV1 {
+            template: vec!["report-aggregate".to_string()],
+        },
+        image: ContainerImageRefV1 {
+            image: "bijux-report".to_string(),
+            digest: None,
+        },
+        resources: ToolConstraints::default(),
+        io: bijux_core::contract::StageIO { inputs, outputs },
+        out_dir: out_dir.to_path_buf(),
+        aux_images: std::collections::BTreeMap::new(),
+        expected_artifact_ids: Vec::new(),
+        metrics_schema_ids: Vec::new(),
+    }
 }
 
 #[allow(clippy::too_many_lines)]
@@ -193,14 +269,115 @@ pub(super) fn write_run_manifest(
     let defaults_path = out_dir.join("defaults_ledger.json");
     let defaults_hash =
         bijux_infra::hash_file_sha256(&defaults_path).context("hash defaults_ledger.json")?;
-    let _pipeline_id = std::env::var("BIJUX_PIPELINE_ID").unwrap_or_else(|_| "unknown".to_string());
-    let _git_commit = std::env::var("BIJUX_GIT_COMMIT").unwrap_or_else(|_| "unknown".to_string());
-    let _build_profile =
-        std::env::var("BIJUX_BUILD_PROFILE").unwrap_or_else(|_| "unknown".to_string());
+    let defaults_payload = read_json_if_exists(&defaults_path);
+    let pipeline_id = defaults_payload
+        .as_ref()
+        .and_then(|value| value.get("pipeline_id"))
+        .and_then(serde_json::Value::as_str)
+        .map(str::to_string)
+        .or_else(|| std::env::var("BIJUX_PIPELINE_ID").ok())
+        .unwrap_or_else(|| "unknown".to_string());
+    let profile_id = defaults_payload
+        .as_ref()
+        .and_then(|value| value.get("profile_id"))
+        .and_then(serde_json::Value::as_str)
+        .map(str::to_string)
+        .or_else(|| std::env::var("BIJUX_PROFILE_ID").ok())
+        .unwrap_or_else(|| "unknown".to_string());
+    let graph_hash = std::env::var("BIJUX_PLAN_HASH").ok().unwrap_or_else(|| {
+        let steps = stage_runs.iter().map(|entry| entry.plan.clone()).collect();
+        ExecutionGraph::new(
+            pipeline_id.clone(),
+            "unknown",
+            PlanPolicy::PreferAccuracy,
+            steps,
+            Vec::new(),
+        )
+        .and_then(|graph| graph.plan_hash())
+        .unwrap_or_else(|_| "unknown".to_string())
+    });
+    let toolchain_versions = serde_json::json!({
+        "planner": std::env::var("BIJUX_PLANNER_VERSION").unwrap_or_else(|_| "unknown".to_string()),
+        "engine": std::env::var("BIJUX_ENGINE_VERSION").unwrap_or_else(|_| "unknown".to_string()),
+        "runner": std::env::var("BIJUX_RUNNER_VERSION").unwrap_or_else(|_| "unknown".to_string()),
+    });
+    let mut dataset_fingerprints = Vec::new();
+    for entry in stage_runs {
+        let metrics_path = bijux_runtime::recording::run_artifacts_dir_for_out(&entry.plan.out_dir)
+            .join("metrics_envelope.json");
+        if let Some(value) = read_json_if_exists(&metrics_path) {
+            if let Some(hash) = value
+                .get("input_fingerprint")
+                .and_then(serde_json::Value::as_str)
+            {
+                dataset_fingerprints.push(hash.to_string());
+            }
+        }
+    }
+    dataset_fingerprints.sort();
+    dataset_fingerprints.dedup();
+    let output_artifacts: Vec<serde_json::Value> = stage_runs
+        .iter()
+        .flat_map(|entry| {
+            entry.plan.io.outputs.iter().map(|artifact| {
+                let sha256 = artifact
+                    .path
+                    .exists()
+                    .then(|| bijux_infra::hash_file_sha256(&artifact.path).ok())
+                    .flatten();
+                serde_json::json!({
+                    "stage_id": entry.plan.step_id.0,
+                    "name": artifact.name,
+                    "role": artifact.role.as_str(),
+                    "optional": artifact.optional,
+                    "path": relative_path_string(out_dir, &artifact.path),
+                    "sha256": sha256,
+                })
+            })
+        })
+        .collect::<Vec<_>>();
+    let root = bijux_runtime::recording::run_artifacts_dir_for_out(out_dir);
+    let mut output_artifacts = output_artifacts;
+    for (name, role, path) in [
+        (
+            "summary",
+            bijux_core::contract::ArtifactRole::SummaryJson,
+            root.join("summary.json"),
+        ),
+        (
+            "summary_tsv",
+            bijux_core::contract::ArtifactRole::SummaryTsv,
+            root.join("summary.tsv"),
+        ),
+        (
+            "report_html",
+            bijux_core::contract::ArtifactRole::ReportHtml,
+            root.join("report.html"),
+        ),
+    ] {
+        let sha256 = path
+            .exists()
+            .then(|| bijux_infra::hash_file_sha256(&path).ok())
+            .flatten();
+        output_artifacts.push(serde_json::json!({
+            "stage_id": "report.aggregate",
+            "name": name,
+            "role": role.as_str(),
+            "optional": false,
+            "path": relative_path_string(out_dir, &path),
+            "sha256": sha256,
+        }));
+    }
     let run_provenance = run_provenance_from_stage_runs(out_dir, stage_runs);
     let manifest = serde_json::json!({
-        "schema_version": "bijux.run_manifest.v1",
+        "schema_version": "bijux.run_manifest.v2",
         "run_id": run_id,
+        "pipeline_id": pipeline_id,
+        "profile_id": profile_id,
+        "graph_hash": graph_hash,
+        "toolchain_versions": toolchain_versions,
+        "dataset_fingerprints": dataset_fingerprints,
+        "output_artifacts": output_artifacts,
         "stages": stages,
         "failures": failures_json,
         "defaults_ledger": relative_path_string(out_dir, &defaults_path),
@@ -222,7 +399,10 @@ pub(super) fn write_run_manifest(
     Ok(())
 }
 
-fn write_scientific_provenance(out_dir: &Path, stage_runs: &[StageExecutionSummary]) -> Result<()> {
+pub(super) fn write_scientific_provenance(
+    out_dir: &Path,
+    stage_runs: &[StageExecutionSummary],
+) -> Result<()> {
     let defaults_path = out_dir.join("defaults_ledger.json");
     let (pipeline_id, planner_version) = if defaults_path.exists() {
         let raw = fs::read_to_string(&defaults_path)?;
@@ -239,7 +419,7 @@ fn write_scientific_provenance(out_dir: &Path, stage_runs: &[StageExecutionSumma
         ("unknown".to_string(), "unknown".to_string())
     };
     let mut invocations = Vec::new();
-    let mut params_hashes = std::collections::BTreeMap::new();
+    let mut parameters_fingerprints = std::collections::BTreeMap::new();
     for entry in stage_runs {
         let artifacts_dir =
             bijux_runtime::recording::run_artifacts_dir_for_out(&entry.plan.out_dir);
@@ -255,11 +435,10 @@ fn write_scientific_provenance(out_dir: &Path, stage_runs: &[StageExecutionSumma
                 let metrics_raw = fs::read_to_string(&metrics_path)?;
                 if let Ok(metrics) = serde_json::from_str::<serde_json::Value>(&metrics_raw) {
                     if let Some(params_hash) = metrics
-                        .get("context")
-                        .and_then(|ctx| ctx.get("params_hash"))
+                        .get("parameters_fingerprint")
                         .and_then(|v| v.as_str())
                     {
-                        params_hashes.insert(key, params_hash.to_string());
+                        parameters_fingerprints.insert(key, params_hash.to_string());
                     }
                 }
             }
@@ -269,7 +448,7 @@ fn write_scientific_provenance(out_dir: &Path, stage_runs: &[StageExecutionSumma
     let provenance = bijux_runtime::provenance::build_scientific_provenance(
         pipeline_id,
         planner_version,
-        &params_hashes,
+        &parameters_fingerprints,
         &invocations,
     );
     bijux_runtime::recording::write_scientific_provenance(out_dir, &provenance)?;
@@ -306,10 +485,16 @@ fn run_provenance_from_stage_runs(
             bijux_runtime::recording::run_artifacts_dir_for_out(&entry.plan.out_dir)
                 .join("metrics_envelope.json");
         if let Some(value) = read_json_if_exists(&envelope_path) {
-            if let Some(hash) = value.get("input_hash").and_then(serde_json::Value::as_str) {
+            if let Some(hash) = value
+                .get("input_fingerprint")
+                .and_then(serde_json::Value::as_str)
+            {
                 input_hashes.push(hash.to_string());
             }
-            if let Some(hash) = value.get("params_hash").and_then(serde_json::Value::as_str) {
+            if let Some(hash) = value
+                .get("parameters_fingerprint")
+                .and_then(serde_json::Value::as_str)
+            {
                 params_by_stage.insert(entry.plan.step_id.to_string(), hash.to_string());
             }
         }
@@ -392,6 +577,16 @@ fn render_run_summary_html(summary: &serde_json::Value) -> String {
 pub(crate) struct StageExecutionSummary {
     pub plan: ExecutionStep,
     pub result: StageResultV1,
+}
+
+#[derive(Debug, Clone)]
+#[allow(dead_code, clippy::struct_field_names)]
+pub(super) struct ReportArtifacts {
+    pub run_summary_path: std::path::PathBuf,
+    pub run_summary_html_path: std::path::PathBuf,
+    pub summary_json_path: std::path::PathBuf,
+    pub summary_tsv_path: std::path::PathBuf,
+    pub report_html_path: std::path::PathBuf,
 }
 
 #[cfg(test)]
@@ -520,14 +715,16 @@ mod tests {
                 threads: 1,
             },
             io: StageIO {
-                inputs: vec![bijux_stage_contract::ArtifactRef {
-                    name: "input".to_string(),
-                    path: PathBuf::from("input.fastq.gz"),
-                }],
-                outputs: vec![bijux_stage_contract::ArtifactRef {
-                    name: "output".to_string(),
-                    path: PathBuf::from("output.fastq.gz"),
-                }],
+                inputs: vec![bijux_stage_contract::ArtifactRef::required(
+                    "input",
+                    PathBuf::from("input.fastq.gz"),
+                    bijux_core::contract::ArtifactRole::Reads,
+                )],
+                outputs: vec![bijux_stage_contract::ArtifactRef::required(
+                    "output",
+                    PathBuf::from("output.fastq.gz"),
+                    bijux_core::contract::ArtifactRole::Reads,
+                )],
             },
             out_dir: stage_out.clone(),
             params: serde_json::json!({"sample_id":"s1"}),
@@ -574,9 +771,17 @@ mod tests {
             &invocation,
         )?;
         let metrics_envelope = serde_json::json!({
-            "context": {
-                "params_hash": "params"
-            }
+            "schema_version": "bijux.metrics_envelope.v2",
+            "stage_id": plan.stage_id.0,
+            "stage_version": 1,
+            "tool_id": plan.tool_id.0,
+            "tool_version": plan.tool_version,
+            "image_digest": "sha256:img",
+            "parameters_fingerprint": "params",
+            "input_fingerprint": "sha256:input",
+            "parameters_json_normalized": serde_json::json!({"min_len": 10}),
+            "input_hashes": ["sha256:input"],
+            "metrics": {}
         });
         bijux_infra::atomic_write_json(
             &artifacts.join("metrics_envelope.json"),

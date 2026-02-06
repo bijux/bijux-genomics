@@ -8,7 +8,7 @@ use sha2::Digest;
 use bijux_infra::bench_tools_dir;
 
 use crate::StageObservabilityContextV1;
-use bijux_core::metrics::ToolInvocationV1;
+use bijux_core::metrics::{MetricsEnvelope, ToolInvocationV1};
 use bijux_core::plan::execution_graph::ExecutionGraph;
 use bijux_core::primitives::hashing::params_hash;
 use serde::Serialize;
@@ -26,22 +26,6 @@ pub struct RunDirs {
 pub struct RunArtifactInput {
     pub name: &'static str,
     pub path: PathBuf,
-}
-
-#[derive(Debug, Serialize)]
-pub struct MetricsEnvelopeV1 {
-    pub schema_version: &'static str,
-    pub stage_id: String,
-    pub stage_version: i32,
-    pub tool_id: String,
-    pub tool_version: String,
-    pub context: bijux_core::metrics::MetricContextV1,
-    pub input_hash: String,
-    pub params_hash: String,
-    pub parameters_json: serde_json::Value,
-    pub execution: bijux_core::primitives::measure::ExecutionMetrics,
-    pub metrics: serde_json::Value,
-    pub output_hashes: Vec<String>,
 }
 
 #[derive(Debug)]
@@ -153,7 +137,7 @@ pub fn prepare_tool_run_dirs(tools_root: &Path, tool: &str, run_id: &str) -> Res
 pub fn write_run_manifest(
     run_dirs: &RunDirs,
     stage: &str,
-    tool: &str,
+    _tool: &str,
     run_provenance: &crate::RunProvenanceV1,
     extra_artifacts: &[RunArtifactInput],
 ) -> Result<()> {
@@ -178,11 +162,42 @@ pub fn write_run_manifest(
             "sha256": hash
         }));
     }
+    let pipeline_id = std::env::var("BIJUX_PIPELINE_ID")
+        .ok()
+        .unwrap_or_else(|| run_provenance.pipeline_id.clone());
+    let profile_id = std::env::var("BIJUX_PROFILE_ID").unwrap_or_else(|_| "unknown".to_string());
+    let graph_hash = run_provenance
+        .plan_hash
+        .clone()
+        .or_else(|| std::env::var("BIJUX_PLAN_HASH").ok())
+        .unwrap_or_else(|| "unknown".to_string());
+    let output_artifacts: Vec<serde_json::Value> = artifacts
+        .iter()
+        .map(|artifact| {
+            serde_json::json!({
+                "stage_id": stage,
+                "name": artifact.get("name").cloned().unwrap_or_default(),
+                "role": "unknown",
+                "optional": false,
+                "path": artifact.get("path").cloned().unwrap_or_default(),
+                "sha256": artifact.get("sha256").cloned().unwrap_or_default(),
+            })
+        })
+        .collect();
     let payload = serde_json::json!({
-        "schema_version": "bijux.run_manifest.v1",
-        "stage": stage,
-        "tool": tool,
-        "artifacts": artifacts,
+        "schema_version": "bijux.run_manifest.v2",
+        "run_id": "unknown",
+        "pipeline_id": pipeline_id,
+        "profile_id": profile_id,
+        "graph_hash": graph_hash,
+        "toolchain_versions": {
+            "planner": std::env::var("BIJUX_PLANNER_VERSION").unwrap_or_else(|_| "unknown".to_string()),
+            "engine": std::env::var("BIJUX_ENGINE_VERSION").unwrap_or_else(|_| "unknown".to_string()),
+        },
+        "dataset_fingerprints": run_provenance.input_hashes.clone(),
+        "output_artifacts": output_artifacts,
+        "stages": [],
+        "failures": [],
         "run_provenance": run_provenance,
         "telemetry": {
             "events_jsonl": run_artifacts_dir(run_dirs)?.join("telemetry").join("events.jsonl"),
@@ -421,25 +436,25 @@ pub fn run_artifacts_dir_for_out(out_dir: &Path) -> PathBuf {
 pub fn write_metrics_envelope(
     run_artifacts_dir: &Path,
     ctx: &StageObservabilityContextV1,
-    execution: &bijux_core::primitives::measure::ExecutionMetrics,
     metrics: &serde_json::Value,
-    output_hashes: &[String],
+    input_hashes: &[String],
 ) -> Result<PathBuf> {
-    let canonical_params =
-        bijux_core::primitives::hashing::parameters_json_canonicalization(&ctx.parameters_json);
-    let payload = MetricsEnvelopeV1 {
-        schema_version: "bijux.metrics_envelope.v1",
+    let payload: MetricsEnvelope<serde_json::Value> = MetricsEnvelope {
+        schema_version: "bijux.metrics_envelope.v2".to_string(),
         stage_id: ctx.stage_id.clone(),
         stage_version: ctx.stage_version,
         tool_id: ctx.tool_id.clone(),
         tool_version: ctx.tool_version.clone(),
-        context: ctx.metric_context.clone(),
-        input_hash: ctx.input_hash.clone(),
-        params_hash: ctx.params_hash.clone(),
-        parameters_json: canonical_params,
-        execution: *execution,
+        image_digest: ctx
+            .metric_context
+            .image_digest
+            .clone()
+            .unwrap_or_else(|| "unknown".to_string()),
+        parameters_fingerprint: ctx.parameters_fingerprint.clone(),
+        input_fingerprint: ctx.input_fingerprint.clone(),
+        parameters_json_normalized: ctx.parameters_json_normalized.clone(),
+        input_hashes: input_hashes.to_vec(),
         metrics: metrics.clone(),
-        output_hashes: output_hashes.to_vec(),
     };
     let path = run_artifacts_dir.join("metrics_envelope.json");
     bijux_infra::atomic_write_json(&path, &payload).context("write metrics_envelope.json")?;
