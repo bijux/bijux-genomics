@@ -13,6 +13,7 @@ serde_json = { workspace = true }
 
 [dev-dependencies]
 bijux-policies = { path = "../bijux-policies" }
+bijux-infra = { path = "../bijux-infra" }
 insta = { version = "1", features = ["json"] }
 serde_json.workspace = true
 

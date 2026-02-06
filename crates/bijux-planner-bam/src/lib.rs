@@ -2,23 +2,24 @@ use std::collections::BTreeMap;
 use std::path::PathBuf;
 
 use anyhow::{anyhow, Result};
-use bijux_core::plan::execution_plan::{default_edges_for_stages, ExecutionPlan, PlanPolicy};
+use bijux_core::plan::execution_graph::{ExecutionEdge, ExecutionGraph, ExecutionStep};
+use bijux_core::plan::execution_plan::default_edges_for_stages;
 use bijux_core::plan::stage_plan::StagePlanV1;
+use bijux_core::plan::PlanPolicy;
+use bijux_core::StageId;
 use bijux_domain_bam::BamStage;
 use bijux_pipelines::bam::{bam_adna_capture_profile, bam_adna_shotgun_profile};
 use bijux_pipelines::PipelineProfile;
-use bijux_stages_bam::StagePlanRequest;
 
 pub const PLANNER_VERSION: &str = "bijux-planner-bam.v1";
 
+pub mod tool_adapters;
+mod tool_registry;
+
 pub mod stage_api {
-    pub use bijux_domain_bam::params;
-    pub use bijux_domain_bam::types;
-    pub use bijux_domain_bam::*;
-    pub use bijux_domain_bam::{bam_stage_completeness, stage_spec, BamStage};
-    pub use bijux_stages_bam::bam_tools_registry::allowed_tools_for_stage;
-    pub use bijux_stages_bam::plan_stage;
-    pub use bijux_stages_bam::StagePlanRequest;
+    pub use crate::tool_registry::allowed_tools_for_stage;
+    pub use crate::{plan_stage, StagePlanRequest};
+    pub use bijux_stages_bam::stage_specs::*;
 }
 
 #[derive(Debug, Clone)]
@@ -33,14 +34,22 @@ pub struct BamPlanner;
 impl BamPlanner {
     /// # Errors
     /// Returns an error if the plan lint fails.
-    pub fn plan(config: &BamPlanConfig) -> Result<ExecutionPlan> {
+    pub fn plan(config: &BamPlanConfig) -> Result<ExecutionGraph> {
         let edges = default_edges_for_stages(&config.stages);
-        ExecutionPlan::new(
+        ExecutionGraph::new(
             config.pipeline_id.clone(),
             PLANNER_VERSION,
             config.policy,
-            config.stages.clone(),
-            edges,
+            config.stages.iter().map(ExecutionStep::from).collect(),
+            edges
+                .into_iter()
+                .map(|edge| {
+                    ExecutionEdge::new(
+                        StageId::new(edge.from().to_string()),
+                        StageId::new(edge.to().to_string()),
+                    )
+                })
+                .collect(),
         )
     }
 }
@@ -57,10 +66,271 @@ pub struct BamPipelineInputs {
     pub out_dir: PathBuf,
 }
 
+pub struct StagePlanRequest<'a> {
+    pub stage_id: &'a str,
+    pub tool: &'a bijux_core::contract::ToolExecutionSpecV1,
+    pub out_dir: &'a std::path::Path,
+    pub bam: Option<&'a std::path::Path>,
+    pub bam_index: Option<&'a std::path::Path>,
+    pub r1: Option<&'a std::path::Path>,
+    pub r2: Option<&'a std::path::Path>,
+    pub reference: Option<&'a std::path::Path>,
+    pub sample_id: Option<&'a str>,
+    pub params: Option<&'a serde_json::Value>,
+}
+
+fn effective_params_for_stage(
+    stage: bijux_domain_bam::BamStage,
+    params: Option<&serde_json::Value>,
+) -> Result<bijux_domain_bam::params::BamEffectiveParams> {
+    if let Some(value) = params {
+        return stage.parse_effective_params(value);
+    }
+    Ok(bijux_domain_bam::stage_spec(stage).default_params.clone())
+}
+
+/// # Errors
+/// Returns an error if the stage cannot be planned with the provided inputs.
+#[allow(clippy::needless_pass_by_value, clippy::too_many_lines)]
+pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
+    let stage = bijux_domain_bam::BamStage::try_from(request.stage_id)?;
+    match stage {
+        bijux_domain_bam::BamStage::Align => {
+            let r1 = request.r1.ok_or_else(|| anyhow!("align requires r1"))?;
+            let reference = request
+                .reference
+                .ok_or_else(|| anyhow!("align requires reference"))?;
+            let sample_id = request
+                .sample_id
+                .ok_or_else(|| anyhow!("align requires sample_id"))?;
+            let params = effective_params_for_stage(stage, request.params)?;
+            let bijux_domain_bam::params::BamEffectiveParams::Align(params) = params else {
+                return Err(anyhow!("align params mismatch"));
+            };
+            tool_adapters::stages_pre::align::plan(
+                request.tool,
+                r1,
+                request.r2,
+                reference,
+                sample_id,
+                &params,
+                request.out_dir,
+            )
+        }
+        bijux_domain_bam::BamStage::Validate => {
+            let bam = request
+                .bam
+                .ok_or_else(|| anyhow!("validate requires bam"))?;
+            tool_adapters::stages_pre::validate::plan(
+                request.tool,
+                bam,
+                request.bam_index,
+                request.reference,
+                request.out_dir,
+            )
+        }
+        bijux_domain_bam::BamStage::QcPre => {
+            let bam = request.bam.ok_or_else(|| anyhow!("qc_pre requires bam"))?;
+            tool_adapters::stages_pre::qc_pre::plan(request.tool, bam, request.out_dir)
+        }
+        bijux_domain_bam::BamStage::Filter => {
+            let bam = request.bam.ok_or_else(|| anyhow!("filter requires bam"))?;
+            let params = effective_params_for_stage(stage, request.params)?;
+            let bijux_domain_bam::params::BamEffectiveParams::Filter(params) = params else {
+                return Err(anyhow!("filter params mismatch"));
+            };
+            tool_adapters::stages_pre::filter::plan(request.tool, bam, request.out_dir, &params)
+        }
+        bijux_domain_bam::BamStage::Markdup => {
+            let bam = request.bam.ok_or_else(|| anyhow!("markdup requires bam"))?;
+            let params = effective_params_for_stage(stage, request.params)?;
+            let bijux_domain_bam::params::BamEffectiveParams::Markdup(params) = params else {
+                return Err(anyhow!("markdup params mismatch"));
+            };
+            tool_adapters::stages_post::markdup::plan(request.tool, bam, request.out_dir, &params)
+        }
+        bijux_domain_bam::BamStage::Complexity => {
+            let bam = request
+                .bam
+                .ok_or_else(|| anyhow!("complexity requires bam"))?;
+            let params = effective_params_for_stage(stage, request.params)?;
+            let bijux_domain_bam::params::BamEffectiveParams::Complexity(params) = params else {
+                return Err(anyhow!("complexity params mismatch"));
+            };
+            tool_adapters::stages_post::complexity::plan(
+                request.tool,
+                bam,
+                request.out_dir,
+                &params,
+            )
+        }
+        bijux_domain_bam::BamStage::Coverage => {
+            let bam = request
+                .bam
+                .ok_or_else(|| anyhow!("coverage requires bam"))?;
+            let params = effective_params_for_stage(stage, request.params)?;
+            let bijux_domain_bam::params::BamEffectiveParams::Coverage(params) = params else {
+                return Err(anyhow!("coverage params mismatch"));
+            };
+            tool_adapters::stages_post::coverage::plan(request.tool, bam, request.out_dir, &params)
+        }
+        bijux_domain_bam::BamStage::Recalibration => {
+            let bam = request
+                .bam
+                .ok_or_else(|| anyhow!("recalibration requires bam"))?;
+            let params = effective_params_for_stage(stage, request.params)?;
+            let bijux_domain_bam::params::BamEffectiveParams::Recalibration(params) = params else {
+                return Err(anyhow!("recalibration params mismatch"));
+            };
+            tool_adapters::stages_post::recalibration::plan(
+                request.tool,
+                bam,
+                request.out_dir,
+                &params,
+            )
+        }
+        bijux_domain_bam::BamStage::Damage => {
+            let bam = request.bam.ok_or_else(|| anyhow!("damage requires bam"))?;
+            let params = effective_params_for_stage(stage, request.params)?;
+            let bijux_domain_bam::params::BamEffectiveParams::Damage(params) = params else {
+                return Err(anyhow!("damage params mismatch"));
+            };
+            tool_adapters::stages_adna::damage::plan(request.tool, bam, request.out_dir, &params)
+        }
+        bijux_domain_bam::BamStage::Authenticity => {
+            let bam = request
+                .bam
+                .ok_or_else(|| anyhow!("authenticity requires bam"))?;
+            let params = effective_params_for_stage(stage, request.params)?;
+            let bijux_domain_bam::params::BamEffectiveParams::Authenticity(params) = params else {
+                return Err(anyhow!("authenticity params mismatch"));
+            };
+            tool_adapters::stages_adna::authenticity::plan(
+                request.tool,
+                bam,
+                request.out_dir,
+                &params,
+            )
+        }
+        bijux_domain_bam::BamStage::Contamination => {
+            let bam = request
+                .bam
+                .ok_or_else(|| anyhow!("contamination requires bam"))?;
+            let params = effective_params_for_stage(stage, request.params)?;
+            let bijux_domain_bam::params::BamEffectiveParams::Contamination(params) = params else {
+                return Err(anyhow!("contamination params mismatch"));
+            };
+            tool_adapters::stages_adna::contamination::plan(
+                request.tool,
+                bam,
+                request.out_dir,
+                &params,
+            )
+        }
+        bijux_domain_bam::BamStage::Sex => {
+            let bam = request.bam.ok_or_else(|| anyhow!("sex requires bam"))?;
+            let params = effective_params_for_stage(stage, request.params)?;
+            let bijux_domain_bam::params::BamEffectiveParams::Sex(params) = params else {
+                return Err(anyhow!("sex params mismatch"));
+            };
+            tool_adapters::stages_adna::sex::plan(request.tool, bam, request.out_dir, &params)
+        }
+        bijux_domain_bam::BamStage::BiasMitigation => {
+            #[cfg(feature = "bam_downstream")]
+            {
+                let bam = request
+                    .bam
+                    .ok_or_else(|| anyhow!("bias_mitigation requires bam"))?;
+                let params = effective_params_for_stage(stage, request.params)?;
+                let bijux_domain_bam::params::BamEffectiveParams::BiasMitigation(params) = params
+                else {
+                    return Err(anyhow!("bias_mitigation params mismatch"));
+                };
+                tool_adapters::stages_downstream::bias_mitigation::plan(
+                    request.tool,
+                    bam,
+                    request.out_dir,
+                    &params,
+                )
+            }
+            #[cfg(not(feature = "bam_downstream"))]
+            {
+                Err(anyhow!("bias_mitigation requires bam_downstream feature"))
+            }
+        }
+        bijux_domain_bam::BamStage::Haplogroups => {
+            #[cfg(feature = "bam_downstream")]
+            {
+                let bam = request
+                    .bam
+                    .ok_or_else(|| anyhow!("haplogroups requires bam"))?;
+                let params = effective_params_for_stage(stage, request.params)?;
+                let bijux_domain_bam::params::BamEffectiveParams::Haplogroups(params) = params
+                else {
+                    return Err(anyhow!("haplogroups params mismatch"));
+                };
+                tool_adapters::stages_downstream::haplogroups::plan(
+                    request.tool,
+                    bam,
+                    request.out_dir,
+                    &params,
+                )
+            }
+            #[cfg(not(feature = "bam_downstream"))]
+            {
+                Err(anyhow!("haplogroups requires bam_downstream feature"))
+            }
+        }
+        bijux_domain_bam::BamStage::Genotyping => {
+            #[cfg(feature = "bam_downstream")]
+            {
+                let bam = request
+                    .bam
+                    .ok_or_else(|| anyhow!("genotyping requires bam"))?;
+                let params = effective_params_for_stage(stage, request.params)?;
+                let bijux_domain_bam::params::BamEffectiveParams::Genotyping(params) = params
+                else {
+                    return Err(anyhow!("genotyping params mismatch"));
+                };
+                tool_adapters::stages_downstream::genotyping::plan(
+                    request.tool,
+                    bam,
+                    request.out_dir,
+                    &params,
+                )
+            }
+            #[cfg(not(feature = "bam_downstream"))]
+            {
+                Err(anyhow!("genotyping requires bam_downstream feature"))
+            }
+        }
+        bijux_domain_bam::BamStage::Kinship => {
+            #[cfg(feature = "bam_downstream")]
+            {
+                let bam = request.bam.ok_or_else(|| anyhow!("kinship requires bam"))?;
+                let params = effective_params_for_stage(stage, request.params)?;
+                let bijux_domain_bam::params::BamEffectiveParams::Kinship(params) = params else {
+                    return Err(anyhow!("kinship params mismatch"));
+                };
+                tool_adapters::stages_downstream::kinship::plan(
+                    request.tool,
+                    bam,
+                    request.out_dir,
+                    &params,
+                )
+            }
+            #[cfg(not(feature = "bam_downstream"))]
+            {
+                Err(anyhow!("kinship requires bam_downstream feature"))
+            }
+        }
+    }
+}
+
 /// # Errors
 /// Returns an error if pipeline planning fails.
 #[allow(non_snake_case)]
-pub fn plan_bam_to_bam__adna_shotgun__v1(inputs: &BamPipelineInputs) -> Result<ExecutionPlan> {
+pub fn plan_bam_to_bam__adna_shotgun__v1(inputs: &BamPipelineInputs) -> Result<ExecutionGraph> {
     let profile = bam_adna_shotgun_profile();
     build_bam_plan(&profile, inputs)
 }
@@ -68,7 +338,7 @@ pub fn plan_bam_to_bam__adna_shotgun__v1(inputs: &BamPipelineInputs) -> Result<E
 /// # Errors
 /// Returns an error if pipeline planning fails.
 #[allow(non_snake_case)]
-pub fn plan_bam_to_bam__adna_capture__v1(inputs: &BamPipelineInputs) -> Result<ExecutionPlan> {
+pub fn plan_bam_to_bam__adna_capture__v1(inputs: &BamPipelineInputs) -> Result<ExecutionGraph> {
     let profile = bam_adna_capture_profile();
     build_bam_plan(&profile, inputs)
 }
@@ -107,7 +377,7 @@ pub fn pipeline_stage_ids(profile_id: &str) -> Vec<String> {
         .collect()
 }
 
-fn build_bam_plan(profile: &PipelineProfile, inputs: &BamPipelineInputs) -> Result<ExecutionPlan> {
+fn build_bam_plan(profile: &PipelineProfile, inputs: &BamPipelineInputs) -> Result<ExecutionGraph> {
     let mut bam = inputs.bam.clone();
     let mut bam_index = inputs.bam_index.clone();
     let mut stages = Vec::new();
@@ -122,7 +392,7 @@ fn build_bam_plan(profile: &PipelineProfile, inputs: &BamPipelineInputs) -> Resu
             .get(stage_id)
             .or_else(|| profile.defaults.params.get(stage_id));
         let stage_dir = inputs.out_dir.join(stage_id.replace('.', "_"));
-        let plan = bijux_stages_bam::plan_stage(StagePlanRequest {
+        let plan = plan_stage(StagePlanRequest {
             stage_id,
             tool,
             out_dir: &stage_dir,
@@ -155,11 +425,19 @@ fn build_bam_plan(profile: &PipelineProfile, inputs: &BamPipelineInputs) -> Resu
         stages.push(plan);
     }
     let edges = default_edges_for_stages(&stages);
-    ExecutionPlan::new(
+    ExecutionGraph::new(
         profile.id.as_str(),
         PLANNER_VERSION,
         inputs.policy,
-        stages,
-        edges,
+        stages.iter().map(ExecutionStep::from).collect(),
+        edges
+            .into_iter()
+            .map(|edge| {
+                ExecutionEdge::new(
+                    StageId::new(edge.from().to_string()),
+                    StageId::new(edge.to().to_string()),
+                )
+            })
+            .collect(),
     )
 }
