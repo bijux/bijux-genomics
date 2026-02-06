@@ -8,8 +8,8 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::Duration;
 
 use bijux_core::contract::{ArtifactRef, ArtifactRole, StageIO, ToolConstraints};
-use bijux_core::plan::execution_graph::{ExecutionEdge, ExecutionGraph, ExecutionStep};
-use bijux_core::plan::PlanPolicy;
+use bijux_core::execution::execution_graph::{ExecutionEdge, ExecutionGraph, ExecutionStep};
+use bijux_core::execution::PlanPolicy;
 use bijux_core::{CommandSpecV1, ContainerImageRefV1, StageId};
 use bijux_runtime::{Invocation, Runner, RunnerResult};
 
