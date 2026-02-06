@@ -1,8 +1,8 @@
 use anyhow::Result;
+use bijux_core::contract::canonical::parameters_json_canonicalization;
+use bijux_core::contract::ContractVersion;
+use bijux_core::foundation::hashing::{input_fingerprint, parameters_fingerprint};
 use bijux_core::metrics::MetricsEnvelope;
-use bijux_core::primitives::hashing::{
-    input_fingerprint, parameters_fingerprint, parameters_json_canonicalization,
-};
 use bijux_stage_contract::{ArtifactRef, StagePlanV1};
 use bijux_stage_contract::{StageInvocationV1, StagePlugin, StagePluginOutputV1};
 
@@ -60,6 +60,7 @@ impl StagePlugin for FastqStagePlugin {
             .unwrap_or_else(|| plan.image.image.clone());
         let envelope = MetricsEnvelope {
             schema_version: "bijux.metrics_envelope.v2".to_string(),
+            contract_version: ContractVersion::v1(),
             stage_id: plan.stage_id.0.to_string(),
             stage_version: plan.stage_version.0,
             tool_id: plan.tool_id.0.to_string(),
