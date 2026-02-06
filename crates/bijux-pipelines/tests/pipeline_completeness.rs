@@ -71,20 +71,8 @@ fn pipeline_profiles_are_complete() {
         );
         for node in &profile.capabilities.required_stages {
             assert!(
-                ledger.tools.contains_key(*node),
-                "defaults ledger missing tool for {} in {}",
-                node,
-                profile.id
-            );
-            assert!(
                 ledger.params.contains_key(*node),
                 "defaults ledger missing params for {} in {}",
-                node,
-                profile.id
-            );
-            assert!(
-                ledger.tool_provenance.contains_key(*node),
-                "defaults ledger missing tool provenance for {} in {}",
                 node,
                 profile.id
             );

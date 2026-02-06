@@ -13,19 +13,7 @@ expression: fastq_minimal_profile()
     "Fastq"
   ],
   "defaults": {
-    "tools": {
-      "fastq.correct": "rcorrector",
-      "fastq.detect_adapters": "fastqc",
-      "fastq.filter": "fastp",
-      "fastq.merge": "vsearch",
-      "fastq.preprocess": "planner",
-      "fastq.qc_post": "multiqc",
-      "fastq.screen": "kraken2",
-      "fastq.stats_neutral": "seqkit_stats",
-      "fastq.trim": "fastp",
-      "fastq.umi": "umi_tools",
-      "fastq.validate_pre": "fastqvalidator_official"
-    },
+    "tools": {},
     "params": {
       "fastq.correct": {
         "paired_mode": "single_end",
@@ -166,6 +154,6 @@ expression: fastq_minimal_profile()
       "run_manifest.json",
       "stage_summaries.json"
     ],
-    "supports_benchmarking": true
+    "supports_benchmarks": true
   }
 }

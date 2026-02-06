@@ -54,57 +54,57 @@ pub struct StageInfo {
 pub fn registry() -> Vec<StageInfo> {
     vec![
         StageInfo {
-            id: StageId::from_static(crate::tool_adapters::stages_transform::correct::STAGE_ID),
+            id: crate::tool_adapters::stages_transform::correct::STAGE_ID.clone(),
             version: crate::tool_adapters::stages_transform::correct::STAGE_VERSION,
             affects_read_counts: true,
         },
         StageInfo {
-            id: StageId::from_static(crate::tool_adapters::stages_transform::trim::STAGE_ID),
+            id: crate::tool_adapters::stages_transform::trim::STAGE_ID.clone(),
             version: crate::tool_adapters::stages_transform::trim::STAGE_VERSION,
             affects_read_counts: true,
         },
         StageInfo {
-            id: StageId::from_static(crate::tool_adapters::stages_pre::validate_pre::STAGE_ID),
+            id: crate::tool_adapters::stages_pre::validate_pre::STAGE_ID.clone(),
             version: crate::tool_adapters::stages_pre::validate_pre::STAGE_VERSION,
             affects_read_counts: false,
         },
         StageInfo {
-            id: StageId::from_static(crate::tool_adapters::stages_pre::detect_adapters::STAGE_ID),
+            id: crate::tool_adapters::stages_pre::detect_adapters::STAGE_ID.clone(),
             version: crate::tool_adapters::stages_pre::detect_adapters::STAGE_VERSION,
             affects_read_counts: false,
         },
         StageInfo {
-            id: StageId::from_static(crate::tool_adapters::stages_transform::filter::STAGE_ID),
+            id: crate::tool_adapters::stages_transform::filter::STAGE_ID.clone(),
             version: crate::tool_adapters::stages_transform::filter::STAGE_VERSION,
             affects_read_counts: true,
         },
         StageInfo {
-            id: StageId::from_static(crate::tool_adapters::stages_transform::merge::STAGE_ID),
+            id: crate::tool_adapters::stages_transform::merge::STAGE_ID.clone(),
             version: crate::tool_adapters::stages_transform::merge::STAGE_VERSION,
             affects_read_counts: true,
         },
         StageInfo {
-            id: StageId::from_static(crate::tool_adapters::stages_transform::umi::STAGE_ID),
+            id: crate::tool_adapters::stages_transform::umi::STAGE_ID.clone(),
             version: crate::tool_adapters::stages_transform::umi::STAGE_VERSION,
             affects_read_counts: true,
         },
         StageInfo {
-            id: StageId::from_static(crate::tool_adapters::stages_qc::screen::STAGE_ID),
+            id: crate::tool_adapters::stages_qc::screen::STAGE_ID.clone(),
             version: crate::tool_adapters::stages_qc::screen::STAGE_VERSION,
             affects_read_counts: false,
         },
         StageInfo {
-            id: StageId::from_static(crate::tool_adapters::stages_qc::stats_neutral::STAGE_ID),
+            id: crate::tool_adapters::stages_qc::stats_neutral::STAGE_ID.clone(),
             version: crate::tool_adapters::stages_qc::stats_neutral::STAGE_VERSION,
             affects_read_counts: false,
         },
         StageInfo {
-            id: StageId::from_static(crate::tool_adapters::stages_pre::preprocess::STAGE_ID),
+            id: crate::tool_adapters::stages_pre::preprocess::STAGE_ID.clone(),
             version: crate::tool_adapters::stages_pre::preprocess::STAGE_VERSION,
             affects_read_counts: true,
         },
         StageInfo {
-            id: StageId::from_static(crate::tool_adapters::stages_qc::qc_post::STAGE_ID),
+            id: crate::tool_adapters::stages_qc::qc_post::STAGE_ID.clone(),
             version: crate::tool_adapters::stages_qc::qc_post::STAGE_VERSION,
             affects_read_counts: false,
         },

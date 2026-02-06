@@ -1,10 +1,9 @@
 pub mod damage {
     use std::path::Path;
 
-    use bijux_core::{
-        CommandSpecV1, StageIO, StageId, StagePlanV1, StageVersion, ToolExecutionSpecV1,
-    };
+    use bijux_core::{CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1};
     use bijux_domain_bam::params::DamageEffectiveParams;
+    use bijux_stage_contract::{StageIO, StagePlanV1};
 
     pub const STAGE_ID: &str = bijux_domain_bam::BamStage::Damage.as_str();
     pub const STAGE_VERSION: StageVersion = StageVersion(1);
@@ -37,7 +36,7 @@ pub mod damage {
             command: CommandSpecV1 { template: command },
             resources: tool.resources.clone(),
             io: StageIO {
-                inputs: vec![bijux_core::plan::stage_plan::ArtifactRef {
+                inputs: vec![bijux_stage_contract::ArtifactRef {
                     name: "bam".to_string(),
                     path: bam.to_path_buf(),
                 }],
@@ -56,7 +55,7 @@ pub mod damage {
                 serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
             )?,
             aux_images: std::collections::BTreeMap::new(),
-            reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
+            reason: bijux_stage_contract::PlanDecisionReason::default(),
         };
         crate::tool_adapters::stages_support::ensure_required_outputs(
             plan,
@@ -70,8 +69,9 @@ pub mod authenticity {
 
     use std::path::Path;
 
-    use bijux_core::{StageIO, StageId, StagePlanV1, StageVersion, ToolExecutionSpecV1};
+    use bijux_core::{StageId, StageVersion, ToolExecutionSpecV1};
     use bijux_domain_bam::params::AuthenticityEffectiveParams;
+    use bijux_stage_contract::{StageIO, StagePlanV1};
 
     pub const STAGE_ID: &str = bijux_domain_bam::BamStage::Authenticity.as_str();
     pub const STAGE_VERSION: StageVersion = StageVersion(1);
@@ -97,7 +97,7 @@ pub mod authenticity {
             command: tool.command.clone(),
             resources: tool.resources.clone(),
             io: StageIO {
-                inputs: vec![bijux_core::plan::stage_plan::ArtifactRef {
+                inputs: vec![bijux_stage_contract::ArtifactRef {
                     name: "bam".to_string(),
                     path: bam.to_path_buf(),
                 }],
@@ -112,7 +112,7 @@ pub mod authenticity {
                 serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
             )?,
             aux_images: std::collections::BTreeMap::new(),
-            reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
+            reason: bijux_stage_contract::PlanDecisionReason::default(),
         };
         crate::tool_adapters::stages_support::ensure_required_outputs(
             plan,
@@ -124,10 +124,9 @@ pub mod authenticity {
 pub mod contamination {
     use std::path::Path;
 
-    use bijux_core::{
-        CommandSpecV1, StageIO, StageId, StagePlanV1, StageVersion, ToolExecutionSpecV1,
-    };
+    use bijux_core::{CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1};
     use bijux_domain_bam::params::ContaminationEffectiveParams;
+    use bijux_stage_contract::{StageIO, StagePlanV1};
 
     pub const STAGE_ID: &str = bijux_domain_bam::BamStage::Contamination.as_str();
     pub const STAGE_VERSION: StageVersion = StageVersion(1);
@@ -159,7 +158,7 @@ pub mod contamination {
             },
             resources: tool.resources.clone(),
             io: StageIO {
-                inputs: vec![bijux_core::plan::stage_plan::ArtifactRef {
+                inputs: vec![bijux_stage_contract::ArtifactRef {
                     name: "bam".to_string(),
                     path: bam.to_path_buf(),
                 }],
@@ -178,7 +177,7 @@ pub mod contamination {
                 serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
             )?,
             aux_images: std::collections::BTreeMap::new(),
-            reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
+            reason: bijux_stage_contract::PlanDecisionReason::default(),
         };
         crate::tool_adapters::stages_support::ensure_required_outputs(
             plan,
@@ -190,8 +189,9 @@ pub mod contamination {
 pub mod sex {
     use std::path::Path;
 
-    use bijux_core::{StageIO, StageId, StagePlanV1, StageVersion, ToolExecutionSpecV1};
+    use bijux_core::{StageId, StageVersion, ToolExecutionSpecV1};
     use bijux_domain_bam::params::SexEffectiveParams;
+    use bijux_stage_contract::{StageIO, StagePlanV1};
 
     pub const STAGE_ID: &str = bijux_domain_bam::BamStage::Sex.as_str();
     pub const STAGE_VERSION: StageVersion = StageVersion(1);
@@ -223,7 +223,7 @@ pub mod sex {
             },
             resources: tool.resources.clone(),
             io: StageIO {
-                inputs: vec![bijux_core::plan::stage_plan::ArtifactRef {
+                inputs: vec![bijux_stage_contract::ArtifactRef {
                     name: "bam".to_string(),
                     path: bam.to_path_buf(),
                 }],
@@ -239,7 +239,7 @@ pub mod sex {
                 serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
             )?,
             aux_images: std::collections::BTreeMap::new(),
-            reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
+            reason: bijux_stage_contract::PlanDecisionReason::default(),
         };
         crate::tool_adapters::stages_support::ensure_required_outputs(
             plan,

@@ -1,10 +1,9 @@
 pub mod markdup {
     use std::path::Path;
 
-    use bijux_core::{
-        CommandSpecV1, StageIO, StageId, StagePlanV1, StageVersion, ToolExecutionSpecV1,
-    };
+    use bijux_core::{CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1};
     use bijux_domain_bam::params::MarkDupEffectiveParams;
+    use bijux_stage_contract::{StageIO, StagePlanV1};
 
     pub const STAGE_ID: &str = bijux_domain_bam::BamStage::Markdup.as_str();
     pub const STAGE_VERSION: StageVersion = StageVersion(1);
@@ -58,7 +57,7 @@ pub mod markdup {
             command: CommandSpecV1 { template: command },
             resources: tool.resources.clone(),
             io: StageIO {
-                inputs: vec![bijux_core::plan::stage_plan::ArtifactRef {
+                inputs: vec![bijux_stage_contract::ArtifactRef {
                     name: "bam".to_string(),
                     path: bam.to_path_buf(),
                 }],
@@ -75,7 +74,7 @@ pub mod markdup {
                 serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
             )?,
             aux_images: std::collections::BTreeMap::new(),
-            reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
+            reason: bijux_stage_contract::PlanDecisionReason::default(),
         };
         crate::tool_adapters::stages_support::ensure_required_outputs(
             plan,
@@ -96,8 +95,9 @@ pub mod markdup {
 pub mod complexity {
     use std::path::Path;
 
-    use bijux_core::{StageIO, StageId, StagePlanV1, StageVersion, ToolExecutionSpecV1};
+    use bijux_core::{StageId, StageVersion, ToolExecutionSpecV1};
     use bijux_domain_bam::params::ComplexityEffectiveParams;
+    use bijux_stage_contract::{StageIO, StagePlanV1};
 
     pub const STAGE_ID: &str = bijux_domain_bam::BamStage::Complexity.as_str();
     pub const STAGE_VERSION: StageVersion = StageVersion(1);
@@ -123,7 +123,7 @@ pub mod complexity {
             command: tool.command.clone(),
             resources: tool.resources.clone(),
             io: StageIO {
-                inputs: vec![bijux_core::plan::stage_plan::ArtifactRef {
+                inputs: vec![bijux_stage_contract::ArtifactRef {
                     name: "bam".to_string(),
                     path: bam.to_path_buf(),
                 }],
@@ -139,7 +139,7 @@ pub mod complexity {
                 serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
             )?,
             aux_images: std::collections::BTreeMap::new(),
-            reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
+            reason: bijux_stage_contract::PlanDecisionReason::default(),
         };
         crate::tool_adapters::stages_support::ensure_required_outputs(
             plan,
@@ -151,10 +151,9 @@ pub mod complexity {
 pub mod coverage {
     use std::path::Path;
 
-    use bijux_core::{
-        CommandSpecV1, StageIO, StageId, StagePlanV1, StageVersion, ToolExecutionSpecV1,
-    };
+    use bijux_core::{CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1};
     use bijux_domain_bam::params::CoverageEffectiveParams;
+    use bijux_stage_contract::{StageIO, StagePlanV1};
 
     pub const STAGE_ID: &str = bijux_domain_bam::BamStage::Coverage.as_str();
     pub const STAGE_VERSION: StageVersion = StageVersion(1);
@@ -176,7 +175,7 @@ pub mod coverage {
         let summary_path = out_dir.join("coverage.mosdepth.summary.txt");
         let command = match tool.tool_id.as_str() {
             "samtools" => {
-                outputs.push(bijux_core::plan::stage_plan::ArtifactRef {
+                outputs.push(bijux_stage_contract::ArtifactRef {
                     name: "coverage_depth".to_string(),
                     path: depth_path.clone(),
                 });
@@ -193,7 +192,7 @@ pub mod coverage {
             command: CommandSpecV1 { template: command },
             resources: tool.resources.clone(),
             io: StageIO {
-                inputs: vec![bijux_core::plan::stage_plan::ArtifactRef {
+                inputs: vec![bijux_stage_contract::ArtifactRef {
                     name: "bam".to_string(),
                     path: bam.to_path_buf(),
                 }],
@@ -209,7 +208,7 @@ pub mod coverage {
                 serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
             )?,
             aux_images: std::collections::BTreeMap::new(),
-            reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
+            reason: bijux_stage_contract::PlanDecisionReason::default(),
         };
         crate::tool_adapters::stages_support::ensure_required_outputs(
             plan,
@@ -221,8 +220,9 @@ pub mod coverage {
 pub mod recalibration {
     use std::path::Path;
 
-    use bijux_core::{StageIO, StageId, StagePlanV1, StageVersion, ToolExecutionSpecV1};
+    use bijux_core::{StageId, StageVersion, ToolExecutionSpecV1};
     use bijux_domain_bam::params::BqsrEffectiveParams;
+    use bijux_stage_contract::{StageIO, StagePlanV1};
 
     pub const STAGE_ID: &str = bijux_domain_bam::BamStage::Recalibration.as_str();
     pub const STAGE_VERSION: StageVersion = StageVersion(1);
@@ -248,7 +248,7 @@ pub mod recalibration {
             command: tool.command.clone(),
             resources: tool.resources.clone(),
             io: StageIO {
-                inputs: vec![bijux_core::plan::stage_plan::ArtifactRef {
+                inputs: vec![bijux_stage_contract::ArtifactRef {
                     name: "bam".to_string(),
                     path: bam.to_path_buf(),
                 }],
@@ -265,7 +265,7 @@ pub mod recalibration {
                 serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
             )?,
             aux_images: std::collections::BTreeMap::new(),
-            reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
+            reason: bijux_stage_contract::PlanDecisionReason::default(),
         };
         crate::tool_adapters::stages_support::ensure_required_outputs(
             plan,

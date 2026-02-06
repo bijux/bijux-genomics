@@ -2,27 +2,27 @@ use std::collections::BTreeMap;
 use std::path::PathBuf;
 
 use anyhow::{anyhow, Result};
-use bijux_analyze::load::sqlite::BenchResultsRepository;
 use bijux_core::contract::PipelineSpec;
-use bijux_core::plan::execution_graph::{ExecutionEdge, ExecutionGraph, ExecutionStep};
-use bijux_core::plan::execution_plan::default_edges_for_stages;
+use bijux_core::plan::execution_graph::{ExecutionEdge, ExecutionGraph};
 use bijux_core::plan::PlanPolicy;
 use bijux_core::primitives::input_assessment::{assess_input_dir, FastqLayout};
-use bijux_core::{
-    ContainerImageRefV1, PlanDecisionReason, PlanReasonKind, StageId, StagePlanV1,
-    ToolExecutionSpecV1,
-};
+use bijux_core::{ContainerImageRefV1, StageId, ToolExecutionSpecV1};
 use bijux_domain_bam::BamStage;
-use bijux_domain_fastq::stage_registry::{
+use bijux_domain_fastq::{assess_merge_suitability, canonical_stage_order};
+use bijux_domain_fastq::{
     STAGE_CORRECT, STAGE_DETECT_ADAPTERS, STAGE_FILTER, STAGE_MERGE, STAGE_PREFIX,
     STAGE_PREPROCESS, STAGE_QC_POST, STAGE_SCREEN, STAGE_STATS_NEUTRAL, STAGE_TRIM, STAGE_UMI,
     STAGE_VALIDATE_PRE,
 };
-use bijux_domain_fastq::{assess_merge_suitability, canonical_stage_order};
-use bijux_pipelines::fastq::canonical_tool_defaults;
+use bijux_pipelines::STAGE_CORE_PREPARE_REFERENCE;
+use bijux_stage_contract::{
+    default_edges_for_stages, PlanDecisionReason, PlanReasonKind, StagePlanV1,
+};
 
 pub const PLANNER_VERSION: &str = "bijux-planner-fastq.v1";
 pub const TOOL_SEQKIT: &str = "seqkit";
+
+pub use bijux_domain_fastq::BenchResultsRepository;
 
 pub mod args;
 pub mod tool_adapters;
@@ -48,7 +48,7 @@ pub mod stage_api {
         FastqArtifactKind,
     };
     pub use bijux_stages_fastq::stage_specs::*;
-    pub type StagePlanJson = bijux_core::StagePlanJsonV1;
+    pub type StagePlanJson = bijux_stage_contract::StagePlanJsonV1;
     pub fn adapter_bank_path() -> std::path::PathBuf {
         bijux_domain_fastq::adapter_bank_path()
     }
@@ -438,7 +438,10 @@ impl FastqPlanner {
             config.pipeline_id.clone(),
             PLANNER_VERSION,
             config.policy,
-            plans.iter().map(ExecutionStep::from).collect(),
+            plans
+                .iter()
+                .map(bijux_stage_contract::execution_step_from_stage_plan)
+                .collect(),
             edges
                 .into_iter()
                 .map(|edge| {
@@ -505,7 +508,10 @@ pub fn plan_fastq_to_bam__default__v1(
         "fastq-to-bam__default__v1",
         PLANNER_VERSION,
         policy,
-        stages.iter().map(ExecutionStep::from).collect(),
+        stages
+            .iter()
+            .map(bijux_stage_contract::execution_step_from_stage_plan)
+            .collect(),
         edges
             .into_iter()
             .map(|edge| {
@@ -523,7 +529,7 @@ pub fn cross_fastq_to_bam_stage_ids(profile_id: &str) -> Vec<String> {
     match profile_id {
         "fastq-to-bam__adna_shotgun__v1" | "fastq-to-bam__default__v1" => vec![
             STAGE_PREPROCESS.as_str().to_string(),
-            "core.prepare_reference".to_string(),
+            STAGE_CORE_PREPARE_REFERENCE.to_string(),
             BamStage::Align.as_str().to_string(),
             BamStage::QcPre.as_str().to_string(),
             BamStage::Coverage.as_str().to_string(),
@@ -546,7 +552,7 @@ pub fn compose_fastq_pipeline_steps<F>(
     r1: &std::path::Path,
     r2: Option<&std::path::Path>,
     mut out_dir_for_stage: F,
-) -> Result<Vec<bijux_core::plan::stage_plan::StagePlanV1>>
+) -> Result<Vec<bijux_stage_contract::StagePlanV1>>
 where
     F: FnMut(
         &str,
@@ -716,15 +722,14 @@ pub fn select_preprocess_tools(
     registry: &bijux_core::contract::ToolRegistry,
     pipeline: &PipelineSpec,
     args: &crate::args::BenchFastqPreprocessArgs,
+    bench_repo: Option<&dyn BenchResultsRepository>,
 ) -> Result<Vec<ToolSelection>> {
-    let defaults = canonical_tool_defaults();
     let mut selected_tools: Vec<ToolSelection> = pipeline
         .stages
         .iter()
         .map(|stage| {
-            let tool_id = defaults
-                .get(stage.as_str())
-                .map(|tool| (*tool).to_string())
+            let stage_id = StageId::new(stage.clone());
+            let tool_id = crate::tool_registry::default_tool_for_stage(&stage_id)
                 .or_else(|| {
                     registry
                         .tools_for_stage(stage)
@@ -748,7 +753,9 @@ pub fn select_preprocess_tools(
             .ok_or_else(|| anyhow!("--bench-corpus is required with --auto"))?;
         let corpus = bijux_domain_fastq::bench_corpus(corpus_id);
         let objective = bijux_core::selection::objective_spec(args.objective);
-        let repo = bijux_analyze::load::sqlite::SqliteBenchResultsRepository::new(args.out.clone());
+        let repo = bench_repo.ok_or_else(|| {
+            anyhow!("bench results repository required for --auto tool selection")
+        })?;
         let mut selections = Vec::new();
         for stage in &pipeline.stages {
             let stage_id = bijux_core::ids::StageId::new(stage.clone());

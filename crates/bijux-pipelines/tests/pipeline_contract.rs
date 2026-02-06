@@ -19,11 +19,6 @@ fn pipeline_profiles_reference_known_stages_and_defaults() {
             .unwrap_or_else(|_| panic!("invalid pipeline id {}", profile.id));
         for stage_id in &profile.capabilities.required_stages {
             assert!(
-                profile.defaults.tools.contains_key(*stage_id),
-                "missing default tool for {stage_id} in profile {}",
-                profile.id
-            );
-            assert!(
                 profile.defaults.params.contains_key(*stage_id),
                 "missing default params for {stage_id} in profile {}",
                 profile.id

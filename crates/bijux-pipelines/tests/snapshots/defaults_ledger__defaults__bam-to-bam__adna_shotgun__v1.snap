@@ -4,19 +4,7 @@ expression: ledger
 ---
 {
   "pipeline_id": "bam-to-bam__adna_shotgun__v1",
-  "tools": {
-    "bam.authenticity": "authenticity",
-    "bam.bias_mitigation": "angsd",
-    "bam.complexity": "preseq",
-    "bam.contamination": "authenticct",
-    "bam.coverage": "mosdepth",
-    "bam.damage": "pydamage",
-    "bam.filter": "samtools",
-    "bam.markdup": "gatk",
-    "bam.qc_pre": "samtools",
-    "bam.sex": "rxy",
-    "bam.validate": "samtools"
-  },
+  "tools": {},
   "params": {
     "bam.authenticity": {
       "mode": "aggregate"
@@ -79,63 +67,7 @@ expression: ledger
     }
   },
   "thresholds": {},
-  "tool_provenance": {
-    "bam.authenticity": {
-      "rationale": "pipeline default",
-      "assumptions": [],
-      "comparability_implications": []
-    },
-    "bam.bias_mitigation": {
-      "rationale": "pipeline default",
-      "assumptions": [],
-      "comparability_implications": []
-    },
-    "bam.complexity": {
-      "rationale": "pipeline default",
-      "assumptions": [],
-      "comparability_implications": []
-    },
-    "bam.contamination": {
-      "rationale": "pipeline default",
-      "assumptions": [],
-      "comparability_implications": []
-    },
-    "bam.coverage": {
-      "rationale": "pipeline default",
-      "assumptions": [],
-      "comparability_implications": []
-    },
-    "bam.damage": {
-      "rationale": "pipeline default",
-      "assumptions": [],
-      "comparability_implications": []
-    },
-    "bam.filter": {
-      "rationale": "pipeline default",
-      "assumptions": [],
-      "comparability_implications": []
-    },
-    "bam.markdup": {
-      "rationale": "pipeline default",
-      "assumptions": [],
-      "comparability_implications": []
-    },
-    "bam.qc_pre": {
-      "rationale": "pipeline default",
-      "assumptions": [],
-      "comparability_implications": []
-    },
-    "bam.sex": {
-      "rationale": "pipeline default",
-      "assumptions": [],
-      "comparability_implications": []
-    },
-    "bam.validate": {
-      "rationale": "pipeline default",
-      "assumptions": [],
-      "comparability_implications": []
-    }
-  },
+  "tool_provenance": {},
   "param_provenance": {
     "bam.authenticity": {
       "rationale": "pipeline default",

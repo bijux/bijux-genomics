@@ -1,0 +1,260 @@
+---
+source: crates/bijux-planner-fastq/tests/graph_snapshots.rs
+expression: json
+---
+{
+  "edges": [
+    {
+      "from": "fastq.detect_adapters",
+      "to": "fastq.trim"
+    },
+    {
+      "from": "fastq.filter",
+      "to": "fastq.stats_neutral"
+    },
+    {
+      "from": "fastq.stats_neutral",
+      "to": "fastq.qc_post"
+    },
+    {
+      "from": "fastq.trim",
+      "to": "fastq.filter"
+    },
+    {
+      "from": "fastq.validate_pre",
+      "to": "fastq.detect_adapters"
+    }
+  ],
+  "pipeline_id": "fastq-to-fastq__default__v1",
+  "planner_version": "bijux-planner-fastq.v1",
+  "policy": "PreferAccuracy",
+  "schema_version": "bijux.execution_graph.v1",
+  "steps": [
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "echo",
+          "fastq.detect_adapters"
+        ]
+      },
+      "expected_artifact_ids": [],
+      "image": {
+        "digest": null,
+        "image": "bijux/dummy:latest"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "reads_r1",
+            "path": "<temp>/reads_R1.fastq"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "fastqc_dir",
+            "path": "<temp>/out/detect_adapters/fastqc/fastqc"
+          }
+        ]
+      },
+      "metrics_schema_ids": [],
+      "out_dir": "<temp>/out/detect_adapters/fastqc",
+      "resources": {
+        "mem_gb": 1,
+        "runtime": "docker",
+        "threads": 1,
+        "tmp_gb": 1
+      },
+      "step_id": "fastq.detect_adapters"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "echo",
+          "fastq.filter"
+        ]
+      },
+      "expected_artifact_ids": [],
+      "image": {
+        "digest": null,
+        "image": "bijux/dummy:latest"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "reads_r1",
+            "path": "<temp>/out/trim/fastp/fastp.fastq.gz"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "filtered_reads",
+            "path": "<temp>/out/filter/fastp/fastp.fastq.gz"
+          }
+        ]
+      },
+      "metrics_schema_ids": [],
+      "out_dir": "<temp>/out/filter/fastp",
+      "resources": {
+        "mem_gb": 1,
+        "runtime": "docker",
+        "threads": 1,
+        "tmp_gb": 1
+      },
+      "step_id": "fastq.filter"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "echo",
+          "fastq.qc_post"
+        ]
+      },
+      "expected_artifact_ids": [],
+      "image": {
+        "digest": null,
+        "image": "bijux/dummy:latest"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "reads_r1",
+            "path": "<temp>/out/filter/fastp/fastp.fastq.gz"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "multiqc_report",
+            "path": "<temp>/out/qc_post/multiqc/multiqc_report.html"
+          },
+          {
+            "name": "multiqc_data",
+            "path": "<temp>/out/qc_post/multiqc/multiqc_data"
+          }
+        ]
+      },
+      "metrics_schema_ids": [],
+      "out_dir": "<temp>/out/qc_post/multiqc",
+      "resources": {
+        "mem_gb": 1,
+        "runtime": "docker",
+        "threads": 1,
+        "tmp_gb": 1
+      },
+      "step_id": "fastq.qc_post"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "echo",
+          "fastq.stats_neutral"
+        ]
+      },
+      "expected_artifact_ids": [],
+      "image": {
+        "digest": null,
+        "image": "bijux/dummy:latest"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "reads_r1",
+            "path": "<temp>/out/filter/fastp/fastp.fastq.gz"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "stats_json",
+            "path": "<temp>/out/stats_neutral/seqkit_stats/stats.json"
+          }
+        ]
+      },
+      "metrics_schema_ids": [],
+      "out_dir": "<temp>/out/stats_neutral/seqkit_stats",
+      "resources": {
+        "mem_gb": 1,
+        "runtime": "docker",
+        "threads": 1,
+        "tmp_gb": 1
+      },
+      "step_id": "fastq.stats_neutral"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "echo",
+          "fastq.trim"
+        ]
+      },
+      "expected_artifact_ids": [],
+      "image": {
+        "digest": null,
+        "image": "bijux/dummy:latest"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "reads_r1",
+            "path": "<temp>/reads_R1.fastq"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "trimmed_reads",
+            "path": "<temp>/out/trim/fastp/fastp.fastq.gz"
+          }
+        ]
+      },
+      "metrics_schema_ids": [],
+      "out_dir": "<temp>/out/trim/fastp",
+      "resources": {
+        "mem_gb": 1,
+        "runtime": "docker",
+        "threads": 1,
+        "tmp_gb": 1
+      },
+      "step_id": "fastq.trim"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "echo",
+          "fastq.validate_pre"
+        ]
+      },
+      "expected_artifact_ids": [],
+      "image": {
+        "digest": null,
+        "image": "bijux/dummy:latest"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "reads_r1",
+            "path": "<temp>/reads_R1.fastq"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "validation_report",
+            "path": "<temp>/out/validate_pre/fastqvalidator_official/validation.json"
+          }
+        ]
+      },
+      "metrics_schema_ids": [],
+      "out_dir": "<temp>/out/validate_pre/fastqvalidator_official",
+      "resources": {
+        "mem_gb": 1,
+        "runtime": "docker",
+        "threads": 1,
+        "tmp_gb": 1
+      },
+      "step_id": "fastq.validate_pre"
+    }
+  ]
+}

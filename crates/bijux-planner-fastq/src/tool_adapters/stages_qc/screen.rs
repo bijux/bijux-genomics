@@ -1,10 +1,12 @@
 use std::path::Path;
 
 use anyhow::{anyhow, Result};
-use bijux_core::{ArtifactRef, StageIO, StageId, StagePlanV1, StageVersion, ToolExecutionSpecV1};
+use bijux_core::{StageId, StageVersion, ToolExecutionSpecV1};
 use bijux_domain_fastq::params::{screen::ScreenEffectiveParams, PairedMode};
+use bijux_domain_fastq::STAGE_SCREEN;
+use bijux_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 
-pub const STAGE_ID: &str = "fastq.screen";
+pub const STAGE_ID: StageId = STAGE_SCREEN;
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
 
 pub fn normalize_screen_tool_list(tools: &[String]) -> Result<Vec<String>> {
@@ -32,7 +34,7 @@ pub fn plan_screen(tool: &ToolExecutionSpecV1, r1: &Path, out_dir: &Path) -> Res
         contaminant_db: None,
     };
     Ok(StagePlanV1 {
-        stage_id: StageId::from_static(STAGE_ID),
+        stage_id: STAGE_ID.clone(),
         stage_version: STAGE_VERSION,
         tool_id: tool.tool_id.clone(),
         tool_version: tool.tool_version.clone(),
@@ -59,7 +61,7 @@ pub fn plan_screen(tool: &ToolExecutionSpecV1, r1: &Path, out_dir: &Path) -> Res
         effective_params: serde_json::to_value(&effective_params)
             .expect("serialize screen effective params"),
         aux_images: std::collections::BTreeMap::new(),
-        reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
+        reason: bijux_stage_contract::PlanDecisionReason::default(),
     })
 }
 

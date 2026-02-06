@@ -1,8 +1,9 @@
 pub mod haplogroups {
     use std::path::Path;
 
-    use bijux_core::{StageIO, StageId, StagePlanV1, StageVersion, ToolExecutionSpecV1};
+    use bijux_core::{StageId, StageVersion, ToolExecutionSpecV1};
     use bijux_domain_bam::params::HaplogroupEffectiveParams;
+    use bijux_stage_contract::{StageIO, StagePlanV1};
 
     pub const STAGE_ID: &str = bijux_domain_bam::BamStage::Haplogroups.as_str();
     pub const STAGE_VERSION: StageVersion = StageVersion(1);
@@ -28,7 +29,7 @@ pub mod haplogroups {
             command: tool.command.clone(),
             resources: tool.resources.clone(),
             io: StageIO {
-                inputs: vec![bijux_core::plan::stage_plan::ArtifactRef {
+                inputs: vec![bijux_stage_contract::ArtifactRef {
                     name: "bam".to_string(),
                     path: bam.to_path_buf(),
                 }],
@@ -44,7 +45,7 @@ pub mod haplogroups {
                 serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
             )?,
             aux_images: std::collections::BTreeMap::new(),
-            reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
+            reason: bijux_stage_contract::PlanDecisionReason::default(),
         };
         crate::tool_adapters::stages_support::ensure_required_outputs(
             plan,
@@ -56,8 +57,9 @@ pub mod haplogroups {
 pub mod genotyping {
     use std::path::Path;
 
-    use bijux_core::{StageIO, StageId, StagePlanV1, StageVersion, ToolExecutionSpecV1};
+    use bijux_core::{StageId, StageVersion, ToolExecutionSpecV1};
     use bijux_domain_bam::params::GenotypingEffectiveParams;
+    use bijux_stage_contract::{StageIO, StagePlanV1};
 
     pub const STAGE_ID: &str = bijux_domain_bam::BamStage::Genotyping.as_str();
     pub const STAGE_VERSION: StageVersion = StageVersion(1);
@@ -83,7 +85,7 @@ pub mod genotyping {
             command: tool.command.clone(),
             resources: tool.resources.clone(),
             io: StageIO {
-                inputs: vec![bijux_core::plan::stage_plan::ArtifactRef {
+                inputs: vec![bijux_stage_contract::ArtifactRef {
                     name: "bam".to_string(),
                     path: bam.to_path_buf(),
                 }],
@@ -100,7 +102,7 @@ pub mod genotyping {
                 serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
             )?,
             aux_images: std::collections::BTreeMap::new(),
-            reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
+            reason: bijux_stage_contract::PlanDecisionReason::default(),
         };
         crate::tool_adapters::stages_support::ensure_required_outputs(
             plan,
@@ -112,8 +114,9 @@ pub mod genotyping {
 pub mod kinship {
     use std::path::Path;
 
-    use bijux_core::{StageIO, StageId, StagePlanV1, StageVersion, ToolExecutionSpecV1};
+    use bijux_core::{StageId, StageVersion, ToolExecutionSpecV1};
     use bijux_domain_bam::params::KinshipEffectiveParams;
+    use bijux_stage_contract::{StageIO, StagePlanV1};
 
     pub const STAGE_ID: &str = bijux_domain_bam::BamStage::Kinship.as_str();
     pub const STAGE_VERSION: StageVersion = StageVersion(1);
@@ -139,7 +142,7 @@ pub mod kinship {
             command: tool.command.clone(),
             resources: tool.resources.clone(),
             io: StageIO {
-                inputs: vec![bijux_core::plan::stage_plan::ArtifactRef {
+                inputs: vec![bijux_stage_contract::ArtifactRef {
                     name: "bam".to_string(),
                     path: bam.to_path_buf(),
                 }],
@@ -155,7 +158,7 @@ pub mod kinship {
                 serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
             )?,
             aux_images: std::collections::BTreeMap::new(),
-            reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
+            reason: bijux_stage_contract::PlanDecisionReason::default(),
         };
         crate::tool_adapters::stages_support::ensure_required_outputs(
             plan,
@@ -167,8 +170,9 @@ pub mod kinship {
 pub mod bias_mitigation {
     use std::path::Path;
 
-    use bijux_core::{StageIO, StageId, StagePlanV1, StageVersion, ToolExecutionSpecV1};
+    use bijux_core::{StageId, StageVersion, ToolExecutionSpecV1};
     use bijux_domain_bam::params::BiasMitigationEffectiveParams;
+    use bijux_stage_contract::{StageIO, StagePlanV1};
 
     pub const STAGE_ID: &str = bijux_domain_bam::BamStage::BiasMitigation.as_str();
     pub const STAGE_VERSION: StageVersion = StageVersion(1);
@@ -194,7 +198,7 @@ pub mod bias_mitigation {
             command: tool.command.clone(),
             resources: tool.resources.clone(),
             io: StageIO {
-                inputs: vec![bijux_core::plan::stage_plan::ArtifactRef {
+                inputs: vec![bijux_stage_contract::ArtifactRef {
                     name: "bam".to_string(),
                     path: bam.to_path_buf(),
                 }],
@@ -210,7 +214,7 @@ pub mod bias_mitigation {
                 serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
             )?,
             aux_images: std::collections::BTreeMap::new(),
-            reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
+            reason: bijux_stage_contract::PlanDecisionReason::default(),
         };
         crate::tool_adapters::stages_support::ensure_required_outputs(
             plan,

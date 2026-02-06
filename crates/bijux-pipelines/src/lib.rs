@@ -21,6 +21,9 @@ pub enum Domain {
     Cross,
 }
 
+pub const STAGE_CORE_PREPARE_REFERENCE: &str = "core.prepare_reference";
+pub const STAGE_CROSS_ALIGN_STUB: &str = "cross.align_stub";
+
 pub use defaults_ledger::{DefaultProvenanceV1, DefaultsLedgerV1};
 pub use id::{validate_pipeline_id, validate_pipeline_id_str, PipelineId};
 
@@ -105,7 +108,7 @@ pub struct PipelineCapabilities {
     pub required_stages: Vec<&'static str>,
     pub required_metrics: Vec<&'static str>,
     pub required_artifacts: Vec<&'static str>,
-    pub supports_benchmarking: bool,
+    pub supports_benchmarks: bool,
 }
 
 #[derive(Debug, Clone, Serialize)]

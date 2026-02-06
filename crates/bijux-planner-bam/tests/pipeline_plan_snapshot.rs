@@ -3,9 +3,9 @@ use std::path::Path;
 
 use anyhow::Result;
 use bijux_core::{
-    CommandSpecV1, ContainerImageRefV1, StagePlanJsonV1 as StagePlanJson, ToolConstraints,
-    ToolExecutionSpecV1, ToolId,
+    CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
 };
+use bijux_stage_contract::StagePlanJsonV1 as StagePlanJson;
 
 fn dummy_tool(tool: &str) -> ToolExecutionSpecV1 {
     ToolExecutionSpecV1 {

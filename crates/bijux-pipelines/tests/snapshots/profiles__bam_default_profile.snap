@@ -13,13 +13,7 @@ expression: bam_default_profile()
     "Bam"
   ],
   "defaults": {
-    "tools": {
-      "bam.coverage": "mosdepth",
-      "bam.damage": "pydamage",
-      "bam.filter": "samtools",
-      "bam.qc_pre": "samtools",
-      "bam.validate": "samtools"
-    },
+    "tools": {},
     "params": {
       "bam.coverage": {
         "depth_thresholds": [
@@ -107,6 +101,6 @@ expression: bam_default_profile()
       "run_manifest.json",
       "stage_summaries.json"
     ],
-    "supports_benchmarking": true
+    "supports_benchmarks": true
   }
 }
