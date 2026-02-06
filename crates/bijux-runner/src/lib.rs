@@ -60,9 +60,8 @@ impl Runner for LocalRunner {
 
 pub mod primitives {
     pub use crate::docker::executor::{
-        docker_logs, docker_rm, docker_stats_mb, docker_wait, docker_wait_timeout, execute_plan,
-        execute_plan_with_timeout, parse_mem_to_mb, resolve_image_for_run, ExecutionAssessment,
-        StageExecutionPlan,
+        docker_logs, docker_rm, docker_stats_mb, docker_wait, docker_wait_timeout, parse_mem_to_mb,
+        resolve_image_for_run, ExecutionAssessment,
     };
     pub use crate::docker::replay::replay_run;
     pub use crate::docker::support::build_tool_execution_spec;

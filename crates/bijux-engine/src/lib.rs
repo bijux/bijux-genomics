@@ -20,7 +20,7 @@ mod runner_tests;
 
 use anyhow::Result;
 use bijux_core::contract::RunRecordV1;
-use bijux_core::plan::execution_graph::ExecutionGraph;
+use bijux_core::execution::execution_graph::ExecutionGraph;
 use bijux_runtime::Runner;
 
 pub fn validate(graph: &ExecutionGraph) -> Result<()> {

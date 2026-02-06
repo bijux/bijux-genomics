@@ -22,6 +22,7 @@ bijux-policies = { path = "../bijux-policies" }
 assert_cmd = "2"
 tempfile.workspace = true
 walkdir = { workspace = true }
+cargo_metadata = "0.18"
 
 [features]
 docker-runner = []
