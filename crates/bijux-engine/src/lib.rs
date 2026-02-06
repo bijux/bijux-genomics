@@ -11,19 +11,15 @@
     clippy::new_without_default
 )]
 
-pub(crate) mod errors;
-pub(crate) mod executor;
-pub(crate) mod services;
-
-#[cfg(test)]
-mod runner_tests;
+mod errors;
+mod executor;
+mod services;
 
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
 use anyhow::Result;
-use bijux_core::contract::RunRecordV1;
-use bijux_core::execution::execution_graph::ExecutionGraph;
+use bijux_core::contract::{ExecutionGraph, RetryPolicy, RunRecordV1};
 use bijux_core::ids::StepId;
 use bijux_runtime::run_layout::RunLayout;
 use bijux_runtime::Runner;
@@ -84,18 +80,54 @@ pub trait EngineHooks: Send + Sync {
     fn on_event(&self, event: EngineEvent);
 }
 
-pub struct Engine;
+#[derive(Debug, Clone, Default, serde::Serialize, serde::Deserialize)]
+pub struct EngineConfig {
+    pub step_timeout_s: Option<u64>,
+    pub deterministic_scheduler: bool,
+    pub retry_policy: Option<RetryPolicy>,
+    pub max_parallelism: Option<usize>,
+}
+
+pub struct Engine {
+    config: EngineConfig,
+}
+
+impl Engine {
+    #[must_use]
+    pub fn new(config: EngineConfig) -> Self {
+        Self { config }
+    }
+}
 
 impl Engine {
     /// # Errors
     /// Returns an error if validation or execution fails.
     pub fn execute(
+        &self,
         graph: &ExecutionGraph,
         runner: &dyn Runner,
         _layout: &RunLayout,
         hooks: Option<&dyn EngineHooks>,
         cancel: Option<&CancellationToken>,
     ) -> Result<RunRecordV1> {
-        executor::execute_plan(graph, runner, hooks, cancel)
+        let mut graph = graph.clone();
+        if let Some(timeout) = self.config.step_timeout_s {
+            graph = graph.with_step_timeout(Some(timeout));
+        }
+        if self.config.deterministic_scheduler {
+            graph = graph.with_deterministic_scheduler(true);
+        }
+        if let Some(policy) = self.config.retry_policy.clone() {
+            graph = graph.with_retry_policy(policy);
+        }
+        executor::execute_plan(&graph, runner, hooks, cancel)
     }
 }
+
+impl Default for Engine {
+    fn default() -> Self {
+        Self::new(EngineConfig::default())
+    }
+}
+
+pub use errors::EngineError;

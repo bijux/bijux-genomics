@@ -3,10 +3,10 @@ use std::path::Path;
 use std::time::Duration;
 
 use anyhow::Result;
+use bijux_core::contract::ExecutionGraph;
+use bijux_core::contract::PlanPolicy;
 use bijux_core::contract::{ArtifactRef, ArtifactRole, StageIO, ToolConstraints};
-use bijux_core::execution::execution_graph::ExecutionGraph;
-use bijux_core::execution::PlanPolicy;
-use bijux_core::{ArtifactId, CommandSpecV1, ContainerImageRefV1, StageId, StepId};
+use bijux_core::prelude::{ArtifactId, CommandSpecV1, ContainerImageRefV1, StageId, StepId};
 use bijux_engine::Engine;
 use bijux_runtime::{Invocation, Runner, RunnerResult};
 use walkdir::WalkDir;
@@ -57,7 +57,7 @@ fn replay_produces_same_run_record_and_tree() -> Result<()> {
     bijux_infra::write_bytes(&input_path, "input")?;
     let output_path = out_dir.join("output.txt");
 
-    let step = bijux_core::execution::execution_graph::ExecutionStep {
+    let step = bijux_core::contract::ExecutionStep {
         step_id: StepId::new("fastq.trim"),
         stage_id: StageId::new("fastq.trim"),
         image: ContainerImageRefV1 {
@@ -99,11 +99,11 @@ fn replay_produces_same_run_record_and_tree() -> Result<()> {
     )?;
 
     let runner = DeterministicRunner;
-    let record_first = Engine::execute(&graph, &runner, &layout, None, None)?;
+    let record_first = Engine::default().execute(&graph, &runner, &layout, None, None)?;
     let tree_first = hash_tree(&layout.run_dir)?;
 
     std::fs::remove_file(&output_path)?;
-    let record_second = Engine::execute(&graph, &runner, &layout, None, None)?;
+    let record_second = Engine::default().execute(&graph, &runner, &layout, None, None)?;
     let tree_second = hash_tree(&layout.run_dir)?;
 
     assert_eq!(

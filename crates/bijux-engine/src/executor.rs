@@ -4,8 +4,8 @@ use std::collections::{HashMap, HashSet, VecDeque};
 use std::fs;
 
 use anyhow::{anyhow, Result};
-use bijux_core::execution::execution_graph::{ExecutionEdge, ExecutionGraph, ExecutionStep};
-use bijux_core::{RunRecordV1, StageExecutionRecordV1};
+use bijux_core::contract::{ExecutionEdge, ExecutionGraph, ExecutionStep};
+use bijux_core::contract::{RunRecordV1, StageExecutionRecordV1};
 use bijux_infra::{atomic_write_json, ensure_dir};
 use bijux_runtime::{Invocation, Runner};
 use chrono::Utc;
