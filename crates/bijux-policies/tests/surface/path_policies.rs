@@ -22,6 +22,72 @@ fn is_path_policies_test(path: &Path) -> bool {
 }
 
 #[test]
+fn src_bin_requires_bin_targets() {
+    let root = workspace_root();
+    let mut offenders = Vec::new();
+
+    for entry in WalkDir::new(root.join("crates"))
+        .into_iter()
+        .filter_map(|entry| entry.ok())
+        .filter(|entry| entry.file_type().is_dir())
+    {
+        if entry.file_name() != "src" {
+            continue;
+        }
+        let crate_root = entry.path().parent().unwrap();
+        let src_bin = entry.path().join("bin");
+        if !src_bin.exists() {
+            continue;
+        }
+        let has_bins = std::fs::read_dir(&src_bin)
+            .map(|entries| {
+                entries
+                    .filter_map(|entry| entry.ok())
+                    .any(|entry| entry.path().extension().and_then(|ext| ext.to_str()) == Some("rs"))
+            })
+            .unwrap_or(false);
+        if !has_bins {
+            offenders.push(crate_root.display().to_string());
+        }
+    }
+
+    assert!(
+        offenders.is_empty(),
+        "src/bin must contain at least one .rs binary source:\n{}",
+        offenders.join("\n")
+    );
+}
+
+#[test]
+fn src_does_not_contain_test_paths() {
+    let root = workspace_root();
+    let mut offenders = Vec::new();
+
+    for entry in WalkDir::new(root.join("crates"))
+        .into_iter()
+        .filter_map(|entry| entry.ok())
+    {
+        if !entry.file_type().is_file() && !entry.file_type().is_dir() {
+            continue;
+        }
+        let path = entry.path();
+        if !path.to_string_lossy().contains("/src/") {
+            continue;
+        }
+        let name = path.file_name().and_then(|name| name.to_str()).unwrap_or("");
+        if name.contains("test") {
+            offenders.push(path.display().to_string());
+        }
+    }
+
+    assert!(
+        offenders.is_empty(),
+        "src paths must not include *test* names:\n{}",
+        offenders.join("\n")
+    );
+}
+
+#[test]
 fn run_artifacts_paths_use_runtime_helpers() {
     let root = workspace_root();
     let mut offenders = Vec::new();
