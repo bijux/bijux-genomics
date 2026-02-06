@@ -1,14 +1,14 @@
 use std::path::PathBuf;
-use std::process::Command;
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 use anyhow::{anyhow, Context, Result};
-use bijux_core::plan::stage_plan::StagePlanV1;
+use bijux_core::plan::execution_graph::ExecutionStep;
 use bijux_core::primitives::hashing::{params_hash, run_id_from_hashes};
 use bijux_environment::api::RunnerKind;
 use uuid::Uuid;
 
 use crate::docker::executor::{docker_logs, docker_wait, docker_wait_timeout, parse_mem_to_mb};
+use crate::runner_core::{run_command, CommandOutputV1};
 
 #[derive(Debug, Clone)]
 pub struct StageResultV1 {
@@ -20,15 +20,6 @@ pub struct StageResultV1 {
     pub metrics_path: Option<PathBuf>,
     pub stdout: String,
     pub stderr: String,
-    pub command: String,
-}
-
-#[derive(Debug, Clone)]
-pub struct CommandOutputV1 {
-    pub stdout: String,
-    pub stderr: String,
-    pub exit_code: i32,
-    pub runtime_s: f64,
     pub command: String,
 }
 
@@ -59,19 +50,12 @@ fn hash_inputs(inputs: &[PathBuf]) -> Result<Vec<String>> {
     Ok(hashes)
 }
 
-fn build_command_string(args: &[String]) -> String {
-    if args.is_empty() {
-        return String::new();
-    }
-    args.join(" ")
-}
-
 /// Execute a single stage plan using docker.
 ///
 /// # Errors
 /// Returns an error if execution fails or docker is unavailable.
 pub fn execute_stage_plan(
-    plan: &StagePlanV1,
+    step: &ExecutionStep,
     runner: RunnerKind,
     timeout: Option<Duration>,
 ) -> Result<StageResultV1> {
@@ -80,9 +64,9 @@ pub fn execute_stage_plan(
             "runner {runner:?} not supported for stage execution"
         ));
     }
-    let out_dir = &plan.out_dir;
+    let out_dir = &step.out_dir;
     bijux_infra::ensure_dir(out_dir).context("ensure out dir")?;
-    let inputs: Vec<PathBuf> = plan
+    let inputs: Vec<PathBuf> = step
         .io
         .inputs
         .iter()
@@ -93,7 +77,6 @@ pub fn execute_stage_plan(
     let output_mount = format!("{}:/data/output", out_dir.display());
 
     let container_name = format!("bijux-stage-{}", Uuid::new_v4());
-    let mut cmd = Command::new("docker");
     let mut args: Vec<String> = vec![
         "run".to_string(),
         "-d".to_string(),
@@ -104,18 +87,17 @@ pub fn execute_stage_plan(
         input_mount,
         "-v".to_string(),
         output_mount,
-        plan.image.image.clone(),
+        step.image.image.clone(),
     ];
-    args.extend(plan.command.template.clone());
+    args.extend(step.command.template.clone());
 
-    let start = Instant::now();
-    let output = cmd.args(&args).output().context("docker run")?;
-    if !output.status.success() {
-        return Err(anyhow!("docker run failed for {}", plan.tool_id.0));
+    let output = run_command("docker", &args).context("docker run")?;
+    if output.exit_code != 0 {
+        return Err(anyhow!("docker run failed for {}", step.step_id.0));
     }
-    let id = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    let id = output.stdout.trim().to_string();
     if id.is_empty() {
-        return Err(anyhow!("missing container id for {}", plan.tool_id.0));
+        return Err(anyhow!("missing container id for {}", step.step_id.0));
     }
     let exit_code = if let Some(timeout) = timeout {
         docker_wait_timeout(&id, timeout)?
@@ -124,17 +106,17 @@ pub fn execute_stage_plan(
     };
     let stdout = docker_logs(&id)?;
     let stderr = String::new();
-    let runtime_s = start.elapsed().as_secs_f64();
+    let runtime_s = output.runtime_s;
     let memory_mb = parse_mem_to_mb("0MiB / 0MiB").unwrap_or(0.0);
 
-    let outputs: Vec<PathBuf> = plan
+    let outputs: Vec<PathBuf> = step
         .io
         .outputs
         .iter()
         .map(|output| output.path.clone())
         .collect();
     let input_hashes = hash_inputs(&inputs)?;
-    let params_hash = params_hash(&plan.params)?;
+    let params_hash = params_hash(&serde_json::json!({ "command": step.command.template }))?;
     let run_id = run_id_from_hashes(
         "unknown_pipeline",
         "unknown_sample",
@@ -152,7 +134,7 @@ pub fn execute_stage_plan(
         metrics_path: None,
         stdout,
         stderr,
-        command: build_command_string(&args),
+        command: output.command,
     })
 }
 
@@ -173,7 +155,6 @@ pub fn execute_observer_command(
     }
     let mount_dir = mount_dir.canonicalize().context("resolve mount dir")?;
     let mount_arg = format!("{}:/data:ro", mount_dir.display());
-    let mut cmd = Command::new("docker");
     let mut command_args: Vec<String> = vec![
         "run".to_string(),
         "--rm".to_string(),
@@ -182,17 +163,6 @@ pub fn execute_observer_command(
         image.to_string(),
     ];
     command_args.extend(args.iter().cloned());
-    let start = Instant::now();
-    let output = cmd.args(&command_args).output().context("docker run")?;
-    let runtime_s = start.elapsed().as_secs_f64();
-    let exit_code = output.status.code().unwrap_or(-1);
-    let stdout = String::from_utf8_lossy(&output.stdout).to_string();
-    let stderr = String::from_utf8_lossy(&output.stderr).to_string();
-    Ok(CommandOutputV1 {
-        stdout,
-        stderr,
-        exit_code,
-        runtime_s,
-        command: build_command_string(&command_args),
-    })
+    let output = run_command("docker", &command_args).context("docker run")?;
+    Ok(output)
 }

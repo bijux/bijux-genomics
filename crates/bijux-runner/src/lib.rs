@@ -7,6 +7,7 @@ use std::time::Duration;
 pub mod docker;
 pub mod execute;
 pub mod local;
+pub mod runner_core;
 
 #[derive(Debug, Clone, Copy)]
 pub struct DockerRunner {
@@ -23,7 +24,7 @@ impl DockerRunner {
 impl Runner for DockerRunner {
     fn run(&self, invocation: &Invocation) -> anyhow::Result<RunnerResult> {
         let result = execute::execute_stage_plan(
-            &invocation.stage,
+            &invocation.step,
             bijux_environment::api::RunnerKind::Docker,
             self.timeout,
         )?;
@@ -65,7 +66,6 @@ pub mod primitives {
     };
     pub use crate::docker::replay::replay_run;
     pub use crate::docker::support::build_tool_execution_spec;
-    pub use crate::execute::{
-        execute_observer_command, execute_stage_plan, CommandOutputV1, StageResultV1,
-    };
+    pub use crate::execute::{execute_observer_command, execute_stage_plan, StageResultV1};
+    pub use crate::runner_core::CommandOutputV1;
 }
