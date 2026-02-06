@@ -7,13 +7,14 @@ use std::path::PathBuf;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::Duration;
 
-use bijux_core::contract::{ArtifactRef, ArtifactRole, StageIO, ToolConstraints};
-use bijux_core::execution::execution_graph::{ExecutionEdge, ExecutionGraph, ExecutionStep};
-use bijux_core::execution::{PlanPolicy, RetryPolicy};
-use bijux_core::{ArtifactId, CommandSpecV1, ContainerImageRefV1, StageId, StepId};
+use bijux_core::contract::{
+    ArtifactRef, ArtifactRole, ExecutionEdge, ExecutionGraph, ExecutionStep,
+};
+use bijux_core::contract::{PlanPolicy, RetryPolicy, StageIO, ToolConstraints};
+use bijux_core::prelude::{ArtifactId, CommandSpecV1, ContainerImageRefV1, StageId, StepId};
+use bijux_engine::Engine;
+use bijux_runtime::run_layout::create_run_layout;
 use bijux_runtime::{Invocation, Runner, RunnerResult};
-
-use crate::executor::execute_plan;
 
 struct FakeRunner {
     calls: RefCell<Vec<String>>,
@@ -117,7 +118,11 @@ fn execute_plan_orders_dag() {
     )
     .expect("plan");
     let runner = FakeRunner::new();
-    let result = execute_plan(&plan, &runner, None, None).expect("run");
+    let dir = tempfile::tempdir().expect("tempdir");
+    let (_run_id, layout) = create_run_layout(dir.path()).expect("layout");
+    let result = Engine::default()
+        .execute(&plan, &runner, &layout, None, None)
+        .expect("run");
     let order: Vec<String> = result.stages.into_iter().map(|r| r.stage_id).collect();
     assert_eq!(order, vec!["A", "B", "C"]);
 }
@@ -139,7 +144,11 @@ fn execute_plan_retries_failures() {
         max_attempts: 2,
         retry_on_exit_codes: vec![1],
     });
-    let result = execute_plan(&plan, &runner, None, None).expect("run");
+    let dir = tempfile::tempdir().expect("tempdir");
+    let (_run_id, layout) = create_run_layout(dir.path()).expect("layout");
+    let result = Engine::default()
+        .execute(&plan, &runner, &layout, None, None)
+        .expect("run");
     assert_eq!(result.stages[0].attempt, 1);
     assert!(result.stages[0].success);
 }
@@ -161,7 +170,11 @@ fn execute_plan_stops_on_failure() {
         max_attempts: 1,
         retry_on_exit_codes: vec![1],
     });
-    let err = execute_plan(&plan, &runner, None, None).expect_err("expected failure");
+    let dir = tempfile::tempdir().expect("tempdir");
+    let (_run_id, layout) = create_run_layout(dir.path()).expect("layout");
+    let err = Engine::default()
+        .execute(&plan, &runner, &layout, None, None)
+        .expect_err("expected failure");
     assert!(err.to_string().contains("step failed"));
     let calls = runner.calls.borrow().clone();
     assert_eq!(calls.len(), 1);
@@ -180,7 +193,11 @@ fn execute_plan_respects_resume_cache() {
     )
     .expect("plan");
     let runner = FakeRunner::new();
-    let result = execute_plan(&plan, &runner, None, None).expect("run");
+    let dir = tempfile::tempdir().expect("tempdir");
+    let (_run_id, layout) = create_run_layout(dir.path()).expect("layout");
+    let result = Engine::default()
+        .execute(&plan, &runner, &layout, None, None)
+        .expect("run");
     let calls = runner.calls.borrow().clone();
     assert_eq!(calls.len(), 2);
     assert_eq!(result.stages.len(), 2);
@@ -203,11 +220,17 @@ fn execute_plan_is_deterministic() {
     .expect("plan");
 
     let runner = FakeRunner::new();
-    let result_a = execute_plan(&plan, &runner, None, None).expect("run");
+    let dir = tempfile::tempdir().expect("tempdir");
+    let (_run_id, layout) = create_run_layout(dir.path()).expect("layout");
+    let result_a = Engine::default()
+        .execute(&plan, &runner, &layout, None, None)
+        .expect("run");
     let order_a: Vec<String> = result_a.stages.iter().map(|r| r.stage_id.clone()).collect();
 
     let runner = FakeRunner::new();
-    let result_b = execute_plan(&plan, &runner, None, None).expect("run");
+    let result_b = Engine::default()
+        .execute(&plan, &runner, &layout, None, None)
+        .expect("run");
     let order_b: Vec<String> = result_b.stages.iter().map(|r| r.stage_id.clone()).collect();
 
     assert_eq!(order_a, order_b);

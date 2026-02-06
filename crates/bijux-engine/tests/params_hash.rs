@@ -1,9 +1,9 @@
 use anyhow::Result;
+use bijux_core::contract::canonical::parameters_json_canonicalization;
 use bijux_core::contract::ContractVersion;
 use bijux_core::ids::{StageId, ToolId};
 use bijux_core::metrics::ToolInvocationV1;
-use bijux_core::parameters_json_canonicalization;
-use bijux_core::params_hash;
+use bijux_core::prelude::params_hash;
 use std::collections::BTreeMap;
 
 #[test]
