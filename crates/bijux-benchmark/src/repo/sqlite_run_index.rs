@@ -6,7 +6,7 @@ use std::path::PathBuf;
 
 use anyhow::{anyhow, Result};
 
-use bijux_core::run_index::{list_runs, query_run, RunIndexEntry};
+use bijux_core::contract::{list_runs, query_run, RunIndexEntry};
 
 use crate::repo::run_repo::{load_observations, RunMetadata, RunRepository};
 
