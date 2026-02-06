@@ -2,6 +2,7 @@
 
 use anyhow::{anyhow, Result};
 use bijux_core::contract::StageId;
+use bijux_core::primitives::hashing::{canonicalize_json_value, params_hash};
 use serde::{Deserialize, Serialize};
 
 use crate::params::{
@@ -33,6 +34,13 @@ pub struct BamStageContract {
     pub output: BamArtifactKind,
     pub emits_bam: bool,
     pub emits_report: bool,
+    pub sorting: &'static str,
+    pub indexing: &'static str,
+    pub read_group_policy: &'static str,
+    pub duplicate_policy: &'static str,
+    pub mapping_quality_policy: &'static str,
+    pub deterministic: bool,
+    pub nondeterminism_reason: Option<&'static str>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -218,17 +226,122 @@ pub struct StageSpec {
 pub fn contract_for_stage(stage_id: &str) -> Option<BamStageContract> {
     let stage = BamStage::try_from(stage_id).ok()?;
     match stage {
+        BamStage::Align => Some(BamStageContract {
+            input: BamArtifactKind::ReferenceFasta,
+            output: BamArtifactKind::Bam,
+            emits_bam: true,
+            emits_report: true,
+            sorting: "output_sorting_tool_specific",
+            indexing: "produces_index_if_requested",
+            read_group_policy: "adds_or_regenerates_read_groups",
+            duplicate_policy: "no_duplicate_marking",
+            mapping_quality_policy: "no_mapping_quality_filter",
+            deterministic: true,
+            nondeterminism_reason: None,
+        }),
         BamStage::Filter | BamStage::Markdup | BamStage::Recalibration => Some(BamStageContract {
             input: BamArtifactKind::Bam,
             output: BamArtifactKind::Bam,
             emits_bam: true,
             emits_report: true,
+            sorting: "requires_coordinate_sorted_input",
+            indexing: "requires_index_and_produces_index",
+            read_group_policy: "preserves_read_groups",
+            duplicate_policy: if stage == BamStage::Markdup {
+                "marks_duplicates"
+            } else {
+                "preserves_duplicates"
+            },
+            mapping_quality_policy: if stage == BamStage::Filter {
+                "filters_by_mapping_quality_threshold"
+            } else {
+                "no_mapping_quality_filter"
+            },
+            deterministic: stage != BamStage::Markdup,
+            nondeterminism_reason: if stage == BamStage::Markdup {
+                Some("duplicate marking can be tool-dependent")
+            } else {
+                None
+            },
         }),
         _ => Some(BamStageContract {
             input: BamArtifactKind::Bam,
             output: BamArtifactKind::Report,
             emits_bam: false,
             emits_report: true,
+            sorting: "accepts_unsorted_bam",
+            indexing: "index_optional",
+            read_group_policy: "requires_read_groups_for_sample_metadata",
+            duplicate_policy: "no_duplicate_marking",
+            mapping_quality_policy: "no_mapping_quality_filter",
+            deterministic: true,
+            nondeterminism_reason: None,
         }),
     }
+}
+
+fn tool_ids_for_stage(stage_id: &str) -> Vec<&'static str> {
+    match stage_id {
+        "bam.align" => vec!["bwa", "bowtie2"],
+        "bam.validate" => vec!["samtools"],
+        "bam.markdup" => vec!["picard"],
+        "bam.recalibration" => vec!["gatk"],
+        "bam.coverage" => vec!["mosdepth"],
+        "bam.damage" => vec!["pydamage", "mapdamage2"],
+        "bam.complexity" => vec!["preseq"],
+        "bam.authenticity" => vec!["authenticct"],
+        "bam.haplogroups" => vec!["yleaf"],
+        "bam.kinship" => vec!["king"],
+        "bam.contamination" => vec!["angsd"],
+        "bam.sex" => vec!["rxy"],
+        _ => Vec::new(),
+    }
+}
+
+#[must_use]
+pub fn stage_contract_json(stage_id: &str) -> Option<serde_json::Value> {
+    let stage = BamStage::try_from(stage_id).ok()?;
+    let spec = stage_spec(stage);
+    let contract = contract_for_stage(stage_id)?;
+    let required_outputs = spec.artifact_policy.required_outputs;
+    let required_audit: Vec<serde_json::Value> = spec
+        .artifact_policy
+        .required_audit
+        .iter()
+        .map(|artifact| {
+            serde_json::json!({
+                "name": artifact.name,
+                "filename": artifact.filename,
+            })
+        })
+        .collect();
+    Some(serde_json::json!({
+        "schema_version": "bijux.stage_contract.v1",
+        "stage_id": stage_id,
+        "inputs": spec.required_inputs,
+        "outputs": required_outputs,
+        "audit_artifacts": required_audit,
+        "io": {
+            "input_kind": format!("{:?}", contract.input),
+            "output_kind": format!("{:?}", contract.output),
+            "emits_bam": contract.emits_bam,
+            "emits_report": contract.emits_report,
+            "sorting": contract.sorting,
+            "indexing": contract.indexing,
+            "read_group_policy": contract.read_group_policy,
+            "duplicate_policy": contract.duplicate_policy,
+            "mapping_quality_policy": contract.mapping_quality_policy,
+            "deterministic": contract.deterministic,
+            "nondeterminism_reason": contract.nondeterminism_reason,
+        },
+        "tool_ids": tool_ids_for_stage(stage_id),
+    }))
+}
+
+/// # Errors
+/// Returns an error if JSON canonicalization fails.
+pub fn stage_contract_hash(stage_id: &str) -> Option<anyhow::Result<String>> {
+    let json = stage_contract_json(stage_id)?;
+    let canonical = canonicalize_json_value(&json);
+    Some(params_hash(&canonical))
 }

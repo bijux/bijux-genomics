@@ -1,0 +1,69 @@
+---
+source: crates/bijux-domain-bam/tests/stage_contract_snapshots.rs
+expression: json
+---
+{
+  "audit_artifacts": [
+    {
+      "filename": "filtered.bam",
+      "name": "filtered_bam"
+    },
+    {
+      "filename": "filtered.bam.bai",
+      "name": "filtered_bai"
+    },
+    {
+      "filename": "flagstat.before.txt",
+      "name": "flagstat_before"
+    },
+    {
+      "filename": "flagstat.after.txt",
+      "name": "flagstat_after"
+    },
+    {
+      "filename": "idxstats.before.txt",
+      "name": "idxstats_before"
+    },
+    {
+      "filename": "idxstats.after.txt",
+      "name": "idxstats_after"
+    },
+    {
+      "filename": "filter.summary.json",
+      "name": "summary"
+    },
+    {
+      "filename": "stage.metrics.json",
+      "name": "stage_metrics"
+    }
+  ],
+  "inputs": [
+    "bam"
+  ],
+  "io": {
+    "deterministic": true,
+    "duplicate_policy": "preserves_duplicates",
+    "emits_bam": true,
+    "emits_report": true,
+    "indexing": "requires_index_and_produces_index",
+    "input_kind": "Bam",
+    "mapping_quality_policy": "filters_by_mapping_quality_threshold",
+    "nondeterminism_reason": null,
+    "output_kind": "Bam",
+    "read_group_policy": "preserves_read_groups",
+    "sorting": "requires_coordinate_sorted_input"
+  },
+  "outputs": [
+    "filtered_bam",
+    "filtered_bai",
+    "flagstat_before",
+    "flagstat_after",
+    "idxstats_before",
+    "idxstats_after",
+    "summary",
+    "stage_metrics"
+  ],
+  "schema_version": "bijux.stage_contract.v1",
+  "stage_id": "bam.filter",
+  "tool_ids": []
+}

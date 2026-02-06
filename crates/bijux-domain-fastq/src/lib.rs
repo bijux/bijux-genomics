@@ -56,8 +56,8 @@ pub use run::{assess_input_dir, discover_fastq_files};
 pub use run::{bench_corpus, BenchCorpus, BenchCorpusId, BenchDataset};
 pub use stage_contract::{
     assess_merge_suitability, contract_for_stage, ensure_umi_headers, inspect_headers,
-    log_header_warnings, normalize_outputs, preflight_stage, HeaderInspection, MergeSuitability,
-    NormalizedOutputs,
+    log_header_warnings, normalize_outputs, preflight_stage, stage_contract_hash,
+    stage_contract_json, HeaderInspection, MergeSuitability, NormalizedOutputs,
 };
 pub use stage_ids::{
     bench_dir_name, STAGES, STAGE_CORRECT, STAGE_DETECT_ADAPTERS, STAGE_FILTER, STAGE_MERGE,

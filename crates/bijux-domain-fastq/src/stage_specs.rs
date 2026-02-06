@@ -75,16 +75,20 @@ pub fn canonical_contract_for_stage(stage: FastqStage) -> StageContract {
     }
 }
 
-#[derive(Debug, Clone, Copy, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, Copy, serde::Serialize)]
 pub struct FastqStageContract {
     pub input_kind: FastqArtifactKind,
     pub output_kind: FastqArtifactKind,
     pub may_drop_reads: bool,
     pub must_preserve_pairing: bool,
     pub emits_fastq: bool,
+    pub preserves: &'static [&'static str],
+    pub may_drop: &'static [&'static str],
+    pub retention_definition: &'static str,
+    pub retention_units: &'static str,
 }
 
-#[derive(Debug, Clone, Copy, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, Copy, serde::Serialize)]
 pub enum QcClass {
     Structural,
     Statistical,

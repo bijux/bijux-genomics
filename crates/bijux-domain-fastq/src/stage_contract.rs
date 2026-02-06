@@ -4,7 +4,90 @@ use anyhow::{anyhow, Result};
 use tracing::warn;
 
 use super::FastqStageContract;
+use crate::metrics::spec::metric_spec_for_stage;
 use crate::types::FastqArtifactKind;
+use bijux_core::primitives::hashing::{canonicalize_json_value, params_hash};
+
+fn tool_ids_for_stage(stage_id: &str) -> Vec<&'static str> {
+    match stage_id {
+        "fastq.trim" => vec![
+            "adapterremoval",
+            "atropos",
+            "bbduk",
+            "cutadapt",
+            "fastp",
+            "trimmomatic",
+            "trim_galore",
+            "seqpurge",
+        ],
+        "fastq.filter" => vec!["prinseq", "seqkit", "fastp"],
+        "fastq.validate_pre" => vec![
+            "seqtk",
+            "fastqc",
+            "fastqvalidator",
+            "fastqvalidator_official",
+            "fqtools",
+        ],
+        "fastq.detect_adapters" => vec!["fastp"],
+        "fastq.merge" => vec!["pear", "vsearch", "bbmerge", "flash2"],
+        "fastq.correct" => vec!["rcorrector", "spades", "bayeshammer", "lighter", "musket"],
+        "fastq.umi" => vec!["umi_tools"],
+        "fastq.stats_neutral" => vec!["seqkit_stats"],
+        "fastq.qc_post" => vec!["multiqc"],
+        "fastq.screen" => vec![
+            "kraken2",
+            "centrifuge",
+            "metaphlan",
+            "kaiju",
+            "fastq_screen",
+        ],
+        "fastq.preprocess" => vec!["planner"],
+        _ => Vec::new(),
+    }
+}
+
+#[must_use]
+pub fn stage_contract_json(stage_id: &str) -> Option<serde_json::Value> {
+    let contract = contract_for_stage(stage_id)?;
+    let metrics = metric_spec_for_stage(stage_id).map(|spec| {
+        serde_json::json!({
+            "classes": spec.classes.iter().map(|class| format!("{class:?}")).collect::<Vec<_>>(),
+            "invariants": spec.invariants,
+            "notes": spec.notes,
+        })
+    });
+    let input_kind = format!("{:?}", contract.input_kind);
+    let output_kind = format!("{:?}", contract.output_kind);
+    Some(serde_json::json!({
+        "schema_version": "bijux.stage_contract.v1",
+        "stage_id": stage_id,
+        "inputs": {
+            "kind": input_kind,
+        },
+        "outputs": {
+            "kind": output_kind,
+            "emits_fastq": contract.emits_fastq,
+        },
+        "retention": {
+            "may_drop_reads": contract.may_drop_reads,
+            "must_preserve_pairing": contract.must_preserve_pairing,
+            "preserves": contract.preserves,
+            "may_drop": contract.may_drop,
+            "definition": contract.retention_definition,
+            "units": contract.retention_units,
+        },
+        "metrics": metrics.unwrap_or_else(|| serde_json::json!({})),
+        "tool_ids": tool_ids_for_stage(stage_id),
+    }))
+}
+
+/// # Errors
+/// Returns an error if JSON canonicalization fails.
+pub fn stage_contract_hash(stage_id: &str) -> Option<anyhow::Result<String>> {
+    let json = stage_contract_json(stage_id)?;
+    let canonical = canonicalize_json_value(&json);
+    Some(params_hash(&canonical))
+}
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct HeaderInspection {
@@ -27,6 +110,10 @@ pub fn contract_for_stage(stage_id: &str) -> Option<FastqStageContract> {
             may_drop_reads: true,
             must_preserve_pairing: true,
             emits_fastq: true,
+            preserves: &["read_order", "pairing_metadata"],
+            may_drop: &["reads", "bases"],
+            retention_definition: "reads_out / reads_in; bases_out / bases_in",
+            retention_units: "reads,bases",
         }),
         "fastq.merge" => Some(FastqStageContract {
             input_kind: FastqArtifactKind::PairedEnd,
@@ -34,6 +121,10 @@ pub fn contract_for_stage(stage_id: &str) -> Option<FastqStageContract> {
             may_drop_reads: true,
             must_preserve_pairing: false,
             emits_fastq: true,
+            preserves: &["pairing_metadata"],
+            may_drop: &["reads", "pairs", "bases"],
+            retention_definition: "reads_merged + reads_unmerged <= min(reads_r1, reads_r2)",
+            retention_units: "reads,pairs,bases",
         }),
         "fastq.correct" => Some(FastqStageContract {
             input_kind: FastqArtifactKind::PairedEnd,
@@ -41,6 +132,10 @@ pub fn contract_for_stage(stage_id: &str) -> Option<FastqStageContract> {
             may_drop_reads: false,
             must_preserve_pairing: true,
             emits_fastq: true,
+            preserves: &["reads", "pairs", "bases", "pairing_metadata"],
+            may_drop: &[],
+            retention_definition: "reads_out == reads_in; bases_out <= bases_in",
+            retention_units: "reads,bases",
         }),
         "fastq.umi" | "fastq.preprocess" => Some(FastqStageContract {
             input_kind: FastqArtifactKind::PairedEnd,
@@ -48,6 +143,10 @@ pub fn contract_for_stage(stage_id: &str) -> Option<FastqStageContract> {
             may_drop_reads: true,
             must_preserve_pairing: true,
             emits_fastq: true,
+            preserves: &["pairing_metadata"],
+            may_drop: &["reads", "pairs", "bases"],
+            retention_definition: "reads_out / reads_in; bases_out / bases_in",
+            retention_units: "reads,bases",
         }),
         "fastq.validate_pre"
         | "fastq.detect_adapters"
@@ -59,6 +158,10 @@ pub fn contract_for_stage(stage_id: &str) -> Option<FastqStageContract> {
             may_drop_reads: false,
             must_preserve_pairing: true,
             emits_fastq: false,
+            preserves: &["reads", "pairs", "bases"],
+            may_drop: &[],
+            retention_definition: "reads_out == reads_in; bases_out == bases_in",
+            retention_units: "reads,bases",
         }),
         _ => None,
     }
