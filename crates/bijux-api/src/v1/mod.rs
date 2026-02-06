@@ -6,6 +6,7 @@
 //! - report: report rendering + export helpers.
 //! - bench: benchmarking + comparison helpers.
 
+pub mod api;
 pub mod bam;
 pub mod bench;
 pub mod env;

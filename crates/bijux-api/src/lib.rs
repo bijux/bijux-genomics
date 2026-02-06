@@ -15,5 +15,4 @@ pub(crate) mod internal;
 pub(crate) mod run;
 pub(crate) mod tooling;
 
-pub mod api;
 pub mod v1;
