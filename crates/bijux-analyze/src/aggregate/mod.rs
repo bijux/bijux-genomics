@@ -22,6 +22,7 @@ pub enum BenchError {
     #[error("json error: {0}")]
     Json(#[from] serde_json::Error),
     #[error("sqlite error: {0}")]
+    #[cfg(feature = "sqlite")]
     Sqlite(#[from] rusqlite::Error),
     #[error("measure error: {0}")]
     Measure(#[from] bijux_core::primitives::measure::MeasureError),

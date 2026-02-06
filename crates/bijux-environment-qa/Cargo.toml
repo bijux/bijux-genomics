@@ -14,7 +14,7 @@ regex.workspace = true
 sha2.workspace = true
 tracing.workspace = true
 uuid.workspace = true
-rusqlite.workspace = true
+rusqlite = { workspace = true, optional = true }
 bijux-environment = { path = "../bijux-environment" }
 bijux-analyze = { path = "../bijux-analyze" }
 bijux-core = { path = "../bijux-core" }
@@ -28,3 +28,7 @@ tempfile.workspace = true
 
 [lints]
 workspace = true
+
+[features]
+default = ["sqlite"]
+sqlite = ["dep:rusqlite", "bijux-analyze/sqlite"]
