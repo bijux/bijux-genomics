@@ -27,8 +27,7 @@ pub fn filter_tools_by_role(
     let allow_silver = std::env::var("BIJUX_ALLOW_SILVER").is_ok();
     let allow_experimental = std::env::var("BIJUX_EXPERIMENTAL_TOOLS").is_ok();
     let mut filtered = Vec::new();
-    let stage_id = StageId::try_from(stage_id)
-        .map_err(|err| anyhow!("invalid stage id: {err}"))?;
+    let stage_id = StageId::try_from(stage_id).map_err(|err| anyhow!("invalid stage id: {err}"))?;
     for tool in tools {
         let tool_id =
             ToolId::try_from(tool.as_str()).map_err(|err| anyhow!("invalid tool id: {err}"))?;

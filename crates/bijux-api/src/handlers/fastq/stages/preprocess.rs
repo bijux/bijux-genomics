@@ -87,7 +87,8 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         .collect();
     let mut filtered_by_role = Vec::new();
     for (stage_id, tool_id) in pipeline.stages.iter().zip(tool_ids.iter()) {
-        let mut allowed = filter_tools_by_role(stage_id, &[tool_id.clone()], &registry, false)?;
+        let mut allowed =
+            filter_tools_by_role(stage_id, std::slice::from_ref(tool_id), &registry, false)?;
         if let Some(selected) = allowed.pop() {
             filtered_by_role.push(selected);
         }

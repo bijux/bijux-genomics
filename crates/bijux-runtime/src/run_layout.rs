@@ -11,8 +11,8 @@ use uuid::Uuid;
 use bijux_core::contract::ContractVersion;
 use bijux_core::metadata::RunMetadataV1;
 use bijux_core::metrics::ToolInvocationV1;
-use bijux_core::primitives::{to_canonical_json_bytes, CacheKey, Result as CoreResult};
 use bijux_core::primitives::input_assessment::FastqLayout;
+use bijux_core::primitives::{to_canonical_json_bytes, CacheKey, Result as CoreResult};
 
 use crate::events::RunEvent;
 

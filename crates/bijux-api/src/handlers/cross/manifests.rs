@@ -190,9 +190,8 @@ pub fn write_cross_run_manifest(
     let tool_invocations: Vec<bijux_core::metrics::ToolInvocationV1> = bam_runs
         .iter()
         .filter_map(|entry| {
-            let path =
-                bijux_runtime::recording::run_artifacts_dir_for_out(&entry.plan.out_dir)
-                    .join("tool_invocation.json");
+            let path = bijux_runtime::recording::run_artifacts_dir_for_out(&entry.plan.out_dir)
+                .join("tool_invocation.json");
             let raw = std::fs::read_to_string(&path).ok()?;
             serde_json::from_str(&raw).ok()
         })
@@ -208,7 +207,7 @@ pub fn write_cross_run_manifest(
             .cloned()
             .unwrap_or_default()
             .into_iter()
-            .filter_map(|value| value.as_str().map(|s| s.to_string()))
+            .filter_map(|value| value.as_str().map(std::string::ToString::to_string))
             .collect::<Vec<_>>();
         let tool_version = run_provenance
             .get("tool_version")

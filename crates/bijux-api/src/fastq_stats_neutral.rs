@@ -386,7 +386,7 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
         path: adapter_bank_path,
     }];
     let stage_contract_hash = bijux_domain_fastq::stage_contract_hash(STAGE_STATS_NEUTRAL.as_str())
-        .and_then(|result| result.ok());
+        .and_then(std::result::Result::ok);
     write_run_manifest(
         &run_dirs,
         STAGE_STATS_NEUTRAL.as_str(),

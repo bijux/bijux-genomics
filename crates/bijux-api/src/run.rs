@@ -221,7 +221,7 @@ pub fn plan(request: PlanRequest) -> Result<PlanResponse> {
 
 /// # Errors
 /// Returns an error if execution fails.
-pub fn execute(request: ExecuteRequest) -> Result<ExecuteResponse> {
+pub fn execute(request: &ExecuteRequest) -> Result<ExecuteResponse> {
     let (run_id, layout) = bijux_runtime::run_layout::create_run_layout(&request.run_dir)?;
     let runner: Box<dyn bijux_runtime::Runner> = match request.runner {
         bijux_environment::api::RunnerKind::Docker => Box::new(DockerRunner::new(None)),
@@ -239,7 +239,7 @@ pub fn execute(request: ExecuteRequest) -> Result<ExecuteResponse> {
 
 /// # Errors
 /// Returns an error if dry-run output cannot be written.
-pub fn dry_run(request: DryRunRequest) -> Result<DryRunResponse> {
+pub fn dry_run(request: &DryRunRequest) -> Result<DryRunResponse> {
     let graph_hash = request.graph.hash()?;
     let graph_path = request.run_dir.join("graph.json");
     let graph_payload = bijux_core::primitives::to_canonical_json_bytes(&request.graph)?;
