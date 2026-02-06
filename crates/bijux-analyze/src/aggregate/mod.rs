@@ -5,13 +5,13 @@
 //! Invariants: metrics must validate against registry; rollups are deterministic.
 
 pub mod metrics;
-pub mod registry;
+pub mod schema;
 pub mod stats;
 
 pub type Result<T> = std::result::Result<T, BenchError>;
 
 pub use metrics::*;
-pub use registry::*;
+pub use schema::*;
 
 use thiserror::Error;
 
