@@ -25,7 +25,7 @@ fn dummy_tool(tool: &str) -> ToolExecutionSpecV1 {
     }
 }
 
-fn output_path(plan: &bijux_core::plan::stage_plan::StagePlanV1, name: &str) -> std::path::PathBuf {
+fn output_path(plan: &bijux_stage_contract::StagePlanV1, name: &str) -> std::path::PathBuf {
     plan.io
         .outputs
         .iter()

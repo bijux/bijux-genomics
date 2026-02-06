@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use anyhow::Result;
-use bijux_core::{ArtifactRef, StagePlanV1};
+use bijux_stage_contract::{ArtifactRef, StagePlanV1};
 
 #[must_use]
 pub fn audit_outputs(stage: bijux_domain_bam::BamStage, out_dir: &Path) -> Vec<ArtifactRef> {

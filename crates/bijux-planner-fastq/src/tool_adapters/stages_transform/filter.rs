@@ -1,10 +1,12 @@
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Result};
-use bijux_core::{ArtifactRef, StageIO, StageId, StagePlanV1, StageVersion, ToolExecutionSpecV1};
+use bijux_core::{StageId, StageVersion, ToolExecutionSpecV1};
 use bijux_domain_fastq::params::{filter::FilterEffectiveParams, PairedMode};
+use bijux_domain_fastq::STAGE_FILTER;
+use bijux_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 
-pub const STAGE_ID: &str = "fastq.filter";
+pub const STAGE_ID: StageId = STAGE_FILTER;
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
 
 #[derive(Debug, Clone, Default)]
@@ -54,7 +56,7 @@ pub fn plan_filter(
         polyx_policy: options.polyx_policy.clone(),
     };
     Ok(StagePlanV1 {
-        stage_id: StageId::from_static(STAGE_ID),
+        stage_id: STAGE_ID.clone(),
         stage_version: STAGE_VERSION,
         tool_id: tool.tool_id.clone(),
         tool_version: tool.tool_version.clone(),
@@ -88,7 +90,7 @@ pub fn plan_filter(
         effective_params: serde_json::to_value(&effective_params)
             .expect("serialize filter effective params"),
         aux_images: std::collections::BTreeMap::new(),
-        reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
+        reason: bijux_stage_contract::PlanDecisionReason::default(),
     })
 }
 

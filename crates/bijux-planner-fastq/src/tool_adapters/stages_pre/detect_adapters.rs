@@ -1,9 +1,11 @@
 use std::path::Path;
 
-use bijux_core::{ArtifactRef, StageIO, StageId, StagePlanV1, StageVersion, ToolExecutionSpecV1};
+use bijux_core::{StageId, StageVersion, ToolExecutionSpecV1};
 use bijux_domain_fastq::params::{detect_adapters::DetectAdaptersEffectiveParams, PairedMode};
+use bijux_domain_fastq::STAGE_DETECT_ADAPTERS;
+use bijux_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 
-pub const STAGE_ID: &str = "fastq.detect_adapters";
+pub const STAGE_ID: StageId = STAGE_DETECT_ADAPTERS;
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
 
 pub fn plan(tool: &ToolExecutionSpecV1, r1: &Path, out_dir: &Path) -> StagePlanV1 {
@@ -13,7 +15,7 @@ pub fn plan(tool: &ToolExecutionSpecV1, r1: &Path, out_dir: &Path) -> StagePlanV
         sample_reads: Some(100_000),
     };
     StagePlanV1 {
-        stage_id: StageId::from_static(STAGE_ID),
+        stage_id: STAGE_ID.clone(),
         stage_version: STAGE_VERSION,
         tool_id: tool.tool_id.clone(),
         tool_version: tool.tool_version.clone(),
@@ -40,6 +42,6 @@ pub fn plan(tool: &ToolExecutionSpecV1, r1: &Path, out_dir: &Path) -> StagePlanV
         effective_params: serde_json::to_value(&effective_params)
             .expect("serialize detect adapters effective params"),
         aux_images: std::collections::BTreeMap::new(),
-        reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
+        reason: bijux_stage_contract::PlanDecisionReason::default(),
     }
 }

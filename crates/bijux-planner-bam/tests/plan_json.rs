@@ -2,10 +2,10 @@ use std::fs;
 use std::path::Path;
 
 use anyhow::Result;
-use bijux_core::StagePlanJsonV1 as StagePlanJson;
 use bijux_core::{
     CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
 };
+use bijux_stage_contract::StagePlanJsonV1 as StagePlanJson;
 
 fn dummy_tool(tool: &str) -> ToolExecutionSpecV1 {
     ToolExecutionSpecV1 {
@@ -35,7 +35,7 @@ fn snapshot_path(name: &str) -> Result<std::path::PathBuf> {
         .join(name))
 }
 
-fn assert_snapshot(name: &str, plan: &bijux_core::plan::stage_plan::StagePlanV1) -> Result<()> {
+fn assert_snapshot(name: &str, plan: &bijux_stage_contract::StagePlanV1) -> Result<()> {
     let plan_json = StagePlanJson::from_plan(plan);
     let rendered = serde_json::to_string_pretty(&plan_json)?;
     let path = snapshot_path(name)?;

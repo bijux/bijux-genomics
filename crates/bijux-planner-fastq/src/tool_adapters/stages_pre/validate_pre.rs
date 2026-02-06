@@ -2,10 +2,12 @@ use std::path::Path;
 
 use anyhow::{anyhow, Context, Result};
 use bijux_core::primitives::measure::SeqkitMetrics;
-use bijux_core::{ArtifactRef, StageIO, StageId, StagePlanV1, StageVersion, ToolExecutionSpecV1};
+use bijux_core::{StageId, StageVersion, ToolExecutionSpecV1};
 use bijux_domain_fastq::params::{validate::ValidateEffectiveParams, PairedMode};
+use bijux_domain_fastq::STAGE_VALIDATE_PRE;
+use bijux_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 
-pub const STAGE_ID: &str = "fastq.validate_pre";
+pub const STAGE_ID: StageId = STAGE_VALIDATE_PRE;
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
 
 #[derive(Debug, Clone)]
@@ -29,7 +31,7 @@ pub fn plan(tool: &ToolExecutionSpecV1, r1: &Path, out_dir: &Path) -> StagePlanV
         q_cutoff: None,
     };
     StagePlanV1 {
-        stage_id: StageId::from_static(STAGE_ID),
+        stage_id: STAGE_ID.clone(),
         stage_version: STAGE_VERSION,
         tool_id: tool.tool_id.clone(),
         tool_version: tool.tool_version.clone(),
@@ -55,7 +57,7 @@ pub fn plan(tool: &ToolExecutionSpecV1, r1: &Path, out_dir: &Path) -> StagePlanV
         effective_params: serde_json::to_value(&effective_params)
             .expect("serialize validate effective params"),
         aux_images: std::collections::BTreeMap::new(),
-        reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
+        reason: bijux_stage_contract::PlanDecisionReason::default(),
     }
 }
 

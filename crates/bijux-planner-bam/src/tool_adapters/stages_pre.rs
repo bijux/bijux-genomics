@@ -1,10 +1,9 @@
 pub mod validate {
     use std::path::Path;
 
-    use bijux_core::{
-        CommandSpecV1, StageIO, StageId, StagePlanV1, StageVersion, ToolExecutionSpecV1,
-    };
+    use bijux_core::{CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1};
     use bijux_domain_bam::params::ValidateEffectiveParams;
+    use bijux_stage_contract::{StageIO, StagePlanV1};
 
     pub const STAGE_ID: &str = bijux_domain_bam::BamStage::Validate.as_str();
     pub const STAGE_VERSION: StageVersion = StageVersion(1);
@@ -25,18 +24,18 @@ pub mod validate {
         );
         let flagstat = out_dir.join("flagstat.txt");
         let report = out_dir.join("validation.json");
-        let mut inputs = vec![bijux_core::plan::stage_plan::ArtifactRef {
+        let mut inputs = vec![bijux_stage_contract::ArtifactRef {
             name: "bam".to_string(),
             path: bam.to_path_buf(),
         }];
         if let Some(reference) = reference {
-            inputs.push(bijux_core::plan::stage_plan::ArtifactRef {
+            inputs.push(bijux_stage_contract::ArtifactRef {
                 name: "reference".to_string(),
                 path: reference.to_path_buf(),
             });
         }
         if let Some(bam_index) = bam_index {
-            inputs.push(bijux_core::plan::stage_plan::ArtifactRef {
+            inputs.push(bijux_stage_contract::ArtifactRef {
                 name: "bam_bai".to_string(),
                 path: bam_index.to_path_buf(),
             });
@@ -68,7 +67,7 @@ pub mod validate {
                 serde_json::to_value(&effective_params).unwrap_or(serde_json::Value::Null),
             )?,
             aux_images: std::collections::BTreeMap::new(),
-            reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
+            reason: bijux_stage_contract::PlanDecisionReason::default(),
         };
         crate::tool_adapters::stages_support::ensure_required_outputs(
             plan,
@@ -80,10 +79,9 @@ pub mod validate {
 pub mod align {
     use std::path::Path;
 
-    use bijux_core::{
-        CommandSpecV1, StageIO, StageId, StagePlanV1, StageVersion, ToolExecutionSpecV1,
-    };
+    use bijux_core::{CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1};
     use bijux_domain_bam::params::{AlignEffectiveParams, ReadGroupSpec};
+    use bijux_stage_contract::{StageIO, StagePlanV1};
 
     pub const STAGE_ID: &str = bijux_domain_bam::BamStage::Align.as_str();
     pub const STAGE_VERSION: StageVersion = StageVersion(1);
@@ -130,17 +128,17 @@ pub mod align {
 
         let inputs = {
             let mut items = vec![
-                bijux_core::plan::stage_plan::ArtifactRef {
+                bijux_stage_contract::ArtifactRef {
                     name: "fastq_r1".to_string(),
                     path: r1.to_path_buf(),
                 },
-                bijux_core::plan::stage_plan::ArtifactRef {
+                bijux_stage_contract::ArtifactRef {
                     name: "reference".to_string(),
                     path: reference.to_path_buf(),
                 },
             ];
             if let Some(r2) = r2 {
-                items.push(bijux_core::plan::stage_plan::ArtifactRef {
+                items.push(bijux_stage_contract::ArtifactRef {
                     name: "fastq_r2".to_string(),
                     path: r2.to_path_buf(),
                 });
@@ -178,7 +176,7 @@ pub mod align {
                 serde_json::to_value(&effective).unwrap_or(serde_json::Value::Null),
             )?,
             aux_images: std::collections::BTreeMap::new(),
-            reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
+            reason: bijux_stage_contract::PlanDecisionReason::default(),
         };
         crate::tool_adapters::stages_support::ensure_required_outputs(
             plan,
@@ -198,10 +196,9 @@ pub mod align {
 pub mod qc_pre {
     use std::path::Path;
 
-    use bijux_core::{
-        CommandSpecV1, StageIO, StageId, StagePlanV1, StageVersion, ToolExecutionSpecV1,
-    };
+    use bijux_core::{CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1};
     use bijux_domain_bam::params::QcPreEffectiveParams;
+    use bijux_stage_contract::{StageIO, StagePlanV1};
 
     pub const STAGE_ID: &str = bijux_domain_bam::BamStage::QcPre.as_str();
     pub const STAGE_VERSION: StageVersion = StageVersion(1);
@@ -238,7 +235,7 @@ pub mod qc_pre {
             },
             resources: tool.resources.clone(),
             io: StageIO {
-                inputs: vec![bijux_core::plan::stage_plan::ArtifactRef {
+                inputs: vec![bijux_stage_contract::ArtifactRef {
                     name: "bam".to_string(),
                     path: bam.to_path_buf(),
                 }],
@@ -253,7 +250,7 @@ pub mod qc_pre {
                 serde_json::to_value(&effective_params).unwrap_or(serde_json::Value::Null),
             )?,
             aux_images: std::collections::BTreeMap::new(),
-            reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
+            reason: bijux_stage_contract::PlanDecisionReason::default(),
         };
         crate::tool_adapters::stages_support::ensure_required_outputs(
             plan,
@@ -265,10 +262,9 @@ pub mod qc_pre {
 pub mod filter {
     use std::path::Path;
 
-    use bijux_core::{
-        CommandSpecV1, StageIO, StageId, StagePlanV1, StageVersion, ToolExecutionSpecV1,
-    };
+    use bijux_core::{CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1};
     use bijux_domain_bam::params::FilterEffectiveParams;
+    use bijux_stage_contract::{StageIO, StagePlanV1};
 
     pub const STAGE_ID: &str = bijux_domain_bam::BamStage::Filter.as_str();
     pub const STAGE_VERSION: StageVersion = StageVersion(1);
@@ -311,7 +307,7 @@ pub mod filter {
             },
             resources: tool.resources.clone(),
             io: StageIO {
-                inputs: vec![bijux_core::plan::stage_plan::ArtifactRef {
+                inputs: vec![bijux_stage_contract::ArtifactRef {
                     name: "bam".to_string(),
                     path: bam.to_path_buf(),
                 }],
@@ -331,7 +327,7 @@ pub mod filter {
                 serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
             )?,
             aux_images: std::collections::BTreeMap::new(),
-            reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
+            reason: bijux_stage_contract::PlanDecisionReason::default(),
         };
         crate::tool_adapters::stages_support::ensure_required_outputs(
             plan,

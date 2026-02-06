@@ -1,10 +1,12 @@
 use std::path::Path;
 
 use anyhow::Result;
-use bijux_core::{ArtifactRef, StageIO, StageId, StagePlanV1, StageVersion, ToolExecutionSpecV1};
+use bijux_core::{StageId, StageVersion, ToolExecutionSpecV1};
 use bijux_domain_fastq::params::{validate::ValidateEffectiveParams, PairedMode};
+use bijux_domain_fastq::STAGE_STATS_NEUTRAL;
+use bijux_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 
-pub const STAGE_ID: &str = "fastq.stats_neutral";
+pub const STAGE_ID: StageId = STAGE_STATS_NEUTRAL;
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
 
 /// Build a stats_neutral plan.
@@ -22,7 +24,7 @@ pub fn plan_stats_neutral(
         q_cutoff: None,
     };
     Ok(StagePlanV1 {
-        stage_id: StageId::from_static(STAGE_ID),
+        stage_id: STAGE_ID.clone(),
         stage_version: STAGE_VERSION,
         tool_id: tool.tool_id.clone(),
         tool_version: tool.tool_version.clone(),
@@ -48,6 +50,6 @@ pub fn plan_stats_neutral(
         effective_params: serde_json::to_value(&effective_params)
             .expect("serialize stats_neutral effective params"),
         aux_images: std::collections::BTreeMap::new(),
-        reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
+        reason: bijux_stage_contract::PlanDecisionReason::default(),
     })
 }

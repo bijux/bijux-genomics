@@ -8,7 +8,7 @@ anyhow = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 bijux-core = { path = "../bijux-core" }
-bijux-analyze = { path = "../bijux-analyze" }
+bijux-stage-contract = { path = "../bijux-stage-contract" }
 bijux-domain-fastq = { path = "../bijux-domain-fastq" }
 bijux-domain-bam = { path = "../bijux-domain-bam" }
 bijux-pipelines = { path = "../bijux-pipelines" }
@@ -17,4 +17,4 @@ bijux-stages-fastq = { path = "../bijux-stages-fastq" }
 [dev-dependencies]
 bijux-policies = { path = "../bijux-policies" }
 bijux-infra = { path = "../bijux-infra" }
-insta = { version = "1", features = ["json"] }
+insta = { version = "1", features = ["json", "filters"] }

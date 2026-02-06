@@ -1,0 +1,558 @@
+---
+source: crates/bijux-planner-bam/tests/graph_snapshots.rs
+expression: json
+---
+{
+  "edges": [
+    {
+      "from": "bam.authenticity",
+      "to": "bam.contamination"
+    },
+    {
+      "from": "bam.complexity",
+      "to": "bam.coverage"
+    },
+    {
+      "from": "bam.contamination",
+      "to": "bam.sex"
+    },
+    {
+      "from": "bam.coverage",
+      "to": "bam.damage"
+    },
+    {
+      "from": "bam.damage",
+      "to": "bam.authenticity"
+    },
+    {
+      "from": "bam.filter",
+      "to": "bam.markdup"
+    },
+    {
+      "from": "bam.markdup",
+      "to": "bam.complexity"
+    },
+    {
+      "from": "bam.qc_pre",
+      "to": "bam.filter"
+    },
+    {
+      "from": "bam.validate",
+      "to": "bam.qc_pre"
+    }
+  ],
+  "pipeline_id": "bam-to-bam__adna_shotgun__v1",
+  "planner_version": "bijux-planner-bam.v1",
+  "policy": "PreferAccuracy",
+  "schema_version": "bijux.execution_graph.v1",
+  "steps": [
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "echo",
+          "bam.authenticity"
+        ]
+      },
+      "expected_artifact_ids": [],
+      "image": {
+        "digest": null,
+        "image": "bijux/dummy:latest"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "bam",
+            "path": "<temp>/out/bam_markdup/markdup.bam"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "authenticity_report",
+            "path": "<temp>/out/bam_authenticity/authenticity.json"
+          },
+          {
+            "name": "summary",
+            "path": "<temp>/out/bam_authenticity/authenticity.summary.json"
+          },
+          {
+            "name": "stage_metrics",
+            "path": "<temp>/out/bam_authenticity/stage.metrics.json"
+          }
+        ]
+      },
+      "metrics_schema_ids": [],
+      "out_dir": "<temp>/out/bam_authenticity",
+      "resources": {
+        "mem_gb": 1,
+        "runtime": "docker",
+        "threads": 1,
+        "tmp_gb": 1
+      },
+      "step_id": "bam.authenticity"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "echo",
+          "bam.complexity"
+        ]
+      },
+      "expected_artifact_ids": [],
+      "image": {
+        "digest": null,
+        "image": "bijux/dummy:latest"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "bam",
+            "path": "<temp>/out/bam_markdup/markdup.bam"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "complexity_report",
+            "path": "<temp>/out/bam_complexity/complexity.json"
+          },
+          {
+            "name": "preseq",
+            "path": "<temp>/out/bam_complexity/preseq.txt"
+          },
+          {
+            "name": "summary",
+            "path": "<temp>/out/bam_complexity/complexity.summary.json"
+          },
+          {
+            "name": "stage_metrics",
+            "path": "<temp>/out/bam_complexity/stage.metrics.json"
+          }
+        ]
+      },
+      "metrics_schema_ids": [],
+      "out_dir": "<temp>/out/bam_complexity",
+      "resources": {
+        "mem_gb": 1,
+        "runtime": "docker",
+        "threads": 1,
+        "tmp_gb": 1
+      },
+      "step_id": "bam.complexity"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "/bin/sh",
+          "-c",
+          "contamination_tool --input <temp>/out/bam_markdup/markdup.bam > <temp>/out/bam_contamination/contamination.json && python - <<'PY' > <temp>/out/bam_contamination/contamination.summary.json\nimport json\npayload = {\"method\": \"authenticct\", \"estimate\": 0.0, \"ci_low\": 0.0, \"ci_high\": 0.0, \"assumptions\": []}\nprint(json.dumps(payload, indent=2))\nPY"
+        ]
+      },
+      "expected_artifact_ids": [],
+      "image": {
+        "digest": null,
+        "image": "bijux/dummy:latest"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "bam",
+            "path": "<temp>/out/bam_markdup/markdup.bam"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "contamination_report",
+            "path": "<temp>/out/bam_contamination/contamination.json"
+          },
+          {
+            "name": "summary",
+            "path": "<temp>/out/bam_contamination/contamination.summary.json"
+          },
+          {
+            "name": "stage_metrics",
+            "path": "<temp>/out/bam_contamination/stage.metrics.json"
+          }
+        ]
+      },
+      "metrics_schema_ids": [],
+      "out_dir": "<temp>/out/bam_contamination",
+      "resources": {
+        "mem_gb": 1,
+        "runtime": "docker",
+        "threads": 1,
+        "tmp_gb": 1
+      },
+      "step_id": "bam.contamination"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "mosdepth",
+          "-n",
+          "<temp>/out/bam_coverage/coverage",
+          "<temp>/out/bam_markdup/markdup.bam"
+        ]
+      },
+      "expected_artifact_ids": [],
+      "image": {
+        "digest": null,
+        "image": "bijux/dummy:latest"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "bam",
+            "path": "<temp>/out/bam_markdup/markdup.bam"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "coverage_summary",
+            "path": "<temp>/out/bam_coverage/coverage.mosdepth.summary.txt"
+          },
+          {
+            "name": "stage_metrics",
+            "path": "<temp>/out/bam_coverage/stage.metrics.json"
+          }
+        ]
+      },
+      "metrics_schema_ids": [],
+      "out_dir": "<temp>/out/bam_coverage",
+      "resources": {
+        "mem_gb": 1,
+        "runtime": "docker",
+        "threads": 1,
+        "tmp_gb": 1
+      },
+      "step_id": "bam.coverage"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "pydamage",
+          "analyze",
+          "--input",
+          "<temp>/out/bam_markdup/markdup.bam",
+          "--output",
+          "<temp>/out/bam_damage/damage.pydamage.json",
+          "--min-mapq",
+          "0.3"
+        ]
+      },
+      "expected_artifact_ids": [],
+      "image": {
+        "digest": null,
+        "image": "bijux/dummy:latest"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "bam",
+            "path": "<temp>/out/bam_markdup/markdup.bam"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "damage_pydamage",
+            "path": "<temp>/out/bam_damage/damage.pydamage.json"
+          },
+          {
+            "name": "damage_mapdamage2",
+            "path": "<temp>/out/bam_damage/damage.mapdamage2.txt"
+          },
+          {
+            "name": "stage_metrics",
+            "path": "<temp>/out/bam_damage/stage.metrics.json"
+          }
+        ]
+      },
+      "metrics_schema_ids": [],
+      "out_dir": "<temp>/out/bam_damage",
+      "resources": {
+        "mem_gb": 1,
+        "runtime": "docker",
+        "threads": 1,
+        "tmp_gb": 1
+      },
+      "step_id": "bam.damage"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "/bin/sh",
+          "-c",
+          "samtools flagstat <temp>/sample.bam > <temp>/out/bam_filter/flagstat.before.txt && samtools idxstats <temp>/sample.bam > <temp>/out/bam_filter/idxstats.before.txt && samtools view -b -q 30 <temp>/sample.bam | samtools sort -o <temp>/out/bam_filter/filtered.bam && samtools index <temp>/out/bam_filter/filtered.bam <temp>/out/bam_filter/filtered.bam.bai && samtools flagstat <temp>/out/bam_filter/filtered.bam > <temp>/out/bam_filter/flagstat.after.txt && samtools idxstats <temp>/out/bam_filter/filtered.bam > <temp>/out/bam_filter/idxstats.after.txt && python - <<'PY' > <temp>/out/bam_filter/filter.summary.json\nimport json\npayload = {\"input_bam\": \"<temp>/sample.bam\", \"output_bam\": \"<temp>/out/bam_filter/filtered.bam\", \"params\": {\"mapq_threshold\": 30, \"min_length\": 30}, \"artifacts\": {\"flagstat_before\": \"<temp>/out/bam_filter/flagstat.before.txt\", \"flagstat_after\": \"<temp>/out/bam_filter/flagstat.after.txt\", \"idxstats_before\": \"<temp>/out/bam_filter/idxstats.before.txt\", \"idxstats_after\": \"<temp>/out/bam_filter/idxstats.after.txt\"}}\nprint(json.dumps(payload, indent=2))\nPY"
+        ]
+      },
+      "expected_artifact_ids": [],
+      "image": {
+        "digest": null,
+        "image": "bijux/dummy:latest"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "bam",
+            "path": "<temp>/sample.bam"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "filtered_bam",
+            "path": "<temp>/out/bam_filter/filtered.bam"
+          },
+          {
+            "name": "filtered_bai",
+            "path": "<temp>/out/bam_filter/filtered.bam.bai"
+          },
+          {
+            "name": "flagstat_before",
+            "path": "<temp>/out/bam_filter/flagstat.before.txt"
+          },
+          {
+            "name": "flagstat_after",
+            "path": "<temp>/out/bam_filter/flagstat.after.txt"
+          },
+          {
+            "name": "idxstats_before",
+            "path": "<temp>/out/bam_filter/idxstats.before.txt"
+          },
+          {
+            "name": "idxstats_after",
+            "path": "<temp>/out/bam_filter/idxstats.after.txt"
+          },
+          {
+            "name": "summary",
+            "path": "<temp>/out/bam_filter/filter.summary.json"
+          },
+          {
+            "name": "stage_metrics",
+            "path": "<temp>/out/bam_filter/stage.metrics.json"
+          }
+        ]
+      },
+      "metrics_schema_ids": [],
+      "out_dir": "<temp>/out/bam_filter",
+      "resources": {
+        "mem_gb": 1,
+        "runtime": "docker",
+        "threads": 1,
+        "tmp_gb": 1
+      },
+      "step_id": "bam.filter"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "/bin/sh",
+          "-c",
+          "samtools flagstat <temp>/out/bam_filter/filtered.bam > <temp>/out/bam_markdup/flagstat.before.txt && samtools idxstats <temp>/out/bam_filter/filtered.bam > <temp>/out/bam_markdup/idxstats.before.txt && gatk MarkDuplicatesSpark -I <temp>/out/bam_filter/filtered.bam -O <temp>/out/bam_markdup/markdup.bam --REMOVE_DUPLICATES false --CREATE_INDEX true && samtools flagstat <temp>/out/bam_markdup/markdup.bam > <temp>/out/bam_markdup/flagstat.after.txt && samtools idxstats <temp>/out/bam_markdup/markdup.bam > <temp>/out/bam_markdup/idxstats.after.txt && python - <<'PY' > <temp>/out/bam_markdup/markdup.summary.json\nimport json\npayload = {\"input_bam\": \"<temp>/out/bam_filter/filtered.bam\", \"output_bam\": \"<temp>/out/bam_markdup/markdup.bam\", \"remove_duplicates\": false, \"artifacts\": {\"flagstat_before\": \"<temp>/out/bam_markdup/flagstat.before.txt\", \"flagstat_after\": \"<temp>/out/bam_markdup/flagstat.after.txt\", \"idxstats_before\": \"<temp>/out/bam_markdup/idxstats.before.txt\", \"idxstats_after\": \"<temp>/out/bam_markdup/idxstats.after.txt\"}}\nprint(json.dumps(payload, indent=2))\nPY"
+        ]
+      },
+      "expected_artifact_ids": [],
+      "image": {
+        "digest": null,
+        "image": "bijux/dummy:latest"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "bam",
+            "path": "<temp>/out/bam_filter/filtered.bam"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "markdup_bam",
+            "path": "<temp>/out/bam_markdup/markdup.bam"
+          },
+          {
+            "name": "markdup_bai",
+            "path": "<temp>/out/bam_markdup/markdup.bam.bai"
+          },
+          {
+            "name": "flagstat_before",
+            "path": "<temp>/out/bam_markdup/flagstat.before.txt"
+          },
+          {
+            "name": "flagstat_after",
+            "path": "<temp>/out/bam_markdup/flagstat.after.txt"
+          },
+          {
+            "name": "idxstats_before",
+            "path": "<temp>/out/bam_markdup/idxstats.before.txt"
+          },
+          {
+            "name": "idxstats_after",
+            "path": "<temp>/out/bam_markdup/idxstats.after.txt"
+          },
+          {
+            "name": "summary",
+            "path": "<temp>/out/bam_markdup/markdup.summary.json"
+          },
+          {
+            "name": "stage_metrics",
+            "path": "<temp>/out/bam_markdup/stage.metrics.json"
+          }
+        ]
+      },
+      "metrics_schema_ids": [],
+      "out_dir": "<temp>/out/bam_markdup",
+      "resources": {
+        "mem_gb": 1,
+        "runtime": "docker",
+        "threads": 1,
+        "tmp_gb": 1
+      },
+      "step_id": "bam.markdup"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "/bin/sh",
+          "-c",
+          "samtools flagstat <temp>/sample.bam > <temp>/out/bam_qc_pre/flagstat.txt && samtools idxstats <temp>/sample.bam > <temp>/out/bam_qc_pre/idxstats.txt && samtools stats <temp>/sample.bam > <temp>/out/bam_qc_pre/samtools_stats.txt"
+        ]
+      },
+      "expected_artifact_ids": [],
+      "image": {
+        "digest": null,
+        "image": "bijux/dummy:latest"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "bam",
+            "path": "<temp>/sample.bam"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "flagstat",
+            "path": "<temp>/out/bam_qc_pre/flagstat.txt"
+          },
+          {
+            "name": "idxstats",
+            "path": "<temp>/out/bam_qc_pre/idxstats.txt"
+          },
+          {
+            "name": "stats",
+            "path": "<temp>/out/bam_qc_pre/samtools_stats.txt"
+          },
+          {
+            "name": "stage_metrics",
+            "path": "<temp>/out/bam_qc_pre/stage.metrics.json"
+          }
+        ]
+      },
+      "metrics_schema_ids": [],
+      "out_dir": "<temp>/out/bam_qc_pre",
+      "resources": {
+        "mem_gb": 1,
+        "runtime": "docker",
+        "threads": 1,
+        "tmp_gb": 1
+      },
+      "step_id": "bam.qc_pre"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "/bin/sh",
+          "-c",
+          "rxy --input <temp>/out/bam_markdup/markdup.bam > <temp>/out/bam_sex/sex.json && python - <<'PY' > <temp>/out/bam_sex/sex.summary.json\nimport json\npayload = {\"method\": \"rxy\", \"x_to_y_ratio\": 0.0, \"confidence\": 0.0}\nprint(json.dumps(payload, indent=2))\nPY"
+        ]
+      },
+      "expected_artifact_ids": [],
+      "image": {
+        "digest": null,
+        "image": "bijux/dummy:latest"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "bam",
+            "path": "<temp>/out/bam_markdup/markdup.bam"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "sex_report",
+            "path": "<temp>/out/bam_sex/sex.json"
+          },
+          {
+            "name": "summary",
+            "path": "<temp>/out/bam_sex/sex.summary.json"
+          },
+          {
+            "name": "stage_metrics",
+            "path": "<temp>/out/bam_sex/stage.metrics.json"
+          }
+        ]
+      },
+      "metrics_schema_ids": [],
+      "out_dir": "<temp>/out/bam_sex",
+      "resources": {
+        "mem_gb": 1,
+        "runtime": "docker",
+        "threads": 1,
+        "tmp_gb": 1
+      },
+      "step_id": "bam.sex"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "/bin/sh",
+          "-c",
+          "samtools quickcheck -v <temp>/sample.bam > <temp>/out/bam_validate/validation.json && samtools flagstat <temp>/sample.bam > <temp>/out/bam_validate/flagstat.txt"
+        ]
+      },
+      "expected_artifact_ids": [],
+      "image": {
+        "digest": null,
+        "image": "bijux/dummy:latest"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "bam",
+            "path": "<temp>/sample.bam"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "validation_report",
+            "path": "<temp>/out/bam_validate/validation.json"
+          },
+          {
+            "name": "flagstat",
+            "path": "<temp>/out/bam_validate/flagstat.txt"
+          },
+          {
+            "name": "stage_metrics",
+            "path": "<temp>/out/bam_validate/stage.metrics.json"
+          }
+        ]
+      },
+      "metrics_schema_ids": [],
+      "out_dir": "<temp>/out/bam_validate",
+      "resources": {
+        "mem_gb": 1,
+        "runtime": "docker",
+        "threads": 1,
+        "tmp_gb": 1
+      },
+      "step_id": "bam.validate"
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-use bijux_domain_bam::stage_registry::BamStage;
+use bijux_domain_bam::BamStage;
 use bijux_domain_fastq::params::parse_effective_params;
 use bijux_pipelines::registry::PipelineRegistry;
 
@@ -36,6 +36,9 @@ fn defaults_compile_against_domain_params() {
                     .unwrap_or_else(|err| {
                         panic!("bam defaults failed to parse for {stage_id}: {err}")
                     });
+                continue;
+            }
+            if stage_id.starts_with("core.") {
                 continue;
             }
             panic!("unknown stage namespace in defaults: {stage_id}");

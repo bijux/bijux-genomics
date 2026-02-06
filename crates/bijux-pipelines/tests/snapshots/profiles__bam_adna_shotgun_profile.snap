@@ -13,19 +13,7 @@ expression: bam_adna_shotgun_profile()
     "Bam"
   ],
   "defaults": {
-    "tools": {
-      "bam.authenticity": "authenticity",
-      "bam.bias_mitigation": "angsd",
-      "bam.complexity": "preseq",
-      "bam.contamination": "authenticct",
-      "bam.coverage": "mosdepth",
-      "bam.damage": "pydamage",
-      "bam.filter": "samtools",
-      "bam.markdup": "gatk",
-      "bam.qc_pre": "samtools",
-      "bam.sex": "rxy",
-      "bam.validate": "samtools"
-    },
+    "tools": {},
     "params": {
       "bam.authenticity": {
         "mode": "aggregate"
@@ -155,6 +143,6 @@ expression: bam_adna_shotgun_profile()
       "run_manifest.json",
       "stage_summaries.json"
     ],
-    "supports_benchmarking": true
+    "supports_benchmarks": true
   }
 }

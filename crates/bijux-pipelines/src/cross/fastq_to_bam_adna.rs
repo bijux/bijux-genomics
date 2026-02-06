@@ -6,8 +6,8 @@ use crate::{
     ArtifactType, Domain, EffectiveDefaults, MetricsBundle, PipelineCapabilities, PipelineId,
     PipelineProfile, ReportSection, StabilityTier,
 };
-use bijux_domain_bam::params::{AlignEffectiveParams, ReadGroupSpec};
-use bijux_domain_bam::types::ReadGroupPolicy;
+use bijux_domain_bam::defaults::{adna_shotgun_params_json, default_params_json};
+use bijux_domain_bam::BamStage;
 
 fn base_defaults() -> (PipelineProfile, PipelineProfile, EffectiveDefaults) {
     let fastq_profile = fastq_default_profile();
@@ -29,36 +29,16 @@ fn base_defaults() -> (PipelineProfile, PipelineProfile, EffectiveDefaults) {
     (fastq_profile, bam_profile, defaults)
 }
 
-fn align_defaults(preset: &str) -> serde_json::Value {
-    serde_json::to_value(AlignEffectiveParams {
-        aligner: "bwa".to_string(),
-        preset: preset.to_string(),
-        threads: 1,
-        reference: "reference.fasta".to_string(),
-        reference_digest: "unknown".to_string(),
-        rg_policy: ReadGroupPolicy::Regenerate,
-        read_group: ReadGroupSpec::with_defaults("sample"),
-        build_indices: false,
-        emit_stats: true,
-    })
-    .unwrap_or(serde_json::Value::Null)
-}
-
 #[must_use]
 pub fn fastq_to_bam_adna_shotgun_profile() -> PipelineProfile {
     let (_fastq_profile, _bam_profile, mut defaults) = base_defaults();
     defaults
-        .tools
-        .insert("core.prepare_reference".to_string(), "samtools".to_string());
-    defaults
         .params
         .insert("core.prepare_reference".to_string(), serde_json::json!({}));
-    defaults
-        .tools
-        .insert("bam.align".to_string(), "bwa".to_string());
-    defaults
-        .params
-        .insert("bam.align".to_string(), align_defaults("adna_short"));
+    defaults.params.insert(
+        "bam.align".to_string(),
+        adna_shotgun_params_json(BamStage::Align),
+    );
     defaults.rationales.insert(
         "bam.align".to_string(),
         "aDNA default alignment preset".to_string(),
@@ -98,7 +78,7 @@ pub fn fastq_to_bam_adna_shotgun_profile() -> PipelineProfile {
             ],
             required_metrics: vec!["fastq.metrics", "bam.metrics"],
             required_artifacts: vec!["report.json", "run_manifest.json", "stage_summaries.json"],
-            supports_benchmarking: false,
+            supports_benchmarks: false,
         },
     }
 }
@@ -107,17 +87,12 @@ pub fn fastq_to_bam_adna_shotgun_profile() -> PipelineProfile {
 pub fn fastq_to_bam_default_profile() -> PipelineProfile {
     let (_fastq_profile, _bam_profile, mut defaults) = base_defaults();
     defaults
-        .tools
-        .insert("core.prepare_reference".to_string(), "samtools".to_string());
-    defaults
         .params
         .insert("core.prepare_reference".to_string(), serde_json::json!({}));
-    defaults
-        .tools
-        .insert("bam.align".to_string(), "bwa".to_string());
-    defaults
-        .params
-        .insert("bam.align".to_string(), align_defaults("default"));
+    defaults.params.insert(
+        "bam.align".to_string(),
+        default_params_json(BamStage::Align),
+    );
     defaults.rationales.insert(
         "bam.align".to_string(),
         "modern default alignment preset".to_string(),
@@ -157,7 +132,7 @@ pub fn fastq_to_bam_default_profile() -> PipelineProfile {
             ],
             required_metrics: vec!["fastq.metrics", "bam.metrics"],
             required_artifacts: vec!["report.json", "run_manifest.json", "stage_summaries.json"],
-            supports_benchmarking: false,
+            supports_benchmarks: false,
         },
     }
 }

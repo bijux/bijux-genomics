@@ -3,12 +3,13 @@ use std::path::PathBuf;
 
 use bijux_core::plan::PlanPolicy;
 use bijux_core::{
-    CommandSpecV1, ContainerImageRefV1, StageId, StagePlanV1, StageVersion, ToolConstraints, ToolId,
+    CommandSpecV1, ContainerImageRefV1, StageId, StageVersion, ToolConstraints, ToolId,
 };
 use bijux_planner_bam::{
     pipeline_stage_ids, plan_bam_to_bam__adna_capture__v1, plan_bam_to_bam__adna_shotgun__v1,
     BamPipelineInputs, BamPlanConfig, BamPlanner,
 };
+use bijux_stage_contract::StagePlanV1;
 
 fn plan_for(stage_id: &str, tool_id: &str) -> StagePlanV1 {
     StagePlanV1 {
@@ -29,12 +30,12 @@ fn plan_for(stage_id: &str, tool_id: &str) -> StagePlanV1 {
             tmp_gb: 1,
             threads: 1,
         },
-        io: bijux_core::plan::stage_plan::StageIO {
-            inputs: vec![bijux_core::plan::stage_plan::ArtifactRef {
+        io: bijux_stage_contract::StageIO {
+            inputs: vec![bijux_stage_contract::ArtifactRef {
                 name: "input".to_string(),
                 path: PathBuf::from("input.bam"),
             }],
-            outputs: vec![bijux_core::plan::stage_plan::ArtifactRef {
+            outputs: vec![bijux_stage_contract::ArtifactRef {
                 name: "output".to_string(),
                 path: PathBuf::from("output.bam"),
             }],
@@ -43,7 +44,7 @@ fn plan_for(stage_id: &str, tool_id: &str) -> StagePlanV1 {
         params: serde_json::json!({"sample_id":"s1"}),
         effective_params: serde_json::json!({}),
         aux_images: BTreeMap::new(),
-        reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
+        reason: bijux_stage_contract::PlanDecisionReason::default(),
     }
 }
 

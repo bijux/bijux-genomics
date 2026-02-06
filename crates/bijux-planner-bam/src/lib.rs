@@ -2,14 +2,14 @@ use std::collections::BTreeMap;
 use std::path::PathBuf;
 
 use anyhow::{anyhow, Result};
-use bijux_core::plan::execution_graph::{ExecutionEdge, ExecutionGraph, ExecutionStep};
-use bijux_core::plan::execution_plan::default_edges_for_stages;
-use bijux_core::plan::stage_plan::StagePlanV1;
+use bijux_core::plan::execution_graph::{ExecutionEdge, ExecutionGraph};
 use bijux_core::plan::PlanPolicy;
 use bijux_core::StageId;
 use bijux_domain_bam::BamStage;
 use bijux_pipelines::bam::{bam_adna_capture_profile, bam_adna_shotgun_profile};
 use bijux_pipelines::PipelineProfile;
+use bijux_stage_contract::default_edges_for_stages;
+use bijux_stage_contract::StagePlanV1;
 
 pub const PLANNER_VERSION: &str = "bijux-planner-bam.v1";
 
@@ -40,7 +40,11 @@ impl BamPlanner {
             config.pipeline_id.clone(),
             PLANNER_VERSION,
             config.policy,
-            config.stages.iter().map(ExecutionStep::from).collect(),
+            config
+                .stages
+                .iter()
+                .map(bijux_stage_contract::execution_step_from_stage_plan)
+                .collect(),
             edges
                 .into_iter()
                 .map(|edge| {
@@ -360,7 +364,10 @@ fn stage_order_for_profile(profile_id: &str) -> Vec<BamStage> {
                 stages.retain(|stage| {
                     !matches!(
                         stage,
-                        BamStage::Haplogroups | BamStage::Genotyping | BamStage::Kinship
+                        BamStage::BiasMitigation
+                            | BamStage::Haplogroups
+                            | BamStage::Genotyping
+                            | BamStage::Kinship
                     )
                 });
             }
@@ -429,7 +436,10 @@ fn build_bam_plan(profile: &PipelineProfile, inputs: &BamPipelineInputs) -> Resu
         profile.id.as_str(),
         PLANNER_VERSION,
         inputs.policy,
-        stages.iter().map(ExecutionStep::from).collect(),
+        stages
+            .iter()
+            .map(bijux_stage_contract::execution_step_from_stage_plan)
+            .collect(),
         edges
             .into_iter()
             .map(|edge| {

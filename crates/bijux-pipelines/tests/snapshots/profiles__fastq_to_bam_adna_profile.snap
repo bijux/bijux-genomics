@@ -203,6 +203,6 @@ expression: fastq_to_bam_adna_profile()
       "bam.metrics",
       "alignment_boundary"
     ],
-    "supports_benchmarking": false
+    "supports_benchmarks": false
   }
 }
