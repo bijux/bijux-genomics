@@ -42,7 +42,7 @@ fn tool_contracts_match_stage_inputs_outputs() -> Result<(), Box<dyn std::error:
                     is_r1_r2 && has_single_fastq,
                     "tool {} in {} requires unknown input {}",
                     tool.tool_id,
-                    stage_id,
+                    stage_id.as_str(),
                     required
                 );
             }
@@ -50,7 +50,9 @@ fn tool_contracts_match_stage_inputs_outputs() -> Result<(), Box<dyn std::error:
                 let Some(stage_output) = stage_outputs.get(&output.name) else {
                     panic!(
                         "tool {} in {} declares unknown output {}",
-                        tool.tool_id, stage_id, output.name
+                        tool.tool_id,
+                        stage_id.as_str(),
+                        output.name
                     );
                 };
                 assert_eq!(

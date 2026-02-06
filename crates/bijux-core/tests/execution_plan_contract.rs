@@ -1,7 +1,7 @@
 use bijux_core::contract::{ArtifactRef, ArtifactRole, StageIO, ToolConstraints};
 use bijux_core::execution::execution_graph::{ExecutionEdge, ExecutionGraph, ExecutionStep};
 use bijux_core::execution::PlanPolicy;
-use bijux_core::{CommandSpecV1, ContainerImageRefV1, StageId};
+use bijux_core::{ArtifactId, CommandSpecV1, ContainerImageRefV1, StageId, StepId};
 
 #[test]
 #[allow(clippy::too_many_lines)]
@@ -11,7 +11,8 @@ fn execution_plan_roundtrip_is_canonical() -> anyhow::Result<()> {
         "planner-fastq@1",
         PlanPolicy::PreferAccuracy,
         vec![ExecutionStep {
-            step_id: StageId::from_static("fastq.trim"),
+            step_id: StepId::from_static("fastq.trim"),
+            stage_id: StageId::from_static("fastq.trim"),
             image: ContainerImageRefV1 {
                 image: "bijux/fastp".to_string(),
                 digest: Some("sha256:abc".to_string()),
@@ -27,12 +28,12 @@ fn execution_plan_roundtrip_is_canonical() -> anyhow::Result<()> {
             },
             io: StageIO {
                 inputs: vec![ArtifactRef::required(
-                    "r1",
+                    ArtifactId::from_static("r1"),
                     "/data/input.fastq.gz".into(),
                     ArtifactRole::Reads,
                 )],
                 outputs: vec![ArtifactRef::required(
-                    "trimmed",
+                    ArtifactId::from_static("trimmed"),
                     "/data/trimmed.fastq.gz".into(),
                     ArtifactRole::TrimmedReads,
                 )],
@@ -43,8 +44,8 @@ fn execution_plan_roundtrip_is_canonical() -> anyhow::Result<()> {
             metrics_schema_ids: Vec::new(),
         }],
         vec![ExecutionEdge::new(
-            StageId::from_static("fastq.trim"),
-            StageId::from_static("fastq.trim"),
+            StepId::from_static("fastq.trim"),
+            StepId::from_static("fastq.trim"),
         )],
     );
     assert!(plan.is_err(), "self-loop should be rejected");
@@ -55,7 +56,8 @@ fn execution_plan_roundtrip_is_canonical() -> anyhow::Result<()> {
         PlanPolicy::PreferAccuracy,
         vec![
             ExecutionStep {
-                step_id: StageId::from_static("fastq.filter"),
+                step_id: StepId::from_static("fastq.filter"),
+                stage_id: StageId::from_static("fastq.filter"),
                 image: ContainerImageRefV1 {
                     image: "bijux/fastp".to_string(),
                     digest: Some("sha256:abc".to_string()),
@@ -71,12 +73,12 @@ fn execution_plan_roundtrip_is_canonical() -> anyhow::Result<()> {
                 },
                 io: StageIO {
                     inputs: vec![ArtifactRef::required(
-                        "r1",
+                        ArtifactId::from_static("r1"),
                         "/data/input.fastq.gz".into(),
                         ArtifactRole::Reads,
                     )],
                     outputs: vec![ArtifactRef::required(
-                        "filtered",
+                        ArtifactId::from_static("filtered"),
                         "/data/filtered.fastq.gz".into(),
                         ArtifactRole::Reads,
                     )],
@@ -87,7 +89,8 @@ fn execution_plan_roundtrip_is_canonical() -> anyhow::Result<()> {
                 metrics_schema_ids: Vec::new(),
             },
             ExecutionStep {
-                step_id: StageId::from_static("fastq.trim"),
+                step_id: StepId::from_static("fastq.trim"),
+                stage_id: StageId::from_static("fastq.trim"),
                 image: ContainerImageRefV1 {
                     image: "bijux/fastp".to_string(),
                     digest: Some("sha256:def".to_string()),
@@ -103,12 +106,12 @@ fn execution_plan_roundtrip_is_canonical() -> anyhow::Result<()> {
                 },
                 io: StageIO {
                     inputs: vec![ArtifactRef::required(
-                        "r1",
+                        ArtifactId::from_static("r1"),
                         "/data/input.fastq.gz".into(),
                         ArtifactRole::Reads,
                     )],
                     outputs: vec![ArtifactRef::required(
-                        "trimmed",
+                        ArtifactId::from_static("trimmed"),
                         "/data/trimmed.fastq.gz".into(),
                         ArtifactRole::TrimmedReads,
                     )],
@@ -120,8 +123,8 @@ fn execution_plan_roundtrip_is_canonical() -> anyhow::Result<()> {
             },
         ],
         vec![ExecutionEdge::new(
-            StageId::from_static("fastq.trim"),
-            StageId::from_static("fastq.filter"),
+            StepId::from_static("fastq.trim"),
+            StepId::from_static("fastq.filter"),
         )],
     )?;
 
@@ -132,8 +135,8 @@ fn execution_plan_roundtrip_is_canonical() -> anyhow::Result<()> {
         encoded, reencoded,
         "execution plan roundtrip must be canonical"
     );
-    let hash_before = plan.plan_hash()?;
-    let hash_after = decoded.plan_hash()?;
+    let hash_before = plan.hash()?;
+    let hash_after = decoded.hash()?;
     assert_eq!(hash_before, hash_after, "plan_hash must be stable");
     Ok(())
 }

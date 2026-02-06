@@ -1,12 +1,13 @@
 use bijux_core::contract::{ArtifactRef, ArtifactRole, StageIO, ToolConstraints};
 use bijux_core::execution::execution_graph::{ExecutionGraph, ExecutionStep};
 use bijux_core::execution::PlanPolicy;
-use bijux_core::{CommandSpecV1, ContainerImageRefV1, StageId};
+use bijux_core::{ArtifactId, CommandSpecV1, ContainerImageRefV1, StageId, StepId};
 
 #[test]
 fn execution_graph_serialization_is_stage_plan_free() {
     let step = ExecutionStep {
-        step_id: StageId::new("fastq.validate_pre"),
+        step_id: StepId::new("fastq.validate_pre"),
+        stage_id: StageId::new("fastq.validate_pre"),
         command: CommandSpecV1 {
             template: vec!["tool".to_string()],
         },
@@ -17,12 +18,12 @@ fn execution_graph_serialization_is_stage_plan_free() {
         resources: ToolConstraints::default(),
         io: StageIO {
             inputs: vec![ArtifactRef::required(
-                "input",
+                ArtifactId::from_static("input"),
                 "input.fastq".into(),
                 ArtifactRole::Reads,
             )],
             outputs: vec![ArtifactRef::required(
-                "output",
+                ArtifactId::from_static("output"),
                 "output.fastq".into(),
                 ArtifactRole::Reads,
             )],
@@ -33,7 +34,7 @@ fn execution_graph_serialization_is_stage_plan_free() {
         metrics_schema_ids: Vec::new(),
     };
     let graph = ExecutionGraph::new(
-        "pipeline",
+        "fastq-to-fastq__default__v1",
         "planner",
         PlanPolicy::PreferAccuracy,
         vec![step],
