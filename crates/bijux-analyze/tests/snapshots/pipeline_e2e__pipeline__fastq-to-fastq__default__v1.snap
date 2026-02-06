@@ -17,7 +17,7 @@ expression: report
     {
       "banks": {},
       "stage_id": "fastq.filter",
-      "tool_id": "fastp"
+      "tool_id": "seqkit"
     },
     {
       "banks": {},
@@ -62,6 +62,7 @@ expression: report
       "provenance",
       "run_provenance",
       "decision_config",
+      "analysis_selection_contract",
       "retention_definition",
       "retention_context",
       "assets_provenance",
@@ -167,7 +168,7 @@ expression: report
       "params_hash": "params",
       "span_id": "span-fastq.filter",
       "stage_id": "fastq.filter",
-      "tool_id": "fastp",
+      "tool_id": "seqkit",
       "tool_version": "0.0.0",
       "trace_id": "trace-1"
     },
@@ -230,7 +231,7 @@ expression: report
           "bases": 1000,
           "reads": 100,
           "stage_id": "fastq.filter",
-          "tool_id": "fastp"
+          "tool_id": "seqkit"
         },
         {
           "bases": 1000,
@@ -259,6 +260,57 @@ expression: report
       ]
     },
     "adapter_config": {},
+    "analysis_selection_contract": {
+      "criteria": [
+        "runtime_s",
+        "memory_mb",
+        "retention_ratio"
+      ],
+      "notes": "Selection uses bench medians per tool and the configured objective weights.",
+      "objectives": [
+        {
+          "objective": "speed",
+          "ranking": "lower score is better",
+          "scoring": "weighted_sum(runtime, memory, retention)",
+          "weights": {
+            "memory": 0.0,
+            "retention": 0.0,
+            "runtime": 1.0
+          }
+        },
+        {
+          "objective": "memory",
+          "ranking": "lower score is better",
+          "scoring": "weighted_sum(runtime, memory, retention)",
+          "weights": {
+            "memory": 1.0,
+            "retention": 0.0,
+            "runtime": 0.0
+          }
+        },
+        {
+          "objective": "retention",
+          "ranking": "lower score is better",
+          "scoring": "weighted_sum(runtime, memory, retention)",
+          "weights": {
+            "memory": 0.0,
+            "retention": -1.0,
+            "runtime": 0.0
+          }
+        },
+        {
+          "objective": "balanced",
+          "ranking": "lower score is better",
+          "scoring": "weighted_sum(runtime, memory, retention)",
+          "weights": {
+            "memory": 1.0,
+            "retention": -100.0,
+            "runtime": 1.0
+          }
+        }
+      ],
+      "selection_strategy": "objective_weights"
+    },
     "assertions": {
       "entries": [
         {
@@ -269,7 +321,7 @@ expression: report
         {
           "results": [],
           "stage_id": "fastq.filter",
-          "tool_id": "fastp"
+          "tool_id": "seqkit"
         },
         {
           "results": [],
@@ -317,7 +369,7 @@ expression: report
         {
           "banks": {},
           "stage_id": "fastq.filter",
-          "tool_id": "fastp"
+          "tool_id": "seqkit"
         },
         {
           "banks": {},
@@ -395,7 +447,7 @@ expression: report
           "quality_gate": {},
           "stage_id": "fastq.filter",
           "telemetry_decisions": [],
-          "tool_id": "fastp",
+          "tool_id": "seqkit",
           "tool_version": "0.0.0"
         },
         {
@@ -485,7 +537,7 @@ expression: report
           "bases_dropped": 0,
           "reads_dropped": 0,
           "stage_id": "fastq.filter",
-          "tool_id": "fastp"
+          "tool_id": "seqkit"
         },
         {
           "bases_dropped": 0,
@@ -539,7 +591,7 @@ expression: report
           "effective_config_path": "stage_3/effective_config.json",
           "params_hash": "params",
           "stage_id": "fastq.filter",
-          "tool_id": "fastp",
+          "tool_id": "seqkit",
           "tool_version": "0.0.0"
         },
         {
@@ -586,7 +638,7 @@ expression: report
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "fastq.filter",
-          "tool_id": "fastp",
+          "tool_id": "seqkit",
           "tool_version": "0.0.0"
         },
         {
@@ -790,9 +842,9 @@ expression: report
           "params_hash": "params",
           "scientific_preset": null,
           "stage_id": "fastq.filter",
-          "tier_rationale": "curated_default",
-          "tool_id": "fastp",
-          "tool_tier": "gold",
+          "tier_rationale": "unknown_tool",
+          "tool_id": "seqkit",
+          "tool_tier": "experimental",
           "tool_version": "0.0.0"
         },
         {
@@ -898,7 +950,11 @@ expression: report
       "contexts": [],
       "definitions": []
     },
-    "run_provenance": {},
+    "run_provenance": {
+      "graph_hash": "unknown",
+      "input_hashes": [],
+      "stage_contracts": {}
+    },
     "scientific_provenance": {
       "entries": [
         {
@@ -926,7 +982,7 @@ expression: report
           "raw_params": {},
           "resolved_tool_version": null,
           "stage_id": "fastq.filter",
-          "tool_id": "fastp",
+          "tool_id": "seqkit",
           "tool_version": "0.0.0"
         },
         {
@@ -1041,7 +1097,7 @@ expression: report
           "reasons": [],
           "score": 1.0,
           "stage_id": "fastq.filter",
-          "tool_id": "fastp"
+          "tool_id": "seqkit"
         },
         {
           "bucket": "high",
@@ -1089,7 +1145,7 @@ expression: report
           "mean_q_delta": null,
           "read_retention": 1.0,
           "stage_id": "fastq.filter",
-          "tool_id": "fastp"
+          "tool_id": "seqkit"
         },
         {
           "base_retention": 1.0,
@@ -1185,7 +1241,7 @@ expression: report
       "runtime_s": 1.0,
       "stage_id": "fastq.filter",
       "stage_report_path": "stage_3/stage_report.json",
-      "tool_id": "fastp",
+      "tool_id": "seqkit",
       "tool_invocation_path": "stage_3/tool_invocation.json",
       "tool_version": "0.0.0"
     },

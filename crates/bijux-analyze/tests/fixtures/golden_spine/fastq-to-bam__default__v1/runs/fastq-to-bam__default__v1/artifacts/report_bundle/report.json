@@ -53,6 +53,7 @@
       "provenance",
       "run_provenance",
       "decision_config",
+      "analysis_selection_contract",
       "retention_definition",
       "retention_context",
       "assets_provenance",

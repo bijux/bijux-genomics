@@ -128,6 +128,7 @@
       "provenance",
       "run_provenance",
       "decision_config",
+      "analysis_selection_contract",
       "retention_definition",
       "retention_context",
       "assets_provenance",
@@ -349,6 +350,57 @@
       ]
     },
     "adapter_config": {},
+    "analysis_selection_contract": {
+      "criteria": [
+        "runtime_s",
+        "memory_mb",
+        "retention_ratio"
+      ],
+      "notes": "Selection uses bench medians per tool and the configured objective weights.",
+      "objectives": [
+        {
+          "objective": "speed",
+          "ranking": "lower score is better",
+          "scoring": "weighted_sum(runtime, memory, retention)",
+          "weights": {
+            "memory": 0.0,
+            "retention": 0.0,
+            "runtime": 1.0
+          }
+        },
+        {
+          "objective": "memory",
+          "ranking": "lower score is better",
+          "scoring": "weighted_sum(runtime, memory, retention)",
+          "weights": {
+            "memory": 1.0,
+            "retention": 0.0,
+            "runtime": 0.0
+          }
+        },
+        {
+          "objective": "retention",
+          "ranking": "lower score is better",
+          "scoring": "weighted_sum(runtime, memory, retention)",
+          "weights": {
+            "memory": 0.0,
+            "retention": -1.0,
+            "runtime": 0.0
+          }
+        },
+        {
+          "objective": "balanced",
+          "ranking": "lower score is better",
+          "scoring": "weighted_sum(runtime, memory, retention)",
+          "weights": {
+            "memory": 1.0,
+            "retention": -100.0,
+            "runtime": 1.0
+          }
+        }
+      ],
+      "selection_strategy": "objective_weights"
+    },
     "assertions": {
       "entries": [
         {
@@ -654,7 +706,11 @@
         }
       ]
     },
-    "run_provenance": {},
+    "run_provenance": {
+      "graph_hash": "unknown",
+      "input_hashes": [],
+      "stage_contracts": {}
+    },
     "scientific_provenance": {
       "entries": [
         {
@@ -750,7 +806,7 @@
       <ul>
         <li><a href="#overview">overview</a></li>
         <li><a href="#stages">stages</a></li>
-<li><a href="#section-accounting">accounting</a></li><li><a href="#section-adapter_config">adapter_config</a></li><li><a href="#section-assertions">assertions</a></li><li><a href="#section-bench_summary">bench_summary</a></li><li><a href="#section-claims_registry">claims_registry</a></li><li><a href="#section-comparison_view">comparison_view</a></li><li><a href="#section-contaminant_summary">contaminant_summary</a></li><li><a href="#section-contamination">contamination</a></li><li><a href="#section-data_contract_validation">data_contract_validation</a></li><li><a href="#section-decision_config">decision_config</a></li><li><a href="#section-decision_trace">decision_trace</a></li><li><a href="#section-failure_hints">failure_hints</a></li><li><a href="#section-failures">failures</a></li><li><a href="#section-filtering">filtering</a></li><li><a href="#section-final_qc_summary">final_qc_summary</a></li><li><a href="#section-findings">findings</a></li><li><a href="#section-handoff">handoff</a></li><li><a href="#section-impact_metrics">impact_metrics</a></li><li><a href="#section-key_findings">key_findings</a></li><li><a href="#section-method_assumptions">method_assumptions</a></li><li><a href="#section-metric_provenance">metric_provenance</a></li><li><a href="#section-pipeline_defaults">pipeline_defaults</a></li><li><a href="#section-pipeline_overview">pipeline_overview</a></li><li><a href="#section-pipeline_verdict">pipeline_verdict</a></li><li><a href="#section-qc">qc</a></li><li><a href="#section-qc_artifacts">qc_artifacts</a></li><li><a href="#section-qc_delta">qc_delta</a></li><li><a href="#section-reproducibility">reproducibility</a></li><li><a href="#section-retention">retention</a></li><li><a href="#section-run_provenance">run_provenance</a></li><li><a href="#section-scientific_provenance">scientific_provenance</a></li><li><a href="#section-stage_completeness">stage_completeness</a></li><li><a href="#section-stage_confidence">stage_confidence</a></li><li><a href="#section-stage_plots">stage_plots</a></li><li><a href="#section-trimming">trimming</a></li>
+<li><a href="#section-accounting">accounting</a></li><li><a href="#section-adapter_config">adapter_config</a></li><li><a href="#section-analysis_selection_contract">analysis_selection_contract</a></li><li><a href="#section-assertions">assertions</a></li><li><a href="#section-bench_summary">bench_summary</a></li><li><a href="#section-claims_registry">claims_registry</a></li><li><a href="#section-comparison_view">comparison_view</a></li><li><a href="#section-contaminant_summary">contaminant_summary</a></li><li><a href="#section-contamination">contamination</a></li><li><a href="#section-data_contract_validation">data_contract_validation</a></li><li><a href="#section-decision_config">decision_config</a></li><li><a href="#section-decision_trace">decision_trace</a></li><li><a href="#section-failure_hints">failure_hints</a></li><li><a href="#section-failures">failures</a></li><li><a href="#section-filtering">filtering</a></li><li><a href="#section-final_qc_summary">final_qc_summary</a></li><li><a href="#section-findings">findings</a></li><li><a href="#section-handoff">handoff</a></li><li><a href="#section-impact_metrics">impact_metrics</a></li><li><a href="#section-key_findings">key_findings</a></li><li><a href="#section-method_assumptions">method_assumptions</a></li><li><a href="#section-metric_provenance">metric_provenance</a></li><li><a href="#section-pipeline_defaults">pipeline_defaults</a></li><li><a href="#section-pipeline_overview">pipeline_overview</a></li><li><a href="#section-pipeline_verdict">pipeline_verdict</a></li><li><a href="#section-qc">qc</a></li><li><a href="#section-qc_artifacts">qc_artifacts</a></li><li><a href="#section-qc_delta">qc_delta</a></li><li><a href="#section-reproducibility">reproducibility</a></li><li><a href="#section-retention">retention</a></li><li><a href="#section-run_provenance">run_provenance</a></li><li><a href="#section-scientific_provenance">scientific_provenance</a></li><li><a href="#section-stage_completeness">stage_completeness</a></li><li><a href="#section-stage_confidence">stage_confidence</a></li><li><a href="#section-stage_plots">stage_plots</a></li><li><a href="#section-trimming">trimming</a></li>
       </ul>
     </nav>
     <main>
@@ -820,7 +876,57 @@
       "tool_id": "fastp"
     }
   ]
-}</pre></details><details id=\"section-adapter_config\" class=\"section\"><summary>adapter_config</summary><pre>{}</pre></details><details id=\"section-assertions\" class=\"section\"><summary>assertions</summary><pre>{
+}</pre></details><details id=\"section-adapter_config\" class=\"section\"><summary>adapter_config</summary><pre>{}</pre></details><details id=\"section-analysis_selection_contract\" class=\"section\"><summary>analysis_selection_contract</summary><pre>{
+  "criteria": [
+    "runtime_s",
+    "memory_mb",
+    "retention_ratio"
+  ],
+  "notes": "Selection uses bench medians per tool and the configured objective weights.",
+  "objectives": [
+    {
+      "objective": "speed",
+      "ranking": "lower score is better",
+      "scoring": "weighted_sum(runtime, memory, retention)",
+      "weights": {
+        "memory": 0.0,
+        "retention": 0.0,
+        "runtime": 1.0
+      }
+    },
+    {
+      "objective": "memory",
+      "ranking": "lower score is better",
+      "scoring": "weighted_sum(runtime, memory, retention)",
+      "weights": {
+        "memory": 1.0,
+        "retention": 0.0,
+        "runtime": 0.0
+      }
+    },
+    {
+      "objective": "retention",
+      "ranking": "lower score is better",
+      "scoring": "weighted_sum(runtime, memory, retention)",
+      "weights": {
+        "memory": 0.0,
+        "retention": -1.0,
+        "runtime": 0.0
+      }
+    },
+    {
+      "objective": "balanced",
+      "ranking": "lower score is better",
+      "scoring": "weighted_sum(runtime, memory, retention)",
+      "weights": {
+        "memory": 1.0,
+        "retention": -100.0,
+        "runtime": 1.0
+      }
+    }
+  ],
+  "selection_strategy": "objective_weights"
+}</pre></details><details id=\"section-assertions\" class=\"section\"><summary>assertions</summary><pre>{
   "entries": [
     {
       "results": [],
@@ -1098,7 +1204,11 @@
       "tool_id": "fastp"
     }
   ]
-}</pre></details><details id=\"section-run_provenance\" class=\"section\"><summary>run_provenance</summary><pre>{}</pre></details><details id=\"section-scientific_provenance\" class=\"section\"><summary>scientific_provenance</summary><pre>{
+}</pre></details><details id=\"section-run_provenance\" class=\"section\"><summary>run_provenance</summary><pre>{
+  "graph_hash": "unknown",
+  "input_hashes": [],
+  "stage_contracts": {}
+}</pre></details><details id=\"section-scientific_provenance\" class=\"section\"><summary>scientific_provenance</summary><pre>{
   "entries": [
     {
       "effective_params": {

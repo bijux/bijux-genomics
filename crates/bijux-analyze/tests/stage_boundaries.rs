@@ -1,6 +1,7 @@
 use std::path::Path;
 
-use bijux_core::{Cardinality, PortSpec};
+use bijux_core::contract::ToolRegistry;
+use bijux_core::{Cardinality, PortSpec, StageId};
 use bijux_runtime::manifests::load_manifests;
 
 fn domain_root() -> std::path::PathBuf {
@@ -20,17 +21,22 @@ fn stage_port_matches(ports: &[PortSpec], data_type: &str, cardinality: Cardinal
     })
 }
 
+fn stage_or<'a>(
+    registry: &'a ToolRegistry,
+    stage_id: &'static str,
+) -> Result<&'a bijux_core::contract::StageSpec, Box<dyn std::error::Error>> {
+    let stage_id = StageId::from_static(stage_id);
+    registry
+        .stages()
+        .get(&stage_id)
+        .ok_or_else(|| format!("missing {}", stage_id.as_str()).into())
+}
+
 #[test]
 fn trim_outputs_are_compatible_with_merge_inputs() -> Result<(), Box<dyn std::error::Error>> {
     let registry = load_manifests(&domain_root())?;
-    let trim = registry
-        .stages()
-        .get("fastq.trim")
-        .ok_or("missing fastq.trim")?;
-    let merge = registry
-        .stages()
-        .get("fastq.merge")
-        .ok_or("missing fastq.merge")?;
+    let trim = stage_or(&registry, "fastq.trim")?;
+    let merge = stage_or(&registry, "fastq.merge")?;
     assert!(
         stage_port_matches(&trim.outputs, "fastq", Cardinality::Many)
             && stage_port_matches(&merge.inputs, "fastq", Cardinality::Many),
@@ -42,14 +48,8 @@ fn trim_outputs_are_compatible_with_merge_inputs() -> Result<(), Box<dyn std::er
 #[test]
 fn filter_outputs_are_compatible_with_stats_inputs() -> Result<(), Box<dyn std::error::Error>> {
     let registry = load_manifests(&domain_root())?;
-    let filter = registry
-        .stages()
-        .get("fastq.filter")
-        .ok_or("missing fastq.filter")?;
-    let stats = registry
-        .stages()
-        .get("fastq.stats_neutral")
-        .ok_or("missing fastq.stats_neutral")?;
+    let filter = stage_or(&registry, "fastq.filter")?;
+    let stats = stage_or(&registry, "fastq.stats_neutral")?;
     assert!(
         stage_port_matches(&filter.outputs, "fastq", Cardinality::Many)
             && stage_port_matches(&stats.inputs, "fastq", Cardinality::Many),
@@ -61,18 +61,9 @@ fn filter_outputs_are_compatible_with_stats_inputs() -> Result<(), Box<dyn std::
 #[test]
 fn validate_trim_filter_chain_is_type_safe() -> Result<(), Box<dyn std::error::Error>> {
     let registry = load_manifests(&domain_root())?;
-    let validate = registry
-        .stages()
-        .get("fastq.validate_pre")
-        .ok_or("missing fastq.validate_pre")?;
-    let trim = registry
-        .stages()
-        .get("fastq.trim")
-        .ok_or("missing fastq.trim")?;
-    let filter = registry
-        .stages()
-        .get("fastq.filter")
-        .ok_or("missing fastq.filter")?;
+    let validate = stage_or(&registry, "fastq.validate_pre")?;
+    let trim = stage_or(&registry, "fastq.trim")?;
+    let filter = stage_or(&registry, "fastq.filter")?;
 
     assert!(
         stage_port_matches(&validate.inputs, "fastq", Cardinality::Many)
@@ -90,14 +81,8 @@ fn validate_trim_filter_chain_is_type_safe() -> Result<(), Box<dyn std::error::E
 #[test]
 fn trim_outputs_are_compatible_with_correct_inputs() -> Result<(), Box<dyn std::error::Error>> {
     let registry = load_manifests(&domain_root())?;
-    let trim = registry
-        .stages()
-        .get("fastq.trim")
-        .ok_or("missing fastq.trim")?;
-    let correct = registry
-        .stages()
-        .get("fastq.correct")
-        .ok_or("missing fastq.correct")?;
+    let trim = stage_or(&registry, "fastq.trim")?;
+    let correct = stage_or(&registry, "fastq.correct")?;
     assert!(
         stage_port_matches(&trim.outputs, "fastq", Cardinality::Many)
             && stage_port_matches(&correct.inputs, "fastq", Cardinality::Many),
@@ -109,14 +94,8 @@ fn trim_outputs_are_compatible_with_correct_inputs() -> Result<(), Box<dyn std::
 #[test]
 fn correct_outputs_are_compatible_with_filter_inputs() -> Result<(), Box<dyn std::error::Error>> {
     let registry = load_manifests(&domain_root())?;
-    let correct = registry
-        .stages()
-        .get("fastq.correct")
-        .ok_or("missing fastq.correct")?;
-    let filter = registry
-        .stages()
-        .get("fastq.filter")
-        .ok_or("missing fastq.filter")?;
+    let correct = stage_or(&registry, "fastq.correct")?;
+    let filter = stage_or(&registry, "fastq.filter")?;
     assert!(
         stage_port_matches(&correct.outputs, "fastq", Cardinality::Many)
             && stage_port_matches(&filter.inputs, "fastq", Cardinality::Many),
@@ -129,14 +108,8 @@ fn correct_outputs_are_compatible_with_filter_inputs() -> Result<(), Box<dyn std
 fn preprocess_outputs_are_compatible_with_qc_post_inputs() -> Result<(), Box<dyn std::error::Error>>
 {
     let registry = load_manifests(&domain_root())?;
-    let preprocess = registry
-        .stages()
-        .get("fastq.preprocess")
-        .ok_or("missing fastq.preprocess")?;
-    let qc_post = registry
-        .stages()
-        .get("fastq.qc_post")
-        .ok_or("missing fastq.qc_post")?;
+    let preprocess = stage_or(&registry, "fastq.preprocess")?;
+    let qc_post = stage_or(&registry, "fastq.qc_post")?;
     assert!(
         stage_port_matches(&preprocess.outputs, "fastq", Cardinality::Many)
             && stage_port_matches(&qc_post.inputs, "fastq", Cardinality::Many),
