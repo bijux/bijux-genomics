@@ -1,0 +1,3 @@
+# mapDamage2 misincorporation
+pos C->T G->A
+1 0.15 0.25

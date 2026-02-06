@@ -1,0 +1,7 @@
+{
+  "method": "contam",
+  "estimate": 0.05,
+  "ci_low": 0.01,
+  "ci_high": 0.09,
+  "assumptions": ["mito"]
+}
