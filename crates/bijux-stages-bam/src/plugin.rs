@@ -1,6 +1,10 @@
 use std::collections::BTreeMap;
 
 use anyhow::Result;
+use bijux_core::metrics::MetricsEnvelope;
+use bijux_core::primitives::hashing::{
+    input_fingerprint, parameters_fingerprint, parameters_json_canonicalization,
+};
 use bijux_stage_contract::{ArtifactRef, StagePlanV1};
 use bijux_stage_contract::{StageInvocationV1, StagePlugin, StagePluginOutputV1};
 
@@ -38,8 +42,38 @@ impl StagePlugin for BamStagePlugin {
             &thresholds,
         );
         metrics.stage_verdict = Some(evaluation.verdict.into());
+        let metrics_json = serde_json::to_value(metrics)?;
+        let mut input_hashes = Vec::new();
+        for input in &plan.io.inputs {
+            if input.path.exists() {
+                if let Ok(hash) = bijux_infra::hash_file_sha256(&input.path) {
+                    input_hashes.push(hash);
+                }
+            }
+        }
+        let input_fingerprint = input_fingerprint(&input_hashes);
+        let parameters_fingerprint = parameters_fingerprint(&plan.params)?;
+        let parameters_json_normalized = parameters_json_canonicalization(&plan.params);
+        let image_digest = plan
+            .image
+            .digest
+            .clone()
+            .unwrap_or_else(|| plan.image.image.clone());
+        let envelope = MetricsEnvelope {
+            schema_version: "bijux.metrics_envelope.v2".to_string(),
+            stage_id: plan.stage_id.0.to_string(),
+            stage_version: plan.stage_version.0,
+            tool_id: plan.tool_id.0.to_string(),
+            tool_version: plan.tool_version.clone(),
+            image_digest,
+            parameters_fingerprint,
+            input_fingerprint,
+            parameters_json_normalized,
+            input_hashes,
+            metrics: metrics_json,
+        };
         Ok(StagePluginOutputV1 {
-            metrics: serde_json::to_value(metrics)?,
+            metrics: envelope,
             artifacts: Vec::new(),
             report_parts: Vec::new(),
             warnings: Vec::new(),

@@ -1,0 +1,3 @@
+# preseq lc_extrap
+100	80
+200	120

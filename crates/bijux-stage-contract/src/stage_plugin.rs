@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::stage_plan::StagePlanV1;
 use bijux_core::contract::ArtifactRef;
+use bijux_core::metrics::MetricsEnvelope;
 use bijux_core::primitives::invariants::{InvariantResultV1, StageVerdictV1};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -18,7 +19,7 @@ pub struct StageInvocationV1 {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct StagePluginOutputV1 {
-    pub metrics: serde_json::Value,
+    pub metrics: MetricsEnvelope<serde_json::Value>,
     pub artifacts: Vec<ArtifactRef>,
     #[serde(default)]
     pub report_parts: Vec<StageReportPartV1>,

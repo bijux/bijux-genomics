@@ -1,4 +1,8 @@
 use anyhow::Result;
+use bijux_core::metrics::MetricsEnvelope;
+use bijux_core::primitives::hashing::{
+    input_fingerprint, parameters_fingerprint, parameters_json_canonicalization,
+};
 use bijux_stage_contract::{ArtifactRef, StagePlanV1};
 use bijux_stage_contract::{StageInvocationV1, StagePlugin, StagePluginOutputV1};
 
@@ -37,8 +41,37 @@ impl StagePlugin for FastqStagePlugin {
             .map(|output| output.path.clone())
             .collect();
         let metrics = metrics::stage_metrics_for_plan(plan, &input_paths, &output_paths)?;
-        Ok(StagePluginOutputV1 {
+        let mut input_hashes = Vec::new();
+        for path in &input_paths {
+            if path.exists() {
+                if let Ok(hash) = bijux_infra::hash_file_sha256(path) {
+                    input_hashes.push(hash);
+                }
+            }
+        }
+        let input_fingerprint = input_fingerprint(&input_hashes);
+        let parameters_fingerprint = parameters_fingerprint(&plan.params)?;
+        let parameters_json_normalized = parameters_json_canonicalization(&plan.params);
+        let image_digest = plan
+            .image
+            .digest
+            .clone()
+            .unwrap_or_else(|| plan.image.image.clone());
+        let envelope = MetricsEnvelope {
+            schema_version: "bijux.metrics_envelope.v2".to_string(),
+            stage_id: plan.stage_id.0.to_string(),
+            stage_version: plan.stage_version.0,
+            tool_id: plan.tool_id.0.to_string(),
+            tool_version: plan.tool_version.clone(),
+            image_digest,
+            parameters_fingerprint,
+            input_fingerprint,
+            parameters_json_normalized,
+            input_hashes,
             metrics,
+        };
+        Ok(StagePluginOutputV1 {
+            metrics: envelope,
             artifacts: Vec::new(),
             report_parts: Vec::new(),
             warnings: Vec::new(),
