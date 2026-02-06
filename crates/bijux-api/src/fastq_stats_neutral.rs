@@ -334,14 +334,17 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
         exit_code: execution.exit_code,
     };
     let metrics_json = serde_json::to_value(&metric_set)?;
+    let parameters_json_normalized =
+        bijux_core::primitives::hashing::parameters_json_canonicalization(&params);
     let stage_ctx = StageObservabilityContextV1 {
         stage_id: STAGE_STATS_NEUTRAL.as_str().to_string(),
         stage_version: plan.stage_version.0,
         tool_id: tool.to_string(),
         tool_version: tool_spec.tool_version.clone(),
-        input_hash: bench_inputs.input_hash.clone(),
-        params_hash: param_hash.clone(),
+        input_fingerprint: bench_inputs.input_hash.clone(),
+        parameters_fingerprint: param_hash.clone(),
         parameters_json: params.clone(),
+        parameters_json_normalized,
         metric_context: MetricContextV1 {
             tool_id: tool.to_string(),
             tool_version: tool_spec.tool_version.clone(),
@@ -357,9 +360,8 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
     let _metrics_envelope_path = write_metrics_envelope(
         &bijux_runtime::recording::run_artifacts_dir_for_out(&out_dir),
         &stage_ctx,
-        &execution_metrics,
         &metrics_json,
-        &[],
+        std::slice::from_ref(&bench_inputs.input_hash),
     )?;
     let envelope = &metric_set;
     write_metrics_json(&run_dirs, &execution_metrics, envelope)?;

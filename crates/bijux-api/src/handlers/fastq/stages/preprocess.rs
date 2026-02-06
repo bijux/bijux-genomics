@@ -4,6 +4,7 @@ use std::collections::HashMap;
 use crate::tooling::{ensure_bench_runner, filter_tools_by_role, load_registry};
 use anyhow::{anyhow, Context, Result};
 use bijux_analyze::load::sqlite::SqliteBenchResultsRepository;
+use bijux_core::plan::execution_graph::{ExecutionEdge, ExecutionGraph};
 use bijux_core::plan::PlanPolicy;
 use bijux_core::primitives::errors::ErrorCategory;
 use bijux_core::ContainerImageRefV1;
@@ -15,12 +16,15 @@ use bijux_planner_fastq::{
     apply_preprocess_policy, preprocess_decisions, resolve_preprocess_pipeline,
     select_preprocess_tools, FastqPlanConfig, FastqPlanner, ToolSelection,
 };
-use bijux_runner::primitives::{build_tool_execution_spec, resolve_image_for_run};
+use bijux_runner::primitives::{build_tool_execution_spec, resolve_image_for_run, StageResultV1};
 use bijux_runtime::recording::run_artifacts_dir_for_out;
 use bijux_runtime::recording::write_telemetry_event;
 
 use super::super::jobs::bench_jobs;
-use super::super::summary::{write_run_summary, StageExecutionSummary};
+use super::super::summary::{
+    render_run_summary, report_stage_step, write_run_manifest, write_scientific_provenance,
+    StageExecutionSummary,
+};
 use super::super::write_explain_plan_json;
 use super::super::{STAGE_PREPROCESS, STAGE_TRIM};
 use bijux_infra::{bench_base_dir, bench_tools_dir};
@@ -195,6 +199,69 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         bijux_planner_fastq::PLANNER_VERSION,
     );
 
+    if args.dry_run {
+        let root = bijux_runtime::recording::run_artifacts_dir_for_out(&out_dir);
+        bijux_infra::ensure_dir(&root).context("create dry-run artifacts dir")?;
+        let mut stage_runs: Vec<StageExecutionSummary> = planned_stages
+            .iter()
+            .map(|plan| StageExecutionSummary {
+                plan: plan.clone(),
+                result: StageResultV1 {
+                    run_id: "dry-run".to_string(),
+                    exit_code: 0,
+                    runtime_s: 0.0,
+                    memory_mb: 0.0,
+                    outputs: plan
+                        .io
+                        .outputs
+                        .iter()
+                        .map(|artifact| artifact.path.clone())
+                        .collect(),
+                    metrics_path: None,
+                    stdout: String::new(),
+                    stderr: String::new(),
+                    command: "dry-run".to_string(),
+                },
+            })
+            .collect();
+        let report_plan = report_stage_step(&args.out, &planned_stages);
+        let mut steps = planned_stages.clone();
+        steps.push(report_plan.clone());
+        let mut edges = pipeline_plan.edges().to_vec();
+        if let Some(last) = planned_stages.last() {
+            edges.push(ExecutionEdge::new(
+                last.step_id.clone(),
+                report_plan.step_id.clone(),
+            ));
+        }
+        let graph = ExecutionGraph::new(
+            pipeline_plan.pipeline_id().to_string(),
+            pipeline_plan.planner_version().to_string(),
+            pipeline_plan.policy(),
+            steps,
+            edges,
+        )?;
+        let graph_path = root.join("graph.json");
+        bijux_infra::atomic_write_json(&graph_path, &graph).context("write graph.json")?;
+        stage_runs.push(StageExecutionSummary {
+            plan: report_plan,
+            result: StageResultV1 {
+                run_id: "dry-run".to_string(),
+                exit_code: 0,
+                runtime_s: 0.0,
+                memory_mb: 0.0,
+                outputs: Vec::new(),
+                metrics_path: None,
+                stdout: String::new(),
+                stderr: String::new(),
+                command: "dry-run".to_string(),
+            },
+        });
+        write_run_manifest(&args.out, &stage_runs, &failures)?;
+        write_scientific_provenance(&args.out, &stage_runs)?;
+        return Ok(());
+    }
+
     let telemetry = build_telemetry_adapter();
     let mut pipeline_attrs = std::collections::BTreeMap::new();
     pipeline_attrs.insert("sample_id".to_string(), args.sample_id.clone());
@@ -205,14 +272,14 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     let pipeline_span = telemetry.start_pipeline(STAGE_PREPROCESS.as_str(), &pipeline_attrs);
 
     let mut stage_runs = Vec::new();
-    for planned in planned_stages {
+    for planned in &planned_stages {
         let stage_id = planned.step_id.to_string();
         let tool = planned.image.image.clone();
         let mut stage_attrs = std::collections::BTreeMap::new();
         stage_attrs.insert("stage".to_string(), stage_id.clone());
         stage_attrs.insert("tool".to_string(), tool.clone());
         let stage_span = telemetry.start_stage(&stage_id, &stage_attrs);
-        let execution = bijux_runner::primitives::execute_step(&planned, platform.runner, None);
+        let execution = bijux_runner::primitives::execute_step(planned, platform.runner, None);
         stage_span.end();
         let execution = execution?;
         if execution.exit_code != 0 {
@@ -224,13 +291,13 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
             });
         }
         stage_runs.push(StageExecutionSummary {
-            plan: planned,
+            plan: planned.clone(),
             result: execution,
         });
     }
     pipeline_span.end();
 
-    write_run_summary(
+    render_run_summary(
         &args.out,
         &stage_runs,
         &failures,
@@ -239,6 +306,56 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         policy.adapter_inference.as_ref(),
         &policy.stage_skips,
     )?;
+    let executed_steps: Vec<_> = stage_runs.iter().map(|entry| entry.plan.clone()).collect();
+    let report_plan = report_stage_step(&args.out, &executed_steps);
+    let report_outputs = report_plan
+        .io
+        .outputs
+        .iter()
+        .map(|artifact| artifact.path.clone())
+        .collect::<Vec<_>>();
+    let report_run_id = stage_runs.first().map_or_else(
+        || "report.aggregate".to_string(),
+        |entry| entry.result.run_id.clone(),
+    );
+    let report_result = StageResultV1 {
+        run_id: report_run_id,
+        exit_code: 0,
+        runtime_s: 0.0,
+        memory_mb: 0.0,
+        outputs: report_outputs,
+        metrics_path: None,
+        stdout: String::new(),
+        stderr: String::new(),
+        command: "report-aggregate".to_string(),
+    };
+    stage_runs.push(StageExecutionSummary {
+        plan: report_plan,
+        result: report_result,
+    });
+    let root = bijux_runtime::recording::run_artifacts_dir_for_out(&out_dir);
+    bijux_infra::ensure_dir(&root).context("create run artifacts dir")?;
+    let steps: Vec<_> = stage_runs.iter().map(|entry| entry.plan.clone()).collect();
+    let mut edges = pipeline_plan.edges().to_vec();
+    if let (Some(last), Some(report)) = (planned_stages.last(), steps.last()) {
+        if last.step_id != report.step_id {
+            edges.push(ExecutionEdge::new(
+                last.step_id.clone(),
+                report.step_id.clone(),
+            ));
+        }
+    }
+    let graph = ExecutionGraph::new(
+        pipeline_plan.pipeline_id().to_string(),
+        pipeline_plan.planner_version().to_string(),
+        pipeline_plan.policy(),
+        steps,
+        edges,
+    )?;
+    let graph_path = root.join("graph.json");
+    bijux_infra::atomic_write_json(&graph_path, &graph).context("write graph.json")?;
+    write_run_manifest(&args.out, &stage_runs, &failures)?;
+    write_scientific_provenance(&args.out, &stage_runs)?;
     if let Some(decision) = decisions.merge_decision {
         let run_id = stage_runs
             .first()
