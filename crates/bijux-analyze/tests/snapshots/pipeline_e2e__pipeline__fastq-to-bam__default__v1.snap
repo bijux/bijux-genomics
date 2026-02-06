@@ -1716,12 +1716,12 @@ expression: report
     "error_count": 0,
     "event_count": 0,
     "events": [
-      "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpQEjKw8/pipeline/stage_0/telemetry/events.jsonl",
-      "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpQEjKw8/pipeline/stage_1/telemetry/events.jsonl",
-      "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpQEjKw8/pipeline/stage_2/telemetry/events.jsonl",
-      "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpQEjKw8/pipeline/stage_3/telemetry/events.jsonl",
-      "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpQEjKw8/pipeline/stage_4/telemetry/events.jsonl",
-      "/var/folders/n8/vnvrbrx950b17b93f4xx47k80000gn/T/.tmpQEjKw8/pipeline/stage_5/telemetry/events.jsonl"
+      "telemetry/events.jsonl",
+      "telemetry/events.jsonl",
+      "telemetry/events.jsonl",
+      "telemetry/events.jsonl",
+      "telemetry/events.jsonl",
+      "telemetry/events.jsonl"
     ]
   }
 }
