@@ -2,11 +2,11 @@ use std::path::PathBuf;
 use std::time::Duration;
 
 use anyhow::Result;
-use bijux_core::plan::stage_plan::StagePlanV1;
+use bijux_core::plan::execution_graph::ExecutionStep;
 
 #[derive(Debug, Clone)]
 pub struct Invocation {
-    pub stage: StagePlanV1,
+    pub step: ExecutionStep,
     pub attempt: u32,
 }
 

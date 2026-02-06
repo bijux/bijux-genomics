@@ -6,7 +6,8 @@ use std::path::PathBuf;
 use std::time::Duration;
 
 use crate::runner::{Invocation, Runner, RunnerResult};
-use bijux_core::plan::execution_plan::{ExecutionPlan, PlanEdge, PlanPolicy};
+use bijux_core::plan::execution_graph::{ExecutionEdge, ExecutionGraph, ExecutionStep};
+use bijux_core::plan::PlanPolicy;
 use bijux_core::{
     CommandSpecV1, ContainerImageRefV1, StageId, StagePlanV1, StageVersion, ToolConstraints, ToolId,
 };
@@ -29,15 +30,15 @@ impl FakeRunner {
 
 impl Runner for FakeRunner {
     fn run(&self, invocation: &Invocation) -> anyhow::Result<RunnerResult> {
-        let plan = &invocation.stage;
+        let plan = &invocation.step;
         let attempt = invocation.attempt;
         self.calls
             .borrow_mut()
-            .push(format!("{}:{}", plan.stage_id.0, attempt));
+            .push(format!("{}:{}", plan.step_id.0, attempt));
         let mut fail_first = self.fail_first.borrow_mut();
-        let should_fail = fail_first.iter().any(|id| id == plan.stage_id.as_str()) && attempt == 0;
+        let should_fail = fail_first.iter().any(|id| id == plan.step_id.as_str()) && attempt == 0;
         if should_fail {
-            fail_first.retain(|id| id != plan.stage_id.as_str());
+            fail_first.retain(|id| id != plan.step_id.as_str());
         }
         Ok(RunnerResult {
             exit_code: i32::from(should_fail),
@@ -49,7 +50,7 @@ impl Runner for FakeRunner {
     }
 }
 
-fn plan_for(stage_id: &str) -> StagePlanV1 {
+fn plan_for(stage_id: &str) -> ExecutionStep {
     StagePlanV1 {
         stage_id: StageId::new(stage_id),
         stage_version: StageVersion(1),
@@ -84,13 +85,17 @@ fn plan_for(stage_id: &str) -> StagePlanV1 {
         aux_images: BTreeMap::new(),
         reason: bijux_core::plan::stage_plan::PlanDecisionReason::default(),
     }
+    .into()
 }
 
 #[test]
 fn execute_plan_orders_dag() {
     let stages = vec![plan_for("A"), plan_for("B"), plan_for("C")];
-    let edges = vec![PlanEdge::new("A", "C"), PlanEdge::new("B", "C")];
-    let plan = ExecutionPlan::new(
+    let edges = vec![
+        ExecutionEdge::new(StageId::new("A"), StageId::new("C")),
+        ExecutionEdge::new(StageId::new("B"), StageId::new("C")),
+    ];
+    let plan = ExecutionGraph::new(
         "pipeline",
         "planner",
         PlanPolicy::PreferAccuracy,
@@ -107,7 +112,7 @@ fn execute_plan_orders_dag() {
 #[test]
 fn execute_plan_retries_failures() {
     let stages = vec![plan_for("A")];
-    let plan = ExecutionPlan::new(
+    let plan = ExecutionGraph::new(
         "pipeline",
         "planner",
         PlanPolicy::PreferAccuracy,
@@ -126,12 +131,12 @@ fn execute_plan_retries_failures() {
 #[test]
 fn execute_plan_stops_on_failure() {
     let stages = vec![plan_for("A"), plan_for("B")];
-    let plan = ExecutionPlan::new(
+    let plan = ExecutionGraph::new(
         "pipeline",
         "planner",
         PlanPolicy::PreferAccuracy,
         stages,
-        vec![PlanEdge::new("A", "B")],
+        vec![ExecutionEdge::new(StageId::new("A"), StageId::new("B"))],
     )
     .expect("plan");
     let runner = FakeRunner::new();
@@ -147,12 +152,12 @@ fn execute_plan_stops_on_failure() {
 #[test]
 fn execute_plan_respects_resume_cache() {
     let stages = vec![plan_for("A"), plan_for("B")];
-    let plan = ExecutionPlan::new(
+    let plan = ExecutionGraph::new(
         "pipeline",
         "planner",
         PlanPolicy::PreferAccuracy,
         stages,
-        vec![PlanEdge::new("A", "B")],
+        vec![ExecutionEdge::new(StageId::new("A"), StageId::new("B"))],
     )
     .expect("plan");
     let runner = FakeRunner::new();
@@ -166,8 +171,11 @@ fn execute_plan_respects_resume_cache() {
 #[test]
 fn execute_plan_is_deterministic() {
     let stages = vec![plan_for("A"), plan_for("B"), plan_for("C")];
-    let edges = vec![PlanEdge::new("A", "C"), PlanEdge::new("B", "C")];
-    let plan = ExecutionPlan::new(
+    let edges = vec![
+        ExecutionEdge::new(StageId::new("A"), StageId::new("C")),
+        ExecutionEdge::new(StageId::new("B"), StageId::new("C")),
+    ];
+    let plan = ExecutionGraph::new(
         "pipeline",
         "planner",
         PlanPolicy::PreferAccuracy,

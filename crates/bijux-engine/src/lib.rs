@@ -22,21 +22,20 @@ mod runner_tests;
 use crate::runner::Runner;
 use anyhow::Result;
 use bijux_core::contract::RunRecordV1;
-use bijux_core::plan::execution_plan::ExecutionPlan;
+use bijux_core::plan::execution_graph::ExecutionGraph;
 
-pub fn validate(plan: &ExecutionPlan) -> Result<()> {
-    let context = bijux_core::plan::execution_plan::PlanValidationContext {
-        allowed_stage_ids: None,
-        allowed_tool_ids: None,
-    };
-    plan.validate_strict(&context)
+pub fn validate(graph: &ExecutionGraph) -> Result<()> {
+    graph.validate_strict()
 }
 
-pub fn execute(
-    plan: &ExecutionPlan,
-    runner: &dyn Runner,
-    _environment: &bijux_runtime::environment::ExecutionEnvironment,
-    _output_dir: &std::path::Path,
-) -> Result<RunRecordV1> {
-    executor::execute_plan(plan, runner, &executor::ExecutionOptions::default())
+pub fn execute(graph: &ExecutionGraph, services: &RuntimeServices<'_>) -> Result<RunRecordV1> {
+    executor::execute_plan(
+        graph,
+        services.runner,
+        &executor::ExecutionOptions::default(),
+    )
+}
+
+pub struct RuntimeServices<'a> {
+    pub runner: &'a dyn Runner,
 }
