@@ -1,10 +1,8 @@
 # Architecture Litmus
 
-This document is the single checklist for architectural truth.
+These rules are executable. If they drift, fix the code or update the contract with intent.
 
-## Non-negotiables
 - engine does not depend on runner or environment
-- runner depends on engine and implements engine::Runner
-- prelude is exports-only (no functions or impl blocks)
+- prelude is exports-only
 - defaults live only in bijux-pipelines
 - composition roots are only in API/CLI
