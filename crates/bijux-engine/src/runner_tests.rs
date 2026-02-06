@@ -5,7 +5,7 @@ use std::collections::BTreeMap;
 use std::path::PathBuf;
 use std::time::Duration;
 
-use bijux_core::contract::{ArtifactRef, StageIO, ToolConstraints};
+use bijux_core::contract::{ArtifactRef, ArtifactRole, StageIO, ToolConstraints};
 use bijux_core::plan::execution_graph::{ExecutionEdge, ExecutionGraph, ExecutionStep};
 use bijux_core::plan::PlanPolicy;
 use bijux_core::plan::{Invocation, Runner, RunnerResult};
@@ -66,14 +66,16 @@ fn plan_for(stage_id: &str) -> ExecutionStep {
             threads: 1,
         },
         io: StageIO {
-            inputs: vec![ArtifactRef {
-                name: "input".to_string(),
-                path: PathBuf::from("input"),
-            }],
-            outputs: vec![ArtifactRef {
-                name: "output".to_string(),
-                path: PathBuf::from("output"),
-            }],
+            inputs: vec![ArtifactRef::required(
+                "input",
+                PathBuf::from("input"),
+                ArtifactRole::Unknown,
+            )],
+            outputs: vec![ArtifactRef::required(
+                "output",
+                PathBuf::from("output"),
+                ArtifactRole::Unknown,
+            )],
         },
         out_dir: PathBuf::from("out"),
         aux_images: BTreeMap::new(),
