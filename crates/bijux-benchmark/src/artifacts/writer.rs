@@ -40,7 +40,7 @@ fn observation_key(obs: &BenchmarkObservation) -> ObservationKey {
 
 fn canonical_json_line<T: serde::Serialize>(value: &T) -> Result<String> {
     let json = serde_json::to_value(value)?;
-    let canonical = bijux_core::canonicalize_json_value(&json);
+    let canonical = bijux_core::contract::canonical::canonicalize_json_value(&json);
     Ok(serde_json::to_string(&canonical)?)
 }
 
@@ -154,14 +154,14 @@ pub fn write_observations_jsonl(
 /// Returns an error if the file cannot be written.
 pub fn write_summary_json(path: &Path, summary: &BenchmarkSummary) -> Result<()> {
     let json = serde_json::to_value(summary)?;
-    let canonical = bijux_core::canonicalize_json_value(&json);
+    let canonical = bijux_core::contract::canonical::canonicalize_json_value(&json);
     let bytes = serde_json::to_vec_pretty(&canonical)?;
     write_atomic_bytes(path, &bytes).with_context(|| format!("write summary {}", path.display()))
 }
 
 pub fn write_decision_json(path: &Path, decision: &GateDecision) -> Result<()> {
     let json = serde_json::to_value(decision)?;
-    let canonical = bijux_core::canonicalize_json_value(&json);
+    let canonical = bijux_core::contract::canonical::canonicalize_json_value(&json);
     let bytes = serde_json::to_vec_pretty(&canonical)?;
     write_atomic_bytes(path, &bytes).with_context(|| format!("write decision {}", path.display()))
 }
@@ -294,21 +294,21 @@ mod tests {
 
         let expected_observation = {
             let json = serde_json::to_value(&observations[0])?;
-            let canonical = bijux_core::canonicalize_json_value(&json);
+            let canonical = bijux_core::contract::canonical::canonicalize_json_value(&json);
             serde_json::to_string(&canonical)?
         };
         assert_eq!(observations_text.trim(), expected_observation.trim());
 
         let expected_summary = {
             let json = serde_json::to_value(&summary)?;
-            let canonical = bijux_core::canonicalize_json_value(&json);
+            let canonical = bijux_core::contract::canonical::canonicalize_json_value(&json);
             serde_json::to_string_pretty(&canonical)?
         };
         assert_eq!(summary_text.trim(), expected_summary.trim());
 
         let expected_decision = {
             let json = serde_json::to_value(&decision)?;
-            let canonical = bijux_core::canonicalize_json_value(&json);
+            let canonical = bijux_core::contract::canonical::canonicalize_json_value(&json);
             serde_json::to_string_pretty(&canonical)?
         };
         assert_eq!(decision_text.trim(), expected_decision.trim());
