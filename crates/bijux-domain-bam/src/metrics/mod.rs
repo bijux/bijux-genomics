@@ -1,55 +1,28 @@
 //! Canonical BAM metrics schema v1.
 
-mod alignment;
-#[path = "derived/authenticity.rs"]
-mod authenticity;
-mod bundle;
-mod complexity;
-mod contamination;
-mod coverage;
-mod damage;
-#[path = "derived/fragment.rs"]
-mod fragment;
-mod genotyping;
-#[path = "derived/idxstats.rs"]
-mod idxstats;
-#[path = "derived/mapq.rs"]
-mod mapq;
-mod sex;
-#[path = "derived/sufficiency.rs"]
-mod sufficiency;
-#[path = "derived/verdict.rs"]
-mod verdict;
+pub mod core;
+pub mod downstream;
+pub mod pre;
 
-pub use alignment::{parse_samtools_flagstat, parse_samtools_stats, AlignmentCountsV1};
-pub use authenticity::{
-    authenticity_score, contamination_cross_check, infer_library_type_from_damage,
-    suggest_trim_from_damage, AuthenticityEvidenceV1, AuthenticityScoreV1, LibraryTypeInferenceV1,
-    TrimSuggestionV1,
-};
-pub use bundle::{BamMetricsBundleV1, BamMetricsV1};
-pub use complexity::{parse_preseq_estimates, ComplexityMetricsV1};
-pub use contamination::{
-    parse_contamination_json, ContaminationMetricsV1, ContaminationReconciliationV1,
-};
-pub use coverage::{
-    parse_mosdepth_summary, parse_samtools_depth, parse_samtools_depth_with_uniformity,
-    CoverageMetricsV1, CoverageUniformityV1, EffectiveCoverageV1,
-};
-pub use damage::{
+pub use core::{
     compare_damage_metrics, parse_damageprofiler_json, parse_mapdamage2_misincorporation,
-    parse_pydamage_json, DamageComparisonV1, DamageMetricsV1,
+    parse_mosdepth_summary, parse_preseq_estimates, parse_pydamage_json, parse_samtools_depth,
+    parse_samtools_depth_with_uniformity, BamMetricsBundleV1, BamMetricsV1, ComplexityMetricsV1,
+    CoverageMetricsV1, CoverageUniformityV1, DamageComparisonV1, DamageMetricsV1,
+    EffectiveCoverageV1,
 };
-pub use fragment::FragmentLengthSummaryV1;
-pub use genotyping::GenotypingMetricsV1;
-pub use idxstats::{parse_samtools_idxstats, IdxstatsContigV1, IdxstatsSummaryV1};
-pub use mapq::MapqSummaryV1;
-pub use sex::{parse_sex_json, SexConfidenceClass, SexInferenceV1};
-pub use sufficiency::{
-    ContaminationSufficiencyV1, CoverageSufficiencyV1, HaplogroupSufficiencyV1,
-    KinshipSufficiencyV1, SexSufficiencyV1,
+pub use downstream::{
+    authenticity_score, contamination_cross_check, parse_contamination_json, parse_sex_json,
+    suggest_trim_from_damage, AuthenticityEvidenceV1, AuthenticityScoreV1, BamInvariantStatusV1,
+    BamStageVerdictV1, ContaminationMetricsV1, ContaminationReconciliationV1,
+    ContaminationSufficiencyV1, CoverageSufficiencyV1, GenotypingMetricsV1,
+    HaplogroupSufficiencyV1, KinshipSufficiencyV1, LibraryTypeInferenceV1, SexConfidenceClass,
+    SexInferenceV1, SexSufficiencyV1, TrimSuggestionV1,
 };
-pub use verdict::{BamInvariantStatusV1, BamStageVerdictV1};
+pub use pre::{
+    parse_samtools_flagstat, parse_samtools_idxstats, parse_samtools_stats, AlignmentCountsV1,
+    FragmentLengthSummaryV1, IdxstatsContigV1, IdxstatsSummaryV1, MapqSummaryV1,
+};
 
 pub use crate::invariants::{
     evaluate_bam_invariants, BamInvariantEvaluation, BamInvariantThresholds,

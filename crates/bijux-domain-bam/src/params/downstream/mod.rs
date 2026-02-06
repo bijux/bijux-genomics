@@ -5,6 +5,7 @@ pub mod coverage;
 pub mod genotyping;
 pub mod haplogroups;
 pub mod kinship;
+pub mod recalibration;
 pub mod sex;
 
 pub use authenticity::*;
@@ -14,4 +15,5 @@ pub use coverage::*;
 pub use genotyping::*;
 pub use haplogroups::*;
 pub use kinship::*;
+pub use recalibration::*;
 pub use sex::*;
