@@ -187,3 +187,14 @@ pub struct RenderReportRequest {
 pub struct RenderReportResult {
     pub report_path: PathBuf,
 }
+
+#[derive(Debug, Clone)]
+/// Run status snapshot.
+///
+/// Stability: v1 (stable).
+pub struct RunStatus {
+    pub run_dir: PathBuf,
+    pub manifest_path: Option<PathBuf>,
+    pub report_path: Option<PathBuf>,
+    pub has_failures: bool,
+}
