@@ -13,7 +13,7 @@ uuid.workspace = true
 chrono.workspace = true
 tracing.workspace = true
 walkdir.workspace = true
-sysinfo.workspace = true
+sysinfo = { workspace = true, optional = true }
 sha2.workspace = true
 regex.workspace = true
 anyhow.workspace = true
@@ -22,6 +22,7 @@ opentelemetry = { workspace = true, optional = true }
 
 [features]
 otel = ["opentelemetry"]
+sysinfo = ["dep:sysinfo"]
 
 [dev-dependencies]
 bijux-policies = { path = "../bijux-policies" }

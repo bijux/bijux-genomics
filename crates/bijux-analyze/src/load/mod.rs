@@ -7,11 +7,13 @@
 pub mod facts;
 pub mod run_index;
 pub mod run_summary;
+#[cfg(feature = "sqlite")]
 pub mod sqlite;
 
 pub use facts::*;
 pub use run_index::*;
 pub use run_summary::*;
+#[cfg(feature = "sqlite")]
 pub use sqlite::*;
 
 #[derive(thiserror::Error, Debug)]

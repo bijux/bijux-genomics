@@ -9,7 +9,7 @@ rust-version.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true
-rusqlite.workspace = true
+rusqlite = { workspace = true, optional = true }
 tracing.workspace = true
 anyhow.workspace = true
 bijux-core = { path = "../bijux-core" }
@@ -22,6 +22,7 @@ parquet = { version = "50", optional = true, features = ["json"] }
 
 [features]
 parquet = ["dep:parquet"]
+sqlite = ["dep:rusqlite"]
 
 [dev-dependencies]
 bijux-policies = { path = "../bijux-policies" }

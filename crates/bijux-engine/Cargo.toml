@@ -11,7 +11,7 @@ bijux-runtime = { path = "../bijux-runtime" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt", "json"] }
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt", "json"], optional = true }
 tracing-appender = "0.2"
 sha2 = "0.10"
 thiserror = "1"
@@ -31,6 +31,7 @@ cargo_metadata = "0.18"
 
 [features]
 otel = ["opentelemetry", "opentelemetry_sdk"]
+tracing = ["dep:tracing-subscriber"]
 
 [lints]
 workspace = true
