@@ -63,6 +63,7 @@
       "completeness",
       "stages",
       "provenance",
+      "run_provenance",
       "decision_config",
       "retention_definition",
       "retention_context",
@@ -72,7 +73,8 @@
       "qc_improvement",
       "final_qc_summary",
       "filter_interpretation",
-      "adapter_inference"
+      "adapter_inference",
+      "claims_registry"
     ],
     "schema_version": "bijux.report_contract.v1"
   },
@@ -88,6 +90,7 @@
   "metric_semantics": [
     {
       "direction": "LowerBetter",
+      "influencing_params": [],
       "metric_id": "runtime_s",
       "missing_data_policy": "treat_as_infinite",
       "range": ">= 0",
@@ -95,6 +98,7 @@
     },
     {
       "direction": "LowerBetter",
+      "influencing_params": [],
       "metric_id": "memory_mb",
       "missing_data_policy": "treat_as_infinite",
       "range": ">= 0",
@@ -102,6 +106,11 @@
     },
     {
       "direction": "HigherBetter",
+      "influencing_params": [
+        "adapter_bank",
+        "trim_settings",
+        "filter_settings"
+      ],
       "metric_id": "read_retention",
       "missing_data_policy": "treat_as_0.0",
       "range": "[0, 1]",
@@ -109,6 +118,11 @@
     },
     {
       "direction": "HigherBetter",
+      "influencing_params": [
+        "adapter_bank",
+        "trim_settings",
+        "filter_settings"
+      ],
       "metric_id": "base_retention",
       "missing_data_policy": "treat_as_0.0",
       "range": "[0, 1]",
@@ -116,6 +130,9 @@
     },
     {
       "direction": "HigherBetter",
+      "influencing_params": [
+        "merge_policy"
+      ],
       "metric_id": "merge_rate",
       "missing_data_policy": "treat_as_0.0",
       "range": "[0, 1]",
@@ -123,6 +140,9 @@
     },
     {
       "direction": "HigherBetter",
+      "influencing_params": [
+        "corrector_settings"
+      ],
       "metric_id": "error_reduction_proxy",
       "missing_data_policy": "treat_as_0.0",
       "range": "[0, 45]",
@@ -155,7 +175,7 @@
       "conditions": {
         "min_len": 20
       },
-      "definition": "reads_out / reads_in",
+      "definition": "{\"bases_out\":800,\"reads_out\":80} / {\"bases_in\":1000,\"reads_in\":100} (reads)",
       "stage_id": "fastq.trim",
       "tool_id": "fastp"
     }
@@ -165,8 +185,8 @@
       "conditions": {
         "min_len": 20
       },
-      "denominator": "reads_in,bases_in",
-      "numerator": "reads_out,bases_out",
+      "denominator": "{\"bases_in\":1000,\"reads_in\":100}",
+      "numerator": "{\"bases_out\":800,\"reads_out\":80}",
       "stage_id": "fastq.trim",
       "tool_id": "fastp"
     }
@@ -195,6 +215,9 @@
       ]
     },
     "bench_summary": {},
+    "claims_registry": {
+      "claims": []
+    },
     "comparison_view": {
       "stages": []
     },
@@ -313,6 +336,7 @@
       "qc": {}
     },
     "findings": {
+      "claims": [],
       "recommendations": [],
       "suspected_issues": [],
       "warnings": []
@@ -362,7 +386,7 @@
       },
       "presets": [
         {
-          "effective_config_path": "tests/fixtures/report/effective_config.json",
+          "effective_config_path": "/Users/bijan/bijux/bijux-dna/crates/bijux-analyze/tests/fixtures/report/effective_config.json",
           "params_hash": "params",
           "stage_id": "fastq.trim",
           "tool_id": "fastp",
@@ -423,6 +447,13 @@
       ]
     },
     "pipeline_verdict": {
+      "aggregation_policy": {
+        "fail_condition": "any stage fail",
+        "pass_condition": "all stages pass",
+        "rule": "worst_status",
+        "schema_version": "bijux.pipeline_verdict_policy.v1",
+        "warn_condition": "any stage warn and no stage fail"
+      },
       "reasons": [],
       "verdict": "pass"
     },
@@ -435,6 +466,12 @@
     },
     "reproducibility": {
       "command": "unknown",
+      "determinism_policy": {
+        "float_format": "fixed_3",
+        "html_table_order": "stage_id,tool_id",
+        "json_canonicalization": "sorted_keys",
+        "timestamp_format": "rfc3339_utc"
+      },
       "finished_at": null,
       "image_digests": [
         "sha256:img"
@@ -456,7 +493,7 @@
           "conditions": {
             "min_len": 20
           },
-          "definition": "reads_out / reads_in",
+          "definition": "{\"bases_out\":800,\"reads_out\":80} / {\"bases_in\":1000,\"reads_in\":100} (reads)",
           "stage_id": "fastq.trim",
           "tool_id": "fastp"
         }
@@ -466,13 +503,14 @@
           "conditions": {
             "min_len": 20
           },
-          "denominator": "reads_in,bases_in",
-          "numerator": "reads_out,bases_out",
+          "denominator": "{\"bases_in\":1000,\"reads_in\":100}",
+          "numerator": "{\"bases_out\":800,\"reads_out\":80}",
           "stage_id": "fastq.trim",
           "tool_id": "fastp"
         }
       ]
     },
+    "run_provenance": {},
     "scientific_provenance": {
       "entries": [
         {
@@ -543,7 +581,7 @@
           "conditions": {
             "min_len": 20
           },
-          "definition": "reads_out / reads_in",
+          "definition": "{\"bases_out\":800,\"reads_out\":80} / {\"bases_in\":1000,\"reads_in\":100} (reads)",
           "stage_id": "fastq.trim",
           "tool_id": "fastp"
         }
@@ -553,8 +591,8 @@
           "conditions": {
             "min_len": 20
           },
-          "denominator": "reads_in,bases_in",
-          "numerator": "reads_out,bases_out",
+          "denominator": "{\"bases_in\":1000,\"reads_in\":100}",
+          "numerator": "{\"bases_out\":800,\"reads_out\":80}",
           "stage_id": "fastq.trim",
           "tool_id": "fastp"
         }
@@ -563,19 +601,19 @@
   },
   "stages": [
     {
-      "bank_report_path": "tests/fixtures/report/bank_report.json",
-      "effective_config_path": "tests/fixtures/report/effective_config.json",
+      "bank_report_path": "/Users/bijan/bijux/bijux-dna/crates/bijux-analyze/tests/fixtures/report/bank_report.json",
+      "effective_config_path": "/Users/bijan/bijux/bijux-dna/crates/bijux-analyze/tests/fixtures/report/effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "tests/fixtures/report/metrics.json",
+      "metrics_path": "/Users/bijan/bijux/bijux-dna/crates/bijux-analyze/tests/fixtures/report/metrics.json",
       "params_hash": "params",
-      "retention_report_path": "tests/fixtures/report/retention_report.json",
+      "retention_report_path": "/Users/bijan/bijux/bijux-dna/crates/bijux-analyze/tests/fixtures/report/retention_report.json",
       "runtime_s": 1.0,
       "stage_id": "fastq.trim",
-      "stage_report_path": "tests/fixtures/report/stage_report.json",
+      "stage_report_path": "/Users/bijan/bijux/bijux-dna/crates/bijux-analyze/tests/fixtures/report/stage_report.json",
       "tool_id": "fastp",
-      "tool_invocation_path": "tests/fixtures/report/tool_invocation.json",
+      "tool_invocation_path": "/Users/bijan/bijux/bijux-dna/crates/bijux-analyze/tests/fixtures/report/tool_invocation.json",
       "tool_version": "0.23.4"
     }
   ],
@@ -583,7 +621,7 @@
     "error_count": 0,
     "event_count": 0,
     "events": [
-      "tests/fixtures/report/telemetry/events.jsonl"
+      "/Users/bijan/bijux/bijux-dna/crates/bijux-analyze/tests/fixtures/report/telemetry/events.jsonl"
     ]
   }
 }

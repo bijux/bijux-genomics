@@ -2493,16 +2493,16 @@
     "error_count": 0,
     "event_count": 0,
     "events": [
-      "/Users/bijan/bijux/bijux-dna/crates/bijux-analyze/tests/fixtures/golden_spine/bam-to-bam__adna_shotgun__v1/runs/bam-to-bam__adna_shotgun__v1/artifacts/stage_0/telemetry/events.jsonl",
-      "/Users/bijan/bijux/bijux-dna/crates/bijux-analyze/tests/fixtures/golden_spine/bam-to-bam__adna_shotgun__v1/runs/bam-to-bam__adna_shotgun__v1/artifacts/stage_1/telemetry/events.jsonl",
-      "/Users/bijan/bijux/bijux-dna/crates/bijux-analyze/tests/fixtures/golden_spine/bam-to-bam__adna_shotgun__v1/runs/bam-to-bam__adna_shotgun__v1/artifacts/stage_2/telemetry/events.jsonl",
-      "/Users/bijan/bijux/bijux-dna/crates/bijux-analyze/tests/fixtures/golden_spine/bam-to-bam__adna_shotgun__v1/runs/bam-to-bam__adna_shotgun__v1/artifacts/stage_3/telemetry/events.jsonl",
-      "/Users/bijan/bijux/bijux-dna/crates/bijux-analyze/tests/fixtures/golden_spine/bam-to-bam__adna_shotgun__v1/runs/bam-to-bam__adna_shotgun__v1/artifacts/stage_4/telemetry/events.jsonl",
-      "/Users/bijan/bijux/bijux-dna/crates/bijux-analyze/tests/fixtures/golden_spine/bam-to-bam__adna_shotgun__v1/runs/bam-to-bam__adna_shotgun__v1/artifacts/stage_5/telemetry/events.jsonl",
-      "/Users/bijan/bijux/bijux-dna/crates/bijux-analyze/tests/fixtures/golden_spine/bam-to-bam__adna_shotgun__v1/runs/bam-to-bam__adna_shotgun__v1/artifacts/stage_6/telemetry/events.jsonl",
-      "/Users/bijan/bijux/bijux-dna/crates/bijux-analyze/tests/fixtures/golden_spine/bam-to-bam__adna_shotgun__v1/runs/bam-to-bam__adna_shotgun__v1/artifacts/stage_7/telemetry/events.jsonl",
-      "/Users/bijan/bijux/bijux-dna/crates/bijux-analyze/tests/fixtures/golden_spine/bam-to-bam__adna_shotgun__v1/runs/bam-to-bam__adna_shotgun__v1/artifacts/stage_8/telemetry/events.jsonl",
-      "/Users/bijan/bijux/bijux-dna/crates/bijux-analyze/tests/fixtures/golden_spine/bam-to-bam__adna_shotgun__v1/runs/bam-to-bam__adna_shotgun__v1/artifacts/stage_9/telemetry/events.jsonl"
+      "stage_0/telemetry/events.jsonl",
+      "stage_1/telemetry/events.jsonl",
+      "stage_2/telemetry/events.jsonl",
+      "stage_3/telemetry/events.jsonl",
+      "stage_4/telemetry/events.jsonl",
+      "stage_5/telemetry/events.jsonl",
+      "stage_6/telemetry/events.jsonl",
+      "stage_7/telemetry/events.jsonl",
+      "stage_8/telemetry/events.jsonl",
+      "stage_9/telemetry/events.jsonl"
     ]
   }
 }
