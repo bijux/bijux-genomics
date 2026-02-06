@@ -8,6 +8,7 @@ rust-version.workspace = true
 anyhow = "1"
 bijux-core = { path = "../bijux-core" }
 bijux-runtime = { path = "../bijux-runtime" }
+bijux-infra = { path = "../bijux-infra" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tracing = "0.1"

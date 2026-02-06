@@ -8,6 +8,7 @@ use bijux_core::execution::execution_graph::{ExecutionEdge, ExecutionGraph, Exec
 use bijux_core::execution::PlanPolicy;
 use bijux_core::primitives::hashing::params_hash;
 use bijux_core::{ArtifactId, CommandSpecV1, ContainerImageRefV1, PipelineId, StageId, StepId};
+use bijux_engine::Engine;
 use bijux_pipelines::DefaultsLedgerV1;
 use bijux_runtime::recording::write_plan_provenance;
 use bijux_runtime::FactsRowV1;
@@ -80,11 +81,18 @@ fn golden_spine_contract() -> Result<()> {
     let base_dir = tmp.path();
     let plan = build_plan(base_dir)?;
 
-    bijux_engine::validate(&plan)?;
-
     let runner = FakeRunner;
-    let services = bijux_engine::RuntimeServices { runner: &runner };
-    let _record = bijux_engine::execute(&plan, &services)?;
+    let layout = bijux_runtime::run_layout::RunLayout {
+        run_dir: base_dir.to_path_buf(),
+        stages_dir: base_dir.join("stages"),
+        summary_dir: base_dir.join("summary"),
+        assessment_path: base_dir.join("input_assessment.json"),
+        manifest_path: base_dir.join("execution_manifest.json"),
+        environment_path: base_dir.join("environment.json"),
+        metadata_path: base_dir.join("run_metadata.json"),
+        events_path: base_dir.join("events.jsonl"),
+    };
+    let _record = Engine::execute(&plan, &runner, &layout, None, None)?;
 
     let provenance_path = write_plan_provenance(base_dir, &plan)?;
     assert!(provenance_path.exists());

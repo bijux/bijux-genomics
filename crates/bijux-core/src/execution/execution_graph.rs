@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use sha2::Digest;
 
 use crate::contract::{ContractVersion, StageIO, ToolConstraints};
-use crate::execution::PlanPolicy;
+use crate::execution::{PlanPolicy, RetryPolicy};
 use crate::ids::{ArtifactId, PipelineId, StageId, StepId};
 use crate::primitives::{BijuxError, CommandSpecV1, ContainerImageRefV1, Result};
 
@@ -59,6 +59,12 @@ pub struct ExecutionGraph {
     pipeline_id: PipelineId,
     planner_version: String,
     policy: PlanPolicy,
+    #[serde(default)]
+    deterministic_scheduler: bool,
+    #[serde(default)]
+    retry_policy: RetryPolicy,
+    #[serde(default)]
+    step_timeout_s: Option<u64>,
     steps: Vec<ExecutionStep>,
     edges: Vec<ExecutionEdge>,
 }
@@ -87,6 +93,21 @@ impl ExecutionGraph {
     #[must_use]
     pub fn policy(&self) -> PlanPolicy {
         self.policy
+    }
+
+    #[must_use]
+    pub fn deterministic_scheduler(&self) -> bool {
+        self.deterministic_scheduler
+    }
+
+    #[must_use]
+    pub fn retry_policy(&self) -> &RetryPolicy {
+        &self.retry_policy
+    }
+
+    #[must_use]
+    pub fn step_timeout_s(&self) -> Option<u64> {
+        self.step_timeout_s
     }
 
     #[must_use]
@@ -123,6 +144,9 @@ impl ExecutionGraph {
             pipeline_id: pipeline_id.into(),
             planner_version: planner_version.into(),
             policy,
+            deterministic_scheduler: true,
+            retry_policy: RetryPolicy::default(),
+            step_timeout_s: None,
             steps,
             edges,
         };
@@ -155,6 +179,24 @@ impl ExecutionGraph {
             self.steps.clone(),
             self.edges.clone(),
         )
+    }
+
+    #[must_use]
+    pub fn with_retry_policy(mut self, retry_policy: RetryPolicy) -> Self {
+        self.retry_policy = retry_policy;
+        self
+    }
+
+    #[must_use]
+    pub fn with_deterministic_scheduler(mut self, deterministic: bool) -> Self {
+        self.deterministic_scheduler = deterministic;
+        self
+    }
+
+    #[must_use]
+    pub fn with_step_timeout(mut self, timeout_s: Option<u64>) -> Self {
+        self.step_timeout_s = timeout_s;
+        self
     }
 
     /// # Errors

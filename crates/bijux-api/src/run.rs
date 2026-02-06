@@ -8,7 +8,7 @@ use crate::args::{
 use bijux_core::contract::{Profile, RunSpec, ToolRegistry};
 use bijux_core::execution::execution_graph::ExecutionGraph;
 use bijux_core::ids::RunId;
-use bijux_engine::RuntimeServices;
+use bijux_engine::Engine;
 use bijux_pipelines::registry::PipelineRegistry;
 use bijux_pipelines::{Domain, PipelineProfile};
 use bijux_runner::DockerRunner;
@@ -187,8 +187,8 @@ pub fn replay_manifest(manifest_path: &Path, verify_only: bool) -> Result<()> {
     let graph: ExecutionGraph =
         serde_json::from_str(&graph_raw).map_err(|err| anyhow!("parse graph.json: {err}"))?;
     let runner = DockerRunner::new(None);
-    let services = RuntimeServices { runner: &runner };
-    bijux_engine::execute(&graph, &services)?;
+    let layout = run_layout_from_dir(base_dir);
+    Engine::execute(&graph, &runner, &layout, None, None)?;
     Ok(())
 }
 
@@ -208,4 +208,17 @@ pub fn build_stage_plan(
     run_id: RunId,
 ) -> Result<RunExecutionPlan> {
     build_run_execution_plan(run_spec, registry, profile, run_id)
+}
+
+fn run_layout_from_dir(base_dir: &Path) -> bijux_runtime::run_layout::RunLayout {
+    bijux_runtime::run_layout::RunLayout {
+        run_dir: base_dir.to_path_buf(),
+        stages_dir: base_dir.join("stages"),
+        summary_dir: base_dir.join("summary"),
+        assessment_path: base_dir.join("input_assessment.json"),
+        manifest_path: base_dir.join("execution_manifest.json"),
+        environment_path: base_dir.join("environment.json"),
+        metadata_path: base_dir.join("run_metadata.json"),
+        events_path: base_dir.join("events.jsonl"),
+    }
 }
