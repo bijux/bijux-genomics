@@ -24,11 +24,12 @@ pub fn handle_bam_commands(
             Ok(true)
         }
         BamCommand::Explain { stage } => {
-            let stage_id = stage.stage().as_str();
+            let stage_id_raw = stage.stage().as_str();
+            let stage_id = StageId::try_from(stage_id_raw).unwrap_or_else(|_| StageId::new(stage_id_raw));
             let manifest = registry
                 .stages()
-                .get(stage_id)
-                .ok_or_else(|| anyhow!("stage {stage_id} missing from manifests"))?;
+                .get(&stage_id)
+                .ok_or_else(|| anyhow!("stage {stage_id_raw} missing from manifests"))?;
             render::json::print_pretty(manifest)?;
             Ok(true)
         }

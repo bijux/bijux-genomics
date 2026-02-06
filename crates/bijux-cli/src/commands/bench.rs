@@ -301,9 +301,7 @@ fn print_bank_presets() {
     }
 }
 fn list_fastq_tools(registry: &bijux_api::v1::run::ToolRegistry, stage_id: &str) {
-    let stage_id = bijux_core::ids::StageId::try_from(stage_id).unwrap_or_else(|_| {
-        bijux_core::ids::StageId::new(stage_id)
-    });
+    let stage_id = StageId::try_from(stage_id).unwrap_or_else(|_| StageId::new(stage_id));
     let mut tools: Vec<_> = registry
         .tools_for_stage(&stage_id)
         .iter()
@@ -451,9 +449,10 @@ fn explain_fastq_stage(registry: &bijux_api::v1::run::ToolRegistry, stage_id: &s
         }
         return Ok(());
     }
+    let stage_id = StageId::try_from(stage_id).unwrap_or_else(|_| StageId::new(stage_id));
     let stage = registry
         .stages()
-        .get(stage_id)
+        .get(&stage_id)
         .ok_or_else(|| anyhow!("unknown stage {stage_id}"))?;
     println!("stage: {}", stage.stage_id);
     if let Some(description) = stage.description.as_ref() {
