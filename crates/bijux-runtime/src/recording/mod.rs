@@ -10,7 +10,8 @@ use bijux_infra::bench_tools_dir;
 use crate::StageObservabilityContextV1;
 use bijux_core::execution::execution_graph::ExecutionGraph;
 use bijux_core::metrics::{MetricsEnvelope, ToolInvocationV1};
-use bijux_core::primitives::hashing::params_hash;
+use bijux_core::primitives::hashing::{input_fingerprint, params_hash};
+use bijux_core::primitives::CacheKey;
 use serde::Serialize;
 
 #[derive(Debug)]
@@ -172,6 +173,25 @@ pub fn write_run_manifest(
         .clone()
         .or_else(|| std::env::var("BIJUX_PLAN_HASH").ok())
         .unwrap_or_else(|| "unknown".to_string());
+    let cache_key = CacheKey::new(
+        input_fingerprint(&run_provenance.input_hashes),
+        run_provenance.params_hash.clone(),
+        run_provenance.tool_version.clone(),
+        run_provenance
+            .tool_image_digest
+            .clone()
+            .unwrap_or_else(|| "unknown".to_string()),
+    );
+    let tool_invocations = {
+        let path = run_dirs.artifacts_dir.join("tool_invocation.json");
+        if path.exists() {
+            let raw = std::fs::read_to_string(&path)?;
+            let parsed: ToolInvocationV1 = serde_json::from_str(&raw)?;
+            vec![parsed]
+        } else {
+            Vec::new()
+        }
+    };
     let output_artifacts: Vec<serde_json::Value> = artifacts
         .iter()
         .map(|artifact| {
@@ -186,17 +206,20 @@ pub fn write_run_manifest(
         })
         .collect();
     let payload = serde_json::json!({
-        "schema_version": "bijux.run_manifest.v2",
+        "schema_version": "bijux.run_manifest.v3",
+        "contract_version": bijux_core::contract::ContractVersion::v1(),
         "run_id": "unknown",
         "pipeline_id": pipeline_id,
         "profile_id": profile_id,
         "graph_hash": graph_hash,
+        "cache_key": cache_key,
         "stage_contract_hash": stage_contract_hash,
         "toolchain_versions": {
             "planner": std::env::var("BIJUX_PLANNER_VERSION").unwrap_or_else(|_| "unknown".to_string()),
             "engine": std::env::var("BIJUX_ENGINE_VERSION").unwrap_or_else(|_| "unknown".to_string()),
         },
         "dataset_fingerprints": run_provenance.input_hashes.clone(),
+        "tool_invocations": tool_invocations,
         "output_artifacts": output_artifacts,
         "stages": [],
         "failures": [],
@@ -221,7 +244,8 @@ pub fn write_run_manifest(
         .context("write errors.json")?;
     bijux_infra::atomic_write_bytes(&telemetry_dir.join("events.jsonl"), b"")
         .context("write events.jsonl")?;
-    bijux_infra::atomic_write_json(&run_dirs.run_manifest_path, &payload)
+    let payload = bijux_core::primitives::to_canonical_json_bytes(&payload)?;
+    bijux_infra::atomic_write_bytes(&run_dirs.run_manifest_path, payload.as_slice())
         .context("write run_manifest.json")?;
     Ok(())
 }

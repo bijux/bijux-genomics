@@ -9,7 +9,7 @@ fn cross_domain_handoff_section_is_emitted() -> Result<()> {
     let temp = bijux_infra::temp_dir("bijux")?;
     let base = temp.path();
     let manifest = serde_json::json!({
-        "schema_version": "bijux.run_manifest.v2",
+        "schema_version": "bijux.run_manifest.v3",
         "run_id": "run-1",
         "profile_id": "fastq-to-bam__default__v1",
         "domains": ["Fastq", "Cross", "Bam"],

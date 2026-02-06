@@ -9,5 +9,5 @@
   ],
   "profile_id": "fastq-to-bam__default__v1",
   "run_id": "fastq-to-bam__default__v1",
-  "schema_version": "bijux.run_manifest.v2"
+  "schema_version": "bijux.run_manifest.v3"
 }
