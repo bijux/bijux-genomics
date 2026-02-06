@@ -1,36 +1,23 @@
 //! Owner: bijux-domain-bam
 //! Canonical effective parameters for BAM stages.
 
-mod align;
-mod common;
-mod complexity;
-mod damage;
-mod filter;
-mod markdup;
-#[path = "derived/qc_pre.rs"]
-mod qc_pre;
-#[path = "derived/recalibration.rs"]
-mod recalibration;
-mod validate;
-
+pub mod core;
 pub mod downstream;
+pub mod pre;
 
-pub use align::{AlignEffectiveParams, ReadGroupSpec};
-pub use common::{
-    BqsrMode, ContaminationScope, DuplicateAction, OpticalDuplicatePolicy, UdgModel, UmiPolicy,
+pub use core::{
+    BqsrMode, ComplexityEffectiveParams, ContaminationScope, DamageEffectiveParams,
+    DuplicateAction, MarkDupEffectiveParams, OpticalDuplicatePolicy, UdgModel, UmiPolicy,
 };
-pub use complexity::ComplexityEffectiveParams;
-pub use damage::DamageEffectiveParams;
 pub use downstream::{
     AuthenticityEffectiveParams, BiasMitigationEffectiveParams, ContaminationEffectiveParams,
     CoverageEffectiveParams, GenotypingEffectiveParams, HaplogroupEffectiveParams,
-    KinshipEffectiveParams, SexEffectiveParams,
+    KinshipEffectiveParams, RecalibrationSkipCriteria, SexEffectiveParams,
 };
-pub use filter::FilterEffectiveParams;
-pub use markdup::MarkDupEffectiveParams;
-pub use qc_pre::QcPreEffectiveParams;
-pub use recalibration::{BqsrEffectiveParams, RecalibrationSkipCriteria};
-pub use validate::ValidateEffectiveParams;
+pub use pre::{
+    AlignEffectiveParams, FilterEffectiveParams, QcPreEffectiveParams, ReadGroupSpec,
+    ValidateEffectiveParams,
+};
 
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
