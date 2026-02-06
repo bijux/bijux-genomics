@@ -1,5 +1,6 @@
 use anyhow::{anyhow, Result};
 use bijux_core::contract::ToolRole;
+use bijux_core::ids::{StageId, ToolId};
 
 pub fn load_registry(domain_root: &std::path::Path) -> Result<bijux_core::contract::ToolRegistry> {
     bijux_runtime::manifests::load_manifests(domain_root)
@@ -26,9 +27,13 @@ pub fn filter_tools_by_role(
     let allow_silver = std::env::var("BIJUX_ALLOW_SILVER").is_ok();
     let allow_experimental = std::env::var("BIJUX_EXPERIMENTAL_TOOLS").is_ok();
     let mut filtered = Vec::new();
+    let stage_id = StageId::try_from(stage_id)
+        .map_err(|err| anyhow!("invalid stage id: {err}"))?;
     for tool in tools {
+        let tool_id =
+            ToolId::try_from(tool.as_str()).map_err(|err| anyhow!("invalid tool id: {err}"))?;
         let manifest = registry
-            .tool_by_id(stage_id, tool)
+            .tool_by_id(&stage_id, &tool_id)
             .ok_or_else(|| anyhow!("tool {tool} missing from manifests"))?;
         let tier = match manifest.role {
             ToolRole::Authoritative => "gold",

@@ -4,6 +4,7 @@ use std::path::Path;
 use super::STAGE_QC_POST;
 use anyhow::{Context, Result};
 use bijux_core::contract::{ArtifactRef, ArtifactRole};
+use bijux_core::ArtifactId;
 use bijux_core::execution::execution_graph::{ExecutionGraph, ExecutionStep};
 use bijux_core::execution::PlanPolicy;
 use bijux_core::metrics::ToolInvocationV1;
@@ -136,7 +137,7 @@ pub(super) fn report_stage_step(out_dir: &Path, steps: &[ExecutionStep]) -> Exec
         let artifacts_dir = bijux_runtime::recording::run_artifacts_dir_for_out(&entry.out_dir);
         let metrics_path = artifacts_dir.join("metrics_envelope.json");
         inputs.push(ArtifactRef::optional(
-            format!("metrics_envelope_{}", entry.step_id.0),
+            ArtifactId::new(format!("metrics_envelope_{}", entry.step_id.0)),
             metrics_path,
             ArtifactRole::MetricsEnvelope,
         ));
@@ -144,17 +145,17 @@ pub(super) fn report_stage_step(out_dir: &Path, steps: &[ExecutionStep]) -> Exec
     let root = bijux_runtime::recording::run_artifacts_dir_for_out(out_dir);
     let outputs = vec![
         ArtifactRef::required(
-            "summary",
+            ArtifactId::from_static("summary"),
             root.join("summary.json"),
             ArtifactRole::SummaryJson,
         ),
         ArtifactRef::required(
-            "summary_tsv",
+            ArtifactId::from_static("summary_tsv"),
             root.join("summary.tsv"),
             ArtifactRole::SummaryTsv,
         ),
         ArtifactRef::required(
-            "report_html",
+            ArtifactId::from_static("report_html"),
             root.join("report.html"),
             ArtifactRole::ReportHtml,
         ),
@@ -291,7 +292,7 @@ pub(super) fn write_run_manifest(
             steps,
             Vec::new(),
         )
-        .and_then(|graph| graph.plan_hash())
+        .and_then(|graph| graph.hash())
         .unwrap_or_else(|_| "unknown".to_string())
     });
     let toolchain_versions = serde_json::json!({
@@ -714,12 +715,12 @@ mod tests {
             },
             io: StageIO {
                 inputs: vec![bijux_stage_contract::ArtifactRef::required(
-                    "input",
+                    ArtifactId::from_static("input"),
                     PathBuf::from("input.fastq.gz"),
                     bijux_core::contract::ArtifactRole::Reads,
                 )],
                 outputs: vec![bijux_stage_contract::ArtifactRef::required(
-                    "output",
+                    ArtifactId::from_static("output"),
                     PathBuf::from("output.fastq.gz"),
                     bijux_core::contract::ArtifactRole::Reads,
                 )],
@@ -732,8 +733,9 @@ mod tests {
         };
         let invocation = ToolInvocationV1 {
             schema_version: "bijux.tool_invocation.v1".to_string(),
-            stage_id: plan.stage_id.to_string(),
-            tool_id: plan.tool_id.to_string(),
+            contract_version: bijux_core::contract::ContractVersion::v1(),
+            stage_id: plan.stage_id.clone(),
+            tool_id: plan.tool_id.clone(),
             tool_version: plan.tool_version.clone(),
             resolved_tool_version: Some(plan.tool_version.clone()),
             image_digest: "sha256:img".to_string(),

@@ -107,7 +107,7 @@ pub fn bench_bam_stage(
                     "run_id": "dry-run",
                     "pipeline_id": stage_id,
                     "profile_id": args.stage.as_str(),
-                    "graph_hash": graph.plan_hash().unwrap_or_default(),
+                    "graph_hash": graph.hash().unwrap_or_default(),
                     "stage_contract_hash": stage_contract_hash,
                     "toolchain_versions": [],
                     "dataset_fingerprints": [],

@@ -63,10 +63,11 @@ pub fn bench_fastq_stats_neutral<S: ::std::hash::BuildHasher>(
     let tools = filter_tools_by_role(STAGE_STATS_NEUTRAL.as_str(), &tools, &registry, false)?;
     let bench_inputs = prepare_stats_bench(catalog, platform, runner_override, args)?;
     let selected = tools.clone();
+    let stage_id = bijux_core::ids::StageId::from_static(STAGE_STATS_NEUTRAL.as_str());
     let all_tools: Vec<String> = registry
-        .tools_for_stage(STAGE_STATS_NEUTRAL.as_str())
+        .tools_for_stage(&stage_id)
         .iter()
-        .map(|tool| tool.tool_id.clone())
+        .map(|tool| tool.tool_id.to_string())
         .collect();
     let excluded: Vec<String> = all_tools
         .into_iter()

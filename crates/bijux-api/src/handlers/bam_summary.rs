@@ -2,6 +2,7 @@ use std::path::Path;
 
 use anyhow::{Context, Result};
 use bijux_core::contract::{ArtifactRef, ArtifactRole};
+use bijux_core::ArtifactId;
 use bijux_core::execution::execution_graph::ExecutionStep;
 use bijux_planner_bam::report_stage_step as build_report_stage_step;
 
@@ -81,7 +82,7 @@ pub(crate) fn report_stage_step(out_dir: &Path, steps: &[ExecutionStep]) -> Exec
         let artifacts_dir = bijux_runtime::recording::run_artifacts_dir_for_out(&entry.out_dir);
         let metrics_path = artifacts_dir.join("metrics_envelope.json");
         inputs.push(ArtifactRef::optional(
-            format!("metrics_envelope_{}", entry.step_id.0),
+            ArtifactId::new(format!("metrics_envelope_{}", entry.step_id.0)),
             metrics_path,
             ArtifactRole::MetricsEnvelope,
         ));
@@ -89,17 +90,17 @@ pub(crate) fn report_stage_step(out_dir: &Path, steps: &[ExecutionStep]) -> Exec
     let root = bijux_runtime::recording::run_artifacts_dir_for_out(out_dir);
     let outputs = vec![
         ArtifactRef::required(
-            "summary",
+            ArtifactId::from_static("summary"),
             root.join("summary.json"),
             ArtifactRole::SummaryJson,
         ),
         ArtifactRef::required(
-            "summary_tsv",
+            ArtifactId::from_static("summary_tsv"),
             root.join("summary.tsv"),
             ArtifactRole::SummaryTsv,
         ),
         ArtifactRef::required(
-            "report_html",
+            ArtifactId::from_static("report_html"),
             root.join("report.html"),
             ArtifactRole::ReportHtml,
         ),

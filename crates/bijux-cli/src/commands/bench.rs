@@ -301,10 +301,13 @@ fn print_bank_presets() {
     }
 }
 fn list_fastq_tools(registry: &bijux_api::v1::run::ToolRegistry, stage_id: &str) {
+    let stage_id = bijux_core::ids::StageId::try_from(stage_id).unwrap_or_else(|_| {
+        bijux_core::ids::StageId::new(stage_id)
+    });
     let mut tools: Vec<_> = registry
-        .tools_for_stage(stage_id)
+        .tools_for_stage(&stage_id)
         .iter()
-        .map(|tool| (tool.tool_id.clone(), tool.role))
+        .map(|tool| (tool.tool_id.to_string(), tool.role))
         .collect();
     tools.sort_by(|a, b| a.0.cmp(&b.0));
     for (tool_id, role) in tools {

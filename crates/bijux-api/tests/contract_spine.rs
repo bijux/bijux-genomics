@@ -7,7 +7,7 @@ use bijux_core::contract::{ArtifactRef, ArtifactRole, StageIO, ToolConstraints};
 use bijux_core::execution::execution_graph::{ExecutionEdge, ExecutionGraph, ExecutionStep};
 use bijux_core::execution::PlanPolicy;
 use bijux_core::primitives::hashing::params_hash;
-use bijux_core::{CommandSpecV1, ContainerImageRefV1, PipelineId, StageId};
+use bijux_core::{ArtifactId, CommandSpecV1, ContainerImageRefV1, PipelineId, StageId, StepId};
 use bijux_pipelines::DefaultsLedgerV1;
 use bijux_runtime::recording::write_plan_provenance;
 use bijux_runtime::FactsRowV1;
@@ -32,7 +32,8 @@ impl Runner for FakeRunner {
 
 fn build_plan(base_dir: &Path) -> Result<ExecutionGraph> {
     let stage = ExecutionStep {
-        step_id: StageId::from_static("core.test"),
+        step_id: StepId::from_static("core.test"),
+        stage_id: StageId::from_static("core.test"),
         image: ContainerImageRefV1 {
             image: "example/tool:test".to_string(),
             digest: Some("sha256:deadbeef".to_string()),
@@ -48,12 +49,12 @@ fn build_plan(base_dir: &Path) -> Result<ExecutionGraph> {
         },
         io: StageIO {
             inputs: vec![ArtifactRef::required(
-                "input",
+                ArtifactId::from_static("input"),
                 base_dir.join("input.fq"),
                 ArtifactRole::Reads,
             )],
             outputs: vec![ArtifactRef::required(
-                "output",
+                ArtifactId::from_static("output"),
                 base_dir.join("output.fq"),
                 ArtifactRole::Reads,
             )],
@@ -65,7 +66,7 @@ fn build_plan(base_dir: &Path) -> Result<ExecutionGraph> {
     };
 
     ExecutionGraph::new(
-        "pipeline.test",
+        "core-to-core__default__v1",
         "planner.test",
         PlanPolicy::PreferAccuracy,
         vec![stage],
@@ -88,7 +89,7 @@ fn golden_spine_contract() -> Result<()> {
     let provenance_path = write_plan_provenance(base_dir, &plan)?;
     assert!(provenance_path.exists());
 
-    let plan_hash = plan.plan_hash()?;
+    let plan_hash = plan.hash()?;
     let plan_hash_path = base_dir.join("plan_hash.txt");
     bijux_infra::write_bytes(&plan_hash_path, plan_hash.as_bytes())?;
     assert!(plan_hash_path.exists());
