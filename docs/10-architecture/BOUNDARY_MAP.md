@@ -7,23 +7,23 @@ Contract version: v1
 Applies to crates: bijux-core, bijux-engine, bijux-runtime, bijux-runner, bijux-api
 
 ## What
-Defines which effects (IO, process, network) are allowed in each crate.
+Points to the canonical boundary diagram and dependency rules.
 
 ## Why
-Enforces architectural boundaries and prevents accidental coupling.
+Avoids boundary duplication across documents.
 
 ## Non-goals
-- Granting broad execution privileges to non‑runner crates.
+- Restating dependency rules.
 
 ## Contracts
-- Effect boundary policy tests.
+Enforced by:
+- `docs/10-architecture/BOUNDARY_DIAGRAM.md`
+- `docs/10-architecture/DEPENDENCY_RULES.md`
+- `crates/bijux-policies/tests/deps/dependency_boundaries.rs`
+- `crates/bijux-policies/tests/deps/effect_boundary_map.rs`
 
 ## Examples
-| Crate | Allowed effects | Forbidden effects |
-| --- | --- | --- |
-| bijux-core | None | IO, process, network |
-| bijux-engine | Filesystem writes under run layout | Process spawn, docker APIs |
-| bijux-runner | Process spawn, docker | Planner logic |
+See `BOUNDARY_DIAGRAM.md` for the canonical diagram.
 
 ## Failure modes
-- Any non‑allowlisted process spawn fails CI policy.
+Boundary violations fail CI dependency/effect policies.

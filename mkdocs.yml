@@ -138,8 +138,12 @@ nav:
   - Architecture:
       - Overview: 10-architecture/ARCHITECTURE_OVERVIEW.md
       - Boundaries: 10-architecture/BOUNDARY_MAP.md
+      - Boundary Diagram: 10-architecture/BOUNDARY_DIAGRAM.md
+      - Dependency Rules: 10-architecture/DEPENDENCY_RULES.md
       - SSOT: 10-architecture/SSOT.md
       - Contract Spine: 10-architecture/CONTRACT_SPINE.md
+      - Dataflow: 10-architecture/DATAFLOW.md
+      - Anti-patterns: 10-architecture/ANTI_PATTERNS.md
       - Contracts:
           - Artifacts: 10-architecture/CONTRACTS/ARTIFACTS.md
           - Run Output: 10-architecture/CONTRACTS/RUN_OUTPUT.md

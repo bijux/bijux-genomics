@@ -10,12 +10,16 @@ expression: docs_tree_contract
 00-intro/REFUSALS.md
 00-intro/SCOPE.md
 00-intro/WHAT_IS_BIJUX.md
+10-architecture/ANTI_PATTERNS.md
 10-architecture/ARCHITECTURE_LITMUS.md
 10-architecture/ARCHITECTURE_OVERVIEW.md
+10-architecture/BOUNDARY_DIAGRAM.md
 10-architecture/BOUNDARY_MAP.md
 10-architecture/CONTRACTS/ARTIFACTS.md
 10-architecture/CONTRACTS/RUN_OUTPUT.md
 10-architecture/CONTRACT_SPINE.md
+10-architecture/DATAFLOW.md
+10-architecture/DEPENDENCY_RULES.md
 10-architecture/SSOT.md
 20-science/TOOL_INDEX.md
 20-science/bam/REFERENCES.md
