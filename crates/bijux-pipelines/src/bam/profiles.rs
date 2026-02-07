@@ -147,7 +147,7 @@ pub fn bam_adna_capture_profile() -> PipelineProfile {
     filter_downstream(&mut stages);
     let defaults = defaults_for(&stages, adna_capture_params_json);
     let required_stages: Vec<&'static str> = stages.iter().map(|stage| stage.as_str()).collect();
-    let profile = PipelineProfile {
+    PipelineProfile {
         id: PipelineId::new("bam-to-bam__adna_capture__v1"),
         description: "Ancient DNA capture defaults",
         stability: StabilityTier::Beta,
@@ -171,8 +171,7 @@ pub fn bam_adna_capture_profile() -> PipelineProfile {
             required_artifacts: vec!["report.json", "run_manifest.json", "stage_summaries.json"],
             supports_benchmarks: true,
         },
-    };
-    profile
+    }
 }
 
 /// # Errors
