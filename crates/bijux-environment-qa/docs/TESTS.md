@@ -9,14 +9,15 @@ Tests should explain the contract they enforce.
 ## Non-goals
 - Full test implementation detail.
 
-## Contracts
-- Each test file should be referenced here.
+## Artifacts suite (`tests/artifacts/*`)
+- `tests/artifacts/qa_artifact_contract.rs` → artifact contract checks.
 
-## Examples
-- `tests/architecture.rs` → dependency boundary assertions.
+## Support suite (`tests/support/*`)
+- `tests/support/image_qa_support.rs` → support utilities and fixtures.
+
+## Guardrails suite (`tests/guardrails/*`)
+- `tests/guardrails/guardrails.rs` → dependency boundaries.
+- `tests/guardrails/offline_policy.rs` → offline-by-default policy.
 
 ## Failure modes
 - Missing test documentation causes drift and confusion.
-
-## Testkit patterns
-See `crates/bijux-testkit/docs/USAGE.md` for shared fixture and snapshot helpers.
