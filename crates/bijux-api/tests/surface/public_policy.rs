@@ -7,7 +7,7 @@ fn v1_surface() -> Result<String> {
         .join("src")
         .join("v1");
     let mut contents = String::new();
-    for module in ["plan.rs", "run.rs", "report.rs", "bench.rs"] {
+    for module in ["api.rs", "plan.rs", "run.rs", "report.rs", "bench.rs"] {
         contents.push_str(&std::fs::read_to_string(base.join(module))?);
         contents.push('\n');
     }
