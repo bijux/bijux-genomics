@@ -1,6 +1,6 @@
+use std::collections::BTreeMap;
 use std::process::Command;
 use std::time::Instant;
-use std::collections::BTreeMap;
 
 use anyhow::{Context, Result};
 use sha2::Digest;

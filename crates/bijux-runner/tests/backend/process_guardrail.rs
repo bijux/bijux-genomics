@@ -5,10 +5,8 @@ use walkdir::WalkDir;
 fn workspace_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
-        .unwrap()
-        .parent()
-        .unwrap()
-        .to_path_buf()
+        .and_then(|path| path.parent())
+        .map_or_else(|| panic!("workspace root missing"), Path::to_path_buf)
 }
 
 fn is_allowed_command_path(path: &Path) -> bool {
@@ -25,7 +23,11 @@ fn is_allowed_command_path(path: &Path) -> bool {
 fn command_spawning_is_confined_to_runner_and_env_tooling() {
     let root = workspace_root();
     let mut offenders = Vec::new();
-    let needles = ["std::process::Command", "Command::new", "tokio::process::Command"];
+    let needles = [
+        "std::process::Command",
+        "Command::new",
+        "tokio::process::Command",
+    ];
 
     for entry in WalkDir::new(root.join("crates"))
         .into_iter()
@@ -44,7 +46,8 @@ fn command_spawning_is_confined_to_runner_and_env_tooling() {
         if is_allowed_command_path(path) {
             continue;
         }
-        let content = std::fs::read_to_string(path).expect("read source");
+        let content =
+            std::fs::read_to_string(path).unwrap_or_else(|err| panic!("read source: {err}"));
         if needles.iter().any(|needle| content.contains(needle)) {
             offenders.push(path.display().to_string());
         }

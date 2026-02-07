@@ -163,6 +163,7 @@ pub fn execute_plan_with_timeout(
     })
 }
 
+#[must_use]
 pub fn assess_execution(exit_code: i32, expected_outputs: &[PathBuf]) -> ExecutionAssessment {
     if exit_code != 0 {
         return ExecutionAssessment {

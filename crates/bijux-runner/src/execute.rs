@@ -1,13 +1,11 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::time::Duration;
 
 use anyhow::{anyhow, Context, Result};
 use bijux_core::contract::ExecutionStep;
-use bijux_core::prelude::cache::CacheKey;
-use bijux_core::prelude::hashing::{
-    input_fingerprint, parameters_fingerprint, run_id_from_hashes,
-};
 use bijux_core::metrics::ToolInvocationV1;
+use bijux_core::prelude::cache::CacheKey;
+use bijux_core::prelude::hashing::{input_fingerprint, parameters_fingerprint, run_id_from_hashes};
 use bijux_environment::api::RunnerKind;
 use uuid::Uuid;
 
@@ -165,7 +163,7 @@ pub fn execute_step(
 /// Returns an error if execution fails or docker is unavailable.
 pub fn execute_observer_command(
     image: &str,
-    mount_dir: &PathBuf,
+    mount_dir: &Path,
     args: &[String],
     runner: RunnerKind,
 ) -> Result<CommandOutputV1> {
