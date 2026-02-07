@@ -3,6 +3,7 @@
 ## Start here
 - `RUNTIME_CONTRACT.md` for the authoritative contract narrative.
 - `ARTIFACTS.md` for run-layout file inventory.
+- `OBSERVABILITY.md` for ownership and event model.
 - `EVENTS.md` for telemetry contracts.
 
 ## Scope
