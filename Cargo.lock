@@ -481,6 +481,7 @@ dependencies = [
  "anyhow",
  "bijux-policies",
  "fs4",
+ "regex",
  "serde",
  "serde_json",
  "serde_yaml",
@@ -490,6 +491,7 @@ dependencies = [
  "toml",
  "tracing-appender",
  "tracing-subscriber",
+ "walkdir",
 ]
 
 [[package]]

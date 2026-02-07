@@ -412,6 +412,7 @@ pub fn run_stage_dir(base_dir: &Path, run_id: &str, stage: &str, tool: &str) -> 
 /// # Errors
 /// Returns an IO error if the lock cannot be acquired within the timeout.
 pub fn lock_run(layout: &RunLayoutPaths, timeout: Duration) -> Result<FileLock, IoError> {
+    ensure_dir(&layout.run_dir)?;
     FileLock::acquire(&layout.run_dir.join(RUN_LAYOUT_CONTRACT.lock_file), timeout)
 }
 

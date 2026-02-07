@@ -1,3 +1,8 @@
+//! JSON parsing/rendering helpers for non-contract payloads.
+//!
+//! Contract JSON canonicalization lives in bijux-core; do not add
+//! canonicalizers here.
+
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 
