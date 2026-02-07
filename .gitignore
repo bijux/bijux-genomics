@@ -33,3 +33,6 @@ site/
 
 /target-temp/
 **/target-temp/
+
+/target-isolate/
+**/target-isolate/
