@@ -11,6 +11,9 @@ See `ARCHITECTURE.md` for internal boundaries.
 
 ## Extension Points
 See `CHANGE_RULES.md` for safe extension guidelines.
+If you add a utility here, prove it is deterministic and does not duplicate
+core canonicalization (see bijux-core `contract::canonical` and policy
+`no_duplicate_canonicalizers`).
 
 ## How to Test
 See `TESTS.md` for test mapping and fixtures.
