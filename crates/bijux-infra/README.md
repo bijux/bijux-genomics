@@ -1,32 +1,31 @@
 # bijux-infra
 
 ## What this crate does
-Defines this crate's core responsibilities and wiring.
+Provides small, deterministic utilities (logging, formats, paths). It must remain free of domain semantics.
 
 ## What it must not do (boundaries)
-Must only depend on approved crates; must not reach into execution or domain logic unless explicitly allowed in docs.
+Must not depend on domain/stage/planner crates or define catalogs. See `docs/NO_DOMAIN.md`.
 
 ## Public API / entrypoints
-See `docs/INDEX.md` for stable entrypoints and re-exports.
+Utilities are documented in `docs/LOGGING.md` and `docs/PATHS.md`.
 
 ## Key contracts it owns/consumes
-See `docs/INDEX.md` for contract ownership and consumption details.
+Consumes core canonicalization; does not define its own hashing rules. See `docs/WHY_YAML.md` for format boundaries.
 
 ## Effects & determinism guarantees
-See `docs/EFFECTS.md` for allowed effects and determinism guarantees.
-
-## Artifacts / Contracts
-None by default unless documented in `docs/ARCHITECTURE.md`.
-
-## Failure modes
-See crate logs/tests; start with `docs/TESTS.md` for debugging paths.
+No process or network effects. Determinism is enforced by `tests/determinism.rs`.
 
 ## How to run its tests
-See `docs/TESTS.md`.
+See `docs/TESTS.md`. Key tests: `tests/determinism.rs`, `tests/docs_canonical_owner.rs`, `tests/guardrails.rs`.
 
 ## Where the docs live
-- `docs/INDEX.md`
-- `docs/SCOPE.md`
-- `docs/ARCHITECTURE.md`
-- `docs/EFFECTS.md`
-- `docs/CHANGE_RULES.md`
+Start at `docs/INDEX.md`, then read `docs/NO_DOMAIN.md`, `docs/LOGGING.md`, and `docs/PATHS.md`.
+
+## Artifacts / Contracts
+No runtime artifacts; utility-only.
+
+## Failure modes
+Violations are caught by policy tests and determinism checks.
+
+## Stability
+Public APIs are small and stable; changes follow `docs/CHANGE_RULES.md`.
