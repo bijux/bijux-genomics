@@ -1,0 +1,67 @@
+---
+source: crates/bijux-domain-bam/tests/contracts/stage_contract_snapshots.rs
+expression: json
+---
+{
+  "audit_artifacts": [
+    {
+      "filename": "align.bam",
+      "name": "align_bam"
+    },
+    {
+      "filename": "align.bam.bai",
+      "name": "align_bai"
+    },
+    {
+      "filename": "flagstat.txt",
+      "name": "flagstat"
+    },
+    {
+      "filename": "idxstats.txt",
+      "name": "idxstats"
+    },
+    {
+      "filename": "samtools_stats.txt",
+      "name": "stats"
+    },
+    {
+      "filename": "align.metrics.json",
+      "name": "align_metrics"
+    },
+    {
+      "filename": "stage.metrics.json",
+      "name": "stage_metrics"
+    }
+  ],
+  "inputs": [
+    "fastq_r1"
+  ],
+  "io": {
+    "deterministic": true,
+    "duplicate_policy": "no_duplicate_marking",
+    "emits_bam": true,
+    "emits_report": true,
+    "indexing": "produces_index_if_requested",
+    "input_kind": "ReferenceFasta",
+    "mapping_quality_policy": "no_mapping_quality_filter",
+    "nondeterminism_reason": null,
+    "output_kind": "Bam",
+    "read_group_policy": "adds_or_regenerates_read_groups",
+    "sorting": "output_sorting_tool_specific"
+  },
+  "outputs": [
+    "align_bam",
+    "align_bai",
+    "flagstat",
+    "idxstats",
+    "stats",
+    "align_metrics",
+    "stage_metrics"
+  ],
+  "schema_version": "bijux.stage_contract.v1",
+  "stage_id": "bam.align",
+  "tool_ids": [
+    "bwa",
+    "bowtie2"
+  ]
+}

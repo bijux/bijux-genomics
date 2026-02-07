@@ -26,6 +26,6 @@ fn params_and_metrics_canonical() {
         bijux_core::contract::canonical::to_canonical_json_bytes(&metrics).expect("canonical"),
     )
     .expect("utf8");
-    assert!(params_json.contains("min_quality"));
+    assert!(params_json.contains("aligner"));
     assert!(metrics_json.contains("mapped"));
 }

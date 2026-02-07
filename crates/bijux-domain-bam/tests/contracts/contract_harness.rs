@@ -1,5 +1,6 @@
 use anyhow::Result;
 
+#[path = "../support/mod.rs"]
 mod support;
 
 #[test]
