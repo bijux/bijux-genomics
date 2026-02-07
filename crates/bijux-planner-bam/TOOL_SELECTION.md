@@ -1,3 +1,4 @@
 # TOOL_SELECTION
 
-Tool registry and selection logic live in `tool_registry.rs` and `tool_selection.rs`.
+Tool registry and selection logic live in `selection/tool_registry.rs` and
+`selection/tool_selection.rs`.
