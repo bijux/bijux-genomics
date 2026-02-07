@@ -1,31 +1,31 @@
 # bijux-benchmark
 
 ## What this crate does
-Compares runs and produces benchmark decisions and summaries from analyze/runtime artifacts.
+Benchmark comparisons over analyze/runtime artifacts producing decisions and summaries.
 
 ## What it must not do (boundaries)
-Must not execute tools or plan graphs. It consumes artifacts only.
+No tool execution or planning.
+
+## Role in the stack
+Upstream: analyze outputs. Downstream: reports/CI.
 
 ## Public API / entrypoints
-Benchmark contracts documented in `docs/BENCH_CONTRACT.md` and `docs/BENCH_FORMAT.md`.
+See `docs/INDEX.md`, `docs/BENCH_CONTRACT.md`, `docs/BENCH_FORMAT.md`, `docs/REPRODUCIBILITY.md`, `docs/LEGACY.md`, `docs/CHANGE_RULES.md`.
 
 ## Key contracts it owns/consumes
-Consumes run records and analyze reports; produces decision and summary outputs.
+decision.json, observations.jsonl, summary.json.
 
 ## Effects & determinism guarantees
-Deterministic comparisons are enforced by snapshot tests. See `docs/REPRODUCIBILITY.md`.
+Pure comparison; deterministic outputs. See `docs/EFFECTS.md` and the golden tests below.
 
 ## How to run its tests
-See `docs/TESTS.md`. Key tests: `tests/bench_contract.rs`, `tests/determinism.rs`, `tests/bench_realistic_snapshot.rs`.
+See `docs/TESTS.md`. Golden tests: `tests/bench_contract.rs`, `tests/determinism.rs`, `tests/bench_realistic_snapshot.rs`, `tests/contract_handshake.rs`.
 
 ## Where the docs live
-Start at `docs/INDEX.md`, then read `docs/BENCH_FORMAT.md`, `docs/REPRODUCIBILITY.md`, and `docs/LEGACY.md`.
-
-## Artifacts / Contracts
-Produces `decision.json`, `observations.jsonl`, `summary.json` under benchmark bundles.
+Start at `docs/INDEX.md` and follow the crate docs listed above.
 
 ## Failure modes
-Schema mismatches or nondeterminism fail benchmark snapshot tests.
+Primary failures surface as snapshot or contract violations; inspect the golden tests and referenced docs.
 
 ## Stability
-Benchmark contracts are snapshot-tested; see `docs/CHANGE_RULES.md`.
+Contract and behavior changes follow `docs/CHANGE_RULES.md`.
