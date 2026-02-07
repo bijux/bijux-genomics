@@ -8,10 +8,8 @@ use crate::error::BenchError;
 use crate::model::{BenchmarkObservation, BenchmarkSuiteSpec, BenchmarkSummary};
 use crate::policy::GateDecision;
 
-pub const SUITE_SCHEMA_V1: &str = "bijux.bench.suite.v1";
-pub const OBSERVATION_SCHEMA_V1: &str = "bijux.bench.observation.v1";
-pub const SUMMARY_SCHEMA_V1: &str = "bijux.bench.summary.v1";
-pub const DECISION_SCHEMA_V1: &str = "bijux.bench.gate.v1";
+mod schemas;
+pub use schemas::{DECISION_SCHEMA_V1, OBSERVATION_SCHEMA_V1, SUITE_SCHEMA_V1, SUMMARY_SCHEMA_V1};
 
 /// # Errors
 /// Returns an error if the suite spec violates required fields.
