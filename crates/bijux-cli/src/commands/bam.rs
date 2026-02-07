@@ -1,5 +1,5 @@
 use crate::commands::cli::parse::{BamCommand, BamRunArgs};
-use crate::commands::imports::{
+use crate::commands::command_prelude::{
     anyhow, init_logging, load_image_catalog, load_platform, render, Cli, Commands, Context, Path,
     Result, StageId,
 };

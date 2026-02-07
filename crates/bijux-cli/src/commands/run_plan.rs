@@ -1,6 +1,18 @@
+use bijux_api::v1::api::run::{
+    init_logging, new_run_id, DryRunExecutor, Executor, PathSpec, RunSpec, ToolRegistry,
+};
+use tracing::{info, warn};
+
+use std::collections::BTreeMap;
+
+use crate::commands::command_prelude::{anyhow, Cli, Context, Path, PathBuf, Result};
+use crate::commands::cli;
+use crate::commands::cli::render;
+use crate::commands::validation::{ensure_profile_run_base_dir, load_profile_for_cli};
+
 pub(crate) fn run_plan(
     cli: &Cli,
-    registry: &bijux_api::v1::api::run::ToolRegistry,
+    registry: &ToolRegistry,
     domain_dir: &Path,
 ) -> Result<()> {
     let (stage, tool, common) = cli::resolve_stage_tool(&cli.command);
