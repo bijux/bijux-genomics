@@ -321,7 +321,7 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
     };
     bijux_infra::atomic_write_json(&run_dirs.manifest_path, &manifest)
         .context("write execution manifest")?;
-    write_execution_logs(&run_dirs, &execution.stdout, &execution.stderr)?;
+    write_execution_logs(&run_dirs.logs_dir, &execution.stdout, &execution.stderr)?;
     let context = BenchmarkContext {
         tool: tool.to_string(),
         tool_version: tool_spec.tool_version.clone(),

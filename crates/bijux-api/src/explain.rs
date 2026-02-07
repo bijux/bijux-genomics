@@ -38,6 +38,7 @@ pub struct PlanExplainV1 {
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+/// Stability: v1
 pub struct ExplainToolSelection {
     pub stage_id: String,
     pub tool_id: String,
@@ -46,6 +47,7 @@ pub struct ExplainToolSelection {
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+/// Stability: v1
 pub struct ExplainResponse {
     pub selected_tools: Vec<ExplainToolSelection>,
     pub defaults_ledger_diff: serde_json::Value,
