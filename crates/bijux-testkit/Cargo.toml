@@ -10,6 +10,7 @@ serde_json.workspace = true
 anyhow.workspace = true
 
 [dev-dependencies]
+bijux-policies = { path = "../bijux-policies" }
 
 [lib]
 path = "src/lib.rs"
