@@ -1,21 +1,36 @@
 # ENDPOINT_GUIDES
 
 ## plan
-Contract: returns graph + hash.
-Failure modes: invalid profile, contract validation.
+- Request schema: `PlanRequest`
+- Response schema: `PlanResponse`
+- Stability: additive fields only; breaking changes bump major.
+- Determinism: same inputs -> same graph hash.
+- Failure codes: `PlanError`, `ValidationError`.
 
 ## execute
-Contract: returns run id + manifest + report pointer.
-Failure modes: tool error, contract error.
+- Request schema: `ExecuteRequest`
+- Response schema: `ExecuteResponse`
+- Stability: additive fields only; breaking changes bump major.
+- Determinism: same inputs -> same run manifest hash (timestamps excluded).
+- Failure codes: `ToolError`, `ContractError`, `InfraError`.
 
 ## report
-Contract: returns report bundle paths.
-Failure modes: missing artifacts.
+- Request schema: `ReportRequest`
+- Response schema: `ReportResponse`
+- Stability: additive fields only; breaking changes bump major.
+- Determinism: same inputs -> same report JSON (timestamps excluded).
+- Failure codes: `ParseError`, `ContractError`.
 
 ## run-index
-Contract: list available runs.
-Failure modes: missing storage.
+- Request schema: `RunIndexRequest`
+- Response schema: `RunIndexResponse`
+- Stability: additive fields only; breaking changes bump major.
+- Determinism: stable ordering.
+- Failure codes: `InfraError`.
 
 ## explain
-Contract: selection reasons + defaults diff.
-Failure modes: unknown pipeline.
+- Request schema: `ExplainRequest`
+- Response schema: `ExplainResponse`
+- Stability: additive fields only; breaking changes bump major.
+- Determinism: same inputs -> same explain payload.
+- Failure codes: `PlanError`.
