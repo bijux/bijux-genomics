@@ -1,5 +1,6 @@
 //! Owner: bijux-benchmark
-//! Deterministic bootstrap confidence intervals.
+//! Deterministic bootstrap confidence intervals using seeded resampling.
+//! We prefer bootstrap CIs to preserve distribution shape without assuming normality.
 //! Must not perform IO or depend on compare/gate logic.
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]

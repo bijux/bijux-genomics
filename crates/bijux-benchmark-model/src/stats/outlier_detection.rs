@@ -1,5 +1,6 @@
 //! Owner: bijux-benchmark
-//! Outlier detection policies.
+//! Outlier detection policies using MAD (median absolute deviation).
+//! MAD is robust to skew and heavy tails, so it is preferred over z-score thresholds.
 //! Must not perform IO or depend on compare/gate logic.
 
 use crate::stats::robust_estimators::{mad, median};

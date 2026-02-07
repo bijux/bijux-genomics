@@ -1,6 +1,6 @@
 //! Owner: bijux-benchmark
-//! Robust statistics.
-//! Owns stable stats computations.
+//! Robust statistics: median, MAD, IQR, and trimmed mean.
+//! These estimators reduce sensitivity to outliers compared to mean/stddev.
 //! Must not perform IO or depend on compare/gate logic.
 //! Invariants: ordering is deterministic.
 
