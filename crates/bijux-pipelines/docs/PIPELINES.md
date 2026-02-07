@@ -1,7 +1,8 @@
 # PIPELINES
 
-## Pipeline IDs and Use Cases
-- `fastq.default.v1` — standard FASTQ preprocessing for typical datasets.
-- `bam.default.v1` — standard BAM processing for aligned reads.
+## Classification
+- Essential: fastq.default.v1, bam.default.v1
+- Recommended: fastq-to-bam__default__v1
+- Optional: adna profiles
 
-Each profile states intended scientific use and recommended context.
+Each profile includes intended scientific use-case.

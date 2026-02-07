@@ -1,4 +1,9 @@
 # DEFAULTS_LEDGER
 
-The defaults ledger is the SSOT for pipeline defaults.
-Changes must be reviewed and blessed because they impact reproducibility.
+## Override semantics
+Precedence: profile > pipeline > global.
+
+Example:
+- profile sets trim_min_len overrides pipeline default.
+
+See `tests/override_precedence.rs`.
