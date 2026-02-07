@@ -1,3 +1,5 @@
 //! SQLite-backed repository implementations.
 
-pub mod run_index;
+pub mod queries;
+
+pub use queries::RunIndexRepository;
