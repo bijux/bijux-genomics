@@ -10,4 +10,4 @@
 }
 ```
 
-See `tests/graph_snapshots.rs` for canonical graphs.
+See `tests/graph/graph_snapshots.rs` for canonical graphs.
