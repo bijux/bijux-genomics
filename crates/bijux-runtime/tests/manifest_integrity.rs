@@ -63,7 +63,10 @@ fn manifest_has_required_fields() {
     assert!(!invocations.is_empty(), "tool_invocations empty");
     let first = &invocations[0];
     assert!(
-        first.get("input_hashes").and_then(|value| value.as_array()).is_some(),
+        first
+            .get("input_hashes")
+            .and_then(|value| value.as_array())
+            .is_some(),
         "tool_invocation missing input_hashes"
     );
 }

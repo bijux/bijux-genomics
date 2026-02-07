@@ -3,8 +3,12 @@ use std::path::PathBuf;
 
 use bijux_core::contract::ContractVersion;
 use bijux_core::foundation::input_assessment::FastqLayout;
-use bijux_runtime::recording::{prepare_tool_run_dirs, write_canonical_json, write_run_manifest, RunArtifactInput};
-use bijux_runtime::{create_run_layout, write_manifest, RunManifest, RunProvenanceV1, RunStageEntry};
+use bijux_runtime::recording::{
+    prepare_tool_run_dirs, write_canonical_json, write_run_manifest, RunArtifactInput,
+};
+use bijux_runtime::{
+    create_run_layout, write_manifest, RunManifest, RunProvenanceV1, RunStageEntry,
+};
 
 #[test]
 fn reference_example_layout_manifest_record() -> anyhow::Result<()> {
