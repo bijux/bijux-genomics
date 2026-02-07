@@ -1,12 +1,10 @@
-pub mod align;
 pub mod core;
 pub mod downstream;
 pub mod pre;
 
-pub use align::{bowtie2, bwa};
 pub use core::{mapdamage2, mosdepth, preseq, pydamage};
 pub use downstream::{authenticity, gatk, rxy};
-pub use pre::samtools;
+pub use pre::{bowtie2, bwa, samtools};
 
 #[must_use]
 pub fn available_tools() -> &'static [&'static str] {
