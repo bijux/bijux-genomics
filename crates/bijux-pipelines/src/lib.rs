@@ -189,7 +189,6 @@ impl PipelineProfile {
     }
 }
 
-#[must_use]
 pub fn merge_effective_defaults(
     profile: &EffectiveDefaults,
     config: Option<&EffectiveDefaults>,
