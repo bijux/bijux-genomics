@@ -1,21 +1,16 @@
 # bijux-runtime Docs Index
 
-## What
-Entry point for crate documentation.
+## Scope
+See `SCOPE.md` for what belongs here.
 
-## Why
-Provides a single, stable starting point.
+## Effects
+See `EFFECTS.md` for allowed effects.
 
-## Non-goals
-- Duplicating root product docs.
+## Boundaries
+See `ARCHITECTURE.md` for internal boundaries.
 
-## Contracts
-- Docs live only under `crates/bijux-runtime/docs/`.
+## Extension Points
+See `CHANGE_RULES.md` for safe extension guidelines.
 
-## Examples
-- See `SCOPE.md` and `ARCHITECTURE.md` for boundaries and layout.
-- See `RUNTIME_CONTRACT.md`, `EVENTS.md`, and `BOUNDARY.md` for runtime semantics.
-- See `GLOSSARY.md` for terminology.
-
-## Failure modes
-- Missing index causes policy failures.
+## How to Test
+See `TESTS.md` for test mapping and fixtures.

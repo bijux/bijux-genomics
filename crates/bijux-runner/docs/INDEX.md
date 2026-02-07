@@ -1,20 +1,16 @@
 # bijux-runner Docs Index
 
-## What
-Entry point for crate documentation.
+## Scope
+See `SCOPE.md` for what belongs here.
 
-## Why
-Provides a single, stable starting point.
+## Effects
+See `EFFECTS.md` for allowed effects.
 
-## Non-goals
-- Duplicating root product docs.
+## Boundaries
+See `ARCHITECTURE.md` for internal boundaries.
 
-## Contracts
-- Docs live only under `crates/bijux-runner/docs/`.
+## Extension Points
+See `CHANGE_RULES.md` for safe extension guidelines.
 
-## Examples
-- See `SCOPE.md` and `ARCHITECTURE.md` for boundaries and layout.
-- See `BACKENDS.md`, `REPLAY.md`, `EXECUTION_SPEC.md`, and `SECURITY.md` for execution rules.
-
-## Failure modes
-- Missing index causes policy failures.
+## How to Test
+See `TESTS.md` for test mapping and fixtures.
