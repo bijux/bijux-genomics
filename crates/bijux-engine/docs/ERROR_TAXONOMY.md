@@ -1,15 +1,16 @@
 # ERROR_TAXONOMY
 
 ## ContractError
-When contract enforcement fails, errors must include:
-
-- `step_id`
-- `artifact_id` (when applicable)
-- `path`
-- `reason`
+- User action: fix missing/empty artifacts or invalid metrics.
+- Developer action: ensure planner declares outputs correctly.
+- Inspect: step directory, manifest, stage_report.
 
 ## ToolError
-Used when a tool exits non-zero or emits invalid metrics.
+- User action: re-run or inspect tool stderr.
+- Developer action: review tool adapter and params.
+- Inspect: execution_record, tool_invocation.
 
 ## ValidationError
-Used when the input graph or manifest fails preconditions.
+- User action: check pipeline/profile inputs.
+- Developer action: tighten validators.
+- Inspect: graph JSON, plan response.
