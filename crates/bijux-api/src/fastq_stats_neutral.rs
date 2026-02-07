@@ -8,9 +8,9 @@ use bijux_analyze::{
     append_jsonl, metric_set, BenchmarkContext, BenchmarkRecord, FastqStatsMetrics,
     LengthHistogramBin,
 };
+use bijux_core::metrics::MetricContextV1;
 use bijux_core::prelude::errors::ErrorCategory;
 use bijux_core::prelude::measure::ExecutionMetrics;
-use bijux_core::metrics::MetricContextV1;
 use bijux_core::prelude::params_hash;
 use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 use bijux_runner::primitives::build_tool_execution_spec;
@@ -206,7 +206,7 @@ fn prepare_stats_bench<S: ::std::hash::BuildHasher>(
     let stats_spec = input_fastq_stats(&r1_dir, &r1)?;
     let stats_output = execute_observer_command(
         &tool_image.full_name,
-        &stats_spec.mount_dir,
+        stats_spec.mount_dir.as_path(),
         &stats_spec.args,
         runner,
     )?;
@@ -218,7 +218,7 @@ fn prepare_stats_bench<S: ::std::hash::BuildHasher>(
     let hist_spec = length_histogram_command(&r1_dir, &r1)?;
     let hist_output = execute_observer_command(
         &tool_image.full_name,
-        &hist_spec.mount_dir,
+        hist_spec.mount_dir.as_path(),
         &hist_spec.args,
         runner,
     )?;
