@@ -2,20 +2,26 @@ use std::collections::HashMap;
 use std::time::Duration;
 
 use crate::api::{PlatformSpec, ToolImageSpec};
-use anyhow::{anyhow, Context, Result};
+use anyhow::{anyhow, Result};
 use bijux_analyze::ImageQaOutcome;
 use bijux_core::contract::ToolRegistry;
+use bijux_domain_fastq::{
+    STAGE_CORRECT, STAGE_FILTER, STAGE_MERGE, STAGE_TRIM, STAGE_VALIDATE_PRE,
+};
 use uuid::Uuid;
 
-use super::support::{
+use super::super::support::{
     adapter_hit_reads, docker_rm, ensure_gzip_integrity, output_fastq_stats, resolve_image_for_run,
-    run_merge_container_with_timeout, run_multiqc_container_with_timeout,
-    run_tool_container_with_timeout, run_trim_container_with_timeout,
-    run_validate_container_with_timeout, validate_execution_outputs, ResolvedImage,
+    run_merge_container_with_timeout, run_tool_container_with_timeout,
+    run_trim_container_with_timeout, run_validate_container_with_timeout,
+    validate_execution_outputs, ResolvedImage,
+};
+use super::runner::{
+    find_fastq_in_dir, qa_qc_post_tool, qa_screen_tool, qa_stats_tool, qa_umi_tool, tool_contract,
 };
 
 use super::super::fs::temp_out_dir;
-use super::{QaDataset, QaStage};
+use super::super::{QaDataset, QaStage};
 
 const QA_TIMEOUT_SECS: u64 = 300;
 const QA_MERGE_TIMEOUT_SECS: u64 = 300;

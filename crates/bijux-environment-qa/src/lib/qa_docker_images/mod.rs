@@ -34,7 +34,6 @@ enum ImageFailureReason {
     ImageNotFound,
     ExecutableMissing,
     ProbeFailed,
-    RuntimeDependencyMissing(String),
     UnexpectedExitCode(i32),
 }
 
@@ -44,9 +43,6 @@ impl std::fmt::Display for ImageFailureReason {
             ImageFailureReason::ImageNotFound => write!(f, "image not found"),
             ImageFailureReason::ExecutableMissing => write!(f, "executable missing"),
             ImageFailureReason::ProbeFailed => write!(f, "probe failed"),
-            ImageFailureReason::RuntimeDependencyMissing(dep) => {
-                write!(f, "missing runtime dependency: {dep}")
-            }
             ImageFailureReason::UnexpectedExitCode(code) => {
                 write!(f, "unexpected exit code {code}")
             }

@@ -1,4 +1,4 @@
-fn qa_qc_post_tool(
+pub(crate) fn qa_qc_post_tool(
     tool: &str,
     platform: &PlatformSpec,
     catalog: &HashMap<String, ToolImageSpec>,
@@ -90,7 +90,7 @@ fn qa_qc_post_tool(
     Ok(())
 }
 
-fn qa_umi_tool(
+pub(crate) fn qa_umi_tool(
     tool: &str,
     platform: &PlatformSpec,
     catalog: &HashMap<String, ToolImageSpec>,
@@ -143,7 +143,7 @@ fn qa_umi_tool(
     Ok(())
 }
 
-fn qa_stats_tool(
+pub(crate) fn qa_stats_tool(
     tool: &str,
     platform: &PlatformSpec,
     catalog: &HashMap<String, ToolImageSpec>,
@@ -181,7 +181,7 @@ fn qa_stats_tool(
     Ok(())
 }
 
-fn qa_screen_tool(
+pub(crate) fn qa_screen_tool(
     _tool: &str,
     _platform: &PlatformSpec,
     _catalog: &HashMap<String, ToolImageSpec>,
@@ -193,7 +193,7 @@ fn qa_screen_tool(
     ))
 }
 
-fn tool_contract<'a>(
+pub(crate) fn tool_contract<'a>(
     registry: &'a ToolRegistry,
     stage_id: &str,
     tool_id: &str,
@@ -215,7 +215,7 @@ fn dir_has_files(path: &std::path::Path) -> bool {
     }
 }
 
-fn find_fastq_in_dir(dir: &std::path::Path) -> Result<std::path::PathBuf> {
+pub(crate) fn find_fastq_in_dir(dir: &std::path::Path) -> Result<std::path::PathBuf> {
     let entries = std::fs::read_dir(dir).context("read output dir")?;
     for entry in entries {
         let entry = entry?;
@@ -248,3 +248,22 @@ fn is_fastq_path(path: &std::path::Path) -> bool {
     }
     false
 }
+use std::collections::HashMap;
+use std::time::Duration;
+
+use anyhow::{anyhow, Context, Result};
+use uuid::Uuid;
+
+use bijux_core::contract::ToolRegistry;
+use bijux_domain_fastq::{STAGE_QC_POST, STAGE_STATS_NEUTRAL, STAGE_UMI};
+
+use crate::api::{PlatformSpec, ToolImageSpec};
+use crate::image_qa::fs::temp_out_dir;
+use crate::image_qa::support::{
+    docker_rm, output_fastq_stats, resolve_image_for_run, run_multiqc_container_with_timeout,
+    run_tool_container_with_timeout, run_validate_container_with_timeout,
+    validate_execution_outputs, ResolvedImage,
+};
+use crate::image_qa::QaDataset;
+
+const QA_TIMEOUT_SECS: u64 = 300;

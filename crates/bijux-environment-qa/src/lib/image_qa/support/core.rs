@@ -355,13 +355,13 @@ pub fn docker_rm(container_id: &str) -> Result<()> {
     Ok(())
 }
 
-fn push_arg(cmd: &mut Command, args: &mut Vec<String>, value: impl Into<String>) {
+pub(crate) fn push_arg(cmd: &mut Command, args: &mut Vec<String>, value: impl Into<String>) {
     let value = value.into();
     cmd.arg(&value);
     args.push(value);
 }
 
-fn command_string(args: &[String]) -> String {
+pub(crate) fn command_string(args: &[String]) -> String {
     format!("docker {}", args.join(" "))
 }
 
@@ -381,7 +381,7 @@ fn docker_wait(container_id: &str) -> Result<i32> {
     Ok(code)
 }
 
-fn docker_wait_timeout(container_id: &str, timeout: Duration) -> Result<i32> {
+pub(crate) fn docker_wait_timeout(container_id: &str, timeout: Duration) -> Result<i32> {
     let start = std::time::Instant::now();
     loop {
         let output = Command::new("docker")
@@ -404,7 +404,7 @@ fn docker_wait_timeout(container_id: &str, timeout: Duration) -> Result<i32> {
     }
 }
 
-fn docker_logs(container_id: &str) -> Result<String> {
+pub(crate) fn docker_logs(container_id: &str) -> Result<String> {
     let output = Command::new("docker")
         .arg("logs")
         .arg(container_id)
@@ -416,7 +416,7 @@ fn docker_logs(container_id: &str) -> Result<String> {
     Ok(String::from_utf8_lossy(&output.stdout).to_string())
 }
 
-pub struct ExecutionOutput {
+pub(crate) struct ExecutionOutput {
     pub exit_code: i32,
     pub stdout: String,
     pub stderr: String,
@@ -426,7 +426,7 @@ pub struct ExecutionOutput {
 
 #[derive(Debug)]
 #[allow(dead_code)]
-pub struct TrimExecutionOutput {
+pub(crate) struct TrimExecutionOutput {
     pub exit_code: i32,
     pub stdout: String,
     pub stderr: String,
