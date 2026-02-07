@@ -1,32 +1,31 @@
 # bijux-benchmark
 
 ## What this crate does
-Defines this crate's core responsibilities and wiring.
+Compares runs and produces benchmark decisions and summaries from analyze/runtime artifacts.
 
 ## What it must not do (boundaries)
-Must only depend on approved crates; must not reach into execution or domain logic unless explicitly allowed in docs.
+Must not execute tools or plan graphs. It consumes artifacts only.
 
 ## Public API / entrypoints
-See `docs/INDEX.md` for stable entrypoints and re-exports.
+Benchmark contracts documented in `docs/BENCH_CONTRACT.md` and `docs/BENCH_FORMAT.md`.
 
 ## Key contracts it owns/consumes
-See `docs/INDEX.md` for contract ownership and consumption details.
+Consumes run records and analyze reports; produces decision and summary outputs.
 
 ## Effects & determinism guarantees
-See `docs/EFFECTS.md` for allowed effects and determinism guarantees.
-
-## Artifacts / Contracts
-None by default unless documented in `docs/ARCHITECTURE.md`.
-
-## Failure modes
-See crate logs/tests; start with `docs/TESTS.md` for debugging paths.
+Deterministic comparisons are enforced by snapshot tests. See `docs/REPRODUCIBILITY.md`.
 
 ## How to run its tests
-See `docs/TESTS.md`.
+See `docs/TESTS.md`. Key tests: `tests/bench_contract.rs`, `tests/determinism.rs`, `tests/bench_realistic_snapshot.rs`.
 
 ## Where the docs live
-- `docs/INDEX.md`
-- `docs/SCOPE.md`
-- `docs/ARCHITECTURE.md`
-- `docs/EFFECTS.md`
-- `docs/CHANGE_RULES.md`
+Start at `docs/INDEX.md`, then read `docs/BENCH_FORMAT.md`, `docs/REPRODUCIBILITY.md`, and `docs/LEGACY.md`.
+
+## Artifacts / Contracts
+Produces `decision.json`, `observations.jsonl`, `summary.json` under benchmark bundles.
+
+## Failure modes
+Schema mismatches or nondeterminism fail benchmark snapshot tests.
+
+## Stability
+Benchmark contracts are snapshot-tested; see `docs/CHANGE_RULES.md`.
