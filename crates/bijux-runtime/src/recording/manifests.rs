@@ -6,9 +6,9 @@ use sha2::Digest;
 
 use bijux_infra::bench_tools_dir;
 
+use bijux_core::metrics::ToolInvocationV1;
 use bijux_core::prelude::hashing::input_fingerprint;
 use bijux_core::prelude::CacheKey;
-use bijux_core::metrics::ToolInvocationV1;
 
 use super::io::{hash_file_sha256, write_canonical_json};
 
@@ -105,6 +105,7 @@ pub fn prepare_tool_run_dirs(tools_root: &Path, tool: &str, run_id: &str) -> Res
 
 /// # Errors
 /// Returns an error if the run manifest or auxiliary files cannot be written.
+#[allow(clippy::too_many_lines, clippy::needless_pass_by_value)]
 pub fn write_run_manifest(
     run_dirs: &RunDirs,
     stage: &str,
@@ -205,8 +206,11 @@ pub fn write_run_manifest(
     bijux_infra::ensure_dir(&telemetry_dir).context("create telemetry dir")?;
     write_canonical_json(&telemetry_dir.join("timings.json"), &serde_json::json!([]))
         .context("write timings.json")?;
-    write_canonical_json(&telemetry_dir.join("resources.json"), &serde_json::json!([]))
-        .context("write resources.json")?;
+    write_canonical_json(
+        &telemetry_dir.join("resources.json"),
+        &serde_json::json!([]),
+    )
+    .context("write resources.json")?;
     write_canonical_json(&telemetry_dir.join("errors.json"), &serde_json::json!([]))
         .context("write errors.json")?;
     super::io::write_atomic_bytes(&telemetry_dir.join("events.jsonl"), b"")
