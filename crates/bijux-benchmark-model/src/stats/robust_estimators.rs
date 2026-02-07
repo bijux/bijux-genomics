@@ -49,6 +49,11 @@ pub fn iqr(values: &[f64]) -> f64 {
     q3 - q1
 }
 
+#[allow(
+    clippy::cast_possible_truncation,
+    clippy::cast_precision_loss,
+    clippy::cast_sign_loss
+)]
 #[must_use]
 pub fn trimmed_mean(values: &[f64], trim_ratio: f64) -> f64 {
     if values.is_empty() {

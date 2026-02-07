@@ -11,6 +11,11 @@ pub struct BootstrapResult {
     pub samples: usize,
 }
 
+#[allow(
+    clippy::cast_precision_loss,
+    clippy::cast_sign_loss,
+    clippy::cast_possible_truncation
+)]
 #[must_use]
 pub fn bootstrap_ci(values: &[f64], samples: usize, seed: u64) -> BootstrapResult {
     if values.is_empty() || samples == 0 {
@@ -59,6 +64,7 @@ mod tests {
     use super::{bootstrap_ci, seed_from_ids};
 
     #[test]
+    #[allow(clippy::float_cmp)]
     fn bootstrap_is_deterministic() {
         let values = vec![1.0, 2.0, 3.0, 4.0];
         let seed = seed_from_ids("suite", "runtime_s", "stage", "tool");

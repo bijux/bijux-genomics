@@ -73,6 +73,7 @@ impl GatePolicy {
         Ok(())
     }
 
+    #[allow(clippy::cast_precision_loss)]
     #[must_use]
     pub fn decide(
         &self,
@@ -105,7 +106,7 @@ impl GatePolicy {
 
         for metric_id in required_metrics {
             if !metrics.contains_key(metric_id) {
-                missing_metrics.push(metric_id.to_string());
+                missing_metrics.push(metric_id.clone());
                 rationale_trace.push(format!("missing_required:{metric_id}"));
             }
         }
@@ -174,7 +175,7 @@ impl GatePolicy {
 
         for metric_id in must_not_regress {
             if !metrics.contains_key(metric_id) {
-                missing_metrics.push(metric_id.to_string());
+                missing_metrics.push(metric_id.clone());
                 rationale_trace.push(format!("missing_must_not_regress:{metric_id}"));
             }
         }
