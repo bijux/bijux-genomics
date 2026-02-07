@@ -3,8 +3,8 @@
 
 use std::path::Path;
 
-use bijux_core::prelude::measure::ExecutionMetrics;
 use bijux_core::metrics::MetricSet;
+use bijux_core::prelude::measure::ExecutionMetrics;
 use bijux_runtime::recording::append_jsonl_line;
 use serde::{Deserialize, Serialize};
 
