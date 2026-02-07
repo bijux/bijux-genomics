@@ -44,7 +44,7 @@ fn run_index_insert_and_query() -> anyhow::Result<()> {
     let index_path = dir.path().join("index.jsonl");
 
     let run = RunIndexEntry {
-        run_id: RunId::new("run-1"),
+        run_id: RunId("run-1".to_string()),
         domain: "fastq".to_string(),
         pipeline: PipelineId::new("fastq.trim"),
         stages: vec![StageId::new("fastq.trim")],
@@ -56,7 +56,7 @@ fn run_index_insert_and_query() -> anyhow::Result<()> {
     write_run(&index_path, &run)?;
 
     let row = StageIndexRow {
-        run_id: RunId::new("run-1"),
+        run_id: RunId("run-1".to_string()),
         stage_id: StageId::new("fastq.trim"),
         tool_id: ToolId::new("fastp"),
         params_hash: "hash".to_string(),
@@ -95,7 +95,7 @@ fn run_index_latest_run_is_deterministic() -> anyhow::Result<()> {
         write_run(
             &index_path,
             &RunIndexEntry {
-                run_id: RunId::new(run_id),
+                run_id: RunId(run_id.to_string()),
                 domain: "fastq".to_string(),
                 pipeline: PipelineId::new("fastq.trim"),
                 stages: vec![StageId::new("fastq.trim")],
@@ -122,7 +122,7 @@ fn run_index_query_by_stage_and_tool() -> anyhow::Result<()> {
     write_stage_row(
         &index_path,
         &StageIndexRow {
-            run_id: RunId::new("run-1"),
+            run_id: RunId("run-1".to_string()),
             stage_id: StageId::new("fastq.trim"),
             tool_id: ToolId::new("fastp"),
             params_hash: "hash".to_string(),
@@ -134,7 +134,7 @@ fn run_index_query_by_stage_and_tool() -> anyhow::Result<()> {
     write_stage_row(
         &index_path,
         &StageIndexRow {
-            run_id: RunId::new("run-2"),
+            run_id: RunId("run-2".to_string()),
             stage_id: StageId::new("fastq.validate_pre"),
             tool_id: ToolId::new("fastqvalidator"),
             params_hash: "hash2".to_string(),

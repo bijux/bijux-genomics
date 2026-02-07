@@ -1,7 +1,6 @@
-use bijux_core::contract::PlanPolicy;
-use bijux_core::contract::{ArtifactRef, ArtifactRole, StageIO, ToolConstraints};
-use bijux_core::contract::{ExecutionEdge, ExecutionGraph, ExecutionStep};
-use bijux_core::{ArtifactId, CommandSpecV1, ContainerImageRefV1, StageId, StepId};
+use bijux_core::contract::execution::{ExecutionEdge, ExecutionGraph, ExecutionStep};
+use bijux_core::contract::{ArtifactRef, ArtifactRole, PlanPolicy, StageIO, ToolConstraints};
+use bijux_core::prelude::{ArtifactId, CommandSpecV1, ContainerImageRefV1, StageId, StepId};
 
 #[test]
 #[allow(clippy::too_many_lines)]
