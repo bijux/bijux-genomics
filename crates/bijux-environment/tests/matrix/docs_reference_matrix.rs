@@ -8,7 +8,7 @@ fn reference_matrix_is_documented() {
         .join("ENV_REFERENCE.md");
     let content = fs::read_to_string(&doc).expect("read ENV_REFERENCE.md");
     assert!(
-        content.contains("tests/reference_matrix.rs"),
-        "ENV_REFERENCE.md must reference tests/reference_matrix.rs"
+        content.contains("tests/matrix/reference_matrix.rs"),
+        "ENV_REFERENCE.md must reference tests/matrix/reference_matrix.rs"
     );
 }
