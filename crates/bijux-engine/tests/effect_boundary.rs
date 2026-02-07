@@ -4,7 +4,13 @@ use walkdir::WalkDir;
 fn engine_is_orchestrator_only() {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
     let mut offenders = Vec::new();
-    let patterns = ["std::process::Command", "Command::new", "docker", "apptainer", "singularity"];
+    let patterns = [
+        "std::process::Command",
+        "Command::new",
+        "docker",
+        "apptainer",
+        "singularity",
+    ];
     for entry in WalkDir::new(root).into_iter().filter_map(|e| e.ok()) {
         if !entry.file_type().is_file() {
             continue;
