@@ -1300,7 +1300,6 @@ fn workspace_bans_thin_mod_rs() {
 
 #[test]
 fn workspace_domain_symmetry_contract() {
-    let root = workspace_root();
     let domains = ["bijux-domain-fastq", "bijux-domain-bam"];
     let required = [
         "metrics",
