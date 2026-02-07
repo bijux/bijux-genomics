@@ -1,0 +1,38 @@
+#[path = "../support/fs.rs"]
+mod support;
+
+use walkdir::WalkDir;
+
+#[test]
+fn policies_live_only_in_bijux_policies() {
+    let root = support::workspace_root();
+    let mut offenders = Vec::new();
+    for entry in WalkDir::new(root.join("crates"))
+        .into_iter()
+        .filter_map(|entry| entry.ok())
+    {
+        if !entry.file_type().is_file() {
+            continue;
+        }
+        let path = entry.path();
+        if path.to_string_lossy().contains("/crates/bijux-policies/") {
+            continue;
+        }
+        if !path.to_string_lossy().contains("/tests/") {
+            continue;
+        }
+        let name = path.file_name().and_then(|n| n.to_str()).unwrap_or("");
+        if name.contains("policy") {
+            offenders.push(path.display().to_string());
+        }
+    }
+
+    assert!(
+        offenders.is_empty(),
+        "Policy-like tests must live in bijux-policies only.\n\
+Move policy scans into bijux-policies and keep other crates to fixtures only.\n\
+See STYLE.md for governance rules.\n\
+Offenders:\n{}",
+        offenders.join("\n")
+    );
+}

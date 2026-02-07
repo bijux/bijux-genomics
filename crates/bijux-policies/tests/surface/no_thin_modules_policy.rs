@@ -60,7 +60,10 @@ fn no_thin_module_directories() {
 
     assert!(
         offenders.is_empty(),
-        "directories with only mod.rs must be expanded or collapsed:\n{}",
+        "directories with only mod.rs must be expanded or collapsed.\n\
+Fix by collapsing to a single .rs file or adding real submodules.\n\
+See STYLE.md for module rules.\n\
+Offenders:\n{}",
         offenders.join("\n")
     );
 }

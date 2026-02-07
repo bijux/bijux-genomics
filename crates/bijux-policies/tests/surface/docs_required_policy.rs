@@ -4,7 +4,7 @@ mod support;
 use std::path::Path;
 
 const REQUIRED_DOCS: &[&str] = &["SCOPE.md", "ARCHITECTURE.md"];
-const README_ALLOWLIST: &[&str] = &[];
+const README_ALLOWLIST: &[(&str, &str)] = &[];
 
 fn has_uppercase_name(path: &Path) -> bool {
     path.file_name()
@@ -46,7 +46,15 @@ fn crate_docs_use_uppercase_names() {
                 continue;
             }
             if path.file_name().and_then(|name| name.to_str()) == Some("README.md") {
-                if README_ALLOWLIST.contains(&crate_root.file_name().unwrap().to_string_lossy().as_ref()) {
+                if README_ALLOWLIST
+                    .iter()
+                    .any(|(crate_name, _reason)| {
+                        crate_root
+                            .file_name()
+                            .map(|name| name == *crate_name)
+                            .unwrap_or(false)
+                    })
+                {
                     continue;
                 }
                 continue;
@@ -59,7 +67,10 @@ fn crate_docs_use_uppercase_names() {
 
     assert!(
         offenders.is_empty(),
-        "crate docs must use uppercase names:\n{}",
+        "crate docs must use uppercase names.\n\
+Fix by renaming docs to UPPERCASE (README.md allowed when allowlisted).\n\
+See STYLE.md for naming rules.\n\
+Offenders:\n{}",
         offenders.join("\n")
     );
 }
