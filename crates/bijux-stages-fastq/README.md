@@ -1,32 +1,31 @@
 # bijux-stages-fastq
 
 ## What this crate does
-Defines this crate's core responsibilities and wiring.
+Defines FASTQ stage specs and observers (parsers) only. It is the contract+parsing layer for FASTQ stages.
 
 ## What it must not do (boundaries)
-Must only depend on approved crates; must not reach into execution or domain logic unless explicitly allowed in docs.
+Must not assemble commands or select tools. Execution belongs in planners/runner.
 
 ## Public API / entrypoints
-See `docs/INDEX.md` for stable entrypoints and re-exports.
+Stage specs and observers documented in `docs/STAGE_LIST.md`, `docs/STAGE_CONTRACTS.md`, and `docs/OBSERVERS.md`.
 
 ## Key contracts it owns/consumes
-See `docs/INDEX.md` for contract ownership and consumption details.
+Owns FASTQ stage contracts; consumes core IDs and domain semantics.
 
 ## Effects & determinism guarantees
-See `docs/EFFECTS.md` for allowed effects and determinism guarantees.
-
-## Artifacts / Contracts
-None by default unless documented in `docs/ARCHITECTURE.md`.
-
-## Failure modes
-See crate logs/tests; start with `docs/TESTS.md` for debugging paths.
+Parsing is deterministic and fixture-backed. See `tests/observer_determinism.rs`.
 
 ## How to run its tests
-See `docs/TESTS.md`.
+See `docs/TESTS.md`. Key tests: `tests/contract_snapshots.rs`, `tests/observer_determinism.rs`, `tests/symmetry.rs`.
 
 ## Where the docs live
-- `docs/INDEX.md`
-- `docs/SCOPE.md`
-- `docs/ARCHITECTURE.md`
-- `docs/EFFECTS.md`
-- `docs/CHANGE_RULES.md`
+Start at `docs/INDEX.md`, then read `docs/STAGE_LIST.md`, `docs/OBSERVERS.md`, and `docs/TOOL_ROSTER.md`.
+
+## Artifacts / Contracts
+Produces stage_report/metrics shapes via parsers; snapshots live in `tests/snapshots/`.
+
+## Failure modes
+Parser regressions or contract drift fail snapshot tests.
+
+## Stability
+Stage contracts and observer outputs are snapshot-tested; see `docs/CHANGE_RULES.md`.
