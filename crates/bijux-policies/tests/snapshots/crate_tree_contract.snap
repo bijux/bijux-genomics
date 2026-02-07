@@ -1,0 +1,191 @@
+---
+source: crates/bijux-policies/tests/surface/crate_tree_contract.rs
+expression: output
+---
+[bijux-analyze]
+- ARCHITECTURE.md
+- Cargo.toml
+- DATA_MODEL.md
+- SCHEMA.md
+- SCOPE.md
+- src/
+- tests/
+
+[bijux-api]
+- API.md
+- ARCHITECTURE.md
+- Cargo.toml
+- SCOPE.md
+- src/
+- tests/
+
+[bijux-benchmark]
+- ARCHITECTURE.md
+- Cargo.toml
+- SCOPE.md
+- src/
+- tests/
+
+[bijux-benchmark-model]
+- ARCHITECTURE.md
+- Cargo.toml
+- SCOPE.md
+- src/
+- tests/
+
+[bijux-cli]
+- ARCHITECTURE.md
+- CLI_CONVENTIONS.md
+- Cargo.toml
+- SCOPE.md
+- src/
+- tests/
+
+[bijux-core]
+- ARCHITECTURE.md
+- BOUNDARIES.md
+- CONTRACT_VERSIONING.md
+- Cargo.toml
+- PUBLIC_API.md
+- SCOPE.md
+- src/
+- tests/
+
+[bijux-domain-bam]
+- ARCHITECTURE.md
+- Cargo.toml
+- DOMAIN_MODEL.md
+- METRICS.md
+- PARAMS.md
+- SCOPE.md
+- src/
+- tests/
+
+[bijux-domain-fastq]
+- ARCHITECTURE.md
+- Cargo.toml
+- DOMAIN_MODEL.md
+- METRICS.md
+- PARAMS.md
+- README.md
+- SCOPE.md
+- src/
+- tests/
+
+[bijux-engine]
+- ARCHITECTURE.md
+- Cargo.toml
+- ENGINE_CONTRACT.md
+- SCOPE.md
+- src/
+- tests/
+
+[bijux-environment]
+- ARCHITECTURE.md
+- Cargo.toml
+- ENV_REFERENCE.md
+- SCOPE.md
+- src/
+- tests/
+
+[bijux-environment-qa]
+- ARCHITECTURE.md
+- Cargo.toml
+- DATASETS.md
+- QA_MATRIX.md
+- SCOPE.md
+- src/
+- tests/
+
+[bijux-infra]
+- ARCHITECTURE.md
+- Cargo.toml
+- SCOPE.md
+- src/
+- tests/
+
+[bijux-pipelines]
+- ARCHITECTURE.md
+- Cargo.toml
+- PIPELINE_MODEL.md
+- PIPELINE_VERSIONING.md
+- SCOPE.md
+- src/
+- tests/
+
+[bijux-planner-bam]
+- ARCHITECTURE.md
+- Cargo.toml
+- PLANNER_MODEL.md
+- SCOPE.md
+- TOOL_SELECTION.md
+- src/
+- tests/
+
+[bijux-planner-fastq]
+- ARCHITECTURE.md
+- Cargo.toml
+- PLANNER_MODEL.md
+- SCOPE.md
+- TOOL_SELECTION.md
+- src/
+- tests/
+
+[bijux-policies]
+- ARCHITECTURE.md
+- Cargo.toml
+- ENFORCEMENT.md
+- POLICIES.md
+- SCOPE.md
+- src/
+- tests/
+
+[bijux-runner]
+- ARCHITECTURE.md
+- Cargo.toml
+- RUNNER_MODEL.md
+- SCOPE.md
+- src/
+- tests/
+
+[bijux-runtime]
+- ARCHITECTURE.md
+- Cargo.toml
+- EVENTS.md
+- RUNTIME_CONTRACT.md
+- SCOPE.md
+- src/
+- tests/
+
+[bijux-stage-contract]
+- ARCHITECTURE.md
+- CONTRACT.md
+- Cargo.toml
+- SCOPE.md
+- src/
+- tests/
+
+[bijux-stages-bam]
+- ARCHITECTURE.md
+- Cargo.toml
+- OBSERVERS.md
+- SCOPE.md
+- STAGE_CONTRACTS.md
+- src/
+- tests/
+
+[bijux-stages-fastq]
+- ARCHITECTURE.md
+- Cargo.toml
+- OBSERVERS.md
+- SCOPE.md
+- STAGE_CONTRACTS.md
+- src/
+- tests/
+
+[bijux-testkit]
+- ARCHITECTURE.md
+- Cargo.toml
+- SCOPE.md
+- src/
+- tests/
