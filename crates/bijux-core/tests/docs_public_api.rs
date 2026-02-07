@@ -35,11 +35,11 @@ fn docs_cover_public_api_modules() {
 
 #[test]
 fn minimal_contract_example_builds() {
+    use bijux_core::contract::execution::PlanPolicy;
     use bijux_core::contract::execution::{ExecutionEdge, ExecutionGraph, ExecutionStep};
     use bijux_core::contract::{ArtifactRole, StageIO, ToolConstraints};
     use bijux_core::foundation::{CommandSpecV1, ContainerImageRefV1};
     use bijux_core::ids::{ArtifactId, PipelineId, StageId, StepId};
-    use bijux_core::contract::execution::PlanPolicy;
     use std::path::PathBuf;
 
     let step = ExecutionStep {

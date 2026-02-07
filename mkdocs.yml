@@ -184,7 +184,17 @@ nav:
       - Policies Explained: 40-policies/POLICIES_EXPLAINED.md
       - Developer Workflow: 40-policies/DEVELOPER_WORKFLOW.md
       - Style: 40-policies/STYLE.md
+      - Policy Index: 40-policies/POLICY_INDEX.md
+      - Failure Playbooks: 40-policies/FAILURE_PLAYBOOKS.md
+      - Policy Ownership: 40-policies/POLICY_OWNERSHIP.md
+      - Maturity Ladder: 40-policies/MATURITY_LADDER.md
+      - Policy Stability: 40-policies/POLICY_STABILITY.md
   - Reference:
+      - Reference Index: 50-reference/REFERENCE_INDEX.md
+      - Schemas Index: 50-reference/SCHEMAS_INDEX.md
+      - Compatibility Matrix: 50-reference/COMPATIBILITY_MATRIX.md
+      - Examples: 50-reference/EXAMPLES.md
+      - No Orphans: 50-reference/NO_ORPHANS.md
       - Crate Map: 50-reference/CRATE_MAP.md
       - Pipelines: 50-reference/PIPELINES.md
       - Contract Versioning: 50-reference/CONTRACT_VERSIONING.md
