@@ -1,7 +1,7 @@
 # RUNTIME_CONTRACT
 
 ## Canonical narrative
-`RunLayout` defines where artifacts live. `RunManifest` summarizes the run. `RunRecord` captures per-step execution. Provenance ties tool identity to inputs. Telemetry events provide execution traces.
+Terminology is defined in `GLOSSARY.md`. This document references those terms without redefining them.
 
 ## Owned JSON artifacts
 - `run_layout.json`
