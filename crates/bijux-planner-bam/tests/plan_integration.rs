@@ -29,7 +29,7 @@ fn output_path(plan: &bijux_stage_contract::StagePlanV1, name: &str) -> std::pat
     plan.io
         .outputs
         .iter()
-        .find(|output| output.name == name)
+        .find(|output| output.name.as_str() == name)
         .map_or_else(
             || panic!("missing output {name} for stage {}", plan.stage_id.0),
             |output| output.path.clone(),
