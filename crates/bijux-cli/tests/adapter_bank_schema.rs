@@ -9,8 +9,8 @@ fn adapter_bank_parses() -> Result<(), Box<dyn std::error::Error>> {
         .ok_or("repo root not found")?;
     let bank_path = repo_root.join("assets/adapters/bank.v1.yaml");
     let presets_path = repo_root.join("assets/adapters/presets.v1.yaml");
-    let bank = bijux_api::v1::bench::load_adapter_bank(&bank_path)?;
-    let presets = bijux_api::v1::bench::load_adapter_presets(&presets_path, &bank)?;
+    let bank = bijux_api::v1::api::bench::load_adapter_bank(&bank_path)?;
+    let presets = bijux_api::v1::api::bench::load_adapter_presets(&presets_path, &bank)?;
     assert!(
         !bank.adapters.is_empty(),
         "adapter bank should have entries"

@@ -27,14 +27,14 @@ pub(crate) fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool>
         }
         Commands::Replay(args) => {
             if let Some(manifest_path) = args.manifest.as_ref() {
-                bijux_api::v1::run::replay_manifest(manifest_path, args.verify_only)?;
+                bijux_api::v1::api::run::replay_manifest(manifest_path, args.verify_only)?;
                 return Ok(true);
             }
             let manifest_path = args
                 .search_root
                 .join(&args.run_id)
                 .join("run_manifest.json");
-            bijux_api::v1::run::replay_manifest(&manifest_path, args.verify_only)?;
+            bijux_api::v1::api::run::replay_manifest(&manifest_path, args.verify_only)?;
             Ok(true)
         }
         Commands::Compare(args) => {
@@ -48,7 +48,7 @@ pub(crate) fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool>
                 compare_runs(&run_a, &run_b, &objective)?
             };
             let output_dir = args.output_dir.as_ref().unwrap_or(&args.search_root);
-            bijux_api::v1::run::ensure_dir(output_dir)?;
+            bijux_api::v1::api::run::ensure_dir(output_dir)?;
             let path = output_dir.join("compare.json");
             atomic_write_bytes(&path, &serde_json::to_vec_pretty(&result)?)
                 .map_err(anyhow::Error::from)?;
@@ -69,7 +69,7 @@ pub(crate) fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool>
                     domain,
                     show_experimental,
                 } => {
-                    let profiles = bijux_api::v1::plan::select_pipelines(
+                    let profiles = bijux_api::v1::api::plan::select_pipelines(
                         domain.map(cli::parse::PipelineDomainArg::as_domain),
                         *show_experimental,
                     );
@@ -84,7 +84,7 @@ pub(crate) fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool>
                     Ok(true)
                 }
                 PipelinesCommand::Explain { id } => {
-                    let profile = bijux_api::v1::plan::select_pipelines(None, true)
+                    let profile = bijux_api::v1::api::plan::select_pipelines(None, true)
                         .into_iter()
                         .find(|profile| profile.id.as_str() == id)
                         .ok_or_else(|| anyhow!("unknown pipeline profile: {id}"))?;
@@ -101,7 +101,7 @@ pub(crate) fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool>
                     domain,
                     show_experimental,
                 } => {
-                    let profiles = bijux_api::v1::plan::select_pipelines(
+                    let profiles = bijux_api::v1::api::plan::select_pipelines(
                         domain.map(cli::parse::PipelineDomainArg::as_domain),
                         *show_experimental,
                     );
@@ -114,27 +114,27 @@ pub(crate) fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool>
                         );
                         let stage_ids = match profile.id.as_str() {
                             "fastq-to-fastq__default__v1" | "fastq-to-fastq__minimal__v1" => {
-                                bijux_api::v1::plan::fastq_pipeline_stage_ids(profile.id.as_str())
+                                bijux_api::v1::api::plan::fastq_pipeline_stage_ids(profile.id.as_str())
                             }
                             "fastq-to-bam__default__v1" | "fastq-to-bam__adna_shotgun__v1" => {
-                                bijux_api::v1::plan::cross_fastq_to_bam_stage_ids(
+                                bijux_api::v1::api::plan::cross_fastq_to_bam_stage_ids(
                                     profile.id.as_str(),
                                 )
                             }
                             "bam-to-bam__default__v1"
                             | "bam-to-bam__adna_shotgun__v1"
                             | "bam-to-bam__adna_capture__v1" => {
-                                bijux_api::v1::plan::bam_pipeline_stage_ids(profile.id.as_str())
+                                bijux_api::v1::api::plan::bam_pipeline_stage_ids(profile.id.as_str())
                             }
                             _ => Vec::new(),
                         };
                         for stage_id in stage_ids {
                             if stage_id.starts_with("bam.") {
                                 let stage =
-                                    bijux_api::v1::bench::BamStage::try_from(stage_id.as_str())
+                                    bijux_api::v1::api::bench::BamStage::try_from(stage_id.as_str())
                                     .map_err(|_| anyhow!("unknown BAM stage {stage_id}"))?;
                                 let completeness =
-                                    bijux_api::v1::bench::bam_stage_completeness(stage);
+                                    bijux_api::v1::api::bench::bam_stage_completeness(stage);
                                 println!(
                                     "  {stage_id}\tcomplete={}\targs={}\tartifacts={}\tparsers={}\tinvariants={}",
                                     completeness.is_complete(),
@@ -155,13 +155,13 @@ pub(crate) fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool>
         Commands::Analyze { command } => {
             match command {
                 AnalyzeCommand::Runs(args) => {
-                    let query = bijux_api::v1::run::RunQuery {
+                    let query = bijux_api::v1::api::run::RunQuery {
                         stage: args.stage.clone(),
                         tool: args.tool.clone(),
                         objective: args.objective.map(|obj| obj.as_str().to_string()),
                         success: args.success,
                     };
-                    let runs = bijux_api::v1::run::query_runs(&args.index, &query)?;
+                    let runs = bijux_api::v1::api::run::query_runs(&args.index, &query)?;
                     render::json::print_pretty(&runs)?;
                 }
                 AnalyzeCommand::Summary(args) => {
@@ -189,7 +189,7 @@ pub(crate) fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool>
                         compare_runs(&run_a, &run_b, &objective)?
                     };
                     let output_dir = args.output_dir.as_ref().unwrap_or(&args.search_root);
-                    bijux_api::v1::run::ensure_dir(output_dir)?;
+                    bijux_api::v1::api::run::ensure_dir(output_dir)?;
                     let path = output_dir.join("compare.json");
                     atomic_write_bytes(&path, &serde_json::to_vec_pretty(&result)?)
                         .map_err(anyhow::Error::from)?;
@@ -199,7 +199,7 @@ pub(crate) fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool>
                     let run_dir = args.search_root.join(&args.run_id);
                     let facts_path = run_dir.join("facts.jsonl");
                     let facts = load_facts_auto(&facts_path)?;
-                    let mut by_tool: BTreeMap<String, Vec<&bijux_api::v1::run::FactsRowV1>> =
+                    let mut by_tool: BTreeMap<String, Vec<&bijux_api::v1::api::run::FactsRowV1>> =
                         BTreeMap::new();
                     for row in facts.iter().filter(|row| row.stage_id == args.stage) {
                         by_tool.entry(row.tool_id.clone()).or_default().push(row);
@@ -237,7 +237,7 @@ pub(crate) fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool>
                             error_reduction_proxy,
                         });
                     }
-                    let rankings = bijux_api::v1::bench::build_rankings(&inputs)?;
+                    let rankings = bijux_api::v1::api::bench::build_rankings(&inputs)?;
                     render::json::print_pretty(&rankings)?;
                 }
                 AnalyzeCommand::Report(args) => {
@@ -265,7 +265,7 @@ pub(crate) fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool>
                                 .map_err(anyhow::Error::from)?;
                             if args.format == "bundle" {
                                 let bundle_dir = run_dir.join("report_bundle");
-                                bijux_api::v1::run::ensure_dir(&bundle_dir)?;
+                                bijux_api::v1::api::run::ensure_dir(&bundle_dir)?;
                                 atomic_write_bytes(
                                     &bundle_dir.join("index.html"),
                                     index_html.as_bytes(),
@@ -467,7 +467,7 @@ pub(crate) fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool>
                         BenchBamCommand::Stage(args) => {
                             let registry = load_manifests(domain_dir)
                                 .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
-                            bijux_api::v1::bench::bench_bam_stage(
+                            bijux_api::v1::api::bench::bench_bam_stage(
                                 &bench_bam_stage_args_to_api(args),
                                 &registry,
                                 cli.platform.as_deref(),
@@ -476,7 +476,7 @@ pub(crate) fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool>
                         BenchBamCommand::Pipeline(args) => {
                             let registry = load_manifests(domain_dir)
                                 .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
-                            bijux_api::v1::bench::bench_bam_pipeline(
+                            bijux_api::v1::api::bench::bench_bam_pipeline(
                                 &bench_bam_pipeline_args_to_api(args),
                                 &registry,
                                 cli.platform.as_deref(),
@@ -496,8 +496,8 @@ pub(crate) fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool>
 
 fn bench_bam_stage_args_to_api(
     args: &crate::commands::cli::parse::BenchBamStageArgs,
-) -> bijux_api::v1::bench::BenchBamStageArgs {
-    bijux_api::v1::bench::BenchBamStageArgs {
+) -> bijux_api::v1::api::bench::BenchBamStageArgs {
+    bijux_api::v1::api::bench::BenchBamStageArgs {
         sample_id: args.sample_id.clone(),
         stage: args.stage.stage(),
         bam: args.bam.clone(),
@@ -514,8 +514,8 @@ fn bench_bam_stage_args_to_api(
 
 fn bench_bam_pipeline_args_to_api(
     args: &crate::commands::cli::parse::BenchBamPipelineArgs,
-) -> bijux_api::v1::bench::BenchBamPipelineArgs {
-    bijux_api::v1::bench::BenchBamPipelineArgs {
+) -> bijux_api::v1::api::bench::BenchBamPipelineArgs {
+    bijux_api::v1::api::bench::BenchBamPipelineArgs {
         profile: args.profile.clone(),
         sample_id: args.sample_id.clone(),
         bam: args.bam.clone(),

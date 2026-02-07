@@ -1,6 +1,6 @@
 pub(crate) fn run_plan(
     cli: &Cli,
-    registry: &bijux_api::v1::run::ToolRegistry,
+    registry: &bijux_api::v1::api::run::ToolRegistry,
     domain_dir: &Path,
 ) -> Result<()> {
     let (stage, tool, common) = cli::resolve_stage_tool(&cli.command);
@@ -19,8 +19,8 @@ pub(crate) fn run_plan(
 
     let mut profile = load_profile_for_cli(cli)?;
     ensure_profile_run_base_dir(&stage, &tool, &mut profile);
-    let plan = bijux_api::v1::plan::plan_run(
-        bijux_api::v1::plan::PlanRunRequest {
+    let plan = bijux_api::v1::api::plan::plan_run(
+        bijux_api::v1::api::plan::PlanRunRequest {
             run_spec,
             profile,
             run_id: run_id.clone(),
@@ -30,8 +30,8 @@ pub(crate) fn run_plan(
     .map_err(|err| anyhow!("failed to build plan: {err}"))?
     .plan;
 
-    bijux_api::v1::run::ensure_dir(&plan.logs_dir).context("create logs directory")?;
-    bijux_api::v1::run::ensure_dir(&plan.artifacts_dir).context("create artifacts directory")?;
+    bijux_api::v1::api::run::ensure_dir(&plan.logs_dir).context("create logs directory")?;
+    bijux_api::v1::api::run::ensure_dir(&plan.artifacts_dir).context("create artifacts directory")?;
     let log_path = plan.logs_dir.join("bijux.log");
     let _log_guard = init_logging(&log_path)?;
 
