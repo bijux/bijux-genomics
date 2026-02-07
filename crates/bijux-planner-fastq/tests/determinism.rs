@@ -2,16 +2,19 @@ use std::collections::BTreeMap;
 
 use bijux_core::contract::PlanPolicy;
 use bijux_core::prelude::{
-    CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
+    CommandSpecV1, ContainerImageRefV1, StageId, ToolConstraints, ToolExecutionSpecV1, ToolId,
 };
+use bijux_planner_fastq::stage_api::default_tool_for_stage;
 use bijux_planner_fastq::{
     default_pipeline_spec, plan_fastq_to_fastq__default__v1, DefaultPipelineOptions,
     FastqPipelineInputs,
 };
 
 fn tool_for_stage(stage: &str) -> ToolExecutionSpecV1 {
+    let stage_id = StageId::new(stage);
+    let tool_id = default_tool_for_stage(&stage_id).unwrap_or_else(|| "fastp".to_string());
     ToolExecutionSpecV1 {
-        tool_id: ToolId::new("planner-dummy"),
+        tool_id: ToolId::new(tool_id),
         tool_version: "0.0.0".to_string(),
         image: ContainerImageRefV1 {
             image: "bijux/dummy:latest".to_string(),
