@@ -1,7 +1,9 @@
 use std::path::PathBuf;
 use std::process::{Command, Output};
 
-use bijux_environment::build::{default_docker_tools, extract_version_from_dockerfile, DockerToolSpec};
+use bijux_environment::build::{
+    default_docker_tools, extract_version_from_dockerfile, DockerToolSpec,
+};
 use bijux_environment::resolve::{load_platform, ImageRef, PlatformSpec, RunnerKind};
 
 fn log_debug(logger: &mut dyn Logger, line: &str) {
@@ -272,15 +274,17 @@ fn run_image_test(
     if let Some(executable) = plan.executable.as_ref() {
         let exec_result = run_container_command(runner, &plan.image_name, executable)?;
         if exec_result.exit_code != 0 {
-            return Ok(ImageTestOutcome::Fail(ImageFailureReason::ExecutableMissing));
+            return Ok(ImageTestOutcome::Fail(
+                ImageFailureReason::ExecutableMissing,
+            ));
         }
     }
     if let Some(probe_cmd) = plan.probe_cmd.as_ref() {
         let probe_result = run_container_command(runner, &plan.image_name, probe_cmd)?;
         if !plan.probe_expected_exit.contains(&probe_result.exit_code) {
-            return Ok(ImageTestOutcome::Fail(ImageFailureReason::UnexpectedExitCode(
-                probe_result.exit_code,
-            )));
+            return Ok(ImageTestOutcome::Fail(
+                ImageFailureReason::UnexpectedExitCode(probe_result.exit_code),
+            ));
         }
         if !probe_result.output.contains(&plan.expected_version) {
             return Ok(ImageTestOutcome::Fail(ImageFailureReason::ProbeFailed));
@@ -290,7 +294,10 @@ fn run_image_test(
     Ok(ImageTestOutcome::Pass(ImageProbeKind::Exec))
 }
 
-fn image_exists(runner: &dyn CommandRunner, image: &str) -> Result<bool, Box<dyn std::error::Error>> {
+fn image_exists(
+    runner: &dyn CommandRunner,
+    image: &str,
+) -> Result<bool, Box<dyn std::error::Error>> {
     let output = runner.run(&["docker", "image", "inspect", image])?;
     Ok(output.status.success())
 }
@@ -309,12 +316,7 @@ fn run_container_command(
     })
 }
 
-fn log_header(
-    logger: &mut dyn Logger,
-    platform: Option<&str>,
-    runner: RunnerKind,
-    total: usize,
-) {
+fn log_header(logger: &mut dyn Logger, platform: Option<&str>, runner: RunnerKind, total: usize) {
     let platform = platform.unwrap_or("unknown");
     logger.log(
         LogLevel::Info,
@@ -450,7 +452,10 @@ mod tests {
             executable: None,
         };
         let outcome = run_image_test(&runner, &mut logger, &plan)?;
-        matches!(outcome, ImageTestOutcome::Fail(ImageFailureReason::ImageNotFound));
+        matches!(
+            outcome,
+            ImageTestOutcome::Fail(ImageFailureReason::ImageNotFound)
+        );
         Ok(())
     }
 }
