@@ -1,6 +1,7 @@
 //! Owner: bijux-domain-bam
 //! Canonical effective parameters for BAM stages.
 
+mod catalog;
 pub mod core;
 pub mod downstream;
 pub mod pre;

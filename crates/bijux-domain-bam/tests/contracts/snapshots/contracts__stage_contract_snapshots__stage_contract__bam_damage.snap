@@ -1,0 +1,47 @@
+---
+source: crates/bijux-domain-bam/tests/contracts/stage_contract_snapshots.rs
+expression: json
+---
+{
+  "audit_artifacts": [
+    {
+      "filename": "damage.pydamage.json",
+      "name": "damage_pydamage"
+    },
+    {
+      "filename": "damage.mapdamage2.txt",
+      "name": "damage_mapdamage2"
+    },
+    {
+      "filename": "stage.metrics.json",
+      "name": "stage_metrics"
+    }
+  ],
+  "inputs": [
+    "bam"
+  ],
+  "io": {
+    "deterministic": true,
+    "duplicate_policy": "no_duplicate_marking",
+    "emits_bam": false,
+    "emits_report": true,
+    "indexing": "index_optional",
+    "input_kind": "Bam",
+    "mapping_quality_policy": "no_mapping_quality_filter",
+    "nondeterminism_reason": null,
+    "output_kind": "Report",
+    "read_group_policy": "requires_read_groups_for_sample_metadata",
+    "sorting": "accepts_unsorted_bam"
+  },
+  "outputs": [
+    "damage_pydamage",
+    "damage_mapdamage2",
+    "stage_metrics"
+  ],
+  "schema_version": "bijux.stage_contract.v1",
+  "stage_id": "bam.damage",
+  "tool_ids": [
+    "pydamage",
+    "mapdamage2"
+  ]
+}

@@ -1,5 +1,6 @@
 //! Canonical BAM metrics schema v1.
 
+mod catalog;
 pub mod core;
 pub mod downstream;
 pub mod pre;
