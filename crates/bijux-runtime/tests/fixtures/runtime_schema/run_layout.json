@@ -1,0 +1,1 @@
+{"assessment_path":"/tmp/run/input_assessment.json","environment_path":"/tmp/run/environment.json","events_path":"/tmp/run/events.jsonl","manifest_path":"/tmp/run/execution_manifest.json","metadata_path":"/tmp/run/run_metadata.json","run_dir":"/tmp/run","schema_version":"bijux.run_layout.v1","stages_dir":"/tmp/run/stages","summary_dir":"/tmp/run/summary"}

@@ -1,0 +1,1 @@
+{"build_profile":"dev","git_commit":"abc","input_hashes":["sha256:input"],"params_hash":"sha256:params","pipeline_id":"fastq-to-fastq__default__v1","reference_genome":null,"schema_version":"bijux.run_provenance.v1","tool_image_digest":"sha256:img","tool_version":"1.0"}

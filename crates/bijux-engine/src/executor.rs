@@ -6,7 +6,7 @@ use std::fs;
 use anyhow::{anyhow, Result};
 use bijux_core::contract::{ExecutionEdge, ExecutionGraph, ExecutionStep};
 use bijux_core::contract::{RunRecordV1, StageExecutionRecordV1};
-use bijux_infra::{atomic_write_json, ensure_dir};
+use bijux_infra::ensure_dir;
 use bijux_runtime::{Invocation, Runner};
 use chrono::Utc;
 
@@ -197,7 +197,7 @@ fn record_execution(
         "exit_code": exit_code,
     });
     let path = run_artifacts_dir.join("execution_record.json");
-    atomic_write_json(&path, &payload)?;
+    bijux_runtime::recording::write_canonical_json(&path, &payload)?;
     Ok(())
 }
 
