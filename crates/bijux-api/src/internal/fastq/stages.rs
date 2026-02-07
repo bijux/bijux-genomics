@@ -1,21 +1,20 @@
 //! FASTQ stage wiring (internal).
 
-mod correct;
-mod filter;
-mod merge;
-mod preprocess;
-mod qc_post;
-mod screen;
-mod trim;
-mod umi;
-mod validate_pre;
-
-pub use correct::*;
-pub use filter::*;
-pub use merge::*;
-pub use preprocess::*;
-pub use qc_post::*;
-pub use screen::*;
-pub use trim::*;
-pub use umi::*;
-pub use validate_pre::*;
+#[path = "correct.rs"]
+pub(crate) mod correct;
+#[path = "filter.rs"]
+pub(crate) mod filter;
+#[path = "merge.rs"]
+pub(crate) mod merge;
+#[path = "preprocess.rs"]
+pub(crate) mod preprocess;
+#[path = "qc_post.rs"]
+pub(crate) mod qc_post;
+#[path = "screen.rs"]
+pub(crate) mod screen;
+#[path = "trim.rs"]
+pub(crate) mod trim;
+#[path = "umi.rs"]
+pub(crate) mod umi;
+#[path = "validate_pre.rs"]
+pub(crate) mod validate_pre;
