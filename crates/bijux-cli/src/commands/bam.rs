@@ -4,7 +4,7 @@ use crate::commands::command_prelude::{
     Result, StageId,
 };
 use bijux_api::v1::api::plan::Domain;
-use bijux_api::v1::api::run::RunnerKind;
+use bijux_api::v1::api::run::RuntimeKind;
 use bijux_api::v1::api::run::ToolRegistry;
 use bijux_api::v1::api::run::{build_tool_execution_spec, execute_step};
 
@@ -80,7 +80,7 @@ fn run_bam_stage(
         return Ok(());
     }
     let step = bijux_api::v1::api::run::execution_step_from_stage_plan(&plan);
-    execute_step(&step, RunnerKind::Docker, None)?;
+    execute_step(&step, RuntimeKind::Docker, None)?;
     Ok(())
 }
 
