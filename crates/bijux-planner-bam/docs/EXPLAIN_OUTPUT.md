@@ -1,8 +1,13 @@
 # EXPLAIN_OUTPUT
 
-Explain output includes:
-- stable reasons
-- defaults diff
-- stage contract hashes
+## Canonical example
+```json
+{
+  "selected_tools": ["bwa", "samtools"],
+  "defaults_diff": {},
+  "reasons": ["bwa for alignment", "samtools for sort/index"],
+  "contract_hashes": {"bam.align": "sha256:..."}
+}
+```
 
-See `tests/graph_snapshot.rs` for expected canonical graphs.
+See `tests/graph_snapshots.rs` for canonical graphs.
