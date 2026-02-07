@@ -89,6 +89,7 @@ fn crate_docs_contract() {
         "CHANGE_RULES.md",
         "POLICY_DIAGNOSTICS.md",
         "POLICIES.md",
+        "POLICY_MATRIX.md",
         "EXCEPTIONS.md",
         "EVOLUTION.md",
         "CONTRACT.md",
@@ -199,6 +200,7 @@ fn crate_docs_contract() {
         "PERFORMANCE_BUDGET.md",
         "DETERMINISM.md",
         "ADD_RULES.md",
+        "BLESS_WORKFLOW.md",
     ]);
     for crate_root in crate_roots() {
         let docs = crate_root.join("docs");
