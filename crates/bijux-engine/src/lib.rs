@@ -5,7 +5,6 @@
 //! Policy: engine must not spawn processes (see clippy disallowed methods/types).
 
 #![deny(clippy::disallowed_methods, clippy::disallowed_types)]
-
 #![allow(
     clippy::module_name_repetitions,
     clippy::missing_errors_doc,

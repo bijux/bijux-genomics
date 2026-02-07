@@ -13,10 +13,10 @@ fn execute_plan_orders_dag() {
     ];
     let plan = build_graph(stages, edges);
     let runner = FakeRunner::new();
-    let (_dir, layout) = execution_setup().expect("layout");
+    let (_dir, layout) = execution_setup().unwrap_or_else(|err| panic!("layout: {err}"));
     let result = Engine::default()
         .execute(&plan, &runner, &layout, None, None)
-        .expect("run");
+        .unwrap_or_else(|err| panic!("run: {err}"));
     let order: Vec<String> = result.stages.into_iter().map(|r| r.stage_id).collect();
     assert_eq!(order, vec!["A", "B", "C"]);
 }
@@ -31,10 +31,10 @@ fn execute_plan_retries_failures() {
         max_attempts: 2,
         retry_on_exit_codes: vec![1],
     });
-    let (_dir, layout) = execution_setup().expect("layout");
+    let (_dir, layout) = execution_setup().unwrap_or_else(|err| panic!("layout: {err}"));
     let result = Engine::default()
         .execute(&plan, &runner, &layout, None, None)
-        .expect("run");
+        .unwrap_or_else(|err| panic!("run: {err}"));
     assert_eq!(result.stages[0].attempt, 1);
     assert!(result.stages[0].success);
 }
@@ -52,10 +52,11 @@ fn execute_plan_stops_on_failure() {
         max_attempts: 1,
         retry_on_exit_codes: vec![1],
     });
-    let (_dir, layout) = execution_setup().expect("layout");
+    let (_dir, layout) = execution_setup().unwrap_or_else(|err| panic!("layout: {err}"));
     let err = Engine::default()
         .execute(&plan, &runner, &layout, None, None)
-        .expect_err("expected failure");
+        .err()
+        .unwrap_or_else(|| panic!("expected failure"));
     assert!(err.to_string().contains("step failed"));
     let calls = runner.calls();
     assert_eq!(calls.len(), 1);
@@ -70,9 +71,9 @@ fn execute_plan_respects_resume_cache() {
         vec![ExecutionEdge::new(StepId::new("A"), StepId::new("B"))],
     );
     let runner = FakeRunner::new();
-    let (_dir, layout) = execution_setup().expect("layout");
+    let (_dir, layout) = execution_setup().unwrap_or_else(|err| panic!("layout: {err}"));
     let result = Engine::default()
         .execute(&plan, &runner, &layout, None, None)
-        .expect("run");
+        .unwrap_or_else(|err| panic!("run: {err}"));
     assert_eq!(result.stages.len(), 2);
 }
