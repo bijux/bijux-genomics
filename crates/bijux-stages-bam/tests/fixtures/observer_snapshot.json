@@ -1,0 +1,1 @@
+{"flagstat":{"duplicates":1.0,"mapped":8.0,"primary":10.0,"proper_pair":5.0,"total":10.0},"idxstats":{"contigs":[{"contig":"chr1","length":1000.0,"mapped":5.0,"unmapped":0.0},{"contig":"*","length":0.0,"mapped":0.0,"unmapped":0.0}],"reference_mismatch":false,"total_mapped":5.0,"total_unmapped":0.0}}
