@@ -18,7 +18,6 @@ clap.workspace = true
 rusqlite = { workspace = true, optional = true }
 bijux-environment = { path = "../bijux-environment" }
 bijux-analyze = { path = "../bijux-analyze" }
-bijux-api = { path = "../bijux-api" }
 bijux-core = { path = "../bijux-core" }
 bijux-domain-fastq = { path = "../bijux-domain-fastq" }
 bijux-infra = { path = "../bijux-infra", features = ["yaml"] }
