@@ -1,4 +1,7 @@
+use std::collections::HashMap;
 use std::path::{Path, PathBuf};
+
+use sha2::{Digest, Sha256};
 
 use crate::support::fs::{crate_roots, read_to_string};
 
@@ -37,8 +40,15 @@ fn readme_has_required_sections_and_links() {
         "## What this crate does",
         "## What it must not do (boundaries)",
         "## Effects & determinism guarantees",
+        "## Public API / entrypoints",
+        "## Key contracts it owns/consumes",
+        "## Artifacts / Contracts",
+        "## Failure modes",
+        "## How to run its tests",
         "## Where the docs live",
     ];
+
+    let mut fingerprints: HashMap<String, PathBuf> = HashMap::new();
 
     for crate_root in crate_roots() {
         let readme = crate_root.join("README.md");
@@ -55,6 +65,32 @@ fn readme_has_required_sections_and_links() {
             "README must link to docs/INDEX.md in {}",
             readme.display()
         );
+        assert!(
+            content.contains("docs/TESTS.md"),
+            "README must link to docs/TESTS.md in {}",
+            readme.display()
+        );
+        assert!(
+            content.to_lowercase().contains("owns"),
+            "README must state what the crate owns: {}",
+            readme.display()
+        );
+        assert!(
+            content.to_lowercase().contains("must not"),
+            "README must state boundaries (must not): {}",
+            readme.display()
+        );
+        assert!(
+            content.to_lowercase().contains("effects"),
+            "README must mention effects: {}",
+            readme.display()
+        );
+        let test_mentions = content.matches("tests/").count() + content.matches(".rs").count();
+        assert!(
+            test_mentions >= 3,
+            "README must mention 3+ test files: {}",
+            readme.display()
+        );
 
         let base = readme.parent().unwrap_or(&crate_root);
         for line in content.lines() {
@@ -69,5 +105,25 @@ fn readme_has_required_sections_and_links() {
                 }
             }
         }
+
+        let mut normalized = String::new();
+        for line in content.lines() {
+            if line.starts_with('#') {
+                continue;
+            }
+            if line.contains("docs/INDEX.md") || line.contains("docs/TESTS.md") {
+                continue;
+            }
+            normalized.push_str(line.trim());
+        }
+        let hash = format!("{:x}", Sha256::digest(normalized.as_bytes()));
+        if let Some(existing) = fingerprints.get(&hash) {
+            panic!(
+                "Duplicate README bodies detected: {} and {}",
+                existing.display(),
+                readme.display()
+            );
+        }
+        fingerprints.insert(hash, readme);
     }
 }
