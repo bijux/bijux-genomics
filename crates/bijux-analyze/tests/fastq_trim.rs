@@ -1,7 +1,7 @@
 #[cfg(feature = "sqlite")]
-use bijux_analyze::{
-    insert_fastq_trim_v2, metric_set, open_sqlite, BenchmarkContext, BenchmarkRecord,
-};
+use bijux_analyze::load::sqlite::core_trim::insert_fastq_trim_v2;
+#[cfg(feature = "sqlite")]
+use bijux_analyze::{metric_set, open_sqlite, BenchmarkContext, BenchmarkRecord};
 use bijux_analyze::{FastqDeltaMetrics, FastqTrimMetrics, StageMetricSchema};
 #[cfg(feature = "sqlite")]
 use bijux_core::foundation::measure::ExecutionMetrics;
