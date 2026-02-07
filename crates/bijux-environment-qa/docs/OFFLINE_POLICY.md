@@ -1,7 +1,7 @@
 # OFFLINE_POLICY
 
 ## Offline-first
-Default QA tests use local fixtures only.
+Default QA tests use local fixtures only and perform no network access.
 
 ## Network-allowed tests
-Must be marked manual/ignored and documented in the RUNBOOK.
+Must be explicitly opted-in (environment flag) and documented in the RUNBOOK.
