@@ -1,32 +1,31 @@
 # bijux-analyze
 
 ## What this crate does
-Defines this crate's core responsibilities and wiring.
+Loads run artifacts, scores decisions, and renders reports (load → decide → report).
 
 ## What it must not do (boundaries)
-Must only depend on approved crates; must not reach into execution or domain logic unless explicitly allowed in docs.
+Must not plan graphs or execute tools. It consumes runtime artifacts only.
 
 ## Public API / entrypoints
-See `docs/INDEX.md` for stable entrypoints and re-exports.
+Report and decision contracts documented in `docs/DECISIONS.md` and `docs/SCHEMA.md`.
 
 ## Key contracts it owns/consumes
-See `docs/INDEX.md` for contract ownership and consumption details.
+Consumes run manifests/records; produces report bundles and summaries.
 
 ## Effects & determinism guarantees
-See `docs/EFFECTS.md` for allowed effects and determinism guarantees.
-
-## Artifacts / Contracts
-None by default unless documented in `docs/ARCHITECTURE.md`.
-
-## Failure modes
-See crate logs/tests; start with `docs/TESTS.md` for debugging paths.
+Deterministic report rendering and schema stability enforced by snapshots.
 
 ## How to run its tests
-See `docs/TESTS.md`.
+See `docs/TESTS.md`. Key tests: `tests/report_contract.rs`, `tests/report_determinism.rs`, `tests/performance_budget.rs`.
 
 ## Where the docs live
-- `docs/INDEX.md`
-- `docs/SCOPE.md`
-- `docs/ARCHITECTURE.md`
-- `docs/EFFECTS.md`
-- `docs/CHANGE_RULES.md`
+Start at `docs/INDEX.md`, then read `docs/DATA_MODEL.md`, `docs/DECISIONS.md`, and `docs/SCHEMA.md`.
+
+## Artifacts / Contracts
+Produces `report.json`, `report_bundle/`, and summaries; fixtures in `tests/fixtures/`.
+
+## Failure modes
+Missing fields or unstable ordering fail report completeness and determinism tests.
+
+## Stability
+Schema and report bundles are snapshot-tested; see `docs/CHANGE_RULES.md`.
