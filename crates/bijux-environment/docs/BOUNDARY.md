@@ -9,3 +9,4 @@ Environment resolution is configuration-only.
 ## Forbidden
 - Executing tools.
 - Spawning processes.
+- Using `bijux-runner` or any execution backend.
