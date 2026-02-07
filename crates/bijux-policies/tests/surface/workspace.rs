@@ -944,10 +944,7 @@ fn crate_root_contents_allowlist() {
         "Makefile.toml",
         "src",
         "tests",
-        "README.md",
-        "API.md",
-        "PIPELINE_VERSIONING.md",
-        "SCOPE.md",
+        "docs",
     ]);
     let mut offenders = Vec::new();
     for (name, path) in collect_workspace_crates() {
