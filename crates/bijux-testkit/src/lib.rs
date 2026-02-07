@@ -1,4 +1,5 @@
 //! Shared test fixtures/helpers for bijux crates.
+//! This crate must stay small and test-only.
 
 pub mod snapshots {
     use serde_json::Value;
@@ -27,3 +28,5 @@ pub mod snapshots {
         }
     }
 }
+
+pub use snapshots::stable_json;
