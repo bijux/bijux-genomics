@@ -1,8 +1,20 @@
 # USAGE
 
-Example: loading a fixture for a handshake test.
-
+## Reference patterns
+### Fixture helper
 ```
 use bijux_testkit::fixtures::load;
-let data = load("fastq/trim/example.txt")?;
+let bytes = load("fastq/trim/example.txt")?;
+```
+
+### Snapshot helper
+```
+use bijux_testkit::snapshots::assert_snapshot;
+assert_snapshot!(value);
+```
+
+### Golden run builder
+```
+use bijux_testkit::golden::build_run;
+let run = build_run("fastq.default.v1")?;
 ```
