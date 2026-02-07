@@ -1,32 +1,31 @@
 # bijux-domain-fastq
 
 ## What this crate does
-Defines this crate's core responsibilities and wiring.
+Defines FASTQ domain truth: IDs, params, metric semantics, and invariants.
 
 ## What it must not do (boundaries)
-Must only depend on approved crates; must not reach into execution or domain logic unless explicitly allowed in docs.
+Must not select tools or execute commands. It is a truth/semantics layer only.
 
 ## Public API / entrypoints
-See `docs/INDEX.md` for stable entrypoints and re-exports.
+Domain types are documented in `docs/DOMAIN_MODEL.md`, `docs/METRICS.md`, and `docs/PARAMS.md`.
 
 ## Key contracts it owns/consumes
-See `docs/INDEX.md` for contract ownership and consumption details.
+Owns FASTQ domain semantics; consumes core IDs and metrics registry.
 
 ## Effects & determinism guarantees
-See `docs/EFFECTS.md` for allowed effects and determinism guarantees.
-
-## Artifacts / Contracts
-None by default unless documented in `docs/ARCHITECTURE.md`.
-
-## Failure modes
-See crate logs/tests; start with `docs/TESTS.md` for debugging paths.
+Pure data and validation; canonical serialization is enforced by `tests/params_canonical.rs`.
 
 ## How to run its tests
-See `docs/TESTS.md`.
+See `docs/TESTS.md`. Key tests: `tests/retention_semantics.rs`, `tests/params_canonical.rs`, `tests/determinism.rs`.
 
 ## Where the docs live
-- `docs/INDEX.md`
-- `docs/SCOPE.md`
-- `docs/ARCHITECTURE.md`
-- `docs/EFFECTS.md`
-- `docs/CHANGE_RULES.md`
+Start at `docs/INDEX.md`, then read `docs/DOMAIN_MODEL.md`, `docs/METRICS.md`, and `docs/STAGES.md`.
+
+## Artifacts / Contracts
+Defines domain JSON shapes; fixtures live in `tests/fixtures/`.
+
+## Failure modes
+Semantics violations fail invariants and retention truth-table tests.
+
+## Stability
+Domain contracts are snapshot-tested; see `docs/CHANGE_RULES.md`.
