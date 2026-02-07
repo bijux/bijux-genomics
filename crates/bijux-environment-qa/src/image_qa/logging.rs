@@ -1,4 +1,4 @@
-use crate::api::RunnerKind;
+use crate::api::RuntimeKind;
 
 use super::support::StdoutLogger;
 
@@ -8,7 +8,7 @@ use bijux_analyze::ImageQaOutcome;
 pub(crate) fn log_header(
     logger: &StdoutLogger,
     platform: &str,
-    runner: RunnerKind,
+    runner: RuntimeKind,
     datasets: &[QaDataset],
 ) {
     logger.info(&format!("[bijux] Image QA started ({runner})"));

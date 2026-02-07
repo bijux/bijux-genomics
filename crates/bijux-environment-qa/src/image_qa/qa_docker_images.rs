@@ -4,7 +4,7 @@ use std::process::{Command, Output};
 use bijux_environment::build::{
     default_docker_tools, extract_version_from_dockerfile, DockerToolSpec,
 };
-use bijux_environment::resolve::{load_platform, ImageRef, PlatformSpec, RunnerKind};
+use bijux_environment::resolve::{load_platform, ImageRef, PlatformSpec, RuntimeKind};
 
 fn log_debug(logger: &mut dyn Logger, line: &str) {
     logger.log(LogLevel::Debug, line);
@@ -165,7 +165,7 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
 
 fn load_platform_spec(platform: Option<&str>) -> Result<PlatformSpec, Box<dyn std::error::Error>> {
     let platform_spec = load_platform(platform)?;
-    if platform_spec.runner != RunnerKind::Docker {
+    if platform_spec.runner != RuntimeKind::Docker {
         return Err(format!(
             "platform runner must be docker, got {}",
             platform_spec.runner
@@ -312,7 +312,7 @@ fn run_container_command(
     })
 }
 
-fn log_header(logger: &mut dyn Logger, platform: Option<&str>, runner: RunnerKind, total: usize) {
+fn log_header(logger: &mut dyn Logger, platform: Option<&str>, runner: RuntimeKind, total: usize) {
     let platform = platform.unwrap_or("unknown");
     logger.log(
         LogLevel::Info,

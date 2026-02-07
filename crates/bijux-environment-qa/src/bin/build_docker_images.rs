@@ -5,7 +5,7 @@ use std::process::Command;
 use bijux_environment::build::{
     default_docker_tools, extract_version_from_dockerfile, DockerToolSpec,
 };
-use bijux_environment::resolve::{load_platform, ImageRef, RunnerKind};
+use bijux_environment::resolve::{load_platform, ImageRef, RuntimeKind};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<String> = std::env::args().collect();
@@ -15,7 +15,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let skip_existing = has_flag(&args, "--skip-existing");
 
     let platform_spec = load_platform(platform.as_deref())?;
-    if platform_spec.runner != RunnerKind::Docker {
+    if platform_spec.runner != RuntimeKind::Docker {
         return Err(format!(
             "platform runner must be docker, got {}",
             platform_spec.runner

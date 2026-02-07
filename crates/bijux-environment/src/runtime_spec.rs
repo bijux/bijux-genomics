@@ -3,18 +3,18 @@
 //! Responsibilities: pair resolved platform and runner choices.
 //! Invariants: no side effects; pure configuration container.
 
-use crate::resolve::{PlatformSpec, RunnerKind};
+use crate::resolve::{PlatformSpec, RuntimeKind};
 
 /// Runtime specification for execution environments.
 #[derive(Debug, Clone)]
 pub struct RuntimeSpec {
-    pub runner: RunnerKind,
+    pub runner: RuntimeKind,
     pub platform: PlatformSpec,
 }
 
 impl RuntimeSpec {
     #[must_use]
-    pub fn new(runner: RunnerKind, platform: PlatformSpec) -> Self {
+    pub fn new(runner: RuntimeKind, platform: PlatformSpec) -> Self {
         Self { runner, platform }
     }
 }
@@ -28,18 +28,18 @@ mod tests {
     use crate::resolve::{
         apptainer_sif_path, available_runners_with, cache_dir, docker_image_exists_with,
         load_image_catalog_from_file, resolve_image, select_best_runner, validate_images_for_stage,
-        EnvError, ImageRef, PlatformSpec, ResolvedImage, RunnerKind, ToolImageSpec,
+        EnvError, ImageRef, PlatformSpec, ResolvedImage, RuntimeKind, ToolImageSpec,
     };
     use bijux_infra::atomic_write_bytes;
 
     #[test]
     fn runner_kind_from_str() -> Result<(), EnvError> {
-        assert_eq!(RunnerKind::from_str("docker")?, RunnerKind::Docker);
+        assert_eq!(RuntimeKind::from_str("docker")?, RuntimeKind::Docker);
         assert_eq!(
-            RunnerKind::from_str("singularity")?,
-            RunnerKind::Singularity
+            RuntimeKind::from_str("singularity")?,
+            RuntimeKind::Singularity
         );
-        assert_eq!(RunnerKind::from_str("apptainer")?, RunnerKind::Apptainer);
+        assert_eq!(RuntimeKind::from_str("apptainer")?, RuntimeKind::Apptainer);
         Ok(())
     }
 
@@ -55,7 +55,7 @@ arch = "arm64"
         let spec: PlatformSpec =
             bijux_infra::formats::parse_toml(toml).map_err(|err| EnvError::Parse(err.message))?;
         assert_eq!(spec.name, "docker-mac-arm64");
-        assert_eq!(spec.runner, RunnerKind::Docker);
+        assert_eq!(spec.runner, RuntimeKind::Docker);
         let out = bijux_infra::formats::to_toml_string(&spec)
             .map_err(|err| EnvError::Parse(err.message))?;
         let spec2: PlatformSpec =
@@ -80,29 +80,29 @@ arch = "arm64"
     #[test]
     fn available_runners_mocked() {
         let runners = available_runners_with(|cmd| cmd == "docker");
-        assert_eq!(runners, vec![RunnerKind::Docker]);
+        assert_eq!(runners, vec![RuntimeKind::Docker]);
     }
 
     #[test]
     fn select_best_runner_prefers_available() -> Result<(), EnvError> {
-        let available = vec![RunnerKind::Apptainer, RunnerKind::Docker];
-        let selected = select_best_runner(RunnerKind::Docker, &available)?;
-        assert_eq!(selected, RunnerKind::Docker);
+        let available = vec![RuntimeKind::Apptainer, RuntimeKind::Docker];
+        let selected = select_best_runner(RuntimeKind::Docker, &available)?;
+        assert_eq!(selected, RuntimeKind::Docker);
         Ok(())
     }
 
     #[test]
     fn select_best_runner_fallbacks() -> Result<(), EnvError> {
-        let available = vec![RunnerKind::Singularity];
-        let selected = select_best_runner(RunnerKind::Docker, &available)?;
-        assert_eq!(selected, RunnerKind::Singularity);
+        let available = vec![RuntimeKind::Singularity];
+        let selected = select_best_runner(RuntimeKind::Docker, &available)?;
+        assert_eq!(selected, RuntimeKind::Singularity);
         Ok(())
     }
 
     #[test]
     fn select_best_runner_errors() {
         let available = Vec::new();
-        assert!(select_best_runner(RunnerKind::Docker, &available).is_err());
+        assert!(select_best_runner(RuntimeKind::Docker, &available).is_err());
     }
 
     #[test]
@@ -119,7 +119,7 @@ arch = "arm64"
     fn resolve_image_builds_full_name() -> Result<(), EnvError> {
         let platform = PlatformSpec {
             name: "docker-mac-arm64".to_string(),
-            runner: RunnerKind::Docker,
+            runner: RuntimeKind::Docker,
             container_dir: PathBuf::from("containers/docker/arm64"),
             image_prefix: "bijuxdna".to_string(),
             arch: "arm64".to_string(),
@@ -132,7 +132,7 @@ arch = "arm64"
         let resolved = resolve_image(&tool, &platform)?;
         assert_eq!(resolved.full_name, "bijuxdna/fastp:0.23.4-arm64");
         assert_eq!(resolved.arch, "arm64");
-        assert_eq!(resolved.runner, RunnerKind::Docker);
+        assert_eq!(resolved.runner, RuntimeKind::Docker);
         Ok(())
     }
 
@@ -141,20 +141,20 @@ arch = "arm64"
         let image = ResolvedImage {
             full_name: "bijuxdna/fastp:0.23.4-arm64".to_string(),
             arch: "arm64".to_string(),
-            runner: RunnerKind::Docker,
+            runner: RuntimeKind::Docker,
         };
-        assert!(image.is_compatible(RunnerKind::Docker));
-        assert!(!image.is_compatible(RunnerKind::Apptainer));
-        assert!(!image.is_compatible(RunnerKind::Singularity));
+        assert!(image.is_compatible(RuntimeKind::Docker));
+        assert!(!image.is_compatible(RuntimeKind::Apptainer));
+        assert!(!image.is_compatible(RuntimeKind::Singularity));
 
         let oci = ResolvedImage {
             full_name: "bijuxdna/fastp:0.23.4-arm64".to_string(),
             arch: "arm64".to_string(),
-            runner: RunnerKind::Apptainer,
+            runner: RuntimeKind::Apptainer,
         };
-        assert!(oci.is_compatible(RunnerKind::Apptainer));
-        assert!(oci.is_compatible(RunnerKind::Singularity));
-        assert!(!oci.is_compatible(RunnerKind::Docker));
+        assert!(oci.is_compatible(RuntimeKind::Apptainer));
+        assert!(oci.is_compatible(RuntimeKind::Singularity));
+        assert!(!oci.is_compatible(RuntimeKind::Docker));
     }
 
     #[test]
@@ -195,7 +195,7 @@ arch = "arm64"
     fn resolve_image_with_digest() -> Result<(), EnvError> {
         let platform = PlatformSpec {
             name: "docker-mac-arm64".to_string(),
-            runner: RunnerKind::Docker,
+            runner: RuntimeKind::Docker,
             container_dir: PathBuf::from("containers/docker/arm64"),
             image_prefix: "bijuxdna".to_string(),
             arch: "arm64".to_string(),
@@ -216,8 +216,8 @@ arch = "arm64"
         bijux_infra::ensure_dir(&home)?;
         let original = std::env::var_os("HOME");
         std::env::set_var("HOME", &home);
-        let docker = cache_dir(RunnerKind::Docker);
-        let apptainer = cache_dir(RunnerKind::Apptainer);
+        let docker = cache_dir(RuntimeKind::Docker);
+        let apptainer = cache_dir(RuntimeKind::Apptainer);
         if let Some(value) = original {
             std::env::set_var("HOME", value);
         }
@@ -235,7 +235,7 @@ arch = "arm64"
         let image = ResolvedImage {
             full_name: "bijuxdna/fastp:0.23.4-arm64".to_string(),
             arch: "arm64".to_string(),
-            runner: RunnerKind::Docker,
+            runner: RuntimeKind::Docker,
         };
         let exists = docker_image_exists_with(&image, |args| {
             args == ["image", "inspect", "bijuxdna/fastp:0.23.4-arm64"]
@@ -248,7 +248,7 @@ arch = "arm64"
         let image = ResolvedImage {
             full_name: "bijuxdna/fastp@sha256:abc123".to_string(),
             arch: "arm64".to_string(),
-            runner: RunnerKind::Apptainer,
+            runner: RuntimeKind::Apptainer,
         };
         let path = apptainer_sif_path(&image);
         assert!(path

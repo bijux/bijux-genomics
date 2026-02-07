@@ -2,7 +2,7 @@
 fn platform_spec_schema_snapshot() {
     let spec = bijux_environment::resolve::PlatformSpec {
         name: "docker-mac-arm64".to_string(),
-        runner: bijux_environment::resolve::RunnerKind::Docker,
+        runner: bijux_environment::resolve::RuntimeKind::Docker,
         container_dir: "containers/docker/arm64".into(),
         image_prefix: "bijuxdna".to_string(),
         arch: "arm64".to_string(),
