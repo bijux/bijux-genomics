@@ -11,7 +11,7 @@ pub mod cli;
 pub(crate) mod command_prelude;
 pub(crate) mod fastq;
 pub(crate) mod report_inputs;
-pub(crate) mod validation;
 pub(crate) mod run_plan;
+pub(crate) mod validation;
 
 include!("policies.rs");

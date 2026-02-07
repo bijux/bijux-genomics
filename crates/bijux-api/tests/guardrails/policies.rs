@@ -36,7 +36,10 @@ fn api_has_no_planning_policy_keywords() {
     {
         let content = std::fs::read_to_string(entry.path()).unwrap_or_default();
         let path_str = entry.path().to_string_lossy();
-        if allowlist_paths.iter().any(|suffix| path_str.ends_with(suffix)) {
+        if allowlist_paths
+            .iter()
+            .any(|suffix| path_str.ends_with(suffix))
+        {
             continue;
         }
         for needle in &denylist {
