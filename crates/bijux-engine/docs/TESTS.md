@@ -17,3 +17,6 @@ Tests should explain the contract they enforce.
 
 ## Failure modes
 - Missing test documentation causes drift and confusion.
+
+## Testkit patterns
+See `crates/bijux-testkit/docs/USAGE.md` for shared fixture and snapshot helpers.
