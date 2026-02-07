@@ -2,4 +2,4 @@
 
 Repository policy checks for dependencies, surfaces, data, and tooling.
 
-See STYLE.md for workspace conventions.
+See docs/STYLE.md for workspace conventions.

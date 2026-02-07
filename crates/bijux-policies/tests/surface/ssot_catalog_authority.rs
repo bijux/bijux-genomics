@@ -46,7 +46,7 @@ fn ssot_catalog_authority() {
         offenders.is_empty(),
         "SSOT catalog authority violated.\n\
 Fix by moving ID ownership to the canonical crate, and importing IDs elsewhere.\n\
-See STYLE.md for SSOT rules.\n\
+See docs/STYLE.md for SSOT rules.\n\
 Offenders:\n{}",
         offenders.join("\n")
     );

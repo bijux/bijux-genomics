@@ -2,4 +2,4 @@
 
 FASTQ planning and tool selection logic.
 
-See STYLE.md for workspace conventions.
+See docs/STYLE.md for workspace conventions.

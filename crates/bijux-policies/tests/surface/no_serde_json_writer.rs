@@ -31,7 +31,7 @@ fn serde_json_to_writer_is_banned() {
         offenders.is_empty(),
         "Contract JSON must be written via core canonicalizer, not serde_json::to_writer.\n\
 Use bijux_core::contract::canonical::to_canonical_json_bytes and bijux_infra::atomic_write_bytes.\n\
-See STYLE.md.\n\
+See docs/STYLE.md.\n\
 Offenders:\n{}",
         offenders.join("\n")
     );

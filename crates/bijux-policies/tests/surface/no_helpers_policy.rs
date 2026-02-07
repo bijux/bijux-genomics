@@ -37,7 +37,7 @@ fn ban_helpers_and_utils_names() {
         "helpers/utils/misc/support/core names are forbidden.\n\
 How to fix: rename to responsibility-specific modules (e.g. paths.rs, mounts.rs, format.rs).\n\
 If truly required, add a scoped allowlist entry in tests/surface/no_helpers_policy.rs with a reason.\n\
-See STYLE.md for naming rules.\n\
+See docs/STYLE.md for naming rules.\n\
 Offenders:\n{}",
         offenders.join("\n")
     );

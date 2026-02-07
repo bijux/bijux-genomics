@@ -29,7 +29,7 @@ fn dependency_budgets() {
         offenders.is_empty(),
         "dependency budgets exceeded.\n\
 Fix by removing unused deps or feature-gating heavy deps.\n\
-See STYLE.md for budgeting rules.\n\
+See docs/STYLE.md for budgeting rules.\n\
 Offenders:\n{}",
         offenders.join("\n")
     );

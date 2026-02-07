@@ -41,7 +41,7 @@ fn stage_specs_are_declarative_only() {
         offenders.is_empty(),
         "stage_specs must be declarative only (no command/tool wiring).\n\
 Fix by moving execution details into planners or runner.\n\
-See STYLE.md for contract purity rules.\n\
+See docs/STYLE.md for contract purity rules.\n\
 Offenders:\n{}",
         offenders.join("\n")
     );

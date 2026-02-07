@@ -2,4 +2,4 @@
 
 Infrastructure utilities shared across the workspace.
 
-See STYLE.md for workspace conventions.
+See docs/STYLE.md for workspace conventions.
