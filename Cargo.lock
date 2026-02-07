@@ -248,7 +248,9 @@ dependencies = [
  "assert_cmd",
  "bijux-api",
  "bijux-core",
+ "bijux-infra",
  "bijux-policies",
+ "cargo_metadata",
  "clap",
  "insta",
  "predicates",
@@ -655,6 +657,7 @@ name = "bijux-testkit"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "bijux-policies",
  "serde",
  "serde_json",
 ]
