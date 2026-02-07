@@ -1,3 +1,5 @@
+//! Stage adapters for pre-alignment validation and preprocessing stages.
+
 pub mod validate {
     use std::path::Path;
 

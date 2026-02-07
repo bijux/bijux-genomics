@@ -1,3 +1,5 @@
+//! Stage adapters for core/post-alignment processing stages.
+
 pub mod markdup {
     use std::path::Path;
 

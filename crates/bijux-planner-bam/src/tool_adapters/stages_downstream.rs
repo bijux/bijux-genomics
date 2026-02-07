@@ -1,3 +1,5 @@
+//! Stage adapters for downstream interpretation and report stages.
+
 pub mod haplogroups {
     use std::path::Path;
 

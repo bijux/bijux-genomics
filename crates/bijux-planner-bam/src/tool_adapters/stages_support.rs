@@ -1,3 +1,5 @@
+//! Shared helpers for stage adapter output auditing.
+
 use std::path::Path;
 
 use anyhow::Result;

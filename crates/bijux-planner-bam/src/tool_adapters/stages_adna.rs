@@ -1,3 +1,5 @@
+//! Stage adapters for ancient DNA downstream outputs (damage, contamination, authenticity).
+
 pub mod damage {
     use std::path::Path;
 
