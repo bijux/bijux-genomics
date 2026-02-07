@@ -1,3 +1,7 @@
+---
+source: crates/bijux-analyze/tests/pipeline/pipeline_e2e.rs
+expression: report
+---
 {
   "adapter_inference": {
     "rationale": "Adapter detection ran before trimming.",
@@ -7,45 +11,40 @@
   "assets_provenance": [
     {
       "banks": {},
-      "stage_id": "fastq.detect_adapters",
-      "tool_id": "fastqc"
+      "stage_id": "bam.align",
+      "tool_id": "bwa"
     },
     {
       "banks": {},
-      "stage_id": "fastq.filter",
-      "tool_id": "fastp"
+      "stage_id": "bam.coverage",
+      "tool_id": "mosdepth"
     },
     {
       "banks": {},
-      "stage_id": "fastq.qc_post",
-      "tool_id": "multiqc"
+      "stage_id": "bam.damage",
+      "tool_id": "pydamage"
     },
     {
       "banks": {},
-      "stage_id": "fastq.stats_neutral",
-      "tool_id": "seqkit_stats"
+      "stage_id": "bam.qc_pre",
+      "tool_id": "samtools"
     },
     {
       "banks": {},
-      "stage_id": "fastq.trim",
-      "tool_id": "fastp"
+      "stage_id": "core.prepare_reference",
+      "tool_id": "samtools"
     },
     {
       "banks": {},
-      "stage_id": "fastq.validate_pre",
-      "tool_id": "fastqvalidator_official"
+      "stage_id": "fastq.preprocess",
+      "tool_id": "planner"
     }
   ],
   "completeness": {
-    "missing_metrics": [],
-    "missing_reports": [
-      "fastq.detect_adapters:metrics_path",
-      "fastq.filter:metrics_path",
-      "fastq.qc_post:metrics_path",
-      "fastq.stats_neutral:metrics_path",
-      "fastq.trim:metrics_path",
-      "fastq.validate_pre:metrics_path"
+    "missing_metrics": [
+      "core.prepare_reference:metrics"
     ],
+    "missing_reports": [],
     "status": "incomplete"
   },
   "contract": {
@@ -159,9 +158,9 @@
       "bank_hashes": {},
       "image_digest": "sha256:img",
       "params_hash": "params",
-      "span_id": "span-fastq.detect_adapters",
-      "stage_id": "fastq.detect_adapters",
-      "tool_id": "fastqc",
+      "span_id": "span-bam.align",
+      "stage_id": "bam.align",
+      "tool_id": "bwa",
       "tool_version": "0.0.0",
       "trace_id": "trace-1"
     },
@@ -169,9 +168,9 @@
       "bank_hashes": {},
       "image_digest": "sha256:img",
       "params_hash": "params",
-      "span_id": "span-fastq.filter",
-      "stage_id": "fastq.filter",
-      "tool_id": "fastp",
+      "span_id": "span-bam.coverage",
+      "stage_id": "bam.coverage",
+      "tool_id": "mosdepth",
       "tool_version": "0.0.0",
       "trace_id": "trace-1"
     },
@@ -179,9 +178,9 @@
       "bank_hashes": {},
       "image_digest": "sha256:img",
       "params_hash": "params",
-      "span_id": "span-fastq.qc_post",
-      "stage_id": "fastq.qc_post",
-      "tool_id": "multiqc",
+      "span_id": "span-bam.damage",
+      "stage_id": "bam.damage",
+      "tool_id": "pydamage",
       "tool_version": "0.0.0",
       "trace_id": "trace-1"
     },
@@ -189,9 +188,9 @@
       "bank_hashes": {},
       "image_digest": "sha256:img",
       "params_hash": "params",
-      "span_id": "span-fastq.stats_neutral",
-      "stage_id": "fastq.stats_neutral",
-      "tool_id": "seqkit_stats",
+      "span_id": "span-bam.qc_pre",
+      "stage_id": "bam.qc_pre",
+      "tool_id": "samtools",
       "tool_version": "0.0.0",
       "trace_id": "trace-1"
     },
@@ -199,9 +198,9 @@
       "bank_hashes": {},
       "image_digest": "sha256:img",
       "params_hash": "params",
-      "span_id": "span-fastq.trim",
-      "stage_id": "fastq.trim",
-      "tool_id": "fastp",
+      "span_id": "span-core.prepare_reference",
+      "stage_id": "core.prepare_reference",
+      "tool_id": "samtools",
       "tool_version": "0.0.0",
       "trace_id": "trace-1"
     },
@@ -209,9 +208,9 @@
       "bank_hashes": {},
       "image_digest": "sha256:img",
       "params_hash": "params",
-      "span_id": "span-fastq.validate_pre",
-      "stage_id": "fastq.validate_pre",
-      "tool_id": "fastqvalidator_official",
+      "span_id": "span-fastq.preprocess",
+      "stage_id": "fastq.preprocess",
+      "tool_id": "planner",
       "tool_version": "0.0.0",
       "trace_id": "trace-1"
     }
@@ -219,46 +218,46 @@
   "qc_improvement": {},
   "retention_context": [],
   "retention_definition": [],
-  "run_id": "fastq-to-fastq__default__v1",
+  "run_id": "fastq-to-bam__default__v1",
   "schema_version": "bijux.report.v1",
   "sections": {
     "accounting": {
       "stages": [
         {
-          "bases": 800,
-          "reads": 80,
-          "stage_id": "fastq.detect_adapters",
-          "tool_id": "fastqc"
+          "bases": 1000,
+          "reads": 100,
+          "stage_id": "bam.align",
+          "tool_id": "bwa"
         },
         {
-          "bases": 800,
-          "reads": 80,
-          "stage_id": "fastq.filter",
-          "tool_id": "fastp"
+          "bases": 1000,
+          "reads": 100,
+          "stage_id": "bam.coverage",
+          "tool_id": "mosdepth"
         },
         {
-          "bases": 800,
-          "reads": 80,
-          "stage_id": "fastq.qc_post",
-          "tool_id": "multiqc"
+          "bases": 1000,
+          "reads": 100,
+          "stage_id": "bam.damage",
+          "tool_id": "pydamage"
         },
         {
-          "bases": 800,
-          "reads": 80,
-          "stage_id": "fastq.stats_neutral",
-          "tool_id": "seqkit_stats"
+          "bases": 1000,
+          "reads": 100,
+          "stage_id": "bam.qc_pre",
+          "tool_id": "samtools"
         },
         {
-          "bases": 800,
-          "reads": 80,
-          "stage_id": "fastq.trim",
-          "tool_id": "fastp"
+          "bases": 1000,
+          "reads": 100,
+          "stage_id": "core.prepare_reference",
+          "tool_id": "samtools"
         },
         {
-          "bases": 800,
-          "reads": 80,
-          "stage_id": "fastq.validate_pre",
-          "tool_id": "fastqvalidator_official"
+          "bases": 1000,
+          "reads": 100,
+          "stage_id": "fastq.preprocess",
+          "tool_id": "planner"
         }
       ]
     },
@@ -318,33 +317,345 @@
       "entries": [
         {
           "results": [],
-          "stage_id": "fastq.detect_adapters",
-          "tool_id": "fastqc"
+          "stage_id": "bam.align",
+          "tool_id": "bwa"
         },
         {
           "results": [],
-          "stage_id": "fastq.filter",
-          "tool_id": "fastp"
+          "stage_id": "bam.coverage",
+          "tool_id": "mosdepth"
         },
         {
           "results": [],
-          "stage_id": "fastq.qc_post",
-          "tool_id": "multiqc"
+          "stage_id": "bam.damage",
+          "tool_id": "pydamage"
         },
         {
           "results": [],
-          "stage_id": "fastq.stats_neutral",
-          "tool_id": "seqkit_stats"
+          "stage_id": "bam.qc_pre",
+          "tool_id": "samtools"
         },
         {
           "results": [],
-          "stage_id": "fastq.trim",
-          "tool_id": "fastp"
+          "stage_id": "core.prepare_reference",
+          "tool_id": "samtools"
         },
         {
           "results": [],
-          "stage_id": "fastq.validate_pre",
-          "tool_id": "fastqvalidator_official"
+          "stage_id": "fastq.preprocess",
+          "tool_id": "planner"
+        }
+      ]
+    },
+    "bam_accounting": {
+      "entries": [
+        {
+          "complexity_observed_reads": 0,
+          "coverage_mean": 0.0,
+          "duplicates_fraction": 0.0,
+          "reads_in": 100,
+          "reads_out": 100,
+          "stage_id": "bam.align",
+          "tool_id": "bwa",
+          "verdict": {
+            "key_metrics": {
+              "contamination": 0.0,
+              "coverage_mean": 0.0,
+              "dup_fraction": 0.0
+            },
+            "reasons": [
+              "coverage_mean",
+              "complexity_vs_duplicates"
+            ],
+            "stage_id": "bam.align",
+            "verdict": "fail"
+          }
+        },
+        {
+          "complexity_observed_reads": 0,
+          "coverage_mean": 0.0,
+          "duplicates_fraction": 0.0,
+          "reads_in": 100,
+          "reads_out": 100,
+          "stage_id": "bam.coverage",
+          "tool_id": "mosdepth",
+          "verdict": {
+            "key_metrics": {
+              "contamination": 0.0,
+              "coverage_mean": 0.0,
+              "dup_fraction": 0.0
+            },
+            "reasons": [
+              "coverage_mean",
+              "complexity_vs_duplicates"
+            ],
+            "stage_id": "bam.coverage",
+            "verdict": "fail"
+          }
+        },
+        {
+          "complexity_observed_reads": 0,
+          "coverage_mean": 0.0,
+          "duplicates_fraction": 0.0,
+          "reads_in": 100,
+          "reads_out": 100,
+          "stage_id": "bam.damage",
+          "tool_id": "pydamage",
+          "verdict": {
+            "key_metrics": {
+              "contamination": 0.0,
+              "coverage_mean": 0.0,
+              "dup_fraction": 0.0
+            },
+            "reasons": [
+              "coverage_mean",
+              "complexity_vs_duplicates"
+            ],
+            "stage_id": "bam.damage",
+            "verdict": "fail"
+          }
+        },
+        {
+          "complexity_observed_reads": 0,
+          "coverage_mean": 0.0,
+          "duplicates_fraction": 0.0,
+          "reads_in": 100,
+          "reads_out": 100,
+          "stage_id": "bam.qc_pre",
+          "tool_id": "samtools",
+          "verdict": {
+            "key_metrics": {
+              "contamination": 0.0,
+              "coverage_mean": 0.0,
+              "dup_fraction": 0.0
+            },
+            "reasons": [
+              "coverage_mean",
+              "complexity_vs_duplicates"
+            ],
+            "stage_id": "bam.qc_pre",
+            "verdict": "fail"
+          }
+        }
+      ]
+    },
+    "bam_findings": {
+      "claims": [],
+      "findings": []
+    },
+    "bam_plots": {
+      "entries": [
+        {
+          "coverage": {
+            "breadth_1x": 0.0,
+            "breadth_3x": 0.0,
+            "breadth_5x": 0.0,
+            "mean": 0.0
+          },
+          "damage": {
+            "c_to_t_5p": 0.0,
+            "g_to_a_3p": 0.0
+          },
+          "dup_vs_complexity": {
+            "dup_fraction": 0.0,
+            "observed_reads": 0
+          },
+          "fragment_length": {
+            "mean": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "short_fraction": 0.0
+          },
+          "stage_id": "bam.align"
+        },
+        {
+          "coverage": {
+            "breadth_1x": 0.0,
+            "breadth_3x": 0.0,
+            "breadth_5x": 0.0,
+            "mean": 0.0
+          },
+          "damage": {
+            "c_to_t_5p": 0.0,
+            "g_to_a_3p": 0.0
+          },
+          "dup_vs_complexity": {
+            "dup_fraction": 0.0,
+            "observed_reads": 0
+          },
+          "fragment_length": {
+            "mean": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "short_fraction": 0.0
+          },
+          "stage_id": "bam.coverage"
+        },
+        {
+          "coverage": {
+            "breadth_1x": 0.0,
+            "breadth_3x": 0.0,
+            "breadth_5x": 0.0,
+            "mean": 0.0
+          },
+          "damage": {
+            "c_to_t_5p": 0.0,
+            "g_to_a_3p": 0.0
+          },
+          "dup_vs_complexity": {
+            "dup_fraction": 0.0,
+            "observed_reads": 0
+          },
+          "fragment_length": {
+            "mean": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "short_fraction": 0.0
+          },
+          "stage_id": "bam.damage"
+        },
+        {
+          "coverage": {
+            "breadth_1x": 0.0,
+            "breadth_3x": 0.0,
+            "breadth_5x": 0.0,
+            "mean": 0.0
+          },
+          "damage": {
+            "c_to_t_5p": 0.0,
+            "g_to_a_3p": 0.0
+          },
+          "dup_vs_complexity": {
+            "dup_fraction": 0.0,
+            "observed_reads": 0
+          },
+          "fragment_length": {
+            "mean": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "short_fraction": 0.0
+          },
+          "stage_id": "bam.qc_pre"
+        }
+      ]
+    },
+    "bam_verdicts": {
+      "entries": [
+        {
+          "contamination": 0.0,
+          "coverage": 0.0,
+          "damage": 0.0,
+          "downstream_suitable": false,
+          "dup_fraction": 0.0,
+          "sex_class": "insufficient",
+          "stage_id": "bam.align",
+          "suitability": {
+            "contamination": false,
+            "haplogroups": false,
+            "kinship": false,
+            "sex": false
+          },
+          "tool_id": "bwa",
+          "verdict": {
+            "key_metrics": {
+              "contamination": 0.0,
+              "coverage_mean": 0.0,
+              "dup_fraction": 0.0
+            },
+            "reasons": [
+              "coverage_mean",
+              "complexity_vs_duplicates"
+            ],
+            "stage_id": "bam.align",
+            "verdict": "fail"
+          }
+        },
+        {
+          "contamination": 0.0,
+          "coverage": 0.0,
+          "damage": 0.0,
+          "downstream_suitable": false,
+          "dup_fraction": 0.0,
+          "sex_class": "insufficient",
+          "stage_id": "bam.coverage",
+          "suitability": {
+            "contamination": false,
+            "haplogroups": false,
+            "kinship": false,
+            "sex": false
+          },
+          "tool_id": "mosdepth",
+          "verdict": {
+            "key_metrics": {
+              "contamination": 0.0,
+              "coverage_mean": 0.0,
+              "dup_fraction": 0.0
+            },
+            "reasons": [
+              "coverage_mean",
+              "complexity_vs_duplicates"
+            ],
+            "stage_id": "bam.coverage",
+            "verdict": "fail"
+          }
+        },
+        {
+          "contamination": 0.0,
+          "coverage": 0.0,
+          "damage": 0.0,
+          "downstream_suitable": false,
+          "dup_fraction": 0.0,
+          "sex_class": "insufficient",
+          "stage_id": "bam.damage",
+          "suitability": {
+            "contamination": false,
+            "haplogroups": false,
+            "kinship": false,
+            "sex": false
+          },
+          "tool_id": "pydamage",
+          "verdict": {
+            "key_metrics": {
+              "contamination": 0.0,
+              "coverage_mean": 0.0,
+              "dup_fraction": 0.0
+            },
+            "reasons": [
+              "coverage_mean",
+              "complexity_vs_duplicates"
+            ],
+            "stage_id": "bam.damage",
+            "verdict": "fail"
+          }
+        },
+        {
+          "contamination": 0.0,
+          "coverage": 0.0,
+          "damage": 0.0,
+          "downstream_suitable": false,
+          "dup_fraction": 0.0,
+          "sex_class": "insufficient",
+          "stage_id": "bam.qc_pre",
+          "suitability": {
+            "contamination": false,
+            "haplogroups": false,
+            "kinship": false,
+            "sex": false
+          },
+          "tool_id": "samtools",
+          "verdict": {
+            "key_metrics": {
+              "contamination": 0.0,
+              "coverage_mean": 0.0,
+              "dup_fraction": 0.0
+            },
+            "reasons": [
+              "coverage_mean",
+              "complexity_vs_duplicates"
+            ],
+            "stage_id": "bam.qc_pre",
+            "verdict": "fail"
+          }
         }
       ]
     },
@@ -366,46 +677,41 @@
       "assets": [
         {
           "banks": {},
-          "stage_id": "fastq.detect_adapters",
-          "tool_id": "fastqc"
+          "stage_id": "bam.align",
+          "tool_id": "bwa"
         },
         {
           "banks": {},
-          "stage_id": "fastq.filter",
-          "tool_id": "fastp"
+          "stage_id": "bam.coverage",
+          "tool_id": "mosdepth"
         },
         {
           "banks": {},
-          "stage_id": "fastq.qc_post",
-          "tool_id": "multiqc"
+          "stage_id": "bam.damage",
+          "tool_id": "pydamage"
         },
         {
           "banks": {},
-          "stage_id": "fastq.stats_neutral",
-          "tool_id": "seqkit_stats"
+          "stage_id": "bam.qc_pre",
+          "tool_id": "samtools"
         },
         {
           "banks": {},
-          "stage_id": "fastq.trim",
-          "tool_id": "fastp"
+          "stage_id": "core.prepare_reference",
+          "tool_id": "samtools"
         },
         {
           "banks": {},
-          "stage_id": "fastq.validate_pre",
-          "tool_id": "fastqvalidator_official"
+          "stage_id": "fastq.preprocess",
+          "tool_id": "planner"
         }
       ]
     },
     "data_contract_validation": {
-      "missing_metrics": [],
-      "missing_reports": [
-        "fastq.detect_adapters:metrics_path",
-        "fastq.filter:metrics_path",
-        "fastq.qc_post:metrics_path",
-        "fastq.stats_neutral:metrics_path",
-        "fastq.trim:metrics_path",
-        "fastq.validate_pre:metrics_path"
+      "missing_metrics": [
+        "core.prepare_reference:metrics"
       ],
+      "missing_reports": [],
       "status": "incomplete"
     },
     "decision_config": {
@@ -439,14 +745,12 @@
           "contaminant_action": false,
           "input_hash": "input",
           "missing_metrics": [],
-          "missing_reports": [
-            "metrics_path"
-          ],
+          "missing_reports": [],
           "params_hash": "params",
           "quality_gate": {},
-          "stage_id": "fastq.detect_adapters",
+          "stage_id": "bam.align",
           "telemetry_decisions": [],
-          "tool_id": "fastqc",
+          "tool_id": "bwa",
           "tool_version": "0.0.0"
         },
         {
@@ -454,14 +758,12 @@
           "contaminant_action": false,
           "input_hash": "input",
           "missing_metrics": [],
-          "missing_reports": [
-            "metrics_path"
-          ],
+          "missing_reports": [],
           "params_hash": "params",
           "quality_gate": {},
-          "stage_id": "fastq.filter",
+          "stage_id": "bam.coverage",
           "telemetry_decisions": [],
-          "tool_id": "fastp",
+          "tool_id": "mosdepth",
           "tool_version": "0.0.0"
         },
         {
@@ -469,14 +771,12 @@
           "contaminant_action": false,
           "input_hash": "input",
           "missing_metrics": [],
-          "missing_reports": [
-            "metrics_path"
-          ],
+          "missing_reports": [],
           "params_hash": "params",
           "quality_gate": {},
-          "stage_id": "fastq.qc_post",
+          "stage_id": "bam.damage",
           "telemetry_decisions": [],
-          "tool_id": "multiqc",
+          "tool_id": "pydamage",
           "tool_version": "0.0.0"
         },
         {
@@ -484,14 +784,27 @@
           "contaminant_action": false,
           "input_hash": "input",
           "missing_metrics": [],
-          "missing_reports": [
-            "metrics_path"
-          ],
+          "missing_reports": [],
           "params_hash": "params",
           "quality_gate": {},
-          "stage_id": "fastq.stats_neutral",
+          "stage_id": "bam.qc_pre",
           "telemetry_decisions": [],
-          "tool_id": "seqkit_stats",
+          "tool_id": "samtools",
+          "tool_version": "0.0.0"
+        },
+        {
+          "adapter_validation": {},
+          "contaminant_action": false,
+          "input_hash": "input",
+          "missing_metrics": [
+            "metrics"
+          ],
+          "missing_reports": [],
+          "params_hash": "params",
+          "quality_gate": {},
+          "stage_id": "core.prepare_reference",
+          "telemetry_decisions": [],
+          "tool_id": "samtools",
           "tool_version": "0.0.0"
         },
         {
@@ -499,29 +812,12 @@
           "contaminant_action": false,
           "input_hash": "input",
           "missing_metrics": [],
-          "missing_reports": [
-            "metrics_path"
-          ],
+          "missing_reports": [],
           "params_hash": "params",
           "quality_gate": {},
-          "stage_id": "fastq.trim",
+          "stage_id": "fastq.preprocess",
           "telemetry_decisions": [],
-          "tool_id": "fastp",
-          "tool_version": "0.0.0"
-        },
-        {
-          "adapter_validation": {},
-          "contaminant_action": false,
-          "input_hash": "input",
-          "missing_metrics": [],
-          "missing_reports": [
-            "metrics_path"
-          ],
-          "params_hash": "params",
-          "quality_gate": {},
-          "stage_id": "fastq.validate_pre",
-          "telemetry_decisions": [],
-          "tool_id": "fastqvalidator_official",
+          "tool_id": "planner",
           "tool_version": "0.0.0"
         }
       ]
@@ -532,15 +828,10 @@
     },
     "failures": {
       "completeness": {
-        "missing_metrics": [],
-        "missing_reports": [
-          "fastq.detect_adapters:metrics_path",
-          "fastq.filter:metrics_path",
-          "fastq.qc_post:metrics_path",
-          "fastq.stats_neutral:metrics_path",
-          "fastq.trim:metrics_path",
-          "fastq.validate_pre:metrics_path"
+        "missing_metrics": [
+          "core.prepare_reference:metrics"
         ],
+        "missing_reports": [],
         "status": "incomplete"
       }
     },
@@ -559,39 +850,17 @@
       "suspected_issues": [],
       "warnings": []
     },
-    "handoff": {
-      "boundaries": [],
-      "domain_transitions": [],
-      "profile_id": "fastq-to-fastq__default__v1"
-    },
+    "handoff": {},
     "impact_metrics": {
-      "impact": [
-        {
-          "bases_dropped": 200,
-          "reads_dropped": 20,
-          "stage_id": "fastq.filter",
-          "tool_id": "fastp"
-        },
-        {
-          "bases_dropped": 200,
-          "reads_dropped": 20,
-          "stage_id": "fastq.trim",
-          "tool_id": "fastp"
-        }
-      ]
+      "impact": []
     },
     "key_findings": [
       {
-        "count": 6,
+        "count": 1,
         "items": [
-          "fastq.detect_adapters:metrics_path",
-          "fastq.filter:metrics_path",
-          "fastq.qc_post:metrics_path",
-          "fastq.stats_neutral:metrics_path",
-          "fastq.trim:metrics_path",
-          "fastq.validate_pre:metrics_path"
+          "core.prepare_reference:metrics"
         ],
-        "kind": "missing_reports"
+        "kind": "missing_metrics"
       }
     ],
     "method_assumptions": {
@@ -627,45 +896,45 @@
       },
       "presets": [
         {
-          "effective_config_path": "",
+          "effective_config_path": "stage_2/effective_config.json",
           "params_hash": "params",
-          "stage_id": "fastq.detect_adapters",
-          "tool_id": "fastqc",
+          "stage_id": "bam.align",
+          "tool_id": "bwa",
           "tool_version": "0.0.0"
         },
         {
-          "effective_config_path": "",
+          "effective_config_path": "stage_4/effective_config.json",
           "params_hash": "params",
-          "stage_id": "fastq.filter",
-          "tool_id": "fastp",
+          "stage_id": "bam.coverage",
+          "tool_id": "mosdepth",
           "tool_version": "0.0.0"
         },
         {
-          "effective_config_path": "",
+          "effective_config_path": "stage_5/effective_config.json",
           "params_hash": "params",
-          "stage_id": "fastq.qc_post",
-          "tool_id": "multiqc",
+          "stage_id": "bam.damage",
+          "tool_id": "pydamage",
           "tool_version": "0.0.0"
         },
         {
-          "effective_config_path": "",
+          "effective_config_path": "stage_3/effective_config.json",
           "params_hash": "params",
-          "stage_id": "fastq.stats_neutral",
-          "tool_id": "seqkit_stats",
+          "stage_id": "bam.qc_pre",
+          "tool_id": "samtools",
           "tool_version": "0.0.0"
         },
         {
-          "effective_config_path": "",
+          "effective_config_path": "stage_1/effective_config.json",
           "params_hash": "params",
-          "stage_id": "fastq.trim",
-          "tool_id": "fastp",
+          "stage_id": "core.prepare_reference",
+          "tool_id": "samtools",
           "tool_version": "0.0.0"
         },
         {
-          "effective_config_path": "",
+          "effective_config_path": "stage_0/effective_config.json",
           "params_hash": "params",
-          "stage_id": "fastq.validate_pre",
-          "tool_id": "fastqvalidator_official",
+          "stage_id": "fastq.preprocess",
+          "tool_id": "planner",
           "tool_version": "0.0.0"
         }
       ],
@@ -676,43 +945,43 @@
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
-          "stage_id": "fastq.detect_adapters",
-          "tool_id": "fastqc",
+          "stage_id": "bam.align",
+          "tool_id": "bwa",
           "tool_version": "0.0.0"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
-          "stage_id": "fastq.filter",
-          "tool_id": "fastp",
+          "stage_id": "bam.coverage",
+          "tool_id": "mosdepth",
           "tool_version": "0.0.0"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
-          "stage_id": "fastq.qc_post",
-          "tool_id": "multiqc",
+          "stage_id": "bam.damage",
+          "tool_id": "pydamage",
           "tool_version": "0.0.0"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
-          "stage_id": "fastq.stats_neutral",
-          "tool_id": "seqkit_stats",
+          "stage_id": "bam.qc_pre",
+          "tool_id": "samtools",
           "tool_version": "0.0.0"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
-          "stage_id": "fastq.trim",
-          "tool_id": "fastp",
+          "stage_id": "core.prepare_reference",
+          "tool_id": "samtools",
           "tool_version": "0.0.0"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
-          "stage_id": "fastq.validate_pre",
-          "tool_id": "fastqvalidator_official",
+          "stage_id": "fastq.preprocess",
+          "tool_id": "planner",
           "tool_version": "0.0.0"
         }
       ]
@@ -723,6 +992,71 @@
         "assumptions": [],
         "citations": {},
         "param_provenance": {
+          "bam.align": {
+            "assumptions": [],
+            "comparability_implications": [],
+            "rationale": "modern default alignment preset"
+          },
+          "bam.authenticity": {
+            "assumptions": [],
+            "comparability_implications": [],
+            "rationale": "pipeline default"
+          },
+          "bam.bias_mitigation": {
+            "assumptions": [],
+            "comparability_implications": [],
+            "rationale": "pipeline default"
+          },
+          "bam.complexity": {
+            "assumptions": [],
+            "comparability_implications": [],
+            "rationale": "pipeline default"
+          },
+          "bam.contamination": {
+            "assumptions": [],
+            "comparability_implications": [],
+            "rationale": "pipeline default"
+          },
+          "bam.coverage": {
+            "assumptions": [],
+            "comparability_implications": [],
+            "rationale": "pipeline default"
+          },
+          "bam.damage": {
+            "assumptions": [],
+            "comparability_implications": [],
+            "rationale": "pipeline default"
+          },
+          "bam.filter": {
+            "assumptions": [],
+            "comparability_implications": [],
+            "rationale": "pipeline default"
+          },
+          "bam.markdup": {
+            "assumptions": [],
+            "comparability_implications": [],
+            "rationale": "pipeline default"
+          },
+          "bam.qc_pre": {
+            "assumptions": [],
+            "comparability_implications": [],
+            "rationale": "pipeline default"
+          },
+          "bam.sex": {
+            "assumptions": [],
+            "comparability_implications": [],
+            "rationale": "pipeline default"
+          },
+          "bam.validate": {
+            "assumptions": [],
+            "comparability_implications": [],
+            "rationale": "pipeline default"
+          },
+          "core.prepare_reference": {
+            "assumptions": [],
+            "comparability_implications": [],
+            "rationale": "unspecified"
+          },
           "fastq.correct": {
             "assumptions": [],
             "comparability_implications": [],
@@ -780,6 +1114,82 @@
           }
         },
         "params": {
+          "bam.align": {
+            "aligner": "bwa",
+            "build_indices": false,
+            "emit_stats": true,
+            "preset": "default",
+            "read_group": {
+              "id": "sample.rg1",
+              "library": "lib1",
+              "platform": "ILLUMINA",
+              "sample": "sample"
+            },
+            "reference": "reference.fasta",
+            "reference_digest": "unknown",
+            "rg_policy": "regenerate",
+            "threads": 1
+          },
+          "bam.authenticity": {
+            "mode": "aggregate"
+          },
+          "bam.bias_mitigation": {
+            "gc_bias_correction": true,
+            "map_bias_correction": false
+          },
+          "bam.complexity": {
+            "min_reads": 100000,
+            "projection_points": [
+              1000000,
+              2000000
+            ]
+          },
+          "bam.contamination": {
+            "assumptions": null,
+            "prior": null,
+            "reference_panels": [],
+            "scope": "both",
+            "sex_specific": false
+          },
+          "bam.coverage": {
+            "depth_thresholds": [
+              1,
+              3,
+              5
+            ],
+            "regions": null
+          },
+          "bam.damage": {
+            "pmd_threshold_3p": 0.3,
+            "pmd_threshold_5p": 0.3,
+            "trim_3p": 2,
+            "trim_5p": 2,
+            "udg_model": "non_udg"
+          },
+          "bam.filter": {
+            "base_quality_threshold": 20,
+            "exclude_flags": [],
+            "include_flags": [],
+            "mapq_threshold": 30,
+            "min_length": 30,
+            "remove_duplicates": false
+          },
+          "bam.markdup": {
+            "duplicate_action": "mark",
+            "optical_duplicates": "mark_only",
+            "umi_policy": "ignore"
+          },
+          "bam.qc_pre": {
+            "regions": null
+          },
+          "bam.sex": {
+            "expected_sex": null,
+            "method": "rxy"
+          },
+          "bam.validate": {
+            "strict": true
+          },
+          "core.prepare_reference": {},
           "fastq.correct": {
             "paired_mode": "single_end",
             "q_cutoff": null,
@@ -856,78 +1266,10 @@
             "threads": 1
           }
         },
-        "pipeline_id": "fastq-to-fastq__default__v1",
+        "pipeline_id": "fastq-to-bam__default__v1",
         "thresholds": {},
-        "tool_provenance": {
-          "fastq.correct": {
-            "assumptions": [],
-            "comparability_implications": [],
-            "rationale": "pipeline default"
-          },
-          "fastq.detect_adapters": {
-            "assumptions": [],
-            "comparability_implications": [],
-            "rationale": "pipeline default"
-          },
-          "fastq.filter": {
-            "assumptions": [],
-            "comparability_implications": [],
-            "rationale": "pipeline default"
-          },
-          "fastq.merge": {
-            "assumptions": [],
-            "comparability_implications": [],
-            "rationale": "pipeline default"
-          },
-          "fastq.preprocess": {
-            "assumptions": [],
-            "comparability_implications": [],
-            "rationale": "pipeline default"
-          },
-          "fastq.qc_post": {
-            "assumptions": [],
-            "comparability_implications": [],
-            "rationale": "pipeline default"
-          },
-          "fastq.screen": {
-            "assumptions": [],
-            "comparability_implications": [],
-            "rationale": "pipeline default"
-          },
-          "fastq.stats_neutral": {
-            "assumptions": [],
-            "comparability_implications": [],
-            "rationale": "pipeline default"
-          },
-          "fastq.trim": {
-            "assumptions": [],
-            "comparability_implications": [],
-            "rationale": "pipeline default"
-          },
-          "fastq.umi": {
-            "assumptions": [],
-            "comparability_implications": [],
-            "rationale": "pipeline default"
-          },
-          "fastq.validate_pre": {
-            "assumptions": [],
-            "comparability_implications": [],
-            "rationale": "pipeline default"
-          }
-        },
-        "tools": {
-          "fastq.correct": "rcorrector",
-          "fastq.detect_adapters": "fastqc",
-          "fastq.filter": "fastp",
-          "fastq.merge": "vsearch",
-          "fastq.preprocess": "planner",
-          "fastq.qc_post": "multiqc",
-          "fastq.screen": "kraken2",
-          "fastq.stats_neutral": "seqkit_stats",
-          "fastq.trim": "fastp",
-          "fastq.umi": "umi_tools",
-          "fastq.validate_pre": "fastqvalidator_official"
-        }
+        "tool_provenance": {},
+        "tools": {}
       },
       "overrides": []
     },
@@ -941,9 +1283,9 @@
           ],
           "params_hash": "params",
           "scientific_preset": null,
-          "stage_id": "fastq.detect_adapters",
+          "stage_id": "bam.align",
           "tier_rationale": "unknown_tool",
-          "tool_id": "fastqc",
+          "tool_id": "bwa",
           "tool_tier": "experimental",
           "tool_version": "0.0.0"
         },
@@ -955,23 +1297,9 @@
           ],
           "params_hash": "params",
           "scientific_preset": null,
-          "stage_id": "fastq.filter",
-          "tier_rationale": "curated_default",
-          "tool_id": "fastp",
-          "tool_tier": "gold",
-          "tool_version": "0.0.0"
-        },
-        {
-          "image_digest": "sha256:img",
-          "input_hash": "input",
-          "output_hashes": [
-            "out"
-          ],
-          "params_hash": "params",
-          "scientific_preset": null,
-          "stage_id": "fastq.qc_post",
+          "stage_id": "bam.coverage",
           "tier_rationale": "unknown_tool",
-          "tool_id": "multiqc",
+          "tool_id": "mosdepth",
           "tool_tier": "experimental",
           "tool_version": "0.0.0"
         },
@@ -983,37 +1311,51 @@
           ],
           "params_hash": "params",
           "scientific_preset": null,
-          "stage_id": "fastq.stats_neutral",
-          "tier_rationale": "diagnostic_stats",
-          "tool_id": "seqkit_stats",
-          "tool_tier": "silver",
-          "tool_version": "0.0.0"
-        },
-        {
-          "image_digest": "sha256:img",
-          "input_hash": "input",
-          "output_hashes": [
-            "out"
-          ],
-          "params_hash": "params",
-          "scientific_preset": null,
-          "stage_id": "fastq.trim",
-          "tier_rationale": "curated_default",
-          "tool_id": "fastp",
-          "tool_tier": "gold",
-          "tool_version": "0.0.0"
-        },
-        {
-          "image_digest": "sha256:img",
-          "input_hash": "input",
-          "output_hashes": [
-            "out"
-          ],
-          "params_hash": "params",
-          "scientific_preset": null,
-          "stage_id": "fastq.validate_pre",
+          "stage_id": "bam.damage",
           "tier_rationale": "unknown_tool",
-          "tool_id": "fastqvalidator_official",
+          "tool_id": "pydamage",
+          "tool_tier": "experimental",
+          "tool_version": "0.0.0"
+        },
+        {
+          "image_digest": "sha256:img",
+          "input_hash": "input",
+          "output_hashes": [
+            "out"
+          ],
+          "params_hash": "params",
+          "scientific_preset": null,
+          "stage_id": "bam.qc_pre",
+          "tier_rationale": "unknown_tool",
+          "tool_id": "samtools",
+          "tool_tier": "experimental",
+          "tool_version": "0.0.0"
+        },
+        {
+          "image_digest": "sha256:img",
+          "input_hash": "input",
+          "output_hashes": [
+            "out"
+          ],
+          "params_hash": "params",
+          "scientific_preset": null,
+          "stage_id": "core.prepare_reference",
+          "tier_rationale": "unknown_tool",
+          "tool_id": "samtools",
+          "tool_tier": "experimental",
+          "tool_version": "0.0.0"
+        },
+        {
+          "image_digest": "sha256:img",
+          "input_hash": "input",
+          "output_hashes": [
+            "out"
+          ],
+          "params_hash": "params",
+          "scientific_preset": null,
+          "stage_id": "fastq.preprocess",
+          "tier_rationale": "unknown_tool",
+          "tool_id": "planner",
           "tool_tier": "experimental",
           "tool_version": "0.0.0"
         }
@@ -1065,13 +1407,9 @@
       "definitions": []
     },
     "run_provenance": {
-      "graph_hash": "sha256:graph",
-      "input_hashes": [
-        "sha256:input"
-      ],
-      "stage_contracts": {
-        "fastq.trim": "sha256:contract"
-      }
+      "graph_hash": "unknown",
+      "input_hashes": [],
+      "stage_contracts": {}
     },
     "scientific_provenance": {
       "entries": [
@@ -1085,8 +1423,8 @@
           "params_hash": "params",
           "raw_params": {},
           "resolved_tool_version": null,
-          "stage_id": "fastq.detect_adapters",
-          "tool_id": "fastqc",
+          "stage_id": "bam.align",
+          "tool_id": "bwa",
           "tool_version": "0.0.0"
         },
         {
@@ -1099,8 +1437,8 @@
           "params_hash": "params",
           "raw_params": {},
           "resolved_tool_version": null,
-          "stage_id": "fastq.filter",
-          "tool_id": "fastp",
+          "stage_id": "bam.coverage",
+          "tool_id": "mosdepth",
           "tool_version": "0.0.0"
         },
         {
@@ -1113,8 +1451,8 @@
           "params_hash": "params",
           "raw_params": {},
           "resolved_tool_version": null,
-          "stage_id": "fastq.qc_post",
-          "tool_id": "multiqc",
+          "stage_id": "bam.damage",
+          "tool_id": "pydamage",
           "tool_version": "0.0.0"
         },
         {
@@ -1127,8 +1465,8 @@
           "params_hash": "params",
           "raw_params": {},
           "resolved_tool_version": null,
-          "stage_id": "fastq.stats_neutral",
-          "tool_id": "seqkit_stats",
+          "stage_id": "bam.qc_pre",
+          "tool_id": "samtools",
           "tool_version": "0.0.0"
         },
         {
@@ -1141,8 +1479,8 @@
           "params_hash": "params",
           "raw_params": {},
           "resolved_tool_version": null,
-          "stage_id": "fastq.trim",
-          "tool_id": "fastp",
+          "stage_id": "core.prepare_reference",
+          "tool_id": "samtools",
           "tool_version": "0.0.0"
         },
         {
@@ -1155,8 +1493,8 @@
           "params_hash": "params",
           "raw_params": {},
           "resolved_tool_version": null,
-          "stage_id": "fastq.validate_pre",
-          "tool_id": "fastqvalidator_official",
+          "stage_id": "fastq.preprocess",
+          "tool_id": "planner",
           "tool_version": "0.0.0"
         }
       ]
@@ -1165,51 +1503,41 @@
       "rows": [
         {
           "missing_metrics": [],
-          "missing_reports": [
-            "metrics_path"
+          "missing_reports": [],
+          "stage_id": "bam.align",
+          "status": "complete"
+        },
+        {
+          "missing_metrics": [],
+          "missing_reports": [],
+          "stage_id": "bam.coverage",
+          "status": "complete"
+        },
+        {
+          "missing_metrics": [],
+          "missing_reports": [],
+          "stage_id": "bam.damage",
+          "status": "complete"
+        },
+        {
+          "missing_metrics": [],
+          "missing_reports": [],
+          "stage_id": "bam.qc_pre",
+          "status": "complete"
+        },
+        {
+          "missing_metrics": [
+            "metrics"
           ],
-          "stage_id": "fastq.detect_adapters",
+          "missing_reports": [],
+          "stage_id": "core.prepare_reference",
           "status": "incomplete"
         },
         {
           "missing_metrics": [],
-          "missing_reports": [
-            "metrics_path"
-          ],
-          "stage_id": "fastq.filter",
-          "status": "incomplete"
-        },
-        {
-          "missing_metrics": [],
-          "missing_reports": [
-            "metrics_path"
-          ],
-          "stage_id": "fastq.qc_post",
-          "status": "incomplete"
-        },
-        {
-          "missing_metrics": [],
-          "missing_reports": [
-            "metrics_path"
-          ],
-          "stage_id": "fastq.stats_neutral",
-          "status": "incomplete"
-        },
-        {
-          "missing_metrics": [],
-          "missing_reports": [
-            "metrics_path"
-          ],
-          "stage_id": "fastq.trim",
-          "status": "incomplete"
-        },
-        {
-          "missing_metrics": [],
-          "missing_reports": [
-            "metrics_path"
-          ],
-          "stage_id": "fastq.validate_pre",
-          "status": "incomplete"
+          "missing_reports": [],
+          "stage_id": "fastq.preprocess",
+          "status": "complete"
         }
       ]
     },
@@ -1219,121 +1547,121 @@
           "bucket": "high",
           "reasons": [],
           "score": 1.0,
-          "stage_id": "fastq.detect_adapters",
-          "tool_id": "fastqc"
+          "stage_id": "bam.align",
+          "tool_id": "bwa"
         },
         {
           "bucket": "high",
           "reasons": [],
           "score": 1.0,
-          "stage_id": "fastq.filter",
-          "tool_id": "fastp"
+          "stage_id": "bam.coverage",
+          "tool_id": "mosdepth"
         },
         {
           "bucket": "high",
           "reasons": [],
           "score": 1.0,
-          "stage_id": "fastq.qc_post",
-          "tool_id": "multiqc"
+          "stage_id": "bam.damage",
+          "tool_id": "pydamage"
         },
         {
           "bucket": "high",
           "reasons": [],
           "score": 1.0,
-          "stage_id": "fastq.stats_neutral",
-          "tool_id": "seqkit_stats"
+          "stage_id": "bam.qc_pre",
+          "tool_id": "samtools"
         },
         {
           "bucket": "high",
           "reasons": [],
           "score": 1.0,
-          "stage_id": "fastq.trim",
-          "tool_id": "fastp"
+          "stage_id": "core.prepare_reference",
+          "tool_id": "samtools"
         },
         {
           "bucket": "high",
           "reasons": [],
           "score": 1.0,
-          "stage_id": "fastq.validate_pre",
-          "tool_id": "fastqvalidator_official"
+          "stage_id": "fastq.preprocess",
+          "tool_id": "planner"
         }
       ]
     },
     "stage_plots": {
       "entries": [
         {
-          "base_retention": 0.8,
+          "base_retention": 1.0,
           "gc_delta": null,
           "mean_q_delta": null,
-          "read_retention": 0.8,
-          "stage_id": "fastq.detect_adapters",
-          "tool_id": "fastqc"
+          "read_retention": 1.0,
+          "stage_id": "bam.align",
+          "tool_id": "bwa"
         },
         {
-          "base_retention": 0.8,
+          "base_retention": 1.0,
           "gc_delta": null,
           "mean_q_delta": null,
-          "read_retention": 0.8,
-          "stage_id": "fastq.filter",
-          "tool_id": "fastp"
+          "read_retention": 1.0,
+          "stage_id": "bam.coverage",
+          "tool_id": "mosdepth"
         },
         {
-          "base_retention": 0.8,
+          "base_retention": 1.0,
           "gc_delta": null,
           "mean_q_delta": null,
-          "read_retention": 0.8,
-          "stage_id": "fastq.qc_post",
-          "tool_id": "multiqc"
+          "read_retention": 1.0,
+          "stage_id": "bam.damage",
+          "tool_id": "pydamage"
         },
         {
-          "base_retention": 0.8,
+          "base_retention": 1.0,
           "gc_delta": null,
           "mean_q_delta": null,
-          "read_retention": 0.8,
-          "stage_id": "fastq.stats_neutral",
-          "tool_id": "seqkit_stats"
+          "read_retention": 1.0,
+          "stage_id": "bam.qc_pre",
+          "tool_id": "samtools"
         },
         {
-          "base_retention": 0.8,
+          "base_retention": 1.0,
           "gc_delta": null,
           "mean_q_delta": null,
-          "read_retention": 0.8,
-          "stage_id": "fastq.trim",
-          "tool_id": "fastp"
+          "read_retention": 1.0,
+          "stage_id": "core.prepare_reference",
+          "tool_id": "samtools"
         },
         {
-          "base_retention": 0.8,
+          "base_retention": 1.0,
           "gc_delta": null,
           "mean_q_delta": null,
-          "read_retention": 0.8,
-          "stage_id": "fastq.validate_pre",
-          "tool_id": "fastqvalidator_official"
+          "read_retention": 1.0,
+          "stage_id": "fastq.preprocess",
+          "tool_id": "planner"
         }
       ],
       "waterfall": [
         {
-          "read_retention": 0.8,
-          "stage_id": "fastq.detect_adapters"
+          "read_retention": 1.0,
+          "stage_id": "bam.align"
         },
         {
-          "read_retention": 0.8,
-          "stage_id": "fastq.filter"
+          "read_retention": 1.0,
+          "stage_id": "bam.coverage"
         },
         {
-          "read_retention": 0.8,
-          "stage_id": "fastq.qc_post"
+          "read_retention": 1.0,
+          "stage_id": "bam.damage"
         },
         {
-          "read_retention": 0.8,
-          "stage_id": "fastq.stats_neutral"
+          "read_retention": 1.0,
+          "stage_id": "bam.qc_pre"
         },
         {
-          "read_retention": 0.8,
-          "stage_id": "fastq.trim"
+          "read_retention": 1.0,
+          "stage_id": "core.prepare_reference"
         },
         {
-          "read_retention": 0.8,
-          "stage_id": "fastq.validate_pre"
+          "read_retention": 1.0,
+          "stage_id": "fastq.preprocess"
         }
       ]
     },
@@ -1344,99 +1672,99 @@
   },
   "stages": [
     {
-      "bank_report_path": "/tmp/bank_report.json",
-      "effective_config_path": "",
+      "bank_report_path": null,
+      "effective_config_path": "stage_2/effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "",
+      "metrics_path": "stage_2/metrics.json",
       "params_hash": "params",
-      "retention_report_path": "/tmp/retention_report.json",
+      "retention_report_path": null,
       "runtime_s": 1.0,
-      "stage_id": "fastq.detect_adapters",
-      "stage_report_path": "/tmp/stage_report.json",
-      "tool_id": "fastqc",
-      "tool_invocation_path": "",
+      "stage_id": "bam.align",
+      "stage_report_path": "stage_2/stage_report.json",
+      "tool_id": "bwa",
+      "tool_invocation_path": "stage_2/tool_invocation.json",
       "tool_version": "0.0.0"
     },
     {
-      "bank_report_path": "/tmp/bank_report.json",
-      "effective_config_path": "",
+      "bank_report_path": null,
+      "effective_config_path": "stage_4/effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "",
+      "metrics_path": "stage_4/metrics.json",
       "params_hash": "params",
-      "retention_report_path": "/tmp/retention_report.json",
+      "retention_report_path": null,
       "runtime_s": 1.0,
-      "stage_id": "fastq.filter",
-      "stage_report_path": "/tmp/stage_report.json",
-      "tool_id": "fastp",
-      "tool_invocation_path": "",
+      "stage_id": "bam.coverage",
+      "stage_report_path": "stage_4/stage_report.json",
+      "tool_id": "mosdepth",
+      "tool_invocation_path": "stage_4/tool_invocation.json",
       "tool_version": "0.0.0"
     },
     {
-      "bank_report_path": "/tmp/bank_report.json",
-      "effective_config_path": "",
+      "bank_report_path": null,
+      "effective_config_path": "stage_5/effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "",
+      "metrics_path": "stage_5/metrics.json",
       "params_hash": "params",
-      "retention_report_path": "/tmp/retention_report.json",
+      "retention_report_path": null,
       "runtime_s": 1.0,
-      "stage_id": "fastq.qc_post",
-      "stage_report_path": "/tmp/stage_report.json",
-      "tool_id": "multiqc",
-      "tool_invocation_path": "",
+      "stage_id": "bam.damage",
+      "stage_report_path": "stage_5/stage_report.json",
+      "tool_id": "pydamage",
+      "tool_invocation_path": "stage_5/tool_invocation.json",
       "tool_version": "0.0.0"
     },
     {
-      "bank_report_path": "/tmp/bank_report.json",
-      "effective_config_path": "",
+      "bank_report_path": null,
+      "effective_config_path": "stage_3/effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "",
+      "metrics_path": "stage_3/metrics.json",
       "params_hash": "params",
-      "retention_report_path": "/tmp/retention_report.json",
+      "retention_report_path": null,
       "runtime_s": 1.0,
-      "stage_id": "fastq.stats_neutral",
-      "stage_report_path": "/tmp/stage_report.json",
-      "tool_id": "seqkit_stats",
-      "tool_invocation_path": "",
+      "stage_id": "bam.qc_pre",
+      "stage_report_path": "stage_3/stage_report.json",
+      "tool_id": "samtools",
+      "tool_invocation_path": "stage_3/tool_invocation.json",
       "tool_version": "0.0.0"
     },
     {
-      "bank_report_path": "/tmp/bank_report.json",
-      "effective_config_path": "",
+      "bank_report_path": null,
+      "effective_config_path": "stage_1/effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "",
+      "metrics_path": "stage_1/metrics.json",
       "params_hash": "params",
-      "retention_report_path": "/tmp/retention_report.json",
+      "retention_report_path": null,
       "runtime_s": 1.0,
-      "stage_id": "fastq.trim",
-      "stage_report_path": "/tmp/stage_report.json",
-      "tool_id": "fastp",
-      "tool_invocation_path": "",
+      "stage_id": "core.prepare_reference",
+      "stage_report_path": "stage_1/stage_report.json",
+      "tool_id": "samtools",
+      "tool_invocation_path": "stage_1/tool_invocation.json",
       "tool_version": "0.0.0"
     },
     {
-      "bank_report_path": "/tmp/bank_report.json",
-      "effective_config_path": "",
+      "bank_report_path": null,
+      "effective_config_path": "stage_0/effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "",
+      "metrics_path": "stage_0/metrics.json",
       "params_hash": "params",
-      "retention_report_path": "/tmp/retention_report.json",
+      "retention_report_path": null,
       "runtime_s": 1.0,
-      "stage_id": "fastq.validate_pre",
-      "stage_report_path": "/tmp/stage_report.json",
-      "tool_id": "fastqvalidator_official",
-      "tool_invocation_path": "",
+      "stage_id": "fastq.preprocess",
+      "stage_report_path": "stage_0/stage_report.json",
+      "tool_id": "planner",
+      "tool_invocation_path": "stage_0/tool_invocation.json",
       "tool_version": "0.0.0"
     }
   ],
@@ -1444,7 +1772,12 @@
     "error_count": 0,
     "event_count": 0,
     "events": [
-      "/tmp/telemetry/events.jsonl"
+      "telemetry/events.jsonl",
+      "telemetry/events.jsonl",
+      "telemetry/events.jsonl",
+      "telemetry/events.jsonl",
+      "telemetry/events.jsonl",
+      "telemetry/events.jsonl"
     ]
   }
 }
