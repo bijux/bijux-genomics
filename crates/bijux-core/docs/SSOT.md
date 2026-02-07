@@ -1,25 +1,16 @@
 # SSOT
 
-## What This Crate Owns
-This crate is the single source of truth for:
+## Ownership Table
+| Item | Owner Module | Allowed References |
+| --- | --- | --- |
+| StageId/StepId/ToolId/ArtifactId/ProfileId | `ids.rs` | All crates via `bijux-core` |
+| ContractVersion | `contract/version.rs` | Core + runtime + engine + api |
+| ExecutionGraph | `contract/execution/graph.rs` | planners, engine, api |
+| RunManifest | `contract/execution/manifest.rs` | runtime, engine, analyze |
+| ToolInvocation | `contract/tooling/mod.rs` | runtime, engine, analyze |
+| MetricsEnvelope | `metrics/types.rs` | stages, analyze, benchmark |
 
-- **ID newtypes**: `RunId`, `StepId`, `StageId`, `ToolId`, `ArtifactId`, `ProfileId`.
-- **Contract versions** and compatibility rules.
-- **Canonical serialization** rules and hashing.
-- **Execution and run contracts**: graph, manifest, run record, tool invocation.
-
-## What Is Forbidden Elsewhere
-Other crates must not:
-
-- Define new ID types or reuse raw `String` for public IDs.
-- Serialize contract JSON with ad-hoc `serde_json::to_writer` or custom ordering.
-- Re-implement hashing or path normalization.
-- Invent new contract fields or alter shapes without versioning here.
-
-## Allowed Extensions
-Other crates may extend contracts by:
-
-- Adding metrics types in domain crates.
-- Adding stage contracts in stage-contract.
-
-But any new public contract surface must be declared here first and versioned.
+## Forbidden Elsewhere
+- Defining new ID types.
+- Re-implementing hashing or canonical JSON.
+- Adding contract fields without versioning.
