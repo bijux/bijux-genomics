@@ -8,7 +8,7 @@ use bijux_core::contract::PlanPolicy;
 use bijux_core::contract::{ExecutionEdge, ExecutionGraph};
 use bijux_core::prelude::errors::ErrorCategory;
 use bijux_core::prelude::ContainerImageRefV1;
-use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
+use bijux_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_environment_qa::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use bijux_planner_fastq::stage_api::bench_dir_name;
 use bijux_planner_fastq::stage_api::RawFailure;
@@ -40,7 +40,7 @@ use bijux_planner_fastq::stage_api::{
 pub fn bench_fastq_preprocess<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
-    runner_override: Option<RunnerKind>,
+    runner_override: Option<RuntimeKind>,
     args: &bijux_planner_fastq::stage_api::args::BenchFastqPreprocessArgs,
 ) -> Result<()> {
     fastq_preprocess_run(catalog, platform, runner_override, args)
@@ -54,7 +54,7 @@ pub fn bench_fastq_preprocess<S: ::std::hash::BuildHasher>(
 pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
-    runner_override: Option<RunnerKind>,
+    runner_override: Option<RuntimeKind>,
     args: &bijux_planner_fastq::stage_api::args::BenchFastqPreprocessArgs,
 ) -> Result<()> {
     let bench_dir_name = bench_dir_name(&STAGE_PREPROCESS)

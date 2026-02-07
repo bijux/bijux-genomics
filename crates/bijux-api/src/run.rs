@@ -224,7 +224,7 @@ pub fn plan(request: PlanRequest) -> Result<PlanResponse> {
 pub fn execute(request: &ExecuteRequest) -> Result<ExecuteResponse> {
     let (run_id, layout) = bijux_runtime::run_layout::create_run_layout(&request.run_dir)?;
     let runner: Box<dyn bijux_runtime::Runner> = match request.runner {
-        bijux_environment::api::RunnerKind::Docker => Box::new(DockerRunner::new(None)),
+        bijux_environment::api::RuntimeKind::Docker => Box::new(DockerRunner::new(None)),
         other => {
             return Err(anyhow!("runner {other} not supported for execute"));
         }

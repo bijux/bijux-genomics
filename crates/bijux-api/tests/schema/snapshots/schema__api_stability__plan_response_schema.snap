@@ -1,5 +1,6 @@
 ---
 source: crates/bijux-api/tests/schema/api_stability.rs
+assertion_line: 61
 expression: json
 ---
 {
@@ -64,7 +65,7 @@ expression: json
       }
     ]
   },
-  "graph_hash": "43777d9e4961f33432f05919ac66e6841204897081b0d0af5d9a1c1af239c6b3",
+  "graph_hash": "934c4ac4579c0d17d2b467b1c1fd777757f6c050fa34f40c71aac13fbce0b37b",
   "manifest": {
     "cache_key": {
       "env_digest": "unknown",
@@ -78,7 +79,7 @@ expression: json
     },
     "dataset_fingerprints": [],
     "failures": [],
-    "graph_hash": "43777d9e4961f33432f05919ac66e6841204897081b0d0af5d9a1c1af239c6b3",
+    "graph_hash": "934c4ac4579c0d17d2b467b1c1fd777757f6c050fa34f40c71aac13fbce0b37b",
     "output_artifacts": [],
     "pipeline_id": "fastq-to-fastq__default__v1",
     "profile_id": "default",

@@ -27,7 +27,7 @@ pub fn run_fastq_to_bam_profile<S: std::hash::BuildHasher>(
     registry_core: &ToolRegistry,
     catalog: &std::collections::HashMap<String, bijux_environment::api::ToolImageSpec, S>,
     platform: &bijux_environment::api::PlatformSpec,
-    runner_override: Option<bijux_environment::api::RunnerKind>,
+    runner_override: Option<bijux_environment::api::RuntimeKind>,
     preprocess_args: &bijux_planner_fastq::stage_api::args::BenchFastqPreprocessArgs,
     cross_args: &FastqCrossArgs,
     profile: &PipelineProfile,

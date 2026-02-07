@@ -1,11 +1,12 @@
 ---
 source: crates/bijux-api/src/internal/handlers/fastq/summary.rs
+assertion_line: 867
 expression: payload
 ---
 {
   "contract_version": {
-    "major": 1.0,
-    "minor": 0.0
+    "major": 1,
+    "minor": 0
   },
   "input_hashes": [
     "sha256:input"
@@ -26,7 +27,7 @@ expression: payload
         "sha256:output"
       ],
       "parameters_json": {
-        "min_len": 10.0
+        "min_len": 10
       },
       "params_hash": "params",
       "stage_id": "fastq.trim",

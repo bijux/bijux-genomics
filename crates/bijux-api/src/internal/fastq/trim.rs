@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use crate::tooling::{ensure_bench_runner, filter_tools_by_role, load_registry};
 use anyhow::{anyhow, Context, Result};
 use bijux_core::prelude::errors::ErrorCategory;
-use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
+use bijux_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_environment_qa::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use bijux_infra::{bench_base_dir, bench_tools_dir};
 use bijux_planner_fastq::select_trim_tools;
@@ -30,7 +30,7 @@ use bijux_planner_fastq::stage_api::{
 pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
-    runner_override: Option<RunnerKind>,
+    runner_override: Option<RuntimeKind>,
     args: &bijux_planner_fastq::stage_api::args::BenchFastqTrimArgs,
 ) -> Result<BenchOutcome<bijux_analyze::FastqTrimMetrics>> {
     let allow_experimental = std::env::var("BIJUX_EXPERIMENTAL_TOOLS").is_ok();

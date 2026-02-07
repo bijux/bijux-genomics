@@ -12,7 +12,7 @@ use bijux_core::metrics::MetricContextV1;
 use bijux_core::prelude::errors::ErrorCategory;
 use bijux_core::prelude::measure::ExecutionMetrics;
 use bijux_core::prelude::params_hash;
-use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
+use bijux_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_runner::primitives::build_tool_execution_spec;
 use bijux_runtime::{RunProvenanceV1, StageObservabilityContextV1};
 use uuid::Uuid;
@@ -52,7 +52,7 @@ use bijux_planner_fastq::stage_api::RawFailure;
 pub fn bench_fastq_stats_neutral<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
-    runner_override: Option<RunnerKind>,
+    runner_override: Option<RuntimeKind>,
     args: &bijux_planner_fastq::stage_api::args::BenchFastqStatsArgs,
 ) -> Result<BenchOutcome<FastqStatsMetrics>> {
     let tools = select_stats_tools(&args.tools)?;
@@ -162,7 +162,7 @@ pub fn bench_fastq_stats_neutral<S: ::std::hash::BuildHasher>(
 }
 
 struct StatsBenchInputs {
-    runner: RunnerKind,
+    runner: RuntimeKind,
     r1: PathBuf,
     input_hash: String,
     input_stats: SeqkitMetrics,
@@ -174,7 +174,7 @@ struct StatsBenchInputs {
 fn prepare_stats_bench<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
-    runner_override: Option<RunnerKind>,
+    runner_override: Option<RuntimeKind>,
     args: &bijux_planner_fastq::stage_api::args::BenchFastqStatsArgs,
 ) -> Result<StatsBenchInputs> {
     let runner = ensure_bench_runner(platform, runner_override)?;
