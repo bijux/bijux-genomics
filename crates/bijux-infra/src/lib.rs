@@ -5,11 +5,11 @@ use std::time::{Duration, Instant};
 
 use thiserror::Error;
 
-mod bench_paths;
 mod logging;
+mod paths;
 
-pub use bench_paths::{bench_base_dir, bench_tools_dir};
 pub use logging::init_logging;
+pub use paths::{bench_base_dir, bench_tools_dir};
 
 pub mod formats;
 
