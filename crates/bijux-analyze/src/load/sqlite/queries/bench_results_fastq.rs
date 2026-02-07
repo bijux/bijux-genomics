@@ -1,6 +1,7 @@
 use std::path::{Path, PathBuf};
 
-use anyhow::{anyhow, Context};
+use anyhow::{anyhow, Context, Result};
+use rusqlite::{params, Connection};
 use serde_json::Value as JsonValue;
 
 use bijux_core::contract::{BenchResultRecord, BenchResultStatus};

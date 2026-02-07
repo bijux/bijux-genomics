@@ -1,4 +1,14 @@
-// imports provided by queries_core.rs
+use anyhow::Result;
+use rusqlite::{params, Connection};
+
+use super::super::rows::benchmark_record_from_row;
+use super::super::{
+    ensure_identity_index, ensure_inserted_at_column, ensure_params_hash_column,
+    ensure_record_id_column,
+};
+use crate::aggregate::BenchmarkRecord;
+use crate::{FastqCorrectMetrics, FastqFilterMetrics, FastqMergeMetrics, FastqQcPostMetrics};
+use bijux_core::prelude::params_hash;
 
 /// Insert a `FastQ` filter benchmark record into the v2 table.
 ///

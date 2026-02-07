@@ -1,4 +1,8 @@
-// imports provided by queries_core.rs
+use anyhow::Result;
+use rusqlite::Connection;
+
+use super::super::ensure_record_id_column;
+use crate::aggregate::metrics::IMAGE_QA_INPUTS_SCHEMA_VERSION;
 
 /// Insert an image QA input hash into the v1 table.
 ///

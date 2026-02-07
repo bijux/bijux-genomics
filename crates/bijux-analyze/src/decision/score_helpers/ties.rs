@@ -1,6 +1,6 @@
 use crate::decision::score::{RankingEntry, RankingMode};
 
-pub(super) fn annotate_why_not_first(entries: &mut [RankingEntry], mode: RankingMode) {
+pub(crate) fn annotate_why_not_first(entries: &mut [RankingEntry], mode: RankingMode) {
     if entries.is_empty() {
         return;
     }

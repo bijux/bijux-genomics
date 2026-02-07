@@ -238,3 +238,4 @@ pub const METRIC_REGISTRY_CORE: [MetricSpec; 15] = [
         derived: false,
     },
 ];
+use crate::aggregate::schema::defs::{MetricDirection, MetricId, MetricRange, MetricSpec};

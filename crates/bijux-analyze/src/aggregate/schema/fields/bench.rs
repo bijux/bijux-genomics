@@ -184,3 +184,4 @@ pub fn metric_kind_for_stage(stage_id: &str) -> Option<StageMetricKind> {
         _ => None,
     }
 }
+use crate::aggregate::schema::defs::{MetricId, StageMetricKind};

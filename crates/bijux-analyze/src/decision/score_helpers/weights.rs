@@ -6,7 +6,7 @@ use crate::semantics::resolve_semantics;
 
 use super::normalization::penalties_for_input;
 
-pub(super) fn trace_for_input(
+pub(crate) fn trace_for_input(
     input: &RankInput,
     mode: RankingMode,
     breakdown: &[ScoreBreakdown],
@@ -43,7 +43,7 @@ pub(super) fn trace_for_input(
     trace
 }
 
-pub(super) fn assert_metric_semantics(metric_ids: &[&str]) -> Result<()> {
+pub(crate) fn assert_metric_semantics(metric_ids: &[&str]) -> Result<()> {
     for metric_id in metric_ids {
         resolve_semantics(metric_id).map_err(|err| {
             anyhow!("missing metric semantics for {metric_id}; remediation: {err}")

@@ -392,3 +392,7 @@ pub const DERIVED_METRIC_REGISTRY: [DerivedMetricSpec; 4] = [
         stages: &["fastq.correct"],
     },
 ];
+use crate::aggregate::schema::defs::{
+    DerivedMetricSpec, MetricDirection, MetricId, MetricRange, MetricSpec,
+};
+use bijux_core::prelude::DerivedMetricId;
