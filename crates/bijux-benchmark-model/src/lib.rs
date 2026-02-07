@@ -18,4 +18,4 @@ pub use model::suite::{
 pub use model::summary::{MetricSummary, SummaryRow, SummaryStratum};
 pub use model::{BenchmarkDecision, BenchmarkObservation, BenchmarkSuiteSpec, BenchmarkSummary};
 pub use policy::{GateDecision, GatePolicy, GatePolicyOverrides, GateViolation};
-pub use stats::robust::robust_stats;
+pub use stats::robust_estimators::robust_stats;

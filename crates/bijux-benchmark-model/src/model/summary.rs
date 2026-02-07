@@ -5,7 +5,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::stats::robust::RobustStats;
+use crate::stats::robust_estimators::RobustStats;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]

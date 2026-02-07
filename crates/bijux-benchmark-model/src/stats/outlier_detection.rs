@@ -2,7 +2,7 @@
 //! Outlier detection policies.
 //! Must not perform IO or depend on compare/gate logic.
 
-use crate::stats::robust::{mad, median};
+use crate::stats::robust_estimators::{mad, median};
 
 #[derive(Debug, Clone)]
 pub struct OutlierReport {
