@@ -34,6 +34,7 @@ use crate::report::model::ReportModel;
 use crate::report::render::json::write_report_json;
 use bijux_core::contract::Objective;
 use bijux_core::contract::objective_spec;
+use bijux_domain_bam::prelude::STAGE_PREFIX as BAM_STAGE_PREFIX;
 use bijux_runtime::{
     AssetsProvenanceV1, FactsRowV1, FilterReportV1, ReportProvenanceV1, ReportSchemaV1,
     ReportStageSummaryV1, RetentionContextV1, RetentionDefinitionV1, RetentionReportV1,
@@ -304,7 +305,10 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
         "accounting".to_string(),
         JsonBlob::new(accounting_section(&ordered)),
     );
-    if ordered.iter().any(|row| row.stage_id.starts_with("bam.")) {
+    if ordered
+        .iter()
+        .any(|row| row.stage_id.starts_with(BAM_STAGE_PREFIX))
+    {
         sections.insert(
             "bam_accounting".to_string(),
             JsonBlob::new(bam_accounting_section(&ordered)),
