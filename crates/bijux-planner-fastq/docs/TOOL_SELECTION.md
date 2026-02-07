@@ -1,8 +1,7 @@
 # TOOL_SELECTION
 
-Selection criteria:
-- tool suitability for stage
-- expected output artifacts
-- determinism requirements
-
-Explainability must include defaults diff and reasons.
+## Decision criteria
+- Quality: accuracy and robustness of outputs.
+- Speed: runtime and resource usage.
+- Compatibility: output artifacts match stage contracts.
+- Alternatives: documented when excluded (e.g., missing metrics, non-deterministic behavior).

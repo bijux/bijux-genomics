@@ -1,11 +1,19 @@
 # EXPLAIN_OUTPUT
 
-Explain output fields:
-- selected tools
-- defaults diff
-- selection reasons
-- stage contract hashes
+## Fields
+- selected_tools
+- defaults_diff
+- reasons
+- contract_hashes
 
-Users interpret explain output as the rationale behind tool selection.
+## Canonical example
+```json
+{
+  "selected_tools": ["fastp"],
+  "defaults_diff": {},
+  "reasons": ["fastp provides trim+filter in one step"],
+  "contract_hashes": {"fastq.trim": "sha256:..."}
+}
+```
 
-See `tests/explainability.rs` for enforced expectations.
+See `tests/explainability.rs` for enforcement.
