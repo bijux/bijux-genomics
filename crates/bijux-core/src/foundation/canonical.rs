@@ -19,9 +19,7 @@ pub(crate) fn canonicalize_json_value(value: &serde_json::Value) -> serde_json::
     }
 }
 
-pub(crate) fn parameters_json_canonicalization(
-    value: &serde_json::Value,
-) -> serde_json::Value {
+pub(crate) fn parameters_json_canonicalization(value: &serde_json::Value) -> serde_json::Value {
     normalize_numbers_and_paths(&canonicalize_json_value(value))
 }
 
@@ -75,7 +73,9 @@ fn normalize_path_string(value: &str) -> String {
 fn normalize_numbers_and_paths(value: &serde_json::Value) -> serde_json::Value {
     match value {
         serde_json::Value::Number(num) => {
-            if let Some(f) = num.as_f64() {
+            if num.is_i64() || num.is_u64() {
+                serde_json::Value::Number(num.clone())
+            } else if let Some(f) = num.as_f64() {
                 serde_json::Number::from_f64(f).map_or_else(
                     || serde_json::Value::Number(num.clone()),
                     serde_json::Value::Number,

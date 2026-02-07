@@ -299,6 +299,59 @@ pub struct ToolInvocationV1 {
     pub executed_command: Option<String>,
 }
 
+impl ToolInvocationV1 {
+    #[allow(clippy::too_many_arguments)]
+    #[must_use]
+    pub fn new(
+        schema_version: String,
+        contract_version: ContractVersion,
+        stage_id: StageId,
+        tool_id: ToolId,
+        tool_version: String,
+        resolved_tool_version: Option<String>,
+        image_digest: String,
+        runner_kind: String,
+        platform: String,
+        parameters_json: serde_json::Value,
+        parameters_json_normalized: serde_json::Value,
+        effective_params_json: serde_json::Value,
+        effective_params_json_normalized: serde_json::Value,
+        params_provenance: serde_json::Value,
+        params_provenance_normalized: serde_json::Value,
+        resources: ToolConstraints,
+        environment: BTreeMap<String, String>,
+        input_hashes: Vec<String>,
+        output_hashes: Vec<String>,
+        executed_command: Option<String>,
+    ) -> Self {
+        Self {
+            schema_version,
+            contract_version,
+            stage_id,
+            tool_id,
+            tool_version,
+            resolved_tool_version,
+            image_digest,
+            runner_kind,
+            platform,
+            parameters_json,
+            parameters_json_normalized,
+            effective_params_json,
+            effective_params_json_normalized,
+            params_provenance,
+            params_provenance_normalized,
+            adapter_bank: None,
+            banks: None,
+            bank_assets: None,
+            resources,
+            environment,
+            input_hashes,
+            output_hashes,
+            executed_command,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct AdapterBankProvenanceV1 {
