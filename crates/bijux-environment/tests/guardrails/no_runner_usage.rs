@@ -11,7 +11,8 @@ fn environment_does_not_use_runner() {
         if entry.path().extension().and_then(|e| e.to_str()) != Some("rs") {
             continue;
         }
-        let content = std::fs::read_to_string(entry.path()).expect("read source");
+        let content = std::fs::read_to_string(entry.path())
+            .unwrap_or_else(|err| panic!("read source: {err}"));
         if content.contains("bijux_runner") || content.contains("Runner") {
             offenders.push(entry.path().display().to_string());
         }
