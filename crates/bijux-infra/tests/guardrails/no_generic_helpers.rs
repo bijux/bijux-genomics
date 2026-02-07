@@ -29,7 +29,10 @@ fn infra_does_not_expose_generic_helpers() {
             if ALLOWLIST.contains(&name) {
                 continue;
             }
-            if DISALLOWED_PREFIXES.iter().any(|prefix| name.starts_with(prefix)) {
+            if DISALLOWED_PREFIXES
+                .iter()
+                .any(|prefix| name.starts_with(prefix))
+            {
                 offenders.push(format!("{} ({})", entry.path().display(), name));
             }
         }
