@@ -7,7 +7,7 @@
 | execution core | `backend/docker/executor.rs` | `backend/local/executor.rs` |
 | replay | `backend/docker/replay.rs` | `backend/local/replay.rs` |
 
-## Invariants (Docker == Local)
+## Backend invariants checklist (Docker == Local)
 | Invariant | Description | Test |
 | --- | --- | --- |
 | cwd | Same working directory semantics. | `tests/backend_invariants.rs` |
@@ -15,3 +15,5 @@
 | mounts | Same mount resolution rules. | `tests/backend_invariants.rs` |
 | stdout/stderr | Same capture behavior and encoding. | `tests/backend_invariants.rs` |
 | exit semantics | Same success/failure mapping. | `tests/backend_invariants.rs` |
+| timeouts | Same timeout application and error mapping. | `tests/backend_invariants.rs` |
+| file permissions | Same output permission behavior. | `tests/backend_invariants.rs` |

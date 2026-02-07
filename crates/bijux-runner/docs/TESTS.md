@@ -11,6 +11,7 @@ Tests should explain the contract they enforce.
 
 ## Backend suite (`tests/backend/*`)
 - `tests/backend/backend_invariants.rs` → backend symmetry invariants.
+- `tests/backend/fixture_parity.rs` → backend fixture structure parity.
 - `tests/backend/invocation_hash.rs` → stable invocation hash across backends.
 - `tests/backend/process_guardrail.rs` → process spawn confined to runner/env tooling.
 
