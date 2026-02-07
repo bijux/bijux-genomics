@@ -6,6 +6,8 @@ mod effect_boundary;
 mod params_hash;
 #[path = "contracts/runner_tests.rs"]
 mod runner_tests;
+#[path = "contracts/support_naming.rs"]
+mod support_naming;
 
 #[path = "support/mod.rs"]
 mod support;
