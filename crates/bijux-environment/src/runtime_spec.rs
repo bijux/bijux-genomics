@@ -1,3 +1,8 @@
+//! Runtime spec wiring for resolved environments.
+//!
+//! Responsibilities: pair resolved platform and runner choices.
+//! Invariants: no side effects; pure configuration container.
+
 use crate::resolve::{PlatformSpec, RunnerKind};
 
 /// Runtime specification for execution environments.
