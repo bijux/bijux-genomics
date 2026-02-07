@@ -25,7 +25,7 @@ pub enum BenchError {
     #[cfg(feature = "sqlite")]
     Sqlite(#[from] rusqlite::Error),
     #[error("measure error: {0}")]
-    Measure(#[from] bijux_core::foundation::measure::MeasureError),
+    Measure(#[from] bijux_core::prelude::measure::MeasureError),
     #[error("validation error: {0}")]
     Validation(String),
 }

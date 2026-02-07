@@ -1,7 +1,7 @@
 use anyhow::{anyhow, Context, Result};
 use tracing::warn;
 
-use bijux_core::foundation::measure::SeqkitMetrics;
+use bijux_core::prelude::measure::SeqkitMetrics;
 
 /// # Errors
 /// Returns an error if stdout cannot be parsed.

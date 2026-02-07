@@ -1,4 +1,4 @@
-use bijux_core::foundation::CommandSpecV1;
+use bijux_core::prelude::CommandSpecV1;
 
 #[test]
 fn backend_invariants_are_documented() {

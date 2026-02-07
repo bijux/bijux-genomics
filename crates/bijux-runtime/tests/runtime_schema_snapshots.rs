@@ -100,7 +100,7 @@ fn run_manifest_schema_snapshot() {
         pipeline: "fastq-to-fastq__default__v1".to_string(),
         graph_hash: "sha256:graph".to_string(),
         cache_key: None,
-        layout: bijux_core::foundation::input_assessment::FastqLayout::SingleEnd,
+        layout: bijux_core::prelude::input_assessment::FastqLayout::SingleEnd,
         stages: Vec::new(),
         tool_invocations: vec![invocation],
         artifacts: Vec::new(),

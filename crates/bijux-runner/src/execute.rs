@@ -3,8 +3,8 @@ use std::time::Duration;
 
 use anyhow::{anyhow, Context, Result};
 use bijux_core::contract::ExecutionStep;
-use bijux_core::foundation::cache::CacheKey;
-use bijux_core::foundation::hashing::{
+use bijux_core::prelude::cache::CacheKey;
+use bijux_core::prelude::hashing::{
     input_fingerprint, parameters_fingerprint, run_id_from_hashes,
 };
 use bijux_core::metrics::ToolInvocationV1;

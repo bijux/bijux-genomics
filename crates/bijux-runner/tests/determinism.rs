@@ -1,4 +1,4 @@
-use bijux_core::foundation::hashing::run_id_from_hashes;
+use bijux_core::prelude::hashing::run_id_from_hashes;
 
 #[test]
 fn run_id_is_deterministic_for_same_inputs() {

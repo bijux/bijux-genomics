@@ -11,7 +11,7 @@ fn manifest_has_required_fields() {
         pipeline: "fastq-to-fastq__default__v1".to_string(),
         graph_hash: "sha256:graph".to_string(),
         cache_key: None,
-        layout: bijux_core::foundation::input_assessment::FastqLayout::SingleEnd,
+        layout: bijux_core::prelude::input_assessment::FastqLayout::SingleEnd,
         stages: Vec::new(),
         tool_invocations: vec![bijux_core::metrics::ToolInvocationV1 {
             schema_version: "bijux.tool_invocation.v1".to_string(),

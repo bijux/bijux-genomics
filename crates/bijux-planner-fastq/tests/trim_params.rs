@@ -1,5 +1,5 @@
 use anyhow::Result;
-use bijux_core::foundation::hashing::params_hash;
+use bijux_core::prelude::hashing::params_hash;
 use bijux_domain_fastq;
 
 #[test]

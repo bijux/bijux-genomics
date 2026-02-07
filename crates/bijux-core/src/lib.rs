@@ -5,7 +5,7 @@
 /// Contract bible (stable, serialized interfaces).
 pub mod contract;
 /// Foundation primitives for core (hashing, errors, IO-agnostic helpers).
-pub mod foundation;
+pub(crate) mod foundation;
 /// Strongly typed identifiers.
 pub mod ids;
 /// Metrics types and registries.

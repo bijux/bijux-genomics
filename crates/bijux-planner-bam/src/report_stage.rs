@@ -2,7 +2,7 @@ use std::path::Path;
 
 use bijux_core::contract::ExecutionStep;
 use bijux_core::contract::{ArtifactRef, StageIO, ToolConstraints};
-use bijux_core::foundation::{CommandSpecV1, ContainerImageRefV1};
+use bijux_core::prelude::{CommandSpecV1, ContainerImageRefV1};
 use bijux_core::prelude::{StageId, StepId};
 
 #[must_use]

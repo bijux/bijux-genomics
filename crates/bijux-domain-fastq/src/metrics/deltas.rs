@@ -44,8 +44,8 @@ pub fn ratio_u64(num: u64, denom: u64) -> f64 {
 
 #[must_use]
 pub fn compute_delta(
-    before: bijux_core::foundation::measure::SeqkitMetrics,
-    after: bijux_core::foundation::measure::SeqkitMetrics,
+    before: bijux_core::prelude::measure::SeqkitMetrics,
+    after: bijux_core::prelude::measure::SeqkitMetrics,
 ) -> FastqDelta {
     let read_retention = if before.reads > 0 {
         ratio_u64(after.reads, before.reads)

@@ -219,8 +219,8 @@ pub fn write_cross_run_manifest(
             .get("tool_image_digest")
             .and_then(serde_json::Value::as_str)
             .unwrap_or("unknown");
-        bijux_core::foundation::CacheKey::new(
-            bijux_core::foundation::input_fingerprint(&input_hashes),
+        bijux_core::prelude::CacheKey::new(
+            bijux_core::prelude::input_fingerprint(&input_hashes),
             params_hash,
             tool_version,
             env_digest,

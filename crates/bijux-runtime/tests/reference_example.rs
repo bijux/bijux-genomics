@@ -2,7 +2,7 @@ use std::fs;
 use std::path::PathBuf;
 
 use bijux_core::contract::ContractVersion;
-use bijux_core::foundation::input_assessment::FastqLayout;
+use bijux_core::prelude::input_assessment::FastqLayout;
 use bijux_runtime::recording::{
     prepare_tool_run_dirs, write_canonical_json, write_run_manifest, RunArtifactInput,
 };

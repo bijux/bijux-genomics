@@ -2,4 +2,4 @@
 source: crates/bijux-core/tests/public_surface.rs
 expression: snapshot
 ---
-pub mod\n  contract\n  explain\n  helpers\n  ids\n  metadata\n  metrics\n  metrics_registry\n  plan\n  prelude\n  primitives\n  run_index\n\npub use\n  pub use prelude::*;
+pub mod\n  contract\n  ids\n  metrics\n  prelude\n\npub use\n  

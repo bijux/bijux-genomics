@@ -8,8 +8,8 @@ use bijux_analyze::{
     append_jsonl, metric_set, BenchmarkContext, BenchmarkRecord, FastqStatsMetrics,
     LengthHistogramBin,
 };
-use bijux_core::foundation::errors::ErrorCategory;
-use bijux_core::foundation::measure::ExecutionMetrics;
+use bijux_core::prelude::errors::ErrorCategory;
+use bijux_core::prelude::measure::ExecutionMetrics;
 use bijux_core::metrics::MetricContextV1;
 use bijux_core::prelude::params_hash;
 use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
@@ -18,7 +18,7 @@ use bijux_runtime::{RunProvenanceV1, StageObservabilityContextV1};
 use uuid::Uuid;
 
 use bijux_core::contract::validate_execution_outputs;
-use bijux_core::foundation::measure::SeqkitMetrics;
+use bijux_core::prelude::measure::SeqkitMetrics;
 use bijux_environment_qa::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use bijux_infra::hash_file_sha256;
 use bijux_infra::{bench_base_dir, bench_tools_dir};

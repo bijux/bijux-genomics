@@ -1,5 +1,4 @@
 pub mod contract;
-pub mod foundation;
 pub mod ids;
 pub mod metrics;
 pub mod prelude;

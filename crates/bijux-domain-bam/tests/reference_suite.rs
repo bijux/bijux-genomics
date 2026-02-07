@@ -2,7 +2,7 @@ use std::fs;
 use std::path::PathBuf;
 
 use anyhow::Result;
-use bijux_core::foundation::invariants::InvariantStatusV1;
+use bijux_core::prelude::invariants::InvariantStatusV1;
 use bijux_domain_bam::metrics::{
     authenticity_score, evaluate_bam_invariants, BamInvariantThresholds, BamMetricsV1,
     SexConfidenceClass,

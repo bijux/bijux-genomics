@@ -17,8 +17,17 @@ fn docs_cover_public_api_modules() {
 
     let modules: Vec<String> = public_api
         .lines()
-        .filter_map(|line| line.strip_prefix("- "))
-        .map(|s| s.trim().to_lowercase())
+        .filter_map(|line| {
+            let line = line.trim();
+            if let Some(rest) = line.strip_prefix("- `") {
+                return rest.strip_suffix('`').map(|s| s.to_string());
+            }
+            if let Some(rest) = line.strip_prefix("- ") {
+                return Some(rest.trim().to_string());
+            }
+            None
+        })
+        .map(|s| s.to_lowercase())
         .filter(|s| !s.is_empty())
         .collect();
 
@@ -38,7 +47,7 @@ fn minimal_contract_example_builds() {
     use bijux_core::contract::execution::PlanPolicy;
     use bijux_core::contract::execution::{ExecutionEdge, ExecutionGraph, ExecutionStep};
     use bijux_core::contract::{ArtifactRole, StageIO, ToolConstraints};
-    use bijux_core::foundation::{CommandSpecV1, ContainerImageRefV1};
+    use bijux_core::prelude::{CommandSpecV1, ContainerImageRefV1};
     use bijux_core::ids::{ArtifactId, PipelineId, StageId, StepId};
     use std::path::PathBuf;
 

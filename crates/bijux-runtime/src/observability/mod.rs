@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use bijux_core::contract::ToolConstraints;
-use bijux_core::foundation::invariants::{InvariantResultV1, InvariantStatusV1, StageVerdictV1};
+use bijux_core::prelude::invariants::{InvariantResultV1, InvariantStatusV1, StageVerdictV1};
 use bijux_core::metrics::{AdapterBankProvenanceV1, MetricContextV1};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

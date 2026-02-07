@@ -1,7 +1,7 @@
 #![allow(clippy::map_unwrap_or, clippy::unnecessary_wraps)]
 
 use anyhow::Result;
-use bijux_core::foundation::invariants::InvariantStatusV1;
+use bijux_core::prelude::invariants::InvariantStatusV1;
 use bijux_domain_bam::invariants::{bam_invariant_specs, BamInvariantThresholds};
 use bijux_domain_bam::metrics::{
     evaluate_bam_invariants, AuthenticityScoreV1, BamMetricsV1, DamageComparisonV1,
