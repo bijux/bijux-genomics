@@ -13,6 +13,7 @@ expression: output
 
 [bijux-api]
 - API.md
+- API_STABILITY.md
 - ARCHITECTURE.md
 - Cargo.toml
 - SCOPE.md
@@ -21,6 +22,7 @@ expression: output
 
 [bijux-benchmark]
 - ARCHITECTURE.md
+- BENCH_CONTRACT.md
 - Cargo.toml
 - SCOPE.md
 - src/
@@ -35,6 +37,7 @@ expression: output
 
 [bijux-cli]
 - ARCHITECTURE.md
+- COMMANDS.md
 - CLI_CONVENTIONS.md
 - Cargo.toml
 - SCOPE.md
@@ -44,6 +47,7 @@ expression: output
 [bijux-core]
 - ARCHITECTURE.md
 - BOUNDARIES.md
+- CONTRIBUTING.md
 - CONTRACT_VERSIONING.md
 - Cargo.toml
 - PUBLIC_API.md
@@ -75,6 +79,7 @@ expression: output
 [bijux-engine]
 - ARCHITECTURE.md
 - Cargo.toml
+- ERRORS.md
 - ENGINE_CONTRACT.md
 - SCOPE.md
 - src/
@@ -107,6 +112,7 @@ expression: output
 [bijux-pipelines]
 - ARCHITECTURE.md
 - Cargo.toml
+- PIPELINES.md
 - PIPELINE_MODEL.md
 - PIPELINE_VERSIONING.md
 - SCOPE.md
