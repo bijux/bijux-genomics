@@ -3,15 +3,19 @@ mod support;
 
 use walkdir::WalkDir;
 
-const ALLOWLIST: &[&str] = &[
-    "/crates/bijux-runner/",
-    "/crates/bijux-environment-qa/",
-    "/crates/bijux-cli/",
+const ALLOWLIST: &[(&str, &str)] = &[
+    ("/crates/bijux-runner/", "execution backends"),
+    ("/crates/bijux-environment-qa/", "qa harness"),
+    ("/crates/bijux-cli/", "cli entrypoints"),
 ];
 
 const EFFECT_PATTERNS: &[&str] = &[
     "std::process::Command",
     "Command::new",
+    "std::process::Stdio",
+    "docker",
+    "apptainer",
+    "singularity",
     "std::fs::remove_file",
     "std::fs::remove_dir",
     "std::fs::remove_dir_all",
@@ -35,7 +39,7 @@ fn effect_boundary_map() {
         if path_str.contains("/tests/") {
             continue;
         }
-        if ALLOWLIST.iter().any(|allowed| path_str.contains(allowed)) {
+        if ALLOWLIST.iter().any(|(allowed, _reason)| path_str.contains(allowed)) {
             continue;
         }
         let content = support::read_to_string(entry.path());
@@ -46,8 +50,8 @@ fn effect_boundary_map() {
 
     assert!(
         offenders.is_empty(),
-        "Effect boundary violation: process/FS effects are only allowed in runner/QA/CLI.\n\
-Fix by moving effects into bijux-runner or bijux-environment-qa, or add a narrow allowlist.\n\
+        "Effect boundary violation: process/Docker/FS effects are only allowed in boundary crates.\n\
+Fix by moving effects into bijux-runner or bijux-environment-qa, or add a narrow allowlist with a reason.\n\
 See STYLE.md for boundary rules.\n\
 Offenders:\n{}",
         offenders.join("\n")
