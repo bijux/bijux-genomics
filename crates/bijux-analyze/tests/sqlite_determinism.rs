@@ -1,7 +1,8 @@
 #![cfg(feature = "sqlite")]
 
 use anyhow::Result;
-use bijux_analyze::{fetch_fastq_trim_v1, metric_set, FastqDeltaMetrics, FastqTrimMetrics};
+use bijux_analyze::load::sqlite::core_trim::fetch_fastq_trim_v1;
+use bijux_analyze::{metric_set, FastqDeltaMetrics, FastqTrimMetrics};
 
 use rusqlite::Connection;
 
