@@ -1,6 +1,6 @@
 //! YAML parsing/rendering helpers for config compatibility.
 //!
-//! YAML is intentionally constrained; see docs/WHY_YAML.md for the
+//! YAML is intentionally constrained; see `docs/WHY_YAML.md` for the
 //! allowlist rationale.
 
 #[cfg(feature = "yaml")]
