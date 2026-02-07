@@ -635,7 +635,9 @@ mod tests {
     use super::StageExecutionSummary;
     use super::{write_run_manifest, write_scientific_provenance};
     use bijux_core::metrics::{AdapterBankProvenanceV1, ToolInvocationV1};
-    use bijux_core::{CommandSpecV1, ContainerImageRefV1, StageVersion, ToolConstraints, ToolId};
+    use bijux_core::prelude::{
+        ArtifactId, CommandSpecV1, ContainerImageRefV1, StageVersion, ToolConstraints, ToolId,
+    };
     use bijux_planner_fastq::stage_api::STAGE_TRIM;
     use bijux_runner::primitives::StageResultV1;
     use bijux_stage_contract::{StageIO, StagePlanV1};
