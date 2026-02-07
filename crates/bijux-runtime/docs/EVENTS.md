@@ -1,13 +1,18 @@
 # EVENTS
 
-## Schema
-Runtime emits structured events for:
-- Step start/end
-- Artifact verification
-- Cache hits
+## Emitted events
+- step_start
+- step_end
+- artifact_verified
+- cache_hit
+
+## Required fields
+- event
+- step_id
+- timestamp
 
 ## Stability
-Event fields are versioned through the contract version. Additive changes bump minor; breaking changes bump major.
+Additive fields are backward compatible.
 
-## Sinks
-Events are recorded through the runtime recorder interface. Sinks configure storage location and filtering.
+## Privacy
+Do not emit PII. Redact sensitive values.
