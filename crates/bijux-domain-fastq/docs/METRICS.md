@@ -1,9 +1,9 @@
 # METRICS
 
-Retention metrics must include:
+Retention must include:
 - numerator
 - denominator
 - units
 - conditions
 
-No naked retention scalar is allowed.
+Truthful retention requires recording context.
