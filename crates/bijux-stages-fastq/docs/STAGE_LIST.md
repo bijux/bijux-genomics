@@ -1,23 +1,13 @@
 # STAGE_LIST
 
-## Essentials
-- `fastq.validate` — Validate FASTQ formatting.
-  - Inputs: FASTQ
-  - Outputs: validation report
-  - Metrics: read count, base count
-- `fastq.trim` — Adapter trimming and quality filtering.
-  - Inputs: FASTQ
-  - Outputs: trimmed FASTQ
-  - Metrics: retention (numerator/denominator), bases kept
-
-## Recommended
-- `fastq.merge` — Merge paired reads where applicable.
-  - Inputs: paired FASTQ
-  - Outputs: merged FASTQ
-  - Metrics: merge rate
-
-## Optional
-- `fastq.screen` — Screen contaminants.
-  - Inputs: FASTQ
-  - Outputs: screened FASTQ
-  - Metrics: contaminant proportion
+| Stage | Class | Inputs | Outputs | Metrics |
+| --- | --- | --- | --- | --- |
+| fastq.validate_pre | Essential | FASTQ | report.json | read_count, base_count |
+| fastq.trim | Essential | FASTQ | trimmed FASTQ | retention, bases_kept |
+| fastq.merge | Recommended | paired FASTQ | merged FASTQ | merge_rate |
+| fastq.filter | Recommended | FASTQ | filtered FASTQ | filter_counts |
+| fastq.screen | Optional | FASTQ | screened FASTQ | contaminant_rate |
+| fastq.qc_post | Optional | FASTQ | qc report | qc_metrics |
+| fastq.stats_neutral | Optional | FASTQ | stats report | read_count, base_count |
+| fastq.correct | Optional | FASTQ | corrected FASTQ | correction_rate |
+| fastq.umi | Optional | FASTQ | umi FASTQ | umi_stats |
