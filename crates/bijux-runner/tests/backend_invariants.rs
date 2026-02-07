@@ -3,17 +3,12 @@ use bijux_core::foundation::CommandSpecV1;
 #[test]
 fn backend_invariants_are_documented() {
     let doc = std::fs::read_to_string(
-        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("BACKENDS.md"),
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("docs")
+            .join("BACKENDS.md"),
     )
-    .expect("BACKENDS.md missing");
-    for phrase in [
-        "cwd",
-        "mount",
-        "env",
-        "stdout",
-        "stderr",
-        "exit",
-    ] {
+    .expect("docs/BACKENDS.md missing");
+    for phrase in ["cwd", "mount", "env", "stdout", "stderr", "exit"] {
         assert!(doc.contains(phrase), "BACKENDS.md missing {phrase}");
     }
 }

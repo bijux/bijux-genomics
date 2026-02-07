@@ -11,7 +11,9 @@ use bijux_core::metrics::ToolInvocationV1;
 use bijux_environment::api::RunnerKind;
 use uuid::Uuid;
 
-use crate::backend::docker::executor::{docker_logs, docker_wait, docker_wait_timeout, parse_mem_to_mb};
+use crate::backend::docker::executor::{
+    docker_logs, docker_wait, docker_wait_timeout, parse_mem_to_mb,
+};
 use crate::runner_core::{run_command, CommandOutputV1};
 
 #[derive(Debug, Clone)]
