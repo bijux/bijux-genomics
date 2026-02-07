@@ -15,7 +15,7 @@ fn domain_is_execution_free() {
         let content = std::fs::read_to_string(entry.path()).unwrap_or_default();
         if content.contains("std::process::Command")
             || content.contains("docker")
-            || content.contains("RunnerKind")
+            || content.contains("RuntimeKind")
         {
             offenders.push(entry.path().display().to_string());
         }
