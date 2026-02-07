@@ -13,4 +13,11 @@ pub enum EngineError {
     Observation(String),
     #[error("validation error: {0}")]
     Validation(String),
+    #[error("contract error on step {step_id}: {message} (artifact: {artifact_id}, path: {path})")]
+    Contract {
+        step_id: String,
+        artifact_id: String,
+        path: String,
+        message: String,
+    },
 }
