@@ -1,8 +1,7 @@
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
-use crate::contract::ContractVersion;
-use crate::foundation::Result;
+use crate::foundation::{ContractVersion, Result};
 use bijux_infra::atomic_write_bytes;
 use chrono::Utc;
 use regex::Regex;
