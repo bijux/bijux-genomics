@@ -1,14 +1,13 @@
-//! Owner: bijux-analyze
-//! Minimal HTML renderer for report models.
+//! HTML rendering subsystem.
+
+mod sections;
+mod template;
 
 use crate::report::model::ReportModel;
 use anyhow::Result;
 
-mod html_sections;
-mod html_template;
-
-use html_sections::{build_nav_items, build_section_blocks, build_stage_panels, build_stage_tabs};
-use html_template::build_html_template;
+use sections::{build_nav_items, build_section_blocks, build_stage_panels, build_stage_tabs};
+use template::build_html_template;
 
 #[allow(dead_code)]
 pub fn render_report_html(model: &ReportModel) -> Result<String> {
