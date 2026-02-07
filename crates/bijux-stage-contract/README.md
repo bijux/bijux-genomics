@@ -10,7 +10,13 @@ No execution details or runner/env concepts.
 Upstream: core IDs. Downstream: planners/engine.
 
 ## Public API / entrypoints
-See `docs/INDEX.md`, `docs/CONTRACT.md`, `docs/SCHEMAS.md`, `docs/VERSIONING.md`, `docs/MINIMALITY.md`, `docs/CHANGE_RULES.md`.
+See `docs/INDEX.md`, `docs/CONTRACT.md`, `docs/PUBLIC_API.md`, `docs/SCHEMAS.md`, `docs/VERSIONING.md`, `docs/MINIMALITY.md`, `docs/CHANGE_RULES.md`.
+
+## Public types
+- `ExecutionPlan`
+- `StagePlan`
+- `StageSpecRef`
+- `PluginSpec`
 
 ## Key contracts it owns/consumes
 Plan JSON shapes and fixtures.
@@ -19,10 +25,13 @@ Plan JSON shapes and fixtures.
 Pure contract types; deterministic serialization. See `docs/EFFECTS.md` and the golden tests below.
 
 ## How to run its tests
-See `docs/TESTS.md`. Golden tests: `tests/public_type_snapshots.rs`, `tests/schema_snapshots.rs`, `tests/no_execution_scan.rs`.
+See `docs/TESTS.md`. Golden tests: `tests/schema/public_type_snapshots.rs`, `tests/schema/schema_snapshots.rs`, `tests/guardrails/no_execution_scan.rs`.
 
 ## Where the docs live
 Start at `docs/INDEX.md` and follow the crate docs listed above.
+
+## Start here in code
+`src/lib.rs` and `src/execution_plan.rs`.
 
 ## Failure modes
 Primary failures surface as snapshot or contract violations; inspect the golden tests and referenced docs.
