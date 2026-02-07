@@ -18,6 +18,10 @@ pub mod params;
 pub mod pipeline_contract;
 pub mod prelude;
 pub mod run;
+pub mod stage_contract;
+pub mod stage_ids;
+pub mod stage_semantics;
+pub mod stage_specs;
 pub mod stages;
 pub mod types;
 
