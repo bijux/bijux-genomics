@@ -1,20 +1,21 @@
 ---
 source: crates/bijux-api/tests/api_stability.rs
+assertion_line: 135
 expression: json
 ---
 {
   "guardrails": {
+    "bijux-api": {
+      "error": "<error>",
+      "status": "fail"
+    },
     "bijux-core": {
-      "error": null,
-      "status": "ok"
+      "error": "<error>",
+      "status": "fail"
     },
     "bijux-engine": {
-      "error": null,
-      "status": "ok"
-    },
-    "bijux-api": {
-      "error": null,
-      "status": "ok"
+      "error": "<error>",
+      "status": "fail"
     }
   }
 }
