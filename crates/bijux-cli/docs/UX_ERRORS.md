@@ -1,9 +1,6 @@
 # UX_ERRORS
 
-## Error taxonomy
-- ContractError: invalid plan or manifest
-- ToolError: non-zero exit
-- PolicyError: boundary violation
-
-## Resolution
-Each error includes the failing step and suggested fix.
+## Mapping
+- ContractError → "invalid plan/manifest" → inspect graph/manifest
+- ToolError → "tool failed" → inspect execution_record
+- InfraError → "filesystem error" → check permissions
