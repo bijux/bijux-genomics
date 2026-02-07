@@ -22,11 +22,15 @@ fn public_surface_is_constrained() -> anyhow::Result<()> {
     }
 
     let allowed_mods = [
+        "bench_repository",
         "banks",
         "invariants",
+        "metrics",
         "params",
+        "prelude",
         "pipeline_contract",
         "run",
+        "stages",
         "stage_contract",
         "stage_ids",
         "stage_semantics",
@@ -41,8 +45,13 @@ fn public_surface_is_constrained() -> anyhow::Result<()> {
     }
     let allowed_substrings = [
         "adapter_bank",
+        "banks",
         "contaminant_bank",
+        "bench_repository",
+        "metrics",
         "polyx_bank",
+        "prelude",
+        "stages",
         "stage_contract",
         "stage_ids",
         "stage_semantics",
