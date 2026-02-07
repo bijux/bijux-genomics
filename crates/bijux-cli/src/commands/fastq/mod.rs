@@ -63,79 +63,78 @@ pub(crate) fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool>
             }
             Ok(true)
         }
-        Commands::Pipelines { command } => {
-            match command {
-                PipelinesCommand::List {
-                    domain,
-                    show_experimental,
-                } => {
-                    let profiles = bijux_api::v1::api::plan::select_pipelines(
-                        domain.map(cli::parse::PipelineDomainArg::as_domain),
-                        *show_experimental,
+        Commands::Pipelines { command } => match command {
+            PipelinesCommand::List {
+                domain,
+                show_experimental,
+            } => {
+                let profiles = bijux_api::v1::api::plan::select_pipelines(
+                    domain.map(cli::parse::PipelineDomainArg::as_domain),
+                    *show_experimental,
+                );
+                for profile in profiles {
+                    println!(
+                        "{}\t{}\t{}",
+                        profile.id.as_str(),
+                        profile.stability.as_str(),
+                        profile.description
                     );
-                    for profile in profiles {
-                        println!(
-                            "{}\t{}\t{}",
-                            profile.id.as_str(),
-                            profile.stability.as_str(),
-                            profile.description
-                        );
-                    }
-                    Ok(true)
                 }
-                PipelinesCommand::Explain { id } => {
-                    let profile = bijux_api::v1::api::plan::select_pipelines(None, true)
-                        .into_iter()
-                        .find(|profile| profile.id.as_str() == id)
-                        .ok_or_else(|| anyhow!("unknown pipeline profile: {id}"))?;
-                    let payload = serde_json::json!({
-                        "profile": profile,
-                        "defaults_ledger": profile.defaults_ledger(),
-                        "promised_outputs": profile.capabilities.produces_outputs,
-                        "report_sections": profile.capabilities.report_sections,
-                    });
-                    render::json::print_pretty(&payload)?;
-                    Ok(true)
-                }
-                PipelinesCommand::Audit {
-                    domain,
-                    show_experimental,
-                } => {
-                    let profiles = bijux_api::v1::api::plan::select_pipelines(
-                        domain.map(cli::parse::PipelineDomainArg::as_domain),
-                        *show_experimental,
+                Ok(true)
+            }
+            PipelinesCommand::Explain { id } => {
+                let profile = bijux_api::v1::api::plan::select_pipelines(None, true)
+                    .into_iter()
+                    .find(|profile| profile.id.as_str() == id)
+                    .ok_or_else(|| anyhow!("unknown pipeline profile: {id}"))?;
+                let payload = serde_json::json!({
+                    "profile": profile,
+                    "defaults_ledger": profile.defaults_ledger(),
+                    "promised_outputs": profile.capabilities.produces_outputs,
+                    "report_sections": profile.capabilities.report_sections,
+                });
+                render::json::print_pretty(&payload)?;
+                Ok(true)
+            }
+            PipelinesCommand::Audit {
+                domain,
+                show_experimental,
+            } => {
+                let profiles = bijux_api::v1::api::plan::select_pipelines(
+                    domain.map(cli::parse::PipelineDomainArg::as_domain),
+                    *show_experimental,
+                );
+                for profile in profiles {
+                    println!(
+                        "{}\t{}\t{}",
+                        profile.id.as_str(),
+                        profile.stability.as_str(),
+                        profile.description
                     );
-                    for profile in profiles {
-                        println!(
-                            "{}\t{}\t{}",
-                            profile.id.as_str(),
-                            profile.stability.as_str(),
-                            profile.description
-                        );
-                        let stage_ids = match profile.id.as_str() {
-                            "fastq-to-fastq__default__v1" | "fastq-to-fastq__minimal__v1" => {
-                                bijux_api::v1::api::plan::fastq_pipeline_stage_ids(profile.id.as_str())
-                            }
-                            "fastq-to-bam__default__v1" | "fastq-to-bam__adna_shotgun__v1" => {
-                                bijux_api::v1::api::plan::cross_fastq_to_bam_stage_ids(
-                                    profile.id.as_str(),
-                                )
-                            }
-                            "bam-to-bam__default__v1"
-                            | "bam-to-bam__adna_shotgun__v1"
-                            | "bam-to-bam__adna_capture__v1" => {
-                                bijux_api::v1::api::plan::bam_pipeline_stage_ids(profile.id.as_str())
-                            }
-                            _ => Vec::new(),
-                        };
-                        for stage_id in stage_ids {
-                            if stage_id.starts_with("bam.") {
-                                let stage =
-                                    bijux_api::v1::api::bench::BamStage::try_from(stage_id.as_str())
+                    let stage_ids = match profile.id.as_str() {
+                        "fastq-to-fastq__default__v1" | "fastq-to-fastq__minimal__v1" => {
+                            bijux_api::v1::api::plan::fastq_pipeline_stage_ids(profile.id.as_str())
+                        }
+                        "fastq-to-bam__default__v1" | "fastq-to-bam__adna_shotgun__v1" => {
+                            bijux_api::v1::api::plan::cross_fastq_to_bam_stage_ids(
+                                profile.id.as_str(),
+                            )
+                        }
+                        "bam-to-bam__default__v1"
+                        | "bam-to-bam__adna_shotgun__v1"
+                        | "bam-to-bam__adna_capture__v1" => {
+                            bijux_api::v1::api::plan::bam_pipeline_stage_ids(profile.id.as_str())
+                        }
+                        _ => Vec::new(),
+                    };
+                    for stage_id in stage_ids {
+                        if stage_id.starts_with("bam.") {
+                            let stage =
+                                bijux_api::v1::api::bench::BamStage::try_from(stage_id.as_str())
                                     .map_err(|_| anyhow!("unknown BAM stage {stage_id}"))?;
-                                let completeness =
-                                    bijux_api::v1::api::bench::bam_stage_completeness(stage);
-                                println!(
+                            let completeness =
+                                bijux_api::v1::api::bench::bam_stage_completeness(stage);
+                            println!(
                                     "  {stage_id}\tcomplete={}\targs={}\tartifacts={}\tparsers={}\tinvariants={}",
                                     completeness.is_complete(),
                                     completeness.has_args_builder,
@@ -143,15 +142,14 @@ pub(crate) fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool>
                                     completeness.has_parser_fixtures,
                                     completeness.has_invariants
                                 );
-                            } else {
-                                println!("  {stage_id}\tcomplete=unknown");
-                            }
+                        } else {
+                            println!("  {stage_id}\tcomplete=unknown");
                         }
                     }
-                    Ok(true)
                 }
+                Ok(true)
             }
-        }
+        },
         Commands::Analyze { command } => {
             match command {
                 AnalyzeCommand::Runs(args) => {
@@ -462,28 +460,26 @@ pub(crate) fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool>
                         )?;
                     }
                 },
-                BenchCommand::Bam { command } => {
-                    match command {
-                        BenchBamCommand::Stage(args) => {
-                            let registry = load_manifests(domain_dir)
-                                .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
-                            bijux_api::v1::api::bench::bench_bam_stage(
-                                &bench_bam_stage_args_to_api(args),
-                                &registry,
-                                cli.platform.as_deref(),
-                            )?;
-                        }
-                        BenchBamCommand::Pipeline(args) => {
-                            let registry = load_manifests(domain_dir)
-                                .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
-                            bijux_api::v1::api::bench::bench_bam_pipeline(
-                                &bench_bam_pipeline_args_to_api(args),
-                                &registry,
-                                cli.platform.as_deref(),
-                            )?;
-                        }
+                BenchCommand::Bam { command } => match command {
+                    BenchBamCommand::Stage(args) => {
+                        let registry = load_manifests(domain_dir)
+                            .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
+                        bijux_api::v1::api::bench::bench_bam_stage(
+                            &bench_bam_stage_args_to_api(args),
+                            &registry,
+                            cli.platform.as_deref(),
+                        )?;
                     }
-                }
+                    BenchBamCommand::Pipeline(args) => {
+                        let registry = load_manifests(domain_dir)
+                            .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
+                        bijux_api::v1::api::bench::bench_bam_pipeline(
+                            &bench_bam_pipeline_args_to_api(args),
+                            &registry,
+                            cli.platform.as_deref(),
+                        )?;
+                    }
+                },
                 BenchCommand::Schema { stage } => {
                     print_bench_schema(stage)?;
                 }

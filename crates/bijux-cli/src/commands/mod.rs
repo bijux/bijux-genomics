@@ -32,6 +32,7 @@ use bijux_api::v1::api::report::{
 use bijux_api::v1::api::run::init_logging;
 
 use crate::commands::cli::env::{env_doctor, print_env_images, print_env_info};
+use crate::commands::cli::render;
 use crate::commands::cli::{
     bench_args_correct, bench_args_filter, bench_args_from_trim, bench_args_from_validate,
     bench_args_merge, bench_args_preprocess, bench_args_qc_post, bench_args_screen,
@@ -43,15 +44,18 @@ use crate::commands::cli::{
 use crate::commands::formatting::{normalize_fastq_stage_id, qc_class_label};
 use crate::commands::rendering::resolve_report_inputs;
 use crate::commands::validation::{ensure_profile_run_base_dir, load_profile_for_cli};
-use crate::render;
 
+pub(crate) mod bam;
+pub(crate) mod bench;
 pub mod cli;
+pub(crate) mod fastq;
 pub(crate) mod formatting;
 pub(crate) mod rendering;
 pub(crate) mod validation;
 
-include!("bench.rs");
-include!("fastq.rs");
-include!("bam.rs");
+pub(crate) use bam::handle_bam_commands;
+pub(crate) use bench::handle_fastq_bench;
+pub(crate) use fastq::handle_meta_commands;
+
 include!("other.rs");
 include!("policies.rs");

@@ -69,13 +69,14 @@ pub(crate) fn handle_fastq_bench(
             set_tool_tier_policy(args.common.allow_silver, args.common.allow_experimental);
             set_scientific_preset(args.scientific_preset);
             if let Some(profile_id) = args.pipeline_profile.as_ref() {
-                if let Ok(profile) =
-                    bijux_api::v1::api::plan::select_pipeline(bijux_api::v1::api::plan::Domain::Cross, profile_id)
-                {
+                if let Ok(profile) = bijux_api::v1::api::plan::select_pipeline(
+                    bijux_api::v1::api::plan::Domain::Cross,
+                    profile_id,
+                ) {
                     let platform = load_platform(cli.platform.as_deref())
                         .map_err(|err| anyhow!("failed to load platform: {err}"))?;
-                    let catalog =
-                        load_image_catalog().map_err(|err| anyhow!("failed to load images: {err}"))?;
+                    let catalog = load_image_catalog()
+                        .map_err(|err| anyhow!("failed to load images: {err}"))?;
                     let runner = cli::parse_runner_override(args.env.as_deref())?;
                     let bench_args = preprocess_args_from_cli(args)?;
                     let cross_args = fastq_cross_args_from_cli(args);
@@ -107,13 +108,14 @@ pub(crate) fn handle_fastq_bench(
             );
             set_scientific_preset(args.args.scientific_preset);
             if let Some(profile_id) = args.args.pipeline_profile.as_ref() {
-                if let Ok(profile) =
-                    bijux_api::v1::api::plan::select_pipeline(bijux_api::v1::api::plan::Domain::Cross, profile_id)
-                {
+                if let Ok(profile) = bijux_api::v1::api::plan::select_pipeline(
+                    bijux_api::v1::api::plan::Domain::Cross,
+                    profile_id,
+                ) {
                     let platform = load_platform(cli.platform.as_deref())
                         .map_err(|err| anyhow!("failed to load platform: {err}"))?;
-                    let catalog =
-                        load_image_catalog().map_err(|err| anyhow!("failed to load images: {err}"))?;
+                    let catalog = load_image_catalog()
+                        .map_err(|err| anyhow!("failed to load images: {err}"))?;
                     let runner = cli::parse_runner_override(args.args.env.as_deref())?;
                     let bench_args = preprocess_args_from_cli(&args.args)?;
                     let cross_args = fastq_cross_args_from_cli(&args.args);
@@ -287,7 +289,9 @@ fn print_bank_presets() {
             println!("polyx_presets: {}", presets.join(", "));
         }
     }
-    if let Ok(selection) = bijux_api::v1::api::bench::fastq_banks::resolve_contaminant_selection(None) {
+    if let Ok(selection) =
+        bijux_api::v1::api::bench::fastq_banks::resolve_contaminant_selection(None)
+    {
         let mut presets: Vec<String> = selection
             .presets
             .presets
@@ -405,7 +409,10 @@ fn tool_tier_policy_for_fastq(command: &FastqCommand) -> (bool, bool) {
         _ => (false, false),
     }
 }
-fn explain_fastq_stage(registry: &bijux_api::v1::api::run::ToolRegistry, stage_id: &str) -> Result<()> {
+fn explain_fastq_stage(
+    registry: &bijux_api::v1::api::run::ToolRegistry,
+    stage_id: &str,
+) -> Result<()> {
     if stage_id == "fastq.preprocess" {
         let args = bijux_api::v1::api::bench::fastq_args::BenchFastqPreprocessArgs {
             sample_id: "explain".to_string(),

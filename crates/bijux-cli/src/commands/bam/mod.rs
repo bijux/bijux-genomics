@@ -1,17 +1,13 @@
-use bijux_api::v1::api::run::ToolRegistry;
-use bijux_api::v1::api::run::RunnerKind;
-use bijux_api::v1::api::run::{build_tool_execution_spec, execute_step};
 use bijux_api::v1::api::plan::Domain;
+use bijux_api::v1::api::run::RunnerKind;
+use bijux_api::v1::api::run::ToolRegistry;
+use bijux_api::v1::api::run::{build_tool_execution_spec, execute_step};
 
 use crate::commands::cli::parse::{BamCommand, BamRunArgs};
 // imports provided by entry.rs
 
 #[allow(clippy::missing_errors_doc)]
-pub fn handle_bam_commands(
-    cli: &Cli,
-    registry: &ToolRegistry,
-    domain_dir: &Path,
-) -> Result<bool> {
+pub fn handle_bam_commands(cli: &Cli, registry: &ToolRegistry, domain_dir: &Path) -> Result<bool> {
     let Commands::Bam { command } = &cli.command else {
         return Ok(false);
     };
@@ -25,7 +21,8 @@ pub fn handle_bam_commands(
         }
         BamCommand::Explain { stage } => {
             let stage_id_raw = stage.stage().as_str();
-            let stage_id = StageId::try_from(stage_id_raw).unwrap_or_else(|_| StageId::new(stage_id_raw));
+            let stage_id =
+                StageId::try_from(stage_id_raw).unwrap_or_else(|_| StageId::new(stage_id_raw));
             let manifest = registry
                 .stages()
                 .get(&stage_id)
@@ -60,8 +57,7 @@ fn run_bam_stage(
             .cloned()
             .unwrap_or_else(|| "samtools".to_string())
     });
-    let spec =
-        build_tool_execution_spec(stage.as_str(), &tool_id, registry, &catalog, &platform)?;
+    let spec = build_tool_execution_spec(stage.as_str(), &tool_id, registry, &catalog, &platform)?;
 
     let out_dir = args.out.clone();
     bijux_api::v1::api::run::ensure_dir(&out_dir).context("create bam out dir")?;
@@ -146,7 +142,10 @@ fn bam_run_args_to_api(args: &BamRunArgs) -> bijux_api::v1::api::bench::BamRunAr
         rg_lb: args.rg_lb.clone(),
         rg_policy: args.rg_policy.map(read_group_policy_to_string),
         build_reference_indices: args.build_reference_indices,
-        params_json: args.params_json.as_ref().map(|path| path.display().to_string()),
+        params_json: args
+            .params_json
+            .as_ref()
+            .map(|path| path.display().to_string()),
         dry_run: args.dry_run,
     }
 }
@@ -160,7 +159,9 @@ fn udg_model_to_string(value: crate::commands::cli::parse::UdgModelArg) -> Strin
     .to_string()
 }
 
-fn contamination_scope_to_string(value: crate::commands::cli::parse::ContaminationScopeArg) -> String {
+fn contamination_scope_to_string(
+    value: crate::commands::cli::parse::ContaminationScopeArg,
+) -> String {
     match value {
         crate::commands::cli::parse::ContaminationScopeArg::Mito => "mito",
         crate::commands::cli::parse::ContaminationScopeArg::Nuclear => "nuclear",
