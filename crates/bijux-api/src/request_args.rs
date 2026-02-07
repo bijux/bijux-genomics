@@ -162,7 +162,7 @@ pub struct PlanRunResult {
 /// Stability: v1 (stable).
 pub struct ExecuteRunRequest {
     pub plan: bijux_stage_contract::StagePlanV1,
-    pub runner: bijux_environment::api::RunnerKind,
+    pub runner: bijux_environment::api::RuntimeKind,
 }
 
 #[derive(Debug, Clone)]
@@ -224,7 +224,7 @@ pub struct PlanResponse {
 /// Stability: v1 (stable).
 pub struct ExecuteRequest {
     pub graph: bijux_core::contract::ExecutionGraph,
-    pub runner: bijux_environment::api::RunnerKind,
+    pub runner: bijux_environment::api::RuntimeKind,
     pub run_dir: PathBuf,
 }
 

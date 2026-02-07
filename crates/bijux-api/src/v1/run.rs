@@ -11,7 +11,7 @@ pub use crate::run::{
     dry_run, execute, execute_and_report, execute_run, plan, plan_only, policy_audit,
     replay_manifest, run_pipeline, status, RunMode,
 };
-pub use bijux_environment::api::{load_image_catalog, load_platform, RunnerKind};
+pub use bijux_environment::api::{load_image_catalog, load_platform, RuntimeKind};
 pub use bijux_infra::RUN_LAYOUT_CONTRACT;
 pub use bijux_infra::{atomic_write_bytes, ensure_dir, temp_dir, temp_dir_in, write_bytes};
 

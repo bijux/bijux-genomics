@@ -3,7 +3,7 @@ use anyhow::{anyhow, Context, Result};
 use bijux_core::contract::PlanPolicy;
 use bijux_core::contract::ToolRegistry;
 use bijux_core::contract::{ExecutionEdge, ExecutionGraph};
-use bijux_environment::api::{load_image_catalog, load_platform, RunnerKind};
+use bijux_environment::api::{load_image_catalog, load_platform, RuntimeKind};
 use bijux_environment_qa::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use bijux_pipelines::registry;
 use bijux_pipelines::Domain;
@@ -122,7 +122,7 @@ pub fn bench_bam_stage(
                 bijux_infra::atomic_write_bytes(&manifest_path, payload.as_slice())?;
             } else {
                 let step = bijux_stage_contract::execution_step_from_stage_plan(&plan);
-                execute_step(&step, RunnerKind::Docker, None)?;
+                execute_step(&step, RuntimeKind::Docker, None)?;
             }
             run_dirs.push(run_dir);
         }

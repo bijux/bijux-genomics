@@ -9,10 +9,10 @@ pub fn load_registry(domain_root: &std::path::Path) -> Result<bijux_core::contra
 
 pub fn ensure_bench_runner(
     platform: &bijux_environment::api::PlatformSpec,
-    runner_override: Option<bijux_environment::api::RunnerKind>,
-) -> Result<bijux_environment::api::RunnerKind> {
+    runner_override: Option<bijux_environment::api::RuntimeKind>,
+) -> Result<bijux_environment::api::RuntimeKind> {
     let runner = runner_override.unwrap_or(platform.runner);
-    if runner != bijux_environment::api::RunnerKind::Docker {
+    if runner != bijux_environment::api::RuntimeKind::Docker {
         return Err(anyhow!("benchmarking supports docker only for now"));
     }
     Ok(runner)

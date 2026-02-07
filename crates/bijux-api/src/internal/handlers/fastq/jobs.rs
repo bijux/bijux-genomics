@@ -3,7 +3,7 @@ use std::sync::{Arc, Mutex};
 
 use anyhow::{anyhow, Result};
 
-use bijux_environment::api::RunnerKind;
+use bijux_environment::api::RuntimeKind;
 use bijux_runner::primitives::{execute_step as execute_plan, StageResultV1};
 
 pub(crate) fn bench_jobs(requested: u32) -> usize {
@@ -12,7 +12,7 @@ pub(crate) fn bench_jobs(requested: u32) -> usize {
 
 pub(crate) fn execute_plans_with_jobs(
     plans: Vec<bijux_core::contract::ExecutionStep>,
-    runner: RunnerKind,
+    runner: RuntimeKind,
     jobs: usize,
 ) -> Result<Vec<StageResultV1>> {
     if jobs <= 1 || plans.len() <= 1 {

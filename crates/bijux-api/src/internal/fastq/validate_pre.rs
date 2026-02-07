@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use crate::tooling::{ensure_bench_runner, filter_tools_by_role, load_registry};
 use anyhow::{anyhow, Context, Result};
 use bijux_core::prelude::errors::ErrorCategory;
-use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
+use bijux_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_environment_qa::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use bijux_infra::{bench_base_dir, bench_tools_dir};
 use bijux_planner_fastq::select_validate_tools;
@@ -27,7 +27,7 @@ use bijux_planner_fastq::scale_tool_spec_for_jobs;
 pub fn bench_fastq_validate_pre<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
-    runner_override: Option<RunnerKind>,
+    runner_override: Option<RuntimeKind>,
     args: &bijux_planner_fastq::stage_api::args::BenchFastqValidateArgs,
 ) -> Result<BenchOutcome<bijux_analyze::FastqValidateMetrics>> {
     let tools = select_validate_tools(&args.tools)?;
