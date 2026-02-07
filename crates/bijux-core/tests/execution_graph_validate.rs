@@ -40,7 +40,10 @@ fn validate_rejects_cycles() {
         "planner",
         PlanPolicy::default(),
         vec![a.clone(), b.clone()],
-        vec![ExecutionEdge::new(a.step_id.clone(), b.step_id.clone()), ExecutionEdge::new(b.step_id, a.step_id)],
+        vec![
+            ExecutionEdge::new(a.step_id.clone(), b.step_id.clone()),
+            ExecutionEdge::new(b.step_id, a.step_id),
+        ],
     );
     assert!(graph.is_err());
 }
