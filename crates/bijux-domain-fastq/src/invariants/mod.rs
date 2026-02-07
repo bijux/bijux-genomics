@@ -1,3 +1,7 @@
+//! Owner: bijux-domain-fastq
+//! Invariants layering: core thresholds, metric invariants, and spec wiring.
+//! Core defines thresholds; metrics enforce per-stage invariants; specs bind them to stages.
+
 mod core;
 mod metrics;
 mod specs;

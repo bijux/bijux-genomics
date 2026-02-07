@@ -1,3 +1,6 @@
+//! Owner: bijux-domain-fastq
+//! Declarative stage definitions. See docs/STAGES.md for authoritative docs.
+
 pub mod analyze;
 pub mod contract;
 pub mod ids;
