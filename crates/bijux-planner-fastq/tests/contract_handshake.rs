@@ -4,9 +4,9 @@ use bijux_core::contract::PlanPolicy;
 use bijux_core::prelude::{
     CommandSpecV1, ContainerImageRefV1, StageId, ToolConstraints, ToolExecutionSpecV1, ToolId,
 };
+use bijux_planner_fastq::stage_api::default_tool_for_stage;
 use bijux_planner_fastq::{
-    compose_fastq_pipeline_steps, default_pipeline_spec, default_tool_for_stage,
-    DefaultPipelineOptions,
+    compose_fastq_pipeline_steps, default_pipeline_spec, DefaultPipelineOptions,
 };
 use bijux_stage_contract::{default_edges_for_stages, ExecutionPlan, PlanValidationContext};
 
