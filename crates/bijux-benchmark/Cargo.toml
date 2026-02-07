@@ -19,3 +19,5 @@ bijux-benchmark-model = { path = "../bijux-benchmark-model" }
 bijux-policies = { path = "../bijux-policies" }
 insta = { version = "1", features = ["json"] }
 walkdir.workspace = true
+bijux-domain-fastq = { path = "../bijux-domain-fastq" }
+bijux-domain-bam = { path = "../bijux-domain-bam" }
