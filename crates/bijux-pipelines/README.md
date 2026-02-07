@@ -1,32 +1,31 @@
 # bijux-pipelines
 
 ## What this crate does
-Defines this crate's core responsibilities and wiring.
+Defines scientific pipeline presets and profiles, including defaults ledgers and profile invariants.
 
 ## What it must not do (boundaries)
-Must only depend on approved crates; must not reach into execution or domain logic unless explicitly allowed in docs.
+Must not execute, select tools, or parse outputs. It defines declarative profiles only.
 
 ## Public API / entrypoints
-See `docs/INDEX.md` for stable entrypoints and re-exports.
+Pipeline registry and profiles are documented in `docs/PIPELINES.md` and `docs/PIPELINE_MODEL.md`.
 
 ## Key contracts it owns/consumes
-See `docs/INDEX.md` for contract ownership and consumption details.
+Owns pipeline IDs and defaults ledger semantics; consumes domain/planner contracts.
 
 ## Effects & determinism guarantees
-See `docs/EFFECTS.md` for allowed effects and determinism guarantees.
-
-## Artifacts / Contracts
-None by default unless documented in `docs/ARCHITECTURE.md`.
-
-## Failure modes
-See crate logs/tests; start with `docs/TESTS.md` for debugging paths.
+Pure data; ordering is snapshot-tested for determinism. See `tests/pipeline_registry_snapshot.rs`.
 
 ## How to run its tests
-See `docs/TESTS.md`.
+See `docs/TESTS.md`. Key tests: `tests/pipeline_registry_snapshot.rs`, `tests/pipeline_completeness.rs`, `tests/override_precedence.rs`.
 
 ## Where the docs live
-- `docs/INDEX.md`
-- `docs/SCOPE.md`
-- `docs/ARCHITECTURE.md`
-- `docs/EFFECTS.md`
-- `docs/CHANGE_RULES.md`
+Start at `docs/INDEX.md`, then read `docs/PIPELINES.md`, `docs/DEFAULTS_LEDGER.md`, and `docs/PIPELINE_VERSIONING.md`.
+
+## Artifacts / Contracts
+Produces pipeline profiles and defaults ledgers (JSON snapshots in tests).
+
+## Failure modes
+Missing defaults or unstable ordering fail completeness and snapshot tests.
+
+## Stability
+Pipeline changes require versioning updates per `docs/PIPELINE_VERSIONING.md` and `docs/CHANGE_RULES.md`.
