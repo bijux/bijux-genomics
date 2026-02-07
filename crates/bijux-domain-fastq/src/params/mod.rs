@@ -17,7 +17,6 @@ pub mod filter;
 pub mod merge;
 pub mod preprocess;
 pub mod qc_post;
-pub mod rrna;
 pub mod screen;
 pub mod trim;
 pub mod validate;
@@ -49,7 +48,7 @@ pub enum EffectiveParams {
     Trim(trim::TrimEffectiveParams),
     Filter(filter::FilterEffectiveParams),
     Merge(merge::MergeEffectiveParams),
-    Rrna(rrna::RrnaEffectiveParams),
+    Rrna(screen::RrnaEffectiveParams),
     Screen(screen::ScreenEffectiveParams),
     QcPost(qc_post::QcPostEffectiveParams),
     Preprocess(preprocess::PreprocessEffectiveParams),
@@ -124,7 +123,7 @@ pub fn parse_effective_params(
             .map(EffectiveParams::Merge);
     }
     if stage_id == &STAGE_RRNA {
-        return serde_json::from_value::<rrna::RrnaEffectiveParams>(value.clone())
+        return serde_json::from_value::<screen::RrnaEffectiveParams>(value.clone())
             .ok()
             .map(EffectiveParams::Rrna);
     }
