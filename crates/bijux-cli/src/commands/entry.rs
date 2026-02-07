@@ -3,7 +3,10 @@ use bijux_api::v1::api::run::{load_manifests, load_profile, resolve_run_base_dir
 use bijux_api::v1::api::run::{CategorizedError, ErrorCategory};
 use clap::Parser;
 
-use crate::commands::{handle_bam_commands, handle_fastq_bench, handle_meta_commands, run_plan};
+use crate::commands::bam::handle_bam_commands;
+use crate::commands::bench::handle_fastq_bench;
+use crate::commands::fastq::handle_meta_commands;
+use crate::commands::run_plan;
 use crate::commands::cli::Cli;
 
 fn main() {
