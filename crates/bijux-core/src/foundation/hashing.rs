@@ -1,7 +1,6 @@
 use sha2::Digest;
 
-use crate::contract::canonical::parameters_json_canonicalization;
-use crate::foundation::Result;
+use crate::foundation::{canonical::parameters_json_canonicalization, Result};
 
 /// Canonical params hash for run identity.
 ///
