@@ -1,31 +1,31 @@
 # bijux-testkit
 
 ## What this crate does
-Provides deterministic helpers for fixtures and snapshots used across workspace tests.
+Deterministic test helpers for fixtures/snapshots.
 
 ## What it must not do (boundaries)
-Must not contain domain logic or production dependencies. It is test-only and lightweight.
+No domain logic or production dependencies.
+
+## Role in the stack
+Upstream: none. Downstream: tests across workspace.
 
 ## Public API / entrypoints
-Helper patterns are documented in `docs/USAGE.md` and `docs/FIXTURE_STANDARDS.md`.
+See `docs/INDEX.md`, `docs/FIXTURE_STANDARDS.md`, `docs/SNAPSHOT_POLICY.md`, `docs/USAGE.md`, `docs/ARCHITECTURE.md`, `docs/CHANGE_RULES.md`.
 
 ## Key contracts it owns/consumes
-Consumes core canonicalization and provides helper wrappers; no standalone contracts.
+Test-only helpers.
 
 ## Effects & determinism guarantees
-Helpers must be deterministic and stable; see `docs/SNAPSHOT_POLICY.md`.
+Test-only utilities; deterministic output. See `docs/EFFECTS.md` and the golden tests below.
 
 ## How to run its tests
-See `docs/TESTS.md`. Key tests: `tests/docs_lightweight.rs`.
+See `docs/TESTS.md`. Golden tests: `tests/docs_lightweight.rs`.
 
 ## Where the docs live
-Start at `docs/INDEX.md`, then read `docs/FIXTURE_STANDARDS.md` and `docs/SNAPSHOT_POLICY.md`.
-
-## Artifacts / Contracts
-No runtime artifacts; used by test fixtures only.
+Start at `docs/INDEX.md` and follow the crate docs listed above.
 
 ## Failure modes
-Misuse is caught by lightweight guardrail tests.
+Primary failures surface as snapshot or contract violations; inspect the golden tests and referenced docs.
 
 ## Stability
-Helpers are stable; changes require updates to docs and tests per `docs/CHANGE_RULES.md`.
+Contract and behavior changes follow `docs/CHANGE_RULES.md`.

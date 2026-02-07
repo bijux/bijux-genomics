@@ -1,31 +1,31 @@
 # bijux-api
 
 ## What this crate does
-Defines the public API surface for planning, executing, and reporting pipelines. It is the orchestration entrypoint for consumers.
+Public API surface for plan/dry-run/execute/report/explain endpoints.
 
 ## What it must not do (boundaries)
-Must not implement tool selection logic or execution effects directly. It wires planners, engine, and runtime only.
+No tool selection or execution effects directly.
+
+## Role in the stack
+Upstream: CLI/external clients. Downstream: planners + engine + runtime.
 
 ## Public API / entrypoints
-The v1 API is documented in `docs/API.md` and `docs/ENDPOINT_GUIDES.md`.
+See `docs/INDEX.md`, `docs/API.md`, `docs/ENDPOINT_GUIDES.md`, `docs/API_STABILITY.md`, `docs/BOUNDARIES.md`, `docs/CHANGE_RULES.md`.
 
 ## Key contracts it owns/consumes
-Consumes planner outputs and runtime manifests; produces API responses and explainability payloads.
+API schemas and responses; snapshots in tests.
 
 ## Effects & determinism guarantees
-No direct process spawn. Determinism is enforced by schema snapshot tests; see `docs/API_STABILITY.md`.
+Coordinates orchestrator; no direct process spawn. See `docs/EFFECTS.md` and the golden tests below.
 
 ## How to run its tests
-See `docs/TESTS.md`. Key tests: `tests/api_stability.rs`, `tests/explain_roundtrip.rs`, `tests/contract_spine.rs`.
+See `docs/TESTS.md`. Golden tests: `tests/api_stability.rs`, `tests/explain_roundtrip.rs`, `tests/contract_spine.rs`, `tests/public_surface.rs`.
 
 ## Where the docs live
-Start at `docs/INDEX.md`, then read `docs/API.md`, `docs/ENDPOINT_GUIDES.md`, and `docs/API_STABILITY.md`.
-
-## Artifacts / Contracts
-Produces plan/execute/dry-run responses and explain payloads; see schema snapshots in `tests/snapshots/`.
+Start at `docs/INDEX.md` and follow the crate docs listed above.
 
 ## Failure modes
-Validation and schema mismatches are caught by stability tests; see `docs/API_STABILITY.md`.
+Primary failures surface as snapshot or contract violations; inspect the golden tests and referenced docs.
 
 ## Stability
-API schemas are snapshot-tested; breaking changes require updates per `docs/CHANGE_RULES.md`.
+Contract and behavior changes follow `docs/CHANGE_RULES.md`.

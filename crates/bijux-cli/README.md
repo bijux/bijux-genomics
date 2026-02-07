@@ -1,31 +1,31 @@
 # bijux-cli
 
 ## What this crate does
-User-facing command-line interface for planning, dry-running, executing, and auditing Bijux pipelines.
+User-facing CLI for planning, dry-run, execution, reporting, and audits.
 
 ## What it must not do (boundaries)
-Must not execute tools directly or reach into runner/engine internals. It calls the API only.
+No direct runner/engine dependencies; API only.
+
+## Role in the stack
+Upstream: users. Downstream: API.
 
 ## Public API / entrypoints
-CLI commands documented in `docs/COMMANDS.md` and conventions in `docs/CLI_CONVENTIONS.md`.
+See `docs/INDEX.md`, `docs/COMMANDS.md`, `docs/CLI_CONVENTIONS.md`, `docs/DRY_RUN.md`, `docs/UX_ERRORS.md`, `docs/CHANGE_RULES.md`.
 
 ## Key contracts it owns/consumes
-Consumes API responses and renders deterministic output. See `docs/DRY_RUN.md` and `docs/UX_ERRORS.md`.
+Dry-run outputs and help snapshots.
 
 ## Effects & determinism guarantees
-Only effects are reading inputs and invoking API calls. Help output and dry-run artifacts are snapshot-tested.
+CLI effects limited to input/output and API invocation. See `docs/EFFECTS.md` and the golden tests below.
 
 ## How to run its tests
-See `docs/TESTS.md`. Key tests: `tests/dry_run_fastq_golden.rs`, `tests/docs_help_snapshots.rs`, `tests/no_process_spawn.rs`.
+See `docs/TESTS.md`. Golden tests: `tests/dry_run_fastq_golden.rs`, `tests/docs_help_snapshots.rs`, `tests/no_process_spawn.rs`, `tests/architecture_guardrail.rs`.
 
 ## Where the docs live
-Start at `docs/INDEX.md`, then read `docs/COMMANDS.md`, `docs/DRY_RUN.md`, and `docs/UX_ERRORS.md`.
-
-## Artifacts / Contracts
-Dry-run emits a manifest and plan summary; see `tests/snapshots/preprocess_artifacts_tree.txt`.
+Start at `docs/INDEX.md` and follow the crate docs listed above.
 
 ## Failure modes
-CLI errors map API failures into actionable messages; see `docs/UX_ERRORS.md`.
+Primary failures surface as snapshot or contract violations; inspect the golden tests and referenced docs.
 
 ## Stability
-Help output and schemas are stable; snapshot updates follow `docs/CHANGE_RULES.md`.
+Contract and behavior changes follow `docs/CHANGE_RULES.md`.
