@@ -12,6 +12,14 @@ Upstream: core IDs. Downstream: planners/stages/analyze.
 ## Public API / entrypoints
 See `docs/INDEX.md`, `docs/PHASES.md`, `docs/METRICS.md`, `docs/PARAMS.md`, `docs/DOMAIN_MODEL.md`, `docs/CHANGE_RULES.md`.
 
+## Most important docs
+- `docs/PHASES.md`
+- `docs/METRICS.md`
+- `docs/PARAMS.md`
+
+## v1 scope
+Includes pre/core/downstream phase params and the BAM metrics surfaced in `docs/METRICS.md`.
+
 ## Key contracts it owns/consumes
 Domain JSON shapes and fixtures.
 
@@ -19,10 +27,13 @@ Domain JSON shapes and fixtures.
 Pure data/validation. See `docs/EFFECTS.md` and the golden tests below.
 
 ## How to run its tests
-See `docs/TESTS.md`. Golden tests: `tests/phase_semantics.rs`, `tests/metrics_contract.rs`, `tests/canonical_serialization.rs`, `tests/reference_suite.rs`.
+See `docs/TESTS.md`. Golden tests: `tests/invariants/phase_semantics.rs`, `tests/contracts/metrics_contract.rs`, `tests/contracts/canonical_serialization.rs`, `tests/reference_suite/reference_suite.rs`.
 
 ## Where the docs live
 Start at `docs/INDEX.md` and follow the crate docs listed above.
+
+## Start here in code
+`src/pipeline_contract.rs` → `src/stage_specs/*` → `src/metrics/*` → `src/invariants/*`.
 
 ## Failure modes
 Primary failures surface as snapshot or contract violations; inspect the golden tests and referenced docs.
