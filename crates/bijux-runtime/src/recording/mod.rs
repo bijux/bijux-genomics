@@ -1,4 +1,8 @@
 //! Recording and runtime emit helpers.
+//!
+//! Boundaries:
+//! - Only write under the run layout.
+//! - No heavy dependencies; keep this module lightweight and stable.
 
 mod io;
 mod manifests;
