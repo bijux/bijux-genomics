@@ -1,18 +1,24 @@
 # ENV_REFERENCE
 
-## Resolution Precedence
-1. Explicit image digest
+## Resolution Precedence (Executable Spec)
+1. Explicit digest in spec
 2. Versioned image tag
-3. Default tool image
+3. Default image tag
 
 ## Digest Rules
-If a digest is provided, it is authoritative and must not be overridden.
-
-## Caching
-Resolved images are cached by digest + platform.
-
-## Determinism
-Given identical specs, resolution must return the same digest and version.
+- If digest is provided, it is authoritative.
+- Tag-only references resolve to a digest via the local catalog (no network).
 
 ## Fixtures
-See `tests/reference_matrix.rs` for the curated fixture matrix and expectations.
+These examples correspond to `tests/reference_matrix.rs` fixtures.
+- tool_image_spec.json (tag → digest)
+- platform_spec.json (platform normalization)
+
+## Example
+```json
+{
+  "tool_id": "fastp",
+  "image": "ghcr.io/bijux/fastp:0.23.2",
+  "digest": "sha256:deadbeef"
+}
+```
