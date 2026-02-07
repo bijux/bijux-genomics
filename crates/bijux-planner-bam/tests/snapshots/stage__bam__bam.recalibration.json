@@ -5,29 +5,41 @@
     "inputs": [
       {
         "name": "bam",
-        "path": "reads.bam"
+        "path": "reads.bam",
+        "role": "bam",
+        "optional": false
       }
     ],
     "outputs": [
       {
         "name": "recal_bam",
-        "path": "out/recal.bam"
+        "path": "out/recal.bam",
+        "role": "bam",
+        "optional": false
       },
       {
         "name": "recal_bai",
-        "path": "out/recal.bam.bai"
+        "path": "out/recal.bam.bai",
+        "role": "index",
+        "optional": false
       },
       {
         "name": "recal_report",
-        "path": "out/recal.report.txt"
+        "path": "out/recal.report.txt",
+        "role": "report_json",
+        "optional": false
       },
       {
         "name": "summary",
-        "path": "out/recal.summary.json"
+        "path": "out/recal.summary.json",
+        "role": "report_json",
+        "optional": false
       },
       {
         "name": "stage_metrics",
-        "path": "out/stage.metrics.json"
+        "path": "out/stage.metrics.json",
+        "role": "metrics_json",
+        "optional": false
       }
     ]
   },

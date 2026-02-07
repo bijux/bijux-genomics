@@ -5,25 +5,35 @@
     "inputs": [
       {
         "name": "bam",
-        "path": "reads.bam"
+        "path": "reads.bam",
+        "role": "bam",
+        "optional": false
       }
     ],
     "outputs": [
       {
         "name": "flagstat",
-        "path": "out/flagstat.txt"
+        "path": "out/flagstat.txt",
+        "role": "report_json",
+        "optional": false
       },
       {
         "name": "idxstats",
-        "path": "out/idxstats.txt"
+        "path": "out/idxstats.txt",
+        "role": "unknown",
+        "optional": false
       },
       {
         "name": "stats",
-        "path": "out/samtools_stats.txt"
+        "path": "out/samtools_stats.txt",
+        "role": "unknown",
+        "optional": false
       },
       {
         "name": "stage_metrics",
-        "path": "out/stage.metrics.json"
+        "path": "out/stage.metrics.json",
+        "role": "metrics_json",
+        "optional": false
       }
     ]
   },

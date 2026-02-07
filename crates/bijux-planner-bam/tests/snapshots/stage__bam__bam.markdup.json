@@ -5,41 +5,59 @@
     "inputs": [
       {
         "name": "bam",
-        "path": "reads.bam"
+        "path": "reads.bam",
+        "role": "bam",
+        "optional": false
       }
     ],
     "outputs": [
       {
         "name": "markdup_bam",
-        "path": "out/markdup.bam"
+        "path": "out/markdup.bam",
+        "role": "bam",
+        "optional": false
       },
       {
         "name": "markdup_bai",
-        "path": "out/markdup.bam.bai"
+        "path": "out/markdup.bam.bai",
+        "role": "index",
+        "optional": false
       },
       {
         "name": "flagstat_before",
-        "path": "out/flagstat.before.txt"
+        "path": "out/flagstat.before.txt",
+        "role": "report_json",
+        "optional": false
       },
       {
         "name": "flagstat_after",
-        "path": "out/flagstat.after.txt"
+        "path": "out/flagstat.after.txt",
+        "role": "report_json",
+        "optional": false
       },
       {
         "name": "idxstats_before",
-        "path": "out/idxstats.before.txt"
+        "path": "out/idxstats.before.txt",
+        "role": "unknown",
+        "optional": false
       },
       {
         "name": "idxstats_after",
-        "path": "out/idxstats.after.txt"
+        "path": "out/idxstats.after.txt",
+        "role": "unknown",
+        "optional": false
       },
       {
         "name": "summary",
-        "path": "out/markdup.summary.json"
+        "path": "out/markdup.summary.json",
+        "role": "report_json",
+        "optional": false
       },
       {
         "name": "stage_metrics",
-        "path": "out/stage.metrics.json"
+        "path": "out/stage.metrics.json",
+        "role": "metrics_json",
+        "optional": false
       }
     ]
   },

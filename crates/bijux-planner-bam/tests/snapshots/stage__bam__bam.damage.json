@@ -5,21 +5,29 @@
     "inputs": [
       {
         "name": "bam",
-        "path": "reads.bam"
+        "path": "reads.bam",
+        "role": "bam",
+        "optional": false
       }
     ],
     "outputs": [
       {
         "name": "damage_pydamage",
-        "path": "out/damage.pydamage.json"
+        "path": "out/damage.pydamage.json",
+        "role": "unknown",
+        "optional": false
       },
       {
         "name": "damage_mapdamage2",
-        "path": "out/damage.mapdamage2.txt"
+        "path": "out/damage.mapdamage2.txt",
+        "role": "unknown",
+        "optional": false
       },
       {
         "name": "stage_metrics",
-        "path": "out/stage.metrics.json"
+        "path": "out/stage.metrics.json",
+        "role": "metrics_json",
+        "optional": false
       }
     ]
   },

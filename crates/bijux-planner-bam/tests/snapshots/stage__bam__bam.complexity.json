@@ -5,25 +5,35 @@
     "inputs": [
       {
         "name": "bam",
-        "path": "reads.bam"
+        "path": "reads.bam",
+        "role": "bam",
+        "optional": false
       }
     ],
     "outputs": [
       {
         "name": "complexity_report",
-        "path": "out/complexity.json"
+        "path": "out/complexity.json",
+        "role": "report_json",
+        "optional": false
       },
       {
         "name": "preseq",
-        "path": "out/preseq.txt"
+        "path": "out/preseq.txt",
+        "role": "unknown",
+        "optional": false
       },
       {
         "name": "summary",
-        "path": "out/complexity.summary.json"
+        "path": "out/complexity.summary.json",
+        "role": "report_json",
+        "optional": false
       },
       {
         "name": "stage_metrics",
-        "path": "out/stage.metrics.json"
+        "path": "out/stage.metrics.json",
+        "role": "metrics_json",
+        "optional": false
       }
     ]
   },

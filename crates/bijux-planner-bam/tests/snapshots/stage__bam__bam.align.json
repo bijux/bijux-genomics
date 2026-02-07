@@ -5,45 +5,65 @@
     "inputs": [
       {
         "name": "fastq_r1",
-        "path": "reads_R1.fastq.gz"
+        "path": "reads_R1.fastq.gz",
+        "role": "reads",
+        "optional": false
       },
       {
         "name": "reference",
-        "path": "reference.fasta"
+        "path": "reference.fasta",
+        "role": "index",
+        "optional": false
       },
       {
         "name": "fastq_r2",
-        "path": "reads_R2.fastq.gz"
+        "path": "reads_R2.fastq.gz",
+        "role": "reads",
+        "optional": false
       }
     ],
     "outputs": [
       {
         "name": "align_bam",
-        "path": "out/align.bam"
+        "path": "out/align.bam",
+        "role": "bam",
+        "optional": false
       },
       {
         "name": "align_bai",
-        "path": "out/align.bam.bai"
+        "path": "out/align.bam.bai",
+        "role": "index",
+        "optional": false
       },
       {
         "name": "flagstat",
-        "path": "out/flagstat.txt"
+        "path": "out/flagstat.txt",
+        "role": "report_json",
+        "optional": false
       },
       {
         "name": "idxstats",
-        "path": "out/idxstats.txt"
+        "path": "out/idxstats.txt",
+        "role": "unknown",
+        "optional": false
       },
       {
         "name": "stats",
-        "path": "out/samtools_stats.txt"
+        "path": "out/samtools_stats.txt",
+        "role": "unknown",
+        "optional": false
       },
       {
         "name": "align_metrics",
-        "path": "out/align.metrics.json"
+        "path": "out/align.metrics.json",
+        "role": "metrics_json",
+        "optional": false
       },
       {
         "name": "stage_metrics",
-        "path": "out/stage.metrics.json"
+        "path": "out/stage.metrics.json",
+        "role": "metrics_json",
+        "optional": false
       }
     ]
   },
