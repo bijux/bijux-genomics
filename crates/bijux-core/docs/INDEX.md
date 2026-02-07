@@ -1,16 +1,24 @@
 # bijux-core Docs Index
 
-## Scope
-See `SCOPE.md` for what belongs here.
+## Canonical entry
+This is the canonical entry point for bijux-core documentation.
 
-## Effects
-See `EFFECTS.md` for allowed effects.
+## Public surface
+Public modules are `contract`, `ids`, `metrics`, and `prelude`.
 
-## Boundaries
-See `ARCHITECTURE.md` for internal boundaries.
+## Start here
+- `CONTRACT_MAP.md` for what contracts exist and where they live.
+- `CONTRACT_VERSIONING.md` for breaking-change rules and hashing stability.
+- `BOUNDARIES.md` for what must never live in bijux-core.
 
-## Extension Points
-See `CHANGE_RULES.md` for safe extension guidelines.
+## Architecture & scope
+- `SCOPE.md` for what belongs here.
+- `ARCHITECTURE.md` for module layout.
+- `SSOT.md` for single-source-of-truth responsibilities.
 
-## How to Test
-See `TESTS.md` for test mapping and fixtures.
+## Serialization & invariants
+- `SERIALIZATION.md` for canonical JSON and hashing.
+- `INVARIANTS.md` for contract invariants.
+
+## Tests
+- `TESTS.md` for the test map and fixture coverage.
