@@ -8,7 +8,7 @@ fn explainability_docs_reference_tests() {
         .join("EXPLAIN_OUTPUT.md");
     let content = fs::read_to_string(&doc).expect("read EXPLAIN_OUTPUT.md");
     assert!(
-        content.contains("tests/explainability.rs"),
-        "EXPLAIN_OUTPUT.md must reference tests/explainability.rs"
+        content.contains("tests/explain/explainability.rs"),
+        "EXPLAIN_OUTPUT.md must reference tests/explain/explainability.rs"
     );
 }

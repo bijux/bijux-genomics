@@ -5,13 +5,17 @@
     "inputs": [
       {
         "name": "reads_r1",
-        "path": "reads.fastq.gz"
+        "path": "reads.fastq.gz",
+        "role": "reads",
+        "optional": false
       }
     ],
     "outputs": [
       {
         "name": "trimmed_reads",
-        "path": "out/fastp.fastq.gz"
+        "path": "out/fastp.fastq.gz",
+        "role": "trimmed_reads",
+        "optional": false
       }
     ]
   },

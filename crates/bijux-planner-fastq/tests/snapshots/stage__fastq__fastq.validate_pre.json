@@ -5,13 +5,17 @@
     "inputs": [
       {
         "name": "reads_r1",
-        "path": "reads.fastq.gz"
+        "path": "reads.fastq.gz",
+        "role": "reads",
+        "optional": false
       }
     ],
     "outputs": [
       {
         "name": "validation_report",
-        "path": "out/validation.json"
+        "path": "out/validation.json",
+        "role": "report_json",
+        "optional": false
       }
     ]
   },
