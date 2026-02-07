@@ -1,7 +1,6 @@
 #[test]
 fn qa_artifacts_follow_manifest_contract() {
-    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/qa_artifacts");
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/qa_artifacts");
     let manifest = root.join("manifest.json");
     let report = root.join("report.json");
     assert!(manifest.exists(), "missing manifest.json fixture");
