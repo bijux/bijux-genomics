@@ -110,6 +110,7 @@ pub fn summarize(
 
     let mut rows = Vec::new();
     for ((dataset_id, stage_id, tool_id, params_hash), group) in groups {
+        let tool = tool_id.as_str();
         let runtimes: Vec<f64> = group.iter().map(|o| o.runtime_s).collect();
         let memories: Vec<f64> = group.iter().map(|o| o.memory_mb).collect();
 
@@ -128,7 +129,8 @@ pub fn summarize(
             options.ci_bootstrap,
         );
         if options.ci_bootstrap.is_some() && runtimes.len() < 5 {
-            warnings.push(format!("ci_min_n:runtime_s:{stage_id}:{tool_id}"));
+            let warning = "ci_min_n:runtime_s";
+            warnings.push(format!("{warning}:{stage_id}:{tool}"));
         }
         let memory_ci = bootstrap_if_enabled(
             suite,
@@ -139,7 +141,8 @@ pub fn summarize(
             options.ci_bootstrap,
         );
         if options.ci_bootstrap.is_some() && memories.len() < 5 {
-            warnings.push(format!("ci_min_n:memory_mb:{stage_id}:{tool_id}"));
+            let warning = "ci_min_n:memory_mb";
+            warnings.push(format!("{warning}:{stage_id}:{tool}"));
         }
 
         let runtime_summary = MetricSummary {
@@ -186,7 +189,8 @@ pub fn summarize(
                 options.ci_bootstrap,
             );
             if options.ci_bootstrap.is_some() && values.len() < 5 {
-                warnings.push(format!("ci_min_n:{metric_id}:{stage_id}:{tool_id}"));
+                let warning = "ci_min_n";
+                warnings.push(format!("{warning}:{metric_id}:{stage_id}:{tool}"));
             }
             metric_summaries.push(MetricSummary {
                 metric_id,
@@ -210,7 +214,8 @@ pub fn summarize(
         let n_effective = group.len().saturating_sub(failures);
         let low_power = n_effective < 3;
         if low_power {
-            warnings.push(format!("low_power:{stage_id}:{tool_id}:{dataset_id}"));
+            let warning = "low_power";
+            warnings.push(format!("{warning}:{stage_id}:{tool}:{dataset_id}"));
         }
         let completeness = if group.is_empty() {
             0.0
@@ -389,12 +394,12 @@ pub fn run_suite(
             WriteMode::Force
         };
         write_observations_jsonl(&out_dir.join("observations.jsonl"), &merged, mode)
-            .map_err(|err| BenchError::ArtifactWriteError(err.to_string()))?;
+            .map_err(|err: anyhow::Error| BenchError::ArtifactWriteError(err.to_string()))?;
         write_summary_json(&out_dir.join("summary.json"), &summary)
-            .map_err(|err| BenchError::ArtifactWriteError(err.to_string()))?;
+            .map_err(|err: anyhow::Error| BenchError::ArtifactWriteError(err.to_string()))?;
         if let Some(decision) = decisions.first() {
             write_decision_json(&out_dir.join("decision.json"), decision)
-                .map_err(|err| BenchError::ArtifactWriteError(err.to_string()))?;
+                .map_err(|err: anyhow::Error| BenchError::ArtifactWriteError(err.to_string()))?;
         }
     }
     Ok((summary, decisions))
