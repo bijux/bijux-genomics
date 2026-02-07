@@ -104,9 +104,7 @@ extra:
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/bijux/bijux-dna
-  analytics:
-    provider: plausible
-    domain: bijux.github.io
+  # Analytics disabled for local builds (requires external template)
   copyright:
     text: "© 2025 Bijan Mousavi"
   release_tag: !ENV [RELEASE_TAG, "main"]
@@ -119,11 +117,12 @@ extra_javascript:
 
 watch:
   - artifacts
-  - src
+  - docs
+  - crates
   - scripts
-  - config
-  - tests
-  - changelog.d
+  - configs
+  - containers
+  - makefiles
 
 nav:
   - Home: index.md
@@ -137,6 +136,7 @@ nav:
       - Refusals: 00-intro/REFUSALS.md
   - Architecture:
       - Overview: 10-architecture/ARCHITECTURE_OVERVIEW.md
+      - Architecture Litmus: 10-architecture/ARCHITECTURE_LITMUS.md
       - Boundaries: 10-architecture/BOUNDARY_MAP.md
       - Boundary Diagram: 10-architecture/BOUNDARY_DIAGRAM.md
       - Dependency Rules: 10-architecture/DEPENDENCY_RULES.md
@@ -174,6 +174,7 @@ nav:
       - Explainability: 30-operations/EXPLAINABILITY.md
       - Containers: 30-operations/CONTAINERS.md
       - Security: 30-operations/SECURITY.md
+      - Security Policy: 30-operations/SECURITY_POLICY.md
       - Threat Model: 30-operations/THREAT_MODEL.md
       - CI: 30-operations/CI.md
       - Developer Workflow: 30-operations/DEVELOPER_WORKFLOW.md
@@ -189,6 +190,7 @@ nav:
       - Policy Ownership: 40-policies/POLICY_OWNERSHIP.md
       - Maturity Ladder: 40-policies/MATURITY_LADDER.md
       - Policy Stability: 40-policies/POLICY_STABILITY.md
+      - Policy Matrix: 40-policies/POLICY_MATRIX.md
   - Reference:
       - Reference Index: 50-reference/REFERENCE_INDEX.md
       - Schemas Index: 50-reference/SCHEMAS_INDEX.md
@@ -198,3 +200,8 @@ nav:
       - Crate Map: 50-reference/CRATE_MAP.md
       - Pipelines: 50-reference/PIPELINES.md
       - Contract Versioning: 50-reference/CONTRACT_VERSIONING.md
+      - Bijux Contract: 50-reference/BIJUX_CONTRACT.md
+      - Bijux Analyze Contract: 50-reference/BIJUX_ANALYZE_CONTRACT.md
+      - Contract Compatibility: 50-reference/CONTRACT_COMPATIBILITY.md
+      - Design Authority: 50-reference/DESIGN_AUTHORITY.md
+      - Domain Template Checklist: 50-reference/DOMAIN_TEMPLATE_CHECKLIST.md
