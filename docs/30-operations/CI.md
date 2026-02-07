@@ -1,20 +1,24 @@
 # CI
 
 ## What
-Continuous integration checks for Bijux DNA.
+CI enforces formatting, lint, tests, policies, and docs build.
 
 ## Why
-Prevents regressions in contracts and policies.
+Keeps code and docs in sync.
 
 ## Non-goals
-- Full performance benchmarks.
+- Performance optimization.
 
 ## Contracts
-- mkdocs build must pass in strict mode.
-- policy tests must be green.
+CI runs:
+- `make fmt`
+- `make lint`
+- `make test`
+- `make policy-full`
+- `mkdocs build --strict`
 
 ## Examples
-- `make lint` and `make docs-lint` in CI.
+Run locally with the same commands before pushing.
 
 ## Failure modes
-- Broken doc links fail docs-lint.
+Any failure blocks merge.
