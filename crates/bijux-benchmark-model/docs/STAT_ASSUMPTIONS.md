@@ -1,5 +1,15 @@
 # STAT_ASSUMPTIONS
 
-- Bootstrap assumes samples are representative.
-- Outlier detection assumes bounded error rates.
-- Robust estimators limit influence of extreme values.
+## Assumptions
+- Samples are representative.
+- Metrics are comparable across tools.
+
+## Failure cases
+- Heavy-tailed metrics can skew results.
+- Sparse observations reduce confidence.
+
+## Robustness choices
+- Robust estimators reduce outlier influence.
+
+## Not supported
+- Non-stationary metrics without normalization.
