@@ -9,6 +9,9 @@ See `EFFECTS.md` for allowed effects.
 ## Boundaries
 See `ARCHITECTURE.md` for internal boundaries.
 
+## Legacy
+See `LEGACY.md` for the deprecation/freeze statement on legacy benchmarks.
+
 ## Extension Points
 See `CHANGE_RULES.md` for safe extension guidelines.
 

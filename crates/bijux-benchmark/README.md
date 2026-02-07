@@ -13,13 +13,21 @@ Upstream: analyze outputs. Downstream: reports/CI.
 See `docs/INDEX.md`, `docs/BENCH_CONTRACT.md`, `docs/BENCH_FORMAT.md`, `docs/REPRODUCIBILITY.md`, `docs/LEGACY.md`, `docs/CHANGE_RULES.md`.
 
 ## Key contracts it owns/consumes
-decision.json, observations.jsonl, summary.json.
+- decision.json (from analyze decisions)
+- observations.jsonl (from runtime/analyze metrics)
+- summary.json (benchmark summary output)
 
 ## Effects & determinism guarantees
 Pure comparison; deterministic outputs. See `docs/EFFECTS.md` and the golden tests below.
 
+## Why benchmark is not planner
+Benchmark consumes analyze outputs and scores comparisons only; it never plans or stages work. See the architecture boundary test in `tests/contracts/architecture.rs`.
+
 ## How to run its tests
-See `docs/TESTS.md`. Golden tests: `tests/bench_contract.rs`, `tests/determinism.rs`, `tests/bench_realistic_snapshot.rs`, `tests/contract_handshake.rs`.
+See `docs/TESTS.md`. Golden tests: `tests/contracts/bench_contract.rs`, `tests/determinism/determinism.rs`, `tests/determinism/bench_realistic_snapshot.rs`, `tests/contracts/contract_handshake.rs`.
+
+## Start here in code
+`src/summary.rs`, then `src/artifacts/writer.rs`.
 
 ## Where the docs live
 Start at `docs/INDEX.md` and follow the crate docs listed above.
