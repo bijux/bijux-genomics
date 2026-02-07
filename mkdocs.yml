@@ -1,0 +1,143 @@
+site_name: Bijux DNA
+site_description: "Contract-first genomics pipelines for FASTQ/BAM with reproducible runs and deterministic reporting."
+site_url: !ENV [SITE_URL, https://bijux.github.io/bijux-dna/]
+site_author: Bijan Mousavi
+repo_url: https://github.com/bijux/bijux-dna
+repo_name: bijux/bijux-dna
+edit_uri: ""
+
+strict: true
+use_directory_urls: true
+dev_addr: 127.0.0.1:8000
+docs_dir: docs
+site_dir: artifacts/docs/site
+
+theme:
+  name: material
+  custom_dir: docs/overrides
+  logo: assets/bijux_logo_hq.png
+  favicon: assets/bijux_icon.png
+  font:
+    text: Roboto
+    code: Roboto Mono
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/toggle-switch-off-outline
+        name: Switch to dark mode
+    - scheme: slate
+      primary: teal
+      accent: lime
+      toggle:
+        icon: material/toggle-switch
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.indexes
+    - navigation.top
+    - navigation.path
+    - navigation.tracking
+    - navigation.instant
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.tabs.link
+    - content.code.annotate
+    - content.code.copy
+    - content.code.select
+    - content.action.edit
+    - content.action.view
+    - navigation.footer
+  icon:
+    repo: fontawesome/brands/github
+
+plugins:
+  - search
+  - social:
+      enabled: !ENV [ENABLE_SOCIAL_CARDS, false]
+      cache_dir: artifacts/docs/.cache/social
+  - autorefs
+  - redirects: {}
+  - tags
+  - minify:
+      minify_html: true
+      minify_js: true
+      minify_css: true
+  - glightbox:
+      touchNavigation: true
+      loop: false
+      effect: zoom
+
+markdown_extensions:
+  - admonition
+  - footnotes
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets:
+      base_path:
+        - .
+        - docs
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.mark
+  - pymdownx.magiclink
+  - pymdownx.tasklist
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.keys
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/bijux/bijux-dna
+  analytics:
+    provider: plausible
+    domain: bijux.github.io
+  copyright:
+    text: "© 2025 Bijan Mousavi"
+  release_tag: !ENV [RELEASE_TAG, "main"]
+
+extra_css:
+  - assets/styles/extra.css
+
+extra_javascript:
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+
+watch:
+  - artifacts
+  - src
+  - scripts
+  - config
+  - tests
+  - changelog.d
+
+nav:
+  - Architecture: ARCHITECTURE_OVERVIEW.md
+  - Boundaries: BOUNDARY_MAP.md
+  - Contracts: CONTRACT_SPINE.md
+  - FASTQ:
+      - Stage Catalog: fastq/STAGE_CATALOG.md
+      - Tools Roster: fastq/TOOLS_ROSTER.md
+      - References: fastq/REFERENCES.md
+  - BAM:
+      - Stage Catalog: bam/STAGE_CATALOG.md
+      - Tools Roster: bam/TOOLS_ROSTER.md
+      - References: bam/REFERENCES.md
+  - Pipelines: PIPELINES.md
+  - Observability: RUN_ARTIFACTS.md
+  - Policies: POLICIES_EXPLAINED.md
+  - Crates reference: CRATE_MAP.md
