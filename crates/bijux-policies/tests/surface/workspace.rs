@@ -435,6 +435,31 @@ fn workspace_crate_layout_contract() {
 }
 
 #[test]
+fn engine_src_layout_contract() {
+    let crates = collect_workspace_crates();
+    let Some(engine) = crates.get("bijux-engine") else {
+        panic!("missing crate bijux-engine");
+    };
+    let src = engine.join("src");
+    let allowed = BTreeSet::from(["errors.rs", "executor.rs", "lib.rs", "runtime_facade.rs"]);
+    let mut offenders = Vec::new();
+    for entry in std::fs::read_dir(&src).expect("read bijux-engine/src") {
+        let entry = entry.expect("engine src entry");
+        let name = entry.file_name().to_string_lossy().to_string();
+        if entry.path().is_file() && !allowed.contains(name.as_str()) {
+            offenders.push(name);
+        }
+        if entry.path().is_dir() {
+            offenders.push(name);
+        }
+    }
+    assert!(
+        offenders.is_empty(),
+        "bijux-engine/src must stay small; unexpected entries: {offenders:?}"
+    );
+}
+
+#[test]
 fn workspace_domain_layout_contract() {
     let crates = collect_workspace_crates();
     let Some(fastq) = crates.get("bijux-domain-fastq") else {
