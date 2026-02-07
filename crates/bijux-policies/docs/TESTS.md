@@ -75,3 +75,6 @@ Tests become documentation for governance rules.
 ## tooling
 - `docs_links.rs` — link integrity.  
   Failure means broken intra‑doc links.
+
+## Testkit patterns
+See `crates/bijux-testkit/docs/USAGE.md` for shared fixture and snapshot helpers.
