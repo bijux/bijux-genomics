@@ -7,11 +7,11 @@
 // 2. core types
 // 3. stage semantics
 // 4. metrics spec
-// 5. execution adapters
+// 5. domain adapter
 // Structural layout of this crate is frozen as of FASTQ v1.
-mod adapter;
+mod domain_adapter;
 pub mod banks;
-pub mod bench_repo;
+pub mod bench_repository;
 pub mod invariants;
 pub mod metrics;
 pub mod params;
@@ -36,7 +36,7 @@ pub use banks::{
     load_polyx_bank, load_polyx_presets, polyx_bank_path, polyx_presets_path, resolve_polyx_preset,
     EffectivePolyxSet, PolyxBankV1, PolyxEntryV1, PolyxPresetV1, PolyxPresetsV1,
 };
-pub use bench_repo::BenchResultsRepository;
+pub use bench_repository::BenchResultsRepository;
 pub use invariants::{
     evaluate_invariants, fastq_invariant_specs, thresholds_from_env, InvariantEvaluation,
     InvariantThresholds,
