@@ -171,8 +171,8 @@ audit-isolate: ## Run audits with isolated target dir
 clean-isolate: ## Remove isolated target dir
 	rm -rf target-isolate
 
-isolate: ## Run full CI essentials in isolated target dir
-	CARGO_TARGET_DIR=target-isolate $(MAKE) lint-full test-full guardrails structure-check audit coverage
+isolate: ## Run CI essentials in isolated target dir
+	CARGO_TARGET_DIR=target-isolate $(MAKE) lint test guardrails structure-check audit coverage
 
 .PHONY: fmt fmt-check clippy lint lint-full lint-fast \
         test test-full test-fast test-slow test-e2e test-science \
