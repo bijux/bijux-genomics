@@ -1,0 +1,110 @@
+---
+source: crates/bijux-planner-bam/tests/plan/plan_snapshots.rs
+expression: json
+---
+{
+  "contract_version": {
+    "major": 1,
+    "minor": 0
+  },
+  "deterministic_scheduler": true,
+  "edges": [
+    {
+      "from": "bam.qc_pre",
+      "to": "bam.qc_post"
+    }
+  ],
+  "pipeline_id": "bam-to-bam__qc__v1",
+  "planner_version": "bijux-planner-bam.v1",
+  "policy": "PreferAccuracy",
+  "retry_policy": {
+    "max_attempts": 1,
+    "retry_on_exit_codes": []
+  },
+  "schema_version": "bijux.execution_graph.v1",
+  "step_timeout_s": null,
+  "steps": [
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "mosdepth"
+        ]
+      },
+      "expected_artifact_ids": [],
+      "image": {
+        "digest": null,
+        "image": "mosdepth:latest"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "input",
+            "optional": false,
+            "path": "input.bam",
+            "role": "bam"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "output",
+            "optional": false,
+            "path": "output.bam",
+            "role": "bam"
+          }
+        ]
+      },
+      "metrics_schema_ids": [],
+      "out_dir": "out",
+      "resources": {
+        "mem_gb": 1,
+        "runtime": "docker",
+        "threads": 1,
+        "tmp_gb": 1
+      },
+      "stage_id": "bam.qc_post",
+      "step_id": "bam.qc_post"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "samtools"
+        ]
+      },
+      "expected_artifact_ids": [],
+      "image": {
+        "digest": null,
+        "image": "samtools:latest"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "input",
+            "optional": false,
+            "path": "input.bam",
+            "role": "bam"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "output",
+            "optional": false,
+            "path": "output.bam",
+            "role": "bam"
+          }
+        ]
+      },
+      "metrics_schema_ids": [],
+      "out_dir": "out",
+      "resources": {
+        "mem_gb": 1,
+        "runtime": "docker",
+        "threads": 1,
+        "tmp_gb": 1
+      },
+      "stage_id": "bam.qc_pre",
+      "step_id": "bam.qc_pre"
+    }
+  ]
+}

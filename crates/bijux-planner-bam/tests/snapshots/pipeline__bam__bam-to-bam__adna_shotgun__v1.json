@@ -8,21 +8,29 @@
         "inputs": [
           {
             "name": "bam",
-            "path": "reads.bam"
+            "optional": false,
+            "path": "reads.bam",
+            "role": "bam"
           }
         ],
         "outputs": [
           {
             "name": "validation_report",
-            "path": "out/validate/validation.json"
+            "optional": false,
+            "path": "out/validate/validation.json",
+            "role": "report_json"
           },
           {
             "name": "flagstat",
-            "path": "out/validate/flagstat.txt"
+            "optional": false,
+            "path": "out/validate/flagstat.txt",
+            "role": "report_json"
           },
           {
             "name": "stage_metrics",
-            "path": "out/validate/stage.metrics.json"
+            "optional": false,
+            "path": "out/validate/stage.metrics.json",
+            "role": "metrics_json"
           }
         ]
       },
@@ -48,25 +56,35 @@
         "inputs": [
           {
             "name": "bam",
-            "path": "reads.bam"
+            "optional": false,
+            "path": "reads.bam",
+            "role": "bam"
           }
         ],
         "outputs": [
           {
             "name": "flagstat",
-            "path": "out/qc_pre/flagstat.txt"
+            "optional": false,
+            "path": "out/qc_pre/flagstat.txt",
+            "role": "report_json"
           },
           {
             "name": "idxstats",
-            "path": "out/qc_pre/idxstats.txt"
+            "optional": false,
+            "path": "out/qc_pre/idxstats.txt",
+            "role": "unknown"
           },
           {
             "name": "stats",
-            "path": "out/qc_pre/samtools_stats.txt"
+            "optional": false,
+            "path": "out/qc_pre/samtools_stats.txt",
+            "role": "unknown"
           },
           {
             "name": "stage_metrics",
-            "path": "out/qc_pre/stage.metrics.json"
+            "optional": false,
+            "path": "out/qc_pre/stage.metrics.json",
+            "role": "metrics_json"
           }
         ]
       },
@@ -95,41 +113,59 @@
         "inputs": [
           {
             "name": "bam",
-            "path": "reads.bam"
+            "optional": false,
+            "path": "reads.bam",
+            "role": "bam"
           }
         ],
         "outputs": [
           {
             "name": "filtered_bam",
-            "path": "out/filter/filtered.bam"
+            "optional": false,
+            "path": "out/filter/filtered.bam",
+            "role": "bam"
           },
           {
             "name": "filtered_bai",
-            "path": "out/filter/filtered.bam.bai"
+            "optional": false,
+            "path": "out/filter/filtered.bam.bai",
+            "role": "index"
           },
           {
             "name": "flagstat_before",
-            "path": "out/filter/flagstat.before.txt"
+            "optional": false,
+            "path": "out/filter/flagstat.before.txt",
+            "role": "report_json"
           },
           {
             "name": "flagstat_after",
-            "path": "out/filter/flagstat.after.txt"
+            "optional": false,
+            "path": "out/filter/flagstat.after.txt",
+            "role": "report_json"
           },
           {
             "name": "idxstats_before",
-            "path": "out/filter/idxstats.before.txt"
+            "optional": false,
+            "path": "out/filter/idxstats.before.txt",
+            "role": "unknown"
           },
           {
             "name": "idxstats_after",
-            "path": "out/filter/idxstats.after.txt"
+            "optional": false,
+            "path": "out/filter/idxstats.after.txt",
+            "role": "unknown"
           },
           {
             "name": "summary",
-            "path": "out/filter/filter.summary.json"
+            "optional": false,
+            "path": "out/filter/filter.summary.json",
+            "role": "report_json"
           },
           {
             "name": "stage_metrics",
-            "path": "out/filter/stage.metrics.json"
+            "optional": false,
+            "path": "out/filter/stage.metrics.json",
+            "role": "metrics_json"
           }
         ]
       },
@@ -160,41 +196,59 @@
         "inputs": [
           {
             "name": "bam",
-            "path": "reads.bam"
+            "optional": false,
+            "path": "reads.bam",
+            "role": "bam"
           }
         ],
         "outputs": [
           {
             "name": "markdup_bam",
-            "path": "out/markdup/markdup.bam"
+            "optional": false,
+            "path": "out/markdup/markdup.bam",
+            "role": "bam"
           },
           {
             "name": "markdup_bai",
-            "path": "out/markdup/markdup.bam.bai"
+            "optional": false,
+            "path": "out/markdup/markdup.bam.bai",
+            "role": "index"
           },
           {
             "name": "flagstat_before",
-            "path": "out/markdup/flagstat.before.txt"
+            "optional": false,
+            "path": "out/markdup/flagstat.before.txt",
+            "role": "report_json"
           },
           {
             "name": "flagstat_after",
-            "path": "out/markdup/flagstat.after.txt"
+            "optional": false,
+            "path": "out/markdup/flagstat.after.txt",
+            "role": "report_json"
           },
           {
             "name": "idxstats_before",
-            "path": "out/markdup/idxstats.before.txt"
+            "optional": false,
+            "path": "out/markdup/idxstats.before.txt",
+            "role": "unknown"
           },
           {
             "name": "idxstats_after",
-            "path": "out/markdup/idxstats.after.txt"
+            "optional": false,
+            "path": "out/markdup/idxstats.after.txt",
+            "role": "unknown"
           },
           {
             "name": "summary",
-            "path": "out/markdup/markdup.summary.json"
+            "optional": false,
+            "path": "out/markdup/markdup.summary.json",
+            "role": "report_json"
           },
           {
             "name": "stage_metrics",
-            "path": "out/markdup/stage.metrics.json"
+            "optional": false,
+            "path": "out/markdup/stage.metrics.json",
+            "role": "metrics_json"
           }
         ]
       },
@@ -225,17 +279,23 @@
         "inputs": [
           {
             "name": "bam",
-            "path": "reads.bam"
+            "optional": false,
+            "path": "reads.bam",
+            "role": "bam"
           }
         ],
         "outputs": [
           {
             "name": "coverage_summary",
-            "path": "out/coverage/coverage.mosdepth.summary.txt"
+            "optional": false,
+            "path": "out/coverage/coverage.mosdepth.summary.txt",
+            "role": "report_json"
           },
           {
             "name": "stage_metrics",
-            "path": "out/coverage/stage.metrics.json"
+            "optional": false,
+            "path": "out/coverage/stage.metrics.json",
+            "role": "metrics_json"
           }
         ]
       },
@@ -268,21 +328,29 @@
         "inputs": [
           {
             "name": "bam",
-            "path": "reads.bam"
+            "optional": false,
+            "path": "reads.bam",
+            "role": "bam"
           }
         ],
         "outputs": [
           {
             "name": "damage_pydamage",
-            "path": "out/damage/damage.pydamage.json"
+            "optional": false,
+            "path": "out/damage/damage.pydamage.json",
+            "role": "unknown"
           },
           {
             "name": "damage_mapdamage2",
-            "path": "out/damage/damage.mapdamage2.txt"
+            "optional": false,
+            "path": "out/damage/damage.mapdamage2.txt",
+            "role": "unknown"
           },
           {
             "name": "stage_metrics",
-            "path": "out/damage/stage.metrics.json"
+            "optional": false,
+            "path": "out/damage/stage.metrics.json",
+            "role": "metrics_json"
           }
         ]
       },
@@ -311,21 +379,29 @@
         "inputs": [
           {
             "name": "bam",
-            "path": "reads.bam"
+            "optional": false,
+            "path": "reads.bam",
+            "role": "bam"
           }
         ],
         "outputs": [
           {
             "name": "sex_report",
-            "path": "out/sex/sex.json"
+            "optional": false,
+            "path": "out/sex/sex.json",
+            "role": "report_json"
           },
           {
             "name": "summary",
-            "path": "out/sex/sex.summary.json"
+            "optional": false,
+            "path": "out/sex/sex.summary.json",
+            "role": "report_json"
           },
           {
             "name": "stage_metrics",
-            "path": "out/sex/stage.metrics.json"
+            "optional": false,
+            "path": "out/sex/stage.metrics.json",
+            "role": "metrics_json"
           }
         ]
       },
@@ -354,21 +430,29 @@
         "inputs": [
           {
             "name": "bam",
-            "path": "reads.bam"
+            "optional": false,
+            "path": "reads.bam",
+            "role": "bam"
           }
         ],
         "outputs": [
           {
             "name": "contamination_report",
-            "path": "out/contam/contamination.json"
+            "optional": false,
+            "path": "out/contam/contamination.json",
+            "role": "report_json"
           },
           {
             "name": "summary",
-            "path": "out/contam/contamination.summary.json"
+            "optional": false,
+            "path": "out/contam/contamination.summary.json",
+            "role": "report_json"
           },
           {
             "name": "stage_metrics",
-            "path": "out/contam/stage.metrics.json"
+            "optional": false,
+            "path": "out/contam/stage.metrics.json",
+            "role": "metrics_json"
           }
         ]
       },

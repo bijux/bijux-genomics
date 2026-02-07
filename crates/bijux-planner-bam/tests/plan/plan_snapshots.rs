@@ -57,7 +57,7 @@ fn bam_planner_plan_snapshot() {
         plan_for("bam.qc_post", "mosdepth"),
     ];
     let config = BamPlanConfig {
-        pipeline_id: "bam.qc.v1".to_string(),
+        pipeline_id: "bam-to-bam__qc__v1".to_string(),
         policy: PlanPolicy::PreferAccuracy,
         stages,
     };
