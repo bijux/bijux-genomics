@@ -10,7 +10,7 @@ fn bam_metrics_have_required_fields() -> anyhow::Result<()> {
     bijux_infra::write_bytes(&flag_path, flagstat)?;
     bijux_infra::write_bytes(&idx_path, idxstats)?;
     let flag = parse_samtools_flagstat(&flag_path).expect("flagstat");
-    assert!(flag.total_reads > 0, "flagstat total_reads missing");
+    assert!(flag.total > 0, "flagstat total missing");
     let idx = parse_samtools_idxstats(&idx_path).expect("idxstats");
     assert!(!idx.contigs.is_empty(), "idxstats contigs missing");
     Ok(())
