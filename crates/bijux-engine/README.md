@@ -1,31 +1,31 @@
 # bijux-engine
 
 ## What this crate does
-Pure orchestrator: executes an `ExecutionGraph` through a `Runner`, enforces contracts, and records the truth set per step.
+Pure orchestrator: executes ExecutionGraph via Runner, enforces contracts, records truth set.
 
 ## What it must not do (boundaries)
-Must not spawn processes or know about docker/local execution. All execution effects live in runner.
+No process spawn or backend logic (docker/local).
+
+## Role in the stack
+Upstream: API. Downstream: runtime recorder + runner trait.
 
 ## Public API / entrypoints
-`Engine::execute` is the single entrypoint. See `docs/ENGINE_MODEL.md` and `docs/RECORDING_TRUTH_SET.md`.
+See `docs/INDEX.md`, `docs/ENGINE_MODEL.md`, `docs/DETERMINISM.md`, `docs/ERROR_TAXONOMY.md`, `docs/RECORDING_TRUTH_SET.md`, `docs/CHANGE_RULES.md`.
 
 ## Key contracts it owns/consumes
-Consumes core contracts (`ExecutionGraph`, `RunManifest`) and runtime recorder/runner traits. Produces step records and manifests.
+Per-step effective_config.json, tool_invocation.json, execution_record.json, metrics/stage_report when applicable.
 
 ## Effects & determinism guarantees
-Orchestration only; determinism is enforced by `tests/replay_determinism.rs` and `tests/recording_completeness.rs`. See `docs/DETERMINISM.md`.
+Orchestration only; effects happen in runner/runtime. See `docs/EFFECTS.md` and the golden tests below.
 
 ## How to run its tests
-See `docs/TESTS.md`. Key tests: `tests/effect_boundary.rs`, `tests/recording_completeness.rs`, `tests/replay_determinism.rs`, `tests/run_manifest.rs`.
+See `docs/TESTS.md`. Golden tests: `tests/effect_boundary.rs`, `tests/recording_completeness.rs`, `tests/replay_determinism.rs`, `tests/run_manifest.rs`.
 
 ## Where the docs live
-Start at `docs/INDEX.md`. See `docs/ERROR_TAXONOMY.md` and `docs/RECORDING_TRUTH_SET.md`.
-
-## Artifacts / Contracts
-Emits per-step `effective_config.json`, `tool_invocation.json`, `execution_record.json`, and optional `metrics.json` / `stage_report.json`.
+Start at `docs/INDEX.md` and follow the crate docs listed above.
 
 ## Failure modes
-Contract enforcement failures include step id, artifact id, and path; see `docs/ERROR_TAXONOMY.md`.
+Primary failures surface as snapshot or contract violations; inspect the golden tests and referenced docs.
 
 ## Stability
-Orchestration semantics are stable; changes require updating determinism tests and `docs/CHANGE_RULES.md`.
+Contract and behavior changes follow `docs/CHANGE_RULES.md`.

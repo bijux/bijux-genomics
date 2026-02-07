@@ -1,31 +1,31 @@
 # bijux-runner
 
 ## What this crate does
-Executes command specs via local and docker backends and records execution results for runtime manifests.
+Execution backends (local/docker) that run CommandSpec and capture outputs.
 
 ## What it must not do (boundaries)
-Must not plan graphs or parse tool outputs. It only executes and records. Planner/engine own selection and orchestration.
+No planning or parsing; execution only.
+
+## Role in the stack
+Upstream: engine via runtime Runner. Downstream: runtime recorder.
 
 ## Public API / entrypoints
-Backend interfaces and execution entrypoints documented in `docs/BACKENDS.md` and `docs/EXECUTION_SPEC.md`.
+See `docs/INDEX.md`, `docs/BACKENDS.md`, `docs/EXECUTION_SPEC.md`, `docs/REPLAY.md`, `docs/SECURITY.md`, `docs/CHANGE_RULES.md`.
 
 ## Key contracts it owns/consumes
-Consumes `CommandSpec` and runtime recorder; emits execution records and stdout/stderr captures.
+Execution records and stdout/stderr captures.
 
 ## Effects & determinism guarantees
-This is the process-spawn boundary (except allowlisted QA/CLI). Deterministic replay is enforced in `tests/replay_determinism.rs`.
+Process spawn boundary (plus allowlisted QA/CLI). See `docs/EFFECTS.md` and the golden tests below.
 
 ## How to run its tests
-See `docs/TESTS.md`. Key tests: `tests/backend_invariants.rs`, `tests/replay_contract.rs`, `tests/determinism.rs`.
+See `docs/TESTS.md`. Golden tests: `tests/backend_invariants.rs`, `tests/replay_contract.rs`, `tests/determinism.rs`, `tests/replay_determinism.rs`.
 
 ## Where the docs live
-Start at `docs/INDEX.md`, then read `docs/BACKENDS.md`, `docs/REPLAY.md`, and `docs/SECURITY.md`.
-
-## Artifacts / Contracts
-Writes execution records and captures logs; no metrics parsing.
+Start at `docs/INDEX.md` and follow the crate docs listed above.
 
 ## Failure modes
-Common failures include missing images or permission errors; see `docs/SECURITY.md` and `docs/REPLAY.md`.
+Primary failures surface as snapshot or contract violations; inspect the golden tests and referenced docs.
 
 ## Stability
-Backend invariants are stable and enforced by tests; see `docs/CHANGE_RULES.md`.
+Contract and behavior changes follow `docs/CHANGE_RULES.md`.

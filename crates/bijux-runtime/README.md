@@ -1,31 +1,31 @@
 # bijux-runtime
 
 ## What this crate does
-Defines runtime contracts and recording: `RunLayout`, `RunManifest`, `RunRecord`, and `Provenance` plus recorder interfaces.
+Runtime contracts + recording: RunLayout, RunManifest, RunRecord, Provenance, events.
 
 ## What it must not do (boundaries)
-Must not execute tools or perform heavy effects. It only writes files under the run layout.
+No tool execution; only writes under run layout.
+
+## Role in the stack
+Upstream: engine/runner. Downstream: analyze/benchmark.
 
 ## Public API / entrypoints
-Runtime contracts and recorder interfaces documented in `docs/RUNTIME_CONTRACT.md` and `docs/EVENTS.md`.
+See `docs/INDEX.md`, `docs/RUNTIME_CONTRACT.md`, `docs/EVENTS.md`, `docs/BOUNDARY.md`, `docs/GLOSSARY.md`, `docs/CHANGE_RULES.md`.
 
 ## Key contracts it owns/consumes
-Owns run layout/record/provenance schemas; consumes core contract IDs. See `docs/INDEX.md`.
+Run manifests, records, provenance, layout tree.
 
 ## Effects & determinism guarantees
-Filesystem writes only under layout; path derivation is deterministic. See `docs/BOUNDARY.md` and `tests/run_layout_contract.rs`.
+Filesystem writes under run layout only. See `docs/EFFECTS.md` and the golden tests below.
 
 ## How to run its tests
-See `docs/TESTS.md`. Key tests: `tests/reference_example.rs`, `tests/runtime_schema_snapshots.rs`, `tests/manifest_integrity.rs`.
+See `docs/TESTS.md`. Golden tests: `tests/reference_example.rs`, `tests/runtime_schema_snapshots.rs`, `tests/manifest_integrity.rs`, `tests/run_layout_contract.rs`.
 
 ## Where the docs live
-Start at `docs/INDEX.md`, then `docs/RUNTIME_CONTRACT.md` and `docs/GLOSSARY.md`.
-
-## Artifacts / Contracts
-Produces run layout trees and manifests/records for consumption by analyze/bench.
+Start at `docs/INDEX.md` and follow the crate docs listed above.
 
 ## Failure modes
-Schema mismatches and missing fields are caught by snapshot and integrity tests.
+Primary failures surface as snapshot or contract violations; inspect the golden tests and referenced docs.
 
 ## Stability
-Schema changes are versioned and snapshot-tested per `docs/CHANGE_RULES.md`.
+Contract and behavior changes follow `docs/CHANGE_RULES.md`.
