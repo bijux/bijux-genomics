@@ -1,31 +1,31 @@
 # bijux-planner-bam
 
 ## What this crate does
-Selects tools and generates BAM execution graphs across pre/core/downstream phases with explainability outputs.
+BAM planner: selects tools across pre/core/downstream phases.
 
 ## What it must not do (boundaries)
-Must not parse tool outputs or execute commands. Parsing lives in stages; execution in runner.
+No parsing or execution.
+
+## Role in the stack
+Upstream: pipelines. Downstream: engine.
 
 ## Public API / entrypoints
-Planner entrypoints are in `src/lib.rs` with contracts documented in `docs/PLANNER_MODEL.md`.
+See `docs/INDEX.md`, `docs/PLANNER_MODEL.md`, `docs/TOOL_SELECTION.md`, `docs/EXPLAIN_OUTPUT.md`, `docs/STAGE_MAPPING.md`, `docs/CHANGE_RULES.md`.
 
 ## Key contracts it owns/consumes
-Owns tool selection and stage mapping for BAM; consumes stage contracts and core IDs.
+Plan JSON and explain payload snapshots.
 
 ## Effects & determinism guarantees
-Pure planning: stable ordering and hashes are enforced by snapshot tests. See `docs/TOOL_SELECTION.md`.
+Pure planning; deterministic ordering/hashes. See `docs/EFFECTS.md` and the golden tests below.
 
 ## How to run its tests
-See `docs/TESTS.md`. Key tests: `tests/determinism.rs`, `tests/graph_snapshots.rs`, `tests/explainability.rs`.
+See `docs/TESTS.md`. Golden tests: `tests/determinism.rs`, `tests/graph_snapshots.rs`, `tests/explainability.rs`, `tests/plan_snapshots.rs`.
 
 ## Where the docs live
-Start at `docs/INDEX.md`, then read `docs/TOOL_SELECTION.md`, `docs/EXPLAIN_OUTPUT.md`, and `docs/STAGE_MAPPING.md`.
-
-## Artifacts / Contracts
-Produces plan JSON and explain payloads; snapshots live in `tests/snapshots/`.
+Start at `docs/INDEX.md` and follow the crate docs listed above.
 
 ## Failure modes
-Unstable ordering or missing explain fields fail determinism and explainability tests.
+Primary failures surface as snapshot or contract violations; inspect the golden tests and referenced docs.
 
 ## Stability
-Planner outputs are snapshot-tested and versioned; see `docs/CHANGE_RULES.md`.
+Contract and behavior changes follow `docs/CHANGE_RULES.md`.
