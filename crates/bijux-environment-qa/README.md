@@ -1,31 +1,31 @@
 # bijux-environment-qa
 
 ## What this crate does
-Effectful QA harness for container images and environment specs. It validates real-world behavior and emits QA artifacts.
+Effectful QA harness for image validation (non-production).
 
 ## What it must not do (boundaries)
-Must never be depended on by production crates. It is heavy, effectful, and isolated to QA workflows.
+Must never be depended on by production crates.
+
+## Role in the stack
+Upstream: QA workflows. Downstream: none in production.
 
 ## Public API / entrypoints
-QA entrypoints are the binaries under `src/bin/` and the library in `src/lib/`. See `docs/RUNBOOK.md`.
+See `docs/INDEX.md`, `docs/RUNBOOK.md`, `docs/QA_MATRIX.md`, `docs/DATASETS.md`, `docs/APPTAINER_PLAN.md`, `docs/CHANGE_RULES.md`.
 
 ## Key contracts it owns/consumes
-Consumes environment specs and produces QA artifacts that mirror runtime manifests. See `docs/QA_MATRIX.md` and `docs/DATASETS.md`.
+QA manifests/reports and validation records.
 
 ## Effects & determinism guarantees
-May run docker and touch the network when explicitly invoked. Default tests are offline and deterministic.
+May run docker/network when explicitly invoked; default tests are offline. See `docs/EFFECTS.md` and the golden tests below.
 
 ## How to run its tests
-See `docs/TESTS.md`. Key tests: `tests/qa_artifact_contract.rs`, `tests/image_qa_support.rs`, `tests/guardrails.rs`.
+See `docs/TESTS.md`. Golden tests: `tests/qa_artifact_contract.rs`, `tests/image_qa_support.rs`, `tests/guardrails.rs`.
 
 ## Where the docs live
-Start at `docs/INDEX.md`, then read `docs/RUNBOOK.md`, `docs/QA_MATRIX.md`, and `docs/APPTAINER_PLAN.md`.
-
-## Artifacts / Contracts
-Produces QA manifests and reports for image validation; see `tests/fixtures/qa_artifacts/`.
+Start at `docs/INDEX.md` and follow the crate docs listed above.
 
 ## Failure modes
-Failures include missing images, behavioral mismatches, or artifact contract violations.
+Primary failures surface as snapshot or contract violations; inspect the golden tests and referenced docs.
 
 ## Stability
-QA behavior is allowed to evolve; changes must be reflected in docs and tests per `docs/CHANGE_RULES.md`.
+Contract and behavior changes follow `docs/CHANGE_RULES.md`.
