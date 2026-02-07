@@ -5,6 +5,7 @@ use std::path::{Component, Path};
 
 use crate::foundation::Result;
 
+/// Canonical JSON format version for contract serialization.
 pub const CANONICAL_JSON_VERSION: &str = "v1";
 
 /// Canonicalize a JSON value by sorting keys and normalizing numbers/paths.
