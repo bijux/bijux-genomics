@@ -4,7 +4,7 @@ use std::path::PathBuf;
 
 use anyhow::Result;
 use bijux_benchmark::{gate, summarize, BenchRunOptions, BenchmarkSuiteSpec};
-use bijux_benchmark_model::{GatePolicy, GatePolicyOverrides};
+use bijux_benchmark_model::GatePolicy;
 use bijux_core::contract::canonical::to_canonical_json_bytes;
 
 fn fixture_root() -> PathBuf {
