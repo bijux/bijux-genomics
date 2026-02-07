@@ -88,6 +88,7 @@ expression: output
 [bijux-environment]
 - ARCHITECTURE.md
 - Cargo.toml
+- ENV_MATRIX.md
 - ENV_REFERENCE.md
 - SCOPE.md
 - src/
@@ -98,6 +99,7 @@ expression: output
 - Cargo.toml
 - DATASETS.md
 - QA_MATRIX.md
+- RUNBOOK.md
 - SCOPE.md
 - src/
 - tests/
