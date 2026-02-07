@@ -1,16 +1,20 @@
 # ENGINE_MODEL
 
-## Responsibilities
-- Orchestrate execution of an `ExecutionGraph`.
-- Enforce contracts after each step.
-- Record the truth artifacts for each step.
-- Emit structured events for observers.
+## Deterministic Inputs → Deterministic Outputs
+Given the same execution graph, inputs, and policy:
+- graph hash is stable
+- step hashes are stable
+- layout tree paths are stable
+- manifest hash is stable
 
-## Non-responsibilities
-- No process spawning.
-- No Docker/local execution logic.
-- No tool selection or planning.
+### Allowed Nondeterminism
+- wall-clock timestamps in execution records
+- runtime resource metrics (cpu/mem)
 
-## Boundaries
-- Depends on `bijux-core` contracts and `bijux-runtime::Runner` trait.
-- Invokes a runner to execute command specs.
+## Purity
+Engine performs no execution effects. It only orchestrates:
+- no process spawn
+- no docker
+- no network
+
+This is enforced by `tests/effect_boundary.rs`.
