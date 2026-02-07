@@ -1,7 +1,11 @@
 # DETERMINISM
 
-All model functions are deterministic. Any randomness must be seeded and recorded.
+## Randomness
+Bootstrap sampling is the only randomness.
 
-## Public API Examples
-- `score_suite(input) => score`
-- `classify_gate(score) => decision`
+## Seeding rules
+- Seed must be provided and recorded.
+- Same seed => same outputs.
+
+## Enforcement
+Tests assert stable results with fixed seeds.

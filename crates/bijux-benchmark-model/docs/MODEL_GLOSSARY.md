@@ -2,5 +2,7 @@
 
 - decision: final tool choice
 - observation: a single metric observation
-- suite: group of observations
+- suite: collection of observations
 - summary: aggregate result
+
+This glossary is canonical for analyze/benchmark/model.
