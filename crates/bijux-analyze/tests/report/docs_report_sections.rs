@@ -5,8 +5,8 @@ use std::path::PathBuf;
 fn report_sections_are_documented() {
     let doc = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("docs")
-        .join("SCHEMA.md");
-    let content = fs::read_to_string(&doc).expect("read SCHEMA.md");
+        .join("REPORT_CONTRACT.md");
+    let content = fs::read_to_string(&doc).expect("read REPORT_CONTRACT.md");
 
     for section in [
         "qc",
@@ -21,7 +21,7 @@ fn report_sections_are_documented() {
     ] {
         assert!(
             content.contains(section),
-            "SCHEMA.md missing report section {}",
+            "REPORT_CONTRACT.md missing report section {}",
             section
         );
     }
