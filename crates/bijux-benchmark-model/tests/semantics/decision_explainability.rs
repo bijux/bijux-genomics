@@ -8,7 +8,7 @@ fn gate_decision_includes_rationale_and_is_stable() -> anyhow::Result<()> {
     let policy = GatePolicy {
         objective: "runtime".to_string(),
         required_metrics: vec!["runtime_s".to_string()],
-        thresholds: BTreeMap::new(),
+        thresholds: BTreeMap::from([("runtime_s".to_string(), 2.0)]),
         allowed_regressions: BTreeMap::new(),
         must_not_regress: Vec::new(),
         semantics_overrides: BTreeMap::new(),
