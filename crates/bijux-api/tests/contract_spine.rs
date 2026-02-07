@@ -20,6 +20,18 @@ struct FakeRunner;
 
 impl Runner for FakeRunner {
     fn run(&self, invocation: &Invocation) -> anyhow::Result<RunnerResult> {
+        let run_artifacts = invocation.step.out_dir.join("run_artifacts");
+        bijux_infra::ensure_dir(&run_artifacts)?;
+        for name in [
+            "metrics.json",
+            "effective_config.json",
+            "stage_report.json",
+            "tool_invocation.json",
+            "execution_record.json",
+        ] {
+            let path = run_artifacts.join(name);
+            bijux_infra::write_bytes(&path, "{}")?;
+        }
         for output in &invocation.step.io.outputs {
             if let Some(parent) = output.path.parent() {
                 bijux_infra::ensure_dir(parent)?;
