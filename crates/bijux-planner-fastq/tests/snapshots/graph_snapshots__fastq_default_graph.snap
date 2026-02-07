@@ -1,8 +1,14 @@
 ---
 source: crates/bijux-planner-fastq/tests/graph_snapshots.rs
+assertion_line: 67
 expression: json
 ---
 {
+  "contract_version": {
+    "major": 1.0,
+    "minor": 0.0
+  },
+  "deterministic_scheduler": true,
   "edges": [
     {
       "from": "fastq.detect_adapters",
@@ -28,7 +34,12 @@ expression: json
   "pipeline_id": "fastq-to-fastq__default__v1",
   "planner_version": "bijux-planner-fastq.v1",
   "policy": "PreferAccuracy",
+  "retry_policy": {
+    "max_attempts": 1.0,
+    "retry_on_exit_codes": []
+  },
   "schema_version": "bijux.execution_graph.v1",
+  "step_timeout_s": null,
   "steps": [
     {
       "aux_images": {},
@@ -47,24 +58,29 @@ expression: json
         "inputs": [
           {
             "name": "reads_r1",
-            "path": "<temp>/reads_R1.fastq"
+            "optional": false,
+            "path": "<temp>/reads_R1.fastq",
+            "role": "reads"
           }
         ],
         "outputs": [
           {
             "name": "fastqc_dir",
-            "path": "<temp>/out/detect_adapters/fastqc/fastqc"
+            "optional": false,
+            "path": "<temp>/out/detect_adapters/fastqc/fastqc",
+            "role": "index"
           }
         ]
       },
       "metrics_schema_ids": [],
       "out_dir": "<temp>/out/detect_adapters/fastqc",
       "resources": {
-        "mem_gb": 1,
+        "mem_gb": 1.0,
         "runtime": "docker",
-        "threads": 1,
-        "tmp_gb": 1
+        "threads": 1.0,
+        "tmp_gb": 1.0
       },
+      "stage_id": "fastq.detect_adapters",
       "step_id": "fastq.detect_adapters"
     },
     {
@@ -84,24 +100,29 @@ expression: json
         "inputs": [
           {
             "name": "reads_r1",
-            "path": "<temp>/out/trim/fastp/fastp.fastq.gz"
+            "optional": false,
+            "path": "<temp>/out/trim/fastp/fastp.fastq.gz",
+            "role": "reads"
           }
         ],
         "outputs": [
           {
             "name": "filtered_reads",
-            "path": "<temp>/out/filter/fastp/fastp.fastq.gz"
+            "optional": false,
+            "path": "<temp>/out/filter/seqkit/seqkit.fastq.gz",
+            "role": "reads"
           }
         ]
       },
       "metrics_schema_ids": [],
-      "out_dir": "<temp>/out/filter/fastp",
+      "out_dir": "<temp>/out/filter/seqkit",
       "resources": {
-        "mem_gb": 1,
+        "mem_gb": 1.0,
         "runtime": "docker",
-        "threads": 1,
-        "tmp_gb": 1
+        "threads": 1.0,
+        "tmp_gb": 1.0
       },
+      "stage_id": "fastq.filter",
       "step_id": "fastq.filter"
     },
     {
@@ -121,28 +142,35 @@ expression: json
         "inputs": [
           {
             "name": "reads_r1",
-            "path": "<temp>/out/filter/fastp/fastp.fastq.gz"
+            "optional": false,
+            "path": "<temp>/out/filter/seqkit/seqkit.fastq.gz",
+            "role": "reads"
           }
         ],
         "outputs": [
           {
             "name": "multiqc_report",
-            "path": "<temp>/out/qc_post/multiqc/multiqc_report.html"
+            "optional": true,
+            "path": "<temp>/out/qc_post/multiqc/multiqc_report.html",
+            "role": "report_html"
           },
           {
             "name": "multiqc_data",
-            "path": "<temp>/out/qc_post/multiqc/multiqc_data"
+            "optional": true,
+            "path": "<temp>/out/qc_post/multiqc/multiqc_data",
+            "role": "index"
           }
         ]
       },
       "metrics_schema_ids": [],
       "out_dir": "<temp>/out/qc_post/multiqc",
       "resources": {
-        "mem_gb": 1,
+        "mem_gb": 1.0,
         "runtime": "docker",
-        "threads": 1,
-        "tmp_gb": 1
+        "threads": 1.0,
+        "tmp_gb": 1.0
       },
+      "stage_id": "fastq.qc_post",
       "step_id": "fastq.qc_post"
     },
     {
@@ -162,24 +190,29 @@ expression: json
         "inputs": [
           {
             "name": "reads_r1",
-            "path": "<temp>/out/filter/fastp/fastp.fastq.gz"
+            "optional": false,
+            "path": "<temp>/out/filter/seqkit/seqkit.fastq.gz",
+            "role": "reads"
           }
         ],
         "outputs": [
           {
             "name": "stats_json",
-            "path": "<temp>/out/stats_neutral/seqkit_stats/stats.json"
+            "optional": false,
+            "path": "<temp>/out/stats_neutral/seqkit_stats/stats.json",
+            "role": "metrics_json"
           }
         ]
       },
       "metrics_schema_ids": [],
       "out_dir": "<temp>/out/stats_neutral/seqkit_stats",
       "resources": {
-        "mem_gb": 1,
+        "mem_gb": 1.0,
         "runtime": "docker",
-        "threads": 1,
-        "tmp_gb": 1
+        "threads": 1.0,
+        "tmp_gb": 1.0
       },
+      "stage_id": "fastq.stats_neutral",
       "step_id": "fastq.stats_neutral"
     },
     {
@@ -199,24 +232,29 @@ expression: json
         "inputs": [
           {
             "name": "reads_r1",
-            "path": "<temp>/reads_R1.fastq"
+            "optional": false,
+            "path": "<temp>/reads_R1.fastq",
+            "role": "reads"
           }
         ],
         "outputs": [
           {
             "name": "trimmed_reads",
-            "path": "<temp>/out/trim/fastp/fastp.fastq.gz"
+            "optional": false,
+            "path": "<temp>/out/trim/fastp/fastp.fastq.gz",
+            "role": "trimmed_reads"
           }
         ]
       },
       "metrics_schema_ids": [],
       "out_dir": "<temp>/out/trim/fastp",
       "resources": {
-        "mem_gb": 1,
+        "mem_gb": 1.0,
         "runtime": "docker",
-        "threads": 1,
-        "tmp_gb": 1
+        "threads": 1.0,
+        "tmp_gb": 1.0
       },
+      "stage_id": "fastq.trim",
       "step_id": "fastq.trim"
     },
     {
@@ -236,24 +274,29 @@ expression: json
         "inputs": [
           {
             "name": "reads_r1",
-            "path": "<temp>/reads_R1.fastq"
+            "optional": false,
+            "path": "<temp>/reads_R1.fastq",
+            "role": "reads"
           }
         ],
         "outputs": [
           {
             "name": "validation_report",
-            "path": "<temp>/out/validate_pre/fastqvalidator_official/validation.json"
+            "optional": false,
+            "path": "<temp>/out/validate_pre/fastqvalidator_official/validation.json",
+            "role": "report_json"
           }
         ]
       },
       "metrics_schema_ids": [],
       "out_dir": "<temp>/out/validate_pre/fastqvalidator_official",
       "resources": {
-        "mem_gb": 1,
+        "mem_gb": 1.0,
         "runtime": "docker",
-        "threads": 1,
-        "tmp_gb": 1
+        "threads": 1.0,
+        "tmp_gb": 1.0
       },
+      "stage_id": "fastq.validate_pre",
       "step_id": "fastq.validate_pre"
     }
   ]
