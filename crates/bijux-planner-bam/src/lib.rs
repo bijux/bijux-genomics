@@ -9,7 +9,8 @@ use bijux_domain_bam::BamStage;
 use bijux_pipelines::bam::{bam_adna_capture_profile, bam_adna_shotgun_profile};
 use bijux_pipelines::PipelineProfile;
 use bijux_stage_contract::default_edges_for_stages;
-use bijux_stage_contract::StagePlanV1;
+use bijux_stage_contract::{PlanDecisionReason, PlanReasonKind, StagePlanV1};
+use serde_json::Value;
 
 pub const PLANNER_VERSION: &str = "bijux-planner-bam.v1";
 
@@ -113,7 +114,7 @@ fn effective_params_for_stage(
 #[allow(clippy::needless_pass_by_value, clippy::too_many_lines)]
 pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
     let stage = bijux_domain_bam::BamStage::try_from(request.stage_id)?;
-    match stage {
+    let mut plan = match stage {
         bijux_domain_bam::BamStage::Align => {
             let r1 = request.r1.ok_or_else(|| anyhow!("align requires r1"))?;
             let reference = request
@@ -343,7 +344,18 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
                 Err(anyhow!("kinship requires bam_downstream feature"))
             }
         }
+    }?;
+    let mut details = serde_json::Map::new();
+    details.insert("defaults_diff".to_string(), serde_json::json!({}));
+    if let Some(Ok(hash)) = bijux_domain_bam::stage_contract_hash(request.stage_id) {
+        details.insert("contract_hash".to_string(), Value::String(hash));
     }
+    plan.reason = PlanDecisionReason::new(
+        PlanReasonKind::Default,
+        format!("tool {} selected by planner", plan.tool_id.0),
+    );
+    plan.reason.details = Value::Object(details);
+    Ok(plan)
 }
 
 /// # Errors
