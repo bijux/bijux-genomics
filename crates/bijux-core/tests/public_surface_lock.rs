@@ -2,7 +2,9 @@ use std::fs;
 use std::path::PathBuf;
 
 fn read_public_modules() -> Vec<String> {
-    let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("PUBLIC_API.md");
+    let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("docs")
+        .join("PUBLIC_API.md");
     let content = fs::read_to_string(path).expect("read PUBLIC_API.md");
     let mut modules = Vec::new();
     let mut in_section = false;
