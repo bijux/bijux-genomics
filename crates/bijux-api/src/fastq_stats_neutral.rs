@@ -3,9 +3,10 @@ use std::path::PathBuf;
 
 use crate::tooling::{ensure_bench_runner, filter_tools_by_role, load_registry};
 use anyhow::{anyhow, Context, Result};
+use bijux_analyze::load::sqlite::bench::{fetch_fastq_stats_v1, insert_fastq_stats_v1};
 use bijux_analyze::{
-    append_jsonl, fetch_fastq_stats_v1, insert_fastq_stats_v1, metric_set, BenchmarkContext,
-    BenchmarkRecord, FastqStatsMetrics, LengthHistogramBin,
+    append_jsonl, metric_set, BenchmarkContext, BenchmarkRecord, FastqStatsMetrics,
+    LengthHistogramBin,
 };
 use bijux_core::foundation::errors::ErrorCategory;
 use bijux_core::foundation::measure::ExecutionMetrics;

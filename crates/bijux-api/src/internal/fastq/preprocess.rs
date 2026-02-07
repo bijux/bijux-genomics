@@ -3,7 +3,7 @@ use std::collections::HashMap;
 
 use crate::tooling::{ensure_bench_runner, filter_tools_by_role, load_registry};
 use anyhow::{anyhow, Context, Result};
-use bijux_analyze::load::sqlite::SqliteBenchResultsRepository;
+use bijux_analyze::load::sqlite::bench_results_fastq::SqliteBenchResultsRepository;
 use bijux_core::contract::PlanPolicy;
 use bijux_core::contract::{ExecutionEdge, ExecutionGraph};
 use bijux_core::foundation::errors::ErrorCategory;
