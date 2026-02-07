@@ -24,4 +24,4 @@ run_123/
 - `effective_config.json`: merged params and defaults
 - `execution_record.json`: timing, exit status, resource summary
 
-Enforced by `tests/recording_completeness.rs`.
+Enforced by `tests/recording/recording_completeness.rs`.
