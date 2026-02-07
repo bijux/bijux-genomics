@@ -2,8 +2,20 @@
 
 ## Final artifact bundle
 - report.json
-- report.html
-- summary.tsv
+- report_bundle/index.html
+- report_bundle/report.json
+- report.html (optional legacy single-file rendering)
+
+## Report sections
+- qc
+- final_qc_summary
+- retention_definition
+- retention_context
+- filter_interpretation
+- reproducibility
+- method_assumptions
+- metric_semantics
+- completeness
 
 ## Size limits
 - report.json < 5MB
