@@ -2,6 +2,9 @@
 //!
 //! Owns: execution services, validation gates, and observability hooks.
 //! Must NOT depend on: bijux-domain-* crates or domain semantics.
+//! Policy: engine must not spawn processes (see clippy disallowed methods/types).
+
+#![deny(clippy::disallowed_methods, clippy::disallowed_types)]
 
 #![allow(
     clippy::module_name_repetitions,
@@ -13,7 +16,7 @@
 
 mod errors;
 mod executor;
-mod runtime_services;
+mod runtime_facade;
 
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;

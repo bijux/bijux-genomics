@@ -1,0 +1,13 @@
+# Engine must remain a pure orchestrator; disallow process spawning APIs.
+disallowed-types = [
+  "std::process::Command",
+  "std::process::Child",
+  "std::process::Stdio",
+  "tokio::process::Command",
+  "tokio::process::Child",
+]
+
+disallowed-methods = [
+  "std::process::Command::new",
+  "tokio::process::Command::new",
+]
