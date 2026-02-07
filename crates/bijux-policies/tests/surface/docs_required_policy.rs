@@ -17,8 +17,13 @@ fn has_uppercase_name(path: &Path) -> bool {
 fn crates_require_scope_and_architecture_docs() {
     let mut missing = Vec::new();
     for crate_root in support::crate_roots() {
+        let docs_root = crate_root.join("docs");
+        if !docs_root.exists() {
+            missing.push(format!("{} missing docs/ directory", crate_root.display()));
+            continue;
+        }
         for doc in REQUIRED_DOCS {
-            let doc_path = crate_root.join(doc);
+            let doc_path = docs_root.join(doc);
             if !doc_path.exists() {
                 missing.push(format!("{} missing {}", crate_root.display(), doc));
             }
@@ -39,7 +44,11 @@ Missing:\n{}",
 fn crate_docs_use_uppercase_names() {
     let mut offenders = Vec::new();
     for crate_root in support::crate_roots() {
-        for entry in std::fs::read_dir(&crate_root).expect("read crate root") {
+        let docs_root = crate_root.join("docs");
+        if !docs_root.exists() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&docs_root).expect("read docs root") {
             let entry = entry.expect("read entry");
             let path = entry.path();
             if !path.is_file() {
@@ -72,10 +81,10 @@ fn crates_require_readme_when_listed() {
     let mut missing = Vec::new();
     for (crate_name, reason) in README_REQUIRED {
         let crate_root = support::crate_root(crate_name);
-        let doc_path = crate_root.join("README.md");
+        let doc_path = crate_root.join("docs").join("README.md");
         if !doc_path.exists() {
             missing.push(format!(
-                "{} missing README.md (reason: {reason})",
+                "{} missing docs/README.md (reason: {reason})",
                 crate_root.display()
             ));
         }

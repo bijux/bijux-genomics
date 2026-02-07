@@ -3,211 +3,133 @@ source: crates/bijux-policies/tests/surface/crate_tree_contract.rs
 expression: output
 ---
 [bijux-analyze]
-- ARCHITECTURE.md
 - Cargo.toml
-- DATA_MODEL.md
-- PERFORMANCE_BUDGET.md
-- SCHEMA.md
-- SCOPE.md
+- docs/
 - src/
 - tests/
 
 [bijux-api]
-- API.md
-- API_STABILITY.md
-- ARCHITECTURE.md
 - Cargo.toml
-- SCOPE.md
+- docs/
 - src/
 - tests/
 
 [bijux-benchmark]
-- ARCHITECTURE.md
-- BENCH_CONTRACT.md
-- BENCH_FORMAT.md
 - Cargo.toml
-- SCOPE.md
+- docs/
 - src/
 - tests/
 
 [bijux-benchmark-model]
-- ARCHITECTURE.md
 - Cargo.toml
-- MODEL_GLOSSARY.md
-- SCOPE.md
+- docs/
 - src/
 - tests/
 
 [bijux-cli]
-- ARCHITECTURE.md
-- COMMANDS.md
-- CLI_CONVENTIONS.md
 - Cargo.toml
-- README.md
-- SCOPE.md
+- docs/
 - src/
 - tests/
 
 [bijux-core]
-- ARCHITECTURE.md
-- BOUNDARIES.md
-- CONTRIBUTING.md
-- CONTRACT_VERSIONING.md
 - Cargo.toml
-- PUBLIC_API.md
-- SCOPE.md
+- docs/
 - src/
 - tests/
 
 [bijux-domain-bam]
-- ARCHITECTURE.md
 - Cargo.toml
-- DOMAIN_MODEL.md
-- METRICS.md
-- PARAMS.md
-- PHASES.md
-- SCOPE.md
+- docs/
 - src/
 - tests/
 
 [bijux-domain-fastq]
-- ARCHITECTURE.md
 - Cargo.toml
-- DOMAIN_MODEL.md
-- METRICS.md
-- PARAMS.md
-- README.md
-- SCOPE.md
+- docs/
 - src/
 - tests/
 
 [bijux-engine]
-- ARCHITECTURE.md
 - Cargo.toml
-- ERRORS.md
-- ENGINE_CONTRACT.md
-- SCOPE.md
+- docs/
 - src/
 - tests/
 
 [bijux-environment]
-- ARCHITECTURE.md
 - Cargo.toml
-- ENV_MATRIX.md
-- ENV_REFERENCE.md
-- SCOPE.md
+- docs/
 - src/
 - tests/
 
 [bijux-environment-qa]
-- ARCHITECTURE.md
 - Cargo.toml
-- DATASETS.md
-- QA_MATRIX.md
-- RUNBOOK.md
-- SCOPE.md
+- docs/
 - src/
 - tests/
 
 [bijux-infra]
-- ARCHITECTURE.md
 - Cargo.toml
-- NO_DOMAIN.md
-- SCOPE.md
+- docs/
 - src/
 - tests/
 
 [bijux-pipelines]
-- ARCHITECTURE.md
 - Cargo.toml
-- PIPELINES.md
-- PIPELINE_MODEL.md
-- PIPELINE_VERSIONING.md
-- SCOPE.md
+- docs/
 - src/
 - tests/
 
 [bijux-planner-bam]
-- ARCHITECTURE.md
 - Cargo.toml
-- PLANNER_MODEL.md
-- STAGE_MAPPING.md
-- SCOPE.md
-- TOOL_SELECTION.md
+- docs/
 - src/
 - tests/
 
 [bijux-planner-fastq]
-- ARCHITECTURE.md
 - Cargo.toml
-- PLANNER_MODEL.md
-- STAGE_MAPPING.md
-- SCOPE.md
-- TOOL_SELECTION.md
+- docs/
 - src/
 - tests/
 
 [bijux-policies]
-- ARCHITECTURE.md
 - Cargo.toml
-- ENFORCEMENT.md
-- POLICY_MATRIX.md
-- POLICIES.md
-- SCOPE.md
+- docs/
 - src/
 - tests/
 
 [bijux-runner]
-- ARCHITECTURE.md
-- BACKENDS.md
 - Cargo.toml
-- RUNNER_MODEL.md
-- SCOPE.md
+- docs/
 - src/
 - tests/
 
 [bijux-runtime]
-- ARCHITECTURE.md
 - Cargo.toml
-- EVENTS.md
-- GLOSSARY.md
-- RUNTIME_CONTRACT.md
-- SCOPE.md
+- docs/
 - src/
 - tests/
 
 [bijux-stage-contract]
-- ARCHITECTURE.md
-- CONTRACT.md
 - Cargo.toml
-- PUBLIC_API.md
-- SCOPE.md
+- docs/
 - src/
 - tests/
 
 [bijux-stages-bam]
-- ARCHITECTURE.md
 - Cargo.toml
-- OBSERVERS.md
-- SCOPE.md
-- STAGE_CONTRACTS.md
-- STAGE_LIST.md
+- docs/
 - src/
 - tests/
 
 [bijux-stages-fastq]
-- ARCHITECTURE.md
 - Cargo.toml
-- OBSERVERS.md
-- SCOPE.md
-- STAGE_CONTRACTS.md
-- STAGE_LIST.md
+- docs/
 - src/
 - tests/
 
 [bijux-testkit]
-- ARCHITECTURE.md
 - Cargo.toml
-- SCOPE.md
+- docs/
 - src/
 - tests/
