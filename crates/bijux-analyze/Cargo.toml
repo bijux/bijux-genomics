@@ -34,6 +34,7 @@ bijux-planner-fastq = { path = "../bijux-planner-fastq" }
 bijux-planner-bam = { path = "../bijux-planner-bam" }
 bijux-pipelines = { path = "../bijux-pipelines" }
 bijux-benchmark = { path = "../bijux-benchmark" }
+walkdir.workspace = true
 
 [lints]
 workspace = true
