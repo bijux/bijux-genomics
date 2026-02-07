@@ -6,11 +6,11 @@ use bijux_core::prelude::params_hash;
 use anyhow::Result;
 use rusqlite::{params, Connection};
 
-use crate::aggregate::{
-    BenchmarkRecord, FastqFilterMetrics, FastqTrimMetrics, FastqValidateMetrics,
-};
 use crate::aggregate::metrics::{
     ImageQaRecord, IMAGE_QA_INPUTS_SCHEMA_VERSION, IMAGE_QA_SCHEMA_VERSION,
+};
+use crate::aggregate::{
+    BenchmarkRecord, FastqFilterMetrics, FastqTrimMetrics, FastqValidateMetrics,
 };
 use crate::{
     FastqCorrectMetrics, FastqMergeMetrics, FastqQcPostMetrics, FastqScreenMetrics,

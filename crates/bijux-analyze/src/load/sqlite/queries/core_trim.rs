@@ -1,4 +1,3 @@
-
 // `SQLite` trim benchmark helpers.
 
 /// # Errors
