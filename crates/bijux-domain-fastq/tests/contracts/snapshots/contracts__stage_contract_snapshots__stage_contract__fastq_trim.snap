@@ -1,0 +1,53 @@
+---
+source: crates/bijux-domain-fastq/tests/contracts/stage_contract_snapshots.rs
+expression: json
+---
+{
+  "inputs": {
+    "kind": "SingleEnd"
+  },
+  "metrics": {
+    "classes": [
+      "Integrity",
+      "Retention",
+      "QualityShift"
+    ],
+    "invariants": [
+      "reads_out <= reads_in",
+      "bases_out <= bases_in",
+      "mean_q_after >= mean_q_before (warn)",
+      "counts are non-negative"
+    ],
+    "notes": "Trim can reduce reads/bases and improve quality."
+  },
+  "outputs": {
+    "emits_fastq": true,
+    "kind": "SingleEnd"
+  },
+  "retention": {
+    "definition": "reads_out / reads_in; bases_out / bases_in",
+    "may_drop": [
+      "reads",
+      "bases"
+    ],
+    "may_drop_reads": true,
+    "must_preserve_pairing": true,
+    "preserves": [
+      "read_order",
+      "pairing_metadata"
+    ],
+    "units": "reads,bases"
+  },
+  "schema_version": "bijux.stage_contract.v1",
+  "stage_id": "fastq.trim",
+  "tool_ids": [
+    "adapterremoval",
+    "atropos",
+    "bbduk",
+    "cutadapt",
+    "fastp",
+    "trimmomatic",
+    "trim_galore",
+    "seqpurge"
+  ]
+}
