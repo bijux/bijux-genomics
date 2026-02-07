@@ -223,60 +223,60 @@ pub fn lint_execution_graph(graph: &ExecutionGraph) -> Result<()> {
         ));
     }
     let mut step_ids = HashSet::new();
-        for step in &graph.steps {
-            if !step_ids.insert(step.step_id.to_string()) {
+    for step in &graph.steps {
+        if !step_ids.insert(step.step_id.to_string()) {
+            return Err(BijuxError::validation(format!(
+                "duplicate step id {}",
+                step.step_id.0
+            )));
+        }
+        if step.stage_id.as_str().trim().is_empty() {
+            return Err(BijuxError::validation(format!(
+                "step {} missing stage_id",
+                step.step_id.0
+            )));
+        }
+        if step.command.template.is_empty() {
+            return Err(BijuxError::validation(format!(
+                "step {} missing command",
+                step.step_id.0
+            )));
+        }
+        if step.image.image.trim().is_empty() {
+            return Err(BijuxError::validation(format!(
+                "step {} missing image",
+                step.step_id.0
+            )));
+        }
+        if step.io.inputs.is_empty() || step.io.outputs.is_empty() {
+            return Err(BijuxError::validation(format!(
+                "step {} missing IO",
+                step.step_id.0
+            )));
+        }
+        let mut artifacts = HashSet::new();
+        for artifact in step.io.inputs.iter().chain(step.io.outputs.iter()) {
+            if artifact.name.as_str().trim().is_empty() {
                 return Err(BijuxError::validation(format!(
-                    "duplicate step id {}",
+                    "step {} has artifact with empty name",
                     step.step_id.0
                 )));
             }
-            if step.stage_id.as_str().trim().is_empty() {
+            if artifact.path.as_os_str().is_empty() {
                 return Err(BijuxError::validation(format!(
-                    "step {} missing stage_id",
+                    "step {} has artifact with empty path",
                     step.step_id.0
                 )));
             }
-            if step.command.template.is_empty() {
+            if !artifacts.insert(artifact.name.to_string()) {
                 return Err(BijuxError::validation(format!(
-                    "step {} missing command",
-                    step.step_id.0
+                    "step {} has duplicate artifact {}",
+                    step.step_id.0,
+                    artifact.name.as_str()
                 )));
-            }
-            if step.image.image.trim().is_empty() {
-                return Err(BijuxError::validation(format!(
-                    "step {} missing image",
-                    step.step_id.0
-                )));
-            }
-            if step.io.inputs.is_empty() || step.io.outputs.is_empty() {
-                return Err(BijuxError::validation(format!(
-                    "step {} missing IO",
-                    step.step_id.0
-                )));
-            }
-            let mut artifacts = HashSet::new();
-            for artifact in step.io.inputs.iter().chain(step.io.outputs.iter()) {
-                if artifact.name.as_str().trim().is_empty() {
-                    return Err(BijuxError::validation(format!(
-                        "step {} has artifact with empty name",
-                        step.step_id.0
-                    )));
-                }
-                if artifact.path.as_os_str().is_empty() {
-                    return Err(BijuxError::validation(format!(
-                        "step {} has artifact with empty path",
-                        step.step_id.0
-                    )));
-                }
-                if !artifacts.insert(artifact.name.to_string()) {
-                    return Err(BijuxError::validation(format!(
-                        "step {} has duplicate artifact {}",
-                        step.step_id.0,
-                        artifact.name.as_str()
-                    )));
-                }
             }
         }
+    }
     let mut by_id: HashMap<&str, &ExecutionStep> = HashMap::new();
     for step in &graph.steps {
         by_id.insert(step.step_id.as_str(), step);
