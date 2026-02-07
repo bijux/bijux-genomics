@@ -1,7 +1,17 @@
 # bijux-api
 
 ## What this crate does
-Public API surface for plan/dry-run/execute/report/explain endpoints.
+Public API surface for orchestration endpoints and schemas.
+
+Public modules under `src/v1/*`:
+- `api` (front door exports for v1)
+- `plan` (plan building + explain)
+- `run` (dry-run/execute/status/policy audit)
+- `report` (report rendering + bundle helpers)
+- `bench` (benchmark and comparison helpers)
+- `fastq` / `bam` / `env` (domain-specific helpers)
+
+Internal handlers under `src/internal/*` are not public API.
 
 ## What it must not do (boundaries)
 No tool selection or execution effects directly.
@@ -19,7 +29,9 @@ API schemas and responses; snapshots in tests.
 Coordinates orchestrator; no direct process spawn. See `docs/EFFECTS.md` and the golden tests below.
 
 ## How to run its tests
-See `docs/TESTS.md`. Golden tests: `tests/api_stability.rs`, `tests/explain_roundtrip.rs`, `tests/contract_spine.rs`, `tests/public_surface.rs`.
+See `docs/TESTS.md`. Golden tests: `tests/schema/api_stability.rs`,
+`tests/roundtrip/explain_roundtrip.rs`, `tests/roundtrip/contract_spine.rs`,
+`tests/surface/public_surface.rs`.
 
 ## Where the docs live
 Start at `docs/INDEX.md` and follow the crate docs listed above.

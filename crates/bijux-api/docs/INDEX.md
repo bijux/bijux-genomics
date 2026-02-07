@@ -14,3 +14,14 @@ See `CHANGE_RULES.md` for safe extension guidelines.
 
 ## How to Test
 See `TESTS.md` for test mapping and fixtures.
+
+## API docs
+- `API.md` for the public endpoint surface.
+- `API_STABILITY.md` for compatibility rules.
+- Schema snapshots:
+  `tests/schema/snapshots/schema__api_stability__plan_response_schema.snap`,
+  `tests/schema/snapshots/schema__api_stability__execute_response_schema.snap`,
+  `tests/schema/snapshots/schema__api_stability__dry_run_response_schema.snap`,
+  `tests/schema/snapshots/schema__api_stability__status_schema.snap`,
+  `tests/schema/snapshots/schema__api_stability__explain_schema.snap`,
+  `tests/schema/snapshots/schema__api_stability__policy_audit_schema.snap`.
