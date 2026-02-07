@@ -12,8 +12,14 @@ Tests should explain the contract they enforce.
 ## Contracts
 - Each test file should be referenced here.
 
+## Suite map
+- `tests/contracts/*` → stage contracts, SSOT ids, and public surface.
+- `tests/invariants/*` → invariant specs and invariant enforcement.
+- `tests/semantics/*` → retention semantics, params canonicalization, observability.
+- `tests/purity/*` → architecture, determinism, and guardrails.
+
 ## Examples
-- `tests/architecture.rs` → dependency boundary assertions.
+- `tests/contracts/stage_contract_snapshots.rs` → stage contract snapshots.
 
 ## Failure modes
 - Missing test documentation causes drift and confusion.
