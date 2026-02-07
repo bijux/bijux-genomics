@@ -1,3 +1,6 @@
+//! Selection argument structs for FASTQ planning.
+//! Stable knobs here are considered part of the planner's public API.
+
 use std::path::PathBuf;
 
 #[derive(Debug, Clone)]

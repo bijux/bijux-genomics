@@ -1,12 +1,10 @@
 use std::path::Path;
 
-use anyhow::{anyhow, Context, Result};
-use bijux_core::prelude::measure::SeqkitMetrics;
+use anyhow::{anyhow, Result};
 use bijux_core::prelude::{ArtifactId, ArtifactRole, StageId, StageVersion, ToolExecutionSpecV1};
 use bijux_domain_fastq::params::{validate::ValidateEffectiveParams, PairedMode};
 use bijux_domain_fastq::STAGE_VALIDATE_PRE;
 use bijux_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
-use bijux_stages_fastq::observer::parse_fastqvalidator_count;
 
 pub const STAGE_ID: StageId = STAGE_VALIDATE_PRE;
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
@@ -90,21 +88,6 @@ pub fn plan_from_config(
     plan(tool, &config.r1, &config.out_dir)
 }
 
-pub fn validate_reads_total(tool: &str, input_stats: &SeqkitMetrics, stdout: &str) -> Result<u64> {
-    let reads_total = match tool {
-        "seqtk" | "fastqc" => input_stats.reads,
-        "fastqvalidator" | "fastqvalidator_official" => parse_fastqvalidator_count(stdout)
-            .with_context(|| "fastqvalidator output parse failed")?,
-        "fqtools" => stdout
-            .lines()
-            .next()
-            .ok_or_else(|| anyhow!("fqtools output missing"))?
-            .parse::<u64>()?,
-        _ => return Err(anyhow!("unsupported tool: {tool}")),
-    };
-    Ok(reads_total)
-}
-
 fn normalize_tools_with_allowlist(tools: &[String], allowlist: &[&str]) -> Result<Vec<String>> {
     let mut normalized: Vec<String> = tools.iter().map(|tool| tool.to_lowercase()).collect();
     normalized.sort();
@@ -118,51 +101,4 @@ fn normalize_tools_with_allowlist(tools: &[String], allowlist: &[&str]) -> Resul
         }
     }
     Ok(normalized)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::validate_reads_total;
-    use anyhow::Result;
-    use bijux_core::prelude::measure::SeqkitMetrics;
-
-    #[test]
-    fn validate_reads_total_uses_input_for_fastqc() -> Result<()> {
-        let input = SeqkitMetrics {
-            reads: 12,
-            bases: 120,
-            mean_q: 30.0,
-            gc_percent: 50.0,
-        };
-        let count = validate_reads_total("fastqc", &input, "")?;
-        assert_eq!(count, 12);
-        Ok(())
-    }
-
-    #[test]
-    fn validate_reads_total_parses_fqtools() -> Result<()> {
-        let input = SeqkitMetrics {
-            reads: 1,
-            bases: 10,
-            mean_q: 30.0,
-            gc_percent: 50.0,
-        };
-        let count = validate_reads_total("fqtools", &input, "42\n")?;
-        assert_eq!(count, 42);
-        Ok(())
-    }
-
-    #[test]
-    fn validate_reads_total_rejects_unknown_tool() {
-        let input = SeqkitMetrics {
-            reads: 1,
-            bases: 10,
-            mean_q: 30.0,
-            gc_percent: 50.0,
-        };
-        match validate_reads_total("mystery", &input, "") {
-            Ok(_) => panic!("expected unsupported tool"),
-            Err(err) => assert!(err.to_string().contains("unsupported tool")),
-        }
-    }
 }
