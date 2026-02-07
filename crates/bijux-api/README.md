@@ -1,32 +1,31 @@
 # bijux-api
 
 ## What this crate does
-Defines this crate's core responsibilities and wiring.
+Defines the public API surface for planning, executing, and reporting pipelines. It is the orchestration entrypoint for consumers.
 
 ## What it must not do (boundaries)
-Must only depend on approved crates; must not reach into execution or domain logic unless explicitly allowed in docs.
+Must not implement tool selection logic or execution effects directly. It wires planners, engine, and runtime only.
 
 ## Public API / entrypoints
-See `docs/INDEX.md` for stable entrypoints and re-exports.
+The v1 API is documented in `docs/API.md` and `docs/ENDPOINT_GUIDES.md`.
 
 ## Key contracts it owns/consumes
-See `docs/INDEX.md` for contract ownership and consumption details.
+Consumes planner outputs and runtime manifests; produces API responses and explainability payloads.
 
 ## Effects & determinism guarantees
-See `docs/EFFECTS.md` for allowed effects and determinism guarantees.
-
-## Artifacts / Contracts
-None by default unless documented in `docs/ARCHITECTURE.md`.
-
-## Failure modes
-See crate logs/tests; start with `docs/TESTS.md` for debugging paths.
+No direct process spawn. Determinism is enforced by schema snapshot tests; see `docs/API_STABILITY.md`.
 
 ## How to run its tests
-See `docs/TESTS.md`.
+See `docs/TESTS.md`. Key tests: `tests/api_stability.rs`, `tests/explain_roundtrip.rs`, `tests/contract_spine.rs`.
 
 ## Where the docs live
-- `docs/INDEX.md`
-- `docs/SCOPE.md`
-- `docs/ARCHITECTURE.md`
-- `docs/EFFECTS.md`
-- `docs/CHANGE_RULES.md`
+Start at `docs/INDEX.md`, then read `docs/API.md`, `docs/ENDPOINT_GUIDES.md`, and `docs/API_STABILITY.md`.
+
+## Artifacts / Contracts
+Produces plan/execute/dry-run responses and explain payloads; see schema snapshots in `tests/snapshots/`.
+
+## Failure modes
+Validation and schema mismatches are caught by stability tests; see `docs/API_STABILITY.md`.
+
+## Stability
+API schemas are snapshot-tested; breaking changes require updates per `docs/CHANGE_RULES.md`.
