@@ -1,6 +1,6 @@
 # ARCHITECTURE
 
 Modules:
-- `build/`: environment builders (EnvironmentBuilder).
-- `resolve/`: catalog and image resolution (EnvironmentResolver).
-- `runtime/`: runtime spec (RuntimeSpec).
+- `build.rs`: environment builders (EnvironmentBuilder).
+- `resolve.rs`: catalog and image resolution (EnvironmentResolver).
+- `runtime_spec.rs`: runtime spec (RuntimeSpec).
