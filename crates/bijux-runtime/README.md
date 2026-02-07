@@ -1,32 +1,31 @@
 # bijux-runtime
 
 ## What this crate does
-Defines this crate's core responsibilities and wiring.
+Defines runtime contracts and recording: `RunLayout`, `RunManifest`, `RunRecord`, and `Provenance` plus recorder interfaces.
 
 ## What it must not do (boundaries)
-Must only depend on approved crates; must not reach into execution or domain logic unless explicitly allowed in docs.
+Must not execute tools or perform heavy effects. It only writes files under the run layout.
 
 ## Public API / entrypoints
-See `docs/INDEX.md` for stable entrypoints and re-exports.
+Runtime contracts and recorder interfaces documented in `docs/RUNTIME_CONTRACT.md` and `docs/EVENTS.md`.
 
 ## Key contracts it owns/consumes
-See `docs/INDEX.md` for contract ownership and consumption details.
+Owns run layout/record/provenance schemas; consumes core contract IDs. See `docs/INDEX.md`.
 
 ## Effects & determinism guarantees
-See `docs/EFFECTS.md` for allowed effects and determinism guarantees.
-
-## Artifacts / Contracts
-None by default unless documented in `docs/ARCHITECTURE.md`.
-
-## Failure modes
-See crate logs/tests; start with `docs/TESTS.md` for debugging paths.
+Filesystem writes only under layout; path derivation is deterministic. See `docs/BOUNDARY.md` and `tests/run_layout_contract.rs`.
 
 ## How to run its tests
-See `docs/TESTS.md`.
+See `docs/TESTS.md`. Key tests: `tests/reference_example.rs`, `tests/runtime_schema_snapshots.rs`, `tests/manifest_integrity.rs`.
 
 ## Where the docs live
-- `docs/INDEX.md`
-- `docs/SCOPE.md`
-- `docs/ARCHITECTURE.md`
-- `docs/EFFECTS.md`
-- `docs/CHANGE_RULES.md`
+Start at `docs/INDEX.md`, then `docs/RUNTIME_CONTRACT.md` and `docs/GLOSSARY.md`.
+
+## Artifacts / Contracts
+Produces run layout trees and manifests/records for consumption by analyze/bench.
+
+## Failure modes
+Schema mismatches and missing fields are caught by snapshot and integrity tests.
+
+## Stability
+Schema changes are versioned and snapshot-tested per `docs/CHANGE_RULES.md`.
