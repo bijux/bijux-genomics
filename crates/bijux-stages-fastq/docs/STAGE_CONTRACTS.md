@@ -1,5 +1,8 @@
 # STAGE_CONTRACTS
 
+## Symmetry
+Symmetry is enforced at the contract level (observable inputs/outputs), not file naming.
+
 ## Canonical examples
 ### fastq.trim
 metrics.json
