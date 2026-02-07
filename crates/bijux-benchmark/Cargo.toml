@@ -18,3 +18,4 @@ bijux-benchmark-model = { path = "../bijux-benchmark-model" }
 [dev-dependencies]
 bijux-policies = { path = "../bijux-policies" }
 insta = { version = "1", features = ["json"] }
+walkdir.workspace = true
