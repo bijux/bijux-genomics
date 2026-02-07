@@ -6,13 +6,15 @@
 use std::collections::{BTreeMap, HashMap};
 use std::fmt;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 use std::str::FromStr;
 
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use thiserror::Error;
 
+mod commands;
+
+pub use commands::{available_runners, docker_image_exists};
 /// Resolver entrypoint for environment specs and image catalog.
 #[derive(Debug, Default, Clone, Copy)]
 pub struct EnvironmentResolver;
@@ -51,31 +53,31 @@ impl EnvironmentResolver {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
-pub enum RunnerKind {
+pub enum RuntimeKind {
     Docker,
     Singularity,
     Apptainer,
 }
 
-impl fmt::Display for RunnerKind {
+impl fmt::Display for RuntimeKind {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let value = match self {
-            RunnerKind::Docker => "docker",
-            RunnerKind::Singularity => "singularity",
-            RunnerKind::Apptainer => "apptainer",
+            RuntimeKind::Docker => "docker",
+            RuntimeKind::Singularity => "singularity",
+            RuntimeKind::Apptainer => "apptainer",
         };
         write!(f, "{value}")
     }
 }
 
-impl FromStr for RunnerKind {
+impl FromStr for RuntimeKind {
     type Err = EnvError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s.to_lowercase().as_str() {
-            "docker" => Ok(RunnerKind::Docker),
-            "singularity" => Ok(RunnerKind::Singularity),
-            "apptainer" => Ok(RunnerKind::Apptainer),
+            "docker" => Ok(RuntimeKind::Docker),
+            "singularity" => Ok(RuntimeKind::Singularity),
+            "apptainer" => Ok(RuntimeKind::Apptainer),
             other => Err(EnvError::Parse(format!("unknown runner kind: {other}"))),
         }
     }
@@ -85,7 +87,7 @@ impl FromStr for RunnerKind {
 #[serde(deny_unknown_fields)]
 pub struct PlatformSpec {
     pub name: String,
-    pub runner: RunnerKind,
+    pub runner: RuntimeKind,
     pub container_dir: PathBuf,
     pub image_prefix: String,
     pub arch: String,
@@ -94,7 +96,7 @@ pub struct PlatformSpec {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 struct PlatformSpecRaw {
-    pub runner: RunnerKind,
+    pub runner: RuntimeKind,
     pub container_dir: PathBuf,
     pub image_prefix: String,
     pub arch: String,
@@ -137,16 +139,19 @@ pub struct ToolImageSpec {
 pub struct ResolvedImage {
     pub full_name: String,
     pub arch: String,
-    pub runner: RunnerKind,
+    pub runner: RuntimeKind,
 }
 
 impl ResolvedImage {
     #[must_use]
-    pub fn is_compatible(&self, runner: RunnerKind) -> bool {
+    pub fn is_compatible(&self, runner: RuntimeKind) -> bool {
         match runner {
-            RunnerKind::Docker => self.runner == RunnerKind::Docker,
-            RunnerKind::Apptainer | RunnerKind::Singularity => {
-                matches!(self.runner, RunnerKind::Apptainer | RunnerKind::Singularity)
+            RuntimeKind::Docker => self.runner == RuntimeKind::Docker,
+            RuntimeKind::Apptainer | RuntimeKind::Singularity => {
+                matches!(
+                    self.runner,
+                    RuntimeKind::Apptainer | RuntimeKind::Singularity
+                )
             }
         }
     }
@@ -161,7 +166,7 @@ pub enum EnvError {
     #[error("platform error: {0}")]
     Platform(String),
     #[error("runner unavailable")]
-    RunnerUnavailable,
+    RuntimeUnavailable,
     #[error("dockerfile error: {0}")]
     Dockerfile(String),
     #[error("image error: {0}")]
@@ -209,37 +214,21 @@ pub(crate) fn load_platform_from_file(
     })
 }
 
-/// List available runners based on local command probes.
-///
-/// # Errors
-/// Returns an error if probing cannot be performed.
-pub fn available_runners() -> Result<Vec<RunnerKind>, EnvError> {
-    Ok(available_runners_with(probe_command))
-}
-
-pub(crate) fn available_runners_with<F>(probe: F) -> Vec<RunnerKind>
+pub(crate) fn available_runners_with<F>(probe: F) -> Vec<RuntimeKind>
 where
     F: Fn(&str) -> bool,
 {
     let mut runners = Vec::new();
     if probe("docker") {
-        runners.push(RunnerKind::Docker);
+        runners.push(RuntimeKind::Docker);
     }
     if probe("apptainer") {
-        runners.push(RunnerKind::Apptainer);
+        runners.push(RuntimeKind::Apptainer);
     }
     if probe("singularity") {
-        runners.push(RunnerKind::Singularity);
+        runners.push(RuntimeKind::Singularity);
     }
     runners
-}
-
-fn probe_command(command: &str) -> bool {
-    Command::new(command)
-        .arg("--version")
-        .output()
-        .map(|output| output.status.success())
-        .unwrap_or(false)
 }
 
 /// Select the best runner with a fallback order.
@@ -247,22 +236,22 @@ fn probe_command(command: &str) -> bool {
 /// # Errors
 /// Returns an error if no runners are available.
 pub fn select_best_runner(
-    preferred: RunnerKind,
-    available: &[RunnerKind],
-) -> Result<RunnerKind, EnvError> {
+    preferred: RuntimeKind,
+    available: &[RuntimeKind],
+) -> Result<RuntimeKind, EnvError> {
     if available.contains(&preferred) {
         return Ok(preferred);
     }
-    if available.contains(&RunnerKind::Apptainer) {
-        return Ok(RunnerKind::Apptainer);
+    if available.contains(&RuntimeKind::Apptainer) {
+        return Ok(RuntimeKind::Apptainer);
     }
-    if available.contains(&RunnerKind::Singularity) {
-        return Ok(RunnerKind::Singularity);
+    if available.contains(&RuntimeKind::Singularity) {
+        return Ok(RuntimeKind::Singularity);
     }
-    if available.contains(&RunnerKind::Docker) {
-        return Ok(RunnerKind::Docker);
+    if available.contains(&RuntimeKind::Docker) {
+        return Ok(RuntimeKind::Docker);
     }
-    Err(EnvError::RunnerUnavailable)
+    Err(EnvError::RuntimeUnavailable)
 }
 
 /// Resolve an image reference for a tool and platform.
@@ -353,31 +342,20 @@ pub fn validate_images_for_stage(
 }
 
 #[must_use]
-pub fn cache_dir(runner: RunnerKind) -> PathBuf {
+pub fn cache_dir(runner: RuntimeKind) -> PathBuf {
     let home = std::env::var_os("HOME").map_or_else(|| PathBuf::from("."), PathBuf::from);
     match runner {
-        RunnerKind::Docker => home
+        RuntimeKind::Docker => home
             .join(".cache")
             .join("bijux")
             .join("docker")
             .join("images"),
-        RunnerKind::Apptainer | RunnerKind::Singularity => home
+        RuntimeKind::Apptainer | RuntimeKind::Singularity => home
             .join(".cache")
             .join("bijux")
             .join("apptainer")
             .join("sif"),
     }
-}
-
-#[must_use]
-pub fn docker_image_exists(image: &ResolvedImage) -> bool {
-    docker_image_exists_with(image, |args| {
-        Command::new("docker")
-            .args(args)
-            .output()
-            .map(|output| output.status.success())
-            .unwrap_or(false)
-    })
 }
 
 pub(crate) fn docker_image_exists_with<F>(image: &ResolvedImage, runner: F) -> bool
@@ -389,7 +367,7 @@ where
 
 #[must_use]
 pub fn apptainer_sif_path(image: &ResolvedImage) -> PathBuf {
-    let cache = cache_dir(RunnerKind::Apptainer);
+    let cache = cache_dir(RuntimeKind::Apptainer);
     let tool = extract_tool_name(&image.full_name);
     let version_or_digest = extract_version_or_digest(&image.full_name, &image.arch);
     cache.join(format!("{}-{}-{}.sif", tool, version_or_digest, image.arch))
@@ -419,7 +397,7 @@ pub(crate) fn extract_version_or_digest(full_name: &str, arch: &str) -> String {
 pub mod api {
     pub use super::{
         available_runners, cache_dir, docker_image_exists, load_image_catalog, load_platform,
-        resolve_image, select_best_runner, PlatformSpec, ResolvedImage, RunnerKind, ToolImageSpec,
+        resolve_image, select_best_runner, PlatformSpec, ResolvedImage, RuntimeKind, ToolImageSpec,
     };
 }
 
@@ -489,10 +467,10 @@ impl ReferenceRegistry {
         let bowtie2_prefix = fasta_target.clone();
 
         if request.build_fai && !fai.exists() {
-            run_command("samtools", &["faidx", fasta_target.to_str().unwrap_or("")])?;
+            commands::run_command("samtools", &["faidx", fasta_target.to_str().unwrap_or("")])?;
         }
         if request.build_dict && !dict.exists() {
-            run_command(
+            commands::run_command(
                 "gatk",
                 &[
                     "CreateSequenceDictionary",
@@ -504,10 +482,10 @@ impl ReferenceRegistry {
             )?;
         }
         if request.build_bwa_index && !bwa_prefix.with_extension("bwt").exists() {
-            run_command("bwa", &["index", fasta_target.to_str().unwrap_or("")])?;
+            commands::run_command("bwa", &["index", fasta_target.to_str().unwrap_or("")])?;
         }
         if request.build_bowtie2_index && !bowtie2_prefix.with_extension("1.bt2").exists() {
-            run_command(
+            commands::run_command(
                 "bowtie2-build",
                 &[
                     fasta_target.to_str().unwrap_or(""),
@@ -531,17 +509,6 @@ impl ReferenceRegistry {
 impl Default for ReferenceRegistry {
     fn default() -> Self {
         Self::new()
-    }
-}
-
-fn run_command(cmd: &str, args: &[&str]) -> Result<(), EnvError> {
-    let status = Command::new(cmd).args(args).status()?;
-    if status.success() {
-        Ok(())
-    } else {
-        Err(EnvError::Platform(format!(
-            "command failed: {cmd} {args:?}"
-        )))
     }
 }
 

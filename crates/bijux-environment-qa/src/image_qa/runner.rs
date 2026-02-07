@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::api::{load_image_catalog, load_platform};
-use crate::api::{PlatformSpec, RunnerKind, ToolImageSpec};
+use crate::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use anyhow::{anyhow, Context, Result};
 use bijux_analyze::load::sqlite::bench::{ensure_image_qa_tables, insert_image_qa_v1};
 use bijux_analyze::load::sqlite::reports::insert_image_qa_input_v1;
@@ -44,7 +44,7 @@ fn run_image_qa_with(
     catalog: &HashMap<String, ToolImageSpec>,
     logger: &StdoutLogger,
 ) -> Result<()> {
-    if platform.runner != RunnerKind::Docker {
+    if platform.runner != RuntimeKind::Docker {
         return Err(anyhow!("image QA supports docker only for now"));
     }
 
