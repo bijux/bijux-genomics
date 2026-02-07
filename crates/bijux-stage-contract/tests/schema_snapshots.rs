@@ -73,7 +73,9 @@ fn stage_contract_schema_snapshot() {
         "invocation": invocation,
         "output": output,
     });
-    let actual = String::from_utf8(bijux_core::contract::canonical::to_canonical_json_bytes(&payload).expect("canonical"))
-        .expect("utf8");
+    let actual = String::from_utf8(
+        bijux_core::contract::canonical::to_canonical_json_bytes(&payload).expect("canonical"),
+    )
+    .expect("utf8");
     assert_eq!(actual, expected);
 }

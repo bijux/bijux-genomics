@@ -22,7 +22,8 @@ fn tree_contract_is_minimal() {
         entries.push(name);
     }
     entries.sort();
-    let expected_set: std::collections::BTreeSet<_> = expected.iter().map(|s| s.to_string()).collect();
+    let expected_set: std::collections::BTreeSet<_> =
+        expected.iter().map(|s| s.to_string()).collect();
     let entries_set: std::collections::BTreeSet<_> = entries.into_iter().collect();
     assert_eq!(
         entries_set, expected_set,
@@ -44,7 +45,8 @@ fn tree_contract_is_minimal() {
         src_entries.push(name);
     }
     src_entries.sort();
-    let allowed_set: std::collections::BTreeSet<_> = allowed_src.iter().map(|s| s.to_string()).collect();
+    let allowed_set: std::collections::BTreeSet<_> =
+        allowed_src.iter().map(|s| s.to_string()).collect();
     let src_set: std::collections::BTreeSet<_> = src_entries.into_iter().collect();
     assert_eq!(
         src_set, allowed_set,

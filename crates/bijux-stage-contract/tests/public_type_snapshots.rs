@@ -1,8 +1,7 @@
 use std::collections::BTreeMap;
 
 use bijux_stage_contract::{
-    ExecutionPlan, PlanEdge, PlannerContractV1, StageInvocationV1, StagePlanV1,
-    StagePluginOutputV1,
+    ExecutionPlan, PlanEdge, PlannerContractV1, StageInvocationV1, StagePlanV1, StagePluginOutputV1,
 };
 
 fn stage_plan() -> StagePlanV1 {
@@ -85,7 +84,10 @@ fn execution_plan_snapshot() {
         "planner",
         bijux_core::contract::PlanPolicy::default(),
         vec![plan.clone()],
-        vec![PlanEdge::new(plan.stage_id.to_string(), plan.stage_id.to_string())],
+        vec![PlanEdge::new(
+            plan.stage_id.to_string(),
+            plan.stage_id.to_string(),
+        )],
     )
     .expect("execution plan");
     write_snapshot(
