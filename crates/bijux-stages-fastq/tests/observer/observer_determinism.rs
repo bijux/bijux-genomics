@@ -2,7 +2,7 @@ use bijux_stages_fastq::observer::parse_seqkit_stats;
 
 #[test]
 fn seqkit_stats_deterministic() {
-    let stdout = include_str!("fixtures/seqkit/seqkit_stats_v1.txt");
+    let stdout = include_str!("../fixtures/seqkit/seqkit_stats_v1.txt");
     let metrics = parse_seqkit_stats(stdout).expect("parse");
     let actual = String::from_utf8(
         bijux_core::contract::canonical::to_canonical_json_bytes(&metrics).expect("canonical"),
