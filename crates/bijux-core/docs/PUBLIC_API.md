@@ -7,10 +7,10 @@
 - `prelude`
 
 ## Why each item is public
-- contract: required by planners/engine/runtime.
-- ids: shared identifier types.
-- metrics: shared metrics types.
-- prelude: stable import ergonomics.
+contract: required by planners/engine/runtime.  
+ids: shared identifier types.  
+metrics: shared metrics types.  
+prelude: stable import ergonomics.
 
 ## How to extend without widening surface
 - Add new types under existing modules.
