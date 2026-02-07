@@ -6,7 +6,7 @@ fn params_and_metrics_canonical() {
         threads: 4,
         reference: "ref".to_string(),
         reference_digest: "sha256:ref".to_string(),
-        rg_policy: bijux_domain_bam::types::ReadGroupPolicy::Default,
+        rg_policy: bijux_domain_bam::types::ReadGroupPolicy::Preserve,
         read_group: bijux_domain_bam::params::ReadGroupSpec::with_defaults("sample"),
         build_indices: true,
         emit_stats: true,
