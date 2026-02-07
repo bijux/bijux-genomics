@@ -194,3 +194,46 @@ fn pipelines_do_not_depend_on_stages_or_execution() {
         offenders.join("\n")
     );
 }
+
+#[test]
+fn environment_has_no_engine_or_runner_dependencies() {
+    let root = workspace_root();
+    let manifest = root.join("crates/bijux-environment/Cargo.toml");
+    let deps = parse_dependency_names(&manifest);
+    let denylist = ["bijux-engine", "bijux-runner"];
+    let offenders: Vec<String> = denylist
+        .iter()
+        .filter(|dep| deps.iter().any(|name| name == **dep))
+        .map(|dep| format!("{} depends on {}", manifest.display(), dep))
+        .collect();
+    assert!(
+        offenders.is_empty(),
+        "bijux-environment must not depend on engine/runner:\n{}",
+        offenders.join("\n")
+    );
+}
+
+#[test]
+fn production_crates_do_not_depend_on_environment_qa() {
+    let root = workspace_root();
+    let crate_dirs = std::fs::read_dir(root.join("crates")).expect("read crates dir");
+    let mut offenders = Vec::new();
+    for entry in crate_dirs.flatten() {
+        let path = entry.path().join("Cargo.toml");
+        if !path.exists() {
+            continue;
+        }
+        if path.to_string_lossy().contains("bijux-environment-qa") {
+            continue;
+        }
+        let deps = parse_dependency_names(&path);
+        if deps.iter().any(|dep| dep == "bijux-environment-qa") {
+            offenders.push(format!("{} depends on bijux-environment-qa", path.display()));
+        }
+    }
+    assert!(
+        offenders.is_empty(),
+        "production crates must not depend on bijux-environment-qa:\n{}",
+        offenders.join("\n")
+    );
+}
