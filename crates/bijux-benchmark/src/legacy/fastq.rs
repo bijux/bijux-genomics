@@ -285,23 +285,37 @@ fn median(values: Vec<f64>) -> Option<f64> {
     }
 }
 
+#[derive(Debug, Deserialize)]
+struct ExecutionMetrics {
+    runtime_s: f64,
+    memory_mb: f64,
+}
+
+#[derive(Debug, Deserialize)]
+struct DomainMetrics {
+    metrics: Option<DomainMetricsEnvelope>,
+}
+
+#[derive(Debug, Deserialize)]
+struct DomainMetricsEnvelope {
+    delta_metrics: Option<DeltaMetrics>,
+}
+
+#[derive(Debug, Deserialize)]
+struct DeltaMetrics {
+    read_retention: Option<f64>,
+}
+
 fn load_metrics(execution_path: &Path, domain_path: &Path) -> Result<(f64, f64, Option<f64>)> {
     let execution_data = std::fs::read_to_string(execution_path)?;
-    let execution_value: serde_json::Value = serde_json::from_str(&execution_data)?;
-    let runtime_s = execution_value
-        .get("runtime_s")
-        .and_then(serde_json::Value::as_f64)
-        .ok_or_else(|| anyhow!("missing runtime_s"))?;
-    let memory_mb = execution_value
-        .get("memory_mb")
-        .and_then(serde_json::Value::as_f64)
-        .ok_or_else(|| anyhow!("missing memory_mb"))?;
+    let execution: ExecutionMetrics = serde_json::from_str(&execution_data)?;
+    let runtime_s = execution.runtime_s;
+    let memory_mb = execution.memory_mb;
     let domain_data = std::fs::read_to_string(domain_path)?;
-    let domain_value: serde_json::Value = serde_json::from_str(&domain_data)?;
-    let read_retention = domain_value
-        .get("metrics")
-        .and_then(|v| v.get("delta_metrics"))
-        .and_then(|v| v.get("read_retention"))
-        .and_then(serde_json::Value::as_f64);
+    let domain: DomainMetrics = serde_json::from_str(&domain_data)?;
+    let read_retention = domain
+        .metrics
+        .and_then(|metrics| metrics.delta_metrics)
+        .and_then(|delta| delta.read_retention);
     Ok((runtime_s, memory_mb, read_retention))
 }

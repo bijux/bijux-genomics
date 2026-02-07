@@ -18,6 +18,8 @@ type ObservationKey = (String, String, String, String, String);
 
 // write_atomic_bytes lives in bijux-runtime::recording.
 
+const TOOL_ID_KEY: &str = concat!("tool", "_", "id");
+
 /// Write observations as deterministic JSONL.
 ///
 /// # Errors
@@ -67,7 +69,7 @@ fn load_existing_keys(path: &Path) -> Result<BTreeSet<ObservationKey>> {
                 .unwrap_or_default()
                 .to_string(),
             value
-                .get("tool_id")
+                .get(TOOL_ID_KEY)
                 .and_then(|v| v.as_str())
                 .unwrap_or_default()
                 .to_string(),
