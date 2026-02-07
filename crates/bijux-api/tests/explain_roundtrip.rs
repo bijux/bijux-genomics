@@ -1,4 +1,4 @@
-use bijux_api::v1::plan::PlanExplainV1;
+use bijux_api::v1::api::PlanExplainV1;
 use bijux_core::contract::PlanPolicy;
 use bijux_core::contract::{ArtifactRef, ArtifactRole, StageIO, ToolConstraints};
 use bijux_core::contract::{ExecutionEdge, ExecutionGraph, ExecutionStep};

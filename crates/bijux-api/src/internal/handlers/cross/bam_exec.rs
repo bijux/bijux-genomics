@@ -8,8 +8,8 @@ use bijux_pipelines::PipelineProfile;
 use bijux_runner::primitives::build_tool_execution_spec;
 use bijux_runner::primitives::execute_step;
 
-use crate::args::{BamRunArgs, FastqCrossArgs};
 use crate::internal::handlers::fastq::StageExecutionSummary;
+use crate::request_args::{BamRunArgs, FastqCrossArgs};
 use crate::v1::bam::downstream_enabled;
 use crate::v1::bam::plan::plan_for_bam_stage_with_profile;
 use bijux_planner_bam::stage_api::STAGE_PREFIX;

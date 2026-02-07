@@ -1,0 +1,10 @@
+---
+source: crates/bijux-api/tests/api_stability.rs
+expression: json
+---
+{
+  "has_failures": false,
+  "manifest_path": "<temp>/run_manifest.json",
+  "report_path": null,
+  "run_dir": "<temp>"
+}

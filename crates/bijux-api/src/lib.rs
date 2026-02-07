@@ -7,10 +7,10 @@
 
 #![allow(hidden_glob_reexports)]
 
-pub(crate) mod args;
 pub(crate) mod explain;
 pub(crate) mod fastq_stats_neutral;
 pub(crate) mod internal;
+pub(crate) mod request_args;
 pub(crate) mod run;
 pub(crate) mod tooling;
 

@@ -151,7 +151,7 @@ fn golden_spine_contract() -> Result<()> {
     assert!(report_path.exists());
 
     let report_json: serde_json::Value = serde_json::from_slice(&std::fs::read(&report_path)?)?;
-    let index_html = bijux_api::v1::report::render_report_bundle_html(&report_json);
+    let index_html = bijux_api::v1::api::render_report_bundle_html(&report_json);
     let bundle_dir = base_dir.join("report_bundle");
     bijux_infra::ensure_dir(&bundle_dir)?;
     let index_path = bundle_dir.join("index.html");

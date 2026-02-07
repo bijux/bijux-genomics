@@ -1,0 +1,8 @@
+---
+source: crates/bijux-api/tests/api_stability.rs
+expression: json
+---
+{
+  "graph_path": "<temp>/graph.json",
+  "manifest_path": "<temp>/run_manifest.json"
+}

@@ -1,0 +1,20 @@
+---
+source: crates/bijux-api/tests/api_stability.rs
+expression: json
+---
+{
+  "guardrails": {
+    "bijux-core": {
+      "error": null,
+      "status": "ok"
+    },
+    "bijux-engine": {
+      "error": null,
+      "status": "ok"
+    },
+    "bijux-api": {
+      "error": null,
+      "status": "ok"
+    }
+  }
+}
