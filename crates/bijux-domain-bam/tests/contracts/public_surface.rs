@@ -40,9 +40,7 @@ fn public_surface_is_constrained() -> anyhow::Result<()> {
     }
     for line in &pub_use_lines {
         assert!(
-            line.contains("stage_specs")
-                || line.contains("types")
-                || line.contains("invariants"),
+            line.contains("stage_specs") || line.contains("types") || line.contains("invariants"),
             "unexpected public re-export: {line}"
         );
     }

@@ -1,5 +1,5 @@
 //! BAM invariants and thresholds.
-//! See docs/DOMAIN_MODEL.md for authoritative invariant semantics.
+//! See `docs/DOMAIN_MODEL.md` for authoritative invariant semantics.
 
 mod model;
 mod specs;

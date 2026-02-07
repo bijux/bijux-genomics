@@ -4,7 +4,7 @@ fn no_id_literals_in_domain() {
     let mut offenders = Vec::new();
     for entry in walkdir::WalkDir::new(root)
         .into_iter()
-        .filter_map(|e| e.ok())
+        .filter_map(Result::ok)
     {
         if !entry.file_type().is_file() {
             continue;
