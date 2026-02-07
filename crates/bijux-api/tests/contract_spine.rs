@@ -7,7 +7,9 @@ use bijux_core::contract::PlanPolicy;
 use bijux_core::contract::{ArtifactRef, ArtifactRole, StageIO, ToolConstraints};
 use bijux_core::contract::{ExecutionEdge, ExecutionGraph, ExecutionStep};
 use bijux_core::foundation::hashing::params_hash;
-use bijux_core::{ArtifactId, CommandSpecV1, ContainerImageRefV1, PipelineId, StageId, StepId};
+use bijux_core::prelude::{
+    ArtifactId, CommandSpecV1, ContainerImageRefV1, PipelineId, StageId, StepId,
+};
 use bijux_engine::Engine;
 use bijux_pipelines::DefaultsLedgerV1;
 use bijux_runtime::recording::write_plan_provenance;
@@ -66,13 +68,13 @@ fn build_plan(base_dir: &Path) -> Result<ExecutionGraph> {
         metrics_schema_ids: Vec::new(),
     };
 
-    ExecutionGraph::new(
+    Ok(ExecutionGraph::new(
         "core-to-core__default__v1",
         "planner.test",
         PlanPolicy::PreferAccuracy,
         vec![stage],
         Vec::<ExecutionEdge>::new(),
-    )
+    )?)
 }
 
 #[test]
