@@ -1,0 +1,70 @@
+---
+source: crates/bijux-pipelines/tests/defaults/defaults_ledger.rs
+expression: ledger
+---
+{
+  "pipeline_id": "bam-to-bam__default__v1",
+  "tools": {},
+  "params": {
+    "bam.coverage": {
+      "depth_thresholds": [
+        1,
+        3,
+        5
+      ],
+      "regions": null
+    },
+    "bam.damage": {
+      "pmd_threshold_3p": 0.3,
+      "pmd_threshold_5p": 0.3,
+      "trim_3p": 2,
+      "trim_5p": 2,
+      "udg_model": "non_udg"
+    },
+    "bam.filter": {
+      "base_quality_threshold": 20,
+      "exclude_flags": [],
+      "include_flags": [],
+      "mapq_threshold": 30,
+      "min_length": 30,
+      "remove_duplicates": false
+    },
+    "bam.qc_pre": {
+      "regions": null
+    },
+    "bam.validate": {
+      "strict": true
+    }
+  },
+  "thresholds": {},
+  "tool_provenance": {},
+  "param_provenance": {
+    "bam.coverage": {
+      "rationale": "pipeline default",
+      "assumptions": [],
+      "comparability_implications": []
+    },
+    "bam.damage": {
+      "rationale": "pipeline default",
+      "assumptions": [],
+      "comparability_implications": []
+    },
+    "bam.filter": {
+      "rationale": "pipeline default",
+      "assumptions": [],
+      "comparability_implications": []
+    },
+    "bam.qc_pre": {
+      "rationale": "pipeline default",
+      "assumptions": [],
+      "comparability_implications": []
+    },
+    "bam.validate": {
+      "rationale": "pipeline default",
+      "assumptions": [],
+      "comparability_implications": []
+    }
+  },
+  "assumptions": [],
+  "citations": {}
+}

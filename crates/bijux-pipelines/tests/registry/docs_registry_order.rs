@@ -8,11 +8,11 @@ fn pipeline_registry_order_documented() {
         .join("PIPELINES.md");
     let content = fs::read_to_string(&doc).expect("read PIPELINES.md");
     assert!(
-        content.contains("fastq.default.v1"),
-        "PIPELINES.md must include fastq.default.v1"
+        content.contains("fastq-to-fastq__default__v1"),
+        "PIPELINES.md must include fastq-to-fastq__default__v1"
     );
     assert!(
-        content.contains("bam.default.v1"),
-        "PIPELINES.md must include bam.default.v1"
+        content.contains("bam-to-bam__default__v1"),
+        "PIPELINES.md must include bam-to-bam__default__v1"
     );
 }
