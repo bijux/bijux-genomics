@@ -3,10 +3,9 @@ use std::collections::HashMap;
 use crate::api::{load_image_catalog, load_platform};
 use crate::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 use anyhow::{anyhow, Context, Result};
-use bijux_analyze::{
-    append_image_qa_jsonl, ensure_image_qa_tables, insert_image_qa_input_v1, insert_image_qa_v1,
-    open_sqlite, ImageQaOutcome, ImageQaRecord,
-};
+use bijux_analyze::load::sqlite::bench::{ensure_image_qa_tables, insert_image_qa_v1};
+use bijux_analyze::load::sqlite::reports::insert_image_qa_input_v1;
+use bijux_analyze::{append_image_qa_jsonl, open_sqlite, ImageQaOutcome, ImageQaRecord};
 use bijux_infra::atomic_write_bytes;
 
 use super::support::{

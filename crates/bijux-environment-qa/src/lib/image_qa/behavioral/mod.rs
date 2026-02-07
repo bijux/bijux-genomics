@@ -1,5 +1,4 @@
 mod runner;
 mod scenarios;
 
-pub use runner::*;
-pub use scenarios::*;
+pub(crate) use scenarios::run_behavioral_qa;

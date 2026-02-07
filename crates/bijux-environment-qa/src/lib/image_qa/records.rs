@@ -1,7 +1,8 @@
 use std::collections::HashMap;
 
 use anyhow::{anyhow, Result};
-use bijux_analyze::{image_qa_passed, ImageQaOutcome, ImageQaRecord};
+use bijux_analyze::load::sqlite::reports::image_qa_passed;
+use bijux_analyze::{ImageQaOutcome, ImageQaRecord};
 
 use crate::api::{PlatformSpec, ToolImageSpec};
 

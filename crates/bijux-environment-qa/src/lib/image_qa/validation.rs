@@ -29,10 +29,14 @@ pub fn ensure_image_qa_passed<S: ::std::hash::BuildHasher>(
     }
     let conn = bijux_analyze::open_sqlite(&qa_sqlite).context("open image qa sqlite")?;
     let runner = platform.runner.to_string();
-    let mut expected_inputs =
-        bijux_analyze::image_qa_inputs(&conn, stage, &platform.name, &runner)?;
+    let mut expected_inputs = bijux_analyze::load::sqlite::reports::image_qa_inputs(
+        &conn,
+        stage,
+        &platform.name,
+        &runner,
+    )?;
     if expected_inputs.is_empty() {
-        expected_inputs = bijux_analyze::image_qa_input_hashes_from_records(
+        expected_inputs = bijux_analyze::load::sqlite::reports::image_qa_input_hashes_from_records(
             &conn,
             stage,
             &platform.name,
@@ -55,7 +59,7 @@ pub fn ensure_image_qa_passed<S: ::std::hash::BuildHasher>(
             .as_ref()
             .map_or_else(|| image.full_name.clone(), ToString::to_string);
         for input_hash in &expected_inputs {
-            let passed = bijux_analyze::image_qa_passed(
+            let passed = bijux_analyze::load::sqlite::reports::image_qa_passed(
                 &conn,
                 tool,
                 stage,
