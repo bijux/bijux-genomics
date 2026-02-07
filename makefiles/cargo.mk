@@ -26,6 +26,12 @@ lint-fast: ## Run quick workspace lint
 	@echo "Running Clippy (workspace)..."
 	CARGO_BUILD_JOBS=$(JOBS) cargo clippy --workspace --all-targets -- -D warnings
 
+lint-isolate: ## Run standard lint with isolated target dir
+	CARGO_TARGET_DIR=target-isolate $(MAKE) lint
+
+lint-full-isolate: ## Run full lint with isolated target dir
+	CARGO_TARGET_DIR=target-isolate $(MAKE) lint-full
+
 ##@ Testing
 
 define NEXTEST_OR_TEST
@@ -55,6 +61,18 @@ test-full: ## Run tests with all features
 
 test-fast: ## Run fast full-feature tests (alias for test-full)
 	$(call NEXTEST_OR_TEST,Running fast tests with all features...,--all-features,--all-features)
+
+##@ Isolated Target Dir
+
+test-isolate: ## Run standard tests with isolated target dir
+	CARGO_TARGET_DIR=target-isolate $(MAKE) test
+
+test-full-isolate: ## Run full-feature tests with isolated target dir
+	CARGO_TARGET_DIR=target-isolate $(MAKE) test-full
+
+test-siolate: test-isolate ## Back-compat typo: run standard tests in isolated target dir
+
+test-fukll-siolate: test-full-isolate ## Back-compat typo: run full tests in isolated target dir
 
 test-slow: ## Run only slow tests
 	@if command -v cargo-nextest >/dev/null 2>&1; then \
@@ -138,6 +156,27 @@ audit: ## Run security and dependency audits
 		echo "cargo-machete not installed; skipping unused dependency check"; \
 	fi
 
+guardrails-isolate: ## Run guardrail tests with isolated target dir
+	CARGO_TARGET_DIR=target-isolate $(MAKE) guardrails
+
+structure-check-isolate: ## Run policy snapshot tests with isolated target dir
+	CARGO_TARGET_DIR=target-isolate $(MAKE) structure-check
+
+coverage-isolate: ## Generate coverage with isolated target dir
+	CARGO_TARGET_DIR=target-isolate $(MAKE) coverage
+
+audit-isolate: ## Run audits with isolated target dir
+	CARGO_TARGET_DIR=target-isolate $(MAKE) audit
+
+clean-isolate: ## Remove isolated target dir
+	rm -rf target-isolate
+
+isolate: ## Run full CI essentials in isolated target dir
+	CARGO_TARGET_DIR=target-isolate $(MAKE) lint-full test-full guardrails structure-check audit coverage
+
 .PHONY: fmt fmt-check clippy lint lint-full lint-fast \
         test test-full test-fast test-slow test-e2e test-science \
+        test-isolate test-full-isolate test-siolate test-fukll-siolate \
+        lint-isolate lint-full-isolate guardrails-isolate structure-check-isolate \
+        coverage-isolate audit-isolate clean-isolate isolate \
         msrv guardrails structure-check coverage audit
