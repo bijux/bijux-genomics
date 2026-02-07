@@ -2,7 +2,9 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
 
-use bijux_domain_fastq::metrics::{FastqDeltaMetricsV1, FastqFilterMetricsV1, RetentionReportMetricV1};
+use bijux_domain_fastq::metrics::{
+    FastqDeltaMetricsV1, FastqFilterMetricsV1, RetentionReportMetricV1,
+};
 
 #[derive(Debug, Default, Clone)]
 pub(super) struct FilterRemovalCounts {
@@ -82,8 +84,14 @@ pub(super) fn filter_metrics_with_removals(
         inputs.first().map(PathBuf::as_path),
         outputs.first().map(PathBuf::as_path),
     ])?;
-    let input = stats.first().copied().unwrap_or_else(super::zero_seqkit_metrics);
-    let output = stats.get(1).copied().unwrap_or_else(super::zero_seqkit_metrics);
+    let input = stats
+        .first()
+        .copied()
+        .unwrap_or_else(super::zero_seqkit_metrics);
+    let output = stats
+        .get(1)
+        .copied()
+        .unwrap_or_else(super::zero_seqkit_metrics);
     let (pairs_in, pairs_out) = super::pair_counts_from_paths(inputs, outputs)?;
     let read_retention = if input.reads > 0 {
         super::f64_from_u64(output.reads) / super::f64_from_u64(input.reads)

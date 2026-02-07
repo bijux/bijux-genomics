@@ -35,7 +35,13 @@ fn stage_specs_are_declarative() {
         .join("src")
         .join("stage_specs.rs");
     let contents = std::fs::read_to_string(&path).expect("read stage_specs.rs");
-    let banned = ["std::process", "Command::", "tokio::process", "shell", "exec"];
+    let banned = [
+        "std::process",
+        "Command::",
+        "tokio::process",
+        "shell",
+        "exec",
+    ];
     for needle in banned {
         assert!(
             !contents.contains(needle),

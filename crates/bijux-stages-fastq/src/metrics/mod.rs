@@ -8,8 +8,8 @@ use flate2::read::GzDecoder;
 
 use bijux_core::contract::canonical::parameters_json_canonicalization;
 use bijux_core::contract::ContractVersion;
-use bijux_core::prelude::hashing::{input_fingerprint, parameters_fingerprint};
 use bijux_core::metrics::MetricsEnvelope;
+use bijux_core::prelude::hashing::{input_fingerprint, parameters_fingerprint};
 use bijux_domain_fastq::metrics::*;
 use bijux_domain_fastq::parse_effective_params;
 use bijux_stage_contract::StagePlanV1;
@@ -596,9 +596,7 @@ fn filter_removals_for_plan(
     }
 }
 
-pub fn stats_or_zero(
-    path: Option<&Path>,
-) -> Result<bijux_core::prelude::measure::SeqkitMetrics> {
+pub fn stats_or_zero(path: Option<&Path>) -> Result<bijux_core::prelude::measure::SeqkitMetrics> {
     if let Some(path) = path {
         if path.exists() {
             if path.is_dir() {
