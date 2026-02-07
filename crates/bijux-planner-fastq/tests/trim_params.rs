@@ -1,5 +1,5 @@
 use anyhow::Result;
-use bijux_core::params_hash;
+use bijux_core::foundation::hashing::params_hash;
 use bijux_domain_fastq;
 
 #[test]
@@ -56,7 +56,7 @@ fn default_adapter_preset_writes_effective_adapters() -> Result<()> {
     let tmp = bijux_infra::temp_dir("bijux")?;
     let run_dir = tmp.path().join("run");
     bijux_infra::ensure_dir(&run_dir)?;
-    let path = bijux_stages_fastq::artifacts::write_effective_adapters(
+    let path = bijux_stages_fastq::stage_specs::artifacts::write_effective_adapters(
         &run_dir, &effective, "bank", "presets",
     )?;
     let payload = std::fs::read_to_string(&path)?;
