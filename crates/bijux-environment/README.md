@@ -1,32 +1,31 @@
 # bijux-environment
 
 ## What this crate does
-Defines this crate's core responsibilities and wiring.
+Resolves tool image specs and environment references deterministically, producing pinned digests and schemas for execution.
 
 ## What it must not do (boundaries)
-Must only depend on approved crates; must not reach into execution or domain logic unless explicitly allowed in docs.
+Must not execute tools or spawn containers. It is configuration and resolution only.
 
 ## Public API / entrypoints
-See `docs/INDEX.md` for stable entrypoints and re-exports.
+Environment resolution types and helpers documented in `docs/ENV_REFERENCE.md` and `docs/SCHEMAS.md`.
 
 ## Key contracts it owns/consumes
-See `docs/INDEX.md` for contract ownership and consumption details.
+Owns environment spec schemas; consumes core IDs for tooling references.
 
 ## Effects & determinism guarantees
-See `docs/EFFECTS.md` for allowed effects and determinism guarantees.
-
-## Artifacts / Contracts
-None by default unless documented in `docs/ARCHITECTURE.md`.
-
-## Failure modes
-See crate logs/tests; start with `docs/TESTS.md` for debugging paths.
+No execution effects; resolution is deterministic and fixture-backed. See `docs/BOUNDARY.md` and `tests/reference_matrix.rs`.
 
 ## How to run its tests
-See `docs/TESTS.md`.
+See `docs/TESTS.md`. Key tests: `tests/reference_matrix.rs`, `tests/schema_snapshots.rs`, `tests/guardrails_runtime.rs`.
 
 ## Where the docs live
-- `docs/INDEX.md`
-- `docs/SCOPE.md`
-- `docs/ARCHITECTURE.md`
-- `docs/EFFECTS.md`
-- `docs/CHANGE_RULES.md`
+Start at `docs/INDEX.md`, then read `docs/ENV_REFERENCE.md`, `docs/ENV_MATRIX.md`, and `docs/SCHEMAS.md`.
+
+## Artifacts / Contracts
+Produces resolved image specs and digests; no runtime artifacts.
+
+## Failure modes
+Invalid specs or mismatched digests are reported by resolution tests and schema validation.
+
+## Stability
+Schemas are snapshot-tested and versioned; see `docs/CHANGE_RULES.md`.
