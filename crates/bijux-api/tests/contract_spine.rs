@@ -20,6 +20,12 @@ struct FakeRunner;
 
 impl Runner for FakeRunner {
     fn run(&self, invocation: &Invocation) -> anyhow::Result<RunnerResult> {
+        for output in &invocation.step.io.outputs {
+            if let Some(parent) = output.path.parent() {
+                bijux_infra::ensure_dir(parent)?;
+            }
+            bijux_infra::write_bytes(&output.path, "output")?;
+        }
         Ok(RunnerResult {
             exit_code: 0,
             stdout: String::new(),
