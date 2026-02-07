@@ -1,15 +1,27 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
+
+fn collect_rs_files(root: &Path, files: &mut Vec<PathBuf>) {
+    let Ok(entries) = std::fs::read_dir(root) else {
+        return;
+    };
+    for entry in entries.flatten() {
+        let path = entry.path();
+        if path.is_dir() {
+            collect_rs_files(&path, files);
+        } else if path.extension().and_then(|ext| ext.to_str()) == Some("rs") {
+            files.push(path);
+        }
+    }
+}
 
 #[test]
 fn randomness_requires_seed() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
+    let mut files = Vec::new();
+    collect_rs_files(&root, &mut files);
     let mut offenders = Vec::new();
-    for entry in walkdir::WalkDir::new(&root)
-        .into_iter()
-        .filter_map(Result::ok)
-        .filter(|entry| entry.path().extension().is_some_and(|ext| ext == "rs"))
-    {
-        let contents = std::fs::read_to_string(entry.path()).expect("read source");
+    for path in files {
+        let contents = std::fs::read_to_string(&path).expect("read source");
         let banned = [
             "fastrand::Rng::new",
             "fastrand::Rng::default",
@@ -21,7 +33,7 @@ fn randomness_requires_seed() {
             "StdRng::from_entropy",
         ];
         if banned.iter().any(|needle| contents.contains(needle)) {
-            offenders.push(entry.path().display().to_string());
+            offenders.push(path.display().to_string());
         }
     }
 
