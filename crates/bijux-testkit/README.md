@@ -1,32 +1,31 @@
 # bijux-testkit
 
 ## What this crate does
-Defines this crate's core responsibilities and wiring.
+Provides deterministic helpers for fixtures and snapshots used across workspace tests.
 
 ## What it must not do (boundaries)
-Must only depend on approved crates; must not reach into execution or domain logic unless explicitly allowed in docs.
+Must not contain domain logic or production dependencies. It is test-only and lightweight.
 
 ## Public API / entrypoints
-See `docs/INDEX.md` for stable entrypoints and re-exports.
+Helper patterns are documented in `docs/USAGE.md` and `docs/FIXTURE_STANDARDS.md`.
 
 ## Key contracts it owns/consumes
-See `docs/INDEX.md` for contract ownership and consumption details.
+Consumes core canonicalization and provides helper wrappers; no standalone contracts.
 
 ## Effects & determinism guarantees
-See `docs/EFFECTS.md` for allowed effects and determinism guarantees.
-
-## Artifacts / Contracts
-None by default unless documented in `docs/ARCHITECTURE.md`.
-
-## Failure modes
-See crate logs/tests; start with `docs/TESTS.md` for debugging paths.
+Helpers must be deterministic and stable; see `docs/SNAPSHOT_POLICY.md`.
 
 ## How to run its tests
-See `docs/TESTS.md`.
+See `docs/TESTS.md`. Key tests: `tests/docs_lightweight.rs`.
 
 ## Where the docs live
-- `docs/INDEX.md`
-- `docs/SCOPE.md`
-- `docs/ARCHITECTURE.md`
-- `docs/EFFECTS.md`
-- `docs/CHANGE_RULES.md`
+Start at `docs/INDEX.md`, then read `docs/FIXTURE_STANDARDS.md` and `docs/SNAPSHOT_POLICY.md`.
+
+## Artifacts / Contracts
+No runtime artifacts; used by test fixtures only.
+
+## Failure modes
+Misuse is caught by lightweight guardrail tests.
+
+## Stability
+Helpers are stable; changes require updates to docs and tests per `docs/CHANGE_RULES.md`.
