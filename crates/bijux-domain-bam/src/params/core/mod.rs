@@ -1,3 +1,6 @@
+//! Owner: bijux-domain-bam
+//! Core-phase params: primary BAM processing (damage/complexity/markdup).
+
 pub mod common;
 pub mod complexity;
 pub mod damage;
