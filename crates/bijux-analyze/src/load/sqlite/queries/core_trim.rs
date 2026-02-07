@@ -1,3 +1,14 @@
+use anyhow::Result;
+use rusqlite::Connection;
+
+use super::super::rows::benchmark_record_from_row;
+use super::super::{
+    ensure_identity_index, ensure_inserted_at_column, ensure_params_hash_column,
+    ensure_record_id_column,
+};
+use crate::aggregate::{BenchmarkRecord, FastqTrimMetrics};
+use bijux_core::prelude::params_hash;
+
 // `SQLite` trim benchmark helpers.
 
 /// # Errors
@@ -145,7 +156,7 @@ pub fn fetch_fastq_trim_v1(
          ORDER BY record_id DESC, inserted_at DESC LIMIT 1",
     )?;
     let row = stmt.query_row(
-        params![
+        rusqlite::params![
             tool,
             tool_version,
             image_digest,
@@ -187,7 +198,7 @@ pub fn fetch_fastq_trim_v2(
          ORDER BY record_id DESC, inserted_at DESC LIMIT 1",
     )?;
     let row = stmt.query_row(
-        params![
+        rusqlite::params![
             tool,
             tool_version,
             image_digest,

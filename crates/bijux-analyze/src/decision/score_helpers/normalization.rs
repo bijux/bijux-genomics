@@ -1,10 +1,10 @@
 use crate::decision::score::RankInput;
 
-pub(super) fn format_optional(value: Option<f64>) -> String {
+pub(crate) fn format_optional(value: Option<f64>) -> String {
     value.map_or_else(|| "NA".to_string(), |val| format!("{val:.3}"))
 }
 
-pub(super) fn min_max<I: Iterator<Item = f64>>(mut iter: I) -> (f64, f64) {
+pub(crate) fn min_max<I: Iterator<Item = f64>>(mut iter: I) -> (f64, f64) {
     let Some(first) = iter.next() else {
         return (0.0, 0.0);
     };
@@ -21,7 +21,7 @@ pub(super) fn min_max<I: Iterator<Item = f64>>(mut iter: I) -> (f64, f64) {
     (min_val, max_val)
 }
 
-pub(super) fn normalize_inverted(value: f64, min_val: f64, max_val: f64) -> f64 {
+pub(crate) fn normalize_inverted(value: f64, min_val: f64, max_val: f64) -> f64 {
     if (max_val - min_val).abs() < f64::EPSILON {
         return 1.0;
     }
@@ -29,7 +29,7 @@ pub(super) fn normalize_inverted(value: f64, min_val: f64, max_val: f64) -> f64 
     1.0 - norm
 }
 
-pub(super) fn penalties_for_input(
+pub(crate) fn penalties_for_input(
     input: &RankInput,
 ) -> Vec<crate::decision::score::RankingPenalty> {
     let mut penalties = Vec::new();

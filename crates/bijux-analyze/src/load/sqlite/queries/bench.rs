@@ -1,4 +1,15 @@
-// imports provided by queries_core.rs
+use anyhow::Result;
+use rusqlite::{params, Connection};
+
+use super::super::rows::benchmark_record_from_row;
+use super::super::{
+    ensure_identity_index, ensure_image_qa_identity_index, ensure_inserted_at_column,
+    ensure_params_hash_column, ensure_record_id_column,
+};
+use crate::aggregate::metrics::{ImageQaRecord, IMAGE_QA_SCHEMA_VERSION};
+use crate::aggregate::BenchmarkRecord;
+use crate::{FastqQcPostMetrics, FastqScreenMetrics, FastqStatsMetrics, FastqUmiMetrics};
+use bijux_core::prelude::params_hash;
 
 /// Load a `qc_post` benchmark record from `SQLite` if present.
 ///

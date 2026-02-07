@@ -1,3 +1,4 @@
+#![allow(ambiguous_glob_reexports)]
 //! Analyze pipeline for Bijux runs.
 //!
 //! Contract: `analyze_run` is the single public entrypoint. It accepts typed input paths and
