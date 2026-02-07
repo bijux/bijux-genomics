@@ -1,5 +1,7 @@
 # STAGE_MAPPING
 
+Authority for stage catalog lives in `src/tool_adapters/stages/catalog.rs`.
+
 | Stage ID | Tool Adapter | Artifacts | Metrics |
 | --- | --- | --- | --- |
 | fastq.validate_pre | fastqvalidator | report.json | read_count, base_count |

@@ -16,4 +16,4 @@
 }
 ```
 
-See `tests/explainability.rs` for enforcement.
+See `tests/explain/explainability.rs` for enforcement.
