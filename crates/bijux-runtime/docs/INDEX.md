@@ -14,6 +14,8 @@ Provides a single, stable starting point.
 
 ## Examples
 - See `SCOPE.md` and `ARCHITECTURE.md` for boundaries and layout.
+- See `RUNTIME_CONTRACT.md`, `EVENTS.md`, and `BOUNDARY.md` for runtime semantics.
+- See `GLOSSARY.md` for terminology.
 
 ## Failure modes
 - Missing index causes policy failures.
