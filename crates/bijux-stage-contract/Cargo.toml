@@ -12,3 +12,4 @@ sha2 = { workspace = true }
 
 [dev-dependencies]
 bijux-policies = { path = "../bijux-policies" }
+walkdir.workspace = true
