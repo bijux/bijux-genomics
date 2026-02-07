@@ -1,8 +1,8 @@
 //! Owner: bijux-analyze
 //! Shared metric schema helpers and exports.
 
-use bijux_core::prelude::measure::ExecutionMetrics;
 use bijux_core::metrics::MetricSet;
+use bijux_core::prelude::measure::ExecutionMetrics;
 use serde::{Deserialize, Serialize};
 
 use crate::aggregate::schema::{metric_spec, StageMetricKind, StageMetricRegistry};

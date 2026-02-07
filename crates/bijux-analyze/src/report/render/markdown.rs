@@ -8,10 +8,11 @@ use bijux_infra::atomic_write_bytes;
 use crate::report::model::ReportModel;
 
 #[allow(dead_code)]
+#[allow(clippy::unnecessary_wraps)]
 pub fn render_report_markdown(model: &ReportModel) -> Result<String> {
     let report = &model.report;
     let mut lines = Vec::new();
-    lines.push(format!("# Bijux Run Report\n"));
+    lines.push("# Bijux Run Report\n".to_string());
     lines.push(format!("- Run ID: `{}`", report.run_id));
     lines.push(format!("- Stages: {}", report.stages.len()));
     lines.push(format!("- Completeness: `{}`", report.completeness.status));
