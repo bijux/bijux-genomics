@@ -1,6 +1,4 @@
-use bijux_stage_contract::{
-    ExecutionPlan, PlanEdge, StageInvocationV1, StagePlanV1, StagePluginOutputV1,
-};
+use bijux_stage_contract::{ExecutionPlan, StageInvocationV1, StagePlanV1, StagePluginOutputV1};
 
 #[test]
 fn stage_contract_schema_snapshot() {
@@ -18,12 +16,20 @@ fn stage_contract_schema_snapshot() {
         },
         resources: bijux_core::contract::ToolConstraints::default(),
         io: bijux_core::contract::StageIO {
-            inputs: vec![],
-            outputs: vec![],
+            inputs: vec![bijux_core::contract::ArtifactRef::required(
+                bijux_core::ids::ArtifactId::new("reads_in"),
+                "reads.fq".into(),
+                bijux_core::contract::ArtifactRole::Reads,
+            )],
+            outputs: vec![bijux_core::contract::ArtifactRef::required(
+                bijux_core::ids::ArtifactId::new("reads_out"),
+                "reads.trimmed.fq".into(),
+                bijux_core::contract::ArtifactRole::TrimmedReads,
+            )],
         },
-        out_dir: "out".into(),
-        params: serde_json::json!({}),
-        effective_params: serde_json::json!({}),
+        out_dir: "out/fastq.trim".into(),
+        params: serde_json::json!({"quality": 20}),
+        effective_params: serde_json::json!({"quality": 20}),
         aux_images: Default::default(),
         reason: bijux_stage_contract::PlanDecisionReason::default(),
     };
@@ -32,10 +38,7 @@ fn stage_contract_schema_snapshot() {
         "planner",
         bijux_core::contract::PlanPolicy::default(),
         vec![plan.clone()],
-        vec![PlanEdge::new(
-            plan.stage_id.to_string(),
-            plan.stage_id.to_string(),
-        )],
+        Vec::new(),
     )
     .expect("execution plan");
     let invocation = StageInvocationV1 {
@@ -66,7 +69,7 @@ fn stage_contract_schema_snapshot() {
         event_hints: Vec::new(),
     };
 
-    let expected = include_str!("fixtures/stage_contract_schema.json");
+    let expected = include_str!("../fixtures/stage_contract_schema.json");
     let payload = serde_json::json!({
         "plan": plan,
         "execution": execution,

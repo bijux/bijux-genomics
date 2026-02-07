@@ -1,8 +1,6 @@
 use std::collections::BTreeMap;
 
-use bijux_stage_contract::{
-    ExecutionPlan, PlanEdge, StageInvocationV1, StagePlanV1, StagePluginOutputV1,
-};
+use bijux_stage_contract::{ExecutionPlan, StageInvocationV1, StagePlanV1, StagePluginOutputV1};
 
 fn stage_plan() -> StagePlanV1 {
     StagePlanV1 {
@@ -43,27 +41,32 @@ fn write_snapshot(path: &str, value: &serde_json::Value) {
         bijux_core::contract::canonical::to_canonical_json_bytes(value).expect("canonical"),
     )
     .expect("utf8");
-    let expected = include_str!("fixtures/public_types/stage_plan.json");
+    let expected = include_str!("../fixtures/public_types/stage_plan.json");
     if path.ends_with("stage_plan.json") {
         assert_eq!(actual, expected);
         return;
     }
-    let expected = include_str!("fixtures/public_types/execution_plan.json");
+    let expected = include_str!("../fixtures/public_types/run_execution_plan.json");
+    if path.ends_with("run_execution_plan.json") {
+        assert_eq!(actual, expected);
+        return;
+    }
+    let expected = include_str!("../fixtures/public_types/execution_plan.json");
     if path.ends_with("execution_plan.json") {
         assert_eq!(actual, expected);
         return;
     }
-    let expected = include_str!("fixtures/public_types/stage_invocation.json");
+    let expected = include_str!("../fixtures/public_types/stage_invocation.json");
     if path.ends_with("stage_invocation.json") {
         assert_eq!(actual, expected);
         return;
     }
-    let expected = include_str!("fixtures/public_types/stage_plugin_output.json");
+    let expected = include_str!("../fixtures/public_types/stage_plugin_output.json");
     if path.ends_with("stage_plugin_output.json") {
         assert_eq!(actual, expected);
         return;
     }
-    let expected = include_str!("fixtures/public_types/run_execution_plan.json");
+    let expected = include_str!("../fixtures/public_types/run_execution_plan.json");
     assert_eq!(actual, expected);
 }
 
@@ -84,10 +87,7 @@ fn execution_plan_snapshot() {
         "planner",
         bijux_core::contract::PlanPolicy::default(),
         vec![plan.clone()],
-        vec![PlanEdge::new(
-            plan.stage_id.to_string(),
-            plan.stage_id.to_string(),
-        )],
+        Vec::new(),
     )
     .expect("execution plan");
     write_snapshot(

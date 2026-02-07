@@ -3,10 +3,8 @@ fn tree_contract_is_minimal() {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
     let expected = [
         "Cargo.toml",
-        "CONTRACT.md",
-        "PUBLIC_API.md",
-        "SCOPE.md",
-        "ARCHITECTURE.md",
+        "README.md",
+        "docs/",
         "src/",
         "tests/",
     ];
