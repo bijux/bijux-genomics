@@ -2,7 +2,7 @@
 
 use std::path::PathBuf;
 
-use bijux_analyze::load::sqlite::SqliteBenchResultsRepository;
+use bijux_analyze::load::sqlite::bench_results_fastq::SqliteBenchResultsRepository;
 use bijux_core::contract::{objective_spec, select_stage};
 use bijux_core::contract::{BenchResultStatus, Objective};
 use bijux_domain_fastq::BenchResultsRepository;
@@ -152,7 +152,7 @@ fn default_route_selects_tools_deterministically() -> Result<(), Box<dyn std::er
             let records = repo.bench_results(&stage, tool, &corpus)?;
             tool_records.push((tool.clone(), records));
         }
-        if tool_records.iter().all(|(_, records)| {
+        if tool_records.iter().all(|(_, records): &(String, Vec<_>)| {
             records.is_empty()
                 || records
                     .iter()
