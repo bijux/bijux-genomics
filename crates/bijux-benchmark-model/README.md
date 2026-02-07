@@ -1,31 +1,31 @@
 # bijux-benchmark-model
 
 ## What this crate does
-Pure statistical model for benchmark decisions; deterministic and effect-free.
+Pure statistical model for benchmark decisions.
 
 ## What it must not do (boundaries)
-Must not perform I/O, spawn processes, or depend on execution crates.
+No I/O or hidden randomness.
+
+## Role in the stack
+Upstream: benchmark inputs. Downstream: benchmark decisions.
 
 ## Public API / entrypoints
-Model contracts documented in `docs/MODEL_GLOSSARY.md` and `docs/GATE_POLICY.md`.
+See `docs/INDEX.md`, `docs/MODEL_GLOSSARY.md`, `docs/STAT_ASSUMPTIONS.md`, `docs/GATE_POLICY.md`, `docs/DETERMINISM.md`, `docs/CHANGE_RULES.md`.
 
 ## Key contracts it owns/consumes
-Owns statistical decision logic; consumes metric definitions from contracts.
+Decision structures only.
 
 ## Effects & determinism guarantees
-No effects; determinism and seeding rules enforced by tests. See `docs/DETERMINISM.md`.
+Pure computation; determinism enforced by tests. See `docs/EFFECTS.md` and the golden tests below.
 
 ## How to run its tests
-See `docs/TESTS.md`. Key tests: `tests/decision_explainability.rs`, `tests/public_api.rs`, `tests/ssot_metrics.rs`.
+See `docs/TESTS.md`. Golden tests: `tests/decision_explainability.rs`, `tests/public_api.rs`, `tests/ssot_metrics.rs`.
 
 ## Where the docs live
-Start at `docs/INDEX.md`, then read `docs/STAT_ASSUMPTIONS.md`, `docs/GATE_POLICY.md`, and `docs/DETERMINISM.md`.
-
-## Artifacts / Contracts
-Produces decision structures used by benchmark and analyze; no runtime artifacts.
+Start at `docs/INDEX.md` and follow the crate docs listed above.
 
 ## Failure modes
-Invariants and explainability violations fail model tests.
+Primary failures surface as snapshot or contract violations; inspect the golden tests and referenced docs.
 
 ## Stability
-Public surface is snapshot-tested; see `docs/CHANGE_RULES.md`.
+Contract and behavior changes follow `docs/CHANGE_RULES.md`.

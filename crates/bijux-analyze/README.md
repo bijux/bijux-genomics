@@ -1,31 +1,31 @@
 # bijux-analyze
 
 ## What this crate does
-Loads run artifacts, scores decisions, and renders reports (load → decide → report).
+Loads runtime artifacts, scores decisions, and renders reports.
 
 ## What it must not do (boundaries)
-Must not plan graphs or execute tools. It consumes runtime artifacts only.
+No planning or execution.
+
+## Role in the stack
+Upstream: runtime artifacts. Downstream: benchmark and users.
 
 ## Public API / entrypoints
-Report and decision contracts documented in `docs/DECISIONS.md` and `docs/SCHEMA.md`.
+See `docs/INDEX.md`, `docs/DATA_MODEL.md`, `docs/DECISIONS.md`, `docs/SCHEMA.md`, `docs/PERFORMANCE_BUDGET.md`, `docs/CHANGE_RULES.md`.
 
 ## Key contracts it owns/consumes
-Consumes run manifests/records; produces report bundles and summaries.
+Report JSON and bundle outputs.
 
 ## Effects & determinism guarantees
-Deterministic report rendering and schema stability enforced by snapshots.
+Pure computation + report rendering; deterministic outputs. See `docs/EFFECTS.md` and the golden tests below.
 
 ## How to run its tests
-See `docs/TESTS.md`. Key tests: `tests/report_contract.rs`, `tests/report_determinism.rs`, `tests/performance_budget.rs`.
+See `docs/TESTS.md`. Golden tests: `tests/report_contract.rs`, `tests/report_determinism.rs`, `tests/performance_budget.rs`, `tests/contract_handshake.rs`.
 
 ## Where the docs live
-Start at `docs/INDEX.md`, then read `docs/DATA_MODEL.md`, `docs/DECISIONS.md`, and `docs/SCHEMA.md`.
-
-## Artifacts / Contracts
-Produces `report.json`, `report_bundle/`, and summaries; fixtures in `tests/fixtures/`.
+Start at `docs/INDEX.md` and follow the crate docs listed above.
 
 ## Failure modes
-Missing fields or unstable ordering fail report completeness and determinism tests.
+Primary failures surface as snapshot or contract violations; inspect the golden tests and referenced docs.
 
 ## Stability
-Schema and report bundles are snapshot-tested; see `docs/CHANGE_RULES.md`.
+Contract and behavior changes follow `docs/CHANGE_RULES.md`.
