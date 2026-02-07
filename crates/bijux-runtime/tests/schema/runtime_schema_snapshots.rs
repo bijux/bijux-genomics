@@ -16,11 +16,12 @@ fn run_layout_schema_snapshot() {
         metadata_path: "/tmp/run/run_metadata.json".to_string(),
         events_path: "/tmp/run/events.jsonl".to_string(),
     };
-    let expected = include_str!("fixtures/runtime_schema/run_layout.json");
+    let expected = include_str!("../fixtures/runtime_schema/run_layout.json");
     let actual = String::from_utf8(
-        bijux_core::contract::canonical::to_canonical_json_bytes(&layout).expect("canonical"),
+        bijux_core::contract::canonical::to_canonical_json_bytes(&layout)
+            .unwrap_or_else(|err| panic!("canonical: {err}")),
     )
-    .expect("utf8");
+    .unwrap_or_else(|err| panic!("utf8: {err}"));
     assert_eq!(actual, expected);
 }
 
@@ -34,11 +35,12 @@ fn run_record_schema_snapshot() {
             cached: false,
         },
     ]);
-    let expected = include_str!("fixtures/runtime_schema/run_record.json");
+    let expected = include_str!("../fixtures/runtime_schema/run_record.json");
     let actual = String::from_utf8(
-        bijux_core::contract::canonical::to_canonical_json_bytes(&record).expect("canonical"),
+        bijux_core::contract::canonical::to_canonical_json_bytes(&record)
+            .unwrap_or_else(|err| panic!("canonical: {err}")),
     )
-    .expect("utf8");
+    .unwrap_or_else(|err| panic!("utf8: {err}"));
     assert_eq!(actual, expected);
 }
 
@@ -56,11 +58,12 @@ fn run_provenance_schema_snapshot() {
         build_profile: "dev".to_string(),
         plan_hash: None,
     };
-    let expected = include_str!("fixtures/runtime_schema/run_provenance.json");
+    let expected = include_str!("../fixtures/runtime_schema/run_provenance.json");
     let actual = String::from_utf8(
-        bijux_core::contract::canonical::to_canonical_json_bytes(&provenance).expect("canonical"),
+        bijux_core::contract::canonical::to_canonical_json_bytes(&provenance)
+            .unwrap_or_else(|err| panic!("canonical: {err}")),
     )
-    .expect("utf8");
+    .unwrap_or_else(|err| panic!("utf8: {err}"));
     assert_eq!(actual, expected);
 }
 
@@ -105,10 +108,11 @@ fn run_manifest_schema_snapshot() {
         tool_invocations: vec![invocation],
         artifacts: Vec::new(),
     };
-    let expected = include_str!("fixtures/runtime_schema/run_manifest.json");
+    let expected = include_str!("../fixtures/runtime_schema/run_manifest.json");
     let actual = String::from_utf8(
-        bijux_core::contract::canonical::to_canonical_json_bytes(&manifest).expect("canonical"),
+        bijux_core::contract::canonical::to_canonical_json_bytes(&manifest)
+            .unwrap_or_else(|err| panic!("canonical: {err}")),
     )
-    .expect("utf8");
+    .unwrap_or_else(|err| panic!("utf8: {err}"));
     assert_eq!(actual, expected);
 }

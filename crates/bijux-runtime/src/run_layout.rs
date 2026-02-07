@@ -11,12 +11,12 @@ use uuid::Uuid;
 use bijux_core::contract::canonical::to_canonical_json_bytes;
 use bijux_core::contract::ContractVersion;
 use bijux_core::contract::RunMetadataV1;
+use bijux_core::metrics::ToolInvocationV1;
 use bijux_core::prelude::input_assessment::FastqLayout;
 use bijux_core::prelude::{CacheKey, Result as CoreResult};
-use bijux_core::metrics::ToolInvocationV1;
 
-use crate::telemetry::events::RunEvent;
 use crate::recording::write_canonical_json;
+use crate::telemetry::events::RunEvent;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RunEnvironment {
