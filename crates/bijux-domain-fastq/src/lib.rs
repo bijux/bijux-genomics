@@ -9,9 +9,9 @@
 // 4. metrics spec
 // 5. domain adapter
 // Structural layout of this crate is frozen as of FASTQ v1.
-mod domain_adapter;
 pub mod banks;
 pub mod bench_repository;
+mod domain_adapter;
 pub mod invariants;
 pub mod metrics;
 pub mod params;

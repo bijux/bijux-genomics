@@ -14,8 +14,8 @@ fn trim_params_canonical_serialization() {
         bijux_core::contract::canonical::to_canonical_json_bytes(&params).expect("canonical"),
     )
     .expect("utf8");
-    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/trim_params.json");
+    let path =
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/trim_params.json");
     if std::env::var("UPDATE_CONTRACTS").ok().as_deref() == Some("1") {
         std::fs::write(&path, &actual).expect("write snapshot");
     }
