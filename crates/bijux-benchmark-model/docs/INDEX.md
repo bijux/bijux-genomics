@@ -9,6 +9,9 @@ See `EFFECTS.md` for allowed effects.
 ## Boundaries
 See `ARCHITECTURE.md` for internal boundaries.
 
+## Compatibility
+See `COMPATIBILITY.md` for expected metrics and unknown metric behavior.
+
 ## Extension Points
 See `CHANGE_RULES.md` for safe extension guidelines.
 

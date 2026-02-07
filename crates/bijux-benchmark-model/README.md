@@ -10,19 +10,29 @@ No I/O or hidden randomness.
 Upstream: benchmark inputs. Downstream: benchmark decisions.
 
 ## Public API / entrypoints
-See `docs/INDEX.md`, `docs/MODEL_GLOSSARY.md`, `docs/STAT_ASSUMPTIONS.md`, `docs/GATE_POLICY.md`, `docs/DETERMINISM.md`, `docs/CHANGE_RULES.md`.
+See `docs/INDEX.md`, `docs/MODEL_GLOSSARY.md`, `docs/STAT_ASSUMPTIONS.md`, `docs/GATE_POLICY.md`, `docs/DETERMINISM.md`, `docs/COMPATIBILITY.md`, `docs/CHANGE_RULES.md`.
 
 ## Key contracts it owns/consumes
-Decision structures only.
+Public model types and their invariants:
+- `Decision` (deterministic choice + rationale).
+- `Suite` (collection of observations with stratification rules).
+- `Observation` (single metric envelope with stable ids).
+- `Summary` (aggregate outputs with ordering guarantees).
 
 ## Effects & determinism guarantees
 Pure computation; determinism enforced by tests. See `docs/EFFECTS.md` and the golden tests below.
 
 ## How to run its tests
-See `docs/TESTS.md`. Golden tests: `tests/decision_explainability.rs`, `tests/public_api.rs`, `tests/ssot_metrics.rs`.
+See `docs/TESTS.md`. Golden tests: `tests/semantics/decision_explainability.rs`, `tests/public_api/public_api.rs`, `tests/semantics/ssot_metrics.rs`.
 
 ## Where the docs live
 Start at `docs/INDEX.md` and follow the crate docs listed above.
+
+## Public surface lock
+The authoritative public surface snapshot lives at `tests/snapshots/public_api.txt`.
+
+## Start here in code
+`src/lib.rs` → `src/model/*` → `src/compare/*`.
 
 ## Failure modes
 Primary failures surface as snapshot or contract violations; inspect the golden tests and referenced docs.
