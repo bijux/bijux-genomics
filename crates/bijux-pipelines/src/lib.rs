@@ -8,7 +8,7 @@ use serde::Serialize;
 
 pub mod bam;
 pub mod cross;
-pub mod defaults_ledger;
+pub mod defaults;
 pub mod fastq;
 pub mod registry;
 
@@ -23,7 +23,7 @@ pub enum Domain {
 pub const STAGE_CORE_PREPARE_REFERENCE: &str = "core.prepare_reference";
 pub const STAGE_CROSS_ALIGN_STUB: &str = "cross.align_stub";
 
-pub use defaults_ledger::{DefaultProvenanceV1, DefaultsLedgerV1};
+pub use defaults::{DefaultProvenanceV1, DefaultsLedgerV1};
 pub use registry::id::{validate_pipeline_id, validate_pipeline_id_str, PipelineId};
 
 pub type PipelineProfileV1 = PipelineProfile;
