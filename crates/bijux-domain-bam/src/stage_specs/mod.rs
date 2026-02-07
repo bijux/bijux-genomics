@@ -1,4 +1,5 @@
 //! Single source of truth for BAM stage metadata and contracts.
+//! Declarative only: no planner logic or runtime decisions live here.
 
 use anyhow::{anyhow, Result};
 use bijux_core::contract::canonical::canonicalize_json_value;

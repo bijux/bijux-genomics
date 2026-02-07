@@ -1,3 +1,6 @@
+//! Owner: bijux-domain-bam
+//! Downstream-phase params: post-core analysis (contamination, haplogroups, kinship).
+
 pub mod authenticity;
 pub mod bias_mitigation;
 pub mod contamination;

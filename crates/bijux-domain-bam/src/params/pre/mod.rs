@@ -1,3 +1,6 @@
+//! Owner: bijux-domain-bam
+//! Pre-phase params: alignment/validation/filtering inputs before core processing.
+
 pub mod align;
 pub mod filter;
 pub mod qc_pre;
