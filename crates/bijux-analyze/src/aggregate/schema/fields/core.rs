@@ -238,4 +238,3 @@ pub const METRIC_REGISTRY_CORE: [MetricSpec; 15] = [
         derived: false,
     },
 ];
-
