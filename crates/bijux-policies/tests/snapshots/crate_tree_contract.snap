@@ -6,6 +6,7 @@ expression: output
 - ARCHITECTURE.md
 - Cargo.toml
 - DATA_MODEL.md
+- PERFORMANCE_BUDGET.md
 - SCHEMA.md
 - SCOPE.md
 - src/
@@ -23,6 +24,7 @@ expression: output
 [bijux-benchmark]
 - ARCHITECTURE.md
 - BENCH_CONTRACT.md
+- BENCH_FORMAT.md
 - Cargo.toml
 - SCOPE.md
 - src/
@@ -31,6 +33,7 @@ expression: output
 [bijux-benchmark-model]
 - ARCHITECTURE.md
 - Cargo.toml
+- MODEL_GLOSSARY.md
 - SCOPE.md
 - src/
 - tests/
