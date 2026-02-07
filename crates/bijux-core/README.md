@@ -1,32 +1,31 @@
 # bijux-core
 
 ## What this crate does
-Defines this crate's core responsibilities and wiring.
+Owns the stable contract surface for Bijux: execution graph/manifest contracts, IDs/newtypes, and the metrics registry. It is the single source of truth (SSOT) for contract serialization and hashing rules.
 
 ## What it must not do (boundaries)
-Must only depend on approved crates; must not reach into execution or domain logic unless explicitly allowed in docs.
+Must not select tools, assemble commands, spawn processes, or touch runtime/runner effects. This crate defines contracts only; execution belongs elsewhere.
 
 ## Public API / entrypoints
-See `docs/INDEX.md` for stable entrypoints and re-exports.
+Exports the contract types and prelude described in `docs/PUBLIC_API.md` and the contract atlas in `docs/CONTRACTS.md`.
 
 ## Key contracts it owns/consumes
-See `docs/INDEX.md` for contract ownership and consumption details.
+Owns: `ExecutionGraph`, `RunManifest`, IDs, metrics registry. Consumes: none (foundational). See `docs/SSOT.md` and `docs/SERIALIZATION.md`.
 
 ## Effects & determinism guarantees
-See `docs/EFFECTS.md` for allowed effects and determinism guarantees.
-
-## Artifacts / Contracts
-None by default unless documented in `docs/ARCHITECTURE.md`.
-
-## Failure modes
-See crate logs/tests; start with `docs/TESTS.md` for debugging paths.
+No effects allowed beyond pure serialization. Canonical JSON and hashing are deterministic. See `docs/EFFECTS.md`.
 
 ## How to run its tests
-See `docs/TESTS.md`.
+See `docs/TESTS.md`. Key tests: `tests/execution_graph_validate.rs`, `tests/canonicalization.rs`, `tests/public_api_lock.rs`, `tests/public_module_tree.rs`.
 
 ## Where the docs live
-- `docs/INDEX.md`
-- `docs/SCOPE.md`
-- `docs/ARCHITECTURE.md`
-- `docs/EFFECTS.md`
-- `docs/CHANGE_RULES.md`
+Start at `docs/INDEX.md` and read `docs/CONTRACTS.md`, `docs/SERIALIZATION.md`, `docs/INVARIANTS.md`, and `docs/CHANGE_RULES.md`.
+
+## Artifacts / Contracts
+Produces canonical JSON for contracts; no runtime artifacts. Contract examples live in `tests/fixtures/`.
+
+## Failure modes
+Violations show up as contract validation errors or snapshot failures; inspect the test referenced above and `docs/INVARIANTS.md`.
+
+## Stability
+This is a stable SSOT crate. Breaking changes require contract versioning and snapshot updates per `docs/CHANGE_RULES.md`.
