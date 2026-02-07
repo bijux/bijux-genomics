@@ -1,21 +1,8 @@
 # SCHEMA
 
-## Canonical JSON example
-```json
-{
-  "schema_version": "bijux.report.v1",
-  "run_id": "run-123",
-  "stages": [],
-  "sections": {}
-}
-```
+## Authority
+The report schema is defined in `docs/REPORT_CONTRACT.md`. Use that document for field semantics and artifact expectations.
 
-## Field semantics
-- run_id: unique run identifier
-- stages: ordered stage summaries
-- sections: report sections keyed by name
-
-## Final artifact bundle
-- report.json
-- report.html
-- summary.tsv
+## Related
+- `docs/DATA_MODEL.md` for the higher-level data model view.
+- `docs/DECISIONS.md` for decision inputs that flow into report sections.

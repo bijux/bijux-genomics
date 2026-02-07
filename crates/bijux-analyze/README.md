@@ -10,16 +10,26 @@ No planning or execution.
 Upstream: runtime artifacts. Downstream: benchmark and users.
 
 ## Public API / entrypoints
-See `docs/INDEX.md`, `docs/DATA_MODEL.md`, `docs/DECISIONS.md`, `docs/SCHEMA.md`, `docs/PERFORMANCE_BUDGET.md`, `docs/CHANGE_RULES.md`.
+See `docs/INDEX.md`, `docs/REPORT_CONTRACT.md`, `docs/DECISIONS.md`, `docs/PERFORMANCE_BUDGET.md`, `docs/CHANGE_RULES.md`, `docs/DETERMINISM.md`.
 
 ## Key contracts it owns/consumes
-Report JSON and bundle outputs.
+Report JSON (`report.json`) and HTML bundle (`report_bundle/index.html`) outputs.
 
 ## Effects & determinism guarantees
-Pure computation + report rendering; deterministic outputs. See `docs/EFFECTS.md` and the golden tests below.
+Pure computation + report rendering; deterministic outputs. See `docs/EFFECTS.md` and `docs/DETERMINISM.md`.
+
+## Report artifacts
+- `report.json`
+- `report_bundle/index.html`
+
+## Performance budgets are enforced
+See `docs/PERFORMANCE_BUDGET.md` and `tests/report/performance_budget.rs`.
+
+## Interpretation guide
+Start with `docs/INTERPRETATION.md`.
 
 ## How to run its tests
-See `docs/TESTS.md`. Golden tests: `tests/report_contract.rs`, `tests/report_determinism.rs`, `tests/performance_budget.rs`, `tests/contract_handshake.rs`.
+See `docs/TESTS.md`. Golden tests: `tests/report/report_contract.rs`, `tests/report/report_determinism.rs`, `tests/report/performance_budget.rs`, `tests/contracts/contract_handshake.rs`.
 
 ## Where the docs live
 Start at `docs/INDEX.md` and follow the crate docs listed above.

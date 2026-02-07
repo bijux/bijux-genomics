@@ -9,6 +9,9 @@ See `EFFECTS.md` for allowed effects.
 ## Boundaries
 See `ARCHITECTURE.md` for internal boundaries.
 
+## Contracts
+See `REPORT_CONTRACT.md` for report artifacts and `DETERMINISM.md` for stability expectations.
+
 ## Extension Points
 See `CHANGE_RULES.md` for safe extension guidelines.
 

@@ -1,15 +1,7 @@
 # DATA_MODEL
 
-## Canonical JSON example
-```json
-{
-  "facts": [],
-  "metrics": [],
-  "reports": []
-}
-```
+## Authority
+The authoritative report schema and field semantics live in `docs/REPORT_CONTRACT.md`.
 
-## Field semantics
-- facts: inputs and provenance
-- metrics: per-stage metrics envelopes
-- reports: report artifacts
+## How to use this doc
+Use this file as a high-level map of data flows, not as a schema source of truth.
