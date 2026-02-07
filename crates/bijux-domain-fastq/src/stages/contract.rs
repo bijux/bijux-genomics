@@ -7,7 +7,7 @@ use super::FastqStageContract;
 use crate::metrics::spec::metric_spec_for_stage;
 use crate::types::FastqArtifactKind;
 use bijux_core::contract::canonical::canonicalize_json_value;
-use bijux_core::foundation::hashing::params_hash;
+use bijux_core::prelude::hashing::params_hash;
 
 fn tool_ids_for_stage(stage_id: &str) -> Vec<&'static str> {
     match stage_id {

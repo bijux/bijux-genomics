@@ -4,7 +4,7 @@
 use serde::de::DeserializeOwned;
 use serde_json::Value as JsonValue;
 
-use bijux_core::foundation::measure::ExecutionMetrics;
+use bijux_core::prelude::measure::ExecutionMetrics;
 use bijux_core::metrics::MetricSet;
 
 use crate::aggregate::{BenchmarkContext, BenchmarkRecord, StageMetricSchema};

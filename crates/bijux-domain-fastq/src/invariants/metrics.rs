@@ -1,7 +1,7 @@
 use crate::metrics::{
     FastqFilterMetricsV1, FastqMergeMetricsV1, FastqTrimMetricsV1, FastqValidateMetricsV1,
 };
-use bijux_core::foundation::invariants::{InvariantStatusV1, StageVerdictV1};
+use bijux_core::prelude::invariants::{InvariantStatusV1, StageVerdictV1};
 use bijux_core::ids::StageId;
 
 use crate::invariants::core::{

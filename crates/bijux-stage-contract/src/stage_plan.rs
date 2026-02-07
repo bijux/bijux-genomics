@@ -4,7 +4,7 @@ use std::path::PathBuf;
 use serde::{Deserialize, Serialize};
 
 use bijux_core::contract::{StageIO, ToolConstraints};
-use bijux_core::foundation::{CommandSpecV1, ContainerImageRefV1};
+use bijux_core::prelude::{CommandSpecV1, ContainerImageRefV1};
 use bijux_core::ids::{StageId, StageVersion, ToolId};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]

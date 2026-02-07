@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use anyhow::{anyhow, Context, Result};
-use bijux_core::foundation::measure::SeqkitMetrics;
+use bijux_core::prelude::measure::SeqkitMetrics;
 use bijux_core::prelude::{ArtifactId, ArtifactRole, StageId, StageVersion, ToolExecutionSpecV1};
 use bijux_domain_fastq::params::{validate::ValidateEffectiveParams, PairedMode};
 use bijux_domain_fastq::STAGE_VALIDATE_PRE;
@@ -124,7 +124,7 @@ fn normalize_tools_with_allowlist(tools: &[String], allowlist: &[&str]) -> Resul
 mod tests {
     use super::validate_reads_total;
     use anyhow::Result;
-    use bijux_core::foundation::measure::SeqkitMetrics;
+    use bijux_core::prelude::measure::SeqkitMetrics;
 
     #[test]
     fn validate_reads_total_uses_input_for_fastqc() -> Result<()> {

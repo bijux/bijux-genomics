@@ -5,7 +5,7 @@ use anyhow::{anyhow, Result};
 use bijux_core::contract::PipelineSpec;
 use bijux_core::contract::PlanPolicy;
 use bijux_core::contract::{ExecutionEdge, ExecutionGraph};
-use bijux_core::foundation::input_assessment::{assess_input_dir, FastqLayout};
+use bijux_core::prelude::input_assessment::{assess_input_dir, FastqLayout};
 use bijux_core::prelude::{ContainerImageRefV1, StageId, StepId, ToolExecutionSpecV1};
 use bijux_domain_bam::BamStage;
 use bijux_domain_fastq::{assess_merge_suitability, canonical_stage_order};
@@ -39,7 +39,7 @@ pub mod stage_api {
     pub use crate::tool_adapters::fastq::StageInfo;
     pub use crate::STAGE_REPORT_AGGREGATE;
     pub use crate::TOOL_SEQKIT;
-    pub use bijux_core::foundation::RawFailure;
+    pub use bijux_core::prelude::RawFailure;
     pub use bijux_domain_fastq::banks;
     pub use bijux_domain_fastq::banks::{
         adapter_bank_context, contaminant_bank_context, polyx_bank_context,

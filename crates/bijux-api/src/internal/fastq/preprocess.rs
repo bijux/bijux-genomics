@@ -6,7 +6,7 @@ use anyhow::{anyhow, Context, Result};
 use bijux_analyze::load::sqlite::bench_results_fastq::SqliteBenchResultsRepository;
 use bijux_core::contract::PlanPolicy;
 use bijux_core::contract::{ExecutionEdge, ExecutionGraph};
-use bijux_core::foundation::errors::ErrorCategory;
+use bijux_core::prelude::errors::ErrorCategory;
 use bijux_core::prelude::ContainerImageRefV1;
 use bijux_environment::api::{PlatformSpec, RunnerKind, ToolImageSpec};
 use bijux_environment_qa::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};

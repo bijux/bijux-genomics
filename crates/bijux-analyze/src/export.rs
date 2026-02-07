@@ -4,7 +4,7 @@ use std::fmt::Write;
 use std::path::Path;
 
 use anyhow::{Context, Result};
-use bijux_core::foundation::InvariantStatusV1;
+use bijux_core::prelude::InvariantStatusV1;
 use bijux_core::metrics::ToolInvocationV1;
 use bijux_infra::atomic_write_bytes;
 use bijux_runtime::{FactsRowV1, StageReportV1};

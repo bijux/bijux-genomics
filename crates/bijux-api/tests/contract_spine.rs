@@ -6,7 +6,7 @@ use anyhow::Result;
 use bijux_core::contract::PlanPolicy;
 use bijux_core::contract::{ArtifactRef, ArtifactRole, StageIO, ToolConstraints};
 use bijux_core::contract::{ExecutionEdge, ExecutionGraph, ExecutionStep};
-use bijux_core::foundation::hashing::params_hash;
+use bijux_core::prelude::hashing::params_hash;
 use bijux_core::prelude::{
     ArtifactId, CommandSpecV1, ContainerImageRefV1, PipelineId, StageId, StepId,
 };

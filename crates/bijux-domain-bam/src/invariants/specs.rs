@@ -1,4 +1,4 @@
-use bijux_core::foundation::invariants::{InvariantSpecV1, InvariantStatusV1};
+use bijux_core::prelude::invariants::{InvariantSpecV1, InvariantStatusV1};
 
 #[must_use]
 pub fn bam_invariant_specs() -> Vec<InvariantSpecV1> {

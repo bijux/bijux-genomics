@@ -3,7 +3,7 @@ use std::collections::BTreeMap;
 use anyhow::Result;
 use bijux_core::contract::canonical::parameters_json_canonicalization;
 use bijux_core::contract::ContractVersion;
-use bijux_core::foundation::hashing::{input_fingerprint, parameters_fingerprint};
+use bijux_core::prelude::hashing::{input_fingerprint, parameters_fingerprint};
 use bijux_core::metrics::MetricsEnvelope;
 use bijux_stage_contract::{ArtifactRef, StagePlanV1};
 use bijux_stage_contract::{StageInvocationV1, StagePlugin, StagePluginOutputV1};

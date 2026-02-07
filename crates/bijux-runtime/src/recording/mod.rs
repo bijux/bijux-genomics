@@ -9,8 +9,8 @@ use bijux_infra::bench_tools_dir;
 
 use crate::StageObservabilityContextV1;
 use bijux_core::contract::{ContractVersion, ExecutionGraph};
-use bijux_core::foundation::hashing::{input_fingerprint, params_hash};
-use bijux_core::foundation::CacheKey;
+use bijux_core::prelude::hashing::{input_fingerprint, params_hash};
+use bijux_core::prelude::CacheKey;
 use bijux_core::metrics::{MetricsEnvelope, ToolInvocationV1};
 use serde::Serialize;
 
@@ -460,7 +460,7 @@ fn truncate_tail(text: &str, tail_kb: usize) -> String {
 /// Returns an error if metrics JSON cannot be written.
 pub fn write_metrics_json<T: serde::Serialize>(
     run_dirs: &RunDirs,
-    execution: &bijux_core::foundation::measure::ExecutionMetrics,
+    execution: &bijux_core::prelude::measure::ExecutionMetrics,
     metrics: &bijux_core::metrics::MetricEnvelope<T>,
 ) -> Result<()> {
     let payload = serde_json::json!({

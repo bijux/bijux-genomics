@@ -6,7 +6,7 @@ use bijux_analyze::aggregate::{
     FastqTrimMetrics,
 };
 use bijux_analyze::report::{bench_schema_json, rank_trim_tools, write_run_summary_from_facts};
-use bijux_core::foundation::measure::ExecutionMetrics;
+use bijux_core::prelude::measure::ExecutionMetrics;
 use bijux_core::metrics::MetricSet;
 
 #[test]

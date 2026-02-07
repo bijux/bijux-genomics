@@ -108,7 +108,7 @@ pub fn bench_bam_stage(
                     "pipeline_id": stage_id,
                     "profile_id": args.stage.as_str(),
                     "graph_hash": graph.hash().unwrap_or_default(),
-                    "cache_key": bijux_core::foundation::CacheKey::new("unknown", "unknown", "unknown", "unknown"),
+                    "cache_key": bijux_core::prelude::CacheKey::new("unknown", "unknown", "unknown", "unknown"),
                     "stage_contract_hash": stage_contract_hash,
                     "toolchain_versions": [],
                     "dataset_fingerprints": [],

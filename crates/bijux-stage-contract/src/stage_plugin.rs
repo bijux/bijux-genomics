@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::stage_plan::StagePlanV1;
 use bijux_core::contract::ArtifactRef;
-use bijux_core::foundation::invariants::{InvariantResultV1, StageVerdictV1};
+use bijux_core::prelude::invariants::{InvariantResultV1, StageVerdictV1};
 use bijux_core::metrics::MetricsEnvelope;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

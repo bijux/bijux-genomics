@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use bijux_core::contract::PlanPolicy;
 use bijux_core::contract::{ArtifactRef, ToolConstraints};
-use bijux_core::foundation::ContainerImageRefV1;
+use bijux_core::prelude::ContainerImageRefV1;
 
 use crate::stage_plan::{PlanDecisionReason, StagePlanV1};
 use sha2::Digest;

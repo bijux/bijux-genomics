@@ -1,4 +1,4 @@
-use bijux_core::foundation::invariants::{InvariantResultV1, StageVerdictV1};
+use bijux_core::prelude::invariants::{InvariantResultV1, StageVerdictV1};
 
 #[derive(Debug, Clone)]
 pub struct BamInvariantThresholds {

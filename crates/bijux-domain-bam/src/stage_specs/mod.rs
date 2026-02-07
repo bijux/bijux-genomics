@@ -3,7 +3,7 @@
 use anyhow::{anyhow, Result};
 use bijux_core::contract::canonical::canonicalize_json_value;
 use bijux_core::contract::StageId;
-use bijux_core::foundation::hashing::params_hash;
+use bijux_core::prelude::hashing::params_hash;
 use serde::{Deserialize, Serialize};
 
 use crate::params::{

@@ -1,7 +1,7 @@
 //! Owner: bijux-analyze
 //! Shared metric schema helpers and exports.
 
-use bijux_core::foundation::measure::ExecutionMetrics;
+use bijux_core::prelude::measure::ExecutionMetrics;
 use bijux_core::metrics::MetricSet;
 use serde::{Deserialize, Serialize};
 

@@ -10,11 +10,11 @@ fn stage_plan() -> StagePlanV1 {
         stage_version: bijux_core::ids::StageVersion(1),
         tool_id: bijux_core::ids::ToolId::new("fastp"),
         tool_version: "1.0".to_string(),
-        image: bijux_core::foundation::ContainerImageRefV1 {
+        image: bijux_core::prelude::ContainerImageRefV1 {
             image: "fastp".to_string(),
             digest: None,
         },
-        command: bijux_core::foundation::CommandSpecV1 {
+        command: bijux_core::prelude::CommandSpecV1 {
             template: vec!["fastp".to_string()],
         },
         resources: bijux_core::contract::ToolConstraints::default(),
@@ -151,11 +151,11 @@ fn run_execution_plan_snapshot() {
         tool: bijux_core::contract::ToolExecutionSpecV1 {
             tool_id: bijux_core::ids::ToolId::new("fastp"),
             tool_version: "1.0".to_string(),
-            image: bijux_core::foundation::ContainerImageRefV1 {
+            image: bijux_core::prelude::ContainerImageRefV1 {
                 image: "fastp".to_string(),
                 digest: None,
             },
-            command: bijux_core::foundation::CommandSpecV1 {
+            command: bijux_core::prelude::CommandSpecV1 {
                 template: vec!["fastp".to_string()],
             },
             resources: bijux_core::contract::ToolConstraints::default(),

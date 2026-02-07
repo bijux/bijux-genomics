@@ -11,8 +11,8 @@ use uuid::Uuid;
 use bijux_core::contract::canonical::to_canonical_json_bytes;
 use bijux_core::contract::ContractVersion;
 use bijux_core::contract::RunMetadataV1;
-use bijux_core::foundation::input_assessment::FastqLayout;
-use bijux_core::foundation::{CacheKey, Result as CoreResult};
+use bijux_core::prelude::input_assessment::FastqLayout;
+use bijux_core::prelude::{CacheKey, Result as CoreResult};
 use bijux_core::metrics::ToolInvocationV1;
 
 use crate::telemetry::events::RunEvent;
@@ -192,23 +192,23 @@ impl RunManifest {
     /// Returns an error if validation fails.
     pub fn validate(&self) -> CoreResult<()> {
         if self.graph_hash.trim().is_empty() {
-            return Err(bijux_core::foundation::BijuxError::validation(
+            return Err(bijux_core::prelude::BijuxError::validation(
                 "run manifest graph_hash is empty",
             ));
         }
         if self.artifacts.is_empty() {
-            return Err(bijux_core::foundation::BijuxError::validation(
+            return Err(bijux_core::prelude::BijuxError::validation(
                 "run manifest artifacts list is empty",
             ));
         }
         for artifact in &self.artifacts {
             if artifact.name.trim().is_empty() {
-                return Err(bijux_core::foundation::BijuxError::validation(
+                return Err(bijux_core::prelude::BijuxError::validation(
                     "run manifest artifact name is empty",
                 ));
             }
             if artifact.sha256.trim().is_empty() {
-                return Err(bijux_core::foundation::BijuxError::validation(
+                return Err(bijux_core::prelude::BijuxError::validation(
                     "run manifest artifact hash is empty",
                 ));
             }
