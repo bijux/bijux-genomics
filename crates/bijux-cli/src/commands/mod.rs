@@ -17,7 +17,6 @@ pub(crate) mod bam;
 pub(crate) mod bench;
 pub mod cli;
 pub(crate) mod fastq;
-pub(crate) mod formatting;
 pub(crate) mod imports;
 pub(crate) mod rendering;
 pub(crate) mod validation;
