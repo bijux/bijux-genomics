@@ -1,7 +1,8 @@
-use bijux_core::contract::execution::graph::{ExecutionEdge, ExecutionGraph, ExecutionStep};
-use bijux_core::contract::{PlanPolicy, StageIO, ToolConstraints};
-use bijux_core::foundation::{CommandSpecV1, ContainerImageRefV1};
-use bijux_core::ids::{ArtifactId, PipelineId, StageId, StepId, ToolId};
+use bijux_core::contract::execution::{ExecutionEdge, ExecutionGraph, ExecutionStep};
+use bijux_core::contract::{ArtifactRole, PlanPolicy, StageIO, ToolConstraints};
+use bijux_core::prelude::{
+    ArtifactId, CommandSpecV1, ContainerImageRefV1, PipelineId, StageId, StepId,
+};
 use std::path::PathBuf;
 
 fn step(step_id: &str) -> ExecutionStep {
@@ -9,10 +10,7 @@ fn step(step_id: &str) -> ExecutionStep {
         step_id: StepId::new(step_id),
         stage_id: StageId::new("fastq.trim"),
         command: CommandSpecV1 {
-            tool_id: ToolId::new("fastp"),
-            template: "fastp".to_string(),
-            args: vec![],
-            working_dir: None,
+            template: vec!["fastp".to_string()],
         },
         image: ContainerImageRefV1 {
             image: "fastp:latest".to_string(),
@@ -20,9 +18,16 @@ fn step(step_id: &str) -> ExecutionStep {
         },
         resources: ToolConstraints::default(),
         io: StageIO {
-            inputs: vec![ArtifactId::new("in")],
-            outputs: vec![ArtifactId::new("out")],
-            optional_outputs: Vec::new(),
+            inputs: vec![bijux_core::contract::ArtifactSpec::required(
+                ArtifactId::new("in"),
+                PathBuf::from("in"),
+                ArtifactRole::Reads,
+            )],
+            outputs: vec![bijux_core::contract::ArtifactSpec::required(
+                ArtifactId::new("out"),
+                PathBuf::from("out"),
+                ArtifactRole::Reads,
+            )],
         },
         out_dir: PathBuf::from("/tmp"),
         aux_images: Default::default(),

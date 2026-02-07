@@ -1,7 +1,6 @@
-use bijux_core::contract::PlanPolicy;
-use bijux_core::contract::{ArtifactRef, ArtifactRole, StageIO, ToolConstraints};
-use bijux_core::contract::{ExecutionGraph, ExecutionStep};
-use bijux_core::{ArtifactId, CommandSpecV1, ContainerImageRefV1, StageId, StepId};
+use bijux_core::contract::execution::{ExecutionGraph, ExecutionStep};
+use bijux_core::contract::{ArtifactRef, ArtifactRole, PlanPolicy, StageIO, ToolConstraints};
+use bijux_core::prelude::{ArtifactId, CommandSpecV1, ContainerImageRefV1, StageId, StepId};
 
 #[test]
 fn execution_graph_serialization_is_stage_plan_free() {
