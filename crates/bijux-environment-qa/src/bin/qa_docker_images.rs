@@ -1,4 +1,3 @@
-// split to keep module size manageable
-
-include!("qa_docker_images/entry.rs");
-include!("qa_docker_images/cases.rs");
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    bijux_environment_qa::qa_docker_images::run()
+}
