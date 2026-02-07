@@ -5,7 +5,7 @@ use bijux_core::contract::{ArtifactRef, ArtifactRole, ExecutionGraph, PlanPolicy
 use bijux_core::prelude::{ArtifactId, CommandSpecV1, ContainerImageRefV1, StageId, StepId};
 use bijux_engine::Engine;
 
-use crate::support::{execution_setup, manifest_hash, layout_tree_text, DeterministicRunner};
+use crate::support::{execution_setup, layout_tree_text, write_manifest_hash, DeterministicRunner};
 
 #[test]
 fn replay_produces_same_run_record_and_tree() -> Result<()> {
@@ -59,12 +59,12 @@ fn replay_produces_same_run_record_and_tree() -> Result<()> {
 
     let runner = DeterministicRunner;
     let record_first = Engine::default().execute(&graph, &runner, &layout, None, None)?;
-    let manifest_hash_first = manifest_hash(&layout)?;
+    let manifest_hash_first = write_manifest_hash(&layout, &graph, &output_path)?;
     let tree_first = layout_tree_text(&layout.run_dir)?;
 
     std::fs::remove_file(&output_path)?;
     let record_second = Engine::default().execute(&graph, &runner, &layout, None, None)?;
-    let manifest_hash_second = manifest_hash(&layout)?;
+    let manifest_hash_second = write_manifest_hash(&layout, &graph, &output_path)?;
     let tree_second = layout_tree_text(&layout.run_dir)?;
 
     assert_eq!(
