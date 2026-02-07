@@ -1,6 +1,6 @@
 #[test]
 fn prelude_exports_snapshot() {
-    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src/prelude/mod.rs");
+    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src/prelude.rs");
     let content =
         std::fs::read_to_string(&path).unwrap_or_else(|err| panic!("read prelude: {err}"));
     let snapshot = content
