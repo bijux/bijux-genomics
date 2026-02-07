@@ -9,9 +9,9 @@ fn bam_metrics_have_required_fields() -> anyhow::Result<()> {
     let idx_path = temp.path().join("idxstats.txt");
     bijux_infra::write_bytes(&flag_path, flagstat)?;
     bijux_infra::write_bytes(&idx_path, idxstats)?;
-    let flag = parse_samtools_flagstat(&flag_path).expect("flagstat");
+    let flag = parse_samtools_flagstat(&flag_path).unwrap_or_else(|err| panic!("flagstat: {err}"));
     assert!(flag.total > 0, "flagstat total missing");
-    let idx = parse_samtools_idxstats(&idx_path).expect("idxstats");
+    let idx = parse_samtools_idxstats(&idx_path).unwrap_or_else(|err| panic!("idxstats: {err}"));
     assert!(!idx.contigs.is_empty(), "idxstats contigs missing");
     Ok(())
 }

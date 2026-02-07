@@ -4,7 +4,7 @@ fn no_command_building_or_tool_selection() {
     let mut offenders = Vec::new();
     for entry in walkdir::WalkDir::new(root)
         .into_iter()
-        .filter_map(|e| e.ok())
+        .filter_map(Result::ok)
     {
         if !entry.file_type().is_file() {
             continue;
@@ -34,8 +34,15 @@ fn stage_specs_are_declarative() {
     let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("src")
         .join("stage_specs.rs");
-    let contents = std::fs::read_to_string(&path).expect("read stage_specs.rs");
-    let banned = ["std::process", "Command::", "tokio::process", "shell", "exec"];
+    let contents =
+        std::fs::read_to_string(&path).unwrap_or_else(|err| panic!("read stage_specs.rs: {err}"));
+    let banned = [
+        "std::process",
+        "Command::",
+        "tokio::process",
+        "shell",
+        "exec",
+    ];
     for needle in banned {
         assert!(
             !contents.contains(needle),

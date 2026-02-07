@@ -9,19 +9,21 @@ fn bam_observer_outputs_are_deterministic() -> anyhow::Result<()> {
     let idx_path = temp.path().join("idxstats.txt");
     bijux_infra::write_bytes(&flag_path, flagstat)?;
     bijux_infra::write_bytes(&idx_path, idxstats)?;
-    let flag = parse_samtools_flagstat(&flag_path).expect("flagstat");
-    let idx = parse_samtools_idxstats(&idx_path).expect("idxstats");
+    let flag = parse_samtools_flagstat(&flag_path).unwrap_or_else(|err| panic!("flagstat: {err}"));
+    let idx = parse_samtools_idxstats(&idx_path).unwrap_or_else(|err| panic!("idxstats: {err}"));
     let payload = serde_json::json!({"flagstat": flag, "idxstats": idx});
     let actual = String::from_utf8(
-        bijux_core::contract::canonical::to_canonical_json_bytes(&payload).expect("canonical"),
+        bijux_core::contract::canonical::to_canonical_json_bytes(&payload)
+            .unwrap_or_else(|err| panic!("canonical: {err}")),
     )
-    .expect("utf8");
+    .unwrap_or_else(|err| panic!("utf8: {err}"));
     let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("tests/fixtures/observer_snapshot.json");
     if std::env::var("UPDATE_CONTRACTS").ok().as_deref() == Some("1") {
-        std::fs::write(&path, &actual).expect("write snapshot");
+        std::fs::write(&path, &actual).unwrap_or_else(|err| panic!("write snapshot: {err}"));
     }
-    let expected = std::fs::read_to_string(&path).expect("read snapshot");
+    let expected =
+        std::fs::read_to_string(&path).unwrap_or_else(|err| panic!("read snapshot: {err}"));
     assert_eq!(actual, expected);
     Ok(())
 }

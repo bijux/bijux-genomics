@@ -18,14 +18,16 @@ fn snapshot_path(name: &str) -> std::path::PathBuf {
 
 fn write_snapshot(name: &str, payload: &serde_json::Value) {
     let actual = String::from_utf8(
-        bijux_core::contract::canonical::to_canonical_json_bytes(payload).expect("canonical"),
+        bijux_core::contract::canonical::to_canonical_json_bytes(payload)
+            .unwrap_or_else(|err| panic!("canonical: {err}")),
     )
-    .expect("utf8");
+    .unwrap_or_else(|err| panic!("utf8: {err}"));
     let path = snapshot_path(name);
     if std::env::var("UPDATE_CONTRACTS").ok().as_deref() == Some("1") {
-        std::fs::write(&path, &actual).expect("write snapshot");
+        std::fs::write(&path, &actual).unwrap_or_else(|err| panic!("write snapshot: {err}"));
     }
-    let expected = std::fs::read_to_string(&path).expect("read snapshot");
+    let expected =
+        std::fs::read_to_string(&path).unwrap_or_else(|err| panic!("read snapshot: {err}"));
     assert_eq!(actual, expected, "snapshot mismatch for {name}");
 }
 
