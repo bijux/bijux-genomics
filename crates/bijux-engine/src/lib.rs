@@ -13,10 +13,7 @@
 
 mod errors;
 mod executor;
-mod services {
-    #[path = "runtime_services.rs"]
-    pub mod runtime_services;
-}
+mod runtime_services;
 
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
