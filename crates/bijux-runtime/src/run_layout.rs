@@ -16,6 +16,7 @@ use bijux_core::prelude::{CacheKey, Result as CoreResult};
 use bijux_core::metrics::ToolInvocationV1;
 
 use crate::telemetry::events::RunEvent;
+use crate::recording::write_canonical_json;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RunEnvironment {
@@ -162,8 +163,7 @@ pub fn create_run_layout(base_dir: &Path) -> Result<(String, RunLayout)> {
 /// # Errors
 /// Returns an error if serialization or writing fails.
 pub fn write_environment(layout: &RunLayout, env: &RunEnvironment) -> Result<()> {
-    let payload = serde_json::to_string_pretty(env)?;
-    bijux_infra::atomic_write_bytes(&layout.environment_path, payload.as_bytes())?;
+    write_canonical_json(&layout.environment_path, env)?;
     Ok(())
 }
 
@@ -172,8 +172,7 @@ pub fn write_environment(layout: &RunLayout, env: &RunEnvironment) -> Result<()>
 /// # Errors
 /// Returns an error if serialization or writing fails.
 pub fn write_run_metadata(layout: &RunLayout, metadata: &RunMetadataV1) -> Result<()> {
-    let payload = serde_json::to_string_pretty(metadata)?;
-    bijux_infra::atomic_write_bytes(&layout.metadata_path, payload.as_bytes())?;
+    write_canonical_json(&layout.metadata_path, metadata)?;
     Ok(())
 }
 
