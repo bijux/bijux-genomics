@@ -21,6 +21,7 @@ impl PipelineRegistry {
         profiles.extend(fastq_profiles());
         profiles.extend(bam_profiles());
         profiles.extend(cross_profiles());
+        profiles.sort_by(|a, b| a.id.as_str().cmp(b.id.as_str()));
         Self { profiles }
     }
 
