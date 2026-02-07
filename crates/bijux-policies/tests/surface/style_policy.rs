@@ -11,7 +11,8 @@ const STYLE_CHECKS: &[&str] = &[
 
 #[test]
 fn style_policy_entrypoint_lists_checks() {
-    let matrix_path = support::workspace_root().join("crates/bijux-policies/POLICY_MATRIX.md");
+    let matrix_path =
+        support::workspace_root().join("crates/bijux-policies/docs/POLICY_MATRIX.md");
     let matrix = support::read_to_string(&matrix_path);
     let mut missing = Vec::new();
     for check in STYLE_CHECKS {
@@ -33,7 +34,7 @@ Missing:\n{}",
 fn scope_docs_reference_workspace_style() {
     let mut offenders = Vec::new();
     for crate_root in support::crate_roots() {
-        let scope_path = crate_root.join("SCOPE.md");
+        let scope_path = crate_root.join("docs").join("SCOPE.md");
         if !scope_path.exists() {
             continue;
         }

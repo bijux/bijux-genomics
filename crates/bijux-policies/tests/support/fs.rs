@@ -29,6 +29,10 @@ pub fn crate_roots() -> Vec<PathBuf> {
     crates
 }
 
+pub fn crate_root(crate_name: &str) -> PathBuf {
+    workspace_root().join("crates").join(crate_name)
+}
+
 pub fn read_to_string(path: &Path) -> String {
     std::fs::read_to_string(path).unwrap_or_else(|err| {
         panic!("failed to read {}: {err}", path.display());
