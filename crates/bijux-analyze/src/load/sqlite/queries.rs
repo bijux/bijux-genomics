@@ -1,7 +1,11 @@
 // split to keep module size manageable
 
-include!("queries_core.rs");
-include!("queries_quality.rs");
-include!("queries_bench.rs");
-include!("queries_reports.rs");
-include!("queries_bench_results_fastq.rs");
+pub mod queries;
+
+pub use queries::bench::*;
+pub use queries::bench_results_fastq::*;
+pub use queries::core::*;
+pub use queries::core_other::*;
+pub use queries::core_trim::*;
+pub use queries::quality::*;
+pub use queries::reports::*;
