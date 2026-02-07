@@ -4,7 +4,7 @@ mod support;
 use walkdir::WalkDir;
 
 #[test]
-fn legacy_dirs_require_scope_docs() {
+fn legacy_dirs_require_legacy_doc() {
     let mut offenders = Vec::new();
     for crate_root in support::crate_roots() {
         for entry in WalkDir::new(&crate_root)
@@ -15,8 +15,8 @@ fn legacy_dirs_require_scope_docs() {
             if entry.file_name() != "legacy" {
                 continue;
             }
-            let scope = entry.path().join("SCOPE.md");
-            if !scope.exists() {
+            let legacy_doc = crate_root.join("docs").join("LEGACY.md");
+            if !legacy_doc.exists() {
                 offenders.push(entry.path().display().to_string());
             }
         }
@@ -24,7 +24,7 @@ fn legacy_dirs_require_scope_docs() {
 
     assert!(
         offenders.is_empty(),
-        "legacy/ directories must include SCOPE.md:\n{}",
+        "legacy/ directories must include docs/LEGACY.md at crate root:\n{}",
         offenders.join("\n")
     );
 }
