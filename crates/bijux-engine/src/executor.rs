@@ -111,10 +111,7 @@ pub fn execute_plan(
 }
 
 fn enforce_contract(step: &ExecutionStep) -> Result<()> {
-    verify_outputs(step)?;
-    verify_metrics_envelope(step)?;
-    verify_required_run_artifacts(step)?;
-    Ok(())
+    ContractEnforcer::new(step).enforce()
 }
 
 fn topo_order<'a>(
@@ -204,120 +201,153 @@ fn record_execution(
     Ok(())
 }
 
-fn verify_outputs(step: &ExecutionStep) -> Result<()> {
-    for output in &step.io.outputs {
-        if output.optional && !output.path.exists() {
-            continue;
+struct ContractEnforcer<'a> {
+    step: &'a ExecutionStep,
+}
+
+impl<'a> ContractEnforcer<'a> {
+    fn new(step: &'a ExecutionStep) -> Self {
+        Self { step }
+    }
+
+    fn enforce(&self) -> Result<()> {
+        self.verify_outputs()?;
+        self.verify_metrics_envelope()?;
+        self.verify_required_run_artifacts()?;
+        Ok(())
+    }
+
+    fn contract_error(&self, artifact_id: &str, path: &str, message: &str) -> anyhow::Error {
+        crate::errors::EngineError::Contract {
+            step_id: self.step.step_id.as_str().to_string(),
+            artifact_id: artifact_id.to_string(),
+            path: path.to_string(),
+            message: message.to_string(),
         }
-        if !output.path.exists() {
-            return Err(anyhow!(
-                "contract error: missing output {} at {}",
-                output.name,
-                output.path.display()
-            ));
-        }
-        let metadata = fs::metadata(&output.path).map_err(|err| {
-            anyhow!(
-                "contract error: unable to stat output {}: {err}",
-                output.path.display()
-            )
-        })?;
-        if metadata.len() == 0 {
-            return Err(anyhow!(
-                "contract error: output {} is empty at {}",
-                output.name,
-                output.path.display()
-            ));
-        }
-        tracing::info!(
-            target: "exec.contract",
-            stage_id = %step.step_id.0,
-            path = %output.path.display(),
-            "artifact verified"
-        );
-        if matches!(
-            output.role,
-            bijux_core::contract::ArtifactRole::MetricsJson
-                | bijux_core::contract::ArtifactRole::MetricsEnvelope
-        ) {
-            let raw = fs::read_to_string(&output.path)?;
-            serde_json::from_str::<serde_json::Value>(&raw).map_err(|err| {
-                anyhow!(
-                    "contract error: metrics output {} not parseable: {err}",
-                    output.path.display()
+        .into()
+    }
+
+    fn verify_outputs(&self) -> Result<()> {
+        for output in &self.step.io.outputs {
+            if output.optional && !output.path.exists() {
+                continue;
+            }
+            if !output.path.exists() {
+                return Err(self.contract_error(
+                    output.name.as_str(),
+                    &output.path.display().to_string(),
+                    "missing output",
+                ));
+            }
+            let metadata = fs::metadata(&output.path).map_err(|err| {
+                self.contract_error(
+                    output.name.as_str(),
+                    &output.path.display().to_string(),
+                    &format!("unable to stat output: {err}"),
                 )
             })?;
+            if metadata.len() == 0 {
+                return Err(self.contract_error(
+                    output.name.as_str(),
+                    &output.path.display().to_string(),
+                    "output is empty",
+                ));
+            }
+            tracing::info!(
+                target: "exec.contract",
+                stage_id = %self.step.step_id.0,
+                path = %output.path.display(),
+                "artifact verified"
+            );
+            if matches!(
+                output.role,
+                bijux_core::contract::ArtifactRole::MetricsJson
+                    | bijux_core::contract::ArtifactRole::MetricsEnvelope
+            ) {
+                let raw = fs::read_to_string(&output.path)?;
+                serde_json::from_str::<serde_json::Value>(&raw).map_err(|err| {
+                    self.contract_error(
+                        output.name.as_str(),
+                        &output.path.display().to_string(),
+                        &format!("metrics output not parseable: {err}"),
+                    )
+                })?;
+            }
         }
+        Ok(())
     }
-    Ok(())
-}
 
-fn verify_metrics_envelope(step: &ExecutionStep) -> Result<()> {
-    if step.metrics_schema_ids.is_empty() {
-        return Ok(());
-    }
-    let metrics_path = step
-        .out_dir
-        .join("run_artifacts")
-        .join("metrics_envelope.json");
-    if !metrics_path.exists() {
-        return Err(anyhow!(
-            "contract error: missing metrics_envelope.json for {}",
-            step.step_id.0
-        ));
-    }
-    let raw = fs::read_to_string(&metrics_path)?;
-    serde_json::from_str::<serde_json::Value>(&raw).map_err(|err| {
-        anyhow!(
-            "contract error: metrics_envelope.json parse failed for {}: {err}",
-            step.step_id.0
-        )
-    })?;
-    Ok(())
-}
-
-fn verify_required_run_artifacts(step: &ExecutionStep) -> Result<()> {
-    let run_artifacts_dir = step.out_dir.join("run_artifacts");
-    let required = [
-        ("metrics.json", run_artifacts_dir.join("metrics.json")),
-        (
-            "effective_config.json",
-            run_artifacts_dir.join("effective_config.json"),
-        ),
-        (
-            "stage_report.json",
-            run_artifacts_dir.join("stage_report.json"),
-        ),
-        (
-            "tool_invocation.json",
-            run_artifacts_dir.join("tool_invocation.json"),
-        ),
-        (
-            "execution_record.json",
-            run_artifacts_dir.join("execution_record.json"),
-        ),
-    ];
-    for (label, path) in required {
-        if !path.exists() {
-            return Err(anyhow!(
-                "contract error: missing {label} for {} at {}",
-                step.step_id.0,
-                path.display()
+    fn verify_metrics_envelope(&self) -> Result<()> {
+        if self.step.metrics_schema_ids.is_empty() {
+            return Ok(());
+        }
+        let metrics_path = self
+            .step
+            .out_dir
+            .join("run_artifacts")
+            .join("metrics_envelope.json");
+        if !metrics_path.exists() {
+            return Err(self.contract_error(
+                "metrics_envelope",
+                &metrics_path.display().to_string(),
+                "missing metrics_envelope.json",
             ));
         }
-        let metadata = fs::metadata(&path).map_err(|err| {
-            anyhow!(
-                "contract error: unable to stat {label} for {}: {err}",
-                step.step_id.0
+        let raw = fs::read_to_string(&metrics_path)?;
+        serde_json::from_str::<serde_json::Value>(&raw).map_err(|err| {
+            self.contract_error(
+                "metrics_envelope",
+                &metrics_path.display().to_string(),
+                &format!("metrics_envelope.json parse failed: {err}"),
             )
         })?;
-        if metadata.len() == 0 {
-            return Err(anyhow!(
-                "contract error: {label} empty for {} at {}",
-                step.step_id.0,
-                path.display()
-            ));
-        }
+        Ok(())
     }
-    Ok(())
+
+    fn verify_required_run_artifacts(&self) -> Result<()> {
+        let run_artifacts_dir = self.step.out_dir.join("run_artifacts");
+        let required = [
+            ("metrics.json", run_artifacts_dir.join("metrics.json")),
+            (
+                "effective_config.json",
+                run_artifacts_dir.join("effective_config.json"),
+            ),
+            (
+                "stage_report.json",
+                run_artifacts_dir.join("stage_report.json"),
+            ),
+            (
+                "tool_invocation.json",
+                run_artifacts_dir.join("tool_invocation.json"),
+            ),
+            (
+                "execution_record.json",
+                run_artifacts_dir.join("execution_record.json"),
+            ),
+        ];
+        for (label, path) in required {
+            if !path.exists() {
+                return Err(self.contract_error(
+                    label,
+                    &path.display().to_string(),
+                    "missing run artifact",
+                ));
+            }
+            let metadata = fs::metadata(&path).map_err(|err| {
+                self.contract_error(
+                    label,
+                    &path.display().to_string(),
+                    &format!("unable to stat run artifact: {err}"),
+                )
+            })?;
+            if metadata.len() == 0 {
+                return Err(self.contract_error(
+                    label,
+                    &path.display().to_string(),
+                    "artifact empty",
+                ));
+            }
+        }
+        Ok(())
+    }
 }
