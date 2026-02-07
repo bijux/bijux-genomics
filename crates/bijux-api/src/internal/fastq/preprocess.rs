@@ -185,8 +185,13 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
             },
         );
     }
+    let pipeline_id = args
+        .profile
+        .as_deref()
+        .unwrap_or("fastq-to-fastq__default__v1")
+        .to_string();
     let planner_config = FastqPlanConfig {
-        pipeline_id: STAGE_PREPROCESS.as_str().to_string(),
+        pipeline_id,
         policy: PlanPolicy::PreferAccuracy,
         stages: policy.pipeline_stages.clone(),
         tools: tool_specs.clone(),
