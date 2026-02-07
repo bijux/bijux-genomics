@@ -155,8 +155,7 @@ fn pipelines_do_not_depend_on_stages_or_execution() {
         "bijux-engine",
         "bijux-runner",
         "bijux-environment",
-        "bijux-planner-fastq",
-        "bijux-planner-bam",
+        "bijux-runtime",
     ];
     let offenders: Vec<String> = denylist
         .iter()
