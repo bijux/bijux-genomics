@@ -63,7 +63,8 @@ fn no_thin_module_directories() {
     assert!(
         offenders.is_empty(),
         "directories with only mod.rs must be expanded or collapsed.\n\
-Fix by collapsing to a single .rs file or adding real submodules.\n\
+How to fix: collapse the directory to a single .rs file or add real submodules.\n\
+If a thin module is intentional, add it to ALLOWLIST_DIRS with a reason.\n\
 See STYLE.md for module rules.\n\
 Offenders:\n{}",
         offenders.join("\n")

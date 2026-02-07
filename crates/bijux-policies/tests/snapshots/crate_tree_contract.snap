@@ -43,6 +43,7 @@ expression: output
 - COMMANDS.md
 - CLI_CONVENTIONS.md
 - Cargo.toml
+- README.md
 - SCOPE.md
 - src/
 - tests/
@@ -150,6 +151,7 @@ expression: output
 - ARCHITECTURE.md
 - Cargo.toml
 - ENFORCEMENT.md
+- POLICY_MATRIX.md
 - POLICIES.md
 - SCOPE.md
 - src/
