@@ -11,5 +11,5 @@
 - Normalized paths and floats
 
 ## Enforcement
-- `tests/canonicalization.rs` verifies stable ordering and normalization.
-- `tests/execution_plan_contract.rs` verifies canonical JSON usage.
+- `tests/contract/canonicalization.rs` verifies stable ordering and normalization.
+- `tests/contract/execution_plan_contract.rs` verifies canonical JSON usage.

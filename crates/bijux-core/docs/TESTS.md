@@ -12,8 +12,28 @@ Tests should explain the contract they enforce.
 ## Contracts
 - Each test file should be referenced here.
 
-## Examples
-- `tests/architecture.rs` → dependency boundary assertions.
+## Contract invariants
+- `tests/contract/canonicalization.rs` → canonical JSON ordering and normalization.
+- `tests/contract/execution_graph_validate.rs` → graph validation and acyclic guarantees.
+- `tests/contract/execution_graph_purity.rs` → execution graph purity invariants.
+- `tests/contract/execution_plan_contract.rs` → execution plan contract behavior.
+- `tests/contract/run_index.rs` → run index schema parsing and filtering.
+- `tests/contract/run_metadata.rs` → run metadata and provenance schema parsing.
+- `tests/contract/sanity.rs` → cross-crate fixture parsing for core contract schemas.
+
+## Public surface & boundaries
+- `tests/public_api_lock.rs` → public module surface matches `docs/PUBLIC_API.md`.
+- `tests/public_module_tree.rs` → lib.rs public module snapshot.
+- `tests/public_surface.rs` → public surface scope checks.
+- `tests/public_surface_lock.rs` → public surface snapshot lock.
+- `tests/guardrails.rs` → boundary checks and crate layering.
+- `tests/core_scope_guardrail.rs` → scope guardrails.
+
+## Metrics
+- `tests/metrics/registry.rs` → metrics registry completeness.
+
+## IDs
+- `tests/ids/smoke.rs` → ID type smoke tests.
 
 ## Failure modes
 - Missing test documentation causes drift and confusion.
