@@ -83,10 +83,9 @@ pub fn workspace_audit(out_dir: &Path) -> Result<()> {
 fn parse_boundary_contract() -> Result<BTreeMap<String, BTreeSet<String>>> {
     let root = std::env::current_dir().context("resolve workspace root")?;
     let path = root
-        .join("crates")
-        .join("bijux-core")
-        .join("src")
-        .join("boundaries.md");
+        .join("docs")
+        .join("10-architecture")
+        .join("BOUNDARY_MAP.md");
     let content = std::fs::read_to_string(&path).context("read boundaries.md")?;
     let mut lines = Vec::new();
     let mut in_block = false;
