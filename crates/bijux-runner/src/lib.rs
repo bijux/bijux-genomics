@@ -24,7 +24,7 @@ impl Runner for DockerRunner {
     fn run(&self, invocation: &Invocation) -> anyhow::Result<RunnerResult> {
         let result = execute::execute_step(
             &invocation.step,
-            bijux_environment::api::RunnerKind::Docker,
+            bijux_environment::api::RuntimeKind::Docker,
             self.timeout,
         )?;
         let mut paths = result.outputs.clone();
