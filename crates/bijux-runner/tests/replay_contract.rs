@@ -1,6 +1,6 @@
 use anyhow::Result;
-use bijux_core::contract::ExecutionManifest;
-use bijux_runner::foundation::replay_run;
+use bijux_core::contract::{ContractVersion, ExecutionManifest};
+use bijux_runner::replay_run;
 
 #[test]
 fn replay_regenerates_outputs_from_manifest() -> Result<()> {
@@ -13,6 +13,7 @@ fn replay_regenerates_outputs_from_manifest() -> Result<()> {
     let output = out_dir.join("output.txt");
 
     let manifest = ExecutionManifest {
+        contract_version: ContractVersion::v1(),
         run_id: "run-1".to_string(),
         stage: "fastq.trim".to_string(),
         tool: "tool".to_string(),
