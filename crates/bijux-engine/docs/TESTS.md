@@ -17,6 +17,7 @@ Tests should explain the contract they enforce.
 - `tests/contracts/effect_boundary.rs` → effect boundaries (no process spawn).
 - `tests/contracts/params_hash.rs` → canonical params hashing stability.
 - `tests/contracts/runner_tests.rs` → plan execution behavior.
+- `tests/contracts/support_naming.rs` → support helper naming rules.
 
 ## Recording suite (`tests/recording/*`)
 - `tests/recording/recording_completeness.rs` → truth-set emission completeness.
