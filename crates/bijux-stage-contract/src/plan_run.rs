@@ -6,8 +6,8 @@ use serde::{Deserialize, Serialize};
 
 use bijux_core::contract::{run_dir, Profile, RunSpec};
 use bijux_core::contract::{ToolExecutionSpecV1, ToolRegistry};
-use bijux_core::prelude::{CommandSpecV1, ContainerImageRefV1};
 use bijux_core::ids::{RunId, StageVersion};
+use bijux_core::prelude::{CommandSpecV1, ContainerImageRefV1};
 
 use crate::stage_plan::StagePlanV1;
 use bijux_core::contract::{ArtifactRef, ArtifactRole, StageIO};

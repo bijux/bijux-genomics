@@ -1,13 +1,7 @@
 #[test]
 fn tree_contract_is_minimal() {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
-    let expected = [
-        "Cargo.toml",
-        "README.md",
-        "docs/",
-        "src/",
-        "tests/",
-    ];
+    let expected = ["Cargo.toml", "README.md", "docs/", "src/", "tests/"];
     let mut entries = Vec::new();
     for entry in std::fs::read_dir(root).expect("read crate root") {
         let entry = entry.expect("read entry");
