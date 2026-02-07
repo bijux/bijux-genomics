@@ -282,6 +282,7 @@ dependencies = [
  "thiserror 1.0.69",
  "tracing",
  "uuid",
+ "walkdir",
 ]
 
 [[package]]
@@ -330,6 +331,7 @@ dependencies = [
  "insta",
  "serde",
  "serde_json",
+ "walkdir",
 ]
 
 [[package]]
