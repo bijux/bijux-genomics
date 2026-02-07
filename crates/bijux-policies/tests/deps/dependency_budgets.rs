@@ -4,6 +4,7 @@ const BUDGETS: &[(&str, usize)] = &[
     ("bijux-core", 20),
     ("bijux-runtime", 25),
     ("bijux-benchmark-model", 20),
+    ("bijux-infra", 20),
     ("bijux-environment-qa", 80),
 ];
 

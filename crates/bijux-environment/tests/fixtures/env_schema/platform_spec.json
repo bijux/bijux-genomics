@@ -1,0 +1,1 @@
+{"arch":"arm64","container_dir":"containers/docker/arm64","image_prefix":"bijuxdna","name":"docker-mac-arm64","runner":"docker"}
