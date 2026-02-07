@@ -1,4 +1,8 @@
 # PARAMS
 
-Parameters are canonicalized and recorded with defaults + overrides.
-Derived params must be stable and deterministic.
+Canonicalization normalizes:
+- ordering of keys
+- float formatting
+- path normalization
+
+This ensures stable hashing and comparisons.

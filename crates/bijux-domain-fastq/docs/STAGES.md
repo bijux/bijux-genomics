@@ -1,7 +1,7 @@
 # STAGES
 
-Stage semantics describe scientific intent, not implementation:
-- validate: ensure FASTQ is well-formed
-- trim: remove adapters and low-quality bases
-- merge: combine paired reads
-- screen: detect contaminants
+## Scientific intent
+- validate: guard against malformed FASTQ
+- trim: remove adapters and low-quality tails
+- merge: improve read length for PE data
+- screen: detect contamination

@@ -1,6 +1,7 @@
 # REFERENCES
 
-Banks justification:
-- adapter: adapter sequence libraries from standard Illumina sets
-- contaminant: curated microbial/host contaminants
-- polyX: poly-G/poly-A artifacts handling
+## Defaults rationale
+- fastp: widely validated for trimming and filtering.
+- fastq_screen: standard contaminant screening.
+
+Alternatives are optional when they lack deterministic metrics output.
