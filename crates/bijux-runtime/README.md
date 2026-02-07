@@ -1,7 +1,7 @@
 # bijux-runtime
 
 ## What this crate does
-Runtime contracts + recording: RunLayout, RunManifest, RunRecord, Provenance, events.
+Runtime contracts + recording: run layout, manifests, records, provenance, and telemetry events.
 
 ## What it must not do (boundaries)
 No tool execution; only writes under run layout.
@@ -10,16 +10,37 @@ No tool execution; only writes under run layout.
 Upstream: engine/runner. Downstream: analyze/benchmark.
 
 ## Public API / entrypoints
-See `docs/INDEX.md`, `docs/RUNTIME_CONTRACT.md`, `docs/EVENTS.md`, `docs/BOUNDARY.md`, `docs/GLOSSARY.md`, `docs/CHANGE_RULES.md`.
+See `docs/INDEX.md`, `docs/RUNTIME_CONTRACT.md`, `docs/ARTIFACTS.md`, `docs/EVENTS.md`, `docs/BOUNDARY.md`, `docs/GLOSSARY.md`, `docs/CHANGE_RULES.md`.
 
-## Key contracts it owns/consumes
-Run manifests, records, provenance, layout tree.
+## Exact JSON artifacts owned (stability expectations)
+Stable schemas (strict compatibility, versioned on change):
+- `run_layout.json`
+- `run_manifest.json`
+- `run_record.json`
+- `run_provenance.json`
+
+Stable per-step artifacts (strict compatibility, emitted under run layout):
+- `effective_config.json`
+- `tool_invocation.json`
+- `metrics.json`
+- `stage_report.json`
+- `execution_record.json`
+
+Telemetry outputs (schema-stable fields; timestamps are unstable by design):
+- `events.jsonl`
+- `timings.json`
+- `resources.json`
+- `errors.json`
 
 ## Effects & determinism guarantees
 Filesystem writes under run layout only. See `docs/EFFECTS.md` and the golden tests below.
 
+## How to understand the crate in 10 minutes
+- Read `tests/reference/reference_example.rs` for a concrete run story.
+- Open `tests/fixtures/runtime_schema/run_manifest.json` to see the canonical schema shape.
+
 ## How to run its tests
-See `docs/TESTS.md`. Golden tests: `tests/reference_example.rs`, `tests/runtime_schema_snapshots.rs`, `tests/manifest_integrity.rs`, `tests/run_layout_contract.rs`.
+See `docs/TESTS.md`. Golden tests: `tests/reference/reference_example.rs`, `tests/schema/runtime_schema_snapshots.rs`, `tests/contracts/manifest_integrity.rs`, `tests/contracts/run_layout_contract.rs`.
 
 ## Where the docs live
 Start at `docs/INDEX.md` and follow the crate docs listed above.
