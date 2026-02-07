@@ -1,6 +1,5 @@
 use anyhow::Result;
 use bijux_core::prelude::hashing::params_hash;
-use bijux_domain_fastq;
 
 #[test]
 fn disabling_adapter_changes_params_hash() -> Result<()> {
