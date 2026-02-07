@@ -101,7 +101,7 @@ fn crate_tests_do_not_spawn_external_commands() {
 
     assert!(
         offenders.is_empty(),
-        "crate tests must not spawn external commands (use lab/ harness instead):\n{}",
+        "crate tests must not spawn external commands (use scripts/lab/ harness instead):\n{}",
         offenders.join("\n")
     );
 }

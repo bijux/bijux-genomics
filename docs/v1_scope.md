@@ -16,7 +16,7 @@
 ## Frozen artifacts
 - Contracts in `docs/contracts/fastq/`.
 - Metric definitions in `docs/metrics/`.
-- Image QA protocol and datasets under `lab/corpus/fastq`.
+- Image QA protocol and datasets under `scripts/lab/corpus/fastq`.
 
 ## Change control
 - Any new tool, metric, or stage requires a v2 plan.

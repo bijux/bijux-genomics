@@ -67,7 +67,7 @@ test-slow: ## Run only slow tests
 	fi
 
 test-e2e: ## Run end-to-end lab harness (requires CORPUS_ROOT)
-	@echo "Use 'make lab-fastq' with CORPUS_ROOT set (see lab/README.md)."
+	@echo "Use 'make lab-fastq' with CORPUS_ROOT set (see scripts/lab/README.md)."
 	@exit 1
 
 test-science: ## Run science-specific tests

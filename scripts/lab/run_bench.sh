@@ -1,10 +1,10 @@
 #!/usr/bin/env sh
 set -eu
 
-CONFIG_PATH="${CONFIG_PATH:-lab/config.toml}"
+CONFIG_PATH="${CONFIG_PATH:-scripts/lab/config.toml}"
 if [ ! -f "$CONFIG_PATH" ]; then
   echo "config not found: $CONFIG_PATH"
-  echo "copy lab/config.example.toml to lab/config.toml"
+  echo "copy scripts/lab/config.example.toml to scripts/lab/config.toml"
   exit 1
 fi
 
@@ -26,22 +26,18 @@ if [ -z "${OUTPUT_DIR}" ]; then
   exit 1
 fi
 
-PIPELINE_IDS="${PIPELINE_IDS:-$(get_value pipeline_ids)}"
-if [ -z "${PIPELINE_IDS}" ]; then
-  echo "PIPELINE_IDS is required"
-  exit 1
-fi
-
 echo "Runner: ${RUNNER_KIND}"
 echo "Corpus: ${CORPUS_ROOT}"
 echo "Output: ${OUTPUT_DIR}"
-echo "Pipelines: ${PIPELINE_IDS}"
 
-for pipeline in $(echo "$PIPELINE_IDS" | tr "," " "); do
-  echo "→ run pipeline ${pipeline}"
-  cargo run --bin bijux -- run \
-    --pipeline "${pipeline}" \
-    --runner "${RUNNER_KIND}" \
-    --corpus-root "${CORPUS_ROOT}" \
-    --out "${OUTPUT_DIR}"
-done
+echo "→ run FASTQ benchmark"
+cargo run --bin bijux -- bench fastq \
+  --runner "${RUNNER_KIND}" \
+  --corpus-root "${CORPUS_ROOT}" \
+  --out "${OUTPUT_DIR}"
+
+echo "→ run BAM benchmark"
+cargo run --bin bijux -- bench bam \
+  --runner "${RUNNER_KIND}" \
+  --corpus-root "${CORPUS_ROOT}" \
+  --out "${OUTPUT_DIR}"

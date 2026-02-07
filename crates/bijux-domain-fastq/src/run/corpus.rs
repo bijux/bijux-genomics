@@ -55,15 +55,15 @@ pub fn bench_corpus(id: BenchCorpusId) -> BenchCorpus {
         BenchCorpusId::Fastq5Set => vec![
             BenchDataset {
                 id: "ERR2112797",
-                r1: root.join("lab/corpus/fastq/ERR2112797/ERR2112797_1.fastq.gz"),
-                r2: Some(root.join("lab/corpus/fastq/ERR2112797/ERR2112797_2.fastq.gz")),
+                r1: root.join("scripts/lab/corpus/fastq/ERR2112797/ERR2112797_1.fastq.gz"),
+                r2: Some(root.join("scripts/lab/corpus/fastq/ERR2112797/ERR2112797_2.fastq.gz")),
                 sha256_r1: "158c3d487dd55a6f914e860eca2eebe744346fcdb75b53a1adb9137194451239",
                 sha256_r2: Some("ff5c74ae4a8aab317709908c065fba3196a7c331a77e94d8d56991e4ad5e2c61"),
                 paired: true,
             },
             BenchDataset {
                 id: "ERR769587",
-                r1: root.join("lab/corpus/fastq/ERR769587/ERR769587.fastq.gz"),
+                r1: root.join("scripts/lab/corpus/fastq/ERR769587/ERR769587.fastq.gz"),
                 r2: None,
                 sha256_r1: "928e0b976934f4a41de7b04ba6fefe8dec9a2db257b348afb958335c3421f7dc",
                 sha256_r2: None,
@@ -71,7 +71,7 @@ pub fn bench_corpus(id: BenchCorpusId) -> BenchCorpus {
             },
             BenchDataset {
                 id: "ERR769592",
-                r1: root.join("lab/corpus/fastq/ERR769592/ERR769592.fastq.gz"),
+                r1: root.join("scripts/lab/corpus/fastq/ERR769592/ERR769592.fastq.gz"),
                 r2: None,
                 sha256_r1: "e0be169a0607fb365f23421a87bb5780c94f8dbabcf06d1de978410f4a82c293",
                 sha256_r2: None,
@@ -79,7 +79,7 @@ pub fn bench_corpus(id: BenchCorpusId) -> BenchCorpus {
             },
             BenchDataset {
                 id: "SYNTHETIC_SE",
-                r1: root.join("lab/corpus/fastq/synthetic/SE.fastq.gz"),
+                r1: root.join("scripts/lab/corpus/fastq/synthetic/SE.fastq.gz"),
                 r2: None,
                 sha256_r1: "aa0d377ec155f3205f02fb4fa9cb9bc9f1216b15e1ae4e047679184ae1f53af2",
                 sha256_r2: None,
@@ -87,8 +87,8 @@ pub fn bench_corpus(id: BenchCorpusId) -> BenchCorpus {
             },
             BenchDataset {
                 id: "SYNTHETIC_PE",
-                r1: root.join("lab/corpus/fastq/synthetic/PE_R1.fastq.gz"),
-                r2: Some(root.join("lab/corpus/fastq/synthetic/PE_R2.fastq.gz")),
+                r1: root.join("scripts/lab/corpus/fastq/synthetic/PE_R1.fastq.gz"),
+                r2: Some(root.join("scripts/lab/corpus/fastq/synthetic/PE_R2.fastq.gz")),
                 sha256_r1: "ea09b95a1563c7cdf8b15d56318f2be224a9ec45697f1706291e442ee8293887",
                 sha256_r2: Some("131c44a3052d518046d52f75bfa4745468cf77972bbfb04280c9c5b14149f540"),
                 paired: true,
