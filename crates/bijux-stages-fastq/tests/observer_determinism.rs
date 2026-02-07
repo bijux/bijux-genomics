@@ -8,8 +8,8 @@ fn seqkit_stats_deterministic() {
         bijux_core::contract::canonical::to_canonical_json_bytes(&metrics).expect("canonical"),
     )
     .expect("utf8");
-    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/seqkit_stats.json");
+    let path =
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/seqkit_stats.json");
     if std::env::var("UPDATE_CONTRACTS").ok().as_deref() == Some("1") {
         std::fs::write(&path, &actual).expect("write snapshot");
     }

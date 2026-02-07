@@ -7,13 +7,13 @@ use anyhow::{anyhow, Context, Result};
 use flate2::read::GzDecoder;
 use serde::Serialize;
 
-use bijux_domain_fastq::metrics::*;
-use bijux_domain_fastq::parse_effective_params;
-use bijux_stage_contract::StagePlanV1;
 use bijux_core::contract::canonical::parameters_json_canonicalization;
 use bijux_core::contract::ContractVersion;
 use bijux_core::foundation::hashing::{input_fingerprint, parameters_fingerprint};
 use bijux_core::metrics::MetricsEnvelope;
+use bijux_domain_fastq::metrics::*;
+use bijux_domain_fastq::parse_effective_params;
+use bijux_stage_contract::StagePlanV1;
 
 #[derive(Debug, Default, Clone)]
 pub struct FilterRemovalCounts {

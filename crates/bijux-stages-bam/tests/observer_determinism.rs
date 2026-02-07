@@ -13,8 +13,7 @@ fn bam_observer_outputs_are_deterministic() -> anyhow::Result<()> {
     let idx = parse_samtools_idxstats(&idx_path).expect("idxstats");
     let payload = serde_json::json!({"flagstat": flag, "idxstats": idx});
     let actual = String::from_utf8(
-        bijux_core::contract::canonical::to_canonical_json_bytes(&payload)
-            .expect("canonical"),
+        bijux_core::contract::canonical::to_canonical_json_bytes(&payload).expect("canonical"),
     )
     .expect("utf8");
     let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
