@@ -1,11 +1,12 @@
 ---
 source: crates/bijux-planner-bam/tests/graph/graph_snapshots.rs
+assertion_line: 58
 expression: json
 ---
 {
   "contract_version": {
-    "major": 1.0,
-    "minor": 0.0
+    "major": 1,
+    "minor": 0
   },
   "deterministic_scheduler": true,
   "edges": [
@@ -50,7 +51,7 @@ expression: json
   "planner_version": "bijux-planner-bam.v1",
   "policy": "PreferAccuracy",
   "retry_policy": {
-    "max_attempts": 1.0,
+    "max_attempts": 1,
     "retry_on_exit_codes": []
   },
   "schema_version": "bijux.execution_graph.v1",
@@ -102,10 +103,10 @@ expression: json
       "metrics_schema_ids": [],
       "out_dir": "bam_authenticity",
       "resources": {
-        "mem_gb": 1.0,
+        "mem_gb": 1,
         "runtime": "docker",
-        "threads": 1.0,
-        "tmp_gb": 1.0
+        "threads": 1,
+        "tmp_gb": 1
       },
       "stage_id": "bam.authenticity",
       "step_id": "bam.authenticity"
@@ -162,10 +163,10 @@ expression: json
       "metrics_schema_ids": [],
       "out_dir": "bam_complexity",
       "resources": {
-        "mem_gb": 1.0,
+        "mem_gb": 1,
         "runtime": "docker",
-        "threads": 1.0,
-        "tmp_gb": 1.0
+        "threads": 1,
+        "tmp_gb": 1
       },
       "stage_id": "bam.complexity",
       "step_id": "bam.complexity"
@@ -217,10 +218,10 @@ expression: json
       "metrics_schema_ids": [],
       "out_dir": "bam_contamination",
       "resources": {
-        "mem_gb": 1.0,
+        "mem_gb": 1,
         "runtime": "docker",
-        "threads": 1.0,
-        "tmp_gb": 1.0
+        "threads": 1,
+        "tmp_gb": 1
       },
       "stage_id": "bam.contamination",
       "step_id": "bam.contamination"
@@ -267,10 +268,10 @@ expression: json
       "metrics_schema_ids": [],
       "out_dir": "bam_coverage",
       "resources": {
-        "mem_gb": 1.0,
+        "mem_gb": 1,
         "runtime": "docker",
-        "threads": 1.0,
-        "tmp_gb": 1.0
+        "threads": 1,
+        "tmp_gb": 1
       },
       "stage_id": "bam.coverage",
       "step_id": "bam.coverage"
@@ -327,10 +328,10 @@ expression: json
       "metrics_schema_ids": [],
       "out_dir": "bam_damage",
       "resources": {
-        "mem_gb": 1.0,
+        "mem_gb": 1,
         "runtime": "docker",
-        "threads": 1.0,
-        "tmp_gb": 1.0
+        "threads": 1,
+        "tmp_gb": 1
       },
       "stage_id": "bam.damage",
       "step_id": "bam.damage"
@@ -412,10 +413,10 @@ expression: json
       "metrics_schema_ids": [],
       "out_dir": "bam_filter",
       "resources": {
-        "mem_gb": 1.0,
+        "mem_gb": 1,
         "runtime": "docker",
-        "threads": 1.0,
-        "tmp_gb": 1.0
+        "threads": 1,
+        "tmp_gb": 1
       },
       "stage_id": "bam.filter",
       "step_id": "bam.filter"
@@ -497,10 +498,10 @@ expression: json
       "metrics_schema_ids": [],
       "out_dir": "bam_markdup",
       "resources": {
-        "mem_gb": 1.0,
+        "mem_gb": 1,
         "runtime": "docker",
-        "threads": 1.0,
-        "tmp_gb": 1.0
+        "threads": 1,
+        "tmp_gb": 1
       },
       "stage_id": "bam.markdup",
       "step_id": "bam.markdup"
@@ -558,10 +559,10 @@ expression: json
       "metrics_schema_ids": [],
       "out_dir": "bam_qc_pre",
       "resources": {
-        "mem_gb": 1.0,
+        "mem_gb": 1,
         "runtime": "docker",
-        "threads": 1.0,
-        "tmp_gb": 1.0
+        "threads": 1,
+        "tmp_gb": 1
       },
       "stage_id": "bam.qc_pre",
       "step_id": "bam.qc_pre"
@@ -613,10 +614,10 @@ expression: json
       "metrics_schema_ids": [],
       "out_dir": "bam_sex",
       "resources": {
-        "mem_gb": 1.0,
+        "mem_gb": 1,
         "runtime": "docker",
-        "threads": 1.0,
-        "tmp_gb": 1.0
+        "threads": 1,
+        "tmp_gb": 1
       },
       "stage_id": "bam.sex",
       "step_id": "bam.sex"
@@ -668,10 +669,10 @@ expression: json
       "metrics_schema_ids": [],
       "out_dir": "bam_validate",
       "resources": {
-        "mem_gb": 1.0,
+        "mem_gb": 1,
         "runtime": "docker",
-        "threads": 1.0,
-        "tmp_gb": 1.0
+        "threads": 1,
+        "tmp_gb": 1
       },
       "stage_id": "bam.validate",
       "step_id": "bam.validate"

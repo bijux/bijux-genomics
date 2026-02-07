@@ -1,11 +1,12 @@
 ---
 source: crates/bijux-planner-fastq/tests/graph/graph_snapshots.rs
+assertion_line: 67
 expression: json
 ---
 {
   "contract_version": {
-    "major": 1.0,
-    "minor": 0.0
+    "major": 1,
+    "minor": 0
   },
   "deterministic_scheduler": true,
   "edges": [
@@ -34,7 +35,7 @@ expression: json
   "planner_version": "bijux-planner-fastq.v1",
   "policy": "PreferAccuracy",
   "retry_policy": {
-    "max_attempts": 1.0,
+    "max_attempts": 1,
     "retry_on_exit_codes": []
   },
   "schema_version": "bijux.execution_graph.v1",
@@ -74,10 +75,10 @@ expression: json
       "metrics_schema_ids": [],
       "out_dir": "fastqc",
       "resources": {
-        "mem_gb": 1.0,
+        "mem_gb": 1,
         "runtime": "docker",
-        "threads": 1.0,
-        "tmp_gb": 1.0
+        "threads": 1,
+        "tmp_gb": 1
       },
       "stage_id": "fastq.detect_adapters",
       "step_id": "fastq.detect_adapters"
@@ -116,10 +117,10 @@ expression: json
       "metrics_schema_ids": [],
       "out_dir": "seqkit",
       "resources": {
-        "mem_gb": 1.0,
+        "mem_gb": 1,
         "runtime": "docker",
-        "threads": 1.0,
-        "tmp_gb": 1.0
+        "threads": 1,
+        "tmp_gb": 1
       },
       "stage_id": "fastq.filter",
       "step_id": "fastq.filter"
@@ -164,10 +165,10 @@ expression: json
       "metrics_schema_ids": [],
       "out_dir": "multiqc",
       "resources": {
-        "mem_gb": 1.0,
+        "mem_gb": 1,
         "runtime": "docker",
-        "threads": 1.0,
-        "tmp_gb": 1.0
+        "threads": 1,
+        "tmp_gb": 1
       },
       "stage_id": "fastq.qc_post",
       "step_id": "fastq.qc_post"
@@ -206,10 +207,10 @@ expression: json
       "metrics_schema_ids": [],
       "out_dir": "seqkit_stats",
       "resources": {
-        "mem_gb": 1.0,
+        "mem_gb": 1,
         "runtime": "docker",
-        "threads": 1.0,
-        "tmp_gb": 1.0
+        "threads": 1,
+        "tmp_gb": 1
       },
       "stage_id": "fastq.stats_neutral",
       "step_id": "fastq.stats_neutral"
@@ -248,10 +249,10 @@ expression: json
       "metrics_schema_ids": [],
       "out_dir": "fastp",
       "resources": {
-        "mem_gb": 1.0,
+        "mem_gb": 1,
         "runtime": "docker",
-        "threads": 1.0,
-        "tmp_gb": 1.0
+        "threads": 1,
+        "tmp_gb": 1
       },
       "stage_id": "fastq.trim",
       "step_id": "fastq.trim"
@@ -290,10 +291,10 @@ expression: json
       "metrics_schema_ids": [],
       "out_dir": "fastqvalidator_official",
       "resources": {
-        "mem_gb": 1.0,
+        "mem_gb": 1,
         "runtime": "docker",
-        "threads": 1.0,
-        "tmp_gb": 1.0
+        "threads": 1,
+        "tmp_gb": 1
       },
       "stage_id": "fastq.validate_pre",
       "step_id": "fastq.validate_pre"

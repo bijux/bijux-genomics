@@ -1,1 +1,1 @@
-{"fragment":{"mean":80.0,"median":100.0,"p10":50.0,"p90":100.0,"short_fraction":-0.0},"mapq":{"histogram":[[0.0,2.0],[60.0,8.0]],"mean":48.0,"median":60.0,"p10":60.0,"p90":60.0}}
+{"fragment":{"mean":80.0,"median":100.0,"p10":50.0,"p90":100.0,"short_fraction":-0.0},"mapq":{"histogram":[[0,2],[60,8]],"mean":48.0,"median":60.0,"p10":60.0,"p90":60.0}}
