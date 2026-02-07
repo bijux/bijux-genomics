@@ -4,7 +4,7 @@ mod support;
 use std::path::Path;
 
 const REQUIRED_DOCS: &[&str] = &["SCOPE.md", "ARCHITECTURE.md"];
-const README_ALLOWLIST: &[(&str, &str)] = &[];
+const README_REQUIRED: &[(&str, &str)] = &[("bijux-cli", "public CLI entrypoint")];
 
 fn has_uppercase_name(path: &Path) -> bool {
     path.file_name()
@@ -49,17 +49,6 @@ fn crate_docs_use_uppercase_names() {
                 continue;
             }
             if path.file_name().and_then(|name| name.to_str()) == Some("README.md") {
-                if README_ALLOWLIST
-                    .iter()
-                    .any(|(crate_name, _reason)| {
-                        crate_root
-                            .file_name()
-                            .map(|name| name == *crate_name)
-                            .unwrap_or(false)
-                    })
-                {
-                    continue;
-                }
                 continue;
             }
             if !has_uppercase_name(&path) {
@@ -75,5 +64,29 @@ Fix by renaming docs to UPPERCASE (README.md allowed when allowlisted).\n\
 See STYLE.md for naming rules.\n\
 Offenders:\n{}",
         offenders.join("\n")
+    );
+}
+
+#[test]
+fn crates_require_readme_when_listed() {
+    let mut missing = Vec::new();
+    for (crate_name, reason) in README_REQUIRED {
+        let crate_root = support::crate_root(crate_name);
+        let doc_path = crate_root.join("README.md");
+        if !doc_path.exists() {
+            missing.push(format!(
+                "{} missing README.md (reason: {reason})",
+                crate_root.display()
+            ));
+        }
+    }
+
+    assert!(
+        missing.is_empty(),
+        "crates listed in README_REQUIRED must include README.md.\n\
+How to fix: add README.md at crate root or update README_REQUIRED with a reason.\n\
+See STYLE.md for documentation spine.\n\
+Missing:\n{}",
+        missing.join("\n")
     );
 }
