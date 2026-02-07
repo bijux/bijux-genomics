@@ -105,6 +105,7 @@ expression: output
 [bijux-infra]
 - ARCHITECTURE.md
 - Cargo.toml
+- NO_DOMAIN.md
 - SCOPE.md
 - src/
 - tests/
@@ -148,6 +149,7 @@ expression: output
 
 [bijux-runner]
 - ARCHITECTURE.md
+- BACKENDS.md
 - Cargo.toml
 - RUNNER_MODEL.md
 - SCOPE.md
@@ -158,6 +160,7 @@ expression: output
 - ARCHITECTURE.md
 - Cargo.toml
 - EVENTS.md
+- GLOSSARY.md
 - RUNTIME_CONTRACT.md
 - SCOPE.md
 - src/
