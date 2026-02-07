@@ -174,7 +174,12 @@ nav:
       - Explainability: 30-operations/EXPLAINABILITY.md
       - Containers: 30-operations/CONTAINERS.md
       - Security: 30-operations/SECURITY.md
+      - Threat Model: 30-operations/THREAT_MODEL.md
       - CI: 30-operations/CI.md
+      - Developer Workflow: 30-operations/DEVELOPER_WORKFLOW.md
+      - Artifact Explorer: 30-operations/ARTIFACT_EXPLORER.md
+      - Release Hygiene: 30-operations/RELEASE_HYGIENE.md
+      - MkDocs Build: 30-operations/MKDOCS_BUILD.md
   - Policies:
       - Policies Explained: 40-policies/POLICIES_EXPLAINED.md
       - Developer Workflow: 40-policies/DEVELOPER_WORKFLOW.md

@@ -1,19 +1,20 @@
 # Security
 
 ## What
-Security practices for pipeline execution and data handling.
+Operational security posture for Bijux runs.
 
 ## Why
-Protects user data and infrastructure.
+Limits untrusted execution and data exposure.
 
 ## Non-goals
-- Compliance certification.
+- Full threat modeling for all dependencies.
 
 ## Contracts
-- No untrusted code execution in non‑runner crates.
+- Execution only via runner backends.
+- Replay is non-executing.
 
 ## Examples
-- Runner is the only crate allowed to spawn processes.
+See `THREAT_MODEL.md` for explicit guarantees.
 
 ## Failure modes
-- Policy tests fail if forbidden APIs are imported.
+Security violations trigger policy failures.
