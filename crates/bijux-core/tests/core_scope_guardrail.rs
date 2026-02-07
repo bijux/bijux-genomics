@@ -2,6 +2,31 @@ use std::path::Path;
 
 use anyhow::Result;
 
+fn read_allowed_pub_modules() -> Vec<String> {
+    let readme = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("README.md");
+    let content = std::fs::read_to_string(&readme).expect("read README.md");
+    let mut modules = Vec::new();
+    let mut in_section = false;
+    for line in content.lines() {
+        if line.trim() == "## Allowed `pub` modules" {
+            in_section = true;
+            continue;
+        }
+        if in_section && line.starts_with("## ") {
+            break;
+        }
+        if in_section {
+            if let Some(rest) = line.trim().strip_prefix("- `") {
+                if let Some(name) = rest.strip_suffix('`') {
+                    modules.push(name.to_string());
+                }
+            }
+        }
+    }
+    modules.sort();
+    modules
+}
+
 #[test]
 fn core_scope_only_allows_contracts_and_foundation() -> Result<()> {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
@@ -41,6 +66,14 @@ fn core_scope_only_allows_contracts_and_foundation() -> Result<()> {
     }
     pub_mods.sort();
     let allowed_pub_mods = ["contract", "foundation", "ids", "metrics", "prelude"];
+    let allowed_from_readme = read_allowed_pub_modules();
+    let allowed_from_readme: Vec<&str> = allowed_from_readme.iter().map(String::as_str).collect();
+    assert!(
+        allowed_from_readme == allowed_pub_mods,
+        "README allowed pub modules must match core policy.\n\
+Update README or policy list to align.\n\
+README: {allowed_from_readme:?}\nPolicy: {allowed_pub_mods:?}"
+    );
     for module in pub_mods {
         assert!(
             allowed_pub_mods.contains(&module.as_str()),
