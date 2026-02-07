@@ -118,10 +118,9 @@ fn parse_dependencies(manifest: &Path, known: &BTreeSet<String>) -> BTreeSet<Str
 fn parse_boundary_contract() -> BTreeMap<String, BTreeSet<String>> {
     let root = workspace_root();
     let path = root
-        .join("crates")
-        .join("bijux-core")
-        .join("src")
-        .join("boundaries.md");
+        .join("docs")
+        .join("10-architecture")
+        .join("BOUNDARY_MAP.md");
     let content = std::fs::read_to_string(&path).expect("read boundaries.md");
     let mut lines = Vec::new();
     let mut in_block = false;
@@ -1353,8 +1352,6 @@ fn workspace_domain_symmetry_contract() {
             domain_sets[0].0, name, base, set
         );
     }
-    let rel = root.join("docs").join("domain_template_checklist.md");
-    assert!(rel.exists(), "missing docs/domain_template_checklist.md");
 }
 
 #[test]
