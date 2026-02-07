@@ -2,7 +2,7 @@
 
 mod commands;
 mod render {
-    pub use crate::commands::cli::render::*;
+    pub(crate) use crate::commands::cli::render::*;
 }
 
 include!("commands/entry.rs");

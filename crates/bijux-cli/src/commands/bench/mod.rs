@@ -1,3 +1,14 @@
+use crate::commands::imports::{
+    anyhow, bench_args_from_trim, bench_args_from_validate, bench_fastq_preprocess,
+    bench_fastq_trim, bench_fastq_validate_pre, benchmark_runs, cli, compare_runs,
+    compare_runs_with_baseline, env_doctor, fastq_cross_args_from_cli, is_bench_requested_trim,
+    is_bench_requested_validate, load_image_catalog, load_platform, normalize_fastq_stage_id,
+    objective_spec, preprocess_args_from_cli, qc_class_label, render, resolve_adapter_selection,
+    resolve_effective_adapters, write_benchmark_exports, write_trim_report, write_validate_report,
+    AdapterPresetsV1, AdapterSelection, Cli, Commands, FastqCommand, Objective, Path, PathBuf,
+    Result, StageId,
+};
+
 #[allow(clippy::too_many_lines)]
 pub(crate) fn handle_fastq_bench(
     cli: &Cli,
@@ -373,7 +384,7 @@ fn set_scientific_preset(preset: Option<cli::parse::ScientificPresetArg>) {
         std::env::remove_var("BIJUX_SCIENTIFIC_PRESET");
     }
 }
-fn set_tool_tier_policy(allow_silver: bool, allow_experimental: bool) {
+pub(crate) fn set_tool_tier_policy(allow_silver: bool, allow_experimental: bool) {
     if allow_silver || allow_experimental {
         std::env::set_var("BIJUX_ALLOW_SILVER", "1");
     } else {
