@@ -83,6 +83,13 @@ fn crate_docs_contract() {
     let allowlist = BTreeSet::from([
         "SCOPE.md",
         "ARCHITECTURE.md",
+        "INDEX.md",
+        "EFFECTS.md",
+        "TESTS.md",
+        "CHANGE_RULES.md",
+        "POLICY_DIAGNOSTICS.md",
+        "EXCEPTIONS.md",
+        "EVOLUTION.md",
         "CONTRACT.md",
         "MODEL.md",
         "REFERENCES.md",
