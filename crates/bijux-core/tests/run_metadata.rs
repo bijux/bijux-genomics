@@ -1,4 +1,4 @@
-use bijux_core::{
+use bijux_core::prelude::{
     RunMetadataV1, StageMetadataV1, ToolExecutionMetadataV1, ToolInvocationMetadataV1,
 };
 

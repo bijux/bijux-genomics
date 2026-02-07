@@ -2,9 +2,10 @@ use std::fs;
 use std::io::Write;
 
 use bijux_core::contract::{
-    list_runs, query_latest_runs, query_run, query_stage_rows, RunIndexEntry, RunIndexLine,
-    StageIndexRow,
+    list_runs, query_latest_runs, query_run, query_stage_rows, ContractVersion, RunIndexEntry,
+    RunIndexLine, StageIndexRow,
 };
+use bijux_core::ids::{PipelineId, RunId, StageId, ToolId};
 
 fn append_line(path: &std::path::Path, line: &str) -> anyhow::Result<()> {
     let mut file = std::fs::OpenOptions::new()
@@ -18,6 +19,7 @@ fn append_line(path: &std::path::Path, line: &str) -> anyhow::Result<()> {
 fn write_run(path: &std::path::Path, run: &RunIndexEntry) -> anyhow::Result<()> {
     let line = RunIndexLine {
         schema_version: 1,
+        contract_version: ContractVersion::v1(),
         run: Some(run.clone()),
         stage: None,
     };
@@ -28,6 +30,7 @@ fn write_run(path: &std::path::Path, run: &RunIndexEntry) -> anyhow::Result<()> 
 fn write_stage_row(path: &std::path::Path, row: &StageIndexRow) -> anyhow::Result<()> {
     let line = RunIndexLine {
         schema_version: 1,
+        contract_version: ContractVersion::v1(),
         run: None,
         stage: Some(row.clone()),
     };
@@ -41,11 +44,11 @@ fn run_index_insert_and_query() -> anyhow::Result<()> {
     let index_path = dir.path().join("index.jsonl");
 
     let run = RunIndexEntry {
-        run_id: "run-1".to_string(),
+        run_id: RunId::new("run-1"),
         domain: "fastq".to_string(),
-        pipeline: "fastq.trim".to_string(),
-        stages: vec!["fastq.trim".to_string()],
-        tools: vec!["fastp".to_string()],
+        pipeline: PipelineId::new("fastq.trim"),
+        stages: vec![StageId::new("fastq.trim")],
+        tools: vec![ToolId::new("fastp")],
         objective: None,
         platform: "local".to_string(),
         success: true,
@@ -53,9 +56,9 @@ fn run_index_insert_and_query() -> anyhow::Result<()> {
     write_run(&index_path, &run)?;
 
     let row = StageIndexRow {
-        run_id: "run-1".to_string(),
-        stage_id: "fastq.trim".to_string(),
-        tool_id: "fastp".to_string(),
+        run_id: RunId::new("run-1"),
+        stage_id: StageId::new("fastq.trim"),
+        tool_id: ToolId::new("fastp"),
         params_hash: "hash".to_string(),
         input_hash: "input".to_string(),
         output_hashes: vec!["out".to_string()],
@@ -65,11 +68,11 @@ fn run_index_insert_and_query() -> anyhow::Result<()> {
 
     let runs = list_runs(&index_path)?;
     assert_eq!(runs.len(), 1);
-    assert_eq!(runs[0].run_id, "run-1");
+    assert_eq!(runs[0].run_id.as_str(), "run-1");
 
     let latest = query_latest_runs(&index_path, 1)?;
     assert_eq!(latest.len(), 1);
-    assert_eq!(latest[0].run_id, "run-1");
+    assert_eq!(latest[0].run_id.as_str(), "run-1");
 
     let found = query_run(&index_path, "run-1")?;
     assert!(found.is_some());
@@ -92,11 +95,11 @@ fn run_index_latest_run_is_deterministic() -> anyhow::Result<()> {
         write_run(
             &index_path,
             &RunIndexEntry {
-                run_id: run_id.to_string(),
+                run_id: RunId::new(run_id),
                 domain: "fastq".to_string(),
-                pipeline: "fastq.trim".to_string(),
-                stages: vec!["fastq.trim".to_string()],
-                tools: vec!["fastp".to_string()],
+                pipeline: PipelineId::new("fastq.trim"),
+                stages: vec![StageId::new("fastq.trim")],
+                tools: vec![ToolId::new("fastp")],
                 objective: None,
                 platform: "local".to_string(),
                 success: true,
@@ -106,8 +109,8 @@ fn run_index_latest_run_is_deterministic() -> anyhow::Result<()> {
 
     let latest = query_latest_runs(&index_path, 2)?;
     assert_eq!(latest.len(), 2);
-    assert_eq!(latest[0].run_id, "run-2");
-    assert_eq!(latest[1].run_id, "run-3");
+    assert_eq!(latest[0].run_id.as_str(), "run-2");
+    assert_eq!(latest[1].run_id.as_str(), "run-3");
     Ok(())
 }
 
@@ -119,9 +122,9 @@ fn run_index_query_by_stage_and_tool() -> anyhow::Result<()> {
     write_stage_row(
         &index_path,
         &StageIndexRow {
-            run_id: "run-1".to_string(),
-            stage_id: "fastq.trim".to_string(),
-            tool_id: "fastp".to_string(),
+            run_id: RunId::new("run-1"),
+            stage_id: StageId::new("fastq.trim"),
+            tool_id: ToolId::new("fastp"),
             params_hash: "hash".to_string(),
             input_hash: "input".to_string(),
             output_hashes: vec!["out".to_string()],
@@ -131,9 +134,9 @@ fn run_index_query_by_stage_and_tool() -> anyhow::Result<()> {
     write_stage_row(
         &index_path,
         &StageIndexRow {
-            run_id: "run-2".to_string(),
-            stage_id: "fastq.validate_pre".to_string(),
-            tool_id: "fastqvalidator".to_string(),
+            run_id: RunId::new("run-2"),
+            stage_id: StageId::new("fastq.validate_pre"),
+            tool_id: ToolId::new("fastqvalidator"),
             params_hash: "hash2".to_string(),
             input_hash: "input2".to_string(),
             output_hashes: vec!["out2".to_string()],
@@ -143,6 +146,6 @@ fn run_index_query_by_stage_and_tool() -> anyhow::Result<()> {
 
     let rows = query_stage_rows(&index_path, Some("fastq.trim"), Some("fastp"))?;
     assert_eq!(rows.len(), 1);
-    assert_eq!(rows[0].run_id, "run-1");
+    assert_eq!(rows[0].run_id.as_str(), "run-1");
     Ok(())
 }
