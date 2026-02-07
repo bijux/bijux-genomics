@@ -1,10 +1,15 @@
 # APPTAINER_PLAN
 
-Apptainer support is planned but not enabled by default.
+## Scope
+Enable Apptainer execution for QA images.
 
-## Current status
-- API surface exists but is not wired into CI.
-- No network pulls by default.
+## Constraints
+- No network pulls by default
+- Must support digest pinning
 
-## Non-goals
-- Full container runtime parity in the initial phase.
+## Test strategy
+- parity tests against docker outputs
+- fixture-based validation
+
+## Parity definition
+Same manifest/report shapes and key metrics.
