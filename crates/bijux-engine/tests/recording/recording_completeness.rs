@@ -1,55 +1,15 @@
 use std::collections::BTreeMap;
-use std::time::Duration;
 
 use anyhow::Result;
-use bijux_core::contract::ExecutionGraph;
-use bijux_core::contract::PlanPolicy;
-use bijux_core::contract::{ArtifactRef, ArtifactRole, StageIO, ToolConstraints};
+use bijux_core::contract::{ArtifactRef, ArtifactRole, ExecutionGraph, PlanPolicy, StageIO, ToolConstraints};
 use bijux_core::prelude::{ArtifactId, CommandSpecV1, ContainerImageRefV1, StageId, StepId};
 use bijux_engine::Engine;
-use bijux_runtime::{Invocation, Runner, RunnerResult};
 
-struct RecordingRunner;
-
-impl Runner for RecordingRunner {
-    fn run(&self, invocation: &Invocation) -> Result<RunnerResult> {
-        let step = &invocation.step;
-        let run_artifacts = step.out_dir.join("run_artifacts");
-        bijux_infra::ensure_dir(&run_artifacts)?;
-        for name in [
-            "metrics.json",
-            "effective_config.json",
-            "stage_report.json",
-            "tool_invocation.json",
-            "execution_record.json",
-        ] {
-            let path = run_artifacts.join(name);
-            bijux_infra::write_bytes(&path, "{}")?;
-        }
-        for output in &step.io.outputs {
-            bijux_infra::ensure_dir(
-                output
-                    .path
-                    .parent()
-                    .ok_or_else(|| anyhow::anyhow!("output missing parent"))?,
-            )?;
-            bijux_infra::write_bytes(&output.path, "data")?;
-        }
-        Ok(RunnerResult {
-            exit_code: 0,
-            stdout: String::new(),
-            stderr: String::new(),
-            duration: Duration::from_millis(1),
-            artifacts: Vec::new(),
-        })
-    }
-}
+use crate::support::{execution_setup, RecordingRunner};
 
 #[test]
 fn step_emits_truth_set() -> Result<()> {
-    let temp = bijux_infra::temp_dir("bijux-engine-recording")?;
-    let base = temp.path();
-    let (_run_id, layout) = bijux_runtime::run_layout::create_run_layout(base)?;
+    let (_temp, layout) = execution_setup()?;
     let out_dir = layout.stages_dir.join("stage_1");
     bijux_infra::ensure_dir(&out_dir)?;
     let input_path = out_dir.join("input.txt");

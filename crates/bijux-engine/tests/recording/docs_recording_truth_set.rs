@@ -23,7 +23,7 @@ fn recording_truth_set_is_documented() {
     }
 
     assert!(
-        content.contains("tests/recording_completeness.rs"),
-        "doc must reference recording_completeness.rs"
+        content.contains("tests/recording/recording_completeness.rs"),
+        "doc must reference recording/recording_completeness.rs"
     );
 }
