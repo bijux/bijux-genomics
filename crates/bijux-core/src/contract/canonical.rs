@@ -72,8 +72,14 @@ fn normalize_path_string(value: &str) -> String {
     if let Some(prefix) = prefix {
         normalized = format!("{prefix}/{normalized}");
     }
-    if path.is_absolute() && !normalized.starts_with('/') {
-        normalized = format!("/{normalized}");
+    if path.is_absolute() {
+        if let Some(stripped) = strip_to_stable_tail(&components) {
+            return stripped;
+        }
+        return components
+            .last()
+            .cloned()
+            .unwrap_or_else(|| normalized.clone());
     }
     normalized
 }
@@ -109,6 +115,17 @@ fn normalize_numbers_and_paths(value: &serde_json::Value) -> serde_json::Value {
         }
         _ => value.clone(),
     }
+}
+
+fn strip_to_stable_tail(components: &[String]) -> Option<String> {
+    let markers = ["bench", "run_artifacts", "artifacts", "runs"];
+    for (idx, part) in components.iter().enumerate() {
+        if markers.iter().any(|marker| marker == part) {
+            let tail = components[idx..].join("/");
+            return if tail.is_empty() { None } else { Some(tail) };
+        }
+    }
+    None
 }
 
 /// Canonical serializer for truth artifacts.
