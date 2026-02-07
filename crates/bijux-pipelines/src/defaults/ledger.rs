@@ -1,3 +1,6 @@
+//! Defaults ledger for pipeline parameter/tool provenance.
+//! Ordering is canonical (BTreeMap) and JSON serialization must be stable.
+
 use std::collections::BTreeMap;
 
 use serde::Serialize;
