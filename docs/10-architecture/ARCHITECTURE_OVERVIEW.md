@@ -1,30 +1,20 @@
-# Architecture Overview
-
-Owner: Architecture
-Scope: Contract and boundary authority
-Last reviewed: 2026-02-07
-Contract version: v1
-Applies to crates: bijux-core, bijux-engine, bijux-runtime, bijux-runner, bijux-api
+# ARCHITECTURE_OVERVIEW
 
 ## What
-Bijux DNA is a contract‑first pipeline system. Contracts are defined in `bijux-core` and consumed across planners, engine, runtime, and reporting.
+High-level overview of Bijux architecture.
 
 ## Why
-A stable contract spine makes execution deterministic, auditable, and reproducible.
+Provides a top-down map of contracts and boundaries.
 
 ## Non-goals
-- Tight coupling between engine and runner backends.
-- Ad‑hoc artifact formats.
+- Detailed crate internals.
 
 ## Contracts
-- ExecutionGraph
-- RunManifest
-- ToolInvocation
+- Boundaries enforced by `crates/bijux-policies/tests/deps/dependency_boundaries.rs`.
+- Contracts enforced by `crates/bijux-policies/tests/data/contract_handshake.rs`.
 
 ## Examples
-```
-core → engine → runtime → runner → api → stages → planners → pipelines → analyze/bench
-```
+See `BOUNDARY_DIAGRAM.md` and `CONTRACT_SPINE.md` for canonical references.
 
 ## Failure modes
-- Contract mismatches break validation and abort runs.
+Violations trigger policy or contract handshake failures.

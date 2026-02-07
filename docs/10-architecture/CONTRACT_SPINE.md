@@ -4,25 +4,31 @@ Owner: Architecture
 Scope: Contract and boundary authority
 Last reviewed: 2026-02-07
 Contract version: v1
-Applies to crates: bijux-core, bijux-engine, bijux-runtime, bijux-runner, bijux-api
+Applies to crates: bijux-core, bijux-runtime, bijux-engine, bijux-analyze
 
 ## What
-Defines the contract artifacts that bind planning, execution, and reporting.
+Canonical list of contract artifacts and their owning crates.
 
 ## Why
-Stable contracts allow deterministic caching, replay, and audits.
+Eliminates ambiguity about where truth lives.
 
 ## Non-goals
-- Informal, ad‑hoc output formats.
+- Runtime execution details.
 
 ## Contracts
-- ExecutionGraph
-- RunManifest
-- ToolInvocation
-- MetricsEnvelope
+| Artifact | Owner crate | Tests / snapshots |
+| --- | --- | --- |
+| ExecutionGraph | bijux-core | `crates/bijux-core/tests/execution_graph_validate.rs` |
+| ExecutionPlan | bijux-stage-contract | `crates/bijux-stage-contract/tests/schema_snapshots.rs` |
+| RunManifest | bijux-runtime | `crates/bijux-runtime/tests/runtime_schema_snapshots.rs` |
+| RunRecord | bijux-runtime | `crates/bijux-runtime/tests/runtime_schema_snapshots.rs` |
+| ToolInvocation | bijux-core | `crates/bijux-core/tests/execution_plan_contract.rs` |
+| StageReport | bijux-stages-* | `crates/bijux-stages-*/tests/observer_snapshots.rs` |
+| Report bundle | bijux-analyze | `crates/bijux-analyze/tests/report_contract.rs` |
+| Defaults ledger | bijux-pipelines | `crates/bijux-pipelines/tests/defaults_ledger.rs` |
 
 ## Examples
-- Planner emits ExecutionGraph → Engine executes → Runtime writes RunManifest.
+Each artifact is serialized canonically and stored under the run layout.
 
 ## Failure modes
-- Missing contract fields causes validation error.
+Missing or mismatched artifacts fail contract enforcement tests.
