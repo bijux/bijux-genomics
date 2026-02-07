@@ -9,7 +9,7 @@ fn reference_example_is_documented() {
     let content = fs::read_to_string(&doc).expect("read RUNTIME_CONTRACT.md");
 
     assert!(
-        content.contains("tests/reference_example.rs"),
-        "docs must reference tests/reference_example.rs"
+        content.contains("tests/reference/reference_example.rs"),
+        "docs must reference tests/reference/reference_example.rs"
     );
 }
