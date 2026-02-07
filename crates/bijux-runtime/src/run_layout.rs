@@ -102,6 +102,37 @@ pub struct RunLayout {
     pub events_path: PathBuf,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct RunLayoutV1 {
+    pub schema_version: String,
+    pub run_dir: String,
+    pub stages_dir: String,
+    pub summary_dir: String,
+    pub assessment_path: String,
+    pub manifest_path: String,
+    pub environment_path: String,
+    pub metadata_path: String,
+    pub events_path: String,
+}
+
+impl RunLayout {
+    #[must_use]
+    pub fn contract(&self) -> RunLayoutV1 {
+        RunLayoutV1 {
+            schema_version: "bijux.run_layout.v1".to_string(),
+            run_dir: self.run_dir.display().to_string(),
+            stages_dir: self.stages_dir.display().to_string(),
+            summary_dir: self.summary_dir.display().to_string(),
+            assessment_path: self.assessment_path.display().to_string(),
+            manifest_path: self.manifest_path.display().to_string(),
+            environment_path: self.environment_path.display().to_string(),
+            metadata_path: self.metadata_path.display().to_string(),
+            events_path: self.events_path.display().to_string(),
+        }
+    }
+}
+
 /// Create the canonical run layout under the base directory.
 ///
 /// # Errors
