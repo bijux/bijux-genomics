@@ -1,7 +1,15 @@
-# LEGACY
+# LEGACY (Debt Ledger)
 
-Legacy functionality is retained for backward compatibility.
+## Why it exists
+Legacy benchmarks support older datasets and tools.
 
-## Sunset plan
-- Deprecation notice on next minor release.
-- Removal after two minor releases if unused.
+## What it blocks
+- Simplified schema unification
+- Removal of deprecated metrics
+
+## Sunset criteria
+- No consumers in two minor releases
+- Replacement benchmarks validated
+
+## Replacement
+Use current benchmark suite under `bench` module.
