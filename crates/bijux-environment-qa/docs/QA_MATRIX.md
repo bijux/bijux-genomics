@@ -1,12 +1,9 @@
 # QA_MATRIX
 
-## What is tested
-- Image resolution correctness
-- Artifact layout compatibility with runtime
+## Acceptance thresholds
+- expected tool versions
+- correct behavior checks
+- stable output signatures
 
-## What is not tested
-- Full pipeline execution
-- Long-running performance
-
-## Runtime expectations
-QA tests are opt-in and may require docker when enabled.
+## Pass criteria
+All checks must match expected signatures.
