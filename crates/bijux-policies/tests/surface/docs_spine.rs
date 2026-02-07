@@ -88,6 +88,7 @@ fn crate_docs_contract() {
         "TESTS.md",
         "CHANGE_RULES.md",
         "POLICY_DIAGNOSTICS.md",
+        "POLICIES.md",
         "EXCEPTIONS.md",
         "EVOLUTION.md",
         "CONTRACT.md",

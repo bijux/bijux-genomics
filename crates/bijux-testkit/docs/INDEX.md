@@ -1,4 +1,16 @@
-# INDEX
+# bijux-testkit Docs Index
 
-Testkit hosts shared fixtures and helpers only.
-Crate-specific test logic must live in each crate's tests.
+## Scope
+See `SCOPE.md` for what belongs here.
+
+## Effects
+See `EFFECTS.md` for allowed effects.
+
+## Boundaries
+See `ARCHITECTURE.md` for internal boundaries.
+
+## Extension Points
+See `CHANGE_RULES.md` for safe extension guidelines.
+
+## How to Test
+See `TESTS.md` for test mapping and fixtures.
