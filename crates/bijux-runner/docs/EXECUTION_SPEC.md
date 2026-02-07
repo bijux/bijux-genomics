@@ -1,10 +1,11 @@
 # EXECUTION_SPEC
 
-## CommandSpec hashing
-Invocation hashing includes:
-- Command binary and argv.
-- Environment variables (after allowlist/filter).
-- Working directory.
-- Container image reference (if applicable).
+## Execution semantics
+- cwd: absolute working directory for process execution
+- env: allowlisted environment variables
+- mounts: explicit host paths only
+- stdout/stderr: captured and stored per step
+- exit semantics: zero == success, non-zero == ToolError
 
-Redactions apply to secrets before hashing.
+## Hashing
+Invocation hash includes command, args, env, cwd, mounts, and image digest.
