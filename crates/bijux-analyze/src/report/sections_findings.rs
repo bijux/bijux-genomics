@@ -1,5 +1,6 @@
 use bijux_domain_bam::metrics::BamMetricsV1;
 use bijux_domain_bam::metrics::{evaluate_bam_invariants, BamInvariantThresholds};
+use bijux_domain_bam::prelude::STAGE_PREFIX as BAM_STAGE_PREFIX;
 
 pub(super) fn accounting_section(rows: &[FactsRowV1]) -> serde_json::Value {
     let mut stages = Vec::new();
@@ -20,7 +21,7 @@ pub(super) fn bam_accounting_section(rows: &[FactsRowV1]) -> serde_json::Value {
     let mut entries = Vec::new();
     let thresholds = BamInvariantThresholds::default();
     for row in rows {
-        if !row.stage_id.starts_with("bam.") {
+        if !row.stage_id.starts_with(BAM_STAGE_PREFIX) {
             continue;
         }
         let metrics: BamMetricsV1 = match serde_json::from_value(row.metrics.clone()) {
@@ -74,7 +75,7 @@ pub(super) fn bam_findings_section(rows: &[FactsRowV1]) -> serde_json::Value {
 fn bam_claims(rows: &[FactsRowV1]) -> Vec<serde_json::Value> {
     let mut findings = Vec::new();
     for row in rows {
-        if !row.stage_id.starts_with("bam.") {
+        if !row.stage_id.starts_with(BAM_STAGE_PREFIX) {
             continue;
         }
         let metrics: BamMetricsV1 = serde_json::from_value(row.metrics.clone())
@@ -176,7 +177,7 @@ pub(super) fn bam_verdict_table(rows: &[FactsRowV1]) -> serde_json::Value {
     let thresholds = BamInvariantThresholds::default();
     let mut entries = Vec::new();
     for row in rows {
-        if !row.stage_id.starts_with("bam.") {
+        if !row.stage_id.starts_with(BAM_STAGE_PREFIX) {
             continue;
         }
         let metrics: BamMetricsV1 = serde_json::from_value(row.metrics.clone())
@@ -216,7 +217,7 @@ pub(super) fn bam_verdict_table(rows: &[FactsRowV1]) -> serde_json::Value {
 pub(super) fn bam_plots_section(rows: &[FactsRowV1]) -> serde_json::Value {
     let mut plots = Vec::new();
     for row in rows {
-        if !row.stage_id.starts_with("bam.") {
+        if !row.stage_id.starts_with(BAM_STAGE_PREFIX) {
             continue;
         }
         let metrics: BamMetricsV1 = serde_json::from_value(row.metrics.clone())
