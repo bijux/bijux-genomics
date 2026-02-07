@@ -1,31 +1,31 @@
 # bijux-stage-contract
 
 ## What this crate does
-Defines minimal planning types for stage plans and plugins, separate from runtime execution contracts.
+Minimal planning contract types for stage plans and plugins.
 
 ## What it must not do (boundaries)
-Must not include execution details or runner/runtime concepts. It is planning-only.
+No execution details or runner/env concepts.
+
+## Role in the stack
+Upstream: core IDs. Downstream: planners/engine.
 
 ## Public API / entrypoints
-Public types documented in `docs/CONTRACT.md` and `docs/SCHEMAS.md`.
+See `docs/INDEX.md`, `docs/CONTRACT.md`, `docs/SCHEMAS.md`, `docs/VERSIONING.md`, `docs/MINIMALITY.md`, `docs/CHANGE_RULES.md`.
 
 ## Key contracts it owns/consumes
-Owns stage plan and execution plan schemas; consumes core IDs.
+Plan JSON shapes and fixtures.
 
 ## Effects & determinism guarantees
-No effects; serialization is canonical and snapshot-tested.
+Pure contract types; deterministic serialization. See `docs/EFFECTS.md` and the golden tests below.
 
 ## How to run its tests
-See `docs/TESTS.md`. Key tests: `tests/public_type_snapshots.rs`, `tests/schema_snapshots.rs`, `tests/no_execution_scan.rs`.
+See `docs/TESTS.md`. Golden tests: `tests/public_type_snapshots.rs`, `tests/schema_snapshots.rs`, `tests/no_execution_scan.rs`.
 
 ## Where the docs live
-Start at `docs/INDEX.md`, then read `docs/CONTRACT.md`, `docs/VERSIONING.md`, and `docs/MINIMALITY.md`.
-
-## Artifacts / Contracts
-Produces plan JSON shapes; fixtures live in `tests/fixtures/public_types/`.
+Start at `docs/INDEX.md` and follow the crate docs listed above.
 
 ## Failure modes
-Schema drift and versioning violations fail snapshot tests.
+Primary failures surface as snapshot or contract violations; inspect the golden tests and referenced docs.
 
 ## Stability
-Contract changes require version bumps per `docs/VERSIONING.md`.
+Contract and behavior changes follow `docs/CHANGE_RULES.md`.

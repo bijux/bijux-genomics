@@ -1,31 +1,31 @@
 # bijux-stages-fastq
 
 ## What this crate does
-Defines FASTQ stage specs and observers (parsers) only. It is the contract+parsing layer for FASTQ stages.
+FASTQ stage specs + observers only (parsing/metrics).
 
 ## What it must not do (boundaries)
-Must not assemble commands or select tools. Execution belongs in planners/runner.
+No command assembly or tool selection.
+
+## Role in the stack
+Upstream: domain contracts. Downstream: planners/analyze.
 
 ## Public API / entrypoints
-Stage specs and observers documented in `docs/STAGE_LIST.md`, `docs/STAGE_CONTRACTS.md`, and `docs/OBSERVERS.md`.
+See `docs/INDEX.md`, `docs/STAGE_LIST.md`, `docs/STAGE_CONTRACTS.md`, `docs/OBSERVERS.md`, `docs/TOOL_ROSTER.md`, `docs/CHANGE_RULES.md`.
 
 ## Key contracts it owns/consumes
-Owns FASTQ stage contracts; consumes core IDs and domain semantics.
+Stage report/metrics shape snapshots.
 
 ## Effects & determinism guarantees
-Parsing is deterministic and fixture-backed. See `tests/observer_determinism.rs`.
+Pure parsing; deterministic snapshots. See `docs/EFFECTS.md` and the golden tests below.
 
 ## How to run its tests
-See `docs/TESTS.md`. Key tests: `tests/contract_snapshots.rs`, `tests/observer_determinism.rs`, `tests/symmetry.rs`.
+See `docs/TESTS.md`. Golden tests: `tests/contract_snapshots.rs`, `tests/observer_determinism.rs`, `tests/symmetry.rs`, `tests/registry_completeness.rs`.
 
 ## Where the docs live
-Start at `docs/INDEX.md`, then read `docs/STAGE_LIST.md`, `docs/OBSERVERS.md`, and `docs/TOOL_ROSTER.md`.
-
-## Artifacts / Contracts
-Produces stage_report/metrics shapes via parsers; snapshots live in `tests/snapshots/`.
+Start at `docs/INDEX.md` and follow the crate docs listed above.
 
 ## Failure modes
-Parser regressions or contract drift fail snapshot tests.
+Primary failures surface as snapshot or contract violations; inspect the golden tests and referenced docs.
 
 ## Stability
-Stage contracts and observer outputs are snapshot-tested; see `docs/CHANGE_RULES.md`.
+Contract and behavior changes follow `docs/CHANGE_RULES.md`.
