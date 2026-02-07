@@ -1,9 +1,11 @@
 # bijux-policies
 
+Entry point for crate docs.
+
 ## Docs
-- [Index](docs/INDEX.md)
-- [Scope](docs/SCOPE.md)
-- [Architecture](docs/ARCHITECTURE.md)
-- [Effects](docs/EFFECTS.md)
-- [Tests](docs/TESTS.md)
-- [Change Rules](docs/CHANGE_RULES.md)
+- docs/INDEX.md
+- docs/SCOPE.md
+- docs/ARCHITECTURE.md
+- docs/EFFECTS.md
+- docs/TESTS.md
+- docs/CHANGE_RULES.md
