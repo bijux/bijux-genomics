@@ -1,27 +1,24 @@
-# What Is Bijux DNA
+# WHAT_IS_BIJUX
 
 ## What
-Bijux DNA is a contract‑first genomics pipeline system for FASTQ and BAM processing. It produces deterministic execution graphs, reproducible run artifacts, and structured reports.
+Bijux is a reproducible bioinformatics pipeline system that turns sequencing inputs into audited outputs with stable contracts.
 
 ## Why
-Scientific pipelines need auditability, stable inputs/outputs, and explainable tool selection. Bijux DNA enforces this with strict contracts, canonical serialization, and policy‑backed boundaries.
+Modern pipelines fail when results cannot be reproduced or explained. Bijux makes runs deterministic, contracts explicit, and artifacts traceable.
 
 ## Non-goals
-- Replacing domain‑specific scientific judgment.
-- Supporting every tool in the ecosystem.
-- Running arbitrary scripts as pipeline stages.
+- It is not a general workflow engine for arbitrary tasks.
+- It does not execute tools without declared contracts.
+- It does not hide or auto-mutate outputs.
 
 ## Contracts
-- ExecutionGraph
-- StageSpec
-- RunManifest
-- ToolInvocation
-- MetricsEnvelope
+Three invariants define Bijux:
+- **SSOT**: IDs and contract types have a single owner.
+- **Determinism**: same inputs ⇒ same outputs (timestamps excluded).
+- **Effect boundaries**: only allowlisted crates may spawn processes or access networks.
 
 ## Examples
-- A FASTQ preprocessing run produces a graph, per‑stage metrics envelopes, and a report bundle.
-- A BAM pipeline run records stage outputs and tool invocations for reproducibility.
+See `QUICKSTART.md` for a first successful run.
 
 ## Failure modes
-- Missing declared artifacts fail fast with ContractError.
-- Invalid pipeline IDs or profiles fail planning with PlanError.
+If any invariant is violated, policies fail in CI and execution halts with a contract error.

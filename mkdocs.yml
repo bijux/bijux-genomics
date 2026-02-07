@@ -129,8 +129,12 @@ nav:
   - Home: index.md
   - Intro:
       - What Is Bijux DNA: 00-intro/WHAT_IS_BIJUX.md
+      - Start Here: 00-intro/QUICKSTART.md
+      - Docs Map: 00-intro/DOCS_MAP.md
+      - Glossary: 00-intro/GLOSSARY.md
+      - Doc Promises: 00-intro/DOC_PROMISES.md
       - Scope: 00-intro/SCOPE.md
-      - Quickstart: 00-intro/QUICKSTART.md
+      - Refusals: 00-intro/REFUSALS.md
   - Architecture:
       - Overview: 10-architecture/ARCHITECTURE_OVERVIEW.md
       - Boundaries: 10-architecture/BOUNDARY_MAP.md
