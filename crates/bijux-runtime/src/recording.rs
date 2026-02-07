@@ -101,6 +101,15 @@ pub fn write_atomic_bytes(path: &Path, bytes: &[u8]) -> Result<()> {
     Ok(())
 }
 
+/// Write canonical JSON using core canonicalizer.
+///
+/// # Errors
+/// Returns an error if serialization or writing fails.
+pub fn write_canonical_json<T: Serialize>(path: &Path, value: &T) -> Result<()> {
+    let payload = bijux_core::contract::canonical::to_canonical_json_bytes(value)?;
+    write_atomic_bytes(path, payload.as_slice())
+}
+
 #[must_use]
 pub fn compute_run_id(
     stage: &str,
