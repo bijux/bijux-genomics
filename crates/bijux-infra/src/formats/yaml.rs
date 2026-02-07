@@ -1,6 +1,14 @@
+//! YAML parsing/rendering helpers for config compatibility.
+//!
+//! YAML is intentionally constrained; see docs/WHY_YAML.md for the
+//! allowlist rationale.
+
+#[cfg(feature = "yaml")]
 use serde::de::DeserializeOwned;
+#[cfg(feature = "yaml")]
 use serde::Serialize;
 
+#[cfg(feature = "yaml")]
 use crate::{IoError, IoErrorKind};
 
 /// Parse YAML data (optional feature).
