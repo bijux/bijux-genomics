@@ -4,8 +4,7 @@ use std::collections::BTreeMap;
 fn stage_contracts_snapshot() {
     let mut contracts = BTreeMap::new();
     for stage in bijux_stages_bam::implemented_stages() {
-        let contract = bijux_domain_bam::contract_for_stage(stage.as_str())
-            .expect("contract");
+        let contract = bijux_domain_bam::contract_for_stage(stage.as_str()).expect("contract");
         contracts.insert(stage.as_str().to_string(), contract);
     }
     let actual = {

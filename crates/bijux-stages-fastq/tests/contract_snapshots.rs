@@ -4,13 +4,12 @@ use std::collections::BTreeMap;
 fn stage_contracts_snapshot() {
     let mut contracts = BTreeMap::new();
     for stage in bijux_stages_fastq::implemented_stages() {
-        let contract = bijux_stages_fastq::contracts::contract_for_stage(stage.as_str())
-            .expect("contract");
+        let contract =
+            bijux_stages_fastq::contracts::contract_for_stage(stage.as_str()).expect("contract");
         contracts.insert(stage.as_str().to_string(), contract);
     }
     let actual = String::from_utf8(
-        bijux_core::contract::canonical::to_canonical_json_bytes(&contracts)
-            .expect("canonical"),
+        bijux_core::contract::canonical::to_canonical_json_bytes(&contracts).expect("canonical"),
     )
     .expect("utf8");
     let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))

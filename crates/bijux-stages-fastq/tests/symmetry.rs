@@ -42,6 +42,9 @@ fn fastq_bam_stage_module_symmetry() {
     let fastq = module_set("bijux-stages-fastq");
     let bam = module_set("bijux-stages-bam");
 
-    assert_eq!(fastq, expected, "fastq stage modules must match expected set");
+    assert_eq!(
+        fastq, expected,
+        "fastq stage modules must match expected set"
+    );
     assert_eq!(bam, expected, "bam stage modules must match expected set");
 }
