@@ -1,6 +1,6 @@
 # Lab / HPC Harness
 
-This directory contains **manual** workflows for running real pipelines and benchmarks on lab/HPC
+This directory contains **manual** workflows for running real pipelines and benchmarks on scripts/lab/HPC
 hardware. Nothing here is executed by CI.
 
 ## Requirements
@@ -9,7 +9,7 @@ hardware. Nothing here is executed by CI.
 - Real FASTQ/BAM corpora available on disk.
 
 ## Quick Start
-1. Copy `lab/config.example.toml` to `lab/config.toml`.
+1. Copy `scripts/lab/config.example.toml` to `scripts/lab/config.toml`.
 2. Set `CORPUS_ROOT` (required) and optionally `RUNNER_KIND`, `PIPELINE_IDS`, `OUTPUT_DIR`.
 3. Run:
 ```sh
