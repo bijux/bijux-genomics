@@ -1,12 +1,13 @@
 # LOGGING
 
-## Fields
-- `event`
-- `component`
-- `step_id` (when applicable)
+## Structured fields
+- event
+- component
+- step_id
 
-## Spans
-Spans must be short-lived and scoped to a single operation.
+## Span rules
+Span names are short, action-oriented.
 
-## Redaction
-Never log secrets or raw tokens.
+## Never log
+- secrets
+- PII
