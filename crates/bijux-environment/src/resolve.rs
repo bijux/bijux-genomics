@@ -5,6 +5,7 @@ use std::process::Command;
 use std::str::FromStr;
 
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use thiserror::Error;
 
 /// Resolver entrypoint for environment specs and image catalog.
@@ -416,11 +417,6 @@ pub mod api {
         resolve_image, select_best_runner, PlatformSpec, ResolvedImage, RunnerKind, ToolImageSpec,
     };
 }
-use std::path::{Path, PathBuf};
-use std::process::Command;
-
-use serde::{Deserialize, Serialize};
-use sha2::{Digest, Sha256};
 
 #[must_use]
 pub fn reference_cache_dir() -> PathBuf {
