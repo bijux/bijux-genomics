@@ -57,7 +57,7 @@ Interpreting the report
 
 Limitations
 -----------
-- CI for uncertainty is placeholder unless bench replicates are present.
+- Uncertainty intervals are reported only when benchmark replicates are present.
 - Contaminant removal currently single-path and optional.
 - Presets tune defaults but do not replace human oversight.
 
