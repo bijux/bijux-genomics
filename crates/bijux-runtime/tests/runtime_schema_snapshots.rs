@@ -17,8 +17,10 @@ fn run_layout_schema_snapshot() {
         events_path: "/tmp/run/events.jsonl".to_string(),
     };
     let expected = include_str!("fixtures/runtime_schema/run_layout.json");
-    let actual = String::from_utf8(bijux_core::contract::canonical::to_canonical_json_bytes(&layout).expect("canonical"))
-        .expect("utf8");
+    let actual = String::from_utf8(
+        bijux_core::contract::canonical::to_canonical_json_bytes(&layout).expect("canonical"),
+    )
+    .expect("utf8");
     assert_eq!(actual, expected);
 }
 
@@ -33,8 +35,10 @@ fn run_record_schema_snapshot() {
         },
     ]);
     let expected = include_str!("fixtures/runtime_schema/run_record.json");
-    let actual = String::from_utf8(bijux_core::contract::canonical::to_canonical_json_bytes(&record).expect("canonical"))
-        .expect("utf8");
+    let actual = String::from_utf8(
+        bijux_core::contract::canonical::to_canonical_json_bytes(&record).expect("canonical"),
+    )
+    .expect("utf8");
     assert_eq!(actual, expected);
 }
 
@@ -53,8 +57,10 @@ fn run_provenance_schema_snapshot() {
         plan_hash: None,
     };
     let expected = include_str!("fixtures/runtime_schema/run_provenance.json");
-    let actual = String::from_utf8(bijux_core::contract::canonical::to_canonical_json_bytes(&provenance).expect("canonical"))
-        .expect("utf8");
+    let actual = String::from_utf8(
+        bijux_core::contract::canonical::to_canonical_json_bytes(&provenance).expect("canonical"),
+    )
+    .expect("utf8");
     assert_eq!(actual, expected);
 }
 
@@ -100,7 +106,9 @@ fn run_manifest_schema_snapshot() {
         artifacts: Vec::new(),
     };
     let expected = include_str!("fixtures/runtime_schema/run_manifest.json");
-    let actual = String::from_utf8(bijux_core::contract::canonical::to_canonical_json_bytes(&manifest).expect("canonical"))
-        .expect("utf8");
+    let actual = String::from_utf8(
+        bijux_core::contract::canonical::to_canonical_json_bytes(&manifest).expect("canonical"),
+    )
+    .expect("utf8");
     assert_eq!(actual, expected);
 }
