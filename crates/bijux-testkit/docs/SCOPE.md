@@ -6,4 +6,7 @@
 ## Does not belong here
 - Production code.
 
+## Boundaries
+- No domain semantics.
+
 See docs/40-policies/STYLE.md for documentation and policy style.
