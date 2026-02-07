@@ -3,6 +3,7 @@ use cargo_metadata::MetadataCommand;
 const BUDGETS: &[(&str, usize)] = &[
     ("bijux-core", 20),
     ("bijux-runtime", 25),
+    ("bijux-analyze", 35),
     ("bijux-benchmark-model", 20),
     ("bijux-infra", 20),
     ("bijux-environment-qa", 80),
