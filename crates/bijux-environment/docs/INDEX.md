@@ -14,6 +14,7 @@ Provides a single, stable starting point.
 
 ## Examples
 - See `SCOPE.md` and `ARCHITECTURE.md` for boundaries and layout.
+- See `ENV_REFERENCE.md`, `ENV_MATRIX.md`, `BOUNDARY.md`, and `SCHEMAS.md` for contract rules.
 
 ## Failure modes
 - Missing index causes policy failures.
