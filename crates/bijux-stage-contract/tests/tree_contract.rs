@@ -4,6 +4,7 @@ fn tree_contract_is_minimal() {
     let expected = [
         "Cargo.toml",
         "CONTRACT.md",
+        "PUBLIC_API.md",
         "SCOPE.md",
         "ARCHITECTURE.md",
         "src/",
@@ -26,5 +27,27 @@ fn tree_contract_is_minimal() {
     assert_eq!(
         entries_set, expected_set,
         "Stage-contract tree must remain minimal; update tree contract intentionally."
+    );
+
+    let src_dir = root.join("src");
+    let allowed_src = [
+        "execution_plan.rs",
+        "stage_plan.rs",
+        "stage_plugin.rs",
+        "plan_run.rs",
+        "lib.rs",
+    ];
+    let mut src_entries = Vec::new();
+    for entry in std::fs::read_dir(&src_dir).expect("read src dir") {
+        let entry = entry.expect("read src entry");
+        let name = entry.file_name().to_string_lossy().to_string();
+        src_entries.push(name);
+    }
+    src_entries.sort();
+    let allowed_set: std::collections::BTreeSet<_> = allowed_src.iter().map(|s| s.to_string()).collect();
+    let src_set: std::collections::BTreeSet<_> = src_entries.into_iter().collect();
+    assert_eq!(
+        src_set, allowed_set,
+        "Stage-contract src must only contain the minimal plan files."
     );
 }
