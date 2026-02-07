@@ -5,7 +5,6 @@
 use std::cell::RefCell;
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
-use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::Duration;
 
 use anyhow::Result;
@@ -142,9 +141,11 @@ impl Runner for RecordingRunner {
 }
 
 pub fn plan_for(stage_id: &str) -> ExecutionStep {
-    static COUNTER: AtomicUsize = AtomicUsize::new(1);
-    let suffix = COUNTER.fetch_add(1, Ordering::Relaxed);
-    let out_dir = std::env::temp_dir().join(format!("bijux-engine-test-{stage_id}-{suffix}"));
+    let out_dir = tempfile::Builder::new()
+        .prefix(&format!("bijux-engine-test-{stage_id}-"))
+        .tempdir()
+        .unwrap_or_else(|err| panic!("tempdir: {err}"))
+        .keep();
     ExecutionStep {
         step_id: StepId::new(stage_id),
         stage_id: StageId::new(stage_id),
