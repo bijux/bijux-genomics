@@ -1,4 +1,3 @@
-
 // imports provided by queries_core.rs
 
 /// Insert a `FastQ` filter benchmark record into the v2 table.

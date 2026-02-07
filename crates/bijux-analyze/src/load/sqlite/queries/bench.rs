@@ -1,4 +1,3 @@
-
 // imports provided by queries_core.rs
 
 /// Load a `qc_post` benchmark record from `SQLite` if present.

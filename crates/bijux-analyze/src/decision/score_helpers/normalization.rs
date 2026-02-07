@@ -29,7 +29,9 @@ pub(super) fn normalize_inverted(value: f64, min_val: f64, max_val: f64) -> f64 
     1.0 - norm
 }
 
-pub(super) fn penalties_for_input(input: &RankInput) -> Vec<crate::decision::score::RankingPenalty> {
+pub(super) fn penalties_for_input(
+    input: &RankInput,
+) -> Vec<crate::decision::score::RankingPenalty> {
     let mut penalties = Vec::new();
     if input.runtime_s <= 0.0 {
         penalties.push(crate::decision::score::RankingPenalty {

@@ -1,7 +1,7 @@
 use anyhow::{anyhow, Result};
 
-use crate::decision::{DecisionMetricTrace, DecisionTrace};
 use crate::decision::score::{RankInput, RankingMode, ScoreBreakdown};
+use crate::decision::{DecisionMetricTrace, DecisionTrace};
 use crate::semantics::resolve_semantics;
 
 use super::normalization::penalties_for_input;

@@ -1,4 +1,3 @@
-
 // `SQLite` trim/validate benchmark helpers.
 
 /// Insert a `FastQ` validate benchmark record into the v1 table.
