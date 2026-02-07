@@ -6,7 +6,7 @@
 | StageId/StepId/ToolId/ArtifactId/ProfileId | `ids.rs` | All crates via `bijux-core` |
 | ContractVersion | `contract/version.rs` | Core + runtime + engine + api |
 | ExecutionGraph | `contract/execution/graph.rs` | planners, engine, api |
-| RunManifest | `contract/execution/manifest.rs` | runtime, engine, analyze |
+| ExecutionManifest | `contract/execution/manifest.rs` | runtime, engine, analyze |
 | ToolInvocation | `contract/tooling/mod.rs` | runtime, engine, analyze |
 | MetricsEnvelope | `metrics/types.rs` | stages, analyze, benchmark |
 
@@ -14,3 +14,6 @@
 - Defining new ID types.
 - Re-implementing hashing or canonical JSON.
 - Adding contract fields without versioning.
+
+## Public surface note
+Consumers should import via `prelude` unless a narrower module (`contract`, `ids`, `metrics`) is preferred.
