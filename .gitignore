@@ -1,6 +1,8 @@
 # Rust
 /target/
 **/*.rs.bk
+.venv
+.venv/
 
 # IDEs
 /.idea/
@@ -25,3 +27,6 @@
 !crates/**
 **/target/
 **/.DS_Store
+
+site
+site/

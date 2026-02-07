@@ -7,6 +7,6 @@ policy-fast: ## Run fast policy checks (no snapshots)
 
 policy-full: ## Run full policy suite
 	cargo test -p bijux-policies
-	mkdocs build --strict
+	$(MAKE) docs-lint
 
 .PHONY: policy-fast policy-full
