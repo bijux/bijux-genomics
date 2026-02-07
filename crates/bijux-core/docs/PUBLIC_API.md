@@ -13,6 +13,6 @@ metrics: shared metrics types.
 prelude: stable import ergonomics.
 
 ## How to extend without widening surface
-- Add new types under existing modules.
-- Prefer pub(crate) and expose through `prelude` if needed.
-- Update tests + docs before adding new pub modules.
+1. Add new types under existing modules.
+1. Prefer pub(crate) and expose through `prelude` if needed.
+1. Update tests + docs before adding new pub modules.

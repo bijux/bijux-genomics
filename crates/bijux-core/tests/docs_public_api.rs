@@ -63,7 +63,11 @@ fn minimal_contract_example_builds() {
         },
         resources: ToolConstraints::default(),
         io: StageIO {
-            inputs: vec![],
+            inputs: vec![bijux_core::contract::execution::ArtifactSpec::required(
+                ArtifactId::from_static("artifact.in"),
+                PathBuf::from("input.txt"),
+                ArtifactRole::Reads,
+            )],
             outputs: vec![bijux_core::contract::execution::ArtifactSpec::required(
                 ArtifactId::from_static("artifact.a"),
                 PathBuf::from("artifact.txt"),

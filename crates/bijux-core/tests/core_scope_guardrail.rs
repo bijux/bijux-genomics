@@ -6,8 +6,8 @@ use anyhow::Result;
 fn core_scope_only_allows_contracts_and_foundation() -> Result<()> {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
     let src = root.join("src");
-    let allow_dirs = ["contract", "foundation", "metrics", "prelude"];
-    let allow_files = ["lib.rs", "boundaries.md", "ids.rs"];
+    let allow_dirs = ["contract", "foundation", "metrics"];
+    let allow_files = ["lib.rs", "boundaries.md", "ids.rs", "prelude.rs"];
 
     for entry in std::fs::read_dir(&src)? {
         let entry = entry?;
