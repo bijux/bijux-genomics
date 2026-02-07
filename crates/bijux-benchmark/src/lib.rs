@@ -5,7 +5,7 @@
 mod artifacts;
 mod legacy;
 mod repo;
-mod summarize;
+mod summary;
 
 pub use bijux_benchmark_model::{
     AnalysisRequirements, BenchError, BenchmarkDecision, BenchmarkObservation, BenchmarkSuiteSpec,
@@ -17,4 +17,4 @@ pub use legacy::fastq::{
     benchmark_runs, write_benchmark_exports, BenchmarkSummary as LegacyBenchmarkSummary,
     RunBenchmarkRecord, ToolRanking,
 };
-pub use summarize::{compare, gate, load_suite, summarize, BenchRunOptions};
+pub use summary::{compare, gate, load_suite, summarize, BenchRunOptions};
