@@ -165,5 +165,4 @@ mod tests {
             Err(err) => assert!(err.to_string().contains("unsupported tool")),
         }
     }
-
 }

@@ -29,8 +29,8 @@ mod report_stage;
 mod selection;
 pub mod tool_adapters;
 
-pub use selection::args;
 pub use report_stage::report_stage_step;
+pub use selection::args;
 
 pub mod stage_api {
     pub use crate::selection::args;
