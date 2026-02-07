@@ -10,10 +10,9 @@ Tests should explain the contract they enforce.
 - Full test implementation detail.
 
 ## Contracts
-- Each test file should be referenced here.
-
-## Examples
-- `tests/architecture.rs` → dependency boundary assertions.
+- `tests/docs_lightweight.rs` → docs anchors and minimal usage examples.
+- `tests/public_api_surface.rs` → public surface lock.
+- `tests/dev_dep_boundary.rs` → testkit stays a dev-only dependency.
 
 ## Failure modes
 - Missing test documentation causes drift and confusion.
