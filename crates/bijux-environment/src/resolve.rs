@@ -1,3 +1,8 @@
+//! Deterministic environment resolution and digest pinning.
+//!
+//! Responsibilities: resolve platform + image catalog into pinned digests.
+//! Invariants: same inputs produce identical resolved specs; no network pulls.
+
 use std::collections::{BTreeMap, HashMap};
 use std::fmt;
 use std::path::{Path, PathBuf};
