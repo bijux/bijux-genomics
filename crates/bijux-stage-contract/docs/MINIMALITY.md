@@ -1,9 +1,10 @@
 # MINIMALITY
 
-This crate must stay tiny because it is a planning contract boundary.
+## Non-goals
+- execution details
+- IO layout
+- tool selection
 
-## Forbidden concepts
-- Tool execution
-- Runtime record formats
-- Docker or environment references
-- Filesystem layout rules
+## Growth prevention checklist
+- keep file set minimal
+- update policy snapshots for any change

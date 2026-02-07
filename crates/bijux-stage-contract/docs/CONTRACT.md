@@ -1,15 +1,18 @@
 # CONTRACT
 
-## Boundary: Stage Plan vs Run Manifest
-This crate defines **planning contracts** only:
+## Compatibility matrix
+| Contract | Planner | Runtime | Analyze |
+| --- | --- | --- | --- |
+| v1 | supported | supported | supported |
 
-- Stage plans describe *what* should run and *what artifacts are expected*.
-- Run manifests (runtime) describe *what actually ran* and *what artifacts were produced*.
+## Breaking change definition
+- removing fields
+- renaming fields
+- changing semantics
 
-A stage plan never includes execution outcomes, timestamps, exit codes, or runtime paths.
-A run manifest never defines planning intent or tool selection logic.
+## No execution detail
+This crate defines planning contracts only; execution belongs in core/runtime.
 
-## Non-goals
-- Tool execution details
-- Runtime records
-- Artifact validation
+## Tiny-crate promise
+Non-goals: execution, IO, tool selection.
+Checklist: no new modules without policy update.
