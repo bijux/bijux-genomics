@@ -14,15 +14,12 @@ pub fn replay_run(run_id: &str, search_root: &Path) -> Result<()> {
         .with_context(|| format!("read manifest {}", manifest_path.display()))?;
     let manifest: ExecutionManifest = serde_json::from_slice(&manifest_bytes)
         .with_context(|| format!("parse manifest {}", manifest_path.display()))?;
-    for output in &manifest.outputs {
-        if !output.exists() {
-            return Err(anyhow!("replay missing output {}", output.display()));
-        }
-        let metadata = std::fs::metadata(output)
-            .with_context(|| format!("stat output {}", output.display()))?;
-        if metadata.len() == 0 {
-            return Err(anyhow!("replay output empty {}", output.display()));
-        }
+    let output_dir = Path::new(&manifest.output_dir);
+    if !output_dir.exists() {
+        return Err(anyhow!(
+            "replay missing output_dir {}",
+            output_dir.display()
+        ));
     }
     Ok(())
 }
