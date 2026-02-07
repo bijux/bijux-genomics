@@ -19,6 +19,7 @@ schemars.workspace = true
 [dev-dependencies]
 bijux-policies = { path = "../bijux-policies" }
 insta = { workspace = true, features = ["json"] }
+walkdir.workspace = true
 
 [lints]
 workspace = true

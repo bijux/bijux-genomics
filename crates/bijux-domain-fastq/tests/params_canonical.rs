@@ -1,6 +1,6 @@
 #[test]
 fn trim_params_canonical_serialization() {
-    let params = bijux_domain_fastq::params::TrimEffectiveParams {
+    let params = bijux_domain_fastq::params::trim::TrimEffectiveParams {
         paired_mode: bijux_domain_fastq::params::PairedMode::SingleEnd,
         threads: 4,
         min_len: 30,
