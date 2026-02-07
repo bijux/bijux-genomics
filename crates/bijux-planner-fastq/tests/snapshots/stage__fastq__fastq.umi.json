@@ -5,21 +5,29 @@
     "inputs": [
       {
         "name": "reads_r1",
-        "path": "reads_r1.fastq.gz"
+        "path": "reads_r1.fastq.gz",
+        "role": "reads",
+        "optional": false
       },
       {
         "name": "reads_r2",
-        "path": "reads_r2.fastq.gz"
+        "path": "reads_r2.fastq.gz",
+        "role": "reads",
+        "optional": false
       }
     ],
     "outputs": [
       {
         "name": "dedup_reads_r1",
-        "path": "out/reads_r1.fastq.gz"
+        "path": "out/reads_r1.fastq.gz",
+        "role": "reads",
+        "optional": false
       },
       {
         "name": "dedup_reads_r2",
-        "path": "out/reads_r2.fastq.gz"
+        "path": "out/reads_r2.fastq.gz",
+        "role": "reads",
+        "optional": false
       }
     ]
   },

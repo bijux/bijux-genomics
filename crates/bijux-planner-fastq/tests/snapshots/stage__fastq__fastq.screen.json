@@ -5,13 +5,17 @@
     "inputs": [
       {
         "name": "reads_r1",
-        "path": "reads.fastq.gz"
+        "path": "reads.fastq.gz",
+        "role": "reads",
+        "optional": false
       }
     ],
     "outputs": [
       {
         "name": "screen_report_tsv",
-        "path": "out/screen_report.tsv"
+        "path": "out/screen_report.tsv",
+        "role": "report_json",
+        "optional": false
       }
     ]
   },

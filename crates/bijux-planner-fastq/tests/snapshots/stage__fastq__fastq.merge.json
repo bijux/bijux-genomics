@@ -5,17 +5,23 @@
     "inputs": [
       {
         "name": "reads_r1",
-        "path": "reads_r1.fastq.gz"
+        "path": "reads_r1.fastq.gz",
+        "role": "reads",
+        "optional": false
       },
       {
         "name": "reads_r2",
-        "path": "reads_r2.fastq.gz"
+        "path": "reads_r2.fastq.gz",
+        "role": "reads",
+        "optional": false
       }
     ],
     "outputs": [
       {
         "name": "merged_reads",
-        "path": "out/pear.fastq.gz"
+        "path": "out/pear.fastq.gz",
+        "role": "reads",
+        "optional": false
       }
     ]
   },
