@@ -1,67 +1,41 @@
-use serde_json::Value;
-use std::process::Command;
+use cargo_metadata::MetadataCommand;
+
+use bijux_infra::{ensure_dir, write_string};
 
 /// # Errors
 /// Returns an error if cargo metadata cannot be parsed or the DOT file cannot be written.
 pub fn workspace_audit(out_dir: &Path) -> Result<()> {
-    std::fs::create_dir_all(out_dir).context("create audit output dir")?;
-    let output = Command::new("cargo")
-        .args(["metadata", "--format-version", "1"])
-        .output()
+    ensure_dir(out_dir).context("create audit output dir")?;
+    let metadata = MetadataCommand::default()
+        .exec()
         .context("run cargo metadata")?;
-    if !output.status.success() {
-        return Err(anyhow!(
-            "cargo metadata failed: {}",
-            String::from_utf8_lossy(&output.stderr)
-        ));
-    }
-    let metadata: Value = serde_json::from_slice(&output.stdout)
-        .context("parse cargo metadata JSON")?;
     let workspace_members: HashSet<String> = metadata
-        .get("workspace_members")
-        .and_then(Value::as_array)
-        .unwrap_or(&Vec::new())
+        .workspace_members
         .iter()
-        .filter_map(Value::as_str)
-        .map(str::to_string)
+        .map(std::string::ToString::to_string)
         .collect();
     let mut id_to_name = HashMap::new();
-    if let Some(packages) = metadata.get("packages").and_then(Value::as_array) {
-        for pkg in packages {
-            if let (Some(id), Some(name)) = (pkg.get("id"), pkg.get("name")) {
-                if let (Some(id), Some(name)) = (id.as_str(), name.as_str()) {
-                    id_to_name.insert(id.to_string(), name.to_string());
-                }
-            }
-        }
+    for pkg in &metadata.packages {
+        id_to_name.insert(pkg.id.to_string(), pkg.name.clone());
     }
     let mut edges = BTreeSet::new();
-    if let Some(resolve) = metadata.get("resolve") {
-        if let Some(nodes) = resolve.get("nodes").and_then(Value::as_array) {
-            for node in nodes {
-                let Some(id) = node.get("id").and_then(Value::as_str) else {
-                    continue;
-                };
-                if !workspace_members.contains(id) {
+    if let Some(resolve) = metadata.resolve.as_ref() {
+        for node in &resolve.nodes {
+            let id = node.id.to_string();
+            if !workspace_members.contains(&id) {
+                continue;
+            }
+            for dep in &node.deps {
+                let dep_id = dep.pkg.to_string();
+                if !workspace_members.contains(&dep_id) {
                     continue;
                 }
-                let Some(deps) = node.get("deps").and_then(Value::as_array) else {
-                    continue;
-                };
-                for dep in deps {
-                    let Some(dep_id) = dep.get("pkg").and_then(Value::as_str) else {
-                        continue;
-                    };
-                    if !workspace_members.contains(dep_id) {
-                        continue;
-                    }
-                    let from = id_to_name.get(id).cloned().unwrap_or_else(|| id.to_string());
-                    let to = id_to_name
-                        .get(dep_id)
-                        .cloned()
-                        .unwrap_or_else(|| dep_id.to_string());
-                    edges.insert((from, to));
-                }
+                let from = id_to_name.get(&id).cloned().unwrap_or(id.clone());
+                let to = id_to_name
+                    .get(&dep_id)
+                    .cloned()
+                    .unwrap_or_else(|| dep_id.clone());
+                edges.insert((from, to));
             }
         }
     }
@@ -98,7 +72,7 @@ pub fn workspace_audit(out_dir: &Path) -> Result<()> {
         );
     }
     dot.push_str("}\n");
-    std::fs::write(&dot_path, dot).context("write graph.dot")?;
+    write_string(&dot_path, &dot).context("write graph.dot")?;
     println!("graph: {}", dot_path.display());
     if !violations.is_empty() {
         return Err(anyhow!("workspace boundary violations detected"));

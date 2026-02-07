@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use anyhow::Result;
 use bijux_api::v1::api::env::{
-    available_runners, cache_dir, docker_image_exists, resolve_image, PlatformSpec, RunnerKind,
+    available_runners, cache_dir, docker_image_exists, resolve_image, PlatformSpec, RuntimeKind,
     ToolImageSpec,
 };
 
@@ -53,7 +53,7 @@ pub fn env_doctor<S: ::std::hash::BuildHasher>(
     }
 }
 
-fn ensure_cache_writable(runner: RunnerKind) -> bool {
+fn ensure_cache_writable(runner: RuntimeKind) -> bool {
     let cache_dir = cache_dir(runner);
     bijux_api::v1::api::run::ensure_dir(&cache_dir).is_ok()
 }
@@ -66,7 +66,7 @@ fn print_check(name: &str, ok: bool) {
     }
 }
 
-fn display_runners(runners: &[RunnerKind]) -> String {
+fn display_runners(runners: &[RuntimeKind]) -> String {
     runners
         .iter()
         .map(std::string::ToString::to_string)
@@ -80,7 +80,7 @@ mod tests {
 
     #[test]
     fn display_runners_is_deterministic() {
-        let runners = vec![RunnerKind::Docker, RunnerKind::Apptainer];
+        let runners = vec![RuntimeKind::Docker, RuntimeKind::Apptainer];
         assert_eq!(display_runners(&runners), "docker, apptainer");
     }
 
@@ -89,7 +89,7 @@ mod tests {
         let temp = bijux_api::v1::api::run::temp_dir("bijux")?;
         let original_home = std::env::var_os("HOME");
         std::env::set_var("HOME", temp.path());
-        assert!(ensure_cache_writable(RunnerKind::Docker));
+        assert!(ensure_cache_writable(RuntimeKind::Docker));
         if let Some(value) = original_home {
             std::env::set_var("HOME", value);
         }
