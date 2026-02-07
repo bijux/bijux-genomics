@@ -94,5 +94,8 @@ fn contract_fixtures_from_other_crates_parse() {
         }
     }
 
-    assert!(parsed > 0, "expected to parse at least one core fixture from other crates");
+    assert!(
+        parsed > 0,
+        "expected to parse at least one core fixture from other crates"
+    );
 }
