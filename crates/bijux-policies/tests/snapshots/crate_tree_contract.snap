@@ -172,6 +172,7 @@ expression: output
 - ARCHITECTURE.md
 - CONTRACT.md
 - Cargo.toml
+- PUBLIC_API.md
 - SCOPE.md
 - src/
 - tests/
@@ -182,6 +183,7 @@ expression: output
 - OBSERVERS.md
 - SCOPE.md
 - STAGE_CONTRACTS.md
+- STAGE_LIST.md
 - src/
 - tests/
 
@@ -191,6 +193,7 @@ expression: output
 - OBSERVERS.md
 - SCOPE.md
 - STAGE_CONTRACTS.md
+- STAGE_LIST.md
 - src/
 - tests/
 
