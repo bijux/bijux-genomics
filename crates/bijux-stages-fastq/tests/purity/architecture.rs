@@ -28,7 +28,7 @@ fn stages_fastq_has_no_execution_calls() -> Result<(), Box<dyn std::error::Error
         "run_tool_container",
         "run_validate_container",
         "run_merge_container",
-        "RunnerKind",
+        "RuntimeKind",
         "bijux_engine::",
         "bijux_environment::",
     ];
