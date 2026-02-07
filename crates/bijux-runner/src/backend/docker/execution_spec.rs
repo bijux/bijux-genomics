@@ -5,6 +5,7 @@ use bijux_core::prelude::{CommandSpecV1, ContainerImageRefV1, ToolExecutionSpecV
 use bijux_environment::api::{PlatformSpec, ToolImageSpec};
 
 use crate::backend::docker::executor::resolve_image_for_run;
+use crate::runner_core::invocation_hash;
 
 pub fn build_tool_execution_spec<S: ::std::hash::BuildHasher>(
     stage_id: &str,
@@ -34,4 +35,21 @@ pub fn build_tool_execution_spec<S: ::std::hash::BuildHasher>(
         },
         resources: manifest.constraints.clone(),
     })
+}
+
+/// Compute a stable invocation hash for a docker execution spec.
+///
+/// # Errors
+/// Returns an error if canonical serialization fails.
+pub fn invocation_hash_for_spec(
+    spec: &ToolExecutionSpecV1,
+    env: &std::collections::BTreeMap<String, String>,
+    input_hashes: &[String],
+) -> Result<String> {
+    let image_digest = spec
+        .image
+        .digest
+        .clone()
+        .unwrap_or_else(|| spec.image.image.clone());
+    invocation_hash(&spec.command.template, env, &image_digest, input_hashes)
 }
