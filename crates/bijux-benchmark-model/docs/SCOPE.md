@@ -1,10 +1,9 @@
-# SCOPE
+# Scope
 
-Data model, policy, and comparison logic for benchmarking.
+## Belongs here
+- Model definitions + comparison logic.
 
-In scope:
-- Benchmark model types.
-- Comparison and policy evaluation.
-- Statistical helpers.
+## Does not belong here
+- IO or execution.
 
-See docs/STYLE.md for workspace conventions.
+See docs/40-policies/STYLE.md for documentation and policy style.

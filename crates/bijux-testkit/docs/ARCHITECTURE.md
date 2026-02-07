@@ -1,3 +1,8 @@
-# ARCHITECTURE
+# Architecture
 
-bijux-testkit provides its domain-specific capabilities.
+## Modules
+- fixtures
+- helpers
+
+## Data flow
+- Used by tests only.

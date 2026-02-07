@@ -1,5 +1,9 @@
-# SCOPE
+# Scope
 
-BAM planning and tool selection logic.
+## Belongs here
+- Tool selection logic and plan construction.
 
-See docs/STYLE.md for workspace conventions.
+## Does not belong here
+- Execution or parsing.
+
+See docs/40-policies/STYLE.md for documentation and policy style.

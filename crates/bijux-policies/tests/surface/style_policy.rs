@@ -11,8 +11,7 @@ const STYLE_CHECKS: &[&str] = &[
 
 #[test]
 fn style_policy_entrypoint_lists_checks() {
-    let matrix_path =
-        support::workspace_root().join("crates/bijux-policies/docs/POLICY_MATRIX.md");
+    let matrix_path = support::workspace_root().join("docs/40-policies/POLICY_MATRIX.md");
     let matrix = support::read_to_string(&matrix_path);
     let mut missing = Vec::new();
     for check in STYLE_CHECKS {
@@ -39,14 +38,14 @@ fn scope_docs_reference_workspace_style() {
             continue;
         }
         let content = support::read_to_string(&scope_path);
-        if !content.contains("docs/STYLE.md") {
+        if !content.contains("docs/40-policies/STYLE.md") {
             offenders.push(scope_path.display().to_string());
         }
     }
 
     assert!(
         offenders.is_empty(),
-        "SCOPE.md must link to docs/STYLE.md:\n{}",
+        "SCOPE.md must link to docs/40-policies/STYLE.md:\n{}",
         offenders.join("\n")
     );
 }

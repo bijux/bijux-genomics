@@ -1,5 +1,9 @@
-# SCOPE
+# Scope
 
-Execution orchestrator for Bijux. Owns scheduling, retries, and contract enforcement.
+## Belongs here
+- Graph execution orchestration and contract enforcement.
 
-See docs/STYLE.md for workspace conventions.
+## Does not belong here
+- Tool selection, parsing, or backend execution.
+
+See docs/40-policies/STYLE.md for documentation and policy style.

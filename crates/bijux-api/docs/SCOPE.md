@@ -1,13 +1,9 @@
-# SCOPE
+# Scope
 
-Bijux API is the public orchestration surface for planning, execution, and reporting.
+## Belongs here
+- Plan/execute/dry‑run/explain orchestration.
 
-In scope:
-- Plan, execute, dry-run, explain, status/audit entrypoints.
-- Versioned public surface (`v1`).
+## Does not belong here
+- Execution transport or parsing logic.
 
-Out of scope:
-- Domain semantics (domain crates).
-- Execution transport (runner).
-
-See docs/STYLE.md for workspace conventions.
+See docs/40-policies/STYLE.md for documentation and policy style.

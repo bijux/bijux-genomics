@@ -1,5 +1,9 @@
-# SCOPE
+# Scope
 
-Environment discovery and resolution for tool execution.
+## Belongs here
+- Environment configuration and resolution rules.
 
-See docs/STYLE.md for workspace conventions.
+## Does not belong here
+- Execution logic.
+
+See docs/40-policies/STYLE.md for documentation and policy style.

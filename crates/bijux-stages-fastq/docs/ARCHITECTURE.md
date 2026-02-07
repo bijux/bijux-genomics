@@ -1,3 +1,9 @@
-# ARCHITECTURE
+# Architecture
 
-bijux-stages-fastq provides its domain-specific capabilities.
+## Modules
+- stage_specs
+- observer
+- metrics
+
+## Data flow
+- Observers parse tool outputs into metrics envelopes.

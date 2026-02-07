@@ -53,7 +53,7 @@ fn tool_ids_are_unique_across_planners() {
         offenders.is_empty(),
         "Tool IDs must be globally unique across planners.\n\
 If a tool is intentionally shared, add it to the allowlist with justification.\n\
-See docs/STYLE.md for tool identity rules.\n\
+See docs/40-policies/STYLE.md for tool identity rules.\n\
 Offenders:\n{}",
         offenders.join("\n")
     );

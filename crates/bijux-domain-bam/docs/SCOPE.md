@@ -1,5 +1,9 @@
-# SCOPE
+# Scope
 
-BAM domain semantics, params, metrics, and stage contracts.
+## Belongs here
+- Domain truth: metrics, params, invariants.
 
-See docs/STYLE.md for workspace conventions.
+## Does not belong here
+- Execution or selection.
+
+See docs/40-policies/STYLE.md for documentation and policy style.

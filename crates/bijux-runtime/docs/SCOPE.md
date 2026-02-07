@@ -1,8 +1,9 @@
-# SCOPE
+# Scope
 
-bijux-runtime defines the runtime contracts and wiring that sit between
-execution orchestration and concrete runners. It owns run layout, recording,
-telemetry, and observability interfaces that other crates consume, without
-embedding tool or pipeline domain logic.
+## Belongs here
+- Run layout, manifest writing, recording helpers.
 
-See docs/STYLE.md for workspace conventions.
+## Does not belong here
+- Execution backend logic.
+
+See docs/40-policies/STYLE.md for documentation and policy style.

@@ -1,6 +1,9 @@
-# SCOPE
+# Scope
 
-bijux-stages-fastq provides stage specs plus observer/metrics parsing for FASTQ
-pipelines. It contains no tool execution or planner logic.
+## Belongs here
+- Declarative stage specs and parsers.
 
-See docs/STYLE.md for workspace conventions.
+## Does not belong here
+- Execution or tool selection.
+
+See docs/40-policies/STYLE.md for documentation and policy style.

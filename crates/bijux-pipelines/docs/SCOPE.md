@@ -1,8 +1,9 @@
-# bijux-pipelines scope
+# Scope
 
-Defines canonical pipeline profiles, defaults ledgers, and stable profile metadata across FASTQ,
-BAM, and cross-domain workflows. This crate owns pipeline IDs, defaults ledgers, and profile
-capabilities, and it must not depend on execution/runtime machinery.
+## Belongs here
+- Scientific intent and defaults.
 
-This crate is contract-only: it declares scientific intent and defaults; it does not plan, execute,
-or analyze runs.
+## Does not belong here
+- Execution or parsing.
+
+See docs/40-policies/STYLE.md for documentation and policy style.

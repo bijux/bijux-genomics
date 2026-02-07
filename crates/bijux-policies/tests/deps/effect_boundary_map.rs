@@ -52,7 +52,7 @@ fn effect_boundary_map() {
         offenders.is_empty(),
         "Effect boundary violation: process/Docker/FS effects are only allowed in boundary crates.\n\
 Fix by moving effects into bijux-runner or bijux-environment-qa, or add a narrow allowlist with a reason.\n\
-See docs/STYLE.md for boundary rules.\n\
+See docs/40-policies/STYLE.md for boundary rules.\n\
 Offenders:\n{}",
         offenders.join("\n")
     );

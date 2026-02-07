@@ -1,3 +1,9 @@
-# ARCHITECTURE
+# Architecture
 
-bijux-domain-bam provides its domain-specific capabilities.
+## Modules
+- metrics/
+- params/
+- stages/
+
+## Data flow
+- Provides types to stages/planners.

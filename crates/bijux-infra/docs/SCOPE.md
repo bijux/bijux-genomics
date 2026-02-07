@@ -1,5 +1,9 @@
-# SCOPE
+# Scope
 
-Infrastructure utilities shared across the workspace.
+## Belongs here
+- Deterministic helpers and filesystem utilities.
 
-See docs/STYLE.md for workspace conventions.
+## Does not belong here
+- Domain knowledge or contracts.
+
+See docs/40-policies/STYLE.md for documentation and policy style.

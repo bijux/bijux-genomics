@@ -1,13 +1,9 @@
-# SCOPE
+# Scope
 
-Benchmarking utilities for comparing tool performance and producing legacy exports.
+## Belongs here
+- Comparing runs and writing benchmark summaries.
 
-In scope:
-- Loading benchmark records and summarizing runs.
-- Repository interfaces for benchmark persistence.
+## Does not belong here
+- Execution.
 
-Out of scope:
-- Orchestration/execution.
-- Domain definitions.
-
-See docs/STYLE.md for workspace conventions.
+See docs/40-policies/STYLE.md for documentation and policy style.

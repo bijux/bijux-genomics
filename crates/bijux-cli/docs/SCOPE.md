@@ -1,13 +1,9 @@
-# SCOPE
+# Scope
 
-Bijux CLI is the command-line presentation layer over the bijux API.
+## Belongs here
+- CLI parsing and output formatting.
 
-In scope:
-- CLI argument parsing and validation.
-- Rendering user-facing output.
+## Does not belong here
+- Execution internals.
 
-Out of scope:
-- Orchestration logic (API).
-- Execution engines (runtime/runner).
-
-See docs/STYLE.md for workspace conventions.
+See docs/40-policies/STYLE.md for documentation and policy style.

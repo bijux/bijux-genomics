@@ -1,10 +1,9 @@
-# SCOPE
+# Scope
 
-Bijux analyze is the reporting and decision layer over run artifacts. It loads run data, aggregates metrics, applies decision policies, and renders reports.
+## Belongs here
+- Loading run artifacts and producing reports.
 
-Out of scope:
-- Pipeline execution or orchestration.
-- Tool selection logic (belongs to planners).
-- Domain invariants (belongs to domain crates).
+## Does not belong here
+- Execution or tool selection.
 
-See docs/STYLE.md for workspace conventions.
+See docs/40-policies/STYLE.md for documentation and policy style.

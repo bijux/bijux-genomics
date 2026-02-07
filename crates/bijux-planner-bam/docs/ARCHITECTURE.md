@@ -1,3 +1,9 @@
-# ARCHITECTURE
+# Architecture
 
-bijux-planner-bam provides its domain-specific capabilities.
+## Modules
+- selection/*
+- tool_adapters/*
+- stage_api
+
+## Data flow
+- Builds ExecutionGraph from inputs and profile.

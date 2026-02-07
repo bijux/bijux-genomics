@@ -1,3 +1,8 @@
-# ARCHITECTURE
+# Architecture
 
-bijux-environment-qa provides its domain-specific capabilities.
+## Modules
+- image_qa/
+- bin/* wrappers
+
+## Data flow
+- Image inputs → QA reports.

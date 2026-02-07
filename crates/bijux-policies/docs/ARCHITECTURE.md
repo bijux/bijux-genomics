@@ -1,3 +1,9 @@
-# ARCHITECTURE
+# Architecture
 
-bijux-policies provides its domain-specific capabilities.
+## Modules
+- dependency policies
+- style policies
+- purity scans
+
+## Data flow
+- Policies consume fixtures/snapshots from other crates.

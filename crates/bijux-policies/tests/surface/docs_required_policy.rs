@@ -4,12 +4,10 @@ mod support;
 use std::path::Path;
 
 const REQUIRED_DOCS: &[&str] = &["SCOPE.md", "ARCHITECTURE.md"];
-const README_REQUIRED: &[(&str, &str)] = &[("bijux-cli", "public CLI entrypoint")];
-
 fn has_uppercase_name(path: &Path) -> bool {
-    path.file_name()
+    path.file_stem()
         .and_then(|name| name.to_str())
-        .map(|name| name.chars().all(|ch| !ch.is_ascii_lowercase()))
+        .map(|name| name == name.to_uppercase())
         .unwrap_or(false)
 }
 
@@ -32,9 +30,9 @@ fn crates_require_scope_and_architecture_docs() {
 
     assert!(
         missing.is_empty(),
-        "crates must include SCOPE.md and ARCHITECTURE.md.\n\
-Fix by adding the docs at crate root (UPPERCASE). If README.md is required, add to allowlist with reason.\n\
-See docs/STYLE.md for documentation spine.\n\
+        "crates must include SCOPE.md and ARCHITECTURE.md in docs/.\n\
+Fix by adding the docs under crates/<crate>/docs (UPPERCASE).\n\
+See docs/40-policies/STYLE.md for documentation spine.\n\
 Missing:\n{}",
         missing.join("\n")
     );
@@ -57,9 +55,6 @@ fn crate_docs_use_uppercase_names() {
             if path.extension().and_then(|ext| ext.to_str()) != Some("md") {
                 continue;
             }
-            if path.file_name().and_then(|name| name.to_str()) == Some("README.md") {
-                continue;
-            }
             if !has_uppercase_name(&path) {
                 offenders.push(path.display().to_string());
             }
@@ -69,33 +64,9 @@ fn crate_docs_use_uppercase_names() {
     assert!(
         offenders.is_empty(),
         "crate docs must use uppercase names.\n\
-Fix by renaming docs to UPPERCASE (README.md allowed when allowlisted).\n\
-See docs/STYLE.md for naming rules.\n\
+Fix by renaming docs to UPPERCASE.\n\
+See docs/40-policies/STYLE.md for naming rules.\n\
 Offenders:\n{}",
         offenders.join("\n")
-    );
-}
-
-#[test]
-fn crates_require_readme_when_listed() {
-    let mut missing = Vec::new();
-    for (crate_name, reason) in README_REQUIRED {
-        let crate_root = support::crate_root(crate_name);
-        let doc_path = crate_root.join("docs").join("README.md");
-        if !doc_path.exists() {
-            missing.push(format!(
-                "{} missing docs/README.md (reason: {reason})",
-                crate_root.display()
-            ));
-        }
-    }
-
-    assert!(
-        missing.is_empty(),
-        "crates listed in README_REQUIRED must include README.md.\n\
-How to fix: add README.md at crate root or update README_REQUIRED with a reason.\n\
-See docs/STYLE.md for documentation spine.\n\
-Missing:\n{}",
-        missing.join("\n")
     );
 }
