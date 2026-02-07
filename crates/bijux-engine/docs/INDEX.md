@@ -5,13 +5,14 @@
 2. `RECORDING_TRUTH_SET.md`
 3. `DETERMINISM.md`
 4. `ERRORS.md`
-5. `EFFECTS.md`
+5. `EFFECT_BOUNDARY.md`
+6. `EFFECTS.md`
 
 ## Scope
 See `SCOPE.md` for what belongs here.
 
 ## Effects
-See `EFFECTS.md` for allowed effects.
+See `EFFECT_BOUNDARY.md` for forbidden effects and `EFFECTS.md` for allowed effects.
 
 ## Model
 See `ENGINE_MODEL.md` for engine concepts and boundaries.
