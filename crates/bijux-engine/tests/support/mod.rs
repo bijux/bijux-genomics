@@ -9,11 +9,11 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::Duration;
 
 use anyhow::Result;
+use bijux_core::contract::ContractVersion;
 use bijux_core::contract::{
     ArtifactRef, ArtifactRole, ExecutionEdge, ExecutionGraph, ExecutionStep, PlanPolicy, StageIO,
     ToolConstraints,
 };
-use bijux_core::contract::ContractVersion;
 use bijux_core::prelude::{
     input_assessment::FastqLayout, ArtifactId, CommandSpecV1, ContainerImageRefV1, StageId, StepId,
 };
@@ -47,11 +47,8 @@ impl Runner for FakeRunner {
         self.calls
             .borrow_mut()
             .push(format!("{}:{}", plan.step_id.0, attempt));
-        let should_fail = self
-            .fail_first
-            .borrow_mut()
-            .remove(plan.step_id.as_str())
-            && attempt == 0;
+        let should_fail =
+            self.fail_first.borrow_mut().remove(plan.step_id.as_str()) && attempt == 0;
         let run_artifacts = plan.out_dir.join("run_artifacts");
         bijux_infra::ensure_dir(&run_artifacts)?;
         for name in [
@@ -191,12 +188,15 @@ pub fn build_graph(stages: Vec<ExecutionStep>, edges: Vec<ExecutionEdge>) -> Exe
         stages,
         edges,
     )
-    .expect("plan")
+    .unwrap_or_else(|err| panic!("plan: {err}"))
 }
 
 pub fn layout_tree_text(root: &Path) -> Result<String> {
     let mut entries = Vec::new();
-    for entry in walkdir::WalkDir::new(root).into_iter().filter_map(Result::ok) {
+    for entry in walkdir::WalkDir::new(root)
+        .into_iter()
+        .filter_map(Result::ok)
+    {
         if !entry.file_type().is_file() {
             continue;
         }

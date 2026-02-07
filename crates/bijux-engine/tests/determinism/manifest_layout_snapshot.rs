@@ -1,7 +1,9 @@
 use std::collections::BTreeMap;
 
 use anyhow::Result;
-use bijux_core::contract::{ArtifactRef, ArtifactRole, ExecutionGraph, PlanPolicy, StageIO, ToolConstraints};
+use bijux_core::contract::{
+    ArtifactRef, ArtifactRole, ExecutionGraph, PlanPolicy, StageIO, ToolConstraints,
+};
 use bijux_core::prelude::{ArtifactId, CommandSpecV1, ContainerImageRefV1, StageId, StepId};
 use bijux_engine::Engine;
 
