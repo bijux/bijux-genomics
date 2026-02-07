@@ -1,8 +1,14 @@
 # REPLAY
 
-Replay must never execute tools. It only:
+Replay does not execute tools.
 
-- Validates artifact presence and size.
-- Reconstructs records deterministically.
+## Does
+- Validate artifacts exist and are non-empty.
+- Reconstruct records deterministically.
 
-Any attempt to spawn a process during replay is a contract violation.
+## Does not
+- Spawn processes
+- Pull images
+
+## Integrity failure
+Missing or mismatched artifacts cause failure.
