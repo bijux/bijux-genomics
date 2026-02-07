@@ -29,6 +29,10 @@ Tests become documentation for governance rules.
   Failure means a production crate depends on QA.
 
 ## surface
+- `architecture_pointer_policy.rs` — architecture docs must remain brief.  
+  Failure means crate architecture docs are duplicating deeper docs.
+- `docs_spine_contract.rs` — required doc spine snapshot per crate.  
+  Failure means missing required docs or unblessed spine drift.
 - `docs_required_policy.rs` — crate docs required in docs/.  
   Failure means docs placement rule violated.
 - `docs_spine.rs` — root/authority docs template and metadata checks.  
@@ -57,6 +61,8 @@ Tests become documentation for governance rules.
   Failure means thin module detected.
 - `planner_purity.rs` — planners must not parse or execute.  
   Failure means forbidden logic in planner.
+- `readme_policy.rs` — README headings, required links, and link validity.  
+  Failure means missing README contract or stale links.
 - `runner_tree_policy.rs` — runner tree shape contract.  
   Failure means drift in runner layout.
 - `ssot_catalog_authority.rs` — SSOT ownership of catalogs.  
@@ -67,6 +73,8 @@ Tests become documentation for governance rules.
   Failure means style checks not listed in matrix.
 - `tool_id_uniqueness.rs` — tool IDs unique.  
   Failure means duplicate tool ID.
+- `test_grouping_policy.rs` — tests must be grouped when suites grow.  
+  Failure means too many flat test files.
 
 ## data
 - `contract_handshake.rs` — planner ⇄ runtime ⇄ analyze handshake.  
@@ -75,6 +83,8 @@ Tests become documentation for governance rules.
 ## tooling
 - `docs_links.rs` — link integrity.  
   Failure means broken intra‑doc links.
+- `no_appledouble.rs` — AppleDouble/.DS_Store ban.  
+  Failure means forbidden OS metadata files exist.
 
 ## Testkit patterns
 See `crates/bijux-testkit/docs/USAGE.md` for shared fixture and snapshot helpers.

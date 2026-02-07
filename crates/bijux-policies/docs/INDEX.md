@@ -11,12 +11,16 @@ Policies enforce boundaries across crates and prevent drift.
 
 ## Extension Points
 Add new policies in `tests/surface` or `tests/deps` and document them here.
+Style policies must be listed in `POLICY_MATRIX.md`.
 
 ## How to Test
 See `TESTS.md` for test mapping and fixtures.
+Snapshot updates follow `BLESS_WORKFLOW.md`.
 
 ## Policy modules
 ### surface
+- `architecture_pointer_policy.rs`
+- `docs_spine_contract.rs`
 - `docs_required_policy.rs`
 - `docs_spine.rs`
 - `docs_tree_contract.rs`
@@ -39,6 +43,7 @@ See `TESTS.md` for test mapping and fixtures.
 - `stage_specs_purity.rs`
 - `style_policy.rs`
 - `tool_id_uniqueness.rs`
+- `test_grouping_policy.rs`
 ### deps
 - `dependency_budgets.rs`
 - `dependency_boundaries.rs`
@@ -50,4 +55,5 @@ See `TESTS.md` for test mapping and fixtures.
 ### tooling
 - `docs_links.rs`
 - `makefile_policies.rs`
+- `no_appledouble.rs`
 - `policies.rs`
