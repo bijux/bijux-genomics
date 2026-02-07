@@ -1,3 +1,4 @@
+pub mod args;
 pub mod tool_registry;
 pub mod tool_selection;
 

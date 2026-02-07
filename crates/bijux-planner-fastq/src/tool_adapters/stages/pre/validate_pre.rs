@@ -6,6 +6,7 @@ use bijux_core::prelude::{ArtifactId, ArtifactRole, StageId, StageVersion, ToolE
 use bijux_domain_fastq::params::{validate::ValidateEffectiveParams, PairedMode};
 use bijux_domain_fastq::STAGE_VALIDATE_PRE;
 use bijux_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
+use bijux_stages_fastq::observer::parse_fastqvalidator_count;
 
 pub const STAGE_ID: StageId = STAGE_VALIDATE_PRE;
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
@@ -119,22 +120,9 @@ fn normalize_tools_with_allowlist(tools: &[String], allowlist: &[&str]) -> Resul
     Ok(normalized)
 }
 
-fn parse_fastqvalidator_count(stdout: &str) -> Result<u64> {
-    let line = stdout
-        .lines()
-        .find(|line| line.to_lowercase().contains("total reads"))
-        .ok_or_else(|| anyhow!("fastqvalidator total reads line missing"))?;
-    let count = line
-        .split_once(':')
-        .ok_or_else(|| anyhow!("fastqvalidator total reads format missing ':'"))?
-        .1
-        .trim();
-    Ok(count.parse::<u64>()?)
-}
-
 #[cfg(test)]
 mod tests {
-    use super::{parse_fastqvalidator_count, validate_reads_total};
+    use super::validate_reads_total;
     use anyhow::Result;
     use bijux_core::foundation::measure::SeqkitMetrics;
 
@@ -178,18 +166,4 @@ mod tests {
         }
     }
 
-    #[test]
-    fn parse_fastqvalidator_count_parses_fixture() -> Result<()> {
-        let stdout = include_str!("../../../tests/fixtures/fastqvalidator/fastqvalidator_v1.txt");
-        let count = parse_fastqvalidator_count(stdout)?;
-        assert_eq!(count, 12345);
-        Ok(())
-    }
-
-    #[test]
-    fn parse_fastqvalidator_count_rejects_missing_marker() -> Result<()> {
-        let stdout = "fastqvalidator output without total reads";
-        assert!(parse_fastqvalidator_count(stdout).is_err());
-        Ok(())
-    }
 }
