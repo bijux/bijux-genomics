@@ -1,4 +1,5 @@
 use std::path::{Path, PathBuf};
+use std::process::Command;
 
 use anyhow::{anyhow, Context, Result};
 
@@ -20,6 +21,21 @@ pub fn replay_run(run_id: &str, search_root: &Path) -> Result<()> {
             "replay missing output_dir {}",
             output_dir.display()
         ));
+    }
+    if manifest.runner != "local" {
+        return Err(anyhow!(
+            "replay only supports local runner, got {}",
+            manifest.runner
+        ));
+    }
+    let status = Command::new("sh")
+        .arg("-c")
+        .arg(&manifest.command)
+        .current_dir(output_dir)
+        .status()
+        .with_context(|| format!("replay command {}", manifest.command))?;
+    if !status.success() {
+        return Err(anyhow!("replay command failed: {}", manifest.command));
     }
     Ok(())
 }

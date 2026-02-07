@@ -6,7 +6,7 @@ use bijux_core::contract::ExecutionStep;
 use bijux_core::metrics::ToolInvocationV1;
 use bijux_core::prelude::cache::CacheKey;
 use bijux_core::prelude::hashing::{input_fingerprint, parameters_fingerprint, run_id_from_hashes};
-use bijux_environment::api::RunnerKind;
+use bijux_environment::api::RuntimeKind;
 use uuid::Uuid;
 
 use crate::backend::docker::executor::{
@@ -60,10 +60,10 @@ fn hash_inputs(inputs: &[PathBuf]) -> Result<Vec<String>> {
 /// Returns an error if execution fails or docker is unavailable.
 pub fn execute_step(
     step: &ExecutionStep,
-    runner: RunnerKind,
+    runner: RuntimeKind,
     timeout: Option<Duration>,
 ) -> Result<StageResultV1> {
-    if runner != RunnerKind::Docker {
+    if runner != RuntimeKind::Docker {
         return Err(anyhow!(
             "runner {runner:?} not supported for step execution"
         ));
@@ -165,9 +165,9 @@ pub fn execute_observer_command(
     image: &str,
     mount_dir: &Path,
     args: &[String],
-    runner: RunnerKind,
+    runner: RuntimeKind,
 ) -> Result<CommandOutputV1> {
-    if runner != RunnerKind::Docker {
+    if runner != RuntimeKind::Docker {
         return Err(anyhow!(
             "runner {runner:?} not supported for observer execution"
         ));
@@ -190,7 +190,7 @@ fn write_minimum_run_artifacts(
     step: &ExecutionStep,
     input_hashes: &[String],
     output_hashes: &[String],
-    runner: RunnerKind,
+    runner: RuntimeKind,
     command: &str,
 ) -> Result<()> {
     let run_artifacts_dir = step.out_dir.join("run_artifacts");
@@ -224,35 +224,31 @@ fn write_minimum_run_artifacts(
         });
         let params_provenance_normalized =
             bijux_core::contract::canonical::canonicalize_json_value(&params_provenance);
-        let invocation = ToolInvocationV1 {
-            schema_version: "bijux.tool_invocation.v1".to_string(),
-            contract_version: bijux_core::contract::ContractVersion::v1(),
-            stage_id: step.stage_id.clone(),
-            tool_id: bijux_core::ids::ToolId::new(step.image.image.clone()),
-            tool_version: "unknown".to_string(),
-            resolved_tool_version: None,
-            image_digest: step
-                .image
+        let invocation = ToolInvocationV1::new(
+            "bijux.tool_invocation.v1".to_string(),
+            bijux_core::contract::ContractVersion::v1(),
+            step.stage_id.clone(),
+            bijux_core::ids::ToolId::new(step.image.image.clone()),
+            "unknown".to_string(),
+            None,
+            step.image
                 .digest
                 .clone()
                 .unwrap_or_else(|| step.image.image.clone()),
-            runner_kind: format!("{runner:?}"),
-            platform: "unknown".to_string(),
-            parameters_json: parameters_json.clone(),
-            parameters_json_normalized: parameters_json,
-            effective_params_json: serde_json::json!({}),
-            effective_params_json_normalized: serde_json::json!({}),
+            format!("{runner:?}"),
+            "unknown".to_string(),
+            parameters_json.clone(),
+            parameters_json,
+            serde_json::json!({}),
+            serde_json::json!({}),
             params_provenance,
             params_provenance_normalized,
-            adapter_bank: None,
-            banks: None,
-            bank_assets: None,
-            resources: step.resources.clone(),
-            environment: std::collections::BTreeMap::new(),
-            input_hashes: input_hashes.to_vec(),
-            output_hashes: output_hashes.to_vec(),
-            executed_command: Some(command.to_string()),
-        };
+            step.resources.clone(),
+            std::collections::BTreeMap::new(),
+            input_hashes.to_vec(),
+            output_hashes.to_vec(),
+            Some(command.to_string()),
+        );
         bijux_infra::atomic_write_json(&tool_invocation_path, &invocation)
             .context("write tool_invocation.json")?;
     }
