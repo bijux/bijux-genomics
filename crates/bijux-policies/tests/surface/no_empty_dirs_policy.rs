@@ -17,11 +17,20 @@ fn no_empty_or_placeholder_dirs() {
             let dir = entry.path();
             let mut rs_files = Vec::new();
             let mut has_any_file = false;
+            let mut file_count = 0usize;
+            let mut keep_reason = None;
             if let Ok(read_dir) = std::fs::read_dir(dir) {
                 for child in read_dir.flatten() {
                     let path = child.path();
                     if path.is_file() {
                         has_any_file = true;
+                        file_count += 1;
+                        if path.file_name().and_then(|n| n.to_str()) == Some(".keep") {
+                            let contents = support::read_to_string(&path);
+                            if !contents.trim().is_empty() {
+                                keep_reason = Some(contents.trim().to_string());
+                            }
+                        }
                     }
                     if path.extension().and_then(|ext| ext.to_str()) == Some("rs") {
                         rs_files.push(path);
@@ -31,6 +40,20 @@ fn no_empty_or_placeholder_dirs() {
             if !has_any_file {
                 offenders.push(dir.display().to_string());
                 continue;
+            }
+            if dir.to_string_lossy().contains("tests/fixtures") {
+                let has_only_keep = file_count == 1
+                    && std::fs::read_dir(dir)
+                        .ok()
+                        .and_then(|mut it| it.next())
+                        .and_then(|entry| entry.ok())
+                        .and_then(|entry| entry.file_name().into_string().ok())
+                        .map(|name| name == ".keep")
+                        .unwrap_or(false);
+                if has_only_keep && keep_reason.is_none() {
+                    offenders.push(dir.display().to_string());
+                    continue;
+                }
             }
             if rs_files.len() == 1 && rs_files[0].file_name().and_then(|n| n.to_str()) == Some("mod.rs") {
                 let lines = support::read_to_string(&rs_files[0]).lines().count();
@@ -45,6 +68,7 @@ fn no_empty_or_placeholder_dirs() {
         offenders.is_empty(),
         "empty dirs or placeholder mod.rs modules are forbidden.\n\
 Fix by removing empty dirs or adding real modules.\n\
+tests/fixtures must either contain real files or a .keep with a reason.\n\
 See docs/40-policies/STYLE.md for tree rules.\n\
 Offenders:\n{}",
         offenders.join("\n")
