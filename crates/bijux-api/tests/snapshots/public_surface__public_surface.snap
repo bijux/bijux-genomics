@@ -1,5 +1,0 @@
----
-source: crates/bijux-api/tests/public_surface.rs
-expression: snapshot
----
-pub mod\n  v1\n\npub use\n  \n\nv1 mod\n  api\n\nv1 exports\n  api: pub fn explain(\n  api: pub use crate::explain::{ExplainResponse, ExplainToolSelection, PlanExplainV1};\n  api: pub use crate::request_args::{\n  api: pub use crate::run::{\n  api: pub use crate::v1::report::render_report_bundle_html;

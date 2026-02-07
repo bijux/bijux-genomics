@@ -1,6 +1,5 @@
 ---
-source: crates/bijux-api/tests/api_stability.rs
-assertion_line: 135
+source: crates/bijux-api/tests/schema/api_stability.rs
 expression: json
 ---
 {
