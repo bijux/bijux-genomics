@@ -2,11 +2,11 @@
 //!
 //! Stability: v1 (stable).
 
-pub use crate::args::{
+pub use crate::explain::{explain_bundle, ExplainResponse, PlanExplainStageV1, PlanExplainV1};
+pub use crate::request_args::{
     BamRunArgs, BenchBamPipelineArgs, BenchBamStageArgs, FastqCrossArgs, PlanRunRequest,
     PlanRunResult,
 };
-pub use crate::explain::{explain_bundle, ExplainResponse, PlanExplainStageV1, PlanExplainV1};
 pub use crate::run::plan_run;
 pub use crate::run::{select_pipeline, select_pipelines};
 pub use crate::v1::bam::plan::plan_for_bam_stage_with_profile;

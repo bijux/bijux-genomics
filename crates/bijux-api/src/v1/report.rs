@@ -2,7 +2,7 @@
 //!
 //! Stability: v1 (stable).
 
-pub use crate::args::{RenderReportRequest, RenderReportResult};
+pub use crate::request_args::{RenderReportRequest, RenderReportResult};
 pub use crate::run::render_report;
 
 pub use bijux_analyze::export::write_stage_summary_csv;

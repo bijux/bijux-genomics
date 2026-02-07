@@ -8,7 +8,7 @@ use bijux_pipelines::PipelineProfile;
 use bijux_planner_bam::stage_api::{BamStage, StagePlanRequest};
 use bijux_stage_contract::StagePlanV1;
 
-use crate::args::BamRunArgs;
+use crate::request_args::BamRunArgs;
 
 /// # Errors
 /// Returns an error if planning fails for the stage.

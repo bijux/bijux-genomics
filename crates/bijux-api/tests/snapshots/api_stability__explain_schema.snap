@@ -1,0 +1,15 @@
+---
+source: crates/bijux-api/tests/api_stability.rs
+expression: json
+---
+{
+  "defaults_ledger_diff": {},
+  "selected_tools": [
+    {
+      "reason": null,
+      "stage_id": "core.test",
+      "tool_id": "example/tool:1.0"
+    }
+  ],
+  "stage_contracts": {}
+}

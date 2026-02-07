@@ -7,10 +7,10 @@ use super::manifests::{
     write_reference_manifest,
 };
 use super::AlignmentBoundary;
-use crate::args::FastqCrossArgs;
 use crate::internal::handlers::bam_summary::{render_bam_summary, report_stage_step};
 use crate::internal::handlers::fastq::fastq_preprocess_run;
 use crate::internal::handlers::fastq::StageExecutionSummary;
+use crate::request_args::FastqCrossArgs;
 use anyhow::{anyhow, Context, Result};
 use bijux_core::contract::ToolRegistry;
 use bijux_environment::resolve::{ReferenceBuildRequest, ReferenceRegistry};

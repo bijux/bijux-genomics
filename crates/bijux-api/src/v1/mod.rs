@@ -7,13 +7,13 @@
 //! - bench: benchmarking + comparison helpers.
 
 pub mod api;
-pub mod bam;
-pub mod bench;
-pub mod env;
-pub mod fastq;
-pub mod plan;
-pub mod report;
-pub mod run;
+pub(crate) mod bam;
+pub(crate) mod bench;
+pub(crate) mod env;
+pub(crate) mod fastq;
+pub(crate) mod plan;
+pub(crate) mod report;
+pub(crate) mod run;
 
 // Keep this module non-empty to satisfy guardrails and clarify intent.
 pub const API_V1_BANNER: &str = "bijux-api v1";
