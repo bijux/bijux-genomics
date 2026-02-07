@@ -1,12 +1,11 @@
 # STAGE_LIST
 
-## Essentials
-- bam.sort — sort alignments (inputs: BAM, outputs: sorted BAM, metrics: sort time)
-- bam.index — index BAM (inputs: BAM, outputs: BAI, metrics: index stats)
-
-## Recommended
-- bam.markdup — mark duplicates (inputs: BAM, outputs: dedup BAM, metrics: dup rate)
-
-## Optional
-- bam.damage — damage profiling (inputs: BAM, outputs: report, metrics: damage curves)
-- bam.contamination — contamination estimates (inputs: BAM, outputs: report, metrics: contaminant rate)
+| Stage | Phase | Class | Inputs | Outputs | Metrics |
+| --- | --- | --- | --- | --- | --- |
+| bam.align | pre | Essential | FASTQ | BAM | alignment_rate |
+| bam.sort | core | Essential | BAM | sorted BAM | sort_time |
+| bam.index | core | Essential | BAM | BAI | index_stats |
+| bam.markdup | core | Recommended | BAM | dedup BAM | dup_rate |
+| bam.damage | downstream | Optional | BAM | report.json | damage_profile |
+| bam.contamination | downstream | Optional | BAM | report.json | contamination_rate |
+| bam.authenticity | downstream | Optional | BAM | report.json | authenticity_score |

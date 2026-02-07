@@ -1,14 +1,6 @@
 # OBSERVERS
 
-## Parsing contract
-Observers parse tool outputs into canonical metrics JSON.
-
-## Fixtures
-Fixtures live under `tests/fixtures/observer/` and mirror tool output formats.
-
-## Determinism
-Parsing must be deterministic for identical fixtures.
-
-## Failure modes
-- Missing fields → ParseError
-- Invalid format → ParseError
+## Parser contracts
+- Accepted versions: mapDamage2 v2, pydamage v0.7, mosdepth v0.3
+- Strictness: missing required fields => ParseError
+- Error handling: include tool name and field in error

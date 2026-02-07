@@ -1,9 +1,13 @@
 # STAGE_CONTRACTS
 
-| Stage | Outputs | Required Metrics |
-| --- | --- | --- |
-| bam.sort | sorted BAM | sort_time |
-| bam.index | BAI | index_stats |
-| bam.markdup | dedup BAM | duplicate_rate |
-| bam.damage | report.json | damage_profile |
-| bam.contamination | report.json | contamination_rate |
+## Canonical examples
+### bam.damage
+metrics.json
+```json
+{"damage_rate":0.12}
+```
+
+stage_report.json
+```json
+{"stage_id":"bam.damage","metrics_path":"metrics.json"}
+```
