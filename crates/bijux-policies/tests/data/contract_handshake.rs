@@ -25,7 +25,7 @@ fn contract_handshake_fixture_shapes() {
         missing.is_empty(),
         "Contract handshake fixtures are missing.\n\
 Add fixtures under crates/bijux-policies/tests/fixtures/handshake.\n\
-See STYLE.md for fixture guidance.\n\
+See docs/STYLE.md for fixture guidance.\n\
 Missing:\n{}",
         missing.join("\n")
     );

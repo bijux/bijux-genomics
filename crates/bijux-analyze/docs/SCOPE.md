@@ -7,4 +7,4 @@ Out of scope:
 - Tool selection logic (belongs to planners).
 - Domain invariants (belongs to domain crates).
 
-See STYLE.md for workspace conventions.
+See docs/STYLE.md for workspace conventions.

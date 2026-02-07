@@ -34,7 +34,7 @@ fn crates_require_scope_and_architecture_docs() {
         missing.is_empty(),
         "crates must include SCOPE.md and ARCHITECTURE.md.\n\
 Fix by adding the docs at crate root (UPPERCASE). If README.md is required, add to allowlist with reason.\n\
-See STYLE.md for documentation spine.\n\
+See docs/STYLE.md for documentation spine.\n\
 Missing:\n{}",
         missing.join("\n")
     );
@@ -70,7 +70,7 @@ fn crate_docs_use_uppercase_names() {
         offenders.is_empty(),
         "crate docs must use uppercase names.\n\
 Fix by renaming docs to UPPERCASE (README.md allowed when allowlisted).\n\
-See STYLE.md for naming rules.\n\
+See docs/STYLE.md for naming rules.\n\
 Offenders:\n{}",
         offenders.join("\n")
     );
@@ -94,7 +94,7 @@ fn crates_require_readme_when_listed() {
         missing.is_empty(),
         "crates listed in README_REQUIRED must include README.md.\n\
 How to fix: add README.md at crate root or update README_REQUIRED with a reason.\n\
-See STYLE.md for documentation spine.\n\
+See docs/STYLE.md for documentation spine.\n\
 Missing:\n{}",
         missing.join("\n")
     );

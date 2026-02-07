@@ -23,4 +23,4 @@ If a feature needs IO, runtime configuration, or domain semantics, it does not b
 - artifact layout: bijux-runtime
 - report schema/rendering: bijux-analyze
 
-See STYLE.md for workspace conventions.
+See docs/STYLE.md for workspace conventions.

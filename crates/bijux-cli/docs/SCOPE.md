@@ -10,4 +10,4 @@ Out of scope:
 - Orchestration logic (API).
 - Execution engines (runtime/runner).
 
-See STYLE.md for workspace conventions.
+See docs/STYLE.md for workspace conventions.

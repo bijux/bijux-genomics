@@ -36,7 +36,7 @@ fn planners_do_not_define_parsers() {
         offenders.is_empty(),
         "Planners must not define parsing logic (parsers live in stages).\n\
 Move parser functions into bijux-stages-* crates.\n\
-See STYLE.md for planner purity rules.\n\
+See docs/STYLE.md for planner purity rules.\n\
 Offenders:\n{}",
         offenders.join("\n")
     );

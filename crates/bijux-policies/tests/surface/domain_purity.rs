@@ -45,7 +45,7 @@ fn domains_have_no_registry_logic() {
         offenders.is_empty(),
         "Domain crates must not contain registry/selection logic.\n\
 Move registry/selection into planners.\n\
-See STYLE.md for domain purity rules.\n\
+See docs/STYLE.md for domain purity rules.\n\
 Offenders:\n{}",
         offenders.join("\n")
     );
@@ -73,7 +73,7 @@ fn domains_have_no_execution_details() {
         offenders.is_empty(),
         "Domain crates must not reference execution details.\n\
 Move execution wiring into planners/runners.\n\
-See STYLE.md for domain purity rules.\n\
+See docs/STYLE.md for domain purity rules.\n\
 Offenders:\n{}",
         offenders.join("\n")
     );

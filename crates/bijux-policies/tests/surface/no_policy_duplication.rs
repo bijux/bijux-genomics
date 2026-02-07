@@ -31,7 +31,7 @@ fn policies_live_only_in_bijux_policies() {
         offenders.is_empty(),
         "Policy-like tests must live in bijux-policies only.\n\
 Move policy scans into bijux-policies and keep other crates to fixtures only.\n\
-See STYLE.md for governance rules.\n\
+See docs/STYLE.md for governance rules.\n\
 Offenders:\n{}",
         offenders.join("\n")
     );

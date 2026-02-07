@@ -10,4 +10,4 @@ Out of scope:
 - Orchestration/execution.
 - Domain definitions.
 
-See STYLE.md for workspace conventions.
+See docs/STYLE.md for workspace conventions.

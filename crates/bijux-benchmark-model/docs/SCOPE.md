@@ -7,4 +7,4 @@ In scope:
 - Comparison and policy evaluation.
 - Statistical helpers.
 
-See STYLE.md for workspace conventions.
+See docs/STYLE.md for workspace conventions.

@@ -39,14 +39,14 @@ fn scope_docs_reference_workspace_style() {
             continue;
         }
         let content = support::read_to_string(&scope_path);
-        if !content.contains("STYLE.md") {
+        if !content.contains("docs/STYLE.md") {
             offenders.push(scope_path.display().to_string());
         }
     }
 
     assert!(
         offenders.is_empty(),
-        "SCOPE.md must link to STYLE.md:\n{}",
+        "SCOPE.md must link to docs/STYLE.md:\n{}",
         offenders.join("\n")
     );
 }
