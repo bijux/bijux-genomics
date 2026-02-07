@@ -14,6 +14,7 @@ Provides a single, stable starting point.
 
 ## Examples
 - See `SCOPE.md` and `ARCHITECTURE.md` for boundaries and layout.
+- See `BACKENDS.md`, `REPLAY.md`, `EXECUTION_SPEC.md`, and `SECURITY.md` for execution rules.
 
 ## Failure modes
 - Missing index causes policy failures.
