@@ -1,7 +1,8 @@
 # NO_DOMAIN
 
-Infra must never:
-- Depend on domain, stages, planners, or pipelines.
-- Define catalogs for StageId/ToolId/MetricId.
+## Forbidden
+- imports from domain/stage/planner crates
+- defining StageId/ToolId catalogs
 
-Infra may only provide generic utilities.
+## Enforcement
+Policy scans check crate dependencies and string literal scans for IDs.

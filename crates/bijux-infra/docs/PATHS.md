@@ -1,6 +1,6 @@
 # PATHS
 
-Infra path helpers must defer to core canonicalization rules.
-Do not implement separate path normalization here.
+Path normalization is owned by bijux-core.
+Infra can construct paths only via core helpers.
 
-Any path canonicalization must call into `bijux-core`.
+No independent normalization allowed.
