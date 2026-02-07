@@ -1,5 +1,7 @@
 //! Shared test helpers for bijux-engine.
 
+#![allow(dead_code)]
+
 use std::cell::RefCell;
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
@@ -8,12 +10,14 @@ use std::time::Duration;
 
 use anyhow::Result;
 use bijux_core::contract::{
-    ArtifactRef, ArtifactRole, ExecutionEdge, ExecutionGraph, ExecutionStep, PlanPolicy, RetryPolicy,
-    StageIO, ToolConstraints,
+    ArtifactRef, ArtifactRole, ExecutionEdge, ExecutionGraph, ExecutionStep, PlanPolicy, StageIO,
+    ToolConstraints,
 };
-use bijux_core::prelude::{ArtifactId, CommandSpecV1, ContainerImageRefV1, StageId, StepId};
-use bijux_engine::Engine;
-use bijux_runtime::run_layout::create_run_layout;
+use bijux_core::contract::ContractVersion;
+use bijux_core::prelude::{
+    input_assessment::FastqLayout, ArtifactId, CommandSpecV1, ContainerImageRefV1, StageId, StepId,
+};
+use bijux_runtime::run_layout::{write_manifest, RunArtifactEntry, RunLayout, RunManifest};
 use bijux_runtime::{Invocation, Runner, RunnerResult};
 
 #[derive(Default)]
@@ -46,8 +50,7 @@ impl Runner for FakeRunner {
         let should_fail = self
             .fail_first
             .borrow_mut()
-            .take(&plan.step_id.0)
-            .is_some()
+            .remove(plan.step_id.as_str())
             && attempt == 0;
         let run_artifacts = plan.out_dir.join("run_artifacts");
         bijux_infra::ensure_dir(&run_artifacts)?;
@@ -191,12 +194,6 @@ pub fn build_graph(stages: Vec<ExecutionStep>, edges: Vec<ExecutionEdge>) -> Exe
     .expect("plan")
 }
 
-pub fn run_with_layout(graph: &ExecutionGraph, runner: &dyn Runner) -> Result<bijux_core::contract::RunRecordV1> {
-    let dir = tempfile::tempdir().expect("tempdir");
-    let (_run_id, layout) = create_run_layout(dir.path()).expect("layout");
-    Engine::default().execute(graph, runner, &layout, None, None)
-}
-
 pub fn layout_tree_text(root: &Path) -> Result<String> {
     let mut entries = Vec::new();
     for entry in walkdir::WalkDir::new(root).into_iter().filter_map(Result::ok) {
@@ -204,6 +201,9 @@ pub fn layout_tree_text(root: &Path) -> Result<String> {
             continue;
         }
         let path = entry.path();
+        if path.file_name().and_then(|name| name.to_str()) == Some("execution_record.json") {
+            continue;
+        }
         let rel = path.strip_prefix(root).unwrap_or(path);
         let hash = bijux_infra::hash_file_sha256(path)?;
         entries.push(format!("{}\t{}", rel.display(), hash));
@@ -212,9 +212,31 @@ pub fn layout_tree_text(root: &Path) -> Result<String> {
     Ok(entries.join("\n"))
 }
 
-pub fn manifest_hash(layout: &bijux_runtime::run_layout::RunLayout) -> Result<String> {
-    let raw = std::fs::read_to_string(&layout.manifest_path)?;
-    let manifest: bijux_runtime::run_layout::RunManifest = serde_json::from_str(&raw)?;
+pub fn write_manifest_hash(
+    layout: &RunLayout,
+    graph: &ExecutionGraph,
+    output_path: &Path,
+) -> Result<String> {
+    let artifact_hash = bijux_infra::hash_file_sha256(output_path)?;
+    let manifest = RunManifest {
+        schema_version: "bijux.run_manifest.v1".to_string(),
+        contract_version: ContractVersion::v1(),
+        run_id: "run-1".to_string(),
+        started_at: "2024-01-01T00:00:00Z".to_string(),
+        finished_at: "2024-01-01T00:00:01Z".to_string(),
+        pipeline: graph.pipeline_id().as_str().to_string(),
+        graph_hash: graph.hash()?,
+        cache_key: None,
+        layout: FastqLayout::SingleEnd,
+        stages: Vec::new(),
+        tool_invocations: Vec::new(),
+        artifacts: vec![RunArtifactEntry {
+            name: "output".to_string(),
+            path: output_path.to_path_buf(),
+            sha256: artifact_hash,
+        }],
+    };
+    write_manifest(layout, &manifest)?;
     Ok(manifest.hash()?)
 }
 

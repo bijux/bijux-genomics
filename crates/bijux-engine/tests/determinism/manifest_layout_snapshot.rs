@@ -5,7 +5,7 @@ use bijux_core::contract::{ArtifactRef, ArtifactRole, ExecutionGraph, PlanPolicy
 use bijux_core::prelude::{ArtifactId, CommandSpecV1, ContainerImageRefV1, StageId, StepId};
 use bijux_engine::Engine;
 
-use crate::support::{execution_setup, layout_tree_text, manifest_hash, DeterministicRunner};
+use crate::support::{execution_setup, layout_tree_text, write_manifest_hash, DeterministicRunner};
 
 #[test]
 fn determinism_manifest_hash_and_layout_tree_snapshot() -> Result<()> {
@@ -59,12 +59,12 @@ fn determinism_manifest_hash_and_layout_tree_snapshot() -> Result<()> {
 
     let runner = DeterministicRunner;
     Engine::default().execute(&graph, &runner, &layout, None, None)?;
-    let manifest_first = manifest_hash(&layout)?;
+    let manifest_first = write_manifest_hash(&layout, &graph, &output_path)?;
     let tree_first = layout_tree_text(&layout.run_dir)?;
 
     std::fs::remove_file(&output_path)?;
     Engine::default().execute(&graph, &runner, &layout, None, None)?;
-    let manifest_second = manifest_hash(&layout)?;
+    let manifest_second = write_manifest_hash(&layout, &graph, &output_path)?;
     let tree_second = layout_tree_text(&layout.run_dir)?;
 
     assert_eq!(manifest_first, manifest_second);
