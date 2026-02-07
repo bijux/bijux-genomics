@@ -20,7 +20,6 @@ fn tool_image_spec_schema_snapshot() {
     let spec = bijux_environment::resolve::ToolImageSpec {
         tool: "fastp".to_string(),
         version: "0.23.4".to_string(),
-        arch: "arm64".to_string(),
         digest: Some("sha256:img".to_string()),
     };
     let actual = String::from_utf8(
