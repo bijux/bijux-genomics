@@ -1,22 +1,34 @@
-# Quickstart
+# QUICKSTART
 
 ## What
-A minimal local dry‑run to verify planning and artifacts without executing tools.
+A copy/paste walkthrough that produces a first successful run and artifacts.
 
 ## Why
-Dry‑run provides explainability and stable graphs without requiring tool binaries.
+Provides a minimal end-to-end proof that Bijux is installed and functioning.
 
 ## Non-goals
-- Full execution with real inputs.
+- Benchmark-quality runs.
+- Performance tuning.
 
 ## Contracts
-- Dry‑run emits `graph.json` and `run_manifest.json`.
+All outputs are contract artifacts: manifest, report, and step records.
 
 ## Examples
-```
-bijux fastq preprocess --dry-run --r1 reads.fastq --out out --sample-id sample
+```bash
+# Plan + execute a minimal FASTQ pipeline
+bijux plan --pipeline fastq.default.v1 > graph.json
+bijux execute --pipeline fastq.default.v1 --out runs/demo
 ```
 
+Artifacts created:
+- `runs/demo/run_manifest.json`
+- `runs/demo/report.json`
+- `runs/demo/report.html`
+- `runs/demo/summary.tsv`
+- `runs/demo/stage_0/*`
+
+See `../30-operations/RUN_ARTIFACTS.md` for artifact meanings.
+
 ## Failure modes
-- Missing required inputs (e.g., `--r1`) causes validation error.
-- Invalid pipeline ID fails planning.
+- Missing tools => `ToolError` in execution.
+- Missing artifacts => `ContractError` after step execution.
