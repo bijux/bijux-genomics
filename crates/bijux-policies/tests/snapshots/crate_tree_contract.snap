@@ -61,6 +61,7 @@ expression: output
 - DOMAIN_MODEL.md
 - METRICS.md
 - PARAMS.md
+- PHASES.md
 - SCOPE.md
 - src/
 - tests/
@@ -126,6 +127,7 @@ expression: output
 - ARCHITECTURE.md
 - Cargo.toml
 - PLANNER_MODEL.md
+- STAGE_MAPPING.md
 - SCOPE.md
 - TOOL_SELECTION.md
 - src/
@@ -135,6 +137,7 @@ expression: output
 - ARCHITECTURE.md
 - Cargo.toml
 - PLANNER_MODEL.md
+- STAGE_MAPPING.md
 - SCOPE.md
 - TOOL_SELECTION.md
 - src/
