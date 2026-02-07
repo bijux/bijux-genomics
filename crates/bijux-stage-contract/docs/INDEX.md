@@ -6,6 +6,9 @@ See `SCOPE.md` for what belongs here.
 ## Effects
 See `EFFECTS.md` for allowed effects.
 
+## Public API
+See `PUBLIC_API.md` for exported types and snapshots.
+
 ## Boundaries
 See `ARCHITECTURE.md` for internal boundaries.
 
