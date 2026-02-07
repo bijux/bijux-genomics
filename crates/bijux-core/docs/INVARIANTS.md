@@ -1,26 +1,34 @@
 # INVARIANTS
 
 ## ExecutionGraph
-The validator enforces:
-- **Acyclic**: no cycles in step dependencies.
-- **Unique step IDs**: no duplicates across steps.
-- **Resolvable edges**: every edge references existing steps.
-- **Resolvable artifacts**: every artifact reference points to a declared artifact.
+### Valid (acyclic)
+```json
+{
+  "schema_version": "bijux.execution_graph.v1",
+  "contract_version": {"major": 1, "minor": 0},
+  "pipeline_id": "fastq.default.v1",
+  "planner_version": "planner.v1",
+  "policy": {"mode": "strict"},
+  "steps": [{"step_id": "step.a", "stage_id": "stage.a", "command": {"template": []}, "image": {"image": "x", "digest": null}, "resources": {"runtime": "local", "mem_gb": 1, "tmp_gb": 1, "threads": 1}, "io": {"inputs": [], "outputs": []}, "out_dir": "out"}],
+  "edges": []
+}
+```
+### Invalid (cycle)
+```json
+{"edges": [{"from": "step.a", "to": "step.a"}]}
+```
+Enforced by `tests/execution_graph_validate.rs`.
 
-### Counterexamples
-- A cycle between `step_a -> step_b -> step_a`.
-- Two steps with the same `StepId`.
-- An edge references a step that is not in the graph.
+## Unique IDs
+Invalid:
+```json
+{"steps": [{"step_id": "dup"}, {"step_id": "dup"}]}
+```
+Enforced by `tests/execution_graph_validate.rs`.
 
-## RunManifest
-The validator enforces:
-- **Graph hash present** and matches the graph.
-- **Contract version present**.
-- **Input fingerprints present**.
-- **Declared artifacts list is complete** and matches graph outputs.
-- **Tool identity present** for each executed step.
-
-### Counterexamples
-- A manifest with no `contract_version`.
-- Missing an artifact listed in the execution graph.
-- Tool invocation missing image digest or version.
+## Artifact resolvability
+Invalid:
+```json
+{"steps": [{"expected_artifact_ids": ["missing"]}]}
+```
+Enforced by `tests/execution_graph_validate.rs`.
