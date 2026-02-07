@@ -12,14 +12,24 @@ Upstream: API/planners. Downstream: runner.
 ## Public API / entrypoints
 See `docs/INDEX.md`, `docs/ENV_REFERENCE.md`, `docs/ENV_MATRIX.md`, `docs/SCHEMAS.md`, `docs/BOUNDARY.md`, `docs/CHANGE_RULES.md`.
 
+## Resolution flow
+Input spec → pinned digest → schema object.
+
 ## Key contracts it owns/consumes
 Resolved environment specs and digests only.
 
 ## Effects & determinism guarantees
-Pure resolution; no network execution. See `docs/EFFECTS.md` and the golden tests below.
+Pure resolution; no network execution. Stable digest for the same inputs; see `docs/THREAT_MODEL.md` for stability breakers.
+
+## What's deliberately NOT supported yet
+- Network pulls or remote registry probing.
+- HPC scheduler integration.
+
+## No execution
+This crate must not depend on `bijux-runner` or execute tools. See `docs/BOUNDARY.md` and `tests/guardrails/no_runner_usage.rs`.
 
 ## How to run its tests
-See `docs/TESTS.md`. Golden tests: `tests/reference_matrix.rs`, `tests/schema_snapshots.rs`, `tests/guardrails_runtime.rs`, `tests/docs_reference_matrix.rs`.
+See `docs/TESTS.md`. Golden tests: `tests/matrix/reference_matrix.rs`, `tests/schema/schema_snapshots.rs`, `tests/guardrails/guardrails_runtime.rs`, `tests/matrix/docs_reference_matrix.rs`.
 
 ## Where the docs live
 Start at `docs/INDEX.md` and follow the crate docs listed above.
@@ -29,3 +39,8 @@ Primary failures surface as snapshot or contract violations; inspect the golden 
 
 ## Stability
 Contract and behavior changes follow `docs/CHANGE_RULES.md`.
+
+## Where to start
+- `src/runtime_spec.rs`
+- `src/resolve.rs`
+- `src/build.rs`
