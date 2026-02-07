@@ -1,5 +1,7 @@
 # STAGE_MAPPING
 
+Authority for stage catalog lives in `src/stages/stage_catalog.rs`.
+
 | Stage ID | Phase | Tool Adapter | Artifacts | Metrics |
 | --- | --- | --- | --- | --- |
 | bam.align | pre | bwa | BAM | alignment_rate |
