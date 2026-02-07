@@ -55,10 +55,29 @@ coverage: ## Generate test coverage report (prefers nextest)
 	@if command -v cargo-llvm-cov >/dev/null 2>&1; then \
 		if command -v cargo-nextest >/dev/null 2>&1; then \
 			echo "Generating coverage with cargo-llvm-cov + nextest..."; \
-			CARGO_BUILD_JOBS=$(JOBS) cargo llvm-cov nextest run --workspace --all-features --html --no-fail-fast --jobs $(NEXTEST_JOBS); \
+			CARGO_BUILD_JOBS=$(JOBS) cargo llvm-cov nextest run --workspace --no-fail-fast --jobs $(NEXTEST_JOBS); \
+			CARGO_BUILD_JOBS=$(JOBS) cargo llvm-cov report --json > target/llvm-cov/coverage.json; \
+			python3 scripts/coverage_summary.py target/llvm-cov/coverage.json; \
 		else \
 			echo "Generating coverage with cargo-llvm-cov..."; \
-			CARGO_BUILD_JOBS=$(JOBS) cargo llvm-cov --workspace --all-features --html; \
+			CARGO_BUILD_JOBS=$(JOBS) cargo llvm-cov --workspace; \
+			CARGO_BUILD_JOBS=$(JOBS) cargo llvm-cov report --json > target/llvm-cov/coverage.json; \
+			python3 scripts/coverage_summary.py target/llvm-cov/coverage.json; \
+		fi; \
+	else \
+		echo "cargo-llvm-cov not installed; skipping coverage"; \
+	fi
+
+coverage-html: ## Generate HTML coverage report
+	@if command -v cargo-llvm-cov >/dev/null 2>&1; then \
+		if command -v cargo-nextest >/dev/null 2>&1; then \
+			echo "Generating coverage HTML with cargo-llvm-cov + nextest..."; \
+			CARGO_BUILD_JOBS=$(JOBS) cargo llvm-cov nextest run --workspace --no-fail-fast --jobs $(NEXTEST_JOBS); \
+			CARGO_BUILD_JOBS=$(JOBS) cargo llvm-cov report --html; \
+		else \
+			echo "Generating coverage HTML with cargo-llvm-cov..."; \
+			CARGO_BUILD_JOBS=$(JOBS) cargo llvm-cov --workspace; \
+			CARGO_BUILD_JOBS=$(JOBS) cargo llvm-cov report --html; \
 		fi; \
 		echo "HTML report: target/llvm-cov/html/index.html"; \
 	else \
@@ -92,4 +111,4 @@ ci-isolate: ## Run CI gates in isolated target dir
 
 .PHONY: fmt lint test audit coverage \
         fmt-isolate lint-isolate test-isolate audit-isolate coverage-isolate \
-        ci ci-isolate
+        coverage-html ci ci-isolate
