@@ -1,9 +1,9 @@
 use anyhow::{anyhow, Context, Result};
 
 use crate::commands::cli::Cli;
-use bijux_api::v1::run::{load_profile, resolve_run_base_dir};
+use bijux_api::v1::api::run::{load_profile, resolve_run_base_dir};
 
-pub(crate) fn load_profile_for_cli(cli: &Cli) -> Result<bijux_api::v1::run::Profile> {
+pub(crate) fn load_profile_for_cli(cli: &Cli) -> Result<bijux_api::v1::api::run::Profile> {
     let cwd = std::env::current_dir().context("resolve current directory")?;
     let profile_path = cwd
         .join("configs")
@@ -16,20 +16,20 @@ pub(crate) fn load_profile_for_cli(cli: &Cli) -> Result<bijux_api::v1::run::Prof
 }
 
 pub(crate) fn ensure_profile_run_base_dir(
-    stage: &bijux_api::v1::run::StageId,
-    tool: &bijux_api::v1::run::ToolId,
-    profile: &mut bijux_api::v1::run::Profile,
+    stage: &bijux_api::v1::api::run::StageId,
+    tool: &bijux_api::v1::api::run::ToolId,
+    profile: &mut bijux_api::v1::api::run::Profile,
 ) {
-    let run_dir = bijux_api::v1::run::run_dir(
+    let run_dir = bijux_api::v1::api::run::run_dir(
         &profile.run_base_dir,
-        &bijux_api::v1::run::new_run_id(),
+        &bijux_api::v1::api::run::new_run_id(),
         stage,
         tool,
     );
     if run_dir.starts_with(
         profile
             .run_base_dir
-            .join(bijux_api::v1::run::RUN_LAYOUT_CONTRACT.runs_dir),
+            .join(bijux_api::v1::api::run::RUN_LAYOUT_CONTRACT.runs_dir),
     ) {
         let base = profile
             .run_base_dir

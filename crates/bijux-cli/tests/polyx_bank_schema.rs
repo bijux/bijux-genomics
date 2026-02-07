@@ -9,10 +9,10 @@ fn polyx_bank_parses() -> Result<()> {
         .ok_or_else(|| anyhow::anyhow!("repo root not found"))?;
     let prev_dir = std::env::current_dir()?;
     std::env::set_current_dir(repo_root)?;
-    let bank_path = bijux_api::v1::bench::polyx_bank_path();
-    let presets_path = bijux_api::v1::bench::polyx_presets_path();
-    let bank = bijux_api::v1::bench::load_polyx_bank(&bank_path)?;
-    let _presets = bijux_api::v1::bench::load_polyx_presets(&presets_path, &bank)?;
+    let bank_path = bijux_api::v1::api::bench::polyx_bank_path();
+    let presets_path = bijux_api::v1::api::bench::polyx_presets_path();
+    let bank = bijux_api::v1::api::bench::load_polyx_bank(&bank_path)?;
+    let _presets = bijux_api::v1::api::bench::load_polyx_presets(&presets_path, &bank)?;
     std::env::set_current_dir(prev_dir)?;
     Ok(())
 }

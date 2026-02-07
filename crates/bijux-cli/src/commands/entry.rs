@@ -1,6 +1,6 @@
 use anyhow::{anyhow, Context, Result};
-use bijux_api::v1::run::{load_manifests, load_profile, resolve_run_base_dir};
-use bijux_api::v1::run::{CategorizedError, ErrorCategory};
+use bijux_api::v1::api::run::{load_manifests, load_profile, resolve_run_base_dir};
+use bijux_api::v1::api::run::{CategorizedError, ErrorCategory};
 use clap::Parser;
 
 use crate::commands::{handle_bam_commands, handle_fastq_bench, handle_meta_commands, run_plan};

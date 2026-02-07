@@ -30,13 +30,13 @@ impl ObjectiveArg {
     }
 }
 
-impl From<ObjectiveArg> for bijux_api::v1::bench::Objective {
+impl From<ObjectiveArg> for bijux_api::v1::api::bench::Objective {
     fn from(value: ObjectiveArg) -> Self {
         match value {
-            ObjectiveArg::Speed => bijux_api::v1::bench::Objective::Speed,
-            ObjectiveArg::Memory => bijux_api::v1::bench::Objective::Memory,
-            ObjectiveArg::Retention => bijux_api::v1::bench::Objective::Retention,
-            ObjectiveArg::Balanced => bijux_api::v1::bench::Objective::Balanced,
+            ObjectiveArg::Speed => bijux_api::v1::api::bench::Objective::Speed,
+            ObjectiveArg::Memory => bijux_api::v1::api::bench::Objective::Memory,
+            ObjectiveArg::Retention => bijux_api::v1::api::bench::Objective::Retention,
+            ObjectiveArg::Balanced => bijux_api::v1::api::bench::Objective::Balanced,
         }
     }
 }
@@ -47,10 +47,10 @@ pub enum BenchCorpusArg {
     Fastq5Set,
 }
 
-impl From<BenchCorpusArg> for bijux_api::v1::bench::BenchCorpusId {
+impl From<BenchCorpusArg> for bijux_api::v1::api::bench::BenchCorpusId {
     fn from(value: BenchCorpusArg) -> Self {
         match value {
-            BenchCorpusArg::Fastq5Set => bijux_api::v1::bench::BenchCorpusId::Fastq5Set,
+            BenchCorpusArg::Fastq5Set => bijux_api::v1::api::bench::BenchCorpusId::Fastq5Set,
         }
     }
 }
