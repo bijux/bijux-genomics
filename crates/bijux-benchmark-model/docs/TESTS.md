@@ -12,8 +12,13 @@ Tests should explain the contract they enforce.
 ## Contracts
 - Each test file should be referenced here.
 
+## Suite map
+- `tests/public_api/*` → public surface and docs linkage.
+- `tests/determinism/*` → seeded randomness and deterministic outputs.
+- `tests/semantics/*` → model semantics, SSOT metrics, and guardrails.
+
 ## Examples
-- `tests/architecture.rs` → dependency boundary assertions.
+- `tests/semantics/decision_explainability.rs` → explainability snapshots.
 
 ## Failure modes
 - Missing test documentation causes drift and confusion.
