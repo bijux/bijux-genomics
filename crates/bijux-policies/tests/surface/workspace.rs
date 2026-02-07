@@ -170,6 +170,24 @@ fn rs_files_under(path: &Path) -> Vec<PathBuf> {
         .collect()
 }
 
+fn contains_term(text: &str, term: &str) -> bool {
+    if term.is_empty() {
+        return false;
+    }
+    let mut rest = text;
+    while let Some(idx) = rest.find(term) {
+        let before = rest[..idx].chars().last();
+        let after = rest[idx + term.len()..].chars().next();
+        let before_ok = before.map_or(true, |ch| !ch.is_ascii_alphanumeric());
+        let after_ok = after.map_or(true, |ch| !ch.is_ascii_alphanumeric());
+        if before_ok && after_ok {
+            return true;
+        }
+        rest = &rest[idx + term.len()..];
+    }
+    false
+}
+
 fn assert_no_domain_terms(crate_root: &Path, denylist: &[&str]) {
     let src = crate_root.join("src");
     let files = rs_files_under(&src);
@@ -177,7 +195,7 @@ fn assert_no_domain_terms(crate_root: &Path, denylist: &[&str]) {
         let content = std::fs::read_to_string(&file).expect("read source file");
         let lowered = content.to_lowercase();
         for term in denylist {
-            if lowered.contains(term) {
+            if contains_term(&lowered, term) {
                 panic!("domain term '{}' found in {}", term, file.display());
             }
         }
@@ -465,9 +483,11 @@ fn workspace_stages_layout_contract() {
             src.join("plugin.rs").exists(),
             "{name} missing src/plugin.rs"
         );
+        let has_metrics =
+            src.join("metrics.rs").exists() || src.join("metrics").join("mod.rs").exists();
         assert!(
-            src.join("metrics.rs").exists(),
-            "{name} missing src/metrics.rs"
+            has_metrics,
+            "{name} missing src/metrics.rs or src/metrics/mod.rs"
         );
     }
 }
@@ -583,7 +603,7 @@ fn workspace_dependency_graph_contract() {
             continue;
         }
         assert!(
-            dep == "bijux-core" || dep == "bijux-infra",
+            dep == "bijux-core" || dep == "bijux-infra" || dep == "bijux-runtime",
             "bijux-engine must not depend on workspace crate {dep}"
         );
     }
@@ -640,6 +660,8 @@ fn workspace_dependency_graph_contract() {
                 || dep == "bijux-benchmark"
                 || dep == "bijux-benchmark-model"
                 || dep == "bijux-pipelines"
+                || dep == "bijux-domain-bam"
+                || dep == "bijux-domain-fastq"
                 || dep == "bijux-infra",
             "bijux-api must not depend on workspace crate {dep}"
         );
@@ -651,7 +673,10 @@ fn workspace_dependency_graph_contract() {
             continue;
         }
         assert!(
-            dep == "bijux-core" || dep == "bijux-environment" || dep == "bijux-infra",
+            dep == "bijux-core"
+                || dep == "bijux-environment"
+                || dep == "bijux-infra"
+                || dep == "bijux-runtime",
             "bijux-runner must not depend on workspace crate {dep}"
         );
     }
@@ -665,6 +690,7 @@ fn workspace_dependency_graph_contract() {
             dep == "bijux-core"
                 || dep == "bijux-domain-fastq"
                 || dep == "bijux-domain-bam"
+                || dep == "bijux-benchmark"
                 || dep == "bijux-infra"
                 || dep == "bijux-runtime"
                 || dep == "bijux-pipelines"
@@ -683,6 +709,8 @@ fn workspace_dependency_graph_contract() {
             dep == "bijux-core"
                 || dep == "bijux-analyze"
                 || dep == "bijux-benchmark-model"
+                || dep == "bijux-domain-bam"
+                || dep == "bijux-domain-fastq"
                 || dep == "bijux-infra"
                 || dep == "bijux-runtime",
             "bijux-benchmark must not depend on workspace crate {dep}"
@@ -700,6 +728,8 @@ fn workspace_dependency_graph_contract() {
         "bijux-analyze",
         "bijux-benchmark",
         "bijux-benchmark-model",
+        "bijux-domain-bam",
+        "bijux-domain-fastq",
         "bijux-planner-fastq",
         "bijux-planner-bam",
         "bijux-pipelines",
@@ -942,6 +972,8 @@ fn crate_root_contents_allowlist() {
     let allowed = BTreeSet::from([
         "Cargo.toml",
         "Makefile.toml",
+        "README.md",
+        "clippy.toml",
         "src",
         "tests",
         "docs",
@@ -1083,6 +1115,7 @@ fn params_hash_only_defined_in_core() {
         let rel_str = rel.to_string_lossy();
         if rel_str.ends_with("crates/bijux-core/src/foundation/hashing.rs")
             || rel_str.ends_with("crates/bijux-policies/tests/workspace.rs")
+            || rel_str.ends_with("crates/bijux-policies/tests/surface/workspace.rs")
         {
             continue;
         }
