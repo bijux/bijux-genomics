@@ -1,10 +1,13 @@
 # PHASES
 
 ## Pre
-Preparation and filtering metrics.
+Required artifacts: alignments.
+Required metrics: alignment_rate.
 
 ## Core
-Alignment quality, duplication, coverage.
+Required artifacts: sorted BAM, BAI, dedup BAM.
+Required metrics: dup_rate, coverage.
 
 ## Downstream
-Damage, contamination, authenticity.
+Required artifacts: reports.
+Required metrics: damage, contamination, authenticity.

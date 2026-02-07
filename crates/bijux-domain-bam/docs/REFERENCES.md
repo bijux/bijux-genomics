@@ -1,5 +1,8 @@
 # REFERENCES
 
-- BWA: Li & Durbin 2009.
-- samtools: Li et al. 2009.
-- mapDamage2: Jónsson et al. 2013.
+## aDNA-specific tools
+- mapDamage2 for damage profiling
+- pydamage for authenticity
+- contamination estimates via established methods
+
+Mandatory metrics: damage, contamination, authenticity, complexity.
