@@ -25,15 +25,15 @@ pub const STAGE_REPORT_AGGREGATE: StageId = StageId::from_static("report.aggrega
 
 pub use bijux_domain_fastq::BenchResultsRepository;
 
-pub mod args;
 mod report_stage;
 mod selection;
 pub mod tool_adapters;
 
+pub use selection::args;
 pub use report_stage::report_stage_step;
 
 pub mod stage_api {
-    pub use crate::args;
+    pub use crate::selection::args;
     pub use crate::selection::{allowed_tools_for_stage, default_tool_for_stage};
     pub use crate::tool_adapters::fastq;
     pub use crate::tool_adapters::fastq::StageInfo;
@@ -192,7 +192,9 @@ pub struct CorrectDecisionTrace {
 }
 
 #[must_use]
-pub fn preprocess_decisions(args: &crate::args::BenchFastqPreprocessArgs) -> PreprocessDecisions {
+pub fn preprocess_decisions(
+    args: &crate::selection::args::BenchFastqPreprocessArgs,
+) -> PreprocessDecisions {
     let mut merge_decision = None;
     let enable_merge = if let Some(r2) = args.r2.as_ref() {
         if args.force_merge {
@@ -309,7 +311,7 @@ pub fn preprocess_decisions(args: &crate::args::BenchFastqPreprocessArgs) -> Pre
 
 #[must_use]
 pub fn plan_preprocess(
-    args: &crate::args::BenchFastqPreprocessArgs,
+    args: &crate::selection::args::BenchFastqPreprocessArgs,
     pipeline: PipelineSpec,
 ) -> crate::tool_adapters::fastq::preprocess::PreprocessPlan {
     crate::tool_adapters::fastq::preprocess::PreprocessPlan {
@@ -322,7 +324,7 @@ pub fn plan_preprocess(
 
 #[must_use]
 pub fn resolve_preprocess_pipeline(
-    args: &crate::args::BenchFastqPreprocessArgs,
+    args: &crate::selection::args::BenchFastqPreprocessArgs,
     decisions: &PreprocessDecisions,
 ) -> PipelineSpec {
     let enable_merge = decisions.enable_merge;
@@ -742,7 +744,7 @@ pub struct ToolSelection {
 pub fn select_preprocess_tools(
     registry: &bijux_core::contract::ToolRegistry,
     pipeline: &PipelineSpec,
-    args: &crate::args::BenchFastqPreprocessArgs,
+    args: &crate::selection::args::BenchFastqPreprocessArgs,
     bench_repo: Option<&dyn BenchResultsRepository>,
 ) -> Result<Vec<ToolSelection>> {
     let mut selected_tools: Vec<ToolSelection> = pipeline
