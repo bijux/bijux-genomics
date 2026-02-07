@@ -8,10 +8,11 @@ fn platform_spec_schema_snapshot() {
         arch: "arm64".to_string(),
     };
     let actual = String::from_utf8(
-        bijux_core::contract::canonical::to_canonical_json_bytes(&spec).expect("canonical"),
+        bijux_core::contract::canonical::to_canonical_json_bytes(&spec)
+            .unwrap_or_else(|err| panic!("canonical: {err}")),
     )
-    .expect("utf8");
-    let expected = include_str!("fixtures/env_schema/platform_spec.json");
+    .unwrap_or_else(|err| panic!("utf8: {err}"));
+    let expected = include_str!("../fixtures/env_schema/platform_spec.json");
     assert_eq!(actual, expected);
 }
 
@@ -23,9 +24,10 @@ fn tool_image_spec_schema_snapshot() {
         digest: Some("sha256:img".to_string()),
     };
     let actual = String::from_utf8(
-        bijux_core::contract::canonical::to_canonical_json_bytes(&spec).expect("canonical"),
+        bijux_core::contract::canonical::to_canonical_json_bytes(&spec)
+            .unwrap_or_else(|err| panic!("canonical: {err}")),
     )
-    .expect("utf8");
-    let expected = include_str!("fixtures/env_schema/tool_image_spec.json");
+    .unwrap_or_else(|err| panic!("utf8: {err}"));
+    let expected = include_str!("../fixtures/env_schema/tool_image_spec.json");
     assert_eq!(actual, expected);
 }
