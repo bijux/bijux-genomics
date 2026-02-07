@@ -6,7 +6,7 @@ use clap::Parser;
 use crate::commands::bam::handle_bam_commands;
 use crate::commands::bench::handle_fastq_bench;
 use crate::commands::fastq::handle_meta_commands;
-use crate::commands::run_plan;
+use crate::commands::run_plan::run_plan;
 use crate::commands::cli::Cli;
 
 fn main() {
