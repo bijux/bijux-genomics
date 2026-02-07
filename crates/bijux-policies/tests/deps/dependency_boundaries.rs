@@ -145,6 +145,32 @@ fn runner_does_not_depend_on_engine() {
 }
 
 #[test]
+fn infra_has_no_domain_or_stage_dependencies() {
+    let root = workspace_root();
+    let manifest = root.join("crates/bijux-infra/Cargo.toml");
+    let deps = parse_dependency_names(&manifest);
+    let denylist = [
+        "bijux-domain-fastq",
+        "bijux-domain-bam",
+        "bijux-stages-fastq",
+        "bijux-stages-bam",
+        "bijux-planner-fastq",
+        "bijux-planner-bam",
+        "bijux-pipelines",
+    ];
+    let offenders: Vec<String> = denylist
+        .iter()
+        .filter(|dep| deps.iter().any(|name| name == **dep))
+        .map(|dep| format!("{} depends on {}", manifest.display(), dep))
+        .collect();
+    assert!(
+        offenders.is_empty(),
+        "bijux-infra must not depend on domain/stages/planners:\n{}",
+        offenders.join("\n")
+    );
+}
+
+#[test]
 fn pipelines_do_not_depend_on_stages_or_execution() {
     let root = workspace_root();
     let manifest = root.join("crates/bijux-pipelines/Cargo.toml");
