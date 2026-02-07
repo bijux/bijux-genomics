@@ -1,19 +1,4 @@
-# bijux-testkit Docs Index
+# INDEX
 
-## What
-Entry point for crate documentation.
-
-## Why
-Provides a single, stable starting point.
-
-## Non-goals
-- Duplicating root product docs.
-
-## Contracts
-- Docs live only under `crates/bijux-testkit/docs/`.
-
-## Examples
-- See `SCOPE.md` and `ARCHITECTURE.md` for boundaries and layout.
-
-## Failure modes
-- Missing index causes policy failures.
+Testkit hosts shared fixtures and helpers only.
+Crate-specific test logic must live in each crate's tests.
