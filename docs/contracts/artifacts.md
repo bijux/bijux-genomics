@@ -39,11 +39,10 @@ execution_manifest.json
   and adapter artifacts used for the run.
 - `manifest.json`: execution manifest for the tool invocation (tool/version/image/inputs/command).
 - `metrics.json`: metrics envelope file (execution + stage metrics payload).
-- `retention_report.json`: retention report placeholder in v1 schema.
+- `retention_report.json`: retention report with numerator/denominator context.
 - `effective_adapters.json`: resolved adapter set for the selected preset (ids + sequences).
 - `adapter_bank_ref.json`: adapter bank reference with checksums, preset, and enabled ids.
-- `adapter_trimming_report.json`: adapter trimming report (placeholder counts until tool parsing).
-- `retention_report.json`: retention report (pre/post) snapshot for the stage.
+- `adapter_trimming_report.json`: adapter trimming report with parsed counts.
 
 ## Requirements
 

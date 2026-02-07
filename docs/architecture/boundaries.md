@@ -53,6 +53,6 @@ Each crate below lists responsibilities, forbidden responsibilities, and allowed
 - Allowed deps: bijux-core, serde/serde_json.
 
 ## bijux-domain-dummy
-- Responsibilities: placeholder domain examples/testing fixtures.
+- Responsibilities: sample domain examples/testing fixtures.
 - Forbidden: engine/CLI logic.
 - Allowed deps: bijux-core.

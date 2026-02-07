@@ -15,7 +15,7 @@ Build images (Docker):
 Test images (Docker):
 - `cargo run -p bijux-environment --bin test_docker_images -- --platform docker-mac-arm64`
 
-TODO (digests)
-- We can’t populate `sha256:` repo digests for all images without pushing them to a registry.
-- Missing digests currently: `bwa`, `seqtk`, `fastqvalidator`, `fqtools`.
-- Once registry access is available, build + push, then update `configs/images.toml` with repo digests.
+Digest policy
+- `configs/images.toml` should include immutable `sha256:` digests for all published images.
+- For local development, version tags are accepted; production runs must use digests.
+- When a digest is missing, treat the image as non‑reproducible and block promotion.
