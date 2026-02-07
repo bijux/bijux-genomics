@@ -27,7 +27,10 @@ fn crates_require_scope_and_architecture_docs() {
 
     assert!(
         missing.is_empty(),
-        "crates must include SCOPE.md and ARCHITECTURE.md:\n{}",
+        "crates must include SCOPE.md and ARCHITECTURE.md.\n\
+Fix by adding the docs at crate root (UPPERCASE). If README.md is required, add to allowlist with reason.\n\
+See STYLE.md for documentation spine.\n\
+Missing:\n{}",
         missing.join("\n")
     );
 }

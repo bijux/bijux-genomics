@@ -4,6 +4,7 @@ mod support;
 use walkdir::WalkDir;
 
 const FILE_BANS: &[&str] = &["helpers.rs", "utils.rs", "misc.rs", "support.rs", "core.rs"];
+const ALLOWLIST: &[(&str, &str)] = &[];
 const DIR_BANS: &[&str] = &["helpers", "util", "utils", "misc"];
 
 #[test]
@@ -16,6 +17,13 @@ fn ban_helpers_and_utils_names() {
         {
             let name = entry.file_name().to_string_lossy();
             if entry.file_type().is_file() && FILE_BANS.contains(&name.as_ref()) {
+                let path_str = entry.path().to_string_lossy();
+                if ALLOWLIST
+                    .iter()
+                    .any(|(allowed, _reason)| path_str.contains(allowed))
+                {
+                    continue;
+                }
                 offenders.push(entry.path().display().to_string());
             }
             if entry.file_type().is_dir() && DIR_BANS.contains(&name.as_ref()) {
