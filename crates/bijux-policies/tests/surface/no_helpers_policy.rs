@@ -3,7 +3,7 @@ mod support;
 
 use walkdir::WalkDir;
 
-const FILE_BANS: &[&str] = &["helpers.rs", "utils.rs", "misc.rs"];
+const FILE_BANS: &[&str] = &["helpers.rs", "utils.rs", "misc.rs", "support.rs", "core.rs"];
 const DIR_BANS: &[&str] = &["helpers", "util", "utils", "misc"];
 
 #[test]
@@ -26,7 +26,10 @@ fn ban_helpers_and_utils_names() {
 
     assert!(
         offenders.is_empty(),
-        "helpers/utils/misc names are forbidden:\n{}",
+        "helpers/utils/misc/support/core names are forbidden.\n\
+Fix by renaming to responsibility-specific modules or add a documented allowlist.\n\
+See STYLE.md for naming rules.\n\
+Offenders:\n{}",
         offenders.join("\n")
     );
 }

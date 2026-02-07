@@ -26,7 +26,10 @@ fn src_directory_is_not_overcrowded() {
 
     assert!(
         offenders.is_empty(),
-        "src/ must have <= {MAX_DIRECT_CHILDREN} direct children:\n{}",
+        "src/ must have <= {MAX_DIRECT_CHILDREN} direct children.\n\
+Fix by grouping modules into subdirectories.\n\
+See STYLE.md for tree structure guidance.\n\
+Offenders:\n{}",
         offenders.join("\n")
     );
 }

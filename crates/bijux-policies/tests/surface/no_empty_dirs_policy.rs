@@ -43,7 +43,10 @@ fn no_empty_or_placeholder_dirs() {
 
     assert!(
         offenders.is_empty(),
-        "empty dirs or placeholder mod.rs modules are forbidden:\n{}",
+        "empty dirs or placeholder mod.rs modules are forbidden.\n\
+Fix by removing empty dirs or adding real modules.\n\
+See STYLE.md for tree rules.\n\
+Offenders:\n{}",
         offenders.join("\n")
     );
 }
