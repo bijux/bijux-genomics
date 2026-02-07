@@ -44,10 +44,10 @@ fn tool_reasons_carry_defaults_and_contract_hash() -> anyhow::Result<()> {
     };
 
     let plans = compose_fastq_pipeline_steps(
-        &[stage.clone()],
+        std::slice::from_ref(&stage),
         &[tool],
         &BTreeMap::new(),
-        Some(&[reason.clone()]),
+        Some(std::slice::from_ref(&reason)),
         None,
         None,
         None,
