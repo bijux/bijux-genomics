@@ -1,10 +1,15 @@
 # DATA_MODEL
 
-## Schema Map
-- facts: run inputs, tool identity, step metadata
-- metrics: per-stage metrics envelopes
-- report outputs: report.json, report.html, summary.tsv
+## Canonical JSON example
+```json
+{
+  "facts": [],
+  "metrics": [],
+  "reports": []
+}
+```
 
-## Stability Guarantees
-- Additive fields are backward compatible.
-- Breaking changes require a major version bump.
+## Field semantics
+- facts: inputs and provenance
+- metrics: per-stage metrics envelopes
+- reports: report artifacts

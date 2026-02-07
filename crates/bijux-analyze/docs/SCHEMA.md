@@ -1,25 +1,21 @@
 # SCHEMA
 
-## Final Artifact Bundle Contract
-Required artifacts:
+## Canonical JSON example
+```json
+{
+  "schema_version": "bijux.report.v1",
+  "run_id": "run-123",
+  "stages": [],
+  "sections": {}
+}
+```
+
+## Field semantics
+- run_id: unique run identifier
+- stages: ordered stage summaries
+- sections: report sections keyed by name
+
+## Final artifact bundle
 - report.json
 - report.html
 - summary.tsv
-
-## Report Schema Required Fields
-- tool_versions
-- params
-- run_hash
-- input_hashes
-- stage_contracts
-
-## Report Sections
-- qc
-- final_qc_summary
-- retention_definition
-- retention_context
-- filter_interpretation
-- reproducibility
-- method_assumptions
-- metric_semantics
-- completeness

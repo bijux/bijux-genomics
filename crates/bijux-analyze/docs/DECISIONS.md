@@ -1,13 +1,11 @@
 # DECISIONS
 
-## Scoring
-Scores combine normalized metrics with configured weights.
+## Scoring model
+- normalization: z-score by metric family
+- weights: configured per profile
+- tie-break: stable ordering by tool id
 
-## Ties
-Ties are resolved deterministically by stable ordering.
-
-## Outliers
-Outliers are excluded based on configured thresholds.
-
-## Explainability
-Explain output must include weights, normalization, and tie-break reasons.
+## Required explainability fields
+- weights
+- normalization method
+- tie-break reason
