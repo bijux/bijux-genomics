@@ -1,5 +1,9 @@
-# SCOPE
+# Scope
 
-Quality assurance tools for container images and runtime environments.
+## Belongs here
+- QA checks for containers/images.
 
-See docs/STYLE.md for workspace conventions.
+## Does not belong here
+- Production execution paths.
+
+See docs/40-policies/STYLE.md for documentation and policy style.

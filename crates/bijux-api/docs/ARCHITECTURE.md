@@ -1,7 +1,8 @@
-# ARCHITECTURE
+# Architecture
 
-Public surface: `src/v1/*`.
-Internal wiring: `handlers/`, `internal/`, and crate-private modules.
+## Modules
+- v1 public API
+- internal handlers for wiring
 
-`v1/api.rs` is the front door for plan/execute/dry-run/explain/status.
-Handlers implement the concrete wiring for FASTQ/BAM/cross pipelines.
+## Data flow
+- Accepts requests, delegates to planners/engine, returns results.

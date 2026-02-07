@@ -1,5 +1,9 @@
-# SCOPE
+# Scope
 
-Runner implementations for executing command specs.
+## Belongs here
+- Process/container execution and replay verification.
 
-See docs/STYLE.md for workspace conventions.
+## Does not belong here
+- Tool selection or parsing.
+
+See docs/40-policies/STYLE.md for documentation and policy style.

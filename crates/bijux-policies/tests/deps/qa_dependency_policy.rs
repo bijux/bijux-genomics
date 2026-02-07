@@ -27,7 +27,7 @@ fn production_crates_do_not_depend_on_qa() {
         offenders.is_empty(),
         "production crates must not depend on bijux-environment-qa.\n\
 Keep QA isolated and invoked manually.\n\
-See docs/STYLE.md.\n\
+See docs/40-policies/STYLE.md.\n\
 Offenders: {offenders:?}"
     );
 }

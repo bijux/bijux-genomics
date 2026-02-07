@@ -30,7 +30,7 @@ fn runner_src_layout_contract() {
         "bijux-runner/src may only contain lib.rs, execute.rs, runner_core.rs, and backend/.\n\
 Unexpected entries: {:?}\n\
 Fix by moving new code under backend/* or updating the policy with justification.\n\
-See docs/STYLE.md for layout rules.",
+See docs/40-policies/STYLE.md for layout rules.",
         offenders
     );
 }

@@ -1,12 +1,9 @@
-# ARCHITECTURE
+# Architecture
 
-bijux-core is the contract bible.
+## Modules
+- contract/* (execution, run, tooling, version)
+- ids.rs
+- foundation/*
 
-Top-level modules:
-- `contract/`: serialized contracts.
-- `foundation/`: low-level primitives and errors.
-- `metrics/`: metrics schemas and envelopes.
-- `ids.rs`: strongly typed identifiers.
-- `prelude/`: curated reexports.
-
-Boundary rules live in `BOUNDARIES.md`.
+## Data flow
+- Contracts are defined here and consumed by every other crate.

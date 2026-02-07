@@ -19,7 +19,7 @@ fn infra_has_no_domain_semantics() {
         offenders.is_empty(),
         "bijux-infra must not depend on domain/stage/planner crates.\n\
 Remove semantic dependencies; infra should be utility-only.\n\
-See docs/STYLE.md.\n\
+See docs/40-policies/STYLE.md.\n\
 Offenders: {offenders:?}"
     );
 }
@@ -48,7 +48,7 @@ fn no_id_catalog_literals_in_infra() {
         offenders.is_empty(),
         "bijux-infra must not define StageId/ToolId catalogs or literals.\n\
 Move semantics to domain/planner/core.\n\
-See docs/STYLE.md.\n\
+See docs/40-policies/STYLE.md.\n\
 Offenders:\n{}",
         offenders.join("\n")
     );

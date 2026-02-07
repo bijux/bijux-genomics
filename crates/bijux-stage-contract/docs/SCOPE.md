@@ -1,7 +1,9 @@
-# SCOPE
+# Scope
 
-bijux-stage-contract defines the minimal planning contracts used by planners
-and stage plugins. It contains no execution logic and no domain-specific
-implementations.
+## Belongs here
+- Plan types and stage plan schema.
 
-See docs/STYLE.md for workspace conventions.
+## Does not belong here
+- Execution or runtime concerns.
+
+See docs/40-policies/STYLE.md for documentation and policy style.

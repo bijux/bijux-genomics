@@ -1,5 +1,9 @@
-# SCOPE
+# Scope
 
-Shared test fixtures and helpers for the workspace.
+## Belongs here
+- Test fixtures and helpers.
 
-See docs/STYLE.md for workspace conventions.
+## Does not belong here
+- Production code.
+
+See docs/40-policies/STYLE.md for documentation and policy style.

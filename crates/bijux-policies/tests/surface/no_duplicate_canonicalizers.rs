@@ -34,7 +34,7 @@ fn core_is_only_canonicalizer() {
         offenders.is_empty(),
         "Canonicalization must live in bijux-core only.\n\
 Use bijux_core::contract::canonical instead of re-implementing.\n\
-See docs/STYLE.md.\n\
+See docs/40-policies/STYLE.md.\n\
 Offenders:\n{}",
         offenders.join("\n")
     );
