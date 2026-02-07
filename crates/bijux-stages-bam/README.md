@@ -1,31 +1,31 @@
 # bijux-stages-bam
 
 ## What this crate does
-Defines BAM stage specs and observers only, organized by pre/core/downstream phases.
+BAM stage specs + observers only, organized by pre/core/downstream phases.
 
 ## What it must not do (boundaries)
-Must not assemble commands or select tools. Execution belongs in planners/runner.
+No command assembly or tool selection.
+
+## Role in the stack
+Upstream: domain contracts. Downstream: planners/analyze.
 
 ## Public API / entrypoints
-Stage specs and observers documented in `docs/PHASES.md`, `docs/STAGE_LIST.md`, and `docs/OBSERVERS.md`.
+See `docs/INDEX.md`, `docs/PHASES.md`, `docs/STAGE_LIST.md`, `docs/STAGE_CONTRACTS.md`, `docs/OBSERVERS.md`, `docs/CHANGE_RULES.md`.
 
 ## Key contracts it owns/consumes
-Owns BAM stage contracts; consumes core IDs and domain semantics.
+Stage report/metrics shape snapshots.
 
 ## Effects & determinism guarantees
-Parsing is deterministic and fixture-backed. See `tests/observer_determinism.rs`.
+Pure parsing; deterministic snapshots. See `docs/EFFECTS.md` and the golden tests below.
 
 ## How to run its tests
-See `docs/TESTS.md`. Key tests: `tests/contract_snapshots.rs`, `tests/observer_determinism.rs`, `tests/metrics_completeness.rs`.
+See `docs/TESTS.md`. Golden tests: `tests/contract_snapshots.rs`, `tests/observer_determinism.rs`, `tests/metrics_completeness.rs`, `tests/structure_contract.rs`.
 
 ## Where the docs live
-Start at `docs/INDEX.md`, then read `docs/PHASES.md`, `docs/STAGE_CONTRACTS.md`, and `docs/REFERENCES.md`.
-
-## Artifacts / Contracts
-Produces stage_report/metrics shapes via parsers; snapshots live in `tests/fixtures/observer_snapshots/`.
+Start at `docs/INDEX.md` and follow the crate docs listed above.
 
 ## Failure modes
-Parser regressions or contract drift fail snapshot tests.
+Primary failures surface as snapshot or contract violations; inspect the golden tests and referenced docs.
 
 ## Stability
-Stage contracts and observer outputs are snapshot-tested; see `docs/CHANGE_RULES.md`.
+Contract and behavior changes follow `docs/CHANGE_RULES.md`.

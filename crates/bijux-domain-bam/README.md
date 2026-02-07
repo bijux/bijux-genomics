@@ -1,31 +1,31 @@
 # bijux-domain-bam
 
 ## What this crate does
-Defines BAM domain truth: phase model (pre/core/downstream), params, metric semantics, and invariants.
+BAM domain truth: phase model, params, metric semantics, invariants.
 
 ## What it must not do (boundaries)
-Must not select tools or execute commands. It is a truth/semantics layer only.
+No selection or execution.
+
+## Role in the stack
+Upstream: core IDs. Downstream: planners/stages/analyze.
 
 ## Public API / entrypoints
-Domain types are documented in `docs/DOMAIN_MODEL.md`, `docs/PHASES.md`, and `docs/METRICS.md`.
+See `docs/INDEX.md`, `docs/PHASES.md`, `docs/METRICS.md`, `docs/PARAMS.md`, `docs/DOMAIN_MODEL.md`, `docs/CHANGE_RULES.md`.
 
 ## Key contracts it owns/consumes
-Owns BAM domain semantics; consumes core IDs and metrics registry.
+Domain JSON shapes and fixtures.
 
 ## Effects & determinism guarantees
-Pure data and validation; canonical serialization is enforced by `tests/canonical_serialization.rs`.
+Pure data/validation. See `docs/EFFECTS.md` and the golden tests below.
 
 ## How to run its tests
-See `docs/TESTS.md`. Key tests: `tests/phase_semantics.rs`, `tests/metrics_contract.rs`, `tests/canonical_serialization.rs`.
+See `docs/TESTS.md`. Golden tests: `tests/phase_semantics.rs`, `tests/metrics_contract.rs`, `tests/canonical_serialization.rs`, `tests/reference_suite.rs`.
 
 ## Where the docs live
-Start at `docs/INDEX.md`, then read `docs/PHASES.md`, `docs/METRICS.md`, and `docs/PARAMS.md`.
-
-## Artifacts / Contracts
-Defines domain JSON shapes; fixtures live in `tests/fixtures/`.
+Start at `docs/INDEX.md` and follow the crate docs listed above.
 
 ## Failure modes
-Semantics violations fail phase and completeness tests.
+Primary failures surface as snapshot or contract violations; inspect the golden tests and referenced docs.
 
 ## Stability
-Domain contracts are snapshot-tested; see `docs/CHANGE_RULES.md`.
+Contract and behavior changes follow `docs/CHANGE_RULES.md`.
