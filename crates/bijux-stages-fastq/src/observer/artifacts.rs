@@ -1,3 +1,7 @@
+//! Owner: bijux-stages-fastq
+//! Observer artifacts: stable, canonical JSON outputs for derived FASTQ metadata.
+//! Formats are versioned and written atomically under run artifacts.
+
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};

@@ -1,3 +1,7 @@
+//! Owner: bijux-stages-fastq
+//! Observer parsers for tool stdout and report artifacts.
+//! Supported formats must be deterministic and stable across versions.
+
 use anyhow::{anyhow, Context, Result};
 use tracing::warn;
 

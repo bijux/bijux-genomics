@@ -12,8 +12,13 @@ Tests should explain the contract they enforce.
 ## Contracts
 - Each test file should be referenced here.
 
+## Suite map
+- `tests/observer/*` → observer parser fixtures under `tests/fixtures/*`.
+- `tests/contracts/*` → stage specs, registry, symmetry, and contract snapshots.
+- `tests/purity/*` → architecture and purity checks.
+
 ## Examples
-- `tests/architecture.rs` → dependency boundary assertions.
+- `tests/observer/observer_parsers.rs` → observer fixture parsing.
 
 ## Failure modes
 - Missing test documentation causes drift and confusion.
