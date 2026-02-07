@@ -6,16 +6,12 @@ Start at `docs/INDEX.md`. The three most important docs are:
 - `docs/CONTRACT_VERSIONING.md`
 - `docs/BOUNDARIES.md`
 
-## What contracts exist
-This crate defines the stable, serialized contracts for:
-- Execution planning: `ExecutionGraph`, `ExecutionStep`, `ExecutionManifest`
-- Run records and provenance: `RunRecordV1`, `RunMetadataV1`, `ScientificProvenanceV1`
-- Tooling and registry types: `StageSpec`, `ToolManifest`, `ToolRegistry`
-- Metrics registry and envelopes in `src/metrics/*`
-- Strong IDs in `src/ids.rs`
+## Contract map (authoritative)
+`docs/CONTRACT_MAP.md` is the single authoritative map of all core contracts and their locations.
 
 ## What is SSOT here
-`bijux-core` is the single source of truth for contract JSON shapes, canonical bytes, and their hashing inputs. Other crates may build or consume these contracts, but they do not redefine them.
+`bijux-core` is the single source of truth for contract JSON shapes, canonical bytes, and their hashing inputs.
+Core owns IDs + canonicalization + contract schema; nobody else defines IDs.
 
 ## Hashing & canonicalization guarantees
 - Canonical JSON serialization is stable and deterministic.
@@ -33,6 +29,13 @@ This crate defines the stable, serialized contracts for:
 
 ## Role in the stack
 Upstream: none. Downstream: runtime, engine, planners, stages, analyze, benchmarks.
+
+## Allowed `pub` modules
+- `contract`
+- `foundation`
+- `ids`
+- `metrics`
+- `prelude`
 
 ## Public API / entrypoints
 See `docs/INDEX.md`, `docs/CONTRACTS.md`, `docs/PUBLIC_API.md`, `docs/INVARIANTS.md`, `docs/SERIALIZATION.md`, `docs/SSOT.md`, `docs/CONTRACT_VERSIONING.md`.

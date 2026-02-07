@@ -1,5 +1,12 @@
 # INVARIANTS
 
+## Contract invariants (must always hold)
+- Canonical JSON sorting is stable (`tests/contract/canonicalization.rs::canonicalize_json_value_sorts_keys`).
+- Parameters JSON canonicalization normalizes numbers (`tests/contract/canonicalization.rs::parameters_json_canonicalization_normalizes_numbers`).
+- Metrics schemas resolve for known stages (`tests/contract/canonicalization.rs::metrics_schema_resolves_stage`).
+- Execution graphs are acyclic (`tests/contract/execution_graph_validate.rs::validate_rejects_cycles`).
+- Execution graph serialization is stage-plan free (`tests/contract/execution_graph_purity.rs::execution_graph_serialization_is_stage_plan_free`).
+
 ## ExecutionGraph
 ### Valid (acyclic)
 ```json
@@ -17,18 +24,8 @@
 ```json
 {"edges": [{"from": "step.a", "to": "step.a"}]}
 ```
-Enforced by `tests/contract/execution_graph_validate.rs`.
+Enforced by `tests/contract/execution_graph_validate.rs::validate_rejects_cycles`.
 
-## Unique IDs
-Invalid:
-```json
-{"steps": [{"step_id": "dup"}, {"step_id": "dup"}]}
-```
-Enforced by `tests/contract/execution_graph_validate.rs`.
-
-## Artifact resolvability
-Invalid:
-```json
-{"steps": [{"expected_artifact_ids": ["missing"]}]}
-```
-Enforced by `tests/contract/execution_graph_validate.rs`.
+## Stage plan purity
+Execution graphs must not serialize stage-plan or plugin types.
+Enforced by `tests/contract/execution_graph_purity.rs::execution_graph_serialization_is_stage_plan_free`.

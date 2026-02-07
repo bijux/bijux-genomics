@@ -1,5 +1,7 @@
 # Contract Map
 
+Single source of truth for core contract locations.
+
 ## Core contract families
 - Execution planning: `ExecutionGraph`, `ExecutionStep`, `ExecutionEdge`, `PlanPolicy`
 - Execution manifests and records: `ExecutionManifest`, `RunRecordV1`, `StageExecutionRecordV1`
