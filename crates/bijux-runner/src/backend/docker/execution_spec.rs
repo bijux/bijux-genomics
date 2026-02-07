@@ -4,7 +4,7 @@ use anyhow::{anyhow, Result};
 use bijux_core::prelude::{CommandSpecV1, ContainerImageRefV1, ToolExecutionSpecV1};
 use bijux_environment::api::{PlatformSpec, ToolImageSpec};
 
-use crate::docker::executor::resolve_image_for_run;
+use crate::backend::docker::executor::resolve_image_for_run;
 
 pub fn build_tool_execution_spec<S: ::std::hash::BuildHasher>(
     stage_id: &str,

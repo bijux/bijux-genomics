@@ -4,9 +4,8 @@
 pub use bijux_runtime::{Artifact, Invocation, Runner, RunnerResult};
 use std::time::Duration;
 
-pub mod docker;
+pub mod backend;
 pub mod execute;
-pub mod local;
 pub mod runner_core;
 
 #[derive(Debug, Clone, Copy)]
@@ -59,12 +58,12 @@ impl Runner for LocalRunner {
 }
 
 pub mod primitives {
-    pub use crate::docker::executor::{
+    pub use crate::backend::docker::executor::{
         docker_logs, docker_rm, docker_stats_mb, docker_wait, docker_wait_timeout, parse_mem_to_mb,
         resolve_image_for_run, ExecutionAssessment,
     };
-    pub use crate::docker::replay::replay_run;
-    pub use crate::docker::support::build_tool_execution_spec;
+    pub use crate::backend::docker::execution_spec::build_tool_execution_spec;
+    pub use crate::backend::docker::replay::replay_run;
     pub use crate::execute::{execute_observer_command, execute_step, StageResultV1};
     pub use crate::runner_core::CommandOutputV1;
 }
