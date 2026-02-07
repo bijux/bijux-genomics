@@ -1,5 +1,4 @@
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 use anyhow::{anyhow, Context, Result};
 
@@ -15,17 +14,15 @@ pub fn replay_run(run_id: &str, search_root: &Path) -> Result<()> {
         .with_context(|| format!("read manifest {}", manifest_path.display()))?;
     let manifest: ExecutionManifest = serde_json::from_slice(&manifest_bytes)
         .with_context(|| format!("parse manifest {}", manifest_path.display()))?;
-    println!(
-        "replay: {} {} (run_id={})",
-        manifest.stage, manifest.tool, manifest.run_id
-    );
-    let status = Command::new("sh")
-        .arg("-lc")
-        .arg(&manifest.command)
-        .status()
-        .context("run replay command")?;
-    if !status.success() {
-        return Err(anyhow!("replay failed with status {status}"));
+    for output in &manifest.outputs {
+        if !output.exists() {
+            return Err(anyhow!("replay missing output {}", output.display()));
+        }
+        let metadata = std::fs::metadata(output)
+            .with_context(|| format!("stat output {}", output.display()))?;
+        if metadata.len() == 0 {
+            return Err(anyhow!("replay output empty {}", output.display()));
+        }
     }
     Ok(())
 }
