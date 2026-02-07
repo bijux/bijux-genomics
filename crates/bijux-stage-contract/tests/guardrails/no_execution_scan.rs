@@ -15,7 +15,7 @@ fn no_execution_details() {
         let content = std::fs::read_to_string(entry.path()).unwrap_or_default();
         if content.contains("Command::new")
             || content.contains("docker")
-            || content.contains("RunnerKind")
+            || content.contains("RuntimeKind")
             || content.contains("std::process::Command")
         {
             offenders.push(entry.path().display().to_string());
