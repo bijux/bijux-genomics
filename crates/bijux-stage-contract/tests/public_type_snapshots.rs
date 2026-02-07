@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 
 use bijux_stage_contract::{
-    ExecutionPlan, PlanEdge, PlannerContractV1, StageInvocationV1, StagePlanV1, StagePluginOutputV1,
+    ExecutionPlan, PlanEdge, StageInvocationV1, StagePlanV1, StagePluginOutputV1,
 };
 
 fn stage_plan() -> StagePlanV1 {
