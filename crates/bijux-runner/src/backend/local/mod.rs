@@ -1,8 +1,8 @@
 //! Owner: bijux-runner
 //! Local runner placeholder (no docker).
 
-pub mod executor;
 pub mod execution_spec;
+pub mod executor;
 pub mod replay;
 
 #[must_use]
