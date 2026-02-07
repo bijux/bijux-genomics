@@ -14,6 +14,7 @@ Provides a single, stable starting point.
 
 ## Examples
 - See `SCOPE.md` and `ARCHITECTURE.md` for boundaries and layout.
+- See `RUNBOOK.md`, `QA_MATRIX.md`, `DATASETS.md`, and `APPTAINER_PLAN.md` for QA operations.
 
 ## Failure modes
 - Missing index causes policy failures.
