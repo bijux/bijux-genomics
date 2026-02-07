@@ -15,11 +15,23 @@ See `docs/INDEX.md`, `docs/BACKENDS.md`, `docs/EXECUTION_SPEC.md`, `docs/REPLAY.
 ## Key contracts it owns/consumes
 Execution records and stdout/stderr captures.
 
+## Effect guarantees
+- `cwd`: backend uses the working directory provided by the execution spec.
+- `env`: only specified environment variables are injected; no implicit mutation.
+- `mounts`: input mounts are read-only; output mounts are writable.
+- `stdout/stderr`: captured verbatim and returned in `RunnerResult`.
+- `exit_code`: nonzero exit codes are surfaced as failures in records.
+See `tests/backend/backend_invariants.rs` for enforced invariants.
+
 ## Effects & determinism guarantees
 Process spawn boundary (plus allowlisted QA/CLI). See `docs/EFFECTS.md` and the golden tests below.
 
 ## How to run its tests
-See `docs/TESTS.md`. Golden tests: `tests/backend_invariants.rs`, `tests/replay_contract.rs`, `tests/determinism.rs`, `tests/replay_determinism.rs`.
+See `docs/TESTS.md`. Golden tests: `tests/backend/backend_invariants.rs`, `tests/replay/replay_contract.rs`, `tests/determinism/run_id_determinism.rs`, `tests/replay/replay_determinism.rs`.
+
+## Where to start in code
+- `src/runner_core.rs` for command execution primitives.
+- `src/execute.rs` for step execution orchestration.
 
 ## Where the docs live
 Start at `docs/INDEX.md` and follow the crate docs listed above.

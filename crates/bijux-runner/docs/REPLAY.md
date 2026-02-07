@@ -1,6 +1,6 @@
 # REPLAY
 
-Replay does not execute tools.
+Replay never executes tools. It only verifies artifacts on disk.
 
 ## Does
 - Validate artifacts exist and are non-empty.

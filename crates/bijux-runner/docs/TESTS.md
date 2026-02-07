@@ -9,14 +9,17 @@ Tests should explain the contract they enforce.
 ## Non-goals
 - Full test implementation detail.
 
-## Contracts
-- Each test file should be referenced here.
+## Backend suite (`tests/backend/*`)
+- `tests/backend/backend_invariants.rs` → backend symmetry invariants.
+- `tests/backend/invocation_hash.rs` → stable invocation hash across backends.
+- `tests/backend/process_guardrail.rs` → process spawn confined to runner/env tooling.
 
-## Examples
-- `tests/architecture.rs` → dependency boundary assertions.
+## Replay suite (`tests/replay/*`)
+- `tests/replay/replay_contract.rs` → replay contract behavior.
+- `tests/replay/replay_determinism.rs` → replay determinism.
+
+## Determinism suite (`tests/determinism/*`)
+- `tests/determinism/run_id_determinism.rs` → run id stability.
 
 ## Failure modes
 - Missing test documentation causes drift and confusion.
-
-## Testkit patterns
-See `crates/bijux-testkit/docs/USAGE.md` for shared fixture and snapshot helpers.
