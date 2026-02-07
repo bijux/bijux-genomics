@@ -3,7 +3,7 @@ use std::path::Path;
 use crate::support::crate_roots;
 
 const MAX_FLAT_TEST_FILES: usize = 20;
-const ALLOWLIST: &[(&str, &str)] = &[("bijux-analyze", "large legacy suite pending grouping")];
+const ALLOWLIST: &[(&str, &str)] = &[];
 
 fn is_allowlisted(crate_name: &str) -> bool {
     ALLOWLIST.iter().any(|(name, _)| *name == crate_name)
