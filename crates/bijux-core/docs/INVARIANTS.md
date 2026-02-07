@@ -17,18 +17,18 @@
 ```json
 {"edges": [{"from": "step.a", "to": "step.a"}]}
 ```
-Enforced by `tests/execution_graph_validate.rs`.
+Enforced by `tests/contract/execution_graph_validate.rs`.
 
 ## Unique IDs
 Invalid:
 ```json
 {"steps": [{"step_id": "dup"}, {"step_id": "dup"}]}
 ```
-Enforced by `tests/execution_graph_validate.rs`.
+Enforced by `tests/contract/execution_graph_validate.rs`.
 
 ## Artifact resolvability
 Invalid:
 ```json
 {"steps": [{"expected_artifact_ids": ["missing"]}]}
 ```
-Enforced by `tests/execution_graph_validate.rs`.
+Enforced by `tests/contract/execution_graph_validate.rs`.
