@@ -10,7 +10,14 @@ No tool execution; only writes under run layout.
 Upstream: engine/runner. Downstream: analyze/benchmark.
 
 ## Public API / entrypoints
-See `docs/INDEX.md`, `docs/RUNTIME_CONTRACT.md`, `docs/ARTIFACTS.md`, `docs/EVENTS.md`, `docs/BOUNDARY.md`, `docs/GLOSSARY.md`, `docs/CHANGE_RULES.md`.
+See `docs/INDEX.md`, `docs/RUNTIME_CONTRACT.md`, `docs/ARTIFACTS.md`, `docs/OBSERVABILITY.md`, `docs/EVENTS.md`, `docs/BOUNDARY.md`, `docs/GLOSSARY.md`, `docs/CHANGE_RULES.md`.
+
+## Truth artifacts (canonical runtime outputs)
+Schema-stable artifacts owned by runtime:
+- Run layout: `run_layout.json` (schema: `tests/fixtures/runtime_schema/run_layout_v1.json`)
+- Run manifest: `run_manifest.json` (schema: `tests/fixtures/runtime_schema/run_manifest_v1.json`)
+- Run record: `run_record.json` (schema: `tests/fixtures/runtime_schema/run_record_v1.json`)
+- Run provenance: `run_provenance.json` (schema: `tests/fixtures/runtime_schema/run_provenance_v1.json`)
 
 ## Exact JSON artifacts owned (stability expectations)
 Stable schemas (strict compatibility, versioned on change):
@@ -37,7 +44,7 @@ Filesystem writes under run layout only. See `docs/EFFECTS.md` and the golden te
 
 ## How to understand the crate in 10 minutes
 - Read `tests/reference/reference_example.rs` for a concrete run story.
-- Open `tests/fixtures/runtime_schema/run_manifest.json` to see the canonical schema shape.
+- Open `tests/fixtures/runtime_schema/run_manifest_v1.json` to see the canonical schema shape.
 
 ## How to run its tests
 See `docs/TESTS.md`. Golden tests: `tests/reference/reference_example.rs`, `tests/schema/runtime_schema_snapshots.rs`, `tests/contracts/manifest_integrity.rs`, `tests/contracts/run_layout_contract.rs`.
