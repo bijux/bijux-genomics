@@ -8,13 +8,11 @@ default-run = "bijux"
 
 [dependencies]
 bijux-api = { path = "../bijux-api" }
-bijux-infra = { path = "../bijux-infra" }
-anyhow.workspace = true
-clap.workspace = true
-tracing.workspace = true
-serde_json.workspace = true
-serde.workspace = true
-cargo_metadata = "0.18"
+anyhow = { workspace = true }
+clap = { workspace = true }
+tracing = { workspace = true }
+serde_json = { workspace = true }
+serde = { workspace = true }
 
 [features]
 bam_downstream = ["bijux-api/bam_downstream"]
@@ -24,12 +22,10 @@ report-html = ["bijux-api/report-html"]
 default = []
 
 [dev-dependencies]
+bijux-core = { path = "../bijux-core" }
 bijux-policies = { path = "../bijux-policies" }
-assert_cmd = "2"
 tempfile = "3"
 predicates = "3"
-insta.workspace = true
-bijux-core = { path = "../bijux-core" }
-
+insta = { workspace = true }
 [lints]
 workspace = true

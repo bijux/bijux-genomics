@@ -1,12 +1,7 @@
-use anyhow::{anyhow, Context, Result};
-use bijux_api::v1::api::run::{load_manifests, load_profile, resolve_run_base_dir};
+use anyhow::{Context, Result};
 use bijux_api::v1::api::run::{CategorizedError, ErrorCategory};
 use clap::Parser;
 
-use crate::commands::bam::handle_bam_commands;
-use crate::commands::bench::handle_fastq_bench;
-use crate::commands::fastq::handle_meta_commands;
-use crate::commands::run_plan::run_plan;
 use crate::commands::cli::Cli;
 
 fn main() {
@@ -55,54 +50,5 @@ fn error_category_from_chain(err: &anyhow::Error) -> Option<ErrorCategory> {
 fn run() -> Result<()> {
     let cli = Cli::parse();
     let cwd = std::env::current_dir().context("resolve current directory")?;
-    if let Some(path) = &cli.telemetry_jsonl {
-        let telemetry_path = if path.is_absolute() {
-            path.clone()
-        } else {
-            cwd.join(path)
-        };
-        std::env::set_var("BIJUX_TELEMETRY_JSONL", telemetry_path);
-    }
-    let domain_dir = cwd.join("domain");
-
-    if handle_meta_commands(&cli, &domain_dir)? {
-        return Ok(());
-    }
-
-    let profile_path = cwd
-        .join("configs")
-        .join("profiles")
-        .join(format!("{}.toml", cli.profile));
-    let mut profile = load_profile(&profile_path).map_err(|err| {
-        anyhow!(CategorizedError::new(
-            ErrorCategory::PlanError,
-            format!("failed to load profile {}: {err}", profile_path.display())
-        ))
-    })?;
-    profile.run_base_dir = resolve_run_base_dir(&cwd, &profile.run_base_dir);
-    if cli.print_effective_config || cli.dump_effective_config {
-        let payload = serde_json::json!({
-            "profile": profile,
-            "platform": cli.platform,
-        });
-        render::json::print_pretty(&payload)?;
-        return Ok(());
-    }
-
-    let registry = load_manifests(&domain_dir).map_err(|err| {
-        anyhow!(CategorizedError::new(
-            ErrorCategory::ContractError,
-            format!("manifest validation failed: {err}")
-        ))
-    })?;
-
-    if handle_fastq_bench(&cli, &registry)? {
-        return Ok(());
-    }
-
-    if handle_bam_commands(&cli, &registry, &domain_dir)? {
-        return Ok(());
-    }
-
-    run_plan(&cli, &registry, &domain_dir)
+    crate::commands::run_with_cli(&cli, &cwd)
 }

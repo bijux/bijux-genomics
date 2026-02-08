@@ -1,6 +1,10 @@
 use std::fs;
 use std::path::PathBuf;
 
+fn snapshot_name(bucket: &str, test_name: &str) -> String {
+    format!("{}__{}__{}", env!("CARGO_PKG_NAME"), bucket, test_name)
+}
+
 /// Snapshot locks CLI public surface to prevent accidental exports.
 #[test]
 fn cli_public_surface_is_snapshotted() {
@@ -14,6 +18,11 @@ fn cli_public_surface_is_snapshotted() {
             snapshot.push('\n');
         }
     }
-    let name = bijux_testkit::snapshot_name("schemas", "public_surface");
-    insta::assert_snapshot!(name, snapshot);
+    let name = snapshot_name("schemas", "public_surface");
+    let mut settings = insta::Settings::new();
+    settings.set_snapshot_path(manifest_dir.join("tests").join("snapshots"));
+    settings.set_prepend_module_to_snapshot(false);
+    settings.bind(|| {
+        insta::assert_snapshot!(name, snapshot);
+    });
 }

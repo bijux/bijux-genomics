@@ -1,44 +1,7 @@
-use cargo_metadata::MetadataCommand;
-
-use bijux_infra::{ensure_dir, write_string};
-
 /// # Errors
-/// Returns an error if cargo metadata cannot be parsed or the DOT file cannot be written.
+/// Returns an error if the workspace audit fails.
 pub fn workspace_audit(out_dir: &Path) -> Result<()> {
-    ensure_dir(out_dir).context("create audit output dir")?;
-    let metadata = MetadataCommand::default()
-        .exec()
-        .context("run cargo metadata")?;
-    let workspace_members: HashSet<String> = metadata
-        .workspace_members
-        .iter()
-        .map(std::string::ToString::to_string)
-        .collect();
-    let mut id_to_name = HashMap::new();
-    for pkg in &metadata.packages {
-        id_to_name.insert(pkg.id.to_string(), pkg.name.clone());
-    }
-    let mut edges = BTreeSet::new();
-    if let Some(resolve) = metadata.resolve.as_ref() {
-        for node in &resolve.nodes {
-            let id = node.id.to_string();
-            if !workspace_members.contains(&id) {
-                continue;
-            }
-            for dep in &node.deps {
-                let dep_id = dep.pkg.to_string();
-                if !workspace_members.contains(&dep_id) {
-                    continue;
-                }
-                let from = id_to_name.get(&id).cloned().unwrap_or(id.clone());
-                let to = id_to_name
-                    .get(&dep_id)
-                    .cloned()
-                    .unwrap_or_else(|| dep_id.clone());
-                edges.insert((from, to));
-            }
-        }
-    }
+    let edges = bijux_api::v1::api::workspace_edges().context("load workspace edges")?;
 
     let allowed = parse_boundary_contract()?;
     let mut violations = Vec::new();
@@ -63,7 +26,6 @@ pub fn workspace_audit(out_dir: &Path) -> Result<()> {
         }
     }
 
-    let dot_path = out_dir.join("graph.dot");
     let mut dot = String::from("digraph workspace {\n");
     for (from, to) in edges {
         let _ = std::fmt::Write::write_fmt(
@@ -72,7 +34,7 @@ pub fn workspace_audit(out_dir: &Path) -> Result<()> {
         );
     }
     dot.push_str("}\n");
-    write_string(&dot_path, &dot).context("write graph.dot")?;
+    let dot_path = bijux_api::v1::api::write_workspace_audit(out_dir, &dot)?;
     println!("graph: {}", dot_path.display());
     if !violations.is_empty() {
         return Err(anyhow!("workspace boundary violations detected"));
@@ -87,7 +49,7 @@ fn parse_boundary_contract() -> Result<BTreeMap<String, BTreeSet<String>>> {
         .join("10-architecture")
         .join("BOUNDARY_MAP.md");
     let content = std::fs::read_to_string(&path).context("read boundaries.md")?;
-    let mut lines = Vec::new();
+    let mut lines: Vec<&str> = Vec::new();
     let mut in_block = false;
     for line in content.lines() {
         if line.trim() == "```boundaries" {
@@ -98,29 +60,24 @@ fn parse_boundary_contract() -> Result<BTreeMap<String, BTreeSet<String>>> {
             break;
         }
         if in_block {
-            lines.push(line.trim().to_string());
+            lines.push(line);
         }
     }
-    if !in_block || lines.is_empty() {
-        return Err(anyhow!(
-            "missing executable boundaries block in {}",
-            path.display()
-        ));
-    }
-    let mut map = BTreeMap::new();
+    let mut edges: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
     for line in lines {
+        let line = line.trim();
         if line.is_empty() || line.starts_with('#') {
             continue;
         }
-        let (name, deps) = line
-            .split_once(':')
-            .ok_or_else(|| anyhow!("invalid boundaries line: {line}"))?;
-        let deps = deps
-            .split_whitespace()
-            .filter(|dep| !dep.is_empty())
-            .map(std::string::ToString::to_string)
-            .collect::<BTreeSet<_>>();
-        map.insert(name.trim().to_string(), deps);
+        let Some((from, rest)) = line.split_once(':') else {
+            continue;
+        };
+        let from = from.trim().to_string();
+        let mut deps = BTreeSet::new();
+        for dep in rest.split_whitespace() {
+            deps.insert(dep.trim().to_string());
+        }
+        edges.insert(from, deps);
     }
-    Ok(map)
+    Ok(edges)
 }

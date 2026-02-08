@@ -129,23 +129,23 @@ pub(crate) fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool>
                         profile.stability.as_str(),
                         profile.description
                     );
-                    let stage_ids = match profile.id.as_str() {
+                    let id_catalog = match profile.id.as_str() {
                         "fastq-to-fastq__default__v1" | "fastq-to-fastq__minimal__v1" => {
-                            bijux_api::v1::api::plan::fastq_pipeline_stage_ids(profile.id.as_str())
+                            bijux_api::v1::api::plan::fastq_pipeline_id_catalog(profile.id.as_str())
                         }
                         "fastq-to-bam__default__v1" | "fastq-to-bam__adna_shotgun__v1" => {
-                            bijux_api::v1::api::plan::cross_fastq_to_bam_stage_ids(
+                            bijux_api::v1::api::plan::cross_fastq_to_bam_id_catalog(
                                 profile.id.as_str(),
                             )
                         }
                         "bam-to-bam__default__v1"
                         | "bam-to-bam__adna_shotgun__v1"
                         | "bam-to-bam__adna_capture__v1" => {
-                            bijux_api::v1::api::plan::bam_pipeline_stage_ids(profile.id.as_str())
+                            bijux_api::v1::api::plan::bam_pipeline_id_catalog(profile.id.as_str())
                         }
                         _ => Vec::new(),
                     };
-                    for stage_id in stage_ids {
+                    for stage_id in id_catalog {
                         if stage_id.starts_with("bam.") {
                             let stage =
                                 bijux_api::v1::api::bench::BamStage::try_from(stage_id.as_str())

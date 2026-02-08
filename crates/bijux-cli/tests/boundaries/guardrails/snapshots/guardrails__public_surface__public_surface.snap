@@ -1,5 +1,0 @@
----
-source: crates/bijux-cli/tests/guardrails/public_surface.rs
-expression: snapshot
----
-pub mod\n  cli\n  commands\n\npub use\n  pub use crate::commands::cli::*;

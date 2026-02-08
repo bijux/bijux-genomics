@@ -21,9 +21,9 @@ fn cli_does_not_spawn_processes() {
     collect_rs_files(Path::new("crates/bijux-cli/src"), &mut files);
     let mut offenders = Vec::new();
     let needles = [
-        "std::process::Command",
-        "Command::new(",
-        "tokio::process::Command",
+        concat!("std::process::", "Command"),
+        concat!("Command::", "new("),
+        concat!("tokio::process::", "Command"),
     ];
     for file in files {
         let Ok(contents) = fs::read_to_string(&file) else {
