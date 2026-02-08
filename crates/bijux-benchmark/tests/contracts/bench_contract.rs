@@ -44,7 +44,7 @@ fn bench_contract_snapshot() -> anyhow::Result<()> {
         "spec": spec,
         "summary": summary,
     });
-    insta::assert_json_snapshot!(payload, @r###"
+    insta::assert_json_snapshot!(bijux_testkit::snapshot_normalize_json(&payload), @r###"
     {
       "spec": {
         "analysis_requirements": {

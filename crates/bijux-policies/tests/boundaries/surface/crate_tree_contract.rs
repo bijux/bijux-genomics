@@ -53,6 +53,9 @@ fn policy__boundaries__crate_tree_contract__crate_tree_contract_snapshot() {
     settings.set_snapshot_path(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/snapshots"));
     settings.set_prepend_module_to_snapshot(false);
     settings.bind(|| {
-        insta::assert_snapshot!(name, lines.join("\n"));
+        insta::assert_snapshot!(
+            name,
+            bijux_testkit::snapshot_normalize_text(&lines.join("\n"))
+        );
     });
 }

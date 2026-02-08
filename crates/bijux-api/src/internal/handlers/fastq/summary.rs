@@ -13,7 +13,7 @@ use bijux_core::metrics::ToolInvocationV1;
 use bijux_core::prelude::ArtifactId;
 use bijux_planner_fastq::report_stage_step as build_report_stage_step;
 use bijux_planner_fastq::{CorrectDecisionTrace, MergeDecisionTrace};
-use bijux_runner::primitives::StageResultV1;
+use bijux_runner::StageResultV1;
 
 pub(crate) fn render_run_summary(
     out_dir: &Path,
@@ -642,7 +642,7 @@ mod tests {
         ArtifactId, CommandSpecV1, ContainerImageRefV1, StageVersion, ToolConstraints, ToolId,
     };
     use bijux_planner_fastq::stage_api::STAGE_TRIM;
-    use bijux_runner::primitives::StageResultV1;
+    use bijux_runner::StageResultV1;
     use bijux_stage_contract::{StageIO, StagePlanV1};
     use insta::Settings;
     use std::path::PathBuf;
@@ -878,7 +878,7 @@ mod tests {
         settings
             .set_snapshot_path(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/snapshots"));
         settings.bind(|| {
-            insta::assert_json_snapshot!(name, payload);
+            insta::assert_json_snapshot!(name, bijux_testkit::snapshot_normalize_json(&payload));
         });
         Ok(())
     }

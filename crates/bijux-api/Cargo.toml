@@ -42,6 +42,7 @@ insta = { version = "1", features = ["json"] }
 walkdir = { workspace = true }
 bijux-policies = { path = "../bijux-policies" }
 tempfile = { workspace = true }
+bijux-testkit = { path = "../bijux-testkit" }
 
 [lints]
 workspace = true

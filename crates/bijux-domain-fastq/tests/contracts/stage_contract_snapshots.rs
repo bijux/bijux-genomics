@@ -17,7 +17,7 @@ fn stage_contract_snapshots() {
                 &format!("stage_contract__{}", stage_str.replace('.', "_")),
             );
             settings.bind(|| {
-                insta::assert_json_snapshot!(name, json);
+                insta::assert_json_snapshot!(name, bijux_testkit::snapshot_normalize_json(&json));
             });
         }
     }

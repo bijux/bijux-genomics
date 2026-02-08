@@ -76,7 +76,7 @@ fn fastq_plan_snapshot() {
     };
     let plan = FastqPlanner::plan(&config).expect("plan");
     let name = snapshot_name("contracts", "fastq_plan_snapshot");
-    insta::assert_json_snapshot!(name, plan);
+    insta::assert_json_snapshot!(name, bijux_testkit::snapshot_normalize_json(&plan));
 }
 
 #[test]
@@ -154,5 +154,5 @@ fn default_pipeline_plan_snapshot_is_stable() {
     let plan =
         plan_fastq_to_fastq__default__v1(&inputs, DefaultPipelineOptions::default()).expect("plan");
     let name = snapshot_name("contracts", "fastq_default_pipeline_plan");
-    insta::assert_json_snapshot!(name, plan);
+    insta::assert_json_snapshot!(name, bijux_testkit::snapshot_normalize_json(&plan));
 }

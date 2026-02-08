@@ -73,7 +73,7 @@ fn fastq_default_pipeline_graph_is_pure() -> anyhow::Result<()> {
     settings.add_filter(temp.path().to_str().unwrap_or_default(), "<temp>");
     settings.bind(|| {
         let name = snapshot_name("contracts", "fastq_default_graph");
-        insta::assert_json_snapshot!(name, json);
+        insta::assert_json_snapshot!(name, bijux_testkit::snapshot_normalize_json(&json));
     });
     Ok(())
 }

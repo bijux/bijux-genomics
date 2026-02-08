@@ -20,5 +20,5 @@ fn public_surface_is_snapshotted() {
         }
     }
     let name = bijux_testkit::snapshot_name("schemas", "public_surface");
-    insta::assert_snapshot!(name, snapshot);
+    insta::assert_snapshot!(name, bijux_testkit::snapshot_normalize_text(&snapshot));
 }

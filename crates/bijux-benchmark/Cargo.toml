@@ -22,3 +22,4 @@ insta = { version = "1", features = ["json"] }
 walkdir.workspace = true
 bijux-domain-fastq = { path = "../bijux-domain-fastq" }
 bijux-domain-bam = { path = "../bijux-domain-bam" }
+bijux-testkit = { path = "../bijux-testkit" }

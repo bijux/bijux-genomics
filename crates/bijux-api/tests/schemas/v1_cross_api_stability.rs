@@ -74,7 +74,7 @@ fn plan_response_schema_is_stable() -> anyhow::Result<()> {
     let name = snapshot_name("schemas", "plan_response_schema");
     let settings = snapshot_settings();
     settings.bind(|| {
-        insta::assert_json_snapshot!(name, json);
+        insta::assert_json_snapshot!(name, bijux_testkit::snapshot_normalize_json(&json));
     });
     Ok(())
 }
@@ -90,7 +90,7 @@ fn execute_response_schema_is_stable() -> anyhow::Result<()> {
     let name = snapshot_name("schemas", "execute_response_schema");
     let settings = snapshot_settings();
     settings.bind(|| {
-        insta::assert_json_snapshot!(name, json);
+        insta::assert_json_snapshot!(name, bijux_testkit::snapshot_normalize_json(&json));
     });
     Ok(())
 }
@@ -111,7 +111,7 @@ fn dry_run_response_schema_is_stable() -> anyhow::Result<()> {
     let name = snapshot_name("schemas", "dry_run_response_schema");
     let settings = snapshot_settings();
     settings.bind(|| {
-        insta::assert_json_snapshot!(name, json);
+        insta::assert_json_snapshot!(name, bijux_testkit::snapshot_normalize_json(&json));
     });
     Ok(())
 }
@@ -133,7 +133,7 @@ fn status_schema_is_stable() -> anyhow::Result<()> {
     let name = snapshot_name("schemas", "status_schema");
     let settings = snapshot_settings();
     settings.bind(|| {
-        insta::assert_json_snapshot!(name, json);
+        insta::assert_json_snapshot!(name, bijux_testkit::snapshot_normalize_json(&json));
     });
     Ok(())
 }
@@ -146,7 +146,7 @@ fn explain_schema_is_stable() -> anyhow::Result<()> {
     let name = snapshot_name("schemas", "explain_schema");
     let settings = snapshot_settings();
     settings.bind(|| {
-        insta::assert_json_snapshot!(name, json);
+        insta::assert_json_snapshot!(name, bijux_testkit::snapshot_normalize_json(&json));
     });
     Ok(())
 }
@@ -168,7 +168,7 @@ fn policy_audit_schema_is_stable() -> anyhow::Result<()> {
     let name = snapshot_name("schemas", "policy_audit_schema");
     let settings = snapshot_settings();
     settings.bind(|| {
-        insta::assert_json_snapshot!(name, json);
+        insta::assert_json_snapshot!(name, bijux_testkit::snapshot_normalize_json(&json));
     });
     Ok(())
 }
