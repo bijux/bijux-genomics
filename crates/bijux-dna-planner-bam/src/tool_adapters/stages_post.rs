@@ -1,0 +1,290 @@
+//! Stage adapters for core BAM processing and QC stages.
+
+pub mod markdup {
+    use std::path::Path;
+
+    use bijux_dna_core::prelude::{
+        ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
+    };
+    use bijux_dna_domain_bam::params::MarkDupEffectiveParams;
+    use bijux_dna_stage_contract::{StageIO, StagePlanV1};
+
+    pub const STAGE_ID: &str = bijux_dna_domain_bam::BamStage::Markdup.as_str();
+    pub const STAGE_VERSION: StageVersion = StageVersion(1);
+
+    /// # Errors
+    /// Returns an error if required outputs are missing from the plan.
+    pub fn plan(
+        tool: &ToolExecutionSpecV1,
+        bam: &Path,
+        out_dir: &Path,
+        params: &MarkDupEffectiveParams,
+    ) -> anyhow::Result<StagePlanV1> {
+        let outputs = crate::tool_adapters::stages_support::audit_outputs(
+            bijux_dna_domain_bam::BamStage::Markdup,
+            out_dir,
+        );
+        let out_bam = out_dir.join("markdup.bam");
+        let flagstat_before = out_dir.join("flagstat.before.txt");
+        let flagstat_after = out_dir.join("flagstat.after.txt");
+        let idxstats_before = out_dir.join("idxstats.before.txt");
+        let idxstats_after = out_dir.join("idxstats.after.txt");
+        let summary = out_dir.join("markdup.summary.json");
+        let command = match tool.tool_id.as_str() {
+            "samtools" => crate::tool_adapters::tools::samtools::markdup_args_with_audit(
+                bam,
+                &out_bam,
+                &flagstat_before,
+                &flagstat_after,
+                &idxstats_before,
+                &idxstats_after,
+                &summary,
+                params,
+            ),
+            _ => crate::tool_adapters::tools::gatk::markdup_args_with_audit(
+                bam,
+                &out_bam,
+                &flagstat_before,
+                &flagstat_after,
+                &idxstats_before,
+                &idxstats_after,
+                &summary,
+                params,
+            ),
+        };
+        let plan = StagePlanV1 {
+            stage_id: StageId::from_static(STAGE_ID),
+            stage_version: STAGE_VERSION,
+            tool_id: tool.tool_id.clone(),
+            tool_version: tool.tool_version.clone(),
+            image: tool.image.clone(),
+            command: CommandSpecV1 { template: command },
+            resources: tool.resources.clone(),
+            io: StageIO {
+                inputs: vec![bijux_dna_stage_contract::ArtifactRef::required(
+                    ArtifactId::from_static("bam"),
+                    bam.to_path_buf(),
+                    ArtifactRole::Bam,
+                )],
+                outputs,
+            },
+            out_dir: out_dir.to_path_buf(),
+            params: serde_json::json!({
+                "bam": bam,
+                "optical_duplicates": params.optical_duplicates,
+                "umi_policy": params.umi_policy,
+                "duplicate_action": params.duplicate_action,
+            }),
+            effective_params: crate::tool_adapters::stages_support::ensure_effective_params(
+                serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
+            )?,
+            aux_images: std::collections::BTreeMap::new(),
+            reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
+        };
+        crate::tool_adapters::stages_support::ensure_required_outputs(
+            plan,
+            &[
+                "markdup_bam",
+                "markdup_bai",
+                "flagstat_before",
+                "flagstat_after",
+                "idxstats_before",
+                "idxstats_after",
+                "summary",
+                "stage_metrics",
+            ],
+        )
+    }
+}
+
+pub mod complexity {
+    use std::path::Path;
+
+    use bijux_dna_core::prelude::{
+        ArtifactId, ArtifactRole, StageId, StageVersion, ToolExecutionSpecV1,
+    };
+    use bijux_dna_domain_bam::params::ComplexityEffectiveParams;
+    use bijux_dna_stage_contract::{StageIO, StagePlanV1};
+
+    pub const STAGE_ID: &str = bijux_dna_domain_bam::BamStage::Complexity.as_str();
+    pub const STAGE_VERSION: StageVersion = StageVersion(1);
+
+    /// # Errors
+    /// Returns an error if required outputs are missing from the plan.
+    pub fn plan(
+        tool: &ToolExecutionSpecV1,
+        bam: &Path,
+        out_dir: &Path,
+        params: &ComplexityEffectiveParams,
+    ) -> anyhow::Result<StagePlanV1> {
+        let outputs = crate::tool_adapters::stages_support::audit_outputs(
+            bijux_dna_domain_bam::BamStage::Complexity,
+            out_dir,
+        );
+        let plan = StagePlanV1 {
+            stage_id: StageId::from_static(STAGE_ID),
+            stage_version: STAGE_VERSION,
+            tool_id: tool.tool_id.clone(),
+            tool_version: tool.tool_version.clone(),
+            image: tool.image.clone(),
+            command: tool.command.clone(),
+            resources: tool.resources.clone(),
+            io: StageIO {
+                inputs: vec![bijux_dna_stage_contract::ArtifactRef::required(
+                    ArtifactId::from_static("bam"),
+                    bam.to_path_buf(),
+                    ArtifactRole::Bam,
+                )],
+                outputs,
+            },
+            out_dir: out_dir.to_path_buf(),
+            params: serde_json::json!({
+                "bam": bam,
+                "min_reads": params.min_reads,
+                "projection_points": params.projection_points,
+            }),
+            effective_params: crate::tool_adapters::stages_support::ensure_effective_params(
+                serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
+            )?,
+            aux_images: std::collections::BTreeMap::new(),
+            reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
+        };
+        crate::tool_adapters::stages_support::ensure_required_outputs(
+            plan,
+            &["complexity_report", "preseq", "summary"],
+        )
+    }
+}
+
+pub mod coverage {
+    use std::path::Path;
+
+    use bijux_dna_core::prelude::{
+        ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
+    };
+    use bijux_dna_domain_bam::params::CoverageEffectiveParams;
+    use bijux_dna_stage_contract::{StageIO, StagePlanV1};
+
+    pub const STAGE_ID: &str = bijux_dna_domain_bam::BamStage::Coverage.as_str();
+    pub const STAGE_VERSION: StageVersion = StageVersion(1);
+
+    /// # Errors
+    /// Returns an error if required outputs are missing from the plan.
+    pub fn plan(
+        tool: &ToolExecutionSpecV1,
+        bam: &Path,
+        out_dir: &Path,
+        params: &CoverageEffectiveParams,
+    ) -> anyhow::Result<StagePlanV1> {
+        let mut outputs = crate::tool_adapters::stages_support::audit_outputs(
+            bijux_dna_domain_bam::BamStage::Coverage,
+            out_dir,
+        );
+        let prefix = out_dir.join("coverage");
+        let depth_path = out_dir.join("coverage.depth.txt");
+        let summary_path = out_dir.join("coverage.mosdepth.summary.txt");
+        let command = match tool.tool_id.as_str() {
+            "samtools" => {
+                outputs.push(bijux_dna_stage_contract::ArtifactRef::required(
+                    ArtifactId::from_static("coverage_depth"),
+                    depth_path.clone(),
+                    ArtifactRole::ReportJson,
+                ));
+                crate::tool_adapters::tools::samtools::depth_args(bam, &depth_path, &summary_path)
+            }
+            _ => crate::tool_adapters::tools::mosdepth::args(bam, &prefix, params),
+        };
+        let plan = StagePlanV1 {
+            stage_id: StageId::from_static(STAGE_ID),
+            stage_version: STAGE_VERSION,
+            tool_id: tool.tool_id.clone(),
+            tool_version: tool.tool_version.clone(),
+            image: tool.image.clone(),
+            command: CommandSpecV1 { template: command },
+            resources: tool.resources.clone(),
+            io: StageIO {
+                inputs: vec![bijux_dna_stage_contract::ArtifactRef::required(
+                    ArtifactId::from_static("bam"),
+                    bam.to_path_buf(),
+                    ArtifactRole::Bam,
+                )],
+                outputs,
+            },
+            out_dir: out_dir.to_path_buf(),
+            params: serde_json::json!({
+                "bam": bam,
+                "regions": params.regions,
+                "depth_thresholds": params.depth_thresholds,
+            }),
+            effective_params: crate::tool_adapters::stages_support::ensure_effective_params(
+                serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
+            )?,
+            aux_images: std::collections::BTreeMap::new(),
+            reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
+        };
+        crate::tool_adapters::stages_support::ensure_required_outputs(
+            plan,
+            &["coverage_summary", "stage_metrics"],
+        )
+    }
+}
+
+pub mod recalibration {
+    use std::path::Path;
+
+    use bijux_dna_core::prelude::{
+        ArtifactId, ArtifactRole, StageId, StageVersion, ToolExecutionSpecV1,
+    };
+    use bijux_dna_domain_bam::params::BqsrEffectiveParams;
+    use bijux_dna_stage_contract::{StageIO, StagePlanV1};
+
+    pub const STAGE_ID: &str = bijux_dna_domain_bam::BamStage::Recalibration.as_str();
+    pub const STAGE_VERSION: StageVersion = StageVersion(1);
+
+    /// # Errors
+    /// Returns an error if required outputs are missing from the plan.
+    pub fn plan(
+        tool: &ToolExecutionSpecV1,
+        bam: &Path,
+        out_dir: &Path,
+        params: &BqsrEffectiveParams,
+    ) -> anyhow::Result<StagePlanV1> {
+        let outputs = crate::tool_adapters::stages_support::audit_outputs(
+            bijux_dna_domain_bam::BamStage::Recalibration,
+            out_dir,
+        );
+        let plan = StagePlanV1 {
+            stage_id: StageId::from_static(STAGE_ID),
+            stage_version: STAGE_VERSION,
+            tool_id: tool.tool_id.clone(),
+            tool_version: tool.tool_version.clone(),
+            image: tool.image.clone(),
+            command: tool.command.clone(),
+            resources: tool.resources.clone(),
+            io: StageIO {
+                inputs: vec![bijux_dna_stage_contract::ArtifactRef::required(
+                    ArtifactId::from_static("bam"),
+                    bam.to_path_buf(),
+                    ArtifactRole::Bam,
+                )],
+                outputs,
+            },
+            out_dir: out_dir.to_path_buf(),
+            params: serde_json::json!({
+                "bam": bam,
+                "known_sites": params.known_sites,
+                "mode": params.mode,
+                "skip_criteria": params.skip_criteria,
+            }),
+            effective_params: crate::tool_adapters::stages_support::ensure_effective_params(
+                serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
+            )?,
+            aux_images: std::collections::BTreeMap::new(),
+            reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
+        };
+        crate::tool_adapters::stages_support::ensure_required_outputs(
+            plan,
+            &["recal_bam", "recal_bai", "recal_report", "summary"],
+        )
+    }
+}
