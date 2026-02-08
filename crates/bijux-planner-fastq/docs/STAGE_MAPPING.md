@@ -2,7 +2,7 @@
 
 Authority for stage catalog lives in `src/tool_adapters/stages/catalog.rs`.
 
-| Stage ID | Tool Adapter | Artifacts | Metrics |
+| Stage ID | Tool Adapter(s) | Artifacts Emitted | Metrics Emitted |
 | --- | --- | --- | --- |
 | fastq.validate_pre | fastqvalidator | report.json | read_count, base_count |
 | fastq.trim | fastp | trimmed FASTQ | retention, bases_kept |
@@ -13,4 +13,4 @@ Authority for stage catalog lives in `src/tool_adapters/stages/catalog.rs`.
 | fastq.stats_neutral | seqkit | stats report | read_count, base_count |
 | fastq.correct | bayeshammer | corrected FASTQ | correction_rate |
 | fastq.umi | umi_tools | umi FASTQ | umi_stats |
-| fastq.preprocess | pipeline | staged FASTQ | summary |
+| fastq.preprocess | pipeline composition | staged FASTQ + summary | summary |
