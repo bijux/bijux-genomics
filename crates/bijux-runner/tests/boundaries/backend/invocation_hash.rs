@@ -1,10 +1,10 @@
 use std::collections::BTreeMap;
 
 use bijux_core::prelude::{CommandSpecV1, ContainerImageRefV1, ToolExecutionSpecV1};
-use bijux_runner::backend::{docker as docker_backend, local as local_backend};
+use bijux_runner::backend::docker as docker_backend;
 
 #[test]
-fn invocation_hash_is_stable_across_backends() -> anyhow::Result<()> {
+fn invocation_hash_is_stable_for_docker_backend() -> anyhow::Result<()> {
     let spec = ToolExecutionSpecV1 {
         tool_id: bijux_core::ids::ToolId::from_static("tool"),
         tool_version: "1.0".to_string(),
@@ -23,8 +23,6 @@ fn invocation_hash_is_stable_across_backends() -> anyhow::Result<()> {
 
     let docker_hash =
         docker_backend::execution_spec::invocation_hash_for_spec(&spec, &env, &inputs)?;
-    let local_hash = local_backend::execution_spec::invocation_hash_for_spec(&spec, &env, &inputs)?;
-
-    assert_eq!(docker_hash, local_hash);
+    assert!(!docker_hash.is_empty());
     Ok(())
 }

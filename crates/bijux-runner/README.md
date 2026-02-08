@@ -1,7 +1,7 @@
 # bijux-runner
 
 ## What this crate does
-Execution backends (local/docker) that run CommandSpec and capture outputs.
+Execution backend (docker) that runs CommandSpec and captures outputs.
 
 ## What it must not do (boundaries)
 No planning or parsing; execution only.
