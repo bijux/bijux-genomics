@@ -26,6 +26,7 @@ audit: ensure-cargo-deny
 coverage:
 	@mkdir -p $(dir $(COVERAGE_OUT))
 	$(COVERAGE_ENV) $(COVERAGE)
+	$(COVERAGE_ENV) cargo llvm-cov test --workspace --all-features --tests --benches --bins --html --output-dir $(HTML_OUT) -- --include-ignored
 	python3 scripts/coverage_summary.py $(COVERAGE_OUT)
 
 fmt-isolate:
@@ -44,14 +45,8 @@ coverage-isolate: CARGO_TARGET_DIR=target-isolate
 coverage-isolate:
 	@mkdir -p $(dir $(COVERAGE_OUT))
 	$(COVERAGE_ENV) $(COVERAGE)
+	$(COVERAGE_ENV) cargo llvm-cov test --workspace --all-features --tests --benches --bins --html --output-dir $(HTML_OUT) -- --include-ignored
 	python3 scripts/coverage_summary.py $(COVERAGE_OUT)
-
-coverage-html:
-	$(COVERAGE_ENV) cargo llvm-cov test --workspace --all-features --tests --benches --bins --html --output-dir $(HTML_OUT) -- --include-ignored
-
-coverage-html-isolate: CARGO_TARGET_DIR=target-isolate
-coverage-html-isolate:
-	$(COVERAGE_ENV) cargo llvm-cov test --workspace --all-features --tests --benches --bins --html --output-dir $(HTML_OUT) -- --include-ignored
 
 ci: fmt lint audit coverage
 
