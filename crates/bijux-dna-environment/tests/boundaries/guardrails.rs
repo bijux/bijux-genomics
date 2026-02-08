@@ -1,4 +1,4 @@
-#[path = "../../../bijux-policies/tests/guardrails.rs"]
+#[path = "../../../bijux-dna-policies/tests/guardrails.rs"]
 mod policies;
 
 /// Centralized guardrails runner.

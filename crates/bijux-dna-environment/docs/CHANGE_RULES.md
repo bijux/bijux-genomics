@@ -1,7 +1,7 @@
 # Change Rules
 
 ## What
-Defines breaking vs non‑breaking changes for `bijux-environment`.
+Defines breaking vs non‑breaking changes for `bijux-dna-environment`.
 
 ## Why
 Prevents silent contract drift.

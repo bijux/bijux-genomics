@@ -1,4 +1,4 @@
-# bijux-environment
+# bijux-dna-environment
 
 ## What this crate does
 Deterministic resolution of tool images and environment specs.
@@ -40,7 +40,7 @@ Pure resolution; no network execution. Stable digest for the same inputs; see `d
 - HPC scheduler integration.
 
 ## No execution
-This crate must not depend on `bijux-runner` or execute tools. See `docs/BOUNDARY.md` and `tests/guardrails/no_runner_usage.rs`.
+This crate must not depend on `bijux-dna-runner` or execute tools. See `docs/BOUNDARY.md` and `tests/guardrails/no_runner_usage.rs`.
 
 ## Common failures
 - Bad platform spec (schema mismatch): see `tests/schema/schema_snapshots.rs`.

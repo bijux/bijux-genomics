@@ -1,7 +1,7 @@
 # Effects
 
 ## What
-Defines what effects `bijux-environment` is allowed to use.
+Defines what effects `bijux-dna-environment` is allowed to use.
 
 ## Why
 Preserves architectural purity and reproducibility.
