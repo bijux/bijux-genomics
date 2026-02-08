@@ -22,7 +22,7 @@
       "memory_mb": 64.0,
       "exit_code": 0,
       "reports": {
-        "stage_report": "/Users/bijan/bijux/bijux-dna/crates/bijux-analyze/tests/fixtures/golden_spine/fastq-to-fastq__default__v1/runs/fastq-to-fastq__default__v1/artifacts/stage_1/stage_report.json"
+        "stage_report": "/Users/bijan/bijux/bijux-dna/crates/bijux-dna-analyze/tests/fixtures/golden_spine/fastq-to-fastq__default__v1/runs/fastq-to-fastq__default__v1/artifacts/stage_1/stage_report.json"
       },
       "deltas": {
         "reads_in": 100,
@@ -46,7 +46,7 @@
       "memory_mb": 64.0,
       "exit_code": 0,
       "reports": {
-        "stage_report": "/Users/bijan/bijux/bijux-dna/crates/bijux-analyze/tests/fixtures/golden_spine/fastq-to-fastq__default__v1/runs/fastq-to-fastq__default__v1/artifacts/stage_3/stage_report.json"
+        "stage_report": "/Users/bijan/bijux/bijux-dna/crates/bijux-dna-analyze/tests/fixtures/golden_spine/fastq-to-fastq__default__v1/runs/fastq-to-fastq__default__v1/artifacts/stage_3/stage_report.json"
       },
       "deltas": {
         "reads_in": 100,
@@ -70,7 +70,7 @@
       "memory_mb": 64.0,
       "exit_code": 0,
       "reports": {
-        "stage_report": "/Users/bijan/bijux/bijux-dna/crates/bijux-analyze/tests/fixtures/golden_spine/fastq-to-fastq__default__v1/runs/fastq-to-fastq__default__v1/artifacts/stage_5/stage_report.json"
+        "stage_report": "/Users/bijan/bijux/bijux-dna/crates/bijux-dna-analyze/tests/fixtures/golden_spine/fastq-to-fastq__default__v1/runs/fastq-to-fastq__default__v1/artifacts/stage_5/stage_report.json"
       },
       "deltas": {
         "reads_in": 100,
@@ -94,7 +94,7 @@
       "memory_mb": 64.0,
       "exit_code": 0,
       "reports": {
-        "stage_report": "/Users/bijan/bijux/bijux-dna/crates/bijux-analyze/tests/fixtures/golden_spine/fastq-to-fastq__default__v1/runs/fastq-to-fastq__default__v1/artifacts/stage_4/stage_report.json"
+        "stage_report": "/Users/bijan/bijux/bijux-dna/crates/bijux-dna-analyze/tests/fixtures/golden_spine/fastq-to-fastq__default__v1/runs/fastq-to-fastq__default__v1/artifacts/stage_4/stage_report.json"
       },
       "deltas": {
         "reads_in": 100,
@@ -118,7 +118,7 @@
       "memory_mb": 64.0,
       "exit_code": 0,
       "reports": {
-        "stage_report": "/Users/bijan/bijux/bijux-dna/crates/bijux-analyze/tests/fixtures/golden_spine/fastq-to-fastq__default__v1/runs/fastq-to-fastq__default__v1/artifacts/stage_2/stage_report.json"
+        "stage_report": "/Users/bijan/bijux/bijux-dna/crates/bijux-dna-analyze/tests/fixtures/golden_spine/fastq-to-fastq__default__v1/runs/fastq-to-fastq__default__v1/artifacts/stage_2/stage_report.json"
       },
       "deltas": {
         "reads_in": 100,
@@ -142,7 +142,7 @@
       "memory_mb": 64.0,
       "exit_code": 0,
       "reports": {
-        "stage_report": "/Users/bijan/bijux/bijux-dna/crates/bijux-analyze/tests/fixtures/golden_spine/fastq-to-fastq__default__v1/runs/fastq-to-fastq__default__v1/artifacts/stage_0/stage_report.json"
+        "stage_report": "/Users/bijan/bijux/bijux-dna/crates/bijux-dna-analyze/tests/fixtures/golden_spine/fastq-to-fastq__default__v1/runs/fastq-to-fastq__default__v1/artifacts/stage_0/stage_report.json"
       },
       "deltas": {
         "reads_in": 100,

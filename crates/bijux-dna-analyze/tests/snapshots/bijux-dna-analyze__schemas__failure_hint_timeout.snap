@@ -1,5 +1,5 @@
 ---
-source: crates/bijux-analyze/tests/contracts/failure_hints.rs
+source: crates/bijux-dna-analyze/tests/contracts/failure_hints.rs
 assertion_line: 18
 expression: json
 ---
