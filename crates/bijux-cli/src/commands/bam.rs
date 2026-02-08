@@ -57,14 +57,17 @@ fn run_bam_stage(
     let stage = args.stage.stage();
     let profile = bijux_api::v1::api::plan::select_pipeline(Domain::Bam, &args.profile)?;
     let stage_key = StageId::from_static(stage.as_str());
-    let tool_id = args.tool.clone().map(ToolId::new).unwrap_or_else(|| {
-        profile
-            .defaults
-            .tools
-            .get(&stage_key)
-            .cloned()
-            .unwrap_or_else(|| ToolId::from_static("samtools"))
-    });
+    let tool_id = args.tool.clone().map_or_else(
+        || {
+            profile
+                .defaults
+                .tools
+                .get(&stage_key)
+                .cloned()
+                .unwrap_or_else(|| ToolId::from_static("samtools"))
+        },
+        ToolId::new,
+    );
     let spec = build_tool_execution_spec(
         stage.as_str(),
         tool_id.as_str(),

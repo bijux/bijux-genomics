@@ -6,10 +6,7 @@ fn args_module_is_named_request_args() {
     let mut offenders = Vec::new();
 
     for entry in WalkDir::new(&root) {
-        let entry = match entry {
-            Ok(entry) => entry,
-            Err(_) => continue,
-        };
+        let Ok(entry) = entry else { continue };
         if !entry.file_type().is_file() {
             continue;
         }

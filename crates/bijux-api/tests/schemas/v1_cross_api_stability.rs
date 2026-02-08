@@ -10,7 +10,6 @@ use bijux_core::contract::{ArtifactRef, ArtifactRole, StageIO, ToolConstraints};
 use bijux_core::contract::{ExecutionEdge, ExecutionGraph, ExecutionStep};
 use bijux_core::prelude::{ArtifactId, CommandSpecV1, ContainerImageRefV1, StageId, StepId};
 use insta::Settings;
-use tempfile;
 
 fn snapshot_name(group: &str, name: &str) -> String {
     format!("bijux-api__{group}__{name}")
@@ -52,7 +51,7 @@ fn minimal_graph() -> ExecutionGraph {
         vec![step],
         Vec::<ExecutionEdge>::new(),
     )
-    .expect("graph")
+    .unwrap_or_else(|err| panic!("graph build failed: {err}"))
 }
 
 fn snapshot_settings() -> Settings {
