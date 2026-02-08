@@ -12,5 +12,8 @@ See `ARCHITECTURE.md` for internal boundaries.
 ## Extension Points
 See `CHANGE_RULES.md` for safe extension guidelines.
 
+## Tooling
+See `TOOL_SELECTION.md` and `TOOL_ROSTER.md` for selection inputs + roster.
+
 ## How to Test
 See `TESTS.md` for test mapping and fixtures.

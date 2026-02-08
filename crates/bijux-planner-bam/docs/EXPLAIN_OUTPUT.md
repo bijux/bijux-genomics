@@ -1,5 +1,12 @@
 # EXPLAIN_OUTPUT
 
+## Guarantee
+Explain output includes:
+- `selected_tools` in stable order
+- `defaults_diff` (profile vs pipeline)
+- `reasons` for tool selection
+- `contract_hashes` for each stage
+
 ## Canonical example
 ```json
 {
@@ -10,4 +17,4 @@
 }
 ```
 
-See `tests/graph/graph_snapshots.rs` for canonical graphs.
+See `tests/explain/explainability.rs` and `tests/graph/graph_snapshots.rs` for enforcement.

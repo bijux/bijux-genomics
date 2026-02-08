@@ -1,4 +1,4 @@
-//! Stage adapters for core/post-alignment processing stages.
+//! Stage adapters for core BAM processing and QC stages.
 
 pub mod markdup {
     use std::path::Path;
