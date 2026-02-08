@@ -1,0 +1,20 @@
+---
+source: crates/bijux-api/tests/v1_cross_api_stability.rs
+expression: json
+---
+{
+  "guardrails": {
+    "bijux-dna-api": {
+      "error": "<error>",
+      "status": "fail"
+    },
+    "bijux-dna-core": {
+      "error": "<error>",
+      "status": "fail"
+    },
+    "bijux-dna-engine": {
+      "error": "<error>",
+      "status": "fail"
+    }
+  }
+}
