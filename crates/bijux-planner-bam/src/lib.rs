@@ -420,10 +420,16 @@ fn build_bam_plan(profile: &PipelineProfile, inputs: &BamPipelineInputs) -> Resu
             .tool_specs
             .get(stage_id)
             .ok_or_else(|| anyhow!("missing tool spec for stage {stage_id}"))?;
+        let stage_key = bijux_core::ids::StageId::from_static(stage_id);
+        let default_params = profile
+            .defaults
+            .params
+            .get(&stage_key)
+            .map(|params| params.to_json());
         let params = inputs
             .params_overrides
             .get(stage_id)
-            .or_else(|| profile.defaults.params.get(stage_id));
+            .or(default_params.as_ref());
         let stage_dir = inputs.out_dir.join(stage_id.replace('.', "_"));
         let plan = plan_stage(StagePlanRequest {
             stage_id,
