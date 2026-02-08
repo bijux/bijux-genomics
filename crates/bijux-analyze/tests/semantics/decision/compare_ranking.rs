@@ -2,6 +2,7 @@ use anyhow::Result;
 use bijux_analyze::{compare::compare_runs, ranking::build_rankings, ranking::RankInput};
 use bijux_core::contract::objective_spec;
 use bijux_core::contract::Objective;
+use bijux_testkit::sanitize_snapshot_json;
 use insta::Settings;
 /// Snapshot intent: verifies stable, reviewed output for this contract.
 use std::path::PathBuf;
@@ -64,7 +65,7 @@ fn compare_and_ranking_snapshot() -> Result<()> {
         "comparison": comparison,
         "rankings": rankings,
     });
-    let rendered = serde_json::to_string_pretty(&payload)?;
+    let rendered = serde_json::to_string_pretty(&sanitize_snapshot_json(&payload))?;
     let name = snapshot_name("semantics", "compare_ranking");
     let mut settings = Settings::new();
     settings.set_prepend_module_to_snapshot(false);
