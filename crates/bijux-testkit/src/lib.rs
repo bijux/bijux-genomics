@@ -154,4 +154,7 @@ pub mod snapshots {
 
 pub use determinism::{assert_json_stable, assert_stable_ordering, strip_timestamp_fields};
 pub use fixtures::{assert_json_schema_like, load_fixture_json, load_fixture_text};
-pub use snapshots::{install_snapshot_env, sanitize_snapshot_json, sanitize_snapshot_text, snapshot_name, stable_json};
+pub use snapshots::{
+    install_snapshot_env, sanitize_snapshot_json, sanitize_snapshot_text, snapshot_name,
+    stable_json,
+};
