@@ -9,11 +9,8 @@ fn public_surface_is_deliberate() {
         .join("lib.rs");
     let content = fs::read_to_string(&lib_rs).expect("read lib.rs");
     let mut exports = BTreeSet::new();
-    for line in content.lines() {
-        let trimmed = line.trim();
-        if let Some(rest) = trimmed.strip_prefix("pub use ") {
-            exports.insert(rest.trim_end_matches(';').to_string());
-        }
+    for export in collect_pub_uses(&content) {
+        exports.insert(export);
     }
     let expected: BTreeSet<String> = [
         "determinism::{assert_json_stable, assert_stable_ordering, strip_timestamp_fields}"
@@ -25,4 +22,38 @@ fn public_surface_is_deliberate() {
     .into_iter()
     .collect();
     assert_eq!(exports, expected, "public surface must stay minimal");
+}
+
+fn collect_pub_uses(content: &str) -> Vec<String> {
+    let mut exports = Vec::new();
+    let mut lines = content.lines().peekable();
+    while let Some(line) = lines.next() {
+        let trimmed = line.trim();
+        if let Some(rest) = trimmed.strip_prefix("pub use ") {
+            let mut buffer = rest.to_string();
+            while !buffer.trim_end().ends_with(';') {
+                if let Some(next) = lines.next() {
+                    buffer.push(' ');
+                    buffer.push_str(next.trim());
+                } else {
+                    break;
+                }
+            }
+            exports.push(normalize_export(&buffer));
+        }
+    }
+    exports
+}
+
+fn normalize_export(raw: &str) -> String {
+    let mut normalized = raw
+        .trim_end_matches(';')
+        .split_whitespace()
+        .collect::<Vec<_>>()
+        .join(" ");
+    normalized = normalized.replace("{ ", "{");
+    normalized = normalized.replace(" }", "}");
+    normalized = normalized.replace(", }", "}");
+    normalized = normalized.replace(",}", "}");
+    normalized
 }
