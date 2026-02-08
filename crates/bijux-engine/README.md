@@ -35,6 +35,9 @@ Start at `docs/INDEX.md`. Key docs:
 ## Key contracts it owns/consumes
 Per-step effective_config.json, tool_invocation.json, execution_record.json, metrics/stage_report when applicable.
 
+## Artifacts / Contracts
+See `docs/ENGINE_CONTRACT.md` and snapshots under `tests/snapshots/`.
+
 ## Effects & determinism guarantees
 Orchestration only; effects happen in runner/runtime. See `docs/EFFECT_BOUNDARY.md`, `docs/EFFECTS.md`,
 and `docs/DETERMINISM.md` plus the golden tests below.

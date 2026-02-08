@@ -14,6 +14,9 @@ See `SCOPE.md` for what belongs here.
 ## Effects
 See `EFFECT_BOUNDARY.md` for forbidden effects and `EFFECTS.md` for allowed effects.
 
+## Boundaries
+See `ARCHITECTURE.md` for structural boundaries and `EFFECT_BOUNDARY.md` for execution limits.
+
 ## Model
 See `ENGINE_MODEL.md` for engine concepts and boundaries.
 
