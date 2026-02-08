@@ -1,6 +1,6 @@
 ---
 source: crates/bijux-analyze/tests/contracts/pipeline/pipeline_e2e.rs
-assertion_line: 158
+assertion_line: 161
 expression: json
 ---
 {
@@ -1108,6 +1108,21 @@ expression: json
             "comparability_implications": [],
             "rationale": "pipeline default"
           },
+          "bam.genotyping": {
+            "assumptions": [],
+            "comparability_implications": [],
+            "rationale": "pipeline default"
+          },
+          "bam.haplogroups": {
+            "assumptions": [],
+            "comparability_implications": [],
+            "rationale": "pipeline default"
+          },
+          "bam.kinship": {
+            "assumptions": [],
+            "comparability_implications": [],
+            "rationale": "pipeline default"
+          },
           "bam.markdup": {
             "assumptions": [],
             "comparability_implications": [],
@@ -1249,6 +1264,19 @@ expression: json
             "mapq_threshold": 30,
             "min_length": 30,
             "remove_duplicates": false
+          },
+          "bam.genotyping": {
+            "caller": "angsd",
+            "min_call_rate": 0.7,
+            "min_posterior": 0.8
+          },
+          "bam.haplogroups": {
+            "min_coverage": 5.0,
+            "reference_panel": "rcrs.fasta"
+          },
+          "bam.kinship": {
+            "min_overlap_snps": 200,
+            "reference_panel": "panel.vcf"
           },
           "bam.markdup": {
             "duplicate_action": "mark",

@@ -1,6 +1,6 @@
 ---
 source: crates/bijux-analyze/tests/contracts/pipeline/pipeline_e2e.rs
-assertion_line: 171
+assertion_line: 174
 expression: json
 ---
 {
@@ -47,6 +47,21 @@ expression: json
     },
     {
       "banks": {},
+      "stage_id": "bam.genotyping",
+      "tool_id": "tool"
+    },
+    {
+      "banks": {},
+      "stage_id": "bam.haplogroups",
+      "tool_id": "tool"
+    },
+    {
+      "banks": {},
+      "stage_id": "bam.kinship",
+      "tool_id": "tool"
+    },
+    {
+      "banks": {},
       "stage_id": "bam.markdup",
       "tool_id": "tool"
     },
@@ -83,6 +98,12 @@ expression: json
       "bam.damage:retention_report",
       "bam.filter:metrics_path",
       "bam.filter:retention_report",
+      "bam.genotyping:metrics_path",
+      "bam.genotyping:retention_report",
+      "bam.haplogroups:metrics_path",
+      "bam.haplogroups:retention_report",
+      "bam.kinship:metrics_path",
+      "bam.kinship:retention_report",
       "bam.markdup:metrics_path",
       "bam.markdup:retention_report",
       "bam.qc_pre:metrics_path",
@@ -275,6 +296,36 @@ expression: json
       "bank_hashes": {},
       "image_digest": "sha256:img",
       "params_hash": "params",
+      "span_id": "span-bam.genotyping",
+      "stage_id": "bam.genotyping",
+      "tool_id": "tool",
+      "tool_version": "0.0.0",
+      "trace_id": "trace-1"
+    },
+    {
+      "bank_hashes": {},
+      "image_digest": "sha256:img",
+      "params_hash": "params",
+      "span_id": "span-bam.haplogroups",
+      "stage_id": "bam.haplogroups",
+      "tool_id": "tool",
+      "tool_version": "0.0.0",
+      "trace_id": "trace-1"
+    },
+    {
+      "bank_hashes": {},
+      "image_digest": "sha256:img",
+      "params_hash": "params",
+      "span_id": "span-bam.kinship",
+      "stage_id": "bam.kinship",
+      "tool_id": "tool",
+      "tool_version": "0.0.0",
+      "trace_id": "trace-1"
+    },
+    {
+      "bank_hashes": {},
+      "image_digest": "sha256:img",
+      "params_hash": "params",
       "span_id": "span-bam.markdup",
       "stage_id": "bam.markdup",
       "tool_id": "tool",
@@ -360,6 +411,24 @@ expression: json
           "bases": 800,
           "reads": 80,
           "stage_id": "bam.filter",
+          "tool_id": "tool"
+        },
+        {
+          "bases": 800,
+          "reads": 80,
+          "stage_id": "bam.genotyping",
+          "tool_id": "tool"
+        },
+        {
+          "bases": 800,
+          "reads": 80,
+          "stage_id": "bam.haplogroups",
+          "tool_id": "tool"
+        },
+        {
+          "bases": 800,
+          "reads": 80,
+          "stage_id": "bam.kinship",
           "tool_id": "tool"
         },
         {
@@ -475,6 +544,21 @@ expression: json
         {
           "results": [],
           "stage_id": "bam.filter",
+          "tool_id": "tool"
+        },
+        {
+          "results": [],
+          "stage_id": "bam.genotyping",
+          "tool_id": "tool"
+        },
+        {
+          "results": [],
+          "stage_id": "bam.haplogroups",
+          "tool_id": "tool"
+        },
+        {
+          "results": [],
+          "stage_id": "bam.kinship",
           "tool_id": "tool"
         },
         {
@@ -653,6 +737,74 @@ expression: json
               "complexity_vs_duplicates"
             ],
             "stage_id": "bam.filter",
+            "verdict": "fail"
+          }
+        },
+        {
+          "complexity_observed_reads": 0,
+          "coverage_mean": 0.0,
+          "duplicates_fraction": 0.0,
+          "reads_in": 100,
+          "reads_out": 80,
+          "stage_id": "bam.genotyping",
+          "tool_id": "tool",
+          "verdict": {
+            "key_metrics": {
+              "contamination": 0.0,
+              "coverage_mean": 0.0,
+              "dup_fraction": 0.0
+            },
+            "reasons": [
+              "coverage_mean",
+              "complexity_vs_duplicates"
+            ],
+            "stage_id": "bam.genotyping",
+            "verdict": "fail"
+          }
+        },
+        {
+          "complexity_observed_reads": 0,
+          "coverage_mean": 0.0,
+          "duplicates_fraction": 0.0,
+          "reads_in": 100,
+          "reads_out": 80,
+          "stage_id": "bam.haplogroups",
+          "tool_id": "tool",
+          "verdict": {
+            "key_metrics": {
+              "contamination": 0.0,
+              "coverage_mean": 0.0,
+              "dup_fraction": 0.0
+            },
+            "reasons": [
+              "insufficient_data",
+              "coverage_mean",
+              "complexity_vs_duplicates"
+            ],
+            "stage_id": "bam.haplogroups",
+            "verdict": "fail"
+          }
+        },
+        {
+          "complexity_observed_reads": 0,
+          "coverage_mean": 0.0,
+          "duplicates_fraction": 0.0,
+          "reads_in": 100,
+          "reads_out": 80,
+          "stage_id": "bam.kinship",
+          "tool_id": "tool",
+          "verdict": {
+            "key_metrics": {
+              "contamination": 0.0,
+              "coverage_mean": 0.0,
+              "dup_fraction": 0.0
+            },
+            "reasons": [
+              "insufficient_data",
+              "coverage_mean",
+              "complexity_vs_duplicates"
+            ],
+            "stage_id": "bam.kinship",
             "verdict": "fail"
           }
         },
@@ -913,6 +1065,75 @@ expression: json
             "short_fraction": 0.0
           },
           "stage_id": "bam.filter"
+        },
+        {
+          "coverage": {
+            "breadth_1x": 0.0,
+            "breadth_3x": 0.0,
+            "breadth_5x": 0.0,
+            "mean": 0.0
+          },
+          "damage": {
+            "c_to_t_5p": 0.0,
+            "g_to_a_3p": 0.0
+          },
+          "dup_vs_complexity": {
+            "dup_fraction": 0.0,
+            "observed_reads": 0
+          },
+          "fragment_length": {
+            "mean": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "short_fraction": 0.0
+          },
+          "stage_id": "bam.genotyping"
+        },
+        {
+          "coverage": {
+            "breadth_1x": 0.0,
+            "breadth_3x": 0.0,
+            "breadth_5x": 0.0,
+            "mean": 0.0
+          },
+          "damage": {
+            "c_to_t_5p": 0.0,
+            "g_to_a_3p": 0.0
+          },
+          "dup_vs_complexity": {
+            "dup_fraction": 0.0,
+            "observed_reads": 0
+          },
+          "fragment_length": {
+            "mean": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "short_fraction": 0.0
+          },
+          "stage_id": "bam.haplogroups"
+        },
+        {
+          "coverage": {
+            "breadth_1x": 0.0,
+            "breadth_3x": 0.0,
+            "breadth_5x": 0.0,
+            "mean": 0.0
+          },
+          "damage": {
+            "c_to_t_5p": 0.0,
+            "g_to_a_3p": 0.0
+          },
+          "dup_vs_complexity": {
+            "dup_fraction": 0.0,
+            "observed_reads": 0
+          },
+          "fragment_length": {
+            "mean": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "short_fraction": 0.0
+          },
+          "stage_id": "bam.kinship"
         },
         {
           "coverage": {
@@ -1221,6 +1442,95 @@ expression: json
           "downstream_suitable": false,
           "dup_fraction": 0.0,
           "sex_class": "insufficient",
+          "stage_id": "bam.genotyping",
+          "suitability": {
+            "contamination": false,
+            "haplogroups": false,
+            "kinship": false,
+            "sex": false
+          },
+          "tool_id": "tool",
+          "verdict": {
+            "key_metrics": {
+              "contamination": 0.0,
+              "coverage_mean": 0.0,
+              "dup_fraction": 0.0
+            },
+            "reasons": [
+              "coverage_mean",
+              "complexity_vs_duplicates"
+            ],
+            "stage_id": "bam.genotyping",
+            "verdict": "fail"
+          }
+        },
+        {
+          "contamination": 0.0,
+          "coverage": 0.0,
+          "damage": 0.0,
+          "downstream_suitable": false,
+          "dup_fraction": 0.0,
+          "sex_class": "insufficient",
+          "stage_id": "bam.haplogroups",
+          "suitability": {
+            "contamination": false,
+            "haplogroups": false,
+            "kinship": false,
+            "sex": false
+          },
+          "tool_id": "tool",
+          "verdict": {
+            "key_metrics": {
+              "contamination": 0.0,
+              "coverage_mean": 0.0,
+              "dup_fraction": 0.0
+            },
+            "reasons": [
+              "insufficient_data",
+              "coverage_mean",
+              "complexity_vs_duplicates"
+            ],
+            "stage_id": "bam.haplogroups",
+            "verdict": "fail"
+          }
+        },
+        {
+          "contamination": 0.0,
+          "coverage": 0.0,
+          "damage": 0.0,
+          "downstream_suitable": false,
+          "dup_fraction": 0.0,
+          "sex_class": "insufficient",
+          "stage_id": "bam.kinship",
+          "suitability": {
+            "contamination": false,
+            "haplogroups": false,
+            "kinship": false,
+            "sex": false
+          },
+          "tool_id": "tool",
+          "verdict": {
+            "key_metrics": {
+              "contamination": 0.0,
+              "coverage_mean": 0.0,
+              "dup_fraction": 0.0
+            },
+            "reasons": [
+              "insufficient_data",
+              "coverage_mean",
+              "complexity_vs_duplicates"
+            ],
+            "stage_id": "bam.kinship",
+            "verdict": "fail"
+          }
+        },
+        {
+          "contamination": 0.0,
+          "coverage": 0.0,
+          "damage": 0.0,
+          "downstream_suitable": false,
+          "dup_fraction": 0.0,
+          "sex_class": "insufficient",
           "stage_id": "bam.markdup",
           "suitability": {
             "contamination": false,
@@ -1386,6 +1696,21 @@ expression: json
         },
         {
           "banks": {},
+          "stage_id": "bam.genotyping",
+          "tool_id": "tool"
+        },
+        {
+          "banks": {},
+          "stage_id": "bam.haplogroups",
+          "tool_id": "tool"
+        },
+        {
+          "banks": {},
+          "stage_id": "bam.kinship",
+          "tool_id": "tool"
+        },
+        {
+          "banks": {},
           "stage_id": "bam.markdup",
           "tool_id": "tool"
         },
@@ -1423,6 +1748,12 @@ expression: json
         "bam.damage:retention_report",
         "bam.filter:metrics_path",
         "bam.filter:retention_report",
+        "bam.genotyping:metrics_path",
+        "bam.genotyping:retention_report",
+        "bam.haplogroups:metrics_path",
+        "bam.haplogroups:retention_report",
+        "bam.kinship:metrics_path",
+        "bam.kinship:retention_report",
         "bam.markdup:metrics_path",
         "bam.markdup:retention_report",
         "bam.qc_pre:metrics_path",
@@ -1583,6 +1914,54 @@ expression: json
           ],
           "params_hash": "params",
           "quality_gate": {},
+          "stage_id": "bam.genotyping",
+          "telemetry_decisions": [],
+          "tool_id": "tool",
+          "tool_version": "0.0.0"
+        },
+        {
+          "adapter_validation": {},
+          "contaminant_action": false,
+          "input_hash": "input",
+          "missing_metrics": [],
+          "missing_reports": [
+            "metrics_path",
+            "retention_report"
+          ],
+          "params_hash": "params",
+          "quality_gate": {},
+          "stage_id": "bam.haplogroups",
+          "telemetry_decisions": [],
+          "tool_id": "tool",
+          "tool_version": "0.0.0"
+        },
+        {
+          "adapter_validation": {},
+          "contaminant_action": false,
+          "input_hash": "input",
+          "missing_metrics": [],
+          "missing_reports": [
+            "metrics_path",
+            "retention_report"
+          ],
+          "params_hash": "params",
+          "quality_gate": {},
+          "stage_id": "bam.kinship",
+          "telemetry_decisions": [],
+          "tool_id": "tool",
+          "tool_version": "0.0.0"
+        },
+        {
+          "adapter_validation": {},
+          "contaminant_action": false,
+          "input_hash": "input",
+          "missing_metrics": [],
+          "missing_reports": [
+            "metrics_path",
+            "retention_report"
+          ],
+          "params_hash": "params",
+          "quality_gate": {},
           "stage_id": "bam.markdup",
           "telemetry_decisions": [],
           "tool_id": "tool",
@@ -1660,6 +2039,12 @@ expression: json
           "bam.damage:retention_report",
           "bam.filter:metrics_path",
           "bam.filter:retention_report",
+          "bam.genotyping:metrics_path",
+          "bam.genotyping:retention_report",
+          "bam.haplogroups:metrics_path",
+          "bam.haplogroups:retention_report",
+          "bam.kinship:metrics_path",
+          "bam.kinship:retention_report",
           "bam.markdup:metrics_path",
           "bam.markdup:retention_report",
           "bam.qc_pre:metrics_path",
@@ -1693,7 +2078,7 @@ expression: json
     },
     "key_findings": [
       {
-        "count": 22,
+        "count": 28,
         "items": [
           "bam.authenticity:metrics_path",
           "bam.authenticity:retention_report",
@@ -1709,6 +2094,12 @@ expression: json
           "bam.damage:retention_report",
           "bam.filter:metrics_path",
           "bam.filter:retention_report",
+          "bam.genotyping:metrics_path",
+          "bam.genotyping:retention_report",
+          "bam.haplogroups:metrics_path",
+          "bam.haplogroups:retention_report",
+          "bam.kinship:metrics_path",
+          "bam.kinship:retention_report",
           "bam.markdup:metrics_path",
           "bam.markdup:retention_report",
           "bam.qc_pre:metrics_path",
@@ -1805,6 +2196,27 @@ expression: json
         {
           "effective_config_path": "",
           "params_hash": "params",
+          "stage_id": "bam.genotyping",
+          "tool_id": "tool",
+          "tool_version": "0.0.0"
+        },
+        {
+          "effective_config_path": "",
+          "params_hash": "params",
+          "stage_id": "bam.haplogroups",
+          "tool_id": "tool",
+          "tool_version": "0.0.0"
+        },
+        {
+          "effective_config_path": "",
+          "params_hash": "params",
+          "stage_id": "bam.kinship",
+          "tool_id": "tool",
+          "tool_version": "0.0.0"
+        },
+        {
+          "effective_config_path": "",
+          "params_hash": "params",
           "stage_id": "bam.markdup",
           "tool_id": "tool",
           "tool_version": "0.0.0"
@@ -1887,6 +2299,27 @@ expression: json
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
+          "stage_id": "bam.genotyping",
+          "tool_id": "tool",
+          "tool_version": "0.0.0"
+        },
+        {
+          "image_digest": "sha256:img",
+          "params_hash": "params",
+          "stage_id": "bam.haplogroups",
+          "tool_id": "tool",
+          "tool_version": "0.0.0"
+        },
+        {
+          "image_digest": "sha256:img",
+          "params_hash": "params",
+          "stage_id": "bam.kinship",
+          "tool_id": "tool",
+          "tool_version": "0.0.0"
+        },
+        {
+          "image_digest": "sha256:img",
+          "params_hash": "params",
           "stage_id": "bam.markdup",
           "tool_id": "tool",
           "tool_version": "0.0.0"
@@ -1951,6 +2384,21 @@ expression: json
             "rationale": "pipeline default"
           },
           "bam.filter": {
+            "assumptions": [],
+            "comparability_implications": [],
+            "rationale": "pipeline default"
+          },
+          "bam.genotyping": {
+            "assumptions": [],
+            "comparability_implications": [],
+            "rationale": "pipeline default"
+          },
+          "bam.haplogroups": {
+            "assumptions": [],
+            "comparability_implications": [],
+            "rationale": "pipeline default"
+          },
+          "bam.kinship": {
             "assumptions": [],
             "comparability_implications": [],
             "rationale": "pipeline default"
@@ -2020,6 +2468,19 @@ expression: json
             "mapq_threshold": 30,
             "min_length": 30,
             "remove_duplicates": false
+          },
+          "bam.genotyping": {
+            "caller": "angsd",
+            "min_call_rate": 0.7,
+            "min_posterior": 0.8
+          },
+          "bam.haplogroups": {
+            "min_coverage": 5.0,
+            "reference_panel": "rcrs.fasta"
+          },
+          "bam.kinship": {
+            "min_overlap_snps": 200,
+            "reference_panel": "panel.vcf"
           },
           "bam.markdup": {
             "duplicate_action": "mark",
@@ -2139,6 +2600,48 @@ expression: json
           "params_hash": "params",
           "scientific_preset": null,
           "stage_id": "bam.filter",
+          "tier_rationale": "unknown_tool",
+          "tool_id": "tool",
+          "tool_tier": "experimental",
+          "tool_version": "0.0.0"
+        },
+        {
+          "image_digest": "sha256:img",
+          "input_hash": "input",
+          "output_hashes": [
+            "out"
+          ],
+          "params_hash": "params",
+          "scientific_preset": null,
+          "stage_id": "bam.genotyping",
+          "tier_rationale": "unknown_tool",
+          "tool_id": "tool",
+          "tool_tier": "experimental",
+          "tool_version": "0.0.0"
+        },
+        {
+          "image_digest": "sha256:img",
+          "input_hash": "input",
+          "output_hashes": [
+            "out"
+          ],
+          "params_hash": "params",
+          "scientific_preset": null,
+          "stage_id": "bam.haplogroups",
+          "tier_rationale": "unknown_tool",
+          "tool_id": "tool",
+          "tool_tier": "experimental",
+          "tool_version": "0.0.0"
+        },
+        {
+          "image_digest": "sha256:img",
+          "input_hash": "input",
+          "output_hashes": [
+            "out"
+          ],
+          "params_hash": "params",
+          "scientific_preset": null,
+          "stage_id": "bam.kinship",
           "tier_rationale": "unknown_tool",
           "tool_id": "tool",
           "tool_tier": "experimental",
@@ -2362,6 +2865,48 @@ expression: json
           "params_hash": "params",
           "raw_params": {},
           "resolved_tool_version": null,
+          "stage_id": "bam.genotyping",
+          "tool_id": "tool",
+          "tool_version": "0.0.0"
+        },
+        {
+          "effective_params": {},
+          "image_digest": "sha256:img",
+          "input_hash": "input",
+          "output_hashes": [
+            "out"
+          ],
+          "params_hash": "params",
+          "raw_params": {},
+          "resolved_tool_version": null,
+          "stage_id": "bam.haplogroups",
+          "tool_id": "tool",
+          "tool_version": "0.0.0"
+        },
+        {
+          "effective_params": {},
+          "image_digest": "sha256:img",
+          "input_hash": "input",
+          "output_hashes": [
+            "out"
+          ],
+          "params_hash": "params",
+          "raw_params": {},
+          "resolved_tool_version": null,
+          "stage_id": "bam.kinship",
+          "tool_id": "tool",
+          "tool_version": "0.0.0"
+        },
+        {
+          "effective_params": {},
+          "image_digest": "sha256:img",
+          "input_hash": "input",
+          "output_hashes": [
+            "out"
+          ],
+          "params_hash": "params",
+          "raw_params": {},
+          "resolved_tool_version": null,
           "stage_id": "bam.markdup",
           "tool_id": "tool",
           "tool_version": "0.0.0"
@@ -2481,6 +3026,33 @@ expression: json
             "metrics_path",
             "retention_report"
           ],
+          "stage_id": "bam.genotyping",
+          "status": "incomplete"
+        },
+        {
+          "missing_metrics": [],
+          "missing_reports": [
+            "metrics_path",
+            "retention_report"
+          ],
+          "stage_id": "bam.haplogroups",
+          "status": "incomplete"
+        },
+        {
+          "missing_metrics": [],
+          "missing_reports": [
+            "metrics_path",
+            "retention_report"
+          ],
+          "stage_id": "bam.kinship",
+          "status": "incomplete"
+        },
+        {
+          "missing_metrics": [],
+          "missing_reports": [
+            "metrics_path",
+            "retention_report"
+          ],
           "stage_id": "bam.markdup",
           "status": "incomplete"
         },
@@ -2562,6 +3134,27 @@ expression: json
           "reasons": [],
           "score": 1.0,
           "stage_id": "bam.filter",
+          "tool_id": "tool"
+        },
+        {
+          "bucket": "high",
+          "reasons": [],
+          "score": 1.0,
+          "stage_id": "bam.genotyping",
+          "tool_id": "tool"
+        },
+        {
+          "bucket": "high",
+          "reasons": [],
+          "score": 1.0,
+          "stage_id": "bam.haplogroups",
+          "tool_id": "tool"
+        },
+        {
+          "bucket": "high",
+          "reasons": [],
+          "score": 1.0,
+          "stage_id": "bam.kinship",
           "tool_id": "tool"
         },
         {
@@ -2657,6 +3250,30 @@ expression: json
           "gc_delta": null,
           "mean_q_delta": null,
           "read_retention": 0.8,
+          "stage_id": "bam.genotyping",
+          "tool_id": "tool"
+        },
+        {
+          "base_retention": 0.8,
+          "gc_delta": null,
+          "mean_q_delta": null,
+          "read_retention": 0.8,
+          "stage_id": "bam.haplogroups",
+          "tool_id": "tool"
+        },
+        {
+          "base_retention": 0.8,
+          "gc_delta": null,
+          "mean_q_delta": null,
+          "read_retention": 0.8,
+          "stage_id": "bam.kinship",
+          "tool_id": "tool"
+        },
+        {
+          "base_retention": 0.8,
+          "gc_delta": null,
+          "mean_q_delta": null,
+          "read_retention": 0.8,
           "stage_id": "bam.markdup",
           "tool_id": "tool"
         },
@@ -2713,6 +3330,18 @@ expression: json
         {
           "read_retention": 0.8,
           "stage_id": "bam.filter"
+        },
+        {
+          "read_retention": 0.8,
+          "stage_id": "bam.genotyping"
+        },
+        {
+          "read_retention": 0.8,
+          "stage_id": "bam.haplogroups"
+        },
+        {
+          "read_retention": 0.8,
+          "stage_id": "bam.kinship"
         },
         {
           "read_retention": 0.8,
@@ -2860,6 +3489,54 @@ expression: json
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
+      "stage_id": "bam.genotyping",
+      "stage_report_path": "bam.genotyping/stage_report.json",
+      "tool_id": "tool",
+      "tool_invocation_path": "",
+      "tool_version": "0.0.0"
+    },
+    {
+      "bank_report_path": null,
+      "effective_config_path": "",
+      "exit_code": 0,
+      "input_hash": "input",
+      "memory_mb": 64.0,
+      "metrics_path": "",
+      "params_hash": "params",
+      "retention_report_path": null,
+      "runtime_s": 1.0,
+      "stage_id": "bam.haplogroups",
+      "stage_report_path": "bam.haplogroups/stage_report.json",
+      "tool_id": "tool",
+      "tool_invocation_path": "",
+      "tool_version": "0.0.0"
+    },
+    {
+      "bank_report_path": null,
+      "effective_config_path": "",
+      "exit_code": 0,
+      "input_hash": "input",
+      "memory_mb": 64.0,
+      "metrics_path": "",
+      "params_hash": "params",
+      "retention_report_path": null,
+      "runtime_s": 1.0,
+      "stage_id": "bam.kinship",
+      "stage_report_path": "bam.kinship/stage_report.json",
+      "tool_id": "tool",
+      "tool_invocation_path": "",
+      "tool_version": "0.0.0"
+    },
+    {
+      "bank_report_path": null,
+      "effective_config_path": "",
+      "exit_code": 0,
+      "input_hash": "input",
+      "memory_mb": 64.0,
+      "metrics_path": "",
+      "params_hash": "params",
+      "retention_report_path": null,
+      "runtime_s": 1.0,
       "stage_id": "bam.markdup",
       "stage_report_path": "bam.markdup/stage_report.json",
       "tool_id": "tool",
@@ -2926,6 +3603,9 @@ expression: json
       "bam.coverage/telemetry/events.jsonl",
       "bam.damage/telemetry/events.jsonl",
       "bam.filter/telemetry/events.jsonl",
+      "bam.genotyping/telemetry/events.jsonl",
+      "bam.haplogroups/telemetry/events.jsonl",
+      "bam.kinship/telemetry/events.jsonl",
       "bam.markdup/telemetry/events.jsonl",
       "bam.qc_pre/telemetry/events.jsonl",
       "bam.sex/telemetry/events.jsonl",
