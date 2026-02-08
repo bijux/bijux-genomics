@@ -6,7 +6,8 @@ fn report_sections_are_documented() {
     let doc = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("docs")
         .join("REPORT_CONTRACT.md");
-    let content = fs::read_to_string(&doc).expect("read REPORT_CONTRACT.md");
+    let content = fs::read_to_string(&doc)
+        .unwrap_or_else(|err| panic!("read REPORT_CONTRACT.md at {}: {err}", doc.display()));
 
     for section in [
         "qc",
@@ -21,8 +22,7 @@ fn report_sections_are_documented() {
     ] {
         assert!(
             content.contains(section),
-            "REPORT_CONTRACT.md missing report section {}",
-            section
+            "REPORT_CONTRACT.md missing report section {section}"
         );
     }
 }

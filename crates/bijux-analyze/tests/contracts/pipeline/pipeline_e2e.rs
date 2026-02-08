@@ -106,12 +106,13 @@ fn write_stage_artifacts(root: &Path, stage_id: &str) -> Result<()> {
 }
 
 fn build_report(domain: Domain, pipeline_id: &str) -> Result<Value> {
-    let profile = profile_by_id(domain, pipeline_id).expect("profile exists");
+    let profile =
+        profile_by_id(domain, pipeline_id).unwrap_or_else(|err| panic!("profile exists: {err}"));
     let temp = bijux_infra::temp_dir("pipeline-e2e")?;
     let root = temp.path();
 
     let mut facts = Vec::new();
-    for stage in profile.capabilities.required_stages.iter() {
+    for stage in &profile.capabilities.required_stages {
         let stage_key = bijux_core::ids::StageId::from_static(stage);
         let tool_id = profile
             .defaults

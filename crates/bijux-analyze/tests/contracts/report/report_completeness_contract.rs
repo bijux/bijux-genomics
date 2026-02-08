@@ -3,6 +3,7 @@ use bijux_analyze::report::write_run_report_from_facts;
 use bijux_runtime::FactsRowV1;
 
 #[test]
+#[allow(clippy::too_many_lines)]
 fn report_completeness_policy_requires_provenance_and_contracts() -> Result<()> {
     let temp = bijux_infra::temp_dir("bijux-report-policy")?;
     let dir = temp.path();
@@ -22,7 +23,7 @@ fn report_completeness_policy_requires_provenance_and_contracts() -> Result<()> 
         runtime_s: 1.0,
         memory_mb: 1.0,
         exit_code: 0,
-        bank_hashes: Default::default(),
+        bank_hashes: serde_json::Value::default(),
         reads_in: Some(100),
         reads_out: Some(90),
         bases_in: Some(1000),
@@ -80,7 +81,7 @@ fn report_completeness_policy_requires_provenance_and_contracts() -> Result<()> 
     let stages = report
         .get("stages")
         .and_then(|value| value.as_array())
-        .expect("report stages array");
+        .unwrap_or_else(|| panic!("report stages array missing or invalid"));
     for stage in stages {
         assert!(stage
             .get("tool_version")
@@ -99,7 +100,7 @@ fn report_completeness_policy_requires_provenance_and_contracts() -> Result<()> 
     let run_provenance = report
         .get("sections")
         .and_then(|value| value.get("run_provenance"))
-        .expect("run_provenance section");
+        .unwrap_or_else(|| panic!("run_provenance section missing"));
     assert!(run_provenance
         .get("graph_hash")
         .and_then(|value| value.as_str())
@@ -116,7 +117,7 @@ fn report_completeness_policy_requires_provenance_and_contracts() -> Result<()> 
     let analysis_contract = report
         .get("sections")
         .and_then(|value| value.get("analysis_selection_contract"))
-        .expect("analysis selection contract");
+        .unwrap_or_else(|| panic!("analysis selection contract missing"));
     assert!(analysis_contract.get("objectives").is_some());
 
     Ok(())
