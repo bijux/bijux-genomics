@@ -9,6 +9,9 @@ See `EFFECTS.md` for allowed effects.
 ## Public API
 See `PUBLIC_API.md` for exported types and snapshots.
 
+## Contract
+See `CONTRACT.md` for versioning, terminology, and examples.
+
 ## Boundaries
 See `ARCHITECTURE.md` for internal boundaries.
 
