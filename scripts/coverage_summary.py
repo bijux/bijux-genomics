@@ -56,6 +56,7 @@ def load_report(path):
     report = data.get("data", [])[0] if data.get("data") else {}
     files = report.get("files", [])
     crates = {}
+    crate_name_cache = {}
     for f in files:
         path = f.get("filename", "")
         parts = Path(path).parts
@@ -64,6 +65,17 @@ def load_report(path):
             idx = parts.index("crates")
             if idx + 1 < len(parts):
                 crate = parts[idx + 1]
+                if crate not in crate_name_cache:
+                    manifest = Path("crates") / crate / "Cargo.toml"
+                    if manifest.exists():
+                        for line in manifest.read_text().splitlines():
+                            stripped = line.strip()
+                            if stripped.startswith("name ="):
+                                crate_name_cache[crate] = stripped.split("=", 1)[1].strip().strip('"')
+                                break
+                    if crate not in crate_name_cache:
+                        crate_name_cache[crate] = crate
+                crate = crate_name_cache[crate]
         cov = f.get("summary", {})
         lines = cov.get("lines", {})
         funcs = cov.get("functions", {})
