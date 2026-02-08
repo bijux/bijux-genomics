@@ -17,6 +17,14 @@ fn list_files(root: &PathBuf) -> Vec<String> {
             if entry.path().extension().and_then(|s| s.to_str()) == Some("profraw") {
                 continue;
             }
+            if entry
+                .path()
+                .file_name()
+                .and_then(|s| s.to_str())
+                .is_some_and(|name| name.ends_with(".snap.new"))
+            {
+                continue;
+            }
             let rel = entry
                 .path()
                 .strip_prefix(root)
