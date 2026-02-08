@@ -382,7 +382,7 @@ use std::time::Duration;
 
 use anyhow::{anyhow, Context, Result};
 
-use super::core::{
+use super::checks::{
     command_string, docker_logs, docker_wait_timeout, push_arg, ExecutionOutput,
     TrimExecutionOutput,
 };

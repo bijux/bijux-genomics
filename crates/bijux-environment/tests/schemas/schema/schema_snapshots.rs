@@ -12,7 +12,7 @@ fn platform_spec_schema_snapshot() {
             .unwrap_or_else(|err| panic!("canonical: {err}")),
     )
     .unwrap_or_else(|err| panic!("utf8: {err}"));
-    let expected = include_str!("../fixtures/env_schema/platform_spec.json");
+    let expected = include_str!("../../fixtures/env_schema/default/platform_spec.json");
     assert_eq!(actual, expected);
 }
 
@@ -28,6 +28,6 @@ fn tool_image_spec_schema_snapshot() {
             .unwrap_or_else(|err| panic!("canonical: {err}")),
     )
     .unwrap_or_else(|err| panic!("utf8: {err}"));
-    let expected = include_str!("../fixtures/env_schema/tool_image_spec.json");
+    let expected = include_str!("../../fixtures/env_schema/default/tool_image_spec.json");
     assert_eq!(actual, expected);
 }
