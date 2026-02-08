@@ -6,21 +6,20 @@ Maps tests in this crate to their purpose and failure meaning.
 ## Why
 Tests should explain the contract they enforce.
 
-## Non-goals
-- Full test implementation detail.
-
 ## Contracts
 - `tests/registry/*` → registry ordering and snapshot coverage.
 - `tests/defaults/*` → defaults ledger ordering and override precedence.
 - `tests/profiles/*` → profile completeness and contract checks.
 - `tests/guardrails/*` → policy guardrails (including declarative pipelines).
 
-## Mapping
+## Required mappings
 - `tests/registry/pipeline_registry_snapshot.rs` → registry snapshot stability.
+- `tests/profiles/pipeline_completeness.rs` → profile completeness invariants.
+- `tests/defaults/override_precedence.rs` → override precedence contract.
+
+## Mapping
 - `tests/registry/docs_registry_order.rs` → docs ordering matches registry.
 - `tests/defaults/defaults_ledger.rs` → defaults ledger formatting + canonical JSON.
-- `tests/defaults/override_precedence.rs` → override precedence contract.
-- `tests/profiles/pipeline_completeness.rs` → profile completeness invariants.
 - `tests/profiles/pipeline_contract.rs` → plan contract handshake fixtures.
 - `tests/profiles/pipeline_ids_unique.rs` → unique profile ids.
 - `tests/profiles/pipeline_id.rs` → pipeline id validation.
