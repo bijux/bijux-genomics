@@ -149,14 +149,24 @@ fn run_bam_truth_stage<S: std::hash::BuildHasher>(
     reference: Option<&PathBuf>,
     out_dir: &Path,
 ) -> Result<StageExecutionSummary> {
+    let stage_key = bijux_core::ids::StageId::from_static(stage.as_str());
     let tool_id = profile
         .defaults
         .tools
-        .get(stage.as_str())
+        .get(&stage_key)
         .cloned()
-        .unwrap_or_else(|| bijux_planner_bam::stage_api::default_tool_for_stage(stage));
-    let spec =
-        build_tool_execution_spec(stage.as_str(), &tool_id, registry_core, catalog, platform)?;
+        .unwrap_or_else(|| {
+            bijux_core::ids::ToolId::new(bijux_planner_bam::stage_api::default_tool_for_stage(
+                stage,
+            ))
+        });
+    let spec = build_tool_execution_spec(
+        stage.as_str(),
+        tool_id.as_str(),
+        registry_core,
+        catalog,
+        platform,
+    )?;
 
     let stage_dir = out_dir
         .join("bam")
@@ -171,7 +181,7 @@ fn run_bam_truth_stage<S: std::hash::BuildHasher>(
         bai_path.cloned(),
         reference.cloned(),
     );
-    args.tool = Some(tool_id);
+    args.tool = Some(tool_id.as_str().to_string());
 
     let plan = plan_for_bam_stage_with_profile(stage, &spec, &args, profile, &stage_dir)?;
     let step = bijux_stage_contract::execution_step_from_stage_plan(&plan);
@@ -196,15 +206,18 @@ pub(crate) fn run_bam_align_and_truth_stages<S: std::hash::BuildHasher>(
     let sample_id = args.sample_id.as_deref().unwrap_or("sample").to_string();
     let align_out = out_dir.join("bam").join("align");
     bijux_infra::ensure_dir(&align_out)?;
+    let align_stage = bijux_core::ids::StageId::from_static(
+        bijux_planner_bam::stage_api::BamStage::Align.as_str(),
+    );
     let tool_id = profile
         .defaults
         .tools
-        .get(bijux_planner_bam::stage_api::BamStage::Align.as_str())
+        .get(&align_stage)
         .cloned()
-        .unwrap_or_else(|| "bwa".to_string());
+        .unwrap_or_else(|| bijux_core::ids::ToolId::new("bwa"));
     let spec = build_tool_execution_spec(
         bijux_planner_bam::stage_api::BamStage::Align.as_str(),
-        &tool_id,
+        tool_id.as_str(),
         registry_core,
         catalog,
         platform,
@@ -220,7 +233,7 @@ pub(crate) fn run_bam_align_and_truth_stages<S: std::hash::BuildHasher>(
     align_args.sample_id = Some(sample_id.clone());
     align_args.r1 = Some(r1.clone());
     align_args.r2.clone_from(&args.r2);
-    align_args.tool = Some(tool_id);
+    align_args.tool = Some(tool_id.as_str().to_string());
     align_args.build_reference_indices = true;
     let align_plan = plan_for_bam_stage_with_profile(
         bijux_planner_bam::stage_api::BamStage::Align,

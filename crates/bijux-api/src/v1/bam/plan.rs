@@ -139,11 +139,13 @@ pub fn plan_for_bam_stage_with_profile(
             params: None,
         }),
         bijux_planner_bam::stage_api::BamStage::Filter => {
+            let stage_key = bijux_core::ids::StageId::from_static(stage.as_str());
             let default_params = profile
                 .defaults
                 .params
-                .get(stage.as_str())
-                .and_then(|value| stage.parse_effective_params(value).ok())
+                .get(&stage_key)
+                .map(|value| value.to_json())
+                .and_then(|value| stage.parse_effective_params(&value).ok())
                 .unwrap_or_else(|| bijux_planner_bam::stage_api::stage_spec(stage).default_params);
             let mut params = match default_params {
                 bijux_planner_bam::stage_api::params::BamEffectiveParams::Filter(params) => params,
@@ -189,11 +191,13 @@ pub fn plan_for_bam_stage_with_profile(
             })
         }
         bijux_planner_bam::stage_api::BamStage::Markdup => {
+            let stage_key = bijux_core::ids::StageId::from_static(stage.as_str());
             let default_params = profile
                 .defaults
                 .params
-                .get(stage.as_str())
-                .and_then(|value| stage.parse_effective_params(value).ok())
+                .get(&stage_key)
+                .map(|value| value.to_json())
+                .and_then(|value| stage.parse_effective_params(&value).ok())
                 .unwrap_or_else(|| bijux_planner_bam::stage_api::stage_spec(stage).default_params);
             let mut params = match default_params {
                 bijux_planner_bam::stage_api::params::BamEffectiveParams::Markdup(params) => params,
@@ -625,11 +629,13 @@ fn default_params_for_stage(
     profile: &PipelineProfile,
     stage: bijux_planner_bam::stage_api::BamStage,
 ) -> bijux_planner_bam::stage_api::params::BamEffectiveParams {
+    let stage_key = bijux_core::ids::StageId::from_static(stage.as_str());
     profile
         .defaults
         .params
-        .get(stage.as_str())
-        .and_then(|value| stage.parse_effective_params(value).ok())
+        .get(&stage_key)
+        .map(|value| value.to_json())
+        .and_then(|value| stage.parse_effective_params(&value).ok())
         .unwrap_or_else(|| bijux_planner_bam::stage_api::stage_spec(stage).default_params)
 }
 
