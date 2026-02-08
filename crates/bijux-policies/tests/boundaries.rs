@@ -47,6 +47,8 @@ mod mod_boundaries_surface_api_boundaries_rs;
 mod mod_boundaries_surface_architecture_pointer_policy_rs;
 #[path = "boundaries/surface/core_purity.rs"]
 mod mod_boundaries_surface_core_purity_rs;
+#[path = "boundaries/surface/coverage_cfg_policy.rs"]
+mod mod_boundaries_surface_coverage_cfg_policy_rs;
 #[path = "boundaries/surface/crate_tree_contract.rs"]
 mod mod_boundaries_surface_crate_tree_contract_rs;
 #[path = "boundaries/surface/deep_imports.rs"]
