@@ -16,7 +16,7 @@ use bijux_planner_fastq::{
     apply_preprocess_policy, preprocess_decisions, resolve_preprocess_pipeline,
     select_preprocess_tools, FastqPlanConfig, FastqPlanner, ToolSelection,
 };
-use bijux_runner::primitives::{build_tool_execution_spec, resolve_image_for_run, StageResultV1};
+use bijux_runner::{build_tool_execution_spec, resolve_image_for_run, StageResultV1};
 use bijux_runtime::recording::run_artifacts_dir_for_out;
 use bijux_runtime::recording::write_telemetry_event;
 
@@ -292,7 +292,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         stage_attrs.insert("stage".to_string(), stage_id.clone());
         stage_attrs.insert("tool".to_string(), tool.clone());
         let stage_span = telemetry.start_stage(&stage_id, &stage_attrs);
-        let execution = bijux_runner::primitives::execute_step(planned, platform.runner, None);
+        let execution = bijux_runner::execute_step(planned, platform.runner, None);
         stage_span.end();
         let execution = execution?;
         if execution.exit_code != 0 {

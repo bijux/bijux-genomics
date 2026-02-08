@@ -90,7 +90,7 @@ pub fn plan_only(request: PlanRunRequest, registry: &ToolRegistry) -> Result<Pla
 /// Returns an error if execution fails.
 pub fn execute_run(request: &ExecuteRunRequest) -> Result<ExecuteRunResult> {
     let step = bijux_stage_contract::execution_step_from_stage_plan(&request.plan);
-    bijux_runner::primitives::execute_step(&step, request.runner, None)?;
+    bijux_runner::execute_step(&step, request.runner, None)?;
     Ok(ExecuteRunResult)
 }
 

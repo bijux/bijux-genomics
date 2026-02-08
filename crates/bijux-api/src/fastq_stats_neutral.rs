@@ -13,7 +13,7 @@ use bijux_core::prelude::errors::ErrorCategory;
 use bijux_core::prelude::measure::ExecutionMetrics;
 use bijux_core::prelude::params_hash;
 use bijux_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
-use bijux_runner::primitives::build_tool_execution_spec;
+use bijux_runner::build_tool_execution_spec;
 use bijux_runtime::{RunProvenanceV1, StageObservabilityContextV1};
 use uuid::Uuid;
 
@@ -32,8 +32,8 @@ use bijux_planner_fastq::stage_api::StagePlanJson;
 use bijux_planner_fastq::stage_api::{
     inspect_headers, log_header_warnings, preflight_stage, FastqArtifact,
 };
-use bijux_runner::primitives::resolve_image_for_run;
-use bijux_runner::primitives::{execute_observer_command, execute_step};
+use bijux_runner::resolve_image_for_run;
+use bijux_runner::{execute_observer_command, execute_step};
 use bijux_runtime::recording::{
     compute_run_id, prepare_tool_run_dirs, write_execution_logs, write_metrics_envelope,
     write_metrics_json, write_run_manifest, write_stage_plan_json, RunArtifactInput,
