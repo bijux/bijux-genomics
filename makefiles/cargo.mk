@@ -1,5 +1,5 @@
 FMT 		= cargo fmt --all -- --check
-LINT 		= CARGO_BUILD_JOBS=10 cargo clippy -p bijux-core -p bijux-engine -p bijux-api -p bijux --lib --bins --no-deps -- -D warnings
+LINT 		= CARGO_BUILD_JOBS=10 cargo clippy --workspace --all-targets --all-features -- -D warnings
 AUDIT 		= cargo deny check
 NEXTEST_PROFILE 	?= ci
 NEXTEST_CONFIG  	?= --config-file nextest.toml
