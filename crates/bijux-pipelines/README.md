@@ -8,6 +8,26 @@ Pipeline IDs:
 - fastq → bam: `fastq-to-bam__default__v1`, `fastq-to-bam__adna_shotgun__v1`
 - bam-only: `bam-to-bam__default__v1`, `bam-to-bam__adna_shotgun__v1`, `bam-to-bam__adna_capture__v1`
 
+## Allowed dependencies
+Pipelines may depend on domain + planner contracts, but must not depend on engine/runner execution machinery.
+
+## Profiles
+A profile selects a pipeline ID + defaults and may override specific values. Overrides are explicit and
+precedence is: profile > pipeline > global.
+
+Example precedence:
+- pipeline defaults set `trim_min_len = 25`
+- profile overrides to `trim_min_len = 30`
+- effective value is `30`
+
+## Defaults ledger
+The defaults ledger records effective defaults, tool selections, and provenance for each pipeline.
+Changes are guarded by snapshot tests; update only when the contract changes intentionally.
+
+## Registry authority
+Pipeline IDs are defined in `src/registry/*` and must be unique. Uniqueness is enforced by
+`tests/profiles/pipeline_ids_unique.rs` and registry snapshots.
+
 ## What it must not do (boundaries)
 No execution or tool selection.
 
