@@ -563,6 +563,7 @@ name = "bijux-policies"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "bijux-pipelines",
  "bijux-testkit",
  "cargo_metadata",
  "insta",
