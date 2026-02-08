@@ -12,8 +12,19 @@ Upstream: API/planners. Downstream: runner.
 ## Public API / entrypoints
 See `docs/INDEX.md`, `docs/ENV_REFERENCE.md`, `docs/ENV_MATRIX.md`, `docs/SCHEMAS.md`, `docs/BOUNDARY.md`, `docs/CHANGE_RULES.md`.
 
-## Resolution flow
-Input spec → pinned digest → schema object.
+## Resolution precedence (inputs → spec → digest → cache)
+Inputs flow in a strict order:
+1. Inputs
+2. Spec normalization
+3. Digest resolution
+4. Cache (resolved result reused)
+
+Authoritative rules live in `docs/ENV_REFERENCE.md`.
+
+Example (tag pinned to digest, then cached):
+```
+tool_image_spec.json -> resolve to digest -> cached resolved spec
+```
 
 ## Key contracts it owns/consumes
 Resolved environment specs and digests only.
@@ -27,6 +38,10 @@ Pure resolution; no network execution. Stable digest for the same inputs; see `d
 
 ## No execution
 This crate must not depend on `bijux-runner` or execute tools. See `docs/BOUNDARY.md` and `tests/guardrails/no_runner_usage.rs`.
+
+## Common failures
+- Bad platform spec (schema mismatch): see `tests/schema/schema_snapshots.rs`.
+- Missing tool image spec: see `tests/matrix/reference_matrix.rs`.
 
 ## How to run its tests
 See `docs/TESTS.md`. Golden tests: `tests/matrix/reference_matrix.rs`, `tests/schema/schema_snapshots.rs`, `tests/guardrails/guardrails_runtime.rs`, `tests/matrix/docs_reference_matrix.rs`.
