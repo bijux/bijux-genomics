@@ -61,7 +61,7 @@ fn policy__boundaries__cli_dependency_policy__cli_depends_only_on_api_and_cli_su
 
     bijux_policies::policy_assert!(
         offenders.is_empty(),
-        "bijux-cli must depend only on bijux-api + clap + logging (and minimal support libs).
+        "bijux-dna-cli must depend only on bijux-api + clap + logging (and minimal support libs).
 How to fix: move infra/runtime/runner dependencies behind bijux-api or remove them.
 Offenders:\n{}",
         offenders.join("\n")

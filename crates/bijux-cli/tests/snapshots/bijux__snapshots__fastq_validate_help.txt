@@ -1,6 +1,6 @@
 Validate FASTQ reads (pre).
 
-Usage: bijux fastq validate-pre [OPTIONS]
+Usage: bijux dna fastq validate-pre [OPTIONS]
 
 Options:
       --list-tools             
@@ -16,5 +16,5 @@ Options:
   -h, --help                   Print help
 
 Examples:
-  bijux fastq validate-pre --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE --tools fastqvalidator_official
-  bijux fastq validate-pre --list-tools
+  bijux dna fastq validate-pre --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE --tools fastqvalidator_official
+  bijux dna fastq validate-pre --list-tools

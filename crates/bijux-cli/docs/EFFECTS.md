@@ -1,7 +1,7 @@
 # Effects
 
 ## What
-Defines what effects `bijux-cli` is allowed to use.
+Defines what effects `bijux-dna-cli` is allowed to use.
 
 ## Why
 Preserves architectural purity and reproducibility.

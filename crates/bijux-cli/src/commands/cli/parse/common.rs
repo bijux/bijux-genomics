@@ -2,7 +2,7 @@ use clap::ValueEnum;
 use clap::{Args, Parser, Subcommand};
 use std::path::PathBuf;
 #[derive(Debug, Parser)]
-#[command(name = "bijux", version, about = "Bijux DNA CLI")]
+#[command(name = "bijux", version, about = "Bijux DNA CLI", subcommand_required = true, arg_required_else_help = true)]
 pub struct Cli {
     #[arg(long, default_value = "local")]
     pub profile: String,
@@ -17,11 +17,20 @@ pub struct Cli {
     /// Dump effective config JSON (alias for --print-effective-config).
     pub dump_effective_config: bool,
     #[command(subcommand)]
-    pub command: Commands,
+    pub command: RootCommand,
 }
+
+#[derive(Debug, Subcommand)]
+pub enum RootCommand {
+    Dna {
+        #[command(subcommand)]
+        command: DnaCommand,
+    },
+}
+
 #[derive(Debug, Subcommand)]
 #[allow(clippy::large_enum_variant)]
-pub enum Commands {
+pub enum DnaCommand {
     Fastq {
         #[command(subcommand)]
         command: FastqCommand,

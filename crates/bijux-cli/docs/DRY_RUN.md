@@ -5,7 +5,7 @@ Dry-run emits graph + manifest only. No execution.
 
 ## Golden example
 ```
-$ bijux dry-run --pipeline fastq.default.v1
+$ bijux dna dry-run --pipeline fastq.default.v1
 graph.json
 run_manifest.json
 ```

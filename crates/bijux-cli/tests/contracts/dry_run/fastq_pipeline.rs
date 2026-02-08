@@ -1,4 +1,4 @@
-use bijux::commands::run_with_args;
+use bijux_dna_cli::commands::run_with_args;
 
 #[test]
 fn cli_fastq_preprocess_dry_run_emits_manifest_and_graph() {
@@ -102,6 +102,7 @@ multiqc = { version = "0.0.0" }
     std::env::set_var("BIJUX_SKIP_IMAGE_CHECK", "1");
     let args = [
         "bijux",
+        "dna",
         "--platform",
         "test",
         "fastq",

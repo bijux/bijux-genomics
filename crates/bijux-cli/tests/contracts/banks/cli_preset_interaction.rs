@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use crate::support;
 use anyhow::Result;
-use bijux::cli::{
+use bijux_dna_cli::cli::{
     bench_args_from_trim, preprocess_args_from_cli, BenchCorpusArg, CommonArgs,
     FastqPreprocessArgs, FastqTrimArgs, ObjectiveArg,
 };

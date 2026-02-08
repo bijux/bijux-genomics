@@ -1,6 +1,6 @@
 Merge paired-end FASTQ reads.
 
-Usage: bijux fastq merge [OPTIONS]
+Usage: bijux dna fastq merge [OPTIONS]
 
 Options:
       --list-tools          
@@ -10,6 +10,6 @@ Options:
   -h, --help                Print help
 
 Example:
-  bijux fastq merge --r1 reads_1.fastq.gz --r2 reads_2.fastq.gz --out artifacts --sample-id SAMPLE --tools vsearch
+  bijux dna fastq merge --r1 reads_1.fastq.gz --r2 reads_2.fastq.gz --out artifacts --sample-id SAMPLE --tools vsearch
 
 Next stages: filter -> stats

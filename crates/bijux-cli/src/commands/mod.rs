@@ -51,7 +51,11 @@ pub fn run_with_cli(cli: &cli::Cli, cwd: &Path) -> Result<()> {
     }
     let domain_dir = cwd.join("domain");
 
-    if fastq::handle_meta_commands(cli, &domain_dir)? {
+    let dna_command = match &cli.command {
+        cli::RootCommand::Dna { command } => command,
+    };
+
+    if fastq::handle_meta_commands(cli, dna_command, &domain_dir)? {
         return Ok(());
     }
 
@@ -82,13 +86,13 @@ pub fn run_with_cli(cli: &cli::Cli, cwd: &Path) -> Result<()> {
         ))
     })?;
 
-    if bench::handle_fastq_bench(cli, &registry)? {
+    if bench::handle_fastq_bench(cli, dna_command, &registry)? {
         return Ok(());
     }
 
-    if bam::handle_bam_commands(cli, &registry, &domain_dir)? {
+    if bam::handle_bam_commands(cli, dna_command, &registry, &domain_dir)? {
         return Ok(());
     }
 
-    run_plan::run_plan(cli, &registry, &domain_dir)
+    run_plan::run_plan(cli, dna_command, &registry, &domain_dir)
 }
