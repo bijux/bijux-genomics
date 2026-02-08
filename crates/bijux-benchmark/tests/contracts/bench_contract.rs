@@ -1,3 +1,5 @@
+/// Snapshot intent: verifies stable, reviewed output for this contract.
+
 use bijux_benchmark::{
     AnalysisRequirements, BenchmarkSuiteSpec, BenchmarkSummary, DatasetSpec, DiversityRequirements,
     ReplicatePolicy, StratificationRequirement,

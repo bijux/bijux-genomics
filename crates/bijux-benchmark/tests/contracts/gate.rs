@@ -1,6 +1,6 @@
 // Owner: bijux-benchmark
 // Gate suite spine.
-#[path = "semantics/gate/gate.rs"]
+#[path = "../semantics/gate/gate.rs"]
 mod gate;
-#[path = "semantics/gate/policy_rejects_unknown_metric.rs"]
-mod policy_rejects_unknown_metric;
+#[path = "../semantics/gate/rejects_unknown_metric.rs"]
+mod rejects_unknown_metric;
