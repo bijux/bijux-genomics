@@ -6,16 +6,30 @@ yanked = "deny"
 multiple-versions = "warn"
 wildcards = "allow"
 
+[[bans.skip]]
+name = "hashbrown"
+
+[[bans.skip]]
+name = "linux-raw-sys"
+
+[[bans.skip]]
+name = "rustix"
+
+[[bans.skip]]
+name = "thiserror"
+
+[[bans.skip]]
+name = "thiserror-impl"
+
+[[bans.skip]]
+name = "windows-sys"
+
 [licenses]
 allow = [
   "Apache-2.0",
   "MIT",
-  "BSD-3-Clause",
-  "ISC",
-  "Unicode-DFS-2016",
   "Unicode-3.0",
   "Zlib",
-  "MPL-2.0",
 ]
 
 [sources]
