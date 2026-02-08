@@ -5,10 +5,10 @@
 //! Invariants: metric schemas are stable and validated.
 
 mod bench;
-mod metrics_base;
 mod fastq;
+mod metrics_base;
 
 pub use bench::*;
-pub use metrics_base::*;
 #[allow(unused_imports)]
 pub use fastq::*;
+pub use metrics_base::*;

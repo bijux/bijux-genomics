@@ -18,15 +18,9 @@ fn contract_handshake_rejects_mismatched_schema() {
         .join("fixtures")
         .join("handshake")
         .join("default");
-    let plan = load_fixture(
-        policies_root.join("plan.json"),
-    );
-    let manifest = load_fixture(
-        policies_root.join("manifest.json"),
-    );
-    let report = load_fixture(
-        policies_root.join("report.json"),
-    );
+    let plan = load_fixture(policies_root.join("plan.json"));
+    let manifest = load_fixture(policies_root.join("manifest.json"));
+    let report = load_fixture(policies_root.join("report.json"));
 
     assert!(plan.get("schema_version").is_some());
     assert!(manifest.get("schema_version").is_some());

@@ -1,10 +1,10 @@
+use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use crate::tooling::filter_tools_by_role;
 use anyhow::{anyhow, Context, Result};
 use bijux_core::contract::PlanPolicy;
 use bijux_core::contract::ToolRegistry;
 use bijux_core::contract::{ExecutionEdge, ExecutionGraph};
 use bijux_environment::api::{load_image_catalog, load_platform, RuntimeKind};
-use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use bijux_pipelines::registry;
 use bijux_pipelines::Domain;
 use bijux_planner_bam::stage_api::STAGE_PREFIX;

@@ -131,7 +131,10 @@ fn report_sections_exist_for_all_stages() -> Result<()> {
 fn report_schema_allows_unknown_fields() -> Result<()> {
     let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let snapshot_file = format!("{}.json", snapshot_name("schemas", "run_report"));
-    let snapshot_path = manifest_dir.join("tests").join("snapshots").join(snapshot_file);
+    let snapshot_path = manifest_dir
+        .join("tests")
+        .join("snapshots")
+        .join(snapshot_file);
     let mut value: serde_json::Value = serde_json::from_str(&fs::read_to_string(snapshot_path)?)?;
     if let Some(obj) = value.as_object_mut() {
         obj.insert("new_field".to_string(), serde_json::json!({"future": true}));
@@ -179,7 +182,10 @@ fn stage_sections_cover_all_executed_stages() -> Result<()> {
 fn load_report_snapshot() -> Result<serde_json::Value> {
     let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let snapshot_file = format!("{}.json", snapshot_name("schemas", "run_report"));
-    let path = manifest_dir.join("tests").join("snapshots").join(snapshot_file);
+    let path = manifest_dir
+        .join("tests")
+        .join("snapshots")
+        .join(snapshot_file);
     let raw = fs::read_to_string(&path)?;
     Ok(serde_json::from_str(&raw)?)
 }

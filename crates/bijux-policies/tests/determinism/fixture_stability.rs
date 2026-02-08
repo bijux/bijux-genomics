@@ -11,5 +11,8 @@ fn policy__determinism__fixture_stability__fixture_json_is_stable() {
     let value = load_fixture_json(fixture);
     let sorted = stable_json(&value);
     let resorted = stable_json(&sorted);
-    assert_eq!(sorted, resorted, "fixture JSON must be deterministically ordered");
+    assert_eq!(
+        sorted, resorted,
+        "fixture JSON must be deterministically ordered"
+    );
 }

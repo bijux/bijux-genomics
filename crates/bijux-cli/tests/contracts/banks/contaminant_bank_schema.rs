@@ -1,5 +1,5 @@
-use anyhow::Result;
 use crate::support;
+use anyhow::Result;
 
 #[test]
 fn cli_contaminant_bank_parses() -> Result<()> {

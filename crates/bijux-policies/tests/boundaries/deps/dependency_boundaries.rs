@@ -230,7 +230,10 @@ fn policy__boundaries__dependency_boundaries__production_crates_do_not_depend_on
         }
         let deps = parse_dependency_names(&path);
         if deps.iter().any(|dep| dep == "bijux-environment-qa") {
-            offenders.push(format!("{} depends on bijux-environment-qa", path.display()));
+            offenders.push(format!(
+                "{} depends on bijux-environment-qa",
+                path.display()
+            ));
         }
     }
     bijux_policies::policy_assert!(

@@ -53,10 +53,10 @@ mod mod_boundaries_surface_deep_imports_rs;
 mod mod_boundaries_surface_docs_index_quality_rs;
 #[path = "boundaries/surface/docs_required_policy.rs"]
 mod mod_boundaries_surface_docs_required_policy_rs;
-#[path = "boundaries/surface/docs_spine.rs"]
-mod mod_boundaries_surface_docs_spine_rs;
 #[path = "boundaries/surface/docs_spine_contract.rs"]
 mod mod_boundaries_surface_docs_spine_contract_rs;
+#[path = "boundaries/surface/docs_spine.rs"]
+mod mod_boundaries_surface_docs_spine_rs;
 #[path = "boundaries/surface/docs_tree_contract.rs"]
 mod mod_boundaries_surface_docs_tree_contract_rs;
 #[path = "boundaries/surface/domain_purity.rs"]

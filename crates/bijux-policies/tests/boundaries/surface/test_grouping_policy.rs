@@ -27,11 +27,7 @@ fn policy__boundaries__test_grouping_policy__tests_are_grouped_into_subsuites() 
                 entries
                     .filter_map(|entry| entry.ok())
                     .filter(|entry| {
-                        entry
-                            .path()
-                            .extension()
-                            .and_then(|ext| ext.to_str())
-                            == Some("rs")
+                        entry.path().extension().and_then(|ext| ext.to_str()) == Some("rs")
                     })
                     .count()
             })
@@ -52,7 +48,11 @@ fn policy__boundaries__test_grouping_policy__tests_are_grouped_into_subsuites() 
 MAX = {MAX_FLAT_TEST_FILES} flat files.\n\
 Offenders:\n{}\n\nAllowlist (temporary):\n{}",
             offenders.join("\n"),
-            if allowlist_hint.is_empty() { "(none)" } else { &allowlist_hint }
+            if allowlist_hint.is_empty() {
+                "(none)"
+            } else {
+                &allowlist_hint
+            }
         );
     }
 }

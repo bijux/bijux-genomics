@@ -1,7 +1,7 @@
 use std::fs;
 
-use anyhow::Result;
 use crate::support;
+use anyhow::Result;
 use bijux_api::v1::api::bench::fastq_banks::{
     resolve_adapter_selection, resolve_contaminant_selection, resolve_effective_adapters,
     resolve_effective_contaminants, resolve_effective_polyx, resolve_polyx_selection,

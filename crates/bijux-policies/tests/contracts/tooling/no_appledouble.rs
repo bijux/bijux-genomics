@@ -7,7 +7,7 @@ use walkdir::WalkDir;
 
 use support::workspace_root;
 
-const EXCLUDE_DIRS: &[&str] = &[".git", "target", "artifacts", "site", "node_modules"]; 
+const EXCLUDE_DIRS: &[&str] = &[".git", "target", "artifacts", "site", "node_modules"];
 
 fn is_excluded(path: &std::path::Path) -> bool {
     path.components().any(|component| {

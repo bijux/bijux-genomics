@@ -5,8 +5,8 @@ use std::path::{Path, PathBuf};
 use bijux_core::prelude::{
     CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
 };
-use bijux_stage_contract::StagePlanV1;
 use bijux_domain_fastq::{STAGE_TRIM, STAGE_VALIDATE_PRE};
+use bijux_stage_contract::StagePlanV1;
 
 fn snapshot_name(group: &str, name: &str) -> String {
     format!("bijux-planner-fastq__{group}__{name}")
@@ -20,7 +20,9 @@ fn dummy_tool(tool: &str) -> ToolExecutionSpecV1 {
             image: "bijux/test:latest".to_string(),
             digest: None,
         },
-        command: CommandSpecV1 { template: Vec::new() },
+        command: CommandSpecV1 {
+            template: Vec::new(),
+        },
         resources: ToolConstraints {
             runtime: "docker".to_string(),
             mem_gb: 1,
@@ -107,16 +109,21 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     )?;
     assert_snapshot("stage__fastq__fastq.correct", &plan)?;
 
-    let preprocess_plan = bijux_planner_fastq::tool_adapters::stages::pre::plan_preprocess::PreprocessPlan {
-        r1: r1.to_path_buf(),
-        r2: Some(r2.to_path_buf()),
-        stages: vec![STAGE_TRIM.as_str().to_string(), STAGE_VALIDATE_PRE.as_str().to_string()],
-        enable_contaminant_removal: false,
-    };
-    let plan = bijux_planner_fastq::tool_adapters::stages::pre::plan_preprocess::plan_preprocess_stage(
-        &preprocess_plan,
-        &dummy_tool("planner"),
-    );
+    let preprocess_plan =
+        bijux_planner_fastq::tool_adapters::stages::pre::plan_preprocess::PreprocessPlan {
+            r1: r1.to_path_buf(),
+            r2: Some(r2.to_path_buf()),
+            stages: vec![
+                STAGE_TRIM.as_str().to_string(),
+                STAGE_VALIDATE_PRE.as_str().to_string(),
+            ],
+            enable_contaminant_removal: false,
+        };
+    let plan =
+        bijux_planner_fastq::tool_adapters::stages::pre::plan_preprocess::plan_preprocess_stage(
+            &preprocess_plan,
+            &dummy_tool("planner"),
+        );
     assert_snapshot("stage__fastq__fastq.preprocess", &plan)?;
 
     let plan = bijux_planner_fastq::tool_adapters::fastq::qc_post::plan_qc_post(

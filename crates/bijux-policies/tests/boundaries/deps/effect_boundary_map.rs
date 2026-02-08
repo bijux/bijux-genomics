@@ -40,11 +40,17 @@ fn policy__boundaries__effect_boundary_map__effect_boundary_map() {
         if path_str.contains("/tests/") {
             continue;
         }
-        if ALLOWLIST.iter().any(|(allowed, _reason)| path_str.contains(allowed)) {
+        if ALLOWLIST
+            .iter()
+            .any(|(allowed, _reason)| path_str.contains(allowed))
+        {
             continue;
         }
         let content = support::read_to_string(entry.path());
-        if EFFECT_PATTERNS.iter().any(|pattern| content.contains(pattern)) {
+        if EFFECT_PATTERNS
+            .iter()
+            .any(|pattern| content.contains(pattern))
+        {
             offenders.push(entry.path().display().to_string());
         }
     }

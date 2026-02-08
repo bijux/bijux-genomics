@@ -39,9 +39,7 @@ fn policy__boundaries__crate_tree_contract__crate_tree_contract_snapshot() {
     }
     let name = bijux_testkit::snapshot_name("snapshots", "crate_tree_contract");
     let mut settings = insta::Settings::new();
-    settings.set_snapshot_path(
-        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/snapshots"),
-    );
+    settings.set_snapshot_path(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/snapshots"));
     settings.set_prepend_module_to_snapshot(false);
     settings.bind(|| {
         insta::assert_snapshot!(name, lines.join("\n"));
