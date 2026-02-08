@@ -81,6 +81,7 @@ pub mod determinism {
 
 pub mod snapshots {
     use serde_json::Value;
+    use std::env;
 
     #[must_use]
     pub fn snapshot_name(bucket: &str, test_name: &str) -> String {
@@ -92,6 +93,45 @@ pub mod snapshots {
     #[must_use]
     pub fn stable_json(value: &Value) -> Value {
         sort_value(value)
+    }
+
+    #[must_use]
+    pub fn sanitize_snapshot_text(input: &str) -> String {
+        let mut out = input.to_string();
+        if let Ok(home) = env::var("HOME") {
+            out = out.replace(&home, "<HOME>");
+        }
+        if let Ok(tmpdir) = env::var("TMPDIR") {
+            out = out.replace(&tmpdir, "<TMPDIR>");
+        }
+        out
+    }
+
+    #[must_use]
+    pub fn sanitize_snapshot_json(value: &Value) -> Value {
+        match value {
+            Value::String(s) => Value::String(sanitize_snapshot_text(s)),
+            Value::Array(items) => {
+                Value::Array(items.iter().map(sanitize_snapshot_json).collect())
+            }
+            Value::Object(map) => {
+                let mut next = serde_json::Map::new();
+                for (k, v) in map {
+                    next.insert(k.clone(), sanitize_snapshot_json(v));
+                }
+                Value::Object(next)
+            }
+            _ => value.clone(),
+        }
+    }
+
+    pub fn install_snapshot_env() {
+        if env::var("TZ").is_err() {
+            env::set_var("TZ", "UTC");
+        }
+        if env::var("LC_ALL").is_err() {
+            env::set_var("LC_ALL", "C");
+        }
     }
 
     fn sort_value(value: &Value) -> Value {
@@ -116,4 +156,6 @@ pub mod snapshots {
 
 pub use determinism::{assert_json_stable, assert_stable_ordering, strip_timestamp_fields};
 pub use fixtures::{assert_json_schema_like, load_fixture_json, load_fixture_text};
-pub use snapshots::{snapshot_name, stable_json};
+pub use snapshots::{
+    install_snapshot_env, sanitize_snapshot_json, sanitize_snapshot_text, snapshot_name, stable_json,
+};
