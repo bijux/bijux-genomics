@@ -1,7 +1,6 @@
 ---
 source: crates/bijux-planner-bam/tests/contracts/plan/pipeline_plan_snapshot.rs
-assertion_line: 55
-expression: payload
+expression: "bijux_testkit::snapshot_normalize_text(&payload)"
 ---
 {
   "contract_version": {
@@ -90,7 +89,7 @@ expression: payload
           {
             "name": "bam",
             "optional": false,
-            "path": "<temp>/out/bam_markdup/markdup.bam",
+            "path": "<TMPDIR>/<TMP>/out/bam_markdup/markdup.bam",
             "role": "bam"
           }
         ],
@@ -98,25 +97,25 @@ expression: payload
           {
             "name": "authenticity_report",
             "optional": false,
-            "path": "<temp>/out/bam_authenticity/authenticity.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_authenticity/authenticity.json",
             "role": "report_json"
           },
           {
             "name": "summary",
             "optional": false,
-            "path": "<temp>/out/bam_authenticity/authenticity.summary.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_authenticity/authenticity.summary.json",
             "role": "report_json"
           },
           {
             "name": "stage_metrics",
             "optional": false,
-            "path": "<temp>/out/bam_authenticity/stage.metrics.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_authenticity/stage.metrics.json",
             "role": "metrics_json"
           }
         ]
       },
       "metrics_schema_ids": [],
-      "out_dir": "<temp>/out/bam_authenticity",
+      "out_dir": "<TMPDIR>/<TMP>/out/bam_authenticity",
       "resources": {
         "mem_gb": 2,
         "runtime": "short",
@@ -143,7 +142,7 @@ expression: payload
           {
             "name": "bam",
             "optional": false,
-            "path": "<temp>/out/bam_markdup/markdup.bam",
+            "path": "<TMPDIR>/<TMP>/out/bam_markdup/markdup.bam",
             "role": "bam"
           }
         ],
@@ -151,25 +150,25 @@ expression: payload
           {
             "name": "bias_report",
             "optional": false,
-            "path": "<temp>/out/bam_bias_mitigation/bias.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_bias_mitigation/bias.json",
             "role": "report_json"
           },
           {
             "name": "summary",
             "optional": false,
-            "path": "<temp>/out/bam_bias_mitigation/bias.summary.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_bias_mitigation/bias.summary.json",
             "role": "report_json"
           },
           {
             "name": "stage_metrics",
             "optional": false,
-            "path": "<temp>/out/bam_bias_mitigation/stage.metrics.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_bias_mitigation/stage.metrics.json",
             "role": "metrics_json"
           }
         ]
       },
       "metrics_schema_ids": [],
-      "out_dir": "<temp>/out/bam_bias_mitigation",
+      "out_dir": "<TMPDIR>/<TMP>/out/bam_bias_mitigation",
       "resources": {
         "mem_gb": 2,
         "runtime": "short",
@@ -196,7 +195,7 @@ expression: payload
           {
             "name": "bam",
             "optional": false,
-            "path": "<temp>/out/bam_markdup/markdup.bam",
+            "path": "<TMPDIR>/<TMP>/out/bam_markdup/markdup.bam",
             "role": "bam"
           }
         ],
@@ -204,31 +203,31 @@ expression: payload
           {
             "name": "complexity_report",
             "optional": false,
-            "path": "<temp>/out/bam_complexity/complexity.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_complexity/complexity.json",
             "role": "report_json"
           },
           {
             "name": "preseq",
             "optional": false,
-            "path": "<temp>/out/bam_complexity/preseq.txt",
+            "path": "<TMPDIR>/<TMP>/out/bam_complexity/preseq.txt",
             "role": "unknown"
           },
           {
             "name": "summary",
             "optional": false,
-            "path": "<temp>/out/bam_complexity/complexity.summary.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_complexity/complexity.summary.json",
             "role": "report_json"
           },
           {
             "name": "stage_metrics",
             "optional": false,
-            "path": "<temp>/out/bam_complexity/stage.metrics.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_complexity/stage.metrics.json",
             "role": "metrics_json"
           }
         ]
       },
       "metrics_schema_ids": [],
-      "out_dir": "<temp>/out/bam_complexity",
+      "out_dir": "<TMPDIR>/<TMP>/out/bam_complexity",
       "resources": {
         "mem_gb": 2,
         "runtime": "short",
@@ -244,7 +243,7 @@ expression: payload
         "template": [
           "/bin/sh",
           "-c",
-          "contamination_tool --input <temp>/out/bam_markdup/markdup.bam > <temp>/out/bam_contamination/contamination.json && python - <<'PY' > <temp>/out/bam_contamination/contamination.summary.json\nimport json\npayload = {\"method\": \"authenticct\", \"estimate\": 0.0, \"ci_low\": 0.0, \"ci_high\": 0.0, \"assumptions\": []}\nprint(json.dumps(payload, indent=2))\nPY"
+          "contamination_tool --input <TMPDIR>/<TMP>/out/bam_markdup/markdup.bam > <TMPDIR>/<TMP>/out/bam_contamination/contamination.json && python - <<'PY' > <TMPDIR>/<TMP>/out/bam_contamination/contamination.summary.json\nimport json\npayload = {\"method\": \"authenticct\", \"estimate\": 0.0, \"ci_low\": 0.0, \"ci_high\": 0.0, \"assumptions\": []}\nprint(json.dumps(payload, indent=2))\nPY"
         ]
       },
       "expected_artifact_ids": [],
@@ -257,7 +256,7 @@ expression: payload
           {
             "name": "bam",
             "optional": false,
-            "path": "<temp>/out/bam_markdup/markdup.bam",
+            "path": "<TMPDIR>/<TMP>/out/bam_markdup/markdup.bam",
             "role": "bam"
           }
         ],
@@ -265,25 +264,25 @@ expression: payload
           {
             "name": "contamination_report",
             "optional": false,
-            "path": "<temp>/out/bam_contamination/contamination.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_contamination/contamination.json",
             "role": "report_json"
           },
           {
             "name": "summary",
             "optional": false,
-            "path": "<temp>/out/bam_contamination/contamination.summary.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_contamination/contamination.summary.json",
             "role": "report_json"
           },
           {
             "name": "stage_metrics",
             "optional": false,
-            "path": "<temp>/out/bam_contamination/stage.metrics.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_contamination/stage.metrics.json",
             "role": "metrics_json"
           }
         ]
       },
       "metrics_schema_ids": [],
-      "out_dir": "<temp>/out/bam_contamination",
+      "out_dir": "<TMPDIR>/<TMP>/out/bam_contamination",
       "resources": {
         "mem_gb": 2,
         "runtime": "short",
@@ -299,8 +298,8 @@ expression: payload
         "template": [
           "mosdepth",
           "-n",
-          "<temp>/out/bam_coverage/coverage",
-          "<temp>/out/bam_markdup/markdup.bam"
+          "<TMPDIR>/<TMP>/out/bam_coverage/coverage",
+          "<TMPDIR>/<TMP>/out/bam_markdup/markdup.bam"
         ]
       },
       "expected_artifact_ids": [],
@@ -313,7 +312,7 @@ expression: payload
           {
             "name": "bam",
             "optional": false,
-            "path": "<temp>/out/bam_markdup/markdup.bam",
+            "path": "<TMPDIR>/<TMP>/out/bam_markdup/markdup.bam",
             "role": "bam"
           }
         ],
@@ -321,19 +320,19 @@ expression: payload
           {
             "name": "coverage_summary",
             "optional": false,
-            "path": "<temp>/out/bam_coverage/coverage.mosdepth.summary.txt",
+            "path": "<TMPDIR>/<TMP>/out/bam_coverage/coverage.mosdepth.summary.txt",
             "role": "report_json"
           },
           {
             "name": "stage_metrics",
             "optional": false,
-            "path": "<temp>/out/bam_coverage/stage.metrics.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_coverage/stage.metrics.json",
             "role": "metrics_json"
           }
         ]
       },
       "metrics_schema_ids": [],
-      "out_dir": "<temp>/out/bam_coverage",
+      "out_dir": "<TMPDIR>/<TMP>/out/bam_coverage",
       "resources": {
         "mem_gb": 2,
         "runtime": "short",
@@ -350,9 +349,9 @@ expression: payload
           "pydamage",
           "analyze",
           "--input",
-          "<temp>/out/bam_markdup/markdup.bam",
+          "<TMPDIR>/<TMP>/out/bam_markdup/markdup.bam",
           "--output",
-          "<temp>/out/bam_damage/damage.pydamage.json",
+          "<TMPDIR>/<TMP>/out/bam_damage/damage.pydamage.json",
           "--min-mapq",
           "0.3"
         ]
@@ -367,7 +366,7 @@ expression: payload
           {
             "name": "bam",
             "optional": false,
-            "path": "<temp>/out/bam_markdup/markdup.bam",
+            "path": "<TMPDIR>/<TMP>/out/bam_markdup/markdup.bam",
             "role": "bam"
           }
         ],
@@ -375,25 +374,25 @@ expression: payload
           {
             "name": "damage_pydamage",
             "optional": false,
-            "path": "<temp>/out/bam_damage/damage.pydamage.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_damage/damage.pydamage.json",
             "role": "unknown"
           },
           {
             "name": "damage_mapdamage2",
             "optional": false,
-            "path": "<temp>/out/bam_damage/damage.mapdamage2.txt",
+            "path": "<TMPDIR>/<TMP>/out/bam_damage/damage.mapdamage2.txt",
             "role": "unknown"
           },
           {
             "name": "stage_metrics",
             "optional": false,
-            "path": "<temp>/out/bam_damage/stage.metrics.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_damage/stage.metrics.json",
             "role": "metrics_json"
           }
         ]
       },
       "metrics_schema_ids": [],
-      "out_dir": "<temp>/out/bam_damage",
+      "out_dir": "<TMPDIR>/<TMP>/out/bam_damage",
       "resources": {
         "mem_gb": 2,
         "runtime": "short",
@@ -409,7 +408,7 @@ expression: payload
         "template": [
           "/bin/sh",
           "-c",
-          "samtools flagstat <temp>/sample.bam > <temp>/out/bam_filter/flagstat.before.txt && samtools idxstats <temp>/sample.bam > <temp>/out/bam_filter/idxstats.before.txt && samtools view -b -q 30 <temp>/sample.bam | samtools sort -o <temp>/out/bam_filter/filtered.bam && samtools index <temp>/out/bam_filter/filtered.bam <temp>/out/bam_filter/filtered.bam.bai && samtools flagstat <temp>/out/bam_filter/filtered.bam > <temp>/out/bam_filter/flagstat.after.txt && samtools idxstats <temp>/out/bam_filter/filtered.bam > <temp>/out/bam_filter/idxstats.after.txt && python - <<'PY' > <temp>/out/bam_filter/filter.summary.json\nimport json\npayload = {\"input_bam\": \"<temp>/sample.bam\", \"output_bam\": \"<temp>/out/bam_filter/filtered.bam\", \"params\": {\"mapq_threshold\": 30, \"min_length\": 30}, \"artifacts\": {\"flagstat_before\": \"<temp>/out/bam_filter/flagstat.before.txt\", \"flagstat_after\": \"<temp>/out/bam_filter/flagstat.after.txt\", \"idxstats_before\": \"<temp>/out/bam_filter/idxstats.before.txt\", \"idxstats_after\": \"<temp>/out/bam_filter/idxstats.after.txt\"}}\nprint(json.dumps(payload, indent=2))\nPY"
+          "samtools flagstat <TMPDIR>/<TMP>/sample.bam > <TMPDIR>/<TMP>/out/bam_filter/flagstat.before.txt && samtools idxstats <TMPDIR>/<TMP>/sample.bam > <TMPDIR>/<TMP>/out/bam_filter/idxstats.before.txt && samtools view -b -q 30 <TMPDIR>/<TMP>/sample.bam | samtools sort -o <TMPDIR>/<TMP>/out/bam_filter/filtered.bam && samtools index <TMPDIR>/<TMP>/out/bam_filter/filtered.bam <TMPDIR>/<TMP>/out/bam_filter/filtered.bam.bai && samtools flagstat <TMPDIR>/<TMP>/out/bam_filter/filtered.bam > <TMPDIR>/<TMP>/out/bam_filter/flagstat.after.txt && samtools idxstats <TMPDIR>/<TMP>/out/bam_filter/filtered.bam > <TMPDIR>/<TMP>/out/bam_filter/idxstats.after.txt && python - <<'PY' > <TMPDIR>/<TMP>/out/bam_filter/filter.summary.json\nimport json\npayload = {\"input_bam\": \"<TMPDIR>/<TMP>/sample.bam\", \"output_bam\": \"<TMPDIR>/<TMP>/out/bam_filter/filtered.bam\", \"params\": {\"mapq_threshold\": 30, \"min_length\": 30}, \"artifacts\": {\"flagstat_before\": \"<TMPDIR>/<TMP>/out/bam_filter/flagstat.before.txt\", \"flagstat_after\": \"<TMPDIR>/<TMP>/out/bam_filter/flagstat.after.txt\", \"idxstats_before\": \"<TMPDIR>/<TMP>/out/bam_filter/idxstats.before.txt\", \"idxstats_after\": \"<TMPDIR>/<TMP>/out/bam_filter/idxstats.after.txt\"}}\nprint(json.dumps(payload, indent=2))\nPY"
         ]
       },
       "expected_artifact_ids": [],
@@ -422,7 +421,7 @@ expression: payload
           {
             "name": "bam",
             "optional": false,
-            "path": "<temp>/sample.bam",
+            "path": "<TMPDIR>/<TMP>/sample.bam",
             "role": "bam"
           }
         ],
@@ -430,55 +429,55 @@ expression: payload
           {
             "name": "filtered_bam",
             "optional": false,
-            "path": "<temp>/out/bam_filter/filtered.bam",
+            "path": "<TMPDIR>/<TMP>/out/bam_filter/filtered.bam",
             "role": "bam"
           },
           {
             "name": "filtered_bai",
             "optional": false,
-            "path": "<temp>/out/bam_filter/filtered.bam.bai",
+            "path": "<TMPDIR>/<TMP>/out/bam_filter/filtered.bam.bai",
             "role": "index"
           },
           {
             "name": "flagstat_before",
             "optional": false,
-            "path": "<temp>/out/bam_filter/flagstat.before.txt",
+            "path": "<TMPDIR>/<TMP>/out/bam_filter/flagstat.before.txt",
             "role": "report_json"
           },
           {
             "name": "flagstat_after",
             "optional": false,
-            "path": "<temp>/out/bam_filter/flagstat.after.txt",
+            "path": "<TMPDIR>/<TMP>/out/bam_filter/flagstat.after.txt",
             "role": "report_json"
           },
           {
             "name": "idxstats_before",
             "optional": false,
-            "path": "<temp>/out/bam_filter/idxstats.before.txt",
+            "path": "<TMPDIR>/<TMP>/out/bam_filter/idxstats.before.txt",
             "role": "unknown"
           },
           {
             "name": "idxstats_after",
             "optional": false,
-            "path": "<temp>/out/bam_filter/idxstats.after.txt",
+            "path": "<TMPDIR>/<TMP>/out/bam_filter/idxstats.after.txt",
             "role": "unknown"
           },
           {
             "name": "summary",
             "optional": false,
-            "path": "<temp>/out/bam_filter/filter.summary.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_filter/filter.summary.json",
             "role": "report_json"
           },
           {
             "name": "stage_metrics",
             "optional": false,
-            "path": "<temp>/out/bam_filter/stage.metrics.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_filter/stage.metrics.json",
             "role": "metrics_json"
           }
         ]
       },
       "metrics_schema_ids": [],
-      "out_dir": "<temp>/out/bam_filter",
+      "out_dir": "<TMPDIR>/<TMP>/out/bam_filter",
       "resources": {
         "mem_gb": 2,
         "runtime": "short",
@@ -505,7 +504,7 @@ expression: payload
           {
             "name": "bam",
             "optional": false,
-            "path": "<temp>/out/bam_markdup/markdup.bam",
+            "path": "<TMPDIR>/<TMP>/out/bam_markdup/markdup.bam",
             "role": "bam"
           }
         ],
@@ -513,25 +512,25 @@ expression: payload
           {
             "name": "genotyping_report",
             "optional": false,
-            "path": "<temp>/out/bam_genotyping/genotyping.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_genotyping/genotyping.json",
             "role": "report_json"
           },
           {
             "name": "summary",
             "optional": false,
-            "path": "<temp>/out/bam_genotyping/genotyping.summary.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_genotyping/genotyping.summary.json",
             "role": "report_json"
           },
           {
             "name": "stage_metrics",
             "optional": false,
-            "path": "<temp>/out/bam_genotyping/stage.metrics.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_genotyping/stage.metrics.json",
             "role": "metrics_json"
           }
         ]
       },
       "metrics_schema_ids": [],
-      "out_dir": "<temp>/out/bam_genotyping",
+      "out_dir": "<TMPDIR>/<TMP>/out/bam_genotyping",
       "resources": {
         "mem_gb": 2,
         "runtime": "short",
@@ -558,7 +557,7 @@ expression: payload
           {
             "name": "bam",
             "optional": false,
-            "path": "<temp>/out/bam_markdup/markdup.bam",
+            "path": "<TMPDIR>/<TMP>/out/bam_markdup/markdup.bam",
             "role": "bam"
           }
         ],
@@ -566,25 +565,25 @@ expression: payload
           {
             "name": "haplogroups",
             "optional": false,
-            "path": "<temp>/out/bam_haplogroups/haplogroups.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_haplogroups/haplogroups.json",
             "role": "unknown"
           },
           {
             "name": "summary",
             "optional": false,
-            "path": "<temp>/out/bam_haplogroups/haplogroups.summary.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_haplogroups/haplogroups.summary.json",
             "role": "report_json"
           },
           {
             "name": "stage_metrics",
             "optional": false,
-            "path": "<temp>/out/bam_haplogroups/stage.metrics.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_haplogroups/stage.metrics.json",
             "role": "metrics_json"
           }
         ]
       },
       "metrics_schema_ids": [],
-      "out_dir": "<temp>/out/bam_haplogroups",
+      "out_dir": "<TMPDIR>/<TMP>/out/bam_haplogroups",
       "resources": {
         "mem_gb": 2,
         "runtime": "short",
@@ -611,7 +610,7 @@ expression: payload
           {
             "name": "bam",
             "optional": false,
-            "path": "<temp>/out/bam_markdup/markdup.bam",
+            "path": "<TMPDIR>/<TMP>/out/bam_markdup/markdup.bam",
             "role": "bam"
           }
         ],
@@ -619,25 +618,25 @@ expression: payload
           {
             "name": "kinship_report",
             "optional": false,
-            "path": "<temp>/out/bam_kinship/kinship.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_kinship/kinship.json",
             "role": "report_json"
           },
           {
             "name": "summary",
             "optional": false,
-            "path": "<temp>/out/bam_kinship/kinship.summary.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_kinship/kinship.summary.json",
             "role": "report_json"
           },
           {
             "name": "stage_metrics",
             "optional": false,
-            "path": "<temp>/out/bam_kinship/stage.metrics.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_kinship/stage.metrics.json",
             "role": "metrics_json"
           }
         ]
       },
       "metrics_schema_ids": [],
-      "out_dir": "<temp>/out/bam_kinship",
+      "out_dir": "<TMPDIR>/<TMP>/out/bam_kinship",
       "resources": {
         "mem_gb": 2,
         "runtime": "short",
@@ -653,7 +652,7 @@ expression: payload
         "template": [
           "/bin/sh",
           "-c",
-          "samtools flagstat <temp>/out/bam_filter/filtered.bam > <temp>/out/bam_markdup/flagstat.before.txt && samtools idxstats <temp>/out/bam_filter/filtered.bam > <temp>/out/bam_markdup/idxstats.before.txt && gatk MarkDuplicatesSpark -I <temp>/out/bam_filter/filtered.bam -O <temp>/out/bam_markdup/markdup.bam --REMOVE_DUPLICATES false --CREATE_INDEX true && samtools flagstat <temp>/out/bam_markdup/markdup.bam > <temp>/out/bam_markdup/flagstat.after.txt && samtools idxstats <temp>/out/bam_markdup/markdup.bam > <temp>/out/bam_markdup/idxstats.after.txt && python - <<'PY' > <temp>/out/bam_markdup/markdup.summary.json\nimport json\npayload = {\"input_bam\": \"<temp>/out/bam_filter/filtered.bam\", \"output_bam\": \"<temp>/out/bam_markdup/markdup.bam\", \"remove_duplicates\": false, \"artifacts\": {\"flagstat_before\": \"<temp>/out/bam_markdup/flagstat.before.txt\", \"flagstat_after\": \"<temp>/out/bam_markdup/flagstat.after.txt\", \"idxstats_before\": \"<temp>/out/bam_markdup/idxstats.before.txt\", \"idxstats_after\": \"<temp>/out/bam_markdup/idxstats.after.txt\"}}\nprint(json.dumps(payload, indent=2))\nPY"
+          "samtools flagstat <TMPDIR>/<TMP>/out/bam_filter/filtered.bam > <TMPDIR>/<TMP>/out/bam_markdup/flagstat.before.txt && samtools idxstats <TMPDIR>/<TMP>/out/bam_filter/filtered.bam > <TMPDIR>/<TMP>/out/bam_markdup/idxstats.before.txt && gatk MarkDuplicatesSpark -I <TMPDIR>/<TMP>/out/bam_filter/filtered.bam -O <TMPDIR>/<TMP>/out/bam_markdup/markdup.bam --REMOVE_DUPLICATES false --CREATE_INDEX true && samtools flagstat <TMPDIR>/<TMP>/out/bam_markdup/markdup.bam > <TMPDIR>/<TMP>/out/bam_markdup/flagstat.after.txt && samtools idxstats <TMPDIR>/<TMP>/out/bam_markdup/markdup.bam > <TMPDIR>/<TMP>/out/bam_markdup/idxstats.after.txt && python - <<'PY' > <TMPDIR>/<TMP>/out/bam_markdup/markdup.summary.json\nimport json\npayload = {\"input_bam\": \"<TMPDIR>/<TMP>/out/bam_filter/filtered.bam\", \"output_bam\": \"<TMPDIR>/<TMP>/out/bam_markdup/markdup.bam\", \"remove_duplicates\": false, \"artifacts\": {\"flagstat_before\": \"<TMPDIR>/<TMP>/out/bam_markdup/flagstat.before.txt\", \"flagstat_after\": \"<TMPDIR>/<TMP>/out/bam_markdup/flagstat.after.txt\", \"idxstats_before\": \"<TMPDIR>/<TMP>/out/bam_markdup/idxstats.before.txt\", \"idxstats_after\": \"<TMPDIR>/<TMP>/out/bam_markdup/idxstats.after.txt\"}}\nprint(json.dumps(payload, indent=2))\nPY"
         ]
       },
       "expected_artifact_ids": [],
@@ -666,7 +665,7 @@ expression: payload
           {
             "name": "bam",
             "optional": false,
-            "path": "<temp>/out/bam_filter/filtered.bam",
+            "path": "<TMPDIR>/<TMP>/out/bam_filter/filtered.bam",
             "role": "bam"
           }
         ],
@@ -674,55 +673,55 @@ expression: payload
           {
             "name": "markdup_bam",
             "optional": false,
-            "path": "<temp>/out/bam_markdup/markdup.bam",
+            "path": "<TMPDIR>/<TMP>/out/bam_markdup/markdup.bam",
             "role": "bam"
           },
           {
             "name": "markdup_bai",
             "optional": false,
-            "path": "<temp>/out/bam_markdup/markdup.bam.bai",
+            "path": "<TMPDIR>/<TMP>/out/bam_markdup/markdup.bam.bai",
             "role": "index"
           },
           {
             "name": "flagstat_before",
             "optional": false,
-            "path": "<temp>/out/bam_markdup/flagstat.before.txt",
+            "path": "<TMPDIR>/<TMP>/out/bam_markdup/flagstat.before.txt",
             "role": "report_json"
           },
           {
             "name": "flagstat_after",
             "optional": false,
-            "path": "<temp>/out/bam_markdup/flagstat.after.txt",
+            "path": "<TMPDIR>/<TMP>/out/bam_markdup/flagstat.after.txt",
             "role": "report_json"
           },
           {
             "name": "idxstats_before",
             "optional": false,
-            "path": "<temp>/out/bam_markdup/idxstats.before.txt",
+            "path": "<TMPDIR>/<TMP>/out/bam_markdup/idxstats.before.txt",
             "role": "unknown"
           },
           {
             "name": "idxstats_after",
             "optional": false,
-            "path": "<temp>/out/bam_markdup/idxstats.after.txt",
+            "path": "<TMPDIR>/<TMP>/out/bam_markdup/idxstats.after.txt",
             "role": "unknown"
           },
           {
             "name": "summary",
             "optional": false,
-            "path": "<temp>/out/bam_markdup/markdup.summary.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_markdup/markdup.summary.json",
             "role": "report_json"
           },
           {
             "name": "stage_metrics",
             "optional": false,
-            "path": "<temp>/out/bam_markdup/stage.metrics.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_markdup/stage.metrics.json",
             "role": "metrics_json"
           }
         ]
       },
       "metrics_schema_ids": [],
-      "out_dir": "<temp>/out/bam_markdup",
+      "out_dir": "<TMPDIR>/<TMP>/out/bam_markdup",
       "resources": {
         "mem_gb": 2,
         "runtime": "short",
@@ -738,7 +737,7 @@ expression: payload
         "template": [
           "/bin/sh",
           "-c",
-          "samtools flagstat <temp>/sample.bam > <temp>/out/bam_qc_pre/flagstat.txt && samtools idxstats <temp>/sample.bam > <temp>/out/bam_qc_pre/idxstats.txt && samtools stats <temp>/sample.bam > <temp>/out/bam_qc_pre/samtools_stats.txt"
+          "samtools flagstat <TMPDIR>/<TMP>/sample.bam > <TMPDIR>/<TMP>/out/bam_qc_pre/flagstat.txt && samtools idxstats <TMPDIR>/<TMP>/sample.bam > <TMPDIR>/<TMP>/out/bam_qc_pre/idxstats.txt && samtools stats <TMPDIR>/<TMP>/sample.bam > <TMPDIR>/<TMP>/out/bam_qc_pre/samtools_stats.txt"
         ]
       },
       "expected_artifact_ids": [],
@@ -751,7 +750,7 @@ expression: payload
           {
             "name": "bam",
             "optional": false,
-            "path": "<temp>/sample.bam",
+            "path": "<TMPDIR>/<TMP>/sample.bam",
             "role": "bam"
           }
         ],
@@ -759,31 +758,31 @@ expression: payload
           {
             "name": "flagstat",
             "optional": false,
-            "path": "<temp>/out/bam_qc_pre/flagstat.txt",
+            "path": "<TMPDIR>/<TMP>/out/bam_qc_pre/flagstat.txt",
             "role": "report_json"
           },
           {
             "name": "idxstats",
             "optional": false,
-            "path": "<temp>/out/bam_qc_pre/idxstats.txt",
+            "path": "<TMPDIR>/<TMP>/out/bam_qc_pre/idxstats.txt",
             "role": "unknown"
           },
           {
             "name": "stats",
             "optional": false,
-            "path": "<temp>/out/bam_qc_pre/samtools_stats.txt",
+            "path": "<TMPDIR>/<TMP>/out/bam_qc_pre/samtools_stats.txt",
             "role": "unknown"
           },
           {
             "name": "stage_metrics",
             "optional": false,
-            "path": "<temp>/out/bam_qc_pre/stage.metrics.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_qc_pre/stage.metrics.json",
             "role": "metrics_json"
           }
         ]
       },
       "metrics_schema_ids": [],
-      "out_dir": "<temp>/out/bam_qc_pre",
+      "out_dir": "<TMPDIR>/<TMP>/out/bam_qc_pre",
       "resources": {
         "mem_gb": 2,
         "runtime": "short",
@@ -799,7 +798,7 @@ expression: payload
         "template": [
           "/bin/sh",
           "-c",
-          "rxy --input <temp>/out/bam_markdup/markdup.bam > <temp>/out/bam_sex/sex.json && python - <<'PY' > <temp>/out/bam_sex/sex.summary.json\nimport json\npayload = {\"method\": \"rxy\", \"x_to_y_ratio\": 0.0, \"confidence\": 0.0}\nprint(json.dumps(payload, indent=2))\nPY"
+          "rxy --input <TMPDIR>/<TMP>/out/bam_markdup/markdup.bam > <TMPDIR>/<TMP>/out/bam_sex/sex.json && python - <<'PY' > <TMPDIR>/<TMP>/out/bam_sex/sex.summary.json\nimport json\npayload = {\"method\": \"rxy\", \"x_to_y_ratio\": 0.0, \"confidence\": 0.0}\nprint(json.dumps(payload, indent=2))\nPY"
         ]
       },
       "expected_artifact_ids": [],
@@ -812,7 +811,7 @@ expression: payload
           {
             "name": "bam",
             "optional": false,
-            "path": "<temp>/out/bam_markdup/markdup.bam",
+            "path": "<TMPDIR>/<TMP>/out/bam_markdup/markdup.bam",
             "role": "bam"
           }
         ],
@@ -820,25 +819,25 @@ expression: payload
           {
             "name": "sex_report",
             "optional": false,
-            "path": "<temp>/out/bam_sex/sex.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_sex/sex.json",
             "role": "report_json"
           },
           {
             "name": "summary",
             "optional": false,
-            "path": "<temp>/out/bam_sex/sex.summary.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_sex/sex.summary.json",
             "role": "report_json"
           },
           {
             "name": "stage_metrics",
             "optional": false,
-            "path": "<temp>/out/bam_sex/stage.metrics.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_sex/stage.metrics.json",
             "role": "metrics_json"
           }
         ]
       },
       "metrics_schema_ids": [],
-      "out_dir": "<temp>/out/bam_sex",
+      "out_dir": "<TMPDIR>/<TMP>/out/bam_sex",
       "resources": {
         "mem_gb": 2,
         "runtime": "short",
@@ -854,7 +853,7 @@ expression: payload
         "template": [
           "/bin/sh",
           "-c",
-          "samtools quickcheck -v <temp>/sample.bam > <temp>/out/bam_validate/validation.json && samtools flagstat <temp>/sample.bam > <temp>/out/bam_validate/flagstat.txt"
+          "samtools quickcheck -v <TMPDIR>/<TMP>/sample.bam > <TMPDIR>/<TMP>/out/bam_validate/validation.json && samtools flagstat <TMPDIR>/<TMP>/sample.bam > <TMPDIR>/<TMP>/out/bam_validate/flagstat.txt"
         ]
       },
       "expected_artifact_ids": [],
@@ -867,7 +866,7 @@ expression: payload
           {
             "name": "bam",
             "optional": false,
-            "path": "<temp>/sample.bam",
+            "path": "<TMPDIR>/<TMP>/sample.bam",
             "role": "bam"
           }
         ],
@@ -875,25 +874,25 @@ expression: payload
           {
             "name": "validation_report",
             "optional": false,
-            "path": "<temp>/out/bam_validate/validation.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_validate/validation.json",
             "role": "report_json"
           },
           {
             "name": "flagstat",
             "optional": false,
-            "path": "<temp>/out/bam_validate/flagstat.txt",
+            "path": "<TMPDIR>/<TMP>/out/bam_validate/flagstat.txt",
             "role": "report_json"
           },
           {
             "name": "stage_metrics",
             "optional": false,
-            "path": "<temp>/out/bam_validate/stage.metrics.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_validate/stage.metrics.json",
             "role": "metrics_json"
           }
         ]
       },
       "metrics_schema_ids": [],
-      "out_dir": "<temp>/out/bam_validate",
+      "out_dir": "<TMPDIR>/<TMP>/out/bam_validate",
       "resources": {
         "mem_gb": 2,
         "runtime": "short",
