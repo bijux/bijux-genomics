@@ -1,176 +1,73 @@
 #!/usr/bin/env python3
 import json
-import os
 import sys
+from pathlib import Path
 
 
-def load_json(path):
-    if path == "-":
-        return json.load(sys.stdin)
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
-
-
-def percent(covered, count):
-    if count == 0:
+def percent(hit, total):
+    if total == 0:
         return 100.0
-    return (covered / count) * 100.0
+    return 100.0 * hit / total
 
 
-def relpath(path):
-    try:
-        return os.path.relpath(path, os.getcwd())
-    except Exception:
-        return path
-
-
-def crate_from_path(path):
-    parts = relpath(path).split(os.sep)
-    if len(parts) >= 2 and parts[0] == "crates":
-        return parts[1]
-    return None
-
-
-def collect_files(data):
-    files = []
-    for entry in data.get("data", []):
-        for file_entry in entry.get("files", []):
-            filename = file_entry.get("filename")
-            summary = file_entry.get("summary", {})
-            files.append((filename, summary))
-    return files
-
-
-def summarize(files):
-    crates = {}
-    total = {
-        "lines": {"covered": 0, "count": 0},
-        "functions": {"covered": 0, "count": 0},
-        "regions": {"covered": 0, "count": 0},
-        "files": [],
-    }
-    for filename, summary in files:
-        if not filename:
-            continue
-        crate = crate_from_path(filename)
-        if crate is None:
-            continue
-        if crate not in crates:
-            crates[crate] = {
-                "lines": {"covered": 0, "count": 0},
-                "functions": {"covered": 0, "count": 0},
-                "regions": {"covered": 0, "count": 0},
-                "files": [],
-            }
-        for key in ("lines", "functions", "regions"):
-            metrics = summary.get(key, {})
-            covered = metrics.get("covered", 0)
-            count = metrics.get("count", 0)
-            crates[crate][key]["covered"] += covered
-            crates[crate][key]["count"] += count
-            total[key]["covered"] += covered
-            total[key]["count"] += count
-        line_metrics = summary.get("lines", {})
-        crates[crate]["files"].append(
-            (filename, percent(line_metrics.get("covered", 0), line_metrics.get("count", 0)))
-        )
-        total["files"].append(
-            (filename, percent(line_metrics.get("covered", 0), line_metrics.get("count", 0)))
-        )
-    return crates, total
-
-
-def top_uncovered(files, limit=5):
-    ranked = sorted(files, key=lambda item: item[1])
-    top = []
-    for filename, pct in ranked:
-        if pct >= 100.0:
-            continue
-        top.append((filename, pct))
-        if len(top) >= limit:
-            break
-    return top
-
-
-def format_top(files, limit=5):
-    top = top_uncovered(files, limit=limit)
-    if not top:
-        return "-"
-    formatted = []
-    for filename, pct in top:
-        formatted.append(f"{relpath(filename)} ({pct:.1f}%)")
-    return "; ".join(formatted)
-
-
-def print_table(crates, total):
-    rows = []
-    for name in sorted(crates):
-        data = crates[name]
-        rows.append(
-            (
-                name,
-                percent(data["lines"]["covered"], data["lines"]["count"]),
-                percent(data["functions"]["covered"], data["functions"]["count"]),
-                percent(data["regions"]["covered"], data["regions"]["count"]),
-                format_top(data["files"]),
-            )
-        )
-    rows.append(
-        (
-            "TOTAL",
-            percent(total["lines"]["covered"], total["lines"]["count"]),
-            percent(total["functions"]["covered"], total["functions"]["count"]),
-            percent(total["regions"]["covered"], total["regions"]["count"]),
-            format_top(total["files"]),
-        )
-    )
-
-    headers = ("crate", "lines %", "funcs %", "regions %", "uncovered top files (top 5)")
-    widths = [len(h) for h in headers]
-    for row in rows:
-        widths[0] = max(widths[0], len(row[0]))
-        widths[1] = max(widths[1], len(f"{row[1]:.1f}"))
-        widths[2] = max(widths[2], len(f"{row[2]:.1f}"))
-        widths[3] = max(widths[3], len(f"{row[3]:.1f}"))
-        widths[4] = max(widths[4], len(row[4]))
-
-    def fmt_row(cols):
-        return " | ".join(
-            [
-                f"{cols[0]:<{widths[0]}}",
-                f"{cols[1]:>{widths[1]}.1f}",
-                f"{cols[2]:>{widths[2]}.1f}",
-                f"{cols[3]:>{widths[3]}.1f}",
-                f"{cols[4]:<{widths[4]}}",
-            ]
-        )
-
-    print(fmt_row(headers))
-    print(
-        "-+-".join(
-            [
-                "-" * widths[0],
-                "-" * widths[1],
-                "-" * widths[2],
-                "-" * widths[3],
-                "-" * widths[4],
-            ]
-        )
-    )
-    for row in rows:
-        print(fmt_row(row))
+def fmt_pct(p):
+    return f"{p:6.2f}%"
 
 
 def main():
-    # TODO(workspace): add coverage thresholds once gates are defined.
-    if len(sys.argv) != 2:
-        print("Usage: coverage_summary.py <llvm-cov-report.json or ->", file=sys.stderr)
+    if len(sys.argv) < 2:
+        print("usage: coverage_summary.py <llvm-cov.json>", file=sys.stderr)
         sys.exit(2)
-    data = load_json(sys.argv[1])
-    files = collect_files(data)
-    crates, total = summarize(files)
-    print_table(crates, total)
+    data = json.loads(Path(sys.argv[1]).read_text())
 
+    rows = []
+    for file in data.get("data", []):
+        for fn in file.get("functions", []):
+            pass
+
+    # Aggregate by package/crate name (from file path)
+    crates = {}
+    for f in data.get("data", []):
+        for fn in f.get("functions", []):
+            pass
+    # llvm-cov json structure
+    files = data.get("data", [])[0].get("files", []) if data.get("data") else []
+
+    for f in files:
+        path = f.get("filename", "")
+        parts = Path(path).parts
+        crate = "workspace"
+        if "crates" in parts:
+            idx = parts.index("crates")
+            if idx + 1 < len(parts):
+                crate = parts[idx + 1]
+        cov = f.get("summary", {})
+        lines = cov.get("lines", {})
+        funcs = cov.get("functions", {})
+        regions = cov.get("regions", {})
+        entry = crates.setdefault(crate, {
+            "lines_hit": 0, "lines_total": 0,
+            "funcs_hit": 0, "funcs_total": 0,
+            "regions_hit": 0, "regions_total": 0,
+            "files": []
+        })
+        entry["lines_hit"] += lines.get("count", 0) - lines.get("missed", 0)
+        entry["lines_total"] += lines.get("count", 0)
+        entry["funcs_hit"] += funcs.get("count", 0) - funcs.get("missed", 0)
+        entry["funcs_total"] += funcs.get("count", 0)
+        entry["regions_hit"] += regions.get("count", 0) - regions.get("missed", 0)
+        entry["regions_total"] += regions.get("count", 0)
+        entry["files"].append((path, lines.get("missed", 0)))
+
+    print("crate | lines % | funcs % | regions % | uncovered top files")
+    print("----- | ------- | ------- | --------- | -------------------")
+    for crate, entry in sorted(crates.items()):
+        lines_pct = percent(entry["lines_hit"], entry["lines_total"])
+        funcs_pct = percent(entry["funcs_hit"], entry["funcs_total"])
+        regions_pct = percent(entry["regions_hit"], entry["regions_total"])
+        top_files = sorted(entry["files"], key=lambda x: x[1], reverse=True)[:5]
+        top_str = ", ".join([f"{Path(p).name}({m})" for p, m in top_files if m > 0])
+        print(f"{crate} | {fmt_pct(lines_pct)} | {fmt_pct(funcs_pct)} | {fmt_pct(regions_pct)} | {top_str}")
 
 if __name__ == "__main__":
     main()

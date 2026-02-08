@@ -864,7 +864,8 @@ mod tests {
             payload.get("planner_version").and_then(|v| v.as_str()),
             Some("planner.v1")
         );
-        insta::assert_json_snapshot!("scientific_provenance_contract", payload);
+        let name = bijux_testkit::snapshot_name("schemas", "scientific_provenance_contract");
+        insta::assert_json_snapshot!(name, payload);
         Ok(())
     }
 

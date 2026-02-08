@@ -6,12 +6,12 @@ and artifact expectations.
 
 ## Schema fixtures
 Canonical fixtures used by schema/contract tests:
-- `tests/fixtures/report/happy/report.json`
-- `tests/fixtures/report/missing/report.json`
-- `tests/fixtures/report/failure/report.json`
-- `tests/fixtures/report/provenance/report.json`
-- `tests/fixtures/report/perf_budget/report.json`
-- `tests/fixtures/report/sections/report.json`
+- `tests/fixtures/report/happy/default/report.json`
+- `tests/fixtures/report/missing/default/report.json`
+- `tests/fixtures/report/failure/default/report.json`
+- `tests/fixtures/report/provenance/default/report.json`
+- `tests/fixtures/report/perf_budget/default/report.json`
+- `tests/fixtures/report/sections/default/report.json`
 
 ## Schema tests
 - `tests/report/report_contract.rs`

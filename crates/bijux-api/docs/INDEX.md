@@ -20,9 +20,9 @@ See `TESTS.md` for test mapping and fixtures.
 - `API_STABILITY.md` for compatibility rules.
 - `REQUEST_FLOW.md` for how requests map to planners/engine/artifacts.
 - Schema snapshots:
-  `tests/snapshots/v1_cross_api_stability__plan_response_schema.snap`,
-  `tests/snapshots/v1_cross_api_stability__execute_response_schema.snap`,
-  `tests/snapshots/v1_cross_api_stability__dry_run_response_schema.snap`,
-  `tests/snapshots/v1_cross_api_stability__status_schema.snap`,
-  `tests/snapshots/v1_cross_api_stability__explain_schema.snap`,
-  `tests/snapshots/v1_cross_api_stability__policy_audit_schema.snap`.
+  `tests/snapshots/bijux-api__schemas__plan_response_schema.snap`,
+  `tests/snapshots/bijux-api__schemas__execute_response_schema.snap`,
+  `tests/snapshots/bijux-api__schemas__dry_run_response_schema.snap`,
+  `tests/snapshots/bijux-api__schemas__status_schema.snap`,
+  `tests/snapshots/bijux-api__schemas__explain_schema.snap`,
+  `tests/snapshots/bijux-api__schemas__policy_audit_schema.snap`.

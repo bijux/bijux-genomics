@@ -76,3 +76,8 @@ opt-level = 1
 debug = 1
 incremental = true
 codegen-units = 256
+
+[profile.test-fast]
+inherits = "test"
+opt-level = 0
+debug = 1

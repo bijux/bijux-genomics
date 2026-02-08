@@ -18,7 +18,7 @@ Tests should explain the contract they enforce.
 - `tests/fixtures/bench_artifacts/observations.jsonl` → `docs/BENCH_FORMAT.md#observationsjsonl`
 - `tests/fixtures/bench_artifacts/summary.json` → `docs/BENCH_FORMAT.md#summaryjson`
 - `tests/fixtures/bench_bundle/*` → `docs/BENCH_CONTRACT.md`
-- `tests/fixtures/handshake/run_record.json` → `tests/contracts/contract_handshake.rs`
+- `tests/fixtures/handshake/default/run_record.json` → `tests/contracts/contract_handshake.rs`
 
 ## Suite map
 - `tests/contracts/*` → boundary, API surface, and schema contract checks.

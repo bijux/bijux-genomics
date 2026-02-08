@@ -17,12 +17,12 @@ Public API surface for orchestration endpoints and schemas.
 - Compatibility rules live in `docs/API_STABILITY.md`.
 
 ## Contract snapshots (source of truth)
-- `tests/snapshots/v1_cross_api_stability__plan_response_schema.snap`
-- `tests/snapshots/v1_cross_api_stability__execute_response_schema.snap`
-- `tests/snapshots/v1_cross_api_stability__dry_run_response_schema.snap`
-- `tests/snapshots/v1_cross_api_stability__status_schema.snap`
-- `tests/snapshots/v1_cross_api_stability__explain_schema.snap`
-- `tests/snapshots/v1_cross_api_stability__policy_audit_schema.snap`
+- `tests/snapshots/bijux-api__schemas__plan_response_schema.snap`
+- `tests/snapshots/bijux-api__schemas__execute_response_schema.snap`
+- `tests/snapshots/bijux-api__schemas__dry_run_response_schema.snap`
+- `tests/snapshots/bijux-api__schemas__status_schema.snap`
+- `tests/snapshots/bijux-api__schemas__explain_schema.snap`
+- `tests/snapshots/bijux-api__schemas__policy_audit_schema.snap`
 
 ## Internal handlers (non-public)
 `src/internal/*` is not public API and may change at any time. It is for wiring and adapters only.
