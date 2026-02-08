@@ -25,8 +25,17 @@ def parse_args():
         help="Print uncovered file list per crate (off by default)",
     )
     parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help="Alias for --show-uncovered",
+    )
+    parser.add_argument(
         "--baseline",
         help="Path to baseline llvm-cov JSON report for delta comparison",
+    )
+    parser.add_argument(
+        "--check-thresholds",
+        help="Path to JSON file of per-crate coverage thresholds",
     )
     parser.add_argument(
         "--show-worst",
@@ -103,15 +112,19 @@ def main():
     data = load_report(args.report)
     baseline = load_report(args.baseline) if args.baseline else None
 
-    show_uncovered = args.show_uncovered or os.getenv("COVERAGE_SHOW_UNCOVERED") == "1"
+    show_uncovered = args.show_uncovered or args.verbose or os.getenv("COVERAGE_SHOW_UNCOVERED") == "1"
     show_worst = args.show_worst or os.getenv("COVERAGE_SHOW_WORST") == "1"
 
-    header = "crate | lines % | funcs % | regions %"
+    header = "crate | lines | covered | lines % | funcs % | regions %"
     if baseline:
         header += " | lines Δ"
     header += " | uncovered top files"
     print(header)
-    print("----- | ------- | ------- | --------- | ------- | -------------------" if baseline else "----- | ------- | ------- | --------- | -------------------")
+    print(
+        "----- | ----- | ------- | ------- | ------- | --------- | ------- | -------------------"
+        if baseline
+        else "----- | ----- | ------- | ------- | ------- | --------- | -------------------"
+    )
 
     rows = []
     for crate, entry in sorted(data.items()):
@@ -128,10 +141,16 @@ def main():
         rows.append((crate, lines_pct, funcs_pct, regions_pct, delta, top_str, entry))
 
     for crate, lines_pct, funcs_pct, regions_pct, delta, top_str, entry in rows:
+        lines_total = entry["lines_total"]
+        lines_hit = entry["lines_hit"]
         if baseline:
-            print(f"{crate} | {fmt_pct(lines_pct)} | {fmt_pct(funcs_pct)} | {fmt_pct(regions_pct)} | {delta:>7} | {top_str}")
+            print(
+                f"{crate} | {lines_total:>5} | {lines_hit:>7} | {fmt_pct(lines_pct)} | {fmt_pct(funcs_pct)} | {fmt_pct(regions_pct)} | {delta:>7} | {top_str}"
+            )
         else:
-            print(f"{crate} | {fmt_pct(lines_pct)} | {fmt_pct(funcs_pct)} | {fmt_pct(regions_pct)} | {top_str}")
+            print(
+                f"{crate} | {lines_total:>5} | {lines_hit:>7} | {fmt_pct(lines_pct)} | {fmt_pct(funcs_pct)} | {fmt_pct(regions_pct)} | {top_str}"
+            )
         if show_uncovered:
             for path, misses in sorted(entry["files"], key=lambda x: x[1], reverse=True):
                 if misses <= 0:
@@ -143,6 +162,28 @@ def main():
         print("\nworst coverage (lines %):")
         for crate, lines_pct, funcs_pct, regions_pct, _delta, _top, _entry in worst:
             print(f"{crate}: {fmt_pct(lines_pct)}")
+
+    if args.check_thresholds:
+        thresholds = json.loads(Path(args.check_thresholds).read_text())
+        default_threshold = thresholds.get("default", 0.0)
+        class_thresholds = thresholds.get("classes", {})
+        class_map = thresholds.get("crate_class", {})
+        overrides = thresholds.get("overrides", {})
+        failures = []
+        for crate, entry in data.items():
+            lines_pct = percent(entry["lines_hit"], entry["lines_total"])
+            if crate in overrides:
+                min_pct = overrides[crate]
+            else:
+                class_name = class_map.get(crate)
+                min_pct = class_thresholds.get(class_name, default_threshold)
+            if lines_pct < min_pct:
+                failures.append((crate, lines_pct, min_pct))
+        if failures:
+            print("\ncoverage thresholds failed:")
+            for crate, actual, minimum in failures:
+                print(f"{crate}: {actual:.2f}% < {minimum:.2f}%")
+            sys.exit(1)
 
 if __name__ == "__main__":
     main()
