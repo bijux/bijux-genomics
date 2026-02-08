@@ -1,2 +1,2 @@
-Usage: bijux bam run
+Usage: bijux dna bam run
 

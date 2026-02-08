@@ -198,35 +198,35 @@ pub enum FastqCommand {
     },
     #[command(
         about = "Filter FASTQ reads.",
-        after_help = "Examples:\n  bijux fastq filter --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE --tools fastp\n  bijux fastq filter --list-tools"
+        after_help = "Examples:\n  bijux dna fastq filter --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE --tools fastp\n  bijux dna fastq filter --list-tools"
     )]
     Filter(FastqFilterArgs),
     #[command(
         about = "Merge paired-end FASTQ reads.",
-        after_help = "Example:\n  bijux fastq merge --r1 reads_1.fastq.gz --r2 reads_2.fastq.gz --out artifacts --sample-id SAMPLE --tools vsearch\n\nNext stages: filter -> stats"
+        after_help = "Example:\n  bijux dna fastq merge --r1 reads_1.fastq.gz --r2 reads_2.fastq.gz --out artifacts --sample-id SAMPLE --tools vsearch\n\nNext stages: filter -> stats"
     )]
     Merge(CommonArgs),
     #[command(
         about = "Trim FASTQ reads (quality/adapters) and emit canonical outputs.",
-        after_help = "Example:\n  bijux fastq trim --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE --tools fastp\n\nNext stages: filter -> stats"
+        after_help = "Example:\n  bijux dna fastq trim --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE --tools fastp\n\nNext stages: filter -> stats"
     )]
     Trim(FastqTrimArgs),
     Contam(CommonArgs),
     #[command(
         about = "Run the FASTQ preprocess pipeline (validate → trim → filter → stats).",
-        after_help = "Examples:\n  bijux fastq preprocess --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE\n  bijux fastq preprocess --auto --objective speed --bench-corpus fastq_5set --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE\n  bijux fastq preprocess --list-tools"
+        after_help = "Examples:\n  bijux dna fastq preprocess --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE\n  bijux dna fastq preprocess --auto --objective speed --bench-corpus fastq_5set --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE\n  bijux dna fastq preprocess --list-tools"
     )]
     Preprocess(FastqPreprocessArgs),
     #[command(
         about = "Run the FASTQ pipeline (validate → trim → filter → stats).",
-        after_help = "Examples:\n  bijux fastq run --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE\n  bijux fastq run --auto --objective speed --bench-corpus fastq_5set --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE"
+        after_help = "Examples:\n  bijux dna fastq run --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE\n  bijux dna fastq run --auto --objective speed --bench-corpus fastq_5set --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE"
     )]
     Run(FastqRunArgs),
     #[command(
         name = "stats-neutral",
         alias = "stats",
         about = "Summarize FASTQ read statistics (neutral).",
-        after_help = "Example:\n  bijux fastq stats-neutral --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE --tools seqkit_stats\n\nNext stages: report/compare"
+        after_help = "Example:\n  bijux dna fastq stats-neutral --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE --tools seqkit_stats\n\nNext stages: report/compare"
     )]
     StatsNeutral(CommonArgs),
     Umi(CommonArgs),
@@ -237,7 +237,7 @@ pub enum FastqCommand {
         name = "validate-pre",
         alias = "validate",
         about = "Validate FASTQ reads (pre).",
-        after_help = "Examples:\n  bijux fastq validate-pre --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE --tools fastqvalidator_official\n  bijux fastq validate-pre --list-tools"
+        after_help = "Examples:\n  bijux dna fastq validate-pre --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE --tools fastqvalidator_official\n  bijux dna fastq validate-pre --list-tools"
     )]
     ValidatePre(FastqValidateArgs),
     #[command(about = "Benchmark existing FASTQ runs without re-execution.")]

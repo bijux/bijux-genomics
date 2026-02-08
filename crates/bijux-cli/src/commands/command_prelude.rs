@@ -16,7 +16,7 @@ pub(crate) use crate::commands::cli::{
     bench_args_stats, bench_args_trim, bench_args_umi, bench_args_validate,
     fastq_cross_args_from_cli, is_bench_requested_trim, is_bench_requested_validate,
     preprocess_args_from_cli, AnalyzeCommand, BenchBamCommand, BenchCommand, BenchFastqCommand,
-    Cli, Commands, EnvCommand, FastqCommand, PipelinesCommand, PoliciesCommand,
+    Cli, DnaCommand, EnvCommand, FastqCommand, PipelinesCommand, PoliciesCommand,
 };
 pub(crate) use crate::commands::report_inputs::resolve_report_inputs;
 pub(crate) use crate::commands::report_inputs::{normalize_fastq_stage_id, qc_class_label};

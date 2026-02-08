@@ -16,8 +16,8 @@ All outputs are contract artifacts: manifest, report, and step records.
 ## Examples
 ```bash
 # Plan + execute a minimal FASTQ pipeline
-bijux plan --pipeline fastq.default.v1 > graph.json
-bijux execute --pipeline fastq.default.v1 --out runs/demo
+bijux dna plan --pipeline fastq.default.v1 > graph.json
+bijux dna execute --pipeline fastq.default.v1 --out runs/demo
 ```
 
 Artifacts created:

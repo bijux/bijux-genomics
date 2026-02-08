@@ -203,8 +203,8 @@ fn policy__boundaries__dependency_graph__cli_depends_only_on_api() {
     let cli = metadata
         .packages
         .iter()
-        .find(|pkg| pkg.name == "bijux")
-        .expect("bijux cli missing");
+        .find(|pkg| pkg.name == "bijux-dna-cli")
+        .expect("bijux-dna-cli missing");
     let allowed = BTreeSet::from(["bijux-api".to_string()]);
     let actual: BTreeSet<String> = cli
         .dependencies

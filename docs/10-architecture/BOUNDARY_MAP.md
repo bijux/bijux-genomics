@@ -24,7 +24,7 @@ Enforced by:
 
 ## Executable Boundary Map
 ```boundaries
-bijux: bijux-api bijux-core bijux-infra bijux-policies
+bijux-dna-cli: bijux-api bijux-core bijux-infra bijux-policies
 bijux-analyze: bijux-benchmark bijux-core bijux-domain-bam bijux-domain-fastq bijux-infra bijux-pipelines bijux-planner-bam bijux-planner-fastq bijux-policies bijux-runtime bijux-testkit
 bijux-api: bijux-analyze bijux-benchmark bijux-core bijux-domain-bam bijux-domain-fastq bijux-engine bijux-environment bijux-environment-qa bijux-infra bijux-pipelines bijux-planner-bam bijux-planner-fastq bijux-policies bijux-runner bijux-runtime bijux-stage-contract bijux-testkit
 bijux-benchmark: bijux-analyze bijux-benchmark-model bijux-core bijux-domain-bam bijux-domain-fastq bijux-infra bijux-policies bijux-runtime bijux-testkit

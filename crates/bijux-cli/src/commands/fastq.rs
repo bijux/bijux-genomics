@@ -13,13 +13,17 @@ use crate::commands::command_prelude::{
     write_correct_report, write_filter_report, write_merge_report, write_qc_post_report,
     write_run_report_from_facts, write_run_summary_from_facts, write_stage_summary_csv,
     write_stats_report, write_trim_report, write_umi_report, write_validate_report, AnalyzeCommand,
-    BTreeMap, BenchBamCommand, BenchCommand, BenchFastqCommand, Cli, Commands, EnvCommand,
+    BTreeMap, BenchBamCommand, BenchCommand, BenchFastqCommand, Cli, DnaCommand, EnvCommand,
     Objective, Path, PipelinesCommand, PoliciesCommand, RankInput, Result,
 };
 
-pub(crate) fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool> {
-    match &cli.command {
-        Commands::ValidateManifests => {
+pub(crate) fn handle_meta_commands(
+    cli: &Cli,
+    dna_command: &DnaCommand,
+    domain_dir: &Path,
+) -> Result<bool> {
+    match dna_command {
+        DnaCommand::ValidateManifests => {
             let registry = load_manifests(domain_dir)
                 .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
             println!(
@@ -33,17 +37,17 @@ pub(crate) fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool>
             );
             Ok(true)
         }
-        Commands::Platform => {
+        DnaCommand::Platform => {
             let platform = load_platform(cli.platform.as_deref())
                 .map_err(|err| anyhow!("failed to load platform: {err}"))?;
             render::json::print_pretty(&platform)?;
             Ok(true)
         }
-        Commands::ImageQa => {
+        DnaCommand::ImageQa => {
             run_image_qa(cli.platform.as_deref())?;
             Ok(true)
         }
-        Commands::Replay(args) => {
+        DnaCommand::Replay(args) => {
             if let Some(manifest_path) = args.manifest.as_ref() {
                 bijux_api::v1::api::run::replay_manifest(manifest_path, args.verify_only)?;
                 return Ok(true);
@@ -55,7 +59,7 @@ pub(crate) fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool>
             bijux_api::v1::api::run::replay_manifest(&manifest_path, args.verify_only)?;
             Ok(true)
         }
-        Commands::Compare(args) => {
+        DnaCommand::Compare(args) => {
             let objective = objective_spec(Objective::Balanced);
             let run_a = args.search_root.join(&args.run_a);
             let run_b = args.search_root.join(&args.run_b);
@@ -73,7 +77,7 @@ pub(crate) fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool>
             render::json::print_pretty(&result)?;
             Ok(true)
         }
-        Commands::Policies { command } => {
+        DnaCommand::Policies { command } => {
             match command {
                 PoliciesCommand::Audit { out } => {
                     workspace_audit(out)?;
@@ -81,7 +85,7 @@ pub(crate) fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool>
             }
             Ok(true)
         }
-        Commands::Pipelines { command } => match command {
+        DnaCommand::Pipelines { command } => match command {
             PipelinesCommand::List {
                 domain,
                 show_experimental,
@@ -168,7 +172,7 @@ pub(crate) fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool>
                 Ok(true)
             }
         },
-        Commands::Analyze { command } => {
+        DnaCommand::Analyze { command } => {
             match command {
                 AnalyzeCommand::Runs(args) => {
                     let query = bijux_api::v1::api::run::RunQuery {
@@ -305,7 +309,7 @@ pub(crate) fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool>
             }
             Ok(true)
         }
-        Commands::Env { command } => {
+        DnaCommand::Env { command } => {
             let platform = load_platform(cli.platform.as_deref())
                 .map_err(|err| anyhow!("failed to load platform: {err}"))?;
             let catalog =
@@ -323,7 +327,7 @@ pub(crate) fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool>
             }
             Ok(true)
         }
-        Commands::Bench { command } => {
+        DnaCommand::Bench { command } => {
             let platform = load_platform(cli.platform.as_deref())
                 .map_err(|err| anyhow!("failed to load platform: {err}"))?;
             let catalog =
@@ -504,7 +508,7 @@ pub(crate) fn handle_meta_commands(cli: &Cli, domain_dir: &Path) -> Result<bool>
             }
             Ok(true)
         }
-        Commands::Fastq { .. } | Commands::Bam { .. } => Ok(false),
+        DnaCommand::Fastq { .. } | DnaCommand::Bam { .. } => Ok(false),
     }
 }
 

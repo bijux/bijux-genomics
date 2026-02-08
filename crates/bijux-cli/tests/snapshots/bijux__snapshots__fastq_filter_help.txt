@@ -1,6 +1,6 @@
 Filter FASTQ reads.
 
-Usage: bijux fastq filter [OPTIONS]
+Usage: bijux dna fastq filter [OPTIONS]
 
 Options:
       --list-tools                                           
@@ -18,5 +18,5 @@ Options:
   -h, --help                                                 Print help
 
 Examples:
-  bijux fastq filter --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE --tools fastp
-  bijux fastq filter --list-tools
+  bijux dna fastq filter --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE --tools fastp
+  bijux dna fastq filter --list-tools

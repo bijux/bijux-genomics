@@ -1,4 +1,4 @@
-# bijux-cli Docs Index
+# bijux-dna-cli Docs Index
 
 ## Scope
 See `SCOPE.md` for what belongs here.

@@ -58,7 +58,7 @@ fn policy__boundaries__heavy_deps_policy__heavy_dependencies_are_feature_gated()
     for crate_dir in crate_dirs() {
         let manifest = crate_dir.join("Cargo.toml");
         let name = crate_name(&manifest).unwrap_or_default();
-        if name == "bijux" {
+        if name == "bijux-dna-cli" {
             continue;
         }
         let content = std::fs::read_to_string(&manifest).expect("read Cargo.toml");

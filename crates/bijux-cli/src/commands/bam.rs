@@ -1,7 +1,7 @@
 use crate::commands::cli::parse::{BamCommand, BamRunArgs};
 use crate::commands::command_prelude::{
-    anyhow, init_logging, load_image_catalog, load_platform, render, Cli, Commands, Context, Path,
-    Result, StageId,
+    anyhow, init_logging, load_image_catalog, load_platform, render, Cli, Context, DnaCommand,
+    Path, Result, StageId,
 };
 use bijux_api::v1::api::plan::Domain;
 use bijux_api::v1::api::run::RuntimeKind;
@@ -9,8 +9,13 @@ use bijux_api::v1::api::run::ToolRegistry;
 use bijux_api::v1::api::run::{build_tool_execution_spec, execute_step};
 
 #[allow(clippy::missing_errors_doc)]
-pub fn handle_bam_commands(cli: &Cli, registry: &ToolRegistry, domain_dir: &Path) -> Result<bool> {
-    let Commands::Bam { command } = &cli.command else {
+pub fn handle_bam_commands(
+    cli: &Cli,
+    dna_command: &DnaCommand,
+    registry: &ToolRegistry,
+    domain_dir: &Path,
+) -> Result<bool> {
+    let DnaCommand::Bam { command } = dna_command else {
         return Ok(false);
     };
 

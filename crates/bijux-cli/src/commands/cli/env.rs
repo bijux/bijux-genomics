@@ -36,7 +36,7 @@ pub fn env_doctor<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
 ) {
-    println!("bijux env doctor");
+    println!("bijux dna env doctor");
     let runners = available_runners().unwrap_or_default();
     print_check(
         "cache directory writable",

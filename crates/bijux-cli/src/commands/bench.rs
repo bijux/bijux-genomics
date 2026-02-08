@@ -5,16 +5,17 @@ use crate::commands::command_prelude::{
     is_bench_requested_validate, load_image_catalog, load_platform, normalize_fastq_stage_id,
     objective_spec, preprocess_args_from_cli, qc_class_label, render, resolve_adapter_selection,
     resolve_effective_adapters, write_benchmark_exports, write_trim_report, write_validate_report,
-    AdapterPresetsV1, AdapterSelection, Cli, Commands, FastqCommand, Objective, Path, PathBuf,
+    AdapterPresetsV1, AdapterSelection, Cli, DnaCommand, FastqCommand, Objective, Path, PathBuf,
     Result, StageId,
 };
 
 #[allow(clippy::too_many_lines)]
 pub(crate) fn handle_fastq_bench(
     cli: &Cli,
+    dna_command: &DnaCommand,
     registry: &bijux_api::v1::api::run::ToolRegistry,
 ) -> Result<bool> {
-    let Commands::Fastq { command } = &cli.command else {
+    let DnaCommand::Fastq { command } = dna_command else {
         return Ok(false);
     };
 
@@ -176,7 +177,7 @@ pub(crate) fn handle_fastq_bench(
             Ok(true)
         }
         _ => {
-            let (stage, _tool, common) = cli::resolve_stage_tool(&cli.command);
+            let (stage, _tool, common) = cli::resolve_stage_tool(dna_command);
             if common.list_tools {
                 list_fastq_tools(registry, &stage.0);
                 return Ok(true);

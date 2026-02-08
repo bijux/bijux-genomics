@@ -1,6 +1,6 @@
 Run the FASTQ preprocess pipeline (validate → trim → filter → stats).
 
-Usage: bijux fastq preprocess [OPTIONS]
+Usage: bijux dna fastq preprocess [OPTIONS]
 
 Options:
       --list-tools
@@ -77,6 +77,6 @@ Options:
           Print help
 
 Examples:
-  bijux fastq preprocess --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE
-  bijux fastq preprocess --auto --objective speed --bench-corpus fastq_5set --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE
-  bijux fastq preprocess --list-tools
+  bijux dna fastq preprocess --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE
+  bijux dna fastq preprocess --auto --objective speed --bench-corpus fastq_5set --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE
+  bijux dna fastq preprocess --list-tools

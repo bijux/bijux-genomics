@@ -1,7 +1,7 @@
 # Change Rules
 
 ## What
-Defines breaking vs non‑breaking changes for `bijux-cli`.
+Defines breaking vs non‑breaking changes for `bijux-dna-cli`.
 
 ## Why
 Prevents silent contract drift.

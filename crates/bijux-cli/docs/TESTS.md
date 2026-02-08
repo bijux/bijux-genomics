@@ -20,7 +20,7 @@ Tests should explain the contract they enforce.
 
 ## Golden tests
 Run with:
-`cargo test -p bijux-cli help dry_run`
+`cargo test -p bijux-dna-cli help dry_run`
 
 ## help
 - `tests/help/docs_help_snapshots.rs` — help output snapshots.

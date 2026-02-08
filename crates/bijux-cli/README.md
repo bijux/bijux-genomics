@@ -1,4 +1,4 @@
-# bijux-cli
+# bijux-dna-cli
 
 ## What this crate does
 User-facing CLI for planning, dry-run, execution, reporting, and audits.

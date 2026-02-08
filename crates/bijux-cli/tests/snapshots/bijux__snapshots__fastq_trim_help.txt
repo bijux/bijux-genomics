@@ -1,6 +1,6 @@
 Trim FASTQ reads (quality/adapters) and emit canonical outputs.
 
-Usage: bijux fastq trim [OPTIONS]
+Usage: bijux dna fastq trim [OPTIONS]
 
 Options:
       --list-tools
@@ -43,6 +43,6 @@ Options:
           Print help
 
 Example:
-  bijux fastq trim --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE --tools fastp
+  bijux dna fastq trim --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE --tools fastp
 
 Next stages: filter -> stats

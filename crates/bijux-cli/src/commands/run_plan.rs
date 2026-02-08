@@ -7,11 +7,16 @@ use std::collections::BTreeMap;
 
 use crate::commands::cli;
 use crate::commands::cli::render;
-use crate::commands::command_prelude::{anyhow, Cli, Context, Path, PathBuf, Result};
+use crate::commands::command_prelude::{anyhow, Cli, Context, DnaCommand, Path, PathBuf, Result};
 use crate::commands::validation::{ensure_profile_run_base_dir, load_profile_for_cli};
 
-pub(crate) fn run_plan(cli: &Cli, registry: &ToolRegistry, domain_dir: &Path) -> Result<()> {
-    let (stage, tool, common) = cli::resolve_stage_tool(&cli.command);
+pub(crate) fn run_plan(
+    cli: &Cli,
+    dna_command: &DnaCommand,
+    registry: &ToolRegistry,
+    domain_dir: &Path,
+) -> Result<()> {
+    let (stage, tool, common) = cli::resolve_stage_tool(dna_command);
 
     let run_id = new_run_id();
     let run_spec = RunSpec {

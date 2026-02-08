@@ -7,7 +7,7 @@ fn cli_help_texts_are_documented() {
         .join("docs")
         .join("COMMANDS.md");
     let content = fs::read_to_string(&doc).expect("read COMMANDS.md");
-    for cmd in ["bijux plan", "bijux execute", "bijux dry-run"] {
+    for cmd in ["bijux dna plan", "bijux dna execute", "bijux dna dry-run"] {
         assert!(content.contains(cmd), "COMMANDS.md must include {}", cmd);
     }
 }

@@ -542,8 +542,8 @@ fn policy__boundaries__workspace__workspace_no_orphan_crates() {
         }
     }
     let allowlist: BTreeSet<&str> = BTreeSet::from([
-        "bijux",
-        "bijux-cli",
+        "bijux-dna-cli",
+        "bijux-dna-cli",
         "bijux-benchmark",
         "bijux-environment",
         "bijux-environment-qa",
@@ -570,7 +570,7 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
     };
     let is_guardrails = |dep: &str| dep == "bijux-policies" || dep == "bijux-testkit";
 
-    let cli = deps_for("bijux");
+    let cli = deps_for("bijux-dna-cli");
     bijux_policies::policy_assert!(cli.contains("bijux-api"), "cli must depend on bijux-api");
     for dep in &cli {
         bijux_policies::policy_assert!(
@@ -585,7 +585,7 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
         );
     }
 
-    if let Some(cli_dir) = crates.get("bijux-cli") {
+    if let Some(cli_dir) = crates.get("bijux-dna-cli") {
         let cli_deps = parse_dependencies(&cli_dir.join("Cargo.toml"), &known);
         bijux_policies::policy_assert!(
             cli_deps.contains("bijux-api"),
@@ -783,7 +783,7 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
             "bijux-stages-bam",
             "bijux-engine",
             "bijux-environment",
-            "bijux",
+            "bijux-dna-cli",
             "bijux-pipelines",
             "bijux-api",
             "bijux-environment",
@@ -800,7 +800,7 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
     for stages in ["bijux-stages-fastq", "bijux-stages-bam"] {
         let deps = deps_for(stages);
         for banned in [
-            "bijux",
+            "bijux-dna-cli",
             "bijux-api",
             "bijux-analyze",
             "bijux-benchmark",
@@ -818,7 +818,7 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
     let pipelines = deps_for("bijux-pipelines");
     for banned in [
         "bijux-engine",
-        "bijux",
+        "bijux-dna-cli",
         "bijux-stages-fastq",
         "bijux-stages-bam",
     ] {
@@ -846,7 +846,7 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
             "bijux-planner-fastq",
             "bijux-planner-bam",
             "bijux-api",
-            "bijux-cli",
+            "bijux-dna-cli",
         ] {
             bijux_policies::policy_assert!(
                 !runtime.contains(banned),

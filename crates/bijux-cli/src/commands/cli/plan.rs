@@ -5,14 +5,14 @@ use bijux_api::v1::api::run::{StageId, ToolId};
 use crate::commands::cli::parse::{
     BamCommand, BenchFastqCorrectArgs, BenchFastqFilterArgs, BenchFastqMergeArgs,
     BenchFastqPreprocessArgs, BenchFastqQcPostArgs, BenchFastqScreenArgs, BenchFastqStatsArgs,
-    BenchFastqTrimArgs, BenchFastqUmiArgs, BenchFastqValidateArgs, Commands, CommonArgs,
+    BenchFastqTrimArgs, BenchFastqUmiArgs, BenchFastqValidateArgs, CommonArgs, DnaCommand,
     FastqCommand, FastqPreprocessArgs, FastqTrimArgs, FastqValidateArgs,
 };
 
 #[must_use]
-pub fn resolve_stage_tool(command: &Commands) -> (StageId, ToolId, CommonArgs) {
+pub fn resolve_stage_tool(command: &DnaCommand) -> (StageId, ToolId, CommonArgs) {
     match command {
-        Commands::Fastq { command } => match command {
+        DnaCommand::Fastq { command } => match command {
             FastqCommand::ListStages
             | FastqCommand::Stages
             | FastqCommand::Doctor
@@ -62,7 +62,7 @@ pub fn resolve_stage_tool(command: &Commands) -> (StageId, ToolId, CommonArgs) {
                 args.common.clone(),
             ),
         },
-        Commands::Bam { command } => match command {
+        DnaCommand::Bam { command } => match command {
             BamCommand::ListStages | BamCommand::Explain { .. } => (
                 StageId::from_static("bam.validate"),
                 ToolId::from_static("samtools"),

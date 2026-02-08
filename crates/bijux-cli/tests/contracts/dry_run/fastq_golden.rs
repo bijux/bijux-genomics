@@ -1,4 +1,4 @@
-use bijux::commands::run_with_args;
+use bijux_dna_cli::commands::run_with_args;
 use serde_json::Value;
 
 fn scrub_paths(value: &mut Value, root: &str) {
@@ -122,6 +122,7 @@ multiqc = { version = "0.0.0" }
     std::env::set_var("BIJUX_SKIP_IMAGE_CHECK", "1");
     let args = [
         "bijux",
+        "dna",
         "--platform",
         "test",
         "fastq",
