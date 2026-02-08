@@ -10,12 +10,16 @@ Tests should explain the contract they enforce.
 - Full test implementation detail.
 
 ## Contracts
-- `tests/docs_lightweight.rs` → docs anchors and minimal usage examples.
-- `tests/public_api_surface.rs` → public surface lock.
-- `tests/dev_dep_boundary.rs` → testkit stays a dev-only dependency.
+- Each test file should be referenced here.
+
+## Suite map
+- `tests/guardrails.rs` → boundary checks and dependency rules.
+- `tests/public_api_surface.rs` → public API stays tiny.
+- `tests/public_api_snapshot.rs` → public API snapshot lock.
+- `tests/dev_dep_boundary.rs` → testkit is dev-only and isolated.
+
+## Fixture guidance
+See `docs/ADD_FIXTURE.md` and `docs/FIXTURE_STANDARDS.md`.
 
 ## Failure modes
 - Missing test documentation causes drift and confusion.
-
-## Testkit patterns
-See `crates/bijux-testkit/docs/USAGE.md` for shared fixture and snapshot helpers.

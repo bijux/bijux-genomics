@@ -1,14 +1,20 @@
-# INDEX
+# bijux-testkit Docs Index
 
-Testkit provides shared fixtures and snapshot helpers.
+## Scope
+See `SCOPE.md` for what belongs here.
 
-## Reading order
-- `PUBLIC_API.md`
-- `USAGE.md`
+## Effects
+See `EFFECTS.md` for allowed effects.
+
+## Boundaries
+See `ARCHITECTURE.md` for internal boundaries.
+
+## Fixtures
 - `FIXTURE_STANDARDS.md`
-- `SNAPSHOT_POLICY.md`
-- `DETERMINISM.md`
+- `ADD_FIXTURE.md`
 
-## Must never contain
-- domain semantics
-- planning or execution logic
+## Extension Points
+See `CHANGE_RULES.md` for safe extension guidelines.
+
+## How to Test
+See `TESTS.md` for test mapping and fixtures.
