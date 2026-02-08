@@ -15,7 +15,7 @@ sha2.workspace = true
 tracing.workspace = true
 uuid.workspace = true
 clap.workspace = true
-rusqlite = { workspace = true, optional = true }
+rusqlite = { version = "0.31", optional = true }
 bijux-environment = { path = "../bijux-environment" }
 bijux-analyze = { path = "../bijux-analyze" }
 bijux-core = { path = "../bijux-core" }
