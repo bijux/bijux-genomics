@@ -1,2 +1,0 @@
-file	format	num_seqs	sum_len	min_len	avg_len	max_len	avg_qual	GC(%)
-reads.fastq	FASTQ	1000	100000	100	100	100	35.5	50.0
