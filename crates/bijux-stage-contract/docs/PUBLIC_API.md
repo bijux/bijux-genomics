@@ -1,6 +1,6 @@
 # PUBLIC_API
 
-## Public types
+## Public types (exhaustive)
 - `ExecutionPlan`
 - `StagePlan`
 - `StageSpecRef`

@@ -1,0 +1,22 @@
+{
+  "contract_version": { "major": 1, "minor": 0 },
+  "schema_version": "bijux.execution_plan.v1",
+  "plan_id": "plan-1",
+  "pipeline_id": "fastq-to-fastq__default__v1",
+  "planner_id": "planner.fastq.v1",
+  "steps": [
+    {
+      "step_id": "fastq.trim",
+      "stage_id": "fastq.trim",
+      "tool_id": "fastp",
+      "tool_version": "1.0",
+      "inputs": [
+        { "artifact_id": "reads_r1", "path": "reads_R1.fastq.gz" }
+      ],
+      "outputs": [
+        { "artifact_id": "trimmed_r1", "path": "trimmed_R1.fastq.gz" }
+      ],
+      "params": { "min_len": 30 }
+    }
+  ]
+}
