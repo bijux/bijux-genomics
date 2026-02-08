@@ -2,7 +2,7 @@ use cargo_metadata::MetadataCommand;
 
 #[test]
 fn runner_has_no_engine_dependency() {
-    let metadata = MetadataCommand::new()
+    let metadata = MetadataCommand::default()
         .exec()
         .unwrap_or_else(|err| panic!("load cargo metadata: {err}"));
     let runner = metadata
