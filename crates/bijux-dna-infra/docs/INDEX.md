@@ -1,4 +1,4 @@
-# bijux-infra Docs Index
+# bijux-dna-infra Docs Index
 
 ## Scope
 See `SCOPE.md` for what belongs here.
@@ -12,7 +12,7 @@ See `ARCHITECTURE.md` for internal boundaries.
 ## Extension Points
 See `CHANGE_RULES.md` for safe extension guidelines.
 If you add a utility here, prove it is deterministic and does not duplicate
-core canonicalization (see bijux-core `contract::canonical` and policy
+core canonicalization (see bijux-dna-core `contract::canonical` and policy
 `no_duplicate_canonicalizers`).
 
 ## How to Test

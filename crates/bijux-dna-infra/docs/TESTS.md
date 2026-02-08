@@ -22,7 +22,7 @@ Tests should explain the contract they enforce.
 - `tests/determinism/hash.rs` — hashing determinism for file inputs.
 
 ## guardrails
-- `tests/guardrails/canonical_owner.rs` — PATHS doc must point to bijux-core.
+- `tests/guardrails/canonical_owner.rs` — PATHS doc must point to bijux-dna-core.
 - `tests/guardrails/no_generic_helpers.rs` — no generic helper-y API creep.
 - `tests/guardrails/policies.rs` — shared policy guardrails.
 - `tests/public_surface.rs` — public API surface snapshot.

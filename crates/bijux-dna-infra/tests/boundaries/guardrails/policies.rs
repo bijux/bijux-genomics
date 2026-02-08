@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use bijux_policies::{check, GuardrailConfig};
+use bijux_dna_policies::{check, GuardrailConfig};
 
 #[test]
 fn guardrails() {

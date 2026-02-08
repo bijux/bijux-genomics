@@ -1,7 +1,7 @@
 # WHY_YAML
 
 ## Who uses YAML
-- `bijux-environment` uses YAML for tool image spec configuration files.
+- `bijux-dna-environment` uses YAML for tool image spec configuration files.
 
 ## Why JSON is not sufficient there
 Tool image specs are often managed by operators in YAML-first pipelines and

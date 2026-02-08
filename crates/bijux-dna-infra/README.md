@@ -1,4 +1,4 @@
-# bijux-infra
+# bijux-dna-infra
 
 ## What this crate does
 Small deterministic utilities (logging, formats, paths) with zero domain semantics.
@@ -33,7 +33,7 @@ See `docs/LOGGING.md`, `docs/PATHS.md`, and `docs/WHY_YAML.md` for behavioral co
 No process/network effects; deterministic helpers only. See `docs/EFFECTS.md` and the golden tests below.
 
 ## No duplicate canonicalizers
-Canonicalization lives in bijux-core only. Infra must not re-implement it.
+Canonicalization lives in bijux-dna-core only. Infra must not re-implement it.
 See `crates/bijux-policies/tests/surface/no_duplicate_canonicalizers.rs`.
 
 ## How to run its tests

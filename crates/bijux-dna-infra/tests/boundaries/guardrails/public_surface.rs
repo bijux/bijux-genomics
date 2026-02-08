@@ -20,6 +20,6 @@ fn public_surface_is_snapshotted() {
             snapshot.push('\n');
         }
     }
-    let name = bijux_testkit::snapshot_name("schemas", "public_surface");
-    insta::assert_snapshot!(name, bijux_testkit::snapshot_normalize_text(&snapshot));
+    let name = bijux_dna_testkit::snapshot_name("schemas", "public_surface");
+    insta::assert_snapshot!(name, bijux_dna_testkit::snapshot_normalize_text(&snapshot));
 }

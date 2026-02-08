@@ -11,7 +11,7 @@ pub fn init_logging(log_path: &Path) -> Result<tracing_appender::non_blocking::W
     {
         let _ = log_path;
         return Err(anyhow!(
-            "logging requires bijux-infra tracing feature; enable it in the caller"
+            "logging requires bijux-dna-infra tracing feature; enable it in the caller"
         ));
     }
     #[cfg(feature = "tracing")]
