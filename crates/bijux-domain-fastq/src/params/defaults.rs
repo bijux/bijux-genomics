@@ -1,5 +1,3 @@
-use serde_json::Value as JsonValue;
-
 use super::detect_adapters::DetectAdaptersEffectiveParams;
 use super::filter::FilterEffectiveParams;
 use super::merge::MergeEffectiveParams;
@@ -19,28 +17,26 @@ fn paired_mode(paired: bool) -> PairedMode {
 }
 
 #[must_use]
-pub fn validate_defaults(paired: bool) -> JsonValue {
-    serde_json::to_value(ValidateEffectiveParams {
+pub fn validate_defaults(paired: bool) -> ValidateEffectiveParams {
+    ValidateEffectiveParams {
         paired_mode: paired_mode(paired),
         threads: 1,
         q_cutoff: None,
-    })
-    .unwrap_or(JsonValue::Null)
+    }
 }
 
 #[must_use]
-pub fn detect_adapters_defaults(paired: bool) -> JsonValue {
-    serde_json::to_value(DetectAdaptersEffectiveParams {
+pub fn detect_adapters_defaults(paired: bool) -> DetectAdaptersEffectiveParams {
+    DetectAdaptersEffectiveParams {
         paired_mode: paired_mode(paired),
         threads: 1,
         sample_reads: None,
-    })
-    .unwrap_or(JsonValue::Null)
+    }
 }
 
 #[must_use]
-pub fn trim_defaults(paired: bool) -> JsonValue {
-    serde_json::to_value(TrimEffectiveParams {
+pub fn trim_defaults(paired: bool) -> TrimEffectiveParams {
+    TrimEffectiveParams {
         paired_mode: paired_mode(paired),
         threads: 1,
         min_len: 0,
@@ -49,13 +45,12 @@ pub fn trim_defaults(paired: bool) -> JsonValue {
         polyx_policy: None,
         n_policy: None,
         contaminant_policy: None,
-    })
-    .unwrap_or(JsonValue::Null)
+    }
 }
 
 #[must_use]
-pub fn filter_defaults(paired: bool) -> JsonValue {
-    serde_json::to_value(FilterEffectiveParams {
+pub fn filter_defaults(paired: bool) -> FilterEffectiveParams {
+    FilterEffectiveParams {
         paired_mode: paired_mode(paired),
         threads: 1,
         max_n: None,
@@ -66,22 +61,20 @@ pub fn filter_defaults(paired: bool) -> JsonValue {
         contaminant_db: None,
         n_policy: None,
         polyx_policy: None,
-    })
-    .unwrap_or(JsonValue::Null)
+    }
 }
 
 #[must_use]
-pub fn qc_post_defaults(paired: bool) -> JsonValue {
-    serde_json::to_value(QcPostEffectiveParams {
+pub fn qc_post_defaults(paired: bool) -> QcPostEffectiveParams {
+    QcPostEffectiveParams {
         paired_mode: paired_mode(paired),
         threads: 1,
-    })
-    .unwrap_or(JsonValue::Null)
+    }
 }
 
 #[must_use]
-pub fn preprocess_defaults(paired: bool) -> JsonValue {
-    serde_json::to_value(PreprocessEffectiveParams {
+pub fn preprocess_defaults(paired: bool) -> PreprocessEffectiveParams {
+    PreprocessEffectiveParams {
         paired_mode: paired_mode(paired),
         threads: 1,
         stages: vec![
@@ -93,27 +86,24 @@ pub fn preprocess_defaults(paired: bool) -> JsonValue {
             "fastq.qc_post".to_string(),
         ],
         enable_contaminant_removal: false,
-    })
-    .unwrap_or(JsonValue::Null)
+    }
 }
 
 #[must_use]
-pub fn merge_defaults(paired: bool) -> JsonValue {
-    serde_json::to_value(MergeEffectiveParams {
+pub fn merge_defaults(paired: bool) -> MergeEffectiveParams {
+    MergeEffectiveParams {
         paired_mode: paired_mode(paired),
         threads: 1,
         merge_overlap: None,
         min_len: None,
-    })
-    .unwrap_or(JsonValue::Null)
+    }
 }
 
 #[must_use]
-pub fn screen_defaults(paired: bool) -> JsonValue {
-    serde_json::to_value(ScreenEffectiveParams {
+pub fn screen_defaults(paired: bool) -> ScreenEffectiveParams {
+    ScreenEffectiveParams {
         paired_mode: paired_mode(paired),
         threads: 1,
         contaminant_db: None,
-    })
-    .unwrap_or(JsonValue::Null)
+    }
 }

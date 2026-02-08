@@ -6,37 +6,68 @@ pub mod invariants;
 pub mod profiles;
 
 use bijux_core::prelude::id_catalog;
+use bijux_core::ids::StageId;
 use bijux_domain_fastq::params::defaults::{
     detect_adapters_defaults, filter_defaults, merge_defaults, preprocess_defaults,
     qc_post_defaults, screen_defaults, trim_defaults, validate_defaults,
 };
 
 use crate::{
-    ArtifactType, Domain, EffectiveDefaults, MetricsBundle, PipelineCapabilities, PipelineId,
-    PipelineProfile, ReportSection, StabilityTier,
+    ArtifactType, DefaultParams, Domain, EffectiveDefaults, MetricsBundle, PipelineCapabilities,
+    PipelineId, PipelineProfile, ReportSection, StabilityTier,
 };
 
 fn fastq_defaults(paired: bool) -> EffectiveDefaults {
     let tools = BTreeMap::new();
     let mut params = BTreeMap::new();
-    params.insert("fastq.validate_pre".to_string(), validate_defaults(paired));
-    params.insert("fastq.stats_neutral".to_string(), validate_defaults(paired));
-    params.insert("fastq.correct".to_string(), validate_defaults(paired));
-    params.insert("fastq.umi".to_string(), validate_defaults(paired));
     params.insert(
-        "fastq.detect_adapters".to_string(),
-        detect_adapters_defaults(paired),
+        StageId::from_static("fastq.validate_pre"),
+        DefaultParams::FastqValidate(validate_defaults(paired)),
     );
-    params.insert("fastq.trim".to_string(), trim_defaults(paired));
-    params.insert("fastq.filter".to_string(), filter_defaults(paired));
-    params.insert("fastq.qc_post".to_string(), qc_post_defaults(paired));
-    params.insert("fastq.preprocess".to_string(), preprocess_defaults(paired));
-    params.insert("fastq.merge".to_string(), merge_defaults(paired));
-    params.insert("fastq.screen".to_string(), screen_defaults(paired));
+    params.insert(
+        StageId::from_static("fastq.stats_neutral"),
+        DefaultParams::FastqValidate(validate_defaults(paired)),
+    );
+    params.insert(
+        StageId::from_static("fastq.correct"),
+        DefaultParams::FastqValidate(validate_defaults(paired)),
+    );
+    params.insert(
+        StageId::from_static("fastq.umi"),
+        DefaultParams::FastqValidate(validate_defaults(paired)),
+    );
+    params.insert(
+        StageId::from_static("fastq.detect_adapters"),
+        DefaultParams::FastqDetectAdapters(detect_adapters_defaults(paired)),
+    );
+    params.insert(
+        StageId::from_static("fastq.trim"),
+        DefaultParams::FastqTrim(trim_defaults(paired)),
+    );
+    params.insert(
+        StageId::from_static("fastq.filter"),
+        DefaultParams::FastqFilter(filter_defaults(paired)),
+    );
+    params.insert(
+        StageId::from_static("fastq.qc_post"),
+        DefaultParams::FastqQcPost(qc_post_defaults(paired)),
+    );
+    params.insert(
+        StageId::from_static("fastq.preprocess"),
+        DefaultParams::FastqPreprocess(preprocess_defaults(paired)),
+    );
+    params.insert(
+        StageId::from_static("fastq.merge"),
+        DefaultParams::FastqMerge(merge_defaults(paired)),
+    );
+    params.insert(
+        StageId::from_static("fastq.screen"),
+        DefaultParams::FastqScreen(screen_defaults(paired)),
+    );
     let mut rationales = BTreeMap::new();
     for stage_id in params.keys() {
         rationales
-            .entry(stage_id.to_string())
+            .entry(stage_id.clone())
             .or_insert_with(|| "pipeline default".to_string());
     }
     EffectiveDefaults {
@@ -122,12 +153,28 @@ pub fn fastq_default_profile() -> PipelineProfile {
 #[must_use]
 pub fn fastq_adna_profile() -> PipelineProfile {
     let mut defaults = fastq_defaults(false);
-    if let Some(params) = defaults.params.get_mut("fastq.trim") {
-        params["damage_mode"] = serde_json::json!("adna");
-        params["min_len"] = serde_json::json!(25);
+    if let Some(params) = defaults
+        .params
+        .get(&StageId::from_static("fastq.trim"))
+        .cloned()
+    {
+        let mut json = params.to_json();
+        json["damage_mode"] = serde_json::json!("adna");
+        json["min_len"] = serde_json::json!(25);
+        defaults
+            .params
+            .insert(StageId::from_static("fastq.trim"), DefaultParams::Json(json));
     }
-    if let Some(params) = defaults.params.get_mut("fastq.filter") {
-        params["damage_mode"] = serde_json::json!("adna");
+    if let Some(params) = defaults
+        .params
+        .get(&StageId::from_static("fastq.filter"))
+        .cloned()
+    {
+        let mut json = params.to_json();
+        json["damage_mode"] = serde_json::json!("adna");
+        defaults
+            .params
+            .insert(StageId::from_static("fastq.filter"), DefaultParams::Json(json));
     }
     PipelineProfile {
         id: PipelineId::from_static(id_catalog::PIPELINE_FASTQ_ADNA),

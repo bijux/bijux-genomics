@@ -3,9 +3,10 @@
 use crate::bam::bam_adna_shotgun_profile;
 use crate::fastq::fastq_default_profile;
 use crate::{
-    ArtifactType, Domain, EffectiveDefaults, MetricsBundle, PipelineCapabilities, PipelineId,
-    PipelineProfile, ReportSection, StabilityTier,
+    ArtifactType, DefaultParams, Domain, EffectiveDefaults, MetricsBundle, PipelineCapabilities,
+    PipelineId, PipelineProfile, ReportSection, StabilityTier,
 };
+use bijux_core::ids::StageId;
 use bijux_core::prelude::id_catalog;
 use bijux_domain_bam::defaults::{adna_shotgun_params_json, default_params_json};
 use bijux_domain_bam::BamStage;
@@ -35,13 +36,16 @@ pub fn fastq_to_bam_adna_shotgun_profile() -> PipelineProfile {
     let (_fastq_profile, _bam_profile, mut defaults) = base_defaults();
     defaults
         .params
-        .insert("core.prepare_reference".to_string(), serde_json::json!({}));
+        .insert(
+            StageId::from_static("core.prepare_reference"),
+            DefaultParams::Json(serde_json::json!({})),
+        );
     defaults.params.insert(
-        "bam.align".to_string(),
-        adna_shotgun_params_json(BamStage::Align),
+        StageId::from_static("bam.align"),
+        DefaultParams::Json(adna_shotgun_params_json(BamStage::Align)),
     );
     defaults.rationales.insert(
-        "bam.align".to_string(),
+        StageId::from_static("bam.align"),
         "aDNA default alignment preset".to_string(),
     );
 
@@ -89,13 +93,16 @@ pub fn fastq_to_bam_default_profile() -> PipelineProfile {
     let (_fastq_profile, _bam_profile, mut defaults) = base_defaults();
     defaults
         .params
-        .insert("core.prepare_reference".to_string(), serde_json::json!({}));
+        .insert(
+            StageId::from_static("core.prepare_reference"),
+            DefaultParams::Json(serde_json::json!({})),
+        );
     defaults.params.insert(
-        "bam.align".to_string(),
-        default_params_json(BamStage::Align),
+        StageId::from_static("bam.align"),
+        DefaultParams::Json(default_params_json(BamStage::Align)),
     );
     defaults.rationales.insert(
-        "bam.align".to_string(),
+        StageId::from_static("bam.align"),
         "modern default alignment preset".to_string(),
     );
 

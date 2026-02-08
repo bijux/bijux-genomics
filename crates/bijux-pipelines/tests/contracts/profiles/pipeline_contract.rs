@@ -18,8 +18,9 @@ fn pipeline_profiles_reference_known_stages_and_defaults() {
         validate_pipeline_id(&profile.id)
             .unwrap_or_else(|_| panic!("invalid pipeline id {}", profile.id));
         for stage_id in &profile.capabilities.required_stages {
+            let stage_key = StageId::from_static(stage_id);
             assert!(
-                profile.defaults.params.contains_key(*stage_id),
+                profile.defaults.params.contains_key(&stage_key),
                 "missing default params for {stage_id} in profile {}",
                 profile.id
             );
@@ -38,13 +39,13 @@ fn pipeline_profiles_reference_known_stages_and_defaults() {
                         profile.id
                     );
                 }
-                let Some(params) = profile.defaults.params.get(*stage_id) else {
+                let Some(params) = profile.defaults.params.get(&stage_key) else {
                     panic!(
                         "missing FASTQ params for {stage_id} in profile {}",
                         profile.id
                     );
                 };
-                let parsed = parse_effective_params(&stage, params)
+                let parsed = parse_effective_params(&stage, &params.to_json())
                     .unwrap_or_else(|| panic!("failed to parse FASTQ params for {stage_id}"));
                 assert!(
                     parsed.missing_required_fields().is_empty(),

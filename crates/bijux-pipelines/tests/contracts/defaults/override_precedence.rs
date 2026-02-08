@@ -2,6 +2,7 @@
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 
+use bijux_core::ids::{StageId, ToolId};
 use bijux_pipelines::{merge_effective_defaults, EffectiveDefaults};
 use bijux_testkit::snapshot_name;
 
@@ -13,16 +14,28 @@ fn override_precedence_is_stable() {
     let _guard = settings.bind_to_scope();
 
     let mut base_tools = BTreeMap::new();
-    base_tools.insert("fastq.trim".to_string(), "fastp".to_string());
+    base_tools.insert(
+        StageId::from_static("fastq.trim"),
+        ToolId::from_static("fastp"),
+    );
 
     let mut profile_tools = BTreeMap::new();
-    profile_tools.insert("fastq.trim".to_string(), "cutadapt".to_string());
+    profile_tools.insert(
+        StageId::from_static("fastq.trim"),
+        ToolId::from_static("cutadapt"),
+    );
 
     let mut cli_tools = BTreeMap::new();
-    cli_tools.insert("fastq.trim".to_string(), "bbduk".to_string());
+    cli_tools.insert(
+        StageId::from_static("fastq.trim"),
+        ToolId::from_static("bbduk"),
+    );
 
     let mut api_tools = BTreeMap::new();
-    api_tools.insert("fastq.trim".to_string(), "trimmomatic".to_string());
+    api_tools.insert(
+        StageId::from_static("fastq.trim"),
+        ToolId::from_static("trimmomatic"),
+    );
 
     let base = EffectiveDefaults {
         tools: base_tools,
