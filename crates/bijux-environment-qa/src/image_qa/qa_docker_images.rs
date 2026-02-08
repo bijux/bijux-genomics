@@ -119,6 +119,8 @@ impl Logger for StdoutLogger {
     }
 }
 
+/// # Errors
+/// Returns an error if loading specs, building plans, or executing image checks fails.
 pub fn run() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<String> = std::env::args().collect();
     let platform = parse_arg_value(&args, "--platform");
@@ -150,7 +152,7 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
         platform_spec.runner,
         image_plans.len(),
     );
-    log_discovered_images(&mut logger, &image_plans)?;
+    log_discovered_images(&mut logger, &image_plans);
 
     let runner = RealRunner;
     let summary = run_image_tests(&runner, &mut logger, &image_plans)?;
@@ -320,17 +322,13 @@ fn log_header(logger: &mut dyn Logger, platform: Option<&str>, runner: RuntimeKi
     );
 }
 
-fn log_discovered_images(
-    logger: &mut dyn Logger,
-    plans: &[ImagePlan],
-) -> Result<(), Box<dyn std::error::Error>> {
+fn log_discovered_images(logger: &mut dyn Logger, plans: &[ImagePlan]) {
     if logger.is_quiet() {
-        return Ok(());
+        return;
     }
     for plan in plans {
         logger.log(LogLevel::Info, &format!("image: {}", plan.image_name));
     }
-    Ok(())
 }
 
 fn log_summary(logger: &mut dyn Logger, summary: &Summary) {
@@ -344,7 +342,7 @@ fn parse_arg_value(args: &[String], flag: &str) -> Option<String> {
     args.iter()
         .position(|arg| arg == flag)
         .and_then(|idx| args.get(idx + 1))
-        .map(|value| value.to_string())
+        .cloned()
 }
 
 #[cfg(test)]
