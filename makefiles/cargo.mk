@@ -56,12 +56,15 @@ audit: ensure-cargo-deny
 
 coverage:
 	@mkdir -p $(dir $(COVERAGE_OUT))
+	@$(COVERAGE_ENV) cargo llvm-cov clean
 	@rm -rf $(COV_PROFRAW_DIR)
 	@mkdir -p $(COV_TMP_DIR)
 	@mkdir -p $(COV_PROFRAW_DIR)
 	$(COVERAGE_ENV) $(COVERAGE_RUN)
 	$(COVERAGE_ENV) $(COVERAGE_JSON)
 	$(COVERAGE_ENV) $(COVERAGE_HTML)
+	@test -f $(COVERAGE_OUT)
+	@test -f $(HTML_OUT)/index.html
 	@if [ -f $(COVERAGE_BASELINE) ]; then \
 		python3 scripts/coverage_summary.py $(COVERAGE_OUT) --baseline $(COVERAGE_BASELINE) --check-thresholds $(COVERAGE_THRESHOLDS); \
 	else \
