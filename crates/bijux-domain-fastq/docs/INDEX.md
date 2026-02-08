@@ -9,6 +9,13 @@ See `EFFECTS.md` for allowed effects.
 ## Boundaries
 See `ARCHITECTURE.md` for internal boundaries.
 
+## Domain truth
+- `DOMAIN_MODEL.md`
+- `METRICS.md`
+- `PARAMS.md`
+- `STAGES.md`
+- `BANKS.md`
+
 ## Extension Points
 See `CHANGE_RULES.md` for safe extension guidelines.
 
