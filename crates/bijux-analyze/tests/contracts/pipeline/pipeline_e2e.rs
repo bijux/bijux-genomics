@@ -145,7 +145,7 @@ fn pipeline_fastq_default_report_snapshot() -> Result<()> {
     let name = snapshot_name("contracts", "pipeline__fastq-to-fastq__default__v1");
     let settings = snapshot_settings();
     settings.bind(|| {
-        insta::assert_json_snapshot!(name, json);
+        insta::assert_json_snapshot!(name, bijux_testkit::snapshot_normalize_json(&json));
     });
     Ok(())
 }
@@ -158,7 +158,7 @@ fn pipeline_fastq_to_bam_default_report_snapshot() -> Result<()> {
     let name = snapshot_name("contracts", "pipeline__fastq-to-bam__default__v1");
     let settings = snapshot_settings();
     settings.bind(|| {
-        insta::assert_json_snapshot!(name, json);
+        insta::assert_json_snapshot!(name, bijux_testkit::snapshot_normalize_json(&json));
     });
     Ok(())
 }
@@ -171,7 +171,7 @@ fn pipeline_bam_shotgun_report_snapshot() -> Result<()> {
     let name = snapshot_name("contracts", "pipeline__bam-to-bam__adna_shotgun__v1");
     let settings = snapshot_settings();
     settings.bind(|| {
-        insta::assert_json_snapshot!(name, json);
+        insta::assert_json_snapshot!(name, bijux_testkit::snapshot_normalize_json(&json));
     });
     Ok(())
 }
@@ -184,7 +184,7 @@ fn pipeline_bam_capture_report_snapshot() -> Result<()> {
     let name = snapshot_name("contracts", "pipeline__bam-to-bam__adna_capture__v1");
     let settings = snapshot_settings();
     settings.bind(|| {
-        insta::assert_json_snapshot!(name, json);
+        insta::assert_json_snapshot!(name, bijux_testkit::snapshot_normalize_json(&json));
     });
     Ok(())
 }

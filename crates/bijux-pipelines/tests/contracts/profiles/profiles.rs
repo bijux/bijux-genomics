@@ -20,47 +20,68 @@ fn snapshot_settings() -> insta::Settings {
 fn bam_default_profile_snapshot() {
     let _guard = snapshot_settings().bind_to_scope();
     let name = snapshot_name("contracts", "bam_default_profile");
-    assert_json_snapshot!(name, bam_default_profile());
+    assert_json_snapshot!(
+        name,
+        bijux_testkit::snapshot_normalize_json(&bam_default_profile())
+    );
 }
 
 #[test]
 fn bam_adna_shotgun_profile_snapshot() {
     let _guard = snapshot_settings().bind_to_scope();
     let name = snapshot_name("contracts", "bam_adna_shotgun_profile");
-    assert_json_snapshot!(name, bam_adna_shotgun_profile());
+    assert_json_snapshot!(
+        name,
+        bijux_testkit::snapshot_normalize_json(&bam_adna_shotgun_profile())
+    );
 }
 
 #[test]
 fn bam_adna_capture_profile_snapshot() {
     let _guard = snapshot_settings().bind_to_scope();
     let name = snapshot_name("contracts", "bam_adna_capture_profile");
-    assert_json_snapshot!(name, bam_adna_capture_profile());
+    assert_json_snapshot!(
+        name,
+        bijux_testkit::snapshot_normalize_json(&bam_adna_capture_profile())
+    );
 }
 
 #[test]
 fn fastq_default_profile_snapshot() {
     let _guard = snapshot_settings().bind_to_scope();
     let name = snapshot_name("contracts", "fastq_default_profile");
-    assert_json_snapshot!(name, fastq_default_profile());
+    assert_json_snapshot!(
+        name,
+        bijux_testkit::snapshot_normalize_json(&fastq_default_profile())
+    );
 }
 
 #[test]
 fn fastq_minimal_profile_snapshot() {
     let _guard = snapshot_settings().bind_to_scope();
     let name = snapshot_name("contracts", "fastq_minimal_profile");
-    assert_json_snapshot!(name, fastq_minimal_profile());
+    assert_json_snapshot!(
+        name,
+        bijux_testkit::snapshot_normalize_json(&fastq_minimal_profile())
+    );
 }
 
 #[test]
 fn cross_fastq_to_bam_adna_profile_snapshot() {
     let _guard = snapshot_settings().bind_to_scope();
     let name = snapshot_name("contracts", "fastq_to_bam_adna_shotgun_profile");
-    assert_json_snapshot!(name, fastq_to_bam_adna_shotgun_profile());
+    assert_json_snapshot!(
+        name,
+        bijux_testkit::snapshot_normalize_json(&fastq_to_bam_adna_shotgun_profile())
+    );
 }
 
 #[test]
 fn cross_fastq_to_bam_default_profile_snapshot() {
     let _guard = snapshot_settings().bind_to_scope();
     let name = snapshot_name("contracts", "fastq_to_bam_default_profile");
-    assert_json_snapshot!(name, fastq_to_bam_default_profile());
+    assert_json_snapshot!(
+        name,
+        bijux_testkit::snapshot_normalize_json(&fastq_to_bam_default_profile())
+    );
 }

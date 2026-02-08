@@ -31,6 +31,9 @@ fn policy__boundaries__docs_spine_contract__docs_spine_snapshot() {
     settings.set_snapshot_path(snapshot_root);
     settings.set_prepend_module_to_snapshot(false);
     settings.bind(|| {
-        insta::assert_snapshot!(name, lines.join("\n"));
+        insta::assert_snapshot!(
+            name,
+            bijux_testkit::snapshot_normalize_text(&lines.join("\n"))
+        );
     });
 }

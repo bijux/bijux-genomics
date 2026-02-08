@@ -25,6 +25,6 @@ fn public_surface_is_snapshotted() {
     settings.set_prepend_module_to_snapshot(false);
     settings.set_snapshot_path(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/snapshots"));
     settings.bind(|| {
-        insta::assert_snapshot!(name, snapshot);
+        insta::assert_snapshot!(name, bijux_testkit::snapshot_normalize_text(&snapshot));
     });
 }

@@ -52,7 +52,7 @@ fn assert_snapshot(name: &str, payload: &serde_json::Value, temp_path: &Path) ->
     settings.set_prepend_module_to_snapshot(false);
     settings.add_filter(temp_path.to_str().unwrap_or_default(), "<temp>");
     settings.bind(|| {
-        insta::assert_snapshot!(name, payload);
+        insta::assert_snapshot!(name, bijux_testkit::snapshot_normalize_text(&payload));
     });
     Ok(())
 }

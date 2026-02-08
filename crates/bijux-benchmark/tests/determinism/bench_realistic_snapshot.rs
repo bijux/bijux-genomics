@@ -155,7 +155,7 @@ fn realistic_suite_snapshot() -> anyhow::Result<()> {
     }
 
     let summary = summarize(&suite, &observations, &BenchRunOptions::default())?;
-    insta::assert_json_snapshot!(summary, @r###"
+    insta::assert_json_snapshot!(bijux_testkit::snapshot_normalize_json(&summary), @r###"
     {
       "schema_version": "bijux.bench.summary.v1",
       "suite_id": "suite-elite",

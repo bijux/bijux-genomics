@@ -18,7 +18,7 @@ fn assert_snapshot(name: &str, failure: &BenchmarkFailure) -> Result<()> {
     );
     settings.set_prepend_module_to_snapshot(false);
     settings.bind(|| {
-        insta::assert_json_snapshot!(name, json);
+        insta::assert_json_snapshot!(name, bijux_testkit::snapshot_normalize_json(&json));
     });
     Ok(())
 }
