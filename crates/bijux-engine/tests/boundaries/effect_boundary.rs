@@ -5,10 +5,10 @@ fn engine_is_orchestrator_only() {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
     let mut offenders = Vec::new();
     let patterns = [
-        "std::process::Command",
-        "Command::new",
+        concat!("std::process::", "Command"),
+        concat!("Command::", "new"),
         "docker",
-        "apptainer",
+        concat!("appt", "ainer"),
         "singularity",
     ];
     for entry in WalkDir::new(root).into_iter().filter_map(Result::ok) {

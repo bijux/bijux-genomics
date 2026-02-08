@@ -8,6 +8,7 @@ fn support_helpers_are_named_by_purpose() {
         .join("support");
     let allowed: BTreeSet<&str> = BTreeSet::from([
         "mod.rs",
+        "README.md",
         "execution_setup.rs",
         "manifest_fixture.rs",
         "plan_factory.rs",
