@@ -4,13 +4,16 @@
 
 use std::collections::BTreeMap;
 
-use serde::Serialize;
 use bijux_core::ids::{StageId, ToolId};
-use bijux_domain_fastq::params::{
-    DetectAdaptersEffectiveParams, FilterEffectiveParams, MergeEffectiveParams,
-    PreprocessEffectiveParams, QcPostEffectiveParams, ScreenEffectiveParams, TrimEffectiveParams,
-    ValidateEffectiveParams,
-};
+use bijux_domain_fastq::params::detect_adapters::DetectAdaptersEffectiveParams;
+use bijux_domain_fastq::params::filter::FilterEffectiveParams;
+use bijux_domain_fastq::params::merge::MergeEffectiveParams;
+use bijux_domain_fastq::params::preprocess::PreprocessEffectiveParams;
+use bijux_domain_fastq::params::qc_post::QcPostEffectiveParams;
+use bijux_domain_fastq::params::screen::ScreenEffectiveParams;
+use bijux_domain_fastq::params::trim::TrimEffectiveParams;
+use bijux_domain_fastq::params::validate::ValidateEffectiveParams;
+use serde::Serialize;
 
 pub mod bam;
 pub mod cross;
@@ -111,7 +114,9 @@ impl DefaultParams {
             DefaultParams::FastqTrim(value) => serde_json::to_value(value).unwrap_or_default(),
             DefaultParams::FastqFilter(value) => serde_json::to_value(value).unwrap_or_default(),
             DefaultParams::FastqQcPost(value) => serde_json::to_value(value).unwrap_or_default(),
-            DefaultParams::FastqPreprocess(value) => serde_json::to_value(value).unwrap_or_default(),
+            DefaultParams::FastqPreprocess(value) => {
+                serde_json::to_value(value).unwrap_or_default()
+            }
             DefaultParams::FastqMerge(value) => serde_json::to_value(value).unwrap_or_default(),
             DefaultParams::FastqScreen(value) => serde_json::to_value(value).unwrap_or_default(),
             DefaultParams::Json(value) => value.clone(),
