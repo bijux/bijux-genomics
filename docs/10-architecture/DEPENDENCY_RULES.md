@@ -15,9 +15,9 @@ Enforced by policy tests:
 - `crates/bijux-policies/tests/deps/dependency_boundaries.rs`
 
 ## Examples
-- `bijux-core` must not depend on runners or planners.
-- `bijux-runner` must not depend on `bijux-engine`.
-- `bijux-api` depends on planners + runtime, not on runner internals.
+- `bijux-dna-core` must not depend on runners or planners.
+- `bijux-dna-runner` must not depend on `bijux-dna-engine`.
+- `bijux-dna-api` depends on planners + runtime, not on runner internals.
 
 ## Failure modes
 Any forbidden edge fails CI dependency policies.

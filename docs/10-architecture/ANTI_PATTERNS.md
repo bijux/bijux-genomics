@@ -17,7 +17,7 @@ Enforced by policy tests:
 - `crates/bijux-policies/tests/surface/domain_purity.rs`
 
 ## Examples
-- Policy duplication outside `bijux-policies`.
+- Policy duplication outside `bijux-dna-policies`.
 - String IDs in public contracts.
 - Direct `serde_json::to_writer` for contract artifacts.
 - Domain crates invoking execution effects.

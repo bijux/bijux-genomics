@@ -2,5 +2,5 @@
 
 - engine does not depend on runner or environment
 - prelude is exports-only
-- defaults live only in bijux-pipelines
+- defaults live only in bijux-dna-pipelines
 - composition roots are only in API/CLI

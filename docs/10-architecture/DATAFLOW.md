@@ -11,9 +11,9 @@ Provides an audit-friendly chain of custody for artifacts.
 
 ## Contracts
 Enforced by tests:
-- `crates/bijux-engine/tests/recording_completeness.rs`
-- `crates/bijux-runtime/tests/manifest_integrity.rs`
-- `crates/bijux-analyze/tests/report_contract.rs`
+- `crates/bijux-dna-engine/tests/recording_completeness.rs`
+- `crates/bijux-dna-runtime/tests/manifest_integrity.rs`
+- `crates/bijux-dna-analyze/tests/report_contract.rs`
 
 ## Examples
 1. Pipeline → Planner: plan JSON + graph hash.
