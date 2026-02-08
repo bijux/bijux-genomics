@@ -27,6 +27,9 @@ See `docs/INDEX.md`, `docs/CONTRACT.md`, `docs/PUBLIC_API.md`, `docs/SCHEMAS.md`
 ## Key contracts it owns/consumes
 Plan JSON shapes and fixtures.
 
+## Artifacts / Contracts
+See `docs/CONTRACT.md`, `docs/SCHEMAS.md`, and snapshots under `tests/snapshots/`.
+
 ## Effects & determinism guarantees
 Pure contract types; deterministic serialization. See `docs/EFFECTS.md` and the golden tests below.
 

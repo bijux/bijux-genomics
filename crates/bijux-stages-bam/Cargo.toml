@@ -24,3 +24,4 @@ workspace = true
 bijux-policies = { path = "../bijux-policies" }
 walkdir = { workspace = true }
 bijux-infra = { path = "../bijux-infra" }
+bijux-testkit = { path = "../bijux-testkit" }

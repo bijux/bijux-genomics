@@ -16,7 +16,7 @@ fn run_layout_schema_snapshot() {
         metadata_path: "/tmp/run/run_metadata.json".to_string(),
         events_path: "/tmp/run/events.jsonl".to_string(),
     };
-    let expected = include_str!("../fixtures/runtime_schema/run_layout_v1.json");
+    let expected = include_str!("../../fixtures/runtime_schema/default/run_layout_v1.json");
     let actual = String::from_utf8(
         bijux_core::contract::canonical::to_canonical_json_bytes(&layout)
             .unwrap_or_else(|err| panic!("canonical: {err}")),
@@ -35,7 +35,7 @@ fn run_record_schema_snapshot() {
             cached: false,
         },
     ]);
-    let expected = include_str!("../fixtures/runtime_schema/run_record_v1.json");
+    let expected = include_str!("../../fixtures/runtime_schema/default/run_record_v1.json");
     let actual = String::from_utf8(
         bijux_core::contract::canonical::to_canonical_json_bytes(&record)
             .unwrap_or_else(|err| panic!("canonical: {err}")),
@@ -58,7 +58,7 @@ fn run_provenance_schema_snapshot() {
         build_profile: "dev".to_string(),
         plan_hash: None,
     };
-    let expected = include_str!("../fixtures/runtime_schema/run_provenance_v1.json");
+    let expected = include_str!("../../fixtures/runtime_schema/default/run_provenance_v1.json");
     let actual = String::from_utf8(
         bijux_core::contract::canonical::to_canonical_json_bytes(&provenance)
             .unwrap_or_else(|err| panic!("canonical: {err}")),
@@ -108,7 +108,7 @@ fn run_manifest_schema_snapshot() {
         tool_invocations: vec![invocation],
         artifacts: Vec::new(),
     };
-    let expected = include_str!("../fixtures/runtime_schema/run_manifest_v1.json");
+    let expected = include_str!("../../fixtures/runtime_schema/default/run_manifest_v1.json");
     let actual = String::from_utf8(
         bijux_core::contract::canonical::to_canonical_json_bytes(&manifest)
             .unwrap_or_else(|err| panic!("canonical: {err}")),
@@ -122,7 +122,8 @@ fn schema_fixture_names_include_version() {
     let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("tests")
         .join("fixtures")
-        .join("runtime_schema");
+        .join("runtime_schema")
+        .join("default");
     let mut offenders = Vec::new();
     for entry in std::fs::read_dir(&dir).expect("read runtime_schema fixtures") {
         let entry = entry.expect("fixture entry");
@@ -131,6 +132,9 @@ fn schema_fixture_names_include_version() {
             continue;
         }
         let name = path.file_name().and_then(|n| n.to_str()).unwrap_or("");
+        if !name.ends_with(".json") {
+            continue;
+        }
         if !name.ends_with("_v1.json") {
             offenders.push(name.to_string());
         }

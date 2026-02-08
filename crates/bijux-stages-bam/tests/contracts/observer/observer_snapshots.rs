@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::path::PathBuf;
 
 use bijux_stages_bam::observer::{
     parse_contamination_json, parse_damageprofiler_json, parse_mapdamage2_misincorporation,
@@ -7,12 +7,14 @@ use bijux_stages_bam::observer::{
 };
 
 fn fixture(path: &str) -> std::path::PathBuf {
-    Path::new("tests/fixtures/observer").join(path)
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("tests/fixtures/observer/default")
+        .join(path)
 }
 
 fn snapshot_path(name: &str) -> std::path::PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/observer_snapshots")
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("tests/fixtures/observer_snapshots/default")
         .join(format!("{name}.json"))
 }
 

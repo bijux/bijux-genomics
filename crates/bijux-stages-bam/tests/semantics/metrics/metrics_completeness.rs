@@ -2,8 +2,8 @@ use bijux_stages_bam::observer::{parse_samtools_flagstat, parse_samtools_idxstat
 
 #[test]
 fn bam_metrics_have_required_fields() -> anyhow::Result<()> {
-    let flagstat = include_str!("../fixtures/observer/flagstat.txt");
-    let idxstats = include_str!("../fixtures/observer/idxstats.txt");
+    let flagstat = include_str!("../../fixtures/observer/default/flagstat.txt");
+    let idxstats = include_str!("../../fixtures/observer/default/idxstats.txt");
     let temp = bijux_infra::temp_dir("bijux-bam-metrics")?;
     let flag_path = temp.path().join("flagstat.txt");
     let idx_path = temp.path().join("idxstats.txt");

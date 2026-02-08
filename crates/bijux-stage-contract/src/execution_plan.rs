@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeMap, HashSet};
 
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
@@ -92,7 +92,7 @@ pub struct ExecutionPlan {
 
 #[derive(Debug, Clone)]
 pub struct PlanValidationContext<'a> {
-    pub allowed_stage_ids: Option<&'a HashSet<String>>,
+    pub allowed_id_catalog: Option<&'a HashSet<String>>,
     pub allowed_tool_ids: Option<&'a HashSet<String>>,
 }
 
@@ -159,9 +159,9 @@ impl ExecutionPlan {
     /// Returns an error if the plan violates strict completeness requirements.
     pub fn validate_strict(&self, context: &PlanValidationContext<'_>) -> Result<()> {
         lint_execution_plan(self)?;
-        let mut stage_ids = HashSet::new();
+        let mut id_catalog = HashSet::new();
         for stage in &self.stages {
-            stage_ids.insert(stage.stage_id.to_string());
+            id_catalog.insert(stage.stage_id.to_string());
             if stage.tool_id.0.trim().is_empty() {
                 return Err(anyhow!("stage {} missing tool_id", stage.stage_id.0));
             }
@@ -203,8 +203,8 @@ impl ExecutionPlan {
                 return Err(anyhow!("stage {} missing reason", stage.stage_id.0));
             }
         }
-        if let Some(allowed) = context.allowed_stage_ids {
-            for stage_id in &stage_ids {
+        if let Some(allowed) = context.allowed_id_catalog {
+            for stage_id in &id_catalog {
                 if !allowed.contains(stage_id) {
                     return Err(anyhow!("unknown stage id in plan: {stage_id}"));
                 }
@@ -249,9 +249,9 @@ pub fn lint_execution_plan(plan: &ExecutionPlan) -> Result<()> {
     if plan.planner_version.trim().is_empty() {
         return Err(anyhow!("execution plan planner_version is empty"));
     }
-    let mut stage_ids = HashSet::new();
+    let mut id_catalog = HashSet::new();
     for stage in &plan.stages {
-        if !stage_ids.insert(stage.stage_id.to_string()) {
+        if !id_catalog.insert(stage.stage_id.to_string()) {
             return Err(anyhow!("duplicate stage id in plan: {}", stage.stage_id.0));
         }
         if stage.io.inputs.is_empty() {
@@ -275,7 +275,7 @@ pub fn lint_execution_plan(plan: &ExecutionPlan) -> Result<()> {
         if edge.from == edge.to {
             return Err(anyhow!("plan edge self-loop {}", edge.from));
         }
-        if !stage_ids.contains(&edge.from) || !stage_ids.contains(&edge.to) {
+        if !id_catalog.contains(&edge.from) || !id_catalog.contains(&edge.to) {
             return Err(anyhow!(
                 "plan edge references unknown stage: {} -> {}",
                 edge.from,
@@ -284,12 +284,12 @@ pub fn lint_execution_plan(plan: &ExecutionPlan) -> Result<()> {
         }
         edges.push((edge.from.clone(), edge.to.clone()));
     }
-    ensure_plan_is_dag(&stage_ids, &edges)?;
+    ensure_plan_is_dag(&id_catalog, &edges)?;
     Ok(())
 }
 
-fn ensure_plan_is_dag(stage_ids: &HashSet<String>, edges: &[(String, String)]) -> Result<()> {
-    let mut adjacency: HashMap<&str, Vec<&str>> = HashMap::new();
+fn ensure_plan_is_dag(id_catalog: &HashSet<String>, edges: &[(String, String)]) -> Result<()> {
+    let mut adjacency: BTreeMap<&str, Vec<&str>> = BTreeMap::new();
     for (from, to) in edges {
         adjacency
             .entry(from.as_str())
@@ -298,7 +298,7 @@ fn ensure_plan_is_dag(stage_ids: &HashSet<String>, edges: &[(String, String)]) -
     }
     let mut visiting = HashSet::new();
     let mut visited = HashSet::new();
-    for stage in stage_ids {
+    for stage in id_catalog {
         visit(stage, &adjacency, &mut visiting, &mut visited)?;
     }
     Ok(())
@@ -306,7 +306,7 @@ fn ensure_plan_is_dag(stage_ids: &HashSet<String>, edges: &[(String, String)]) -
 
 fn visit<'a>(
     node: &'a str,
-    adjacency: &HashMap<&'a str, Vec<&'a str>>,
+    adjacency: &BTreeMap<&'a str, Vec<&'a str>>,
     visiting: &mut HashSet<&'a str>,
     visited: &mut HashSet<&'a str>,
 ) -> Result<()> {

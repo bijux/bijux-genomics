@@ -41,32 +41,32 @@ fn write_snapshot(path: &str, value: &serde_json::Value) {
         bijux_core::contract::canonical::to_canonical_json_bytes(value).expect("canonical"),
     )
     .expect("utf8");
-    let expected = include_str!("../fixtures/public_types/stage_plan.json");
+    let expected = include_str!("../../fixtures/public_types/default/stage_plan.json");
     if path.ends_with("stage_plan.json") {
         assert_eq!(actual, expected);
         return;
     }
-    let expected = include_str!("../fixtures/public_types/run_execution_plan.json");
+    let expected = include_str!("../../fixtures/public_types/default/run_execution_plan.json");
     if path.ends_with("run_execution_plan.json") {
         assert_eq!(actual, expected);
         return;
     }
-    let expected = include_str!("../fixtures/public_types/execution_plan.json");
+    let expected = include_str!("../../fixtures/public_types/default/execution_plan.json");
     if path.ends_with("execution_plan.json") {
         assert_eq!(actual, expected);
         return;
     }
-    let expected = include_str!("../fixtures/public_types/stage_invocation.json");
+    let expected = include_str!("../../fixtures/public_types/default/stage_invocation.json");
     if path.ends_with("stage_invocation.json") {
         assert_eq!(actual, expected);
         return;
     }
-    let expected = include_str!("../fixtures/public_types/stage_plugin_output.json");
+    let expected = include_str!("../../fixtures/public_types/default/stage_plugin_output.json");
     if path.ends_with("stage_plugin_output.json") {
         assert_eq!(actual, expected);
         return;
     }
-    let expected = include_str!("../fixtures/public_types/run_execution_plan.json");
+    let expected = include_str!("../../fixtures/public_types/default/run_execution_plan.json");
     assert_eq!(actual, expected);
 }
 

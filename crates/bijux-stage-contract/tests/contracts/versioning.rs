@@ -1,6 +1,6 @@
 // Owner: bijux-stage-contract
 // Versioning suite spine.
-#[path = "contracts/versioning/ssot.rs"]
+#[path = "versioning/ssot.rs"]
 mod ssot;
-#[path = "contracts/versioning/versioning.rs"]
+#[path = "versioning/versioning.rs"]
 mod versioning;
