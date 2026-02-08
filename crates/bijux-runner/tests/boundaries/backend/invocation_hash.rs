@@ -21,12 +21,9 @@ fn invocation_hash_is_stable_across_backends() -> anyhow::Result<()> {
     env.insert("MODE".to_string(), "test".to_string());
     let inputs = vec!["sha256:a".to_string(), "sha256:b".to_string()];
 
-    let docker_hash = docker_backend::execution_spec::invocation_hash_for_spec(
-        &spec, &env, &inputs,
-    )?;
-    let local_hash = local_backend::execution_spec::invocation_hash_for_spec(
-        &spec, &env, &inputs,
-    )?;
+    let docker_hash =
+        docker_backend::execution_spec::invocation_hash_for_spec(&spec, &env, &inputs)?;
+    let local_hash = local_backend::execution_spec::invocation_hash_for_spec(&spec, &env, &inputs)?;
 
     assert_eq!(docker_hash, local_hash);
     Ok(())

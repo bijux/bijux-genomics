@@ -1,8 +1,8 @@
-FMT = cargo fmt --all -- --check
-LINT = CARGO_BUILD_JOBS=10 cargo clippy -p bijux-core -p bijux-engine -p bijux-api -p bijux --lib --bins --no-deps -- -D warnings
-TEST = cargo nextest run --workspace
-AUDIT = cargo deny check
-COVERAGE = cargo llvm-cov nextest run --workspace --json --output-path target/llvm-cov/coverage.json
+FMT 		= cargo fmt --all -- --check
+LINT 		= CARGO_BUILD_JOBS=10 cargo clippy -p bijux-core -p bijux-engine -p bijux-api -p bijux --lib --bins --no-deps -- -D warnings
+TEST 		= cargo nextest run --workspace
+AUDIT 		= cargo deny check
+COVERAGE 	= cargo llvm-cov nextest run --workspace --json --output-path target/llvm-cov/coverage.json
 
 fmt:
 	$(FMT)
@@ -13,7 +13,10 @@ lint:
 test:
 	$(TEST)
 
-audit:
+ensure-cargo-deny:
+	@command -v cargo-deny >/dev/null 2>&1 || cargo install cargo-deny
+
+audit: ensure-cargo-deny
 	$(AUDIT)
 
 coverage:
@@ -29,8 +32,8 @@ lint-isolate:
 test-isolate:
 	CARGO_TARGET_DIR=target-isolate $(TEST)
 
-audit-isolate:
-CARGO_TARGET_DIR=target-isolate $(AUDIT)
+audit-isolate: ensure-cargo-deny
+	CARGO_TARGET_DIR=target-isolate $(AUDIT)
 
 coverage-isolate:
 	CARGO_TARGET_DIR=target-isolate $(COVERAGE)
