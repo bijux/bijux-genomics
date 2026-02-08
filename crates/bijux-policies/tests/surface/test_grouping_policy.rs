@@ -1,3 +1,4 @@
+#![allow(non_snake_case)]
 use std::path::Path;
 
 use crate::support::crate_roots;
@@ -10,7 +11,7 @@ fn is_allowlisted(crate_name: &str) -> bool {
 }
 
 #[test]
-fn tests_are_grouped_into_subsuites() {
+fn policy__surface__test_grouping_policy__tests_are_grouped_into_subsuites() {
     let mut offenders = Vec::new();
 
     for crate_root in crate_roots() {
@@ -44,7 +45,7 @@ fn tests_are_grouped_into_subsuites() {
             .map(|(name, reason)| format!("- {name}: {reason}"))
             .collect::<Vec<_>>()
             .join("\n");
-        panic!(
+        bijux_policies::policy_panic!(
             "Crates must group tests into sub-suites when tests/ grows too large.\n\
 MAX = {MAX_FLAT_TEST_FILES} flat files.\n\
 Offenders:\n{}\n\nAllowlist (temporary):\n{}",

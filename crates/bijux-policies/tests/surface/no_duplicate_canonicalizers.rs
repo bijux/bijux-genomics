@@ -1,10 +1,11 @@
+#![allow(non_snake_case)]
 #[path = "../support/fs.rs"]
 mod support;
 
 use walkdir::WalkDir;
 
 #[test]
-fn core_is_only_canonicalizer() {
+fn policy__surface__no_duplicate_canonicalizers__core_is_only_canonicalizer() {
     let root = support::workspace_root();
     let mut offenders = Vec::new();
     for entry in WalkDir::new(root.join("crates"))
@@ -30,7 +31,7 @@ fn core_is_only_canonicalizer() {
         }
     }
 
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "Canonicalization must live in bijux-core only.\n\
 Use bijux_core::contract::canonical instead of re-implementing.\n\

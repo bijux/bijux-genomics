@@ -1,3 +1,4 @@
+#![allow(non_snake_case)]
 #[path = "../support/fs.rs"]
 mod support;
 
@@ -11,7 +12,7 @@ const OWNER_ALLOWLIST: &[(&str, &str)] = &[
 ];
 
 #[test]
-fn ssot_catalog_authority() {
+fn policy__surface__ssot_catalog_authority__ssot_catalog_authority() {
     let root = support::workspace_root();
     let mut offenders = Vec::new();
     for entry in WalkDir::new(root.join("crates"))
@@ -42,7 +43,7 @@ fn ssot_catalog_authority() {
         }
     }
 
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "SSOT catalog authority violated.\n\
 Fix by moving ID ownership to the canonical crate, and importing IDs elsewhere.\n\

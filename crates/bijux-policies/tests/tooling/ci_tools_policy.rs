@@ -1,3 +1,4 @@
+#![allow(non_snake_case)]
 use std::path::{Path, PathBuf};
 
 use walkdir::WalkDir;
@@ -12,7 +13,7 @@ fn workspace_root() -> PathBuf {
 }
 
 #[test]
-fn workflows_use_make_only() {
+fn policy__tooling__ci_tools_policy__workflows_use_make_only() {
     let root = workspace_root();
     let workflows_dir = root.join(".github").join("workflows");
     let mut offenders = Vec::new();
@@ -41,7 +42,7 @@ fn workflows_use_make_only() {
     }
     offenders.sort();
     offenders.dedup();
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "CI workflows must use Makefile entrypoints only: {:?}",
         offenders
@@ -49,7 +50,7 @@ fn workflows_use_make_only() {
 }
 
 #[test]
-fn serde_yaml_is_scoped() {
+fn policy__tooling__ci_tools_policy__serde_yaml_is_scoped() {
     let root = workspace_root();
     let allowed = ["bijux-infra"];
     let mut offenders = Vec::new();
@@ -74,7 +75,7 @@ fn serde_yaml_is_scoped() {
             offenders.push(entry.path().display().to_string());
         }
     }
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "serde_yaml must be scoped to {:?}: {:?}",
         allowed,

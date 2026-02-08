@@ -1,3 +1,4 @@
+#![allow(non_snake_case)]
 use std::path::{Path, PathBuf};
 
 fn workspace_root() -> PathBuf {
@@ -10,7 +11,7 @@ fn workspace_root() -> PathBuf {
 }
 
 #[test]
-fn planners_do_not_define_parsers() {
+fn policy__surface__planner_purity__planners_do_not_define_parsers() {
     let root = workspace_root();
     let planners = [
         root.join("crates/bijux-planner-fastq/src"),
@@ -32,7 +33,7 @@ fn planners_do_not_define_parsers() {
             }
         }
     }
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "Planners must not define parsing logic (parsers live in stages).\n\
 Move parser functions into bijux-stages-* crates.\n\

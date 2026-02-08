@@ -1,3 +1,4 @@
+#![allow(non_snake_case)]
 use std::path::{Path, PathBuf};
 
 fn workspace_root() -> PathBuf {
@@ -36,7 +37,7 @@ fn parse_dependency_names(manifest: &Path) -> Vec<String> {
 }
 
 #[test]
-fn cli_depends_only_on_api_and_cli_support() {
+fn policy__deps__cli_dependency_policy__cli_depends_only_on_api_and_cli_support() {
     let root = workspace_root();
     let manifest = root.join("crates/bijux-cli/Cargo.toml");
     let deps = parse_dependency_names(&manifest);
@@ -54,7 +55,7 @@ fn cli_depends_only_on_api_and_cli_support() {
         .map(|dep| format!("{} depends on unexpected crate: {}", manifest.display(), dep))
         .collect();
 
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "bijux-cli must depend only on bijux-api + clap + logging (and minimal support libs).
 How to fix: move infra/runtime/runner dependencies behind bijux-api or remove them.

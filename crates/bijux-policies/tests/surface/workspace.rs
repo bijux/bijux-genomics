@@ -1,3 +1,4 @@
+#![allow(non_snake_case)]
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
@@ -71,7 +72,7 @@ fn read_package_name(manifest: &Path) -> String {
             }
         }
     }
-    panic!("missing package name in {}", manifest.display());
+    bijux_policies::policy_panic!("missing package name in {}", manifest.display());
 }
 
 fn is_bin_crate(crate_dir: &Path) -> bool {
@@ -136,7 +137,7 @@ fn parse_boundary_contract() -> BTreeMap<String, BTreeSet<String>> {
             lines.push(line.trim().to_string());
         }
     }
-    assert!(
+    bijux_policies::policy_assert!(
         in_block && !lines.is_empty(),
         "missing executable boundaries block in {}",
         path.display()
@@ -148,7 +149,7 @@ fn parse_boundary_contract() -> BTreeMap<String, BTreeSet<String>> {
         }
         let (name, deps) = line
             .split_once(':')
-            .unwrap_or_else(|| panic!("invalid boundaries line: {line}"));
+            .unwrap_or_else(|| bijux_policies::policy_panic!("invalid boundaries line: {line}"));
         let deps = deps
             .split_whitespace()
             .filter(|dep| !dep.is_empty())
@@ -195,14 +196,14 @@ fn assert_no_domain_terms(crate_root: &Path, denylist: &[&str]) {
         let lowered = content.to_lowercase();
         for term in denylist {
             if contains_term(&lowered, term) {
-                panic!("domain term '{}' found in {}", term, file.display());
+                bijux_policies::policy_panic!("domain term '{}' found in {}", term, file.display());
             }
         }
     }
 }
 
 #[test]
-fn workspace_no_macos_dotfiles() {
+fn policy__surface__workspace__workspace_no_macos_dotfiles() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     for entry in WalkDir::new(&root)
@@ -218,7 +219,7 @@ fn workspace_no_macos_dotfiles() {
         }
     }
     if !offenders.is_empty() {
-        panic!(
+        bijux_policies::policy_panic!(
             "macOS dotfiles are forbidden in repo:\n{}",
             offenders.join("\n")
         );
@@ -226,7 +227,7 @@ fn workspace_no_macos_dotfiles() {
 }
 
 #[test]
-fn engine_has_no_domain_terms() {
+fn policy__surface__workspace__engine_has_no_domain_terms() {
     let root = workspace_root();
     let engine = root.join("crates").join("bijux-engine");
     let denylist = [
@@ -243,7 +244,7 @@ fn engine_has_no_domain_terms() {
 }
 
 #[test]
-fn runner_has_no_domain_terms() {
+fn policy__surface__workspace__runner_has_no_domain_terms() {
     let root = workspace_root();
     let runner = root.join("crates").join("bijux-runner");
     let denylist = [
@@ -260,7 +261,7 @@ fn runner_has_no_domain_terms() {
 }
 
 #[test]
-fn engine_and_runner_have_no_domain_deps() {
+fn policy__surface__workspace__engine_and_runner_have_no_domain_deps() {
     let crates = collect_workspace_crates();
     let known: BTreeSet<String> = crates.keys().cloned().collect();
     let forbidden = [
@@ -274,10 +275,10 @@ fn engine_and_runner_have_no_domain_deps() {
     for name in ["bijux-engine", "bijux-runner"] {
         let crate_dir = crates
             .get(name)
-            .unwrap_or_else(|| panic!("missing crate {name}"));
+            .unwrap_or_else(|| bijux_policies::policy_panic!("missing crate {name}"));
         let deps = parse_dependencies(&crate_dir.join("Cargo.toml"), &known);
         for banned in &forbidden {
-            assert!(
+            bijux_policies::policy_assert!(
                 !deps.contains(*banned),
                 "{name} must not depend on {banned}"
             );
@@ -286,16 +287,16 @@ fn engine_and_runner_have_no_domain_deps() {
 }
 
 #[test]
-fn workspace_has_guardrails_tests() {
+fn policy__surface__workspace__workspace_has_guardrails_tests() {
     for path in crate_dirs() {
         let guardrails = path.join("tests").join("guardrails.rs");
-        assert!(
+        bijux_policies::policy_assert!(
             guardrails.exists(),
             "missing tests/guardrails.rs in {}",
             path.display()
         );
         let content = std::fs::read_to_string(&guardrails).expect("read guardrails test");
-        assert!(
+        bijux_policies::policy_assert!(
             content.contains("GuardrailConfig::for_crate"),
             "guardrails test must use GuardrailConfig::for_crate in {}",
             guardrails.display()
@@ -304,7 +305,7 @@ fn workspace_has_guardrails_tests() {
 }
 
 #[test]
-fn workspace_guardrail_defaults_not_increased() {
+fn policy__surface__workspace__workspace_guardrail_defaults_not_increased() {
     let defaults = GuardrailConfig::default();
     for path in crate_dirs() {
         let name = path.file_name().and_then(|s| s.to_str()).unwrap_or("");
@@ -315,35 +316,38 @@ fn workspace_guardrail_defaults_not_increased() {
             || config.max_rs_files_per_dir > defaults.max_rs_files_per_dir
             || config.max_pub_items_per_file > defaults.max_pub_items_per_file
             || config.max_pub_use_per_file > defaults.max_pub_use_per_file;
-        assert!(
+        bijux_policies::policy_assert!(
             !bad,
             "guardrails defaults increased for {}: {:?}",
-            name, config
+            name,
+            config
         );
     }
 }
 
 #[test]
-fn workspace_members_are_deterministic() {
+fn policy__surface__workspace__workspace_members_are_deterministic() {
     let root = workspace_root();
     let members = parse_workspace_members(&root);
-    assert!(!members.is_empty(), "workspace members not found");
+    bijux_policies::policy_assert!(!members.is_empty(), "workspace members not found");
     let mut sorted = members.clone();
     sorted.sort();
     let mut deduped = sorted.clone();
     deduped.dedup();
-    assert_eq!(
-        sorted, deduped,
+    bijux_policies::policy_assert_eq!(
+        sorted,
+        deduped,
         "workspace members contain duplicates or are unsorted"
     );
-    assert_eq!(
-        members, sorted,
+    bijux_policies::policy_assert_eq!(
+        members,
+        sorted,
         "workspace members must be sorted and deterministic"
     );
 }
 
 #[test]
-fn workspace_constitution_contract() {
+fn policy__surface__workspace__workspace_constitution_contract() {
     let crates = collect_workspace_crates();
     let mut counts: BTreeMap<&str, usize> = BTreeMap::new();
     for name in crates.keys() {
@@ -367,18 +371,18 @@ fn workspace_constitution_contract() {
         "bijux-testkit",
     ];
     for name in required {
-        assert!(crates.contains_key(name), "missing required crate: {name}");
-        assert_eq!(
+        bijux_policies::policy_assert!(crates.contains_key(name), "missing required crate: {name}");
+        bijux_policies::policy_assert_eq!(
             counts.get(name).copied().unwrap_or(0),
             1,
             "duplicate crate: {name}"
         );
     }
-    assert!(
+    bijux_policies::policy_assert!(
         crates.contains_key("bijux-environment"),
         "missing bijux-environment crate"
     );
-    assert!(
+    bijux_policies::policy_assert!(
         crates.contains_key("bijux-environment-qa"),
         "missing bijux-environment-qa crate"
     );
@@ -386,25 +390,25 @@ fn workspace_constitution_contract() {
         .keys()
         .filter(|name| name.starts_with("bijux-env-"))
         .collect();
-    assert!(
+    bijux_policies::policy_assert!(
         env_crates.is_empty(),
         "legacy bijux-env-* crates are forbidden"
     );
-    assert!(
+    bijux_policies::policy_assert!(
         !crates.contains_key("bijux-pipelines-bam"),
         "bijux-pipelines-bam is forbidden"
     );
-    assert!(
+    bijux_policies::policy_assert!(
         crates.contains_key("bijux-testkit"),
         "missing bijux-testkit crate"
     );
 }
 
 #[test]
-fn workspace_bans_pipelines_bam_crate_name() {
+fn policy__surface__workspace__workspace_bans_pipelines_bam_crate_name() {
     let crates = collect_workspace_crates();
     for name in crates.keys() {
-        assert!(
+        bijux_policies::policy_assert!(
             !name.contains("pipelines-bam"),
             "crate name contains forbidden substring: {name}"
         );
@@ -412,21 +416,21 @@ fn workspace_bans_pipelines_bam_crate_name() {
 }
 
 #[test]
-fn workspace_crate_layout_contract() {
+fn policy__surface__workspace__workspace_crate_layout_contract() {
     for crate_dir in crate_dirs() {
         let manifest = crate_dir.join("Cargo.toml");
-        assert!(
+        bijux_policies::policy_assert!(
             manifest.exists(),
             "missing Cargo.toml in {}",
             crate_dir.display()
         );
         let src_dir = crate_dir.join("src");
-        assert!(src_dir.exists(), "missing src/ in {}", crate_dir.display());
+        bijux_policies::policy_assert!(src_dir.exists(), "missing src/ in {}", crate_dir.display());
         if is_bin_crate(&crate_dir) {
             continue;
         }
         let tests_dir = crate_dir.join("tests");
-        assert!(
+        bijux_policies::policy_assert!(
             tests_dir.exists(),
             "missing tests/ in {}",
             crate_dir.display()
@@ -435,10 +439,10 @@ fn workspace_crate_layout_contract() {
 }
 
 #[test]
-fn engine_src_layout_contract() {
+fn policy__surface__workspace__engine_src_layout_contract() {
     let crates = collect_workspace_crates();
     let Some(engine) = crates.get("bijux-engine") else {
-        panic!("missing crate bijux-engine");
+        bijux_policies::policy_panic!("missing crate bijux-engine");
     };
     let src = engine.join("src");
     let allowed = BTreeSet::from(["errors.rs", "executor.rs", "lib.rs", "runtime_facade.rs"]);
@@ -453,21 +457,21 @@ fn engine_src_layout_contract() {
             offenders.push(name);
         }
     }
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "bijux-engine/src must stay small; unexpected entries: {offenders:?}"
     );
 }
 
 #[test]
-fn workspace_domain_layout_contract() {
+fn policy__surface__workspace__workspace_domain_layout_contract() {
     let crates = collect_workspace_crates();
     let Some(fastq) = crates.get("bijux-domain-fastq") else {
-        panic!("missing crate bijux-domain-fastq");
+        bijux_policies::policy_panic!("missing crate bijux-domain-fastq");
     };
     for dir in ["metrics", "params", "invariants", "types"] {
         let path = fastq.join("src").join(dir);
-        assert!(path.exists(), "bijux-domain-fastq missing src/{dir}");
+        bijux_policies::policy_assert!(path.exists(), "bijux-domain-fastq missing src/{dir}");
     }
     for file in [
         "stage_contract.rs",
@@ -476,40 +480,40 @@ fn workspace_domain_layout_contract() {
         "stage_specs.rs",
     ] {
         let path = fastq.join("src").join(file);
-        assert!(path.exists(), "bijux-domain-fastq missing src/{file}");
+        bijux_policies::policy_assert!(path.exists(), "bijux-domain-fastq missing src/{file}");
     }
     let lib = fastq.join("src").join("lib.rs");
-    assert!(lib.exists(), "bijux-domain-fastq missing src/lib.rs");
+    bijux_policies::policy_assert!(lib.exists(), "bijux-domain-fastq missing src/lib.rs");
 
     let Some(bam) = crates.get("bijux-domain-bam") else {
-        panic!("missing crate bijux-domain-bam");
+        bijux_policies::policy_panic!("missing crate bijux-domain-bam");
     };
     for dir in ["metrics", "params", "invariants", "types", "stage_specs"] {
         let path = bam.join("src").join(dir);
-        assert!(path.exists(), "bijux-domain-bam missing src/{dir}");
+        bijux_policies::policy_assert!(path.exists(), "bijux-domain-bam missing src/{dir}");
     }
     let lib = bam.join("src").join("lib.rs");
-    assert!(lib.exists(), "bijux-domain-bam missing src/lib.rs");
+    bijux_policies::policy_assert!(lib.exists(), "bijux-domain-bam missing src/lib.rs");
 }
 
 #[test]
-fn workspace_stages_layout_contract() {
+fn policy__surface__workspace__workspace_stages_layout_contract() {
     let crates = collect_workspace_crates();
     for name in ["bijux-stages-fastq", "bijux-stages-bam"] {
         let Some(path) = crates.get(name) else {
-            panic!("missing crate {name}");
+            bijux_policies::policy_panic!("missing crate {name}");
         };
         let src = path.join("src");
         let stage_specs = src.join("stage_specs");
         let has_stage_specs = stage_specs.exists() || src.join("stage_specs.rs").exists();
-        assert!(has_stage_specs, "{name} missing stage_specs module");
-        assert!(
+        bijux_policies::policy_assert!(has_stage_specs, "{name} missing stage_specs module");
+        bijux_policies::policy_assert!(
             src.join("plugin.rs").exists(),
             "{name} missing src/plugin.rs"
         );
         let has_metrics =
             src.join("metrics.rs").exists() || src.join("metrics").join("mod.rs").exists();
-        assert!(
+        bijux_policies::policy_assert!(
             has_metrics,
             "{name} missing src/metrics.rs or src/metrics/mod.rs"
         );
@@ -517,7 +521,7 @@ fn workspace_stages_layout_contract() {
 }
 
 #[test]
-fn workspace_no_orphan_crates() {
+fn policy__surface__workspace__workspace_no_orphan_crates() {
     let crates = collect_workspace_crates();
     let known: BTreeSet<String> = crates.keys().cloned().collect();
     let mut dependents: BTreeMap<String, usize> =
@@ -547,27 +551,27 @@ fn workspace_no_orphan_crates() {
     for (name, count) in dependents {
         let crate_dir = crates.get(&name).expect("crate dir");
         if count == 0 && !allowlist.contains(name.as_str()) && !is_bin_crate(crate_dir) {
-            panic!("orphan crate without allowlist: {name}");
+            bijux_policies::policy_panic!("orphan crate without allowlist: {name}");
         }
     }
 }
 
 #[test]
-fn workspace_dependency_graph_contract() {
+fn policy__surface__workspace__workspace_dependency_graph_contract() {
     let crates = collect_workspace_crates();
     let known: BTreeSet<String> = crates.keys().cloned().collect();
     let deps_for = |name: &str| -> BTreeSet<String> {
         let path = crates
             .get(name)
-            .unwrap_or_else(|| panic!("missing crate {name}"));
+            .unwrap_or_else(|| bijux_policies::policy_panic!("missing crate {name}"));
         parse_dependencies(&path.join("Cargo.toml"), &known)
     };
     let is_guardrails = |dep: &str| dep == "bijux-policies";
 
     let cli = deps_for("bijux");
-    assert!(cli.contains("bijux-api"), "cli must depend on bijux-api");
+    bijux_policies::policy_assert!(cli.contains("bijux-api"), "cli must depend on bijux-api");
     for dep in &cli {
-        assert!(
+        bijux_policies::policy_assert!(
             dep == "bijux-api"
                 || dep == "bijux-core"
                 || dep == "bijux-environment"
@@ -581,12 +585,12 @@ fn workspace_dependency_graph_contract() {
 
     if let Some(cli_dir) = crates.get("bijux-cli") {
         let cli_deps = parse_dependencies(&cli_dir.join("Cargo.toml"), &known);
-        assert!(
+        bijux_policies::policy_assert!(
             cli_deps.contains("bijux-api"),
             "bijux-cli must depend on bijux-api"
         );
         for dep in &cli_deps {
-            assert!(
+            bijux_policies::policy_assert!(
                 dep == "bijux-api"
                     || dep == "bijux-core"
                     || dep == "bijux-environment"
@@ -604,7 +608,7 @@ fn workspace_dependency_graph_contract() {
         if is_guardrails(dep) {
             continue;
         }
-        assert!(
+        bijux_policies::policy_assert!(
             dep == "bijux-infra",
             "bijux-core must not depend on workspace crate {dep}"
         );
@@ -615,7 +619,7 @@ fn workspace_dependency_graph_contract() {
         if is_guardrails(dep) {
             continue;
         }
-        assert!(
+        bijux_policies::policy_assert!(
             dep == "bijux-core" || dep == "bijux-infra",
             "bijux-runtime must not depend on workspace crate {dep}"
         );
@@ -626,7 +630,7 @@ fn workspace_dependency_graph_contract() {
         if is_guardrails(dep) {
             continue;
         }
-        assert!(
+        bijux_policies::policy_assert!(
             dep == "bijux-core" || dep == "bijux-infra" || dep == "bijux-runtime",
             "bijux-engine must not depend on workspace crate {dep}"
         );
@@ -637,7 +641,7 @@ fn workspace_dependency_graph_contract() {
         if is_guardrails(dep) {
             continue;
         }
-        assert!(
+        bijux_policies::policy_assert!(
             dep == "bijux-core"
                 || dep == "bijux-stage-contract"
                 || dep == "bijux-domain-fastq"
@@ -654,7 +658,7 @@ fn workspace_dependency_graph_contract() {
         if is_guardrails(dep) {
             continue;
         }
-        assert!(
+        bijux_policies::policy_assert!(
             dep == "bijux-core"
                 || dep == "bijux-stage-contract"
                 || dep == "bijux-domain-bam"
@@ -670,7 +674,7 @@ fn workspace_dependency_graph_contract() {
         if is_guardrails(dep) {
             continue;
         }
-        assert!(
+        bijux_policies::policy_assert!(
             dep == "bijux-core"
                 || dep == "bijux-stage-contract"
                 || dep == "bijux-planner-fastq"
@@ -696,7 +700,7 @@ fn workspace_dependency_graph_contract() {
         if is_guardrails(dep) {
             continue;
         }
-        assert!(
+        bijux_policies::policy_assert!(
             dep == "bijux-core"
                 || dep == "bijux-environment"
                 || dep == "bijux-infra"
@@ -710,7 +714,7 @@ fn workspace_dependency_graph_contract() {
         if is_guardrails(dep) {
             continue;
         }
-        assert!(
+        bijux_policies::policy_assert!(
             dep == "bijux-core"
                 || dep == "bijux-domain-fastq"
                 || dep == "bijux-domain-bam"
@@ -729,7 +733,7 @@ fn workspace_dependency_graph_contract() {
         if is_guardrails(dep) {
             continue;
         }
-        assert!(
+        bijux_policies::policy_assert!(
             dep == "bijux-core"
                 || dep == "bijux-analyze"
                 || dep == "bijux-benchmark-model"
@@ -762,7 +766,7 @@ fn workspace_dependency_graph_contract() {
         "bijux-runtime",
     ]);
     for dep in &api {
-        assert!(
+        bijux_policies::policy_assert!(
             api_allowed.contains(dep.as_str()),
             "bijux-api must not depend on workspace crate {dep}"
         );
@@ -782,7 +786,7 @@ fn workspace_dependency_graph_contract() {
             "bijux-analyze",
             "bijux-benchmark",
         ] {
-            assert!(
+            bijux_policies::policy_assert!(
                 !deps.contains(banned),
                 "{domain} must not depend on {banned}"
             );
@@ -800,7 +804,7 @@ fn workspace_dependency_graph_contract() {
             "bijux-environment",
             "bijux-pipelines",
         ] {
-            assert!(
+            bijux_policies::policy_assert!(
                 !deps.contains(banned),
                 "{stages} must not depend on {banned}"
             );
@@ -814,7 +818,7 @@ fn workspace_dependency_graph_contract() {
         "bijux-stages-fastq",
         "bijux-stages-bam",
     ] {
-        assert!(
+        bijux_policies::policy_assert!(
             !pipelines.contains(banned),
             "bijux-pipelines must not depend on {banned}"
         );
@@ -822,7 +826,7 @@ fn workspace_dependency_graph_contract() {
 
     let analyze = deps_for("bijux-analyze");
     for banned in ["bijux-engine", "bijux-environment"] {
-        assert!(
+        bijux_policies::policy_assert!(
             !analyze.contains(banned),
             "bijux-analyze must not depend on {banned}"
         );
@@ -840,7 +844,7 @@ fn workspace_dependency_graph_contract() {
             "bijux-api",
             "bijux-cli",
         ] {
-            assert!(
+            bijux_policies::policy_assert!(
                 !runtime.contains(banned),
                 "bijux-runtime must not depend on {banned}"
             );
@@ -856,7 +860,7 @@ fn workspace_dependency_graph_contract() {
         "bijux-stages-fastq",
         "bijux-stages-bam",
     ] {
-        assert!(
+        bijux_policies::policy_assert!(
             !engine.contains(banned),
             "bijux-engine must not depend on {banned}"
         );
@@ -875,7 +879,7 @@ fn workspace_dependency_graph_contract() {
             "bijux-stages-fastq",
             "bijux-stages-bam",
         ] {
-            assert!(
+            bijux_policies::policy_assert!(
                 !deps.contains(banned),
                 "{runner_name} must not depend on {banned}"
             );
@@ -894,7 +898,7 @@ fn workspace_dependency_graph_contract() {
         "bijux-policies",
     ]);
     for dep in &planner_fastq {
-        assert!(
+        bijux_policies::policy_assert!(
             planner_fastq_allowed.contains(dep.as_str()),
             "bijux-planner-fastq must not depend on workspace crate {dep}"
         );
@@ -911,7 +915,7 @@ fn workspace_dependency_graph_contract() {
         "bijux-policies",
     ]);
     for dep in &planner_bam {
-        assert!(
+        bijux_policies::policy_assert!(
             planner_bam_allowed.contains(dep.as_str()),
             "bijux-planner-bam must not depend on workspace crate {dep}"
         );
@@ -919,17 +923,17 @@ fn workspace_dependency_graph_contract() {
 }
 
 #[test]
-fn workspace_boundary_contract_matches_docs() {
+fn policy__surface__workspace__workspace_boundary_contract_matches_docs() {
     let crates = collect_workspace_crates();
     let known: BTreeSet<String> = crates.keys().cloned().collect();
     let contract = parse_boundary_contract();
     for (crate_name, path) in &crates {
         let Some(allowed) = contract.get(crate_name) else {
-            panic!("missing boundaries entry for {crate_name}");
+            bijux_policies::policy_panic!("missing boundaries entry for {crate_name}");
         };
         let deps = parse_dependencies(&path.join("Cargo.toml"), &known);
         for dep in deps {
-            assert!(
+            bijux_policies::policy_assert!(
                 allowed.contains(&dep),
                 "boundary violation: {crate_name} depends on {dep}, allowed: {allowed:?}"
             );
@@ -938,7 +942,7 @@ fn workspace_boundary_contract_matches_docs() {
 }
 
 #[test]
-fn stage_spec_and_registry_defs_scoped() {
+fn policy__surface__workspace__stage_spec_and_registry_defs_scoped() {
     let crates = collect_workspace_crates();
     let root = workspace_root();
     let mut offenders = Vec::new();
@@ -966,14 +970,14 @@ fn stage_spec_and_registry_defs_scoped() {
             }
         }
     }
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "stage specs/tool registries must live in domains or stages only: {offenders:?}"
     );
 }
 
 #[test]
-fn workspace_has_no_target_dirs() {
+fn policy__surface__workspace__workspace_has_no_target_dirs() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     for entry in walkdir::WalkDir::new(root.join("crates"))
@@ -985,14 +989,14 @@ fn workspace_has_no_target_dirs() {
             offenders.push(entry.path().display().to_string());
         }
     }
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "target/ directories must not exist in crates: {offenders:?}"
     );
 }
 
 #[test]
-fn crate_root_contents_allowlist() {
+fn policy__surface__workspace__crate_root_contents_allowlist() {
     let allowed = BTreeSet::from([
         "Cargo.toml",
         "Makefile.toml",
@@ -1004,7 +1008,8 @@ fn crate_root_contents_allowlist() {
     ]);
     let mut offenders = Vec::new();
     for (name, path) in collect_workspace_crates() {
-        let entries = std::fs::read_dir(&path).unwrap_or_else(|_| panic!("read {name}"));
+        let entries = std::fs::read_dir(&path)
+            .unwrap_or_else(|_| bijux_policies::policy_panic!("read {name}"));
         for entry in entries.filter_map(Result::ok) {
             let entry_name = entry.file_name();
             let entry_name = entry_name.to_string_lossy();
@@ -1014,14 +1019,14 @@ fn crate_root_contents_allowlist() {
             offenders.push(format!("{}: {}", name, entry_name.as_ref()));
         }
     }
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "crate roots must only contain allowlisted entries: {offenders:?}"
     );
 }
 
 #[test]
-fn fixtures_policy_enforced() {
+fn policy__surface__workspace__fixtures_policy_enforced() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     for (_name, path) in collect_workspace_crates() {
@@ -1041,14 +1046,14 @@ fn fixtures_policy_enforced() {
             offenders.push(rel.display().to_string());
         }
     }
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "fixtures must live under tests/fixtures or fixtures/: {offenders:?}"
     );
 }
 
 #[test]
-fn workspace_no_cross_layer_imports() {
+fn policy__surface__workspace__workspace_no_cross_layer_imports() {
     let crates = collect_workspace_crates();
     let root = workspace_root();
     let mut offenders = Vec::new();
@@ -1086,14 +1091,14 @@ fn workspace_no_cross_layer_imports() {
             }
         }
     }
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "cross-layer imports detected: {offenders:?}"
     );
 }
 
 #[test]
-fn retention_reports_require_context() {
+fn policy__surface__workspace__retention_reports_require_context() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     for entry in walkdir::WalkDir::new(&root)
@@ -1120,14 +1125,14 @@ fn retention_reports_require_context() {
             offenders.push(entry.path().display().to_string());
         }
     }
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "retention_report.json must include numerator/denominator/units/parameters_json: {offenders:?}"
     );
 }
 
 #[test]
-fn params_hash_only_defined_in_core() {
+fn policy__surface__workspace__params_hash_only_defined_in_core() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     for entry in walkdir::WalkDir::new(root.join("crates"))
@@ -1148,14 +1153,14 @@ fn params_hash_only_defined_in_core() {
             offenders.push(rel.display().to_string());
         }
     }
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "params_hash must only be defined in bijux-core: {offenders:?}"
     );
 }
 
 #[test]
-fn workspace_single_orchestration_surface() {
+fn policy__surface__workspace__workspace_single_orchestration_surface() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     for path in crate_dirs() {
@@ -1183,14 +1188,14 @@ fn workspace_single_orchestration_surface() {
             }
         }
     }
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "only bijux-api may expose orchestration entrypoints: {offenders:?}"
     );
 }
 
 #[test]
-fn workspace_no_ad_hoc_fs_write() {
+fn policy__surface__workspace__workspace_no_ad_hoc_fs_write() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     let needles = [
@@ -1220,14 +1225,14 @@ fn workspace_no_ad_hoc_fs_write() {
             }
         }
     }
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "ad-hoc fs writes/renames/removals/dir-creation are forbidden outside bijux-infra: {offenders:?}"
     );
 }
 
 #[test]
-fn engine_has_no_domain_keywords() {
+fn policy__surface__workspace__engine_has_no_domain_keywords() {
     let root = workspace_root();
     let engine_root = root.join("crates").join("bijux-engine").join("src");
     let denylist = [
@@ -1253,14 +1258,14 @@ fn engine_has_no_domain_keywords() {
             offenders.push(rel.display().to_string());
         }
     }
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "engine must not contain domain keywords: {offenders:?}"
     );
 }
 
 #[test]
-fn api_has_no_planning_policy() {
+fn policy__surface__workspace__api_has_no_planning_policy() {
     let root = workspace_root();
     let api_root = root.join("crates").join("bijux-api").join("src");
     let denylist = [
@@ -1284,14 +1289,14 @@ fn api_has_no_planning_policy() {
             offenders.push(rel.display().to_string());
         }
     }
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "api must not implement planning policy: {offenders:?}"
     );
 }
 
 #[test]
-fn workspace_bans_thin_mod_rs() {
+fn policy__surface__workspace__workspace_bans_thin_mod_rs() {
     let mut offenders = Vec::new();
     for path in crate_dirs() {
         for mod_path in walkdir::WalkDir::new(path.join("src"))
@@ -1317,14 +1322,14 @@ fn workspace_bans_thin_mod_rs() {
             }
         }
     }
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "thin mod.rs files are not allowed: {offenders:?}"
     );
 }
 
 #[test]
-fn workspace_domain_symmetry_contract() {
+fn policy__surface__workspace__workspace_domain_symmetry_contract() {
     let domains = ["bijux-domain-fastq", "bijux-domain-bam"];
     let required = [
         "metrics",
@@ -1344,7 +1349,7 @@ fn workspace_domain_symmetry_contract() {
                     .map(|s| s == name)
                     .unwrap_or(false)
             })
-            .unwrap_or_else(|| panic!("missing crate dir for {name}"));
+            .unwrap_or_else(|| bijux_policies::policy_panic!("missing crate dir for {name}"));
         let src = crate_dir.join("src");
         let mut present = BTreeSet::new();
         for item in required {
@@ -1357,7 +1362,7 @@ fn workspace_domain_symmetry_contract() {
                 present.insert(item.to_string());
             }
         }
-        assert_eq!(
+        bijux_policies::policy_assert_eq!(
             present.len(),
             required.len(),
             "domain {name} missing required modules: {:?}",
@@ -1370,16 +1375,20 @@ fn workspace_domain_symmetry_contract() {
     }
     let base = &domain_sets[0].1;
     for (name, set) in &domain_sets[1..] {
-        assert_eq!(
-            base, set,
+        bijux_policies::policy_assert_eq!(
+            base,
+            set,
             "domain module symmetry mismatch between {} and {}: {:?} vs {:?}",
-            domain_sets[0].0, name, base, set
+            domain_sets[0].0,
+            name,
+            base,
+            set
         );
     }
 }
 
 #[test]
-fn engine_src_has_no_domain_stage_ids() {
+fn policy__surface__workspace__engine_src_has_no_domain_stage_ids() {
     let root = workspace_root();
     let engine_src = root.join("crates").join("bijux-engine").join("src");
     let mut offenders = Vec::new();
@@ -1401,14 +1410,14 @@ fn engine_src_has_no_domain_stage_ids() {
             );
         }
     }
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "bijux-engine/src must not contain domain stage IDs: {offenders:?}"
     );
 }
 
 #[test]
-fn engine_has_no_tool_normalization_policy() {
+fn policy__surface__workspace__engine_has_no_tool_normalization_policy() {
     let root = workspace_root();
     let engine_src = root.join("crates").join("bijux-engine").join("src");
     let mut offenders = Vec::new();
@@ -1430,14 +1439,14 @@ fn engine_has_no_tool_normalization_policy() {
             );
         }
     }
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "bijux-engine must not define tool normalization: {offenders:?}"
     );
 }
 
 #[test]
-fn workspace_bans_resource_fork_artifacts() {
+fn policy__surface__workspace__workspace_bans_resource_fork_artifacts() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     for entry in walkdir::WalkDir::new(&root)
@@ -1457,7 +1466,7 @@ fn workspace_bans_resource_fork_artifacts() {
             );
         }
     }
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "resource fork artifacts (.DS_Store/._*) are not allowed: {offenders:?}"
     );

@@ -1,3 +1,4 @@
+#![allow(non_snake_case)]
 use std::path::{Path, PathBuf};
 
 use walkdir::WalkDir;
@@ -25,7 +26,7 @@ fn resolve_link(base: &Path, link: &str) -> Option<PathBuf> {
 }
 
 #[test]
-fn docs_links_are_resolvable() {
+fn policy__tooling__docs_links__docs_links_are_resolvable() {
     let root = docs_root();
     for entry in WalkDir::new(&root) {
         let entry = entry.expect("walk docs");
@@ -46,7 +47,7 @@ fn docs_links_are_resolvable() {
                         let link = &rest[start..start + end];
                         if let Some(target) = resolve_link(base, link) {
                             if !target.exists() {
-                                panic!(
+                                bijux_policies::policy_panic!(
                                     "broken link in {}: {} -> {}",
                                     entry.path().display(),
                                     link,

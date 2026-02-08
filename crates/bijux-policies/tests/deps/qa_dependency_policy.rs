@@ -1,7 +1,8 @@
+#![allow(non_snake_case)]
 use cargo_metadata::MetadataCommand;
 
 #[test]
-fn production_crates_do_not_depend_on_qa() {
+fn policy__deps__qa_dependency_policy__production_crates_do_not_depend_on_qa() {
     let metadata = MetadataCommand::new().exec().expect("cargo metadata");
     let qa = metadata
         .packages
@@ -23,7 +24,7 @@ fn production_crates_do_not_depend_on_qa() {
             offenders.push(pkg.name.clone());
         }
     }
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "production crates must not depend on bijux-environment-qa.\n\
 Keep QA isolated and invoked manually.\n\

@@ -1,3 +1,4 @@
+#![allow(non_snake_case)]
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
@@ -22,7 +23,7 @@ fn extract_tool_ids(path: &Path) -> Vec<String> {
 }
 
 #[test]
-fn tool_ids_are_unique_across_planners() {
+fn policy__surface__tool_id_uniqueness__tool_ids_are_unique_across_planners() {
     let root = workspace_root();
     let registries = [
         root.join("crates/bijux-planner-fastq/src/selection/tool_registry.rs"),
@@ -49,7 +50,7 @@ fn tool_ids_are_unique_across_planners() {
             }
         }
     }
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "Tool IDs must be globally unique across planners.\n\
 If a tool is intentionally shared, add it to the allowlist with justification.\n\

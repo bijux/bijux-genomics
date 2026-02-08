@@ -1,3 +1,4 @@
+#![allow(non_snake_case)]
 use std::path::{Path, PathBuf};
 
 use walkdir::WalkDir;
@@ -22,7 +23,7 @@ fn collect_rs_files(root: &Path) -> Vec<PathBuf> {
 }
 
 #[test]
-fn engine_has_no_domain_strings() {
+fn policy__data__purity_scans__engine_has_no_domain_strings() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     let needles = [
@@ -40,7 +41,7 @@ fn engine_has_no_domain_strings() {
             offenders.push(file.display().to_string());
         }
     }
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "bijux-engine must not reference domain/stage strings:\n{}",
         offenders.join("\n")
@@ -48,7 +49,7 @@ fn engine_has_no_domain_strings() {
 }
 
 #[test]
-fn runner_has_no_domain_strings() {
+fn policy__data__purity_scans__runner_has_no_domain_strings() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     let needles = [
@@ -66,7 +67,7 @@ fn runner_has_no_domain_strings() {
             offenders.push(file.display().to_string());
         }
     }
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "bijux-runner must not reference domain/stage strings:\n{}",
         offenders.join("\n")
@@ -74,7 +75,7 @@ fn runner_has_no_domain_strings() {
 }
 
 #[test]
-fn core_execution_contract_has_no_stage_contract_imports() {
+fn policy__data__purity_scans__core_execution_contract_has_no_stage_contract_imports() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     for file in collect_rs_files(&root.join("crates/bijux-core/src/contract/execution")) {
@@ -83,7 +84,7 @@ fn core_execution_contract_has_no_stage_contract_imports() {
             offenders.push(file.display().to_string());
         }
     }
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "bijux-core execution contracts must not import bijux-stage-contract:\n{}",
         offenders.join("\n")
@@ -91,7 +92,7 @@ fn core_execution_contract_has_no_stage_contract_imports() {
 }
 
 #[test]
-fn engine_has_no_stage_contract_imports() {
+fn policy__data__purity_scans__engine_has_no_stage_contract_imports() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     let needles = [
@@ -106,7 +107,7 @@ fn engine_has_no_stage_contract_imports() {
             offenders.push(file.display().to_string());
         }
     }
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "bijux-engine must not import stage-contract or stage crates:\n{}",
         offenders.join("\n")
@@ -114,19 +115,19 @@ fn engine_has_no_stage_contract_imports() {
 }
 
 #[test]
-fn execution_graph_has_no_stage_contract_symbols() {
+fn policy__data__purity_scans__execution_graph_has_no_stage_contract_symbols() {
     let root = workspace_root();
     let path = root.join("crates/bijux-core/src/contract/execution/graph.rs");
     let content = std::fs::read_to_string(&path).expect("read execution_graph.rs");
     let needles = ["StagePlanV1", "StagePlugin"];
-    assert!(
+    bijux_policies::policy_assert!(
         !needles.iter().any(|needle| content.contains(needle)),
         "execution_graph.rs must not reference stage-contract symbols"
     );
 }
 
 #[test]
-fn stage_specs_have_no_command_building() {
+fn policy__data__purity_scans__stage_specs_have_no_command_building() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     let needles = ["CommandSpecV1", "ContainerImageRefV1", "argv"];
@@ -147,7 +148,7 @@ fn stage_specs_have_no_command_building() {
             offenders.push(path.display().to_string());
         }
     }
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "stage_specs must not build commands/images:\n{}",
         offenders.join("\n")
@@ -155,7 +156,7 @@ fn stage_specs_have_no_command_building() {
 }
 
 #[test]
-fn planners_only_build_execution_steps() {
+fn policy__data__purity_scans__planners_only_build_execution_steps() {
     let root = workspace_root();
     let allowlist = [
         "bijux-core",
@@ -197,7 +198,7 @@ fn planners_only_build_execution_steps() {
             offenders.push(rel_str.to_string());
         }
     }
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "ExecutionStep construction must live in planners/stage-contract:\n{}",
         offenders.join("\n")
@@ -205,7 +206,7 @@ fn planners_only_build_execution_steps() {
 }
 
 #[test]
-fn pipelines_do_not_embed_tool_names() {
+fn policy__data__purity_scans__pipelines_do_not_embed_tool_names() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     let tool_ids = [
@@ -259,7 +260,7 @@ fn pipelines_do_not_embed_tool_names() {
             offenders.push(file.display().to_string());
         }
     }
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "bijux-pipelines must not embed tool ids in source:\n{}",
         offenders.join("\n")

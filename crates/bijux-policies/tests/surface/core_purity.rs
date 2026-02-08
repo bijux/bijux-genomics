@@ -1,8 +1,9 @@
+#![allow(non_snake_case)]
 use std::fs;
 use std::path::PathBuf;
 
 #[test]
-fn core_has_no_runtime_or_system_deps() {
+fn policy__surface__core_purity__core_has_no_runtime_or_system_deps() {
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .unwrap()
@@ -24,7 +25,7 @@ fn core_has_no_runtime_or_system_deps() {
         .copied()
         .filter(|needle| content.contains(needle))
         .collect();
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "bijux-core must remain pure; forbidden deps found: {:?}",
         offenders
@@ -32,7 +33,7 @@ fn core_has_no_runtime_or_system_deps() {
 }
 
 #[test]
-fn core_has_no_stage_modules() {
+fn policy__surface__core_purity__core_has_no_stage_modules() {
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .unwrap()
@@ -68,7 +69,7 @@ fn core_has_no_stage_modules() {
             offenders.push(entry.path().display().to_string());
         }
     }
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "bijux-core must not define stage_* modules:\n{}",
         offenders.join("\n")

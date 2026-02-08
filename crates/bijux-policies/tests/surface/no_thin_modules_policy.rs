@@ -1,3 +1,4 @@
+#![allow(non_snake_case)]
 #[path = "../support/fs.rs"]
 mod support;
 
@@ -19,7 +20,7 @@ fn pub_item_count(content: &str) -> usize {
 }
 
 #[test]
-fn no_thin_module_directories() {
+fn policy__surface__no_thin_modules_policy__no_thin_module_directories() {
     let mut offenders = Vec::new();
     for crate_root in support::crate_roots() {
         let src_dir = crate_root.join("src");
@@ -60,7 +61,7 @@ fn no_thin_module_directories() {
         }
     }
 
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "directories with only mod.rs must be expanded or collapsed.\n\
 How to fix: collapse the directory to a single .rs file or add real submodules.\n\

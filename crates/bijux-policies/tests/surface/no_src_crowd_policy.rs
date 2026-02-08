@@ -1,3 +1,4 @@
+#![allow(non_snake_case)]
 #[path = "../support/fs.rs"]
 mod support;
 
@@ -5,7 +6,7 @@ const MAX_DIRECT_CHILDREN: usize = 10;
 const ALLOWLIST: &[&str] = &["bijux-analyze", "bijux-domain-fastq"];
 
 #[test]
-fn src_directory_is_not_overcrowded() {
+fn policy__surface__no_src_crowd_policy__src_directory_is_not_overcrowded() {
     let mut offenders = Vec::new();
     for crate_root in support::crate_roots() {
         let crate_name = crate_root.file_name().unwrap().to_string_lossy();
@@ -24,7 +25,7 @@ fn src_directory_is_not_overcrowded() {
         }
     }
 
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "src/ must have <= {MAX_DIRECT_CHILDREN} direct children.\n\
 Fix by grouping modules into subdirectories.\n\

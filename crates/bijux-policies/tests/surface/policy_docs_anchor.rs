@@ -1,3 +1,4 @@
+#![allow(non_snake_case)]
 #[path = "../support/fs.rs"]
 mod support;
 
@@ -25,7 +26,7 @@ fn policy_files() -> BTreeSet<String> {
 }
 
 #[test]
-fn policy_docs_index_covers_all_policies() {
+fn policy__surface__policy_docs_anchor__policy_docs_index_covers_all_policies() {
     let index_path = support::workspace_root().join("crates/bijux-policies/docs/INDEX.md");
     let index = support::read_to_string(&index_path);
     let policies = policy_files();
@@ -35,7 +36,7 @@ fn policy_docs_index_covers_all_policies() {
             missing.push(policy);
         }
     }
-    assert!(
+    bijux_policies::policy_assert!(
         missing.is_empty(),
         "policy INDEX.md must list every policy test file.\n\
 How to fix: add missing filenames to docs/INDEX.md.\n\

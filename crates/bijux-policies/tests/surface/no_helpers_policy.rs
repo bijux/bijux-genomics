@@ -1,3 +1,4 @@
+#![allow(non_snake_case)]
 #[path = "../support/fs.rs"]
 mod support;
 
@@ -8,7 +9,7 @@ const ALLOWLIST: &[(&str, &str)] = &[];
 const DIR_BANS: &[&str] = &["helpers", "util", "utils", "misc"];
 
 #[test]
-fn ban_helpers_and_utils_names() {
+fn policy__surface__no_helpers_policy__ban_helpers_and_utils_names() {
     let mut offenders = Vec::new();
     for crate_root in support::crate_roots() {
         for entry in WalkDir::new(crate_root)
@@ -32,7 +33,7 @@ fn ban_helpers_and_utils_names() {
         }
     }
 
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "helpers/utils/misc/support/core names are forbidden.\n\
 How to fix: rename to responsibility-specific modules (e.g. paths.rs, mounts.rs, format.rs).\n\

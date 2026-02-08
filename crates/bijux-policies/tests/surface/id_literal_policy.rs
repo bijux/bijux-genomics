@@ -1,3 +1,4 @@
+#![allow(non_snake_case)]
 use std::path::{Path, PathBuf};
 
 use walkdir::WalkDir;
@@ -41,7 +42,7 @@ fn is_allowed_path(path: &Path) -> bool {
 }
 
 #[test]
-fn raw_stage_ids_are_confined_to_registries() {
+fn policy__surface__id_literal_policy__raw_stage_ids_are_confined_to_registries() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     let patterns = ["\"fastq.", "\"bam.", "\"cross.", "\"core."];
@@ -68,7 +69,7 @@ fn raw_stage_ids_are_confined_to_registries() {
             }
         }
     }
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "raw stage ids must be confined to registries/stage crates:\n{}",
         offenders.join("\n")

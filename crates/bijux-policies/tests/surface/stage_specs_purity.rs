@@ -1,3 +1,4 @@
+#![allow(non_snake_case)]
 use std::path::{Path, PathBuf};
 
 fn workspace_root() -> PathBuf {
@@ -10,7 +11,7 @@ fn workspace_root() -> PathBuf {
 }
 
 #[test]
-fn stage_specs_are_declarative_only() {
+fn policy__surface__stage_specs_purity__stage_specs_are_declarative_only() {
     let root = workspace_root();
     let specs = [
         root.join("crates/bijux-stages-fastq/src/stage_specs.rs"),
@@ -37,7 +38,7 @@ fn stage_specs_are_declarative_only() {
             }
         }
     }
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "stage_specs must be declarative only (no command/tool wiring).\n\
 Fix by moving execution details into planners or runner.\n\

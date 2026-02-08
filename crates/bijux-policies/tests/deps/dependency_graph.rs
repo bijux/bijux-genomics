@@ -1,3 +1,4 @@
+#![allow(non_snake_case)]
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
@@ -34,7 +35,7 @@ fn parse_boundary_contract() -> BTreeMap<String, BTreeSet<String>> {
             lines.push(line.trim().to_string());
         }
     }
-    assert!(
+    bijux_policies::policy_assert!(
         in_block && !lines.is_empty(),
         "missing executable boundaries block in {}",
         path.display()
@@ -46,7 +47,7 @@ fn parse_boundary_contract() -> BTreeMap<String, BTreeSet<String>> {
         }
         let (name, deps) = line
             .split_once(':')
-            .unwrap_or_else(|| panic!("invalid boundaries line: {line}"));
+            .unwrap_or_else(|| bijux_policies::policy_panic!("invalid boundaries line: {line}"));
         let deps = deps
             .split_whitespace()
             .filter(|dep| !dep.is_empty())
@@ -58,7 +59,7 @@ fn parse_boundary_contract() -> BTreeMap<String, BTreeSet<String>> {
 }
 
 #[test]
-fn dependency_dag_matches_boundaries() {
+fn policy__deps__dependency_graph__dependency_dag_matches_boundaries() {
     let root = workspace_root();
     let metadata = MetadataCommand::new()
         .manifest_path(root.join("Cargo.toml"))
@@ -87,7 +88,7 @@ fn dependency_dag_matches_boundaries() {
             }
         }
         let unexpected: BTreeSet<_> = actual_deps.difference(allowed_deps).cloned().collect();
-        assert!(
+        bijux_policies::policy_assert!(
             unexpected.is_empty(),
             "{} depends on disallowed workspace crates: {:?}",
             package.name,
@@ -97,7 +98,7 @@ fn dependency_dag_matches_boundaries() {
 }
 
 #[test]
-fn runner_has_no_engine_edge() {
+fn policy__deps__dependency_graph__runner_has_no_engine_edge() {
     let root = workspace_root();
     let metadata = MetadataCommand::new()
         .manifest_path(root.join("Cargo.toml"))
@@ -126,7 +127,7 @@ fn runner_has_no_engine_edge() {
         .find(|node| node.id == runner_id)
         .expect("runner node missing");
     let has_edge = node.deps.iter().any(|dep| dep.pkg == engine_id);
-    assert!(
+    bijux_policies::policy_assert!(
         !has_edge,
         "{} must not depend on {}",
         id_to_name
@@ -141,7 +142,7 @@ fn runner_has_no_engine_edge() {
 }
 
 #[test]
-fn engine_has_no_domain_or_planner_edges() {
+fn policy__deps__dependency_graph__engine_has_no_domain_or_planner_edges() {
     let root = workspace_root();
     let metadata = MetadataCommand::new()
         .manifest_path(root.join("Cargo.toml"))
@@ -176,7 +177,7 @@ fn engine_has_no_domain_or_planner_edges() {
             .find(|pkg| pkg.id == dep.pkg)
             .map(|pkg| pkg.name.as_str())
             .unwrap_or("");
-        assert!(
+        bijux_policies::policy_assert!(
             !denylist.contains(&dep_name),
             "bijux-engine must not depend on {dep_name}"
         );
@@ -184,7 +185,7 @@ fn engine_has_no_domain_or_planner_edges() {
 }
 
 #[test]
-fn cli_depends_only_on_api() {
+fn policy__deps__dependency_graph__cli_depends_only_on_api() {
     let root = workspace_root();
     let metadata = MetadataCommand::new()
         .manifest_path(root.join("Cargo.toml"))
@@ -209,7 +210,7 @@ fn cli_depends_only_on_api() {
         .map(|dep| dep.name.clone())
         .collect();
     let unexpected: BTreeSet<_> = actual.difference(&allowed).cloned().collect();
-    assert!(
+    bijux_policies::policy_assert!(
         unexpected.is_empty(),
         "bijux CLI depends on unexpected workspace crates: {:?}",
         unexpected

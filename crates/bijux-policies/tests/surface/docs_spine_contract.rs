@@ -1,3 +1,4 @@
+#![allow(non_snake_case)]
 use std::collections::BTreeSet;
 
 use crate::support::crate_roots;
@@ -22,7 +23,7 @@ fn allowed_missing_for(crate_name: &str) -> BTreeSet<&'static str> {
 }
 
 #[test]
-fn crate_docs_spine_contract_snapshot() {
+fn policy__surface__docs_spine_contract__crate_docs_spine_contract_snapshot() {
     let mut lines = Vec::new();
 
     for crate_root in crate_roots() {
@@ -53,7 +54,7 @@ fn crate_docs_spine_contract_snapshot() {
             .cloned()
             .collect();
         if !missing.is_empty() {
-            panic!(
+            bijux_policies::policy_panic!(
                 "crate docs spine missing required docs in {}: {:?}",
                 crate_root.display(),
                 missing

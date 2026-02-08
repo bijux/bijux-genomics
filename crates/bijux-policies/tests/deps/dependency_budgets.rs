@@ -1,3 +1,4 @@
+#![allow(non_snake_case)]
 use cargo_metadata::MetadataCommand;
 
 const BUDGETS: &[(&str, usize)] = &[
@@ -10,7 +11,7 @@ const BUDGETS: &[(&str, usize)] = &[
 ];
 
 #[test]
-fn dependency_budgets() {
+fn policy__deps__dependency_budgets__dependency_budgets() {
     let metadata = MetadataCommand::new()
         .no_deps()
         .exec()
@@ -25,7 +26,7 @@ fn dependency_budgets() {
         }
     }
 
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "dependency budgets exceeded.\n\
 Fix by removing unused deps or feature-gating heavy deps.\n\

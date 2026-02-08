@@ -1,3 +1,4 @@
+#![allow(non_snake_case)]
 use std::path::{Path, PathBuf};
 
 use walkdir::WalkDir;
@@ -35,6 +36,6 @@ pub fn crate_root(crate_name: &str) -> PathBuf {
 
 pub fn read_to_string(path: &Path) -> String {
     std::fs::read_to_string(path).unwrap_or_else(|err| {
-        panic!("failed to read {}: {err}", path.display());
+        bijux_policies::policy_panic!("failed to read {}: {err}", path.display());
     })
 }

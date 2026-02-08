@@ -1,3 +1,4 @@
+#![allow(non_snake_case)]
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 
@@ -35,7 +36,7 @@ fn resolve_link(base: &Path, link: &str) -> Option<PathBuf> {
 }
 
 #[test]
-fn readme_has_required_sections_and_links() {
+fn policy__surface__readme_policy__readme_has_required_sections_and_links() {
     let required = [
         "## What this crate does",
         "## What it must not do (boundaries)",
@@ -54,39 +55,39 @@ fn readme_has_required_sections_and_links() {
         let readme = crate_root.join("README.md");
         let content = read_to_string(&readme);
         for heading in required {
-            assert!(
+            bijux_policies::policy_assert!(
                 content.contains(heading),
                 "README missing required heading {heading} in {}",
                 readme.display()
             );
         }
-        assert!(
+        bijux_policies::policy_assert!(
             content.contains("docs/INDEX.md"),
             "README must link to docs/INDEX.md in {}",
             readme.display()
         );
-        assert!(
+        bijux_policies::policy_assert!(
             content.contains("docs/TESTS.md"),
             "README must link to docs/TESTS.md in {}",
             readme.display()
         );
-        assert!(
+        bijux_policies::policy_assert!(
             content.to_lowercase().contains("owns"),
             "README must state what the crate owns: {}",
             readme.display()
         );
-        assert!(
+        bijux_policies::policy_assert!(
             content.to_lowercase().contains("must not"),
             "README must state boundaries (must not): {}",
             readme.display()
         );
-        assert!(
+        bijux_policies::policy_assert!(
             content.to_lowercase().contains("effects"),
             "README must mention effects: {}",
             readme.display()
         );
         let test_mentions = content.matches("tests/").count() + content.matches(".rs").count();
-        assert!(
+        bijux_policies::policy_assert!(
             test_mentions >= 3,
             "README must mention 3+ test files: {}",
             readme.display()
@@ -96,7 +97,7 @@ fn readme_has_required_sections_and_links() {
         for line in content.lines() {
             for link in find_links(line) {
                 if let Some(target) = resolve_link(base, &link) {
-                    assert!(
+                    bijux_policies::policy_assert!(
                         target.exists(),
                         "README has broken link {} -> {}",
                         link,
@@ -118,7 +119,7 @@ fn readme_has_required_sections_and_links() {
         }
         let hash = format!("{:x}", Sha256::digest(normalized.as_bytes()));
         if let Some(existing) = fingerprints.get(&hash) {
-            panic!(
+            bijux_policies::policy_panic!(
                 "Duplicate README bodies detected: {} and {}",
                 existing.display(),
                 readme.display()

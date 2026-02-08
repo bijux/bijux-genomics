@@ -1,3 +1,4 @@
+#![allow(non_snake_case)]
 use std::path::{Path, PathBuf};
 
 fn workspace_root() -> PathBuf {
@@ -36,7 +37,7 @@ fn parse_dependency_names(manifest: &Path) -> Vec<String> {
 }
 
 #[test]
-fn stages_do_not_depend_on_environment() {
+fn policy__deps__dependency_boundaries__stages_do_not_depend_on_environment() {
     let root = workspace_root();
     let manifests = [
         root.join("crates/bijux-stages-fastq/Cargo.toml"),
@@ -52,7 +53,7 @@ fn stages_do_not_depend_on_environment() {
             ));
         }
     }
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "stages crates must not depend on bijux-environment:\n{}",
         offenders.join("\n")
@@ -60,7 +61,7 @@ fn stages_do_not_depend_on_environment() {
 }
 
 #[test]
-fn analyze_and_benchmark_do_not_depend_on_engine() {
+fn policy__deps__dependency_boundaries__analyze_and_benchmark_do_not_depend_on_engine() {
     let root = workspace_root();
     let manifests = [
         root.join("crates/bijux-analyze/Cargo.toml"),
@@ -74,7 +75,7 @@ fn analyze_and_benchmark_do_not_depend_on_engine() {
             offenders.push(format!("{} depends on bijux-engine", manifest.display()));
         }
     }
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "analyze/benchmark crates must not depend on bijux-engine:\n{}",
         offenders.join("\n")
@@ -82,7 +83,7 @@ fn analyze_and_benchmark_do_not_depend_on_engine() {
 }
 
 #[test]
-fn engine_has_no_domain_or_stage_dependencies() {
+fn policy__deps__dependency_boundaries__engine_has_no_domain_or_stage_dependencies() {
     let root = workspace_root();
     let manifest = root.join("crates/bijux-engine/Cargo.toml");
     let deps = parse_dependency_names(&manifest);
@@ -100,7 +101,7 @@ fn engine_has_no_domain_or_stage_dependencies() {
         .filter(|dep| deps.iter().any(|name| name == **dep))
         .map(|dep| format!("{} depends on {}", manifest.display(), dep))
         .collect();
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "bijux-engine must not depend on domain/stages/pipelines:\n{}",
         offenders.join("\n")
@@ -108,7 +109,7 @@ fn engine_has_no_domain_or_stage_dependencies() {
 }
 
 #[test]
-fn runner_has_no_domain_or_stage_dependencies() {
+fn policy__deps__dependency_boundaries__runner_has_no_domain_or_stage_dependencies() {
     let root = workspace_root();
     let manifest = root.join("crates/bijux-runner/Cargo.toml");
     let deps = parse_dependency_names(&manifest);
@@ -126,7 +127,7 @@ fn runner_has_no_domain_or_stage_dependencies() {
         .filter(|dep| deps.iter().any(|name| name == **dep))
         .map(|dep| format!("{} depends on {}", manifest.display(), dep))
         .collect();
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "bijux-runner must not depend on domain/stages/pipelines:\n{}",
         offenders.join("\n")
@@ -134,18 +135,18 @@ fn runner_has_no_domain_or_stage_dependencies() {
 }
 
 #[test]
-fn runner_does_not_depend_on_engine() {
+fn policy__deps__dependency_boundaries__runner_does_not_depend_on_engine() {
     let root = workspace_root();
     let manifest = root.join("crates/bijux-runner/Cargo.toml");
     let deps = parse_dependency_names(&manifest);
-    assert!(
+    bijux_policies::policy_assert!(
         deps.iter().all(|dep| dep != "bijux-engine"),
         "bijux-runner must not depend on bijux-engine"
     );
 }
 
 #[test]
-fn infra_has_no_domain_or_stage_dependencies() {
+fn policy__deps__dependency_boundaries__infra_has_no_domain_or_stage_dependencies() {
     let root = workspace_root();
     let manifest = root.join("crates/bijux-infra/Cargo.toml");
     let deps = parse_dependency_names(&manifest);
@@ -163,7 +164,7 @@ fn infra_has_no_domain_or_stage_dependencies() {
         .filter(|dep| deps.iter().any(|name| name == **dep))
         .map(|dep| format!("{} depends on {}", manifest.display(), dep))
         .collect();
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "bijux-infra must not depend on domain/stages/planners:\n{}",
         offenders.join("\n")
@@ -171,7 +172,7 @@ fn infra_has_no_domain_or_stage_dependencies() {
 }
 
 #[test]
-fn pipelines_do_not_depend_on_stages_or_execution() {
+fn policy__deps__dependency_boundaries__pipelines_do_not_depend_on_stages_or_execution() {
     let root = workspace_root();
     let manifest = root.join("crates/bijux-pipelines/Cargo.toml");
     let deps = parse_dependency_names(&manifest);
@@ -188,7 +189,7 @@ fn pipelines_do_not_depend_on_stages_or_execution() {
         .filter(|dep| deps.iter().any(|name| name == **dep))
         .map(|dep| format!("{} depends on {}", manifest.display(), dep))
         .collect();
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "bijux-pipelines must not depend on stages/engine/runner:\n{}",
         offenders.join("\n")
@@ -196,7 +197,7 @@ fn pipelines_do_not_depend_on_stages_or_execution() {
 }
 
 #[test]
-fn environment_has_no_engine_or_runner_dependencies() {
+fn policy__deps__dependency_boundaries__environment_has_no_engine_or_runner_dependencies() {
     let root = workspace_root();
     let manifest = root.join("crates/bijux-environment/Cargo.toml");
     let deps = parse_dependency_names(&manifest);
@@ -206,7 +207,7 @@ fn environment_has_no_engine_or_runner_dependencies() {
         .filter(|dep| deps.iter().any(|name| name == **dep))
         .map(|dep| format!("{} depends on {}", manifest.display(), dep))
         .collect();
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "bijux-environment must not depend on engine/runner:\n{}",
         offenders.join("\n")
@@ -214,7 +215,7 @@ fn environment_has_no_engine_or_runner_dependencies() {
 }
 
 #[test]
-fn production_crates_do_not_depend_on_environment_qa() {
+fn policy__deps__dependency_boundaries__production_crates_do_not_depend_on_environment_qa() {
     let root = workspace_root();
     let crate_dirs = std::fs::read_dir(root.join("crates")).expect("read crates dir");
     let mut offenders = Vec::new();
@@ -231,7 +232,7 @@ fn production_crates_do_not_depend_on_environment_qa() {
             offenders.push(format!("{} depends on bijux-environment-qa", path.display()));
         }
     }
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "production crates must not depend on bijux-environment-qa:\n{}",
         offenders.join("\n")

@@ -1,3 +1,4 @@
+#![allow(non_snake_case)]
 use std::path::{Path, PathBuf};
 
 use walkdir::WalkDir;
@@ -37,7 +38,7 @@ fn is_policies_ownership_test(path: &Path) -> bool {
 }
 
 #[test]
-fn ownership_contract_is_complete() {
+fn policy__surface__ownership_contract__ownership_contract_is_complete() {
     let root = workspace_root();
     let contract_path = root
         .join("crates")
@@ -59,7 +60,7 @@ fn ownership_contract_is_complete() {
         .copied()
         .filter(|needle| !content.contains(needle))
         .collect();
-    assert!(
+    bijux_policies::policy_assert!(
         missing.is_empty(),
         "ownership contract missing entries: {:?}",
         missing
@@ -67,7 +68,7 @@ fn ownership_contract_is_complete() {
 }
 
 #[test]
-fn id_definitions_live_in_core_only() {
+fn policy__surface__ownership_contract__id_definitions_live_in_core_only() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     let patterns = [
@@ -105,7 +106,7 @@ fn id_definitions_live_in_core_only() {
         }
     }
 
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "ID types must be defined only in bijux-core:\n{}",
         offenders.join("\n")
@@ -113,7 +114,7 @@ fn id_definitions_live_in_core_only() {
 }
 
 #[test]
-fn id_parsing_and_validation_live_in_core_only() {
+fn policy__surface__ownership_contract__id_parsing_and_validation_live_in_core_only() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     let regex = regex::Regex::new(r"fn\s+(parse|validate)_[a-z0-9_]*(?:_id|_id_str)\b").unwrap();
@@ -143,7 +144,7 @@ fn id_parsing_and_validation_live_in_core_only() {
         }
     }
 
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "ID parsing/validation must live in bijux-core:\n{}",
         offenders.join("\n")
@@ -151,7 +152,7 @@ fn id_parsing_and_validation_live_in_core_only() {
 }
 
 #[test]
-fn defaults_ledger_is_owned_by_pipelines() {
+fn policy__surface__ownership_contract__defaults_ledger_is_owned_by_pipelines() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     let regex = regex::Regex::new(r"struct\s+DefaultsLedger\w*").unwrap();
@@ -175,7 +176,7 @@ fn defaults_ledger_is_owned_by_pipelines() {
         }
     }
 
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "Defaults ledger structs must live in bijux-pipelines:\n{}",
         offenders.join("\n")
@@ -183,7 +184,7 @@ fn defaults_ledger_is_owned_by_pipelines() {
 }
 
 #[test]
-fn no_hidden_param_defaults_outside_domain() {
+fn policy__surface__ownership_contract__no_hidden_param_defaults_outside_domain() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     let regex = regex::Regex::new(r"impl\s+Default\s+for\s+[A-Za-z0-9_]*Params").unwrap();
@@ -207,7 +208,7 @@ fn no_hidden_param_defaults_outside_domain() {
         }
     }
 
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "Default impls for *Params must live in domain crates only:\n{}",
         offenders.join("\n")
@@ -215,7 +216,7 @@ fn no_hidden_param_defaults_outside_domain() {
 }
 
 #[test]
-fn registry_of_truth_markers_are_unique() {
+fn policy__surface__ownership_contract__registry_of_truth_markers_are_unique() {
     let root = workspace_root();
     let mut matches = Vec::new();
     let patterns = ["registry-of-truth", "registry_of_truth", "RegistryOfTruth"];
@@ -241,7 +242,7 @@ fn registry_of_truth_markers_are_unique() {
         }
     }
 
-    assert!(
+    bijux_policies::policy_assert!(
         matches.len() <= 1,
         "registry-of-truth markers should not be duplicated:\n{}",
         matches.join("\n")
@@ -249,7 +250,7 @@ fn registry_of_truth_markers_are_unique() {
 }
 
 #[test]
-fn id_module_files_live_in_core_only() {
+fn policy__surface__ownership_contract__id_module_files_live_in_core_only() {
     let root = workspace_root();
     let mut offenders = Vec::new();
 
@@ -276,7 +277,7 @@ fn id_module_files_live_in_core_only() {
         offenders.push(path_str.to_string());
     }
 
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "*_id.rs files must live in bijux-core only:\n{}",
         offenders.join("\n")

@@ -1,10 +1,11 @@
+#![allow(non_snake_case)]
 #[path = "../support/fs.rs"]
 mod support;
 
 use serde_json::Value;
 
 #[test]
-fn contract_handshake_fixture_shapes() {
+fn policy__data__contract_handshake__contract_handshake_fixture_shapes() {
     let root = support::workspace_root();
     let fixtures = [
         root.join("crates/bijux-policies/tests/fixtures/handshake/plan.json"),
@@ -21,7 +22,7 @@ fn contract_handshake_fixture_shapes() {
         let _: Value = serde_json::from_str(&raw).expect("fixture JSON parse");
     }
 
-    assert!(
+    bijux_policies::policy_assert!(
         missing.is_empty(),
         "Contract handshake fixtures are missing.\n\
 Add fixtures under crates/bijux-policies/tests/fixtures/handshake.\n\

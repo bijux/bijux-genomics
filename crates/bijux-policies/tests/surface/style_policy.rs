@@ -1,3 +1,4 @@
+#![allow(non_snake_case)]
 #[path = "../support/fs.rs"]
 mod support;
 
@@ -10,7 +11,7 @@ const STYLE_CHECKS: &[&str] = &[
 ];
 
 #[test]
-fn style_policy_entrypoint_lists_checks() {
+fn policy__surface__style_policy__style_policy_entrypoint_lists_checks() {
     let matrix_path = support::workspace_root().join("docs/40-policies/POLICY_MATRIX.md");
     let matrix = support::read_to_string(&matrix_path);
     let mut missing = Vec::new();
@@ -20,7 +21,7 @@ fn style_policy_entrypoint_lists_checks() {
         }
     }
 
-    assert!(
+    bijux_policies::policy_assert!(
         missing.is_empty(),
         "STYLE_POLICY is the entrypoint for style checks, and POLICY_MATRIX.md must list them.\n\
 How to fix: add the missing policy filenames to POLICY_MATRIX.md under the Style section.\n\
@@ -30,7 +31,7 @@ Missing:\n{}",
 }
 
 #[test]
-fn scope_docs_reference_workspace_style() {
+fn policy__surface__style_policy__scope_docs_reference_workspace_style() {
     let mut offenders = Vec::new();
     for crate_root in support::crate_roots() {
         let scope_path = crate_root.join("docs").join("SCOPE.md");
@@ -43,7 +44,7 @@ fn scope_docs_reference_workspace_style() {
         }
     }
 
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "SCOPE.md must link to docs/40-policies/STYLE.md:\n{}",
         offenders.join("\n")

@@ -1,10 +1,11 @@
+#![allow(non_snake_case)]
 #[path = "../support/fs.rs"]
 mod support;
 
 use walkdir::WalkDir;
 
 #[test]
-fn serde_json_to_writer_is_banned() {
+fn policy__surface__no_serde_json_writer__serde_json_to_writer_is_banned() {
     let root = support::workspace_root();
     let mut offenders = Vec::new();
     for entry in WalkDir::new(root.join("crates"))
@@ -27,7 +28,7 @@ fn serde_json_to_writer_is_banned() {
         }
     }
 
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "Contract JSON must be written via core canonicalizer, not serde_json::to_writer.\n\
 Use bijux_core::contract::canonical::to_canonical_json_bytes and bijux_infra::atomic_write_bytes.\n\

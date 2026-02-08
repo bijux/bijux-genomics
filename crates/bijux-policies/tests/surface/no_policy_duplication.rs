@@ -1,10 +1,11 @@
+#![allow(non_snake_case)]
 #[path = "../support/fs.rs"]
 mod support;
 
 use walkdir::WalkDir;
 
 #[test]
-fn policies_live_only_in_bijux_policies() {
+fn policy__surface__no_policy_duplication__policies_live_only_in_bijux_policies() {
     let root = support::workspace_root();
     let mut offenders = Vec::new();
     for entry in WalkDir::new(root.join("crates"))
@@ -27,7 +28,7 @@ fn policies_live_only_in_bijux_policies() {
         }
     }
 
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "Policy-like tests must live in bijux-policies only.\n\
 Move policy scans into bijux-policies and keep other crates to fixtures only.\n\
