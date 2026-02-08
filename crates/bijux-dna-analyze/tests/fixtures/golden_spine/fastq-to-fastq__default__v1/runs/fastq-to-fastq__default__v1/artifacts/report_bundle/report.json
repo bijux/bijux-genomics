@@ -1,0 +1,328 @@
+{
+  "adapter_inference": {
+    "rationale": "Adapter detection ran before trimming.",
+    "safety": "Inference only applies when adapters are not explicitly set.",
+    "suggested_adapters": {}
+  },
+  "assets_provenance": [
+    {
+      "banks": {},
+      "stage_id": "fastq.detect_adapters",
+      "tool_id": "unknown"
+    },
+    {
+      "banks": {},
+      "stage_id": "fastq.filter",
+      "tool_id": "unknown"
+    },
+    {
+      "banks": {},
+      "stage_id": "fastq.qc_post",
+      "tool_id": "unknown"
+    },
+    {
+      "banks": {},
+      "stage_id": "fastq.stats_neutral",
+      "tool_id": "unknown"
+    },
+    {
+      "banks": {},
+      "stage_id": "fastq.trim",
+      "tool_id": "unknown"
+    },
+    {
+      "banks": {},
+      "stage_id": "fastq.validate_pre",
+      "tool_id": "unknown"
+    }
+  ],
+  "completeness": {
+    "missing_metrics": [],
+    "missing_reports": [],
+    "status": "complete"
+  },
+  "contract": {
+    "required_provenance_fields": [
+      "tool_id",
+      "tool_version",
+      "image_digest",
+      "trace_id",
+      "span_id",
+      "params_hash",
+      "bank_hashes"
+    ],
+    "required_sections": [
+      "contract",
+      "completeness",
+      "stages",
+      "provenance",
+      "run_provenance",
+      "decision_config",
+      "analysis_selection_contract",
+      "retention_definition",
+      "retention_context",
+      "assets_provenance",
+      "metric_semantics",
+      "telemetry",
+      "qc_improvement",
+      "final_qc_summary",
+      "filter_interpretation",
+      "adapter_inference",
+      "claims_registry"
+    ],
+    "schema_version": "bijux.report_contract.v1"
+  },
+  "filter_interpretation": {},
+  "final_qc_summary": {
+    "adapter_inference": {
+      "rationale": "Adapter detection ran before trimming.",
+      "safety": "Inference only applies when adapters are not explicitly set.",
+      "suggested_adapters": {}
+    },
+    "qc": {}
+  },
+  "metric_semantics": [
+    {
+      "direction": "LowerBetter",
+      "influencing_params": [],
+      "metric_id": "runtime_s",
+      "missing_data_policy": "treat_as_infinite",
+      "range": ">= 0",
+      "units": "seconds"
+    },
+    {
+      "direction": "LowerBetter",
+      "influencing_params": [],
+      "metric_id": "memory_mb",
+      "missing_data_policy": "treat_as_infinite",
+      "range": ">= 0",
+      "units": "MB"
+    },
+    {
+      "direction": "HigherBetter",
+      "influencing_params": [
+        "adapter_bank",
+        "trim_settings",
+        "filter_settings"
+      ],
+      "metric_id": "read_retention",
+      "missing_data_policy": "treat_as_0.0",
+      "range": "[0, 1]",
+      "units": "ratio"
+    },
+    {
+      "direction": "HigherBetter",
+      "influencing_params": [
+        "adapter_bank",
+        "trim_settings",
+        "filter_settings"
+      ],
+      "metric_id": "base_retention",
+      "missing_data_policy": "treat_as_0.0",
+      "range": "[0, 1]",
+      "units": "ratio"
+    },
+    {
+      "direction": "HigherBetter",
+      "influencing_params": [
+        "merge_policy"
+      ],
+      "metric_id": "merge_rate",
+      "missing_data_policy": "treat_as_0.0",
+      "range": "[0, 1]",
+      "units": "ratio"
+    },
+    {
+      "direction": "HigherBetter",
+      "influencing_params": [
+        "corrector_settings"
+      ],
+      "metric_id": "error_reduction_proxy",
+      "missing_data_policy": "treat_as_0.0",
+      "range": "[0, 45]",
+      "units": "mean_q_delta"
+    }
+  ],
+  "pipeline_verdict": {
+    "reasons": [],
+    "verdict": "pass"
+  },
+  "provenance": [
+    {
+      "bank_hashes": {},
+      "image_digest": "sha256:img",
+      "params_hash": "params",
+      "span_id": "span-fastq.detect_adapters",
+      "stage_id": "fastq.detect_adapters",
+      "tool_id": "unknown",
+      "tool_version": "0.0.0",
+      "trace_id": "trace-fastq-to-fastq__default__v1"
+    },
+    {
+      "bank_hashes": {},
+      "image_digest": "sha256:img",
+      "params_hash": "params",
+      "span_id": "span-fastq.filter",
+      "stage_id": "fastq.filter",
+      "tool_id": "unknown",
+      "tool_version": "0.0.0",
+      "trace_id": "trace-fastq-to-fastq__default__v1"
+    },
+    {
+      "bank_hashes": {},
+      "image_digest": "sha256:img",
+      "params_hash": "params",
+      "span_id": "span-fastq.qc_post",
+      "stage_id": "fastq.qc_post",
+      "tool_id": "unknown",
+      "tool_version": "0.0.0",
+      "trace_id": "trace-fastq-to-fastq__default__v1"
+    },
+    {
+      "bank_hashes": {},
+      "image_digest": "sha256:img",
+      "params_hash": "params",
+      "span_id": "span-fastq.stats_neutral",
+      "stage_id": "fastq.stats_neutral",
+      "tool_id": "unknown",
+      "tool_version": "0.0.0",
+      "trace_id": "trace-fastq-to-fastq__default__v1"
+    },
+    {
+      "bank_hashes": {},
+      "image_digest": "sha256:img",
+      "params_hash": "params",
+      "span_id": "span-fastq.trim",
+      "stage_id": "fastq.trim",
+      "tool_id": "unknown",
+      "tool_version": "0.0.0",
+      "trace_id": "trace-fastq-to-fastq__default__v1"
+    },
+    {
+      "bank_hashes": {},
+      "image_digest": "sha256:img",
+      "params_hash": "params",
+      "span_id": "span-fastq.validate_pre",
+      "stage_id": "fastq.validate_pre",
+      "tool_id": "unknown",
+      "tool_version": "0.0.0",
+      "trace_id": "trace-fastq-to-fastq__default__v1"
+    }
+  ],
+  "qc_improvement": {},
+  "retention_context": [],
+  "retention_definition": [],
+  "run_id": "fastq-to-fastq__default__v1",
+  "schema_version": "bijux.report.v1",
+  "sections": {},
+  "stages": [
+    {
+      "bank_report_path": null,
+      "effective_config_path": "stage_1/effective_config.json",
+      "exit_code": 0,
+      "input_hash": "input",
+      "memory_mb": 64.0,
+      "metrics_path": "stage_1/metrics.json",
+      "params_hash": "params",
+      "retention_report_path": null,
+      "runtime_s": 1.0,
+      "stage_id": "fastq.detect_adapters",
+      "stage_report_path": "stage_1/stage_report.json",
+      "tool_id": "unknown",
+      "tool_invocation_path": "stage_1/tool_invocation.json",
+      "tool_version": "0.0.0"
+    },
+    {
+      "bank_report_path": null,
+      "effective_config_path": "stage_3/effective_config.json",
+      "exit_code": 0,
+      "input_hash": "input",
+      "memory_mb": 64.0,
+      "metrics_path": "stage_3/metrics.json",
+      "params_hash": "params",
+      "retention_report_path": null,
+      "runtime_s": 1.0,
+      "stage_id": "fastq.filter",
+      "stage_report_path": "stage_3/stage_report.json",
+      "tool_id": "unknown",
+      "tool_invocation_path": "stage_3/tool_invocation.json",
+      "tool_version": "0.0.0"
+    },
+    {
+      "bank_report_path": null,
+      "effective_config_path": "stage_5/effective_config.json",
+      "exit_code": 0,
+      "input_hash": "input",
+      "memory_mb": 64.0,
+      "metrics_path": "stage_5/metrics.json",
+      "params_hash": "params",
+      "retention_report_path": null,
+      "runtime_s": 1.0,
+      "stage_id": "fastq.qc_post",
+      "stage_report_path": "stage_5/stage_report.json",
+      "tool_id": "unknown",
+      "tool_invocation_path": "stage_5/tool_invocation.json",
+      "tool_version": "0.0.0"
+    },
+    {
+      "bank_report_path": null,
+      "effective_config_path": "stage_4/effective_config.json",
+      "exit_code": 0,
+      "input_hash": "input",
+      "memory_mb": 64.0,
+      "metrics_path": "stage_4/metrics.json",
+      "params_hash": "params",
+      "retention_report_path": null,
+      "runtime_s": 1.0,
+      "stage_id": "fastq.stats_neutral",
+      "stage_report_path": "stage_4/stage_report.json",
+      "tool_id": "unknown",
+      "tool_invocation_path": "stage_4/tool_invocation.json",
+      "tool_version": "0.0.0"
+    },
+    {
+      "bank_report_path": null,
+      "effective_config_path": "stage_2/effective_config.json",
+      "exit_code": 0,
+      "input_hash": "input",
+      "memory_mb": 64.0,
+      "metrics_path": "stage_2/metrics.json",
+      "params_hash": "params",
+      "retention_report_path": null,
+      "runtime_s": 1.0,
+      "stage_id": "fastq.trim",
+      "stage_report_path": "stage_2/stage_report.json",
+      "tool_id": "unknown",
+      "tool_invocation_path": "stage_2/tool_invocation.json",
+      "tool_version": "0.0.0"
+    },
+    {
+      "bank_report_path": null,
+      "effective_config_path": "stage_0/effective_config.json",
+      "exit_code": 0,
+      "input_hash": "input",
+      "memory_mb": 64.0,
+      "metrics_path": "stage_0/metrics.json",
+      "params_hash": "params",
+      "retention_report_path": null,
+      "runtime_s": 1.0,
+      "stage_id": "fastq.validate_pre",
+      "stage_report_path": "stage_0/stage_report.json",
+      "tool_id": "unknown",
+      "tool_invocation_path": "stage_0/tool_invocation.json",
+      "tool_version": "0.0.0"
+    }
+  ],
+  "telemetry": {
+    "error_count": 0,
+    "event_count": 0,
+    "events": [
+      "stage_0/telemetry/events.jsonl",
+      "stage_1/telemetry/events.jsonl",
+      "stage_2/telemetry/events.jsonl",
+      "stage_3/telemetry/events.jsonl",
+      "stage_4/telemetry/events.jsonl",
+      "stage_5/telemetry/events.jsonl"
+    ]
+  }
+}

@@ -1,0 +1,336 @@
+---
+source: crates/bijux-analyze/tests/semantics/decision/compare_ranking.rs
+expression: "bijux_testkit::snapshot_normalize_text(&rendered)"
+---
+{
+  "comparison": {
+    "baseline": null,
+    "baseline_metrics": null,
+    "deltas_vs_baseline": null,
+    "metrics_a": {
+      "read_retention": 0.95,
+      "runtime_s": 1.0
+    },
+    "metrics_b": {
+      "read_retention": 0.9,
+      "runtime_s": 2.0
+    },
+    "objective": "balanced",
+    "regression_risk": null,
+    "run_a": "<ROOT>/tests/fixtures/compare_ranking/default/run_a",
+    "run_b": "<ROOT>/tests/fixtures/compare_ranking/default/run_b",
+    "uncertainty": {
+      "memory_ci": null,
+      "note": "ci_not_computed",
+      "read_retention_ci": null,
+      "runtime_ci": null
+    }
+  },
+  "rankings": {
+    "BalancedPareto": [
+      {
+        "decision_trace": {
+          "missing": [],
+          "penalties": [],
+          "per_metric": [
+            {
+              "contribution": 0.5,
+              "effect": null,
+              "metric_id": "runtime_s",
+              "value": 1.0,
+              "weight": 0.5
+            },
+            {
+              "contribution": 0.285,
+              "effect": null,
+              "metric_id": "read_retention",
+              "value": 0.95,
+              "weight": 0.3
+            },
+            {
+              "contribution": 0.2,
+              "effect": null,
+              "metric_id": "memory_mb",
+              "value": 1.0,
+              "weight": 0.2
+            }
+          ],
+          "tie_breaks": [
+            "BalancedPareto:tool_id"
+          ]
+        },
+        "explain": "runtime_norm=1.000 retention=0.950 memory_norm=1.000",
+        "penalties": [],
+        "score": 0.9849999999999999,
+        "score_breakdown": [
+          {
+            "contribution": 0.5,
+            "metric_id": "runtime_s",
+            "value": 1.0,
+            "weight": 0.5
+          },
+          {
+            "contribution": 0.285,
+            "metric_id": "read_retention",
+            "value": 0.95,
+            "weight": 0.3
+          },
+          {
+            "contribution": 0.2,
+            "metric_id": "memory_mb",
+            "value": 1.0,
+            "weight": 0.2
+          }
+        ],
+        "tool": "alpha",
+        "why_not_first": []
+      },
+      {
+        "decision_trace": {
+          "missing": [],
+          "penalties": [],
+          "per_metric": [
+            {
+              "contribution": 0.5,
+              "effect": null,
+              "metric_id": "runtime_s",
+              "value": 1.0,
+              "weight": 0.5
+            },
+            {
+              "contribution": 0.285,
+              "effect": null,
+              "metric_id": "read_retention",
+              "value": 0.95,
+              "weight": 0.3
+            },
+            {
+              "contribution": 0.2,
+              "effect": null,
+              "metric_id": "memory_mb",
+              "value": 1.0,
+              "weight": 0.2
+            }
+          ],
+          "tie_breaks": [
+            "BalancedPareto:tool_id"
+          ]
+        },
+        "explain": "runtime_norm=1.000 retention=0.950 memory_norm=1.000",
+        "penalties": [],
+        "score": 0.9849999999999999,
+        "score_breakdown": [
+          {
+            "contribution": 0.5,
+            "metric_id": "runtime_s",
+            "value": 1.0,
+            "weight": 0.5
+          },
+          {
+            "contribution": 0.285,
+            "metric_id": "read_retention",
+            "value": 0.95,
+            "weight": 0.3
+          },
+          {
+            "contribution": 0.2,
+            "metric_id": "memory_mb",
+            "value": 1.0,
+            "weight": 0.2
+          }
+        ],
+        "tool": "beta",
+        "why_not_first": [
+          "composite score is lower",
+          "tie broken by tool_id"
+        ]
+      }
+    ],
+    "FastestAcceptable": [
+      {
+        "decision_trace": {
+          "missing": [],
+          "penalties": [],
+          "per_metric": [
+            {
+              "contribution": 1.0,
+              "effect": null,
+              "metric_id": "runtime_s",
+              "value": 1.0,
+              "weight": 1.0
+            }
+          ],
+          "tie_breaks": [
+            "FastestAcceptable:tool_id"
+          ]
+        },
+        "explain": "runtime_s=1.000 memory_mb=100.0 read_retention=0.950",
+        "penalties": [],
+        "score": 1.0,
+        "score_breakdown": [
+          {
+            "contribution": 1.0,
+            "metric_id": "runtime_s",
+            "value": 1.0,
+            "weight": 1.0
+          }
+        ],
+        "tool": "alpha",
+        "why_not_first": []
+      },
+      {
+        "decision_trace": {
+          "missing": [],
+          "penalties": [],
+          "per_metric": [
+            {
+              "contribution": 1.0,
+              "effect": null,
+              "metric_id": "runtime_s",
+              "value": 1.0,
+              "weight": 1.0
+            }
+          ],
+          "tie_breaks": [
+            "FastestAcceptable:tool_id"
+          ]
+        },
+        "explain": "runtime_s=1.000 memory_mb=100.0 read_retention=0.950",
+        "penalties": [],
+        "score": 1.0,
+        "score_breakdown": [
+          {
+            "contribution": 1.0,
+            "metric_id": "runtime_s",
+            "value": 1.0,
+            "weight": 1.0
+          }
+        ],
+        "tool": "beta",
+        "why_not_first": [
+          "runtime is slower",
+          "tie broken by tool_id"
+        ]
+      }
+    ],
+    "MostConservative": [
+      {
+        "decision_trace": {
+          "missing": [],
+          "penalties": [],
+          "per_metric": [
+            {
+              "contribution": 0.95,
+              "effect": null,
+              "metric_id": "read_retention",
+              "value": 0.95,
+              "weight": 1.0
+            },
+            {
+              "contribution": 0.95,
+              "effect": null,
+              "metric_id": "base_retention",
+              "value": 0.95,
+              "weight": 1.0
+            },
+            {
+              "contribution": 0.0022222222222222222,
+              "effect": null,
+              "metric_id": "error_reduction_proxy",
+              "value": 0.1,
+              "weight": 0.022222222222222223
+            }
+          ],
+          "tie_breaks": [
+            "MostConservative:tool_id"
+          ]
+        },
+        "explain": "read_retention=0.950 base_retention=0.950 error_reduction_proxy=0.100",
+        "penalties": [],
+        "score": 1.902222222222222,
+        "score_breakdown": [
+          {
+            "contribution": 0.95,
+            "metric_id": "read_retention",
+            "value": 0.95,
+            "weight": 1.0
+          },
+          {
+            "contribution": 0.95,
+            "metric_id": "base_retention",
+            "value": 0.95,
+            "weight": 1.0
+          },
+          {
+            "contribution": 0.0022222222222222222,
+            "metric_id": "error_reduction_proxy",
+            "value": 0.1,
+            "weight": 0.022222222222222223
+          }
+        ],
+        "tool": "alpha",
+        "why_not_first": []
+      },
+      {
+        "decision_trace": {
+          "missing": [],
+          "penalties": [],
+          "per_metric": [
+            {
+              "contribution": 0.95,
+              "effect": null,
+              "metric_id": "read_retention",
+              "value": 0.95,
+              "weight": 1.0
+            },
+            {
+              "contribution": 0.95,
+              "effect": null,
+              "metric_id": "base_retention",
+              "value": 0.95,
+              "weight": 1.0
+            },
+            {
+              "contribution": 0.0022222222222222222,
+              "effect": null,
+              "metric_id": "error_reduction_proxy",
+              "value": 0.1,
+              "weight": 0.022222222222222223
+            }
+          ],
+          "tie_breaks": [
+            "MostConservative:tool_id"
+          ]
+        },
+        "explain": "read_retention=0.950 base_retention=0.950 error_reduction_proxy=0.100",
+        "penalties": [],
+        "score": 1.902222222222222,
+        "score_breakdown": [
+          {
+            "contribution": 0.95,
+            "metric_id": "read_retention",
+            "value": 0.95,
+            "weight": 1.0
+          },
+          {
+            "contribution": 0.95,
+            "metric_id": "base_retention",
+            "value": 0.95,
+            "weight": 1.0
+          },
+          {
+            "contribution": 0.0022222222222222222,
+            "metric_id": "error_reduction_proxy",
+            "value": 0.1,
+            "weight": 0.022222222222222223
+          }
+        ],
+        "tool": "beta",
+        "why_not_first": [
+          "retention/quality sum is lower",
+          "tie broken by tool_id"
+        ]
+      }
+    ]
+  }
+}
