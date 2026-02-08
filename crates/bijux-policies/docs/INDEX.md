@@ -3,57 +3,19 @@
 ## Scope
 Defines the policy suite that governs architecture, purity, and documentation placement.
 
+## Entry points
+- `ENFORCEMENT.md` — how to run policy gates.
+- `TESTS.md` — mapping of tests to intent.
+- `POLICY_MATRIX.md` — authoritative registry of policy tests.
+- `POLICY_DIAGNOSTICS.md` — WHAT/WHY/HOW/MORE diagnostics format.
+- `CHANGE_RULES.md` — breaking vs non-breaking policy changes.
+
 ## Effects
 No runtime effects; policies only inspect source/layout.
 
-## Boundaries
-Policies enforce boundaries across crates and prevent drift.
-
-## Extension Points
-Add new policies in `tests/surface` or `tests/deps` and document them here.
-Style policies must be listed in `POLICY_MATRIX.md`.
-
-## How to Test
-See `TESTS.md` for test mapping and fixtures.
-Snapshot updates follow `BLESS_WORKFLOW.md`.
+## Extension points
+Add new policies in `tests/surface`, `tests/deps`, `tests/data`, or `tests/tooling` and document them in `TESTS.md` and `POLICY_MATRIX.md`.
+Style policies must also be listed in `docs/40-policies/POLICY_MATRIX.md`.
 
 ## Policy modules
-### surface
-- `architecture_pointer_policy.rs`
-- `docs_spine_contract.rs`
-- `docs_required_policy.rs`
-- `docs_spine.rs`
-- `docs_tree_contract.rs`
-- `docs_index_quality.rs`
-- `domain_purity.rs`
-- `id_literal_policy.rs`
-- `mod_naming_policy.rs`
-- `no_duplicate_canonicalizers.rs`
-- `no_empty_dirs_policy.rs`
-- `no_helpers_policy.rs`
-- `no_policy_duplication.rs`
-- `no_serde_json_writer.rs`
-- `no_src_crowd_policy.rs`
-- `no_thin_modules_policy.rs`
-- `planner_purity.rs`
-- `policy_docs_anchor.rs`
-- `readme_policy.rs`
-- `runner_tree_policy.rs`
-- `ssot_catalog_authority.rs`
-- `stage_specs_purity.rs`
-- `style_policy.rs`
-- `tool_id_uniqueness.rs`
-- `test_grouping_policy.rs`
-### deps
-- `dependency_budgets.rs`
-- `dependency_boundaries.rs`
-- `effect_boundary_map.rs`
-- `infra_boundaries.rs`
-- `qa_dependency_policy.rs`
-### data
-- `contract_handshake.rs`
-### tooling
-- `docs_links.rs`
-- `makefile_policies.rs`
-- `no_appledouble.rs`
-- `policies.rs`
+Use the test file list in `TESTS.md` as the authoritative index.
