@@ -1,6 +1,5 @@
 use anyhow::Result;
-use bijux_api::request_args::DryRunRequest;
-use bijux_api::run::dry_run;
+use bijux_api::v1::api::run::{dry_run, DryRunRequest};
 use bijux_core::contract::{ExecutionGraph, PlanPolicy};
 
 #[test]

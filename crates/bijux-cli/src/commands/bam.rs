@@ -56,15 +56,26 @@ fn run_bam_stage(
         load_image_catalog().map_err(|err| anyhow!("failed to load image catalog: {err}"))?;
     let stage = args.stage.stage();
     let profile = bijux_api::v1::api::plan::select_pipeline(Domain::Bam, &args.profile)?;
-    let tool_id = args.tool.clone().unwrap_or_else(|| {
-        profile
-            .defaults
-            .tools
-            .get(stage.as_str())
-            .cloned()
-            .unwrap_or_else(|| "samtools".to_string())
-    });
-    let spec = build_tool_execution_spec(stage.as_str(), &tool_id, registry, &catalog, &platform)?;
+    let stage_key = bijux_core::ids::StageId::from_static(stage.as_str());
+    let tool_id = args
+        .tool
+        .clone()
+        .map(bijux_core::ids::ToolId::new)
+        .unwrap_or_else(|| {
+            profile
+                .defaults
+                .tools
+                .get(&stage_key)
+                .cloned()
+                .unwrap_or_else(|| bijux_core::ids::ToolId::new("samtools"))
+        });
+    let spec = build_tool_execution_spec(
+        stage.as_str(),
+        tool_id.as_str(),
+        registry,
+        &catalog,
+        &platform,
+    )?;
 
     let out_dir = args.out.clone();
     bijux_api::v1::api::run::ensure_dir(&out_dir).context("create bam out dir")?;
