@@ -26,6 +26,7 @@ bijux-runtime = { path = "../bijux-runtime" }
 [dev-dependencies]
 bijux-policies = { path = "../bijux-policies" }
 tempfile.workspace = true
+bijux-testkit = { path = "../bijux-testkit" }
 
 [lints]
 workspace = true

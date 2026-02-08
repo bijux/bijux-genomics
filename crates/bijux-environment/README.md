@@ -29,6 +29,9 @@ tool_image_spec.json -> resolve to digest -> cached resolved spec
 ## Key contracts it owns/consumes
 Resolved environment specs and digests only.
 
+## Artifacts / Contracts
+See schema fixtures under `tests/fixtures/env_schema/` and `docs/SCHEMAS.md`.
+
 ## Effects & determinism guarantees
 Pure resolution; no network execution. Stable digest for the same inputs; see `docs/THREAT_MODEL.md` for stability breakers.
 

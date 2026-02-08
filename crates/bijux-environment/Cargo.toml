@@ -22,6 +22,7 @@ bijux-infra = { path = "../bijux-infra", features = ["yaml"] }
 bijux-policies = { path = "../bijux-policies" }
 tempfile.workspace = true
 walkdir.workspace = true
+bijux-testkit = { path = "../bijux-testkit" }
 
 [lints]
 workspace = true

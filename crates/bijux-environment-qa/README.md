@@ -26,7 +26,7 @@ See `docs/RUNBOOK.md` and `docs/QA_MATRIX.md`.
 ## Expected runtime
 Minutes to hours depending on the scenario set and image catalog size.
 
-## Artifacts it emits
+## Artifacts / Contracts
 - QA manifest and report JSON (see `docs/ARTIFACT_CONTRACT.md`).
 - Logs and validation records under the QA output directory.
 
