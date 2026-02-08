@@ -1,0 +1,36 @@
+[package]
+name = "bijux-dna-environment-qa"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+regex.workspace = true
+sha2.workspace = true
+tracing.workspace = true
+uuid.workspace = true
+clap.workspace = true
+rusqlite = { version = "0.31", optional = true }
+bijux-dna-environment = { path = "../bijux-dna-environment" }
+bijux-dna-analyze = { path = "../bijux-dna-analyze" }
+bijux-dna-core = { path = "../bijux-dna-core" }
+bijux-dna-domain-fastq = { path = "../bijux-dna-domain-fastq" }
+bijux-dna-infra = { path = "../bijux-dna-infra", features = ["yaml"] }
+bijux-dna-runtime = { path = "../bijux-dna-runtime" }
+
+[dev-dependencies]
+bijux-dna-policies = { path = "../bijux-dna-policies" }
+tempfile.workspace = true
+bijux-dna-testkit = { path = "../bijux-dna-testkit" }
+
+[lints]
+workspace = true
+
+[features]
+default = ["sqlite"]
+sqlite = ["dep:rusqlite", "bijux-dna-analyze/sqlite"]

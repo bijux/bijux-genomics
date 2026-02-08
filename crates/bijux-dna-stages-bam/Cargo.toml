@@ -1,0 +1,27 @@
+[package]
+name = "bijux-dna-stages-bam"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+bijux-dna-core = { path = "../bijux-dna-core" }
+bijux-dna-stage-contract = { path = "../bijux-dna-stage-contract" }
+bijux-dna-domain-bam = { path = "../bijux-dna-domain-bam" }
+bijux-dna-infra = { path = "../bijux-dna-infra" }
+serde.workspace = true
+serde_json.workspace = true
+
+[features]
+bam_downstream = []
+
+[lints]
+workspace = true
+
+[dev-dependencies]
+bijux-dna-policies = { path = "../bijux-dna-policies" }
+walkdir = { workspace = true }
+bijux-dna-infra = { path = "../bijux-dna-infra" }
+bijux-dna-testkit = { path = "../bijux-dna-testkit" }

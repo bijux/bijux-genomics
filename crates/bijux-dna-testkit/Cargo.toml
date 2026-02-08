@@ -1,0 +1,17 @@
+[package]
+name = "bijux-dna-testkit"
+version = "0.1.0"
+edition = "2021"
+
+license.workspace = true
+rust-version.workspace = true
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+anyhow.workspace = true
+
+[dev-dependencies]
+bijux-dna-policies = { path = "../bijux-dna-policies" }
+
+[lib]
+path = "src/lib.rs"
