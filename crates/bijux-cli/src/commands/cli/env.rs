@@ -78,6 +78,20 @@ fn display_runners(runners: &[RuntimeKind]) -> String {
 mod tests {
     use super::*;
 
+    struct HomeGuard {
+        original: Option<std::ffi::OsString>,
+    }
+
+    impl Drop for HomeGuard {
+        fn drop(&mut self) {
+            if let Some(value) = self.original.take() {
+                std::env::set_var("HOME", value);
+            } else {
+                std::env::remove_var("HOME");
+            }
+        }
+    }
+
     #[test]
     fn display_runners_is_deterministic() {
         let runners = vec![RuntimeKind::Docker, RuntimeKind::Apptainer];
@@ -88,18 +102,6 @@ mod tests {
     fn ensure_cache_writable_uses_home() -> anyhow::Result<()> {
         let temp = bijux_api::v1::api::run::temp_dir("bijux")?;
         let original_home = std::env::var_os("HOME");
-        struct HomeGuard {
-            original: Option<std::ffi::OsString>,
-        }
-        impl Drop for HomeGuard {
-            fn drop(&mut self) {
-                if let Some(value) = self.original.take() {
-                    std::env::set_var("HOME", value);
-                } else {
-                    std::env::remove_var("HOME");
-                }
-            }
-        }
         let _guard = HomeGuard {
             original: original_home,
         };

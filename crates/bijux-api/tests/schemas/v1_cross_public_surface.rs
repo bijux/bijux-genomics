@@ -11,7 +11,8 @@ fn snapshot_name(group: &str, name: &str) -> String {
 fn public_surface_is_snapshotted() {
     let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let lib = manifest_dir.join("src").join("lib.rs");
-    let content = fs::read_to_string(lib).expect("read lib.rs");
+    let content = fs::read_to_string(&lib)
+        .unwrap_or_else(|err| panic!("read lib.rs at {}: {err}", lib.display()));
     let mut snapshot = String::new();
     for line in content.lines() {
         if line.trim_start().starts_with("pub mod v1") {

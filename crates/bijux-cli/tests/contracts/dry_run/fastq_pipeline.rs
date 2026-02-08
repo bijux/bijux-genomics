@@ -1,6 +1,7 @@
 use bijux_dna_cli::commands::run_with_args;
 
 #[test]
+#[allow(clippy::too_many_lines)]
 fn cli_fastq_preprocess_dry_run_emits_manifest_and_graph() {
     let temp = tempfile::tempdir().expect("tempdir");
     let root = temp.path();

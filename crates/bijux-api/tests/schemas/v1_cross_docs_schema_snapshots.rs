@@ -6,7 +6,8 @@ fn schema_snapshots_are_documented() {
     let doc = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("docs")
         .join("API.md");
-    let content = fs::read_to_string(&doc).expect("read API.md");
+    let content = fs::read_to_string(&doc)
+        .unwrap_or_else(|err| panic!("read API.md at {}: {err}", doc.display()));
     assert!(
         content.contains("PlanResponse"),
         "API.md must reference PlanResponse"

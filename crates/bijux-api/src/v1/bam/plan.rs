@@ -144,7 +144,7 @@ pub fn plan_for_bam_stage_with_profile(
                 .defaults
                 .params
                 .get(&stage_key)
-                .map(|value| value.to_json())
+                .map(bijux_pipelines::DefaultParams::to_json)
                 .and_then(|value| stage.parse_effective_params(&value).ok())
                 .unwrap_or_else(|| bijux_planner_bam::stage_api::stage_spec(stage).default_params);
             let mut params = match default_params {
@@ -196,7 +196,7 @@ pub fn plan_for_bam_stage_with_profile(
                 .defaults
                 .params
                 .get(&stage_key)
-                .map(|value| value.to_json())
+                .map(bijux_pipelines::DefaultParams::to_json)
                 .and_then(|value| stage.parse_effective_params(&value).ok())
                 .unwrap_or_else(|| bijux_planner_bam::stage_api::stage_spec(stage).default_params);
             let mut params = match default_params {
@@ -634,7 +634,7 @@ fn default_params_for_stage(
         .defaults
         .params
         .get(&stage_key)
-        .map(|value| value.to_json())
+        .map(bijux_pipelines::DefaultParams::to_json)
         .and_then(|value| stage.parse_effective_params(&value).ok())
         .unwrap_or_else(|| bijux_planner_bam::stage_api::stage_spec(stage).default_params)
 }
