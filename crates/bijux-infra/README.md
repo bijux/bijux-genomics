@@ -26,6 +26,9 @@ See `docs/INDEX.md`, `docs/NO_DOMAIN.md`, `docs/LOGGING.md`, `docs/PATHS.md`, `d
 ## Key contracts it owns/consumes
 None; utility-only.
 
+## Artifacts / Contracts
+See `docs/LOGGING.md`, `docs/PATHS.md`, and `docs/WHY_YAML.md` for behavioral contracts.
+
 ## Effects & determinism guarantees
 No process/network effects; deterministic helpers only. See `docs/EFFECTS.md` and the golden tests below.
 

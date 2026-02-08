@@ -24,6 +24,7 @@ insta.workspace = true
 regex.workspace = true
 walkdir.workspace = true
 
+bijux-testkit = { path = "../bijux-testkit" }
 [lints]
 workspace = true
 
