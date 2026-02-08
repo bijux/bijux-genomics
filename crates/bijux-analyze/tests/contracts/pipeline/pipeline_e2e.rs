@@ -112,11 +112,12 @@ fn build_report(domain: Domain, pipeline_id: &str) -> Result<Value> {
 
     let mut facts = Vec::new();
     for stage in profile.capabilities.required_stages.iter() {
+        let stage_key = bijux_core::ids::StageId::from_static(stage);
         let tool_id = profile
             .defaults
             .tools
-            .get(*stage)
-            .map_or("tool", String::as_str);
+            .get(&stage_key)
+            .map_or("tool", |tool| tool.as_str());
         facts.push(fact_for_stage(stage, tool_id, pipeline_id));
         write_stage_artifacts(root, stage)?;
     }
