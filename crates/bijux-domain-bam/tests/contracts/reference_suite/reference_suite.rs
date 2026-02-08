@@ -13,6 +13,7 @@ fn fixture(name: &str) -> PathBuf {
         .join("tests")
         .join("fixtures")
         .join("reference")
+        .join("default")
         .join(name)
 }
 

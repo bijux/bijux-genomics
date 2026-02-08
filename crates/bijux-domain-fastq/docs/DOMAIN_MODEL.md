@@ -3,7 +3,7 @@
 This crate owns FASTQ domain truth: IDs, params, metric semantics, and invariant verdicts.
 
 ## Domain truth set
-- IDs: stage IDs and tool IDs live in `src/stages/ids.rs` and `src/stage_ids.rs`.
+- IDs: stage IDs and tool IDs live in `src/stages/ids.rs` and `src/id_catalog.rs`.
 - Params: canonical JSON and defaults in `src/params/*` and `docs/PARAMS.md`.
 - Metrics: meaning + ordering rules in `src/metrics/*` and `docs/METRICS.md`.
 - Invariants: evaluation rules in `src/invariants/*` and `docs/FAILURE_PATTERNS.md`.

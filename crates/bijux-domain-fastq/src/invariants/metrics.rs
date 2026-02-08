@@ -4,7 +4,7 @@ use crate::metrics::{
 use bijux_core::ids::StageId;
 use bijux_core::prelude::invariants::{InvariantStatusV1, StageVerdictV1};
 
-use crate::invariants::core::{
+use crate::invariants::evaluation::{
     result, retention_thresholds_for, worst_status, InvariantEvaluation, InvariantThresholds,
 };
 use crate::parse_effective_params;

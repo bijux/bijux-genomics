@@ -21,5 +21,6 @@ bijux-policies = { path = "../bijux-policies" }
 insta = { workspace = true, features = ["json"] }
 walkdir.workspace = true
 
+bijux-testkit = { path = "../bijux-testkit" }
 [lints]
 workspace = true

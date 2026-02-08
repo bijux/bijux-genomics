@@ -26,6 +26,9 @@ Includes pre/core/downstream phase params and the BAM metrics surfaced in `docs/
 ## Key contracts it owns/consumes
 Domain JSON shapes and fixtures.
 
+## Artifacts / Contracts
+See `docs/DOMAIN_MODEL.md` and the snapshot fixtures under `tests/fixtures/`.
+
 ## Effects & determinism guarantees
 Pure data/validation. See `docs/EFFECTS.md` and the golden tests below.
 
