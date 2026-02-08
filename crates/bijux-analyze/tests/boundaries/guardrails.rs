@@ -208,7 +208,7 @@ fn no_new_top_level_modules_without_owner() {
     let owners_dir = manifest_dir.join("docs").join("owners");
     let mut offenders = Vec::new();
     for module in modules {
-        let owner = module.join("OWNER.md");
+        let owner = module.join("OWNER.toml");
         let name = module
             .file_name()
             .and_then(|value| value.to_str())
@@ -220,6 +220,6 @@ fn no_new_top_level_modules_without_owner() {
     }
     assert!(
         offenders.is_empty(),
-        "top-level modules require OWNER.md: {offenders:?}"
+        "top-level modules require OWNER.toml: {offenders:?}"
     );
 }
