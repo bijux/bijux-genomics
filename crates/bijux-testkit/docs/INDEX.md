@@ -1,5 +1,7 @@
 # bijux-testkit Docs Index
 
+This crate exists for shared fixtures and lightweight test helpers.
+
 ## Scope
 See `SCOPE.md` for what belongs here.
 
