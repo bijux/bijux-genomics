@@ -12,9 +12,12 @@ Upstream: domain contracts. Downstream: planners/analyze.
 ## Public API / entrypoints
 See `docs/INDEX.md`, `docs/PHASES.md`, `docs/STAGE_LIST.md`, `docs/STAGE_CONTRACTS.md`, `docs/OBSERVERS.md`, `docs/CHANGE_RULES.md`.
 
-## Phases and observers
-Phase definitions are authoritative in `docs/PHASES.md`. Observers and their artifacts are
-documented in `docs/OBSERVERS.md`.
+## Phases and observer responsibilities
+- **Pre**: validation + alignment QC outputs.
+- **Core**: core BAM processing metrics (markdup, coverage, depth).
+- **Downstream**: aDNA and population analyses (damage, contamination, sex).
+
+Observers parse only documented tool outputs, ignore unknown fields, and require contract fields.
 
 ## Key contracts it owns/consumes
 Stage report/metrics shape snapshots.
