@@ -166,32 +166,9 @@ pub fn write_string<P: AsRef<Path>>(path: P, contents: &str) -> Result<(), IoErr
 /// # Errors
 /// Returns an IO error if serialization or writing fails.
 pub fn atomic_write_json<T: serde::Serialize>(path: &Path, value: &T) -> Result<(), IoError> {
-    let raw = serde_json::to_value(value)
-        .map_err(|err| IoError::new(IoErrorKind::Corruption, format!("serialize json: {err}")))?;
-    let canonical = canonicalize_json_value(&raw);
-    let payload = serde_json::to_vec_pretty(&canonical)
+    let payload = serde_json::to_vec_pretty(value)
         .map_err(|err| IoError::new(IoErrorKind::Corruption, format!("serialize json: {err}")))?;
     atomic_write_bytes(path, &payload)
-}
-
-#[must_use]
-pub fn canonicalize_json_value(value: &serde_json::Value) -> serde_json::Value {
-    match value {
-        serde_json::Value::Object(map) => {
-            let mut keys: Vec<&String> = map.keys().collect();
-            keys.sort();
-            let mut ordered = serde_json::Map::new();
-            for key in keys {
-                let val = map.get(key).unwrap_or(&serde_json::Value::Null);
-                ordered.insert(key.clone(), canonicalize_json_value(val));
-            }
-            serde_json::Value::Object(ordered)
-        }
-        serde_json::Value::Array(items) => {
-            serde_json::Value::Array(items.iter().map(canonicalize_json_value).collect())
-        }
-        _ => value.clone(),
-    }
 }
 
 /// Atomically write using a custom writer function.
