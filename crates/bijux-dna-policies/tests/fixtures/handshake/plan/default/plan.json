@@ -1,0 +1,6 @@
+{
+  "schema_version": "bijux.execution_plan.v1",
+  "contract_version": "v1",
+  "graph_hash": "example",
+  "stages": []
+}
