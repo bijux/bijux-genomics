@@ -1,5 +1,5 @@
 [package]
-name = "bijux-testkit"
+name = "bijux-dna-testkit"
 version = "0.1.0"
 edition = "2021"
 
@@ -11,7 +11,7 @@ serde_json.workspace = true
 anyhow.workspace = true
 
 [dev-dependencies]
-bijux-policies = { path = "../bijux-policies" }
+bijux-dna-policies = { path = "../bijux-dna-policies" }
 
 [lib]
 path = "src/lib.rs"

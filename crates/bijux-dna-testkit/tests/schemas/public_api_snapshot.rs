@@ -14,7 +14,7 @@ fn public_api_snapshot() {
     let snapshot_path = Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("tests")
         .join("snapshots")
-        .join("bijux-testkit__schemas__public_api.txt");
+        .join("bijux-dna-testkit__schemas__public_api.txt");
     let expected = fs::read_to_string(&snapshot_path).expect("read public_api.txt snapshot");
     assert_eq!(snapshot, expected, "public API snapshot must match");
 }

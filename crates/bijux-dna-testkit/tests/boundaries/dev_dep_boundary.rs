@@ -21,7 +21,7 @@ fn testkit_is_only_dev_dependency() {
             .file_name()
             .and_then(|name| name.to_str())
             .unwrap_or("<unknown>");
-        if crate_name == "bijux-testkit" {
+        if crate_name == "bijux-dna-testkit" {
             continue;
         }
         let content = fs::read_to_string(&cargo_toml).expect("read Cargo.toml");
@@ -32,8 +32,8 @@ fn testkit_is_only_dev_dependency() {
                 in_dependencies = trimmed == "[dependencies]";
                 continue;
             }
-            if in_dependencies && trimmed.starts_with("bijux-testkit") {
-                panic!("{crate_name} depends on bijux-testkit as a production dependency");
+            if in_dependencies && trimmed.starts_with("bijux-dna-testkit") {
+                panic!("{crate_name} depends on bijux-dna-testkit as a production dependency");
             }
         }
     }

@@ -1,4 +1,4 @@
-# bijux-testkit Docs Index
+# bijux-dna-testkit Docs Index
 
 This crate exists for shared fixtures and lightweight test helpers.
 

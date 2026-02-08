@@ -5,7 +5,7 @@ Use `snapshots::stable_json` to serialize a value before snapshotting.
 
 Example:
 ```rust
-use bijux_testkit::snapshots::stable_json;
+use bijux_dna_testkit::snapshots::stable_json;
 
 #[test]
 fn schema_snapshot_is_stable() {
