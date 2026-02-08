@@ -1,14 +1,13 @@
 ---
 source: crates/bijux-pipelines/tests/contracts/defaults/override_precedence.rs
-assertion_line: 44
-expression: snapshot
+expression: "bijux_testkit::snapshot_normalize_json(&json)"
 ---
 {
-  "tools": {
-    "fastq.trim": "trimmomatic"
-  },
   "params": {},
   "rationales": {
     "fastq.trim": "api override"
+  },
+  "tools": {
+    "fastq.trim": "trimmomatic"
   }
 }

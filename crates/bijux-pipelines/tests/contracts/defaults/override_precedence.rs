@@ -48,5 +48,6 @@ fn override_precedence_is_stable() {
     let snapshot = merge_effective_defaults(&base, Some(&profile), Some(&cli), Some(&api))
         .expect("merge defaults");
     let name = snapshot_name("contracts", "override_precedence");
-    insta::assert_json_snapshot!(name, bijux_testkit::snapshot_normalize_json(&snapshot));
+    let json = serde_json::to_value(&snapshot).expect("serialize defaults");
+    insta::assert_json_snapshot!(name, bijux_testkit::snapshot_normalize_json(&json));
 }

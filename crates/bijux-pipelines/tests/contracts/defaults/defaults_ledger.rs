@@ -20,6 +20,7 @@ fn defaults_ledger_snapshots_are_stable() {
         let base = format!("defaults__{}", profile.id.as_str().replace([':', '.'], "_"));
         let name = snapshot_name("contracts", &base);
         let ledger = profile.defaults_ledger();
-        insta::assert_json_snapshot!(name, bijux_testkit::snapshot_normalize_json(&ledger));
+        let json = serde_json::to_value(&ledger).expect("serialize ledger");
+        insta::assert_json_snapshot!(name, bijux_testkit::snapshot_normalize_json(&json));
     }
 }

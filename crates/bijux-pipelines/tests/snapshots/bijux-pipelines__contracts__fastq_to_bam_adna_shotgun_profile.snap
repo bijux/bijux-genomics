@@ -1,21 +1,68 @@
 ---
 source: crates/bijux-pipelines/tests/contracts/profiles/profiles.rs
-assertion_line: 58
-expression: fastq_to_bam_adna_shotgun_profile()
+expression: "bijux_testkit::snapshot_normalize_json(&json)"
 ---
 {
-  "id": "fastq-to-bam__adna_shotgun__v1",
-  "description": "FASTQ preprocess → align → BAM QC/damage (aDNA shotgun)",
-  "stability": "Beta",
-  "input_domains": [
-    "Fastq",
-    "Cross"
-  ],
-  "output_domains": [
-    "Bam"
-  ],
+  "capabilities": {
+    "input_artifacts": [
+      "FastqReads",
+      "Bam"
+    ],
+    "input_domains": [
+      "Fastq",
+      "Cross"
+    ],
+    "output_artifacts": [
+      "Bam",
+      "MetricsBundle"
+    ],
+    "output_domains": [
+      "Bam"
+    ],
+    "produces_outputs": [
+      "fastq",
+      "bam",
+      "bam.metrics"
+    ],
+    "report_sections": [
+      "fastq",
+      "bam",
+      "cross.handoff"
+    ],
+    "required_artifacts": [
+      "report.json",
+      "run_manifest.json",
+      "stage_summaries.json"
+    ],
+    "required_inputs": [
+      "fastq",
+      "reference"
+    ],
+    "required_metrics": [
+      "fastq.metrics",
+      "bam.metrics"
+    ],
+    "required_metrics_bundles": [
+      "FastqCore",
+      "BamAdna"
+    ],
+    "required_report_sections": [
+      "Fastq",
+      "Bam",
+      "Handoff",
+      "PipelineDefaults"
+    ],
+    "required_stages": [
+      "fastq.preprocess",
+      "core.prepare_reference",
+      "bam.align",
+      "bam.qc_pre",
+      "bam.coverage",
+      "bam.damage"
+    ],
+    "supports_benchmarks": false
+  },
   "defaults": {
-    "tools": {},
     "params": {
       "bam.align": {
         "aligner": "bwa",
@@ -209,67 +256,19 @@ expression: fastq_to_bam_adna_shotgun_profile()
       "fastq.trim": "pipeline default",
       "fastq.umi": "pipeline default",
       "fastq.validate_pre": "pipeline default"
-    }
+    },
+    "tools": {}
   },
   "defaults_ledger_ref": "defaults_ledger.json",
+  "description": "FASTQ preprocess → align → BAM QC/damage (aDNA shotgun)",
+  "id": "fastq-to-bam__adna_shotgun__v1",
+  "input_domains": [
+    "Fastq",
+    "Cross"
+  ],
   "invariants_preset": "adna",
-  "capabilities": {
-    "input_domains": [
-      "Fastq",
-      "Cross"
-    ],
-    "output_domains": [
-      "Bam"
-    ],
-    "input_artifacts": [
-      "FastqReads",
-      "Bam"
-    ],
-    "output_artifacts": [
-      "Bam",
-      "MetricsBundle"
-    ],
-    "required_inputs": [
-      "fastq",
-      "reference"
-    ],
-    "produces_outputs": [
-      "fastq",
-      "bam",
-      "bam.metrics"
-    ],
-    "report_sections": [
-      "fastq",
-      "bam",
-      "cross.handoff"
-    ],
-    "required_report_sections": [
-      "Fastq",
-      "Bam",
-      "Handoff",
-      "PipelineDefaults"
-    ],
-    "required_metrics_bundles": [
-      "FastqCore",
-      "BamAdna"
-    ],
-    "required_stages": [
-      "fastq.preprocess",
-      "core.prepare_reference",
-      "bam.align",
-      "bam.qc_pre",
-      "bam.coverage",
-      "bam.damage"
-    ],
-    "required_metrics": [
-      "fastq.metrics",
-      "bam.metrics"
-    ],
-    "required_artifacts": [
-      "report.json",
-      "run_manifest.json",
-      "stage_summaries.json"
-    ],
-    "supports_benchmarks": false
-  }
+  "output_domains": [
+    "Bam"
+  ],
+  "stability": "Beta"
 }

@@ -1,11 +1,147 @@
 ---
 source: crates/bijux-pipelines/tests/contracts/defaults/defaults_ledger.rs
-assertion_line: 23
-expression: ledger
+expression: "bijux_testkit::snapshot_normalize_json(&json)"
 ---
 {
-  "pipeline_id": "fastq-to-bam__default__v1",
-  "tools": {},
+  "assumptions": [],
+  "citations": {},
+  "param_provenance": {
+    "bam.align": {
+      "assumptions": [],
+      "comparability_implications": [],
+      "rationale": "modern default alignment preset"
+    },
+    "bam.authenticity": {
+      "assumptions": [],
+      "comparability_implications": [],
+      "rationale": "pipeline default"
+    },
+    "bam.bias_mitigation": {
+      "assumptions": [],
+      "comparability_implications": [],
+      "rationale": "pipeline default"
+    },
+    "bam.complexity": {
+      "assumptions": [],
+      "comparability_implications": [],
+      "rationale": "pipeline default"
+    },
+    "bam.contamination": {
+      "assumptions": [],
+      "comparability_implications": [],
+      "rationale": "pipeline default"
+    },
+    "bam.coverage": {
+      "assumptions": [],
+      "comparability_implications": [],
+      "rationale": "pipeline default"
+    },
+    "bam.damage": {
+      "assumptions": [],
+      "comparability_implications": [],
+      "rationale": "pipeline default"
+    },
+    "bam.filter": {
+      "assumptions": [],
+      "comparability_implications": [],
+      "rationale": "pipeline default"
+    },
+    "bam.genotyping": {
+      "assumptions": [],
+      "comparability_implications": [],
+      "rationale": "pipeline default"
+    },
+    "bam.haplogroups": {
+      "assumptions": [],
+      "comparability_implications": [],
+      "rationale": "pipeline default"
+    },
+    "bam.kinship": {
+      "assumptions": [],
+      "comparability_implications": [],
+      "rationale": "pipeline default"
+    },
+    "bam.markdup": {
+      "assumptions": [],
+      "comparability_implications": [],
+      "rationale": "pipeline default"
+    },
+    "bam.qc_pre": {
+      "assumptions": [],
+      "comparability_implications": [],
+      "rationale": "pipeline default"
+    },
+    "bam.sex": {
+      "assumptions": [],
+      "comparability_implications": [],
+      "rationale": "pipeline default"
+    },
+    "bam.validate": {
+      "assumptions": [],
+      "comparability_implications": [],
+      "rationale": "pipeline default"
+    },
+    "core.prepare_reference": {
+      "assumptions": [],
+      "comparability_implications": [],
+      "rationale": "unspecified"
+    },
+    "fastq.correct": {
+      "assumptions": [],
+      "comparability_implications": [],
+      "rationale": "pipeline default"
+    },
+    "fastq.detect_adapters": {
+      "assumptions": [],
+      "comparability_implications": [],
+      "rationale": "pipeline default"
+    },
+    "fastq.filter": {
+      "assumptions": [],
+      "comparability_implications": [],
+      "rationale": "pipeline default"
+    },
+    "fastq.merge": {
+      "assumptions": [],
+      "comparability_implications": [],
+      "rationale": "pipeline default"
+    },
+    "fastq.preprocess": {
+      "assumptions": [],
+      "comparability_implications": [],
+      "rationale": "pipeline default"
+    },
+    "fastq.qc_post": {
+      "assumptions": [],
+      "comparability_implications": [],
+      "rationale": "pipeline default"
+    },
+    "fastq.screen": {
+      "assumptions": [],
+      "comparability_implications": [],
+      "rationale": "pipeline default"
+    },
+    "fastq.stats_neutral": {
+      "assumptions": [],
+      "comparability_implications": [],
+      "rationale": "pipeline default"
+    },
+    "fastq.trim": {
+      "assumptions": [],
+      "comparability_implications": [],
+      "rationale": "pipeline default"
+    },
+    "fastq.umi": {
+      "assumptions": [],
+      "comparability_implications": [],
+      "rationale": "pipeline default"
+    },
+    "fastq.validate_pre": {
+      "assumptions": [],
+      "comparability_implications": [],
+      "rationale": "pipeline default"
+    }
+  },
   "params": {
     "bam.align": {
       "aligner": "bwa",
@@ -172,145 +308,8 @@ expression: ledger
       "threads": 1
     }
   },
+  "pipeline_id": "fastq-to-bam__default__v1",
   "thresholds": {},
   "tool_provenance": {},
-  "param_provenance": {
-    "bam.align": {
-      "rationale": "modern default alignment preset",
-      "assumptions": [],
-      "comparability_implications": []
-    },
-    "bam.authenticity": {
-      "rationale": "pipeline default",
-      "assumptions": [],
-      "comparability_implications": []
-    },
-    "bam.bias_mitigation": {
-      "rationale": "pipeline default",
-      "assumptions": [],
-      "comparability_implications": []
-    },
-    "bam.complexity": {
-      "rationale": "pipeline default",
-      "assumptions": [],
-      "comparability_implications": []
-    },
-    "bam.contamination": {
-      "rationale": "pipeline default",
-      "assumptions": [],
-      "comparability_implications": []
-    },
-    "bam.coverage": {
-      "rationale": "pipeline default",
-      "assumptions": [],
-      "comparability_implications": []
-    },
-    "bam.damage": {
-      "rationale": "pipeline default",
-      "assumptions": [],
-      "comparability_implications": []
-    },
-    "bam.filter": {
-      "rationale": "pipeline default",
-      "assumptions": [],
-      "comparability_implications": []
-    },
-    "bam.genotyping": {
-      "rationale": "pipeline default",
-      "assumptions": [],
-      "comparability_implications": []
-    },
-    "bam.haplogroups": {
-      "rationale": "pipeline default",
-      "assumptions": [],
-      "comparability_implications": []
-    },
-    "bam.kinship": {
-      "rationale": "pipeline default",
-      "assumptions": [],
-      "comparability_implications": []
-    },
-    "bam.markdup": {
-      "rationale": "pipeline default",
-      "assumptions": [],
-      "comparability_implications": []
-    },
-    "bam.qc_pre": {
-      "rationale": "pipeline default",
-      "assumptions": [],
-      "comparability_implications": []
-    },
-    "bam.sex": {
-      "rationale": "pipeline default",
-      "assumptions": [],
-      "comparability_implications": []
-    },
-    "bam.validate": {
-      "rationale": "pipeline default",
-      "assumptions": [],
-      "comparability_implications": []
-    },
-    "core.prepare_reference": {
-      "rationale": "unspecified",
-      "assumptions": [],
-      "comparability_implications": []
-    },
-    "fastq.correct": {
-      "rationale": "pipeline default",
-      "assumptions": [],
-      "comparability_implications": []
-    },
-    "fastq.detect_adapters": {
-      "rationale": "pipeline default",
-      "assumptions": [],
-      "comparability_implications": []
-    },
-    "fastq.filter": {
-      "rationale": "pipeline default",
-      "assumptions": [],
-      "comparability_implications": []
-    },
-    "fastq.merge": {
-      "rationale": "pipeline default",
-      "assumptions": [],
-      "comparability_implications": []
-    },
-    "fastq.preprocess": {
-      "rationale": "pipeline default",
-      "assumptions": [],
-      "comparability_implications": []
-    },
-    "fastq.qc_post": {
-      "rationale": "pipeline default",
-      "assumptions": [],
-      "comparability_implications": []
-    },
-    "fastq.screen": {
-      "rationale": "pipeline default",
-      "assumptions": [],
-      "comparability_implications": []
-    },
-    "fastq.stats_neutral": {
-      "rationale": "pipeline default",
-      "assumptions": [],
-      "comparability_implications": []
-    },
-    "fastq.trim": {
-      "rationale": "pipeline default",
-      "assumptions": [],
-      "comparability_implications": []
-    },
-    "fastq.umi": {
-      "rationale": "pipeline default",
-      "assumptions": [],
-      "comparability_implications": []
-    },
-    "fastq.validate_pre": {
-      "rationale": "pipeline default",
-      "assumptions": [],
-      "comparability_implications": []
-    }
-  },
-  "assumptions": [],
-  "citations": {}
+  "tools": {}
 }

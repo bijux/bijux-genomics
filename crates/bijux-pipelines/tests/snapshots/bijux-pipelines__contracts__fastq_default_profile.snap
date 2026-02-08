@@ -1,19 +1,58 @@
 ---
-source: crates/bijux-pipelines/tests/profiles.rs
-expression: fastq_default_profile()
+source: crates/bijux-pipelines/tests/contracts/profiles/profiles.rs
+expression: "bijux_testkit::snapshot_normalize_json(&json)"
 ---
 {
-  "id": "fastq-to-fastq__default__v1",
-  "description": "Default FASTQ pipeline",
-  "stability": "Stable",
-  "input_domains": [
-    "Fastq"
-  ],
-  "output_domains": [
-    "Fastq"
-  ],
+  "capabilities": {
+    "input_artifacts": [
+      "FastqReads"
+    ],
+    "input_domains": [
+      "Fastq"
+    ],
+    "output_artifacts": [
+      "FastqReads",
+      "MetricsBundle"
+    ],
+    "output_domains": [
+      "Fastq"
+    ],
+    "produces_outputs": [
+      "fastq",
+      "fastq.metrics"
+    ],
+    "report_sections": [
+      "fastq"
+    ],
+    "required_artifacts": [
+      "report.json",
+      "run_manifest.json",
+      "stage_summaries.json"
+    ],
+    "required_inputs": [
+      "fastq"
+    ],
+    "required_metrics": [
+      "fastq.metrics"
+    ],
+    "required_metrics_bundles": [
+      "FastqCore"
+    ],
+    "required_report_sections": [
+      "Fastq",
+      "PipelineDefaults"
+    ],
+    "required_stages": [
+      "fastq.validate_pre",
+      "fastq.detect_adapters",
+      "fastq.trim",
+      "fastq.filter",
+      "fastq.stats_neutral",
+      "fastq.qc_post"
+    ],
+    "supports_benchmarks": true
+  },
   "defaults": {
-    "tools": {},
     "params": {
       "fastq.correct": {
         "paired_mode": "single_end",
@@ -103,57 +142,18 @@ expression: fastq_default_profile()
       "fastq.trim": "pipeline default",
       "fastq.umi": "pipeline default",
       "fastq.validate_pre": "pipeline default"
-    }
+    },
+    "tools": {}
   },
   "defaults_ledger_ref": "defaults_ledger.json",
+  "description": "Default FASTQ pipeline",
+  "id": "fastq-to-fastq__default__v1",
+  "input_domains": [
+    "Fastq"
+  ],
   "invariants_preset": null,
-  "capabilities": {
-    "input_domains": [
-      "Fastq"
-    ],
-    "output_domains": [
-      "Fastq"
-    ],
-    "input_artifacts": [
-      "FastqReads"
-    ],
-    "output_artifacts": [
-      "FastqReads",
-      "MetricsBundle"
-    ],
-    "required_inputs": [
-      "fastq"
-    ],
-    "produces_outputs": [
-      "fastq",
-      "fastq.metrics"
-    ],
-    "report_sections": [
-      "fastq"
-    ],
-    "required_report_sections": [
-      "Fastq",
-      "PipelineDefaults"
-    ],
-    "required_metrics_bundles": [
-      "FastqCore"
-    ],
-    "required_stages": [
-      "fastq.validate_pre",
-      "fastq.detect_adapters",
-      "fastq.trim",
-      "fastq.filter",
-      "fastq.stats_neutral",
-      "fastq.qc_post"
-    ],
-    "required_metrics": [
-      "fastq.metrics"
-    ],
-    "required_artifacts": [
-      "report.json",
-      "run_manifest.json",
-      "stage_summaries.json"
-    ],
-    "supports_benchmarks": true
-  }
+  "output_domains": [
+    "Fastq"
+  ],
+  "stability": "Stable"
 }
