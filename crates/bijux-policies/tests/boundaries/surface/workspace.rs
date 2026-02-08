@@ -721,6 +721,7 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
                 || dep == "bijux-domain-fastq"
                 || dep == "bijux-domain-bam"
                 || dep == "bijux-benchmark"
+                || dep == "bijux-testkit"
                 || dep == "bijux-infra"
                 || dep == "bijux-runtime"
                 || dep == "bijux-pipelines"

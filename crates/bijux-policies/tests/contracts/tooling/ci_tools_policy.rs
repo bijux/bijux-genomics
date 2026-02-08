@@ -100,8 +100,9 @@ fn policy__contracts__ci_tools_policy__coverage_command_policy_is_stable() {
         "cargo llvm-cov nextest",
         "--no-report",
         "--no-cfg-coverage",
-        "cargo llvm-cov report --json",
-        "cargo llvm-cov report --html",
+        "cargo llvm-cov report --workspace",
+        "--json",
+        "--html",
     ];
 
     let mut missing = Vec::new();

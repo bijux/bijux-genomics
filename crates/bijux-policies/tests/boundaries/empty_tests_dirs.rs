@@ -1,3 +1,4 @@
+#![allow(non_snake_case)]
 use std::path::{Path, PathBuf};
 
 use walkdir::WalkDir;
@@ -23,7 +24,17 @@ fn policy__boundaries__empty_tests_dirs__no_empty_tests_dirs() {
         if entry.path().components().any(|c| c.as_os_str() == "tests") {
             let mut has_files = false;
             if let Ok(mut entries) = std::fs::read_dir(entry.path()) {
-                has_files = entries.any(|child| child.ok().map(|c| c.file_type().ok().map(|t| t.is_dir() || t.is_file()).unwrap_or(false)).unwrap_or(false));
+                has_files = entries.any(|child| {
+                    child
+                        .ok()
+                        .map(|c| {
+                            c.file_type()
+                                .ok()
+                                .map(|t| t.is_dir() || t.is_file())
+                                .unwrap_or(false)
+                        })
+                        .unwrap_or(false)
+                });
             }
             if !has_files {
                 offenders.push(entry.path().display().to_string());
