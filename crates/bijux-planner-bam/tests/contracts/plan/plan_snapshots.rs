@@ -82,7 +82,8 @@ fn bam_plan_snapshot() {
     };
     let plan = BamPlanner::plan(&config).expect("plan");
     let name = snapshot_name("contracts", "bam_plan_snapshot");
-    insta::assert_json_snapshot!(name, bijux_testkit::snapshot_normalize_json(&plan));
+    let json = serde_json::to_value(&plan).expect("serialize plan");
+    insta::assert_json_snapshot!(name, bijux_testkit::snapshot_normalize_json(&json));
 }
 
 #[test]
@@ -103,7 +104,8 @@ fn bam_adna_shotgun_plan_snapshot() -> anyhow::Result<()> {
     let plan = plan_bam_to_bam__adna_shotgun__v1(&inputs)?;
     let name = snapshot_name("contracts", "bam_adna_shotgun_plan");
     let _guard = snapshot_settings(Some(temp.path())).bind_to_scope();
-    insta::assert_json_snapshot!(name, bijux_testkit::snapshot_normalize_json(&plan));
+    let json = serde_json::to_value(&plan).expect("serialize plan");
+    insta::assert_json_snapshot!(name, bijux_testkit::snapshot_normalize_json(&json));
     Ok(())
 }
 
@@ -125,6 +127,7 @@ fn bam_adna_capture_plan_snapshot() -> anyhow::Result<()> {
     let plan = plan_bam_to_bam__adna_capture__v1(&inputs)?;
     let name = snapshot_name("contracts", "bam_adna_capture_plan");
     let _guard = snapshot_settings(Some(temp.path())).bind_to_scope();
-    insta::assert_json_snapshot!(name, bijux_testkit::snapshot_normalize_json(&plan));
+    let json = serde_json::to_value(&plan).expect("serialize plan");
+    insta::assert_json_snapshot!(name, bijux_testkit::snapshot_normalize_json(&json));
     Ok(())
 }

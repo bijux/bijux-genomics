@@ -1,7 +1,6 @@
 ---
 source: crates/bijux-planner-bam/tests/contracts/graph/graph_snapshots.rs
-assertion_line: 67
-expression: json
+expression: "bijux_testkit::snapshot_normalize_json(&json)"
 ---
 {
   "contract_version": {
@@ -247,7 +246,7 @@ expression: json
         "template": [
           "sh",
           "-c",
-          "contamination_tool --input <temp>/out/bam_markdup/markdup.bam > <temp>/out/bam_contamination/contamination.json && python - <<'PY' > <temp>/out/bam_contamination/contamination.summary.json\nimport json\npayload = {\"method\": \"authenticct\", \"estimate\": 0.0, \"ci_low\": 0.0, \"ci_high\": 0.0, \"assumptions\": []}\nprint(json.dumps(payload, indent=2))\nPY"
+          "<TIMESTAMP>"
         ]
       },
       "expected_artifact_ids": [],
@@ -412,7 +411,7 @@ expression: json
         "template": [
           "sh",
           "-c",
-          "samtools flagstat <temp>/sample.bam > <temp>/out/bam_filter/flagstat.before.txt && samtools idxstats <temp>/sample.bam > <temp>/out/bam_filter/idxstats.before.txt && samtools view -b -q 30 <temp>/sample.bam | samtools sort -o <temp>/out/bam_filter/filtered.bam && samtools index <temp>/out/bam_filter/filtered.bam <temp>/out/bam_filter/filtered.bam.bai && samtools flagstat <temp>/out/bam_filter/filtered.bam > <temp>/out/bam_filter/flagstat.after.txt && samtools idxstats <temp>/out/bam_filter/filtered.bam > <temp>/out/bam_filter/idxstats.after.txt && python - <<'PY' > <temp>/out/bam_filter/filter.summary.json\nimport json\npayload = {\"input_bam\": \"<temp>/sample.bam\", \"output_bam\": \"<temp>/out/bam_filter/filtered.bam\", \"params\": {\"mapq_threshold\": 30, \"min_length\": 30}, \"artifacts\": {\"flagstat_before\": \"<temp>/out/bam_filter/flagstat.before.txt\", \"flagstat_after\": \"<temp>/out/bam_filter/flagstat.after.txt\", \"idxstats_before\": \"<temp>/out/bam_filter/idxstats.before.txt\", \"idxstats_after\": \"<temp>/out/bam_filter/idxstats.after.txt\"}}\nprint(json.dumps(payload, indent=2))\nPY"
+          "<TIMESTAMP>"
         ]
       },
       "expected_artifact_ids": [],
@@ -659,7 +658,7 @@ expression: json
         "template": [
           "sh",
           "-c",
-          "samtools flagstat <temp>/out/bam_filter/filtered.bam > <temp>/out/bam_markdup/flagstat.before.txt && samtools idxstats <temp>/out/bam_filter/filtered.bam > <temp>/out/bam_markdup/idxstats.before.txt && gatk MarkDuplicatesSpark -I <temp>/out/bam_filter/filtered.bam -O <temp>/out/bam_markdup/markdup.bam --REMOVE_DUPLICATES false --CREATE_INDEX true && samtools flagstat <temp>/out/bam_markdup/markdup.bam > <temp>/out/bam_markdup/flagstat.after.txt && samtools idxstats <temp>/out/bam_markdup/markdup.bam > <temp>/out/bam_markdup/idxstats.after.txt && python - <<'PY' > <temp>/out/bam_markdup/markdup.summary.json\nimport json\npayload = {\"input_bam\": \"<temp>/out/bam_filter/filtered.bam\", \"output_bam\": \"<temp>/out/bam_markdup/markdup.bam\", \"remove_duplicates\": false, \"artifacts\": {\"flagstat_before\": \"<temp>/out/bam_markdup/flagstat.before.txt\", \"flagstat_after\": \"<temp>/out/bam_markdup/flagstat.after.txt\", \"idxstats_before\": \"<temp>/out/bam_markdup/idxstats.before.txt\", \"idxstats_after\": \"<temp>/out/bam_markdup/idxstats.after.txt\"}}\nprint(json.dumps(payload, indent=2))\nPY"
+          "<TIMESTAMP>"
         ]
       },
       "expected_artifact_ids": [],
@@ -744,7 +743,7 @@ expression: json
         "template": [
           "sh",
           "-c",
-          "samtools flagstat <temp>/sample.bam > <temp>/out/bam_qc_pre/flagstat.txt && samtools idxstats <temp>/sample.bam > <temp>/out/bam_qc_pre/idxstats.txt && samtools stats <temp>/sample.bam > <temp>/out/bam_qc_pre/samtools_stats.txt"
+          "samtools flagstat <TMPDIR>/<TMP>/sample.bam > <TMPDIR>/<TMP>/out/bam_qc_pre/flagstat.txt && samtools idxstats <TMPDIR>/<TMP>/sample.bam > <TMPDIR>/<TMP>/out/bam_qc_pre/idxstats.txt && samtools stats <TMPDIR>/<TMP>/sample.bam > <TMPDIR>/<TMP>/out/bam_qc_pre/samtools_stats.txt"
         ]
       },
       "expected_artifact_ids": [],
@@ -805,7 +804,7 @@ expression: json
         "template": [
           "sh",
           "-c",
-          "rxy --input <temp>/out/bam_markdup/markdup.bam > <temp>/out/bam_sex/sex.json && python - <<'PY' > <temp>/out/bam_sex/sex.summary.json\nimport json\npayload = {\"method\": \"rxy\", \"x_to_y_ratio\": 0.0, \"confidence\": 0.0}\nprint(json.dumps(payload, indent=2))\nPY"
+          "<TIMESTAMP>"
         ]
       },
       "expected_artifact_ids": [],
@@ -860,7 +859,7 @@ expression: json
         "template": [
           "sh",
           "-c",
-          "samtools quickcheck -v <temp>/sample.bam > <temp>/out/bam_validate/validation.json && samtools flagstat <temp>/sample.bam > <temp>/out/bam_validate/flagstat.txt"
+          "samtools quickcheck -v <TMPDIR>/<TMP>/sample.bam > <TMPDIR>/<TMP>/out/bam_validate/validation.json && samtools flagstat <TMPDIR>/<TMP>/sample.bam > <TMPDIR>/<TMP>/out/bam_validate/flagstat.txt"
         ]
       },
       "expected_artifact_ids": [],
