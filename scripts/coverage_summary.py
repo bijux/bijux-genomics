@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -14,17 +16,36 @@ def fmt_pct(p):
     return f"{p:6.2f}%"
 
 
-def main():
-    if len(sys.argv) < 2:
-        print("usage: coverage_summary.py <llvm-cov.json>", file=sys.stderr)
-        sys.exit(2)
-    data = json.loads(Path(sys.argv[1]).read_text())
+def parse_args():
+    parser = argparse.ArgumentParser(description="Summarize llvm-cov JSON output.")
+    parser.add_argument("report", help="Path to llvm-cov JSON report")
+    parser.add_argument(
+        "--show-uncovered",
+        action="store_true",
+        help="Print uncovered file list per crate (off by default)",
+    )
+    parser.add_argument(
+        "--baseline",
+        help="Path to baseline llvm-cov JSON report for delta comparison",
+    )
+    parser.add_argument(
+        "--show-worst",
+        action="store_true",
+        help="Print worst offenders table",
+    )
+    parser.add_argument(
+        "--worst-count",
+        type=int,
+        default=20,
+        help="Number of worst offenders to show (default: 20)",
+    )
+    return parser.parse_args()
 
-    # llvm-cov json structure (single report entry)
+
+def load_report(path):
+    data = json.loads(Path(path).read_text())
     report = data.get("data", [])[0] if data.get("data") else {}
     files = report.get("files", [])
-
-    # Aggregate by package/crate name (from file path)
     crates = {}
     for f in files:
         path = f.get("filename", "")
@@ -38,12 +59,18 @@ def main():
         lines = cov.get("lines", {})
         funcs = cov.get("functions", {})
         regions = cov.get("regions", {})
-        entry = crates.setdefault(crate, {
-            "lines_hit": 0, "lines_total": 0,
-            "funcs_hit": 0, "funcs_total": 0,
-            "regions_hit": 0, "regions_total": 0,
-            "files": []
-        })
+        entry = crates.setdefault(
+            crate,
+            {
+                "lines_hit": 0,
+                "lines_total": 0,
+                "funcs_hit": 0,
+                "funcs_total": 0,
+                "regions_hit": 0,
+                "regions_total": 0,
+                "files": [],
+            },
+        )
         lines_count = lines.get("count", 0)
         lines_covered = lines.get("covered", 0)
         lines_uncovered = lines.get("notcovered", max(lines_count - lines_covered, 0))
@@ -54,7 +81,6 @@ def main():
         regions_covered = regions.get("covered", 0)
         regions_uncovered = regions.get("notcovered", max(regions_count - regions_covered, 0))
 
-        # Fallback when only count is provided.
         if lines_count and not lines_covered and not lines_uncovered:
             lines_covered = lines_count
         if funcs_count and not funcs_covered and not funcs_uncovered:
@@ -69,16 +95,54 @@ def main():
         entry["regions_hit"] += regions_covered
         entry["regions_total"] += regions_count
         entry["files"].append((path, lines_uncovered))
+    return crates
 
-    print("crate | lines % | funcs % | regions % | uncovered top files")
-    print("----- | ------- | ------- | --------- | -------------------")
-    for crate, entry in sorted(crates.items()):
+
+def main():
+    args = parse_args()
+    data = load_report(args.report)
+    baseline = load_report(args.baseline) if args.baseline else None
+
+    show_uncovered = args.show_uncovered or os.getenv("COVERAGE_SHOW_UNCOVERED") == "1"
+    show_worst = args.show_worst or os.getenv("COVERAGE_SHOW_WORST") == "1"
+
+    header = "crate | lines % | funcs % | regions %"
+    if baseline:
+        header += " | lines Δ"
+    header += " | uncovered top files"
+    print(header)
+    print("----- | ------- | ------- | --------- | ------- | -------------------" if baseline else "----- | ------- | ------- | --------- | -------------------")
+
+    rows = []
+    for crate, entry in sorted(data.items()):
         lines_pct = percent(entry["lines_hit"], entry["lines_total"])
         funcs_pct = percent(entry["funcs_hit"], entry["funcs_total"])
         regions_pct = percent(entry["regions_hit"], entry["regions_total"])
         top_files = sorted(entry["files"], key=lambda x: x[1], reverse=True)[:5]
         top_str = ", ".join([f"{Path(p).name}({m})" for p, m in top_files if m > 0])
-        print(f"{crate} | {fmt_pct(lines_pct)} | {fmt_pct(funcs_pct)} | {fmt_pct(regions_pct)} | {top_str}")
+        delta = ""
+        if baseline and crate in baseline:
+            base = baseline[crate]
+            base_pct = percent(base["lines_hit"], base["lines_total"])
+            delta = f"{lines_pct - base_pct:+.2f}%"
+        rows.append((crate, lines_pct, funcs_pct, regions_pct, delta, top_str, entry))
+
+    for crate, lines_pct, funcs_pct, regions_pct, delta, top_str, entry in rows:
+        if baseline:
+            print(f"{crate} | {fmt_pct(lines_pct)} | {fmt_pct(funcs_pct)} | {fmt_pct(regions_pct)} | {delta:>7} | {top_str}")
+        else:
+            print(f"{crate} | {fmt_pct(lines_pct)} | {fmt_pct(funcs_pct)} | {fmt_pct(regions_pct)} | {top_str}")
+        if show_uncovered:
+            for path, misses in sorted(entry["files"], key=lambda x: x[1], reverse=True):
+                if misses <= 0:
+                    continue
+                print(f"  - {path} ({misses} lines)")
+
+    if show_worst:
+        worst = sorted(rows, key=lambda r: r[1])[: args.worst_count]
+        print("\nworst coverage (lines %):")
+        for crate, lines_pct, funcs_pct, regions_pct, _delta, _top, _entry in worst:
+            print(f"{crate}: {fmt_pct(lines_pct)}")
 
 if __name__ == "__main__":
     main()
