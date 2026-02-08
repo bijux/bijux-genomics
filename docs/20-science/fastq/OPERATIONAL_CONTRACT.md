@@ -10,7 +10,7 @@ Makes expected outputs explicit for validation.
 - Scientific interpretation (see METHODOLOGICAL_INTENT.md).
 
 ## Contracts
-Stage contracts in `crates/bijux-stages-fastq`.
+Stage contracts in `crates/bijux-dna-stages-fastq`.
 
 ## Examples
 - fastq.trim -> metrics.json + stage_report.json

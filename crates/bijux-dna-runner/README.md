@@ -29,7 +29,7 @@ See `tests/backend/backend_invariants.rs` for enforced invariants.
 ## Effects & determinism guarantees
 Runner is the only allowed spawn boundary (plus allowlisted QA/CLI). See
 `docs/EFFECTS.md`, `tests/backend/process_guardrail.rs`, and
-`crates/bijux-policies/tests/surface/path_policies.rs`.
+`crates/bijux-dna-policies/tests/surface/path_policies.rs`.
 
 ## How to run its tests
 See `docs/TESTS.md`. Golden tests: `tests/backend/backend_invariants.rs`, `tests/replay/replay_contract.rs`, `tests/determinism/run_id_determinism.rs`, `tests/replay/replay_determinism.rs`.

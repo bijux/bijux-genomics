@@ -74,7 +74,7 @@ fn default_route_selects_tools_deterministically() -> Result<(), Box<dyn std::er
         .duration_since(UNIX_EPOCH)
         .unwrap_or_default()
         .as_nanos();
-    let temp_root = std::env::temp_dir().join(format!("bijux-select-{stamp}"));
+    let temp_root = std::env::temp_dir().join(format!("bijux-dna-select-{stamp}"));
     bijux_dna_infra::ensure_dir(&temp_root)?;
 
     let corpus = BenchCorpus::new(

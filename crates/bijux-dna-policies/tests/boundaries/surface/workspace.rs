@@ -395,11 +395,11 @@ fn policy__boundaries__workspace__workspace_constitution_contract() {
     );
     let env_crates: Vec<_> = crates
         .keys()
-        .filter(|name| name.starts_with("bijux-env-"))
+        .filter(|name| name.starts_with("bijux-dna-env-"))
         .collect();
     bijux_dna_policies::policy_assert!(
         env_crates.is_empty(),
-        "legacy bijux-env-* crates are forbidden"
+        "legacy bijux-dna-env-* crates are forbidden"
     );
     bijux_dna_policies::policy_assert!(
         !crates.contains_key("bijux-dna-pipelines-bam"),
@@ -1082,8 +1082,8 @@ fn policy__boundaries__workspace__workspace_no_cross_layer_imports() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     for (name, path) in crates {
-        let is_domain = name.starts_with("bijux-domain-");
-        let is_stages = name.starts_with("bijux-stages-");
+        let is_domain = name.starts_with("bijux-dna-domain-");
+        let is_stages = name.starts_with("bijux-dna-stages-");
         if !is_domain && !is_stages {
             continue;
         }

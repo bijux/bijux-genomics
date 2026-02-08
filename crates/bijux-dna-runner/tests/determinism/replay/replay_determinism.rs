@@ -4,7 +4,7 @@ use bijux_dna_runner::backend::replay_run;
 
 #[test]
 fn replay_is_deterministic() -> Result<()> {
-    let temp = bijux_dna_infra::temp_dir("bijux-replay-determinism")?;
+    let temp = bijux_dna_infra::temp_dir("bijux-dna-replay-determinism")?;
     let root = temp.path();
     let input = root.join("input.txt");
     bijux_dna_infra::write_bytes(&input, "ACGT")?;

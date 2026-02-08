@@ -225,12 +225,12 @@ impl RunManifest {
     }
 }
 
-/// Append a run entry to `bijux-runs/index.jsonl`.
+/// Append a run entry to `bijux-dna-runs/index.jsonl`.
 ///
 /// # Errors
 /// Returns an error if the index cannot be written.
 pub fn update_run_index(base_dir: &Path, entry: RunIndexEntry) -> Result<()> {
-    let index_path = base_dir.join("bijux-runs").join("index.jsonl");
+    let index_path = base_dir.join("bijux-dna-runs").join("index.jsonl");
     if let Some(parent) = index_path.parent() {
         bijux_dna_infra::ensure_dir(parent)?;
     }

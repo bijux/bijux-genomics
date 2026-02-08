@@ -10,7 +10,7 @@ Makes enforcement transparent and searchable.
 - Redefining policy logic outside `bijux-dna-policies`.
 
 ## Contracts
-Policies are enforced by tests under `crates/bijux-policies/tests`.
+Policies are enforced by tests under `crates/bijux-dna-policies/tests`.
 
 ## Examples
 - Look up a policy ID here, then jump to the test file for implementation details.

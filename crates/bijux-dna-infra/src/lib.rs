@@ -581,7 +581,7 @@ mod tests {
 
     #[test]
     fn temp_dir_is_created() -> Result<(), IoError> {
-        let dir = temp_dir("bijux-test")?;
+        let dir = temp_dir("bijux-dna-test")?;
         assert!(dir.path().exists());
         Ok(())
     }

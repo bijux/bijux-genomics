@@ -35,7 +35,7 @@ fn policy__boundaries__planner_purity__planners_do_not_define_parsers() {
     bijux_dna_policies::policy_assert!(
         offenders.is_empty(),
         "Planners must not define parsing logic (parsers live in stages).\n\
-Move parser functions into bijux-stages-* crates.\n\
+Move parser functions into bijux-dna-stages-* crates.\n\
 See docs/40-policies/STYLE.md for planner purity rules.\n\
 Offenders:\n{}",
         offenders.join("\n")

@@ -32,7 +32,7 @@ Each crate `docs/INDEX.md` must contain sections:
 - Review required by policy owners.
 
 ## How to add a new policy without duplicating logic in other crates
-- Implement policy logic only in `crates/bijux-policies/tests/*` or shared helpers in `tests/support`.
+- Implement policy logic only in `crates/bijux-dna-policies/tests/*` or shared helpers in `tests/support`.
 - Do not copy policy logic into production crates; use allowlists instead.
 - Document the policy in `docs/INDEX.md` and `docs/TESTS.md`.
 - If the policy is a style rule, add it to `docs/40-policies/POLICY_MATRIX.md`.

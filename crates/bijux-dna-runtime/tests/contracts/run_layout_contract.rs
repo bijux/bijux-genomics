@@ -2,7 +2,7 @@ use bijux_dna_runtime::run_layout::create_run_layout;
 
 #[test]
 fn run_layout_paths_match_contract() {
-    let temp_root = std::env::temp_dir().join("bijux-run-layout");
+    let temp_root = std::env::temp_dir().join("bijux-dna-run-layout");
     let (_run_id, layout) = match create_run_layout(&temp_root) {
         Ok(value) => value,
         Err(err) => panic!("layout: {err}"),

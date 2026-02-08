@@ -11,8 +11,8 @@ Single source of truth for architectural boundaries.
 
 ## Contracts
 Enforced by policy tests:
-- `crates/bijux-policies/tests/deps/dependency_boundaries.rs`
-- `crates/bijux-policies/tests/deps/effect_boundary_map.rs`
+- `crates/bijux-dna-policies/tests/deps/dependency_boundaries.rs`
+- `crates/bijux-dna-policies/tests/deps/effect_boundary_map.rs`
 
 ## Examples
 ```

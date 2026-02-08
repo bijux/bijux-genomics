@@ -28,4 +28,4 @@ Tests should explain the contract they enforce.
 - `tests/public_surface.rs` — public API surface snapshot.
 
 ## Testkit patterns
-See `crates/bijux-testkit/docs/USAGE.md` for shared fixture and snapshot helpers.
+See `crates/bijux-dna-testkit/docs/USAGE.md` for shared fixture and snapshot helpers.

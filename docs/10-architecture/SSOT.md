@@ -17,7 +17,7 @@ Prevents duplicated semantics and inconsistent identifiers.
 
 ## Contracts
 - ID types in `bijux-dna-core`.
-- Stage specs in `bijux-stages-*`.
+- Stage specs in `bijux-dna-stages-*`.
 - Metrics definitions in domain crates.
 
 ## Examples

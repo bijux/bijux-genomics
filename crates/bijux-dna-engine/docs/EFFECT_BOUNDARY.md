@@ -11,7 +11,7 @@ All effects are executed by `Runner` implementations and runtime helpers.
 
 ## Enforced by
 - `tests/contracts/effect_boundary.rs`
-- `crates/bijux-policies/tests/surface/path_policies.rs`
+- `crates/bijux-dna-policies/tests/surface/path_policies.rs`
 
 ## Why
 Separating orchestration from effects keeps the engine deterministic, testable,

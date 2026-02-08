@@ -68,7 +68,7 @@ fn qa_trim_tool(
         .ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
     let image = resolve_image_for_run(spec, platform)?;
     let out_dir = temp_out_dir("trim", tool)?;
-    let container_name = format!("bijux-qa-trim-{}-{}", tool, Uuid::new_v4());
+    let container_name = format!("bijux-dna-qa-trim-{}-{}", tool, Uuid::new_v4());
     let timeout = Duration::from_secs(QA_TIMEOUT_SECS);
     let execution = match run_trim_container_with_timeout(
         tool,
@@ -178,7 +178,7 @@ fn qa_validate_tool(
         .ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
     let image = resolve_image_for_run(spec, platform)?;
     let out_dir = temp_out_dir("validate", tool)?;
-    let container_name = format!("bijux-qa-validate-{}-{}", tool, Uuid::new_v4());
+    let container_name = format!("bijux-dna-qa-validate-{}-{}", tool, Uuid::new_v4());
     let timeout = Duration::from_secs(QA_TIMEOUT_SECS);
     let execution = match run_validate_container_with_timeout(
         tool,
@@ -217,7 +217,7 @@ fn qa_filter_tool(
         .ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
     let image = resolve_image_for_run(spec, platform)?;
     let out_dir = temp_out_dir("filter", tool)?;
-    let container_name = format!("bijux-qa-filter-{}-{}", tool, Uuid::new_v4());
+    let container_name = format!("bijux-dna-qa-filter-{}-{}", tool, Uuid::new_v4());
     let timeout = Duration::from_secs(QA_TIMEOUT_SECS);
     let execution = match run_tool_container_with_timeout(
         tool,
@@ -285,7 +285,7 @@ fn qa_merge_tool(
         .as_ref()
         .ok_or_else(|| anyhow!("missing paired stats"))?;
     let out_dir = temp_out_dir("merge", tool)?;
-    let container_name = format!("bijux-qa-merge-{}-{}", tool, Uuid::new_v4());
+    let container_name = format!("bijux-dna-qa-merge-{}-{}", tool, Uuid::new_v4());
     let timeout = Duration::from_secs(QA_MERGE_TIMEOUT_SECS);
     let execution = match run_merge_container_with_timeout(
         tool,
@@ -344,7 +344,7 @@ fn qa_correct_tool(
         .ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
     let image = resolve_image_for_run(spec, platform)?;
     let out_dir = temp_out_dir("correct", tool)?;
-    let container_name = format!("bijux-qa-correct-{}-{}", tool, Uuid::new_v4());
+    let container_name = format!("bijux-dna-qa-correct-{}-{}", tool, Uuid::new_v4());
     let timeout = Duration::from_secs(QA_TIMEOUT_SECS);
     let execution = match run_tool_container_with_timeout(
         tool,

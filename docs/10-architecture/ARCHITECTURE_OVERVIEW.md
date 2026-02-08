@@ -10,8 +10,8 @@ Provides a top-down map of contracts and boundaries.
 - Detailed crate internals.
 
 ## Contracts
-- Boundaries enforced by `crates/bijux-policies/tests/deps/dependency_boundaries.rs`.
-- Contracts enforced by `crates/bijux-policies/tests/data/contract_handshake.rs`.
+- Boundaries enforced by `crates/bijux-dna-policies/tests/deps/dependency_boundaries.rs`.
+- Contracts enforced by `crates/bijux-dna-policies/tests/data/contract_handshake.rs`.
 
 ## Examples
 See `BOUNDARY_DIAGRAM.md` and `CONTRACT_SPINE.md` for canonical references.

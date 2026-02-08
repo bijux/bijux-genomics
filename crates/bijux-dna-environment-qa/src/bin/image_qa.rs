@@ -2,7 +2,7 @@ use anyhow::Result;
 use clap::Parser;
 
 #[derive(Debug, Parser)]
-#[command(name = "bijux-image-qa", version, about = "Bijux image QA")]
+#[command(name = "bijux-dna-image-qa", version, about = "Bijux image QA")]
 struct Args {
     #[arg(long)]
     platform: Option<String>,

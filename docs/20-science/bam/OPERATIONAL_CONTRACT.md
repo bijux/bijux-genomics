@@ -10,7 +10,7 @@ Makes expected outputs explicit for validation.
 - Scientific interpretation (see METHODOLOGICAL_INTENT.md).
 
 ## Contracts
-Stage contracts in `crates/bijux-stages-bam`.
+Stage contracts in `crates/bijux-dna-stages-bam`.
 
 ## Examples
 - bam.markdup -> metrics.json + stage_report.json

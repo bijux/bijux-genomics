@@ -387,7 +387,7 @@ mod tests {
 
     #[test]
     fn cross_run_manifest_includes_defaults_ledger() -> anyhow::Result<()> {
-        let temp = bijux_dna_infra::temp_dir("bijux-cross-manifest")?;
+        let temp = bijux_dna_infra::temp_dir("bijux-dna-cross-manifest")?;
         let out_dir = temp.path();
         let profile = profile_by_id(Domain::Cross, "fastq-to-bam__default__v1")?;
         write_defaults_ledger(out_dir, &profile)?;

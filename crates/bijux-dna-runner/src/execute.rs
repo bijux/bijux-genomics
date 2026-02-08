@@ -82,7 +82,7 @@ pub fn execute_step(
     let input_mount = format!("{}:/data/input:ro", input_root.display());
     let output_mount = format!("{}:/data/output", out_dir.display());
 
-    let container_name = format!("bijux-stage-{}", Uuid::new_v4());
+    let container_name = format!("bijux-dna-stage-{}", Uuid::new_v4());
     let mut args: Vec<String> = vec![
         "run".to_string(),
         "-d".to_string(),

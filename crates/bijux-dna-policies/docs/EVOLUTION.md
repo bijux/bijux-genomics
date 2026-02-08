@@ -23,7 +23,7 @@ Ensures policies are centralized and documented.
 - Policy added without documentation fails `policy_docs_anchor`.
 
 ## Checklist
-- [ ] Add test under `crates/bijux-policies/tests/...`
+- [ ] Add test under `crates/bijux-dna-policies/tests/...`
 - [ ] Document in `docs/INDEX.md`
 - [ ] Add allowlist/exception if required
 - [ ] Update snapshots if necessary

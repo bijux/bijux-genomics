@@ -27,4 +27,4 @@ The no-execution scan forbids process spawning and runtime effects in this crate
 - Missing test documentation causes drift and confusion.
 
 ## Testkit patterns
-See `crates/bijux-testkit/docs/USAGE.md` for shared fixture and snapshot helpers.
+See `crates/bijux-dna-testkit/docs/USAGE.md` for shared fixture and snapshot helpers.

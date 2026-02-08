@@ -1,7 +1,7 @@
 //! Execution engine for Bijux.
 //!
 //! Owns: execution services, validation gates, and observability hooks.
-//! Must NOT depend on: bijux-domain-* crates or domain semantics.
+//! Must NOT depend on: bijux-dna-domain-* crates or domain semantics.
 //! Policy: engine must not spawn processes (see clippy disallowed methods/types).
 
 #![deny(clippy::disallowed_methods, clippy::disallowed_types)]

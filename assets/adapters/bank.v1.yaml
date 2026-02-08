@@ -1,5 +1,5 @@
 schema_version: bijux.adapter_bank.v1
-bank_id: bijux-fastq-adapter-bank
+bank_id: bijux-dna-fastq-adapter-bank
 version: 1
 adapters:
   - id: truseq_universal

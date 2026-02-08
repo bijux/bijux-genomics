@@ -30,7 +30,7 @@ fn is_pipelines_defaults_path(path: &Path) -> bool {
 
 fn is_domain_params_path(path: &Path) -> bool {
     let path_str = path.to_string_lossy();
-    path_str.contains("/crates/bijux-domain-") && path_str.contains("/params/")
+    path_str.contains("/crates/bijux-dna-domain-") && path_str.contains("/params/")
 }
 
 fn is_policies_ownership_test(path: &Path) -> bool {

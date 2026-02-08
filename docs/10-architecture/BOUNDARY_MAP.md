@@ -19,8 +19,8 @@ Avoids boundary duplication across documents.
 Enforced by:
 - `docs/10-architecture/BOUNDARY_DIAGRAM.md`
 - `docs/10-architecture/DEPENDENCY_RULES.md`
-- `crates/bijux-policies/tests/deps/dependency_boundaries.rs`
-- `crates/bijux-policies/tests/deps/effect_boundary_map.rs`
+- `crates/bijux-dna-policies/tests/deps/dependency_boundaries.rs`
+- `crates/bijux-dna-policies/tests/deps/effect_boundary_map.rs`
 
 ## Executable Boundary Map
 ```boundaries

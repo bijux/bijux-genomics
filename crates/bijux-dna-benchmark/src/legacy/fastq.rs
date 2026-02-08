@@ -52,10 +52,10 @@ pub fn benchmark_runs(
     let base_dir = runs_dir
         .parent()
         .map_or_else(|| PathBuf::from("."), PathBuf::from);
-    let index_path = base_dir.join("bijux-runs").join("index.jsonl");
+    let index_path = base_dir.join("bijux-dna-runs").join("index.jsonl");
     if !index_path.exists() {
         return Err(anyhow!(
-            "missing bijux-runs/index.jsonl under {}",
+            "missing bijux-dna-runs/index.jsonl under {}",
             base_dir.display()
         ));
     }

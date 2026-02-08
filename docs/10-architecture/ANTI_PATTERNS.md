@@ -11,10 +11,10 @@ Prevent regressions and keep contracts enforceable.
 
 ## Contracts
 Enforced by policy tests:
-- `crates/bijux-policies/tests/surface/no_policy_duplication.rs`
-- `crates/bijux-policies/tests/surface/id_literal_policy.rs`
-- `crates/bijux-policies/tests/surface/no_serde_json_writer.rs`
-- `crates/bijux-policies/tests/surface/domain_purity.rs`
+- `crates/bijux-dna-policies/tests/surface/no_policy_duplication.rs`
+- `crates/bijux-dna-policies/tests/surface/id_literal_policy.rs`
+- `crates/bijux-dna-policies/tests/surface/no_serde_json_writer.rs`
+- `crates/bijux-dna-policies/tests/surface/domain_purity.rs`
 
 ## Examples
 - Policy duplication outside `bijux-dna-policies`.
