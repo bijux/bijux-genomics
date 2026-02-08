@@ -31,8 +31,5 @@
 site
 site/
 
-/target-temp/
-**/target-temp/
-
-/target-isolate/
-**/target-isolate/
+/target-*/
+**/target-*/
