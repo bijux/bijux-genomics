@@ -1,567 +1,638 @@
 ---
-source: crates/bijux-planner-bam/tests/plan_snapshots.rs
+source: crates/bijux-planner-bam/tests/contracts/plan/plan_snapshots.rs
+assertion_line: 123
 expression: plan
 ---
 {
   "schema_version": "bijux.execution_graph.v1",
+  "contract_version": {
+    "major": 1,
+    "minor": 0
+  },
   "pipeline_id": "bam-to-bam__adna_capture__v1",
   "planner_version": "bijux-planner-bam.v1",
-  "policy": "prefer_accuracy",
+  "policy": "PreferAccuracy",
+  "deterministic_scheduler": true,
+  "retry_policy": {
+    "max_attempts": 1,
+    "retry_on_exit_codes": []
+  },
+  "step_timeout_s": null,
   "steps": [
     {
       "step_id": "bam.authenticity",
+      "stage_id": "bam.authenticity",
       "command": {
         "template": [
-          "echo"
+          "bwa"
         ]
       },
       "image": {
-        "image": "bijux/test",
-        "digest": "sha256:bam"
+        "image": "bijux/bwa",
+        "digest": "sha256:bwa"
       },
       "resources": {
-        "runtime": "docker",
-        "mem_gb": 1,
+        "runtime": "short",
+        "mem_gb": 2,
         "tmp_gb": 1,
-        "threads": 1
+        "threads": 2
       },
       "io": {
         "inputs": [
           {
             "name": "bam",
-            "path": "out/bam_markdup/markdup.bam"
+            "path": "<temp>/out/bam_markdup/markdup.bam",
+            "role": "bam",
+            "optional": false
           }
         ],
         "outputs": [
           {
             "name": "authenticity_report",
-            "path": "out/bam_authenticity/authenticity.json"
+            "path": "<temp>/out/bam_authenticity/authenticity.json",
+            "role": "report_json",
+            "optional": false
           },
           {
             "name": "summary",
-            "path": "out/bam_authenticity/authenticity.summary.json"
+            "path": "<temp>/out/bam_authenticity/authenticity.summary.json",
+            "role": "report_json",
+            "optional": false
           },
           {
             "name": "stage_metrics",
-            "path": "out/bam_authenticity/stage.metrics.json"
+            "path": "<temp>/out/bam_authenticity/stage.metrics.json",
+            "role": "metrics_json",
+            "optional": false
           }
         ]
       },
-      "out_dir": "out/bam_authenticity",
-      "aux_images": {},
-      "expected_artifact_ids": [],
-      "metrics_schema_ids": []
-    },
-    {
-      "step_id": "bam.bias_mitigation",
-      "command": {
-        "template": [
-          "echo"
-        ]
-      },
-      "image": {
-        "image": "bijux/test",
-        "digest": "sha256:bam"
-      },
-      "resources": {
-        "runtime": "docker",
-        "mem_gb": 1,
-        "tmp_gb": 1,
-        "threads": 1
-      },
-      "io": {
-        "inputs": [
-          {
-            "name": "bam",
-            "path": "out/bam_markdup/markdup.bam"
-          }
-        ],
-        "outputs": [
-          {
-            "name": "bias_report",
-            "path": "out/bam_bias_mitigation/bias.json"
-          },
-          {
-            "name": "summary",
-            "path": "out/bam_bias_mitigation/bias.summary.json"
-          },
-          {
-            "name": "stage_metrics",
-            "path": "out/bam_bias_mitigation/stage.metrics.json"
-          }
-        ]
-      },
-      "out_dir": "out/bam_bias_mitigation",
+      "out_dir": "<temp>/out/bam_authenticity",
       "aux_images": {},
       "expected_artifact_ids": [],
       "metrics_schema_ids": []
     },
     {
       "step_id": "bam.complexity",
+      "stage_id": "bam.complexity",
       "command": {
         "template": [
-          "echo"
+          "bwa"
         ]
       },
       "image": {
-        "image": "bijux/test",
-        "digest": "sha256:bam"
+        "image": "bijux/bwa",
+        "digest": "sha256:bwa"
       },
       "resources": {
-        "runtime": "docker",
-        "mem_gb": 1,
+        "runtime": "short",
+        "mem_gb": 2,
         "tmp_gb": 1,
-        "threads": 1
+        "threads": 2
       },
       "io": {
         "inputs": [
           {
             "name": "bam",
-            "path": "out/bam_markdup/markdup.bam"
+            "path": "<temp>/out/bam_markdup/markdup.bam",
+            "role": "bam",
+            "optional": false
           }
         ],
         "outputs": [
           {
             "name": "complexity_report",
-            "path": "out/bam_complexity/complexity.json"
+            "path": "<temp>/out/bam_complexity/complexity.json",
+            "role": "report_json",
+            "optional": false
           },
           {
             "name": "preseq",
-            "path": "out/bam_complexity/preseq.txt"
+            "path": "<temp>/out/bam_complexity/preseq.txt",
+            "role": "unknown",
+            "optional": false
           },
           {
             "name": "summary",
-            "path": "out/bam_complexity/complexity.summary.json"
+            "path": "<temp>/out/bam_complexity/complexity.summary.json",
+            "role": "report_json",
+            "optional": false
           },
           {
             "name": "stage_metrics",
-            "path": "out/bam_complexity/stage.metrics.json"
+            "path": "<temp>/out/bam_complexity/stage.metrics.json",
+            "role": "metrics_json",
+            "optional": false
           }
         ]
       },
-      "out_dir": "out/bam_complexity",
+      "out_dir": "<temp>/out/bam_complexity",
       "aux_images": {},
       "expected_artifact_ids": [],
       "metrics_schema_ids": []
     },
     {
       "step_id": "bam.contamination",
+      "stage_id": "bam.contamination",
       "command": {
         "template": [
           "/bin/sh",
           "-c",
-          "contamination_tool --input out/bam_markdup/markdup.bam > out/bam_contamination/contamination.json && python - <<'PY' > out/bam_contamination/contamination.summary.json\nimport json\npayload = {\"method\": \"authenticct\", \"estimate\": 0.0, \"ci_low\": 0.0, \"ci_high\": 0.0, \"assumptions\": []}\nprint(json.dumps(payload, indent=2))\nPY"
+          "contamination_tool --input <temp>/out/bam_markdup/markdup.bam > <temp>/out/bam_contamination/contamination.json && python - <<'PY' > <temp>/out/bam_contamination/contamination.summary.json\nimport json\npayload = {\"method\": \"authenticct\", \"estimate\": 0.0, \"ci_low\": 0.0, \"ci_high\": 0.0, \"assumptions\": []}\nprint(json.dumps(payload, indent=2))\nPY"
         ]
       },
       "image": {
-        "image": "bijux/test",
-        "digest": "sha256:bam"
+        "image": "bijux/bwa",
+        "digest": "sha256:bwa"
       },
       "resources": {
-        "runtime": "docker",
-        "mem_gb": 1,
+        "runtime": "short",
+        "mem_gb": 2,
         "tmp_gb": 1,
-        "threads": 1
+        "threads": 2
       },
       "io": {
         "inputs": [
           {
             "name": "bam",
-            "path": "out/bam_markdup/markdup.bam"
+            "path": "<temp>/out/bam_markdup/markdup.bam",
+            "role": "bam",
+            "optional": false
           }
         ],
         "outputs": [
           {
             "name": "contamination_report",
-            "path": "out/bam_contamination/contamination.json"
+            "path": "<temp>/out/bam_contamination/contamination.json",
+            "role": "report_json",
+            "optional": false
           },
           {
             "name": "summary",
-            "path": "out/bam_contamination/contamination.summary.json"
+            "path": "<temp>/out/bam_contamination/contamination.summary.json",
+            "role": "report_json",
+            "optional": false
           },
           {
             "name": "stage_metrics",
-            "path": "out/bam_contamination/stage.metrics.json"
+            "path": "<temp>/out/bam_contamination/stage.metrics.json",
+            "role": "metrics_json",
+            "optional": false
           }
         ]
       },
-      "out_dir": "out/bam_contamination",
+      "out_dir": "<temp>/out/bam_contamination",
       "aux_images": {},
       "expected_artifact_ids": [],
       "metrics_schema_ids": []
     },
     {
       "step_id": "bam.coverage",
+      "stage_id": "bam.coverage",
       "command": {
         "template": [
           "mosdepth",
           "-n",
-          "out/bam_coverage/coverage",
-          "out/bam_markdup/markdup.bam"
+          "<temp>/out/bam_coverage/coverage",
+          "<temp>/out/bam_markdup/markdup.bam"
         ]
       },
       "image": {
-        "image": "bijux/test",
-        "digest": "sha256:bam"
+        "image": "bijux/bwa",
+        "digest": "sha256:bwa"
       },
       "resources": {
-        "runtime": "docker",
-        "mem_gb": 1,
+        "runtime": "short",
+        "mem_gb": 2,
         "tmp_gb": 1,
-        "threads": 1
+        "threads": 2
       },
       "io": {
         "inputs": [
           {
             "name": "bam",
-            "path": "out/bam_markdup/markdup.bam"
+            "path": "<temp>/out/bam_markdup/markdup.bam",
+            "role": "bam",
+            "optional": false
           }
         ],
         "outputs": [
           {
             "name": "coverage_summary",
-            "path": "out/bam_coverage/coverage.mosdepth.summary.txt"
+            "path": "<temp>/out/bam_coverage/coverage.mosdepth.summary.txt",
+            "role": "report_json",
+            "optional": false
           },
           {
             "name": "stage_metrics",
-            "path": "out/bam_coverage/stage.metrics.json"
+            "path": "<temp>/out/bam_coverage/stage.metrics.json",
+            "role": "metrics_json",
+            "optional": false
           }
         ]
       },
-      "out_dir": "out/bam_coverage",
+      "out_dir": "<temp>/out/bam_coverage",
       "aux_images": {},
       "expected_artifact_ids": [],
       "metrics_schema_ids": []
     },
     {
       "step_id": "bam.damage",
+      "stage_id": "bam.damage",
       "command": {
         "template": [
           "pydamage",
           "analyze",
           "--input",
-          "out/bam_markdup/markdup.bam",
+          "<temp>/out/bam_markdup/markdup.bam",
           "--output",
-          "out/bam_damage/damage.pydamage.json",
+          "<temp>/out/bam_damage/damage.pydamage.json",
           "--min-mapq",
           "0.3"
         ]
       },
       "image": {
-        "image": "bijux/test",
-        "digest": "sha256:bam"
+        "image": "bijux/bwa",
+        "digest": "sha256:bwa"
       },
       "resources": {
-        "runtime": "docker",
-        "mem_gb": 1,
+        "runtime": "short",
+        "mem_gb": 2,
         "tmp_gb": 1,
-        "threads": 1
+        "threads": 2
       },
       "io": {
         "inputs": [
           {
             "name": "bam",
-            "path": "out/bam_markdup/markdup.bam"
+            "path": "<temp>/out/bam_markdup/markdup.bam",
+            "role": "bam",
+            "optional": false
           }
         ],
         "outputs": [
           {
             "name": "damage_pydamage",
-            "path": "out/bam_damage/damage.pydamage.json"
+            "path": "<temp>/out/bam_damage/damage.pydamage.json",
+            "role": "unknown",
+            "optional": false
           },
           {
             "name": "damage_mapdamage2",
-            "path": "out/bam_damage/damage.mapdamage2.txt"
+            "path": "<temp>/out/bam_damage/damage.mapdamage2.txt",
+            "role": "unknown",
+            "optional": false
           },
           {
             "name": "stage_metrics",
-            "path": "out/bam_damage/stage.metrics.json"
+            "path": "<temp>/out/bam_damage/stage.metrics.json",
+            "role": "metrics_json",
+            "optional": false
           }
         ]
       },
-      "out_dir": "out/bam_damage",
+      "out_dir": "<temp>/out/bam_damage",
       "aux_images": {},
       "expected_artifact_ids": [],
       "metrics_schema_ids": []
     },
     {
       "step_id": "bam.filter",
+      "stage_id": "bam.filter",
       "command": {
         "template": [
           "/bin/sh",
           "-c",
-          "samtools flagstat input.bam > out/bam_filter/flagstat.before.txt && samtools idxstats input.bam > out/bam_filter/idxstats.before.txt && samtools view -b -q 30 input.bam | samtools sort -o out/bam_filter/filtered.bam && samtools index out/bam_filter/filtered.bam out/bam_filter/filtered.bam.bai && samtools flagstat out/bam_filter/filtered.bam > out/bam_filter/flagstat.after.txt && samtools idxstats out/bam_filter/filtered.bam > out/bam_filter/idxstats.after.txt && python - <<'PY' > out/bam_filter/filter.summary.json\nimport json\npayload = {\"input_bam\": \"input.bam\", \"output_bam\": \"out/bam_filter/filtered.bam\", \"params\": {\"mapq_threshold\": 30, \"min_length\": 25}, \"artifacts\": {\"flagstat_before\": \"out/bam_filter/flagstat.before.txt\", \"flagstat_after\": \"out/bam_filter/flagstat.after.txt\", \"idxstats_before\": \"out/bam_filter/idxstats.before.txt\", \"idxstats_after\": \"out/bam_filter/idxstats.after.txt\"}}\nprint(json.dumps(payload, indent=2))\nPY"
+          "samtools flagstat <temp>/sample.bam > <temp>/out/bam_filter/flagstat.before.txt && samtools idxstats <temp>/sample.bam > <temp>/out/bam_filter/idxstats.before.txt && samtools view -b -q 30 <temp>/sample.bam | samtools sort -o <temp>/out/bam_filter/filtered.bam && samtools index <temp>/out/bam_filter/filtered.bam <temp>/out/bam_filter/filtered.bam.bai && samtools flagstat <temp>/out/bam_filter/filtered.bam > <temp>/out/bam_filter/flagstat.after.txt && samtools idxstats <temp>/out/bam_filter/filtered.bam > <temp>/out/bam_filter/idxstats.after.txt && python - <<'PY' > <temp>/out/bam_filter/filter.summary.json\nimport json\npayload = {\"input_bam\": \"<temp>/sample.bam\", \"output_bam\": \"<temp>/out/bam_filter/filtered.bam\", \"params\": {\"mapq_threshold\": 30, \"min_length\": 25}, \"artifacts\": {\"flagstat_before\": \"<temp>/out/bam_filter/flagstat.before.txt\", \"flagstat_after\": \"<temp>/out/bam_filter/flagstat.after.txt\", \"idxstats_before\": \"<temp>/out/bam_filter/idxstats.before.txt\", \"idxstats_after\": \"<temp>/out/bam_filter/idxstats.after.txt\"}}\nprint(json.dumps(payload, indent=2))\nPY"
         ]
       },
       "image": {
-        "image": "bijux/test",
-        "digest": "sha256:bam"
+        "image": "bijux/bwa",
+        "digest": "sha256:bwa"
       },
       "resources": {
-        "runtime": "docker",
-        "mem_gb": 1,
+        "runtime": "short",
+        "mem_gb": 2,
         "tmp_gb": 1,
-        "threads": 1
+        "threads": 2
       },
       "io": {
         "inputs": [
           {
             "name": "bam",
-            "path": "input.bam"
+            "path": "<temp>/sample.bam",
+            "role": "bam",
+            "optional": false
           }
         ],
         "outputs": [
           {
             "name": "filtered_bam",
-            "path": "out/bam_filter/filtered.bam"
+            "path": "<temp>/out/bam_filter/filtered.bam",
+            "role": "bam",
+            "optional": false
           },
           {
             "name": "filtered_bai",
-            "path": "out/bam_filter/filtered.bam.bai"
+            "path": "<temp>/out/bam_filter/filtered.bam.bai",
+            "role": "index",
+            "optional": false
           },
           {
             "name": "flagstat_before",
-            "path": "out/bam_filter/flagstat.before.txt"
+            "path": "<temp>/out/bam_filter/flagstat.before.txt",
+            "role": "report_json",
+            "optional": false
           },
           {
             "name": "flagstat_after",
-            "path": "out/bam_filter/flagstat.after.txt"
+            "path": "<temp>/out/bam_filter/flagstat.after.txt",
+            "role": "report_json",
+            "optional": false
           },
           {
             "name": "idxstats_before",
-            "path": "out/bam_filter/idxstats.before.txt"
+            "path": "<temp>/out/bam_filter/idxstats.before.txt",
+            "role": "unknown",
+            "optional": false
           },
           {
             "name": "idxstats_after",
-            "path": "out/bam_filter/idxstats.after.txt"
+            "path": "<temp>/out/bam_filter/idxstats.after.txt",
+            "role": "unknown",
+            "optional": false
           },
           {
             "name": "summary",
-            "path": "out/bam_filter/filter.summary.json"
+            "path": "<temp>/out/bam_filter/filter.summary.json",
+            "role": "report_json",
+            "optional": false
           },
           {
             "name": "stage_metrics",
-            "path": "out/bam_filter/stage.metrics.json"
+            "path": "<temp>/out/bam_filter/stage.metrics.json",
+            "role": "metrics_json",
+            "optional": false
           }
         ]
       },
-      "out_dir": "out/bam_filter",
+      "out_dir": "<temp>/out/bam_filter",
       "aux_images": {},
       "expected_artifact_ids": [],
       "metrics_schema_ids": []
     },
     {
       "step_id": "bam.markdup",
+      "stage_id": "bam.markdup",
       "command": {
         "template": [
           "/bin/sh",
           "-c",
-          "samtools flagstat out/bam_filter/filtered.bam > out/bam_markdup/flagstat.before.txt && samtools idxstats out/bam_filter/filtered.bam > out/bam_markdup/idxstats.before.txt && gatk MarkDuplicatesSpark -I out/bam_filter/filtered.bam -O out/bam_markdup/markdup.bam --REMOVE_DUPLICATES false --CREATE_INDEX true && samtools flagstat out/bam_markdup/markdup.bam > out/bam_markdup/flagstat.after.txt && samtools idxstats out/bam_markdup/markdup.bam > out/bam_markdup/idxstats.after.txt && python - <<'PY' > out/bam_markdup/markdup.summary.json\nimport json\npayload = {\"input_bam\": \"out/bam_filter/filtered.bam\", \"output_bam\": \"out/bam_markdup/markdup.bam\", \"remove_duplicates\": false, \"artifacts\": {\"flagstat_before\": \"out/bam_markdup/flagstat.before.txt\", \"flagstat_after\": \"out/bam_markdup/flagstat.after.txt\", \"idxstats_before\": \"out/bam_markdup/idxstats.before.txt\", \"idxstats_after\": \"out/bam_markdup/idxstats.after.txt\"}}\nprint(json.dumps(payload, indent=2))\nPY"
+          "samtools flagstat <temp>/out/bam_filter/filtered.bam > <temp>/out/bam_markdup/flagstat.before.txt && samtools idxstats <temp>/out/bam_filter/filtered.bam > <temp>/out/bam_markdup/idxstats.before.txt && gatk MarkDuplicatesSpark -I <temp>/out/bam_filter/filtered.bam -O <temp>/out/bam_markdup/markdup.bam --REMOVE_DUPLICATES false --CREATE_INDEX true && samtools flagstat <temp>/out/bam_markdup/markdup.bam > <temp>/out/bam_markdup/flagstat.after.txt && samtools idxstats <temp>/out/bam_markdup/markdup.bam > <temp>/out/bam_markdup/idxstats.after.txt && python - <<'PY' > <temp>/out/bam_markdup/markdup.summary.json\nimport json\npayload = {\"input_bam\": \"<temp>/out/bam_filter/filtered.bam\", \"output_bam\": \"<temp>/out/bam_markdup/markdup.bam\", \"remove_duplicates\": false, \"artifacts\": {\"flagstat_before\": \"<temp>/out/bam_markdup/flagstat.before.txt\", \"flagstat_after\": \"<temp>/out/bam_markdup/flagstat.after.txt\", \"idxstats_before\": \"<temp>/out/bam_markdup/idxstats.before.txt\", \"idxstats_after\": \"<temp>/out/bam_markdup/idxstats.after.txt\"}}\nprint(json.dumps(payload, indent=2))\nPY"
         ]
       },
       "image": {
-        "image": "bijux/test",
-        "digest": "sha256:bam"
+        "image": "bijux/bwa",
+        "digest": "sha256:bwa"
       },
       "resources": {
-        "runtime": "docker",
-        "mem_gb": 1,
+        "runtime": "short",
+        "mem_gb": 2,
         "tmp_gb": 1,
-        "threads": 1
+        "threads": 2
       },
       "io": {
         "inputs": [
           {
             "name": "bam",
-            "path": "out/bam_filter/filtered.bam"
+            "path": "<temp>/out/bam_filter/filtered.bam",
+            "role": "bam",
+            "optional": false
           }
         ],
         "outputs": [
           {
             "name": "markdup_bam",
-            "path": "out/bam_markdup/markdup.bam"
+            "path": "<temp>/out/bam_markdup/markdup.bam",
+            "role": "bam",
+            "optional": false
           },
           {
             "name": "markdup_bai",
-            "path": "out/bam_markdup/markdup.bam.bai"
+            "path": "<temp>/out/bam_markdup/markdup.bam.bai",
+            "role": "index",
+            "optional": false
           },
           {
             "name": "flagstat_before",
-            "path": "out/bam_markdup/flagstat.before.txt"
+            "path": "<temp>/out/bam_markdup/flagstat.before.txt",
+            "role": "report_json",
+            "optional": false
           },
           {
             "name": "flagstat_after",
-            "path": "out/bam_markdup/flagstat.after.txt"
+            "path": "<temp>/out/bam_markdup/flagstat.after.txt",
+            "role": "report_json",
+            "optional": false
           },
           {
             "name": "idxstats_before",
-            "path": "out/bam_markdup/idxstats.before.txt"
+            "path": "<temp>/out/bam_markdup/idxstats.before.txt",
+            "role": "unknown",
+            "optional": false
           },
           {
             "name": "idxstats_after",
-            "path": "out/bam_markdup/idxstats.after.txt"
+            "path": "<temp>/out/bam_markdup/idxstats.after.txt",
+            "role": "unknown",
+            "optional": false
           },
           {
             "name": "summary",
-            "path": "out/bam_markdup/markdup.summary.json"
+            "path": "<temp>/out/bam_markdup/markdup.summary.json",
+            "role": "report_json",
+            "optional": false
           },
           {
             "name": "stage_metrics",
-            "path": "out/bam_markdup/stage.metrics.json"
+            "path": "<temp>/out/bam_markdup/stage.metrics.json",
+            "role": "metrics_json",
+            "optional": false
           }
         ]
       },
-      "out_dir": "out/bam_markdup",
+      "out_dir": "<temp>/out/bam_markdup",
       "aux_images": {},
       "expected_artifact_ids": [],
       "metrics_schema_ids": []
     },
     {
       "step_id": "bam.qc_pre",
+      "stage_id": "bam.qc_pre",
       "command": {
         "template": [
           "/bin/sh",
           "-c",
-          "samtools flagstat input.bam > out/bam_qc_pre/flagstat.txt && samtools idxstats input.bam > out/bam_qc_pre/idxstats.txt && samtools stats input.bam > out/bam_qc_pre/samtools_stats.txt"
+          "samtools flagstat <temp>/sample.bam > <temp>/out/bam_qc_pre/flagstat.txt && samtools idxstats <temp>/sample.bam > <temp>/out/bam_qc_pre/idxstats.txt && samtools stats <temp>/sample.bam > <temp>/out/bam_qc_pre/samtools_stats.txt"
         ]
       },
       "image": {
-        "image": "bijux/test",
-        "digest": "sha256:bam"
+        "image": "bijux/bwa",
+        "digest": "sha256:bwa"
       },
       "resources": {
-        "runtime": "docker",
-        "mem_gb": 1,
+        "runtime": "short",
+        "mem_gb": 2,
         "tmp_gb": 1,
-        "threads": 1
+        "threads": 2
       },
       "io": {
         "inputs": [
           {
             "name": "bam",
-            "path": "input.bam"
+            "path": "<temp>/sample.bam",
+            "role": "bam",
+            "optional": false
           }
         ],
         "outputs": [
           {
             "name": "flagstat",
-            "path": "out/bam_qc_pre/flagstat.txt"
+            "path": "<temp>/out/bam_qc_pre/flagstat.txt",
+            "role": "report_json",
+            "optional": false
           },
           {
             "name": "idxstats",
-            "path": "out/bam_qc_pre/idxstats.txt"
+            "path": "<temp>/out/bam_qc_pre/idxstats.txt",
+            "role": "unknown",
+            "optional": false
           },
           {
             "name": "stats",
-            "path": "out/bam_qc_pre/samtools_stats.txt"
+            "path": "<temp>/out/bam_qc_pre/samtools_stats.txt",
+            "role": "unknown",
+            "optional": false
           },
           {
             "name": "stage_metrics",
-            "path": "out/bam_qc_pre/stage.metrics.json"
+            "path": "<temp>/out/bam_qc_pre/stage.metrics.json",
+            "role": "metrics_json",
+            "optional": false
           }
         ]
       },
-      "out_dir": "out/bam_qc_pre",
+      "out_dir": "<temp>/out/bam_qc_pre",
       "aux_images": {},
       "expected_artifact_ids": [],
       "metrics_schema_ids": []
     },
     {
       "step_id": "bam.sex",
+      "stage_id": "bam.sex",
       "command": {
         "template": [
           "/bin/sh",
           "-c",
-          "rxy --input out/bam_markdup/markdup.bam > out/bam_sex/sex.json && python - <<'PY' > out/bam_sex/sex.summary.json\nimport json\npayload = {\"method\": \"rxy\", \"x_to_y_ratio\": 0.0, \"confidence\": 0.0}\nprint(json.dumps(payload, indent=2))\nPY"
+          "rxy --input <temp>/out/bam_markdup/markdup.bam > <temp>/out/bam_sex/sex.json && python - <<'PY' > <temp>/out/bam_sex/sex.summary.json\nimport json\npayload = {\"method\": \"rxy\", \"x_to_y_ratio\": 0.0, \"confidence\": 0.0}\nprint(json.dumps(payload, indent=2))\nPY"
         ]
       },
       "image": {
-        "image": "bijux/test",
-        "digest": "sha256:bam"
+        "image": "bijux/bwa",
+        "digest": "sha256:bwa"
       },
       "resources": {
-        "runtime": "docker",
-        "mem_gb": 1,
+        "runtime": "short",
+        "mem_gb": 2,
         "tmp_gb": 1,
-        "threads": 1
+        "threads": 2
       },
       "io": {
         "inputs": [
           {
             "name": "bam",
-            "path": "out/bam_markdup/markdup.bam"
+            "path": "<temp>/out/bam_markdup/markdup.bam",
+            "role": "bam",
+            "optional": false
           }
         ],
         "outputs": [
           {
             "name": "sex_report",
-            "path": "out/bam_sex/sex.json"
+            "path": "<temp>/out/bam_sex/sex.json",
+            "role": "report_json",
+            "optional": false
           },
           {
             "name": "summary",
-            "path": "out/bam_sex/sex.summary.json"
+            "path": "<temp>/out/bam_sex/sex.summary.json",
+            "role": "report_json",
+            "optional": false
           },
           {
             "name": "stage_metrics",
-            "path": "out/bam_sex/stage.metrics.json"
+            "path": "<temp>/out/bam_sex/stage.metrics.json",
+            "role": "metrics_json",
+            "optional": false
           }
         ]
       },
-      "out_dir": "out/bam_sex",
+      "out_dir": "<temp>/out/bam_sex",
       "aux_images": {},
       "expected_artifact_ids": [],
       "metrics_schema_ids": []
     },
     {
       "step_id": "bam.validate",
+      "stage_id": "bam.validate",
       "command": {
         "template": [
           "/bin/sh",
           "-c",
-          "samtools quickcheck -v input.bam > out/bam_validate/validation.json && samtools flagstat input.bam > out/bam_validate/flagstat.txt"
+          "samtools quickcheck -v <temp>/sample.bam > <temp>/out/bam_validate/validation.json && samtools flagstat <temp>/sample.bam > <temp>/out/bam_validate/flagstat.txt"
         ]
       },
       "image": {
-        "image": "bijux/test",
-        "digest": "sha256:bam"
+        "image": "bijux/bwa",
+        "digest": "sha256:bwa"
       },
       "resources": {
-        "runtime": "docker",
-        "mem_gb": 1,
+        "runtime": "short",
+        "mem_gb": 2,
         "tmp_gb": 1,
-        "threads": 1
+        "threads": 2
       },
       "io": {
         "inputs": [
           {
             "name": "bam",
-            "path": "input.bam"
-          },
-          {
-            "name": "reference",
-            "path": "ref.fa"
-          },
-          {
-            "name": "bam_bai",
-            "path": "input.bam.bai"
+            "path": "<temp>/sample.bam",
+            "role": "bam",
+            "optional": false
           }
         ],
         "outputs": [
           {
             "name": "validation_report",
-            "path": "out/bam_validate/validation.json"
+            "path": "<temp>/out/bam_validate/validation.json",
+            "role": "report_json",
+            "optional": false
           },
           {
             "name": "flagstat",
-            "path": "out/bam_validate/flagstat.txt"
+            "path": "<temp>/out/bam_validate/flagstat.txt",
+            "role": "report_json",
+            "optional": false
           },
           {
             "name": "stage_metrics",
-            "path": "out/bam_validate/stage.metrics.json"
+            "path": "<temp>/out/bam_validate/stage.metrics.json",
+            "role": "metrics_json",
+            "optional": false
           }
         ]
       },
-      "out_dir": "out/bam_validate",
+      "out_dir": "<temp>/out/bam_validate",
       "aux_images": {},
       "expected_artifact_ids": [],
       "metrics_schema_ids": []
@@ -599,10 +670,6 @@ expression: plan
     {
       "from": "bam.qc_pre",
       "to": "bam.filter"
-    },
-    {
-      "from": "bam.sex",
-      "to": "bam.bias_mitigation"
     },
     {
       "from": "bam.validate",

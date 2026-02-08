@@ -1,4 +1,5 @@
 use std::collections::BTreeMap;
+use std::path::PathBuf;
 
 use bijux_core::contract::PlanPolicy;
 use bijux_core::prelude::{
@@ -6,7 +7,10 @@ use bijux_core::prelude::{
 };
 use bijux_domain_bam::BamStage;
 use bijux_planner_bam::{plan_bam_to_bam__adna_shotgun__v1, BamPipelineInputs};
-use bijux_testkit::snapshot_name;
+
+fn snapshot_name(group: &str, name: &str) -> String {
+    format!("bijux-planner-bam__{group}__{name}")
+}
 
 fn dummy_tool(stage: &str) -> ToolExecutionSpecV1 {
     ToolExecutionSpecV1 {
@@ -54,7 +58,9 @@ fn bam_adna_shotgun_graph_is_pure() -> anyhow::Result<()> {
     let graph = plan_bam_to_bam__adna_shotgun__v1(&inputs)?;
     let json = serde_json::to_value(&graph)?;
     let json = bijux_core::contract::canonical::canonicalize_truth_json(&json);
-    let mut settings = insta::Settings::new();
+    let mut settings = insta::Settings::clone_current();
+    settings.set_snapshot_path(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/snapshots"));
+    settings.set_prepend_module_to_snapshot(false);
     settings.add_filter(temp.path().to_str().unwrap_or_default(), "<temp>");
     settings.bind(|| {
         let name = snapshot_name("contracts", "bam_adna_shotgun_graph");

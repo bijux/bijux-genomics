@@ -403,7 +403,7 @@ fn stage_order_for_profile(profile_id: &str) -> Vec<BamStage> {
     }
 }
 
-pub fn pipeline_stage_ids(profile_id: &str) -> Vec<String> {
+pub fn pipeline_id_catalog(profile_id: &str) -> Vec<String> {
     stage_order_for_profile(profile_id)
         .iter()
         .map(|stage| stage.as_str().to_string())

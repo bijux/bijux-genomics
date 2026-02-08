@@ -16,4 +16,4 @@
 }
 ```
 
-See `tests/explain/explainability.rs` for enforcement.
+See `tests/explain/explainability.rs` (integration test lives at `tests/contracts/explain/explainability.rs`).

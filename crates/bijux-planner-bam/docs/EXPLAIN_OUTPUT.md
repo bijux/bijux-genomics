@@ -17,4 +17,4 @@ Explain output includes:
 }
 ```
 
-See `tests/explain/explainability.rs` and `tests/graph/graph_snapshots.rs` for enforcement.
+See `tests/contracts/explain/explainability.rs` and `tests/contracts/graph/graph_snapshots.rs` for enforcement.

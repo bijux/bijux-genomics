@@ -65,13 +65,13 @@ fn fastq_plan_validates_against_contracts() -> anyhow::Result<()> {
         plans,
         edges,
     )?;
-    let allowed_stage_ids = stages.into_iter().collect::<HashSet<_>>();
+    let allowed_id_catalog = stages.into_iter().collect::<HashSet<_>>();
     let allowed_tool_ids = tools
         .into_iter()
         .map(|tool| tool.tool_id.to_string())
         .collect::<HashSet<_>>();
     let context = PlanValidationContext {
-        allowed_stage_ids: Some(&allowed_stage_ids),
+        allowed_id_catalog: Some(&allowed_id_catalog),
         allowed_tool_ids: Some(&allowed_tool_ids),
     };
     plan.validate_strict(&context)?;

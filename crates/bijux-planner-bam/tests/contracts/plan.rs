@@ -2,8 +2,6 @@
 mod artifacts_contract;
 #[path = "plan/contract_handshake.rs"]
 mod contract_handshake;
-#[path = "plan/guardrails.rs"]
-mod guardrails;
 #[path = "plan/no_parsing_execution.rs"]
 mod no_parsing_execution;
 #[path = "plan/params_complete.rs"]

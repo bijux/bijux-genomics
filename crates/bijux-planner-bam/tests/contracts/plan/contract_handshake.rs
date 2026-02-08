@@ -4,7 +4,7 @@ use bijux_core::contract::PlanPolicy;
 use bijux_core::prelude::{
     CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
 };
-use bijux_planner_bam::{pipeline_stage_ids, plan_stage, StagePlanRequest};
+use bijux_planner_bam::{pipeline_id_catalog, plan_stage, StagePlanRequest};
 use bijux_stage_contract::{default_edges_for_stages, ExecutionPlan, PlanValidationContext};
 
 fn dummy_tool(stage: &str) -> ToolExecutionSpecV1 {
@@ -29,7 +29,7 @@ fn dummy_tool(stage: &str) -> ToolExecutionSpecV1 {
 
 #[test]
 fn bam_plan_validates_against_contracts() -> anyhow::Result<()> {
-    let stages = pipeline_stage_ids("bam-to-bam__default__v1");
+    let stages = pipeline_id_catalog("bam-to-bam__default__v1");
     let temp = bijux_infra::temp_dir("bam-plan-handshake")?;
     let bam = temp.path().join("sample.bam");
     std::fs::write(&bam, b"")?;
@@ -62,9 +62,9 @@ fn bam_plan_validates_against_contracts() -> anyhow::Result<()> {
         plans,
         edges,
     )?;
-    let allowed_stage_ids = stages.into_iter().collect::<HashSet<_>>();
+    let allowed_id_catalog = stages.into_iter().collect::<HashSet<_>>();
     let context = PlanValidationContext {
-        allowed_stage_ids: Some(&allowed_stage_ids),
+        allowed_id_catalog: Some(&allowed_id_catalog),
         allowed_tool_ids: Some(&tool_ids),
     };
     plan.validate_strict(&context)?;
