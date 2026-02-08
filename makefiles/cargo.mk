@@ -4,7 +4,7 @@ TEST 		= cargo nextest run --workspace
 AUDIT 		= cargo deny check
 COVERAGE_OUT = $(if $(CARGO_TARGET_DIR),$(CARGO_TARGET_DIR),target)/llvm-cov/coverage.json
 HTML_OUT     = $(if $(CARGO_TARGET_DIR),$(CARGO_TARGET_DIR),target)/llvm-cov/html
-COVERAGE 	= cargo llvm-cov nextest run --workspace --json --output-path $(COVERAGE_OUT)
+COVERAGE 	= cargo llvm-cov nextest run --workspace --run-ignored all --json --output-path $(COVERAGE_OUT)
 
 fmt:
 	$(FMT)
