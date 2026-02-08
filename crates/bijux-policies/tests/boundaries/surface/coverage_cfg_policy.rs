@@ -4,11 +4,12 @@ use std::path::Path;
 
 use walkdir::WalkDir;
 
-use bijux_policies::workspace_root;
+#[path = "../../support/fs.rs"]
+mod support;
 
 #[test]
 fn policy__boundaries__coverage_cfg_policy__cfg_coverage_is_banned_in_src() {
-    let root = workspace_root();
+    let root = support::workspace_root();
     let crates_root = root.join("crates");
     let mut offenders = Vec::new();
 

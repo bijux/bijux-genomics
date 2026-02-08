@@ -568,7 +568,7 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
             .unwrap_or_else(|| bijux_policies::policy_panic!("missing crate {name}"));
         parse_dependencies(&path.join("Cargo.toml"), &known)
     };
-    let is_guardrails = |dep: &str| dep == "bijux-policies";
+    let is_guardrails = |dep: &str| dep == "bijux-policies" || dep == "bijux-testkit";
 
     let cli = deps_for("bijux");
     bijux_policies::policy_assert!(cli.contains("bijux-api"), "cli must depend on bijux-api");
@@ -767,6 +767,7 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
         "bijux-infra",
         "bijux-policies",
         "bijux-runtime",
+        "bijux-testkit",
     ]);
     for dep in &api {
         bijux_policies::policy_assert!(
@@ -899,6 +900,7 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
         "bijux-pipelines",
         "bijux-infra",
         "bijux-policies",
+        "bijux-testkit",
     ]);
     for dep in &planner_fastq {
         bijux_policies::policy_assert!(
@@ -916,6 +918,7 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
         "bijux-pipelines",
         "bijux-infra",
         "bijux-policies",
+        "bijux-testkit",
     ]);
     for dep in &planner_bam {
         bijux_policies::policy_assert!(
