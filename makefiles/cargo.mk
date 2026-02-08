@@ -5,6 +5,7 @@ AUDIT 		= cargo deny check
 COVERAGE_OUT = $(if $(CARGO_TARGET_DIR),$(CARGO_TARGET_DIR),target)/llvm-cov/coverage.json
 HTML_OUT     = $(if $(CARGO_TARGET_DIR),$(CARGO_TARGET_DIR),target)/llvm-cov/html
 COVERAGE 	= cargo llvm-cov --json --output-path $(COVERAGE_OUT) test --workspace --all-features --tests --benches --bins -- --include-ignored
+COVERAGE_ENV = RUST_TEST_THREADS=1
 
 fmt:
 	$(FMT)
@@ -23,7 +24,7 @@ audit: ensure-cargo-deny
 
 coverage:
 	@mkdir -p $(dir $(COVERAGE_OUT))
-	$(COVERAGE)
+	$(COVERAGE_ENV) $(COVERAGE)
 	python3 scripts/coverage_summary.py $(COVERAGE_OUT)
 
 fmt-isolate:
@@ -41,15 +42,15 @@ audit-isolate: ensure-cargo-deny
 coverage-isolate: CARGO_TARGET_DIR=target-isolate
 coverage-isolate:
 	@mkdir -p $(dir $(COVERAGE_OUT))
-	$(COVERAGE)
+	$(COVERAGE_ENV) $(COVERAGE)
 	python3 scripts/coverage_summary.py $(COVERAGE_OUT)
 
 coverage-html:
-	cargo llvm-cov test --workspace --all-features --tests --benches --bins --html --output-dir $(HTML_OUT) -- --include-ignored
+	$(COVERAGE_ENV) cargo llvm-cov test --workspace --all-features --tests --benches --bins --html --output-dir $(HTML_OUT) -- --include-ignored
 
 coverage-html-isolate: CARGO_TARGET_DIR=target-isolate
 coverage-html-isolate:
-	cargo llvm-cov test --workspace --all-features --tests --benches --bins --html --output-dir $(HTML_OUT) -- --include-ignored
+	$(COVERAGE_ENV) cargo llvm-cov test --workspace --all-features --tests --benches --bins --html --output-dir $(HTML_OUT) -- --include-ignored
 
 ci: fmt lint audit coverage
 
