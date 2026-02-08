@@ -1,14 +1,14 @@
 FMT 		= cargo fmt --all -- --check
 LINT 		= CARGO_BUILD_JOBS=10 cargo clippy -p bijux-core -p bijux-engine -p bijux-api -p bijux --lib --bins --no-deps -- -D warnings
 AUDIT 		= cargo deny check
-NEXTEST_PROFILE ?= ci
-NEXTEST_CONFIG  ?= --config-file nextest.toml
-RUN_IGNORED 	= --run-ignored all
-TEST_FEATURES 	= --all-features
-TEST_TMPDIR 	= $(abspath $(if $(CARGO_TARGET_DIR),$(CARGO_TARGET_DIR),target))/tmp
-TEST_PROFILE_DIR = $(TEST_TMPDIR)/profraw
-TEST_ENV 		= TZ=UTC LC_ALL=C TMPDIR=$(TEST_TMPDIR) TMP=$(TEST_TMPDIR) TEMP=$(TEST_TMPDIR) LLVM_PROFILE_FILE=$(TEST_PROFILE_DIR)/%p.profraw
-TEST 			= $(TEST_ENV) cargo nextest run $(NEXTEST_CONFIG) --workspace $(TEST_FEATURES) --profile $(NEXTEST_PROFILE) $(RUN_IGNORED)
+NEXTEST_PROFILE 	?= ci
+NEXTEST_CONFIG  	?= --config-file nextest.toml
+RUN_IGNORED 		= --run-ignored all
+TEST_FEATURES 		= --all-features
+TEST_TMPDIR 		= $(abspath $(if $(CARGO_TARGET_DIR),$(CARGO_TARGET_DIR),target))/tmp
+TEST_PROFILE_DIR 	= $(TEST_TMPDIR)/profraw
+TEST_ENV 			= TZ=UTC LC_ALL=C TMPDIR=$(TEST_TMPDIR) TMP=$(TEST_TMPDIR) TEMP=$(TEST_TMPDIR) LLVM_PROFILE_FILE=$(TEST_PROFILE_DIR)/%p.profraw
+TEST 				= $(TEST_ENV) cargo nextest run $(NEXTEST_CONFIG) --workspace $(TEST_FEATURES) --profile $(NEXTEST_PROFILE) $(RUN_IGNORED)
 COVERAGE_ROOT 		= $(if $(CARGO_TARGET_DIR),$(CARGO_TARGET_DIR),target)
 COVERAGE_ROOT_ABS 	= $(abspath $(COVERAGE_ROOT))
 COVERAGE_TARGET_DIR = $(COVERAGE_ROOT)/llvm-cov-target
