@@ -70,14 +70,15 @@ fn pipeline_profiles_are_complete() {
             profile.id
         );
         for node in &profile.capabilities.required_stages {
+            let stage = bijux_core::ids::StageId::from_static(node);
             assert!(
-                ledger.params.contains_key(*node),
+                ledger.params.contains_key(&stage),
                 "defaults ledger missing params for {} in {}",
                 node,
                 profile.id
             );
             assert!(
-                ledger.param_provenance.contains_key(*node),
+                ledger.param_provenance.contains_key(&stage),
                 "defaults ledger missing params provenance for {} in {}",
                 node,
                 profile.id

@@ -3,6 +3,7 @@
 use std::path::{Path, PathBuf};
 
 use walkdir::WalkDir;
+use bijux_pipelines::registry::PipelineRegistry;
 
 fn workspace_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -53,6 +54,42 @@ fn policy__contracts__defaults_policy__params_defaults_live_in_pipelines_only() 
     bijux_policies::policy_assert!(
         offenders.is_empty(),
         "param defaults must be defined in bijux-pipelines only:\n{}",
+        offenders.join("\n")
+    );
+}
+
+#[test]
+fn policy__contracts__defaults_policy__every_default_has_provenance() {
+    let registry = PipelineRegistry::v1();
+    let mut offenders = Vec::new();
+
+    for profile in registry.list(true) {
+        let ledger = profile.defaults_ledger();
+        for stage in ledger.tools.keys() {
+            match ledger.tool_provenance.get(stage) {
+                Some(provenance) if !provenance.rationale.trim().is_empty() => {}
+                _ => offenders.push(format!(
+                    "{} missing tool provenance for {}",
+                    profile.id.as_str(),
+                    stage.as_str()
+                )),
+            }
+        }
+        for stage in ledger.params.keys() {
+            match ledger.param_provenance.get(stage) {
+                Some(provenance) if !provenance.rationale.trim().is_empty() => {}
+                _ => offenders.push(format!(
+                    "{} missing param provenance for {}",
+                    profile.id.as_str(),
+                    stage.as_str()
+                )),
+            }
+        }
+    }
+
+    bijux_policies::policy_assert!(
+        offenders.is_empty(),
+        "every defaulted tool/param must have provenance:\n{}",
         offenders.join("\n")
     );
 }

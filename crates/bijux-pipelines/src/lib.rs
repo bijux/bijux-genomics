@@ -5,6 +5,12 @@
 use std::collections::BTreeMap;
 
 use serde::Serialize;
+use bijux_core::ids::{StageId, ToolId};
+use bijux_domain_fastq::params::{
+    DetectAdaptersEffectiveParams, FilterEffectiveParams, MergeEffectiveParams,
+    PreprocessEffectiveParams, QcPostEffectiveParams, ScreenEffectiveParams, TrimEffectiveParams,
+    ValidateEffectiveParams,
+};
 
 pub mod bam;
 pub mod cross;
@@ -75,9 +81,42 @@ pub enum ReportSection {
 
 #[derive(Debug, Clone, Default, Serialize)]
 pub struct EffectiveDefaults {
-    pub tools: BTreeMap<String, String>,
-    pub params: BTreeMap<String, serde_json::Value>,
-    pub rationales: BTreeMap<String, String>,
+    pub tools: BTreeMap<StageId, ToolId>,
+    pub params: BTreeMap<StageId, DefaultParams>,
+    pub rationales: BTreeMap<StageId, String>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(tag = "kind", content = "value")]
+pub enum DefaultParams {
+    FastqValidate(ValidateEffectiveParams),
+    FastqDetectAdapters(DetectAdaptersEffectiveParams),
+    FastqTrim(TrimEffectiveParams),
+    FastqFilter(FilterEffectiveParams),
+    FastqQcPost(QcPostEffectiveParams),
+    FastqPreprocess(PreprocessEffectiveParams),
+    FastqMerge(MergeEffectiveParams),
+    FastqScreen(ScreenEffectiveParams),
+    Json(serde_json::Value),
+}
+
+impl DefaultParams {
+    #[must_use]
+    pub fn to_json(&self) -> serde_json::Value {
+        match self {
+            DefaultParams::FastqValidate(value) => serde_json::to_value(value).unwrap_or_default(),
+            DefaultParams::FastqDetectAdapters(value) => {
+                serde_json::to_value(value).unwrap_or_default()
+            }
+            DefaultParams::FastqTrim(value) => serde_json::to_value(value).unwrap_or_default(),
+            DefaultParams::FastqFilter(value) => serde_json::to_value(value).unwrap_or_default(),
+            DefaultParams::FastqQcPost(value) => serde_json::to_value(value).unwrap_or_default(),
+            DefaultParams::FastqPreprocess(value) => serde_json::to_value(value).unwrap_or_default(),
+            DefaultParams::FastqMerge(value) => serde_json::to_value(value).unwrap_or_default(),
+            DefaultParams::FastqScreen(value) => serde_json::to_value(value).unwrap_or_default(),
+            DefaultParams::Json(value) => value.clone(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -129,6 +168,7 @@ impl PipelineProfile {
                 rationale: rationale.clone(),
                 assumptions: Vec::new(),
                 comparability_implications: Vec::new(),
+                citations: Vec::new(),
             };
             if self.defaults.tools.contains_key(stage) {
                 tool_provenance.insert(stage.clone(), provenance.clone());
@@ -141,24 +181,31 @@ impl PipelineProfile {
             tool_provenance
                 .entry(stage.clone())
                 .or_insert_with(|| DefaultProvenanceV1 {
-                    rationale: "unspecified".to_string(),
+                    rationale: String::new(),
                     assumptions: Vec::new(),
                     comparability_implications: Vec::new(),
+                    citations: Vec::new(),
                 });
         }
         for stage in self.defaults.params.keys() {
             param_provenance
                 .entry(stage.clone())
                 .or_insert_with(|| DefaultProvenanceV1 {
-                    rationale: "unspecified".to_string(),
+                    rationale: String::new(),
                     assumptions: Vec::new(),
                     comparability_implications: Vec::new(),
+                    citations: Vec::new(),
                 });
         }
         DefaultsLedgerV1 {
             pipeline_id: self.id.clone(),
             tools: self.defaults.tools.clone(),
-            params: self.defaults.params.clone(),
+            params: self
+                .defaults
+                .params
+                .iter()
+                .map(|(stage, value)| (stage.clone(), value.to_json()))
+                .collect(),
             thresholds: BTreeMap::new(),
             tool_provenance,
             param_provenance,
@@ -233,7 +280,7 @@ fn apply_overrides(
 
 fn ensure_stage_known(
     profile: &EffectiveDefaults,
-    stage: &str,
+    stage: &StageId,
     context: &str,
 ) -> anyhow::Result<()> {
     if profile.tools.contains_key(stage) || profile.params.contains_key(stage) {
@@ -242,6 +289,6 @@ fn ensure_stage_known(
     Err(anyhow::anyhow!(
         "{} references unknown stage {}",
         context,
-        stage
+        stage.as_str()
     ))
 }

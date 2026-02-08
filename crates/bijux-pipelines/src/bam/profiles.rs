@@ -4,14 +4,15 @@ use std::collections::BTreeMap;
 
 use anyhow::{anyhow, Result};
 use bijux_core::prelude::id_catalog;
+use bijux_core::ids::StageId;
 use bijux_domain_bam::defaults::{
     adna_capture_params_json, adna_shotgun_params_json, default_params_json,
 };
 use bijux_domain_bam::BamStage;
 
 use crate::{
-    ArtifactType, Domain, EffectiveDefaults, MetricsBundle, PipelineCapabilities, PipelineId,
-    PipelineProfile, ReportSection, StabilityTier,
+    ArtifactType, DefaultParams, Domain, EffectiveDefaults, MetricsBundle, PipelineCapabilities,
+    PipelineId, PipelineProfile, ReportSection, StabilityTier,
 };
 
 #[derive(Debug, Clone)]
@@ -38,9 +39,12 @@ fn to_effective_defaults(defaults: &[BamStageDefault]) -> EffectiveDefaults {
     let mut params = BTreeMap::new();
     let mut rationales = BTreeMap::new();
     for entry in defaults {
-        params.insert(entry.stage.as_str().to_string(), entry.params.clone());
+        params.insert(
+            StageId::from_static(entry.stage.as_str()),
+            DefaultParams::Json(entry.params.clone()),
+        );
         rationales.insert(
-            entry.stage.as_str().to_string(),
+            StageId::from_static(entry.stage.as_str()),
             "pipeline default".to_string(),
         );
     }
