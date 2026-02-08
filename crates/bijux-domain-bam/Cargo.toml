@@ -1,0 +1,22 @@
+[package]
+name = "bijux-domain-bam"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+bijux-core = { path = "../bijux-core" }
+anyhow.workspace = true
+schemars.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+
+[lints]
+workspace = true
+
+[dev-dependencies]
+bijux-policies = { path = "../bijux-policies" }
+insta = { workspace = true, features = ["json"] }
+walkdir.workspace = true
+bijux-testkit = { path = "../bijux-testkit" }

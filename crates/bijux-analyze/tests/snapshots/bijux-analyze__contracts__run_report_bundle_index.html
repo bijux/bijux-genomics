@@ -1,0 +1,1330 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>bijux analyze report</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      margin: 0;
+      line-height: 1.4;
+      background: #f7f7f9;
+      color: #111;
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      min-height: 100vh;
+    }
+    nav {
+      background: #111827;
+      color: #f9fafb;
+      padding: 1.5rem 1rem;
+    }
+    nav h2 {
+      font-size: 1rem;
+      margin: 0 0 1rem;
+    }
+    nav ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    nav li {
+      margin: 0.5rem 0;
+    }
+    nav a {
+      color: #e5e7eb;
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+    main {
+      padding: 2rem;
+    }
+    .section {
+      background: #fff;
+      border-radius: 10px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+    .section summary {
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 0.5rem;
+    }
+    pre {
+      white-space: pre-wrap;
+    }
+    .stage-tabs {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+    .stage-tab {
+      padding: 0.4rem 0.8rem;
+      border: 1px solid #d1d5db;
+      background: #fff;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+    .stage-tab.active {
+      background: #111827;
+      color: #fff;
+      border-color: #111827;
+    }
+    .stage-panel {
+      display: none;
+      background: #fff;
+      border-radius: 10px;
+      padding: 1rem;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+    .stage-panel.active {
+      display: block;
+    }
+    .stage-meta {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.5rem;
+      color: #4b5563;
+      font-size: 0.9rem;
+    }
+    .stage-artifacts ul {
+      padding-left: 1.2rem;
+    }
+    .plot-bar {
+      height: 8px;
+      background: #e5e7eb;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .plot-bar span {
+      display: block;
+      height: 100%;
+      background: #2563eb;
+    }
+    .copy-btn {
+      margin-left: 0.5rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 6px;
+      border: 1px solid #d1d5db;
+      background: #fff;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <script id="report-json" type="application/json">{
+  "schema_version": "bijux.report.v1",
+  "contract": {
+    "schema_version": "bijux.report_contract.v1",
+    "required_sections": [
+      "contract",
+      "completeness",
+      "stages",
+      "provenance",
+      "run_provenance",
+      "decision_config",
+      "analysis_selection_contract",
+      "retention_definition",
+      "retention_context",
+      "assets_provenance",
+      "metric_semantics",
+      "telemetry",
+      "qc_improvement",
+      "final_qc_summary",
+      "filter_interpretation",
+      "adapter_inference",
+      "claims_registry"
+    ],
+    "required_provenance_fields": [
+      "tool_id",
+      "tool_version",
+      "image_digest",
+      "trace_id",
+      "span_id",
+      "params_hash",
+      "bank_hashes"
+    ]
+  },
+  "run_id": "run-1",
+  "completeness": {
+    "status": "complete",
+    "missing_metrics": [],
+    "missing_reports": []
+  },
+  "stages": [
+    {
+      "stage_id": "fastq.trim",
+      "tool_id": "fastp",
+      "tool_version": "0.23.4",
+      "params_hash": "params",
+      "input_hash": "input",
+      "runtime_s": 1.0,
+      "memory_mb": 64.0,
+      "exit_code": 0,
+      "metrics_path": "/Users/bijan/bijux/bijux-dna/crates/bijux-analyze/tests/fixtures/report/metrics.json",
+      "tool_invocation_path": "/Users/bijan/bijux/bijux-dna/crates/bijux-analyze/tests/fixtures/report/tool_invocation.json",
+      "effective_config_path": "/Users/bijan/bijux/bijux-dna/crates/bijux-analyze/tests/fixtures/report/effective_config.json",
+      "stage_report_path": "/Users/bijan/bijux/bijux-dna/crates/bijux-analyze/tests/fixtures/report/stage_report.json",
+      "retention_report_path": "/Users/bijan/bijux/bijux-dna/crates/bijux-analyze/tests/fixtures/report/retention_report.json",
+      "bank_report_path": "/Users/bijan/bijux/bijux-dna/crates/bijux-analyze/tests/fixtures/report/bank_report.json"
+    }
+  ],
+  "provenance": [
+    {
+      "stage_id": "fastq.trim",
+      "tool_id": "fastp",
+      "tool_version": "0.23.4",
+      "image_digest": "sha256:img",
+      "trace_id": "trace-1",
+      "span_id": "span-1",
+      "params_hash": "params",
+      "bank_hashes": {
+        "adapters": "sha256:adapters",
+        "contaminants": "sha256:contam",
+        "polyx": "sha256:polyx"
+      }
+    }
+  ],
+  "retention_definition": [
+    {
+      "stage_id": "fastq.trim",
+      "tool_id": "fastp",
+      "numerator": "{\"bases_out\":800,\"reads_out\":80}",
+      "denominator": "{\"bases_in\":1000,\"reads_in\":100}",
+      "conditions": {
+        "min_len": 20
+      }
+    }
+  ],
+  "retention_context": [
+    {
+      "stage_id": "fastq.trim",
+      "tool_id": "fastp",
+      "definition": "{\"bases_out\":800,\"reads_out\":80} / {\"bases_in\":1000,\"reads_in\":100} (reads)",
+      "conditions": {
+        "min_len": 20
+      }
+    }
+  ],
+  "assets_provenance": [
+    {
+      "stage_id": "fastq.trim",
+      "tool_id": "fastp",
+      "banks": {
+        "adapters": {
+          "entries": [
+            {
+              "enabled": true,
+              "id": "A1",
+              "sequence": "ACGT"
+            }
+          ],
+          "hash": "sha256:adapters",
+          "preset": "default"
+        },
+        "contaminants": {
+          "entries": [
+            {
+              "enabled": true,
+              "id": "phix"
+            }
+          ],
+          "hash": "sha256:contam",
+          "preset": "illumina_default"
+        },
+        "polyx": {
+          "entries": [
+            {
+              "enabled": true,
+              "id": "polyG"
+            }
+          ],
+          "hash": "sha256:polyx",
+          "preset": "illumina_twocolor"
+        }
+      }
+    }
+  ],
+  "metric_semantics": [
+    {
+      "metric_id": "runtime_s",
+      "direction": "LowerBetter",
+      "units": "seconds",
+      "range": ">= 0",
+      "missing_data_policy": "treat_as_infinite",
+      "influencing_params": []
+    },
+    {
+      "metric_id": "memory_mb",
+      "direction": "LowerBetter",
+      "units": "MB",
+      "range": ">= 0",
+      "missing_data_policy": "treat_as_infinite",
+      "influencing_params": []
+    },
+    {
+      "metric_id": "read_retention",
+      "direction": "HigherBetter",
+      "units": "ratio",
+      "range": "[0, 1]",
+      "missing_data_policy": "treat_as_0.0",
+      "influencing_params": [
+        "adapter_bank",
+        "trim_settings",
+        "filter_settings"
+      ]
+    },
+    {
+      "metric_id": "base_retention",
+      "direction": "HigherBetter",
+      "units": "ratio",
+      "range": "[0, 1]",
+      "missing_data_policy": "treat_as_0.0",
+      "influencing_params": [
+        "adapter_bank",
+        "trim_settings",
+        "filter_settings"
+      ]
+    },
+    {
+      "metric_id": "merge_rate",
+      "direction": "HigherBetter",
+      "units": "ratio",
+      "range": "[0, 1]",
+      "missing_data_policy": "treat_as_0.0",
+      "influencing_params": [
+        "merge_policy"
+      ]
+    },
+    {
+      "metric_id": "error_reduction_proxy",
+      "direction": "HigherBetter",
+      "units": "mean_q_delta",
+      "range": "[0, 45]",
+      "missing_data_policy": "treat_as_0.0",
+      "influencing_params": [
+        "corrector_settings"
+      ]
+    }
+  ],
+  "telemetry": {
+    "error_count": 0,
+    "event_count": 0,
+    "events": [
+      "/Users/bijan/bijux/bijux-dna/crates/bijux-analyze/tests/fixtures/report/telemetry/events.jsonl"
+    ]
+  },
+  "qc_improvement": {},
+  "final_qc_summary": {
+    "adapter_inference": {
+      "rationale": "Adapter detection ran before trimming.",
+      "safety": "Inference only applies when adapters are not explicitly set.",
+      "suggested_adapters": {}
+    },
+    "qc": {}
+  },
+  "filter_interpretation": {},
+  "adapter_inference": {
+    "rationale": "Adapter detection ran before trimming.",
+    "safety": "Inference only applies when adapters are not explicitly set.",
+    "suggested_adapters": {}
+  },
+  "pipeline_verdict": {
+    "verdict": "pass",
+    "reasons": []
+  },
+  "sections": {
+    "accounting": {
+      "stages": [
+        {
+          "bases": 800,
+          "reads": 80,
+          "stage_id": "fastq.trim",
+          "tool_id": "fastp"
+        }
+      ]
+    },
+    "adapter_config": {},
+    "analysis_selection_contract": {
+      "criteria": [
+        "runtime_s",
+        "memory_mb",
+        "retention_ratio"
+      ],
+      "notes": "Selection uses bench medians per tool and the configured objective weights.",
+      "objectives": [
+        {
+          "objective": "speed",
+          "ranking": "lower score is better",
+          "scoring": "weighted_sum(runtime, memory, retention)",
+          "weights": {
+            "memory": 0.0,
+            "retention": 0.0,
+            "runtime": 1.0
+          }
+        },
+        {
+          "objective": "memory",
+          "ranking": "lower score is better",
+          "scoring": "weighted_sum(runtime, memory, retention)",
+          "weights": {
+            "memory": 1.0,
+            "retention": 0.0,
+            "runtime": 0.0
+          }
+        },
+        {
+          "objective": "retention",
+          "ranking": "lower score is better",
+          "scoring": "weighted_sum(runtime, memory, retention)",
+          "weights": {
+            "memory": 0.0,
+            "retention": -1.0,
+            "runtime": 0.0
+          }
+        },
+        {
+          "objective": "balanced",
+          "ranking": "lower score is better",
+          "scoring": "weighted_sum(runtime, memory, retention)",
+          "weights": {
+            "memory": 1.0,
+            "retention": -100.0,
+            "runtime": 1.0
+          }
+        }
+      ],
+      "selection_strategy": "objective_weights"
+    },
+    "assertions": {
+      "entries": [
+        {
+          "results": [],
+          "stage_id": "fastq.trim",
+          "tool_id": "fastp"
+        }
+      ]
+    },
+    "bench_summary": {},
+    "claims_registry": {
+      "claims": []
+    },
+    "comparison_view": {
+      "stages": []
+    },
+    "contaminant_summary": {
+      "kmer_percent_removed": null,
+      "kmer_reads_removed": null,
+      "percent_removed": null,
+      "reads_removed": null,
+      "top_taxa": {}
+    },
+    "contamination": {
+      "assets": [
+        {
+          "banks": {
+            "adapters": {
+              "entries": [
+                {
+                  "enabled": true,
+                  "id": "A1",
+                  "sequence": "ACGT"
+                }
+              ],
+              "hash": "sha256:adapters",
+              "preset": "default"
+            },
+            "contaminants": {
+              "entries": [
+                {
+                  "enabled": true,
+                  "id": "phix"
+                }
+              ],
+              "hash": "sha256:contam",
+              "preset": "illumina_default"
+            },
+            "polyx": {
+              "entries": [
+                {
+                  "enabled": true,
+                  "id": "polyG"
+                }
+              ],
+              "hash": "sha256:polyx",
+              "preset": "illumina_twocolor"
+            }
+          },
+          "stage_id": "fastq.trim",
+          "tool_id": "fastp"
+        }
+      ]
+    },
+    "data_contract_validation": {
+      "missing_metrics": [],
+      "missing_reports": [],
+      "status": "complete"
+    },
+    "decision_config": {
+      "bootstrap_policy": {
+        "enabled": false,
+        "min_samples": 5,
+        "samples": null
+      },
+      "compare_objective": "balanced_default",
+      "objective_spec": {
+        "name": "balanced",
+        "weights": {
+          "memory": 1.0,
+          "retention": -100.0,
+          "runtime": 1.0
+        }
+      },
+      "outlier_policy": {
+        "method": "mad",
+        "threshold": 3.5
+      },
+      "schema_version": "bijux.decision_config.v1",
+      "tie_break_policy": [
+        "tool_id"
+      ]
+    },
+    "decision_trace": {
+      "entries": [
+        {
+          "adapter_validation": {},
+          "contaminant_action": false,
+          "input_hash": "input",
+          "missing_metrics": [],
+          "missing_reports": [],
+          "params_hash": "params",
+          "quality_gate": {},
+          "stage_id": "fastq.trim",
+          "telemetry_decisions": [],
+          "tool_id": "fastp",
+          "tool_version": "0.23.4"
+        }
+      ]
+    },
+    "failure_hints": {
+      "count": 0,
+      "failures": []
+    },
+    "failures": {
+      "completeness": {
+        "missing_metrics": [],
+        "missing_reports": [],
+        "status": "complete"
+      }
+    },
+    "filtering": {},
+    "final_qc_summary": {
+      "adapter_inference": {
+        "rationale": "Adapter detection ran before trimming.",
+        "safety": "Inference only applies when adapters are not explicitly set.",
+        "suggested_adapters": {}
+      },
+      "qc": {}
+    },
+    "findings": {
+      "claims": [],
+      "recommendations": [],
+      "suspected_issues": [],
+      "warnings": []
+    },
+    "handoff": {},
+    "impact_metrics": {
+      "impact": [
+        {
+          "bases_dropped": 200,
+          "reads_dropped": 20,
+          "stage_id": "fastq.trim",
+          "tool_id": "fastp"
+        }
+      ]
+    },
+    "key_findings": [],
+    "method_assumptions": {
+      "assumptions": [
+        "compare_objective defaults to balanced when not specified",
+        "effect_size uses absolute/relative thresholds for practical significance",
+        "outliers use MAD threshold 3.5",
+        "bootstrap confidence intervals are disabled by default",
+        "tie-breaks are resolved by tool_id when scores are equal"
+      ],
+      "bootstrap_policy": {
+        "enabled": false,
+        "min_samples": 5,
+        "samples": null
+      },
+      "compare_objective": "balanced_default",
+      "decision_policy_version": "bijux.decision_policy.v1",
+      "effect_thresholds": {
+        "absolute": 0.05,
+        "relative": 0.05
+      },
+      "objective_spec": {
+        "name": "balanced",
+        "weights": {
+          "memory": 1.0,
+          "retention": -100.0,
+          "runtime": 1.0
+        }
+      },
+      "outlier_policy": {
+        "method": "mad",
+        "threshold": 3.5
+      },
+      "presets": [
+        {
+          "effective_config_path": "/Users/bijan/bijux/bijux-dna/crates/bijux-analyze/tests/fixtures/report/effective_config.json",
+          "params_hash": "params",
+          "stage_id": "fastq.trim",
+          "tool_id": "fastp",
+          "tool_version": "0.23.4"
+        }
+      ],
+      "tie_break_policy": [
+        "tool_id"
+      ],
+      "tools": [
+        {
+          "image_digest": "sha256:img",
+          "params_hash": "params",
+          "stage_id": "fastq.trim",
+          "tool_id": "fastp",
+          "tool_version": "0.23.4"
+        }
+      ]
+    },
+    "metric_provenance": {
+      "fastq.trim": {
+        "normalized_params_excerpt": {
+          "min_len": 20
+        },
+        "params_hash": "params",
+        "tool_id": "fastp"
+      }
+    },
+    "pipeline_defaults": {
+      "defaults_ledger": {
+        "assumptions": [],
+        "citations": {},
+        "param_provenance": {},
+        "params": {},
+        "pipeline_id": "fastq-to-fastq__default__v1",
+        "thresholds": {},
+        "tool_provenance": {},
+        "tools": {}
+      },
+      "overrides": []
+    },
+    "pipeline_overview": {
+      "stages": [
+        {
+          "image_digest": "sha256:img",
+          "input_hash": "input",
+          "output_hashes": [
+            "out"
+          ],
+          "params_hash": "params",
+          "scientific_preset": null,
+          "stage_id": "fastq.trim",
+          "tier_rationale": "curated_default",
+          "tool_id": "fastp",
+          "tool_tier": "gold",
+          "tool_version": "0.23.4"
+        }
+      ]
+    },
+    "pipeline_verdict": {
+      "aggregation_policy": {
+        "fail_condition": "any stage fail",
+        "pass_condition": "all stages pass",
+        "rule": "worst_status",
+        "schema_version": "bijux.pipeline_verdict_policy.v1",
+        "warn_condition": "any stage warn and no stage fail"
+      },
+      "reasons": [],
+      "verdict": "pass"
+    },
+    "qc": {},
+    "qc_artifacts": {},
+    "qc_delta": {
+      "mean_q_delta": null,
+      "qc_post_mean_q": null,
+      "validate_pre_mean_q": null
+    },
+    "reproducibility": {
+      "command": "unknown",
+      "determinism_policy": {
+        "float_format": "fixed_3",
+        "html_table_order": "stage_id,tool_id",
+        "json_canonicalization": "sorted_keys",
+        "timestamp_format": "rfc3339_utc"
+      },
+      "finished_at": null,
+      "image_digests": [
+        "sha256:img"
+      ],
+      "input_hashes": [
+        "input"
+      ],
+      "params_hashes": [
+        "params"
+      ],
+      "started_at": null,
+      "tool_versions": [
+        "0.23.4"
+      ]
+    },
+    "retention": {
+      "contexts": [
+        {
+          "conditions": {
+            "min_len": 20
+          },
+          "definition": "{\"bases_out\":800,\"reads_out\":80} / {\"bases_in\":1000,\"reads_in\":100} (reads)",
+          "stage_id": "fastq.trim",
+          "tool_id": "fastp"
+        }
+      ],
+      "definitions": [
+        {
+          "conditions": {
+            "min_len": 20
+          },
+          "denominator": "{\"bases_in\":1000,\"reads_in\":100}",
+          "numerator": "{\"bases_out\":800,\"reads_out\":80}",
+          "stage_id": "fastq.trim",
+          "tool_id": "fastp"
+        }
+      ]
+    },
+    "run_provenance": {
+      "graph_hash": "unknown",
+      "input_hashes": [],
+      "stage_contracts": {}
+    },
+    "scientific_provenance": {
+      "entries": [
+        {
+          "effective_params": {
+            "adapter_policy": "bank",
+            "min_len": 20,
+            "paired_mode": "single_end",
+            "threads": 1
+          },
+          "image_digest": "sha256:img",
+          "input_hash": "input",
+          "output_hashes": [
+            "out"
+          ],
+          "params_hash": "params",
+          "raw_params": {
+            "min_len": 20
+          },
+          "resolved_tool_version": "0.23.4",
+          "stage_id": "fastq.trim",
+          "tool_id": "fastp",
+          "tool_version": "0.23.4"
+        }
+      ]
+    },
+    "stage_completeness": {
+      "rows": [
+        {
+          "missing_metrics": [],
+          "missing_reports": [],
+          "stage_id": "fastq.trim",
+          "status": "complete"
+        }
+      ]
+    },
+    "stage_confidence": {
+      "entries": [
+        {
+          "bucket": "high",
+          "reasons": [],
+          "score": 1.0,
+          "stage_id": "fastq.trim",
+          "tool_id": "fastp"
+        }
+      ]
+    },
+    "stage_plots": {
+      "entries": [
+        {
+          "base_retention": 0.8,
+          "gc_delta": null,
+          "mean_q_delta": null,
+          "read_retention": 0.8,
+          "stage_id": "fastq.trim",
+          "tool_id": "fastp"
+        }
+      ],
+      "waterfall": [
+        {
+          "read_retention": 0.8,
+          "stage_id": "fastq.trim"
+        }
+      ]
+    },
+    "trimming": {
+      "retention_context": [
+        {
+          "conditions": {
+            "min_len": 20
+          },
+          "definition": "{\"bases_out\":800,\"reads_out\":80} / {\"bases_in\":1000,\"reads_in\":100} (reads)",
+          "stage_id": "fastq.trim",
+          "tool_id": "fastp"
+        }
+      ],
+      "retention_definition": [
+        {
+          "conditions": {
+            "min_len": 20
+          },
+          "denominator": "{\"bases_in\":1000,\"reads_in\":100}",
+          "numerator": "{\"bases_out\":800,\"reads_out\":80}",
+          "stage_id": "fastq.trim",
+          "tool_id": "fastp"
+        }
+      ]
+    }
+  }
+}</script>
+  <div class="layout">
+    <nav>
+      <h2>bijux report</h2>
+      <ul>
+        <li><a href="#overview">overview</a></li>
+        <li><a href="#stages">stages</a></li>
+<li><a href="#section-accounting">accounting</a></li><li><a href="#section-adapter_config">adapter_config</a></li><li><a href="#section-analysis_selection_contract">analysis_selection_contract</a></li><li><a href="#section-assertions">assertions</a></li><li><a href="#section-bench_summary">bench_summary</a></li><li><a href="#section-claims_registry">claims_registry</a></li><li><a href="#section-comparison_view">comparison_view</a></li><li><a href="#section-contaminant_summary">contaminant_summary</a></li><li><a href="#section-contamination">contamination</a></li><li><a href="#section-data_contract_validation">data_contract_validation</a></li><li><a href="#section-decision_config">decision_config</a></li><li><a href="#section-decision_trace">decision_trace</a></li><li><a href="#section-failure_hints">failure_hints</a></li><li><a href="#section-failures">failures</a></li><li><a href="#section-filtering">filtering</a></li><li><a href="#section-final_qc_summary">final_qc_summary</a></li><li><a href="#section-findings">findings</a></li><li><a href="#section-handoff">handoff</a></li><li><a href="#section-impact_metrics">impact_metrics</a></li><li><a href="#section-key_findings">key_findings</a></li><li><a href="#section-method_assumptions">method_assumptions</a></li><li><a href="#section-metric_provenance">metric_provenance</a></li><li><a href="#section-pipeline_defaults">pipeline_defaults</a></li><li><a href="#section-pipeline_overview">pipeline_overview</a></li><li><a href="#section-pipeline_verdict">pipeline_verdict</a></li><li><a href="#section-qc">qc</a></li><li><a href="#section-qc_artifacts">qc_artifacts</a></li><li><a href="#section-qc_delta">qc_delta</a></li><li><a href="#section-reproducibility">reproducibility</a></li><li><a href="#section-retention">retention</a></li><li><a href="#section-run_provenance">run_provenance</a></li><li><a href="#section-scientific_provenance">scientific_provenance</a></li><li><a href="#section-stage_completeness">stage_completeness</a></li><li><a href="#section-stage_confidence">stage_confidence</a></li><li><a href="#section-stage_plots">stage_plots</a></li><li><a href="#section-trimming">trimming</a></li>
+      </ul>
+    </nav>
+    <main>
+      <section id="overview" class="section">
+        <h2>overview</h2>
+        <div class="section">
+          <h3>reproducibility</h3>
+          <pre>{
+  "command": "unknown",
+  "determinism_policy": {
+    "float_format": "fixed_3",
+    "html_table_order": "stage_id,tool_id",
+    "json_canonicalization": "sorted_keys",
+    "timestamp_format": "rfc3339_utc"
+  },
+  "finished_at": null,
+  "image_digests": [
+    "sha256:img"
+  ],
+  "input_hashes": [
+    "input"
+  ],
+  "params_hashes": [
+    "params"
+  ],
+  "started_at": null,
+  "tool_versions": [
+    "0.23.4"
+  ]
+}</pre>
+          <div>
+            <code>unknown</code>
+            <button class="copy-btn" data-copy="command">copy command</button>
+          </div>
+        </div>
+      </section>
+      <section id="stages" class="section">
+        <h2>stages</h2>
+        <div class="stage-tabs">
+<button class=\"stage-tab active\" data-stage=\"fastq.trim\">fastq.trim</button>
+        </div>
+<div class=\"stage-panel active\" data-stage=\"fastq.trim\">
+  <h3>fastq.trim</h3>
+  <div class=\"stage-meta\">
+    <span>tool: fastp</span>
+    <span>version: 0.23.4</span>
+    <span>params: params</span>
+  </div>
+  <div class=\"stage-meta\">
+    <span>exit_code: 0</span>
+    <span>runtime_s: 1.00</span>
+    <span>memory_mb: 64.0</span>
+  </div>
+  <div class=\"stage-artifacts\">
+    <h4>Artifacts</h4>
+    <ul><li><a href=\"/Users/bijan/bijux/bijux-dna/crates/bijux-analyze/tests/fixtures/report/stage_report.json\">stage_report</a></li><li><a href=\"/Users/bijan/bijux/bijux-dna/crates/bijux-analyze/tests/fixtures/report/metrics.json\">metrics</a></li><li><a href=\"/Users/bijan/bijux/bijux-dna/crates/bijux-analyze/tests/fixtures/report/retention_report.json\">retention_report</a></li><li><a href=\"/Users/bijan/bijux/bijux-dna/crates/bijux-analyze/tests/fixtures/report/bank_report.json\">bank_report</a></li><li><a href=\"/Users/bijan/bijux/bijux-dna/crates/bijux-analyze/tests/fixtures/report/tool_invocation.json\">tool_invocation</a></li></ul>
+  </div>
+  <div class=\"stage-plots\" data-stage=\"fastq.trim\"></div>
+</div>
+      </section>
+<details id=\"section-accounting\" class=\"section\"><summary>accounting</summary><pre>{
+  "stages": [
+    {
+      "bases": 800,
+      "reads": 80,
+      "stage_id": "fastq.trim",
+      "tool_id": "fastp"
+    }
+  ]
+}</pre></details><details id=\"section-adapter_config\" class=\"section\"><summary>adapter_config</summary><pre>{}</pre></details><details id=\"section-analysis_selection_contract\" class=\"section\"><summary>analysis_selection_contract</summary><pre>{
+  "criteria": [
+    "runtime_s",
+    "memory_mb",
+    "retention_ratio"
+  ],
+  "notes": "Selection uses bench medians per tool and the configured objective weights.",
+  "objectives": [
+    {
+      "objective": "speed",
+      "ranking": "lower score is better",
+      "scoring": "weighted_sum(runtime, memory, retention)",
+      "weights": {
+        "memory": 0.0,
+        "retention": 0.0,
+        "runtime": 1.0
+      }
+    },
+    {
+      "objective": "memory",
+      "ranking": "lower score is better",
+      "scoring": "weighted_sum(runtime, memory, retention)",
+      "weights": {
+        "memory": 1.0,
+        "retention": 0.0,
+        "runtime": 0.0
+      }
+    },
+    {
+      "objective": "retention",
+      "ranking": "lower score is better",
+      "scoring": "weighted_sum(runtime, memory, retention)",
+      "weights": {
+        "memory": 0.0,
+        "retention": -1.0,
+        "runtime": 0.0
+      }
+    },
+    {
+      "objective": "balanced",
+      "ranking": "lower score is better",
+      "scoring": "weighted_sum(runtime, memory, retention)",
+      "weights": {
+        "memory": 1.0,
+        "retention": -100.0,
+        "runtime": 1.0
+      }
+    }
+  ],
+  "selection_strategy": "objective_weights"
+}</pre></details><details id=\"section-assertions\" class=\"section\"><summary>assertions</summary><pre>{
+  "entries": [
+    {
+      "results": [],
+      "stage_id": "fastq.trim",
+      "tool_id": "fastp"
+    }
+  ]
+}</pre></details><details id=\"section-bench_summary\" class=\"section\"><summary>bench_summary</summary><pre>{}</pre></details><details id=\"section-claims_registry\" class=\"section\"><summary>claims_registry</summary><pre>{
+  "claims": []
+}</pre></details><details id=\"section-comparison_view\" class=\"section\"><summary>comparison_view</summary><pre>{
+  "stages": []
+}</pre></details><details id=\"section-contaminant_summary\" class=\"section\"><summary>contaminant_summary</summary><pre>{
+  "kmer_percent_removed": null,
+  "kmer_reads_removed": null,
+  "percent_removed": null,
+  "reads_removed": null,
+  "top_taxa": {}
+}</pre></details><details id=\"section-contamination\" class=\"section\"><summary>contamination</summary><pre>{
+  "assets": [
+    {
+      "banks": {
+        "adapters": {
+          "entries": [
+            {
+              "enabled": true,
+              "id": "A1",
+              "sequence": "ACGT"
+            }
+          ],
+          "hash": "sha256:adapters",
+          "preset": "default"
+        },
+        "contaminants": {
+          "entries": [
+            {
+              "enabled": true,
+              "id": "phix"
+            }
+          ],
+          "hash": "sha256:contam",
+          "preset": "illumina_default"
+        },
+        "polyx": {
+          "entries": [
+            {
+              "enabled": true,
+              "id": "polyG"
+            }
+          ],
+          "hash": "sha256:polyx",
+          "preset": "illumina_twocolor"
+        }
+      },
+      "stage_id": "fastq.trim",
+      "tool_id": "fastp"
+    }
+  ]
+}</pre></details><details id=\"section-data_contract_validation\" class=\"section\"><summary>data_contract_validation</summary><pre>{
+  "missing_metrics": [],
+  "missing_reports": [],
+  "status": "complete"
+}</pre></details><details id=\"section-decision_config\" class=\"section\"><summary>decision_config</summary><pre>{
+  "bootstrap_policy": {
+    "enabled": false,
+    "min_samples": 5,
+    "samples": null
+  },
+  "compare_objective": "balanced_default",
+  "objective_spec": {
+    "name": "balanced",
+    "weights": {
+      "memory": 1.0,
+      "retention": -100.0,
+      "runtime": 1.0
+    }
+  },
+  "outlier_policy": {
+    "method": "mad",
+    "threshold": 3.5
+  },
+  "schema_version": "bijux.decision_config.v1",
+  "tie_break_policy": [
+    "tool_id"
+  ]
+}</pre></details><details id=\"section-decision_trace\" class=\"section\"><summary>decision_trace</summary><pre>{
+  "entries": [
+    {
+      "adapter_validation": {},
+      "contaminant_action": false,
+      "input_hash": "input",
+      "missing_metrics": [],
+      "missing_reports": [],
+      "params_hash": "params",
+      "quality_gate": {},
+      "stage_id": "fastq.trim",
+      "telemetry_decisions": [],
+      "tool_id": "fastp",
+      "tool_version": "0.23.4"
+    }
+  ]
+}</pre></details><details id=\"section-failure_hints\" class=\"section\"><summary>failure_hints</summary><pre>{
+  "count": 0,
+  "failures": []
+}</pre></details><details id=\"section-failures\" class=\"section\"><summary>failures</summary><pre>{
+  "completeness": {
+    "missing_metrics": [],
+    "missing_reports": [],
+    "status": "complete"
+  }
+}</pre></details><details id=\"section-filtering\" class=\"section\"><summary>filtering</summary><pre>{}</pre></details><details id=\"section-final_qc_summary\" class=\"section\"><summary>final_qc_summary</summary><pre>{
+  "adapter_inference": {
+    "rationale": "Adapter detection ran before trimming.",
+    "safety": "Inference only applies when adapters are not explicitly set.",
+    "suggested_adapters": {}
+  },
+  "qc": {}
+}</pre></details><details id=\"section-findings\" class=\"section\"><summary>findings</summary><pre>{
+  "claims": [],
+  "recommendations": [],
+  "suspected_issues": [],
+  "warnings": []
+}</pre></details><details id=\"section-handoff\" class=\"section\"><summary>handoff</summary><pre>{}</pre></details><details id=\"section-impact_metrics\" class=\"section\"><summary>impact_metrics</summary><pre>{
+  "impact": [
+    {
+      "bases_dropped": 200,
+      "reads_dropped": 20,
+      "stage_id": "fastq.trim",
+      "tool_id": "fastp"
+    }
+  ]
+}</pre></details><details id=\"section-key_findings\" class=\"section\"><summary>key_findings</summary><pre>[]</pre></details><details id=\"section-method_assumptions\" class=\"section\"><summary>method_assumptions</summary><pre>{
+  "assumptions": [
+    "compare_objective defaults to balanced when not specified",
+    "effect_size uses absolute/relative thresholds for practical significance",
+    "outliers use MAD threshold 3.5",
+    "bootstrap confidence intervals are disabled by default",
+    "tie-breaks are resolved by tool_id when scores are equal"
+  ],
+  "bootstrap_policy": {
+    "enabled": false,
+    "min_samples": 5,
+    "samples": null
+  },
+  "compare_objective": "balanced_default",
+  "decision_policy_version": "bijux.decision_policy.v1",
+  "effect_thresholds": {
+    "absolute": 0.05,
+    "relative": 0.05
+  },
+  "objective_spec": {
+    "name": "balanced",
+    "weights": {
+      "memory": 1.0,
+      "retention": -100.0,
+      "runtime": 1.0
+    }
+  },
+  "outlier_policy": {
+    "method": "mad",
+    "threshold": 3.5
+  },
+  "presets": [
+    {
+      "effective_config_path": "/Users/bijan/bijux/bijux-dna/crates/bijux-analyze/tests/fixtures/report/effective_config.json",
+      "params_hash": "params",
+      "stage_id": "fastq.trim",
+      "tool_id": "fastp",
+      "tool_version": "0.23.4"
+    }
+  ],
+  "tie_break_policy": [
+    "tool_id"
+  ],
+  "tools": [
+    {
+      "image_digest": "sha256:img",
+      "params_hash": "params",
+      "stage_id": "fastq.trim",
+      "tool_id": "fastp",
+      "tool_version": "0.23.4"
+    }
+  ]
+}</pre></details><details id=\"section-metric_provenance\" class=\"section\"><summary>metric_provenance</summary><pre>{
+  "fastq.trim": {
+    "normalized_params_excerpt": {
+      "min_len": 20
+    },
+    "params_hash": "params",
+    "tool_id": "fastp"
+  }
+}</pre></details><details id=\"section-pipeline_defaults\" class=\"section\"><summary>pipeline_defaults</summary><pre>{
+  "defaults_ledger": {
+    "assumptions": [],
+    "citations": {},
+    "param_provenance": {},
+    "params": {},
+    "pipeline_id": "fastq-to-fastq__default__v1",
+    "thresholds": {},
+    "tool_provenance": {},
+    "tools": {}
+  },
+  "overrides": []
+}</pre></details><details id=\"section-pipeline_overview\" class=\"section\"><summary>pipeline_overview</summary><pre>{
+  "stages": [
+    {
+      "image_digest": "sha256:img",
+      "input_hash": "input",
+      "output_hashes": [
+        "out"
+      ],
+      "params_hash": "params",
+      "scientific_preset": null,
+      "stage_id": "fastq.trim",
+      "tier_rationale": "curated_default",
+      "tool_id": "fastp",
+      "tool_tier": "gold",
+      "tool_version": "0.23.4"
+    }
+  ]
+}</pre></details><details id=\"section-pipeline_verdict\" class=\"section\"><summary>pipeline_verdict</summary><pre>{
+  "aggregation_policy": {
+    "fail_condition": "any stage fail",
+    "pass_condition": "all stages pass",
+    "rule": "worst_status",
+    "schema_version": "bijux.pipeline_verdict_policy.v1",
+    "warn_condition": "any stage warn and no stage fail"
+  },
+  "reasons": [],
+  "verdict": "pass"
+}</pre></details><details id=\"section-qc\" class=\"section\"><summary>qc</summary><pre>{}</pre></details><details id=\"section-qc_artifacts\" class=\"section\"><summary>qc_artifacts</summary><pre>{}</pre></details><details id=\"section-qc_delta\" class=\"section\"><summary>qc_delta</summary><pre>{
+  "mean_q_delta": null,
+  "qc_post_mean_q": null,
+  "validate_pre_mean_q": null
+}</pre></details><details id=\"section-reproducibility\" class=\"section\"><summary>reproducibility</summary><pre>{
+  "command": "unknown",
+  "determinism_policy": {
+    "float_format": "fixed_3",
+    "html_table_order": "stage_id,tool_id",
+    "json_canonicalization": "sorted_keys",
+    "timestamp_format": "rfc3339_utc"
+  },
+  "finished_at": null,
+  "image_digests": [
+    "sha256:img"
+  ],
+  "input_hashes": [
+    "input"
+  ],
+  "params_hashes": [
+    "params"
+  ],
+  "started_at": null,
+  "tool_versions": [
+    "0.23.4"
+  ]
+}</pre></details><details id=\"section-retention\" class=\"section\"><summary>retention</summary><pre>{
+  "contexts": [
+    {
+      "conditions": {
+        "min_len": 20
+      },
+      "definition": "{\"bases_out\":800,\"reads_out\":80} / {\"bases_in\":1000,\"reads_in\":100} (reads)",
+      "stage_id": "fastq.trim",
+      "tool_id": "fastp"
+    }
+  ],
+  "definitions": [
+    {
+      "conditions": {
+        "min_len": 20
+      },
+      "denominator": "{\"bases_in\":1000,\"reads_in\":100}",
+      "numerator": "{\"bases_out\":800,\"reads_out\":80}",
+      "stage_id": "fastq.trim",
+      "tool_id": "fastp"
+    }
+  ]
+}</pre></details><details id=\"section-run_provenance\" class=\"section\"><summary>run_provenance</summary><pre>{
+  "graph_hash": "unknown",
+  "input_hashes": [],
+  "stage_contracts": {}
+}</pre></details><details id=\"section-scientific_provenance\" class=\"section\"><summary>scientific_provenance</summary><pre>{
+  "entries": [
+    {
+      "effective_params": {
+        "adapter_policy": "bank",
+        "min_len": 20,
+        "paired_mode": "single_end",
+        "threads": 1
+      },
+      "image_digest": "sha256:img",
+      "input_hash": "input",
+      "output_hashes": [
+        "out"
+      ],
+      "params_hash": "params",
+      "raw_params": {
+        "min_len": 20
+      },
+      "resolved_tool_version": "0.23.4",
+      "stage_id": "fastq.trim",
+      "tool_id": "fastp",
+      "tool_version": "0.23.4"
+    }
+  ]
+}</pre></details><details id=\"section-stage_completeness\" class=\"section\"><summary>stage_completeness</summary><pre>{
+  "rows": [
+    {
+      "missing_metrics": [],
+      "missing_reports": [],
+      "stage_id": "fastq.trim",
+      "status": "complete"
+    }
+  ]
+}</pre></details><details id=\"section-stage_confidence\" class=\"section\"><summary>stage_confidence</summary><pre>{
+  "entries": [
+    {
+      "bucket": "high",
+      "reasons": [],
+      "score": 1.0,
+      "stage_id": "fastq.trim",
+      "tool_id": "fastp"
+    }
+  ]
+}</pre></details><details id=\"section-stage_plots\" class=\"section\"><summary>stage_plots</summary><pre>{
+  "entries": [
+    {
+      "base_retention": 0.8,
+      "gc_delta": null,
+      "mean_q_delta": null,
+      "read_retention": 0.8,
+      "stage_id": "fastq.trim",
+      "tool_id": "fastp"
+    }
+  ],
+  "waterfall": [
+    {
+      "read_retention": 0.8,
+      "stage_id": "fastq.trim"
+    }
+  ]
+}</pre></details><details id=\"section-trimming\" class=\"section\"><summary>trimming</summary><pre>{
+  "retention_context": [
+    {
+      "conditions": {
+        "min_len": 20
+      },
+      "definition": "{\"bases_out\":800,\"reads_out\":80} / {\"bases_in\":1000,\"reads_in\":100} (reads)",
+      "stage_id": "fastq.trim",
+      "tool_id": "fastp"
+    }
+  ],
+  "retention_definition": [
+    {
+      "conditions": {
+        "min_len": 20
+      },
+      "denominator": "{\"bases_in\":1000,\"reads_in\":100}",
+      "numerator": "{\"bases_out\":800,\"reads_out\":80}",
+      "stage_id": "fastq.trim",
+      "tool_id": "fastp"
+    }
+  ]
+}</pre></details>
+    </main>
+  </div>
+  <script>
+    const stagePlots = {"entries":[{"base_retention":0.8,"gc_delta":null,"mean_q_delta":null,"read_retention":0.8,"stage_id":"fastq.trim","tool_id":"fastp"}],"waterfall":[{"read_retention":0.8,"stage_id":"fastq.trim"}]};
+    const stagePanels = document.querySelectorAll('.stage-panel');
+    const stageTabs = document.querySelectorAll('.stage-tab');
+    function showStage(id) {
+      stageTabs.forEach(tab => tab.classList.toggle('active', tab.dataset.stage === id));
+      stagePanels.forEach(panel => panel.classList.toggle('active', panel.dataset.stage === id));
+    }
+    stageTabs.forEach(tab => tab.addEventListener('click', () => showStage(tab.dataset.stage)));
+    if (stageTabs.length > 0) {
+      showStage(stageTabs[0].dataset.stage);
+    }
+    stagePanels.forEach(panel => {
+      const stageId = panel.dataset.stage;
+      const container = panel.querySelector('.stage-plots');
+      const data = stagePlots.entries || [];
+      const stageEntry = data.find(entry => entry.stage_id === stageId);
+      if (!stageEntry || !container) return;
+      const plots = stageEntry.plots || [];
+      plots.forEach(plot => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'section';
+        wrapper.innerHTML = `<h4>${plot.title}</h4><div class="plot-bar"><span style="width:${plot.value}%"></span></div><small>${plot.label}</small>`;
+        container.appendChild(wrapper);
+      });
+    });
+    document.querySelectorAll('.copy-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const text = "unknown";
+        navigator.clipboard.writeText(text).catch(() => {});
+      });
+    });
+  </script>
+</body>
+</html>

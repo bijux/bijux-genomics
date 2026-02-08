@@ -241,38 +241,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9d297deb1925b89f2ccc13d7635fa0714f12c87adce1c75356b39ca9b7178567"
 
 [[package]]
-name = "bijux-dna"
+name = "bijux-analyze"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bijux-dna-api",
- "bijux-dna-core",
- "bijux-dna-policies",
- "clap",
- "insta",
- "predicates",
- "serde",
- "serde_json",
- "tempfile",
- "tracing",
-]
-
-[[package]]
-name = "bijux-dna-analyze"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "bijux-dna-benchmark",
- "bijux-dna-core",
- "bijux-dna-domain-bam",
- "bijux-dna-domain-fastq",
- "bijux-dna-infra",
- "bijux-dna-pipelines",
- "bijux-dna-planner-bam",
- "bijux-dna-planner-fastq",
- "bijux-dna-policies",
- "bijux-dna-runtime",
- "bijux-dna-testkit",
+ "bijux-benchmark",
+ "bijux-core",
+ "bijux-domain-bam",
+ "bijux-domain-fastq",
+ "bijux-infra",
+ "bijux-pipelines",
+ "bijux-planner-bam",
+ "bijux-planner-fastq",
+ "bijux-policies",
+ "bijux-runtime",
+ "bijux-testkit",
  "insta",
  "parquet",
  "rusqlite",
@@ -287,26 +270,26 @@ dependencies = [
 ]
 
 [[package]]
-name = "bijux-dna-api"
+name = "bijux-api"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bijux-dna-analyze",
- "bijux-dna-benchmark",
- "bijux-dna-core",
- "bijux-dna-domain-bam",
- "bijux-dna-domain-fastq",
- "bijux-dna-engine",
- "bijux-dna-environment",
- "bijux-dna-infra",
- "bijux-dna-pipelines",
- "bijux-dna-planner-bam",
- "bijux-dna-planner-fastq",
- "bijux-dna-policies",
- "bijux-dna-runner",
- "bijux-dna-runtime",
- "bijux-dna-stage-contract",
- "bijux-dna-testkit",
+ "bijux-analyze",
+ "bijux-benchmark",
+ "bijux-core",
+ "bijux-domain-bam",
+ "bijux-domain-fastq",
+ "bijux-engine",
+ "bijux-environment",
+ "bijux-infra",
+ "bijux-pipelines",
+ "bijux-planner-bam",
+ "bijux-planner-fastq",
+ "bijux-policies",
+ "bijux-runner",
+ "bijux-runtime",
+ "bijux-stage-contract",
+ "bijux-testkit",
  "cargo_metadata",
  "chrono",
  "insta",
@@ -319,19 +302,19 @@ dependencies = [
 ]
 
 [[package]]
-name = "bijux-dna-benchmark"
+name = "bijux-benchmark"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bijux-dna-analyze",
- "bijux-dna-benchmark-model",
- "bijux-dna-core",
- "bijux-dna-domain-bam",
- "bijux-dna-domain-fastq",
- "bijux-dna-infra",
- "bijux-dna-policies",
- "bijux-dna-runtime",
- "bijux-dna-testkit",
+ "bijux-analyze",
+ "bijux-benchmark-model",
+ "bijux-core",
+ "bijux-domain-bam",
+ "bijux-domain-fastq",
+ "bijux-infra",
+ "bijux-policies",
+ "bijux-runtime",
+ "bijux-testkit",
  "fastrand",
  "insta",
  "serde",
@@ -340,26 +323,26 @@ dependencies = [
 ]
 
 [[package]]
-name = "bijux-dna-benchmark-model"
+name = "bijux-benchmark-model"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bijux-dna-analyze",
- "bijux-dna-core",
- "bijux-dna-policies",
- "bijux-dna-testkit",
+ "bijux-analyze",
+ "bijux-core",
+ "bijux-policies",
+ "bijux-testkit",
  "fastrand",
  "serde",
  "serde_json",
 ]
 
 [[package]]
-name = "bijux-dna-core"
+name = "bijux-core"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bijux-dna-infra",
- "bijux-dna-policies",
+ "bijux-infra",
+ "bijux-policies",
  "chrono",
  "insta",
  "opentelemetry",
@@ -376,13 +359,30 @@ dependencies = [
 ]
 
 [[package]]
-name = "bijux-dna-domain-bam"
+name = "bijux-dna-cli"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bijux-dna-core",
- "bijux-dna-policies",
- "bijux-dna-testkit",
+ "bijux-api",
+ "bijux-core",
+ "bijux-policies",
+ "clap",
+ "insta",
+ "predicates",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "tracing",
+]
+
+[[package]]
+name = "bijux-domain-bam"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bijux-core",
+ "bijux-policies",
+ "bijux-testkit",
  "insta",
  "schemars",
  "serde",
@@ -391,14 +391,14 @@ dependencies = [
 ]
 
 [[package]]
-name = "bijux-dna-domain-fastq"
+name = "bijux-domain-fastq"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bijux-dna-core",
- "bijux-dna-infra",
- "bijux-dna-policies",
- "bijux-dna-testkit",
+ "bijux-core",
+ "bijux-infra",
+ "bijux-policies",
+ "bijux-testkit",
  "insta",
  "schemars",
  "serde",
@@ -410,15 +410,15 @@ dependencies = [
 ]
 
 [[package]]
-name = "bijux-dna-engine"
+name = "bijux-engine"
 version = "0.1.0"
 dependencies = [
  "anyhow",
  "assert_cmd",
- "bijux-dna-core",
- "bijux-dna-infra",
- "bijux-dna-policies",
- "bijux-dna-runtime",
+ "bijux-core",
+ "bijux-infra",
+ "bijux-policies",
+ "bijux-runtime",
  "cargo_metadata",
  "chrono",
  "flate2",
@@ -437,15 +437,15 @@ dependencies = [
 ]
 
 [[package]]
-name = "bijux-dna-environment"
+name = "bijux-environment"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bijux-dna-core",
- "bijux-dna-infra",
- "bijux-dna-policies",
- "bijux-dna-runtime",
- "bijux-dna-testkit",
+ "bijux-core",
+ "bijux-infra",
+ "bijux-policies",
+ "bijux-runtime",
+ "bijux-testkit",
  "regex",
  "serde",
  "serde_json",
@@ -458,18 +458,18 @@ dependencies = [
 ]
 
 [[package]]
-name = "bijux-dna-environment-qa"
+name = "bijux-environment-qa"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bijux-dna-analyze",
- "bijux-dna-core",
- "bijux-dna-domain-fastq",
- "bijux-dna-environment",
- "bijux-dna-infra",
- "bijux-dna-policies",
- "bijux-dna-runtime",
- "bijux-dna-testkit",
+ "bijux-analyze",
+ "bijux-core",
+ "bijux-domain-fastq",
+ "bijux-environment",
+ "bijux-infra",
+ "bijux-policies",
+ "bijux-runtime",
+ "bijux-testkit",
  "clap",
  "regex",
  "rusqlite",
@@ -483,12 +483,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "bijux-dna-infra"
+name = "bijux-infra"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bijux-dna-policies",
- "bijux-dna-testkit",
+ "bijux-policies",
+ "bijux-testkit",
  "fs4",
  "insta",
  "regex",
@@ -505,15 +505,15 @@ dependencies = [
 ]
 
 [[package]]
-name = "bijux-dna-pipelines"
+name = "bijux-pipelines"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bijux-dna-core",
- "bijux-dna-domain-bam",
- "bijux-dna-domain-fastq",
- "bijux-dna-policies",
- "bijux-dna-testkit",
+ "bijux-core",
+ "bijux-domain-bam",
+ "bijux-domain-fastq",
+ "bijux-policies",
+ "bijux-testkit",
  "insta",
  "serde",
  "serde_json",
@@ -521,37 +521,37 @@ dependencies = [
 ]
 
 [[package]]
-name = "bijux-dna-planner-bam"
+name = "bijux-planner-bam"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bijux-dna-core",
- "bijux-dna-domain-bam",
- "bijux-dna-infra",
- "bijux-dna-pipelines",
- "bijux-dna-policies",
- "bijux-dna-stage-contract",
- "bijux-dna-stages-bam",
- "bijux-dna-testkit",
+ "bijux-core",
+ "bijux-domain-bam",
+ "bijux-infra",
+ "bijux-pipelines",
+ "bijux-policies",
+ "bijux-stage-contract",
+ "bijux-stages-bam",
+ "bijux-testkit",
  "insta",
  "serde_json",
  "tracing",
 ]
 
 [[package]]
-name = "bijux-dna-planner-fastq"
+name = "bijux-planner-fastq"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bijux-dna-core",
- "bijux-dna-domain-bam",
- "bijux-dna-domain-fastq",
- "bijux-dna-infra",
- "bijux-dna-pipelines",
- "bijux-dna-policies",
- "bijux-dna-stage-contract",
- "bijux-dna-stages-fastq",
- "bijux-dna-testkit",
+ "bijux-core",
+ "bijux-domain-bam",
+ "bijux-domain-fastq",
+ "bijux-infra",
+ "bijux-pipelines",
+ "bijux-policies",
+ "bijux-stage-contract",
+ "bijux-stages-fastq",
+ "bijux-testkit",
  "insta",
  "serde",
  "serde_json",
@@ -559,12 +559,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "bijux-dna-policies"
+name = "bijux-policies"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bijux-dna-pipelines",
- "bijux-dna-testkit",
+ "bijux-pipelines",
+ "bijux-testkit",
  "cargo_metadata",
  "insta",
  "regex",
@@ -576,16 +576,16 @@ dependencies = [
 ]
 
 [[package]]
-name = "bijux-dna-runner"
+name = "bijux-runner"
 version = "0.1.0"
 dependencies = [
  "anyhow",
  "assert_cmd",
- "bijux-dna-core",
- "bijux-dna-environment",
- "bijux-dna-infra",
- "bijux-dna-policies",
- "bijux-dna-runtime",
+ "bijux-core",
+ "bijux-environment",
+ "bijux-infra",
+ "bijux-policies",
+ "bijux-runtime",
  "cargo_metadata",
  "chrono",
  "flate2",
@@ -599,13 +599,13 @@ dependencies = [
 ]
 
 [[package]]
-name = "bijux-dna-runtime"
+name = "bijux-runtime"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bijux-dna-core",
- "bijux-dna-infra",
- "bijux-dna-policies",
+ "bijux-core",
+ "bijux-infra",
+ "bijux-policies",
  "chrono",
  "opentelemetry",
  "serde",
@@ -617,13 +617,13 @@ dependencies = [
 ]
 
 [[package]]
-name = "bijux-dna-stage-contract"
+name = "bijux-stage-contract"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bijux-dna-core",
- "bijux-dna-policies",
- "bijux-dna-testkit",
+ "bijux-core",
+ "bijux-policies",
+ "bijux-testkit",
  "serde",
  "serde_json",
  "sha2",
@@ -631,33 +631,33 @@ dependencies = [
 ]
 
 [[package]]
-name = "bijux-dna-stages-bam"
+name = "bijux-stages-bam"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bijux-dna-core",
- "bijux-dna-domain-bam",
- "bijux-dna-infra",
- "bijux-dna-policies",
- "bijux-dna-stage-contract",
- "bijux-dna-testkit",
+ "bijux-core",
+ "bijux-domain-bam",
+ "bijux-infra",
+ "bijux-policies",
+ "bijux-stage-contract",
+ "bijux-testkit",
  "serde",
  "serde_json",
  "walkdir",
 ]
 
 [[package]]
-name = "bijux-dna-stages-fastq"
+name = "bijux-stages-fastq"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bijux-dna-core",
- "bijux-dna-domain-fastq",
- "bijux-dna-infra",
- "bijux-dna-policies",
- "bijux-dna-runtime",
- "bijux-dna-stage-contract",
- "bijux-dna-testkit",
+ "bijux-core",
+ "bijux-domain-fastq",
+ "bijux-infra",
+ "bijux-policies",
+ "bijux-runtime",
+ "bijux-stage-contract",
+ "bijux-testkit",
  "flate2",
  "serde",
  "serde_json",
@@ -668,11 +668,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "bijux-dna-testkit"
+name = "bijux-testkit"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bijux-dna-policies",
+ "bijux-policies",
  "serde",
  "serde_json",
 ]
