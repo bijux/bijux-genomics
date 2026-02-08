@@ -11,7 +11,7 @@ pub(crate) fn qa_qc_post_tool(
         .ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
     let image = resolve_image_for_run(spec, platform)?;
     let out_dir = temp_out_dir("qc_post", tool)?;
-    let container_name = format!("bijux-qa-qc_post-{}-{}", tool, Uuid::new_v4());
+    let container_name = format!("bijux-dna-qa-qc_post-{}-{}", tool, Uuid::new_v4());
     let timeout = Duration::from_secs(QA_TIMEOUT_SECS);
     if tool == "multiqc" {
         let fastqc_spec = catalog
@@ -20,7 +20,7 @@ pub(crate) fn qa_qc_post_tool(
         let fastqc_image = resolve_image_for_run(fastqc_spec, platform)?;
         let fastqc_dir = out_dir.join("fastqc");
         bijux_dna_infra::ensure_dir(&fastqc_dir).context("create fastqc output dir")?;
-        let fastqc_container = format!("bijux-qa-qc_post-fastqc-{}", Uuid::new_v4());
+        let fastqc_container = format!("bijux-dna-qa-qc_post-fastqc-{}", Uuid::new_v4());
         let fastqc_exec = match run_validate_container_with_timeout(
             "fastqc",
             &fastqc_image,
@@ -104,7 +104,7 @@ pub(crate) fn qa_umi_tool(
         .ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
     let image = resolve_image_for_run(spec, platform)?;
     let out_dir = temp_out_dir("umi", tool)?;
-    let container_name = format!("bijux-qa-umi-{}-{}", tool, Uuid::new_v4());
+    let container_name = format!("bijux-dna-qa-umi-{}-{}", tool, Uuid::new_v4());
     let timeout = Duration::from_secs(QA_TIMEOUT_SECS);
     let execution = match run_tool_container_with_timeout(
         tool,
@@ -156,7 +156,7 @@ pub(crate) fn qa_stats_tool(
         .ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
     let image = resolve_image_for_run(spec, platform)?;
     let out_dir = temp_out_dir("stats", tool)?;
-    let container_name = format!("bijux-qa-stats-{}-{}", tool, Uuid::new_v4());
+    let container_name = format!("bijux-dna-qa-stats-{}-{}", tool, Uuid::new_v4());
     let timeout = Duration::from_secs(QA_TIMEOUT_SECS);
     let execution = match run_validate_container_with_timeout(
         tool,

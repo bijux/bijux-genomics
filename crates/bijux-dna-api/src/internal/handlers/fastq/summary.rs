@@ -657,7 +657,7 @@ mod tests {
 
     #[test]
     fn run_manifest_includes_defaults_ledger() -> anyhow::Result<()> {
-        let temp = bijux_dna_infra::temp_dir("bijux-run-manifest")?;
+        let temp = bijux_dna_infra::temp_dir("bijux-dna-run-manifest")?;
         let out_dir = temp.path();
         let defaults = serde_json::json!({
             "pipeline_id": "fastq-to-fastq__default__v1",
@@ -729,7 +729,7 @@ mod tests {
     #[test]
     #[allow(clippy::too_many_lines)]
     fn scientific_provenance_contract_is_written() -> anyhow::Result<()> {
-        let temp = bijux_dna_infra::temp_dir("bijux-scientific-provenance")?;
+        let temp = bijux_dna_infra::temp_dir("bijux-dna-scientific-provenance")?;
         let out_dir = temp.path();
         let defaults = serde_json::json!({
             "pipeline_id": "fastq-to-fastq__default__v1",

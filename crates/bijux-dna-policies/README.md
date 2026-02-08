@@ -17,7 +17,7 @@ No product logic, execution, or domain semantics; policies are diagnostics only.
 - Re-run the exact test (or the full enforcement workflow) after fixing the violation.
 
 ## How to add a policy
-- Add a new test under `crates/bijux-policies/tests/...`.
+- Add a new test under `crates/bijux-dna-policies/tests/...`.
 - Document it in `docs/TESTS.md` and `docs/POLICY_MATRIX.md`.
 - Add or update snapshots only when the change is intentional (see `docs/BLESS_WORKFLOW.md`).
 - If it is a style rule, add it to `docs/40-policies/POLICY_MATRIX.md`.

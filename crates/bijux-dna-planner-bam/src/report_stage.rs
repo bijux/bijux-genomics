@@ -19,7 +19,7 @@ pub fn report_stage_step(
             template: vec!["report-aggregate".to_string()],
         },
         image: ContainerImageRefV1 {
-            image: "bijux-report".to_string(),
+            image: "bijux-dna-report".to_string(),
             digest: None,
         },
         resources: ToolConstraints::default(),

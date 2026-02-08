@@ -47,4 +47,4 @@ Run with:
 - `tests/guardrails/public_surface.rs` — public surface lock.
 
 ## Testkit patterns
-See `crates/bijux-testkit/docs/USAGE.md` for shared fixture and snapshot helpers.
+See `crates/bijux-dna-testkit/docs/USAGE.md` for shared fixture and snapshot helpers.

@@ -5,7 +5,7 @@ use bijux_dna_runtime::FactsRowV1;
 #[test]
 #[allow(clippy::too_many_lines)]
 fn report_completeness_policy_requires_provenance_and_contracts() -> Result<()> {
-    let temp = bijux_dna_infra::temp_dir("bijux-report-policy")?;
+    let temp = bijux_dna_infra::temp_dir("bijux-dna-report-policy")?;
     let dir = temp.path();
 
     let facts = vec![FactsRowV1 {

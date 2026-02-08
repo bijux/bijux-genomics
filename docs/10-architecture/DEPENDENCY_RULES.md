@@ -11,8 +11,8 @@ Prevent accidental coupling and preserve purity boundaries.
 
 ## Contracts
 Enforced by policy tests:
-- `crates/bijux-policies/tests/deps/dependency_graph.rs`
-- `crates/bijux-policies/tests/deps/dependency_boundaries.rs`
+- `crates/bijux-dna-policies/tests/deps/dependency_graph.rs`
+- `crates/bijux-dna-policies/tests/deps/dependency_boundaries.rs`
 
 ## Examples
 - `bijux-dna-core` must not depend on runners or planners.

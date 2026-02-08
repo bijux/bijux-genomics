@@ -37,4 +37,4 @@ Plan JSON snapshots live under `tests/contracts/plan/snapshots/*` and enforce st
 - Missing test documentation causes drift and confusion.
 
 ## Testkit patterns
-See `crates/bijux-testkit/docs/USAGE.md` for shared fixture and snapshot helpers.
+See `crates/bijux-dna-testkit/docs/USAGE.md` for shared fixture and snapshot helpers.

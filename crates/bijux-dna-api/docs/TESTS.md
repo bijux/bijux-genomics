@@ -26,4 +26,4 @@ Tests should explain the contract they enforce.
 - `tests/guardrails.rs` — guardrail harness for bijux-dna-api.
 
 ## Testkit patterns
-See `crates/bijux-testkit/docs/USAGE.md` for shared fixture and snapshot helpers.
+See `crates/bijux-dna-testkit/docs/USAGE.md` for shared fixture and snapshot helpers.

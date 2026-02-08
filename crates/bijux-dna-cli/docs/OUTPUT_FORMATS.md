@@ -2,11 +2,11 @@
 
 ## Text (terminal)
 - Help output is deterministic and snapshotted.
-- Snapshots live under `crates/bijux-cli/tests/snapshots/*.txt`.
+- Snapshots live under `crates/bijux-dna-cli/tests/snapshots/*.txt`.
 
 ## JSON artifacts (dry-run / run)
 - `run_manifest.json` follows the runtime schema snapshot in
-  `crates/bijux-runtime/tests/fixtures/runtime_schema/default/run_manifest_v1.json`.
+  `crates/bijux-dna-runtime/tests/fixtures/runtime_schema/default/run_manifest_v1.json`.
 - Execution graphs are canonical JSON and validated by core contracts.
 
 ## Reports

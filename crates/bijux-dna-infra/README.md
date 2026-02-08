@@ -5,7 +5,7 @@ Small deterministic utilities (logging, formats, paths) with zero domain semanti
 
 ## What it must not do (boundaries)
 No domain catalogs, SSOT ownership, or execution dependencies.
-No duplicate canonicalization (enforced by `crates/bijux-policies/tests/surface/no_duplicate_canonicalizers.rs`).
+No duplicate canonicalization (enforced by `crates/bijux-dna-policies/tests/surface/no_duplicate_canonicalizers.rs`).
 
 ## Allowed responsibilities
 Allowed utilities (and only these):
@@ -34,7 +34,7 @@ No process/network effects; deterministic helpers only. See `docs/EFFECTS.md` an
 
 ## No duplicate canonicalizers
 Canonicalization lives in bijux-dna-core only. Infra must not re-implement it.
-See `crates/bijux-policies/tests/surface/no_duplicate_canonicalizers.rs`.
+See `crates/bijux-dna-policies/tests/surface/no_duplicate_canonicalizers.rs`.
 
 ## How to run its tests
 See `docs/TESTS.md`. Golden tests: `tests/determinism.rs`, `tests/guardrails.rs`,

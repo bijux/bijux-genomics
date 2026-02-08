@@ -14,13 +14,13 @@ Provides a single place to locate enforced schema references.
 
 ## Examples
 ## API schemas
-See `crates/bijux-api/tests/snapshots/*`.
+See `crates/bijux-dna-api/tests/snapshots/*`.
 
 ## CLI help
-See `crates/bijux-cli/tests/snapshots/*`.
+See `crates/bijux-dna-cli/tests/snapshots/*`.
 
 ## Contract schemas
-See `crates/bijux-core/tests/*` and `crates/bijux-stage-contract/tests/*`.
+See `crates/bijux-dna-core/tests/*` and `crates/bijux-dna-stage-contract/tests/*`.
 
 ## Failure modes
 - Missing references lead to silent contract drift.

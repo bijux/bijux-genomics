@@ -55,4 +55,4 @@ Primary failures surface as snapshot or contract violations; inspect the golden 
 Contract and behavior changes follow `docs/CHANGE_RULES.md`.
 
 ## Why engine is not planner
-The engine executes a fully-formed `ExecutionGraph`; planners build that graph from domain inputs and policies. Keeping the engine planner-free prevents domain drift and ensures planners can evolve without changing orchestration semantics (see planners under `crates/bijux-planner-*`).
+The engine executes a fully-formed `ExecutionGraph`; planners build that graph from domain inputs and policies. Keeping the engine planner-free prevents domain drift and ensures planners can evolve without changing orchestration semantics (see planners under `crates/bijux-dna-planner-*`).
