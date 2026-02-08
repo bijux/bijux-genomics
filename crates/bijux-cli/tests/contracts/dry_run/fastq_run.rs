@@ -102,9 +102,9 @@ multiqc = { version = "0.0.0" }
     std::env::set_var("BIJUX_SKIP_IMAGE_CHECK", "1");
     let args = [
         "bijux",
-        "dna",
         "--platform",
         "test",
+        "dna",
         "fastq",
         "run",
         "--dry-run",

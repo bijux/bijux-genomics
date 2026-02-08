@@ -214,7 +214,7 @@ pub(crate) fn run_bam_align_and_truth_stages<S: std::hash::BuildHasher>(
         .tools
         .get(&align_stage)
         .cloned()
-        .unwrap_or_else(|| bijux_core::ids::ToolId::new("bwa"));
+        .unwrap_or_else(|| bijux_core::ids::ToolId::from_static("bwa"));
     let spec = build_tool_execution_spec(
         bijux_planner_bam::stage_api::BamStage::Align.as_str(),
         tool_id.as_str(),

@@ -63,7 +63,7 @@ fn run_bam_stage(
             .tools
             .get(&stage_key)
             .cloned()
-            .unwrap_or_else(|| ToolId::new("samtools"))
+            .unwrap_or_else(|| ToolId::from_static("samtools"))
     });
     let spec = build_tool_execution_spec(
         stage.as_str(),

@@ -6,7 +6,7 @@ use bijux_core::contract::{ExecutionGraph, PlanPolicy};
 fn dry_run_emits_manifest_and_graph_without_execution() -> Result<()> {
     let temp = tempfile::tempdir()?;
     let graph = ExecutionGraph::new(
-        "fastq.default.v1",
+        "fastq-to-fastq__default__v1",
         "test-planner",
         PlanPolicy::PreferAccuracy,
         Vec::new(),
@@ -15,7 +15,7 @@ fn dry_run_emits_manifest_and_graph_without_execution() -> Result<()> {
     let request = DryRunRequest {
         graph,
         run_dir: temp.path().to_path_buf(),
-        profile_id: "fastq.default.v1".to_string(),
+        profile_id: "fastq-to-fastq__default__v1".to_string(),
     };
     let response = dry_run(&request)?;
     assert!(response.graph_path.exists());
