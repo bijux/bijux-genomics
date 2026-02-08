@@ -4,7 +4,8 @@ use bijux_domain_bam::{contract_for_stage, BamStage};
 fn bam_contracts_document_policies() {
     for stage in BamStage::all() {
         let stage_id = stage.as_str();
-        let contract = contract_for_stage(stage_id).expect("contract");
+        let contract = contract_for_stage(stage_id)
+            .unwrap_or_else(|| panic!("contract missing for {stage_id}"));
         assert!(
             !contract.sorting.is_empty(),
             "{stage_id} missing sorting policy"

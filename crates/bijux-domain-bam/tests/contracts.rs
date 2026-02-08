@@ -9,16 +9,10 @@ mod mod_contracts_contract_docs_rs;
 mod mod_contracts_contract_harness_rs;
 #[path = "contracts/metrics_contract.rs"]
 mod mod_contracts_metrics_contract_rs;
-#[path = "contracts/parsers/bam_parsers.rs"]
-mod mod_contracts_parsers_bam_parsers_rs;
-#[path = "contracts/parsers/parsers.rs"]
-mod mod_contracts_parsers_parsers_rs;
 #[path = "contracts/parsers.rs"]
 mod mod_contracts_parsers_rs;
 #[path = "contracts/public_surface.rs"]
 mod mod_contracts_public_surface_rs;
-#[path = "contracts/reference_suite/reference_suite.rs"]
-mod mod_contracts_reference_suite_reference_suite_rs;
 #[path = "contracts/reference_suite.rs"]
 mod mod_contracts_reference_suite_rs;
 #[path = "contracts/ssot_literals.rs"]

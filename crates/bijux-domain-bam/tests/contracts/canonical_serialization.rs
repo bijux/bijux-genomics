@@ -19,13 +19,15 @@ fn params_and_metrics_canonical() {
         duplicates: 0,
     };
     let params_json = String::from_utf8(
-        bijux_core::contract::canonical::to_canonical_json_bytes(&params).expect("canonical"),
+        bijux_core::contract::canonical::to_canonical_json_bytes(&params)
+            .unwrap_or_else(|err| panic!("canonical params: {err}")),
     )
-    .expect("utf8");
+    .unwrap_or_else(|err| panic!("utf8 params: {err}"));
     let metrics_json = String::from_utf8(
-        bijux_core::contract::canonical::to_canonical_json_bytes(&metrics).expect("canonical"),
+        bijux_core::contract::canonical::to_canonical_json_bytes(&metrics)
+            .unwrap_or_else(|err| panic!("canonical metrics: {err}")),
     )
-    .expect("utf8");
+    .unwrap_or_else(|err| panic!("utf8 metrics: {err}"));
     assert!(params_json.contains("aligner"));
     assert!(metrics_json.contains("mapped"));
 }

@@ -11,9 +11,10 @@ fn trim_params_canonical_serialization() {
         contaminant_policy: None,
     };
     let actual = String::from_utf8(
-        bijux_core::contract::canonical::to_canonical_json_bytes(&params).expect("canonical"),
+        bijux_core::contract::canonical::to_canonical_json_bytes(&params)
+            .unwrap_or_else(|err| panic!("canonical: {err}")),
     )
-    .expect("utf8");
+    .unwrap_or_else(|err| panic!("utf8: {err}"));
     let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("tests")
         .join("fixtures")
@@ -21,8 +22,10 @@ fn trim_params_canonical_serialization() {
         .join("default")
         .join("trim_params.json");
     if std::env::var("UPDATE_CONTRACTS").ok().as_deref() == Some("1") {
-        std::fs::write(&path, &actual).expect("write snapshot");
+        std::fs::write(&path, &actual)
+            .unwrap_or_else(|err| panic!("write snapshot {}: {err}", path.display()));
     }
-    let expected = std::fs::read_to_string(&path).expect("read snapshot");
+    let expected = std::fs::read_to_string(&path)
+        .unwrap_or_else(|err| panic!("read snapshot {}: {err}", path.display()));
     assert_eq!(actual, expected);
 }

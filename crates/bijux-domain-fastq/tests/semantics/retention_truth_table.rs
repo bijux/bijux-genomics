@@ -1,3 +1,5 @@
+#![allow(clippy::cast_precision_loss)]
+
 #[derive(Debug)]
 struct RetentionCase {
     stage_id: &'static str,
