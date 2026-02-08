@@ -50,7 +50,8 @@ fn analyze_stage_id_literals_match_domain_catalogs() {
         .filter_map(Result::ok)
         .filter(|entry| entry.path().extension().is_some_and(|ext| ext == "rs"))
     {
-        let contents = std::fs::read_to_string(entry.path()).expect("read source");
+        let contents = std::fs::read_to_string(entry.path())
+            .unwrap_or_else(|err| panic!("read source {}: {err}", entry.path().display()));
         for literal in extract_string_literals(&contents) {
             if is_stage_id_literal(&literal) && !allowed.contains(&literal) {
                 offenders.push(format!(

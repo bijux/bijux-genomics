@@ -1,3 +1,10 @@
+#![allow(
+    clippy::duplicate_mod,
+    clippy::expect_used,
+    clippy::missing_errors_doc,
+    clippy::missing_panics_doc,
+    clippy::unwrap_used
+)]
 // Auto-generated test aggregator for contracts
 #[path = "contracts/aggregate_metrics.rs"]
 mod mod_contracts_aggregate_metrics_rs;

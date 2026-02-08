@@ -153,8 +153,7 @@ fn section_key(section: ReportSection) -> &'static str {
     match section {
         ReportSection::Fastq => "trimming",
         ReportSection::Bam => "qc",
-        ReportSection::Cross => "handoff",
-        ReportSection::Handoff => "handoff",
+        ReportSection::Cross | ReportSection::Handoff => "handoff",
         ReportSection::PipelineDefaults => "pipeline_defaults",
     }
 }
