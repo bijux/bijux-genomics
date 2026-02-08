@@ -1,0 +1,28 @@
+[package]
+name = "bijux-environment"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+regex.workspace = true
+sha2.workspace = true
+tracing.workspace = true
+uuid.workspace = true
+bijux-core = { path = "../bijux-core" }
+bijux-runtime = { path = "../bijux-runtime" }
+bijux-infra = { path = "../bijux-infra", features = ["yaml"] }
+
+[dev-dependencies]
+bijux-policies = { path = "../bijux-policies" }
+tempfile.workspace = true
+walkdir.workspace = true
+bijux-testkit = { path = "../bijux-testkit" }
+
+[lints]
+workspace = true

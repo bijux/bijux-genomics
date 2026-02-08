@@ -1,0 +1,21 @@
+[package]
+name = "bijux-policies"
+version = "0.1.0"
+edition = "2021"
+
+license.workspace = true
+rust-version.workspace = true
+[dependencies]
+anyhow = { workspace = true }
+regex = { workspace = true }
+walkdir = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+cargo_metadata = "0.18"
+toml = { workspace = true }
+
+[dev-dependencies]
+insta = { version = "1.38", features = ["glob"] }
+sha2 = "0.10"
+bijux-testkit = { path = "../bijux-testkit" }
+bijux-pipelines = { path = "../bijux-pipelines" }

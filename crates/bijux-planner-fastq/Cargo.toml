@@ -1,0 +1,23 @@
+[package]
+name = "bijux-planner-fastq"
+version = "0.1.0"
+edition = "2021"
+
+license.workspace = true
+[dependencies]
+anyhow = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+bijux-core = { path = "../bijux-core" }
+bijux-stage-contract = { path = "../bijux-stage-contract" }
+bijux-domain-fastq = { path = "../bijux-domain-fastq" }
+bijux-domain-bam = { path = "../bijux-domain-bam" }
+bijux-pipelines = { path = "../bijux-pipelines" }
+bijux-stages-fastq = { path = "../bijux-stages-fastq" }
+tracing = { workspace = true }
+
+[dev-dependencies]
+bijux-policies = { path = "../bijux-policies" }
+bijux-infra = { path = "../bijux-infra" }
+bijux-testkit = { path = "../bijux-testkit" }
+insta = { version = "1", features = ["json", "filters"] }

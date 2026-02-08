@@ -1,0 +1,190 @@
+use std::collections::BTreeMap;
+use std::path::Path;
+use std::time::Duration;
+
+use anyhow::Result;
+use bijux_core::contract::PlanPolicy;
+use bijux_core::contract::{ArtifactRef, ArtifactRole, StageIO, ToolConstraints};
+use bijux_core::contract::{ExecutionEdge, ExecutionGraph, ExecutionStep};
+use bijux_core::prelude::hashing::params_hash;
+use bijux_core::prelude::{
+    ArtifactId, CommandSpecV1, ContainerImageRefV1, PipelineId, StageId, StepId,
+};
+use bijux_engine::Engine;
+use bijux_pipelines::DefaultsLedgerV1;
+use bijux_runtime::recording::write_plan_provenance;
+use bijux_runtime::FactsRowV1;
+use bijux_runtime::{Artifact, Invocation, Runner, RunnerResult};
+
+struct FakeRunner;
+
+impl Runner for FakeRunner {
+    fn run(&self, invocation: &Invocation) -> anyhow::Result<RunnerResult> {
+        let run_artifacts = invocation.step.out_dir.join("run_artifacts");
+        bijux_infra::ensure_dir(&run_artifacts)?;
+        for name in [
+            "metrics.json",
+            "effective_config.json",
+            "stage_report.json",
+            "tool_invocation.json",
+            "execution_record.json",
+        ] {
+            let path = run_artifacts.join(name);
+            bijux_infra::write_bytes(&path, "{}")?;
+        }
+        for output in &invocation.step.io.outputs {
+            if let Some(parent) = output.path.parent() {
+                bijux_infra::ensure_dir(parent)?;
+            }
+            bijux_infra::write_bytes(&output.path, "output")?;
+        }
+        Ok(RunnerResult {
+            exit_code: 0,
+            stdout: String::new(),
+            stderr: String::new(),
+            duration: Duration::from_millis(1),
+            artifacts: vec![Artifact {
+                path: invocation.step.out_dir.join("output.txt"),
+                sha256: "deadbeef".to_string(),
+            }],
+        })
+    }
+}
+
+fn build_plan(base_dir: &Path) -> Result<ExecutionGraph> {
+    let stage = ExecutionStep {
+        step_id: StepId::from_static("core.test"),
+        stage_id: StageId::from_static("core.test"),
+        image: ContainerImageRefV1 {
+            image: "example/tool:test".to_string(),
+            digest: Some("sha256:deadbeef".to_string()),
+        },
+        command: CommandSpecV1 {
+            template: vec!["echo".to_string(), "hello".to_string()],
+        },
+        resources: ToolConstraints {
+            runtime: "1h".to_string(),
+            mem_gb: 1,
+            tmp_gb: 1,
+            threads: 1,
+        },
+        io: StageIO {
+            inputs: vec![ArtifactRef::required(
+                ArtifactId::from_static("input"),
+                base_dir.join("input.fq"),
+                ArtifactRole::Reads,
+            )],
+            outputs: vec![ArtifactRef::required(
+                ArtifactId::from_static("output"),
+                base_dir.join("output.fq"),
+                ArtifactRole::Reads,
+            )],
+        },
+        out_dir: base_dir.join("out"),
+        aux_images: BTreeMap::new(),
+        expected_artifact_ids: Vec::new(),
+        metrics_schema_ids: Vec::new(),
+    };
+
+    Ok(ExecutionGraph::new(
+        "core-to-core__default__v1",
+        "planner.test",
+        PlanPolicy::PreferAccuracy,
+        vec![stage],
+        Vec::<ExecutionEdge>::new(),
+    )?)
+}
+
+#[test]
+fn golden_spine_contract() -> Result<()> {
+    let tmp = tempfile::tempdir()?;
+    let base_dir = tmp.path();
+    let plan = build_plan(base_dir)?;
+
+    let runner = FakeRunner;
+    let layout = bijux_runtime::run_layout::RunLayout {
+        run_dir: base_dir.to_path_buf(),
+        stages_dir: base_dir.join("stages"),
+        summary_dir: base_dir.join("summary"),
+        assessment_path: base_dir.join("input_assessment.json"),
+        manifest_path: base_dir.join("execution_manifest.json"),
+        environment_path: base_dir.join("environment.json"),
+        metadata_path: base_dir.join("run_metadata.json"),
+        events_path: base_dir.join("events.jsonl"),
+    };
+    let _record = Engine::default().execute(&plan, &runner, &layout, None, None)?;
+
+    let provenance_path = write_plan_provenance(base_dir, &plan)?;
+    assert!(provenance_path.exists());
+
+    let plan_hash = plan.hash()?;
+    let plan_hash_path = base_dir.join("plan_hash.txt");
+    bijux_infra::write_bytes(&plan_hash_path, plan_hash.as_bytes())?;
+    assert!(plan_hash_path.exists());
+
+    let params_hash = params_hash(&serde_json::json!({"k": 1}))?;
+    let facts_row = FactsRowV1 {
+        schema_version: "bijux.facts.v1".to_string(),
+        run_id: "run-test".to_string(),
+        stage_id: "core.test".to_string(),
+        tool_id: "tool.test".to_string(),
+        tool_version: "0.0.0".to_string(),
+        image_digest: Some("sha256:deadbeef".to_string()),
+        trace_id: "trace-1".to_string(),
+        span_id: "span-1".to_string(),
+        params_hash,
+        input_hash: "input".to_string(),
+        output_hashes: vec!["output".to_string()],
+        runtime_s: 1.0,
+        memory_mb: 32.0,
+        exit_code: 0,
+        bank_hashes: serde_json::json!({}),
+        reads_in: Some(1),
+        reads_out: Some(1),
+        bases_in: Some(1),
+        bases_out: Some(1),
+        pairs_in: None,
+        pairs_out: None,
+        metrics: serde_json::json!({"reads_in": 1, "reads_out": 1}),
+        reports: serde_json::json!({}),
+        artifacts: serde_json::json!({}),
+    };
+
+    let facts_path = base_dir.join("facts.jsonl");
+    let facts_line = format!("{}\n", serde_json::to_string(&facts_row)?);
+    bijux_infra::write_bytes(&facts_path, facts_line.as_bytes())?;
+
+    let defaults_path = base_dir.join("defaults_ledger.json");
+    let defaults = DefaultsLedgerV1 {
+        pipeline_id: PipelineId::new("pipeline.test"),
+        tools: BTreeMap::new(),
+        params: BTreeMap::new(),
+        thresholds: BTreeMap::new(),
+        tool_provenance: BTreeMap::new(),
+        param_provenance: BTreeMap::new(),
+        assumptions: Vec::new(),
+        citations: BTreeMap::new(),
+    };
+    bijux_infra::write_bytes(&defaults_path, serde_json::to_vec(&defaults)?)?;
+
+    let report_path = bijux_analyze::write_run_report_from_facts(base_dir, &[facts_row])?;
+    assert!(report_path.exists());
+
+    let report_json: serde_json::Value = serde_json::from_slice(&std::fs::read(&report_path)?)?;
+    let index_html = bijux_api::v1::api::render_report_bundle_html(&report_json);
+    let bundle_dir = base_dir.join("report_bundle");
+    bijux_infra::ensure_dir(&bundle_dir)?;
+    let index_path = bundle_dir.join("index.html");
+    bijux_infra::write_bytes(&index_path, index_html.as_bytes())?;
+    assert!(index_path.exists());
+
+    let provenance_raw = std::fs::read(&provenance_path)?;
+    let provenance_json: serde_json::Value = serde_json::from_slice(&provenance_raw)?;
+    assert!(provenance_json["tools"]
+        .as_array()
+        .unwrap_or(&Vec::new())
+        .iter()
+        .any(|tool| { tool["image_digest"] == "sha256:deadbeef" }));
+
+    Ok(())
+}

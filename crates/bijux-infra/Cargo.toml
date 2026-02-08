@@ -1,0 +1,33 @@
+[package]
+name = "bijux-infra"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+toml.workspace = true
+tempfile.workspace = true
+fs4 = "0.8"
+thiserror.workspace = true
+sha2.workspace = true
+serde_yaml = { version = "0.9", optional = true }
+tracing-appender.workspace = true
+tracing-subscriber = { workspace = true, optional = true }
+
+[dev-dependencies]
+bijux-policies.workspace = true
+insta.workspace = true
+regex.workspace = true
+walkdir.workspace = true
+
+bijux-testkit = { path = "../bijux-testkit" }
+[lints]
+workspace = true
+
+[features]
+yaml = ["dep:serde_yaml"]
+tracing = ["dep:tracing-subscriber"]
