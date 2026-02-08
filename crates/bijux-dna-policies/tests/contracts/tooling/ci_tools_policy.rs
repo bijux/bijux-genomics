@@ -159,3 +159,43 @@ fn policy__contracts__ci_tools_policy__repo_root_has_no_coverage_dir() {
         "Repo root must not contain coverage/ (use artifacts/coverage instead)."
     );
 }
+
+#[test]
+fn policy__contracts__ci_tools_policy__no_bijux_namespace_in_docs_or_scripts() {
+    let root = workspace_root();
+    let scan_roots = [
+        root.join("docs"),
+        root.join("scripts"),
+        root.join(".github"),
+    ];
+    let mut offenders = Vec::new();
+
+    for scan_root in scan_roots {
+        if !scan_root.exists() {
+            continue;
+        }
+        for entry in WalkDir::new(scan_root)
+            .into_iter()
+            .filter_map(|entry| entry.ok())
+        {
+            if !entry.file_type().is_file() {
+                continue;
+            }
+            let content = match std::fs::read_to_string(entry.path()) {
+                Ok(content) => content,
+                Err(_) => continue,
+            };
+            if content.contains("bijux::") {
+                offenders.push(entry.path().display().to_string());
+            }
+        }
+    }
+
+    offenders.sort();
+    offenders.dedup();
+    bijux_dna_policies::policy_assert!(
+        offenders.is_empty(),
+        "Docs/scripts/CI must not reference legacy bijux:: namespace: {:?}",
+        offenders
+    );
+}
