@@ -4,6 +4,10 @@ retries = { count = 1, backoff = "fixed", delay = "1s" }
 [profile.ci]
 retries = { count = 0, backoff = "fixed", delay = "1s" }
 fail-fast = false
+test-threads = 1
+failure-output = "immediate"
+success-output = "never"
+status-level = "pass"
 
 [profile.slow]
 retries = { count = 1, backoff = "fixed", delay = "1s" }
