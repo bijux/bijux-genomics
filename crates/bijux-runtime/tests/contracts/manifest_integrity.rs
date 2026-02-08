@@ -42,8 +42,7 @@ fn manifest_has_required_fields() {
         }],
         artifacts: Vec::new(),
     };
-    let json =
-        serde_json::to_value(&manifest).unwrap_or_else(|err| panic!("serialize: {err}"));
+    let json = serde_json::to_value(&manifest).unwrap_or_else(|err| panic!("serialize: {err}"));
     for key in [
         "schema_version",
         "contract_version",
