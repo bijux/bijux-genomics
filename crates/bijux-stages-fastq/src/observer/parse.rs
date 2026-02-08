@@ -102,7 +102,8 @@ mod tests {
 
     #[test]
     fn parse_fastqvalidator_count_parses_fixture() -> Result<()> {
-        let stdout = include_str!("../../tests/fixtures/fastqvalidator/fastqvalidator_v1.txt");
+        let stdout =
+            include_str!("../../tests/fixtures/fastqvalidator/default/fastqvalidator_v1.txt");
         let count = parse_fastqvalidator_count(stdout)?;
         assert_eq!(count, 12345);
         Ok(())
@@ -116,7 +117,7 @@ mod tests {
 
     #[test]
     fn parse_seqkit_stats_parses_fixture() -> Result<()> {
-        let stdout = include_str!("../../tests/fixtures/seqkit/seqkit_stats_v1.txt");
+        let stdout = include_str!("../../tests/fixtures/seqkit/default/seqkit_stats_v1.txt");
         let metrics = parse_seqkit_stats(stdout)?;
         assert_eq!(metrics.reads, 1000);
         assert_eq!(metrics.bases, 100_000);

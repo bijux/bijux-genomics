@@ -39,6 +39,12 @@ Telemetry outputs (schema-stable fields; timestamps are unstable by design):
 - `resources.json`
 - `errors.json`
 
+## Key contracts it owns/consumes
+Owns runtime artifact schemas and run layout contract.
+
+## Artifacts / Contracts
+See `docs/RUNTIME_CONTRACT.md`, `docs/ARTIFACTS.md`, and schema fixtures under `tests/fixtures/runtime_schema/`.
+
 ## Effects & determinism guarantees
 Filesystem writes under run layout only. See `docs/EFFECTS.md` and the golden tests below.
 

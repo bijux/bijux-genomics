@@ -5,11 +5,11 @@ fn runtime_emits_use_canonical_json_writer() {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
     let mut offenders = Vec::new();
     let patterns = [
-        "serde_json::to_writer",
-        "serde_json::to_writer_pretty",
-        "serde_json::to_string_pretty",
-        "serde_json::to_vec_pretty",
-        "atomic_write_json(",
+        concat!("serde_json::", "to_writer"),
+        concat!("serde_json::", "to_writer_pretty"),
+        concat!("serde_json::", "to_string_pretty"),
+        concat!("serde_json::", "to_vec_pretty"),
+        concat!("atomic_write_", "json("),
     ];
     for entry in WalkDir::new(root).into_iter().filter_map(Result::ok) {
         if !entry.file_type().is_file() {

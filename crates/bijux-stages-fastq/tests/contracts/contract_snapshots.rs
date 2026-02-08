@@ -13,7 +13,7 @@ fn stage_contracts_snapshot() {
     )
     .expect("utf8");
     let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/stage_contracts.json");
+        .join("tests/fixtures/stage_contracts/default/stage_contracts.json");
     if std::env::var("UPDATE_CONTRACTS").ok().as_deref() == Some("1") {
         std::fs::write(&path, &actual).expect("write snapshot");
     }

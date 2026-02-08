@@ -22,6 +22,9 @@ Observers parse only documented tool outputs, ignore unknown fields, and require
 ## Key contracts it owns/consumes
 Stage report/metrics shape snapshots.
 
+## Artifacts / Contracts
+See `docs/STAGE_CONTRACTS.md`, `docs/OBSERVERS.md`, and snapshots under `tests/snapshots/`.
+
 ## Effects & determinism guarantees
 Pure parsing; deterministic snapshots. See `docs/EFFECTS.md` and the golden tests below.
 

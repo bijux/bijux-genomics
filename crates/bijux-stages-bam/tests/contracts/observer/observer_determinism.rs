@@ -2,8 +2,8 @@ use bijux_stages_bam::observer::{parse_samtools_flagstat, parse_samtools_idxstat
 
 #[test]
 fn bam_observer_outputs_are_deterministic() -> anyhow::Result<()> {
-    let flagstat = include_str!("../fixtures/observer/flagstat.txt");
-    let idxstats = include_str!("../fixtures/observer/idxstats.txt");
+    let flagstat = include_str!("../../fixtures/observer/default/flagstat.txt");
+    let idxstats = include_str!("../../fixtures/observer/default/idxstats.txt");
     let temp = bijux_infra::temp_dir("bijux-bam-observer")?;
     let flag_path = temp.path().join("flagstat.txt");
     let idx_path = temp.path().join("idxstats.txt");
@@ -18,7 +18,7 @@ fn bam_observer_outputs_are_deterministic() -> anyhow::Result<()> {
     )
     .unwrap_or_else(|err| panic!("utf8: {err}"));
     let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/observer_snapshot.json");
+        .join("tests/fixtures/observer_snapshot/default/observer_snapshot.json");
     if std::env::var("UPDATE_CONTRACTS").ok().as_deref() == Some("1") {
         std::fs::write(&path, &actual).unwrap_or_else(|err| panic!("write snapshot: {err}"));
     }

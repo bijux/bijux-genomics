@@ -13,10 +13,10 @@ fn no_execution_details() {
             continue;
         }
         let content = std::fs::read_to_string(entry.path()).unwrap_or_default();
-        if content.contains("Command::new")
+        if content.contains(concat!("Command::", "new"))
             || content.contains("docker")
             || content.contains("RuntimeKind")
-            || content.contains("std::process::Command")
+            || content.contains(concat!("std::process::", "Command"))
         {
             offenders.push(entry.path().display().to_string());
         }

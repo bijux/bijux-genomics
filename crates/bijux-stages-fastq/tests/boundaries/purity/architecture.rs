@@ -18,11 +18,11 @@ fn stages_fastq_has_no_execution_calls() -> Result<(), Box<dyn std::error::Error
     let root = manifest_dir.join("src");
     let files = collect_rs_files(&root);
     let forbidden = [
-        "std::process::Command",
+        concat!("std::process::", "Command"),
         "process::Command",
-        "Command::new",
-        "DockerRunner",
-        "docker::",
+        concat!("Command::", "new"),
+        concat!("Docker", "Runner"),
+        concat!("docker", "::"),
         "docker_runner",
         "executor",
         "run_tool_container",

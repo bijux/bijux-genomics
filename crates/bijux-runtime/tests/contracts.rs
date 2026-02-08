@@ -1,0 +1,13 @@
+// Auto-generated test aggregator for contracts
+#[path = "contracts/canonical_writer.rs"]
+mod mod_contracts_canonical_writer_rs;
+#[path = "contracts/manifest_integrity.rs"]
+mod mod_contracts_manifest_integrity_rs;
+#[path = "contracts/reference/docs_reference_example.rs"]
+mod mod_contracts_reference_docs_reference_example_rs;
+#[path = "contracts/reference/reference_example.rs"]
+mod mod_contracts_reference_reference_example_rs;
+#[path = "contracts/reference.rs"]
+mod mod_contracts_reference_rs;
+#[path = "contracts/run_layout_contract.rs"]
+mod mod_contracts_run_layout_contract_rs;
