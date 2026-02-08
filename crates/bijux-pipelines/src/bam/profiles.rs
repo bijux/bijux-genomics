@@ -3,8 +3,8 @@
 use std::collections::BTreeMap;
 
 use anyhow::{anyhow, Result};
-use bijux_core::prelude::id_catalog;
 use bijux_core::ids::StageId;
+use bijux_core::prelude::id_catalog;
 use bijux_domain_bam::defaults::{
     adna_capture_params_json, adna_shotgun_params_json, default_params_json,
 };

@@ -34,12 +34,14 @@ fn base_defaults() -> (PipelineProfile, PipelineProfile, EffectiveDefaults) {
 #[must_use]
 pub fn fastq_to_bam_adna_shotgun_profile() -> PipelineProfile {
     let (_fastq_profile, _bam_profile, mut defaults) = base_defaults();
-    defaults
-        .params
-        .insert(
-            StageId::from_static("core.prepare_reference"),
-            DefaultParams::Json(serde_json::json!({})),
-        );
+    defaults.params.insert(
+        StageId::from_static("core.prepare_reference"),
+        DefaultParams::Json(serde_json::json!({})),
+    );
+    defaults.rationales.insert(
+        StageId::from_static("core.prepare_reference"),
+        "reference prep uses canonical defaults for cross-domain alignment".to_string(),
+    );
     defaults.params.insert(
         StageId::from_static("bam.align"),
         DefaultParams::Json(adna_shotgun_params_json(BamStage::Align)),
@@ -91,12 +93,14 @@ pub fn fastq_to_bam_adna_shotgun_profile() -> PipelineProfile {
 #[must_use]
 pub fn fastq_to_bam_default_profile() -> PipelineProfile {
     let (_fastq_profile, _bam_profile, mut defaults) = base_defaults();
-    defaults
-        .params
-        .insert(
-            StageId::from_static("core.prepare_reference"),
-            DefaultParams::Json(serde_json::json!({})),
-        );
+    defaults.params.insert(
+        StageId::from_static("core.prepare_reference"),
+        DefaultParams::Json(serde_json::json!({})),
+    );
+    defaults.rationales.insert(
+        StageId::from_static("core.prepare_reference"),
+        "reference prep uses canonical defaults for cross-domain alignment".to_string(),
+    );
     defaults.params.insert(
         StageId::from_static("bam.align"),
         DefaultParams::Json(default_params_json(BamStage::Align)),
