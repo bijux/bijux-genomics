@@ -75,6 +75,7 @@ impl GatePolicy {
 
     #[allow(clippy::cast_precision_loss)]
     #[must_use]
+    #[allow(clippy::too_many_lines)]
     pub fn decide(
         &self,
         dataset_id: &str,
@@ -85,20 +86,22 @@ impl GatePolicy {
     ) -> GateDecision {
         let overrides = Some(stage_id).and_then(|stage| self.stage_overrides.get(stage));
         let required_metrics = overrides
-            .map(|override_policy| override_policy.required_metrics.as_slice())
-            .unwrap_or(self.required_metrics.as_slice());
-        let thresholds = overrides
-            .map(|override_policy| &override_policy.thresholds)
-            .unwrap_or(&self.thresholds);
-        let allowed_regressions = overrides
-            .map(|override_policy| &override_policy.allowed_regressions)
-            .unwrap_or(&self.allowed_regressions);
+            .map_or(self.required_metrics.as_slice(), |override_policy| {
+                override_policy.required_metrics.as_slice()
+            });
+        let thresholds = overrides.map_or(&self.thresholds, |override_policy| {
+            &override_policy.thresholds
+        });
+        let allowed_regressions = overrides.map_or(&self.allowed_regressions, |override_policy| {
+            &override_policy.allowed_regressions
+        });
         let must_not_regress = overrides
-            .map(|override_policy| override_policy.must_not_regress.as_slice())
-            .unwrap_or(self.must_not_regress.as_slice());
-        let semantics_overrides = overrides
-            .map(|override_policy| &override_policy.semantics_overrides)
-            .unwrap_or(&self.semantics_overrides);
+            .map_or(self.must_not_regress.as_slice(), |override_policy| {
+                override_policy.must_not_regress.as_slice()
+            });
+        let semantics_overrides = overrides.map_or(&self.semantics_overrides, |override_policy| {
+            &override_policy.semantics_overrides
+        });
 
         let mut violations = Vec::new();
         let mut missing_metrics = Vec::new();

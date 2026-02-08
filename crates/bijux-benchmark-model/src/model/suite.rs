@@ -2,7 +2,7 @@
 //! Benchmark suite specification (versioned).
 //! Owns suite-level inputs for bench orchestration.
 //! Must not perform IO or depend on compare/gate logic.
-//! Invariants: schema_version is stable and versioned.
+//! Invariants: `schema_version` is stable and versioned.
 
 use serde::{Deserialize, Serialize};
 

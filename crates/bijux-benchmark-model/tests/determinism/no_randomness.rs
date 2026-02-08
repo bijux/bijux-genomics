@@ -21,7 +21,8 @@ fn randomness_requires_seed() {
     collect_rs_files(&root, &mut files);
     let mut offenders = Vec::new();
     for path in files {
-        let contents = std::fs::read_to_string(&path).expect("read source");
+        let contents = std::fs::read_to_string(&path)
+            .unwrap_or_else(|err| panic!("read source {}: {err}", path.display()));
         let banned = [
             "fastrand::Rng::new",
             "fastrand::Rng::default",
