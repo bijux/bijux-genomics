@@ -1,0 +1,68 @@
+{
+  "stage_id": "bam.bias_mitigation",
+  "stage_version": 1,
+  "tool_id": "angsd",
+  "tool_version": "1.0.0",
+  "image": {
+    "image": "bijux/test:latest",
+    "digest": null
+  },
+  "command": {
+    "template": []
+  },
+  "resources": {
+    "runtime": "docker",
+    "mem_gb": 1,
+    "tmp_gb": 1,
+    "threads": 1
+  },
+  "io": {
+    "inputs": [
+      {
+        "name": "bam",
+        "path": "tests/fixtures/plan_inputs/default/sample.bam",
+        "role": "bam",
+        "optional": false
+      }
+    ],
+    "outputs": [
+      {
+        "name": "bias_report",
+        "path": "out/bias.json",
+        "role": "report_json",
+        "optional": false
+      },
+      {
+        "name": "summary",
+        "path": "out/bias.summary.json",
+        "role": "report_json",
+        "optional": false
+      },
+      {
+        "name": "stage_metrics",
+        "path": "out/stage.metrics.json",
+        "role": "metrics_json",
+        "optional": false
+      }
+    ]
+  },
+  "out_dir": "out",
+  "params": {
+    "bam": "tests/fixtures/plan_inputs/default/sample.bam",
+    "gc_bias_correction": true,
+    "map_bias_correction": false
+  },
+  "effective_params": {
+    "gc_bias_correction": true,
+    "map_bias_correction": false
+  },
+  "aux_images": {},
+  "reason": {
+    "kind": "default",
+    "summary": "tool angsd selected by planner",
+    "details": {
+      "contract_hash": "b504bef5432cc75e4c87122fa8f98dcc3b33653010879baf4fce9fcb9215e07d",
+      "defaults_diff": {}
+    }
+  }
+}
