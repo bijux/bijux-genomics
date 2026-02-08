@@ -88,11 +88,23 @@ mod tests {
     fn ensure_cache_writable_uses_home() -> anyhow::Result<()> {
         let temp = bijux_api::v1::api::run::temp_dir("bijux")?;
         let original_home = std::env::var_os("HOME");
+        struct HomeGuard {
+            original: Option<std::ffi::OsString>,
+        }
+        impl Drop for HomeGuard {
+            fn drop(&mut self) {
+                if let Some(value) = self.original.take() {
+                    std::env::set_var("HOME", value);
+                } else {
+                    std::env::remove_var("HOME");
+                }
+            }
+        }
+        let _guard = HomeGuard {
+            original: original_home,
+        };
         std::env::set_var("HOME", temp.path());
         assert!(ensure_cache_writable(RuntimeKind::Docker));
-        if let Some(value) = original_home {
-            std::env::set_var("HOME", value);
-        }
         Ok(())
     }
 }
