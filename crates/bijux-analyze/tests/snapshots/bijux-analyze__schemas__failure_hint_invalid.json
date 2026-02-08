@@ -1,7 +1,0 @@
-{
-  "stage": "fastq.validate_pre",
-  "tool": "fastqvalidator",
-  "kind": "data_invalid",
-  "reason": "invalid fastq record",
-  "hints": []
-}
