@@ -6,6 +6,8 @@
 pub mod contract;
 /// Foundation primitives for core (hashing, errors, IO-agnostic helpers).
 pub(crate) mod foundation;
+/// Canonical identifier catalog.
+pub mod id_catalog;
 /// Strongly typed identifiers.
 pub mod ids;
 /// Metrics types and registries.

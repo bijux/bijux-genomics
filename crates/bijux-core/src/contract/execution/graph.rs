@@ -1,4 +1,4 @@
-use std::collections::{BTreeMap, HashMap, HashSet};
+use std::collections::{BTreeMap, HashSet};
 use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
@@ -277,7 +277,7 @@ pub fn lint_execution_graph(graph: &ExecutionGraph) -> Result<()> {
             }
         }
     }
-    let mut by_id: HashMap<&str, &ExecutionStep> = HashMap::new();
+    let mut by_id: BTreeMap<&str, &ExecutionStep> = BTreeMap::new();
     for step in &graph.steps {
         by_id.insert(step.step_id.as_str(), step);
     }
@@ -294,8 +294,8 @@ pub fn lint_execution_graph(graph: &ExecutionGraph) -> Result<()> {
 }
 
 fn validate_acyclic(graph: &ExecutionGraph) -> Result<()> {
-    let mut incoming: HashMap<&str, usize> = HashMap::new();
-    let mut outgoing: HashMap<&str, Vec<&str>> = HashMap::new();
+    let mut incoming: BTreeMap<&str, usize> = BTreeMap::new();
+    let mut outgoing: BTreeMap<&str, Vec<&str>> = BTreeMap::new();
     for step in &graph.steps {
         incoming.insert(step.step_id.as_str(), 0);
     }

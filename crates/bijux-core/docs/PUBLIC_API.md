@@ -2,12 +2,14 @@
 
 ## Public Modules
 - `contract`
+- `id_catalog`
 - `ids`
 - `metrics`
 - `prelude`
 
 ## Why each item is public
 contract: required by planners/engine/runtime.  
+id_catalog: canonical identifier constants.  
 ids: shared identifier types.  
 metrics: shared metrics types.  
 prelude: stable import ergonomics.

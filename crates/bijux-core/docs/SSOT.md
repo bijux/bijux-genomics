@@ -3,6 +3,7 @@
 ## Ownership Table
 | Item | Owner Module | Allowed References |
 | --- | --- | --- |
+| Identifier catalog constants | `id_catalog.rs` | All crates via `bijux-core::id_catalog` |
 | StageId/StepId/ToolId/ArtifactId/ProfileId | `ids.rs` | All crates via `bijux-core` |
 | ContractVersion | `contract/version.rs` | Core + runtime + engine + api |
 | ExecutionGraph | `contract/execution/graph.rs` | planners, engine, api |

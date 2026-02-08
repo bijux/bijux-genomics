@@ -69,6 +69,9 @@ Each contract type includes purpose, stability tier, versioning rules, canonical
 - Tool execution, process spawning, or filesystem effects.
 - Domain-specific selection logic.
 
+## Identifier catalog
+Canonical identifier constants live in `id_catalog` and are referenced by planners, pipelines, and APIs.
+
 ## See also
 - `docs/SERIALIZATION.md`
 - `docs/INVARIANTS.md`

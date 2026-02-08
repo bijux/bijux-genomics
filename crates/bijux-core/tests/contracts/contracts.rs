@@ -1,7 +1,5 @@
 #[path = "contracts/canonicalization.rs"]
 mod canonicalization;
-#[path = "contracts/execution_graph_purity.rs"]
-mod execution_graph_purity;
 #[path = "contracts/execution_graph_validate.rs"]
 mod execution_graph_validate;
 #[path = "contracts/execution_plan_contract.rs"]

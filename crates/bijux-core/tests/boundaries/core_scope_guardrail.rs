@@ -32,7 +32,7 @@ fn core_scope_only_allows_contracts_and_foundation() -> Result<()> {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
     let src = root.join("src");
     let allow_dirs = ["contract", "foundation", "metrics"];
-    let allow_files = ["lib.rs", "ids.rs", "prelude.rs"];
+    let allow_files = ["id_catalog.rs", "ids.rs", "lib.rs", "prelude.rs"];
 
     for entry in std::fs::read_dir(&src)? {
         let entry = entry?;
@@ -65,7 +65,14 @@ fn core_scope_only_allows_contracts_and_foundation() -> Result<()> {
         }
     }
     pub_mods.sort();
-    let allowed_pub_mods = ["contract", "foundation", "ids", "metrics", "prelude"];
+    let allowed_pub_mods = [
+        "contract",
+        "foundation",
+        "id_catalog",
+        "ids",
+        "metrics",
+        "prelude",
+    ];
     let allowed_from_readme = read_allowed_pub_modules();
     let allowed_from_readme: Vec<&str> = allowed_from_readme.iter().map(String::as_str).collect();
     assert!(
