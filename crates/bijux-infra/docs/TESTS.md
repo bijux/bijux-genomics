@@ -25,6 +25,7 @@ Tests should explain the contract they enforce.
 - `tests/guardrails/canonical_owner.rs` — PATHS doc must point to bijux-core.
 - `tests/guardrails/no_generic_helpers.rs` — no generic helper-y API creep.
 - `tests/guardrails/policies.rs` — shared policy guardrails.
+- `tests/public_surface.rs` — public API surface snapshot.
 
 ## Testkit patterns
 See `crates/bijux-testkit/docs/USAGE.md` for shared fixture and snapshot helpers.

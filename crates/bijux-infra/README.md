@@ -5,13 +5,17 @@ Small deterministic utilities (logging, formats, paths) with zero domain semanti
 
 ## What it must not do (boundaries)
 No domain catalogs, SSOT ownership, or execution dependencies.
-No duplicate canonicalization (see bijux-core `contract::canonical`).
+No duplicate canonicalization (enforced by `crates/bijux-policies/tests/surface/no_duplicate_canonicalizers.rs`).
 
 ## Allowed responsibilities
-- Deterministic IO helpers (atomic writes, bounded reads, retries).
-- Logging initialization with stable field conventions.
-- Non-contract JSON/YAML parsing for config compatibility.
-- Path helpers for run layout construction only.
+Allowed utilities (and only these):
+- formats (JSON/TOML/YAML for config compatibility)
+- logging (stable field conventions only)
+- paths (deterministic path helpers)
+
+Explicitly forbidden:
+- any domain semantics
+- contract schema ownership
 
 ## Role in the stack
 Upstream: core/runtime/etc. Downstream: all crates as helpers.
@@ -24,6 +28,10 @@ None; utility-only.
 
 ## Effects & determinism guarantees
 No process/network effects; deterministic helpers only. See `docs/EFFECTS.md` and the golden tests below.
+
+## No duplicate canonicalizers
+Canonicalization lives in bijux-core only. Infra must not re-implement it.
+See `crates/bijux-policies/tests/surface/no_duplicate_canonicalizers.rs`.
 
 ## How to run its tests
 See `docs/TESTS.md`. Golden tests: `tests/determinism.rs`, `tests/guardrails.rs`,
