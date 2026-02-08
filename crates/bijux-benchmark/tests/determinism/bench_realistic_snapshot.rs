@@ -155,218 +155,219 @@ fn realistic_suite_snapshot() -> anyhow::Result<()> {
     }
 
     let summary = summarize(&suite, &observations, &BenchRunOptions::default())?;
-    insta::assert_json_snapshot!(bijux_testkit::snapshot_normalize_json(&summary), @r###"
+    let snapshot = serde_json::to_value(&summary).expect("serialize summary");
+    insta::assert_json_snapshot!(bijux_testkit::snapshot_normalize_json(&snapshot), @r#"
     {
-      "schema_version": "bijux.bench.summary.v1",
-      "suite_id": "suite-elite",
+      "invalid_reasons": [],
       "rows": [
         {
-          "dataset_id": "ds-1",
+          "completeness": 1.0,
           "dataset_class": "trueseq",
-          "read_layout": "paired",
-          "stage_id": "fastq.trim",
-          "tool_id": "cutadapt",
-          "params_hash": "params-a",
-          "runtime": {
-            "metric_id": "runtime_s",
-            "n": 3,
-            "stats": {
-              "n": 3,
-              "median": 1.4,
-              "mad": 0.09999999999999987,
-              "iqr": 0.0,
-              "trimmed_mean": 1.4000000000000001
-            },
-            "ci_low": null,
-            "ci_high": null,
-            "outlier_count": 0,
-            "outlier_replicates": [],
-            "practical_threshold": 0.05,
-            "power_warning": true
-          },
-          "memory": {
-            "metric_id": "memory_mb",
-            "n": 3,
-            "stats": {
-              "n": 3,
-              "median": 100.0,
-              "mad": 0.0,
-              "iqr": 0.0,
-              "trimmed_mean": 100.0
-            },
-            "ci_low": null,
-            "ci_high": null,
-            "outlier_count": 0,
-            "outlier_replicates": [],
-            "practical_threshold": 0.05,
-            "power_warning": true
-          },
-          "metrics": [],
-          "failure_rate": 0.0,
-          "completeness": 1.0,
-          "n_effective": 3,
-          "low_power": false
-        },
-        {
           "dataset_id": "ds-1",
-          "dataset_class": "trueseq",
-          "read_layout": "paired",
-          "stage_id": "fastq.trim",
-          "tool_id": "fastp",
-          "params_hash": "params-a",
-          "runtime": {
-            "metric_id": "runtime_s",
-            "n": 3,
-            "stats": {
-              "n": 3,
-              "median": 1.0,
-              "mad": 0.09999999999999998,
-              "iqr": 0.0,
-              "trimmed_mean": 1.0
-            },
-            "ci_low": null,
-            "ci_high": null,
-            "outlier_count": 0,
-            "outlier_replicates": [],
-            "practical_threshold": 0.05,
-            "power_warning": true
-          },
+          "failure_rate": 0.0,
+          "low_power": false,
           "memory": {
+            "ci_high": null,
+            "ci_low": null,
             "metric_id": "memory_mb",
             "n": 3,
-            "stats": {
-              "n": 3,
-              "median": 100.0,
-              "mad": 0.0,
-              "iqr": 0.0,
-              "trimmed_mean": 100.0
-            },
-            "ci_low": null,
-            "ci_high": null,
             "outlier_count": 0,
             "outlier_replicates": [],
+            "power_warning": true,
             "practical_threshold": 0.05,
-            "power_warning": true
+            "stats": {
+              "iqr": 0.0,
+              "mad": 0.0,
+              "median": 100.0,
+              "n": 3,
+              "trimmed_mean": 100.0
+            }
           },
           "metrics": [],
-          "failure_rate": 0.0,
-          "completeness": 1.0,
           "n_effective": 3,
-          "low_power": false
-        },
-        {
-          "dataset_id": "ds-2",
-          "dataset_class": "nextera",
-          "read_layout": "paired",
-          "stage_id": "fastq.trim",
-          "tool_id": "cutadapt",
           "params_hash": "params-a",
+          "read_layout": "paired",
           "runtime": {
+            "ci_high": null,
+            "ci_low": null,
             "metric_id": "runtime_s",
             "n": 3,
+            "outlier_count": 0,
+            "outlier_replicates": [],
+            "power_warning": true,
+            "practical_threshold": 0.05,
             "stats": {
-              "n": 3,
-              "median": 1.4,
+              "iqr": 0.0,
               "mad": 0.09999999999999987,
-              "iqr": 0.0,
-              "trimmed_mean": 1.4000000000000001
-            },
-            "ci_low": null,
-            "ci_high": null,
-            "outlier_count": 0,
-            "outlier_replicates": [],
-            "practical_threshold": 0.05,
-            "power_warning": true
-          },
-          "memory": {
-            "metric_id": "memory_mb",
-            "n": 3,
-            "stats": {
+              "median": 1.4,
               "n": 3,
-              "median": 100.0,
-              "mad": 0.0,
-              "iqr": 0.0,
-              "trimmed_mean": 100.0
-            },
-            "ci_low": null,
-            "ci_high": null,
-            "outlier_count": 0,
-            "outlier_replicates": [],
-            "practical_threshold": 0.05,
-            "power_warning": true
+              "trimmed_mean": 1.4000000000000001
+            }
           },
-          "metrics": [],
-          "failure_rate": 0.0,
-          "completeness": 1.0,
-          "n_effective": 3,
-          "low_power": false
+          "stage_id": "fastq.trim",
+          "tool_id": "cutadapt"
         },
         {
-          "dataset_id": "ds-2",
-          "dataset_class": "nextera",
-          "read_layout": "paired",
-          "stage_id": "fastq.trim",
-          "tool_id": "fastp",
-          "params_hash": "params-a",
-          "runtime": {
-            "metric_id": "runtime_s",
-            "n": 3,
-            "stats": {
-              "n": 3,
-              "median": 1.0,
-              "mad": 0.09999999999999998,
-              "iqr": 0.0,
-              "trimmed_mean": 1.0
-            },
-            "ci_low": null,
-            "ci_high": null,
-            "outlier_count": 0,
-            "outlier_replicates": [],
-            "practical_threshold": 0.05,
-            "power_warning": true
-          },
+          "completeness": 1.0,
+          "dataset_class": "trueseq",
+          "dataset_id": "ds-1",
+          "failure_rate": 0.0,
+          "low_power": false,
           "memory": {
+            "ci_high": null,
+            "ci_low": null,
             "metric_id": "memory_mb",
             "n": 3,
-            "stats": {
-              "n": 3,
-              "median": 100.0,
-              "mad": 0.0,
-              "iqr": 0.0,
-              "trimmed_mean": 100.0
-            },
-            "ci_low": null,
-            "ci_high": null,
             "outlier_count": 0,
             "outlier_replicates": [],
+            "power_warning": true,
             "practical_threshold": 0.05,
-            "power_warning": true
+            "stats": {
+              "iqr": 0.0,
+              "mad": 0.0,
+              "median": 100.0,
+              "n": 3,
+              "trimmed_mean": 100.0
+            }
           },
           "metrics": [],
-          "failure_rate": 0.0,
-          "completeness": 1.0,
           "n_effective": 3,
-          "low_power": false
+          "params_hash": "params-a",
+          "read_layout": "paired",
+          "runtime": {
+            "ci_high": null,
+            "ci_low": null,
+            "metric_id": "runtime_s",
+            "n": 3,
+            "outlier_count": 0,
+            "outlier_replicates": [],
+            "power_warning": true,
+            "practical_threshold": 0.05,
+            "stats": {
+              "iqr": 0.0,
+              "mad": 0.09999999999999998,
+              "median": 1.0,
+              "n": 3,
+              "trimmed_mean": 1.0
+            }
+          },
+          "stage_id": "fastq.trim",
+          "tool_id": "fastp"
+        },
+        {
+          "completeness": 1.0,
+          "dataset_class": "nextera",
+          "dataset_id": "ds-2",
+          "failure_rate": 0.0,
+          "low_power": false,
+          "memory": {
+            "ci_high": null,
+            "ci_low": null,
+            "metric_id": "memory_mb",
+            "n": 3,
+            "outlier_count": 0,
+            "outlier_replicates": [],
+            "power_warning": true,
+            "practical_threshold": 0.05,
+            "stats": {
+              "iqr": 0.0,
+              "mad": 0.0,
+              "median": 100.0,
+              "n": 3,
+              "trimmed_mean": 100.0
+            }
+          },
+          "metrics": [],
+          "n_effective": 3,
+          "params_hash": "params-a",
+          "read_layout": "paired",
+          "runtime": {
+            "ci_high": null,
+            "ci_low": null,
+            "metric_id": "runtime_s",
+            "n": 3,
+            "outlier_count": 0,
+            "outlier_replicates": [],
+            "power_warning": true,
+            "practical_threshold": 0.05,
+            "stats": {
+              "iqr": 0.0,
+              "mad": 0.09999999999999987,
+              "median": 1.4,
+              "n": 3,
+              "trimmed_mean": 1.4000000000000001
+            }
+          },
+          "stage_id": "fastq.trim",
+          "tool_id": "cutadapt"
+        },
+        {
+          "completeness": 1.0,
+          "dataset_class": "nextera",
+          "dataset_id": "ds-2",
+          "failure_rate": 0.0,
+          "low_power": false,
+          "memory": {
+            "ci_high": null,
+            "ci_low": null,
+            "metric_id": "memory_mb",
+            "n": 3,
+            "outlier_count": 0,
+            "outlier_replicates": [],
+            "power_warning": true,
+            "practical_threshold": 0.05,
+            "stats": {
+              "iqr": 0.0,
+              "mad": 0.0,
+              "median": 100.0,
+              "n": 3,
+              "trimmed_mean": 100.0
+            }
+          },
+          "metrics": [],
+          "n_effective": 3,
+          "params_hash": "params-a",
+          "read_layout": "paired",
+          "runtime": {
+            "ci_high": null,
+            "ci_low": null,
+            "metric_id": "runtime_s",
+            "n": 3,
+            "outlier_count": 0,
+            "outlier_replicates": [],
+            "power_warning": true,
+            "practical_threshold": 0.05,
+            "stats": {
+              "iqr": 0.0,
+              "mad": 0.09999999999999998,
+              "median": 1.0,
+              "n": 3,
+              "trimmed_mean": 1.0
+            }
+          },
+          "stage_id": "fastq.trim",
+          "tool_id": "fastp"
         }
       ],
+      "schema_version": "bijux.bench.summary.v1",
+      "scientifically_invalid": false,
       "strata": [
         {
-          "stage_id": "fastq.trim",
           "dataset_class": "nextera",
+          "low_power_count": 0,
           "row_count": 2,
-          "low_power_count": 0
+          "stage_id": "fastq.trim"
         },
         {
-          "stage_id": "fastq.trim",
           "dataset_class": "trueseq",
+          "low_power_count": 0,
           "row_count": 2,
-          "low_power_count": 0
+          "stage_id": "fastq.trim"
         }
       ],
-      "warnings": [],
-      "scientifically_invalid": false,
-      "invalid_reasons": []
+      "suite_id": "suite-elite",
+      "warnings": []
     }
-    "###);
+    "#);
     Ok(())
 }
