@@ -1,6 +1,6 @@
 ---
 source: crates/bijux-pipelines/tests/contracts/profiles/profiles.rs
-assertion_line: 48
+assertion_line: 65
 expression: fastq_to_bam_default_profile()
 ---
 {
@@ -76,6 +76,19 @@ expression: fastq_to_bam_default_profile()
         "mapq_threshold": 30,
         "min_length": 30,
         "remove_duplicates": false
+      },
+      "bam.genotyping": {
+        "caller": "angsd",
+        "min_call_rate": 0.7,
+        "min_posterior": 0.8
+      },
+      "bam.haplogroups": {
+        "min_coverage": 5.0,
+        "reference_panel": "rcrs.fasta"
+      },
+      "bam.kinship": {
+        "min_overlap_snps": 200,
+        "reference_panel": "panel.vcf"
       },
       "bam.markdup": {
         "duplicate_action": "mark",
@@ -178,6 +191,9 @@ expression: fastq_to_bam_default_profile()
       "bam.coverage": "pipeline default",
       "bam.damage": "pipeline default",
       "bam.filter": "pipeline default",
+      "bam.genotyping": "pipeline default",
+      "bam.haplogroups": "pipeline default",
+      "bam.kinship": "pipeline default",
       "bam.markdup": "pipeline default",
       "bam.qc_pre": "pipeline default",
       "bam.sex": "pipeline default",

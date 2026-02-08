@@ -1,6 +1,6 @@
 ---
 source: crates/bijux-pipelines/tests/contracts/profiles/profiles.rs
-assertion_line: 24
+assertion_line: 37
 expression: bam_adna_capture_profile()
 ---
 {
@@ -60,6 +60,19 @@ expression: bam_adna_capture_profile()
         "min_length": 25,
         "remove_duplicates": false
       },
+      "bam.genotyping": {
+        "caller": "angsd",
+        "min_call_rate": 0.7,
+        "min_posterior": 0.8
+      },
+      "bam.haplogroups": {
+        "min_coverage": 5.0,
+        "reference_panel": "rcrs.fasta"
+      },
+      "bam.kinship": {
+        "min_overlap_snps": 200,
+        "reference_panel": "panel.vcf"
+      },
       "bam.markdup": {
         "duplicate_action": "mark",
         "optical_duplicates": "mark_only",
@@ -84,6 +97,9 @@ expression: bam_adna_capture_profile()
       "bam.coverage": "pipeline default",
       "bam.damage": "pipeline default",
       "bam.filter": "pipeline default",
+      "bam.genotyping": "pipeline default",
+      "bam.haplogroups": "pipeline default",
+      "bam.kinship": "pipeline default",
       "bam.markdup": "pipeline default",
       "bam.qc_pre": "pipeline default",
       "bam.sex": "pipeline default",
@@ -134,7 +150,10 @@ expression: bam_adna_capture_profile()
       "bam.authenticity",
       "bam.contamination",
       "bam.sex",
-      "bam.bias_mitigation"
+      "bam.bias_mitigation",
+      "bam.haplogroups",
+      "bam.genotyping",
+      "bam.kinship"
     ],
     "required_metrics": [
       "bam.metrics"
