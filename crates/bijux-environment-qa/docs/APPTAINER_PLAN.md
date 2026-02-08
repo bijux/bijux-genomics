@@ -1,7 +1,7 @@
 # APPTAINER_PLAN
 
 ## Scope
-Enable Apptainer execution for QA images.
+Placeholder interface only (no real execution yet).
 
 ## Constraints
 - No network pulls by default
