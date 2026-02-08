@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+use bijux_core::ids::id_catalog;
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub(crate) struct ExplainExclusion {
     pub tool: String,
@@ -103,9 +105,11 @@ pub fn explain_bundle(
         .iter()
         .filter_map(|step| {
             let stage_id = step.stage_id.to_string();
-            let hash = if stage_id.starts_with("fastq.") || stage_id.starts_with("core.") {
+            let hash = if stage_id.starts_with(id_catalog::FASTQ_PREFIX)
+                || stage_id.starts_with(id_catalog::CORE_PREFIX)
+            {
                 bijux_domain_fastq::stage_contract_hash(&stage_id).and_then(std::result::Result::ok)
-            } else if stage_id.starts_with("bam.") {
+            } else if stage_id.starts_with(id_catalog::BAM_PREFIX) {
                 bijux_domain_bam::stage_contract_hash(&stage_id).and_then(std::result::Result::ok)
             } else {
                 None

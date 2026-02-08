@@ -1,4 +1,5 @@
 use bijux_core::prelude::params_hash;
+use bijux_core::ids::id_catalog;
 
 use std::fs;
 use std::path::Path;
@@ -122,10 +123,12 @@ pub(crate) fn render_run_summary(
 }
 
 fn stage_contract_hash_for(stage_id: &str) -> Option<String> {
-    if stage_id.starts_with("fastq.") || stage_id.starts_with("core.") {
+    if stage_id.starts_with(id_catalog::FASTQ_PREFIX)
+        || stage_id.starts_with(id_catalog::CORE_PREFIX)
+    {
         return bijux_domain_fastq::stage_contract_hash(stage_id).and_then(std::result::Result::ok);
     }
-    if stage_id.starts_with("bam.") {
+    if stage_id.starts_with(id_catalog::BAM_PREFIX) {
         return bijux_domain_bam::stage_contract_hash(stage_id).and_then(std::result::Result::ok);
     }
     None
@@ -641,7 +644,12 @@ mod tests {
     use bijux_planner_fastq::stage_api::STAGE_TRIM;
     use bijux_runner::primitives::StageResultV1;
     use bijux_stage_contract::{StageIO, StagePlanV1};
+    use insta::Settings;
     use std::path::PathBuf;
+
+    fn snapshot_name(group: &str, name: &str) -> String {
+        format!("bijux-api__{group}__{name}")
+    }
 
     #[test]
     fn run_manifest_includes_defaults_ledger() -> anyhow::Result<()> {
@@ -864,8 +872,13 @@ mod tests {
             payload.get("planner_version").and_then(|v| v.as_str()),
             Some("planner.v1")
         );
-        let name = bijux_testkit::snapshot_name("schemas", "scientific_provenance_contract");
-        insta::assert_json_snapshot!(name, payload);
+        let name = snapshot_name("schemas", "scientific_provenance_contract");
+        let mut settings = Settings::new();
+        settings.set_prepend_module_to_snapshot(false);
+        settings.set_snapshot_path(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/snapshots"));
+        settings.bind(|| {
+            insta::assert_json_snapshot!(name, payload);
+        });
         Ok(())
     }
 

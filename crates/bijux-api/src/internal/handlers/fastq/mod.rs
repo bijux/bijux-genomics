@@ -55,8 +55,8 @@ mod plan_tests {
     }
 
     #[test]
-    fn pipeline_stage_ids_are_stable_for_default_fastq() {
-        let stages = bijux_planner_fastq::fastq_pipeline_stage_ids("fastq-to-fastq__default__v1");
+    fn pipeline_id_catalog_are_stable_for_default_fastq() {
+        let stages = bijux_planner_fastq::fastq_pipeline_id_catalog("fastq-to-fastq__default__v1");
         assert!(stages.contains(&STAGE_TRIM.as_str().to_string()));
     }
 }

@@ -1,9 +1,13 @@
 ---
-source: crates/bijux-api/src/handlers/fastq/summary.rs
-assertion_line: 609
+source: crates/bijux-api/src/internal/handlers/fastq/summary.rs
+assertion_line: 873
 expression: payload
 ---
 {
+  "contract_version": {
+    "major": 1,
+    "minor": 0
+  },
   "input_hashes": [
     "sha256:input"
   ],

@@ -7,6 +7,7 @@ pub use crate::request_args::{
 };
 pub use crate::run::{
     dry_run, execute, execute_and_report, plan, policy_audit, render_report, status,
+    workspace_edges, write_workspace_audit,
 };
 pub use crate::v1::report::render_report_bundle_html;
 

@@ -19,7 +19,7 @@ use uuid::Uuid;
 
 use bijux_core::contract::validate_execution_outputs;
 use bijux_core::prelude::measure::SeqkitMetrics;
-use bijux_environment_qa::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
+use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use bijux_infra::hash_file_sha256;
 use bijux_infra::{bench_base_dir, bench_tools_dir};
 use bijux_planner_fastq::select_stats_tools;
@@ -39,7 +39,7 @@ use bijux_runtime::recording::{
     write_metrics_json, write_run_manifest, write_stage_plan_json, RunArtifactInput,
 };
 
-use crate::internal::handlers::fastq::{
+use crate::api_internal::handlers::fastq::{
     write_explain_md, write_explain_plan_json, BenchOutcome, STAGE_STATS_NEUTRAL,
 };
 use bijux_core::contract::{ContractVersion, ExecutionManifest};

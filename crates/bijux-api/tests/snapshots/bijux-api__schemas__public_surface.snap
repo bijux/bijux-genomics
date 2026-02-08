@@ -1,0 +1,6 @@
+---
+source: crates/bijux-api/tests/schemas/v1_cross_public_surface.rs
+assertion_line: 23
+expression: snapshot
+---
+pub mod v1;

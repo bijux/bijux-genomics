@@ -1,3 +1,5 @@
+/// Snapshot intent: verifies stable, reviewed output for this contract.
+
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 
@@ -9,7 +11,11 @@ use bijux_core::contract::{ArtifactRef, ArtifactRole, StageIO, ToolConstraints};
 use bijux_core::contract::{ExecutionEdge, ExecutionGraph, ExecutionStep};
 use bijux_core::prelude::{ArtifactId, CommandSpecV1, ContainerImageRefV1, StageId, StepId};
 use tempfile;
-use bijux_testkit::snapshot_name;
+use insta::Settings;
+
+fn snapshot_name(group: &str, name: &str) -> String {
+    format!("bijux-api__{group}__{name}")
+}
 
 fn minimal_graph() -> ExecutionGraph {
     let step = ExecutionStep {
@@ -50,6 +56,13 @@ fn minimal_graph() -> ExecutionGraph {
     .expect("graph")
 }
 
+fn snapshot_settings() -> Settings {
+    let mut settings = Settings::new();
+    settings.set_prepend_module_to_snapshot(false);
+    settings.set_snapshot_path(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/snapshots"));
+    settings
+}
+
 #[test]
 fn plan_response_schema_is_stable() -> anyhow::Result<()> {
     let graph = minimal_graph();
@@ -60,7 +73,10 @@ fn plan_response_schema_is_stable() -> anyhow::Result<()> {
     let response = plan(request)?;
     let json = serde_json::to_value(&response)?;
     let name = snapshot_name("schemas", "plan_response_schema");
-    insta::assert_json_snapshot!(name, json);
+    let settings = snapshot_settings();
+    settings.bind(|| {
+        insta::assert_json_snapshot!(name, json);
+    });
     Ok(())
 }
 
@@ -73,7 +89,10 @@ fn execute_response_schema_is_stable() -> anyhow::Result<()> {
     };
     let json = serde_json::to_value(&response)?;
     let name = snapshot_name("schemas", "execute_response_schema");
-    insta::assert_json_snapshot!(name, json);
+    let settings = snapshot_settings();
+    settings.bind(|| {
+        insta::assert_json_snapshot!(name, json);
+    });
     Ok(())
 }
 
@@ -91,7 +110,10 @@ fn dry_run_response_schema_is_stable() -> anyhow::Result<()> {
     let root = temp.path().to_str().unwrap_or_default();
     scrub_paths(&mut json, root);
     let name = snapshot_name("schemas", "dry_run_response_schema");
-    insta::assert_json_snapshot!(name, json);
+    let settings = snapshot_settings();
+    settings.bind(|| {
+        insta::assert_json_snapshot!(name, json);
+    });
     Ok(())
 }
 
@@ -110,7 +132,10 @@ fn status_schema_is_stable() -> anyhow::Result<()> {
     let root = temp.path().to_str().unwrap_or_default();
     scrub_paths(&mut json, root);
     let name = snapshot_name("schemas", "status_schema");
-    insta::assert_json_snapshot!(name, json);
+    let settings = snapshot_settings();
+    settings.bind(|| {
+        insta::assert_json_snapshot!(name, json);
+    });
     Ok(())
 }
 
@@ -120,7 +145,10 @@ fn explain_schema_is_stable() -> anyhow::Result<()> {
     let response = explain(&graph, None);
     let json = serde_json::to_value(&response)?;
     let name = snapshot_name("schemas", "explain_schema");
-    insta::assert_json_snapshot!(name, json);
+    let settings = snapshot_settings();
+    settings.bind(|| {
+        insta::assert_json_snapshot!(name, json);
+    });
     Ok(())
 }
 
@@ -139,7 +167,10 @@ fn policy_audit_schema_is_stable() -> anyhow::Result<()> {
         }
     }
     let name = snapshot_name("schemas", "policy_audit_schema");
-    insta::assert_json_snapshot!(name, json);
+    let settings = snapshot_settings();
+    settings.bind(|| {
+        insta::assert_json_snapshot!(name, json);
+    });
     Ok(())
 }
 
