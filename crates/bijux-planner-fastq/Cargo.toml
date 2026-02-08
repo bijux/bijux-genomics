@@ -19,4 +19,5 @@ tracing = { workspace = true }
 [dev-dependencies]
 bijux-policies = { path = "../bijux-policies" }
 bijux-infra = { path = "../bijux-infra" }
+bijux-testkit = { path = "../bijux-testkit" }
 insta = { version = "1", features = ["json", "filters"] }
