@@ -1190,7 +1190,7 @@ fn policy__boundaries__workspace__workspace_single_orchestration_surface() {
     let mut offenders = Vec::new();
     for path in crate_dirs() {
         let name = path.file_name().and_then(|s| s.to_str()).unwrap_or("");
-        if name == "bijux-dna-api" || name == "bijux-dna-api" {
+        if name == "bijux-dna-api" {
             continue;
         }
         for entry in walkdir::WalkDir::new(path.join("src"))
@@ -1235,7 +1235,7 @@ fn policy__boundaries__workspace__workspace_no_ad_hoc_fs_write() {
     ];
     for path in crate_dirs() {
         let name = path.file_name().and_then(|s| s.to_str()).unwrap_or("");
-        if name == "bijux-dna-infra" || name == "bijux-dna-infra" {
+        if name == "bijux-dna-infra" {
             continue;
         }
         for entry in walkdir::WalkDir::new(path.join("src"))
