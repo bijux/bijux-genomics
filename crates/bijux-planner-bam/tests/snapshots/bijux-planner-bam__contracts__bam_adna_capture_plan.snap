@@ -1,6 +1,6 @@
 ---
 source: crates/bijux-planner-bam/tests/contracts/plan/plan_snapshots.rs
-assertion_line: 123
+assertion_line: 128
 expression: plan
 ---
 {
@@ -68,6 +68,59 @@ expression: plan
         ]
       },
       "out_dir": "<temp>/out/bam_authenticity",
+      "aux_images": {},
+      "expected_artifact_ids": [],
+      "metrics_schema_ids": []
+    },
+    {
+      "step_id": "bam.bias_mitigation",
+      "stage_id": "bam.bias_mitigation",
+      "command": {
+        "template": [
+          "bwa"
+        ]
+      },
+      "image": {
+        "image": "bijux/bwa",
+        "digest": "sha256:bwa"
+      },
+      "resources": {
+        "runtime": "short",
+        "mem_gb": 2,
+        "tmp_gb": 1,
+        "threads": 2
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "bam",
+            "path": "<temp>/out/bam_markdup/markdup.bam",
+            "role": "bam",
+            "optional": false
+          }
+        ],
+        "outputs": [
+          {
+            "name": "bias_report",
+            "path": "<temp>/out/bam_bias_mitigation/bias.json",
+            "role": "report_json",
+            "optional": false
+          },
+          {
+            "name": "summary",
+            "path": "<temp>/out/bam_bias_mitigation/bias.summary.json",
+            "role": "report_json",
+            "optional": false
+          },
+          {
+            "name": "stage_metrics",
+            "path": "<temp>/out/bam_bias_mitigation/stage.metrics.json",
+            "role": "metrics_json",
+            "optional": false
+          }
+        ]
+      },
+      "out_dir": "<temp>/out/bam_bias_mitigation",
       "aux_images": {},
       "expected_artifact_ids": [],
       "metrics_schema_ids": []
@@ -382,6 +435,165 @@ expression: plan
       "metrics_schema_ids": []
     },
     {
+      "step_id": "bam.genotyping",
+      "stage_id": "bam.genotyping",
+      "command": {
+        "template": [
+          "bwa"
+        ]
+      },
+      "image": {
+        "image": "bijux/bwa",
+        "digest": "sha256:bwa"
+      },
+      "resources": {
+        "runtime": "short",
+        "mem_gb": 2,
+        "tmp_gb": 1,
+        "threads": 2
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "bam",
+            "path": "<temp>/out/bam_markdup/markdup.bam",
+            "role": "bam",
+            "optional": false
+          }
+        ],
+        "outputs": [
+          {
+            "name": "genotyping_report",
+            "path": "<temp>/out/bam_genotyping/genotyping.json",
+            "role": "report_json",
+            "optional": false
+          },
+          {
+            "name": "summary",
+            "path": "<temp>/out/bam_genotyping/genotyping.summary.json",
+            "role": "report_json",
+            "optional": false
+          },
+          {
+            "name": "stage_metrics",
+            "path": "<temp>/out/bam_genotyping/stage.metrics.json",
+            "role": "metrics_json",
+            "optional": false
+          }
+        ]
+      },
+      "out_dir": "<temp>/out/bam_genotyping",
+      "aux_images": {},
+      "expected_artifact_ids": [],
+      "metrics_schema_ids": []
+    },
+    {
+      "step_id": "bam.haplogroups",
+      "stage_id": "bam.haplogroups",
+      "command": {
+        "template": [
+          "bwa"
+        ]
+      },
+      "image": {
+        "image": "bijux/bwa",
+        "digest": "sha256:bwa"
+      },
+      "resources": {
+        "runtime": "short",
+        "mem_gb": 2,
+        "tmp_gb": 1,
+        "threads": 2
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "bam",
+            "path": "<temp>/out/bam_markdup/markdup.bam",
+            "role": "bam",
+            "optional": false
+          }
+        ],
+        "outputs": [
+          {
+            "name": "haplogroups",
+            "path": "<temp>/out/bam_haplogroups/haplogroups.json",
+            "role": "unknown",
+            "optional": false
+          },
+          {
+            "name": "summary",
+            "path": "<temp>/out/bam_haplogroups/haplogroups.summary.json",
+            "role": "report_json",
+            "optional": false
+          },
+          {
+            "name": "stage_metrics",
+            "path": "<temp>/out/bam_haplogroups/stage.metrics.json",
+            "role": "metrics_json",
+            "optional": false
+          }
+        ]
+      },
+      "out_dir": "<temp>/out/bam_haplogroups",
+      "aux_images": {},
+      "expected_artifact_ids": [],
+      "metrics_schema_ids": []
+    },
+    {
+      "step_id": "bam.kinship",
+      "stage_id": "bam.kinship",
+      "command": {
+        "template": [
+          "bwa"
+        ]
+      },
+      "image": {
+        "image": "bijux/bwa",
+        "digest": "sha256:bwa"
+      },
+      "resources": {
+        "runtime": "short",
+        "mem_gb": 2,
+        "tmp_gb": 1,
+        "threads": 2
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "bam",
+            "path": "<temp>/out/bam_markdup/markdup.bam",
+            "role": "bam",
+            "optional": false
+          }
+        ],
+        "outputs": [
+          {
+            "name": "kinship_report",
+            "path": "<temp>/out/bam_kinship/kinship.json",
+            "role": "report_json",
+            "optional": false
+          },
+          {
+            "name": "summary",
+            "path": "<temp>/out/bam_kinship/kinship.summary.json",
+            "role": "report_json",
+            "optional": false
+          },
+          {
+            "name": "stage_metrics",
+            "path": "<temp>/out/bam_kinship/stage.metrics.json",
+            "role": "metrics_json",
+            "optional": false
+          }
+        ]
+      },
+      "out_dir": "<temp>/out/bam_kinship",
+      "aux_images": {},
+      "expected_artifact_ids": [],
+      "metrics_schema_ids": []
+    },
+    {
       "step_id": "bam.markdup",
       "stage_id": "bam.markdup",
       "command": {
@@ -644,6 +856,10 @@ expression: plan
       "to": "bam.contamination"
     },
     {
+      "from": "bam.bias_mitigation",
+      "to": "bam.haplogroups"
+    },
+    {
       "from": "bam.complexity",
       "to": "bam.coverage"
     },
@@ -664,12 +880,24 @@ expression: plan
       "to": "bam.markdup"
     },
     {
+      "from": "bam.genotyping",
+      "to": "bam.kinship"
+    },
+    {
+      "from": "bam.haplogroups",
+      "to": "bam.genotyping"
+    },
+    {
       "from": "bam.markdup",
       "to": "bam.complexity"
     },
     {
       "from": "bam.qc_pre",
       "to": "bam.filter"
+    },
+    {
+      "from": "bam.sex",
+      "to": "bam.bias_mitigation"
     },
     {
       "from": "bam.validate",
