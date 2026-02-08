@@ -18,8 +18,8 @@ COVERAGE_BASELINE 	= coverage/baseline.json
 COVERAGE_THRESHOLDS = coverage/thresholds.json
 COVERAGE_ENV 		= $(TEST_ENV) CARGO_LLVM_COV_TARGET_DIR=$(COVERAGE_TARGET_DIR) CARGO_LLVM_COV_BUILD_DIR=$(COVERAGE_TARGET_DIR) LLVM_PROFILE_FILE=$(COVERAGE_ROOT_ABS)/llvm-cov/profraw/%p.profraw
 COVERAGE_RUN 		= cargo llvm-cov nextest --no-report --no-cfg-coverage $(NEXTEST_CONFIG) --workspace $(TEST_FEATURES) --profile $(NEXTEST_PROFILE) $(RUN_IGNORED)
-COVERAGE_JSON 		= cargo llvm-cov report --workspace $(TEST_FEATURES) --json --output-path $(COVERAGE_OUT)
-COVERAGE_HTML 		= cargo llvm-cov report --workspace $(TEST_FEATURES) --html --output-dir $(HTML_OUT)
+COVERAGE_JSON 		= cargo llvm-cov report --json --output-path $(COVERAGE_OUT)
+COVERAGE_HTML 		= cargo llvm-cov report --html --output-dir $(HTML_OUT)
 
 fmt:
 	$(FMT)
@@ -70,7 +70,7 @@ coverage-isolate:
 	CARGO_TARGET_DIR=target-isolate $(MAKE) coverage
 
 define run_ci
-	$(if $(1),CARGO_TARGET_DIR=$(1),)$(MAKE) fmt lint audit coverage
+	$(if $(1),CARGO_TARGET_DIR=$(1) ,)$(MAKE) fmt lint audit coverage
 endef
 
 ci:
@@ -87,3 +87,7 @@ snapshots-accept:
 
 snapshots-review:
 	$(TEST_ENV) cargo insta review
+
+.PHONY: fmt lint test audit coverage ci \
+		fmt-isolate lint-isolate test-isolate audit-isolate coverage-isolate ci-isolate \
+		snapshots snapshots-accept snapshots-review ensure-cargo-deny

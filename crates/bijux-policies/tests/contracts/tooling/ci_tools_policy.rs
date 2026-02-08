@@ -100,7 +100,7 @@ fn policy__contracts__ci_tools_policy__coverage_command_policy_is_stable() {
         "cargo llvm-cov nextest",
         "--no-report",
         "--no-cfg-coverage",
-        "cargo llvm-cov report --workspace",
+        "cargo llvm-cov report",
         "--json",
         "--html",
     ];
