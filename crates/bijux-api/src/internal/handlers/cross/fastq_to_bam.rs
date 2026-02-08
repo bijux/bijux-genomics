@@ -97,7 +97,7 @@ pub fn run_fastq_to_bam_profile<S: std::hash::BuildHasher>(
         );
         bam_stage_runs.push(StageExecutionSummary {
             plan: report_step,
-            result: bijux_runner::StageResultV1 {
+            result: bijux_runner::execute::StageResultV1 {
                 run_id: "report.aggregate".to_string(),
                 exit_code: 0,
                 runtime_s: 0.0,
@@ -171,7 +171,7 @@ pub fn run_fastq_to_bam_profile<S: std::hash::BuildHasher>(
     );
     bam_stage_runs.push(StageExecutionSummary {
         plan: report_step,
-        result: bijux_runner::StageResultV1 {
+        result: bijux_runner::execute::StageResultV1 {
             run_id: "report.aggregate".to_string(),
             exit_code: 0,
             runtime_s: 0.0,

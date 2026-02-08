@@ -8,8 +8,8 @@ use bijux_environment::api::{load_image_catalog, load_platform, RuntimeKind};
 use bijux_pipelines::registry;
 use bijux_pipelines::Domain;
 use bijux_planner_bam::stage_api::STAGE_PREFIX;
-use bijux_runner::build_tool_execution_spec;
-use bijux_runner::execute_step;
+use bijux_runner::backend::docker::execution_spec::build_tool_execution_spec;
+use bijux_runner::execute::execute_step;
 use std::path::PathBuf;
 
 use crate::request_args::{BamRunArgs, BenchBamPipelineArgs, BenchBamStageArgs};
