@@ -41,6 +41,9 @@ See `docs/INDEX.md`, `docs/PIPELINES.md`, `docs/PIPELINE_MODEL.md`, `docs/DEFAUL
 ## Key contracts it owns/consumes
 Defaults ledger and profile snapshots.
 
+## Artifacts / Contracts
+See `docs/DEFAULTS_LEDGER.md`, registry snapshots in `tests/snapshots/`, and `docs/PIPELINE_MODEL.md`.
+
 ## Effects & determinism guarantees
 Pure data only; deterministic ordering. See `docs/EFFECTS.md` and the golden tests below.
 

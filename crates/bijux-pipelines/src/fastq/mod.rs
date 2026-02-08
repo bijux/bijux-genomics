@@ -9,6 +9,7 @@ use bijux_domain_fastq::params::defaults::{
     detect_adapters_defaults, filter_defaults, merge_defaults, preprocess_defaults,
     qc_post_defaults, screen_defaults, trim_defaults, validate_defaults,
 };
+use bijux_core::prelude::id_catalog;
 
 use crate::{
     ArtifactType, Domain, EffectiveDefaults, MetricsBundle, PipelineCapabilities, PipelineId,
@@ -48,7 +49,7 @@ fn fastq_defaults(paired: bool) -> EffectiveDefaults {
 #[must_use]
 pub fn fastq_minimal_profile() -> PipelineProfile {
     PipelineProfile {
-        id: PipelineId::new("fastq-to-fastq__minimal__v1"),
+        id: PipelineId::from_static(id_catalog::PIPELINE_FASTQ_MINIMAL),
         description: "Minimal FASTQ pipeline",
         stability: StabilityTier::Stable,
         input_domains: vec![Domain::Fastq],
@@ -92,7 +93,7 @@ pub fn fastq_default_profile() -> PipelineProfile {
         "fastq.qc_post",
     ];
     PipelineProfile {
-        id: PipelineId::new("fastq-to-fastq__default__v1"),
+        id: PipelineId::from_static(id_catalog::PIPELINE_FASTQ_DEFAULT),
         description: "Default FASTQ pipeline",
         stability: StabilityTier::Stable,
         input_domains: vec![Domain::Fastq],
@@ -129,7 +130,7 @@ pub fn fastq_adna_profile() -> PipelineProfile {
         params["damage_mode"] = serde_json::json!("adna");
     }
     PipelineProfile {
-        id: PipelineId::new("fastq-to-fastq__adna__v1"),
+        id: PipelineId::from_static(id_catalog::PIPELINE_FASTQ_ADNA),
         description: "aDNA-oriented FASTQ pipeline defaults",
         stability: StabilityTier::Beta,
         input_domains: vec![Domain::Fastq],
@@ -166,9 +167,9 @@ pub fn fastq_adna_profile() -> PipelineProfile {
 /// Returns an error if the requested profile id is unknown.
 pub fn fastq_profiles_by_id(id: &str) -> anyhow::Result<PipelineProfile> {
     match id {
-        "fastq-to-fastq__default__v1" => Ok(fastq_default_profile()),
-        "fastq-to-fastq__minimal__v1" => Ok(fastq_minimal_profile()),
-        "fastq-to-fastq__adna__v1" => Ok(fastq_adna_profile()),
+        id_catalog::PIPELINE_FASTQ_DEFAULT => Ok(fastq_default_profile()),
+        id_catalog::PIPELINE_FASTQ_MINIMAL => Ok(fastq_minimal_profile()),
+        id_catalog::PIPELINE_FASTQ_ADNA => Ok(fastq_adna_profile()),
         _ => Err(anyhow::anyhow!("unknown FASTQ profile: {id}")),
     }
 }

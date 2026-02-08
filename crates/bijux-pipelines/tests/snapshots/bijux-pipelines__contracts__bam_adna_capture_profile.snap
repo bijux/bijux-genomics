@@ -1,5 +1,6 @@
 ---
-source: crates/bijux-pipelines/tests/profiles.rs
+source: crates/bijux-pipelines/tests/contracts/profiles/profiles.rs
+assertion_line: 24
 expression: bam_adna_capture_profile()
 ---
 {

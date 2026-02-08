@@ -1,11 +1,12 @@
 ---
-source: crates/bijux-pipelines/tests/profiles/profiles.rs
-expression: bam_default_profile()
+source: crates/bijux-pipelines/tests/contracts/profiles/profiles.rs
+assertion_line: 18
+expression: bam_adna_shotgun_profile()
 ---
 {
-  "id": "bam-to-bam__default__v1",
-  "description": "Default BAM pipeline",
-  "stability": "Stable",
+  "id": "bam-to-bam__adna_shotgun__v1",
+  "description": "Ancient DNA shotgun defaults",
+  "stability": "Beta",
   "input_domains": [
     "Bam"
   ],
@@ -15,6 +16,27 @@ expression: bam_default_profile()
   "defaults": {
     "tools": {},
     "params": {
+      "bam.authenticity": {
+        "mode": "aggregate"
+      },
+      "bam.bias_mitigation": {
+        "gc_bias_correction": true,
+        "map_bias_correction": false
+      },
+      "bam.complexity": {
+        "min_reads": 100000,
+        "projection_points": [
+          1000000,
+          2000000
+        ]
+      },
+      "bam.contamination": {
+        "assumptions": null,
+        "prior": null,
+        "reference_panels": [],
+        "scope": "both",
+        "sex_specific": false
+      },
       "bam.coverage": {
         "depth_thresholds": [
           1,
@@ -38,23 +60,38 @@ expression: bam_default_profile()
         "min_length": 30,
         "remove_duplicates": false
       },
+      "bam.markdup": {
+        "duplicate_action": "mark",
+        "optical_duplicates": "mark_only",
+        "umi_policy": "ignore"
+      },
       "bam.qc_pre": {
         "regions": null
+      },
+      "bam.sex": {
+        "expected_sex": null,
+        "method": "rxy"
       },
       "bam.validate": {
         "strict": true
       }
     },
     "rationales": {
+      "bam.authenticity": "pipeline default",
+      "bam.bias_mitigation": "pipeline default",
+      "bam.complexity": "pipeline default",
+      "bam.contamination": "pipeline default",
       "bam.coverage": "pipeline default",
       "bam.damage": "pipeline default",
       "bam.filter": "pipeline default",
+      "bam.markdup": "pipeline default",
       "bam.qc_pre": "pipeline default",
+      "bam.sex": "pipeline default",
       "bam.validate": "pipeline default"
     }
   },
   "defaults_ledger_ref": "defaults_ledger.json",
-  "invariants_preset": null,
+  "invariants_preset": "adna",
   "capabilities": {
     "input_domains": [
       "Bam"
@@ -84,14 +121,20 @@ expression: bam_default_profile()
       "PipelineDefaults"
     ],
     "required_metrics_bundles": [
-      "BamCore"
+      "BamAdna"
     ],
     "required_stages": [
       "bam.validate",
       "bam.qc_pre",
       "bam.filter",
+      "bam.markdup",
+      "bam.complexity",
       "bam.coverage",
-      "bam.damage"
+      "bam.damage",
+      "bam.authenticity",
+      "bam.contamination",
+      "bam.sex",
+      "bam.bias_mitigation"
     ],
     "required_metrics": [
       "bam.metrics"
