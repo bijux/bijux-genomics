@@ -3,6 +3,7 @@ name = "bijux-planner-bam"
 version = "0.1.0"
 edition = "2021"
 
+license.workspace = true
 [dependencies]
 anyhow = { workspace = true }
 bijux-core = { path = "../bijux-core" }
