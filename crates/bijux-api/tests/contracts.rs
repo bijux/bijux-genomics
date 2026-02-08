@@ -5,3 +5,5 @@ mod mod_contracts_v1_cross_contract_spine_rs;
 mod mod_contracts_v1_cross_explain_roundtrip_rs;
 #[path = "contracts/v1_cross_public_contract.rs"]
 mod mod_contracts_v1_cross_public_contract_rs;
+#[path = "contracts/v1_dry_run_manifest.rs"]
+mod mod_contracts_v1_dry_run_manifest_rs;
