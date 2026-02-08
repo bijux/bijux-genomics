@@ -1,5 +1,19 @@
 # FAILURE_PLAYBOOKS
 
+## What
+Common failure modes and the fastest fix paths for policy violations.
+
+## Why
+Short playbooks reduce triage time and keep enforcement consistent.
+
+## Non-goals
+- Exhaustive troubleshooting guides.
+- Replacement for policy diagnostics.
+
+## Contracts
+- Every entry maps to a specific policy test.
+
+## Examples
 ## Top 10 Failures
 1. **docs_spine**: doc in wrong location → move to crate/docs.
 2. **docs_tree_contract**: docs tree drift → update snapshot.
@@ -13,3 +27,6 @@
 10. **ssot_catalog_authority**: duplicate IDs → move to owner.
 
 Each failure links to the matching policy test file.
+
+## Failure modes
+- Missing entries lead to inconsistent fixes and reviewer confusion.
