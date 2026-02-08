@@ -4,23 +4,20 @@
 Standardizes policy failure messages so they are actionable and consistent.
 
 ## Why
-Consistent diagnostics reduce triage time and prevent confusion.
-
-## Non-goals
-- Exhaustive troubleshooting guides.
+Consistent diagnostics reduce triage time and prevent ambiguity during enforcement.
 
 ## Contracts
 Each policy failure must include:
-1. **Symptom** — what failed.
-2. **Rule** — the policy being enforced.
-3. **Fix** — the specific change required.
-4. **Example** — a short example of a compliant change.
+- **WHAT** — what failed.
+- **WHY** — why the rule matters.
+- **HOW** — how to fix it.
+- **MORE** — where to read more.
 
-## Examples
-Symptom: crate docs missing `SCOPE.md`  
-Rule: docs placement contract  
-Fix: add `crates/<crate>/docs/SCOPE.md`  
-Example: `crates/bijux-core/docs/SCOPE.md`
+## Example
+WHAT: `crates/bijux-core/docs/SCOPE.md` missing
+WHY: Policies protect architectural boundaries, ownership, and determinism across the workspace.
+HOW: Add `crates/bijux-core/docs/SCOPE.md` with the required sections.
+MORE: `crates/bijux-policies/docs/TESTS.md`
 
 ## Failure modes
-- Policy output omits a required section.
+- Policy output omits any of the required sections.

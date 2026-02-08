@@ -6,85 +6,75 @@ Maps policy tests to intent and failure meaning.
 ## Why
 Tests become documentation for governance rules.
 
-## Non-goals
-- Full test implementation detail.
-
 ## Contracts
 - Every policy test file must be listed and explained.
+- Test names follow `policy__<suite>__<file>__<rule>` for stable search.
 
-## Examples
-- `docs_required_policy.rs` → ensures docs placement.
-
-## Failure modes
-- Missing test documentation fails `policy_docs_anchor`.
-
-## deps
-- `dependency_budgets.rs` — enforces dependency size caps.  
-  Failure means a crate pulled in heavy dependencies.
-- `effect_boundary_map.rs` — enforces effect boundaries.  
-  Failure means a crate uses forbidden effects.
-- `infra_boundaries.rs` — infra must not depend on domain/stage/planner.  
-  Failure means infra leaked domain semantics.
-- `qa_dependency_policy.rs` — QA crates cannot be depended on by production crates.  
-  Failure means a production crate depends on QA.
-
-## surface
-- `architecture_pointer_policy.rs` — architecture docs must remain brief.  
-  Failure means crate architecture docs are duplicating deeper docs.
-- `docs_spine_contract.rs` — required doc spine snapshot per crate.  
-  Failure means missing required docs or unblessed spine drift.
-- `docs_required_policy.rs` — crate docs required in docs/.  
-  Failure means docs placement rule violated.
-- `docs_spine.rs` — root/authority docs template and metadata checks.  
-  Failure means docs missing required sections.
-- `docs_tree_contract.rs` — snapshot of docs trees.  
-  Failure means unblessed tree drift.
-- `domain_purity.rs` — domain crates must be pure.  
-  Failure means execution concerns leaked.
-- `id_literal_policy.rs` — ID literals only from canonical owners.  
-  Failure means stray literal IDs.
-- `mod_naming_policy.rs` — no legacy/flat internal naming.  
-  Failure means disallowed module name.
-- `no_duplicate_canonicalizers.rs` — canonicalization only in core.  
-  Failure means duplicate canonicalizer found.
-- `no_empty_dirs_policy.rs` — no empty dirs.  
-  Failure means placeholder directory exists.
-- `no_helpers_policy.rs` — no helpers/utils buckets.  
-  Failure means ambiguous naming.
-- `no_policy_duplication.rs` — policies only in bijux-policies.  
-  Failure means policy logic outside this crate.
-- `no_serde_json_writer.rs` — canonical JSON only via core helpers.  
-  Failure means direct serde_json writer usage.
-- `no_src_crowd_policy.rs` — limit root src modules.  
-  Failure means overcrowded src root.
-- `no_thin_modules_policy.rs` — no single‑file module dirs.  
-  Failure means thin module detected.
-- `planner_purity.rs` — planners must not parse or execute.  
-  Failure means forbidden logic in planner.
-- `readme_policy.rs` — README headings, required links, and link validity.  
-  Failure means missing README contract or stale links.
-- `runner_tree_policy.rs` — runner tree shape contract.  
-  Failure means drift in runner layout.
-- `ssot_catalog_authority.rs` — SSOT ownership of catalogs.  
-  Failure means duplicate catalog ownership.
-- `stage_specs_purity.rs` — stage specs must be declarative.  
-  Failure means execution logic in stage specs.
-- `style_policy.rs` — style policy entrypoint.  
-  Failure means style checks not listed in matrix.
-- `tool_id_uniqueness.rs` — tool IDs unique.  
-  Failure means duplicate tool ID.
-- `test_grouping_policy.rs` — tests must be grouped when suites grow.  
-  Failure means too many flat test files.
+## Root
+- `guardrails.rs` — runs guardrail checks with per-crate configs.
+- `policy_snapshot.rs` — snapshots default guardrail configs.
+- `workspace.rs` — workspace policy harness.
 
 ## data
-- `contract_handshake.rs` — planner ⇄ runtime ⇄ analyze handshake.  
-  Failure means contract mismatch across layers.
+- `contract_handshake.rs` — planner ⇄ runtime ⇄ analyze handshake fixtures.
+- `defaults_policy.rs` — defaults live only in pipelines.
+- `policy_snapshot.rs` — serialize guardrail defaults deterministically.
+- `purity_scans.rs` — scans for forbidden data-layer tokens.
+- `test_data_policies.rs` — test data size + fixture hygiene.
+
+## deps
+- `benchmark_dependency_policy.rs` — benchmark crate dependency limits.
+- `cli_dependency_policy.rs` — CLI depends only on API + CLI support.
+- `core_layering.rs` — core layering rules.
+- `dependency_boundaries.rs` — cross-crate dependency boundaries.
+- `dependency_budgets.rs` — dependency size caps.
+- `dependency_graph.rs` — boundary map matches dependency DAG.
+- `dev_deps_policy.rs` — dev dependency allowlist.
+- `domain_dependency_policy.rs` — domain crates use only pure deps.
+- `effect_boundary_map.rs` — effect boundary map enforcement.
+- `heavy_deps_policy.rs` — heavy deps must be feature-gated.
+- `infra_boundaries.rs` — infra has no domain semantics.
+- `pipelines_dependency_policy.rs` — pipelines avoid stages/planners.
+- `qa_dependency_policy.rs` — prod crates do not depend on QA crates.
+
+## surface
+- `api_boundaries.rs` — API/CLI avoid internal planner/engine imports.
+- `architecture_pointer_policy.rs` — architecture docs are brief pointers.
+- `core_purity.rs` — core avoids runtime/system deps.
+- `crate_tree_contract.rs` — snapshot crate tree layout.
+- `deep_imports.rs` — disallow deep internal imports.
+- `docs_index_quality.rs` — docs index required sections + links.
+- `docs_required_policy.rs` — required crate docs exist + naming rules.
+- `docs_spine.rs` — root docs spine + metadata headers.
+- `docs_spine_contract.rs` — snapshot crate docs spine.
+- `docs_tree_contract.rs` — snapshot docs tree structure.
+- `domain_purity.rs` — domain crates stay pure.
+- `guardrails.rs` — guardrails for bijux-policies.
+- `id_literal_policy.rs` — ID literals only in canonical owners.
+- `mod_naming_policy.rs` — module naming rules.
+- `no_duplicate_canonicalizers.rs` — canonicalizers only in core.
+- `no_empty_dirs_policy.rs` — no empty or placeholder dirs.
+- `no_helpers_policy.rs` — ban helpers/utils buckets.
+- `no_policy_duplication.rs` — policies only in bijux-policies.
+- `no_serde_json_writer.rs` — canonical JSON writer only via core.
+- `no_src_crowd_policy.rs` — limit root src modules.
+- `no_thin_modules_policy.rs` — no thin module directories.
+- `ownership_contract.rs` — ownership rules for IDs/defaults/metrics.
+- `path_policies.rs` — path and write location rules.
+- `planner_purity.rs` — planners are declarative only.
+- `readme_policy.rs` — README required sections + links.
+- `runner_tree_policy.rs` — runner tree layout contract.
+- `ssot_catalog_authority.rs` — catalog SSOT ownership.
+- `stage_specs_purity.rs` — stage specs are declarative.
+- `style_policy.rs` — style policy entrypoint.
+- `test_grouping_policy.rs` — tests grouped into suites.
+- `tool_id_uniqueness.rs` — tool IDs unique across planners.
+- `workspace.rs` — workspace layout + guardrail contracts.
 
 ## tooling
-- `docs_links.rs` — link integrity.  
-  Failure means broken intra‑doc links.
-- `no_appledouble.rs` — AppleDouble/.DS_Store ban.  
-  Failure means forbidden OS metadata files exist.
-
-## Testkit patterns
-See `crates/bijux-testkit/docs/USAGE.md` for shared fixture and snapshot helpers.
+- `ci_tools_policy.rs` — CI uses make-only commands + YAML scoping.
+- `command_spawn_policy.rs` — command spawning confined to runner/env.
+- `docs_links.rs` — docs links are resolvable.
+- `makefile_policies.rs` — root makefile is single source.
+- `no_appledouble.rs` — ban AppleDouble/.DS_Store artifacts.
+- `policies.rs` — cross-cutting policy checks.
