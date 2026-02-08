@@ -9,8 +9,10 @@ See `EFFECTS.md` for allowed effects.
 ## Boundaries
 See `ARCHITECTURE.md` for internal boundaries.
 
-## Compatibility
-See `COMPATIBILITY.md` for expected metrics and unknown metric behavior.
+## Contracts
+- `MODEL_GLOSSARY.md`
+- `DECISION_EXPLAINABILITY.md`
+- `DETERMINISM.md`
 
 ## Extension Points
 See `CHANGE_RULES.md` for safe extension guidelines.
