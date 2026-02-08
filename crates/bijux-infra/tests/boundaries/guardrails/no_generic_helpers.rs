@@ -9,23 +9,22 @@ const ALLOWLIST: &[&str] = &["normalize_run_base_dir"];
 #[test]
 fn infra_does_not_expose_generic_helpers() {
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("src");
-    let re = Regex::new(r"pub\s+fn\s+([a-zA-Z0-9_]+)").expect("compile regex");
+    let re = Regex::new(r"pub\s+fn\s+([a-zA-Z0-9_]+)")
+        .unwrap_or_else(|err| panic!("compile regex: {err}"));
     let mut offenders = Vec::new();
 
     for entry in WalkDir::new(&root) {
-        let entry = match entry {
-            Ok(entry) => entry,
-            Err(_) => continue,
-        };
+        let Ok(entry) = entry else { continue };
         if !entry.file_type().is_file() {
             continue;
         }
         if entry.path().extension().and_then(|ext| ext.to_str()) != Some("rs") {
             continue;
         }
-        let content = std::fs::read_to_string(entry.path()).expect("read source");
+        let content = std::fs::read_to_string(entry.path())
+            .unwrap_or_else(|err| panic!("read source {}: {err}", entry.path().display()));
         for cap in re.captures_iter(&content) {
-            let name = cap.get(1).map(|m| m.as_str()).unwrap_or("");
+            let name = cap.get(1).map_or("", |m| m.as_str());
             if ALLOWLIST.contains(&name) {
                 continue;
             }
