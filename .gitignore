@@ -20,6 +20,9 @@
 /tmp/
 *.tmp
 /artifacts/
+/artifacts/**
+!/artifacts/coverage/
+!/artifacts/coverage/thresholds.json
 
 !docs/
 !docs/**
@@ -33,3 +36,5 @@ site/
 
 /target-*/
 **/target-*/
+/target-isolate-*/
+**/target-isolate-*/
