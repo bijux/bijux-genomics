@@ -1,6 +1,6 @@
 # PATHS
 
-Path normalization is owned by bijux-core.
+Path normalization is owned by bijux-dna-core.
 Infra can only construct paths via stable run-layout helpers.
 
 ## Stability guarantees
@@ -10,4 +10,4 @@ Infra can only construct paths via stable run-layout helpers.
 - `normalize_run_base_dir` only anchors a relative base to a cwd; it does not
   canonicalize or clean the path.
 
-No independent normalization allowed outside bijux-core `contract::canonical`.
+No independent normalization allowed outside bijux-dna-core `contract::canonical`.
