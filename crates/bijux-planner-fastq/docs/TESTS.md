@@ -10,10 +10,10 @@ Tests should explain the contract they enforce.
 - Full test implementation detail.
 
 ## Contracts
-- `tests/determinism/*` → deterministic plan ordering and stable hashes.
-- `tests/graph/*` → graph topology and stage wiring snapshots.
-- `tests/plan/*` → plan JSON schema + configuration contracts.
-- `tests/explain/*` → explain payload shape + documentation anchors.
+- `tests/determinism/*` → deterministic plan ordering and stable hashes (docs/DETERMINISM.md).
+- `tests/graph/*` → graph topology and stage wiring snapshots (docs/STAGE_MAPPING.md).
+- `tests/plan/*` → plan JSON schema + configuration contracts (docs/PLANNER_MODEL.md).
+- `tests/explain/*` → explain payload shape + documentation anchors (docs/EXPLAIN_OUTPUT.md).
 
 ## Mapping
 - `tests/determinism/determinism.rs` → stable ordering/hashes.

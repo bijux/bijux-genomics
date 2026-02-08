@@ -4,7 +4,19 @@
 FASTQ planner: selects tools and generates graphs + explain payloads.
 Stage grouping is explicit: `pre` (validation + stats), `qc` (quality reports),
 and `transform` (trim/merge/filter/correct/umi/screen).
-Selection resolves user/tool allowlists into concrete stage adapters per group.
+
+## Selection + explainability
+Selection inputs:
+- pipeline id + profile overrides
+- allow/deny tool lists (CLI/API)
+- stage availability from domain contracts
+- explicit tool version pins (if provided)
+
+Explain output guarantees:
+- lists chosen tools in stable order
+- includes defaults diff (profile vs pipeline)
+- includes reasons for each selection
+- includes contract hashes for plan stability
 
 ## What it must not do (boundaries)
 No parsing or execution.
@@ -20,7 +32,7 @@ See `docs/INDEX.md`, `docs/PLANNER_MODEL.md`, `docs/TOOL_SELECTION.md`, `docs/EX
 Plan JSON and explain payload snapshots.
 
 ## Effects & determinism guarantees
-Pure planning; deterministic ordering/hashes. See `docs/EFFECTS.md` and the golden tests below.
+Pure planning; deterministic ordering/hashes. See `docs/DETERMINISM.md` and the golden tests below.
 
 ## How to run its tests
 See `docs/TESTS.md`. Golden tests: `tests/determinism.rs`, `tests/graph.rs`,
