@@ -1,6 +1,10 @@
 use std::fs;
 use std::path::PathBuf;
 
+fn snapshot_name(group: &str, name: &str) -> String {
+    format!("bijux-core__{group}__{name}")
+}
+
 #[test]
 fn public_module_tree_snapshot() -> anyhow::Result<()> {
     let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
@@ -14,10 +18,8 @@ fn public_module_tree_snapshot() -> anyhow::Result<()> {
         }
     }
     let rendered = mods.join("\n");
-    let snapshot_path = manifest_dir
-        .join("tests")
-        .join("snapshots")
-        .join("public_module_tree.txt");
+    let snapshot_file = format!("{}.txt", snapshot_name("schemas", "public_module_tree"));
+    let snapshot_path = manifest_dir.join("tests").join("snapshots").join(snapshot_file);
     let snapshot = fs::read_to_string(&snapshot_path)?;
     assert_eq!(rendered.trim(), snapshot.trim());
     Ok(())

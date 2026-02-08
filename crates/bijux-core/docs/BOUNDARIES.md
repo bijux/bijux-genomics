@@ -14,3 +14,11 @@
 - Deterministic serialization/deserialization.
 - Pure validation (no network, no filesystem mutation).
 - Hashing and canonicalization of in-memory data.
+
+## OWNERSHIP
+- IDs (PipelineId/StageId/ToolId/MetricId): bijux-core.
+- Defaults/profiles: bijux-pipelines.
+- Param schemas: domain crates.
+- Metric semantics: domain crates.
+- Artifact layout: bijux-runtime.
+- Report schema/rendering: bijux-analyze.

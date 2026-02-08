@@ -1,6 +1,12 @@
 use std::fs;
 use std::path::PathBuf;
 
+use insta::Settings;
+
+fn snapshot_name(group: &str, name: &str) -> String {
+    format!("bijux-core__{group}__{name}")
+}
+
 /// Snapshot locks core public surface exports.
 #[test]
 fn public_surface_is_snapshotted() {
@@ -14,6 +20,11 @@ fn public_surface_is_snapshotted() {
             snapshot.push('\n');
         }
     }
-    let name = bijux_testkit::snapshot_name("schemas", "public_surface");
-    insta::assert_snapshot!(name, snapshot);
+    let name = snapshot_name("schemas", "public_surface");
+    let mut settings = Settings::new();
+    settings.set_prepend_module_to_snapshot(false);
+    settings.set_snapshot_path(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/snapshots"));
+    settings.bind(|| {
+        insta::assert_snapshot!(name, snapshot);
+    });
 }

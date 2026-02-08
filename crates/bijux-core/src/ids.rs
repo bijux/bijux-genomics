@@ -5,6 +5,7 @@ use std::borrow::Cow;
 use serde::{Deserialize, Serialize};
 
 use crate::foundation::{BijuxError, Result};
+pub use crate::id_catalog;
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct StageId(pub Cow<'static, str>);
@@ -142,6 +143,7 @@ impl RunId {
     }
 }
 
+/// Canonical stage identifiers owned by bijux-core.
 /// # Errors
 /// Returns an error if the stage id is invalid.
 pub fn parse_stage_id(value: &str) -> Result<StageId> {
