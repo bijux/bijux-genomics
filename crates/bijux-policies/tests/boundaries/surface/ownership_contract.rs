@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+#![allow(non_snake_case)]
 use std::path::{Path, PathBuf};
 
 use walkdir::WalkDir;
@@ -19,12 +20,13 @@ fn is_core_ids_path(path: &Path) -> bool {
 
 fn is_core_metrics_path(path: &Path) -> bool {
     path.to_string_lossy()
-        .ends_with("/crates/bijux-core/src/metrics.rs")
+        .contains("/crates/bijux-core/src/metrics/")
 }
 
 fn is_pipelines_defaults_path(path: &Path) -> bool {
-    path.to_string_lossy()
-        .ends_with("/crates/bijux-pipelines/src/defaults_ledger.rs")
+    let path_str = path.to_string_lossy();
+    path_str.ends_with("/crates/bijux-pipelines/src/defaults_ledger.rs")
+        || path_str.ends_with("/crates/bijux-pipelines/src/defaults/ledger.rs")
 }
 
 fn is_domain_params_path(path: &Path) -> bool {
@@ -34,17 +36,17 @@ fn is_domain_params_path(path: &Path) -> bool {
 
 fn is_policies_ownership_test(path: &Path) -> bool {
     path.to_string_lossy()
-        .ends_with("/crates/bijux-policies/tests/ownership_contract.rs")
+        .ends_with("/crates/bijux-policies/tests/boundaries/surface/ownership_contract.rs")
 }
 
 #[test]
-fn policy__surface__ownership_contract__ownership_contract_is_complete() {
+fn policy__boundaries__ownership_contract__ownership_contract_is_complete() {
     let root = workspace_root();
     let contract_path = root
         .join("crates")
         .join("bijux-core")
-        .join("src")
-        .join("boundaries.md");
+        .join("docs")
+        .join("BOUNDARIES.md");
     let content = std::fs::read_to_string(&contract_path).expect("read boundaries.md");
     let required = [
         "## OWNERSHIP",
@@ -68,7 +70,7 @@ fn policy__surface__ownership_contract__ownership_contract_is_complete() {
 }
 
 #[test]
-fn policy__surface__ownership_contract__id_definitions_live_in_core_only() {
+fn policy__boundaries__ownership_contract__id_definitions_live_in_core_only() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     let patterns = [
@@ -114,7 +116,7 @@ fn policy__surface__ownership_contract__id_definitions_live_in_core_only() {
 }
 
 #[test]
-fn policy__surface__ownership_contract__id_parsing_and_validation_live_in_core_only() {
+fn policy__boundaries__ownership_contract__id_parsing_and_validation_live_in_core_only() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     let regex = regex::Regex::new(r"fn\s+(parse|validate)_[a-z0-9_]*(?:_id|_id_str)\b").unwrap();
@@ -152,7 +154,7 @@ fn policy__surface__ownership_contract__id_parsing_and_validation_live_in_core_o
 }
 
 #[test]
-fn policy__surface__ownership_contract__defaults_ledger_is_owned_by_pipelines() {
+fn policy__boundaries__ownership_contract__defaults_ledger_is_owned_by_pipelines() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     let regex = regex::Regex::new(r"struct\s+DefaultsLedger\w*").unwrap();
@@ -184,7 +186,7 @@ fn policy__surface__ownership_contract__defaults_ledger_is_owned_by_pipelines() 
 }
 
 #[test]
-fn policy__surface__ownership_contract__no_hidden_param_defaults_outside_domain() {
+fn policy__boundaries__ownership_contract__no_hidden_param_defaults_outside_domain() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     let regex = regex::Regex::new(r"impl\s+Default\s+for\s+[A-Za-z0-9_]*Params").unwrap();
@@ -216,7 +218,7 @@ fn policy__surface__ownership_contract__no_hidden_param_defaults_outside_domain(
 }
 
 #[test]
-fn policy__surface__ownership_contract__registry_of_truth_markers_are_unique() {
+fn policy__boundaries__ownership_contract__registry_of_truth_markers_are_unique() {
     let root = workspace_root();
     let mut matches = Vec::new();
     let patterns = ["registry-of-truth", "registry_of_truth", "RegistryOfTruth"];
@@ -250,7 +252,7 @@ fn policy__surface__ownership_contract__registry_of_truth_markers_are_unique() {
 }
 
 #[test]
-fn policy__surface__ownership_contract__id_module_files_live_in_core_only() {
+fn policy__boundaries__ownership_contract__id_module_files_live_in_core_only() {
     let root = workspace_root();
     let mut offenders = Vec::new();
 

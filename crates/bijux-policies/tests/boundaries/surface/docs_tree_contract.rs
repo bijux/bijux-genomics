@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+#![allow(non_snake_case)]
 #[path = "../../support/fs.rs"]
 mod support;
 
@@ -28,16 +29,24 @@ fn list_files(root: &PathBuf) -> Vec<String> {
 
 /// Snapshot locks workspace docs tree to prevent drift.
 #[test]
-fn policy__surface__docs_tree_contract__docs_tree_contract_snapshot() {
+fn policy__boundaries__docs_tree_contract__docs_tree_contract_snapshot() {
     let docs = workspace_root().join("docs");
     let files = list_files(&docs);
     let name = bijux_testkit::snapshot_name("snapshots", "docs_tree_contract");
-    insta::assert_snapshot!(name, files.join("\n"));
+    let mut settings = insta::Settings::new();
+    let snapshot_root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("tests")
+        .join("snapshots");
+    settings.set_snapshot_path(snapshot_root);
+    settings.set_prepend_module_to_snapshot(false);
+    settings.bind(|| {
+        insta::assert_snapshot!(name, files.join("\n"));
+    });
 }
 
 /// Snapshot locks per-crate docs trees to prevent drift.
 #[test]
-fn policy__surface__docs_tree_contract__crate_docs_tree_contract_snapshot() {
+fn policy__boundaries__docs_tree_contract__crate_docs_tree_contract_snapshot() {
     let mut lines = Vec::new();
     for crate_root in crate_roots() {
         let docs = crate_root.join("docs");
@@ -47,5 +56,13 @@ fn policy__surface__docs_tree_contract__crate_docs_tree_contract_snapshot() {
         lines.extend(files.into_iter());
     }
     let name = bijux_testkit::snapshot_name("snapshots", "crate_docs_tree_contract");
-    insta::assert_snapshot!(name, lines.join("\n"));
+    let mut settings = insta::Settings::new();
+    let snapshot_root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("tests")
+        .join("snapshots");
+    settings.set_snapshot_path(snapshot_root);
+    settings.set_prepend_module_to_snapshot(false);
+    settings.bind(|| {
+        insta::assert_snapshot!(name, lines.join("\n"));
+    });
 }

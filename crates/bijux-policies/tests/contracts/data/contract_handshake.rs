@@ -1,16 +1,17 @@
 #![allow(non_snake_case)]
-#[path = "../support/fs.rs"]
+#![allow(non_snake_case)]
+#[path = "../../support/fs.rs"]
 mod support;
 
 use serde_json::Value;
 
 #[test]
-fn policy__data__contract_handshake__contract_handshake_fixture_shapes() {
+fn policy__contracts__contract_handshake__contract_handshake_fixture_shapes() {
     let root = support::workspace_root();
     let fixtures = [
-        root.join("crates/bijux-policies/tests/fixtures/handshake/plan.json"),
-        root.join("crates/bijux-policies/tests/fixtures/handshake/manifest.json"),
-        root.join("crates/bijux-policies/tests/fixtures/handshake/report.json"),
+        root.join("crates/bijux-policies/tests/fixtures/handshake/plan/default/plan.json"),
+        root.join("crates/bijux-policies/tests/fixtures/handshake/manifest/default/manifest.json"),
+        root.join("crates/bijux-policies/tests/fixtures/handshake/report/default/report.json"),
     ];
     let mut missing = Vec::new();
     for fixture in fixtures {

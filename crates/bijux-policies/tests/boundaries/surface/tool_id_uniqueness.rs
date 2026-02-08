@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+#![allow(non_snake_case)]
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
@@ -23,7 +24,7 @@ fn extract_tool_ids(path: &Path) -> Vec<String> {
 }
 
 #[test]
-fn policy__surface__tool_id_uniqueness__tool_ids_are_unique_across_planners() {
+fn policy__boundaries__tool_id_uniqueness__tool_ids_are_unique_across_planners() {
     let root = workspace_root();
     let registries = [
         root.join("crates/bijux-planner-fastq/src/selection/tool_registry.rs"),

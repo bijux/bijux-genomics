@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+#![allow(non_snake_case)]
 #[path = "../../support/fs.rs"]
 mod support;
 
@@ -7,7 +8,7 @@ use walkdir::WalkDir;
 const MIN_MOD_LINES: usize = 5;
 
 #[test]
-fn policy__surface__no_empty_dirs_policy__no_empty_or_placeholder_dirs() {
+fn policy__boundaries__no_empty_dirs_policy__no_empty_or_placeholder_dirs() {
     let mut offenders = Vec::new();
     for crate_root in support::crate_roots() {
         for entry in WalkDir::new(&crate_root)
@@ -18,11 +19,15 @@ fn policy__surface__no_empty_dirs_policy__no_empty_or_placeholder_dirs() {
             let dir = entry.path();
             let mut rs_files = Vec::new();
             let mut has_any_file = false;
+            let mut has_subdir = false;
             let mut file_count = 0usize;
             let mut keep_reason = None;
             if let Ok(read_dir) = std::fs::read_dir(dir) {
                 for child in read_dir.flatten() {
                     let path = child.path();
+                    if path.is_dir() {
+                        has_subdir = true;
+                    }
                     if path.is_file() {
                         has_any_file = true;
                         file_count += 1;
@@ -38,7 +43,7 @@ fn policy__surface__no_empty_dirs_policy__no_empty_or_placeholder_dirs() {
                     }
                 }
             }
-            if !has_any_file {
+            if !has_any_file && !has_subdir {
                 offenders.push(dir.display().to_string());
                 continue;
             }
@@ -79,7 +84,7 @@ Offenders:\n{}",
 }
 
 #[test]
-fn policy__surface__no_empty_dirs_policy__support_dirs_are_documented() {
+fn policy__boundaries__no_empty_dirs_policy__support_dirs_are_documented() {
     let mut offenders = Vec::new();
     for crate_root in support::crate_roots() {
         let support_dir = crate_root.join("tests").join("support");

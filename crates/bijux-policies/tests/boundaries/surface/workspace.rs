@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+#![allow(non_snake_case)]
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
@@ -203,7 +204,7 @@ fn assert_no_domain_terms(crate_root: &Path, denylist: &[&str]) {
 }
 
 #[test]
-fn policy__surface__workspace__workspace_no_macos_dotfiles() {
+fn policy__boundaries__workspace__workspace_no_macos_dotfiles() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     for entry in WalkDir::new(&root)
@@ -227,7 +228,7 @@ fn policy__surface__workspace__workspace_no_macos_dotfiles() {
 }
 
 #[test]
-fn policy__surface__workspace__engine_has_no_domain_terms() {
+fn policy__boundaries__workspace__engine_has_no_domain_terms() {
     let root = workspace_root();
     let engine = root.join("crates").join("bijux-engine");
     let denylist = [
@@ -244,7 +245,7 @@ fn policy__surface__workspace__engine_has_no_domain_terms() {
 }
 
 #[test]
-fn policy__surface__workspace__runner_has_no_domain_terms() {
+fn policy__boundaries__workspace__runner_has_no_domain_terms() {
     let root = workspace_root();
     let runner = root.join("crates").join("bijux-runner");
     let denylist = [
@@ -261,7 +262,7 @@ fn policy__surface__workspace__runner_has_no_domain_terms() {
 }
 
 #[test]
-fn policy__surface__workspace__engine_and_runner_have_no_domain_deps() {
+fn policy__boundaries__workspace__engine_and_runner_have_no_domain_deps() {
     let crates = collect_workspace_crates();
     let known: BTreeSet<String> = crates.keys().cloned().collect();
     let forbidden = [
@@ -287,7 +288,7 @@ fn policy__surface__workspace__engine_and_runner_have_no_domain_deps() {
 }
 
 #[test]
-fn policy__surface__workspace__workspace_has_guardrails_tests() {
+fn policy__boundaries__workspace__workspace_has_guardrails_tests() {
     for path in crate_dirs() {
         let guardrails = path.join("tests").join("guardrails.rs");
         bijux_policies::policy_assert!(
@@ -305,7 +306,7 @@ fn policy__surface__workspace__workspace_has_guardrails_tests() {
 }
 
 #[test]
-fn policy__surface__workspace__workspace_guardrail_defaults_not_increased() {
+fn policy__boundaries__workspace__workspace_guardrail_defaults_not_increased() {
     let defaults = GuardrailConfig::default();
     for path in crate_dirs() {
         let name = path.file_name().and_then(|s| s.to_str()).unwrap_or("");
@@ -326,7 +327,7 @@ fn policy__surface__workspace__workspace_guardrail_defaults_not_increased() {
 }
 
 #[test]
-fn policy__surface__workspace__workspace_members_are_deterministic() {
+fn policy__boundaries__workspace__workspace_members_are_deterministic() {
     let root = workspace_root();
     let members = parse_workspace_members(&root);
     bijux_policies::policy_assert!(!members.is_empty(), "workspace members not found");
@@ -347,7 +348,7 @@ fn policy__surface__workspace__workspace_members_are_deterministic() {
 }
 
 #[test]
-fn policy__surface__workspace__workspace_constitution_contract() {
+fn policy__boundaries__workspace__workspace_constitution_contract() {
     let crates = collect_workspace_crates();
     let mut counts: BTreeMap<&str, usize> = BTreeMap::new();
     for name in crates.keys() {
@@ -405,7 +406,7 @@ fn policy__surface__workspace__workspace_constitution_contract() {
 }
 
 #[test]
-fn policy__surface__workspace__workspace_bans_pipelines_bam_crate_name() {
+fn policy__boundaries__workspace__workspace_bans_pipelines_bam_crate_name() {
     let crates = collect_workspace_crates();
     for name in crates.keys() {
         bijux_policies::policy_assert!(
@@ -416,7 +417,7 @@ fn policy__surface__workspace__workspace_bans_pipelines_bam_crate_name() {
 }
 
 #[test]
-fn policy__surface__workspace__workspace_crate_layout_contract() {
+fn policy__boundaries__workspace__workspace_crate_layout_contract() {
     for crate_dir in crate_dirs() {
         let manifest = crate_dir.join("Cargo.toml");
         bijux_policies::policy_assert!(
@@ -439,7 +440,7 @@ fn policy__surface__workspace__workspace_crate_layout_contract() {
 }
 
 #[test]
-fn policy__surface__workspace__engine_src_layout_contract() {
+fn policy__boundaries__workspace__engine_src_layout_contract() {
     let crates = collect_workspace_crates();
     let Some(engine) = crates.get("bijux-engine") else {
         bijux_policies::policy_panic!("missing crate bijux-engine");
@@ -464,7 +465,7 @@ fn policy__surface__workspace__engine_src_layout_contract() {
 }
 
 #[test]
-fn policy__surface__workspace__workspace_domain_layout_contract() {
+fn policy__boundaries__workspace__workspace_domain_layout_contract() {
     let crates = collect_workspace_crates();
     let Some(fastq) = crates.get("bijux-domain-fastq") else {
         bijux_policies::policy_panic!("missing crate bijux-domain-fastq");
@@ -475,7 +476,7 @@ fn policy__surface__workspace__workspace_domain_layout_contract() {
     }
     for file in [
         "stage_contract.rs",
-        "stage_ids.rs",
+        "id_catalog.rs",
         "stage_semantics.rs",
         "stage_specs.rs",
     ] {
@@ -497,7 +498,7 @@ fn policy__surface__workspace__workspace_domain_layout_contract() {
 }
 
 #[test]
-fn policy__surface__workspace__workspace_stages_layout_contract() {
+fn policy__boundaries__workspace__workspace_stages_layout_contract() {
     let crates = collect_workspace_crates();
     for name in ["bijux-stages-fastq", "bijux-stages-bam"] {
         let Some(path) = crates.get(name) else {
@@ -521,7 +522,7 @@ fn policy__surface__workspace__workspace_stages_layout_contract() {
 }
 
 #[test]
-fn policy__surface__workspace__workspace_no_orphan_crates() {
+fn policy__boundaries__workspace__workspace_no_orphan_crates() {
     let crates = collect_workspace_crates();
     let known: BTreeSet<String> = crates.keys().cloned().collect();
     let mut dependents: BTreeMap<String, usize> =
@@ -545,6 +546,7 @@ fn policy__surface__workspace__workspace_no_orphan_crates() {
         "bijux-cli",
         "bijux-benchmark",
         "bijux-environment",
+        "bijux-environment-qa",
         "bijux-runner",
         "bijux-runtime",
     ]);
@@ -557,7 +559,7 @@ fn policy__surface__workspace__workspace_no_orphan_crates() {
 }
 
 #[test]
-fn policy__surface__workspace__workspace_dependency_graph_contract() {
+fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
     let crates = collect_workspace_crates();
     let known: BTreeSet<String> = crates.keys().cloned().collect();
     let deps_for = |name: &str| -> BTreeSet<String> {
@@ -923,7 +925,7 @@ fn policy__surface__workspace__workspace_dependency_graph_contract() {
 }
 
 #[test]
-fn policy__surface__workspace__workspace_boundary_contract_matches_docs() {
+fn policy__boundaries__workspace__workspace_boundary_contract_matches_docs() {
     let crates = collect_workspace_crates();
     let known: BTreeSet<String> = crates.keys().cloned().collect();
     let contract = parse_boundary_contract();
@@ -942,7 +944,7 @@ fn policy__surface__workspace__workspace_boundary_contract_matches_docs() {
 }
 
 #[test]
-fn policy__surface__workspace__stage_spec_and_registry_defs_scoped() {
+fn policy__boundaries__workspace__stage_spec_and_registry_defs_scoped() {
     let crates = collect_workspace_crates();
     let root = workspace_root();
     let mut offenders = Vec::new();
@@ -977,7 +979,7 @@ fn policy__surface__workspace__stage_spec_and_registry_defs_scoped() {
 }
 
 #[test]
-fn policy__surface__workspace__workspace_has_no_target_dirs() {
+fn policy__boundaries__workspace__workspace_has_no_target_dirs() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     for entry in walkdir::WalkDir::new(root.join("crates"))
@@ -996,7 +998,7 @@ fn policy__surface__workspace__workspace_has_no_target_dirs() {
 }
 
 #[test]
-fn policy__surface__workspace__crate_root_contents_allowlist() {
+fn policy__boundaries__workspace__crate_root_contents_allowlist() {
     let allowed = BTreeSet::from([
         "Cargo.toml",
         "Makefile.toml",
@@ -1026,7 +1028,7 @@ fn policy__surface__workspace__crate_root_contents_allowlist() {
 }
 
 #[test]
-fn policy__surface__workspace__fixtures_policy_enforced() {
+fn policy__boundaries__workspace__fixtures_policy_enforced() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     for (_name, path) in collect_workspace_crates() {
@@ -1053,7 +1055,7 @@ fn policy__surface__workspace__fixtures_policy_enforced() {
 }
 
 #[test]
-fn policy__surface__workspace__workspace_no_cross_layer_imports() {
+fn policy__boundaries__workspace__workspace_no_cross_layer_imports() {
     let crates = collect_workspace_crates();
     let root = workspace_root();
     let mut offenders = Vec::new();
@@ -1098,7 +1100,7 @@ fn policy__surface__workspace__workspace_no_cross_layer_imports() {
 }
 
 #[test]
-fn policy__surface__workspace__retention_reports_require_context() {
+fn policy__boundaries__workspace__retention_reports_require_context() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     for entry in walkdir::WalkDir::new(&root)
@@ -1132,7 +1134,7 @@ fn policy__surface__workspace__retention_reports_require_context() {
 }
 
 #[test]
-fn policy__surface__workspace__params_hash_only_defined_in_core() {
+fn policy__boundaries__workspace__params_hash_only_defined_in_core() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     for entry in walkdir::WalkDir::new(root.join("crates"))
@@ -1145,6 +1147,7 @@ fn policy__surface__workspace__params_hash_only_defined_in_core() {
         if rel_str.ends_with("crates/bijux-core/src/foundation/hashing.rs")
             || rel_str.ends_with("crates/bijux-policies/tests/workspace.rs")
             || rel_str.ends_with("crates/bijux-policies/tests/surface/workspace.rs")
+            || rel_str.ends_with("crates/bijux-policies/tests/boundaries/surface/workspace.rs")
         {
             continue;
         }
@@ -1160,7 +1163,7 @@ fn policy__surface__workspace__params_hash_only_defined_in_core() {
 }
 
 #[test]
-fn policy__surface__workspace__workspace_single_orchestration_surface() {
+fn policy__boundaries__workspace__workspace_single_orchestration_surface() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     for path in crate_dirs() {
@@ -1195,7 +1198,7 @@ fn policy__surface__workspace__workspace_single_orchestration_surface() {
 }
 
 #[test]
-fn policy__surface__workspace__workspace_no_ad_hoc_fs_write() {
+fn policy__boundaries__workspace__workspace_no_ad_hoc_fs_write() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     let needles = [
@@ -1232,7 +1235,7 @@ fn policy__surface__workspace__workspace_no_ad_hoc_fs_write() {
 }
 
 #[test]
-fn policy__surface__workspace__engine_has_no_domain_keywords() {
+fn policy__boundaries__workspace__engine_has_no_domain_keywords() {
     let root = workspace_root();
     let engine_root = root.join("crates").join("bijux-engine").join("src");
     let denylist = [
@@ -1265,7 +1268,7 @@ fn policy__surface__workspace__engine_has_no_domain_keywords() {
 }
 
 #[test]
-fn policy__surface__workspace__api_has_no_planning_policy() {
+fn policy__boundaries__workspace__api_has_no_planning_policy() {
     let root = workspace_root();
     let api_root = root.join("crates").join("bijux-api").join("src");
     let denylist = [
@@ -1296,7 +1299,7 @@ fn policy__surface__workspace__api_has_no_planning_policy() {
 }
 
 #[test]
-fn policy__surface__workspace__workspace_bans_thin_mod_rs() {
+fn policy__boundaries__workspace__workspace_bans_thin_mod_rs() {
     let mut offenders = Vec::new();
     for path in crate_dirs() {
         for mod_path in walkdir::WalkDir::new(path.join("src"))
@@ -1329,7 +1332,7 @@ fn policy__surface__workspace__workspace_bans_thin_mod_rs() {
 }
 
 #[test]
-fn policy__surface__workspace__workspace_domain_symmetry_contract() {
+fn policy__boundaries__workspace__workspace_domain_symmetry_contract() {
     let domains = ["bijux-domain-fastq", "bijux-domain-bam"];
     let required = [
         "metrics",
@@ -1388,7 +1391,7 @@ fn policy__surface__workspace__workspace_domain_symmetry_contract() {
 }
 
 #[test]
-fn policy__surface__workspace__engine_src_has_no_domain_stage_ids() {
+fn policy__boundaries__workspace__engine_src_has_no_domain_id_catalog() {
     let root = workspace_root();
     let engine_src = root.join("crates").join("bijux-engine").join("src");
     let mut offenders = Vec::new();
@@ -1417,7 +1420,7 @@ fn policy__surface__workspace__engine_src_has_no_domain_stage_ids() {
 }
 
 #[test]
-fn policy__surface__workspace__engine_has_no_tool_normalization_policy() {
+fn policy__boundaries__workspace__engine_has_no_tool_normalization_policy() {
     let root = workspace_root();
     let engine_src = root.join("crates").join("bijux-engine").join("src");
     let mut offenders = Vec::new();
@@ -1446,7 +1449,7 @@ fn policy__surface__workspace__engine_has_no_tool_normalization_policy() {
 }
 
 #[test]
-fn policy__surface__workspace__workspace_bans_resource_fork_artifacts() {
+fn policy__boundaries__workspace__workspace_bans_resource_fork_artifacts() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     for entry in walkdir::WalkDir::new(&root)

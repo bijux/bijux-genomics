@@ -1,8 +1,8 @@
 ---
-source: crates/bijux-policies/tests/surface/docs_tree_contract.rs
-expression: docs_tree_contract
+source: crates/bijux-policies/tests/boundaries/surface/docs_tree_contract.rs
+assertion_line: 42
+expression: "files.join(\"\\n\")"
 ---
-.DS_Store
 00-intro/DOCS_MAP.md
 00-intro/DOC_PROMISES.md
 00-intro/GLOSSARY.md
@@ -73,4 +73,6 @@ expression: docs_tree_contract
 50-reference/PIPELINES.md
 50-reference/REFERENCE_INDEX.md
 50-reference/SCHEMAS_INDEX.md
+ARCHITECTURE_LITMUS.md
+TESTS_STYLE.md
 index.md

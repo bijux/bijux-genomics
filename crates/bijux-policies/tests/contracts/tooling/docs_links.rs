@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+#![allow(non_snake_case)]
 #[path = "../../support/fs.rs"]
 mod support;
 
@@ -29,7 +30,7 @@ fn resolve_link(base: &Path, link: &str) -> Option<PathBuf> {
 }
 
 #[test]
-fn policy__tooling__docs_links__docs_links_are_resolvable() {
+fn policy__contracts__docs_links__docs_links_are_resolvable() {
     let root = docs_root();
     for entry in WalkDir::new(&root) {
         let entry = entry.expect("walk docs");

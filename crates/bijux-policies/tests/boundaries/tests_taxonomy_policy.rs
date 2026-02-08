@@ -1,11 +1,12 @@
 #![allow(non_snake_case)]
+#![allow(non_snake_case)]
 #[path = "../support/fs.rs"]
 mod support;
 
 use walkdir::WalkDir;
 
 #[test]
-fn policy__tests__taxonomy_buckets_only() {
+fn policy__boundaries__tests_taxonomy_policy__taxonomy_buckets_only() {
     let allowed = [
         "contracts",
         "schemas",

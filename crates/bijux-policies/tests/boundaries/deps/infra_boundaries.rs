@@ -1,8 +1,9 @@
 #![allow(non_snake_case)]
+#![allow(non_snake_case)]
 use cargo_metadata::MetadataCommand;
 
 #[test]
-fn policy__deps__infra_boundaries__infra_has_no_domain_semantics() {
+fn policy__boundaries__infra_boundaries__infra_has_no_domain_semantics() {
     let metadata = MetadataCommand::new().exec().expect("cargo metadata");
     let infra = metadata
         .packages
@@ -26,7 +27,7 @@ Offenders: {offenders:?}"
 }
 
 #[test]
-fn policy__deps__infra_boundaries__no_id_catalog_literals_in_infra() {
+fn policy__boundaries__infra_boundaries__no_id_catalog_literals_in_infra() {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap().parent().unwrap();
     let infra_src = root.join("crates/bijux-infra/src");
     let mut offenders = Vec::new();

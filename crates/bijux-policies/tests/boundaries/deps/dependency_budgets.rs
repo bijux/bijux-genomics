@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+#![allow(non_snake_case)]
 use cargo_metadata::MetadataCommand;
 
 const BUDGETS: &[(&str, usize)] = &[
@@ -11,7 +12,7 @@ const BUDGETS: &[(&str, usize)] = &[
 ];
 
 #[test]
-fn policy__deps__dependency_budgets__dependency_budgets() {
+fn policy__boundaries__dependency_budgets__dependency_budgets() {
     let metadata = MetadataCommand::new()
         .no_deps()
         .exec()

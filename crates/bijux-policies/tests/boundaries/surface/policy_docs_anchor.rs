@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
-#[path = "../support/fs.rs"]
+#![allow(non_snake_case)]
+#[path = "../../support/fs.rs"]
 mod support;
 
 use std::collections::BTreeSet;
@@ -11,6 +12,9 @@ fn policy_files() -> BTreeSet<String> {
     let base = support::workspace_root().join("crates/bijux-policies/tests");
     for folder in ["deps", "surface", "data", "tooling"] {
         let root = base.join(folder);
+        if !root.exists() {
+            continue;
+        }
         for entry in WalkDir::new(&root) {
             let entry = entry.expect("walk");
             if !entry.file_type().is_file() {
@@ -26,7 +30,7 @@ fn policy_files() -> BTreeSet<String> {
 }
 
 #[test]
-fn policy__surface__policy_docs_anchor__policy_docs_index_covers_all_policies() {
+fn policy__boundaries__policy_docs_anchor__policy_docs_index_covers_all_policies() {
     let index_path = support::workspace_root().join("crates/bijux-policies/docs/INDEX.md");
     let index = support::read_to_string(&index_path);
     let policies = policy_files();

@@ -147,7 +147,7 @@ impl GuardrailConfig {
             config.allow_stage_id_paths = vec!["/src/stage_specs/mod.rs".to_string()];
         }
         if name == "bijux-domain-fastq" {
-            config.allow_stage_id_paths = vec!["/src/stage_ids.rs".to_string()];
+            config.allow_stage_id_paths = vec!["/src/id_catalog.rs".to_string()];
         }
         config
     }

@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
-#[path = "../support/fs.rs"]
+#![allow(non_snake_case)]
+#[path = "../../support/fs.rs"]
 mod support;
 
 use walkdir::WalkDir;
@@ -9,7 +10,7 @@ const ALLOWLIST: &[(&str, &str)] = &[];
 const DIR_BANS: &[&str] = &["helpers", "util", "utils", "misc"];
 
 #[test]
-fn policy__surface__no_helpers_policy__ban_helpers_and_utils_names() {
+fn policy__boundaries__no_helpers_policy__ban_helpers_and_utils_names() {
     let mut offenders = Vec::new();
     for crate_root in support::crate_roots() {
         for entry in WalkDir::new(crate_root)

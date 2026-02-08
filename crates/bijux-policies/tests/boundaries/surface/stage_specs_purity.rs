@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+#![allow(non_snake_case)]
 use std::path::{Path, PathBuf};
 
 fn workspace_root() -> PathBuf {
@@ -11,7 +12,7 @@ fn workspace_root() -> PathBuf {
 }
 
 #[test]
-fn policy__surface__stage_specs_purity__stage_specs_are_declarative_only() {
+fn policy__boundaries__stage_specs_purity__stage_specs_are_declarative_only() {
     let root = workspace_root();
     let specs = [
         root.join("crates/bijux-stages-fastq/src/stage_specs.rs"),

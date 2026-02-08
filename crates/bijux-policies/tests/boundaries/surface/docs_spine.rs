@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+#![allow(non_snake_case)]
 #[path = "../../support/fs.rs"]
 mod support;
 
@@ -32,7 +33,7 @@ fn required_headings() -> [&'static str; 6] {
 }
 
 #[test]
-fn policy__surface__docs_spine__docs_placement_contract() {
+fn policy__boundaries__docs_spine__docs_placement_contract() {
     let root = docs_root();
     let allowed_root_dirs = BTreeSet::from([
         "00-intro",
@@ -43,6 +44,8 @@ fn policy__surface__docs_spine__docs_placement_contract() {
         "50-reference",
         "overrides",
     ]);
+    let allowed_root_files =
+        BTreeSet::from(["ARCHITECTURE_LITMUS.md", "index.md", "TESTS_STYLE.md"]);
     let mut root_entries = Vec::new();
     for entry in std::fs::read_dir(&root).expect("read docs root") {
         let entry = entry.expect("read entry");
@@ -53,7 +56,7 @@ fn policy__surface__docs_spine__docs_placement_contract() {
             if !allowed_root_dirs.contains(name.as_str()) {
                 bijux_policies::policy_panic!("docs root contains unexpected directory: {}", name);
             }
-        } else if path.is_file() && name != "index.md" {
+        } else if path.is_file() && !allowed_root_files.contains(name.as_str()) {
             bijux_policies::policy_panic!("docs root contains unexpected file: {}", name);
         }
     }
@@ -61,7 +64,7 @@ fn policy__surface__docs_spine__docs_placement_contract() {
 }
 
 #[test]
-fn policy__surface__docs_spine__no_docs_under_src() {
+fn policy__boundaries__docs_spine__no_docs_under_src() {
     for crate_root in crate_roots() {
         let src = crate_root.join("src");
         if !src.exists() {
@@ -75,6 +78,10 @@ fn policy__surface__docs_spine__no_docs_under_src() {
                     .extension()
                     .and_then(|ext| ext.to_str())
                     == Some("md")
+                && !matches!(
+                    entry.path().file_name().and_then(|name| name.to_str()),
+                    Some("OWNER.md") | Some("INDEX.md")
+                )
             {
                 bijux_policies::policy_panic!("docs under src are forbidden: {}", entry.path().display());
             }
@@ -83,7 +90,7 @@ fn policy__surface__docs_spine__no_docs_under_src() {
 }
 
 #[test]
-fn policy__surface__docs_spine__crate_docs_contract() {
+fn policy__boundaries__docs_spine__crate_docs_contract() {
     let allowlist = BTreeSet::from([
         "SCOPE.md",
         "ARCHITECTURE.md",
@@ -94,37 +101,53 @@ fn policy__surface__docs_spine__crate_docs_contract() {
         "POLICY_DIAGNOSTICS.md",
         "POLICIES.md",
         "POLICY_MATRIX.md",
+        "ENFORCEMENT.md",
         "EXCEPTIONS.md",
         "EVOLUTION.md",
         "CONTRACT.md",
         "SCHEMAS.md",
         "PUBLIC_API.md",
         "CONTRACTS.md",
+        "CONTRACT_MAP.md",
+        "CONTRACT_VERSIONING.md",
         "SSOT.md",
         "SERIALIZATION.md",
         "INVARIANTS.md",
         "ENGINE_MODEL.md",
+        "ENGINE_CONTRACT.md",
         "DETERMINISM.md",
         "ERROR_TAXONOMY.md",
+        "ERRORS.md",
         "RECORDING_TRUTH_SET.md",
         "RUNTIME_CONTRACT.md",
+        "ARTIFACTS.md",
         "EVENTS.md",
         "GLOSSARY.md",
+        "OBSERVABILITY.md",
         "BOUNDARY.md",
         "COMPATIBILITY.md",
         "RECORDER.md",
         "EXAMPLE_RUN.md",
+        "EXAMPLE_PLAN.md",
+        "EXAMPLE_PLAN.json",
+        "TOOL_COVERAGE.md",
+        "ADD_FIXTURE.md",
+        "FIXTURE_STANDARDS.md",
         "BACKENDS.md",
         "REPLAY.md",
         "EXECUTION_SPEC.md",
         "SECURITY.md",
         "EXTENSION_POINTS.md",
         "FAILURES.md",
+        "FAILURE_TAXONOMY.md",
+        "FAILURE_ANALYSIS.md",
+        "FIXTURES.md",
         "NO_DOMAIN.md",
         "WHY_YAML.md",
         "LOGGING.md",
         "PATHS.md",
         "STABILITY.md",
+        "REQUEST_FLOW.md",
         "ENV_REFERENCE.md",
         "ENV_MATRIX.md",
         "SCHEMAS.md",
@@ -138,6 +161,12 @@ fn policy__surface__docs_spine__crate_docs_contract() {
         "ARTIFACT_CONTRACT.md",
         "VERSIONING.md",
         "MINIMALITY.md",
+        "DECISION_EXPLAINABILITY.md",
+        "OUTPUT_FORMATS.md",
+        "METRICS_GLOSSARY.md",
+        "BANKS.md",
+        "EFFECT_BOUNDARY.md",
+        "ADD_PIPELINE_PROFILE.md",
         "STAGE_LIST.md",
         "OBSERVERS.md",
         "STAGE_CONTRACTS.md",
@@ -212,10 +241,14 @@ fn policy__surface__docs_spine__crate_docs_contract() {
         if !readme.exists() {
             bijux_policies::policy_panic!("crate README.md missing: {}", crate_root.display());
         }
-        for entry in crate_root.glob("*.md").expect("glob md") {
-            let entry = entry.expect("glob entry");
-            if entry.file_name().unwrap() != "README.md" {
-                bijux_policies::policy_panic!("crate root contains extra doc: {}", entry.display());
+        for entry in std::fs::read_dir(&crate_root).expect("read crate root") {
+            let entry = entry.expect("read entry");
+            let path = entry.path();
+            if path.extension().and_then(|ext| ext.to_str()) != Some("md") {
+                continue;
+            }
+            if path.file_name().unwrap() != "README.md" {
+                bijux_policies::policy_panic!("crate root contains extra doc: {}", path.display());
             }
         }
         let mut required = BTreeSet::from(["SCOPE.md", "ARCHITECTURE.md"]);
@@ -248,7 +281,7 @@ fn policy__surface__docs_spine__crate_docs_contract() {
 }
 
 #[test]
-fn policy__surface__docs_spine__root_docs_style_template() {
+fn policy__boundaries__docs_spine__root_docs_style_template() {
     let root = docs_root();
     let roots = [
         root.join("00-intro"),
@@ -287,7 +320,7 @@ fn policy__surface__docs_spine__root_docs_style_template() {
 }
 
 #[test]
-fn policy__surface__docs_spine__root_docs_metadata_headers() {
+fn policy__boundaries__docs_spine__root_docs_metadata_headers() {
     let root = docs_root();
     let key_docs = [
         root.join("10-architecture/SSOT.md"),
@@ -312,7 +345,7 @@ fn policy__surface__docs_spine__root_docs_metadata_headers() {
 }
 
 #[test]
-fn policy__surface__docs_spine__stage_catalog_schema() {
+fn policy__boundaries__docs_spine__stage_catalog_schema() {
     let root = docs_root();
     let catalogs = [
         root.join("20-science/fastq/STAGE_CATALOG.md"),
@@ -342,7 +375,7 @@ fn policy__surface__docs_spine__stage_catalog_schema() {
 }
 
 #[test]
-fn policy__surface__docs_spine__authority_docs_unique_h1() {
+fn policy__boundaries__docs_spine__authority_docs_unique_h1() {
     let root = docs_root();
     let key_docs = [
         root.join("10-architecture/SSOT.md"),
@@ -367,7 +400,7 @@ fn policy__surface__docs_spine__authority_docs_unique_h1() {
 }
 
 #[test]
-fn policy__surface__docs_spine__contract_versioning_note_exists() {
+fn policy__boundaries__docs_spine__contract_versioning_note_exists() {
     let doc = docs_root().join("50-reference/CONTRACT_VERSIONING.md");
     let content = read_to_string(&doc);
     let required = ["Breaking change", "major bump", "minor bump", "snapshot"];

@@ -1,11 +1,12 @@
 #![allow(non_snake_case)]
-#[path = "../support/fs.rs"]
+#![allow(non_snake_case)]
+#[path = "../../support/fs.rs"]
 mod support;
 
 use walkdir::WalkDir;
 
 #[test]
-fn policy__surface__mod_naming_policy__legacy_dirs_require_legacy_doc() {
+fn policy__boundaries__mod_naming_policy__legacy_dirs_require_legacy_doc() {
     let mut offenders = Vec::new();
     for crate_root in support::crate_roots() {
         for entry in WalkDir::new(&crate_root)
@@ -31,7 +32,7 @@ fn policy__surface__mod_naming_policy__legacy_dirs_require_legacy_doc() {
 }
 
 #[test]
-fn policy__surface__mod_naming_policy__internal_rs_is_forbidden() {
+fn policy__boundaries__mod_naming_policy__internal_rs_is_forbidden() {
     let mut offenders = Vec::new();
     for crate_root in support::crate_roots() {
         for entry in WalkDir::new(&crate_root)

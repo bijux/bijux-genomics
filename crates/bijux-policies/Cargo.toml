@@ -15,3 +15,4 @@ cargo_metadata = "0.18"
 [dev-dependencies]
 insta = { version = "1.38", features = ["glob"] }
 sha2 = "0.10"
+bijux-testkit = { path = "../bijux-testkit" }

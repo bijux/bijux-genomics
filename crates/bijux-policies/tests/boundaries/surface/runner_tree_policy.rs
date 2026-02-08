@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+#![allow(non_snake_case)]
 use std::path::{Path, PathBuf};
 
 fn workspace_root() -> PathBuf {
@@ -11,7 +12,7 @@ fn workspace_root() -> PathBuf {
 }
 
 #[test]
-fn policy__surface__runner_tree_policy__runner_src_layout_contract() {
+fn policy__boundaries__runner_tree_policy__runner_src_layout_contract() {
     let root = workspace_root();
     let src_dir = root.join("crates/bijux-runner/src");
     let allowed = ["lib.rs", "execute.rs", "runner_core.rs", "backend"]; 

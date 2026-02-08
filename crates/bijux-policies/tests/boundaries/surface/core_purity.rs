@@ -1,9 +1,10 @@
 #![allow(non_snake_case)]
+#![allow(non_snake_case)]
 use std::fs;
 use std::path::PathBuf;
 
 #[test]
-fn policy__surface__core_purity__core_has_no_runtime_or_system_deps() {
+fn policy__boundaries__core_purity__core_has_no_runtime_or_system_deps() {
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .unwrap()
@@ -33,7 +34,7 @@ fn policy__surface__core_purity__core_has_no_runtime_or_system_deps() {
 }
 
 #[test]
-fn policy__surface__core_purity__core_has_no_stage_modules() {
+fn policy__boundaries__core_purity__core_has_no_stage_modules() {
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .unwrap()

@@ -1,8 +1,7 @@
 #![allow(non_snake_case)]
+#![allow(non_snake_case)]
 #[path = "../../support/fs.rs"]
 mod support;
-
-use std::path::Path;
 
 use support::crate_roots;
 
@@ -14,7 +13,7 @@ fn is_allowlisted(crate_name: &str) -> bool {
 }
 
 #[test]
-fn policy__surface__test_grouping_policy__tests_are_grouped_into_subsuites() {
+fn policy__boundaries__test_grouping_policy__tests_are_grouped_into_subsuites() {
     let mut offenders = Vec::new();
 
     for crate_root in crate_roots() {

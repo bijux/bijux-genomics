@@ -35,6 +35,12 @@ fn is_allowed_path(path: &Path) -> bool {
     if path_str.ends_with("/crates/bijux-core/src/metrics/registry.rs") {
         return true;
     }
+    if path_str.ends_with("/crates/bijux-core/src/ids.rs") {
+        return true;
+    }
+    if path_str.ends_with("/crates/bijux-core/src/id_catalog.rs") {
+        return true;
+    }
     if path_str.contains("/tests/") {
         return true;
     }
@@ -42,7 +48,7 @@ fn is_allowed_path(path: &Path) -> bool {
 }
 
 #[test]
-fn policy__surface__id_literal_policy__raw_stage_ids_are_confined_to_registries() {
+fn policy__boundaries__id_literal_policy__raw_id_catalog_are_confined_to_registries() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     let patterns = ["\"fastq.", "\"bam.", "\"cross.", "\"core."];

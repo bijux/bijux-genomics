@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+#![allow(non_snake_case)]
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
@@ -36,7 +37,7 @@ fn policy_test_prefix(path: &Path, root: &Path) -> String {
 }
 
 #[test]
-fn policy__tooling__policies__prelude_exports_only() {
+fn policy__contracts__policies__prelude_exports_only() {
     let root = workspace_root();
     let prelude_dir = root
         .join("crates")
@@ -56,7 +57,7 @@ fn policy__tooling__policies__prelude_exports_only() {
 }
 
 #[test]
-fn policy__tooling__policies__error_category_is_core_only() {
+fn policy__contracts__policies__error_category_is_core_only() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     for entry in WalkDir::new(root.join("crates"))
@@ -82,7 +83,7 @@ fn policy__tooling__policies__error_category_is_core_only() {
             continue;
         }
         let content = std::fs::read_to_string(entry.path()).expect("read source");
-        if content.contains("enum ErrorCategory") {
+        if content.contains(concat!("enum ", "ErrorCategory")) {
             offenders.push(entry.path().display().to_string());
         }
     }
@@ -94,7 +95,7 @@ fn policy__tooling__policies__error_category_is_core_only() {
 }
 
 #[test]
-fn policy__tooling__policies__engine_does_not_depend_on_runner_or_environment() {
+fn policy__contracts__policies__engine_does_not_depend_on_runner_or_environment() {
     let root = workspace_root();
     let metadata = MetadataCommand::new()
         .manifest_path(root.join("Cargo.toml"))
@@ -122,7 +123,7 @@ fn policy__tooling__policies__engine_does_not_depend_on_runner_or_environment() 
 }
 
 #[test]
-fn policy__tooling__policies__core_does_not_depend_on_runtime() {
+fn policy__contracts__policies__core_does_not_depend_on_runtime() {
     let root = workspace_root();
     let metadata = MetadataCommand::new()
         .manifest_path(root.join("Cargo.toml"))
@@ -146,7 +147,7 @@ fn policy__tooling__policies__core_does_not_depend_on_runtime() {
 }
 
 #[test]
-fn policy__tooling__policies__domains_do_not_depend_on_stages_or_runner() {
+fn policy__contracts__policies__domains_do_not_depend_on_stages_or_runner() {
     let root = workspace_root();
     let metadata = MetadataCommand::new()
         .manifest_path(root.join("Cargo.toml"))
@@ -175,7 +176,7 @@ fn policy__tooling__policies__domains_do_not_depend_on_stages_or_runner() {
 }
 
 #[test]
-fn policy__tooling__policies__public_modules_live_in_lib_rs() {
+fn policy__contracts__policies__public_modules_live_in_lib_rs() {
     let root = workspace_root();
     let crates = ["bijux-core", "bijux-engine", "bijux-runtime"];
     for krate in crates {
@@ -203,7 +204,7 @@ fn policy__tooling__policies__public_modules_live_in_lib_rs() {
 }
 
 #[test]
-fn policy__tooling__policies__policy_test_names_are_consistent() {
+fn policy__contracts__policies__policy_test_names_are_consistent() {
     let root = workspace_root();
     let tests_root = root.join("crates").join("bijux-policies").join("tests");
     let mut offenders = Vec::new();
@@ -245,7 +246,7 @@ fn policy__tooling__policies__policy_test_names_are_consistent() {
 }
 
 #[test]
-fn policy__tooling__policies__litmus_doc_exists_and_lists_rules() {
+fn policy__contracts__policies__litmus_doc_exists_and_lists_rules() {
     let root = workspace_root();
     let path = root.join("docs/ARCHITECTURE_LITMUS.md");
     let content = std::fs::read_to_string(&path).expect("read ARCHITECTURE_LITMUS.md");
@@ -264,7 +265,7 @@ fn policy__tooling__policies__litmus_doc_exists_and_lists_rules() {
 }
 
 #[test]
-fn policy__tooling__policies__planners_do_not_embed_defaults_ledgers() {
+fn policy__contracts__policies__planners_do_not_embed_defaults_ledgers() {
     let root = workspace_root();
     let planner_dirs = [
         root.join("crates").join("bijux-planner-fastq"),

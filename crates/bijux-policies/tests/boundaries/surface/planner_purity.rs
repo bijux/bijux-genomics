@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+#![allow(non_snake_case)]
 use std::path::{Path, PathBuf};
 
 fn workspace_root() -> PathBuf {
@@ -11,7 +12,7 @@ fn workspace_root() -> PathBuf {
 }
 
 #[test]
-fn policy__surface__planner_purity__planners_do_not_define_parsers() {
+fn policy__boundaries__planner_purity__planners_do_not_define_parsers() {
     let root = workspace_root();
     let planners = [
         root.join("crates/bijux-planner-fastq/src"),
