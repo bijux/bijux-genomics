@@ -82,7 +82,6 @@ pub mod determinism {
 pub mod snapshots {
     use serde_json::Value;
     use std::env;
-    use std::path::Path;
 
     #[must_use]
     pub fn snapshot_name(bucket: &str, test_name: &str) -> String {
@@ -99,6 +98,22 @@ pub mod snapshots {
     #[must_use]
     pub fn sanitize_snapshot_text(input: &str) -> String {
         let mut out = input.to_string();
+        if let Ok(pwd) = env::current_dir() {
+            out = out.replace(&pwd.display().to_string(), "<ROOT>");
+        }
+        if let Ok(manifest_dir) = env::var("CARGO_MANIFEST_DIR") {
+            out = out.replace(&manifest_dir, "<ROOT>");
+        }
+        if let Ok(tmpdir) = env::var("TMPDIR") {
+            out = out.replace(&tmpdir, "<TMPDIR>");
+        }
+        if let Ok(tmp) = env::var("TMP") {
+            out = out.replace(&tmp, "<TMPDIR>");
+        }
+        if let Ok(temp) = env::var("TEMP") {
+            out = out.replace(&temp, "<TMPDIR>");
+        }
+        out = normalize_tmp_subdir(&out);
         if let Ok(home) = env::var("HOME") {
             out = out.replace(&home, "<HOME>");
         }
@@ -114,21 +129,33 @@ pub mod snapshots {
         if let Ok(hostname) = env::var("COMPUTERNAME") {
             out = out.replace(&hostname, "<HOSTNAME>");
         }
-        if let Ok(tmpdir) = env::var("TMPDIR") {
-            out = out.replace(&tmpdir, "<TMPDIR>");
+        out
+    }
+
+    fn normalize_tmp_subdir(input: &str) -> String {
+        let marker = "<TMPDIR>/";
+        let mut out = String::with_capacity(input.len());
+        let mut idx = 0;
+        while let Some(pos) = input[idx..].find(marker) {
+            let start = idx + pos;
+            out.push_str(&input[idx..start]);
+            out.push_str(marker);
+            let seg_start = start + marker.len();
+            let mut seg_end = seg_start;
+            let bytes = input.as_bytes();
+            while seg_end < bytes.len() {
+                let b = bytes[seg_end];
+                if b == b'/' || b.is_ascii_whitespace() || b == b',' || b == b')' {
+                    break;
+                }
+                seg_end += 1;
+            }
+            if seg_end > seg_start {
+                out.push_str("<TMP>");
+            }
+            idx = seg_end;
         }
-        if let Ok(tmp) = env::var("TMP") {
-            out = out.replace(&tmp, "<TMPDIR>");
-        }
-        if let Ok(temp) = env::var("TEMP") {
-            out = out.replace(&temp, "<TMPDIR>");
-        }
-        if let Ok(pwd) = env::current_dir() {
-            out = out.replace(&pwd.display().to_string(), "<ROOT>");
-        }
-        if let Ok(manifest_dir) = env::var("CARGO_MANIFEST_DIR") {
-            out = out.replace(&manifest_dir, "<ROOT>");
-        }
+        out.push_str(&input[idx..]);
         out
     }
 
@@ -226,7 +253,22 @@ pub mod snapshots {
     }
 
     fn looks_like_duration(value: &str) -> bool {
-        value.ends_with("ms") || value.ends_with("s") || value.ends_with("sec")
+        let trimmed = value.trim();
+        if let Some(prefix) = trimmed.strip_suffix("ms") {
+            return is_number(prefix);
+        }
+        if let Some(prefix) = trimmed.strip_suffix("sec") {
+            return is_number(prefix);
+        }
+        if let Some(prefix) = trimmed.strip_suffix('s') {
+            return is_number(prefix);
+        }
+        false
+    }
+
+    fn is_number(value: &str) -> bool {
+        let value = value.trim();
+        !value.is_empty() && value.chars().all(|ch| ch.is_ascii_digit() || ch == '.')
     }
 
     fn is_unstable_key(key: &str) -> bool {
@@ -260,19 +302,10 @@ pub mod snapshots {
                 Value::Object(sorted)
             }
             Value::Array(items) => {
-                let mut normalized: Vec<Value> =
-                    items.iter().map(stable_json_with_arrays).collect();
-                if normalized.iter().all(is_scalar) {
-                    normalized.sort_by(|a, b| a.to_string().cmp(&b.to_string()));
-                }
-                Value::Array(normalized)
+                Value::Array(items.iter().map(stable_json_with_arrays).collect())
             }
             _ => value.clone(),
         }
-    }
-
-    fn is_scalar(value: &Value) -> bool {
-        matches!(value, Value::String(_) | Value::Number(_) | Value::Bool(_))
     }
 }
 
