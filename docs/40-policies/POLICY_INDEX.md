@@ -12,6 +12,12 @@ Makes enforcement transparent and searchable.
 ## Contracts
 Policies are enforced by tests under `crates/bijux-policies/tests`.
 
+## Examples
+- Look up a policy ID here, then jump to the test file for implementation details.
+
+## Failure modes
+- Missing entries create invisible enforcement gaps.
+
 ## Policy Table
 | Policy ID | Purpose | Prevents | Applies to | Test file |
 | --- | --- | --- | --- | --- |
