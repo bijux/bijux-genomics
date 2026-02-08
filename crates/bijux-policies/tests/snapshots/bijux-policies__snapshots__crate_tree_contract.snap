@@ -1,5 +1,6 @@
 ---
 source: crates/bijux-policies/tests/boundaries/surface/crate_tree_contract.rs
+assertion_line: 56
 expression: "lines.join(\"\\n\")"
 ---
 [bijux-analyze]
@@ -1521,7 +1522,6 @@ tests/snapshots/bijux-policies__schemas__guardrail_default.json
 tests/snapshots/bijux-policies__snapshots__crate_docs_spine_contract.snap
 tests/snapshots/bijux-policies__snapshots__crate_docs_tree_contract.snap
 tests/snapshots/bijux-policies__snapshots__crate_tree_contract.snap
-tests/snapshots/bijux-policies__snapshots__crate_tree_contract.snap.new
 tests/snapshots/bijux-policies__snapshots__docs_tree_contract.snap
 tests/support/README.md
 tests/support/fs.rs
