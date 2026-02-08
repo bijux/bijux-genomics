@@ -1,4 +1,4 @@
-use bijux_runtime::{build_telemetry_adapter, TelemetryEventV1};
+use bijux_runtime::{attrs_from_json, build_telemetry_adapter, TelemetryEventV1};
 use std::collections::HashMap;
 
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
@@ -16,7 +16,9 @@ use bijux_planner_fastq::{
     apply_preprocess_policy, preprocess_decisions, resolve_preprocess_pipeline,
     select_preprocess_tools, FastqPlanConfig, FastqPlanner, ToolSelection,
 };
-use bijux_runner::{build_tool_execution_spec, resolve_image_for_run, StageResultV1};
+use bijux_runner::backend::docker::execution_spec::build_tool_execution_spec;
+use bijux_runner::backend::docker::executor::resolve_image_for_run;
+use bijux_runner::execute::StageResultV1;
 use bijux_runtime::recording::run_artifacts_dir_for_out;
 use bijux_runtime::recording::write_telemetry_event;
 
@@ -292,7 +294,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         stage_attrs.insert("stage".to_string(), stage_id.clone());
         stage_attrs.insert("tool".to_string(), tool.clone());
         let stage_span = telemetry.start_stage(&stage_id, &stage_attrs);
-        let execution = bijux_runner::execute_step(planned, platform.runner, None);
+        let execution = bijux_runner::execute::execute_step(planned, platform.runner, None);
         stage_span.end();
         let execution = execution?;
         if execution.exit_code != 0 {
@@ -388,7 +390,9 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
             status: "ok".to_string(),
             trace_id: "merge-decision".to_string(),
             span_id: "merge-decision".to_string(),
-            attrs: serde_json::to_value(decision).unwrap_or_else(|_| serde_json::json!({})),
+            attrs: attrs_from_json(
+                &serde_json::to_value(decision).unwrap_or_else(|_| serde_json::json!({})),
+            ),
         };
         let _ = write_telemetry_event(&telemetry_path, &event);
     }
