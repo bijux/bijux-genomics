@@ -58,7 +58,7 @@ pub mod determinism {
         }
     }
 
-    pub fn assert_stable_ordering<T: Ord + std::fmt::Debug>(items: &[T]) {
+    pub fn assert_stable_ordering<T: Ord + std::fmt::Debug + Clone>(items: &[T]) {
         let mut sorted = items.to_vec();
         sorted.sort();
         assert_eq!(items, sorted, "items must be sorted deterministically");
@@ -74,7 +74,9 @@ pub mod snapshots {
 
     #[must_use]
     pub fn snapshot_name(bucket: &str, test_name: &str) -> String {
-        format!("{}__{}__{}", env!("CARGO_PKG_NAME"), bucket, test_name)
+        let pkg = std::env::var("CARGO_PKG_NAME")
+            .unwrap_or_else(|_| env!("CARGO_PKG_NAME").to_string());
+        format!("{pkg}__{bucket}__{test_name}")
     }
 
     #[must_use]
