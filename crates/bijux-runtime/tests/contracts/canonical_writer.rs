@@ -18,7 +18,8 @@ fn runtime_emits_use_canonical_json_writer() {
         if entry.path().extension().and_then(|e| e.to_str()) != Some("rs") {
             continue;
         }
-        let content = std::fs::read_to_string(entry.path()).expect("read source");
+        let content = std::fs::read_to_string(entry.path())
+            .unwrap_or_else(|err| panic!("read source {}: {err}", entry.path().display()));
         if patterns.iter().any(|p| content.contains(p)) {
             offenders.push(entry.path().display().to_string());
         }

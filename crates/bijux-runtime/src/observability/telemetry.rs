@@ -12,6 +12,7 @@ pub enum AttrValue {
 
 pub type AttrMap = BTreeMap<String, AttrValue>;
 
+#[must_use]
 pub fn attrs_from_json(value: &serde_json::Value) -> AttrMap {
     match value {
         serde_json::Value::Object(map) => map

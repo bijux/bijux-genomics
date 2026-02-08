@@ -1,11 +1,12 @@
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use serde_json::Value;
 
-fn load_fixture_json(path: &str) -> Value {
-    let content = fs::read_to_string(path).expect("read fixture");
-    serde_json::from_str(&content).expect("parse fixture json")
+fn load_fixture_json(path: &Path) -> Value {
+    let content = fs::read_to_string(path)
+        .unwrap_or_else(|err| panic!("read fixture {}: {err}", path.display()));
+    serde_json::from_str(&content).unwrap_or_else(|err| panic!("parse fixture json: {err}"))
 }
 
 fn stable_json(value: &Value) -> Value {
@@ -17,7 +18,7 @@ fn stable_json(value: &Value) -> Value {
 fn fixture_json_is_stable() {
     let fixture = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("tests/fixtures/runtime_schema/default/run_record_v1.json");
-    let value = load_fixture_json(fixture.to_str().expect("fixture path"));
+    let value = load_fixture_json(&fixture);
     let sorted = stable_json(&value);
     let resorted = stable_json(&sorted);
     assert_eq!(
