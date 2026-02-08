@@ -1,6 +1,0 @@
----
-source: crates/bijux-cli/tests/boundaries/guardrails/public_surface.rs:18
-expression: snapshot
----
-pub mod commands;
-pub mod cli {
