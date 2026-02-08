@@ -1,7 +1,8 @@
 #[test]
 fn stage_contracts_have_required_policies() {
     for stage in bijux_domain_bam::BamStage::all() {
-        let contract = bijux_domain_bam::contract_for_stage(stage.as_str()).expect("contract");
+        let contract = bijux_domain_bam::contract_for_stage(stage.as_str())
+            .unwrap_or_else(|| panic!("contract missing for {}", stage.as_str()));
         assert!(
             !contract.sorting.trim().is_empty(),
             "{} missing sorting",
