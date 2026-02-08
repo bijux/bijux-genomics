@@ -161,7 +161,7 @@ pub mod snapshots {
 
     #[must_use]
     pub fn sanitize_snapshot_json(value: &Value) -> Value {
-        snapshot_normalize_json(value)
+        snapshot_normalize(value)
     }
 
     #[must_use]
@@ -170,10 +170,15 @@ pub mod snapshots {
     }
 
     #[must_use]
-    pub fn snapshot_normalize_json(value: &Value) -> Value {
+    pub fn snapshot_normalize(value: &Value) -> Value {
         let scrubbed = strip_unstable_fields(value);
         let normalized = normalize_json(&scrubbed);
         stable_json_with_arrays(&normalized)
+    }
+
+    #[must_use]
+    pub fn snapshot_normalize_json(value: &Value) -> Value {
+        snapshot_normalize(value)
     }
 
     pub fn install_snapshot_env() {

@@ -49,8 +49,6 @@ mod mod_boundaries_surface_architecture_pointer_policy_rs;
 mod mod_boundaries_surface_core_purity_rs;
 #[path = "boundaries/surface/coverage_cfg_policy.rs"]
 mod mod_boundaries_surface_coverage_cfg_policy_rs;
-#[path = "boundaries/surface/crate_tree_contract.rs"]
-mod mod_boundaries_surface_crate_tree_contract_rs;
 #[path = "boundaries/surface/deep_imports.rs"]
 mod mod_boundaries_surface_deep_imports_rs;
 #[path = "boundaries/surface/docs_index_quality.rs"]
@@ -61,8 +59,6 @@ mod mod_boundaries_surface_docs_required_policy_rs;
 mod mod_boundaries_surface_docs_spine_contract_rs;
 #[path = "boundaries/surface/docs_spine.rs"]
 mod mod_boundaries_surface_docs_spine_rs;
-#[path = "boundaries/surface/docs_tree_contract.rs"]
-mod mod_boundaries_surface_docs_tree_contract_rs;
 #[path = "boundaries/surface/domain_purity.rs"]
 mod mod_boundaries_surface_domain_purity_rs;
 #[path = "boundaries/surface/guardrails.rs"]
@@ -91,6 +87,12 @@ mod mod_boundaries_surface_ownership_contract_rs;
 mod mod_boundaries_surface_path_policies_rs;
 #[path = "boundaries/surface/planner_purity.rs"]
 mod mod_boundaries_surface_planner_purity_rs;
+#[path = "boundaries/surface/no_repo_tree_snapshots.rs"]
+mod mod_boundaries_surface_no_repo_tree_snapshots_rs;
+#[path = "boundaries/surface/docs_placement_policy.rs"]
+mod mod_boundaries_surface_docs_placement_policy_rs;
+#[path = "boundaries/surface/no_cfg_coverage.rs"]
+mod mod_boundaries_surface_no_cfg_coverage_rs;
 #[path = "boundaries/surface/policy_docs_anchor.rs"]
 mod mod_boundaries_surface_policy_docs_anchor_rs;
 #[path = "boundaries/surface/readme_policy.rs"]
