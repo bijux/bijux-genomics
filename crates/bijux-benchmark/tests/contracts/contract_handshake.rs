@@ -10,6 +10,7 @@ fn fixture_root() -> PathBuf {
         .join("tests")
         .join("fixtures")
         .join("handshake")
+        .join("default")
 }
 
 fn analyze_report_fixture() -> PathBuf {
@@ -40,7 +41,7 @@ fn benchmark_handshake_accepts_runtime_and_analyze_artifacts() -> Result<()> {
         !report.stages.is_empty(),
         "report must contain stage summaries"
     );
-    let stage_ids: Vec<&str> = run_record
+    let id_catalog: Vec<&str> = run_record
         .stages
         .iter()
         .map(|stage| stage.stage_id.as_str())
@@ -49,7 +50,7 @@ fn benchmark_handshake_accepts_runtime_and_analyze_artifacts() -> Result<()> {
         report
             .stages
             .iter()
-            .any(|stage| stage_ids.contains(&stage.stage_id.as_str())),
+            .any(|stage| id_catalog.contains(&stage.stage_id.as_str())),
         "report stages must align with run record stages"
     );
     Ok(())

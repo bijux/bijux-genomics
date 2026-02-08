@@ -33,6 +33,10 @@ Public model types and their invariants:
 - `Observation` (single metric envelope with stable ids).
 - `Summary` (aggregate outputs with ordering guarantees).
 
+## Artifacts / Contracts
+The model is pure code; its contract surface is defined by public types and snapshots.
+See `tests/public_api/public_api.rs` and `tests/snapshots/public_api.txt`.
+
 ## Effects & determinism guarantees
 Pure computation; determinism enforced by tests. See `docs/EFFECTS.md` and the golden tests below.
 

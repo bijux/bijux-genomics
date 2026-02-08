@@ -18,7 +18,11 @@ Inputs: analyze decisions + runtime observations.
 Outputs: deterministic benchmark decisions and summaries.
 See `docs/BENCH_CONTRACT.md` and `docs/BENCH_FORMAT.md`.
 
-## Artifacts
+## Key contracts it owns/consumes
+Owns the benchmark decision contract and consumes analyze/runtime artifact schemas.
+See `docs/BENCH_CONTRACT.md` and `docs/BENCH_FORMAT.md`.
+
+## Artifacts / Contracts
 - `decision.json`
 - `observations.jsonl`
 - `summary.json`

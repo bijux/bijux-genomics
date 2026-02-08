@@ -9,6 +9,10 @@ use bijux_benchmark::{
     StratificationRequirement,
 };
 
+fn snapshot_name(group: &str, name: &str) -> String {
+    format!("bijux-benchmark__{group}__{name}")
+}
+
 #[test]
 fn bench_compare_snapshot() -> Result<()> {
     let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
@@ -129,10 +133,8 @@ fn bench_compare_snapshot() -> Result<()> {
     )?;
     let comparison = compare(&summary_a, &summary_b)?;
     let rendered = serde_json::to_string_pretty(&comparison)?;
-    let snapshot_path = manifest_dir
-        .join("tests")
-        .join("snapshots")
-        .join("bench_compare.json");
+    let snapshot_file = format!("{}.json", snapshot_name("contracts", "bench_compare"));
+    let snapshot_path = manifest_dir.join("tests").join("snapshots").join(snapshot_file);
     let snapshot = fs::read_to_string(&snapshot_path)?;
     assert_eq!(rendered.trim(), snapshot.trim());
     Ok(())

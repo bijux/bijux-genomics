@@ -1,3 +1,5 @@
+/// Snapshot intent: verifies stable, reviewed output for this contract.
+
 use std::collections::BTreeMap;
 
 use bijux_benchmark::{
