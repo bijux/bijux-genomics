@@ -67,14 +67,15 @@ fn pipeline_profiles_reference_known_stages_and_defaults() {
                         profile.id
                     );
                 }
-                let Some(params) = profile.defaults.params.get(*stage_id) else {
+                let stage_key = StageId::from_static(stage_id);
+                let Some(params) = profile.defaults.params.get(&stage_key) else {
                     panic!(
                         "missing BAM params for {stage_id} in profile {}",
                         profile.id
                     );
                 };
                 stage
-                    .parse_effective_params(params)
+                    .parse_effective_params(&params.to_json())
                     .unwrap_or_else(|_| panic!("failed to parse BAM params for {stage_id}"));
             } else if stage_id.starts_with("cross.") {
                 // Cross-domain placeholders are allowed without a domain registry.
