@@ -4,7 +4,7 @@ use crate::tooling::{ensure_bench_runner, filter_tools_by_role, load_registry};
 use anyhow::{anyhow, Context, Result};
 use bijux_core::prelude::errors::ErrorCategory;
 use bijux_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
-use bijux_environment_qa::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
+use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use bijux_infra::{bench_base_dir, bench_tools_dir};
 use bijux_planner_fastq::select_merge_tools;
 use bijux_planner_fastq::stage_api::bench_dir_name;

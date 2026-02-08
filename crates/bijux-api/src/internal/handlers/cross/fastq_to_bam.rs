@@ -53,7 +53,7 @@ pub fn run_fastq_to_bam_profile<S: std::hash::BuildHasher>(
         serde_json::from_str(&summary_raw).context("parse run_summary.json")?;
     let _defaults_ledger_path = write_defaults_ledger(&out_dir, profile)?;
 
-    let pipeline = bijux_planner_fastq::cross_fastq_to_bam_stage_ids(profile.id.as_str());
+    let pipeline = bijux_planner_fastq::cross_fastq_to_bam_id_catalog(profile.id.as_str());
     let has_align = pipeline
         .iter()
         .any(|stage| stage == BamStage::Align.as_str());

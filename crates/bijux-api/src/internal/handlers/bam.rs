@@ -4,7 +4,7 @@ use bijux_core::contract::PlanPolicy;
 use bijux_core::contract::ToolRegistry;
 use bijux_core::contract::{ExecutionEdge, ExecutionGraph};
 use bijux_environment::api::{load_image_catalog, load_platform, RuntimeKind};
-use bijux_environment_qa::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
+use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use bijux_pipelines::registry;
 use bijux_pipelines::Domain;
 use bijux_planner_bam::stage_api::STAGE_PREFIX;
@@ -140,7 +140,7 @@ pub fn bench_bam_pipeline(
     let profile = registry::profile_by_id(Domain::Bam, &args.profile)?;
     let tool_matrix = parse_tool_matrix(&args.tools)?;
     let mut run_dirs = Vec::new();
-    for stage_id in bijux_planner_bam::pipeline_stage_ids(profile.id.as_str()) {
+    for stage_id in bijux_planner_bam::pipeline_id_catalog(profile.id.as_str()) {
         let stage = bijux_planner_bam::stage_api::BamStage::try_from(stage_id.as_str())?;
         let stage_id = stage.as_str();
         let tools = tool_matrix.get(stage_id).cloned().unwrap_or_default();

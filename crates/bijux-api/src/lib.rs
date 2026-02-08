@@ -10,6 +10,11 @@
 pub(crate) mod explain;
 pub(crate) mod fastq_stats_neutral;
 pub(crate) mod internal;
+pub(crate) mod api_internal {
+    use crate::internal as internal_mod;
+    pub(crate) use internal_mod::handlers;
+}
+pub(crate) mod qa;
 pub(crate) mod request_args;
 pub(crate) mod run;
 pub(crate) mod tooling;

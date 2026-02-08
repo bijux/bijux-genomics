@@ -7,6 +7,7 @@ rust-version.workspace = true
 
 [dependencies]
 anyhow.workspace = true
+cargo_metadata = "0.18"
 serde.workspace = true
 serde_json.workspace = true
 tracing.workspace = true
@@ -18,8 +19,7 @@ bijux-domain-fastq = { path = "../bijux-domain-fastq" }
 bijux-stage-contract = { path = "../bijux-stage-contract" }
 bijux-engine = { path = "../bijux-engine" }
 bijux-environment = { path = "../bijux-environment" }
-bijux-environment-qa = { path = "../bijux-environment-qa" }
-bijux-analyze = { path = "../bijux-analyze" }
+bijux-analyze = { path = "../bijux-analyze", features = ["sqlite"] }
 bijux-benchmark = { path = "../bijux-benchmark" }
 bijux-planner-fastq = { path = "../bijux-planner-fastq" }
 bijux-planner-bam = { path = "../bijux-planner-bam" }

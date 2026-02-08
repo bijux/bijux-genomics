@@ -32,7 +32,7 @@ pub fn plan_for_bam_stage_with_profile(
     profile: &PipelineProfile,
     out_dir: &Path,
 ) -> Result<StagePlanV1> {
-    if !super::support::downstream_enabled()
+    if !super::feature_flags::downstream_enabled()
         && matches!(
             stage,
             bijux_planner_bam::stage_api::BamStage::Haplogroups

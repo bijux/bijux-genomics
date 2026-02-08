@@ -2,7 +2,7 @@
 //!
 //! Stability: v1 (stable).
 
-pub use crate::internal::handlers::cross::run_fastq_to_bam_profile;
+pub use crate::api_internal::handlers::cross::run_fastq_to_bam_profile;
 pub use crate::request_args::{
     DryRunRequest, DryRunResponse, ExecuteRequest, ExecuteResponse, ExecuteRunRequest,
     ExecuteRunResult, PlanRequest, PlanResponse, RunRequest, RunResult, RunStatus,

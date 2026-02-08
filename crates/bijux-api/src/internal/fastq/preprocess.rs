@@ -9,7 +9,7 @@ use bijux_core::contract::{ExecutionEdge, ExecutionGraph};
 use bijux_core::prelude::errors::ErrorCategory;
 use bijux_core::prelude::ContainerImageRefV1;
 use bijux_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
-use bijux_environment_qa::image_qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
+use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use bijux_planner_fastq::stage_api::bench_dir_name;
 use bijux_planner_fastq::stage_api::RawFailure;
 use bijux_planner_fastq::{

@@ -98,7 +98,7 @@ pub(crate) fn run_bam_truth_stages<S: std::hash::BuildHasher>(
     let reference = boundary.reference.as_ref().map(PathBuf::from);
 
     let mut runs = Vec::new();
-    for stage_id in bijux_planner_bam::pipeline_stage_ids(profile.id.as_str()) {
+    for stage_id in bijux_planner_bam::pipeline_id_catalog(profile.id.as_str()) {
         let stage = bijux_planner_bam::stage_api::BamStage::try_from(stage_id.as_str())?;
         if should_skip_bam_truth_stage(stage) {
             continue;

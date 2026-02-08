@@ -1,6 +1,8 @@
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Context, Result};
+use std::collections::{BTreeSet, HashMap, HashSet};
 use std::path::{Path, PathBuf};
 
+use cargo_metadata::MetadataCommand;
 use crate::request_args::{
     DryRunRequest, DryRunResponse, ExecuteRequest, ExecuteResponse, ExecuteRunRequest,
     ExecuteRunResult, PlanRequest, PlanResponse, PlanRunRequest, PlanRunResult,
@@ -113,7 +115,8 @@ pub fn render_report(request: &RenderReportRequest) -> Result<RenderReportResult
 /// Returns an error if run status inspection fails.
 pub fn status(run_dir: &Path) -> Result<RunStatus> {
     let manifest_path = run_dir.join("run_manifest.json");
-    let report_path = run_dir.join("run_artifacts").join("report.html");
+    let report_path = bijux_runtime::recording::run_artifacts_dir_for_out(run_dir)
+        .join("report.html");
     let manifest = if manifest_path.exists() {
         Some(manifest_path.clone())
     } else {
@@ -182,7 +185,8 @@ pub fn replay_manifest(manifest_path: &Path, verify_only: bool) -> Result<()> {
         }
         return Ok(());
     }
-    let graph_path = base_dir.join("run_artifacts").join("graph.json");
+    let graph_path = bijux_runtime::recording::run_artifacts_dir_for_out(base_dir)
+        .join("graph.json");
     let graph_raw =
         std::fs::read_to_string(&graph_path).map_err(|err| anyhow!("read graph.json: {err}"))?;
     let graph: ExecutionGraph =
@@ -294,6 +298,54 @@ pub fn policy_audit() -> Result<serde_json::Value> {
     Ok(serde_json::json!({
         "guardrails": guardrails,
     }))
+}
+
+/// # Errors
+/// Returns an error if workspace dependency metadata cannot be loaded.
+pub fn workspace_edges() -> Result<BTreeSet<(String, String)>> {
+    let metadata = MetadataCommand::default()
+        .exec()
+        .context("exec cargo metadata")?;
+    let workspace_members: HashSet<cargo_metadata::PackageId> =
+        metadata.workspace_members.iter().cloned().collect();
+    let mut id_to_name = HashMap::new();
+    for pkg in &metadata.packages {
+        id_to_name.insert(pkg.id.clone(), pkg.name.clone());
+    }
+    let mut edges = BTreeSet::new();
+    if let Some(resolve) = metadata.resolve.as_ref() {
+        for node in &resolve.nodes {
+            let id = node.id.clone();
+            if !workspace_members.contains(&id) {
+                continue;
+            }
+            for dep in &node.deps {
+                let dep_id = dep.pkg.clone();
+                if !workspace_members.contains(&dep_id) {
+                    continue;
+                }
+                let from = id_to_name
+                    .get(&id)
+                    .cloned()
+                    .unwrap_or_else(|| id.to_string());
+                let to = id_to_name
+                    .get(&dep_id)
+                    .cloned()
+                    .unwrap_or_else(|| dep_id.to_string());
+                edges.insert((from, to));
+            }
+        }
+    }
+    Ok(edges)
+}
+
+/// # Errors
+/// Returns an error if the workspace audit artifact cannot be written.
+pub fn write_workspace_audit(out_dir: &Path, dot: &str) -> Result<PathBuf> {
+    bijux_infra::ensure_dir(out_dir)?;
+    let dot_path = out_dir.join("graph.dot");
+    bijux_infra::write_bytes(&dot_path, dot.as_bytes())?;
+    Ok(dot_path)
 }
 
 fn render_report_from_facts(base_dir: &Path, facts_path: &Path) -> Result<PathBuf> {
