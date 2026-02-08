@@ -1,5 +1,6 @@
 ---
 source: crates/bijux-analyze/tests/contracts/pipeline/pipeline_e2e.rs
+assertion_line: 175
 expression: "bijux_testkit::snapshot_normalize_json(&json)"
 ---
 {
@@ -2354,71 +2355,85 @@ expression: "bijux_testkit::snapshot_normalize_json(&json)"
         "param_provenance": {
           "bam.authenticity": {
             "assumptions": [],
+            "citations": [],
             "comparability_implications": [],
             "rationale": "pipeline default"
           },
           "bam.bias_mitigation": {
             "assumptions": [],
+            "citations": [],
             "comparability_implications": [],
             "rationale": "pipeline default"
           },
           "bam.complexity": {
             "assumptions": [],
+            "citations": [],
             "comparability_implications": [],
             "rationale": "pipeline default"
           },
           "bam.contamination": {
             "assumptions": [],
+            "citations": [],
             "comparability_implications": [],
             "rationale": "pipeline default"
           },
           "bam.coverage": {
             "assumptions": [],
+            "citations": [],
             "comparability_implications": [],
             "rationale": "pipeline default"
           },
           "bam.damage": {
             "assumptions": [],
+            "citations": [],
             "comparability_implications": [],
             "rationale": "pipeline default"
           },
           "bam.filter": {
             "assumptions": [],
+            "citations": [],
             "comparability_implications": [],
             "rationale": "pipeline default"
           },
           "bam.genotyping": {
             "assumptions": [],
+            "citations": [],
             "comparability_implications": [],
             "rationale": "pipeline default"
           },
           "bam.haplogroups": {
             "assumptions": [],
+            "citations": [],
             "comparability_implications": [],
             "rationale": "pipeline default"
           },
           "bam.kinship": {
             "assumptions": [],
+            "citations": [],
             "comparability_implications": [],
             "rationale": "pipeline default"
           },
           "bam.markdup": {
             "assumptions": [],
+            "citations": [],
             "comparability_implications": [],
             "rationale": "pipeline default"
           },
           "bam.qc_pre": {
             "assumptions": [],
+            "citations": [],
             "comparability_implications": [],
             "rationale": "pipeline default"
           },
           "bam.sex": {
             "assumptions": [],
+            "citations": [],
             "comparability_implications": [],
             "rationale": "pipeline default"
           },
           "bam.validate": {
             "assumptions": [],
+            "citations": [],
             "comparability_implications": [],
             "rationale": "pipeline default"
           }
