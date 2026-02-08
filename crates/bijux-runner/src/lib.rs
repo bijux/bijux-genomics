@@ -48,22 +48,14 @@ impl Runner for DockerRunner {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
-pub struct LocalRunner;
-
-impl Runner for LocalRunner {
-    fn run(&self, _invocation: &Invocation) -> anyhow::Result<RunnerResult> {
-        anyhow::bail!("local runner not implemented");
-    }
-}
-
-pub mod primitives {
+mod primitives {
     pub use crate::backend::docker::execution_spec::build_tool_execution_spec;
-    pub use crate::backend::docker::executor::{
-        docker_logs, docker_rm, docker_stats_mb, docker_wait, docker_wait_timeout, parse_mem_to_mb,
-        resolve_image_for_run, ExecutionAssessment,
-    };
+    pub use crate::backend::docker::executor::{resolve_image_for_run, ExecutionAssessment};
     pub use crate::backend::docker::replay::replay_run;
     pub use crate::execute::{execute_observer_command, execute_step, StageResultV1};
-    pub use crate::runner_core::CommandOutputV1;
 }
+
+pub use primitives::{
+    build_tool_execution_spec, execute_observer_command, execute_step, replay_run,
+    resolve_image_for_run, ExecutionAssessment, StageResultV1,
+};

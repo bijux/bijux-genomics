@@ -28,5 +28,5 @@ pub use bijux_stage_contract::{execution_step_from_stage_plan, DryRunExecutor, E
 pub use bijux_core::contract::ExecutionManifest;
 pub use bijux_core::prelude::{CategorizedError, ErrorCategory};
 pub use bijux_infra::init_logging;
-pub use bijux_runner::primitives::execute_step;
-pub use bijux_runner::primitives::{build_tool_execution_spec, replay_run};
+pub use bijux_runner::execute_step;
+pub use bijux_runner::{build_tool_execution_spec, replay_run};

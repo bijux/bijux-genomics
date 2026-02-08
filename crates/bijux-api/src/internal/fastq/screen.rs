@@ -13,7 +13,7 @@ use bijux_planner_fastq::stage_api::FastqArtifact;
 use bijux_planner_fastq::stage_api::{
     inspect_headers, log_header_warnings, preflight_stage, RawFailure,
 };
-use bijux_runner::primitives::build_tool_execution_spec;
+use bijux_runner::build_tool_execution_spec;
 
 use crate::internal::handlers::fastq::jobs::bench_jobs;
 use crate::internal::handlers::fastq::jobs::execute_plans_with_jobs;

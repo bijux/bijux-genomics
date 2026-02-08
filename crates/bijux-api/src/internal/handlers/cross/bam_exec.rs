@@ -5,8 +5,8 @@ use anyhow::{anyhow, Context, Result};
 use bijux_core::contract::ToolRegistry;
 use bijux_environment::resolve::ReferenceRecord;
 use bijux_pipelines::PipelineProfile;
-use bijux_runner::primitives::build_tool_execution_spec;
-use bijux_runner::primitives::execute_step;
+use bijux_runner::build_tool_execution_spec;
+use bijux_runner::execute_step;
 
 use crate::internal::handlers::fastq::StageExecutionSummary;
 use crate::request_args::{BamRunArgs, FastqCrossArgs};
