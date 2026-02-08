@@ -1,6 +1,7 @@
 ---
-source: crates/bijux-analyze/tests/pipeline/pipeline_e2e.rs
-expression: report
+source: crates/bijux-analyze/tests/contracts/pipeline/pipeline_e2e.rs
+assertion_line: 145
+expression: json
 ---
 {
   "adapter_inference": {
@@ -12,38 +13,51 @@ expression: report
     {
       "banks": {},
       "stage_id": "fastq.detect_adapters",
-      "tool_id": "fastqc"
+      "tool_id": "tool"
     },
     {
       "banks": {},
       "stage_id": "fastq.filter",
-      "tool_id": "seqkit"
+      "tool_id": "tool"
     },
     {
       "banks": {},
       "stage_id": "fastq.qc_post",
-      "tool_id": "multiqc"
+      "tool_id": "tool"
     },
     {
       "banks": {},
       "stage_id": "fastq.stats_neutral",
-      "tool_id": "seqkit_stats"
+      "tool_id": "tool"
     },
     {
       "banks": {},
       "stage_id": "fastq.trim",
-      "tool_id": "fastp"
+      "tool_id": "tool"
     },
     {
       "banks": {},
       "stage_id": "fastq.validate_pre",
-      "tool_id": "fastqvalidator_official"
+      "tool_id": "tool"
     }
   ],
   "completeness": {
     "missing_metrics": [],
-    "missing_reports": [],
-    "status": "complete"
+    "missing_reports": [
+      "fastq.detect_adapters:metrics_path",
+      "fastq.detect_adapters:retention_report",
+      "fastq.filter:metrics_path",
+      "fastq.filter:retention_report",
+      "fastq.qc_post:metrics_path",
+      "fastq.qc_post:retention_report",
+      "fastq.stats_neutral:metrics_path",
+      "fastq.stats_neutral:retention_report",
+      "fastq.trim:metrics_path",
+      "fastq.trim:retention_report",
+      "fastq.validate_pre:metrics_path",
+      "fastq.validate_pre:retention_report"
+    ],
+    "status": "incomplete"
   },
   "contract": {
     "required_provenance_fields": [
@@ -158,7 +172,7 @@ expression: report
       "params_hash": "params",
       "span_id": "span-fastq.detect_adapters",
       "stage_id": "fastq.detect_adapters",
-      "tool_id": "fastqc",
+      "tool_id": "tool",
       "tool_version": "0.0.0",
       "trace_id": "trace-1"
     },
@@ -168,7 +182,7 @@ expression: report
       "params_hash": "params",
       "span_id": "span-fastq.filter",
       "stage_id": "fastq.filter",
-      "tool_id": "seqkit",
+      "tool_id": "tool",
       "tool_version": "0.0.0",
       "trace_id": "trace-1"
     },
@@ -178,7 +192,7 @@ expression: report
       "params_hash": "params",
       "span_id": "span-fastq.qc_post",
       "stage_id": "fastq.qc_post",
-      "tool_id": "multiqc",
+      "tool_id": "tool",
       "tool_version": "0.0.0",
       "trace_id": "trace-1"
     },
@@ -188,7 +202,7 @@ expression: report
       "params_hash": "params",
       "span_id": "span-fastq.stats_neutral",
       "stage_id": "fastq.stats_neutral",
-      "tool_id": "seqkit_stats",
+      "tool_id": "tool",
       "tool_version": "0.0.0",
       "trace_id": "trace-1"
     },
@@ -198,7 +212,7 @@ expression: report
       "params_hash": "params",
       "span_id": "span-fastq.trim",
       "stage_id": "fastq.trim",
-      "tool_id": "fastp",
+      "tool_id": "tool",
       "tool_version": "0.0.0",
       "trace_id": "trace-1"
     },
@@ -208,7 +222,7 @@ expression: report
       "params_hash": "params",
       "span_id": "span-fastq.validate_pre",
       "stage_id": "fastq.validate_pre",
-      "tool_id": "fastqvalidator_official",
+      "tool_id": "tool",
       "tool_version": "0.0.0",
       "trace_id": "trace-1"
     }
@@ -222,40 +236,40 @@ expression: report
     "accounting": {
       "stages": [
         {
-          "bases": 1000,
-          "reads": 100,
+          "bases": 800,
+          "reads": 80,
           "stage_id": "fastq.detect_adapters",
-          "tool_id": "fastqc"
+          "tool_id": "tool"
         },
         {
-          "bases": 1000,
-          "reads": 100,
+          "bases": 800,
+          "reads": 80,
           "stage_id": "fastq.filter",
-          "tool_id": "seqkit"
+          "tool_id": "tool"
         },
         {
-          "bases": 1000,
-          "reads": 100,
+          "bases": 800,
+          "reads": 80,
           "stage_id": "fastq.qc_post",
-          "tool_id": "multiqc"
+          "tool_id": "tool"
         },
         {
-          "bases": 1000,
-          "reads": 100,
+          "bases": 800,
+          "reads": 80,
           "stage_id": "fastq.stats_neutral",
-          "tool_id": "seqkit_stats"
+          "tool_id": "tool"
         },
         {
-          "bases": 1000,
-          "reads": 100,
+          "bases": 800,
+          "reads": 80,
           "stage_id": "fastq.trim",
-          "tool_id": "fastp"
+          "tool_id": "tool"
         },
         {
-          "bases": 1000,
-          "reads": 100,
+          "bases": 800,
+          "reads": 80,
           "stage_id": "fastq.validate_pre",
-          "tool_id": "fastqvalidator_official"
+          "tool_id": "tool"
         }
       ]
     },
@@ -316,32 +330,32 @@ expression: report
         {
           "results": [],
           "stage_id": "fastq.detect_adapters",
-          "tool_id": "fastqc"
+          "tool_id": "tool"
         },
         {
           "results": [],
           "stage_id": "fastq.filter",
-          "tool_id": "seqkit"
+          "tool_id": "tool"
         },
         {
           "results": [],
           "stage_id": "fastq.qc_post",
-          "tool_id": "multiqc"
+          "tool_id": "tool"
         },
         {
           "results": [],
           "stage_id": "fastq.stats_neutral",
-          "tool_id": "seqkit_stats"
+          "tool_id": "tool"
         },
         {
           "results": [],
           "stage_id": "fastq.trim",
-          "tool_id": "fastp"
+          "tool_id": "tool"
         },
         {
           "results": [],
           "stage_id": "fastq.validate_pre",
-          "tool_id": "fastqvalidator_official"
+          "tool_id": "tool"
         }
       ]
     },
@@ -364,39 +378,52 @@ expression: report
         {
           "banks": {},
           "stage_id": "fastq.detect_adapters",
-          "tool_id": "fastqc"
+          "tool_id": "tool"
         },
         {
           "banks": {},
           "stage_id": "fastq.filter",
-          "tool_id": "seqkit"
+          "tool_id": "tool"
         },
         {
           "banks": {},
           "stage_id": "fastq.qc_post",
-          "tool_id": "multiqc"
+          "tool_id": "tool"
         },
         {
           "banks": {},
           "stage_id": "fastq.stats_neutral",
-          "tool_id": "seqkit_stats"
+          "tool_id": "tool"
         },
         {
           "banks": {},
           "stage_id": "fastq.trim",
-          "tool_id": "fastp"
+          "tool_id": "tool"
         },
         {
           "banks": {},
           "stage_id": "fastq.validate_pre",
-          "tool_id": "fastqvalidator_official"
+          "tool_id": "tool"
         }
       ]
     },
     "data_contract_validation": {
       "missing_metrics": [],
-      "missing_reports": [],
-      "status": "complete"
+      "missing_reports": [
+        "fastq.detect_adapters:metrics_path",
+        "fastq.detect_adapters:retention_report",
+        "fastq.filter:metrics_path",
+        "fastq.filter:retention_report",
+        "fastq.qc_post:metrics_path",
+        "fastq.qc_post:retention_report",
+        "fastq.stats_neutral:metrics_path",
+        "fastq.stats_neutral:retention_report",
+        "fastq.trim:metrics_path",
+        "fastq.trim:retention_report",
+        "fastq.validate_pre:metrics_path",
+        "fastq.validate_pre:retention_report"
+      ],
+      "status": "incomplete"
     },
     "decision_config": {
       "bootstrap_policy": {
@@ -429,12 +456,15 @@ expression: report
           "contaminant_action": false,
           "input_hash": "input",
           "missing_metrics": [],
-          "missing_reports": [],
+          "missing_reports": [
+            "metrics_path",
+            "retention_report"
+          ],
           "params_hash": "params",
           "quality_gate": {},
           "stage_id": "fastq.detect_adapters",
           "telemetry_decisions": [],
-          "tool_id": "fastqc",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
@@ -442,12 +472,15 @@ expression: report
           "contaminant_action": false,
           "input_hash": "input",
           "missing_metrics": [],
-          "missing_reports": [],
+          "missing_reports": [
+            "metrics_path",
+            "retention_report"
+          ],
           "params_hash": "params",
           "quality_gate": {},
           "stage_id": "fastq.filter",
           "telemetry_decisions": [],
-          "tool_id": "seqkit",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
@@ -455,12 +488,15 @@ expression: report
           "contaminant_action": false,
           "input_hash": "input",
           "missing_metrics": [],
-          "missing_reports": [],
+          "missing_reports": [
+            "metrics_path",
+            "retention_report"
+          ],
           "params_hash": "params",
           "quality_gate": {},
           "stage_id": "fastq.qc_post",
           "telemetry_decisions": [],
-          "tool_id": "multiqc",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
@@ -468,12 +504,15 @@ expression: report
           "contaminant_action": false,
           "input_hash": "input",
           "missing_metrics": [],
-          "missing_reports": [],
+          "missing_reports": [
+            "metrics_path",
+            "retention_report"
+          ],
           "params_hash": "params",
           "quality_gate": {},
           "stage_id": "fastq.stats_neutral",
           "telemetry_decisions": [],
-          "tool_id": "seqkit_stats",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
@@ -481,12 +520,15 @@ expression: report
           "contaminant_action": false,
           "input_hash": "input",
           "missing_metrics": [],
-          "missing_reports": [],
+          "missing_reports": [
+            "metrics_path",
+            "retention_report"
+          ],
           "params_hash": "params",
           "quality_gate": {},
           "stage_id": "fastq.trim",
           "telemetry_decisions": [],
-          "tool_id": "fastp",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
@@ -494,12 +536,15 @@ expression: report
           "contaminant_action": false,
           "input_hash": "input",
           "missing_metrics": [],
-          "missing_reports": [],
+          "missing_reports": [
+            "metrics_path",
+            "retention_report"
+          ],
           "params_hash": "params",
           "quality_gate": {},
           "stage_id": "fastq.validate_pre",
           "telemetry_decisions": [],
-          "tool_id": "fastqvalidator_official",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         }
       ]
@@ -511,8 +556,21 @@ expression: report
     "failures": {
       "completeness": {
         "missing_metrics": [],
-        "missing_reports": [],
-        "status": "complete"
+        "missing_reports": [
+          "fastq.detect_adapters:metrics_path",
+          "fastq.detect_adapters:retention_report",
+          "fastq.filter:metrics_path",
+          "fastq.filter:retention_report",
+          "fastq.qc_post:metrics_path",
+          "fastq.qc_post:retention_report",
+          "fastq.stats_neutral:metrics_path",
+          "fastq.stats_neutral:retention_report",
+          "fastq.trim:metrics_path",
+          "fastq.trim:retention_report",
+          "fastq.validate_pre:metrics_path",
+          "fastq.validate_pre:retention_report"
+        ],
+        "status": "incomplete"
       }
     },
     "filtering": {},
@@ -534,20 +592,39 @@ expression: report
     "impact_metrics": {
       "impact": [
         {
-          "bases_dropped": 0,
-          "reads_dropped": 0,
+          "bases_dropped": 200,
+          "reads_dropped": 20,
           "stage_id": "fastq.filter",
-          "tool_id": "seqkit"
+          "tool_id": "tool"
         },
         {
-          "bases_dropped": 0,
-          "reads_dropped": 0,
+          "bases_dropped": 200,
+          "reads_dropped": 20,
           "stage_id": "fastq.trim",
-          "tool_id": "fastp"
+          "tool_id": "tool"
         }
       ]
     },
-    "key_findings": [],
+    "key_findings": [
+      {
+        "count": 12,
+        "items": [
+          "fastq.detect_adapters:metrics_path",
+          "fastq.detect_adapters:retention_report",
+          "fastq.filter:metrics_path",
+          "fastq.filter:retention_report",
+          "fastq.qc_post:metrics_path",
+          "fastq.qc_post:retention_report",
+          "fastq.stats_neutral:metrics_path",
+          "fastq.stats_neutral:retention_report",
+          "fastq.trim:metrics_path",
+          "fastq.trim:retention_report",
+          "fastq.validate_pre:metrics_path",
+          "fastq.validate_pre:retention_report"
+        ],
+        "kind": "missing_reports"
+      }
+    ],
     "method_assumptions": {
       "assumptions": [
         "compare_objective defaults to balanced when not specified",
@@ -581,45 +658,45 @@ expression: report
       },
       "presets": [
         {
-          "effective_config_path": "stage_1/effective_config.json",
+          "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "fastq.detect_adapters",
-          "tool_id": "fastqc",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
-          "effective_config_path": "stage_3/effective_config.json",
+          "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "fastq.filter",
-          "tool_id": "seqkit",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
-          "effective_config_path": "stage_5/effective_config.json",
+          "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "fastq.qc_post",
-          "tool_id": "multiqc",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
-          "effective_config_path": "stage_4/effective_config.json",
+          "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "fastq.stats_neutral",
-          "tool_id": "seqkit_stats",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
-          "effective_config_path": "stage_2/effective_config.json",
+          "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "fastq.trim",
-          "tool_id": "fastp",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
-          "effective_config_path": "stage_0/effective_config.json",
+          "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "fastq.validate_pre",
-          "tool_id": "fastqvalidator_official",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         }
       ],
@@ -631,42 +708,42 @@ expression: report
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "fastq.detect_adapters",
-          "tool_id": "fastqc",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "fastq.filter",
-          "tool_id": "seqkit",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "fastq.qc_post",
-          "tool_id": "multiqc",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "fastq.stats_neutral",
-          "tool_id": "seqkit_stats",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "fastq.trim",
-          "tool_id": "fastp",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "fastq.validate_pre",
-          "tool_id": "fastqvalidator_official",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         }
       ]
@@ -829,7 +906,7 @@ expression: report
           "scientific_preset": null,
           "stage_id": "fastq.detect_adapters",
           "tier_rationale": "unknown_tool",
-          "tool_id": "fastqc",
+          "tool_id": "tool",
           "tool_tier": "experimental",
           "tool_version": "0.0.0"
         },
@@ -843,7 +920,7 @@ expression: report
           "scientific_preset": null,
           "stage_id": "fastq.filter",
           "tier_rationale": "unknown_tool",
-          "tool_id": "seqkit",
+          "tool_id": "tool",
           "tool_tier": "experimental",
           "tool_version": "0.0.0"
         },
@@ -857,7 +934,7 @@ expression: report
           "scientific_preset": null,
           "stage_id": "fastq.qc_post",
           "tier_rationale": "unknown_tool",
-          "tool_id": "multiqc",
+          "tool_id": "tool",
           "tool_tier": "experimental",
           "tool_version": "0.0.0"
         },
@@ -870,9 +947,9 @@ expression: report
           "params_hash": "params",
           "scientific_preset": null,
           "stage_id": "fastq.stats_neutral",
-          "tier_rationale": "diagnostic_stats",
-          "tool_id": "seqkit_stats",
-          "tool_tier": "silver",
+          "tier_rationale": "unknown_tool",
+          "tool_id": "tool",
+          "tool_tier": "experimental",
           "tool_version": "0.0.0"
         },
         {
@@ -884,9 +961,9 @@ expression: report
           "params_hash": "params",
           "scientific_preset": null,
           "stage_id": "fastq.trim",
-          "tier_rationale": "curated_default",
-          "tool_id": "fastp",
-          "tool_tier": "gold",
+          "tier_rationale": "unknown_tool",
+          "tool_id": "tool",
+          "tool_tier": "experimental",
           "tool_version": "0.0.0"
         },
         {
@@ -899,7 +976,7 @@ expression: report
           "scientific_preset": null,
           "stage_id": "fastq.validate_pre",
           "tier_rationale": "unknown_tool",
-          "tool_id": "fastqvalidator_official",
+          "tool_id": "tool",
           "tool_tier": "experimental",
           "tool_version": "0.0.0"
         }
@@ -968,7 +1045,7 @@ expression: report
           "raw_params": {},
           "resolved_tool_version": null,
           "stage_id": "fastq.detect_adapters",
-          "tool_id": "fastqc",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
@@ -982,7 +1059,7 @@ expression: report
           "raw_params": {},
           "resolved_tool_version": null,
           "stage_id": "fastq.filter",
-          "tool_id": "seqkit",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
@@ -996,7 +1073,7 @@ expression: report
           "raw_params": {},
           "resolved_tool_version": null,
           "stage_id": "fastq.qc_post",
-          "tool_id": "multiqc",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
@@ -1010,7 +1087,7 @@ expression: report
           "raw_params": {},
           "resolved_tool_version": null,
           "stage_id": "fastq.stats_neutral",
-          "tool_id": "seqkit_stats",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
@@ -1024,7 +1101,7 @@ expression: report
           "raw_params": {},
           "resolved_tool_version": null,
           "stage_id": "fastq.trim",
-          "tool_id": "fastp",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
@@ -1038,7 +1115,7 @@ expression: report
           "raw_params": {},
           "resolved_tool_version": null,
           "stage_id": "fastq.validate_pre",
-          "tool_id": "fastqvalidator_official",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         }
       ]
@@ -1047,39 +1124,57 @@ expression: report
       "rows": [
         {
           "missing_metrics": [],
-          "missing_reports": [],
+          "missing_reports": [
+            "metrics_path",
+            "retention_report"
+          ],
           "stage_id": "fastq.detect_adapters",
-          "status": "complete"
+          "status": "incomplete"
         },
         {
           "missing_metrics": [],
-          "missing_reports": [],
+          "missing_reports": [
+            "metrics_path",
+            "retention_report"
+          ],
           "stage_id": "fastq.filter",
-          "status": "complete"
+          "status": "incomplete"
         },
         {
           "missing_metrics": [],
-          "missing_reports": [],
+          "missing_reports": [
+            "metrics_path",
+            "retention_report"
+          ],
           "stage_id": "fastq.qc_post",
-          "status": "complete"
+          "status": "incomplete"
         },
         {
           "missing_metrics": [],
-          "missing_reports": [],
+          "missing_reports": [
+            "metrics_path",
+            "retention_report"
+          ],
           "stage_id": "fastq.stats_neutral",
-          "status": "complete"
+          "status": "incomplete"
         },
         {
           "missing_metrics": [],
-          "missing_reports": [],
+          "missing_reports": [
+            "metrics_path",
+            "retention_report"
+          ],
           "stage_id": "fastq.trim",
-          "status": "complete"
+          "status": "incomplete"
         },
         {
           "missing_metrics": [],
-          "missing_reports": [],
+          "missing_reports": [
+            "metrics_path",
+            "retention_report"
+          ],
           "stage_id": "fastq.validate_pre",
-          "status": "complete"
+          "status": "incomplete"
         }
       ]
     },
@@ -1090,119 +1185,119 @@ expression: report
           "reasons": [],
           "score": 1.0,
           "stage_id": "fastq.detect_adapters",
-          "tool_id": "fastqc"
+          "tool_id": "tool"
         },
         {
           "bucket": "high",
           "reasons": [],
           "score": 1.0,
           "stage_id": "fastq.filter",
-          "tool_id": "seqkit"
+          "tool_id": "tool"
         },
         {
           "bucket": "high",
           "reasons": [],
           "score": 1.0,
           "stage_id": "fastq.qc_post",
-          "tool_id": "multiqc"
+          "tool_id": "tool"
         },
         {
           "bucket": "high",
           "reasons": [],
           "score": 1.0,
           "stage_id": "fastq.stats_neutral",
-          "tool_id": "seqkit_stats"
+          "tool_id": "tool"
         },
         {
           "bucket": "high",
           "reasons": [],
           "score": 1.0,
           "stage_id": "fastq.trim",
-          "tool_id": "fastp"
+          "tool_id": "tool"
         },
         {
           "bucket": "high",
           "reasons": [],
           "score": 1.0,
           "stage_id": "fastq.validate_pre",
-          "tool_id": "fastqvalidator_official"
+          "tool_id": "tool"
         }
       ]
     },
     "stage_plots": {
       "entries": [
         {
-          "base_retention": 1.0,
+          "base_retention": 0.8,
           "gc_delta": null,
           "mean_q_delta": null,
-          "read_retention": 1.0,
+          "read_retention": 0.8,
           "stage_id": "fastq.detect_adapters",
-          "tool_id": "fastqc"
+          "tool_id": "tool"
         },
         {
-          "base_retention": 1.0,
+          "base_retention": 0.8,
           "gc_delta": null,
           "mean_q_delta": null,
-          "read_retention": 1.0,
+          "read_retention": 0.8,
           "stage_id": "fastq.filter",
-          "tool_id": "seqkit"
+          "tool_id": "tool"
         },
         {
-          "base_retention": 1.0,
+          "base_retention": 0.8,
           "gc_delta": null,
           "mean_q_delta": null,
-          "read_retention": 1.0,
+          "read_retention": 0.8,
           "stage_id": "fastq.qc_post",
-          "tool_id": "multiqc"
+          "tool_id": "tool"
         },
         {
-          "base_retention": 1.0,
+          "base_retention": 0.8,
           "gc_delta": null,
           "mean_q_delta": null,
-          "read_retention": 1.0,
+          "read_retention": 0.8,
           "stage_id": "fastq.stats_neutral",
-          "tool_id": "seqkit_stats"
+          "tool_id": "tool"
         },
         {
-          "base_retention": 1.0,
+          "base_retention": 0.8,
           "gc_delta": null,
           "mean_q_delta": null,
-          "read_retention": 1.0,
+          "read_retention": 0.8,
           "stage_id": "fastq.trim",
-          "tool_id": "fastp"
+          "tool_id": "tool"
         },
         {
-          "base_retention": 1.0,
+          "base_retention": 0.8,
           "gc_delta": null,
           "mean_q_delta": null,
-          "read_retention": 1.0,
+          "read_retention": 0.8,
           "stage_id": "fastq.validate_pre",
-          "tool_id": "fastqvalidator_official"
+          "tool_id": "tool"
         }
       ],
       "waterfall": [
         {
-          "read_retention": 1.0,
+          "read_retention": 0.8,
           "stage_id": "fastq.detect_adapters"
         },
         {
-          "read_retention": 1.0,
+          "read_retention": 0.8,
           "stage_id": "fastq.filter"
         },
         {
-          "read_retention": 1.0,
+          "read_retention": 0.8,
           "stage_id": "fastq.qc_post"
         },
         {
-          "read_retention": 1.0,
+          "read_retention": 0.8,
           "stage_id": "fastq.stats_neutral"
         },
         {
-          "read_retention": 1.0,
+          "read_retention": 0.8,
           "stage_id": "fastq.trim"
         },
         {
-          "read_retention": 1.0,
+          "read_retention": 0.8,
           "stage_id": "fastq.validate_pre"
         }
       ]
@@ -1215,98 +1310,98 @@ expression: report
   "stages": [
     {
       "bank_report_path": null,
-      "effective_config_path": "stage_1/effective_config.json",
+      "effective_config_path": "",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "stage_1/metrics.json",
+      "metrics_path": "",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "fastq.detect_adapters",
-      "stage_report_path": "stage_1/stage_report.json",
-      "tool_id": "fastqc",
-      "tool_invocation_path": "stage_1/tool_invocation.json",
+      "stage_report_path": "fastq.detect_adapters/stage_report.json",
+      "tool_id": "tool",
+      "tool_invocation_path": "",
       "tool_version": "0.0.0"
     },
     {
       "bank_report_path": null,
-      "effective_config_path": "stage_3/effective_config.json",
+      "effective_config_path": "",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "stage_3/metrics.json",
+      "metrics_path": "",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "fastq.filter",
-      "stage_report_path": "stage_3/stage_report.json",
-      "tool_id": "seqkit",
-      "tool_invocation_path": "stage_3/tool_invocation.json",
+      "stage_report_path": "fastq.filter/stage_report.json",
+      "tool_id": "tool",
+      "tool_invocation_path": "",
       "tool_version": "0.0.0"
     },
     {
       "bank_report_path": null,
-      "effective_config_path": "stage_5/effective_config.json",
+      "effective_config_path": "",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "stage_5/metrics.json",
+      "metrics_path": "",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "fastq.qc_post",
-      "stage_report_path": "stage_5/stage_report.json",
-      "tool_id": "multiqc",
-      "tool_invocation_path": "stage_5/tool_invocation.json",
+      "stage_report_path": "fastq.qc_post/stage_report.json",
+      "tool_id": "tool",
+      "tool_invocation_path": "",
       "tool_version": "0.0.0"
     },
     {
       "bank_report_path": null,
-      "effective_config_path": "stage_4/effective_config.json",
+      "effective_config_path": "",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "stage_4/metrics.json",
+      "metrics_path": "",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "fastq.stats_neutral",
-      "stage_report_path": "stage_4/stage_report.json",
-      "tool_id": "seqkit_stats",
-      "tool_invocation_path": "stage_4/tool_invocation.json",
+      "stage_report_path": "fastq.stats_neutral/stage_report.json",
+      "tool_id": "tool",
+      "tool_invocation_path": "",
       "tool_version": "0.0.0"
     },
     {
       "bank_report_path": null,
-      "effective_config_path": "stage_2/effective_config.json",
+      "effective_config_path": "",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "stage_2/metrics.json",
+      "metrics_path": "",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "fastq.trim",
-      "stage_report_path": "stage_2/stage_report.json",
-      "tool_id": "fastp",
-      "tool_invocation_path": "stage_2/tool_invocation.json",
+      "stage_report_path": "fastq.trim/stage_report.json",
+      "tool_id": "tool",
+      "tool_invocation_path": "",
       "tool_version": "0.0.0"
     },
     {
       "bank_report_path": null,
-      "effective_config_path": "stage_0/effective_config.json",
+      "effective_config_path": "",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "stage_0/metrics.json",
+      "metrics_path": "",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "fastq.validate_pre",
-      "stage_report_path": "stage_0/stage_report.json",
-      "tool_id": "fastqvalidator_official",
-      "tool_invocation_path": "stage_0/tool_invocation.json",
+      "stage_report_path": "fastq.validate_pre/stage_report.json",
+      "tool_id": "tool",
+      "tool_invocation_path": "",
       "tool_version": "0.0.0"
     }
   ],
@@ -1314,12 +1409,12 @@ expression: report
     "error_count": 0,
     "event_count": 0,
     "events": [
-      "telemetry/events.jsonl",
-      "telemetry/events.jsonl",
-      "telemetry/events.jsonl",
-      "telemetry/events.jsonl",
-      "telemetry/events.jsonl",
-      "telemetry/events.jsonl"
+      "fastq.detect_adapters/telemetry/events.jsonl",
+      "fastq.filter/telemetry/events.jsonl",
+      "fastq.qc_post/telemetry/events.jsonl",
+      "fastq.stats_neutral/telemetry/events.jsonl",
+      "fastq.trim/telemetry/events.jsonl",
+      "fastq.validate_pre/telemetry/events.jsonl"
     ]
   }
 }

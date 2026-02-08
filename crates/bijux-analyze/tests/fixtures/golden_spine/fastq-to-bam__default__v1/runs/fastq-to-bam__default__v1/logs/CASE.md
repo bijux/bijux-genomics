@@ -1,6 +1,5 @@
 # CASE
 
-Path: tests/fixtures/golden_spine/fastq-to-bam__default__v1/runs/fastq-to-bam__default__v1/logs
-
-## Purpose
-Describe the input meaning, why it exists, and the invariant it tests.
+Purpose: Leaf fixture data for golden spine run artifacts.
+Inputs: Files in this directory are part of a golden spine run snapshot.
+Invariant: Preserves run layout and file naming for snapshot-based contracts.

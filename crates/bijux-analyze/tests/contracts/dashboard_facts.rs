@@ -4,6 +4,10 @@ use std::path::PathBuf;
 
 use bijux_analyze::export::write_dashboard_facts_jsonl;
 
+fn snapshot_name(group: &str, name: &str) -> String {
+    format!("bijux-analyze__{group}__{name}")
+}
+
 fn facts_row(run_id: &str, stage_id: &str, tool_id: &str, params: &str) -> FactsRowV1 {
     FactsRowV1 {
         schema_version: "bijux.facts.v1".to_string(),
@@ -46,7 +50,8 @@ fn dashboard_facts_snapshot_is_stable() -> anyhow::Result<()> {
     let snapshot_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("tests")
         .join("snapshots")
-        .join("dashboard_facts.jsonl");
+        .join(snapshot_name("contracts", "dashboard_facts"))
+        .with_extension("jsonl");
     let snapshot = fs::read_to_string(&snapshot_path)?;
     assert_eq!(rendered, snapshot);
     Ok(())

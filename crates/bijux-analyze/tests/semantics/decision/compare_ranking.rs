@@ -1,12 +1,15 @@
-use std::path::PathBuf;
-use std::path::PathBuf;
+/// Snapshot intent: verifies stable, reviewed output for this contract.
 
-
+use std::path::PathBuf;
 use anyhow::Result;
 use bijux_analyze::{compare::compare_runs, ranking::build_rankings, ranking::RankInput};
 use bijux_core::contract::objective_spec;
 use bijux_core::contract::Objective;
-use bijux_testkit::snapshot_name;
+use insta::Settings;
+
+fn snapshot_name(group: &str, name: &str) -> String {
+    format!("bijux-analyze__{group}__{name}")
+}
 
 #[test]
 fn compare_and_ranking_snapshot() -> Result<()> {
@@ -64,6 +67,11 @@ fn compare_and_ranking_snapshot() -> Result<()> {
     });
     let rendered = serde_json::to_string_pretty(&payload)?;
     let name = snapshot_name("semantics", "compare_ranking");
-    insta::assert_snapshot!(name, rendered);
+    let mut settings = Settings::new();
+    settings.set_prepend_module_to_snapshot(false);
+    settings.set_snapshot_path(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/snapshots"));
+    settings.bind(|| {
+        insta::assert_snapshot!(name, rendered);
+    });
     Ok(())
 }

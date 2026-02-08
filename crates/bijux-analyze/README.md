@@ -39,6 +39,11 @@ Pure computation + report rendering; deterministic outputs. See `docs/EFFECTS.md
 - `report.json`
 - `report_bundle/index.html`
 
+## Artifacts / Contracts
+- `report.json` contract: `docs/REPORT_CONTRACT.md` + `tests/contracts/report_contract.rs`.
+- Report bundle structure: `docs/REPORT_CONTRACT.md` + `tests/report/report_contract.rs`.
+- Failure hints contract: `docs/FAILURE_TAXONOMY.md` + `tests/contracts/failure_hints.rs`.
+
 ## Performance budgets are enforced
 See `docs/PERFORMANCE_BUDGET.md` and `tests/report/performance_budget.rs`.
 Budget expectations are: size caps and runtime ceilings; violations fail tests.

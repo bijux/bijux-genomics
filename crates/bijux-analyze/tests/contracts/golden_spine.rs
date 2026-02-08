@@ -89,18 +89,18 @@ fn write_stage_report(stage_dir: &Path, stage_id: &str, tool_id: &str) -> Result
     Ok(stage_report_path)
 }
 
-fn stage_ids_for_profile(profile: &bijux_pipelines::PipelineProfile) -> Vec<String> {
+fn id_catalog_for_profile(profile: &bijux_pipelines::PipelineProfile) -> Vec<String> {
     match profile.id.as_str() {
         "fastq-to-fastq__default__v1" | "fastq-to-fastq__minimal__v1" => {
-            bijux_planner_fastq::fastq_pipeline_stage_ids(profile.id.as_str())
+            bijux_planner_fastq::fastq_pipeline_id_catalog(profile.id.as_str())
         }
         "fastq-to-bam__default__v1" | "fastq-to-bam__adna_shotgun__v1" => {
-            bijux_planner_fastq::cross_fastq_to_bam_stage_ids(profile.id.as_str())
+            bijux_planner_fastq::cross_fastq_to_bam_id_catalog(profile.id.as_str())
         }
         "bam-to-bam__default__v1"
         | "bam-to-bam__adna_shotgun__v1"
         | "bam-to-bam__adna_capture__v1" => {
-            bijux_planner_bam::pipeline_stage_ids(profile.id.as_str())
+            bijux_planner_bam::pipeline_id_catalog(profile.id.as_str())
         }
         _ => Vec::new(),
     }
@@ -109,7 +109,7 @@ fn stage_ids_for_profile(profile: &bijux_pipelines::PipelineProfile) -> Vec<Stri
 fn write_facts(base_dir: &Path, profile: &bijux_pipelines::PipelineProfile) -> Result<PathBuf> {
     let run_id = profile.id.as_str();
     let mut rows = Vec::new();
-    for (idx, stage_id) in stage_ids_for_profile(profile)
+    for (idx, stage_id) in id_catalog_for_profile(profile)
         .iter()
         .filter(|stage_id| !stage_id.starts_with("core."))
         .enumerate()
@@ -169,7 +169,7 @@ fn write_manifest(
             "schema_version": "bijux.run_manifest.v1",
             "run_id": run_id,
             "pipeline_id": profile.id.as_str(),
-            "stages": stage_ids_for_profile(profile),
+            "stages": id_catalog_for_profile(profile),
         }),
     };
     bijux_infra::atomic_write_json(&base_dir.join("run_manifest.json"), &manifest)?;
@@ -183,14 +183,8 @@ fn hash_file(path: &Path) -> Result<String> {
 fn run_pipeline_case(domain: Domain, pipeline_id: &str) -> Result<(String, String)> {
     let profile = profile_by_id(domain, pipeline_id)?;
     let run_id = pipeline_id;
-    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests")
-        .join("fixtures")
-        .join("golden_spine")
-        .join(pipeline_id);
-    if root.exists() {
-        std::fs::remove_dir_all(&root)?;
-    }
+    let temp_root = tempfile::tempdir()?;
+    let root = temp_root.path().join(pipeline_id);
     bijux_infra::ensure_dir(&root)?;
     let layout = bijux_infra::run_layout_paths(&root, run_id);
     bijux_infra::ensure_dir(&layout.artifacts_dir)?;

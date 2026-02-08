@@ -1,6 +1,6 @@
 pub mod bench;
 pub mod bench_results_fastq;
-pub mod core;
+pub mod query_shared;
 pub mod core_other;
 pub mod core_trim;
 pub mod quality;
@@ -10,7 +10,7 @@ pub mod reports;
 pub const QUERY_MODULES: &[&str] = &[
     "bench",
     "bench_results_fastq",
-    "core",
+    "query_shared",
     "core_other",
     "core_trim",
     "quality",

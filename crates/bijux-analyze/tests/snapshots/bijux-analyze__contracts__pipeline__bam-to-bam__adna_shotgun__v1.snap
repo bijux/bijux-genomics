@@ -1,6 +1,7 @@
 ---
-source: crates/bijux-analyze/tests/pipeline_e2e.rs
-expression: report
+source: crates/bijux-analyze/tests/contracts/pipeline/pipeline_e2e.rs
+assertion_line: 171
+expression: json
 ---
 {
   "adapter_inference": {
@@ -12,58 +13,86 @@ expression: report
     {
       "banks": {},
       "stage_id": "bam.authenticity",
-      "tool_id": "authenticity"
+      "tool_id": "tool"
+    },
+    {
+      "banks": {},
+      "stage_id": "bam.bias_mitigation",
+      "tool_id": "tool"
     },
     {
       "banks": {},
       "stage_id": "bam.complexity",
-      "tool_id": "preseq"
+      "tool_id": "tool"
     },
     {
       "banks": {},
       "stage_id": "bam.contamination",
-      "tool_id": "authenticct"
+      "tool_id": "tool"
     },
     {
       "banks": {},
       "stage_id": "bam.coverage",
-      "tool_id": "mosdepth"
+      "tool_id": "tool"
     },
     {
       "banks": {},
       "stage_id": "bam.damage",
-      "tool_id": "pydamage"
+      "tool_id": "tool"
     },
     {
       "banks": {},
       "stage_id": "bam.filter",
-      "tool_id": "samtools"
+      "tool_id": "tool"
     },
     {
       "banks": {},
       "stage_id": "bam.markdup",
-      "tool_id": "gatk"
+      "tool_id": "tool"
     },
     {
       "banks": {},
       "stage_id": "bam.qc_pre",
-      "tool_id": "samtools"
+      "tool_id": "tool"
     },
     {
       "banks": {},
       "stage_id": "bam.sex",
-      "tool_id": "rxy"
+      "tool_id": "tool"
     },
     {
       "banks": {},
       "stage_id": "bam.validate",
-      "tool_id": "samtools"
+      "tool_id": "tool"
     }
   ],
   "completeness": {
     "missing_metrics": [],
-    "missing_reports": [],
-    "status": "complete"
+    "missing_reports": [
+      "bam.authenticity:metrics_path",
+      "bam.authenticity:retention_report",
+      "bam.bias_mitigation:metrics_path",
+      "bam.bias_mitigation:retention_report",
+      "bam.complexity:metrics_path",
+      "bam.complexity:retention_report",
+      "bam.contamination:metrics_path",
+      "bam.contamination:retention_report",
+      "bam.coverage:metrics_path",
+      "bam.coverage:retention_report",
+      "bam.damage:metrics_path",
+      "bam.damage:retention_report",
+      "bam.filter:metrics_path",
+      "bam.filter:retention_report",
+      "bam.markdup:metrics_path",
+      "bam.markdup:retention_report",
+      "bam.qc_pre:metrics_path",
+      "bam.qc_pre:retention_report",
+      "bam.sex:metrics_path",
+      "bam.sex:retention_report",
+      "bam.validate:metrics_path",
+      "bam.validate:retention_report"
+    ],
+    "status": "incomplete"
   },
   "contract": {
     "required_provenance_fields": [
@@ -178,7 +207,17 @@ expression: report
       "params_hash": "params",
       "span_id": "span-bam.authenticity",
       "stage_id": "bam.authenticity",
-      "tool_id": "authenticity",
+      "tool_id": "tool",
+      "tool_version": "0.0.0",
+      "trace_id": "trace-1"
+    },
+    {
+      "bank_hashes": {},
+      "image_digest": "sha256:img",
+      "params_hash": "params",
+      "span_id": "span-bam.bias_mitigation",
+      "stage_id": "bam.bias_mitigation",
+      "tool_id": "tool",
       "tool_version": "0.0.0",
       "trace_id": "trace-1"
     },
@@ -188,7 +227,7 @@ expression: report
       "params_hash": "params",
       "span_id": "span-bam.complexity",
       "stage_id": "bam.complexity",
-      "tool_id": "preseq",
+      "tool_id": "tool",
       "tool_version": "0.0.0",
       "trace_id": "trace-1"
     },
@@ -198,7 +237,7 @@ expression: report
       "params_hash": "params",
       "span_id": "span-bam.contamination",
       "stage_id": "bam.contamination",
-      "tool_id": "authenticct",
+      "tool_id": "tool",
       "tool_version": "0.0.0",
       "trace_id": "trace-1"
     },
@@ -208,7 +247,7 @@ expression: report
       "params_hash": "params",
       "span_id": "span-bam.coverage",
       "stage_id": "bam.coverage",
-      "tool_id": "mosdepth",
+      "tool_id": "tool",
       "tool_version": "0.0.0",
       "trace_id": "trace-1"
     },
@@ -218,7 +257,7 @@ expression: report
       "params_hash": "params",
       "span_id": "span-bam.damage",
       "stage_id": "bam.damage",
-      "tool_id": "pydamage",
+      "tool_id": "tool",
       "tool_version": "0.0.0",
       "trace_id": "trace-1"
     },
@@ -228,7 +267,7 @@ expression: report
       "params_hash": "params",
       "span_id": "span-bam.filter",
       "stage_id": "bam.filter",
-      "tool_id": "samtools",
+      "tool_id": "tool",
       "tool_version": "0.0.0",
       "trace_id": "trace-1"
     },
@@ -238,7 +277,7 @@ expression: report
       "params_hash": "params",
       "span_id": "span-bam.markdup",
       "stage_id": "bam.markdup",
-      "tool_id": "gatk",
+      "tool_id": "tool",
       "tool_version": "0.0.0",
       "trace_id": "trace-1"
     },
@@ -248,7 +287,7 @@ expression: report
       "params_hash": "params",
       "span_id": "span-bam.qc_pre",
       "stage_id": "bam.qc_pre",
-      "tool_id": "samtools",
+      "tool_id": "tool",
       "tool_version": "0.0.0",
       "trace_id": "trace-1"
     },
@@ -258,7 +297,7 @@ expression: report
       "params_hash": "params",
       "span_id": "span-bam.sex",
       "stage_id": "bam.sex",
-      "tool_id": "rxy",
+      "tool_id": "tool",
       "tool_version": "0.0.0",
       "trace_id": "trace-1"
     },
@@ -268,7 +307,7 @@ expression: report
       "params_hash": "params",
       "span_id": "span-bam.validate",
       "stage_id": "bam.validate",
-      "tool_id": "samtools",
+      "tool_id": "tool",
       "tool_version": "0.0.0",
       "trace_id": "trace-1"
     }
@@ -282,64 +321,70 @@ expression: report
     "accounting": {
       "stages": [
         {
-          "bases": 1000,
-          "reads": 100,
+          "bases": 800,
+          "reads": 80,
           "stage_id": "bam.authenticity",
-          "tool_id": "authenticity"
+          "tool_id": "tool"
         },
         {
-          "bases": 1000,
-          "reads": 100,
+          "bases": 800,
+          "reads": 80,
+          "stage_id": "bam.bias_mitigation",
+          "tool_id": "tool"
+        },
+        {
+          "bases": 800,
+          "reads": 80,
           "stage_id": "bam.complexity",
-          "tool_id": "preseq"
+          "tool_id": "tool"
         },
         {
-          "bases": 1000,
-          "reads": 100,
+          "bases": 800,
+          "reads": 80,
           "stage_id": "bam.contamination",
-          "tool_id": "authenticct"
+          "tool_id": "tool"
         },
         {
-          "bases": 1000,
-          "reads": 100,
+          "bases": 800,
+          "reads": 80,
           "stage_id": "bam.coverage",
-          "tool_id": "mosdepth"
+          "tool_id": "tool"
         },
         {
-          "bases": 1000,
-          "reads": 100,
+          "bases": 800,
+          "reads": 80,
           "stage_id": "bam.damage",
-          "tool_id": "pydamage"
+          "tool_id": "tool"
         },
         {
-          "bases": 1000,
-          "reads": 100,
+          "bases": 800,
+          "reads": 80,
           "stage_id": "bam.filter",
-          "tool_id": "samtools"
+          "tool_id": "tool"
         },
         {
-          "bases": 1000,
-          "reads": 100,
+          "bases": 800,
+          "reads": 80,
           "stage_id": "bam.markdup",
-          "tool_id": "gatk"
+          "tool_id": "tool"
         },
         {
-          "bases": 1000,
-          "reads": 100,
+          "bases": 800,
+          "reads": 80,
           "stage_id": "bam.qc_pre",
-          "tool_id": "samtools"
+          "tool_id": "tool"
         },
         {
-          "bases": 1000,
-          "reads": 100,
+          "bases": 800,
+          "reads": 80,
           "stage_id": "bam.sex",
-          "tool_id": "rxy"
+          "tool_id": "tool"
         },
         {
-          "bases": 1000,
-          "reads": 100,
+          "bases": 800,
+          "reads": 80,
           "stage_id": "bam.validate",
-          "tool_id": "samtools"
+          "tool_id": "tool"
         }
       ]
     },
@@ -400,52 +445,57 @@ expression: report
         {
           "results": [],
           "stage_id": "bam.authenticity",
-          "tool_id": "authenticity"
+          "tool_id": "tool"
+        },
+        {
+          "results": [],
+          "stage_id": "bam.bias_mitigation",
+          "tool_id": "tool"
         },
         {
           "results": [],
           "stage_id": "bam.complexity",
-          "tool_id": "preseq"
+          "tool_id": "tool"
         },
         {
           "results": [],
           "stage_id": "bam.contamination",
-          "tool_id": "authenticct"
+          "tool_id": "tool"
         },
         {
           "results": [],
           "stage_id": "bam.coverage",
-          "tool_id": "mosdepth"
+          "tool_id": "tool"
         },
         {
           "results": [],
           "stage_id": "bam.damage",
-          "tool_id": "pydamage"
+          "tool_id": "tool"
         },
         {
           "results": [],
           "stage_id": "bam.filter",
-          "tool_id": "samtools"
+          "tool_id": "tool"
         },
         {
           "results": [],
           "stage_id": "bam.markdup",
-          "tool_id": "gatk"
+          "tool_id": "tool"
         },
         {
           "results": [],
           "stage_id": "bam.qc_pre",
-          "tool_id": "samtools"
+          "tool_id": "tool"
         },
         {
           "results": [],
           "stage_id": "bam.sex",
-          "tool_id": "rxy"
+          "tool_id": "tool"
         },
         {
           "results": [],
           "stage_id": "bam.validate",
-          "tool_id": "samtools"
+          "tool_id": "tool"
         }
       ]
     },
@@ -456,9 +506,9 @@ expression: report
           "coverage_mean": 0.0,
           "duplicates_fraction": 0.0,
           "reads_in": 100,
-          "reads_out": 100,
+          "reads_out": 80,
           "stage_id": "bam.authenticity",
-          "tool_id": "authenticity",
+          "tool_id": "tool",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -478,9 +528,31 @@ expression: report
           "coverage_mean": 0.0,
           "duplicates_fraction": 0.0,
           "reads_in": 100,
-          "reads_out": 100,
+          "reads_out": 80,
+          "stage_id": "bam.bias_mitigation",
+          "tool_id": "tool",
+          "verdict": {
+            "key_metrics": {
+              "contamination": 0.0,
+              "coverage_mean": 0.0,
+              "dup_fraction": 0.0
+            },
+            "reasons": [
+              "coverage_mean",
+              "complexity_vs_duplicates"
+            ],
+            "stage_id": "bam.bias_mitigation",
+            "verdict": "fail"
+          }
+        },
+        {
+          "complexity_observed_reads": 0,
+          "coverage_mean": 0.0,
+          "duplicates_fraction": 0.0,
+          "reads_in": 100,
+          "reads_out": 80,
           "stage_id": "bam.complexity",
-          "tool_id": "preseq",
+          "tool_id": "tool",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -500,9 +572,9 @@ expression: report
           "coverage_mean": 0.0,
           "duplicates_fraction": 0.0,
           "reads_in": 100,
-          "reads_out": 100,
+          "reads_out": 80,
           "stage_id": "bam.contamination",
-          "tool_id": "authenticct",
+          "tool_id": "tool",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -523,9 +595,9 @@ expression: report
           "coverage_mean": 0.0,
           "duplicates_fraction": 0.0,
           "reads_in": 100,
-          "reads_out": 100,
+          "reads_out": 80,
           "stage_id": "bam.coverage",
-          "tool_id": "mosdepth",
+          "tool_id": "tool",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -545,9 +617,9 @@ expression: report
           "coverage_mean": 0.0,
           "duplicates_fraction": 0.0,
           "reads_in": 100,
-          "reads_out": 100,
+          "reads_out": 80,
           "stage_id": "bam.damage",
-          "tool_id": "pydamage",
+          "tool_id": "tool",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -567,9 +639,9 @@ expression: report
           "coverage_mean": 0.0,
           "duplicates_fraction": 0.0,
           "reads_in": 100,
-          "reads_out": 100,
+          "reads_out": 80,
           "stage_id": "bam.filter",
-          "tool_id": "samtools",
+          "tool_id": "tool",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -589,9 +661,9 @@ expression: report
           "coverage_mean": 0.0,
           "duplicates_fraction": 0.0,
           "reads_in": 100,
-          "reads_out": 100,
+          "reads_out": 80,
           "stage_id": "bam.markdup",
-          "tool_id": "gatk",
+          "tool_id": "tool",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -611,9 +683,9 @@ expression: report
           "coverage_mean": 0.0,
           "duplicates_fraction": 0.0,
           "reads_in": 100,
-          "reads_out": 100,
+          "reads_out": 80,
           "stage_id": "bam.qc_pre",
-          "tool_id": "samtools",
+          "tool_id": "tool",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -633,9 +705,9 @@ expression: report
           "coverage_mean": 0.0,
           "duplicates_fraction": 0.0,
           "reads_in": 100,
-          "reads_out": 100,
+          "reads_out": 80,
           "stage_id": "bam.sex",
-          "tool_id": "rxy",
+          "tool_id": "tool",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -656,9 +728,9 @@ expression: report
           "coverage_mean": 0.0,
           "duplicates_fraction": 0.0,
           "reads_in": 100,
-          "reads_out": 100,
+          "reads_out": 80,
           "stage_id": "bam.validate",
-          "tool_id": "samtools",
+          "tool_id": "tool",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -703,6 +775,29 @@ expression: report
             "short_fraction": 0.0
           },
           "stage_id": "bam.authenticity"
+        },
+        {
+          "coverage": {
+            "breadth_1x": 0.0,
+            "breadth_3x": 0.0,
+            "breadth_5x": 0.0,
+            "mean": 0.0
+          },
+          "damage": {
+            "c_to_t_5p": 0.0,
+            "g_to_a_3p": 0.0
+          },
+          "dup_vs_complexity": {
+            "dup_fraction": 0.0,
+            "observed_reads": 0
+          },
+          "fragment_length": {
+            "mean": 0.0,
+            "p10": 0.0,
+            "p90": 0.0,
+            "short_fraction": 0.0
+          },
+          "stage_id": "bam.bias_mitigation"
         },
         {
           "coverage": {
@@ -929,7 +1024,7 @@ expression: report
             "kinship": false,
             "sex": false
           },
-          "tool_id": "authenticity",
+          "tool_id": "tool",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -951,6 +1046,35 @@ expression: report
           "downstream_suitable": false,
           "dup_fraction": 0.0,
           "sex_class": "insufficient",
+          "stage_id": "bam.bias_mitigation",
+          "suitability": {
+            "contamination": false,
+            "haplogroups": false,
+            "kinship": false,
+            "sex": false
+          },
+          "tool_id": "tool",
+          "verdict": {
+            "key_metrics": {
+              "contamination": 0.0,
+              "coverage_mean": 0.0,
+              "dup_fraction": 0.0
+            },
+            "reasons": [
+              "coverage_mean",
+              "complexity_vs_duplicates"
+            ],
+            "stage_id": "bam.bias_mitigation",
+            "verdict": "fail"
+          }
+        },
+        {
+          "contamination": 0.0,
+          "coverage": 0.0,
+          "damage": 0.0,
+          "downstream_suitable": false,
+          "dup_fraction": 0.0,
+          "sex_class": "insufficient",
           "stage_id": "bam.complexity",
           "suitability": {
             "contamination": false,
@@ -958,7 +1082,7 @@ expression: report
             "kinship": false,
             "sex": false
           },
-          "tool_id": "preseq",
+          "tool_id": "tool",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -987,7 +1111,7 @@ expression: report
             "kinship": false,
             "sex": false
           },
-          "tool_id": "authenticct",
+          "tool_id": "tool",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -1017,7 +1141,7 @@ expression: report
             "kinship": false,
             "sex": false
           },
-          "tool_id": "mosdepth",
+          "tool_id": "tool",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -1046,7 +1170,7 @@ expression: report
             "kinship": false,
             "sex": false
           },
-          "tool_id": "pydamage",
+          "tool_id": "tool",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -1075,7 +1199,7 @@ expression: report
             "kinship": false,
             "sex": false
           },
-          "tool_id": "samtools",
+          "tool_id": "tool",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -1104,7 +1228,7 @@ expression: report
             "kinship": false,
             "sex": false
           },
-          "tool_id": "gatk",
+          "tool_id": "tool",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -1133,7 +1257,7 @@ expression: report
             "kinship": false,
             "sex": false
           },
-          "tool_id": "samtools",
+          "tool_id": "tool",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -1162,7 +1286,7 @@ expression: report
             "kinship": false,
             "sex": false
           },
-          "tool_id": "rxy",
+          "tool_id": "tool",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -1192,7 +1316,7 @@ expression: report
             "kinship": false,
             "sex": false
           },
-          "tool_id": "samtools",
+          "tool_id": "tool",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -1228,59 +1352,87 @@ expression: report
         {
           "banks": {},
           "stage_id": "bam.authenticity",
-          "tool_id": "authenticity"
+          "tool_id": "tool"
+        },
+        {
+          "banks": {},
+          "stage_id": "bam.bias_mitigation",
+          "tool_id": "tool"
         },
         {
           "banks": {},
           "stage_id": "bam.complexity",
-          "tool_id": "preseq"
+          "tool_id": "tool"
         },
         {
           "banks": {},
           "stage_id": "bam.contamination",
-          "tool_id": "authenticct"
+          "tool_id": "tool"
         },
         {
           "banks": {},
           "stage_id": "bam.coverage",
-          "tool_id": "mosdepth"
+          "tool_id": "tool"
         },
         {
           "banks": {},
           "stage_id": "bam.damage",
-          "tool_id": "pydamage"
+          "tool_id": "tool"
         },
         {
           "banks": {},
           "stage_id": "bam.filter",
-          "tool_id": "samtools"
+          "tool_id": "tool"
         },
         {
           "banks": {},
           "stage_id": "bam.markdup",
-          "tool_id": "gatk"
+          "tool_id": "tool"
         },
         {
           "banks": {},
           "stage_id": "bam.qc_pre",
-          "tool_id": "samtools"
+          "tool_id": "tool"
         },
         {
           "banks": {},
           "stage_id": "bam.sex",
-          "tool_id": "rxy"
+          "tool_id": "tool"
         },
         {
           "banks": {},
           "stage_id": "bam.validate",
-          "tool_id": "samtools"
+          "tool_id": "tool"
         }
       ]
     },
     "data_contract_validation": {
       "missing_metrics": [],
-      "missing_reports": [],
-      "status": "complete"
+      "missing_reports": [
+        "bam.authenticity:metrics_path",
+        "bam.authenticity:retention_report",
+        "bam.bias_mitigation:metrics_path",
+        "bam.bias_mitigation:retention_report",
+        "bam.complexity:metrics_path",
+        "bam.complexity:retention_report",
+        "bam.contamination:metrics_path",
+        "bam.contamination:retention_report",
+        "bam.coverage:metrics_path",
+        "bam.coverage:retention_report",
+        "bam.damage:metrics_path",
+        "bam.damage:retention_report",
+        "bam.filter:metrics_path",
+        "bam.filter:retention_report",
+        "bam.markdup:metrics_path",
+        "bam.markdup:retention_report",
+        "bam.qc_pre:metrics_path",
+        "bam.qc_pre:retention_report",
+        "bam.sex:metrics_path",
+        "bam.sex:retention_report",
+        "bam.validate:metrics_path",
+        "bam.validate:retention_report"
+      ],
+      "status": "incomplete"
     },
     "decision_config": {
       "bootstrap_policy": {
@@ -1313,12 +1465,15 @@ expression: report
           "contaminant_action": false,
           "input_hash": "input",
           "missing_metrics": [],
-          "missing_reports": [],
+          "missing_reports": [
+            "metrics_path",
+            "retention_report"
+          ],
           "params_hash": "params",
           "quality_gate": {},
           "stage_id": "bam.authenticity",
           "telemetry_decisions": [],
-          "tool_id": "authenticity",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
@@ -1326,12 +1481,31 @@ expression: report
           "contaminant_action": false,
           "input_hash": "input",
           "missing_metrics": [],
-          "missing_reports": [],
+          "missing_reports": [
+            "metrics_path",
+            "retention_report"
+          ],
+          "params_hash": "params",
+          "quality_gate": {},
+          "stage_id": "bam.bias_mitigation",
+          "telemetry_decisions": [],
+          "tool_id": "tool",
+          "tool_version": "0.0.0"
+        },
+        {
+          "adapter_validation": {},
+          "contaminant_action": false,
+          "input_hash": "input",
+          "missing_metrics": [],
+          "missing_reports": [
+            "metrics_path",
+            "retention_report"
+          ],
           "params_hash": "params",
           "quality_gate": {},
           "stage_id": "bam.complexity",
           "telemetry_decisions": [],
-          "tool_id": "preseq",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
@@ -1339,12 +1513,15 @@ expression: report
           "contaminant_action": false,
           "input_hash": "input",
           "missing_metrics": [],
-          "missing_reports": [],
+          "missing_reports": [
+            "metrics_path",
+            "retention_report"
+          ],
           "params_hash": "params",
           "quality_gate": {},
           "stage_id": "bam.contamination",
           "telemetry_decisions": [],
-          "tool_id": "authenticct",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
@@ -1352,12 +1529,15 @@ expression: report
           "contaminant_action": false,
           "input_hash": "input",
           "missing_metrics": [],
-          "missing_reports": [],
+          "missing_reports": [
+            "metrics_path",
+            "retention_report"
+          ],
           "params_hash": "params",
           "quality_gate": {},
           "stage_id": "bam.coverage",
           "telemetry_decisions": [],
-          "tool_id": "mosdepth",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
@@ -1365,12 +1545,15 @@ expression: report
           "contaminant_action": false,
           "input_hash": "input",
           "missing_metrics": [],
-          "missing_reports": [],
+          "missing_reports": [
+            "metrics_path",
+            "retention_report"
+          ],
           "params_hash": "params",
           "quality_gate": {},
           "stage_id": "bam.damage",
           "telemetry_decisions": [],
-          "tool_id": "pydamage",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
@@ -1378,12 +1561,15 @@ expression: report
           "contaminant_action": false,
           "input_hash": "input",
           "missing_metrics": [],
-          "missing_reports": [],
+          "missing_reports": [
+            "metrics_path",
+            "retention_report"
+          ],
           "params_hash": "params",
           "quality_gate": {},
           "stage_id": "bam.filter",
           "telemetry_decisions": [],
-          "tool_id": "samtools",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
@@ -1391,12 +1577,15 @@ expression: report
           "contaminant_action": false,
           "input_hash": "input",
           "missing_metrics": [],
-          "missing_reports": [],
+          "missing_reports": [
+            "metrics_path",
+            "retention_report"
+          ],
           "params_hash": "params",
           "quality_gate": {},
           "stage_id": "bam.markdup",
           "telemetry_decisions": [],
-          "tool_id": "gatk",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
@@ -1404,12 +1593,15 @@ expression: report
           "contaminant_action": false,
           "input_hash": "input",
           "missing_metrics": [],
-          "missing_reports": [],
+          "missing_reports": [
+            "metrics_path",
+            "retention_report"
+          ],
           "params_hash": "params",
           "quality_gate": {},
           "stage_id": "bam.qc_pre",
           "telemetry_decisions": [],
-          "tool_id": "samtools",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
@@ -1417,12 +1609,15 @@ expression: report
           "contaminant_action": false,
           "input_hash": "input",
           "missing_metrics": [],
-          "missing_reports": [],
+          "missing_reports": [
+            "metrics_path",
+            "retention_report"
+          ],
           "params_hash": "params",
           "quality_gate": {},
           "stage_id": "bam.sex",
           "telemetry_decisions": [],
-          "tool_id": "rxy",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
@@ -1430,12 +1625,15 @@ expression: report
           "contaminant_action": false,
           "input_hash": "input",
           "missing_metrics": [],
-          "missing_reports": [],
+          "missing_reports": [
+            "metrics_path",
+            "retention_report"
+          ],
           "params_hash": "params",
           "quality_gate": {},
           "stage_id": "bam.validate",
           "telemetry_decisions": [],
-          "tool_id": "samtools",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         }
       ]
@@ -1447,8 +1645,31 @@ expression: report
     "failures": {
       "completeness": {
         "missing_metrics": [],
-        "missing_reports": [],
-        "status": "complete"
+        "missing_reports": [
+          "bam.authenticity:metrics_path",
+          "bam.authenticity:retention_report",
+          "bam.bias_mitigation:metrics_path",
+          "bam.bias_mitigation:retention_report",
+          "bam.complexity:metrics_path",
+          "bam.complexity:retention_report",
+          "bam.contamination:metrics_path",
+          "bam.contamination:retention_report",
+          "bam.coverage:metrics_path",
+          "bam.coverage:retention_report",
+          "bam.damage:metrics_path",
+          "bam.damage:retention_report",
+          "bam.filter:metrics_path",
+          "bam.filter:retention_report",
+          "bam.markdup:metrics_path",
+          "bam.markdup:retention_report",
+          "bam.qc_pre:metrics_path",
+          "bam.qc_pre:retention_report",
+          "bam.sex:metrics_path",
+          "bam.sex:retention_report",
+          "bam.validate:metrics_path",
+          "bam.validate:retention_report"
+        ],
+        "status": "incomplete"
       }
     },
     "filtering": {},
@@ -1470,7 +1691,36 @@ expression: report
     "impact_metrics": {
       "impact": []
     },
-    "key_findings": [],
+    "key_findings": [
+      {
+        "count": 22,
+        "items": [
+          "bam.authenticity:metrics_path",
+          "bam.authenticity:retention_report",
+          "bam.bias_mitigation:metrics_path",
+          "bam.bias_mitigation:retention_report",
+          "bam.complexity:metrics_path",
+          "bam.complexity:retention_report",
+          "bam.contamination:metrics_path",
+          "bam.contamination:retention_report",
+          "bam.coverage:metrics_path",
+          "bam.coverage:retention_report",
+          "bam.damage:metrics_path",
+          "bam.damage:retention_report",
+          "bam.filter:metrics_path",
+          "bam.filter:retention_report",
+          "bam.markdup:metrics_path",
+          "bam.markdup:retention_report",
+          "bam.qc_pre:metrics_path",
+          "bam.qc_pre:retention_report",
+          "bam.sex:metrics_path",
+          "bam.sex:retention_report",
+          "bam.validate:metrics_path",
+          "bam.validate:retention_report"
+        ],
+        "kind": "missing_reports"
+      }
+    ],
     "method_assumptions": {
       "assumptions": [
         "compare_objective defaults to balanced when not specified",
@@ -1504,73 +1754,80 @@ expression: report
       },
       "presets": [
         {
-          "effective_config_path": "stage_7/effective_config.json",
+          "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "bam.authenticity",
-          "tool_id": "authenticity",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
-          "effective_config_path": "stage_4/effective_config.json",
+          "effective_config_path": "",
+          "params_hash": "params",
+          "stage_id": "bam.bias_mitigation",
+          "tool_id": "tool",
+          "tool_version": "0.0.0"
+        },
+        {
+          "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "bam.complexity",
-          "tool_id": "preseq",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
-          "effective_config_path": "stage_8/effective_config.json",
+          "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "bam.contamination",
-          "tool_id": "authenticct",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
-          "effective_config_path": "stage_5/effective_config.json",
+          "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "bam.coverage",
-          "tool_id": "mosdepth",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
-          "effective_config_path": "stage_6/effective_config.json",
+          "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "bam.damage",
-          "tool_id": "pydamage",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
-          "effective_config_path": "stage_2/effective_config.json",
+          "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "bam.filter",
-          "tool_id": "samtools",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
-          "effective_config_path": "stage_3/effective_config.json",
+          "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "bam.markdup",
-          "tool_id": "gatk",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
-          "effective_config_path": "stage_1/effective_config.json",
+          "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "bam.qc_pre",
-          "tool_id": "samtools",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
-          "effective_config_path": "stage_9/effective_config.json",
+          "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "bam.sex",
-          "tool_id": "rxy",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
-          "effective_config_path": "stage_0/effective_config.json",
+          "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "bam.validate",
-          "tool_id": "samtools",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         }
       ],
@@ -1582,70 +1839,77 @@ expression: report
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "bam.authenticity",
-          "tool_id": "authenticity",
+          "tool_id": "tool",
+          "tool_version": "0.0.0"
+        },
+        {
+          "image_digest": "sha256:img",
+          "params_hash": "params",
+          "stage_id": "bam.bias_mitigation",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "bam.complexity",
-          "tool_id": "preseq",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "bam.contamination",
-          "tool_id": "authenticct",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "bam.coverage",
-          "tool_id": "mosdepth",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "bam.damage",
-          "tool_id": "pydamage",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "bam.filter",
-          "tool_id": "samtools",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "bam.markdup",
-          "tool_id": "gatk",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "bam.qc_pre",
-          "tool_id": "samtools",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "bam.sex",
-          "tool_id": "rxy",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "bam.validate",
-          "tool_id": "samtools",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         }
       ]
@@ -1792,7 +2056,21 @@ expression: report
           "scientific_preset": null,
           "stage_id": "bam.authenticity",
           "tier_rationale": "unknown_tool",
-          "tool_id": "authenticity",
+          "tool_id": "tool",
+          "tool_tier": "experimental",
+          "tool_version": "0.0.0"
+        },
+        {
+          "image_digest": "sha256:img",
+          "input_hash": "input",
+          "output_hashes": [
+            "out"
+          ],
+          "params_hash": "params",
+          "scientific_preset": null,
+          "stage_id": "bam.bias_mitigation",
+          "tier_rationale": "unknown_tool",
+          "tool_id": "tool",
           "tool_tier": "experimental",
           "tool_version": "0.0.0"
         },
@@ -1806,7 +2084,7 @@ expression: report
           "scientific_preset": null,
           "stage_id": "bam.complexity",
           "tier_rationale": "unknown_tool",
-          "tool_id": "preseq",
+          "tool_id": "tool",
           "tool_tier": "experimental",
           "tool_version": "0.0.0"
         },
@@ -1820,7 +2098,7 @@ expression: report
           "scientific_preset": null,
           "stage_id": "bam.contamination",
           "tier_rationale": "unknown_tool",
-          "tool_id": "authenticct",
+          "tool_id": "tool",
           "tool_tier": "experimental",
           "tool_version": "0.0.0"
         },
@@ -1834,7 +2112,7 @@ expression: report
           "scientific_preset": null,
           "stage_id": "bam.coverage",
           "tier_rationale": "unknown_tool",
-          "tool_id": "mosdepth",
+          "tool_id": "tool",
           "tool_tier": "experimental",
           "tool_version": "0.0.0"
         },
@@ -1848,7 +2126,7 @@ expression: report
           "scientific_preset": null,
           "stage_id": "bam.damage",
           "tier_rationale": "unknown_tool",
-          "tool_id": "pydamage",
+          "tool_id": "tool",
           "tool_tier": "experimental",
           "tool_version": "0.0.0"
         },
@@ -1862,7 +2140,7 @@ expression: report
           "scientific_preset": null,
           "stage_id": "bam.filter",
           "tier_rationale": "unknown_tool",
-          "tool_id": "samtools",
+          "tool_id": "tool",
           "tool_tier": "experimental",
           "tool_version": "0.0.0"
         },
@@ -1876,7 +2154,7 @@ expression: report
           "scientific_preset": null,
           "stage_id": "bam.markdup",
           "tier_rationale": "unknown_tool",
-          "tool_id": "gatk",
+          "tool_id": "tool",
           "tool_tier": "experimental",
           "tool_version": "0.0.0"
         },
@@ -1890,7 +2168,7 @@ expression: report
           "scientific_preset": null,
           "stage_id": "bam.qc_pre",
           "tier_rationale": "unknown_tool",
-          "tool_id": "samtools",
+          "tool_id": "tool",
           "tool_tier": "experimental",
           "tool_version": "0.0.0"
         },
@@ -1904,7 +2182,7 @@ expression: report
           "scientific_preset": null,
           "stage_id": "bam.sex",
           "tier_rationale": "unknown_tool",
-          "tool_id": "rxy",
+          "tool_id": "tool",
           "tool_tier": "experimental",
           "tool_version": "0.0.0"
         },
@@ -1918,7 +2196,7 @@ expression: report
           "scientific_preset": null,
           "stage_id": "bam.validate",
           "tier_rationale": "unknown_tool",
-          "tool_id": "samtools",
+          "tool_id": "tool",
           "tool_tier": "experimental",
           "tool_version": "0.0.0"
         }
@@ -1987,7 +2265,21 @@ expression: report
           "raw_params": {},
           "resolved_tool_version": null,
           "stage_id": "bam.authenticity",
-          "tool_id": "authenticity",
+          "tool_id": "tool",
+          "tool_version": "0.0.0"
+        },
+        {
+          "effective_params": {},
+          "image_digest": "sha256:img",
+          "input_hash": "input",
+          "output_hashes": [
+            "out"
+          ],
+          "params_hash": "params",
+          "raw_params": {},
+          "resolved_tool_version": null,
+          "stage_id": "bam.bias_mitigation",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
@@ -2001,7 +2293,7 @@ expression: report
           "raw_params": {},
           "resolved_tool_version": null,
           "stage_id": "bam.complexity",
-          "tool_id": "preseq",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
@@ -2015,7 +2307,7 @@ expression: report
           "raw_params": {},
           "resolved_tool_version": null,
           "stage_id": "bam.contamination",
-          "tool_id": "authenticct",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
@@ -2029,7 +2321,7 @@ expression: report
           "raw_params": {},
           "resolved_tool_version": null,
           "stage_id": "bam.coverage",
-          "tool_id": "mosdepth",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
@@ -2043,7 +2335,7 @@ expression: report
           "raw_params": {},
           "resolved_tool_version": null,
           "stage_id": "bam.damage",
-          "tool_id": "pydamage",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
@@ -2057,7 +2349,7 @@ expression: report
           "raw_params": {},
           "resolved_tool_version": null,
           "stage_id": "bam.filter",
-          "tool_id": "samtools",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
@@ -2071,7 +2363,7 @@ expression: report
           "raw_params": {},
           "resolved_tool_version": null,
           "stage_id": "bam.markdup",
-          "tool_id": "gatk",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
@@ -2085,7 +2377,7 @@ expression: report
           "raw_params": {},
           "resolved_tool_version": null,
           "stage_id": "bam.qc_pre",
-          "tool_id": "samtools",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
@@ -2099,7 +2391,7 @@ expression: report
           "raw_params": {},
           "resolved_tool_version": null,
           "stage_id": "bam.sex",
-          "tool_id": "rxy",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
@@ -2113,7 +2405,7 @@ expression: report
           "raw_params": {},
           "resolved_tool_version": null,
           "stage_id": "bam.validate",
-          "tool_id": "samtools",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         }
       ]
@@ -2122,63 +2414,102 @@ expression: report
       "rows": [
         {
           "missing_metrics": [],
-          "missing_reports": [],
+          "missing_reports": [
+            "metrics_path",
+            "retention_report"
+          ],
           "stage_id": "bam.authenticity",
-          "status": "complete"
+          "status": "incomplete"
         },
         {
           "missing_metrics": [],
-          "missing_reports": [],
+          "missing_reports": [
+            "metrics_path",
+            "retention_report"
+          ],
+          "stage_id": "bam.bias_mitigation",
+          "status": "incomplete"
+        },
+        {
+          "missing_metrics": [],
+          "missing_reports": [
+            "metrics_path",
+            "retention_report"
+          ],
           "stage_id": "bam.complexity",
-          "status": "complete"
+          "status": "incomplete"
         },
         {
           "missing_metrics": [],
-          "missing_reports": [],
+          "missing_reports": [
+            "metrics_path",
+            "retention_report"
+          ],
           "stage_id": "bam.contamination",
-          "status": "complete"
+          "status": "incomplete"
         },
         {
           "missing_metrics": [],
-          "missing_reports": [],
+          "missing_reports": [
+            "metrics_path",
+            "retention_report"
+          ],
           "stage_id": "bam.coverage",
-          "status": "complete"
+          "status": "incomplete"
         },
         {
           "missing_metrics": [],
-          "missing_reports": [],
+          "missing_reports": [
+            "metrics_path",
+            "retention_report"
+          ],
           "stage_id": "bam.damage",
-          "status": "complete"
+          "status": "incomplete"
         },
         {
           "missing_metrics": [],
-          "missing_reports": [],
+          "missing_reports": [
+            "metrics_path",
+            "retention_report"
+          ],
           "stage_id": "bam.filter",
-          "status": "complete"
+          "status": "incomplete"
         },
         {
           "missing_metrics": [],
-          "missing_reports": [],
+          "missing_reports": [
+            "metrics_path",
+            "retention_report"
+          ],
           "stage_id": "bam.markdup",
-          "status": "complete"
+          "status": "incomplete"
         },
         {
           "missing_metrics": [],
-          "missing_reports": [],
+          "missing_reports": [
+            "metrics_path",
+            "retention_report"
+          ],
           "stage_id": "bam.qc_pre",
-          "status": "complete"
+          "status": "incomplete"
         },
         {
           "missing_metrics": [],
-          "missing_reports": [],
+          "missing_reports": [
+            "metrics_path",
+            "retention_report"
+          ],
           "stage_id": "bam.sex",
-          "status": "complete"
+          "status": "incomplete"
         },
         {
           "missing_metrics": [],
-          "missing_reports": [],
+          "missing_reports": [
+            "metrics_path",
+            "retention_report"
+          ],
           "stage_id": "bam.validate",
-          "status": "complete"
+          "status": "incomplete"
         }
       ]
     },
@@ -2189,195 +2520,214 @@ expression: report
           "reasons": [],
           "score": 1.0,
           "stage_id": "bam.authenticity",
-          "tool_id": "authenticity"
+          "tool_id": "tool"
+        },
+        {
+          "bucket": "high",
+          "reasons": [],
+          "score": 1.0,
+          "stage_id": "bam.bias_mitigation",
+          "tool_id": "tool"
         },
         {
           "bucket": "high",
           "reasons": [],
           "score": 1.0,
           "stage_id": "bam.complexity",
-          "tool_id": "preseq"
+          "tool_id": "tool"
         },
         {
           "bucket": "high",
           "reasons": [],
           "score": 1.0,
           "stage_id": "bam.contamination",
-          "tool_id": "authenticct"
+          "tool_id": "tool"
         },
         {
           "bucket": "high",
           "reasons": [],
           "score": 1.0,
           "stage_id": "bam.coverage",
-          "tool_id": "mosdepth"
+          "tool_id": "tool"
         },
         {
           "bucket": "high",
           "reasons": [],
           "score": 1.0,
           "stage_id": "bam.damage",
-          "tool_id": "pydamage"
+          "tool_id": "tool"
         },
         {
           "bucket": "high",
           "reasons": [],
           "score": 1.0,
           "stage_id": "bam.filter",
-          "tool_id": "samtools"
+          "tool_id": "tool"
         },
         {
           "bucket": "high",
           "reasons": [],
           "score": 1.0,
           "stage_id": "bam.markdup",
-          "tool_id": "gatk"
+          "tool_id": "tool"
         },
         {
           "bucket": "high",
           "reasons": [],
           "score": 1.0,
           "stage_id": "bam.qc_pre",
-          "tool_id": "samtools"
+          "tool_id": "tool"
         },
         {
           "bucket": "high",
           "reasons": [],
           "score": 1.0,
           "stage_id": "bam.sex",
-          "tool_id": "rxy"
+          "tool_id": "tool"
         },
         {
           "bucket": "high",
           "reasons": [],
           "score": 1.0,
           "stage_id": "bam.validate",
-          "tool_id": "samtools"
+          "tool_id": "tool"
         }
       ]
     },
     "stage_plots": {
       "entries": [
         {
-          "base_retention": 1.0,
+          "base_retention": 0.8,
           "gc_delta": null,
           "mean_q_delta": null,
-          "read_retention": 1.0,
+          "read_retention": 0.8,
           "stage_id": "bam.authenticity",
-          "tool_id": "authenticity"
+          "tool_id": "tool"
         },
         {
-          "base_retention": 1.0,
+          "base_retention": 0.8,
           "gc_delta": null,
           "mean_q_delta": null,
-          "read_retention": 1.0,
+          "read_retention": 0.8,
+          "stage_id": "bam.bias_mitigation",
+          "tool_id": "tool"
+        },
+        {
+          "base_retention": 0.8,
+          "gc_delta": null,
+          "mean_q_delta": null,
+          "read_retention": 0.8,
           "stage_id": "bam.complexity",
-          "tool_id": "preseq"
+          "tool_id": "tool"
         },
         {
-          "base_retention": 1.0,
+          "base_retention": 0.8,
           "gc_delta": null,
           "mean_q_delta": null,
-          "read_retention": 1.0,
+          "read_retention": 0.8,
           "stage_id": "bam.contamination",
-          "tool_id": "authenticct"
+          "tool_id": "tool"
         },
         {
-          "base_retention": 1.0,
+          "base_retention": 0.8,
           "gc_delta": null,
           "mean_q_delta": null,
-          "read_retention": 1.0,
+          "read_retention": 0.8,
           "stage_id": "bam.coverage",
-          "tool_id": "mosdepth"
+          "tool_id": "tool"
         },
         {
-          "base_retention": 1.0,
+          "base_retention": 0.8,
           "gc_delta": null,
           "mean_q_delta": null,
-          "read_retention": 1.0,
+          "read_retention": 0.8,
           "stage_id": "bam.damage",
-          "tool_id": "pydamage"
+          "tool_id": "tool"
         },
         {
-          "base_retention": 1.0,
+          "base_retention": 0.8,
           "gc_delta": null,
           "mean_q_delta": null,
-          "read_retention": 1.0,
+          "read_retention": 0.8,
           "stage_id": "bam.filter",
-          "tool_id": "samtools"
+          "tool_id": "tool"
         },
         {
-          "base_retention": 1.0,
+          "base_retention": 0.8,
           "gc_delta": null,
           "mean_q_delta": null,
-          "read_retention": 1.0,
+          "read_retention": 0.8,
           "stage_id": "bam.markdup",
-          "tool_id": "gatk"
+          "tool_id": "tool"
         },
         {
-          "base_retention": 1.0,
+          "base_retention": 0.8,
           "gc_delta": null,
           "mean_q_delta": null,
-          "read_retention": 1.0,
+          "read_retention": 0.8,
           "stage_id": "bam.qc_pre",
-          "tool_id": "samtools"
+          "tool_id": "tool"
         },
         {
-          "base_retention": 1.0,
+          "base_retention": 0.8,
           "gc_delta": null,
           "mean_q_delta": null,
-          "read_retention": 1.0,
+          "read_retention": 0.8,
           "stage_id": "bam.sex",
-          "tool_id": "rxy"
+          "tool_id": "tool"
         },
         {
-          "base_retention": 1.0,
+          "base_retention": 0.8,
           "gc_delta": null,
           "mean_q_delta": null,
-          "read_retention": 1.0,
+          "read_retention": 0.8,
           "stage_id": "bam.validate",
-          "tool_id": "samtools"
+          "tool_id": "tool"
         }
       ],
       "waterfall": [
         {
-          "read_retention": 1.0,
+          "read_retention": 0.8,
           "stage_id": "bam.authenticity"
         },
         {
-          "read_retention": 1.0,
+          "read_retention": 0.8,
+          "stage_id": "bam.bias_mitigation"
+        },
+        {
+          "read_retention": 0.8,
           "stage_id": "bam.complexity"
         },
         {
-          "read_retention": 1.0,
+          "read_retention": 0.8,
           "stage_id": "bam.contamination"
         },
         {
-          "read_retention": 1.0,
+          "read_retention": 0.8,
           "stage_id": "bam.coverage"
         },
         {
-          "read_retention": 1.0,
+          "read_retention": 0.8,
           "stage_id": "bam.damage"
         },
         {
-          "read_retention": 1.0,
+          "read_retention": 0.8,
           "stage_id": "bam.filter"
         },
         {
-          "read_retention": 1.0,
+          "read_retention": 0.8,
           "stage_id": "bam.markdup"
         },
         {
-          "read_retention": 1.0,
+          "read_retention": 0.8,
           "stage_id": "bam.qc_pre"
         },
         {
-          "read_retention": 1.0,
+          "read_retention": 0.8,
           "stage_id": "bam.sex"
         },
         {
-          "read_retention": 1.0,
+          "read_retention": 0.8,
           "stage_id": "bam.validate"
         }
       ]
@@ -2390,162 +2740,178 @@ expression: report
   "stages": [
     {
       "bank_report_path": null,
-      "effective_config_path": "stage_7/effective_config.json",
+      "effective_config_path": "",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "stage_7/metrics.json",
+      "metrics_path": "",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "bam.authenticity",
-      "stage_report_path": "stage_7/stage_report.json",
-      "tool_id": "authenticity",
-      "tool_invocation_path": "stage_7/tool_invocation.json",
+      "stage_report_path": "bam.authenticity/stage_report.json",
+      "tool_id": "tool",
+      "tool_invocation_path": "",
       "tool_version": "0.0.0"
     },
     {
       "bank_report_path": null,
-      "effective_config_path": "stage_4/effective_config.json",
+      "effective_config_path": "",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "stage_4/metrics.json",
+      "metrics_path": "",
+      "params_hash": "params",
+      "retention_report_path": null,
+      "runtime_s": 1.0,
+      "stage_id": "bam.bias_mitigation",
+      "stage_report_path": "bam.bias_mitigation/stage_report.json",
+      "tool_id": "tool",
+      "tool_invocation_path": "",
+      "tool_version": "0.0.0"
+    },
+    {
+      "bank_report_path": null,
+      "effective_config_path": "",
+      "exit_code": 0,
+      "input_hash": "input",
+      "memory_mb": 64.0,
+      "metrics_path": "",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "bam.complexity",
-      "stage_report_path": "stage_4/stage_report.json",
-      "tool_id": "preseq",
-      "tool_invocation_path": "stage_4/tool_invocation.json",
+      "stage_report_path": "bam.complexity/stage_report.json",
+      "tool_id": "tool",
+      "tool_invocation_path": "",
       "tool_version": "0.0.0"
     },
     {
       "bank_report_path": null,
-      "effective_config_path": "stage_8/effective_config.json",
+      "effective_config_path": "",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "stage_8/metrics.json",
+      "metrics_path": "",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "bam.contamination",
-      "stage_report_path": "stage_8/stage_report.json",
-      "tool_id": "authenticct",
-      "tool_invocation_path": "stage_8/tool_invocation.json",
+      "stage_report_path": "bam.contamination/stage_report.json",
+      "tool_id": "tool",
+      "tool_invocation_path": "",
       "tool_version": "0.0.0"
     },
     {
       "bank_report_path": null,
-      "effective_config_path": "stage_5/effective_config.json",
+      "effective_config_path": "",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "stage_5/metrics.json",
+      "metrics_path": "",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "bam.coverage",
-      "stage_report_path": "stage_5/stage_report.json",
-      "tool_id": "mosdepth",
-      "tool_invocation_path": "stage_5/tool_invocation.json",
+      "stage_report_path": "bam.coverage/stage_report.json",
+      "tool_id": "tool",
+      "tool_invocation_path": "",
       "tool_version": "0.0.0"
     },
     {
       "bank_report_path": null,
-      "effective_config_path": "stage_6/effective_config.json",
+      "effective_config_path": "",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "stage_6/metrics.json",
+      "metrics_path": "",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "bam.damage",
-      "stage_report_path": "stage_6/stage_report.json",
-      "tool_id": "pydamage",
-      "tool_invocation_path": "stage_6/tool_invocation.json",
+      "stage_report_path": "bam.damage/stage_report.json",
+      "tool_id": "tool",
+      "tool_invocation_path": "",
       "tool_version": "0.0.0"
     },
     {
       "bank_report_path": null,
-      "effective_config_path": "stage_2/effective_config.json",
+      "effective_config_path": "",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "stage_2/metrics.json",
+      "metrics_path": "",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "bam.filter",
-      "stage_report_path": "stage_2/stage_report.json",
-      "tool_id": "samtools",
-      "tool_invocation_path": "stage_2/tool_invocation.json",
+      "stage_report_path": "bam.filter/stage_report.json",
+      "tool_id": "tool",
+      "tool_invocation_path": "",
       "tool_version": "0.0.0"
     },
     {
       "bank_report_path": null,
-      "effective_config_path": "stage_3/effective_config.json",
+      "effective_config_path": "",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "stage_3/metrics.json",
+      "metrics_path": "",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "bam.markdup",
-      "stage_report_path": "stage_3/stage_report.json",
-      "tool_id": "gatk",
-      "tool_invocation_path": "stage_3/tool_invocation.json",
+      "stage_report_path": "bam.markdup/stage_report.json",
+      "tool_id": "tool",
+      "tool_invocation_path": "",
       "tool_version": "0.0.0"
     },
     {
       "bank_report_path": null,
-      "effective_config_path": "stage_1/effective_config.json",
+      "effective_config_path": "",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "stage_1/metrics.json",
+      "metrics_path": "",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "bam.qc_pre",
-      "stage_report_path": "stage_1/stage_report.json",
-      "tool_id": "samtools",
-      "tool_invocation_path": "stage_1/tool_invocation.json",
+      "stage_report_path": "bam.qc_pre/stage_report.json",
+      "tool_id": "tool",
+      "tool_invocation_path": "",
       "tool_version": "0.0.0"
     },
     {
       "bank_report_path": null,
-      "effective_config_path": "stage_9/effective_config.json",
+      "effective_config_path": "",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "stage_9/metrics.json",
+      "metrics_path": "",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "bam.sex",
-      "stage_report_path": "stage_9/stage_report.json",
-      "tool_id": "rxy",
-      "tool_invocation_path": "stage_9/tool_invocation.json",
+      "stage_report_path": "bam.sex/stage_report.json",
+      "tool_id": "tool",
+      "tool_invocation_path": "",
       "tool_version": "0.0.0"
     },
     {
       "bank_report_path": null,
-      "effective_config_path": "stage_0/effective_config.json",
+      "effective_config_path": "",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "stage_0/metrics.json",
+      "metrics_path": "",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "bam.validate",
-      "stage_report_path": "stage_0/stage_report.json",
-      "tool_id": "samtools",
-      "tool_invocation_path": "stage_0/tool_invocation.json",
+      "stage_report_path": "bam.validate/stage_report.json",
+      "tool_id": "tool",
+      "tool_invocation_path": "",
       "tool_version": "0.0.0"
     }
   ],
@@ -2553,16 +2919,17 @@ expression: report
     "error_count": 0,
     "event_count": 0,
     "events": [
-      "telemetry/events.jsonl",
-      "telemetry/events.jsonl",
-      "telemetry/events.jsonl",
-      "telemetry/events.jsonl",
-      "telemetry/events.jsonl",
-      "telemetry/events.jsonl",
-      "telemetry/events.jsonl",
-      "telemetry/events.jsonl",
-      "telemetry/events.jsonl",
-      "telemetry/events.jsonl"
+      "bam.authenticity/telemetry/events.jsonl",
+      "bam.bias_mitigation/telemetry/events.jsonl",
+      "bam.complexity/telemetry/events.jsonl",
+      "bam.contamination/telemetry/events.jsonl",
+      "bam.coverage/telemetry/events.jsonl",
+      "bam.damage/telemetry/events.jsonl",
+      "bam.filter/telemetry/events.jsonl",
+      "bam.markdup/telemetry/events.jsonl",
+      "bam.qc_pre/telemetry/events.jsonl",
+      "bam.sex/telemetry/events.jsonl",
+      "bam.validate/telemetry/events.jsonl"
     ]
   }
 }

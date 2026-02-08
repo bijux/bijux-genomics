@@ -5,6 +5,10 @@ use std::path::PathBuf;
 use bijux_analyze::export::{summarize_facts, write_run_summary_json};
 use bijux_analyze::load::load_facts;
 
+fn snapshot_name(group: &str, name: &str) -> String {
+    format!("bijux-analyze__{group}__{name}")
+}
+
 #[test]
 fn facts_loader_and_summary_work() -> anyhow::Result<()> {
     let dir = bijux_infra::temp_dir("bijux")?;
@@ -131,7 +135,8 @@ fn run_summary_snapshot_is_stable() -> anyhow::Result<()> {
     let snapshot_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("tests")
         .join("snapshots")
-        .join("run_summary.json");
+        .join(snapshot_name("schemas", "run_summary"))
+        .with_extension("json");
     let snapshot_raw = fs::read_to_string(&snapshot_path)?;
     let snapshot_value: serde_json::Value = serde_json::from_str(&snapshot_raw)?;
     assert_eq!(summary_value, snapshot_value);

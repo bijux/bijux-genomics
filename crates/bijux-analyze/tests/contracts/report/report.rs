@@ -9,6 +9,10 @@ use bijux_runtime::{
     EffectiveConfigV1, FactsRowV1, ReportSchemaV1, RetentionReportV1, StageReportV1,
 };
 
+fn snapshot_name(group: &str, name: &str) -> String {
+    format!("bijux-analyze__{group}__{name}")
+}
+
 fn fixture_root() -> PathBuf {
     let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     manifest_dir.join("tests").join("fixtures").join("report")
@@ -262,10 +266,11 @@ fn golden_run_report_snapshot_happy_path() -> Result<()> {
 
     let report_value = write_report_fixture(&root, "happy", &rows)?;
     let _: ReportSchemaV1 = serde_json::from_value(report_value.clone())?;
+    let snapshot_file = format!("{}.json", snapshot_name("schemas", "run_report"));
     let snapshot_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("tests")
         .join("snapshots")
-        .join("run_report.json");
+        .join(snapshot_file);
     if std::env::var("UPDATE_GOLDEN_REPORT").is_ok() {
         let pretty = serde_json::to_string_pretty(&report_value)?;
         fs::write(&snapshot_path, pretty)?;

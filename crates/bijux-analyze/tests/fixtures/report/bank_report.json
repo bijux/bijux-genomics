@@ -1,0 +1,38 @@
+{
+  "banks": {
+    "adapters": {
+      "entries": [
+        {
+          "enabled": true,
+          "id": "A1",
+          "sequence": "ACGT"
+        }
+      ],
+      "hash": "sha256:adapters",
+      "preset": "default"
+    },
+    "contaminants": {
+      "entries": [
+        {
+          "enabled": true,
+          "id": "phix"
+        }
+      ],
+      "hash": "sha256:contam",
+      "preset": "illumina_default"
+    },
+    "polyx": {
+      "entries": [
+        {
+          "enabled": true,
+          "id": "polyG"
+        }
+      ],
+      "hash": "sha256:polyx",
+      "preset": "illumina_twocolor"
+    }
+  },
+  "schema_version": "bijux.bank_report.v1",
+  "stage_id": "fastq.trim",
+  "tool_id": "fastp"
+}
