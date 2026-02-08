@@ -13,15 +13,15 @@ Provides quick architectural orientation.
 - Crate boundaries are enforced by policy tests.
 
 ## Examples
-- bijux-core defines IDs and contracts.
+- bijux-dna-core defines IDs and contracts.
 
 ## Failure modes
 - Boundary violations fail CI.
 
 | Crate | Role | SSOT ownership | Purity guarantees | Key types |
 | --- | --- | --- | --- | --- |
-| bijux-core | Contract bible | IDs + canonicalization | No effects | ExecutionGraph |
-| bijux-engine | Orchestrator | None | No execution | Engine |
-| bijux-runtime | Recording | Run layout | Effect‑free except layout | RunLayout |
-| bijux-runner | Execution backends | None | Allowed effects | Runner |
-| bijux-api | Orchestration | None | No direct execution | PlanRequest |
+| bijux-dna-core | Contract bible | IDs + canonicalization | No effects | ExecutionGraph |
+| bijux-dna-engine | Orchestrator | None | No execution | Engine |
+| bijux-dna-runtime | Recording | Run layout | Effect‑free except layout | RunLayout |
+| bijux-dna-runner | Execution backends | None | Allowed effects | Runner |
+| bijux-dna-api | Orchestration | None | No direct execution | PlanRequest |
