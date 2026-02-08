@@ -45,7 +45,7 @@ Any other bucket must be justified by a `README.md` in that directory.
 - Tests must document what a snapshot proves and allowable changes.
 - Debug snapshots are not committed; keep under `target/` or ignored paths.
 - New snapshot tests must include a short rationale comment and an "Allowed changes" note in the test body or module docs.
-- Use `bijux_testkit::sanitize_snapshot_json` / `sanitize_snapshot_text` to strip unstable fields (paths, temp dirs) before snapshotting.
+- Use `bijux_dna_testkit::sanitize_snapshot_json` / `sanitize_snapshot_text` to strip unstable fields (paths, temp dirs) before snapshotting.
 
 ## Determinism
 - Deterministic JSON serialization must be used for snapshots.

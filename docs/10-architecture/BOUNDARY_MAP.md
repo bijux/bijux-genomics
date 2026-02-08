@@ -4,7 +4,7 @@ Owner: Architecture
 Scope: Contract and boundary authority
 Last reviewed: 2026-02-07
 Contract version: v1
-Applies to crates: bijux-core, bijux-engine, bijux-runtime, bijux-runner, bijux-api
+Applies to crates: bijux-dna-core, bijux-dna-engine, bijux-dna-runtime, bijux-dna-runner, bijux-dna-api
 
 ## What
 Points to the canonical boundary diagram and dependency rules.
@@ -24,28 +24,28 @@ Enforced by:
 
 ## Executable Boundary Map
 ```boundaries
-bijux-dna-cli: bijux-api bijux-core bijux-infra bijux-policies
-bijux-analyze: bijux-benchmark bijux-core bijux-domain-bam bijux-domain-fastq bijux-infra bijux-pipelines bijux-planner-bam bijux-planner-fastq bijux-policies bijux-runtime bijux-testkit
-bijux-api: bijux-analyze bijux-benchmark bijux-core bijux-domain-bam bijux-domain-fastq bijux-engine bijux-environment bijux-environment-qa bijux-infra bijux-pipelines bijux-planner-bam bijux-planner-fastq bijux-policies bijux-runner bijux-runtime bijux-stage-contract bijux-testkit
-bijux-benchmark: bijux-analyze bijux-benchmark-model bijux-core bijux-domain-bam bijux-domain-fastq bijux-infra bijux-policies bijux-runtime bijux-testkit
-bijux-benchmark-model: bijux-analyze bijux-core bijux-policies bijux-testkit
-bijux-core: bijux-infra bijux-policies bijux-testkit
-bijux-domain-bam: bijux-core bijux-policies bijux-testkit
-bijux-domain-fastq: bijux-core bijux-infra bijux-policies bijux-testkit
-bijux-engine: bijux-core bijux-infra bijux-policies bijux-runtime bijux-testkit
-bijux-environment: bijux-core bijux-infra bijux-policies bijux-runtime bijux-testkit
-bijux-environment-qa: bijux-analyze bijux-core bijux-domain-fastq bijux-environment bijux-infra bijux-policies bijux-runtime bijux-testkit
-bijux-infra: bijux-policies bijux-testkit
-bijux-pipelines: bijux-core bijux-domain-bam bijux-domain-fastq bijux-policies bijux-testkit
-bijux-planner-bam: bijux-core bijux-domain-bam bijux-infra bijux-pipelines bijux-policies bijux-stage-contract bijux-stages-bam bijux-testkit
-bijux-planner-fastq: bijux-core bijux-domain-bam bijux-domain-fastq bijux-infra bijux-pipelines bijux-policies bijux-stage-contract bijux-stages-fastq bijux-testkit
-bijux-policies: bijux-pipelines bijux-testkit
-bijux-runner: bijux-core bijux-environment bijux-infra bijux-policies bijux-runtime
-bijux-runtime: bijux-core bijux-infra bijux-policies bijux-testkit
-bijux-stage-contract: bijux-core bijux-policies bijux-testkit
-bijux-stages-bam: bijux-core bijux-domain-bam bijux-infra bijux-policies bijux-stage-contract bijux-testkit
-bijux-stages-fastq: bijux-core bijux-domain-fastq bijux-infra bijux-policies bijux-runtime bijux-stage-contract bijux-testkit
-bijux-testkit: bijux-policies
+bijux-dna: bijux-dna-api bijux-dna-core bijux-dna-infra bijux-dna-policies
+bijux-dna-analyze: bijux-dna-benchmark bijux-dna-core bijux-dna-domain-bam bijux-dna-domain-fastq bijux-dna-infra bijux-dna-pipelines bijux-dna-planner-bam bijux-dna-planner-fastq bijux-dna-policies bijux-dna-runtime bijux-dna-testkit
+bijux-dna-api: bijux-dna-analyze bijux-dna-benchmark bijux-dna-core bijux-dna-domain-bam bijux-dna-domain-fastq bijux-dna-engine bijux-dna-environment bijux-dna-environment-qa bijux-dna-infra bijux-dna-pipelines bijux-dna-planner-bam bijux-dna-planner-fastq bijux-dna-policies bijux-dna-runner bijux-dna-runtime bijux-dna-stage-contract bijux-dna-testkit
+bijux-dna-benchmark: bijux-dna-analyze bijux-dna-benchmark-model bijux-dna-core bijux-dna-domain-bam bijux-dna-domain-fastq bijux-dna-infra bijux-dna-policies bijux-dna-runtime bijux-dna-testkit
+bijux-dna-benchmark-model: bijux-dna-analyze bijux-dna-core bijux-dna-policies bijux-dna-testkit
+bijux-dna-core: bijux-dna-infra bijux-dna-policies bijux-dna-testkit
+bijux-dna-domain-bam: bijux-dna-core bijux-dna-policies bijux-dna-testkit
+bijux-dna-domain-fastq: bijux-dna-core bijux-dna-infra bijux-dna-policies bijux-dna-testkit
+bijux-dna-engine: bijux-dna-core bijux-dna-infra bijux-dna-policies bijux-dna-runtime bijux-dna-testkit
+bijux-dna-environment: bijux-dna-core bijux-dna-infra bijux-dna-policies bijux-dna-runtime bijux-dna-testkit
+bijux-dna-environment-qa: bijux-dna-analyze bijux-dna-core bijux-dna-domain-fastq bijux-dna-environment bijux-dna-infra bijux-dna-policies bijux-dna-runtime bijux-dna-testkit
+bijux-dna-infra: bijux-dna-policies bijux-dna-testkit
+bijux-dna-pipelines: bijux-dna-core bijux-dna-domain-bam bijux-dna-domain-fastq bijux-dna-policies bijux-dna-testkit
+bijux-dna-planner-bam: bijux-dna-core bijux-dna-domain-bam bijux-dna-infra bijux-dna-pipelines bijux-dna-policies bijux-dna-stage-contract bijux-dna-stages-bam bijux-dna-testkit
+bijux-dna-planner-fastq: bijux-dna-core bijux-dna-domain-bam bijux-dna-domain-fastq bijux-dna-infra bijux-dna-pipelines bijux-dna-policies bijux-dna-stage-contract bijux-dna-stages-fastq bijux-dna-testkit
+bijux-dna-policies: bijux-dna-pipelines bijux-dna-testkit
+bijux-dna-runner: bijux-dna-core bijux-dna-environment bijux-dna-infra bijux-dna-policies bijux-dna-runtime
+bijux-dna-runtime: bijux-dna-core bijux-dna-infra bijux-dna-policies bijux-dna-testkit
+bijux-dna-stage-contract: bijux-dna-core bijux-dna-policies bijux-dna-testkit
+bijux-dna-stages-bam: bijux-dna-core bijux-dna-domain-bam bijux-dna-infra bijux-dna-policies bijux-dna-stage-contract bijux-dna-testkit
+bijux-dna-stages-fastq: bijux-dna-core bijux-dna-domain-fastq bijux-dna-infra bijux-dna-policies bijux-dna-runtime bijux-dna-stage-contract bijux-dna-testkit
+bijux-dna-testkit: bijux-dna-policies
 ```
 
 ## Examples
