@@ -1,3 +1,4 @@
+#![allow(non_snake_case)]
 use std::path::{Path, PathBuf};
 
 use walkdir::WalkDir;
@@ -22,7 +23,7 @@ fn collect_rs_files(dir: &Path) -> Vec<PathBuf> {
 }
 
 #[test]
-fn api_and_cli_avoid_internal_imports() {
+fn policy__surface__deep_imports__api_and_cli_avoid_internal_imports() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     let crates = [
@@ -37,7 +38,7 @@ fn api_and_cli_avoid_internal_imports() {
             }
         }
     }
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "API/CLI must not import internal modules: {:?}",
         offenders

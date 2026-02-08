@@ -1,10 +1,11 @@
+#![allow(non_snake_case)]
 #[path = "../support/fs.rs"]
 mod support;
 
 use std::fmt::Write;
 
 #[test]
-fn crate_tree_contract_snapshot() {
+fn policy__surface__crate_tree_contract__crate_tree_contract_snapshot() {
     let mut output = String::new();
     for crate_root in support::crate_roots() {
         let crate_name = crate_root.file_name().unwrap().to_string_lossy();

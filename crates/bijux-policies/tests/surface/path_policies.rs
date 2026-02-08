@@ -1,3 +1,4 @@
+#![allow(non_snake_case)]
 use std::path::{Path, PathBuf};
 
 use walkdir::WalkDir;
@@ -22,7 +23,7 @@ fn is_path_policies_test(path: &Path) -> bool {
 }
 
 #[test]
-fn src_bin_requires_bin_targets() {
+fn policy__surface__path_policies__src_bin_requires_bin_targets() {
     let root = workspace_root();
     let mut offenders = Vec::new();
 
@@ -51,7 +52,7 @@ fn src_bin_requires_bin_targets() {
         }
     }
 
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "src/bin must contain at least one .rs binary source:\n{}",
         offenders.join("\n")
@@ -59,7 +60,7 @@ fn src_bin_requires_bin_targets() {
 }
 
 #[test]
-fn src_does_not_contain_test_paths() {
+fn policy__surface__path_policies__src_does_not_contain_test_paths() {
     let root = workspace_root();
     let mut offenders = Vec::new();
 
@@ -80,7 +81,7 @@ fn src_does_not_contain_test_paths() {
         }
     }
 
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "src paths must not include *test* names:\n{}",
         offenders.join("\n")
@@ -88,7 +89,7 @@ fn src_does_not_contain_test_paths() {
 }
 
 #[test]
-fn run_artifacts_paths_use_runtime_helpers() {
+fn policy__surface__path_policies__run_artifacts_paths_use_runtime_helpers() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     let targets = [
@@ -114,7 +115,7 @@ fn run_artifacts_paths_use_runtime_helpers() {
             }
         }
     }
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "run_artifacts paths must use bijux_runtime helpers, not string joins:\n{}",
         offenders.join("\n")
@@ -122,7 +123,7 @@ fn run_artifacts_paths_use_runtime_helpers() {
 }
 
 #[test]
-fn write_locations_are_confined_to_runtime_and_engine() {
+fn policy__surface__path_policies__write_locations_are_confined_to_runtime_and_engine() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     let patterns = ["std::fs::OpenOptions", "std::fs::write", "File::create("];
@@ -149,7 +150,7 @@ fn write_locations_are_confined_to_runtime_and_engine() {
         }
     }
 
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "direct filesystem writes must be confined to bijux-runtime or bijux-engine:\n{}",
         offenders.join("\n")
@@ -157,7 +158,7 @@ fn write_locations_are_confined_to_runtime_and_engine() {
 }
 
 #[test]
-fn crates_do_not_reference_removed_fastq_test_paths() {
+fn policy__surface__path_policies__crates_do_not_reference_removed_fastq_test_paths() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     let needles = ["tests/data/fastq/"];
@@ -187,7 +188,7 @@ fn crates_do_not_reference_removed_fastq_test_paths() {
         }
     }
 
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "crates must not reference tests/data/fastq paths:\n{}",
         offenders.join("\n")

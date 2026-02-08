@@ -1,3 +1,4 @@
+#![allow(non_snake_case)]
 use std::path::{Path, PathBuf};
 
 fn workspace_root() -> PathBuf {
@@ -50,7 +51,7 @@ fn crate_name(manifest: &Path) -> Option<String> {
 }
 
 #[test]
-fn heavy_dependencies_are_feature_gated() {
+fn policy__deps__heavy_deps_policy__heavy_dependencies_are_feature_gated() {
     let heavy = ["tracing-subscriber", "rusqlite", "sysinfo", "opentelemetry"];
     let mut offenders = Vec::new();
     for crate_dir in crate_dirs() {
@@ -83,7 +84,7 @@ fn heavy_dependencies_are_feature_gated() {
             }
         }
     }
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "heavy dependencies must be feature-gated:\n{}",
         offenders.join("\n")

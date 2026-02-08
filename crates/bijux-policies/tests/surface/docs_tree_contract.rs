@@ -1,3 +1,4 @@
+#![allow(non_snake_case)]
 use std::path::PathBuf;
 
 use walkdir::WalkDir;
@@ -23,14 +24,14 @@ fn list_files(root: &PathBuf) -> Vec<String> {
 }
 
 #[test]
-fn docs_tree_contract_snapshot() {
+fn policy__surface__docs_tree_contract__docs_tree_contract_snapshot() {
     let docs = workspace_root().join("docs");
     let files = list_files(&docs);
     insta::assert_snapshot!("docs_tree_contract", files.join("\\n"));
 }
 
 #[test]
-fn crate_docs_tree_contract_snapshot() {
+fn policy__surface__docs_tree_contract__crate_docs_tree_contract_snapshot() {
     let mut lines = Vec::new();
     for crate_root in crate_roots() {
         let docs = crate_root.join("docs");

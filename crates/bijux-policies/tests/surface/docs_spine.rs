@@ -1,3 +1,4 @@
+#![allow(non_snake_case)]
 use std::collections::{BTreeSet, HashMap};
 use std::path::{Path, PathBuf};
 
@@ -28,7 +29,7 @@ fn required_headings() -> [&'static str; 6] {
 }
 
 #[test]
-fn docs_placement_contract() {
+fn policy__surface__docs_spine__docs_placement_contract() {
     let root = docs_root();
     let allowed_root_dirs = BTreeSet::from([
         "00-intro",
@@ -47,17 +48,17 @@ fn docs_placement_contract() {
         let path = entry.path();
         if path.is_dir() {
             if !allowed_root_dirs.contains(name.as_str()) {
-                panic!("docs root contains unexpected directory: {}", name);
+                bijux_policies::policy_panic!("docs root contains unexpected directory: {}", name);
             }
         } else if path.is_file() && name != "index.md" {
-            panic!("docs root contains unexpected file: {}", name);
+            bijux_policies::policy_panic!("docs root contains unexpected file: {}", name);
         }
     }
-    assert!(root_entries.contains(&"index.md".to_string()));
+    bijux_policies::policy_assert!(root_entries.contains(&"index.md".to_string()));
 }
 
 #[test]
-fn no_docs_under_src() {
+fn policy__surface__docs_spine__no_docs_under_src() {
     for crate_root in crate_roots() {
         let src = crate_root.join("src");
         if !src.exists() {
@@ -72,14 +73,14 @@ fn no_docs_under_src() {
                     .and_then(|ext| ext.to_str())
                     == Some("md")
             {
-                panic!("docs under src are forbidden: {}", entry.path().display());
+                bijux_policies::policy_panic!("docs under src are forbidden: {}", entry.path().display());
             }
         }
     }
 }
 
 #[test]
-fn crate_docs_contract() {
+fn policy__surface__docs_spine__crate_docs_contract() {
     let allowlist = BTreeSet::from([
         "SCOPE.md",
         "ARCHITECTURE.md",
@@ -206,35 +207,35 @@ fn crate_docs_contract() {
         let docs = crate_root.join("docs");
         let readme = crate_root.join("README.md");
         if !readme.exists() {
-            panic!("crate README.md missing: {}", crate_root.display());
+            bijux_policies::policy_panic!("crate README.md missing: {}", crate_root.display());
         }
         for entry in crate_root.glob("*.md").expect("glob md") {
             let entry = entry.expect("glob entry");
             if entry.file_name().unwrap() != "README.md" {
-                panic!("crate root contains extra doc: {}", entry.display());
+                bijux_policies::policy_panic!("crate root contains extra doc: {}", entry.display());
             }
         }
         let mut required = BTreeSet::from(["SCOPE.md", "ARCHITECTURE.md"]);
         if !docs.exists() {
-            panic!("crate docs directory missing: {}", docs.display());
+            bijux_policies::policy_panic!("crate docs directory missing: {}", docs.display());
         }
         for entry in std::fs::read_dir(&docs).expect("read docs dir") {
             let entry = entry.expect("read entry");
             let name = entry.file_name().to_string_lossy().to_string();
             if !allowlist.contains(name.as_str()) {
-                panic!(
+                bijux_policies::policy_panic!(
                     "crate docs contains non-allowlisted file {} in {}",
                     name,
                     docs.display()
                 );
             }
             if !is_uppercase_stem(entry.path().as_path()) {
-                panic!("crate docs filename must be uppercase: {}", entry.path().display());
+                bijux_policies::policy_panic!("crate docs filename must be uppercase: {}", entry.path().display());
             }
             required.remove(name.as_str());
         }
         if !required.is_empty() {
-            panic!(
+            bijux_policies::policy_panic!(
                 "crate docs missing required files in {}: {:?}",
                 docs.display(),
                 required
@@ -244,7 +245,7 @@ fn crate_docs_contract() {
 }
 
 #[test]
-fn root_docs_style_template() {
+fn policy__surface__docs_spine__root_docs_style_template() {
     let root = docs_root();
     let roots = [
         root.join("00-intro"),
@@ -264,7 +265,7 @@ fn root_docs_style_template() {
                 continue;
             }
             if !is_uppercase_stem(entry.path()) {
-                panic!(
+                bijux_policies::policy_panic!(
                     "root docs filename must be uppercase: {}",
                     entry.path().display()
                 );
@@ -272,7 +273,7 @@ fn root_docs_style_template() {
             let content = read_to_string(entry.path());
             for heading in required_headings() {
                 if !content.contains(heading) {
-                    panic!(
+                    bijux_policies::policy_panic!(
                         "doc missing required heading {heading}: {}",
                         entry.path().display()
                     );
@@ -283,7 +284,7 @@ fn root_docs_style_template() {
 }
 
 #[test]
-fn root_docs_metadata_headers() {
+fn policy__surface__docs_spine__root_docs_metadata_headers() {
     let root = docs_root();
     let key_docs = [
         root.join("10-architecture/SSOT.md"),
@@ -301,14 +302,14 @@ fn root_docs_metadata_headers() {
         let content = read_to_string(&doc);
         for header in required {
             if !content.lines().any(|line| line.starts_with(header)) {
-                panic!("missing metadata header {header} in {}", doc.display());
+                bijux_policies::policy_panic!("missing metadata header {header} in {}", doc.display());
             }
         }
     }
 }
 
 #[test]
-fn stage_catalog_schema() {
+fn policy__surface__docs_spine__stage_catalog_schema() {
     let root = docs_root();
     let catalogs = [
         root.join("20-science/fastq/STAGE_CATALOG.md"),
@@ -327,7 +328,7 @@ fn stage_catalog_schema() {
         for section in content.split("\n### ").skip(1) {
             for field in required {
                 if !section.contains(field) {
-                    panic!(
+                    bijux_policies::policy_panic!(
                         "stage catalog missing field {field} in {}",
                         catalog.display()
                     );
@@ -338,7 +339,7 @@ fn stage_catalog_schema() {
 }
 
 #[test]
-fn authority_docs_unique_h1() {
+fn policy__surface__docs_spine__authority_docs_unique_h1() {
     let root = docs_root();
     let key_docs = [
         root.join("10-architecture/SSOT.md"),
@@ -353,7 +354,7 @@ fn authority_docs_unique_h1() {
             .find(|line| line.starts_with("# "))
             .unwrap_or("");
         if let Some(prev) = seen.insert(title.to_string(), doc.clone()) {
-            panic!(
+            bijux_policies::policy_panic!(
                 "duplicate H1 heading {title} in {} and {}",
                 prev.display(),
                 doc.display()
@@ -363,13 +364,13 @@ fn authority_docs_unique_h1() {
 }
 
 #[test]
-fn contract_versioning_note_exists() {
+fn policy__surface__docs_spine__contract_versioning_note_exists() {
     let doc = docs_root().join("50-reference/CONTRACT_VERSIONING.md");
     let content = read_to_string(&doc);
     let required = ["Breaking change", "major bump", "minor bump", "snapshot"];
     for phrase in required {
         if !content.contains(phrase) {
-            panic!("contract versioning doc missing phrase {phrase}");
+            bijux_policies::policy_panic!("contract versioning doc missing phrase {phrase}");
         }
     }
 }

@@ -1,3 +1,4 @@
+#![allow(non_snake_case)]
 use walkdir::WalkDir;
 
 use crate::support::workspace_root;
@@ -15,7 +16,7 @@ fn is_excluded(path: &std::path::Path) -> bool {
 }
 
 #[test]
-fn no_appledouble_or_ds_store() {
+fn policy__tooling__no_appledouble__no_appledouble_or_ds_store() {
     let root = workspace_root();
     let mut offenders = Vec::new();
 
@@ -40,7 +41,7 @@ fn no_appledouble_or_ds_store() {
         }
     }
 
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "AppleDouble/DS_Store files are forbidden in the repo:\n{}",
         offenders.join("\n")

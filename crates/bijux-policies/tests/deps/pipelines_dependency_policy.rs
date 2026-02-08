@@ -1,3 +1,4 @@
+#![allow(non_snake_case)]
 use std::path::{Path, PathBuf};
 
 fn workspace_root() -> PathBuf {
@@ -36,7 +37,7 @@ fn parse_dependency_names(manifest: &Path) -> Vec<String> {
 }
 
 #[test]
-fn pipelines_do_not_depend_on_stages_or_planners() {
+fn policy__deps__pipelines_dependency_policy__pipelines_do_not_depend_on_stages_or_planners() {
     let root = workspace_root();
     let manifest = root.join("crates/bijux-pipelines/Cargo.toml");
     let deps = parse_dependency_names(&manifest);
@@ -54,7 +55,7 @@ fn pipelines_do_not_depend_on_stages_or_planners() {
         .filter(|dep| deps.iter().any(|name| name == **dep))
         .map(|dep| format!("{} depends on {}", manifest.display(), dep))
         .collect();
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "bijux-pipelines must not depend on stages/planners/execution crates:\n{}",
         offenders.join("\n")

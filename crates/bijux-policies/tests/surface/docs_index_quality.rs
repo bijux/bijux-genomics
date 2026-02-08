@@ -1,3 +1,4 @@
+#![allow(non_snake_case)]
 use std::path::PathBuf;
 
 use walkdir::WalkDir;
@@ -5,7 +6,7 @@ use walkdir::WalkDir;
 use crate::support::fs::{crate_roots, read_to_string};
 
 #[test]
-fn docs_index_has_required_sections() {
+fn policy__surface__docs_index_quality__docs_index_has_required_sections() {
     let required = [
         "## Scope",
         "## Effects",
@@ -17,12 +18,12 @@ fn docs_index_has_required_sections() {
     for crate_root in crate_roots() {
         let index = crate_root.join("docs").join("INDEX.md");
         if !index.exists() {
-            panic!("missing docs/INDEX.md in {}", crate_root.display());
+            bijux_policies::policy_panic!("missing docs/INDEX.md in {}", crate_root.display());
         }
         let content = read_to_string(&index);
         for heading in required {
             if !content.contains(heading) {
-                panic!(
+                bijux_policies::policy_panic!(
                     "docs/INDEX.md missing required section {heading} in {}",
                     index.display()
                 );
@@ -32,7 +33,7 @@ fn docs_index_has_required_sections() {
 }
 
 #[test]
-fn docs_index_links_are_valid() {
+fn policy__surface__docs_index_quality__docs_index_links_are_valid() {
     for crate_root in crate_roots() {
         let docs = crate_root.join("docs");
         for entry in WalkDir::new(&docs) {
@@ -58,7 +59,7 @@ fn docs_index_links_are_valid() {
                             }
                             let target = base.join(link);
                             if !target.exists() {
-                                panic!(
+                                bijux_policies::policy_panic!(
                                     "broken link in {}: {} -> {}",
                                     entry.path().display(),
                                     link,

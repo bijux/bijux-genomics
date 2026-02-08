@@ -7,6 +7,105 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use walkdir::WalkDir;
 
+pub mod policy_diagnostics {
+    use std::fmt::Display;
+
+    pub const WHY: &str =
+        "Policies protect architectural boundaries, ownership, and determinism across the workspace.";
+    pub const HOW: &str =
+        "Fix the offending code or docs, then re-run the policy suite to confirm the change.";
+    pub const MORE: &str = "crates/bijux-policies/docs/POLICY_DIAGNOSTICS.md";
+
+    pub fn message(what: impl Display) -> String {
+        format!(
+            "WHAT: {what}\nWHY: {WHY}\nHOW: {HOW}\nMORE: {MORE}",
+            what = what,
+            WHY = WHY,
+            HOW = HOW,
+            MORE = MORE
+        )
+    }
+}
+
+#[macro_export]
+macro_rules! policy_assert {
+    ($cond:expr $(,)?) => {
+        assert!(
+            $cond,
+            "{}",
+            $crate::policy_diagnostics::message(stringify!($cond))
+        );
+    };
+    ($cond:expr, $($arg:tt)+) => {
+        assert!(
+            $cond,
+            "{}",
+            $crate::policy_diagnostics::message(format!($($arg)+))
+        );
+    };
+}
+
+#[macro_export]
+macro_rules! policy_assert_eq {
+    ($left:expr, $right:expr $(,)?) => {{
+        if $left != $right {
+            panic!(
+                "{}\nLEFT: {:?}\nRIGHT: {:?}",
+                $crate::policy_diagnostics::message(format!(
+                    "{} == {}",
+                    stringify!($left),
+                    stringify!($right)
+                )),
+                $left,
+                $right
+            );
+        }
+    }};
+    ($left:expr, $right:expr, $($arg:tt)+) => {{
+        if $left != $right {
+            panic!(
+                "{}\nLEFT: {:?}\nRIGHT: {:?}",
+                $crate::policy_diagnostics::message(format!($($arg)+)),
+                $left,
+                $right
+            );
+        }
+    }};
+}
+
+#[macro_export]
+macro_rules! policy_assert_ne {
+    ($left:expr, $right:expr $(,)?) => {{
+        if $left == $right {
+            panic!(
+                "{}\nVALUE: {:?}",
+                $crate::policy_diagnostics::message(format!(
+                    "{} != {}",
+                    stringify!($left),
+                    stringify!($right)
+                )),
+                $left
+            );
+        }
+    }};
+    ($left:expr, $right:expr, $($arg:tt)+) => {{
+        if $left == $right {
+            panic!(
+                "{}\nVALUE: {:?}",
+                $crate::policy_diagnostics::message(format!($($arg)+)),
+                $left
+            );
+        }
+    }};
+}
+
+#[macro_export]
+macro_rules! policy_panic {
+    ($($arg:tt)+) => {
+        panic!("{}", $crate::policy_diagnostics::message(format!($($arg)+)))
+    };
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GuardrailConfig {
     pub max_loc: usize,

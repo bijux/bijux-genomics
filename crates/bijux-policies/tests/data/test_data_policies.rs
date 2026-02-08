@@ -1,3 +1,4 @@
+#![allow(non_snake_case)]
 use std::path::{Path, PathBuf};
 
 use walkdir::WalkDir;
@@ -14,7 +15,7 @@ fn workspace_root() -> PathBuf {
 }
 
 #[test]
-fn large_binary_test_data_is_forbidden() {
+fn policy__data__test_data_policies__large_binary_test_data_is_forbidden() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     let targets = [root.join("tests"), root.join("crates")];
@@ -44,7 +45,7 @@ fn large_binary_test_data_is_forbidden() {
         }
     }
 
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "large binary test data is forbidden (>{} bytes):\n{}",
         MAX_TEST_DATA_BYTES,

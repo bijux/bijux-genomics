@@ -1,3 +1,4 @@
+#![allow(non_snake_case)]
 use std::path::{Path, PathBuf};
 
 fn workspace_root() -> PathBuf {
@@ -30,7 +31,7 @@ fn scan_dir_for_tokens(root: &Path, tokens: &[&str]) -> Vec<String> {
 }
 
 #[test]
-fn domains_have_no_registry_logic() {
+fn policy__surface__domain_purity__domains_have_no_registry_logic() {
     let root = workspace_root();
     let domains = [
         root.join("crates/bijux-domain-fastq/src"),
@@ -41,7 +42,7 @@ fn domains_have_no_registry_logic() {
     for domain in domains {
         offenders.extend(scan_dir_for_tokens(&domain, &tokens));
     }
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "Domain crates must not contain registry/selection logic.\n\
 Move registry/selection into planners.\n\
@@ -52,7 +53,7 @@ Offenders:\n{}",
 }
 
 #[test]
-fn domains_have_no_execution_details() {
+fn policy__surface__domain_purity__domains_have_no_execution_details() {
     let root = workspace_root();
     let domains = [
         root.join("crates/bijux-domain-fastq/src"),
@@ -69,7 +70,7 @@ fn domains_have_no_execution_details() {
     for domain in domains {
         offenders.extend(scan_dir_for_tokens(&domain, &tokens));
     }
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "Domain crates must not reference execution details.\n\
 Move execution wiring into planners/runners.\n\

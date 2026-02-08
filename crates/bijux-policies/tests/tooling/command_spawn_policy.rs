@@ -1,3 +1,4 @@
+#![allow(non_snake_case)]
 use std::path::{Path, PathBuf};
 
 use walkdir::WalkDir;
@@ -22,7 +23,7 @@ fn is_allowed_command_path(path: &Path) -> bool {
 }
 
 #[test]
-fn command_spawning_is_confined_to_runner_and_env_tooling() {
+fn policy__tooling__command_spawn_policy__command_spawning_is_confined_to_runner_and_env_tooling() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     let needles = ["std::process::Command", "Command::new"];
@@ -50,7 +51,7 @@ fn command_spawning_is_confined_to_runner_and_env_tooling() {
         }
     }
 
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "std::process::Command must be confined to bijux-runner or bijux-environment tooling:\n{}",
         offenders.join("\n")
@@ -58,7 +59,7 @@ fn command_spawning_is_confined_to_runner_and_env_tooling() {
 }
 
 #[test]
-fn crate_tests_do_not_spawn_external_commands() {
+fn policy__tooling__command_spawn_policy__crate_tests_do_not_spawn_external_commands() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     let needles = [
@@ -99,7 +100,7 @@ fn crate_tests_do_not_spawn_external_commands() {
         }
     }
 
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "crate tests must not spawn external commands (use scripts/lab/ harness instead):\n{}",
         offenders.join("\n")

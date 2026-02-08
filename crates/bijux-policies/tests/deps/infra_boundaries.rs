@@ -1,7 +1,8 @@
+#![allow(non_snake_case)]
 use cargo_metadata::MetadataCommand;
 
 #[test]
-fn infra_has_no_domain_semantics() {
+fn policy__deps__infra_boundaries__infra_has_no_domain_semantics() {
     let metadata = MetadataCommand::new().exec().expect("cargo metadata");
     let infra = metadata
         .packages
@@ -15,7 +16,7 @@ fn infra_has_no_domain_semantics() {
             offenders.push(dep.name.clone());
         }
     }
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "bijux-infra must not depend on domain/stage/planner crates.\n\
 Remove semantic dependencies; infra should be utility-only.\n\
@@ -25,7 +26,7 @@ Offenders: {offenders:?}"
 }
 
 #[test]
-fn no_id_catalog_literals_in_infra() {
+fn policy__deps__infra_boundaries__no_id_catalog_literals_in_infra() {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap().parent().unwrap();
     let infra_src = root.join("crates/bijux-infra/src");
     let mut offenders = Vec::new();
@@ -44,7 +45,7 @@ fn no_id_catalog_literals_in_infra() {
             offenders.push(entry.path().display().to_string());
         }
     }
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "bijux-infra must not define StageId/ToolId catalogs or literals.\n\
 Move semantics to domain/planner/core.\n\

@@ -1,3 +1,4 @@
+#![allow(non_snake_case)]
 #[path = "../support/fs.rs"]
 mod support;
 
@@ -6,7 +7,7 @@ use walkdir::WalkDir;
 const MIN_MOD_LINES: usize = 5;
 
 #[test]
-fn no_empty_or_placeholder_dirs() {
+fn policy__surface__no_empty_dirs_policy__no_empty_or_placeholder_dirs() {
     let mut offenders = Vec::new();
     for crate_root in support::crate_roots() {
         for entry in WalkDir::new(&crate_root)
@@ -64,7 +65,7 @@ fn no_empty_or_placeholder_dirs() {
         }
     }
 
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "empty dirs or placeholder mod.rs modules are forbidden.\n\
 Fix by removing empty dirs or adding real modules.\n\

@@ -1,3 +1,4 @@
+#![allow(non_snake_case)]
 use std::path::{Path, PathBuf};
 
 fn workspace_root() -> PathBuf {
@@ -36,7 +37,7 @@ fn parse_dependency_names(manifest: &Path) -> Vec<String> {
 }
 
 #[test]
-fn benchmark_has_no_planner_or_stage_dependencies() {
+fn policy__deps__benchmark_dependency_policy__benchmark_has_no_planner_or_stage_dependencies() {
     let root = workspace_root();
     let manifest = root.join("crates/bijux-benchmark/Cargo.toml");
     let deps = parse_dependency_names(&manifest);
@@ -51,7 +52,7 @@ fn benchmark_has_no_planner_or_stage_dependencies() {
         .filter(|dep| deps.iter().any(|name| name == **dep))
         .map(|dep| format!("{} depends on {}", manifest.display(), dep))
         .collect();
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "bijux-benchmark must not depend on stages/planners:\n{}",
         offenders.join("\n")

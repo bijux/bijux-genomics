@@ -1,3 +1,4 @@
+#![allow(non_snake_case)]
 use std::path::{Path, PathBuf};
 
 use walkdir::WalkDir;
@@ -22,7 +23,7 @@ fn collect_rs_files(dir: &Path) -> Vec<PathBuf> {
 }
 
 #[test]
-fn params_defaults_live_in_pipelines_only() {
+fn policy__data__defaults_policy__params_defaults_live_in_pipelines_only() {
     let root = workspace_root();
     let targets = [
         root.join("crates/bijux-api/src"),
@@ -48,7 +49,7 @@ fn params_defaults_live_in_pipelines_only() {
         }
     }
 
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "param defaults must be defined in bijux-pipelines only:\n{}",
         offenders.join("\n")

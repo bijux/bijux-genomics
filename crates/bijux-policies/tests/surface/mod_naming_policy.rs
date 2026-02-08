@@ -1,10 +1,11 @@
+#![allow(non_snake_case)]
 #[path = "../support/fs.rs"]
 mod support;
 
 use walkdir::WalkDir;
 
 #[test]
-fn legacy_dirs_require_legacy_doc() {
+fn policy__surface__mod_naming_policy__legacy_dirs_require_legacy_doc() {
     let mut offenders = Vec::new();
     for crate_root in support::crate_roots() {
         for entry in WalkDir::new(&crate_root)
@@ -22,7 +23,7 @@ fn legacy_dirs_require_legacy_doc() {
         }
     }
 
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "legacy/ directories must include docs/LEGACY.md at crate root:\n{}",
         offenders.join("\n")
@@ -30,7 +31,7 @@ fn legacy_dirs_require_legacy_doc() {
 }
 
 #[test]
-fn internal_rs_is_forbidden() {
+fn policy__surface__mod_naming_policy__internal_rs_is_forbidden() {
     let mut offenders = Vec::new();
     for crate_root in support::crate_roots() {
         for entry in WalkDir::new(&crate_root)
@@ -44,7 +45,7 @@ fn internal_rs_is_forbidden() {
         }
     }
 
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "internal.rs is forbidden; use internal/mod.rs:\n{}",
         offenders.join("\n")

@@ -1,3 +1,4 @@
+#![allow(non_snake_case)]
 use std::path::{Path, PathBuf};
 
 use walkdir::WalkDir;
@@ -12,7 +13,7 @@ fn workspace_root() -> PathBuf {
 }
 
 #[test]
-fn only_root_makefile_exists() {
+fn policy__tooling__makefile_policies__only_root_makefile_exists() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     let root_makefile = root.join("Makefile.toml");
@@ -27,7 +28,7 @@ fn only_root_makefile_exists() {
             offenders.push(entry.path().display().to_string());
         }
     }
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "per-crate Makefile.toml files are not allowed: {:?}",
         offenders
@@ -35,11 +36,11 @@ fn only_root_makefile_exists() {
 }
 
 #[test]
-fn root_makefile_is_single_source() {
+fn policy__tooling__makefile_policies__root_makefile_is_single_source() {
     let root = workspace_root();
     let makefile = root.join("Makefile");
     let content = std::fs::read_to_string(&makefile).expect("read Makefile");
-    assert!(
+    bijux_policies::policy_assert!(
         content.contains("include makefiles/cargo.mk"),
         "Makefile must include makefiles/cargo.mk"
     );
@@ -56,7 +57,7 @@ fn root_makefile_is_single_source() {
         .copied()
         .filter(|target| content.contains(target))
         .collect();
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "root Makefile must not duplicate cargo-make tasks: {:?}",
         offenders

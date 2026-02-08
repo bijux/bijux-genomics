@@ -1,3 +1,4 @@
+#![allow(non_snake_case)]
 #[path = "../support/fs.rs"]
 mod support;
 
@@ -22,7 +23,7 @@ const EFFECT_PATTERNS: &[&str] = &[
 ];
 
 #[test]
-fn effect_boundary_map() {
+fn policy__deps__effect_boundary_map__effect_boundary_map() {
     let root = support::workspace_root();
     let mut offenders = Vec::new();
     for entry in WalkDir::new(root.join("crates"))
@@ -48,7 +49,7 @@ fn effect_boundary_map() {
         }
     }
 
-    assert!(
+    bijux_policies::policy_assert!(
         offenders.is_empty(),
         "Effect boundary violation: process/Docker/FS effects are only allowed in boundary crates.\n\
 Fix by moving effects into bijux-runner or bijux-environment-qa, or add a narrow allowlist with a reason.\n\
