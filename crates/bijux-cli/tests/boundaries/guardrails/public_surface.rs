@@ -23,6 +23,6 @@ fn cli_public_surface_is_snapshotted() {
     settings.set_snapshot_path(manifest_dir.join("tests").join("snapshots"));
     settings.set_prepend_module_to_snapshot(false);
     settings.bind(|| {
-        insta::assert_snapshot!(name, bijux_testkit::snapshot_normalize_text(&snapshot));
+        insta::assert_snapshot!(name, snapshot);
     });
 }
