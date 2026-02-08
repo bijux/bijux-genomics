@@ -47,10 +47,3 @@ impl Runner for DockerRunner {
         })
     }
 }
-
-pub(crate) mod primitives {
-    pub use crate::backend::docker::execution_spec::build_tool_execution_spec;
-    pub use crate::backend::docker::executor::{resolve_image_for_run, ExecutionAssessment};
-    pub use crate::backend::docker::replay::replay_run;
-    pub use crate::execute::{execute_observer_command, execute_step, StageResultV1};
-}
