@@ -1,0 +1,28 @@
+{
+  "suite_a": "suite-a",
+  "suite_b": "suite-b",
+  "diffs": [
+    {
+      "metric_id": "memory_mb",
+      "absolute": 20.0,
+      "relative": 0.2,
+      "practical": true
+    },
+    {
+      "metric_id": "runtime_s",
+      "absolute": 1.0,
+      "relative": 1.0,
+      "practical": true
+    }
+  ],
+  "strata": [
+    {
+      "dataset_id": "dataset-1",
+      "dataset_class": "trueseq",
+      "read_layout": "paired",
+      "stage_id": "fastq.trim",
+      "tool_id": "fastp",
+      "params_hash": "params-a"
+    }
+  ]
+}

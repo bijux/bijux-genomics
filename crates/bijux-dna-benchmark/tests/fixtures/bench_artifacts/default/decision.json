@@ -1,0 +1,12 @@
+{
+  "completeness_score": 1.0,
+  "dataset_id": "dataset-1",
+  "missing_metrics": [],
+  "params_hash": "params-a",
+  "passes": true,
+  "rationale_trace": [],
+  "schema_version": "bijux.bench.gate.v1",
+  "stage_id": "fastq.trim",
+  "tool_id": "fastp",
+  "violations": []
+}
