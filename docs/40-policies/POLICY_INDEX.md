@@ -1,13 +1,13 @@
 # POLICY_INDEX
 
 ## What
-Canonical index of all policies enforced by `bijux-policies`.
+Canonical index of all policies enforced by `bijux-dna-policies`.
 
 ## Why
 Makes enforcement transparent and searchable.
 
 ## Non-goals
-- Redefining policy logic outside `bijux-policies`.
+- Redefining policy logic outside `bijux-dna-policies`.
 
 ## Contracts
 Policies are enforced by tests under `crates/bijux-policies/tests`.

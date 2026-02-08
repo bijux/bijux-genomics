@@ -10,7 +10,7 @@ Provides a single index for governance checks.
 - Full policy implementation detail.
 
 ## Contracts
-- Policy tests live in bijux-policies.
+- Policy tests live in bijux-dna-policies.
 
 ## Examples
 - docs_required_policy.rs → enforces docs placement.

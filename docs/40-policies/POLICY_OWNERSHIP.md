@@ -10,7 +10,7 @@ Single ownership avoids drift and conflicting guidance.
 - Describing policy implementation details.
 
 ## Contracts
-Policies live only in `bijux-policies`.
+Policies live only in `bijux-dna-policies`.
 Other docs must link to policy IDs, not redefine them.
 
 ## Examples
