@@ -2,7 +2,7 @@ use std::fs;
 use std::path::PathBuf;
 
 #[test]
-fn help_texts_are_documented() {
+fn cli_help_texts_are_documented() {
     let doc = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("docs")
         .join("COMMANDS.md");

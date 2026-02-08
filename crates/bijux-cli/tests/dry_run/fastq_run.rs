@@ -1,7 +1,7 @@
 use assert_cmd::Command;
 
 #[test]
-fn fastq_run_dry_run_emits_manifest_and_graph() {
+fn cli_fastq_run_dry_run_emits_manifest_and_graph() {
     let temp = tempfile::tempdir().expect("tempdir");
     let root = temp.path();
     let out_dir = root.join("out");

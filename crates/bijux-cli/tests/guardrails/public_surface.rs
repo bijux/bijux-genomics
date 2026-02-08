@@ -2,7 +2,7 @@ use std::fs;
 use std::path::PathBuf;
 
 #[test]
-fn public_surface_is_snapshotted() -> anyhow::Result<()> {
+fn cli_public_surface_is_snapshotted() -> anyhow::Result<()> {
     let lib_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("src")
         .join("lib.rs");

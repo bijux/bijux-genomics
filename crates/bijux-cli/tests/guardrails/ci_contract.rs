@@ -2,7 +2,7 @@ use std::fs;
 use std::path::PathBuf;
 
 #[test]
-fn ci_profile_membership_is_bounded() -> anyhow::Result<()> {
+fn cli_ci_profile_membership_is_bounded() -> anyhow::Result<()> {
     let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let repo_root = manifest_dir
         .parent()
