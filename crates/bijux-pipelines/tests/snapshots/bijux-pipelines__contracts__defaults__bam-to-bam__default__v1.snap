@@ -1,10 +1,37 @@
 ---
-source: crates/bijux-pipelines/tests/defaults_ledger.rs
-expression: ledger
+source: crates/bijux-pipelines/tests/contracts/defaults/defaults_ledger.rs
+expression: "bijux_testkit::snapshot_normalize_json(&json)"
 ---
 {
-  "pipeline_id": "bam-to-bam__default__v1",
-  "tools": {},
+  "assumptions": [],
+  "citations": {},
+  "param_provenance": {
+    "bam.coverage": {
+      "assumptions": [],
+      "comparability_implications": [],
+      "rationale": "pipeline default"
+    },
+    "bam.damage": {
+      "assumptions": [],
+      "comparability_implications": [],
+      "rationale": "pipeline default"
+    },
+    "bam.filter": {
+      "assumptions": [],
+      "comparability_implications": [],
+      "rationale": "pipeline default"
+    },
+    "bam.qc_pre": {
+      "assumptions": [],
+      "comparability_implications": [],
+      "rationale": "pipeline default"
+    },
+    "bam.validate": {
+      "assumptions": [],
+      "comparability_implications": [],
+      "rationale": "pipeline default"
+    }
+  },
   "params": {
     "bam.coverage": {
       "depth_thresholds": [
@@ -36,35 +63,8 @@ expression: ledger
       "strict": true
     }
   },
+  "pipeline_id": "bam-to-bam__default__v1",
   "thresholds": {},
   "tool_provenance": {},
-  "param_provenance": {
-    "bam.coverage": {
-      "rationale": "pipeline default",
-      "assumptions": [],
-      "comparability_implications": []
-    },
-    "bam.damage": {
-      "rationale": "pipeline default",
-      "assumptions": [],
-      "comparability_implications": []
-    },
-    "bam.filter": {
-      "rationale": "pipeline default",
-      "assumptions": [],
-      "comparability_implications": []
-    },
-    "bam.qc_pre": {
-      "rationale": "pipeline default",
-      "assumptions": [],
-      "comparability_implications": []
-    },
-    "bam.validate": {
-      "rationale": "pipeline default",
-      "assumptions": [],
-      "comparability_implications": []
-    }
-  },
-  "assumptions": [],
-  "citations": {}
+  "tools": {}
 }

@@ -1,20 +1,57 @@
 ---
 source: crates/bijux-pipelines/tests/contracts/profiles/profiles.rs
-assertion_line: 12
-expression: bam_default_profile()
+expression: "bijux_testkit::snapshot_normalize_json(&json)"
 ---
 {
-  "id": "bam-to-bam__default__v1",
-  "description": "Default BAM pipeline",
-  "stability": "Stable",
-  "input_domains": [
-    "Bam"
-  ],
-  "output_domains": [
-    "Bam"
-  ],
+  "capabilities": {
+    "input_artifacts": [
+      "Bam"
+    ],
+    "input_domains": [
+      "Bam"
+    ],
+    "output_artifacts": [
+      "Bam",
+      "MetricsBundle"
+    ],
+    "output_domains": [
+      "Bam"
+    ],
+    "produces_outputs": [
+      "bam",
+      "bam.metrics"
+    ],
+    "report_sections": [
+      "bam"
+    ],
+    "required_artifacts": [
+      "report.json",
+      "run_manifest.json",
+      "stage_summaries.json"
+    ],
+    "required_inputs": [
+      "bam"
+    ],
+    "required_metrics": [
+      "bam.metrics"
+    ],
+    "required_metrics_bundles": [
+      "BamCore"
+    ],
+    "required_report_sections": [
+      "Bam",
+      "PipelineDefaults"
+    ],
+    "required_stages": [
+      "bam.validate",
+      "bam.qc_pre",
+      "bam.filter",
+      "bam.coverage",
+      "bam.damage"
+    ],
+    "supports_benchmarks": true
+  },
   "defaults": {
-    "tools": {},
     "params": {
       "bam.coverage": {
         "depth_thresholds": [
@@ -52,56 +89,18 @@ expression: bam_default_profile()
       "bam.filter": "pipeline default",
       "bam.qc_pre": "pipeline default",
       "bam.validate": "pipeline default"
-    }
+    },
+    "tools": {}
   },
   "defaults_ledger_ref": "defaults_ledger.json",
+  "description": "Default BAM pipeline",
+  "id": "bam-to-bam__default__v1",
+  "input_domains": [
+    "Bam"
+  ],
   "invariants_preset": null,
-  "capabilities": {
-    "input_domains": [
-      "Bam"
-    ],
-    "output_domains": [
-      "Bam"
-    ],
-    "input_artifacts": [
-      "Bam"
-    ],
-    "output_artifacts": [
-      "Bam",
-      "MetricsBundle"
-    ],
-    "required_inputs": [
-      "bam"
-    ],
-    "produces_outputs": [
-      "bam",
-      "bam.metrics"
-    ],
-    "report_sections": [
-      "bam"
-    ],
-    "required_report_sections": [
-      "Bam",
-      "PipelineDefaults"
-    ],
-    "required_metrics_bundles": [
-      "BamCore"
-    ],
-    "required_stages": [
-      "bam.validate",
-      "bam.qc_pre",
-      "bam.filter",
-      "bam.coverage",
-      "bam.damage"
-    ],
-    "required_metrics": [
-      "bam.metrics"
-    ],
-    "required_artifacts": [
-      "report.json",
-      "run_manifest.json",
-      "stage_summaries.json"
-    ],
-    "supports_benchmarks": true
-  }
+  "output_domains": [
+    "Bam"
+  ],
+  "stability": "Stable"
 }

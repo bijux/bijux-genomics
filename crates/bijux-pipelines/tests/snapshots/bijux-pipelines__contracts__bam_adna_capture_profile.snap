@@ -1,20 +1,66 @@
 ---
 source: crates/bijux-pipelines/tests/contracts/profiles/profiles.rs
-assertion_line: 37
-expression: bam_adna_capture_profile()
+expression: "bijux_testkit::snapshot_normalize_json(&json)"
 ---
 {
-  "id": "bam-to-bam__adna_capture__v1",
-  "description": "Ancient DNA capture defaults",
-  "stability": "Beta",
-  "input_domains": [
-    "Bam"
-  ],
-  "output_domains": [
-    "Bam"
-  ],
+  "capabilities": {
+    "input_artifacts": [
+      "Bam"
+    ],
+    "input_domains": [
+      "Bam"
+    ],
+    "output_artifacts": [
+      "Bam",
+      "MetricsBundle"
+    ],
+    "output_domains": [
+      "Bam"
+    ],
+    "produces_outputs": [
+      "bam",
+      "bam.metrics"
+    ],
+    "report_sections": [
+      "bam"
+    ],
+    "required_artifacts": [
+      "report.json",
+      "run_manifest.json",
+      "stage_summaries.json"
+    ],
+    "required_inputs": [
+      "bam"
+    ],
+    "required_metrics": [
+      "bam.metrics"
+    ],
+    "required_metrics_bundles": [
+      "BamAdna"
+    ],
+    "required_report_sections": [
+      "Bam",
+      "PipelineDefaults"
+    ],
+    "required_stages": [
+      "bam.validate",
+      "bam.qc_pre",
+      "bam.filter",
+      "bam.markdup",
+      "bam.complexity",
+      "bam.coverage",
+      "bam.damage",
+      "bam.authenticity",
+      "bam.contamination",
+      "bam.sex",
+      "bam.bias_mitigation",
+      "bam.haplogroups",
+      "bam.genotyping",
+      "bam.kinship"
+    ],
+    "supports_benchmarks": true
+  },
   "defaults": {
-    "tools": {},
     "params": {
       "bam.authenticity": {
         "mode": "aggregate"
@@ -104,65 +150,18 @@ expression: bam_adna_capture_profile()
       "bam.qc_pre": "pipeline default",
       "bam.sex": "pipeline default",
       "bam.validate": "pipeline default"
-    }
+    },
+    "tools": {}
   },
   "defaults_ledger_ref": "defaults_ledger.json",
+  "description": "Ancient DNA capture defaults",
+  "id": "bam-to-bam__adna_capture__v1",
+  "input_domains": [
+    "Bam"
+  ],
   "invariants_preset": "adna",
-  "capabilities": {
-    "input_domains": [
-      "Bam"
-    ],
-    "output_domains": [
-      "Bam"
-    ],
-    "input_artifacts": [
-      "Bam"
-    ],
-    "output_artifacts": [
-      "Bam",
-      "MetricsBundle"
-    ],
-    "required_inputs": [
-      "bam"
-    ],
-    "produces_outputs": [
-      "bam",
-      "bam.metrics"
-    ],
-    "report_sections": [
-      "bam"
-    ],
-    "required_report_sections": [
-      "Bam",
-      "PipelineDefaults"
-    ],
-    "required_metrics_bundles": [
-      "BamAdna"
-    ],
-    "required_stages": [
-      "bam.validate",
-      "bam.qc_pre",
-      "bam.filter",
-      "bam.markdup",
-      "bam.complexity",
-      "bam.coverage",
-      "bam.damage",
-      "bam.authenticity",
-      "bam.contamination",
-      "bam.sex",
-      "bam.bias_mitigation",
-      "bam.haplogroups",
-      "bam.genotyping",
-      "bam.kinship"
-    ],
-    "required_metrics": [
-      "bam.metrics"
-    ],
-    "required_artifacts": [
-      "report.json",
-      "run_manifest.json",
-      "stage_summaries.json"
-    ],
-    "supports_benchmarks": true
-  }
+  "output_domains": [
+    "Bam"
+  ],
+  "stability": "Beta"
 }
