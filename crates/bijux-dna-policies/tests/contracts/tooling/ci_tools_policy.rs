@@ -149,3 +149,13 @@ fn policy__contracts__ci_tools_policy__test_and_coverage_dirs_are_isolated() {
         "TEST_PROFRAW_DIR and COV_PROFRAW_DIR must be distinct."
     );
 }
+
+#[test]
+fn policy__contracts__ci_tools_policy__repo_root_has_no_coverage_dir() {
+    let root = workspace_root();
+    let legacy = root.join("coverage");
+    bijux_dna_policies::policy_assert!(
+        !legacy.exists(),
+        "Repo root must not contain coverage/ (use artifacts/coverage instead)."
+    );
+}
