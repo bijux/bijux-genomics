@@ -1,7 +1,7 @@
 use anyhow::Result;
 
 #[test]
-fn contaminant_bank_parses() -> Result<()> {
+fn cli_contaminant_bank_parses() -> Result<()> {
     crate::support::with_repo_root(|| {
         let motifs_path = bijux_api::v1::api::bench::contaminant_motifs_path();
         let presets_path = bijux_api::v1::api::bench::contaminant_presets_path();

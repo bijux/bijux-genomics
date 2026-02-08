@@ -8,7 +8,7 @@ use bijux_api::v1::api::bench::fastq_banks::{
 };
 
 #[test]
-fn bank_preset_resolution_is_stable() -> Result<()> {
+fn cli_bank_preset_resolution_is_stable() -> Result<()> {
     let manifest_dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let snapshot_path = manifest_dir
         .join("tests")

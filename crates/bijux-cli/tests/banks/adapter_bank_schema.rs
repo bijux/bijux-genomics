@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 #[test]
-fn adapter_bank_parses() -> Result<(), Box<dyn std::error::Error>> {
+fn cli_adapter_bank_parses() -> Result<(), Box<dyn std::error::Error>> {
     let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let repo_root = manifest_dir
         .parent()

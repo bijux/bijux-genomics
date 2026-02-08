@@ -158,7 +158,7 @@ multiqc = { version = "0.0.0" }
 }
 
 #[test]
-fn dry_run_output_is_deterministic() {
+fn cli_dry_run_output_is_deterministic() {
     let temp_a = tempfile::tempdir().expect("tempdir");
     let temp_b = tempfile::tempdir().expect("tempdir");
 

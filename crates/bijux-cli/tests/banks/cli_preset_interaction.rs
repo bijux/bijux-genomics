@@ -7,7 +7,8 @@ use bijux::cli::{
 };
 
 #[test]
-fn trim_bench_args_preserve_bank_presets() -> Result<()> {
+fn cli_trim_bench_args_preserve_bank_presets() -> Result<()> {
+    let _env_guard = crate::support::EnvGuard::new()?;
     let args = FastqTrimArgs {
         common: CommonArgs::default(),
         list_adapter_presets: false,
@@ -40,7 +41,8 @@ fn trim_bench_args_preserve_bank_presets() -> Result<()> {
 }
 
 #[test]
-fn preprocess_args_require_required_fields() -> Result<()> {
+fn cli_preprocess_args_require_required_fields() -> Result<()> {
+    let _env_guard = crate::support::EnvGuard::new()?;
     let args = FastqPreprocessArgs {
         common: CommonArgs::default(),
         pipeline_profile: None,
