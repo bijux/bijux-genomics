@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 
 use anyhow::Result;
+use crate::support;
 use bijux::cli::{
     bench_args_from_trim, preprocess_args_from_cli, BenchCorpusArg, CommonArgs,
     FastqPreprocessArgs, FastqTrimArgs, ObjectiveArg,
@@ -8,7 +9,7 @@ use bijux::cli::{
 
 #[test]
 fn cli_trim_bench_args_preserve_bank_presets() -> Result<()> {
-    let _env_guard = crate::support::EnvGuard::new()?;
+    let _env_guard = support::EnvGuard::new()?;
     let args = FastqTrimArgs {
         common: CommonArgs::default(),
         list_adapter_presets: false,
@@ -42,7 +43,7 @@ fn cli_trim_bench_args_preserve_bank_presets() -> Result<()> {
 
 #[test]
 fn cli_preprocess_args_require_required_fields() -> Result<()> {
-    let _env_guard = crate::support::EnvGuard::new()?;
+    let _env_guard = support::EnvGuard::new()?;
     let args = FastqPreprocessArgs {
         common: CommonArgs::default(),
         pipeline_profile: None,

@@ -1,4 +1,4 @@
-use assert_cmd::Command;
+use bijux::commands::run_with_args;
 use serde_json::Value;
 
 fn scrub_paths(value: &mut Value, root: &str) {
@@ -22,7 +22,7 @@ fn scrub_paths(value: &mut Value, root: &str) {
     }
 }
 
-fn run_dry_run(base: &std::path::Path, out_dir: &std::path::Path) -> serde_json::Value {
+fn run_dry_run(base: &std::path::Path, out_dir: &std::path::Path) -> Vec<u8> {
     let input = base.join("reads.fastq");
     std::fs::write(&input, "@r1\nACGT\n+\n####\n").expect("write fastq");
 
@@ -117,13 +117,13 @@ multiqc = { version = "0.0.0" }
     )
     .expect("write root defaults ledger");
 
-    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("bijux"));
-    cmd.current_dir(base);
-    cmd.env("BIJUX_SKIP_QA", "1");
-    cmd.env("BIJUX_ALLOW_SILVER", "1");
-    cmd.env("BIJUX_SKIP_IMAGE_CHECK", "1");
-    cmd.args(["--platform", "test"]);
-    cmd.args([
+    std::env::set_var("BIJUX_SKIP_QA", "1");
+    std::env::set_var("BIJUX_ALLOW_SILVER", "1");
+    std::env::set_var("BIJUX_SKIP_IMAGE_CHECK", "1");
+    let args = [
+        "bijux",
+        "--platform",
+        "test",
         "fastq",
         "preprocess",
         "--dry-run",
@@ -133,8 +133,8 @@ multiqc = { version = "0.0.0" }
         out_dir.to_str().unwrap(),
         "--sample-id",
         "sample",
-    ]);
-    cmd.assert().success();
+    ];
+    run_with_args(&args, base).expect("run cli");
 
     let artifacts_root = out_dir
         .join("bench")
@@ -149,12 +149,11 @@ multiqc = { version = "0.0.0" }
     let root_str = base.to_str().unwrap_or_default();
     scrub_paths(&mut graph, root_str);
     scrub_paths(&mut manifest, root_str);
-    let graph = bijux_core::contract::canonical::canonicalize_json_value(&graph);
-    let manifest = bijux_core::contract::canonical::canonicalize_json_value(&manifest);
-    serde_json::json!({
+    let payload = serde_json::json!({
         "graph": graph,
         "manifest": manifest,
-    })
+    });
+    bijux_core::contract::canonical::to_canonical_json_bytes(&payload).expect("canonical")
 }
 
 #[test]
@@ -168,7 +167,5 @@ fn cli_dry_run_output_is_deterministic() {
     let payload_a = run_dry_run(temp_a.path(), &out_a);
     let payload_b = run_dry_run(temp_b.path(), &out_b);
 
-    let canon_a = bijux_core::contract::canonical::canonicalize_json_value(&payload_a);
-    let canon_b = bijux_core::contract::canonical::canonicalize_json_value(&payload_b);
-    assert_eq!(canon_a, canon_b);
+    assert_eq!(payload_a, payload_b);
 }

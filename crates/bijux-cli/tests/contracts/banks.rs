@@ -8,5 +8,3 @@ mod cli_preset_interaction;
 mod contaminant_bank_schema;
 #[path = "banks/polyx_bank_schema.rs"]
 mod polyx_bank_schema;
-#[path = "banks/support.rs"]
-mod support;

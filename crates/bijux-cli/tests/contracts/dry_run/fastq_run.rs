@@ -1,4 +1,4 @@
-use assert_cmd::Command;
+use bijux::commands::run_with_args;
 
 #[test]
 fn cli_fastq_run_dry_run_emits_manifest_and_graph() {
@@ -97,13 +97,13 @@ multiqc = { version = "0.0.0" }
     )
     .expect("write root defaults ledger");
 
-    let mut cmd = Command::new(assert_cmd::cargo::cargo_bin!("bijux"));
-    cmd.current_dir(root);
-    cmd.env("BIJUX_SKIP_QA", "1");
-    cmd.env("BIJUX_ALLOW_SILVER", "1");
-    cmd.env("BIJUX_SKIP_IMAGE_CHECK", "1");
-    cmd.args(["--platform", "test"]);
-    cmd.args([
+    std::env::set_var("BIJUX_SKIP_QA", "1");
+    std::env::set_var("BIJUX_ALLOW_SILVER", "1");
+    std::env::set_var("BIJUX_SKIP_IMAGE_CHECK", "1");
+    let args = [
+        "bijux",
+        "--platform",
+        "test",
         "fastq",
         "run",
         "--dry-run",
@@ -113,8 +113,8 @@ multiqc = { version = "0.0.0" }
         out_dir.to_str().unwrap(),
         "--sample-id",
         "sample",
-    ]);
-    cmd.assert().success();
+    ];
+    run_with_args(&args, root).expect("run cli");
 
     let artifacts_root = out_dir
         .join("bench")

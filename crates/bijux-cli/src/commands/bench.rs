@@ -459,7 +459,7 @@ fn explain_fastq_stage(
             .profile
             .as_deref()
             .unwrap_or("fastq-to-fastq__default__v1");
-        let stages = bijux_api::v1::api::plan::fastq_pipeline_stage_ids(pipeline_id);
+        let stages = bijux_api::v1::api::plan::fastq_pipeline_id_catalog(pipeline_id);
         println!("stage: {stage_id}");
         println!("pipeline:");
         for step in stages {

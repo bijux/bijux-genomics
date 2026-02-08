@@ -1,11 +1,16 @@
 use std::fs;
 
 use anyhow::Result;
+use crate::support;
 use bijux_api::v1::api::bench::fastq_banks::{
     resolve_adapter_selection, resolve_contaminant_selection, resolve_effective_adapters,
     resolve_effective_contaminants, resolve_effective_polyx, resolve_polyx_selection,
     DEFAULT_ADAPTER_PRESET, DEFAULT_CONTAMINANT_PRESET, DEFAULT_POLYX_PRESET,
 };
+
+fn snapshot_name(bucket: &str, test_name: &str) -> String {
+    format!("{}__{}__{}", env!("CARGO_PKG_NAME"), bucket, test_name)
+}
 
 #[test]
 fn cli_bank_preset_resolution_is_stable() -> Result<()> {
@@ -13,9 +18,10 @@ fn cli_bank_preset_resolution_is_stable() -> Result<()> {
     let snapshot_path = manifest_dir
         .join("tests")
         .join("snapshots")
-        .join("bank_preset_resolution.json");
+        .join(snapshot_name("contracts", "bank_preset_resolution"))
+        .with_extension("json");
 
-    crate::support::with_repo_root(|| {
+    support::with_repo_root(|| {
         let adapter_default = resolve_adapter_selection(None, None, None)?;
         let adapter_default_effective = resolve_effective_adapters(&adapter_default, &[], &[])?;
         let adapter_override = resolve_adapter_selection(Some("nextera"), None, None)?;
