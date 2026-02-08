@@ -1,7 +1,7 @@
 # CI
 
 ## What
-CI enforces formatting, lint, tests, policies, and docs build.
+CI enforces formatting, lint, tests, policies, and docs build for the bijux-dna workspace.
 
 ## Why
 Keeps code and docs in sync.
