@@ -1,3 +1,10 @@
+//! Format helpers for configuration parsing and rendering.
+//!
+//! Invariants:
+//! - No contract schema ownership.
+//! - Stable ordering for rendered outputs.
+//! - Lightweight dependencies only.
+
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 

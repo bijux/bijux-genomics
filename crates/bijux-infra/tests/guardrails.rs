@@ -4,6 +4,8 @@ mod canonical_owner;
 mod no_generic_helpers;
 #[path = "guardrails/policies.rs"]
 mod policies;
+#[path = "public_surface.rs"]
+mod public_surface;
 
 use std::path::Path;
 
