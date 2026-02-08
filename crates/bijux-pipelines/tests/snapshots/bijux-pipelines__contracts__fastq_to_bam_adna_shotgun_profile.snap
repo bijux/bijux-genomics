@@ -1,5 +1,6 @@
 ---
-source: crates/bijux-pipelines/tests/profiles.rs
+source: crates/bijux-pipelines/tests/contracts/profiles/profiles.rs
+assertion_line: 42
 expression: fastq_to_bam_adna_shotgun_profile()
 ---
 {

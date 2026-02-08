@@ -20,3 +20,4 @@ bam_downstream = []
 insta = { version = "1", features = ["json"] }
 bijux-policies = { path = "../bijux-policies" }
 walkdir.workspace = true
+bijux-testkit = { path = "../bijux-testkit" }

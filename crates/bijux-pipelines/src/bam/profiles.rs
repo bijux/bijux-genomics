@@ -7,6 +7,7 @@ use bijux_domain_bam::defaults::{
     adna_capture_params_json, adna_shotgun_params_json, default_params_json,
 };
 use bijux_domain_bam::BamStage;
+use bijux_core::prelude::id_catalog;
 
 use crate::{
     ArtifactType, Domain, EffectiveDefaults, MetricsBundle, PipelineCapabilities, PipelineId,
@@ -78,7 +79,7 @@ pub fn bam_default_profile() -> PipelineProfile {
     let defaults = defaults_for(&stages, default_params_json);
     let required_stages: Vec<&'static str> = stages.iter().map(|stage| stage.as_str()).collect();
     PipelineProfile {
-        id: PipelineId::new("bam-to-bam__default__v1"),
+        id: PipelineId::from_static(id_catalog::PIPELINE_BAM_DEFAULT),
         description: "Default BAM pipeline",
         stability: StabilityTier::Stable,
         input_domains: vec![Domain::Bam],
@@ -113,7 +114,7 @@ pub fn bam_adna_shotgun_profile() -> PipelineProfile {
     let defaults = defaults_for(&stages, adna_shotgun_params_json);
     let required_stages: Vec<&'static str> = stages.iter().map(|stage| stage.as_str()).collect();
     PipelineProfile {
-        id: PipelineId::new("bam-to-bam__adna_shotgun__v1"),
+        id: PipelineId::from_static(id_catalog::PIPELINE_BAM_ADNA_SHOTGUN),
         description: "Ancient DNA shotgun defaults",
         stability: StabilityTier::Beta,
         input_domains: vec![Domain::Bam],
@@ -148,7 +149,7 @@ pub fn bam_adna_capture_profile() -> PipelineProfile {
     let defaults = defaults_for(&stages, adna_capture_params_json);
     let required_stages: Vec<&'static str> = stages.iter().map(|stage| stage.as_str()).collect();
     PipelineProfile {
-        id: PipelineId::new("bam-to-bam__adna_capture__v1"),
+        id: PipelineId::from_static(id_catalog::PIPELINE_BAM_ADNA_CAPTURE),
         description: "Ancient DNA capture defaults",
         stability: StabilityTier::Beta,
         input_domains: vec![Domain::Bam],
@@ -178,9 +179,9 @@ pub fn bam_adna_capture_profile() -> PipelineProfile {
 /// Returns an error if the requested profile id is unknown.
 pub fn bam_profiles_by_id(id: &str) -> Result<PipelineProfile> {
     match id {
-        "bam-to-bam__default__v1" => Ok(bam_default_profile()),
-        "bam-to-bam__adna_shotgun__v1" => Ok(bam_adna_shotgun_profile()),
-        "bam-to-bam__adna_capture__v1" => Ok(bam_adna_capture_profile()),
+        id_catalog::PIPELINE_BAM_DEFAULT => Ok(bam_default_profile()),
+        id_catalog::PIPELINE_BAM_ADNA_SHOTGUN => Ok(bam_adna_shotgun_profile()),
+        id_catalog::PIPELINE_BAM_ADNA_CAPTURE => Ok(bam_adna_capture_profile()),
         _ => Err(anyhow!("unknown BAM profile: {id}")),
     }
 }

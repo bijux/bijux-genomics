@@ -6,6 +6,7 @@ use crate::{
     ArtifactType, Domain, EffectiveDefaults, MetricsBundle, PipelineCapabilities, PipelineId,
     PipelineProfile, ReportSection, StabilityTier,
 };
+use bijux_core::prelude::id_catalog;
 use bijux_domain_bam::defaults::{adna_shotgun_params_json, default_params_json};
 use bijux_domain_bam::BamStage;
 
@@ -45,7 +46,7 @@ pub fn fastq_to_bam_adna_shotgun_profile() -> PipelineProfile {
     );
 
     PipelineProfile {
-        id: PipelineId::new("fastq-to-bam__adna_shotgun__v1"),
+        id: PipelineId::from_static(id_catalog::PIPELINE_FASTQ_TO_BAM_ADNA_SHOTGUN),
         description: "FASTQ preprocess → align → BAM QC/damage (aDNA shotgun)",
         stability: StabilityTier::Beta,
         input_domains: vec![Domain::Fastq, Domain::Cross],
@@ -99,7 +100,7 @@ pub fn fastq_to_bam_default_profile() -> PipelineProfile {
     );
 
     PipelineProfile {
-        id: PipelineId::new("fastq-to-bam__default__v1"),
+        id: PipelineId::from_static(id_catalog::PIPELINE_FASTQ_TO_BAM_DEFAULT),
         description: "FASTQ preprocess → align → BAM QC/damage (modern defaults)",
         stability: StabilityTier::Beta,
         input_domains: vec![Domain::Fastq, Domain::Cross],
