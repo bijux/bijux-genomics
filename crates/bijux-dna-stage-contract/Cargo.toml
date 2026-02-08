@@ -1,0 +1,17 @@
+[package]
+name = "bijux-dna-stage-contract"
+version = "0.1.0"
+edition = "2021"
+
+license.workspace = true
+[dependencies]
+anyhow = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+bijux-dna-core = { path = "../bijux-dna-core" }
+sha2 = { workspace = true }
+
+[dev-dependencies]
+bijux-dna-policies = { path = "../bijux-dna-policies" }
+walkdir.workspace = true
+bijux-dna-testkit = { path = "../bijux-dna-testkit" }

@@ -1,28 +1,28 @@
 [workspace]
 resolver = "2"
 members = [
-  "crates/bijux-analyze",
-  "crates/bijux-api",
-  "crates/bijux-benchmark",
-  "crates/bijux-benchmark-model",
-  "crates/bijux-cli",
-  "crates/bijux-core",
-  "crates/bijux-domain-bam",
-  "crates/bijux-domain-fastq",
-  "crates/bijux-engine",
-  "crates/bijux-environment",
-  "crates/bijux-environment-qa",
-  "crates/bijux-infra",
-  "crates/bijux-pipelines",
-  "crates/bijux-planner-bam",
-  "crates/bijux-planner-fastq",
-  "crates/bijux-policies",
-  "crates/bijux-runner",
-  "crates/bijux-runtime",
-  "crates/bijux-stage-contract",
-  "crates/bijux-stages-bam",
-  "crates/bijux-stages-fastq",
-  "crates/bijux-testkit",
+  "crates/bijux-dna-analyze",
+  "crates/bijux-dna-api",
+  "crates/bijux-dna-benchmark",
+  "crates/bijux-dna-benchmark-model",
+  "crates/bijux-dna-cli",
+  "crates/bijux-dna-core",
+  "crates/bijux-dna-domain-bam",
+  "crates/bijux-dna-domain-fastq",
+  "crates/bijux-dna-engine",
+  "crates/bijux-dna-environment",
+  "crates/bijux-dna-environment-qa",
+  "crates/bijux-dna-infra",
+  "crates/bijux-dna-pipelines",
+  "crates/bijux-dna-planner-bam",
+  "crates/bijux-dna-planner-fastq",
+  "crates/bijux-dna-policies",
+  "crates/bijux-dna-runner",
+  "crates/bijux-dna-runtime",
+  "crates/bijux-dna-stage-contract",
+  "crates/bijux-dna-stages-bam",
+  "crates/bijux-dna-stages-fastq",
+  "crates/bijux-dna-testkit",
 ]
 
 [workspace.package]
@@ -51,7 +51,7 @@ toml = "0.8"
 opentelemetry = "0.24"
 opentelemetry_sdk = "0.24"
 insta = "1"
-bijux-policies = { path = "crates/bijux-policies" }
+bijux-dna-policies = { path = "crates/bijux-dna-policies" }
 
 [workspace.lints.rust]
 unsafe_code = "forbid"
