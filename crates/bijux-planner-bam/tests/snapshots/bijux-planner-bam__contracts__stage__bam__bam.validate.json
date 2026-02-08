@@ -1,0 +1,84 @@
+{
+  "stage_id": "bam.validate",
+  "stage_version": 1,
+  "tool_id": "samtools",
+  "tool_version": "1.0.0",
+  "image": {
+    "image": "bijux/test:latest",
+    "digest": null
+  },
+  "command": {
+    "template": [
+      "/bin/sh",
+      "-c",
+      "samtools quickcheck -v tests/fixtures/plan_inputs/default/sample.bam > out/validation.json && samtools flagstat tests/fixtures/plan_inputs/default/sample.bam > out/flagstat.txt"
+    ]
+  },
+  "resources": {
+    "runtime": "docker",
+    "mem_gb": 1,
+    "tmp_gb": 1,
+    "threads": 1
+  },
+  "io": {
+    "inputs": [
+      {
+        "name": "bam",
+        "path": "tests/fixtures/plan_inputs/default/sample.bam",
+        "role": "bam",
+        "optional": false
+      },
+      {
+        "name": "reference",
+        "path": "tests/fixtures/plan_inputs/default/reference.fasta",
+        "role": "index",
+        "optional": false
+      },
+      {
+        "name": "bam_bai",
+        "path": "tests/fixtures/plan_inputs/default/sample.bam.bai",
+        "role": "index",
+        "optional": false
+      }
+    ],
+    "outputs": [
+      {
+        "name": "validation_report",
+        "path": "out/validation.json",
+        "role": "report_json",
+        "optional": false
+      },
+      {
+        "name": "flagstat",
+        "path": "out/flagstat.txt",
+        "role": "report_json",
+        "optional": false
+      },
+      {
+        "name": "stage_metrics",
+        "path": "out/stage.metrics.json",
+        "role": "metrics_json",
+        "optional": false
+      }
+    ]
+  },
+  "out_dir": "out",
+  "params": {
+    "bai": "tests/fixtures/plan_inputs/default/sample.bam.bai",
+    "bam": "tests/fixtures/plan_inputs/default/sample.bam",
+    "reference": "tests/fixtures/plan_inputs/default/reference.fasta",
+    "strict": true
+  },
+  "effective_params": {
+    "strict": true
+  },
+  "aux_images": {},
+  "reason": {
+    "kind": "default",
+    "summary": "tool samtools selected by planner",
+    "details": {
+      "contract_hash": "925cb33211ccc79bc629bcfe4fad807cd594855b39c976795246bf27119d8ae5",
+      "defaults_diff": {}
+    }
+  }
+}

@@ -1,0 +1,110 @@
+{
+  "stage_id": "bam.filter",
+  "stage_version": 1,
+  "tool_id": "samtools",
+  "tool_version": "1.0.0",
+  "image": {
+    "image": "bijux/test:latest",
+    "digest": null
+  },
+  "command": {
+    "template": [
+      "/bin/sh",
+      "-c",
+      "samtools flagstat tests/fixtures/plan_inputs/default/sample.bam > out/flagstat.before.txt && samtools idxstats tests/fixtures/plan_inputs/default/sample.bam > out/idxstats.before.txt && samtools view -b -q 30 tests/fixtures/plan_inputs/default/sample.bam | samtools sort -o out/filtered.bam && samtools index out/filtered.bam out/filtered.bam.bai && samtools flagstat out/filtered.bam > out/flagstat.after.txt && samtools idxstats out/filtered.bam > out/idxstats.after.txt && python - <<'PY' > out/filter.summary.json\nimport json\npayload = {\"input_bam\": \"tests/fixtures/plan_inputs/default/sample.bam\", \"output_bam\": \"out/filtered.bam\", \"params\": {\"mapq_threshold\": 30, \"min_length\": 30}, \"artifacts\": {\"flagstat_before\": \"out/flagstat.before.txt\", \"flagstat_after\": \"out/flagstat.after.txt\", \"idxstats_before\": \"out/idxstats.before.txt\", \"idxstats_after\": \"out/idxstats.after.txt\"}}\nprint(json.dumps(payload, indent=2))\nPY"
+    ]
+  },
+  "resources": {
+    "runtime": "docker",
+    "mem_gb": 1,
+    "tmp_gb": 1,
+    "threads": 1
+  },
+  "io": {
+    "inputs": [
+      {
+        "name": "bam",
+        "path": "tests/fixtures/plan_inputs/default/sample.bam",
+        "role": "bam",
+        "optional": false
+      }
+    ],
+    "outputs": [
+      {
+        "name": "filtered_bam",
+        "path": "out/filtered.bam",
+        "role": "bam",
+        "optional": false
+      },
+      {
+        "name": "filtered_bai",
+        "path": "out/filtered.bam.bai",
+        "role": "index",
+        "optional": false
+      },
+      {
+        "name": "flagstat_before",
+        "path": "out/flagstat.before.txt",
+        "role": "report_json",
+        "optional": false
+      },
+      {
+        "name": "flagstat_after",
+        "path": "out/flagstat.after.txt",
+        "role": "report_json",
+        "optional": false
+      },
+      {
+        "name": "idxstats_before",
+        "path": "out/idxstats.before.txt",
+        "role": "unknown",
+        "optional": false
+      },
+      {
+        "name": "idxstats_after",
+        "path": "out/idxstats.after.txt",
+        "role": "unknown",
+        "optional": false
+      },
+      {
+        "name": "summary",
+        "path": "out/filter.summary.json",
+        "role": "report_json",
+        "optional": false
+      },
+      {
+        "name": "stage_metrics",
+        "path": "out/stage.metrics.json",
+        "role": "metrics_json",
+        "optional": false
+      }
+    ]
+  },
+  "out_dir": "out",
+  "params": {
+    "bam": "tests/fixtures/plan_inputs/default/sample.bam",
+    "base_quality_threshold": 20,
+    "exclude_flags": [],
+    "include_flags": [],
+    "mapq_threshold": 30,
+    "min_length": 30,
+    "remove_duplicates": false
+  },
+  "effective_params": {
+    "base_quality_threshold": 20,
+    "exclude_flags": [],
+    "include_flags": [],
+    "mapq_threshold": 30,
+    "min_length": 30,
+    "remove_duplicates": false
+  },
+  "aux_images": {},
+  "reason": {
+    "kind": "default",
+    "summary": "tool samtools selected by planner",
+    "details": {
+      "contract_hash": "95950b2b1f2552ef94b9322a5eedfc06c3097c92e9c52f50e9077cab56e3281c",
+      "defaults_diff": {}
+    }
+  }
+}

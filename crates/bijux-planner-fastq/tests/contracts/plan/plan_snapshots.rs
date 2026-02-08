@@ -1,3 +1,5 @@
+/// Snapshot intent: verifies stable, reviewed output for this contract.
+
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 
@@ -5,14 +7,25 @@ use bijux_core::contract::PlanPolicy;
 use bijux_core::prelude::{
     CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
 };
-use bijux_testkit::snapshot_name;
 use bijux_planner_fastq::{
     apply_tool_overrides, plan_fastq_to_fastq__default__v1, DefaultPipelineOptions,
     FastqPipelineInputs, FastqPlanConfig, FastqPlanner,
 };
 
+fn snapshot_settings() -> insta::Settings {
+    let mut settings = insta::Settings::clone_current();
+    settings.set_snapshot_path(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/snapshots"));
+    settings.set_prepend_module_to_snapshot(false);
+    settings
+}
+
+fn snapshot_name(group: &str, name: &str) -> String {
+    format!("bijux-planner-fastq__{group}__{name}")
+}
+
 #[test]
 fn fastq_plan_snapshot() {
+    let _guard = snapshot_settings().bind_to_scope();
     let tool_trim = ToolExecutionSpecV1 {
         tool_id: ToolId::from_static("fastp"),
         tool_version: "0.23.4".to_string(),
@@ -86,6 +99,7 @@ fn tool_override_precedence_is_stable() {
 
 #[test]
 fn default_pipeline_plan_snapshot_is_stable() {
+    let _guard = snapshot_settings().bind_to_scope();
     let stages = [
         "fastq.validate_pre",
         "fastq.detect_adapters",

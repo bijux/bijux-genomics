@@ -34,7 +34,7 @@ pub use selection::args;
 
 pub mod stage_api;
 
-fn required_stage_ids() -> Vec<String> {
+fn required_id_catalog() -> Vec<String> {
     let mut stages: Vec<String> = canonical_stage_order()
         .into_iter()
         .map(|stage| stage.as_str().to_string())
@@ -69,7 +69,7 @@ impl Default for DefaultPipelineOptions {
 
 #[must_use]
 pub fn default_pipeline_spec(options: DefaultPipelineOptions) -> PipelineSpec {
-    let mut stages = required_stage_ids();
+    let mut stages = required_id_catalog();
     if options.paired && options.enable_correct {
         stages.push(STAGE_CORRECT.as_str().to_string());
     }
@@ -309,7 +309,7 @@ pub fn resolve_preprocess_pipeline(
     if let Some(profile_id) = args.profile.as_deref() {
         match bijux_pipelines::registry::profile_by_id(bijux_pipelines::Domain::Fastq, profile_id) {
             Ok(profile) => {
-                let mut stages: Vec<String> = fastq_pipeline_stage_ids(profile.id.as_str());
+                let mut stages: Vec<String> = fastq_pipeline_id_catalog(profile.id.as_str());
                 if !enable_merge {
                     stages.retain(|stage| stage != STAGE_MERGE.as_str());
                 }
@@ -523,7 +523,7 @@ pub fn plan_fastq_to_bam__default__v1(
 }
 
 #[must_use]
-pub fn cross_fastq_to_bam_stage_ids(profile_id: &str) -> Vec<String> {
+pub fn cross_fastq_to_bam_id_catalog(profile_id: &str) -> Vec<String> {
     match profile_id {
         "fastq-to-bam__adna_shotgun__v1" | "fastq-to-bam__default__v1" => vec![
             STAGE_PREPROCESS.as_str().to_string(),
@@ -913,10 +913,10 @@ pub fn apply_tool_overrides(
 }
 
 #[must_use]
-pub fn fastq_pipeline_stage_ids(profile_id: &str) -> Vec<String> {
+pub fn fastq_pipeline_id_catalog(profile_id: &str) -> Vec<String> {
     match profile_id {
-        "fastq-to-fastq__default__v1" | "fastq-to-fastq__minimal__v1" => required_stage_ids(),
-        _ => required_stage_ids(),
+        "fastq-to-fastq__default__v1" | "fastq-to-fastq__minimal__v1" => required_id_catalog(),
+        _ => required_id_catalog(),
     }
 }
 

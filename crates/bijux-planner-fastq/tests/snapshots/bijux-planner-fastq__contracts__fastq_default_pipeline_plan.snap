@@ -1,15 +1,27 @@
 ---
-source: crates/bijux-planner-fastq/tests/plan_snapshots.rs
+source: crates/bijux-planner-fastq/tests/contracts/plan/plan_snapshots.rs
+assertion_line: 144
 expression: plan
 ---
 {
   "schema_version": "bijux.execution_graph.v1",
+  "contract_version": {
+    "major": 1,
+    "minor": 0
+  },
   "pipeline_id": "fastq-to-fastq__default__v1",
   "planner_version": "bijux-planner-fastq.v1",
-  "policy": "prefer_accuracy",
+  "policy": "PreferAccuracy",
+  "deterministic_scheduler": true,
+  "retry_policy": {
+    "max_attempts": 1,
+    "retry_on_exit_codes": []
+  },
+  "step_timeout_s": null,
   "steps": [
     {
       "step_id": "fastq.detect_adapters",
+      "stage_id": "fastq.detect_adapters",
       "command": {
         "template": [
           "echo"
@@ -29,13 +41,17 @@ expression: plan
         "inputs": [
           {
             "name": "reads_r1",
-            "path": "reads_R1.fastq.gz"
+            "path": "reads_R1.fastq.gz",
+            "role": "reads",
+            "optional": false
           }
         ],
         "outputs": [
           {
             "name": "fastqc_dir",
-            "path": "out/detect_adapters/fastqc/fastqc"
+            "path": "out/detect_adapters/fastqc/fastqc",
+            "role": "index",
+            "optional": false
           }
         ]
       },
@@ -46,6 +62,7 @@ expression: plan
     },
     {
       "step_id": "fastq.filter",
+      "stage_id": "fastq.filter",
       "command": {
         "template": [
           "echo"
@@ -65,13 +82,17 @@ expression: plan
         "inputs": [
           {
             "name": "reads_r1",
-            "path": "out/trim/fastp/fastp.fastq.gz"
+            "path": "out/trim/fastp/fastp.fastq.gz",
+            "role": "reads",
+            "optional": false
           }
         ],
         "outputs": [
           {
             "name": "filtered_reads",
-            "path": "out/filter/fastp/fastp.fastq.gz"
+            "path": "out/filter/fastp/fastp.fastq.gz",
+            "role": "reads",
+            "optional": false
           }
         ]
       },
@@ -82,6 +103,7 @@ expression: plan
     },
     {
       "step_id": "fastq.qc_post",
+      "stage_id": "fastq.qc_post",
       "command": {
         "template": [
           "echo"
@@ -101,17 +123,23 @@ expression: plan
         "inputs": [
           {
             "name": "reads_r1",
-            "path": "out/filter/fastp/fastp.fastq.gz"
+            "path": "out/filter/fastp/fastp.fastq.gz",
+            "role": "reads",
+            "optional": false
           }
         ],
         "outputs": [
           {
             "name": "multiqc_report",
-            "path": "out/qc_post/multiqc/multiqc_report.html"
+            "path": "out/qc_post/multiqc/multiqc_report.html",
+            "role": "report_html",
+            "optional": true
           },
           {
             "name": "multiqc_data",
-            "path": "out/qc_post/multiqc/multiqc_data"
+            "path": "out/qc_post/multiqc/multiqc_data",
+            "role": "index",
+            "optional": true
           }
         ]
       },
@@ -122,6 +150,7 @@ expression: plan
     },
     {
       "step_id": "fastq.stats_neutral",
+      "stage_id": "fastq.stats_neutral",
       "command": {
         "template": [
           "echo"
@@ -141,13 +170,17 @@ expression: plan
         "inputs": [
           {
             "name": "reads_r1",
-            "path": "out/filter/fastp/fastp.fastq.gz"
+            "path": "out/filter/fastp/fastp.fastq.gz",
+            "role": "reads",
+            "optional": false
           }
         ],
         "outputs": [
           {
             "name": "stats_json",
-            "path": "out/stats_neutral/seqkit_stats/stats.json"
+            "path": "out/stats_neutral/seqkit_stats/stats.json",
+            "role": "metrics_json",
+            "optional": false
           }
         ]
       },
@@ -158,6 +191,7 @@ expression: plan
     },
     {
       "step_id": "fastq.trim",
+      "stage_id": "fastq.trim",
       "command": {
         "template": [
           "echo"
@@ -177,13 +211,17 @@ expression: plan
         "inputs": [
           {
             "name": "reads_r1",
-            "path": "reads_R1.fastq.gz"
+            "path": "reads_R1.fastq.gz",
+            "role": "reads",
+            "optional": false
           }
         ],
         "outputs": [
           {
             "name": "trimmed_reads",
-            "path": "out/trim/fastp/fastp.fastq.gz"
+            "path": "out/trim/fastp/fastp.fastq.gz",
+            "role": "trimmed_reads",
+            "optional": false
           }
         ]
       },
@@ -194,6 +232,7 @@ expression: plan
     },
     {
       "step_id": "fastq.validate_pre",
+      "stage_id": "fastq.validate_pre",
       "command": {
         "template": [
           "echo"
@@ -213,13 +252,17 @@ expression: plan
         "inputs": [
           {
             "name": "reads_r1",
-            "path": "reads_R1.fastq.gz"
+            "path": "reads_R1.fastq.gz",
+            "role": "reads",
+            "optional": false
           }
         ],
         "outputs": [
           {
             "name": "validation_report",
-            "path": "out/validate_pre/fastqvalidator_official/validation.json"
+            "path": "out/validate_pre/fastqvalidator_official/validation.json",
+            "role": "report_json",
+            "optional": false
           }
         ]
       },

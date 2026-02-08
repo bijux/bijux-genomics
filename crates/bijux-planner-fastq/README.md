@@ -31,11 +31,14 @@ See `docs/INDEX.md`, `docs/PLANNER_MODEL.md`, `docs/TOOL_SELECTION.md`, `docs/EX
 ## Key contracts it owns/consumes
 Plan JSON and explain payload snapshots.
 
+## Artifacts / Contracts
+See `docs/PLANNER_MODEL.md`, `docs/EXPLAIN_OUTPUT.md`, and snapshots under `tests/snapshots/`.
+
 ## Effects & determinism guarantees
 Pure planning; deterministic ordering/hashes. See `docs/DETERMINISM.md` and the golden tests below.
 
 ## How to run its tests
-See `docs/TESTS.md`. Golden tests: `tests/determinism.rs`, `tests/graph.rs`,
+See `docs/TESTS.md`. Golden tests: `tests/determinism.rs`, `tests/contracts/graph.rs`,
 `tests/explain.rs`, `tests/plan.rs`.
 
 ## Start here in code

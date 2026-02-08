@@ -1,7 +1,7 @@
 use bijux_core::prelude::{
     CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
 };
-use bijux_planner_bam::{pipeline_stage_ids, plan_stage, StagePlanRequest};
+use bijux_planner_bam::{pipeline_id_catalog, plan_stage, StagePlanRequest};
 
 fn dummy_tool(stage: &str) -> ToolExecutionSpecV1 {
     ToolExecutionSpecV1 {
@@ -25,7 +25,7 @@ fn dummy_tool(stage: &str) -> ToolExecutionSpecV1 {
 
 #[test]
 fn bam_plan_reasons_include_defaults_and_contract_hash() -> anyhow::Result<()> {
-    let stages = pipeline_stage_ids("bam-to-bam__default__v1");
+    let stages = pipeline_id_catalog("bam-to-bam__default__v1");
     let temp = bijux_infra::temp_dir("bam-plan-reasons")?;
     let bam = temp.path().join("sample.bam");
     std::fs::write(&bam, b"")?;

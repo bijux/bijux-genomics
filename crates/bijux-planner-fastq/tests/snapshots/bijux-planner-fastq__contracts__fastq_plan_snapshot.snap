@@ -1,15 +1,27 @@
 ---
-source: crates/bijux-planner-fastq/tests/plan_snapshots.rs
+source: crates/bijux-planner-fastq/tests/contracts/plan/plan_snapshots.rs
+assertion_line: 67
 expression: plan
 ---
 {
   "schema_version": "bijux.execution_graph.v1",
+  "contract_version": {
+    "major": 1,
+    "minor": 0
+  },
   "pipeline_id": "fastq-to-fastq__default__v1",
   "planner_version": "bijux-planner-fastq.v1",
-  "policy": "prefer_accuracy",
+  "policy": "PreferAccuracy",
+  "deterministic_scheduler": true,
+  "retry_policy": {
+    "max_attempts": 1,
+    "retry_on_exit_codes": []
+  },
+  "step_timeout_s": null,
   "steps": [
     {
       "step_id": "fastq.trim",
+      "stage_id": "fastq.trim",
       "command": {
         "template": [
           "fastp"
@@ -29,13 +41,17 @@ expression: plan
         "inputs": [
           {
             "name": "reads_r1",
-            "path": "reads_R1.fastq.gz"
+            "path": "reads_R1.fastq.gz",
+            "role": "reads",
+            "optional": false
           }
         ],
         "outputs": [
           {
             "name": "trimmed_reads",
-            "path": "out/trim/fastp/fastp.fastq.gz"
+            "path": "out/trim/fastp/fastp.fastq.gz",
+            "role": "trimmed_reads",
+            "optional": false
           }
         ]
       },
@@ -46,6 +62,7 @@ expression: plan
     },
     {
       "step_id": "fastq.validate_pre",
+      "stage_id": "fastq.validate_pre",
       "command": {
         "template": [
           "fastqvalidator"
@@ -65,13 +82,17 @@ expression: plan
         "inputs": [
           {
             "name": "reads_r1",
-            "path": "reads_R1.fastq.gz"
+            "path": "reads_R1.fastq.gz",
+            "role": "reads",
+            "optional": false
           }
         ],
         "outputs": [
           {
             "name": "validation_report",
-            "path": "out/validate_pre/fastqvalidator_official/validation.json"
+            "path": "out/validate_pre/fastqvalidator_official/validation.json",
+            "role": "report_json",
+            "optional": false
           }
         ]
       },

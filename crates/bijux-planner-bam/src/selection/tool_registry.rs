@@ -1,5 +1,7 @@
 use std::collections::BTreeMap;
 
+use bijux_core::ids::id_catalog;
+
 #[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct ToolAdapterEntry {
@@ -12,20 +14,20 @@ pub struct ToolAdapterEntry {
 pub fn tool_registry() -> BTreeMap<&'static str, ToolAdapterEntry> {
     let mut map = BTreeMap::new();
     for (tool_id, adapter_id) in [
-        ("bwa", "bam.align"),
-        ("bowtie2", "bam.align"),
-        ("samtools", "bam.validate"),
-        ("picard", "bam.markdup"),
-        ("gatk", "bam.recalibration"),
-        ("mosdepth", "bam.coverage"),
-        ("pydamage", "bam.damage"),
-        ("mapdamage2", "bam.damage"),
-        ("preseq", "bam.complexity"),
-        ("authenticct", "bam.authenticity"),
-        ("yleaf", "bam.haplogroups"),
-        ("king", "bam.kinship"),
-        ("angsd", "bam.contamination"),
-        ("rxy", "bam.sex"),
+        ("bwa", id_catalog::BAM_ALIGN),
+        ("bowtie2", id_catalog::BAM_ALIGN),
+        ("samtools", id_catalog::BAM_VALIDATE),
+        ("picard", id_catalog::BAM_MARKDUP),
+        ("gatk", id_catalog::BAM_RECALIBRATION),
+        ("mosdepth", id_catalog::BAM_COVERAGE),
+        ("pydamage", id_catalog::BAM_DAMAGE),
+        ("mapdamage2", id_catalog::BAM_DAMAGE),
+        ("preseq", id_catalog::BAM_COMPLEXITY),
+        ("authenticct", id_catalog::BAM_AUTHENTICITY),
+        ("yleaf", id_catalog::BAM_HAPLOGROUPS),
+        ("king", id_catalog::BAM_KINSHIP),
+        ("angsd", id_catalog::BAM_CONTAMINATION),
+        ("rxy", id_catalog::BAM_SEX),
     ] {
         map.insert(
             tool_id,

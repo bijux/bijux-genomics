@@ -8,7 +8,7 @@ fn graph_snapshots_are_documented() {
         .join("EXPLAIN_OUTPUT.md");
     let content = fs::read_to_string(&doc).expect("read EXPLAIN_OUTPUT.md");
     assert!(
-        content.contains("tests/graph/graph_snapshots.rs"),
-        "EXPLAIN_OUTPUT.md must reference tests/graph/graph_snapshots.rs"
+        content.contains("tests/contracts/graph/graph_snapshots.rs"),
+        "EXPLAIN_OUTPUT.md must reference tests/contracts/graph/graph_snapshots.rs"
     );
 }

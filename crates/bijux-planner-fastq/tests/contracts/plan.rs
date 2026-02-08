@@ -1,7 +1,5 @@
 #[path = "plan/contract_handshake.rs"]
 mod contract_handshake;
-#[path = "plan/guardrails.rs"]
-mod guardrails;
 #[path = "plan/no_parsing.rs"]
 mod no_parsing;
 #[path = "plan/plan_json.rs"]

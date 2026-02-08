@@ -4,6 +4,7 @@ use bijux_core::contract::ExecutionStep;
 use bijux_core::contract::{ArtifactRef, StageIO, ToolConstraints};
 use bijux_core::prelude::{CommandSpecV1, ContainerImageRefV1};
 use bijux_core::prelude::{StageId, StepId};
+use bijux_core::prelude::id_catalog;
 
 #[must_use]
 pub fn report_stage_step(
@@ -12,8 +13,8 @@ pub fn report_stage_step(
     outputs: Vec<ArtifactRef>,
 ) -> ExecutionStep {
     ExecutionStep {
-        step_id: StepId::new("report.aggregate"),
-        stage_id: StageId::new("report.aggregate"),
+        step_id: StepId::from_static(id_catalog::REPORT_AGGREGATE_STEP),
+        stage_id: StageId::from_static(id_catalog::REPORT_AGGREGATE_STAGE),
         command: CommandSpecV1 {
             template: vec!["report-aggregate".to_string()],
         },

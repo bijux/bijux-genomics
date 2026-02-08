@@ -1,4 +1,5 @@
 use std::collections::BTreeMap;
+use std::path::PathBuf;
 
 use bijux_core::contract::PlanPolicy;
 use bijux_core::prelude::{
@@ -9,7 +10,10 @@ use bijux_planner_fastq::{
     default_pipeline_spec, plan_fastq_to_fastq__default__v1, DefaultPipelineOptions,
     FastqPipelineInputs,
 };
-use bijux_testkit::snapshot_name;
+
+fn snapshot_name(group: &str, name: &str) -> String {
+    format!("bijux-planner-fastq__{group}__{name}")
+}
 
 fn tool_for_stage(stage: &str) -> ToolExecutionSpecV1 {
     let stage_id = bijux_core::ids::StageId::new(stage);
@@ -63,7 +67,9 @@ fn fastq_default_pipeline_graph_is_pure() -> anyhow::Result<()> {
     let graph = plan_fastq_to_fastq__default__v1(&inputs, DefaultPipelineOptions::default())?;
     let json = serde_json::to_value(&graph)?;
     let json = bijux_core::contract::canonical::canonicalize_truth_json(&json);
-    let mut settings = insta::Settings::new();
+    let mut settings = insta::Settings::clone_current();
+    settings.set_snapshot_path(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/snapshots"));
+    settings.set_prepend_module_to_snapshot(false);
     settings.add_filter(temp.path().to_str().unwrap_or_default(), "<temp>");
     settings.bind(|| {
         let name = snapshot_name("contracts", "fastq_default_graph");
