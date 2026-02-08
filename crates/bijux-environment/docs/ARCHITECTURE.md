@@ -6,4 +6,4 @@
 - runtime_spec
 
 ## Data flow
-- Specs → resolved images/digests.
+See `ENV_REFERENCE.md` for the authoritative resolution rules and precedence.
