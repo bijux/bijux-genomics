@@ -10,8 +10,8 @@ mod report;
 mod report_build;
 #[path = "report/report_completeness_blessed.rs"]
 mod report_completeness_blessed;
-#[path = "report/report_completeness_policy.rs"]
-mod report_completeness_policy;
+#[path = "report/report_completeness_contract.rs"]
+mod report_completeness_contract;
 #[path = "report/report_contract.rs"]
 mod report_contract;
 #[path = "report/report_determinism.rs"]

@@ -1,6 +1,10 @@
 use std::fs;
 use std::path::PathBuf;
 
+fn snapshot_name(group: &str, name: &str) -> String {
+    format!("bijux-analyze__{group}__{name}")
+}
+
 #[test]
 fn public_api_snapshot() -> anyhow::Result<()> {
     let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
@@ -44,10 +48,8 @@ fn public_api_snapshot() -> anyhow::Result<()> {
         }
     }
     let rendered = items.join("\n");
-    let snapshot_path = manifest_dir
-        .join("tests")
-        .join("snapshots")
-        .join("public_api.txt");
+    let snapshot_file = format!("{}.txt", snapshot_name("schemas", "public_api"));
+    let snapshot_path = manifest_dir.join("tests").join("snapshots").join(snapshot_file);
     let snapshot = fs::read_to_string(&snapshot_path)?;
     assert_eq!(rendered.trim(), snapshot.trim());
     Ok(())

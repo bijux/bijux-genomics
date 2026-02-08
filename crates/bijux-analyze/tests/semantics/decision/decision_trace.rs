@@ -6,6 +6,10 @@ use anyhow::Result;
 use bijux_analyze::decision::compare::{compare_robust_stats, trace_for_robust_stats};
 use bijux_analyze::decision::score::{decision_trace_for_input, RankInput, RankingMode};
 
+fn snapshot_name(group: &str, name: &str) -> String {
+    format!("bijux-analyze__{group}__{name}")
+}
+
 fn snapshot_path(name: &str) -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("tests")
@@ -25,7 +29,10 @@ fn decision_trace_missing_metrics_snapshot() -> Result<()> {
     };
     let trace = decision_trace_for_input(RankingMode::BalancedPareto, &input);
     let rendered = serde_json::to_string_pretty(&trace)?;
-    let snapshot = fs::read_to_string(snapshot_path("decision_trace_missing.json"))?;
+    let snapshot = fs::read_to_string(snapshot_path(&format!(
+        "{}.json",
+        snapshot_name("semantics", "decision_trace_missing")
+    )))?;
     assert_eq!(rendered.trim(), snapshot.trim());
     Ok(())
 }
@@ -70,7 +77,10 @@ fn decision_trace_outliers_snapshot() -> Result<()> {
     let stats = compare_robust_stats(&rows)?;
     let trace = trace_for_robust_stats(&stats);
     let rendered = serde_json::to_string_pretty(&trace)?;
-    let snapshot = fs::read_to_string(snapshot_path("decision_trace_outliers.json"))?;
+    let snapshot = fs::read_to_string(snapshot_path(&format!(
+        "{}.json",
+        snapshot_name("semantics", "decision_trace_outliers")
+    )))?;
     assert_eq!(rendered.trim(), snapshot.trim());
     Ok(())
 }

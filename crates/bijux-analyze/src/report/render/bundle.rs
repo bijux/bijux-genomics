@@ -40,13 +40,18 @@ mod tests {
     use std::fs;
     use std::path::PathBuf;
 
+    fn snapshot_name(group: &str, name: &str) -> String {
+        format!("bijux-analyze__{group}__{name}")
+    }
+
     #[test]
     fn report_bundle_snapshot() -> anyhow::Result<()> {
         let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
         let report_path = manifest_dir
             .join("tests")
             .join("snapshots")
-            .join("run_report.json");
+            .join(snapshot_name("schemas", "run_report"))
+            .with_extension("json");
         let raw = fs::read_to_string(&report_path)?;
         let report: ReportSchemaV1 = serde_json::from_str(&raw)?;
         let model = ReportModel::empty(report);
@@ -58,7 +63,8 @@ mod tests {
         let snapshot_path = manifest_dir
             .join("tests")
             .join("snapshots")
-            .join("run_report_bundle_index.html");
+            .join(snapshot_name("contracts", "run_report_bundle_index"))
+            .with_extension("html");
         let expected = fs::read_to_string(&snapshot_path)?;
         let extract_json = |doc: &str| -> anyhow::Result<serde_json::Value> {
             let marker = r#"<script id="report-json" type="application/json">"#;

@@ -95,21 +95,21 @@ fn write_pipeline_report(domain: Domain, pipeline_id: &str) -> Result<serde_json
     let dir = tempfile::tempdir()?;
     let base_dir = dir.path().join("pipeline");
     bijux_infra::ensure_dir(&base_dir)?;
-    let stage_ids = match profile.id.as_str() {
+    let id_catalog = match profile.id.as_str() {
         "fastq-to-fastq__default__v1" | "fastq-to-fastq__minimal__v1" => {
-            bijux_planner_fastq::fastq_pipeline_stage_ids(profile.id.as_str())
+            bijux_planner_fastq::fastq_pipeline_id_catalog(profile.id.as_str())
         }
         "fastq-to-bam__default__v1" | "fastq-to-bam__adna_shotgun__v1" => {
-            bijux_planner_fastq::cross_fastq_to_bam_stage_ids(profile.id.as_str())
+            bijux_planner_fastq::cross_fastq_to_bam_id_catalog(profile.id.as_str())
         }
         "bam-to-bam__default__v1"
         | "bam-to-bam__adna_shotgun__v1"
         | "bam-to-bam__adna_capture__v1" => {
-            bijux_planner_bam::pipeline_stage_ids(profile.id.as_str())
+            bijux_planner_bam::pipeline_id_catalog(profile.id.as_str())
         }
         _ => Vec::new(),
     };
-    for (idx, stage_id) in stage_ids.iter().enumerate() {
+    for (idx, stage_id) in id_catalog.iter().enumerate() {
         let tool = profile
             .defaults
             .tools

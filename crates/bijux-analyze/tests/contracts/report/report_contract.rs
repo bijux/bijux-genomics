@@ -5,6 +5,10 @@ use bijux_runtime::{FactsRowV1, ReportSchemaV1, StageReportV1};
 use std::fs;
 use std::path::PathBuf;
 
+fn snapshot_name(group: &str, name: &str) -> String {
+    format!("bijux-analyze__{group}__{name}")
+}
+
 #[test]
 #[allow(clippy::too_many_lines)]
 fn report_sections_exist_for_all_stages() -> Result<()> {
@@ -126,10 +130,8 @@ fn report_sections_exist_for_all_stages() -> Result<()> {
 #[test]
 fn report_schema_allows_unknown_fields() -> Result<()> {
     let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    let snapshot_path = manifest_dir
-        .join("tests")
-        .join("snapshots")
-        .join("run_report.json");
+    let snapshot_file = format!("{}.json", snapshot_name("schemas", "run_report"));
+    let snapshot_path = manifest_dir.join("tests").join("snapshots").join(snapshot_file);
     let mut value: serde_json::Value = serde_json::from_str(&fs::read_to_string(snapshot_path)?)?;
     if let Some(obj) = value.as_object_mut() {
         obj.insert("new_field".to_string(), serde_json::json!({"future": true}));
@@ -145,7 +147,7 @@ fn stage_sections_cover_all_executed_stages() -> Result<()> {
         .get("stages")
         .and_then(|value| value.as_array())
         .ok_or_else(|| anyhow::anyhow!("missing stages"))?;
-    let stage_ids: Vec<String> = stages
+    let id_catalog: Vec<String> = stages
         .iter()
         .filter_map(|stage| stage.get("stage_id").and_then(|v| v.as_str()))
         .map(str::to_string)
@@ -165,7 +167,7 @@ fn stage_sections_cover_all_executed_stages() -> Result<()> {
             covered.insert(stage_id.to_string());
         }
     }
-    for stage_id in stage_ids {
+    for stage_id in id_catalog {
         assert!(
             covered.contains(&stage_id),
             "stage_completeness missing stage {stage_id}"
@@ -176,10 +178,8 @@ fn stage_sections_cover_all_executed_stages() -> Result<()> {
 
 fn load_report_snapshot() -> Result<serde_json::Value> {
     let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    let path = manifest_dir
-        .join("tests")
-        .join("snapshots")
-        .join("run_report.json");
+    let snapshot_file = format!("{}.json", snapshot_name("schemas", "run_report"));
+    let path = manifest_dir.join("tests").join("snapshots").join(snapshot_file);
     let raw = fs::read_to_string(&path)?;
     Ok(serde_json::from_str(&raw)?)
 }

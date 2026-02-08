@@ -1,6 +1,7 @@
 ---
-source: crates/bijux-analyze/tests/pipeline/pipeline_e2e.rs
-expression: report
+source: crates/bijux-analyze/tests/contracts/pipeline/pipeline_e2e.rs
+assertion_line: 158
+expression: json
 ---
 {
   "adapter_inference": {
@@ -12,39 +13,52 @@ expression: report
     {
       "banks": {},
       "stage_id": "bam.align",
-      "tool_id": "bwa"
+      "tool_id": "tool"
     },
     {
       "banks": {},
       "stage_id": "bam.coverage",
-      "tool_id": "mosdepth"
+      "tool_id": "tool"
     },
     {
       "banks": {},
       "stage_id": "bam.damage",
-      "tool_id": "pydamage"
+      "tool_id": "tool"
     },
     {
       "banks": {},
       "stage_id": "bam.qc_pre",
-      "tool_id": "samtools"
+      "tool_id": "tool"
     },
     {
       "banks": {},
       "stage_id": "core.prepare_reference",
-      "tool_id": "samtools"
+      "tool_id": "tool"
     },
     {
       "banks": {},
       "stage_id": "fastq.preprocess",
-      "tool_id": "planner"
+      "tool_id": "tool"
     }
   ],
   "completeness": {
     "missing_metrics": [
       "core.prepare_reference:metrics"
     ],
-    "missing_reports": [],
+    "missing_reports": [
+      "bam.align:metrics_path",
+      "bam.align:retention_report",
+      "bam.coverage:metrics_path",
+      "bam.coverage:retention_report",
+      "bam.damage:metrics_path",
+      "bam.damage:retention_report",
+      "bam.qc_pre:metrics_path",
+      "bam.qc_pre:retention_report",
+      "core.prepare_reference:metrics_path",
+      "core.prepare_reference:retention_report",
+      "fastq.preprocess:metrics_path",
+      "fastq.preprocess:retention_report"
+    ],
     "status": "incomplete"
   },
   "contract": {
@@ -160,7 +174,7 @@ expression: report
       "params_hash": "params",
       "span_id": "span-bam.align",
       "stage_id": "bam.align",
-      "tool_id": "bwa",
+      "tool_id": "tool",
       "tool_version": "0.0.0",
       "trace_id": "trace-1"
     },
@@ -170,7 +184,7 @@ expression: report
       "params_hash": "params",
       "span_id": "span-bam.coverage",
       "stage_id": "bam.coverage",
-      "tool_id": "mosdepth",
+      "tool_id": "tool",
       "tool_version": "0.0.0",
       "trace_id": "trace-1"
     },
@@ -180,7 +194,7 @@ expression: report
       "params_hash": "params",
       "span_id": "span-bam.damage",
       "stage_id": "bam.damage",
-      "tool_id": "pydamage",
+      "tool_id": "tool",
       "tool_version": "0.0.0",
       "trace_id": "trace-1"
     },
@@ -190,7 +204,7 @@ expression: report
       "params_hash": "params",
       "span_id": "span-bam.qc_pre",
       "stage_id": "bam.qc_pre",
-      "tool_id": "samtools",
+      "tool_id": "tool",
       "tool_version": "0.0.0",
       "trace_id": "trace-1"
     },
@@ -200,7 +214,7 @@ expression: report
       "params_hash": "params",
       "span_id": "span-core.prepare_reference",
       "stage_id": "core.prepare_reference",
-      "tool_id": "samtools",
+      "tool_id": "tool",
       "tool_version": "0.0.0",
       "trace_id": "trace-1"
     },
@@ -210,7 +224,7 @@ expression: report
       "params_hash": "params",
       "span_id": "span-fastq.preprocess",
       "stage_id": "fastq.preprocess",
-      "tool_id": "planner",
+      "tool_id": "tool",
       "tool_version": "0.0.0",
       "trace_id": "trace-1"
     }
@@ -224,40 +238,40 @@ expression: report
     "accounting": {
       "stages": [
         {
-          "bases": 1000,
-          "reads": 100,
+          "bases": 800,
+          "reads": 80,
           "stage_id": "bam.align",
-          "tool_id": "bwa"
+          "tool_id": "tool"
         },
         {
-          "bases": 1000,
-          "reads": 100,
+          "bases": 800,
+          "reads": 80,
           "stage_id": "bam.coverage",
-          "tool_id": "mosdepth"
+          "tool_id": "tool"
         },
         {
-          "bases": 1000,
-          "reads": 100,
+          "bases": 800,
+          "reads": 80,
           "stage_id": "bam.damage",
-          "tool_id": "pydamage"
+          "tool_id": "tool"
         },
         {
-          "bases": 1000,
-          "reads": 100,
+          "bases": 800,
+          "reads": 80,
           "stage_id": "bam.qc_pre",
-          "tool_id": "samtools"
+          "tool_id": "tool"
         },
         {
-          "bases": 1000,
-          "reads": 100,
+          "bases": 800,
+          "reads": 80,
           "stage_id": "core.prepare_reference",
-          "tool_id": "samtools"
+          "tool_id": "tool"
         },
         {
-          "bases": 1000,
-          "reads": 100,
+          "bases": 800,
+          "reads": 80,
           "stage_id": "fastq.preprocess",
-          "tool_id": "planner"
+          "tool_id": "tool"
         }
       ]
     },
@@ -318,32 +332,32 @@ expression: report
         {
           "results": [],
           "stage_id": "bam.align",
-          "tool_id": "bwa"
+          "tool_id": "tool"
         },
         {
           "results": [],
           "stage_id": "bam.coverage",
-          "tool_id": "mosdepth"
+          "tool_id": "tool"
         },
         {
           "results": [],
           "stage_id": "bam.damage",
-          "tool_id": "pydamage"
+          "tool_id": "tool"
         },
         {
           "results": [],
           "stage_id": "bam.qc_pre",
-          "tool_id": "samtools"
+          "tool_id": "tool"
         },
         {
           "results": [],
           "stage_id": "core.prepare_reference",
-          "tool_id": "samtools"
+          "tool_id": "tool"
         },
         {
           "results": [],
           "stage_id": "fastq.preprocess",
-          "tool_id": "planner"
+          "tool_id": "tool"
         }
       ]
     },
@@ -354,9 +368,9 @@ expression: report
           "coverage_mean": 0.0,
           "duplicates_fraction": 0.0,
           "reads_in": 100,
-          "reads_out": 100,
+          "reads_out": 80,
           "stage_id": "bam.align",
-          "tool_id": "bwa",
+          "tool_id": "tool",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -376,9 +390,9 @@ expression: report
           "coverage_mean": 0.0,
           "duplicates_fraction": 0.0,
           "reads_in": 100,
-          "reads_out": 100,
+          "reads_out": 80,
           "stage_id": "bam.coverage",
-          "tool_id": "mosdepth",
+          "tool_id": "tool",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -398,9 +412,9 @@ expression: report
           "coverage_mean": 0.0,
           "duplicates_fraction": 0.0,
           "reads_in": 100,
-          "reads_out": 100,
+          "reads_out": 80,
           "stage_id": "bam.damage",
-          "tool_id": "pydamage",
+          "tool_id": "tool",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -420,9 +434,9 @@ expression: report
           "coverage_mean": 0.0,
           "duplicates_fraction": 0.0,
           "reads_in": 100,
-          "reads_out": 100,
+          "reads_out": 80,
           "stage_id": "bam.qc_pre",
-          "tool_id": "samtools",
+          "tool_id": "tool",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -555,7 +569,7 @@ expression: report
             "kinship": false,
             "sex": false
           },
-          "tool_id": "bwa",
+          "tool_id": "tool",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -584,7 +598,7 @@ expression: report
             "kinship": false,
             "sex": false
           },
-          "tool_id": "mosdepth",
+          "tool_id": "tool",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -613,7 +627,7 @@ expression: report
             "kinship": false,
             "sex": false
           },
-          "tool_id": "pydamage",
+          "tool_id": "tool",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -642,7 +656,7 @@ expression: report
             "kinship": false,
             "sex": false
           },
-          "tool_id": "samtools",
+          "tool_id": "tool",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -678,32 +692,32 @@ expression: report
         {
           "banks": {},
           "stage_id": "bam.align",
-          "tool_id": "bwa"
+          "tool_id": "tool"
         },
         {
           "banks": {},
           "stage_id": "bam.coverage",
-          "tool_id": "mosdepth"
+          "tool_id": "tool"
         },
         {
           "banks": {},
           "stage_id": "bam.damage",
-          "tool_id": "pydamage"
+          "tool_id": "tool"
         },
         {
           "banks": {},
           "stage_id": "bam.qc_pre",
-          "tool_id": "samtools"
+          "tool_id": "tool"
         },
         {
           "banks": {},
           "stage_id": "core.prepare_reference",
-          "tool_id": "samtools"
+          "tool_id": "tool"
         },
         {
           "banks": {},
           "stage_id": "fastq.preprocess",
-          "tool_id": "planner"
+          "tool_id": "tool"
         }
       ]
     },
@@ -711,7 +725,20 @@ expression: report
       "missing_metrics": [
         "core.prepare_reference:metrics"
       ],
-      "missing_reports": [],
+      "missing_reports": [
+        "bam.align:metrics_path",
+        "bam.align:retention_report",
+        "bam.coverage:metrics_path",
+        "bam.coverage:retention_report",
+        "bam.damage:metrics_path",
+        "bam.damage:retention_report",
+        "bam.qc_pre:metrics_path",
+        "bam.qc_pre:retention_report",
+        "core.prepare_reference:metrics_path",
+        "core.prepare_reference:retention_report",
+        "fastq.preprocess:metrics_path",
+        "fastq.preprocess:retention_report"
+      ],
       "status": "incomplete"
     },
     "decision_config": {
@@ -745,12 +772,15 @@ expression: report
           "contaminant_action": false,
           "input_hash": "input",
           "missing_metrics": [],
-          "missing_reports": [],
+          "missing_reports": [
+            "metrics_path",
+            "retention_report"
+          ],
           "params_hash": "params",
           "quality_gate": {},
           "stage_id": "bam.align",
           "telemetry_decisions": [],
-          "tool_id": "bwa",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
@@ -758,12 +788,15 @@ expression: report
           "contaminant_action": false,
           "input_hash": "input",
           "missing_metrics": [],
-          "missing_reports": [],
+          "missing_reports": [
+            "metrics_path",
+            "retention_report"
+          ],
           "params_hash": "params",
           "quality_gate": {},
           "stage_id": "bam.coverage",
           "telemetry_decisions": [],
-          "tool_id": "mosdepth",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
@@ -771,12 +804,15 @@ expression: report
           "contaminant_action": false,
           "input_hash": "input",
           "missing_metrics": [],
-          "missing_reports": [],
+          "missing_reports": [
+            "metrics_path",
+            "retention_report"
+          ],
           "params_hash": "params",
           "quality_gate": {},
           "stage_id": "bam.damage",
           "telemetry_decisions": [],
-          "tool_id": "pydamage",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
@@ -784,12 +820,15 @@ expression: report
           "contaminant_action": false,
           "input_hash": "input",
           "missing_metrics": [],
-          "missing_reports": [],
+          "missing_reports": [
+            "metrics_path",
+            "retention_report"
+          ],
           "params_hash": "params",
           "quality_gate": {},
           "stage_id": "bam.qc_pre",
           "telemetry_decisions": [],
-          "tool_id": "samtools",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
@@ -799,12 +838,15 @@ expression: report
           "missing_metrics": [
             "metrics"
           ],
-          "missing_reports": [],
+          "missing_reports": [
+            "metrics_path",
+            "retention_report"
+          ],
           "params_hash": "params",
           "quality_gate": {},
           "stage_id": "core.prepare_reference",
           "telemetry_decisions": [],
-          "tool_id": "samtools",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
@@ -812,12 +854,15 @@ expression: report
           "contaminant_action": false,
           "input_hash": "input",
           "missing_metrics": [],
-          "missing_reports": [],
+          "missing_reports": [
+            "metrics_path",
+            "retention_report"
+          ],
           "params_hash": "params",
           "quality_gate": {},
           "stage_id": "fastq.preprocess",
           "telemetry_decisions": [],
-          "tool_id": "planner",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         }
       ]
@@ -831,7 +876,20 @@ expression: report
         "missing_metrics": [
           "core.prepare_reference:metrics"
         ],
-        "missing_reports": [],
+        "missing_reports": [
+          "bam.align:metrics_path",
+          "bam.align:retention_report",
+          "bam.coverage:metrics_path",
+          "bam.coverage:retention_report",
+          "bam.damage:metrics_path",
+          "bam.damage:retention_report",
+          "bam.qc_pre:metrics_path",
+          "bam.qc_pre:retention_report",
+          "core.prepare_reference:metrics_path",
+          "core.prepare_reference:retention_report",
+          "fastq.preprocess:metrics_path",
+          "fastq.preprocess:retention_report"
+        ],
         "status": "incomplete"
       }
     },
@@ -861,6 +919,24 @@ expression: report
           "core.prepare_reference:metrics"
         ],
         "kind": "missing_metrics"
+      },
+      {
+        "count": 12,
+        "items": [
+          "bam.align:metrics_path",
+          "bam.align:retention_report",
+          "bam.coverage:metrics_path",
+          "bam.coverage:retention_report",
+          "bam.damage:metrics_path",
+          "bam.damage:retention_report",
+          "bam.qc_pre:metrics_path",
+          "bam.qc_pre:retention_report",
+          "core.prepare_reference:metrics_path",
+          "core.prepare_reference:retention_report",
+          "fastq.preprocess:metrics_path",
+          "fastq.preprocess:retention_report"
+        ],
+        "kind": "missing_reports"
       }
     ],
     "method_assumptions": {
@@ -896,45 +972,45 @@ expression: report
       },
       "presets": [
         {
-          "effective_config_path": "stage_2/effective_config.json",
+          "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "bam.align",
-          "tool_id": "bwa",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
-          "effective_config_path": "stage_4/effective_config.json",
+          "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "bam.coverage",
-          "tool_id": "mosdepth",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
-          "effective_config_path": "stage_5/effective_config.json",
+          "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "bam.damage",
-          "tool_id": "pydamage",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
-          "effective_config_path": "stage_3/effective_config.json",
+          "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "bam.qc_pre",
-          "tool_id": "samtools",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
-          "effective_config_path": "stage_1/effective_config.json",
+          "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "core.prepare_reference",
-          "tool_id": "samtools",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
-          "effective_config_path": "stage_0/effective_config.json",
+          "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "fastq.preprocess",
-          "tool_id": "planner",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         }
       ],
@@ -946,42 +1022,42 @@ expression: report
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "bam.align",
-          "tool_id": "bwa",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "bam.coverage",
-          "tool_id": "mosdepth",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "bam.damage",
-          "tool_id": "pydamage",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "bam.qc_pre",
-          "tool_id": "samtools",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "core.prepare_reference",
-          "tool_id": "samtools",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "fastq.preprocess",
-          "tool_id": "planner",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         }
       ]
@@ -1285,7 +1361,7 @@ expression: report
           "scientific_preset": null,
           "stage_id": "bam.align",
           "tier_rationale": "unknown_tool",
-          "tool_id": "bwa",
+          "tool_id": "tool",
           "tool_tier": "experimental",
           "tool_version": "0.0.0"
         },
@@ -1299,7 +1375,7 @@ expression: report
           "scientific_preset": null,
           "stage_id": "bam.coverage",
           "tier_rationale": "unknown_tool",
-          "tool_id": "mosdepth",
+          "tool_id": "tool",
           "tool_tier": "experimental",
           "tool_version": "0.0.0"
         },
@@ -1313,7 +1389,7 @@ expression: report
           "scientific_preset": null,
           "stage_id": "bam.damage",
           "tier_rationale": "unknown_tool",
-          "tool_id": "pydamage",
+          "tool_id": "tool",
           "tool_tier": "experimental",
           "tool_version": "0.0.0"
         },
@@ -1327,7 +1403,7 @@ expression: report
           "scientific_preset": null,
           "stage_id": "bam.qc_pre",
           "tier_rationale": "unknown_tool",
-          "tool_id": "samtools",
+          "tool_id": "tool",
           "tool_tier": "experimental",
           "tool_version": "0.0.0"
         },
@@ -1341,7 +1417,7 @@ expression: report
           "scientific_preset": null,
           "stage_id": "core.prepare_reference",
           "tier_rationale": "unknown_tool",
-          "tool_id": "samtools",
+          "tool_id": "tool",
           "tool_tier": "experimental",
           "tool_version": "0.0.0"
         },
@@ -1355,7 +1431,7 @@ expression: report
           "scientific_preset": null,
           "stage_id": "fastq.preprocess",
           "tier_rationale": "unknown_tool",
-          "tool_id": "planner",
+          "tool_id": "tool",
           "tool_tier": "experimental",
           "tool_version": "0.0.0"
         }
@@ -1424,7 +1500,7 @@ expression: report
           "raw_params": {},
           "resolved_tool_version": null,
           "stage_id": "bam.align",
-          "tool_id": "bwa",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
@@ -1438,7 +1514,7 @@ expression: report
           "raw_params": {},
           "resolved_tool_version": null,
           "stage_id": "bam.coverage",
-          "tool_id": "mosdepth",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
@@ -1452,7 +1528,7 @@ expression: report
           "raw_params": {},
           "resolved_tool_version": null,
           "stage_id": "bam.damage",
-          "tool_id": "pydamage",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
@@ -1466,7 +1542,7 @@ expression: report
           "raw_params": {},
           "resolved_tool_version": null,
           "stage_id": "bam.qc_pre",
-          "tool_id": "samtools",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
@@ -1480,7 +1556,7 @@ expression: report
           "raw_params": {},
           "resolved_tool_version": null,
           "stage_id": "core.prepare_reference",
-          "tool_id": "samtools",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         },
         {
@@ -1494,7 +1570,7 @@ expression: report
           "raw_params": {},
           "resolved_tool_version": null,
           "stage_id": "fastq.preprocess",
-          "tool_id": "planner",
+          "tool_id": "tool",
           "tool_version": "0.0.0"
         }
       ]
@@ -1503,41 +1579,59 @@ expression: report
       "rows": [
         {
           "missing_metrics": [],
-          "missing_reports": [],
+          "missing_reports": [
+            "metrics_path",
+            "retention_report"
+          ],
           "stage_id": "bam.align",
-          "status": "complete"
+          "status": "incomplete"
         },
         {
           "missing_metrics": [],
-          "missing_reports": [],
+          "missing_reports": [
+            "metrics_path",
+            "retention_report"
+          ],
           "stage_id": "bam.coverage",
-          "status": "complete"
+          "status": "incomplete"
         },
         {
           "missing_metrics": [],
-          "missing_reports": [],
+          "missing_reports": [
+            "metrics_path",
+            "retention_report"
+          ],
           "stage_id": "bam.damage",
-          "status": "complete"
+          "status": "incomplete"
         },
         {
           "missing_metrics": [],
-          "missing_reports": [],
+          "missing_reports": [
+            "metrics_path",
+            "retention_report"
+          ],
           "stage_id": "bam.qc_pre",
-          "status": "complete"
+          "status": "incomplete"
         },
         {
           "missing_metrics": [
             "metrics"
           ],
-          "missing_reports": [],
+          "missing_reports": [
+            "metrics_path",
+            "retention_report"
+          ],
           "stage_id": "core.prepare_reference",
           "status": "incomplete"
         },
         {
           "missing_metrics": [],
-          "missing_reports": [],
+          "missing_reports": [
+            "metrics_path",
+            "retention_report"
+          ],
           "stage_id": "fastq.preprocess",
-          "status": "complete"
+          "status": "incomplete"
         }
       ]
     },
@@ -1548,119 +1642,119 @@ expression: report
           "reasons": [],
           "score": 1.0,
           "stage_id": "bam.align",
-          "tool_id": "bwa"
+          "tool_id": "tool"
         },
         {
           "bucket": "high",
           "reasons": [],
           "score": 1.0,
           "stage_id": "bam.coverage",
-          "tool_id": "mosdepth"
+          "tool_id": "tool"
         },
         {
           "bucket": "high",
           "reasons": [],
           "score": 1.0,
           "stage_id": "bam.damage",
-          "tool_id": "pydamage"
+          "tool_id": "tool"
         },
         {
           "bucket": "high",
           "reasons": [],
           "score": 1.0,
           "stage_id": "bam.qc_pre",
-          "tool_id": "samtools"
+          "tool_id": "tool"
         },
         {
           "bucket": "high",
           "reasons": [],
           "score": 1.0,
           "stage_id": "core.prepare_reference",
-          "tool_id": "samtools"
+          "tool_id": "tool"
         },
         {
           "bucket": "high",
           "reasons": [],
           "score": 1.0,
           "stage_id": "fastq.preprocess",
-          "tool_id": "planner"
+          "tool_id": "tool"
         }
       ]
     },
     "stage_plots": {
       "entries": [
         {
-          "base_retention": 1.0,
+          "base_retention": 0.8,
           "gc_delta": null,
           "mean_q_delta": null,
-          "read_retention": 1.0,
+          "read_retention": 0.8,
           "stage_id": "bam.align",
-          "tool_id": "bwa"
+          "tool_id": "tool"
         },
         {
-          "base_retention": 1.0,
+          "base_retention": 0.8,
           "gc_delta": null,
           "mean_q_delta": null,
-          "read_retention": 1.0,
+          "read_retention": 0.8,
           "stage_id": "bam.coverage",
-          "tool_id": "mosdepth"
+          "tool_id": "tool"
         },
         {
-          "base_retention": 1.0,
+          "base_retention": 0.8,
           "gc_delta": null,
           "mean_q_delta": null,
-          "read_retention": 1.0,
+          "read_retention": 0.8,
           "stage_id": "bam.damage",
-          "tool_id": "pydamage"
+          "tool_id": "tool"
         },
         {
-          "base_retention": 1.0,
+          "base_retention": 0.8,
           "gc_delta": null,
           "mean_q_delta": null,
-          "read_retention": 1.0,
+          "read_retention": 0.8,
           "stage_id": "bam.qc_pre",
-          "tool_id": "samtools"
+          "tool_id": "tool"
         },
         {
-          "base_retention": 1.0,
+          "base_retention": 0.8,
           "gc_delta": null,
           "mean_q_delta": null,
-          "read_retention": 1.0,
+          "read_retention": 0.8,
           "stage_id": "core.prepare_reference",
-          "tool_id": "samtools"
+          "tool_id": "tool"
         },
         {
-          "base_retention": 1.0,
+          "base_retention": 0.8,
           "gc_delta": null,
           "mean_q_delta": null,
-          "read_retention": 1.0,
+          "read_retention": 0.8,
           "stage_id": "fastq.preprocess",
-          "tool_id": "planner"
+          "tool_id": "tool"
         }
       ],
       "waterfall": [
         {
-          "read_retention": 1.0,
+          "read_retention": 0.8,
           "stage_id": "bam.align"
         },
         {
-          "read_retention": 1.0,
+          "read_retention": 0.8,
           "stage_id": "bam.coverage"
         },
         {
-          "read_retention": 1.0,
+          "read_retention": 0.8,
           "stage_id": "bam.damage"
         },
         {
-          "read_retention": 1.0,
+          "read_retention": 0.8,
           "stage_id": "bam.qc_pre"
         },
         {
-          "read_retention": 1.0,
+          "read_retention": 0.8,
           "stage_id": "core.prepare_reference"
         },
         {
-          "read_retention": 1.0,
+          "read_retention": 0.8,
           "stage_id": "fastq.preprocess"
         }
       ]
@@ -1673,98 +1767,98 @@ expression: report
   "stages": [
     {
       "bank_report_path": null,
-      "effective_config_path": "stage_2/effective_config.json",
+      "effective_config_path": "",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "stage_2/metrics.json",
+      "metrics_path": "",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "bam.align",
-      "stage_report_path": "stage_2/stage_report.json",
-      "tool_id": "bwa",
-      "tool_invocation_path": "stage_2/tool_invocation.json",
+      "stage_report_path": "bam.align/stage_report.json",
+      "tool_id": "tool",
+      "tool_invocation_path": "",
       "tool_version": "0.0.0"
     },
     {
       "bank_report_path": null,
-      "effective_config_path": "stage_4/effective_config.json",
+      "effective_config_path": "",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "stage_4/metrics.json",
+      "metrics_path": "",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "bam.coverage",
-      "stage_report_path": "stage_4/stage_report.json",
-      "tool_id": "mosdepth",
-      "tool_invocation_path": "stage_4/tool_invocation.json",
+      "stage_report_path": "bam.coverage/stage_report.json",
+      "tool_id": "tool",
+      "tool_invocation_path": "",
       "tool_version": "0.0.0"
     },
     {
       "bank_report_path": null,
-      "effective_config_path": "stage_5/effective_config.json",
+      "effective_config_path": "",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "stage_5/metrics.json",
+      "metrics_path": "",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "bam.damage",
-      "stage_report_path": "stage_5/stage_report.json",
-      "tool_id": "pydamage",
-      "tool_invocation_path": "stage_5/tool_invocation.json",
+      "stage_report_path": "bam.damage/stage_report.json",
+      "tool_id": "tool",
+      "tool_invocation_path": "",
       "tool_version": "0.0.0"
     },
     {
       "bank_report_path": null,
-      "effective_config_path": "stage_3/effective_config.json",
+      "effective_config_path": "",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "stage_3/metrics.json",
+      "metrics_path": "",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "bam.qc_pre",
-      "stage_report_path": "stage_3/stage_report.json",
-      "tool_id": "samtools",
-      "tool_invocation_path": "stage_3/tool_invocation.json",
+      "stage_report_path": "bam.qc_pre/stage_report.json",
+      "tool_id": "tool",
+      "tool_invocation_path": "",
       "tool_version": "0.0.0"
     },
     {
       "bank_report_path": null,
-      "effective_config_path": "stage_1/effective_config.json",
+      "effective_config_path": "",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "stage_1/metrics.json",
+      "metrics_path": "",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "core.prepare_reference",
-      "stage_report_path": "stage_1/stage_report.json",
-      "tool_id": "samtools",
-      "tool_invocation_path": "stage_1/tool_invocation.json",
+      "stage_report_path": "core.prepare_reference/stage_report.json",
+      "tool_id": "tool",
+      "tool_invocation_path": "",
       "tool_version": "0.0.0"
     },
     {
       "bank_report_path": null,
-      "effective_config_path": "stage_0/effective_config.json",
+      "effective_config_path": "",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "stage_0/metrics.json",
+      "metrics_path": "",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "fastq.preprocess",
-      "stage_report_path": "stage_0/stage_report.json",
-      "tool_id": "planner",
-      "tool_invocation_path": "stage_0/tool_invocation.json",
+      "stage_report_path": "fastq.preprocess/stage_report.json",
+      "tool_id": "tool",
+      "tool_invocation_path": "",
       "tool_version": "0.0.0"
     }
   ],
@@ -1772,12 +1866,12 @@ expression: report
     "error_count": 0,
     "event_count": 0,
     "events": [
-      "telemetry/events.jsonl",
-      "telemetry/events.jsonl",
-      "telemetry/events.jsonl",
-      "telemetry/events.jsonl",
-      "telemetry/events.jsonl",
-      "telemetry/events.jsonl"
+      "bam.align/telemetry/events.jsonl",
+      "bam.coverage/telemetry/events.jsonl",
+      "bam.damage/telemetry/events.jsonl",
+      "bam.qc_pre/telemetry/events.jsonl",
+      "core.prepare_reference/telemetry/events.jsonl",
+      "fastq.preprocess/telemetry/events.jsonl"
     ]
   }
 }
