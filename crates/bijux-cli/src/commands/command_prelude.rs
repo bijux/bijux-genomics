@@ -4,7 +4,7 @@ pub(crate) use std::path::{Path, PathBuf};
 pub(crate) use anyhow::{anyhow, Context, Result};
 pub(crate) use bijux_api::v1::api::bench::{objective_spec, Objective};
 pub(crate) use bijux_api::v1::api::env::{load_image_catalog, load_platform, run_image_qa};
-pub(crate) use bijux_api::v1::api::run::{atomic_write_bytes, load_manifests, StageId};
+pub(crate) use bijux_api::v1::api::run::{atomic_write_bytes, load_manifests, StageId, ToolId};
 
 pub(crate) use crate::commands::bench::set_tool_tier_policy;
 pub(crate) use crate::commands::cli;

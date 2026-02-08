@@ -1,7 +1,7 @@
 use crate::commands::cli::parse::{BamCommand, BamRunArgs};
 use crate::commands::command_prelude::{
     anyhow, init_logging, load_image_catalog, load_platform, render, Cli, Context, DnaCommand,
-    Path, Result, StageId,
+    Path, Result, StageId, ToolId,
 };
 use bijux_api::v1::api::plan::Domain;
 use bijux_api::v1::api::run::RuntimeKind;
@@ -56,19 +56,15 @@ fn run_bam_stage(
         load_image_catalog().map_err(|err| anyhow!("failed to load image catalog: {err}"))?;
     let stage = args.stage.stage();
     let profile = bijux_api::v1::api::plan::select_pipeline(Domain::Bam, &args.profile)?;
-    let stage_key = bijux_core::ids::StageId::from_static(stage.as_str());
-    let tool_id = args
-        .tool
-        .clone()
-        .map(bijux_core::ids::ToolId::new)
-        .unwrap_or_else(|| {
-            profile
-                .defaults
-                .tools
-                .get(&stage_key)
-                .cloned()
-                .unwrap_or_else(|| bijux_core::ids::ToolId::new("samtools"))
-        });
+    let stage_key = StageId::from_static(stage.as_str());
+    let tool_id = args.tool.clone().map(ToolId::new).unwrap_or_else(|| {
+        profile
+            .defaults
+            .tools
+            .get(&stage_key)
+            .cloned()
+            .unwrap_or_else(|| ToolId::new("samtools"))
+    });
     let spec = build_tool_execution_spec(
         stage.as_str(),
         tool_id.as_str(),
