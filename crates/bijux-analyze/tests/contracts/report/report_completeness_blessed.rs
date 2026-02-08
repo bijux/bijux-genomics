@@ -114,11 +114,12 @@ fn build_report(domain: Domain, pipeline_id: &str) -> Result<ReportSchemaV1> {
     };
     let mut rows = Vec::new();
     for (idx, stage_id) in id_catalog.iter().enumerate() {
+        let stage_key = bijux_core::ids::StageId::new(stage_id.clone());
         let tool = profile
             .defaults
             .tools
-            .get(stage_id)
-            .map_or("unknown", String::as_str);
+            .get(&stage_key)
+            .map_or("unknown", |tool| tool.as_str());
         let stage_dir = base_dir.join(format!("stage_{idx}"));
         bijux_infra::ensure_dir(&stage_dir)?;
         let stage_report_path = write_stage_report(&stage_dir, stage_id, tool)?;
