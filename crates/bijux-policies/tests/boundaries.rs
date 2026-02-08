@@ -1,3 +1,4 @@
+#![allow(clippy::duplicate_mod)]
 // Auto-generated test aggregator for boundaries
 #[path = "boundaries/deps/benchmark_dependency_policy.rs"]
 mod mod_boundaries_deps_benchmark_dependency_policy_rs;

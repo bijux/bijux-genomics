@@ -1,5 +1,4 @@
 #![allow(non_snake_case)]
-#![allow(non_snake_case)]
 use std::fs;
 use std::path::{Path, PathBuf};
 

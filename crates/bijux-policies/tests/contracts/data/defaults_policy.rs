@@ -1,5 +1,4 @@
 #![allow(non_snake_case)]
-#![allow(non_snake_case)]
 use std::path::{Path, PathBuf};
 
 use bijux_pipelines::registry::PipelineRegistry;

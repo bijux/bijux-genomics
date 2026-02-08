@@ -1,3 +1,4 @@
+#![allow(clippy::duplicate_mod)]
 // Auto-generated test aggregator for contracts
 #[path = "contracts/data/contract_handshake.rs"]
 mod mod_contracts_data_contract_handshake_rs;

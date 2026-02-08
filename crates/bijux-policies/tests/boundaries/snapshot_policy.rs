@@ -1,5 +1,4 @@
 #![allow(non_snake_case)]
-#![allow(non_snake_case)]
 #[path = "../support/fs.rs"]
 mod support;
 
@@ -141,10 +140,10 @@ fn policy__boundaries__snapshot_policy__tests_document_snapshot_intent() {
             .filter(|entry| entry.path().extension().and_then(|e| e.to_str()) == Some("rs"))
         {
             let content = support::read_to_string(entry.path());
-            if content.contains("assert_snapshot!") || content.contains("assert_json_snapshot!") {
-                if !content.contains("///") {
-                    offenders.push(entry.path().display().to_string());
-                }
+            if (content.contains("assert_snapshot!") || content.contains("assert_json_snapshot!"))
+                && !content.contains("///")
+            {
+                offenders.push(entry.path().display().to_string());
             }
         }
     }
