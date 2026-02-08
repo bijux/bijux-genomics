@@ -1,5 +1,12 @@
 # STAGE_LIST
 
+Legend:
+- Essential = required for default pipelines.
+- Recommended = optional but commonly used.
+- Optional = only when requested.
+
+See `STAGE_CONTRACTS.md` for contract details.
+
 | Stage | Class | Inputs | Outputs | Metrics |
 | --- | --- | --- | --- | --- |
 | fastq.validate_pre | Essential | FASTQ | report.json | read_count, base_count |

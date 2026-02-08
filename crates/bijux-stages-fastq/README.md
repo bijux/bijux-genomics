@@ -12,6 +12,12 @@ Upstream: domain contracts. Downstream: planners/analyze.
 ## Public API / entrypoints
 See `docs/INDEX.md`, `docs/STAGE_LIST.md`, `docs/STAGE_CONTRACTS.md`, `docs/OBSERVERS.md`, `docs/TOOL_ROSTER.md`, `docs/CHANGE_RULES.md`.
 
+## Observer boundaries
+Observers parse known tool outputs into metrics.
+- Parsed: fixtures and documented output formats per tool.
+- Ignored: extra/unknown fields that are not part of the contract.
+- Required: the fields listed in `docs/STAGE_CONTRACTS.md`.
+
 ## Stages and observers
 Stage list is authoritative in `docs/STAGE_LIST.md`. Observers map input artifacts → outputs
 documented under `docs/OBSERVERS.md`.
