@@ -82,6 +82,7 @@ pub mod determinism {
 pub mod snapshots {
     use serde_json::Value;
     use std::env;
+    use std::path::Path;
 
     #[must_use]
     pub fn snapshot_name(bucket: &str, test_name: &str) -> String {
@@ -101,26 +102,51 @@ pub mod snapshots {
         if let Ok(home) = env::var("HOME") {
             out = out.replace(&home, "<HOME>");
         }
+        if let Ok(user) = env::var("USER") {
+            out = out.replace(&user, "<USER>");
+        }
+        if let Ok(logname) = env::var("LOGNAME") {
+            out = out.replace(&logname, "<USER>");
+        }
+        if let Ok(hostname) = env::var("HOSTNAME") {
+            out = out.replace(&hostname, "<HOSTNAME>");
+        }
+        if let Ok(hostname) = env::var("COMPUTERNAME") {
+            out = out.replace(&hostname, "<HOSTNAME>");
+        }
         if let Ok(tmpdir) = env::var("TMPDIR") {
             out = out.replace(&tmpdir, "<TMPDIR>");
+        }
+        if let Ok(tmp) = env::var("TMP") {
+            out = out.replace(&tmp, "<TMPDIR>");
+        }
+        if let Ok(temp) = env::var("TEMP") {
+            out = out.replace(&temp, "<TMPDIR>");
+        }
+        if let Ok(pwd) = env::current_dir() {
+            out = out.replace(&pwd.display().to_string(), "<ROOT>");
+        }
+        if let Ok(manifest_dir) = env::var("CARGO_MANIFEST_DIR") {
+            out = out.replace(&manifest_dir, "<ROOT>");
         }
         out
     }
 
     #[must_use]
     pub fn sanitize_snapshot_json(value: &Value) -> Value {
-        match value {
-            Value::String(s) => Value::String(sanitize_snapshot_text(s)),
-            Value::Array(items) => Value::Array(items.iter().map(sanitize_snapshot_json).collect()),
-            Value::Object(map) => {
-                let mut next = serde_json::Map::new();
-                for (k, v) in map {
-                    next.insert(k.clone(), sanitize_snapshot_json(v));
-                }
-                Value::Object(next)
-            }
-            _ => value.clone(),
-        }
+        snapshot_normalize_json(value)
+    }
+
+    #[must_use]
+    pub fn snapshot_normalize_text(input: &str) -> String {
+        sanitize_snapshot_text(input)
+    }
+
+    #[must_use]
+    pub fn snapshot_normalize_json(value: &Value) -> Value {
+        let scrubbed = strip_unstable_fields(value);
+        let normalized = normalize_json(&scrubbed);
+        stable_json_with_arrays(&normalized)
     }
 
     pub fn install_snapshot_env() {
@@ -150,11 +176,109 @@ pub mod snapshots {
             _ => value.clone(),
         }
     }
+
+    fn strip_unstable_fields(value: &Value) -> Value {
+        match value {
+            Value::Object(map) => {
+                let mut next = serde_json::Map::new();
+                for (k, v) in map {
+                    if is_unstable_key(k) {
+                        continue;
+                    }
+                    next.insert(k.clone(), strip_unstable_fields(v));
+                }
+                Value::Object(next)
+            }
+            Value::Array(items) => Value::Array(items.iter().map(strip_unstable_fields).collect()),
+            Value::String(s) => Value::String(sanitize_snapshot_text(s)),
+            _ => value.clone(),
+        }
+    }
+
+    fn normalize_json(value: &Value) -> Value {
+        match value {
+            Value::Array(items) => Value::Array(items.iter().map(normalize_json).collect()),
+            Value::Object(map) => {
+                let mut next = serde_json::Map::new();
+                for (k, v) in map {
+                    next.insert(k.clone(), normalize_json(v));
+                }
+                Value::Object(next)
+            }
+            Value::String(s) => Value::String(normalize_string(s)),
+            _ => value.clone(),
+        }
+    }
+
+    fn normalize_string(input: &str) -> String {
+        let mut out = sanitize_snapshot_text(input);
+        if looks_like_timestamp(&out) {
+            out = "<TIMESTAMP>".to_string();
+        }
+        if looks_like_duration(&out) {
+            out = "<DURATION>".to_string();
+        }
+        out
+    }
+
+    fn looks_like_timestamp(value: &str) -> bool {
+        value.contains('T') && value.contains(':') && value.contains('-')
+    }
+
+    fn looks_like_duration(value: &str) -> bool {
+        value.ends_with("ms") || value.ends_with("s") || value.ends_with("sec")
+    }
+
+    fn is_unstable_key(key: &str) -> bool {
+        matches!(
+            key,
+            "timestamp"
+                | "time"
+                | "date"
+                | "datetime"
+                | "started_at"
+                | "ended_at"
+                | "duration"
+                | "duration_ms"
+                | "elapsed"
+                | "elapsed_ms"
+        )
+    }
+
+    fn stable_json_with_arrays(value: &Value) -> Value {
+        match value {
+            Value::Object(map) => {
+                let mut entries: Vec<(String, Value)> = map
+                    .iter()
+                    .map(|(k, v)| (k.clone(), stable_json_with_arrays(v)))
+                    .collect();
+                entries.sort_by(|a, b| a.0.cmp(&b.0));
+                let mut sorted = serde_json::Map::new();
+                for (k, v) in entries {
+                    sorted.insert(k, v);
+                }
+                Value::Object(sorted)
+            }
+            Value::Array(items) => {
+                let mut normalized: Vec<Value> =
+                    items.iter().map(stable_json_with_arrays).collect();
+                if normalized.iter().all(is_scalar) {
+                    normalized.sort_by(|a, b| a.to_string().cmp(&b.to_string()));
+                }
+                Value::Array(normalized)
+            }
+            _ => value.clone(),
+        }
+    }
+
+    fn is_scalar(value: &Value) -> bool {
+        matches!(value, Value::String(_) | Value::Number(_) | Value::Bool(_))
+    }
 }
 
 pub use determinism::{assert_json_stable, assert_stable_ordering, strip_timestamp_fields};
 pub use fixtures::{assert_json_schema_like, load_fixture_json, load_fixture_text};
 pub use snapshots::{
     install_snapshot_env, sanitize_snapshot_json, sanitize_snapshot_text, snapshot_name,
-    stable_json,
+    snapshot_normalize_json, snapshot_normalize_text, stable_json,
 };
