@@ -20,19 +20,12 @@ def main():
         sys.exit(2)
     data = json.loads(Path(sys.argv[1]).read_text())
 
-    rows = []
-    for file in data.get("data", []):
-        for fn in file.get("functions", []):
-            pass
+    # llvm-cov json structure (single report entry)
+    report = data.get("data", [])[0] if data.get("data") else {}
+    files = report.get("files", [])
 
     # Aggregate by package/crate name (from file path)
     crates = {}
-    for f in data.get("data", []):
-        for fn in f.get("functions", []):
-            pass
-    # llvm-cov json structure
-    files = data.get("data", [])[0].get("files", []) if data.get("data") else []
-
     for f in files:
         path = f.get("filename", "")
         parts = Path(path).parts
@@ -51,13 +44,31 @@ def main():
             "regions_hit": 0, "regions_total": 0,
             "files": []
         })
-        entry["lines_hit"] += lines.get("count", 0) - lines.get("missed", 0)
-        entry["lines_total"] += lines.get("count", 0)
-        entry["funcs_hit"] += funcs.get("count", 0) - funcs.get("missed", 0)
-        entry["funcs_total"] += funcs.get("count", 0)
-        entry["regions_hit"] += regions.get("count", 0) - regions.get("missed", 0)
-        entry["regions_total"] += regions.get("count", 0)
-        entry["files"].append((path, lines.get("missed", 0)))
+        lines_count = lines.get("count", 0)
+        lines_covered = lines.get("covered", 0)
+        lines_uncovered = lines.get("notcovered", max(lines_count - lines_covered, 0))
+        funcs_count = funcs.get("count", 0)
+        funcs_covered = funcs.get("covered", 0)
+        funcs_uncovered = funcs.get("notcovered", max(funcs_count - funcs_covered, 0))
+        regions_count = regions.get("count", 0)
+        regions_covered = regions.get("covered", 0)
+        regions_uncovered = regions.get("notcovered", max(regions_count - regions_covered, 0))
+
+        # Fallback when only count is provided.
+        if lines_count and not lines_covered and not lines_uncovered:
+            lines_covered = lines_count
+        if funcs_count and not funcs_covered and not funcs_uncovered:
+            funcs_covered = funcs_count
+        if regions_count and not regions_covered and not regions_uncovered:
+            regions_covered = regions_count
+
+        entry["lines_hit"] += lines_covered
+        entry["lines_total"] += lines_count
+        entry["funcs_hit"] += funcs_covered
+        entry["funcs_total"] += funcs_count
+        entry["regions_hit"] += regions_covered
+        entry["regions_total"] += regions_count
+        entry["files"].append((path, lines_uncovered))
 
     print("crate | lines % | funcs % | regions % | uncovered top files")
     print("----- | ------- | ------- | --------- | -------------------")
