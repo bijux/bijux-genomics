@@ -2,7 +2,9 @@ FMT 		= cargo fmt --all -- --check
 LINT 		= CARGO_BUILD_JOBS=10 cargo clippy -p bijux-core -p bijux-engine -p bijux-api -p bijux --lib --bins --no-deps -- -D warnings
 TEST 		= cargo nextest run --workspace
 AUDIT 		= cargo deny check
-COVERAGE 	= cargo llvm-cov nextest run --workspace --json --output-path $${CARGO_TARGET_DIR:-target}/llvm-cov/coverage.json
+COVERAGE_OUT = $(if $(CARGO_TARGET_DIR),$(CARGO_TARGET_DIR),target)/llvm-cov/coverage.json
+HTML_OUT     = $(if $(CARGO_TARGET_DIR),$(CARGO_TARGET_DIR),target)/llvm-cov/html
+COVERAGE 	= cargo llvm-cov nextest run --workspace --json --output-path $(COVERAGE_OUT)
 
 fmt:
 	$(FMT)
@@ -20,9 +22,9 @@ audit: ensure-cargo-deny
 	$(AUDIT)
 
 coverage:
-	@mkdir -p $${CARGO_TARGET_DIR:-target}/llvm-cov
+	@mkdir -p $(dir $(COVERAGE_OUT))
 	$(COVERAGE)
-	python3 scripts/coverage_summary.py $${CARGO_TARGET_DIR:-target}/llvm-cov/coverage.json
+	python3 scripts/coverage_summary.py $(COVERAGE_OUT)
 
 fmt-isolate:
 	CARGO_TARGET_DIR=target-isolate $(FMT)
@@ -36,16 +38,18 @@ test-isolate:
 audit-isolate: ensure-cargo-deny
 	CARGO_TARGET_DIR=target-isolate $(AUDIT)
 
+coverage-isolate: CARGO_TARGET_DIR=target-isolate
 coverage-isolate:
-	@mkdir -p target-isolate/llvm-cov
-	CARGO_TARGET_DIR=target-isolate $(COVERAGE)
-	python3 scripts/coverage_summary.py target-isolate/llvm-cov/coverage.json
+	@mkdir -p $(dir $(COVERAGE_OUT))
+	$(COVERAGE)
+	python3 scripts/coverage_summary.py $(COVERAGE_OUT)
 
 coverage-html:
-	cargo llvm-cov nextest run --workspace --html --output-dir $${CARGO_TARGET_DIR:-target}/llvm-cov/html
+	cargo llvm-cov nextest run --workspace --html --output-dir $(HTML_OUT)
 
+coverage-html-isolate: CARGO_TARGET_DIR=target-isolate
 coverage-html-isolate:
-	CARGO_TARGET_DIR=target-isolate cargo llvm-cov nextest run --workspace --html --output-dir $${CARGO_TARGET_DIR:-target}/llvm-cov/html
+	cargo llvm-cov nextest run --workspace --html --output-dir $(HTML_OUT)
 
 ci: fmt lint test audit coverage
 
