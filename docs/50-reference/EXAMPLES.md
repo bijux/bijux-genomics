@@ -14,8 +14,8 @@ Examples make schema and contract expectations concrete.
 
 ## Examples
 Deterministic fixtures are stored in:
-- `crates/bijux-analyze/tests/fixtures`
-- `crates/bijux-pipelines/tests/snapshots`
+- `crates/bijux-dna-analyze/tests/fixtures`
+- `crates/bijux-dna-pipelines/tests/snapshots`
 
 These are used by tests to enforce stability.
 
