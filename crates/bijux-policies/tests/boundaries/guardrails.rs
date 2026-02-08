@@ -1,5 +1,4 @@
 #![allow(non_snake_case)]
-#![allow(non_snake_case)]
 
 #[path = "../guardrails.rs"]
 mod policies;

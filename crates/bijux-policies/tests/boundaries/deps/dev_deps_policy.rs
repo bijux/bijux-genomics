@@ -1,5 +1,4 @@
 #![allow(non_snake_case)]
-#![allow(non_snake_case)]
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 

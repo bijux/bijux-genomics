@@ -1,5 +1,4 @@
 #![allow(non_snake_case)]
-#![allow(non_snake_case)]
 #[path = "../../support/fs.rs"]
 mod support;
 
