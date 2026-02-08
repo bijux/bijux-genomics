@@ -24,9 +24,9 @@ fn command_spawning_is_confined_to_runner_and_env_tooling() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     let needles = [
-        "std::process::Command",
-        "Command::new",
-        "tokio::process::Command",
+        concat!("std::process::", "Command"),
+        concat!("Command::", "new"),
+        concat!("tokio::process::", "Command"),
     ];
 
     for entry in WalkDir::new(root.join("crates"))
@@ -55,7 +55,7 @@ fn command_spawning_is_confined_to_runner_and_env_tooling() {
 
     assert!(
         offenders.is_empty(),
-        "std::process::Command must be confined to bijux-runner or bijux-environment tooling:\n{}",
+        "process command spawning must be confined to bijux-runner or bijux-environment tooling:\n{}",
         offenders.join("\n")
     );
 }

@@ -15,6 +15,9 @@ See `docs/INDEX.md`, `docs/BACKENDS.md`, `docs/EXECUTION_SPEC.md`, `docs/REPLAY.
 ## Key contracts it owns/consumes
 Execution records and stdout/stderr captures.
 
+## Artifacts / Contracts
+See `docs/EXECUTION_SPEC.md`, `docs/BACKENDS.md`, and snapshots under `tests/snapshots/`.
+
 ## Effect guarantees
 - `cwd`: backend uses the working directory provided by the execution spec.
 - `env`: only specified environment variables are injected; no implicit mutation.
