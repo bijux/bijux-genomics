@@ -23,6 +23,9 @@ See `docs/INDEX.md`, `docs/PUBLIC_API.md`, `docs/FIXTURE_STANDARDS.md`,
 ## Key contracts it owns/consumes
 Test-only helpers.
 
+## Artifacts / Contracts
+See `docs/FIXTURE_STANDARDS.md`, `docs/SNAPSHOT_POLICY.md`, and `docs/PUBLIC_API.md`.
+
 ## Effects & determinism guarantees
 Test-only utilities; deterministic output. See `docs/EFFECTS.md` and the golden tests below.
 
