@@ -1,3 +1,5 @@
+#![allow(non_snake_case)]
+
 use std::path::{Path, PathBuf};
 
 fn workspace_root() -> PathBuf {
@@ -21,7 +23,10 @@ fn policy__boundaries__no_repo_tree_snapshots__forbid_tree_contract_snapshots() 
             if path.extension().and_then(|ext| ext.to_str()) != Some("snap") {
                 continue;
             }
-            let name = path.file_name().and_then(|f| f.to_str()).unwrap_or_default();
+            let name = path
+                .file_name()
+                .and_then(|f| f.to_str())
+                .unwrap_or_default();
             if name.contains("tree_contract") {
                 offenders.push(path.display().to_string());
             }

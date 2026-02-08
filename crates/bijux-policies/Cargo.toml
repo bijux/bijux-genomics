@@ -18,3 +18,4 @@ toml = { workspace = true }
 insta = { version = "1.38", features = ["glob"] }
 sha2 = "0.10"
 bijux-testkit = { path = "../bijux-testkit" }
+bijux-pipelines = { path = "../bijux-pipelines" }
