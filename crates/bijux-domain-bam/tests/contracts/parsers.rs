@@ -1,6 +1,6 @@
 // Owner: bijux-domain-bam
 // Parsers suite spine.
-#[path = "contracts/parsers/bam_parsers.rs"]
+#[path = "parsers/bam_parsers.rs"]
 mod bam_parsers;
-#[path = "contracts/parsers/parsers.rs"]
+#[path = "parsers/parsers.rs"]
 mod parsers;

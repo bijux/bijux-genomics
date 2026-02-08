@@ -19,6 +19,12 @@ The FASTQ domain defines:
 - Metric semantics: meaning + ordering rules (see `docs/METRICS.md`).
 - Invariants: verdict rules and thresholds (see `docs/DOMAIN_MODEL.md`).
 
+## Key contracts it owns/consumes
+Owns FASTQ IDs, params, metrics semantics, and invariant verdicts.
+
+## Artifacts / Contracts
+See `docs/DOMAIN_MODEL.md` and fixtures under `tests/fixtures/`.
+
 ## Retention semantics (must be explicit)
 Retention is always a stage-boundary ratio with explicit numerator/denominator scope.
 "Naked retention" (a bare percentage without scope) is forbidden.

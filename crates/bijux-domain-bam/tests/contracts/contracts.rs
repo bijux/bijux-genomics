@@ -8,14 +8,10 @@ mod completeness_contract;
 mod contract_docs;
 #[path = "contracts/contract_harness.rs"]
 mod contract_harness;
-#[path = "contracts/guardrails.rs"]
-mod guardrails;
 #[path = "contracts/metrics_contract.rs"]
 mod metrics_contract;
 #[path = "contracts/public_surface.rs"]
 mod public_surface;
-#[path = "contracts/purity.rs"]
-mod purity;
 #[path = "contracts/ssot_literals.rs"]
 mod ssot_literals;
 #[path = "contracts/stage_contract_snapshots.rs"]

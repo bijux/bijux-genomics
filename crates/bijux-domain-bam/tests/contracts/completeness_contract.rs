@@ -12,6 +12,7 @@ fn fixture_path(name: &str) -> PathBuf {
         .join("tests")
         .join("fixtures")
         .join("bam")
+        .join("default")
         .join(name)
 }
 
