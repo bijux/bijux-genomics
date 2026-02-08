@@ -1,3 +1,5 @@
+#![allow(non_snake_case)]
+
 use std::path::{Path, PathBuf};
 
 use walkdir::WalkDir;
@@ -25,7 +27,10 @@ fn policy__boundaries__docs_placement_policy__docs_live_in_crate_docs_only() {
         if path.extension().and_then(|ext| ext.to_str()) != Some("md") {
             continue;
         }
-        let file_name = path.file_name().and_then(|f| f.to_str()).unwrap_or_default();
+        let file_name = path
+            .file_name()
+            .and_then(|f| f.to_str())
+            .unwrap_or_default();
         let is_readme = file_name == "README.md";
         let is_docs_path = path
             .components()
