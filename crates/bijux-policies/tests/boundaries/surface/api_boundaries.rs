@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+#![allow(non_snake_case)]
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -16,7 +17,7 @@ fn collect_rs_files(dir: &Path, out: &mut Vec<PathBuf>) -> std::io::Result<()> {
 }
 
 #[test]
-fn policy__surface__api_boundaries__api_v1_surface_has_no_stage_ids() -> Result<(), Box<dyn std::error::Error>> {
+fn policy__boundaries__api_boundaries__api_v1_surface_has_no_id_catalog() -> Result<(), Box<dyn std::error::Error>> {
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .unwrap()
@@ -46,7 +47,7 @@ fn policy__surface__api_boundaries__api_v1_surface_has_no_stage_ids() -> Result<
 }
 
 #[test]
-fn policy__surface__api_boundaries__cli_does_not_depend_on_planner_or_engine() -> Result<(), Box<dyn std::error::Error>> {
+fn policy__boundaries__api_boundaries__cli_does_not_depend_on_planner_or_engine() -> Result<(), Box<dyn std::error::Error>> {
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .unwrap()

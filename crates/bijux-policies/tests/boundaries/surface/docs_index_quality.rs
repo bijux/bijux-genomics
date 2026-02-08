@@ -1,15 +1,14 @@
 #![allow(non_snake_case)]
+#![allow(non_snake_case)]
 #[path = "../../support/fs.rs"]
 mod support;
-
-use std::path::PathBuf;
 
 use walkdir::WalkDir;
 
 use support::{crate_roots, read_to_string};
 
 #[test]
-fn policy__surface__docs_index_quality__docs_index_has_required_sections() {
+fn policy__boundaries__docs_index_quality__docs_index_has_required_sections() {
     let required = [
         "## Scope",
         "## Effects",
@@ -36,7 +35,7 @@ fn policy__surface__docs_index_quality__docs_index_has_required_sections() {
 }
 
 #[test]
-fn policy__surface__docs_index_quality__docs_index_links_are_valid() {
+fn policy__boundaries__docs_index_quality__docs_index_links_are_valid() {
     for crate_root in crate_roots() {
         let docs = crate_root.join("docs");
         for entry in WalkDir::new(&docs) {

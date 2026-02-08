@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+#![allow(non_snake_case)]
 #[path = "../support/fs.rs"]
 mod support;
 
@@ -16,7 +17,7 @@ fn is_allowlisted(path: &Path) -> bool {
 }
 
 #[test]
-fn policy__fixtures__fixture_lint() {
+fn policy__boundaries__fixtures_policy__fixture_lint() {
     let mut offenders = Vec::new();
 
     for crate_root in support::crate_roots() {

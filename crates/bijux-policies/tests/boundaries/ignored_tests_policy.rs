@@ -1,11 +1,12 @@
 #![allow(non_snake_case)]
+#![allow(non_snake_case)]
 #[path = "../support/fs.rs"]
 mod support;
 
 use walkdir::WalkDir;
 
 #[test]
-fn policy__tests__ignored_tests_documented() {
+fn policy__boundaries__ignored_tests_policy__ignored_tests_documented() {
     let mut offenders = Vec::new();
     for crate_root in support::crate_roots() {
         let tests_root = crate_root.join("tests");

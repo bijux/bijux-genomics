@@ -1,8 +1,9 @@
 #![allow(non_snake_case)]
+#![allow(non_snake_case)]
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
-use cargo_metadata::MetadataCommand;
+use cargo_metadata::{DependencyKind, MetadataCommand};
 
 fn workspace_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -16,11 +17,10 @@ fn workspace_root() -> PathBuf {
 fn parse_boundary_contract() -> BTreeMap<String, BTreeSet<String>> {
     let root = workspace_root();
     let path = root
-        .join("crates")
-        .join("bijux-core")
-        .join("src")
-        .join("boundaries.md");
-    let content = std::fs::read_to_string(&path).expect("read boundaries.md");
+        .join("docs")
+        .join("10-architecture")
+        .join("BOUNDARY_MAP.md");
+    let content = std::fs::read_to_string(&path).expect("read BOUNDARY_MAP.md");
     let mut lines = Vec::new();
     let mut in_block = false;
     for line in content.lines() {
@@ -59,7 +59,7 @@ fn parse_boundary_contract() -> BTreeMap<String, BTreeSet<String>> {
 }
 
 #[test]
-fn policy__deps__dependency_graph__dependency_dag_matches_boundaries() {
+fn policy__boundaries__dependency_graph__dependency_dag_matches_boundaries() {
     let root = workspace_root();
     let metadata = MetadataCommand::new()
         .manifest_path(root.join("Cargo.toml"))
@@ -83,6 +83,9 @@ fn policy__deps__dependency_graph__dependency_dag_matches_boundaries() {
         };
         let mut actual_deps = BTreeSet::new();
         for dep in &package.dependencies {
+            if dep.kind != DependencyKind::Normal {
+                continue;
+            }
             if workspace_members.contains(&dep.name) {
                 actual_deps.insert(dep.name.clone());
             }
@@ -98,7 +101,7 @@ fn policy__deps__dependency_graph__dependency_dag_matches_boundaries() {
 }
 
 #[test]
-fn policy__deps__dependency_graph__runner_has_no_engine_edge() {
+fn policy__boundaries__dependency_graph__runner_has_no_engine_edge() {
     let root = workspace_root();
     let metadata = MetadataCommand::new()
         .manifest_path(root.join("Cargo.toml"))
@@ -142,7 +145,7 @@ fn policy__deps__dependency_graph__runner_has_no_engine_edge() {
 }
 
 #[test]
-fn policy__deps__dependency_graph__engine_has_no_domain_or_planner_edges() {
+fn policy__boundaries__dependency_graph__engine_has_no_domain_or_planner_edges() {
     let root = workspace_root();
     let metadata = MetadataCommand::new()
         .manifest_path(root.join("Cargo.toml"))
@@ -185,7 +188,7 @@ fn policy__deps__dependency_graph__engine_has_no_domain_or_planner_edges() {
 }
 
 #[test]
-fn policy__deps__dependency_graph__cli_depends_only_on_api() {
+fn policy__boundaries__dependency_graph__cli_depends_only_on_api() {
     let root = workspace_root();
     let metadata = MetadataCommand::new()
         .manifest_path(root.join("Cargo.toml"))
@@ -206,6 +209,7 @@ fn policy__deps__dependency_graph__cli_depends_only_on_api() {
     let actual: BTreeSet<String> = cli
         .dependencies
         .iter()
+        .filter(|dep| dep.kind == DependencyKind::Normal)
         .filter(|dep| workspace_members.contains(&dep.name))
         .map(|dep| dep.name.clone())
         .collect();

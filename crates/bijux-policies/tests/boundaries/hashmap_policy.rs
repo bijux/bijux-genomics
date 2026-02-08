@@ -1,11 +1,12 @@
 #![allow(non_snake_case)]
+#![allow(non_snake_case)]
 #[path = "../support/fs.rs"]
 mod support;
 
 use walkdir::WalkDir;
 
 #[test]
-fn policy__schemas__no_hashmap_in_contract_paths() {
+fn policy__boundaries__hashmap_policy__no_hashmap_in_contract_paths() {
     let mut offenders = Vec::new();
     for crate_root in support::crate_roots() {
         for entry in WalkDir::new(&crate_root)

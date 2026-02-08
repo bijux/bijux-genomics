@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+#![allow(non_snake_case)]
 #[path = "../../support/fs.rs"]
 mod support;
 
@@ -12,7 +13,7 @@ fn read_doc(path: &PathBuf) -> String {
 
 /// Snapshot locks crate docs spine contents to prevent drift.
 #[test]
-fn policy__surface__docs_spine_contract__docs_spine_snapshot() {
+fn policy__boundaries__docs_spine_contract__docs_spine_snapshot() {
     let mut lines = Vec::new();
     for crate_root in crate_roots() {
         let docs = crate_root.join("docs");
@@ -23,5 +24,13 @@ fn policy__surface__docs_spine_contract__docs_spine_snapshot() {
         lines.push(data);
     }
     let name = bijux_testkit::snapshot_name("snapshots", "crate_docs_spine_contract");
-    insta::assert_snapshot!(name, lines.join("\n"));
+    let mut settings = insta::Settings::new();
+    let snapshot_root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("tests")
+        .join("snapshots");
+    settings.set_snapshot_path(snapshot_root);
+    settings.set_prepend_module_to_snapshot(false);
+    settings.bind(|| {
+        insta::assert_snapshot!(name, lines.join("\n"));
+    });
 }

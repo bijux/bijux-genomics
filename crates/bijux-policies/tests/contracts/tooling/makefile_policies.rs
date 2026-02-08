@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+#![allow(non_snake_case)]
 use std::path::{Path, PathBuf};
 
 use walkdir::WalkDir;
@@ -13,7 +14,7 @@ fn workspace_root() -> PathBuf {
 }
 
 #[test]
-fn policy__tooling__makefile_policies__only_root_makefile_exists() {
+fn policy__contracts__makefile_policies__only_root_makefile_exists() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     let root_makefile = root.join("Makefile.toml");
@@ -36,7 +37,7 @@ fn policy__tooling__makefile_policies__only_root_makefile_exists() {
 }
 
 #[test]
-fn policy__tooling__makefile_policies__root_makefile_is_single_source() {
+fn policy__contracts__makefile_policies__root_makefile_is_single_source() {
     let root = workspace_root();
     let makefile = root.join("Makefile");
     let content = std::fs::read_to_string(&makefile).expect("read Makefile");

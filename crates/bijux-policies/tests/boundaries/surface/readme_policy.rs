@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+#![allow(non_snake_case)]
 #[path = "../../support/fs.rs"]
 mod support;
 
@@ -39,7 +40,7 @@ fn resolve_link(base: &Path, link: &str) -> Option<PathBuf> {
 }
 
 #[test]
-fn policy__surface__readme_policy__readme_has_required_sections_and_links() {
+fn policy__boundaries__readme_policy__readme_has_required_sections_and_links() {
     let required = [
         "## What this crate does",
         "## What it must not do (boundaries)",

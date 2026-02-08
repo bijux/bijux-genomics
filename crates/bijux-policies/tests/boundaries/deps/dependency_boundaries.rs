@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+#![allow(non_snake_case)]
 use std::path::{Path, PathBuf};
 
 fn workspace_root() -> PathBuf {
@@ -37,7 +38,7 @@ fn parse_dependency_names(manifest: &Path) -> Vec<String> {
 }
 
 #[test]
-fn policy__deps__dependency_boundaries__stages_do_not_depend_on_environment() {
+fn policy__boundaries__dependency_boundaries__stages_do_not_depend_on_environment() {
     let root = workspace_root();
     let manifests = [
         root.join("crates/bijux-stages-fastq/Cargo.toml"),
@@ -61,7 +62,7 @@ fn policy__deps__dependency_boundaries__stages_do_not_depend_on_environment() {
 }
 
 #[test]
-fn policy__deps__dependency_boundaries__analyze_and_benchmark_do_not_depend_on_engine() {
+fn policy__boundaries__dependency_boundaries__analyze_and_benchmark_do_not_depend_on_engine() {
     let root = workspace_root();
     let manifests = [
         root.join("crates/bijux-analyze/Cargo.toml"),
@@ -83,7 +84,7 @@ fn policy__deps__dependency_boundaries__analyze_and_benchmark_do_not_depend_on_e
 }
 
 #[test]
-fn policy__deps__dependency_boundaries__engine_has_no_domain_or_stage_dependencies() {
+fn policy__boundaries__dependency_boundaries__engine_has_no_domain_or_stage_dependencies() {
     let root = workspace_root();
     let manifest = root.join("crates/bijux-engine/Cargo.toml");
     let deps = parse_dependency_names(&manifest);
@@ -109,7 +110,7 @@ fn policy__deps__dependency_boundaries__engine_has_no_domain_or_stage_dependenci
 }
 
 #[test]
-fn policy__deps__dependency_boundaries__runner_has_no_domain_or_stage_dependencies() {
+fn policy__boundaries__dependency_boundaries__runner_has_no_domain_or_stage_dependencies() {
     let root = workspace_root();
     let manifest = root.join("crates/bijux-runner/Cargo.toml");
     let deps = parse_dependency_names(&manifest);
@@ -135,7 +136,7 @@ fn policy__deps__dependency_boundaries__runner_has_no_domain_or_stage_dependenci
 }
 
 #[test]
-fn policy__deps__dependency_boundaries__runner_does_not_depend_on_engine() {
+fn policy__boundaries__dependency_boundaries__runner_does_not_depend_on_engine() {
     let root = workspace_root();
     let manifest = root.join("crates/bijux-runner/Cargo.toml");
     let deps = parse_dependency_names(&manifest);
@@ -146,7 +147,7 @@ fn policy__deps__dependency_boundaries__runner_does_not_depend_on_engine() {
 }
 
 #[test]
-fn policy__deps__dependency_boundaries__infra_has_no_domain_or_stage_dependencies() {
+fn policy__boundaries__dependency_boundaries__infra_has_no_domain_or_stage_dependencies() {
     let root = workspace_root();
     let manifest = root.join("crates/bijux-infra/Cargo.toml");
     let deps = parse_dependency_names(&manifest);
@@ -172,7 +173,7 @@ fn policy__deps__dependency_boundaries__infra_has_no_domain_or_stage_dependencie
 }
 
 #[test]
-fn policy__deps__dependency_boundaries__pipelines_do_not_depend_on_stages_or_execution() {
+fn policy__boundaries__dependency_boundaries__pipelines_do_not_depend_on_stages_or_execution() {
     let root = workspace_root();
     let manifest = root.join("crates/bijux-pipelines/Cargo.toml");
     let deps = parse_dependency_names(&manifest);
@@ -197,7 +198,7 @@ fn policy__deps__dependency_boundaries__pipelines_do_not_depend_on_stages_or_exe
 }
 
 #[test]
-fn policy__deps__dependency_boundaries__environment_has_no_engine_or_runner_dependencies() {
+fn policy__boundaries__dependency_boundaries__environment_has_no_engine_or_runner_dependencies() {
     let root = workspace_root();
     let manifest = root.join("crates/bijux-environment/Cargo.toml");
     let deps = parse_dependency_names(&manifest);
@@ -215,7 +216,7 @@ fn policy__deps__dependency_boundaries__environment_has_no_engine_or_runner_depe
 }
 
 #[test]
-fn policy__deps__dependency_boundaries__production_crates_do_not_depend_on_environment_qa() {
+fn policy__boundaries__dependency_boundaries__production_crates_do_not_depend_on_environment_qa() {
     let root = workspace_root();
     let crate_dirs = std::fs::read_dir(root.join("crates")).expect("read crates dir");
     let mut offenders = Vec::new();

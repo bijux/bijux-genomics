@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
-#[path = "../support/fs.rs"]
+#![allow(non_snake_case)]
+#[path = "../../support/fs.rs"]
 mod support;
 
 use std::path::Path;
@@ -13,7 +14,7 @@ fn has_uppercase_name(path: &Path) -> bool {
 }
 
 #[test]
-fn policy__surface__docs_required_policy__crates_require_scope_and_architecture_docs() {
+fn policy__boundaries__docs_required_policy__crates_require_scope_and_architecture_docs() {
     let mut missing = Vec::new();
     for crate_root in support::crate_roots() {
         let docs_root = crate_root.join("docs");
@@ -40,7 +41,7 @@ Missing:\n{}",
 }
 
 #[test]
-fn policy__surface__docs_required_policy__crate_docs_use_uppercase_names() {
+fn policy__boundaries__docs_required_policy__crate_docs_use_uppercase_names() {
     let mut offenders = Vec::new();
     for crate_root in support::crate_roots() {
         let docs_root = crate_root.join("docs");

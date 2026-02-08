@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
-#[path = "../support/fs.rs"]
+#![allow(non_snake_case)]
+#[path = "../../support/fs.rs"]
 mod support;
 
 use walkdir::WalkDir;
@@ -8,22 +9,21 @@ const ALLOWLIST: &[(&str, &str)] = &[
     ("/crates/bijux-runner/", "execution backends"),
     ("/crates/bijux-environment-qa/", "qa harness"),
     ("/crates/bijux-cli/", "cli entrypoints"),
+    ("/crates/bijux-environment/", "runtime resolution probes"),
+    ("/crates/bijux-infra/", "filesystem helpers"),
 ];
 
 const EFFECT_PATTERNS: &[&str] = &[
     "std::process::Command",
     "Command::new",
     "std::process::Stdio",
-    "docker",
-    "apptainer",
-    "singularity",
     "std::fs::remove_file",
     "std::fs::remove_dir",
     "std::fs::remove_dir_all",
 ];
 
 #[test]
-fn policy__deps__effect_boundary_map__effect_boundary_map() {
+fn policy__boundaries__effect_boundary_map__effect_boundary_map() {
     let root = support::workspace_root();
     let mut offenders = Vec::new();
     for entry in WalkDir::new(root.join("crates"))

@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
-#[path = "../support/fs.rs"]
+#![allow(non_snake_case)]
+#[path = "../../support/fs.rs"]
 mod support;
 
 const STYLE_CHECKS: &[&str] = &[
@@ -11,7 +12,7 @@ const STYLE_CHECKS: &[&str] = &[
 ];
 
 #[test]
-fn policy__surface__style_policy__style_policy_entrypoint_lists_checks() {
+fn policy__boundaries__style_policy__style_policy_entrypoint_lists_checks() {
     let matrix_path = support::workspace_root().join("docs/40-policies/POLICY_MATRIX.md");
     let matrix = support::read_to_string(&matrix_path);
     let mut missing = Vec::new();
@@ -31,7 +32,7 @@ Missing:\n{}",
 }
 
 #[test]
-fn policy__surface__style_policy__scope_docs_reference_workspace_style() {
+fn policy__boundaries__style_policy__scope_docs_reference_workspace_style() {
     let mut offenders = Vec::new();
     for crate_root in support::crate_roots() {
         let scope_path = crate_root.join("docs").join("SCOPE.md");

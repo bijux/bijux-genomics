@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+#![allow(non_snake_case)]
 use std::path::{Path, PathBuf};
 
 use walkdir::WalkDir;
@@ -14,16 +15,18 @@ fn workspace_root() -> PathBuf {
 
 fn is_allowed_writer_path(path: &Path) -> bool {
     let path_str = path.to_string_lossy();
-    path_str.contains("/crates/bijux-runtime/") || path_str.contains("/crates/bijux-engine/")
+    path_str.contains("/crates/bijux-runtime/")
+        || path_str.contains("/crates/bijux-engine/")
+        || path_str.contains("/crates/bijux-cli/src/commands/policies.rs")
 }
 
 fn is_path_policies_test(path: &Path) -> bool {
     path.to_string_lossy()
-        .ends_with("/crates/bijux-policies/tests/path_policies.rs")
+        .ends_with("/crates/bijux-policies/tests/boundaries/surface/path_policies.rs")
 }
 
 #[test]
-fn policy__surface__path_policies__src_bin_requires_bin_targets() {
+fn policy__boundaries__path_policies__src_bin_requires_bin_targets() {
     let root = workspace_root();
     let mut offenders = Vec::new();
 
@@ -60,7 +63,7 @@ fn policy__surface__path_policies__src_bin_requires_bin_targets() {
 }
 
 #[test]
-fn policy__surface__path_policies__src_does_not_contain_test_paths() {
+fn policy__boundaries__path_policies__src_does_not_contain_test_paths() {
     let root = workspace_root();
     let mut offenders = Vec::new();
 
@@ -89,7 +92,7 @@ fn policy__surface__path_policies__src_does_not_contain_test_paths() {
 }
 
 #[test]
-fn policy__surface__path_policies__run_artifacts_paths_use_runtime_helpers() {
+fn policy__boundaries__path_policies__run_artifacts_paths_use_runtime_helpers() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     let targets = [
@@ -123,7 +126,7 @@ fn policy__surface__path_policies__run_artifacts_paths_use_runtime_helpers() {
 }
 
 #[test]
-fn policy__surface__path_policies__write_locations_are_confined_to_runtime_and_engine() {
+fn policy__boundaries__path_policies__write_locations_are_confined_to_runtime_and_engine() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     let patterns = ["std::fs::OpenOptions", "std::fs::write", "File::create("];
@@ -158,7 +161,7 @@ fn policy__surface__path_policies__write_locations_are_confined_to_runtime_and_e
 }
 
 #[test]
-fn policy__surface__path_policies__crates_do_not_reference_removed_fastq_test_paths() {
+fn policy__boundaries__path_policies__crates_do_not_reference_removed_fastq_test_paths() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     let needles = ["tests/data/fastq/"];

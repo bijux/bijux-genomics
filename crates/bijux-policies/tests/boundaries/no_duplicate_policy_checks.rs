@@ -1,8 +1,7 @@
 #![allow(non_snake_case)]
+#![allow(non_snake_case)]
 #[path = "../support/fs.rs"]
 mod support;
-
-use std::path::Path;
 
 use walkdir::WalkDir;
 
@@ -17,7 +16,7 @@ fn is_policy_like(name: &str) -> bool {
 }
 
 #[test]
-fn policy__tests__no_duplicate_policy_checks() {
+fn policy__boundaries__no_duplicate_policy_checks__no_duplicate_policy_checks() {
     let mut offenders = Vec::new();
 
     for crate_root in support::crate_roots() {

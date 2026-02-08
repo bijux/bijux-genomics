@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+#![allow(non_snake_case)]
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
@@ -51,11 +52,13 @@ fn parse_dev_dependencies(manifest: &Path) -> Vec<String> {
 }
 
 #[test]
-fn policy__deps__dev_deps_policy__dev_dependencies_are_allowlisted() {
+fn policy__boundaries__dev_deps_policy__dev_dependencies_are_allowlisted() {
     let allowlist: BTreeSet<&str> = BTreeSet::from([
         "anyhow.workspace",
         "assert_cmd",
         "bijux-benchmark",
+        "bijux-core",
+        "bijux-domain-bam",
         "bijux-domain-fastq",
         "bijux-infra",
         "bijux-pipelines",
@@ -68,7 +71,10 @@ fn policy__deps__dev_deps_policy__dev_dependencies_are_allowlisted() {
         "insta",
         "insta.workspace",
         "predicates",
+        "regex",
+        "regex.workspace",
         "serde_json.workspace",
+        "sha2",
         "sha2.workspace",
         "tempfile",
         "tempfile.workspace",

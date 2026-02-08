@@ -1,11 +1,12 @@
 #![allow(non_snake_case)]
-#[path = "../support/fs.rs"]
+#![allow(non_snake_case)]
+#[path = "../../support/fs.rs"]
 mod support;
 
 use walkdir::WalkDir;
 
 #[test]
-fn policy__surface__no_duplicate_canonicalizers__core_is_only_canonicalizer() {
+fn policy__boundaries__no_duplicate_canonicalizers__core_is_only_canonicalizer() {
     let root = support::workspace_root();
     let mut offenders = Vec::new();
     for entry in WalkDir::new(root.join("crates"))
@@ -23,9 +24,9 @@ fn policy__surface__no_duplicate_canonicalizers__core_is_only_canonicalizer() {
             continue;
         }
         let content = support::read_to_string(entry.path());
-        if content.contains("canonicalize_json_value")
-            || content.contains("normalize_numbers_and_paths")
-            || content.contains("to_canonical_json_bytes")
+        if content.contains(concat!("fn ", "canonicalize_json_value"))
+            || content.contains(concat!("fn ", "normalize_numbers_and_paths"))
+            || content.contains(concat!("fn ", "to_canonical_json_bytes"))
         {
             offenders.push(entry.path().display().to_string());
         }

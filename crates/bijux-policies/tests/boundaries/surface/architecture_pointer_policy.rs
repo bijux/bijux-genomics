@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+#![allow(non_snake_case)]
 #[path = "../../support/fs.rs"]
 mod support;
 
@@ -7,7 +8,7 @@ use support::{crate_roots, read_to_string};
 const MAX_ARCHITECTURE_LINES: usize = 40;
 
 #[test]
-fn policy__surface__architecture_pointer_policy__architecture_docs_are_brief_pointers() {
+fn policy__boundaries__architecture_pointer_policy__architecture_docs_are_brief_pointers() {
     let mut offenders = Vec::new();
 
     for crate_root in crate_roots() {

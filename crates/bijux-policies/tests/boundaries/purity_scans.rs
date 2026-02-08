@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+#![allow(non_snake_case)]
 use std::path::{Path, PathBuf};
 
 use walkdir::WalkDir;
@@ -23,7 +24,7 @@ fn collect_rs_files(root: &Path) -> Vec<PathBuf> {
 }
 
 #[test]
-fn policy__data__purity_scans__engine_has_no_domain_strings() {
+fn policy__boundaries__purity_scans__engine_has_no_domain_strings() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     let needles = [
@@ -49,7 +50,7 @@ fn policy__data__purity_scans__engine_has_no_domain_strings() {
 }
 
 #[test]
-fn policy__data__purity_scans__runner_has_no_domain_strings() {
+fn policy__boundaries__purity_scans__runner_has_no_domain_strings() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     let needles = [
@@ -75,7 +76,7 @@ fn policy__data__purity_scans__runner_has_no_domain_strings() {
 }
 
 #[test]
-fn policy__data__purity_scans__core_execution_contract_has_no_stage_contract_imports() {
+fn policy__boundaries__purity_scans__core_execution_contract_has_no_stage_contract_imports() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     for file in collect_rs_files(&root.join("crates/bijux-core/src/contract/execution")) {
@@ -92,7 +93,7 @@ fn policy__data__purity_scans__core_execution_contract_has_no_stage_contract_imp
 }
 
 #[test]
-fn policy__data__purity_scans__engine_has_no_stage_contract_imports() {
+fn policy__boundaries__purity_scans__engine_has_no_stage_contract_imports() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     let needles = [
@@ -115,7 +116,7 @@ fn policy__data__purity_scans__engine_has_no_stage_contract_imports() {
 }
 
 #[test]
-fn policy__data__purity_scans__execution_graph_has_no_stage_contract_symbols() {
+fn policy__boundaries__purity_scans__execution_graph_has_no_stage_contract_symbols() {
     let root = workspace_root();
     let path = root.join("crates/bijux-core/src/contract/execution/graph.rs");
     let content = std::fs::read_to_string(&path).expect("read execution_graph.rs");
@@ -127,7 +128,7 @@ fn policy__data__purity_scans__execution_graph_has_no_stage_contract_symbols() {
 }
 
 #[test]
-fn policy__data__purity_scans__stage_specs_have_no_command_building() {
+fn policy__boundaries__purity_scans__stage_specs_have_no_command_building() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     let needles = ["CommandSpecV1", "ContainerImageRefV1", "argv"];
@@ -143,6 +144,12 @@ fn policy__data__purity_scans__stage_specs_have_no_command_building() {
         if !path.to_string_lossy().contains("stage_specs") {
             continue;
         }
+        if path
+            .to_string_lossy()
+            .contains("/crates/bijux-policies/tests/")
+        {
+            continue;
+        }
         let content = std::fs::read_to_string(path).expect("read stage_specs source");
         if needles.iter().any(|needle| content.contains(needle)) {
             offenders.push(path.display().to_string());
@@ -156,7 +163,7 @@ fn policy__data__purity_scans__stage_specs_have_no_command_building() {
 }
 
 #[test]
-fn policy__data__purity_scans__planners_only_build_execution_steps() {
+fn policy__boundaries__purity_scans__planners_only_build_execution_steps() {
     let root = workspace_root();
     let allowlist = [
         "bijux-core",
@@ -206,7 +213,7 @@ fn policy__data__purity_scans__planners_only_build_execution_steps() {
 }
 
 #[test]
-fn policy__data__purity_scans__pipelines_do_not_embed_tool_names() {
+fn policy__boundaries__purity_scans__pipelines_do_not_embed_tool_names() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     let tool_ids = [

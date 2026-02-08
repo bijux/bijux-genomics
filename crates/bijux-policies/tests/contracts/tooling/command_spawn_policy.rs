@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+#![allow(non_snake_case)]
 use std::path::{Path, PathBuf};
 
 use walkdir::WalkDir;
@@ -23,7 +24,7 @@ fn is_allowed_command_path(path: &Path) -> bool {
 }
 
 #[test]
-fn policy__tooling__command_spawn_policy__command_spawning_is_confined_to_runner_and_env_tooling() {
+fn policy__contracts__command_spawn_policy__command_spawning_is_confined_to_runner_and_env_tooling() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     let needles = ["std::process::Command", "Command::new"];
@@ -59,7 +60,7 @@ fn policy__tooling__command_spawn_policy__command_spawning_is_confined_to_runner
 }
 
 #[test]
-fn policy__tooling__command_spawn_policy__crate_tests_do_not_spawn_external_commands() {
+fn policy__contracts__command_spawn_policy__crate_tests_do_not_spawn_external_commands() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     let needles = [

@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+#![allow(non_snake_case)]
 use std::path::{Path, PathBuf};
 
 fn workspace_root() -> PathBuf {
@@ -37,7 +38,7 @@ fn parse_dependency_names(manifest: &Path) -> Vec<String> {
 }
 
 #[test]
-fn policy__deps__benchmark_dependency_policy__benchmark_has_no_planner_or_stage_dependencies() {
+fn policy__boundaries__benchmark_dependency_policy__benchmark_has_no_planner_or_stage_dependencies() {
     let root = workspace_root();
     let manifest = root.join("crates/bijux-benchmark/Cargo.toml");
     let deps = parse_dependency_names(&manifest);

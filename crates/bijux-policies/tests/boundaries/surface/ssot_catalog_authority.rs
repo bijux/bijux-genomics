@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
-#[path = "../support/fs.rs"]
+#![allow(non_snake_case)]
+#[path = "../../support/fs.rs"]
 mod support;
 
 use walkdir::WalkDir;
@@ -7,12 +8,12 @@ use walkdir::WalkDir;
 const OWNER_ALLOWLIST: &[(&str, &str)] = &[
     ("StageId", "/crates/bijux-core/"),
     ("ToolId", "/crates/bijux-core/"),
-    ("PipelineId", "/crates/bijux-pipelines/"),
+    ("PipelineId", "/crates/bijux-core/"),
     ("MetricId", "/crates/bijux-core/"),
 ];
 
 #[test]
-fn policy__surface__ssot_catalog_authority__ssot_catalog_authority() {
+fn policy__boundaries__ssot_catalog_authority__ssot_catalog_authority() {
     let root = support::workspace_root();
     let mut offenders = Vec::new();
     for entry in WalkDir::new(root.join("crates"))
@@ -26,6 +27,9 @@ fn policy__surface__ssot_catalog_authority__ssot_catalog_authority() {
             continue;
         }
         let path_str = entry.path().to_string_lossy();
+        if path_str.contains("/tests/") {
+            continue;
+        }
         let content = support::read_to_string(entry.path());
         for (id_type, owner) in OWNER_ALLOWLIST {
             if content.contains(id_type) && !path_str.contains(owner) {

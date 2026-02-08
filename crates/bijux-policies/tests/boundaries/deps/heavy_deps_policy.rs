@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+#![allow(non_snake_case)]
 use std::path::{Path, PathBuf};
 
 fn workspace_root() -> PathBuf {
@@ -37,7 +38,7 @@ fn crate_name(manifest: &Path) -> Option<String> {
     for line in content.lines() {
         let line = line.trim();
         if line.starts_with("name") && line.contains('=') {
-            let name = line.split_once('=').map(|(_, v)| v)?.1.trim();
+            let name = line.split_once('=').map(|(_, v)| v.trim())?;
             let name = name.trim_matches('"').to_string();
             if !name.is_empty() {
                 return Some(name);
@@ -51,7 +52,7 @@ fn crate_name(manifest: &Path) -> Option<String> {
 }
 
 #[test]
-fn policy__deps__heavy_deps_policy__heavy_dependencies_are_feature_gated() {
+fn policy__boundaries__heavy_deps_policy__heavy_dependencies_are_feature_gated() {
     let heavy = ["tracing-subscriber", "rusqlite", "sysinfo", "opentelemetry"];
     let mut offenders = Vec::new();
     for crate_dir in crate_dirs() {

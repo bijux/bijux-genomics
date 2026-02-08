@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+#![allow(non_snake_case)]
 use std::path::{Path, PathBuf};
 
 use walkdir::WalkDir;
@@ -23,7 +24,7 @@ fn collect_rs_files(dir: &Path) -> Vec<PathBuf> {
 }
 
 #[test]
-fn policy__deps__core_layering__core_layering_is_enforced() {
+fn policy__boundaries__core_layering__core_layering_is_enforced() {
     let root = workspace_root();
     let primitives_dir = root.join("crates/bijux-core/src/foundation");
     let contract_dir = root.join("crates/bijux-core/src/contract");

@@ -1,11 +1,12 @@
 #![allow(non_snake_case)]
-#[path = "../support/fs.rs"]
+#![allow(non_snake_case)]
+#[path = "../../support/fs.rs"]
 mod support;
 
 use walkdir::WalkDir;
 
 #[test]
-fn policy__surface__no_policy_duplication__policies_live_only_in_bijux_policies() {
+fn policy__boundaries__no_policy_duplication__policies_live_only_in_bijux_policies() {
     let root = support::workspace_root();
     let mut offenders = Vec::new();
     for entry in WalkDir::new(root.join("crates"))
@@ -20,6 +21,9 @@ fn policy__surface__no_policy_duplication__policies_live_only_in_bijux_policies(
             continue;
         }
         if !path.to_string_lossy().contains("/tests/") {
+            continue;
+        }
+        if path.extension().and_then(|ext| ext.to_str()) != Some("rs") {
             continue;
         }
         let name = path.file_name().and_then(|n| n.to_str()).unwrap_or("");

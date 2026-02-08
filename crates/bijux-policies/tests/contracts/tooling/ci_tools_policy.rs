@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+#![allow(non_snake_case)]
 use std::path::{Path, PathBuf};
 
 use walkdir::WalkDir;
@@ -13,7 +14,7 @@ fn workspace_root() -> PathBuf {
 }
 
 #[test]
-fn policy__tooling__ci_tools_policy__workflows_use_make_only() {
+fn policy__contracts__ci_tools_policy__workflows_use_make_only() {
     let root = workspace_root();
     let workflows_dir = root.join(".github").join("workflows");
     let mut offenders = Vec::new();
@@ -50,7 +51,7 @@ fn policy__tooling__ci_tools_policy__workflows_use_make_only() {
 }
 
 #[test]
-fn policy__tooling__ci_tools_policy__serde_yaml_is_scoped() {
+fn policy__contracts__ci_tools_policy__serde_yaml_is_scoped() {
     let root = workspace_root();
     let allowed = ["bijux-infra"];
     let mut offenders = Vec::new();

@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+#![allow(non_snake_case)]
 use std::path::{Path, PathBuf};
 
 fn workspace_root() -> PathBuf {
@@ -37,7 +38,7 @@ fn parse_dependency_names(manifest: &Path) -> Vec<String> {
 }
 
 #[test]
-fn policy__deps__domain_dependency_policy__domain_crates_use_only_pure_dependencies() {
+fn policy__boundaries__domain_dependency_policy__domain_crates_use_only_pure_dependencies() {
     let root = workspace_root();
     let denylist = [
         "rusqlite",

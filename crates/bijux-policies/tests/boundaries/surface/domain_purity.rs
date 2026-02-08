@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+#![allow(non_snake_case)]
 use std::path::{Path, PathBuf};
 
 fn workspace_root() -> PathBuf {
@@ -31,7 +32,7 @@ fn scan_dir_for_tokens(root: &Path, tokens: &[&str]) -> Vec<String> {
 }
 
 #[test]
-fn policy__surface__domain_purity__domains_have_no_registry_logic() {
+fn policy__boundaries__domain_purity__domains_have_no_registry_logic() {
     let root = workspace_root();
     let domains = [
         root.join("crates/bijux-domain-fastq/src"),
@@ -53,7 +54,7 @@ Offenders:\n{}",
 }
 
 #[test]
-fn policy__surface__domain_purity__domains_have_no_execution_details() {
+fn policy__boundaries__domain_purity__domains_have_no_execution_details() {
     let root = workspace_root();
     let domains = [
         root.join("crates/bijux-domain-fastq/src"),

@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
-#[path = "../support/fs.rs"]
+#![allow(non_snake_case)]
+#[path = "../../support/fs.rs"]
 mod support;
 
 use std::path::Path;
@@ -20,7 +21,7 @@ fn pub_item_count(content: &str) -> usize {
 }
 
 #[test]
-fn policy__surface__no_thin_modules_policy__no_thin_module_directories() {
+fn policy__boundaries__no_thin_modules_policy__no_thin_module_directories() {
     let mut offenders = Vec::new();
     for crate_root in support::crate_roots() {
         let src_dir = crate_root.join("src");

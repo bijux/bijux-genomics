@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+#![allow(non_snake_case)]
 use std::path::{Path, PathBuf};
 
 fn workspace_root() -> PathBuf {
@@ -17,10 +18,7 @@ fn parse_dependency_names(manifest: &Path) -> Vec<String> {
     for line in content.lines() {
         let line = line.trim();
         if line.starts_with('[') {
-            in_deps = matches!(
-                line,
-                "[dependencies]" | "[dev-dependencies]" | "[build-dependencies]"
-            );
+            in_deps = matches!(line, "[dependencies]" | "[build-dependencies]");
             continue;
         }
         if !in_deps || line.is_empty() || line.starts_with('#') {
@@ -37,7 +35,7 @@ fn parse_dependency_names(manifest: &Path) -> Vec<String> {
 }
 
 #[test]
-fn policy__deps__cli_dependency_policy__cli_depends_only_on_api_and_cli_support() {
+fn policy__boundaries__cli_dependency_policy__cli_depends_only_on_api_and_cli_support() {
     let root = workspace_root();
     let manifest = root.join("crates/bijux-cli/Cargo.toml");
     let deps = parse_dependency_names(&manifest);

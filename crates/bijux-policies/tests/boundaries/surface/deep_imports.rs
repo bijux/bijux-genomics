@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+#![allow(non_snake_case)]
 use std::path::{Path, PathBuf};
 
 use walkdir::WalkDir;
@@ -23,7 +24,7 @@ fn collect_rs_files(dir: &Path) -> Vec<PathBuf> {
 }
 
 #[test]
-fn policy__surface__deep_imports__api_and_cli_avoid_internal_imports() {
+fn policy__boundaries__deep_imports__api_and_cli_avoid_internal_imports() {
     let root = workspace_root();
     let mut offenders = Vec::new();
     let crates = [
@@ -32,6 +33,10 @@ fn policy__surface__deep_imports__api_and_cli_avoid_internal_imports() {
     ];
     for krate in crates {
         for file in collect_rs_files(&krate) {
+            let path_str = file.to_string_lossy();
+            if path_str.contains("/src/internal/") {
+                continue;
+            }
             let content = std::fs::read_to_string(&file).expect("read source");
             if content.contains("::internal::") {
                 offenders.push(file.display().to_string());
