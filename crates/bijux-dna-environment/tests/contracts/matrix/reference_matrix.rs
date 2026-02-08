@@ -1,4 +1,4 @@
-use bijux_environment::resolve::ImageRef;
+use bijux_dna_environment::resolve::ImageRef;
 
 #[test]
 fn image_ref_is_deterministic() {

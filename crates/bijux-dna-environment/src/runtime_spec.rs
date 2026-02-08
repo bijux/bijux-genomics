@@ -30,7 +30,7 @@ mod tests {
         load_image_catalog_from_file, resolve_image, select_best_runner, validate_images_for_stage,
         EnvError, ImageRef, PlatformSpec, ResolvedImage, RuntimeKind, ToolImageSpec,
     };
-    use bijux_infra::atomic_write_bytes;
+    use bijux_dna_infra::atomic_write_bytes;
 
     #[test]
     fn runner_kind_from_str() -> Result<(), EnvError> {
@@ -52,14 +52,14 @@ container_dir = "containers/docker/arm64"
 image_prefix = "bijuxdna"
 arch = "arm64"
 "#;
-        let spec: PlatformSpec =
-            bijux_infra::formats::parse_toml(toml).map_err(|err| EnvError::Parse(err.message))?;
+        let spec: PlatformSpec = bijux_dna_infra::formats::parse_toml(toml)
+            .map_err(|err| EnvError::Parse(err.message))?;
         assert_eq!(spec.name, "docker-mac-arm64");
         assert_eq!(spec.runner, RuntimeKind::Docker);
-        let out = bijux_infra::formats::to_toml_string(&spec)
+        let out = bijux_dna_infra::formats::to_toml_string(&spec)
             .map_err(|err| EnvError::Parse(err.message))?;
-        let spec2: PlatformSpec =
-            bijux_infra::formats::parse_toml(&out).map_err(|err| EnvError::Parse(err.message))?;
+        let spec2: PlatformSpec = bijux_dna_infra::formats::parse_toml(&out)
+            .map_err(|err| EnvError::Parse(err.message))?;
         assert_eq!(spec2.name, spec.name);
         Ok(())
     }
@@ -168,7 +168,7 @@ arch = "arm64"
         .map_err(std::io::Error::other)?;
         let catalog = load_image_catalog_from_file(&path)?;
         assert!(catalog.contains_key("fastp"));
-        let _ = bijux_infra::remove_file(&path);
+        let _ = bijux_dna_infra::remove_file(&path);
         Ok(())
     }
 
@@ -213,7 +213,7 @@ arch = "arm64"
     #[test]
     fn cache_dir_is_deterministic() -> Result<(), EnvError> {
         let home = std::env::temp_dir().join("bijux_home");
-        bijux_infra::ensure_dir(&home)?;
+        bijux_dna_infra::ensure_dir(&home)?;
         let original = std::env::var_os("HOME");
         std::env::set_var("HOME", &home);
         let docker = cache_dir(RuntimeKind::Docker);

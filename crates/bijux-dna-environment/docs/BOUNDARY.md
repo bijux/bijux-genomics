@@ -10,4 +10,4 @@ The runner executes tools; environment never does.
 ## Forbidden
 - Executing tools.
 - Spawning processes.
-- Using `bijux-runner` or any execution backend.
+- Using `bijux-dna-runner` or any execution backend.

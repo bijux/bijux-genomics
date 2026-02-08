@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use bijux_testkit::{load_fixture_json, stable_json};
+use bijux_dna_testkit::{load_fixture_json, stable_json};
 
 /// Ensures JSON fixtures serialize deterministically.
 #[test]

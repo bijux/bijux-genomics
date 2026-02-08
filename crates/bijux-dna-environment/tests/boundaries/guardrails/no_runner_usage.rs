@@ -13,13 +13,13 @@ fn environment_does_not_use_runner() {
         }
         let content = std::fs::read_to_string(entry.path())
             .unwrap_or_else(|err| panic!("read source: {err}"));
-        if content.contains("bijux_runner") || content.contains("Runner") {
+        if content.contains("bijux_dna_runner") || content.contains("Runner") {
             offenders.push(entry.path().display().to_string());
         }
     }
     assert!(
         offenders.is_empty(),
-        "bijux-environment must not depend on runner execution:\n{}",
+        "bijux-dna-environment must not depend on runner execution:\n{}",
         offenders.join("\n")
     );
 }

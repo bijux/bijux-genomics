@@ -173,8 +173,8 @@ pub enum EnvError {
     Image(String),
 }
 
-impl From<bijux_infra::IoError> for EnvError {
-    fn from(err: bijux_infra::IoError) -> Self {
+impl From<bijux_dna_infra::IoError> for EnvError {
+    fn from(err: bijux_dna_infra::IoError) -> Self {
         Self::Io(std::io::Error::other(err))
     }
 }
@@ -197,8 +197,8 @@ pub(crate) fn load_platform_from_file(
     name: Option<&str>,
 ) -> Result<PlatformSpec, EnvError> {
     let contents = std::fs::read_to_string(path)?;
-    let file: PlatformsFile =
-        bijux_infra::formats::parse_toml(&contents).map_err(|err| EnvError::Parse(err.message))?;
+    let file: PlatformsFile = bijux_dna_infra::formats::parse_toml(&contents)
+        .map_err(|err| EnvError::Parse(err.message))?;
     let selected = name.unwrap_or(&file.default);
     let raw = file
         .platforms
@@ -300,8 +300,8 @@ pub(crate) fn load_image_catalog_from_file(
     path: &Path,
 ) -> Result<HashMap<String, ToolImageSpec>, EnvError> {
     let contents = std::fs::read_to_string(path)?;
-    let raw: HashMap<String, ToolImageSpec> =
-        bijux_infra::formats::parse_toml(&contents).map_err(|err| EnvError::Parse(err.message))?;
+    let raw: HashMap<String, ToolImageSpec> = bijux_dna_infra::formats::parse_toml(&contents)
+        .map_err(|err| EnvError::Parse(err.message))?;
     let mut catalog = HashMap::new();
     for (key, mut spec) in raw {
         if key.trim().is_empty() {
@@ -449,10 +449,10 @@ impl ReferenceRegistry {
         fasta: &Path,
         request: &ReferenceBuildRequest,
     ) -> Result<ReferenceRecord, EnvError> {
-        bijux_infra::ensure_dir(&self.root)?;
+        bijux_dna_infra::ensure_dir(&self.root)?;
         let digest = hash_file_sha256(fasta)?;
         let ref_root = self.root.join(&digest);
-        bijux_infra::ensure_dir(&ref_root)?;
+        bijux_dna_infra::ensure_dir(&ref_root)?;
         let fasta_target = ref_root.join(
             fasta
                 .file_name()

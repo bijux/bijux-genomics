@@ -1,4 +1,4 @@
-//! Owner: bijux-environment
+//! Owner: bijux-dna-environment
 //! Environment build, resolve, and runtime utilities.
 
 pub mod build;

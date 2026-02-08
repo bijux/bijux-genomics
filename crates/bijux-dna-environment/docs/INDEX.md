@@ -1,4 +1,4 @@
-# bijux-environment Docs Index
+# bijux-dna-environment Docs Index
 
 ## Scope
 See `SCOPE.md` for what belongs here.
