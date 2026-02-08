@@ -1,12 +1,19 @@
 FMT 		= cargo fmt --all -- --check
 LINT 		= CARGO_BUILD_JOBS=10 cargo clippy -p bijux-core -p bijux-engine -p bijux-api -p bijux --lib --bins --no-deps -- -D warnings
-TEST 		= cargo nextest run --workspace --run-ignored all
 AUDIT 		= cargo deny check
+NEXTEST_PROFILE ?= ci
+NEXTEST_CONFIG  ?= --config-file nextest.toml
+RUN_IGNORED 	= --run-ignored all
+TEST_FEATURES 	= --all-features
+TEST_ENV 	= TZ=UTC LC_ALL=C
+TEST 		= $(TEST_ENV) cargo nextest run $(NEXTEST_CONFIG) --workspace $(TEST_FEATURES) --profile $(NEXTEST_PROFILE) $(RUN_IGNORED)
 COVERAGE_ROOT = $(if $(CARGO_TARGET_DIR),$(CARGO_TARGET_DIR),target)
 COVERAGE_OUT = $(COVERAGE_ROOT)/llvm-cov/coverage.json
 HTML_OUT     = $(COVERAGE_ROOT)/llvm-cov/html
-COVERAGE 	= cargo llvm-cov --json --output-path $(COVERAGE_OUT) test --workspace --all-features --tests --benches --bins -- --include-ignored
-COVERAGE_ENV = RUST_TEST_THREADS=1 CARGO_LLVM_COV_TARGET_DIR=$(COVERAGE_ROOT) CARGO_LLVM_COV_BUILD_DIR=$(COVERAGE_ROOT)
+COVERAGE_ENV = $(TEST_ENV) CARGO_LLVM_COV_TARGET_DIR=$(COVERAGE_ROOT) CARGO_LLVM_COV_BUILD_DIR=$(COVERAGE_ROOT) LLVM_PROFILE_FILE=$(abspath $(COVERAGE_ROOT))/llvm-cov/profraw/%p.profraw
+COVERAGE_RUN = cargo llvm-cov nextest --no-report --no-cfg-coverage $(NEXTEST_CONFIG) --workspace $(TEST_FEATURES) --profile $(NEXTEST_PROFILE) $(RUN_IGNORED)
+COVERAGE_JSON = cargo llvm-cov report --json --output-path $(COVERAGE_OUT)
+COVERAGE_HTML = cargo llvm-cov report --html --output-dir $(HTML_OUT)
 
 fmt:
 	$(FMT)
@@ -25,8 +32,10 @@ audit: ensure-cargo-deny
 
 coverage:
 	@mkdir -p $(dir $(COVERAGE_OUT))
-	$(COVERAGE_ENV) $(COVERAGE)
-	$(COVERAGE_ENV) cargo llvm-cov test --workspace --all-features --tests --benches --bins --html --output-dir $(HTML_OUT) -- --include-ignored
+	@mkdir -p $(COVERAGE_ROOT)/llvm-cov/profraw
+	$(COVERAGE_ENV) $(COVERAGE_RUN)
+	$(COVERAGE_ENV) $(COVERAGE_JSON)
+	$(COVERAGE_ENV) $(COVERAGE_HTML)
 	python3 scripts/coverage_summary.py $(COVERAGE_OUT)
 
 fmt-isolate:
@@ -43,12 +52,23 @@ audit-isolate: ensure-cargo-deny
 
 coverage-isolate: CARGO_TARGET_DIR=target-isolate
 coverage-isolate:
-	@mkdir -p $(dir $(COVERAGE_OUT))
-	$(COVERAGE_ENV) $(COVERAGE)
-	$(COVERAGE_ENV) cargo llvm-cov test --workspace --all-features --tests --benches --bins --html --output-dir $(HTML_OUT) -- --include-ignored
-	python3 scripts/coverage_summary.py $(COVERAGE_OUT)
+	CARGO_TARGET_DIR=target-isolate $(MAKE) coverage
 
-ci: fmt lint audit coverage
+define run_ci
+	$(if $(1),CARGO_TARGET_DIR=$(1) ,)$(MAKE) fmt lint audit coverage
+endef
+
+ci:
+	$(call run_ci,)
 
 ci-isolate:
-	CARGO_TARGET_DIR=target-isolate $(MAKE) ci
+	$(call run_ci,target-isolate)
+
+snapshots:
+	cargo insta test --workspace
+
+snapshots-accept:
+	cargo insta accept --workspace
+
+snapshots-review:
+	cargo insta review
