@@ -447,7 +447,7 @@ fn engine_src_layout_contract() {
         let entry = entry.expect("engine src entry");
         let name = entry.file_name().to_string_lossy().to_string();
         if entry.path().is_file() && !allowed.contains(name.as_str()) {
-            offenders.push(name);
+            offenders.push(name.clone());
         }
         if entry.path().is_dir() {
             offenders.push(name);
