@@ -225,6 +225,7 @@ fn policy__boundaries__docs_spine__crate_docs_contract() {
         "STAT_ASSUMPTIONS.md",
         "GATE_POLICY.md",
         "DETERMINISM.md",
+        "IMAGE_QA_INDEX.md",
         "CHANGE_MODEL.md",
         "MODEL.md",
         "REFERENCES.md",
@@ -233,6 +234,7 @@ fn policy__boundaries__docs_spine__crate_docs_contract() {
         "DETERMINISM.md",
         "ADD_RULES.md",
         "BLESS_WORKFLOW.md",
+        "TEST_SUPPORT.md",
     ]);
     for crate_root in crate_roots() {
         let docs = crate_root.join("docs");

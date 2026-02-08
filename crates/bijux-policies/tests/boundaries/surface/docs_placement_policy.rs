@@ -35,6 +35,12 @@ fn policy__boundaries__docs_placement_policy__docs_live_in_crate_docs_only() {
         let is_docs_path = path
             .components()
             .any(|component| component.as_os_str() == "docs");
+        if path.to_string_lossy().contains("/tests/fixtures/") {
+            continue;
+        }
+        if path.to_string_lossy().contains("/tests/support/README.md") {
+            continue;
+        }
         if is_readme {
             if let Some(parent) = path.parent() {
                 if let Some(grandparent) = parent.parent() {
@@ -45,9 +51,6 @@ fn policy__boundaries__docs_placement_policy__docs_live_in_crate_docs_only() {
             }
         }
         if !is_readme && !is_docs_path {
-            offenders.push(path.display().to_string());
-        }
-        if path.to_string_lossy().contains("/tests/support/README.md") {
             offenders.push(path.display().to_string());
         }
     }

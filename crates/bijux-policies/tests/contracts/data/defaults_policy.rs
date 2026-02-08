@@ -2,8 +2,8 @@
 #![allow(non_snake_case)]
 use std::path::{Path, PathBuf};
 
-use walkdir::WalkDir;
 use bijux_pipelines::registry::PipelineRegistry;
+use walkdir::WalkDir;
 
 fn workspace_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))

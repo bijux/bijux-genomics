@@ -39,7 +39,7 @@ bijux-infra: bijux-policies bijux-testkit
 bijux-pipelines: bijux-core bijux-domain-bam bijux-domain-fastq bijux-policies bijux-testkit
 bijux-planner-bam: bijux-core bijux-domain-bam bijux-infra bijux-pipelines bijux-policies bijux-stage-contract bijux-stages-bam bijux-testkit
 bijux-planner-fastq: bijux-core bijux-domain-bam bijux-domain-fastq bijux-infra bijux-pipelines bijux-policies bijux-stage-contract bijux-stages-fastq bijux-testkit
-bijux-policies: bijux-testkit
+bijux-policies: bijux-pipelines bijux-testkit
 bijux-runner: bijux-core bijux-environment bijux-infra bijux-policies bijux-runtime
 bijux-runtime: bijux-core bijux-infra bijux-policies bijux-testkit
 bijux-stage-contract: bijux-core bijux-policies bijux-testkit
