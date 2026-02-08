@@ -1,13 +1,13 @@
 # BACKENDS
 
-## Conceptual module symmetry
-| Concept | Docker module | Local module |
-| --- | --- | --- |
-| execution spec | `backend/docker/execution_spec.rs` | `backend/local/execution_spec.rs` |
-| execution core | `backend/docker/executor.rs` | `backend/local/executor.rs` |
-| replay | `backend/docker/replay.rs` | `backend/local/replay.rs` |
+## Conceptual module layout
+| Concept | Docker module |
+| --- | --- |
+| execution spec | `backend/docker/execution_spec.rs` |
+| execution core | `backend/docker/executor.rs` |
+| replay | `backend/docker/replay.rs` |
 
-## Backend invariants checklist (Docker == Local)
+## Backend invariants checklist (Docker)
 | Invariant | Description | Test |
 | --- | --- | --- |
 | cwd | Same working directory semantics. | `tests/backend_invariants.rs` |

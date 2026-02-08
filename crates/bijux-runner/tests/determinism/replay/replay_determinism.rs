@@ -1,6 +1,6 @@
 use anyhow::Result;
 use bijux_core::contract::{ContractVersion, ExecutionManifest};
-use bijux_runner::replay_run;
+use bijux_runner::backend::docker::replay::replay_run;
 
 #[test]
 fn replay_is_deterministic() -> Result<()> {
@@ -23,7 +23,7 @@ fn replay_is_deterministic() -> Result<()> {
         input_hashes: vec![bijux_infra::hash_file_sha256(&input)?],
         input_files: vec![input.display().to_string()],
         output_dir: out_dir.display().to_string(),
-        runner: "local".to_string(),
+        runner: "docker".to_string(),
         platform: "test".to_string(),
         arch: "x86_64".to_string(),
     };

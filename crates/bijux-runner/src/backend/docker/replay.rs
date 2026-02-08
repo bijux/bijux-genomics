@@ -22,9 +22,9 @@ pub fn replay_run(run_id: &str, search_root: &Path) -> Result<()> {
             output_dir.display()
         ));
     }
-    if manifest.runner != "local" {
+    if manifest.runner != "docker" {
         return Err(anyhow!(
-            "replay only supports local runner, got {}",
+            "replay only supports docker runner, got {}",
             manifest.runner
         ));
     }
