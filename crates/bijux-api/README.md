@@ -3,41 +3,32 @@
 ## What this crate does
 Public API surface for orchestration endpoints and schemas.
 
-Public modules under `src/v1/*`:
-- `api` (front door exports for v1)
-- `plan` (plan building + explain)
-- `run` (dry-run/execute/status/policy audit)
-- `report` (report rendering + bundle helpers)
-- `bench` (benchmark and comparison helpers)
-- `fastq` / `bam` / `env` (domain-specific helpers)
+## Stable v1 endpoints
+- `plan` → returns `PlanResponse`
+- `execute` → returns `ExecuteResponse`
+- `dry-run` → returns `DryRunResponse`
+- `status` → returns `RunStatus`
+- `explain` → returns `ExplainResponse`
+- `policy-audit` → returns policy audit JSON
 
-Internal handlers under `src/internal/*` are not public API.
+## Versioning rules
+- The v1 API is the only stable surface.
+- Schema changes require snapshot updates and explicit review.
+- Compatibility rules live in `docs/API_STABILITY.md`.
 
-## What it must not do (boundaries)
-No tool selection or execution effects directly.
+## Contract snapshots (source of truth)
+- `tests/snapshots/v1_cross_api_stability__plan_response_schema.snap`
+- `tests/snapshots/v1_cross_api_stability__execute_response_schema.snap`
+- `tests/snapshots/v1_cross_api_stability__dry_run_response_schema.snap`
+- `tests/snapshots/v1_cross_api_stability__status_schema.snap`
+- `tests/snapshots/v1_cross_api_stability__explain_schema.snap`
+- `tests/snapshots/v1_cross_api_stability__policy_audit_schema.snap`
 
-## Role in the stack
-Upstream: CLI/external clients. Downstream: planners + engine + runtime.
+## Internal handlers (non-public)
+`src/internal/*` is not public API and may change at any time. It is for wiring and adapters only.
 
-## Public API / entrypoints
-See `docs/INDEX.md`, `docs/API.md`, `docs/ENDPOINT_GUIDES.md`, `docs/API_STABILITY.md`, `docs/BOUNDARIES.md`, `docs/CHANGE_RULES.md`.
+## Request flow
+See `docs/REQUEST_FLOW.md` for how requests map to planners, engine, and runtime artifacts.
 
-## Key contracts it owns/consumes
-API schemas and responses; snapshots in tests.
-
-## Effects & determinism guarantees
-Coordinates orchestrator; no direct process spawn. See `docs/EFFECTS.md` and the golden tests below.
-
-## How to run its tests
-See `docs/TESTS.md`. Golden tests: `tests/schema/api_stability.rs`,
-`tests/roundtrip/explain_roundtrip.rs`, `tests/roundtrip/contract_spine.rs`,
-`tests/surface/public_surface.rs`.
-
-## Where the docs live
-Start at `docs/INDEX.md` and follow the crate docs listed above.
-
-## Failure modes
-Primary failures surface as snapshot or contract violations; inspect the golden tests and referenced docs.
-
-## Stability
-Contract and behavior changes follow `docs/CHANGE_RULES.md`.
+## Docs entrypoints
+See `docs/INDEX.md`, `docs/API.md`, `docs/API_STABILITY.md`, `docs/REQUEST_FLOW.md`, `docs/BOUNDARIES.md`, `docs/CHANGE_RULES.md`.
