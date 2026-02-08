@@ -9,8 +9,9 @@ pub mod fixtures {
 
     #[must_use]
     pub fn load_fixture_text(path: impl AsRef<Path>) -> String {
-        fs::read_to_string(path.as_ref())
-            .unwrap_or_else(|err| panic!("failed to read fixture {}: {err}", path.as_ref().display()))
+        fs::read_to_string(path.as_ref()).unwrap_or_else(|err| {
+            panic!("failed to read fixture {}: {err}", path.as_ref().display())
+        })
     }
 
     #[must_use]
@@ -53,7 +54,12 @@ pub mod determinism {
                 }
                 Value::Object(next)
             }
-            Value::Array(items) => Value::Array(items.iter().map(|v| strip_timestamp_fields(v, fields)).collect()),
+            Value::Array(items) => Value::Array(
+                items
+                    .iter()
+                    .map(|v| strip_timestamp_fields(v, fields))
+                    .collect(),
+            ),
             _ => value.clone(),
         }
     }
@@ -65,7 +71,11 @@ pub mod determinism {
     }
 
     pub fn assert_json_stable(expected: &Value, actual: &Value) {
-        assert_eq!(stable_json(expected), stable_json(actual), "JSON must be deterministically ordered");
+        assert_eq!(
+            stable_json(expected),
+            stable_json(actual),
+            "JSON must be deterministically ordered"
+        );
     }
 }
 
@@ -74,8 +84,8 @@ pub mod snapshots {
 
     #[must_use]
     pub fn snapshot_name(bucket: &str, test_name: &str) -> String {
-        let pkg = std::env::var("CARGO_PKG_NAME")
-            .unwrap_or_else(|_| env!("CARGO_PKG_NAME").to_string());
+        let pkg =
+            std::env::var("CARGO_PKG_NAME").unwrap_or_else(|_| env!("CARGO_PKG_NAME").to_string());
         format!("{pkg}__{bucket}__{test_name}")
     }
 

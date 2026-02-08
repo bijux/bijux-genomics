@@ -1,5 +1,4 @@
 /// Snapshot intent: verifies stable, reviewed output for this contract.
-
 use bijux_domain_bam::{stage_contract_json, BamStage};
 use bijux_testkit::snapshot_name;
 use insta::Settings;

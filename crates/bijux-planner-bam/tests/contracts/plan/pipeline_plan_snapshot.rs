@@ -1,5 +1,4 @@
 /// Snapshot intent: verifies stable, reviewed output for this contract.
-
 use anyhow::Result;
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
@@ -76,7 +75,11 @@ fn pipeline_plan_snapshots_are_stable() -> Result<()> {
     let payload = serde_json::to_value(bijux_planner_bam::plan_bam_to_bam__adna_shotgun__v1(
         &inputs,
     )?)?;
-    assert_snapshot("pipeline__bam__bam-to-bam__adna_shotgun__v1", &payload, temp.path())?;
+    assert_snapshot(
+        "pipeline__bam__bam-to-bam__adna_shotgun__v1",
+        &payload,
+        temp.path(),
+    )?;
 
     let temp = bijux_infra::temp_dir("bam-adna-capture-plan")?;
     let bam = temp.path().join("sample.bam");
@@ -94,6 +97,10 @@ fn pipeline_plan_snapshots_are_stable() -> Result<()> {
     let payload = serde_json::to_value(bijux_planner_bam::plan_bam_to_bam__adna_capture__v1(
         &inputs,
     )?)?;
-    assert_snapshot("pipeline__bam__bam-to-bam__adna_capture__v1", &payload, temp.path())?;
+    assert_snapshot(
+        "pipeline__bam__bam-to-bam__adna_capture__v1",
+        &payload,
+        temp.path(),
+    )?;
     Ok(())
 }

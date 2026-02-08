@@ -32,7 +32,10 @@ fn policy_test_prefix(path: &Path, root: &Path) -> String {
         parts.remove(0);
     }
     let suite = if parts.len() > 1 { parts[0] } else { "root" };
-    let stem = path.file_stem().and_then(|s| s.to_str()).unwrap_or("unknown");
+    let stem = path
+        .file_stem()
+        .and_then(|s| s.to_str())
+        .unwrap_or("unknown");
     format!("policy__{suite}__{stem}__")
 }
 

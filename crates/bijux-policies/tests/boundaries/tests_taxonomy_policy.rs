@@ -35,7 +35,12 @@ fn policy__boundaries__tests_taxonomy_policy__taxonomy_buckets_only() {
                 continue;
             }
             let rel = dir.strip_prefix(&tests_root).unwrap();
-            let name = rel.components().next().unwrap().as_os_str().to_string_lossy();
+            let name = rel
+                .components()
+                .next()
+                .unwrap()
+                .as_os_str()
+                .to_string_lossy();
             if !allowed.contains(&name.as_ref()) {
                 let readme = dir.join("README.md");
                 if !readme.exists() {

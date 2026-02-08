@@ -52,7 +52,9 @@ fn policy__boundaries__no_thin_modules_policy__no_thin_module_directories() {
             if has_other_entries || rs_files.len() >= 2 {
                 continue;
             }
-            if rs_files.len() == 1 && rs_files[0].file_name().and_then(|n| n.to_str()) == Some("mod.rs") {
+            if rs_files.len() == 1
+                && rs_files[0].file_name().and_then(|n| n.to_str()) == Some("mod.rs")
+            {
                 let content = support::read_to_string(&rs_files[0]);
                 if pub_item_count(&content) >= MIN_PUB_ITEMS {
                     continue;

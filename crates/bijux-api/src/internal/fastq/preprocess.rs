@@ -1,6 +1,7 @@
 use bijux_runtime::{build_telemetry_adapter, TelemetryEventV1};
 use std::collections::HashMap;
 
+use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use crate::tooling::{ensure_bench_runner, filter_tools_by_role, load_registry};
 use anyhow::{anyhow, Context, Result};
 use bijux_analyze::load::sqlite::bench_results_fastq::SqliteBenchResultsRepository;
@@ -9,7 +10,6 @@ use bijux_core::contract::{ExecutionEdge, ExecutionGraph};
 use bijux_core::prelude::errors::ErrorCategory;
 use bijux_core::prelude::ContainerImageRefV1;
 use bijux_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
-use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use bijux_planner_fastq::stage_api::bench_dir_name;
 use bijux_planner_fastq::stage_api::RawFailure;
 use bijux_planner_fastq::{

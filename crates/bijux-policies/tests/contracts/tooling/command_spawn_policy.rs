@@ -24,7 +24,8 @@ fn is_allowed_command_path(path: &Path) -> bool {
 }
 
 #[test]
-fn policy__contracts__command_spawn_policy__command_spawning_is_confined_to_runner_and_env_tooling() {
+fn policy__contracts__command_spawn_policy__command_spawning_is_confined_to_runner_and_env_tooling()
+{
     let root = workspace_root();
     let mut offenders = Vec::new();
     let needles = ["std::process::Command", "Command::new"];

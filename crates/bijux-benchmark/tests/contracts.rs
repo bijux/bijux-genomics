@@ -15,9 +15,9 @@ mod mod_contracts_no_panics_in_public_api_rs;
 mod mod_contracts_no_raw_json_rs;
 #[path = "contracts/owner_guardrail.rs"]
 mod mod_contracts_owner_guardrail_rs;
-#[path = "contracts/public_api.rs"]
-mod mod_contracts_public_api_rs;
 #[path = "contracts/public_api_owner.rs"]
 mod mod_contracts_public_api_owner_rs;
+#[path = "contracts/public_api.rs"]
+mod mod_contracts_public_api_rs;
 #[path = "contracts/ssot_ids.rs"]
 mod mod_contracts_ssot_ids_rs;

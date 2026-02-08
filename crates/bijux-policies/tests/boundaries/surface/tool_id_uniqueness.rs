@@ -15,8 +15,7 @@ fn workspace_root() -> PathBuf {
 fn extract_tool_ids(path: &Path) -> Vec<String> {
     let content = std::fs::read_to_string(path).expect("read tool registry");
     let mut ids = Vec::new();
-    let re = regex::Regex::new(r#"\(\s*\"([^\"]+)\"\s*,\s*\"([^\"]+)\"\s*\)"#)
-        .expect("regex");
+    let re = regex::Regex::new(r#"\(\s*\"([^\"]+)\"\s*,\s*\"([^\"]+)\"\s*\)"#).expect("regex");
     for cap in re.captures_iter(&content) {
         ids.push(cap[1].to_string());
     }

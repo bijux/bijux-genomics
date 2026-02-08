@@ -50,7 +50,13 @@ fn policy__boundaries__cli_dependency_policy__cli_depends_only_on_api_and_cli_su
     let offenders: Vec<String> = deps
         .iter()
         .filter(|dep| !allowlist.contains(&dep.as_str()))
-        .map(|dep| format!("{} depends on unexpected crate: {}", manifest.display(), dep))
+        .map(|dep| {
+            format!(
+                "{} depends on unexpected crate: {}",
+                manifest.display(),
+                dep
+            )
+        })
         .collect();
 
     bijux_policies::policy_assert!(

@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
-use anyhow::Result;
 use crate::support;
+use anyhow::Result;
 use bijux::cli::{
     bench_args_from_trim, preprocess_args_from_cli, BenchCorpusArg, CommonArgs,
     FastqPreprocessArgs, FastqTrimArgs, ObjectiveArg,

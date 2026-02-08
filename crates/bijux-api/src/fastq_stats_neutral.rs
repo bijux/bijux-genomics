@@ -17,9 +17,9 @@ use bijux_runner::primitives::build_tool_execution_spec;
 use bijux_runtime::{RunProvenanceV1, StageObservabilityContextV1};
 use uuid::Uuid;
 
+use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use bijux_core::contract::validate_execution_outputs;
 use bijux_core::prelude::measure::SeqkitMetrics;
-use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use bijux_infra::hash_file_sha256;
 use bijux_infra::{bench_base_dir, bench_tools_dir};
 use bijux_planner_fastq::select_stats_tools;

@@ -19,7 +19,10 @@ fn policy__boundaries__hashmap_policy__no_hashmap_in_contract_paths() {
             if !path_str.contains("src/") {
                 continue;
             }
-            if !(path_str.contains("contract") || path_str.contains("schema") || path_str.contains("report")) {
+            if !(path_str.contains("contract")
+                || path_str.contains("schema")
+                || path_str.contains("report"))
+            {
                 continue;
             }
             if path.extension().and_then(|e| e.to_str()) != Some("rs") {

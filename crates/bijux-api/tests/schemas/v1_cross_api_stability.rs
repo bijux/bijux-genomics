@@ -1,5 +1,4 @@
 /// Snapshot intent: verifies stable, reviewed output for this contract.
-
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 
@@ -10,8 +9,8 @@ use bijux_core::contract::PlanPolicy;
 use bijux_core::contract::{ArtifactRef, ArtifactRole, StageIO, ToolConstraints};
 use bijux_core::contract::{ExecutionEdge, ExecutionGraph, ExecutionStep};
 use bijux_core::prelude::{ArtifactId, CommandSpecV1, ContainerImageRefV1, StageId, StepId};
-use tempfile;
 use insta::Settings;
+use tempfile;
 
 fn snapshot_name(group: &str, name: &str) -> String {
     format!("bijux-api__{group}__{name}")

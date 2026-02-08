@@ -2,7 +2,6 @@ use anyhow::{anyhow, Context, Result};
 use std::collections::{BTreeSet, HashMap, HashSet};
 use std::path::{Path, PathBuf};
 
-use cargo_metadata::MetadataCommand;
 use crate::request_args::{
     DryRunRequest, DryRunResponse, ExecuteRequest, ExecuteResponse, ExecuteRunRequest,
     ExecuteRunResult, PlanRequest, PlanResponse, PlanRunRequest, PlanRunResult,
@@ -16,6 +15,7 @@ use bijux_pipelines::registry::PipelineRegistry;
 use bijux_pipelines::{Domain, PipelineProfile};
 use bijux_runner::DockerRunner;
 use bijux_stage_contract::{build_run_execution_plan, RunExecutionPlan};
+use cargo_metadata::MetadataCommand;
 
 #[derive(Debug, Clone, Copy)]
 /// Execution mode for pipeline runs.
@@ -115,8 +115,8 @@ pub fn render_report(request: &RenderReportRequest) -> Result<RenderReportResult
 /// Returns an error if run status inspection fails.
 pub fn status(run_dir: &Path) -> Result<RunStatus> {
     let manifest_path = run_dir.join("run_manifest.json");
-    let report_path = bijux_runtime::recording::run_artifacts_dir_for_out(run_dir)
-        .join("report.html");
+    let report_path =
+        bijux_runtime::recording::run_artifacts_dir_for_out(run_dir).join("report.html");
     let manifest = if manifest_path.exists() {
         Some(manifest_path.clone())
     } else {
@@ -185,8 +185,8 @@ pub fn replay_manifest(manifest_path: &Path, verify_only: bool) -> Result<()> {
         }
         return Ok(());
     }
-    let graph_path = bijux_runtime::recording::run_artifacts_dir_for_out(base_dir)
-        .join("graph.json");
+    let graph_path =
+        bijux_runtime::recording::run_artifacts_dir_for_out(base_dir).join("graph.json");
     let graph_raw =
         std::fs::read_to_string(&graph_path).map_err(|err| anyhow!("read graph.json: {err}"))?;
     let graph: ExecutionGraph =

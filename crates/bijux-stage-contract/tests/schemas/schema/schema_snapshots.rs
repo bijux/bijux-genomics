@@ -69,7 +69,8 @@ fn stage_contract_schema_snapshot() {
         event_hints: Vec::new(),
     };
 
-    let expected = include_str!("../../fixtures/stage_contract_schema/default/stage_contract_schema.json");
+    let expected =
+        include_str!("../../fixtures/stage_contract_schema/default/stage_contract_schema.json");
     let payload = serde_json::json!({
         "plan": plan,
         "execution": execution,

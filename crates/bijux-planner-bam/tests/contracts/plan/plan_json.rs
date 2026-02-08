@@ -21,7 +21,9 @@ fn dummy_tool(tool: &str) -> ToolExecutionSpecV1 {
             image: "bijux/test:latest".to_string(),
             digest: None,
         },
-        command: CommandSpecV1 { template: Vec::new() },
+        command: CommandSpecV1 {
+            template: Vec::new(),
+        },
         resources: ToolConstraints {
             runtime: "docker".to_string(),
             mem_gb: 1,

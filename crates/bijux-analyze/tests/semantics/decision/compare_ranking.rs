@@ -1,11 +1,10 @@
-/// Snapshot intent: verifies stable, reviewed output for this contract.
-
-use std::path::PathBuf;
 use anyhow::Result;
 use bijux_analyze::{compare::compare_runs, ranking::build_rankings, ranking::RankInput};
 use bijux_core::contract::objective_spec;
 use bijux_core::contract::Objective;
 use insta::Settings;
+/// Snapshot intent: verifies stable, reviewed output for this contract.
+use std::path::PathBuf;
 
 fn snapshot_name(group: &str, name: &str) -> String {
     format!("bijux-analyze__{group}__{name}")

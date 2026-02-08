@@ -17,9 +17,9 @@ mod mod_contracts_plan_no_parsing_rs;
 mod mod_contracts_plan_plan_json_rs;
 #[path = "contracts/plan/plan_snapshots.rs"]
 mod mod_contracts_plan_plan_snapshots_rs;
+#[path = "contracts/plan.rs"]
+mod mod_contracts_plan_rs;
 #[path = "contracts/plan/trim_params.rs"]
 mod mod_contracts_plan_trim_params_rs;
 #[path = "contracts/plan/trim_plan.rs"]
 mod mod_contracts_plan_trim_plan_rs;
-#[path = "contracts/plan.rs"]
-mod mod_contracts_plan_rs;

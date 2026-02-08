@@ -45,9 +45,9 @@ fn policy__boundaries__path_policies__src_bin_requires_bin_targets() {
         }
         let has_bins = std::fs::read_dir(&src_bin)
             .map(|entries| {
-                entries
-                    .filter_map(|entry| entry.ok())
-                    .any(|entry| entry.path().extension().and_then(|ext| ext.to_str()) == Some("rs"))
+                entries.filter_map(|entry| entry.ok()).any(|entry| {
+                    entry.path().extension().and_then(|ext| ext.to_str()) == Some("rs")
+                })
             })
             .unwrap_or(false);
         if !has_bins {
@@ -78,7 +78,10 @@ fn policy__boundaries__path_policies__src_does_not_contain_test_paths() {
         if !path.to_string_lossy().contains("/src/") {
             continue;
         }
-        let name = path.file_name().and_then(|name| name.to_str()).unwrap_or("");
+        let name = path
+            .file_name()
+            .and_then(|name| name.to_str())
+            .unwrap_or("");
         if name.contains("test") {
             offenders.push(path.display().to_string());
         }

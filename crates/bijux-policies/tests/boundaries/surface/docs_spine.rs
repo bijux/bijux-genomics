@@ -73,17 +73,16 @@ fn policy__boundaries__docs_spine__no_docs_under_src() {
         for entry in WalkDir::new(&src) {
             let entry = entry.expect("walk src");
             if entry.file_type().is_file()
-                && entry
-                    .path()
-                    .extension()
-                    .and_then(|ext| ext.to_str())
-                    == Some("md")
+                && entry.path().extension().and_then(|ext| ext.to_str()) == Some("md")
                 && !matches!(
                     entry.path().file_name().and_then(|name| name.to_str()),
                     Some("OWNER.md") | Some("INDEX.md")
                 )
             {
-                bijux_policies::policy_panic!("docs under src are forbidden: {}", entry.path().display());
+                bijux_policies::policy_panic!(
+                    "docs under src are forbidden: {}",
+                    entry.path().display()
+                );
             }
         }
     }
@@ -266,7 +265,10 @@ fn policy__boundaries__docs_spine__crate_docs_contract() {
                 );
             }
             if !is_uppercase_stem(entry.path().as_path()) {
-                bijux_policies::policy_panic!("crate docs filename must be uppercase: {}", entry.path().display());
+                bijux_policies::policy_panic!(
+                    "crate docs filename must be uppercase: {}",
+                    entry.path().display()
+                );
             }
             required.remove(name.as_str());
         }
@@ -338,7 +340,10 @@ fn policy__boundaries__docs_spine__root_docs_metadata_headers() {
         let content = read_to_string(&doc);
         for header in required {
             if !content.lines().any(|line| line.starts_with(header)) {
-                bijux_policies::policy_panic!("missing metadata header {header} in {}", doc.display());
+                bijux_policies::policy_panic!(
+                    "missing metadata header {header} in {}",
+                    doc.display()
+                );
             }
         }
     }

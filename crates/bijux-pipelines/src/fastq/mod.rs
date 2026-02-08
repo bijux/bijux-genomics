@@ -5,11 +5,11 @@ use std::collections::BTreeMap;
 pub mod invariants;
 pub mod profiles;
 
+use bijux_core::prelude::id_catalog;
 use bijux_domain_fastq::params::defaults::{
     detect_adapters_defaults, filter_defaults, merge_defaults, preprocess_defaults,
     qc_post_defaults, screen_defaults, trim_defaults, validate_defaults,
 };
-use bijux_core::prelude::id_catalog;
 
 use crate::{
     ArtifactType, Domain, EffectiveDefaults, MetricsBundle, PipelineCapabilities, PipelineId,

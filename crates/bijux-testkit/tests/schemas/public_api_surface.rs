@@ -16,7 +16,8 @@ fn public_surface_is_deliberate() {
         }
     }
     let expected: BTreeSet<String> = [
-        "determinism::{assert_json_stable, assert_stable_ordering, strip_timestamp_fields}".to_string(),
+        "determinism::{assert_json_stable, assert_stable_ordering, strip_timestamp_fields}"
+            .to_string(),
         "fixtures::{assert_json_schema_like, load_fixture_json, load_fixture_text}".to_string(),
         "snapshots::{snapshot_name, stable_json}".to_string(),
     ]

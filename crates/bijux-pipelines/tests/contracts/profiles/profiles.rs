@@ -1,5 +1,4 @@
 /// Snapshot intent: verifies stable, reviewed output for this contract.
-
 use std::path::PathBuf;
 
 use bijux_pipelines::bam::{

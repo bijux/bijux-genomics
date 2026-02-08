@@ -1,6 +1,6 @@
+use insta::Settings;
 use std::fs;
 use std::path::PathBuf;
-use insta::Settings;
 
 fn snapshot_name(group: &str, name: &str) -> String {
     format!("bijux-api__{group}__{name}")

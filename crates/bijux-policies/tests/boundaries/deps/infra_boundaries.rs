@@ -10,7 +10,14 @@ fn policy__boundaries__infra_boundaries__infra_has_no_domain_semantics() {
         .iter()
         .find(|pkg| pkg.name == "bijux-infra")
         .expect("bijux-infra missing");
-    let banned = ["bijux-domain-bam", "bijux-domain-fastq", "bijux-stages-bam", "bijux-stages-fastq", "bijux-planner-bam", "bijux-planner-fastq"];
+    let banned = [
+        "bijux-domain-bam",
+        "bijux-domain-fastq",
+        "bijux-stages-bam",
+        "bijux-stages-fastq",
+        "bijux-planner-bam",
+        "bijux-planner-fastq",
+    ];
     let mut offenders = Vec::new();
     for dep in &infra.dependencies {
         if banned.contains(&dep.name.as_str()) {
@@ -28,7 +35,11 @@ Offenders: {offenders:?}"
 
 #[test]
 fn policy__boundaries__infra_boundaries__no_id_catalog_literals_in_infra() {
-    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap().parent().unwrap();
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap();
     let infra_src = root.join("crates/bijux-infra/src");
     let mut offenders = Vec::new();
     for entry in walkdir::WalkDir::new(infra_src)

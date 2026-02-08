@@ -1,5 +1,5 @@
-use bijux_core::prelude::params_hash;
 use bijux_core::ids::id_catalog;
+use bijux_core::prelude::params_hash;
 
 use std::fs;
 use std::path::Path;
@@ -875,7 +875,8 @@ mod tests {
         let name = snapshot_name("schemas", "scientific_provenance_contract");
         let mut settings = Settings::new();
         settings.set_prepend_module_to_snapshot(false);
-        settings.set_snapshot_path(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/snapshots"));
+        settings
+            .set_snapshot_path(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/snapshots"));
         settings.bind(|| {
             insta::assert_json_snapshot!(name, payload);
         });
