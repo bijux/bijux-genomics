@@ -13,6 +13,13 @@ Tests should explain the contract they enforce.
 - Each test file should be referenced here.
 - Fixtures under `tests/fixtures/*` back the contract snapshots and golden comparisons.
 
+## Fixture → contract mapping
+- `tests/fixtures/bench_artifacts/decision.json` → `docs/BENCH_FORMAT.md#decisionjson`
+- `tests/fixtures/bench_artifacts/observations.jsonl` → `docs/BENCH_FORMAT.md#observationsjsonl`
+- `tests/fixtures/bench_artifacts/summary.json` → `docs/BENCH_FORMAT.md#summaryjson`
+- `tests/fixtures/bench_bundle/*` → `docs/BENCH_CONTRACT.md`
+- `tests/fixtures/handshake/run_record.json` → `tests/contracts/contract_handshake.rs`
+
 ## Suite map
 - `tests/contracts/*` → boundary, API surface, and schema contract checks.
 - `tests/determinism/*` → deterministic ordering and snapshot stability.
