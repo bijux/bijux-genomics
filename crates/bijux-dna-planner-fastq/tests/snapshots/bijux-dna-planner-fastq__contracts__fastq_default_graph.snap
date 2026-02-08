@@ -1,5 +1,5 @@
 ---
-source: crates/bijux-planner-fastq/tests/contracts/graph/graph_snapshots.rs
+source: crates/bijux-dna-planner-fastq/tests/contracts/graph/graph_snapshots.rs
 assertion_line: 70
 expression: json
 ---

@@ -1,5 +1,5 @@
 ---
-source: crates/bijux-analyze/tests/semantics/decision/compare_ranking.rs
+source: crates/bijux-dna-analyze/tests/semantics/decision/compare_ranking.rs
 expression: "bijux_testkit::snapshot_normalize_text(&rendered)"
 ---
 {

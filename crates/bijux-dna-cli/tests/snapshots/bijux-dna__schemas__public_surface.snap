@@ -1,5 +1,5 @@
 ---
-source: crates/bijux-cli/tests/boundaries/guardrails/public_surface.rs
+source: crates/bijux-dna-cli/tests/boundaries/guardrails/public_surface.rs
 assertion_line: 26
 expression: snapshot
 ---

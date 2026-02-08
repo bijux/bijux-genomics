@@ -1,5 +1,5 @@
 ---
-source: crates/bijux-planner-bam/tests/contracts/graph/graph_snapshots.rs
+source: crates/bijux-dna-planner-bam/tests/contracts/graph/graph_snapshots.rs
 expression: "bijux_testkit::snapshot_normalize_json(&json)"
 ---
 {

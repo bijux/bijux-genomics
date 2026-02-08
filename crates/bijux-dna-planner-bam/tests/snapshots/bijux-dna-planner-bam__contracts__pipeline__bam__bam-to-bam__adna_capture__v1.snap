@@ -1,5 +1,5 @@
 ---
-source: crates/bijux-planner-bam/tests/contracts/plan/pipeline_plan_snapshot.rs
+source: crates/bijux-dna-planner-bam/tests/contracts/plan/pipeline_plan_snapshot.rs
 expression: "bijux_testkit::snapshot_normalize_text(&payload)"
 ---
 {

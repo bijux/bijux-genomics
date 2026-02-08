@@ -1,5 +1,5 @@
 ---
-source: crates/bijux-domain-fastq/tests/stage_contract_snapshots.rs
+source: crates/bijux-dna-domain-fastq/tests/stage_contract_snapshots.rs
 expression: json
 ---
 {

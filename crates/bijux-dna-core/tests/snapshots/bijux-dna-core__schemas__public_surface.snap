@@ -1,5 +1,5 @@
 ---
-source: crates/bijux-core/tests/schemas/public_surface.rs
+source: crates/bijux-dna-core/tests/schemas/public_surface.rs
 assertion_line: 24
 expression: snapshot
 ---

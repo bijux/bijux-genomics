@@ -1,5 +1,5 @@
 ---
-source: crates/bijux-api/src/internal/handlers/fastq/summary.rs
+source: crates/bijux-dna-api/src/internal/handlers/fastq/summary.rs
 assertion_line: 873
 expression: payload
 ---

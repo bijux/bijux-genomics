@@ -1,5 +1,5 @@
 ---
-source: crates/bijux-pipelines/tests/profiles.rs
+source: crates/bijux-dna-pipelines/tests/profiles.rs
 expression: fastq_to_bam_adna_profile()
 ---
 {

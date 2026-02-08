@@ -1,5 +1,5 @@
 ---
-source: crates/bijux-analyze/tests/contracts/pipeline/pipeline_e2e.rs
+source: crates/bijux-dna-analyze/tests/contracts/pipeline/pipeline_e2e.rs
 assertion_line: 162
 expression: "bijux_testkit::snapshot_normalize_json(&json)"
 ---

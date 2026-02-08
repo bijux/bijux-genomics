@@ -1,5 +1,5 @@
 ---
-source: crates/bijux-planner-fastq/tests/contracts/plan/plan_snapshots.rs
+source: crates/bijux-dna-planner-fastq/tests/contracts/plan/plan_snapshots.rs
 expression: "bijux_testkit::snapshot_normalize_json(&json)"
 ---
 {
