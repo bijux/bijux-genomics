@@ -1,9 +1,11 @@
+use std::collections::BTreeMap;
+use std::path::PathBuf;
+
 use bijux_core::contract::execution::{ExecutionEdge, ExecutionGraph, ExecutionStep};
 use bijux_core::contract::{ArtifactRole, PlanPolicy, StageIO, ToolConstraints};
 use bijux_core::prelude::{
     ArtifactId, CommandSpecV1, ContainerImageRefV1, PipelineId, StageId, StepId,
 };
-use std::path::PathBuf;
 
 fn step(step_id: &str) -> ExecutionStep {
     ExecutionStep {
@@ -30,7 +32,7 @@ fn step(step_id: &str) -> ExecutionStep {
             )],
         },
         out_dir: PathBuf::from("/tmp"),
-        aux_images: Default::default(),
+        aux_images: BTreeMap::default(),
         expected_artifact_ids: Vec::new(),
         metrics_schema_ids: Vec::new(),
     }

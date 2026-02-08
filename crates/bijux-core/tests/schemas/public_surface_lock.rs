@@ -5,7 +5,8 @@ fn read_public_modules() -> Vec<String> {
     let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("docs")
         .join("PUBLIC_API.md");
-    let content = fs::read_to_string(path).expect("read PUBLIC_API.md");
+    let content = fs::read_to_string(&path)
+        .unwrap_or_else(|err| panic!("read PUBLIC_API.md at {}: {err}", path.display()));
     let mut modules = Vec::new();
     let mut in_section = false;
     for line in content.lines() {
