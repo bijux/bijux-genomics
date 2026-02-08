@@ -1,7 +1,6 @@
 ---
 source: crates/bijux-policies/tests/boundaries/surface/crate_tree_contract.rs
-assertion_line: 56
-expression: "lines.join(\"\\n\")"
+expression: "bijux_testkit::snapshot_normalize_text(&lines.join(\"\\n\"))"
 ---
 [bijux-analyze]
 Cargo.toml
@@ -1459,6 +1458,7 @@ tests/boundaries/snapshot_policy.rs
 tests/boundaries/surface/api_boundaries.rs
 tests/boundaries/surface/architecture_pointer_policy.rs
 tests/boundaries/surface/core_purity.rs
+tests/boundaries/surface/coverage_cfg_policy.rs
 tests/boundaries/surface/crate_tree_contract.rs
 tests/boundaries/surface/deep_imports.rs
 tests/boundaries/surface/docs_index_quality.rs
