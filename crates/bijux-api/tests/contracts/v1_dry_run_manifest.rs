@@ -1,0 +1,25 @@
+use anyhow::Result;
+use bijux_api::request_args::DryRunRequest;
+use bijux_api::run::dry_run;
+use bijux_core::contract::{ExecutionGraph, PlanPolicy};
+
+#[test]
+fn dry_run_emits_manifest_and_graph_without_execution() -> Result<()> {
+    let temp = tempfile::tempdir()?;
+    let graph = ExecutionGraph::new(
+        "fastq.default.v1",
+        "test-planner",
+        PlanPolicy::PreferAccuracy,
+        Vec::new(),
+        Vec::new(),
+    )?;
+    let request = DryRunRequest {
+        graph,
+        run_dir: temp.path().to_path_buf(),
+        profile_id: "fastq.default.v1".to_string(),
+    };
+    let response = dry_run(&request)?;
+    assert!(response.graph_path.exists());
+    assert!(response.manifest_path.exists());
+    Ok(())
+}
