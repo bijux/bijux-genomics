@@ -1,20 +1,15 @@
 [profile.default]
-retries = { count = 1 }
+retries = { count = 1, backoff = "fixed", delay = "1s" }
 
 [profile.ci]
-retries = { count = 1 }
-default-filter = "not test-group(slow) and not test-group(e2e) and not test-group(science) and not package(bijux-environment)"
+retries = { count = 0, backoff = "fixed", delay = "1s" }
+fail-fast = false
 
 [profile.slow]
-retries = { count = 1 }
+retries = { count = 1, backoff = "fixed", delay = "1s" }
 
 [profile.e2e]
-retries = { count = 0 }
+retries = { count = 0, backoff = "fixed", delay = "1s" }
 
 [profile.science]
-retries = { count = 1 }
-
-[test-groups]
-slow = { regex = "_slow_" }
-e2e = { regex = "_e2e_" }
-science = { regex = "_science_" }
+retries = { count = 1, backoff = "fixed", delay = "1s" }
