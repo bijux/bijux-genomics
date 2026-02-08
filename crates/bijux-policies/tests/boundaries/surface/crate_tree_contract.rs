@@ -14,6 +14,9 @@ fn list_files(root: &PathBuf) -> Vec<String> {
     for entry in WalkDir::new(root) {
         let entry = entry.expect("walk");
         if entry.file_type().is_file() {
+            if entry.path().extension().and_then(|s| s.to_str()) == Some("profraw") {
+                continue;
+            }
             let rel = entry
                 .path()
                 .strip_prefix(root)

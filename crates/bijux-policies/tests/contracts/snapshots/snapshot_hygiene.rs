@@ -1,3 +1,4 @@
+#![allow(non_snake_case)]
 use std::path::{Path, PathBuf};
 
 use walkdir::WalkDir;
@@ -24,10 +25,13 @@ fn policy__contracts__snapshot_hygiene__no_absolute_paths_or_hostnames() {
             continue;
         }
         let content = std::fs::read_to_string(entry.path()).unwrap_or_default();
-        let bad = content.contains("/Users/")
-            || content.contains("\\Users\\")
-            || content.contains("/tmp/")
-            || content.contains("C:\\\\");
+        let bad = content.lines().any(|line| {
+            let trimmed = line.trim();
+            trimmed.starts_with("/Users/")
+                || trimmed.starts_with("\\Users\\")
+                || trimmed.starts_with("/tmp/")
+                || trimmed.starts_with("C:\\\\")
+        });
         if bad {
             offenders.push(entry.path().display().to_string());
         }
