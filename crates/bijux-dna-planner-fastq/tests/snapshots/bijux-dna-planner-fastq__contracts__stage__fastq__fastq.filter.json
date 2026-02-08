@@ -1,0 +1,69 @@
+{
+  "stage_id": "fastq.filter",
+  "stage_version": 1,
+  "tool_id": "seqkit",
+  "tool_version": "1.0.0",
+  "image": {
+    "image": "bijux/test:latest",
+    "digest": null
+  },
+  "command": {
+    "template": []
+  },
+  "resources": {
+    "runtime": "docker",
+    "mem_gb": 1,
+    "tmp_gb": 1,
+    "threads": 1
+  },
+  "io": {
+    "inputs": [
+      {
+        "name": "reads_r1",
+        "path": "reads_R1.fastq.gz",
+        "role": "reads",
+        "optional": false
+      }
+    ],
+    "outputs": [
+      {
+        "name": "filtered_reads",
+        "path": "out/seqkit.fastq.gz",
+        "role": "reads",
+        "optional": false
+      }
+    ]
+  },
+  "out_dir": "out",
+  "params": {
+    "entropy_threshold": null,
+    "input": "reads_R1.fastq.gz",
+    "kmer_ref": null,
+    "low_complexity_threshold": null,
+    "max_n": null,
+    "max_n_count": null,
+    "max_n_fraction": null,
+    "output": "out/seqkit.fastq.gz",
+    "polyx_policy": null,
+    "redundant_filters": [],
+    "tool": "seqkit"
+  },
+  "effective_params": {
+    "contaminant_db": null,
+    "entropy_threshold": null,
+    "low_complexity_threshold": null,
+    "max_n": null,
+    "max_n_count": null,
+    "max_n_fraction": null,
+    "n_policy": null,
+    "paired_mode": "single_end",
+    "polyx_policy": null,
+    "threads": 1
+  },
+  "aux_images": {},
+  "reason": {
+    "kind": "default",
+    "summary": "planner default",
+    "details": {}
+  }
+}

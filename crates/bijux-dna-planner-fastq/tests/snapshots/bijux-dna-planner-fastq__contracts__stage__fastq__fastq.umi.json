@@ -1,0 +1,69 @@
+{
+  "stage_id": "fastq.umi",
+  "stage_version": 1,
+  "tool_id": "umi_tools",
+  "tool_version": "1.0.0",
+  "image": {
+    "image": "bijux/test:latest",
+    "digest": null
+  },
+  "command": {
+    "template": []
+  },
+  "resources": {
+    "runtime": "docker",
+    "mem_gb": 1,
+    "tmp_gb": 1,
+    "threads": 1
+  },
+  "io": {
+    "inputs": [
+      {
+        "name": "reads_r1",
+        "path": "reads_R1.fastq.gz",
+        "role": "reads",
+        "optional": false
+      },
+      {
+        "name": "reads_r2",
+        "path": "reads_R2.fastq.gz",
+        "role": "reads",
+        "optional": false
+      }
+    ],
+    "outputs": [
+      {
+        "name": "dedup_reads_r1",
+        "path": "out/reads_r1.fastq.gz",
+        "role": "reads",
+        "optional": false
+      },
+      {
+        "name": "dedup_reads_r2",
+        "path": "out/reads_r2.fastq.gz",
+        "role": "reads",
+        "optional": false
+      }
+    ]
+  },
+  "out_dir": "out",
+  "params": {
+    "out_dir": "out",
+    "output_r1": "out/reads_r1.fastq.gz",
+    "output_r2": "out/reads_r2.fastq.gz",
+    "r1": "reads_R1.fastq.gz",
+    "r2": "reads_R2.fastq.gz",
+    "tool": "umi_tools"
+  },
+  "effective_params": {
+    "paired_mode": "paired_end",
+    "q_cutoff": null,
+    "threads": 1
+  },
+  "aux_images": {},
+  "reason": {
+    "kind": "default",
+    "summary": "planner default",
+    "details": {}
+  }
+}
