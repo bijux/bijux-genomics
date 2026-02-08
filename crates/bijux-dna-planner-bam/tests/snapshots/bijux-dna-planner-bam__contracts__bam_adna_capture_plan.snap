@@ -1,0 +1,906 @@
+---
+source: crates/bijux-planner-bam/tests/contracts/plan/plan_snapshots.rs
+expression: "bijux_testkit::snapshot_normalize_json(&json)"
+---
+{
+  "contract_version": {
+    "major": 1,
+    "minor": 0
+  },
+  "deterministic_scheduler": true,
+  "edges": [
+    {
+      "from": "bam.authenticity",
+      "to": "bam.contamination"
+    },
+    {
+      "from": "bam.bias_mitigation",
+      "to": "bam.haplogroups"
+    },
+    {
+      "from": "bam.complexity",
+      "to": "bam.coverage"
+    },
+    {
+      "from": "bam.contamination",
+      "to": "bam.sex"
+    },
+    {
+      "from": "bam.coverage",
+      "to": "bam.damage"
+    },
+    {
+      "from": "bam.damage",
+      "to": "bam.authenticity"
+    },
+    {
+      "from": "bam.filter",
+      "to": "bam.markdup"
+    },
+    {
+      "from": "bam.genotyping",
+      "to": "bam.kinship"
+    },
+    {
+      "from": "bam.haplogroups",
+      "to": "bam.genotyping"
+    },
+    {
+      "from": "bam.markdup",
+      "to": "bam.complexity"
+    },
+    {
+      "from": "bam.qc_pre",
+      "to": "bam.filter"
+    },
+    {
+      "from": "bam.sex",
+      "to": "bam.bias_mitigation"
+    },
+    {
+      "from": "bam.validate",
+      "to": "bam.qc_pre"
+    }
+  ],
+  "pipeline_id": "bam-to-bam__adna_capture__v1",
+  "planner_version": "bijux-dna-planner-bam.v1",
+  "policy": "PreferAccuracy",
+  "retry_policy": {
+    "max_attempts": 1,
+    "retry_on_exit_codes": []
+  },
+  "schema_version": "bijux.execution_graph.v1",
+  "step_timeout_s": null,
+  "steps": [
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "bwa"
+        ]
+      },
+      "expected_artifact_ids": [],
+      "image": {
+        "digest": "sha256:bwa",
+        "image": "bijux/bwa"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "bam",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_markdup/markdup.bam",
+            "role": "bam"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "authenticity_report",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_authenticity/authenticity.json",
+            "role": "report_json"
+          },
+          {
+            "name": "summary",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_authenticity/authenticity.summary.json",
+            "role": "report_json"
+          },
+          {
+            "name": "stage_metrics",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_authenticity/stage.metrics.json",
+            "role": "metrics_json"
+          }
+        ]
+      },
+      "metrics_schema_ids": [],
+      "out_dir": "<TMPDIR>/<TMP>/out/bam_authenticity",
+      "resources": {
+        "mem_gb": 2,
+        "runtime": "short",
+        "threads": 2,
+        "tmp_gb": 1
+      },
+      "stage_id": "bam.authenticity",
+      "step_id": "bam.authenticity"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "bwa"
+        ]
+      },
+      "expected_artifact_ids": [],
+      "image": {
+        "digest": "sha256:bwa",
+        "image": "bijux/bwa"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "bam",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_markdup/markdup.bam",
+            "role": "bam"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "bias_report",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_bias_mitigation/bias.json",
+            "role": "report_json"
+          },
+          {
+            "name": "summary",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_bias_mitigation/bias.summary.json",
+            "role": "report_json"
+          },
+          {
+            "name": "stage_metrics",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_bias_mitigation/stage.metrics.json",
+            "role": "metrics_json"
+          }
+        ]
+      },
+      "metrics_schema_ids": [],
+      "out_dir": "<TMPDIR>/<TMP>/out/bam_bias_mitigation",
+      "resources": {
+        "mem_gb": 2,
+        "runtime": "short",
+        "threads": 2,
+        "tmp_gb": 1
+      },
+      "stage_id": "bam.bias_mitigation",
+      "step_id": "bam.bias_mitigation"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "bwa"
+        ]
+      },
+      "expected_artifact_ids": [],
+      "image": {
+        "digest": "sha256:bwa",
+        "image": "bijux/bwa"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "bam",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_markdup/markdup.bam",
+            "role": "bam"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "complexity_report",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_complexity/complexity.json",
+            "role": "report_json"
+          },
+          {
+            "name": "preseq",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_complexity/preseq.txt",
+            "role": "unknown"
+          },
+          {
+            "name": "summary",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_complexity/complexity.summary.json",
+            "role": "report_json"
+          },
+          {
+            "name": "stage_metrics",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_complexity/stage.metrics.json",
+            "role": "metrics_json"
+          }
+        ]
+      },
+      "metrics_schema_ids": [],
+      "out_dir": "<TMPDIR>/<TMP>/out/bam_complexity",
+      "resources": {
+        "mem_gb": 2,
+        "runtime": "short",
+        "threads": 2,
+        "tmp_gb": 1
+      },
+      "stage_id": "bam.complexity",
+      "step_id": "bam.complexity"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "/bin/sh",
+          "-c",
+          "<TIMESTAMP>"
+        ]
+      },
+      "expected_artifact_ids": [],
+      "image": {
+        "digest": "sha256:bwa",
+        "image": "bijux/bwa"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "bam",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_markdup/markdup.bam",
+            "role": "bam"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "contamination_report",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_contamination/contamination.json",
+            "role": "report_json"
+          },
+          {
+            "name": "summary",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_contamination/contamination.summary.json",
+            "role": "report_json"
+          },
+          {
+            "name": "stage_metrics",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_contamination/stage.metrics.json",
+            "role": "metrics_json"
+          }
+        ]
+      },
+      "metrics_schema_ids": [],
+      "out_dir": "<TMPDIR>/<TMP>/out/bam_contamination",
+      "resources": {
+        "mem_gb": 2,
+        "runtime": "short",
+        "threads": 2,
+        "tmp_gb": 1
+      },
+      "stage_id": "bam.contamination",
+      "step_id": "bam.contamination"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "mosdepth",
+          "-n",
+          "<TMPDIR>/<TMP>/out/bam_coverage/coverage",
+          "<TMPDIR>/<TMP>/out/bam_markdup/markdup.bam"
+        ]
+      },
+      "expected_artifact_ids": [],
+      "image": {
+        "digest": "sha256:bwa",
+        "image": "bijux/bwa"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "bam",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_markdup/markdup.bam",
+            "role": "bam"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "coverage_summary",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_coverage/coverage.mosdepth.summary.txt",
+            "role": "report_json"
+          },
+          {
+            "name": "stage_metrics",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_coverage/stage.metrics.json",
+            "role": "metrics_json"
+          }
+        ]
+      },
+      "metrics_schema_ids": [],
+      "out_dir": "<TMPDIR>/<TMP>/out/bam_coverage",
+      "resources": {
+        "mem_gb": 2,
+        "runtime": "short",
+        "threads": 2,
+        "tmp_gb": 1
+      },
+      "stage_id": "bam.coverage",
+      "step_id": "bam.coverage"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "pydamage",
+          "analyze",
+          "--input",
+          "<TMPDIR>/<TMP>/out/bam_markdup/markdup.bam",
+          "--output",
+          "<TMPDIR>/<TMP>/out/bam_damage/damage.pydamage.json",
+          "--min-mapq",
+          "0.3"
+        ]
+      },
+      "expected_artifact_ids": [],
+      "image": {
+        "digest": "sha256:bwa",
+        "image": "bijux/bwa"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "bam",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_markdup/markdup.bam",
+            "role": "bam"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "damage_pydamage",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_damage/damage.pydamage.json",
+            "role": "unknown"
+          },
+          {
+            "name": "damage_mapdamage2",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_damage/damage.mapdamage2.txt",
+            "role": "unknown"
+          },
+          {
+            "name": "stage_metrics",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_damage/stage.metrics.json",
+            "role": "metrics_json"
+          }
+        ]
+      },
+      "metrics_schema_ids": [],
+      "out_dir": "<TMPDIR>/<TMP>/out/bam_damage",
+      "resources": {
+        "mem_gb": 2,
+        "runtime": "short",
+        "threads": 2,
+        "tmp_gb": 1
+      },
+      "stage_id": "bam.damage",
+      "step_id": "bam.damage"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "/bin/sh",
+          "-c",
+          "<TIMESTAMP>"
+        ]
+      },
+      "expected_artifact_ids": [],
+      "image": {
+        "digest": "sha256:bwa",
+        "image": "bijux/bwa"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "bam",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/sample.bam",
+            "role": "bam"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "filtered_bam",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_filter/filtered.bam",
+            "role": "bam"
+          },
+          {
+            "name": "filtered_bai",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_filter/filtered.bam.bai",
+            "role": "index"
+          },
+          {
+            "name": "flagstat_before",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_filter/flagstat.before.txt",
+            "role": "report_json"
+          },
+          {
+            "name": "flagstat_after",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_filter/flagstat.after.txt",
+            "role": "report_json"
+          },
+          {
+            "name": "idxstats_before",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_filter/idxstats.before.txt",
+            "role": "unknown"
+          },
+          {
+            "name": "idxstats_after",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_filter/idxstats.after.txt",
+            "role": "unknown"
+          },
+          {
+            "name": "summary",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_filter/filter.summary.json",
+            "role": "report_json"
+          },
+          {
+            "name": "stage_metrics",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_filter/stage.metrics.json",
+            "role": "metrics_json"
+          }
+        ]
+      },
+      "metrics_schema_ids": [],
+      "out_dir": "<TMPDIR>/<TMP>/out/bam_filter",
+      "resources": {
+        "mem_gb": 2,
+        "runtime": "short",
+        "threads": 2,
+        "tmp_gb": 1
+      },
+      "stage_id": "bam.filter",
+      "step_id": "bam.filter"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "bwa"
+        ]
+      },
+      "expected_artifact_ids": [],
+      "image": {
+        "digest": "sha256:bwa",
+        "image": "bijux/bwa"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "bam",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_markdup/markdup.bam",
+            "role": "bam"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "genotyping_report",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_genotyping/genotyping.json",
+            "role": "report_json"
+          },
+          {
+            "name": "summary",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_genotyping/genotyping.summary.json",
+            "role": "report_json"
+          },
+          {
+            "name": "stage_metrics",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_genotyping/stage.metrics.json",
+            "role": "metrics_json"
+          }
+        ]
+      },
+      "metrics_schema_ids": [],
+      "out_dir": "<TMPDIR>/<TMP>/out/bam_genotyping",
+      "resources": {
+        "mem_gb": 2,
+        "runtime": "short",
+        "threads": 2,
+        "tmp_gb": 1
+      },
+      "stage_id": "bam.genotyping",
+      "step_id": "bam.genotyping"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "bwa"
+        ]
+      },
+      "expected_artifact_ids": [],
+      "image": {
+        "digest": "sha256:bwa",
+        "image": "bijux/bwa"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "bam",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_markdup/markdup.bam",
+            "role": "bam"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "haplogroups",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_haplogroups/haplogroups.json",
+            "role": "unknown"
+          },
+          {
+            "name": "summary",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_haplogroups/haplogroups.summary.json",
+            "role": "report_json"
+          },
+          {
+            "name": "stage_metrics",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_haplogroups/stage.metrics.json",
+            "role": "metrics_json"
+          }
+        ]
+      },
+      "metrics_schema_ids": [],
+      "out_dir": "<TMPDIR>/<TMP>/out/bam_haplogroups",
+      "resources": {
+        "mem_gb": 2,
+        "runtime": "short",
+        "threads": 2,
+        "tmp_gb": 1
+      },
+      "stage_id": "bam.haplogroups",
+      "step_id": "bam.haplogroups"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "bwa"
+        ]
+      },
+      "expected_artifact_ids": [],
+      "image": {
+        "digest": "sha256:bwa",
+        "image": "bijux/bwa"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "bam",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_markdup/markdup.bam",
+            "role": "bam"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "kinship_report",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_kinship/kinship.json",
+            "role": "report_json"
+          },
+          {
+            "name": "summary",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_kinship/kinship.summary.json",
+            "role": "report_json"
+          },
+          {
+            "name": "stage_metrics",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_kinship/stage.metrics.json",
+            "role": "metrics_json"
+          }
+        ]
+      },
+      "metrics_schema_ids": [],
+      "out_dir": "<TMPDIR>/<TMP>/out/bam_kinship",
+      "resources": {
+        "mem_gb": 2,
+        "runtime": "short",
+        "threads": 2,
+        "tmp_gb": 1
+      },
+      "stage_id": "bam.kinship",
+      "step_id": "bam.kinship"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "/bin/sh",
+          "-c",
+          "<TIMESTAMP>"
+        ]
+      },
+      "expected_artifact_ids": [],
+      "image": {
+        "digest": "sha256:bwa",
+        "image": "bijux/bwa"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "bam",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_filter/filtered.bam",
+            "role": "bam"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "markdup_bam",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_markdup/markdup.bam",
+            "role": "bam"
+          },
+          {
+            "name": "markdup_bai",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_markdup/markdup.bam.bai",
+            "role": "index"
+          },
+          {
+            "name": "flagstat_before",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_markdup/flagstat.before.txt",
+            "role": "report_json"
+          },
+          {
+            "name": "flagstat_after",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_markdup/flagstat.after.txt",
+            "role": "report_json"
+          },
+          {
+            "name": "idxstats_before",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_markdup/idxstats.before.txt",
+            "role": "unknown"
+          },
+          {
+            "name": "idxstats_after",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_markdup/idxstats.after.txt",
+            "role": "unknown"
+          },
+          {
+            "name": "summary",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_markdup/markdup.summary.json",
+            "role": "report_json"
+          },
+          {
+            "name": "stage_metrics",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_markdup/stage.metrics.json",
+            "role": "metrics_json"
+          }
+        ]
+      },
+      "metrics_schema_ids": [],
+      "out_dir": "<TMPDIR>/<TMP>/out/bam_markdup",
+      "resources": {
+        "mem_gb": 2,
+        "runtime": "short",
+        "threads": 2,
+        "tmp_gb": 1
+      },
+      "stage_id": "bam.markdup",
+      "step_id": "bam.markdup"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "/bin/sh",
+          "-c",
+          "samtools flagstat <TMPDIR>/<TMP>/sample.bam > <TMPDIR>/<TMP>/out/bam_qc_pre/flagstat.txt && samtools idxstats <TMPDIR>/<TMP>/sample.bam > <TMPDIR>/<TMP>/out/bam_qc_pre/idxstats.txt && samtools stats <TMPDIR>/<TMP>/sample.bam > <TMPDIR>/<TMP>/out/bam_qc_pre/samtools_stats.txt"
+        ]
+      },
+      "expected_artifact_ids": [],
+      "image": {
+        "digest": "sha256:bwa",
+        "image": "bijux/bwa"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "bam",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/sample.bam",
+            "role": "bam"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "flagstat",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_qc_pre/flagstat.txt",
+            "role": "report_json"
+          },
+          {
+            "name": "idxstats",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_qc_pre/idxstats.txt",
+            "role": "unknown"
+          },
+          {
+            "name": "stats",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_qc_pre/samtools_stats.txt",
+            "role": "unknown"
+          },
+          {
+            "name": "stage_metrics",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_qc_pre/stage.metrics.json",
+            "role": "metrics_json"
+          }
+        ]
+      },
+      "metrics_schema_ids": [],
+      "out_dir": "<TMPDIR>/<TMP>/out/bam_qc_pre",
+      "resources": {
+        "mem_gb": 2,
+        "runtime": "short",
+        "threads": 2,
+        "tmp_gb": 1
+      },
+      "stage_id": "bam.qc_pre",
+      "step_id": "bam.qc_pre"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "/bin/sh",
+          "-c",
+          "<TIMESTAMP>"
+        ]
+      },
+      "expected_artifact_ids": [],
+      "image": {
+        "digest": "sha256:bwa",
+        "image": "bijux/bwa"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "bam",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_markdup/markdup.bam",
+            "role": "bam"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "sex_report",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_sex/sex.json",
+            "role": "report_json"
+          },
+          {
+            "name": "summary",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_sex/sex.summary.json",
+            "role": "report_json"
+          },
+          {
+            "name": "stage_metrics",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_sex/stage.metrics.json",
+            "role": "metrics_json"
+          }
+        ]
+      },
+      "metrics_schema_ids": [],
+      "out_dir": "<TMPDIR>/<TMP>/out/bam_sex",
+      "resources": {
+        "mem_gb": 2,
+        "runtime": "short",
+        "threads": 2,
+        "tmp_gb": 1
+      },
+      "stage_id": "bam.sex",
+      "step_id": "bam.sex"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "/bin/sh",
+          "-c",
+          "samtools quickcheck -v <TMPDIR>/<TMP>/sample.bam > <TMPDIR>/<TMP>/out/bam_validate/validation.json && samtools flagstat <TMPDIR>/<TMP>/sample.bam > <TMPDIR>/<TMP>/out/bam_validate/flagstat.txt"
+        ]
+      },
+      "expected_artifact_ids": [],
+      "image": {
+        "digest": "sha256:bwa",
+        "image": "bijux/bwa"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "bam",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/sample.bam",
+            "role": "bam"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "validation_report",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_validate/validation.json",
+            "role": "report_json"
+          },
+          {
+            "name": "flagstat",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_validate/flagstat.txt",
+            "role": "report_json"
+          },
+          {
+            "name": "stage_metrics",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/out/bam_validate/stage.metrics.json",
+            "role": "metrics_json"
+          }
+        ]
+      },
+      "metrics_schema_ids": [],
+      "out_dir": "<TMPDIR>/<TMP>/out/bam_validate",
+      "resources": {
+        "mem_gb": 2,
+        "runtime": "short",
+        "threads": 2,
+        "tmp_gb": 1
+      },
+      "stage_id": "bam.validate",
+      "step_id": "bam.validate"
+    }
+  ]
+}

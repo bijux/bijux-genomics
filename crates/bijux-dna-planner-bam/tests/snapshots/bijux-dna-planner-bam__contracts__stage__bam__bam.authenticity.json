@@ -1,0 +1,66 @@
+{
+  "stage_id": "bam.authenticity",
+  "stage_version": 1,
+  "tool_id": "authenticity",
+  "tool_version": "1.0.0",
+  "image": {
+    "image": "bijux/test:latest",
+    "digest": null
+  },
+  "command": {
+    "template": []
+  },
+  "resources": {
+    "runtime": "docker",
+    "mem_gb": 1,
+    "tmp_gb": 1,
+    "threads": 1
+  },
+  "io": {
+    "inputs": [
+      {
+        "name": "bam",
+        "path": "tests/fixtures/plan_inputs/default/sample.bam",
+        "role": "bam",
+        "optional": false
+      }
+    ],
+    "outputs": [
+      {
+        "name": "authenticity_report",
+        "path": "out/authenticity.json",
+        "role": "report_json",
+        "optional": false
+      },
+      {
+        "name": "summary",
+        "path": "out/authenticity.summary.json",
+        "role": "report_json",
+        "optional": false
+      },
+      {
+        "name": "stage_metrics",
+        "path": "out/stage.metrics.json",
+        "role": "metrics_json",
+        "optional": false
+      }
+    ]
+  },
+  "out_dir": "out",
+  "params": {
+    "bam": "tests/fixtures/plan_inputs/default/sample.bam",
+    "mode": "aggregate"
+  },
+  "effective_params": {
+    "mode": "aggregate"
+  },
+  "aux_images": {},
+  "reason": {
+    "kind": "default",
+    "summary": "tool authenticity selected by planner",
+    "details": {
+      "contract_hash": "84e5f63b61c5ab607b9fc5e16f094f7aa2c90e649f7615f0dc8119632c741927",
+      "defaults_diff": {}
+    }
+  }
+}
