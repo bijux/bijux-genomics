@@ -1,0 +1,41 @@
+---
+source: crates/bijux-domain-bam/tests/stage_contract_snapshots.rs
+expression: json
+---
+{
+  "audit_artifacts": [
+    {
+      "filename": "coverage.mosdepth.summary.txt",
+      "name": "coverage_summary"
+    },
+    {
+      "filename": "stage.metrics.json",
+      "name": "stage_metrics"
+    }
+  ],
+  "inputs": [
+    "bam"
+  ],
+  "io": {
+    "deterministic": true,
+    "duplicate_policy": "no_duplicate_marking",
+    "emits_bam": false,
+    "emits_report": true,
+    "indexing": "index_optional",
+    "input_kind": "Bam",
+    "mapping_quality_policy": "no_mapping_quality_filter",
+    "nondeterminism_reason": null,
+    "output_kind": "Report",
+    "read_group_policy": "requires_read_groups_for_sample_metadata",
+    "sorting": "accepts_unsorted_bam"
+  },
+  "outputs": [
+    "coverage_summary",
+    "stage_metrics"
+  ],
+  "schema_version": "bijux.stage_contract.v1",
+  "stage_id": "bam.coverage",
+  "tool_ids": [
+    "mosdepth"
+  ]
+}
