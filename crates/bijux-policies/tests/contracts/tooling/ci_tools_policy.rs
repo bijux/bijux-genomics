@@ -83,3 +83,36 @@ fn policy__contracts__ci_tools_policy__serde_yaml_is_scoped() {
         offenders
     );
 }
+
+#[test]
+fn policy__contracts__ci_tools_policy__coverage_command_policy_is_stable() {
+    let root = workspace_root();
+    let cargo_mk = root.join("makefiles").join("cargo.mk");
+    let content = std::fs::read_to_string(&cargo_mk).expect("read cargo.mk");
+
+    let required = [
+        "cargo nextest run",
+        "--config-file nextest.toml",
+        "--workspace",
+        "--all-features",
+        "--profile $(NEXTEST_PROFILE)",
+        "--run-ignored all",
+        "cargo llvm-cov nextest",
+        "--no-report",
+        "--no-cfg-coverage",
+        "cargo llvm-cov report --json",
+        "cargo llvm-cov report --html",
+    ];
+
+    let mut missing = Vec::new();
+    for needle in required {
+        if !content.contains(needle) {
+            missing.push(needle);
+        }
+    }
+
+    bijux_policies::policy_assert!(
+        missing.is_empty(),
+        "CI coverage/test commands must include stable nextest/coverage flags. Missing: {missing:?}"
+    );
+}
