@@ -1,7 +1,6 @@
 ---
 source: crates/bijux-analyze/tests/contracts/pipeline/pipeline_e2e.rs
-assertion_line: 145
-expression: json
+expression: "bijux_testkit::snapshot_normalize_json(&json)"
 ---
 {
   "adapter_inference": {
@@ -1018,7 +1017,6 @@ expression: json
       "params_hashes": [
         "params"
       ],
-      "started_at": null,
       "tool_versions": [
         "0.0.0"
       ]

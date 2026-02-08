@@ -1,6 +1,6 @@
 ---
 source: crates/bijux-analyze/tests/semantics/decision/compare_ranking.rs
-expression: rendered
+expression: "bijux_testkit::snapshot_normalize_text(&rendered)"
 ---
 {
   "comparison": {
@@ -17,8 +17,8 @@ expression: rendered
     },
     "objective": "balanced",
     "regression_risk": null,
-    "run_a": "<HOME>/bijux/bijux-dna/crates/bijux-analyze/tests/fixtures/compare_ranking/default/run_a",
-    "run_b": "<HOME>/bijux/bijux-dna/crates/bijux-analyze/tests/fixtures/compare_ranking/default/run_b",
+    "run_a": "<ROOT>/tests/fixtures/compare_ranking/default/run_a",
+    "run_b": "<ROOT>/tests/fixtures/compare_ranking/default/run_b",
     "uncertainty": {
       "memory_ci": null,
       "note": "ci_not_computed",
