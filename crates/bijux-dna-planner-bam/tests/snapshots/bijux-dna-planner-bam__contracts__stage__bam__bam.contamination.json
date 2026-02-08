@@ -1,0 +1,78 @@
+{
+  "stage_id": "bam.contamination",
+  "stage_version": 1,
+  "tool_id": "authenticct",
+  "tool_version": "1.0.0",
+  "image": {
+    "image": "bijux/test:latest",
+    "digest": null
+  },
+  "command": {
+    "template": [
+      "/bin/sh",
+      "-c",
+      "contamination_tool --input tests/fixtures/plan_inputs/default/sample.bam > out/contamination.json && python - <<'PY' > out/contamination.summary.json\nimport json\npayload = {\"method\": \"authenticct\", \"estimate\": 0.0, \"ci_low\": 0.0, \"ci_high\": 0.0, \"assumptions\": []}\nprint(json.dumps(payload, indent=2))\nPY"
+    ]
+  },
+  "resources": {
+    "runtime": "docker",
+    "mem_gb": 1,
+    "tmp_gb": 1,
+    "threads": 1
+  },
+  "io": {
+    "inputs": [
+      {
+        "name": "bam",
+        "path": "tests/fixtures/plan_inputs/default/sample.bam",
+        "role": "bam",
+        "optional": false
+      }
+    ],
+    "outputs": [
+      {
+        "name": "contamination_report",
+        "path": "out/contamination.json",
+        "role": "report_json",
+        "optional": false
+      },
+      {
+        "name": "summary",
+        "path": "out/contamination.summary.json",
+        "role": "report_json",
+        "optional": false
+      },
+      {
+        "name": "stage_metrics",
+        "path": "out/stage.metrics.json",
+        "role": "metrics_json",
+        "optional": false
+      }
+    ]
+  },
+  "out_dir": "out",
+  "params": {
+    "assumptions": null,
+    "bam": "tests/fixtures/plan_inputs/default/sample.bam",
+    "prior": null,
+    "reference_panels": [],
+    "scope": "both",
+    "sex_specific": false
+  },
+  "effective_params": {
+    "assumptions": null,
+    "prior": null,
+    "reference_panels": [],
+    "scope": "both",
+    "sex_specific": false
+  },
+  "aux_images": {},
+  "reason": {
+    "kind": "default",
+    "summary": "tool authenticct selected by planner",
+    "details": {
+      "contract_hash": "8df77206163efea7385ccca601f4b5ed9479d6eba1b72978f32d50c9f961894b",
+      "defaults_diff": {}
+    }
+  }
+}
