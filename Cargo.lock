@@ -484,6 +484,7 @@ dependencies = [
  "anyhow",
  "bijux-policies",
  "fs4",
+ "insta",
  "regex",
  "serde",
  "serde_json",
