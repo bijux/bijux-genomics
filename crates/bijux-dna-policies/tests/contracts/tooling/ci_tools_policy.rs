@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
 use std::path::{Path, PathBuf};
+use std::env;
 
 use walkdir::WalkDir;
 
@@ -114,5 +115,37 @@ fn policy__contracts__ci_tools_policy__coverage_command_policy_is_stable() {
     bijux_dna_policies::policy_assert!(
         missing.is_empty(),
         "CI coverage/test commands must include stable nextest/coverage flags. Missing: {missing:?}"
+    );
+}
+
+#[test]
+fn policy__contracts__ci_tools_policy__test_and_coverage_dirs_are_isolated() {
+    let test_target = env::var("TEST_TARGET_DIR").unwrap_or_default();
+    let cov_target = env::var("COV_TARGET_DIR").unwrap_or_default();
+    let test_tmp = env::var("TEST_TMP_DIR").unwrap_or_default();
+    let cov_tmp = env::var("COV_TMP_DIR").unwrap_or_default();
+    let test_profraw = env::var("TEST_PROFRAW_DIR").unwrap_or_default();
+    let cov_profraw = env::var("COV_PROFRAW_DIR").unwrap_or_default();
+
+    let missing = [test_target.is_empty(), cov_target.is_empty(), test_tmp.is_empty(), cov_tmp.is_empty(), test_profraw.is_empty(), cov_profraw.is_empty()]
+        .iter()
+        .any(|missing| *missing);
+
+    bijux_dna_policies::policy_assert!(
+        !missing,
+        "TEST_TARGET_DIR/COV_TARGET_DIR/TEST_TMP_DIR/COV_TMP_DIR/TEST_PROFRAW_DIR/COV_PROFRAW_DIR must be set for CI isolation checks."
+    );
+
+    bijux_dna_policies::policy_assert!(
+        test_target != cov_target,
+        "TEST_TARGET_DIR and COV_TARGET_DIR must be distinct."
+    );
+    bijux_dna_policies::policy_assert!(
+        test_tmp != cov_tmp,
+        "TEST_TMP_DIR and COV_TMP_DIR must be distinct."
+    );
+    bijux_dna_policies::policy_assert!(
+        test_profraw != cov_profraw,
+        "TEST_PROFRAW_DIR and COV_PROFRAW_DIR must be distinct."
     );
 }
