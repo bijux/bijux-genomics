@@ -26,10 +26,7 @@ fn rs_files_under(path: &Path) -> Vec<PathBuf> {
 }
 
 fn crate_dependencies(root: &Path, crate_name: &str) -> BTreeSet<String> {
-    let manifest = root
-        .join("crates")
-        .join(crate_name)
-        .join("Cargo.toml");
+    let manifest = root.join("crates").join(crate_name).join("Cargo.toml");
     let content = std::fs::read_to_string(&manifest)
         .unwrap_or_else(|_| panic!("read manifest {}", manifest.display()));
     let parsed: TomlValue = content
