@@ -21,8 +21,8 @@ walkdir = "2"
 uuid = { version = "1", features = ["v4"] }
 chrono.workspace = true
 flate2 = "1"
-opentelemetry = { version = "0.24", optional = true }
-opentelemetry_sdk = { version = "0.24", optional = true }
+opentelemetry = { workspace = true, optional = true }
+opentelemetry_sdk = { workspace = true, optional = true }
 
 [dev-dependencies]
 bijux-policies = { path = "../bijux-policies" }
