@@ -3,7 +3,7 @@
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
-use cargo_metadata::MetadataCommand;
+use toml::Value as TomlValue;
 use walkdir::WalkDir;
 
 fn workspace_root() -> PathBuf {
@@ -23,6 +23,43 @@ fn rs_files_under(path: &Path) -> Vec<PathBuf> {
         .filter(|entry| entry.path().extension().and_then(|s| s.to_str()) == Some("rs"))
         .map(|entry| entry.into_path())
         .collect()
+}
+
+fn crate_dependencies(root: &Path, crate_name: &str) -> BTreeSet<String> {
+    let manifest = root
+        .join("crates")
+        .join(crate_name)
+        .join("Cargo.toml");
+    let content = std::fs::read_to_string(&manifest)
+        .unwrap_or_else(|_| panic!("read manifest {}", manifest.display()));
+    let parsed: TomlValue = content
+        .parse()
+        .unwrap_or_else(|_| panic!("parse manifest {}", manifest.display()));
+    let mut deps = BTreeSet::new();
+
+    let mut collect_from = |table: Option<&TomlValue>| {
+        if let Some(TomlValue::Table(entries)) = table {
+            for (name, _) in entries.iter() {
+                deps.insert(name.to_string());
+            }
+        }
+    };
+
+    collect_from(parsed.get("dependencies"));
+    collect_from(parsed.get("dev-dependencies"));
+    collect_from(parsed.get("build-dependencies"));
+
+    if let Some(TomlValue::Table(targets)) = parsed.get("target") {
+        for target in targets.values() {
+            if let TomlValue::Table(cfg_table) = target {
+                collect_from(cfg_table.get("dependencies"));
+                collect_from(cfg_table.get("dev-dependencies"));
+                collect_from(cfg_table.get("build-dependencies"));
+            }
+        }
+    }
+
+    deps
 }
 
 fn policy_test_prefix(path: &Path, root: &Path) -> String {
@@ -100,21 +137,7 @@ fn policy__contracts__policies__error_category_is_core_only() {
 #[test]
 fn policy__contracts__policies__engine_does_not_depend_on_runner_or_environment() {
     let root = workspace_root();
-    let metadata = MetadataCommand::new()
-        .manifest_path(root.join("Cargo.toml"))
-        .exec()
-        .expect("load cargo metadata");
-
-    let engine = metadata
-        .packages
-        .iter()
-        .find(|pkg| pkg.name == "bijux-engine")
-        .expect("bijux-engine package");
-    let deps: BTreeSet<_> = engine
-        .dependencies
-        .iter()
-        .map(|dep| dep.name.as_str())
-        .collect();
+    let deps = crate_dependencies(&root, "bijux-engine");
     bijux_policies::policy_assert!(
         !deps.contains("bijux-runner"),
         "bijux-engine must not depend on bijux-runner"
@@ -128,21 +151,7 @@ fn policy__contracts__policies__engine_does_not_depend_on_runner_or_environment(
 #[test]
 fn policy__contracts__policies__core_does_not_depend_on_runtime() {
     let root = workspace_root();
-    let metadata = MetadataCommand::new()
-        .manifest_path(root.join("Cargo.toml"))
-        .exec()
-        .expect("load cargo metadata");
-
-    let core = metadata
-        .packages
-        .iter()
-        .find(|pkg| pkg.name == "bijux-core")
-        .expect("bijux-core package");
-    let deps: BTreeSet<_> = core
-        .dependencies
-        .iter()
-        .map(|dep| dep.name.as_str())
-        .collect();
+    let deps = crate_dependencies(&root, "bijux-core");
     bijux_policies::policy_assert!(
         !deps.contains("bijux-runtime"),
         "bijux-core must not depend on bijux-runtime"
@@ -152,22 +161,9 @@ fn policy__contracts__policies__core_does_not_depend_on_runtime() {
 #[test]
 fn policy__contracts__policies__domains_do_not_depend_on_stages_or_runner() {
     let root = workspace_root();
-    let metadata = MetadataCommand::new()
-        .manifest_path(root.join("Cargo.toml"))
-        .exec()
-        .expect("load cargo metadata");
     let domains = ["bijux-domain-fastq", "bijux-domain-bam"];
     for domain in domains {
-        let pkg = metadata
-            .packages
-            .iter()
-            .find(|pkg| pkg.name == domain)
-            .unwrap_or_else(|| bijux_policies::policy_panic!("{domain} package"));
-        let deps: BTreeSet<_> = pkg
-            .dependencies
-            .iter()
-            .map(|dep| dep.name.as_str())
-            .collect();
+        let deps = crate_dependencies(&root, domain);
         let forbidden = ["bijux-stages-fastq", "bijux-stages-bam", "bijux-runner"];
         for banned in forbidden {
             bijux_policies::policy_assert!(
