@@ -1,4 +1,4 @@
-use bijux_runner::backend::docker::executor::parse_mem_to_mb;
+use bijux_runner::backend::parse_mem_to_mb;
 
 #[test]
 fn parse_mem_to_mb_parses_mib_and_gib() {

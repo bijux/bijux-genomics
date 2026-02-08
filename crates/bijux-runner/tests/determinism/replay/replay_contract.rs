@@ -1,6 +1,6 @@
 use anyhow::Result;
 use bijux_core::contract::{ContractVersion, ExecutionManifest};
-use bijux_runner::backend::docker::replay::replay_run;
+use bijux_runner::backend::replay_run;
 
 #[test]
 fn replay_regenerates_outputs_from_manifest() -> Result<()> {
