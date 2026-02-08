@@ -26,6 +26,7 @@ sqlite = ["dep:rusqlite"]
 
 [dev-dependencies]
 bijux-policies = { path = "../bijux-policies" }
+bijux-testkit = { path = "../bijux-testkit" }
 uuid = { workspace = true }
 tempfile.workspace = true
 bijux-domain-fastq = { path = "../bijux-domain-fastq" }

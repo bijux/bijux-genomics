@@ -272,6 +272,7 @@ dependencies = [
  "bijux-planner-fastq",
  "bijux-policies",
  "bijux-runtime",
+ "bijux-testkit",
  "insta",
  "parquet",
  "rusqlite",
