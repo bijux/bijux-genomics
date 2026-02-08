@@ -1,20 +1,18 @@
 # USAGE
 
-## Reference patterns
-### Fixture helper
-```
-use bijux_testkit::fixtures::load;
-let bytes = load("fastq/trim/example.txt")?;
+## Stable JSON snapshots
+Use `snapshots::stable_json` to serialize a value before snapshotting.
+
+Example:
+```rust
+use bijux_testkit::snapshots::stable_json;
+
+#[test]
+fn schema_snapshot_is_stable() {
+    let rendered = stable_json(&serde_json::json!({"schema":"v1"}));
+    insta::assert_snapshot!("example_schema", rendered);
+}
 ```
 
-### Snapshot helper
-```
-use bijux_testkit::snapshots::assert_snapshot;
-assert_snapshot!(value);
-```
-
-### Golden run builder
-```
-use bijux_testkit::golden::build_run;
-let run = build_run("fastq.default.v1")?;
-```
+## Fixture helper
+See `docs/FIXTURE_STANDARDS.md` and `docs/ADD_FIXTURE.md` for fixture layout rules.
