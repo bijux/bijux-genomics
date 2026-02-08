@@ -1,4 +1,4 @@
-//! Stage adapters for ancient DNA downstream outputs (damage, contamination, authenticity).
+//! Stage adapters for aDNA-specific downstream stages.
 
 pub mod damage {
     use std::path::Path;
