@@ -1,7 +1,7 @@
 ---
 source: crates/bijux-policies/tests/boundaries/surface/docs_spine_contract.rs
 assertion_line: 34
-expression: "lines.join(\"\\n\")"
+expression: "bijux_testkit::snapshot_normalize_text(&lines.join(\"\\n\"))"
 ---
 [bijux-analyze]
 # bijux-analyze Docs Index
@@ -104,7 +104,7 @@ See `CHANGE_RULES.md` for safe extension guidelines.
 ## How to Test
 See `TESTS.md` for test mapping and fixtures.
 
-[bijux-dna-cli]
+[bijux-cli]
 # bijux-dna-cli Docs Index
 
 ## Scope

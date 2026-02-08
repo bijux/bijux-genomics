@@ -53,6 +53,8 @@ mod mod_boundaries_surface_coverage_cfg_policy_rs;
 mod mod_boundaries_surface_deep_imports_rs;
 #[path = "boundaries/surface/docs_index_quality.rs"]
 mod mod_boundaries_surface_docs_index_quality_rs;
+#[path = "boundaries/surface/docs_placement_policy.rs"]
+mod mod_boundaries_surface_docs_placement_policy_rs;
 #[path = "boundaries/surface/docs_required_policy.rs"]
 mod mod_boundaries_surface_docs_required_policy_rs;
 #[path = "boundaries/surface/docs_spine_contract.rs"]
@@ -67,6 +69,8 @@ mod mod_boundaries_surface_guardrails_rs;
 mod mod_boundaries_surface_id_literal_policy_rs;
 #[path = "boundaries/surface/mod_naming_policy.rs"]
 mod mod_boundaries_surface_mod_naming_policy_rs;
+#[path = "boundaries/surface/no_cfg_coverage.rs"]
+mod mod_boundaries_surface_no_cfg_coverage_rs;
 #[path = "boundaries/surface/no_duplicate_canonicalizers.rs"]
 mod mod_boundaries_surface_no_duplicate_canonicalizers_rs;
 #[path = "boundaries/surface/no_empty_dirs_policy.rs"]
@@ -75,6 +79,8 @@ mod mod_boundaries_surface_no_empty_dirs_policy_rs;
 mod mod_boundaries_surface_no_helpers_policy_rs;
 #[path = "boundaries/surface/no_policy_duplication.rs"]
 mod mod_boundaries_surface_no_policy_duplication_rs;
+#[path = "boundaries/surface/no_repo_tree_snapshots.rs"]
+mod mod_boundaries_surface_no_repo_tree_snapshots_rs;
 #[path = "boundaries/surface/no_serde_json_writer.rs"]
 mod mod_boundaries_surface_no_serde_json_writer_rs;
 #[path = "boundaries/surface/no_src_crowd_policy.rs"]
@@ -87,12 +93,6 @@ mod mod_boundaries_surface_ownership_contract_rs;
 mod mod_boundaries_surface_path_policies_rs;
 #[path = "boundaries/surface/planner_purity.rs"]
 mod mod_boundaries_surface_planner_purity_rs;
-#[path = "boundaries/surface/no_repo_tree_snapshots.rs"]
-mod mod_boundaries_surface_no_repo_tree_snapshots_rs;
-#[path = "boundaries/surface/docs_placement_policy.rs"]
-mod mod_boundaries_surface_docs_placement_policy_rs;
-#[path = "boundaries/surface/no_cfg_coverage.rs"]
-mod mod_boundaries_surface_no_cfg_coverage_rs;
 #[path = "boundaries/surface/policy_docs_anchor.rs"]
 mod mod_boundaries_surface_policy_docs_anchor_rs;
 #[path = "boundaries/surface/readme_policy.rs"]
