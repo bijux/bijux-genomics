@@ -6,7 +6,7 @@
 
 ## JSON artifacts (dry-run / run)
 - `run_manifest.json` follows the runtime schema snapshot in
-  `crates/bijux-runtime/tests/fixtures/runtime_schema/run_manifest_v1.json`.
+  `crates/bijux-runtime/tests/fixtures/runtime_schema/default/run_manifest_v1.json`.
 - Execution graphs are canonical JSON and validated by core contracts.
 
 ## Reports

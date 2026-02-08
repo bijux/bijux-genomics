@@ -1,56 +1,31 @@
-use bijux_core::prelude::RawFailure;
-use std::fs;
-use std::path::PathBuf;
-
 use anyhow::Result;
-use bijux_analyze::classify_raw_failure;
+use bijux_analyze::BenchmarkFailure;
+use bijux_testkit::snapshot_name;
 
-fn snapshot_path(name: &str) -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests")
-        .join("snapshots")
-        .join(name)
-}
-
-fn assert_snapshot(name: &str, failure: &bijux_analyze::BenchmarkFailure) -> Result<()> {
-    let rendered = serde_json::to_string_pretty(failure)?;
-    let snapshot = fs::read_to_string(snapshot_path(name))?;
-    assert_eq!(rendered.trim(), snapshot.trim());
+fn assert_snapshot(name: &str, failure: &BenchmarkFailure) -> Result<()> {
+    let json = serde_json::to_value(failure)?;
+    let name = snapshot_name("schemas", name);
+    insta::assert_json_snapshot!(name, json);
     Ok(())
 }
 
+/// Snapshot locks failure hint for adapter issues.
 #[test]
 fn failure_hint_adapter_snapshot() -> Result<()> {
-    let raw = RawFailure {
-        stage: "fastq.trim".to_string(),
-        tool: "fastp".to_string(),
-        reason: "adapter preset missing".to_string(),
-        category: bijux_core::prelude::errors::ErrorCategory::ContractError,
-    };
-    let failure = classify_raw_failure(&raw);
-    assert_snapshot("failure_hint_adapter.json", &failure)
+    let failure = bijux_analyze::failure::fixture_adapter_failure();
+    assert_snapshot("failure_hint_adapter", &failure)
 }
 
+/// Snapshot locks failure hint for timeout issues.
 #[test]
 fn failure_hint_timeout_snapshot() -> Result<()> {
-    let raw = RawFailure {
-        stage: "fastq.trim".to_string(),
-        tool: "fastp".to_string(),
-        reason: "timeout while running tool".to_string(),
-        category: bijux_core::prelude::errors::ErrorCategory::ToolError,
-    };
-    let failure = classify_raw_failure(&raw);
-    assert_snapshot("failure_hint_timeout.json", &failure)
+    let failure = bijux_analyze::failure::fixture_timeout_failure();
+    assert_snapshot("failure_hint_timeout", &failure)
 }
 
+/// Snapshot locks failure hint for invalid input issues.
 #[test]
 fn failure_hint_invalid_snapshot() -> Result<()> {
-    let raw = RawFailure {
-        stage: "fastq.validate_pre".to_string(),
-        tool: "fastqvalidator".to_string(),
-        reason: "invalid fastq record".to_string(),
-        category: bijux_core::prelude::errors::ErrorCategory::ContractError,
-    };
-    let failure = classify_raw_failure(&raw);
-    assert_snapshot("failure_hint_invalid.json", &failure)
+    let failure = bijux_analyze::failure::fixture_invalid_failure();
+    assert_snapshot("failure_hint_invalid", &failure)
 }
