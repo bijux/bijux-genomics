@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+
 use bijux_core::contract::ContractVersion;
 use bijux_core::metrics::ToolInvocationV1;
 use bijux_runtime::observability::RunProvenanceV1;
@@ -89,7 +91,7 @@ fn run_manifest_schema_snapshot() {
         banks: None,
         bank_assets: None,
         resources: bijux_core::contract::ToolConstraints::default(),
-        environment: Default::default(),
+        environment: BTreeMap::default(),
         input_hashes: vec!["sha256:input".to_string()],
         output_hashes: vec!["sha256:output".to_string()],
         executed_command: None,
@@ -125,14 +127,19 @@ fn schema_fixture_names_include_version() {
         .join("runtime_schema")
         .join("default");
     let mut offenders = Vec::new();
-    for entry in std::fs::read_dir(&dir).expect("read runtime_schema fixtures") {
-        let entry = entry.expect("fixture entry");
+    for entry in std::fs::read_dir(&dir)
+        .unwrap_or_else(|err| panic!("read runtime_schema fixtures at {}: {err}", dir.display()))
+    {
+        let entry = entry.unwrap_or_else(|err| panic!("fixture entry: {err}"));
         let path = entry.path();
         if !path.is_file() {
             continue;
         }
         let name = path.file_name().and_then(|n| n.to_str()).unwrap_or("");
-        if !name.ends_with(".json") {
+        if !std::path::Path::new(name)
+            .extension()
+            .is_some_and(|ext| ext.eq_ignore_ascii_case("json"))
+        {
             continue;
         }
         if !name.ends_with("_v1.json") {

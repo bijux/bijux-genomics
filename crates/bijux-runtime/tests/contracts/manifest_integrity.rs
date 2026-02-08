@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+
 use bijux_runtime::run_layout::RunManifest;
 
 #[test]
@@ -33,14 +35,15 @@ fn manifest_has_required_fields() {
             banks: None,
             bank_assets: None,
             resources: bijux_core::contract::ToolConstraints::default(),
-            environment: Default::default(),
+            environment: BTreeMap::default(),
             input_hashes: vec!["sha256:input".to_string()],
             output_hashes: vec!["sha256:output".to_string()],
             executed_command: None,
         }],
         artifacts: Vec::new(),
     };
-    let json = serde_json::to_value(&manifest).expect("serialize");
+    let json =
+        serde_json::to_value(&manifest).unwrap_or_else(|err| panic!("serialize: {err}"));
     for key in [
         "schema_version",
         "contract_version",
@@ -59,7 +62,7 @@ fn manifest_has_required_fields() {
     let invocations = json
         .get("tool_invocations")
         .and_then(|value| value.as_array())
-        .expect("tool_invocations array");
+        .unwrap_or_else(|| panic!("tool_invocations array missing"));
     assert!(!invocations.is_empty(), "tool_invocations empty");
     let first = &invocations[0];
     assert!(
