@@ -67,6 +67,7 @@ fn policy__boundaries__dev_deps_policy__dev_dependencies_are_allowlisted() {
         "bijux-dna-policies.workspace",
         "bijux-dna-testkit",
         "cargo_metadata",
+        "gag",
         "insta",
         "insta.workspace",
         "predicates",
