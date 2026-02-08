@@ -205,10 +205,16 @@ fn no_new_top_level_modules_without_owner() {
             modules.push(path);
         }
     }
+    let owners_dir = manifest_dir.join("docs").join("owners");
     let mut offenders = Vec::new();
     for module in modules {
         let owner = module.join("OWNER.md");
-        if !owner.exists() {
+        let name = module
+            .file_name()
+            .and_then(|value| value.to_str())
+            .unwrap_or_default();
+        let docs_owner = owners_dir.join(format!("{name}.md"));
+        if !owner.exists() && !docs_owner.exists() {
             offenders.push(module.display().to_string());
         }
     }
