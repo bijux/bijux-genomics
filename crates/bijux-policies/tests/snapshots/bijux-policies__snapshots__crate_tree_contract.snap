@@ -1,6 +1,6 @@
 ---
 source: crates/bijux-policies/tests/boundaries/surface/crate_tree_contract.rs
-assertion_line: 47
+assertion_line: 45
 expression: "lines.join(\"\\n\")"
 ---
 [bijux-analyze]
@@ -1327,11 +1327,15 @@ tests/snapshots/bijux-planner-bam__contracts__pipeline__bam__bam-to-bam__adna_ca
 tests/snapshots/bijux-planner-bam__contracts__pipeline__bam__bam-to-bam__adna_shotgun__v1.snap
 tests/snapshots/bijux-planner-bam__contracts__stage__bam__bam.align.json
 tests/snapshots/bijux-planner-bam__contracts__stage__bam__bam.authenticity.json
+tests/snapshots/bijux-planner-bam__contracts__stage__bam__bam.bias_mitigation.json
 tests/snapshots/bijux-planner-bam__contracts__stage__bam__bam.complexity.json
 tests/snapshots/bijux-planner-bam__contracts__stage__bam__bam.contamination.json
 tests/snapshots/bijux-planner-bam__contracts__stage__bam__bam.coverage.json
 tests/snapshots/bijux-planner-bam__contracts__stage__bam__bam.damage.json
 tests/snapshots/bijux-planner-bam__contracts__stage__bam__bam.filter.json
+tests/snapshots/bijux-planner-bam__contracts__stage__bam__bam.genotyping.json
+tests/snapshots/bijux-planner-bam__contracts__stage__bam__bam.haplogroups.json
+tests/snapshots/bijux-planner-bam__contracts__stage__bam__bam.kinship.json
 tests/snapshots/bijux-planner-bam__contracts__stage__bam__bam.markdup.json
 tests/snapshots/bijux-planner-bam__contracts__stage__bam__bam.qc_pre.json
 tests/snapshots/bijux-planner-bam__contracts__stage__bam__bam.recalibration.json
