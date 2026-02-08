@@ -25,6 +25,8 @@ pub struct CompareReport {
     pub strata: Vec<CompareStratum>,
 }
 
+/// # Errors
+/// Returns an error if inputs cannot be compared or required metrics are missing.
 pub fn compare_summaries(
     summary_a: &BenchmarkSummary,
     summary_b: &BenchmarkSummary,
