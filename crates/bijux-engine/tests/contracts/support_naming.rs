@@ -15,8 +15,10 @@ fn support_helpers_are_named_by_purpose() {
         "runner_stub.rs",
     ]);
     let mut offenders = Vec::new();
-    for entry in std::fs::read_dir(&root).expect("read tests/support") {
-        let entry = entry.expect("support entry");
+    for entry in std::fs::read_dir(&root)
+        .unwrap_or_else(|err| panic!("read tests/support at {}: {err}", root.display()))
+    {
+        let entry = entry.unwrap_or_else(|err| panic!("support entry: {err}"));
         let name = entry.file_name().to_string_lossy().to_string();
         if name == "helpers.rs" {
             offenders.push(name);

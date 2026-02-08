@@ -4,6 +4,3 @@ mod docs_recording_truth_set;
 mod recording_completeness;
 #[path = "recording/run_manifest.rs"]
 mod run_manifest;
-
-#[path = "../support/mod.rs"]
-mod support;
