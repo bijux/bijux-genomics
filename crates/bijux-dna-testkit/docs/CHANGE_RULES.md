@@ -1,7 +1,7 @@
 # Change Rules
 
 ## What
-Defines breaking vs non‑breaking changes for `bijux-testkit`.
+Defines breaking vs non‑breaking changes for `bijux-dna-testkit`.
 
 ## Why
 Prevents silent contract drift.

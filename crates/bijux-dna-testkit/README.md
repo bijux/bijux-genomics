@@ -1,4 +1,4 @@
-# bijux-testkit
+# bijux-dna-testkit
 
 ## What this crate does
 Deterministic test helpers for fixtures and snapshots.
