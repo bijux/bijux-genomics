@@ -4,7 +4,8 @@ fn read_public_modules() -> BTreeSet<String> {
     let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("docs")
         .join("PUBLIC_API.md");
-    let content = std::fs::read_to_string(&path).expect("read PUBLIC_API.md");
+    let content = std::fs::read_to_string(&path)
+        .unwrap_or_else(|err| panic!("read PUBLIC_API.md at {}: {err}", path.display()));
     let mut modules = BTreeSet::new();
     let mut in_section = false;
     for line in content.lines() {
@@ -28,7 +29,8 @@ fn read_public_modules() -> BTreeSet<String> {
 
 fn read_lib_pub_mods() -> BTreeSet<String> {
     let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src/lib.rs");
-    let content = std::fs::read_to_string(&path).expect("read lib.rs");
+    let content = std::fs::read_to_string(&path)
+        .unwrap_or_else(|err| panic!("read lib.rs at {}: {err}", path.display()));
     let mut modules = BTreeSet::new();
     for line in content.lines() {
         let line = line.trim();

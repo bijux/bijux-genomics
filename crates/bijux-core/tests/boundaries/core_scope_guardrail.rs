@@ -4,7 +4,8 @@ use anyhow::Result;
 
 fn read_allowed_pub_modules() -> Vec<String> {
     let readme = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("README.md");
-    let content = std::fs::read_to_string(&readme).expect("read README.md");
+    let content = std::fs::read_to_string(&readme)
+        .unwrap_or_else(|err| panic!("read README.md at {}: {err}", readme.display()));
     let mut modules = Vec::new();
     let mut in_section = false;
     for line in content.lines() {

@@ -39,8 +39,8 @@ fn execution_graph_serialization_is_stage_plan_free() {
         vec![step],
         Vec::new(),
     );
-    let graph = graph.expect("graph");
-    let encoded = serde_json::to_string(&graph).expect("serialize");
+    let graph = graph.unwrap_or_else(|err| panic!("graph: {err}"));
+    let encoded = serde_json::to_string(&graph).unwrap_or_else(|err| panic!("serialize: {err}"));
     assert!(!encoded.contains("StagePlanV1"));
     assert!(!encoded.contains("StagePlugin"));
     assert!(!encoded.contains("stage_plugin"));

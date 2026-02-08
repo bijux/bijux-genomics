@@ -1,3 +1,9 @@
+#![allow(
+    clippy::expect_used,
+    clippy::manual_let_else,
+    clippy::redundant_closure_for_method_calls,
+    clippy::unnecessary_debug_formatting
+)]
 use std::fs;
 use std::path::{Path, PathBuf};
 
