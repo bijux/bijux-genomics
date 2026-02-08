@@ -1,0 +1,28 @@
+pub mod aggregate;
+pub mod contract;
+pub mod decision;
+pub mod export;
+pub mod failure;
+pub mod load;
+pub mod model;
+pub mod report;
+pub use aggregate::*;
+pub use bijux_dna_core::metrics::MetricSet;
+pub use contract::{analyze_contract_v1, AnalyzeContractV1};
+pub use decision::compare::compare_runs;
+pub use failure::*;
+pub use load::*;
+pub use report::*;
+pub use semantics::metrics::{metric_semantics, MetricDirection};
+pub mod compare {
+pub use crate::decision::compare::*;
+pub mod ranking {
+pub use crate::decision::score::*;
+pub struct AnalyzeInput {
+pub enum AnalyzeSources {
+pub struct AnalyzeOptions {
+pub enum AnalyzeMode {
+pub struct RenderOptions {
+pub struct AnalyzeOutput {
+pub fn analyze_run(input: &AnalyzeInput) -> anyhow::Result<AnalyzeOutput> {
+pub use crate::decision::score::{

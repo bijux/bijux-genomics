@@ -1,0 +1,6 @@
+# CASE
+
+Path: tests/fixtures/pipelines/fastq-to-bam__default__v1
+
+## Purpose
+Describe the input meaning, why it exists, and the invariant it tests.

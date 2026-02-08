@@ -1,0 +1,16 @@
+{
+  "stage": "fastq.trim",
+  "tool": "fastp",
+  "kind": "contract_violation",
+  "reason": "adapter preset missing",
+  "hints": [
+    {
+      "id": "adapter_preset_missing",
+      "category": "contract_error",
+      "severity": "medium",
+      "message": "Adapter preset missing or invalid",
+      "suggested_action": "Configure a valid adapter preset or supply an adapter file",
+      "docs_link_key": "adapters"
+    }
+  ]
+}
