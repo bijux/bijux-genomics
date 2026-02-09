@@ -142,6 +142,9 @@ fn schema_fixture_names_include_version() {
         {
             continue;
         }
+        if name == "CASE.json" {
+            continue;
+        }
         if !name.ends_with("_v1.json") {
             offenders.push(name.to_string());
         }

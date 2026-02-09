@@ -35,6 +35,9 @@ pub use bijux_dna_runner::execute::execute_step;
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
+/// Stable operator-facing failure envelope surfaced by CLI/API.
+///
+/// Stability: v1 (stable).
 pub struct OperatorFailureV1 {
     pub schema_version: String,
     pub category: ErrorCategory,

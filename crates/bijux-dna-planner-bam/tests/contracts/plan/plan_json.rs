@@ -34,7 +34,11 @@ fn dummy_tool(tool: &str) -> ToolExecutionSpecV1 {
 }
 
 fn plan_for_stage(stage: BamStage) -> Result<StagePlanV1> {
-    let fixtures = Path::new("tests/fixtures/plan_inputs/default");
+    let fixtures = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("tests")
+        .join("fixtures")
+        .join("plan_inputs")
+        .join("default");
     let tool_id = bijux_dna_planner_bam::stage_api::default_tool_for_stage(stage);
     let tool = dummy_tool(&tool_id);
     plan_stage(StagePlanRequest {

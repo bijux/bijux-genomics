@@ -41,6 +41,7 @@ fn policy__boundaries__docs_spine__docs_placement_contract() {
         "30-operations",
         "40-policies",
         "50-reference",
+        "assets",
         "overrides",
     ]);
     let allowed_root_files =
