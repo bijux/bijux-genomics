@@ -122,6 +122,7 @@ fn effective_params_trim() -> serde_json::Value {
         min_len: 30,
         q_cutoff: Some(20),
         adapter_policy: "auto".to_string(),
+        damage_mode: None,
         polyx_policy: None,
         n_policy: None,
         contaminant_policy: None,
@@ -141,6 +142,7 @@ fn effective_params_filter() -> serde_json::Value {
         contaminant_db: None,
         n_policy: None,
         polyx_policy: None,
+        damage_mode: None,
     })
     .unwrap()
 }

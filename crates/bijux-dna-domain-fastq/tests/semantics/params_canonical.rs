@@ -6,6 +6,7 @@ fn trim_params_canonical_serialization() {
         min_len: 30,
         q_cutoff: Some(20),
         adapter_policy: "auto".to_string(),
+        damage_mode: None,
         polyx_policy: None,
         n_policy: None,
         contaminant_policy: None,
