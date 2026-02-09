@@ -1,7 +1,7 @@
 use std::fmt::Write as _;
 use std::path::Path;
 
-use crate::explain::{ExplainExclusion, ExplainPlan};
+use crate::explain::{ExplainExclusion, ExplainPlan, ExplainSelectionNote};
 use anyhow::{Context, Result};
 
 /// Write a human-readable plan explanation.
@@ -63,9 +63,24 @@ pub fn write_explain_plan_json(
         "header_inspection".to_string(),
         "output_normalization".to_string(),
     ];
+    let selection = selected
+        .iter()
+        .map(|tool| ExplainSelectionNote {
+            tool: tool.clone(),
+            reason: "selected by planner defaults and stage constraints".to_string(),
+            provenance_notes: vec![
+                format!("stage={stage}"),
+                "registry=bijux_dna_core::contract::ToolRegistry".to_string(),
+            ],
+            comparability_notes: vec![
+                "compare metrics only when stage outputs use the same schema".to_string(),
+            ],
+        })
+        .collect();
     let plan = ExplainPlan {
         stage: stage.to_string(),
         selected_tools: selected.to_vec(),
+        tool_selection: selection,
         excluded_tools: excluded,
         policy: None,
         invariants,

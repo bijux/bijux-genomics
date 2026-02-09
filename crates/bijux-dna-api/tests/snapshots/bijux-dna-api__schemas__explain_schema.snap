@@ -1,12 +1,19 @@
 ---
-source: crates/bijux-dna-api/tests/v1_cross_api_stability.rs
-expression: json
+source: crates/bijux-dna-api/tests/schemas/v1_cross_api_stability.rs
+expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
   "defaults_ledger_diff": {},
   "selected_tools": [
     {
-      "reason": null,
+      "comparability_notes": [
+        "compare only against runs using the same stage contract and tool family"
+      ],
+      "provenance_notes": [
+        "planner_version=planner.test",
+        "policy=PreferAccuracy"
+      ],
+      "reason": "selected by planner policy and stage constraints",
       "stage_id": "core.test",
       "tool_id": "example/tool:1.0"
     }
