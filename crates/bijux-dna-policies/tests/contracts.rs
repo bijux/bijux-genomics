@@ -36,5 +36,9 @@ mod mod_contracts_tooling_tool_registry_completeness_rs;
 mod mod_contracts_tooling_stage_tool_matrix_policy_rs;
 #[path = "contracts/tooling/apptainer_vm_output_policy.rs"]
 mod mod_contracts_tooling_apptainer_vm_output_policy_rs;
+#[path = "contracts/tooling/planner_tool_id_policy.rs"]
+mod mod_contracts_tooling_planner_tool_id_policy_rs;
+#[path = "contracts/tooling/tool_registry_stage_domain_policy.rs"]
+mod mod_contracts_tooling_tool_registry_stage_domain_policy_rs;
 #[path = "contracts/workspace.rs"]
 mod mod_contracts_workspace_rs;
