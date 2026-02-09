@@ -1,0 +1,5 @@
+{
+  "schema_version": "bijux.fixture_case.v1",
+  "format": "markdown_legacy",
+  "content": "Purpose: Minimal runtime manifest fixture for contract handshake policy checks.\n\nWhy: Ensures a well-formed JSON manifest fixture exists for handshake validation wiring.\n"
+}

@@ -1,0 +1,5 @@
+{
+  "schema_version": "bijux.fixture_case.v1",
+  "format": "markdown_legacy",
+  "content": "# CASE\n\nPurpose: Leaf fixture data for golden spine run artifacts.\nInputs: Files in this directory are part of a golden spine run snapshot.\nInvariant: Preserves run layout and file naming for snapshot-based contracts.\n"
+}
