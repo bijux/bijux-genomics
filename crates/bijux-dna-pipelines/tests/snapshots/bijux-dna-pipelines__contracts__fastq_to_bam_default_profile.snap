@@ -1,6 +1,6 @@
 ---
 source: crates/bijux-dna-pipelines/tests/contracts/profiles/profiles.rs
-assertion_line: 73
+assertion_line: 99
 expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
@@ -243,7 +243,32 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "fastq.umi": "pipeline default",
       "fastq.validate_pre": "pipeline default"
     },
-    "tools": {}
+    "tools": {
+      "bam.align": "bwa",
+      "bam.authenticity": "authenticct",
+      "bam.bias_mitigation": "angsd",
+      "bam.complexity": "preseq",
+      "bam.contamination": "authenticct",
+      "bam.coverage": "mosdepth",
+      "bam.damage": "pydamage",
+      "bam.filter": "samtools",
+      "bam.markdup": "gatk",
+      "bam.qc_pre": "samtools",
+      "bam.sex": "rxy",
+      "bam.validate": "samtools",
+      "core.prepare_reference": "samtools",
+      "fastq.correct": "rcorrector",
+      "fastq.detect_adapters": "fastqc",
+      "fastq.filter": "seqkit",
+      "fastq.merge": "vsearch",
+      "fastq.preprocess": "planner",
+      "fastq.qc_post": "multiqc",
+      "fastq.screen": "kraken2",
+      "fastq.stats_neutral": "seqkit_stats",
+      "fastq.trim": "fastp",
+      "fastq.umi": "umi_tools",
+      "fastq.validate_pre": "fastqvalidator_official"
+    }
   },
   "defaults_ledger_ref": "defaults_ledger.json",
   "description": "FASTQ preprocess → align → BAM QC/damage (modern defaults)",
