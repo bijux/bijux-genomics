@@ -12,6 +12,9 @@ LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-dna" \
       org.opencontainers.image.created="${OCI_CREATED}" \
       org.opencontainers.image.licenses="GPL-3.0" \
       org.opencontainers.image.version="${TOOL_VERSION}"
+LABEL org.opencontainers.image.tool="umi_tools"
+LABEL org.opencontainers.image.base.name="python:3.10-slim@sha256:e508a34e5491225a76fbb9e0f43ebde1f691c6a689d096d7510cf7fb17d4ba6f"
+LABEL org.opencontainers.image.base.digest="sha256:e508a34e5491225a76fbb9e0f43ebde1f691c6a689d096d7510cf7fb17d4ba6f"
 ENV DEBIAN_FRONTEND=noninteractive
 
 ARG VERSION_UMI_TOOLS=1.1.6
