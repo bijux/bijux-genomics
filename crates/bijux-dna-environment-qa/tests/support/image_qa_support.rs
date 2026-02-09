@@ -86,15 +86,19 @@ fn image_resolution_prefers_digest_and_rejects_base_name() -> Result<(), Box<dyn
     )?;
     assert_eq!(pinned.full_name, "local/fastp@sha256:abc");
 
-    let err = resolve_image(
+    let err = match resolve_image(
         &ToolImageSpec {
             tool: "base-image".to_string(),
             version: "1.0".to_string(),
             digest: None,
         },
         &platform,
-    )
-    .expect_err("base tool names should be rejected");
+    ) {
+        Ok(image) => {
+            return Err(format!("expected error, got image {}", image.full_name).into());
+        }
+        Err(err) => err,
+    };
     assert!(err.to_string().contains("must not reference base"));
     Ok(())
 }

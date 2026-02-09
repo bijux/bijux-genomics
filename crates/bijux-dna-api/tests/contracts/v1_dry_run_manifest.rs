@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use bijux_dna_api::v1::api::run::{dry_run, execute, DryRunRequest, ExecuteRequest, RuntimeKind};
 use bijux_dna_core::contract::{ExecutionGraph, PlanPolicy};
 
@@ -42,7 +42,7 @@ fn execute_emits_run_summary_artifact() -> Result<()> {
     let run_dir = response
         .manifest_path
         .parent()
-        .expect("manifest has parent directory")
+        .ok_or_else(|| anyhow!("manifest path missing parent directory"))?
         .to_path_buf();
     assert!(run_dir.join("summary").join("run_summary.json").exists());
     Ok(())

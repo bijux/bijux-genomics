@@ -23,23 +23,22 @@ fn telemetry_event_taxonomy_rejects_unknown_event_names() {
 }
 
 #[test]
-fn telemetry_event_serializes_typed_timestamp_and_event_name() {
+fn telemetry_event_serializes_typed_timestamp_and_event_name() -> anyhow::Result<()> {
     let event = TelemetryEventV1 {
         schema_version: "bijux.telemetry.v1".to_string(),
         run_id: "run-1".to_string(),
         stage_id: "fastq.preprocess".to_string(),
         tool_id: "planner".to_string(),
         event_name: TelemetryEventName::RunStarted,
-        timestamp: chrono::DateTime::parse_from_rfc3339("2026-01-01T00:00:00Z")
-            .expect("valid timestamp")
+        timestamp: chrono::DateTime::parse_from_rfc3339("2026-01-01T00:00:00Z")?
             .with_timezone(&chrono::Utc),
         duration_ms: None,
         status: "ok".to_string(),
         trace_id: "trace-1".to_string(),
         span_id: "span-1".to_string(),
-        attrs: Default::default(),
+        attrs: std::collections::BTreeMap::default(),
     };
-    let value = serde_json::to_value(&event).expect("serialize event");
+    let value = serde_json::to_value(&event)?;
     assert_eq!(
         value.get("event_name").and_then(|v| v.as_str()),
         Some("run_started")
@@ -48,4 +47,5 @@ fn telemetry_event_serializes_typed_timestamp_and_event_name() {
         value.get("timestamp").and_then(|v| v.as_str()),
         Some("2026-01-01T00:00:00Z")
     );
+    Ok(())
 }
