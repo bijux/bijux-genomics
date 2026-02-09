@@ -1,0 +1,16 @@
+{
+  "contamination": {
+    "tool": "schmutzi",
+    "estimate": 0.032,
+    "ci_low": 0.018,
+    "ci_high": 0.048,
+    "model_assumptions": ["mtDNA-only"],
+    "required_inputs": {
+      "reference_panel": "mt-rCRS",
+      "scope": "mt_only"
+    },
+    "warnings": [
+      {"code": "LOW_MT_COVERAGE", "message": "mt coverage below recommended threshold"}
+    ]
+  }
+}

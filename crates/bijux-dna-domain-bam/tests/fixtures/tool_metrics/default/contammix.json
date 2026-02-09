@@ -1,0 +1,16 @@
+{
+  "contamination": {
+    "tool": "contammix",
+    "estimate": 0.027,
+    "ci_low": 0.015,
+    "ci_high": 0.042,
+    "model_assumptions": ["bayesian mixture"],
+    "required_inputs": {
+      "reference_panel": "human-panel-v1",
+      "scope": "nuclear_only"
+    },
+    "warnings": [
+      {"code": "LOW_DEPTH", "message": "effective depth may broaden posterior"}
+    ]
+  }
+}
