@@ -1,0 +1,46 @@
+Bootstrap: docker
+From: ubuntu:24.04
+
+%labels
+    MAINTAINER Bijan Mousavi <mousavi.bijan@gmail.com>
+    VERSION FastQC-v0.12.1
+    org.opencontainers.image.source https://www.bioinformatics.babraham.ac.uk/projects/fastqc/
+
+%environment
+    DEBIAN_FRONTEND=noninteractive
+
+%post
+    export DEBIAN_FRONTEND=noninteractive
+
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        bash \
+        perl \
+        fontconfig \
+        fonts-dejavu-core \
+        libharfbuzz0b \
+        unzip \
+        wget \
+        openjdk-11-jre-headless && \
+
+    wget -q https://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v0.12.1.zip -O /tmp/fastqc.zip && \
+    unzip -q /tmp/fastqc.zip -d /opt && \
+    chmod +x /opt/FastQC/fastqc && \
+    ln -sf /opt/FastQC/fastqc /usr/local/bin/fastqc && \
+    rm /tmp/fastqc.zip && \
+
+    apt-get purge -y unzip wget && \
+    apt-get autoremove -y && \
+    rm -rf /var/lib/apt/lists/*
+
+%runscript
+    if [ $# -eq 0 ]; then
+        exec /usr/local/bin/fastqc --help
+    else
+        exec /usr/local/bin/fastqc "$@"
+    fi
+
+%help
+    This Apptainer image provides FastQC version 0.12.1.
+    Run with arguments to execute fastqc, or without arguments to display help.
+    Java 11 JRE and required fonts are included for full functionality (including HTML report generation).
