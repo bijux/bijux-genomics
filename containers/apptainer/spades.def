@@ -25,6 +25,11 @@ From: ubuntu:24.04
     org.opencontainers.image.title SPAdes
     org.opencontainers.image.licenses Apache-2.0
 
+    org.opencontainers.image.source https://github.com/bijux/bijux-dna
+    org.opencontainers.image.revision unknown
+    org.opencontainers.image.created unknown
+    org.opencontainers.image.licenses GPL-3.0-or-later
+    org.opencontainers.image.version unknown
 %environment
     DEBIAN_FRONTEND=noninteractive
     TZ=UTC

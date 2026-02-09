@@ -18,6 +18,14 @@
 # rcorrector Dockerfile (ARM64)
 # License: Apache-2.0
 FROM ubuntu:24.04 AS builder
+ARG OCI_REVISION=unknown
+ARG OCI_CREATED=unknown
+ARG TOOL_VERSION=unknown
+LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-dna" \
+      org.opencontainers.image.revision="${OCI_REVISION}" \
+      org.opencontainers.image.created="${OCI_CREATED}" \
+      org.opencontainers.image.licenses="GPL-3.0-or-later" \
+      org.opencontainers.image.version="${TOOL_VERSION}"
 
 ARG VERSION_RCORRECTOR=1.0.7
 ARG COMMIT_SHA=f8915b79363e896409bd9ca56819f56c3f77a47e

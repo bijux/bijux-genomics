@@ -23,6 +23,11 @@ From: ubuntu:24.04
     VERSION FastQ-Screen-v0.15.3
     org.opencontainers.image.source https://www.bioinformatics.babraham.ac.uk/projects/fastq_screen/
 
+    org.opencontainers.image.source https://github.com/bijux/bijux-dna
+    org.opencontainers.image.revision unknown
+    org.opencontainers.image.created unknown
+    org.opencontainers.image.licenses GPL-3.0-or-later
+    org.opencontainers.image.version unknown
 %environment
     DEBIAN_FRONTEND=noninteractive
 

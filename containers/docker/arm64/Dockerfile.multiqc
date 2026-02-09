@@ -18,6 +18,14 @@
 # multiqc Dockerfile (ARM64)
 # License: Apache-2.0
 FROM ubuntu:24.04
+ARG OCI_REVISION=unknown
+ARG OCI_CREATED=unknown
+ARG TOOL_VERSION=unknown
+LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-dna" \
+      org.opencontainers.image.revision="${OCI_REVISION}" \
+      org.opencontainers.image.created="${OCI_CREATED}" \
+      org.opencontainers.image.licenses="GPL-3.0-or-later" \
+      org.opencontainers.image.version="${TOOL_VERSION}"
 ENV DEBIAN_FRONTEND=noninteractive
 
 ARG VERSION_MULTIQC=1.24

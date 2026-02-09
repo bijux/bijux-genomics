@@ -22,6 +22,11 @@ From: ubuntu:24.04
     MAINTAINER Bijan Mousavi <mousavi.bijan@gmail.com>
     VERSION SPAdes-v4.2.0-BayesHammer
 
+    org.opencontainers.image.source https://github.com/bijux/bijux-dna
+    org.opencontainers.image.revision unknown
+    org.opencontainers.image.created unknown
+    org.opencontainers.image.licenses GPL-3.0-or-later
+    org.opencontainers.image.version unknown
 %environment
     TZ=UTC
     DEBIAN_FRONTEND=noninteractive

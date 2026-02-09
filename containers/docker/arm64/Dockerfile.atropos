@@ -18,6 +18,14 @@
 # atropos Dockerfile (ARM64)
 # License: Apache-2.0
 FROM python:3.10-slim
+ARG OCI_REVISION=unknown
+ARG OCI_CREATED=unknown
+ARG TOOL_VERSION=unknown
+LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-dna" \
+      org.opencontainers.image.revision="${OCI_REVISION}" \
+      org.opencontainers.image.created="${OCI_CREATED}" \
+      org.opencontainers.image.licenses="GPL-3.0-or-later" \
+      org.opencontainers.image.version="${TOOL_VERSION}"
 ENV DEBIAN_FRONTEND=noninteractive
 ARG VERSION_ATROPOS=1.1.31
 ENV VERSION_ATROPOS=${VERSION_ATROPOS}

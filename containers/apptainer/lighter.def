@@ -23,6 +23,11 @@ From: ubuntu:24.04
     VERSION Lighter-v1.1.2
     org.opencontainers.image.source https://github.com/mourisl/Lighter
 
+    org.opencontainers.image.source https://github.com/bijux/bijux-dna
+    org.opencontainers.image.revision unknown
+    org.opencontainers.image.created unknown
+    org.opencontainers.image.licenses GPL-3.0-or-later
+    org.opencontainers.image.version unknown
 %environment
     DEBIAN_FRONTEND=noninteractive
     TZ=UTC
