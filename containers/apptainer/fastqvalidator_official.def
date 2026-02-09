@@ -11,6 +11,7 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
     VERSION FastqValidator-v0.1.1
     org.opencontainers.image.source https://github.com/statgen/fastQValidator
     org.opencontainers.image.version v0.1.1
+    org.opencontainers.image.tool fastqvalidator_official
 
     org.opencontainers.image.source https://github.com/bijux/bijux-dna
     org.opencontainers.image.revision unknown
