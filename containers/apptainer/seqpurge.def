@@ -1,0 +1,107 @@
+Bootstrap: docker
+From: ubuntu:24.04
+
+%labels
+    MAINTAINER Bijan Mousavi <mousavi.bijan@gmail.com>
+    VERSION seqpurge-2025_05
+    org.opencontainers.image.source https://github.com/imgag/ngs-bits
+    org.opencontainers.image.title SeqPurge (ngs-bits)
+    org.opencontainers.image.licenses Apache-2.0
+
+%environment
+    DEBIAN_FRONTEND=noninteractive
+    TZ=UTC
+    SEQPURGE_VERSION=2025_05
+
+%post
+    set -eux
+    export DEBIAN_FRONTEND=noninteractive
+
+    # Section: Install build dependencies for the compile stage.
+    apt-get update
+    apt-get install -y --no-install-recommends \
+        build-essential \
+        qtbase5-dev \
+        qt5-qmake \
+        libqt5xmlpatterns5-dev \
+        libqt5charts5-dev \
+        libqt5svg5-dev \
+        zlib1g-dev \
+        libbz2-dev \
+        liblzma-dev \
+        libhts-dev \
+        libxml2-dev \
+        pkg-config \
+        git \
+        ca-certificates
+
+    # Section: Fetch and build from a pinned tag.
+    mkdir -p /opt
+    for i in 1 2 3; do \
+        git clone --recursive --depth 1 --branch "2025_05" https://github.com/imgag/ngs-bits.git /opt/ngs-bits && break || \
+        echo "Git clone attempt $i failed, retrying..." && sleep 5; \
+    done || { echo "Failed to clone ngs-bits after 3 attempts"; exit 1; }
+
+    cd /opt/ngs-bits
+
+    # Build only what is needed and skip tests to match the Dockerfile intent.
+    export SKIP_TESTS=1
+    make build_libs_release -j"$(nproc)" SKIP_TESTS=1
+    make build_tools_release -j"$(nproc)" TOOLS=SeqPurge SKIP_TESTS=1
+
+    # Run a sanity check.
+    test -x bin/SeqPurge
+
+    # Section: Install into runtime paths.
+    install -m 0755 bin/SeqPurge /usr/local/bin/seqpurge
+
+    # ngs-bits ships some shared libraries in `bin/` as in the Dockerfile.
+    # Copy produced `.so*` files into `/usr/local/lib` so the binary runs.
+    if ls bin/*.so* >/dev/null 2>&1; then
+        cp -a bin/*.so* /usr/local/lib/
+    fi
+
+    # Section: Keep runtime dependencies only.
+    # Mark build dependencies as auto so they can be autoremoved, then reinstall runtime dependencies.
+    apt-mark auto \
+        build-essential qtbase5-dev qt5-qmake libqt5xmlpatterns5-dev libqt5charts5-dev libqt5svg5-dev \
+        zlib1g-dev libbz2-dev liblzma-dev libhts-dev libxml2-dev pkg-config git || true
+
+    apt-get purge -y --auto-remove || true
+
+    # Install runtime dependencies explicitly (same list as the runtime stage).
+    apt-get update
+    apt-get install -y --no-install-recommends \
+        libqt5core5a \
+        libqt5xml5 \
+        libqt5xmlpatterns5 \
+        libqt5charts5 \
+        libqt5svg5 \
+        libqt5sql5 \
+        libqt5sql5-sqlite \
+        libxml2 \
+        zlib1g \
+        libbz2-1.0 \
+        liblzma5 \
+        libhts3 \
+        libgomp1 \
+        ca-certificates
+
+    # Refresh the dynamic linker cache.
+    ldconfig
+
+    # Clean up.
+    rm -rf /opt/ngs-bits
+    rm -rf /var/lib/apt/lists/*
+
+%runscript
+    if [ $# -eq 0 ]; then
+        exec /usr/local/bin/seqpurge --help
+    else
+        exec /usr/local/bin/seqpurge "$@"
+    fi
+
+%help
+    This Apptainer image provides SeqPurge built from ngs-bits (tag 2025_05).
+    Executable: /usr/local/bin/seqpurge
+    Build: Qt + htslib + zlib/bzip2/lzma, tests skipped (SKIP_TESTS=1).
