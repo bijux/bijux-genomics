@@ -23,6 +23,15 @@ impl CliWorkspace {
     }
 
     fn setup_configs(&self) {
+        self.setup_configs_with_images(
+            r#"
+fastp = { version = "0.0.0" }
+seqkit = { version = "0.0.0" }
+"#,
+        );
+    }
+
+    fn setup_configs_with_images(&self, images: &str) {
         let configs_dir = self.path().join("configs");
         let profiles_dir = configs_dir.join("profiles");
         std::fs::create_dir_all(&profiles_dir).expect("create profiles");
@@ -50,14 +59,7 @@ arch = "x86_64"
 "#,
         )
         .expect("write platforms");
-        std::fs::write(
-            configs_dir.join("images.toml"),
-            r#"
-fastp = { version = "0.0.0" }
-seqkit = { version = "0.0.0" }
-"#,
-        )
-        .expect("write images");
+        std::fs::write(configs_dir.join("images.toml"), images).expect("write images");
     }
 
     #[cfg(unix)]
@@ -91,6 +93,27 @@ fn run_cli_capture(workspace: &CliWorkspace, args: &[&str]) -> Result<String, St
         .read_to_string(&mut output)
         .expect("read stdout");
     result.map(|_| output).map_err(|err| err.to_string())
+}
+
+fn scrub_paths(value: &mut Value, root: &str) {
+    match value {
+        Value::String(s) => {
+            if s.contains(root) {
+                *s = s.replace(root, "<temp>");
+            }
+        }
+        Value::Array(items) => {
+            for item in items {
+                scrub_paths(item, root);
+            }
+        }
+        Value::Object(map) => {
+            for value in map.values_mut() {
+                scrub_paths(value, root);
+            }
+        }
+        _ => {}
+    }
 }
 
 fn prepare_fastq_preprocess(workspace: &CliWorkspace, out_dir: &Path) -> PathBuf {
@@ -160,6 +183,31 @@ fn cli_env_images_are_listed_in_order() {
     assert_eq!(lines.len(), 2);
     assert!(lines[0].starts_with("fastp:"));
     assert!(lines[1].starts_with("seqkit:"));
+}
+
+#[test]
+fn cli_env_images_are_deterministic_across_input_order() {
+    let workspace_a = CliWorkspace::new();
+    workspace_a.setup_configs_with_images(
+        r#"
+fastp = { version = "0.0.0" }
+seqkit = { version = "0.0.0" }
+"#,
+    );
+    let workspace_b = CliWorkspace::new();
+    workspace_b.setup_configs_with_images(
+        r#"
+seqkit = { version = "0.0.0" }
+fastp = { version = "0.0.0" }
+"#,
+    );
+
+    let stdout_a = run_cli_capture(&workspace_a, &["--platform", "test", "dna", "env", "images"])
+        .expect("cli ok");
+    let stdout_b = run_cli_capture(&workspace_b, &["--platform", "test", "dna", "env", "images"])
+        .expect("cli ok");
+
+    assert_eq!(stdout_a, stdout_b);
 }
 
 #[test]
@@ -304,4 +352,75 @@ fn cli_fastq_preprocess_plan_falls_back_to_dry_run() {
     )
     .expect("cli ok");
     assert!(out_dir.join("run_manifest.json").exists());
+}
+
+#[test]
+fn cli_dry_run_manifest_is_deterministic_after_path_scrub() {
+    let workspace_a = CliWorkspace::new();
+    let workspace_b = CliWorkspace::new();
+    workspace_a.setup_configs();
+    workspace_b.setup_configs();
+    let out_a = workspace_a.path().join("out");
+    let out_b = workspace_b.path().join("out");
+    let input_a = prepare_fastq_preprocess(&workspace_a, &out_a);
+    let input_b = prepare_fastq_preprocess(&workspace_b, &out_b);
+
+    run_cli_capture(
+        &workspace_a,
+        &[
+            "--platform",
+            "test",
+            "dna",
+            "fastq",
+            "preprocess",
+            "--dry-run",
+            "--r1",
+            input_a.to_str().unwrap(),
+            "--out",
+            out_a.to_str().unwrap(),
+            "--sample-id",
+            "sample",
+        ],
+    )
+    .expect("cli ok");
+
+    run_cli_capture(
+        &workspace_b,
+        &[
+            "--platform",
+            "test",
+            "dna",
+            "fastq",
+            "preprocess",
+            "--dry-run",
+            "--r1",
+            input_b.to_str().unwrap(),
+            "--out",
+            out_b.to_str().unwrap(),
+            "--sample-id",
+            "sample",
+        ],
+    )
+    .expect("cli ok");
+
+    let raw_a = std::fs::read_to_string(out_a.join("run_manifest.json")).expect("read manifest");
+    let raw_b = std::fs::read_to_string(out_b.join("run_manifest.json")).expect("read manifest");
+    let mut manifest_a: Value = serde_json::from_str(&raw_a).expect("parse manifest");
+    let mut manifest_b: Value = serde_json::from_str(&raw_b).expect("parse manifest");
+    scrub_paths(
+        &mut manifest_a,
+        workspace_a.path().to_str().unwrap_or_default(),
+    );
+    scrub_paths(
+        &mut manifest_b,
+        workspace_b.path().to_str().unwrap_or_default(),
+    );
+
+    let canonical_a =
+        bijux_dna_core::contract::canonical::to_canonical_json_bytes(&manifest_a)
+            .expect("canonical");
+    let canonical_b =
+        bijux_dna_core::contract::canonical::to_canonical_json_bytes(&manifest_b)
+            .expect("canonical");
+    assert_eq!(canonical_a, canonical_b);
 }
