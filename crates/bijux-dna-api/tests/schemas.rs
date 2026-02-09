@@ -7,3 +7,5 @@ mod mod_schemas_v1_cross_contract_handshake_rs;
 mod mod_schemas_v1_cross_docs_schema_snapshots_rs;
 #[path = "schemas/v1_cross_public_surface.rs"]
 mod mod_schemas_v1_cross_public_surface_rs;
+#[path = "schemas/v1_operator_failure_contract.rs"]
+mod mod_schemas_v1_operator_failure_contract_rs;
