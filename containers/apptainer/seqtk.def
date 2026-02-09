@@ -1,0 +1,81 @@
+Bootstrap: docker
+From: ubuntu:24.04
+
+%labels
+    MAINTAINER Bijan Mousavi <mousavi.bijan@gmail.com>
+    VERSION seqtk-1.5-r133
+    org.opencontainers.image.source https://github.com/lh3/seqtk
+    org.opencontainers.image.title seqtk
+    org.opencontainers.image.licenses Apache-2.0
+
+%environment
+    DEBIAN_FRONTEND=noninteractive
+    TZ=UTC
+    VERSION_SEQTK=1.5-r133
+
+%post
+    set -eux
+    export DEBIAN_FRONTEND=noninteractive
+
+    apt-get update
+    apt-get install -y --no-install-recommends \
+        git \
+        ca-certificates \
+        build-essential \
+        zlib1g-dev
+
+    # Fetch + build
+    mkdir -p /opt
+    for i in 1 2 3; do \
+        git clone https://github.com/lh3/seqtk.git /opt/seqtk && break || \
+        echo "Git clone attempt $i failed, retrying..." && sleep 5; \
+    done || { echo "Failed to clone seqtk after 3 attempts"; exit 1; }
+
+    cd /opt/seqtk
+    make -j"$(nproc)"
+
+    install -m 0755 ./seqtk /usr/local/bin/seqtk-bin
+
+    # Wrapper: unified execution + stable --version / --help behavior
+    cat > /usr/local/bin/seqtk <<'EOF'
+#!/usr/bin/env sh
+set -eu
+
+case "${1:-}" in
+  --version)
+    echo "${VERSION_SEQTK}"
+    exit 0
+    ;;
+  --help|-h|"")
+    exec /usr/local/bin/seqtk-bin --help
+    ;;
+esac
+
+exec /usr/local/bin/seqtk-bin "$@"
+EOF
+    chmod 0755 /usr/local/bin/seqtk
+
+    # Clean up the build tree.
+    cd /
+    rm -rf /opt/seqtk
+
+    # Remove build deps; keep runtime deps (zlib + ca-certs)
+    apt-get purge -y --auto-remove \
+        git \
+        build-essential \
+        zlib1g-dev
+
+    rm -rf /var/lib/apt/lists/*
+
+%runscript
+    if [ $# -eq 0 ]; then
+        exec seqtk --help
+    else
+        exec seqtk "$@"
+    fi
+
+%help
+    This Apptainer image provides Seqtk built from source on Ubuntu 24.04.
+    Wrapper: 'seqtk' (stable --version and --help behavior)
+    Underlying binary: 'seqtk-bin'
+    Upstream: https://github.com/lh3/seqtk
