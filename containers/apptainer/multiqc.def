@@ -1,0 +1,37 @@
+Bootstrap: docker
+From: ubuntu:24.04
+
+%labels
+    MAINTAINER Bijan Mousavi <mousavi.bijan@gmail.com>
+    VERSION MultiQC-v1.24
+    org.opencontainers.image.source https://github.com/MultiQC/MultiQC
+
+%environment
+    DEBIAN_FRONTEND=noninteractive
+
+%post
+    export DEBIAN_FRONTEND=noninteractive
+
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        python3-pip \
+        python3-dev && \
+
+    pip3 install --no-cache-dir --break-system-packages \
+        multiqc==1.24 && \
+
+    apt-get purge -y python3-dev && \
+    apt-get autoremove -y && \
+    rm -rf /var/lib/apt/lists/*
+
+%runscript
+    if [ $# -eq 0 ]; then
+        exec multiqc --help
+    else
+        exec multiqc "$@"
+    fi
+
+%help
+    This Apptainer image provides MultiQC version 1.24, installed via pip.
+    Run with arguments to execute multiqc (typically on a directory containing QC reports).
+    Run without arguments to display detailed help.
