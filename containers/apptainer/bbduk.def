@@ -1,0 +1,39 @@
+Bootstrap: docker
+From: ubuntu:24.04
+
+%labels
+    MAINTAINER Bijan Mousavi <mousavi.bijan@gmail.com>
+    VERSION BBDuk-v39.08
+
+%environment
+    DEBIAN_FRONTEND=noninteractive
+
+%post
+    export DEBIAN_FRONTEND=noninteractive
+
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        wget ca-certificates openjdk-17-jre-headless && \
+
+    wget -q https://sourceforge.net/projects/bbmap/files/BBMap_39.08.tar.gz -O /tmp/bbmap.tar.gz && \
+    tar -xzf /tmp/bbmap.tar.gz -C /opt && \
+    rm /tmp/bbmap.tar.gz && \
+
+    # Create a wrapper script.
+    printf '#!/bin/sh\nexec /opt/bbmap/bbduk.sh "$@"\n' > /usr/local/bin/bbduk && \
+    chmod +x /usr/local/bin/bbduk && \
+
+    apt-get purge -y wget && \
+    apt-get autoremove -y && \
+    rm -rf /var/lib/apt/lists/*
+
+%runscript
+    if [ $# -eq 0 ]; then
+        exec /usr/local/bin/bbduk --help
+    else
+        exec /usr/local/bin/bbduk "$@"
+    fi
+
+%help
+    This Apptainer image provides BBDuk (part of BBMap version 39.08).
+    Run with arguments to execute bbduk.sh, or without arguments to display help.
