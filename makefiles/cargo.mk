@@ -17,7 +17,7 @@ TEST_ENV = TZ=UTC LC_ALL=C TMPDIR=$(TEST_TMP_DIR) TMP=$(TEST_TMP_DIR) TEMP=$(TES
   TEST_PROFRAW_DIR=$(TEST_PROFRAW_DIR) COV_PROFRAW_DIR=$(COV_PROFRAW_DIR) \
   LLVM_PROFILE_FILE=$(TEST_PROFRAW_DIR)/%p.profraw
 TEST = $(TEST_ENV) CARGO_TARGET_DIR=$(TEST_TARGET_DIR) cargo nextest run $(NEXTEST_CONFIG) --workspace $(TEST_FEATURES) --profile $(NEXTEST_PROFILE) $(RUN_IGNORED)
-COVERAGE_ROOT = artifacts/coverage
+COVERAGE_ROOT = $(COV_TARGET_DIR)/coverage
 COVERAGE_ROOT_ABS = $(abspath $(COVERAGE_ROOT))
 COV_TARGET_DIR_ABS = $(abspath $(COV_TARGET_DIR))
 COVERAGE_OUT = $(COVERAGE_ROOT)/coverage.json
@@ -34,7 +34,7 @@ COVERAGE_ENV = TZ=UTC LC_ALL=C TMPDIR=$(COV_TMP_DIR) TMP=$(COV_TMP_DIR) TEMP=$(C
   LLVM_PROFILE_FILE=$(COV_PROFRAW_DIR)/%p.profraw
 COVERAGE_RUN = cargo llvm-cov nextest --no-report --no-cfg-coverage $(NEXTEST_CONFIG) --workspace $(TEST_FEATURES) --profile $(NEXTEST_PROFILE) $(RUN_IGNORED)
 COVERAGE_JSON = cargo llvm-cov report --json --output-path $(COVERAGE_OUT)
-COVERAGE_HTML = cargo llvm-cov report --html --output-dir $(HTML_OUT)
+COVERAGE_HTML = cargo llvm-cov report --html --output-dir $(COVERAGE_ROOT)
 
 fmt:
 	$(FMT)
@@ -55,6 +55,7 @@ audit: ensure-cargo-deny
 	$(AUDIT)
 
 coverage:
+	@rm -rf $(COVERAGE_ROOT)
 	@mkdir -p $(dir $(COVERAGE_OUT))
 	@$(COVERAGE_ENV) cargo llvm-cov clean
 	@rm -rf $(COV_PROFRAW_DIR)
@@ -93,6 +94,9 @@ endef
 ci:
 	$(call run_ci,)
 
+check:
+	$(MAKE) fmt lint audit coverage
+
 ci-isolate:
 	$(call run_ci,target-isolate)
 
@@ -110,6 +114,9 @@ test-coverage-parallel:
 	$(MAKE) -j2 test coverage
 	$(MAKE) verify-parallel-isolation
 
+clean-isolate:
+	@rm -rf target-isolate-test target-isolate-cov
+
 snapshots:
 	$(TEST_ENV) cargo insta test --workspace
 
@@ -119,6 +126,6 @@ snapshots-accept:
 snapshots-review:
 	$(TEST_ENV) cargo insta review
 
-.PHONY: fmt lint test audit coverage ci ci-local test-coverage-parallel verify-parallel-isolation \
-		fmt-isolate lint-isolate test-isolate audit-isolate coverage-isolate ci-isolate \
+.PHONY: fmt lint test audit coverage ci check ci-local test-coverage-parallel verify-parallel-isolation \
+		fmt-isolate lint-isolate test-isolate audit-isolate coverage-isolate ci-isolate clean-isolate \
 		snapshots snapshots-accept snapshots-review ensure-cargo-deny
