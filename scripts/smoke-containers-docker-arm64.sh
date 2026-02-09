@@ -14,6 +14,7 @@ SAVE_TAR="${SAVE_TAR:-1}"
 VERSION_TIMEOUT="${VERSION_TIMEOUT:-120}"
 IMAGE_PREFIX="${IMAGE_PREFIX:-bijux-smoke}"
 TOOLS="${TOOLS:-}"
+SMOKE_LEVEL="${SMOKE_LEVEL:-version}"
 
 ARTIFACT_DIR="$ROOT_DIR/artifacts/container"
 LOG_DIR="$ARTIFACT_DIR/logs/$RUNTIME_NAME"
@@ -79,6 +80,26 @@ get_version_cmd() {
   ' "$ROOT_DIR/configs/tool_registry.toml"
 }
 
+get_help_cmd() {
+  tool="$1"
+  awk -v tool="$tool" '
+    function unquote(v) {
+      gsub(/^[[:space:]]+|[[:space:]]+$/, "", v)
+      gsub(/^"/, "", v); gsub(/"$/, "", v)
+      return v
+    }
+    /^\[\[tools\]\]/ { in_tools=1; id=""; helpcmd=""; next }
+    in_tools && /^[[:space:]]*id[[:space:]]*=/ {
+      split($0, a, "="); id=unquote(a[2]); next
+    }
+    in_tools && /^[[:space:]]*help_cmd[[:space:]]*=/ {
+      split($0, a, "="); helpcmd=unquote(a[2]); next
+    }
+    in_tools && id==tool && helpcmd!="" { print helpcmd; found=1; exit 0 }
+    END { if (!found) print tool " --help" }
+  ' "$ROOT_DIR/configs/tool_registry.toml"
+}
+
 get_registry_field() {
   field="$1"
   tool="$2"
@@ -110,7 +131,13 @@ build_and_smoke_one() {
   image="$IMAGE_PREFIX/${tool}:$DOCKER_ARCH"
   log="$LOG_DIR/${tool}.log"
   cmd=$(get_version_cmd "$tool")
+  help_cmd=$(get_help_cmd "$tool")
+  expected_bin=$(get_registry_field expected_bin "$tool")
+  if [ "$expected_bin" = "unknown" ]; then
+    expected_bin="$tool"
+  fi
   version_output_file="$LOG_DIR/${tool}.version.out"
+  help_output_file="$LOG_DIR/${tool}.help.out"
   manifest="$MANIFEST_DIR/${tool}.json"
   dockerfile_base=$(awk '/^FROM /{print $2; exit}' "$dockerfile")
   upstream=$(get_registry_field upstream "$tool")
@@ -124,6 +151,12 @@ build_and_smoke_one() {
     "$DOCKER_BIN" build --platform "$DOCKER_PLATFORM" -f "$dockerfile" -t "$image" "$DOCKER_DIR"
     echo "=== [$tool] smoke: $cmd"
     run_with_timeout "$VERSION_TIMEOUT" "$DOCKER_BIN" run --rm "$image" sh -lc "$cmd" | tee "$version_output_file"
+    if [ "$SMOKE_LEVEL" = "contract" ]; then
+      echo "=== [$tool] smoke-help: $help_cmd"
+      run_with_timeout "$VERSION_TIMEOUT" "$DOCKER_BIN" run --rm "$image" sh -lc "$help_cmd" | tee "$help_output_file"
+      echo "=== [$tool] smoke-bin: $expected_bin"
+      run_with_timeout "$VERSION_TIMEOUT" "$DOCKER_BIN" run --rm "$image" sh -lc "command -v $expected_bin >/dev/null"
+    fi
     if [ "$SAVE_TAR" = "1" ]; then
       echo "=== [$tool] save image tar"
       "$DOCKER_BIN" save "$image" -o "$IMG_DIR/${tool}.tar"

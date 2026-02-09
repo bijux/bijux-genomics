@@ -70,6 +70,9 @@ container-runtime-check: ## Validate selected container runtime and script wirin
 container-smoke: container-runtime-check ## Build+smoke selected runtime (optional TOOLS=tool1,tool2)
 	@TOOLS="$(TOOLS)" JOBS="$(JOBS)" sh "$(SMOKE_SCRIPT)"
 
+containers-smoke: container-runtime-check ## Contract smoke all tools (--version/--help/binary)
+	@SMOKE_LEVEL=contract JOBS="$(JOBS)" sh "$(SMOKE_SCRIPT)"
+
 smoke-containers-docker-arm64: ## Build+smoke Docker arm64 containers (artifacts/container/{logs,images})
 	@TOOLS="$(TOOLS)" JOBS="$(JOBS)" sh scripts/smoke-containers-docker-arm64.sh
 
@@ -166,7 +169,7 @@ containers-smoke-bam-all: ## Smoke all BAM stage tool sets via selected runtime
 	$(MAKE) container-smoke
 
 containers-smoke-all: ## Smoke all registered tools via selected runtime
-	@$(MAKE) container-smoke
+	@$(MAKE) containers-smoke
 
 containers-apptainer-build: ## Batch-build Apptainer defs to VM-local output and copy back artifacts
 	@JOBS="$(JOBS)" ./scripts/apptainer_build_all.sh \
@@ -175,6 +178,7 @@ containers-apptainer-build: ## Batch-build Apptainer defs to VM-local output and
 		--copy-back "$(APPTAINER_COPY_BACK)"
 
 .PHONY: container-runtime-check container-smoke \
+	containers-smoke \
 	smoke-containers-docker-arm64 smoke-containers-docker-amd64 smoke-containers-apptainer \
 	build-images test-images image-qa test-images-trim test-images-validate test-images-filter test-images-merge \
 	containers-smoke-fastq-all containers-smoke-bam-all containers-smoke-all \
