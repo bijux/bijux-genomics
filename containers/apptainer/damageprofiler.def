@@ -1,0 +1,38 @@
+# SPDX-License-Identifier: GPL-3.0-only
+# Copyright (C) 2026 Bijan Mousavi
+#
+# Container definition license: GPL-3.0.
+# The bijux-dna software source code is licensed under Apache-2.0.
+Bootstrap: docker
+From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+
+%labels
+    org.opencontainers.image.source https://github.com/bijux/bijux-dna
+    org.opencontainers.image.revision unknown
+    org.opencontainers.image.created unknown
+    org.opencontainers.image.licenses GPL-3.0
+    org.opencontainers.image.version latest-pinned
+    org.opencontainers.image.tool damageprofiler
+%environment
+    DEBIAN_FRONTEND=noninteractive
+
+%post
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update -qq && apt-get install -y --no-install-recommends git maven openjdk-17-jdk ca-certificates && rm -rf /var/lib/apt/lists/*
+    git clone --depth 1 https://github.com/Integrative-Transcriptomics/DamageProfiler.git /opt/damageprofiler
+    cd /opt/damageprofiler
+    git checkout a1e9a136303173edff82e396791181bea957e1e3
+    mvn -q -DskipTests package
+    cp /opt/damageprofiler/target/*-jar-with-dependencies.jar /opt/damageprofiler.jar
+    cat > /usr/local/bin/damageprofiler <<'SH'
+#!/bin/sh
+set -eu
+exec java -jar /opt/damageprofiler.jar "$@"
+SH
+    chmod +x /usr/local/bin/damageprofiler
+
+%runscript
+    exec /usr/local/bin/damageprofiler "$@"
+
+%help
+    Apptainer image for DamageProfiler.
