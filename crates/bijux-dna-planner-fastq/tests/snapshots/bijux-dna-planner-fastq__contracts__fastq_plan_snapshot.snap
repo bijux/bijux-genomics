@@ -1,6 +1,7 @@
 ---
 source: crates/bijux-dna-planner-fastq/tests/contracts/plan/plan_snapshots.rs
-expression: "bijux_testkit::snapshot_normalize_json(&json)"
+assertion_line: 80
+expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
   "contract_version": {
@@ -51,6 +52,18 @@ expression: "bijux_testkit::snapshot_normalize_json(&json)"
             "optional": false,
             "path": "out/trim/fastp/fastp.fastq.gz",
             "role": "trimmed_reads"
+          },
+          {
+            "name": "trim_report",
+            "optional": false,
+            "path": "out/trim/fastp/trim.report.json",
+            "role": "report_json"
+          },
+          {
+            "name": "stage_metrics",
+            "optional": false,
+            "path": "out/trim/fastp/stage.metrics.json",
+            "role": "metrics_json"
           }
         ]
       },
