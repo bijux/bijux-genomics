@@ -63,6 +63,8 @@ fn policy__contracts__tool_registry_completeness__registry_entries_are_machine_c
     let mut offenders = Vec::new();
     let mut declared_docker_tool_files = std::collections::BTreeSet::new();
     let mut declared_apptainer_tool_files = std::collections::BTreeSet::new();
+    let checkout_commit_re =
+        Regex::new(r"git checkout [0-9a-f]{40}").expect("compile git checkout regex");
 
     if tools.is_empty() {
         offenders.push("configs/tools.toml: missing [[tools]] entries".to_string());
@@ -144,9 +146,7 @@ fn policy__contracts__tool_registry_completeness__registry_entries_are_machine_c
                                 }
                             }
                             if content.contains("git clone")
-                                && !Regex::new(r"git checkout [0-9a-f]{40}")
-                                    .expect("compile git checkout regex")
-                                    .is_match(&content)
+                                && !checkout_commit_re.is_match(&content)
                             {
                                 offenders.push(format!(
                                     "tool={id}: dockerfile uses git clone without immutable commit checkout"
@@ -209,9 +209,7 @@ fn policy__contracts__tool_registry_completeness__registry_entries_are_machine_c
                                 }
                             }
                             if content.contains("git clone")
-                                && !Regex::new(r"git checkout [0-9a-f]{40}")
-                                    .expect("compile git checkout regex")
-                                    .is_match(&content)
+                                && !checkout_commit_re.is_match(&content)
                             {
                                 offenders.push(format!(
                                     "tool={id}: apptainer def uses git clone without immutable commit checkout"
