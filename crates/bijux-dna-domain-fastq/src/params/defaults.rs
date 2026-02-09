@@ -42,6 +42,7 @@ pub fn trim_defaults(paired: bool) -> TrimEffectiveParams {
         min_len: 0,
         q_cutoff: None,
         adapter_policy: "none".to_string(),
+        damage_mode: None,
         polyx_policy: None,
         n_policy: None,
         contaminant_policy: None,
@@ -61,6 +62,7 @@ pub fn filter_defaults(paired: bool) -> FilterEffectiveParams {
         contaminant_db: None,
         n_policy: None,
         polyx_policy: None,
+        damage_mode: None,
     }
 }
 
