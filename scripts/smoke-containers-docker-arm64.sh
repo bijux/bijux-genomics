@@ -52,17 +52,22 @@ PY
 
 get_version_cmd() {
   tool="$1"
-  python3 - "$ROOT_DIR/configs/tool_registry.toml" "$tool" <<'PY'
-import sys, tomllib
-path, tool = sys.argv[1], sys.argv[2]
-with open(path, 'rb') as f:
-    data = tomllib.load(f)
-for entry in data.get('tools', []):
-    if entry.get('id') == tool:
-        print(entry.get('version_cmd', f"{tool} --version"))
-        raise SystemExit(0)
-print(f"{tool} --version")
-PY
+  awk -v tool="$tool" '
+    function unquote(v) {
+      gsub(/^[[:space:]]+|[[:space:]]+$/, "", v)
+      gsub(/^"/, "", v); gsub(/"$/, "", v)
+      return v
+    }
+    /^\[\[tools\]\]/ { in_tools=1; id=""; vercmd=""; next }
+    in_tools && /^[[:space:]]*id[[:space:]]*=/ {
+      split($0, a, "="); id=unquote(a[2]); next
+    }
+    in_tools && /^[[:space:]]*version_cmd[[:space:]]*=/ {
+      split($0, a, "="); vercmd=unquote(a[2]); next
+    }
+    in_tools && id==tool && vercmd!="" { print vercmd; found=1; exit 0 }
+    END { if (!found) print tool " --version" }
+  ' "$ROOT_DIR/configs/tool_registry.toml"
 }
 
 build_and_smoke_one() {
