@@ -1,0 +1,4 @@
+PRINSEQ++ summary
+Input reads: 100000
+Output reads: 91000
+Low complexity removed: 6000

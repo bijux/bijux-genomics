@@ -1,0 +1,9 @@
+{
+  "schema_version": "bijux.fixture_case.v1",
+  "purpose": "Realistic pre-HPC text fixture bank for FASTQ stage tool outputs",
+  "invariants": [
+    "every stage has a checked-in representative text output",
+    "observer parsers consume validate/screen fixtures deterministically",
+    "roundtrip invariants preserve parsed metric values"
+  ]
+}

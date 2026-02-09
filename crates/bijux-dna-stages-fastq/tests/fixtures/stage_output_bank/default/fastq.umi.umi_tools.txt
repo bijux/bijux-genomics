@@ -1,0 +1,3 @@
+umi_tools dedup summary
+Input reads: 94000
+Output reads: 90500
