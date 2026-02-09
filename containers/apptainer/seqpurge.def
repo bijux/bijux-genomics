@@ -4,7 +4,7 @@
 # Container definition license: GPL-3.0.
 # The bijux-dna software source code is licensed under Apache-2.0.
 Bootstrap: docker
-From: ubuntu:24.04
+From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 
 %labels
     MAINTAINER Bijan Mousavi <mousavi.bijan@gmail.com>
@@ -48,7 +48,7 @@ From: ubuntu:24.04
     # Section: Fetch and build from a pinned tag.
     mkdir -p /opt
     for i in 1 2 3; do \
-        git clone --recursive --depth 1 --branch "2025_05" https://github.com/imgag/ngs-bits.git /opt/ngs-bits && break || \
+        git clone --recursive --depth 1 --branch "2025_05" https://github.com/imgag/ngs-bits.git /opt/ngs-bits && cd /opt/ngs-bits && git checkout 3af5b3deedab58d31b20fac365f31f400a5524c2 && cd - >/dev/null && break || \
         echo "Git clone attempt $i failed, retrying..." && sleep 5; \
     done || { echo "Failed to clone ngs-bits after 3 attempts"; exit 1; }
 
