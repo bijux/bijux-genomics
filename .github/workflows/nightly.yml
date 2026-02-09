@@ -36,7 +36,7 @@ jobs:
           make coverage
           python3 - <<'PY'
           import json
-          data=json.load(open("target/coverage.json"))
+          data=json.load(open("target-cov/coverage/coverage.json"))
           totals=data["data"][0]["totals"]["lines"]
           covered=totals.get("covered",0)
           count=totals.get("count",1)

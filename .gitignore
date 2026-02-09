@@ -23,6 +23,7 @@
 /artifacts/**
 !/artifacts/coverage/
 !/artifacts/coverage/thresholds.json
+/coverage/
 
 !docs/
 !docs/**

@@ -23,7 +23,7 @@ COV_TARGET_DIR_ABS = $(abspath $(COV_TARGET_DIR))
 COVERAGE_OUT = $(COVERAGE_ROOT)/coverage.json
 HTML_OUT = $(COVERAGE_ROOT)/html
 COVERAGE_BASELINE = artifacts/coverage/baseline.json
-COVERAGE_THRESHOLDS = coverage/thresholds.json
+COVERAGE_THRESHOLDS = artifacts/coverage/thresholds.json
 COVERAGE_ENV = TZ=UTC LC_ALL=C TMPDIR=$(COV_TMP_DIR) TMP=$(COV_TMP_DIR) TEMP=$(COV_TMP_DIR) \
   TEST_TARGET_DIR=$(TEST_TARGET_DIR) COV_TARGET_DIR=$(COV_TARGET_DIR) \
   TEST_TMP_DIR=$(TEST_TMP_DIR) COV_TMP_DIR=$(COV_TMP_DIR) \
@@ -34,12 +34,12 @@ COVERAGE_ENV = TZ=UTC LC_ALL=C TMPDIR=$(COV_TMP_DIR) TMP=$(COV_TMP_DIR) TEMP=$(C
   LLVM_PROFILE_FILE=$(COV_PROFRAW_DIR)/%p.profraw
 COVERAGE_RUN = cargo llvm-cov nextest --no-report --no-cfg-coverage $(NEXTEST_CONFIG) --workspace $(TEST_FEATURES) --profile $(NEXTEST_PROFILE) $(RUN_IGNORED)
 COVERAGE_JSON = cargo llvm-cov report --json --output-path $(COVERAGE_OUT)
-COVERAGE_HTML = cargo llvm-cov report --html --output-dir $(COVERAGE_ROOT)
+COVERAGE_HTML = cargo llvm-cov report --html --output-dir $(HTML_OUT)
 
 fmt:
 	$(FMT)
 
-lint:
+lint: docs-lint
 	$(LINT)
 
 test:
@@ -58,7 +58,6 @@ coverage:
 	@$(COVERAGE_ENV) cargo llvm-cov clean
 	@rm -rf $(COVERAGE_ROOT)
 	@mkdir -p $(COVERAGE_ROOT)
-	@mkdir -p $(dir $(COVERAGE_OUT))
 	@rm -rf $(COV_PROFRAW_DIR)
 	@mkdir -p $(COV_TMP_DIR)
 	@mkdir -p $(COV_PROFRAW_DIR)
@@ -66,6 +65,7 @@ coverage:
 	$(COVERAGE_ENV) $(COVERAGE_JSON)
 	$(COVERAGE_ENV) $(COVERAGE_HTML)
 	@test -f $(COVERAGE_OUT)
+	@test -d $(HTML_OUT)
 	@test -f $(HTML_OUT)/index.html
 	@if [ -f $(COVERAGE_BASELINE) ]; then \
 		python3 scripts/coverage_summary.py $(COVERAGE_OUT) --baseline $(COVERAGE_BASELINE) --check-thresholds $(COVERAGE_THRESHOLDS); \
@@ -88,18 +88,14 @@ audit-isolate: ensure-cargo-deny
 coverage-isolate:
 	TEST_TARGET_DIR=target-isolate-test COV_TARGET_DIR=target-isolate-cov $(MAKE) coverage
 
-define run_ci
-	$(if $(1),TEST_TARGET_DIR=$(1)-test COV_TARGET_DIR=$(1)-cov,) $(MAKE) fmt lint audit coverage
-endef
-
 ci:
-	$(call run_ci,)
+	$(MAKE) fmt lint audit coverage
 
 check:
 	$(MAKE) fmt lint audit coverage
 
 ci-isolate:
-	$(call run_ci,target-isolate)
+	TEST_TARGET_DIR=target-isolate-test COV_TARGET_DIR=target-isolate-cov $(MAKE) ci
 
 ci-local:
 	$(MAKE) -j2 test coverage
@@ -116,7 +112,7 @@ test-coverage-parallel:
 	$(MAKE) verify-parallel-isolation
 
 clean-isolate:
-	@rm -rf target-isolate-test target-isolate-cov
+	@rm -rf target-isolate-* target-test/tmp target-test/profraw target-cov/tmp target-cov/profraw
 
 snapshots:
 	$(TEST_ENV) cargo insta test --workspace
