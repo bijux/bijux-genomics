@@ -1,0 +1,12 @@
+---
+source: crates/bijux-dna-planner-bam/tests/contracts/explain/explainability.rs
+expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::to_value(&a.reason)?)"
+---
+{
+  "details": {
+    "contract_hash": "0454c24c1061c6239167de49706c3f48dd6b7a07d703caf76e61e1bb6a9ebb99",
+    "defaults_diff": {}
+  },
+  "kind": "default",
+  "summary": "tool tool.damageprofiler selected by planner"
+}
