@@ -1,7 +1,7 @@
 {
   "stage_id": "bam.authenticity",
   "stage_version": 1,
-  "tool_id": "authenticity",
+  "tool_id": "authenticct",
   "tool_version": "1.0.0",
   "image": {
     "image": "bijux/test:latest",
@@ -49,7 +49,8 @@
   "out_dir": "out",
   "params": {
     "bam": "tests/fixtures/plan_inputs/default/sample.bam",
-    "mode": "aggregate"
+    "mode": "aggregate",
+    "pmd_filter_enabled": false
   },
   "effective_params": {
     "mode": "aggregate"
@@ -57,7 +58,7 @@
   "aux_images": {},
   "reason": {
     "kind": "default",
-    "summary": "tool authenticity selected by planner",
+    "summary": "tool authenticct selected by planner",
     "details": {
       "contract_hash": "84e5f63b61c5ab607b9fc5e16f094f7aa2c90e649f7615f0dc8119632c741927",
       "defaults_diff": {}
