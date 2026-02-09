@@ -30,6 +30,14 @@ if [[ ! -w "$VM_OUT_DIR" ]]; then
   exit 2
 fi
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+WORKSPACE_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+VM_OUT_ABS="$(cd "$VM_OUT_DIR" && pwd)"
+if [[ "$VM_OUT_ABS" == "$WORKSPACE_ROOT"* ]]; then
+  echo "vm output dir must be outside workspace: $VM_OUT_ABS" >&2
+  exit 2
+fi
+
 # Defensive guard: avoid building directly into workspace-mounted paths that can be read-only in VM setups.
 case "$(cd "$VM_OUT_DIR" && pwd)" in
   /Volumes/*|/mnt/*)

@@ -76,6 +76,13 @@ fn policy__contracts__tool_registry_completeness__registry_entries_are_machine_c
                                     "tool={id}: dockerfile missing OCI GPL-3.0 license label"
                                 ));
                             }
+                            if content.contains("container scaffold")
+                                || content.contains("executable not yet wired")
+                            {
+                                offenders.push(format!(
+                                    "tool={id}: dockerfile still contains scaffold placeholder text"
+                                ));
+                            }
                         }
                     }
                 }
@@ -95,6 +102,13 @@ fn policy__contracts__tool_registry_completeness__registry_entries_are_machine_c
                             if !content.contains("org.opencontainers.image.licenses GPL-3.0") {
                                 offenders.push(format!(
                                     "tool={id}: apptainer def missing OCI GPL-3.0 license label"
+                                ));
+                            }
+                            if content.contains("container scaffold")
+                                || content.contains("executable not yet wired")
+                            {
+                                offenders.push(format!(
+                                    "tool={id}: apptainer def still contains scaffold placeholder text"
                                 ));
                             }
                         }
