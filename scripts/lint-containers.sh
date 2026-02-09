@@ -37,7 +37,10 @@ check_docker() {
     'org.opencontainers.image.revision' \
     'org.opencontainers.image.created' \
     'org.opencontainers.image.licenses' \
-    'org.opencontainers.image.version'; do
+    'org.opencontainers.image.version' \
+    'org.opencontainers.image.tool' \
+    'org.opencontainers.image.base.name' \
+    'org.opencontainers.image.base.digest'; do
     if ! grep -q "$key" "$file"; then
       record "$file: missing OCI label $key"
     fi
@@ -49,6 +52,9 @@ check_docker() {
 
   if grep -qE 'FROM[[:space:]]+[^[:space:]]+:latest([[:space:]]|$)' "$file"; then
     record "$file: floating base tag latest is not allowed"
+  fi
+  if ! awk '/^FROM /{print $2; exit}' "$file" | grep -q '@sha256:'; then
+    record "$file: docker base image must be digest-pinned"
   fi
 }
 
@@ -67,19 +73,44 @@ check_apptainer() {
     'org.opencontainers.image.revision' \
     'org.opencontainers.image.created' \
     'org.opencontainers.image.licenses' \
-    'org.opencontainers.image.version'; do
+    'org.opencontainers.image.version' \
+    'org.opencontainers.image.tool'; do
     if ! grep -q "$key" "$file"; then
       record "$file: missing %labels key $key"
     fi
   done
 
-  if grep -qiE 'apt(-get)?[[:space:]]+purge|apt(-get)?[[:space:]]+autoremove' "$file"; then
-    record "$file: apptainer defs must not use purge/autoremove"
+  if grep -qiE 'apt(-get)?[[:space:]]+purge|apt(-get)?[[:space:]]+autoremove|apt-mark[[:space:]]+auto' "$file"; then
+    record "$file: apptainer defs must not use purge/autoremove/apt-mark auto"
   fi
 
   if grep -qiE -- '-march=|-mavx|-mcpu=|-mtune=' "$file"; then
     if ! grep -q 'APPTAINER_CPU_FLAG_JUSTIFIED' "$file"; then
       record "$file: apptainer defs must not inject architecture flags"
+    fi
+  fi
+
+  labels_line=$(grep -n '^%labels' "$file" | head -n1 | cut -d: -f1 || true)
+  env_line=$(grep -n '^%environment' "$file" | head -n1 | cut -d: -f1 || true)
+  post_line=$(grep -n '^%post' "$file" | head -n1 | cut -d: -f1 || true)
+  run_line=$(grep -n '^%runscript' "$file" | head -n1 | cut -d: -f1 || true)
+  if [ -z "$labels_line" ] || [ -z "$env_line" ] || [ -z "$post_line" ] || [ -z "$run_line" ]; then
+    record "$file: required sections missing (need %labels, %environment, %post, %runscript)"
+  else
+    if [ "$labels_line" -gt "$env_line" ] || [ "$env_line" -gt "$post_line" ] || [ "$post_line" -gt "$run_line" ]; then
+      record "$file: section order must be %labels -> %environment -> %post -> %runscript"
+    fi
+  fi
+
+  run_chunk=$(awk 'BEGIN{inside=0} /^%runscript/{inside=1; next} /^%[a-z]/{if(inside){exit}} {if(inside) print}' "$file")
+  if ! printf '%s\n' "$run_chunk" | grep -q 'exec '; then
+    if ! grep -q 'RUNSCRIPT_WRAPPER_JUSTIFIED' "$file"; then
+      record "$file: %runscript must use exec"
+    fi
+  fi
+  if ! printf '%s\n' "$run_chunk" | grep -Fq '"$@"'; then
+    if ! grep -q 'RUNSCRIPT_WRAPPER_JUSTIFIED' "$file"; then
+      record "$file: %runscript must exec tool with \"\$@\" passthrough"
     fi
   fi
 }

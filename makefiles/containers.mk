@@ -18,7 +18,7 @@ PLATFORM ?=
 JOBS ?= 1
 TOOLS ?=
 APPTAINER_VM_OUT ?= $(HOME)/apptainer-build
-APPTAINER_COPY_BACK ?= artifacts/apptainer
+APPTAINER_COPY_BACK ?= target-containers/apptainer
 
 CT_KEY := $(subst -,_,$(CONTAINER_TYPE))
 SMOKE_SCRIPT_docker_arm64 := scripts/smoke-containers-docker-arm64.sh
@@ -26,36 +26,36 @@ SMOKE_SCRIPT_docker_amd64 := scripts/smoke-containers-docker-amd64.sh
 SMOKE_SCRIPT_apptainer := scripts/smoke-containers-apptainer.sh
 SMOKE_SCRIPT := $(SMOKE_SCRIPT_$(CT_KEY))
 
-# ---- Tool groups by stage/domain ----
-FASTQ_TOOLS_preprocess := fastp,fastqvalidator_official
-FASTQ_TOOLS_prepare_reference := samtools
-FASTQ_TOOLS_validate_pre := seqtk,fastqc,fastqvalidator,fastqvalidator_official,fqtools
-FASTQ_TOOLS_detect_adapters := fastqc
-FASTQ_TOOLS_trim := fastp,cutadapt,atropos,bbduk,adapterremoval,trimmomatic,trim_galore,seqpurge,prinseq,seqkit
-FASTQ_TOOLS_filter := prinseq,fastp,seqkit,bbduk
-FASTQ_TOOLS_stats_neutral := seqkit
-FASTQ_TOOLS_qc_post := fastqc,multiqc
-FASTQ_TOOLS_merge := pear,vsearch,bbmerge,flash2,seqprep
-FASTQ_TOOLS_correct := rcorrector,spades,bayeshammer,lighter,musket
-FASTQ_TOOLS_umi := umi_tools
-FASTQ_TOOLS_screen := kraken2,krakenuniq,bracken,diamond,centrifuge,metaphlan,kaiju,fastq_screen
+# ---- Tool groups by stage/domain (derived from configs/tools.toml SSOT) ----
+FASTQ_TOOLS_preprocess := $(shell ./scripts/registry-tools.sh stage-tools fastq.preprocess all)
+FASTQ_TOOLS_prepare_reference := $(shell ./scripts/registry-tools.sh stage-tools fastq.prepare_reference all)
+FASTQ_TOOLS_validate_pre := $(shell ./scripts/registry-tools.sh stage-tools fastq.validate_pre all)
+FASTQ_TOOLS_detect_adapters := $(shell ./scripts/registry-tools.sh stage-tools fastq.detect_adapters all)
+FASTQ_TOOLS_trim := $(shell ./scripts/registry-tools.sh stage-tools fastq.trim all)
+FASTQ_TOOLS_filter := $(shell ./scripts/registry-tools.sh stage-tools fastq.filter all)
+FASTQ_TOOLS_stats_neutral := $(shell ./scripts/registry-tools.sh stage-tools fastq.stats_neutral all)
+FASTQ_TOOLS_qc_post := $(shell ./scripts/registry-tools.sh stage-tools fastq.qc_post all)
+FASTQ_TOOLS_merge := $(shell ./scripts/registry-tools.sh stage-tools fastq.merge all)
+FASTQ_TOOLS_correct := $(shell ./scripts/registry-tools.sh stage-tools fastq.correct all)
+FASTQ_TOOLS_umi := $(shell ./scripts/registry-tools.sh stage-tools fastq.umi all)
+FASTQ_TOOLS_screen := $(shell ./scripts/registry-tools.sh stage-tools fastq.screen all)
 
-BAM_TOOLS_align := bwa,bowtie2
-BAM_TOOLS_validate := samtools
-BAM_TOOLS_qc_pre := samtools
-BAM_TOOLS_filter := samtools
-BAM_TOOLS_markdup := gatk,samtools
-BAM_TOOLS_complexity := preseq
-BAM_TOOLS_coverage := mosdepth,samtools
-BAM_TOOLS_damage := pydamage,mapdamage2,pmdtools,addeam
-BAM_TOOLS_authenticity := authenticct,pmdtools
-BAM_TOOLS_contamination := authenticct,verifybamid2,schmutzi
-BAM_TOOLS_sex := rxy
-BAM_TOOLS_bias_mitigation := angsd
-BAM_TOOLS_recalibration := gatk
-BAM_TOOLS_haplogroups := yleaf
-BAM_TOOLS_genotyping := angsd
-BAM_TOOLS_kinship := king
+BAM_TOOLS_align := $(shell ./scripts/registry-tools.sh stage-tools bam.align all)
+BAM_TOOLS_validate := $(shell ./scripts/registry-tools.sh stage-tools bam.validate all)
+BAM_TOOLS_qc_pre := $(shell ./scripts/registry-tools.sh stage-tools bam.qc_pre all)
+BAM_TOOLS_filter := $(shell ./scripts/registry-tools.sh stage-tools bam.filter all)
+BAM_TOOLS_markdup := $(shell ./scripts/registry-tools.sh stage-tools bam.markdup all)
+BAM_TOOLS_complexity := $(shell ./scripts/registry-tools.sh stage-tools bam.complexity all)
+BAM_TOOLS_coverage := $(shell ./scripts/registry-tools.sh stage-tools bam.coverage all)
+BAM_TOOLS_damage := $(shell ./scripts/registry-tools.sh stage-tools bam.damage all)
+BAM_TOOLS_authenticity := $(shell ./scripts/registry-tools.sh stage-tools bam.authenticity all)
+BAM_TOOLS_contamination := $(shell ./scripts/registry-tools.sh stage-tools bam.contamination all)
+BAM_TOOLS_sex := $(shell ./scripts/registry-tools.sh stage-tools bam.sex all)
+BAM_TOOLS_bias_mitigation := $(shell ./scripts/registry-tools.sh stage-tools bam.bias_mitigation all)
+BAM_TOOLS_recalibration := $(shell ./scripts/registry-tools.sh stage-tools bam.recalibration all)
+BAM_TOOLS_haplogroups := $(shell ./scripts/registry-tools.sh stage-tools bam.haplogroups all)
+BAM_TOOLS_genotyping := $(shell ./scripts/registry-tools.sh stage-tools bam.genotyping all)
+BAM_TOOLS_kinship := $(shell ./scripts/registry-tools.sh stage-tools bam.kinship all)
 
 # ---- Core dispatch ----
 container-runtime-check: ## Validate selected container runtime and script wiring
@@ -73,13 +73,13 @@ container-smoke: container-runtime-check ## Build+smoke selected runtime (option
 containers-smoke: container-runtime-check ## Contract smoke all tools (--version/--help/binary)
 	@SMOKE_LEVEL=contract JOBS="$(JOBS)" sh "$(SMOKE_SCRIPT)"
 
-smoke-containers-docker-arm64: ## Build+smoke Docker arm64 containers (artifacts/container/{logs,images})
+smoke-containers-docker-arm64: ## Build+smoke Docker arm64 containers (target-containers/{logs,images})
 	@TOOLS="$(TOOLS)" JOBS="$(JOBS)" sh scripts/smoke-containers-docker-arm64.sh
 
-smoke-containers-docker-amd64: ## Build+smoke Docker amd64 containers (artifacts/container/{logs,images})
+smoke-containers-docker-amd64: ## Build+smoke Docker amd64 containers (target-containers/{logs,images})
 	@TOOLS="$(TOOLS)" JOBS="$(JOBS)" sh scripts/smoke-containers-docker-amd64.sh
 
-smoke-containers-apptainer: ## Build+smoke Apptainer containers (artifacts/container/{logs,images})
+smoke-containers-apptainer: ## Build+smoke Apptainer containers (target-containers/{logs,images})
 	@TOOLS="$(TOOLS)" JOBS="$(JOBS)" sh scripts/smoke-containers-apptainer.sh
 
 # ---- Docker-only QA/build paths (kept for local docker workflows) ----
@@ -180,9 +180,12 @@ containers-apptainer-build: ## Batch-build Apptainer defs to VM-local output and
 containers-lint: ## Lint container naming, headers, labels, and forbidden patterns
 	@./scripts/lint-containers.sh
 
+containers: ## Print tools/runtime/result/log summary from target-containers manifests
+	@./scripts/containers-summary.sh
+
 .PHONY: container-runtime-check container-smoke \
 	containers-smoke \
 	smoke-containers-docker-arm64 smoke-containers-docker-amd64 smoke-containers-apptainer \
 	build-images test-images image-qa test-images-trim test-images-validate test-images-filter test-images-merge \
 	containers-smoke-fastq-all containers-smoke-bam-all containers-smoke-all \
-	containers-apptainer-build containers-lint
+	containers-apptainer-build containers-lint containers
