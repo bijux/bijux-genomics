@@ -1496,7 +1496,7 @@ fn policy__boundaries__workspace__workspace_bans_resource_fork_artifacts() {
 fn policy__boundaries__workspace__workspace_has_no_legacy_bijux_packages() {
     let root = workspace_root();
     let mut offenders = Vec::new();
-    for entry in walkdir::WalkDir::new(&root.join("crates"))
+    for entry in walkdir::WalkDir::new(root.join("crates"))
         .into_iter()
         .filter_map(Result::ok)
         .filter(|entry| entry.file_name() == "Cargo.toml")
