@@ -1,21 +1,8 @@
-#!/usr/bin/env bash
-set -euo pipefail
+#!/bin/sh
+set -eu
 
-# Build + smoke all Apptainer defs and collect artifacts.
-# Artifacts:
-#   artifacts/container/logs/apptainer/*.log
-#   artifacts/container/images/apptainer/*.sif
-#
-# Optional env:
-#   APPTAINER_BIN=apptainer
-#   DEFS_DIR=containers/apptainer
-#   VM_OUT_DIR=$HOME/apptainer-smoke-build   (must be writable, outside workspace)
-#   JOBS=1
-#   BUILD_OPTS="--fakeroot"
-#   VERSION_TIMEOUT=120
-
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+ROOT_DIR=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
 
 APPTAINER_BIN="${APPTAINER_BIN:-apptainer}"
 DEFS_DIR="${DEFS_DIR:-$ROOT_DIR/containers/apptainer}"
@@ -31,29 +18,28 @@ SUMMARY="$LOG_DIR/summary.txt"
 
 mkdir -p "$LOG_DIR" "$IMG_DIR" "$VM_OUT_DIR/logs" "$VM_OUT_DIR/sif"
 
-command -v "$APPTAINER_BIN" >/dev/null 2>&1 || {
+if ! command -v "$APPTAINER_BIN" >/dev/null 2>&1; then
   echo "ERROR: '$APPTAINER_BIN' not found" >&2
   exit 127
-}
+fi
 
-if [[ ! -d "$DEFS_DIR" ]]; then
+if [ ! -d "$DEFS_DIR" ]; then
   echo "ERROR: defs dir not found: $DEFS_DIR" >&2
   exit 2
 fi
 
-if [[ ! -w "$VM_OUT_DIR" ]]; then
+if [ ! -w "$VM_OUT_DIR" ]; then
   echo "ERROR: VM_OUT_DIR not writable: $VM_OUT_DIR" >&2
   exit 2
 fi
 
-VM_OUT_ABS="$(cd "$VM_OUT_DIR" && pwd)"
-ROOT_ABS="$(cd "$ROOT_DIR" && pwd)"
-if [[ "$VM_OUT_ABS" == "$ROOT_ABS"* ]]; then
-  echo "ERROR: VM_OUT_DIR must be outside workspace: $VM_OUT_ABS" >&2
-  exit 2
-fi
-
+VM_OUT_ABS=$(CDPATH= cd -- "$VM_OUT_DIR" && pwd)
+ROOT_ABS=$(CDPATH= cd -- "$ROOT_DIR" && pwd)
 case "$VM_OUT_ABS" in
+  "$ROOT_ABS"/*)
+    echo "ERROR: VM_OUT_DIR must be outside workspace: $VM_OUT_ABS" >&2
+    exit 2
+    ;;
   /Volumes/*|/mnt/*)
     echo "ERROR: VM_OUT_DIR appears host-mounted (likely read-only in VM): $VM_OUT_ABS" >&2
     exit 2
@@ -61,7 +47,7 @@ case "$VM_OUT_ABS" in
 esac
 
 run_with_timeout() {
-  local seconds="$1"
+  seconds="$1"
   shift
   if command -v timeout >/dev/null 2>&1; then
     timeout "$seconds" "$@"
@@ -69,12 +55,10 @@ run_with_timeout() {
     gtimeout "$seconds" "$@"
   else
     python3 - "$seconds" "$@" <<'PY'
-import os, signal, subprocess, sys
-timeout = int(sys.argv[1])
-cmd = sys.argv[2:]
-p = subprocess.Popen(cmd)
+import signal, subprocess, sys
+p = subprocess.Popen(sys.argv[2:])
 try:
-    p.wait(timeout=timeout)
+    p.wait(timeout=int(sys.argv[1]))
 except subprocess.TimeoutExpired:
     p.send_signal(signal.SIGTERM)
     raise
@@ -84,7 +68,7 @@ PY
 }
 
 get_version_cmd() {
-  local tool="$1"
+  tool="$1"
   python3 - "$ROOT_DIR/configs/tool_registry.toml" "$tool" <<'PY'
 import sys, tomllib
 path, tool = sys.argv[1], sys.argv[2]
@@ -99,20 +83,19 @@ PY
 }
 
 build_and_smoke_one() {
-  local def_file="$1"
-  local tool
-  tool="$(basename "$def_file" .def)"
-  local vm_log="$VM_OUT_DIR/logs/${tool}.log"
-  local vm_sif="$VM_OUT_DIR/sif/${tool}.sif"
-  local out_log="$LOG_DIR/${tool}.log"
-  local out_sif="$IMG_DIR/${tool}.sif"
-  local cmd
-  cmd="$(get_version_cmd "$tool")"
+  def_file="$1"
+  tool=$(basename "$def_file" .def)
+  vm_log="$VM_OUT_DIR/logs/${tool}.log"
+  vm_sif="$VM_OUT_DIR/sif/${tool}.sif"
+  out_log="$LOG_DIR/${tool}.log"
+  out_sif="$IMG_DIR/${tool}.sif"
+  cmd=$(get_version_cmd "$tool")
 
   {
     echo "=== [$tool] build start"
     echo "def: $def_file"
     echo "sif: $vm_sif"
+    # shellcheck disable=SC2086
     "$APPTAINER_BIN" build --force $BUILD_OPTS "$vm_sif" "$def_file"
     echo "=== [$tool] smoke: $cmd"
     run_with_timeout "$VERSION_TIMEOUT" "$APPTAINER_BIN" exec "$vm_sif" sh -lc "$cmd"
@@ -128,44 +111,47 @@ build_and_smoke_one() {
   echo "OK $tool"
 }
 
-export ROOT_DIR APPTAINER_BIN VM_OUT_DIR LOG_DIR IMG_DIR VERSION_TIMEOUT BUILD_OPTS
-export -f get_version_cmd
-export -f build_and_smoke_one
+if [ "${1:-}" = "--worker" ]; then
+  build_and_smoke_one "$2"
+  exit $?
+fi
 
-mapfile -t defs < <(find "$DEFS_DIR" -maxdepth 1 -type f -name '*.def' | sort)
-if [[ "${#defs[@]}" -eq 0 ]]; then
+LIST_FILE=$(mktemp "${TMPDIR:-/tmp}/apptainer-defs.XXXXXX")
+trap 'rm -f "$LIST_FILE"' EXIT INT TERM
+find "$DEFS_DIR" -maxdepth 1 -type f -name '*.def' | sort > "$LIST_FILE"
+
+if [ ! -s "$LIST_FILE" ]; then
   echo "ERROR: no .def files found in $DEFS_DIR" >&2
   exit 2
 fi
 
 : >"$SUMMARY"
 echo "Apptainer smoke run" | tee -a "$SUMMARY"
-echo "defs: ${#defs[@]}" | tee -a "$SUMMARY"
 echo "logs: $LOG_DIR" | tee -a "$SUMMARY"
 echo "images: $IMG_DIR" | tee -a "$SUMMARY"
 
 status=0
-if [[ "$JOBS" -le 1 ]]; then
-  for d in "${defs[@]}"; do
+if [ "$JOBS" -le 1 ] 2>/dev/null; then
+  while IFS= read -r d; do
     build_and_smoke_one "$d" || status=1
-  done
+  done < "$LIST_FILE"
 else
-  printf '%s\n' "${defs[@]}" | xargs -I{} -P "$JOBS" bash -lc 'build_and_smoke_one "$@"' _ {} || status=1
+  xargs -P "$JOBS" -I{} sh "$0" --worker {} < "$LIST_FILE" || status=1
 fi
 
-ok_count="$(grep -h '^=== .* OK$' "$LOG_DIR"/*.log 2>/dev/null | wc -l | tr -d ' ')"
+ok_count=$(grep -h '^=== .* OK$' "$LOG_DIR"/*.log 2>/dev/null | wc -l | tr -d ' ')
 fail_count=0
-for d in "${defs[@]}"; do
-  t="$(basename "$d" .def)"
+while IFS= read -r d; do
+  t=$(basename "$d" .def)
   if ! grep -q "=== \[$t\] OK" "$LOG_DIR/$t.log" 2>/dev/null; then
     fail_count=$((fail_count + 1))
   fi
-done
+done < "$LIST_FILE"
 
 echo "ok: $ok_count" | tee -a "$SUMMARY"
 echo "fail: $fail_count" | tee -a "$SUMMARY"
 
-if [[ "$fail_count" -ne 0 || "$status" -ne 0 ]]; then
+if [ "$fail_count" -ne 0 ] || [ "$status" -ne 0 ]; then
   echo "DONE with failures. inspect: $LOG_DIR" | tee -a "$SUMMARY"
   exit 1
 fi
