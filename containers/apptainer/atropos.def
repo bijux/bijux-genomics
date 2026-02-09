@@ -23,6 +23,11 @@ From: python:3.10-slim
     VERSION Atropos-v1.1.31
     org.opencontainers.image.source https://github.com/jdidion/atropos
 
+    org.opencontainers.image.source https://github.com/bijux/bijux-dna
+    org.opencontainers.image.revision unknown
+    org.opencontainers.image.created unknown
+    org.opencontainers.image.licenses GPL-3.0-or-later
+    org.opencontainers.image.version unknown
 %post
     export DEBIAN_FRONTEND=noninteractive
 
