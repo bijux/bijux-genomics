@@ -16,6 +16,10 @@ From: python:3.10-slim@sha256:e508a34e5491225a76fbb9e0f43ebde1f691c6a689d096d751
     org.opencontainers.image.created unknown
     org.opencontainers.image.licenses GPL-3.0
     org.opencontainers.image.version unknown
+    org.opencontainers.image.tool atropos
+%environment
+    DEBIAN_FRONTEND=noninteractive
+
 %post
     export DEBIAN_FRONTEND=noninteractive
 
