@@ -320,15 +320,16 @@ pub fn dry_run(request: &DryRunRequest) -> Result<DryRunResponse> {
     let payload = bijux_dna_core::contract::canonical::to_canonical_json_bytes(&manifest)?;
     bijux_dna_infra::atomic_write_bytes(&manifest_path, payload.as_slice())?;
     let manifest_sha = bijux_dna_infra::hash_file_sha256(&manifest_path)?;
-    manifest["output_artifacts"]
-        .as_array_mut()
-        .expect("output_artifacts array")
-        .push(serde_json::json!({
+    if let Some(artifacts) = manifest["output_artifacts"].as_array_mut() {
+        artifacts.push(serde_json::json!({
             "kind": "run_manifest",
             "schema": "bijux.run_manifest.v3",
             "path": manifest_path.display().to_string(),
             "sha256": manifest_sha
         }));
+    } else {
+        return Err(anyhow!("dry-run manifest output_artifacts is not an array"));
+    }
     let payload = bijux_dna_core::contract::canonical::to_canonical_json_bytes(&manifest)?;
     bijux_dna_infra::atomic_write_bytes(&manifest_path, payload.as_slice())?;
     Ok(DryRunResponse {
