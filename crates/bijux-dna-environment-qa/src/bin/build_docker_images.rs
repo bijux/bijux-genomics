@@ -94,7 +94,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .arg(&tool.version_cmd)
             .status()?;
         if !smoke_status.success() {
-            let err = format!("version smoke failed for {image_name}: {}", tool.version_cmd);
+            let err = format!(
+                "version smoke failed for {image_name}: {}",
+                tool.version_cmd
+            );
             if continue_on_error {
                 eprintln!("{err}");
                 failures.push(err);
