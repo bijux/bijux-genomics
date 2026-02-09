@@ -1,0 +1,40 @@
+Bootstrap: docker
+From: ubuntu:24.04
+
+%labels
+    MAINTAINER Bijan Mousavi <mousavi.bijan@gmail.com>
+    VERSION Kraken2-v2.1.3
+    org.opencontainers.image.source https://github.com/DerrickWood/kraken2
+
+%environment
+    DEBIAN_FRONTEND=noninteractive
+
+%post
+    export DEBIAN_FRONTEND=noninteractive
+
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        wget ca-certificates build-essential zlib1g-dev && \
+
+    wget -q https://github.com/DerrickWood/kraken2/archive/v2.1.3.tar.gz -O /tmp/kraken2.tar.gz && \
+    tar -xzf /tmp/kraken2.tar.gz -C /opt && \
+    cd /opt/kraken2-2.1.3 && \
+    ./install_kraken2.sh /usr/local/bin && \
+
+    cd / && \
+    rm -rf /tmp/kraken2.tar.gz /opt/kraken2-2.1.3 && \
+    apt-get purge -y wget build-essential zlib1g-dev && \
+    apt-get autoremove -y && \
+    rm -rf /var/lib/apt/lists/*
+
+%runscript
+    if [ $# -eq 0 ]; then
+        exec /usr/local/bin/kraken2 --help
+    else
+        exec /usr/local/bin/kraken2 "$@"
+    fi
+
+%help
+    This Apptainer image provides Kraken2 version 2.1.3, installed via the official script.
+    All Kraken2 tools and scripts are available in /usr/local/bin.
+    Run with arguments to execute kraken2, or without arguments to display detailed help.
