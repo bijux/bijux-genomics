@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use bijux_dna_core::ids::{ToolId, id_catalog};
+use bijux_dna_core::ids::{id_catalog, ToolId};
 
 #[allow(dead_code)]
 #[derive(Debug, Clone)]
@@ -22,8 +22,35 @@ pub fn tool_registry() -> BTreeMap<ToolId, ToolAdapterEntry> {
         (ToolId::from_static("mosdepth"), id_catalog::BAM_COVERAGE),
         (ToolId::from_static("pydamage"), id_catalog::BAM_DAMAGE),
         (ToolId::from_static("mapdamage2"), id_catalog::BAM_DAMAGE),
+        (
+            ToolId::from_static("damageprofiler"),
+            id_catalog::BAM_DAMAGE,
+        ),
+        (ToolId::from_static("addeam"), id_catalog::BAM_DAMAGE),
+        (ToolId::from_static("ngsbriggs"), id_catalog::BAM_DAMAGE),
         (ToolId::from_static("preseq"), id_catalog::BAM_COMPLEXITY),
-        (ToolId::from_static("authenticct"), id_catalog::BAM_AUTHENTICITY),
+        (
+            ToolId::from_static("authenticct"),
+            id_catalog::BAM_AUTHENTICITY,
+        ),
+        (
+            ToolId::from_static("pmdtools"),
+            id_catalog::BAM_AUTHENTICITY,
+        ),
+        (
+            ToolId::from_static("schmutzi"),
+            id_catalog::BAM_CONTAMINATION,
+        ),
+        (
+            ToolId::from_static("verifybamid2"),
+            id_catalog::BAM_CONTAMINATION,
+        ),
+        (
+            ToolId::from_static("contammix"),
+            id_catalog::BAM_CONTAMINATION,
+        ),
+        (ToolId::from_static("bamtools"), id_catalog::BAM_VALIDATE),
+        (ToolId::from_static("bedtools"), id_catalog::BAM_VALIDATE),
         (ToolId::from_static("yleaf"), id_catalog::BAM_HAPLOGROUPS),
         (ToolId::from_static("king"), id_catalog::BAM_KINSHIP),
         (ToolId::from_static("angsd"), id_catalog::BAM_CONTAMINATION),
