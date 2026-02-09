@@ -51,8 +51,8 @@ upstream = "unknown"
 pinned_commit = "unknown"
 runtimes = ["docker", "apptainer"]
 version_cmd = "seqkit_stats --version"
-dockerfile = "containers/docker/arm64/Dockerfile.seqkit_stats"
-apptainer_def = "containers/apptainer/seqkit_stats.def"
+dockerfile = "containers/docker/arm64/Dockerfile.seqkit"
+apptainer_def = "containers/apptainer/seqkit.def"
 require_labels = true
 
 [[tools]]

@@ -1,0 +1,18 @@
+# SPDX-License-Identifier: GPL-3.0-only
+# Copyright (C) 2026 Bijan Mousavi
+#
+# Container definition license: GPL-3.0.
+# The bijux-dna software source code is licensed under Apache-2.0.
+FROM ubuntu:24.04
+ARG OCI_REVISION=unknown
+ARG OCI_CREATED=unknown
+ARG TOOL_VERSION=unknown
+LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-dna" \
+      org.opencontainers.image.revision="${OCI_REVISION}" \
+      org.opencontainers.image.created="${OCI_CREATED}" \
+      org.opencontainers.image.licenses="GPL-3.0" \
+      org.opencontainers.image.version="${TOOL_VERSION}"
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN printf '#!/usr/bin/env sh\nif [ "${1:-}" = "--version" ]; then echo "${TOOL_VERSION}"; exit 0; fi\nif [ "${1:-}" = "--help" ] || [ $# -eq 0 ]; then echo "angsd container scaffold"; exit 0; fi\necho "angsd executable not yet wired" >&2; exit 2\n' > /usr/local/bin/angsd && chmod +x /usr/local/bin/angsd
+ENTRYPOINT ["/usr/local/bin/angsd"]
+CMD ["--help"]

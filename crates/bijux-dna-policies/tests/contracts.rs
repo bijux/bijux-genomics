@@ -30,5 +30,7 @@ mod mod_contracts_tooling_makefile_policies_rs;
 mod mod_contracts_tooling_no_appledouble_rs;
 #[path = "contracts/tooling/policies.rs"]
 mod mod_contracts_tooling_policies_rs;
+#[path = "contracts/tooling/tool_registry_completeness.rs"]
+mod mod_contracts_tooling_tool_registry_completeness_rs;
 #[path = "contracts/workspace.rs"]
 mod mod_contracts_workspace_rs;

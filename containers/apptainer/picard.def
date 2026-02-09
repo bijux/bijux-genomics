@@ -1,0 +1,32 @@
+# SPDX-License-Identifier: GPL-3.0-only
+# Copyright (C) 2026 Bijan Mousavi
+#
+# Container definition license: GPL-3.0.
+# The bijux-dna software source code is licensed under Apache-2.0.
+Bootstrap: docker
+From: ubuntu:24.04
+
+%labels
+    org.opencontainers.image.source https://github.com/bijux/bijux-dna
+    org.opencontainers.image.revision unknown
+    org.opencontainers.image.created unknown
+    org.opencontainers.image.licenses GPL-3.0
+    org.opencontainers.image.version unknown
+
+%post
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update && apt-get install -y --no-install-recommends ca-certificates && rm -rf /var/lib/apt/lists/*
+    cat > /usr/local/bin/picard <<'EOS'
+#!/usr/bin/env sh
+if [ "${1:-}" = "--version" ]; then echo "unknown"; exit 0; fi
+if [ "${1:-}" = "--help" ] || [ $# -eq 0 ]; then echo "picard container scaffold"; exit 0; fi
+echo "picard executable not yet wired" >&2
+exit 2
+EOS
+    chmod +x /usr/local/bin/picard
+
+%runscript
+    exec /usr/local/bin/picard "$@"
+
+%help
+    Scaffold Apptainer definition for picard with standardized labels and runscript.
