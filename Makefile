@@ -22,3 +22,6 @@ help: ## Show this help message
 	      /^##@/{printf "\n\033[1;34m%s\033[0m\n", substr($$0, 5)} \
 	      /^[a-zA-Z0-9_-]+:.*?## /{printf "  \033[36m%-30s\033[0m %s\n", $$1, $$2}' \
 	      $(MAKEFILE_LIST)
+
+prep-apptainer-batch: ## Build all Apptainer defs in VM-local output dir
+	./scripts/apptainer_build_all.sh --defs-dir containers/apptainer --vm-out "$${HOME}/apptainer-build" --copy-back artifacts/apptainer
