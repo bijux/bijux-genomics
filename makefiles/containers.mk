@@ -1,124 +1,168 @@
-##@ Docker Container Management
+##@ Container Management
 
-build-images: ## Build all Docker images for the specified platform
-	cargo run --bin build_docker_images -- --platform $(PLATFORM)
+# Container runtime selector:
+#   docker-arm64 | apptainer
+# System selector:
+#   local | hpc
+SYSTEM_TYPE ?= local
+ifeq ($(SYSTEM_TYPE),hpc)
+CONTAINER_TYPE ?= apptainer
+else
+CONTAINER_TYPE ?= docker-arm64
+endif
 
-test-images: ## Test all Docker images for the specified platform
-	cargo run --bin test_docker_images -- --platform $(PLATFORM)
+# Optional: platform for docker QA binaries
+PLATFORM ?=
 
-image-qa: ## Run quality assurance checks on Docker images
-	cargo run --bin image_qa -- --platform $(PLATFORM)
+# Optional pass-through knobs for smoke scripts
+JOBS ?= 1
+TOOLS ?=
 
-test-images-trim: ## Test trimming tool images (fastp, cutadapt, bbduk, adapterremoval, trimmomatic, trim_galore)
-	cargo run --bin test_docker_images -- --platform $(PLATFORM) --tools fastp,cutadapt,bbduk,adapterremoval,trimmomatic,trim_galore
+CT_KEY := $(subst -,_,$(CONTAINER_TYPE))
+SMOKE_SCRIPT_docker_arm64 := scripts/smoke-containers-docker-arm64.sh
+SMOKE_SCRIPT_apptainer := scripts/smoke-containers-apptainer.sh
+SMOKE_SCRIPT := $(SMOKE_SCRIPT_$(CT_KEY))
 
-test-images-validate: ## Test validation tool images (seqtk, fastqc, fastqvalidator, fqtools)
-	cargo run --bin test_docker_images -- --platform $(PLATFORM) --tools seqtk,fastqc,fastqvalidator,fqtools
+# ---- Tool groups by stage/domain ----
+FASTQ_TOOLS_preprocess := fastp,fastqvalidator_official
+FASTQ_TOOLS_prepare_reference := samtools
+FASTQ_TOOLS_validate_pre := seqtk,fastqc,fastqvalidator,fastqvalidator_official,fqtools
+FASTQ_TOOLS_detect_adapters := fastqc
+FASTQ_TOOLS_trim := fastp,cutadapt,atropos,bbduk,adapterremoval,trimmomatic,trim_galore,seqpurge,prinseq,seqkit
+FASTQ_TOOLS_filter := prinseq,fastp,seqkit,bbduk
+FASTQ_TOOLS_stats_neutral := seqkit
+FASTQ_TOOLS_qc_post := fastqc,multiqc
+FASTQ_TOOLS_merge := pear,vsearch,bbmerge,flash2
+FASTQ_TOOLS_correct := rcorrector,spades,bayeshammer,lighter,musket
+FASTQ_TOOLS_umi := umi_tools
+FASTQ_TOOLS_screen := kraken2,centrifuge,metaphlan,kaiju,fastq_screen
 
-test-images-filter: ## Test filtering tool images (bbduk)
-	cargo run --bin test_docker_images -- --platform $(PLATFORM) --tools bbduk
+BAM_TOOLS_align := bwa,bowtie2
+BAM_TOOLS_validate := samtools
+BAM_TOOLS_qc_pre := samtools
+BAM_TOOLS_filter := samtools
+BAM_TOOLS_markdup := gatk,samtools
+BAM_TOOLS_complexity := preseq
+BAM_TOOLS_coverage := mosdepth,samtools
+BAM_TOOLS_damage := pydamage,mapdamage2
+BAM_TOOLS_authenticity := authenticct
+BAM_TOOLS_contamination := authenticct
+BAM_TOOLS_sex := rxy
+BAM_TOOLS_bias_mitigation := angsd
+BAM_TOOLS_recalibration := gatk
+BAM_TOOLS_haplogroups := yleaf
+BAM_TOOLS_genotyping := angsd
+BAM_TOOLS_kinship := king
 
-test-images-merge: ## Test merging tool images (pear, flash2)
-	cargo run --bin test_docker_images -- --platform $(PLATFORM) --tools pear,flash2
+# ---- Core dispatch ----
+container-runtime-check: ## Validate selected container runtime and script wiring
+	@if [ -z "$(SMOKE_SCRIPT)" ]; then \
+		echo "ERROR: unsupported CONTAINER_TYPE=$(CONTAINER_TYPE)"; \
+		echo "       supported: docker-arm64 | apptainer"; \
+		exit 2; \
+	fi
+	@echo "SYSTEM_TYPE=$(SYSTEM_TYPE) CONTAINER_TYPE=$(CONTAINER_TYPE)"
+	@echo "smoke-script=$(SMOKE_SCRIPT)"
+
+container-smoke: container-runtime-check ## Build+smoke selected runtime (optional TOOLS=tool1,tool2)
+	@TOOLS="$(TOOLS)" JOBS="$(JOBS)" sh "$(SMOKE_SCRIPT)"
 
 smoke-containers-docker-arm64: ## Build+smoke Docker arm64 containers (artifacts/container/{logs,images})
-	sh scripts/smoke-containers-docker-arm64.sh
+	@TOOLS="$(TOOLS)" JOBS="$(JOBS)" sh scripts/smoke-containers-docker-arm64.sh
 
 smoke-containers-apptainer: ## Build+smoke Apptainer containers (artifacts/container/{logs,images})
-	sh scripts/smoke-containers-apptainer.sh
+	@TOOLS="$(TOOLS)" JOBS="$(JOBS)" sh scripts/smoke-containers-apptainer.sh
 
-test-images-fastq-preprocess: ## FASTQ stage fastq.preprocess
-	cargo run --bin test_docker_images -- --platform $(PLATFORM) --tools fastp,fastqvalidator_official
+# ---- Docker-only QA/build paths (kept for local docker workflows) ----
+build-images: ## Build Docker images (only when CONTAINER_TYPE=docker-arm64)
+	@if [ "$(CONTAINER_TYPE)" != "docker-arm64" ]; then \
+		echo "skip: build-images is docker-only (CONTAINER_TYPE=$(CONTAINER_TYPE))"; \
+		exit 0; \
+	fi
+	cargo run --bin build_docker_images -- --platform $(PLATFORM)
 
-test-images-fastq-prepare-reference: ## FASTQ stage core.prepare_reference
-	cargo run --bin test_docker_images -- --platform $(PLATFORM) --tools samtools
+test-images: ## Test Docker images (docker uses test_docker_images; apptainer uses smoke script)
+	@if [ "$(CONTAINER_TYPE)" = "docker-arm64" ]; then \
+		cargo run --bin test_docker_images -- --platform $(PLATFORM); \
+	else \
+		$(MAKE) container-smoke; \
+	fi
 
-test-images-fastq-validate-pre: ## FASTQ stage fastq.validate_pre
-	cargo run --bin test_docker_images -- --platform $(PLATFORM) --tools seqtk,fastqc,fastqvalidator,fastqvalidator_official,fqtools
+image-qa: ## Run image QA (docker-only)
+	@if [ "$(CONTAINER_TYPE)" != "docker-arm64" ]; then \
+		echo "skip: image-qa is docker-only (CONTAINER_TYPE=$(CONTAINER_TYPE))"; \
+		exit 0; \
+	fi
+	cargo run --bin image_qa -- --platform $(PLATFORM)
 
-test-images-fastq-detect-adapters: ## FASTQ stage fastq.detect_adapters
-	cargo run --bin test_docker_images -- --platform $(PLATFORM) --tools fastqc
+# Legacy aliases (docker-centric names retained for compatibility)
+test-images-trim: ## Legacy alias: trimming tool images
+	@$(MAKE) test-images-fastq-trim
 
-test-images-fastq-trim: ## FASTQ stage fastq.trim
-	cargo run --bin test_docker_images -- --platform $(PLATFORM) --tools fastp,cutadapt,atropos,bbduk,adapterremoval,trimmomatic,trim_galore,seqpurge,prinseq,seqkit
+test-images-validate: ## Legacy alias: validation tool images
+	@$(MAKE) test-images-fastq-validate-pre
 
-test-images-fastq-filter: ## FASTQ stage fastq.filter
-	cargo run --bin test_docker_images -- --platform $(PLATFORM) --tools prinseq,fastp,seqkit,bbduk
+test-images-filter: ## Legacy alias: filtering tool images
+	@$(MAKE) test-images-fastq-filter
 
-test-images-fastq-stats-neutral: ## FASTQ stage fastq.stats_neutral
-	cargo run --bin test_docker_images -- --platform $(PLATFORM) --tools seqkit
+test-images-merge: ## Legacy alias: merging tool images
+	@$(MAKE) test-images-fastq-merge
 
-test-images-fastq-qc-post: ## FASTQ stage fastq.qc_post
-	cargo run --bin test_docker_images -- --platform $(PLATFORM) --tools fastqc,multiqc
+# ---- Stage-specific test-images-* ----
+define FASTQ_STAGE_TARGET
+.PHONY: test-images-fastq-$(1)
+test-images-fastq-$(1): ## FASTQ stage fastq.$(1)
+	@TOOLS="$$(FASTQ_TOOLS_$(1))" $(MAKE) container-smoke
+endef
 
-test-images-fastq-merge: ## FASTQ stage fastq.merge
-	cargo run --bin test_docker_images -- --platform $(PLATFORM) --tools pear,vsearch,bbmerge,flash2
+$(eval $(call FASTQ_STAGE_TARGET,preprocess))
+$(eval $(call FASTQ_STAGE_TARGET,prepare_reference))
+$(eval $(call FASTQ_STAGE_TARGET,validate_pre))
+$(eval $(call FASTQ_STAGE_TARGET,detect_adapters))
+$(eval $(call FASTQ_STAGE_TARGET,trim))
+$(eval $(call FASTQ_STAGE_TARGET,filter))
+$(eval $(call FASTQ_STAGE_TARGET,stats_neutral))
+$(eval $(call FASTQ_STAGE_TARGET,qc_post))
+$(eval $(call FASTQ_STAGE_TARGET,merge))
+$(eval $(call FASTQ_STAGE_TARGET,correct))
+$(eval $(call FASTQ_STAGE_TARGET,umi))
+$(eval $(call FASTQ_STAGE_TARGET,screen))
 
-test-images-fastq-correct: ## FASTQ stage fastq.correct
-	cargo run --bin test_docker_images -- --platform $(PLATFORM) --tools rcorrector,spades,bayeshammer,lighter,musket
+define BAM_STAGE_TARGET
+.PHONY: test-images-bam-$(1)
+test-images-bam-$(1): ## BAM stage bam.$(1)
+	@TOOLS="$$(BAM_TOOLS_$(1))" $(MAKE) container-smoke
+endef
 
-test-images-fastq-umi: ## FASTQ stage fastq.umi
-	cargo run --bin test_docker_images -- --platform $(PLATFORM) --tools umi_tools
+$(eval $(call BAM_STAGE_TARGET,align))
+$(eval $(call BAM_STAGE_TARGET,validate))
+$(eval $(call BAM_STAGE_TARGET,qc_pre))
+$(eval $(call BAM_STAGE_TARGET,filter))
+$(eval $(call BAM_STAGE_TARGET,markdup))
+$(eval $(call BAM_STAGE_TARGET,complexity))
+$(eval $(call BAM_STAGE_TARGET,coverage))
+$(eval $(call BAM_STAGE_TARGET,damage))
+$(eval $(call BAM_STAGE_TARGET,authenticity))
+$(eval $(call BAM_STAGE_TARGET,contamination))
+$(eval $(call BAM_STAGE_TARGET,sex))
+$(eval $(call BAM_STAGE_TARGET,bias_mitigation))
+$(eval $(call BAM_STAGE_TARGET,recalibration))
+$(eval $(call BAM_STAGE_TARGET,haplogroups))
+$(eval $(call BAM_STAGE_TARGET,genotyping))
+$(eval $(call BAM_STAGE_TARGET,kinship))
 
-test-images-fastq-screen: ## FASTQ stage fastq.screen
-	cargo run --bin test_docker_images -- --platform $(PLATFORM) --tools kraken2,centrifuge,metaphlan,kaiju,fastq_screen
+containers-smoke-fastq-all: ## Smoke all FASTQ stage tool sets via selected runtime
+	@TOOLS="$(FASTQ_TOOLS_preprocess),$(FASTQ_TOOLS_prepare_reference),$(FASTQ_TOOLS_validate_pre),$(FASTQ_TOOLS_detect_adapters),$(FASTQ_TOOLS_trim),$(FASTQ_TOOLS_filter),$(FASTQ_TOOLS_stats_neutral),$(FASTQ_TOOLS_qc_post),$(FASTQ_TOOLS_merge),$(FASTQ_TOOLS_correct),$(FASTQ_TOOLS_umi),$(FASTQ_TOOLS_screen)" \
+	$(MAKE) container-smoke
 
-test-images-bam-align: ## BAM stage bam.align
-	TOOLS=bwa,bowtie2 sh scripts/smoke-containers-docker-arm64.sh
+containers-smoke-bam-all: ## Smoke all BAM stage tool sets via selected runtime
+	@TOOLS="$(BAM_TOOLS_align),$(BAM_TOOLS_validate),$(BAM_TOOLS_qc_pre),$(BAM_TOOLS_filter),$(BAM_TOOLS_markdup),$(BAM_TOOLS_complexity),$(BAM_TOOLS_coverage),$(BAM_TOOLS_damage),$(BAM_TOOLS_authenticity),$(BAM_TOOLS_contamination),$(BAM_TOOLS_sex),$(BAM_TOOLS_bias_mitigation),$(BAM_TOOLS_recalibration),$(BAM_TOOLS_haplogroups),$(BAM_TOOLS_genotyping),$(BAM_TOOLS_kinship)" \
+	$(MAKE) container-smoke
 
-test-images-bam-validate: ## BAM stage bam.validate
-	TOOLS=samtools sh scripts/smoke-containers-docker-arm64.sh
+containers-smoke-all: ## Smoke all registered tools via selected runtime
+	@$(MAKE) container-smoke
 
-test-images-bam-qc-pre: ## BAM stage bam.qc_pre
-	TOOLS=samtools sh scripts/smoke-containers-docker-arm64.sh
-
-test-images-bam-filter: ## BAM stage bam.filter
-	TOOLS=samtools sh scripts/smoke-containers-docker-arm64.sh
-
-test-images-bam-markdup: ## BAM stage bam.markdup
-	TOOLS=gatk,samtools sh scripts/smoke-containers-docker-arm64.sh
-
-test-images-bam-complexity: ## BAM stage bam.complexity
-	TOOLS=preseq sh scripts/smoke-containers-docker-arm64.sh
-
-test-images-bam-coverage: ## BAM stage bam.coverage
-	TOOLS=mosdepth,samtools sh scripts/smoke-containers-docker-arm64.sh
-
-test-images-bam-damage: ## BAM stage bam.damage
-	TOOLS=pydamage,mapdamage2 sh scripts/smoke-containers-docker-arm64.sh
-
-test-images-bam-authenticity: ## BAM stage bam.authenticity
-	TOOLS=authenticct sh scripts/smoke-containers-docker-arm64.sh
-
-test-images-bam-contamination: ## BAM stage bam.contamination
-	TOOLS=authenticct sh scripts/smoke-containers-docker-arm64.sh
-
-test-images-bam-sex: ## BAM stage bam.sex
-	TOOLS=rxy sh scripts/smoke-containers-docker-arm64.sh
-
-test-images-bam-bias-mitigation: ## BAM stage bam.bias_mitigation
-	TOOLS=angsd sh scripts/smoke-containers-docker-arm64.sh
-
-test-images-bam-recalibration: ## BAM stage bam.recalibration
-	TOOLS=gatk sh scripts/smoke-containers-docker-arm64.sh
-
-test-images-bam-haplogroups: ## BAM stage bam.haplogroups
-	TOOLS=yleaf sh scripts/smoke-containers-docker-arm64.sh
-
-test-images-bam-genotyping: ## BAM stage bam.genotyping
-	TOOLS=angsd sh scripts/smoke-containers-docker-arm64.sh
-
-test-images-bam-kinship: ## BAM stage bam.kinship
-	TOOLS=king sh scripts/smoke-containers-docker-arm64.sh
-
-.PHONY: build-images test-images image-qa test-images-trim test-images-validate test-images-filter test-images-merge \
+.PHONY: container-runtime-check container-smoke \
 	smoke-containers-docker-arm64 smoke-containers-apptainer \
-	test-images-fastq-preprocess test-images-fastq-prepare-reference test-images-fastq-validate-pre \
-	test-images-fastq-detect-adapters test-images-fastq-trim test-images-fastq-filter \
-	test-images-fastq-stats-neutral test-images-fastq-qc-post test-images-fastq-merge \
-	test-images-fastq-correct test-images-fastq-umi test-images-fastq-screen \
-	test-images-bam-align test-images-bam-validate test-images-bam-qc-pre test-images-bam-filter \
-	test-images-bam-markdup test-images-bam-complexity test-images-bam-coverage test-images-bam-damage \
-	test-images-bam-authenticity test-images-bam-contamination test-images-bam-sex \
-	test-images-bam-bias-mitigation test-images-bam-recalibration test-images-bam-haplogroups \
-	test-images-bam-genotyping test-images-bam-kinship
+	build-images test-images image-qa test-images-trim test-images-validate test-images-filter test-images-merge \
+	containers-smoke-fastq-all containers-smoke-bam-all containers-smoke-all
