@@ -46,6 +46,9 @@ fn contamination_models_require_inputs_assumptions_and_warnings() {
         },
     };
     let raw = serde_json::to_value(&model).expect("serialize contamination model");
-    assert_eq!(raw["contamination"]["required_inputs"]["reference_panel"], "1000g-hg19");
+    assert_eq!(
+        raw["contamination"]["required_inputs"]["reference_panel"],
+        "1000g-hg19"
+    );
     assert_eq!(raw["contamination"]["warnings"][0]["code"], "LOW_COVERAGE");
 }
