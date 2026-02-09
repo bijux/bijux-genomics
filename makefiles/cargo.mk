@@ -119,6 +119,13 @@ test-coverage-parallel: test-and-coverage
 clean-isolate:
 	@rm -rf target-isolate-* target-test/tmp target-test/profraw target-cov/tmp target-cov/profraw
 
+policy-fast: ## Run fast policy checks (no snapshots)
+	cargo test -p bijux-dna-policies --test dependency_graph --test purity_scans --test core_layering --test domain_dependency_policy --test ci_tools_policy --test dev_deps_policy --test heavy_deps_policy
+
+policy-full: ## Run full policy suite
+	cargo test -p bijux-dna-policies
+	$(MAKE) docs-lint
+
 snapshots:
 	$(TEST_ENV) cargo insta test --workspace
 
@@ -131,4 +138,5 @@ snapshots-review:
 .PHONY: fmt lint test audit coverage ci check ci-local test-coverage-parallel verify-parallel-isolation \
 		test-and-coverage \
 		fmt-isolate lint-isolate test-isolate audit-isolate coverage-isolate ci-isolate clean-isolate \
+		policy-fast policy-full \
 		snapshots snapshots-accept snapshots-review ensure-cargo-deny
