@@ -1,0 +1,40 @@
+Bootstrap: docker
+From: ubuntu:24.04
+
+%labels
+    MAINTAINER Bijan Mousavi <mousavi.bijan@gmail.com>
+    VERSION FLASH2-v2.2.00
+    org.opencontainers.image.source https://github.com/dstreett/FLASH2
+
+%environment
+    DEBIAN_FRONTEND=noninteractive
+
+%post
+    export DEBIAN_FRONTEND=noninteractive
+
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        build-essential zlib1g-dev git ca-certificates && \
+
+    git clone https://github.com/dstreett/FLASH2.git /opt/FLASH2 && \
+    cd /opt/FLASH2 && \
+    git checkout tags/2.2.00 -b build-branch && \
+    make -j$(nproc) && \
+    cp flash2 /usr/local/bin/flash2 && \
+
+    cd / && \
+    rm -rf /opt/FLASH2 && \
+    apt-get purge -y build-essential git zlib1g-dev && \
+    apt-get autoremove -y && \
+    rm -rf /var/lib/apt/lists/*
+
+%runscript
+    if [ $# -eq 0 ]; then
+        exec /usr/local/bin/flash2 --help
+    else
+        exec /usr/local/bin/flash2 "$@"
+    fi
+
+%help
+    This Apptainer image provides FLASH2 version 2.2.00, compiled from source.
+    Run with arguments to execute flash2, or without arguments to display detailed help.
