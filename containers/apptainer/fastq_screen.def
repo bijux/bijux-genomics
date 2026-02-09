@@ -1,0 +1,44 @@
+Bootstrap: docker
+From: ubuntu:24.04
+
+%labels
+    MAINTAINER Bijan Mousavi <mousavi.bijan@gmail.com>
+    VERSION FastQ-Screen-v0.15.3
+    org.opencontainers.image.source https://www.bioinformatics.babraham.ac.uk/projects/fastq_screen/
+
+%environment
+    DEBIAN_FRONTEND=noninteractive
+
+%post
+    export DEBIAN_FRONTEND=noninteractive
+
+    apt-get update -qq && \
+    apt-get install -y --no-install-recommends \
+        perl \
+        curl \
+        ca-certificates \
+        bzip2 \
+        gzip && \
+
+    mkdir -p /opt && \
+    cd /opt && \
+    curl -fsSL -o fastq_screen.tar.gz \
+        "https://github.com/StevenWingett/FastQ-Screen/archive/refs/tags/v0.15.3.tar.gz" && \
+    tar -xzf fastq_screen.tar.gz && \
+    mv FastQ-Screen-0.15.3 fastq_screen && \
+    ln -s /opt/fastq_screen/fastq_screen /usr/local/bin/fastq_screen && \
+
+    rm fastq_screen.tar.gz && \
+    rm -rf /var/lib/apt/lists/*
+
+%runscript
+    if [ $# -eq 0 ]; then
+        exec /usr/local/bin/fastq_screen --help
+    else
+        exec /usr/local/bin/fastq_screen "$@"
+    fi
+
+%help
+    This Apptainer image provides FastQ Screen version 0.15.3.
+    Run with arguments to execute fastq_screen, or without arguments to display help.
+    Note: External aligners (Bowtie2, BWA, or similar) are required for screening and must be available in the runtime environment.
