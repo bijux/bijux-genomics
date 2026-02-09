@@ -1509,6 +1509,9 @@ fn policy__boundaries__workspace__workspace_has_no_legacy_bijux_packages() {
             }
             if let Some((_, value)) = line.split_once('=') {
                 let name = value.trim().trim_matches('"');
+                if name == "bijux-dna" {
+                    continue;
+                }
                 if name.starts_with("bijux-") && !name.starts_with("bijux-dna-") {
                     offenders.push(
                         entry
