@@ -34,6 +34,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     let mut failures = Vec::new();
+    let oci_revision = git_head_revision().unwrap_or_else(|| "unknown".to_string());
+    let oci_created = utc_created_timestamp().unwrap_or_else(|| "unknown".to_string());
 
     for tool in tools {
         let dockerfile = container_dir.join(format!("Dockerfile.{}", tool.name));
@@ -63,12 +65,36 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .arg("build")
             .arg("-t")
             .arg(&image_name)
+            .arg("--build-arg")
+            .arg(format!("OCI_REVISION={oci_revision}"))
+            .arg("--build-arg")
+            .arg(format!("OCI_CREATED={oci_created}"))
+            .arg("--build-arg")
+            .arg(format!("TOOL_VERSION={}", image.version))
             .arg(&container_dir)
             .arg("-f")
             .arg(&dockerfile)
             .status()?;
         if !status.success() {
             let err = format!("build failed for {image_name}");
+            if continue_on_error {
+                eprintln!("{err}");
+                failures.push(err);
+                continue;
+            }
+            return Err(err.into());
+        }
+
+        let smoke_status = Command::new("docker")
+            .arg("run")
+            .arg("--rm")
+            .arg(&image_name)
+            .arg("sh")
+            .arg("-c")
+            .arg(&tool.version_cmd)
+            .status()?;
+        if !smoke_status.success() {
+            let err = format!("version smoke failed for {image_name}: {}", tool.version_cmd);
             if continue_on_error {
                 eprintln!("{err}");
                 failures.push(err);
@@ -132,4 +158,38 @@ fn image_exists(image_name: &str) -> Result<bool, Box<dyn std::error::Error>> {
         .arg(image_name)
         .output()?;
     Ok(!String::from_utf8_lossy(&output.stdout).trim().is_empty())
+}
+
+fn git_head_revision() -> Option<String> {
+    let output = Command::new("git")
+        .arg("rev-parse")
+        .arg("HEAD")
+        .output()
+        .ok()?;
+    if !output.status.success() {
+        return None;
+    }
+    let revision = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    if revision.is_empty() {
+        None
+    } else {
+        Some(revision)
+    }
+}
+
+fn utc_created_timestamp() -> Option<String> {
+    let output = Command::new("date")
+        .arg("-u")
+        .arg("+%Y-%m-%dT%H:%M:%SZ")
+        .output()
+        .ok()?;
+    if !output.status.success() {
+        return None;
+    }
+    let created = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    if created.is_empty() {
+        None
+    } else {
+        Some(created)
+    }
 }
