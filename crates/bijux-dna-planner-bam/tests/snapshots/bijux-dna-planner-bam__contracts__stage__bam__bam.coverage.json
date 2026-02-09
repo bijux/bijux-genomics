@@ -1,0 +1,75 @@
+{
+  "stage_id": "bam.coverage",
+  "stage_version": 1,
+  "tool_id": "mosdepth",
+  "tool_version": "1.0.0",
+  "image": {
+    "image": "bijux/test:latest",
+    "digest": null
+  },
+  "command": {
+    "template": [
+      "mosdepth",
+      "-n",
+      "out/coverage",
+      "tests/fixtures/plan_inputs/default/sample.bam"
+    ]
+  },
+  "resources": {
+    "runtime": "docker",
+    "mem_gb": 1,
+    "tmp_gb": 1,
+    "threads": 1
+  },
+  "io": {
+    "inputs": [
+      {
+        "name": "bam",
+        "path": "tests/fixtures/plan_inputs/default/sample.bam",
+        "role": "bam",
+        "optional": false
+      }
+    ],
+    "outputs": [
+      {
+        "name": "coverage_summary",
+        "path": "out/coverage.mosdepth.summary.txt",
+        "role": "report_json",
+        "optional": false
+      },
+      {
+        "name": "stage_metrics",
+        "path": "out/stage.metrics.json",
+        "role": "metrics_json",
+        "optional": false
+      }
+    ]
+  },
+  "out_dir": "out",
+  "params": {
+    "bam": "tests/fixtures/plan_inputs/default/sample.bam",
+    "depth_thresholds": [
+      1,
+      3,
+      5
+    ],
+    "regions": null
+  },
+  "effective_params": {
+    "depth_thresholds": [
+      1,
+      3,
+      5
+    ],
+    "regions": null
+  },
+  "aux_images": {},
+  "reason": {
+    "kind": "default",
+    "summary": "tool mosdepth selected by planner",
+    "details": {
+      "contract_hash": "1ce24d367bb281918ab7aeaf9825e6a4f59fbbd6f37578b92497b667a640304a",
+      "defaults_diff": {}
+    }
+  }
+}
