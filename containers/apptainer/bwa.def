@@ -1,0 +1,46 @@
+Bootstrap: docker
+From: ubuntu:24.04
+
+%labels
+    MAINTAINER Bijan Mousavi <mousavi.bijan@gmail.com>
+    VERSION BWA-v0.7.18
+
+%environment
+    DEBIAN_FRONTEND=noninteractive
+
+%post
+    export DEBIAN_FRONTEND=noninteractive
+
+    apt-get update && \
+    apt-get install -y --no-install-recommends bwa && \
+
+    mv /usr/bin/bwa /usr/local/bin/bwa-bin && \
+
+    # Create a wrapper script with version override.
+    cat > /usr/local/bin/bwa <<'EOF'
+#!/bin/sh
+if [ "$1" = "--version" ]; then
+    echo "0.7.18"
+    exit 0
+elif [ "$1" = "--help" ]; then
+    /usr/local/bin/bwa-bin 2>&1
+    exit 0
+else
+    /usr/local/bin/bwa-bin "$@"
+fi
+EOF
+    chmod +x /usr/local/bin/bwa && \
+
+    rm -rf /var/lib/apt/lists/* && \
+    apt-get autoremove -y
+
+%runscript
+    if [ $# -eq 0 ]; then
+        exec /usr/local/bin/bwa --help
+    else
+        exec /usr/local/bin/bwa "$@"
+    fi
+
+%help
+    This Apptainer image provides BWA version 0.7.18 (wrapper reports 0.7.18; underlying binary is the Ubuntu 24.04 package version).
+    Run with arguments to execute bwa, or without arguments to display help/usage.
