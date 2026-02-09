@@ -205,7 +205,7 @@ fn build_image_plans(
 ) -> Result<Vec<ImagePlan>, Box<dyn std::error::Error>> {
     let mut plans = Vec::new();
     for tool in tools {
-        let dockerfile = container_dir.join(format!("{}.Dockerfile", tool.name));
+        let dockerfile = container_dir.join(format!("Dockerfile.{}", tool.name));
         if !dockerfile.exists() {
             return Err(format!("Dockerfile not found: {}", dockerfile.display()).into());
         }

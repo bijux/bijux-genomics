@@ -36,7 +36,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut failures = Vec::new();
 
     for tool in tools {
-        let dockerfile = container_dir.join(format!("{}.Dockerfile", tool.name));
+        let dockerfile = container_dir.join(format!("Dockerfile.{}", tool.name));
         if !dockerfile.exists() {
             let err = format!("Dockerfile not found: {}", dockerfile.display());
             if continue_on_error {
