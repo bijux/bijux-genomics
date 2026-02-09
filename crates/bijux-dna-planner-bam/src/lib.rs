@@ -438,6 +438,7 @@ fn build_bam_plan(profile: &PipelineProfile, inputs: &BamPipelineInputs) -> Resu
             .params_overrides
             .get(stage_id)
             .or(default_params.as_ref());
+        enforce_stage_tool_contracts(stage, &tool.tool_id.0, params, inputs.reference.as_deref())?;
         let stage_dir = inputs.out_dir.join(stage_id.replace('.', "_"));
         let plan = plan_stage(StagePlanRequest {
             stage_id,
@@ -498,4 +499,60 @@ fn build_bam_plan(profile: &PipelineProfile, inputs: &BamPipelineInputs) -> Resu
         "planned bam pipeline graph"
     );
     Ok(graph)
+}
+
+fn enforce_stage_tool_contracts(
+    stage: BamStage,
+    tool_id: &str,
+    params: Option<&serde_json::Value>,
+    reference: Option<&std::path::Path>,
+) -> Result<()> {
+    match stage {
+        BamStage::Authenticity if tool_id == "pmdtools" => {
+            if reference.is_none() {
+                return Err(anyhow!(
+                    "bam.authenticity with pmdtools requires reference input"
+                ));
+            }
+        }
+        BamStage::Contamination => {
+            let scope = params
+                .map(|value| stage.parse_effective_params(value))
+                .transpose()?
+                .and_then(|effective| match effective {
+                    bijux_dna_domain_bam::params::BamEffectiveParams::Contamination(c) => {
+                        Some(c.scope)
+                    }
+                    _ => None,
+                })
+                .unwrap_or(bijux_dna_domain_bam::params::ContaminationScope::Both);
+            match tool_id {
+                "schmutzi"
+                    if !matches!(
+                        scope,
+                        bijux_dna_domain_bam::params::ContaminationScope::Mito
+                            | bijux_dna_domain_bam::params::ContaminationScope::Both
+                    ) =>
+                {
+                    return Err(anyhow!(
+                        "bam.contamination tool schmutzi requires scope mito/both"
+                    ));
+                }
+                "verifybamid2" | "contammix"
+                    if !matches!(
+                        scope,
+                        bijux_dna_domain_bam::params::ContaminationScope::Nuclear
+                            | bijux_dna_domain_bam::params::ContaminationScope::Both
+                    ) =>
+                {
+                    return Err(anyhow!(
+                        "bam.contamination tool {tool_id} requires scope nuclear/both"
+                    ));
+                }
+                _ => {}
+            }
+        }
+        _ => {}
+    }
+    Ok(())
 }
