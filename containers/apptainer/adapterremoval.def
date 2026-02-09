@@ -1,0 +1,45 @@
+Bootstrap: docker
+From: ubuntu:24.04
+
+%labels
+    MAINTAINER Bijan Mousavi <mousavi.bijan@gmail.com>
+    VERSION AdapterRemoval-v2.3.3
+
+%post
+    export DEBIAN_FRONTEND=noninteractive
+
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        ca-certificates git build-essential zlib1g-dev libbz2-dev && \
+
+    ADAPTERREMOVAL_VERSION=2.3.3 && \
+
+    for i in 1 2 3; do \
+        git clone https://github.com/MikkelSchubert/adapterremoval.git /opt/adapterremoval && break || \
+        echo "Git clone attempt $i failed, retrying..." && sleep 5; \
+    done || { echo "Failed to clone AdapterRemoval repository after 3 attempts"; exit 1; } && \
+
+    cd /opt/adapterremoval && \
+    git checkout tags/v${ADAPTERREMOVAL_VERSION} && \
+    make && \
+    mv build/AdapterRemoval /usr/local/bin/adapterremoval-bin && \
+    rm -rf /opt/adapterremoval && \
+
+    # Create a wrapper script.
+    printf '#!/bin/sh\nexec /usr/local/bin/adapterremoval-bin "$@"\n' > /usr/local/bin/adapterremoval && \
+    chmod +x /usr/local/bin/adapterremoval && \
+
+    apt-get purge -y git build-essential && \
+    apt-get autoremove -y && \
+    rm -rf /var/lib/apt/lists/*
+
+%runscript
+    if [ $# -eq 0 ]; then
+        exec /usr/local/bin/adapterremoval --help
+    else
+        exec /usr/local/bin/adapterremoval "$@"
+    fi
+
+%help
+    This Apptainer image provides AdapterRemoval version 2.3.3.
+    Run with arguments to execute the tool, or without arguments to display help.
