@@ -177,9 +177,12 @@ containers-apptainer-build: ## Batch-build Apptainer defs to VM-local output and
 		--vm-out "$(APPTAINER_VM_OUT)" \
 		--copy-back "$(APPTAINER_COPY_BACK)"
 
+containers-lint: ## Lint container naming, headers, labels, and forbidden patterns
+	@./scripts/lint-containers.sh
+
 .PHONY: container-runtime-check container-smoke \
 	containers-smoke \
 	smoke-containers-docker-arm64 smoke-containers-docker-amd64 smoke-containers-apptainer \
 	build-images test-images image-qa test-images-trim test-images-validate test-images-filter test-images-merge \
 	containers-smoke-fastq-all containers-smoke-bam-all containers-smoke-all \
-	containers-apptainer-build
+	containers-apptainer-build containers-lint
