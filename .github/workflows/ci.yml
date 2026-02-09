@@ -25,6 +25,8 @@ jobs:
           TZ: UTC
           LC_ALL: C
         run: make ci
+      - name: Container lint gate
+        run: make containers-lint
 
   snapshot-invariance:
     runs-on: ubuntu-latest
