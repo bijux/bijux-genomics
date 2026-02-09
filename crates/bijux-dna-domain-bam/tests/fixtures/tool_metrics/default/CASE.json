@@ -1,0 +1,9 @@
+{
+  "schema_version": "bijux.case.v1",
+  "title": "BAM new-tool metric fixtures",
+  "purpose": "Fixture bank for parsing typed metrics for PMDtools, ngsBriggs, AdDeam, schmutzi, verifyBamID2, and contamMix.",
+  "invariants": [
+    "damage rates bounded in [0, 1]",
+    "contamination estimate and CI bounded in [0, 1]"
+  ]
+}

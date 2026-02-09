@@ -1,0 +1,14 @@
+{
+  "contamination": {
+    "tool": "verifybamid2",
+    "estimate": 0.041,
+    "ci_low": 0.030,
+    "ci_high": 0.056,
+    "model_assumptions": ["nuclear panel-based"],
+    "required_inputs": {
+      "reference_panel": "1kg-phase3",
+      "scope": "nuclear_only"
+    },
+    "warnings": []
+  }
+}
