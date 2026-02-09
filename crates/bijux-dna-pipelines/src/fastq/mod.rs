@@ -153,29 +153,27 @@ pub fn fastq_default_profile() -> PipelineProfile {
 #[must_use]
 pub fn fastq_adna_profile() -> PipelineProfile {
     let mut defaults = fastq_defaults(false);
-    if let Some(params) = defaults
+    if let Some(DefaultParams::FastqTrim(mut params)) = defaults
         .params
         .get(&StageId::from_static("fastq.trim"))
         .cloned()
     {
-        let mut json = params.to_json();
-        json["damage_mode"] = serde_json::json!("adna");
-        json["min_len"] = serde_json::json!(25);
+        params.damage_mode = Some("adna".to_string());
+        params.min_len = 25;
         defaults.params.insert(
             StageId::from_static("fastq.trim"),
-            DefaultParams::Json(json),
+            DefaultParams::FastqTrim(params),
         );
     }
-    if let Some(params) = defaults
+    if let Some(DefaultParams::FastqFilter(mut params)) = defaults
         .params
         .get(&StageId::from_static("fastq.filter"))
         .cloned()
     {
-        let mut json = params.to_json();
-        json["damage_mode"] = serde_json::json!("adna");
+        params.damage_mode = Some("adna".to_string());
         defaults.params.insert(
             StageId::from_static("fastq.filter"),
-            DefaultParams::Json(json),
+            DefaultParams::FastqFilter(params),
         );
     }
     PipelineProfile {
