@@ -11,6 +11,10 @@ Keeps design consistent across contributions.
 
 ## Contracts
 - Boundary map, SSOT, contract spine.
+- engine does not depend on runner or environment
+- prelude is exports-only
+- defaults live only in bijux-dna-pipelines
+- composition roots are only in API/CLI
 
 ## Examples
 - Engine depends only on Runner trait, not concrete runner.
