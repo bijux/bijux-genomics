@@ -44,8 +44,7 @@ fn policy__boundaries__docs_spine__docs_placement_contract() {
         "assets",
         "overrides",
     ]);
-    let allowed_root_files =
-        BTreeSet::from(["ARCHITECTURE_LITMUS.md", "index.md", "TESTS_STYLE.md"]);
+    let allowed_root_files = BTreeSet::from(["index.md"]);
     let mut root_entries = Vec::new();
     for entry in std::fs::read_dir(&root).expect("read docs root") {
         let entry = entry.expect("read entry");

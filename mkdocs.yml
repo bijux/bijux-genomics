@@ -184,6 +184,7 @@ nav:
   - Policies:
       - Policies Explained: 40-policies/POLICIES_EXPLAINED.md
       - Developer Workflow: 40-policies/DEVELOPER_WORKFLOW.md
+      - Tests Style Guide: 40-policies/TESTS_STYLE.md
       - Style: 40-policies/STYLE.md
       - Policy Index: 40-policies/POLICY_INDEX.md
       - Failure Playbooks: 40-policies/FAILURE_PLAYBOOKS.md
