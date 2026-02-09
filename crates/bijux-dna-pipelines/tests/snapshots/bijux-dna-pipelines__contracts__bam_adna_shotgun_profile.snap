@@ -1,6 +1,6 @@
 ---
 source: crates/bijux-dna-pipelines/tests/contracts/profiles/profiles.rs
-assertion_line: 32
+assertion_line: 55
 expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
@@ -133,7 +133,19 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "bam.sex": "pipeline default",
       "bam.validate": "pipeline default"
     },
-    "tools": {}
+    "tools": {
+      "bam.authenticity": "authenticct",
+      "bam.bias_mitigation": "angsd",
+      "bam.complexity": "preseq",
+      "bam.contamination": "authenticct",
+      "bam.coverage": "mosdepth",
+      "bam.damage": "pydamage",
+      "bam.filter": "samtools",
+      "bam.markdup": "gatk",
+      "bam.qc_pre": "samtools",
+      "bam.sex": "rxy",
+      "bam.validate": "samtools"
+    }
   },
   "defaults_ledger_ref": "defaults_ledger.json",
   "description": "Ancient DNA shotgun defaults",

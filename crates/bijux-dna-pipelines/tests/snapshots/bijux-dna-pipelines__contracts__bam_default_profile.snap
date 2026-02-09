@@ -1,6 +1,6 @@
 ---
 source: crates/bijux-dna-pipelines/tests/contracts/profiles/profiles.rs
-assertion_line: 24
+assertion_line: 46
 expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
@@ -91,7 +91,13 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "bam.qc_pre": "pipeline default",
       "bam.validate": "pipeline default"
     },
-    "tools": {}
+    "tools": {
+      "bam.coverage": "mosdepth",
+      "bam.damage": "pydamage",
+      "bam.filter": "samtools",
+      "bam.qc_pre": "samtools",
+      "bam.validate": "samtools"
+    }
   },
   "defaults_ledger_ref": "defaults_ledger.json",
   "description": "Default BAM pipeline",

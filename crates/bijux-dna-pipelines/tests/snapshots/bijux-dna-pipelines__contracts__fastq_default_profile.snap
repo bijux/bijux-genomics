@@ -1,6 +1,6 @@
 ---
 source: crates/bijux-dna-pipelines/tests/contracts/profiles/profiles.rs
-assertion_line: 48
+assertion_line: 72
 expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
@@ -144,7 +144,19 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "fastq.umi": "pipeline default",
       "fastq.validate_pre": "pipeline default"
     },
-    "tools": {}
+    "tools": {
+      "fastq.correct": "rcorrector",
+      "fastq.detect_adapters": "fastqc",
+      "fastq.filter": "seqkit",
+      "fastq.merge": "vsearch",
+      "fastq.preprocess": "planner",
+      "fastq.qc_post": "multiqc",
+      "fastq.screen": "kraken2",
+      "fastq.stats_neutral": "seqkit_stats",
+      "fastq.trim": "fastp",
+      "fastq.umi": "umi_tools",
+      "fastq.validate_pre": "fastqvalidator_official"
+    }
   },
   "defaults_ledger_ref": "defaults_ledger.json",
   "description": "Default FASTQ pipeline",
