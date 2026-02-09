@@ -13,72 +13,72 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     {
       "banks": {},
       "stage_id": "bam.authenticity",
-      "tool_id": "tool"
+      "tool_id": "authenticct"
     },
     {
       "banks": {},
       "stage_id": "bam.bias_mitigation",
-      "tool_id": "tool"
+      "tool_id": "angsd"
     },
     {
       "banks": {},
       "stage_id": "bam.complexity",
-      "tool_id": "tool"
+      "tool_id": "preseq"
     },
     {
       "banks": {},
       "stage_id": "bam.contamination",
-      "tool_id": "tool"
+      "tool_id": "authenticct"
     },
     {
       "banks": {},
       "stage_id": "bam.coverage",
-      "tool_id": "tool"
+      "tool_id": "mosdepth"
     },
     {
       "banks": {},
       "stage_id": "bam.damage",
-      "tool_id": "tool"
+      "tool_id": "pydamage"
     },
     {
       "banks": {},
       "stage_id": "bam.filter",
-      "tool_id": "tool"
+      "tool_id": "samtools"
     },
     {
       "banks": {},
       "stage_id": "bam.genotyping",
-      "tool_id": "tool"
+      "tool_id": "angsd"
     },
     {
       "banks": {},
       "stage_id": "bam.haplogroups",
-      "tool_id": "tool"
+      "tool_id": "yleaf"
     },
     {
       "banks": {},
       "stage_id": "bam.kinship",
-      "tool_id": "tool"
+      "tool_id": "king"
     },
     {
       "banks": {},
       "stage_id": "bam.markdup",
-      "tool_id": "tool"
+      "tool_id": "gatk"
     },
     {
       "banks": {},
       "stage_id": "bam.qc_pre",
-      "tool_id": "tool"
+      "tool_id": "samtools"
     },
     {
       "banks": {},
       "stage_id": "bam.sex",
-      "tool_id": "tool"
+      "tool_id": "rxy"
     },
     {
       "banks": {},
       "stage_id": "bam.validate",
-      "tool_id": "tool"
+      "tool_id": "samtools"
     }
   ],
   "completeness": {
@@ -228,7 +228,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "params_hash": "params",
       "span_id": "span-bam.authenticity",
       "stage_id": "bam.authenticity",
-      "tool_id": "tool",
+      "tool_id": "authenticct",
       "tool_version": "0.0.0",
       "trace_id": "trace-1"
     },
@@ -238,7 +238,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "params_hash": "params",
       "span_id": "span-bam.bias_mitigation",
       "stage_id": "bam.bias_mitigation",
-      "tool_id": "tool",
+      "tool_id": "angsd",
       "tool_version": "0.0.0",
       "trace_id": "trace-1"
     },
@@ -248,7 +248,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "params_hash": "params",
       "span_id": "span-bam.complexity",
       "stage_id": "bam.complexity",
-      "tool_id": "tool",
+      "tool_id": "preseq",
       "tool_version": "0.0.0",
       "trace_id": "trace-1"
     },
@@ -258,7 +258,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "params_hash": "params",
       "span_id": "span-bam.contamination",
       "stage_id": "bam.contamination",
-      "tool_id": "tool",
+      "tool_id": "authenticct",
       "tool_version": "0.0.0",
       "trace_id": "trace-1"
     },
@@ -268,7 +268,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "params_hash": "params",
       "span_id": "span-bam.coverage",
       "stage_id": "bam.coverage",
-      "tool_id": "tool",
+      "tool_id": "mosdepth",
       "tool_version": "0.0.0",
       "trace_id": "trace-1"
     },
@@ -278,7 +278,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "params_hash": "params",
       "span_id": "span-bam.damage",
       "stage_id": "bam.damage",
-      "tool_id": "tool",
+      "tool_id": "pydamage",
       "tool_version": "0.0.0",
       "trace_id": "trace-1"
     },
@@ -288,7 +288,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "params_hash": "params",
       "span_id": "span-bam.filter",
       "stage_id": "bam.filter",
-      "tool_id": "tool",
+      "tool_id": "samtools",
       "tool_version": "0.0.0",
       "trace_id": "trace-1"
     },
@@ -298,7 +298,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "params_hash": "params",
       "span_id": "span-bam.genotyping",
       "stage_id": "bam.genotyping",
-      "tool_id": "tool",
+      "tool_id": "angsd",
       "tool_version": "0.0.0",
       "trace_id": "trace-1"
     },
@@ -308,7 +308,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "params_hash": "params",
       "span_id": "span-bam.haplogroups",
       "stage_id": "bam.haplogroups",
-      "tool_id": "tool",
+      "tool_id": "yleaf",
       "tool_version": "0.0.0",
       "trace_id": "trace-1"
     },
@@ -318,7 +318,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "params_hash": "params",
       "span_id": "span-bam.kinship",
       "stage_id": "bam.kinship",
-      "tool_id": "tool",
+      "tool_id": "king",
       "tool_version": "0.0.0",
       "trace_id": "trace-1"
     },
@@ -328,7 +328,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "params_hash": "params",
       "span_id": "span-bam.markdup",
       "stage_id": "bam.markdup",
-      "tool_id": "tool",
+      "tool_id": "gatk",
       "tool_version": "0.0.0",
       "trace_id": "trace-1"
     },
@@ -338,7 +338,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "params_hash": "params",
       "span_id": "span-bam.qc_pre",
       "stage_id": "bam.qc_pre",
-      "tool_id": "tool",
+      "tool_id": "samtools",
       "tool_version": "0.0.0",
       "trace_id": "trace-1"
     },
@@ -348,7 +348,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "params_hash": "params",
       "span_id": "span-bam.sex",
       "stage_id": "bam.sex",
-      "tool_id": "tool",
+      "tool_id": "rxy",
       "tool_version": "0.0.0",
       "trace_id": "trace-1"
     },
@@ -358,7 +358,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "params_hash": "params",
       "span_id": "span-bam.validate",
       "stage_id": "bam.validate",
-      "tool_id": "tool",
+      "tool_id": "samtools",
       "tool_version": "0.0.0",
       "trace_id": "trace-1"
     }
@@ -375,85 +375,85 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "bases": 800,
           "reads": 80,
           "stage_id": "bam.authenticity",
-          "tool_id": "tool"
+          "tool_id": "authenticct"
         },
         {
           "bases": 800,
           "reads": 80,
           "stage_id": "bam.bias_mitigation",
-          "tool_id": "tool"
+          "tool_id": "angsd"
         },
         {
           "bases": 800,
           "reads": 80,
           "stage_id": "bam.complexity",
-          "tool_id": "tool"
+          "tool_id": "preseq"
         },
         {
           "bases": 800,
           "reads": 80,
           "stage_id": "bam.contamination",
-          "tool_id": "tool"
+          "tool_id": "authenticct"
         },
         {
           "bases": 800,
           "reads": 80,
           "stage_id": "bam.coverage",
-          "tool_id": "tool"
+          "tool_id": "mosdepth"
         },
         {
           "bases": 800,
           "reads": 80,
           "stage_id": "bam.damage",
-          "tool_id": "tool"
+          "tool_id": "pydamage"
         },
         {
           "bases": 800,
           "reads": 80,
           "stage_id": "bam.filter",
-          "tool_id": "tool"
+          "tool_id": "samtools"
         },
         {
           "bases": 800,
           "reads": 80,
           "stage_id": "bam.genotyping",
-          "tool_id": "tool"
+          "tool_id": "angsd"
         },
         {
           "bases": 800,
           "reads": 80,
           "stage_id": "bam.haplogroups",
-          "tool_id": "tool"
+          "tool_id": "yleaf"
         },
         {
           "bases": 800,
           "reads": 80,
           "stage_id": "bam.kinship",
-          "tool_id": "tool"
+          "tool_id": "king"
         },
         {
           "bases": 800,
           "reads": 80,
           "stage_id": "bam.markdup",
-          "tool_id": "tool"
+          "tool_id": "gatk"
         },
         {
           "bases": 800,
           "reads": 80,
           "stage_id": "bam.qc_pre",
-          "tool_id": "tool"
+          "tool_id": "samtools"
         },
         {
           "bases": 800,
           "reads": 80,
           "stage_id": "bam.sex",
-          "tool_id": "tool"
+          "tool_id": "rxy"
         },
         {
           "bases": 800,
           "reads": 80,
           "stage_id": "bam.validate",
-          "tool_id": "tool"
+          "tool_id": "samtools"
         }
       ]
     },
@@ -514,72 +514,72 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         {
           "results": [],
           "stage_id": "bam.authenticity",
-          "tool_id": "tool"
+          "tool_id": "authenticct"
         },
         {
           "results": [],
           "stage_id": "bam.bias_mitigation",
-          "tool_id": "tool"
+          "tool_id": "angsd"
         },
         {
           "results": [],
           "stage_id": "bam.complexity",
-          "tool_id": "tool"
+          "tool_id": "preseq"
         },
         {
           "results": [],
           "stage_id": "bam.contamination",
-          "tool_id": "tool"
+          "tool_id": "authenticct"
         },
         {
           "results": [],
           "stage_id": "bam.coverage",
-          "tool_id": "tool"
+          "tool_id": "mosdepth"
         },
         {
           "results": [],
           "stage_id": "bam.damage",
-          "tool_id": "tool"
+          "tool_id": "pydamage"
         },
         {
           "results": [],
           "stage_id": "bam.filter",
-          "tool_id": "tool"
+          "tool_id": "samtools"
         },
         {
           "results": [],
           "stage_id": "bam.genotyping",
-          "tool_id": "tool"
+          "tool_id": "angsd"
         },
         {
           "results": [],
           "stage_id": "bam.haplogroups",
-          "tool_id": "tool"
+          "tool_id": "yleaf"
         },
         {
           "results": [],
           "stage_id": "bam.kinship",
-          "tool_id": "tool"
+          "tool_id": "king"
         },
         {
           "results": [],
           "stage_id": "bam.markdup",
-          "tool_id": "tool"
+          "tool_id": "gatk"
         },
         {
           "results": [],
           "stage_id": "bam.qc_pre",
-          "tool_id": "tool"
+          "tool_id": "samtools"
         },
         {
           "results": [],
           "stage_id": "bam.sex",
-          "tool_id": "tool"
+          "tool_id": "rxy"
         },
         {
           "results": [],
           "stage_id": "bam.validate",
-          "tool_id": "tool"
+          "tool_id": "samtools"
         }
       ]
     },
@@ -592,7 +592,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "reads_in": 100,
           "reads_out": 80,
           "stage_id": "bam.authenticity",
-          "tool_id": "tool",
+          "tool_id": "authenticct",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -614,7 +614,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "reads_in": 100,
           "reads_out": 80,
           "stage_id": "bam.bias_mitigation",
-          "tool_id": "tool",
+          "tool_id": "angsd",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -636,7 +636,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "reads_in": 100,
           "reads_out": 80,
           "stage_id": "bam.complexity",
-          "tool_id": "tool",
+          "tool_id": "preseq",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -658,7 +658,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "reads_in": 100,
           "reads_out": 80,
           "stage_id": "bam.contamination",
-          "tool_id": "tool",
+          "tool_id": "authenticct",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -681,7 +681,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "reads_in": 100,
           "reads_out": 80,
           "stage_id": "bam.coverage",
-          "tool_id": "tool",
+          "tool_id": "mosdepth",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -703,7 +703,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "reads_in": 100,
           "reads_out": 80,
           "stage_id": "bam.damage",
-          "tool_id": "tool",
+          "tool_id": "pydamage",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -725,7 +725,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "reads_in": 100,
           "reads_out": 80,
           "stage_id": "bam.filter",
-          "tool_id": "tool",
+          "tool_id": "samtools",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -747,7 +747,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "reads_in": 100,
           "reads_out": 80,
           "stage_id": "bam.genotyping",
-          "tool_id": "tool",
+          "tool_id": "angsd",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -769,7 +769,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "reads_in": 100,
           "reads_out": 80,
           "stage_id": "bam.haplogroups",
-          "tool_id": "tool",
+          "tool_id": "yleaf",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -792,7 +792,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "reads_in": 100,
           "reads_out": 80,
           "stage_id": "bam.kinship",
-          "tool_id": "tool",
+          "tool_id": "king",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -815,7 +815,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "reads_in": 100,
           "reads_out": 80,
           "stage_id": "bam.markdup",
-          "tool_id": "tool",
+          "tool_id": "gatk",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -837,7 +837,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "reads_in": 100,
           "reads_out": 80,
           "stage_id": "bam.qc_pre",
-          "tool_id": "tool",
+          "tool_id": "samtools",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -859,7 +859,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "reads_in": 100,
           "reads_out": 80,
           "stage_id": "bam.sex",
-          "tool_id": "tool",
+          "tool_id": "rxy",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -882,7 +882,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "reads_in": 100,
           "reads_out": 80,
           "stage_id": "bam.validate",
-          "tool_id": "tool",
+          "tool_id": "samtools",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -1245,7 +1245,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "kinship": false,
             "sex": false
           },
-          "tool_id": "tool",
+          "tool_id": "authenticct",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -1274,7 +1274,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "kinship": false,
             "sex": false
           },
-          "tool_id": "tool",
+          "tool_id": "angsd",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -1303,7 +1303,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "kinship": false,
             "sex": false
           },
-          "tool_id": "tool",
+          "tool_id": "preseq",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -1332,7 +1332,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "kinship": false,
             "sex": false
           },
-          "tool_id": "tool",
+          "tool_id": "authenticct",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -1362,7 +1362,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "kinship": false,
             "sex": false
           },
-          "tool_id": "tool",
+          "tool_id": "mosdepth",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -1391,7 +1391,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "kinship": false,
             "sex": false
           },
-          "tool_id": "tool",
+          "tool_id": "pydamage",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -1420,7 +1420,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "kinship": false,
             "sex": false
           },
-          "tool_id": "tool",
+          "tool_id": "samtools",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -1449,7 +1449,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "kinship": false,
             "sex": false
           },
-          "tool_id": "tool",
+          "tool_id": "angsd",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -1478,7 +1478,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "kinship": false,
             "sex": false
           },
-          "tool_id": "tool",
+          "tool_id": "yleaf",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -1508,7 +1508,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "kinship": false,
             "sex": false
           },
-          "tool_id": "tool",
+          "tool_id": "king",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -1538,7 +1538,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "kinship": false,
             "sex": false
           },
-          "tool_id": "tool",
+          "tool_id": "gatk",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -1567,7 +1567,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "kinship": false,
             "sex": false
           },
-          "tool_id": "tool",
+          "tool_id": "samtools",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -1596,7 +1596,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "kinship": false,
             "sex": false
           },
-          "tool_id": "tool",
+          "tool_id": "rxy",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -1626,7 +1626,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "kinship": false,
             "sex": false
           },
-          "tool_id": "tool",
+          "tool_id": "samtools",
           "verdict": {
             "key_metrics": {
               "contamination": 0.0,
@@ -1662,72 +1662,72 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         {
           "banks": {},
           "stage_id": "bam.authenticity",
-          "tool_id": "tool"
+          "tool_id": "authenticct"
         },
         {
           "banks": {},
           "stage_id": "bam.bias_mitigation",
-          "tool_id": "tool"
+          "tool_id": "angsd"
         },
         {
           "banks": {},
           "stage_id": "bam.complexity",
-          "tool_id": "tool"
+          "tool_id": "preseq"
         },
         {
           "banks": {},
           "stage_id": "bam.contamination",
-          "tool_id": "tool"
+          "tool_id": "authenticct"
         },
         {
           "banks": {},
           "stage_id": "bam.coverage",
-          "tool_id": "tool"
+          "tool_id": "mosdepth"
         },
         {
           "banks": {},
           "stage_id": "bam.damage",
-          "tool_id": "tool"
+          "tool_id": "pydamage"
         },
         {
           "banks": {},
           "stage_id": "bam.filter",
-          "tool_id": "tool"
+          "tool_id": "samtools"
         },
         {
           "banks": {},
           "stage_id": "bam.genotyping",
-          "tool_id": "tool"
+          "tool_id": "angsd"
         },
         {
           "banks": {},
           "stage_id": "bam.haplogroups",
-          "tool_id": "tool"
+          "tool_id": "yleaf"
         },
         {
           "banks": {},
           "stage_id": "bam.kinship",
-          "tool_id": "tool"
+          "tool_id": "king"
         },
         {
           "banks": {},
           "stage_id": "bam.markdup",
-          "tool_id": "tool"
+          "tool_id": "gatk"
         },
         {
           "banks": {},
           "stage_id": "bam.qc_pre",
-          "tool_id": "tool"
+          "tool_id": "samtools"
         },
         {
           "banks": {},
           "stage_id": "bam.sex",
-          "tool_id": "tool"
+          "tool_id": "rxy"
         },
         {
           "banks": {},
           "stage_id": "bam.validate",
-          "tool_id": "tool"
+          "tool_id": "samtools"
         }
       ]
     },
@@ -1804,7 +1804,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "quality_gate": {},
           "stage_id": "bam.authenticity",
           "telemetry_decisions": [],
-          "tool_id": "tool",
+          "tool_id": "authenticct",
           "tool_version": "0.0.0"
         },
         {
@@ -1820,7 +1820,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "quality_gate": {},
           "stage_id": "bam.bias_mitigation",
           "telemetry_decisions": [],
-          "tool_id": "tool",
+          "tool_id": "angsd",
           "tool_version": "0.0.0"
         },
         {
@@ -1836,7 +1836,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "quality_gate": {},
           "stage_id": "bam.complexity",
           "telemetry_decisions": [],
-          "tool_id": "tool",
+          "tool_id": "preseq",
           "tool_version": "0.0.0"
         },
         {
@@ -1852,7 +1852,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "quality_gate": {},
           "stage_id": "bam.contamination",
           "telemetry_decisions": [],
-          "tool_id": "tool",
+          "tool_id": "authenticct",
           "tool_version": "0.0.0"
         },
         {
@@ -1868,7 +1868,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "quality_gate": {},
           "stage_id": "bam.coverage",
           "telemetry_decisions": [],
-          "tool_id": "tool",
+          "tool_id": "mosdepth",
           "tool_version": "0.0.0"
         },
         {
@@ -1884,7 +1884,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "quality_gate": {},
           "stage_id": "bam.damage",
           "telemetry_decisions": [],
-          "tool_id": "tool",
+          "tool_id": "pydamage",
           "tool_version": "0.0.0"
         },
         {
@@ -1900,7 +1900,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "quality_gate": {},
           "stage_id": "bam.filter",
           "telemetry_decisions": [],
-          "tool_id": "tool",
+          "tool_id": "samtools",
           "tool_version": "0.0.0"
         },
         {
@@ -1916,7 +1916,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "quality_gate": {},
           "stage_id": "bam.genotyping",
           "telemetry_decisions": [],
-          "tool_id": "tool",
+          "tool_id": "angsd",
           "tool_version": "0.0.0"
         },
         {
@@ -1932,7 +1932,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "quality_gate": {},
           "stage_id": "bam.haplogroups",
           "telemetry_decisions": [],
-          "tool_id": "tool",
+          "tool_id": "yleaf",
           "tool_version": "0.0.0"
         },
         {
@@ -1948,7 +1948,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "quality_gate": {},
           "stage_id": "bam.kinship",
           "telemetry_decisions": [],
-          "tool_id": "tool",
+          "tool_id": "king",
           "tool_version": "0.0.0"
         },
         {
@@ -1964,7 +1964,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "quality_gate": {},
           "stage_id": "bam.markdup",
           "telemetry_decisions": [],
-          "tool_id": "tool",
+          "tool_id": "gatk",
           "tool_version": "0.0.0"
         },
         {
@@ -1980,7 +1980,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "quality_gate": {},
           "stage_id": "bam.qc_pre",
           "telemetry_decisions": [],
-          "tool_id": "tool",
+          "tool_id": "samtools",
           "tool_version": "0.0.0"
         },
         {
@@ -1996,7 +1996,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "quality_gate": {},
           "stage_id": "bam.sex",
           "telemetry_decisions": [],
-          "tool_id": "tool",
+          "tool_id": "rxy",
           "tool_version": "0.0.0"
         },
         {
@@ -2012,7 +2012,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "quality_gate": {},
           "stage_id": "bam.validate",
           "telemetry_decisions": [],
-          "tool_id": "tool",
+          "tool_id": "samtools",
           "tool_version": "0.0.0"
         }
       ]
@@ -2148,98 +2148,98 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "bam.authenticity",
-          "tool_id": "tool",
+          "tool_id": "authenticct",
           "tool_version": "0.0.0"
         },
         {
           "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "bam.bias_mitigation",
-          "tool_id": "tool",
+          "tool_id": "angsd",
           "tool_version": "0.0.0"
         },
         {
           "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "bam.complexity",
-          "tool_id": "tool",
+          "tool_id": "preseq",
           "tool_version": "0.0.0"
         },
         {
           "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "bam.contamination",
-          "tool_id": "tool",
+          "tool_id": "authenticct",
           "tool_version": "0.0.0"
         },
         {
           "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "bam.coverage",
-          "tool_id": "tool",
+          "tool_id": "mosdepth",
           "tool_version": "0.0.0"
         },
         {
           "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "bam.damage",
-          "tool_id": "tool",
+          "tool_id": "pydamage",
           "tool_version": "0.0.0"
         },
         {
           "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "bam.filter",
-          "tool_id": "tool",
+          "tool_id": "samtools",
           "tool_version": "0.0.0"
         },
         {
           "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "bam.genotyping",
-          "tool_id": "tool",
+          "tool_id": "angsd",
           "tool_version": "0.0.0"
         },
         {
           "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "bam.haplogroups",
-          "tool_id": "tool",
+          "tool_id": "yleaf",
           "tool_version": "0.0.0"
         },
         {
           "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "bam.kinship",
-          "tool_id": "tool",
+          "tool_id": "king",
           "tool_version": "0.0.0"
         },
         {
           "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "bam.markdup",
-          "tool_id": "tool",
+          "tool_id": "gatk",
           "tool_version": "0.0.0"
         },
         {
           "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "bam.qc_pre",
-          "tool_id": "tool",
+          "tool_id": "samtools",
           "tool_version": "0.0.0"
         },
         {
           "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "bam.sex",
-          "tool_id": "tool",
+          "tool_id": "rxy",
           "tool_version": "0.0.0"
         },
         {
           "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "bam.validate",
-          "tool_id": "tool",
+          "tool_id": "samtools",
           "tool_version": "0.0.0"
         }
       ],
@@ -2251,98 +2251,98 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "bam.authenticity",
-          "tool_id": "tool",
+          "tool_id": "authenticct",
           "tool_version": "0.0.0"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "bam.bias_mitigation",
-          "tool_id": "tool",
+          "tool_id": "angsd",
           "tool_version": "0.0.0"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "bam.complexity",
-          "tool_id": "tool",
+          "tool_id": "preseq",
           "tool_version": "0.0.0"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "bam.contamination",
-          "tool_id": "tool",
+          "tool_id": "authenticct",
           "tool_version": "0.0.0"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "bam.coverage",
-          "tool_id": "tool",
+          "tool_id": "mosdepth",
           "tool_version": "0.0.0"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "bam.damage",
-          "tool_id": "tool",
+          "tool_id": "pydamage",
           "tool_version": "0.0.0"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "bam.filter",
-          "tool_id": "tool",
+          "tool_id": "samtools",
           "tool_version": "0.0.0"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "bam.genotyping",
-          "tool_id": "tool",
+          "tool_id": "angsd",
           "tool_version": "0.0.0"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "bam.haplogroups",
-          "tool_id": "tool",
+          "tool_id": "yleaf",
           "tool_version": "0.0.0"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "bam.kinship",
-          "tool_id": "tool",
+          "tool_id": "king",
           "tool_version": "0.0.0"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "bam.markdup",
-          "tool_id": "tool",
+          "tool_id": "gatk",
           "tool_version": "0.0.0"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "bam.qc_pre",
-          "tool_id": "tool",
+          "tool_id": "samtools",
           "tool_version": "0.0.0"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "bam.sex",
-          "tool_id": "tool",
+          "tool_id": "rxy",
           "tool_version": "0.0.0"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "bam.validate",
-          "tool_id": "tool",
+          "tool_id": "samtools",
           "tool_version": "0.0.0"
         }
       ]
@@ -2598,8 +2598,192 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         },
         "pipeline_id": "bam-to-bam__adna_shotgun__v1",
         "thresholds": {},
-        "tool_provenance": {},
-        "tools": {}
+        "tool_provenance": {
+          "bam.authenticity": {
+            "assumptions": [
+              "defaults chosen for pre-HPC deterministic baseline comparisons"
+            ],
+            "citations": [
+              "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+            ],
+            "comparability_implications": [
+              "changing this default can shift cross-run comparability baselines"
+            ],
+            "rationale": "pipeline default"
+          },
+          "bam.bias_mitigation": {
+            "assumptions": [
+              "defaults chosen for pre-HPC deterministic baseline comparisons"
+            ],
+            "citations": [
+              "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+            ],
+            "comparability_implications": [
+              "changing this default can shift cross-run comparability baselines"
+            ],
+            "rationale": "pipeline default"
+          },
+          "bam.complexity": {
+            "assumptions": [
+              "defaults chosen for pre-HPC deterministic baseline comparisons"
+            ],
+            "citations": [
+              "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+            ],
+            "comparability_implications": [
+              "changing this default can shift cross-run comparability baselines"
+            ],
+            "rationale": "pipeline default"
+          },
+          "bam.contamination": {
+            "assumptions": [
+              "defaults chosen for pre-HPC deterministic baseline comparisons"
+            ],
+            "citations": [
+              "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+            ],
+            "comparability_implications": [
+              "changing this default can shift cross-run comparability baselines"
+            ],
+            "rationale": "pipeline default"
+          },
+          "bam.coverage": {
+            "assumptions": [
+              "defaults chosen for pre-HPC deterministic baseline comparisons"
+            ],
+            "citations": [
+              "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+            ],
+            "comparability_implications": [
+              "changing this default can shift cross-run comparability baselines"
+            ],
+            "rationale": "pipeline default"
+          },
+          "bam.damage": {
+            "assumptions": [
+              "defaults chosen for pre-HPC deterministic baseline comparisons"
+            ],
+            "citations": [
+              "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+            ],
+            "comparability_implications": [
+              "changing this default can shift cross-run comparability baselines"
+            ],
+            "rationale": "pipeline default"
+          },
+          "bam.filter": {
+            "assumptions": [
+              "defaults chosen for pre-HPC deterministic baseline comparisons"
+            ],
+            "citations": [
+              "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+            ],
+            "comparability_implications": [
+              "changing this default can shift cross-run comparability baselines"
+            ],
+            "rationale": "pipeline default"
+          },
+          "bam.genotyping": {
+            "assumptions": [
+              "defaults chosen for pre-HPC deterministic baseline comparisons"
+            ],
+            "citations": [
+              "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+            ],
+            "comparability_implications": [
+              "changing this default can shift cross-run comparability baselines"
+            ],
+            "rationale": "pipeline default"
+          },
+          "bam.haplogroups": {
+            "assumptions": [
+              "defaults chosen for pre-HPC deterministic baseline comparisons"
+            ],
+            "citations": [
+              "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+            ],
+            "comparability_implications": [
+              "changing this default can shift cross-run comparability baselines"
+            ],
+            "rationale": "pipeline default"
+          },
+          "bam.kinship": {
+            "assumptions": [
+              "defaults chosen for pre-HPC deterministic baseline comparisons"
+            ],
+            "citations": [
+              "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+            ],
+            "comparability_implications": [
+              "changing this default can shift cross-run comparability baselines"
+            ],
+            "rationale": "pipeline default"
+          },
+          "bam.markdup": {
+            "assumptions": [
+              "defaults chosen for pre-HPC deterministic baseline comparisons"
+            ],
+            "citations": [
+              "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+            ],
+            "comparability_implications": [
+              "changing this default can shift cross-run comparability baselines"
+            ],
+            "rationale": "pipeline default"
+          },
+          "bam.qc_pre": {
+            "assumptions": [
+              "defaults chosen for pre-HPC deterministic baseline comparisons"
+            ],
+            "citations": [
+              "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+            ],
+            "comparability_implications": [
+              "changing this default can shift cross-run comparability baselines"
+            ],
+            "rationale": "pipeline default"
+          },
+          "bam.sex": {
+            "assumptions": [
+              "defaults chosen for pre-HPC deterministic baseline comparisons"
+            ],
+            "citations": [
+              "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+            ],
+            "comparability_implications": [
+              "changing this default can shift cross-run comparability baselines"
+            ],
+            "rationale": "pipeline default"
+          },
+          "bam.validate": {
+            "assumptions": [
+              "defaults chosen for pre-HPC deterministic baseline comparisons"
+            ],
+            "citations": [
+              "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+            ],
+            "comparability_implications": [
+              "changing this default can shift cross-run comparability baselines"
+            ],
+            "rationale": "pipeline default"
+          }
+        },
+        "tools": {
+          "bam.authenticity": "authenticct",
+          "bam.bias_mitigation": "angsd",
+          "bam.complexity": "preseq",
+          "bam.contamination": "authenticct",
+          "bam.coverage": "mosdepth",
+          "bam.damage": "pydamage",
+          "bam.filter": "samtools",
+          "bam.genotyping": "angsd",
+          "bam.haplogroups": "yleaf",
+          "bam.kinship": "king",
+          "bam.markdup": "gatk",
+          "bam.qc_pre": "samtools",
+          "bam.sex": "rxy",
+          "bam.validate": "samtools"
+        }
       },
       "overrides": []
     },
@@ -2615,7 +2799,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "scientific_preset": null,
           "stage_id": "bam.authenticity",
           "tier_rationale": "unknown_tool",
-          "tool_id": "tool",
+          "tool_id": "authenticct",
           "tool_tier": "experimental",
           "tool_version": "0.0.0"
         },
@@ -2629,7 +2813,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "scientific_preset": null,
           "stage_id": "bam.bias_mitigation",
           "tier_rationale": "unknown_tool",
-          "tool_id": "tool",
+          "tool_id": "angsd",
           "tool_tier": "experimental",
           "tool_version": "0.0.0"
         },
@@ -2643,7 +2827,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "scientific_preset": null,
           "stage_id": "bam.complexity",
           "tier_rationale": "unknown_tool",
-          "tool_id": "tool",
+          "tool_id": "preseq",
           "tool_tier": "experimental",
           "tool_version": "0.0.0"
         },
@@ -2657,7 +2841,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "scientific_preset": null,
           "stage_id": "bam.contamination",
           "tier_rationale": "unknown_tool",
-          "tool_id": "tool",
+          "tool_id": "authenticct",
           "tool_tier": "experimental",
           "tool_version": "0.0.0"
         },
@@ -2671,7 +2855,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "scientific_preset": null,
           "stage_id": "bam.coverage",
           "tier_rationale": "unknown_tool",
-          "tool_id": "tool",
+          "tool_id": "mosdepth",
           "tool_tier": "experimental",
           "tool_version": "0.0.0"
         },
@@ -2685,7 +2869,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "scientific_preset": null,
           "stage_id": "bam.damage",
           "tier_rationale": "unknown_tool",
-          "tool_id": "tool",
+          "tool_id": "pydamage",
           "tool_tier": "experimental",
           "tool_version": "0.0.0"
         },
@@ -2699,7 +2883,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "scientific_preset": null,
           "stage_id": "bam.filter",
           "tier_rationale": "unknown_tool",
-          "tool_id": "tool",
+          "tool_id": "samtools",
           "tool_tier": "experimental",
           "tool_version": "0.0.0"
         },
@@ -2713,7 +2897,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "scientific_preset": null,
           "stage_id": "bam.genotyping",
           "tier_rationale": "unknown_tool",
-          "tool_id": "tool",
+          "tool_id": "angsd",
           "tool_tier": "experimental",
           "tool_version": "0.0.0"
         },
@@ -2727,7 +2911,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "scientific_preset": null,
           "stage_id": "bam.haplogroups",
           "tier_rationale": "unknown_tool",
-          "tool_id": "tool",
+          "tool_id": "yleaf",
           "tool_tier": "experimental",
           "tool_version": "0.0.0"
         },
@@ -2741,7 +2925,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "scientific_preset": null,
           "stage_id": "bam.kinship",
           "tier_rationale": "unknown_tool",
-          "tool_id": "tool",
+          "tool_id": "king",
           "tool_tier": "experimental",
           "tool_version": "0.0.0"
         },
@@ -2755,7 +2939,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "scientific_preset": null,
           "stage_id": "bam.markdup",
           "tier_rationale": "unknown_tool",
-          "tool_id": "tool",
+          "tool_id": "gatk",
           "tool_tier": "experimental",
           "tool_version": "0.0.0"
         },
@@ -2769,7 +2953,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "scientific_preset": null,
           "stage_id": "bam.qc_pre",
           "tier_rationale": "unknown_tool",
-          "tool_id": "tool",
+          "tool_id": "samtools",
           "tool_tier": "experimental",
           "tool_version": "0.0.0"
         },
@@ -2783,7 +2967,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "scientific_preset": null,
           "stage_id": "bam.sex",
           "tier_rationale": "unknown_tool",
-          "tool_id": "tool",
+          "tool_id": "rxy",
           "tool_tier": "experimental",
           "tool_version": "0.0.0"
         },
@@ -2797,7 +2981,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "scientific_preset": null,
           "stage_id": "bam.validate",
           "tier_rationale": "unknown_tool",
-          "tool_id": "tool",
+          "tool_id": "samtools",
           "tool_tier": "experimental",
           "tool_version": "0.0.0"
         }
@@ -2865,7 +3049,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "raw_params": {},
           "resolved_tool_version": null,
           "stage_id": "bam.authenticity",
-          "tool_id": "tool",
+          "tool_id": "authenticct",
           "tool_version": "0.0.0"
         },
         {
@@ -2879,7 +3063,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "raw_params": {},
           "resolved_tool_version": null,
           "stage_id": "bam.bias_mitigation",
-          "tool_id": "tool",
+          "tool_id": "angsd",
           "tool_version": "0.0.0"
         },
         {
@@ -2893,7 +3077,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "raw_params": {},
           "resolved_tool_version": null,
           "stage_id": "bam.complexity",
-          "tool_id": "tool",
+          "tool_id": "preseq",
           "tool_version": "0.0.0"
         },
         {
@@ -2907,7 +3091,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "raw_params": {},
           "resolved_tool_version": null,
           "stage_id": "bam.contamination",
-          "tool_id": "tool",
+          "tool_id": "authenticct",
           "tool_version": "0.0.0"
         },
         {
@@ -2921,7 +3105,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "raw_params": {},
           "resolved_tool_version": null,
           "stage_id": "bam.coverage",
-          "tool_id": "tool",
+          "tool_id": "mosdepth",
           "tool_version": "0.0.0"
         },
         {
@@ -2935,7 +3119,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "raw_params": {},
           "resolved_tool_version": null,
           "stage_id": "bam.damage",
-          "tool_id": "tool",
+          "tool_id": "pydamage",
           "tool_version": "0.0.0"
         },
         {
@@ -2949,7 +3133,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "raw_params": {},
           "resolved_tool_version": null,
           "stage_id": "bam.filter",
-          "tool_id": "tool",
+          "tool_id": "samtools",
           "tool_version": "0.0.0"
         },
         {
@@ -2963,7 +3147,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "raw_params": {},
           "resolved_tool_version": null,
           "stage_id": "bam.genotyping",
-          "tool_id": "tool",
+          "tool_id": "angsd",
           "tool_version": "0.0.0"
         },
         {
@@ -2977,7 +3161,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "raw_params": {},
           "resolved_tool_version": null,
           "stage_id": "bam.haplogroups",
-          "tool_id": "tool",
+          "tool_id": "yleaf",
           "tool_version": "0.0.0"
         },
         {
@@ -2991,7 +3175,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "raw_params": {},
           "resolved_tool_version": null,
           "stage_id": "bam.kinship",
-          "tool_id": "tool",
+          "tool_id": "king",
           "tool_version": "0.0.0"
         },
         {
@@ -3005,7 +3189,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "raw_params": {},
           "resolved_tool_version": null,
           "stage_id": "bam.markdup",
-          "tool_id": "tool",
+          "tool_id": "gatk",
           "tool_version": "0.0.0"
         },
         {
@@ -3019,7 +3203,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "raw_params": {},
           "resolved_tool_version": null,
           "stage_id": "bam.qc_pre",
-          "tool_id": "tool",
+          "tool_id": "samtools",
           "tool_version": "0.0.0"
         },
         {
@@ -3033,7 +3217,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "raw_params": {},
           "resolved_tool_version": null,
           "stage_id": "bam.sex",
-          "tool_id": "tool",
+          "tool_id": "rxy",
           "tool_version": "0.0.0"
         },
         {
@@ -3047,7 +3231,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "raw_params": {},
           "resolved_tool_version": null,
           "stage_id": "bam.validate",
-          "tool_id": "tool",
+          "tool_id": "samtools",
           "tool_version": "0.0.0"
         }
       ]
@@ -3189,98 +3373,98 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "reasons": [],
           "score": 1.0,
           "stage_id": "bam.authenticity",
-          "tool_id": "tool"
+          "tool_id": "authenticct"
         },
         {
           "bucket": "high",
           "reasons": [],
           "score": 1.0,
           "stage_id": "bam.bias_mitigation",
-          "tool_id": "tool"
+          "tool_id": "angsd"
         },
         {
           "bucket": "high",
           "reasons": [],
           "score": 1.0,
           "stage_id": "bam.complexity",
-          "tool_id": "tool"
+          "tool_id": "preseq"
         },
         {
           "bucket": "high",
           "reasons": [],
           "score": 1.0,
           "stage_id": "bam.contamination",
-          "tool_id": "tool"
+          "tool_id": "authenticct"
         },
         {
           "bucket": "high",
           "reasons": [],
           "score": 1.0,
           "stage_id": "bam.coverage",
-          "tool_id": "tool"
+          "tool_id": "mosdepth"
         },
         {
           "bucket": "high",
           "reasons": [],
           "score": 1.0,
           "stage_id": "bam.damage",
-          "tool_id": "tool"
+          "tool_id": "pydamage"
         },
         {
           "bucket": "high",
           "reasons": [],
           "score": 1.0,
           "stage_id": "bam.filter",
-          "tool_id": "tool"
+          "tool_id": "samtools"
         },
         {
           "bucket": "high",
           "reasons": [],
           "score": 1.0,
           "stage_id": "bam.genotyping",
-          "tool_id": "tool"
+          "tool_id": "angsd"
         },
         {
           "bucket": "high",
           "reasons": [],
           "score": 1.0,
           "stage_id": "bam.haplogroups",
-          "tool_id": "tool"
+          "tool_id": "yleaf"
         },
         {
           "bucket": "high",
           "reasons": [],
           "score": 1.0,
           "stage_id": "bam.kinship",
-          "tool_id": "tool"
+          "tool_id": "king"
         },
         {
           "bucket": "high",
           "reasons": [],
           "score": 1.0,
           "stage_id": "bam.markdup",
-          "tool_id": "tool"
+          "tool_id": "gatk"
         },
         {
           "bucket": "high",
           "reasons": [],
           "score": 1.0,
           "stage_id": "bam.qc_pre",
-          "tool_id": "tool"
+          "tool_id": "samtools"
         },
         {
           "bucket": "high",
           "reasons": [],
           "score": 1.0,
           "stage_id": "bam.sex",
-          "tool_id": "tool"
+          "tool_id": "rxy"
         },
         {
           "bucket": "high",
           "reasons": [],
           "score": 1.0,
           "stage_id": "bam.validate",
-          "tool_id": "tool"
+          "tool_id": "samtools"
         }
       ]
     },
@@ -3292,7 +3476,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "mean_q_delta": null,
           "read_retention": 0.8,
           "stage_id": "bam.authenticity",
-          "tool_id": "tool"
+          "tool_id": "authenticct"
         },
         {
           "base_retention": 0.8,
@@ -3300,7 +3484,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "mean_q_delta": null,
           "read_retention": 0.8,
           "stage_id": "bam.bias_mitigation",
-          "tool_id": "tool"
+          "tool_id": "angsd"
         },
         {
           "base_retention": 0.8,
@@ -3308,7 +3492,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "mean_q_delta": null,
           "read_retention": 0.8,
           "stage_id": "bam.complexity",
-          "tool_id": "tool"
+          "tool_id": "preseq"
         },
         {
           "base_retention": 0.8,
@@ -3316,7 +3500,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "mean_q_delta": null,
           "read_retention": 0.8,
           "stage_id": "bam.contamination",
-          "tool_id": "tool"
+          "tool_id": "authenticct"
         },
         {
           "base_retention": 0.8,
@@ -3324,7 +3508,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "mean_q_delta": null,
           "read_retention": 0.8,
           "stage_id": "bam.coverage",
-          "tool_id": "tool"
+          "tool_id": "mosdepth"
         },
         {
           "base_retention": 0.8,
@@ -3332,7 +3516,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "mean_q_delta": null,
           "read_retention": 0.8,
           "stage_id": "bam.damage",
-          "tool_id": "tool"
+          "tool_id": "pydamage"
         },
         {
           "base_retention": 0.8,
@@ -3340,7 +3524,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "mean_q_delta": null,
           "read_retention": 0.8,
           "stage_id": "bam.filter",
-          "tool_id": "tool"
+          "tool_id": "samtools"
         },
         {
           "base_retention": 0.8,
@@ -3348,7 +3532,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "mean_q_delta": null,
           "read_retention": 0.8,
           "stage_id": "bam.genotyping",
-          "tool_id": "tool"
+          "tool_id": "angsd"
         },
         {
           "base_retention": 0.8,
@@ -3356,7 +3540,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "mean_q_delta": null,
           "read_retention": 0.8,
           "stage_id": "bam.haplogroups",
-          "tool_id": "tool"
+          "tool_id": "yleaf"
         },
         {
           "base_retention": 0.8,
@@ -3364,7 +3548,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "mean_q_delta": null,
           "read_retention": 0.8,
           "stage_id": "bam.kinship",
-          "tool_id": "tool"
+          "tool_id": "king"
         },
         {
           "base_retention": 0.8,
@@ -3372,7 +3556,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "mean_q_delta": null,
           "read_retention": 0.8,
           "stage_id": "bam.markdup",
-          "tool_id": "tool"
+          "tool_id": "gatk"
         },
         {
           "base_retention": 0.8,
@@ -3380,7 +3564,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "mean_q_delta": null,
           "read_retention": 0.8,
           "stage_id": "bam.qc_pre",
-          "tool_id": "tool"
+          "tool_id": "samtools"
         },
         {
           "base_retention": 0.8,
@@ -3388,7 +3572,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "mean_q_delta": null,
           "read_retention": 0.8,
           "stage_id": "bam.sex",
-          "tool_id": "tool"
+          "tool_id": "rxy"
         },
         {
           "base_retention": 0.8,
@@ -3396,7 +3580,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "mean_q_delta": null,
           "read_retention": 0.8,
           "stage_id": "bam.validate",
-          "tool_id": "tool"
+          "tool_id": "samtools"
         }
       ],
       "waterfall": [
@@ -3476,7 +3660,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "runtime_s": 1.0,
       "stage_id": "bam.authenticity",
       "stage_report_path": "bam.authenticity/stage_report.json",
-      "tool_id": "tool",
+      "tool_id": "authenticct",
       "tool_invocation_path": "",
       "tool_version": "0.0.0"
     },
@@ -3492,7 +3676,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "runtime_s": 1.0,
       "stage_id": "bam.bias_mitigation",
       "stage_report_path": "bam.bias_mitigation/stage_report.json",
-      "tool_id": "tool",
+      "tool_id": "angsd",
       "tool_invocation_path": "",
       "tool_version": "0.0.0"
     },
@@ -3508,7 +3692,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "runtime_s": 1.0,
       "stage_id": "bam.complexity",
       "stage_report_path": "bam.complexity/stage_report.json",
-      "tool_id": "tool",
+      "tool_id": "preseq",
       "tool_invocation_path": "",
       "tool_version": "0.0.0"
     },
@@ -3524,7 +3708,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "runtime_s": 1.0,
       "stage_id": "bam.contamination",
       "stage_report_path": "bam.contamination/stage_report.json",
-      "tool_id": "tool",
+      "tool_id": "authenticct",
       "tool_invocation_path": "",
       "tool_version": "0.0.0"
     },
@@ -3540,7 +3724,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "runtime_s": 1.0,
       "stage_id": "bam.coverage",
       "stage_report_path": "bam.coverage/stage_report.json",
-      "tool_id": "tool",
+      "tool_id": "mosdepth",
       "tool_invocation_path": "",
       "tool_version": "0.0.0"
     },
@@ -3556,7 +3740,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "runtime_s": 1.0,
       "stage_id": "bam.damage",
       "stage_report_path": "bam.damage/stage_report.json",
-      "tool_id": "tool",
+      "tool_id": "pydamage",
       "tool_invocation_path": "",
       "tool_version": "0.0.0"
     },
@@ -3572,7 +3756,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "runtime_s": 1.0,
       "stage_id": "bam.filter",
       "stage_report_path": "bam.filter/stage_report.json",
-      "tool_id": "tool",
+      "tool_id": "samtools",
       "tool_invocation_path": "",
       "tool_version": "0.0.0"
     },
@@ -3588,7 +3772,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "runtime_s": 1.0,
       "stage_id": "bam.genotyping",
       "stage_report_path": "bam.genotyping/stage_report.json",
-      "tool_id": "tool",
+      "tool_id": "angsd",
       "tool_invocation_path": "",
       "tool_version": "0.0.0"
     },
@@ -3604,7 +3788,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "runtime_s": 1.0,
       "stage_id": "bam.haplogroups",
       "stage_report_path": "bam.haplogroups/stage_report.json",
-      "tool_id": "tool",
+      "tool_id": "yleaf",
       "tool_invocation_path": "",
       "tool_version": "0.0.0"
     },
@@ -3620,7 +3804,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "runtime_s": 1.0,
       "stage_id": "bam.kinship",
       "stage_report_path": "bam.kinship/stage_report.json",
-      "tool_id": "tool",
+      "tool_id": "king",
       "tool_invocation_path": "",
       "tool_version": "0.0.0"
     },
@@ -3636,7 +3820,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "runtime_s": 1.0,
       "stage_id": "bam.markdup",
       "stage_report_path": "bam.markdup/stage_report.json",
-      "tool_id": "tool",
+      "tool_id": "gatk",
       "tool_invocation_path": "",
       "tool_version": "0.0.0"
     },
@@ -3652,7 +3836,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "runtime_s": 1.0,
       "stage_id": "bam.qc_pre",
       "stage_report_path": "bam.qc_pre/stage_report.json",
-      "tool_id": "tool",
+      "tool_id": "samtools",
       "tool_invocation_path": "",
       "tool_version": "0.0.0"
     },
@@ -3668,7 +3852,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "runtime_s": 1.0,
       "stage_id": "bam.sex",
       "stage_report_path": "bam.sex/stage_report.json",
-      "tool_id": "tool",
+      "tool_id": "rxy",
       "tool_invocation_path": "",
       "tool_version": "0.0.0"
     },
@@ -3684,7 +3868,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "runtime_s": 1.0,
       "stage_id": "bam.validate",
       "stage_report_path": "bam.validate/stage_report.json",
-      "tool_id": "tool",
+      "tool_id": "samtools",
       "tool_invocation_path": "",
       "tool_version": "0.0.0"
     }
