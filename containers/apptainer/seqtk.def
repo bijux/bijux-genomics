@@ -4,7 +4,7 @@
 # Container definition license: GPL-3.0.
 # The bijux-dna software source code is licensed under Apache-2.0.
 Bootstrap: docker
-From: ubuntu:24.04
+From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 
 %labels
     MAINTAINER Bijan Mousavi <mousavi.bijan@gmail.com>
@@ -42,6 +42,7 @@ From: ubuntu:24.04
     done || { echo "Failed to clone seqtk after 3 attempts"; exit 1; }
 
     cd /opt/seqtk
+    git checkout 94e707082d39b0a038f234df676e32d9802c0dc7
     make -j"$(nproc)"
 
     install -m 0755 ./seqtk /usr/local/bin/seqtk-bin

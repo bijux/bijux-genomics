@@ -4,7 +4,7 @@
 # Container definition license: GPL-3.0.
 # The bijux-dna software source code is licensed under Apache-2.0.
 Bootstrap: docker
-From: python:3.10-slim
+From: python:3.10-slim@sha256:e508a34e5491225a76fbb9e0f43ebde1f691c6a689d096d7510cf7fb17d4ba6f
 
 %labels
     MAINTAINER Bijan Mousavi <mousavi.bijan@gmail.com>

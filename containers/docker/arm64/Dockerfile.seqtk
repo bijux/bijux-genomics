@@ -3,7 +3,7 @@
 #
 # Container definition license: GPL-3.0.
 # The bijux-dna software source code is licensed under Apache-2.0.
-FROM ubuntu:24.04
+FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 ARG OCI_REVISION=unknown
 ARG OCI_CREATED=unknown
 ARG TOOL_VERSION=unknown
@@ -25,6 +25,7 @@ RUN apt-get update && \
         zlib1g-dev && \
     git clone https://github.com/lh3/seqtk.git /opt/seqtk && \
     cd /opt/seqtk && \
+    git checkout 94e707082d39b0a038f234df676e32d9802c0dc7 && \
     make && \
     mv seqtk /usr/local/bin/seqtk-bin && \
     rm -rf /opt/seqtk /var/lib/apt/lists/* && \

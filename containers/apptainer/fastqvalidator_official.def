@@ -4,7 +4,7 @@
 # Container definition license: GPL-3.0.
 # The bijux-dna software source code is licensed under Apache-2.0.
 Bootstrap: docker
-From: ubuntu:24.04
+From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 
 %labels
     MAINTAINER Bijan Mousavi <mousavi.bijan@gmail.com>
@@ -22,6 +22,7 @@ From: ubuntu:24.04
 
 %post
     export DEBIAN_FRONTEND=noninteractive
+    FASTQVALIDATOR_COMMIT=4cb293ca4153459b05ae7983f65a082d56b55c21
 
     apt-get update -qq && \
     apt-get install -y --no-install-recommends \
@@ -33,9 +34,10 @@ From: ubuntu:24.04
         libbz2-1.0 \
         ca-certificates && \
 
-    git clone --depth 1 https://github.com/statgen/libStatGen.git /opt/libStatGen && \
+    git clone --depth 1 https://github.com/statgen/libStatGen.git /opt/libStatGen && cd /opt/libStatGen && git checkout fae4fca874b3b78bf9b61c0eae080c15edd976a4 && cd - && \
     git clone --branch v0.1.1 --depth 1 \
         https://github.com/statgen/fastQValidator.git /opt/fastQValidator && \
+    cd /opt/fastQValidator && git checkout "$FASTQVALIDATOR_COMMIT" && cd - >/dev/null && \
 
     cd /opt/fastQValidator && \
     make -j$(nproc) LIB_PATH_FASTQ_VALIDATOR=/opt/libStatGen && \

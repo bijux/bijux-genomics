@@ -3,7 +3,7 @@
 #
 # Container definition license: GPL-3.0.
 # The bijux-dna software source code is licensed under Apache-2.0.
-FROM ubuntu:24.04
+FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 ARG OCI_REVISION=unknown
 ARG OCI_CREATED=unknown
 ARG TOOL_VERSION=unknown
@@ -38,7 +38,7 @@ RUN apt-get update && \
     && rm -rf /var/lib/apt/lists/*
 
 RUN for i in 1 2 3; do \
-        git clone https://github.com/Adrian-Cantu/PRINSEQ-plus-plus.git /opt/prinseq && break || \
+        git clone https://github.com/Adrian-Cantu/PRINSEQ-plus-plus.git /opt/prinseq && cd /opt/prinseq && git checkout d66b92ee7f7555a668ae6010811db3b256083046 && cd - >/dev/null && break || \
         echo "Git clone attempt $i failed, retrying..." && sleep 5; \
     done || { echo "Failed to clone PRINSEQ++ repository after 3 attempts"; exit 1; }
 

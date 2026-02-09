@@ -3,7 +3,7 @@
 #
 # Container definition license: GPL-3.0.
 # The bijux-dna software source code is licensed under Apache-2.0.
-FROM ubuntu:24.04
+FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 ARG OCI_REVISION=unknown
 ARG OCI_CREATED=unknown
 ARG TOOL_VERSION=unknown
@@ -25,7 +25,7 @@ RUN apt-get update && \
         echo "Git clone attempt $i failed, retrying..." && sleep 5; \
     done || { echo "Failed to clone AdapterRemoval repository after 3 attempts"; exit 1; } && \
     cd /opt/adapterremoval && \
-    git checkout tags/v${ADAPTERREMOVAL_VERSION} && \
+    git checkout 54bc0d6ffbbbc81ce60dc227e8ddd8e56ddf1501 && \
     make && \
     mv build/AdapterRemoval /usr/local/bin/adapterremoval-bin && \
     rm -rf /opt/adapterremoval && \
