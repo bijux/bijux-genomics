@@ -1,7 +1,7 @@
 ---
 source: crates/bijux-dna-pipelines/tests/contracts/defaults/defaults_ledger.rs
 assertion_line: 24
-expression: "bijux_testkit::snapshot_normalize_json(&json)"
+expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
   "assumptions": [],
@@ -44,24 +44,6 @@ expression: "bijux_testkit::snapshot_normalize_json(&json)"
       "rationale": "pipeline default"
     },
     "bam.filter": {
-      "assumptions": [],
-      "citations": [],
-      "comparability_implications": [],
-      "rationale": "pipeline default"
-    },
-    "bam.genotyping": {
-      "assumptions": [],
-      "citations": [],
-      "comparability_implications": [],
-      "rationale": "pipeline default"
-    },
-    "bam.haplogroups": {
-      "assumptions": [],
-      "citations": [],
-      "comparability_implications": [],
-      "rationale": "pipeline default"
-    },
-    "bam.kinship": {
       "assumptions": [],
       "citations": [],
       "comparability_implications": [],
@@ -136,19 +118,6 @@ expression: "bijux_testkit::snapshot_normalize_json(&json)"
       "mapq_threshold": 30,
       "min_length": 25,
       "remove_duplicates": false
-    },
-    "bam.genotyping": {
-      "caller": "angsd",
-      "min_call_rate": 0.7,
-      "min_posterior": 0.8
-    },
-    "bam.haplogroups": {
-      "min_coverage": 5.0,
-      "reference_panel": "rcrs.fasta"
-    },
-    "bam.kinship": {
-      "min_overlap_snps": 200,
-      "reference_panel": "panel.vcf"
     },
     "bam.markdup": {
       "duplicate_action": "mark",
