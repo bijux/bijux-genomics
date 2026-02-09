@@ -1,5 +1,5 @@
 #[test]
-fn damage_and_auth_models_have_shared_core_fields() {
+fn damage_and_auth_models_have_shared_core_fields() -> anyhow::Result<()> {
     let core = bijux_dna_domain_bam::metrics::DamageCoreFieldsV1 {
         tool: "damageprofiler".to_string(),
         c_to_t_5p: 0.21,
@@ -21,13 +21,14 @@ fn damage_and_auth_models_have_shared_core_fields() {
             }],
         },
     };
-    let raw = serde_json::to_value(&model).expect("serialize damageprofiler model");
+    let raw = serde_json::to_value(&model)?;
     assert_eq!(raw["core"]["tool"], "damageprofiler");
     assert_eq!(raw["core"]["reads_considered"], 10_000);
+    Ok(())
 }
 
 #[test]
-fn contamination_models_require_inputs_assumptions_and_warnings() {
+fn contamination_models_require_inputs_assumptions_and_warnings() -> anyhow::Result<()> {
     let model = bijux_dna_domain_bam::metrics::SchmutziMetricsV1 {
         contamination: bijux_dna_domain_bam::metrics::ContaminationToolMetricsV1 {
             tool: "schmutzi".to_string(),
@@ -45,10 +46,11 @@ fn contamination_models_require_inputs_assumptions_and_warnings() {
             }],
         },
     };
-    let raw = serde_json::to_value(&model).expect("serialize contamination model");
+    let raw = serde_json::to_value(&model)?;
     assert_eq!(
         raw["contamination"]["required_inputs"]["reference_panel"],
         "1000g-hg19"
     );
     assert_eq!(raw["contamination"]["warnings"][0]["code"], "LOW_COVERAGE");
+    Ok(())
 }
