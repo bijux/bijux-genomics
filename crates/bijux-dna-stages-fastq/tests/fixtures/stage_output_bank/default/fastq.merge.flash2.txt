@@ -1,0 +1,4 @@
+FLASH2 summary
+Total pairs: 50000
+Combined pairs: 41000
+Uncombined pairs: 9000

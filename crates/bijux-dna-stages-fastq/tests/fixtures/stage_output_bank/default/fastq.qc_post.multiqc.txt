@@ -1,0 +1,3 @@
+MultiQC v1.24
+Analysis complete
+Modules: fastqc, fastp

@@ -1,0 +1,5 @@
+fastp v0.23.4
+reads before filtering:
+  total reads: 100000
+reads after filtering:
+  total reads: 94000
