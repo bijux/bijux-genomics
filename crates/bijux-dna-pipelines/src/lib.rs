@@ -90,7 +90,7 @@ pub struct EffectiveDefaults {
 }
 
 #[derive(Debug, Clone, Serialize)]
-#[serde(tag = "kind", content = "value")]
+#[serde(untagged)]
 pub enum DefaultParams {
     FastqValidate(ValidateEffectiveParams),
     FastqDetectAdapters(DetectAdaptersEffectiveParams),
@@ -205,12 +205,7 @@ impl PipelineProfile {
         DefaultsLedgerV1 {
             pipeline_id: self.id.clone(),
             tools: self.defaults.tools.clone(),
-            params: self
-                .defaults
-                .params
-                .iter()
-                .map(|(stage, value)| (stage.clone(), value.to_json()))
-                .collect(),
+            params: self.defaults.params.clone(),
             thresholds: BTreeMap::new(),
             tool_provenance,
             param_provenance,

@@ -12,6 +12,8 @@ pub struct TrimEffectiveParams {
     #[serde(default)]
     pub q_cutoff: Option<u32>,
     pub adapter_policy: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub damage_mode: Option<String>,
     #[serde(default)]
     pub polyx_policy: Option<String>,
     #[serde(default)]
@@ -42,6 +44,7 @@ impl TrimEffectiveParams {
             "min_len": self.min_len,
             "q": self.q_cutoff,
             "adapter_policy": self.adapter_policy,
+            "damage_mode": self.damage_mode,
             "polyx_policy": self.polyx_policy,
             "n_policy": self.n_policy,
             "contaminant_policy": self.contaminant_policy,

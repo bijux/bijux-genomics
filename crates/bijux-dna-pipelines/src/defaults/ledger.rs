@@ -7,6 +7,7 @@ use serde::Serialize;
 
 use crate::PipelineId;
 use bijux_dna_core::ids::{StageId, ToolId};
+use crate::DefaultParams;
 
 #[derive(Debug, Clone, Serialize)]
 pub struct DefaultProvenanceV1 {
@@ -23,7 +24,7 @@ pub struct DefaultProvenanceV1 {
 pub struct DefaultsLedgerV1 {
     pub pipeline_id: PipelineId,
     pub tools: BTreeMap<StageId, ToolId>,
-    pub params: BTreeMap<StageId, serde_json::Value>,
+    pub params: BTreeMap<StageId, DefaultParams>,
     #[serde(default)]
     pub thresholds: BTreeMap<StageId, serde_json::Value>,
     pub tool_provenance: BTreeMap<StageId, DefaultProvenanceV1>,

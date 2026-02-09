@@ -24,6 +24,8 @@ pub struct FilterEffectiveParams {
     pub n_policy: Option<String>,
     #[serde(default)]
     pub polyx_policy: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub damage_mode: Option<String>,
 }
 
 impl FilterEffectiveParams {
@@ -50,6 +52,7 @@ impl FilterEffectiveParams {
             "kmer_ref": self.contaminant_db,
             "n_policy": self.n_policy,
             "polyx_policy": self.polyx_policy,
+            "damage_mode": self.damage_mode,
             "paired_mode": self.paired_mode,
             "threads": self.threads,
         })
