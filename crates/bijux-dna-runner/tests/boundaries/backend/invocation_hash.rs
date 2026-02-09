@@ -24,5 +24,11 @@ fn invocation_hash_is_stable_for_docker_backend() -> anyhow::Result<()> {
     let docker_hash =
         docker_backend::execution_spec::invocation_hash_for_spec(&spec, &env, &inputs)?;
     assert!(!docker_hash.is_empty());
+
+    let mut spec_changed = spec.clone();
+    spec_changed.tool_version = "2.0".to_string();
+    let changed_hash =
+        docker_backend::execution_spec::invocation_hash_for_spec(&spec_changed, &env, &inputs)?;
+    assert_ne!(docker_hash, changed_hash);
     Ok(())
 }

@@ -183,24 +183,20 @@ impl PipelineProfile {
             }
         }
         for stage in self.defaults.tools.keys() {
-            tool_provenance
-                .entry(stage.clone())
-                .or_insert_with(|| DefaultProvenanceV1 {
-                    rationale: String::new(),
-                    assumptions: Vec::new(),
-                    comparability_implications: Vec::new(),
-                    citations: Vec::new(),
-                });
+            assert!(
+                tool_provenance.contains_key(stage),
+                "missing tool provenance rationale for stage {} in pipeline {}",
+                stage.as_str(),
+                self.id.as_str()
+            );
         }
         for stage in self.defaults.params.keys() {
-            param_provenance
-                .entry(stage.clone())
-                .or_insert_with(|| DefaultProvenanceV1 {
-                    rationale: String::new(),
-                    assumptions: Vec::new(),
-                    comparability_implications: Vec::new(),
-                    citations: Vec::new(),
-                });
+            assert!(
+                param_provenance.contains_key(stage),
+                "missing parameter provenance rationale for stage {} in pipeline {}",
+                stage.as_str(),
+                self.id.as_str()
+            );
         }
         DefaultsLedgerV1 {
             pipeline_id: self.id.clone(),
