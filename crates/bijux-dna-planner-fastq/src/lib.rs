@@ -804,6 +804,10 @@ pub fn select_trim_tools(tools: &[String], allow_experimental: bool) -> Result<V
         "trim_galore",
         "atropos",
         "seqpurge",
+        "skewer",
+        "leehom",
+        "alientrimmer",
+        "fastx_clipper",
     ];
     let mut allowlist = allowed.to_vec();
     if !allow_experimental {
@@ -855,6 +859,8 @@ pub fn select_umi_tools(tools: &[String]) -> Result<Vec<String>> {
 pub fn select_screen_tools(tools: &[String]) -> Result<Vec<String>> {
     let allowed = [
         "kraken2",
+        "krakenuniq",
+        "bracken",
         "centrifuge",
         "metaphlan",
         "kaiju",
@@ -864,7 +870,7 @@ pub fn select_screen_tools(tools: &[String]) -> Result<Vec<String>> {
 }
 
 pub fn select_stats_tools(tools: &[String]) -> Result<Vec<String>> {
-    let allowed = ["seqkit_stats"];
+    let allowed = ["seqkit_stats", "fastq-scan", "seqfu"];
     select_tools_with_allowlist(tools, &allowed)
 }
 

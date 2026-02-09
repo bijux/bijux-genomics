@@ -39,11 +39,23 @@ pub fn plan_stats_neutral(
                 r1.to_path_buf(),
                 ArtifactRole::Reads,
             )],
-            outputs: vec![ArtifactRef::required(
-                ArtifactId::from_static("stats_json"),
-                out_dir.join("stats.json"),
-                ArtifactRole::MetricsJson,
-            )],
+            outputs: vec![
+                ArtifactRef::required(
+                    ArtifactId::from_static("qc_json"),
+                    out_dir.join("qc.json"),
+                    ArtifactRole::MetricsJson,
+                ),
+                ArtifactRef::required(
+                    ArtifactId::from_static("qc_tsv"),
+                    out_dir.join("qc.tsv"),
+                    ArtifactRole::ReportJson,
+                ),
+                ArtifactRef::optional(
+                    ArtifactId::from_static("qc_plots_dir"),
+                    out_dir.join("plots"),
+                    ArtifactRole::Index,
+                ),
+            ],
         },
         out_dir: out_dir.to_path_buf(),
         params: serde_json::json!({

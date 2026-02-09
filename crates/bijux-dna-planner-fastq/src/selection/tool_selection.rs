@@ -41,11 +41,15 @@ pub fn canonical_tools_for_stage(stage_id: &StageId) -> &'static [&'static str] 
             "seqpurge",
             "prinseq",
             "seqkit",
+            "skewer",
+            "leehom",
+            "alientrimmer",
+            "fastx_clipper",
         ]
     } else if stage_id == &STAGE_FILTER {
         &["prinseq", "fastp", "seqkit", "bbduk"]
     } else if stage_id == &STAGE_STATS_NEUTRAL {
-        &["seqkit_stats"]
+        &["seqkit_stats", "fastq-scan", "seqfu"]
     } else if stage_id == &STAGE_QC_POST {
         &["fastqc", "multiqc"]
     } else if stage_id == &STAGE_MERGE {
@@ -57,6 +61,8 @@ pub fn canonical_tools_for_stage(stage_id: &StageId) -> &'static [&'static str] 
     } else if stage_id == &STAGE_SCREEN {
         &[
             "kraken2",
+            "krakenuniq",
+            "bracken",
             "centrifuge",
             "metaphlan",
             "kaiju",
