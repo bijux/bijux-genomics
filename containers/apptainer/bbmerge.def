@@ -1,0 +1,47 @@
+Bootstrap: docker
+From: ubuntu:24.04
+
+%labels
+    MAINTAINER Bijan Mousavi <mousavi.bijan@gmail.com>
+    VERSION BBMerge-v39.01
+
+%environment
+    DEBIAN_FRONTEND=noninteractive
+
+%post
+    export DEBIAN_FRONTEND=noninteractive
+
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        wget ca-certificates openjdk-11-jre-headless && \
+
+    wget -q https://downloads.sourceforge.net/project/bbmap/BBMap_39.01.tar.gz -O /tmp/bbmap.tar.gz && \
+    tar -xzvf /tmp/bbmap.tar.gz -C /opt && \
+    rm /tmp/bbmap.tar.gz && \
+
+    # Create a wrapper script with special handling for --version.
+    cat > /usr/local/bin/bbmerge <<'EOF'
+#!/bin/sh
+if [ "$1" = "--version" ]; then
+    /opt/bbmap/bbmerge.sh --version 2>&1
+else
+    /opt/bbmap/bbmerge.sh "$@"
+fi
+EOF
+    chmod +x /usr/local/bin/bbmerge && \
+
+    apt-get purge -y wget && \
+    apt-get autoremove -y && \
+    rm -rf /var/lib/apt/lists/*
+
+%runscript
+    if [ $# -eq 0 ]; then
+        exec /usr/local/bin/bbmerge --help
+    else
+        exec /usr/local/bin/bbmerge "$@"
+    fi
+
+%help
+    This Apptainer image provides BBMerge (part of BBMap version 39.01).
+    Run with arguments to execute bbmerge.sh, or without arguments to display help.
+    The wrapper handles --version by redirecting output for consistency.
