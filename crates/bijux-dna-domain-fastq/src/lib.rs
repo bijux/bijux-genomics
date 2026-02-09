@@ -44,11 +44,16 @@ pub use invariants::{
     evaluate_invariants, fastq_invariant_specs, thresholds_from_env, InvariantEvaluation,
     InvariantThresholds,
 };
-pub use params::{parse_effective_params, EffectiveParams, PairedMode};
+pub use metrics::{
+    BrackenClassificationMetricsV1, BrackenRecordV1, ClassificationDbProvenanceV1,
+    FastqQScoreSummaryV1, FastqQcSummaryMetricsV1, FastqScanMetricsV1,
+    KrakenUniqClassificationMetricsV1, KrakenUniqRecordV1, SeqfuMetricsV1, TaxonomyRecordV1,
+};
 pub use params::trim::{
     AlienTrimmerParamsV1, FastxClipperParamsV1, LeeHomTrimParamsV1, OverlapCollapseMode,
     ReadHandlingMode, SkewerTrimParamsV1, TrimAdapterMode, TrimQualityMode, TrimToolParamsV1,
 };
+pub use params::{parse_effective_params, EffectiveParams, PairedMode};
 pub use pipeline_contract::{
     canonical_stage_order, forbidden_transitions, optional_branches, StageCriticality,
 };
@@ -77,9 +82,4 @@ pub use types::{
     AdapterContributionV1, AdapterTrimmingReportV1, FastqArtifact, FastqArtifactKind, FastqLayout,
     FastqPE, FastqPairedEnd, FastqSE, FastqSampleId, FastqSingleEnd, FastqStats, RetentionReportV1,
     ToolReferenceV1,
-};
-pub use metrics::{
-    BrackenClassificationMetricsV1, BrackenRecordV1, ClassificationDbProvenanceV1,
-    FastqQcSummaryMetricsV1, FastqQScoreSummaryV1, FastqScanMetricsV1,
-    KrakenUniqClassificationMetricsV1, KrakenUniqRecordV1, SeqfuMetricsV1, TaxonomyRecordV1,
 };
