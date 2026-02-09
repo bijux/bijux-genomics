@@ -1,0 +1,508 @@
+# Central tools registry (SSOT)
+# Maintained for container/runtime completeness checks.
+[[tools]]
+id = "fastp"
+version = "0.23.4"
+upstream = "unknown"
+pinned_commit = "unknown"
+runtimes = ["docker", "apptainer"]
+version_cmd = "fastp --version"
+dockerfile = "containers/docker/arm64/Dockerfile.fastp"
+apptainer_def = "containers/apptainer/fastp.def"
+require_labels = true
+
+[[tools]]
+id = "bwa"
+version = "0.7.17"
+upstream = "unknown"
+pinned_commit = "unknown"
+runtimes = ["docker", "apptainer"]
+version_cmd = "bwa --version"
+dockerfile = "containers/docker/arm64/Dockerfile.bwa"
+apptainer_def = "containers/apptainer/bwa.def"
+require_labels = true
+
+[[tools]]
+id = "cutadapt"
+version = "4.9"
+upstream = "unknown"
+pinned_commit = "unknown"
+runtimes = ["docker", "apptainer"]
+version_cmd = "cutadapt --version"
+dockerfile = "containers/docker/arm64/Dockerfile.cutadapt"
+apptainer_def = "containers/apptainer/cutadapt.def"
+require_labels = true
+
+[[tools]]
+id = "seqkit"
+version = "2.8.2"
+upstream = "unknown"
+pinned_commit = "unknown"
+runtimes = ["docker", "apptainer"]
+version_cmd = "seqkit --version"
+dockerfile = "containers/docker/arm64/Dockerfile.seqkit"
+apptainer_def = "containers/apptainer/seqkit.def"
+require_labels = true
+
+[[tools]]
+id = "seqkit_stats"
+version = "2.8.2"
+upstream = "unknown"
+pinned_commit = "unknown"
+runtimes = ["docker", "apptainer"]
+version_cmd = "seqkit_stats --version"
+dockerfile = "containers/docker/arm64/Dockerfile.seqkit_stats"
+apptainer_def = "containers/apptainer/seqkit_stats.def"
+require_labels = true
+
+[[tools]]
+id = "bbduk"
+version = "39.08"
+upstream = "unknown"
+pinned_commit = "unknown"
+runtimes = ["docker", "apptainer"]
+version_cmd = "bbduk --version"
+dockerfile = "containers/docker/arm64/Dockerfile.bbduk"
+apptainer_def = "containers/apptainer/bbduk.def"
+require_labels = true
+
+[[tools]]
+id = "adapterremoval"
+version = "2.3.3"
+upstream = "unknown"
+pinned_commit = "unknown"
+runtimes = ["docker", "apptainer"]
+version_cmd = "adapterremoval --version"
+dockerfile = "containers/docker/arm64/Dockerfile.adapterremoval"
+apptainer_def = "containers/apptainer/adapterremoval.def"
+require_labels = true
+
+[[tools]]
+id = "trimmomatic"
+version = "0.39"
+upstream = "unknown"
+pinned_commit = "unknown"
+runtimes = ["docker", "apptainer"]
+version_cmd = "trimmomatic --version"
+dockerfile = "containers/docker/arm64/Dockerfile.trimmomatic"
+apptainer_def = "containers/apptainer/trimmomatic.def"
+require_labels = true
+
+[[tools]]
+id = "trim_galore"
+version = "0.6.10"
+upstream = "unknown"
+pinned_commit = "unknown"
+runtimes = ["docker", "apptainer"]
+version_cmd = "trim_galore --version"
+dockerfile = "containers/docker/arm64/Dockerfile.trim_galore"
+apptainer_def = "containers/apptainer/trim_galore.def"
+require_labels = true
+
+[[tools]]
+id = "seqtk"
+version = "1.5-r133"
+upstream = "unknown"
+pinned_commit = "unknown"
+runtimes = ["docker", "apptainer"]
+version_cmd = "seqtk --version"
+dockerfile = "containers/docker/arm64/Dockerfile.seqtk"
+apptainer_def = "containers/apptainer/seqtk.def"
+require_labels = true
+
+[[tools]]
+id = "fastqc"
+version = "0.12.1"
+upstream = "unknown"
+pinned_commit = "unknown"
+runtimes = ["docker", "apptainer"]
+version_cmd = "fastqc --version"
+dockerfile = "containers/docker/arm64/Dockerfile.fastqc"
+apptainer_def = "containers/apptainer/fastqc.def"
+require_labels = true
+
+[[tools]]
+id = "fastqvalidator"
+version = "0.1.1"
+upstream = "unknown"
+pinned_commit = "unknown"
+runtimes = ["docker", "apptainer"]
+version_cmd = "fastqvalidator --version"
+dockerfile = "containers/docker/arm64/Dockerfile.fastqvalidator"
+apptainer_def = "containers/apptainer/fastqvalidator.def"
+require_labels = true
+
+[[tools]]
+id = "fqtools"
+version = "2.3"
+upstream = "unknown"
+pinned_commit = "unknown"
+runtimes = ["docker", "apptainer"]
+version_cmd = "fqtools --version"
+dockerfile = "containers/docker/arm64/Dockerfile.fqtools"
+apptainer_def = "containers/apptainer/fqtools.def"
+require_labels = true
+
+[[tools]]
+id = "prinseq"
+version = "1.2.4"
+upstream = "unknown"
+pinned_commit = "unknown"
+runtimes = ["docker", "apptainer"]
+version_cmd = "prinseq --version"
+dockerfile = "containers/docker/arm64/Dockerfile.prinseq"
+apptainer_def = "containers/apptainer/prinseq.def"
+require_labels = true
+
+[[tools]]
+id = "pear"
+version = "0.9.6"
+upstream = "unknown"
+pinned_commit = "unknown"
+runtimes = ["docker", "apptainer"]
+version_cmd = "pear --version"
+dockerfile = "containers/docker/arm64/Dockerfile.pear"
+apptainer_def = "containers/apptainer/pear.def"
+require_labels = true
+
+[[tools]]
+id = "vsearch"
+version = "2.28.1"
+upstream = "unknown"
+pinned_commit = "unknown"
+runtimes = ["docker", "apptainer"]
+version_cmd = "vsearch --version"
+dockerfile = "containers/docker/arm64/Dockerfile.vsearch"
+apptainer_def = "containers/apptainer/vsearch.def"
+require_labels = true
+
+[[tools]]
+id = "bbmerge"
+version = "39.01"
+upstream = "unknown"
+pinned_commit = "unknown"
+runtimes = ["docker", "apptainer"]
+version_cmd = "bbmerge --version"
+dockerfile = "containers/docker/arm64/Dockerfile.bbmerge"
+apptainer_def = "containers/apptainer/bbmerge.def"
+require_labels = true
+
+[[tools]]
+id = "flash2"
+version = "2.2.00"
+upstream = "unknown"
+pinned_commit = "unknown"
+runtimes = ["docker", "apptainer"]
+version_cmd = "flash2 --version"
+dockerfile = "containers/docker/arm64/Dockerfile.flash2"
+apptainer_def = "containers/apptainer/flash2.def"
+require_labels = true
+
+[[tools]]
+id = "seqpurge"
+version = "2025_05"
+upstream = "unknown"
+pinned_commit = "unknown"
+runtimes = ["docker", "apptainer"]
+version_cmd = "seqpurge --version"
+dockerfile = "containers/docker/arm64/Dockerfile.seqpurge"
+apptainer_def = "containers/apptainer/seqpurge.def"
+require_labels = true
+
+[[tools]]
+id = "spades"
+version = "4.2.0"
+upstream = "unknown"
+pinned_commit = "unknown"
+runtimes = ["docker", "apptainer"]
+version_cmd = "spades --version"
+dockerfile = "containers/docker/arm64/Dockerfile.spades"
+apptainer_def = "containers/apptainer/spades.def"
+require_labels = true
+
+[[tools]]
+id = "bayeshammer"
+version = "4.2.0"
+upstream = "unknown"
+pinned_commit = "unknown"
+runtimes = ["docker", "apptainer"]
+version_cmd = "bayeshammer --version"
+dockerfile = "containers/docker/arm64/Dockerfile.bayeshammer"
+apptainer_def = "containers/apptainer/bayeshammer.def"
+require_labels = true
+
+[[tools]]
+id = "lighter"
+version = "1.1.2"
+upstream = "unknown"
+pinned_commit = "unknown"
+runtimes = ["docker", "apptainer"]
+version_cmd = "lighter --version"
+dockerfile = "containers/docker/arm64/Dockerfile.lighter"
+apptainer_def = "containers/apptainer/lighter.def"
+require_labels = true
+
+[[tools]]
+id = "musket"
+version = "1.1"
+upstream = "unknown"
+pinned_commit = "unknown"
+runtimes = ["docker", "apptainer"]
+version_cmd = "musket --version"
+dockerfile = "containers/docker/arm64/Dockerfile.musket"
+apptainer_def = "containers/apptainer/musket.def"
+require_labels = true
+
+[[tools]]
+id = "umi_tools"
+version = "1.1.6"
+upstream = "unknown"
+pinned_commit = "unknown"
+runtimes = ["docker", "apptainer"]
+version_cmd = "umi_tools --version"
+dockerfile = "containers/docker/arm64/Dockerfile.umi_tools"
+apptainer_def = "containers/apptainer/umi_tools.def"
+require_labels = true
+
+[[tools]]
+id = "multiqc"
+version = "1.24"
+upstream = "unknown"
+pinned_commit = "unknown"
+runtimes = ["docker", "apptainer"]
+version_cmd = "multiqc --version"
+dockerfile = "containers/docker/arm64/Dockerfile.multiqc"
+apptainer_def = "containers/apptainer/multiqc.def"
+require_labels = true
+
+[[tools]]
+id = "qualimap"
+version = "2.3"
+upstream = "unknown"
+pinned_commit = "unknown"
+runtimes = ["docker", "apptainer"]
+version_cmd = "qualimap --version"
+dockerfile = "containers/docker/arm64/Dockerfile.qualimap"
+apptainer_def = "containers/apptainer/qualimap.def"
+require_labels = true
+
+[[tools]]
+id = "samtools"
+version = "1.21"
+upstream = "unknown"
+pinned_commit = "unknown"
+runtimes = ["docker", "apptainer"]
+version_cmd = "samtools --version"
+dockerfile = "containers/docker/arm64/Dockerfile.samtools"
+apptainer_def = "containers/apptainer/samtools.def"
+require_labels = true
+
+[[tools]]
+id = "kraken2"
+version = "2.1.3"
+upstream = "unknown"
+pinned_commit = "unknown"
+runtimes = ["docker", "apptainer"]
+version_cmd = "kraken2 --version"
+dockerfile = "containers/docker/arm64/Dockerfile.kraken2"
+apptainer_def = "containers/apptainer/kraken2.def"
+require_labels = true
+
+[[tools]]
+id = "centrifuge"
+version = "1.0.4"
+upstream = "unknown"
+pinned_commit = "unknown"
+runtimes = ["docker", "apptainer"]
+version_cmd = "centrifuge --version"
+dockerfile = "containers/docker/arm64/Dockerfile.centrifuge"
+apptainer_def = "containers/apptainer/centrifuge.def"
+require_labels = true
+
+[[tools]]
+id = "metaphlan"
+version = "4.1.1"
+upstream = "unknown"
+pinned_commit = "unknown"
+runtimes = ["docker", "apptainer"]
+version_cmd = "metaphlan --version"
+dockerfile = "containers/docker/arm64/Dockerfile.metaphlan"
+apptainer_def = "containers/apptainer/metaphlan.def"
+require_labels = true
+
+[[tools]]
+id = "kaiju"
+version = "1.10.0"
+upstream = "unknown"
+pinned_commit = "unknown"
+runtimes = ["docker", "apptainer"]
+version_cmd = "kaiju --version"
+dockerfile = "containers/docker/arm64/Dockerfile.kaiju"
+apptainer_def = "containers/apptainer/kaiju.def"
+require_labels = true
+
+[[tools]]
+id = "rcorrector"
+version = "1.0.7"
+upstream = "unknown"
+pinned_commit = "unknown"
+runtimes = ["docker", "apptainer"]
+version_cmd = "rcorrector --version"
+dockerfile = "containers/docker/arm64/Dockerfile.rcorrector"
+apptainer_def = "containers/apptainer/rcorrector.def"
+require_labels = true
+
+[[tools]]
+id = "atropos"
+version = "1.1.31"
+upstream = "unknown"
+pinned_commit = "unknown"
+runtimes = ["docker", "apptainer"]
+version_cmd = "atropos --version"
+dockerfile = "containers/docker/arm64/Dockerfile.atropos"
+apptainer_def = "containers/apptainer/atropos.def"
+require_labels = true
+
+[[tools]]
+id = "fastq_screen"
+version = "0.15.3"
+upstream = "unknown"
+pinned_commit = "unknown"
+runtimes = ["docker", "apptainer"]
+version_cmd = "fastq_screen --version"
+dockerfile = "containers/docker/arm64/Dockerfile.fastq_screen"
+apptainer_def = "containers/apptainer/fastq_screen.def"
+require_labels = true
+
+[[tools]]
+id = "fastqvalidator_official"
+version = "v0.1.1"
+upstream = "unknown"
+pinned_commit = "unknown"
+runtimes = ["docker", "apptainer"]
+version_cmd = "fastqvalidator_official --version"
+dockerfile = "containers/docker/arm64/Dockerfile.fastqvalidator_official"
+apptainer_def = "containers/apptainer/fastqvalidator_official.def"
+require_labels = true
+
+[[tools]]
+id = "mapdamage2"
+version = "unknown"
+upstream = "unknown"
+pinned_commit = "unknown"
+runtimes = ["docker", "apptainer"]
+version_cmd = "mapdamage2 --version"
+dockerfile = "containers/docker/arm64/Dockerfile.mapdamage2"
+apptainer_def = "containers/apptainer/mapdamage2.def"
+require_labels = true
+
+[[tools]]
+id = "pydamage"
+version = "unknown"
+upstream = "unknown"
+pinned_commit = "unknown"
+runtimes = ["docker", "apptainer"]
+version_cmd = "pydamage --version"
+dockerfile = "containers/docker/arm64/Dockerfile.pydamage"
+apptainer_def = "containers/apptainer/pydamage.def"
+require_labels = true
+
+[[tools]]
+id = "mosdepth"
+version = "unknown"
+upstream = "unknown"
+pinned_commit = "unknown"
+runtimes = ["docker", "apptainer"]
+version_cmd = "mosdepth --version"
+dockerfile = "containers/docker/arm64/Dockerfile.mosdepth"
+apptainer_def = "containers/apptainer/mosdepth.def"
+require_labels = true
+
+[[tools]]
+id = "picard"
+version = "unknown"
+upstream = "unknown"
+pinned_commit = "unknown"
+runtimes = ["docker", "apptainer"]
+version_cmd = "picard --version"
+dockerfile = "containers/docker/arm64/Dockerfile.picard"
+apptainer_def = "containers/apptainer/picard.def"
+require_labels = true
+
+[[tools]]
+id = "gatk"
+version = "unknown"
+upstream = "unknown"
+pinned_commit = "unknown"
+runtimes = ["docker", "apptainer"]
+version_cmd = "gatk --version"
+dockerfile = "containers/docker/arm64/Dockerfile.gatk"
+apptainer_def = "containers/apptainer/gatk.def"
+require_labels = true
+
+[[tools]]
+id = "authenticct"
+version = "unknown"
+upstream = "unknown"
+pinned_commit = "unknown"
+runtimes = ["docker", "apptainer"]
+version_cmd = "authenticct --version"
+dockerfile = "containers/docker/arm64/Dockerfile.authenticct"
+apptainer_def = "containers/apptainer/authenticct.def"
+require_labels = true
+
+[[tools]]
+id = "rxy"
+version = "unknown"
+upstream = "unknown"
+pinned_commit = "unknown"
+runtimes = ["docker", "apptainer"]
+version_cmd = "rxy --version"
+dockerfile = "containers/docker/arm64/Dockerfile.rxy"
+apptainer_def = "containers/apptainer/rxy.def"
+require_labels = true
+
+[[tools]]
+id = "angsd"
+version = "unknown"
+upstream = "unknown"
+pinned_commit = "unknown"
+runtimes = ["docker", "apptainer"]
+version_cmd = "angsd --version"
+dockerfile = "containers/docker/arm64/Dockerfile.angsd"
+apptainer_def = "containers/apptainer/angsd.def"
+require_labels = true
+
+[[tools]]
+id = "yleaf"
+version = "unknown"
+upstream = "unknown"
+pinned_commit = "unknown"
+runtimes = ["docker", "apptainer"]
+version_cmd = "yleaf --version"
+dockerfile = "containers/docker/arm64/Dockerfile.yleaf"
+apptainer_def = "containers/apptainer/yleaf.def"
+require_labels = true
+
+[[tools]]
+id = "king"
+version = "unknown"
+upstream = "unknown"
+pinned_commit = "unknown"
+runtimes = ["docker", "apptainer"]
+version_cmd = "king --version"
+dockerfile = "containers/docker/arm64/Dockerfile.king"
+apptainer_def = "containers/apptainer/king.def"
+require_labels = true
+
+[[tools]]
+id = "preseq"
+version = "unknown"
+upstream = "unknown"
+pinned_commit = "unknown"
+runtimes = ["docker", "apptainer"]
+version_cmd = "preseq --version"
+dockerfile = "containers/docker/arm64/Dockerfile.preseq"
+apptainer_def = "containers/apptainer/preseq.def"
+require_labels = true
+
