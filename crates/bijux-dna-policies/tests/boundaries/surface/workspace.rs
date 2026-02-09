@@ -1491,3 +1491,39 @@ fn policy__boundaries__workspace__workspace_bans_resource_fork_artifacts() {
         "resource fork artifacts (.DS_Store/._*) are not allowed: {offenders:?}"
     );
 }
+
+#[test]
+fn policy__boundaries__workspace__workspace_has_no_legacy_bijux_packages() {
+    let root = workspace_root();
+    let mut offenders = Vec::new();
+    for entry in walkdir::WalkDir::new(&root.join("crates"))
+        .into_iter()
+        .filter_map(Result::ok)
+        .filter(|entry| entry.file_name() == "Cargo.toml")
+    {
+        let content = std::fs::read_to_string(entry.path()).unwrap_or_default();
+        for line in content.lines() {
+            let line = line.trim();
+            if !line.starts_with("name") {
+                continue;
+            }
+            if let Some((_, value)) = line.split_once('=') {
+                let name = value.trim().trim_matches('"');
+                if name.starts_with("bijux-") && !name.starts_with("bijux-dna-") {
+                    offenders.push(
+                        entry
+                            .path()
+                            .strip_prefix(&root)
+                            .unwrap_or(entry.path())
+                            .display()
+                            .to_string(),
+                    );
+                }
+            }
+        }
+    }
+    bijux_dna_policies::policy_assert!(
+        offenders.is_empty(),
+        "workspace Cargo.toml package names must use bijux-dna-* (no legacy bijux-*): {offenders:?}"
+    );
+}
