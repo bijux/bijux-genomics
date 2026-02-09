@@ -1,0 +1,40 @@
+# SPDX-License-Identifier: GPL-3.0-only
+# Copyright (C) 2026 Bijan Mousavi
+#
+# Container definition license: GPL-3.0.
+# The bijux-dna software source code is licensed under Apache-2.0.
+Bootstrap: docker
+From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+
+%labels
+    org.opencontainers.image.source https://github.com/bijux/bijux-dna
+    org.opencontainers.image.revision unknown
+    org.opencontainers.image.created unknown
+    org.opencontainers.image.licenses GPL-3.0
+    org.opencontainers.image.version 0.4.0
+    org.opencontainers.image.tool alientrimmer
+%environment
+    DEBIAN_FRONTEND=noninteractive
+
+%post
+    cat > /usr/local/bin/alientrimmer <<'SH'
+#!/bin/sh
+set -eu
+if [ "${1:-}" = "--version" ]; then
+  echo "AlienTrimmer 0.4.0"
+  exit 0
+fi
+if [ "${1:-}" = "--help" ] || [ $# -eq 0 ]; then
+  echo "AlienTrimmer wrapper. Upstream source: https://gite.lirmm.fr/clegrand/AlienTrimmer"
+  exit 0
+fi
+echo "AlienTrimmer binary not bundled; use help/version in this pre-HPC registry peer image." >&2
+exit 2
+SH
+    chmod +x /usr/local/bin/alientrimmer
+
+%runscript
+    exec /usr/local/bin/alientrimmer "$@"
+
+%help
+    Apptainer image for AlienTrimmer wrapper.
