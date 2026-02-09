@@ -18,6 +18,8 @@ mod mod_contracts_tooling_ci_tools_policy_rs;
 mod mod_contracts_tooling_apptainer_purge_policy_rs;
 #[path = "contracts/tooling/apptainer_cpu_flag_policy.rs"]
 mod mod_contracts_tooling_apptainer_cpu_flag_policy_rs;
+#[path = "contracts/tooling/apptainer_structure_policy.rs"]
+mod mod_contracts_tooling_apptainer_structure_policy_rs;
 #[path = "contracts/tooling/command_spawn_policy.rs"]
 mod mod_contracts_tooling_command_spawn_policy_rs;
 #[path = "contracts/tooling/docs_links.rs"]
