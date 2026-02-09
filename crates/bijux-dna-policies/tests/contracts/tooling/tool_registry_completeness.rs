@@ -2,7 +2,9 @@
 #[path = "../../support/fs.rs"]
 mod support;
 
+use regex::Regex;
 use support::workspace_root;
+use walkdir::WalkDir;
 
 fn as_table_array<'a>(value: &'a toml::Value, key: &str) -> Vec<&'a toml::Value> {
     value
@@ -14,6 +16,14 @@ fn as_table_array<'a>(value: &'a toml::Value, key: &str) -> Vec<&'a toml::Value>
 
 fn as_str_field<'a>(table: &'a toml::Value, key: &str) -> Option<&'a str> {
     table.get(key).and_then(toml::Value::as_str)
+}
+
+fn file_name(path: &str) -> String {
+    std::path::Path::new(path)
+        .file_name()
+        .and_then(std::ffi::OsStr::to_str)
+        .unwrap_or_default()
+        .to_string()
 }
 
 fn runtimes(table: &toml::Value) -> Vec<String> {
@@ -37,6 +47,8 @@ fn policy__contracts__tool_registry_completeness__registry_entries_are_machine_c
     let parsed: toml::Value = raw.parse().expect("parse configs/tool_registry.toml");
     let tools = as_table_array(&parsed, "tools");
     let mut offenders = Vec::new();
+    let mut declared_docker_tool_files = std::collections::BTreeSet::new();
+    let mut declared_apptainer_tool_files = std::collections::BTreeSet::new();
 
     if tools.is_empty() {
         offenders.push("configs/tool_registry.toml: missing [[tools]] entries".to_string());
@@ -63,6 +75,19 @@ fn policy__contracts__tool_registry_completeness__registry_entries_are_machine_c
                     if path.is_empty() {
                         offenders.push(format!("tool={id}: missing dockerfile path"));
                     } else {
+                        if !path.starts_with("containers/docker/") {
+                            offenders.push(format!(
+                                "tool={id}: dockerfile path must be under containers/docker/: {path}"
+                            ));
+                        }
+                        let expected = format!("Dockerfile.{id}");
+                        let actual = file_name(path);
+                        if actual != expected {
+                            offenders.push(format!(
+                                "tool={id}: dockerfile must follow Dockerfile.<tool> naming: expected {expected}, got {actual}"
+                            ));
+                        }
+                        declared_docker_tool_files.insert(actual.replace("Dockerfile.", ""));
                         let abs = root.join(path);
                         if !abs.exists() {
                             offenders.push(format!("tool={id}: dockerfile not found at {path}"));
@@ -74,6 +99,28 @@ fn policy__contracts__tool_registry_completeness__registry_entries_are_machine_c
                             if !content.contains("org.opencontainers.image.licenses=\"GPL-3.0\"") {
                                 offenders.push(format!(
                                     "tool={id}: dockerfile missing OCI GPL-3.0 license label"
+                                ));
+                            }
+                            for required in [
+                                "org.opencontainers.image.source=",
+                                "org.opencontainers.image.revision=",
+                                "org.opencontainers.image.created=",
+                                "org.opencontainers.image.version=",
+                                "ARG TOOL_VERSION",
+                            ] {
+                                if !content.contains(required) {
+                                    offenders.push(format!(
+                                        "tool={id}: dockerfile missing reproducibility metadata marker `{required}`"
+                                    ));
+                                }
+                            }
+                            if content.contains("git clone")
+                                && !Regex::new(r"git checkout [0-9a-f]{40}")
+                                    .expect("compile git checkout regex")
+                                    .is_match(&content)
+                            {
+                                offenders.push(format!(
+                                    "tool={id}: dockerfile uses git clone without immutable commit checkout"
                                 ));
                             }
                             if content.contains("container scaffold")
@@ -91,6 +138,19 @@ fn policy__contracts__tool_registry_completeness__registry_entries_are_machine_c
                     if path.is_empty() {
                         offenders.push(format!("tool={id}: missing apptainer_def path"));
                     } else {
+                        if !path.starts_with("containers/apptainer/") {
+                            offenders.push(format!(
+                                "tool={id}: apptainer def path must be under containers/apptainer/: {path}"
+                            ));
+                        }
+                        let expected = format!("{id}.def");
+                        let actual = file_name(path);
+                        if actual != expected {
+                            offenders.push(format!(
+                                "tool={id}: apptainer def must follow <tool>.def naming: expected {expected}, got {actual}"
+                            ));
+                        }
+                        declared_apptainer_tool_files.insert(actual.replace(".def", ""));
                         let abs = root.join(path);
                         if !abs.exists() {
                             offenders.push(format!("tool={id}: apptainer def not found at {path}"));
@@ -102,6 +162,27 @@ fn policy__contracts__tool_registry_completeness__registry_entries_are_machine_c
                             if !content.contains("org.opencontainers.image.licenses GPL-3.0") {
                                 offenders.push(format!(
                                     "tool={id}: apptainer def missing OCI GPL-3.0 license label"
+                                ));
+                            }
+                            for required in [
+                                "org.opencontainers.image.source ",
+                                "org.opencontainers.image.revision ",
+                                "org.opencontainers.image.created ",
+                                "org.opencontainers.image.version ",
+                            ] {
+                                if !content.contains(required) {
+                                    offenders.push(format!(
+                                        "tool={id}: apptainer def missing reproducibility metadata marker `{required}`"
+                                    ));
+                                }
+                            }
+                            if content.contains("git clone")
+                                && !Regex::new(r"git checkout [0-9a-f]{40}")
+                                    .expect("compile git checkout regex")
+                                    .is_match(&content)
+                            {
+                                offenders.push(format!(
+                                    "tool={id}: apptainer def uses git clone without immutable commit checkout"
                                 ));
                             }
                             if content.contains("container scaffold")
@@ -131,6 +212,58 @@ fn policy__contracts__tool_registry_completeness__registry_entries_are_machine_c
             .unwrap_or(false);
         if !labels_required {
             offenders.push(format!("tool={id}: require_labels must be true"));
+        }
+    }
+
+    let docker_root = root.join("containers/docker");
+    if docker_root.exists() {
+        for entry in WalkDir::new(&docker_root)
+            .into_iter()
+            .filter_map(Result::ok)
+        {
+            let path = entry.path();
+            if !entry.file_type().is_file() {
+                continue;
+            }
+            let Some(name) = path.file_name().and_then(std::ffi::OsStr::to_str) else {
+                continue;
+            };
+            if !name.starts_with("Dockerfile.") {
+                continue;
+            }
+            let tool = name.trim_start_matches("Dockerfile.").to_string();
+            if !declared_docker_tool_files.contains(&tool) {
+                offenders.push(format!(
+                    "orphan dockerfile: {} (tool `{tool}` not present in registry)",
+                    path.display()
+                ));
+            }
+        }
+    }
+
+    let apptainer_root = root.join("containers/apptainer");
+    if apptainer_root.exists() {
+        for entry in WalkDir::new(&apptainer_root)
+            .into_iter()
+            .filter_map(Result::ok)
+        {
+            let path = entry.path();
+            if !entry.file_type().is_file() {
+                continue;
+            }
+            let Some(name) = path.file_name().and_then(std::ffi::OsStr::to_str) else {
+                continue;
+            };
+            if !name.ends_with(".def") {
+                continue;
+            }
+            let tool = name.trim_end_matches(".def").to_string();
+            if !declared_apptainer_tool_files.contains(&tool) {
+                offenders.push(format!(
+                    "orphan apptainer def: {} (tool `{tool}` not present in registry)",
+                    path.display()
+                ));
+            }
         }
     }
 
