@@ -5,6 +5,15 @@ import os
 import sys
 from pathlib import Path
 
+try:
+    import tomllib  # Python 3.11+
+except ModuleNotFoundError:  # pragma: no cover - fallback for older Python
+    tomllib = None
+try:
+    import tomli  # type: ignore
+except ModuleNotFoundError:  # pragma: no cover - optional fallback
+    tomli = None
+
 
 def percent(hit, total):
     if total == 0:
@@ -119,6 +128,37 @@ def load_report(path):
     return crates
 
 
+def parse_simple_toml_thresholds(text):
+    data = {"classes": {}, "crate_class": {}, "overrides": {}}
+    section = None
+    for raw_line in text.splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if line.startswith("[") and line.endswith("]"):
+            section = line[1:-1].strip()
+            if section not in data:
+                data[section] = {}
+            continue
+        if "=" not in line:
+            continue
+        key, value = [part.strip() for part in line.split("=", 1)]
+        if value.startswith('"') and value.endswith('"'):
+            parsed = value[1:-1]
+        else:
+            try:
+                parsed = float(value)
+            except ValueError:
+                parsed = value
+        if section is None:
+            data[key] = parsed
+        else:
+            if not isinstance(data.get(section), dict):
+                data[section] = {}
+            data[section][key] = parsed
+    return data
+
+
 def main():
     args = parse_args()
     data = load_report(args.report)
@@ -176,7 +216,16 @@ def main():
             print(f"{crate}: {fmt_pct(lines_pct)}")
 
     if args.check_thresholds:
-        thresholds = json.loads(Path(args.check_thresholds).read_text())
+        thresholds_path = Path(args.check_thresholds)
+        if thresholds_path.suffix.lower() == ".toml":
+            if tomllib is not None:
+                thresholds = tomllib.loads(thresholds_path.read_text())
+            elif tomli is not None:
+                thresholds = tomli.loads(thresholds_path.read_text())
+            else:
+                thresholds = parse_simple_toml_thresholds(thresholds_path.read_text())
+        else:
+            thresholds = json.loads(thresholds_path.read_text())
         default_threshold = thresholds.get("default", 0.0)
         class_thresholds = thresholds.get("classes", {})
         class_map = thresholds.get("crate_class", {})
