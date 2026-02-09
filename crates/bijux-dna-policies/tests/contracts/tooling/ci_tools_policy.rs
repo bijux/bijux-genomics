@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
-use std::path::{Path, PathBuf};
 use std::env;
+use std::path::{Path, PathBuf};
 
 use walkdir::WalkDir;
 
@@ -127,9 +127,16 @@ fn policy__contracts__ci_tools_policy__test_and_coverage_dirs_are_isolated() {
     let test_profraw = env::var("TEST_PROFRAW_DIR").unwrap_or_default();
     let cov_profraw = env::var("COV_PROFRAW_DIR").unwrap_or_default();
 
-    let missing = [test_target.is_empty(), cov_target.is_empty(), test_tmp.is_empty(), cov_tmp.is_empty(), test_profraw.is_empty(), cov_profraw.is_empty()]
-        .iter()
-        .any(|missing| *missing);
+    let missing = [
+        test_target.is_empty(),
+        cov_target.is_empty(),
+        test_tmp.is_empty(),
+        cov_tmp.is_empty(),
+        test_profraw.is_empty(),
+        cov_profraw.is_empty(),
+    ]
+    .iter()
+    .any(|missing| *missing);
 
     bijux_dna_policies::policy_assert!(
         !missing,
@@ -156,7 +163,7 @@ fn policy__contracts__ci_tools_policy__repo_root_has_no_coverage_dir() {
     let legacy = root.join("coverage");
     bijux_dna_policies::policy_assert!(
         !legacy.exists(),
-        "Repo root must not contain coverage/ (use artifacts/coverage instead)."
+        "Repo root must not contain coverage/ (use target coverage output instead)."
     );
 }
 
@@ -197,5 +204,19 @@ fn policy__contracts__ci_tools_policy__no_bijux_namespace_in_docs_or_scripts() {
         offenders.is_empty(),
         "Docs/scripts/CI must not reference legacy bijux:: namespace: {:?}",
         offenders
+    );
+}
+
+#[test]
+fn policy__contracts__ci_tools_policy__ci_environment_contract_is_stable() {
+    let tz = env::var("TZ").unwrap_or_default();
+    let lc_all = env::var("LC_ALL").unwrap_or_default();
+    bijux_dna_policies::policy_assert!(
+        tz == "UTC",
+        "CI must set TZ=UTC for deterministic tests. Observed: {tz}"
+    );
+    bijux_dna_policies::policy_assert!(
+        lc_all == "C",
+        "CI must set LC_ALL=C for deterministic tests. Observed: {lc_all}"
     );
 }
