@@ -12,9 +12,18 @@ pub(crate) struct ExplainExclusion {
 pub(crate) struct ExplainPlan {
     pub stage: String,
     pub selected_tools: Vec<String>,
+    pub tool_selection: Vec<ExplainSelectionNote>,
     pub excluded_tools: Vec<ExplainExclusion>,
     pub policy: Option<String>,
     pub invariants: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub(crate) struct ExplainSelectionNote {
+    pub tool: String,
+    pub reason: String,
+    pub provenance_notes: Vec<String>,
+    pub comparability_notes: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -46,6 +55,8 @@ pub struct ExplainToolSelection {
     pub tool_id: String,
     #[serde(default)]
     pub reason: Option<String>,
+    pub provenance_notes: Vec<String>,
+    pub comparability_notes: Vec<String>,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -97,7 +108,15 @@ pub fn explain_bundle(
         .map(|step| ExplainToolSelection {
             stage_id: step.stage_id.to_string(),
             tool_id: step.image.image.clone(),
-            reason: None,
+            reason: Some("selected by planner policy and stage constraints".to_string()),
+            provenance_notes: vec![
+                format!("planner_version={}", plan.planner_version()),
+                format!("policy={:?}", plan.policy()),
+            ],
+            comparability_notes: vec![
+                "compare only against runs using the same stage contract and tool family"
+                    .to_string(),
+            ],
         })
         .collect::<Vec<_>>();
     let stage_contracts = plan
