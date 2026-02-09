@@ -29,6 +29,21 @@ pub mod damage {
             "mapdamage2" => {
                 crate::tool_adapters::tools::mapdamage2::damage_args(bam, out_dir, params)
             }
+            "damageprofiler" => crate::tool_adapters::tools::damageprofiler::args(
+                bam,
+                &out_dir.join("damage.profiler.json"),
+                params,
+            ),
+            "addeam" => crate::tool_adapters::tools::addeam::args(
+                bam,
+                &out_dir.join("damage.addeam.json"),
+                params,
+            ),
+            "ngsbriggs" => crate::tool_adapters::tools::ngsbriggs::args(
+                bam,
+                &out_dir.join("damage.ngsbriggs.json"),
+                params,
+            ),
             _ => crate::tool_adapters::tools::pydamage::args(bam, &out_json, params),
         };
         let plan = StagePlanV1 {
@@ -75,7 +90,7 @@ pub mod authenticity {
     use std::path::Path;
 
     use bijux_dna_core::prelude::{
-        ArtifactId, ArtifactRole, StageId, StageVersion, ToolExecutionSpecV1,
+        ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
     };
     use bijux_dna_domain_bam::params::AuthenticityEffectiveParams;
     use bijux_dna_stage_contract::{StageIO, StagePlanV1};
@@ -95,13 +110,33 @@ pub mod authenticity {
             bijux_dna_domain_bam::BamStage::Authenticity,
             out_dir,
         );
+        let report = out_dir.join("authenticity.json");
+        let summary = out_dir.join("authenticity.summary.json");
+        let mut outputs = outputs;
+        if tool.tool_id.as_str() == "pmdtools" {
+            outputs.push(bijux_dna_stage_contract::ArtifactRef::optional(
+                ArtifactId::from_static("pmd_filtered_bam"),
+                out_dir.join("pmd.filtered.bam"),
+                ArtifactRole::Bam,
+            ));
+        }
+        let command = match tool.tool_id.as_str() {
+            "pmdtools" => crate::tool_adapters::tools::pmdtools::filter_args(
+                bam,
+                &out_dir.join("pmd.filtered.bam"),
+                &report,
+                &summary,
+                params,
+            ),
+            _ => tool.command.template.clone(),
+        };
         let plan = StagePlanV1 {
             stage_id: StageId::from_static(STAGE_ID),
             stage_version: STAGE_VERSION,
             tool_id: tool.tool_id.clone(),
             tool_version: tool.tool_version.clone(),
             image: tool.image.clone(),
-            command: tool.command.clone(),
+            command: CommandSpecV1 { template: command },
             resources: tool.resources.clone(),
             io: StageIO {
                 inputs: vec![bijux_dna_stage_contract::ArtifactRef::required(
@@ -115,6 +150,7 @@ pub mod authenticity {
             params: serde_json::json!({
                 "bam": bam,
                 "mode": params.mode,
+                "pmd_filter_enabled": tool.tool_id.as_str() == "pmdtools",
             }),
             effective_params: crate::tool_adapters::stages_support::ensure_effective_params(
                 serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
@@ -155,17 +191,27 @@ pub mod contamination {
         );
         let report = out_dir.join("contamination.json");
         let summary = out_dir.join("contamination.summary.json");
+        let command = match tool.tool_id.as_str() {
+            "schmutzi" => crate::tool_adapters::tools::schmutzi::args_with_outputs(
+                bam, &report, &summary, params,
+            ),
+            "verifybamid2" => crate::tool_adapters::tools::verifybamid2::args_with_outputs(
+                bam, &report, &summary, params,
+            ),
+            "contammix" => crate::tool_adapters::tools::contammix::args_with_outputs(
+                bam, &report, &summary, params,
+            ),
+            _ => crate::tool_adapters::tools::authenticity::args_with_outputs(
+                bam, &report, &summary, params,
+            ),
+        };
         let plan = StagePlanV1 {
             stage_id: StageId::from_static(STAGE_ID),
             stage_version: STAGE_VERSION,
             tool_id: tool.tool_id.clone(),
             tool_version: tool.tool_version.clone(),
             image: tool.image.clone(),
-            command: CommandSpecV1 {
-                template: crate::tool_adapters::tools::authenticity::args_with_outputs(
-                    bam, &report, &summary, params,
-                ),
-            },
+            command: CommandSpecV1 { template: command },
             resources: tool.resources.clone(),
             io: StageIO {
                 inputs: vec![bijux_dna_stage_contract::ArtifactRef::required(
@@ -183,6 +229,11 @@ pub mod contamination {
                 "prior": params.prior,
                 "sex_specific": params.sex_specific,
                 "assumptions": params.assumptions,
+                "tool_scope": match tool.tool_id.as_str() {
+                    "schmutzi" => "mt",
+                    "verifybamid2" | "contammix" => "nuclear",
+                    _ => "both",
+                },
             }),
             effective_params: crate::tool_adapters::stages_support::ensure_effective_params(
                 serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
