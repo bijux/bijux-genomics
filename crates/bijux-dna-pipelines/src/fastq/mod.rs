@@ -5,7 +5,7 @@ use std::collections::BTreeMap;
 pub mod invariants;
 pub mod profiles;
 
-use bijux_dna_core::ids::StageId;
+use bijux_dna_core::ids::{StageId, ToolId};
 use bijux_dna_core::prelude::id_catalog;
 use bijux_dna_domain_fastq::params::defaults::{
     detect_adapters_defaults, filter_defaults, merge_defaults, preprocess_defaults,
@@ -18,7 +18,52 @@ use crate::{
 };
 
 fn fastq_defaults(paired: bool) -> EffectiveDefaults {
-    let tools = BTreeMap::new();
+    let tools = BTreeMap::from([
+        (
+            StageId::from_static("fastq.validate_pre"),
+            ToolId::from_static("fastqvalidator_official"),
+        ),
+        (
+            StageId::from_static("fastq.stats_neutral"),
+            ToolId::from_static("seqkit_stats"),
+        ),
+        (
+            StageId::from_static("fastq.correct"),
+            ToolId::from_static("rcorrector"),
+        ),
+        (
+            StageId::from_static("fastq.umi"),
+            ToolId::from_static("umi_tools"),
+        ),
+        (
+            StageId::from_static("fastq.detect_adapters"),
+            ToolId::from_static("fastqc"),
+        ),
+        (
+            StageId::from_static("fastq.trim"),
+            ToolId::from_static("fastp"),
+        ),
+        (
+            StageId::from_static("fastq.filter"),
+            ToolId::from_static("seqkit"),
+        ),
+        (
+            StageId::from_static("fastq.qc_post"),
+            ToolId::from_static("multiqc"),
+        ),
+        (
+            StageId::from_static("fastq.preprocess"),
+            ToolId::from_static("planner"),
+        ),
+        (
+            StageId::from_static("fastq.merge"),
+            ToolId::from_static("vsearch"),
+        ),
+        (
+            StageId::from_static("fastq.screen"),
+            ToolId::from_static("kraken2"),
+        ),
+    ]);
     let mut params = BTreeMap::new();
     params.insert(
         StageId::from_static("fastq.validate_pre"),
