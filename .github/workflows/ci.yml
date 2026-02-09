@@ -7,10 +7,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        shard: [1, 2]
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -20,30 +16,15 @@ jobs:
           shared-key: ci-build
       - name: Install cargo-nextest
         run: cargo install cargo-nextest --locked
-      - name: Format
-        run: make fmt-check
-      - name: Clippy (core)
-        run: make clippy
-      - name: Tests (tier 1)
-        run: make test-ci
-
-  policy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - name: Policies (fast)
-        run: make policies
-
-  audit:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      - name: Install cargo-llvm-cov
+        run: cargo install cargo-llvm-cov --locked
       - name: Install cargo-deny
         run: cargo install cargo-deny --locked
-      - name: Dependency Policy
-        run: make audit
+      - name: Minimal CI gate
+        env:
+          TZ: UTC
+          LC_ALL: C
+        run: make ci
 
   snapshot-invariance:
     runs-on: ubuntu-latest

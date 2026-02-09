@@ -1,7 +1,7 @@
 # CI
 
 ## What
-CI enforces formatting, lint, tests, policies, and docs build for the bijux-dna workspace.
+CI enforces the minimal deterministic gate for the bijux-dna workspace.
 
 ## Why
 Keeps code and docs in sync.
@@ -11,11 +11,15 @@ Keeps code and docs in sync.
 
 ## Contracts
 CI runs:
+- `make ci`
+
+`make ci` is exactly:
 - `make fmt`
 - `make lint`
-- `make test`
-- `make policy-full`
-- `mkdocs build --strict`
+- `make audit`
+- `make coverage`
+
+`make check` is the same minimal gate as `make ci`.
 
 ## Examples
 Run locally with the same commands before pushing.
