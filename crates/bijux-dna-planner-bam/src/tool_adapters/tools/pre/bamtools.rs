@@ -3,6 +3,7 @@ use std::path::Path;
 use bijux_dna_domain_bam::params::FilterEffectiveParams;
 
 #[must_use]
+#[allow(clippy::too_many_arguments)]
 pub fn filter_args_with_audit(
     bam: &Path,
     _params: &FilterEffectiveParams,
