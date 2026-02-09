@@ -16,8 +16,9 @@ ARTIFACT_DIR="$ROOT_DIR/artifacts/container"
 LOG_DIR="$ARTIFACT_DIR/logs/apptainer"
 IMG_DIR="$ARTIFACT_DIR/images/apptainer"
 SUMMARY="$LOG_DIR/summary.txt"
+MANIFEST_DIR="$ROOT_DIR/artifacts/containers"
 
-mkdir -p "$LOG_DIR" "$IMG_DIR" "$VM_OUT_DIR/logs" "$VM_OUT_DIR/sif"
+mkdir -p "$LOG_DIR" "$IMG_DIR" "$VM_OUT_DIR/logs" "$VM_OUT_DIR/sif" "$MANIFEST_DIR"
 
 if ! command -v "$APPTAINER_BIN" >/dev/null 2>&1; then
   echo "ERROR: '$APPTAINER_BIN' not found" >&2
@@ -68,6 +69,10 @@ PY
   fi
 }
 
+json_escape() {
+  printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'
+}
+
 get_version_cmd() {
   tool="$1"
   awk -v tool="$tool" '
@@ -88,6 +93,31 @@ get_version_cmd() {
   ' "$ROOT_DIR/configs/tool_registry.toml"
 }
 
+get_registry_field() {
+  field="$1"
+  tool="$2"
+  awk -v tool="$tool" -v field="$field" '
+    function unquote(v) {
+      gsub(/^[[:space:]]+|[[:space:]]+$/, "", v)
+      gsub(/^"/, "", v); gsub(/"$/, "", v)
+      return v
+    }
+    /^\[\[tools\]\]/ { in_tools=1; id=""; next }
+    in_tools && /^[[:space:]]*id[[:space:]]*=/ {
+      split($0, a, "="); id=unquote(a[2]); next
+    }
+    in_tools && id==tool {
+      key=$0
+      sub(/[[:space:]]*=.*/, "", key)
+      gsub(/^[[:space:]]+|[[:space:]]+$/, "", key)
+      if (key == field) {
+        split($0, a, "="); print unquote(a[2]); found=1; exit 0
+      }
+    }
+    END { if (!found) print "unknown" }
+  ' "$ROOT_DIR/configs/tool_registry.toml"
+}
+
 build_and_smoke_one() {
   def_file="$1"
   tool=$(basename "$def_file" .def)
@@ -96,6 +126,12 @@ build_and_smoke_one() {
   out_log="$LOG_DIR/${tool}.log"
   out_sif="$IMG_DIR/${tool}.sif"
   cmd=$(get_version_cmd "$tool")
+  version_output_file="$LOG_DIR/${tool}.version.out"
+  manifest="$MANIFEST_DIR/${tool}.json"
+  base_image=$(awk '/^From: /{print $2; exit}' "$def_file")
+  upstream=$(get_registry_field upstream "$tool")
+  pinned_commit=$(get_registry_field pinned_commit "$tool")
+  declared_version=$(get_registry_field version "$tool")
 
   {
     echo "=== [$tool] build start"
@@ -104,9 +140,59 @@ build_and_smoke_one() {
     # shellcheck disable=SC2086
     "$APPTAINER_BIN" build --force $BUILD_OPTS "$vm_sif" "$def_file"
     echo "=== [$tool] smoke: $cmd"
-    run_with_timeout "$VERSION_TIMEOUT" "$APPTAINER_BIN" exec "$vm_sif" sh -lc "$cmd"
+    run_with_timeout "$VERSION_TIMEOUT" "$APPTAINER_BIN" exec "$vm_sif" sh -lc "$cmd" | tee "$version_output_file"
     echo "=== [$tool] OK"
+    version_output="$(head -n 1 "$version_output_file" 2>/dev/null | tr -d '\r')"
+    version_output_json="$(json_escape "$version_output")"
+    cmd_json="$(json_escape "$cmd")"
+    def_json="$(json_escape "$def_file")"
+    base_image_json="$(json_escape "$base_image")"
+    image_json="$(json_escape "$out_sif")"
+    declared_version_json="$(json_escape "$declared_version")"
+    upstream_json="$(json_escape "$upstream")"
+    pinned_commit_json="$(json_escape "$pinned_commit")"
+    built_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    cat > "$manifest" <<JSON
+{
+  "tool": "$tool",
+  "runtime": "apptainer",
+  "status": "ok",
+  "definition": "$def_json",
+  "base_image": "$base_image_json",
+  "image": "$image_json",
+  "declared_version": "$declared_version_json",
+  "upstream": "$upstream_json",
+  "upstream_pin": "$pinned_commit_json",
+  "version_command": "$cmd_json",
+  "version_output": "$version_output_json",
+  "built_at_utc": "$built_at"
+}
+JSON
   } >"$vm_log" 2>&1 || {
+    cmd_json="$(json_escape "$cmd")"
+    def_json="$(json_escape "$def_file")"
+    base_image_json="$(json_escape "$base_image")"
+    image_json="$(json_escape "$out_sif")"
+    declared_version_json="$(json_escape "$declared_version")"
+    upstream_json="$(json_escape "$upstream")"
+    pinned_commit_json="$(json_escape "$pinned_commit")"
+    built_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    cat > "$manifest" <<JSON
+{
+  "tool": "$tool",
+  "runtime": "apptainer",
+  "status": "fail",
+  "definition": "$def_json",
+  "base_image": "$base_image_json",
+  "image": "$image_json",
+  "declared_version": "$declared_version_json",
+  "upstream": "$upstream_json",
+  "upstream_pin": "$pinned_commit_json",
+  "version_command": "$cmd_json",
+  "version_output": "",
+  "built_at_utc": "$built_at"
+}
+JSON
     cp -f "$vm_log" "$out_log" 2>/dev/null || true
     echo "FAIL $tool (see $out_log)"
     return 1
