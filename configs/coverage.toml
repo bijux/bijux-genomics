@@ -1,0 +1,31 @@
+default = 0.0
+
+[classes]
+high = 40.0
+low = 5.0
+
+[crate_class]
+bijux-dna-core = "high"
+bijux-dna-policies = "high"
+bijux-dna-stage-contract = "high"
+bijux-dna-pipelines = "high"
+bijux-dna-domain-bam = "high"
+bijux-dna-domain-fastq = "high"
+bijux-dna-analyze = "high"
+bijux-dna-infra = "high"
+bijux-dna-runtime = "high"
+bijux-dna-engine = "high"
+bijux-dna-environment = "high"
+bijux-dna-benchmark = "high"
+bijux-dna-benchmark-model = "high"
+bijux-dna-testkit = "high"
+bijux-dna-cli = "low"
+bijux-dna-runner = "low"
+bijux-dna-api = "low"
+bijux-dna-stages-bam = "low"
+bijux-dna-stages-fastq = "low"
+bijux-dna-planner-bam = "low"
+bijux-dna-planner-fastq = "low"
+bijux-dna-environment-qa = "low"
+
+[overrides]
