@@ -56,7 +56,9 @@ fn plan_for_stage(stage: BamStage) -> Result<StagePlanV1> {
 }
 
 fn assert_snapshot(name: &str, plan: &StagePlanV1) -> Result<()> {
-    let payload = serde_json::to_string_pretty(&plan)?;
+    let mut payload = serde_json::to_string_pretty(&plan)?;
+    let crate_root = format!("{}/", PathBuf::from(env!("CARGO_MANIFEST_DIR")).display());
+    payload = payload.replace(&crate_root, "");
     let snapshot_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("tests")
         .join("snapshots")
