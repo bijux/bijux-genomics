@@ -6,19 +6,23 @@ pub mod downstream;
 pub mod pre;
 
 pub use core::{
+    AdDeamMetricsV1, DamageCoreFieldsV1, DamageProfilerMetricsV1,
     compare_damage_metrics, parse_damageprofiler_json, parse_mapdamage2_misincorporation,
     parse_mosdepth_summary, parse_preseq_estimates, parse_pydamage_json, parse_samtools_depth,
     parse_samtools_depth_with_uniformity, BamMetricsBundleV1, BamMetricsV1, ComplexityMetricsV1,
     CoverageMetricsV1, CoverageUniformityV1, DamageComparisonV1, DamageMetricsV1,
-    EffectiveCoverageV1,
+    EffectiveCoverageV1, MisincorporationCurveSummaryV1, MisincorporationPointV1,
+    NgsBriggsMetricsV1, PmdHistogramBinV1, PmdScoreDistributionV1, PmdtoolsMetricsV1,
 };
 pub use downstream::{
     authenticity_score, contamination_cross_check, parse_contamination_json, parse_sex_json,
     suggest_trim_from_damage, AuthenticityEvidenceV1, AuthenticityScoreV1, BamInvariantStatusV1,
-    BamStageVerdictV1, ContaminationMetricsV1, ContaminationReconciliationV1,
-    ContaminationSufficiencyV1, CoverageSufficiencyV1, GenotypingMetricsV1,
-    HaplogroupSufficiencyV1, KinshipSufficiencyV1, LibraryTypeInferenceV1, SexConfidenceClass,
-    SexInferenceV1, SexSufficiencyV1, TrimSuggestionV1,
+    BamStageVerdictV1, ContamMixMetricsV1, ContaminationInputScopeV1, ContaminationMetricsV1,
+    ContaminationReconciliationV1, ContaminationRequiredInputsV1, ContaminationSufficiencyV1,
+    ContaminationToolMetricsV1, ContaminationWarningV1, CoverageSufficiencyV1,
+    GenotypingMetricsV1, HaplogroupSufficiencyV1, KinshipSufficiencyV1, LibraryTypeInferenceV1,
+    SchmutziMetricsV1, SexConfidenceClass, SexInferenceV1, SexSufficiencyV1, TrimSuggestionV1,
+    VerifyBamId2MetricsV1,
 };
 pub use pre::{
     parse_samtools_flagstat, parse_samtools_idxstats, parse_samtools_stats, AlignmentCountsV1,

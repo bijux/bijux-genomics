@@ -26,6 +26,58 @@ impl ContaminationMetricsV1 {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum ContaminationInputScopeV1 {
+    MtOnly,
+    NuclearOnly,
+    Both,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct ContaminationRequiredInputsV1 {
+    pub reference_panel: String,
+    pub scope: ContaminationInputScopeV1,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct ContaminationWarningV1 {
+    pub code: String,
+    pub message: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct ContaminationToolMetricsV1 {
+    pub tool: String,
+    pub estimate: f64,
+    pub ci_low: f64,
+    pub ci_high: f64,
+    pub model_assumptions: Vec<String>,
+    pub required_inputs: ContaminationRequiredInputsV1,
+    pub warnings: Vec<ContaminationWarningV1>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct SchmutziMetricsV1 {
+    pub contamination: ContaminationToolMetricsV1,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct VerifyBamId2MetricsV1 {
+    pub contamination: ContaminationToolMetricsV1,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct ContamMixMetricsV1 {
+    pub contamination: ContaminationToolMetricsV1,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct ContaminationReconciliationV1 {
     pub mt_fraction: Option<f64>,
