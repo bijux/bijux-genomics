@@ -37,6 +37,10 @@ pub fn trim_output_name(tool: &str) -> Option<&'static str> {
         "seqpurge" => Some("seqpurge.fastq.gz"),
         "prinseq" => Some("prinseq_good.fastq"),
         "seqkit" => Some("seqkit.fastq.gz"),
+        "skewer" => Some("skewer.fastq.gz"),
+        "leehom" => Some("leehom.fastq.gz"),
+        "alientrimmer" => Some("alientrimmer.fastq.gz"),
+        "fastx_clipper" => Some("fastx_clipper.fastq.gz"),
         _ => None,
     }
 }
@@ -113,11 +117,23 @@ pub fn plan(
                 r1.to_path_buf(),
                 ArtifactRole::Reads,
             )],
-            outputs: vec![ArtifactRef::required(
-                ArtifactId::from_static("trimmed_reads"),
-                output.clone(),
-                ArtifactRole::TrimmedReads,
-            )],
+            outputs: vec![
+                ArtifactRef::required(
+                    ArtifactId::from_static("trimmed_reads"),
+                    output.clone(),
+                    ArtifactRole::TrimmedReads,
+                ),
+                ArtifactRef::required(
+                    ArtifactId::from_static("trim_report"),
+                    out_dir.join("trim.report.json"),
+                    ArtifactRole::ReportJson,
+                ),
+                ArtifactRef::required(
+                    ArtifactId::from_static("stage_metrics"),
+                    out_dir.join("stage.metrics.json"),
+                    ArtifactRole::MetricsJson,
+                ),
+            ],
         },
         out_dir: out_dir.to_path_buf(),
         params,

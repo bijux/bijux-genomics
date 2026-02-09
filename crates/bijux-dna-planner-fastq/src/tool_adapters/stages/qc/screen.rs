@@ -14,6 +14,8 @@ pub const STAGE_VERSION: StageVersion = StageVersion(1);
 pub fn normalize_screen_tool_list(tools: &[String]) -> Result<Vec<String>> {
     let allowed = [
         "kraken2",
+        "krakenuniq",
+        "bracken",
         "centrifuge",
         "metaphlan",
         "kaiju",
@@ -30,6 +32,7 @@ pub fn plan_screen(tool: &ToolExecutionSpecV1, r1: &Path, out_dir: &Path) -> Res
     let tool_id = tool.tool_id.to_string();
     normalize_screen_tool_list(std::slice::from_ref(&tool_id))?;
     let report = out_dir.join("screen_report.tsv");
+    let bracken_report = out_dir.join("bracken_abundance.tsv");
     let effective_params = ScreenEffectiveParams {
         paired_mode: PairedMode::SingleEnd,
         threads: tool.resources.threads,
@@ -49,18 +52,36 @@ pub fn plan_screen(tool: &ToolExecutionSpecV1, r1: &Path, out_dir: &Path) -> Res
                 r1.to_path_buf(),
                 ArtifactRole::Reads,
             )],
-            outputs: vec![ArtifactRef::required(
-                ArtifactId::from_static("screen_report_tsv"),
-                report.clone(),
-                ArtifactRole::ReportJson,
-            )],
+            outputs: {
+                let mut outputs = vec![
+                    ArtifactRef::required(
+                        ArtifactId::from_static("screen_report_tsv"),
+                        report.clone(),
+                        ArtifactRole::ReportJson,
+                    ),
+                    ArtifactRef::required(
+                        ArtifactId::from_static("classification_report_json"),
+                        out_dir.join("classification.report.json"),
+                        ArtifactRole::MetricsJson,
+                    ),
+                ];
+                if tool.tool_id.as_str() == "bracken" {
+                    outputs.push(ArtifactRef::required(
+                        ArtifactId::from_static("bracken_abundance_tsv"),
+                        bracken_report.clone(),
+                        ArtifactRole::ReportJson,
+                    ));
+                }
+                outputs
+            },
         },
         out_dir: out_dir.to_path_buf(),
         params: serde_json::json!({
             "tool": tool.tool_id.0,
             "input": r1,
             "out_dir": out_dir,
-            "report": report
+            "report": report,
+            "bracken_report": bracken_report
         }),
         effective_params: serde_json::to_value(&effective_params)
             .expect("serialize screen effective params"),
