@@ -1,0 +1,62 @@
+Bootstrap: docker
+From: ubuntu:24.04
+
+%labels
+    MAINTAINER Bijan Mousavi <mousavi.bijan@gmail.com>
+    VERSION FastqValidator-v0.1.1
+    org.opencontainers.image.source https://github.com/statgen/fastQValidator
+    org.opencontainers.image.version v0.1.1
+
+%environment
+    DEBIAN_FRONTEND=noninteractive
+
+%post
+    export DEBIAN_FRONTEND=noninteractive
+
+    apt-get update -qq && \
+    apt-get install -y --no-install-recommends \
+        git \
+        build-essential \
+        zlib1g-dev \
+        libbz2-dev \
+        zlib1g \
+        libbz2-1.0 \
+        ca-certificates && \
+
+    git clone --depth 1 https://github.com/statgen/libStatGen.git /opt/libStatGen && \
+    git clone --branch v0.1.1 --depth 1 \
+        https://github.com/statgen/fastQValidator.git /opt/fastQValidator && \
+
+    cd /opt/fastQValidator && \
+    make -j$(nproc) LIB_PATH_FASTQ_VALIDATOR=/opt/libStatGen && \
+    make install PREFIX=/usr/local && \
+
+    mv /usr/local/bin/fastQValidator /usr/local/bin/fq-validator-bin && \
+
+    # Create a wrapper script with version override and help handling.
+    cat > /usr/local/bin/fastq-validator <<'EOF'
+#!/bin/sh
+case "$1" in
+  --version) echo "0.1.1"; exit 0;;
+  --help|-h|"") exec /usr/local/bin/fq-validator-bin --help;;
+  *) exec /usr/local/bin/fq-validator-bin "$@";;
+esac
+EOF
+    chmod +x /usr/local/bin/fastq-validator && \
+
+    # Clean up source and build dependencies.
+    rm -rf /opt/libStatGen /opt/fastQValidator && \
+    apt-get purge -y git build-essential zlib1g-dev libbz2-dev && \
+    apt-get autoremove -y && \
+    rm -rf /var/lib/apt/lists/*
+
+%runscript
+    if [ $# -eq 0 ]; then
+        exec /usr/local/bin/fastq-validator --help
+    else
+        exec /usr/local/bin/fastq-validator "$@"
+    fi
+
+%help
+    This Apptainer image provides the official FastqValidator version 0.1.1 (compiled from source).
+    The default command is 'fastq-validator'; run without arguments to display help.
