@@ -591,6 +591,58 @@ dockerfile = "containers/docker/arm64/Dockerfile.bracken"
 apptainer_def = "containers/apptainer/bracken.def"
 require_labels = true
 
+[[tools]]
+id = "pmdtools"
+version = "0.60"
+upstream = "https://github.com/pontussk/PMDtools"
+pinned_commit = "cc91fb8d870eadc4566d0bb3fbbc92fa96cd1363"
+runtimes = ["docker", "apptainer"]
+version_cmd = "pmdtools --version"
+help_cmd = "pmdtools --help"
+expected_bin = "pmdtools"
+dockerfile = "containers/docker/arm64/Dockerfile.pmdtools"
+apptainer_def = "containers/apptainer/pmdtools.def"
+require_labels = true
+
+[[tools]]
+id = "schmutzi"
+version = "latest-pinned"
+upstream = "https://github.com/grenaud/schmutzi"
+pinned_commit = "d11884ccf71666f9fa64188ee74947a7a3c86fb5"
+runtimes = ["docker", "apptainer"]
+version_cmd = "schmutzi --version"
+help_cmd = "schmutzi --help"
+expected_bin = "schmutzi"
+dockerfile = "containers/docker/arm64/Dockerfile.schmutzi"
+apptainer_def = "containers/apptainer/schmutzi.def"
+require_labels = true
+
+[[tools]]
+id = "verifybamid2"
+version = "2.0.1"
+upstream = "https://github.com/Griffan/VerifyBamID"
+pinned_commit = "4b362f5191b8385d038350acc03800890dd66524"
+runtimes = ["docker", "apptainer"]
+version_cmd = "verifybamid2 --version"
+help_cmd = "verifybamid2 --help"
+expected_bin = "verifybamid2"
+dockerfile = "containers/docker/arm64/Dockerfile.verifybamid2"
+apptainer_def = "containers/apptainer/verifybamid2.def"
+require_labels = true
+
+[[tools]]
+id = "addeam"
+version = "latest-pinned"
+upstream = "https://github.com/LouisPwr/AdDeam"
+pinned_commit = "f1dd2a5e530975cab1df48e47a1d51ea76bf183a"
+runtimes = ["docker", "apptainer"]
+version_cmd = "addeam --version"
+help_cmd = "addeam --help"
+expected_bin = "addeam"
+dockerfile = "containers/docker/arm64/Dockerfile.addeam"
+apptainer_def = "containers/apptainer/addeam.def"
+require_labels = true
+
 # Stage coverage matrix (SSOT for stage completeness checks).
 [[stages]]
 id = "fastq.preprocess"
@@ -784,8 +836,8 @@ requires_reporting = true
 
 [[stages]]
 id = "bam.damage"
-primary_tools = ["pydamage"]
-optional_alternatives = ["mapdamage2"]
+primary_tools = ["pydamage", "addeam"]
+optional_alternatives = ["mapdamage2", "pmdtools"]
 validation_tools = ["samtools"]
 reporting_tools = ["multiqc"]
 planned_out_of_scope = []
@@ -795,7 +847,7 @@ requires_reporting = true
 [[stages]]
 id = "bam.authenticity"
 primary_tools = ["authenticct"]
-optional_alternatives = []
+optional_alternatives = ["pmdtools"]
 validation_tools = ["samtools"]
 reporting_tools = ["multiqc"]
 planned_out_of_scope = []
@@ -805,7 +857,7 @@ requires_reporting = true
 [[stages]]
 id = "bam.contamination"
 primary_tools = ["authenticct"]
-optional_alternatives = []
+optional_alternatives = ["verifybamid2", "schmutzi"]
 validation_tools = ["samtools"]
 reporting_tools = ["multiqc"]
 planned_out_of_scope = []
@@ -935,3 +987,17 @@ version = "planned"
 upstream = "http://hannonlab.cshl.edu/fastx_toolkit/"
 status = "planned"
 notes = "Legacy trim peer; tracked as planned."
+
+[[planned_tools]]
+id = "ngsbriggs"
+version = "planned"
+upstream = "unknown"
+status = "planned"
+notes = "Damage-model benchmark peer; add once canonical public source URL is pinned."
+
+[[planned_tools]]
+id = "bcftools"
+version = "planned"
+upstream = "https://github.com/samtools/bcftools"
+status = "planned"
+notes = "Planned for post-BAM VCF workflows; currently out of scope."

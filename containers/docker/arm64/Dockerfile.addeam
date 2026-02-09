@@ -1,0 +1,36 @@
+# SPDX-License-Identifier: GPL-3.0-only
+# Copyright (C) 2026 Bijan Mousavi
+#
+# Container definition license: GPL-3.0.
+# The bijux-dna software source code is licensed under Apache-2.0.
+FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+ARG OCI_REVISION=unknown
+ARG OCI_CREATED=unknown
+ARG TOOL_VERSION=latest-pinned
+LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-dna" \
+      org.opencontainers.image.revision="${OCI_REVISION}" \
+      org.opencontainers.image.created="${OCI_CREATED}" \
+      org.opencontainers.image.licenses="GPL-3.0" \
+      org.opencontainers.image.version="${TOOL_VERSION}"
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update -qq && apt-get install -y --no-install-recommends \
+    git python3 python3-pip ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN git clone --depth 1 https://github.com/LouisPwr/AdDeam.git /opt/AdDeam && \
+    cd /opt/AdDeam && git checkout f1dd2a5e530975cab1df48e47a1d51ea76bf183a && \
+    pip3 install --no-cache-dir .
+
+RUN cat > /usr/local/bin/addeam <<'SH' && chmod +x /usr/local/bin/addeam
+#!/bin/sh
+set -eu
+if [ "${1:-}" = "--version" ]; then
+  python3 -c 'import importlib.metadata as m; print(m.version("addeam"))' || echo "unknown"
+  exit 0
+fi
+exec python3 -m addeam "$@"
+SH
+
+ENTRYPOINT ["/usr/local/bin/addeam"]
+CMD ["--help"]
