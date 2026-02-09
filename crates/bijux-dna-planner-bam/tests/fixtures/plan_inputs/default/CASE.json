@@ -1,0 +1,5 @@
+{
+  "schema_version": "bijux.fixture_case.v1",
+  "format": "markdown_legacy",
+  "content": "# Planner Plan Inputs (Default)\n\nMinimal placeholder inputs for plan snapshot tests.\n\nPurpose: provide stable, on-repo file paths for BAM + FASTQ + reference assets\nso planner tests do not depend on temp directories or external files.\n\nFiles are empty; tests assert structure, not content.\n"
+}

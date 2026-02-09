@@ -59,12 +59,16 @@ fn policy__boundaries__fixtures_policy__fixture_lint() {
                 .ok()
                 .map(|mut it| it.any(|e| e.ok().map(|e| e.path().is_dir()).unwrap_or(false)))
                 .unwrap_or(false);
-            let has_case = dir.join("CASE.md").exists()
-                || dir.join("CASE.toml").exists()
-                || dir.join("CASE.json").exists();
+            let has_case = dir.join("CASE.toml").exists() || dir.join("CASE.json").exists();
             if !has_subdir && !has_case {
                 offenders.push(format!(
-                    "missing CASE.(toml|json|md) in fixture dir: {}",
+                    "missing CASE.(toml|json) in fixture dir: {}",
+                    dir.display()
+                ));
+            }
+            if dir.join("CASE.md").exists() {
+                offenders.push(format!(
+                    "legacy CASE.md is forbidden; use CASE.toml/json: {}",
                     dir.display()
                 ));
             }
@@ -73,7 +77,7 @@ fn policy__boundaries__fixtures_policy__fixture_lint() {
 
     bijux_dna_policies::policy_assert!(
         offenders.is_empty(),
-        "fixture lint failed. Fix fixture structure and CASE.(toml|json|md) coverage (prefer toml/json).\n\
+        "fixture lint failed. Fix fixture structure and CASE.(toml|json) coverage.\n\
 Offenders:\n{}",
         offenders.join("\n")
     );

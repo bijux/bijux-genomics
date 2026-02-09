@@ -1,0 +1,5 @@
+{
+  "schema_version": "bijux.fixture_case.v1",
+  "format": "markdown_legacy",
+  "content": "# CASE\n\nPurpose: Leaf fixture data for golden/report fixtures. See parent CASE.md for context.\nInputs: Files in this directory are part of a larger fixture case.\nInvariant: Preserves file layout and naming used by snapshot tests.\n"
+}

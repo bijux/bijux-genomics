@@ -37,7 +37,7 @@ Any other bucket must be justified by a `README.md` in that directory.
 
 ## Fixtures
 - Layout: `tests/fixtures/<domain_or_feature>/<case_name>/...`
-- Every fixture directory must include `CASE.md` explaining intent and invariants.
+- Every fixture directory must include `CASE.toml` or `CASE.json` explaining intent and invariants.
 - No fixture file > 200KB unless allowlisted.
 
 ## Snapshots
