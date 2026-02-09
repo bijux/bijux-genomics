@@ -1,20 +1,8 @@
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: GPL-3.0-only
 # Copyright (C) 2026 Bijan Mousavi
 #
-# This file is part of bijux-dna.
-#
-# bijux-dna is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# bijux-dna is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with bijux-dna. If not, see <https://www.gnu.org/licenses/>.
+# Container definition license: GPL-3.0.
+# The bijux-dna software source code is licensed under Apache-2.0.
 Bootstrap: docker
 From: ubuntu:24.04
 
@@ -26,7 +14,7 @@ From: ubuntu:24.04
     org.opencontainers.image.source https://github.com/bijux/bijux-dna
     org.opencontainers.image.revision unknown
     org.opencontainers.image.created unknown
-    org.opencontainers.image.licenses GPL-3.0-or-later
+    org.opencontainers.image.licenses GPL-3.0
     org.opencontainers.image.version unknown
 %environment
     DEBIAN_FRONTEND=noninteractive
