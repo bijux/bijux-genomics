@@ -57,7 +57,8 @@
     "prior": null,
     "reference_panels": [],
     "scope": "both",
-    "sex_specific": false
+    "sex_specific": false,
+    "tool_scope": "both"
   },
   "effective_params": {
     "assumptions": null,
