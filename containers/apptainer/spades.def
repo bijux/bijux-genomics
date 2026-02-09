@@ -97,7 +97,6 @@ EOF
     cd /
     rm -rf /opt/spades-4.2.0 /tmp/spades.tar.gz
 
-    apt-get purge -y --auto-remove \
         build-essential \
         cmake \
         g++ \

@@ -51,8 +51,6 @@ From: ubuntu:24.04
     printf '#!/bin/sh\nexec /usr/local/bin/adapterremoval-bin "$@"\n' > /usr/local/bin/adapterremoval && \
     chmod +x /usr/local/bin/adapterremoval && \
 
-    apt-get purge -y git build-essential && \
-    apt-get autoremove -y && \
     rm -rf /var/lib/apt/lists/*
 
 %runscript

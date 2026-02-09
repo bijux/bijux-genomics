@@ -54,7 +54,6 @@ EOF
     chmod +x /usr/local/bin/bwa && \
 
     rm -rf /var/lib/apt/lists/* && \
-    apt-get autoremove -y
 
 %runscript
     if [ $# -eq 0 ]; then

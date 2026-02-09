@@ -83,8 +83,6 @@ EOF
     ln -s /opt/atropos-venv/bin/atropos /usr/local/bin/atropos && \
 
     rm -rf /tmp/atropos-src /tmp/pygensend.h && \
-    apt-get purge -y build-essential && \
-    apt-get autoremove -y && \
     rm -rf /var/lib/apt/lists/*
 
 %runscript

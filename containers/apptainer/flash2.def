@@ -46,8 +46,6 @@ From: ubuntu:24.04
 
     cd / && \
     rm -rf /opt/FLASH2 && \
-    apt-get purge -y build-essential git zlib1g-dev && \
-    apt-get autoremove -y && \
     rm -rf /var/lib/apt/lists/*
 
 %runscript

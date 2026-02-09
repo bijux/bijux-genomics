@@ -60,7 +60,6 @@ From: ubuntu:24.04
     rm -rf /tmp/prinseq-plus-plus-1.2.4 /tmp/prinseq-plus-plus-1.2.4.tar.gz
 
     # Keep boost runtime libs (do NOT purge libboost-* unless you re-install the needed runtime packages explicitly)
-    apt-get purge -y --auto-remove build-essential wget
     rm -rf /var/lib/apt/lists/*
 
 %runscript

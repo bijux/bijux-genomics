@@ -60,8 +60,6 @@ EOF
 
     # Clean up source and build dependencies.
     rm -rf /opt/fqtools && \
-    apt-get purge -y git build-essential zlib1g-dev libhts-dev && \
-    apt-get autoremove -y && \
     rm -rf /var/lib/apt/lists/*
 
 %runscript

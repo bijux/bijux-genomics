@@ -61,8 +61,6 @@ From: ubuntu:24.04
     cp /opt/bowtie2-${VERSION}-${SUFFIX}/bowtie2* /usr/local/bin/ && \
     rm -rf /tmp/bowtie2.zip /opt/bowtie2-${VERSION}-${SUFFIX} && \
 
-    apt-get purge -y curl unzip wget make gcc && \
-    apt-get autoremove -y && \
     rm -rf /var/lib/apt/lists/*
 
 %runscript

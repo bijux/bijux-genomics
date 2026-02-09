@@ -84,7 +84,6 @@ EOF
     rm -rf /var/lib/apt/lists/*
 
     # Purge build-time fetch/unpack tools only (keep Java + ca-certs)
-    apt-get purge -y --auto-remove \
         wget \
         unzip
 

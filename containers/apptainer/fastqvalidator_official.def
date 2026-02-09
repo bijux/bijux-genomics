@@ -68,8 +68,6 @@ EOF
 
     # Clean up source and build dependencies.
     rm -rf /opt/libStatGen /opt/fastQValidator && \
-    apt-get purge -y git build-essential zlib1g-dev libbz2-dev && \
-    apt-get autoremove -y && \
     rm -rf /var/lib/apt/lists/*
 
 %runscript

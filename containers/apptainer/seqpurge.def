@@ -89,7 +89,6 @@ From: ubuntu:24.04
         build-essential qtbase5-dev qt5-qmake libqt5xmlpatterns5-dev libqt5charts5-dev libqt5svg5-dev \
         zlib1g-dev libbz2-dev liblzma-dev libhts-dev libxml2-dev pkg-config git || true
 
-    apt-get purge -y --auto-remove || true
 
     # Install runtime dependencies explicitly (same list as the runtime stage).
     apt-get update

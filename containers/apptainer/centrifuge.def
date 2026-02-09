@@ -84,7 +84,6 @@ From: ubuntu:24.04
     rm -rf /tmp/centrifuge.tar.gz /opt/centrifuge-1.0.4-beta && \
     \
     # Purge build dependencies to minimize image size (runtime libraries retained). \
-    apt-get purge -y --auto-remove wget build-essential && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 

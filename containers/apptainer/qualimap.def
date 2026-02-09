@@ -63,8 +63,6 @@ fi
 EOF
     chmod +x /usr/local/bin/qualimap && \
 
-    apt-get purge -y curl unzip && \
-    apt-get autoremove -y && \
     rm -rf /var/lib/apt/lists/*
 
 %runscript

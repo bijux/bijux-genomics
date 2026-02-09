@@ -64,10 +64,8 @@ esac
 EOF
     chmod +x /usr/local/bin/metaphlan && \
 
-    apt-get purge -y python3-dev build-essential pkg-config \
         libbz2-dev liblzma-dev libcurl4-gnutls-dev libssl-dev \
         zlib1g-dev libhdf5-dev && \
-    apt-get autoremove -y && \
     rm -rf /var/lib/apt/lists/*
 
 %runscript

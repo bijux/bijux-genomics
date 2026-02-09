@@ -113,7 +113,6 @@ EOF
     rm -rf /opt/src/jellyfish-2.3.0 /opt/src/jellyfish.tar.gz /opt/rcorrector
 
     # Do not remove sed or grep (essential on Ubuntu). Purge only real build dependencies.
-    apt-get purge -y --auto-remove \
         build-essential \
         git \
         wget \
