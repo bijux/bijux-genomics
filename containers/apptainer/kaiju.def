@@ -65,8 +65,6 @@ EOF
 
     cd / && \
     rm -rf /tmp/kaiju.tar.gz /opt/kaiju-1.10.0 && \
-    apt-get purge -y wget build-essential zlib1g-dev && \
-    apt-get autoremove -y && \
     rm -rf /var/lib/apt/lists/*
 
 %runscript

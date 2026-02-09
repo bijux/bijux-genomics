@@ -73,7 +73,6 @@ From: ubuntu:24.04
     rm -rf /var/lib/apt/lists/*
 
     # Purge build-only deps (keep python3 + pip since cutadapt is python runtime)
-    apt-get purge -y --auto-remove \
         build-essential \
         python3-dev \
         wget || true

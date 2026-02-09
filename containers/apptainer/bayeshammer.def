@@ -53,7 +53,6 @@ From: ubuntu:24.04
 
     cd / && \
     rm -rf /opt/spades-4.2.0 /tmp/spades.tar.gz && \
-    apt-get purge -y --auto-remove ${BUILD_DEPS} && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 

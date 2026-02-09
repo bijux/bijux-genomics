@@ -128,7 +128,6 @@ EOF
     rm -rf /var/lib/apt/lists/*
 
     # Note: do not purge ca-certificates (TLS is useful on HPC and cheap to keep).
-    apt-get purge -y --auto-remove \
         python3-pip \
         python3 \
         wget \

@@ -42,8 +42,6 @@ From: ubuntu:24.04
     pip3 install --no-cache-dir --break-system-packages \
         multiqc==1.24 && \
 
-    apt-get purge -y python3-dev && \
-    apt-get autoremove -y && \
     rm -rf /var/lib/apt/lists/*
 
 %runscript

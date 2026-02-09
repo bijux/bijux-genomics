@@ -79,7 +79,6 @@ EOF
     rm -rf /var/lib/apt/lists/*
 
     # Note: do not purge ca-certificates; it is not worth breaking TLS later.
-    apt-get purge -y --auto-remove wget || true
 
 %runscript
     if [ $# -eq 0 ]; then

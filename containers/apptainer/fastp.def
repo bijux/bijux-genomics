@@ -51,8 +51,6 @@ From: ubuntu:24.04
 
     cd / && \
     rm -rf /tmp/fastp.tar.gz /opt/fastp-0.23.4 && \
-    apt-get purge -y wget build-essential && \
-    apt-get autoremove -y && \
     rm -rf /var/lib/apt/lists/*
 
 %runscript

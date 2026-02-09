@@ -45,8 +45,6 @@ From: ubuntu:24.04
         "cutadapt==4.9" \
         numpy && \
 
-    apt-get purge -y python3-dev build-essential && \
-    apt-get autoremove -y && \
     rm -rf /var/lib/apt/lists/*
 
 %runscript

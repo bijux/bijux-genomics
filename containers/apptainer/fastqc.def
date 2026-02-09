@@ -51,8 +51,6 @@ From: ubuntu:24.04
     ln -sf /opt/FastQC/fastqc /usr/local/bin/fastqc && \
     rm /tmp/fastqc.zip && \
 
-    apt-get purge -y unzip wget && \
-    apt-get autoremove -y && \
     rm -rf /var/lib/apt/lists/*
 
 %runscript

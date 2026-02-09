@@ -97,7 +97,6 @@ EOF
     rm -rf /opt/STAR-2.7.11b /tmp/star.tar.gz
 
     # Purge build deps only (keep ca-certificates)
-    apt-get purge -y --auto-remove \
         wget \
         build-essential \
         xxd \

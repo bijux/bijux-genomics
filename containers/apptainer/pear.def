@@ -74,8 +74,6 @@ EOF
 
     cd / && \
     rm -rf /opt/pear-0.9.6-src /tmp/pear.tar.gz && \
-    apt-get purge -y wget ca-certificates build-essential autoconf automake libtool m4 pkg-config && \
-    apt-get autoremove -y && \
     rm -rf /var/lib/apt/lists/*
 
 %runscript

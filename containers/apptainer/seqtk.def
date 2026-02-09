@@ -82,7 +82,6 @@ EOF
     rm -rf /opt/seqtk
 
     # Remove build deps; keep runtime deps (zlib + ca-certs)
-    apt-get purge -y --auto-remove \
         git \
         build-essential \
         zlib1g-dev
