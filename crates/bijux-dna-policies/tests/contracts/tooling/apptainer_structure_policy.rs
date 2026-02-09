@@ -6,15 +6,15 @@ use walkdir::WalkDir;
 
 use support::workspace_root;
 
-fn section_positions(
-    content: &str,
-) -> (
+type SectionPositions = (
     Option<usize>,
     Option<usize>,
     Option<usize>,
     Option<usize>,
     Option<usize>,
-) {
+);
+
+fn section_positions(content: &str) -> SectionPositions {
     let mut labels = None;
     let mut environment = None;
     let mut post = None;
