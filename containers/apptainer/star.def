@@ -61,6 +61,8 @@ From: ubuntu:24.04
     find . -name Makefile -exec \
         sed -Ei 's/-mavx2|-msse[0-9.]*|-mfpmath=sse//g' {} \;
 
+    # APPTAINER_CPU_FLAG_JUSTIFIED: STAR requires explicit ARM tuning to avoid
+    # build/runtime breakage on aarch64; this is constrained to arm64 hosts only.
     # Add ARM flags ONLY when actually compiling on ARM64
     arch="$(uname -m)"
     if [ "$arch" = "aarch64" ] || [ "$arch" = "arm64" ]; then
