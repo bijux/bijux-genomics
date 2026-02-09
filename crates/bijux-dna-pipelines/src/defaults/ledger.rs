@@ -5,9 +5,9 @@ use std::collections::BTreeMap;
 
 use serde::Serialize;
 
+use crate::DefaultParams;
 use crate::PipelineId;
 use bijux_dna_core::ids::{StageId, ToolId};
-use crate::DefaultParams;
 
 #[derive(Debug, Clone, Serialize)]
 pub struct DefaultProvenanceV1 {
