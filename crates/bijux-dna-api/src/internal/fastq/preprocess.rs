@@ -1,4 +1,6 @@
-use bijux_dna_runtime::{attrs_from_json, build_telemetry_adapter, TelemetryEventV1};
+use bijux_dna_runtime::{
+    attrs_from_json, build_telemetry_adapter, TelemetryEventName, TelemetryEventV1,
+};
 use std::collections::HashMap;
 
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
@@ -384,8 +386,8 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
             run_id,
             stage_id: STAGE_PREPROCESS.as_str().to_string(),
             tool_id: "planner".to_string(),
-            event_name: "merge_decision".to_string(),
-            timestamp: chrono::Utc::now().to_rfc3339(),
+            event_name: TelemetryEventName::MergeDecision,
+            timestamp: chrono::Utc::now(),
             duration_ms: None,
             status: "ok".to_string(),
             trace_id: "merge-decision".to_string(),

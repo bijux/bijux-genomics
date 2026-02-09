@@ -324,12 +324,12 @@ fn telemetry_bounds(paths: &[String]) -> (serde_json::Value, serde_json::Value) 
             let Ok(event) = serde_json::from_str::<TelemetryEventV1>(line) else {
                 continue;
             };
-            let ts = event.timestamp;
-            if earliest.as_ref().map_or(true, |curr| ts < *curr) {
+            let ts = event.timestamp.to_rfc3339();
+            if earliest.as_ref().is_none_or(|curr| ts < *curr) {
                 earliest = Some(ts.clone());
             }
-            if latest.as_ref().map_or(true, |curr| ts > *curr) {
-                latest = Some(ts.clone());
+            if latest.as_ref().is_none_or(|curr| ts > *curr) {
+                latest = Some(ts);
             }
         }
     }

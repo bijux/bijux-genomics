@@ -12,6 +12,24 @@ pub enum AttrValue {
 
 pub type AttrMap = BTreeMap<String, AttrValue>;
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum TelemetryEventName {
+    RunStarted,
+    StageStarted,
+    ToolInvoked,
+    ArtifactEmitted,
+    MetricsEmitted,
+    StageFinished,
+    RunFinished,
+    RunFailed,
+    MergeDecision,
+    AdapterValidation,
+    ContaminantAction,
+    QualityGate,
+    Error,
+}
+
 #[must_use]
 pub fn attrs_from_json(value: &serde_json::Value) -> AttrMap {
     match value {
@@ -47,8 +65,8 @@ pub struct TelemetryEventV1 {
     pub run_id: String,
     pub stage_id: String,
     pub tool_id: String,
-    pub event_name: String,
-    pub timestamp: String,
+    pub event_name: TelemetryEventName,
+    pub timestamp: chrono::DateTime<chrono::Utc>,
     pub duration_ms: Option<u64>,
     pub status: String,
     pub trace_id: String,
