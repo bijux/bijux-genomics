@@ -1,0 +1,36 @@
+# SPDX-License-Identifier: GPL-3.0-only
+# Copyright (C) 2026 Bijan Mousavi
+#
+# Container definition license: GPL-3.0.
+# The bijux-dna software source code is licensed under Apache-2.0.
+FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+ARG OCI_REVISION=unknown
+ARG OCI_CREATED=unknown
+ARG TOOL_VERSION=1.0.11
+LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-dna" \
+      org.opencontainers.image.revision="${OCI_REVISION}" \
+      org.opencontainers.image.created="${OCI_CREATED}" \
+      org.opencontainers.image.licenses="GPL-3.0" \
+      org.opencontainers.image.version="${TOOL_VERSION}"
+LABEL org.opencontainers.image.tool="contammix"
+LABEL org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
+LABEL org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
+ARG TOOL_VERSION
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update -qq && apt-get install -y --no-install-recommends r-base ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN R -q -e 'install.packages("BiocManager", repos="https://cran.r-project.org"); BiocManager::install("contamMix", ask=FALSE, update=FALSE)'
+RUN cat > /usr/local/bin/contammix <<'SH' && chmod +x /usr/local/bin/contammix
+#!/bin/sh
+set -eu
+if [ "${1:-}" = "--version" ]; then
+  R -q -e 'cat(as.character(utils::packageVersion("contamMix")),"\n")'
+  exit 0
+fi
+if [ "${1:-}" = "--help" ] || [ $# -eq 0 ]; then
+  R -q -e 'cat("contamMix installed. Use R scripts for workflow integration.\n")'
+  exit 0
+fi
+exec R "$@"
+SH
+ENTRYPOINT ["/usr/local/bin/contammix"]
+CMD ["--help"]
