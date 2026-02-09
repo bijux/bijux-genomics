@@ -1,0 +1,53 @@
+Bootstrap: docker
+From: ubuntu:24.04
+
+%labels
+    MAINTAINER Bijan Mousavi <mousavi.bijan@gmail.com>
+    VERSION PRINSEQ++-v1.2.4
+    org.opencontainers.image.source https://github.com/Adrian-Cantu/PRINSEQ-plus-plus
+
+%environment
+    DEBIAN_FRONTEND=noninteractive
+
+%post
+    set -eux
+    export DEBIAN_FRONTEND=noninteractive
+
+    apt-get update
+    apt-get install -y --no-install-recommends \
+        build-essential \
+        ca-certificates \
+        wget \
+        libboost-all-dev \
+        gzip \
+        tar
+
+    # Build from the official release tarball (avoids autotools regeneration pitfalls)
+    cd /tmp
+    wget -O prinseq-plus-plus-1.2.4.tar.gz \
+      https://github.com/Adrian-Cantu/PRINSEQ-plus-plus/releases/download/v1.2.4/prinseq-plus-plus-1.2.4.tar.gz
+
+    tar -xvf prinseq-plus-plus-1.2.4.tar.gz
+    cd prinseq-plus-plus-1.2.4
+
+    ./configure --prefix=/usr/local
+    make -j"$(nproc)"
+    make install
+
+    cd /
+    rm -rf /tmp/prinseq-plus-plus-1.2.4 /tmp/prinseq-plus-plus-1.2.4.tar.gz
+
+    # Keep boost runtime libs (do NOT purge libboost-* unless you re-install the needed runtime packages explicitly)
+    apt-get purge -y --auto-remove build-essential wget
+    rm -rf /var/lib/apt/lists/*
+
+%runscript
+    if [ $# -eq 0 ]; then
+        exec prinseq++ --help
+    else
+        exec prinseq++ "$@"
+    fi
+
+%help
+    PRINSEQ++ v1.2.4 built from the official release tarball.
+    Executable: prinseq++
