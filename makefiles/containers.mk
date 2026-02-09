@@ -35,10 +35,10 @@ FASTQ_TOOLS_trim := fastp,cutadapt,atropos,bbduk,adapterremoval,trimmomatic,trim
 FASTQ_TOOLS_filter := prinseq,fastp,seqkit,bbduk
 FASTQ_TOOLS_stats_neutral := seqkit
 FASTQ_TOOLS_qc_post := fastqc,multiqc
-FASTQ_TOOLS_merge := pear,vsearch,bbmerge,flash2
+FASTQ_TOOLS_merge := pear,vsearch,bbmerge,flash2,seqprep
 FASTQ_TOOLS_correct := rcorrector,spades,bayeshammer,lighter,musket
 FASTQ_TOOLS_umi := umi_tools
-FASTQ_TOOLS_screen := kraken2,centrifuge,metaphlan,kaiju,fastq_screen
+FASTQ_TOOLS_screen := kraken2,krakenuniq,bracken,diamond,centrifuge,metaphlan,kaiju,fastq_screen
 
 BAM_TOOLS_align := bwa,bowtie2
 BAM_TOOLS_validate := samtools

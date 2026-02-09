@@ -539,6 +539,58 @@ dockerfile = "containers/docker/arm64/Dockerfile.preseq"
 apptainer_def = "containers/apptainer/preseq.def"
 require_labels = true
 
+[[tools]]
+id = "seqprep"
+version = "1.3"
+upstream = "https://github.com/jstjohn/SeqPrep"
+pinned_commit = "575507b0b9c94701bdf67bb592da8ba91ba9639c"
+runtimes = ["docker", "apptainer"]
+version_cmd = "seqprep --version"
+help_cmd = "seqprep --help"
+expected_bin = "seqprep"
+dockerfile = "containers/docker/arm64/Dockerfile.seqprep"
+apptainer_def = "containers/apptainer/seqprep.def"
+require_labels = true
+
+[[tools]]
+id = "diamond"
+version = "2.1.11"
+upstream = "https://github.com/bbuchfink/diamond"
+pinned_commit = "add7f3bcb120704b8162b99d996fe9f5c110cec6"
+runtimes = ["docker", "apptainer"]
+version_cmd = "diamond --version"
+help_cmd = "diamond help"
+expected_bin = "diamond"
+dockerfile = "containers/docker/arm64/Dockerfile.diamond"
+apptainer_def = "containers/apptainer/diamond.def"
+require_labels = true
+
+[[tools]]
+id = "krakenuniq"
+version = "1.0.4"
+upstream = "https://github.com/fbreitwieser/krakenuniq"
+pinned_commit = "f4e3796580c5c576b15e929c741e6e725b7e29b6"
+runtimes = ["docker", "apptainer"]
+version_cmd = "krakenuniq --version"
+help_cmd = "krakenuniq --help"
+expected_bin = "krakenuniq"
+dockerfile = "containers/docker/arm64/Dockerfile.krakenuniq"
+apptainer_def = "containers/apptainer/krakenuniq.def"
+require_labels = true
+
+[[tools]]
+id = "bracken"
+version = "2.9"
+upstream = "https://github.com/jenniferlu717/Bracken"
+pinned_commit = "c5bfec1929fe30feef21afbde67b16bda44de448"
+runtimes = ["docker", "apptainer"]
+version_cmd = "bracken --version"
+help_cmd = "bracken -h"
+expected_bin = "bracken"
+dockerfile = "containers/docker/arm64/Dockerfile.bracken"
+apptainer_def = "containers/apptainer/bracken.def"
+require_labels = true
+
 # Stage coverage matrix (SSOT for stage completeness checks).
 [[stages]]
 id = "fastq.preprocess"
@@ -623,7 +675,7 @@ requires_reporting = true
 [[stages]]
 id = "fastq.merge"
 primary_tools = ["pear", "vsearch"]
-optional_alternatives = ["bbmerge", "flash2"]
+optional_alternatives = ["bbmerge", "flash2", "seqprep"]
 validation_tools = ["fastqc"]
 reporting_tools = ["multiqc"]
 planned_out_of_scope = []
@@ -652,8 +704,8 @@ requires_reporting = true
 
 [[stages]]
 id = "fastq.screen"
-primary_tools = ["kraken2"]
-optional_alternatives = ["centrifuge", "metaphlan", "kaiju", "fastq_screen"]
+primary_tools = ["kraken2", "krakenuniq"]
+optional_alternatives = ["bracken", "diamond", "centrifuge", "metaphlan", "kaiju", "fastq_screen"]
 validation_tools = ["fastqc"]
 reporting_tools = ["multiqc"]
 planned_out_of_scope = []
@@ -819,3 +871,67 @@ reporting_tools = ["multiqc"]
 planned_out_of_scope = []
 requires_validation = true
 requires_reporting = true
+
+# Optional/planned tools tracked for benchmark breadth.
+[[planned_tools]]
+id = "clark"
+version = "planned"
+upstream = "https://github.com/CLARK-bio/CLARK"
+status = "planned"
+notes = "Classifier benchmark peer; optional in current scope."
+
+[[planned_tools]]
+id = "clark_s"
+version = "planned"
+upstream = "https://github.com/CLARK-bio/CLARK"
+status = "planned"
+notes = "Spaced k-mer CLARK variant; optional in current scope."
+
+[[planned_tools]]
+id = "gottcha"
+version = "planned"
+upstream = "https://github.com/poeli/GOTTCHA2"
+status = "planned"
+notes = "Classifier benchmark peer; optional in current scope."
+
+[[planned_tools]]
+id = "taxmaps"
+version = "planned"
+upstream = "https://github.com/meringlab/taxmaps"
+status = "planned"
+notes = "Classifier benchmark peer; optional in current scope."
+
+[[planned_tools]]
+id = "k_slam"
+version = "planned"
+upstream = "https://sourceforge.net/projects/k-slam/"
+status = "planned"
+notes = "Classifier benchmark peer; optional in current scope."
+
+[[planned_tools]]
+id = "karp"
+version = "planned"
+upstream = "https://github.com/smcveanlab/karp"
+status = "planned"
+notes = "Classifier benchmark peer; optional in current scope."
+
+[[planned_tools]]
+id = "leehom"
+version = "planned"
+upstream = "https://github.com/grenaud/leeHom"
+status = "planned"
+notes = "aDNA trim/merge peer; tracked as planned."
+
+[[planned_tools]]
+id = "alientrimmer"
+version = "planned"
+upstream = "https://gite.lirmm.fr/clegrand/AlienTrimmer"
+status = "planned"
+notes = "aDNA trim peer; tracked as planned."
+
+[[planned_tools]]
+id = "fastx_clipper"
+version = "planned"
+upstream = "http://hannonlab.cshl.edu/fastx_toolkit/"
+status = "planned"
+notes = "Legacy trim peer; tracked as planned."
