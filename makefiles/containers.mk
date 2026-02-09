@@ -1,7 +1,7 @@
 ##@ Container Management
 
 # Container runtime selector:
-#   docker-arm64 | apptainer
+#   docker-arm64 | docker-amd64 | apptainer
 # System selector:
 #   local | hpc
 SYSTEM_TYPE ?= local
@@ -20,6 +20,7 @@ TOOLS ?=
 
 CT_KEY := $(subst -,_,$(CONTAINER_TYPE))
 SMOKE_SCRIPT_docker_arm64 := scripts/smoke-containers-docker-arm64.sh
+SMOKE_SCRIPT_docker_amd64 := scripts/smoke-containers-docker-amd64.sh
 SMOKE_SCRIPT_apptainer := scripts/smoke-containers-apptainer.sh
 SMOKE_SCRIPT := $(SMOKE_SCRIPT_$(CT_KEY))
 
@@ -58,7 +59,7 @@ BAM_TOOLS_kinship := king
 container-runtime-check: ## Validate selected container runtime and script wiring
 	@if [ -z "$(SMOKE_SCRIPT)" ]; then \
 		echo "ERROR: unsupported CONTAINER_TYPE=$(CONTAINER_TYPE)"; \
-		echo "       supported: docker-arm64 | apptainer"; \
+		echo "       supported: docker-arm64 | docker-amd64 | apptainer"; \
 		exit 2; \
 	fi
 	@echo "SYSTEM_TYPE=$(SYSTEM_TYPE) CONTAINER_TYPE=$(CONTAINER_TYPE)"
@@ -69,6 +70,9 @@ container-smoke: container-runtime-check ## Build+smoke selected runtime (option
 
 smoke-containers-docker-arm64: ## Build+smoke Docker arm64 containers (artifacts/container/{logs,images})
 	@TOOLS="$(TOOLS)" JOBS="$(JOBS)" sh scripts/smoke-containers-docker-arm64.sh
+
+smoke-containers-docker-amd64: ## Build+smoke Docker amd64 containers (artifacts/container/{logs,images})
+	@TOOLS="$(TOOLS)" JOBS="$(JOBS)" sh scripts/smoke-containers-docker-amd64.sh
 
 smoke-containers-apptainer: ## Build+smoke Apptainer containers (artifacts/container/{logs,images})
 	@TOOLS="$(TOOLS)" JOBS="$(JOBS)" sh scripts/smoke-containers-apptainer.sh
@@ -163,6 +167,6 @@ containers-smoke-all: ## Smoke all registered tools via selected runtime
 	@$(MAKE) container-smoke
 
 .PHONY: container-runtime-check container-smoke \
-	smoke-containers-docker-arm64 smoke-containers-apptainer \
+	smoke-containers-docker-arm64 smoke-containers-docker-amd64 smoke-containers-apptainer \
 	build-images test-images image-qa test-images-trim test-images-validate test-images-filter test-images-merge \
 	containers-smoke-fastq-all containers-smoke-bam-all containers-smoke-all

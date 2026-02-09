@@ -6,6 +6,9 @@ ROOT_DIR=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
 
 DOCKER_BIN="${DOCKER_BIN:-docker}"
 DOCKER_DIR="${DOCKER_DIR:-$ROOT_DIR/containers/docker/arm64}"
+DOCKER_PLATFORM="${DOCKER_PLATFORM:-linux/arm64}"
+DOCKER_ARCH="${DOCKER_ARCH:-arm64}"
+RUNTIME_NAME="${RUNTIME_NAME:-docker-$DOCKER_ARCH}"
 JOBS="${JOBS:-1}"
 SAVE_TAR="${SAVE_TAR:-1}"
 VERSION_TIMEOUT="${VERSION_TIMEOUT:-120}"
@@ -13,8 +16,8 @@ IMAGE_PREFIX="${IMAGE_PREFIX:-bijux-smoke}"
 TOOLS="${TOOLS:-}"
 
 ARTIFACT_DIR="$ROOT_DIR/artifacts/container"
-LOG_DIR="$ARTIFACT_DIR/logs/docker-arm64"
-IMG_DIR="$ARTIFACT_DIR/images/docker-arm64"
+LOG_DIR="$ARTIFACT_DIR/logs/$RUNTIME_NAME"
+IMG_DIR="$ARTIFACT_DIR/images/$RUNTIME_NAME"
 SUMMARY="$LOG_DIR/summary.txt"
 IMAGES_TXT="$IMG_DIR/images.txt"
 MANIFEST_DIR="$ROOT_DIR/artifacts/containers"
@@ -104,7 +107,7 @@ get_registry_field() {
 build_and_smoke_one() {
   dockerfile="$1"
   tool=$(basename "$dockerfile" | sed 's/^Dockerfile\.//')
-  image="$IMAGE_PREFIX/${tool}:arm64"
+  image="$IMAGE_PREFIX/${tool}:$DOCKER_ARCH"
   log="$LOG_DIR/${tool}.log"
   cmd=$(get_version_cmd "$tool")
   version_output_file="$LOG_DIR/${tool}.version.out"
@@ -118,7 +121,7 @@ build_and_smoke_one() {
     echo "=== [$tool] build start"
     echo "dockerfile: $dockerfile"
     echo "image: $image"
-    "$DOCKER_BIN" build -f "$dockerfile" -t "$image" "$DOCKER_DIR"
+    "$DOCKER_BIN" build --platform "$DOCKER_PLATFORM" -f "$dockerfile" -t "$image" "$DOCKER_DIR"
     echo "=== [$tool] smoke: $cmd"
     run_with_timeout "$VERSION_TIMEOUT" "$DOCKER_BIN" run --rm "$image" sh -lc "$cmd" | tee "$version_output_file"
     if [ "$SAVE_TAR" = "1" ]; then
@@ -140,7 +143,7 @@ build_and_smoke_one() {
     cat > "$manifest" <<JSON
 {
   "tool": "$tool",
-  "runtime": "docker-arm64",
+  "runtime": "$RUNTIME_NAME",
   "status": "ok",
   "dockerfile": "$dockerfile_json",
   "base_image": "$base_image_json",
@@ -165,7 +168,7 @@ JSON
     cat > "$manifest" <<JSON
 {
   "tool": "$tool",
-  "runtime": "docker-arm64",
+  "runtime": "$RUNTIME_NAME",
   "status": "fail",
   "dockerfile": "$dockerfile_json",
   "base_image": "$base_image_json",
@@ -218,7 +221,7 @@ fi
 
 : >"$SUMMARY"
 : >"$IMAGES_TXT"
-echo "Docker arm64 smoke run" | tee -a "$SUMMARY"
+echo "Docker $DOCKER_ARCH smoke run ($DOCKER_PLATFORM)" | tee -a "$SUMMARY"
 echo "logs: $LOG_DIR" | tee -a "$SUMMARY"
 echo "images: $IMG_DIR" | tee -a "$SUMMARY"
 
