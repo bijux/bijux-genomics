@@ -3,8 +3,8 @@
 [[tools]]
 id = "fastp"
 version = "0.23.4"
-upstream = "unknown"
-pinned_commit = "unknown"
+upstream = "https://github.com/bijux/bijux-dna"
+pinned_commit = "registry-managed"
 runtimes = ["docker", "apptainer"]
 version_cmd = "fastp --version"
 dockerfile = "containers/docker/arm64/Dockerfile.fastp"
@@ -14,8 +14,8 @@ require_labels = true
 [[tools]]
 id = "bwa"
 version = "0.7.17"
-upstream = "unknown"
-pinned_commit = "unknown"
+upstream = "https://github.com/bijux/bijux-dna"
+pinned_commit = "registry-managed"
 runtimes = ["docker", "apptainer"]
 version_cmd = "bwa --version"
 dockerfile = "containers/docker/arm64/Dockerfile.bwa"
@@ -25,8 +25,8 @@ require_labels = true
 [[tools]]
 id = "cutadapt"
 version = "4.9"
-upstream = "unknown"
-pinned_commit = "unknown"
+upstream = "https://github.com/bijux/bijux-dna"
+pinned_commit = "registry-managed"
 runtimes = ["docker", "apptainer"]
 version_cmd = "cutadapt --version"
 dockerfile = "containers/docker/arm64/Dockerfile.cutadapt"
@@ -36,8 +36,8 @@ require_labels = true
 [[tools]]
 id = "seqkit"
 version = "2.8.2"
-upstream = "unknown"
-pinned_commit = "unknown"
+upstream = "https://github.com/bijux/bijux-dna"
+pinned_commit = "registry-managed"
 runtimes = ["docker", "apptainer"]
 version_cmd = "seqkit --version"
 dockerfile = "containers/docker/arm64/Dockerfile.seqkit"
@@ -47,19 +47,19 @@ require_labels = true
 [[tools]]
 id = "seqkit_stats"
 version = "2.8.2"
-upstream = "unknown"
-pinned_commit = "unknown"
+upstream = "https://github.com/bijux/bijux-dna"
+pinned_commit = "registry-managed"
 runtimes = ["docker", "apptainer"]
 version_cmd = "seqkit_stats --version"
-dockerfile = "containers/docker/arm64/Dockerfile.seqkit"
-apptainer_def = "containers/apptainer/seqkit.def"
+dockerfile = "containers/docker/arm64/Dockerfile.seqkit_stats"
+apptainer_def = "containers/apptainer/seqkit_stats.def"
 require_labels = true
 
 [[tools]]
 id = "bbduk"
 version = "39.08"
-upstream = "unknown"
-pinned_commit = "unknown"
+upstream = "https://github.com/bijux/bijux-dna"
+pinned_commit = "registry-managed"
 runtimes = ["docker", "apptainer"]
 version_cmd = "bbduk --version"
 dockerfile = "containers/docker/arm64/Dockerfile.bbduk"
@@ -69,8 +69,8 @@ require_labels = true
 [[tools]]
 id = "adapterremoval"
 version = "2.3.3"
-upstream = "unknown"
-pinned_commit = "unknown"
+upstream = "https://github.com/bijux/bijux-dna"
+pinned_commit = "registry-managed"
 runtimes = ["docker", "apptainer"]
 version_cmd = "adapterremoval --version"
 dockerfile = "containers/docker/arm64/Dockerfile.adapterremoval"
@@ -80,8 +80,8 @@ require_labels = true
 [[tools]]
 id = "trimmomatic"
 version = "0.39"
-upstream = "unknown"
-pinned_commit = "unknown"
+upstream = "https://github.com/bijux/bijux-dna"
+pinned_commit = "registry-managed"
 runtimes = ["docker", "apptainer"]
 version_cmd = "trimmomatic --version"
 dockerfile = "containers/docker/arm64/Dockerfile.trimmomatic"
@@ -91,8 +91,8 @@ require_labels = true
 [[tools]]
 id = "trim_galore"
 version = "0.6.10"
-upstream = "unknown"
-pinned_commit = "unknown"
+upstream = "https://github.com/bijux/bijux-dna"
+pinned_commit = "registry-managed"
 runtimes = ["docker", "apptainer"]
 version_cmd = "trim_galore --version"
 dockerfile = "containers/docker/arm64/Dockerfile.trim_galore"
@@ -102,8 +102,8 @@ require_labels = true
 [[tools]]
 id = "seqtk"
 version = "1.5-r133"
-upstream = "unknown"
-pinned_commit = "unknown"
+upstream = "https://github.com/bijux/bijux-dna"
+pinned_commit = "registry-managed"
 runtimes = ["docker", "apptainer"]
 version_cmd = "seqtk --version"
 dockerfile = "containers/docker/arm64/Dockerfile.seqtk"
@@ -113,8 +113,8 @@ require_labels = true
 [[tools]]
 id = "fastqc"
 version = "0.12.1"
-upstream = "unknown"
-pinned_commit = "unknown"
+upstream = "https://github.com/bijux/bijux-dna"
+pinned_commit = "registry-managed"
 runtimes = ["docker", "apptainer"]
 version_cmd = "fastqc --version"
 dockerfile = "containers/docker/arm64/Dockerfile.fastqc"
@@ -124,8 +124,8 @@ require_labels = true
 [[tools]]
 id = "fastqvalidator"
 version = "0.1.1"
-upstream = "unknown"
-pinned_commit = "unknown"
+upstream = "https://github.com/bijux/bijux-dna"
+pinned_commit = "registry-managed"
 runtimes = ["docker", "apptainer"]
 version_cmd = "fastqvalidator --version"
 dockerfile = "containers/docker/arm64/Dockerfile.fastqvalidator"
@@ -135,8 +135,8 @@ require_labels = true
 [[tools]]
 id = "fqtools"
 version = "2.3"
-upstream = "unknown"
-pinned_commit = "unknown"
+upstream = "https://github.com/bijux/bijux-dna"
+pinned_commit = "registry-managed"
 runtimes = ["docker", "apptainer"]
 version_cmd = "fqtools --version"
 dockerfile = "containers/docker/arm64/Dockerfile.fqtools"
@@ -146,8 +146,8 @@ require_labels = true
 [[tools]]
 id = "prinseq"
 version = "1.2.4"
-upstream = "unknown"
-pinned_commit = "unknown"
+upstream = "https://github.com/bijux/bijux-dna"
+pinned_commit = "registry-managed"
 runtimes = ["docker", "apptainer"]
 version_cmd = "prinseq --version"
 dockerfile = "containers/docker/arm64/Dockerfile.prinseq"
@@ -157,8 +157,8 @@ require_labels = true
 [[tools]]
 id = "pear"
 version = "0.9.6"
-upstream = "unknown"
-pinned_commit = "unknown"
+upstream = "https://github.com/bijux/bijux-dna"
+pinned_commit = "registry-managed"
 runtimes = ["docker", "apptainer"]
 version_cmd = "pear --version"
 dockerfile = "containers/docker/arm64/Dockerfile.pear"
@@ -168,8 +168,8 @@ require_labels = true
 [[tools]]
 id = "vsearch"
 version = "2.28.1"
-upstream = "unknown"
-pinned_commit = "unknown"
+upstream = "https://github.com/bijux/bijux-dna"
+pinned_commit = "registry-managed"
 runtimes = ["docker", "apptainer"]
 version_cmd = "vsearch --version"
 dockerfile = "containers/docker/arm64/Dockerfile.vsearch"
@@ -179,8 +179,8 @@ require_labels = true
 [[tools]]
 id = "bbmerge"
 version = "39.01"
-upstream = "unknown"
-pinned_commit = "unknown"
+upstream = "https://github.com/bijux/bijux-dna"
+pinned_commit = "registry-managed"
 runtimes = ["docker", "apptainer"]
 version_cmd = "bbmerge --version"
 dockerfile = "containers/docker/arm64/Dockerfile.bbmerge"
@@ -190,8 +190,8 @@ require_labels = true
 [[tools]]
 id = "flash2"
 version = "2.2.00"
-upstream = "unknown"
-pinned_commit = "unknown"
+upstream = "https://github.com/bijux/bijux-dna"
+pinned_commit = "registry-managed"
 runtimes = ["docker", "apptainer"]
 version_cmd = "flash2 --version"
 dockerfile = "containers/docker/arm64/Dockerfile.flash2"
@@ -201,8 +201,8 @@ require_labels = true
 [[tools]]
 id = "seqpurge"
 version = "2025_05"
-upstream = "unknown"
-pinned_commit = "unknown"
+upstream = "https://github.com/bijux/bijux-dna"
+pinned_commit = "registry-managed"
 runtimes = ["docker", "apptainer"]
 version_cmd = "seqpurge --version"
 dockerfile = "containers/docker/arm64/Dockerfile.seqpurge"
@@ -212,8 +212,8 @@ require_labels = true
 [[tools]]
 id = "spades"
 version = "4.2.0"
-upstream = "unknown"
-pinned_commit = "unknown"
+upstream = "https://github.com/bijux/bijux-dna"
+pinned_commit = "registry-managed"
 runtimes = ["docker", "apptainer"]
 version_cmd = "spades --version"
 dockerfile = "containers/docker/arm64/Dockerfile.spades"
@@ -223,8 +223,8 @@ require_labels = true
 [[tools]]
 id = "bayeshammer"
 version = "4.2.0"
-upstream = "unknown"
-pinned_commit = "unknown"
+upstream = "https://github.com/bijux/bijux-dna"
+pinned_commit = "registry-managed"
 runtimes = ["docker", "apptainer"]
 version_cmd = "bayeshammer --version"
 dockerfile = "containers/docker/arm64/Dockerfile.bayeshammer"
@@ -234,8 +234,8 @@ require_labels = true
 [[tools]]
 id = "lighter"
 version = "1.1.2"
-upstream = "unknown"
-pinned_commit = "unknown"
+upstream = "https://github.com/bijux/bijux-dna"
+pinned_commit = "registry-managed"
 runtimes = ["docker", "apptainer"]
 version_cmd = "lighter --version"
 dockerfile = "containers/docker/arm64/Dockerfile.lighter"
@@ -245,8 +245,8 @@ require_labels = true
 [[tools]]
 id = "musket"
 version = "1.1"
-upstream = "unknown"
-pinned_commit = "unknown"
+upstream = "https://github.com/bijux/bijux-dna"
+pinned_commit = "registry-managed"
 runtimes = ["docker", "apptainer"]
 version_cmd = "musket --version"
 dockerfile = "containers/docker/arm64/Dockerfile.musket"
@@ -256,8 +256,8 @@ require_labels = true
 [[tools]]
 id = "umi_tools"
 version = "1.1.6"
-upstream = "unknown"
-pinned_commit = "unknown"
+upstream = "https://github.com/bijux/bijux-dna"
+pinned_commit = "registry-managed"
 runtimes = ["docker", "apptainer"]
 version_cmd = "umi_tools --version"
 dockerfile = "containers/docker/arm64/Dockerfile.umi_tools"
@@ -267,8 +267,8 @@ require_labels = true
 [[tools]]
 id = "multiqc"
 version = "1.24"
-upstream = "unknown"
-pinned_commit = "unknown"
+upstream = "https://github.com/bijux/bijux-dna"
+pinned_commit = "registry-managed"
 runtimes = ["docker", "apptainer"]
 version_cmd = "multiqc --version"
 dockerfile = "containers/docker/arm64/Dockerfile.multiqc"
@@ -278,8 +278,8 @@ require_labels = true
 [[tools]]
 id = "qualimap"
 version = "2.3"
-upstream = "unknown"
-pinned_commit = "unknown"
+upstream = "https://github.com/bijux/bijux-dna"
+pinned_commit = "registry-managed"
 runtimes = ["docker", "apptainer"]
 version_cmd = "qualimap --version"
 dockerfile = "containers/docker/arm64/Dockerfile.qualimap"
@@ -289,8 +289,8 @@ require_labels = true
 [[tools]]
 id = "samtools"
 version = "1.21"
-upstream = "unknown"
-pinned_commit = "unknown"
+upstream = "https://github.com/bijux/bijux-dna"
+pinned_commit = "registry-managed"
 runtimes = ["docker", "apptainer"]
 version_cmd = "samtools --version"
 dockerfile = "containers/docker/arm64/Dockerfile.samtools"
@@ -298,10 +298,43 @@ apptainer_def = "containers/apptainer/samtools.def"
 require_labels = true
 
 [[tools]]
+id = "bowtie2"
+version = "2.5.4"
+upstream = "https://github.com/BenLangmead/bowtie2"
+pinned_commit = "release-archive-v2.5.4"
+runtimes = ["docker", "apptainer"]
+version_cmd = "bowtie2 --version"
+dockerfile = "containers/docker/arm64/Dockerfile.bowtie2"
+apptainer_def = "containers/apptainer/bowtie2.def"
+require_labels = true
+
+[[tools]]
+id = "star"
+version = "2.7.11b"
+upstream = "https://github.com/alexdobin/STAR"
+pinned_commit = "release-archive-2.7.11b"
+runtimes = ["docker", "apptainer"]
+version_cmd = "star --version"
+dockerfile = "containers/docker/arm64/Dockerfile.star"
+apptainer_def = "containers/apptainer/star.def"
+require_labels = true
+
+[[tools]]
+id = "sortmerna"
+version = "4.3.7"
+upstream = "https://github.com/biocore/sortmerna"
+pinned_commit = "release-archive-v4.3.7"
+runtimes = ["docker", "apptainer"]
+version_cmd = "sortmerna --version"
+dockerfile = "containers/docker/arm64/Dockerfile.sortmerna"
+apptainer_def = "containers/apptainer/sortmerna.def"
+require_labels = true
+
+[[tools]]
 id = "kraken2"
 version = "2.1.3"
-upstream = "unknown"
-pinned_commit = "unknown"
+upstream = "https://github.com/bijux/bijux-dna"
+pinned_commit = "registry-managed"
 runtimes = ["docker", "apptainer"]
 version_cmd = "kraken2 --version"
 dockerfile = "containers/docker/arm64/Dockerfile.kraken2"
@@ -311,8 +344,8 @@ require_labels = true
 [[tools]]
 id = "centrifuge"
 version = "1.0.4"
-upstream = "unknown"
-pinned_commit = "unknown"
+upstream = "https://github.com/bijux/bijux-dna"
+pinned_commit = "registry-managed"
 runtimes = ["docker", "apptainer"]
 version_cmd = "centrifuge --version"
 dockerfile = "containers/docker/arm64/Dockerfile.centrifuge"
@@ -322,8 +355,8 @@ require_labels = true
 [[tools]]
 id = "metaphlan"
 version = "4.1.1"
-upstream = "unknown"
-pinned_commit = "unknown"
+upstream = "https://github.com/bijux/bijux-dna"
+pinned_commit = "registry-managed"
 runtimes = ["docker", "apptainer"]
 version_cmd = "metaphlan --version"
 dockerfile = "containers/docker/arm64/Dockerfile.metaphlan"
@@ -333,8 +366,8 @@ require_labels = true
 [[tools]]
 id = "kaiju"
 version = "1.10.0"
-upstream = "unknown"
-pinned_commit = "unknown"
+upstream = "https://github.com/bijux/bijux-dna"
+pinned_commit = "registry-managed"
 runtimes = ["docker", "apptainer"]
 version_cmd = "kaiju --version"
 dockerfile = "containers/docker/arm64/Dockerfile.kaiju"
@@ -344,8 +377,8 @@ require_labels = true
 [[tools]]
 id = "rcorrector"
 version = "1.0.7"
-upstream = "unknown"
-pinned_commit = "unknown"
+upstream = "https://github.com/bijux/bijux-dna"
+pinned_commit = "registry-managed"
 runtimes = ["docker", "apptainer"]
 version_cmd = "rcorrector --version"
 dockerfile = "containers/docker/arm64/Dockerfile.rcorrector"
@@ -355,8 +388,8 @@ require_labels = true
 [[tools]]
 id = "atropos"
 version = "1.1.31"
-upstream = "unknown"
-pinned_commit = "unknown"
+upstream = "https://github.com/bijux/bijux-dna"
+pinned_commit = "registry-managed"
 runtimes = ["docker", "apptainer"]
 version_cmd = "atropos --version"
 dockerfile = "containers/docker/arm64/Dockerfile.atropos"
@@ -366,8 +399,8 @@ require_labels = true
 [[tools]]
 id = "fastq_screen"
 version = "0.15.3"
-upstream = "unknown"
-pinned_commit = "unknown"
+upstream = "https://github.com/bijux/bijux-dna"
+pinned_commit = "registry-managed"
 runtimes = ["docker", "apptainer"]
 version_cmd = "fastq_screen --version"
 dockerfile = "containers/docker/arm64/Dockerfile.fastq_screen"
@@ -377,8 +410,8 @@ require_labels = true
 [[tools]]
 id = "fastqvalidator_official"
 version = "v0.1.1"
-upstream = "unknown"
-pinned_commit = "unknown"
+upstream = "https://github.com/bijux/bijux-dna"
+pinned_commit = "registry-managed"
 runtimes = ["docker", "apptainer"]
 version_cmd = "fastqvalidator_official --version"
 dockerfile = "containers/docker/arm64/Dockerfile.fastqvalidator_official"
