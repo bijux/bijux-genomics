@@ -108,8 +108,13 @@ verify-parallel-isolation:
 	@case "$(abspath $(COV_TARGET_DIR))" in "$(abspath $(TEST_TARGET_DIR))"/*) echo "COV_TARGET_DIR is nested in TEST_TARGET_DIR"; exit 1;; esac
 
 test-coverage-parallel:
-	$(MAKE) -j2 test coverage
-	$(MAKE) verify-parallel-isolation
+test-and-coverage: verify-parallel-isolation test coverage
+	@# Cross-footprint checks: test must not emit coverage outputs, coverage must not emit test outputs.
+	@test ! -e $(TEST_TARGET_DIR)/coverage/coverage.json
+	@test ! -e $(TEST_TARGET_DIR)/coverage/html/index.html
+	@test ! -e $(COV_TARGET_DIR)/run_manifest.json
+
+test-coverage-parallel: test-and-coverage
 
 clean-isolate:
 	@rm -rf target-isolate-* target-test/tmp target-test/profraw target-cov/tmp target-cov/profraw
@@ -124,5 +129,6 @@ snapshots-review:
 	$(TEST_ENV) cargo insta review
 
 .PHONY: fmt lint test audit coverage ci check ci-local test-coverage-parallel verify-parallel-isolation \
+		test-and-coverage \
 		fmt-isolate lint-isolate test-isolate audit-isolate coverage-isolate ci-isolate clean-isolate \
 		snapshots snapshots-accept snapshots-review ensure-cargo-deny
