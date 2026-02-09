@@ -6,13 +6,15 @@
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 ARG OCI_REVISION=unknown
 ARG OCI_CREATED=unknown
-ARG TOOL_VERSION=unknown
-LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-dna" \
-      org.opencontainers.image.revision="${OCI_REVISION}" \
-      org.opencontainers.image.created="${OCI_CREATED}" \
-      org.opencontainers.image.licenses="GPL-3.0" \
-      org.opencontainers.image.version="${TOOL_VERSION}"
-RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates && rm -rf /var/lib/apt/lists/*
-RUN printf '#!/usr/bin/env sh\nif [ "${1:-}" = "--version" ]; then echo "${TOOL_VERSION}"; exit 0; fi\nif [ "${1:-}" = "--help" ] || [ $# -eq 0 ]; then echo "yleaf container scaffold"; exit 0; fi\necho "yleaf executable not yet wired" >&2; exit 2\n' > /usr/local/bin/yleaf && chmod +x /usr/local/bin/yleaf
+ARG TOOL_VERSION=3.0.3
+LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-dna"       org.opencontainers.image.revision="${OCI_REVISION}"       org.opencontainers.image.created="${OCI_CREATED}"       org.opencontainers.image.licenses="GPL-3.0"       org.opencontainers.image.version="${TOOL_VERSION}"
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update -qq && apt-get install -y --no-install-recommends     python3 python3-pip python3-venv git ca-certificates &&     rm -rf /var/lib/apt/lists/*
+
+RUN git clone --depth 1 https://github.com/genid/Yleaf.git /opt/yleaf &&     cd /opt/yleaf && git checkout f3aae50653cb685a7c3d6e4c08aa170c47a85263 &&     python3 -m pip install --break-system-packages --no-cache-dir .
+
+RUN printf '%s\n'   '#!/usr/bin/env sh'   'case "${1:-}" in'   '  --version) yleaf --version; exit 0 ;;'   '  --help|-h|"") yleaf --help; exit 0 ;;'   'esac'   'exec yleaf "$@"' > /usr/local/bin/yleaf && chmod +x /usr/local/bin/yleaf
+
 ENTRYPOINT ["/usr/local/bin/yleaf"]
 CMD ["--help"]

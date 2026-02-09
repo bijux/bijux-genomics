@@ -11,22 +11,23 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
     org.opencontainers.image.revision unknown
     org.opencontainers.image.created unknown
     org.opencontainers.image.licenses GPL-3.0
-    org.opencontainers.image.version unknown
+    org.opencontainers.image.version 3.2.0
 
 %post
     export DEBIAN_FRONTEND=noninteractive
-    apt-get update && apt-get install -y --no-install-recommends ca-certificates && rm -rf /var/lib/apt/lists/*
-    cat > /usr/local/bin/preseq <<'EOS'
-#!/usr/bin/env sh
-if [ "${1:-}" = "--version" ]; then echo "unknown"; exit 0; fi
-if [ "${1:-}" = "--help" ] || [ $# -eq 0 ]; then echo "preseq container scaffold"; exit 0; fi
-echo "preseq executable not yet wired" >&2
-exit 2
-EOS
-    chmod +x /usr/local/bin/preseq
+    apt-get update -qq && apt-get install -y --no-install-recommends         git build-essential zlib1g-dev libbz2-dev liblzma-dev libcurl4-openssl-dev         ca-certificates make autoconf automake libtool pkg-config &&         rm -rf /var/lib/apt/lists/*
+
+    git clone --depth 1 https://github.com/smithlabcode/preseq.git /opt/preseq
+    cd /opt/preseq
+    git checkout acc94f2957b15f51f917b7b8e0819c41c81c4949
+    make -j"\$$(nproc)"
+    cp /opt/preseq/preseq /usr/local/bin/preseq
+
+    apt-get update -qq && apt-get install -y --no-install-recommends         libbz2-1.0 liblzma5 libcurl4 zlib1g ca-certificates &&         rm -rf /var/lib/apt/lists/*
 
 %runscript
     exec /usr/local/bin/preseq "$@"
 
 %help
-    Scaffold Apptainer definition for preseq with standardized labels and runscript.
+    Apptainer image for preseq.
+    Default runscript forwards arguments to the tool entrypoint.
