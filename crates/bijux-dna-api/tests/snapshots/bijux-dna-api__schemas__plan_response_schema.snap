@@ -1,6 +1,7 @@
 ---
-source: crates/bijux-dna-api/tests/v1_cross_api_stability.rs
-expression: json
+source: crates/bijux-dna-api/tests/schemas/v1_cross_api_stability.rs
+assertion_line: 76
+expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
   "graph": {
@@ -79,7 +80,26 @@ expression: json
     "dataset_fingerprints": [],
     "failures": [],
     "graph_hash": "934c4ac4579c0d17d2b467b1c1fd777757f6c050fa34f40c71aac13fbce0b37b",
-    "output_artifacts": [],
+    "output_artifacts": [
+      {
+        "kind": "graph",
+        "path": "graph.json",
+        "schema": "bijux.execution_graph.v1",
+        "sha256": "unknown"
+      },
+      {
+        "kind": "run_manifest",
+        "path": "run_manifest.json",
+        "schema": "bijux.run_manifest.v3",
+        "sha256": "unknown"
+      },
+      {
+        "kind": "run_summary",
+        "path": "run_summary.json",
+        "schema": "bijux.run_summary.v1",
+        "sha256": "unknown"
+      }
+    ],
     "pipeline_id": "fastq-to-fastq__default__v1",
     "profile_id": "default",
     "run_id": "plan-only",
