@@ -51,8 +51,12 @@ pub fn run_with_cli(cli: &cli::Cli, cwd: &Path) -> Result<()> {
     }
     let domain_dir = cwd.join("domain");
 
+    if let cli::RootCommand::Environment { command } = &cli.command {
+        return handle_environment_root(command, cwd);
+    }
     let dna_command = match &cli.command {
         cli::RootCommand::Dna { command } => command,
+        cli::RootCommand::Environment { .. } => unreachable!("handled above"),
     };
 
     if fastq::handle_meta_commands(cli, dna_command, &domain_dir)? {
@@ -95,4 +99,33 @@ pub fn run_with_cli(cli: &cli::Cli, cwd: &Path) -> Result<()> {
     }
 
     run_plan::run_plan(cli, dna_command, &registry, &domain_dir)
+}
+
+fn handle_environment_root(command: &cli::EnvCommand, cwd: &Path) -> Result<()> {
+    use crate::commands::cli::env::{
+        env_doctor, print_env_images, print_env_info, print_env_registry_list, run_env_smoke,
+    };
+    use bijux_dna_api::v1::api::env::{load_image_catalog, load_platform};
+    match command {
+        cli::EnvCommand::List => {
+            let registry_path = cwd.join("configs").join("tools.toml");
+            print_env_registry_list(&registry_path)?;
+        }
+        cli::EnvCommand::Smoke(args) => {
+            run_env_smoke(&args.runtime, &args.tool)?;
+        }
+        cli::EnvCommand::Images | cli::EnvCommand::Info | cli::EnvCommand::Doctor => {
+            let platform =
+                load_platform(None).map_err(|err| anyhow!("failed to load platform: {err}"))?;
+            let catalog =
+                load_image_catalog().map_err(|err| anyhow!("failed to load images: {err}"))?;
+            match command {
+                cli::EnvCommand::Images => print_env_images(&catalog, &platform)?,
+                cli::EnvCommand::Info => print_env_info(&catalog, &platform),
+                cli::EnvCommand::Doctor => env_doctor(&catalog, &platform),
+                cli::EnvCommand::List | cli::EnvCommand::Smoke(_) => {}
+            }
+        }
+    }
+    Ok(())
 }

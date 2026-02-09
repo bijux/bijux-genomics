@@ -26,6 +26,10 @@ pub enum RootCommand {
         #[command(subcommand)]
         command: DnaCommand,
     },
+    Environment {
+        #[command(subcommand)]
+        command: EnvCommand,
+    },
 }
 
 #[derive(Debug, Subcommand)]
@@ -170,6 +174,14 @@ pub enum EnvCommand {
     Images,
     Info,
     Doctor,
+    List,
+    Smoke(SmokeArgs),
+}
+
+#[derive(Debug, Args)]
+pub struct SmokeArgs {
+    pub runtime: String,
+    pub tool: String,
 }
 
 #[derive(Debug, Subcommand)]

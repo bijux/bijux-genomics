@@ -1,6 +1,8 @@
 use std::collections::HashMap;
+use std::path::Path;
+use std::process::Command;
 
-use anyhow::Result;
+use anyhow::{anyhow, Context, Result};
 use bijux_dna_api::v1::api::env::{
     available_runners, cache_dir, docker_image_exists, resolve_image, PlatformSpec, RuntimeKind,
     ToolImageSpec,
@@ -18,6 +20,91 @@ pub fn print_env_images<S: ::std::hash::BuildHasher>(
         let resolved = resolve_image(spec, platform)?;
         let digest = spec.digest.as_deref().unwrap_or("no digest");
         println!("{name}: {} ({digest})", resolved.full_name);
+    }
+    Ok(())
+}
+
+/// # Errors
+/// Returns an error if registry cannot be read.
+pub fn print_env_registry_list(registry_path: &Path) -> Result<()> {
+    let raw = std::fs::read_to_string(registry_path)
+        .with_context(|| format!("read {}", registry_path.display()))?;
+    let parsed: toml::Value = raw.parse().context("parse tools registry TOML")?;
+    let tools = parsed
+        .get("tools")
+        .and_then(toml::Value::as_array)
+        .ok_or_else(|| anyhow!("missing [[tools]] in {}", registry_path.display()))?;
+
+    println!("tool\thas_docker\thas_apptainer\thas_smoke\tpinned");
+    for entry in tools {
+        let id = entry
+            .get("id")
+            .and_then(toml::Value::as_str)
+            .unwrap_or("<missing>");
+        let runtimes = entry
+            .get("runtimes")
+            .and_then(toml::Value::as_array)
+            .cloned()
+            .unwrap_or_default();
+        let has_docker = runtimes
+            .iter()
+            .any(|v| v.as_str().map(|s| s == "docker").unwrap_or(false))
+            && entry
+                .get("dockerfile")
+                .and_then(toml::Value::as_str)
+                .map(|s| !s.trim().is_empty())
+                .unwrap_or(false);
+        let has_apptainer = runtimes
+            .iter()
+            .any(|v| v.as_str().map(|s| s == "apptainer").unwrap_or(false))
+            && entry
+                .get("apptainer_def")
+                .and_then(toml::Value::as_str)
+                .map(|s| !s.trim().is_empty())
+                .unwrap_or(false);
+        let has_smoke = entry
+            .get("version_cmd")
+            .and_then(toml::Value::as_str)
+            .map(|s| !s.trim().is_empty())
+            .unwrap_or(false);
+        let pinned = entry
+            .get("pinned_commit")
+            .and_then(toml::Value::as_str)
+            .map(|s| {
+                let t = s.trim();
+                t.len() == 40 && t.chars().all(|c| c.is_ascii_hexdigit())
+            })
+            .unwrap_or(false);
+        println!("{id}\t{has_docker}\t{has_apptainer}\t{has_smoke}\t{pinned}");
+    }
+    Ok(())
+}
+
+/// # Errors
+/// Returns an error if smoke script execution fails.
+pub fn run_env_smoke(runtime: &str, tool: &str) -> Result<()> {
+    let script = match runtime {
+        "docker-arm64" => "scripts/smoke-containers-docker-arm64.sh",
+        "docker-amd64" => "scripts/smoke-containers-docker-amd64.sh",
+        "apptainer" => "scripts/smoke-containers-apptainer.sh",
+        other => {
+            return Err(anyhow!(
+                "unsupported runtime `{other}`; expected docker-arm64 | docker-amd64 | apptainer"
+            ));
+        }
+    };
+
+    let status = Command::new("sh")
+        .arg(script)
+        .env("TOOLS", tool)
+        .env("JOBS", "1")
+        .env("SMOKE_LEVEL", "contract")
+        .status()
+        .with_context(|| format!("run smoke script {script}"))?;
+    if !status.success() {
+        return Err(anyhow!(
+            "smoke failed for runtime={runtime} tool={tool} (exit={status})"
+        ));
     }
     Ok(())
 }

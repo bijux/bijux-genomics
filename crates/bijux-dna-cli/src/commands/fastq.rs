@@ -8,13 +8,14 @@ use crate::commands::command_prelude::{
     bench_fastq_stats_neutral, bench_fastq_trim, bench_fastq_umi, bench_fastq_validate_pre, cli,
     compare_runs, compare_runs_with_baseline, env_doctor, load_facts_auto, load_image_catalog,
     load_manifests, load_platform, load_run_summary, objective_spec, print_bench_schema,
-    print_env_images, print_env_info, qc_class_label, render, render_report_bundle_html,
-    resolve_report_inputs, run_image_qa, set_tool_tier_policy, workspace_audit,
-    write_correct_report, write_filter_report, write_merge_report, write_qc_post_report,
-    write_run_report_from_facts, write_run_summary_from_facts, write_stage_summary_csv,
-    write_stats_report, write_trim_report, write_umi_report, write_validate_report, AnalyzeCommand,
-    BTreeMap, BenchBamCommand, BenchCommand, BenchFastqCommand, Cli, DnaCommand, EnvCommand,
-    Objective, Path, PipelinesCommand, PoliciesCommand, RankInput, Result,
+    print_env_images, print_env_info, print_env_registry_list, qc_class_label, render,
+    render_report_bundle_html, resolve_report_inputs, run_env_smoke, run_image_qa,
+    set_tool_tier_policy, workspace_audit, write_correct_report, write_filter_report,
+    write_merge_report, write_qc_post_report, write_run_report_from_facts,
+    write_run_summary_from_facts, write_stage_summary_csv, write_stats_report, write_trim_report,
+    write_umi_report, write_validate_report, AnalyzeCommand, BTreeMap, BenchBamCommand,
+    BenchCommand, BenchFastqCommand, Cli, DnaCommand, EnvCommand, Objective, Path,
+    PipelinesCommand, PoliciesCommand, RankInput, Result,
 };
 
 pub(crate) fn handle_meta_commands(
@@ -317,18 +318,34 @@ pub(crate) fn handle_meta_commands(
             Ok(true)
         }
         DnaCommand::Env { command } => {
-            let platform = load_platform(cli.platform.as_deref())
-                .map_err(|err| anyhow!("failed to load platform: {err}"))?;
-            let catalog =
-                load_image_catalog().map_err(|err| anyhow!("failed to load images: {err}"))?;
             match command {
+                EnvCommand::List => {
+                    let cwd = std::env::current_dir()?;
+                    let registry_path = cwd.join("configs").join("tools.toml");
+                    print_env_registry_list(&registry_path)?;
+                }
+                EnvCommand::Smoke(args) => {
+                    run_env_smoke(&args.runtime, &args.tool)?;
+                }
                 EnvCommand::Images => {
+                    let platform = load_platform(cli.platform.as_deref())
+                        .map_err(|err| anyhow!("failed to load platform: {err}"))?;
+                    let catalog = load_image_catalog()
+                        .map_err(|err| anyhow!("failed to load images: {err}"))?;
                     print_env_images(&catalog, &platform)?;
                 }
                 EnvCommand::Info => {
+                    let platform = load_platform(cli.platform.as_deref())
+                        .map_err(|err| anyhow!("failed to load platform: {err}"))?;
+                    let catalog = load_image_catalog()
+                        .map_err(|err| anyhow!("failed to load images: {err}"))?;
                     print_env_info(&catalog, &platform);
                 }
                 EnvCommand::Doctor => {
+                    let platform = load_platform(cli.platform.as_deref())
+                        .map_err(|err| anyhow!("failed to load platform: {err}"))?;
+                    let catalog = load_image_catalog()
+                        .map_err(|err| anyhow!("failed to load images: {err}"))?;
                     env_doctor(&catalog, &platform);
                 }
             }
