@@ -1,0 +1,12 @@
+---
+source: crates/bijux-dna-planner-bam/tests/contracts/explain/explainability.rs
+expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::to_value(&a.reason)?)"
+---
+{
+  "details": {
+    "contract_hash": "84e5f63b61c5ab607b9fc5e16f094f7aa2c90e649f7615f0dc8119632c741927",
+    "defaults_diff": {}
+  },
+  "kind": "default",
+  "summary": "tool tool.pmdtools selected by planner"
+}

@@ -1,0 +1,12 @@
+---
+source: crates/bijux-dna-planner-fastq/tests/contracts/explain/explainability.rs
+expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::to_value(&a.reason)?)"
+---
+{
+  "details": {
+    "contract_hash": "9ba526fe115ebeb0f9bad20b66772f0d94755a94c0b00e83bb88fa35062e0953",
+    "defaults_diff": {}
+  },
+  "kind": "default",
+  "summary": "default selection for fastq.stats_neutral"
+}
