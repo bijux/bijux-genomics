@@ -1,0 +1,46 @@
+Bootstrap: docker
+From: ubuntu:24.04
+
+%labels
+    MAINTAINER Bijan Mousavi <mousavi.bijan@gmail.com>
+    VERSION Fastp-v0.23.4
+    org.opencontainers.image.source https://github.com/OpenGene/fastp
+
+%environment
+    DEBIAN_FRONTEND=noninteractive
+
+%post
+    export DEBIAN_FRONTEND=noninteractive
+
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        wget ca-certificates build-essential zlib1g-dev libdeflate-dev && \
+
+    ARCH=$(uname -m) && \
+    if [ "$ARCH" = "x86_64" ]; then \
+        apt-get install -y --no-install-recommends libisal-dev; \
+    fi && \
+
+    wget -q https://github.com/OpenGene/fastp/archive/v0.23.4.tar.gz -O /tmp/fastp.tar.gz && \
+    tar -xzf /tmp/fastp.tar.gz -C /opt && \
+    cd /opt/fastp-0.23.4 && \
+    make && \
+    cp fastp /usr/local/bin/fastp && \
+
+    cd / && \
+    rm -rf /tmp/fastp.tar.gz /opt/fastp-0.23.4 && \
+    apt-get purge -y wget build-essential && \
+    apt-get autoremove -y && \
+    rm -rf /var/lib/apt/lists/*
+
+%runscript
+    if [ $# -eq 0 ]; then
+        exec /usr/local/bin/fastp --help
+    else
+        exec /usr/local/bin/fastp "$@"
+    fi
+
+%help
+    This Apptainer image provides fastp version 0.23.4, compiled from source.
+    ISA-L acceleration is enabled on x86_64 hosts (where supported); other architectures use available optimizations.
+    Run with arguments to execute fastp, or without arguments to display detailed help.
