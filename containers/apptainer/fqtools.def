@@ -1,0 +1,54 @@
+Bootstrap: docker
+From: ubuntu:24.04
+
+%labels
+    MAINTAINER Bijan Mousavi <mousavi.bijan@gmail.com>
+    VERSION fqtools-v2.3
+    org.opencontainers.image.source https://github.com/alastair-droop/fqtools
+
+%environment
+    DEBIAN_FRONTEND=noninteractive
+
+%post
+    export DEBIAN_FRONTEND=noninteractive
+
+    apt-get update -qq && \
+    apt-get install -y --no-install-recommends \
+        git build-essential zlib1g-dev libhts-dev ca-certificates && \
+
+    git clone --branch v2.3 --depth 1 \
+        https://github.com/alastair-droop/fqtools /opt/fqtools && \
+
+    cd /opt/fqtools && \
+    make -j$(nproc) HTSDIR=/usr CFLAGS="-O2 -g -Wall -Wextra -Wno-unused-parameter -fcommon" && \
+    cp bin/fqtools /usr/local/bin/fqtools-bin && \
+
+    # Create a wrapper script with version reporting.
+    cat > /usr/local/bin/fqtools <<'EOF'
+#!/bin/sh
+case "$1" in
+  --version|-v)
+    echo "2.3"
+    exit 0;;
+  *)
+    exec /usr/local/bin/fqtools-bin "$@";;
+esac
+EOF
+    chmod +x /usr/local/bin/fqtools && \
+
+    # Clean up source and build dependencies.
+    rm -rf /opt/fqtools && \
+    apt-get purge -y git build-essential zlib1g-dev libhts-dev && \
+    apt-get autoremove -y && \
+    rm -rf /var/lib/apt/lists/*
+
+%runscript
+    if [ $# -eq 0 ]; then
+        exec /usr/local/bin/fqtools --help
+    else
+        exec /usr/local/bin/fqtools "$@"
+    fi
+
+%help
+    This Apptainer image provides fqtools version 2.3, compiled from source.
+    The default command is 'fqtools'; run without arguments to display help.
