@@ -6,8 +6,17 @@ use walkdir::WalkDir;
 
 use support::workspace_root;
 
-fn section_positions(content: &str) -> (Option<usize>, Option<usize>, Option<usize>, Option<usize>) {
+fn section_positions(
+    content: &str,
+) -> (
+    Option<usize>,
+    Option<usize>,
+    Option<usize>,
+    Option<usize>,
+    Option<usize>,
+) {
     let mut labels = None;
+    let mut environment = None;
     let mut post = None;
     let mut runscript = None;
     let mut help = None;
@@ -15,6 +24,8 @@ fn section_positions(content: &str) -> (Option<usize>, Option<usize>, Option<usi
         let trimmed = line.trim();
         if trimmed == "%labels" && labels.is_none() {
             labels = Some(idx);
+        } else if trimmed == "%environment" && environment.is_none() {
+            environment = Some(idx);
         } else if trimmed == "%post" && post.is_none() {
             post = Some(idx);
         } else if trimmed == "%runscript" && runscript.is_none() {
@@ -23,7 +34,7 @@ fn section_positions(content: &str) -> (Option<usize>, Option<usize>, Option<usi
             help = Some(idx);
         }
     }
-    (labels, post, runscript, help)
+    (labels, environment, post, runscript, help)
 }
 
 #[test]
@@ -37,7 +48,9 @@ fn policy__contracts__apptainer_structure_policy__section_order_and_minimal_post
             Err(_) => continue,
         };
         let path = entry.path();
-        if !entry.file_type().is_file() || path.extension().and_then(|ext| ext.to_str()) != Some("def") {
+        if !entry.file_type().is_file()
+            || path.extension().and_then(|ext| ext.to_str()) != Some("def")
+        {
             continue;
         }
 
@@ -47,18 +60,24 @@ fn policy__contracts__apptainer_structure_policy__section_order_and_minimal_post
         };
         let lowered = content.to_ascii_lowercase();
 
-        let (labels, post, runscript, help) = section_positions(&content);
-        if labels.is_none() || post.is_none() || runscript.is_none() || help.is_none() {
+        let (labels, environment, post, runscript, help) = section_positions(&content);
+        if labels.is_none()
+            || environment.is_none()
+            || post.is_none()
+            || runscript.is_none()
+            || help.is_none()
+        {
             offenders.push(format!("{}: missing required section(s)", path.display()));
             continue;
         }
         let labels = labels.unwrap_or_default();
+        let environment = environment.unwrap_or_default();
         let post = post.unwrap_or_default();
         let runscript = runscript.unwrap_or_default();
         let help = help.unwrap_or_default();
-        if !(labels < post && post < runscript && runscript < help) {
+        if !(labels < environment && environment < post && post < runscript && runscript < help) {
             offenders.push(format!(
-                "{}: sections must appear in order %labels -> %post -> %runscript -> %help",
+                "{}: sections must appear in order %labels -> %environment -> %post -> %runscript -> %help",
                 path.display()
             ));
         }
@@ -92,7 +111,9 @@ fn policy__contracts__apptainer_structure_policy__runscript_execs_tool_passthrou
             Err(_) => continue,
         };
         let path = entry.path();
-        if !entry.file_type().is_file() || path.extension().and_then(|ext| ext.to_str()) != Some("def") {
+        if !entry.file_type().is_file()
+            || path.extension().and_then(|ext| ext.to_str()) != Some("def")
+        {
             continue;
         }
         let content = match std::fs::read_to_string(path) {

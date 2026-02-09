@@ -6,10 +6,11 @@ use std::collections::BTreeSet;
 use support::workspace_root;
 
 #[test]
-fn policy__contracts__stage_tool_matrix_policy__stages_have_primary_validation_and_reporting_contracts() {
-    let registry_path = workspace_root().join("configs/tool_registry.toml");
-    let raw = std::fs::read_to_string(&registry_path).expect("read configs/tool_registry.toml");
-    let parsed: toml::Value = raw.parse().expect("parse configs/tool_registry.toml");
+fn policy__contracts__stage_tool_matrix_policy__stages_have_primary_validation_and_reporting_contracts(
+) {
+    let registry_path = workspace_root().join("configs/tools.toml");
+    let raw = std::fs::read_to_string(&registry_path).expect("read configs/tools.toml");
+    let parsed: toml::Value = raw.parse().expect("parse configs/tools.toml");
 
     let mut offenders = Vec::new();
 
@@ -30,7 +31,7 @@ fn policy__contracts__stage_tool_matrix_policy__stages_have_primary_validation_a
         .cloned()
         .unwrap_or_default();
     if stages.is_empty() {
-        offenders.push("missing [[stages]] matrix in configs/tool_registry.toml".to_string());
+        offenders.push("missing [[stages]] matrix in configs/tools.toml".to_string());
     }
 
     for stage in &stages {
@@ -46,7 +47,9 @@ fn policy__contracts__stage_tool_matrix_policy__stages_have_primary_validation_a
         let _planned = list(stage, "planned_out_of_scope");
 
         if primary.is_empty() {
-            offenders.push(format!("stage={id}: primary_tools must have at least one tool"));
+            offenders.push(format!(
+                "stage={id}: primary_tools must have at least one tool"
+            ));
         }
 
         let requires_validation = stage
@@ -75,7 +78,11 @@ fn policy__contracts__stage_tool_matrix_policy__stages_have_primary_validation_a
             ));
         }
 
-        for tool in primary.iter().chain(validation.iter()).chain(reporting.iter()) {
+        for tool in primary
+            .iter()
+            .chain(validation.iter())
+            .chain(reporting.iter())
+        {
             if !tool_ids.contains(tool) {
                 offenders.push(format!("stage={id}: unknown tool id `{tool}` in matrix"));
             }
