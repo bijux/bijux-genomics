@@ -61,5 +61,10 @@ pub fn invocation_hash_for_spec(
         .digest
         .clone()
         .unwrap_or_else(|| spec.image.image.clone());
-    invocation_hash(&spec.command.template, &identity_env, &image_digest, input_hashes)
+    invocation_hash(
+        &spec.command.template,
+        &identity_env,
+        &image_digest,
+        input_hashes,
+    )
 }
