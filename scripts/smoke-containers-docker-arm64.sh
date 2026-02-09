@@ -17,8 +17,9 @@ LOG_DIR="$ARTIFACT_DIR/logs/docker-arm64"
 IMG_DIR="$ARTIFACT_DIR/images/docker-arm64"
 SUMMARY="$LOG_DIR/summary.txt"
 IMAGES_TXT="$IMG_DIR/images.txt"
+MANIFEST_DIR="$ROOT_DIR/artifacts/containers"
 
-mkdir -p "$LOG_DIR" "$IMG_DIR"
+mkdir -p "$LOG_DIR" "$IMG_DIR" "$MANIFEST_DIR"
 
 if ! command -v "$DOCKER_BIN" >/dev/null 2>&1; then
   echo "ERROR: '$DOCKER_BIN' not found" >&2
@@ -51,6 +52,10 @@ PY
   fi
 }
 
+json_escape() {
+  printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'
+}
+
 get_version_cmd() {
   tool="$1"
   awk -v tool="$tool" '
@@ -71,12 +76,43 @@ get_version_cmd() {
   ' "$ROOT_DIR/configs/tool_registry.toml"
 }
 
+get_registry_field() {
+  field="$1"
+  tool="$2"
+  awk -v tool="$tool" -v field="$field" '
+    function unquote(v) {
+      gsub(/^[[:space:]]+|[[:space:]]+$/, "", v)
+      gsub(/^"/, "", v); gsub(/"$/, "", v)
+      return v
+    }
+    /^\[\[tools\]\]/ { in_tools=1; id=""; next }
+    in_tools && /^[[:space:]]*id[[:space:]]*=/ {
+      split($0, a, "="); id=unquote(a[2]); next
+    }
+    in_tools && id==tool {
+      key=$0
+      sub(/[[:space:]]*=.*/, "", key)
+      gsub(/^[[:space:]]+|[[:space:]]+$/, "", key)
+      if (key == field) {
+        split($0, a, "="); print unquote(a[2]); found=1; exit 0
+      }
+    }
+    END { if (!found) print "unknown" }
+  ' "$ROOT_DIR/configs/tool_registry.toml"
+}
+
 build_and_smoke_one() {
   dockerfile="$1"
   tool=$(basename "$dockerfile" | sed 's/^Dockerfile\.//')
   image="$IMAGE_PREFIX/${tool}:arm64"
   log="$LOG_DIR/${tool}.log"
   cmd=$(get_version_cmd "$tool")
+  version_output_file="$LOG_DIR/${tool}.version.out"
+  manifest="$MANIFEST_DIR/${tool}.json"
+  dockerfile_base=$(awk '/^FROM /{print $2; exit}' "$dockerfile")
+  upstream=$(get_registry_field upstream "$tool")
+  pinned_commit=$(get_registry_field pinned_commit "$tool")
+  declared_version=$(get_registry_field version "$tool")
 
   {
     echo "=== [$tool] build start"
@@ -84,14 +120,64 @@ build_and_smoke_one() {
     echo "image: $image"
     "$DOCKER_BIN" build -f "$dockerfile" -t "$image" "$DOCKER_DIR"
     echo "=== [$tool] smoke: $cmd"
-    run_with_timeout "$VERSION_TIMEOUT" "$DOCKER_BIN" run --rm "$image" sh -lc "$cmd"
+    run_with_timeout "$VERSION_TIMEOUT" "$DOCKER_BIN" run --rm "$image" sh -lc "$cmd" | tee "$version_output_file"
     if [ "$SAVE_TAR" = "1" ]; then
       echo "=== [$tool] save image tar"
       "$DOCKER_BIN" save "$image" -o "$IMG_DIR/${tool}.tar"
     fi
     echo "$image" >> "$IMAGES_TXT"
     echo "=== [$tool] OK"
+    version_output="$(head -n 1 "$version_output_file" 2>/dev/null | tr -d '\r')"
+    version_output_json="$(json_escape "$version_output")"
+    cmd_json="$(json_escape "$cmd")"
+    dockerfile_json="$(json_escape "$dockerfile")"
+    base_image_json="$(json_escape "$dockerfile_base")"
+    image_json="$(json_escape "$image")"
+    declared_version_json="$(json_escape "$declared_version")"
+    upstream_json="$(json_escape "$upstream")"
+    pinned_commit_json="$(json_escape "$pinned_commit")"
+    built_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    cat > "$manifest" <<JSON
+{
+  "tool": "$tool",
+  "runtime": "docker-arm64",
+  "status": "ok",
+  "dockerfile": "$dockerfile_json",
+  "base_image": "$base_image_json",
+  "image": "$image_json",
+  "declared_version": "$declared_version_json",
+  "upstream": "$upstream_json",
+  "upstream_pin": "$pinned_commit_json",
+  "version_command": "$cmd_json",
+  "version_output": "$version_output_json",
+  "built_at_utc": "$built_at"
+}
+JSON
   } >"$log" 2>&1 || {
+    cmd_json="$(json_escape "$cmd")"
+    dockerfile_json="$(json_escape "$dockerfile")"
+    base_image_json="$(json_escape "$dockerfile_base")"
+    image_json="$(json_escape "$image")"
+    declared_version_json="$(json_escape "$declared_version")"
+    upstream_json="$(json_escape "$upstream")"
+    pinned_commit_json="$(json_escape "$pinned_commit")"
+    built_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    cat > "$manifest" <<JSON
+{
+  "tool": "$tool",
+  "runtime": "docker-arm64",
+  "status": "fail",
+  "dockerfile": "$dockerfile_json",
+  "base_image": "$base_image_json",
+  "image": "$image_json",
+  "declared_version": "$declared_version_json",
+  "upstream": "$upstream_json",
+  "upstream_pin": "$pinned_commit_json",
+  "version_command": "$cmd_json",
+  "version_output": "",
+  "built_at_utc": "$built_at"
+}
+JSON
     echo "FAIL $tool (see $log)"
     return 1
   }
