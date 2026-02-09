@@ -66,7 +66,10 @@ fn policy__contracts__defaults_policy__every_default_has_provenance() {
         let ledger = profile.defaults_ledger();
         for stage in ledger.tools.keys() {
             match ledger.tool_provenance.get(stage) {
-                Some(provenance) if !provenance.rationale.trim().is_empty() => {}
+                Some(provenance)
+                    if !provenance.rationale.trim().is_empty()
+                        && !provenance.assumptions.is_empty()
+                        && !provenance.comparability_implications.is_empty() => {}
                 _ => offenders.push(format!(
                     "{} missing tool provenance for {}",
                     profile.id.as_str(),
@@ -76,7 +79,10 @@ fn policy__contracts__defaults_policy__every_default_has_provenance() {
         }
         for stage in ledger.params.keys() {
             match ledger.param_provenance.get(stage) {
-                Some(provenance) if !provenance.rationale.trim().is_empty() => {}
+                Some(provenance)
+                    if !provenance.rationale.trim().is_empty()
+                        && !provenance.assumptions.is_empty()
+                        && !provenance.comparability_implications.is_empty() => {}
                 _ => offenders.push(format!(
                     "{} missing param provenance for {}",
                     profile.id.as_str(),

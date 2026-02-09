@@ -352,6 +352,17 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     });
     let root = bijux_dna_runtime::recording::run_artifacts_dir_for_out(&out_dir);
     bijux_dna_infra::ensure_dir(&root).context("create run artifacts dir")?;
+    let decision_trace_path = root.join("decision_trace.json");
+    let decision_trace = serde_json::json!({
+        "schema_version": "bijux.decision_trace.v1",
+        "stage": STAGE_PREPROCESS.as_str(),
+        "merge_decision": decisions.merge_decision.as_ref(),
+        "correct_decision": decisions.correct_decision.as_ref(),
+        "adapter_inference": policy.adapter_inference.as_ref(),
+        "stage_skips": &policy.stage_skips,
+    });
+    bijux_dna_infra::atomic_write_json(&decision_trace_path, &decision_trace)
+        .context("write decision_trace.json")?;
     let steps: Vec<_> = stage_runs.iter().map(|entry| entry.plan.clone()).collect();
     let mut edges = pipeline_plan.edges().to_vec();
     if let (Some(last), Some(report)) = (planned_stages.last(), steps.last()) {
@@ -373,7 +384,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     bijux_dna_infra::atomic_write_json(&graph_path, &graph).context("write graph.json")?;
     write_run_manifest(&args.out, &stage_runs, &failures)?;
     write_scientific_provenance(&args.out, &stage_runs)?;
-    if let Some(decision) = decisions.merge_decision {
+    if let Some(decision) = decisions.merge_decision.as_ref() {
         let run_id = stage_runs
             .first()
             .map(|entry| entry.result.run_id.clone())

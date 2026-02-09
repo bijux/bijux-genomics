@@ -171,9 +171,13 @@ impl PipelineProfile {
         for (stage, rationale) in &self.defaults.rationales {
             let provenance = DefaultProvenanceV1 {
                 rationale: rationale.clone(),
-                assumptions: Vec::new(),
-                comparability_implications: Vec::new(),
-                citations: Vec::new(),
+                assumptions: vec![
+                    "defaults chosen for pre-HPC deterministic baseline comparisons".to_string(),
+                ],
+                comparability_implications: vec![
+                    "changing this default can shift cross-run comparability baselines".to_string(),
+                ],
+                citations: vec!["docs/20-science/fastq/GOLD_PIPELINE_SPEC.md".to_string()],
             };
             if self.defaults.tools.contains_key(stage) {
                 tool_provenance.insert(stage.clone(), provenance.clone());
