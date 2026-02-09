@@ -1,4 +1,5 @@
 use anyhow::{anyhow, Context, Result};
+use chrono::Utc;
 use std::collections::{BTreeSet, HashMap, HashSet};
 use std::path::{Path, PathBuf};
 
@@ -212,7 +213,26 @@ pub fn plan(request: PlanRequest) -> Result<PlanResponse> {
         "toolchain_versions": [],
         "dataset_fingerprints": [],
         "tool_invocations": [],
-        "output_artifacts": [],
+        "output_artifacts": [
+            {
+                "kind": "graph",
+                "schema": "bijux.execution_graph.v1",
+                "path": "graph.json",
+                "sha256": "unknown"
+            },
+            {
+                "kind": "run_manifest",
+                "schema": "bijux.run_manifest.v3",
+                "path": "run_manifest.json",
+                "sha256": "unknown"
+            },
+            {
+                "kind": "run_summary",
+                "schema": "bijux.run_summary.v1",
+                "path": "run_summary.json",
+                "sha256": "unknown"
+            }
+        ],
         "stages": [],
         "failures": [],
     });
@@ -234,6 +254,13 @@ pub fn execute(request: &ExecuteRequest) -> Result<ExecuteResponse> {
         }
     };
     Engine::default().execute(&request.graph, runner.as_ref(), &layout, None, None)?;
+    let summary_path = layout.summary_dir.join("run_summary.json");
+    write_run_summary_artifact(
+        &summary_path,
+        "execute",
+        request.graph.pipeline_id().as_str(),
+        &layout.manifest_path,
+    )?;
     Ok(ExecuteResponse {
         run_id,
         manifest_path: layout.manifest_path,
@@ -249,7 +276,7 @@ pub fn dry_run(request: &DryRunRequest) -> Result<DryRunResponse> {
     let graph_payload =
         bijux_dna_core::contract::canonical::to_canonical_json_bytes(&request.graph)?;
     bijux_dna_infra::atomic_write_bytes(&graph_path, graph_payload.as_slice())?;
-    let manifest = serde_json::json!({
+    let mut manifest = serde_json::json!({
         "schema_version": "bijux.run_manifest.v3",
         "contract_version": bijux_dna_core::contract::ContractVersion::v1(),
         "run_id": "dry-run",
@@ -267,10 +294,65 @@ pub fn dry_run(request: &DryRunRequest) -> Result<DryRunResponse> {
     let manifest_path = request.run_dir.join("run_manifest.json");
     let payload = bijux_dna_core::contract::canonical::to_canonical_json_bytes(&manifest)?;
     bijux_dna_infra::atomic_write_bytes(&manifest_path, payload.as_slice())?;
+    let summary_path = request.run_dir.join("run_summary.json");
+    write_run_summary_artifact(
+        &summary_path,
+        "dry-run",
+        request.graph.pipeline_id().as_str(),
+        &manifest_path,
+    )?;
+    let graph_sha = bijux_dna_infra::hash_file_sha256(&graph_path)?;
+    let summary_sha = bijux_dna_infra::hash_file_sha256(&summary_path)?;
+    manifest["output_artifacts"] = serde_json::json!([
+        {
+            "kind": "graph",
+            "schema": "bijux.execution_graph.v1",
+            "path": graph_path.display().to_string(),
+            "sha256": graph_sha
+        },
+        {
+            "kind": "run_summary",
+            "schema": "bijux.run_summary.v1",
+            "path": summary_path.display().to_string(),
+            "sha256": summary_sha
+        }
+    ]);
+    let payload = bijux_dna_core::contract::canonical::to_canonical_json_bytes(&manifest)?;
+    bijux_dna_infra::atomic_write_bytes(&manifest_path, payload.as_slice())?;
+    let manifest_sha = bijux_dna_infra::hash_file_sha256(&manifest_path)?;
+    manifest["output_artifacts"]
+        .as_array_mut()
+        .expect("output_artifacts array")
+        .push(serde_json::json!({
+            "kind": "run_manifest",
+            "schema": "bijux.run_manifest.v3",
+            "path": manifest_path.display().to_string(),
+            "sha256": manifest_sha
+        }));
+    let payload = bijux_dna_core::contract::canonical::to_canonical_json_bytes(&manifest)?;
+    bijux_dna_infra::atomic_write_bytes(&manifest_path, payload.as_slice())?;
     Ok(DryRunResponse {
         graph_path,
         manifest_path,
     })
+}
+
+fn write_run_summary_artifact(
+    path: &Path,
+    mode: &str,
+    pipeline_id: &str,
+    manifest_path: &Path,
+) -> Result<()> {
+    let payload = serde_json::json!({
+        "schema_version": "bijux.run_summary.v1",
+        "mode": mode,
+        "pipeline_id": pipeline_id,
+        "manifest_path": manifest_path.display().to_string(),
+        "generated_at": Utc::now().to_rfc3339(),
+    });
+    let bytes = bijux_dna_core::contract::canonical::to_canonical_json_bytes(&payload)?;
+    bijux_dna_infra::atomic_write_bytes(path, bytes.as_slice())?;
+    Ok(())
 }
 
 /// # Errors
