@@ -538,3 +538,284 @@ version_cmd = "preseq --version"
 dockerfile = "containers/docker/arm64/Dockerfile.preseq"
 apptainer_def = "containers/apptainer/preseq.def"
 require_labels = true
+
+# Stage coverage matrix (SSOT for stage completeness checks).
+[[stages]]
+id = "fastq.preprocess"
+primary_tools = ["fastp"]
+optional_alternatives = []
+validation_tools = ["fastqvalidator_official"]
+reporting_tools = []
+planned_out_of_scope = []
+requires_validation = true
+requires_reporting = false
+
+[[stages]]
+id = "fastq.prepare_reference"
+primary_tools = ["samtools"]
+optional_alternatives = []
+validation_tools = ["samtools"]
+reporting_tools = []
+planned_out_of_scope = []
+requires_validation = true
+requires_reporting = false
+
+[[stages]]
+id = "fastq.validate_pre"
+primary_tools = ["fastqvalidator", "fastqvalidator_official"]
+optional_alternatives = ["seqtk", "fqtools"]
+validation_tools = ["fastqc"]
+reporting_tools = ["multiqc"]
+planned_out_of_scope = []
+requires_validation = true
+requires_reporting = true
+
+[[stages]]
+id = "fastq.detect_adapters"
+primary_tools = ["fastqc"]
+optional_alternatives = []
+validation_tools = ["fastqc"]
+reporting_tools = ["multiqc"]
+planned_out_of_scope = []
+requires_validation = true
+requires_reporting = true
+
+[[stages]]
+id = "fastq.trim"
+primary_tools = ["fastp", "cutadapt"]
+optional_alternatives = ["atropos", "bbduk", "adapterremoval", "trimmomatic", "trim_galore", "seqpurge", "prinseq", "seqkit"]
+validation_tools = ["fastqc"]
+reporting_tools = ["multiqc"]
+planned_out_of_scope = []
+requires_validation = true
+requires_reporting = true
+
+[[stages]]
+id = "fastq.filter"
+primary_tools = ["fastp", "prinseq"]
+optional_alternatives = ["bbduk", "seqkit"]
+validation_tools = ["fastqc"]
+reporting_tools = ["multiqc"]
+planned_out_of_scope = []
+requires_validation = true
+requires_reporting = true
+
+[[stages]]
+id = "fastq.stats_neutral"
+primary_tools = ["seqkit_stats"]
+optional_alternatives = ["seqkit"]
+validation_tools = []
+reporting_tools = ["multiqc"]
+planned_out_of_scope = []
+requires_validation = false
+requires_reporting = true
+
+[[stages]]
+id = "fastq.qc_post"
+primary_tools = ["fastqc"]
+optional_alternatives = []
+validation_tools = ["fastqc"]
+reporting_tools = ["multiqc"]
+planned_out_of_scope = []
+requires_validation = true
+requires_reporting = true
+
+[[stages]]
+id = "fastq.merge"
+primary_tools = ["pear", "vsearch"]
+optional_alternatives = ["bbmerge", "flash2"]
+validation_tools = ["fastqc"]
+reporting_tools = ["multiqc"]
+planned_out_of_scope = []
+requires_validation = true
+requires_reporting = true
+
+[[stages]]
+id = "fastq.correct"
+primary_tools = ["rcorrector"]
+optional_alternatives = ["spades", "bayeshammer", "lighter", "musket"]
+validation_tools = ["fastqc"]
+reporting_tools = ["multiqc"]
+planned_out_of_scope = []
+requires_validation = true
+requires_reporting = true
+
+[[stages]]
+id = "fastq.umi"
+primary_tools = ["umi_tools"]
+optional_alternatives = []
+validation_tools = ["fastqc"]
+reporting_tools = ["multiqc"]
+planned_out_of_scope = []
+requires_validation = true
+requires_reporting = true
+
+[[stages]]
+id = "fastq.screen"
+primary_tools = ["kraken2"]
+optional_alternatives = ["centrifuge", "metaphlan", "kaiju", "fastq_screen"]
+validation_tools = ["fastqc"]
+reporting_tools = ["multiqc"]
+planned_out_of_scope = []
+requires_validation = true
+requires_reporting = true
+
+[[stages]]
+id = "bam.align"
+primary_tools = ["bwa"]
+optional_alternatives = ["bowtie2"]
+validation_tools = ["samtools"]
+reporting_tools = []
+planned_out_of_scope = []
+requires_validation = true
+requires_reporting = false
+
+[[stages]]
+id = "bam.validate"
+primary_tools = ["samtools"]
+optional_alternatives = []
+validation_tools = ["samtools"]
+reporting_tools = []
+planned_out_of_scope = []
+requires_validation = true
+requires_reporting = false
+
+[[stages]]
+id = "bam.qc_pre"
+primary_tools = ["samtools"]
+optional_alternatives = []
+validation_tools = ["samtools"]
+reporting_tools = ["multiqc"]
+planned_out_of_scope = []
+requires_validation = true
+requires_reporting = true
+
+[[stages]]
+id = "bam.filter"
+primary_tools = ["samtools"]
+optional_alternatives = []
+validation_tools = ["samtools"]
+reporting_tools = []
+planned_out_of_scope = []
+requires_validation = true
+requires_reporting = false
+
+[[stages]]
+id = "bam.markdup"
+primary_tools = ["gatk"]
+optional_alternatives = ["samtools"]
+validation_tools = ["samtools"]
+reporting_tools = []
+planned_out_of_scope = []
+requires_validation = true
+requires_reporting = false
+
+[[stages]]
+id = "bam.complexity"
+primary_tools = ["preseq"]
+optional_alternatives = []
+validation_tools = ["samtools"]
+reporting_tools = ["multiqc"]
+planned_out_of_scope = []
+requires_validation = true
+requires_reporting = true
+
+[[stages]]
+id = "bam.coverage"
+primary_tools = ["mosdepth"]
+optional_alternatives = ["samtools"]
+validation_tools = ["samtools"]
+reporting_tools = ["multiqc"]
+planned_out_of_scope = []
+requires_validation = true
+requires_reporting = true
+
+[[stages]]
+id = "bam.damage"
+primary_tools = ["pydamage"]
+optional_alternatives = ["mapdamage2"]
+validation_tools = ["samtools"]
+reporting_tools = ["multiqc"]
+planned_out_of_scope = []
+requires_validation = true
+requires_reporting = true
+
+[[stages]]
+id = "bam.authenticity"
+primary_tools = ["authenticct"]
+optional_alternatives = []
+validation_tools = ["samtools"]
+reporting_tools = ["multiqc"]
+planned_out_of_scope = []
+requires_validation = true
+requires_reporting = true
+
+[[stages]]
+id = "bam.contamination"
+primary_tools = ["authenticct"]
+optional_alternatives = []
+validation_tools = ["samtools"]
+reporting_tools = ["multiqc"]
+planned_out_of_scope = []
+requires_validation = true
+requires_reporting = true
+
+[[stages]]
+id = "bam.sex"
+primary_tools = ["rxy"]
+optional_alternatives = []
+validation_tools = ["samtools"]
+reporting_tools = ["multiqc"]
+planned_out_of_scope = []
+requires_validation = true
+requires_reporting = true
+
+[[stages]]
+id = "bam.bias_mitigation"
+primary_tools = ["angsd"]
+optional_alternatives = []
+validation_tools = ["samtools"]
+reporting_tools = []
+planned_out_of_scope = []
+requires_validation = true
+requires_reporting = false
+
+[[stages]]
+id = "bam.recalibration"
+primary_tools = ["gatk"]
+optional_alternatives = []
+validation_tools = ["samtools"]
+reporting_tools = []
+planned_out_of_scope = []
+requires_validation = true
+requires_reporting = false
+
+[[stages]]
+id = "bam.haplogroups"
+primary_tools = ["yleaf"]
+optional_alternatives = []
+validation_tools = ["samtools"]
+reporting_tools = ["multiqc"]
+planned_out_of_scope = []
+requires_validation = true
+requires_reporting = true
+
+[[stages]]
+id = "bam.genotyping"
+primary_tools = ["angsd"]
+optional_alternatives = []
+validation_tools = ["samtools"]
+reporting_tools = ["multiqc"]
+planned_out_of_scope = []
+requires_validation = true
+requires_reporting = true
+
+[[stages]]
+id = "bam.kinship"
+primary_tools = ["king"]
+optional_alternatives = []
+validation_tools = ["samtools"]
+reporting_tools = ["multiqc"]
+planned_out_of_scope = []
+requires_validation = true
+requires_reporting = true
