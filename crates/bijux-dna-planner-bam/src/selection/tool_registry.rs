@@ -1,36 +1,37 @@
 use std::collections::BTreeMap;
 
-use bijux_dna_core::ids::id_catalog;
+use bijux_dna_core::ids::{ToolId, id_catalog};
 
 #[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct ToolAdapterEntry {
-    pub tool_id: &'static str,
+    pub tool_id: ToolId,
     pub adapter_id: &'static str,
 }
 
 #[must_use]
 #[allow(dead_code)]
-pub fn tool_registry() -> BTreeMap<&'static str, ToolAdapterEntry> {
+pub fn tool_registry() -> BTreeMap<ToolId, ToolAdapterEntry> {
     let mut map = BTreeMap::new();
     for (tool_id, adapter_id) in [
-        ("bwa", id_catalog::BAM_ALIGN),
-        ("bowtie2", id_catalog::BAM_ALIGN),
-        ("samtools", id_catalog::BAM_VALIDATE),
-        ("picard", id_catalog::BAM_MARKDUP),
-        ("gatk", id_catalog::BAM_RECALIBRATION),
-        ("mosdepth", id_catalog::BAM_COVERAGE),
-        ("pydamage", id_catalog::BAM_DAMAGE),
-        ("mapdamage2", id_catalog::BAM_DAMAGE),
-        ("preseq", id_catalog::BAM_COMPLEXITY),
-        ("authenticct", id_catalog::BAM_AUTHENTICITY),
-        ("yleaf", id_catalog::BAM_HAPLOGROUPS),
-        ("king", id_catalog::BAM_KINSHIP),
-        ("angsd", id_catalog::BAM_CONTAMINATION),
-        ("rxy", id_catalog::BAM_SEX),
+        (ToolId::from_static("bwa"), id_catalog::BAM_ALIGN),
+        (ToolId::from_static("bowtie2"), id_catalog::BAM_ALIGN),
+        (ToolId::from_static("samtools"), id_catalog::BAM_VALIDATE),
+        (ToolId::from_static("picard"), id_catalog::BAM_MARKDUP),
+        (ToolId::from_static("gatk"), id_catalog::BAM_RECALIBRATION),
+        (ToolId::from_static("mosdepth"), id_catalog::BAM_COVERAGE),
+        (ToolId::from_static("pydamage"), id_catalog::BAM_DAMAGE),
+        (ToolId::from_static("mapdamage2"), id_catalog::BAM_DAMAGE),
+        (ToolId::from_static("preseq"), id_catalog::BAM_COMPLEXITY),
+        (ToolId::from_static("authenticct"), id_catalog::BAM_AUTHENTICITY),
+        (ToolId::from_static("yleaf"), id_catalog::BAM_HAPLOGROUPS),
+        (ToolId::from_static("king"), id_catalog::BAM_KINSHIP),
+        (ToolId::from_static("angsd"), id_catalog::BAM_CONTAMINATION),
+        (ToolId::from_static("rxy"), id_catalog::BAM_SEX),
     ] {
+        let key = tool_id.clone();
         map.insert(
-            tool_id,
+            key,
             ToolAdapterEntry {
                 tool_id,
                 adapter_id,
