@@ -39,19 +39,33 @@ fn runtimes(table: &toml::Value) -> Vec<String> {
         .unwrap_or_default()
 }
 
+fn as_bool_field(table: &toml::Value, key: &str, default: bool) -> bool {
+    table
+        .get(key)
+        .and_then(toml::Value::as_bool)
+        .unwrap_or(default)
+}
+
 #[test]
 fn policy__contracts__tool_registry_completeness__registry_entries_are_machine_checkable() {
     let root = workspace_root();
-    let registry_path = root.join("configs/tool_registry.toml");
-    let raw = std::fs::read_to_string(&registry_path).expect("read configs/tool_registry.toml");
-    let parsed: toml::Value = raw.parse().expect("parse configs/tool_registry.toml");
+    let legacy_registry = root.join("configs/tool_registry.toml");
+    if legacy_registry.exists() {
+        panic!(
+            "legacy registry must not exist; use configs/tools.toml only: {}",
+            legacy_registry.display()
+        );
+    }
+    let registry_path = root.join("configs/tools.toml");
+    let raw = std::fs::read_to_string(&registry_path).expect("read configs/tools.toml");
+    let parsed: toml::Value = raw.parse().expect("parse configs/tools.toml");
     let tools = as_table_array(&parsed, "tools");
     let mut offenders = Vec::new();
     let mut declared_docker_tool_files = std::collections::BTreeSet::new();
     let mut declared_apptainer_tool_files = std::collections::BTreeSet::new();
 
     if tools.is_empty() {
-        offenders.push("configs/tool_registry.toml: missing [[tools]] entries".to_string());
+        offenders.push("configs/tools.toml: missing [[tools]] entries".to_string());
     }
 
     for entry in tools {
@@ -63,9 +77,20 @@ fn policy__contracts__tool_registry_completeness__registry_entries_are_machine_c
             }
         }
 
+        let container_enabled = as_bool_field(entry, "container", true);
         let runtimes = runtimes(entry);
         if runtimes.is_empty() {
             offenders.push(format!("tool={id}: `runtimes` must be non-empty"));
+        }
+        if container_enabled && runtimes.len() == 1 {
+            let reason = as_str_field(entry, "runtime_rationale")
+                .unwrap_or("")
+                .trim();
+            if reason.is_empty() {
+                offenders.push(format!(
+                    "tool={id}: single-runtime tools must define runtime_rationale"
+                ));
+            }
         }
 
         for runtime in &runtimes {
@@ -94,7 +119,8 @@ fn policy__contracts__tool_registry_completeness__registry_entries_are_machine_c
                         } else {
                             let content = std::fs::read_to_string(&abs).unwrap_or_default();
                             if !content.contains("SPDX-License-Identifier: GPL-3.0-only") {
-                                offenders.push(format!("tool={id}: dockerfile missing GPL SPDX header"));
+                                offenders
+                                    .push(format!("tool={id}: dockerfile missing GPL SPDX header"));
                             }
                             if !content.contains("org.opencontainers.image.licenses=\"GPL-3.0\"") {
                                 offenders.push(format!(
@@ -106,6 +132,9 @@ fn policy__contracts__tool_registry_completeness__registry_entries_are_machine_c
                                 "org.opencontainers.image.revision=",
                                 "org.opencontainers.image.created=",
                                 "org.opencontainers.image.version=",
+                                "org.opencontainers.image.tool=",
+                                "org.opencontainers.image.base.name=",
+                                "org.opencontainers.image.base.digest=",
                                 "ARG TOOL_VERSION",
                             ] {
                                 if !content.contains(required) {
@@ -157,7 +186,9 @@ fn policy__contracts__tool_registry_completeness__registry_entries_are_machine_c
                         } else {
                             let content = std::fs::read_to_string(&abs).unwrap_or_default();
                             if !content.contains("SPDX-License-Identifier: GPL-3.0-only") {
-                                offenders.push(format!("tool={id}: apptainer def missing GPL SPDX header"));
+                                offenders.push(format!(
+                                    "tool={id}: apptainer def missing GPL SPDX header"
+                                ));
                             }
                             if !content.contains("org.opencontainers.image.licenses GPL-3.0") {
                                 offenders.push(format!(
@@ -169,6 +200,7 @@ fn policy__contracts__tool_registry_completeness__registry_entries_are_machine_c
                                 "org.opencontainers.image.revision ",
                                 "org.opencontainers.image.created ",
                                 "org.opencontainers.image.version ",
+                                "org.opencontainers.image.tool ",
                             ] {
                                 if !content.contains(required) {
                                     offenders.push(format!(
@@ -212,6 +244,24 @@ fn policy__contracts__tool_registry_completeness__registry_entries_are_machine_c
             .unwrap_or(false);
         if !labels_required {
             offenders.push(format!("tool={id}: require_labels must be true"));
+        }
+        if container_enabled {
+            if runtimes.iter().any(|r| r == "docker")
+                && as_str_field(entry, "dockerfile").unwrap_or("").is_empty()
+            {
+                offenders.push(format!(
+                    "tool={id}: container=true docker runtime requires dockerfile"
+                ));
+            }
+            if runtimes.iter().any(|r| r == "apptainer")
+                && as_str_field(entry, "apptainer_def")
+                    .unwrap_or("")
+                    .is_empty()
+            {
+                offenders.push(format!(
+                    "tool={id}: container=true apptainer runtime requires apptainer_def"
+                ));
+            }
         }
     }
 

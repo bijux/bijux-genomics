@@ -6,7 +6,8 @@ use std::collections::{BTreeMap, BTreeSet};
 use support::workspace_root;
 
 #[test]
-fn policy__contracts__tool_registry_stage_domain_policy__each_tool_has_exactly_one_domain_and_stage_binding() {
+fn policy__contracts__tool_registry_stage_domain_policy__each_tool_has_exactly_one_domain_and_stage_binding(
+) {
     let registry_path = workspace_root().join("configs/tools.toml");
     let raw = std::fs::read_to_string(&registry_path).expect("read configs/tools.toml");
     let parsed: toml::Value = raw.parse().expect("parse configs/tools.toml");

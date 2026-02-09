@@ -33,6 +33,7 @@ fn policy__contracts__apptainer_purge_policy__no_purge_or_autoremove_in_defs() {
                 || lowered.contains("apt purge")
                 || lowered.contains("apt-get autoremove")
                 || lowered.contains("apt autoremove")
+                || lowered.contains("apt-mark auto")
             {
                 offenders.push(format!("{}:{}", path.display(), idx + 1));
             }
@@ -41,7 +42,7 @@ fn policy__contracts__apptainer_purge_policy__no_purge_or_autoremove_in_defs() {
 
     bijux_dna_policies::policy_assert!(
         offenders.is_empty(),
-        "Apptainer defs must not use apt purge/autoremove; remove source dirs only:\n{}",
+        "Apptainer defs must not use apt purge/autoremove/apt-mark auto; remove source dirs only:\n{}",
         offenders.join("\n")
     );
 }

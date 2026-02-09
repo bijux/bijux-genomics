@@ -12,14 +12,16 @@ mod mod_contracts_data_test_data_policies_rs;
 mod mod_contracts_policy_snapshot_rs;
 #[path = "contracts/snapshots/snapshot_hygiene.rs"]
 mod mod_contracts_snapshots_snapshot_hygiene_rs;
-#[path = "contracts/tooling/ci_tools_policy.rs"]
-mod mod_contracts_tooling_ci_tools_policy_rs;
-#[path = "contracts/tooling/apptainer_purge_policy.rs"]
-mod mod_contracts_tooling_apptainer_purge_policy_rs;
 #[path = "contracts/tooling/apptainer_cpu_flag_policy.rs"]
 mod mod_contracts_tooling_apptainer_cpu_flag_policy_rs;
+#[path = "contracts/tooling/apptainer_purge_policy.rs"]
+mod mod_contracts_tooling_apptainer_purge_policy_rs;
 #[path = "contracts/tooling/apptainer_structure_policy.rs"]
 mod mod_contracts_tooling_apptainer_structure_policy_rs;
+#[path = "contracts/tooling/apptainer_vm_output_policy.rs"]
+mod mod_contracts_tooling_apptainer_vm_output_policy_rs;
+#[path = "contracts/tooling/ci_tools_policy.rs"]
+mod mod_contracts_tooling_ci_tools_policy_rs;
 #[path = "contracts/tooling/command_spawn_policy.rs"]
 mod mod_contracts_tooling_command_spawn_policy_rs;
 #[path = "contracts/tooling/docs_links.rs"]
@@ -28,16 +30,14 @@ mod mod_contracts_tooling_docs_links_rs;
 mod mod_contracts_tooling_makefile_policies_rs;
 #[path = "contracts/tooling/no_appledouble.rs"]
 mod mod_contracts_tooling_no_appledouble_rs;
-#[path = "contracts/tooling/policies.rs"]
-mod mod_contracts_tooling_policies_rs;
-#[path = "contracts/tooling/tool_registry_completeness.rs"]
-mod mod_contracts_tooling_tool_registry_completeness_rs;
-#[path = "contracts/tooling/stage_tool_matrix_policy.rs"]
-mod mod_contracts_tooling_stage_tool_matrix_policy_rs;
-#[path = "contracts/tooling/apptainer_vm_output_policy.rs"]
-mod mod_contracts_tooling_apptainer_vm_output_policy_rs;
 #[path = "contracts/tooling/planner_tool_id_policy.rs"]
 mod mod_contracts_tooling_planner_tool_id_policy_rs;
+#[path = "contracts/tooling/policies.rs"]
+mod mod_contracts_tooling_policies_rs;
+#[path = "contracts/tooling/stage_tool_matrix_policy.rs"]
+mod mod_contracts_tooling_stage_tool_matrix_policy_rs;
+#[path = "contracts/tooling/tool_registry_completeness.rs"]
+mod mod_contracts_tooling_tool_registry_completeness_rs;
 #[path = "contracts/tooling/tool_registry_stage_domain_policy.rs"]
 mod mod_contracts_tooling_tool_registry_stage_domain_policy_rs;
 #[path = "contracts/workspace.rs"]

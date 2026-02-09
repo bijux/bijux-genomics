@@ -4,7 +4,8 @@ mod support;
 use regex::Regex;
 
 #[test]
-fn policy__contracts__planner_tool_id_policy__selection_registries_use_toolid_not_string_literals() {
+fn policy__contracts__planner_tool_id_policy__selection_registries_use_toolid_not_string_literals()
+{
     let root = support::workspace_root();
     let files = [
         "crates/bijux-dna-planner-fastq/src/selection/tool_registry.rs",
