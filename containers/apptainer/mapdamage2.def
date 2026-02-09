@@ -11,17 +11,24 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
     org.opencontainers.image.revision unknown
     org.opencontainers.image.created unknown
     org.opencontainers.image.licenses GPL-3.0
-    org.opencontainers.image.version unknown
+    org.opencontainers.image.version 2.2.2
 
 %post
     export DEBIAN_FRONTEND=noninteractive
-    apt-get update && apt-get install -y --no-install-recommends ca-certificates && rm -rf /var/lib/apt/lists/*
+    apt-get update -qq && apt-get install -y --no-install-recommends         python3 python3-pip python3-venv git ca-certificates &&         rm -rf /var/lib/apt/lists/*
+
+    git clone --depth 1 https://github.com/ginolhac/mapDamage.git /opt/mapdamage2
+    cd /opt/mapdamage2
+    git checkout 484bb3094de69422c2308385aa2bfaf0ef12fa27
+    python3 -m pip install --break-system-packages --no-cache-dir .
+
     cat > /usr/local/bin/mapdamage2 <<'EOS'
 #!/usr/bin/env sh
-if [ "${1:-}" = "--version" ]; then echo "unknown"; exit 0; fi
-if [ "${1:-}" = "--help" ] || [ $# -eq 0 ]; then echo "mapdamage2 container scaffold"; exit 0; fi
-echo "mapdamage2 executable not yet wired" >&2
-exit 2
+case "${1:-}" in
+  --version) mapDamage --version; exit 0 ;;
+  --help|-h|"") mapDamage --help; exit 0 ;;
+esac
+exec mapDamage "$@"
 EOS
     chmod +x /usr/local/bin/mapdamage2
 
@@ -29,4 +36,5 @@ EOS
     exec /usr/local/bin/mapdamage2 "$@"
 
 %help
-    Scaffold Apptainer definition for mapdamage2 with standardized labels and runscript.
+    Apptainer image for mapdamage2.
+    Default runscript forwards arguments to the tool entrypoint.

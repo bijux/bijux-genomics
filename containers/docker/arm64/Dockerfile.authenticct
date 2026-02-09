@@ -6,13 +6,15 @@
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 ARG OCI_REVISION=unknown
 ARG OCI_CREATED=unknown
-ARG TOOL_VERSION=unknown
-LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-dna" \
-      org.opencontainers.image.revision="${OCI_REVISION}" \
-      org.opencontainers.image.created="${OCI_CREATED}" \
-      org.opencontainers.image.licenses="GPL-3.0" \
-      org.opencontainers.image.version="${TOOL_VERSION}"
-RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates && rm -rf /var/lib/apt/lists/*
-RUN printf '#!/usr/bin/env sh\nif [ "${1:-}" = "--version" ]; then echo "${TOOL_VERSION}"; exit 0; fi\nif [ "${1:-}" = "--help" ] || [ $# -eq 0 ]; then echo "authenticct container scaffold"; exit 0; fi\necho "authenticct executable not yet wired" >&2; exit 2\n' > /usr/local/bin/authenticct && chmod +x /usr/local/bin/authenticct
+ARG TOOL_VERSION=1.0.0
+LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-dna"       org.opencontainers.image.revision="${OCI_REVISION}"       org.opencontainers.image.created="${OCI_CREATED}"       org.opencontainers.image.licenses="GPL-3.0"       org.opencontainers.image.version="${TOOL_VERSION}"
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update -qq && apt-get install -y --no-install-recommends     python3 python3-pip python3-venv git ca-certificates &&     rm -rf /var/lib/apt/lists/*
+
+RUN git clone --depth 1 https://github.com/StephanePeyregne/AuthentiCT.git /opt/authenticct &&     cd /opt/authenticct && git checkout f58b25c448c8d9afebcdddd351cbae84fd5f6bab &&     python3 -m pip install --break-system-packages --no-cache-dir .
+
+RUN printf '%s\n'   '#!/usr/bin/env sh'   'case "${1:-}" in'   '  --version) AuthentiCT.py --version; exit 0 ;;'   '  --help|-h|"") AuthentiCT.py --help; exit 0 ;;'   'esac'   'exec AuthentiCT.py "$@"' > /usr/local/bin/authenticct && chmod +x /usr/local/bin/authenticct
+
 ENTRYPOINT ["/usr/local/bin/authenticct"]
 CMD ["--help"]

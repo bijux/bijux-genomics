@@ -11,22 +11,15 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
     org.opencontainers.image.revision unknown
     org.opencontainers.image.created unknown
     org.opencontainers.image.licenses GPL-3.0
-    org.opencontainers.image.version unknown
+    org.opencontainers.image.version 3.1.1
 
 %post
     export DEBIAN_FRONTEND=noninteractive
-    apt-get update && apt-get install -y --no-install-recommends ca-certificates && rm -rf /var/lib/apt/lists/*
-    cat > /usr/local/bin/picard <<'EOS'
-#!/usr/bin/env sh
-if [ "${1:-}" = "--version" ]; then echo "unknown"; exit 0; fi
-if [ "${1:-}" = "--help" ] || [ $# -eq 0 ]; then echo "picard container scaffold"; exit 0; fi
-echo "picard executable not yet wired" >&2
-exit 2
-EOS
-    chmod +x /usr/local/bin/picard
+    apt-get update -qq && apt-get install -y --no-install-recommends         ca-certificates picard-tools && rm -rf /var/lib/apt/lists/*
 
 %runscript
-    exec /usr/local/bin/picard "$@"
+    exec picard "$@"
 
 %help
-    Scaffold Apptainer definition for picard with standardized labels and runscript.
+    Apptainer image for picard.
+    Default runscript forwards arguments to the tool entrypoint.

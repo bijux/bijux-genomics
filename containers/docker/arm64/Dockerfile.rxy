@@ -6,13 +6,32 @@
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 ARG OCI_REVISION=unknown
 ARG OCI_CREATED=unknown
-ARG TOOL_VERSION=unknown
+ARG TOOL_VERSION=1.0.0
 LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-dna" \
       org.opencontainers.image.revision="${OCI_REVISION}" \
       org.opencontainers.image.created="${OCI_CREATED}" \
       org.opencontainers.image.licenses="GPL-3.0" \
       org.opencontainers.image.version="${TOOL_VERSION}"
-RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates && rm -rf /var/lib/apt/lists/*
-RUN printf '#!/usr/bin/env sh\nif [ "${1:-}" = "--version" ]; then echo "${TOOL_VERSION}"; exit 0; fi\nif [ "${1:-}" = "--help" ] || [ $# -eq 0 ]; then echo "rxy container scaffold"; exit 0; fi\necho "rxy executable not yet wired" >&2; exit 2\n' > /usr/local/bin/rxy && chmod +x /usr/local/bin/rxy
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update -qq && apt-get install -y --no-install-recommends samtools awk ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN cat > /usr/local/bin/rxy <<'EOS'
+#!/usr/bin/env sh
+set -eu
+if [ "${1:-}" = "--version" ]; then
+  echo "1.0.0"
+  exit 0
+fi
+if [ "${1:-}" = "--help" ] || [ $# -eq 0 ]; then
+  echo "usage: rxy <alignment.bam>"
+  echo "computes simple RX/RY ratio from samtools idxstats"
+  exit 0
+fi
+bam="$1"
+idx="$(samtools idxstats "$bam")"
+rx=$(printf '%s\n' "$idx" | awk '$1=="chrX" || $1=="X" {s+=$3} END{print s+0}')
+ry=$(printf '%s\n' "$idx" | awk '$1=="chrY" || $1=="Y" {s+=$3} END{print s+0}')
+printf 'RX=%s\nRY=%s\nRXY=%s\n' "$rx" "$ry" "$(awk -v x="$rx" -v y="$ry" 'BEGIN{if(y==0){print "inf"} else {printf "%.6f", x/y}}')"
+EOS
+RUN chmod +x /usr/local/bin/rxy
 ENTRYPOINT ["/usr/local/bin/rxy"]
 CMD ["--help"]

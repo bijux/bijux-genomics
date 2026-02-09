@@ -11,17 +11,24 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
     org.opencontainers.image.revision unknown
     org.opencontainers.image.created unknown
     org.opencontainers.image.licenses GPL-3.0
-    org.opencontainers.image.version unknown
+    org.opencontainers.image.version 0.80
 
 %post
     export DEBIAN_FRONTEND=noninteractive
-    apt-get update && apt-get install -y --no-install-recommends ca-certificates && rm -rf /var/lib/apt/lists/*
+    apt-get update -qq && apt-get install -y --no-install-recommends         python3 python3-pip python3-venv git ca-certificates &&         rm -rf /var/lib/apt/lists/*
+
+    git clone --depth 1 https://github.com/maxibor/pydamage.git /opt/pydamage
+    cd /opt/pydamage
+    git checkout 08f1d0f2d1981d350decbf10964f989e9567ddbf
+    python3 -m pip install --break-system-packages --no-cache-dir .
+
     cat > /usr/local/bin/pydamage <<'EOS'
 #!/usr/bin/env sh
-if [ "${1:-}" = "--version" ]; then echo "unknown"; exit 0; fi
-if [ "${1:-}" = "--help" ] || [ $# -eq 0 ]; then echo "pydamage container scaffold"; exit 0; fi
-echo "pydamage executable not yet wired" >&2
-exit 2
+case "${1:-}" in
+  --version) pydamage --version; exit 0 ;;
+  --help|-h|"") pydamage --help; exit 0 ;;
+esac
+exec pydamage "$@"
 EOS
     chmod +x /usr/local/bin/pydamage
 
@@ -29,4 +36,5 @@ EOS
     exec /usr/local/bin/pydamage "$@"
 
 %help
-    Scaffold Apptainer definition for pydamage with standardized labels and runscript.
+    Apptainer image for pydamage.
+    Default runscript forwards arguments to the tool entrypoint.

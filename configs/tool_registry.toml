@@ -387,9 +387,9 @@ require_labels = true
 
 [[tools]]
 id = "mapdamage2"
-version = "unknown"
-upstream = "unknown"
-pinned_commit = "unknown"
+version = "2.2.2"
+upstream = "https://github.com/ginolhac/mapDamage"
+pinned_commit = "484bb3094de69422c2308385aa2bfaf0ef12fa27"
 runtimes = ["docker", "apptainer"]
 version_cmd = "mapdamage2 --version"
 dockerfile = "containers/docker/arm64/Dockerfile.mapdamage2"
@@ -398,9 +398,9 @@ require_labels = true
 
 [[tools]]
 id = "pydamage"
-version = "unknown"
-upstream = "unknown"
-pinned_commit = "unknown"
+version = "0.80"
+upstream = "https://github.com/maxibor/pydamage"
+pinned_commit = "08f1d0f2d1981d350decbf10964f989e9567ddbf"
 runtimes = ["docker", "apptainer"]
 version_cmd = "pydamage --version"
 dockerfile = "containers/docker/arm64/Dockerfile.pydamage"
@@ -409,9 +409,9 @@ require_labels = true
 
 [[tools]]
 id = "mosdepth"
-version = "unknown"
-upstream = "unknown"
-pinned_commit = "unknown"
+version = "0.3.11"
+upstream = "https://github.com/brentp/mosdepth"
+pinned_commit = "apt-mosdepth-0.3.11"
 runtimes = ["docker", "apptainer"]
 version_cmd = "mosdepth --version"
 dockerfile = "containers/docker/arm64/Dockerfile.mosdepth"
@@ -420,9 +420,9 @@ require_labels = true
 
 [[tools]]
 id = "picard"
-version = "unknown"
-upstream = "unknown"
-pinned_commit = "unknown"
+version = "3.1.1"
+upstream = "https://github.com/broadinstitute/picard"
+pinned_commit = "apt-picard-tools-3.1.1"
 runtimes = ["docker", "apptainer"]
 version_cmd = "picard --version"
 dockerfile = "containers/docker/arm64/Dockerfile.picard"
@@ -431,9 +431,9 @@ require_labels = true
 
 [[tools]]
 id = "gatk"
-version = "unknown"
-upstream = "unknown"
-pinned_commit = "unknown"
+version = "4.6.1.0"
+upstream = "https://github.com/broadinstitute/gatk"
+pinned_commit = "apt-gatk-4.6.1.0"
 runtimes = ["docker", "apptainer"]
 version_cmd = "gatk --version"
 dockerfile = "containers/docker/arm64/Dockerfile.gatk"
@@ -442,9 +442,9 @@ require_labels = true
 
 [[tools]]
 id = "authenticct"
-version = "unknown"
-upstream = "unknown"
-pinned_commit = "unknown"
+version = "1.0.0"
+upstream = "https://github.com/StephanePeyregne/AuthentiCT"
+pinned_commit = "f58b25c448c8d9afebcdddd351cbae84fd5f6bab"
 runtimes = ["docker", "apptainer"]
 version_cmd = "authenticct --version"
 dockerfile = "containers/docker/arm64/Dockerfile.authenticct"
@@ -453,9 +453,9 @@ require_labels = true
 
 [[tools]]
 id = "rxy"
-version = "unknown"
-upstream = "unknown"
-pinned_commit = "unknown"
+version = "1.0.0"
+upstream = "https://github.com/bijux/bijux-dna"
+pinned_commit = "builtin-rxy-v1"
 runtimes = ["docker", "apptainer"]
 version_cmd = "rxy --version"
 dockerfile = "containers/docker/arm64/Dockerfile.rxy"
@@ -464,9 +464,9 @@ require_labels = true
 
 [[tools]]
 id = "angsd"
-version = "unknown"
-upstream = "unknown"
-pinned_commit = "unknown"
+version = "0.940"
+upstream = "https://github.com/ANGSD/angsd"
+pinned_commit = "6b5d90641cc6924a0fab06584297f9a1cd1f46ac"
 runtimes = ["docker", "apptainer"]
 version_cmd = "angsd --version"
 dockerfile = "containers/docker/arm64/Dockerfile.angsd"
@@ -475,9 +475,9 @@ require_labels = true
 
 [[tools]]
 id = "yleaf"
-version = "unknown"
-upstream = "unknown"
-pinned_commit = "unknown"
+version = "3.0.3"
+upstream = "https://github.com/genid/Yleaf"
+pinned_commit = "f3aae50653cb685a7c3d6e4c08aa170c47a85263"
 runtimes = ["docker", "apptainer"]
 version_cmd = "yleaf --version"
 dockerfile = "containers/docker/arm64/Dockerfile.yleaf"
@@ -486,9 +486,9 @@ require_labels = true
 
 [[tools]]
 id = "king"
-version = "unknown"
-upstream = "unknown"
-pinned_commit = "unknown"
+version = "2.3.0"
+upstream = "https://www.kingrelatedness.com/"
+pinned_commit = "apt-king-2.3.0"
 runtimes = ["docker", "apptainer"]
 version_cmd = "king --version"
 dockerfile = "containers/docker/arm64/Dockerfile.king"
@@ -497,12 +497,11 @@ require_labels = true
 
 [[tools]]
 id = "preseq"
-version = "unknown"
-upstream = "unknown"
-pinned_commit = "unknown"
+version = "3.2.0"
+upstream = "https://github.com/smithlabcode/preseq"
+pinned_commit = "acc94f2957b15f51f917b7b8e0819c41c81c4949"
 runtimes = ["docker", "apptainer"]
 version_cmd = "preseq --version"
 dockerfile = "containers/docker/arm64/Dockerfile.preseq"
 apptainer_def = "containers/apptainer/preseq.def"
 require_labels = true
-
