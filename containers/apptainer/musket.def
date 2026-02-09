@@ -1,0 +1,59 @@
+Bootstrap: docker
+From: ubuntu:24.04
+
+%labels
+    MAINTAINER Bijan Mousavi <mousavi.bijan@gmail.com>
+    VERSION Musket-v1.1
+
+%environment
+    DEBIAN_FRONTEND=noninteractive
+
+%post
+    export DEBIAN_FRONTEND=noninteractive
+
+    apt-get update -qq && \
+    apt-get install -y --no-install-recommends \
+        wget \
+        ca-certificates \
+        build-essential \
+        zlib1g-dev \
+        libgomp1 && \
+
+    wget -q https://sourceforge.net/projects/musket/files/musket-1.1.tar.gz/download -O /tmp/musket.tar.gz && \
+    tar -xzf /tmp/musket.tar.gz -C /opt && \
+    cd /opt/musket-1.1 && \
+    make && \
+    mv musket /usr/local/bin/musket-bin && \
+
+    # Create a wrapper script with version override and help handling.
+    cat > /usr/local/bin/musket <<'EOF'
+#!/bin/sh
+if [ "$1" = "--version" ]; then
+    echo "1.1"
+    exit 0
+elif [ "$1" = "--help" ]; then
+    /usr/local/bin/musket-bin --help
+    exit 0
+else
+    /usr/local/bin/musket-bin "$@"
+fi
+EOF
+    chmod +x /usr/local/bin/musket && \
+
+    cd / && \
+    rm -rf /tmp/musket.tar.gz /opt/musket-1.1 && \
+    apt-get purge -y wget ca-certificates build-essential zlib1g-dev && \
+    apt-get autoremove -y && \
+    rm -rf /var/lib/apt/lists/*
+
+%runscript
+    if [ $# -eq 0 ]; then
+        exec /usr/local/bin/musket --help
+    else
+        exec /usr/local/bin/musket "$@"
+    fi
+
+%help
+    This Apptainer image provides Musket version 1.1, compiled from source.
+    The default command is 'musket' (with wrapper for consistent --version output).
+    Run without arguments to display help.
