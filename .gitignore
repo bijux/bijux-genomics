@@ -34,6 +34,7 @@ site
 site/
 
 /target-*/
+/target-containers/
 **/target-*/
 /target-isolate-*/
 **/target-isolate-*/

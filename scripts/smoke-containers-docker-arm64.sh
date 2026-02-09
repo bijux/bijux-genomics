@@ -16,12 +16,12 @@ IMAGE_PREFIX="${IMAGE_PREFIX:-bijux-smoke}"
 TOOLS="${TOOLS:-}"
 SMOKE_LEVEL="${SMOKE_LEVEL:-version}"
 
-ARTIFACT_DIR="$ROOT_DIR/artifacts/container"
+ARTIFACT_DIR="$ROOT_DIR/target-containers"
 LOG_DIR="$ARTIFACT_DIR/logs/$RUNTIME_NAME"
 IMG_DIR="$ARTIFACT_DIR/images/$RUNTIME_NAME"
 SUMMARY="$LOG_DIR/summary.txt"
 IMAGES_TXT="$IMG_DIR/images.txt"
-MANIFEST_DIR="$ROOT_DIR/artifacts/containers"
+MANIFEST_DIR="$ROOT_DIR/target-containers"
 
 mkdir -p "$LOG_DIR" "$IMG_DIR" "$MANIFEST_DIR"
 
@@ -77,7 +77,7 @@ get_version_cmd() {
     }
     in_tools && id==tool && vercmd!="" { print vercmd; found=1; exit 0 }
     END { if (!found) print tool " --version" }
-  ' "$ROOT_DIR/configs/tool_registry.toml"
+  ' "$ROOT_DIR/configs/tools.toml"
 }
 
 get_help_cmd() {
@@ -97,7 +97,7 @@ get_help_cmd() {
     }
     in_tools && id==tool && helpcmd!="" { print helpcmd; found=1; exit 0 }
     END { if (!found) print tool " --help" }
-  ' "$ROOT_DIR/configs/tool_registry.toml"
+  ' "$ROOT_DIR/configs/tools.toml"
 }
 
 get_registry_field() {
@@ -122,7 +122,7 @@ get_registry_field() {
       }
     }
     END { if (!found) print "unknown" }
-  ' "$ROOT_DIR/configs/tool_registry.toml"
+  ' "$ROOT_DIR/configs/tools.toml"
 }
 
 build_and_smoke_one() {
