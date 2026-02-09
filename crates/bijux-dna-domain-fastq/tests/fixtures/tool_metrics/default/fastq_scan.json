@@ -1,0 +1,15 @@
+{
+  "schema_version": "bijux.fastq_scan.v1",
+  "summary": {
+    "reads": 1200,
+    "bases_bp": 96000,
+    "mean_read_length_bp": 80.0,
+    "qscore": {
+      "mean_phred": 33.2,
+      "median_phred": 34.0,
+      "p10_phred": 27.5,
+      "p90_phred": 36.5
+    },
+    "duplication_estimate_pct": 7.5
+  }
+}
