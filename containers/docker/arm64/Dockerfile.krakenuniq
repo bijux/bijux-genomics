@@ -1,0 +1,34 @@
+# SPDX-License-Identifier: GPL-3.0-only
+# Copyright (C) 2026 Bijan Mousavi
+#
+# Container definition license: GPL-3.0.
+# The bijux-dna software source code is licensed under Apache-2.0.
+FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b AS builder
+ARG OCI_REVISION=unknown
+ARG OCI_CREATED=unknown
+ARG TOOL_VERSION=1.0.4
+LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-dna" \
+      org.opencontainers.image.revision="${OCI_REVISION}" \
+      org.opencontainers.image.created="${OCI_CREATED}" \
+      org.opencontainers.image.licenses="GPL-3.0" \
+      org.opencontainers.image.version="${TOOL_VERSION}"
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update -qq && apt-get install -y --no-install-recommends \
+    git build-essential wget perl python3 ca-certificates zlib1g-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN git clone --depth 1 https://github.com/fbreitwieser/krakenuniq.git /opt/krakenuniq && \
+    cd /opt/krakenuniq && \
+    git checkout f4e3796580c5c576b15e929c741e6e725b7e29b6 && \
+    ./install_krakenuniq.sh /opt/krakenuniq/install
+
+FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update -qq && apt-get install -y --no-install-recommends \
+    perl python3 ca-certificates zlib1g && \
+    rm -rf /var/lib/apt/lists/*
+COPY --from=builder /opt/krakenuniq/install /opt/krakenuniq
+ENV PATH="/opt/krakenuniq:$PATH"
+ENTRYPOINT ["/opt/krakenuniq/krakenuniq"]
+CMD ["--help"]
