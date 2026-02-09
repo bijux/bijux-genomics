@@ -20,6 +20,76 @@ pub struct DamageMetricsV1 {
     pub pmd_score_histogram: Vec<(u8, u64)>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct MisincorporationPointV1 {
+    pub position: u32,
+    pub c_to_t_rate: f64,
+    pub g_to_a_rate: f64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct MisincorporationCurveSummaryV1 {
+    pub five_prime: Vec<MisincorporationPointV1>,
+    pub three_prime: Vec<MisincorporationPointV1>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct PmdHistogramBinV1 {
+    pub lower_bound: f64,
+    pub upper_bound: f64,
+    pub count: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct PmdScoreDistributionV1 {
+    pub threshold: f64,
+    pub bins: Vec<PmdHistogramBinV1>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct DamageCoreFieldsV1 {
+    pub tool: String,
+    pub c_to_t_5p: f64,
+    pub g_to_a_3p: f64,
+    pub reads_considered: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct DamageProfilerMetricsV1 {
+    pub core: DamageCoreFieldsV1,
+    pub misincorporation: MisincorporationCurveSummaryV1,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct PmdtoolsMetricsV1 {
+    pub core: DamageCoreFieldsV1,
+    pub pmd_distribution: PmdScoreDistributionV1,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct NgsBriggsMetricsV1 {
+    pub core: DamageCoreFieldsV1,
+    pub pmd_distribution: PmdScoreDistributionV1,
+    pub lambda: f64,
+    pub delta_s: f64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct AdDeamMetricsV1 {
+    pub core: DamageCoreFieldsV1,
+    pub pmd_distribution: PmdScoreDistributionV1,
+    pub cluster_count: u32,
+}
+
 impl DamageMetricsV1 {
     #[must_use]
     pub fn empty() -> Self {
