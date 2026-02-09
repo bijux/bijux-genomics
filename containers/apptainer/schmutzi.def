@@ -1,0 +1,48 @@
+# SPDX-License-Identifier: GPL-3.0-only
+# Copyright (C) 2026 Bijan Mousavi
+#
+# Container definition license: GPL-3.0.
+# The bijux-dna software source code is licensed under Apache-2.0.
+Bootstrap: docker
+From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+
+%labels
+    org.opencontainers.image.source https://github.com/bijux/bijux-dna
+    org.opencontainers.image.revision unknown
+    org.opencontainers.image.created unknown
+    org.opencontainers.image.licenses GPL-3.0
+    org.opencontainers.image.version latest-pinned
+
+%post
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update -qq && apt-get install -y --no-install-recommends \
+        git build-essential zlib1g-dev libbz2-dev liblzma-dev libcurl4-openssl-dev \
+        ca-certificates perl python3 samtools && \
+        rm -rf /var/lib/apt/lists/*
+
+    git clone --depth 1 https://github.com/grenaud/schmutzi.git /opt/schmutzi
+    cd /opt/schmutzi
+    git checkout d11884ccf71666f9fa64188ee74947a7a3c86fb5
+    make -j"$(nproc)" || true
+
+    cat > /usr/local/bin/schmutzi <<'SH'
+#!/bin/sh
+set -eu
+if [ "${1:-}" = "--version" ]; then
+  echo "d11884c"
+  exit 0
+fi
+if [ "${1:-}" = "--help" ] || [ $# -eq 0 ]; then
+  echo "schmutzi wrapper: run schmutzi scripts under /opt/schmutzi"
+  exit 0
+fi
+exec "$@"
+SH
+    chmod +x /usr/local/bin/schmutzi
+
+%runscript
+    exec /usr/local/bin/schmutzi "$@"
+
+%help
+    Apptainer image for schmutzi.
+    Default runscript forwards arguments to schmutzi wrapper.
