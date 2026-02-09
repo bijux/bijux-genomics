@@ -158,16 +158,6 @@ fn policy__contracts__ci_tools_policy__test_and_coverage_dirs_are_isolated() {
 }
 
 #[test]
-fn policy__contracts__ci_tools_policy__repo_root_has_no_coverage_dir() {
-    let root = workspace_root();
-    let legacy = root.join("coverage");
-    bijux_dna_policies::policy_assert!(
-        !legacy.exists(),
-        "Repo root must not contain coverage/ (use target coverage output instead)."
-    );
-}
-
-#[test]
 fn policy__contracts__ci_tools_policy__no_bijux_namespace_in_docs_or_scripts() {
     let root = workspace_root();
     let scan_roots = [

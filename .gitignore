@@ -15,7 +15,6 @@
 # Logs and runtime output
 /runs/
 *.log
-/coverage/
 
 # Temp files
 /tmp/
