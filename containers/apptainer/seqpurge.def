@@ -18,6 +18,7 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
     org.opencontainers.image.created unknown
     org.opencontainers.image.licenses GPL-3.0
     org.opencontainers.image.version unknown
+    org.opencontainers.image.tool seqpurge
 %environment
     DEBIAN_FRONTEND=noninteractive
     TZ=UTC
@@ -70,13 +71,6 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
     if ls bin/*.so* >/dev/null 2>&1; then
         cp -a bin/*.so* /usr/local/lib/
     fi
-
-    # Section: Keep runtime dependencies only.
-    # Mark build dependencies as auto so they can be autoremoved, then reinstall runtime dependencies.
-    apt-mark auto \
-        build-essential qtbase5-dev qt5-qmake libqt5xmlpatterns5-dev libqt5charts5-dev libqt5svg5-dev \
-        zlib1g-dev libbz2-dev liblzma-dev libhts-dev libxml2-dev pkg-config git || true
-
 
     # Install runtime dependencies explicitly (same list as the runtime stage).
     apt-get update
