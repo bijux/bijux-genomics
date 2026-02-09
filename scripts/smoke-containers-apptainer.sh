@@ -10,6 +10,7 @@ VM_OUT_DIR="${VM_OUT_DIR:-$HOME/apptainer-smoke-build}"
 JOBS="${JOBS:-1}"
 BUILD_OPTS="${BUILD_OPTS:-}"
 VERSION_TIMEOUT="${VERSION_TIMEOUT:-120}"
+TOOLS="${TOOLS:-}"
 
 ARTIFACT_DIR="$ROOT_DIR/artifacts/container"
 LOG_DIR="$ARTIFACT_DIR/logs/apptainer"
@@ -124,6 +125,23 @@ fi
 LIST_FILE=$(mktemp "${TMPDIR:-/tmp}/apptainer-defs.XXXXXX")
 trap 'rm -f "$LIST_FILE"' EXIT INT TERM
 find "$DEFS_DIR" -maxdepth 1 -type f -name '*.def' | sort > "$LIST_FILE"
+
+if [ -n "$TOOLS" ]; then
+  TOOLS_FILE=$(mktemp "${TMPDIR:-/tmp}/apptainer-tools.XXXXXX")
+  FILTERED_FILE=$(mktemp "${TMPDIR:-/tmp}/apptainer-defs-filtered.XXXXXX")
+  trap 'rm -f "$LIST_FILE" "$TOOLS_FILE" "$FILTERED_FILE"' EXIT INT TERM
+  printf '%s\n' "$TOOLS" | tr ',' '\n' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | grep -v '^$' > "$TOOLS_FILE"
+  awk -F/ '
+    NR==FNR { wanted[$0]=1; next }
+    {
+      file=$NF
+      sub(/\.def$/, "", file)
+      if (file in wanted) print $0
+    }
+  ' "$TOOLS_FILE" "$LIST_FILE" > "$FILTERED_FILE"
+  mv "$FILTERED_FILE" "$LIST_FILE"
+  rm -f "$TOOLS_FILE"
+fi
 
 if [ ! -s "$LIST_FILE" ]; then
   echo "ERROR: no .def files found in $DEFS_DIR" >&2

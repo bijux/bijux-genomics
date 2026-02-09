@@ -10,6 +10,7 @@ JOBS="${JOBS:-1}"
 SAVE_TAR="${SAVE_TAR:-1}"
 VERSION_TIMEOUT="${VERSION_TIMEOUT:-120}"
 IMAGE_PREFIX="${IMAGE_PREFIX:-bijux-smoke}"
+TOOLS="${TOOLS:-}"
 
 ARTIFACT_DIR="$ROOT_DIR/artifacts/container"
 LOG_DIR="$ARTIFACT_DIR/logs/docker-arm64"
@@ -106,6 +107,23 @@ fi
 LIST_FILE=$(mktemp "${TMPDIR:-/tmp}/dockerfiles.XXXXXX")
 trap 'rm -f "$LIST_FILE"' EXIT INT TERM
 find "$DOCKER_DIR" -maxdepth 1 -type f -name 'Dockerfile.*' | sort > "$LIST_FILE"
+
+if [ -n "$TOOLS" ]; then
+  TOOLS_FILE=$(mktemp "${TMPDIR:-/tmp}/docker-tools.XXXXXX")
+  FILTERED_FILE=$(mktemp "${TMPDIR:-/tmp}/dockerfiles-filtered.XXXXXX")
+  trap 'rm -f "$LIST_FILE" "$TOOLS_FILE" "$FILTERED_FILE"' EXIT INT TERM
+  printf '%s\n' "$TOOLS" | tr ',' '\n' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | grep -v '^$' > "$TOOLS_FILE"
+  awk -F/ '
+    NR==FNR { wanted[$0]=1; next }
+    {
+      file=$NF
+      sub(/^Dockerfile\./, "", file)
+      if (file in wanted) print $0
+    }
+  ' "$TOOLS_FILE" "$LIST_FILE" > "$FILTERED_FILE"
+  mv "$FILTERED_FILE" "$LIST_FILE"
+  rm -f "$TOOLS_FILE"
+fi
 
 if [ ! -s "$LIST_FILE" ]; then
   echo "ERROR: no Dockerfile.* found in $DOCKER_DIR" >&2
