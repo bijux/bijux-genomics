@@ -1,0 +1,32 @@
+{
+  "schema_version": "bijux.bracken.v1",
+  "provenance": {
+    "db_name": "kraken2-standard",
+    "db_version": "2026.01",
+    "db_hash": "sha256:def456"
+  },
+  "taxonomy_table": [
+    {
+      "taxonomy": {
+        "taxon_id": 9606,
+        "taxon_name": "Homo sapiens",
+        "rank": "species",
+        "read_count": 600,
+        "fraction": 0.60
+      },
+      "estimated_reads": 615.4,
+      "estimated_fraction": 0.6154
+    },
+    {
+      "taxonomy": {
+        "taxon_id": 562,
+        "taxon_name": "Escherichia coli str. K-12",
+        "rank": "species",
+        "read_count": 100,
+        "fraction": 0.10
+      },
+      "estimated_reads": 94.6,
+      "estimated_fraction": 0.0946
+    }
+  ]
+}

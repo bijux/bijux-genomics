@@ -9,3 +9,5 @@ mod mod_contracts_public_surface_rs;
 mod mod_contracts_ssot_literals_rs;
 #[path = "contracts/stage_contract_snapshots.rs"]
 mod mod_contracts_stage_contract_snapshots_rs;
+#[path = "contracts/tool_metrics.rs"]
+mod mod_contracts_tool_metrics_rs;

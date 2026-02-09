@@ -1,0 +1,9 @@
+{
+  "schema_version": "bijux.case.v1",
+  "title": "FASTQ new-tool metric fixtures",
+  "purpose": "Fixture bank for parsing typed metrics for fastq-scan, seqfu, krakenuniq, and bracken.",
+  "invariants": [
+    "qscore fields are bounded in [0, 45]",
+    "taxonomy fractions are bounded in [0, 1] and sum to <= 1"
+  ]
+}
