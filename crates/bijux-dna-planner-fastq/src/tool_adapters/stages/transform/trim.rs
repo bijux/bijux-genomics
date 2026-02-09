@@ -94,6 +94,7 @@ pub fn plan(
         } else {
             "none".to_string()
         },
+        damage_mode: None,
         polyx_policy: polyx_bank.as_ref().map(|_| "bank".to_string()),
         n_policy: None,
         contaminant_policy: contaminant_bank.as_ref().map(|_| "bank".to_string()),

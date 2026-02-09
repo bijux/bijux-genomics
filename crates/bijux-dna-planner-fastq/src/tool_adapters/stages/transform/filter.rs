@@ -56,6 +56,7 @@ pub fn plan_filter(
         contaminant_db: kmer_ref.clone(),
         n_policy: None,
         polyx_policy: options.polyx_policy.clone(),
+        damage_mode: None,
     };
     Ok(StagePlanV1 {
         stage_id: STAGE_ID.clone(),
