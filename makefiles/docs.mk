@@ -1,8 +1,8 @@
 ##@ Docs
 
 MKDOCS ?= mkdocs
-DOCS_SITE ?= site
-DOCS_VENV ?= .venv
+DOCS_SITE ?= target-docs/site
+DOCS_VENV ?= target-docs/.venv
 DOCS_PY ?= python3
 DOCS_REQ ?= requirements-docs.txt
 
