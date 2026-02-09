@@ -17,6 +17,8 @@ PLATFORM ?=
 # Optional pass-through knobs for smoke scripts
 JOBS ?= 1
 TOOLS ?=
+APPTAINER_VM_OUT ?= $(HOME)/apptainer-build
+APPTAINER_COPY_BACK ?= artifacts/apptainer
 
 CT_KEY := $(subst -,_,$(CONTAINER_TYPE))
 SMOKE_SCRIPT_docker_arm64 := scripts/smoke-containers-docker-arm64.sh
@@ -166,7 +168,14 @@ containers-smoke-bam-all: ## Smoke all BAM stage tool sets via selected runtime
 containers-smoke-all: ## Smoke all registered tools via selected runtime
 	@$(MAKE) container-smoke
 
+containers-apptainer-build: ## Batch-build Apptainer defs to VM-local output and copy back artifacts
+	@JOBS="$(JOBS)" ./scripts/apptainer_build_all.sh \
+		--defs-dir containers/apptainer \
+		--vm-out "$(APPTAINER_VM_OUT)" \
+		--copy-back "$(APPTAINER_COPY_BACK)"
+
 .PHONY: container-runtime-check container-smoke \
 	smoke-containers-docker-arm64 smoke-containers-docker-amd64 smoke-containers-apptainer \
 	build-images test-images image-qa test-images-trim test-images-validate test-images-filter test-images-merge \
-	containers-smoke-fastq-all containers-smoke-bam-all containers-smoke-all
+	containers-smoke-fastq-all containers-smoke-bam-all containers-smoke-all \
+	containers-apptainer-build

@@ -8,6 +8,8 @@ DEFS_DIR="containers/apptainer"
 VM_OUT_DIR="${HOME}/apptainer-build"
 COPY_BACK_DIR=""
 JOBS=1
+SUMMARY_FILE=""
+BUILD_ONE_DEF=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -15,6 +17,8 @@ while [[ $# -gt 0 ]]; do
     --vm-out) VM_OUT_DIR="$2"; shift 2 ;;
     --copy-back) COPY_BACK_DIR="$2"; shift 2 ;;
     --jobs) JOBS="$2"; shift 2 ;;
+    --summary-file) SUMMARY_FILE="$2"; shift 2 ;;
+    --build-one) BUILD_ONE_DEF="$2"; shift 2 ;;
     *) echo "unknown arg: $1" >&2; exit 2 ;;
   esac
 done
@@ -27,6 +31,11 @@ fi
 mkdir -p "$VM_OUT_DIR/logs" "$VM_OUT_DIR/sif"
 if [[ ! -w "$VM_OUT_DIR" ]]; then
   echo "vm output dir not writable: $VM_OUT_DIR" >&2
+  exit 2
+fi
+
+if ! [[ "$JOBS" =~ ^[0-9]+$ ]] || [[ "$JOBS" -lt 1 ]]; then
+  echo "jobs must be a positive integer: $JOBS" >&2
   exit 2
 fi
 
@@ -65,22 +74,35 @@ build_one() {
 export VM_OUT_DIR
 export -f build_one
 
+if [[ -n "$BUILD_ONE_DEF" ]]; then
+  build_one "$BUILD_ONE_DEF"
+  exit $?
+fi
+
 mapfile -t defs < <(find "$DEFS_DIR" -maxdepth 1 -type f -name '*.def' | sort)
 if [[ "${#defs[@]}" -eq 0 ]]; then
   echo "no .def files found in $DEFS_DIR" >&2
   exit 2
 fi
 
+status=0
 if [[ "$JOBS" -le 1 ]]; then
-  status=0
   for d in "${defs[@]}"; do
     if ! build_one "$d"; then
       status=1
     fi
   done
-  [[ "$status" -eq 0 ]] || exit "$status"
 else
-  printf '%s\n' "${defs[@]}" | xargs -I{} -P "$JOBS" bash -lc 'build_one "$@"' _ {}
+  if ! command -v parallel >/dev/null 2>&1; then
+    echo "JOBS=$JOBS requires GNU parallel, but it is not installed." >&2
+    echo "Install 'parallel' or run with --jobs 1." >&2
+    exit 2
+  fi
+  if ! parallel -j "$JOBS" --halt never \
+    "$0" --build-one {} --defs-dir "$DEFS_DIR" --vm-out "$VM_OUT_DIR" \
+    ::: "${defs[@]}"; then
+    status=1
+  fi
 fi
 
 if [[ -n "$COPY_BACK_DIR" ]]; then
@@ -90,4 +112,23 @@ if [[ -n "$COPY_BACK_DIR" ]]; then
   echo "copied outputs to $COPY_BACK_DIR"
 fi
 
+summary_path="${SUMMARY_FILE:-$VM_OUT_DIR/summary.tsv}"
+{
+  printf "tool\tstatus\tlog\n"
+  for d in "${defs[@]}"; do
+    name="$(basename "$d" .def)"
+    log="$VM_OUT_DIR/logs/${name}.log"
+    sif="$VM_OUT_DIR/sif/${name}.sif"
+    if [[ -f "$sif" ]]; then
+      printf "%s\tOK\t%s\n" "$name" "$log"
+    else
+      printf "%s\tFAIL\t%s\n" "$name" "$log"
+    fi
+  done
+} >"$summary_path"
+
+echo "build summary:"
+column -t -s $'\t' "$summary_path" || cat "$summary_path"
+
 echo "done: sif=$VM_OUT_DIR/sif logs=$VM_OUT_DIR/logs"
+exit "$status"

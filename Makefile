@@ -24,4 +24,4 @@ help: ## Show this help message
 	      $(MAKEFILE_LIST)
 
 prep-apptainer-batch: ## Build all Apptainer defs in VM-local output dir
-	./scripts/apptainer_build_all.sh --defs-dir containers/apptainer --vm-out "$${HOME}/apptainer-build" --copy-back artifacts/apptainer
+	@$(MAKE) containers-apptainer-build
