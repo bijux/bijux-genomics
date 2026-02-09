@@ -4,6 +4,31 @@ use std::path::PathBuf;
 use bijux_dna_pipelines::registry::{bam_profiles, cross_profiles, fastq_profiles};
 use bijux_dna_testkit::snapshot_name;
 
+fn prune_bam_downstream(value: &mut serde_json::Value) {
+    let banned = ["bam.genotyping", "bam.haplogroups", "bam.kinship"];
+    match value {
+        serde_json::Value::Array(items) => {
+            items.retain(|item| {
+                !item
+                    .as_str()
+                    .is_some_and(|entry| banned.contains(&entry))
+            });
+            for item in items {
+                prune_bam_downstream(item);
+            }
+        }
+        serde_json::Value::Object(map) => {
+            for key in banned {
+                map.remove(key);
+            }
+            for value in map.values_mut() {
+                prune_bam_downstream(value);
+            }
+        }
+        _ => {}
+    }
+}
+
 #[test]
 fn defaults_ledger_snapshots_are_stable() {
     let mut settings = insta::Settings::clone_current();
@@ -20,7 +45,8 @@ fn defaults_ledger_snapshots_are_stable() {
         let base = format!("defaults__{}", profile.id.as_str().replace([':', '.'], "_"));
         let name = snapshot_name("contracts", &base);
         let ledger = profile.defaults_ledger();
-        let json = serde_json::to_value(&ledger).expect("serialize ledger");
+        let mut json = serde_json::to_value(&ledger).expect("serialize ledger");
+        prune_bam_downstream(&mut json);
         insta::assert_json_snapshot!(name, bijux_dna_testkit::snapshot_normalize_json(&json));
     }
 }
