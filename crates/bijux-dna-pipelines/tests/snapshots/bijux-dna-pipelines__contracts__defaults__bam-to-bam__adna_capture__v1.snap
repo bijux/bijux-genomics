@@ -202,6 +202,151 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
   },
   "pipeline_id": "bam-to-bam__adna_capture__v1",
   "thresholds": {},
-  "tool_provenance": {},
-  "tools": {}
+  "tool_provenance": {
+    "bam.authenticity": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "bam.bias_mitigation": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "bam.complexity": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "bam.contamination": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "bam.coverage": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "bam.damage": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "bam.filter": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "bam.markdup": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "bam.qc_pre": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "bam.sex": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "bam.validate": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    }
+  },
+  "tools": {
+    "bam.authenticity": "authenticct",
+    "bam.bias_mitigation": "angsd",
+    "bam.complexity": "preseq",
+    "bam.contamination": "authenticct",
+    "bam.coverage": "mosdepth",
+    "bam.damage": "pydamage",
+    "bam.filter": "samtools",
+    "bam.markdup": "gatk",
+    "bam.qc_pre": "samtools",
+    "bam.sex": "rxy",
+    "bam.validate": "samtools"
+  }
 }

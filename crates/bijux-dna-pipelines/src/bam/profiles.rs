@@ -3,7 +3,7 @@
 use std::collections::BTreeMap;
 
 use anyhow::{anyhow, Result};
-use bijux_dna_core::ids::StageId;
+use bijux_dna_core::ids::{StageId, ToolId};
 use bijux_dna_core::prelude::id_catalog;
 use bijux_dna_domain_bam::defaults::{
     adna_capture_params_json, adna_shotgun_params_json, default_params_json,
@@ -35,10 +35,32 @@ fn defaults_for(
 }
 
 fn to_effective_defaults(defaults: &[BamStageDefault]) -> EffectiveDefaults {
-    let tools = BTreeMap::new();
+    let mut tools = BTreeMap::new();
     let mut params = BTreeMap::new();
     let mut rationales = BTreeMap::new();
     for entry in defaults {
+        let default_tool = match entry.stage {
+            BamStage::Align => "bwa",
+            BamStage::Validate => "samtools",
+            BamStage::QcPre => "samtools",
+            BamStage::Filter => "samtools",
+            BamStage::Markdup => "gatk",
+            BamStage::Complexity => "preseq",
+            BamStage::Coverage => "mosdepth",
+            BamStage::Damage => "pydamage",
+            BamStage::Authenticity => "authenticct",
+            BamStage::Contamination => "authenticct",
+            BamStage::Sex => "rxy",
+            BamStage::BiasMitigation => "angsd",
+            BamStage::Recalibration => "gatk",
+            BamStage::Haplogroups => "yleaf",
+            BamStage::Genotyping => "angsd",
+            BamStage::Kinship => "king",
+        };
+        tools.insert(
+            StageId::from_static(entry.stage.as_str()),
+            ToolId::from_static(default_tool),
+        );
         params.insert(
             StageId::from_static(entry.stage.as_str()),
             DefaultParams::Json(entry.params.clone()),

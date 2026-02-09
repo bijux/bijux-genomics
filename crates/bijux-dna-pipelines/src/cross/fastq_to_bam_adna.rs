@@ -6,7 +6,7 @@ use crate::{
     ArtifactType, DefaultParams, Domain, EffectiveDefaults, MetricsBundle, PipelineCapabilities,
     PipelineId, PipelineProfile, ReportSection, StabilityTier,
 };
-use bijux_dna_core::ids::StageId;
+use bijux_dna_core::ids::{StageId, ToolId};
 use bijux_dna_core::prelude::id_catalog;
 use bijux_dna_domain_bam::defaults::{adna_shotgun_params_json, default_params_json};
 use bijux_dna_domain_bam::BamStage;
@@ -34,6 +34,10 @@ fn base_defaults() -> (PipelineProfile, PipelineProfile, EffectiveDefaults) {
 #[must_use]
 pub fn fastq_to_bam_adna_shotgun_profile() -> PipelineProfile {
     let (_fastq_profile, _bam_profile, mut defaults) = base_defaults();
+    defaults.tools.insert(
+        StageId::from_static("core.prepare_reference"),
+        ToolId::from_static("samtools"),
+    );
     defaults.params.insert(
         StageId::from_static("core.prepare_reference"),
         DefaultParams::Json(serde_json::json!({})),
@@ -45,6 +49,10 @@ pub fn fastq_to_bam_adna_shotgun_profile() -> PipelineProfile {
     defaults.params.insert(
         StageId::from_static("bam.align"),
         DefaultParams::Json(adna_shotgun_params_json(BamStage::Align)),
+    );
+    defaults.tools.insert(
+        StageId::from_static("bam.align"),
+        ToolId::from_static("bwa"),
     );
     defaults.rationales.insert(
         StageId::from_static("bam.align"),
@@ -93,6 +101,10 @@ pub fn fastq_to_bam_adna_shotgun_profile() -> PipelineProfile {
 #[must_use]
 pub fn fastq_to_bam_default_profile() -> PipelineProfile {
     let (_fastq_profile, _bam_profile, mut defaults) = base_defaults();
+    defaults.tools.insert(
+        StageId::from_static("core.prepare_reference"),
+        ToolId::from_static("samtools"),
+    );
     defaults.params.insert(
         StageId::from_static("core.prepare_reference"),
         DefaultParams::Json(serde_json::json!({})),
@@ -104,6 +116,10 @@ pub fn fastq_to_bam_default_profile() -> PipelineProfile {
     defaults.params.insert(
         StageId::from_static("bam.align"),
         DefaultParams::Json(default_params_json(BamStage::Align)),
+    );
+    defaults.tools.insert(
+        StageId::from_static("bam.align"),
+        ToolId::from_static("bwa"),
     );
     defaults.rationales.insert(
         StageId::from_static("bam.align"),
