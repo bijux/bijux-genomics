@@ -154,7 +154,11 @@ fn telemetry_counts(paths: &[String]) -> (usize, usize) {
             }
             total_events += 1;
             if let Ok(event) = serde_json::from_str::<TelemetryEventV1>(line) {
-                if event.event_name == "error" || event.status == "error" {
+                if matches!(
+                    event.event_name,
+                    bijux_dna_runtime::TelemetryEventName::Error
+                ) || event.status == "error"
+                {
                     error_events += 1;
                 }
             }
@@ -180,8 +184,11 @@ fn telemetry_decisions_from_paths(
                 continue;
             };
             if !matches!(
-                event.event_name.as_str(),
-                "merge_decision" | "adapter_validation" | "contaminant_action" | "quality_gate"
+                event.event_name,
+                bijux_dna_runtime::TelemetryEventName::MergeDecision
+                    | bijux_dna_runtime::TelemetryEventName::AdapterValidation
+                    | bijux_dna_runtime::TelemetryEventName::ContaminantAction
+                    | bijux_dna_runtime::TelemetryEventName::QualityGate
             ) {
                 continue;
             }
