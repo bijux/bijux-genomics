@@ -1,5 +1,5 @@
 //! Owner: bijux-dna-runner
-//! Runner abstraction with docker/local backends.
+//! Runner abstraction with docker backend only.
 
 pub use bijux_dna_runtime::{Artifact, Invocation, Runner, RunnerResult};
 use std::time::Duration;
