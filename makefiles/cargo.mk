@@ -55,9 +55,10 @@ audit: ensure-cargo-deny
 	$(AUDIT)
 
 coverage:
-	@rm -rf $(COVERAGE_ROOT)
-	@mkdir -p $(dir $(COVERAGE_OUT))
 	@$(COVERAGE_ENV) cargo llvm-cov clean
+	@rm -rf $(COVERAGE_ROOT)
+	@mkdir -p $(COVERAGE_ROOT)
+	@mkdir -p $(dir $(COVERAGE_OUT))
 	@rm -rf $(COV_PROFRAW_DIR)
 	@mkdir -p $(COV_TMP_DIR)
 	@mkdir -p $(COV_PROFRAW_DIR)
