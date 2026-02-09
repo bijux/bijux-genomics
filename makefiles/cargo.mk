@@ -34,7 +34,6 @@ COVERAGE_ENV = TZ=UTC LC_ALL=C TMPDIR=$(COV_TMP_DIR) TMP=$(COV_TMP_DIR) TEMP=$(C
   LLVM_PROFILE_FILE=$(COV_PROFRAW_DIR)/%p.profraw
 COVERAGE_RUN = cargo llvm-cov nextest --no-report --no-cfg-coverage $(NEXTEST_CONFIG) --workspace $(TEST_FEATURES) --profile $(NEXTEST_PROFILE) $(RUN_IGNORED)
 COVERAGE_JSON = cargo llvm-cov report --json --output-path $(COVERAGE_OUT)
-# cargo-llvm-cov emits HTML under <output-dir>/html, so point at COVERAGE_ROOT.
 COVERAGE_HTML = cargo llvm-cov report --html --output-dir $(COVERAGE_ROOT)
 
 fmt:
