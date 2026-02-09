@@ -244,7 +244,7 @@ fn policy__contracts__policies__policy_test_names_are_consistent() {
 #[test]
 fn policy__contracts__policies__litmus_doc_exists_and_lists_rules() {
     let root = workspace_root();
-    let path = root.join("docs/ARCHITECTURE_LITMUS.md");
+    let path = root.join("docs/10-architecture/ARCHITECTURE_LITMUS.md");
     let content = std::fs::read_to_string(&path).expect("read ARCHITECTURE_LITMUS.md");
     let required = [
         "engine does not depend on runner or environment",
