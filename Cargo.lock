@@ -401,7 +401,6 @@ dependencies = [
  "bijux-dna-domain-bam",
  "bijux-dna-domain-fastq",
  "bijux-dna-infra",
- "bijux-dna-policies",
  "clap",
  "serde",
  "sha2",
@@ -583,7 +582,6 @@ name = "bijux-dna-policies"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bijux-dna-domain-compiler",
  "bijux-dna-pipelines",
  "bijux-dna-testkit",
  "cargo_metadata",
@@ -592,7 +590,6 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2",
- "tempfile",
  "toml",
  "walkdir",
 ]
