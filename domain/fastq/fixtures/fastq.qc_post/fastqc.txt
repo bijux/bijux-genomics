@@ -1,0 +1,4 @@
+tool=fastqc
+stage=fastq.qc_post
+domain=fastq
+fixture_kind=truth

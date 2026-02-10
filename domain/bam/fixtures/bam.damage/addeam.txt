@@ -1,0 +1,4 @@
+tool=addeam
+stage=bam.damage
+domain=bam
+fixture_kind=truth

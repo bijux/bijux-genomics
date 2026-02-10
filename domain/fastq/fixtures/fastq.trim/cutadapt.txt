@@ -1,0 +1,4 @@
+tool=cutadapt
+stage=fastq.trim
+domain=fastq
+fixture_kind=truth

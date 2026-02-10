@@ -1,0 +1,4 @@
+tool=kraken2
+stage=fastq.screen
+domain=fastq
+fixture_kind=truth

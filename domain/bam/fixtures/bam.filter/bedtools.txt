@@ -1,0 +1,4 @@
+tool=bedtools
+stage=bam.filter
+domain=bam
+fixture_kind=truth

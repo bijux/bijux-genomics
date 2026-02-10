@@ -43,6 +43,13 @@ pub enum RootCommand {
         #[command(subcommand)]
         command: LabCommand,
     },
+    Status(StatusArgs),
+}
+
+#[derive(Debug, Args)]
+pub struct StatusArgs {
+    #[arg(long, default_value = "pre-hpc")]
+    pub scope: String,
 }
 
 #[derive(Debug, Subcommand)]
@@ -203,6 +210,11 @@ pub enum RegistryCommand {
     },
     #[command(name = "list-stages", alias = "stages")]
     Stages,
+    #[command(name = "show-tool")]
+    ShowTool { id: String },
+    #[command(name = "show-stage")]
+    ShowStage { id: String },
+    #[command(name = "show")]
     Show { id: String },
 }
 

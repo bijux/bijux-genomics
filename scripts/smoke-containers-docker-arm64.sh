@@ -143,6 +143,8 @@ build_and_smoke_one() {
   upstream=$(get_registry_field upstream "$tool")
   pinned_commit=$(get_registry_field pinned_commit "$tool")
   declared_version=$(get_registry_field version "$tool")
+  image_ref="$image"
+  image_digest="$("$DOCKER_BIN" image inspect --format '{{.Id}}' "$image" 2>/dev/null | head -n 1 || true)"
 
   {
     echo "=== [$tool] build start"
@@ -181,6 +183,8 @@ build_and_smoke_one() {
   "dockerfile": "$dockerfile_json",
   "base_image": "$base_image_json",
   "image": "$image_json",
+  "resolved_image_ref": "$(json_escape "$image_ref")",
+  "resolved_image_digest": "$(json_escape "$image_digest")",
   "declared_version": "$declared_version_json",
   "upstream": "$upstream_json",
   "upstream_pin": "$pinned_commit_json",
@@ -206,6 +210,8 @@ JSON
   "dockerfile": "$dockerfile_json",
   "base_image": "$base_image_json",
   "image": "$image_json",
+  "resolved_image_ref": "$(json_escape "$image_ref")",
+  "resolved_image_digest": "$(json_escape "$image_digest")",
   "declared_version": "$declared_version_json",
   "upstream": "$upstream_json",
   "upstream_pin": "$pinned_commit_json",

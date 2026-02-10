@@ -1,0 +1,4 @@
+tool=kaiju
+stage=fastq.screen
+domain=fastq
+fixture_kind=truth

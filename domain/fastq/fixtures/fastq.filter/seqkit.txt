@@ -1,0 +1,4 @@
+tool=seqkit
+stage=fastq.filter
+domain=fastq
+fixture_kind=truth

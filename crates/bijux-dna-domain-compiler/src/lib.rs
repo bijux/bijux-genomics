@@ -72,11 +72,37 @@ struct DomainToolLoose {
 }
 
 #[derive(Debug, Deserialize, Default)]
+struct StagePort {
+    name: String,
+    data_type: String,
+    cardinality: String,
+}
+
+#[derive(Debug, Deserialize, Default)]
+struct StageMetric {
+    name: String,
+}
+
+#[derive(Debug, Deserialize, Default)]
 struct DomainStage {
     stage_id: String,
     status: String,
     scope: String,
     domain: String,
+    #[serde(default)]
+    inputs: Vec<StagePort>,
+    #[serde(default)]
+    outputs: Vec<StagePort>,
+    #[serde(default)]
+    required_inputs: Vec<String>,
+    #[serde(default)]
+    required_outputs: Vec<String>,
+    #[serde(default)]
+    metrics: Vec<StageMetric>,
+    #[serde(default)]
+    compatible_tools: Vec<String>,
+    #[serde(default)]
+    invariants: Vec<String>,
     #[serde(default)]
     planned_out_of_scope: Vec<String>,
 }
@@ -115,6 +141,7 @@ type StageToolMap = BTreeMap<String, BTreeSet<String>>;
 type StagePlannedMap = BTreeMap<String, Vec<String>>;
 type StageDefaultMap = BTreeMap<String, String>;
 type StageStatusMap = BTreeMap<String, String>;
+type StageOutputKindsMap = BTreeMap<String, Vec<String>>;
 
 fn ensure_status(status: &str, path: &Path) -> Result<()> {
     match status {
@@ -222,8 +249,13 @@ fn domain_content_hash(domain_dir: &Path) -> Result<String> {
 
 fn generated_header(source: &str, source_commit: &str) -> String {
     format!(
-        "# GENERATED - DO NOT EDIT - source: {source}\n# source_commit: {source_commit}\n# Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs\n\n"
+        "# GENERATED - DO NOT EDIT - source: {source}\n# source_commit: {source_commit}\n# domain_schema_version: bijux.domain.v1\n# Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs\n\n"
     )
+}
+
+fn has_placeholder_token(raw: &str) -> bool {
+    let lower = raw.to_ascii_lowercase();
+    lower.contains("todo") || lower.contains("tbd") || lower.contains("placeholder")
 }
 
 fn load_domain_tools(
@@ -335,6 +367,7 @@ fn load_domain_stages(
     stage_to_tools: &mut StageToolMap,
     stage_planned: &mut StagePlannedMap,
     stage_statuses: &mut StageStatusMap,
+    stage_output_kinds: &mut StageOutputKindsMap,
 ) -> Result<()> {
     let stages_dir = domain_dir.join(domain).join("stages");
     for stage_id in &index.stage_ids {
@@ -363,6 +396,14 @@ fn load_domain_stages(
             continue;
         }
         stage_to_tools.entry(stage.stage_id.clone()).or_default();
+        let mut kinds = stage
+            .outputs
+            .iter()
+            .map(|port| port.data_type.clone())
+            .collect::<Vec<_>>();
+        kinds.sort();
+        kinds.dedup();
+        stage_output_kinds.insert(stage.stage_id.clone(), kinds);
         stage_statuses.insert(stage.stage_id.clone(), stage.status.clone());
         stage_planned.insert(stage.stage_id, stage.planned_out_of_scope);
     }
@@ -378,12 +419,14 @@ fn collect_domain_data(
     StagePlannedMap,
     StageDefaultMap,
     StageStatusMap,
+    StageOutputKindsMap,
 )> {
     let mut tools: ToolMap = BTreeMap::new();
     let mut stage_to_tools: StageToolMap = BTreeMap::new();
     let mut stage_planned: StagePlannedMap = BTreeMap::new();
     let mut stage_defaults: StageDefaultMap = BTreeMap::new();
     let mut stage_statuses: StageStatusMap = BTreeMap::new();
+    let mut stage_output_kinds: StageOutputKindsMap = BTreeMap::new();
     for domain in ["fastq", "bam"] {
         let index_path = domain_dir.join(domain).join("index.yaml");
         let index: DomainIndex = read_yaml(&index_path)?;
@@ -411,6 +454,7 @@ fn collect_domain_data(
             &mut stage_to_tools,
             &mut stage_planned,
             &mut stage_statuses,
+            &mut stage_output_kinds,
         )?;
         for (stage_id, tool_ids) in &index.stage_tool_compatibility {
             if !stage_to_tools.contains_key(stage_id) {
@@ -456,6 +500,7 @@ fn collect_domain_data(
         stage_planned,
         stage_defaults,
         stage_statuses,
+        stage_output_kinds,
     ))
 }
 
@@ -603,6 +648,7 @@ fn build_images_toml(tools: &ToolMap, source_commit: &str) -> String {
 fn build_stages_toml(
     stage_to_tools: &StageToolMap,
     stage_statuses: &StageStatusMap,
+    stage_output_kinds: &StageOutputKindsMap,
     source_commit: &str,
 ) -> String {
     let mut stages_toml = generated_header("domain/**", source_commit);
@@ -615,6 +661,11 @@ fn build_stages_toml(
         let _ = writeln!(stages_toml, "status = \"{status}\"");
         let mut v = tools_set.iter().cloned().collect::<Vec<_>>();
         v.sort();
+        let output_kinds = stage_output_kinds
+            .get(stage_id)
+            .cloned()
+            .unwrap_or_default();
+        let _ = writeln!(stages_toml, "output_kinds = {}", toml_array(&output_kinds));
         let _ = writeln!(stages_toml, "tools = {}\n", toml_array(&v));
     }
     stages_toml
@@ -627,7 +678,7 @@ fn build_stages_toml(
 /// Returns an error when domain inputs are invalid, generated outputs cannot be
 /// written, or scope invariants are violated.
 pub fn compile_domain_configs(options: &CompileOptions) -> Result<()> {
-    let (tools, stage_to_tools, stage_planned, stage_defaults, stage_statuses) =
+    let (tools, stage_to_tools, stage_planned, stage_defaults, stage_statuses, stage_output_kinds) =
         collect_domain_data(&options.domain_dir, &options.scope)?;
     if options.scope == "pre_hpc_pre_vcf" {
         if tools.keys().any(|tool_id| tool_id.starts_with("vcf.")) {
@@ -665,7 +716,12 @@ pub fn compile_domain_configs(options: &CompileOptions) -> Result<()> {
         .with_context(|| format!("write {}", images_path.display()))?;
 
     let stages_path = options.configs_dir.join("stages.toml");
-    let stages_toml = build_stages_toml(&stage_to_tools, &stage_statuses, &source_commit);
+    let stages_toml = build_stages_toml(
+        &stage_to_tools,
+        &stage_statuses,
+        &stage_output_kinds,
+        &source_commit,
+    );
     write_string(&stages_path, &stages_toml)
         .with_context(|| format!("write {}", stages_path.display()))?;
 
@@ -718,8 +774,69 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                     continue;
                 }
                 let stage: DomainStage = read_yaml(&path)?;
+                let stage_raw = std::fs::read_to_string(&path)
+                    .with_context(|| format!("read {}", path.display()))?;
                 if stage.stage_id.is_empty() {
                     bail!("{} missing stage_id", path.display());
+                }
+                if stage.inputs.is_empty() {
+                    bail!("{} missing inputs", path.display());
+                }
+                if stage.outputs.is_empty() {
+                    bail!("{} missing outputs", path.display());
+                }
+                if stage.compatible_tools.is_empty() {
+                    bail!("{} missing compatible_tools", path.display());
+                }
+                if stage.invariants.is_empty() {
+                    bail!("{} missing invariants", path.display());
+                }
+                if stage.metrics.is_empty() {
+                    bail!("{} missing metrics", path.display());
+                }
+                let input_names = stage
+                    .inputs
+                    .iter()
+                    .map(|port| port.name.clone())
+                    .collect::<BTreeSet<_>>();
+                let output_names = stage
+                    .outputs
+                    .iter()
+                    .map(|port| port.name.clone())
+                    .collect::<BTreeSet<_>>();
+                for port in &stage.inputs {
+                    if port.data_type.trim().is_empty() || port.cardinality.trim().is_empty() {
+                        bail!("{} has input missing data_type/cardinality", path.display());
+                    }
+                }
+                for port in &stage.outputs {
+                    if port.data_type.trim().is_empty() || port.cardinality.trim().is_empty() {
+                        bail!("{} has output missing data_type/cardinality", path.display());
+                    }
+                }
+                for required in &stage.required_inputs {
+                    if !input_names.contains(required) {
+                        bail!(
+                            "{} required_inputs references missing input `{required}`",
+                            path.display()
+                        );
+                    }
+                }
+                for required in &stage.required_outputs {
+                    if !output_names.contains(required) {
+                        bail!(
+                            "{} required_outputs references missing output `{required}`",
+                            path.display()
+                        );
+                    }
+                }
+                for metric in &stage.metrics {
+                    if metric.name.trim().is_empty() {
+                        bail!("{} has metric with empty name", path.display());
+                    }
+                }
+                if has_placeholder_token(&stage_raw) {
+                    bail!("{} contains placeholder token (todo/tbd/placeholder)", path.display());
                 }
                 ensure_status(&stage.status, &path)?;
                 if dom != "vcf" && stage.scope != "pre_hpc_pre_vcf" {
@@ -759,12 +876,20 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                     continue;
                 }
                 let tool: DomainToolLoose = read_yaml(&path)?;
+                let tool_raw = std::fs::read_to_string(&path)
+                    .with_context(|| format!("read {}", path.display()))?;
                 if tool.tool_id.is_empty() {
                     bail!("{} missing tool_id", path.display());
+                }
+                if has_placeholder_token(&tool_raw) {
+                    bail!("{} contains placeholder token (todo/tbd/placeholder)", path.display());
                 }
                 ensure_status(&tool.status, &path)?;
                 if dom != "vcf" && tool.scope != "pre_hpc_pre_vcf" {
                     bail!("{} invalid tool scope {}", path.display(), tool.scope);
+                }
+                if tool.default_version.trim() == "0.0.0" {
+                    bail!("{} default_version=0.0.0 is forbidden", path.display());
                 }
                 if dom != "vcf"
                     && (tool.stage_ids.is_empty()
@@ -779,6 +904,32 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                         || tool.comparability_notes.is_empty())
                 {
                     bail!("{} missing required tool fields", path.display());
+                }
+                if dom != "vcf" && tool.status == "supported" {
+                    let dockerfile = options
+                        .domain_dir
+                        .parent()
+                        .unwrap_or(&options.domain_dir)
+                        .join("containers")
+                        .join("docker")
+                        .join("arm64")
+                        .join(format!("Dockerfile.{}", tool.tool_id));
+                    let apptainer = options
+                        .domain_dir
+                        .parent()
+                        .unwrap_or(&options.domain_dir)
+                        .join("containers")
+                        .join("apptainer")
+                        .join(format!("{}.def", tool.tool_id));
+                    if !dockerfile.exists() && !apptainer.exists() {
+                        bail!(
+                            "{} supported tool {} missing container mapping ({} / {})",
+                            path.display(),
+                            tool.tool_id,
+                            dockerfile.display(),
+                            apptainer.display()
+                        );
+                    }
                 }
                 if let Some(prev) =
                     tool_ids.insert(tool.tool_id.clone(), path.display().to_string())
@@ -875,6 +1026,21 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                         index_path.display(),
                         stage_id,
                         tool
+                    );
+                }
+                let fixture = options
+                    .domain_dir
+                    .join(dom)
+                    .join("fixtures")
+                    .join(stage_id)
+                    .join(format!("{tool}.txt"));
+                if !fixture.exists() {
+                    bail!(
+                        "{} stage {} tool {} missing truth fixture at {}",
+                        index_path.display(),
+                        stage_id,
+                        tool,
+                        fixture.display()
                     );
                 }
             }

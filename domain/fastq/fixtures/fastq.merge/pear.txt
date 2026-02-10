@@ -1,0 +1,4 @@
+tool=pear
+stage=fastq.merge
+domain=fastq
+fixture_kind=truth

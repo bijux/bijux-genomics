@@ -1,0 +1,4 @@
+tool=leehom
+stage=fastq.merge
+domain=fastq
+fixture_kind=truth

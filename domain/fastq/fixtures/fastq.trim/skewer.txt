@@ -1,0 +1,4 @@
+tool=skewer
+stage=fastq.trim
+domain=fastq
+fixture_kind=truth

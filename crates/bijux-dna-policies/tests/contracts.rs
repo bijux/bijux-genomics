@@ -26,14 +26,22 @@ mod mod_contracts_tooling_ci_tools_policy_rs;
 mod mod_contracts_tooling_command_spawn_policy_rs;
 #[path = "contracts/tooling/docs_links.rs"]
 mod mod_contracts_tooling_docs_links_rs;
+#[path = "contracts/tooling/domain_truth_fixture_policy.rs"]
+mod mod_contracts_tooling_domain_truth_fixture_policy_rs;
 #[path = "contracts/tooling/generated_configs_policy.rs"]
 mod mod_contracts_tooling_generated_configs_policy_rs;
+#[path = "contracts/tooling/image_catalog_completeness_policy.rs"]
+mod mod_contracts_tooling_image_catalog_completeness_policy_rs;
 #[path = "contracts/tooling/make_script_enumeration_policy.rs"]
 mod mod_contracts_tooling_make_script_enumeration_policy_rs;
 #[path = "contracts/tooling/makefile_policies.rs"]
 mod mod_contracts_tooling_makefile_policies_rs;
 #[path = "contracts/tooling/no_appledouble.rs"]
 mod mod_contracts_tooling_no_appledouble_rs;
+#[path = "contracts/tooling/no_placeholders_code_policy.rs"]
+mod mod_contracts_tooling_no_placeholders_code_policy_rs;
+#[path = "contracts/tooling/opentelemetry_version_policy.rs"]
+mod mod_contracts_tooling_opentelemetry_version_policy_rs;
 #[path = "contracts/tooling/planner_data_driven_catalog_policy.rs"]
 mod mod_contracts_tooling_planner_data_driven_catalog_policy_rs;
 #[path = "contracts/tooling/planner_tool_id_policy.rs"]
@@ -42,8 +50,12 @@ mod mod_contracts_tooling_planner_tool_id_policy_rs;
 mod mod_contracts_tooling_policies_rs;
 #[path = "contracts/tooling/profiles_runtime_policy.rs"]
 mod mod_contracts_tooling_profiles_runtime_policy_rs;
+#[path = "contracts/tooling/smoke_manifest_policy.rs"]
+mod mod_contracts_tooling_smoke_manifest_policy_rs;
 #[path = "contracts/tooling/stage_registry_fixture_completeness.rs"]
 mod mod_contracts_tooling_stage_registry_fixture_completeness_rs;
+#[path = "contracts/tooling/stages_output_typing_policy.rs"]
+mod mod_contracts_tooling_stages_output_typing_policy_rs;
 #[path = "contracts/tooling/stage_tool_matrix_policy.rs"]
 mod mod_contracts_tooling_stage_tool_matrix_policy_rs;
 #[path = "contracts/tooling/tool_registry_completeness.rs"]

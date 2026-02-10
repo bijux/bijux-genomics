@@ -1,0 +1,4 @@
+tool=rcorrector
+stage=fastq.correct
+domain=fastq
+fixture_kind=truth

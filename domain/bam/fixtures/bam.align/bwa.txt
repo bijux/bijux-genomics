@@ -1,0 +1,4 @@
+tool=bwa
+stage=bam.align
+domain=bam
+fixture_kind=truth

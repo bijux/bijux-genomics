@@ -1,0 +1,4 @@
+tool=pmdtools
+stage=bam.authenticity
+domain=bam
+fixture_kind=truth
