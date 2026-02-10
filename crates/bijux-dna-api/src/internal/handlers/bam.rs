@@ -39,7 +39,10 @@ pub fn bench_bam_stage(
     let stage_id = stage.as_str();
     let mut tools = args.tools.clone();
     if tools.is_empty() {
-        tools = bijux_dna_planner_bam::stage_api::allowed_tools_for_stage(stage);
+        tools = bijux_dna_planner_bam::stage_api::allowed_tools_for_stage(stage)
+            .into_iter()
+            .map(|tool| tool.to_string())
+            .collect();
     }
     let prev_silver = std::env::var("BIJUX_ALLOW_SILVER").ok();
     let prev_experimental = std::env::var("BIJUX_EXPERIMENTAL_TOOLS").ok();

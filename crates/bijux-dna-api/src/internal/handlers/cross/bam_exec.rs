@@ -155,11 +155,7 @@ fn run_bam_truth_stage<S: std::hash::BuildHasher>(
         .tools
         .get(&stage_key)
         .cloned()
-        .unwrap_or_else(|| {
-            bijux_dna_core::ids::ToolId::new(
-                bijux_dna_planner_bam::stage_api::default_tool_for_stage(stage),
-            )
-        });
+        .unwrap_or_else(|| bijux_dna_planner_bam::stage_api::default_tool_for_stage(stage));
     let spec = build_tool_execution_spec(
         stage.as_str(),
         tool_id.as_str(),
