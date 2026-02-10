@@ -3,7 +3,7 @@
 
 [[stages]]
 id = "bam.align"
-tools = ["bowtie2", "bwa", "samtools"]
+tools = ["bowtie2", "bwa"]
 
 [[stages]]
 id = "bam.authenticity"
@@ -79,11 +79,11 @@ tools = ["prinseq", "seqkit", "sortmerna"]
 
 [[stages]]
 id = "fastq.merge"
-tools = ["bbmerge", "flash2", "leehom", "pear", "seqprep", "vsearch"]
+tools = ["bbmerge", "flash2", "leehom", "pear", "vsearch"]
 
 [[stages]]
 id = "fastq.prepare_reference"
-tools = ["star"]
+tools = ["samtools", "star"]
 
 [[stages]]
 id = "fastq.preprocess"
@@ -95,15 +95,15 @@ tools = ["multiqc", "qualimap", "samtools"]
 
 [[stages]]
 id = "fastq.screen"
-tools = ["bracken", "centrifuge", "diamond", "fastq_screen", "kaiju", "kraken2", "krakenuniq", "metaphlan"]
+tools = ["bracken", "centrifuge", "fastq_screen", "kaiju", "kraken2", "krakenuniq", "metaphlan"]
 
 [[stages]]
 id = "fastq.stats_neutral"
-tools = ["bcftools", "seqfu", "seqkit_stats"]
+tools = ["seqfu", "seqkit", "seqkit_stats"]
 
 [[stages]]
 id = "fastq.trim"
-tools = ["adapterremoval", "alientrimmer", "atropos", "bbduk", "cutadapt", "fastp", "fastx_clipper", "leehom", "seqpurge", "skewer", "trim_galore", "trimmomatic"]
+tools = ["adapterremoval", "alientrimmer", "atropos", "bbduk", "cutadapt", "fastp", "fastx_clipper", "leehom", "prinseq", "seqkit", "seqpurge", "skewer", "trim_galore", "trimmomatic"]
 
 [[stages]]
 id = "fastq.umi"
@@ -111,5 +111,5 @@ tools = ["umi_tools"]
 
 [[stages]]
 id = "fastq.validate_pre"
-tools = ["fastq-scan", "fastqvalidator", "fastqvalidator_official", "fqtools", "seqtk"]
+tools = ["fastq-scan", "fastqc", "fastqvalidator", "fastqvalidator_official", "fqtools", "seqtk"]
 
