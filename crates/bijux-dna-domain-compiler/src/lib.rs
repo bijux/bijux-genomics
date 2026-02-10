@@ -135,6 +135,10 @@ struct DomainIndex {
     active_defaults: BTreeMap<String, String>,
     #[serde(default)]
     active_default_rationale: BTreeMap<String, String>,
+    #[serde(default)]
+    stage_completeness_checklist: BTreeMap<String, Vec<String>>,
+    #[serde(default)]
+    stage_default_settings: BTreeMap<String, BTreeMap<String, BTreeMap<String, String>>>,
 }
 
 #[derive(Debug, Deserialize, Default)]
@@ -151,6 +155,57 @@ struct DomainMetricVocabulary {
     domain: String,
     #[serde(default)]
     metric_ids: Vec<String>,
+}
+
+#[derive(Debug, Deserialize, Default)]
+struct AdapterBank {
+    schema_version: String,
+    bank_id: String,
+    version: String,
+    #[serde(default)]
+    adapters: Vec<AdapterEntry>,
+}
+
+#[derive(Debug, Deserialize, Default)]
+struct AdapterEntry {
+    id: String,
+    rationale: String,
+    source: String,
+}
+
+#[derive(Debug, Deserialize, Default)]
+struct ReferenceBank {
+    schema_version: String,
+    bank_id: String,
+    version: String,
+    #[serde(default)]
+    references: Vec<ReferenceEntry>,
+}
+
+#[derive(Debug, Deserialize, Default)]
+struct ReferenceEntry {
+    id: String,
+    kind: String,
+    source: String,
+    rationale: String,
+}
+
+#[derive(Debug, Deserialize, Default)]
+struct ContaminationDbBank {
+    schema_version: String,
+    bank_id: String,
+    version: String,
+    #[serde(default)]
+    databases: Vec<ContaminationDbEntry>,
+}
+
+#[derive(Debug, Deserialize, Default)]
+struct ContaminationDbEntry {
+    id: String,
+    db_version: String,
+    digest: String,
+    source: String,
+    rationale: String,
 }
 
 #[derive(Debug)]
@@ -590,6 +645,30 @@ fn collect_domain_data(
                     "index active_default_rationale for {stage_id} must be non-empty and not unspecified"
                 ));
             }
+            let checklist = index
+                .stage_completeness_checklist
+                .get(stage_id)
+                .ok_or_else(|| {
+                    anyhow!("index missing stage_completeness_checklist for stage {stage_id}")
+                })?;
+            if checklist.is_empty() {
+                return Err(anyhow!(
+                    "index stage_completeness_checklist for {stage_id} must not be empty"
+                ));
+            }
+            if checklist.iter().any(|item| item.trim().is_empty()) {
+                return Err(anyhow!(
+                    "index stage_completeness_checklist for {stage_id} contains empty item"
+                ));
+            }
+            let stage_settings = index.stage_default_settings.get(stage_id).ok_or_else(|| {
+                anyhow!("index missing stage_default_settings for stage {stage_id}")
+            })?;
+            if !stage_settings.contains_key(default_tool) {
+                return Err(anyhow!(
+                    "index stage_default_settings for {stage_id} missing default tool {default_tool}"
+                ));
+            }
             stage_defaults.insert(stage_id.clone(), default_tool.clone());
             stage_default_rationale.insert(stage_id.clone(), rationale);
         }
@@ -886,6 +965,84 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
         "bam/index.yaml",
     ] {
         require_exists(&options.domain_dir.join(rel))?;
+    }
+    let workspace_root = options.domain_dir.parent().unwrap_or(&options.domain_dir);
+    let adapter_bank_path = workspace_root.join("assets").join("adapters").join("bank.v1.yaml");
+    let reference_bank_path = workspace_root.join("assets").join("references").join("bank.v1.yaml");
+    let contamination_db_bank_path = workspace_root
+        .join("assets")
+        .join("contaminants")
+        .join("db_bank.v1.yaml");
+    require_exists(&adapter_bank_path)?;
+    require_exists(&reference_bank_path)?;
+    require_exists(&contamination_db_bank_path)?;
+    let adapter_bank: AdapterBank = read_yaml(&adapter_bank_path)?;
+    if adapter_bank.schema_version.trim().is_empty()
+        || adapter_bank.bank_id.trim().is_empty()
+        || adapter_bank.adapters.is_empty()
+    {
+        bail!("{} missing required adapter bank fields", adapter_bank_path.display());
+    }
+    if adapter_bank.version.trim().is_empty() {
+        bail!("{} missing adapter bank version", adapter_bank_path.display());
+    }
+    for entry in &adapter_bank.adapters {
+        if entry.id.trim().is_empty()
+            || is_unspecified(&entry.rationale)
+            || is_unspecified(&entry.source)
+        {
+            bail!(
+                "{} adapter entries require id/source/rationale",
+                adapter_bank_path.display()
+            );
+        }
+    }
+    let reference_bank: ReferenceBank = read_yaml(&reference_bank_path)?;
+    if reference_bank.schema_version.trim().is_empty()
+        || reference_bank.bank_id.trim().is_empty()
+        || reference_bank.version.trim().is_empty()
+        || reference_bank.references.is_empty()
+    {
+        bail!(
+            "{} missing required reference bank fields",
+            reference_bank_path.display()
+        );
+    }
+    for entry in &reference_bank.references {
+        if entry.id.trim().is_empty()
+            || entry.kind.trim().is_empty()
+            || is_unspecified(&entry.source)
+            || is_unspecified(&entry.rationale)
+        {
+            bail!(
+                "{} reference entries require id/kind/source/rationale",
+                reference_bank_path.display()
+            );
+        }
+    }
+    let contamination_db_bank: ContaminationDbBank = read_yaml(&contamination_db_bank_path)?;
+    if contamination_db_bank.schema_version.trim().is_empty()
+        || contamination_db_bank.bank_id.trim().is_empty()
+        || contamination_db_bank.version.trim().is_empty()
+        || contamination_db_bank.databases.is_empty()
+    {
+        bail!(
+            "{} missing required contamination db bank fields",
+            contamination_db_bank_path.display()
+        );
+    }
+    for entry in &contamination_db_bank.databases {
+        if entry.id.trim().is_empty()
+            || entry.db_version.trim().is_empty()
+            || entry.digest.trim().is_empty()
+            || is_unspecified(&entry.source)
+            || is_unspecified(&entry.rationale)
+        {
+            bail!(
+                "{} contamination database entries require id/version/digest/source/rationale",
+                contamination_db_bank_path.display()
+            );
+        }
     }
 
     let mut tool_ids = BTreeMap::<String, String>::new();
@@ -1359,6 +1516,33 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                     stage_id
                 );
             }
+            let checklist = index
+                .stage_completeness_checklist
+                .get(stage_id)
+                .ok_or_else(|| {
+                    anyhow!(
+                        "{} stage {} missing stage_completeness_checklist entry",
+                        index_path.display(),
+                        stage_id
+                    )
+                })?;
+            if checklist.is_empty() {
+                bail!(
+                    "{} stage {} has empty stage_completeness_checklist",
+                    index_path.display(),
+                    stage_id
+                );
+            }
+            let settings_map = index
+                .stage_default_settings
+                .get(stage_id)
+                .ok_or_else(|| {
+                    anyhow!(
+                        "{} stage {} missing stage_default_settings entry",
+                        index_path.display(),
+                        stage_id
+                    )
+                })?;
             let stage_suffix = stage_id
                 .split_once('.')
                 .map_or(stage_id.as_str(), |(_, rhs)| rhs);
@@ -1372,6 +1556,14 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                 if !index.tool_ids.contains(tool) {
                     bail!(
                         "{} stage {} references unknown tool {}",
+                        index_path.display(),
+                        stage_id,
+                        tool
+                    );
+                }
+                if !settings_map.contains_key(tool) {
+                    bail!(
+                        "{} stage {} tool {} missing default settings entry",
                         index_path.display(),
                         stage_id,
                         tool

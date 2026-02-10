@@ -100,3 +100,82 @@ active_default_rationale:
   fastq.merge: "Default merger is stable for paired-end overlap handling."
   fastq.correct: "Default corrector chosen for robust error-correction baseline."
   fastq.umi: "Default UMI handler preserves compatibility with stage contract."
+stage_completeness_checklist:
+  fastq.prepare_reference: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
+  fastq.detect_adapters: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
+  fastq.trim: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
+  fastq.filter: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
+  fastq.validate_pre: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
+  fastq.stats_neutral: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
+  fastq.rrna: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
+  fastq.qc_post: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
+  fastq.screen: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
+  fastq.merge: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
+  fastq.correct: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
+  fastq.umi: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
+stage_default_settings:
+  fastq.prepare_reference:
+    star: { profile: "adna_sane_default", notes: "high-specificity reference indexing preset" }
+    samtools: { profile: "adna_sane_default", notes: "deterministic reference helper preset" }
+  fastq.detect_adapters:
+    fastp: { profile: "adna_sane_default", notes: "adapter detection without irreversible filtering" }
+  fastq.trim:
+    fastp: { profile: "adna_sane_default", notes: "balanced trim preset" }
+    cutadapt: { profile: "adna_sane_default", notes: "explicit adapter matching preset" }
+    atropos: { profile: "adna_sane_default", notes: "quality-aware adapter trimming preset" }
+    bbduk: { profile: "adna_sane_default", notes: "kmer trimming preset" }
+    adapterremoval: { profile: "adna_sane_default", notes: "aDNA trim/merge compatible preset" }
+    trimmomatic: { profile: "adna_sane_default", notes: "legacy deterministic trimming preset" }
+    trim_galore: { profile: "adna_sane_default", notes: "wrapper-based trim preset" }
+    seqpurge: { profile: "adna_sane_default", notes: "paired-end purge preset" }
+    prinseq: { profile: "adna_sane_default", notes: "read quality trimming preset" }
+    seqkit: { profile: "adna_sane_default", notes: "stream-friendly trim preset" }
+    skewer: { profile: "adna_sane_default", notes: "adapter trimming benchmark preset" }
+    leehom: { profile: "adna_sane_default", notes: "aDNA overlap/collapse trimming preset" }
+    alientrimmer: { profile: "adna_sane_default", notes: "seed-based adapter trim preset" }
+    fastx_clipper: { profile: "adna_sane_default", notes: "legacy clipping preset" }
+  fastq.filter:
+    fastp: { profile: "adna_sane_default", notes: "quality/length filter preset" }
+    seqkit: { profile: "adna_sane_default", notes: "stream-safe filter preset" }
+    prinseq: { profile: "adna_sane_default", notes: "complexity filtering preset" }
+    bbduk: { profile: "adna_sane_default", notes: "kmer filter preset" }
+  fastq.validate_pre:
+    fastqvalidator: { profile: "adna_sane_default", notes: "strict fastq validation preset" }
+    fastqvalidator_official: { profile: "adna_sane_default", notes: "official validator baseline preset" }
+    fastq-scan: { profile: "adna_sane_default", notes: "fast validation summary preset" }
+    seqtk: { profile: "adna_sane_default", notes: "lightweight validation preset" }
+    fqtools: { profile: "adna_sane_default", notes: "format sanity preset" }
+    fastqc: { profile: "adna_sane_default", notes: "qc probe preset for validation stage" }
+  fastq.stats_neutral:
+    seqkit_stats: { profile: "adna_sane_default", notes: "deterministic stats preset" }
+    seqkit: { profile: "adna_sane_default", notes: "streamed stats preset" }
+    seqfu: { profile: "adna_sane_default", notes: "supplementary neutral stats preset" }
+  fastq.rrna:
+    sortmerna: { profile: "adna_sane_default", notes: "rRNA depletion screening preset" }
+  fastq.qc_post:
+    multiqc: { profile: "adna_sane_default", notes: "operator-facing aggregation preset" }
+    fastqc: { profile: "adna_sane_default", notes: "per-sample qc preset" }
+    qualimap: { profile: "adna_sane_default", notes: "alignment-aware qc preset" }
+    samtools: { profile: "adna_sane_default", notes: "basic qc metrics preset" }
+  fastq.screen:
+    kraken2: { profile: "adna_sane_default", notes: "taxonomy baseline preset" }
+    krakenuniq: { profile: "adna_sane_default", notes: "unique-kmer taxonomy preset" }
+    bracken: { profile: "adna_sane_default", notes: "abundance refinement preset" }
+    centrifuge: { profile: "adna_sane_default", notes: "classifier alternative preset" }
+    metaphlan: { profile: "adna_sane_default", notes: "marker-gene profiling preset" }
+    kaiju: { profile: "adna_sane_default", notes: "protein-level classification preset" }
+    fastq_screen: { profile: "adna_sane_default", notes: "alignment-screen preset" }
+  fastq.merge:
+    pear: { profile: "adna_sane_default", notes: "overlap merge baseline preset" }
+    vsearch: { profile: "adna_sane_default", notes: "merge alternative preset" }
+    bbmerge: { profile: "adna_sane_default", notes: "merge quality-balanced preset" }
+    flash2: { profile: "adna_sane_default", notes: "fast overlap merge preset" }
+    leehom: { profile: "adna_sane_default", notes: "aDNA collapse merge preset" }
+  fastq.correct:
+    rcorrector: { profile: "adna_sane_default", notes: "kmer correction baseline preset" }
+    lighter: { profile: "adna_sane_default", notes: "sampling-based correction preset" }
+    musket: { profile: "adna_sane_default", notes: "multistage correction preset" }
+    bayeshammer: { profile: "adna_sane_default", notes: "bayesian correction preset" }
+    spades: { profile: "adna_sane_default", notes: "spades correction mode preset" }
+  fastq.umi:
+    umi_tools: { profile: "adna_sane_default", notes: "umi extraction/dedup preset" }
