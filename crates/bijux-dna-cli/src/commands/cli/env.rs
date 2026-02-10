@@ -351,6 +351,45 @@ pub fn print_registry_export_json(registry_path: &Path) -> Result<()> {
     Ok(())
 }
 
+/// # Errors
+/// Returns an error if registry cannot be read or parsed.
+pub fn print_registry_coverage_matrix(registry_path: &Path) -> Result<()> {
+    let raw = std::fs::read_to_string(registry_path)
+        .with_context(|| format!("read {}", registry_path.display()))?;
+    let tools = parse_tools_registry_rows(&raw)?
+        .into_iter()
+        .map(|row| (row.id.clone(), row))
+        .collect::<std::collections::BTreeMap<_, _>>();
+    let mut stages = parse_stage_registry_rows(&raw)?;
+    stages.sort_by(|a, b| a.id.cmp(&b.id));
+    let mut rows = Vec::new();
+    for stage in stages {
+        let stage_id = stage.id.clone();
+        let mut stage_tools = stage.primary_tools.clone();
+        stage_tools.extend(stage.optional_alternatives);
+        stage_tools.extend(stage.validation_tools);
+        stage_tools.extend(stage.reporting_tools);
+        stage_tools.sort();
+        stage_tools.dedup();
+        for tool_id in stage_tools {
+            let Some(tool) = tools.get(&tool_id) else {
+                continue;
+            };
+            rows.push(serde_json::json!({
+                "stage_id": stage_id,
+                "tool_id": tool_id,
+                "status": tool.status,
+                "runtimes": tool.runtimes,
+            }));
+        }
+    }
+    crate::commands::cli::render::json::print_pretty(&serde_json::json!({
+        "schema_version": "bijux.registry.coverage_matrix.v1",
+        "rows": rows
+    }))?;
+    Ok(())
+}
+
 #[derive(Default, Serialize)]
 struct StageRegistryRow {
     id: String,
