@@ -1,6 +1,8 @@
 use std::collections::BTreeMap;
+use std::path::PathBuf;
 
 use bijux_dna_runtime::run_layout::RunManifest;
+use bijux_dna_runtime::{prepare_tool_run_dirs, write_canonical_json, write_run_manifest};
 
 #[test]
 fn manifest_has_required_fields() {
@@ -71,4 +73,54 @@ fn manifest_has_required_fields() {
             .is_some(),
         "tool_invocation missing input_hashes"
     );
+}
+
+#[test]
+fn run_manifest_output_artifacts_include_hashes_for_runtime_files() {
+    let base = std::env::var("TEST_TMP_DIR")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| std::env::temp_dir())
+        .join("runtime_manifest_hash_contract");
+    let _ = std::fs::remove_dir_all(&base);
+    std::fs::create_dir_all(&base).unwrap_or_else(|e| panic!("create base dir: {e}"));
+    let run_dirs = prepare_tool_run_dirs(&base, "fastp", "run-1")
+        .unwrap_or_else(|e| panic!("prepare run dirs: {e}"));
+    write_canonical_json(&run_dirs.manifest_path, &serde_json::json!({"ok": true}))
+        .unwrap_or_else(|e| panic!("write manifest: {e}"));
+    write_canonical_json(&run_dirs.metrics_path, &serde_json::json!({"metrics": []}))
+        .unwrap_or_else(|e| panic!("write metrics: {e}"));
+    let rp = bijux_dna_runtime::RunProvenanceV1 {
+        schema_version: "bijux.run_provenance.v1".to_string(),
+        pipeline_id: "fastq".to_string(),
+        tool_version: "1.0.0".to_string(),
+        tool_image_digest: Some("sha256:synthetic".to_string()),
+        params_hash: "sha256:params".to_string(),
+        input_hashes: vec!["sha256:in".to_string()],
+        reference_genome: None,
+        git_commit: "abc1234".to_string(),
+        build_profile: "test".to_string(),
+        plan_hash: Some("sha256:plan".to_string()),
+    };
+    write_run_manifest(&run_dirs, "fastq.trim", "fastp", &rp, None, &[])
+        .unwrap_or_else(|e| panic!("write run manifest: {e}"));
+    let raw = std::fs::read_to_string(&run_dirs.run_manifest_path)
+        .unwrap_or_else(|e| panic!("read run manifest: {e}"));
+    let value: serde_json::Value =
+        serde_json::from_str(&raw).unwrap_or_else(|e| panic!("parse run manifest: {e}"));
+    let artifacts = value
+        .get("output_artifacts")
+        .and_then(|v| v.as_array())
+        .unwrap_or_else(|| panic!("missing output_artifacts"));
+    assert!(!artifacts.is_empty(), "output_artifacts must not be empty");
+    for item in artifacts {
+        let hash = item
+            .get("sha256")
+            .and_then(|v| v.as_str())
+            .unwrap_or_default();
+        assert_eq!(
+            hash.len(),
+            64,
+            "artifact hash must be 64-char sha256 hex, got {hash:?}"
+        );
+    }
 }
