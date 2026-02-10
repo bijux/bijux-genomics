@@ -1,6 +1,7 @@
 use bijux_dna_api::v1::api::run::{
     init_logging, new_run_id, DryRunExecutor, Executor, PathSpec, RunSpec, ToolRegistry,
 };
+use serde::Serialize;
 use tracing::{info, warn};
 
 use std::collections::BTreeMap;
@@ -57,7 +58,17 @@ pub(crate) fn run_plan(
         &plan.stage.stage_id.to_string(),
         &plan.stage.tool_id.to_string(),
         &serde_json::to_value(&plan.stage.reason)?,
-        &serde_json::to_value(&plan.planned_artifacts)?,
+        &plan
+            .planned_artifacts
+            .iter()
+            .map(|artifact| TypedPlannedArtifact {
+                artifact_id: artifact.artifact_id.clone(),
+                role: artifact.role.clone(),
+                path: artifact.path.clone(),
+                kind: artifact.kind.clone(),
+                schema: artifact.schema.clone(),
+            })
+            .collect::<Vec<_>>(),
     )?;
 
     if !common.dry_run {
@@ -81,31 +92,79 @@ pub(crate) fn run_plan(
     Ok(())
 }
 
+#[derive(Debug, Serialize)]
+struct PlanArtifactManifest<'a> {
+    schema_version: &'static str,
+    run_id: &'a str,
+    stage_id: &'a str,
+    tool_id: &'a str,
+    artifacts: &'a [TypedPlannedArtifact],
+}
+
+#[derive(Debug, Serialize)]
+struct DecisionTraceSelection<'a> {
+    stage_id: &'a str,
+    tool_id: &'a str,
+    reason: &'a serde_json::Value,
+    provenance_notes: &'a [String],
+    comparability_notes: &'a [String],
+}
+
+#[derive(Debug, Serialize)]
+struct DecisionTrace<'a> {
+    schema_version: &'static str,
+    run_id: &'a str,
+    stage_id: &'a str,
+    tool_id: &'a str,
+    selection: DecisionTraceSelection<'a>,
+}
+
+#[derive(Debug, Serialize)]
+struct TypedPlannedArtifact {
+    artifact_id: String,
+    role: String,
+    path: String,
+    kind: String,
+    schema: String,
+}
+
 fn write_plan_artifacts(
     artifacts_dir: &Path,
     run_id: &str,
     stage_id: &str,
     tool_id: &str,
     reason: &serde_json::Value,
-    planned_artifacts: &serde_json::Value,
+    planned_artifacts: &[TypedPlannedArtifact],
 ) -> Result<()> {
-    let artifact_manifest = serde_json::json!({
-        "schema_version": "bijux.plan_artifacts.v1",
-        "run_id": run_id,
-        "stage_id": stage_id,
-        "tool_id": tool_id,
-        "artifacts": planned_artifacts,
-    });
-    let decision_trace = serde_json::json!({
-        "schema_version": "bijux.decision_trace.v1",
-        "run_id": run_id,
-        "stage_id": stage_id,
-        "tool_id": tool_id,
-        "reason": reason
-    });
+    let manifest = PlanArtifactManifest {
+        schema_version: "bijux.plan_artifacts.v1",
+        run_id,
+        stage_id,
+        tool_id,
+        artifacts: planned_artifacts,
+    };
+    let provenance_notes = vec![
+        format!("planner_stage={stage_id}"),
+        format!("selected_tool={tool_id}"),
+    ];
+    let comparability_notes =
+        vec!["compare against runs with same stage id and artifact schema set".to_string()];
+    let decision_trace = DecisionTrace {
+        schema_version: "bijux.decision_trace.v1",
+        run_id,
+        stage_id,
+        tool_id,
+        selection: DecisionTraceSelection {
+            stage_id,
+            tool_id,
+            reason,
+            provenance_notes: &provenance_notes,
+            comparability_notes: &comparability_notes,
+        },
+    };
     std::fs::write(
         artifacts_dir.join("plan_artifact_manifest.json"),
-        serde_json::to_vec_pretty(&artifact_manifest)?,
+        serde_json::to_vec_pretty(&manifest)?,
     )?;
     std::fs::write(
         artifacts_dir.join("decision_trace.json"),
