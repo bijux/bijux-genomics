@@ -251,6 +251,7 @@ fn policy__contracts__policies__litmus_doc_exists_and_lists_rules() {
         "prelude is exports-only",
         "defaults live only in bijux-dna-pipelines",
         "composition roots are only in API/CLI",
+        "Domain is authored SSOT; configs are generated; code consumes generated configs; makefiles call CLI only.",
     ];
     for rule in required {
         bijux_dna_policies::policy_assert!(
@@ -258,6 +259,14 @@ fn policy__contracts__policies__litmus_doc_exists_and_lists_rules() {
             "ARCHITECTURE_LITMUS.md missing rule: {rule}"
         );
     }
+    let architecture_path = root.join("docs/10-architecture/ARCHITECTURE.md");
+    let architecture = std::fs::read_to_string(&architecture_path).expect("read ARCHITECTURE.md");
+    bijux_dna_policies::policy_assert!(
+        architecture.contains(
+            "Domain is the authored SSOT; configs are generated; code consumes generated configs; makefiles call CLI only."
+        ),
+        "ARCHITECTURE.md must define the SSOT rule"
+    );
 }
 
 #[test]
