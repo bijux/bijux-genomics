@@ -1,0 +1,16 @@
+schema_version: "bijux.tool.v2"
+tool_id: "bwa"
+upstream: "https://github.com/lh3/bwa"
+versioning_strategy: "pinned"
+default_version: "0.7.17"
+install_kind: "container"
+license: "GPL-3.0"
+stage_ids: ["bam.align"]
+expected_artifacts: ["aligned_bam"]
+metrics_schema_id: "bijux.bam.align.v1"
+version_cmd: "bwa --version"
+help_cmd: "bwa --help"
+comparability:
+  comparable_with: ["bowtie2"]
+  non_comparable_with: []
+notes: "Domain SSOT tool contract entry."

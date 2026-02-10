@@ -37,3 +37,16 @@ execution_contract:
     - "multiqc_data/*"
   forbidden_outputs: []
   forbid_unexpected_outputs: false
+upstream: "unknown"
+versioning_strategy: "pinned"
+default_version: "latest-pinned"
+install_kind: "container"
+license: "GPL-3.0"
+stage_ids: ["fastq.qc_post"]
+expected_artifacts: ["report_json"]
+metrics_schema_id: "bijux.unknown.v1"
+version_cmd: "multiqc --version"
+help_cmd: "multiqc --help"
+comparability:
+  comparable_with: []
+  non_comparable_with: []

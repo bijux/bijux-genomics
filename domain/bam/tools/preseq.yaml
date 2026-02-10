@@ -1,0 +1,16 @@
+schema_version: "bijux.tool.v2"
+tool_id: "preseq"
+upstream: "https://github.com/smithlabcode/preseq"
+versioning_strategy: "pinned"
+default_version: "3.2.0"
+install_kind: "container"
+license: "GPL-3.0"
+stage_ids: ["bam.complexity"]
+expected_artifacts: ["complexity_curve"]
+metrics_schema_id: "bijux.bam.complexity.v1"
+version_cmd: "preseq --version"
+help_cmd: "preseq --help"
+comparability:
+  comparable_with: ["picard"]
+  non_comparable_with: []
+notes: "Domain SSOT tool contract entry."

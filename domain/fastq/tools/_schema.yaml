@@ -1,0 +1,14 @@
+schema_version: "bijux.tool.v2"
+required_fields:
+  - tool_id
+  - upstream
+  - versioning_strategy
+  - default_version
+  - install_kind
+  - license
+  - stage_ids
+  - expected_artifacts
+  - metrics_schema_id
+  - version_cmd
+  - help_cmd
+  - comparability

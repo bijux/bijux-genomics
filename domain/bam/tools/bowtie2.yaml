@@ -1,0 +1,16 @@
+schema_version: "bijux.tool.v2"
+tool_id: "bowtie2"
+upstream: "https://github.com/BenLangmead/bowtie2"
+versioning_strategy: "pinned"
+default_version: "2.5.4"
+install_kind: "container"
+license: "GPL-3.0"
+stage_ids: ["bam.align"]
+expected_artifacts: ["aligned_bam"]
+metrics_schema_id: "bijux.bam.align.v1"
+version_cmd: "bowtie2 --version"
+help_cmd: "bowtie2 --help"
+comparability:
+  comparable_with: ["bwa"]
+  non_comparable_with: []
+notes: "Domain SSOT tool contract entry."

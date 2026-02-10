@@ -1,0 +1,16 @@
+schema_version: "bijux.tool.v2"
+tool_id: "bamtools"
+upstream: "https://github.com/pezmaster31/bamtools"
+versioning_strategy: "pinned"
+default_version: "2.5.2"
+install_kind: "container"
+license: "GPL-3.0"
+stage_ids: ["bam.validate","bam.filter"]
+expected_artifacts: ["bam_validation_report"]
+metrics_schema_id: "bijux.bam.validation.v1"
+version_cmd: "bamtools --version"
+help_cmd: "bamtools --help"
+comparability:
+  comparable_with: ["bedtools","samtools"]
+  non_comparable_with: []
+notes: "Domain SSOT tool contract entry."

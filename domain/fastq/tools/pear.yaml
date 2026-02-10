@@ -44,3 +44,16 @@ execution_contract:
     - "pear.unassembled.reverse.fastq"
   forbidden_outputs: []
   forbid_unexpected_outputs: false
+upstream: "unknown"
+versioning_strategy: "pinned"
+default_version: "latest-pinned"
+install_kind: "container"
+license: "GPL-3.0"
+stage_ids: ["fastq.merge"]
+expected_artifacts: ["report_json"]
+metrics_schema_id: "bijux.unknown.v1"
+version_cmd: "pear --version"
+help_cmd: "pear --help"
+comparability:
+  comparable_with: []
+  non_comparable_with: []

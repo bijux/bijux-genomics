@@ -1,0 +1,16 @@
+schema_version: "bijux.tool.v2"
+tool_id: "fastx_clipper"
+upstream: "https://github.com/agordon/fastx_toolkit"
+versioning_strategy: "pinned"
+default_version: "0.0.14"
+install_kind: "container"
+license: "GPL-3.0"
+stage_ids: ["fastq.trim"]
+expected_artifacts: ["trimmed_fastq","trim_report"]
+metrics_schema_id: "bijux.fastq.trim.v1"
+version_cmd: "fastx_clipper --version"
+help_cmd: "fastx_clipper --help"
+comparability:
+  comparable_with: ["cutadapt","fastp"]
+  non_comparable_with: []
+notes: "Domain SSOT tool contract entry."

@@ -1,0 +1,66 @@
+domain: "fastq"
+stage_ids:
+  - fastq.preprocess
+  - fastq.prepare_reference
+  - fastq.validate_pre
+  - fastq.detect_adapters
+  - fastq.trim
+  - fastq.filter
+  - fastq.stats_neutral
+  - fastq.qc_post
+  - fastq.merge
+  - fastq.correct
+  - fastq.umi
+  - fastq.screen
+tool_ids:
+  - adapterremoval
+  - atropos
+  - bayeshammer
+  - bbduk
+  - bbmerge
+  - bracken
+  - centrifuge
+  - cutadapt
+  - fastp
+  - fastq-scan
+  - fastq_screen
+  - fastqc
+  - fastqvalidator
+  - fastqvalidator_official
+  - fastx_clipper
+  - flash2
+  - fqtools
+  - kaiju
+  - kraken2
+  - krakenuniq
+  - leehom
+  - lighter
+  - metaphlan
+  - multiqc
+  - musket
+  - pear
+  - prinseq
+  - qualimap
+  - rcorrector
+  - samtools
+  - seqfu
+  - seqkit
+  - seqkit_stats
+  - seqpurge
+  - seqtk
+  - seqprep
+  - diamond
+  - bcftools
+  - skewer
+  - spades
+  - trim_galore
+  - trimmomatic
+  - umi_tools
+  - vsearch
+  - alientrimmer
+stage_tool_compatibility:
+  fastq.trim: [fastp, cutadapt, atropos, bbduk, adapterremoval, trimmomatic, trim_galore, seqpurge, prinseq, seqkit, skewer, leehom, alientrimmer, fastx_clipper]
+  fastq.validate_pre: [fastqvalidator, fastqvalidator_official, fastq-scan, seqtk, fqtools, fastqc]
+  fastq.stats_neutral: [seqkit_stats, seqkit, seqfu]
+  fastq.screen: [kraken2, krakenuniq, bracken, centrifuge, metaphlan, kaiju, fastq_screen]
+  fastq.merge: [pear, vsearch, bbmerge, flash2, leehom]

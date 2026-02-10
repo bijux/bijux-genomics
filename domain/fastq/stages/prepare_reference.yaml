@@ -1,0 +1,25 @@
+extends: "_schema.yaml"
+stage_id: "fastq.prepare_reference"
+inputs:
+  - name: "reference_fasta"
+    data_type: "fasta"
+    cardinality: "One"
+outputs:
+  - name: "reference_index"
+    data_type: "directory"
+    cardinality: "One"
+parameters: []
+metrics:
+  - name: "runtime_s"
+    meaning: "Wall-clock runtime in seconds"
+description: "Prepare FASTQ-stage shared reference assets."
+required_inputs:
+  - reference_fasta
+required_outputs:
+  - reference_index
+tool_capability_requirements:
+  - reference_indexing
+invariants:
+  - stable_artifact_contract
+  - deterministic_output_order
+planned_out_of_scope: []
