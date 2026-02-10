@@ -14,8 +14,8 @@ JOBS ?= 1
 TOOLS ?=
 STAGE ?=
 APPTAINER_VM_OUT ?= $(HOME)/apptainer-build
-APPTAINER_COPY_BACK ?= artifacts/container/apptainer
-CONTAINER_ARTIFACT_DIR ?= artifacts/container
+APPTAINER_COPY_BACK ?= $(ISOLATE_ROOT)/container/apptainer
+CONTAINER_ARTIFACT_DIR ?= $(ISOLATE_ROOT)/container
 BIJUX_BIN ?= cargo run --bin bijux-dna --
 
 CT_KEY := $(subst -,_,$(CONTAINER_TYPE))
