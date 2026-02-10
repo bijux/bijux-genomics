@@ -127,11 +127,11 @@ pub struct AnalyzeOutput {
 
 /// Analyze a run through the canonical pipeline.
 ///
-/// This is a placeholder for the refactor pipeline (load → validate → normalize → aggregate →
-/// compare → rank → explain → render).
+/// Delegates to the pipeline implementation (load → validate → normalize → aggregate → compare
+/// → rank → explain → render).
 ///
 /// # Errors
-/// Returns an error until the pipeline is wired.
+/// Returns an error if any pipeline stage fails.
 pub fn analyze_run(input: &AnalyzeInput) -> anyhow::Result<AnalyzeOutput> {
     pipeline::analyze_run_pipeline(input)
 }
