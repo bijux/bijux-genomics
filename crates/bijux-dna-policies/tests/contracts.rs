@@ -26,6 +26,8 @@ mod mod_contracts_tooling_ci_tools_policy_rs;
 mod mod_contracts_tooling_command_spawn_policy_rs;
 #[path = "contracts/tooling/docs_links.rs"]
 mod mod_contracts_tooling_docs_links_rs;
+#[path = "contracts/tooling/generated_configs_policy.rs"]
+mod mod_contracts_tooling_generated_configs_policy_rs;
 #[path = "contracts/tooling/makefile_policies.rs"]
 mod mod_contracts_tooling_makefile_policies_rs;
 #[path = "contracts/tooling/no_appledouble.rs"]
