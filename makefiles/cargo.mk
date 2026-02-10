@@ -45,7 +45,7 @@ ISOLATE_COV_TARGET_DIR ?= $(ISOLATE_ROOT)/target-cov
 fmt:
 	$(FMT)
 
-lint: domain-validate domain-inventory-drift check-generated-configs
+lint: domain-validate domain-inventory-drift check-generated-configs check-generated-config-headers
 	$(LINT)
 
 test:
@@ -157,7 +157,7 @@ snapshots-review:
 		test-and-coverage \
 		test-coverage-isolate-parallel \
 		fmt-isolate lint-isolate test-isolate audit-isolate coverage-isolate ci-isolate clean-isolate \
-		domain-validate domain-inventory-drift generate-configs check-generated-configs \
+		domain-validate domain-inventory-drift generate-configs check-generated-configs check-generated-config-headers \
 		policy-fast policy-full \
 		snapshots snapshots-accept snapshots-review ensure-cargo-deny
 generate-configs:
@@ -165,3 +165,6 @@ generate-configs:
 
 check-generated-configs:
 	./scripts/check-generated-configs.sh
+
+check-generated-config-headers:
+	./scripts/check-generated-config-headers.sh
