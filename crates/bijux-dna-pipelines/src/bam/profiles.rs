@@ -107,6 +107,27 @@ fn stable_bam_stages() -> Vec<BamStage> {
     ]
 }
 
+fn bam_stage_order(stage: &BamStage) -> usize {
+    match stage {
+        BamStage::Align => 0,
+        BamStage::Validate => 1,
+        BamStage::QcPre => 2,
+        BamStage::Filter => 3,
+        BamStage::Markdup => 4,
+        BamStage::Complexity => 5,
+        BamStage::Coverage => 6,
+        BamStage::Damage => 7,
+        BamStage::Authenticity => 8,
+        BamStage::Contamination => 9,
+        BamStage::Sex => 10,
+        BamStage::BiasMitigation => 11,
+        BamStage::Recalibration => 12,
+        BamStage::Haplogroups => 13,
+        BamStage::Genotyping => 14,
+        BamStage::Kinship => 15,
+    }
+}
+
 fn catalog_bam_stages() -> Vec<BamStage> {
     let parsed: toml::Value = include_str!("../../../../configs/stages.toml")
         .parse()
@@ -130,12 +151,7 @@ fn catalog_bam_stages() -> Vec<BamStage> {
                 })
         })
         .collect::<Vec<_>>();
-    stages.sort_by_key(|stage| {
-        BamStage::all()
-            .iter()
-            .position(|candidate| candidate == stage)
-            .unwrap_or(usize::MAX)
-    });
+    stages.sort_by_key(bam_stage_order);
     stages.dedup();
     stages
 }

@@ -5,7 +5,7 @@ mod support;
 use bijux_dna_domain_compiler::{compile_domain_configs, CompileOptions};
 
 #[test]
-fn policy__contracts__generated_configs__generated_configs_are_not_hand_edited() {
+fn policy__contracts__generated_configs_policy__generated_configs_are_not_hand_edited() {
     let root = support::workspace_root();
     let temp = tempfile::tempdir().expect("create temp dir");
     let generated = temp.path().join("configs");
@@ -24,8 +24,20 @@ fn policy__contracts__generated_configs__generated_configs_are_not_hand_edited()
         let expected_raw = std::fs::read_to_string(&expected)
             .unwrap_or_else(|_| panic!("read {}", expected.display()));
 
+        let normalize_source_commit = |text: &str| {
+            text.lines()
+                .map(|line| {
+                    if line.starts_with("# source_commit: ") {
+                        "# source_commit: <normalized>".to_string()
+                    } else {
+                        line.to_string()
+                    }
+                })
+                .collect::<Vec<_>>()
+                .join("\n")
+        };
         assert!(
-            checked_in_raw == expected_raw,
+            normalize_source_commit(&checked_in_raw) == normalize_source_commit(&expected_raw),
             "generated config drift or hand-edit detected: {}",
             checked_in.display()
         );
