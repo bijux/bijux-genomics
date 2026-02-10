@@ -133,25 +133,40 @@ pub mod snapshots {
     }
 
     fn normalize_tmp_subdir(input: &str) -> String {
-        let marker = "<TMPDIR>/";
+        let marker = "<TMPDIR>";
         let mut out = String::with_capacity(input.len());
         let mut idx = 0;
         while let Some(pos) = input[idx..].find(marker) {
             let start = idx + pos;
             out.push_str(&input[idx..start]);
-            out.push_str(marker);
-            let seg_start = start + marker.len();
-            let mut seg_end = seg_start;
+            let after_marker = start + marker.len();
+            let mut seg_start = after_marker;
             let bytes = input.as_bytes();
+            if seg_start < bytes.len() && bytes[seg_start] == b'/' {
+                seg_start += 1;
+            }
+            let mut seg_end = seg_start;
             while seg_end < bytes.len() {
                 let b = bytes[seg_end];
-                if b == b'/' || b.is_ascii_whitespace() || b == b',' || b == b')' {
+                if b == b'/'
+                    || b.is_ascii_whitespace()
+                    || b == b','
+                    || b == b')'
+                    || b == b'"'
+                    || b == b'\''
+                {
                     break;
                 }
                 seg_end += 1;
             }
             if seg_end > seg_start {
-                out.push_str("<TMP>");
+                if &input[seg_start..seg_end] == "<TMP>" {
+                    out.push_str("<TMPDIR>/<TMP>");
+                } else {
+                    out.push_str("<TMPDIR>/<TMP>");
+                }
+            } else {
+                out.push_str("<TMPDIR>");
             }
             idx = seg_end;
         }
