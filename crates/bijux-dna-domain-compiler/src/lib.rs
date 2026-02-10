@@ -604,8 +604,8 @@ pub fn compile_domain_configs(options: &CompileOptions) -> Result<()> {
     ensure_dir(&options.configs_dir)
         .with_context(|| format!("create {}", options.configs_dir.display()))?;
 
-    let source_commit = git_head_commit(&options.domain_dir)
-        .unwrap_or_else(|| "unknown".to_string());
+    let source_commit =
+        git_head_commit(&options.domain_dir).unwrap_or_else(|| "unknown".to_string());
 
     let tool_registry_path = options.configs_dir.join("tool_registry.toml");
     let registry_toml = build_tool_registry_toml(
