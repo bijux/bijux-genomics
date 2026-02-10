@@ -114,27 +114,23 @@ pub fn write_run_manifest(
     stage_contract_hash: Option<String>,
     extra_artifacts: &[RunArtifactInput],
 ) -> Result<()> {
-    let mut artifacts = Vec::new();
-    let manifest_hash = hash_file_sha256(&run_dirs.manifest_path)?;
-    artifacts.push(serde_json::json!({
-        "name": "execution_manifest",
-        "path": run_dirs.manifest_path,
-        "sha256": manifest_hash
-    }));
-    let metrics_hash = hash_file_sha256(&run_dirs.metrics_path)?;
-    artifacts.push(serde_json::json!({
-        "name": "metrics",
-        "path": run_dirs.metrics_path,
-        "sha256": metrics_hash
-    }));
-    for artifact in extra_artifacts {
-        let hash = hash_file_sha256(&artifact.path)?;
-        artifacts.push(serde_json::json!({
-            "name": artifact.name,
-            "path": artifact.path,
-            "sha256": hash
-        }));
-    }
+    let telemetry_dir = run_artifacts_dir(run_dirs)?.join("telemetry");
+    bijux_dna_infra::ensure_dir(&telemetry_dir).context("create telemetry dir")?;
+    write_canonical_json(&telemetry_dir.join("timings.json"), &serde_json::json!([]))
+        .context("write timings.json")?;
+    write_canonical_json(
+        &telemetry_dir.join("resources.json"),
+        &serde_json::json!([]),
+    )
+    .context("write resources.json")?;
+    write_canonical_json(&telemetry_dir.join("errors.json"), &serde_json::json!([]))
+        .context("write errors.json")?;
+    super::io::write_atomic_bytes(&telemetry_dir.join("events.jsonl"), b"")
+        .context("write events.jsonl")?;
+    let dashboard_dir = run_artifacts_dir(run_dirs)?.join("dashboard");
+    bijux_dna_infra::ensure_dir(&dashboard_dir).context("create dashboard dir")?;
+    super::io::write_atomic_bytes(&dashboard_dir.join("facts.jsonl"), b"")
+        .context("write facts.jsonl")?;
     let pipeline_id = std::env::var("BIJUX_PIPELINE_ID")
         .ok()
         .unwrap_or_else(|| run_provenance.pipeline_id.clone());
@@ -163,19 +159,6 @@ pub fn write_run_manifest(
             Vec::new()
         }
     };
-    let output_artifacts: Vec<serde_json::Value> = artifacts
-        .iter()
-        .map(|artifact| {
-            serde_json::json!({
-                "stage_id": stage,
-                "name": artifact.get("name").cloned().unwrap_or_default(),
-                "role": "unknown",
-                "optional": false,
-                "path": artifact.get("path").cloned().unwrap_or_default(),
-                "sha256": artifact.get("sha256").cloned().unwrap_or_default(),
-            })
-        })
-        .collect();
     let payload = serde_json::json!({
         "schema_version": "bijux.run_manifest.v3",
         "contract_version": bijux_dna_core::contract::ContractVersion::v1(),
@@ -191,7 +174,7 @@ pub fn write_run_manifest(
         },
         "dataset_fingerprints": run_provenance.input_hashes.clone(),
         "tool_invocations": tool_invocations,
-        "output_artifacts": output_artifacts,
+        "output_artifacts": [],
         "stages": [],
         "failures": [],
         "run_provenance": run_provenance,
@@ -202,23 +185,86 @@ pub fn write_run_manifest(
             "facts_jsonl": run_artifacts_dir(run_dirs)?.join("dashboard").join("facts.jsonl"),
         },
     });
-    let telemetry_dir = run_artifacts_dir(run_dirs)?.join("telemetry");
-    bijux_dna_infra::ensure_dir(&telemetry_dir).context("create telemetry dir")?;
-    write_canonical_json(&telemetry_dir.join("timings.json"), &serde_json::json!([]))
-        .context("write timings.json")?;
-    write_canonical_json(
-        &telemetry_dir.join("resources.json"),
-        &serde_json::json!([]),
-    )
-    .context("write resources.json")?;
-    write_canonical_json(&telemetry_dir.join("errors.json"), &serde_json::json!([]))
-        .context("write errors.json")?;
-    super::io::write_atomic_bytes(&telemetry_dir.join("events.jsonl"), b"")
-        .context("write events.jsonl")?;
     let payload = bijux_dna_core::contract::canonical::to_canonical_json_bytes(&payload)?;
     super::io::write_atomic_bytes(&run_dirs.run_manifest_path, payload.as_slice())
         .context("write run_manifest.json")?;
+    let artifacts = collect_all_run_artifacts(run_dirs, extra_artifacts)?;
+    let output_artifacts: Vec<serde_json::Value> = artifacts
+        .iter()
+        .map(|artifact| {
+            serde_json::json!({
+                "stage_id": stage,
+                "name": artifact.get("name").cloned().unwrap_or_default(),
+                "role": "unknown",
+                "optional": false,
+                "path": artifact.get("path").cloned().unwrap_or_default(),
+                "sha256": artifact.get("sha256").cloned().unwrap_or_default(),
+            })
+        })
+        .collect();
+    let mut run_manifest: serde_json::Value =
+        serde_json::from_slice(std::fs::read(&run_dirs.run_manifest_path)?.as_slice())
+            .context("parse run_manifest for artifact enrichment")?;
+    run_manifest["output_artifacts"] = serde_json::Value::Array(output_artifacts);
+    let payload = bijux_dna_core::contract::canonical::to_canonical_json_bytes(&run_manifest)?;
+    super::io::write_atomic_bytes(&run_dirs.run_manifest_path, payload.as_slice())
+        .context("rewrite run_manifest with complete artifact hashes")?;
     Ok(())
+}
+
+fn collect_all_run_artifacts(
+    run_dirs: &RunDirs,
+    extra_artifacts: &[RunArtifactInput],
+) -> Result<Vec<serde_json::Value>> {
+    let mut out = Vec::new();
+    out.push(make_artifact_record("execution_manifest", &run_dirs.manifest_path)?);
+    out.push(make_artifact_record("metrics", &run_dirs.metrics_path)?);
+    for artifact in extra_artifacts {
+        out.push(make_artifact_record(artifact.name, &artifact.path)?);
+    }
+    let run_artifacts = run_artifacts_dir(run_dirs)?;
+    if run_artifacts.exists() {
+        for path in collect_files_sorted(&run_artifacts)? {
+            let rel = path
+                .strip_prefix(&run_artifacts)
+                .ok()
+                .and_then(|p| p.to_str())
+                .unwrap_or("artifact");
+            let name = format!("run_artifacts/{rel}");
+            out.push(make_artifact_record(&name, &path)?);
+        }
+    }
+    out.sort_by(|a, b| {
+        a.get("name")
+            .and_then(|v| v.as_str())
+            .unwrap_or_default()
+            .cmp(b.get("name").and_then(|v| v.as_str()).unwrap_or_default())
+    });
+    Ok(out)
+}
+
+fn make_artifact_record(name: &str, path: &Path) -> Result<serde_json::Value> {
+    let hash = hash_file_sha256(path)?;
+    Ok(serde_json::json!({
+        "name": name,
+        "path": path,
+        "sha256": hash
+    }))
+}
+
+fn collect_files_sorted(root: &Path) -> Result<Vec<PathBuf>> {
+    let mut files = Vec::new();
+    for entry in std::fs::read_dir(root).with_context(|| format!("read dir {}", root.display()))? {
+        let entry = entry?;
+        let path = entry.path();
+        if path.is_dir() {
+            files.extend(collect_files_sorted(&path)?);
+        } else if path.is_file() {
+            files.push(path);
+        }
+    }
+    files.sort();
+    Ok(files)
 }
 
 /// # Errors
