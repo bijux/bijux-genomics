@@ -9,6 +9,7 @@ rust-version.workspace = true
 anyhow.workspace = true
 clap.workspace = true
 serde.workspace = true
+serde_json.workspace = true
 sha2.workspace = true
 bijux-dna-infra = { path = "../bijux-dna-infra", features = ["yaml"] }
 bijux-dna-domain-fastq = { path = "../bijux-dna-domain-fastq" }

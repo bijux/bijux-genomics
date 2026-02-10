@@ -232,6 +232,10 @@ pub enum DomainCommand {
         #[arg(long, default_value = "domain")]
         domain_dir: PathBuf,
     },
+    Coverage {
+        #[arg(long, default_value = "domain")]
+        domain_dir: PathBuf,
+    },
 }
 
 #[derive(Debug, Args)]

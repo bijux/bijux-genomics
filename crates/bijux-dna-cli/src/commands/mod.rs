@@ -6,7 +6,7 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_api::v1::api::run::{load_manifests, load_profile, resolve_run_base_dir};
 use bijux_dna_api::v1::api::run::{CategorizedError, ErrorCategory};
-use bijux_dna_domain_compiler::{validate_domain, ValidateOptions};
+use bijux_dna_domain_compiler::{domain_coverage_report, validate_domain, ValidateOptions};
 use clap::Parser;
 
 struct CwdGuard(PathBuf);
@@ -467,8 +467,9 @@ fn handle_environment_root(command: &cli::EnvCommand, cwd: &Path) -> Result<()> 
 
 fn handle_registry_root(command: &cli::RegistryCommand, cwd: &Path) -> Result<()> {
     use crate::commands::cli::env::{
-        print_registry_coverage_matrix, print_registry_export_json, print_registry_list_stages, print_registry_show,
-        print_registry_show_stage, print_registry_show_tool, print_registry_tools,
+        print_registry_coverage_matrix, print_registry_export_json, print_registry_list_stages,
+        print_registry_show, print_registry_show_stage, print_registry_show_tool,
+        print_registry_tools,
     };
     let registry_path = cwd.join("configs").join("tool_registry.toml");
     match command {
@@ -548,6 +549,15 @@ fn handle_domain_root(command: &cli::DomainCommand, cwd: &Path) -> Result<()> {
                 cwd.join(domain_dir)
             };
             validate_domain(&ValidateOptions { domain_dir: path })?;
+        }
+        cli::DomainCommand::Coverage { domain_dir } => {
+            let path = if domain_dir.is_absolute() {
+                domain_dir.clone()
+            } else {
+                cwd.join(domain_dir)
+            };
+            let payload = domain_coverage_report(&path)?;
+            cli::render::json::print_pretty(&payload)?;
         }
     }
     Ok(())
