@@ -3,8 +3,8 @@
 use crate::bam::bam_adna_shotgun_profile;
 use crate::fastq::fastq_default_profile;
 use crate::{
-    ArtifactType, DefaultParams, Domain, EffectiveDefaults, MetricsBundle, PipelineCapabilities,
-    PipelineId, PipelineProfile, ReportSection, StabilityTier,
+    ArtifactType, DefaultParams, Domain, EffectiveDefaults, EmptyParams, MetricsBundle,
+    PipelineCapabilities, PipelineId, PipelineProfile, ReportSection, StabilityTier,
 };
 use bijux_dna_core::ids::{StageId, ToolId};
 use bijux_dna_core::prelude::id_catalog;
@@ -40,7 +40,7 @@ pub fn fastq_to_bam_adna_shotgun_profile() -> PipelineProfile {
     );
     defaults.params.insert(
         StageId::from_static(id_catalog::CORE_PREPARE_REFERENCE),
-        DefaultParams::Json(serde_json::json!({})),
+        DefaultParams::Empty(EmptyParams::default()),
     );
     defaults.rationales.insert(
         StageId::from_static(id_catalog::CORE_PREPARE_REFERENCE),
@@ -48,7 +48,16 @@ pub fn fastq_to_bam_adna_shotgun_profile() -> PipelineProfile {
     );
     defaults.params.insert(
         StageId::from_static(id_catalog::BAM_ALIGN),
-        DefaultParams::Json(adna_shotgun_params_json(BamStage::Align)),
+        DefaultParams::Bam(
+            BamStage::Align
+                .parse_effective_params(&adna_shotgun_params_json(BamStage::Align))
+                .unwrap_or_else(|err| {
+                    panic!(
+                        "failed to parse typed BAM defaults for stage {}: {err}",
+                        BamStage::Align.as_str()
+                    )
+                }),
+        ),
     );
     defaults.tools.insert(
         StageId::from_static(id_catalog::BAM_ALIGN),
@@ -107,7 +116,7 @@ pub fn fastq_to_bam_default_profile() -> PipelineProfile {
     );
     defaults.params.insert(
         StageId::from_static(id_catalog::CORE_PREPARE_REFERENCE),
-        DefaultParams::Json(serde_json::json!({})),
+        DefaultParams::Empty(EmptyParams::default()),
     );
     defaults.rationales.insert(
         StageId::from_static(id_catalog::CORE_PREPARE_REFERENCE),
@@ -115,7 +124,16 @@ pub fn fastq_to_bam_default_profile() -> PipelineProfile {
     );
     defaults.params.insert(
         StageId::from_static(id_catalog::BAM_ALIGN),
-        DefaultParams::Json(default_params_json(BamStage::Align)),
+        DefaultParams::Bam(
+            BamStage::Align
+                .parse_effective_params(&default_params_json(BamStage::Align))
+                .unwrap_or_else(|err| {
+                    panic!(
+                        "failed to parse typed BAM defaults for stage {}: {err}",
+                        BamStage::Align.as_str()
+                    )
+                }),
+        ),
     );
     defaults.tools.insert(
         StageId::from_static(id_catalog::BAM_ALIGN),
