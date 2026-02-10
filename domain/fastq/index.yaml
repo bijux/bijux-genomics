@@ -175,6 +175,8 @@ active_defaults:
   fastq.qc_post: multiqc
   fastq.screen: kraken2
   fastq.merge: pear
+  fastq.deduplicate: fastuniq
+  fastq.low_complexity: bbduk
   fastq.host_depletion: bowtie2
   fastq.correct: rcorrector
   fastq.umi: umi_tools
@@ -193,6 +195,10 @@ active_default_rationale:
   fastq.qc_post: QC aggregation default provides operator-first summary output.
   fastq.screen: Default classifier maximizes comparability with existing reports.
   fastq.merge: Default merger is stable for paired-end overlap handling.
+  fastq.deduplicate: Default deduplication uses pair-aware duplicate removal with stable
+    ordering.
+  fastq.low_complexity: Default complexity filtering uses deterministic entropy/polyX
+    thresholds.
   fastq.host_depletion: Default host depletion uses deterministic mapping and unmapped
     extraction.
   fastq.correct: Default corrector chosen for robust error-correction baseline.

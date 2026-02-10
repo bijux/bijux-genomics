@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 4d55fa67ff96239a93c23a8bb0011e1f1e60f22d
+# source_commit: 5c15abd770c9a13af649f8f512980759bb7df619
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 
@@ -208,7 +208,7 @@ id = "bbduk"
 tool_id = "bbduk"
 domain = "fastq"
 status = "supported"
-stage_ids = ["fastq.trim"]
+stage_ids = ["fastq.trim", "fastq.low_complexity"]
 version = "latest-pinned"
 default_version = "latest-pinned"
 upstream = "unknown"
@@ -983,7 +983,7 @@ id = "prinseq"
 tool_id = "prinseq"
 domain = "fastq"
 status = "supported"
-stage_ids = ["fastq.filter"]
+stage_ids = ["fastq.filter", "fastq.deduplicate", "fastq.low_complexity"]
 version = "latest-pinned"
 default_version = "latest-pinned"
 upstream = "unknown"
@@ -1688,6 +1688,17 @@ requires_validation = false
 requires_reporting = false
 
 [[stages]]
+id = "fastq.deduplicate"
+primary_tools = ["prinseq"]
+optional_alternatives = []
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+default_rationale = ""
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
 id = "fastq.detect_adapters"
 primary_tools = ["fastp"]
 optional_alternatives = []
@@ -1728,6 +1739,17 @@ validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
 default_rationale = "Default length histogram baseline provides deterministic pre-trim size distribution."
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
+id = "fastq.low_complexity"
+primary_tools = ["bbduk"]
+optional_alternatives = ["prinseq"]
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+default_rationale = ""
 requires_validation = false
 requires_reporting = false
 
