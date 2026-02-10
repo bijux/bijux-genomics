@@ -289,6 +289,49 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
                 command: "dry-run".to_string(),
             },
         });
+        let decision_trace = serde_json::json!({
+            "schema_version": "bijux.decision_trace.v1",
+            "stage": STAGE_PREPROCESS.as_str(),
+            "selections": selected_tools
+                .iter()
+                .map(|selection| serde_json::json!({
+                    "tool_id": selection.tool_id,
+                    "reason": selection.reason,
+                }))
+                .collect::<Vec<_>>(),
+            "merge_decision": decisions.merge_decision.as_ref(),
+            "correct_decision": decisions.correct_decision.as_ref(),
+            "adapter_inference": policy.adapter_inference.as_ref(),
+            "stage_skips": &policy.stage_skips,
+        });
+        bijux_dna_infra::atomic_write_json(&root.join("decision_trace.json"), &decision_trace)
+            .context("write decision_trace.json")?;
+        let artifact_manifest = serde_json::json!({
+            "schema_version": "bijux.plan_artifacts.v1",
+            "pipeline_id": pipeline_plan.pipeline_id(),
+            "artifacts": planned_stages
+                .iter()
+                .map(|plan| serde_json::json!({
+                    "stage_id": plan.step_id.to_string(),
+                    "image": plan.image.image,
+                    "outputs": plan
+                        .io
+                        .outputs
+                        .iter()
+                        .map(|artifact| serde_json::json!({
+                            "name": artifact.name,
+                            "kind": artifact.role.as_str(),
+                            "path": artifact.path,
+                        }))
+                        .collect::<Vec<_>>(),
+                }))
+                .collect::<Vec<_>>(),
+        });
+        bijux_dna_infra::atomic_write_json(
+            &root.join("plan_artifact_manifest.json"),
+            &artifact_manifest,
+        )
+        .context("write plan_artifact_manifest.json")?;
         write_run_manifest(&args.out, &stage_runs, &failures)?;
         write_scientific_provenance(&args.out, &stage_runs)?;
         return Ok(());
