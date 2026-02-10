@@ -381,38 +381,24 @@ pub fn plan_bam_to_bam__adna_capture__v1(inputs: &BamPipelineInputs) -> Result<E
     build_bam_plan(&profile, inputs)
 }
 
-fn stage_order_for_profile(profile_id: &str) -> Vec<BamStage> {
-    match profile_id {
-        "bam-to-bam__default__v1" => vec![
-            BamStage::Validate,
-            BamStage::QcPre,
-            BamStage::Filter,
-            BamStage::Coverage,
-            BamStage::Damage,
-        ],
-        "bam-to-bam__adna_shotgun__v1" | "bam-to-bam__adna_capture__v1" => {
-            let mut stages = BamStage::all().to_vec();
-            stages.retain(|stage| *stage != BamStage::Align);
-            stages.retain(|stage| *stage != BamStage::Recalibration);
-            if !cfg!(feature = "bam_downstream") {
-                stages.retain(|stage| {
-                    !matches!(
-                        stage,
-                        BamStage::BiasMitigation
-                            | BamStage::Haplogroups
-                            | BamStage::Genotyping
-                            | BamStage::Kinship
-                    )
-                });
-            }
-            stages
-        }
-        _ => BamStage::all().to_vec(),
-    }
+fn stage_order_for_profile(profile: &PipelineProfile) -> Result<Vec<BamStage>> {
+    profile
+        .capabilities
+        .required_stages
+        .iter()
+        .map(|stage_id| BamStage::try_from(*stage_id))
+        .collect()
 }
 
 pub fn pipeline_id_catalog(profile_id: &str) -> Vec<String> {
-    stage_order_for_profile(profile_id)
+    let profile = match profile_id {
+        "bam-to-bam__default__v1" => bijux_dna_pipelines::bam::bam_default_profile(),
+        "bam-to-bam__adna_shotgun__v1" => bam_adna_shotgun_profile(),
+        "bam-to-bam__adna_capture__v1" => bam_adna_capture_profile(),
+        _ => return Vec::new(),
+    };
+    stage_order_for_profile(&profile)
+        .unwrap_or_default()
         .iter()
         .map(|stage| stage.as_str().to_string())
         .collect()
@@ -422,7 +408,7 @@ fn build_bam_plan(profile: &PipelineProfile, inputs: &BamPipelineInputs) -> Resu
     let mut bam = inputs.bam.clone();
     let mut bam_index = inputs.bam_index.clone();
     let mut stages = Vec::new();
-    for stage in stage_order_for_profile(profile.id.as_str()) {
+    for stage in stage_order_for_profile(profile)? {
         let stage_id = stage.as_str();
         let tool = inputs
             .tool_specs
@@ -508,7 +494,7 @@ fn enforce_stage_tool_contracts(
     reference: Option<&std::path::Path>,
 ) -> Result<()> {
     match stage {
-        BamStage::Authenticity if tool_id == "pmdtools" => {
+        BamStage::Authenticity if tool_id == id_catalog::TOOL_PMDTOOLS => {
             if reference.is_none() {
                 return Err(anyhow!(
                     "{} with pmdtools requires reference input",
@@ -528,7 +514,7 @@ fn enforce_stage_tool_contracts(
                 })
                 .unwrap_or(bijux_dna_domain_bam::params::ContaminationScope::Both);
             match tool_id {
-                "schmutzi"
+                id_catalog::TOOL_SCHMUTZI
                     if !matches!(
                         scope,
                         bijux_dna_domain_bam::params::ContaminationScope::Mito
@@ -540,7 +526,13 @@ fn enforce_stage_tool_contracts(
                         id_catalog::BAM_CONTAMINATION
                     ));
                 }
-                "verifybamid2" | "contammix"
+                id_catalog::TOOL_SCHMUTZI if reference.is_none() => {
+                    return Err(anyhow!(
+                        "{} tool schmutzi requires mitochondrial reference input",
+                        id_catalog::BAM_CONTAMINATION
+                    ));
+                }
+                id_catalog::TOOL_VERIFYBAMID2 | id_catalog::TOOL_CONTAMMIX
                     if !matches!(
                         scope,
                         bijux_dna_domain_bam::params::ContaminationScope::Nuclear
