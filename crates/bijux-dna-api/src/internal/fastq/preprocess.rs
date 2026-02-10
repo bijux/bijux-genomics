@@ -167,13 +167,8 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         .iter()
         .zip(policy.pipeline_tools.iter())
     {
-        let spec = build_tool_execution_spec(
-            stage.as_str(),
-            tool.as_str(),
-            &registry,
-            catalog,
-            platform,
-        )?;
+        let spec =
+            build_tool_execution_spec(stage.as_str(), tool.as_str(), &registry, catalog, platform)?;
         let spec = scale_tool_spec_for_jobs(&spec, jobs);
         if stage == &STAGE_TRIM {
             if let Some(msg) = polyx_unsupported_warning(

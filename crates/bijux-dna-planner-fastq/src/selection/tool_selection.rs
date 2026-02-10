@@ -61,7 +61,5 @@ pub fn default_tool_for_stage(stage_id: &StageId) -> Option<ToolId> {
             return Some(ToolId::new(tool.to_string()));
         }
     }
-    allowed_tools_for_stage(stage_id)
-        .first()
-        .cloned()
+    allowed_tools_for_stage(stage_id).first().cloned()
 }

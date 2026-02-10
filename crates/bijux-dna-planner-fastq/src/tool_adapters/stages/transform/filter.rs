@@ -123,7 +123,10 @@ pub fn default_kmer_ref() -> Option<PathBuf> {
     fasta.into_iter().next()
 }
 
-fn normalize_tools_with_allowlist(tools: &[String], allowlist: &[bijux_dna_core::ids::ToolId]) -> Result<Vec<String>> {
+fn normalize_tools_with_allowlist(
+    tools: &[String],
+    allowlist: &[bijux_dna_core::ids::ToolId],
+) -> Result<Vec<String>> {
     let mut normalized: Vec<String> = tools.iter().map(|tool| tool.to_lowercase()).collect();
     normalized.sort();
     normalized.dedup();

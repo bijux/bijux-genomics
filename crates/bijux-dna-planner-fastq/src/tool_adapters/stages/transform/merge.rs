@@ -86,7 +86,10 @@ fn merge_output_name(tool: &str) -> Option<&'static str> {
     }
 }
 
-fn normalize_tools_with_allowlist(tools: &[String], allowlist: &[bijux_dna_core::ids::ToolId]) -> Result<Vec<String>> {
+fn normalize_tools_with_allowlist(
+    tools: &[String],
+    allowlist: &[bijux_dna_core::ids::ToolId],
+) -> Result<Vec<String>> {
     let mut normalized: Vec<String> = tools.iter().map(|tool| tool.to_lowercase()).collect();
     normalized.sort();
     normalized.dedup();

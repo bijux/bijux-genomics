@@ -116,7 +116,6 @@ fn policy__contracts__tool_registry_stage_domain_policy__each_tool_has_exactly_o
                 }
             }
         }
-
     }
 
     assert!(

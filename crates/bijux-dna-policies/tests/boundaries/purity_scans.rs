@@ -172,7 +172,10 @@ fn policy__boundaries__purity_scans__stage_crates_define_invocations_only_no_exe
         "run_apptainer_command(",
         "bijux_dna_runner",
     ];
-    for crate_dir in ["crates/bijux-dna-stages-fastq/src", "crates/bijux-dna-stages-bam/src"] {
+    for crate_dir in [
+        "crates/bijux-dna-stages-fastq/src",
+        "crates/bijux-dna-stages-bam/src",
+    ] {
         for file in collect_rs_files(&root.join(crate_dir)) {
             let content = std::fs::read_to_string(&file).expect("read source");
             if deny_tokens.iter().any(|token| content.contains(token)) {
