@@ -24,6 +24,8 @@ mod mod_contracts_tooling_apptainer_vm_output_policy_rs;
 mod mod_contracts_tooling_ci_no_stage_tool_defs_policy_rs;
 #[path = "contracts/tooling/ci_tools_policy.rs"]
 mod mod_contracts_tooling_ci_tools_policy_rs;
+#[path = "contracts/tooling/cli_sql_policy.rs"]
+mod mod_contracts_tooling_cli_sql_policy_rs;
 #[path = "contracts/tooling/command_spawn_policy.rs"]
 mod mod_contracts_tooling_command_spawn_policy_rs;
 #[path = "contracts/tooling/docs_links.rs"]
@@ -58,6 +60,8 @@ mod mod_contracts_tooling_purity_effects_responsibility_policy_rs;
 mod mod_contracts_tooling_registry_ssot_completeness_policy_rs;
 #[path = "contracts/tooling/smoke_manifest_policy.rs"]
 mod mod_contracts_tooling_smoke_manifest_policy_rs;
+#[path = "contracts/tooling/scripts_registry_wrapper_policy.rs"]
+mod mod_contracts_tooling_scripts_registry_wrapper_policy_rs;
 #[path = "contracts/tooling/stage_registry_fixture_completeness.rs"]
 mod mod_contracts_tooling_stage_registry_fixture_completeness_rs;
 #[path = "contracts/tooling/stage_tool_matrix_policy.rs"]
