@@ -334,6 +334,10 @@ fn is_tool_meaningful_in_domain(domain: &str, tool_id: &str) -> bool {
     }
 }
 
+fn is_umbrella_stage(stage_id: &str) -> bool {
+    matches!(stage_id, "fastq.preprocess" | "bam.preprocess")
+}
+
 fn read_yaml<T: for<'de> Deserialize<'de>>(path: &Path) -> Result<T> {
     let raw = std::fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
     bijux_dna_infra::formats::parse_yaml(&raw).with_context(|| format!("parse {}", path.display()))
@@ -1584,6 +1588,13 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                 if stage.stage_id.is_empty() {
                     bail!("{} missing stage_id", path.display());
                 }
+                if is_umbrella_stage(&stage.stage_id) {
+                    bail!(
+                        "{} stage_id {} is an umbrella stage and must be split into concrete stage IDs",
+                        path.display(),
+                        stage.stage_id
+                    );
+                }
                 if dom != "vcf" {
                     let artifact_ids = artifact_vocab
                         .get(dom)
@@ -1942,6 +1953,13 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
             bail!("{} missing stage_ids/tool_ids", index_path.display());
         }
         for stage_id in &index.stage_ids {
+            if is_umbrella_stage(stage_id) {
+                bail!(
+                    "{} contains umbrella stage {}. Use explicit stage IDs (e.g. fastq.validate_pre, fastq.stats_neutral, ...).",
+                    index_path.display(),
+                    stage_id
+                );
+            }
             if !stage_ids.contains_key(stage_id) {
                 bail!(
                     "{} references unknown stage {}",

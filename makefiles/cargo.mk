@@ -57,6 +57,7 @@ lint: domain-validate domain-inventory-drift check-generated-configs check-gener
 	$(LINT)
 
 test:
+	./scripts/domain-validate.sh
 	@rm -rf $(TEST_PROFRAW_DIR)
 	@mkdir -p $(TEST_TMP_DIR)
 	@mkdir -p $(TEST_PROFRAW_DIR)
@@ -181,6 +182,9 @@ policy-full: ## Run full policy suite
 domain-validate:
 	./scripts/domain-validate.sh
 
+domain-coverage:
+	cargo run -p bijux-dna-cli --bin bijux-dna -- domain coverage --domain-dir domain
+
 domain-inventory-drift:
 	./scripts/domain-inventory-drift.sh
 
@@ -197,7 +201,7 @@ snapshots-review:
 		test-and-coverage \
 		test-coverage-isolate-parallel \
 		fmt-isolate lint-isolate test-isolate audit-isolate coverage-isolate ci-isolate clean-isolates \
-		domain-validate domain-inventory-drift generate-configs check-generated-configs check-generated-config-headers \
+		domain-validate domain-coverage domain-inventory-drift generate-configs check-generated-configs check-generated-config-headers \
 		policy-fast policy-full \
 		snapshots snapshots-accept snapshots-review ensure-cargo-deny
 generate-configs:
