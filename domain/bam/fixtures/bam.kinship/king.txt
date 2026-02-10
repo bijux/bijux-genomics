@@ -1,0 +1,4 @@
+tool=king
+stage=bam.kinship
+domain=bam
+fixture_kind=truth

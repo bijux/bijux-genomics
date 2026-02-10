@@ -1,0 +1,4 @@
+tool=mosdepth
+stage=bam.coverage
+domain=bam
+fixture_kind=truth

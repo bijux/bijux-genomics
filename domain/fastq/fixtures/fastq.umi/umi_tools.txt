@@ -1,0 +1,4 @@
+tool=umi_tools
+stage=fastq.umi
+domain=fastq
+fixture_kind=truth

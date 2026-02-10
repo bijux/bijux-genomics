@@ -1,0 +1,4 @@
+tool=bedtools
+stage=bam.validate
+domain=bam
+fixture_kind=truth

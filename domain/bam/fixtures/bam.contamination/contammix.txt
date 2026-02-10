@@ -1,0 +1,4 @@
+tool=contammix
+stage=bam.contamination
+domain=bam
+fixture_kind=truth

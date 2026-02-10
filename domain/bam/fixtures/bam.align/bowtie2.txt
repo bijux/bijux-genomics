@@ -1,0 +1,4 @@
+tool=bowtie2
+stage=bam.align
+domain=bam
+fixture_kind=truth

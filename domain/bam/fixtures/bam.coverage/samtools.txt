@@ -1,0 +1,4 @@
+tool=samtools
+stage=bam.coverage
+domain=bam
+fixture_kind=truth

@@ -1,0 +1,4 @@
+tool=fastq_screen
+stage=fastq.screen
+domain=fastq
+fixture_kind=truth

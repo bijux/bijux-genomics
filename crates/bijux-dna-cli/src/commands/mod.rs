@@ -65,12 +65,16 @@ pub fn run_with_cli(cli: &cli::Cli, cwd: &Path) -> Result<()> {
     if let cli::RootCommand::Lab { command } = &cli.command {
         return handle_lab_root(command, cwd);
     }
+    if let cli::RootCommand::Status(args) = &cli.command {
+        return handle_status_root(args, cwd);
+    }
     let dna_command = match &cli.command {
         cli::RootCommand::Dna { command } => command,
         cli::RootCommand::Environment { .. }
         | cli::RootCommand::Registry { .. }
         | cli::RootCommand::Domain { .. }
-        | cli::RootCommand::Lab { .. } => {
+        | cli::RootCommand::Lab { .. }
+        | cli::RootCommand::Status(_) => {
             unreachable!("handled above")
         }
     };
@@ -115,6 +119,155 @@ pub fn run_with_cli(cli: &cli::Cli, cwd: &Path) -> Result<()> {
     }
 
     run_plan::run_plan(cli, dna_command, &registry, &domain_dir)
+}
+
+fn parse_scalar(raw: &str, key: &str) -> Option<String> {
+    raw.lines().find_map(|line| {
+        let trimmed = line.trim();
+        let prefix = format!("{key}:");
+        if !trimmed.starts_with(&prefix) {
+            return None;
+        }
+        let value = trimmed[prefix.len()..].trim().trim_matches('"');
+        if value.is_empty() {
+            None
+        } else {
+            Some(value.to_string())
+        }
+    })
+}
+
+fn handle_status_root(args: &cli::StatusArgs, cwd: &Path) -> Result<()> {
+    let domain_dir = cwd.join("domain");
+    let mut planned = Vec::new();
+    let mut placeholders = Vec::new();
+    let mut missing_fixtures = Vec::new();
+    let normalized_scope = args.scope.replace('-', "_");
+
+    for dom in ["fastq", "bam"] {
+        let stages_dir = domain_dir.join(dom).join("stages");
+        if stages_dir.exists() {
+            for entry in std::fs::read_dir(&stages_dir)
+                .with_context(|| format!("read {}", stages_dir.display()))?
+            {
+                let path = entry?.path();
+                if path.extension().and_then(|v| v.to_str()) != Some("yaml")
+                    || path.file_name().and_then(|v| v.to_str()) == Some("_schema.yaml")
+                {
+                    continue;
+                }
+                let raw = std::fs::read_to_string(&path)
+                    .with_context(|| format!("read {}", path.display()))?;
+                let stage_id = parse_scalar(&raw, "stage_id").unwrap_or_else(|| "<unknown>".into());
+                let status = parse_scalar(&raw, "status").unwrap_or_else(|| "supported".into());
+                let scope = parse_scalar(&raw, "scope").unwrap_or_else(|| "unknown".into());
+                if scope != normalized_scope {
+                    continue;
+                }
+                if status == "planned" || status == "out_of_scope" {
+                    planned.push(format!("stage:{stage_id}:{status}"));
+                }
+                let lower = raw.to_ascii_lowercase();
+                if lower.contains("todo") || lower.contains("tbd") || lower.contains("placeholder")
+                {
+                    placeholders.push(path.display().to_string());
+                }
+            }
+        }
+
+        let tools_dir = domain_dir.join(dom).join("tools");
+        if tools_dir.exists() {
+            for entry in std::fs::read_dir(&tools_dir)
+                .with_context(|| format!("read {}", tools_dir.display()))?
+            {
+                let path = entry?.path();
+                if path.extension().and_then(|v| v.to_str()) != Some("yaml")
+                    || path.file_name().and_then(|v| v.to_str()) == Some("_schema.yaml")
+                {
+                    continue;
+                }
+                let raw = std::fs::read_to_string(&path)
+                    .with_context(|| format!("read {}", path.display()))?;
+                let tool_id = parse_scalar(&raw, "tool_id").unwrap_or_else(|| "<unknown>".into());
+                let status = parse_scalar(&raw, "status").unwrap_or_else(|| "supported".into());
+                let scope = parse_scalar(&raw, "scope").unwrap_or_else(|| "unknown".into());
+                if scope != normalized_scope {
+                    continue;
+                }
+                if status == "planned" || status == "out_of_scope" {
+                    planned.push(format!("tool:{tool_id}:{status}"));
+                }
+                let lower = raw.to_ascii_lowercase();
+                if lower.contains("todo") || lower.contains("tbd") || lower.contains("placeholder")
+                {
+                    placeholders.push(path.display().to_string());
+                }
+            }
+        }
+
+        let index = domain_dir.join(dom).join("index.yaml");
+        if index.exists() {
+            let raw =
+                std::fs::read_to_string(&index).with_context(|| format!("read {}", index.display()))?;
+            let mut in_matrix = false;
+            for line in raw.lines() {
+                let trimmed = line.trim();
+                if trimmed.starts_with("stage_tool_compatibility:") {
+                    in_matrix = true;
+                    continue;
+                }
+                if in_matrix && !line.starts_with("  ") {
+                    in_matrix = false;
+                }
+                if !in_matrix {
+                    continue;
+                }
+                if !(trimmed.contains(':') && trimmed.contains('[') && trimmed.contains(']')) {
+                    continue;
+                }
+                let mut parts = trimmed.splitn(2, ':');
+                let Some(stage_id) = parts.next().map(str::trim) else {
+                    continue;
+                };
+                let Some(rhs) = parts.next() else {
+                    continue;
+                };
+                let tools_csv = rhs.trim().trim_start_matches('[').trim_end_matches(']');
+                for tool in tools_csv.split(',').map(str::trim).filter(|v| !v.is_empty()) {
+                    let fixture = domain_dir
+                        .join(dom)
+                        .join("fixtures")
+                        .join(stage_id)
+                        .join(format!("{tool}.txt"));
+                    if !fixture.exists() {
+                        missing_fixtures.push(fixture.display().to_string());
+                    }
+                }
+            }
+        }
+    }
+
+    planned.sort();
+    planned.dedup();
+    placeholders.sort();
+    placeholders.dedup();
+    missing_fixtures.sort();
+    missing_fixtures.dedup();
+
+    println!("scope={}", args.scope);
+    println!("planned_or_out_of_scope={}", planned.len());
+    for item in planned {
+        println!("  {item}");
+    }
+    println!("placeholder_files={}", placeholders.len());
+    for item in placeholders {
+        println!("  {item}");
+    }
+    println!("missing_truth_fixtures={}", missing_fixtures.len());
+    for item in missing_fixtures {
+        println!("  {item}");
+    }
+    Ok(())
 }
 
 fn handle_environment_root(command: &cli::EnvCommand, cwd: &Path) -> Result<()> {
@@ -167,7 +320,8 @@ fn handle_environment_root(command: &cli::EnvCommand, cwd: &Path) -> Result<()> 
 
 fn handle_registry_root(command: &cli::RegistryCommand, cwd: &Path) -> Result<()> {
     use crate::commands::cli::env::{
-        print_registry_list_stages, print_registry_show, print_registry_tools,
+        print_registry_list_stages, print_registry_show, print_registry_show_stage,
+        print_registry_show_tool, print_registry_tools,
     };
     let registry_path = cwd.join("configs").join("tool_registry.toml");
     match command {
@@ -175,6 +329,8 @@ fn handle_registry_root(command: &cli::RegistryCommand, cwd: &Path) -> Result<()
             print_registry_tools(&registry_path, stage.as_deref(), kind)?;
         }
         cli::RegistryCommand::Stages => print_registry_list_stages(&registry_path)?,
+        cli::RegistryCommand::ShowTool { id } => print_registry_show_tool(&registry_path, id)?,
+        cli::RegistryCommand::ShowStage { id } => print_registry_show_stage(&registry_path, id)?,
         cli::RegistryCommand::Show { id } => print_registry_show(&registry_path, id)?,
     }
     Ok(())

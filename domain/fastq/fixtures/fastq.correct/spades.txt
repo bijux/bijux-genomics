@@ -1,0 +1,4 @@
+tool=spades
+stage=fastq.correct
+domain=fastq
+fixture_kind=truth

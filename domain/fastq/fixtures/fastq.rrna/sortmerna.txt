@@ -1,0 +1,4 @@
+tool=sortmerna
+stage=fastq.rrna
+domain=fastq
+fixture_kind=truth

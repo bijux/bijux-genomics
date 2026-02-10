@@ -1,0 +1,4 @@
+tool=verifybamid2
+stage=bam.contamination
+domain=bam
+fixture_kind=truth

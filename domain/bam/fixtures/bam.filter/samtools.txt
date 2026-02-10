@@ -1,0 +1,4 @@
+tool=samtools
+stage=bam.filter
+domain=bam
+fixture_kind=truth

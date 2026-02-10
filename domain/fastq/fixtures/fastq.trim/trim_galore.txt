@@ -1,0 +1,4 @@
+tool=trim_galore
+stage=fastq.trim
+domain=fastq
+fixture_kind=truth

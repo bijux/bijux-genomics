@@ -1,0 +1,4 @@
+tool=fastx_clipper
+stage=fastq.trim
+domain=fastq
+fixture_kind=truth

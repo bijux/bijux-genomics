@@ -1,0 +1,4 @@
+tool=samtools
+stage=fastq.prepare_reference
+domain=fastq
+fixture_kind=truth
