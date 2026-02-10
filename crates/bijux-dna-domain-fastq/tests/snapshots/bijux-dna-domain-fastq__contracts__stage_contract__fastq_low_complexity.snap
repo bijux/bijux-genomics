@@ -1,0 +1,48 @@
+---
+source: crates/bijux-dna-domain-fastq/tests/contracts/stage_contract_snapshots.rs
+expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
+---
+{
+  "inputs": {
+    "kind": "SingleEnd"
+  },
+  "metrics": {
+    "classes": [
+      "Integrity",
+      "Retention",
+      "QualityShift"
+    ],
+    "invariants": [
+      "reads_out + reads_dropped == reads_in",
+      "reads_removed_by_* <= reads_dropped",
+      "mean_q_after >= mean_q_before (warn)",
+      "counts are non-negative"
+    ],
+    "notes": "Low-complexity filtering drops reads based on entropy/polyN/polyX signals."
+  },
+  "outputs": {
+    "emits_fastq": true,
+    "kind": "SingleEnd"
+  },
+  "retention": {
+    "definition": "reads_out / reads_in; bases_out / bases_in",
+    "may_drop": [
+      "reads",
+      "bases"
+    ],
+    "may_drop_reads": true,
+    "must_preserve_pairing": true,
+    "preserves": [
+      "read_order",
+      "pairing_metadata"
+    ],
+    "units": "reads,bases"
+  },
+  "schema_version": "bijux.stage_contract.v1",
+  "stage_id": "fastq.low_complexity",
+  "tool_ids": [
+    "dustmasker",
+    "prinseq",
+    "bbduk"
+  ]
+}
