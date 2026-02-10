@@ -4,6 +4,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
+use bijux_dna_domain_compiler::{validate_domain, ValidateOptions};
 use bijux_dna_api::v1::api::run::{load_manifests, load_profile, resolve_run_base_dir};
 use bijux_dna_api::v1::api::run::{CategorizedError, ErrorCategory};
 use clap::Parser;
@@ -58,6 +59,9 @@ pub fn run_with_cli(cli: &cli::Cli, cwd: &Path) -> Result<()> {
     if let cli::RootCommand::Registry { command } = &cli.command {
         return handle_registry_root(command, cwd);
     }
+    if let cli::RootCommand::Domain { command } = &cli.command {
+        return handle_domain_root(command, cwd);
+    }
     if let cli::RootCommand::Lab { command } = &cli.command {
         return handle_lab_root(command, cwd);
     }
@@ -65,6 +69,7 @@ pub fn run_with_cli(cli: &cli::Cli, cwd: &Path) -> Result<()> {
         cli::RootCommand::Dna { command } => command,
         cli::RootCommand::Environment { .. }
         | cli::RootCommand::Registry { .. }
+        | cli::RootCommand::Domain { .. }
         | cli::RootCommand::Lab { .. } => {
             unreachable!("handled above")
         }
@@ -225,6 +230,20 @@ fn handle_lab_root(command: &cli::LabCommand, cwd: &Path) -> Result<()> {
                 }
             }
         },
+    }
+    Ok(())
+}
+
+fn handle_domain_root(command: &cli::DomainCommand, cwd: &Path) -> Result<()> {
+    match command {
+        cli::DomainCommand::Validate { domain_dir } => {
+            let path = if domain_dir.is_absolute() {
+                domain_dir.clone()
+            } else {
+                cwd.join(domain_dir)
+            };
+            validate_domain(&ValidateOptions { domain_dir: path })?;
+        }
     }
     Ok(())
 }

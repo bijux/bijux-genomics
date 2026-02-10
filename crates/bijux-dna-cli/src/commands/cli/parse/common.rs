@@ -35,6 +35,10 @@ pub enum RootCommand {
         #[command(subcommand)]
         command: RegistryCommand,
     },
+    Domain {
+        #[command(subcommand)]
+        command: DomainCommand,
+    },
     Lab {
         #[command(subcommand)]
         command: LabCommand,
@@ -198,6 +202,14 @@ pub enum RegistryCommand {
     },
     Stages,
     Show { id: String },
+}
+
+#[derive(Debug, Subcommand)]
+pub enum DomainCommand {
+    Validate {
+        #[arg(long, default_value = "domain")]
+        domain_dir: PathBuf,
+    },
 }
 
 #[derive(Debug, Args)]

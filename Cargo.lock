@@ -247,6 +247,7 @@ dependencies = [
  "anyhow",
  "bijux-dna-api",
  "bijux-dna-core",
+ "bijux-dna-domain-compiler",
  "bijux-dna-policies",
  "clap",
  "gag",
@@ -389,6 +390,16 @@ dependencies = [
  "serde",
  "serde_json",
  "walkdir",
+]
+
+[[package]]
+name = "bijux-dna-domain-compiler"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bijux-dna-infra",
+ "clap",
+ "serde",
 ]
 
 [[package]]
