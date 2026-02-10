@@ -79,6 +79,43 @@ pub mod determinism {
     }
 }
 
+pub mod temp {
+    use std::path::{Path, PathBuf};
+
+    use tempfile::TempDir;
+
+    fn test_tmp_root() -> Option<PathBuf> {
+        std::env::var("TEST_TMP_DIR").ok().map(PathBuf::from)
+    }
+
+    pub fn tempdir_for(test_name: &str) -> TempDir {
+        let prefix = format!("bijux-dna-{test_name}-");
+        if let Some(root) = test_tmp_root() {
+            if std::fs::create_dir_all(&root).is_ok() {
+                return tempfile::Builder::new()
+                    .prefix(&prefix)
+                    .tempdir_in(&root)
+                    .unwrap_or_else(|err| panic!("tempdir_in {}: {err}", root.display()));
+            }
+        }
+        tempfile::Builder::new()
+            .prefix(&prefix)
+            .tempdir()
+            .unwrap_or_else(|err| panic!("tempdir: {err}"))
+    }
+
+    pub fn temp_path_for(test_name: &str) -> PathBuf {
+        tempdir_for(test_name).keep()
+    }
+
+    pub fn resolve_under(path: impl AsRef<Path>) -> PathBuf {
+        if let Some(root) = test_tmp_root() {
+            return root.join(path);
+        }
+        std::env::temp_dir().join(path)
+    }
+}
+
 pub mod snapshots {
     use serde_json::Value;
     use std::env;
@@ -346,6 +383,7 @@ pub mod snapshots {
 
 pub use determinism::{assert_json_stable, assert_stable_ordering, strip_timestamp_fields};
 pub use fixtures::{assert_json_schema_like, load_fixture_json, load_fixture_text};
+pub use temp::{resolve_under, temp_path_for, tempdir_for};
 pub use snapshots::{
     install_snapshot_env, sanitize_snapshot_json, sanitize_snapshot_text, snapshot_name,
     snapshot_normalize_json, snapshot_normalize_text, stable_json,

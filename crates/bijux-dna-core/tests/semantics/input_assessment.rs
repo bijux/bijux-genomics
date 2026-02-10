@@ -6,7 +6,10 @@ use bijux_dna_core::prelude::input_assessment::{
 };
 
 fn temp_dir() -> Result<PathBuf> {
-    let base = std::env::temp_dir().join(format!("bijux-dna-core-test-{}", uuid::Uuid::new_v4()));
+    let base = tempfile::Builder::new()
+        .prefix("bijux-dna-core-test-")
+        .tempdir()?
+        .keep();
     bijux_dna_infra::ensure_dir(&base)?;
     Ok(base)
 }

@@ -12,7 +12,6 @@ use bijux_dna_domain_fastq::{
 };
 use bijux_dna_domain_fastq::{BenchCorpus, BenchCorpusId, BenchDataset};
 use rusqlite::{params, Connection};
-use std::time::{SystemTime, UNIX_EPOCH};
 
 fn create_bench_db(
     path: &PathBuf,
@@ -70,12 +69,8 @@ fn create_bench_db(
 
 #[test]
 fn default_route_selects_tools_deterministically() -> Result<(), Box<dyn std::error::Error>> {
-    let stamp = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .unwrap_or_default()
-        .as_nanos();
-    let temp_root = std::env::temp_dir().join(format!("bijux-dna-select-{stamp}"));
-    bijux_dna_infra::ensure_dir(&temp_root)?;
+    let temp = bijux_dna_testkit::tempdir_for("analyze-select-fastq");
+    let temp_root = temp.path().to_path_buf();
 
     let corpus = BenchCorpus::new(
         BenchCorpusId::Fastq5Set,
