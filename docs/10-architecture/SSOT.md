@@ -19,6 +19,12 @@ Prevents duplicated semantics and inconsistent identifiers.
 - ID types in `bijux-dna-core`.
 - Stage specs in `bijux-dna-stages-*`.
 - Metrics definitions in domain crates.
+- Domain metadata is authored in `domain/**`; generated config views are produced by `bijux-dna-domain-compiler`.
+- Generated config scope is fixed to:
+  - `configs/tool_registry.toml`
+  - `configs/stages.toml`
+  - `configs/images.toml`
+- Generated files must carry `GENERATED - DO NOT EDIT` headers with source commit hash and are verified in CI.
 
 ## Examples
 - `StageId` is a typed ID defined only in core.
