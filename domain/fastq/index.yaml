@@ -333,3 +333,57 @@ stage_authenticity_thresholds:
   fastq.merge: { authenticity_score: { warn: "<=1.0", fail: "<=0.0" } }
   fastq.correct: { authenticity_score: { warn: "<=1.0", fail: "<=0.0" } }
   fastq.umi: { authenticity_score: { warn: "<=1.0", fail: "<=0.0" } }
+stage_duplication_thresholds:
+  fastq.prepare_reference: { duplication_rate: { warn: ">=0.0", fail: ">=1.0" } }
+  fastq.detect_adapters: { duplication_rate: { warn: ">=0.7", fail: ">=0.9" } }
+  fastq.trim: { duplication_rate: { warn: ">=0.7", fail: ">=0.9" } }
+  fastq.filter: { duplication_rate: { warn: ">=0.7", fail: ">=0.9" } }
+  fastq.validate_pre: { duplication_rate: { warn: ">=0.7", fail: ">=0.9" } }
+  fastq.stats_neutral: { duplication_rate: { warn: ">=0.7", fail: ">=0.9" } }
+  fastq.rrna: { duplication_rate: { warn: ">=0.7", fail: ">=0.9" } }
+  fastq.qc_post: { duplication_rate: { warn: ">=0.7", fail: ">=0.9" } }
+  fastq.screen: { duplication_rate: { warn: ">=0.7", fail: ">=0.9" } }
+  fastq.merge: { duplication_rate: { warn: ">=0.7", fail: ">=0.9" } }
+  fastq.correct: { duplication_rate: { warn: ">=0.7", fail: ">=0.9" } }
+  fastq.umi: { duplication_rate: { warn: ">=0.7", fail: ">=0.9" } }
+stage_coverage_sufficiency:
+  fastq.prepare_reference: ["not_applicable"]
+  fastq.detect_adapters: ["not_applicable"]
+  fastq.trim: ["not_applicable"]
+  fastq.filter: ["not_applicable"]
+  fastq.validate_pre: ["not_applicable"]
+  fastq.stats_neutral: ["not_applicable"]
+  fastq.rrna: ["not_applicable"]
+  fastq.qc_post: ["not_applicable"]
+  fastq.screen: ["not_applicable"]
+  fastq.merge: ["not_applicable"]
+  fastq.correct: ["not_applicable"]
+  fastq.umi: ["not_applicable"]
+stage_sex_kinship_sufficiency:
+  fastq.prepare_reference: ["not_applicable"]
+  fastq.detect_adapters: ["not_applicable"]
+  fastq.trim: ["not_applicable"]
+  fastq.filter: ["not_applicable"]
+  fastq.validate_pre: ["not_applicable"]
+  fastq.stats_neutral: ["not_applicable"]
+  fastq.rrna: ["not_applicable"]
+  fastq.qc_post: ["not_applicable"]
+  fastq.screen: ["not_applicable"]
+  fastq.merge: ["not_applicable"]
+  fastq.correct: ["not_applicable"]
+  fastq.umi: ["not_applicable"]
+benchmark_scenarios:
+  trim_fairness:
+    stage_id: "fastq.trim"
+    description: "Compare trim tools on identical raw FASTQ pairs and identical adapter bank."
+    fairness_rules:
+      - "same_input_hash"
+      - "same_previous_stage_defaults"
+      - "same_dataset_class"
+  screen_fairness:
+    stage_id: "fastq.screen"
+    description: "Compare classifiers on identical filtered inputs and fixed DB metadata."
+    fairness_rules:
+      - "same_input_hash"
+      - "same_previous_stage_defaults"
+      - "same_contamination_db_hash"

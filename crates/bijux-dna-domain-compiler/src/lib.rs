@@ -163,6 +163,14 @@ struct DomainIndex {
     stage_contamination_thresholds: BTreeMap<String, BTreeMap<String, ThresholdBand>>,
     #[serde(default)]
     stage_authenticity_thresholds: BTreeMap<String, BTreeMap<String, ThresholdBand>>,
+    #[serde(default)]
+    stage_duplication_thresholds: BTreeMap<String, BTreeMap<String, ThresholdBand>>,
+    #[serde(default)]
+    stage_coverage_sufficiency: BTreeMap<String, Vec<String>>,
+    #[serde(default)]
+    stage_sex_kinship_sufficiency: BTreeMap<String, Vec<String>>,
+    #[serde(default)]
+    benchmark_scenarios: BTreeMap<String, BenchmarkScenario>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Default)]
@@ -181,6 +189,16 @@ struct ThresholdBand {
     warn: String,
     #[serde(default)]
     fail: String,
+}
+
+#[derive(Debug, Deserialize, Serialize, Default)]
+struct BenchmarkScenario {
+    #[serde(default)]
+    stage_id: String,
+    #[serde(default)]
+    description: String,
+    #[serde(default)]
+    fairness_rules: Vec<String>,
 }
 
 #[derive(Debug, Deserialize, Default)]
@@ -845,6 +863,37 @@ fn collect_domain_data(
                     "index stage_authenticity_thresholds for {stage_id} must contain non-empty warn/fail bands"
                 ));
             }
+            let duplication = index
+                .stage_duplication_thresholds
+                .get(stage_id)
+                .ok_or_else(|| anyhow!("index missing stage_duplication_thresholds for stage {stage_id}"))?;
+            if duplication.is_empty()
+                || duplication
+                    .values()
+                    .any(|band| band.warn.trim().is_empty() || band.fail.trim().is_empty())
+            {
+                return Err(anyhow!(
+                    "index stage_duplication_thresholds for {stage_id} must contain non-empty warn/fail bands"
+                ));
+            }
+            let coverage_logic = index
+                .stage_coverage_sufficiency
+                .get(stage_id)
+                .ok_or_else(|| anyhow!("index missing stage_coverage_sufficiency for stage {stage_id}"))?;
+            if coverage_logic.is_empty() {
+                return Err(anyhow!(
+                    "index stage_coverage_sufficiency for {stage_id} must not be empty"
+                ));
+            }
+            let sex_kinship_logic = index
+                .stage_sex_kinship_sufficiency
+                .get(stage_id)
+                .ok_or_else(|| anyhow!("index missing stage_sex_kinship_sufficiency for stage {stage_id}"))?;
+            if sex_kinship_logic.is_empty() {
+                return Err(anyhow!(
+                    "index stage_sex_kinship_sufficiency for {stage_id} must not be empty"
+                ));
+            }
             stage_defaults.insert(stage_id.clone(), default_tool.clone());
             stage_default_rationale.insert(stage_id.clone(), rationale);
         }
@@ -868,6 +917,25 @@ fn collect_domain_data(
                         "index pipeline {pipeline_name} references unknown stage {s}"
                     ));
                 }
+            }
+        }
+        if index.benchmark_scenarios.is_empty() {
+            return Err(anyhow!("index missing benchmark_scenarios"));
+        }
+        for (scenario_id, scenario) in &index.benchmark_scenarios {
+            if scenario.stage_id.trim().is_empty()
+                || scenario.description.trim().is_empty()
+                || scenario.fairness_rules.is_empty()
+            {
+                return Err(anyhow!(
+                    "index benchmark scenario {scenario_id} missing stage/description/fairness_rules"
+                ));
+            }
+            if !index.stage_ids.contains(&scenario.stage_id) {
+                return Err(anyhow!(
+                    "index benchmark scenario {scenario_id} references unknown stage {}",
+                    scenario.stage_id
+                ));
             }
         }
     }
@@ -1057,7 +1125,11 @@ fn build_stages_toml(
     let mut contamination_thresholds_map =
         BTreeMap::<String, BTreeMap<String, ThresholdBand>>::new();
     let mut authenticity_thresholds_map = BTreeMap::<String, BTreeMap<String, ThresholdBand>>::new();
+    let mut duplication_thresholds_map = BTreeMap::<String, BTreeMap<String, ThresholdBand>>::new();
+    let mut coverage_sufficiency_map = BTreeMap::<String, Vec<String>>::new();
+    let mut sex_kinship_sufficiency_map = BTreeMap::<String, Vec<String>>::new();
     let mut pipelines = Vec::<(String, Vec<String>)>::new();
+    let mut benchmark_scenarios = Vec::<(String, BenchmarkScenario)>::new();
     for dom in ["fastq", "bam"] {
         let index_path = domain_dir.join(dom).join("index.yaml");
         if !index_path.exists() {
@@ -1088,8 +1160,20 @@ fn build_stages_toml(
             for (k, v) in index.stage_authenticity_thresholds {
                 authenticity_thresholds_map.insert(k, v);
             }
+            for (k, v) in index.stage_duplication_thresholds {
+                duplication_thresholds_map.insert(k, v);
+            }
+            for (k, v) in index.stage_coverage_sufficiency {
+                coverage_sufficiency_map.insert(k, v);
+            }
+            for (k, v) in index.stage_sex_kinship_sufficiency {
+                sex_kinship_sufficiency_map.insert(k, v);
+            }
             for (pipeline, stages) in index.pipeline_compositions {
                 pipelines.push((format!("{dom}.{pipeline}"), stages));
+            }
+            for (scenario_id, scenario) in index.benchmark_scenarios {
+                benchmark_scenarios.push((format!("{dom}.{scenario_id}"), scenario));
             }
         }
     }
@@ -1154,6 +1238,27 @@ fn build_stages_toml(
                 encode_threshold_map(auth)
             );
         }
+        if let Some(dup) = duplication_thresholds_map.get(stage_id) {
+            let _ = writeln!(
+                stages_toml,
+                "duplication_thresholds = {}",
+                encode_threshold_map(dup)
+            );
+        }
+        if let Some(coverage_logic) = coverage_sufficiency_map.get(stage_id) {
+            let _ = writeln!(
+                stages_toml,
+                "coverage_sufficiency = {}",
+                toml_array(coverage_logic)
+            );
+        }
+        if let Some(sex_kinship_logic) = sex_kinship_sufficiency_map.get(stage_id) {
+            let _ = writeln!(
+                stages_toml,
+                "sex_kinship_sufficiency = {}",
+                toml_array(sex_kinship_logic)
+            );
+        }
         let _ = writeln!(stages_toml, "tools = {}\n", toml_array(&v));
     }
     pipelines.sort_by(|a, b| a.0.cmp(&b.0));
@@ -1161,6 +1266,23 @@ fn build_stages_toml(
         let _ = writeln!(stages_toml, "[[pipelines]]");
         let _ = writeln!(stages_toml, "id = \"{}\"", pipeline_id);
         let _ = writeln!(stages_toml, "stages = {}", toml_array(&stages));
+        stages_toml.push('\n');
+    }
+    benchmark_scenarios.sort_by(|a, b| a.0.cmp(&b.0));
+    for (scenario_id, scenario) in benchmark_scenarios {
+        let _ = writeln!(stages_toml, "[[benchmark_scenarios]]");
+        let _ = writeln!(stages_toml, "id = \"{}\"", scenario_id);
+        let _ = writeln!(stages_toml, "stage_id = \"{}\"", scenario.stage_id);
+        let _ = writeln!(
+            stages_toml,
+            "description = \"{}\"",
+            scenario.description.replace('"', "'")
+        );
+        let _ = writeln!(
+            stages_toml,
+            "fairness_rules = {}",
+            toml_array(&scenario.fairness_rules)
+        );
         stages_toml.push('\n');
     }
     stages_toml
@@ -2034,6 +2156,61 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                     stage_id
                 );
             }
+            let duplication = index
+                .stage_duplication_thresholds
+                .get(stage_id)
+                .ok_or_else(|| {
+                    anyhow!(
+                        "{} stage {} missing stage_duplication_thresholds entry",
+                        index_path.display(),
+                        stage_id
+                    )
+                })?;
+            if duplication.is_empty()
+                || duplication
+                    .values()
+                    .any(|band| band.warn.trim().is_empty() || band.fail.trim().is_empty())
+            {
+                bail!(
+                    "{} stage {} has invalid stage_duplication_thresholds bands",
+                    index_path.display(),
+                    stage_id
+                );
+            }
+            let coverage_logic = index
+                .stage_coverage_sufficiency
+                .get(stage_id)
+                .ok_or_else(|| {
+                    anyhow!(
+                        "{} stage {} missing stage_coverage_sufficiency entry",
+                        index_path.display(),
+                        stage_id
+                    )
+                })?;
+            if coverage_logic.is_empty() {
+                bail!(
+                    "{} stage {} has empty stage_coverage_sufficiency",
+                    index_path.display(),
+                    stage_id
+                );
+            }
+            let sex_kinship_logic = index
+                .stage_sex_kinship_sufficiency
+                .get(stage_id)
+                .ok_or_else(|| {
+                    anyhow!(
+                        "{} stage {} missing stage_sex_kinship_sufficiency entry",
+                        index_path.display(),
+                        stage_id
+                    )
+                })?;
+            if sex_kinship_logic.is_empty() {
+                bail!(
+                    "{} stage {} has empty stage_sex_kinship_sufficiency",
+                    index_path.display(),
+                    stage_id
+                );
+            }
             let settings_map = index
                 .stage_default_settings
                 .get(stage_id)
@@ -2186,6 +2363,29 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                         stage
                     );
                 }
+            }
+        }
+        if index.benchmark_scenarios.is_empty() {
+            bail!("{} missing benchmark_scenarios", index_path.display());
+        }
+        for (scenario_id, scenario) in &index.benchmark_scenarios {
+            if scenario.stage_id.trim().is_empty()
+                || scenario.description.trim().is_empty()
+                || scenario.fairness_rules.is_empty()
+            {
+                bail!(
+                    "{} benchmark scenario {} missing stage/description/fairness_rules",
+                    index_path.display(),
+                    scenario_id
+                );
+            }
+            if !index.stage_ids.contains(&scenario.stage_id) {
+                bail!(
+                    "{} benchmark scenario {} references unknown stage {}",
+                    index_path.display(),
+                    scenario_id,
+                    scenario.stage_id
+                );
             }
         }
         for (stage_id, refs_after) in &index.stage_ordering_constraints {

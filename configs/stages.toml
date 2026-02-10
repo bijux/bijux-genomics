@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 432524a8a8467daf80ad794323a3491359a7bb27
+# source_commit: c4d40b322a77d60609cae5ecdfbf3177b42090fe
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 
@@ -17,6 +17,9 @@ output_size_estimates_mb = ["bam:5000"]
 qc_thresholds = ["alignment_rate|warn=<0.5|fail=<0.2"]
 contamination_thresholds = ["contamination_estimate|warn=>0.05|fail=>0.2"]
 authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
+duplication_thresholds = ["duplication_rate|warn=>=0.6|fail=>=0.8"]
+coverage_sufficiency = ["mapped_reads>=100000"]
+sex_kinship_sufficiency = ["not_applicable"]
 tools = ["bowtie2", "bwa"]
 
 [[stages]]
@@ -33,11 +36,14 @@ output_size_estimates_mb = ["authenticity_report:8"]
 qc_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
 contamination_thresholds = ["contamination_estimate|warn=>0.05|fail=>0.2"]
 authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
+duplication_thresholds = ["duplication_rate|warn=>=0.6|fail=>=0.8"]
+coverage_sufficiency = ["pmd_enriched_reads>=500"]
+sex_kinship_sufficiency = ["not_applicable"]
 tools = ["authenticct", "damageprofiler", "pmdtools"]
 
 [[stages]]
 id = "bam.bias_mitigation"
-status = "supported"
+status = "planned"
 output_kinds = ["json"]
 ordering_after = []
 prerequisites = []
@@ -45,7 +51,7 @@ tools = []
 
 [[stages]]
 id = "bam.complexity"
-status = "supported"
+status = "planned"
 output_kinds = ["json"]
 ordering_after = []
 prerequisites = []
@@ -65,6 +71,9 @@ output_size_estimates_mb = ["contamination_estimate:5", "contammix_report:8"]
 qc_thresholds = ["contamination_estimate|warn=>0.05|fail=>0.2"]
 contamination_thresholds = ["contamination_estimate|warn=>0.05|fail=>0.2"]
 authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
+duplication_thresholds = ["duplication_rate|warn=>=0.6|fail=>=0.8"]
+coverage_sufficiency = ["panel_or_mt_ref_available=true"]
+sex_kinship_sufficiency = ["not_applicable"]
 tools = ["contammix", "schmutzi", "verifybamid2"]
 
 [[stages]]
@@ -81,6 +90,9 @@ output_size_estimates_mb = ["coverage_report:30"]
 qc_thresholds = ["mean_coverage|warn=<0.5|fail=<0.1"]
 contamination_thresholds = ["contamination_estimate|warn=>0.05|fail=>0.2"]
 authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
+duplication_thresholds = ["duplication_rate|warn=>=0.6|fail=>=0.8"]
+coverage_sufficiency = ["mean_coverage>=0.5", "breadth_1x>=0.6"]
+sex_kinship_sufficiency = ["not_applicable"]
 tools = ["mosdepth", "samtools"]
 
 [[stages]]
@@ -97,6 +109,9 @@ output_size_estimates_mb = ["damage_report:10"]
 qc_thresholds = ["ct_5prime_rate|warn=<0.02|fail=<0.005"]
 contamination_thresholds = ["contamination_estimate|warn=>0.05|fail=>0.2"]
 authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
+duplication_thresholds = ["duplication_rate|warn=>=0.6|fail=>=0.8"]
+coverage_sufficiency = ["coverage_at_damage_sites>=0.2"]
+sex_kinship_sufficiency = ["not_applicable"]
 tools = ["addeam", "damageprofiler", "mapdamage2", "ngsbriggs", "pmdtools", "pydamage"]
 
 [[stages]]
@@ -113,11 +128,14 @@ output_size_estimates_mb = ["filtered_bam:4200"]
 qc_thresholds = ["reads_retained_fraction|warn=<0.2|fail=<0.1"]
 contamination_thresholds = ["contamination_estimate|warn=>0.05|fail=>0.2"]
 authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
+duplication_thresholds = ["duplication_rate|warn=>=0.6|fail=>=0.8"]
+coverage_sufficiency = ["reads_retained_fraction>=0.1"]
+sex_kinship_sufficiency = ["not_applicable"]
 tools = ["bamtools", "bedtools", "samtools"]
 
 [[stages]]
 id = "bam.genotyping"
-status = "supported"
+status = "planned"
 output_kinds = ["json"]
 ordering_after = []
 prerequisites = []
@@ -125,7 +143,7 @@ tools = []
 
 [[stages]]
 id = "bam.haplogroups"
-status = "supported"
+status = "planned"
 output_kinds = ["json"]
 ordering_after = []
 prerequisites = []
@@ -145,11 +163,14 @@ output_size_estimates_mb = ["kinship_report:12"]
 qc_thresholds = ["kinship_coefficient|warn=<0.05|fail=<0.0"]
 contamination_thresholds = ["contamination_estimate|warn=>0.05|fail=>0.2"]
 authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
+duplication_thresholds = ["duplication_rate|warn=>=0.6|fail=>=0.8"]
+coverage_sufficiency = ["shared_markers>=5000"]
+sex_kinship_sufficiency = ["kinship_informative_markers>=5000", "panel_match=true"]
 tools = ["angsd", "king"]
 
 [[stages]]
 id = "bam.markdup"
-status = "supported"
+status = "planned"
 output_kinds = ["json"]
 ordering_after = []
 prerequisites = []
@@ -157,7 +178,7 @@ tools = ["picard"]
 
 [[stages]]
 id = "bam.qc_pre"
-status = "supported"
+status = "planned"
 output_kinds = ["json"]
 ordering_after = []
 prerequisites = []
@@ -165,7 +186,7 @@ tools = []
 
 [[stages]]
 id = "bam.recalibration"
-status = "supported"
+status = "planned"
 output_kinds = ["json"]
 ordering_after = []
 prerequisites = []
@@ -185,6 +206,9 @@ output_size_estimates_mb = ["sex_report:4"]
 qc_thresholds = ["sex_call_confidence|warn=<0.6|fail=<0.4"]
 contamination_thresholds = ["contamination_estimate|warn=>0.05|fail=>0.2"]
 authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
+duplication_thresholds = ["duplication_rate|warn=>=0.6|fail=>=0.8"]
+coverage_sufficiency = ["chrX_chrY_covered_sites>=1000"]
+sex_kinship_sufficiency = ["chrY_observed_sites>=100", "chrX_coverage_stable=true"]
 tools = ["angsd", "rxy", "yleaf"]
 
 [[stages]]
@@ -201,6 +225,9 @@ output_size_estimates_mb = ["bam_stats:5"]
 qc_thresholds = ["bam_validation_pass_rate|warn=<1.0|fail=<0.99"]
 contamination_thresholds = ["contamination_estimate|warn=>0.05|fail=>0.2"]
 authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
+duplication_thresholds = ["duplication_rate|warn=>=0.6|fail=>=0.8"]
+coverage_sufficiency = ["indexed_bam=true"]
+sex_kinship_sufficiency = ["not_applicable"]
 tools = ["bamtools", "bedtools", "samtools"]
 
 [[stages]]
@@ -217,6 +244,9 @@ output_size_estimates_mb = ["corrected_reads_r1:900", "corrected_reads_r2:900"]
 qc_thresholds = ["error_corrected_fraction|warn=<0.01|fail=<0.001"]
 contamination_thresholds = ["contamination_rate|warn=>=0.05|fail=>=0.2"]
 authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
+duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
+coverage_sufficiency = ["not_applicable"]
+sex_kinship_sufficiency = ["not_applicable"]
 tools = ["bayeshammer", "lighter", "musket", "rcorrector", "spades"]
 
 [[stages]]
@@ -233,6 +263,9 @@ output_size_estimates_mb = ["adapter_report:5"]
 qc_thresholds = ["adapter_detection_rate|warn=<0.01|fail=<0.001"]
 contamination_thresholds = ["contamination_rate|warn=>=0.0|fail=>=1.0"]
 authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
+duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
+coverage_sufficiency = ["not_applicable"]
+sex_kinship_sufficiency = ["not_applicable"]
 tools = ["fastp"]
 
 [[stages]]
@@ -249,6 +282,9 @@ output_size_estimates_mb = ["filter_report_json:10", "filtered_reads:1800"]
 qc_thresholds = ["reads_filtered_fraction|warn=>0.8|fail=>0.9"]
 contamination_thresholds = ["contamination_rate|warn=>=0.05|fail=>=0.2"]
 authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
+duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
+coverage_sufficiency = ["not_applicable"]
+sex_kinship_sufficiency = ["not_applicable"]
 tools = ["bbduk", "fastp", "prinseq", "seqkit"]
 
 [[stages]]
@@ -265,6 +301,9 @@ output_size_estimates_mb = ["merge_report:8", "merged_reads:1400"]
 qc_thresholds = ["merge_rate|warn=<0.15|fail=<0.05"]
 contamination_thresholds = ["contamination_rate|warn=>=0.05|fail=>=0.2"]
 authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
+duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
+coverage_sufficiency = ["not_applicable"]
+sex_kinship_sufficiency = ["not_applicable"]
 tools = ["bbmerge", "flash2", "leehom", "pear", "vsearch"]
 
 [[stages]]
@@ -281,11 +320,14 @@ output_size_estimates_mb = ["reference_index:5000"]
 qc_thresholds = ["index_build_exit_code|warn=!=0|fail=!=0"]
 contamination_thresholds = ["contamination_rate|warn=>=0.0|fail=>=1.0"]
 authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
+duplication_thresholds = ["duplication_rate|warn=>=0.0|fail=>=1.0"]
+coverage_sufficiency = ["not_applicable"]
+sex_kinship_sufficiency = ["not_applicable"]
 tools = ["samtools", "star"]
 
 [[stages]]
 id = "fastq.preprocess"
-status = "supported"
+status = "planned"
 output_kinds = ["fastq", "json"]
 ordering_after = []
 prerequisites = []
@@ -305,6 +347,9 @@ output_size_estimates_mb = ["qc_report_html:30", "qc_report_json:15"]
 qc_thresholds = ["qc_fail_count|warn=>0|fail=>5"]
 contamination_thresholds = ["contamination_rate|warn=>=0.05|fail=>=0.2"]
 authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
+duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
+coverage_sufficiency = ["not_applicable"]
+sex_kinship_sufficiency = ["not_applicable"]
 tools = ["fastqc", "multiqc", "qualimap", "samtools"]
 
 [[stages]]
@@ -321,6 +366,9 @@ output_size_estimates_mb = ["rrna_filtered_reads:1700"]
 qc_thresholds = ["rrna_removed_fraction|warn=<0.05|fail=<0.01"]
 contamination_thresholds = ["contamination_rate|warn=>=0.05|fail=>=0.2"]
 authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
+duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
+coverage_sufficiency = ["not_applicable"]
+sex_kinship_sufficiency = ["not_applicable"]
 tools = ["sortmerna"]
 
 [[stages]]
@@ -337,6 +385,9 @@ output_size_estimates_mb = ["abundance_report:5", "screen_report_tsv:25"]
 qc_thresholds = ["classified_read_fraction|warn=<0.1|fail=<0.01"]
 contamination_thresholds = ["contamination_rate|warn=>=0.05|fail=>=0.2"]
 authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
+duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
+coverage_sufficiency = ["not_applicable"]
+sex_kinship_sufficiency = ["not_applicable"]
 tools = ["bracken", "centrifuge", "fastq_screen", "kaiju", "kraken2", "krakenuniq", "metaphlan"]
 
 [[stages]]
@@ -353,6 +404,9 @@ output_size_estimates_mb = ["stats_json:2"]
 qc_thresholds = ["q30_fraction|warn=<0.6|fail=<0.4"]
 contamination_thresholds = ["contamination_rate|warn=>=0.05|fail=>=0.2"]
 authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
+duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
+coverage_sufficiency = ["not_applicable"]
+sex_kinship_sufficiency = ["not_applicable"]
 tools = ["seqfu", "seqkit", "seqkit_stats"]
 
 [[stages]]
@@ -369,6 +423,9 @@ output_size_estimates_mb = ["trim_report:10", "trimmed_reads:2000"]
 qc_thresholds = ["trimmed_read_fraction|warn=<0.4|fail=<0.2"]
 contamination_thresholds = ["contamination_rate|warn=>=0.05|fail=>=0.2"]
 authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
+duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
+coverage_sufficiency = ["not_applicable"]
+sex_kinship_sufficiency = ["not_applicable"]
 tools = ["adapterremoval", "alientrimmer", "atropos", "bbduk", "cutadapt", "fastp", "fastx_clipper", "leehom", "prinseq", "seqkit", "seqpurge", "skewer", "trim_galore", "trimmomatic"]
 
 [[stages]]
@@ -385,6 +442,9 @@ output_size_estimates_mb = ["dedup_reads_r1:700", "dedup_reads_r2:700"]
 qc_thresholds = ["umi_dedup_fraction|warn=<0.05|fail=<0.01"]
 contamination_thresholds = ["contamination_rate|warn=>=0.05|fail=>=0.2"]
 authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
+duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
+coverage_sufficiency = ["not_applicable"]
+sex_kinship_sufficiency = ["not_applicable"]
 tools = ["umi_tools"]
 
 [[stages]]
@@ -401,6 +461,9 @@ output_size_estimates_mb = ["scan_report:5"]
 qc_thresholds = ["format_validation_pass_rate|warn=<1.0|fail=<0.99"]
 contamination_thresholds = ["contamination_rate|warn=>=0.05|fail=>=0.2"]
 authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
+duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
+coverage_sufficiency = ["not_applicable"]
+sex_kinship_sufficiency = ["not_applicable"]
 tools = ["fastq-scan", "fastqc", "fastqvalidator", "fastqvalidator_official", "fqtools", "seqtk"]
 
 [[pipelines]]
@@ -410,4 +473,28 @@ stages = ["bam.align", "bam.validate", "bam.filter", "bam.damage", "bam.authenti
 [[pipelines]]
 id = "fastq.pre_hpc_best"
 stages = ["fastq.prepare_reference", "fastq.validate_pre", "fastq.detect_adapters", "fastq.trim", "fastq.filter", "fastq.merge", "fastq.stats_neutral", "fastq.qc_post", "fastq.screen"]
+
+[[benchmark_scenarios]]
+id = "bam.contamination_fairness"
+stage_id = "bam.contamination"
+description = "Compare contamination methods on identical BAM inputs and same panels/mt refs."
+fairness_rules = ["same_input_hash", "same_previous_stage_defaults", "same_contamination_db_hash"]
+
+[[benchmark_scenarios]]
+id = "bam.damage_fairness"
+stage_id = "bam.damage"
+description = "Compare damage tools on identical BAM inputs and identical preprocessing defaults."
+fairness_rules = ["same_input_hash", "same_previous_stage_defaults", "same_reference_bank_hash"]
+
+[[benchmark_scenarios]]
+id = "fastq.screen_fairness"
+stage_id = "fastq.screen"
+description = "Compare classifiers on identical filtered inputs and fixed DB metadata."
+fairness_rules = ["same_input_hash", "same_previous_stage_defaults", "same_contamination_db_hash"]
+
+[[benchmark_scenarios]]
+id = "fastq.trim_fairness"
+stage_id = "fastq.trim"
+description = "Compare trim tools on identical raw FASTQ pairs and identical adapter bank."
+fairness_rules = ["same_input_hash", "same_previous_stage_defaults", "same_dataset_class"]
 
