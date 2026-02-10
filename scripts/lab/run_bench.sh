@@ -31,13 +31,13 @@ echo "Corpus: ${CORPUS_ROOT}"
 echo "Output: ${OUTPUT_DIR}"
 
 echo "→ run FASTQ benchmark"
-cargo run --bin bijux -- bench fastq \
+cargo run --bin bijux-dna -- bench fastq \
   --runner "${RUNNER_KIND}" \
   --corpus-root "${CORPUS_ROOT}" \
   --out "${OUTPUT_DIR}"
 
 echo "→ run BAM benchmark"
-cargo run --bin bijux -- bench bam \
+cargo run --bin bijux-dna -- bench bam \
   --runner "${RUNNER_KIND}" \
   --corpus-root "${CORPUS_ROOT}" \
   --out "${OUTPUT_DIR}"
