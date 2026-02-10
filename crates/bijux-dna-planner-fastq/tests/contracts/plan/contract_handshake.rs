@@ -12,7 +12,8 @@ use bijux_dna_stage_contract::{default_edges_for_stages, ExecutionPlan, PlanVali
 
 fn tool_for_stage(stage: &str) -> ToolExecutionSpecV1 {
     let stage_id = StageId::new(stage);
-    let tool_id = default_tool_for_stage(&stage_id).unwrap_or_else(|| "fastp".to_string());
+    let tool_id = default_tool_for_stage(&stage_id)
+        .map_or_else(|| "fastp".to_string(), |tool| tool.to_string());
     ToolExecutionSpecV1 {
         tool_id: ToolId::new(tool_id),
         tool_version: "0.0.0".to_string(),

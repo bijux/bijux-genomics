@@ -1,4 +1,4 @@
-use bijux_dna_core::ids::{id_catalog, StageId};
+use bijux_dna_core::ids::{id_catalog, StageId, ToolId};
 use bijux_dna_domain_fastq::{
     STAGE_CORRECT, STAGE_DETECT_ADAPTERS, STAGE_FILTER, STAGE_MERGE, STAGE_PREPROCESS,
     STAGE_QC_POST, STAGE_SCREEN, STAGE_STATS_NEUTRAL, STAGE_TRIM, STAGE_UMI, STAGE_VALIDATE_PRE,
@@ -23,31 +23,31 @@ pub fn allowed_tools_for_stage(stage_id: &StageId) -> Vec<String> {
 }
 
 #[must_use]
-pub fn default_tool_for_stage(stage_id: &StageId) -> Option<String> {
+pub fn default_tool_for_stage(stage_id: &StageId) -> Option<ToolId> {
     if stage_id == &STAGE_PREPROCESS {
-        Some("planner".to_string())
+        Some(ToolId::from_static(id_catalog::TOOL_PLANNER))
     } else if stage_id.as_str() == STAGE_CORE_PREPARE_REFERENCE {
-        Some("samtools".to_string())
+        Some(ToolId::from_static(id_catalog::TOOL_SAMTOOLS))
     } else if stage_id == &STAGE_VALIDATE_PRE {
-        Some("fastqvalidator_official".to_string())
+        Some(ToolId::from_static(id_catalog::TOOL_FASTQVALIDATOR_OFFICIAL))
     } else if stage_id == &STAGE_DETECT_ADAPTERS {
-        Some("fastqc".to_string())
+        Some(ToolId::from_static(id_catalog::TOOL_FASTQC))
     } else if stage_id == &STAGE_TRIM {
-        Some("fastp".to_string())
+        Some(ToolId::from_static(id_catalog::TOOL_FASTP))
     } else if stage_id == &STAGE_FILTER {
-        Some("seqkit".to_string())
+        Some(ToolId::from_static(id_catalog::TOOL_SEQKIT))
     } else if stage_id == &STAGE_STATS_NEUTRAL {
-        Some("seqkit_stats".to_string())
+        Some(ToolId::from_static(id_catalog::TOOL_SEQKIT_STATS))
     } else if stage_id == &STAGE_QC_POST {
-        Some("multiqc".to_string())
+        Some(ToolId::from_static(id_catalog::TOOL_MULTIQC))
     } else if stage_id == &STAGE_MERGE {
-        Some("vsearch".to_string())
+        Some(ToolId::from_static(id_catalog::TOOL_VSEARCH))
     } else if stage_id == &STAGE_CORRECT {
-        Some("rcorrector".to_string())
+        Some(ToolId::from_static(id_catalog::TOOL_RCORRECTOR))
     } else if stage_id == &STAGE_UMI {
-        Some("umi_tools".to_string())
+        Some(ToolId::from_static(id_catalog::TOOL_UMI_TOOLS))
     } else if stage_id == &STAGE_SCREEN {
-        Some("kraken2".to_string())
+        Some(ToolId::from_static(id_catalog::TOOL_KRAKEN2))
     } else {
         None
     }

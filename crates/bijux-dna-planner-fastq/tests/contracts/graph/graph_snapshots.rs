@@ -17,7 +17,8 @@ fn snapshot_name(group: &str, name: &str) -> String {
 
 fn tool_for_stage(stage: &str) -> ToolExecutionSpecV1 {
     let stage_id = bijux_dna_core::ids::StageId::new(stage);
-    let tool_id = default_tool_for_stage(&stage_id).unwrap_or_else(|| "planner".to_string());
+    let tool_id = default_tool_for_stage(&stage_id)
+        .map_or_else(|| "planner".to_string(), |tool| tool.to_string());
     ToolExecutionSpecV1 {
         tool_id: ToolId::new(tool_id),
         tool_version: "0.0.0".to_string(),
