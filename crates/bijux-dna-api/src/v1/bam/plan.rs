@@ -32,8 +32,8 @@ fn stage_status(stage_id: &str) -> Option<String> {
 fn enforce_stage_status(stage_id: &str, allow_planned: bool) -> Result<()> {
     match stage_status(stage_id).as_deref() {
         Some("supported") | None => Ok(()),
-        Some("planned") | Some("out_of_scope") if allow_planned => Ok(()),
-        Some("planned") | Some("out_of_scope") => Err(anyhow!(
+        Some("planned" | "out_of_scope") if allow_planned => Ok(()),
+        Some("planned" | "out_of_scope") => Err(anyhow!(
             "stage {stage_id} is not active in current scope; re-run with --allow-planned to override"
         )),
         Some(other) => Err(anyhow!("stage {stage_id} has unknown status {other}")),

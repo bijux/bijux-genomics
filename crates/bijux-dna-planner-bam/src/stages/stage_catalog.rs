@@ -3,7 +3,6 @@ use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_core::ids::StageId;
 use bijux_dna_domain_bam::{contract_for_stage, BamStage, StageSpec};
 
-#[must_use]
 pub fn stage_registry(registry: &ToolRegistry) -> Result<Vec<StageSpec>> {
     let mut stage_ids = registry
         .stages()

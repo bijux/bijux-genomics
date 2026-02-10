@@ -51,7 +51,7 @@ fn tool_specs_for_profile(profile_id: &str) -> BTreeMap<String, ToolExecutionSpe
     for stage_id in bijux_dna_planner_bam::pipeline_id_catalog(profile_id) {
         let stage = BamStage::try_from(stage_id.as_str()).expect("stage id");
         let tool_id = bijux_dna_planner_bam::stage_api::default_tool_for_stage(stage);
-        specs.insert(stage_id, dummy_tool(&tool_id));
+        specs.insert(stage_id, dummy_tool(tool_id.as_str()));
     }
     specs
 }
@@ -61,7 +61,7 @@ fn bam_plan_snapshot() {
     let _guard = snapshot_settings(None).bind_to_scope();
     let fixtures = Path::new("tests/fixtures/plan_inputs/default");
     let tool_id = bijux_dna_planner_bam::stage_api::default_tool_for_stage(BamStage::Align);
-    let tool_align = dummy_tool(&tool_id);
+    let tool_align = dummy_tool(tool_id.as_str());
     let stage_plan = plan_stage(StagePlanRequest {
         stage_id: BamStage::Align.as_str(),
         tool: &tool_align,

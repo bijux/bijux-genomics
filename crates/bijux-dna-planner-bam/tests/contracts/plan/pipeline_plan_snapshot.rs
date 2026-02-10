@@ -39,7 +39,7 @@ fn tool_specs_for_profile(profile_id: &str) -> BTreeMap<String, ToolExecutionSpe
     for stage_id in bijux_dna_planner_bam::pipeline_id_catalog(profile_id) {
         let stage = BamStage::try_from(stage_id.as_str()).expect("stage id");
         let tool_id = bijux_dna_planner_bam::stage_api::default_tool_for_stage(stage);
-        specs.insert(stage_id, dummy_tool(&tool_id));
+        specs.insert(stage_id, dummy_tool(tool_id.as_str()));
     }
     specs
 }

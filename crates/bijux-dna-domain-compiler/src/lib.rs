@@ -296,10 +296,10 @@ fn load_domain_tools(
                 stage_ids: tool.stage_ids,
                 default_version: tool.default_version,
                 upstream: tool.upstream,
-                pin_strategy: if !tool.pin_strategy.is_empty() {
-                    tool.pin_strategy
-                } else {
+                pin_strategy: if tool.pin_strategy.is_empty() {
                     tool.versioning_strategy
+                } else {
+                    tool.pin_strategy
                 },
                 version_cmd: tool.version_cmd,
                 help_cmd: tool.help_cmd,
@@ -329,9 +329,9 @@ fn load_domain_stages(
     let stages_dir = domain_dir.join(domain).join("stages");
     for stage_id in &index.stage_ids {
         let stage_suffix = stage_id
+            .as_str()
             .split_once('.')
-            .map(|(_, suffix)| suffix)
-            .unwrap_or(stage_id);
+            .map_or(stage_id.as_str(), |(_, suffix)| suffix);
         let stage_file = stage_suffix.replace('.', "_");
         let path = stages_dir.join(format!("{stage_file}.yaml"));
         if !path.exists() {
@@ -423,9 +423,7 @@ fn collect_domain_data(
                 .is_some_and(|set| set.contains(default_tool))
             {
                 return Err(anyhow!(
-                    "index active default {} for {} is not compatible",
-                    default_tool,
-                    stage_id
+                    "index active default {default_tool} for {stage_id} is not compatible"
                 ));
             }
             stage_defaults.insert(stage_id.clone(), default_tool.clone());
@@ -612,6 +610,12 @@ fn build_stages_toml(
     stages_toml
 }
 
+/// Compile generated config views from authored domain sources.
+///
+/// # Errors
+///
+/// Returns an error when domain inputs are invalid, generated outputs cannot be
+/// written, or scope invariants are violated.
 pub fn compile_domain_configs(options: &CompileOptions) -> Result<()> {
     let (tools, stage_to_tools, stage_planned, stage_defaults, stage_statuses) =
         collect_domain_data(&options.domain_dir, &options.scope)?;
@@ -667,6 +671,13 @@ fn require_exists(path: &Path) -> Result<()> {
     Ok(())
 }
 
+/// Validate authored domain files and cross-domain invariants.
+///
+/// # Errors
+///
+/// Returns an error when required files are missing, schemas/invariants are
+/// violated, or domain catalogs are inconsistent.
+#[allow(clippy::too_many_lines)]
 pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
     for rel in [
         "fastq/stages/_schema.yaml",
@@ -782,32 +793,20 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
         .collect::<BTreeSet<_>>();
     for stage_id in stage_ids.keys() {
         if stage_id.starts_with("fastq.") && !fastq_canonical.contains(stage_id) {
-            bail!(
-                "domain stage_id {} is not declared in fastq stage catalog",
-                stage_id
-            );
+            bail!("domain stage_id {stage_id} is not declared in fastq stage catalog");
         }
         if stage_id.starts_with("bam.") && !bam_canonical.contains(stage_id) {
-            bail!(
-                "domain stage_id {} is not declared in bam stage catalog",
-                stage_id
-            );
+            bail!("domain stage_id {stage_id} is not declared in bam stage catalog");
         }
     }
     for stage_id in &fastq_canonical {
         if !stage_ids.contains_key(stage_id) {
-            bail!(
-                "fastq stage catalog contains {} but domain yaml is missing it",
-                stage_id
-            );
+            bail!("fastq stage catalog contains {stage_id} but domain yaml is missing it");
         }
     }
     for stage_id in &bam_canonical {
         if !stage_ids.contains_key(stage_id) {
-            bail!(
-                "bam stage catalog contains {} but domain yaml is missing it",
-                stage_id
-            );
+            bail!("bam stage catalog contains {stage_id} but domain yaml is missing it");
         }
     }
 
