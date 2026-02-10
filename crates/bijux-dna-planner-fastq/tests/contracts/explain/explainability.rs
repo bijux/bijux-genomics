@@ -162,7 +162,7 @@ fn stage_reasons_are_deterministic_for_new_fastq_stage_set() -> anyhow::Result<(
             "bijux-dna-planner-fastq__contracts__explain__{}",
             a.stage_id
         );
-        insta::with_settings!({snapshot_path => "../../snapshots"}, {
+        insta::with_settings!({snapshot_path => "../../snapshots", prepend_module_to_snapshot => false}, {
             insta::assert_json_snapshot!(snapshot_name, reason_json);
         });
     }
