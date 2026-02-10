@@ -62,16 +62,28 @@ tool_ids:
   - vsearch
   - alientrimmer
 stage_tool_compatibility:
+  fastq.prepare_reference: [star, samtools]
+  fastq.detect_adapters: [fastp]
   fastq.trim: [fastp, cutadapt, atropos, bbduk, adapterremoval, trimmomatic, trim_galore, seqpurge, prinseq, seqkit, skewer, leehom, alientrimmer, fastx_clipper]
+  fastq.filter: [fastp, seqkit, prinseq, bbduk]
   fastq.validate_pre: [fastqvalidator, fastqvalidator_official, fastq-scan, seqtk, fqtools, fastqc]
   fastq.stats_neutral: [seqkit_stats, seqkit, seqfu]
   fastq.rrna: [sortmerna]
+  fastq.qc_post: [multiqc, fastqc, qualimap, samtools]
   fastq.screen: [kraken2, krakenuniq, bracken, centrifuge, metaphlan, kaiju, fastq_screen]
   fastq.merge: [pear, vsearch, bbmerge, flash2, leehom]
+  fastq.correct: [rcorrector, lighter, musket, bayeshammer, spades]
+  fastq.umi: [umi_tools]
 active_defaults:
+  fastq.prepare_reference: star
+  fastq.detect_adapters: fastp
   fastq.trim: fastp
+  fastq.filter: fastp
   fastq.validate_pre: fastqvalidator_official
   fastq.stats_neutral: seqkit_stats
   fastq.rrna: sortmerna
+  fastq.qc_post: multiqc
   fastq.screen: kraken2
   fastq.merge: pear
+  fastq.correct: rcorrector
+  fastq.umi: umi_tools

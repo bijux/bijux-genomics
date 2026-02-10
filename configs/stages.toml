@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 46276a97804a2d2b8b0dafa9435c72ec5e6f2ef1
+# source_commit: ed5eba5232b8c99a5cdf0cff9f4eea845a2be2e2
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 
 [[stages]]
@@ -90,12 +90,12 @@ tools = ["bayeshammer", "lighter", "musket", "rcorrector", "spades"]
 [[stages]]
 id = "fastq.detect_adapters"
 status = "supported"
-tools = ["fastqc"]
+tools = ["fastp"]
 
 [[stages]]
 id = "fastq.filter"
 status = "supported"
-tools = ["prinseq", "seqkit", "sortmerna"]
+tools = ["bbduk", "fastp", "prinseq", "seqkit"]
 
 [[stages]]
 id = "fastq.merge"
@@ -115,7 +115,7 @@ tools = []
 [[stages]]
 id = "fastq.qc_post"
 status = "supported"
-tools = ["multiqc", "qualimap", "samtools"]
+tools = ["fastqc", "multiqc", "qualimap", "samtools"]
 
 [[stages]]
 id = "fastq.rrna"
