@@ -116,8 +116,12 @@ pub fn build_run_execution_plan(
         resources: tool_manifest.constraints.clone(),
         io: StageIO { inputs, outputs },
         out_dir: run_dir.join("stage"),
-        params: serde_json::to_value(&run_spec.params)
-            .map_err(|err| anyhow!("failed to serialize run parameters for {}: {err}", run_spec.stage.0))?,
+        params: serde_json::to_value(&run_spec.params).map_err(|err| {
+            anyhow!(
+                "failed to serialize run parameters for {}: {err}",
+                run_spec.stage.0
+            )
+        })?,
         effective_params: serde_json::json!({}),
         aux_images: BTreeMap::new(),
         reason: crate::stage_plan::PlanDecisionReason::default(),

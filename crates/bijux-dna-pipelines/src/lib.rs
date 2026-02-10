@@ -124,9 +124,7 @@ impl DefaultParams {
             DefaultParams::FastqTrim(value) => Self::encode(value, "fastq.trim"),
             DefaultParams::FastqFilter(value) => Self::encode(value, "fastq.filter"),
             DefaultParams::FastqQcPost(value) => Self::encode(value, "fastq.qc_post"),
-            DefaultParams::FastqPreprocess(value) => {
-                Self::encode(value, "fastq.preprocess")
-            }
+            DefaultParams::FastqPreprocess(value) => Self::encode(value, "fastq.preprocess"),
             DefaultParams::FastqMerge(value) => Self::encode(value, "fastq.merge"),
             DefaultParams::FastqScreen(value) => Self::encode(value, "fastq.screen"),
             DefaultParams::Bam(value) => match value {
@@ -139,12 +137,16 @@ impl DefaultParams {
                 BamEffectiveParams::Coverage(inner) => Self::encode(inner, "bam.coverage"),
                 BamEffectiveParams::Damage(inner) => Self::encode(inner, "bam.damage"),
                 BamEffectiveParams::Authenticity(inner) => Self::encode(inner, "bam.authenticity"),
-                BamEffectiveParams::Contamination(inner) => Self::encode(inner, "bam.contamination"),
+                BamEffectiveParams::Contamination(inner) => {
+                    Self::encode(inner, "bam.contamination")
+                }
                 BamEffectiveParams::Sex(inner) => Self::encode(inner, "bam.sex"),
                 BamEffectiveParams::BiasMitigation(inner) => {
                     Self::encode(inner, "bam.bias_mitigation")
                 }
-                BamEffectiveParams::Recalibration(inner) => Self::encode(inner, "bam.recalibration"),
+                BamEffectiveParams::Recalibration(inner) => {
+                    Self::encode(inner, "bam.recalibration")
+                }
                 BamEffectiveParams::Haplogroups(inner) => Self::encode(inner, "bam.haplogroups"),
                 BamEffectiveParams::Genotyping(inner) => Self::encode(inner, "bam.genotyping"),
                 BamEffectiveParams::Kinship(inner) => Self::encode(inner, "bam.kinship"),

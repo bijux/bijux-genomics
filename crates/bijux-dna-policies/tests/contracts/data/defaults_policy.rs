@@ -71,7 +71,10 @@ fn policy__contracts__defaults_policy__every_default_has_provenance() {
                         && !provenance.assumptions.is_empty()
                         && !provenance.comparability_implications.is_empty()
                         && !contains_unspecified(&provenance.rationale)
-                        && !provenance.assumptions.iter().any(|v| contains_unspecified(v))
+                        && !provenance
+                            .assumptions
+                            .iter()
+                            .any(|v| contains_unspecified(v))
                         && !provenance
                             .comparability_implications
                             .iter()
@@ -90,7 +93,10 @@ fn policy__contracts__defaults_policy__every_default_has_provenance() {
                         && !provenance.assumptions.is_empty()
                         && !provenance.comparability_implications.is_empty()
                         && !contains_unspecified(&provenance.rationale)
-                        && !provenance.assumptions.iter().any(|v| contains_unspecified(v))
+                        && !provenance
+                            .assumptions
+                            .iter()
+                            .any(|v| contains_unspecified(v))
                         && !provenance
                             .comparability_implications
                             .iter()

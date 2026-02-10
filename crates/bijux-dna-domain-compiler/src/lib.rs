@@ -333,7 +333,13 @@ fn load_domain_stages(
 fn collect_domain_data(
     domain_dir: &Path,
     active_scope: &str,
-) -> Result<(ToolMap, StageToolMap, StagePlannedMap, StageDefaultMap, StageStatusMap)> {
+) -> Result<(
+    ToolMap,
+    StageToolMap,
+    StagePlannedMap,
+    StageDefaultMap,
+    StageStatusMap,
+)> {
     let mut tools: ToolMap = BTreeMap::new();
     let mut stage_to_tools: StageToolMap = BTreeMap::new();
     let mut stage_planned: StagePlannedMap = BTreeMap::new();
@@ -350,7 +356,14 @@ fn collect_domain_data(
                 domain
             ));
         }
-        load_domain_tools(domain_dir, domain, &index, active_scope, &mut tools, &mut stage_to_tools)?;
+        load_domain_tools(
+            domain_dir,
+            domain,
+            &index,
+            active_scope,
+            &mut tools,
+            &mut stage_to_tools,
+        )?;
         load_domain_stages(
             domain_dir,
             domain,
@@ -392,11 +405,21 @@ fn collect_domain_data(
     for tool in tools.values() {
         for stage in &tool.stage_ids {
             if !stage_to_tools.contains_key(stage) {
-                return Err(anyhow!("tool {} references unknown stage {}", tool.id, stage));
+                return Err(anyhow!(
+                    "tool {} references unknown stage {}",
+                    tool.id,
+                    stage
+                ));
             }
         }
     }
-    Ok((tools, stage_to_tools, stage_planned, stage_defaults, stage_statuses))
+    Ok((
+        tools,
+        stage_to_tools,
+        stage_planned,
+        stage_defaults,
+        stage_statuses,
+    ))
 }
 
 fn build_tool_registry_toml(
@@ -429,20 +452,44 @@ fn build_tool_registry_toml(
         let _ = writeln!(registry_toml, "domain = \"{}\"", tool.domain);
         let _ = writeln!(registry_toml, "stage_ids = {}", toml_array(&tool.stage_ids));
         let _ = writeln!(registry_toml, "version = \"{}\"", tool.default_version);
-        let _ = writeln!(registry_toml, "default_version = \"{}\"", tool.default_version);
+        let _ = writeln!(
+            registry_toml,
+            "default_version = \"{}\"",
+            tool.default_version
+        );
         let _ = writeln!(registry_toml, "upstream = \"{}\"", tool.upstream);
         registry_toml.push_str("pinned_commit = \"domain-managed\"\n");
         let _ = writeln!(registry_toml, "pin_strategy = \"{}\"", tool.pin_strategy);
         let _ = writeln!(registry_toml, "runtimes = {}", toml_array(&runtimes));
-        let _ = writeln!(registry_toml, "container = {}", if is_planned { "false" } else { "true" });
+        let _ = writeln!(
+            registry_toml,
+            "container = {}",
+            if is_planned { "false" } else { "true" }
+        );
         let _ = writeln!(registry_toml, "version_cmd = \"{}\"", tool.version_cmd);
         let _ = writeln!(registry_toml, "help_cmd = \"{}\"", tool.help_cmd);
-        let _ = writeln!(registry_toml, "smoke_version_cmd = \"{}\"", tool.version_cmd);
+        let _ = writeln!(
+            registry_toml,
+            "smoke_version_cmd = \"{}\"",
+            tool.version_cmd
+        );
         let _ = writeln!(registry_toml, "smoke_help_cmd = \"{}\"", tool.help_cmd);
         let _ = writeln!(registry_toml, "expected_bin = \"{}\"", tool.id);
-        let _ = writeln!(registry_toml, "expected_artifacts = {}", toml_array(&tool.expected_artifacts));
-        let _ = writeln!(registry_toml, "metrics_schema = \"{}\"", tool.metrics_schema);
-        let _ = writeln!(registry_toml, "comparability_notes = \"{}\"", tool.comparability_notes.replace('"', "'"));
+        let _ = writeln!(
+            registry_toml,
+            "expected_artifacts = {}",
+            toml_array(&tool.expected_artifacts)
+        );
+        let _ = writeln!(
+            registry_toml,
+            "metrics_schema = \"{}\"",
+            tool.metrics_schema
+        );
+        let _ = writeln!(
+            registry_toml,
+            "comparability_notes = \"{}\"",
+            tool.comparability_notes.replace('"', "'")
+        );
         let _ = writeln!(registry_toml, "dockerfile = \"{dockerfile}\"");
         let _ = writeln!(registry_toml, "apptainer_def = \"{apptainer_def}\"");
         registry_toml.push_str("require_labels = true\n\n");
@@ -451,7 +498,11 @@ fn build_tool_registry_toml(
     for (stage_id, tools_set) in stage_to_tools {
         let mut all = tools_set.iter().cloned().collect::<Vec<_>>();
         all.sort();
-        let mut primary = stage_defaults.get(stage_id).cloned().into_iter().collect::<Vec<_>>();
+        let mut primary = stage_defaults
+            .get(stage_id)
+            .cloned()
+            .into_iter()
+            .collect::<Vec<_>>();
         if primary.is_empty() {
             primary = all.first().cloned().into_iter().collect::<Vec<_>>();
         }
@@ -472,12 +523,32 @@ fn build_tool_registry_toml(
         let _ = writeln!(registry_toml, "[[stages]]");
         let _ = writeln!(registry_toml, "id = \"{stage_id}\"");
         let _ = writeln!(registry_toml, "primary_tools = {}", toml_array(&primary));
-        let _ = writeln!(registry_toml, "optional_alternatives = {}", toml_array(&optional));
+        let _ = writeln!(
+            registry_toml,
+            "optional_alternatives = {}",
+            toml_array(&optional)
+        );
         registry_toml.push_str("validation_tools = []\n");
-        let _ = writeln!(registry_toml, "reporting_tools = {}", toml_array(&reporting));
-        let _ = writeln!(registry_toml, "planned_out_of_scope = {}", toml_array(stage_planned.get(stage_id).map_or(&[], Vec::as_slice)));
+        let _ = writeln!(
+            registry_toml,
+            "reporting_tools = {}",
+            toml_array(&reporting)
+        );
+        let _ = writeln!(
+            registry_toml,
+            "planned_out_of_scope = {}",
+            toml_array(stage_planned.get(stage_id).map_or(&[], Vec::as_slice))
+        );
         registry_toml.push_str("requires_validation = false\n");
-        let _ = writeln!(registry_toml, "requires_reporting = {}", if reporting.is_empty() { "false" } else { "true" });
+        let _ = writeln!(
+            registry_toml,
+            "requires_reporting = {}",
+            if reporting.is_empty() {
+                "false"
+            } else {
+                "true"
+            }
+        );
         registry_toml.push('\n');
     }
     registry_toml
@@ -529,11 +600,17 @@ pub fn compile_domain_configs(options: &CompileOptions) -> Result<()> {
     ensure_dir(&options.configs_dir)
         .with_context(|| format!("create {}", options.configs_dir.display()))?;
 
-    let source_commit = git_head_commit(&options.domain_dir).unwrap_or_else(|| "unknown".to_string());
+    let source_commit =
+        git_head_commit(&options.domain_dir).unwrap_or_else(|| "unknown".to_string());
 
     let tool_registry_path = options.configs_dir.join("tool_registry.toml");
-    let registry_toml =
-        build_tool_registry_toml(&tools, &stage_to_tools, &stage_planned, &stage_defaults, &source_commit);
+    let registry_toml = build_tool_registry_toml(
+        &tools,
+        &stage_to_tools,
+        &stage_planned,
+        &stage_defaults,
+        &source_commit,
+    );
     write_string(&tool_registry_path, &registry_toml)
         .with_context(|| format!("write {}", tool_registry_path.display()))?;
 
@@ -578,7 +655,9 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
     for dom in ["fastq", "bam", "vcf"] {
         let stage_glob = options.domain_dir.join(dom).join("stages");
         if stage_glob.exists() {
-            for entry in std::fs::read_dir(&stage_glob).with_context(|| format!("read {}", stage_glob.display()))? {
+            for entry in std::fs::read_dir(&stage_glob)
+                .with_context(|| format!("read {}", stage_glob.display()))?
+            {
                 let path = entry?.path();
                 if path.extension().and_then(|v| v.to_str()) != Some("yaml") {
                     continue;
@@ -595,17 +674,31 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                     bail!("{} invalid stage scope {}", path.display(), stage.scope);
                 }
                 if dom != "vcf" && !stage.stage_id.starts_with(&format!("{}.", stage.domain)) {
-                    bail!("{} stage_id {} must be namespaced by domain {}", path.display(), stage.stage_id, stage.domain);
+                    bail!(
+                        "{} stage_id {} must be namespaced by domain {}",
+                        path.display(),
+                        stage.stage_id,
+                        stage.domain
+                    );
                 }
-                if let Some(prev) = stage_ids.insert(stage.stage_id.clone(), path.display().to_string()) {
-                    bail!("duplicate stage_id {} in {} and {}", stage.stage_id, prev, path.display());
+                if let Some(prev) =
+                    stage_ids.insert(stage.stage_id.clone(), path.display().to_string())
+                {
+                    bail!(
+                        "duplicate stage_id {} in {} and {}",
+                        stage.stage_id,
+                        prev,
+                        path.display()
+                    );
                 }
             }
         }
 
         let tool_glob = options.domain_dir.join(dom).join("tools");
         if tool_glob.exists() {
-            for entry in std::fs::read_dir(&tool_glob).with_context(|| format!("read {}", tool_glob.display()))? {
+            for entry in std::fs::read_dir(&tool_glob)
+                .with_context(|| format!("read {}", tool_glob.display()))?
+            {
                 let path = entry?.path();
                 if path.extension().and_then(|v| v.to_str()) != Some("yaml") {
                     continue;
@@ -635,8 +728,15 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                 {
                     bail!("{} missing required tool fields", path.display());
                 }
-                if let Some(prev) = tool_ids.insert(tool.tool_id.clone(), path.display().to_string()) {
-                    bail!("duplicate tool_id {} in {} and {}", tool.tool_id, prev, path.display());
+                if let Some(prev) =
+                    tool_ids.insert(tool.tool_id.clone(), path.display().to_string())
+                {
+                    bail!(
+                        "duplicate tool_id {} in {} and {}",
+                        tool.tool_id,
+                        prev,
+                        path.display()
+                    );
                 }
             }
         }
@@ -652,20 +752,32 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
         .collect::<BTreeSet<_>>();
     for stage_id in stage_ids.keys() {
         if stage_id.starts_with("fastq.") && !fastq_canonical.contains(stage_id) {
-            bail!("domain stage_id {} is not declared in fastq stage catalog", stage_id);
+            bail!(
+                "domain stage_id {} is not declared in fastq stage catalog",
+                stage_id
+            );
         }
         if stage_id.starts_with("bam.") && !bam_canonical.contains(stage_id) {
-            bail!("domain stage_id {} is not declared in bam stage catalog", stage_id);
+            bail!(
+                "domain stage_id {} is not declared in bam stage catalog",
+                stage_id
+            );
         }
     }
     for stage_id in &fastq_canonical {
         if !stage_ids.contains_key(stage_id) {
-            bail!("fastq stage catalog contains {} but domain yaml is missing it", stage_id);
+            bail!(
+                "fastq stage catalog contains {} but domain yaml is missing it",
+                stage_id
+            );
         }
     }
     for stage_id in &bam_canonical {
         if !stage_ids.contains_key(stage_id) {
-            bail!("bam stage catalog contains {} but domain yaml is missing it", stage_id);
+            bail!(
+                "bam stage catalog contains {} but domain yaml is missing it",
+                stage_id
+            );
         }
     }
 
@@ -673,31 +785,57 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
         let index_path = options.domain_dir.join(dom).join("index.yaml");
         let index: DomainIndex = read_yaml(&index_path)?;
         if index.domain != dom {
-            bail!("{} has domain {} but expected {}", index_path.display(), index.domain, dom);
+            bail!(
+                "{} has domain {} but expected {}",
+                index_path.display(),
+                index.domain,
+                dom
+            );
         }
         if index.stage_ids.is_empty() || index.tool_ids.is_empty() {
             bail!("{} missing stage_ids/tool_ids", index_path.display());
         }
         for stage_id in &index.stage_ids {
             if !stage_ids.contains_key(stage_id) {
-                bail!("{} references unknown stage {}", index_path.display(), stage_id);
+                bail!(
+                    "{} references unknown stage {}",
+                    index_path.display(),
+                    stage_id
+                );
             }
         }
         for tool_id in &index.tool_ids {
             if !tool_ids.contains_key(tool_id) {
-                bail!("{} references unknown tool {}", index_path.display(), tool_id);
+                bail!(
+                    "{} references unknown tool {}",
+                    index_path.display(),
+                    tool_id
+                );
             }
         }
         for (stage_id, tools) in &index.stage_tool_compatibility {
             if !index.stage_ids.contains(stage_id) {
-                bail!("{} matrix references unknown stage {}", index_path.display(), stage_id);
+                bail!(
+                    "{} matrix references unknown stage {}",
+                    index_path.display(),
+                    stage_id
+                );
             }
             if tools.is_empty() {
-                bail!("{} stage {} has empty compatibility list", index_path.display(), stage_id);
+                bail!(
+                    "{} stage {} has empty compatibility list",
+                    index_path.display(),
+                    stage_id
+                );
             }
             for tool in tools {
                 if !index.tool_ids.contains(tool) {
-                    bail!("{} stage {} references unknown tool {}", index_path.display(), stage_id, tool);
+                    bail!(
+                        "{} stage {} references unknown tool {}",
+                        index_path.display(),
+                        stage_id,
+                        tool
+                    );
                 }
             }
         }

@@ -4,9 +4,9 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use bijux_dna_domain_compiler::{validate_domain, ValidateOptions};
 use bijux_dna_api::v1::api::run::{load_manifests, load_profile, resolve_run_base_dir};
 use bijux_dna_api::v1::api::run::{CategorizedError, ErrorCategory};
+use bijux_dna_domain_compiler::{validate_domain, ValidateOptions};
 use clap::Parser;
 
 struct CwdGuard(PathBuf);
