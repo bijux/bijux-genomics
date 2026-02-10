@@ -87,8 +87,8 @@ fn to_ports(ports: Vec<DomainPortYaml>) -> Vec<PortSpec> {
         .collect()
 }
 
-fn parse_tool_role(raw: Option<String>) -> ToolRole {
-    match raw.as_deref() {
+fn parse_tool_role(raw: Option<&str>) -> ToolRole {
+    match raw {
         Some("diagnostic") => ToolRole::Diagnostic,
         Some("experimental") => ToolRole::Experimental,
         _ => ToolRole::Authoritative,
@@ -178,7 +178,7 @@ fn read_domain_registry(domain_dir: &Path) -> Result<ToolRegistry> {
                     registry.insert_tool(ToolManifest {
                         tool_id: tool_id.clone(),
                         stage_id,
-                        role: parse_tool_role(tool.role.clone()),
+                        role: parse_tool_role(tool.role.as_deref()),
                         command_template: tool.command_template.clone(),
                         outputs: to_ports(tool.outputs.clone()),
                         metrics_parser: tool.metrics_parser.clone(),
