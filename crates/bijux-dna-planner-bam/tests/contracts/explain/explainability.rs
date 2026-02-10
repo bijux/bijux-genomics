@@ -128,7 +128,7 @@ fn bam_adna_plan_reasons_are_deterministic_for_new_stages() -> anyhow::Result<()
         let reason_json =
             bijux_dna_testkit::snapshot_normalize_json(&serde_json::to_value(&a.reason)?);
         let snapshot_name = format!("bijux-dna-planner-bam__contracts__explain__{}", a.stage_id);
-        insta::with_settings!({snapshot_path => "../../snapshots"}, {
+        insta::with_settings!({snapshot_path => "../../snapshots", prepend_module_to_snapshot => false}, {
             insta::assert_json_snapshot!(snapshot_name, reason_json);
         });
     }
