@@ -205,6 +205,24 @@ pub fn required_audit_artifacts(stage: BamStage) -> &'static [AuditArtifact] {
                 filename: "stage.metrics.json",
             },
         ],
+        BamStage::DuplicationMetrics => &[
+            AuditArtifact {
+                name: "duplication_report",
+                filename: "duplication.metrics.json",
+            },
+            AuditArtifact {
+                name: "duplication_histogram",
+                filename: "duplication.histogram.txt",
+            },
+            AuditArtifact {
+                name: "summary",
+                filename: "duplication.summary.json",
+            },
+            AuditArtifact {
+                name: "stage_metrics",
+                filename: "stage.metrics.json",
+            },
+        ],
         BamStage::Complexity => &[
             AuditArtifact {
                 name: "complexity_report",
@@ -233,6 +251,42 @@ pub fn required_audit_artifacts(stage: BamStage) -> &'static [AuditArtifact] {
                 filename: "stage.metrics.json",
             },
         ],
+        BamStage::InsertSize => &[
+            AuditArtifact {
+                name: "insert_size_report",
+                filename: "insert_size.metrics.txt",
+            },
+            AuditArtifact {
+                name: "insert_size_histogram",
+                filename: "insert_size.histogram.pdf",
+            },
+            AuditArtifact {
+                name: "summary",
+                filename: "insert_size.summary.json",
+            },
+            AuditArtifact {
+                name: "stage_metrics",
+                filename: "stage.metrics.json",
+            },
+        ],
+        BamStage::GcBias => &[
+            AuditArtifact {
+                name: "gc_bias_report",
+                filename: "gc_bias.metrics.txt",
+            },
+            AuditArtifact {
+                name: "gc_bias_plot",
+                filename: "gc_bias.plot.pdf",
+            },
+            AuditArtifact {
+                name: "summary",
+                filename: "gc_bias.summary.json",
+            },
+            AuditArtifact {
+                name: "stage_metrics",
+                filename: "stage.metrics.json",
+            },
+        ],
         BamStage::EndogenousContent => &[
             AuditArtifact {
                 name: "endogenous_report",
@@ -241,6 +295,24 @@ pub fn required_audit_artifacts(stage: BamStage) -> &'static [AuditArtifact] {
             AuditArtifact {
                 name: "summary",
                 filename: "endogenous.summary.json",
+            },
+            AuditArtifact {
+                name: "stage_metrics",
+                filename: "stage.metrics.json",
+            },
+        ],
+        BamStage::OverlapCorrection => &[
+            AuditArtifact {
+                name: "overlap_corrected_bam",
+                filename: "overlap.corrected.bam",
+            },
+            AuditArtifact {
+                name: "overlap_corrected_bai",
+                filename: "overlap.corrected.bam.bai",
+            },
+            AuditArtifact {
+                name: "summary",
+                filename: "overlap_correction.summary.json",
             },
             AuditArtifact {
                 name: "stage_metrics",
@@ -530,6 +602,24 @@ pub fn stage_spec_core(stage: BamStage) -> Option<BamStageSpec> {
                 duplicate_action: DuplicateAction::Mark,
             }),
         },
+        BamStage::DuplicationMetrics => BamStageSpec {
+            stage,
+            required_inputs: &["bam"],
+            artifact_policy: ArtifactPolicy {
+                required_outputs: &[
+                    "duplication_report",
+                    "duplication_histogram",
+                    "summary",
+                    "stage_metrics",
+                ],
+                required_audit: required_audit_artifacts(stage),
+            },
+            default_params: BamEffectiveParams::DuplicationMetrics(MarkDupEffectiveParams {
+                optical_duplicates: OpticalDuplicatePolicy::MarkOnly,
+                umi_policy: UmiPolicy::Ignore,
+                duplicate_action: DuplicateAction::Mark,
+            }),
+        },
         BamStage::Complexity => BamStageSpec {
             stage,
             required_inputs: &["bam"],
@@ -554,6 +644,35 @@ pub fn stage_spec_core(stage: BamStage) -> Option<BamStageSpec> {
                 depth_thresholds: vec![1, 3, 5],
             }),
         },
+        BamStage::InsertSize => BamStageSpec {
+            stage,
+            required_inputs: &["bam"],
+            artifact_policy: ArtifactPolicy {
+                required_outputs: &[
+                    "insert_size_report",
+                    "insert_size_histogram",
+                    "summary",
+                    "stage_metrics",
+                ],
+                required_audit: required_audit_artifacts(stage),
+            },
+            default_params: BamEffectiveParams::InsertSize(CoverageEffectiveParams {
+                regions: None,
+                depth_thresholds: vec![1],
+            }),
+        },
+        BamStage::GcBias => BamStageSpec {
+            stage,
+            required_inputs: &["bam", "reference"],
+            artifact_policy: ArtifactPolicy {
+                required_outputs: &["gc_bias_report", "gc_bias_plot", "summary", "stage_metrics"],
+                required_audit: required_audit_artifacts(stage),
+            },
+            default_params: BamEffectiveParams::GcBias(CoverageEffectiveParams {
+                regions: None,
+                depth_thresholds: vec![1],
+            }),
+        },
         BamStage::EndogenousContent => BamStageSpec {
             stage,
             required_inputs: &["bam", "idxstats"],
@@ -564,6 +683,27 @@ pub fn stage_spec_core(stage: BamStage) -> Option<BamStageSpec> {
             default_params: BamEffectiveParams::EndogenousContent(CoverageEffectiveParams {
                 regions: None,
                 depth_thresholds: vec![1],
+            }),
+        },
+        BamStage::OverlapCorrection => BamStageSpec {
+            stage,
+            required_inputs: &["bam"],
+            artifact_policy: ArtifactPolicy {
+                required_outputs: &[
+                    "overlap_corrected_bam",
+                    "overlap_corrected_bai",
+                    "summary",
+                    "stage_metrics",
+                ],
+                required_audit: required_audit_artifacts(stage),
+            },
+            default_params: BamEffectiveParams::OverlapCorrection(FilterEffectiveParams {
+                mapq_threshold: 0,
+                include_flags: Vec::new(),
+                exclude_flags: Vec::new(),
+                min_length: 0,
+                remove_duplicates: false,
+                base_quality_threshold: 20,
             }),
         },
         _ => return None,

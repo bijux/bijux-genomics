@@ -61,9 +61,13 @@ pub enum BamStage {
     MapqFilter,
     LengthFilter,
     Markdup,
+    DuplicationMetrics,
     Complexity,
     Coverage,
+    InsertSize,
+    GcBias,
     EndogenousContent,
+    OverlapCorrection,
     Damage,
     Authenticity,
     Contamination,
@@ -89,9 +93,13 @@ impl BamStage {
             BamStage::MapqFilter => "bam.mapq_filter",
             BamStage::LengthFilter => "bam.length_filter",
             BamStage::Markdup => "bam.markdup",
+            BamStage::DuplicationMetrics => "bam.duplication_metrics",
             BamStage::Complexity => "bam.complexity",
             BamStage::Coverage => "bam.coverage",
+            BamStage::InsertSize => "bam.insert_size",
+            BamStage::GcBias => "bam.gc_bias",
             BamStage::EndogenousContent => "bam.endogenous_content",
+            BamStage::OverlapCorrection => "bam.overlap_correction",
             BamStage::Damage => "bam.damage",
             BamStage::Authenticity => "bam.authenticity",
             BamStage::Contamination => "bam.contamination",
@@ -120,9 +128,13 @@ impl BamStage {
             BamStage::MapqFilter,
             BamStage::LengthFilter,
             BamStage::Markdup,
+            BamStage::DuplicationMetrics,
             BamStage::Complexity,
             BamStage::Coverage,
+            BamStage::InsertSize,
+            BamStage::GcBias,
             BamStage::EndogenousContent,
+            BamStage::OverlapCorrection,
             BamStage::Damage,
             BamStage::Authenticity,
             BamStage::Contamination,
@@ -162,15 +174,29 @@ impl BamStage {
             }
             BamStage::Markdup => serde_json::from_value::<MarkDupEffectiveParams>(value.clone())
                 .map(BamEffectiveParams::Markdup),
+            BamStage::DuplicationMetrics => {
+                serde_json::from_value::<MarkDupEffectiveParams>(value.clone())
+                    .map(BamEffectiveParams::DuplicationMetrics)
+            }
             BamStage::Complexity => {
                 serde_json::from_value::<ComplexityEffectiveParams>(value.clone())
                     .map(BamEffectiveParams::Complexity)
             }
             BamStage::Coverage => serde_json::from_value::<CoverageEffectiveParams>(value.clone())
                 .map(BamEffectiveParams::Coverage),
+            BamStage::InsertSize => {
+                serde_json::from_value::<CoverageEffectiveParams>(value.clone())
+                    .map(BamEffectiveParams::InsertSize)
+            }
+            BamStage::GcBias => serde_json::from_value::<CoverageEffectiveParams>(value.clone())
+                .map(BamEffectiveParams::GcBias),
             BamStage::EndogenousContent => {
                 serde_json::from_value::<CoverageEffectiveParams>(value.clone())
                     .map(BamEffectiveParams::EndogenousContent)
+            }
+            BamStage::OverlapCorrection => {
+                serde_json::from_value::<FilterEffectiveParams>(value.clone())
+                    .map(BamEffectiveParams::OverlapCorrection)
             }
             BamStage::Damage => serde_json::from_value::<DamageEffectiveParams>(value.clone())
                 .map(BamEffectiveParams::Damage),
@@ -218,9 +244,13 @@ impl TryFrom<&str> for BamStage {
             "bam.mapq_filter" => Ok(BamStage::MapqFilter),
             "bam.length_filter" => Ok(BamStage::LengthFilter),
             "bam.markdup" => Ok(BamStage::Markdup),
+            "bam.duplication_metrics" => Ok(BamStage::DuplicationMetrics),
             "bam.complexity" => Ok(BamStage::Complexity),
             "bam.coverage" => Ok(BamStage::Coverage),
+            "bam.insert_size" => Ok(BamStage::InsertSize),
+            "bam.gc_bias" => Ok(BamStage::GcBias),
             "bam.endogenous_content" => Ok(BamStage::EndogenousContent),
+            "bam.overlap_correction" => Ok(BamStage::OverlapCorrection),
             "bam.damage" => Ok(BamStage::Damage),
             "bam.authenticity" => Ok(BamStage::Authenticity),
             "bam.contamination" => Ok(BamStage::Contamination),
@@ -276,7 +306,9 @@ pub fn contract_for_stage(stage_id: &str) -> Option<BamStageContract> {
         BamStage::Filter
         | BamStage::MapqFilter
         | BamStage::LengthFilter
+        | BamStage::OverlapCorrection
         | BamStage::Markdup
+        | BamStage::DuplicationMetrics
         | BamStage::Recalibration => Some(BamStageContract {
             input: BamArtifactKind::Bam,
             output: BamArtifactKind::Bam,
@@ -285,7 +317,8 @@ pub fn contract_for_stage(stage_id: &str) -> Option<BamStageContract> {
             sorting: "requires_coordinate_sorted_input",
             indexing: "requires_index_and_produces_index",
             read_group_policy: "preserves_read_groups",
-            duplicate_policy: if stage == BamStage::Markdup {
+            duplicate_policy: if stage == BamStage::Markdup || stage == BamStage::DuplicationMetrics
+            {
                 "marks_duplicates"
             } else {
                 "preserves_duplicates"
@@ -326,9 +359,13 @@ fn tool_ids_for_stage(stage_id: &str) -> Vec<&'static str> {
         "bam.mapq_filter" => vec!["samtools", "bamtools"],
         "bam.length_filter" => vec!["samtools", "picard"],
         "bam.markdup" => vec!["picard"],
+        "bam.duplication_metrics" => vec!["samtools", "picard"],
         "bam.recalibration" => vec!["gatk"],
         "bam.coverage" => vec!["mosdepth"],
+        "bam.insert_size" => vec!["picard"],
+        "bam.gc_bias" => vec!["picard"],
         "bam.endogenous_content" => vec!["samtools"],
+        "bam.overlap_correction" => vec!["bamutil"],
         "bam.damage" => vec!["pydamage", "mapdamage2"],
         "bam.complexity" => vec!["preseq"],
         "bam.authenticity" => vec!["authenticct"],

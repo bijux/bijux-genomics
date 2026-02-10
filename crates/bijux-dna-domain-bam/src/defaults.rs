@@ -102,13 +102,25 @@ fn bam_params_value(params: &BamEffectiveParams) -> serde_json::Value {
         BamEffectiveParams::Markdup(inner) => {
             serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
         }
+        BamEffectiveParams::DuplicationMetrics(inner) => {
+            serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
+        }
         BamEffectiveParams::Complexity(inner) => {
             serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
         }
         BamEffectiveParams::Coverage(inner) => {
             serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
         }
+        BamEffectiveParams::InsertSize(inner) => {
+            serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
+        }
+        BamEffectiveParams::GcBias(inner) => {
+            serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
+        }
         BamEffectiveParams::EndogenousContent(inner) => {
+            serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
+        }
+        BamEffectiveParams::OverlapCorrection(inner) => {
             serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
         }
         BamEffectiveParams::Damage(inner) => {

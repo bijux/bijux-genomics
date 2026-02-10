@@ -369,6 +369,34 @@ pub fn plan_for_bam_stage_with_profile(
                 params: Some(&params_json),
             })
         }
+        bijux_dna_planner_bam::stage_api::BamStage::DuplicationMetrics => {
+            let default_params = default_params_for_stage(profile, stage);
+            let params = match default_params {
+                bijux_dna_planner_bam::stage_api::params::BamEffectiveParams::DuplicationMetrics(
+                    params,
+                ) => params,
+                _ => bijux_dna_planner_bam::stage_api::params::MarkDupEffectiveParams {
+                    optical_duplicates:
+                        bijux_dna_planner_bam::stage_api::params::OpticalDuplicatePolicy::MarkOnly,
+                    umi_policy: bijux_dna_planner_bam::stage_api::params::UmiPolicy::Ignore,
+                    duplicate_action:
+                        bijux_dna_planner_bam::stage_api::params::DuplicateAction::Mark,
+                },
+            };
+            let params_json = serde_json::to_value(&params)?;
+            plan(StagePlanRequest {
+                stage_id: stage.as_str(),
+                tool: spec,
+                out_dir,
+                bam: Some(&args.bam),
+                bam_index: args.bai.as_deref(),
+                r1: None,
+                r2: None,
+                reference: None,
+                sample_id: args.sample_id.as_deref(),
+                params: Some(&params_json),
+            })
+        }
         bijux_dna_planner_bam::stage_api::BamStage::Complexity => {
             let default_params = default_params_for_stage(profile, stage);
             let mut params = match default_params {
@@ -435,6 +463,56 @@ pub fn plan_for_bam_stage_with_profile(
                 params: Some(&params_json),
             })
         }
+        bijux_dna_planner_bam::stage_api::BamStage::InsertSize => {
+            let default_params = default_params_for_stage(profile, stage);
+            let params = match default_params {
+                bijux_dna_planner_bam::stage_api::params::BamEffectiveParams::InsertSize(params) => {
+                    params
+                }
+                _ => bijux_dna_planner_bam::stage_api::params::CoverageEffectiveParams {
+                    regions: None,
+                    depth_thresholds: vec![1],
+                },
+            };
+            let params_json = serde_json::to_value(&params)?;
+            plan(StagePlanRequest {
+                stage_id: stage.as_str(),
+                tool: spec,
+                out_dir,
+                bam: Some(&args.bam),
+                bam_index: args.bai.as_deref(),
+                r1: None,
+                r2: None,
+                reference: args.reference.as_deref(),
+                sample_id: args.sample_id.as_deref(),
+                params: Some(&params_json),
+            })
+        }
+        bijux_dna_planner_bam::stage_api::BamStage::GcBias => {
+            let default_params = default_params_for_stage(profile, stage);
+            let params = match default_params {
+                bijux_dna_planner_bam::stage_api::params::BamEffectiveParams::GcBias(params) => {
+                    params
+                }
+                _ => bijux_dna_planner_bam::stage_api::params::CoverageEffectiveParams {
+                    regions: None,
+                    depth_thresholds: vec![1],
+                },
+            };
+            let params_json = serde_json::to_value(&params)?;
+            plan(StagePlanRequest {
+                stage_id: stage.as_str(),
+                tool: spec,
+                out_dir,
+                bam: Some(&args.bam),
+                bam_index: args.bai.as_deref(),
+                r1: None,
+                r2: None,
+                reference: args.reference.as_deref(),
+                sample_id: args.sample_id.as_deref(),
+                params: Some(&params_json),
+            })
+        }
         bijux_dna_planner_bam::stage_api::BamStage::EndogenousContent => {
             let default_params = default_params_for_stage(profile, stage);
             let params = match default_params {
@@ -456,6 +534,35 @@ pub fn plan_for_bam_stage_with_profile(
                 r1: None,
                 r2: None,
                 reference: args.reference.as_deref(),
+                sample_id: args.sample_id.as_deref(),
+                params: Some(&params_json),
+            })
+        }
+        bijux_dna_planner_bam::stage_api::BamStage::OverlapCorrection => {
+            let default_params = default_params_for_stage(profile, stage);
+            let params = match default_params {
+                bijux_dna_planner_bam::stage_api::params::BamEffectiveParams::OverlapCorrection(
+                    params,
+                ) => params,
+                _ => bijux_dna_planner_bam::stage_api::params::FilterEffectiveParams {
+                    mapq_threshold: 0,
+                    include_flags: Vec::new(),
+                    exclude_flags: Vec::new(),
+                    min_length: 0,
+                    remove_duplicates: false,
+                    base_quality_threshold: 20,
+                },
+            };
+            let params_json = serde_json::to_value(&params)?;
+            plan(StagePlanRequest {
+                stage_id: stage.as_str(),
+                tool: spec,
+                out_dir,
+                bam: Some(&args.bam),
+                bam_index: args.bai.as_deref(),
+                r1: None,
+                r2: None,
+                reference: None,
                 sample_id: args.sample_id.as_deref(),
                 params: Some(&params_json),
             })
