@@ -25,3 +25,8 @@ help: ## Show this help message
 
 prep-apptainer-batch: ## Build all Apptainer defs in VM-local output dir
 	@$(MAKE) containers-apptainer-build
+
+gc-mac: ## Remove macOS metadata cruft locally (outside CI)
+	@find . -name '.DS_Store' -type f -delete
+	@find . -name '._*' -type f -delete
+	@echo "macOS cruft removed"
