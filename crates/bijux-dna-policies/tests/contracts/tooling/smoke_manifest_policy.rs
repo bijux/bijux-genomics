@@ -25,7 +25,11 @@ fn policy__contracts__smoke_manifest_policy__container_smoke_manifests_include_i
             .unwrap_or_else(|_| panic!("read {}", script.display()));
         for token in required_tokens {
             if !raw.contains(token) {
-                offenders.push(format!("{} missing manifest token {}", script.display(), token));
+                offenders.push(format!(
+                    "{} missing manifest token {}",
+                    script.display(),
+                    token
+                ));
             }
         }
     }

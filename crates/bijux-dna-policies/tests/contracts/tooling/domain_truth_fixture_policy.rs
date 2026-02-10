@@ -3,7 +3,8 @@
 mod support;
 
 #[test]
-fn policy__contracts__domain_truth_fixture_policy__supported_stage_tool_pairs_have_truth_fixtures() {
+fn policy__contracts__domain_truth_fixture_policy__supported_stage_tool_pairs_have_truth_fixtures()
+{
     let root = support::workspace_root();
     let mut offenders = Vec::new();
 

@@ -258,7 +258,12 @@ fn generated_header(source: &str, source_commit: &str) -> String {
     )
 }
 
-fn validate_tool_output_subset(tool_raw: &str, stage_raw: &str, tool_path: &Path, stage_id: &str) -> Result<()> {
+fn validate_tool_output_subset(
+    tool_raw: &str,
+    stage_raw: &str,
+    tool_path: &Path,
+    stage_id: &str,
+) -> Result<()> {
     #[derive(serde::Deserialize)]
     struct NamedOutput {
         name: String,
@@ -285,7 +290,10 @@ fn validate_tool_output_subset(tool_raw: &str, stage_raw: &str, tool_path: &Path
         .map(|entry| entry.name.as_str())
         .collect::<BTreeSet<_>>();
     if output_names.is_empty() {
-        bail!("{} outputs section must include named outputs", tool_path.display());
+        bail!(
+            "{} outputs section must include named outputs",
+            tool_path.display()
+        );
     }
     let stage_yaml: StageOutputsDoc = bijux_dna_infra::formats::parse_yaml(stage_raw)
         .with_context(|| format!("parse stage {stage_id}"))?;
@@ -872,7 +880,10 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                 }
                 for port in &stage.outputs {
                     if port.data_type.trim().is_empty() || port.cardinality.trim().is_empty() {
-                        bail!("{} has output missing data_type/cardinality", path.display());
+                        bail!(
+                            "{} has output missing data_type/cardinality",
+                            path.display()
+                        );
                     }
                 }
                 for required in &stage.required_inputs {
@@ -897,7 +908,10 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                     }
                 }
                 if has_placeholder_token(&stage_raw) {
-                    bail!("{} contains placeholder token (todo/tbd/placeholder)", path.display());
+                    bail!(
+                        "{} contains placeholder token (todo/tbd/placeholder)",
+                        path.display()
+                    );
                 }
                 ensure_status(&stage.status, &path)?;
                 if dom != "vcf" && stage.scope != "pre_hpc_pre_vcf" {
@@ -943,7 +957,10 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                     bail!("{} missing tool_id", path.display());
                 }
                 if has_placeholder_token(&tool_raw) {
-                    bail!("{} contains placeholder token (todo/tbd/placeholder)", path.display());
+                    bail!(
+                        "{} contains placeholder token (todo/tbd/placeholder)",
+                        path.display()
+                    );
                 }
                 ensure_status(&tool.status, &path)?;
                 if dom != "vcf" && tool.scope != "pre_hpc_pre_vcf" {
@@ -970,22 +987,32 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                 if dom != "vcf" && tool.status == "supported" {
                     for stage_id in &tool.stage_ids {
                         let stage_domain = stage_id.split('.').next().unwrap_or(dom);
-                        let stage_path = options
-                            .domain_dir
-                            .join(stage_domain)
-                            .join("stages")
-                            .join(format!(
-                                "{}.yaml",
-                                stage_id
-                                    .split_once('.')
-                                    .map_or(stage_id.as_str(), |(_, suffix)| suffix)
-                                    .replace('.', "_")
-                            ));
+                        let stage_path =
+                            options
+                                .domain_dir
+                                .join(stage_domain)
+                                .join("stages")
+                                .join(format!(
+                                    "{}.yaml",
+                                    stage_id
+                                        .split_once('.')
+                                        .map_or(stage_id.as_str(), |(_, suffix)| suffix)
+                                        .replace('.', "_")
+                                ));
                         if stage_path.exists() {
-                            let stage_yaml_raw = std::fs::read_to_string(&stage_path).with_context(
-                                || format!("read stage for output validation {}", stage_path.display()),
+                            let stage_yaml_raw = std::fs::read_to_string(&stage_path)
+                                .with_context(|| {
+                                    format!(
+                                        "read stage for output validation {}",
+                                        stage_path.display()
+                                    )
+                                })?;
+                            validate_tool_output_subset(
+                                &tool_raw,
+                                &stage_yaml_raw,
+                                &path,
+                                stage_id,
                             )?;
-                            validate_tool_output_subset(&tool_raw, &stage_yaml_raw, &path, stage_id)?;
                         }
                     }
                     let dockerfile = options

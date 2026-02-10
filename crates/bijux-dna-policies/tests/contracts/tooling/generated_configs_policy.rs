@@ -26,7 +26,8 @@ fn policy__contracts__generated_configs_policy__generated_configs_are_not_hand_e
             checked_in.display()
         );
         assert_eq!(
-            third, "# domain_schema_version: bijux.domain.v1",
+            third,
+            "# domain_schema_version: bijux.domain.v1",
             "generated config header must contain domain schema version: {}",
             checked_in.display()
         );
