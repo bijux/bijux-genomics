@@ -1,4 +1,4 @@
 #!/bin/sh
 set -eu
 
-cargo run -p bijux-dna-domain-compiler --bin domain_validate -- --domain-dir domain
+cargo run --bin bijux-dna -- domain validate --domain-dir domain
