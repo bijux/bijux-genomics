@@ -72,7 +72,7 @@ pub mod damage {
                 "trim_3p": params.trim_3p,
             }),
             effective_params: crate::tool_adapters::stages_support::ensure_effective_params(
-                serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
+                serde_json::to_value(params).expect("BAM stage effective params must serialize"),
             )?,
             aux_images: std::collections::BTreeMap::new(),
             reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
@@ -153,7 +153,7 @@ pub mod authenticity {
                 "pmd_filter_enabled": tool.tool_id.as_str() == "pmdtools",
             }),
             effective_params: crate::tool_adapters::stages_support::ensure_effective_params(
-                serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
+                serde_json::to_value(params).expect("BAM stage effective params must serialize"),
             )?,
             aux_images: std::collections::BTreeMap::new(),
             reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
@@ -236,7 +236,7 @@ pub mod contamination {
                 },
             }),
             effective_params: crate::tool_adapters::stages_support::ensure_effective_params(
-                serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
+                serde_json::to_value(params).expect("BAM stage effective params must serialize"),
             )?,
             aux_images: std::collections::BTreeMap::new(),
             reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
@@ -301,7 +301,7 @@ pub mod sex {
                 "method": params.method,
             }),
             effective_params: crate::tool_adapters::stages_support::ensure_effective_params(
-                serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
+                serde_json::to_value(params).expect("BAM stage effective params must serialize"),
             )?,
             aux_images: std::collections::BTreeMap::new(),
             reason: bijux_dna_stage_contract::PlanDecisionReason::default(),

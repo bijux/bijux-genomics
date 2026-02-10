@@ -85,7 +85,7 @@ pub mod validate {
                 "strict": effective_params.strict,
             }),
             effective_params: crate::tool_adapters::stages_support::ensure_effective_params(
-                serde_json::to_value(&effective_params).unwrap_or(serde_json::Value::Null),
+                serde_json::to_value(&effective_params).expect("BAM stage effective params must serialize"),
             )?,
             aux_images: std::collections::BTreeMap::new(),
             reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
@@ -199,7 +199,7 @@ pub mod align {
                 }
             }),
             effective_params: crate::tool_adapters::stages_support::ensure_effective_params(
-                serde_json::to_value(&effective).unwrap_or(serde_json::Value::Null),
+                serde_json::to_value(&effective).expect("BAM stage effective params must serialize"),
             )?,
             aux_images: std::collections::BTreeMap::new(),
             reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
@@ -276,7 +276,7 @@ pub mod qc_pre {
                 "regions": effective_params.regions,
             }),
             effective_params: crate::tool_adapters::stages_support::ensure_effective_params(
-                serde_json::to_value(&effective_params).unwrap_or(serde_json::Value::Null),
+                serde_json::to_value(&effective_params).expect("BAM stage effective params must serialize"),
             )?,
             aux_images: std::collections::BTreeMap::new(),
             reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
@@ -378,7 +378,7 @@ pub mod filter {
                 "base_quality_threshold": params.base_quality_threshold,
             }),
             effective_params: crate::tool_adapters::stages_support::ensure_effective_params(
-                serde_json::to_value(params).unwrap_or(serde_json::Value::Null),
+                serde_json::to_value(params).expect("BAM stage effective params must serialize"),
             )?,
             aux_images: std::collections::BTreeMap::new(),
             reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
