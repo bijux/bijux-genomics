@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 
 use std::path::{Path, PathBuf};
+use std::time::Duration;
 
 use anyhow::{Context, Result};
 use chrono::{DateTime, Utc};
@@ -234,6 +235,11 @@ pub fn update_run_index(base_dir: &Path, entry: RunIndexEntry) -> Result<()> {
     if let Some(parent) = index_path.parent() {
         bijux_dna_infra::ensure_dir(parent)?;
     }
+    let _lock = bijux_dna_infra::FileLock::acquire(
+        &index_path.with_extension("jsonl.lock"),
+        Duration::from_secs(5),
+    )
+    .context("acquire run index lock")?;
     let line = RunIndexLine {
         schema_version: 1,
         run: entry,
@@ -252,6 +258,11 @@ pub fn update_run_index(base_dir: &Path, entry: RunIndexEntry) -> Result<()> {
 /// # Errors
 /// Returns an error if the file cannot be written.
 pub fn append_event(layout: &RunLayout, event: &RunEvent) -> Result<()> {
+    let _lock = bijux_dna_infra::FileLock::acquire(
+        &layout.events_path.with_extension("jsonl.lock"),
+        Duration::from_secs(5),
+    )
+    .context("acquire events jsonl lock")?;
     let payload = serde_json::to_string(event)?;
     let mut file = std::fs::OpenOptions::new()
         .create(true)
