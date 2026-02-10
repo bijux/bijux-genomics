@@ -10,6 +10,8 @@ anyhow.workspace = true
 clap.workspace = true
 serde.workspace = true
 bijux-dna-infra = { path = "../bijux-dna-infra", features = ["yaml"] }
+bijux-dna-domain-fastq = { path = "../bijux-dna-domain-fastq" }
+bijux-dna-domain-bam = { path = "../bijux-dna-domain-bam" }
 
 [lints]
 workspace = true

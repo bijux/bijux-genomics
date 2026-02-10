@@ -69,7 +69,13 @@ fn policy__contracts__defaults_policy__every_default_has_provenance() {
                 Some(provenance)
                     if !provenance.rationale.trim().is_empty()
                         && !provenance.assumptions.is_empty()
-                        && !provenance.comparability_implications.is_empty() => {}
+                        && !provenance.comparability_implications.is_empty()
+                        && !contains_unspecified(&provenance.rationale)
+                        && !provenance.assumptions.iter().any(|v| contains_unspecified(v))
+                        && !provenance
+                            .comparability_implications
+                            .iter()
+                            .any(|v| contains_unspecified(v)) => {}
                 _ => offenders.push(format!(
                     "{} missing tool provenance for {}",
                     profile.id.as_str(),
@@ -82,7 +88,13 @@ fn policy__contracts__defaults_policy__every_default_has_provenance() {
                 Some(provenance)
                     if !provenance.rationale.trim().is_empty()
                         && !provenance.assumptions.is_empty()
-                        && !provenance.comparability_implications.is_empty() => {}
+                        && !provenance.comparability_implications.is_empty()
+                        && !contains_unspecified(&provenance.rationale)
+                        && !provenance.assumptions.iter().any(|v| contains_unspecified(v))
+                        && !provenance
+                            .comparability_implications
+                            .iter()
+                            .any(|v| contains_unspecified(v)) => {}
                 _ => offenders.push(format!(
                     "{} missing param provenance for {}",
                     profile.id.as_str(),
@@ -97,4 +109,8 @@ fn policy__contracts__defaults_policy__every_default_has_provenance() {
         "every defaulted tool/param must have provenance:\n{}",
         offenders.join("\n")
     );
+}
+
+fn contains_unspecified(value: &str) -> bool {
+    value.trim().eq_ignore_ascii_case("unspecified")
 }
