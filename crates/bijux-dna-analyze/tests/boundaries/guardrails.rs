@@ -133,6 +133,8 @@ fn public_api_is_small() -> anyhow::Result<()> {
         "pub enum AnalyzeMode {",
         "pub struct RenderOptions {",
         "pub struct AnalyzeOutput {",
+        "pub enum AnalyzeMetricId {",
+        "pub const fn as_str(self) -> &'static str {",
         "pub fn analyze_run(input: &AnalyzeInput) -> anyhow::Result<AnalyzeOutput> {",
         "pub use aggregate::*;",
         "pub use failure::*;",
