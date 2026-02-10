@@ -1,0 +1,3 @@
+tool=samtools
+stage=bam.bias_mitigation
+fixture_kind=synthetic_truth

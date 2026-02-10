@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: c4d40b322a77d60609cae5ecdfbf3177b42090fe
+# source_commit: 01ef00d85ad57609e48ec6cd789df2fe6ef64b89
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 
@@ -33,9 +33,6 @@ version = "latest-pinned"
 [bbmerge]
 version = "latest-pinned"
 
-[bcftools]
-version = "planned"
-
 [bedtools]
 version = "2.31.1"
 
@@ -60,14 +57,8 @@ version = "latest-pinned"
 [damageprofiler]
 version = "latest-pinned"
 
-[diamond]
-version = "2.1.8"
-
 [fastp]
 version = "latest-pinned"
-
-[fastq-scan]
-version = "planned"
 
 [fastq_screen]
 version = "latest-pinned"
@@ -88,9 +79,6 @@ version = "0.0.14"
 version = "latest-pinned"
 
 [fqtools]
-version = "latest-pinned"
-
-[gatk]
 version = "latest-pinned"
 
 [kaiju]
@@ -126,20 +114,11 @@ version = "latest-pinned"
 [musket]
 version = "latest-pinned"
 
-[ngsbriggs]
-version = "planned"
-
 [pear]
-version = "latest-pinned"
-
-[picard]
 version = "latest-pinned"
 
 [pmdtools]
 version = "0.60"
-
-[preseq]
-version = "3.2.0"
 
 [prinseq]
 version = "latest-pinned"
@@ -162,19 +141,10 @@ version = "1.21"
 [schmutzi]
 version = "latest-pinned"
 
-[seqfu]
-version = "planned"
-
 [seqkit]
 version = "latest-pinned"
 
 [seqkit_stats]
-version = "latest-pinned"
-
-[seqprep]
-version = "1.3.2"
-
-[seqpurge]
 version = "latest-pinned"
 
 [seqtk]

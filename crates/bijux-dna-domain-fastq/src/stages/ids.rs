@@ -16,7 +16,7 @@ pub const STAGE_RRNA: StageId = StageId::from_static("fastq.rrna");
 
 pub const STAGE_PREFIX: &str = "fastq.";
 
-pub const STAGES: [StageId; 13] = [
+pub const STAGES: [StageId; 12] = [
     STAGE_PREPARE_REFERENCE,
     STAGE_VALIDATE_PRE,
     STAGE_DETECT_ADAPTERS,
@@ -29,7 +29,6 @@ pub const STAGES: [StageId; 13] = [
     STAGE_UMI,
     STAGE_SCREEN,
     STAGE_QC_POST,
-    STAGE_PREPROCESS,
 ];
 
 #[must_use]

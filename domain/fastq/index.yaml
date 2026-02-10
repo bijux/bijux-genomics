@@ -1,6 +1,5 @@
 domain: "fastq"
 stage_ids:
-  - fastq.preprocess
   - fastq.prepare_reference
   - fastq.validate_pre
   - fastq.detect_adapters
@@ -52,7 +51,6 @@ tool_ids:
   - sortmerna
   - seqprep
   - diamond
-  - bcftools
   - star
   - skewer
   - spades
@@ -70,8 +68,8 @@ stage_tool_compatibility:
   fastq.stats_neutral: [seqkit_stats, seqkit, seqfu]
   fastq.rrna: [sortmerna]
   fastq.qc_post: [multiqc, fastqc, qualimap, samtools]
-  fastq.screen: [kraken2, krakenuniq, bracken, centrifuge, metaphlan, kaiju, fastq_screen]
-  fastq.merge: [pear, vsearch, bbmerge, flash2, leehom]
+  fastq.screen: [kraken2, krakenuniq, bracken, diamond, centrifuge, metaphlan, kaiju, fastq_screen]
+  fastq.merge: [pear, vsearch, bbmerge, flash2, leehom, seqprep]
   fastq.correct: [rcorrector, lighter, musket, bayeshammer, spades]
   fastq.umi: [umi_tools]
 active_defaults:
@@ -161,6 +159,7 @@ stage_default_settings:
     kraken2: { profile: "adna_sane_default", notes: "taxonomy baseline preset" }
     krakenuniq: { profile: "adna_sane_default", notes: "unique-kmer taxonomy preset" }
     bracken: { profile: "adna_sane_default", notes: "abundance refinement preset" }
+    diamond: { profile: "adna_sane_default", notes: "alignment-based classifier preset" }
     centrifuge: { profile: "adna_sane_default", notes: "classifier alternative preset" }
     metaphlan: { profile: "adna_sane_default", notes: "marker-gene profiling preset" }
     kaiju: { profile: "adna_sane_default", notes: "protein-level classification preset" }
@@ -171,6 +170,7 @@ stage_default_settings:
     bbmerge: { profile: "adna_sane_default", notes: "merge quality-balanced preset" }
     flash2: { profile: "adna_sane_default", notes: "fast overlap merge preset" }
     leehom: { profile: "adna_sane_default", notes: "aDNA collapse merge preset" }
+    seqprep: { profile: "adna_sane_default", notes: "classic overlap merge preset" }
   fastq.correct:
     rcorrector: { profile: "adna_sane_default", notes: "kmer correction baseline preset" }
     lighter: { profile: "adna_sane_default", notes: "sampling-based correction preset" }
