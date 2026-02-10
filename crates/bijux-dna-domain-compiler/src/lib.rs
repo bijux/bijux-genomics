@@ -1215,6 +1215,47 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                 );
             }
         }
+        // Enforce index as the single enumerator: every authored file must be listed in index.
+        let stage_dir = options.domain_dir.join(dom).join("stages");
+        for entry in
+            std::fs::read_dir(&stage_dir).with_context(|| format!("read {}", stage_dir.display()))?
+        {
+            let path = entry?.path();
+            if path.extension().and_then(|v| v.to_str()) != Some("yaml") {
+                continue;
+            }
+            if path.file_name().and_then(|v| v.to_str()) == Some("_schema.yaml") {
+                continue;
+            }
+            let stage: DomainStage = read_yaml(&path)?;
+            if !index.stage_ids.contains(&stage.stage_id) {
+                bail!(
+                    "{} stage {} exists in file system but is not listed in index.yaml",
+                    path.display(),
+                    stage.stage_id
+                );
+            }
+        }
+        let tool_dir = options.domain_dir.join(dom).join("tools");
+        for entry in
+            std::fs::read_dir(&tool_dir).with_context(|| format!("read {}", tool_dir.display()))?
+        {
+            let path = entry?.path();
+            if path.extension().and_then(|v| v.to_str()) != Some("yaml") {
+                continue;
+            }
+            if path.file_name().and_then(|v| v.to_str()) == Some("_schema.yaml") {
+                continue;
+            }
+            let tool: DomainToolLoose = read_yaml(&path)?;
+            if !index.tool_ids.contains(&tool.tool_id) {
+                bail!(
+                    "{} tool {} exists in file system but is not listed in index.yaml",
+                    path.display(),
+                    tool.tool_id
+                );
+            }
+        }
         for (stage_id, tools) in &index.stage_tool_compatibility {
             if !index.stage_ids.contains(stage_id) {
                 bail!(
@@ -1268,6 +1309,47 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                     default_tool,
                     stage_id
                 );
+            }
+        }
+        // Validate that required stage inputs are satisfiable by prior stage outputs in index order.
+        let mut available_inputs = if dom == "fastq" {
+            BTreeSet::from([
+                "reads".to_string(),
+                "reads_r1".to_string(),
+                "reads_r2".to_string(),
+                "reference_fasta".to_string(),
+            ])
+        } else {
+            BTreeSet::from(["bam".to_string(), "reference_fasta".to_string()])
+        };
+        for stage_id in &index.stage_ids {
+            let suffix = stage_id
+                .split_once('.')
+                .map_or(stage_id.as_str(), |(_, rhs)| rhs);
+            let stage_path = options
+                .domain_dir
+                .join(dom)
+                .join("stages")
+                .join(format!("{}.yaml", suffix.replace('.', "_")));
+            if !stage_path.exists() {
+                continue;
+            }
+            let stage: DomainStage = read_yaml(&stage_path)?;
+            if stage.status != "supported" {
+                continue;
+            }
+            for required in &stage.required_inputs {
+                if !available_inputs.contains(required) {
+                    bail!(
+                        "{} required input `{}` for stage {} is not satisfiable by prior stage outputs",
+                        stage_path.display(),
+                        required,
+                        stage_id
+                    );
+                }
+            }
+            for out in &stage.outputs {
+                available_inputs.insert(out.name.clone());
             }
         }
     }
