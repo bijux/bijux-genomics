@@ -3,7 +3,8 @@ use std::path::Path;
 use anyhow::{anyhow, Context, Result};
 
 use bijux_dna_core::contract::{
-    Cardinality, PortSpec, StageId, StageSpec, ToolManifest, ToolRegistry,
+    Cardinality, ExecutionContract, PortSpec, StageId, StageSpec, ToolConstraints, ToolManifest,
+    ToolRegistry, ToolRole,
 };
 use bijux_dna_core::ids::ToolId;
 
@@ -105,12 +106,12 @@ pub fn load_manifests(registry_path: &Path) -> Result<ToolRegistry> {
             registry.insert_tool(ToolManifest {
                 tool_id,
                 stage_id,
-                role: Default::default(),
+                role: ToolRole::default(),
                 command_template: Vec::new(),
                 outputs: Vec::new(),
                 metrics_parser: None,
-                constraints: Default::default(),
-                execution_contract: Default::default(),
+                constraints: ToolConstraints::default(),
+                execution_contract: ExecutionContract::default(),
             });
         }
     }
