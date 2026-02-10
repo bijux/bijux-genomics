@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: e591e20fe93052a7e678175439f76401b5555dcc
+# source_commit: 43a12ea7923794ba60f27ce93f1e62d8c53e7084
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 
@@ -1618,6 +1618,17 @@ validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
 default_rationale = "Default filter preserves compatibility with downstream metrics."
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
+id = "fastq.host_depletion"
+primary_tools = ["bowtie2"]
+optional_alternatives = ["samtools"]
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+default_rationale = "Default host depletion uses deterministic mapping and unmapped extraction."
 requires_validation = false
 requires_reporting = false
 

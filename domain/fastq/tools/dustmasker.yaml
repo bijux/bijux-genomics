@@ -1,0 +1,24 @@
+schema_version: "bijux.tool.v2"
+tool_id: "dustmasker"
+upstream: "https://www.ncbi.nlm.nih.gov/books/NBK279690/"
+versioning_strategy: "pinned"
+pin_strategy: "pinned"
+default_version: "2.15.0"
+install_kind: "container"
+license: "Public-Domain"
+citation: "pending:tool-publication"
+stage_ids: ["fastq.low_complexity"]
+status: "planned"
+scope: "pre_hpc_pre_vcf"
+expected_artifacts: ["filtered_fastq", "filter_report_json"]
+metrics_schema_id: "bijux.stage.metrics.v1"
+metrics_schema: "bijux.stage.metrics.v1"
+version_cmd: "dustmasker -version"
+help_cmd: "dustmasker -help"
+comparability:
+  comparable_with: ["prinseq", "bbduk"]
+  non_comparable_with: []
+comparability_notes: "Comparable when complexity thresholds and masking-to-filter conversion policy are matched."
+capabilities:
+  - SE
+  - PE
