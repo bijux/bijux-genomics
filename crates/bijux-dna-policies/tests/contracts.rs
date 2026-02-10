@@ -76,6 +76,8 @@ mod mod_contracts_tooling_smoke_manifest_policy_rs;
 mod mod_contracts_tooling_snapshot_hygiene_policy_rs;
 #[path = "contracts/tooling/scripts_registry_wrapper_policy.rs"]
 mod mod_contracts_tooling_scripts_registry_wrapper_policy_rs;
+#[path = "contracts/tooling/root_pollution_policy.rs"]
+mod mod_contracts_tooling_root_pollution_policy_rs;
 #[path = "contracts/tooling/stage_registry_fixture_completeness.rs"]
 mod mod_contracts_tooling_stage_registry_fixture_completeness_rs;
 #[path = "contracts/tooling/stage_tool_matrix_policy.rs"]
