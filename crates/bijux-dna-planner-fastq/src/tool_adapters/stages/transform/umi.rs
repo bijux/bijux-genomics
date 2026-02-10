@@ -12,8 +12,8 @@ pub const STAGE_ID: StageId = STAGE_UMI;
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
 
 pub fn normalize_umi_tool_list(tools: &[String]) -> Result<Vec<String>> {
-    let allowed = ["umi_tools"];
-    normalize_tools_with_allowlist(tools, &allowed)
+    let allowlist = crate::selection::allowed_tools_for_stage(&STAGE_ID);
+    normalize_tools_with_allowlist(tools, &allowlist)
 }
 
 /// Build a UMI plan.
@@ -85,7 +85,7 @@ pub fn plan_umi(
     })
 }
 
-fn normalize_tools_with_allowlist(tools: &[String], allowlist: &[&str]) -> Result<Vec<String>> {
+fn normalize_tools_with_allowlist(tools: &[String], allowlist: &[String]) -> Result<Vec<String>> {
     let mut normalized: Vec<String> = tools.iter().map(|tool| tool.to_lowercase()).collect();
     normalized.sort();
     normalized.dedup();
@@ -93,7 +93,7 @@ fn normalize_tools_with_allowlist(tools: &[String], allowlist: &[&str]) -> Resul
         return Err(anyhow!("no tools specified"));
     }
     for tool in &normalized {
-        if !allowlist.contains(&tool.as_str()) {
+        if !allowlist.contains(tool) {
             return Err(anyhow!("unsupported tool: {tool}"));
         }
     }

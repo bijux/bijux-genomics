@@ -1,11 +1,9 @@
 use bijux_dna_domain_bam::BamStage;
+use std::collections::BTreeSet;
 
 #[must_use]
 pub fn allowed_tools_for_stage(stage: BamStage) -> Vec<String> {
     canonical_tools_for_stage(stage)
-        .iter()
-        .map(|tool| (*tool).to_string())
-        .collect()
 }
 
 #[must_use]
@@ -15,31 +13,17 @@ pub fn default_tool_for_stage(stage: BamStage) -> String {
 }
 
 #[must_use]
-pub fn canonical_tools_for_stage(stage: BamStage) -> &'static [&'static str] {
-    match stage {
-        BamStage::Align => &["bwa", "bowtie2"],
-        BamStage::Validate => &["samtools", "bamtools", "bedtools"],
-        BamStage::QcPre => &["samtools"],
-        BamStage::Filter => &["samtools", "bamtools", "bedtools"],
-        BamStage::Markdup => &["gatk", "samtools"],
-        BamStage::Complexity => &["preseq"],
-        BamStage::Coverage => &["mosdepth", "samtools"],
-        BamStage::Damage => &[
-            "pydamage",
-            "mapdamage2",
-            "damageprofiler",
-            "addeam",
-            "ngsbriggs",
-        ],
-        BamStage::Authenticity => &["authenticct", "pmdtools"],
-        BamStage::Contamination => &["authenticct", "schmutzi", "verifybamid2", "contammix"],
-        BamStage::Sex => &["rxy"],
-        BamStage::BiasMitigation => &["angsd"],
-        BamStage::Recalibration => &["gatk"],
-        BamStage::Haplogroups => &["yleaf"],
-        BamStage::Genotyping => &["angsd"],
-        BamStage::Kinship => &["king"],
-    }
+pub fn canonical_tools_for_stage(stage: BamStage) -> Vec<String> {
+    let adapter = stage.as_str();
+    let mut tools = crate::selection::tool_registry::tool_registry()
+        .into_values()
+        .filter(|entry| entry.adapter_id == adapter)
+        .map(|entry| entry.tool_id.to_string())
+        .collect::<BTreeSet<_>>()
+        .into_iter()
+        .collect::<Vec<_>>();
+    tools.sort();
+    tools
 }
 
 #[must_use]
