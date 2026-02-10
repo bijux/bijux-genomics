@@ -24,6 +24,9 @@ The generated config set is fixed and compiler-owned:
 - `configs/stages.toml`
 - `configs/images.toml`
 
+Crate authority ownership is defined in:
+- `docs/10-architecture/CRATE_AUTHORITY_MAP.md`
+
 ## Failure modes:
 - Manual edits to generated configs drift from domain and fail CI.
 - Makefile-side tool lists drift from registry and fail policies.
