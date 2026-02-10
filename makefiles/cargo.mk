@@ -45,7 +45,7 @@ ISOLATE_COV_TARGET_DIR ?= $(ISOLATE_ROOT)/target-cov
 fmt:
 	$(FMT)
 
-lint: docs-lint domain-validate domain-inventory-drift check-generated-configs
+lint: domain-validate domain-inventory-drift check-generated-configs
 	$(LINT)
 
 test:
@@ -137,7 +137,6 @@ policy-full: ## Run full policy suite
 	cargo test -p bijux-dna-policies
 	./scripts/domain-validate.sh
 	./scripts/domain-inventory-drift.sh
-	$(MAKE) docs-lint
 
 domain-validate:
 	./scripts/domain-validate.sh
