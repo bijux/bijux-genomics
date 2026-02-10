@@ -5,6 +5,8 @@ NEXTEST_PROFILE ?= ci
 NEXTEST_CONFIG ?= --config-file nextest.toml
 RUN_IGNORED = --run-ignored all
 TEST_FEATURES = --all-features
+NEXTEST_JOBS ?= $(JOBS)
+NEXTEST_TEST_THREADS ?= $(NEXTEST_JOBS)
 TEST_TARGET_DIR ?= target-test
 COV_TARGET_DIR ?= target-cov
 TEST_TMP_DIR ?= $(abspath $(TEST_TARGET_DIR))/tmp
@@ -16,7 +18,7 @@ TEST_ENV = TZ=UTC LC_ALL=C TMPDIR=$(TEST_TMP_DIR) TMP=$(TEST_TMP_DIR) TEMP=$(TES
   TEST_TMP_DIR=$(TEST_TMP_DIR) COV_TMP_DIR=$(COV_TMP_DIR) \
   TEST_PROFRAW_DIR=$(TEST_PROFRAW_DIR) COV_PROFRAW_DIR=$(COV_PROFRAW_DIR) \
   LLVM_PROFILE_FILE=$(TEST_PROFRAW_DIR)/%p.profraw
-TEST = $(TEST_ENV) CARGO_TARGET_DIR=$(TEST_TARGET_DIR) cargo nextest run $(NEXTEST_CONFIG) --workspace $(TEST_FEATURES) --profile $(NEXTEST_PROFILE) $(RUN_IGNORED)
+TEST = $(TEST_ENV) CARGO_TARGET_DIR=$(TEST_TARGET_DIR) cargo nextest run $(NEXTEST_CONFIG) --workspace $(TEST_FEATURES) --profile $(NEXTEST_PROFILE) --test-threads $(NEXTEST_TEST_THREADS) $(RUN_IGNORED)
 COVERAGE_ROOT = $(COV_TARGET_DIR)/coverage
 COVERAGE_ROOT_ABS = $(abspath $(COVERAGE_ROOT))
 COV_TARGET_DIR_ABS = $(abspath $(COV_TARGET_DIR))
@@ -32,7 +34,7 @@ COVERAGE_ENV = TZ=UTC LC_ALL=C TMPDIR=$(COV_TMP_DIR) TMP=$(COV_TMP_DIR) TEMP=$(C
   CARGO_LLVM_COV_TARGET_DIR=$(COV_TARGET_DIR_ABS) \
   CARGO_LLVM_COV_BUILD_DIR=$(COV_TARGET_DIR_ABS) \
   LLVM_PROFILE_FILE=$(COV_PROFRAW_DIR)/%p.profraw
-COVERAGE_RUN = cargo llvm-cov nextest --no-report --no-cfg-coverage $(NEXTEST_CONFIG) --workspace $(TEST_FEATURES) --profile $(NEXTEST_PROFILE) $(RUN_IGNORED)
+COVERAGE_RUN = cargo llvm-cov nextest --no-report --no-cfg-coverage $(NEXTEST_CONFIG) --workspace $(TEST_FEATURES) --profile $(NEXTEST_PROFILE) --test-threads $(NEXTEST_TEST_THREADS) $(RUN_IGNORED)
 COVERAGE_JSON = cargo llvm-cov report --json --output-path $(COVERAGE_OUT)
 COVERAGE_HTML = cargo llvm-cov report --html --output-dir $(COVERAGE_ROOT)
 ISOLATE_ID ?= $(shell sh -c 'date +%Y%m%d%H%M%S-$$PPID')
