@@ -18,6 +18,7 @@ fn public_surface_is_deliberate() {
         "fixtures::{assert_json_schema_like, load_fixture_json, load_fixture_text}".to_string(),
         "snapshots::{install_snapshot_env, sanitize_snapshot_json, sanitize_snapshot_text, snapshot_name, snapshot_normalize_json, snapshot_normalize_text, stable_json}"
             .to_string(),
+        "temp::{resolve_under, temp_path_for, tempdir_for}".to_string(),
     ]
     .into_iter()
     .collect();

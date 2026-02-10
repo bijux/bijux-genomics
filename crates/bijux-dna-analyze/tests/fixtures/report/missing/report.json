@@ -360,7 +360,7 @@
       },
       "presets": [
         {
-          "effective_config_path": "<WORKSPACE_ROOT>/crates/bijux-dna-analyze/tests/fixtures/report/effective_config.json",
+          "effective_config_path": "/Users/bijan/bijux/bijux-dna/crates/bijux-dna-analyze/tests/fixtures/report/effective_config.json",
           "params_hash": "params3",
           "stage_id": "fastq.validate_pre",
           "tool_id": "fastqvalidator",
@@ -544,18 +544,18 @@
   "stages": [
     {
       "bank_report_path": null,
-      "effective_config_path": "<WORKSPACE_ROOT>/crates/bijux-dna-analyze/tests/fixtures/report/effective_config.json",
+      "effective_config_path": "/Users/bijan/bijux/bijux-dna/crates/bijux-dna-analyze/tests/fixtures/report/effective_config.json",
       "exit_code": 0,
       "input_hash": "input3",
       "memory_mb": 32.0,
-      "metrics_path": "<WORKSPACE_ROOT>/crates/bijux-dna-analyze/tests/fixtures/report/metrics.json",
+      "metrics_path": "/Users/bijan/bijux/bijux-dna/crates/bijux-dna-analyze/tests/fixtures/report/metrics.json",
       "params_hash": "params3",
       "retention_report_path": null,
       "runtime_s": 3.0,
       "stage_id": "fastq.validate_pre",
-      "stage_report_path": "<WORKSPACE_ROOT>/crates/bijux-dna-analyze/tests/fixtures/report/stage_report.json",
+      "stage_report_path": "/Users/bijan/bijux/bijux-dna/crates/bijux-dna-analyze/tests/fixtures/report/stage_report.json",
       "tool_id": "fastqvalidator",
-      "tool_invocation_path": "<WORKSPACE_ROOT>/crates/bijux-dna-analyze/tests/fixtures/report/tool_invocation.json",
+      "tool_invocation_path": "/Users/bijan/bijux/bijux-dna/crates/bijux-dna-analyze/tests/fixtures/report/tool_invocation.json",
       "tool_version": "1.0"
     }
   ],
@@ -563,7 +563,7 @@
     "error_count": 0,
     "event_count": 0,
     "events": [
-      "<WORKSPACE_ROOT>/crates/bijux-dna-analyze/tests/fixtures/report/telemetry/events.jsonl"
+      "/Users/bijan/bijux/bijux-dna/crates/bijux-dna-analyze/tests/fixtures/report/telemetry/events.jsonl"
     ]
   }
 }
