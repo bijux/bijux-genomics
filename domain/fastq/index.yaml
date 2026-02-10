@@ -9,6 +9,9 @@ stage_ids:
   - fastq.rrna
   - fastq.qc_post
   - fastq.merge
+  - fastq.deduplicate
+  - fastq.low_complexity
+  - fastq.host_depletion
   - fastq.correct
   - fastq.umi
   - fastq.screen
@@ -59,6 +62,10 @@ tool_ids:
   - umi_tools
   - vsearch
   - alientrimmer
+  - fastuniq
+  - clumpify
+  - dustmasker
+  - bowtie2
 stage_tool_compatibility:
   fastq.prepare_reference: [star, samtools]
   fastq.detect_adapters: [fastp]
@@ -70,6 +77,9 @@ stage_tool_compatibility:
   fastq.qc_post: [multiqc, fastqc, qualimap, samtools]
   fastq.screen: [kraken2, krakenuniq, bracken, diamond, centrifuge, metaphlan, kaiju, fastq_screen]
   fastq.merge: [pear, vsearch, bbmerge, flash2, leehom, seqprep]
+  fastq.deduplicate: [fastuniq, clumpify, prinseq]
+  fastq.low_complexity: [dustmasker, prinseq, bbduk]
+  fastq.host_depletion: [bowtie2, samtools]
   fastq.correct: [rcorrector, lighter, musket, bayeshammer, spades]
   fastq.umi: [umi_tools]
 active_defaults:
@@ -83,6 +93,7 @@ active_defaults:
   fastq.qc_post: multiqc
   fastq.screen: kraken2
   fastq.merge: pear
+  fastq.host_depletion: bowtie2
   fastq.correct: rcorrector
   fastq.umi: umi_tools
 active_default_rationale:
@@ -96,6 +107,7 @@ active_default_rationale:
   fastq.qc_post: "QC aggregation default provides operator-first summary output."
   fastq.screen: "Default classifier maximizes comparability with existing reports."
   fastq.merge: "Default merger is stable for paired-end overlap handling."
+  fastq.host_depletion: "Default host depletion uses deterministic mapping and unmapped extraction."
   fastq.correct: "Default corrector chosen for robust error-correction baseline."
   fastq.umi: "Default UMI handler preserves compatibility with stage contract."
 stage_completeness_checklist:
@@ -109,6 +121,9 @@ stage_completeness_checklist:
   fastq.qc_post: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
   fastq.screen: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
   fastq.merge: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
+  fastq.deduplicate: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
+  fastq.low_complexity: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
+  fastq.host_depletion: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
   fastq.correct: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
   fastq.umi: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
 stage_default_settings:
@@ -171,6 +186,17 @@ stage_default_settings:
     flash2: { profile: "adna_sane_default", notes: "fast overlap merge preset" }
     leehom: { profile: "adna_sane_default", notes: "aDNA collapse merge preset" }
     seqprep: { profile: "adna_sane_default", notes: "classic overlap merge preset" }
+  fastq.deduplicate:
+    fastuniq: { profile: "adna_sane_default", notes: "pair-aware deduplication baseline preset" }
+    clumpify: { profile: "adna_sane_default", notes: "bbtools clumpify dedup preset" }
+    prinseq: { profile: "adna_sane_default", notes: "sequence-based deduplication preset" }
+  fastq.low_complexity:
+    dustmasker: { profile: "adna_sane_default", notes: "DUST complexity masking preset" }
+    prinseq: { profile: "adna_sane_default", notes: "prinseq complexity filter preset" }
+    bbduk: { profile: "adna_sane_default", notes: "entropy/polyX complexity filter preset" }
+  fastq.host_depletion:
+    bowtie2: { profile: "adna_sane_default", notes: "host mapping depletion baseline preset" }
+    samtools: { profile: "adna_sane_default", notes: "unmapped read extraction preset" }
   fastq.correct:
     rcorrector: { profile: "adna_sane_default", notes: "kmer correction baseline preset" }
     lighter: { profile: "adna_sane_default", notes: "sampling-based correction preset" }
@@ -190,6 +216,9 @@ stage_comparability_mapping:
   fastq.qc_post: ["qc_warn_count", "qc_fail_count"]
   fastq.screen: ["taxonomy_abundance_fraction", "classified_read_fraction"]
   fastq.merge: ["merge_rate", "merged_read_length_mean"]
+  fastq.deduplicate: ["dedup_rate", "read_retention"]
+  fastq.low_complexity: ["reads_removed_low_complexity", "read_retention"]
+  fastq.host_depletion: ["contamination_rate", "read_retention"]
   fastq.correct: ["error_corrected_fraction"]
   fastq.umi: ["umi_extracted_count", "umi_dedup_fraction"]
 stage_min_quality_gates:
@@ -203,6 +232,9 @@ stage_min_quality_gates:
   fastq.qc_post: ["qc_report_present=true"]
   fastq.screen: ["classified_read_fraction>=0.0"]
   fastq.merge: ["merge_rate>=0.0"]
+  fastq.deduplicate: ["dedup_rate>=0.0"]
+  fastq.low_complexity: ["reads_removed_low_complexity>=0.0"]
+  fastq.host_depletion: ["read_retention>=0.0"]
   fastq.correct: ["post_correct_read_count>0"]
   fastq.umi: ["umi_report_present=true"]
 stage_failure_diagnosis_hints:
@@ -216,6 +248,9 @@ stage_failure_diagnosis_hints:
   fastq.qc_post: ["inspect upstream qc tool outputs required by aggregator"]
   fastq.screen: ["check classifier DB path/version/hash and kmer DB integrity"]
   fastq.merge: ["review overlap thresholds and paired-end orientation"]
+  fastq.deduplicate: ["inspect duplicate criteria and pair-preservation settings"]
+  fastq.low_complexity: ["review entropy/polyX thresholds for over-filtering"]
+  fastq.host_depletion: ["verify host reference index and unmapped extraction flags"]
   fastq.correct: ["verify kmer/cov parameters and read depth assumptions"]
   fastq.umi: ["confirm UMI pattern configuration and read naming conventions"]
 pipeline_compositions:
@@ -226,6 +261,7 @@ pipeline_compositions:
     - fastq.trim
     - fastq.filter
     - fastq.merge
+    - fastq.host_depletion
     - fastq.stats_neutral
     - fastq.qc_post
     - fastq.screen
@@ -236,7 +272,10 @@ stage_ordering_constraints:
   fastq.trim: [fastq.detect_adapters]
   fastq.filter: [fastq.trim]
   fastq.merge: [fastq.filter]
-  fastq.stats_neutral: [fastq.merge]
+  fastq.deduplicate: [fastq.merge]
+  fastq.low_complexity: [fastq.deduplicate]
+  fastq.host_depletion: [fastq.merge]
+  fastq.stats_neutral: [fastq.host_depletion]
   fastq.qc_post: [fastq.stats_neutral]
   fastq.screen: [fastq.qc_post]
   fastq.rrna: [fastq.filter]
@@ -249,7 +288,10 @@ stage_prerequisites:
   fastq.trim: [fastq.detect_adapters]
   fastq.filter: [fastq.trim]
   fastq.merge: [fastq.filter]
-  fastq.stats_neutral: [fastq.merge]
+  fastq.deduplicate: [fastq.merge]
+  fastq.low_complexity: [fastq.deduplicate]
+  fastq.host_depletion: [fastq.merge]
+  fastq.stats_neutral: [fastq.host_depletion]
   fastq.qc_post: [fastq.stats_neutral]
   fastq.screen: [fastq.qc_post]
   fastq.rrna: [fastq.filter]
@@ -266,6 +308,9 @@ stage_resource_hints:
   fastq.qc_post: { memory_gb: 4.0, time_minutes: 15, threads: 2 }
   fastq.screen: { memory_gb: 16.0, time_minutes: 60, threads: 8 }
   fastq.merge: { memory_gb: 8.0, time_minutes: 25, threads: 6 }
+  fastq.deduplicate: { memory_gb: 6.0, time_minutes: 25, threads: 4 }
+  fastq.low_complexity: { memory_gb: 6.0, time_minutes: 20, threads: 4 }
+  fastq.host_depletion: { memory_gb: 16.0, time_minutes: 50, threads: 8 }
   fastq.correct: { memory_gb: 12.0, time_minutes: 45, threads: 8 }
   fastq.umi: { memory_gb: 4.0, time_minutes: 20, threads: 4 }
 stage_output_size_estimates_mb:
@@ -279,6 +324,9 @@ stage_output_size_estimates_mb:
   fastq.qc_post: { qc_report_json: 15.0, qc_report_html: 30.0 }
   fastq.screen: { screen_report_tsv: 25.0, abundance_report: 5.0 }
   fastq.merge: { merged_reads: 1400.0, merge_report: 8.0 }
+  fastq.deduplicate: { dedup_reads_r1: 1200.0, dedup_reads_r2: 1200.0, report_json: 6.0 }
+  fastq.low_complexity: { filtered_fastq: 1100.0, filter_report_json: 8.0 }
+  fastq.host_depletion: { filtered_fastq: 950.0, screen_report: 12.0 }
   fastq.correct: { corrected_reads_r1: 900.0, corrected_reads_r2: 900.0 }
   fastq.umi: { dedup_reads_r1: 700.0, dedup_reads_r2: 700.0 }
 stage_sanity_metrics:
@@ -292,6 +340,9 @@ stage_sanity_metrics:
   fastq.qc_post: [qc_warn_count, qc_fail_count]
   fastq.screen: [classified_read_fraction]
   fastq.merge: [merge_rate]
+  fastq.deduplicate: [dedup_rate]
+  fastq.low_complexity: [reads_removed_low_complexity]
+  fastq.host_depletion: [contamination_rate]
   fastq.correct: [error_corrected_fraction]
   fastq.umi: [umi_dedup_fraction]
 stage_qc_thresholds:
@@ -305,6 +356,9 @@ stage_qc_thresholds:
   fastq.qc_post: { qc_fail_count: { warn: ">0", fail: ">5" } }
   fastq.screen: { classified_read_fraction: { warn: "<0.1", fail: "<0.01" } }
   fastq.merge: { merge_rate: { warn: "<0.15", fail: "<0.05" } }
+  fastq.deduplicate: { dedup_rate: { warn: "<0.02", fail: "<0.005" } }
+  fastq.low_complexity: { reads_removed_low_complexity: { warn: ">0.5", fail: ">0.8" } }
+  fastq.host_depletion: { contamination_rate: { warn: ">=0.05", fail: ">=0.2" } }
   fastq.correct: { error_corrected_fraction: { warn: "<0.01", fail: "<0.001" } }
   fastq.umi: { umi_dedup_fraction: { warn: "<0.05", fail: "<0.01" } }
 stage_contamination_thresholds:
@@ -318,6 +372,9 @@ stage_contamination_thresholds:
   fastq.qc_post: { contamination_rate: { warn: ">=0.05", fail: ">=0.2" } }
   fastq.screen: { contamination_rate: { warn: ">=0.05", fail: ">=0.2" } }
   fastq.merge: { contamination_rate: { warn: ">=0.05", fail: ">=0.2" } }
+  fastq.deduplicate: { contamination_rate: { warn: ">=0.05", fail: ">=0.2" } }
+  fastq.low_complexity: { contamination_rate: { warn: ">=0.05", fail: ">=0.2" } }
+  fastq.host_depletion: { contamination_rate: { warn: ">=0.05", fail: ">=0.2" } }
   fastq.correct: { contamination_rate: { warn: ">=0.05", fail: ">=0.2" } }
   fastq.umi: { contamination_rate: { warn: ">=0.05", fail: ">=0.2" } }
 stage_authenticity_thresholds:
@@ -331,6 +388,9 @@ stage_authenticity_thresholds:
   fastq.qc_post: { authenticity_score: { warn: "<=1.0", fail: "<=0.0" } }
   fastq.screen: { authenticity_score: { warn: "<0.2", fail: "<0.1" } }
   fastq.merge: { authenticity_score: { warn: "<=1.0", fail: "<=0.0" } }
+  fastq.deduplicate: { authenticity_score: { warn: "<=1.0", fail: "<=0.0" } }
+  fastq.low_complexity: { authenticity_score: { warn: "<=1.0", fail: "<=0.0" } }
+  fastq.host_depletion: { authenticity_score: { warn: "<0.2", fail: "<0.1" } }
   fastq.correct: { authenticity_score: { warn: "<=1.0", fail: "<=0.0" } }
   fastq.umi: { authenticity_score: { warn: "<=1.0", fail: "<=0.0" } }
 stage_duplication_thresholds:
@@ -344,6 +404,9 @@ stage_duplication_thresholds:
   fastq.qc_post: { duplication_rate: { warn: ">=0.7", fail: ">=0.9" } }
   fastq.screen: { duplication_rate: { warn: ">=0.7", fail: ">=0.9" } }
   fastq.merge: { duplication_rate: { warn: ">=0.7", fail: ">=0.9" } }
+  fastq.deduplicate: { duplication_rate: { warn: ">=0.7", fail: ">=0.9" } }
+  fastq.low_complexity: { duplication_rate: { warn: ">=0.7", fail: ">=0.9" } }
+  fastq.host_depletion: { duplication_rate: { warn: ">=0.7", fail: ">=0.9" } }
   fastq.correct: { duplication_rate: { warn: ">=0.7", fail: ">=0.9" } }
   fastq.umi: { duplication_rate: { warn: ">=0.7", fail: ">=0.9" } }
 stage_coverage_sufficiency:
@@ -357,6 +420,9 @@ stage_coverage_sufficiency:
   fastq.qc_post: ["not_applicable"]
   fastq.screen: ["not_applicable"]
   fastq.merge: ["not_applicable"]
+  fastq.deduplicate: ["not_applicable"]
+  fastq.low_complexity: ["not_applicable"]
+  fastq.host_depletion: ["not_applicable"]
   fastq.correct: ["not_applicable"]
   fastq.umi: ["not_applicable"]
 stage_sex_kinship_sufficiency:
@@ -370,6 +436,9 @@ stage_sex_kinship_sufficiency:
   fastq.qc_post: ["not_applicable"]
   fastq.screen: ["not_applicable"]
   fastq.merge: ["not_applicable"]
+  fastq.deduplicate: ["not_applicable"]
+  fastq.low_complexity: ["not_applicable"]
+  fastq.host_depletion: ["not_applicable"]
   fastq.correct: ["not_applicable"]
   fastq.umi: ["not_applicable"]
 benchmark_scenarios:

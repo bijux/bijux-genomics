@@ -1,0 +1,24 @@
+schema_version: "bijux.tool.v2"
+tool_id: "clumpify"
+upstream: "https://jgi.doe.gov/data-and-tools/software-tools/bbtools/"
+versioning_strategy: "pinned"
+pin_strategy: "pinned"
+default_version: "39.08"
+install_kind: "container"
+license: "GPL-3.0"
+citation: "pending:tool-publication"
+stage_ids: ["fastq.deduplicate"]
+status: "planned"
+scope: "pre_hpc_pre_vcf"
+expected_artifacts: ["dedup_reads_r1", "dedup_reads_r2", "report_json"]
+metrics_schema_id: "bijux.stage.metrics.v1"
+metrics_schema: "bijux.stage.metrics.v1"
+version_cmd: "clumpify.sh --version"
+help_cmd: "clumpify.sh --help"
+comparability:
+  comparable_with: ["fastuniq", "prinseq"]
+  non_comparable_with: []
+comparability_notes: "Comparable when duplicate model and optical-duplicate handling are harmonized."
+capabilities:
+  - SE
+  - PE

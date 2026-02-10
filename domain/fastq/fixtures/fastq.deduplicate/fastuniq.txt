@@ -1,0 +1,3 @@
+tool=fastuniq
+stage=fastq.deduplicate
+fixture_kind=synthetic_truth

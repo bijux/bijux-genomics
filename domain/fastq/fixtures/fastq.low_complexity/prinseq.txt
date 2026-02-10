@@ -1,0 +1,3 @@
+tool=prinseq
+stage=fastq.low_complexity
+fixture_kind=synthetic_truth

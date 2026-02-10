@@ -1,0 +1,64 @@
+extends: "_schema.yaml"
+stage_id: "fastq.deduplicate"
+status: "planned"
+scope: "pre_hpc_pre_vcf"
+domain: "fastq"
+inputs:
+  - name: "reads"
+    data_type: "fastq"
+    cardinality: "Many"
+outputs:
+  - name: "dedup_reads_r1"
+    data_type: "fastq"
+    cardinality: "Many"
+  - name: "dedup_reads_r2"
+    data_type: "fastq"
+    cardinality: "Many"
+  - name: "report_json"
+    data_type: "json"
+    cardinality: "One"
+parameters:
+  - name: "dedup_mode"
+    param_type: "string"
+    default: "exact"
+  - name: "keep_order"
+    param_type: "bool"
+    default: "true"
+metrics:
+  - name: "reads_in"
+    meaning: "Number of input reads."
+  - name: "reads_out"
+    meaning: "Number of output reads."
+  - name: "dedup_rate"
+    meaning: "Fraction of reads removed as duplicates."
+description: "FASTQ stage for duplicate removal while preserving pair semantics."
+mutates_fastq: true
+report_only: false
+may_change_read_count: true
+image_requirements:
+  needs:
+    - gzip
+  forbids:
+    - network
+required_inputs:
+  - "reads"
+required_outputs:
+  - "dedup_reads_r1"
+  - "report_json"
+tool_capability_requirements:
+  - "SE"
+invariants:
+  - "stable_artifact_contract"
+  - "deterministic_output_order"
+allowed_missingness:
+  - "dedup_reads_r2"
+compatible_tools:
+  - fastuniq
+  - clumpify
+  - prinseq
+assumptions:
+  - "paired-end input may emit r1+r2 outputs; single-end may omit r2 artifact."
+bank_hooks:
+  - "none"
+metrics_schema: "bijux.stage.metrics.v1"
+planned_out_of_scope: []

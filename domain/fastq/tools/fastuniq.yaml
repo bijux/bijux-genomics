@@ -1,0 +1,24 @@
+schema_version: "bijux.tool.v2"
+tool_id: "fastuniq"
+upstream: "https://sourceforge.net/projects/fastuniq/"
+versioning_strategy: "pinned"
+pin_strategy: "pinned"
+default_version: "1.1"
+install_kind: "container"
+license: "GPL-3.0"
+citation: "pending:tool-publication"
+stage_ids: ["fastq.deduplicate"]
+status: "planned"
+scope: "pre_hpc_pre_vcf"
+expected_artifacts: ["dedup_reads_r1", "dedup_reads_r2", "report_json"]
+metrics_schema_id: "bijux.stage.metrics.v1"
+metrics_schema: "bijux.stage.metrics.v1"
+version_cmd: "fastuniq -h"
+help_cmd: "fastuniq -h"
+comparability:
+  comparable_with: ["clumpify", "prinseq"]
+  non_comparable_with: []
+comparability_notes: "Comparable when duplicate definition and pair-handling parameters are aligned."
+capabilities:
+  - SE
+  - PE
