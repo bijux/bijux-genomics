@@ -6,17 +6,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
   "inputs": {
     "kind": "SingleEnd"
   },
-  "metrics": {
-    "classes": [
-      "Integrity"
-    ],
-    "invariants": [
-      "reads_valid + reads_invalid == reads_total",
-      "mean_q in [0, 45]",
-      "counts are non-negative"
-    ],
-    "notes": "Validation reports counts; no data is modified."
-  },
+  "metrics": {},
   "outputs": {
     "emits_fastq": false,
     "kind": "StatsOnly"
@@ -34,13 +24,8 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     "units": "reads,bases"
   },
   "schema_version": "bijux.stage_contract.v1",
-  "stage_id": "fastq.validate_pre",
+  "stage_id": "fastq.rrna",
   "tool_ids": [
-    "seqtk",
-    "fastqc",
-    "fastqvalidator",
-    "fastqvalidator_official",
-    "fastq-scan",
-    "fqtools"
+    "sortmerna"
   ]
 }
