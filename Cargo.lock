@@ -405,6 +405,7 @@ dependencies = [
  "clap",
  "serde",
  "sha2",
+ "tempfile",
 ]
 
 [[package]]

@@ -16,6 +16,7 @@ bijux-dna-domain-bam = { path = "../bijux-dna-domain-bam" }
 
 [dev-dependencies]
 bijux-dna-policies.workspace = true
+tempfile.workspace = true
 
 [lints]
 workspace = true
