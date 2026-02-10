@@ -17,7 +17,23 @@ RUN apt-get update -qq && apt-get install -y --no-install-recommends     python3
 
 RUN git clone --depth 1 https://github.com/genid/Yleaf.git /opt/yleaf &&     cd /opt/yleaf && git checkout f3aae50653cb685a7c3d6e4c08aa170c47a85263 &&     python3 -m pip install --break-system-packages --no-cache-dir .
 
-RUN printf '%s\n'   '#!/usr/bin/env sh'   'case "${1:-}" in'   '  --version) yleaf --version; exit 0 ;;'   '  --help|-h|"") yleaf --help; exit 0 ;;'   'esac'   'exec yleaf "$@"' > /usr/local/bin/yleaf && chmod +x /usr/local/bin/yleaf
+RUN printf '%s\n' \
+      '#!/usr/bin/env sh' \
+      'case "${1:-}" in' \
+      '  --version) python3 - <<'"'"'PY'"'"'' \
+      'import importlib.metadata as m' \
+      'for name in ("Yleaf", "yleaf"):' \
+      '    try:' \
+      '        print(m.version(name))' \
+      '        break' \
+      '    except Exception:' \
+      '        pass' \
+      'PY' \
+      'exit 0 ;;' \
+      '  --help|-h|"") exec /usr/local/bin/Yleaf --help ;;' \
+      'esac' \
+      'exec /usr/local/bin/Yleaf "$@"' > /usr/local/bin/yleaf && \
+    chmod +x /usr/local/bin/yleaf
 
 ENTRYPOINT ["/usr/local/bin/yleaf"]
 CMD ["--help"]
