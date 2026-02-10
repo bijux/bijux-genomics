@@ -30,6 +30,11 @@ pub const FASTQ_FILTER_CLASSES: [MetricClass; 3] = [
     MetricClass::Retention,
     MetricClass::QualityShift,
 ];
+pub const FASTQ_DEDUPLICATE_CLASSES: [MetricClass; 3] = [
+    MetricClass::Integrity,
+    MetricClass::Retention,
+    MetricClass::QualityShift,
+];
 pub const FASTQ_MERGE_CLASSES: [MetricClass; 2] = [MetricClass::Integrity, MetricClass::Retention];
 pub const FASTQ_CORRECT_CLASSES: [MetricClass; 2] =
     [MetricClass::Integrity, MetricClass::QualityShift];
@@ -59,6 +64,12 @@ pub const FASTQ_FILTER_INVARIANTS: [&str; 4] = [
     "reads_out + reads_dropped == reads_in",
     "reads_removed_by_* <= reads_dropped",
     "mean_q_after >= mean_q_before (warn)",
+    "counts are non-negative",
+];
+pub const FASTQ_DEDUPLICATE_INVARIANTS: [&str; 4] = [
+    "reads_out <= reads_in",
+    "reads_removed_duplicates == reads_in - reads_out",
+    "retention.value in [0, 1]",
     "counts are non-negative",
 ];
 
@@ -120,6 +131,18 @@ pub fn metric_spec_for_stage(stage_id: &str) -> Option<StageMetricSpec> {
             classes: &FASTQ_FILTER_CLASSES,
             invariants: &FASTQ_FILTER_INVARIANTS,
             notes: "Filter drops reads and should improve quality.",
+        }),
+        "fastq.deduplicate" => Some(StageMetricSpec {
+            stage: "fastq.deduplicate",
+            classes: &FASTQ_DEDUPLICATE_CLASSES,
+            invariants: &FASTQ_DEDUPLICATE_INVARIANTS,
+            notes: "Deduplication removes duplicate reads while preserving pair semantics.",
+        }),
+        "fastq.low_complexity" => Some(StageMetricSpec {
+            stage: "fastq.low_complexity",
+            classes: &FASTQ_FILTER_CLASSES,
+            invariants: &FASTQ_FILTER_INVARIANTS,
+            notes: "Low-complexity filtering drops reads based on entropy/polyN/polyX signals.",
         }),
         "fastq.merge" => Some(StageMetricSpec {
             stage: "fastq.merge",

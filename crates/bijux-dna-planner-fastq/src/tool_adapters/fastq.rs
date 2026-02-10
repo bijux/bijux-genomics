@@ -20,6 +20,14 @@ pub mod filter {
     pub use crate::tool_adapters::stages::transform::filter::*;
 }
 
+pub mod deduplicate {
+    pub use crate::tool_adapters::stages::transform::deduplicate::*;
+}
+
+pub mod low_complexity {
+    pub use crate::tool_adapters::stages::transform::low_complexity::*;
+}
+
 pub mod merge {
     pub use crate::tool_adapters::stages::transform::merge::*;
 }
@@ -76,6 +84,16 @@ pub fn registry() -> Vec<StageInfo> {
         StageInfo {
             id: crate::tool_adapters::stages::transform::filter::STAGE_ID.clone(),
             version: crate::tool_adapters::stages::transform::filter::STAGE_VERSION,
+            affects_read_counts: true,
+        },
+        StageInfo {
+            id: crate::tool_adapters::stages::transform::deduplicate::STAGE_ID.clone(),
+            version: crate::tool_adapters::stages::transform::deduplicate::STAGE_VERSION,
+            affects_read_counts: true,
+        },
+        StageInfo {
+            id: crate::tool_adapters::stages::transform::low_complexity::STAGE_ID.clone(),
+            version: crate::tool_adapters::stages::transform::low_complexity::STAGE_VERSION,
             affects_read_counts: true,
         },
         StageInfo {

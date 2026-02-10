@@ -50,6 +50,8 @@ tool_capability_requirements:
 invariants:
   - "stable_artifact_contract"
   - "deterministic_output_order"
+  - "reads_out <= reads_in"
+  - "reads_removed_duplicates == reads_in - reads_out"
 allowed_missingness:
   - "dedup_reads_r2"
 compatible_tools:

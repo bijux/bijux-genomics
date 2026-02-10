@@ -11,9 +11,9 @@ use bijux_dna_core::prelude::{ContainerImageRefV1, StageId, StepId, ToolExecutio
 use bijux_dna_domain_bam::BamStage;
 use bijux_dna_domain_fastq::{assess_merge_suitability, canonical_stage_order};
 use bijux_dna_domain_fastq::{
-    STAGE_CORRECT, STAGE_DETECT_ADAPTERS, STAGE_FILTER, STAGE_MERGE, STAGE_PREFIX,
-    STAGE_PREPROCESS, STAGE_QC_POST, STAGE_SCREEN, STAGE_STATS_NEUTRAL, STAGE_TRIM, STAGE_UMI,
-    STAGE_VALIDATE_PRE,
+    STAGE_CORRECT, STAGE_DEDUPLICATE, STAGE_DETECT_ADAPTERS, STAGE_FILTER, STAGE_LOW_COMPLEXITY,
+    STAGE_MERGE, STAGE_PREFIX, STAGE_PREPROCESS, STAGE_QC_POST, STAGE_SCREEN,
+    STAGE_STATS_NEUTRAL, STAGE_TRIM, STAGE_UMI, STAGE_VALIDATE_PRE,
 };
 use bijux_dna_pipelines::STAGE_CORE_PREPARE_REFERENCE;
 use bijux_dna_stage_contract::{
@@ -660,6 +660,24 @@ where
                     &current_r1,
                     &out_dir,
                     &filter_options,
+                )?;
+                let next_r1 = plan.io.outputs[0].path.clone();
+                (plan, next_r1, None)
+            }
+            stage if stage == STAGE_DEDUPLICATE.as_str() => {
+                let plan = crate::tool_adapters::fastq::deduplicate::plan_deduplicate(
+                    tool,
+                    &current_r1,
+                    &out_dir,
+                )?;
+                let next_r1 = plan.io.outputs[0].path.clone();
+                (plan, next_r1, None)
+            }
+            stage if stage == STAGE_LOW_COMPLEXITY.as_str() => {
+                let plan = crate::tool_adapters::fastq::low_complexity::plan_low_complexity(
+                    tool,
+                    &current_r1,
+                    &out_dir,
                 )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
                 (plan, next_r1, None)

@@ -22,6 +22,13 @@ fn tool_ids_for_stage(stage_id: &str) -> Vec<&'static str> {
             "seqpurge",
         ],
         "fastq.filter" => vec!["prinseq", "seqkit", "fastp"],
+        "fastq.deduplicate" => vec!["fastuniq", "clumpify", "prinseq"],
+        "fastq.low_complexity" => vec!["dustmasker", "prinseq", "bbduk"],
+        "fastq.polyg_tailing" => vec!["fastp", "bbduk"],
+        "fastq.host_depletion" => vec!["bowtie2", "samtools"],
+        "fastq.contaminant_screen" => vec!["bbduk", "bowtie2"],
+        "fastq.length_distribution_pre" => vec!["seqkit_stats", "seqfu", "prinseq", "fastp"],
+        "fastq.overrepresented_sequences" => vec!["fastqc", "fastq-scan", "seqkit"],
         "fastq.validate_pre" => vec![
             "seqtk",
             "fastqc",
@@ -108,7 +115,14 @@ pub struct NormalizedOutputs {
 #[must_use]
 pub fn contract_for_stage(stage_id: &str) -> Option<FastqStageContract> {
     match stage_id {
-        "fastq.trim" | "fastq.filter" => Some(FastqStageContract {
+        "fastq.trim"
+        | "fastq.filter"
+        | "fastq.deduplicate"
+        | "fastq.low_complexity"
+        | "fastq.polyg_tailing"
+        | "fastq.host_depletion"
+        | "fastq.contaminant_screen" => {
+            Some(FastqStageContract {
             input_kind: FastqArtifactKind::SingleEnd,
             output_kind: FastqArtifactKind::SingleEnd,
             may_drop_reads: true,
@@ -118,7 +132,8 @@ pub fn contract_for_stage(stage_id: &str) -> Option<FastqStageContract> {
             may_drop: &["reads", "bases"],
             retention_definition: "reads_out / reads_in; bases_out / bases_in",
             retention_units: "reads,bases",
-        }),
+        })
+        }
         "fastq.merge" => Some(FastqStageContract {
             input_kind: FastqArtifactKind::PairedEnd,
             output_kind: FastqArtifactKind::Merged,
@@ -153,6 +168,8 @@ pub fn contract_for_stage(stage_id: &str) -> Option<FastqStageContract> {
             retention_units: "reads,bases",
         }),
         "fastq.validate_pre"
+        | "fastq.length_distribution_pre"
+        | "fastq.overrepresented_sequences"
         | "fastq.detect_adapters"
         | "fastq.stats_neutral"
         | "fastq.qc_post"

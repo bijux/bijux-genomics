@@ -47,6 +47,9 @@ tool_capability_requirements:
 invariants:
   - "stable_artifact_contract"
   - "deterministic_output_order"
+  - "poly_n_filter_applied_before_emit"
+  - "entropy_threshold_applied_before_emit"
+  - "homopolymer_filter_applied_before_emit"
 allowed_missingness:
   - "none"
 compatible_tools:

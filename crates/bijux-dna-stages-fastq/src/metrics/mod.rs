@@ -93,6 +93,85 @@ pub fn stage_metrics_for_plan(
                 &removals,
             )?
         }
+        id_catalog::FASTQ_DEDUPLICATE => {
+            let stats = stats_for_paths(&[
+                inputs.first().map(PathBuf::as_path),
+                outputs.first().map(PathBuf::as_path),
+            ])?;
+            let input = stats.first().copied().unwrap_or_else(zero_seqkit_metrics);
+            let output = stats.get(1).copied().unwrap_or_else(zero_seqkit_metrics);
+            let parsed_counts = std::fs::read_to_string(plan.out_dir.join("deduplicate_report.json"))
+                .ok()
+                .and_then(|raw| crate::observer::parse_deduplicate_report(&raw).ok());
+            let (reads_in, reads_out) = parsed_counts.unwrap_or((input.reads, output.reads));
+            let (pairs_in, pairs_out) = pair_counts_from_paths(inputs, outputs)?;
+            let read_retention = if reads_in > 0 {
+                f64_from_u64(reads_out) / f64_from_u64(reads_in)
+            } else {
+                0.0
+            };
+            let base_retention = if input.bases > 0 {
+                f64_from_u64(output.bases) / f64_from_u64(input.bases)
+            } else {
+                0.0
+            };
+            let delta = FastqDeltaMetricsV1 {
+                read_retention,
+                base_retention,
+                mean_q_delta: output.mean_q - input.mean_q,
+                gc_delta: output.gc_percent - input.gc_percent,
+            };
+            let retention = RetentionReportMetricV1 {
+                value: read_retention,
+                numerator_reads: reads_out,
+                denominator_reads: reads_in,
+                numerator_bases: output.bases,
+                denominator_bases: input.bases,
+                definition: "reads_out / reads_in".to_string(),
+                stage_boundary: plan.stage_id.to_string(),
+                conditions: retention_conditions_from_effective(
+                    &plan.stage_id,
+                    &plan.effective_params,
+                    &plan.params,
+                ),
+            };
+            serde_json::to_value(FastqDeduplicateMetricsV1 {
+                reads_in,
+                reads_out,
+                reads_removed_duplicates: reads_in.saturating_sub(reads_out),
+                bases_in: input.bases,
+                bases_out: output.bases,
+                pairs_in,
+                pairs_out,
+                mean_q_before: input.mean_q,
+                mean_q_after: output.mean_q,
+                delta_metrics: delta,
+                retention,
+            })?
+        }
+        id_catalog::FASTQ_LOW_COMPLEXITY => {
+            let mut removals = FilterRemovalCounts::default();
+            let stats = stats_for_paths(&[
+                inputs.first().map(PathBuf::as_path),
+                outputs.first().map(PathBuf::as_path),
+            ])?;
+            let input = stats.first().copied().unwrap_or_else(zero_seqkit_metrics);
+            let output = stats.get(1).copied().unwrap_or_else(zero_seqkit_metrics);
+            removals.by_low_complexity = std::fs::read_to_string(
+                plan.out_dir.join("low_complexity_report.json"),
+            )
+            .ok()
+            .and_then(|raw| crate::observer::parse_low_complexity_report(&raw).ok())
+            .unwrap_or_else(|| input.reads.saturating_sub(output.reads));
+            filter_metrics_with_removals(
+                &plan.stage_id,
+                inputs,
+                outputs,
+                &plan.params,
+                &plan.effective_params,
+                &removals,
+            )?
+        }
         id_catalog::FASTQ_MERGE => {
             let stats = stats_for_paths(&[
                 inputs.first().map(PathBuf::as_path),
