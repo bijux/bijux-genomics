@@ -19,6 +19,7 @@ metric_ids:
   - kmer_fix_rate
   - length_histogram
   - mean_q
+  - mean_read_length
   - mean_q_after
   - mean_q_before
   - memory_mb
@@ -44,7 +45,9 @@ metric_ids:
   - reads_removed_low_complexity
   - reads_rrna
   - reads_total
+  - read_count
   - reads_unmerged
   - reads_valid
   - runtime_s
+  - trimmed_read_fraction
   - trimmed_fastqc_dir

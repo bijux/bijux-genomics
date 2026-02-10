@@ -1,87 +1,169 @@
-domain: "fastq"
+domain: fastq
 stage_ids:
-  - fastq.prepare_reference
-  - fastq.validate_pre
-  - fastq.detect_adapters
-  - fastq.trim
-  - fastq.filter
-  - fastq.stats_neutral
-  - fastq.rrna
-  - fastq.qc_post
-  - fastq.merge
-  - fastq.deduplicate
-  - fastq.low_complexity
-  - fastq.host_depletion
-  - fastq.correct
-  - fastq.umi
-  - fastq.screen
+- fastq.prepare_reference
+- fastq.validate_pre
+- fastq.length_distribution_pre
+- fastq.detect_adapters
+- fastq.polyG_tailing
+- fastq.trim
+- fastq.filter
+- fastq.stats_neutral
+- fastq.rrna
+- fastq.qc_post
+- fastq.merge
+- fastq.deduplicate
+- fastq.low_complexity
+- fastq.host_depletion
+- fastq.contaminant_screen
+- fastq.correct
+- fastq.umi
+- fastq.overrepresented_sequences
+- fastq.screen
 tool_ids:
-  - adapterremoval
-  - atropos
-  - bayeshammer
-  - bbduk
-  - bbmerge
-  - bracken
-  - centrifuge
-  - cutadapt
+- adapterremoval
+- atropos
+- bayeshammer
+- bbduk
+- bbmerge
+- bracken
+- centrifuge
+- cutadapt
+- fastp
+- fastq-scan
+- fastq_screen
+- fastqc
+- fastqvalidator
+- fastqvalidator_official
+- fastx_clipper
+- flash2
+- fqtools
+- kaiju
+- kraken2
+- krakenuniq
+- leehom
+- lighter
+- metaphlan
+- multiqc
+- musket
+- pear
+- prinseq
+- qualimap
+- rcorrector
+- samtools
+- seqfu
+- seqkit
+- seqkit_stats
+- seqpurge
+- seqtk
+- sortmerna
+- seqprep
+- diamond
+- star
+- skewer
+- spades
+- trim_galore
+- trimmomatic
+- umi_tools
+- vsearch
+- alientrimmer
+- fastuniq
+- clumpify
+- dustmasker
+- bowtie2
+stage_tool_compatibility:
+  fastq.prepare_reference:
+  - star
+  - samtools
+  fastq.detect_adapters:
   - fastp
-  - fastq-scan
-  - fastq_screen
-  - fastqc
+  fastq.trim:
+  - fastp
+  - cutadapt
+  - atropos
+  - bbduk
+  - adapterremoval
+  - trimmomatic
+  - trim_galore
+  - seqpurge
+  - prinseq
+  - seqkit
+  - skewer
+  - leehom
+  - alientrimmer
+  - fastx_clipper
+  fastq.filter:
+  - fastp
+  - seqkit
+  - prinseq
+  - bbduk
+  fastq.validate_pre:
   - fastqvalidator
   - fastqvalidator_official
-  - fastx_clipper
-  - flash2
+  - fastq-scan
+  - seqtk
   - fqtools
-  - kaiju
+  - fastqc
+  fastq.stats_neutral:
+  - seqkit_stats
+  - seqkit
+  - seqfu
+  fastq.rrna:
+  - sortmerna
+  fastq.qc_post:
+  - multiqc
+  - fastqc
+  - qualimap
+  - samtools
+  fastq.screen:
   - kraken2
   - krakenuniq
-  - leehom
-  - lighter
-  - metaphlan
-  - multiqc
-  - musket
-  - pear
-  - prinseq
-  - qualimap
-  - rcorrector
-  - samtools
-  - seqfu
-  - seqkit
-  - seqkit_stats
-  - seqpurge
-  - seqtk
-  - sortmerna
-  - seqprep
+  - bracken
   - diamond
-  - star
-  - skewer
-  - spades
-  - trim_galore
-  - trimmomatic
-  - umi_tools
+  - centrifuge
+  - metaphlan
+  - kaiju
+  - fastq_screen
+  fastq.merge:
+  - pear
   - vsearch
-  - alientrimmer
+  - bbmerge
+  - flash2
+  - leehom
+  - seqprep
+  fastq.deduplicate:
   - fastuniq
   - clumpify
+  - prinseq
+  fastq.low_complexity:
   - dustmasker
+  - prinseq
+  - bbduk
+  fastq.host_depletion:
   - bowtie2
-stage_tool_compatibility:
-  fastq.prepare_reference: [star, samtools]
-  fastq.detect_adapters: [fastp]
-  fastq.trim: [fastp, cutadapt, atropos, bbduk, adapterremoval, trimmomatic, trim_galore, seqpurge, prinseq, seqkit, skewer, leehom, alientrimmer, fastx_clipper]
-  fastq.filter: [fastp, seqkit, prinseq, bbduk]
-  fastq.validate_pre: [fastqvalidator, fastqvalidator_official, fastq-scan, seqtk, fqtools, fastqc]
-  fastq.stats_neutral: [seqkit_stats, seqkit, seqfu]
-  fastq.rrna: [sortmerna]
-  fastq.qc_post: [multiqc, fastqc, qualimap, samtools]
-  fastq.screen: [kraken2, krakenuniq, bracken, diamond, centrifuge, metaphlan, kaiju, fastq_screen]
-  fastq.merge: [pear, vsearch, bbmerge, flash2, leehom, seqprep]
-  fastq.deduplicate: [fastuniq, clumpify, prinseq]
-  fastq.low_complexity: [dustmasker, prinseq, bbduk]
-  fastq.host_depletion: [bowtie2, samtools]
-  fastq.correct: [rcorrector, lighter, musket, bayeshammer, spades]
-  fastq.umi: [umi_tools]
+  - samtools
+  fastq.correct:
+  - rcorrector
+  - lighter
+  - musket
+  - bayeshammer
+  - spades
+  fastq.umi:
+  - umi_tools
+  fastq.length_distribution_pre:
+  - seqkit_stats
+  - seqfu
+  - prinseq
+  - fastp
+  fastq.polyG_tailing:
+  - fastp
+  - bbduk
+  fastq.contaminant_screen:
+  - bbduk
+  - bowtie2
+  fastq.overrepresented_sequences:
+  - fastqc
+  - fastq-scan
+  - seqkit
 active_defaults:
   fastq.prepare_reference: star
   fastq.detect_adapters: fastp
@@ -96,363 +178,1188 @@ active_defaults:
   fastq.host_depletion: bowtie2
   fastq.correct: rcorrector
   fastq.umi: umi_tools
+  fastq.length_distribution_pre: seqkit_stats
+  fastq.polyG_tailing: fastp
+  fastq.contaminant_screen: bbduk
+  fastq.overrepresented_sequences: fastqc
 active_default_rationale:
-  fastq.prepare_reference: "Stable index generation baseline for pre-HPC runs."
-  fastq.detect_adapters: "Default adapter detector aligned with trim defaults."
-  fastq.trim: "Baseline trimmer for deterministic quality/throughput tradeoff."
-  fastq.filter: "Default filter preserves compatibility with downstream metrics."
-  fastq.validate_pre: "Validation default has broad FASTQ format coverage."
-  fastq.stats_neutral: "Neutral stats baseline is lightweight and deterministic."
-  fastq.rrna: "Default rRNA filter is established for pre-HPC screening."
-  fastq.qc_post: "QC aggregation default provides operator-first summary output."
-  fastq.screen: "Default classifier maximizes comparability with existing reports."
-  fastq.merge: "Default merger is stable for paired-end overlap handling."
-  fastq.host_depletion: "Default host depletion uses deterministic mapping and unmapped extraction."
-  fastq.correct: "Default corrector chosen for robust error-correction baseline."
-  fastq.umi: "Default UMI handler preserves compatibility with stage contract."
+  fastq.prepare_reference: Stable index generation baseline for pre-HPC runs.
+  fastq.detect_adapters: Default adapter detector aligned with trim defaults.
+  fastq.trim: Baseline trimmer for deterministic quality/throughput tradeoff.
+  fastq.filter: Default filter preserves compatibility with downstream metrics.
+  fastq.validate_pre: Validation default has broad FASTQ format coverage.
+  fastq.stats_neutral: Neutral stats baseline is lightweight and deterministic.
+  fastq.rrna: Default rRNA filter is established for pre-HPC screening.
+  fastq.qc_post: QC aggregation default provides operator-first summary output.
+  fastq.screen: Default classifier maximizes comparability with existing reports.
+  fastq.merge: Default merger is stable for paired-end overlap handling.
+  fastq.host_depletion: Default host depletion uses deterministic mapping and unmapped
+    extraction.
+  fastq.correct: Default corrector chosen for robust error-correction baseline.
+  fastq.umi: Default UMI handler preserves compatibility with stage contract.
+  fastq.length_distribution_pre: Default length histogram baseline provides deterministic
+    pre-trim size distribution.
+  fastq.polyG_tailing: Default polyG trimmer uses fastp polyG-tail handling for common
+    sequencer artifacts.
+  fastq.contaminant_screen: Default contaminant screen uses k-mer depletion against
+    configured decoy references.
+  fastq.overrepresented_sequences: Default overrepresented-sequence detector uses
+    FastQC module output.
 stage_completeness_checklist:
-  fastq.prepare_reference: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
-  fastq.detect_adapters: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
-  fastq.trim: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
-  fastq.filter: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
-  fastq.validate_pre: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
-  fastq.stats_neutral: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
-  fastq.rrna: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
-  fastq.qc_post: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
-  fastq.screen: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
-  fastq.merge: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
-  fastq.deduplicate: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
-  fastq.low_complexity: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
-  fastq.host_depletion: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
-  fastq.correct: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
-  fastq.umi: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
+  fastq.prepare_reference:
+  - inputs_defined
+  - outputs_defined
+  - metrics_defined
+  - fixtures_present
+  - compatible_tools_declared
+  fastq.detect_adapters:
+  - inputs_defined
+  - outputs_defined
+  - metrics_defined
+  - fixtures_present
+  - compatible_tools_declared
+  fastq.trim:
+  - inputs_defined
+  - outputs_defined
+  - metrics_defined
+  - fixtures_present
+  - compatible_tools_declared
+  fastq.filter:
+  - inputs_defined
+  - outputs_defined
+  - metrics_defined
+  - fixtures_present
+  - compatible_tools_declared
+  fastq.validate_pre:
+  - inputs_defined
+  - outputs_defined
+  - metrics_defined
+  - fixtures_present
+  - compatible_tools_declared
+  fastq.stats_neutral:
+  - inputs_defined
+  - outputs_defined
+  - metrics_defined
+  - fixtures_present
+  - compatible_tools_declared
+  fastq.rrna:
+  - inputs_defined
+  - outputs_defined
+  - metrics_defined
+  - fixtures_present
+  - compatible_tools_declared
+  fastq.qc_post:
+  - inputs_defined
+  - outputs_defined
+  - metrics_defined
+  - fixtures_present
+  - compatible_tools_declared
+  fastq.screen:
+  - inputs_defined
+  - outputs_defined
+  - metrics_defined
+  - fixtures_present
+  - compatible_tools_declared
+  fastq.merge:
+  - inputs_defined
+  - outputs_defined
+  - metrics_defined
+  - fixtures_present
+  - compatible_tools_declared
+  fastq.deduplicate:
+  - inputs_defined
+  - outputs_defined
+  - metrics_defined
+  - fixtures_present
+  - compatible_tools_declared
+  fastq.low_complexity:
+  - inputs_defined
+  - outputs_defined
+  - metrics_defined
+  - fixtures_present
+  - compatible_tools_declared
+  fastq.host_depletion:
+  - inputs_defined
+  - outputs_defined
+  - metrics_defined
+  - fixtures_present
+  - compatible_tools_declared
+  fastq.correct:
+  - inputs_defined
+  - outputs_defined
+  - metrics_defined
+  - fixtures_present
+  - compatible_tools_declared
+  fastq.umi:
+  - inputs_defined
+  - outputs_defined
+  - metrics_defined
+  - fixtures_present
+  - compatible_tools_declared
+  fastq.length_distribution_pre:
+  - inputs_defined
+  - outputs_defined
+  - metrics_defined
+  - fixtures_present
+  - compatible_tools_declared
+  fastq.polyG_tailing:
+  - inputs_defined
+  - outputs_defined
+  - metrics_defined
+  - fixtures_present
+  - compatible_tools_declared
+  fastq.contaminant_screen:
+  - inputs_defined
+  - outputs_defined
+  - metrics_defined
+  - fixtures_present
+  - compatible_tools_declared
+  fastq.overrepresented_sequences:
+  - inputs_defined
+  - outputs_defined
+  - metrics_defined
+  - fixtures_present
+  - compatible_tools_declared
 stage_default_settings:
   fastq.prepare_reference:
-    star: { profile: "adna_sane_default", notes: "high-specificity reference indexing preset" }
-    samtools: { profile: "adna_sane_default", notes: "deterministic reference helper preset" }
+    star:
+      profile: adna_sane_default
+      notes: high-specificity reference indexing preset
+    samtools:
+      profile: adna_sane_default
+      notes: deterministic reference helper preset
   fastq.detect_adapters:
-    fastp: { profile: "adna_sane_default", notes: "adapter detection without irreversible filtering" }
+    fastp:
+      profile: adna_sane_default
+      notes: adapter detection without irreversible filtering
   fastq.trim:
-    fastp: { profile: "adna_sane_default", notes: "balanced trim preset" }
-    cutadapt: { profile: "adna_sane_default", notes: "explicit adapter matching preset" }
-    atropos: { profile: "adna_sane_default", notes: "quality-aware adapter trimming preset" }
-    bbduk: { profile: "adna_sane_default", notes: "kmer trimming preset" }
-    adapterremoval: { profile: "adna_sane_default", notes: "aDNA trim/merge compatible preset" }
-    trimmomatic: { profile: "adna_sane_default", notes: "legacy deterministic trimming preset" }
-    trim_galore: { profile: "adna_sane_default", notes: "wrapper-based trim preset" }
-    seqpurge: { profile: "adna_sane_default", notes: "paired-end purge preset" }
-    prinseq: { profile: "adna_sane_default", notes: "read quality trimming preset" }
-    seqkit: { profile: "adna_sane_default", notes: "stream-friendly trim preset" }
-    skewer: { profile: "adna_sane_default", notes: "adapter trimming benchmark preset" }
-    leehom: { profile: "adna_sane_default", notes: "aDNA overlap/collapse trimming preset" }
-    alientrimmer: { profile: "adna_sane_default", notes: "seed-based adapter trim preset" }
-    fastx_clipper: { profile: "adna_sane_default", notes: "legacy clipping preset" }
+    fastp:
+      profile: adna_sane_default
+      notes: balanced trim preset
+    cutadapt:
+      profile: adna_sane_default
+      notes: explicit adapter matching preset
+    atropos:
+      profile: adna_sane_default
+      notes: quality-aware adapter trimming preset
+    bbduk:
+      profile: adna_sane_default
+      notes: kmer trimming preset
+    adapterremoval:
+      profile: adna_sane_default
+      notes: aDNA trim/merge compatible preset
+    trimmomatic:
+      profile: adna_sane_default
+      notes: legacy deterministic trimming preset
+    trim_galore:
+      profile: adna_sane_default
+      notes: wrapper-based trim preset
+    seqpurge:
+      profile: adna_sane_default
+      notes: paired-end purge preset
+    prinseq:
+      profile: adna_sane_default
+      notes: read quality trimming preset
+    seqkit:
+      profile: adna_sane_default
+      notes: stream-friendly trim preset
+    skewer:
+      profile: adna_sane_default
+      notes: adapter trimming benchmark preset
+    leehom:
+      profile: adna_sane_default
+      notes: aDNA overlap/collapse trimming preset
+    alientrimmer:
+      profile: adna_sane_default
+      notes: seed-based adapter trim preset
+    fastx_clipper:
+      profile: adna_sane_default
+      notes: legacy clipping preset
   fastq.filter:
-    fastp: { profile: "adna_sane_default", notes: "quality/length filter preset" }
-    seqkit: { profile: "adna_sane_default", notes: "stream-safe filter preset" }
-    prinseq: { profile: "adna_sane_default", notes: "complexity filtering preset" }
-    bbduk: { profile: "adna_sane_default", notes: "kmer filter preset" }
+    fastp:
+      profile: adna_sane_default
+      notes: quality/length filter preset
+    seqkit:
+      profile: adna_sane_default
+      notes: stream-safe filter preset
+    prinseq:
+      profile: adna_sane_default
+      notes: complexity filtering preset
+    bbduk:
+      profile: adna_sane_default
+      notes: kmer filter preset
   fastq.validate_pre:
-    fastqvalidator: { profile: "adna_sane_default", notes: "strict fastq validation preset" }
-    fastqvalidator_official: { profile: "adna_sane_default", notes: "official validator baseline preset" }
-    fastq-scan: { profile: "adna_sane_default", notes: "fast validation summary preset" }
-    seqtk: { profile: "adna_sane_default", notes: "lightweight validation preset" }
-    fqtools: { profile: "adna_sane_default", notes: "format sanity preset" }
-    fastqc: { profile: "adna_sane_default", notes: "qc probe preset for validation stage" }
+    fastqvalidator:
+      profile: adna_sane_default
+      notes: strict fastq validation preset
+    fastqvalidator_official:
+      profile: adna_sane_default
+      notes: official validator baseline preset
+    fastq-scan:
+      profile: adna_sane_default
+      notes: fast validation summary preset
+    seqtk:
+      profile: adna_sane_default
+      notes: lightweight validation preset
+    fqtools:
+      profile: adna_sane_default
+      notes: format sanity preset
+    fastqc:
+      profile: adna_sane_default
+      notes: qc probe preset for validation stage
   fastq.stats_neutral:
-    seqkit_stats: { profile: "adna_sane_default", notes: "deterministic stats preset" }
-    seqkit: { profile: "adna_sane_default", notes: "streamed stats preset" }
-    seqfu: { profile: "adna_sane_default", notes: "supplementary neutral stats preset" }
+    seqkit_stats:
+      profile: adna_sane_default
+      notes: deterministic stats preset
+    seqkit:
+      profile: adna_sane_default
+      notes: streamed stats preset
+    seqfu:
+      profile: adna_sane_default
+      notes: supplementary neutral stats preset
   fastq.rrna:
-    sortmerna: { profile: "adna_sane_default", notes: "rRNA depletion screening preset" }
+    sortmerna:
+      profile: adna_sane_default
+      notes: rRNA depletion screening preset
   fastq.qc_post:
-    multiqc: { profile: "adna_sane_default", notes: "operator-facing aggregation preset" }
-    fastqc: { profile: "adna_sane_default", notes: "per-sample qc preset" }
-    qualimap: { profile: "adna_sane_default", notes: "alignment-aware qc preset" }
-    samtools: { profile: "adna_sane_default", notes: "basic qc metrics preset" }
+    multiqc:
+      profile: adna_sane_default
+      notes: operator-facing aggregation preset
+    fastqc:
+      profile: adna_sane_default
+      notes: per-sample qc preset
+    qualimap:
+      profile: adna_sane_default
+      notes: alignment-aware qc preset
+    samtools:
+      profile: adna_sane_default
+      notes: basic qc metrics preset
   fastq.screen:
-    kraken2: { profile: "adna_sane_default", notes: "taxonomy baseline preset" }
-    krakenuniq: { profile: "adna_sane_default", notes: "unique-kmer taxonomy preset" }
-    bracken: { profile: "adna_sane_default", notes: "abundance refinement preset" }
-    diamond: { profile: "adna_sane_default", notes: "alignment-based classifier preset" }
-    centrifuge: { profile: "adna_sane_default", notes: "classifier alternative preset" }
-    metaphlan: { profile: "adna_sane_default", notes: "marker-gene profiling preset" }
-    kaiju: { profile: "adna_sane_default", notes: "protein-level classification preset" }
-    fastq_screen: { profile: "adna_sane_default", notes: "alignment-screen preset" }
+    kraken2:
+      profile: adna_sane_default
+      notes: taxonomy baseline preset
+    krakenuniq:
+      profile: adna_sane_default
+      notes: unique-kmer taxonomy preset
+    bracken:
+      profile: adna_sane_default
+      notes: abundance refinement preset
+    diamond:
+      profile: adna_sane_default
+      notes: alignment-based classifier preset
+    centrifuge:
+      profile: adna_sane_default
+      notes: classifier alternative preset
+    metaphlan:
+      profile: adna_sane_default
+      notes: marker-gene profiling preset
+    kaiju:
+      profile: adna_sane_default
+      notes: protein-level classification preset
+    fastq_screen:
+      profile: adna_sane_default
+      notes: alignment-screen preset
   fastq.merge:
-    pear: { profile: "adna_sane_default", notes: "overlap merge baseline preset" }
-    vsearch: { profile: "adna_sane_default", notes: "merge alternative preset" }
-    bbmerge: { profile: "adna_sane_default", notes: "merge quality-balanced preset" }
-    flash2: { profile: "adna_sane_default", notes: "fast overlap merge preset" }
-    leehom: { profile: "adna_sane_default", notes: "aDNA collapse merge preset" }
-    seqprep: { profile: "adna_sane_default", notes: "classic overlap merge preset" }
+    pear:
+      profile: adna_sane_default
+      notes: overlap merge baseline preset
+    vsearch:
+      profile: adna_sane_default
+      notes: merge alternative preset
+    bbmerge:
+      profile: adna_sane_default
+      notes: merge quality-balanced preset
+    flash2:
+      profile: adna_sane_default
+      notes: fast overlap merge preset
+    leehom:
+      profile: adna_sane_default
+      notes: aDNA collapse merge preset
+    seqprep:
+      profile: adna_sane_default
+      notes: classic overlap merge preset
   fastq.deduplicate:
-    fastuniq: { profile: "adna_sane_default", notes: "pair-aware deduplication baseline preset" }
-    clumpify: { profile: "adna_sane_default", notes: "bbtools clumpify dedup preset" }
-    prinseq: { profile: "adna_sane_default", notes: "sequence-based deduplication preset" }
+    fastuniq:
+      profile: adna_sane_default
+      notes: pair-aware deduplication baseline preset
+    clumpify:
+      profile: adna_sane_default
+      notes: bbtools clumpify dedup preset
+    prinseq:
+      profile: adna_sane_default
+      notes: sequence-based deduplication preset
   fastq.low_complexity:
-    dustmasker: { profile: "adna_sane_default", notes: "DUST complexity masking preset" }
-    prinseq: { profile: "adna_sane_default", notes: "prinseq complexity filter preset" }
-    bbduk: { profile: "adna_sane_default", notes: "entropy/polyX complexity filter preset" }
+    dustmasker:
+      profile: adna_sane_default
+      notes: DUST complexity masking preset
+    prinseq:
+      profile: adna_sane_default
+      notes: prinseq complexity filter preset
+    bbduk:
+      profile: adna_sane_default
+      notes: entropy/polyX complexity filter preset
   fastq.host_depletion:
-    bowtie2: { profile: "adna_sane_default", notes: "host mapping depletion baseline preset" }
-    samtools: { profile: "adna_sane_default", notes: "unmapped read extraction preset" }
+    bowtie2:
+      profile: adna_sane_default
+      notes: host mapping depletion baseline preset
+    samtools:
+      profile: adna_sane_default
+      notes: unmapped read extraction preset
   fastq.correct:
-    rcorrector: { profile: "adna_sane_default", notes: "kmer correction baseline preset" }
-    lighter: { profile: "adna_sane_default", notes: "sampling-based correction preset" }
-    musket: { profile: "adna_sane_default", notes: "multistage correction preset" }
-    bayeshammer: { profile: "adna_sane_default", notes: "bayesian correction preset" }
-    spades: { profile: "adna_sane_default", notes: "spades correction mode preset" }
+    rcorrector:
+      profile: adna_sane_default
+      notes: kmer correction baseline preset
+    lighter:
+      profile: adna_sane_default
+      notes: sampling-based correction preset
+    musket:
+      profile: adna_sane_default
+      notes: multistage correction preset
+    bayeshammer:
+      profile: adna_sane_default
+      notes: bayesian correction preset
+    spades:
+      profile: adna_sane_default
+      notes: spades correction mode preset
   fastq.umi:
-    umi_tools: { profile: "adna_sane_default", notes: "umi extraction/dedup preset" }
+    umi_tools:
+      profile: adna_sane_default
+      notes: umi extraction/dedup preset
+  fastq.length_distribution_pre:
+    seqkit_stats:
+      profile: adna_sane_default
+      notes: deterministic length histogram baseline preset
+    seqfu:
+      profile: adna_sane_default
+      notes: auxiliary pre-trim length statistics preset
+    prinseq:
+      profile: adna_sane_default
+      notes: legacy length profile preset
+    fastp:
+      profile: adna_sane_default
+      notes: fastp stats-only length summary preset
+  fastq.polyG_tailing:
+    fastp:
+      profile: adna_sane_default
+      notes: polyG-tail trimming preset
+    bbduk:
+      profile: adna_sane_default
+      notes: polyX/polyG trimming preset
+  fastq.contaminant_screen:
+    bbduk:
+      profile: adna_sane_default
+      notes: k-mer contaminant screen baseline preset
+    bowtie2:
+      profile: adna_sane_default
+      notes: mapping-based decoy contamination screen preset
+  fastq.overrepresented_sequences:
+    fastqc:
+      profile: adna_sane_default
+      notes: FastQC overrepresented module preset
+    fastq-scan:
+      profile: adna_sane_default
+      notes: fastq-scan overrepresented heuristic preset
+    seqkit:
+      profile: adna_sane_default
+      notes: seqkit k-mer overrepresentation heuristic preset
 stage_comparability_mapping:
-  fastq.prepare_reference: ["reference_index_build_metrics"]
-  fastq.detect_adapters: ["adapter_detection_rate"]
-  fastq.trim: ["trimmed_read_fraction", "post_trim_read_length_mean"]
-  fastq.filter: ["reads_filtered_fraction", "post_filter_read_count"]
-  fastq.validate_pre: ["format_validation_pass_rate"]
-  fastq.stats_neutral: ["read_count", "base_count", "mean_read_length", "q30_fraction"]
-  fastq.rrna: ["rrna_removed_fraction"]
-  fastq.qc_post: ["qc_warn_count", "qc_fail_count"]
-  fastq.screen: ["taxonomy_abundance_fraction", "classified_read_fraction"]
-  fastq.merge: ["merge_rate", "merged_read_length_mean"]
-  fastq.deduplicate: ["dedup_rate", "read_retention"]
-  fastq.low_complexity: ["reads_removed_low_complexity", "read_retention"]
-  fastq.host_depletion: ["contamination_rate", "read_retention"]
-  fastq.correct: ["error_corrected_fraction"]
-  fastq.umi: ["umi_extracted_count", "umi_dedup_fraction"]
+  fastq.prepare_reference:
+  - reference_index_build_metrics
+  fastq.detect_adapters:
+  - adapter_detection_rate
+  fastq.trim:
+  - trimmed_read_fraction
+  - post_trim_read_length_mean
+  fastq.filter:
+  - reads_filtered_fraction
+  - post_filter_read_count
+  fastq.validate_pre:
+  - format_validation_pass_rate
+  fastq.stats_neutral:
+  - read_count
+  - base_count
+  - mean_read_length
+  - q30_fraction
+  fastq.rrna:
+  - rrna_removed_fraction
+  fastq.qc_post:
+  - qc_warn_count
+  - qc_fail_count
+  fastq.screen:
+  - taxonomy_abundance_fraction
+  - classified_read_fraction
+  fastq.merge:
+  - merge_rate
+  - merged_read_length_mean
+  fastq.deduplicate:
+  - dedup_rate
+  - read_retention
+  fastq.low_complexity:
+  - reads_removed_low_complexity
+  - read_retention
+  fastq.host_depletion:
+  - contamination_rate
+  - read_retention
+  fastq.correct:
+  - error_corrected_fraction
+  fastq.umi:
+  - umi_extracted_count
+  - umi_dedup_fraction
+  fastq.length_distribution_pre:
+  - length_histogram
+  - mean_read_length
+  fastq.polyG_tailing:
+  - trimmed_read_fraction
+  - post_trim_read_length_mean
+  fastq.contaminant_screen:
+  - contamination_rate
+  - reads_removed_contaminant_kmer
+  fastq.overrepresented_sequences:
+  - reads_total
+  - reads_removed_contaminant_kmer
 stage_min_quality_gates:
-  fastq.prepare_reference: ["index_build_exit_code=0"]
-  fastq.detect_adapters: ["adapter_detection_rate>=0.0"]
-  fastq.trim: ["post_trim_read_count>0"]
-  fastq.filter: ["post_filter_read_count>0"]
-  fastq.validate_pre: ["validation_pass=true"]
-  fastq.stats_neutral: ["read_count>0", "q30_fraction>=0.0"]
-  fastq.rrna: ["rrna_removed_fraction>=0.0"]
-  fastq.qc_post: ["qc_report_present=true"]
-  fastq.screen: ["classified_read_fraction>=0.0"]
-  fastq.merge: ["merge_rate>=0.0"]
-  fastq.deduplicate: ["dedup_rate>=0.0"]
-  fastq.low_complexity: ["reads_removed_low_complexity>=0.0"]
-  fastq.host_depletion: ["read_retention>=0.0"]
-  fastq.correct: ["post_correct_read_count>0"]
-  fastq.umi: ["umi_report_present=true"]
+  fastq.prepare_reference:
+  - index_build_exit_code=0
+  fastq.detect_adapters:
+  - adapter_detection_rate>=0.0
+  fastq.trim:
+  - post_trim_read_count>0
+  fastq.filter:
+  - post_filter_read_count>0
+  fastq.validate_pre:
+  - validation_pass=true
+  fastq.stats_neutral:
+  - read_count>0
+  - q30_fraction>=0.0
+  fastq.rrna:
+  - rrna_removed_fraction>=0.0
+  fastq.qc_post:
+  - qc_report_present=true
+  fastq.screen:
+  - classified_read_fraction>=0.0
+  fastq.merge:
+  - merge_rate>=0.0
+  fastq.deduplicate:
+  - dedup_rate>=0.0
+  fastq.low_complexity:
+  - reads_removed_low_complexity>=0.0
+  fastq.host_depletion:
+  - read_retention>=0.0
+  fastq.correct:
+  - post_correct_read_count>0
+  fastq.umi:
+  - umi_report_present=true
+  fastq.length_distribution_pre:
+  - read_count>0
+  fastq.polyG_tailing:
+  - post_trim_read_count>0
+  fastq.contaminant_screen:
+  - reads_removed_contaminant_kmer>=0.0
+  fastq.overrepresented_sequences:
+  - reads_total>0
 stage_failure_diagnosis_hints:
-  fastq.prepare_reference: ["verify reference fasta path and index write permissions"]
-  fastq.detect_adapters: ["check input read quality and adapter bank selection"]
-  fastq.trim: ["inspect adapter parameters and minimum length thresholds"]
-  fastq.filter: ["review quality/complexity thresholds for over-filtering"]
-  fastq.validate_pre: ["inspect malformed FASTQ records and line wrapping"]
-  fastq.stats_neutral: ["verify parser input paths and gzip integrity"]
-  fastq.rrna: ["check rRNA database path and memory allocation"]
-  fastq.qc_post: ["inspect upstream qc tool outputs required by aggregator"]
-  fastq.screen: ["check classifier DB path/version/hash and kmer DB integrity"]
-  fastq.merge: ["review overlap thresholds and paired-end orientation"]
-  fastq.deduplicate: ["inspect duplicate criteria and pair-preservation settings"]
-  fastq.low_complexity: ["review entropy/polyX thresholds for over-filtering"]
-  fastq.host_depletion: ["verify host reference index and unmapped extraction flags"]
-  fastq.correct: ["verify kmer/cov parameters and read depth assumptions"]
-  fastq.umi: ["confirm UMI pattern configuration and read naming conventions"]
+  fastq.prepare_reference:
+  - verify reference fasta path and index write permissions
+  fastq.detect_adapters:
+  - check input read quality and adapter bank selection
+  fastq.trim:
+  - inspect adapter parameters and minimum length thresholds
+  fastq.filter:
+  - review quality/complexity thresholds for over-filtering
+  fastq.validate_pre:
+  - inspect malformed FASTQ records and line wrapping
+  fastq.stats_neutral:
+  - verify parser input paths and gzip integrity
+  fastq.rrna:
+  - check rRNA database path and memory allocation
+  fastq.qc_post:
+  - inspect upstream qc tool outputs required by aggregator
+  fastq.screen:
+  - check classifier DB path/version/hash and kmer DB integrity
+  fastq.merge:
+  - review overlap thresholds and paired-end orientation
+  fastq.deduplicate:
+  - inspect duplicate criteria and pair-preservation settings
+  fastq.low_complexity:
+  - review entropy/polyX thresholds for over-filtering
+  fastq.host_depletion:
+  - verify host reference index and unmapped extraction flags
+  fastq.correct:
+  - verify kmer/cov parameters and read depth assumptions
+  fastq.umi:
+  - confirm UMI pattern configuration and read naming conventions
+  fastq.length_distribution_pre:
+  - inspect FASTQ parsing and gzip integrity for histogram generation
+  fastq.polyG_tailing:
+  - review polyG/polyX thresholds and platform-specific tailing patterns
+  fastq.contaminant_screen:
+  - check contaminant bank/decoy reference selection and k-mer thresholds
+  fastq.overrepresented_sequences:
+  - inspect overrepresented table and adapter/contaminant sequence banks
 pipeline_compositions:
   pre_hpc_best:
-    - fastq.prepare_reference
-    - fastq.validate_pre
-    - fastq.detect_adapters
-    - fastq.trim
-    - fastq.filter
-    - fastq.merge
-    - fastq.host_depletion
-    - fastq.stats_neutral
-    - fastq.qc_post
-    - fastq.screen
+  - fastq.prepare_reference
+  - fastq.validate_pre
+  - fastq.length_distribution_pre
+  - fastq.detect_adapters
+  - fastq.polyG_tailing
+  - fastq.trim
+  - fastq.filter
+  - fastq.merge
+  - fastq.host_depletion
+  - fastq.contaminant_screen
+  - fastq.stats_neutral
+  - fastq.qc_post
+  - fastq.overrepresented_sequences
+  - fastq.screen
 stage_ordering_constraints:
   fastq.prepare_reference: []
-  fastq.validate_pre: [fastq.prepare_reference]
-  fastq.detect_adapters: [fastq.validate_pre]
-  fastq.trim: [fastq.detect_adapters]
-  fastq.filter: [fastq.trim]
-  fastq.merge: [fastq.filter]
-  fastq.deduplicate: [fastq.merge]
-  fastq.low_complexity: [fastq.deduplicate]
-  fastq.host_depletion: [fastq.merge]
-  fastq.stats_neutral: [fastq.host_depletion]
-  fastq.qc_post: [fastq.stats_neutral]
-  fastq.screen: [fastq.qc_post]
-  fastq.rrna: [fastq.filter]
-  fastq.correct: [fastq.filter]
-  fastq.umi: [fastq.trim]
+  fastq.validate_pre:
+  - fastq.prepare_reference
+  fastq.detect_adapters:
+  - fastq.validate_pre
+  fastq.trim:
+  - fastq.polyG_tailing
+  fastq.filter:
+  - fastq.trim
+  fastq.merge:
+  - fastq.filter
+  fastq.deduplicate:
+  - fastq.merge
+  fastq.low_complexity:
+  - fastq.deduplicate
+  fastq.host_depletion:
+  - fastq.merge
+  fastq.stats_neutral:
+  - fastq.contaminant_screen
+  fastq.qc_post:
+  - fastq.stats_neutral
+  fastq.screen:
+  - fastq.qc_post
+  fastq.rrna:
+  - fastq.filter
+  fastq.correct:
+  - fastq.filter
+  fastq.umi:
+  - fastq.trim
+  fastq.length_distribution_pre:
+  - fastq.validate_pre
+  fastq.polyG_tailing:
+  - fastq.detect_adapters
+  fastq.contaminant_screen:
+  - fastq.host_depletion
+  fastq.overrepresented_sequences:
+  - fastq.qc_post
 stage_prerequisites:
   fastq.prepare_reference: []
-  fastq.validate_pre: [fastq.prepare_reference]
-  fastq.detect_adapters: [fastq.validate_pre]
-  fastq.trim: [fastq.detect_adapters]
-  fastq.filter: [fastq.trim]
-  fastq.merge: [fastq.filter]
-  fastq.deduplicate: [fastq.merge]
-  fastq.low_complexity: [fastq.deduplicate]
-  fastq.host_depletion: [fastq.merge]
-  fastq.stats_neutral: [fastq.host_depletion]
-  fastq.qc_post: [fastq.stats_neutral]
-  fastq.screen: [fastq.qc_post]
-  fastq.rrna: [fastq.filter]
-  fastq.correct: [fastq.filter]
-  fastq.umi: [fastq.trim]
+  fastq.validate_pre:
+  - fastq.prepare_reference
+  fastq.detect_adapters:
+  - fastq.validate_pre
+  fastq.trim:
+  - fastq.polyG_tailing
+  fastq.filter:
+  - fastq.trim
+  fastq.merge:
+  - fastq.filter
+  fastq.deduplicate:
+  - fastq.merge
+  fastq.low_complexity:
+  - fastq.deduplicate
+  fastq.host_depletion:
+  - fastq.merge
+  fastq.stats_neutral:
+  - fastq.contaminant_screen
+  fastq.qc_post:
+  - fastq.stats_neutral
+  fastq.screen:
+  - fastq.qc_post
+  fastq.rrna:
+  - fastq.filter
+  fastq.correct:
+  - fastq.filter
+  fastq.umi:
+  - fastq.trim
+  fastq.length_distribution_pre:
+  - fastq.validate_pre
+  fastq.polyG_tailing:
+  - fastq.detect_adapters
+  fastq.contaminant_screen:
+  - fastq.host_depletion
+  fastq.overrepresented_sequences:
+  - fastq.qc_post
 stage_resource_hints:
-  fastq.prepare_reference: { memory_gb: 8.0, time_minutes: 30, threads: 4 }
-  fastq.detect_adapters: { memory_gb: 4.0, time_minutes: 20, threads: 4 }
-  fastq.trim: { memory_gb: 6.0, time_minutes: 30, threads: 6 }
-  fastq.filter: { memory_gb: 4.0, time_minutes: 20, threads: 4 }
-  fastq.validate_pre: { memory_gb: 2.0, time_minutes: 10, threads: 2 }
-  fastq.stats_neutral: { memory_gb: 2.0, time_minutes: 10, threads: 2 }
-  fastq.rrna: { memory_gb: 8.0, time_minutes: 30, threads: 6 }
-  fastq.qc_post: { memory_gb: 4.0, time_minutes: 15, threads: 2 }
-  fastq.screen: { memory_gb: 16.0, time_minutes: 60, threads: 8 }
-  fastq.merge: { memory_gb: 8.0, time_minutes: 25, threads: 6 }
-  fastq.deduplicate: { memory_gb: 6.0, time_minutes: 25, threads: 4 }
-  fastq.low_complexity: { memory_gb: 6.0, time_minutes: 20, threads: 4 }
-  fastq.host_depletion: { memory_gb: 16.0, time_minutes: 50, threads: 8 }
-  fastq.correct: { memory_gb: 12.0, time_minutes: 45, threads: 8 }
-  fastq.umi: { memory_gb: 4.0, time_minutes: 20, threads: 4 }
+  fastq.prepare_reference:
+    memory_gb: 8.0
+    time_minutes: 30
+    threads: 4
+  fastq.detect_adapters:
+    memory_gb: 4.0
+    time_minutes: 20
+    threads: 4
+  fastq.trim:
+    memory_gb: 6.0
+    time_minutes: 30
+    threads: 6
+  fastq.filter:
+    memory_gb: 4.0
+    time_minutes: 20
+    threads: 4
+  fastq.validate_pre:
+    memory_gb: 2.0
+    time_minutes: 10
+    threads: 2
+  fastq.stats_neutral:
+    memory_gb: 2.0
+    time_minutes: 10
+    threads: 2
+  fastq.rrna:
+    memory_gb: 8.0
+    time_minutes: 30
+    threads: 6
+  fastq.qc_post:
+    memory_gb: 4.0
+    time_minutes: 15
+    threads: 2
+  fastq.screen:
+    memory_gb: 16.0
+    time_minutes: 60
+    threads: 8
+  fastq.merge:
+    memory_gb: 8.0
+    time_minutes: 25
+    threads: 6
+  fastq.deduplicate:
+    memory_gb: 6.0
+    time_minutes: 25
+    threads: 4
+  fastq.low_complexity:
+    memory_gb: 6.0
+    time_minutes: 20
+    threads: 4
+  fastq.host_depletion:
+    memory_gb: 16.0
+    time_minutes: 50
+    threads: 8
+  fastq.correct:
+    memory_gb: 12.0
+    time_minutes: 45
+    threads: 8
+  fastq.umi:
+    memory_gb: 4.0
+    time_minutes: 20
+    threads: 4
+  fastq.length_distribution_pre:
+    memory_gb: 2.0
+    time_minutes: 10
+    threads: 2
+  fastq.polyG_tailing:
+    memory_gb: 4.0
+    time_minutes: 15
+    threads: 4
+  fastq.contaminant_screen:
+    memory_gb: 10.0
+    time_minutes: 30
+    threads: 6
+  fastq.overrepresented_sequences:
+    memory_gb: 4.0
+    time_minutes: 15
+    threads: 2
 stage_output_size_estimates_mb:
-  fastq.prepare_reference: { reference_index: 5000.0 }
-  fastq.detect_adapters: { adapter_report: 5.0 }
-  fastq.trim: { trimmed_reads: 2000.0, trim_report: 10.0 }
-  fastq.filter: { filtered_reads: 1800.0, filter_report_json: 10.0 }
-  fastq.validate_pre: { scan_report: 5.0 }
-  fastq.stats_neutral: { stats_json: 2.0 }
-  fastq.rrna: { rrna_filtered_reads: 1700.0 }
-  fastq.qc_post: { qc_report_json: 15.0, qc_report_html: 30.0 }
-  fastq.screen: { screen_report_tsv: 25.0, abundance_report: 5.0 }
-  fastq.merge: { merged_reads: 1400.0, merge_report: 8.0 }
-  fastq.deduplicate: { dedup_reads_r1: 1200.0, dedup_reads_r2: 1200.0, report_json: 6.0 }
-  fastq.low_complexity: { filtered_fastq: 1100.0, filter_report_json: 8.0 }
-  fastq.host_depletion: { filtered_fastq: 950.0, screen_report: 12.0 }
-  fastq.correct: { corrected_reads_r1: 900.0, corrected_reads_r2: 900.0 }
-  fastq.umi: { dedup_reads_r1: 700.0, dedup_reads_r2: 700.0 }
+  fastq.prepare_reference:
+    reference_index: 5000.0
+  fastq.detect_adapters:
+    adapter_report: 5.0
+  fastq.trim:
+    trimmed_reads: 2000.0
+    trim_report: 10.0
+  fastq.filter:
+    filtered_reads: 1800.0
+    filter_report_json: 10.0
+  fastq.validate_pre:
+    scan_report: 5.0
+  fastq.stats_neutral:
+    stats_json: 2.0
+  fastq.rrna:
+    rrna_filtered_reads: 1700.0
+  fastq.qc_post:
+    qc_report_json: 15.0
+    qc_report_html: 30.0
+  fastq.screen:
+    screen_report_tsv: 25.0
+    abundance_report: 5.0
+  fastq.merge:
+    merged_reads: 1400.0
+    merge_report: 8.0
+  fastq.deduplicate:
+    dedup_reads_r1: 1200.0
+    dedup_reads_r2: 1200.0
+    report_json: 6.0
+  fastq.low_complexity:
+    filtered_fastq: 1100.0
+    filter_report_json: 8.0
+  fastq.host_depletion:
+    filtered_fastq: 950.0
+    screen_report: 12.0
+  fastq.correct:
+    corrected_reads_r1: 900.0
+    corrected_reads_r2: 900.0
+  fastq.umi:
+    dedup_reads_r1: 700.0
+    dedup_reads_r2: 700.0
+  fastq.length_distribution_pre:
+    stats_json: 2.0
+    stats_report: 1.0
+  fastq.polyG_tailing:
+    trim_report: 6.0
+    trimmed_fastq: 1900.0
+  fastq.contaminant_screen:
+    filtered_fastq: 900.0
+    screen_report: 10.0
+  fastq.overrepresented_sequences:
+    screen_report_tsv: 4.0
+    report_json: 2.0
 stage_sanity_metrics:
-  fastq.prepare_reference: [index_build_exit_code]
-  fastq.detect_adapters: [adapter_detection_rate]
-  fastq.trim: [trimmed_read_fraction, post_trim_read_length_mean]
-  fastq.filter: [reads_filtered_fraction]
-  fastq.validate_pre: [format_validation_pass_rate]
-  fastq.stats_neutral: [read_count, q30_fraction]
-  fastq.rrna: [rrna_removed_fraction]
-  fastq.qc_post: [qc_warn_count, qc_fail_count]
-  fastq.screen: [classified_read_fraction]
-  fastq.merge: [merge_rate]
-  fastq.deduplicate: [dedup_rate]
-  fastq.low_complexity: [reads_removed_low_complexity]
-  fastq.host_depletion: [contamination_rate]
-  fastq.correct: [error_corrected_fraction]
-  fastq.umi: [umi_dedup_fraction]
+  fastq.prepare_reference:
+  - index_build_exit_code
+  fastq.detect_adapters:
+  - adapter_detection_rate
+  fastq.trim:
+  - trimmed_read_fraction
+  - post_trim_read_length_mean
+  fastq.filter:
+  - reads_filtered_fraction
+  fastq.validate_pre:
+  - format_validation_pass_rate
+  fastq.stats_neutral:
+  - read_count
+  - q30_fraction
+  fastq.rrna:
+  - rrna_removed_fraction
+  fastq.qc_post:
+  - qc_warn_count
+  - qc_fail_count
+  fastq.screen:
+  - classified_read_fraction
+  fastq.merge:
+  - merge_rate
+  fastq.deduplicate:
+  - dedup_rate
+  fastq.low_complexity:
+  - reads_removed_low_complexity
+  fastq.host_depletion:
+  - contamination_rate
+  fastq.correct:
+  - error_corrected_fraction
+  fastq.umi:
+  - umi_dedup_fraction
+  fastq.length_distribution_pre:
+  - mean_read_length
+  fastq.polyG_tailing:
+  - trimmed_read_fraction
+  fastq.contaminant_screen:
+  - reads_removed_contaminant_kmer
+  fastq.overrepresented_sequences:
+  - reads_total
 stage_qc_thresholds:
-  fastq.prepare_reference: { index_build_exit_code: { warn: "!=0", fail: "!=0" } }
-  fastq.detect_adapters: { adapter_detection_rate: { warn: "<0.01", fail: "<0.001" } }
-  fastq.trim: { trimmed_read_fraction: { warn: "<0.4", fail: "<0.2" } }
-  fastq.filter: { reads_filtered_fraction: { warn: ">0.8", fail: ">0.9" } }
-  fastq.validate_pre: { format_validation_pass_rate: { warn: "<1.0", fail: "<0.99" } }
-  fastq.stats_neutral: { q30_fraction: { warn: "<0.6", fail: "<0.4" } }
-  fastq.rrna: { rrna_removed_fraction: { warn: "<0.05", fail: "<0.01" } }
-  fastq.qc_post: { qc_fail_count: { warn: ">0", fail: ">5" } }
-  fastq.screen: { classified_read_fraction: { warn: "<0.1", fail: "<0.01" } }
-  fastq.merge: { merge_rate: { warn: "<0.15", fail: "<0.05" } }
-  fastq.deduplicate: { dedup_rate: { warn: "<0.02", fail: "<0.005" } }
-  fastq.low_complexity: { reads_removed_low_complexity: { warn: ">0.5", fail: ">0.8" } }
-  fastq.host_depletion: { contamination_rate: { warn: ">=0.05", fail: ">=0.2" } }
-  fastq.correct: { error_corrected_fraction: { warn: "<0.01", fail: "<0.001" } }
-  fastq.umi: { umi_dedup_fraction: { warn: "<0.05", fail: "<0.01" } }
+  fastq.prepare_reference:
+    index_build_exit_code:
+      warn: '!=0'
+      fail: '!=0'
+  fastq.detect_adapters:
+    adapter_detection_rate:
+      warn: <0.01
+      fail: <0.001
+  fastq.trim:
+    trimmed_read_fraction:
+      warn: <0.4
+      fail: <0.2
+  fastq.filter:
+    reads_filtered_fraction:
+      warn: '>0.8'
+      fail: '>0.9'
+  fastq.validate_pre:
+    format_validation_pass_rate:
+      warn: <1.0
+      fail: <0.99
+  fastq.stats_neutral:
+    q30_fraction:
+      warn: <0.6
+      fail: <0.4
+  fastq.rrna:
+    rrna_removed_fraction:
+      warn: <0.05
+      fail: <0.01
+  fastq.qc_post:
+    qc_fail_count:
+      warn: '>0'
+      fail: '>5'
+  fastq.screen:
+    classified_read_fraction:
+      warn: <0.1
+      fail: <0.01
+  fastq.merge:
+    merge_rate:
+      warn: <0.15
+      fail: <0.05
+  fastq.deduplicate:
+    dedup_rate:
+      warn: <0.02
+      fail: <0.005
+  fastq.low_complexity:
+    reads_removed_low_complexity:
+      warn: '>0.5'
+      fail: '>0.8'
+  fastq.host_depletion:
+    contamination_rate:
+      warn: '>=0.05'
+      fail: '>=0.2'
+  fastq.correct:
+    error_corrected_fraction:
+      warn: <0.01
+      fail: <0.001
+  fastq.umi:
+    umi_dedup_fraction:
+      warn: <0.05
+      fail: <0.01
+  fastq.length_distribution_pre:
+    mean_read_length:
+      warn: <30
+      fail: <20
+  fastq.polyG_tailing:
+    trimmed_read_fraction:
+      warn: <0.01
+      fail: <0.001
+  fastq.contaminant_screen:
+    reads_removed_contaminant_kmer:
+      warn: '>0.8'
+      fail: '>0.95'
+  fastq.overrepresented_sequences:
+    reads_removed_contaminant_kmer:
+      warn: '>0.2'
+      fail: '>0.5'
 stage_contamination_thresholds:
-  fastq.prepare_reference: { contamination_rate: { warn: ">=0.0", fail: ">=1.0" } }
-  fastq.detect_adapters: { contamination_rate: { warn: ">=0.0", fail: ">=1.0" } }
-  fastq.trim: { contamination_rate: { warn: ">=0.05", fail: ">=0.2" } }
-  fastq.filter: { contamination_rate: { warn: ">=0.05", fail: ">=0.2" } }
-  fastq.validate_pre: { contamination_rate: { warn: ">=0.05", fail: ">=0.2" } }
-  fastq.stats_neutral: { contamination_rate: { warn: ">=0.05", fail: ">=0.2" } }
-  fastq.rrna: { contamination_rate: { warn: ">=0.05", fail: ">=0.2" } }
-  fastq.qc_post: { contamination_rate: { warn: ">=0.05", fail: ">=0.2" } }
-  fastq.screen: { contamination_rate: { warn: ">=0.05", fail: ">=0.2" } }
-  fastq.merge: { contamination_rate: { warn: ">=0.05", fail: ">=0.2" } }
-  fastq.deduplicate: { contamination_rate: { warn: ">=0.05", fail: ">=0.2" } }
-  fastq.low_complexity: { contamination_rate: { warn: ">=0.05", fail: ">=0.2" } }
-  fastq.host_depletion: { contamination_rate: { warn: ">=0.05", fail: ">=0.2" } }
-  fastq.correct: { contamination_rate: { warn: ">=0.05", fail: ">=0.2" } }
-  fastq.umi: { contamination_rate: { warn: ">=0.05", fail: ">=0.2" } }
+  fastq.prepare_reference:
+    contamination_rate:
+      warn: '>=0.0'
+      fail: '>=1.0'
+  fastq.detect_adapters:
+    contamination_rate:
+      warn: '>=0.0'
+      fail: '>=1.0'
+  fastq.trim:
+    contamination_rate:
+      warn: '>=0.05'
+      fail: '>=0.2'
+  fastq.filter:
+    contamination_rate:
+      warn: '>=0.05'
+      fail: '>=0.2'
+  fastq.validate_pre:
+    contamination_rate:
+      warn: '>=0.05'
+      fail: '>=0.2'
+  fastq.stats_neutral:
+    contamination_rate:
+      warn: '>=0.05'
+      fail: '>=0.2'
+  fastq.rrna:
+    contamination_rate:
+      warn: '>=0.05'
+      fail: '>=0.2'
+  fastq.qc_post:
+    contamination_rate:
+      warn: '>=0.05'
+      fail: '>=0.2'
+  fastq.screen:
+    contamination_rate:
+      warn: '>=0.05'
+      fail: '>=0.2'
+  fastq.merge:
+    contamination_rate:
+      warn: '>=0.05'
+      fail: '>=0.2'
+  fastq.deduplicate:
+    contamination_rate:
+      warn: '>=0.05'
+      fail: '>=0.2'
+  fastq.low_complexity:
+    contamination_rate:
+      warn: '>=0.05'
+      fail: '>=0.2'
+  fastq.host_depletion:
+    contamination_rate:
+      warn: '>=0.05'
+      fail: '>=0.2'
+  fastq.correct:
+    contamination_rate:
+      warn: '>=0.05'
+      fail: '>=0.2'
+  fastq.umi:
+    contamination_rate:
+      warn: '>=0.05'
+      fail: '>=0.2'
+  fastq.length_distribution_pre:
+    contamination_rate:
+      warn: '>=0.0'
+      fail: '>=1.0'
+  fastq.polyG_tailing:
+    contamination_rate:
+      warn: '>=0.0'
+      fail: '>=1.0'
+  fastq.contaminant_screen:
+    contamination_rate:
+      warn: '>=0.05'
+      fail: '>=0.2'
+  fastq.overrepresented_sequences:
+    contamination_rate:
+      warn: '>=0.05'
+      fail: '>=0.2'
 stage_authenticity_thresholds:
-  fastq.prepare_reference: { authenticity_score: { warn: "<=1.0", fail: "<=0.0" } }
-  fastq.detect_adapters: { authenticity_score: { warn: "<=1.0", fail: "<=0.0" } }
-  fastq.trim: { authenticity_score: { warn: "<0.2", fail: "<0.1" } }
-  fastq.filter: { authenticity_score: { warn: "<0.2", fail: "<0.1" } }
-  fastq.validate_pre: { authenticity_score: { warn: "<=1.0", fail: "<=0.0" } }
-  fastq.stats_neutral: { authenticity_score: { warn: "<=1.0", fail: "<=0.0" } }
-  fastq.rrna: { authenticity_score: { warn: "<=1.0", fail: "<=0.0" } }
-  fastq.qc_post: { authenticity_score: { warn: "<=1.0", fail: "<=0.0" } }
-  fastq.screen: { authenticity_score: { warn: "<0.2", fail: "<0.1" } }
-  fastq.merge: { authenticity_score: { warn: "<=1.0", fail: "<=0.0" } }
-  fastq.deduplicate: { authenticity_score: { warn: "<=1.0", fail: "<=0.0" } }
-  fastq.low_complexity: { authenticity_score: { warn: "<=1.0", fail: "<=0.0" } }
-  fastq.host_depletion: { authenticity_score: { warn: "<0.2", fail: "<0.1" } }
-  fastq.correct: { authenticity_score: { warn: "<=1.0", fail: "<=0.0" } }
-  fastq.umi: { authenticity_score: { warn: "<=1.0", fail: "<=0.0" } }
+  fastq.prepare_reference:
+    authenticity_score:
+      warn: <=1.0
+      fail: <=0.0
+  fastq.detect_adapters:
+    authenticity_score:
+      warn: <=1.0
+      fail: <=0.0
+  fastq.trim:
+    authenticity_score:
+      warn: <0.2
+      fail: <0.1
+  fastq.filter:
+    authenticity_score:
+      warn: <0.2
+      fail: <0.1
+  fastq.validate_pre:
+    authenticity_score:
+      warn: <=1.0
+      fail: <=0.0
+  fastq.stats_neutral:
+    authenticity_score:
+      warn: <=1.0
+      fail: <=0.0
+  fastq.rrna:
+    authenticity_score:
+      warn: <=1.0
+      fail: <=0.0
+  fastq.qc_post:
+    authenticity_score:
+      warn: <=1.0
+      fail: <=0.0
+  fastq.screen:
+    authenticity_score:
+      warn: <0.2
+      fail: <0.1
+  fastq.merge:
+    authenticity_score:
+      warn: <=1.0
+      fail: <=0.0
+  fastq.deduplicate:
+    authenticity_score:
+      warn: <=1.0
+      fail: <=0.0
+  fastq.low_complexity:
+    authenticity_score:
+      warn: <=1.0
+      fail: <=0.0
+  fastq.host_depletion:
+    authenticity_score:
+      warn: <0.2
+      fail: <0.1
+  fastq.correct:
+    authenticity_score:
+      warn: <=1.0
+      fail: <=0.0
+  fastq.umi:
+    authenticity_score:
+      warn: <=1.0
+      fail: <=0.0
+  fastq.length_distribution_pre:
+    authenticity_score:
+      warn: <=1.0
+      fail: <=0.0
+  fastq.polyG_tailing:
+    authenticity_score:
+      warn: <=1.0
+      fail: <=0.0
+  fastq.contaminant_screen:
+    authenticity_score:
+      warn: <0.2
+      fail: <0.1
+  fastq.overrepresented_sequences:
+    authenticity_score:
+      warn: <=1.0
+      fail: <=0.0
 stage_duplication_thresholds:
-  fastq.prepare_reference: { duplication_rate: { warn: ">=0.0", fail: ">=1.0" } }
-  fastq.detect_adapters: { duplication_rate: { warn: ">=0.7", fail: ">=0.9" } }
-  fastq.trim: { duplication_rate: { warn: ">=0.7", fail: ">=0.9" } }
-  fastq.filter: { duplication_rate: { warn: ">=0.7", fail: ">=0.9" } }
-  fastq.validate_pre: { duplication_rate: { warn: ">=0.7", fail: ">=0.9" } }
-  fastq.stats_neutral: { duplication_rate: { warn: ">=0.7", fail: ">=0.9" } }
-  fastq.rrna: { duplication_rate: { warn: ">=0.7", fail: ">=0.9" } }
-  fastq.qc_post: { duplication_rate: { warn: ">=0.7", fail: ">=0.9" } }
-  fastq.screen: { duplication_rate: { warn: ">=0.7", fail: ">=0.9" } }
-  fastq.merge: { duplication_rate: { warn: ">=0.7", fail: ">=0.9" } }
-  fastq.deduplicate: { duplication_rate: { warn: ">=0.7", fail: ">=0.9" } }
-  fastq.low_complexity: { duplication_rate: { warn: ">=0.7", fail: ">=0.9" } }
-  fastq.host_depletion: { duplication_rate: { warn: ">=0.7", fail: ">=0.9" } }
-  fastq.correct: { duplication_rate: { warn: ">=0.7", fail: ">=0.9" } }
-  fastq.umi: { duplication_rate: { warn: ">=0.7", fail: ">=0.9" } }
+  fastq.prepare_reference:
+    duplication_rate:
+      warn: '>=0.0'
+      fail: '>=1.0'
+  fastq.detect_adapters:
+    duplication_rate:
+      warn: '>=0.7'
+      fail: '>=0.9'
+  fastq.trim:
+    duplication_rate:
+      warn: '>=0.7'
+      fail: '>=0.9'
+  fastq.filter:
+    duplication_rate:
+      warn: '>=0.7'
+      fail: '>=0.9'
+  fastq.validate_pre:
+    duplication_rate:
+      warn: '>=0.7'
+      fail: '>=0.9'
+  fastq.stats_neutral:
+    duplication_rate:
+      warn: '>=0.7'
+      fail: '>=0.9'
+  fastq.rrna:
+    duplication_rate:
+      warn: '>=0.7'
+      fail: '>=0.9'
+  fastq.qc_post:
+    duplication_rate:
+      warn: '>=0.7'
+      fail: '>=0.9'
+  fastq.screen:
+    duplication_rate:
+      warn: '>=0.7'
+      fail: '>=0.9'
+  fastq.merge:
+    duplication_rate:
+      warn: '>=0.7'
+      fail: '>=0.9'
+  fastq.deduplicate:
+    duplication_rate:
+      warn: '>=0.7'
+      fail: '>=0.9'
+  fastq.low_complexity:
+    duplication_rate:
+      warn: '>=0.7'
+      fail: '>=0.9'
+  fastq.host_depletion:
+    duplication_rate:
+      warn: '>=0.7'
+      fail: '>=0.9'
+  fastq.correct:
+    duplication_rate:
+      warn: '>=0.7'
+      fail: '>=0.9'
+  fastq.umi:
+    duplication_rate:
+      warn: '>=0.7'
+      fail: '>=0.9'
+  fastq.length_distribution_pre:
+    duplication_rate:
+      warn: '>=0.7'
+      fail: '>=0.9'
+  fastq.polyG_tailing:
+    duplication_rate:
+      warn: '>=0.7'
+      fail: '>=0.9'
+  fastq.contaminant_screen:
+    duplication_rate:
+      warn: '>=0.7'
+      fail: '>=0.9'
+  fastq.overrepresented_sequences:
+    duplication_rate:
+      warn: '>=0.7'
+      fail: '>=0.9'
 stage_coverage_sufficiency:
-  fastq.prepare_reference: ["not_applicable"]
-  fastq.detect_adapters: ["not_applicable"]
-  fastq.trim: ["not_applicable"]
-  fastq.filter: ["not_applicable"]
-  fastq.validate_pre: ["not_applicable"]
-  fastq.stats_neutral: ["not_applicable"]
-  fastq.rrna: ["not_applicable"]
-  fastq.qc_post: ["not_applicable"]
-  fastq.screen: ["not_applicable"]
-  fastq.merge: ["not_applicable"]
-  fastq.deduplicate: ["not_applicable"]
-  fastq.low_complexity: ["not_applicable"]
-  fastq.host_depletion: ["not_applicable"]
-  fastq.correct: ["not_applicable"]
-  fastq.umi: ["not_applicable"]
+  fastq.prepare_reference:
+  - not_applicable
+  fastq.detect_adapters:
+  - not_applicable
+  fastq.trim:
+  - not_applicable
+  fastq.filter:
+  - not_applicable
+  fastq.validate_pre:
+  - not_applicable
+  fastq.stats_neutral:
+  - not_applicable
+  fastq.rrna:
+  - not_applicable
+  fastq.qc_post:
+  - not_applicable
+  fastq.screen:
+  - not_applicable
+  fastq.merge:
+  - not_applicable
+  fastq.deduplicate:
+  - not_applicable
+  fastq.low_complexity:
+  - not_applicable
+  fastq.host_depletion:
+  - not_applicable
+  fastq.correct:
+  - not_applicable
+  fastq.umi:
+  - not_applicable
+  fastq.length_distribution_pre:
+  - not_applicable
+  fastq.polyG_tailing:
+  - not_applicable
+  fastq.contaminant_screen:
+  - not_applicable
+  fastq.overrepresented_sequences:
+  - not_applicable
 stage_sex_kinship_sufficiency:
-  fastq.prepare_reference: ["not_applicable"]
-  fastq.detect_adapters: ["not_applicable"]
-  fastq.trim: ["not_applicable"]
-  fastq.filter: ["not_applicable"]
-  fastq.validate_pre: ["not_applicable"]
-  fastq.stats_neutral: ["not_applicable"]
-  fastq.rrna: ["not_applicable"]
-  fastq.qc_post: ["not_applicable"]
-  fastq.screen: ["not_applicable"]
-  fastq.merge: ["not_applicable"]
-  fastq.deduplicate: ["not_applicable"]
-  fastq.low_complexity: ["not_applicable"]
-  fastq.host_depletion: ["not_applicable"]
-  fastq.correct: ["not_applicable"]
-  fastq.umi: ["not_applicable"]
+  fastq.prepare_reference:
+  - not_applicable
+  fastq.detect_adapters:
+  - not_applicable
+  fastq.trim:
+  - not_applicable
+  fastq.filter:
+  - not_applicable
+  fastq.validate_pre:
+  - not_applicable
+  fastq.stats_neutral:
+  - not_applicable
+  fastq.rrna:
+  - not_applicable
+  fastq.qc_post:
+  - not_applicable
+  fastq.screen:
+  - not_applicable
+  fastq.merge:
+  - not_applicable
+  fastq.deduplicate:
+  - not_applicable
+  fastq.low_complexity:
+  - not_applicable
+  fastq.host_depletion:
+  - not_applicable
+  fastq.correct:
+  - not_applicable
+  fastq.umi:
+  - not_applicable
+  fastq.length_distribution_pre:
+  - not_applicable
+  fastq.polyG_tailing:
+  - not_applicable
+  fastq.contaminant_screen:
+  - not_applicable
+  fastq.overrepresented_sequences:
+  - not_applicable
 benchmark_scenarios:
   trim_fairness:
-    stage_id: "fastq.trim"
-    description: "Compare trim tools on identical raw FASTQ pairs and identical adapter bank."
+    stage_id: fastq.trim
+    description: Compare trim tools on identical raw FASTQ pairs and identical adapter
+      bank.
     fairness_rules:
-      - "same_input_hash"
-      - "same_previous_stage_defaults"
-      - "same_dataset_class"
+    - same_input_hash
+    - same_previous_stage_defaults
+    - same_dataset_class
   screen_fairness:
-    stage_id: "fastq.screen"
-    description: "Compare classifiers on identical filtered inputs and fixed DB metadata."
+    stage_id: fastq.screen
+    description: Compare classifiers on identical filtered inputs and fixed DB metadata.
     fairness_rules:
-      - "same_input_hash"
-      - "same_previous_stage_defaults"
-      - "same_contamination_db_hash"
+    - same_input_hash
+    - same_previous_stage_defaults
+    - same_contamination_db_hash

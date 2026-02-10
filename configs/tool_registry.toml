@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 43a12ea7923794ba60f27ce93f1e62d8c53e7084
+# source_commit: 3db4c0cde68631eb21e7242a974a2683ef5ea901
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 
@@ -1589,6 +1589,17 @@ requires_validation = false
 requires_reporting = false
 
 [[stages]]
+id = "fastq.contaminant_screen"
+primary_tools = ["bbduk"]
+optional_alternatives = ["bowtie2"]
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+default_rationale = "Default contaminant screen uses k-mer depletion against configured decoy references."
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
 id = "fastq.correct"
 primary_tools = ["rcorrector"]
 optional_alternatives = ["lighter", "musket", "rcorrector", "spades"]
@@ -1633,6 +1644,17 @@ requires_validation = false
 requires_reporting = false
 
 [[stages]]
+id = "fastq.length_distribution_pre"
+primary_tools = ["seqkit_stats"]
+optional_alternatives = ["prinseq", "seqkit_stats"]
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+default_rationale = "Default length histogram baseline provides deterministic pre-trim size distribution."
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
 id = "fastq.merge"
 primary_tools = ["pear"]
 optional_alternatives = ["flash2", "leehom", "pear", "vsearch"]
@@ -1640,6 +1662,28 @@ validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
 default_rationale = "Default merger is stable for paired-end overlap handling."
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
+id = "fastq.overrepresented_sequences"
+primary_tools = ["fastqc"]
+optional_alternatives = ["seqkit"]
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+default_rationale = "Default overrepresented-sequence detector uses FastQC module output."
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
+id = "fastq.polyG_tailing"
+primary_tools = ["fastp"]
+optional_alternatives = ["fastp"]
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+default_rationale = "Default polyG trimmer uses fastp polyG-tail handling for common sequencer artifacts."
 requires_validation = false
 requires_reporting = false
 

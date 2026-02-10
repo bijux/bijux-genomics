@@ -1,0 +1,3 @@
+tool=fastqc
+stage=fastq.overrepresented_sequences
+fixture_kind=synthetic_truth
