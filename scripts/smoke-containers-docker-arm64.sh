@@ -77,7 +77,7 @@ get_version_cmd() {
     }
     in_tools && id==tool && vercmd!="" { print vercmd; found=1; exit 0 }
     END { if (!found) print tool " --version" }
-  ' "$ROOT_DIR/configs/tools.toml"
+  ' "$ROOT_DIR/configs/tool_registry.toml"
 }
 
 get_help_cmd() {
@@ -97,7 +97,7 @@ get_help_cmd() {
     }
     in_tools && id==tool && helpcmd!="" { print helpcmd; found=1; exit 0 }
     END { if (!found) print tool " --help" }
-  ' "$ROOT_DIR/configs/tools.toml"
+  ' "$ROOT_DIR/configs/tool_registry.toml"
 }
 
 get_registry_field() {
@@ -122,7 +122,7 @@ get_registry_field() {
       }
     }
     END { if (!found) print "unknown" }
-  ' "$ROOT_DIR/configs/tools.toml"
+  ' "$ROOT_DIR/configs/tool_registry.toml"
 }
 
 build_and_smoke_one() {

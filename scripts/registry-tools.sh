@@ -2,7 +2,7 @@
 set -eu
 
 ROOT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
-REGISTRY_FILE="${REGISTRY_FILE:-$ROOT_DIR/configs/tools.toml}"
+REGISTRY_FILE="${REGISTRY_FILE:-$ROOT_DIR/configs/tool_registry.toml}"
 
 if [ ! -f "$REGISTRY_FILE" ]; then
   echo "missing registry: $REGISTRY_FILE" >&2

@@ -1,0 +1,115 @@
+# GENERATED - DO NOT EDIT - source: domain/**
+# Regenerate with: cargo run --bin compile_domain_configs
+
+[[stages]]
+id = "bam.align"
+tools = ["bowtie2", "bwa", "samtools"]
+
+[[stages]]
+id = "bam.authenticity"
+tools = ["authenticct", "damageprofiler", "pmdtools"]
+
+[[stages]]
+id = "bam.bias_mitigation"
+tools = []
+
+[[stages]]
+id = "bam.complexity"
+tools = ["preseq"]
+
+[[stages]]
+id = "bam.contamination"
+tools = ["contammix", "schmutzi", "verifybamid2"]
+
+[[stages]]
+id = "bam.coverage"
+tools = ["mosdepth", "samtools"]
+
+[[stages]]
+id = "bam.damage"
+tools = ["addeam", "damageprofiler", "mapdamage2", "ngsbriggs", "pmdtools", "pydamage"]
+
+[[stages]]
+id = "bam.filter"
+tools = ["bamtools", "bedtools", "samtools"]
+
+[[stages]]
+id = "bam.genotyping"
+tools = []
+
+[[stages]]
+id = "bam.haplogroups"
+tools = ["yleaf"]
+
+[[stages]]
+id = "bam.kinship"
+tools = ["angsd", "king"]
+
+[[stages]]
+id = "bam.markdup"
+tools = ["picard"]
+
+[[stages]]
+id = "bam.qc_pre"
+tools = []
+
+[[stages]]
+id = "bam.recalibration"
+tools = ["gatk"]
+
+[[stages]]
+id = "bam.sex"
+tools = ["angsd", "rxy", "yleaf"]
+
+[[stages]]
+id = "bam.validate"
+tools = ["bamtools", "bedtools", "samtools"]
+
+[[stages]]
+id = "fastq.correct"
+tools = ["bayeshammer", "lighter", "musket", "rcorrector", "spades"]
+
+[[stages]]
+id = "fastq.detect_adapters"
+tools = ["fastqc"]
+
+[[stages]]
+id = "fastq.filter"
+tools = ["prinseq", "seqkit", "sortmerna"]
+
+[[stages]]
+id = "fastq.merge"
+tools = ["bbmerge", "flash2", "leehom", "pear", "seqprep", "vsearch"]
+
+[[stages]]
+id = "fastq.prepare_reference"
+tools = ["star"]
+
+[[stages]]
+id = "fastq.preprocess"
+tools = []
+
+[[stages]]
+id = "fastq.qc_post"
+tools = ["multiqc", "qualimap", "samtools"]
+
+[[stages]]
+id = "fastq.screen"
+tools = ["bracken", "centrifuge", "diamond", "fastq_screen", "kaiju", "kraken2", "krakenuniq", "metaphlan"]
+
+[[stages]]
+id = "fastq.stats_neutral"
+tools = ["bcftools", "seqfu", "seqkit_stats"]
+
+[[stages]]
+id = "fastq.trim"
+tools = ["adapterremoval", "alientrimmer", "atropos", "bbduk", "cutadapt", "fastp", "fastx_clipper", "leehom", "seqpurge", "skewer", "trim_galore", "trimmomatic"]
+
+[[stages]]
+id = "fastq.umi"
+tools = ["umi_tools"]
+
+[[stages]]
+id = "fastq.validate_pre"
+tools = ["fastq-scan", "fastqvalidator", "fastqvalidator_official", "fqtools", "seqtk"]
+
