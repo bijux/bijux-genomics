@@ -13,6 +13,11 @@ Prevents drift between authored domain data, generated configs, and runtime/plan
 ## Contracts:
 Domain is the authored SSOT; configs are generated; code consumes generated configs; makefiles call CLI only.
 
+Domain-owned canonical vocabularies are part of SSOT:
+- `domain/fastq/artifacts.yaml` and `domain/bam/artifacts.yaml` define allowed artifact IDs.
+- `domain/fastq/metrics.yaml` and `domain/bam/metrics.yaml` define allowed metric IDs.
+- `bijux-dna domain validate` must fail when stages/tools use IDs outside those vocabularies.
+
 ## Examples:
 The generated config set is fixed and compiler-owned:
 - `configs/tool_registry.toml`
