@@ -80,6 +80,16 @@ pub struct StagePlanJsonV1 {
     pub reason: PlanDecisionReason,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct PlannedArtifactV1 {
+    pub artifact_id: String,
+    pub role: String,
+    pub path: String,
+    pub kind: String,
+    pub schema: String,
+}
+
 impl StagePlanJsonV1 {
     #[must_use]
     pub fn from_plan(plan: &StagePlanV1) -> Self {

@@ -4,7 +4,6 @@ use bijux_dna_api::v1::api::run::{
 use tracing::{info, warn};
 
 use std::collections::BTreeMap;
-
 use crate::commands::cli;
 use crate::commands::cli::render;
 use crate::commands::command_prelude::{anyhow, Cli, Context, DnaCommand, Path, PathBuf, Result};
@@ -52,6 +51,15 @@ pub(crate) fn run_plan(
     render::json::print_pretty(&plan)?;
     println!("manifests: {}", domain_dir.display());
 
+    write_plan_artifacts(
+        &plan.artifacts_dir,
+        &plan.run_id.0,
+        &plan.stage.stage_id.to_string(),
+        &plan.stage.tool_id.to_string(),
+        &serde_json::to_value(&plan.stage.reason)?,
+        &serde_json::to_value(&plan.planned_artifacts)?,
+    )?;
+
     if !common.dry_run {
         warn!(
             run_id = %plan.run_id.0,
@@ -70,5 +78,38 @@ pub(crate) fn run_plan(
         "report written"
     );
 
+    Ok(())
+}
+
+fn write_plan_artifacts(
+    artifacts_dir: &Path,
+    run_id: &str,
+    stage_id: &str,
+    tool_id: &str,
+    reason: &serde_json::Value,
+    planned_artifacts: &serde_json::Value,
+) -> Result<()> {
+    let artifact_manifest = serde_json::json!({
+        "schema_version": "bijux.plan_artifacts.v1",
+        "run_id": run_id,
+        "stage_id": stage_id,
+        "tool_id": tool_id,
+        "artifacts": planned_artifacts,
+    });
+    let decision_trace = serde_json::json!({
+        "schema_version": "bijux.decision_trace.v1",
+        "run_id": run_id,
+        "stage_id": stage_id,
+        "tool_id": tool_id,
+        "reason": reason
+    });
+    std::fs::write(
+        artifacts_dir.join("plan_artifact_manifest.json"),
+        serde_json::to_vec_pretty(&artifact_manifest)?,
+    )?;
+    std::fs::write(
+        artifacts_dir.join("decision_trace.json"),
+        serde_json::to_vec_pretty(&decision_trace)?,
+    )?;
     Ok(())
 }
