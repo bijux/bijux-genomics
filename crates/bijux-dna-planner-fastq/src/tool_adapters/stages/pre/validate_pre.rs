@@ -65,14 +65,8 @@ pub fn plan(tool: &ToolExecutionSpecV1, r1: &Path, out_dir: &Path) -> StagePlanV
 }
 
 pub fn normalize_validate_tool_list(tools: &[String]) -> Result<Vec<String>> {
-    let allowed = [
-        "seqtk",
-        "fastqc",
-        "fastqvalidator",
-        "fastqvalidator_official",
-        "fqtools",
-    ];
-    normalize_tools_with_allowlist(tools, &allowed)
+    let allowlist = crate::selection::allowed_tools_for_stage(&STAGE_ID);
+    normalize_tools_with_allowlist(tools, &allowlist)
 }
 
 pub fn resolve_config(user: ValidatePreUserConfig) -> ValidatePreEffectiveConfig {
@@ -90,7 +84,7 @@ pub fn plan_from_config(
     plan(tool, &config.r1, &config.out_dir)
 }
 
-fn normalize_tools_with_allowlist(tools: &[String], allowlist: &[&str]) -> Result<Vec<String>> {
+fn normalize_tools_with_allowlist(tools: &[String], allowlist: &[String]) -> Result<Vec<String>> {
     let mut normalized: Vec<String> = tools.iter().map(|tool| tool.to_lowercase()).collect();
     normalized.sort();
     normalized.dedup();
@@ -98,7 +92,7 @@ fn normalize_tools_with_allowlist(tools: &[String], allowlist: &[&str]) -> Resul
         return Err(anyhow!("no tools specified"));
     }
     for tool in &normalized {
-        if !allowlist.contains(&tool.as_str()) {
+        if !allowlist.contains(tool) {
             return Err(anyhow!("unsupported tool: {tool}"));
         }
     }

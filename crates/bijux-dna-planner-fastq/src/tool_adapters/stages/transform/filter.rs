@@ -24,8 +24,8 @@ pub struct FilterPlanOptions {
 }
 
 pub fn normalize_filter_tool_list(tools: &[String]) -> Result<Vec<String>> {
-    let allowed = ["prinseq", "fastp", "seqkit", "bbduk"];
-    normalize_tools_with_allowlist(tools, &allowed)
+    let allowlist = crate::selection::allowed_tools_for_stage(&STAGE_ID);
+    normalize_tools_with_allowlist(tools, &allowlist)
 }
 
 /// Build a filter plan.
@@ -123,12 +123,12 @@ pub fn default_kmer_ref() -> Option<PathBuf> {
     fasta.into_iter().next()
 }
 
-fn normalize_tools_with_allowlist(tools: &[String], allowlist: &[&str]) -> Result<Vec<String>> {
+fn normalize_tools_with_allowlist(tools: &[String], allowlist: &[String]) -> Result<Vec<String>> {
     let mut normalized: Vec<String> = tools.iter().map(|tool| tool.to_lowercase()).collect();
     normalized.sort();
     normalized.dedup();
     for tool in &normalized {
-        if !allowlist.contains(&tool.as_str()) {
+        if !allowlist.contains(tool) {
             return Err(anyhow!("unsupported tool {tool}"));
         }
     }

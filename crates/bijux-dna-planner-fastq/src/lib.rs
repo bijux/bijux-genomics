@@ -795,83 +795,61 @@ pub fn select_preprocess_tools(
 }
 
 pub fn select_trim_tools(tools: &[String], allow_experimental: bool) -> Result<Vec<String>> {
-    let allowed = [
-        "fastp",
-        "cutadapt",
-        "bbduk",
-        "adapterremoval",
-        "trimmomatic",
-        "trim_galore",
-        "atropos",
-        "seqpurge",
-        "skewer",
-        "leehom",
-        "alientrimmer",
-        "fastx_clipper",
-    ];
-    let mut allowlist = allowed.to_vec();
+    let mut allowlist =
+        crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_TRIM);
     if !allow_experimental {
-        allowlist.retain(|tool| *tool != "seqpurge");
+        allowlist.retain(|tool| tool != "seqpurge");
     }
     select_tools_with_allowlist(tools, &allowlist)
 }
 
 pub fn select_validate_tools(tools: &[String]) -> Result<Vec<String>> {
-    let allowed = [
-        "seqtk",
-        "fastqc",
-        "fastqvalidator",
-        "fastqvalidator_official",
-        "fqtools",
-    ];
-    select_tools_with_allowlist(tools, &allowed)
+    let allowlist =
+        crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_VALIDATE_PRE);
+    select_tools_with_allowlist(tools, &allowlist)
 }
 
 pub fn select_filter_tools(tools: &[String]) -> Result<Vec<String>> {
-    let allowed = ["prinseq", "fastp", "seqkit"];
-    select_tools_with_allowlist(tools, &allowed)
+    let allowlist =
+        crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_FILTER);
+    select_tools_with_allowlist(tools, &allowlist)
 }
 
 pub fn select_merge_tools(tools: &[String]) -> Result<Vec<String>> {
-    let allowed = ["pear", "vsearch", "bbmerge", "flash2"];
-    select_tools_with_allowlist(tools, &allowed)
+    let allowlist = crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_MERGE);
+    select_tools_with_allowlist(tools, &allowlist)
 }
 
 pub fn select_correct_tools(tools: &[String], allow_experimental: bool) -> Result<Vec<String>> {
-    let allowed = ["rcorrector", "spades", "bayeshammer", "lighter", "musket"];
-    let mut allowlist = allowed.to_vec();
+    let mut allowlist =
+        crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_CORRECT);
     if !allow_experimental {
-        allowlist.retain(|tool| *tool == "rcorrector");
+        allowlist.retain(|tool| tool == "rcorrector");
     }
     select_tools_with_allowlist(tools, &allowlist)
 }
 
 pub fn select_qc_post_tools(tools: &[String]) -> Result<Vec<String>> {
-    let allowed = ["fastqc", "multiqc"];
-    select_tools_with_allowlist(tools, &allowed)
+    let allowlist =
+        crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_QC_POST);
+    select_tools_with_allowlist(tools, &allowlist)
 }
 
 pub fn select_umi_tools(tools: &[String]) -> Result<Vec<String>> {
-    let allowed = ["umi_tools"];
-    select_tools_with_allowlist(tools, &allowed)
+    let allowlist = crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_UMI);
+    select_tools_with_allowlist(tools, &allowlist)
 }
 
 pub fn select_screen_tools(tools: &[String]) -> Result<Vec<String>> {
-    let allowed = [
-        "kraken2",
-        "krakenuniq",
-        "bracken",
-        "centrifuge",
-        "metaphlan",
-        "kaiju",
-        "fastq_screen",
-    ];
-    select_tools_with_allowlist(tools, &allowed)
+    let allowlist =
+        crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_SCREEN);
+    select_tools_with_allowlist(tools, &allowlist)
 }
 
 pub fn select_stats_tools(tools: &[String]) -> Result<Vec<String>> {
-    let allowed = ["seqkit_stats", "fastq-scan", "seqfu"];
-    select_tools_with_allowlist(tools, &allowed)
+    let allowlist =
+        crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_STATS_NEUTRAL);
+    select_tools_with_allowlist(tools, &allowlist)
 }
 
 #[must_use]
@@ -886,7 +864,7 @@ pub fn scale_tool_spec_for_jobs(tool: &ToolExecutionSpecV1, jobs: usize) -> Tool
     scaled
 }
 
-fn select_tools_with_allowlist(tools: &[String], allowlist: &[&str]) -> Result<Vec<String>> {
+fn select_tools_with_allowlist(tools: &[String], allowlist: &[String]) -> Result<Vec<String>> {
     let mut normalized: Vec<String> = tools.iter().map(|tool| tool.to_lowercase()).collect();
     normalized.sort();
     normalized.dedup();
@@ -894,7 +872,7 @@ fn select_tools_with_allowlist(tools: &[String], allowlist: &[&str]) -> Result<V
         return Err(anyhow!("no tools specified"));
     }
     for tool in &normalized {
-        if !allowlist.contains(&tool.as_str()) {
+        if !allowlist.contains(tool) {
             return Err(anyhow!("unsupported tool: {tool}"));
         }
     }
