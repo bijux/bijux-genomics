@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, bail, Context, Result};
 use bijux_dna_infra::{ensure_dir, write_string};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone)]
 pub struct CompileOptions {
@@ -145,6 +145,42 @@ struct DomainIndex {
     stage_min_quality_gates: BTreeMap<String, Vec<String>>,
     #[serde(default)]
     stage_failure_diagnosis_hints: BTreeMap<String, Vec<String>>,
+    #[serde(default)]
+    pipeline_compositions: BTreeMap<String, Vec<String>>,
+    #[serde(default)]
+    stage_ordering_constraints: BTreeMap<String, Vec<String>>,
+    #[serde(default)]
+    stage_prerequisites: BTreeMap<String, Vec<String>>,
+    #[serde(default)]
+    stage_resource_hints: BTreeMap<String, StageResourceHint>,
+    #[serde(default)]
+    stage_output_size_estimates_mb: BTreeMap<String, BTreeMap<String, f64>>,
+    #[serde(default)]
+    stage_sanity_metrics: BTreeMap<String, Vec<String>>,
+    #[serde(default)]
+    stage_qc_thresholds: BTreeMap<String, BTreeMap<String, ThresholdBand>>,
+    #[serde(default)]
+    stage_contamination_thresholds: BTreeMap<String, BTreeMap<String, ThresholdBand>>,
+    #[serde(default)]
+    stage_authenticity_thresholds: BTreeMap<String, BTreeMap<String, ThresholdBand>>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Default)]
+struct StageResourceHint {
+    #[serde(default)]
+    memory_gb: f64,
+    #[serde(default)]
+    time_minutes: u64,
+    #[serde(default)]
+    threads: u32,
+}
+
+#[derive(Debug, Deserialize, Serialize, Default)]
+struct ThresholdBand {
+    #[serde(default)]
+    warn: String,
+    #[serde(default)]
+    fail: String,
 }
 
 #[derive(Debug, Deserialize, Default)]
@@ -264,6 +300,24 @@ fn toml_array(values: &[String]) -> String {
         .collect::<Vec<_>>()
         .join(", ");
     format!("[{joined}]")
+}
+
+fn encode_f64_map(map: &BTreeMap<String, f64>) -> String {
+    let mut items = map
+        .iter()
+        .map(|(k, v)| format!("{k}:{v}"))
+        .collect::<Vec<_>>();
+    items.sort();
+    toml_array(&items)
+}
+
+fn encode_threshold_map(map: &BTreeMap<String, ThresholdBand>) -> String {
+    let mut items = map
+        .iter()
+        .map(|(metric, band)| format!("{metric}|warn={}|fail={}", band.warn, band.fail))
+        .collect::<Vec<_>>();
+    items.sort();
+    toml_array(&items)
 }
 
 fn find_git_dir(start: &Path) -> Option<PathBuf> {
@@ -704,8 +758,117 @@ fn collect_domain_data(
                     "index stage_failure_diagnosis_hints for {stage_id} must not be empty"
                 ));
             }
+            let ordering = index
+                .stage_ordering_constraints
+                .get(stage_id)
+                .ok_or_else(|| anyhow!("index missing stage_ordering_constraints for stage {stage_id}"))?;
+            if ordering.iter().any(|s| s.trim().is_empty()) {
+                return Err(anyhow!(
+                    "index stage_ordering_constraints for {stage_id} contains empty stage id"
+                ));
+            }
+            let prereqs = index
+                .stage_prerequisites
+                .get(stage_id)
+                .ok_or_else(|| anyhow!("index missing stage_prerequisites for stage {stage_id}"))?;
+            if prereqs.iter().any(|s| s.trim().is_empty()) {
+                return Err(anyhow!(
+                    "index stage_prerequisites for {stage_id} contains empty prerequisite"
+                ));
+            }
+            let resources = index
+                .stage_resource_hints
+                .get(stage_id)
+                .ok_or_else(|| anyhow!("index missing stage_resource_hints for stage {stage_id}"))?;
+            if resources.memory_gb <= 0.0 || resources.time_minutes == 0 || resources.threads == 0 {
+                return Err(anyhow!(
+                    "index stage_resource_hints for {stage_id} must define positive memory_gb/time_minutes/threads"
+                ));
+            }
+            let size_estimates = index
+                .stage_output_size_estimates_mb
+                .get(stage_id)
+                .ok_or_else(|| anyhow!("index missing stage_output_size_estimates_mb for stage {stage_id}"))?;
+            if size_estimates.is_empty() {
+                return Err(anyhow!(
+                    "index stage_output_size_estimates_mb for {stage_id} must not be empty"
+                ));
+            }
+            if size_estimates.values().any(|v| *v < 0.0) {
+                return Err(anyhow!(
+                    "index stage_output_size_estimates_mb for {stage_id} contains negative estimate"
+                ));
+            }
+            let sanity = index
+                .stage_sanity_metrics
+                .get(stage_id)
+                .ok_or_else(|| anyhow!("index missing stage_sanity_metrics for stage {stage_id}"))?;
+            if sanity.is_empty() {
+                return Err(anyhow!(
+                    "index stage_sanity_metrics for {stage_id} must not be empty"
+                ));
+            }
+            let qc = index
+                .stage_qc_thresholds
+                .get(stage_id)
+                .ok_or_else(|| anyhow!("index missing stage_qc_thresholds for stage {stage_id}"))?;
+            if qc.is_empty()
+                || qc.values().any(|band| band.warn.trim().is_empty() || band.fail.trim().is_empty())
+            {
+                return Err(anyhow!(
+                    "index stage_qc_thresholds for {stage_id} must contain non-empty warn/fail bands"
+                ));
+            }
+            let contam = index
+                .stage_contamination_thresholds
+                .get(stage_id)
+                .ok_or_else(|| anyhow!("index missing stage_contamination_thresholds for stage {stage_id}"))?;
+            if contam.is_empty()
+                || contam
+                    .values()
+                    .any(|band| band.warn.trim().is_empty() || band.fail.trim().is_empty())
+            {
+                return Err(anyhow!(
+                    "index stage_contamination_thresholds for {stage_id} must contain non-empty warn/fail bands"
+                ));
+            }
+            let authenticity = index
+                .stage_authenticity_thresholds
+                .get(stage_id)
+                .ok_or_else(|| anyhow!("index missing stage_authenticity_thresholds for stage {stage_id}"))?;
+            if authenticity.is_empty()
+                || authenticity
+                    .values()
+                    .any(|band| band.warn.trim().is_empty() || band.fail.trim().is_empty())
+            {
+                return Err(anyhow!(
+                    "index stage_authenticity_thresholds for {stage_id} must contain non-empty warn/fail bands"
+                ));
+            }
             stage_defaults.insert(stage_id.clone(), default_tool.clone());
             stage_default_rationale.insert(stage_id.clone(), rationale);
+        }
+        if index.pipeline_compositions.is_empty() {
+            return Err(anyhow!("index missing pipeline_compositions"));
+        }
+        if !index.pipeline_compositions.contains_key("pre_hpc_best") {
+            return Err(anyhow!(
+                "index pipeline_compositions must include pre_hpc_best"
+            ));
+        }
+        for (pipeline_name, stages) in &index.pipeline_compositions {
+            if stages.is_empty() {
+                return Err(anyhow!(
+                    "index pipeline {pipeline_name} has empty stage list"
+                ));
+            }
+            for s in stages {
+                if !index.stage_ids.contains(s) {
+                    return Err(anyhow!(
+                        "index pipeline {pipeline_name} references unknown stage {s}"
+                    ));
+                }
+            }
         }
     }
     for tool in tools.values() {
@@ -882,8 +1045,54 @@ fn build_stages_toml(
     stage_to_tools: &StageToolMap,
     stage_statuses: &StageStatusMap,
     stage_output_kinds: &StageOutputKindsMap,
+    domain_dir: &Path,
     source_commit: &str,
 ) -> String {
+    let mut ordering_map = BTreeMap::<String, Vec<String>>::new();
+    let mut prereq_map = BTreeMap::<String, Vec<String>>::new();
+    let mut resource_map = BTreeMap::<String, StageResourceHint>::new();
+    let mut output_size_map = BTreeMap::<String, BTreeMap<String, f64>>::new();
+    let mut sanity_map = BTreeMap::<String, Vec<String>>::new();
+    let mut qc_thresholds_map = BTreeMap::<String, BTreeMap<String, ThresholdBand>>::new();
+    let mut contamination_thresholds_map =
+        BTreeMap::<String, BTreeMap<String, ThresholdBand>>::new();
+    let mut authenticity_thresholds_map = BTreeMap::<String, BTreeMap<String, ThresholdBand>>::new();
+    let mut pipelines = Vec::<(String, Vec<String>)>::new();
+    for dom in ["fastq", "bam"] {
+        let index_path = domain_dir.join(dom).join("index.yaml");
+        if !index_path.exists() {
+            continue;
+        }
+        if let Ok(index) = read_yaml::<DomainIndex>(&index_path) {
+            for (k, v) in index.stage_ordering_constraints {
+                ordering_map.insert(k, v);
+            }
+            for (k, v) in index.stage_prerequisites {
+                prereq_map.insert(k, v);
+            }
+            for (k, v) in index.stage_resource_hints {
+                resource_map.insert(k, v);
+            }
+            for (k, v) in index.stage_output_size_estimates_mb {
+                output_size_map.insert(k, v);
+            }
+            for (k, v) in index.stage_sanity_metrics {
+                sanity_map.insert(k, v);
+            }
+            for (k, v) in index.stage_qc_thresholds {
+                qc_thresholds_map.insert(k, v);
+            }
+            for (k, v) in index.stage_contamination_thresholds {
+                contamination_thresholds_map.insert(k, v);
+            }
+            for (k, v) in index.stage_authenticity_thresholds {
+                authenticity_thresholds_map.insert(k, v);
+            }
+            for (pipeline, stages) in index.pipeline_compositions {
+                pipelines.push((format!("{dom}.{pipeline}"), stages));
+            }
+        }
+    }
     let mut stages_toml = generated_header("domain/**", source_commit);
     for (stage_id, tools_set) in stage_to_tools {
         let _ = writeln!(stages_toml, "[[stages]]");
@@ -899,7 +1108,60 @@ fn build_stages_toml(
             .cloned()
             .unwrap_or_default();
         let _ = writeln!(stages_toml, "output_kinds = {}", toml_array(&output_kinds));
+        let _ = writeln!(
+            stages_toml,
+            "ordering_after = {}",
+            toml_array(ordering_map.get(stage_id).map_or(&[], Vec::as_slice))
+        );
+        let _ = writeln!(
+            stages_toml,
+            "prerequisites = {}",
+            toml_array(prereq_map.get(stage_id).map_or(&[], Vec::as_slice))
+        );
+        if let Some(resources) = resource_map.get(stage_id) {
+            let _ = writeln!(stages_toml, "resource_memory_gb = {}", resources.memory_gb);
+            let _ = writeln!(stages_toml, "resource_time_minutes = {}", resources.time_minutes);
+            let _ = writeln!(stages_toml, "resource_threads = {}", resources.threads);
+        }
+        if let Some(sanity) = sanity_map.get(stage_id) {
+            let _ = writeln!(stages_toml, "sanity_metrics = {}", toml_array(sanity));
+        }
+        if let Some(size_estimates) = output_size_map.get(stage_id) {
+            let _ = writeln!(
+                stages_toml,
+                "output_size_estimates_mb = {}",
+                encode_f64_map(size_estimates)
+            );
+        }
+        if let Some(qc) = qc_thresholds_map.get(stage_id) {
+            let _ = writeln!(
+                stages_toml,
+                "qc_thresholds = {}",
+                encode_threshold_map(qc)
+            );
+        }
+        if let Some(contam) = contamination_thresholds_map.get(stage_id) {
+            let _ = writeln!(
+                stages_toml,
+                "contamination_thresholds = {}",
+                encode_threshold_map(contam)
+            );
+        }
+        if let Some(auth) = authenticity_thresholds_map.get(stage_id) {
+            let _ = writeln!(
+                stages_toml,
+                "authenticity_thresholds = {}",
+                encode_threshold_map(auth)
+            );
+        }
         let _ = writeln!(stages_toml, "tools = {}\n", toml_array(&v));
+    }
+    pipelines.sort_by(|a, b| a.0.cmp(&b.0));
+    for (pipeline_id, stages) in pipelines {
+        let _ = writeln!(stages_toml, "[[pipelines]]");
+        let _ = writeln!(stages_toml, "id = \"{}\"", pipeline_id);
+        let _ = writeln!(stages_toml, "stages = {}", toml_array(&stages));
+        stages_toml.push('\n');
     }
     stages_toml
 }
@@ -961,6 +1223,7 @@ pub fn compile_domain_configs(options: &CompileOptions) -> Result<()> {
         &stage_to_tools,
         &stage_statuses,
         &stage_output_kinds,
+        &options.domain_dir,
         &source_commit,
     );
     write_string(&stages_path, &stages_toml)
@@ -1634,6 +1897,143 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                     stage_id
                 );
             }
+            let ordering = index
+                .stage_ordering_constraints
+                .get(stage_id)
+                .ok_or_else(|| {
+                    anyhow!(
+                        "{} stage {} missing stage_ordering_constraints entry",
+                        index_path.display(),
+                        stage_id
+                    )
+                })?;
+            if ordering.iter().any(|s| s.trim().is_empty()) {
+                bail!(
+                    "{} stage {} has empty referenced stage in stage_ordering_constraints",
+                    index_path.display(),
+                    stage_id
+                );
+            }
+            let prereqs = index.stage_prerequisites.get(stage_id).ok_or_else(|| {
+                anyhow!(
+                    "{} stage {} missing stage_prerequisites entry",
+                    index_path.display(),
+                    stage_id
+                )
+            })?;
+            if prereqs.iter().any(|s| s.trim().is_empty()) {
+                bail!(
+                    "{} stage {} has empty stage_prerequisites entry",
+                    index_path.display(),
+                    stage_id
+                );
+            }
+            let resource_hints = index.stage_resource_hints.get(stage_id).ok_or_else(|| {
+                anyhow!(
+                    "{} stage {} missing stage_resource_hints entry",
+                    index_path.display(),
+                    stage_id
+                )
+            })?;
+            if resource_hints.memory_gb <= 0.0
+                || resource_hints.time_minutes == 0
+                || resource_hints.threads == 0
+            {
+                bail!(
+                    "{} stage {} has non-positive stage_resource_hints values",
+                    index_path.display(),
+                    stage_id
+                );
+            }
+            let output_sizes = index
+                .stage_output_size_estimates_mb
+                .get(stage_id)
+                .ok_or_else(|| {
+                    anyhow!(
+                        "{} stage {} missing stage_output_size_estimates_mb entry",
+                        index_path.display(),
+                        stage_id
+                    )
+                })?;
+            if output_sizes.is_empty() || output_sizes.values().any(|v| *v < 0.0) {
+                bail!(
+                    "{} stage {} has invalid stage_output_size_estimates_mb",
+                    index_path.display(),
+                    stage_id
+                );
+            }
+            let sanity = index.stage_sanity_metrics.get(stage_id).ok_or_else(|| {
+                anyhow!(
+                    "{} stage {} missing stage_sanity_metrics entry",
+                    index_path.display(),
+                    stage_id
+                )
+            })?;
+            if sanity.is_empty() {
+                bail!(
+                    "{} stage {} has empty stage_sanity_metrics",
+                    index_path.display(),
+                    stage_id
+                );
+            }
+            let qc = index.stage_qc_thresholds.get(stage_id).ok_or_else(|| {
+                anyhow!(
+                    "{} stage {} missing stage_qc_thresholds entry",
+                    index_path.display(),
+                    stage_id
+                )
+            })?;
+            if qc.is_empty()
+                || qc.values().any(|band| band.warn.trim().is_empty() || band.fail.trim().is_empty())
+            {
+                bail!(
+                    "{} stage {} has invalid stage_qc_thresholds bands",
+                    index_path.display(),
+                    stage_id
+                );
+            }
+            let contam = index
+                .stage_contamination_thresholds
+                .get(stage_id)
+                .ok_or_else(|| {
+                    anyhow!(
+                        "{} stage {} missing stage_contamination_thresholds entry",
+                        index_path.display(),
+                        stage_id
+                    )
+                })?;
+            if contam.is_empty()
+                || contam
+                    .values()
+                    .any(|band| band.warn.trim().is_empty() || band.fail.trim().is_empty())
+            {
+                bail!(
+                    "{} stage {} has invalid stage_contamination_thresholds bands",
+                    index_path.display(),
+                    stage_id
+                );
+            }
+            let authenticity = index
+                .stage_authenticity_thresholds
+                .get(stage_id)
+                .ok_or_else(|| {
+                    anyhow!(
+                        "{} stage {} missing stage_authenticity_thresholds entry",
+                        index_path.display(),
+                        stage_id
+                    )
+                })?;
+            if authenticity.is_empty()
+                || authenticity
+                    .values()
+                    .any(|band| band.warn.trim().is_empty() || band.fail.trim().is_empty())
+            {
+                bail!(
+                    "{} stage {} has invalid stage_authenticity_thresholds bands",
+                    index_path.display(),
+                    stage_id
+                );
+            }
             let settings_map = index
                 .stage_default_settings
                 .get(stage_id)
@@ -1759,6 +2159,83 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                     index_path.display(),
                     tool_id
                 );
+            }
+        }
+        if index.pipeline_compositions.is_empty() {
+            bail!("{} missing pipeline_compositions", index_path.display());
+        }
+        let pre_hpc = index
+            .pipeline_compositions
+            .get("pre_hpc_best")
+            .ok_or_else(|| anyhow!("{} missing pre_hpc_best pipeline", index_path.display()))?;
+        if pre_hpc.is_empty() {
+            bail!("{} pre_hpc_best pipeline cannot be empty", index_path.display());
+        }
+        let pre_hpc_pos = pre_hpc
+            .iter()
+            .enumerate()
+            .map(|(i, s)| (s.as_str(), i))
+            .collect::<BTreeMap<_, _>>();
+        for (name, stages) in &index.pipeline_compositions {
+            for stage in stages {
+                if !index.stage_ids.contains(stage) {
+                    bail!(
+                        "{} pipeline {} references unknown stage {}",
+                        index_path.display(),
+                        name,
+                        stage
+                    );
+                }
+            }
+        }
+        for (stage_id, refs_after) in &index.stage_ordering_constraints {
+            for after in refs_after {
+                if !index.stage_ids.contains(after) {
+                    bail!(
+                        "{} stage {} ordering references unknown stage {}",
+                        index_path.display(),
+                        stage_id,
+                        after
+                    );
+                }
+                if let (Some(curr), Some(prev)) = (
+                    pre_hpc_pos.get(stage_id.as_str()),
+                    pre_hpc_pos.get(after.as_str()),
+                ) {
+                    if prev >= curr {
+                        bail!(
+                            "{} pre_hpc_best ordering violates {} after {}",
+                            index_path.display(),
+                            stage_id,
+                            after
+                        );
+                    }
+                }
+            }
+        }
+        for (stage_id, prereqs) in &index.stage_prerequisites {
+            for prereq in prereqs {
+                if !index.stage_ids.contains(prereq) {
+                    bail!(
+                        "{} stage {} prerequisite references unknown stage {}",
+                        index_path.display(),
+                        stage_id,
+                        prereq
+                    );
+                }
+                if let (Some(curr), Some(prev)) = (
+                    pre_hpc_pos.get(stage_id.as_str()),
+                    pre_hpc_pos.get(prereq.as_str()),
+                ) {
+                    if prev >= curr {
+                        bail!(
+                            "{} pre_hpc_best prerequisite ordering violates {} requires {}",
+                            index_path.display(),
+                            stage_id,
+                            prereq
+                        );
+                    }
+                }
             }
         }
         for (stage_id, default_tool) in &index.active_defaults {
