@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 3db4c0cde68631eb21e7242a974a2683ef5ea901
+# source_commit: 2471a01b7e0230f0d2ec7bf2542ac97a09c9b131
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 
@@ -158,7 +158,7 @@ id = "bamtools"
 tool_id = "bamtools"
 domain = "bam"
 status = "supported"
-stage_ids = ["bam.validate", "bam.filter"]
+stage_ids = ["bam.validate", "bam.filter", "bam.mapq_filter"]
 version = "2.5.2"
 default_version = "2.5.2"
 upstream = "https://github.com/pezmaster31/bamtools"
@@ -1108,7 +1108,7 @@ id = "samtools"
 tool_id = "samtools"
 domain = "bam"
 status = "supported"
-stage_ids = ["bam.align", "bam.validate", "bam.filter", "bam.coverage", "fastq.prepare_reference", "fastq.qc_post"]
+stage_ids = ["bam.align", "bam.validate", "bam.qc_pre", "bam.mapping_summary", "bam.filter", "bam.mapq_filter", "bam.length_filter", "bam.coverage", "bam.endogenous_content", "fastq.prepare_reference", "fastq.qc_post"]
 version = "1.21"
 default_version = "1.21"
 upstream = "https://github.com/samtools/samtools"
@@ -1534,6 +1534,17 @@ requires_validation = false
 requires_reporting = false
 
 [[stages]]
+id = "bam.endogenous_content"
+primary_tools = ["samtools"]
+optional_alternatives = []
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+default_rationale = "Endogenous estimate baseline derives from deterministic mapping summaries."
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
 id = "bam.filter"
 primary_tools = ["samtools"]
 optional_alternatives = ["bedtools", "samtools"]
@@ -1565,6 +1576,50 @@ planned_out_of_scope = []
 default_rationale = "Kinship baseline prioritized for stable pairwise outputs."
 requires_validation = false
 requires_reporting = false
+
+[[stages]]
+id = "bam.length_filter"
+primary_tools = ["samtools"]
+optional_alternatives = []
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+default_rationale = "Length filtering baseline emphasizes transparent minimum-length provenance."
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
+id = "bam.mapping_summary"
+primary_tools = ["samtools"]
+optional_alternatives = []
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+default_rationale = "Mapping summary baseline uses deterministic samtools summaries."
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
+id = "bam.mapq_filter"
+primary_tools = ["samtools"]
+optional_alternatives = ["samtools"]
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+default_rationale = "MAPQ filtering baseline uses ubiquitous deterministic filtering behavior."
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
+id = "bam.qc_pre"
+primary_tools = ["samtools"]
+optional_alternatives = []
+validation_tools = []
+reporting_tools = ["multiqc"]
+planned_out_of_scope = []
+default_rationale = ""
+requires_validation = false
+requires_reporting = true
 
 [[stages]]
 id = "bam.sex"

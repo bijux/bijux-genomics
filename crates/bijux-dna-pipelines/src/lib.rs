@@ -131,10 +131,22 @@ impl DefaultParams {
                 BamEffectiveParams::Align(inner) => Self::encode(inner, "bam.align"),
                 BamEffectiveParams::Validate(inner) => Self::encode(inner, "bam.validate"),
                 BamEffectiveParams::QcPre(inner) => Self::encode(inner, "bam.qc_pre"),
+                BamEffectiveParams::MappingSummary(inner) => {
+                    Self::encode(inner, "bam.mapping_summary")
+                }
                 BamEffectiveParams::Filter(inner) => Self::encode(inner, "bam.filter"),
+                BamEffectiveParams::MapqFilter(inner) => {
+                    Self::encode(inner, "bam.mapq_filter")
+                }
+                BamEffectiveParams::LengthFilter(inner) => {
+                    Self::encode(inner, "bam.length_filter")
+                }
                 BamEffectiveParams::Markdup(inner) => Self::encode(inner, "bam.markdup"),
                 BamEffectiveParams::Complexity(inner) => Self::encode(inner, "bam.complexity"),
                 BamEffectiveParams::Coverage(inner) => Self::encode(inner, "bam.coverage"),
+                BamEffectiveParams::EndogenousContent(inner) => {
+                    Self::encode(inner, "bam.endogenous_content")
+                }
                 BamEffectiveParams::Damage(inner) => Self::encode(inner, "bam.damage"),
                 BamEffectiveParams::Authenticity(inner) => Self::encode(inner, "bam.authenticity"),
                 BamEffectiveParams::Contamination(inner) => {

@@ -87,7 +87,16 @@ fn bam_params_value(params: &BamEffectiveParams) -> serde_json::Value {
         BamEffectiveParams::QcPre(inner) => {
             serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
         }
+        BamEffectiveParams::MappingSummary(inner) => {
+            serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
+        }
         BamEffectiveParams::Filter(inner) => {
+            serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
+        }
+        BamEffectiveParams::MapqFilter(inner) => {
+            serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
+        }
+        BamEffectiveParams::LengthFilter(inner) => {
             serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
         }
         BamEffectiveParams::Markdup(inner) => {
@@ -97,6 +106,9 @@ fn bam_params_value(params: &BamEffectiveParams) -> serde_json::Value {
             serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
         }
         BamEffectiveParams::Coverage(inner) => {
+            serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
+        }
+        BamEffectiveParams::EndogenousContent(inner) => {
             serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
         }
         BamEffectiveParams::Damage(inner) => {

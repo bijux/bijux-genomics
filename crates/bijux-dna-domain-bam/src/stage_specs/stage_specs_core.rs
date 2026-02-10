@@ -71,6 +71,28 @@ pub fn required_audit_artifacts(stage: BamStage) -> &'static [AuditArtifact] {
                 filename: "stage.metrics.json",
             },
         ],
+        BamStage::MappingSummary => &[
+            AuditArtifact {
+                name: "flagstat",
+                filename: "flagstat.txt",
+            },
+            AuditArtifact {
+                name: "idxstats",
+                filename: "idxstats.txt",
+            },
+            AuditArtifact {
+                name: "stats",
+                filename: "samtools_stats.txt",
+            },
+            AuditArtifact {
+                name: "summary",
+                filename: "mapping.summary.json",
+            },
+            AuditArtifact {
+                name: "stage_metrics",
+                filename: "stage.metrics.json",
+            },
+        ],
         BamStage::Filter => &[
             AuditArtifact {
                 name: "filtered_bam",
@@ -99,6 +121,50 @@ pub fn required_audit_artifacts(stage: BamStage) -> &'static [AuditArtifact] {
             AuditArtifact {
                 name: "summary",
                 filename: "filter.summary.json",
+            },
+            AuditArtifact {
+                name: "stage_metrics",
+                filename: "stage.metrics.json",
+            },
+        ],
+        BamStage::MapqFilter => &[
+            AuditArtifact {
+                name: "filtered_bam",
+                filename: "filtered.bam",
+            },
+            AuditArtifact {
+                name: "filtered_bai",
+                filename: "filtered.bam.bai",
+            },
+            AuditArtifact {
+                name: "flagstat_before",
+                filename: "flagstat.before.txt",
+            },
+            AuditArtifact {
+                name: "flagstat_after",
+                filename: "flagstat.after.txt",
+            },
+            AuditArtifact {
+                name: "summary",
+                filename: "mapq_filter.summary.json",
+            },
+            AuditArtifact {
+                name: "stage_metrics",
+                filename: "stage.metrics.json",
+            },
+        ],
+        BamStage::LengthFilter => &[
+            AuditArtifact {
+                name: "filtered_bam",
+                filename: "filtered.bam",
+            },
+            AuditArtifact {
+                name: "filtered_bai",
+                filename: "filtered.bam.bai",
+            },
+            AuditArtifact {
+                name: "summary",
+                filename: "length_filter.summary.json",
             },
             AuditArtifact {
                 name: "stage_metrics",
@@ -161,6 +227,20 @@ pub fn required_audit_artifacts(stage: BamStage) -> &'static [AuditArtifact] {
             AuditArtifact {
                 name: "coverage_summary",
                 filename: "coverage.mosdepth.summary.txt",
+            },
+            AuditArtifact {
+                name: "stage_metrics",
+                filename: "stage.metrics.json",
+            },
+        ],
+        BamStage::EndogenousContent => &[
+            AuditArtifact {
+                name: "endogenous_report",
+                filename: "endogenous.content.json",
+            },
+            AuditArtifact {
+                name: "summary",
+                filename: "endogenous.summary.json",
             },
             AuditArtifact {
                 name: "stage_metrics",
@@ -353,6 +433,17 @@ pub fn stage_spec_core(stage: BamStage) -> Option<BamStageSpec> {
             },
             default_params: BamEffectiveParams::QcPre(QcPreEffectiveParams { regions: None }),
         },
+        BamStage::MappingSummary => BamStageSpec {
+            stage,
+            required_inputs: &["bam"],
+            artifact_policy: ArtifactPolicy {
+                required_outputs: &["flagstat", "idxstats", "stats", "summary", "stage_metrics"],
+                required_audit: required_audit_artifacts(stage),
+            },
+            default_params: BamEffectiveParams::MappingSummary(QcPreEffectiveParams {
+                regions: None,
+            }),
+        },
         BamStage::Filter => BamStageSpec {
             stage,
             required_inputs: &["bam"],
@@ -371,6 +462,45 @@ pub fn stage_spec_core(stage: BamStage) -> Option<BamStageSpec> {
             },
             default_params: BamEffectiveParams::Filter(FilterEffectiveParams {
                 mapq_threshold: 30,
+                include_flags: Vec::new(),
+                exclude_flags: Vec::new(),
+                min_length: 30,
+                remove_duplicates: false,
+                base_quality_threshold: 20,
+            }),
+        },
+        BamStage::MapqFilter => BamStageSpec {
+            stage,
+            required_inputs: &["bam"],
+            artifact_policy: ArtifactPolicy {
+                required_outputs: &[
+                    "filtered_bam",
+                    "filtered_bai",
+                    "flagstat_before",
+                    "flagstat_after",
+                    "summary",
+                    "stage_metrics",
+                ],
+                required_audit: required_audit_artifacts(stage),
+            },
+            default_params: BamEffectiveParams::MapqFilter(FilterEffectiveParams {
+                mapq_threshold: 30,
+                include_flags: Vec::new(),
+                exclude_flags: Vec::new(),
+                min_length: 0,
+                remove_duplicates: false,
+                base_quality_threshold: 20,
+            }),
+        },
+        BamStage::LengthFilter => BamStageSpec {
+            stage,
+            required_inputs: &["bam"],
+            artifact_policy: ArtifactPolicy {
+                required_outputs: &["filtered_bam", "filtered_bai", "summary", "stage_metrics"],
+                required_audit: required_audit_artifacts(stage),
+            },
+            default_params: BamEffectiveParams::LengthFilter(FilterEffectiveParams {
+                mapq_threshold: 0,
                 include_flags: Vec::new(),
                 exclude_flags: Vec::new(),
                 min_length: 30,
@@ -422,6 +552,18 @@ pub fn stage_spec_core(stage: BamStage) -> Option<BamStageSpec> {
             default_params: BamEffectiveParams::Coverage(CoverageEffectiveParams {
                 regions: None,
                 depth_thresholds: vec![1, 3, 5],
+            }),
+        },
+        BamStage::EndogenousContent => BamStageSpec {
+            stage,
+            required_inputs: &["bam", "idxstats"],
+            artifact_policy: ArtifactPolicy {
+                required_outputs: &["endogenous_report", "summary", "stage_metrics"],
+                required_audit: required_audit_artifacts(stage),
+            },
+            default_params: BamEffectiveParams::EndogenousContent(CoverageEffectiveParams {
+                regions: None,
+                depth_thresholds: vec![1],
             }),
         },
         _ => return None,

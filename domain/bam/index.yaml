@@ -3,10 +3,14 @@ stage_ids:
   - bam.align
   - bam.validate
   - bam.qc_pre
+  - bam.mapping_summary
   - bam.filter
+  - bam.mapq_filter
+  - bam.length_filter
   - bam.markdup
   - bam.complexity
   - bam.coverage
+  - bam.endogenous_content
   - bam.damage
   - bam.authenticity
   - bam.contamination
@@ -44,10 +48,14 @@ stage_tool_compatibility:
   bam.align: [bwa, bowtie2]
   bam.validate: [samtools, bedtools, bamtools]
   bam.qc_pre: [samtools]
+  bam.mapping_summary: [samtools]
   bam.filter: [samtools, bedtools, bamtools]
+  bam.mapq_filter: [samtools, bamtools]
+  bam.length_filter: [samtools, picard]
   bam.markdup: [picard, samtools]
   bam.complexity: [preseq]
   bam.coverage: [mosdepth, samtools]
+  bam.endogenous_content: [samtools]
   bam.damage: [mapdamage2, pydamage, damageprofiler, ngsbriggs, addeam, pmdtools]
   bam.authenticity: [authenticct, pmdtools, damageprofiler]
   bam.contamination: [schmutzi, verifybamid2, contammix]
@@ -60,8 +68,12 @@ stage_tool_compatibility:
 active_defaults:
   bam.align: bwa
   bam.validate: samtools
+  bam.mapping_summary: samtools
   bam.filter: samtools
+  bam.mapq_filter: samtools
+  bam.length_filter: samtools
   bam.coverage: mosdepth
+  bam.endogenous_content: samtools
   bam.damage: mapdamage2
   bam.authenticity: authenticct
   bam.contamination: schmutzi
@@ -70,8 +82,12 @@ active_defaults:
 active_default_rationale:
   bam.align: "Alignment baseline selected for broad BAM ecosystem compatibility."
   bam.validate: "Validation baseline favors deterministic diagnostics and ubiquity."
+  bam.mapping_summary: "Mapping summary baseline uses deterministic samtools summaries."
   bam.filter: "Filtering baseline minimizes contract variance across workflows."
+  bam.mapq_filter: "MAPQ filtering baseline uses ubiquitous deterministic filtering behavior."
+  bam.length_filter: "Length filtering baseline emphasizes transparent minimum-length provenance."
   bam.coverage: "Coverage default offers stable low-overhead reporting."
+  bam.endogenous_content: "Endogenous estimate baseline derives from deterministic mapping summaries."
   bam.damage: "Damage baseline preserves comparability with historical aDNA runs."
   bam.authenticity: "Authenticity baseline chosen for clear operator interpretation."
   bam.contamination: "Contamination default is established for mtDNA-focused checks."
@@ -81,10 +97,14 @@ stage_completeness_checklist:
   bam.align: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
   bam.validate: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
   bam.qc_pre: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
+  bam.mapping_summary: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
   bam.filter: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
+  bam.mapq_filter: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
+  bam.length_filter: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
   bam.markdup: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
   bam.complexity: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
   bam.coverage: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
+  bam.endogenous_content: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
   bam.damage: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
   bam.authenticity: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
   bam.contamination: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
@@ -106,9 +126,19 @@ stage_default_settings:
     samtools: { profile: "adna_sane_default", notes: "mapping-quality filter preset" }
     bedtools: { profile: "adna_sane_default", notes: "region filter preset" }
     bamtools: { profile: "adna_sane_default", notes: "bam query filter preset" }
+  bam.mapq_filter:
+    samtools: { profile: "adna_sane_default", notes: "samtools MAPQ threshold preset" }
+    bamtools: { profile: "adna_sane_default", notes: "bamtools MAPQ threshold preset" }
+  bam.length_filter:
+    samtools: { profile: "adna_sane_default", notes: "samtools read-length threshold preset" }
+    picard: { profile: "adna_sane_default", notes: "picard length-oriented filtering preset" }
   bam.coverage:
     mosdepth: { profile: "adna_sane_default", notes: "fast coverage preset" }
     samtools: { profile: "adna_sane_default", notes: "depth fallback preset" }
+  bam.mapping_summary:
+    samtools: { profile: "adna_sane_default", notes: "flagstat/stats/idxstats summary preset" }
+  bam.endogenous_content:
+    samtools: { profile: "adna_sane_default", notes: "endogenous ratio from idxstats/flagstat preset" }
   bam.damage:
     mapdamage2: { profile: "adna_sane_default", notes: "historic damage baseline preset" }
     pydamage: { profile: "adna_sane_default", notes: "PMD-centric damage preset" }
@@ -151,10 +181,14 @@ stage_comparability_mapping:
   bam.align: ["alignment_rate", "mapped_reads"]
   bam.validate: ["bam_validation_pass_rate"]
   bam.qc_pre: ["bam_validation_pass_rate"]
+  bam.mapping_summary: ["mapped_reads", "alignment_rate"]
   bam.filter: ["reads_retained_fraction", "mean_mapq_post_filter"]
+  bam.mapq_filter: ["reads_retained_fraction", "mean_mapq_post_filter"]
+  bam.length_filter: ["reads_retained_fraction"]
   bam.markdup: ["duplication_rate"]
   bam.complexity: ["library_complexity_estimate"]
   bam.coverage: ["mean_coverage", "breadth_1x", "breadth_5x"]
+  bam.endogenous_content: ["endogenous_content_ratio"]
   bam.damage: ["ct_5prime_rate", "ga_3prime_rate", "pmd_score_distribution"]
   bam.authenticity: ["authenticity_score", "pmd_enriched_fraction"]
   bam.contamination: ["contamination_estimate", "contamination_ci_width"]
@@ -168,10 +202,14 @@ stage_min_quality_gates:
   bam.align: ["alignment_rate>=0.0"]
   bam.validate: ["validation_pass=true"]
   bam.qc_pre: ["validation_pass=true"]
+  bam.mapping_summary: ["mapped_reads>=0"]
   bam.filter: ["reads_retained_fraction>=0.0"]
+  bam.mapq_filter: ["reads_retained_fraction>=0.0"]
+  bam.length_filter: ["reads_retained_fraction>=0.0"]
   bam.markdup: ["duplication_rate>=0.0"]
   bam.complexity: ["library_complexity_estimate>=0.0"]
   bam.coverage: ["mean_coverage>=0.0"]
+  bam.endogenous_content: ["endogenous_content_ratio>=0.0", "endogenous_content_ratio<=1.0"]
   bam.damage: ["damage_profile_present=true"]
   bam.authenticity: ["authenticity_score>=0.0"]
   bam.contamination: ["contamination_estimate>=0.0", "contamination_estimate<=1.0"]
@@ -185,10 +223,14 @@ stage_failure_diagnosis_hints:
   bam.align: ["check reference index availability and read-group consistency"]
   bam.validate: ["inspect BAM headers, sort order, and index presence"]
   bam.qc_pre: ["inspect BAM index/header and input integrity before filtering"]
+  bam.mapping_summary: ["verify BAM index and contig naming before summary derivation"]
   bam.filter: ["review MAPQ/length/region thresholds for over-filtering"]
+  bam.mapq_filter: ["review MAPQ threshold to avoid over-filtering endogenous reads"]
+  bam.length_filter: ["review minimum read-length threshold against fragment-size expectations"]
   bam.markdup: ["check duplicate identification assumptions and read-group tags"]
   bam.complexity: ["verify library complexity model input depth and duplication signals"]
   bam.coverage: ["verify reference naming consistency and depth inputs"]
+  bam.endogenous_content: ["verify host/non-host contig inclusion rules and mapping summaries"]
   bam.damage: ["check PMD/damage parameterization and read-end clipping assumptions"]
   bam.authenticity: ["verify PMD threshold and deamination model assumptions"]
   bam.contamination: ["ensure required mt/panel references and contamination model inputs"]
@@ -202,20 +244,27 @@ pipeline_compositions:
   pre_hpc_best:
     - bam.align
     - bam.validate
+    - bam.mapping_summary
     - bam.filter
+    - bam.mapq_filter
+    - bam.length_filter
     - bam.damage
     - bam.authenticity
     - bam.contamination
     - bam.coverage
+    - bam.endogenous_content
     - bam.sex
     - bam.kinship
 stage_ordering_constraints:
   bam.align: []
   bam.qc_pre: [bam.align]
+  bam.mapping_summary: [bam.validate]
   bam.validate: [bam.align]
   bam.markdup: [bam.filter]
   bam.complexity: [bam.markdup]
   bam.filter: [bam.validate]
+  bam.mapq_filter: [bam.validate]
+  bam.length_filter: [bam.mapq_filter]
   bam.bias_mitigation: [bam.filter]
   bam.recalibration: [bam.bias_mitigation]
   bam.damage: [bam.filter]
@@ -224,15 +273,19 @@ stage_ordering_constraints:
   bam.authenticity: [bam.damage]
   bam.contamination: [bam.authenticity]
   bam.coverage: [bam.filter]
+  bam.endogenous_content: [bam.mapping_summary]
   bam.sex: [bam.coverage]
   bam.kinship: [bam.sex]
 stage_prerequisites:
   bam.align: []
   bam.qc_pre: [bam.align]
+  bam.mapping_summary: [bam.validate]
   bam.validate: [bam.align]
   bam.markdup: [bam.filter]
   bam.complexity: [bam.markdup]
   bam.filter: [bam.validate]
+  bam.mapq_filter: [bam.validate]
+  bam.length_filter: [bam.mapq_filter]
   bam.bias_mitigation: [bam.filter]
   bam.recalibration: [bam.bias_mitigation]
   bam.damage: [bam.filter]
@@ -241,18 +294,23 @@ stage_prerequisites:
   bam.authenticity: [bam.damage]
   bam.contamination: [bam.authenticity]
   bam.coverage: [bam.filter]
+  bam.endogenous_content: [bam.mapping_summary]
   bam.sex: [bam.coverage]
   bam.kinship: [bam.sex]
 stage_resource_hints:
   bam.align: { memory_gb: 24.0, time_minutes: 180, threads: 16 }
   bam.qc_pre: { memory_gb: 6.0, time_minutes: 25, threads: 4 }
+  bam.mapping_summary: { memory_gb: 6.0, time_minutes: 20, threads: 4 }
   bam.validate: { memory_gb: 6.0, time_minutes: 20, threads: 4 }
   bam.markdup: { memory_gb: 14.0, time_minutes: 70, threads: 8 }
   bam.complexity: { memory_gb: 8.0, time_minutes: 40, threads: 4 }
   bam.filter: { memory_gb: 8.0, time_minutes: 40, threads: 6 }
+  bam.mapq_filter: { memory_gb: 8.0, time_minutes: 35, threads: 6 }
+  bam.length_filter: { memory_gb: 8.0, time_minutes: 35, threads: 6 }
   bam.bias_mitigation: { memory_gb: 10.0, time_minutes: 60, threads: 6 }
   bam.recalibration: { memory_gb: 18.0, time_minutes: 120, threads: 10 }
   bam.coverage: { memory_gb: 8.0, time_minutes: 45, threads: 6 }
+  bam.endogenous_content: { memory_gb: 6.0, time_minutes: 25, threads: 4 }
   bam.damage: { memory_gb: 12.0, time_minutes: 90, threads: 8 }
   bam.authenticity: { memory_gb: 10.0, time_minutes: 60, threads: 6 }
   bam.contamination: { memory_gb: 12.0, time_minutes: 90, threads: 8 }
@@ -263,13 +321,17 @@ stage_resource_hints:
 stage_output_size_estimates_mb:
   bam.align: { bam: 5000.0 }
   bam.qc_pre: { bam_qc_pre: 6.0 }
+  bam.mapping_summary: { mapping_summary: 6.0 }
   bam.validate: { bam_stats: 5.0 }
   bam.markdup: { markdup_bam: 4300.0 }
   bam.complexity: { complexity_report: 4.0 }
   bam.filter: { filtered_bam: 4200.0 }
+  bam.mapq_filter: { filtered_bam: 4200.0 }
+  bam.length_filter: { filtered_bam: 4100.0 }
   bam.bias_mitigation: { bias_report: 7.0 }
   bam.recalibration: { recalibration_table: 20.0 }
   bam.coverage: { coverage_report: 30.0 }
+  bam.endogenous_content: { endogenous_report: 2.0 }
   bam.damage: { damage_report: 10.0 }
   bam.authenticity: { authenticity_report: 8.0 }
   bam.contamination: { contamination_estimate: 5.0, contammix_report: 8.0 }
@@ -280,13 +342,17 @@ stage_output_size_estimates_mb:
 stage_sanity_metrics:
   bam.align: [alignment_rate]
   bam.qc_pre: [bam_validation_pass_rate]
+  bam.mapping_summary: [alignment_rate]
   bam.validate: [bam_validation_pass_rate]
   bam.markdup: [duplication_rate]
   bam.complexity: [library_complexity_estimate]
   bam.filter: [reads_retained_fraction]
+  bam.mapq_filter: [reads_retained_fraction]
+  bam.length_filter: [reads_retained_fraction]
   bam.bias_mitigation: [gc_bias_score]
   bam.recalibration: [recalibration_residual_error]
   bam.coverage: [mean_coverage]
+  bam.endogenous_content: [endogenous_content_ratio]
   bam.damage: [ct_5prime_rate, ga_3prime_rate]
   bam.authenticity: [authenticity_score]
   bam.contamination: [contamination_estimate]
@@ -297,13 +363,17 @@ stage_sanity_metrics:
 stage_qc_thresholds:
   bam.align: { alignment_rate: { warn: "<0.5", fail: "<0.2" } }
   bam.qc_pre: { bam_validation_pass_rate: { warn: "<1.0", fail: "<0.99" } }
+  bam.mapping_summary: { alignment_rate: { warn: "<0.5", fail: "<0.2" } }
   bam.validate: { bam_validation_pass_rate: { warn: "<1.0", fail: "<0.99" } }
   bam.markdup: { duplication_rate: { warn: ">=0.6", fail: ">=0.8" } }
   bam.complexity: { library_complexity_estimate: { warn: "<10000", fail: "<1000" } }
   bam.filter: { reads_retained_fraction: { warn: "<0.2", fail: "<0.1" } }
+  bam.mapq_filter: { reads_retained_fraction: { warn: "<0.2", fail: "<0.1" } }
+  bam.length_filter: { reads_retained_fraction: { warn: "<0.3", fail: "<0.15" } }
   bam.bias_mitigation: { gc_bias_score: { warn: ">0.2", fail: ">0.4" } }
   bam.recalibration: { recalibration_residual_error: { warn: ">0.05", fail: ">0.1" } }
   bam.coverage: { mean_coverage: { warn: "<0.5", fail: "<0.1" } }
+  bam.endogenous_content: { endogenous_content_ratio: { warn: "<0.02", fail: "<0.005" } }
   bam.damage: { ct_5prime_rate: { warn: "<0.02", fail: "<0.005" } }
   bam.authenticity: { authenticity_score: { warn: "<0.2", fail: "<0.1" } }
   bam.contamination: { contamination_estimate: { warn: ">0.05", fail: ">0.2" } }
@@ -314,13 +384,17 @@ stage_qc_thresholds:
 stage_contamination_thresholds:
   bam.align: { contamination_estimate: { warn: ">0.05", fail: ">0.2" } }
   bam.qc_pre: { contamination_estimate: { warn: ">0.05", fail: ">0.2" } }
+  bam.mapping_summary: { contamination_estimate: { warn: ">0.05", fail: ">0.2" } }
   bam.validate: { contamination_estimate: { warn: ">0.05", fail: ">0.2" } }
   bam.markdup: { contamination_estimate: { warn: ">0.05", fail: ">0.2" } }
   bam.complexity: { contamination_estimate: { warn: ">0.05", fail: ">0.2" } }
   bam.filter: { contamination_estimate: { warn: ">0.05", fail: ">0.2" } }
+  bam.mapq_filter: { contamination_estimate: { warn: ">0.05", fail: ">0.2" } }
+  bam.length_filter: { contamination_estimate: { warn: ">0.05", fail: ">0.2" } }
   bam.bias_mitigation: { contamination_estimate: { warn: ">0.05", fail: ">0.2" } }
   bam.recalibration: { contamination_estimate: { warn: ">0.05", fail: ">0.2" } }
   bam.coverage: { contamination_estimate: { warn: ">0.05", fail: ">0.2" } }
+  bam.endogenous_content: { contamination_estimate: { warn: ">0.05", fail: ">0.2" } }
   bam.damage: { contamination_estimate: { warn: ">0.05", fail: ">0.2" } }
   bam.authenticity: { contamination_estimate: { warn: ">0.05", fail: ">0.2" } }
   bam.contamination: { contamination_estimate: { warn: ">0.05", fail: ">0.2" } }
@@ -331,13 +405,17 @@ stage_contamination_thresholds:
 stage_authenticity_thresholds:
   bam.align: { authenticity_score: { warn: "<0.2", fail: "<0.1" } }
   bam.qc_pre: { authenticity_score: { warn: "<0.2", fail: "<0.1" } }
+  bam.mapping_summary: { authenticity_score: { warn: "<0.2", fail: "<0.1" } }
   bam.validate: { authenticity_score: { warn: "<0.2", fail: "<0.1" } }
   bam.markdup: { authenticity_score: { warn: "<0.2", fail: "<0.1" } }
   bam.complexity: { authenticity_score: { warn: "<0.2", fail: "<0.1" } }
   bam.filter: { authenticity_score: { warn: "<0.2", fail: "<0.1" } }
+  bam.mapq_filter: { authenticity_score: { warn: "<0.2", fail: "<0.1" } }
+  bam.length_filter: { authenticity_score: { warn: "<0.2", fail: "<0.1" } }
   bam.bias_mitigation: { authenticity_score: { warn: "<0.2", fail: "<0.1" } }
   bam.recalibration: { authenticity_score: { warn: "<0.2", fail: "<0.1" } }
   bam.coverage: { authenticity_score: { warn: "<0.2", fail: "<0.1" } }
+  bam.endogenous_content: { authenticity_score: { warn: "<0.2", fail: "<0.1" } }
   bam.damage: { authenticity_score: { warn: "<0.2", fail: "<0.1" } }
   bam.authenticity: { authenticity_score: { warn: "<0.2", fail: "<0.1" } }
   bam.contamination: { authenticity_score: { warn: "<0.2", fail: "<0.1" } }
@@ -348,13 +426,17 @@ stage_authenticity_thresholds:
 stage_duplication_thresholds:
   bam.align: { duplication_rate: { warn: ">=0.6", fail: ">=0.8" } }
   bam.qc_pre: { duplication_rate: { warn: ">=0.6", fail: ">=0.8" } }
+  bam.mapping_summary: { duplication_rate: { warn: ">=0.6", fail: ">=0.8" } }
   bam.validate: { duplication_rate: { warn: ">=0.6", fail: ">=0.8" } }
   bam.markdup: { duplication_rate: { warn: ">=0.6", fail: ">=0.8" } }
   bam.complexity: { duplication_rate: { warn: ">=0.6", fail: ">=0.8" } }
   bam.filter: { duplication_rate: { warn: ">=0.6", fail: ">=0.8" } }
+  bam.mapq_filter: { duplication_rate: { warn: ">=0.6", fail: ">=0.8" } }
+  bam.length_filter: { duplication_rate: { warn: ">=0.6", fail: ">=0.8" } }
   bam.bias_mitigation: { duplication_rate: { warn: ">=0.6", fail: ">=0.8" } }
   bam.recalibration: { duplication_rate: { warn: ">=0.6", fail: ">=0.8" } }
   bam.coverage: { duplication_rate: { warn: ">=0.6", fail: ">=0.8" } }
+  bam.endogenous_content: { duplication_rate: { warn: ">=0.6", fail: ">=0.8" } }
   bam.damage: { duplication_rate: { warn: ">=0.6", fail: ">=0.8" } }
   bam.authenticity: { duplication_rate: { warn: ">=0.6", fail: ">=0.8" } }
   bam.contamination: { duplication_rate: { warn: ">=0.6", fail: ">=0.8" } }
@@ -365,13 +447,17 @@ stage_duplication_thresholds:
 stage_coverage_sufficiency:
   bam.align: ["mapped_reads>=100000"]
   bam.qc_pre: ["indexed_bam=true"]
+  bam.mapping_summary: ["indexed_bam=true"]
   bam.validate: ["indexed_bam=true"]
   bam.markdup: ["reads_after_dedup>=10000"]
   bam.complexity: ["reads_after_dedup>=10000"]
   bam.filter: ["reads_retained_fraction>=0.1"]
+  bam.mapq_filter: ["reads_retained_fraction>=0.1"]
+  bam.length_filter: ["reads_retained_fraction>=0.1"]
   bam.bias_mitigation: ["reads_retained_fraction>=0.1"]
   bam.recalibration: ["known_sites_available=true"]
   bam.coverage: ["mean_coverage>=0.5", "breadth_1x>=0.6"]
+  bam.endogenous_content: ["host_contig_set_declared=true", "mapped_reads>=1000"]
   bam.damage: ["coverage_at_damage_sites>=0.2"]
   bam.authenticity: ["pmd_enriched_reads>=500"]
   bam.contamination: ["panel_or_mt_ref_available=true"]
@@ -382,13 +468,17 @@ stage_coverage_sufficiency:
 stage_sex_kinship_sufficiency:
   bam.align: ["not_applicable"]
   bam.qc_pre: ["not_applicable"]
+  bam.mapping_summary: ["not_applicable"]
   bam.validate: ["not_applicable"]
   bam.markdup: ["not_applicable"]
   bam.complexity: ["not_applicable"]
   bam.filter: ["not_applicable"]
+  bam.mapq_filter: ["not_applicable"]
+  bam.length_filter: ["not_applicable"]
   bam.bias_mitigation: ["not_applicable"]
   bam.recalibration: ["not_applicable"]
   bam.coverage: ["not_applicable"]
+  bam.endogenous_content: ["not_applicable"]
   bam.damage: ["not_applicable"]
   bam.authenticity: ["not_applicable"]
   bam.contamination: ["not_applicable"]
