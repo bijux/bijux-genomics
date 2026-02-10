@@ -60,5 +60,7 @@ compatible_tools:
   - metaphlan
   - kaiju
   - fastq_screen
+assumptions:
+  - "default stage assumptions captured"
 metrics_schema: "bijux.stage.metrics.v1"
 planned_out_of_scope: []

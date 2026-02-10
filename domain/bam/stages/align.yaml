@@ -32,5 +32,7 @@ allowed_missingness:
 compatible_tools:
   - bwa
   - bowtie2
+assumptions:
+  - "default stage assumptions captured"
 metrics_schema: "bijux.stage.metrics.v1"
 planned_out_of_scope: []

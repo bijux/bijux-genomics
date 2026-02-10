@@ -71,5 +71,7 @@ compatible_tools:
   - bbmerge
   - flash2
   - leehom
+assumptions:
+  - "default stage assumptions captured"
 metrics_schema: "bijux.stage.metrics.v1"
 planned_out_of_scope: []

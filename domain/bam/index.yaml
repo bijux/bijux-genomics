@@ -60,3 +60,13 @@ active_defaults:
   bam.contamination: schmutzi
   bam.sex: rxy
   bam.kinship: king
+active_default_rationale:
+  bam.align: "Alignment baseline selected for broad BAM ecosystem compatibility."
+  bam.validate: "Validation baseline favors deterministic diagnostics and ubiquity."
+  bam.filter: "Filtering baseline minimizes contract variance across workflows."
+  bam.coverage: "Coverage default offers stable low-overhead reporting."
+  bam.damage: "Damage baseline preserves comparability with historical aDNA runs."
+  bam.authenticity: "Authenticity baseline chosen for clear operator interpretation."
+  bam.contamination: "Contamination default is established for mtDNA-focused checks."
+  bam.sex: "Sex inference baseline is lightweight and deterministic."
+  bam.kinship: "Kinship baseline prioritized for stable pairwise outputs."

@@ -8,6 +8,7 @@ required_fields:
   - outputs
   - invariants
   - compatible_tools
+  - assumptions
   - metrics_schema
   - required_inputs
   - required_outputs
