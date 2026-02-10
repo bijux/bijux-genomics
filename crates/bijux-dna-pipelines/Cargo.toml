@@ -9,6 +9,7 @@ rust-version.workspace = true
 anyhow = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
+toml = { workspace = true }
 bijux-dna-core = { path = "../bijux-dna-core" }
 bijux-dna-domain-bam = { path = "../bijux-dna-domain-bam" }
 bijux-dna-domain-fastq = { path = "../bijux-dna-domain-fastq" }

@@ -14,7 +14,7 @@ pub const STAGE_VERSION: StageVersion = StageVersion(1);
 pub fn normalize_correct_tool_list(tools: &[String]) -> Result<Vec<String>> {
     let mut allowlist = crate::selection::allowed_tools_for_stage(&STAGE_ID);
     if std::env::var("BIJUX_EXPERIMENTAL_TOOLS").is_err() {
-        allowlist.retain(|tool| tool == "rcorrector");
+        allowlist.retain(|tool| tool.as_str() == "rcorrector");
     }
     normalize_tools_with_allowlist(tools, &allowlist)
 }
@@ -88,7 +88,7 @@ pub fn plan_correct(
     })
 }
 
-fn normalize_tools_with_allowlist(tools: &[String], allowlist: &[String]) -> Result<Vec<String>> {
+fn normalize_tools_with_allowlist(tools: &[String], allowlist: &[bijux_dna_core::ids::ToolId]) -> Result<Vec<String>> {
     let mut normalized: Vec<String> = tools.iter().map(|tool| tool.to_lowercase()).collect();
     normalized.sort();
     normalized.dedup();
@@ -96,7 +96,7 @@ fn normalize_tools_with_allowlist(tools: &[String], allowlist: &[String]) -> Res
         return Err(anyhow!("no tools specified"));
     }
     for tool in &normalized {
-        if !allowlist.contains(tool) {
+        if !allowlist.iter().any(|allowed| allowed.as_str() == tool) {
             return Err(anyhow!("unsupported tool: {tool}"));
         }
     }

@@ -11,18 +11,18 @@ fn registry_toml() -> Option<toml::Value> {
 }
 
 #[must_use]
-pub fn allowed_tools_for_stage(stage: BamStage) -> Vec<String> {
+pub fn allowed_tools_for_stage(stage: BamStage) -> Vec<ToolId> {
     canonical_tools_for_stage(stage)
 }
 
 #[must_use]
 #[allow(dead_code)]
-pub fn default_tool_for_stage(stage: BamStage) -> String {
-    default_tool(stage).to_string()
+pub fn default_tool_for_stage(stage: BamStage) -> ToolId {
+    default_tool(stage)
 }
 
 #[must_use]
-pub fn canonical_tools_for_stage(stage: BamStage) -> Vec<String> {
+pub fn canonical_tools_for_stage(stage: BamStage) -> Vec<ToolId> {
     let mut tools = BTreeSet::new();
     let Some(parsed) = registry_toml() else {
         return Vec::new();
@@ -44,11 +44,11 @@ pub fn canonical_tools_for_stage(stage: BamStage) -> Vec<String> {
             .filter_map(toml::Value::as_str)
             .any(|id| id == stage.as_str())
         {
-            tools.insert(tool_id.to_string());
+            tools.insert(ToolId::new(tool_id.to_string()));
         }
     }
     let mut tools = tools.into_iter().collect::<Vec<_>>();
-    tools.sort();
+    tools.sort_by(|a, b| a.as_str().cmp(b.as_str()));
     tools
 }
 
@@ -77,8 +77,5 @@ pub fn default_tool(stage: BamStage) -> ToolId {
     canonical_tools_for_stage(stage)
         .first()
         .cloned()
-        .map_or_else(
-            || panic!("no compatible tool found for stage {}", stage.as_str()),
-            ToolId::new,
-        )
+        .unwrap_or_else(|| panic!("no compatible tool found for stage {}", stage.as_str()))
 }

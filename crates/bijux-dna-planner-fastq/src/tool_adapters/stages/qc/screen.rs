@@ -82,7 +82,7 @@ pub fn plan_screen(tool: &ToolExecutionSpecV1, r1: &Path, out_dir: &Path) -> Res
     })
 }
 
-fn normalize_tools_with_allowlist(tools: &[String], allowlist: &[String]) -> Result<Vec<String>> {
+fn normalize_tools_with_allowlist(tools: &[String], allowlist: &[bijux_dna_core::ids::ToolId]) -> Result<Vec<String>> {
     let mut normalized: Vec<String> = tools.iter().map(|tool| tool.to_lowercase()).collect();
     normalized.sort();
     normalized.dedup();
@@ -90,7 +90,7 @@ fn normalize_tools_with_allowlist(tools: &[String], allowlist: &[String]) -> Res
         return Err(anyhow!("no tools specified"));
     }
     for tool in &normalized {
-        if !allowlist.contains(tool) {
+        if !allowlist.iter().any(|allowed| allowed.as_str() == tool) {
             return Err(anyhow!("unsupported tool: {tool}"));
         }
     }
