@@ -36,18 +36,31 @@ arch = "x86_64"
 "#,
     )
     .expect("write platforms");
-    std::fs::write(
-        configs_dir.join("images.toml"),
-        r#"
-fastqvalidator_official = { version = "0.0.0" }
-fastqc = { version = "0.0.0" }
-fastp = { version = "0.0.0" }
-seqkit = { version = "0.0.0" }
-seqkit_stats = { version = "0.0.0" }
-multiqc = { version = "0.0.0" }
-"#,
-    )
-    .expect("write images");
+    let workspace_images = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap()
+        .join("configs")
+        .join("images.toml");
+    std::fs::copy(workspace_images, configs_dir.join("images.toml")).expect("write images");
+    let workspace_tool_registry = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap()
+        .join("configs")
+        .join("tool_registry.toml");
+    std::fs::copy(workspace_tool_registry, configs_dir.join("tool_registry.toml"))
+        .expect("write tool registry");
+    let workspace_stages = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap()
+        .join("configs")
+        .join("stages.toml");
+    std::fs::copy(workspace_stages, configs_dir.join("stages.toml")).expect("write stages");
 
     #[cfg(unix)]
     std::os::unix::fs::symlink(

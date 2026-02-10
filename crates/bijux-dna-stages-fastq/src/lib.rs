@@ -11,10 +11,12 @@ pub use bijux_dna_stage_contract::StagePlanJsonV1 as StagePlanJson;
 pub fn implemented_stages() -> Vec<bijux_dna_core::ids::StageId> {
     vec![
         bijux_dna_domain_fastq::STAGE_VALIDATE_PRE,
+        bijux_dna_domain_fastq::stages::STAGE_PREPARE_REFERENCE,
         bijux_dna_domain_fastq::STAGE_DETECT_ADAPTERS,
         bijux_dna_domain_fastq::STAGE_TRIM,
         bijux_dna_domain_fastq::STAGE_FILTER,
         bijux_dna_domain_fastq::STAGE_STATS_NEUTRAL,
+        bijux_dna_domain_fastq::stages::STAGE_RRNA,
         bijux_dna_domain_fastq::STAGE_MERGE,
         bijux_dna_domain_fastq::STAGE_CORRECT,
         bijux_dna_domain_fastq::STAGE_UMI,

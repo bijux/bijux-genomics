@@ -27,6 +27,7 @@ fn tool_ids_for_stage(stage_id: &str) -> Vec<&'static str> {
             "fastqc",
             "fastqvalidator",
             "fastqvalidator_official",
+            "fastq-scan",
             "fqtools",
         ],
         "fastq.detect_adapters" => vec!["fastp"],
@@ -42,6 +43,8 @@ fn tool_ids_for_stage(stage_id: &str) -> Vec<&'static str> {
             "kaiju",
             "fastq_screen",
         ],
+        "fastq.prepare_reference" => vec!["star", "samtools"],
+        "fastq.rrna" => vec!["sortmerna"],
         "fastq.preprocess" => vec!["planner"],
         _ => Vec::new(),
     }
@@ -153,7 +156,9 @@ pub fn contract_for_stage(stage_id: &str) -> Option<FastqStageContract> {
         | "fastq.detect_adapters"
         | "fastq.stats_neutral"
         | "fastq.qc_post"
-        | "fastq.screen" => Some(FastqStageContract {
+        | "fastq.screen"
+        | "fastq.prepare_reference"
+        | "fastq.rrna" => Some(FastqStageContract {
             input_kind: FastqArtifactKind::SingleEnd,
             output_kind: FastqArtifactKind::StatsOnly,
             may_drop_reads: false,
