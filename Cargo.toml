@@ -8,6 +8,7 @@ members = [
   "crates/bijux-dna-cli",
   "crates/bijux-dna-core",
   "crates/bijux-dna-domain-bam",
+  "crates/bijux-dna-domain-compiler",
   "crates/bijux-dna-domain-fastq",
   "crates/bijux-dna-engine",
   "crates/bijux-dna-environment",
