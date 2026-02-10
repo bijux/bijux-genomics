@@ -2,12 +2,16 @@ schema_version: "bijux.tool.v2"
 tool_id: "fastx_clipper"
 upstream: "https://github.com/agordon/fastx_toolkit"
 versioning_strategy: "pinned"
+pin_strategy: "pinned"
 default_version: "0.0.14"
 install_kind: "container"
 license: "GPL-3.0"
 stage_ids: ["fastq.trim"]
+status: "supported"
+scope: "pre_hpc_pre_vcf"
 expected_artifacts: ["trimmed_fastq","trim_report"]
 metrics_schema_id: "bijux.fastq.trim.v1"
+metrics_schema: "bijux.fastq.trim.v1"
 version_cmd: "fastx_clipper --version"
 help_cmd: "fastx_clipper --help"
 comparability:

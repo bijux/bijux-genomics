@@ -2,12 +2,16 @@ schema_version: "bijux.tool.v2"
 tool_id: "king"
 upstream: "https://www.kingrelatedness.com/"
 versioning_strategy: "pinned"
+pin_strategy: "pinned"
 default_version: "2.3.0"
 install_kind: "container"
 license: "GPL-3.0"
 stage_ids: ["bam.kinship"]
+status: "supported"
+scope: "pre_hpc_pre_vcf"
 expected_artifacts: ["kinship_report"]
 metrics_schema_id: "bijux.bam.kinship.v1"
+metrics_schema: "bijux.bam.kinship.v1"
 version_cmd: "king --version"
 help_cmd: "king --help"
 comparability:

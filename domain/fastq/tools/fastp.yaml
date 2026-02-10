@@ -4,7 +4,8 @@ stage_id: "fastq.trim"
 role: "authoritative"
 authoritative: false
 strict_capable: false
-status: "stable"
+status: "supported"
+scope: "pre_hpc_pre_vcf"
 capabilities:
   - "SE"
   - "PE"
@@ -38,12 +39,14 @@ execution_contract:
 
 upstream: "unknown"
 versioning_strategy: "pinned"
+pin_strategy: "pinned"
 default_version: "latest-pinned"
 install_kind: "container"
 license: "GPL-3.0"
 stage_ids: ["fastq.trim"]
 expected_artifacts: ["report_json"]
 metrics_schema_id: "bijux.unknown.v1"
+metrics_schema: "bijux.unknown.v1"
 version_cmd: "fastp --version"
 help_cmd: "fastp --help"
 comparability:

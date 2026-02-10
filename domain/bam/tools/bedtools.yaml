@@ -2,12 +2,16 @@ schema_version: "bijux.tool.v2"
 tool_id: "bedtools"
 upstream: "https://github.com/arq5x/bedtools2"
 versioning_strategy: "pinned"
+pin_strategy: "pinned"
 default_version: "2.31.1"
 install_kind: "container"
 license: "GPL-3.0"
 stage_ids: ["bam.validate","bam.filter"]
+status: "supported"
+scope: "pre_hpc_pre_vcf"
 expected_artifacts: ["interval_report"]
 metrics_schema_id: "bijux.bam.validation.v1"
+metrics_schema: "bijux.bam.validation.v1"
 version_cmd: "bedtools --version"
 help_cmd: "bedtools --help"
 comparability:

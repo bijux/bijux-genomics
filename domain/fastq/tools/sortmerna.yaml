@@ -2,12 +2,16 @@ schema_version: "bijux.tool.v2"
 tool_id: "sortmerna"
 upstream: "https://github.com/biocore/sortmerna"
 versioning_strategy: "pinned"
+pin_strategy: "pinned"
 default_version: "latest-pinned"
 install_kind: "container"
 license: "GPL-3.0"
 stage_ids: ["fastq.filter"]
+status: "supported"
+scope: "pre_hpc_pre_vcf"
 expected_artifacts: ["filtered_fastq"]
 metrics_schema_id: "bijux.fastq.filter.v1"
+metrics_schema: "bijux.fastq.filter.v1"
 version_cmd: "sortmerna --version"
 help_cmd: "sortmerna --help"
 comparability:

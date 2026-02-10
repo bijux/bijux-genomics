@@ -2,12 +2,16 @@ schema_version: "bijux.tool.v2"
 tool_id: "seqfu"
 upstream: "https://github.com/telatin/seqfu2"
 versioning_strategy: "pinned"
+pin_strategy: "pinned"
 default_version: "planned"
 install_kind: "container"
 license: "GPL-3.0"
 stage_ids: ["fastq.stats_neutral"]
+status: "planned"
+scope: "pre_hpc_pre_vcf"
 expected_artifacts: ["stats_report"]
 metrics_schema_id: "bijux.fastq.stats.v1"
+metrics_schema: "bijux.fastq.stats.v1"
 version_cmd: "seqfu --version"
 help_cmd: "seqfu --help"
 comparability:

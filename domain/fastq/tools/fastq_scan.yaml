@@ -2,12 +2,16 @@ schema_version: "bijux.tool.v2"
 tool_id: "fastq-scan"
 upstream: "https://github.com/indraniel/fastq-scan"
 versioning_strategy: "pinned"
+pin_strategy: "pinned"
 default_version: "planned"
 install_kind: "container"
 license: "GPL-3.0"
 stage_ids: ["fastq.validate_pre"]
+status: "planned"
+scope: "pre_hpc_pre_vcf"
 expected_artifacts: ["scan_report"]
 metrics_schema_id: "bijux.fastq.qc.v1"
+metrics_schema: "bijux.fastq.qc.v1"
 version_cmd: "fastq-scan --version"
 help_cmd: "fastq-scan --help"
 comparability:

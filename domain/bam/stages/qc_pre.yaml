@@ -1,5 +1,8 @@
 extends: "_schema.yaml"
 stage_id: "bam.qc_pre"
+status: "supported"
+scope: "pre_hpc_pre_vcf"
+domain: "bam"
 inputs:
   - name: "bam"
     data_type: "bam"
@@ -24,4 +27,7 @@ tool_capability_requirements:
 invariants:
   - stable_artifact_contract
   - deterministic_output_order
+compatible_tools:
+  - samtools
+metrics_schema: "bijux.stage.metrics.v1"
 planned_out_of_scope: []

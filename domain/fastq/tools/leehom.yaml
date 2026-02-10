@@ -2,12 +2,16 @@ schema_version: "bijux.tool.v2"
 tool_id: "leehom"
 upstream: "https://github.com/grenaud/leeHom"
 versioning_strategy: "pinned"
+pin_strategy: "pinned"
 default_version: "latest-pinned"
 install_kind: "container"
 license: "GPL-3.0"
 stage_ids: ["fastq.trim","fastq.merge"]
+status: "supported"
+scope: "pre_hpc_pre_vcf"
 expected_artifacts: ["trimmed_fastq_r1","merged_fastq","merge_report"]
 metrics_schema_id: "bijux.fastq.merge.v1"
+metrics_schema: "bijux.fastq.merge.v1"
 version_cmd: "leehom --version"
 help_cmd: "leehom --help"
 comparability:
