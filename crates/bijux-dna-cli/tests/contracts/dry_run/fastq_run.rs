@@ -124,6 +124,8 @@ multiqc = { version = "0.0.0" }
         .join("sample")
         .join("run_artifacts");
     assert!(artifacts_root.join("graph.json").exists());
+    assert!(artifacts_root.join("decision_trace.json").exists());
+    assert!(artifacts_root.join("plan_artifact_manifest.json").exists());
     let manifest_path = out_dir.join("run_manifest.json");
     assert!(manifest_path.exists());
     let manifest_raw = std::fs::read_to_string(&manifest_path).expect("read run_manifest");
