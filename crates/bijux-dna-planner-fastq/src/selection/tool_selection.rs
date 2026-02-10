@@ -59,9 +59,7 @@ fn adapter_id_for_stage(stage_id: &StageId) -> Option<&'static str> {
         Some(id_catalog::FASTQ_PREPROCESS)
     } else if stage_id.as_str() == STAGE_CORE_PREPARE_REFERENCE {
         Some(id_catalog::CORE_PREPARE_REFERENCE)
-    } else if stage_id == &STAGE_VALIDATE_PRE {
-        Some(id_catalog::FASTQ_VALIDATE_PRE)
-    } else if stage_id == &STAGE_DETECT_ADAPTERS {
+    } else if stage_id == &STAGE_VALIDATE_PRE || stage_id == &STAGE_DETECT_ADAPTERS {
         Some(id_catalog::FASTQ_VALIDATE_PRE)
     } else if stage_id == &STAGE_TRIM {
         Some(id_catalog::FASTQ_TRIM)

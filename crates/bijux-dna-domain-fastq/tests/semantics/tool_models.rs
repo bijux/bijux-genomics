@@ -12,9 +12,14 @@ fn trim_tool_params_are_typed_and_roundtrip() {
             allow_reverse_complement_overlap: true,
         },
     );
-    let raw = serde_json::to_string(&params).expect("serialize trim params");
-    let roundtrip: bijux_dna_domain_fastq::TrimToolParamsV1 =
-        serde_json::from_str(&raw).expect("deserialize trim params");
+    let raw = match serde_json::to_string(&params) {
+        Ok(v) => v,
+        Err(err) => panic!("serialize trim params: {err}"),
+    };
+    let roundtrip: bijux_dna_domain_fastq::TrimToolParamsV1 = match serde_json::from_str(&raw) {
+        Ok(v) => v,
+        Err(err) => panic!("deserialize trim params: {err}"),
+    };
     assert_eq!(params, roundtrip);
 }
 
@@ -39,7 +44,10 @@ fn fastq_qc_and_classification_models_require_provenance_and_units() {
             confidence: Some(0.9),
         }],
     };
-    let raw = serde_json::to_value(&screen).expect("serialize classification");
+    let raw = match serde_json::to_value(&screen) {
+        Ok(v) => v,
+        Err(err) => panic!("serialize classification: {err}"),
+    };
     assert_eq!(raw["provenance"]["db_hash"], "sha256:1234abcd");
 
     let qc = bijux_dna_domain_fastq::FastqScanMetricsV1 {
@@ -57,7 +65,10 @@ fn fastq_qc_and_classification_models_require_provenance_and_units() {
             duplication_estimate_pct: Some(1.5),
         },
     };
-    let qc_raw = serde_json::to_value(&qc).expect("serialize qc");
+    let qc_raw = match serde_json::to_value(&qc) {
+        Ok(v) => v,
+        Err(err) => panic!("serialize qc: {err}"),
+    };
     assert_eq!(qc_raw["summary"]["bases_bp"], 1000);
     assert_eq!(qc_raw["summary"]["qscore"]["mean_phred"], 32.0);
 }
