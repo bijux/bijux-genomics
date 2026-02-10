@@ -1,0 +1,3 @@
+tool=bbduk
+stage=fastq.polyG_tailing
+fixture_kind=synthetic_truth

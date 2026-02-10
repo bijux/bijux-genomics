@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 43a12ea7923794ba60f27ce93f1e62d8c53e7084
+# source_commit: 3db4c0cde68631eb21e7242a974a2683ef5ea901
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 
@@ -194,6 +194,25 @@ sex_kinship_sufficiency = ["not_applicable"]
 tools = ["bamtools", "bedtools", "samtools"]
 
 [[stages]]
+id = "fastq.contaminant_screen"
+status = "supported"
+output_kinds = ["fastq", "json"]
+ordering_after = ["fastq.host_depletion"]
+prerequisites = ["fastq.host_depletion"]
+resource_memory_gb = 10
+resource_time_minutes = 30
+resource_threads = 6
+sanity_metrics = ["reads_removed_contaminant_kmer"]
+output_size_estimates_mb = ["filtered_fastq:900", "screen_report:10"]
+qc_thresholds = ["reads_removed_contaminant_kmer|warn=>0.8|fail=>0.95"]
+contamination_thresholds = ["contamination_rate|warn=>=0.05|fail=>=0.2"]
+authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
+duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
+coverage_sufficiency = ["not_applicable"]
+sex_kinship_sufficiency = ["not_applicable"]
+tools = ["bbduk", "bowtie2"]
+
+[[stages]]
 id = "fastq.correct"
 status = "supported"
 output_kinds = ["fastq"]
@@ -270,6 +289,25 @@ sex_kinship_sufficiency = ["not_applicable"]
 tools = ["bowtie2", "samtools"]
 
 [[stages]]
+id = "fastq.length_distribution_pre"
+status = "supported"
+output_kinds = ["json", "tsv"]
+ordering_after = ["fastq.validate_pre"]
+prerequisites = ["fastq.validate_pre"]
+resource_memory_gb = 2
+resource_time_minutes = 10
+resource_threads = 2
+sanity_metrics = ["mean_read_length"]
+output_size_estimates_mb = ["stats_json:2", "stats_report:1"]
+qc_thresholds = ["mean_read_length|warn=<30|fail=<20"]
+contamination_thresholds = ["contamination_rate|warn=>=0.0|fail=>=1.0"]
+authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
+duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
+coverage_sufficiency = ["not_applicable"]
+sex_kinship_sufficiency = ["not_applicable"]
+tools = ["fastp", "prinseq", "seqkit_stats"]
+
+[[stages]]
 id = "fastq.merge"
 status = "supported"
 output_kinds = ["fastq"]
@@ -287,6 +325,44 @@ duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
 coverage_sufficiency = ["not_applicable"]
 sex_kinship_sufficiency = ["not_applicable"]
 tools = ["bbmerge", "flash2", "leehom", "pear", "vsearch"]
+
+[[stages]]
+id = "fastq.overrepresented_sequences"
+status = "supported"
+output_kinds = ["json", "tsv"]
+ordering_after = ["fastq.qc_post"]
+prerequisites = ["fastq.qc_post"]
+resource_memory_gb = 4
+resource_time_minutes = 15
+resource_threads = 2
+sanity_metrics = ["reads_total"]
+output_size_estimates_mb = ["report_json:2", "screen_report_tsv:4"]
+qc_thresholds = ["reads_removed_contaminant_kmer|warn=>0.2|fail=>0.5"]
+contamination_thresholds = ["contamination_rate|warn=>=0.05|fail=>=0.2"]
+authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
+duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
+coverage_sufficiency = ["not_applicable"]
+sex_kinship_sufficiency = ["not_applicable"]
+tools = ["fastqc", "seqkit"]
+
+[[stages]]
+id = "fastq.polyG_tailing"
+status = "supported"
+output_kinds = ["fastq", "json"]
+ordering_after = ["fastq.detect_adapters"]
+prerequisites = ["fastq.detect_adapters"]
+resource_memory_gb = 4
+resource_time_minutes = 15
+resource_threads = 4
+sanity_metrics = ["trimmed_read_fraction"]
+output_size_estimates_mb = ["trim_report:6", "trimmed_fastq:1900"]
+qc_thresholds = ["trimmed_read_fraction|warn=<0.01|fail=<0.001"]
+contamination_thresholds = ["contamination_rate|warn=>=0.0|fail=>=1.0"]
+authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
+duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
+coverage_sufficiency = ["not_applicable"]
+sex_kinship_sufficiency = ["not_applicable"]
+tools = ["bbduk", "fastp"]
 
 [[stages]]
 id = "fastq.prepare_reference"
@@ -368,8 +444,8 @@ tools = ["bracken", "centrifuge", "fastq_screen", "kaiju", "kraken2", "krakenuni
 id = "fastq.stats_neutral"
 status = "supported"
 output_kinds = ["json"]
-ordering_after = ["fastq.host_depletion"]
-prerequisites = ["fastq.host_depletion"]
+ordering_after = ["fastq.contaminant_screen"]
+prerequisites = ["fastq.contaminant_screen"]
 resource_memory_gb = 2
 resource_time_minutes = 10
 resource_threads = 2
@@ -387,8 +463,8 @@ tools = ["seqkit", "seqkit_stats"]
 id = "fastq.trim"
 status = "supported"
 output_kinds = ["fastq"]
-ordering_after = ["fastq.detect_adapters"]
-prerequisites = ["fastq.detect_adapters"]
+ordering_after = ["fastq.polyG_tailing"]
+prerequisites = ["fastq.polyG_tailing"]
 resource_memory_gb = 6
 resource_time_minutes = 30
 resource_threads = 6
@@ -446,7 +522,7 @@ stages = ["bam.align", "bam.validate", "bam.filter", "bam.damage", "bam.authenti
 
 [[pipelines]]
 id = "fastq.pre_hpc_best"
-stages = ["fastq.prepare_reference", "fastq.validate_pre", "fastq.detect_adapters", "fastq.trim", "fastq.filter", "fastq.merge", "fastq.host_depletion", "fastq.stats_neutral", "fastq.qc_post", "fastq.screen"]
+stages = ["fastq.prepare_reference", "fastq.validate_pre", "fastq.length_distribution_pre", "fastq.detect_adapters", "fastq.polyG_tailing", "fastq.trim", "fastq.filter", "fastq.merge", "fastq.host_depletion", "fastq.contaminant_screen", "fastq.stats_neutral", "fastq.qc_post", "fastq.overrepresented_sequences", "fastq.screen"]
 
 [[benchmark_scenarios]]
 id = "bam.contamination_fairness"

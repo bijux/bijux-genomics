@@ -1,0 +1,3 @@
+tool=fastp
+stage=fastq.length_distribution_pre
+fixture_kind=synthetic_truth
