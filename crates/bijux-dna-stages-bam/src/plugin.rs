@@ -1,6 +1,7 @@
 use std::collections::BTreeMap;
 
 use anyhow::Result;
+use bijux_dna_core::id_catalog;
 use bijux_dna_core::contract::canonical::parameters_json_canonicalization;
 use bijux_dna_core::contract::ContractVersion;
 use bijux_dna_core::metrics::MetricsEnvelope;
@@ -15,7 +16,7 @@ pub struct BamStagePlugin;
 
 impl StagePlugin for BamStagePlugin {
     fn handles_stage(&self, stage_id: &str) -> bool {
-        stage_id.starts_with("bam.")
+        stage_id.starts_with(id_catalog::BAM_PREFIX)
     }
 
     fn materialize(&self, plan: &StagePlanV1) -> Result<StageInvocationV1> {

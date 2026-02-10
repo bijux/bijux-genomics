@@ -5,6 +5,7 @@
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
+use bijux_dna_core::id_catalog;
 
 use crate::stage_specs::{
     AdapterBankV1, AdapterTrimmingReportV1, EffectiveAdapterSet, RetentionReportV1, ToolReferenceV1,
@@ -102,7 +103,7 @@ pub fn write_adapter_trimming_report(
         top_k_adapters: Vec::new(),
         tool: ToolReferenceV1 {
             id: tool.to_string(),
-            stage: "fastq.trim".to_string(),
+            stage: id_catalog::FASTQ_TRIM.to_string(),
             version: tool_version.to_string(),
             params: params.clone(),
         },

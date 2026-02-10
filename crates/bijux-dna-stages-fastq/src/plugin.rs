@@ -1,4 +1,5 @@
 use anyhow::Result;
+use bijux_dna_core::id_catalog;
 use bijux_dna_stage_contract::{ArtifactRef, StagePlanV1};
 use bijux_dna_stage_contract::{StageInvocationV1, StagePlugin, StagePluginOutputV1};
 
@@ -9,7 +10,7 @@ pub struct FastqStagePlugin;
 
 impl StagePlugin for FastqStagePlugin {
     fn handles_stage(&self, stage_id: &str) -> bool {
-        stage_id.starts_with("fastq.")
+        stage_id.starts_with(id_catalog::FASTQ_PREFIX)
     }
 
     fn materialize(&self, plan: &StagePlanV1) -> Result<StageInvocationV1> {

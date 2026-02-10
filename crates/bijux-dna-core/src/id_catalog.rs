@@ -10,6 +10,7 @@ pub const REPORT_AGGREGATE_STEP: &str = "report.aggregate";
 
 pub const FASTQ_PREPROCESS: &str = "fastq.preprocess";
 pub const FASTQ_VALIDATE_PRE: &str = "fastq.validate_pre";
+pub const FASTQ_DETECT_ADAPTERS: &str = "fastq.detect_adapters";
 pub const FASTQ_TRIM: &str = "fastq.trim";
 pub const FASTQ_FILTER: &str = "fastq.filter";
 pub const FASTQ_MERGE: &str = "fastq.merge";
