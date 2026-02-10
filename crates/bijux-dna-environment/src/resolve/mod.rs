@@ -341,6 +341,33 @@ pub fn validate_images_for_stage(
     Ok(())
 }
 
+/// Execute container smoke contract script for a runtime/tool pair.
+///
+/// # Errors
+/// Returns an error when the runtime is unsupported or smoke script exits non-zero.
+pub fn run_smoke_script(runtime: &str, tool: &str) -> anyhow::Result<()> {
+    let script = match runtime {
+        "docker-arm64" => "scripts/smoke-containers-docker-arm64.sh",
+        "docker-amd64" => "scripts/smoke-containers-docker-amd64.sh",
+        "apptainer" => "scripts/smoke-containers-apptainer.sh",
+        other => {
+            anyhow::bail!(
+                "unsupported runtime `{other}`; expected docker-arm64 | docker-amd64 | apptainer"
+            );
+        }
+    };
+    let status = std::process::Command::new("sh")
+        .arg(script)
+        .env("TOOLS", tool)
+        .env("JOBS", "1")
+        .env("SMOKE_LEVEL", "contract")
+        .status()?;
+    if !status.success() {
+        anyhow::bail!("smoke failed for runtime={runtime} tool={tool} (exit={status})");
+    }
+    Ok(())
+}
+
 #[must_use]
 pub fn cache_dir(runner: RuntimeKind) -> PathBuf {
     let home = std::env::var_os("HOME").map_or_else(|| PathBuf::from("."), PathBuf::from);
