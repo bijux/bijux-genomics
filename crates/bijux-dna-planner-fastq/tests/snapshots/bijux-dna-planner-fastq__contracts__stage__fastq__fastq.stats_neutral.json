@@ -27,10 +27,22 @@
     ],
     "outputs": [
       {
-        "name": "stats_json",
-        "path": "out/stats.json",
+        "name": "qc_json",
+        "path": "out/qc.json",
         "role": "metrics_json",
         "optional": false
+      },
+      {
+        "name": "qc_tsv",
+        "path": "out/qc.tsv",
+        "role": "report_json",
+        "optional": false
+      },
+      {
+        "name": "qc_plots_dir",
+        "path": "out/plots",
+        "role": "index",
+        "optional": true
       }
     ]
   },

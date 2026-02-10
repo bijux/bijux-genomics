@@ -1,3 +1,5 @@
+//! Snapshot contract for deterministic BAM stage decision reasons.
+
 use bijux_dna_core::prelude::{
     CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
 };
@@ -24,6 +26,7 @@ fn dummy_tool(stage: &str) -> ToolExecutionSpecV1 {
 }
 
 #[test]
+/// Ensures BAM stage explain artifacts stay deterministic and operator-readable.
 fn bam_plan_reasons_include_defaults_and_contract_hash() -> anyhow::Result<()> {
     let stages = pipeline_id_catalog("bam-to-bam__default__v1");
     let temp = bijux_dna_infra::temp_dir("bam-plan-reasons")?;
@@ -59,6 +62,7 @@ fn bam_plan_reasons_include_defaults_and_contract_hash() -> anyhow::Result<()> {
 }
 
 #[test]
+/// Captures stable reason payloads for BAM aDNA-specific selection decisions.
 fn bam_adna_plan_reasons_are_deterministic_for_new_stages() -> anyhow::Result<()> {
     let stages = pipeline_id_catalog("bam-to-bam__adna_shotgun__v1");
     let target: Vec<String> = stages
@@ -121,11 +125,12 @@ fn bam_adna_plan_reasons_are_deterministic_for_new_stages() -> anyhow::Result<()
         assert_eq!(a.reason.kind, b.reason.kind);
         assert!(a.reason.details.get("defaults_diff").is_some());
         assert!(a.reason.details.get("contract_hash").is_some());
+        let reason_json =
+            bijux_dna_testkit::snapshot_normalize_json(&serde_json::to_value(&a.reason)?);
         let snapshot_name = format!("bijux-dna-planner-bam__contracts__explain__{}", a.stage_id);
-        insta::assert_json_snapshot!(
-            snapshot_name,
-            bijux_dna_testkit::snapshot_normalize_json(&serde_json::to_value(&a.reason)?)
-        );
+        insta::with_settings!({snapshot_path => "../../snapshots"}, {
+            insta::assert_json_snapshot!(snapshot_name, reason_json);
+        });
     }
     Ok(())
 }

@@ -31,6 +31,18 @@
         "path": "out/fastp.fastq.gz",
         "role": "trimmed_reads",
         "optional": false
+      },
+      {
+        "name": "trim_report",
+        "path": "out/trim.report.json",
+        "role": "report_json",
+        "optional": false
+      },
+      {
+        "name": "stage_metrics",
+        "path": "out/stage.metrics.json",
+        "role": "metrics_json",
+        "optional": false
       }
     ]
   },
