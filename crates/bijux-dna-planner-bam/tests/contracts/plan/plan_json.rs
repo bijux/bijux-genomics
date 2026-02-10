@@ -40,7 +40,7 @@ fn plan_for_stage(stage: BamStage) -> Result<StagePlanV1> {
         .join("plan_inputs")
         .join("default");
     let tool_id = bijux_dna_planner_bam::stage_api::default_tool_for_stage(stage);
-    let tool = dummy_tool(&tool_id);
+    let tool = dummy_tool(tool_id.as_str());
     plan_stage(StagePlanRequest {
         stage_id: stage.as_str(),
         tool: &tool,
