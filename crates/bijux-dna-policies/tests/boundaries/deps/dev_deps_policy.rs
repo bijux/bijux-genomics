@@ -58,6 +58,7 @@ fn policy__boundaries__dev_deps_policy__dev_dependencies_are_allowlisted() {
         "bijux-dna-benchmark",
         "bijux-dna-core",
         "bijux-dna-domain-bam",
+        "bijux-dna-domain-compiler",
         "bijux-dna-domain-fastq",
         "bijux-dna-infra",
         "bijux-dna-pipelines",

@@ -593,6 +593,7 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
     for dep in &cli {
         bijux_dna_policies::policy_assert!(
             dep == "bijux-dna-api"
+                || dep == "bijux-dna-domain-compiler"
                 || dep == "bijux-dna-core"
                 || dep == "bijux-dna-environment"
                 || dep == "bijux-dna-environment-qa"
@@ -612,6 +613,7 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
         for dep in &cli_deps {
             bijux_dna_policies::policy_assert!(
                 dep == "bijux-dna-api"
+                    || dep == "bijux-dna-domain-compiler"
                     || dep == "bijux-dna-core"
                     || dep == "bijux-dna-environment"
                     || dep == "bijux-dna-environment-qa"

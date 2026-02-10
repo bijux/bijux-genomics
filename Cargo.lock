@@ -401,6 +401,7 @@ dependencies = [
  "bijux-dna-domain-bam",
  "bijux-dna-domain-fastq",
  "bijux-dna-infra",
+ "bijux-dna-policies",
  "clap",
  "serde",
 ]

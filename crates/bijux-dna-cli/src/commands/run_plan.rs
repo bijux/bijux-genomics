@@ -162,13 +162,15 @@ fn write_plan_artifacts(
             comparability_notes: &comparability_notes,
         },
     };
-    std::fs::write(
+    bijux_dna_api::v1::api::run::write_bytes(
         artifacts_dir.join("plan_artifact_manifest.json"),
         serde_json::to_vec_pretty(&manifest)?,
-    )?;
-    std::fs::write(
+    )
+    .context("write plan_artifact_manifest.json")?;
+    bijux_dna_api::v1::api::run::write_bytes(
         artifacts_dir.join("decision_trace.json"),
         serde_json::to_vec_pretty(&decision_trace)?,
-    )?;
+    )
+    .context("write decision_trace.json")?;
     Ok(())
 }

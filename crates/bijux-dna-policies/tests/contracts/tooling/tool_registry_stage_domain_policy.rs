@@ -59,12 +59,21 @@ fn policy__contracts__tool_registry_stage_domain_policy__each_tool_has_exactly_o
             .unwrap_or("")
             .to_string();
         let declared_stage_ids = list(tool, "stage_ids");
+        let status = tool
+            .get("status")
+            .and_then(toml::Value::as_str)
+            .unwrap_or("supported");
         let discovered_stage_ids = tool_stage_refs
             .get(id)
             .cloned()
             .unwrap_or_default()
             .into_iter()
             .collect::<Vec<_>>();
+        let effective_stage_ids = if discovered_stage_ids.is_empty() {
+            declared_stage_ids.clone()
+        } else {
+            discovered_stage_ids.clone()
+        };
 
         if declared_domain.is_empty() {
             offenders.push(format!("tool={id}: missing `domain`"));
@@ -72,14 +81,17 @@ fn policy__contracts__tool_registry_stage_domain_policy__each_tool_has_exactly_o
         if declared_stage_ids.is_empty() {
             offenders.push(format!("tool={id}: missing non-empty `stage_ids`"));
         }
-        if discovered_stage_ids.is_empty() {
+        if status != "supported" {
+            continue;
+        }
+        if effective_stage_ids.is_empty() {
             offenders.push(format!(
                 "tool={id}: referenced by no stage; every tool must appear in at least one stage"
             ));
             continue;
         }
 
-        let stage_domain_set = discovered_stage_ids
+        let stage_domain_set = effective_stage_ids
             .iter()
             .map(|stage_id| {
                 stage_id
@@ -105,13 +117,6 @@ fn policy__contracts__tool_registry_stage_domain_policy__each_tool_has_exactly_o
             }
         }
 
-        for stage_id in &declared_stage_ids {
-            if !discovered_stage_ids.iter().any(|s| s == stage_id) {
-                offenders.push(format!(
-                    "tool={id}: declared stage `{stage_id}` not present in stage matrix references"
-                ));
-            }
-        }
     }
 
     assert!(

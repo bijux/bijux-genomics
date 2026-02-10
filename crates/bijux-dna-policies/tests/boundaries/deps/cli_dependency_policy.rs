@@ -39,6 +39,7 @@ fn policy__boundaries__cli_dependency_policy__cli_depends_only_on_api_and_cli_su
     let deps = parse_dependency_names(&manifest);
     let allowlist = [
         "bijux-dna-api",
+        "bijux-dna-domain-compiler",
         "clap",
         "tracing",
         "anyhow",
