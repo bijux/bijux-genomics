@@ -11,7 +11,7 @@
   "input_files": [
     "input.fastq.gz"
   ],
-  "output_dir": "/Users/bijan/bijux/bijux-dna/target/test-fixtures/bench_compare/run-b",
+  "output_dir": "<WORKSPACE_ROOT>/target/test-fixtures/bench_compare/run-b",
   "runner": "docker",
   "platform": "local",
   "arch": "arm64"

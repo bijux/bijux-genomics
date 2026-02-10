@@ -20,6 +20,12 @@ mod mod_contracts_tooling_apptainer_purge_policy_rs;
 mod mod_contracts_tooling_apptainer_structure_policy_rs;
 #[path = "contracts/tooling/apptainer_vm_output_policy.rs"]
 mod mod_contracts_tooling_apptainer_vm_output_policy_rs;
+#[path = "contracts/tooling/architecture_invariants_suite.rs"]
+mod mod_contracts_tooling_architecture_invariants_suite_rs;
+#[path = "contracts/tooling/assets_scope_policy.rs"]
+mod mod_contracts_tooling_assets_scope_policy_rs;
+#[path = "contracts/tooling/bank_loader_ownership_policy.rs"]
+mod mod_contracts_tooling_bank_loader_ownership_policy_rs;
 #[path = "contracts/tooling/ci_no_stage_tool_defs_policy.rs"]
 mod mod_contracts_tooling_ci_no_stage_tool_defs_policy_rs;
 #[path = "contracts/tooling/ci_tools_policy.rs"]
@@ -32,6 +38,8 @@ mod mod_contracts_tooling_command_spawn_policy_rs;
 mod mod_contracts_tooling_docs_links_rs;
 #[path = "contracts/tooling/domain_truth_fixture_policy.rs"]
 mod mod_contracts_tooling_domain_truth_fixture_policy_rs;
+#[path = "contracts/tooling/fixture_privacy_policy.rs"]
+mod mod_contracts_tooling_fixture_privacy_policy_rs;
 #[path = "contracts/tooling/generated_configs_policy.rs"]
 mod mod_contracts_tooling_generated_configs_policy_rs;
 #[path = "contracts/tooling/image_catalog_completeness_policy.rs"]
@@ -44,6 +52,8 @@ mod mod_contracts_tooling_makefile_policies_rs;
 mod mod_contracts_tooling_no_appledouble_rs;
 #[path = "contracts/tooling/no_placeholders_code_policy.rs"]
 mod mod_contracts_tooling_no_placeholders_code_policy_rs;
+#[path = "contracts/tooling/nextest_determinism_policy.rs"]
+mod mod_contracts_tooling_nextest_determinism_policy_rs;
 #[path = "contracts/tooling/opentelemetry_version_policy.rs"]
 mod mod_contracts_tooling_opentelemetry_version_policy_rs;
 #[path = "contracts/tooling/planner_data_driven_catalog_policy.rs"]
@@ -60,6 +70,8 @@ mod mod_contracts_tooling_purity_effects_responsibility_policy_rs;
 mod mod_contracts_tooling_registry_ssot_completeness_policy_rs;
 #[path = "contracts/tooling/smoke_manifest_policy.rs"]
 mod mod_contracts_tooling_smoke_manifest_policy_rs;
+#[path = "contracts/tooling/snapshot_hygiene_policy.rs"]
+mod mod_contracts_tooling_snapshot_hygiene_policy_rs;
 #[path = "contracts/tooling/scripts_registry_wrapper_policy.rs"]
 mod mod_contracts_tooling_scripts_registry_wrapper_policy_rs;
 #[path = "contracts/tooling/stage_registry_fixture_completeness.rs"]
