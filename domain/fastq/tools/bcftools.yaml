@@ -1,0 +1,16 @@
+schema_version: "bijux.tool.v2"
+tool_id: "bcftools"
+upstream: "https://github.com/samtools/bcftools"
+versioning_strategy: "pinned"
+default_version: "1.21"
+install_kind: "container"
+license: "GPL-3.0"
+stage_ids: ["fastq.stats_neutral"]
+expected_artifacts: ["stats_report"]
+metrics_schema_id: "bijux.fastq.stats.v1"
+version_cmd: "bcftools --version"
+help_cmd: "bcftools --help"
+comparability:
+  comparable_with: ["seqkit_stats","seqfu"]
+  non_comparable_with: []
+notes: "Domain SSOT tool contract entry."

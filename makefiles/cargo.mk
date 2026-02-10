@@ -45,7 +45,7 @@ ISOLATE_COV_TARGET_DIR ?= $(ISOLATE_ROOT)/target-cov
 fmt:
 	$(FMT)
 
-lint: docs-lint
+lint: docs-lint domain-validate domain-inventory-drift
 	$(LINT)
 
 test:
@@ -130,10 +130,20 @@ clean-isolate:
 
 policy-fast: ## Run fast policy checks (no snapshots)
 	cargo test -p bijux-dna-policies --test dependency_graph --test purity_scans --test core_layering --test domain_dependency_policy --test ci_tools_policy --test dev_deps_policy --test heavy_deps_policy
+	./scripts/domain-validate.sh
+	./scripts/domain-inventory-drift.sh
 
 policy-full: ## Run full policy suite
 	cargo test -p bijux-dna-policies
+	./scripts/domain-validate.sh
+	./scripts/domain-inventory-drift.sh
 	$(MAKE) docs-lint
+
+domain-validate:
+	./scripts/domain-validate.sh
+
+domain-inventory-drift:
+	./scripts/domain-inventory-drift.sh
 
 snapshots:
 	$(TEST_ENV) cargo insta test --workspace
@@ -148,5 +158,6 @@ snapshots-review:
 		test-and-coverage \
 		test-coverage-isolate-parallel \
 		fmt-isolate lint-isolate test-isolate audit-isolate coverage-isolate ci-isolate clean-isolate \
+		domain-validate domain-inventory-drift \
 		policy-fast policy-full \
 		snapshots snapshots-accept snapshots-review ensure-cargo-deny

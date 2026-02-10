@@ -37,3 +37,10 @@ image_requirements:
     - gzip
   forbids:
     - network
+required_inputs: []
+required_outputs: []
+tool_capability_requirements: []
+invariants:
+  - "stable_artifact_contract"
+  - "deterministic_output_order"
+planned_out_of_scope: []

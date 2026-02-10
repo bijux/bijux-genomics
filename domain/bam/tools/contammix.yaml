@@ -1,0 +1,16 @@
+schema_version: "bijux.tool.v2"
+tool_id: "contammix"
+upstream: "https://bioconductor.org/packages/contamMix"
+versioning_strategy: "pinned"
+default_version: "1.0.11"
+install_kind: "container"
+license: "GPL-3.0"
+stage_ids: ["bam.contamination"]
+expected_artifacts: ["contamination_estimate","contammix_report"]
+metrics_schema_id: "bijux.bam.contamination.v1"
+version_cmd: "contammix --version"
+help_cmd: "contammix --help"
+comparability:
+  comparable_with: ["schmutzi","verifybamid2"]
+  non_comparable_with: []
+notes: "Domain SSOT tool contract entry."

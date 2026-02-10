@@ -1,0 +1,52 @@
+domain: "bam"
+stage_ids:
+  - bam.align
+  - bam.validate
+  - bam.qc_pre
+  - bam.filter
+  - bam.markdup
+  - bam.complexity
+  - bam.coverage
+  - bam.damage
+  - bam.authenticity
+  - bam.contamination
+  - bam.sex
+  - bam.bias_mitigation
+  - bam.recalibration
+  - bam.haplogroups
+  - bam.genotyping
+  - bam.kinship
+tool_ids:
+  - bwa
+  - bowtie2
+  - samtools
+  - mapdamage2
+  - pydamage
+  - damageprofiler
+  - ngsbriggs
+  - addeam
+  - pmdtools
+  - schmutzi
+  - verifybamid2
+  - contammix
+  - bedtools
+  - bamtools
+  - mosdepth
+  - picard
+  - gatk
+  - authenticct
+  - rxy
+  - angsd
+  - yleaf
+  - king
+  - preseq
+stage_tool_compatibility:
+  bam.align: [bwa, bowtie2]
+  bam.validate: [samtools, bedtools, bamtools]
+  bam.filter: [samtools, bedtools, bamtools]
+  bam.coverage: [mosdepth, samtools]
+  bam.damage: [mapdamage2, pydamage, damageprofiler, ngsbriggs, addeam, pmdtools]
+  bam.authenticity: [authenticct, pmdtools, damageprofiler]
+  bam.contamination: [schmutzi, verifybamid2, contammix]
+  bam.sex: [rxy, yleaf, angsd]
+  bam.kinship: [king, angsd]

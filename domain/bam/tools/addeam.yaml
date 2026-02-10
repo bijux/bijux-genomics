@@ -1,0 +1,16 @@
+schema_version: "bijux.tool.v2"
+tool_id: "addeam"
+upstream: "https://github.com/LouisPwr/AdDeam"
+versioning_strategy: "pinned"
+default_version: "latest-pinned"
+install_kind: "container"
+license: "GPL-3.0"
+stage_ids: ["bam.damage"]
+expected_artifacts: ["damage_profile","damage_clusters"]
+metrics_schema_id: "bijux.bam.damage.v1"
+version_cmd: "addeam --version"
+help_cmd: "addeam --help"
+comparability:
+  comparable_with: ["damageprofiler","ngsbriggs"]
+  non_comparable_with: []
+notes: "Domain SSOT tool contract entry."

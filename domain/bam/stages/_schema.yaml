@@ -1,0 +1,7 @@
+schema_version: "bijux.stage.v2"
+domain: "bam"
+required_inputs: []
+required_outputs: []
+tool_capability_requirements: []
+invariants: []
+planned_out_of_scope: []

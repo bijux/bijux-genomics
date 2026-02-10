@@ -869,7 +869,7 @@ requires_reporting = false
 [[stages]]
 id = "fastq.validate_pre"
 primary_tools = ["fastqvalidator", "fastqvalidator_official"]
-optional_alternatives = ["seqtk", "fqtools"]
+optional_alternatives = ["seqtk", "fqtools", "fastq-scan"]
 validation_tools = ["fastqc"]
 reporting_tools = ["multiqc"]
 planned_out_of_scope = []
@@ -909,7 +909,7 @@ requires_reporting = true
 [[stages]]
 id = "fastq.stats_neutral"
 primary_tools = ["seqkit_stats"]
-optional_alternatives = ["seqkit"]
+optional_alternatives = ["seqkit", "seqfu", "bcftools"]
 validation_tools = []
 reporting_tools = ["multiqc"]
 planned_out_of_scope = []
@@ -989,7 +989,7 @@ requires_reporting = false
 [[stages]]
 id = "bam.qc_pre"
 primary_tools = ["samtools"]
-optional_alternatives = []
+optional_alternatives = ["qualimap"]
 validation_tools = ["samtools"]
 reporting_tools = ["multiqc"]
 planned_out_of_scope = []
@@ -1009,7 +1009,7 @@ requires_reporting = false
 [[stages]]
 id = "bam.markdup"
 primary_tools = ["gatk"]
-optional_alternatives = ["samtools"]
+optional_alternatives = ["samtools", "picard"]
 validation_tools = ["samtools"]
 reporting_tools = []
 planned_out_of_scope = []
@@ -1039,7 +1039,7 @@ requires_reporting = true
 [[stages]]
 id = "bam.damage"
 primary_tools = ["pydamage", "addeam"]
-optional_alternatives = ["mapdamage2", "pmdtools", "damageprofiler"]
+optional_alternatives = ["mapdamage2", "pmdtools", "damageprofiler", "ngsbriggs"]
 validation_tools = ["samtools"]
 reporting_tools = ["multiqc"]
 planned_out_of_scope = []
