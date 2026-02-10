@@ -8,9 +8,13 @@ stage_ids:
   - bam.mapq_filter
   - bam.length_filter
   - bam.markdup
+  - bam.duplication_metrics
   - bam.complexity
   - bam.coverage
+  - bam.insert_size
+  - bam.gc_bias
   - bam.endogenous_content
+  - bam.overlap_correction
   - bam.damage
   - bam.authenticity
   - bam.contamination
@@ -44,6 +48,7 @@ tool_ids:
   - yleaf
   - king
   - preseq
+  - bamutil
 stage_tool_compatibility:
   bam.align: [bwa, bowtie2]
   bam.validate: [samtools, bedtools, bamtools]
@@ -53,9 +58,13 @@ stage_tool_compatibility:
   bam.mapq_filter: [samtools, bamtools]
   bam.length_filter: [samtools, picard]
   bam.markdup: [picard, samtools]
+  bam.duplication_metrics: [samtools, picard]
   bam.complexity: [preseq]
   bam.coverage: [mosdepth, samtools]
+  bam.insert_size: [picard]
+  bam.gc_bias: [picard]
   bam.endogenous_content: [samtools]
+  bam.overlap_correction: [bamutil]
   bam.damage: [mapdamage2, pydamage, damageprofiler, ngsbriggs, addeam, pmdtools]
   bam.authenticity: [authenticct, pmdtools, damageprofiler]
   bam.contamination: [schmutzi, verifybamid2, contammix]
@@ -72,6 +81,7 @@ active_defaults:
   bam.filter: samtools
   bam.mapq_filter: samtools
   bam.length_filter: samtools
+  bam.duplication_metrics: samtools
   bam.coverage: mosdepth
   bam.endogenous_content: samtools
   bam.damage: mapdamage2
@@ -86,6 +96,7 @@ active_default_rationale:
   bam.filter: "Filtering baseline minimizes contract variance across workflows."
   bam.mapq_filter: "MAPQ filtering baseline uses ubiquitous deterministic filtering behavior."
   bam.length_filter: "Length filtering baseline emphasizes transparent minimum-length provenance."
+  bam.duplication_metrics: "Duplication metrics baseline favors deterministic duplicate summaries."
   bam.coverage: "Coverage default offers stable low-overhead reporting."
   bam.endogenous_content: "Endogenous estimate baseline derives from deterministic mapping summaries."
   bam.damage: "Damage baseline preserves comparability with historical aDNA runs."
@@ -102,9 +113,13 @@ stage_completeness_checklist:
   bam.mapq_filter: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
   bam.length_filter: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
   bam.markdup: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
+  bam.duplication_metrics: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
   bam.complexity: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
   bam.coverage: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
+  bam.insert_size: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
+  bam.gc_bias: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
   bam.endogenous_content: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
+  bam.overlap_correction: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
   bam.damage: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
   bam.authenticity: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
   bam.contamination: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
@@ -166,8 +181,17 @@ stage_default_settings:
   bam.markdup:
     picard: { profile: "adna_sane_default", notes: "planned duplicate marking preset" }
     samtools: { profile: "adna_sane_default", notes: "planned duplicate marking fallback preset" }
+  bam.duplication_metrics:
+    samtools: { profile: "adna_sane_default", notes: "duplicate summary from deterministic markdup metrics" }
+    picard: { profile: "adna_sane_default", notes: "picard duplicate metrics profile" }
   bam.complexity:
     preseq: { profile: "adna_sane_default", notes: "planned complexity extrapolation preset" }
+  bam.insert_size:
+    picard: { profile: "adna_sane_default", notes: "planned insert-size metrics profile" }
+  bam.gc_bias:
+    picard: { profile: "adna_sane_default", notes: "planned GC-bias metrics profile" }
+  bam.overlap_correction:
+    bamutil: { profile: "adna_sane_default", notes: "planned overlap clipping profile" }
   bam.bias_mitigation:
     samtools: { profile: "adna_sane_default", notes: "planned bias mitigation preset" }
   bam.recalibration:
@@ -186,9 +210,13 @@ stage_comparability_mapping:
   bam.mapq_filter: ["reads_retained_fraction", "mean_mapq_post_filter"]
   bam.length_filter: ["reads_retained_fraction"]
   bam.markdup: ["duplication_rate"]
+  bam.duplication_metrics: ["duplication_rate", "duplication_histogram_area"]
   bam.complexity: ["library_complexity_estimate"]
   bam.coverage: ["mean_coverage", "breadth_1x", "breadth_5x"]
+  bam.insert_size: ["insert_size_mean", "insert_size_sd"]
+  bam.gc_bias: ["gc_bias_score"]
   bam.endogenous_content: ["endogenous_content_ratio"]
+  bam.overlap_correction: ["reads_retained_fraction"]
   bam.damage: ["ct_5prime_rate", "ga_3prime_rate", "pmd_score_distribution"]
   bam.authenticity: ["authenticity_score", "pmd_enriched_fraction"]
   bam.contamination: ["contamination_estimate", "contamination_ci_width"]
@@ -207,9 +235,13 @@ stage_min_quality_gates:
   bam.mapq_filter: ["reads_retained_fraction>=0.0"]
   bam.length_filter: ["reads_retained_fraction>=0.0"]
   bam.markdup: ["duplication_rate>=0.0"]
+  bam.duplication_metrics: ["duplication_rate>=0.0"]
   bam.complexity: ["library_complexity_estimate>=0.0"]
   bam.coverage: ["mean_coverage>=0.0"]
+  bam.insert_size: ["insert_size_mean>=0.0"]
+  bam.gc_bias: ["gc_bias_score>=0.0"]
   bam.endogenous_content: ["endogenous_content_ratio>=0.0", "endogenous_content_ratio<=1.0"]
+  bam.overlap_correction: ["reads_retained_fraction>=0.0"]
   bam.damage: ["damage_profile_present=true"]
   bam.authenticity: ["authenticity_score>=0.0"]
   bam.contamination: ["contamination_estimate>=0.0", "contamination_estimate<=1.0"]
@@ -228,9 +260,13 @@ stage_failure_diagnosis_hints:
   bam.mapq_filter: ["review MAPQ threshold to avoid over-filtering endogenous reads"]
   bam.length_filter: ["review minimum read-length threshold against fragment-size expectations"]
   bam.markdup: ["check duplicate identification assumptions and read-group tags"]
+  bam.duplication_metrics: ["verify duplicate annotation assumptions and read-group tags"]
   bam.complexity: ["verify library complexity model input depth and duplication signals"]
   bam.coverage: ["verify reference naming consistency and depth inputs"]
+  bam.insert_size: ["check paired-end orientation assumptions and template-length outliers"]
+  bam.gc_bias: ["verify reference GC model inputs and binning assumptions"]
   bam.endogenous_content: ["verify host/non-host contig inclusion rules and mapping summaries"]
+  bam.overlap_correction: ["check read pairing consistency and overlap clipping thresholds"]
   bam.damage: ["check PMD/damage parameterization and read-end clipping assumptions"]
   bam.authenticity: ["verify PMD threshold and deamination model assumptions"]
   bam.contamination: ["ensure required mt/panel references and contamination model inputs"]
@@ -248,6 +284,7 @@ pipeline_compositions:
     - bam.filter
     - bam.mapq_filter
     - bam.length_filter
+    - bam.duplication_metrics
     - bam.damage
     - bam.authenticity
     - bam.contamination
@@ -265,6 +302,7 @@ stage_ordering_constraints:
   bam.filter: [bam.validate]
   bam.mapq_filter: [bam.validate]
   bam.length_filter: [bam.mapq_filter]
+  bam.duplication_metrics: [bam.length_filter]
   bam.bias_mitigation: [bam.filter]
   bam.recalibration: [bam.bias_mitigation]
   bam.damage: [bam.filter]
@@ -274,6 +312,9 @@ stage_ordering_constraints:
   bam.contamination: [bam.authenticity]
   bam.coverage: [bam.filter]
   bam.endogenous_content: [bam.mapping_summary]
+  bam.insert_size: [bam.duplication_metrics]
+  bam.gc_bias: [bam.duplication_metrics]
+  bam.overlap_correction: [bam.length_filter]
   bam.sex: [bam.coverage]
   bam.kinship: [bam.sex]
 stage_prerequisites:
@@ -286,6 +327,7 @@ stage_prerequisites:
   bam.filter: [bam.validate]
   bam.mapq_filter: [bam.validate]
   bam.length_filter: [bam.mapq_filter]
+  bam.duplication_metrics: [bam.length_filter]
   bam.bias_mitigation: [bam.filter]
   bam.recalibration: [bam.bias_mitigation]
   bam.damage: [bam.filter]
@@ -295,6 +337,9 @@ stage_prerequisites:
   bam.contamination: [bam.authenticity]
   bam.coverage: [bam.filter]
   bam.endogenous_content: [bam.mapping_summary]
+  bam.insert_size: [bam.duplication_metrics]
+  bam.gc_bias: [bam.duplication_metrics]
+  bam.overlap_correction: [bam.length_filter]
   bam.sex: [bam.coverage]
   bam.kinship: [bam.sex]
 stage_resource_hints:
@@ -307,10 +352,14 @@ stage_resource_hints:
   bam.filter: { memory_gb: 8.0, time_minutes: 40, threads: 6 }
   bam.mapq_filter: { memory_gb: 8.0, time_minutes: 35, threads: 6 }
   bam.length_filter: { memory_gb: 8.0, time_minutes: 35, threads: 6 }
+  bam.duplication_metrics: { memory_gb: 10.0, time_minutes: 45, threads: 6 }
   bam.bias_mitigation: { memory_gb: 10.0, time_minutes: 60, threads: 6 }
   bam.recalibration: { memory_gb: 18.0, time_minutes: 120, threads: 10 }
   bam.coverage: { memory_gb: 8.0, time_minutes: 45, threads: 6 }
+  bam.insert_size: { memory_gb: 8.0, time_minutes: 40, threads: 4 }
+  bam.gc_bias: { memory_gb: 8.0, time_minutes: 40, threads: 4 }
   bam.endogenous_content: { memory_gb: 6.0, time_minutes: 25, threads: 4 }
+  bam.overlap_correction: { memory_gb: 8.0, time_minutes: 35, threads: 4 }
   bam.damage: { memory_gb: 12.0, time_minutes: 90, threads: 8 }
   bam.authenticity: { memory_gb: 10.0, time_minutes: 60, threads: 6 }
   bam.contamination: { memory_gb: 12.0, time_minutes: 90, threads: 8 }
@@ -328,10 +377,14 @@ stage_output_size_estimates_mb:
   bam.filter: { filtered_bam: 4200.0 }
   bam.mapq_filter: { filtered_bam: 4200.0 }
   bam.length_filter: { filtered_bam: 4100.0 }
+  bam.duplication_metrics: { duplication_report: 5.0 }
   bam.bias_mitigation: { bias_report: 7.0 }
   bam.recalibration: { recalibration_table: 20.0 }
   bam.coverage: { coverage_report: 30.0 }
+  bam.insert_size: { insert_size_report: 8.0 }
+  bam.gc_bias: { gc_bias_report: 8.0 }
   bam.endogenous_content: { endogenous_report: 2.0 }
+  bam.overlap_correction: { overlap_corrected_bam: 4050.0 }
   bam.damage: { damage_report: 10.0 }
   bam.authenticity: { authenticity_report: 8.0 }
   bam.contamination: { contamination_estimate: 5.0, contammix_report: 8.0 }
@@ -349,10 +402,14 @@ stage_sanity_metrics:
   bam.filter: [reads_retained_fraction]
   bam.mapq_filter: [reads_retained_fraction]
   bam.length_filter: [reads_retained_fraction]
+  bam.duplication_metrics: [duplication_rate]
   bam.bias_mitigation: [gc_bias_score]
   bam.recalibration: [recalibration_residual_error]
   bam.coverage: [mean_coverage]
+  bam.insert_size: [insert_size_mean]
+  bam.gc_bias: [gc_bias_score]
   bam.endogenous_content: [endogenous_content_ratio]
+  bam.overlap_correction: [reads_retained_fraction]
   bam.damage: [ct_5prime_rate, ga_3prime_rate]
   bam.authenticity: [authenticity_score]
   bam.contamination: [contamination_estimate]
@@ -370,10 +427,14 @@ stage_qc_thresholds:
   bam.filter: { reads_retained_fraction: { warn: "<0.2", fail: "<0.1" } }
   bam.mapq_filter: { reads_retained_fraction: { warn: "<0.2", fail: "<0.1" } }
   bam.length_filter: { reads_retained_fraction: { warn: "<0.3", fail: "<0.15" } }
+  bam.duplication_metrics: { duplication_rate: { warn: ">=0.6", fail: ">=0.8" } }
   bam.bias_mitigation: { gc_bias_score: { warn: ">0.2", fail: ">0.4" } }
   bam.recalibration: { recalibration_residual_error: { warn: ">0.05", fail: ">0.1" } }
   bam.coverage: { mean_coverage: { warn: "<0.5", fail: "<0.1" } }
+  bam.insert_size: { insert_size_mean: { warn: "<35", fail: "<20" } }
+  bam.gc_bias: { gc_bias_score: { warn: ">0.2", fail: ">0.4" } }
   bam.endogenous_content: { endogenous_content_ratio: { warn: "<0.02", fail: "<0.005" } }
+  bam.overlap_correction: { reads_retained_fraction: { warn: "<0.2", fail: "<0.1" } }
   bam.damage: { ct_5prime_rate: { warn: "<0.02", fail: "<0.005" } }
   bam.authenticity: { authenticity_score: { warn: "<0.2", fail: "<0.1" } }
   bam.contamination: { contamination_estimate: { warn: ">0.05", fail: ">0.2" } }
@@ -391,10 +452,14 @@ stage_contamination_thresholds:
   bam.filter: { contamination_estimate: { warn: ">0.05", fail: ">0.2" } }
   bam.mapq_filter: { contamination_estimate: { warn: ">0.05", fail: ">0.2" } }
   bam.length_filter: { contamination_estimate: { warn: ">0.05", fail: ">0.2" } }
+  bam.duplication_metrics: { contamination_estimate: { warn: ">0.05", fail: ">0.2" } }
   bam.bias_mitigation: { contamination_estimate: { warn: ">0.05", fail: ">0.2" } }
   bam.recalibration: { contamination_estimate: { warn: ">0.05", fail: ">0.2" } }
   bam.coverage: { contamination_estimate: { warn: ">0.05", fail: ">0.2" } }
   bam.endogenous_content: { contamination_estimate: { warn: ">0.05", fail: ">0.2" } }
+  bam.insert_size: { contamination_estimate: { warn: ">0.05", fail: ">0.2" } }
+  bam.gc_bias: { contamination_estimate: { warn: ">0.05", fail: ">0.2" } }
+  bam.overlap_correction: { contamination_estimate: { warn: ">0.05", fail: ">0.2" } }
   bam.damage: { contamination_estimate: { warn: ">0.05", fail: ">0.2" } }
   bam.authenticity: { contamination_estimate: { warn: ">0.05", fail: ">0.2" } }
   bam.contamination: { contamination_estimate: { warn: ">0.05", fail: ">0.2" } }
@@ -412,10 +477,14 @@ stage_authenticity_thresholds:
   bam.filter: { authenticity_score: { warn: "<0.2", fail: "<0.1" } }
   bam.mapq_filter: { authenticity_score: { warn: "<0.2", fail: "<0.1" } }
   bam.length_filter: { authenticity_score: { warn: "<0.2", fail: "<0.1" } }
+  bam.duplication_metrics: { authenticity_score: { warn: "<0.2", fail: "<0.1" } }
   bam.bias_mitigation: { authenticity_score: { warn: "<0.2", fail: "<0.1" } }
   bam.recalibration: { authenticity_score: { warn: "<0.2", fail: "<0.1" } }
   bam.coverage: { authenticity_score: { warn: "<0.2", fail: "<0.1" } }
   bam.endogenous_content: { authenticity_score: { warn: "<0.2", fail: "<0.1" } }
+  bam.insert_size: { authenticity_score: { warn: "<0.2", fail: "<0.1" } }
+  bam.gc_bias: { authenticity_score: { warn: "<0.2", fail: "<0.1" } }
+  bam.overlap_correction: { authenticity_score: { warn: "<0.2", fail: "<0.1" } }
   bam.damage: { authenticity_score: { warn: "<0.2", fail: "<0.1" } }
   bam.authenticity: { authenticity_score: { warn: "<0.2", fail: "<0.1" } }
   bam.contamination: { authenticity_score: { warn: "<0.2", fail: "<0.1" } }
@@ -433,10 +502,14 @@ stage_duplication_thresholds:
   bam.filter: { duplication_rate: { warn: ">=0.6", fail: ">=0.8" } }
   bam.mapq_filter: { duplication_rate: { warn: ">=0.6", fail: ">=0.8" } }
   bam.length_filter: { duplication_rate: { warn: ">=0.6", fail: ">=0.8" } }
+  bam.duplication_metrics: { duplication_rate: { warn: ">=0.6", fail: ">=0.8" } }
   bam.bias_mitigation: { duplication_rate: { warn: ">=0.6", fail: ">=0.8" } }
   bam.recalibration: { duplication_rate: { warn: ">=0.6", fail: ">=0.8" } }
   bam.coverage: { duplication_rate: { warn: ">=0.6", fail: ">=0.8" } }
   bam.endogenous_content: { duplication_rate: { warn: ">=0.6", fail: ">=0.8" } }
+  bam.insert_size: { duplication_rate: { warn: ">=0.6", fail: ">=0.8" } }
+  bam.gc_bias: { duplication_rate: { warn: ">=0.6", fail: ">=0.8" } }
+  bam.overlap_correction: { duplication_rate: { warn: ">=0.6", fail: ">=0.8" } }
   bam.damage: { duplication_rate: { warn: ">=0.6", fail: ">=0.8" } }
   bam.authenticity: { duplication_rate: { warn: ">=0.6", fail: ">=0.8" } }
   bam.contamination: { duplication_rate: { warn: ">=0.6", fail: ">=0.8" } }
@@ -454,10 +527,14 @@ stage_coverage_sufficiency:
   bam.filter: ["reads_retained_fraction>=0.1"]
   bam.mapq_filter: ["reads_retained_fraction>=0.1"]
   bam.length_filter: ["reads_retained_fraction>=0.1"]
+  bam.duplication_metrics: ["reads_after_dedup>=10000"]
   bam.bias_mitigation: ["reads_retained_fraction>=0.1"]
   bam.recalibration: ["known_sites_available=true"]
   bam.coverage: ["mean_coverage>=0.5", "breadth_1x>=0.6"]
   bam.endogenous_content: ["host_contig_set_declared=true", "mapped_reads>=1000"]
+  bam.insert_size: ["paired_templates>=1000"]
+  bam.gc_bias: ["reference_gc_bins_available=true"]
+  bam.overlap_correction: ["paired_reads_present=true"]
   bam.damage: ["coverage_at_damage_sites>=0.2"]
   bam.authenticity: ["pmd_enriched_reads>=500"]
   bam.contamination: ["panel_or_mt_ref_available=true"]
@@ -475,10 +552,14 @@ stage_sex_kinship_sufficiency:
   bam.filter: ["not_applicable"]
   bam.mapq_filter: ["not_applicable"]
   bam.length_filter: ["not_applicable"]
+  bam.duplication_metrics: ["not_applicable"]
   bam.bias_mitigation: ["not_applicable"]
   bam.recalibration: ["not_applicable"]
   bam.coverage: ["not_applicable"]
   bam.endogenous_content: ["not_applicable"]
+  bam.insert_size: ["not_applicable"]
+  bam.gc_bias: ["not_applicable"]
+  bam.overlap_correction: ["not_applicable"]
   bam.damage: ["not_applicable"]
   bam.authenticity: ["not_applicable"]
   bam.contamination: ["not_applicable"]

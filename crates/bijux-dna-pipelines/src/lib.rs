@@ -142,10 +142,18 @@ impl DefaultParams {
                     Self::encode(inner, "bam.length_filter")
                 }
                 BamEffectiveParams::Markdup(inner) => Self::encode(inner, "bam.markdup"),
+                BamEffectiveParams::DuplicationMetrics(inner) => {
+                    Self::encode(inner, "bam.duplication_metrics")
+                }
                 BamEffectiveParams::Complexity(inner) => Self::encode(inner, "bam.complexity"),
                 BamEffectiveParams::Coverage(inner) => Self::encode(inner, "bam.coverage"),
+                BamEffectiveParams::InsertSize(inner) => Self::encode(inner, "bam.insert_size"),
+                BamEffectiveParams::GcBias(inner) => Self::encode(inner, "bam.gc_bias"),
                 BamEffectiveParams::EndogenousContent(inner) => {
                     Self::encode(inner, "bam.endogenous_content")
+                }
+                BamEffectiveParams::OverlapCorrection(inner) => {
+                    Self::encode(inner, "bam.overlap_correction")
                 }
                 BamEffectiveParams::Damage(inner) => Self::encode(inner, "bam.damage"),
                 BamEffectiveParams::Authenticity(inner) => Self::encode(inner, "bam.authenticity"),

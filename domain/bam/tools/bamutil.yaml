@@ -1,0 +1,28 @@
+schema_version: "bijux.tool.v2"
+tool_id: "bamutil"
+upstream: "https://github.com/statgen/bamUtil"
+versioning_strategy: "pinned"
+pin_strategy: "pinned"
+default_version: "planned"
+install_kind: "container"
+license: "GPL-3.0"
+citation: "pending:tool-publication"
+stage_ids: ["bam.overlap_correction"]
+status: "planned"
+scope: "pre_hpc_pre_vcf"
+expected_artifacts: ["overlap_corrected_bam","overlap_metrics"]
+metrics_schema_id: "bijux.bam.overlap_correction.v1"
+metrics_schema: "bijux.bam.overlap_correction.v1"
+version_cmd: "bam clipOverlap --help"
+help_cmd: "bam clipOverlap --help"
+comparability:
+  comparable_with: ["adapterremoval"]
+  non_comparable_with: []
+comparability_notes: "Comparable only within overlap-correction stage with identical paired-end inputs."
+capabilities:
+  - bam_input
+io_contract:
+  required_inputs:
+    - bam
+
+notes: "Domain SSOT tool contract entry."

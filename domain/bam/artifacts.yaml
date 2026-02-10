@@ -19,7 +19,11 @@ artifact_ids:
   - sex_report_json
   - mapq_filter_report_json
   - length_filter_report_json
+  - duplication_metrics_report_json
+  - insert_size_report_json
+  - gc_bias_report_json
   - endogenous_content_report_json
+  - overlap_correction_report_json
   - report_json
   - aligned_bam
   - authenticity_report
@@ -35,6 +39,14 @@ artifact_ids:
   - damage_plot
   - damage_profile
   - dup_metrics
+  - duplication_report
+  - duplication_histogram
+  - insert_size_report
+  - insert_size_histogram
+  - gc_bias_report
+  - gc_bias_plot
+  - overlap_corrected_bam
+  - overlap_metrics
   - haplogroup_report
   - interval_report
   - kinship_report
