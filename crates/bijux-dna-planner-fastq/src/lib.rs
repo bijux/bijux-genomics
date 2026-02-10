@@ -846,7 +846,11 @@ pub fn select_preprocess_tools(
 pub fn select_trim_tools(tools: &[String], allow_experimental: bool) -> Result<Vec<String>> {
     let mut allowlist =
         crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_TRIM);
-    if !allow_experimental {
+    if allow_experimental {
+        if !allowlist.iter().any(|tool| tool.as_str() == "seqpurge") {
+            allowlist.push(bijux_dna_core::ids::ToolId::new("seqpurge".to_string()));
+        }
+    } else {
         allowlist.retain(|tool| tool.as_str() != "seqpurge");
     }
     select_tools_with_allowlist(tools, &allowlist)

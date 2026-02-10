@@ -31,8 +31,13 @@ include!("policies.rs");
 /// # Errors
 /// Returns an error if CLI execution fails.
 pub fn run_with_args(args: &[&str], cwd: &Path) -> Result<()> {
+    let normalized_args = if matches!(args.first(), Some(&"bijux") | Some(&"bijux-dna")) {
+        &args[1..]
+    } else {
+        args
+    };
     let argv = std::iter::once("bijux-dna")
-        .chain(args.iter().copied())
+        .chain(normalized_args.iter().copied())
         .collect::<Vec<_>>();
     let cli = cli::Cli::parse_from(argv);
     run_with_cli(&cli, cwd)

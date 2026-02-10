@@ -28,7 +28,7 @@ invariants:
 allowed_missingness:
   - "none"
 compatible_tools:
-  - samtools
+  - fastqc
 assumptions:
   - "default stage assumptions captured"
 bank_hooks:

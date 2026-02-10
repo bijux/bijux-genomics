@@ -64,7 +64,9 @@ invariants:
 allowed_missingness:
   - "none"
 compatible_tools:
-  - samtools
+  - multiqc
+  - qualimap
+  - fastqc
 assumptions:
   - "default stage assumptions captured"
 bank_hooks:

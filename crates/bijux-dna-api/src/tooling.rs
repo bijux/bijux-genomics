@@ -49,7 +49,7 @@ pub fn filter_tools_by_role(
             ToolId::try_from(tool.as_str()).map_err(|err| anyhow!("invalid tool id: {err}"))?;
         let manifest = registry
             .tool_by_id(&stage_id, &tool_id)
-            .ok_or_else(|| anyhow!("tool {tool} missing from manifests"))?;
+            .ok_or_else(|| anyhow!("tool {tool} missing from manifests for stage {stage_id}"))?;
         let tier = match manifest.role {
             ToolRole::Authoritative => "gold",
             ToolRole::Diagnostic => "silver",
