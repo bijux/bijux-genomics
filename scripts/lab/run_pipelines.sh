@@ -39,7 +39,7 @@ echo "Pipelines: ${PIPELINE_IDS}"
 
 for pipeline in $(echo "$PIPELINE_IDS" | tr "," " "); do
   echo "→ run pipeline ${pipeline}"
-  cargo run --bin bijux -- run \
+  cargo run --bin bijux-dna -- run \
     --pipeline "${pipeline}" \
     --runner "${RUNNER_KIND}" \
     --corpus-root "${CORPUS_ROOT}" \
