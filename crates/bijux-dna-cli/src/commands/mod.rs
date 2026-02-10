@@ -50,16 +50,22 @@ pub fn run_with_cli(cli: &cli::Cli, cwd: &Path) -> Result<()> {
         std::env::set_var("BIJUX_TELEMETRY_JSONL", telemetry_path);
     }
     let domain_dir = cwd.join("domain");
+    let registry_path = cwd.join("configs").join("tool_registry.toml");
 
     if let cli::RootCommand::Environment { command } = &cli.command {
         return handle_environment_root(command, cwd);
     }
+    if let cli::RootCommand::Registry { command } = &cli.command {
+        return handle_registry_root(command, cwd);
+    }
     let dna_command = match &cli.command {
         cli::RootCommand::Dna { command } => command,
-        cli::RootCommand::Environment { .. } => unreachable!("handled above"),
+        cli::RootCommand::Environment { .. } | cli::RootCommand::Registry { .. } => {
+            unreachable!("handled above")
+        }
     };
 
-    if fastq::handle_meta_commands(cli, dna_command, &domain_dir)? {
+    if fastq::handle_meta_commands(cli, dna_command, &domain_dir, &registry_path)? {
         return Ok(());
     }
 
@@ -83,7 +89,7 @@ pub fn run_with_cli(cli: &cli::Cli, cwd: &Path) -> Result<()> {
         return Ok(());
     }
 
-    let registry = load_manifests(&domain_dir).map_err(|err| {
+    let registry = load_manifests(&registry_path).map_err(|err| {
         anyhow!(CategorizedError::new(
             ErrorCategory::ContractError,
             format!("manifest validation failed: {err}")
@@ -108,7 +114,7 @@ fn handle_environment_root(command: &cli::EnvCommand, cwd: &Path) -> Result<()> 
     use bijux_dna_api::v1::api::env::{load_image_catalog, load_platform};
     match command {
         cli::EnvCommand::List => {
-            let registry_path = cwd.join("configs").join("tools.toml");
+            let registry_path = cwd.join("configs").join("tool_registry.toml");
             print_env_registry_list(&registry_path)?;
         }
         cli::EnvCommand::Smoke(args) => {
@@ -126,6 +132,19 @@ fn handle_environment_root(command: &cli::EnvCommand, cwd: &Path) -> Result<()> 
                 cli::EnvCommand::List | cli::EnvCommand::Smoke(_) => {}
             }
         }
+    }
+    Ok(())
+}
+
+fn handle_registry_root(command: &cli::RegistryCommand, cwd: &Path) -> Result<()> {
+    use crate::commands::cli::env::{
+        print_registry_list_stages, print_registry_list_tools, print_registry_show,
+    };
+    let registry_path = cwd.join("configs").join("tool_registry.toml");
+    match command {
+        cli::RegistryCommand::ListTools => print_registry_list_tools(&registry_path)?,
+        cli::RegistryCommand::ListStages => print_registry_list_stages(&registry_path)?,
+        cli::RegistryCommand::Show { id } => print_registry_show(&registry_path, id)?,
     }
     Ok(())
 }

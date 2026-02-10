@@ -21,6 +21,7 @@ pub struct Cli {
 }
 
 #[derive(Debug, Subcommand)]
+#[allow(clippy::large_enum_variant)]
 pub enum RootCommand {
     Dna {
         #[command(subcommand)]
@@ -29,6 +30,10 @@ pub enum RootCommand {
     Environment {
         #[command(subcommand)]
         command: EnvCommand,
+    },
+    Registry {
+        #[command(subcommand)]
+        command: RegistryCommand,
     },
 }
 
@@ -176,6 +181,15 @@ pub enum EnvCommand {
     Doctor,
     List,
     Smoke(SmokeArgs),
+}
+
+#[derive(Debug, Subcommand)]
+pub enum RegistryCommand {
+    #[command(name = "list-tools")]
+    ListTools,
+    #[command(name = "list-stages")]
+    ListStages,
+    Show { id: String },
 }
 
 #[derive(Debug, Args)]

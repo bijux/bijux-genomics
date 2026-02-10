@@ -37,8 +37,7 @@ pub fn print_env_registry_list(registry_path: &Path) -> Result<()> {
         let pinned = row
             .pinned_commit
             .as_deref()
-            .map(|s| s.len() == 40 && s.chars().all(|c| c.is_ascii_hexdigit()))
-            .unwrap_or(false);
+            .is_some_and(|s| s.len() == 40 && s.chars().all(|c| c.is_ascii_hexdigit()));
         println!(
             "{}\t{has_docker}\t{has_apptainer}\t{has_smoke}\t{pinned}",
             row.id
@@ -103,6 +102,88 @@ fn parse_tools_registry_rows(raw: &str) -> Result<Vec<RegistryRow>> {
         return Err(anyhow!("missing [[tools]] entries"));
     }
     Ok(rows)
+}
+
+/// # Errors
+/// Returns an error if registry cannot be read.
+pub fn print_registry_list_tools(registry_path: &Path) -> Result<()> {
+    let raw = std::fs::read_to_string(registry_path)
+        .with_context(|| format!("read {}", registry_path.display()))?;
+    let parsed: toml::Value = raw.parse().context("parse registry toml")?;
+    let mut tools = parsed
+        .get("tools")
+        .and_then(toml::Value::as_array)
+        .cloned()
+        .unwrap_or_default()
+        .into_iter()
+        .filter_map(|tool| {
+            tool.get("id")
+                .and_then(toml::Value::as_str)
+                .map(str::to_string)
+        })
+        .collect::<Vec<_>>();
+    tools.sort();
+    for tool in tools {
+        println!("{tool}");
+    }
+    Ok(())
+}
+
+/// # Errors
+/// Returns an error if registry cannot be read.
+pub fn print_registry_list_stages(registry_path: &Path) -> Result<()> {
+    let raw = std::fs::read_to_string(registry_path)
+        .with_context(|| format!("read {}", registry_path.display()))?;
+    let parsed: toml::Value = raw.parse().context("parse registry toml")?;
+    let mut stages = parsed
+        .get("stages")
+        .and_then(toml::Value::as_array)
+        .cloned()
+        .unwrap_or_default()
+        .into_iter()
+        .filter_map(|stage| {
+            stage
+                .get("id")
+                .and_then(toml::Value::as_str)
+                .map(str::to_string)
+        })
+        .collect::<Vec<_>>();
+    stages.sort();
+    for stage in stages {
+        println!("{stage}");
+    }
+    Ok(())
+}
+
+/// # Errors
+/// Returns an error if id is not found or registry cannot be parsed.
+pub fn print_registry_show(registry_path: &Path, id: &str) -> Result<()> {
+    let raw = std::fs::read_to_string(registry_path)
+        .with_context(|| format!("read {}", registry_path.display()))?;
+    let parsed: toml::Value = raw.parse().context("parse registry toml")?;
+    if let Some(tool) = parsed
+        .get("tools")
+        .and_then(toml::Value::as_array)
+        .and_then(|arr| {
+            arr.iter()
+                .find(|tool| tool.get("id").and_then(toml::Value::as_str) == Some(id))
+        })
+    {
+        crate::commands::cli::render::json::print_pretty(tool)?;
+        return Ok(());
+    }
+    if let Some(stage) = parsed
+        .get("stages")
+        .and_then(toml::Value::as_array)
+        .and_then(|arr| {
+            arr.iter()
+                .find(|stage| stage.get("id").and_then(toml::Value::as_str) == Some(id))
+        })
+    {
+        crate::commands::cli::render::json::print_pretty(stage)?;
+        return Ok(());
+    }
+    Err(anyhow!("registry id not found: {id}"))
 }
 
 fn parse_toml_string(line: &str, key: &str) -> Option<String> {

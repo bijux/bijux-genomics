@@ -3,9 +3,23 @@ use bijux_dna_core::contract::ToolRole;
 use bijux_dna_core::ids::{StageId, ToolId};
 
 pub fn load_registry(
-    domain_root: &std::path::Path,
+    source_path: &std::path::Path,
 ) -> Result<bijux_dna_core::contract::ToolRegistry> {
-    bijux_dna_runtime::manifests::load_manifests(domain_root)
+    let registry_path = if source_path.is_dir()
+        && source_path
+            .file_name()
+            .and_then(|name| name.to_str())
+            .is_some_and(|name| name == "domain")
+    {
+        source_path
+            .parent()
+            .unwrap_or(source_path)
+            .join("configs")
+            .join("tool_registry.toml")
+    } else {
+        source_path.to_path_buf()
+    };
+    bijux_dna_runtime::manifests::load_manifests(&registry_path)
         .map_err(|err| anyhow!("manifest validation failed: {err}"))
 }
 
