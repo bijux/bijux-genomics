@@ -88,9 +88,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let smoke_status = Command::new("docker")
             .arg("run")
             .arg("--rm")
+            .arg("--entrypoint")
+            .arg("/bin/sh")
             .arg(&image_name)
-            .arg("sh")
-            .arg("-c")
+            .arg("-lc")
             .arg(&tool.version_cmd)
             .status()?;
         if !smoke_status.success() {
