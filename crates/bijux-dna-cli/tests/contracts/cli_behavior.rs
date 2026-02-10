@@ -33,10 +33,9 @@ seqkit = { version = "0.0.0" }
 
     fn setup_configs_with_images(&self, images: &str) {
         let configs_dir = self.path().join("configs");
-        let profiles_dir = configs_dir.join("profiles");
-        std::fs::create_dir_all(&profiles_dir).expect("create profiles");
+        std::fs::create_dir_all(&configs_dir).expect("create configs");
         std::fs::write(
-            profiles_dir.join("local.toml"),
+            configs_dir.join("profile.local.toml"),
             r#"
 container_runtime = "docker"
 default_threads = 1

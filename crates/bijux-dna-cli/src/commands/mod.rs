@@ -85,8 +85,7 @@ pub fn run_with_cli(cli: &cli::Cli, cwd: &Path) -> Result<()> {
 
     let profile_path = cwd
         .join("configs")
-        .join("profiles")
-        .join(format!("{}.toml", cli.profile));
+        .join(format!("profile.{}.toml", cli.profile));
     let mut profile = load_profile(&profile_path).map_err(|err| {
         anyhow!(CategorizedError::new(
             ErrorCategory::PlanError,
@@ -207,8 +206,8 @@ fn handle_status_root(args: &cli::StatusArgs, cwd: &Path) -> Result<()> {
 
         let index = domain_dir.join(dom).join("index.yaml");
         if index.exists() {
-            let raw =
-                std::fs::read_to_string(&index).with_context(|| format!("read {}", index.display()))?;
+            let raw = std::fs::read_to_string(&index)
+                .with_context(|| format!("read {}", index.display()))?;
             let mut in_matrix = false;
             for line in raw.lines() {
                 let trimmed = line.trim();
@@ -233,7 +232,11 @@ fn handle_status_root(args: &cli::StatusArgs, cwd: &Path) -> Result<()> {
                     continue;
                 };
                 let tools_csv = rhs.trim().trim_start_matches('[').trim_end_matches(']');
-                for tool in tools_csv.split(',').map(str::trim).filter(|v| !v.is_empty()) {
+                for tool in tools_csv
+                    .split(',')
+                    .map(str::trim)
+                    .filter(|v| !v.is_empty())
+                {
                     let fixture = domain_dir
                         .join(dom)
                         .join("fixtures")

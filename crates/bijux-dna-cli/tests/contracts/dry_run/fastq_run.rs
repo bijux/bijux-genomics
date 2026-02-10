@@ -10,10 +10,9 @@ fn cli_fastq_run_dry_run_emits_manifest_and_graph() {
     std::fs::write(&input, "@r1\nACGT\n+\n####\n").expect("write fastq");
 
     let configs_dir = root.join("configs");
-    let profiles_dir = configs_dir.join("profiles");
-    std::fs::create_dir_all(&profiles_dir).expect("create profiles");
+    std::fs::create_dir_all(&configs_dir).expect("create configs");
     std::fs::write(
-        profiles_dir.join("local.toml"),
+        configs_dir.join("profile.local.toml"),
         r#"
 container_runtime = "docker"
 default_threads = 1
