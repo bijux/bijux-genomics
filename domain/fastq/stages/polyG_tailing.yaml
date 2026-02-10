@@ -1,5 +1,5 @@
 extends: "_schema.yaml"
-stage_id: "fastq.polyG_tailing"
+stage_id: "fastq.polyg_tailing"
 status: "supported"
 scope: "pre_hpc_pre_vcf"
 domain: "fastq"
