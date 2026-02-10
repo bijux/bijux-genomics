@@ -109,58 +109,45 @@ pub enum DefaultParams {
 }
 
 impl DefaultParams {
+    fn encode<T: Serialize>(value: &T, kind: &str) -> serde_json::Value {
+        serde_json::to_value(value)
+            .unwrap_or_else(|err| panic!("failed to serialize {kind} default params: {err}"))
+    }
+
     #[must_use]
     pub fn to_json(&self) -> serde_json::Value {
         match self {
-            DefaultParams::FastqValidate(value) => serde_json::to_value(value).unwrap_or_default(),
+            DefaultParams::FastqValidate(value) => Self::encode(value, "fastq.validate"),
             DefaultParams::FastqDetectAdapters(value) => {
-                serde_json::to_value(value).unwrap_or_default()
+                Self::encode(value, "fastq.detect_adapters")
             }
-            DefaultParams::FastqTrim(value) => serde_json::to_value(value).unwrap_or_default(),
-            DefaultParams::FastqFilter(value) => serde_json::to_value(value).unwrap_or_default(),
-            DefaultParams::FastqQcPost(value) => serde_json::to_value(value).unwrap_or_default(),
+            DefaultParams::FastqTrim(value) => Self::encode(value, "fastq.trim"),
+            DefaultParams::FastqFilter(value) => Self::encode(value, "fastq.filter"),
+            DefaultParams::FastqQcPost(value) => Self::encode(value, "fastq.qc_post"),
             DefaultParams::FastqPreprocess(value) => {
-                serde_json::to_value(value).unwrap_or_default()
+                Self::encode(value, "fastq.preprocess")
             }
-            DefaultParams::FastqMerge(value) => serde_json::to_value(value).unwrap_or_default(),
-            DefaultParams::FastqScreen(value) => serde_json::to_value(value).unwrap_or_default(),
+            DefaultParams::FastqMerge(value) => Self::encode(value, "fastq.merge"),
+            DefaultParams::FastqScreen(value) => Self::encode(value, "fastq.screen"),
             DefaultParams::Bam(value) => match value {
-                BamEffectiveParams::Align(inner) => serde_json::to_value(inner).unwrap_or_default(),
-                BamEffectiveParams::Validate(inner) => {
-                    serde_json::to_value(inner).unwrap_or_default()
-                }
-                BamEffectiveParams::QcPre(inner) => serde_json::to_value(inner).unwrap_or_default(),
-                BamEffectiveParams::Filter(inner) => serde_json::to_value(inner).unwrap_or_default(),
-                BamEffectiveParams::Markdup(inner) => {
-                    serde_json::to_value(inner).unwrap_or_default()
-                }
-                BamEffectiveParams::Complexity(inner) => {
-                    serde_json::to_value(inner).unwrap_or_default()
-                }
-                BamEffectiveParams::Coverage(inner) => {
-                    serde_json::to_value(inner).unwrap_or_default()
-                }
-                BamEffectiveParams::Damage(inner) => serde_json::to_value(inner).unwrap_or_default(),
-                BamEffectiveParams::Authenticity(inner) => {
-                    serde_json::to_value(inner).unwrap_or_default()
-                }
-                BamEffectiveParams::Contamination(inner) => {
-                    serde_json::to_value(inner).unwrap_or_default()
-                }
-                BamEffectiveParams::Sex(inner) => serde_json::to_value(inner).unwrap_or_default(),
+                BamEffectiveParams::Align(inner) => Self::encode(inner, "bam.align"),
+                BamEffectiveParams::Validate(inner) => Self::encode(inner, "bam.validate"),
+                BamEffectiveParams::QcPre(inner) => Self::encode(inner, "bam.qc_pre"),
+                BamEffectiveParams::Filter(inner) => Self::encode(inner, "bam.filter"),
+                BamEffectiveParams::Markdup(inner) => Self::encode(inner, "bam.markdup"),
+                BamEffectiveParams::Complexity(inner) => Self::encode(inner, "bam.complexity"),
+                BamEffectiveParams::Coverage(inner) => Self::encode(inner, "bam.coverage"),
+                BamEffectiveParams::Damage(inner) => Self::encode(inner, "bam.damage"),
+                BamEffectiveParams::Authenticity(inner) => Self::encode(inner, "bam.authenticity"),
+                BamEffectiveParams::Contamination(inner) => Self::encode(inner, "bam.contamination"),
+                BamEffectiveParams::Sex(inner) => Self::encode(inner, "bam.sex"),
                 BamEffectiveParams::BiasMitigation(inner) => {
-                    serde_json::to_value(inner).unwrap_or_default()
+                    Self::encode(inner, "bam.bias_mitigation")
                 }
-                BamEffectiveParams::Recalibration(inner) => {
-                    serde_json::to_value(inner).unwrap_or_default()
-                }
-                BamEffectiveParams::Haplogroups(inner) => {
-                    serde_json::to_value(inner).unwrap_or_default()
-                }
-                BamEffectiveParams::Genotyping(inner) => {
-                    serde_json::to_value(inner).unwrap_or_default()
-                }
-                BamEffectiveParams::Kinship(inner) => serde_json::to_value(inner).unwrap_or_default(),
+                BamEffectiveParams::Recalibration(inner) => Self::encode(inner, "bam.recalibration"),
+                BamEffectiveParams::Haplogroups(inner) => Self::encode(inner, "bam.haplogroups"),
+                BamEffectiveParams::Genotyping(inner) => Self::encode(inner, "bam.genotyping"),
+                BamEffectiveParams::Kinship(inner) => Self::encode(inner, "bam.kinship"),
             },
             DefaultParams::Empty(_) => serde_json::json!({}),
         }
