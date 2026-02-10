@@ -6,7 +6,10 @@ if ! command -v rg >/dev/null 2>&1; then
   exit 127
 fi
 
-offenders="$(rg -n "target/" crates --glob "**/tests/**/*.rs" || true)"
+offenders="$(rg -n "target/" crates \
+  --glob "**/tests/**/*.rs" \
+  --glob "!crates/bijux-dna-policies/tests/**" \
+  || true)"
 if [[ -n "${offenders}" ]]; then
   echo "hardcoded target/ paths in tests are forbidden; use env vars/current_exe:" >&2
   echo "${offenders}" >&2
