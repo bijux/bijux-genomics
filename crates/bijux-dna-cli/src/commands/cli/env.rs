@@ -1,11 +1,10 @@
 use std::collections::HashMap;
 use std::path::Path;
-use std::process::Command;
 
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_api::v1::api::env::{
-    available_runners, cache_dir, docker_image_exists, resolve_image, PlatformSpec, RuntimeKind,
-    ToolImageSpec,
+    available_runners, cache_dir, docker_image_exists, resolve_image, run_smoke_script,
+    PlatformSpec, RuntimeKind, ToolImageSpec,
 };
 
 /// # Errors
@@ -29,53 +28,21 @@ pub fn print_env_images<S: ::std::hash::BuildHasher>(
 pub fn print_env_registry_list(registry_path: &Path) -> Result<()> {
     let raw = std::fs::read_to_string(registry_path)
         .with_context(|| format!("read {}", registry_path.display()))?;
-    let parsed: toml::Value = raw.parse().context("parse tools registry TOML")?;
-    let tools = parsed
-        .get("tools")
-        .and_then(toml::Value::as_array)
-        .ok_or_else(|| anyhow!("missing [[tools]] in {}", registry_path.display()))?;
-
     println!("tool\thas_docker\thas_apptainer\thas_smoke\tpinned");
-    for entry in tools {
-        let id = entry
-            .get("id")
-            .and_then(toml::Value::as_str)
-            .unwrap_or("<missing>");
-        let runtimes = entry
-            .get("runtimes")
-            .and_then(toml::Value::as_array)
-            .cloned()
-            .unwrap_or_default();
-        let has_docker = runtimes
-            .iter()
-            .any(|v| v.as_str().map(|s| s == "docker").unwrap_or(false))
-            && entry
-                .get("dockerfile")
-                .and_then(toml::Value::as_str)
-                .map(|s| !s.trim().is_empty())
-                .unwrap_or(false);
-        let has_apptainer = runtimes
-            .iter()
-            .any(|v| v.as_str().map(|s| s == "apptainer").unwrap_or(false))
-            && entry
-                .get("apptainer_def")
-                .and_then(toml::Value::as_str)
-                .map(|s| !s.trim().is_empty())
-                .unwrap_or(false);
-        let has_smoke = entry
-            .get("version_cmd")
-            .and_then(toml::Value::as_str)
-            .map(|s| !s.trim().is_empty())
+    for row in parse_tools_registry_rows(&raw)? {
+        let has_docker = row.runtimes.iter().any(|v| v == "docker") && row.dockerfile.is_some();
+        let has_apptainer =
+            row.runtimes.iter().any(|v| v == "apptainer") && row.apptainer_def.is_some();
+        let has_smoke = row.version_cmd.is_some();
+        let pinned = row
+            .pinned_commit
+            .as_deref()
+            .map(|s| s.len() == 40 && s.chars().all(|c| c.is_ascii_hexdigit()))
             .unwrap_or(false);
-        let pinned = entry
-            .get("pinned_commit")
-            .and_then(toml::Value::as_str)
-            .map(|s| {
-                let t = s.trim();
-                t.len() == 40 && t.chars().all(|c| c.is_ascii_hexdigit())
-            })
-            .unwrap_or(false);
-        println!("{id}\t{has_docker}\t{has_apptainer}\t{has_smoke}\t{pinned}");
+        println!(
+            "{}\t{has_docker}\t{has_apptainer}\t{has_smoke}\t{pinned}",
+            row.id
+        );
     }
     Ok(())
 }
@@ -83,30 +50,90 @@ pub fn print_env_registry_list(registry_path: &Path) -> Result<()> {
 /// # Errors
 /// Returns an error if smoke script execution fails.
 pub fn run_env_smoke(runtime: &str, tool: &str) -> Result<()> {
-    let script = match runtime {
-        "docker-arm64" => "scripts/smoke-containers-docker-arm64.sh",
-        "docker-amd64" => "scripts/smoke-containers-docker-amd64.sh",
-        "apptainer" => "scripts/smoke-containers-apptainer.sh",
-        other => {
-            return Err(anyhow!(
-                "unsupported runtime `{other}`; expected docker-arm64 | docker-amd64 | apptainer"
-            ));
-        }
-    };
+    run_smoke_script(runtime, tool)
+}
 
-    let status = Command::new("sh")
-        .arg(script)
-        .env("TOOLS", tool)
-        .env("JOBS", "1")
-        .env("SMOKE_LEVEL", "contract")
-        .status()
-        .with_context(|| format!("run smoke script {script}"))?;
-    if !status.success() {
-        return Err(anyhow!(
-            "smoke failed for runtime={runtime} tool={tool} (exit={status})"
-        ));
+#[derive(Default)]
+struct RegistryRow {
+    id: String,
+    runtimes: Vec<String>,
+    dockerfile: Option<String>,
+    apptainer_def: Option<String>,
+    version_cmd: Option<String>,
+    pinned_commit: Option<String>,
+}
+
+fn parse_tools_registry_rows(raw: &str) -> Result<Vec<RegistryRow>> {
+    let mut rows = Vec::new();
+    let mut current: Option<RegistryRow> = None;
+
+    for line in raw.lines() {
+        let trimmed = line.trim();
+        if trimmed.is_empty() || trimmed.starts_with('#') {
+            continue;
+        }
+        if trimmed == "[[tools]]" {
+            if let Some(row) = current.take() {
+                rows.push(row);
+            }
+            current = Some(RegistryRow::default());
+            continue;
+        }
+        let Some(row) = current.as_mut() else {
+            continue;
+        };
+        if let Some(value) = parse_toml_string(trimmed, "id") {
+            row.id = value;
+        } else if let Some(value) = parse_toml_string(trimmed, "dockerfile") {
+            row.dockerfile = Some(value);
+        } else if let Some(value) = parse_toml_string(trimmed, "apptainer_def") {
+            row.apptainer_def = Some(value);
+        } else if let Some(value) = parse_toml_string(trimmed, "version_cmd") {
+            row.version_cmd = Some(value);
+        } else if let Some(value) = parse_toml_string(trimmed, "pinned_commit") {
+            row.pinned_commit = Some(value);
+        } else if let Some(values) = parse_toml_array(trimmed, "runtimes") {
+            row.runtimes = values;
+        }
     }
-    Ok(())
+    if let Some(row) = current {
+        rows.push(row);
+    }
+    if rows.is_empty() {
+        return Err(anyhow!("missing [[tools]] entries"));
+    }
+    Ok(rows)
+}
+
+fn parse_toml_string(line: &str, key: &str) -> Option<String> {
+    let (lhs, rhs) = line.split_once('=')?;
+    if lhs.trim() != key {
+        return None;
+    }
+    let value = rhs.trim();
+    if !(value.starts_with('"') && value.ends_with('"') && value.len() >= 2) {
+        return None;
+    }
+    Some(value[1..value.len() - 1].to_string())
+}
+
+fn parse_toml_array(line: &str, key: &str) -> Option<Vec<String>> {
+    let (lhs, rhs) = line.split_once('=')?;
+    if lhs.trim() != key {
+        return None;
+    }
+    let value = rhs.trim();
+    if !(value.starts_with('[') && value.ends_with(']') && value.len() >= 2) {
+        return None;
+    }
+    let inner = &value[1..value.len() - 1];
+    let items = inner
+        .split(',')
+        .map(str::trim)
+        .filter(|token| !token.is_empty())
+        .map(|token| token.trim_matches('"').to_string())
+        .collect::<Vec<_>>();
+    Some(items)
 }
 
 pub fn print_env_info<S: ::std::hash::BuildHasher>(
