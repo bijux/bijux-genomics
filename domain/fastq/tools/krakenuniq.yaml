@@ -1,22 +1,31 @@
-schema_version: "bijux.tool.v2"
-tool_id: "krakenuniq"
-upstream: "https://github.com/fbreitwieser/krakenuniq"
-versioning_strategy: "pinned"
-pin_strategy: "pinned"
-default_version: "1.0.4"
-install_kind: "container"
-license: "GPL-3.0"
-citation: "pending:tool-publication"
-stage_ids: ["fastq.screen"]
-status: "supported"
-scope: "pre_hpc_pre_vcf"
-expected_artifacts: ["screen_report","screen_summary"]
-metrics_schema_id: "bijux.fastq.classify.v1"
-metrics_schema: "bijux.fastq.classify.v1"
-version_cmd: "krakenuniq --version"
-help_cmd: "krakenuniq --help"
+schema_version: bijux.tool.v2
+tool_id: krakenuniq
+upstream: https://github.com/fbreitwieser/krakenuniq
+versioning_strategy: pinned
+pin_strategy: pinned
+default_version: 1.0.4
+install_kind: container
+license: GPL-3.0
+citation: pending:tool-publication
+stage_ids:
+- fastq.screen
+status: supported
+scope: pre_hpc_pre_vcf
+expected_artifacts:
+- screen_report
+- screen_summary
+metrics_schema_id: bijux.fastq.classify.v1
+metrics_schema: bijux.fastq.classify.v1
+version_cmd: krakenuniq --version
+help_cmd: krakenuniq --help
 comparability:
-  comparable_with: ["kraken2","bracken"]
+  comparable_with:
+  - kraken2
+  - bracken
   non_comparable_with: []
-comparability_notes: "Comparable only within same stage contract and input constraints."
-notes: "Domain SSOT tool contract entry."
+comparability_notes: Comparable only within same stage contract and input constraints.
+notes: Domain SSOT tool contract entry.
+capabilities:
+- SE
+- PE
+- taxonomic

@@ -1,22 +1,33 @@
-schema_version: "bijux.tool.v2"
-tool_id: "skewer"
-upstream: "https://github.com/relipmoc/skewer"
-versioning_strategy: "pinned"
-pin_strategy: "pinned"
-default_version: "latest-pinned"
-install_kind: "container"
-license: "GPL-3.0"
-citation: "pending:tool-publication"
-stage_ids: ["fastq.trim"]
-status: "supported"
-scope: "pre_hpc_pre_vcf"
-expected_artifacts: ["trimmed_fastq_r1","trimmed_fastq_r2","trim_report"]
-metrics_schema_id: "bijux.fastq.trim.v1"
-metrics_schema: "bijux.fastq.trim.v1"
-version_cmd: "skewer --version"
-help_cmd: "skewer --help"
+schema_version: bijux.tool.v2
+tool_id: skewer
+upstream: https://github.com/relipmoc/skewer
+versioning_strategy: pinned
+pin_strategy: pinned
+default_version: latest-pinned
+install_kind: container
+license: GPL-3.0
+citation: pending:tool-publication
+stage_ids:
+- fastq.trim
+status: supported
+scope: pre_hpc_pre_vcf
+expected_artifacts:
+- trimmed_fastq_r1
+- trimmed_fastq_r2
+- trim_report
+metrics_schema_id: bijux.fastq.trim.v1
+metrics_schema: bijux.fastq.trim.v1
+version_cmd: skewer --version
+help_cmd: skewer --help
 comparability:
-  comparable_with: ["cutadapt","fastp","trimmomatic"]
+  comparable_with:
+  - cutadapt
+  - fastp
+  - trimmomatic
   non_comparable_with: []
-comparability_notes: "Comparable only within same stage contract and input constraints."
-notes: "Domain SSOT tool contract entry."
+comparability_notes: Comparable only within same stage contract and input constraints.
+notes: Domain SSOT tool contract entry.
+capabilities:
+- SE
+- PE
+- adapters

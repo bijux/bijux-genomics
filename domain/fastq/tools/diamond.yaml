@@ -1,22 +1,31 @@
-schema_version: "bijux.tool.v2"
-tool_id: "diamond"
-upstream: "https://github.com/bbuchfink/diamond"
-versioning_strategy: "pinned"
-pin_strategy: "pinned"
-default_version: "2.1.8"
-install_kind: "container"
-license: "GPL-3.0"
-citation: "pending:tool-publication"
-stage_ids: ["fastq.screen"]
-status: "supported"
-scope: "pre_hpc_pre_vcf"
-expected_artifacts: ["screen_report"]
-metrics_schema_id: "bijux.fastq.classify.v1"
-metrics_schema: "bijux.fastq.classify.v1"
-version_cmd: "diamond --version"
-help_cmd: "diamond help"
+schema_version: bijux.tool.v2
+tool_id: diamond
+upstream: https://github.com/bbuchfink/diamond
+versioning_strategy: pinned
+pin_strategy: pinned
+default_version: 2.1.8
+install_kind: container
+license: GPL-3.0
+citation: pending:tool-publication
+stage_ids:
+- fastq.screen
+status: supported
+scope: pre_hpc_pre_vcf
+expected_artifacts:
+- screen_report
+metrics_schema_id: bijux.fastq.classify.v1
+metrics_schema: bijux.fastq.classify.v1
+version_cmd: diamond --version
+help_cmd: diamond help
 comparability:
-  comparable_with: ["kraken2","krakenuniq","bracken"]
+  comparable_with:
+  - kraken2
+  - krakenuniq
+  - bracken
   non_comparable_with: []
-comparability_notes: "Comparable only within same stage contract and input constraints."
-notes: "Domain SSOT tool contract entry."
+comparability_notes: Comparable only within same stage contract and input constraints.
+notes: Domain SSOT tool contract entry.
+capabilities:
+- SE
+- PE
+- taxonomic

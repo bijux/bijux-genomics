@@ -76,5 +76,9 @@ compatible_tools:
   - fastx_clipper
 assumptions:
   - "default stage assumptions captured"
+bank_hooks:
+  - "adapter_bank"
+  - "polyx_bank"
+  - "contaminant_db_bank"
 metrics_schema: "bijux.stage.metrics.v1"
 planned_out_of_scope: []
