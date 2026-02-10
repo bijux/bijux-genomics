@@ -35,6 +35,10 @@ COVERAGE_ENV = TZ=UTC LC_ALL=C TMPDIR=$(COV_TMP_DIR) TMP=$(COV_TMP_DIR) TEMP=$(C
 COVERAGE_RUN = cargo llvm-cov nextest --no-report --no-cfg-coverage $(NEXTEST_CONFIG) --workspace $(TEST_FEATURES) --profile $(NEXTEST_PROFILE) $(RUN_IGNORED)
 COVERAGE_JSON = cargo llvm-cov report --json --output-path $(COVERAGE_OUT)
 COVERAGE_HTML = cargo llvm-cov report --html --output-dir $(COVERAGE_ROOT)
+ISOLATE_ID ?= $(shell sh -c 'date +%Y%m%d%H%M%S-$$PPID')
+ISOLATE_ROOT ?= artifacts/isolates/$(ISOLATE_ID)
+ISOLATE_TEST_TARGET_DIR ?= $(ISOLATE_ROOT)/target-test
+ISOLATE_COV_TARGET_DIR ?= $(ISOLATE_ROOT)/target-cov
 
 fmt:
 	$(FMT)
@@ -74,19 +78,19 @@ coverage:
 	fi
 
 fmt-isolate:
-	TEST_TARGET_DIR=target-isolate-test COV_TARGET_DIR=target-isolate-cov $(MAKE) fmt
+	TEST_TARGET_DIR=$(ISOLATE_TEST_TARGET_DIR) COV_TARGET_DIR=$(ISOLATE_COV_TARGET_DIR) $(MAKE) fmt
 
 lint-isolate:
-	TEST_TARGET_DIR=target-isolate-test COV_TARGET_DIR=target-isolate-cov $(MAKE) lint
+	TEST_TARGET_DIR=$(ISOLATE_TEST_TARGET_DIR) COV_TARGET_DIR=$(ISOLATE_COV_TARGET_DIR) $(MAKE) lint
 
 test-isolate:
-	TEST_TARGET_DIR=target-isolate-test COV_TARGET_DIR=target-isolate-cov $(MAKE) test
+	TEST_TARGET_DIR=$(ISOLATE_TEST_TARGET_DIR) COV_TARGET_DIR=$(ISOLATE_COV_TARGET_DIR) $(MAKE) test
 
 audit-isolate: ensure-cargo-deny
-	TEST_TARGET_DIR=target-isolate-test COV_TARGET_DIR=target-isolate-cov $(MAKE) audit
+	TEST_TARGET_DIR=$(ISOLATE_TEST_TARGET_DIR) COV_TARGET_DIR=$(ISOLATE_COV_TARGET_DIR) $(MAKE) audit
 
 coverage-isolate:
-	TEST_TARGET_DIR=target-isolate-test COV_TARGET_DIR=target-isolate-cov $(MAKE) coverage
+	TEST_TARGET_DIR=$(ISOLATE_TEST_TARGET_DIR) COV_TARGET_DIR=$(ISOLATE_COV_TARGET_DIR) $(MAKE) coverage
 
 ci:
 	$(MAKE) fmt lint audit coverage
@@ -95,7 +99,10 @@ check:
 	$(MAKE) fmt lint audit coverage
 
 ci-isolate:
-	TEST_TARGET_DIR=target-isolate-test COV_TARGET_DIR=target-isolate-cov $(MAKE) ci
+	TEST_TARGET_DIR=$(ISOLATE_TEST_TARGET_DIR) COV_TARGET_DIR=$(ISOLATE_COV_TARGET_DIR) $(MAKE) ci
+
+test-coverage-isolate-parallel:
+	$(MAKE) -j2 test-isolate coverage-isolate
 
 ci-local:
 	$(MAKE) -j2 test coverage
@@ -117,7 +124,7 @@ test-and-coverage: verify-parallel-isolation test coverage
 test-coverage-parallel: test-and-coverage
 
 clean-isolate:
-	@rm -rf target-isolate-* target-test/tmp target-test/profraw target-cov/tmp target-cov/profraw
+	@rm -rf artifacts/isolates target-test/tmp target-test/profraw target-cov/tmp target-cov/profraw
 
 policy-fast: ## Run fast policy checks (no snapshots)
 	cargo test -p bijux-dna-policies --test dependency_graph --test purity_scans --test core_layering --test domain_dependency_policy --test ci_tools_policy --test dev_deps_policy --test heavy_deps_policy
@@ -135,8 +142,9 @@ snapshots-accept:
 snapshots-review:
 	$(TEST_ENV) cargo insta review
 
-.PHONY: fmt lint test audit coverage ci check ci-local test-coverage-parallel verify-parallel-isolation \
+	.PHONY: fmt lint test audit coverage ci check ci-local test-coverage-parallel verify-parallel-isolation \
 		test-and-coverage \
+		test-coverage-isolate-parallel \
 		fmt-isolate lint-isolate test-isolate audit-isolate coverage-isolate ci-isolate clean-isolate \
 		policy-fast policy-full \
 		snapshots snapshots-accept snapshots-review ensure-cargo-deny
