@@ -82,6 +82,7 @@ active_defaults:
   bam.mapq_filter: samtools
   bam.length_filter: samtools
   bam.duplication_metrics: samtools
+  bam.insert_size: picard
   bam.coverage: mosdepth
   bam.endogenous_content: samtools
   bam.damage: mapdamage2
@@ -97,6 +98,7 @@ active_default_rationale:
   bam.mapq_filter: "MAPQ filtering baseline uses ubiquitous deterministic filtering behavior."
   bam.length_filter: "Length filtering baseline emphasizes transparent minimum-length provenance."
   bam.duplication_metrics: "Duplication metrics baseline favors deterministic duplicate summaries."
+  bam.insert_size: "Insert-size baseline uses deterministic template-length summaries."
   bam.coverage: "Coverage default offers stable low-overhead reporting."
   bam.endogenous_content: "Endogenous estimate baseline derives from deterministic mapping summaries."
   bam.damage: "Damage baseline preserves comparability with historical aDNA runs."
