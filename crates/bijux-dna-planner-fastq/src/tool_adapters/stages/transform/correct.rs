@@ -82,7 +82,7 @@ pub fn plan_correct(
             "output_r2": output_r2
         }),
         effective_params: serde_json::to_value(&effective_params)
-            .expect("serialize correct effective params"),
+            .map_err(|error| anyhow!("serialize correct effective params: {error}"))?,
         aux_images: std::collections::BTreeMap::new(),
         reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
     })

@@ -93,7 +93,7 @@ pub fn plan_filter(
             "polyx_policy": options.polyx_policy,
         }),
         effective_params: serde_json::to_value(&effective_params)
-            .expect("serialize filter effective params"),
+            .map_err(|error| anyhow!("serialize filter effective params: {error}"))?,
         aux_images: std::collections::BTreeMap::new(),
         reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
     })

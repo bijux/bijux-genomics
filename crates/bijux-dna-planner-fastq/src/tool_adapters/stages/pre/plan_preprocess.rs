@@ -1,3 +1,4 @@
+use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRole, StageId, StageVersion, ToolExecutionSpecV1,
 };
@@ -17,7 +18,7 @@ pub struct PreprocessPlan {
 }
 
 #[must_use]
-pub fn plan_preprocess_stage(plan: &PreprocessPlan, tool: &ToolExecutionSpecV1) -> StagePlanV1 {
+pub fn plan_preprocess_stage(plan: &PreprocessPlan, tool: &ToolExecutionSpecV1) -> Result<StagePlanV1> {
     let paired_mode = if plan.r2.is_some() {
         PairedMode::PairedEnd
     } else {
@@ -34,7 +35,7 @@ pub fn plan_preprocess_stage(plan: &PreprocessPlan, tool: &ToolExecutionSpecV1) 
         .parent()
         .unwrap_or_else(|| std::path::Path::new("."))
         .join("out");
-    StagePlanV1 {
+    Ok(StagePlanV1 {
         stage_id: STAGE_ID.clone(),
         stage_version: STAGE_VERSION,
         tool_id: tool.tool_id.clone(),
@@ -68,8 +69,8 @@ pub fn plan_preprocess_stage(plan: &PreprocessPlan, tool: &ToolExecutionSpecV1) 
             "stages": plan.stages,
         }),
         effective_params: serde_json::to_value(&effective_params)
-            .expect("serialize preprocess effective params"),
+            .map_err(|error| anyhow!("serialize preprocess effective params: {error}"))?,
         aux_images: std::collections::BTreeMap::new(),
         reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
-    }
+    })
 }

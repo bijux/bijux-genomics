@@ -138,7 +138,7 @@ pub fn plan(
         out_dir: out_dir.to_path_buf(),
         params,
         effective_params: serde_json::to_value(&effective_params)
-            .expect("serialize trim effective params"),
+            .map_err(|error| anyhow!("serialize trim effective params: {error}"))?,
         aux_images: std::collections::BTreeMap::new(),
         reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
     })

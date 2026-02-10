@@ -1,5 +1,6 @@
 use std::path::Path;
 
+use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRole, StageId, StageVersion, ToolExecutionSpecV1,
 };
@@ -10,13 +11,13 @@ use bijux_dna_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 pub const STAGE_ID: StageId = STAGE_DETECT_ADAPTERS;
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
 
-pub fn plan(tool: &ToolExecutionSpecV1, r1: &Path, out_dir: &Path) -> StagePlanV1 {
+pub fn plan(tool: &ToolExecutionSpecV1, r1: &Path, out_dir: &Path) -> Result<StagePlanV1> {
     let effective_params = DetectAdaptersEffectiveParams {
         paired_mode: PairedMode::SingleEnd,
         threads: tool.resources.threads,
         sample_reads: Some(100_000),
     };
-    StagePlanV1 {
+    Ok(StagePlanV1 {
         stage_id: STAGE_ID.clone(),
         stage_version: STAGE_VERSION,
         tool_id: tool.tool_id.clone(),
@@ -44,8 +45,8 @@ pub fn plan(tool: &ToolExecutionSpecV1, r1: &Path, out_dir: &Path) -> StagePlanV
             "sample_reads": effective_params.sample_reads,
         }),
         effective_params: serde_json::to_value(&effective_params)
-            .expect("serialize detect adapters effective params"),
+            .map_err(|error| anyhow!("serialize detect adapters effective params: {error}"))?,
         aux_images: std::collections::BTreeMap::new(),
         reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
-    }
+    })
 }
