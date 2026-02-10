@@ -2,6 +2,7 @@
 
 ## What this crate does
 Effectful QA harness for image validation (non-production). Heavy deps allowed.
+Runs Docker QA workflows and Apptainer smoke-contract QA.
 
 ## What it must not do (boundaries)
 Must never be depended on by production crates. Enforced by

@@ -12,6 +12,7 @@ use super::support::{
     image_qa_jsonl_path, image_qa_sqlite_path, resolve_image_for_run, trace_enabled, StdoutLogger,
 };
 
+use super::apptainer::run_apptainer_image_qa;
 use super::behavioral::run_behavioral_qa;
 use super::datasets::{
     dataset_input_hash, datasets_for_stage, discover_qa_datasets, hydrate_datasets,
@@ -44,8 +45,14 @@ fn run_image_qa_with(
     catalog: &HashMap<String, ToolImageSpec>,
     logger: &StdoutLogger,
 ) -> Result<()> {
+    if platform.runner == RuntimeKind::Apptainer || platform.runner == RuntimeKind::Singularity {
+        return run_apptainer_image_qa();
+    }
     if platform.runner != RuntimeKind::Docker {
-        return Err(anyhow!("image QA supports docker only for now"));
+        return Err(anyhow!(
+            "unsupported image QA runner {}; expected docker or apptainer",
+            platform.runner
+        ));
     }
 
     let cwd = std::env::current_dir().context("resolve cwd")?;
