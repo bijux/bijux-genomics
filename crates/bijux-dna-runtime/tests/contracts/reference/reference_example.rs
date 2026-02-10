@@ -1,4 +1,3 @@
-use std::fs;
 use std::path::PathBuf;
 
 use bijux_dna_core::contract::ContractVersion;
@@ -12,11 +11,8 @@ use bijux_dna_runtime::{
 
 #[test]
 fn reference_example_layout_manifest_record() -> anyhow::Result<()> {
-    let base = std::env::temp_dir().join(format!(
-        "bijux-dna-runtime-example-{}",
-        uuid::Uuid::new_v4()
-    ));
-    fs::create_dir_all(&base)?;
+    let temp = bijux_dna_testkit::tempdir_for("runtime-example");
+    let base = temp.path().to_path_buf();
 
     let (run_id, layout) = create_run_layout(&base)?;
     let manifest = RunManifest {
@@ -72,6 +68,5 @@ fn reference_example_layout_manifest_record() -> anyhow::Result<()> {
     )?;
     assert!(run_dirs.run_manifest_path.exists());
 
-    fs::remove_dir_all(&base)?;
     Ok(())
 }
