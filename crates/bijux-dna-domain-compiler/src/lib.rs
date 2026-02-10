@@ -216,7 +216,8 @@ fn domain_content_hash(domain_dir: &Path) -> Result<String> {
         hasher.update(file_hash.as_bytes());
         hasher.update([0]);
     }
-    Ok(format!("{:x}", hasher.finalize()))
+    let hex = format!("{:x}", hasher.finalize());
+    Ok(hex.chars().take(40).collect())
 }
 
 fn generated_header(source: &str, source_commit: &str) -> String {
