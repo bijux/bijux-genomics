@@ -34,6 +34,11 @@ Outputs are written as generated artifacts and are safe to overwrite.
 - `cargo test -p bijux-dna-domain-compiler`
 - `cargo test -p bijux-dna-domain-compiler --test guardrails`
 - `cargo test -p bijux-dna-domain-compiler --lib`
+- `cargo test -p bijux-dna-domain-compiler --test boundaries`
+- `cargo test -p bijux-dna-domain-compiler --test contracts`
+- `crates/bijux-dna-domain-compiler/tests/guardrails.rs`
+- `crates/bijux-dna-domain-compiler/src/lib.rs`
+- `crates/bijux-dna-domain-compiler/src/main.rs`
 
 ## Where the docs live
 - [docs/INDEX.md](docs/INDEX.md)

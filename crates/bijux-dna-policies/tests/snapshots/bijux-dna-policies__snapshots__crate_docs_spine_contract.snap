@@ -1,6 +1,5 @@
 ---
 source: crates/bijux-dna-policies/tests/boundaries/surface/docs_spine_contract.rs
-assertion_line: 33
 expression: "bijux_dna_testkit::snapshot_normalize_text(&lines.join(\"\\n\"))"
 ---
 [bijux-dna-analyze]
@@ -194,6 +193,25 @@ See `CHANGE_RULES.md` for safe extension guidelines.
 
 ## How to Test
 See `TESTS.md` for test mapping and fixtures.
+
+[bijux-dna-domain-compiler]
+## Scope
+- [SCOPE.md](SCOPE.md)
+- [ARCHITECTURE.md](ARCHITECTURE.md)
+
+## Effects
+- Pure compilation/validation plus generated file writes.
+- No execution effects.
+
+## Boundaries
+- Must not execute tools or call runtime backends.
+- Must not embed planner-specific behavior.
+
+## Extension Points
+- Add new domain keys through schema + compiler mapping in one change.
+
+## How to Test
+- [TESTS.md](TESTS.md)
 
 [bijux-dna-domain-fastq]
 # bijux-dna-domain-fastq Docs Index
