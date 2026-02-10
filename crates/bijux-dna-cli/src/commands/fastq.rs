@@ -21,11 +21,12 @@ use crate::commands::command_prelude::{
 pub(crate) fn handle_meta_commands(
     cli: &Cli,
     dna_command: &DnaCommand,
-    domain_dir: &Path,
+    _domain_dir: &Path,
+    registry_path: &Path,
 ) -> Result<bool> {
     match dna_command {
         DnaCommand::ValidateManifests => {
-            let registry = load_manifests(domain_dir)
+            let registry = load_manifests(registry_path)
                 .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
             println!(
                 "validated {} stages and {} tools",
@@ -321,7 +322,7 @@ pub(crate) fn handle_meta_commands(
             match command {
                 EnvCommand::List => {
                     let cwd = std::env::current_dir()?;
-                    let registry_path = cwd.join("configs").join("tools.toml");
+                    let registry_path = cwd.join("configs").join("tool_registry.toml");
                     print_env_registry_list(&registry_path)?;
                 }
                 EnvCommand::Smoke(args) => {
@@ -508,7 +509,7 @@ pub(crate) fn handle_meta_commands(
                 },
                 BenchCommand::Bam { command } => match command {
                     BenchBamCommand::Stage(args) => {
-                        let registry = load_manifests(domain_dir)
+                        let registry = load_manifests(registry_path)
                             .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
                         bijux_dna_api::v1::api::bench::bench_bam_stage(
                             &bench_bam_stage_args_to_api(args),
@@ -517,7 +518,7 @@ pub(crate) fn handle_meta_commands(
                         )?;
                     }
                     BenchBamCommand::Pipeline(args) => {
-                        let registry = load_manifests(domain_dir)
+                        let registry = load_manifests(registry_path)
                             .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
                         bijux_dna_api::v1::api::bench::bench_bam_pipeline(
                             &bench_bam_pipeline_args_to_api(args),
