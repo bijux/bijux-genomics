@@ -58,9 +58,14 @@ pub fn run_with_cli(cli: &cli::Cli, cwd: &Path) -> Result<()> {
     if let cli::RootCommand::Registry { command } = &cli.command {
         return handle_registry_root(command, cwd);
     }
+    if let cli::RootCommand::Lab { command } = &cli.command {
+        return handle_lab_root(command, cwd);
+    }
     let dna_command = match &cli.command {
         cli::RootCommand::Dna { command } => command,
-        cli::RootCommand::Environment { .. } | cli::RootCommand::Registry { .. } => {
+        cli::RootCommand::Environment { .. }
+        | cli::RootCommand::Registry { .. }
+        | cli::RootCommand::Lab { .. } => {
             unreachable!("handled above")
         }
     };
@@ -109,7 +114,8 @@ pub fn run_with_cli(cli: &cli::Cli, cwd: &Path) -> Result<()> {
 
 fn handle_environment_root(command: &cli::EnvCommand, cwd: &Path) -> Result<()> {
     use crate::commands::cli::env::{
-        env_doctor, print_env_images, print_env_info, print_env_registry_list, run_env_smoke,
+        env_doctor, print_env_images, print_env_info, print_env_registry_list, run_env_prep,
+        run_env_smoke, run_env_smoke_for_stage,
     };
     use bijux_dna_api::v1::api::env::{load_image_catalog, load_platform};
     match command {
@@ -118,7 +124,25 @@ fn handle_environment_root(command: &cli::EnvCommand, cwd: &Path) -> Result<()> 
             print_env_registry_list(&registry_path)?;
         }
         cli::EnvCommand::Smoke(args) => {
-            run_env_smoke(&args.runtime, &args.tool)?;
+            let registry_path = cwd.join("configs").join("tool_registry.toml");
+            if let Some(stage) = args.stage.as_deref() {
+                run_env_smoke_for_stage(&registry_path, &args.runtime, stage)?;
+            } else if let Some(tool) = args.tool.as_deref() {
+                run_env_smoke(&args.runtime, tool)?;
+            } else {
+                return Err(anyhow!(
+                    "environment smoke requires either <tool> or --stage"
+                ));
+            }
+        }
+        cli::EnvCommand::Prep(args) => {
+            let registry_path = cwd.join("configs").join("tool_registry.toml");
+            run_env_prep(
+                &registry_path,
+                &args.runtime,
+                args.tool.as_deref(),
+                args.stage.as_deref(),
+            )?;
         }
         cli::EnvCommand::Images | cli::EnvCommand::Info | cli::EnvCommand::Doctor => {
             let platform =
@@ -129,7 +153,7 @@ fn handle_environment_root(command: &cli::EnvCommand, cwd: &Path) -> Result<()> 
                 cli::EnvCommand::Images => print_env_images(&catalog, &platform)?,
                 cli::EnvCommand::Info => print_env_info(&catalog, &platform),
                 cli::EnvCommand::Doctor => env_doctor(&catalog, &platform),
-                cli::EnvCommand::List | cli::EnvCommand::Smoke(_) => {}
+                cli::EnvCommand::List | cli::EnvCommand::Smoke(_) | cli::EnvCommand::Prep(_) => {}
             }
         }
     }
@@ -138,13 +162,69 @@ fn handle_environment_root(command: &cli::EnvCommand, cwd: &Path) -> Result<()> 
 
 fn handle_registry_root(command: &cli::RegistryCommand, cwd: &Path) -> Result<()> {
     use crate::commands::cli::env::{
-        print_registry_list_stages, print_registry_list_tools, print_registry_show,
+        print_registry_list_stages, print_registry_show, print_registry_tools,
     };
     let registry_path = cwd.join("configs").join("tool_registry.toml");
     match command {
-        cli::RegistryCommand::ListTools => print_registry_list_tools(&registry_path)?,
-        cli::RegistryCommand::ListStages => print_registry_list_stages(&registry_path)?,
+        cli::RegistryCommand::Tools { stage, kind } => {
+            print_registry_tools(&registry_path, stage.as_deref(), kind)?
+        }
+        cli::RegistryCommand::Stages => print_registry_list_stages(&registry_path)?,
         cli::RegistryCommand::Show { id } => print_registry_show(&registry_path, id)?,
+    }
+    Ok(())
+}
+
+fn handle_lab_root(command: &cli::LabCommand, cwd: &Path) -> Result<()> {
+    match command {
+        cli::LabCommand::Corpus { command } => match command {
+            cli::LabCorpusCommand::ListFastq { corpus, paired } => {
+                let root = cwd.join("scripts").join("lab").join("corpus").join("fastq");
+                let corpus_root = if corpus == "canonical" {
+                    root.join("canonical")
+                } else {
+                    root.join(corpus)
+                };
+                let scan_root = if corpus_root.exists() {
+                    corpus_root
+                } else {
+                    root
+                };
+                let mut stack = vec![scan_root];
+                let mut files = Vec::new();
+                while let Some(dir) = stack.pop() {
+                    for entry in std::fs::read_dir(&dir)
+                        .with_context(|| format!("read {}", dir.display()))?
+                    {
+                        let entry = entry?;
+                        let path = entry.path();
+                        if path.is_dir() {
+                            stack.push(path);
+                            continue;
+                        }
+                        let Some(name) = path.file_name().and_then(|n| n.to_str()) else {
+                            continue;
+                        };
+                        let is_fastq = name.ends_with(".fastq.gz");
+                        if !is_fastq {
+                            continue;
+                        }
+                        if *paired {
+                            if name.ends_with("_R1.fastq.gz") || name.ends_with("_1.fastq.gz") {
+                                files.push(path);
+                            }
+                        } else {
+                            files.push(path);
+                        }
+                    }
+                }
+                files.sort();
+                files.dedup();
+                for file in files {
+                    println!("{}", file.display());
+                }
+            }
+        },
     }
     Ok(())
 }

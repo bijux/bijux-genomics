@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::path::Path;
+use std::process::Command;
 
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_api::v1::api::env::{
@@ -50,6 +51,131 @@ pub fn print_env_registry_list(registry_path: &Path) -> Result<()> {
 /// Returns an error if smoke script execution fails.
 pub fn run_env_smoke(runtime: &str, tool: &str) -> Result<()> {
     run_smoke_script(runtime, tool)
+}
+
+fn normalize_stage_id(stage: &str) -> String {
+    if stage.contains('.') {
+        stage.to_string()
+    } else {
+        format!("fastq.{stage}")
+    }
+}
+
+fn parse_registry(path: &Path) -> Result<toml::Value> {
+    let raw = std::fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
+    raw.parse().context("parse registry toml")
+}
+
+/// # Errors
+/// Returns an error if registry cannot be parsed.
+pub fn registry_tools_for_stage(
+    registry_path: &Path,
+    stage: &str,
+    kind: &str,
+) -> Result<Vec<String>> {
+    let parsed = parse_registry(registry_path)?;
+    let stage_id = normalize_stage_id(stage);
+    let stages = parsed
+        .get("stages")
+        .and_then(toml::Value::as_array)
+        .cloned()
+        .unwrap_or_default();
+    let Some(stage_entry) = stages.iter().find(|entry| {
+        entry
+            .get("id")
+            .and_then(toml::Value::as_str)
+            .is_some_and(|id| id == stage_id)
+    }) else {
+        return Err(anyhow!("stage not found in registry: {stage_id}"));
+    };
+
+    let read = |key: &str| -> Vec<String> {
+        stage_entry
+            .get(key)
+            .and_then(toml::Value::as_array)
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(toml::Value::as_str)
+                    .map(str::to_string)
+                    .collect::<Vec<_>>()
+            })
+            .unwrap_or_default()
+    };
+
+    let mut result = match kind {
+        "primary" => read("primary_tools"),
+        "optional" => read("optional_alternatives"),
+        "validation" => read("validation_tools"),
+        "reporting" => read("reporting_tools"),
+        _ => {
+            let mut all = Vec::new();
+            all.extend(read("primary_tools"));
+            all.extend(read("optional_alternatives"));
+            all.extend(read("validation_tools"));
+            all.extend(read("reporting_tools"));
+            all
+        }
+    };
+    result.sort();
+    result.dedup();
+    Ok(result)
+}
+
+/// # Errors
+/// Returns an error if stage cannot be resolved.
+pub fn run_env_smoke_for_stage(registry_path: &Path, runtime: &str, stage: &str) -> Result<()> {
+    let tools = registry_tools_for_stage(registry_path, stage, "all")?;
+    if tools.is_empty() {
+        return Err(anyhow!("no tools found for stage {stage}"));
+    }
+    run_env_with_tools(runtime, &tools, "contract")
+}
+
+/// # Errors
+/// Returns an error if prep script execution fails.
+pub fn run_env_prep(
+    registry_path: &Path,
+    runtime: &str,
+    tool: Option<&str>,
+    stage: Option<&str>,
+) -> Result<()> {
+    if let Some(tool) = tool {
+        return run_env_with_tools(runtime, &[tool.to_string()], "version");
+    }
+    if let Some(stage) = stage {
+        let tools = registry_tools_for_stage(registry_path, stage, "all")?;
+        if tools.is_empty() {
+            return Err(anyhow!("no tools found for stage {stage}"));
+        }
+        return run_env_with_tools(runtime, &tools, "version");
+    }
+    run_env_with_tools(runtime, &[], "version")
+}
+
+fn run_env_with_tools(runtime: &str, tools: &[String], smoke_level: &str) -> Result<()> {
+    let script = match runtime {
+        "docker-arm64" => "scripts/smoke-containers-docker-arm64.sh",
+        "docker-amd64" => "scripts/smoke-containers-docker-amd64.sh",
+        "apptainer" => "scripts/smoke-containers-apptainer.sh",
+        other => {
+            return Err(anyhow!(
+                "unsupported runtime `{other}`; expected docker-arm64 | docker-amd64 | apptainer"
+            ));
+        }
+    };
+    let tools_csv = tools.join(",");
+    let status = Command::new("sh")
+        .arg(script)
+        .env("TOOLS", tools_csv)
+        .env("JOBS", "1")
+        .env("SMOKE_LEVEL", smoke_level)
+        .status()?;
+    if !status.success() {
+        return Err(anyhow!(
+            "environment command failed for runtime={runtime} (exit={status})"
+        ));
+    }
+    Ok(())
 }
 
 #[derive(Default)]
@@ -127,6 +253,17 @@ pub fn print_registry_list_tools(registry_path: &Path) -> Result<()> {
         println!("{tool}");
     }
     Ok(())
+}
+
+/// # Errors
+/// Returns an error if registry cannot be read.
+pub fn print_registry_tools(registry_path: &Path, stage: Option<&str>, kind: &str) -> Result<()> {
+    if let Some(stage) = stage {
+        let tools = registry_tools_for_stage(registry_path, stage, kind)?;
+        println!("{}", tools.join(","));
+        return Ok(());
+    }
+    print_registry_list_tools(registry_path)
 }
 
 /// # Errors
