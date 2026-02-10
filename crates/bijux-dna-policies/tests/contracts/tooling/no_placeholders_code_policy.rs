@@ -8,7 +8,10 @@ fn policy__contracts__no_placeholders_code_policy__production_paths_ban_todo_uni
     let crates = root.join("crates");
     let mut offenders = Vec::new();
 
-    for entry in walkdir::WalkDir::new(&crates).into_iter().filter_map(Result::ok) {
+    for entry in walkdir::WalkDir::new(&crates)
+        .into_iter()
+        .filter_map(Result::ok)
+    {
         let path = entry.path();
         if !path.is_file() || path.extension().and_then(|e| e.to_str()) != Some("rs") {
             continue;
