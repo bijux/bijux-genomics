@@ -22,6 +22,8 @@ mod mod_contracts_tooling_apptainer_structure_policy_rs;
 mod mod_contracts_tooling_apptainer_vm_output_policy_rs;
 #[path = "contracts/tooling/architecture_invariants_suite.rs"]
 mod mod_contracts_tooling_architecture_invariants_suite_rs;
+#[path = "contracts/tooling/artifacts_policy.rs"]
+mod mod_contracts_tooling_artifacts_policy_rs;
 #[path = "contracts/tooling/assets_scope_policy.rs"]
 mod mod_contracts_tooling_assets_scope_policy_rs;
 #[path = "contracts/tooling/bank_loader_ownership_policy.rs"]
