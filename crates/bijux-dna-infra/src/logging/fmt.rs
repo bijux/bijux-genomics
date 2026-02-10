@@ -10,9 +10,9 @@ pub fn init_logging(log_path: &Path) -> Result<tracing_appender::non_blocking::W
     #[cfg(not(feature = "tracing"))]
     {
         let _ = log_path;
-        return Err(anyhow!(
+        Err(anyhow!(
             "logging requires bijux-dna-infra tracing feature; enable it in the caller"
-        ));
+        ))
     }
     #[cfg(feature = "tracing")]
     {
