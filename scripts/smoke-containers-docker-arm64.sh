@@ -16,12 +16,12 @@ IMAGE_PREFIX="${IMAGE_PREFIX:-bijux-smoke}"
 TOOLS="${TOOLS:-}"
 SMOKE_LEVEL="${SMOKE_LEVEL:-version}"
 
-ARTIFACT_DIR="$ROOT_DIR/target-containers"
+ARTIFACT_DIR="${ARTIFACT_DIR:-$ROOT_DIR/artifacts/container}"
 LOG_DIR="$ARTIFACT_DIR/logs/$RUNTIME_NAME"
 IMG_DIR="$ARTIFACT_DIR/images/$RUNTIME_NAME"
 SUMMARY="$LOG_DIR/summary.txt"
 IMAGES_TXT="$IMG_DIR/images.txt"
-MANIFEST_DIR="$ROOT_DIR/target-containers"
+MANIFEST_DIR="$ARTIFACT_DIR"
 
 mkdir -p "$LOG_DIR" "$IMG_DIR" "$MANIFEST_DIR"
 

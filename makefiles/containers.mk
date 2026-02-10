@@ -14,7 +14,8 @@ JOBS ?= 1
 TOOLS ?=
 STAGE ?=
 APPTAINER_VM_OUT ?= $(HOME)/apptainer-build
-APPTAINER_COPY_BACK ?= target-containers/apptainer
+APPTAINER_COPY_BACK ?= artifacts/container/apptainer
+CONTAINER_ARTIFACT_DIR ?= artifacts/container
 BIJUX_BIN ?= cargo run --bin bijux-dna --
 
 CT_KEY := $(subst -,_,$(CONTAINER_TYPE))
@@ -53,20 +54,35 @@ env-smoke: ## Smoke environment via CLI (TOOL=<id> or STAGE=<domain.stage|stage>
 		$(BIJUX_BIN) environment smoke $(CONTAINER_TYPE) $(TOOLS); \
 	fi
 
-container-smoke: container-runtime-check ## Build+smoke selected runtime (TOOLS optional csv)
-	@TOOLS="$(TOOLS)" JOBS="$(JOBS)" sh "$(SMOKE_SCRIPT)"
+container-smoke: container-runtime-check ## Prepare+smoke selected tool/stage via CLI
+	@if [ -z "$(TOOLS)" ] && [ -z "$(STAGE)" ]; then \
+		echo "ERROR: set TOOLS=<tool_id> or STAGE=<stage>"; \
+		exit 2; \
+	fi
+	@if [ -n "$(STAGE)" ]; then \
+		$(BIJUX_BIN) environment prep $(CONTAINER_TYPE) --stage $(STAGE); \
+		$(BIJUX_BIN) environment smoke $(CONTAINER_TYPE) --stage $(STAGE); \
+	else \
+		$(BIJUX_BIN) environment prep $(CONTAINER_TYPE) $(TOOLS); \
+		$(BIJUX_BIN) environment smoke $(CONTAINER_TYPE) $(TOOLS); \
+	fi
 
-containers-smoke: container-runtime-check ## Contract smoke all tools for selected runtime
-	@SMOKE_LEVEL=contract JOBS="$(JOBS)" sh "$(SMOKE_SCRIPT)"
+containers-smoke: container-runtime-check ## Prepare+smoke every registered stage via CLI
+	@set -e; \
+	for stage in $$($(BIJUX_BIN) registry list-stages); do \
+		echo "== stage $$stage"; \
+		$(BIJUX_BIN) environment prep $(CONTAINER_TYPE) --stage "$$stage"; \
+		$(BIJUX_BIN) environment smoke $(CONTAINER_TYPE) --stage "$$stage"; \
+	done
 
 smoke-containers-docker-arm64: ## Build+smoke Docker arm64 containers
-	@TOOLS="$(TOOLS)" JOBS="$(JOBS)" sh scripts/smoke-containers-docker-arm64.sh
+	@TOOLS="$(TOOLS)" JOBS="$(JOBS)" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/smoke-containers-docker-arm64.sh
 
 smoke-containers-docker-amd64: ## Build+smoke Docker amd64 containers
-	@TOOLS="$(TOOLS)" JOBS="$(JOBS)" sh scripts/smoke-containers-docker-amd64.sh
+	@TOOLS="$(TOOLS)" JOBS="$(JOBS)" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/smoke-containers-docker-amd64.sh
 
 smoke-containers-apptainer: ## Build+smoke Apptainer containers
-	@TOOLS="$(TOOLS)" JOBS="$(JOBS)" sh scripts/smoke-containers-apptainer.sh
+	@TOOLS="$(TOOLS)" JOBS="$(JOBS)" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/smoke-containers-apptainer.sh
 
 build-images: ## Build Docker images (docker-arm64 only)
 	@if [ "$(CONTAINER_TYPE)" != "docker-arm64" ]; then \
@@ -117,7 +133,7 @@ containers-lint: ## Lint container naming, headers, labels, and forbidden patter
 	@./scripts/lint-containers.sh
 
 containers: ## Print tools/runtime/result/log summary from target-containers manifests
-	@./scripts/containers-summary.sh
+	@MANIFEST_DIR="$(CONTAINER_ARTIFACT_DIR)" ./scripts/containers-summary.sh
 
 .PHONY: container-runtime-check env-prep env-smoke container-smoke containers-smoke \
 	smoke-containers-docker-arm64 smoke-containers-docker-amd64 smoke-containers-apptainer \
