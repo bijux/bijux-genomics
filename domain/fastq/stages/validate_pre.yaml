@@ -7,7 +7,10 @@ inputs:
   - name: "reads"
     data_type: "fastq"
     cardinality: "Many"
-outputs: []
+outputs:
+  - name: "report_json"
+    data_type: "json"
+    cardinality: "One"
 parameters: []
 metrics:
   - name: "reads_in"
@@ -40,11 +43,14 @@ image_requirements:
   forbids:
     - network
 required_inputs: []
-required_outputs: []
+required_outputs:
+  - report_json
 tool_capability_requirements: []
 invariants:
   - "stable_artifact_contract"
   - "deterministic_output_order"
+allowed_missingness:
+  - "none"
 compatible_tools:
   - fastqvalidator
   - fastqvalidator_official
