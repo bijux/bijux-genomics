@@ -10,7 +10,7 @@ fn invocation_hash_is_stable_for_docker_backend() -> anyhow::Result<()> {
         tool_version: "1.0".to_string(),
         image: ContainerImageRefV1 {
             image: "tool:1.0".to_string(),
-            digest: Some("sha256:img".to_string()),
+            digest: Some("sha256:synthetic-image".to_string()),
         },
         command: CommandSpecV1 {
             template: vec!["tool".to_string(), "--flag".to_string()],
