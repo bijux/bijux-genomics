@@ -50,6 +50,8 @@ pub enum RootCommand {
 pub struct StatusArgs {
     #[arg(long, default_value = "pre-hpc")]
     pub scope: String,
+    #[arg(long, value_name = "PATH")]
+    pub write_checklist: Option<PathBuf>,
 }
 
 #[derive(Debug, Subcommand)]
