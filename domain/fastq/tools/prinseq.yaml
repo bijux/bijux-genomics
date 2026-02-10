@@ -47,8 +47,8 @@ stage_ids: ["fastq.filter"]
 expected_artifacts: ["report_json"]
 metrics_schema_id: "bijux.unknown.v1"
 metrics_schema: "bijux.unknown.v1"
-version_cmd: "prinseq --version"
-help_cmd: "prinseq --help"
+version_cmd: "prinseq++ --version"
+help_cmd: "prinseq++ --help"
 comparability:
   comparable_with: []
   non_comparable_with: []

@@ -1229,11 +1229,14 @@ fn build_stages_toml(
     }
     let mut stages_toml = generated_header("domain/**", source_commit);
     for (stage_id, tools_set) in stage_to_tools {
+        let status = stage_statuses
+            .get(stage_id.as_str())
+            .map_or("planned", std::string::String::as_str);
+        if status != "supported" {
+            continue;
+        }
         let _ = writeln!(stages_toml, "[[stages]]");
         let _ = writeln!(stages_toml, "id = \"{stage_id}\"");
-        let status = stage_statuses
-            .get(stage_id)
-            .map_or("supported", std::string::String::as_str);
         let _ = writeln!(stages_toml, "status = \"{status}\"");
         let mut v = tools_set.iter().cloned().collect::<Vec<_>>();
         v.sort();

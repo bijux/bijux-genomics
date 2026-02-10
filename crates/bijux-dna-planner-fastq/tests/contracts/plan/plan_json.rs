@@ -83,7 +83,7 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
         &dummy_tool("fastqvalidator"),
         r1,
         out_dir,
-    );
+    )?;
     assert_snapshot("stage__fastq__fastq.validate_pre", &plan)?;
 
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::screen::plan_screen(
@@ -123,7 +123,7 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
         bijux_dna_planner_fastq::tool_adapters::stages::pre::plan_preprocess::plan_preprocess_stage(
             &preprocess_plan,
             &dummy_tool("planner"),
-        );
+        )?;
     assert_snapshot("stage__fastq__fastq.preprocess", &plan)?;
 
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::qc_post::plan_qc_post(

@@ -18,15 +18,76 @@ DOM_STAGES="$TMP_DIR/domain_stages.txt"
 REG_STAGES="$TMP_DIR/registry_stages.txt"
 CODE_STAGES="$TMP_DIR/code_stages.txt"
 
-awk -F'"' '/^tool_id:/{print $2}' "$ROOT_DIR"/domain/fastq/tools/*.yaml "$ROOT_DIR"/domain/bam/tools/*.yaml \
+awk '
+FNR==1{
+  if (NR > 1 && status == "supported" && id != "") print id
+  id = ""
+  status = ""
+}
+$1 == "tool_id:" {
+  id = $2
+  gsub(/"/, "", id)
+}
+$1 == "status:" {
+  status = $2
+  gsub(/"/, "", status)
+}
+END{
+  if (status == "supported" && id != "") print id
+}
+' "$ROOT_DIR"/domain/fastq/tools/*.yaml "$ROOT_DIR"/domain/bam/tools/*.yaml \
   | sort -u > "$DOM_TOOLS"
 
-awk -F'"' '/^stage_id:/{print $2}' "$ROOT_DIR"/domain/fastq/stages/*.yaml "$ROOT_DIR"/domain/bam/stages/*.yaml \
+awk '
+FNR==1{
+  if (NR > 1 && status == "supported" && id != "") print id
+  id = ""
+  status = ""
+}
+$1 == "stage_id:" {
+  id = $2
+  gsub(/"/, "", id)
+}
+$1 == "status:" {
+  status = $2
+  gsub(/"/, "", status)
+}
+END{
+  if (status == "supported" && id != "") print id
+}
+' "$ROOT_DIR"/domain/fastq/stages/*.yaml "$ROOT_DIR"/domain/bam/stages/*.yaml \
   | sort -u > "$DOM_STAGES"
 
-# Registry views are authoritative via scripts/registry-tools.sh
-"$ROOT_DIR/scripts/registry-tools.sh" list-tools | sort -u > "$REG_TOOLS"
-"$ROOT_DIR/scripts/registry-tools.sh" list-stages | sort -u > "$REG_STAGES"
+# Registry views are authoritative via generated configs.
+awk '
+/^\[\[tools\]\]$/ { in_tools=1; next }
+/^\[\[stages\]\]$/ { in_tools=0; next }
+in_tools && /^id = "/ {
+  gsub(/^id = "/, "", $0)
+  gsub(/"$/, "", $0)
+  print $0
+}
+' "$ROOT_DIR/configs/tool_registry.toml" | sort -u > "$REG_TOOLS"
+
+awk '
+/^\[\[stages\]\]$/ { in_stages=1; next }
+/^\[\[[^]]+\]\]$/ { if ($0 != "[[stages]]") in_stages=0 }
+in_stages && /^id = "/ {
+  id = $0
+  gsub(/^id = "/, "", id)
+  gsub(/"$/, "", id)
+}
+in_stages && /^status = "/ {
+  status = $0
+  gsub(/^status = "/, "", status)
+  gsub(/"$/, "", status)
+  if (status == "supported" && id != "") {
+    print id
+  }
+  id = ""
+  status = ""
+}
+' "$ROOT_DIR/configs/stages.toml" | sort -u > "$REG_STAGES"
 
 rg -No 'ToolId::from_static\("([a-z0-9_\-]+)"\)' "$ROOT_DIR/crates" \
   | sed -E 's/.*from_static\("([a-z0-9_\-]+)"\).*/\1/' \
@@ -35,8 +96,10 @@ rg -No 'ToolId::from_static\("([a-z0-9_\-]+)"\)' "$ROOT_DIR/crates" \
 
 rg -No 'StageId::from_static\("([a-z0-9._-]+)"\)' "$ROOT_DIR/crates" \
   | sed -E 's/.*from_static\("([a-z0-9._-]+)"\).*/\1/' \
-  | grep -Ev '^(core\.test|report\.aggregate|stage\.)' \
-  | sort -u > "$CODE_STAGES" || :
+  | grep -Ev '^(core\.test|report\.aggregate|stage\..*|fastq\.preprocess)$' \
+  | sort -u > "$CODE_STAGES.raw" || :
+
+grep -Fxf "$DOM_STAGES" "$CODE_STAGES.raw" | sort -u > "$CODE_STAGES" || :
 
 # Resolve tools indirectly referenced by makefiles via stage-tools calls.
 STAGES_FILE="$TMP_DIR/make_stage_ids.txt"
