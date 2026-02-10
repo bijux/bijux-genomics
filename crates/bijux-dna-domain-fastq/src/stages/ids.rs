@@ -11,16 +11,19 @@ pub const STAGE_QC_POST: StageId = StageId::from_static("fastq.qc_post");
 pub const STAGE_UMI: StageId = StageId::from_static("fastq.umi");
 pub const STAGE_SCREEN: StageId = StageId::from_static("fastq.screen");
 pub const STAGE_PREPROCESS: StageId = StageId::from_static("fastq.preprocess");
+pub const STAGE_PREPARE_REFERENCE: StageId = StageId::from_static("fastq.prepare_reference");
 pub const STAGE_RRNA: StageId = StageId::from_static("fastq.rrna");
 
 pub const STAGE_PREFIX: &str = "fastq.";
 
-pub const STAGES: [StageId; 11] = [
+pub const STAGES: [StageId; 13] = [
+    STAGE_PREPARE_REFERENCE,
     STAGE_VALIDATE_PRE,
     STAGE_DETECT_ADAPTERS,
     STAGE_TRIM,
     STAGE_FILTER,
     STAGE_STATS_NEUTRAL,
+    STAGE_RRNA,
     STAGE_MERGE,
     STAGE_CORRECT,
     STAGE_UMI,
@@ -41,6 +44,8 @@ pub fn bench_dir_name(stage: &StageId) -> Option<&'static str> {
         Some("filter")
     } else if stage == &STAGE_STATS_NEUTRAL {
         Some("stats")
+    } else if stage == &STAGE_RRNA {
+        Some("rrna")
     } else if stage == &STAGE_MERGE {
         Some("merge")
     } else if stage == &STAGE_CORRECT {
@@ -53,6 +58,8 @@ pub fn bench_dir_name(stage: &StageId) -> Option<&'static str> {
         Some("screen")
     } else if stage == &STAGE_PREPROCESS {
         Some("preprocess")
+    } else if stage == &STAGE_PREPARE_REFERENCE {
+        Some("prepare_reference")
     } else {
         None
     }

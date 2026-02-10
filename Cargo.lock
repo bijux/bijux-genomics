@@ -397,6 +397,8 @@ name = "bijux-dna-domain-compiler"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "bijux-dna-domain-bam",
+ "bijux-dna-domain-fastq",
  "bijux-dna-infra",
  "clap",
  "serde",

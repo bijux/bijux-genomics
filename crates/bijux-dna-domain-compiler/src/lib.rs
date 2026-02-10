@@ -502,6 +502,17 @@ fn build_stages_toml(stage_to_tools: &StageToolMap, source_commit: &str) -> Stri
 pub fn compile_domain_configs(options: &CompileOptions) -> Result<()> {
     let (tools, stage_to_tools, stage_planned, stage_defaults) =
         collect_domain_data(&options.domain_dir, &options.scope)?;
+    if options.scope == "pre_hpc_pre_vcf" {
+        if tools.keys().any(|tool_id| tool_id.starts_with("vcf.")) {
+            bail!("pre_hpc_pre_vcf scope must not include VCF tools in generated configs");
+        }
+        if stage_to_tools
+            .keys()
+            .any(|stage_id| stage_id.starts_with("vcf."))
+        {
+            bail!("pre_hpc_pre_vcf scope must not include VCF stages in generated configs");
+        }
+    }
     ensure_dir(&options.configs_dir)
         .with_context(|| format!("create {}", options.configs_dir.display()))?;
 
