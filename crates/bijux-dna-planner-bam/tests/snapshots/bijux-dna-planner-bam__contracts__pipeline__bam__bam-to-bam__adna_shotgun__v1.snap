@@ -244,7 +244,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_text(&payload)"
         "template": [
           "/bin/sh",
           "-c",
-          "contamination_tool --input <TMPDIR>/<TMP>/out/bam_markdup/markdup.bam > <TMPDIR>/<TMP>/out/bam_contamination/contamination.json && python - <<'PY' > <TMPDIR>/<TMP>/out/bam_contamination/contamination.summary.json\nimport json\npayload = {\"method\": \"authenticct\", \"estimate\": 0.0, \"ci_low\": 0.0, \"ci_high\": 0.0, \"assumptions\": []}\nprint(json.dumps(payload, indent=2))\nPY"
+          "schmutzi --bam <TMPDIR>/<TMP>/out/bam_markdup/markdup.bam > <TMPDIR>/<TMP>/out/bam_contamination/contamination.json && python - <<'PY' > <TMPDIR>/<TMP>/out/bam_contamination/contamination.summary.json\nimport json\nprint(json.dumps({\"method\": \"schmutzi\", \"scope\": \"mt\"}, indent=2))\nPY"
         ]
       },
       "expected_artifact_ids": [],
@@ -347,14 +347,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_text(&payload)"
       "aux_images": {},
       "command": {
         "template": [
-          "pydamage",
-          "analyze",
-          "--input",
-          "<TMPDIR>/<TMP>/out/bam_markdup/markdup.bam",
-          "--output",
-          "<TMPDIR>/<TMP>/out/bam_damage/damage.pydamage.json",
-          "--min-mapq",
-          "0.3"
+          "/bin/sh",
+          "-c",
+          "mapDamage --bam <TMPDIR>/<TMP>/out/bam_markdup/markdup.bam --folder <TMPDIR>/<TMP>/out/bam_damage && if [ -f <TMPDIR>/<TMP>/out/bam_damage/misincorporation.txt ]; then cp <TMPDIR>/<TMP>/out/bam_damage/misincorporation.txt <TMPDIR>/<TMP>/out/bam_damage/damage.mapdamage2.txt; elif [ -f <TMPDIR>/<TMP>/out/bam_damage/5pCtoT.txt ]; then cp <TMPDIR>/<TMP>/out/bam_damage/5pCtoT.txt <TMPDIR>/<TMP>/out/bam_damage/damage.mapdamage2.txt; else : > <TMPDIR>/<TMP>/out/bam_damage/damage.mapdamage2.txt; fi"
         ]
       },
       "expected_artifact_ids": [],
@@ -869,6 +864,12 @@ expression: "bijux_dna_testkit::snapshot_normalize_text(&payload)"
             "optional": false,
             "path": "<TMPDIR>/<TMP>/sample.bam",
             "role": "bam"
+          },
+          {
+            "name": "reference",
+            "optional": false,
+            "path": "<TMPDIR>/<TMP>/mt_reference.fasta",
+            "role": "index"
           }
         ],
         "outputs": [

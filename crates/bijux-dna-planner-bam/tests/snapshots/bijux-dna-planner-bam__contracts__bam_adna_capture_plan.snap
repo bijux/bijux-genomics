@@ -1,6 +1,6 @@
 ---
 source: crates/bijux-dna-planner-bam/tests/contracts/plan/plan_snapshots.rs
-assertion_line: 131
+assertion_line: 143
 expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
@@ -347,14 +347,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "aux_images": {},
       "command": {
         "template": [
-          "pydamage",
-          "analyze",
-          "--input",
-          "markdup.bam",
-          "--output",
-          "damage.pydamage.json",
-          "--min-mapq",
-          "0.3"
+          "/bin/sh",
+          "-c",
+          "<TIMESTAMP>"
         ]
       },
       "expected_artifact_ids": [],
@@ -869,6 +864,12 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "optional": false,
             "path": "sample.bam",
             "role": "bam"
+          },
+          {
+            "name": "reference",
+            "optional": false,
+            "path": "mt_reference.fasta",
+            "role": "index"
           }
         ],
         "outputs": [
