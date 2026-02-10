@@ -1,8 +1,9 @@
 ##@ Docs
 
 MKDOCS ?= mkdocs
-DOCS_SITE ?= target-docs/site
-DOCS_VENV ?= target-docs/.venv
+DOCS_ROOT ?= artifacts/docs
+DOCS_SITE ?= $(DOCS_ROOT)/site
+DOCS_VENV ?= $(DOCS_ROOT)/.venv
 DOCS_PY ?= python3
 DOCS_REQ ?= requirements-docs.txt
 
@@ -21,4 +22,4 @@ docs-serve: $(DOCS_VENV)/bin/activate ## Serve docs locally
 	$(DOCS_VENV)/bin/mkdocs serve
 
 docs-clean: ## Remove built docs
-	rm -rf $(DOCS_SITE)
+	rm -rf $(DOCS_ROOT)
