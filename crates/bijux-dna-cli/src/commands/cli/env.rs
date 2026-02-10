@@ -266,6 +266,49 @@ pub fn print_registry_show(registry_path: &Path, id: &str) -> Result<()> {
     Err(anyhow!("registry id not found: {id}"))
 }
 
+/// # Errors
+/// Returns an error if id is not found or registry cannot be parsed.
+pub fn print_registry_show_tool(registry_path: &Path, id: &str) -> Result<()> {
+    let raw = std::fs::read_to_string(registry_path)
+        .with_context(|| format!("read {}", registry_path.display()))?;
+    let Some(tool) = parse_tools_registry_rows(&raw)?
+        .into_iter()
+        .find(|tool| tool.id == id)
+    else {
+        return Err(anyhow!("tool not found in registry: {id}"));
+    };
+    crate::commands::cli::render::json::print_pretty(&serde_json::json!({
+        "id": tool.id,
+        "runtimes": tool.runtimes,
+        "dockerfile": tool.dockerfile,
+        "apptainer_def": tool.apptainer_def,
+        "version_cmd": tool.version_cmd,
+        "pinned_commit": tool.pinned_commit,
+    }))?;
+    Ok(())
+}
+
+/// # Errors
+/// Returns an error if id is not found or registry cannot be parsed.
+pub fn print_registry_show_stage(registry_path: &Path, id: &str) -> Result<()> {
+    let raw = std::fs::read_to_string(registry_path)
+        .with_context(|| format!("read {}", registry_path.display()))?;
+    let Some(stage) = parse_stage_registry_rows(&raw)?
+        .into_iter()
+        .find(|stage| stage.id == id)
+    else {
+        return Err(anyhow!("stage not found in registry: {id}"));
+    };
+    crate::commands::cli::render::json::print_pretty(&serde_json::json!({
+        "id": stage.id,
+        "primary_tools": stage.primary_tools,
+        "optional_alternatives": stage.optional_alternatives,
+        "validation_tools": stage.validation_tools,
+        "reporting_tools": stage.reporting_tools,
+    }))?;
+    Ok(())
+}
+
 #[derive(Default)]
 struct StageRegistryRow {
     id: String,
