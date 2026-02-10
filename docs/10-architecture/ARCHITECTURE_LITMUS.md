@@ -15,6 +15,7 @@ Keeps design consistent across contributions.
 - prelude is exports-only
 - defaults live only in bijux-dna-pipelines
 - composition roots are only in API/CLI
+- Domain is authored SSOT; configs are generated; code consumes generated configs; makefiles call CLI only.
 
 ## Examples
 - Engine depends only on Runner trait, not concrete runner.
