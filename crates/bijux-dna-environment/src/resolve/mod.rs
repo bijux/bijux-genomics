@@ -368,6 +368,38 @@ pub fn run_smoke_script(runtime: &str, tool: &str) -> anyhow::Result<()> {
     Ok(())
 }
 
+/// Execute smoke contract script for a runtime with multiple tools.
+///
+/// # Errors
+/// Returns an error when runtime is unsupported or smoke script exits non-zero.
+pub fn run_smoke_script_batch(
+    runtime: &str,
+    tools: &[String],
+    smoke_level: &str,
+) -> anyhow::Result<()> {
+    let script = match runtime {
+        "docker-arm64" => "scripts/smoke-containers-docker-arm64.sh",
+        "docker-amd64" => "scripts/smoke-containers-docker-amd64.sh",
+        "apptainer" => "scripts/smoke-containers-apptainer.sh",
+        other => {
+            anyhow::bail!(
+                "unsupported runtime `{other}`; expected docker-arm64 | docker-amd64 | apptainer"
+            );
+        }
+    };
+    let tools_csv = tools.join(",");
+    let status = std::process::Command::new("sh")
+        .arg(script)
+        .env("TOOLS", tools_csv)
+        .env("JOBS", "1")
+        .env("SMOKE_LEVEL", smoke_level)
+        .status()?;
+    if !status.success() {
+        anyhow::bail!("smoke failed for runtime={runtime} (exit={status})");
+    }
+    Ok(())
+}
+
 #[must_use]
 pub fn cache_dir(runner: RuntimeKind) -> PathBuf {
     let home = std::env::var_os("HOME").map_or_else(|| PathBuf::from("."), PathBuf::from);
@@ -424,7 +456,8 @@ pub(crate) fn extract_version_or_digest(full_name: &str, arch: &str) -> String {
 pub mod api {
     pub use super::{
         available_runners, cache_dir, docker_image_exists, load_image_catalog, load_platform,
-        resolve_image, select_best_runner, PlatformSpec, ResolvedImage, RuntimeKind, ToolImageSpec,
+        resolve_image, run_smoke_script_batch, select_best_runner, PlatformSpec, ResolvedImage,
+        RuntimeKind, ToolImageSpec,
     };
 }
 

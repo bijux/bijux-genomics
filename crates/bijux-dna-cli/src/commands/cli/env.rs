@@ -1,11 +1,10 @@
 use std::collections::HashMap;
 use std::path::Path;
-use std::process::Command;
 
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_api::v1::api::env::{
     available_runners, cache_dir, docker_image_exists, resolve_image, run_smoke_script,
-    PlatformSpec, RuntimeKind, ToolImageSpec,
+    run_smoke_script_batch, PlatformSpec, RuntimeKind, ToolImageSpec,
 };
 
 /// # Errors
@@ -61,9 +60,9 @@ fn normalize_stage_id(stage: &str) -> String {
     }
 }
 
-fn parse_registry(path: &Path) -> Result<toml::Value> {
+fn parse_registry(path: &Path) -> Result<String> {
     let raw = std::fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
-    raw.parse().context("parse registry toml")
+    Ok(raw)
 }
 
 /// # Errors
@@ -75,44 +74,24 @@ pub fn registry_tools_for_stage(
 ) -> Result<Vec<String>> {
     let parsed = parse_registry(registry_path)?;
     let stage_id = normalize_stage_id(stage);
-    let stages = parsed
-        .get("stages")
-        .and_then(toml::Value::as_array)
-        .cloned()
-        .unwrap_or_default();
-    let Some(stage_entry) = stages.iter().find(|entry| {
-        entry
-            .get("id")
-            .and_then(toml::Value::as_str)
-            .is_some_and(|id| id == stage_id)
-    }) else {
+    let Some(stage_entry) = parse_stage_registry_rows(&parsed)?
+        .into_iter()
+        .find(|entry| entry.id == stage_id)
+    else {
         return Err(anyhow!("stage not found in registry: {stage_id}"));
     };
 
-    let read = |key: &str| -> Vec<String> {
-        stage_entry
-            .get(key)
-            .and_then(toml::Value::as_array)
-            .map(|arr| {
-                arr.iter()
-                    .filter_map(toml::Value::as_str)
-                    .map(str::to_string)
-                    .collect::<Vec<_>>()
-            })
-            .unwrap_or_default()
-    };
-
     let mut result = match kind {
-        "primary" => read("primary_tools"),
-        "optional" => read("optional_alternatives"),
-        "validation" => read("validation_tools"),
-        "reporting" => read("reporting_tools"),
+        "primary" => stage_entry.primary_tools,
+        "optional" => stage_entry.optional_alternatives,
+        "validation" => stage_entry.validation_tools,
+        "reporting" => stage_entry.reporting_tools,
         _ => {
             let mut all = Vec::new();
-            all.extend(read("primary_tools"));
-            all.extend(read("optional_alternatives"));
-            all.extend(read("validation_tools"));
-            all.extend(read("reporting_tools"));
+            all.extend(stage_entry.primary_tools);
+            all.extend(stage_entry.optional_alternatives);
+            all.extend(stage_entry.validation_tools);
+            all.extend(stage_entry.reporting_tools);
             all
         }
     };
@@ -153,29 +132,7 @@ pub fn run_env_prep(
 }
 
 fn run_env_with_tools(runtime: &str, tools: &[String], smoke_level: &str) -> Result<()> {
-    let script = match runtime {
-        "docker-arm64" => "scripts/smoke-containers-docker-arm64.sh",
-        "docker-amd64" => "scripts/smoke-containers-docker-amd64.sh",
-        "apptainer" => "scripts/smoke-containers-apptainer.sh",
-        other => {
-            return Err(anyhow!(
-                "unsupported runtime `{other}`; expected docker-arm64 | docker-amd64 | apptainer"
-            ));
-        }
-    };
-    let tools_csv = tools.join(",");
-    let status = Command::new("sh")
-        .arg(script)
-        .env("TOOLS", tools_csv)
-        .env("JOBS", "1")
-        .env("SMOKE_LEVEL", smoke_level)
-        .status()?;
-    if !status.success() {
-        return Err(anyhow!(
-            "environment command failed for runtime={runtime} (exit={status})"
-        ));
-    }
-    Ok(())
+    run_smoke_script_batch(runtime, tools, smoke_level)
 }
 
 #[derive(Default)]
@@ -235,20 +192,12 @@ fn parse_tools_registry_rows(raw: &str) -> Result<Vec<RegistryRow>> {
 pub fn print_registry_list_tools(registry_path: &Path) -> Result<()> {
     let raw = std::fs::read_to_string(registry_path)
         .with_context(|| format!("read {}", registry_path.display()))?;
-    let parsed: toml::Value = raw.parse().context("parse registry toml")?;
-    let mut tools = parsed
-        .get("tools")
-        .and_then(toml::Value::as_array)
-        .cloned()
-        .unwrap_or_default()
+    let mut tools = parse_tools_registry_rows(&raw)?
         .into_iter()
-        .filter_map(|tool| {
-            tool.get("id")
-                .and_then(toml::Value::as_str)
-                .map(str::to_string)
-        })
+        .map(|row| row.id)
         .collect::<Vec<_>>();
     tools.sort();
+    tools.dedup();
     for tool in tools {
         println!("{tool}");
     }
@@ -271,19 +220,9 @@ pub fn print_registry_tools(registry_path: &Path, stage: Option<&str>, kind: &st
 pub fn print_registry_list_stages(registry_path: &Path) -> Result<()> {
     let raw = std::fs::read_to_string(registry_path)
         .with_context(|| format!("read {}", registry_path.display()))?;
-    let parsed: toml::Value = raw.parse().context("parse registry toml")?;
-    let mut stages = parsed
-        .get("stages")
-        .and_then(toml::Value::as_array)
-        .cloned()
-        .unwrap_or_default()
+    let mut stages = parse_stage_registry_rows(&raw)?
         .into_iter()
-        .filter_map(|stage| {
-            stage
-                .get("id")
-                .and_then(toml::Value::as_str)
-                .map(str::to_string)
-        })
+        .map(|stage| stage.id)
         .collect::<Vec<_>>();
     stages.sort();
     for stage in stages {
@@ -297,30 +236,82 @@ pub fn print_registry_list_stages(registry_path: &Path) -> Result<()> {
 pub fn print_registry_show(registry_path: &Path, id: &str) -> Result<()> {
     let raw = std::fs::read_to_string(registry_path)
         .with_context(|| format!("read {}", registry_path.display()))?;
-    let parsed: toml::Value = raw.parse().context("parse registry toml")?;
-    if let Some(tool) = parsed
-        .get("tools")
-        .and_then(toml::Value::as_array)
-        .and_then(|arr| {
-            arr.iter()
-                .find(|tool| tool.get("id").and_then(toml::Value::as_str) == Some(id))
-        })
+    if let Some(tool) = parse_tools_registry_rows(&raw)?
+        .into_iter()
+        .find(|tool| tool.id == id)
     {
-        crate::commands::cli::render::json::print_pretty(tool)?;
+        crate::commands::cli::render::json::print_pretty(&serde_json::json!({
+            "id": tool.id,
+            "runtimes": tool.runtimes,
+            "dockerfile": tool.dockerfile,
+            "apptainer_def": tool.apptainer_def,
+            "version_cmd": tool.version_cmd,
+            "pinned_commit": tool.pinned_commit,
+        }))?;
         return Ok(());
     }
-    if let Some(stage) = parsed
-        .get("stages")
-        .and_then(toml::Value::as_array)
-        .and_then(|arr| {
-            arr.iter()
-                .find(|stage| stage.get("id").and_then(toml::Value::as_str) == Some(id))
-        })
+    if let Some(stage) = parse_stage_registry_rows(&raw)?
+        .into_iter()
+        .find(|stage| stage.id == id)
     {
-        crate::commands::cli::render::json::print_pretty(stage)?;
+        crate::commands::cli::render::json::print_pretty(&serde_json::json!({
+            "id": stage.id,
+            "primary_tools": stage.primary_tools,
+            "optional_alternatives": stage.optional_alternatives,
+            "validation_tools": stage.validation_tools,
+            "reporting_tools": stage.reporting_tools,
+        }))?;
         return Ok(());
     }
     Err(anyhow!("registry id not found: {id}"))
+}
+
+#[derive(Default)]
+struct StageRegistryRow {
+    id: String,
+    primary_tools: Vec<String>,
+    optional_alternatives: Vec<String>,
+    validation_tools: Vec<String>,
+    reporting_tools: Vec<String>,
+}
+
+fn parse_stage_registry_rows(raw: &str) -> Result<Vec<StageRegistryRow>> {
+    let mut rows = Vec::new();
+    let mut current: Option<StageRegistryRow> = None;
+    for line in raw.lines() {
+        let trimmed = line.trim();
+        if trimmed.is_empty() || trimmed.starts_with('#') {
+            continue;
+        }
+        if trimmed == "[[stages]]" {
+            if let Some(row) = current.take() {
+                rows.push(row);
+            }
+            current = Some(StageRegistryRow::default());
+            continue;
+        }
+        let Some(row) = current.as_mut() else {
+            continue;
+        };
+        if let Some(value) = parse_toml_string(trimmed, "id") {
+            row.id = value;
+        } else if let Some(values) = parse_toml_array(trimmed, "primary_tools") {
+            row.primary_tools = values;
+        } else if let Some(values) = parse_toml_array(trimmed, "optional_alternatives") {
+            row.optional_alternatives = values;
+        } else if let Some(values) = parse_toml_array(trimmed, "validation_tools") {
+            row.validation_tools = values;
+        } else if let Some(values) = parse_toml_array(trimmed, "reporting_tools") {
+            row.reporting_tools = values;
+        }
+    }
+    if let Some(row) = current {
+        rows.push(row);
+    }
+    if rows.is_empty() {
+        return Err(anyhow!("missing [[stages]] entries"));
+    }
+    Ok(rows)
 }
 
 fn parse_toml_string(line: &str, key: &str) -> Option<String> {

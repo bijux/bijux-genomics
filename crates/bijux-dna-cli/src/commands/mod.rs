@@ -167,7 +167,7 @@ fn handle_registry_root(command: &cli::RegistryCommand, cwd: &Path) -> Result<()
     let registry_path = cwd.join("configs").join("tool_registry.toml");
     match command {
         cli::RegistryCommand::Tools { stage, kind } => {
-            print_registry_tools(&registry_path, stage.as_deref(), kind)?
+            print_registry_tools(&registry_path, stage.as_deref(), kind)?;
         }
         cli::RegistryCommand::Stages => print_registry_list_stages(&registry_path)?,
         cli::RegistryCommand::Show { id } => print_registry_show(&registry_path, id)?,
