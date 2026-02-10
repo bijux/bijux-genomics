@@ -88,9 +88,7 @@ fn run_cli_capture(workspace: &CliWorkspace, args: &[&str]) -> Result<String, St
     std::env::set_var("BIJUX_SKIP_IMAGE_CHECK", "1");
     let result = run_with_args(args, workspace.path());
     let mut output = String::new();
-    buffer
-        .read_to_string(&mut output)
-        .expect("read stdout");
+    buffer.read_to_string(&mut output).expect("read stdout");
     result.map(|_| output).map_err(|err| err.to_string())
 }
 
@@ -157,8 +155,8 @@ fn cli_env_info_is_deterministic() {
     let workspace = CliWorkspace::new();
     workspace.setup_configs();
 
-    let stdout = run_cli_capture(&workspace, &["--platform", "test", "dna", "env", "info"])
-        .expect("cli ok");
+    let stdout =
+        run_cli_capture(&workspace, &["--platform", "test", "dna", "env", "info"]).expect("cli ok");
     assert!(stdout.contains("platform: test"));
     assert!(stdout.contains("runner: docker"));
     assert!(stdout.contains("image count: 2"));
@@ -201,10 +199,16 @@ fastp = { version = "0.0.0" }
 "#,
     );
 
-    let stdout_a = run_cli_capture(&workspace_a, &["--platform", "test", "dna", "env", "images"])
-        .expect("cli ok");
-    let stdout_b = run_cli_capture(&workspace_b, &["--platform", "test", "dna", "env", "images"])
-        .expect("cli ok");
+    let stdout_a = run_cli_capture(
+        &workspace_a,
+        &["--platform", "test", "dna", "env", "images"],
+    )
+    .expect("cli ok");
+    let stdout_b = run_cli_capture(
+        &workspace_b,
+        &["--platform", "test", "dna", "env", "images"],
+    )
+    .expect("cli ok");
 
     assert_eq!(stdout_a, stdout_b);
 }
@@ -233,12 +237,7 @@ fn cli_pipelines_explain_returns_profile_payload() {
     let workspace = CliWorkspace::new();
     let stdout = run_cli_capture(
         &workspace,
-        &[
-            "dna",
-            "pipelines",
-            "explain",
-            "fastq-to-fastq__default__v1",
-        ],
+        &["dna", "pipelines", "explain", "fastq-to-fastq__default__v1"],
     )
     .expect("cli ok");
     let payload: Value = serde_json::from_str(&stdout).expect("parse explain json");
@@ -415,11 +414,9 @@ fn cli_dry_run_manifest_is_deterministic_after_path_scrub() {
         workspace_b.path().to_str().unwrap_or_default(),
     );
 
-    let canonical_a =
-        bijux_dna_core::contract::canonical::to_canonical_json_bytes(&manifest_a)
-            .expect("canonical");
-    let canonical_b =
-        bijux_dna_core::contract::canonical::to_canonical_json_bytes(&manifest_b)
-            .expect("canonical");
+    let canonical_a = bijux_dna_core::contract::canonical::to_canonical_json_bytes(&manifest_a)
+        .expect("canonical");
+    let canonical_b = bijux_dna_core::contract::canonical::to_canonical_json_bytes(&manifest_b)
+        .expect("canonical");
     assert_eq!(canonical_a, canonical_b);
 }

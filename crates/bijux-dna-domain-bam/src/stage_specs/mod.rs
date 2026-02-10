@@ -164,10 +164,8 @@ impl BamStage {
             }
             BamStage::Filter => serde_json::from_value::<FilterEffectiveParams>(value.clone())
                 .map(BamEffectiveParams::Filter),
-            BamStage::MapqFilter => {
-                serde_json::from_value::<FilterEffectiveParams>(value.clone())
-                    .map(BamEffectiveParams::MapqFilter)
-            }
+            BamStage::MapqFilter => serde_json::from_value::<FilterEffectiveParams>(value.clone())
+                .map(BamEffectiveParams::MapqFilter),
             BamStage::LengthFilter => {
                 serde_json::from_value::<FilterEffectiveParams>(value.clone())
                     .map(BamEffectiveParams::LengthFilter)

@@ -476,7 +476,8 @@ fn explain_fastq_stage(
         }
         return Ok(());
     }
-    let stage_id = StageId::try_from(stage_id).map_err(|_| anyhow!("invalid stage id: {stage_id}"))?;
+    let stage_id =
+        StageId::try_from(stage_id).map_err(|_| anyhow!("invalid stage id: {stage_id}"))?;
     let stage = registry
         .stages()
         .get(&stage_id)
