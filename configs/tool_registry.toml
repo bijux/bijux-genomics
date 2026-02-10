@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 00d98de98504125061d78ef0bccf6f051f138c98
+# source_commit: f343fbcf92f56aa7b33b904afd52108f80d3a522
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 
 [[tools]]
@@ -486,7 +486,7 @@ require_labels = true
 id = "fastp"
 tool_id = "fastp"
 domain = "fastq"
-stage_ids = ["fastq.trim", "fastq.detect_adapters", "fastq.filter"]
+stage_ids = ["fastq.trim"]
 version = "latest-pinned"
 default_version = "latest-pinned"
 upstream = "unknown"
