@@ -1,14 +1,20 @@
 schema_version: "bijux.tool.v2"
 required_fields:
   - tool_id
-  - upstream
-  - versioning_strategy
-  - default_version
-  - install_kind
-  - license
   - stage_ids
-  - expected_artifacts
-  - metrics_schema_id
+  - status
+  - scope
+  - default_version
+  - upstream
+  - pin_strategy
+  - license
   - version_cmd
   - help_cmd
+  - expected_artifacts
+  - metrics_schema
+allowed_status:
+  - supported
+  - planned
+  - out_of_scope
+required_scope: "pre_hpc_pre_vcf"
   - comparability

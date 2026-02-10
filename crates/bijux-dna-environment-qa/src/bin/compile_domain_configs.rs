@@ -14,32 +14,35 @@ struct Args {
     domain_dir: PathBuf,
     #[arg(long, default_value = "configs")]
     configs_dir: PathBuf,
+    #[arg(long, default_value = "pre_hpc_pre_vcf")]
+    scope: String,
 }
 
 #[derive(Debug, Deserialize, Default)]
 struct DomainTool {
     tool_id: String,
-    #[serde(default)]
     stage_ids: Vec<String>,
-    #[serde(default)]
+    status: String,
+    scope: String,
     default_version: String,
-    #[serde(default)]
     upstream: String,
-    #[serde(default)]
     versioning_strategy: String,
     #[serde(default)]
+    pin_strategy: String,
+    license: String,
     version_cmd: String,
-    #[serde(default)]
     help_cmd: String,
-    #[serde(default)]
     expected_artifacts: Vec<String>,
-    #[serde(default)]
     metrics_schema_id: String,
+    #[serde(default)]
+    metrics_schema: String,
 }
 
 #[derive(Debug, Deserialize, Default)]
 struct DomainStage {
     stage_id: String,
+    status: String,
+    scope: String,
     #[serde(default)]
     planned_out_of_scope: Vec<String>,
 }
@@ -56,11 +59,26 @@ struct ToolRow {
     help_cmd: String,
     expected_artifacts: Vec<String>,
     metrics_schema: String,
+    status: String,
 }
 
 type ToolMap = BTreeMap<String, ToolRow>;
 type StageToolMap = BTreeMap<String, BTreeSet<String>>;
 type StagePlannedMap = BTreeMap<String, Vec<String>>;
+
+fn ensure_status(status: &str, path: &Path) -> Result<()> {
+    match status {
+        "supported" | "planned" | "out_of_scope" => Ok(()),
+        _ => Err(anyhow!(
+            "{} invalid status `{status}` (expected supported|planned|out_of_scope)",
+            path.display()
+        )),
+    }
+}
+
+fn scope_active(entry_scope: &str, active_scope: &str) -> bool {
+    entry_scope == active_scope
+}
 
 fn read_yaml<T: for<'de> Deserialize<'de>>(path: &Path) -> Result<T> {
     let raw = std::fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
@@ -85,6 +103,7 @@ fn generated_header(source: &str) -> String {
 fn load_domain_tools(
     domain_dir: &Path,
     domain: &str,
+    active_scope: &str,
     tools: &mut ToolMap,
     stage_to_tools: &mut StageToolMap,
 ) -> Result<()> {
@@ -111,8 +130,26 @@ fn load_domain_tools(
         if tool.tool_id.trim().is_empty() {
             return Err(anyhow!("{} missing tool_id", path.display()));
         }
+        if tool.scope.trim().is_empty() {
+            return Err(anyhow!("{} missing scope", path.display()));
+        }
+        ensure_status(&tool.status, &path)?;
+        if !scope_active(&tool.scope, active_scope) || tool.status == "out_of_scope" {
+            continue;
+        }
         if tool.stage_ids.is_empty() {
             return Err(anyhow!("{} missing stage_ids", path.display()));
+        }
+        if tool.upstream.trim().is_empty()
+            || tool.default_version.trim().is_empty()
+            || tool.versioning_strategy.trim().is_empty()
+            || tool.license.trim().is_empty()
+            || tool.version_cmd.trim().is_empty()
+            || tool.help_cmd.trim().is_empty()
+            || tool.expected_artifacts.is_empty()
+            || (tool.metrics_schema_id.trim().is_empty() && tool.metrics_schema.trim().is_empty())
+        {
+            return Err(anyhow!("{} missing required tool fields", path.display()));
         }
         for stage in &tool.stage_ids {
             stage_to_tools
@@ -139,6 +176,8 @@ fn load_domain_tools(
                 },
                 pin_strategy: if tool.versioning_strategy.is_empty() {
                     "pinned".to_string()
+                } else if !tool.pin_strategy.is_empty() {
+                    tool.pin_strategy
                 } else {
                     tool.versioning_strategy
                 },
@@ -154,10 +193,11 @@ fn load_domain_tools(
                 },
                 expected_artifacts: tool.expected_artifacts,
                 metrics_schema: if tool.metrics_schema_id.is_empty() {
-                    "bijux.unknown.v1".to_string()
+                    tool.metrics_schema
                 } else {
                     tool.metrics_schema_id
                 },
+                status: tool.status,
             },
         );
     }
@@ -167,6 +207,7 @@ fn load_domain_tools(
 fn load_domain_stages(
     domain_dir: &Path,
     domain: &str,
+    active_scope: &str,
     stage_to_tools: &mut StageToolMap,
     stage_planned: &mut StagePlannedMap,
 ) -> Result<()> {
@@ -193,19 +234,48 @@ fn load_domain_stages(
         if stage.stage_id.trim().is_empty() {
             return Err(anyhow!("{} missing stage_id", path.display()));
         }
+        if stage.scope.trim().is_empty() {
+            return Err(anyhow!("{} missing scope", path.display()));
+        }
+        ensure_status(&stage.status, &path)?;
+        if !scope_active(&stage.scope, active_scope) || stage.status == "out_of_scope" {
+            continue;
+        }
         stage_to_tools.entry(stage.stage_id.clone()).or_default();
         stage_planned.insert(stage.stage_id, stage.planned_out_of_scope);
     }
     Ok(())
 }
 
-fn collect_domain_data(domain_dir: &Path) -> Result<(ToolMap, StageToolMap, StagePlannedMap)> {
+fn collect_domain_data(
+    domain_dir: &Path,
+    active_scope: &str,
+) -> Result<(ToolMap, StageToolMap, StagePlannedMap)> {
     let mut tools: ToolMap = BTreeMap::new();
     let mut stage_to_tools: StageToolMap = BTreeMap::new();
     let mut stage_planned: StagePlannedMap = BTreeMap::new();
     for domain in ["fastq", "bam"] {
-        load_domain_tools(domain_dir, domain, &mut tools, &mut stage_to_tools)?;
-        load_domain_stages(domain_dir, domain, &mut stage_to_tools, &mut stage_planned)?;
+        load_domain_tools(
+            domain_dir,
+            domain,
+            active_scope,
+            &mut tools,
+            &mut stage_to_tools,
+        )?;
+        load_domain_stages(
+            domain_dir,
+            domain,
+            active_scope,
+            &mut stage_to_tools,
+            &mut stage_planned,
+        )?;
+    }
+    for tool in tools.values() {
+        for stage in &tool.stage_ids {
+            if !stage_to_tools.contains_key(stage) {
+                return Err(anyhow!("tool {} references unknown stage {}", tool.id, stage));
+            }
+        }
     }
     Ok((tools, stage_to_tools, stage_planned))
 }
@@ -231,7 +301,7 @@ fn build_tool_registry_toml(
         if runtimes.is_empty() {
             runtimes = vec!["docker".to_string(), "apptainer".to_string()];
         }
-        let is_planned = tool.default_version == "planned";
+        let is_planned = tool.status == "planned" || tool.default_version == "planned";
         let _ = writeln!(registry_toml, "[[tools]]");
         let _ = writeln!(registry_toml, "id = \"{}\"", tool.id);
         let _ = writeln!(registry_toml, "tool_id = \"{}\"", tool.id);
@@ -351,7 +421,7 @@ fn build_stages_toml(stage_to_tools: &StageToolMap) -> String {
 
 fn main() -> Result<()> {
     let args = Args::parse();
-    let (tools, stage_to_tools, stage_planned) = collect_domain_data(&args.domain_dir)?;
+    let (tools, stage_to_tools, stage_planned) = collect_domain_data(&args.domain_dir, &args.scope)?;
     ensure_dir(&args.configs_dir)
         .with_context(|| format!("create {}", args.configs_dir.display()))?;
 

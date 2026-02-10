@@ -1,7 +1,19 @@
-schema_version: "bijux.stage.v2"
+schema_version: "bijux.stage.v3"
+required_fields:
+  - stage_id
+  - status
+  - scope
+  - domain
+  - inputs
+  - outputs
+  - invariants
+  - compatible_tools
+  - metrics_schema
+  - required_inputs
+  - required_outputs
+allowed_status:
+  - supported
+  - planned
+  - out_of_scope
+required_scope: "pre_hpc_pre_vcf"
 domain: "bam"
-required_inputs: []
-required_outputs: []
-tool_capability_requirements: []
-invariants: []
-planned_out_of_scope: []

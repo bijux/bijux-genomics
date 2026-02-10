@@ -29,21 +29,42 @@ for f in "$ROOT_DIR"/domain/fastq/stages/*.yaml "$ROOT_DIR"/domain/bam/stages/*.
   b=$(basename "$f")
   [ "$b" = "_schema.yaml" ] && continue
   require_key stage_id "$f"
+  require_key status "$f"
+  require_key scope "$f"
+  require_key domain "$f"
   require_key inputs "$f"
   require_key outputs "$f"
   require_key required_inputs "$f"
   require_key required_outputs "$f"
-  require_key tool_capability_requirements "$f"
   require_key invariants "$f"
+  require_key compatible_tools "$f"
+  require_key metrics_schema "$f"
   require_key planned_out_of_scope "$f"
+  status=$(awk -F'"' '/^status:/{print $2; exit}' "$f")
+  case "$status" in
+    supported|planned|out_of_scope) ;;
+    *) fail "invalid stage status '$status' in $f" ;;
+  esac
+  scope=$(awk -F'"' '/^scope:/{print $2; exit}' "$f")
+  [ "$scope" = "pre_hpc_pre_vcf" ] || fail "invalid stage scope '$scope' in $f"
+  stage_id=$(awk -F'"' '/^stage_id:/{print $2; exit}' "$f")
+  domain=$(awk -F'"' '/^domain:/{print $2; exit}' "$f")
+  echo "$stage_id" | rg -q "^${domain}\." || fail "stage_id $stage_id must be namespaced by domain $domain in $f"
 done
 
 for f in "$ROOT_DIR"/domain/fastq/tools/*.yaml "$ROOT_DIR"/domain/bam/tools/*.yaml; do
   b=$(basename "$f")
   [ "$b" = "_schema.yaml" ] && continue
-  for k in tool_id upstream versioning_strategy default_version install_kind license stage_ids expected_artifacts metrics_schema_id version_cmd help_cmd comparability; do
+  for k in tool_id stage_ids status scope default_version upstream pin_strategy license version_cmd help_cmd expected_artifacts metrics_schema; do
     require_key "$k" "$f"
   done
+  status=$(awk -F'"' '/^status:/{print $2; exit}' "$f")
+  case "$status" in
+    supported|planned|out_of_scope) ;;
+    *) fail "invalid tool status '$status' in $f" ;;
+  esac
+  scope=$(awk -F'"' '/^scope:/{print $2; exit}' "$f")
+  [ "$scope" = "pre_hpc_pre_vcf" ] || fail "invalid tool scope '$scope' in $f"
   # ensure tool references at least one known stage
   tool_stages=$(awk '/^stage_ids:/{flag=1; next} flag && /^  - /{print $2} flag && !/^  - /{flag=0}' "$f" || true)
   [ -n "$tool_stages" ] || true
@@ -59,53 +80,6 @@ for dom in fastq bam; do
   done
   for t in $tool_list; do
     rg -q "^  - ${t}$" "$idx" || fail "$idx missing tool id $t"
-  done
-done
-
-# strict stage capability enforcement:
-# every tool in stage_tool_compatibility must satisfy stage tool_capability_requirements.
-for dom in fastq bam; do
-  idx="$ROOT_DIR/domain/$dom/index.yaml"
-  awk '
-    BEGIN { inmap=0 }
-    /^stage_tool_compatibility:/ { inmap=1; next }
-    inmap && /^[^[:space:]]/ { inmap=0 }
-    inmap && /^[[:space:]]+[a-z0-9_.-]+:/ {
-      line=$0
-      gsub(/^[[:space:]]+/, "", line)
-      split(line, p, ":")
-      stage=p[1]
-      rhs=line
-      sub(/^[^:]+:[[:space:]]*\[/, "", rhs)
-      sub(/\][[:space:]]*$/, "", rhs)
-      gsub(/[[:space:]]/, "", rhs)
-      print stage "|" rhs
-    }
-  ' "$idx" | while IFS='|' read -r stage tools_csv; do
-    [ -n "$stage" ] || continue
-    stage_file="$ROOT_DIR/domain/$dom/stages/$(echo "$stage" | sed "s#^$dom\\.##").yaml"
-    [ -f "$stage_file" ] || fail "missing stage file for $stage ($stage_file)"
-    reqs=$(awk '
-      /^tool_capability_requirements:/ {inreq=1; next}
-      inreq && /^  - / {print $2; next}
-      inreq && !/^  - / {inreq=0}
-    ' "$stage_file")
-    # If no requirements are declared, skip compatibility checks for this stage.
-    [ -n "$reqs" ] || continue
-    [ -n "$tools_csv" ] || fail "stage $stage has capability requirements but no compatible tools in $idx"
-    tools=$(echo "$tools_csv" | tr ',' ' ')
-    for tool in $tools; do
-      tool_file="$ROOT_DIR/domain/$dom/tools/$tool.yaml"
-      [ -f "$tool_file" ] || fail "stage $stage references missing tool $tool ($tool_file)"
-      caps=$(awk '
-        /^capabilities:/ {incap=1; next}
-        incap && /^  - / {print $2; next}
-        incap && !/^  - / {incap=0}
-      ' "$tool_file")
-      for req in $reqs; do
-        echo "$caps" | rg -qx "$req" || fail "stage $stage requires capability $req but tool $tool lacks it"
-      done
-    done
   done
 done
 

@@ -1,13 +1,19 @@
-schema_version: "bijux.stage.v1"
+schema_version: "bijux.stage.v3"
+required_fields:
+  - stage_id
+  - status
+  - scope
+  - domain
+  - inputs
+  - outputs
+  - invariants
+  - compatible_tools
+  - metrics_schema
+  - required_inputs
+  - required_outputs
+allowed_status:
+  - supported
+  - planned
+  - out_of_scope
+required_scope: "pre_hpc_pre_vcf"
 domain: "fastq"
-inputs: []
-outputs: []
-parameters: []
-metrics: []
-description: ""
-mutates_fastq: false
-report_only: false
-may_change_read_count: false
-image_requirements:
-  needs: []
-  forbids: []
