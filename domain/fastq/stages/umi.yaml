@@ -55,7 +55,7 @@ invariants:
 allowed_missingness:
   - "none"
 compatible_tools:
-  - samtools
+  - umi_tools
 assumptions:
   - "default stage assumptions captured"
 bank_hooks:

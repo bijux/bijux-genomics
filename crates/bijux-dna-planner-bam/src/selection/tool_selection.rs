@@ -65,6 +65,7 @@ pub fn canonical_tools_for_stage(stage: BamStage) -> Vec<ToolId> {
 
 #[must_use]
 pub fn default_tool(stage: BamStage) -> ToolId {
+    let allowed = canonical_tools_for_stage(stage);
     if let Some(parsed) = registry_toml() {
         if let Some(stages) = parsed.get("stages").and_then(toml::Value::as_array) {
             for stage_entry in stages {
@@ -80,12 +81,14 @@ pub fn default_tool(stage: BamStage) -> ToolId {
                     .cloned()
                     .unwrap_or_default();
                 if let Some(tool) = primary.first().and_then(toml::Value::as_str) {
-                    return ToolId::new(tool.to_string());
+                    if allowed.iter().any(|candidate| candidate.as_str() == tool) {
+                        return ToolId::new(tool.to_string());
+                    }
                 }
             }
         }
     }
-    canonical_tools_for_stage(stage)
+    allowed
         .first()
         .cloned()
         .unwrap_or_else(|| panic!("no compatible tool found for stage {}", stage.as_str()))

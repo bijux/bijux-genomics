@@ -182,18 +182,20 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         tool_specs.push(spec);
     }
     let mut aux_tools = std::collections::BTreeMap::new();
-    for aux_tool in bijux_dna_planner_fastq::stage_api::fastq::qc_post::aux_tool_ids() {
-        let spec = catalog
-            .get(*aux_tool)
-            .ok_or_else(|| anyhow!("tool {aux_tool} missing from images.toml"))?;
-        let image = resolve_image_for_run(spec, platform)?;
-        aux_tools.insert(
-            (*aux_tool).to_string(),
-            ContainerImageRefV1 {
-                image: image.full_name,
-                digest: spec.digest.clone(),
-            },
-        );
+    if policy.pipeline_stages.iter().any(|stage| stage == &STAGE_QC_POST) {
+        for aux_tool in bijux_dna_planner_fastq::stage_api::fastq::qc_post::aux_tool_ids() {
+            let spec = catalog
+                .get(*aux_tool)
+                .ok_or_else(|| anyhow!("tool {aux_tool} missing from images.toml"))?;
+            let image = resolve_image_for_run(spec, platform)?;
+            aux_tools.insert(
+                (*aux_tool).to_string(),
+                ContainerImageRefV1 {
+                    image: image.full_name,
+                    digest: spec.digest.clone(),
+                },
+            );
+        }
     }
     let pipeline_id = args
         .profile

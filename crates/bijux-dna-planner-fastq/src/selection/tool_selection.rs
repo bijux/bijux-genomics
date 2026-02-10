@@ -56,6 +56,7 @@ pub fn default_tool_for_stage(stage_id: &StageId) -> Option<ToolId> {
     if stage_id.as_str() == id_catalog::FASTQ_PREPROCESS {
         return Some(ToolId::from_static(id_catalog::TOOL_PLANNER));
     }
+    let allowed = allowed_tools_for_stage(stage_id);
     let parsed = registry_toml()?;
     let stages = parsed.get("stages")?.as_array()?;
     for stage in stages {
@@ -69,8 +70,10 @@ pub fn default_tool_for_stage(stage_id: &StageId) -> Option<ToolId> {
             .cloned()
             .unwrap_or_default();
         if let Some(tool) = primary.first().and_then(toml::Value::as_str) {
-            return Some(ToolId::new(tool.to_string()));
+            if allowed.iter().any(|candidate| candidate.as_str() == tool) {
+                return Some(ToolId::new(tool.to_string()));
+            }
         }
     }
-    allowed_tools_for_stage(stage_id).first().cloned()
+    allowed.first().cloned()
 }

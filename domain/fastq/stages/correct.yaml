@@ -59,7 +59,11 @@ invariants:
 allowed_missingness:
   - "none"
 compatible_tools:
-  - samtools
+  - rcorrector
+  - musket
+  - lighter
+  - bayeshammer
+  - spades
 assumptions:
   - "default stage assumptions captured"
 bank_hooks:
