@@ -731,6 +731,7 @@ pub fn select_preprocess_tools(
         .map(|stage| {
             let stage_id = StageId::new(stage.clone());
             let tool_id = crate::selection::default_tool_for_stage(&stage_id)
+                .map(|tool| tool.to_string())
                 .or_else(|| {
                     registry
                         .tools_for_stage(&stage_id)

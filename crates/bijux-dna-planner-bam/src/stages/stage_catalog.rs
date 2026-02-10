@@ -1,27 +1,18 @@
-use bijux_dna_domain_bam::{
-    contract_for_stage, BamArtifactKind, BamStage, BamStageContract, StageSpec,
-};
+use anyhow::{anyhow, Result};
+use bijux_dna_domain_bam::{contract_for_stage, BamStage, StageSpec};
 
 #[must_use]
-pub fn stage_registry() -> Vec<StageSpec> {
+pub fn stage_registry() -> Result<Vec<StageSpec>> {
     BamStage::all()
         .iter()
-        .map(|stage| StageSpec {
-            id: stage.id(),
-            stage: *stage,
-            contract: contract_for_stage(stage.as_str()).unwrap_or(BamStageContract {
-                input: BamArtifactKind::Bam,
-                output: BamArtifactKind::Report,
-                emits_bam: false,
-                emits_report: true,
-                sorting: "accepts_unsorted_bam",
-                indexing: "index_optional",
-                read_group_policy: "requires_read_groups_for_sample_metadata",
-                duplicate_policy: "no_duplicate_marking",
-                mapping_quality_policy: "no_mapping_quality_filter",
-                deterministic: true,
-                nondeterminism_reason: None,
-            }),
+        .map(|stage| {
+            let contract = contract_for_stage(stage.as_str())
+                .ok_or_else(|| anyhow!("missing BAM stage contract for {}", stage.as_str()))?;
+            Ok(StageSpec {
+                id: stage.id(),
+                stage: *stage,
+                contract,
+            })
         })
         .collect()
 }
