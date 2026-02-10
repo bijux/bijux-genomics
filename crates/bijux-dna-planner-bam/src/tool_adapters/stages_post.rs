@@ -235,6 +235,161 @@ pub mod coverage {
     }
 }
 
+pub mod insert_size {
+    use std::path::Path;
+
+    use bijux_dna_core::prelude::{
+        ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
+    };
+    use bijux_dna_domain_bam::params::CoverageEffectiveParams;
+    use bijux_dna_stage_contract::{StageIO, StagePlanV1};
+
+    pub const STAGE_ID: &str = bijux_dna_domain_bam::BamStage::InsertSize.as_str();
+    pub const STAGE_VERSION: StageVersion = StageVersion(1);
+
+    /// # Errors
+    /// Returns an error if required outputs are missing from the plan.
+    pub fn plan(
+        tool: &ToolExecutionSpecV1,
+        bam: &Path,
+        out_dir: &Path,
+        params: &CoverageEffectiveParams,
+    ) -> anyhow::Result<StagePlanV1> {
+        let outputs = crate::tool_adapters::stages_support::audit_outputs(
+            bijux_dna_domain_bam::BamStage::InsertSize,
+            out_dir,
+        );
+        let report = out_dir.join("insert_size.metrics.txt");
+        let histogram = out_dir.join("insert_size.histogram.pdf");
+        let command = match tool.tool_id.as_str() {
+            "picard" => crate::tool_adapters::tools::core::picard::collect_insert_size_metrics_args(
+                bam,
+                &report,
+                &histogram,
+            ),
+            _ => tool.command.template.clone(),
+        };
+        let plan = StagePlanV1 {
+            stage_id: StageId::from_static(STAGE_ID),
+            stage_version: STAGE_VERSION,
+            tool_id: tool.tool_id.clone(),
+            tool_version: tool.tool_version.clone(),
+            image: tool.image.clone(),
+            command: CommandSpecV1 { template: command },
+            resources: tool.resources.clone(),
+            io: StageIO {
+                inputs: vec![bijux_dna_stage_contract::ArtifactRef::required(
+                    ArtifactId::from_static("bam"),
+                    bam.to_path_buf(),
+                    ArtifactRole::Bam,
+                )],
+                outputs,
+            },
+            out_dir: out_dir.to_path_buf(),
+            params: serde_json::json!({
+                "bam": bam,
+                "regions": params.regions,
+            }),
+            effective_params: crate::tool_adapters::stages_support::ensure_effective_params(
+                serde_json::to_value(params).map_err(|error| {
+                    anyhow::anyhow!("BAM stage effective params must serialize: {error}")
+                })?,
+            )?,
+            aux_images: std::collections::BTreeMap::new(),
+            reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
+        };
+        crate::tool_adapters::stages_support::ensure_required_outputs(
+            plan,
+            &[
+                "insert_size_report",
+                "insert_size_histogram",
+                "summary",
+                "stage_metrics",
+            ],
+        )
+    }
+}
+
+pub mod gc_bias {
+    use std::path::Path;
+
+    use bijux_dna_core::prelude::{
+        ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
+    };
+    use bijux_dna_domain_bam::params::CoverageEffectiveParams;
+    use bijux_dna_stage_contract::{StageIO, StagePlanV1};
+
+    pub const STAGE_ID: &str = bijux_dna_domain_bam::BamStage::GcBias.as_str();
+    pub const STAGE_VERSION: StageVersion = StageVersion(1);
+
+    /// # Errors
+    /// Returns an error if required outputs are missing from the plan.
+    pub fn plan(
+        tool: &ToolExecutionSpecV1,
+        bam: &Path,
+        reference: &Path,
+        out_dir: &Path,
+        params: &CoverageEffectiveParams,
+    ) -> anyhow::Result<StagePlanV1> {
+        let outputs =
+            crate::tool_adapters::stages_support::audit_outputs(bijux_dna_domain_bam::BamStage::GcBias, out_dir);
+        let report = out_dir.join("gc_bias.metrics.txt");
+        let summary = out_dir.join("gc_bias.summary.json");
+        let chart = out_dir.join("gc_bias.plot.pdf");
+        let command = match tool.tool_id.as_str() {
+            "picard" => crate::tool_adapters::tools::core::picard::collect_gc_bias_metrics_args(
+                bam,
+                reference,
+                &report,
+                &summary,
+                &chart,
+            ),
+            _ => tool.command.template.clone(),
+        };
+        let plan = StagePlanV1 {
+            stage_id: StageId::from_static(STAGE_ID),
+            stage_version: STAGE_VERSION,
+            tool_id: tool.tool_id.clone(),
+            tool_version: tool.tool_version.clone(),
+            image: tool.image.clone(),
+            command: CommandSpecV1 { template: command },
+            resources: tool.resources.clone(),
+            io: StageIO {
+                inputs: vec![
+                    bijux_dna_stage_contract::ArtifactRef::required(
+                        ArtifactId::from_static("bam"),
+                        bam.to_path_buf(),
+                        ArtifactRole::Bam,
+                    ),
+                    bijux_dna_stage_contract::ArtifactRef::required(
+                        ArtifactId::from_static("reference"),
+                        reference.to_path_buf(),
+                        ArtifactRole::Index,
+                    ),
+                ],
+                outputs,
+            },
+            out_dir: out_dir.to_path_buf(),
+            params: serde_json::json!({
+                "bam": bam,
+                "reference": reference,
+                "regions": params.regions,
+            }),
+            effective_params: crate::tool_adapters::stages_support::ensure_effective_params(
+                serde_json::to_value(params).map_err(|error| {
+                    anyhow::anyhow!("BAM stage effective params must serialize: {error}")
+                })?,
+            )?,
+            aux_images: std::collections::BTreeMap::new(),
+            reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
+        };
+        crate::tool_adapters::stages_support::ensure_required_outputs(
+            plan,
+            &["gc_bias_report", "gc_bias_plot", "summary", "stage_metrics"],
+        )
+    }
+}
+
 pub mod recalibration {
     use std::path::Path;
 

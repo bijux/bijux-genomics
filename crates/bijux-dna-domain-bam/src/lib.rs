@@ -54,6 +54,8 @@ pub fn bam_stage_has_invariants(stage: BamStage) -> bool {
             | BamStage::Markdup
             | BamStage::Complexity
             | BamStage::Coverage
+            | BamStage::InsertSize
+            | BamStage::GcBias
             | BamStage::Damage
             | BamStage::Authenticity
             | BamStage::Contamination
@@ -76,6 +78,8 @@ pub fn bam_stage_completeness(stage: BamStage) -> StageCompleteness {
             | BamStage::Markdup
             | BamStage::Complexity
             | BamStage::Coverage
+            | BamStage::InsertSize
+            | BamStage::GcBias
             | BamStage::Damage
             | BamStage::Authenticity
             | BamStage::Contamination
@@ -89,6 +93,8 @@ pub fn bam_stage_completeness(stage: BamStage) -> StageCompleteness {
             | BamStage::QcPre
             | BamStage::Filter
             | BamStage::Coverage
+            | BamStage::InsertSize
+            | BamStage::GcBias
             | BamStage::Damage
     );
     let has_invariants = bam_stage_has_invariants(stage);
@@ -108,6 +114,8 @@ pub fn bam_stage_is_stable(stage: BamStage) -> bool {
             | BamStage::QcPre
             | BamStage::Filter
             | BamStage::Coverage
+            | BamStage::InsertSize
+            | BamStage::GcBias
             | BamStage::Damage
     )
 }

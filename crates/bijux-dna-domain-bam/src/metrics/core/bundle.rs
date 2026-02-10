@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use super::complexity::ComplexityMetricsV1;
 use super::coverage::{CoverageMetricsV1, CoverageUniformityV1, EffectiveCoverageV1};
 use super::damage::{DamageComparisonV1, DamageMetricsV1};
+use super::picard::{GcBiasMetricsV1, InsertSizeMetricsV1};
 use crate::metrics::downstream::{
     AuthenticityScoreV1, BamStageVerdictV1, ContaminationMetricsV1, ContaminationReconciliationV1,
     ContaminationSufficiencyV1, CoverageSufficiencyV1, GenotypingMetricsV1,
@@ -35,6 +36,10 @@ pub struct BamMetricsBundleV1 {
     pub contamination_reconciliation: ContaminationReconciliationV1,
     pub sex: SexInferenceV1,
     pub complexity: ComplexityMetricsV1,
+    #[serde(default)]
+    pub insert_size: InsertSizeMetricsV1,
+    #[serde(default)]
+    pub gc_bias: GcBiasMetricsV1,
     #[serde(default)]
     pub authenticity: AuthenticityScoreV1,
     #[serde(default)]
@@ -70,6 +75,8 @@ impl BamMetricsBundleV1 {
             contamination_reconciliation: ContaminationReconciliationV1::empty(),
             sex: SexInferenceV1::empty(),
             complexity: ComplexityMetricsV1::empty(),
+            insert_size: InsertSizeMetricsV1::empty(),
+            gc_bias: GcBiasMetricsV1::empty(),
             authenticity: AuthenticityScoreV1::empty(),
             coverage_sufficiency: CoverageSufficiencyV1::empty(),
             sex_sufficiency: SexSufficiencyV1::empty(),

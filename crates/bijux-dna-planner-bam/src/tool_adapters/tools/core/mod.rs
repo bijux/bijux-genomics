@@ -7,6 +7,7 @@ pub mod mapdamage2;
 pub mod mosdepth;
 pub mod ngsbriggs;
 pub mod pmdtools;
+pub mod picard;
 pub mod preseq;
 pub mod pydamage;
 

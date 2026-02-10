@@ -1,0 +1,52 @@
+---
+source: crates/bijux-dna-domain-bam/tests/contracts/stage_contract_snapshots.rs
+expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
+---
+{
+  "audit_artifacts": [
+    {
+      "filename": "duplication.metrics.json",
+      "name": "duplication_report"
+    },
+    {
+      "filename": "duplication.histogram.txt",
+      "name": "duplication_histogram"
+    },
+    {
+      "filename": "duplication.summary.json",
+      "name": "summary"
+    },
+    {
+      "filename": "stage.metrics.json",
+      "name": "stage_metrics"
+    }
+  ],
+  "inputs": [
+    "bam"
+  ],
+  "io": {
+    "deterministic": true,
+    "duplicate_policy": "marks_duplicates",
+    "emits_bam": true,
+    "emits_report": true,
+    "indexing": "requires_index_and_produces_index",
+    "input_kind": "Bam",
+    "mapping_quality_policy": "no_mapping_quality_filter",
+    "nondeterminism_reason": null,
+    "output_kind": "Bam",
+    "read_group_policy": "preserves_read_groups",
+    "sorting": "requires_coordinate_sorted_input"
+  },
+  "outputs": [
+    "duplication_report",
+    "duplication_histogram",
+    "summary",
+    "stage_metrics"
+  ],
+  "schema_version": "bijux.stage_contract.v1",
+  "stage_id": "bam.duplication_metrics",
+  "tool_ids": [
+    "samtools",
+    "picard"
+  ]
+}
