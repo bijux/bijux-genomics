@@ -2,8 +2,9 @@ use std::path::PathBuf;
 
 use bijux_dna_stages_bam::observer::{
     parse_contamination_json, parse_damageprofiler_json, parse_mapdamage2_misincorporation,
-    parse_mosdepth_summary, parse_preseq_estimates, parse_pydamage_json, parse_samtools_depth,
-    parse_samtools_flagstat, parse_samtools_idxstats, parse_samtools_stats, parse_sex_json,
+    parse_mosdepth_summary, parse_picard_gc_bias_metrics, parse_picard_insert_size_metrics,
+    parse_preseq_estimates, parse_pydamage_json, parse_samtools_depth, parse_samtools_flagstat,
+    parse_samtools_idxstats, parse_samtools_stats, parse_sex_json,
 };
 
 fn fixture(path: &str) -> std::path::PathBuf {
@@ -30,6 +31,20 @@ fn parses_complexity_and_coverage_observers() -> anyhow::Result<()> {
     assert!(mos.mean > 0.0);
     let depth = parse_samtools_depth(&fixture("samtools.depth.txt"))?;
     assert!(depth.mean >= 0.0);
+    Ok(())
+}
+
+#[test]
+fn parses_insert_size_and_gc_bias_observers() -> anyhow::Result<()> {
+    let insert = parse_picard_insert_size_metrics(&fixture("insert_size.metrics.txt"))?;
+    assert!(insert.mean_insert_size > 0.0);
+    assert!(insert.read_pairs > 0);
+    assert!((0.0..=1.0).contains(&insert.pair_orientation_fr_fraction));
+
+    let gc_bias = parse_picard_gc_bias_metrics(&fixture("gc_bias.metrics.txt"))?;
+    assert!(gc_bias.total_clusters >= gc_bias.aligned_reads);
+    assert!(gc_bias.at_dropout >= 0.0);
+    assert!(gc_bias.gc_dropout >= 0.0);
     Ok(())
 }
 

@@ -2,8 +2,9 @@ use std::path::PathBuf;
 
 use bijux_dna_stages_bam::observer::{
     parse_contamination_json, parse_damageprofiler_json, parse_mapdamage2_misincorporation,
-    parse_mosdepth_summary, parse_preseq_estimates, parse_pydamage_json, parse_samtools_depth,
-    parse_samtools_flagstat, parse_samtools_idxstats, parse_samtools_stats, parse_sex_json,
+    parse_mosdepth_summary, parse_picard_gc_bias_metrics, parse_picard_insert_size_metrics,
+    parse_preseq_estimates, parse_pydamage_json, parse_samtools_depth, parse_samtools_flagstat,
+    parse_samtools_idxstats, parse_samtools_stats, parse_sex_json,
 };
 
 fn fixture(path: &str) -> std::path::PathBuf {
@@ -110,5 +111,19 @@ fn snapshot_sex() -> anyhow::Result<()> {
 fn snapshot_depth() -> anyhow::Result<()> {
     let depth = parse_samtools_depth(&fixture("samtools.depth.txt"))?;
     write_snapshot("samtools_depth", &serde_json::to_value(depth)?);
+    Ok(())
+}
+
+#[test]
+fn snapshot_insert_size() -> anyhow::Result<()> {
+    let insert = parse_picard_insert_size_metrics(&fixture("insert_size.metrics.txt"))?;
+    write_snapshot("insert_size", &serde_json::to_value(insert)?);
+    Ok(())
+}
+
+#[test]
+fn snapshot_gc_bias() -> anyhow::Result<()> {
+    let gc_bias = parse_picard_gc_bias_metrics(&fixture("gc_bias.metrics.txt"))?;
+    write_snapshot("gc_bias", &serde_json::to_value(gc_bias)?);
     Ok(())
 }

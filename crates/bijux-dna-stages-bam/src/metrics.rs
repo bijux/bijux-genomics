@@ -62,6 +62,23 @@ pub fn bam_metrics_from_dir(out_dir: &Path) -> BamMetricsV1 {
         }
     }
 
+    let insert_size_path = first_existing(out_dir, &["insert_size.metrics.txt"]);
+    if let Some(path) = insert_size_path {
+        if let Ok(insert_size) =
+            bijux_dna_domain_bam::metrics::parse_picard_insert_size_metrics(&path)
+        {
+            metrics.insert_size = insert_size;
+        }
+    }
+
+    let gc_bias_path = first_existing(out_dir, &["gc_bias.metrics.txt"]);
+    if let Some(path) = gc_bias_path {
+        if let Ok(gc_bias) =
+            bijux_dna_domain_bam::metrics::parse_picard_gc_bias_metrics(&path)
+        {
+            metrics.gc_bias = gc_bias;
+        }
+    }
     let mut damage_sources: Vec<(String, bijux_dna_domain_bam::metrics::DamageMetricsV1)> =
         Vec::new();
     let pydamage_path = first_existing(out_dir, &["damage.pydamage.json", "pydamage.json"]);

@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use bijux_dna_stages_bam::observer::{
     parse_contamination_json, parse_damageprofiler_json, parse_mapdamage2_misincorporation,
-    parse_pydamage_json,
+    parse_picard_gc_bias_metrics, parse_picard_insert_size_metrics, parse_pydamage_json,
 };
 
 fn fixture(path: &str) -> PathBuf {
@@ -40,4 +40,21 @@ fn damage_metrics_include_required_fields() {
         .unwrap_or_else(|err| panic!("damageprofiler: {err}"));
     assert!(damageprofiler.c_to_t_5p > 0.0);
     assert!(damageprofiler.g_to_a_3p > 0.0);
+}
+
+#[test]
+fn insert_size_and_gc_bias_metrics_are_complete() {
+    let insert = parse_picard_insert_size_metrics(&fixture("insert_size.metrics.txt"))
+        .unwrap_or_else(|err| panic!("parse insert-size metrics: {err}"));
+    assert!(insert.mean_insert_size > 0.0);
+    assert!(insert.max_insert_size >= insert.min_insert_size);
+    assert!(insert.read_pairs > 0);
+    assert!((0.0..=1.0).contains(&insert.pair_orientation_fr_fraction));
+
+    let gc_bias = parse_picard_gc_bias_metrics(&fixture("gc_bias.metrics.txt"))
+        .unwrap_or_else(|err| panic!("parse gc-bias metrics: {err}"));
+    assert!(gc_bias.total_clusters >= gc_bias.aligned_reads);
+    assert!(gc_bias.windows > 0);
+    assert!(gc_bias.at_dropout >= 0.0);
+    assert!(gc_bias.gc_dropout >= 0.0);
 }

@@ -2,8 +2,9 @@ use std::path::PathBuf;
 
 use bijux_dna_domain_bam::metrics::{
     parse_contamination_json, parse_damageprofiler_json, parse_mapdamage2_misincorporation,
-    parse_mosdepth_summary, parse_preseq_estimates, parse_pydamage_json, parse_samtools_depth,
-    parse_samtools_flagstat, parse_samtools_idxstats, parse_samtools_stats, parse_sex_json,
+    parse_mosdepth_summary, parse_picard_gc_bias_metrics, parse_picard_insert_size_metrics,
+    parse_preseq_estimates, parse_pydamage_json, parse_samtools_depth, parse_samtools_flagstat,
+    parse_samtools_idxstats, parse_samtools_stats, parse_sex_json,
 };
 
 fn fixture_path(name: &str) -> PathBuf {
@@ -53,6 +54,13 @@ fn parse_bam_fixtures_roundtrip() -> anyhow::Result<()> {
 
     let sex = parse_sex_json(&fixture_path("sex.json"))?;
     assert!(sex.sufficient_data);
+
+    let insert = parse_picard_insert_size_metrics(&fixture_path("insert_size.metrics.txt"))?;
+    assert!(insert.mean_insert_size > 0.0);
+    assert!(insert.read_pairs > 0);
+
+    let gc_bias = parse_picard_gc_bias_metrics(&fixture_path("gc_bias.metrics.txt"))?;
+    assert!(gc_bias.total_clusters >= gc_bias.aligned_reads);
 
     Ok(())
 }
