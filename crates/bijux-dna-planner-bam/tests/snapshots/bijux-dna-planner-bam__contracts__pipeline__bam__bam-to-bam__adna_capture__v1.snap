@@ -1,6 +1,7 @@
 ---
 source: crates/bijux-dna-planner-bam/tests/contracts/plan/pipeline_plan_snapshot.rs
-expression: "bijux_testkit::snapshot_normalize_text(&payload)"
+assertion_line: 55
+expression: "bijux_dna_testkit::snapshot_normalize_text(&payload)"
 ---
 {
   "contract_version": {
