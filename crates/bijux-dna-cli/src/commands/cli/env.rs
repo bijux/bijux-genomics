@@ -138,6 +138,7 @@ fn run_env_with_tools(runtime: &str, tools: &[String], smoke_level: &str) -> Res
 #[derive(Default)]
 struct RegistryRow {
     id: String,
+    status: String,
     runtimes: Vec<String>,
     dockerfile: Option<String>,
     apptainer_def: Option<String>,
@@ -166,6 +167,8 @@ fn parse_tools_registry_rows(raw: &str) -> Result<Vec<RegistryRow>> {
         };
         if let Some(value) = parse_toml_string(trimmed, "id") {
             row.id = value;
+        } else if let Some(value) = parse_toml_string(trimmed, "status") {
+            row.status = value;
         } else if let Some(value) = parse_toml_string(trimmed, "dockerfile") {
             row.dockerfile = Some(value);
         } else if let Some(value) = parse_toml_string(trimmed, "apptainer_def") {
@@ -194,6 +197,7 @@ pub fn print_registry_list_tools(registry_path: &Path) -> Result<()> {
         .with_context(|| format!("read {}", registry_path.display()))?;
     let mut tools = parse_tools_registry_rows(&raw)?
         .into_iter()
+        .filter(|row| row.status != "planned" && row.status != "out_of_scope")
         .map(|row| row.id)
         .collect::<Vec<_>>();
     tools.sort();

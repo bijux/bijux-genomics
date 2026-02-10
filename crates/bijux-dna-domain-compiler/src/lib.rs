@@ -31,6 +31,7 @@ struct DomainTool {
     #[serde(default)]
     pin_strategy: String,
     license: String,
+    citation: String,
     version_cmd: String,
     help_cmd: String,
     expected_artifacts: Vec<String>,
@@ -59,6 +60,8 @@ struct DomainToolLoose {
     pin_strategy: String,
     #[serde(default)]
     license: String,
+    #[serde(default)]
+    citation: String,
     #[serde(default)]
     version_cmd: String,
     #[serde(default)]
@@ -103,6 +106,8 @@ struct DomainStage {
     compatible_tools: Vec<String>,
     #[serde(default)]
     invariants: Vec<String>,
+    #[serde(default)]
+    allowed_missingness: Vec<String>,
     #[serde(default)]
     planned_out_of_scope: Vec<String>,
 }
@@ -253,6 +258,55 @@ fn generated_header(source: &str, source_commit: &str) -> String {
     )
 }
 
+fn validate_tool_output_subset(tool_raw: &str, stage_raw: &str, tool_path: &Path, stage_id: &str) -> Result<()> {
+    #[derive(serde::Deserialize)]
+    struct NamedOutput {
+        name: String,
+    }
+    #[derive(serde::Deserialize)]
+    struct ToolOutputsDoc {
+        #[serde(default)]
+        outputs: Vec<NamedOutput>,
+    }
+    #[derive(serde::Deserialize)]
+    struct StageOutputsDoc {
+        #[serde(default)]
+        outputs: Vec<NamedOutput>,
+    }
+
+    let parsed_tool: ToolOutputsDoc = bijux_dna_infra::formats::parse_yaml(tool_raw)
+        .with_context(|| format!("parse {}", tool_path.display()))?;
+    if parsed_tool.outputs.is_empty() {
+        return Ok(());
+    }
+    let output_names = parsed_tool
+        .outputs
+        .iter()
+        .map(|entry| entry.name.as_str())
+        .collect::<BTreeSet<_>>();
+    if output_names.is_empty() {
+        bail!("{} outputs section must include named outputs", tool_path.display());
+    }
+    let stage_yaml: StageOutputsDoc = bijux_dna_infra::formats::parse_yaml(stage_raw)
+        .with_context(|| format!("parse stage {stage_id}"))?;
+    let stage_outputs = stage_yaml
+        .outputs
+        .iter()
+        .map(|entry| entry.name.as_str())
+        .collect::<BTreeSet<_>>();
+    for output in &output_names {
+        if !stage_outputs.contains(output) {
+            bail!(
+                "{} output `{}` is not declared by stage `{}` outputs",
+                tool_path.display(),
+                output,
+                stage_id
+            );
+        }
+    }
+    Ok(())
+}
+
 fn has_placeholder_token(raw: &str) -> bool {
     let lower = raw.to_ascii_lowercase();
     lower.contains("todo") || lower.contains("tbd") || lower.contains("placeholder")
@@ -306,6 +360,7 @@ fn load_domain_tools(
             || tool.default_version.trim().is_empty()
             || tool.versioning_strategy.trim().is_empty()
             || tool.license.trim().is_empty()
+            || tool.citation.trim().is_empty()
             || tool.version_cmd.trim().is_empty()
             || tool.help_cmd.trim().is_empty()
             || tool.expected_artifacts.is_empty()
@@ -532,6 +587,7 @@ fn build_tool_registry_toml(
         let _ = writeln!(registry_toml, "id = \"{}\"", tool.id);
         let _ = writeln!(registry_toml, "tool_id = \"{}\"", tool.id);
         let _ = writeln!(registry_toml, "domain = \"{}\"", tool.domain);
+        let _ = writeln!(registry_toml, "status = \"{}\"", tool.status);
         let _ = writeln!(registry_toml, "stage_ids = {}", toml_array(&tool.stage_ids));
         let _ = writeln!(registry_toml, "version = \"{}\"", tool.default_version);
         let _ = writeln!(
@@ -779,20 +835,25 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                 if stage.stage_id.is_empty() {
                     bail!("{} missing stage_id", path.display());
                 }
-                if stage.inputs.is_empty() {
-                    bail!("{} missing inputs", path.display());
-                }
-                if stage.outputs.is_empty() {
-                    bail!("{} missing outputs", path.display());
-                }
-                if stage.compatible_tools.is_empty() {
-                    bail!("{} missing compatible_tools", path.display());
-                }
-                if stage.invariants.is_empty() {
-                    bail!("{} missing invariants", path.display());
-                }
-                if stage.metrics.is_empty() {
-                    bail!("{} missing metrics", path.display());
+                if dom != "vcf" {
+                    if stage.inputs.is_empty() {
+                        bail!("{} missing inputs", path.display());
+                    }
+                    if stage.outputs.is_empty() {
+                        bail!("{} missing outputs", path.display());
+                    }
+                    if stage.compatible_tools.is_empty() {
+                        bail!("{} missing compatible_tools", path.display());
+                    }
+                    if stage.invariants.is_empty() {
+                        bail!("{} missing invariants", path.display());
+                    }
+                    if stage.metrics.is_empty() {
+                        bail!("{} missing metrics", path.display());
+                    }
+                    if stage.allowed_missingness.is_empty() && stage.status == "supported" {
+                        bail!("{} missing allowed_missingness", path.display());
+                    }
                 }
                 let input_names = stage
                     .inputs
@@ -897,6 +958,7 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                         || tool.upstream.is_empty()
                         || tool.pin_strategy.is_empty()
                         || tool.license.is_empty()
+                        || tool.citation.is_empty()
                         || tool.version_cmd.is_empty()
                         || tool.help_cmd.is_empty()
                         || tool.expected_artifacts.is_empty()
@@ -906,6 +968,26 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                     bail!("{} missing required tool fields", path.display());
                 }
                 if dom != "vcf" && tool.status == "supported" {
+                    for stage_id in &tool.stage_ids {
+                        let stage_domain = stage_id.split('.').next().unwrap_or(dom);
+                        let stage_path = options
+                            .domain_dir
+                            .join(stage_domain)
+                            .join("stages")
+                            .join(format!(
+                                "{}.yaml",
+                                stage_id
+                                    .split_once('.')
+                                    .map_or(stage_id.as_str(), |(_, suffix)| suffix)
+                                    .replace('.', "_")
+                            ));
+                        if stage_path.exists() {
+                            let stage_yaml_raw = std::fs::read_to_string(&stage_path).with_context(
+                                || format!("read stage for output validation {}", stage_path.display()),
+                            )?;
+                            validate_tool_output_subset(&tool_raw, &stage_yaml_raw, &path, stage_id)?;
+                        }
+                    }
                     let dockerfile = options
                         .domain_dir
                         .parent()
@@ -1063,4 +1145,31 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
 
     println!("domain-validate: OK");
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::validate_tool_output_subset;
+    use std::path::Path;
+
+    #[test]
+    fn tool_output_validation_rejects_unknown_output_name() {
+        let tool = r#"
+tool_id: fastp
+outputs:
+  - name: trimmed_reads
+  - name: rogue_output
+"#;
+        let stage = r#"
+stage_id: fastq.trim
+outputs:
+  - name: trimmed_reads
+"#;
+        let err = validate_tool_output_subset(tool, stage, Path::new("tool.yaml"), "fastq.trim")
+            .expect_err("must reject unknown output");
+        assert!(
+            err.to_string().contains("rogue_output"),
+            "unexpected error: {err}"
+        );
+    }
 }
