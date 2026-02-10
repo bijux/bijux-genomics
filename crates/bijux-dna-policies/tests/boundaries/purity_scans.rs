@@ -271,3 +271,62 @@ fn policy__boundaries__purity_scans__pipelines_do_not_embed_tool_names() {
         offenders.join("\n")
     );
 }
+
+#[test]
+fn policy__boundaries__purity_scans__tool_rosters_are_confined_to_registry_sources() {
+    let root = repo_root();
+    let mut offenders = Vec::new();
+    let roster_tokens = [
+        "\"fastp\"",
+        "\"cutadapt\"",
+        "\"samtools\"",
+        "\"kraken2\"",
+        "\"pydamage\"",
+        "\"verifybamid2\"",
+        "\"schmutzi\"",
+    ];
+    let allowed_paths = [
+        "crates/bijux-dna-environment-qa/src/bin/compile_domain_configs.rs",
+        "crates/bijux-dna-environment-qa/src/image_qa/mod.rs",
+        "crates/bijux-dna-environment/src/build.rs",
+        "crates/bijux-dna-core/src/id_catalog.rs",
+        "crates/bijux-dna-planner-fastq/src/selection/tool_registry.rs",
+        "crates/bijux-dna-planner-fastq/src/selection/tool_selection.rs",
+        "crates/bijux-dna-planner-bam/src/selection/tool_registry.rs",
+        "crates/bijux-dna-planner-bam/src/tool_adapters/tools/mod.rs",
+        "crates/bijux-dna-domain-fastq/src/stages/contract.rs",
+        "crates/bijux-dna-domain-bam/src/stage_specs/mod.rs",
+    ];
+
+    for entry in WalkDir::new(root.join("crates"))
+        .into_iter()
+        .filter_map(Result::ok)
+        .filter(|entry| entry.file_type().is_file())
+    {
+        let path = entry.path();
+        if path.extension().and_then(|ext| ext.to_str()) != Some("rs") {
+            continue;
+        }
+        let rel = path.strip_prefix(&root).unwrap_or(path).to_string_lossy();
+        if !rel.contains("/src/") {
+            continue;
+        }
+        if allowed_paths.iter().any(|allowed| rel == *allowed) {
+            continue;
+        }
+        let content = std::fs::read_to_string(path).expect("read source");
+        let roster_hits = roster_tokens
+            .iter()
+            .filter(|token| content.contains(*token))
+            .count();
+        if roster_hits >= 3 {
+            offenders.push(rel.to_string());
+        }
+    }
+
+    bijux_dna_policies::policy_assert!(
+        offenders.is_empty(),
+        "tool rosters must be declared only in registry compiler/domain loaders:\n{}",
+        offenders.join("\n")
+    );
+}
