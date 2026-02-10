@@ -35,6 +35,8 @@ struct DomainTool {
     version_cmd: String,
     help_cmd: String,
     expected_artifacts: Vec<String>,
+    #[serde(default)]
+    capabilities: Vec<String>,
     metrics_schema_id: String,
     #[serde(default)]
     metrics_schema: String,
@@ -68,6 +70,8 @@ struct DomainToolLoose {
     help_cmd: String,
     #[serde(default)]
     expected_artifacts: Vec<String>,
+    #[serde(default)]
+    capabilities: Vec<String>,
     #[serde(default)]
     metrics_schema_id: String,
     #[serde(default)]
@@ -105,7 +109,11 @@ struct DomainStage {
     #[serde(default)]
     compatible_tools: Vec<String>,
     #[serde(default)]
+    tool_capability_requirements: Vec<String>,
+    #[serde(default)]
     assumptions: Vec<String>,
+    #[serde(default)]
+    bank_hooks: Vec<String>,
     #[serde(default)]
     invariants: Vec<String>,
     #[serde(default)]
@@ -398,6 +406,7 @@ fn load_domain_tools(
             || tool.version_cmd.trim().is_empty()
             || tool.help_cmd.trim().is_empty()
             || tool.expected_artifacts.is_empty()
+            || (tool.status == "supported" && tool.capabilities.is_empty())
             || (tool.metrics_schema_id.trim().is_empty() && tool.metrics_schema.trim().is_empty())
         {
             return Err(anyhow!("{} missing required tool fields", path.display()));
@@ -881,6 +890,7 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
 
     let mut tool_ids = BTreeMap::<String, String>::new();
     let mut stage_ids = BTreeMap::<String, String>::new();
+    let mut tool_capabilities = BTreeMap::<String, BTreeSet<String>>::new();
     let mut artifact_vocab = BTreeMap::<String, BTreeSet<String>>::new();
     let mut metric_vocab = BTreeMap::<String, BTreeSet<String>>::new();
 
@@ -911,7 +921,10 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
         if metrics.metric_ids.is_empty() {
             bail!("{} missing metric_ids", metrics_path.display());
         }
-        artifact_vocab.insert(dom.to_string(), artifacts.artifact_ids.into_iter().collect());
+        artifact_vocab.insert(
+            dom.to_string(),
+            artifacts.artifact_ids.into_iter().collect(),
+        );
         metric_vocab.insert(dom.to_string(), metrics.metric_ids.into_iter().collect());
     }
 
@@ -956,6 +969,9 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                     if stage.assumptions.is_empty() {
                         bail!("{} missing assumptions", path.display());
                     }
+                    if stage.bank_hooks.is_empty() {
+                        bail!("{} missing bank_hooks", path.display());
+                    }
                     if stage.metrics.is_empty() {
                         bail!("{} missing metrics", path.display());
                     }
@@ -989,6 +1005,23 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                                 path.display(),
                                 metric.name,
                                 dom
+                            );
+                        }
+                    }
+                    let allowed_bank_hooks = BTreeSet::from([
+                        "adapter_bank",
+                        "polyx_bank",
+                        "contaminant_db_bank",
+                        "reference_bank",
+                        "contamination_db_bank",
+                        "none",
+                    ]);
+                    for hook in &stage.bank_hooks {
+                        if !allowed_bank_hooks.contains(hook.as_str()) {
+                            bail!(
+                                "{} bank_hook `{}` is outside the allowed vocabulary",
+                                path.display(),
+                                hook
                             );
                         }
                     }
@@ -1109,10 +1142,17 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                         || tool.version_cmd.is_empty()
                         || tool.help_cmd.is_empty()
                         || tool.expected_artifacts.is_empty()
+                        || tool.capabilities.is_empty()
                         || tool.metrics_schema_id.is_empty()
                         || tool.comparability_notes.is_empty())
                 {
                     bail!("{} missing required tool fields", path.display());
+                }
+                if !tool.capabilities.is_empty() {
+                    tool_capabilities.insert(
+                        tool.tool_id.clone(),
+                        tool.capabilities.iter().cloned().collect(),
+                    );
                 }
                 if dom != "vcf" && tool.status == "supported" {
                     let artifact_ids = artifact_vocab
@@ -1127,6 +1167,13 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                                 dom
                             );
                         }
+                    }
+                    if tool.capabilities.is_empty() {
+                        bail!(
+                            "{} supported tool {} missing capabilities",
+                            path.display(),
+                            tool.tool_id
+                        );
                     }
                     for stage_id in &tool.stage_ids {
                         let stage_domain = stage_id.split('.').next().unwrap_or(dom);
@@ -1258,8 +1305,8 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
         }
         // Enforce index as the single enumerator: every authored file must be listed in index.
         let stage_dir = options.domain_dir.join(dom).join("stages");
-        for entry in
-            std::fs::read_dir(&stage_dir).with_context(|| format!("read {}", stage_dir.display()))?
+        for entry in std::fs::read_dir(&stage_dir)
+            .with_context(|| format!("read {}", stage_dir.display()))?
         {
             let path = entry?.path();
             if path.extension().and_then(|v| v.to_str()) != Some("yaml") {
@@ -1312,6 +1359,15 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                     stage_id
                 );
             }
+            let stage_suffix = stage_id
+                .split_once('.')
+                .map_or(stage_id.as_str(), |(_, rhs)| rhs);
+            let stage_path = options
+                .domain_dir
+                .join(dom)
+                .join("stages")
+                .join(format!("{}.yaml", stage_suffix.replace('.', "_")));
+            let stage: DomainStage = read_yaml(&stage_path)?;
             for tool in tools {
                 if !index.tool_ids.contains(tool) {
                     bail!(
@@ -1320,6 +1376,26 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                         stage_id,
                         tool
                     );
+                }
+                if stage.status == "supported" {
+                    let caps = tool_capabilities.get(tool).ok_or_else(|| {
+                        anyhow!(
+                            "{} missing capabilities for supported tool {}",
+                            index_path.display(),
+                            tool
+                        )
+                    })?;
+                    for req in &stage.tool_capability_requirements {
+                        if !caps.contains(req) {
+                            bail!(
+                                "{} stage {} requires capability `{}` but tool {} does not provide it",
+                                index_path.display(),
+                                stage_id,
+                                req,
+                                tool
+                            );
+                        }
+                    }
                 }
                 let fixture = options
                     .domain_dir

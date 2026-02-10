@@ -1,9 +1,9 @@
 use std::collections::BTreeMap;
 
 use anyhow::Result;
-use bijux_dna_core::id_catalog;
 use bijux_dna_core::contract::canonical::parameters_json_canonicalization;
 use bijux_dna_core::contract::ContractVersion;
+use bijux_dna_core::id_catalog;
 use bijux_dna_core::metrics::MetricsEnvelope;
 use bijux_dna_core::prelude::hashing::{input_fingerprint, parameters_fingerprint};
 use bijux_dna_stage_contract::{ArtifactRef, StagePlanV1};
