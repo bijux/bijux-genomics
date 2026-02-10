@@ -45,9 +45,6 @@ fn policy__contracts__tool_registry_stage_domain_policy__each_tool_has_exactly_o
 
     let mut offenders = Vec::new();
     for tool in &tools {
-        if tool.get("tool_id").and_then(toml::Value::as_str).is_none() {
-            continue;
-        }
         let id = tool
             .get("id")
             .and_then(toml::Value::as_str)

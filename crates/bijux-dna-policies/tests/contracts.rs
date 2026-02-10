@@ -30,6 +30,8 @@ mod mod_contracts_tooling_docs_links_rs;
 mod mod_contracts_tooling_makefile_policies_rs;
 #[path = "contracts/tooling/no_appledouble.rs"]
 mod mod_contracts_tooling_no_appledouble_rs;
+#[path = "contracts/tooling/no_tool_string_literals.rs"]
+mod mod_contracts_tooling_no_tool_string_literals_rs;
 #[path = "contracts/tooling/planner_tool_id_policy.rs"]
 mod mod_contracts_tooling_planner_tool_id_policy_rs;
 #[path = "contracts/tooling/policies.rs"]
