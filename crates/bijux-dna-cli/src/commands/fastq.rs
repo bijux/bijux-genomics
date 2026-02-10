@@ -381,8 +381,8 @@ pub(crate) fn handle_meta_commands(
                 BenchCommand::Fastq { command } => match command {
                     BenchFastqCommand::Trim(args) => {
                         set_tool_tier_policy(false, args.allow_experimental);
-                        let outcome =
-                            bench_fastq_trim(&catalog, &platform, None, &bench_args_trim(args))?;
+                        let bench_args = bench_args_trim(args)?;
+                        let outcome = bench_fastq_trim(&catalog, &platform, None, &bench_args)?;
                         write_trim_report(
                             &outcome.bench_dir,
                             &outcome.records,
@@ -395,12 +395,9 @@ pub(crate) fn handle_meta_commands(
                     }
                     BenchFastqCommand::Validate(args) => {
                         set_tool_tier_policy(false, args.allow_experimental);
-                        let outcome = bench_fastq_validate_pre(
-                            &catalog,
-                            &platform,
-                            None,
-                            &bench_args_validate(args),
-                        )?;
+                        let bench_args = bench_args_validate(args)?;
+                        let outcome =
+                            bench_fastq_validate_pre(&catalog, &platform, None, &bench_args)?;
                         let qc_class = qc_class_label("fastq.validate_pre");
                         write_validate_report(
                             &outcome.bench_dir,
@@ -415,12 +412,8 @@ pub(crate) fn handle_meta_commands(
                     }
                     BenchFastqCommand::Filter(args) => {
                         set_tool_tier_policy(false, args.allow_experimental);
-                        let outcome = bench_fastq_filter(
-                            &catalog,
-                            &platform,
-                            None,
-                            &bench_args_filter(args),
-                        )?;
+                        let bench_args = bench_args_filter(args)?;
+                        let outcome = bench_fastq_filter(&catalog, &platform, None, &bench_args)?;
                         write_filter_report(
                             &outcome.bench_dir,
                             &outcome.records,
@@ -433,8 +426,8 @@ pub(crate) fn handle_meta_commands(
                     }
                     BenchFastqCommand::Merge(args) => {
                         set_tool_tier_policy(false, args.allow_experimental);
-                        let outcome =
-                            bench_fastq_merge(&catalog, &platform, None, &bench_args_merge(args))?;
+                        let bench_args = bench_args_merge(args)?;
+                        let outcome = bench_fastq_merge(&catalog, &platform, None, &bench_args)?;
                         write_merge_report(
                             &outcome.bench_dir,
                             &outcome.records,
@@ -447,12 +440,9 @@ pub(crate) fn handle_meta_commands(
                     }
                     BenchFastqCommand::Stats(args) => {
                         set_tool_tier_policy(false, args.allow_experimental);
-                        let outcome = bench_fastq_stats_neutral(
-                            &catalog,
-                            &platform,
-                            None,
-                            &bench_args_stats(args),
-                        )?;
+                        let bench_args = bench_args_stats(args)?;
+                        let outcome =
+                            bench_fastq_stats_neutral(&catalog, &platform, None, &bench_args)?;
                         write_stats_report(
                             &outcome.bench_dir,
                             &outcome.records,
@@ -465,12 +455,8 @@ pub(crate) fn handle_meta_commands(
                     }
                     BenchFastqCommand::Correct(args) => {
                         set_tool_tier_policy(false, args.allow_experimental);
-                        let outcome = bench_fastq_correct(
-                            &catalog,
-                            &platform,
-                            None,
-                            &bench_args_correct(args),
-                        )?;
+                        let bench_args = bench_args_correct(args)?;
+                        let outcome = bench_fastq_correct(&catalog, &platform, None, &bench_args)?;
                         write_correct_report(
                             &outcome.bench_dir,
                             &outcome.records,
@@ -483,12 +469,8 @@ pub(crate) fn handle_meta_commands(
                     }
                     BenchFastqCommand::QcPost(args) => {
                         set_tool_tier_policy(false, args.allow_experimental);
-                        let outcome = bench_fastq_qc_post(
-                            &catalog,
-                            &platform,
-                            None,
-                            &bench_args_qc_post(args),
-                        )?;
+                        let bench_args = bench_args_qc_post(args)?;
+                        let outcome = bench_fastq_qc_post(&catalog, &platform, None, &bench_args)?;
                         write_qc_post_report(
                             &outcome.bench_dir,
                             &outcome.records,
@@ -501,8 +483,8 @@ pub(crate) fn handle_meta_commands(
                     }
                     BenchFastqCommand::Umi(args) => {
                         set_tool_tier_policy(false, args.allow_experimental);
-                        let outcome =
-                            bench_fastq_umi(&catalog, &platform, None, &bench_args_umi(args))?;
+                        let bench_args = bench_args_umi(args)?;
+                        let outcome = bench_fastq_umi(&catalog, &platform, None, &bench_args)?;
                         write_umi_report(
                             &outcome.bench_dir,
                             &outcome.records,
@@ -515,7 +497,8 @@ pub(crate) fn handle_meta_commands(
                     }
                     BenchFastqCommand::Screen(args) => {
                         set_tool_tier_policy(false, args.allow_experimental);
-                        bench_fastq_screen(&catalog, &platform, None, &bench_args_screen(args))?;
+                        let bench_args = bench_args_screen(args)?;
+                        bench_fastq_screen(&catalog, &platform, None, &bench_args)?;
                     }
                     BenchFastqCommand::Preprocess(args) => {
                         set_tool_tier_policy(false, args.allow_experimental);

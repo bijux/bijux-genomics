@@ -306,7 +306,7 @@ pub struct BenchFastqTrimArgs {
     pub r1: PathBuf,
     #[arg(long)]
     pub out: PathBuf,
-    #[arg(long, value_delimiter = ',')]
+    #[arg(long, value_delimiter = ',', default_value = "auto", help = "Tool selection: auto | all | <csv>")]
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
@@ -345,7 +345,7 @@ pub struct BenchFastqValidateArgs {
     pub r1: PathBuf,
     #[arg(long)]
     pub out: PathBuf,
-    #[arg(long, value_delimiter = ',')]
+    #[arg(long, value_delimiter = ',', default_value = "auto", help = "Tool selection: auto | all | <csv>")]
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
@@ -369,7 +369,7 @@ pub struct BenchFastqFilterArgs {
     pub r1: PathBuf,
     #[arg(long)]
     pub out: PathBuf,
-    #[arg(long, value_delimiter = ',')]
+    #[arg(long, value_delimiter = ',', default_value = "auto", help = "Tool selection: auto | all | <csv>")]
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
@@ -399,7 +399,7 @@ pub struct BenchFastqMergeArgs {
     pub r2: PathBuf,
     #[arg(long)]
     pub out: PathBuf,
-    #[arg(long, value_delimiter = ',')]
+    #[arg(long, value_delimiter = ',', default_value = "auto", help = "Tool selection: auto | all | <csv>")]
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
@@ -423,7 +423,7 @@ pub struct BenchFastqCorrectArgs {
     pub r2: Option<PathBuf>,
     #[arg(long)]
     pub out: PathBuf,
-    #[arg(long, value_delimiter = ',')]
+    #[arg(long, value_delimiter = ',', default_value = "auto", help = "Tool selection: auto | all | <csv>")]
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
@@ -445,7 +445,7 @@ pub struct BenchFastqQcPostArgs {
     pub r1: PathBuf,
     #[arg(long)]
     pub out: PathBuf,
-    #[arg(long, value_delimiter = ',')]
+    #[arg(long, value_delimiter = ',', default_value = "auto", help = "Tool selection: auto | all | <csv>")]
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
@@ -469,7 +469,7 @@ pub struct BenchFastqUmiArgs {
     pub r2: Option<PathBuf>,
     #[arg(long)]
     pub out: PathBuf,
-    #[arg(long, value_delimiter = ',')]
+    #[arg(long, value_delimiter = ',', default_value = "auto", help = "Tool selection: auto | all | <csv>")]
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
@@ -491,7 +491,7 @@ pub struct BenchFastqScreenArgs {
     pub r1: PathBuf,
     #[arg(long)]
     pub out: PathBuf,
-    #[arg(long, value_delimiter = ',')]
+    #[arg(long, value_delimiter = ',', default_value = "auto", help = "Tool selection: auto | all | <csv>")]
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,
@@ -513,7 +513,7 @@ pub struct BenchFastqStatsArgs {
     pub r1: PathBuf,
     #[arg(long)]
     pub out: PathBuf,
-    #[arg(long, value_delimiter = ',')]
+    #[arg(long, value_delimiter = ',', default_value = "auto", help = "Tool selection: auto | all | <csv>")]
     pub tools: Vec<String>,
     #[arg(long)]
     pub explain: bool,

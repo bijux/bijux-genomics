@@ -1,7 +1,8 @@
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use bijux_dna_api::v1::api::bench::fastq_args as engine_args;
 use bijux_dna_api::v1::api::run::{StageId, ToolId};
 
+use crate::commands::cli::env::registry_tools_for_stage;
 use crate::commands::cli::parse::{
     BamCommand, BenchFastqCorrectArgs, BenchFastqFilterArgs, BenchFastqMergeArgs,
     BenchFastqPreprocessArgs, BenchFastqQcPostArgs, BenchFastqScreenArgs, BenchFastqStatsArgs,
@@ -82,13 +83,14 @@ pub fn resolve_stage_tool(command: &DnaCommand) -> (StageId, ToolId, CommonArgs)
     }
 }
 
-#[must_use]
-pub fn bench_args_trim(args: &BenchFastqTrimArgs) -> engine_args::BenchFastqTrimArgs {
-    engine_args::BenchFastqTrimArgs {
+/// # Errors
+/// Returns an error if tool mode cannot be resolved for this stage.
+pub fn bench_args_trim(args: &BenchFastqTrimArgs) -> Result<engine_args::BenchFastqTrimArgs> {
+    Ok(engine_args::BenchFastqTrimArgs {
         sample_id: args.sample_id.clone(),
         r1: args.r1.clone(),
         out: args.out.clone(),
-        tools: args.tools.clone(),
+        tools: resolve_bench_tools("fastq.trim", &args.tools)?,
         explain: args.explain,
         replicates: args.replicates,
         jobs: args.jobs,
@@ -100,31 +102,35 @@ pub fn bench_args_trim(args: &BenchFastqTrimArgs) -> engine_args::BenchFastqTrim
         disable_adapters: args.disable_adapter.clone(),
         polyx_preset: args.polyx_preset.clone(),
         contaminant_preset: args.contaminant_preset.clone(),
-    }
+    })
 }
 
-#[must_use]
-pub fn bench_args_validate(args: &BenchFastqValidateArgs) -> engine_args::BenchFastqValidateArgs {
-    engine_args::BenchFastqValidateArgs {
+/// # Errors
+/// Returns an error if tool mode cannot be resolved for this stage.
+pub fn bench_args_validate(
+    args: &BenchFastqValidateArgs,
+) -> Result<engine_args::BenchFastqValidateArgs> {
+    Ok(engine_args::BenchFastqValidateArgs {
         sample_id: args.sample_id.clone(),
         r1: args.r1.clone(),
         out: args.out.clone(),
-        tools: args.tools.clone(),
+        tools: resolve_bench_tools("fastq.validate_pre", &args.tools)?,
         explain: args.explain,
         strict: args.strict,
         replicates: args.replicates,
         jobs: args.jobs,
         ci_bootstrap: args.ci_bootstrap,
-    }
+    })
 }
 
-#[must_use]
-pub fn bench_args_filter(args: &BenchFastqFilterArgs) -> engine_args::BenchFastqFilterArgs {
-    engine_args::BenchFastqFilterArgs {
+/// # Errors
+/// Returns an error if tool mode cannot be resolved for this stage.
+pub fn bench_args_filter(args: &BenchFastqFilterArgs) -> Result<engine_args::BenchFastqFilterArgs> {
+    Ok(engine_args::BenchFastqFilterArgs {
         sample_id: args.sample_id.clone(),
         r1: args.r1.clone(),
         out: args.out.clone(),
-        tools: args.tools.clone(),
+        tools: resolve_bench_tools("fastq.filter", &args.tools)?,
         explain: args.explain,
         replicates: args.replicates,
         jobs: args.jobs,
@@ -132,94 +138,157 @@ pub fn bench_args_filter(args: &BenchFastqFilterArgs) -> engine_args::BenchFastq
         max_n: args.max_n,
         low_complexity_threshold: args.low_complexity_threshold,
         kmer_ref: args.kmer_ref.clone(),
-    }
+    })
 }
 
-#[must_use]
-pub fn bench_args_merge(args: &BenchFastqMergeArgs) -> engine_args::BenchFastqMergeArgs {
-    engine_args::BenchFastqMergeArgs {
+/// # Errors
+/// Returns an error if tool mode cannot be resolved for this stage.
+pub fn bench_args_merge(args: &BenchFastqMergeArgs) -> Result<engine_args::BenchFastqMergeArgs> {
+    Ok(engine_args::BenchFastqMergeArgs {
         sample_id: args.sample_id.clone(),
         r1: args.r1.clone(),
         r2: args.r2.clone(),
         out: args.out.clone(),
-        tools: args.tools.clone(),
+        tools: resolve_bench_tools("fastq.merge", &args.tools)?,
         explain: args.explain,
         replicates: args.replicates,
         jobs: args.jobs,
         ci_bootstrap: args.ci_bootstrap,
-    }
+    })
 }
 
-#[must_use]
-pub fn bench_args_correct(args: &BenchFastqCorrectArgs) -> engine_args::BenchFastqCorrectArgs {
-    engine_args::BenchFastqCorrectArgs {
+/// # Errors
+/// Returns an error if tool mode cannot be resolved for this stage.
+pub fn bench_args_correct(
+    args: &BenchFastqCorrectArgs,
+) -> Result<engine_args::BenchFastqCorrectArgs> {
+    Ok(engine_args::BenchFastqCorrectArgs {
         sample_id: args.sample_id.clone(),
         r1: args.r1.clone(),
         r2: args.r2.clone(),
         out: args.out.clone(),
-        tools: args.tools.clone(),
+        tools: resolve_bench_tools("fastq.correct", &args.tools)?,
         explain: args.explain,
         replicates: args.replicates,
         jobs: args.jobs,
         ci_bootstrap: args.ci_bootstrap,
-    }
+    })
 }
 
-#[must_use]
-pub fn bench_args_qc_post(args: &BenchFastqQcPostArgs) -> engine_args::BenchFastqQcPostArgs {
-    engine_args::BenchFastqQcPostArgs {
+/// # Errors
+/// Returns an error if tool mode cannot be resolved for this stage.
+pub fn bench_args_qc_post(
+    args: &BenchFastqQcPostArgs,
+) -> Result<engine_args::BenchFastqQcPostArgs> {
+    Ok(engine_args::BenchFastqQcPostArgs {
         sample_id: args.sample_id.clone(),
         r1: args.r1.clone(),
         out: args.out.clone(),
-        tools: args.tools.clone(),
+        tools: resolve_bench_tools("fastq.qc_post", &args.tools)?,
         explain: args.explain,
         replicates: args.replicates,
         jobs: args.jobs,
         ci_bootstrap: args.ci_bootstrap,
-    }
+    })
 }
 
-#[must_use]
-pub fn bench_args_umi(args: &BenchFastqUmiArgs) -> engine_args::BenchFastqUmiArgs {
-    engine_args::BenchFastqUmiArgs {
+/// # Errors
+/// Returns an error if tool mode cannot be resolved for this stage.
+pub fn bench_args_umi(args: &BenchFastqUmiArgs) -> Result<engine_args::BenchFastqUmiArgs> {
+    Ok(engine_args::BenchFastqUmiArgs {
         sample_id: args.sample_id.clone(),
         r1: args.r1.clone(),
         r2: args.r2.clone(),
         out: args.out.clone(),
-        tools: args.tools.clone(),
+        tools: resolve_bench_tools("fastq.umi", &args.tools)?,
         explain: args.explain,
         replicates: args.replicates,
         jobs: args.jobs,
         ci_bootstrap: args.ci_bootstrap,
-    }
+    })
 }
 
-#[must_use]
-pub fn bench_args_screen(args: &BenchFastqScreenArgs) -> engine_args::BenchFastqScreenArgs {
-    engine_args::BenchFastqScreenArgs {
+/// # Errors
+/// Returns an error if tool mode cannot be resolved for this stage.
+pub fn bench_args_screen(args: &BenchFastqScreenArgs) -> Result<engine_args::BenchFastqScreenArgs> {
+    Ok(engine_args::BenchFastqScreenArgs {
         sample_id: args.sample_id.clone(),
         r1: args.r1.clone(),
         out: args.out.clone(),
-        tools: args.tools.clone(),
+        tools: resolve_bench_tools("fastq.screen", &args.tools)?,
         explain: args.explain,
         replicates: args.replicates,
         jobs: args.jobs,
         ci_bootstrap: args.ci_bootstrap,
-    }
+    })
 }
 
-#[must_use]
-pub fn bench_args_stats(args: &BenchFastqStatsArgs) -> engine_args::BenchFastqStatsArgs {
-    engine_args::BenchFastqStatsArgs {
+/// # Errors
+/// Returns an error if tool mode cannot be resolved for this stage.
+pub fn bench_args_stats(args: &BenchFastqStatsArgs) -> Result<engine_args::BenchFastqStatsArgs> {
+    Ok(engine_args::BenchFastqStatsArgs {
         sample_id: args.sample_id.clone(),
         r1: args.r1.clone(),
         out: args.out.clone(),
-        tools: args.tools.clone(),
+        tools: resolve_bench_tools("fastq.stats_neutral", &args.tools)?,
         explain: args.explain,
         replicates: args.replicates,
         jobs: args.jobs,
         ci_bootstrap: args.ci_bootstrap,
+    })
+}
+
+fn resolve_bench_tools(stage: &str, raw_tools: &[String]) -> Result<Vec<String>> {
+    let mut normalized = raw_tools
+        .iter()
+        .map(|tool| tool.trim().to_lowercase())
+        .filter(|tool| !tool.is_empty())
+        .collect::<Vec<_>>();
+    normalized.sort();
+    normalized.dedup();
+
+    let mode = if normalized.is_empty() {
+        "auto"
+    } else if normalized.len() == 1 && normalized[0] == "all" {
+        "all"
+    } else if normalized.len() == 1 && normalized[0] == "auto" {
+        "auto"
+    } else {
+        if normalized.iter().any(|v| v == "auto" || v == "all") {
+            return Err(anyhow!(
+                "--tools accepts either `auto`, `all`, or an explicit CSV list"
+            ));
+        }
+        "csv"
+    };
+
+    let registry_path = std::env::current_dir()
+        .map_err(|err| anyhow!("resolve cwd: {err}"))?
+        .join("configs")
+        .join("tool_registry.toml");
+    let all_tools = registry_tools_for_stage(&registry_path, stage, "all")?;
+    if all_tools.is_empty() {
+        return Err(anyhow!("no compatible tools found for stage `{stage}`"));
     }
+    let mut selected = match mode {
+        "auto" => registry_tools_for_stage(&registry_path, stage, "primary")?,
+        "all" => all_tools.clone(),
+        _ => normalized,
+    };
+    selected.sort();
+    selected.dedup();
+
+    if selected.is_empty() {
+        return Err(anyhow!("resolved empty tool set for stage `{stage}`"));
+    }
+    for tool in &selected {
+        if !all_tools.contains(tool) {
+            return Err(anyhow!(
+                "tool `{tool}` is not compatible with stage `{stage}`"
+            ));
+        }
+    }
+    Ok(selected)
 }
 
 #[must_use]
