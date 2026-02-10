@@ -12,6 +12,7 @@ required_fields:
   - help_cmd
   - expected_artifacts
   - metrics_schema
+  - comparability_notes
 allowed_status:
   - supported
   - planned

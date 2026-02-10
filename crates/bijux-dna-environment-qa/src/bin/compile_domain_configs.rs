@@ -36,6 +36,8 @@ struct DomainTool {
     metrics_schema_id: String,
     #[serde(default)]
     metrics_schema: String,
+    #[serde(default)]
+    comparability_notes: String,
 }
 
 #[derive(Debug, Deserialize, Default)]
@@ -45,6 +47,19 @@ struct DomainStage {
     scope: String,
     #[serde(default)]
     planned_out_of_scope: Vec<String>,
+}
+
+#[derive(Debug, Deserialize, Default)]
+struct DomainIndex {
+    domain: String,
+    #[serde(default)]
+    stage_ids: Vec<String>,
+    #[serde(default)]
+    tool_ids: Vec<String>,
+    #[serde(default)]
+    stage_tool_compatibility: BTreeMap<String, Vec<String>>,
+    #[serde(default)]
+    active_defaults: BTreeMap<String, String>,
 }
 
 #[derive(Debug)]
@@ -60,11 +75,13 @@ struct ToolRow {
     expected_artifacts: Vec<String>,
     metrics_schema: String,
     status: String,
+    comparability_notes: String,
 }
 
 type ToolMap = BTreeMap<String, ToolRow>;
 type StageToolMap = BTreeMap<String, BTreeSet<String>>;
 type StagePlannedMap = BTreeMap<String, Vec<String>>;
+type StageDefaultMap = BTreeMap<String, String>;
 
 fn ensure_status(status: &str, path: &Path) -> Result<()> {
     match status {
@@ -103,29 +120,33 @@ fn generated_header(source: &str) -> String {
 fn load_domain_tools(
     domain_dir: &Path,
     domain: &str,
+    index: &DomainIndex,
     active_scope: &str,
     tools: &mut ToolMap,
     stage_to_tools: &mut StageToolMap,
 ) -> Result<()> {
     let tools_dir = domain_dir.join(domain).join("tools");
-    if !tools_dir.exists() {
-        return Ok(());
-    }
-    for entry in
-        std::fs::read_dir(&tools_dir).with_context(|| format!("read {}", tools_dir.display()))?
-    {
-        let entry = entry?;
-        let path = entry.path();
-        if path.extension().and_then(|e| e.to_str()) != Some("yaml") {
-            continue;
-        }
-        let name = path
-            .file_name()
-            .and_then(|n| n.to_str())
-            .unwrap_or_default();
-        if name.starts_with('_') {
-            continue;
-        }
+    for tool_id_ref in &index.tool_ids {
+        let tool_id_normalized = tool_id_ref.replace('-', "_");
+        let path_candidates = [
+            tools_dir.join(format!("{tool_id_ref}.yaml")),
+            tools_dir.join(format!("{tool_id_normalized}.yaml")),
+            domain_dir
+                .join(if domain == "fastq" { "bam" } else { "fastq" })
+                .join("tools")
+                .join(format!("{tool_id_ref}.yaml")),
+            domain_dir
+                .join(if domain == "fastq" { "bam" } else { "fastq" })
+                .join("tools")
+                .join(format!("{tool_id_normalized}.yaml")),
+        ];
+        let Some(path) = path_candidates.into_iter().find(|p| p.exists()) else {
+            return Err(anyhow!(
+                "index references missing tool file for {} in {}",
+                tool_id_ref,
+                tools_dir.display()
+            ));
+        };
         let tool: DomainTool = read_yaml(&path)?;
         if tool.tool_id.trim().is_empty() {
             return Err(anyhow!("{} missing tool_id", path.display()));
@@ -158,11 +179,21 @@ fn load_domain_tools(
                 .insert(tool.tool_id.clone());
         }
         let tool_id = tool.tool_id.clone();
+        if tools.contains_key(&tool_id) {
+            continue;
+        }
+        let resolved_domain = path
+            .parent()
+            .and_then(Path::parent)
+            .and_then(Path::file_name)
+            .and_then(|v| v.to_str())
+            .unwrap_or(domain)
+            .to_string();
         tools.insert(
             tool_id.clone(),
             ToolRow {
                 id: tool_id.clone(),
-                domain: domain.to_string(),
+                domain: resolved_domain,
                 stage_ids: tool.stage_ids,
                 default_version: if tool.default_version.is_empty() {
                     "latest-pinned".to_string()
@@ -198,6 +229,7 @@ fn load_domain_tools(
                     tool.metrics_schema_id
                 },
                 status: tool.status,
+                comparability_notes: tool.comparability_notes,
             },
         );
     }
@@ -207,28 +239,25 @@ fn load_domain_tools(
 fn load_domain_stages(
     domain_dir: &Path,
     domain: &str,
+    index: &DomainIndex,
     active_scope: &str,
     stage_to_tools: &mut StageToolMap,
     stage_planned: &mut StagePlannedMap,
 ) -> Result<()> {
     let stages_dir = domain_dir.join(domain).join("stages");
-    if !stages_dir.exists() {
-        return Ok(());
-    }
-    for entry in
-        std::fs::read_dir(&stages_dir).with_context(|| format!("read {}", stages_dir.display()))?
-    {
-        let entry = entry?;
-        let path = entry.path();
-        if path.extension().and_then(|e| e.to_str()) != Some("yaml") {
-            continue;
-        }
-        let name = path
-            .file_name()
-            .and_then(|n| n.to_str())
-            .unwrap_or_default();
-        if name.starts_with('_') {
-            continue;
+    for stage_id in &index.stage_ids {
+        let stage_suffix = stage_id
+            .split_once('.')
+            .map(|(_, suffix)| suffix)
+            .unwrap_or(stage_id);
+        let stage_file = stage_suffix.replace('.', "_");
+        let path = stages_dir.join(format!("{stage_file}.yaml"));
+        if !path.exists() {
+            return Err(anyhow!(
+                "index references missing stage file for {} at {}",
+                stage_id,
+                path.display()
+            ));
         }
         let stage: DomainStage = read_yaml(&path)?;
         if stage.stage_id.trim().is_empty() {
@@ -250,25 +279,59 @@ fn load_domain_stages(
 fn collect_domain_data(
     domain_dir: &Path,
     active_scope: &str,
-) -> Result<(ToolMap, StageToolMap, StagePlannedMap)> {
+) -> Result<(ToolMap, StageToolMap, StagePlannedMap, StageDefaultMap)> {
     let mut tools: ToolMap = BTreeMap::new();
     let mut stage_to_tools: StageToolMap = BTreeMap::new();
     let mut stage_planned: StagePlannedMap = BTreeMap::new();
+    let mut stage_defaults: StageDefaultMap = BTreeMap::new();
     for domain in ["fastq", "bam"] {
-        load_domain_tools(
-            domain_dir,
-            domain,
-            active_scope,
-            &mut tools,
-            &mut stage_to_tools,
-        )?;
+        let index_path = domain_dir.join(domain).join("index.yaml");
+        let index: DomainIndex = read_yaml(&index_path)?;
+        if index.domain != domain {
+            return Err(anyhow!(
+                "{} has domain {} but expected {}",
+                index_path.display(),
+                index.domain,
+                domain
+            ));
+        }
+        load_domain_tools(domain_dir, domain, &index, active_scope, &mut tools, &mut stage_to_tools)?;
         load_domain_stages(
             domain_dir,
             domain,
+            &index,
             active_scope,
             &mut stage_to_tools,
             &mut stage_planned,
         )?;
+        for (stage_id, tool_ids) in &index.stage_tool_compatibility {
+            if !stage_to_tools.contains_key(stage_id) {
+                continue;
+            }
+            let active_tools = stage_to_tools.entry(stage_id.clone()).or_default();
+            active_tools.clear();
+            for tool_id in tool_ids {
+                if tools.contains_key(tool_id) {
+                    active_tools.insert(tool_id.clone());
+                }
+            }
+        }
+        for (stage_id, default_tool) in &index.active_defaults {
+            if !stage_to_tools.contains_key(stage_id) {
+                continue;
+            }
+            if !stage_to_tools
+                .get(stage_id)
+                .is_some_and(|set| set.contains(default_tool))
+            {
+                return Err(anyhow!(
+                    "index active default {} for {} is not compatible",
+                    default_tool,
+                    stage_id
+                ));
+            }
+            stage_defaults.insert(stage_id.clone(), default_tool.clone());
+        }
     }
     for tool in tools.values() {
         for stage in &tool.stage_ids {
@@ -277,13 +340,14 @@ fn collect_domain_data(
             }
         }
     }
-    Ok((tools, stage_to_tools, stage_planned))
+    Ok((tools, stage_to_tools, stage_planned, stage_defaults))
 }
 
 fn build_tool_registry_toml(
     tools: &ToolMap,
     stage_to_tools: &StageToolMap,
     stage_planned: &StagePlannedMap,
+    stage_defaults: &StageDefaultMap,
 ) -> String {
     let mut registry_toml = generated_header("domain/**");
     for tool in tools.values() {
@@ -341,6 +405,11 @@ fn build_tool_registry_toml(
             "metrics_schema = \"{}\"",
             tool.metrics_schema
         );
+        let _ = writeln!(
+            registry_toml,
+            "comparability_notes = \"{}\"",
+            tool.comparability_notes.replace('\"', "'")
+        );
         let _ = writeln!(registry_toml, "dockerfile = \"{dockerfile}\"");
         let _ = writeln!(registry_toml, "apptainer_def = \"{apptainer_def}\"");
         registry_toml.push_str("require_labels = true\n\n");
@@ -349,7 +418,14 @@ fn build_tool_registry_toml(
     for (stage_id, tools_set) in stage_to_tools {
         let mut all = tools_set.iter().cloned().collect::<Vec<_>>();
         all.sort();
-        let mut primary = all.first().cloned().into_iter().collect::<Vec<_>>();
+        let mut primary = stage_defaults
+            .get(stage_id)
+            .cloned()
+            .into_iter()
+            .collect::<Vec<_>>();
+        if primary.is_empty() {
+            primary = all.first().cloned().into_iter().collect::<Vec<_>>();
+        }
         if primary.is_empty() {
             let stage_domain = stage_id.split('.').next().unwrap_or_default();
             primary.push(if stage_domain == "bam" {
@@ -421,12 +497,14 @@ fn build_stages_toml(stage_to_tools: &StageToolMap) -> String {
 
 fn main() -> Result<()> {
     let args = Args::parse();
-    let (tools, stage_to_tools, stage_planned) = collect_domain_data(&args.domain_dir, &args.scope)?;
+    let (tools, stage_to_tools, stage_planned, stage_defaults) =
+        collect_domain_data(&args.domain_dir, &args.scope)?;
     ensure_dir(&args.configs_dir)
         .with_context(|| format!("create {}", args.configs_dir.display()))?;
 
     let tool_registry_path = args.configs_dir.join("tool_registry.toml");
-    let registry_toml = build_tool_registry_toml(&tools, &stage_to_tools, &stage_planned);
+    let registry_toml =
+        build_tool_registry_toml(&tools, &stage_to_tools, &stage_planned, &stage_defaults);
     write_string(&tool_registry_path, &registry_toml)
         .with_context(|| format!("write {}", tool_registry_path.display()))?;
 
