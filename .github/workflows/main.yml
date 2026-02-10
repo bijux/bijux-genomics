@@ -1,0 +1,34 @@
+name: main
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  slow-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: mozilla/sccache-action@v0.0.6
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: main
+      - name: Install cargo-nextest
+        run: cargo install cargo-nextest --locked
+      - name: Slow tests
+        run: make test-slow
+
+  science-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: mozilla/sccache-action@v0.0.6
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: main
+      - name: Install cargo-nextest
+        run: cargo install cargo-nextest --locked
+      - name: Science tests
+        run: make test-science
