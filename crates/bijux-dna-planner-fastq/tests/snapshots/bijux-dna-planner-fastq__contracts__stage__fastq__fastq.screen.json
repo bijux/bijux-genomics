@@ -31,11 +31,18 @@
         "path": "out/screen_report.tsv",
         "role": "report_json",
         "optional": false
+      },
+      {
+        "name": "classification_report_json",
+        "path": "out/classification.report.json",
+        "role": "metrics_json",
+        "optional": false
       }
     ]
   },
   "out_dir": "out",
   "params": {
+    "bracken_report": "out/bracken_abundance.tsv",
     "input": "reads_R1.fastq.gz",
     "out_dir": "out",
     "report": "out/screen_report.tsv",

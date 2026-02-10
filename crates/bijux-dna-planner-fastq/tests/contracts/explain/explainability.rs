@@ -1,3 +1,5 @@
+//! Snapshot contract for deterministic FASTQ stage decision reasons.
+
 use std::collections::BTreeMap;
 
 use bijux_dna_core::prelude::{
@@ -7,6 +9,7 @@ use bijux_dna_planner_fastq::compose_fastq_pipeline_steps;
 use bijux_dna_stage_contract::{PlanDecisionReason, PlanReasonKind};
 
 #[test]
+/// Ensures FASTQ default stage reasons include defaults diff and contract hash fields.
 fn tool_reasons_carry_defaults_and_contract_hash() -> anyhow::Result<()> {
     let temp = bijux_dna_infra::temp_dir("fastq-reasons")?;
     let r1 = temp.path().join("r1.fastq");
@@ -74,6 +77,7 @@ fn tool_reasons_carry_defaults_and_contract_hash() -> anyhow::Result<()> {
 }
 
 #[test]
+/// Captures stable reason payloads for FASTQ trim/stats/screen planner decisions.
 fn stage_reasons_are_deterministic_for_new_fastq_stage_set() -> anyhow::Result<()> {
     let temp = bijux_dna_infra::temp_dir("fastq-reasons-deterministic")?;
     let r1 = temp.path().join("r1.fastq");
@@ -152,14 +156,15 @@ fn stage_reasons_are_deterministic_for_new_fastq_stage_set() -> anyhow::Result<(
         assert_eq!(a.reason.kind, b.reason.kind);
         assert!(a.reason.details.get("defaults_diff").is_some());
         assert!(a.reason.details.get("contract_hash").is_some());
+        let reason_json =
+            bijux_dna_testkit::snapshot_normalize_json(&serde_json::to_value(&a.reason)?);
         let snapshot_name = format!(
             "bijux-dna-planner-fastq__contracts__explain__{}",
             a.stage_id
         );
-        insta::assert_json_snapshot!(
-            snapshot_name,
-            bijux_dna_testkit::snapshot_normalize_json(&serde_json::to_value(&a.reason)?)
-        );
+        insta::with_settings!({snapshot_path => "../../snapshots"}, {
+            insta::assert_json_snapshot!(snapshot_name, reason_json);
+        });
     }
     Ok(())
 }
