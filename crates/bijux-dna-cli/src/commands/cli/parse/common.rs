@@ -197,6 +197,8 @@ pub enum EnvCommand {
     Info,
     Doctor,
     List,
+    #[command(name = "export-json")]
+    ExportJson,
     Smoke(EnvRunArgs),
     Prep(EnvRunArgs),
 }
@@ -218,6 +220,8 @@ pub enum RegistryCommand {
     ShowStage { id: String },
     #[command(name = "show")]
     Show { id: String },
+    #[command(name = "export-json")]
+    ExportJson,
 }
 
 #[derive(Debug, Subcommand)]

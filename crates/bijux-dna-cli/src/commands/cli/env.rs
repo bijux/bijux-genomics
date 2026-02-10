@@ -6,6 +6,7 @@ use bijux_dna_api::v1::api::env::{
     available_runners, cache_dir, docker_image_exists, resolve_image, run_smoke_script,
     run_smoke_script_batch, PlatformSpec, RuntimeKind, ToolImageSpec,
 };
+use serde::Serialize;
 
 /// # Errors
 /// Returns an error if image resolution fails.
@@ -135,14 +136,18 @@ fn run_env_with_tools(runtime: &str, tools: &[String], smoke_level: &str) -> Res
     run_smoke_script_batch(runtime, tools, smoke_level)
 }
 
-#[derive(Default)]
+#[derive(Default, Serialize)]
 struct RegistryRow {
     id: String,
     status: String,
+    version: Option<String>,
+    upstream: Option<String>,
     runtimes: Vec<String>,
     dockerfile: Option<String>,
     apptainer_def: Option<String>,
     version_cmd: Option<String>,
+    help_cmd: Option<String>,
+    expected_bin: Option<String>,
     pinned_commit: Option<String>,
 }
 
@@ -169,12 +174,20 @@ fn parse_tools_registry_rows(raw: &str) -> Result<Vec<RegistryRow>> {
             row.id = value;
         } else if let Some(value) = parse_toml_string(trimmed, "status") {
             row.status = value;
+        } else if let Some(value) = parse_toml_string(trimmed, "version") {
+            row.version = Some(value);
+        } else if let Some(value) = parse_toml_string(trimmed, "upstream") {
+            row.upstream = Some(value);
         } else if let Some(value) = parse_toml_string(trimmed, "dockerfile") {
             row.dockerfile = Some(value);
         } else if let Some(value) = parse_toml_string(trimmed, "apptainer_def") {
             row.apptainer_def = Some(value);
         } else if let Some(value) = parse_toml_string(trimmed, "version_cmd") {
             row.version_cmd = Some(value);
+        } else if let Some(value) = parse_toml_string(trimmed, "help_cmd") {
+            row.help_cmd = Some(value);
+        } else if let Some(value) = parse_toml_string(trimmed, "expected_bin") {
+            row.expected_bin = Some(value);
         } else if let Some(value) = parse_toml_string(trimmed, "pinned_commit") {
             row.pinned_commit = Some(value);
         } else if let Some(values) = parse_toml_array(trimmed, "runtimes") {
@@ -246,10 +259,14 @@ pub fn print_registry_show(registry_path: &Path, id: &str) -> Result<()> {
     {
         crate::commands::cli::render::json::print_pretty(&serde_json::json!({
             "id": tool.id,
+            "version": tool.version,
+            "upstream": tool.upstream,
             "runtimes": tool.runtimes,
             "dockerfile": tool.dockerfile,
             "apptainer_def": tool.apptainer_def,
             "version_cmd": tool.version_cmd,
+            "help_cmd": tool.help_cmd,
+            "expected_bin": tool.expected_bin,
             "pinned_commit": tool.pinned_commit,
         }))?;
         return Ok(());
@@ -283,10 +300,14 @@ pub fn print_registry_show_tool(registry_path: &Path, id: &str) -> Result<()> {
     };
     crate::commands::cli::render::json::print_pretty(&serde_json::json!({
         "id": tool.id,
+        "version": tool.version,
+        "upstream": tool.upstream,
         "runtimes": tool.runtimes,
         "dockerfile": tool.dockerfile,
         "apptainer_def": tool.apptainer_def,
         "version_cmd": tool.version_cmd,
+        "help_cmd": tool.help_cmd,
+        "expected_bin": tool.expected_bin,
         "pinned_commit": tool.pinned_commit,
     }))?;
     Ok(())
@@ -313,13 +334,69 @@ pub fn print_registry_show_stage(registry_path: &Path, id: &str) -> Result<()> {
     Ok(())
 }
 
-#[derive(Default)]
+/// # Errors
+/// Returns an error if registry cannot be read or parsed.
+pub fn print_registry_export_json(registry_path: &Path) -> Result<()> {
+    let raw = std::fs::read_to_string(registry_path)
+        .with_context(|| format!("read {}", registry_path.display()))?;
+    let mut tools = parse_tools_registry_rows(&raw)?;
+    let mut stages = parse_stage_registry_rows(&raw)?;
+    tools.sort_by(|a, b| a.id.cmp(&b.id));
+    stages.sort_by(|a, b| a.id.cmp(&b.id));
+    crate::commands::cli::render::json::print_pretty(&serde_json::json!({
+        "schema_version": "bijux.registry_export.v1",
+        "tools": tools,
+        "stages": stages
+    }))?;
+    Ok(())
+}
+
+#[derive(Default, Serialize)]
 struct StageRegistryRow {
     id: String,
     primary_tools: Vec<String>,
     optional_alternatives: Vec<String>,
     validation_tools: Vec<String>,
     reporting_tools: Vec<String>,
+}
+
+/// # Errors
+/// Returns an error if registry cannot be read or parsed.
+pub fn print_env_export_json(registry_path: &Path) -> Result<()> {
+    let raw = std::fs::read_to_string(registry_path)
+        .with_context(|| format!("read {}", registry_path.display()))?;
+    let mut tools = parse_tools_registry_rows(&raw)?;
+    tools.sort_by(|a, b| a.id.cmp(&b.id));
+    let payload = tools
+        .into_iter()
+        .map(|row| {
+            let has_docker = row.runtimes.iter().any(|v| v == "docker") && row.dockerfile.is_some();
+            let has_apptainer =
+                row.runtimes.iter().any(|v| v == "apptainer") && row.apptainer_def.is_some();
+            serde_json::json!({
+                "id": row.id,
+                "status": row.status,
+                "version": row.version,
+                "upstream": row.upstream,
+                "runtimes": row.runtimes,
+                "dockerfile": row.dockerfile,
+                "apptainer_def": row.apptainer_def,
+                "version_cmd": row.version_cmd,
+                "help_cmd": row.help_cmd,
+                "expected_bin": row.expected_bin,
+                "pinned_commit": row.pinned_commit,
+                "has_docker": has_docker,
+                "has_apptainer": has_apptainer,
+                "has_smoke": row.version_cmd.is_some(),
+                "platforms": ["linux/arm64", "linux/amd64"]
+            })
+        })
+        .collect::<Vec<_>>();
+    crate::commands::cli::render::json::print_pretty(&serde_json::json!({
+        "schema_version": "bijux.environment_export.v1",
+        "tools": payload
+    }))?;
+    Ok(())
 }
 
 fn parse_stage_registry_rows(raw: &str) -> Result<Vec<StageRegistryRow>> {

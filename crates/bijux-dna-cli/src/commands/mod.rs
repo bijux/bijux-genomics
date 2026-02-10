@@ -412,14 +412,18 @@ fn handle_status_root(args: &cli::StatusArgs, cwd: &Path) -> Result<()> {
 
 fn handle_environment_root(command: &cli::EnvCommand, cwd: &Path) -> Result<()> {
     use crate::commands::cli::env::{
-        env_doctor, print_env_images, print_env_info, print_env_registry_list, run_env_prep,
-        run_env_smoke, run_env_smoke_for_stage,
+        env_doctor, print_env_export_json, print_env_images, print_env_info,
+        print_env_registry_list, run_env_prep, run_env_smoke, run_env_smoke_for_stage,
     };
     use bijux_dna_api::v1::api::env::{load_image_catalog, load_platform};
     match command {
         cli::EnvCommand::List => {
             let registry_path = cwd.join("configs").join("tool_registry.toml");
             print_env_registry_list(&registry_path)?;
+        }
+        cli::EnvCommand::ExportJson => {
+            let registry_path = cwd.join("configs").join("tool_registry.toml");
+            print_env_export_json(&registry_path)?;
         }
         cli::EnvCommand::Smoke(args) => {
             let registry_path = cwd.join("configs").join("tool_registry.toml");
@@ -451,7 +455,10 @@ fn handle_environment_root(command: &cli::EnvCommand, cwd: &Path) -> Result<()> 
                 cli::EnvCommand::Images => print_env_images(&catalog, &platform)?,
                 cli::EnvCommand::Info => print_env_info(&catalog, &platform),
                 cli::EnvCommand::Doctor => env_doctor(&catalog, &platform),
-                cli::EnvCommand::List | cli::EnvCommand::Smoke(_) | cli::EnvCommand::Prep(_) => {}
+                cli::EnvCommand::List
+                | cli::EnvCommand::ExportJson
+                | cli::EnvCommand::Smoke(_)
+                | cli::EnvCommand::Prep(_) => {}
             }
         }
     }
@@ -460,8 +467,8 @@ fn handle_environment_root(command: &cli::EnvCommand, cwd: &Path) -> Result<()> 
 
 fn handle_registry_root(command: &cli::RegistryCommand, cwd: &Path) -> Result<()> {
     use crate::commands::cli::env::{
-        print_registry_list_stages, print_registry_show, print_registry_show_stage,
-        print_registry_show_tool, print_registry_tools,
+        print_registry_export_json, print_registry_list_stages, print_registry_show,
+        print_registry_show_stage, print_registry_show_tool, print_registry_tools,
     };
     let registry_path = cwd.join("configs").join("tool_registry.toml");
     match command {
@@ -472,6 +479,7 @@ fn handle_registry_root(command: &cli::RegistryCommand, cwd: &Path) -> Result<()
         cli::RegistryCommand::ShowTool { id } => print_registry_show_tool(&registry_path, id)?,
         cli::RegistryCommand::ShowStage { id } => print_registry_show_stage(&registry_path, id)?,
         cli::RegistryCommand::Show { id } => print_registry_show(&registry_path, id)?,
+        cli::RegistryCommand::ExportJson => print_registry_export_json(&registry_path)?,
     }
     Ok(())
 }

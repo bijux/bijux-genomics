@@ -9,8 +9,8 @@ pub(crate) use bijux_dna_api::v1::api::run::{atomic_write_bytes, load_manifests,
 pub(crate) use crate::commands::bench::set_tool_tier_policy;
 pub(crate) use crate::commands::cli;
 pub(crate) use crate::commands::cli::env::{
-    env_doctor, print_env_images, print_env_info, print_env_registry_list, run_env_prep,
-    run_env_smoke, run_env_smoke_for_stage,
+    env_doctor, print_env_export_json, print_env_images, print_env_info, print_env_registry_list,
+    run_env_prep, run_env_smoke, run_env_smoke_for_stage,
 };
 pub(crate) use crate::commands::cli::render;
 pub(crate) use crate::commands::cli::{

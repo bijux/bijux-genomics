@@ -33,6 +33,7 @@ require_cmd() {
 
 require_cmd "$APPTAINER_BIN"
 require_cmd cargo
+require_cmd python3
 require_cmd awk
 require_cmd sed
 
@@ -116,29 +117,36 @@ get_help_cmd() {
 get_registry_field() {
   field="$1"
   tool="$2"
-  json=$(cargo run --bin bijux-dna -- registry show-tool "$tool" 2>/dev/null || true)
-  if [ -z "$json" ]; then
+  if [ -z "${REGISTRY_EXPORT_JSON:-}" ]; then
+    REGISTRY_EXPORT_JSON=$(cargo run --bin bijux-dna -- registry export-json 2>/dev/null || true)
+  fi
+  if [ -z "${REGISTRY_EXPORT_JSON:-}" ]; then
     printf '%s\n' "unknown"
     return 0
   fi
-  value=$(printf '%s\n' "$json" | awk -v field="$field" '
-    BEGIN { found=0 }
-    {
-      key="\"" field "\""
-      if (index($0, key) > 0) {
-        line=$0
-        sub(/^.*:[[:space:]]*/, "", line)
-        sub(/[[:space:]]*,?[[:space:]]*$/, "", line)
-        gsub(/^"/, "", line)
-        gsub(/"$/, "", line)
-        print line
-        found=1
-        exit 0
-      }
-    }
-    END { if (!found) print "unknown" }
-  ')
-  printf '%s\n' "$value"
+  value=$(printf '%s\n' "$REGISTRY_EXPORT_JSON" | python3 - "$tool" "$field" <<'PY'
+import json, sys
+tool = sys.argv[1]
+field = sys.argv[2]
+try:
+    payload = json.load(sys.stdin)
+except Exception:
+    print("unknown")
+    raise SystemExit(0)
+for item in payload.get("tools", []):
+    if item.get("id") == tool:
+        value = item.get(field, "unknown")
+        if value is None:
+            print("unknown")
+        elif isinstance(value, (dict, list)):
+            print("unknown")
+        else:
+            print(str(value))
+        raise SystemExit(0)
+print("unknown")
+PY
+)
+  printf '%s\n' "${value:-unknown}"
 }
 
 build_and_smoke_one() {
