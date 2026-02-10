@@ -93,6 +93,39 @@ pub fn summarize(
     if suite.replicate_policy.count < 3 {
         warnings.push("low_power".to_string());
     }
+    let mut stage_dataset_inputs: BTreeMap<(String, String), BTreeSet<String>> = BTreeMap::new();
+    let mut stage_dataset_tool_params: BTreeMap<(String, String, String), BTreeSet<String>> =
+        BTreeMap::new();
+    for obs in observations {
+        stage_dataset_inputs
+            .entry((obs.stage_id.clone(), obs.dataset_id.clone()))
+            .or_default()
+            .insert(obs.input_hash.clone());
+        stage_dataset_tool_params
+            .entry((
+                obs.stage_id.clone(),
+                obs.dataset_id.clone(),
+                obs.tool_id.clone(),
+            ))
+            .or_default()
+            .insert(obs.params_hash.clone());
+    }
+    for ((stage_id, dataset_id), hashes) in &stage_dataset_inputs {
+        if hashes.len() > 1 {
+            scientifically_invalid = true;
+            let warning = format!("fairness_input_mismatch:{stage_id}:{dataset_id}");
+            warnings.push(warning.clone());
+            invalid_reasons.push(warning);
+        }
+    }
+    for ((stage_id, dataset_id, tool_id), hashes) in &stage_dataset_tool_params {
+        if hashes.len() > 1 {
+            scientifically_invalid = true;
+            let warning = format!("fairness_previous_defaults_mismatch:{stage_id}:{dataset_id}:{tool_id}");
+            warnings.push(warning.clone());
+            invalid_reasons.push(warning);
+        }
+    }
 
     let mut groups: BTreeMap<(String, String, String, String), Vec<&BenchmarkObservation>> =
         BTreeMap::new();

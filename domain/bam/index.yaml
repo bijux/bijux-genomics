@@ -238,3 +238,48 @@ stage_authenticity_thresholds:
   bam.contamination: { authenticity_score: { warn: "<0.2", fail: "<0.1" } }
   bam.sex: { authenticity_score: { warn: "<0.2", fail: "<0.1" } }
   bam.kinship: { authenticity_score: { warn: "<0.2", fail: "<0.1" } }
+stage_duplication_thresholds:
+  bam.align: { duplication_rate: { warn: ">=0.6", fail: ">=0.8" } }
+  bam.validate: { duplication_rate: { warn: ">=0.6", fail: ">=0.8" } }
+  bam.filter: { duplication_rate: { warn: ">=0.6", fail: ">=0.8" } }
+  bam.coverage: { duplication_rate: { warn: ">=0.6", fail: ">=0.8" } }
+  bam.damage: { duplication_rate: { warn: ">=0.6", fail: ">=0.8" } }
+  bam.authenticity: { duplication_rate: { warn: ">=0.6", fail: ">=0.8" } }
+  bam.contamination: { duplication_rate: { warn: ">=0.6", fail: ">=0.8" } }
+  bam.sex: { duplication_rate: { warn: ">=0.6", fail: ">=0.8" } }
+  bam.kinship: { duplication_rate: { warn: ">=0.6", fail: ">=0.8" } }
+stage_coverage_sufficiency:
+  bam.align: ["mapped_reads>=100000"]
+  bam.validate: ["indexed_bam=true"]
+  bam.filter: ["reads_retained_fraction>=0.1"]
+  bam.coverage: ["mean_coverage>=0.5", "breadth_1x>=0.6"]
+  bam.damage: ["coverage_at_damage_sites>=0.2"]
+  bam.authenticity: ["pmd_enriched_reads>=500"]
+  bam.contamination: ["panel_or_mt_ref_available=true"]
+  bam.sex: ["chrX_chrY_covered_sites>=1000"]
+  bam.kinship: ["shared_markers>=5000"]
+stage_sex_kinship_sufficiency:
+  bam.align: ["not_applicable"]
+  bam.validate: ["not_applicable"]
+  bam.filter: ["not_applicable"]
+  bam.coverage: ["not_applicable"]
+  bam.damage: ["not_applicable"]
+  bam.authenticity: ["not_applicable"]
+  bam.contamination: ["not_applicable"]
+  bam.sex: ["chrY_observed_sites>=100", "chrX_coverage_stable=true"]
+  bam.kinship: ["kinship_informative_markers>=5000", "panel_match=true"]
+benchmark_scenarios:
+  damage_fairness:
+    stage_id: "bam.damage"
+    description: "Compare damage tools on identical BAM inputs and identical preprocessing defaults."
+    fairness_rules:
+      - "same_input_hash"
+      - "same_previous_stage_defaults"
+      - "same_reference_bank_hash"
+  contamination_fairness:
+    stage_id: "bam.contamination"
+    description: "Compare contamination methods on identical BAM inputs and same panels/mt refs."
+    fairness_rules:
+      - "same_input_hash"
+      - "same_previous_stage_defaults"
+      - "same_contamination_db_hash"
