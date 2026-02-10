@@ -53,6 +53,7 @@ fn bam_adna_shotgun_graph_is_pure() -> anyhow::Result<()> {
         reference: None,
         sample_id: Some("sample".to_string()),
         out_dir: temp.path().join("out"),
+        allow_planned: false,
     };
 
     let graph = plan_bam_to_bam__adna_shotgun__v1(&inputs)?;

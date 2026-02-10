@@ -17,6 +17,7 @@ pub struct BenchBamStageArgs {
     pub replicates: u32,
     pub jobs: u32,
     pub dry_run: bool,
+    pub allow_planned: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -36,6 +37,7 @@ pub struct BenchBamPipelineArgs {
     pub replicates: u32,
     pub jobs: u32,
     pub dry_run: bool,
+    pub allow_planned: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -102,6 +104,7 @@ pub struct BamRunArgs {
     pub build_reference_indices: bool,
     pub params_json: Option<String>,
     pub dry_run: bool,
+    pub allow_planned: bool,
 }
 
 #[derive(Debug, Clone)]

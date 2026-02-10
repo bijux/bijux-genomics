@@ -160,6 +160,7 @@ pub fn bench_bam_pipeline(
             replicates: args.replicates,
             jobs: args.jobs,
             dry_run: args.dry_run,
+            allow_planned: args.allow_planned,
         };
         let outcome = bench_bam_stage(&stage_args, registry, platform_path)?;
         run_dirs.extend(outcome.run_dirs);
@@ -228,6 +229,7 @@ impl From<&BenchBamStageArgs> for BamRunArgs {
             build_reference_indices: false,
             params_json: None,
             dry_run: value.dry_run,
+            allow_planned: value.allow_planned,
         }
     }
 }

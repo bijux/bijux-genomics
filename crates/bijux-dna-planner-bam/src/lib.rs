@@ -83,6 +83,7 @@ pub struct BamPipelineInputs {
     pub reference: Option<PathBuf>,
     pub sample_id: Option<String>,
     pub out_dir: PathBuf,
+    pub allow_planned: bool,
 }
 
 pub struct StagePlanRequest<'a> {
@@ -410,6 +411,7 @@ fn build_bam_plan(profile: &PipelineProfile, inputs: &BamPipelineInputs) -> Resu
     let mut stages = Vec::new();
     for stage in stage_order_for_profile(profile)? {
         let stage_id = stage.as_str();
+        enforce_stage_status(stage_id, inputs.allow_planned)?;
         let tool = inputs
             .tool_specs
             .get(stage_id)
@@ -485,6 +487,36 @@ fn build_bam_plan(profile: &PipelineProfile, inputs: &BamPipelineInputs) -> Resu
         "planned bam pipeline graph"
     );
     Ok(graph)
+}
+
+fn stage_status(stage_id: &str) -> Option<String> {
+    let cwd = std::env::current_dir().ok()?;
+    let path = cwd.join("configs").join("stages.toml");
+    let raw = std::fs::read_to_string(path).ok()?;
+    let parsed = raw.parse::<toml::Value>().ok()?;
+    let entries = parsed.get("stages")?.as_array()?;
+    entries.iter().find_map(|entry| {
+        let id = entry.get("id").and_then(toml::Value::as_str)?;
+        if id == stage_id {
+            entry
+                .get("status")
+                .and_then(toml::Value::as_str)
+                .map(std::string::ToString::to_string)
+        } else {
+            None
+        }
+    })
+}
+
+fn enforce_stage_status(stage_id: &str, allow_planned: bool) -> Result<()> {
+    match stage_status(stage_id).as_deref() {
+        Some("supported") | None => Ok(()),
+        Some("planned") | Some("out_of_scope") if allow_planned => Ok(()),
+        Some("planned") | Some("out_of_scope") => Err(anyhow!(
+            "stage {stage_id} is not active in current scope; re-run with --allow-planned to override"
+        )),
+        Some(other) => Err(anyhow!("stage {stage_id} has unknown status {other}")),
+    }
 }
 
 fn enforce_stage_tool_contracts(

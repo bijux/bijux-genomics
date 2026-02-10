@@ -223,6 +223,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         r2: args.r2.clone(),
         out_dir: bench_tools_dir(&args.out, bench_dir_name, &args.sample_id),
         tool_reasons: Some(tool_reasons),
+        allow_planned: args.allow_planned,
     };
     let pipeline_plan = FastqPlanner::plan(&planner_config)?;
     let planned_stages = pipeline_plan.steps().to_vec();

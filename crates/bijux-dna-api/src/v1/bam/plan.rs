@@ -10,6 +10,36 @@ use bijux_dna_stage_contract::StagePlanV1;
 
 use crate::request_args::BamRunArgs;
 
+fn stage_status(stage_id: &str) -> Option<String> {
+    let cwd = std::env::current_dir().ok()?;
+    let path = cwd.join("configs").join("stages.toml");
+    let raw = std::fs::read_to_string(path).ok()?;
+    let parsed = raw.parse::<toml::Value>().ok()?;
+    let entries = parsed.get("stages")?.as_array()?;
+    entries.iter().find_map(|entry| {
+        let id = entry.get("id").and_then(toml::Value::as_str)?;
+        if id == stage_id {
+            entry
+                .get("status")
+                .and_then(toml::Value::as_str)
+                .map(std::string::ToString::to_string)
+        } else {
+            None
+        }
+    })
+}
+
+fn enforce_stage_status(stage_id: &str, allow_planned: bool) -> Result<()> {
+    match stage_status(stage_id).as_deref() {
+        Some("supported") | None => Ok(()),
+        Some("planned") | Some("out_of_scope") if allow_planned => Ok(()),
+        Some("planned") | Some("out_of_scope") => Err(anyhow!(
+            "stage {stage_id} is not active in current scope; re-run with --allow-planned to override"
+        )),
+        Some(other) => Err(anyhow!("stage {stage_id} has unknown status {other}")),
+    }
+}
+
 /// # Errors
 /// Returns an error if planning fails for the stage.
 pub fn plan_for_bam_stage(
@@ -32,6 +62,7 @@ pub fn plan_for_bam_stage_with_profile(
     profile: &PipelineProfile,
     out_dir: &Path,
 ) -> Result<StagePlanV1> {
+    enforce_stage_status(stage.as_str(), args.allow_planned)?;
     if !super::feature_flags::downstream_enabled()
         && matches!(
             stage,

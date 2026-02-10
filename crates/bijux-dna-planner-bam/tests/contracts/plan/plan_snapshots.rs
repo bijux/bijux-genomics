@@ -100,6 +100,7 @@ fn bam_adna_shotgun_plan_snapshot() -> anyhow::Result<()> {
         reference: None,
         sample_id: Some("sample".to_string()),
         out_dir: temp.path().join("out"),
+        allow_planned: false,
     };
     let plan = plan_bam_to_bam__adna_shotgun__v1(&inputs)?;
     let name = snapshot_name("contracts", "bam_adna_shotgun_plan");
@@ -123,6 +124,7 @@ fn bam_adna_capture_plan_snapshot() -> anyhow::Result<()> {
         reference: None,
         sample_id: Some("sample".to_string()),
         out_dir: temp.path().join("out"),
+        allow_planned: false,
     };
     let plan = plan_bam_to_bam__adna_capture__v1(&inputs)?;
     let name = snapshot_name("contracts", "bam_adna_capture_plan");

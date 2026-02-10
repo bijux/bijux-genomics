@@ -218,6 +218,8 @@ pub struct BamRunArgs {
     pub params_json: Option<PathBuf>,
     #[arg(long)]
     pub dry_run: bool,
+    #[arg(long, help = "Allow planned/out-of-scope stages in planning")]
+    pub allow_planned: bool,
 }
 
 #[derive(Debug, clap::Subcommand)]
@@ -262,6 +264,8 @@ pub struct BenchBamStageArgs {
     pub jobs: u32,
     #[arg(long)]
     pub dry_run: bool,
+    #[arg(long, help = "Allow planned/out-of-scope stages in planning")]
+    pub allow_planned: bool,
 }
 
 #[derive(Debug, Args, Clone)]
@@ -289,4 +293,6 @@ pub struct BenchBamPipelineArgs {
     pub jobs: u32,
     #[arg(long)]
     pub dry_run: bool,
+    #[arg(long, help = "Allow planned/out-of-scope stages in planning")]
+    pub allow_planned: bool,
 }

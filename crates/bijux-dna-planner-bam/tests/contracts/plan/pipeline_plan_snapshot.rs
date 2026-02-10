@@ -71,6 +71,7 @@ fn pipeline_plan_snapshots_are_stable() -> Result<()> {
         reference: None,
         sample_id: Some("sample".to_string()),
         out_dir: temp.path().join("out"),
+        allow_planned: false,
     };
     let payload = serde_json::to_value(bijux_dna_planner_bam::plan_bam_to_bam__adna_shotgun__v1(
         &inputs,
@@ -93,6 +94,7 @@ fn pipeline_plan_snapshots_are_stable() -> Result<()> {
         reference: None,
         sample_id: Some("sample".to_string()),
         out_dir: temp.path().join("out"),
+        allow_planned: false,
     };
     let payload = serde_json::to_value(bijux_dna_planner_bam::plan_bam_to_bam__adna_capture__v1(
         &inputs,

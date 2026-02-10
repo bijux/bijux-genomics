@@ -321,6 +321,7 @@ pub fn bench_args_preprocess(
         no_qc_post: args.no_qc_post,
         force_merge: args.force_merge,
         enable_correct: args.enable_correct,
+        allow_planned: args.allow_planned,
     }
 }
 
@@ -425,6 +426,7 @@ pub fn preprocess_args_from_cli(
         no_qc_post: args.no_qc_post,
         force_merge: args.force_merge,
         enable_correct: args.enable_correct,
+        allow_planned: args.common.allow_planned,
     };
     if let Some(preset) = args.scientific_preset {
         apply_scientific_preset(preset, &mut out_args);

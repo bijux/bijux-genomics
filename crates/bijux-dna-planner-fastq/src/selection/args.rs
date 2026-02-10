@@ -153,4 +153,5 @@ pub struct BenchFastqPreprocessArgs {
     pub no_qc_post: bool,
     pub force_merge: bool,
     pub enable_correct: bool,
+    pub allow_planned: bool,
 }

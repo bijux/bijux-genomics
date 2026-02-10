@@ -592,4 +592,6 @@ pub struct BenchFastqPreprocessArgs {
     pub force_merge: bool,
     #[arg(long, help = "Enable error correction stage (paired-end only)")]
     pub enable_correct: bool,
+    #[arg(long, help = "Allow planned/out-of-scope stages in planning")]
+    pub allow_planned: bool,
 }

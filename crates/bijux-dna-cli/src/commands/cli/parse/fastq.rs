@@ -66,6 +66,8 @@ pub struct CommonArgs {
     pub allow_silver: bool,
     #[arg(long, help = "Allow experimental-tier tools")]
     pub allow_experimental: bool,
+    #[arg(long, help = "Allow planned/out-of-scope stages in planning")]
+    pub allow_planned: bool,
 }
 
 #[derive(Debug, Args, Clone)]
