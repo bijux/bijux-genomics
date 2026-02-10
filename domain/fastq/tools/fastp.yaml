@@ -43,7 +43,7 @@ pin_strategy: "pinned"
 default_version: "latest-pinned"
 install_kind: "container"
 license: "GPL-3.0"
-stage_ids: ["fastq.trim"]
+stage_ids: ["fastq.trim", "fastq.detect_adapters", "fastq.filter"]
 expected_artifacts: ["report_json"]
 metrics_schema_id: "bijux.unknown.v1"
 metrics_schema: "bijux.unknown.v1"
