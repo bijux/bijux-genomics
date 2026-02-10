@@ -1754,7 +1754,7 @@ requires_validation = false
 requires_reporting = false
 
 [[stages]]
-id = "fastq.polyG_tailing"
+id = "fastq.polyg_tailing"
 primary_tools = ["fastp"]
 optional_alternatives = ["fastp"]
 validation_tools = []

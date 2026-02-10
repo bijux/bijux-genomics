@@ -4,7 +4,7 @@ stage_ids:
 - fastq.validate_pre
 - fastq.length_distribution_pre
 - fastq.detect_adapters
-- fastq.polyG_tailing
+- fastq.polyg_tailing
 - fastq.trim
 - fastq.filter
 - fastq.stats_neutral
@@ -154,7 +154,7 @@ stage_tool_compatibility:
   - seqfu
   - prinseq
   - fastp
-  fastq.polyG_tailing:
+  fastq.polyg_tailing:
   - fastp
   - bbduk
   fastq.contaminant_screen:
@@ -179,7 +179,7 @@ active_defaults:
   fastq.correct: rcorrector
   fastq.umi: umi_tools
   fastq.length_distribution_pre: seqkit_stats
-  fastq.polyG_tailing: fastp
+  fastq.polyg_tailing: fastp
   fastq.contaminant_screen: bbduk
   fastq.overrepresented_sequences: fastqc
 active_default_rationale:
@@ -199,7 +199,7 @@ active_default_rationale:
   fastq.umi: Default UMI handler preserves compatibility with stage contract.
   fastq.length_distribution_pre: Default length histogram baseline provides deterministic
     pre-trim size distribution.
-  fastq.polyG_tailing: Default polyG trimmer uses fastp polyG-tail handling for common
+  fastq.polyg_tailing: Default polyG trimmer uses fastp polyG-tail handling for common
     sequencer artifacts.
   fastq.contaminant_screen: Default contaminant screen uses k-mer depletion against
     configured decoy references.
@@ -302,7 +302,7 @@ stage_completeness_checklist:
   - metrics_defined
   - fixtures_present
   - compatible_tools_declared
-  fastq.polyG_tailing:
+  fastq.polyg_tailing:
   - inputs_defined
   - outputs_defined
   - metrics_defined
@@ -538,7 +538,7 @@ stage_default_settings:
     fastp:
       profile: adna_sane_default
       notes: fastp stats-only length summary preset
-  fastq.polyG_tailing:
+  fastq.polyg_tailing:
     fastp:
       profile: adna_sane_default
       notes: polyG-tail trimming preset
@@ -608,7 +608,7 @@ stage_comparability_mapping:
   fastq.length_distribution_pre:
   - length_histogram
   - mean_read_length
-  fastq.polyG_tailing:
+  fastq.polyg_tailing:
   - trimmed_read_fraction
   - post_trim_read_length_mean
   fastq.contaminant_screen:
@@ -651,7 +651,7 @@ stage_min_quality_gates:
   - umi_report_present=true
   fastq.length_distribution_pre:
   - read_count>0
-  fastq.polyG_tailing:
+  fastq.polyg_tailing:
   - post_trim_read_count>0
   fastq.contaminant_screen:
   - reads_removed_contaminant_kmer>=0.0
@@ -690,7 +690,7 @@ stage_failure_diagnosis_hints:
   - confirm UMI pattern configuration and read naming conventions
   fastq.length_distribution_pre:
   - inspect FASTQ parsing and gzip integrity for histogram generation
-  fastq.polyG_tailing:
+  fastq.polyg_tailing:
   - review polyG/polyX thresholds and platform-specific tailing patterns
   fastq.contaminant_screen:
   - check contaminant bank/decoy reference selection and k-mer thresholds
@@ -702,7 +702,7 @@ pipeline_compositions:
   - fastq.validate_pre
   - fastq.length_distribution_pre
   - fastq.detect_adapters
-  - fastq.polyG_tailing
+  - fastq.polyg_tailing
   - fastq.trim
   - fastq.filter
   - fastq.merge
@@ -719,7 +719,7 @@ stage_ordering_constraints:
   fastq.detect_adapters:
   - fastq.validate_pre
   fastq.trim:
-  - fastq.polyG_tailing
+  - fastq.polyg_tailing
   fastq.filter:
   - fastq.trim
   fastq.merge:
@@ -744,7 +744,7 @@ stage_ordering_constraints:
   - fastq.trim
   fastq.length_distribution_pre:
   - fastq.validate_pre
-  fastq.polyG_tailing:
+  fastq.polyg_tailing:
   - fastq.detect_adapters
   fastq.contaminant_screen:
   - fastq.host_depletion
@@ -757,7 +757,7 @@ stage_prerequisites:
   fastq.detect_adapters:
   - fastq.validate_pre
   fastq.trim:
-  - fastq.polyG_tailing
+  - fastq.polyg_tailing
   fastq.filter:
   - fastq.trim
   fastq.merge:
@@ -782,7 +782,7 @@ stage_prerequisites:
   - fastq.trim
   fastq.length_distribution_pre:
   - fastq.validate_pre
-  fastq.polyG_tailing:
+  fastq.polyg_tailing:
   - fastq.detect_adapters
   fastq.contaminant_screen:
   - fastq.host_depletion
@@ -853,7 +853,7 @@ stage_resource_hints:
     memory_gb: 2.0
     time_minutes: 10
     threads: 2
-  fastq.polyG_tailing:
+  fastq.polyg_tailing:
     memory_gb: 4.0
     time_minutes: 15
     threads: 4
@@ -910,7 +910,7 @@ stage_output_size_estimates_mb:
   fastq.length_distribution_pre:
     stats_json: 2.0
     stats_report: 1.0
-  fastq.polyG_tailing:
+  fastq.polyg_tailing:
     trim_report: 6.0
     trimmed_fastq: 1900.0
   fastq.contaminant_screen:
@@ -955,7 +955,7 @@ stage_sanity_metrics:
   - umi_dedup_fraction
   fastq.length_distribution_pre:
   - mean_read_length
-  fastq.polyG_tailing:
+  fastq.polyg_tailing:
   - trimmed_read_fraction
   fastq.contaminant_screen:
   - reads_removed_contaminant_kmer
@@ -1026,7 +1026,7 @@ stage_qc_thresholds:
     mean_read_length:
       warn: <30
       fail: <20
-  fastq.polyG_tailing:
+  fastq.polyg_tailing:
     trimmed_read_fraction:
       warn: <0.01
       fail: <0.001
@@ -1103,7 +1103,7 @@ stage_contamination_thresholds:
     contamination_rate:
       warn: '>=0.0'
       fail: '>=1.0'
-  fastq.polyG_tailing:
+  fastq.polyg_tailing:
     contamination_rate:
       warn: '>=0.0'
       fail: '>=1.0'
@@ -1180,7 +1180,7 @@ stage_authenticity_thresholds:
     authenticity_score:
       warn: <=1.0
       fail: <=0.0
-  fastq.polyG_tailing:
+  fastq.polyg_tailing:
     authenticity_score:
       warn: <=1.0
       fail: <=0.0
@@ -1257,7 +1257,7 @@ stage_duplication_thresholds:
     duplication_rate:
       warn: '>=0.7'
       fail: '>=0.9'
-  fastq.polyG_tailing:
+  fastq.polyg_tailing:
     duplication_rate:
       warn: '>=0.7'
       fail: '>=0.9'
@@ -1302,7 +1302,7 @@ stage_coverage_sufficiency:
   - not_applicable
   fastq.length_distribution_pre:
   - not_applicable
-  fastq.polyG_tailing:
+  fastq.polyg_tailing:
   - not_applicable
   fastq.contaminant_screen:
   - not_applicable
@@ -1341,7 +1341,7 @@ stage_sex_kinship_sufficiency:
   - not_applicable
   fastq.length_distribution_pre:
   - not_applicable
-  fastq.polyG_tailing:
+  fastq.polyg_tailing:
   - not_applicable
   fastq.contaminant_screen:
   - not_applicable

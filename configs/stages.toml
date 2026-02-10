@@ -422,7 +422,7 @@ sex_kinship_sufficiency = ["not_applicable"]
 tools = ["fastqc", "seqkit"]
 
 [[stages]]
-id = "fastq.polyG_tailing"
+id = "fastq.polyg_tailing"
 status = "supported"
 output_kinds = ["fastq", "json"]
 ordering_after = ["fastq.detect_adapters"]
@@ -539,8 +539,8 @@ tools = ["seqkit", "seqkit_stats"]
 id = "fastq.trim"
 status = "supported"
 output_kinds = ["fastq"]
-ordering_after = ["fastq.polyG_tailing"]
-prerequisites = ["fastq.polyG_tailing"]
+ordering_after = ["fastq.polyg_tailing"]
+prerequisites = ["fastq.polyg_tailing"]
 resource_memory_gb = 6
 resource_time_minutes = 30
 resource_threads = 6
@@ -598,7 +598,7 @@ stages = ["bam.align", "bam.validate", "bam.mapping_summary", "bam.filter", "bam
 
 [[pipelines]]
 id = "fastq.pre_hpc_best"
-stages = ["fastq.prepare_reference", "fastq.validate_pre", "fastq.length_distribution_pre", "fastq.detect_adapters", "fastq.polyG_tailing", "fastq.trim", "fastq.filter", "fastq.merge", "fastq.host_depletion", "fastq.contaminant_screen", "fastq.stats_neutral", "fastq.qc_post", "fastq.overrepresented_sequences", "fastq.screen"]
+stages = ["fastq.prepare_reference", "fastq.validate_pre", "fastq.length_distribution_pre", "fastq.detect_adapters", "fastq.polyg_tailing", "fastq.trim", "fastq.filter", "fastq.merge", "fastq.host_depletion", "fastq.contaminant_screen", "fastq.stats_neutral", "fastq.qc_post", "fastq.overrepresented_sequences", "fastq.screen"]
 
 [[benchmark_scenarios]]
 id = "bam.contamination_fairness"

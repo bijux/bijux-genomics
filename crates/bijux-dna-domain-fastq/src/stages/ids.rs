@@ -4,7 +4,7 @@ pub const STAGE_VALIDATE_PRE: StageId = StageId::from_static("fastq.validate_pre
 pub const STAGE_LENGTH_DISTRIBUTION_PRE: StageId =
     StageId::from_static("fastq.length_distribution_pre");
 pub const STAGE_DETECT_ADAPTERS: StageId = StageId::from_static("fastq.detect_adapters");
-pub const STAGE_POLYG_TAILING: StageId = StageId::from_static("fastq.polyG_tailing");
+pub const STAGE_POLYG_TAILING: StageId = StageId::from_static("fastq.polyg_tailing");
 pub const STAGE_TRIM: StageId = StageId::from_static("fastq.trim");
 pub const STAGE_FILTER: StageId = StageId::from_static("fastq.filter");
 pub const STAGE_STATS_NEUTRAL: StageId = StageId::from_static("fastq.stats_neutral");
@@ -56,7 +56,7 @@ pub fn bench_dir_name(stage: &StageId) -> Option<&'static str> {
     } else if stage == &STAGE_DETECT_ADAPTERS {
         Some("detect_adapters")
     } else if stage == &STAGE_POLYG_TAILING {
-        Some("polyG_tailing")
+        Some("polyg_tailing")
     } else if stage == &STAGE_TRIM {
         Some("trim")
     } else if stage == &STAGE_FILTER {
