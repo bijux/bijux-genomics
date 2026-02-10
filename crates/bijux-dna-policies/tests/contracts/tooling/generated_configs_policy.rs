@@ -14,6 +14,7 @@ fn policy__contracts__generated_configs_policy__generated_configs_are_not_hand_e
         let mut lines = checked_in_raw.lines();
         let first = lines.next().unwrap_or_default();
         let second = lines.next().unwrap_or_default();
+        let third = lines.next().unwrap_or_default();
         assert_eq!(first, "# GENERATED - DO NOT EDIT - source: domain/**");
         assert!(
             second.starts_with("# source_commit: ")
@@ -22,6 +23,11 @@ fn policy__contracts__generated_configs_policy__generated_configs_are_not_hand_e
                     .chars()
                     .all(|c| c.is_ascii_hexdigit()),
             "generated config header must contain source commit hash: {}",
+            checked_in.display()
+        );
+        assert_eq!(
+            third, "# domain_schema_version: bijux.domain.v1",
+            "generated config header must contain domain schema version: {}",
             checked_in.display()
         );
     }

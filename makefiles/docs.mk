@@ -23,3 +23,10 @@ docs-serve: $(DOCS_VENV)/bin/activate ## Serve docs locally
 
 docs-clean: ## Remove built docs
 	rm -rf $(DOCS_ROOT)
+
+docs-isolate: ## Build docs in strict mode under an isolate dir
+	@ISO=$$(date -u +%Y%m%d%H%M%S)-$$$$-$(shell git rev-parse --short HEAD 2>/dev/null || echo nogit); \
+	ROOT=artifacts/isolates/$$ISO/docs; \
+	DOCS_ROOT=$$ROOT $(MAKE) docs-lint
+
+.PHONY: docs docs-lint docs-serve docs-clean docs-isolate

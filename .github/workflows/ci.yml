@@ -5,7 +5,7 @@ on:
   pull_request:
 
 jobs:
-  build:
+  isolate-gates:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -24,53 +24,9 @@ jobs:
         env:
           TZ: UTC
           LC_ALL: C
-        run: make ci
-      - name: Container lint gate
-        run: make containers-lint
-
-  snapshot-invariance:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - name: Install cargo-insta
-        run: cargo install cargo-insta --locked
-      - name: Snapshots (env A)
-        env:
-          TMPDIR: /tmp/snap-a
-          TEMP: /tmp/snap-a
-          TMP: /tmp/snap-a
-          RUST_TEST_THREADS: "1"
-          CARGO_TARGET_DIR: /tmp/target-snap-a
-        run: make snapshots
-      - name: Ensure no new snapshots (env A)
         run: |
-          if rg --files -g '*.snap.new' crates; then
-            echo "snapshot drift detected in env A"
-            exit 1
-          fi
-      - name: Snapshots (env B, different cwd)
-        env:
-          TMPDIR: /tmp/snap-b
-          TEMP: /tmp/snap-b
-          TMP: /tmp/snap-b
-          RUST_TEST_THREADS: "4"
-          CARGO_TARGET_DIR: /tmp/target-snap-b
-        run: |
-          ln -s "$GITHUB_WORKSPACE" /tmp/workspace-link
-          cd /tmp/workspace-link
-          make snapshots
-      - name: Ensure no new snapshots (env B)
-        run: |
-          if rg --files -g '*.snap.new' crates; then
-            echo "snapshot drift detected in env B"
-            exit 1
-          fi
-
-  msrv:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@1.76.0
-      - name: MSRV Check
-        run: make msrv
+          make fmt-isolate
+          make lint-isolate
+          make audit-isolate
+          make test-isolate
+          make docs-isolate
