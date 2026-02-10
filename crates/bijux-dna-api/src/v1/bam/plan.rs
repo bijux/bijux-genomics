@@ -173,6 +173,18 @@ pub fn plan_for_bam_stage_with_profile(
             sample_id: args.sample_id.as_deref(),
             params: None,
         }),
+        bijux_dna_planner_bam::stage_api::BamStage::MappingSummary => plan(StagePlanRequest {
+            stage_id: stage.as_str(),
+            tool: spec,
+            out_dir,
+            bam: Some(&args.bam),
+            bam_index: args.bai.as_deref(),
+            r1: None,
+            r2: None,
+            reference: None,
+            sample_id: args.sample_id.as_deref(),
+            params: None,
+        }),
         bijux_dna_planner_bam::stage_api::BamStage::Filter => {
             let stage_key = bijux_dna_core::ids::StageId::from_static(stage.as_str());
             let default_params = profile
@@ -214,6 +226,88 @@ pub fn plan_for_bam_stage_with_profile(
             }
             if let Some(value) = args.base_quality_threshold {
                 params.base_quality_threshold = value;
+            }
+            let params_json = serde_json::to_value(&params)?;
+            plan(StagePlanRequest {
+                stage_id: stage.as_str(),
+                tool: spec,
+                out_dir,
+                bam: Some(&args.bam),
+                bam_index: args.bai.as_deref(),
+                r1: None,
+                r2: None,
+                reference: None,
+                sample_id: args.sample_id.as_deref(),
+                params: Some(&params_json),
+            })
+        }
+        bijux_dna_planner_bam::stage_api::BamStage::MapqFilter => {
+            let stage_key = bijux_dna_core::ids::StageId::from_static(stage.as_str());
+            let default_params = profile
+                .defaults
+                .params
+                .get(&stage_key)
+                .map(bijux_dna_pipelines::DefaultParams::to_json)
+                .and_then(|value| stage.parse_effective_params(&value).ok())
+                .unwrap_or_else(|| {
+                    bijux_dna_planner_bam::stage_api::stage_spec(stage).default_params
+                });
+            let mut params = match default_params {
+                bijux_dna_planner_bam::stage_api::params::BamEffectiveParams::MapqFilter(
+                    params,
+                ) => params,
+                _ => bijux_dna_planner_bam::stage_api::params::FilterEffectiveParams {
+                    mapq_threshold: 30,
+                    include_flags: Vec::new(),
+                    exclude_flags: Vec::new(),
+                    min_length: 0,
+                    remove_duplicates: false,
+                    base_quality_threshold: 20,
+                },
+            };
+            if let Some(value) = args.min_mapq {
+                params.mapq_threshold = value.try_into().unwrap_or(u8::MAX);
+            }
+            let params_json = serde_json::to_value(&params)?;
+            plan(StagePlanRequest {
+                stage_id: stage.as_str(),
+                tool: spec,
+                out_dir,
+                bam: Some(&args.bam),
+                bam_index: args.bai.as_deref(),
+                r1: None,
+                r2: None,
+                reference: None,
+                sample_id: args.sample_id.as_deref(),
+                params: Some(&params_json),
+            })
+        }
+        bijux_dna_planner_bam::stage_api::BamStage::LengthFilter => {
+            let stage_key = bijux_dna_core::ids::StageId::from_static(stage.as_str());
+            let default_params = profile
+                .defaults
+                .params
+                .get(&stage_key)
+                .map(bijux_dna_pipelines::DefaultParams::to_json)
+                .and_then(|value| stage.parse_effective_params(&value).ok())
+                .unwrap_or_else(|| {
+                    bijux_dna_planner_bam::stage_api::stage_spec(stage).default_params
+                });
+            let mut params = match default_params {
+                bijux_dna_planner_bam::stage_api::params::BamEffectiveParams::LengthFilter(
+                    params,
+                ) => params,
+                _ => bijux_dna_planner_bam::stage_api::params::FilterEffectiveParams {
+                    mapq_threshold: 0,
+                    include_flags: Vec::new(),
+                    exclude_flags: Vec::new(),
+                    min_length: 30,
+                    remove_duplicates: false,
+                    base_quality_threshold: 20,
+                },
+            };
+            if let Some(value) = args.min_length {
+                params.min_length = value;
             }
             let params_json = serde_json::to_value(&params)?;
             plan(StagePlanRequest {
@@ -337,6 +431,31 @@ pub fn plan_for_bam_stage_with_profile(
                 r1: None,
                 r2: None,
                 reference: None,
+                sample_id: args.sample_id.as_deref(),
+                params: Some(&params_json),
+            })
+        }
+        bijux_dna_planner_bam::stage_api::BamStage::EndogenousContent => {
+            let default_params = default_params_for_stage(profile, stage);
+            let params = match default_params {
+                bijux_dna_planner_bam::stage_api::params::BamEffectiveParams::EndogenousContent(
+                    params,
+                ) => params,
+                _ => bijux_dna_planner_bam::stage_api::params::CoverageEffectiveParams {
+                    regions: None,
+                    depth_thresholds: vec![1],
+                },
+            };
+            let params_json = serde_json::to_value(&params)?;
+            plan(StagePlanRequest {
+                stage_id: stage.as_str(),
+                tool: spec,
+                out_dir,
+                bam: Some(&args.bam),
+                bam_index: args.bai.as_deref(),
+                r1: None,
+                r2: None,
+                reference: args.reference.as_deref(),
                 sample_id: args.sample_id.as_deref(),
                 params: Some(&params_json),
             })

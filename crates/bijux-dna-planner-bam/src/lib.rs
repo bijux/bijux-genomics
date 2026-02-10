@@ -155,11 +155,39 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
             let bam = request.bam.ok_or_else(|| anyhow!("qc_pre requires bam"))?;
             tool_adapters::stages_pre::qc_pre::plan(request.tool, bam, request.out_dir)
         }
+        bijux_dna_domain_bam::BamStage::MappingSummary => {
+            let bam = request
+                .bam
+                .ok_or_else(|| anyhow!("mapping_summary requires bam"))?;
+            tool_adapters::stages_pre::qc_pre::plan(request.tool, bam, request.out_dir)
+        }
         bijux_dna_domain_bam::BamStage::Filter => {
             let bam = request.bam.ok_or_else(|| anyhow!("filter requires bam"))?;
             let params = effective_params_for_stage(stage, request.params)?;
             let bijux_dna_domain_bam::params::BamEffectiveParams::Filter(params) = params else {
                 return Err(anyhow!("filter params mismatch"));
+            };
+            tool_adapters::stages_pre::filter::plan(request.tool, bam, request.out_dir, &params)
+        }
+        bijux_dna_domain_bam::BamStage::MapqFilter => {
+            let bam = request
+                .bam
+                .ok_or_else(|| anyhow!("mapq_filter requires bam"))?;
+            let params = effective_params_for_stage(stage, request.params)?;
+            let bijux_dna_domain_bam::params::BamEffectiveParams::MapqFilter(params) = params
+            else {
+                return Err(anyhow!("mapq_filter params mismatch"));
+            };
+            tool_adapters::stages_pre::filter::plan(request.tool, bam, request.out_dir, &params)
+        }
+        bijux_dna_domain_bam::BamStage::LengthFilter => {
+            let bam = request
+                .bam
+                .ok_or_else(|| anyhow!("length_filter requires bam"))?;
+            let params = effective_params_for_stage(stage, request.params)?;
+            let bijux_dna_domain_bam::params::BamEffectiveParams::LengthFilter(params) = params
+            else {
+                return Err(anyhow!("length_filter params mismatch"));
             };
             tool_adapters::stages_pre::filter::plan(request.tool, bam, request.out_dir, &params)
         }
@@ -194,6 +222,18 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
             let params = effective_params_for_stage(stage, request.params)?;
             let bijux_dna_domain_bam::params::BamEffectiveParams::Coverage(params) = params else {
                 return Err(anyhow!("coverage params mismatch"));
+            };
+            tool_adapters::stages_post::coverage::plan(request.tool, bam, request.out_dir, &params)
+        }
+        bijux_dna_domain_bam::BamStage::EndogenousContent => {
+            let bam = request
+                .bam
+                .ok_or_else(|| anyhow!("endogenous_content requires bam"))?;
+            let params = effective_params_for_stage(stage, request.params)?;
+            let bijux_dna_domain_bam::params::BamEffectiveParams::EndogenousContent(params) =
+                params
+            else {
+                return Err(anyhow!("endogenous_content params mismatch"));
             };
             tool_adapters::stages_post::coverage::plan(request.tool, bam, request.out_dir, &params)
         }

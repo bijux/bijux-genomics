@@ -56,10 +56,14 @@ pub enum BamStage {
     Align,
     Validate,
     QcPre,
+    MappingSummary,
     Filter,
+    MapqFilter,
+    LengthFilter,
     Markdup,
     Complexity,
     Coverage,
+    EndogenousContent,
     Damage,
     Authenticity,
     Contamination,
@@ -80,10 +84,14 @@ impl BamStage {
             BamStage::Align => "bam.align",
             BamStage::Validate => "bam.validate",
             BamStage::QcPre => "bam.qc_pre",
+            BamStage::MappingSummary => "bam.mapping_summary",
             BamStage::Filter => "bam.filter",
+            BamStage::MapqFilter => "bam.mapq_filter",
+            BamStage::LengthFilter => "bam.length_filter",
             BamStage::Markdup => "bam.markdup",
             BamStage::Complexity => "bam.complexity",
             BamStage::Coverage => "bam.coverage",
+            BamStage::EndogenousContent => "bam.endogenous_content",
             BamStage::Damage => "bam.damage",
             BamStage::Authenticity => "bam.authenticity",
             BamStage::Contamination => "bam.contamination",
@@ -107,10 +115,14 @@ impl BamStage {
             BamStage::Align,
             BamStage::Validate,
             BamStage::QcPre,
+            BamStage::MappingSummary,
             BamStage::Filter,
+            BamStage::MapqFilter,
+            BamStage::LengthFilter,
             BamStage::Markdup,
             BamStage::Complexity,
             BamStage::Coverage,
+            BamStage::EndogenousContent,
             BamStage::Damage,
             BamStage::Authenticity,
             BamStage::Contamination,
@@ -134,8 +146,20 @@ impl BamStage {
                 .map(BamEffectiveParams::Validate),
             BamStage::QcPre => serde_json::from_value::<QcPreEffectiveParams>(value.clone())
                 .map(BamEffectiveParams::QcPre),
+            BamStage::MappingSummary => {
+                serde_json::from_value::<QcPreEffectiveParams>(value.clone())
+                    .map(BamEffectiveParams::MappingSummary)
+            }
             BamStage::Filter => serde_json::from_value::<FilterEffectiveParams>(value.clone())
                 .map(BamEffectiveParams::Filter),
+            BamStage::MapqFilter => {
+                serde_json::from_value::<FilterEffectiveParams>(value.clone())
+                    .map(BamEffectiveParams::MapqFilter)
+            }
+            BamStage::LengthFilter => {
+                serde_json::from_value::<FilterEffectiveParams>(value.clone())
+                    .map(BamEffectiveParams::LengthFilter)
+            }
             BamStage::Markdup => serde_json::from_value::<MarkDupEffectiveParams>(value.clone())
                 .map(BamEffectiveParams::Markdup),
             BamStage::Complexity => {
@@ -144,6 +168,10 @@ impl BamStage {
             }
             BamStage::Coverage => serde_json::from_value::<CoverageEffectiveParams>(value.clone())
                 .map(BamEffectiveParams::Coverage),
+            BamStage::EndogenousContent => {
+                serde_json::from_value::<CoverageEffectiveParams>(value.clone())
+                    .map(BamEffectiveParams::EndogenousContent)
+            }
             BamStage::Damage => serde_json::from_value::<DamageEffectiveParams>(value.clone())
                 .map(BamEffectiveParams::Damage),
             BamStage::Authenticity => {
@@ -185,10 +213,14 @@ impl TryFrom<&str> for BamStage {
             "bam.align" => Ok(BamStage::Align),
             "bam.validate" => Ok(BamStage::Validate),
             "bam.qc_pre" => Ok(BamStage::QcPre),
+            "bam.mapping_summary" => Ok(BamStage::MappingSummary),
             "bam.filter" => Ok(BamStage::Filter),
+            "bam.mapq_filter" => Ok(BamStage::MapqFilter),
+            "bam.length_filter" => Ok(BamStage::LengthFilter),
             "bam.markdup" => Ok(BamStage::Markdup),
             "bam.complexity" => Ok(BamStage::Complexity),
             "bam.coverage" => Ok(BamStage::Coverage),
+            "bam.endogenous_content" => Ok(BamStage::EndogenousContent),
             "bam.damage" => Ok(BamStage::Damage),
             "bam.authenticity" => Ok(BamStage::Authenticity),
             "bam.contamination" => Ok(BamStage::Contamination),
@@ -241,7 +273,11 @@ pub fn contract_for_stage(stage_id: &str) -> Option<BamStageContract> {
             deterministic: true,
             nondeterminism_reason: None,
         }),
-        BamStage::Filter | BamStage::Markdup | BamStage::Recalibration => Some(BamStageContract {
+        BamStage::Filter
+        | BamStage::MapqFilter
+        | BamStage::LengthFilter
+        | BamStage::Markdup
+        | BamStage::Recalibration => Some(BamStageContract {
             input: BamArtifactKind::Bam,
             output: BamArtifactKind::Bam,
             emits_bam: true,
@@ -254,7 +290,7 @@ pub fn contract_for_stage(stage_id: &str) -> Option<BamStageContract> {
             } else {
                 "preserves_duplicates"
             },
-            mapping_quality_policy: if stage == BamStage::Filter {
+            mapping_quality_policy: if stage == BamStage::Filter || stage == BamStage::MapqFilter {
                 "filters_by_mapping_quality_threshold"
             } else {
                 "no_mapping_quality_filter"
@@ -286,9 +322,13 @@ fn tool_ids_for_stage(stage_id: &str) -> Vec<&'static str> {
     match stage_id {
         "bam.align" => vec!["bwa", "bowtie2"],
         "bam.validate" => vec!["samtools"],
+        "bam.mapping_summary" => vec!["samtools"],
+        "bam.mapq_filter" => vec!["samtools", "bamtools"],
+        "bam.length_filter" => vec!["samtools", "picard"],
         "bam.markdup" => vec!["picard"],
         "bam.recalibration" => vec!["gatk"],
         "bam.coverage" => vec!["mosdepth"],
+        "bam.endogenous_content" => vec!["samtools"],
         "bam.damage" => vec!["pydamage", "mapdamage2"],
         "bam.complexity" => vec!["preseq"],
         "bam.authenticity" => vec!["authenticct"],

@@ -10,8 +10,13 @@ citation: pending:tool-publication
 stage_ids:
 - bam.align
 - bam.validate
+- bam.qc_pre
+- bam.mapping_summary
 - bam.filter
+- bam.mapq_filter
+- bam.length_filter
 - bam.coverage
+- bam.endogenous_content
 - fastq.prepare_reference
 - fastq.qc_post
 status: supported

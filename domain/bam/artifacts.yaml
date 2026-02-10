@@ -14,8 +14,12 @@ artifact_ids:
   - kinship_report_json
   - markdup_report_json
   - qc_pre_report_json
+  - mapping_summary_report_json
   - recalibration_report_json
   - sex_report_json
+  - mapq_filter_report_json
+  - length_filter_report_json
+  - endogenous_content_report_json
   - report_json
   - aligned_bam
   - authenticity_report
