@@ -141,7 +141,35 @@ fn handle_status_root(args: &cli::StatusArgs, cwd: &Path) -> Result<()> {
     let mut planned = Vec::new();
     let mut placeholders = Vec::new();
     let mut missing_fixtures = Vec::new();
+    let mut missing_stage_fields = Vec::new();
+    let mut missing_tool_fields = Vec::new();
     let normalized_scope = args.scope.replace('-', "_");
+    let required_stage_fields = [
+        "stage_id",
+        "domain",
+        "status",
+        "scope",
+        "inputs",
+        "outputs",
+        "invariants",
+        "compatible_tools",
+        "assumptions",
+        "metrics_schema",
+    ];
+    let required_tool_fields = [
+        "tool_id",
+        "status",
+        "scope",
+        "default_version",
+        "upstream",
+        "pin_strategy",
+        "license",
+        "stage_ids",
+        "version_cmd",
+        "help_cmd",
+        "expected_artifacts",
+        "metrics_schema",
+    ];
 
     for dom in ["fastq", "bam"] {
         let stages_dir = domain_dir.join(dom).join("stages");
@@ -170,6 +198,19 @@ fn handle_status_root(args: &cli::StatusArgs, cwd: &Path) -> Result<()> {
                 if lower.contains("todo") || lower.contains("tbd") || lower.contains("placeholder")
                 {
                     placeholders.push(path.display().to_string());
+                }
+                for key in required_stage_fields {
+                    let needle = format!("{key}:");
+                    if !raw
+                        .lines()
+                        .any(|line| line.trim_start().starts_with(&needle))
+                    {
+                        missing_stage_fields.push(format!(
+                            "{} missing required key `{}`",
+                            path.display(),
+                            key
+                        ));
+                    }
                 }
             }
         }
@@ -200,6 +241,19 @@ fn handle_status_root(args: &cli::StatusArgs, cwd: &Path) -> Result<()> {
                 if lower.contains("todo") || lower.contains("tbd") || lower.contains("placeholder")
                 {
                     placeholders.push(path.display().to_string());
+                }
+                for key in required_tool_fields {
+                    let needle = format!("{key}:");
+                    if !raw
+                        .lines()
+                        .any(|line| line.trim_start().starts_with(&needle))
+                    {
+                        missing_tool_fields.push(format!(
+                            "{} missing required key `{}`",
+                            path.display(),
+                            key
+                        ));
+                    }
                 }
             }
         }
@@ -256,19 +310,102 @@ fn handle_status_root(args: &cli::StatusArgs, cwd: &Path) -> Result<()> {
     placeholders.dedup();
     missing_fixtures.sort();
     missing_fixtures.dedup();
+    missing_stage_fields.sort();
+    missing_stage_fields.dedup();
+    missing_tool_fields.sort();
+    missing_tool_fields.dedup();
 
     println!("scope={}", args.scope);
     println!("planned_or_out_of_scope={}", planned.len());
-    for item in planned {
+    for item in &planned {
         println!("  {item}");
     }
     println!("placeholder_files={}", placeholders.len());
-    for item in placeholders {
+    for item in &placeholders {
         println!("  {item}");
     }
     println!("missing_truth_fixtures={}", missing_fixtures.len());
-    for item in missing_fixtures {
+    for item in &missing_fixtures {
         println!("  {item}");
+    }
+    println!(
+        "missing_stage_required_fields={}",
+        missing_stage_fields.len()
+    );
+    for item in &missing_stage_fields {
+        println!("  {item}");
+    }
+    println!("missing_tool_required_fields={}", missing_tool_fields.len());
+    for item in &missing_tool_fields {
+        println!("  {item}");
+    }
+
+    if let Some(path) = &args.write_checklist {
+        let mut md = String::new();
+        md.push_str("# Scope Closure Checklist\n\n");
+        md.push_str(&format!("- scope: `{}`\n", args.scope));
+        md.push_str(&format!("- planned_or_out_of_scope: `{}`\n", planned.len()));
+        md.push_str(&format!("- placeholder_files: `{}`\n", placeholders.len()));
+        md.push_str(&format!(
+            "- missing_truth_fixtures: `{}`\n",
+            missing_fixtures.len()
+        ));
+        md.push_str(&format!(
+            "- missing_stage_required_fields: `{}`\n",
+            missing_stage_fields.len()
+        ));
+        md.push_str(&format!(
+            "- missing_tool_required_fields: `{}`\n\n",
+            missing_tool_fields.len()
+        ));
+
+        md.push_str("## Planned / Out Of Scope\n");
+        if planned.is_empty() {
+            md.push_str("- none\n");
+        } else {
+            for item in &planned {
+                md.push_str(&format!("- {item}\n"));
+            }
+        }
+        md.push_str("\n## Placeholder Files\n");
+        if placeholders.is_empty() {
+            md.push_str("- none\n");
+        } else {
+            for item in &placeholders {
+                md.push_str(&format!("- {item}\n"));
+            }
+        }
+        md.push_str("\n## Missing Fixtures\n");
+        if missing_fixtures.is_empty() {
+            md.push_str("- none\n");
+        } else {
+            for item in &missing_fixtures {
+                md.push_str(&format!("- {item}\n"));
+            }
+        }
+        md.push_str("\n## Missing Stage Required Fields\n");
+        if missing_stage_fields.is_empty() {
+            md.push_str("- none\n");
+        } else {
+            for item in &missing_stage_fields {
+                md.push_str(&format!("- {item}\n"));
+            }
+        }
+        md.push_str("\n## Missing Tool Required Fields\n");
+        if missing_tool_fields.is_empty() {
+            md.push_str("- none\n");
+        } else {
+            for item in &missing_tool_fields {
+                md.push_str(&format!("- {item}\n"));
+            }
+        }
+
+        if let Some(parent) = path.parent() {
+            std::fs::create_dir_all(parent)
+                .with_context(|| format!("create {}", parent.display()))?;
+        }
+        std::fs::write(path, md).with_context(|| format!("write {}", path.display()))?;
+        println!("scope_closure_checklist={}", path.display());
     }
     Ok(())
 }
