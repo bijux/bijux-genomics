@@ -1,0 +1,5 @@
+schema_version: "bijux.domain.metrics.v1"
+domain: "bam"
+metric_ids:
+  - memory_mb
+  - runtime_s

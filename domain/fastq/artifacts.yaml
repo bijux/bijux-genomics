@@ -1,0 +1,36 @@
+schema_version: "bijux.domain.artifacts.v1"
+domain: "fastq"
+artifact_ids:
+  - adapter_report
+  - corrected_reads_r1
+  - corrected_reads_r2
+  - dedup_reads_r1
+  - dedup_reads_r2
+  - filter_report_json
+  - filtered_reads
+  - final_reads_r1
+  - final_reads_r2
+  - manifest_json
+  - merged_reads
+  - qc_report_html
+  - qc_report_json
+  - reference_index
+  - report_json
+  - rrna_filtered_reads
+  - screen_report_tsv
+  - stats_json
+  - trimmed_reads
+  - unmerged_reads_r1
+  - unmerged_reads_r2
+  - abundance_report
+  - filtered_fastq
+  - merge_report
+  - merged_fastq
+  - scan_report
+  - screen_report
+  - screen_summary
+  - stats_report
+  - trim_report
+  - trimmed_fastq
+  - trimmed_fastq_r1
+  - trimmed_fastq_r2

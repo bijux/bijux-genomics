@@ -19,4 +19,3 @@ allowed_status:
   - planned
   - out_of_scope
 required_scope: "pre_hpc_pre_vcf"
-  - comparability
