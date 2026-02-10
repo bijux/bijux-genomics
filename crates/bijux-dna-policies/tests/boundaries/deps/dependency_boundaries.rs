@@ -60,6 +60,33 @@ fn policy__boundaries__dependency_boundaries__stages_do_not_depend_on_environmen
 }
 
 #[test]
+fn policy__boundaries__dependency_boundaries__stages_and_planners_do_not_depend_on_runner_or_engine(
+) {
+    let root = repo_root();
+    let manifests = [
+        root.join("crates/bijux-dna-stages-fastq/Cargo.toml"),
+        root.join("crates/bijux-dna-stages-bam/Cargo.toml"),
+        root.join("crates/bijux-dna-planner-fastq/Cargo.toml"),
+        root.join("crates/bijux-dna-planner-bam/Cargo.toml"),
+    ];
+    let denylist = ["bijux-dna-runner", "bijux-dna-engine"];
+    let mut offenders = Vec::new();
+    for manifest in manifests {
+        let deps = parse_dependency_names(&manifest);
+        for denied in denylist {
+            if deps.iter().any(|dep| dep == denied) {
+                offenders.push(format!("{} depends on {}", manifest.display(), denied));
+            }
+        }
+    }
+    bijux_dna_policies::policy_assert!(
+        offenders.is_empty(),
+        "stages/planners must not depend on runner or engine:\n{}",
+        offenders.join("\n")
+    );
+}
+
+#[test]
 fn policy__boundaries__dependency_boundaries__analyze_and_benchmark_do_not_depend_on_engine() {
     let root = repo_root();
     let manifests = [

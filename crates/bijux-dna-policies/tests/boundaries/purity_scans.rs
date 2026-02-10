@@ -161,6 +161,33 @@ fn policy__boundaries__purity_scans__stage_specs_have_no_command_building() {
 }
 
 #[test]
+fn policy__boundaries__purity_scans__stage_crates_define_invocations_only_no_execution_effects() {
+    let root = repo_root();
+    let mut offenders = Vec::new();
+    let deny_tokens = [
+        "std::process::Command",
+        "Command::new(",
+        "execute_step(",
+        "run_docker_command(",
+        "run_apptainer_command(",
+        "bijux_dna_runner",
+    ];
+    for crate_dir in ["crates/bijux-dna-stages-fastq/src", "crates/bijux-dna-stages-bam/src"] {
+        for file in collect_rs_files(&root.join(crate_dir)) {
+            let content = std::fs::read_to_string(&file).expect("read source");
+            if deny_tokens.iter().any(|token| content.contains(token)) {
+                offenders.push(file.display().to_string());
+            }
+        }
+    }
+    bijux_dna_policies::policy_assert!(
+        offenders.is_empty(),
+        "stage crates must define invocations only (no execution effects):\n{}",
+        offenders.join("\n")
+    );
+}
+
+#[test]
 fn policy__boundaries__purity_scans__planners_only_build_execution_steps() {
     let root = repo_root();
     let allowlist = [
@@ -218,7 +245,6 @@ fn policy__boundaries__purity_scans__pipelines_do_not_embed_tool_names() {
         "adapterremoval",
         "angsd",
         "authenticct",
-        "authenticity",
         "bbduk",
         "bbmerge",
         "bayeshammer",

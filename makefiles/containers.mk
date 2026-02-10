@@ -92,7 +92,7 @@ test-images-stage: ## Smoke all tools for one stage via CLI registry
 	fi
 	@$(MAKE) env-smoke STAGE="$(STAGE)" CONTAINER_TYPE="$(CONTAINER_TYPE)"
 
-# Single tool smoke: make test-images-tool TOOLS=fastp
+# Single tool smoke: make test-images-tool TOOLS=<tool_id>
 test-images-tool: ## Smoke one tool via CLI registry
 	@if [ -z "$(TOOLS)" ]; then \
 		echo "ERROR: set TOOLS=<tool_id>"; \
