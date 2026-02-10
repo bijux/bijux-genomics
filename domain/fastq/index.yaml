@@ -218,3 +218,118 @@ stage_failure_diagnosis_hints:
   fastq.merge: ["review overlap thresholds and paired-end orientation"]
   fastq.correct: ["verify kmer/cov parameters and read depth assumptions"]
   fastq.umi: ["confirm UMI pattern configuration and read naming conventions"]
+pipeline_compositions:
+  pre_hpc_best:
+    - fastq.prepare_reference
+    - fastq.validate_pre
+    - fastq.detect_adapters
+    - fastq.trim
+    - fastq.filter
+    - fastq.merge
+    - fastq.stats_neutral
+    - fastq.qc_post
+    - fastq.screen
+stage_ordering_constraints:
+  fastq.prepare_reference: []
+  fastq.validate_pre: [fastq.prepare_reference]
+  fastq.detect_adapters: [fastq.validate_pre]
+  fastq.trim: [fastq.detect_adapters]
+  fastq.filter: [fastq.trim]
+  fastq.merge: [fastq.filter]
+  fastq.stats_neutral: [fastq.merge]
+  fastq.qc_post: [fastq.stats_neutral]
+  fastq.screen: [fastq.qc_post]
+  fastq.rrna: [fastq.filter]
+  fastq.correct: [fastq.filter]
+  fastq.umi: [fastq.trim]
+stage_prerequisites:
+  fastq.prepare_reference: []
+  fastq.validate_pre: [fastq.prepare_reference]
+  fastq.detect_adapters: [fastq.validate_pre]
+  fastq.trim: [fastq.detect_adapters]
+  fastq.filter: [fastq.trim]
+  fastq.merge: [fastq.filter]
+  fastq.stats_neutral: [fastq.merge]
+  fastq.qc_post: [fastq.stats_neutral]
+  fastq.screen: [fastq.qc_post]
+  fastq.rrna: [fastq.filter]
+  fastq.correct: [fastq.filter]
+  fastq.umi: [fastq.trim]
+stage_resource_hints:
+  fastq.prepare_reference: { memory_gb: 8.0, time_minutes: 30, threads: 4 }
+  fastq.detect_adapters: { memory_gb: 4.0, time_minutes: 20, threads: 4 }
+  fastq.trim: { memory_gb: 6.0, time_minutes: 30, threads: 6 }
+  fastq.filter: { memory_gb: 4.0, time_minutes: 20, threads: 4 }
+  fastq.validate_pre: { memory_gb: 2.0, time_minutes: 10, threads: 2 }
+  fastq.stats_neutral: { memory_gb: 2.0, time_minutes: 10, threads: 2 }
+  fastq.rrna: { memory_gb: 8.0, time_minutes: 30, threads: 6 }
+  fastq.qc_post: { memory_gb: 4.0, time_minutes: 15, threads: 2 }
+  fastq.screen: { memory_gb: 16.0, time_minutes: 60, threads: 8 }
+  fastq.merge: { memory_gb: 8.0, time_minutes: 25, threads: 6 }
+  fastq.correct: { memory_gb: 12.0, time_minutes: 45, threads: 8 }
+  fastq.umi: { memory_gb: 4.0, time_minutes: 20, threads: 4 }
+stage_output_size_estimates_mb:
+  fastq.prepare_reference: { reference_index: 5000.0 }
+  fastq.detect_adapters: { adapter_report: 5.0 }
+  fastq.trim: { trimmed_reads: 2000.0, trim_report: 10.0 }
+  fastq.filter: { filtered_reads: 1800.0, filter_report_json: 10.0 }
+  fastq.validate_pre: { scan_report: 5.0 }
+  fastq.stats_neutral: { stats_json: 2.0 }
+  fastq.rrna: { rrna_filtered_reads: 1700.0 }
+  fastq.qc_post: { qc_report_json: 15.0, qc_report_html: 30.0 }
+  fastq.screen: { screen_report_tsv: 25.0, abundance_report: 5.0 }
+  fastq.merge: { merged_reads: 1400.0, merge_report: 8.0 }
+  fastq.correct: { corrected_reads_r1: 900.0, corrected_reads_r2: 900.0 }
+  fastq.umi: { dedup_reads_r1: 700.0, dedup_reads_r2: 700.0 }
+stage_sanity_metrics:
+  fastq.prepare_reference: [index_build_exit_code]
+  fastq.detect_adapters: [adapter_detection_rate]
+  fastq.trim: [trimmed_read_fraction, post_trim_read_length_mean]
+  fastq.filter: [reads_filtered_fraction]
+  fastq.validate_pre: [format_validation_pass_rate]
+  fastq.stats_neutral: [read_count, q30_fraction]
+  fastq.rrna: [rrna_removed_fraction]
+  fastq.qc_post: [qc_warn_count, qc_fail_count]
+  fastq.screen: [classified_read_fraction]
+  fastq.merge: [merge_rate]
+  fastq.correct: [error_corrected_fraction]
+  fastq.umi: [umi_dedup_fraction]
+stage_qc_thresholds:
+  fastq.prepare_reference: { index_build_exit_code: { warn: "!=0", fail: "!=0" } }
+  fastq.detect_adapters: { adapter_detection_rate: { warn: "<0.01", fail: "<0.001" } }
+  fastq.trim: { trimmed_read_fraction: { warn: "<0.4", fail: "<0.2" } }
+  fastq.filter: { reads_filtered_fraction: { warn: ">0.8", fail: ">0.9" } }
+  fastq.validate_pre: { format_validation_pass_rate: { warn: "<1.0", fail: "<0.99" } }
+  fastq.stats_neutral: { q30_fraction: { warn: "<0.6", fail: "<0.4" } }
+  fastq.rrna: { rrna_removed_fraction: { warn: "<0.05", fail: "<0.01" } }
+  fastq.qc_post: { qc_fail_count: { warn: ">0", fail: ">5" } }
+  fastq.screen: { classified_read_fraction: { warn: "<0.1", fail: "<0.01" } }
+  fastq.merge: { merge_rate: { warn: "<0.15", fail: "<0.05" } }
+  fastq.correct: { error_corrected_fraction: { warn: "<0.01", fail: "<0.001" } }
+  fastq.umi: { umi_dedup_fraction: { warn: "<0.05", fail: "<0.01" } }
+stage_contamination_thresholds:
+  fastq.prepare_reference: { contamination_rate: { warn: ">=0.0", fail: ">=1.0" } }
+  fastq.detect_adapters: { contamination_rate: { warn: ">=0.0", fail: ">=1.0" } }
+  fastq.trim: { contamination_rate: { warn: ">=0.05", fail: ">=0.2" } }
+  fastq.filter: { contamination_rate: { warn: ">=0.05", fail: ">=0.2" } }
+  fastq.validate_pre: { contamination_rate: { warn: ">=0.05", fail: ">=0.2" } }
+  fastq.stats_neutral: { contamination_rate: { warn: ">=0.05", fail: ">=0.2" } }
+  fastq.rrna: { contamination_rate: { warn: ">=0.05", fail: ">=0.2" } }
+  fastq.qc_post: { contamination_rate: { warn: ">=0.05", fail: ">=0.2" } }
+  fastq.screen: { contamination_rate: { warn: ">=0.05", fail: ">=0.2" } }
+  fastq.merge: { contamination_rate: { warn: ">=0.05", fail: ">=0.2" } }
+  fastq.correct: { contamination_rate: { warn: ">=0.05", fail: ">=0.2" } }
+  fastq.umi: { contamination_rate: { warn: ">=0.05", fail: ">=0.2" } }
+stage_authenticity_thresholds:
+  fastq.prepare_reference: { authenticity_score: { warn: "<=1.0", fail: "<=0.0" } }
+  fastq.detect_adapters: { authenticity_score: { warn: "<=1.0", fail: "<=0.0" } }
+  fastq.trim: { authenticity_score: { warn: "<0.2", fail: "<0.1" } }
+  fastq.filter: { authenticity_score: { warn: "<0.2", fail: "<0.1" } }
+  fastq.validate_pre: { authenticity_score: { warn: "<=1.0", fail: "<=0.0" } }
+  fastq.stats_neutral: { authenticity_score: { warn: "<=1.0", fail: "<=0.0" } }
+  fastq.rrna: { authenticity_score: { warn: "<=1.0", fail: "<=0.0" } }
+  fastq.qc_post: { authenticity_score: { warn: "<=1.0", fail: "<=0.0" } }
+  fastq.screen: { authenticity_score: { warn: "<0.2", fail: "<0.1" } }
+  fastq.merge: { authenticity_score: { warn: "<=1.0", fail: "<=0.0" } }
+  fastq.correct: { authenticity_score: { warn: "<=1.0", fail: "<=0.0" } }
+  fastq.umi: { authenticity_score: { warn: "<=1.0", fail: "<=0.0" } }
