@@ -8,6 +8,7 @@ required_fields:
   - upstream
   - pin_strategy
   - license
+  - citation
   - version_cmd
   - help_cmd
   - expected_artifacts

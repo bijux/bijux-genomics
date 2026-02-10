@@ -6,6 +6,7 @@ pin_strategy: "pinned"
 default_version: "planned"
 install_kind: "container"
 license: "GPL-3.0"
+citation: "pending:tool-publication"
 stage_ids: ["bam.damage"]
 status: "planned"
 scope: "pre_hpc_pre_vcf"

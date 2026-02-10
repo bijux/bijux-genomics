@@ -25,8 +25,10 @@ required_outputs:
 tool_capability_requirements:
   - bam_input
 invariants:
-  - stable_artifact_contract
-  - deterministic_output_order
+  - "stable_artifact_contract"
+  - "deterministic_output_order"
+allowed_missingness:
+  - "none"
 compatible_tools:
   - mapdamage2
   - pydamage

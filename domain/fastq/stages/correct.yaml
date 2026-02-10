@@ -56,6 +56,8 @@ tool_capability_requirements: []
 invariants:
   - "stable_artifact_contract"
   - "deterministic_output_order"
+allowed_missingness:
+  - "none"
 compatible_tools:
   - samtools
 metrics_schema: "bijux.stage.metrics.v1"

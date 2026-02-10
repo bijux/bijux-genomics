@@ -23,8 +23,10 @@ required_outputs:
 tool_capability_requirements:
   - adapter_detection
 invariants:
-  - stable_artifact_contract
-  - deterministic_output_order
+  - "stable_artifact_contract"
+  - "deterministic_output_order"
+allowed_missingness:
+  - "none"
 compatible_tools:
   - samtools
 metrics_schema: "bijux.stage.metrics.v1"
