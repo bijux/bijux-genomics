@@ -4,6 +4,7 @@ use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 
 use anyhow::{anyhow, Context, Result};
+use bijux_dna_core::id_catalog;
 use flate2::read::GzDecoder;
 
 use bijux_dna_core::contract::canonical::parameters_json_canonicalization;
@@ -29,7 +30,7 @@ pub fn stage_metrics_for_plan(
     outputs: &[PathBuf],
 ) -> Result<serde_json::Value> {
     let mut metrics = match plan.stage_id.as_str() {
-        "fastq.trim" => {
+        id_catalog::FASTQ_TRIM => {
             let stats = stats_for_paths(&[
                 inputs.first().map(PathBuf::as_path),
                 outputs.first().map(PathBuf::as_path),
@@ -80,7 +81,7 @@ pub fn stage_metrics_for_plan(
                 retention,
             })?
         }
-        "fastq.filter" => {
+        id_catalog::FASTQ_FILTER => {
             let removals =
                 filter_removals_for_plan(plan.tool_id.as_str(), &plan.out_dir, &plan.params);
             filter_metrics_with_removals(
@@ -92,7 +93,7 @@ pub fn stage_metrics_for_plan(
                 &removals,
             )?
         }
-        "fastq.merge" => {
+        id_catalog::FASTQ_MERGE => {
             let stats = stats_for_paths(&[
                 inputs.first().map(PathBuf::as_path),
                 inputs.get(1).map(PathBuf::as_path),
@@ -131,7 +132,7 @@ pub fn stage_metrics_for_plan(
                 merge_q_delta,
             })?
         }
-        "fastq.validate_pre" => {
+        id_catalog::FASTQ_VALIDATE_PRE => {
             let stats = stats_for_paths(&[inputs.first().map(PathBuf::as_path)])?;
             let input = stats.first().copied().unwrap_or_else(zero_seqkit_metrics);
             let (pairs_in, pairs_out) = pair_counts_from_paths(inputs, outputs)?;
@@ -148,7 +149,7 @@ pub fn stage_metrics_for_plan(
                 mean_q: input.mean_q,
             })?
         }
-        "fastq.detect_adapters" => {
+        id_catalog::FASTQ_DETECT_ADAPTERS => {
             let stats = stats_for_paths(&[inputs.first().map(PathBuf::as_path)])?;
             let input = stats.first().copied().unwrap_or_else(zero_seqkit_metrics);
             let (pairs_in, pairs_out) = pair_counts_from_paths(inputs, outputs)?;
@@ -188,7 +189,7 @@ pub fn stage_metrics_for_plan(
                 kmer_warning_count,
             })?
         }
-        "fastq.correct" => {
+        id_catalog::FASTQ_CORRECT => {
             let stats = stats_for_paths(&[inputs.first().map(PathBuf::as_path)])?;
             let input = stats.first().copied().unwrap_or_else(zero_seqkit_metrics);
             let output = if outputs.is_empty() {
@@ -211,7 +212,7 @@ pub fn stage_metrics_for_plan(
                 bases_uncorrected: input.bases.saturating_sub(output.bases),
             })?
         }
-        "fastq.umi" => {
+        id_catalog::FASTQ_UMI => {
             let stats = stats_for_paths(&[inputs.first().map(PathBuf::as_path)])?;
             let input = stats.first().copied().unwrap_or_else(zero_seqkit_metrics);
             let output = if outputs.is_empty() {
@@ -264,7 +265,7 @@ pub fn stage_metrics_for_plan(
                 retention,
             })?
         }
-        "fastq.preprocess" => {
+        id_catalog::FASTQ_PREPROCESS => {
             let stats = stats_for_paths(&[inputs.first().map(PathBuf::as_path)])?;
             let input = stats.first().copied().unwrap_or_else(zero_seqkit_metrics);
             let output = if outputs.is_empty() {
@@ -317,7 +318,7 @@ pub fn stage_metrics_for_plan(
                 retention,
             })?
         }
-        "fastq.qc_post" => {
+        id_catalog::FASTQ_QC_POST => {
             let stats = stats_for_paths(&[inputs.first().map(PathBuf::as_path)])?;
             let input = stats.first().copied().unwrap_or_else(zero_seqkit_metrics);
             let output = if outputs.is_empty() {
@@ -406,7 +407,7 @@ pub fn stage_metrics_for_plan(
                     .then_some(multiqc_data.display().to_string()),
             })?
         }
-        "fastq.stats_neutral" => {
+        id_catalog::FASTQ_STATS_NEUTRAL => {
             let stats = stats_for_paths(&[inputs.first().map(PathBuf::as_path)])?;
             let input = stats.first().copied().unwrap_or_else(zero_seqkit_metrics);
             let output = if outputs.is_empty() {
@@ -425,7 +426,7 @@ pub fn stage_metrics_for_plan(
                 "pairs_out": pairs_out,
             })
         }
-        "fastq.screen" => {
+        id_catalog::FASTQ_SCREEN => {
             let stats = stats_for_paths(&[inputs.first().map(PathBuf::as_path)])?;
             let input = stats.first().copied().unwrap_or_else(zero_seqkit_metrics);
             let output = if outputs.is_empty() {
@@ -452,7 +453,7 @@ pub fn stage_metrics_for_plan(
         }
         _ => serde_json::json!({}),
     };
-    if plan.stage_id.0.starts_with("fastq.") {
+    if plan.stage_id.0.starts_with(id_catalog::FASTQ_PREFIX) {
         if let Some(obj) = metrics.as_object_mut() {
             if !obj.contains_key("pairs_in") || !obj.contains_key("pairs_out") {
                 let (pairs_in, pairs_out) = pair_counts_from_paths(inputs, outputs)?;

@@ -5,6 +5,7 @@ use anyhow::{anyhow, Result};
 use bijux_dna_core::contract::PipelineSpec;
 use bijux_dna_core::contract::PlanPolicy;
 use bijux_dna_core::contract::{ExecutionEdge, ExecutionGraph};
+use bijux_dna_core::id_catalog;
 use bijux_dna_core::prelude::input_assessment::{assess_input_dir, FastqLayout};
 use bijux_dna_core::prelude::{ContainerImageRefV1, StageId, StepId, ToolExecutionSpecV1};
 use bijux_dna_domain_bam::BamStage;
@@ -121,7 +122,8 @@ pub fn apply_preprocess_policy(
     ) {
         let trim_tool = pipeline_tools.get(trim_idx).map(|tool| tool.as_str());
         let filter_tool = pipeline_tools.get(filter_idx).map(|tool| tool.as_str());
-        if trim_tool == Some("fastp") && filter_tool == Some("fastp") {
+        if trim_tool == Some(id_catalog::TOOL_FASTP) && filter_tool == Some(id_catalog::TOOL_FASTP)
+        {
             let skipped_stage = pipeline_stages.remove(filter_idx);
             let skipped_tool = pipeline_tools.remove(filter_idx);
             stage_skips.push(serde_json::json!({
