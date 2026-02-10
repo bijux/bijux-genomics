@@ -1,21 +1,30 @@
-schema_version: "bijux.tool.v2"
-tool_id: "sortmerna"
-upstream: "https://github.com/biocore/sortmerna"
-versioning_strategy: "pinned"
-pin_strategy: "pinned"
-default_version: "latest-pinned"
-install_kind: "container"
-license: "GPL-3.0"
-citation: "pending:tool-publication"
-stage_ids: ["fastq.filter"]
-status: "supported"
-scope: "pre_hpc_pre_vcf"
-expected_artifacts: ["filtered_fastq"]
-metrics_schema_id: "bijux.fastq.filter.v1"
-metrics_schema: "bijux.fastq.filter.v1"
-version_cmd: "sortmerna --version"
-help_cmd: "sortmerna --help"
+schema_version: bijux.tool.v2
+tool_id: sortmerna
+upstream: https://github.com/biocore/sortmerna
+versioning_strategy: pinned
+pin_strategy: pinned
+default_version: latest-pinned
+install_kind: container
+license: GPL-3.0
+citation: pending:tool-publication
+stage_ids:
+- fastq.filter
+status: supported
+scope: pre_hpc_pre_vcf
+expected_artifacts:
+- filtered_fastq
+metrics_schema_id: bijux.fastq.filter.v1
+metrics_schema: bijux.fastq.filter.v1
+version_cmd: sortmerna --version
+help_cmd: sortmerna --help
 comparability:
-  comparable_with: ["bbduk", "prinseq"]
+  comparable_with:
+  - bbduk
+  - prinseq
   non_comparable_with: []
-comparability_notes: "Comparable only within same stage contract and input constraints."
+comparability_notes: Comparable only within same stage contract and input constraints.
+capabilities:
+- SE
+- PE
+- contaminant_filter
+- rrna_classification

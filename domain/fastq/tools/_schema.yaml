@@ -12,6 +12,7 @@ required_fields:
   - version_cmd
   - help_cmd
   - expected_artifacts
+  - capabilities
   - metrics_schema
   - comparability_notes
 allowed_status:

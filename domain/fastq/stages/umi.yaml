@@ -58,5 +58,7 @@ compatible_tools:
   - samtools
 assumptions:
   - "default stage assumptions captured"
+bank_hooks:
+  - "none"
 metrics_schema: "bijux.stage.metrics.v1"
 planned_out_of_scope: []

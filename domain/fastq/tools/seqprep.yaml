@@ -1,22 +1,31 @@
-schema_version: "bijux.tool.v2"
-tool_id: "seqprep"
-upstream: "https://github.com/jstjohn/SeqPrep"
-versioning_strategy: "pinned"
-pin_strategy: "pinned"
-default_version: "1.3.2"
-install_kind: "container"
-license: "GPL-3.0"
-citation: "pending:tool-publication"
-stage_ids: ["fastq.merge"]
-status: "supported"
-scope: "pre_hpc_pre_vcf"
-expected_artifacts: ["merged_fastq","merge_report"]
-metrics_schema_id: "bijux.fastq.merge.v1"
-metrics_schema: "bijux.fastq.merge.v1"
-version_cmd: "seqprep --version"
-help_cmd: "seqprep --help"
+schema_version: bijux.tool.v2
+tool_id: seqprep
+upstream: https://github.com/jstjohn/SeqPrep
+versioning_strategy: pinned
+pin_strategy: pinned
+default_version: 1.3.2
+install_kind: container
+license: GPL-3.0
+citation: pending:tool-publication
+stage_ids:
+- fastq.merge
+status: supported
+scope: pre_hpc_pre_vcf
+expected_artifacts:
+- merged_fastq
+- merge_report
+metrics_schema_id: bijux.fastq.merge.v1
+metrics_schema: bijux.fastq.merge.v1
+version_cmd: seqprep --version
+help_cmd: seqprep --help
 comparability:
-  comparable_with: ["pear","flash2","leehom"]
+  comparable_with:
+  - pear
+  - flash2
+  - leehom
   non_comparable_with: []
-comparability_notes: "Comparable only within same stage contract and input constraints."
-notes: "Domain SSOT tool contract entry."
+comparability_notes: Comparable only within same stage contract and input constraints.
+notes: Domain SSOT tool contract entry.
+capabilities:
+- SE
+- PE

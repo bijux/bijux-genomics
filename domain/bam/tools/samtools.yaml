@@ -1,28 +1,38 @@
-schema_version: "bijux.tool.v2"
-tool_id: "samtools"
-upstream: "https://github.com/samtools/samtools"
-versioning_strategy: "pinned"
-pin_strategy: "pinned"
-default_version: "1.21"
-install_kind: "container"
-license: "GPL-3.0"
-citation: "pending:tool-publication"
-stage_ids: ["bam.align","bam.validate","bam.filter","bam.coverage","fastq.prepare_reference","fastq.qc_post"]
-status: "supported"
-scope: "pre_hpc_pre_vcf"
-expected_artifacts: ["bam_index","bam_stats"]
-metrics_schema_id: "bijux.bam.validation.v1"
-metrics_schema: "bijux.bam.validation.v1"
-version_cmd: "samtools --version"
-help_cmd: "samtools --help"
+schema_version: bijux.tool.v2
+tool_id: samtools
+upstream: https://github.com/samtools/samtools
+versioning_strategy: pinned
+pin_strategy: pinned
+default_version: '1.21'
+install_kind: container
+license: GPL-3.0
+citation: pending:tool-publication
+stage_ids:
+- bam.align
+- bam.validate
+- bam.filter
+- bam.coverage
+- fastq.prepare_reference
+- fastq.qc_post
+status: supported
+scope: pre_hpc_pre_vcf
+expected_artifacts:
+- bam_index
+- bam_stats
+metrics_schema_id: bijux.bam.validation.v1
+metrics_schema: bijux.bam.validation.v1
+version_cmd: samtools --version
+help_cmd: samtools --help
 comparability:
-  comparable_with: ["bedtools","bamtools"]
+  comparable_with:
+  - bedtools
+  - bamtools
   non_comparable_with: []
-comparability_notes: "Comparable only within same stage contract and input constraints."
+comparability_notes: Comparable only within same stage contract and input constraints.
 capabilities:
-  - bam_input
+- bam_input
+- reference_indexing
 io_contract:
   required_inputs:
-    - bam
-
-notes: "Domain SSOT tool contract entry."
+  - bam
+notes: Domain SSOT tool contract entry.
