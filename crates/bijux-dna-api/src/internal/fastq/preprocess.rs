@@ -9,6 +9,7 @@ use anyhow::{anyhow, Context, Result};
 use bijux_dna_analyze::load::sqlite::bench_results_fastq::SqliteBenchResultsRepository;
 use bijux_dna_core::contract::PlanPolicy;
 use bijux_dna_core::contract::{ExecutionEdge, ExecutionGraph};
+use bijux_dna_core::ids::{StageId, ToolId};
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::ContainerImageRefV1;
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
@@ -135,10 +136,14 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     bijux_dna_infra::ensure_dir(&tools_root).context("create preprocess tools dir")?;
 
     let policy = apply_preprocess_policy(
-        pipeline.stages.clone(),
+        pipeline
+            .stages
+            .iter()
+            .map(|stage| StageId::new(stage.clone()))
+            .collect(),
         selected_tools
             .iter()
-            .map(|selection| selection.tool_id.clone())
+            .map(|selection| ToolId::new(selection.tool_id.clone()))
             .collect(),
     );
 
@@ -162,9 +167,15 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         .iter()
         .zip(policy.pipeline_tools.iter())
     {
-        let spec = build_tool_execution_spec(stage, tool, &registry, catalog, platform)?;
+        let spec = build_tool_execution_spec(
+            stage.as_str(),
+            tool.as_str(),
+            &registry,
+            catalog,
+            platform,
+        )?;
         let spec = scale_tool_spec_for_jobs(&spec, jobs);
-        if stage == STAGE_TRIM.as_str() {
+        if stage == &STAGE_TRIM {
             if let Some(msg) = polyx_unsupported_warning(
                 &spec.tool_id.0,
                 polyx_bank.as_ref(),
@@ -197,7 +208,11 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     let planner_config = FastqPlanConfig {
         pipeline_id,
         policy: PlanPolicy::PreferAccuracy,
-        stages: policy.pipeline_stages.clone(),
+        stages: policy
+            .pipeline_stages
+            .iter()
+            .map(|stage| stage.as_str().to_string())
+            .collect(),
         tools: tool_specs.clone(),
         aux_images: aux_tools.clone(),
         adapter_bank: adapter_bank.clone(),
