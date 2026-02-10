@@ -13,4 +13,10 @@ help_cmd: "angsd --help"
 comparability:
   comparable_with: ["rxy","king"]
   non_comparable_with: []
+capabilities:
+  - bam_input
+io_contract:
+  required_inputs:
+    - bam
+
 notes: "Domain SSOT tool contract entry."

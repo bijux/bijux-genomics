@@ -13,4 +13,10 @@ help_cmd: "damageprofiler --help"
 comparability:
   comparable_with: ["mapdamage2","pydamage","ngsbriggs","addeam"]
   non_comparable_with: []
+capabilities:
+  - bam_input
+io_contract:
+  required_inputs:
+    - bam
+
 notes: "Domain SSOT tool contract entry."

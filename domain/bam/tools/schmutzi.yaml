@@ -13,4 +13,10 @@ help_cmd: "schmutzi --help"
 comparability:
   comparable_with: ["verifybamid2","contammix"]
   non_comparable_with: []
+capabilities:
+  - bam_input
+io_contract:
+  required_inputs:
+    - bam
+
 notes: "Domain SSOT tool contract entry."

@@ -62,4 +62,51 @@ for dom in fastq bam; do
   done
 done
 
+# strict stage capability enforcement:
+# every tool in stage_tool_compatibility must satisfy stage tool_capability_requirements.
+for dom in fastq bam; do
+  idx="$ROOT_DIR/domain/$dom/index.yaml"
+  awk '
+    BEGIN { inmap=0 }
+    /^stage_tool_compatibility:/ { inmap=1; next }
+    inmap && /^[^[:space:]]/ { inmap=0 }
+    inmap && /^[[:space:]]+[a-z0-9_.-]+:/ {
+      line=$0
+      gsub(/^[[:space:]]+/, "", line)
+      split(line, p, ":")
+      stage=p[1]
+      rhs=line
+      sub(/^[^:]+:[[:space:]]*\[/, "", rhs)
+      sub(/\][[:space:]]*$/, "", rhs)
+      gsub(/[[:space:]]/, "", rhs)
+      print stage "|" rhs
+    }
+  ' "$idx" | while IFS='|' read -r stage tools_csv; do
+    [ -n "$stage" ] || continue
+    stage_file="$ROOT_DIR/domain/$dom/stages/$(echo "$stage" | sed "s#^$dom\\.##").yaml"
+    [ -f "$stage_file" ] || fail "missing stage file for $stage ($stage_file)"
+    reqs=$(awk '
+      /^tool_capability_requirements:/ {inreq=1; next}
+      inreq && /^  - / {print $2; next}
+      inreq && !/^  - / {inreq=0}
+    ' "$stage_file")
+    # If no requirements are declared, skip compatibility checks for this stage.
+    [ -n "$reqs" ] || continue
+    [ -n "$tools_csv" ] || fail "stage $stage has capability requirements but no compatible tools in $idx"
+    tools=$(echo "$tools_csv" | tr ',' ' ')
+    for tool in $tools; do
+      tool_file="$ROOT_DIR/domain/$dom/tools/$tool.yaml"
+      [ -f "$tool_file" ] || fail "stage $stage references missing tool $tool ($tool_file)"
+      caps=$(awk '
+        /^capabilities:/ {incap=1; next}
+        incap && /^  - / {print $2; next}
+        incap && !/^  - / {incap=0}
+      ' "$tool_file")
+      for req in $reqs; do
+        echo "$caps" | rg -qx "$req" || fail "stage $stage requires capability $req but tool $tool lacks it"
+      done
+    done
+  done
+done
+
 echo "domain-validate: OK"

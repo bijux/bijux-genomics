@@ -13,4 +13,10 @@ help_cmd: "ngsbriggs --help"
 comparability:
   comparable_with: ["damageprofiler","addeam","mapdamage2"]
   non_comparable_with: []
+capabilities:
+  - bam_input
+io_contract:
+  required_inputs:
+    - bam
+
 notes: "Domain SSOT tool contract entry."
