@@ -161,7 +161,7 @@ snapshots-review:
 		policy-fast policy-full \
 		snapshots snapshots-accept snapshots-review ensure-cargo-deny
 generate-configs:
-	cargo run -p bijux-dna-environment-qa --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
+	cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 
 check-generated-configs:
 	./scripts/check-generated-configs.sh
