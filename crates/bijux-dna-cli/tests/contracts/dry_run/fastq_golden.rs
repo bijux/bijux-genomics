@@ -105,8 +105,11 @@ arch = "x86_64"
         .unwrap()
         .join("configs")
         .join("tool_registry.toml");
-    std::fs::copy(workspace_tool_registry, configs_dir.join("tool_registry.toml"))
-        .expect("write tool registry");
+    std::fs::copy(
+        workspace_tool_registry,
+        configs_dir.join("tool_registry.toml"),
+    )
+    .expect("write tool registry");
     let workspace_stages = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .unwrap()
