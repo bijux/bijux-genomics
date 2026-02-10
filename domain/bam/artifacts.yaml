@@ -1,0 +1,42 @@
+schema_version: "bijux.domain.artifacts.v1"
+domain: "bam"
+artifact_ids:
+  - align_report_json
+  - authenticity_report_json
+  - bias_mitigation_report_json
+  - complexity_report_json
+  - contamination_report_json
+  - coverage_report_json
+  - damage_report_json
+  - filter_report_json
+  - genotyping_report_json
+  - haplogroups_report_json
+  - kinship_report_json
+  - markdup_report_json
+  - qc_pre_report_json
+  - recalibration_report_json
+  - sex_report_json
+  - report_json
+  - aligned_bam
+  - authenticity_report
+  - bam_index
+  - bam_stats
+  - bam_validation_report
+  - complexity_curve
+  - contamination_estimate
+  - contammix_report
+  - coverage_report
+  - damage_clusters
+  - damage_parameters
+  - damage_plot
+  - damage_profile
+  - dup_metrics
+  - haplogroup_report
+  - interval_report
+  - kinship_report
+  - markdup_bam
+  - mt_consensus
+  - pmd_scores
+  - population_metrics
+  - recal_report
+  - sex_estimate
