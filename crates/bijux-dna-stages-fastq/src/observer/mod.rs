@@ -6,7 +6,10 @@ pub mod artifacts;
 mod parse;
 
 pub use artifacts::*;
-pub use parse::{parse_fastqvalidator_count, parse_length_histogram, parse_seqkit_stats};
+pub use parse::{
+    parse_deduplicate_report, parse_fastqvalidator_count, parse_length_histogram,
+    parse_low_complexity_report, parse_seqkit_stats,
+};
 
 #[derive(Debug, Clone)]
 pub struct ObserverCommandSpec {

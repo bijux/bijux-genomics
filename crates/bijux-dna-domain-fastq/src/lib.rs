@@ -65,9 +65,10 @@ pub use stages::{
     stage_contract_json, HeaderInspection, MergeSuitability, NormalizedOutputs,
 };
 pub use stages::{
-    bench_dir_name, STAGES, STAGE_CORRECT, STAGE_DETECT_ADAPTERS, STAGE_FILTER, STAGE_MERGE,
-    STAGE_PREFIX, STAGE_PREPROCESS, STAGE_QC_POST, STAGE_RRNA, STAGE_SCREEN, STAGE_STATS_NEUTRAL,
-    STAGE_TRIM, STAGE_UMI, STAGE_VALIDATE_PRE,
+    bench_dir_name, STAGES, STAGE_CORRECT, STAGE_DEDUPLICATE, STAGE_DETECT_ADAPTERS,
+    STAGE_FILTER, STAGE_LOW_COMPLEXITY, STAGE_MERGE, STAGE_PREFIX, STAGE_PREPROCESS,
+    STAGE_QC_POST, STAGE_RRNA, STAGE_SCREEN, STAGE_STATS_NEUTRAL, STAGE_TRIM, STAGE_UMI,
+    STAGE_VALIDATE_PRE,
 };
 pub use stages::{
     canonical_contract_for_stage, infer_input_kind, qc_class_for_stage, FastqStage,

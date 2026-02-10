@@ -71,6 +71,24 @@ pub struct FastqFilterMetricsV1 {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
+pub struct FastqDeduplicateMetricsV1 {
+    pub reads_in: u64,
+    pub reads_out: u64,
+    pub reads_removed_duplicates: u64,
+    pub bases_in: u64,
+    pub bases_out: u64,
+    #[serde(default)]
+    pub pairs_in: Option<u64>,
+    #[serde(default)]
+    pub pairs_out: Option<u64>,
+    pub mean_q_before: f64,
+    pub mean_q_after: f64,
+    pub delta_metrics: FastqDeltaMetricsV1,
+    pub retention: RetentionReportMetricV1,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct FastqMergeMetricsV1 {
     pub reads_in: u64,
     pub reads_out: u64,
