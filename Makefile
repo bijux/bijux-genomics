@@ -6,7 +6,8 @@ NEXTEST_JOBS ?= $(JOBS)
 
 include makefiles/cargo.mk
 include makefiles/containers.mk
-include makefiles/benchmarks.mk
+include makefiles/benchmarks-fastq.mk
+include makefiles/benchmarks-bam.mk
 include makefiles/lab.mk
 include makefiles/docs.mk
 
