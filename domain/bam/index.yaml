@@ -70,3 +70,50 @@ active_default_rationale:
   bam.contamination: "Contamination default is established for mtDNA-focused checks."
   bam.sex: "Sex inference baseline is lightweight and deterministic."
   bam.kinship: "Kinship baseline prioritized for stable pairwise outputs."
+stage_completeness_checklist:
+  bam.align: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
+  bam.validate: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
+  bam.filter: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
+  bam.coverage: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
+  bam.damage: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
+  bam.authenticity: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
+  bam.contamination: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
+  bam.sex: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
+  bam.kinship: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]
+stage_default_settings:
+  bam.align:
+    bwa: { profile: "adna_sane_default", notes: "BWA aln/mem-compatible baseline preset" }
+    bowtie2: { profile: "adna_sane_default", notes: "bowtie2 end-to-end conservative preset" }
+  bam.validate:
+    samtools: { profile: "adna_sane_default", notes: "samtools validation/stats preset" }
+    bedtools: { profile: "adna_sane_default", notes: "interval sanity preset" }
+    bamtools: { profile: "adna_sane_default", notes: "bam structure validation preset" }
+  bam.filter:
+    samtools: { profile: "adna_sane_default", notes: "mapping-quality filter preset" }
+    bedtools: { profile: "adna_sane_default", notes: "region filter preset" }
+    bamtools: { profile: "adna_sane_default", notes: "bam query filter preset" }
+  bam.coverage:
+    mosdepth: { profile: "adna_sane_default", notes: "fast coverage preset" }
+    samtools: { profile: "adna_sane_default", notes: "depth fallback preset" }
+  bam.damage:
+    mapdamage2: { profile: "adna_sane_default", notes: "historic damage baseline preset" }
+    pydamage: { profile: "adna_sane_default", notes: "PMD-centric damage preset" }
+    damageprofiler: { profile: "adna_sane_default", notes: "misincorporation profile preset" }
+    ngsbriggs: { profile: "adna_sane_default", notes: "Briggs-model PMD preset" }
+    addeam: { profile: "adna_sane_default", notes: "scalable damage estimation preset" }
+    pmdtools: { profile: "adna_sane_default", notes: "PMD score/filter preset" }
+  bam.authenticity:
+    authenticct: { profile: "adna_sane_default", notes: "authenticity summary preset" }
+    pmdtools: { profile: "adna_sane_default", notes: "PMD evidence authenticity preset" }
+    damageprofiler: { profile: "adna_sane_default", notes: "damage-signature authenticity preset" }
+  bam.contamination:
+    schmutzi: { profile: "adna_sane_default", notes: "mtDNA contamination baseline preset" }
+    verifybamid2: { profile: "adna_sane_default", notes: "nuclear contamination estimate preset" }
+    contammix: { profile: "adna_sane_default", notes: "Bayesian contamination estimate preset" }
+  bam.sex:
+    rxy: { profile: "adna_sane_default", notes: "R/Y ratio baseline preset" }
+    yleaf: { profile: "adna_sane_default", notes: "Y haplogroup-assisted sex preset" }
+    angsd: { profile: "adna_sane_default", notes: "population-model sex inference preset" }
+  bam.kinship:
+    king: { profile: "adna_sane_default", notes: "kinship baseline preset" }
+    angsd: { profile: "adna_sane_default", notes: "likelihood-based kinship preset" }

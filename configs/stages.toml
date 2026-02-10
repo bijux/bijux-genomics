@@ -1,149 +1,179 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: f343fbcf92f56aa7b33b904afd52108f80d3a522
+# source_commit: 8c2d300aa39ce578118ea15edd3b455488b9fdbd
+# domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 
 [[stages]]
 id = "bam.align"
 status = "supported"
+output_kinds = ["json"]
 tools = ["bowtie2", "bwa"]
 
 [[stages]]
 id = "bam.authenticity"
 status = "supported"
+output_kinds = ["json"]
 tools = ["authenticct", "damageprofiler", "pmdtools"]
 
 [[stages]]
 id = "bam.bias_mitigation"
 status = "supported"
+output_kinds = ["json"]
 tools = []
 
 [[stages]]
 id = "bam.complexity"
 status = "supported"
+output_kinds = ["json"]
 tools = ["preseq"]
 
 [[stages]]
 id = "bam.contamination"
 status = "supported"
+output_kinds = ["json"]
 tools = ["contammix", "schmutzi", "verifybamid2"]
 
 [[stages]]
 id = "bam.coverage"
 status = "supported"
+output_kinds = ["json"]
 tools = ["mosdepth", "samtools"]
 
 [[stages]]
 id = "bam.damage"
 status = "supported"
+output_kinds = ["json"]
 tools = ["addeam", "damageprofiler", "mapdamage2", "ngsbriggs", "pmdtools", "pydamage"]
 
 [[stages]]
 id = "bam.filter"
 status = "supported"
+output_kinds = ["json"]
 tools = ["bamtools", "bedtools", "samtools"]
 
 [[stages]]
 id = "bam.genotyping"
 status = "supported"
+output_kinds = ["json"]
 tools = []
 
 [[stages]]
 id = "bam.haplogroups"
 status = "supported"
+output_kinds = ["json"]
 tools = ["yleaf"]
 
 [[stages]]
 id = "bam.kinship"
 status = "supported"
+output_kinds = ["json"]
 tools = ["angsd", "king"]
 
 [[stages]]
 id = "bam.markdup"
 status = "supported"
+output_kinds = ["json"]
 tools = ["picard"]
 
 [[stages]]
 id = "bam.qc_pre"
 status = "supported"
+output_kinds = ["json"]
 tools = []
 
 [[stages]]
 id = "bam.recalibration"
 status = "supported"
+output_kinds = ["json"]
 tools = ["gatk"]
 
 [[stages]]
 id = "bam.sex"
 status = "supported"
+output_kinds = ["json"]
 tools = ["angsd", "rxy", "yleaf"]
 
 [[stages]]
 id = "bam.validate"
 status = "supported"
+output_kinds = ["json"]
 tools = ["bamtools", "bedtools", "samtools"]
 
 [[stages]]
 id = "fastq.correct"
 status = "supported"
+output_kinds = ["fastq"]
 tools = ["bayeshammer", "lighter", "musket", "rcorrector", "spades"]
 
 [[stages]]
 id = "fastq.detect_adapters"
 status = "supported"
+output_kinds = ["json"]
 tools = ["fastp"]
 
 [[stages]]
 id = "fastq.filter"
 status = "supported"
+output_kinds = ["fastq"]
 tools = ["bbduk", "fastp", "prinseq", "seqkit"]
 
 [[stages]]
 id = "fastq.merge"
 status = "supported"
+output_kinds = ["fastq"]
 tools = ["bbmerge", "flash2", "leehom", "pear", "vsearch"]
 
 [[stages]]
 id = "fastq.prepare_reference"
 status = "supported"
+output_kinds = ["directory"]
 tools = ["samtools", "star"]
 
 [[stages]]
 id = "fastq.preprocess"
 status = "supported"
+output_kinds = ["fastq", "json"]
 tools = []
 
 [[stages]]
 id = "fastq.qc_post"
 status = "supported"
+output_kinds = ["html", "json"]
 tools = ["fastqc", "multiqc", "qualimap", "samtools"]
 
 [[stages]]
 id = "fastq.rrna"
 status = "supported"
+output_kinds = ["fastq"]
 tools = ["sortmerna"]
 
 [[stages]]
 id = "fastq.screen"
 status = "supported"
+output_kinds = ["tsv"]
 tools = ["bracken", "centrifuge", "fastq_screen", "kaiju", "kraken2", "krakenuniq", "metaphlan"]
 
 [[stages]]
 id = "fastq.stats_neutral"
 status = "supported"
+output_kinds = ["json"]
 tools = ["seqfu", "seqkit", "seqkit_stats"]
 
 [[stages]]
 id = "fastq.trim"
 status = "supported"
+output_kinds = ["fastq"]
 tools = ["adapterremoval", "alientrimmer", "atropos", "bbduk", "cutadapt", "fastp", "fastx_clipper", "leehom", "prinseq", "seqkit", "seqpurge", "skewer", "trim_galore", "trimmomatic"]
 
 [[stages]]
 id = "fastq.umi"
 status = "supported"
+output_kinds = ["fastq"]
 tools = ["umi_tools"]
 
 [[stages]]
 id = "fastq.validate_pre"
 status = "supported"
+output_kinds = ["json"]
 tools = ["fastq-scan", "fastqc", "fastqvalidator", "fastqvalidator_official", "fqtools", "seqtk"]
 

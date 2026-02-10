@@ -1,5 +1,6 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: f343fbcf92f56aa7b33b904afd52108f80d3a522
+# source_commit: 8c2d300aa39ce578118ea15edd3b455488b9fdbd
+# domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 
 [adapterremoval]
