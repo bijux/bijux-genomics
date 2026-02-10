@@ -2,12 +2,16 @@ schema_version: "bijux.tool.v2"
 tool_id: "yleaf"
 upstream: "https://github.com/genid/Yleaf"
 versioning_strategy: "pinned"
+pin_strategy: "pinned"
 default_version: "latest-pinned"
 install_kind: "container"
 license: "GPL-3.0"
 stage_ids: ["bam.sex","bam.haplogroups"]
+status: "supported"
+scope: "pre_hpc_pre_vcf"
 expected_artifacts: ["haplogroup_report"]
 metrics_schema_id: "bijux.bam.sex.v1"
+metrics_schema: "bijux.bam.sex.v1"
 version_cmd: "yleaf --version"
 help_cmd: "yleaf --help"
 comparability:

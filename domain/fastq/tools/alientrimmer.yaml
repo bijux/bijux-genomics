@@ -2,12 +2,16 @@ schema_version: "bijux.tool.v2"
 tool_id: "alientrimmer"
 upstream: "https://gite.lirmm.fr/clegrand/AlienTrimmer"
 versioning_strategy: "pinned"
+pin_strategy: "pinned"
 default_version: "0.4.0"
 install_kind: "container"
 license: "GPL-3.0"
 stage_ids: ["fastq.trim"]
+status: "supported"
+scope: "pre_hpc_pre_vcf"
 expected_artifacts: ["trimmed_fastq_r1","trimmed_fastq_r2","trim_report"]
 metrics_schema_id: "bijux.fastq.trim.v1"
+metrics_schema: "bijux.fastq.trim.v1"
 version_cmd: "alientrimmer --version"
 help_cmd: "alientrimmer --help"
 comparability:

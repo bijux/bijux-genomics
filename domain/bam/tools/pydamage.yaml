@@ -2,12 +2,16 @@ schema_version: "bijux.tool.v2"
 tool_id: "pydamage"
 upstream: "https://github.com/maxibor/pydamage"
 versioning_strategy: "pinned"
+pin_strategy: "pinned"
 default_version: "1.0.0"
 install_kind: "container"
 license: "GPL-3.0"
 stage_ids: ["bam.damage"]
+status: "supported"
+scope: "pre_hpc_pre_vcf"
 expected_artifacts: ["damage_profile"]
 metrics_schema_id: "bijux.bam.damage.v1"
+metrics_schema: "bijux.bam.damage.v1"
 version_cmd: "pydamage --version"
 help_cmd: "pydamage --help"
 comparability:

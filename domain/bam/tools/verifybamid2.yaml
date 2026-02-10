@@ -2,12 +2,16 @@ schema_version: "bijux.tool.v2"
 tool_id: "verifybamid2"
 upstream: "https://github.com/Griffan/VerifyBamID"
 versioning_strategy: "pinned"
+pin_strategy: "pinned"
 default_version: "2.0.1"
 install_kind: "container"
 license: "GPL-3.0"
 stage_ids: ["bam.contamination"]
+status: "supported"
+scope: "pre_hpc_pre_vcf"
 expected_artifacts: ["contamination_estimate"]
 metrics_schema_id: "bijux.bam.contamination.v1"
+metrics_schema: "bijux.bam.contamination.v1"
 version_cmd: "verifybamid2 --version"
 help_cmd: "verifybamid2 --help"
 comparability:

@@ -1,5 +1,8 @@
 extends: "_schema.yaml"
 stage_id: "fastq.trim"
+status: "supported"
+scope: "pre_hpc_pre_vcf"
+domain: "fastq"
 inputs:
   - name: "reads"
     data_type: "fastq"
@@ -54,4 +57,20 @@ tool_capability_requirements: []
 invariants:
   - "stable_artifact_contract"
   - "deterministic_output_order"
+compatible_tools:
+  - fastp
+  - cutadapt
+  - atropos
+  - bbduk
+  - adapterremoval
+  - trimmomatic
+  - trim_galore
+  - seqpurge
+  - prinseq
+  - seqkit
+  - skewer
+  - leehom
+  - alientrimmer
+  - fastx_clipper
+metrics_schema: "bijux.stage.metrics.v1"
 planned_out_of_scope: []

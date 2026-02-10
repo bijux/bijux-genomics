@@ -2,12 +2,16 @@ schema_version: "bijux.tool.v2"
 tool_id: "bracken"
 upstream: "https://github.com/jenniferlu717/Bracken"
 versioning_strategy: "pinned"
+pin_strategy: "pinned"
 default_version: "2.9"
 install_kind: "container"
 license: "GPL-3.0"
 stage_ids: ["fastq.screen"]
+status: "supported"
+scope: "pre_hpc_pre_vcf"
 expected_artifacts: ["abundance_report","screen_summary"]
 metrics_schema_id: "bijux.fastq.classify.v1"
+metrics_schema: "bijux.fastq.classify.v1"
 version_cmd: "bracken --version"
 help_cmd: "bracken -h"
 comparability:

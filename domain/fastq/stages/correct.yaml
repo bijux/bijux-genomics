@@ -1,5 +1,8 @@
 extends: "_schema.yaml"
 stage_id: "fastq.correct"
+status: "supported"
+scope: "pre_hpc_pre_vcf"
+domain: "fastq"
 inputs:
   - name: "reads_r1"
     data_type: "fastq"
@@ -53,4 +56,7 @@ tool_capability_requirements: []
 invariants:
   - "stable_artifact_contract"
   - "deterministic_output_order"
+compatible_tools:
+  - samtools
+metrics_schema: "bijux.stage.metrics.v1"
 planned_out_of_scope: []

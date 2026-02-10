@@ -4,7 +4,8 @@ stage_id: "fastq.validate_pre"
 role: "diagnostic"
 authoritative: false
 strict_capable: false
-status: "stable"
+status: "supported"
+scope: "pre_hpc_pre_vcf"
 capabilities:
   - "SE"
   - "PE"
@@ -30,12 +31,14 @@ execution_contract:
   forbid_unexpected_outputs: true
 upstream: "unknown"
 versioning_strategy: "pinned"
+pin_strategy: "pinned"
 default_version: "latest-pinned"
 install_kind: "container"
 license: "GPL-3.0"
 stage_ids: ["fastq.validate_pre"]
 expected_artifacts: ["report_json"]
 metrics_schema_id: "bijux.unknown.v1"
+metrics_schema: "bijux.unknown.v1"
 version_cmd: "seqtk --version"
 help_cmd: "seqtk --help"
 comparability:
