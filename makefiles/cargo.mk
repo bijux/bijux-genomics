@@ -96,7 +96,7 @@ fmt-isolate:
 	TEST_TARGET_DIR=$$ROOT/target-test COV_TARGET_DIR=$$ROOT/target-cov \
 	TEST_CARGO_HOME=$$ROOT/cargo-home-test COV_CARGO_HOME=$$ROOT/cargo-home-cov \
 	CARGO_HOME=$$ROOT/cargo-home-test \
-	$(MAKE) fmt
+	$(MAKE) fmt && ./scripts/check-root-pollution.sh
 
 lint-isolate:
 	@ISO=$$(date -u +%Y%m%d%H%M%S)-$$$$-$(GIT_SHORT_SHA); \
@@ -104,14 +104,14 @@ lint-isolate:
 	TEST_TARGET_DIR=$$ROOT/target-test COV_TARGET_DIR=$$ROOT/target-cov \
 	TEST_CARGO_HOME=$$ROOT/cargo-home-test COV_CARGO_HOME=$$ROOT/cargo-home-cov \
 	CARGO_HOME=$$ROOT/cargo-home-test \
-	$(MAKE) lint
+	$(MAKE) lint && ./scripts/check-root-pollution.sh
 
 test-isolate:
 	@ISO=$$(date -u +%Y%m%d%H%M%S)-$$$$-$(GIT_SHORT_SHA); \
 	ROOT=artifacts/isolates/$$ISO; \
 	TEST_TARGET_DIR=$$ROOT/target-test COV_TARGET_DIR=$$ROOT/target-cov \
 	TEST_CARGO_HOME=$$ROOT/cargo-home-test COV_CARGO_HOME=$$ROOT/cargo-home-cov \
-	$(MAKE) test
+	$(MAKE) test && ./scripts/check-root-pollution.sh
 
 audit-isolate: ensure-cargo-deny
 	@ISO=$$(date -u +%Y%m%d%H%M%S)-$$$$-$(GIT_SHORT_SHA); \
@@ -119,14 +119,14 @@ audit-isolate: ensure-cargo-deny
 	TEST_TARGET_DIR=$$ROOT/target-test COV_TARGET_DIR=$$ROOT/target-cov \
 	TEST_CARGO_HOME=$$ROOT/cargo-home-test COV_CARGO_HOME=$$ROOT/cargo-home-cov \
 	CARGO_HOME=$$ROOT/cargo-home-test \
-	$(MAKE) audit
+	$(MAKE) audit && ./scripts/check-root-pollution.sh
 
 coverage-isolate:
 	@ISO=$$(date -u +%Y%m%d%H%M%S)-$$$$-$(GIT_SHORT_SHA); \
 	ROOT=artifacts/isolates/$$ISO; \
 	TEST_TARGET_DIR=$$ROOT/target-test COV_TARGET_DIR=$$ROOT/target-cov \
 	TEST_CARGO_HOME=$$ROOT/cargo-home-test COV_CARGO_HOME=$$ROOT/cargo-home-cov \
-	$(MAKE) coverage
+	$(MAKE) coverage && ./scripts/check-root-pollution.sh
 
 ci:
 	$(MAKE) fmt-isolate
@@ -139,8 +139,9 @@ ci:
 check:
 	$(MAKE) fmt lint audit coverage
 
-ci-isolate:
-	TEST_TARGET_DIR=$(ISOLATE_TEST_TARGET_DIR) COV_TARGET_DIR=$(ISOLATE_COV_TARGET_DIR) $(MAKE) ci
+ci-isolate: fmt-isolate lint-isolate audit-isolate test-isolate docs-isolate
+	@# Run with `make -j<N> ci-isolate` for parallel isolate execution.
+	@./scripts/check-root-pollution.sh
 
 test-coverage-isolate-parallel:
 	$(MAKE) -j2 test-isolate coverage-isolate
