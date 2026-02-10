@@ -48,9 +48,11 @@ tool_ids:
   - seqkit_stats
   - seqpurge
   - seqtk
+  - sortmerna
   - seqprep
   - diamond
   - bcftools
+  - star
   - skewer
   - spades
   - trim_galore

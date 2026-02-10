@@ -1,0 +1,1870 @@
+# GENERATED - DO NOT EDIT - source: domain/**
+# Regenerate with: cargo run --bin compile_domain_configs
+
+[[tools]]
+id = "adapterremoval"
+tool_id = "adapterremoval"
+domain = "fastq"
+stage_ids = ["fastq.trim"]
+version = "latest-pinned"
+default_version = "latest-pinned"
+upstream = "unknown"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "adapterremoval --version"
+help_cmd = "adapterremoval --help"
+smoke_version_cmd = "adapterremoval --version"
+smoke_help_cmd = "adapterremoval --help"
+expected_bin = "adapterremoval"
+expected_artifacts = ["report_json"]
+metrics_schema = "bijux.unknown.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.adapterremoval"
+apptainer_def = "containers/apptainer/adapterremoval.def"
+require_labels = true
+
+[[tools]]
+id = "addeam"
+tool_id = "addeam"
+domain = "bam"
+stage_ids = ["bam.damage"]
+version = "latest-pinned"
+default_version = "latest-pinned"
+upstream = "https://github.com/LouisPwr/AdDeam"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "addeam --version"
+help_cmd = "addeam --help"
+smoke_version_cmd = "addeam --version"
+smoke_help_cmd = "addeam --help"
+expected_bin = "addeam"
+expected_artifacts = ["damage_profile", "damage_clusters"]
+metrics_schema = "bijux.bam.damage.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.addeam"
+apptainer_def = "containers/apptainer/addeam.def"
+require_labels = true
+
+[[tools]]
+id = "alientrimmer"
+tool_id = "alientrimmer"
+domain = "fastq"
+stage_ids = ["fastq.trim"]
+version = "0.4.0"
+default_version = "0.4.0"
+upstream = "https://gite.lirmm.fr/clegrand/AlienTrimmer"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "alientrimmer --version"
+help_cmd = "alientrimmer --help"
+smoke_version_cmd = "alientrimmer --version"
+smoke_help_cmd = "alientrimmer --help"
+expected_bin = "alientrimmer"
+expected_artifacts = ["trimmed_fastq_r1", "trimmed_fastq_r2", "trim_report"]
+metrics_schema = "bijux.fastq.trim.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.alientrimmer"
+apptainer_def = "containers/apptainer/alientrimmer.def"
+require_labels = true
+
+[[tools]]
+id = "angsd"
+tool_id = "angsd"
+domain = "bam"
+stage_ids = ["bam.sex", "bam.kinship"]
+version = "0.940"
+default_version = "0.940"
+upstream = "https://github.com/ANGSD/angsd"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "angsd --version"
+help_cmd = "angsd --help"
+smoke_version_cmd = "angsd --version"
+smoke_help_cmd = "angsd --help"
+expected_bin = "angsd"
+expected_artifacts = ["population_metrics"]
+metrics_schema = "bijux.bam.population.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.angsd"
+apptainer_def = "containers/apptainer/angsd.def"
+require_labels = true
+
+[[tools]]
+id = "atropos"
+tool_id = "atropos"
+domain = "fastq"
+stage_ids = ["fastq.trim"]
+version = "latest-pinned"
+default_version = "latest-pinned"
+upstream = "unknown"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "atropos --version"
+help_cmd = "atropos --help"
+smoke_version_cmd = "atropos --version"
+smoke_help_cmd = "atropos --help"
+expected_bin = "atropos"
+expected_artifacts = ["report_json"]
+metrics_schema = "bijux.unknown.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.atropos"
+apptainer_def = "containers/apptainer/atropos.def"
+require_labels = true
+
+[[tools]]
+id = "authenticct"
+tool_id = "authenticct"
+domain = "bam"
+stage_ids = ["bam.authenticity"]
+version = "latest-pinned"
+default_version = "latest-pinned"
+upstream = "https://github.com/StephanePeyregne/AuthentiCT"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "authenticct --version"
+help_cmd = "authenticct --help"
+smoke_version_cmd = "authenticct --version"
+smoke_help_cmd = "authenticct --help"
+expected_bin = "authenticct"
+expected_artifacts = ["authenticity_report"]
+metrics_schema = "bijux.bam.authenticity.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.authenticct"
+apptainer_def = "containers/apptainer/authenticct.def"
+require_labels = true
+
+[[tools]]
+id = "bamtools"
+tool_id = "bamtools"
+domain = "bam"
+stage_ids = ["bam.validate", "bam.filter"]
+version = "2.5.2"
+default_version = "2.5.2"
+upstream = "https://github.com/pezmaster31/bamtools"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "bamtools --version"
+help_cmd = "bamtools --help"
+smoke_version_cmd = "bamtools --version"
+smoke_help_cmd = "bamtools --help"
+expected_bin = "bamtools"
+expected_artifacts = ["bam_validation_report"]
+metrics_schema = "bijux.bam.validation.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.bamtools"
+apptainer_def = "containers/apptainer/bamtools.def"
+require_labels = true
+
+[[tools]]
+id = "bayeshammer"
+tool_id = "bayeshammer"
+domain = "fastq"
+stage_ids = ["fastq.correct"]
+version = "latest-pinned"
+default_version = "latest-pinned"
+upstream = "unknown"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "bayeshammer --version"
+help_cmd = "bayeshammer --help"
+smoke_version_cmd = "bayeshammer --version"
+smoke_help_cmd = "bayeshammer --help"
+expected_bin = "bayeshammer"
+expected_artifacts = ["report_json"]
+metrics_schema = "bijux.unknown.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.bayeshammer"
+apptainer_def = "containers/apptainer/bayeshammer.def"
+require_labels = true
+
+[[tools]]
+id = "bbduk"
+tool_id = "bbduk"
+domain = "fastq"
+stage_ids = ["fastq.trim"]
+version = "latest-pinned"
+default_version = "latest-pinned"
+upstream = "unknown"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "bbduk --version"
+help_cmd = "bbduk --help"
+smoke_version_cmd = "bbduk --version"
+smoke_help_cmd = "bbduk --help"
+expected_bin = "bbduk"
+expected_artifacts = ["report_json"]
+metrics_schema = "bijux.unknown.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.bbduk"
+apptainer_def = "containers/apptainer/bbduk.def"
+require_labels = true
+
+[[tools]]
+id = "bbmerge"
+tool_id = "bbmerge"
+domain = "fastq"
+stage_ids = ["fastq.merge"]
+version = "latest-pinned"
+default_version = "latest-pinned"
+upstream = "unknown"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "bbmerge --version"
+help_cmd = "bbmerge --help"
+smoke_version_cmd = "bbmerge --version"
+smoke_help_cmd = "bbmerge --help"
+expected_bin = "bbmerge"
+expected_artifacts = ["report_json"]
+metrics_schema = "bijux.unknown.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.bbmerge"
+apptainer_def = "containers/apptainer/bbmerge.def"
+require_labels = true
+
+[[tools]]
+id = "bcftools"
+tool_id = "bcftools"
+domain = "fastq"
+stage_ids = ["fastq.stats_neutral"]
+version = "planned"
+default_version = "planned"
+upstream = "https://github.com/samtools/bcftools"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = false
+version_cmd = "bcftools --version"
+help_cmd = "bcftools --help"
+smoke_version_cmd = "bcftools --version"
+smoke_help_cmd = "bcftools --help"
+expected_bin = "bcftools"
+expected_artifacts = ["stats_report"]
+metrics_schema = "bijux.fastq.stats.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.bcftools"
+apptainer_def = "containers/apptainer/bcftools.def"
+require_labels = true
+
+[[tools]]
+id = "bedtools"
+tool_id = "bedtools"
+domain = "bam"
+stage_ids = ["bam.validate", "bam.filter"]
+version = "2.31.1"
+default_version = "2.31.1"
+upstream = "https://github.com/arq5x/bedtools2"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "bedtools --version"
+help_cmd = "bedtools --help"
+smoke_version_cmd = "bedtools --version"
+smoke_help_cmd = "bedtools --help"
+expected_bin = "bedtools"
+expected_artifacts = ["interval_report"]
+metrics_schema = "bijux.bam.validation.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.bedtools"
+apptainer_def = "containers/apptainer/bedtools.def"
+require_labels = true
+
+[[tools]]
+id = "bowtie2"
+tool_id = "bowtie2"
+domain = "bam"
+stage_ids = ["bam.align"]
+version = "2.5.4"
+default_version = "2.5.4"
+upstream = "https://github.com/BenLangmead/bowtie2"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "bowtie2 --version"
+help_cmd = "bowtie2 --help"
+smoke_version_cmd = "bowtie2 --version"
+smoke_help_cmd = "bowtie2 --help"
+expected_bin = "bowtie2"
+expected_artifacts = ["aligned_bam"]
+metrics_schema = "bijux.bam.align.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.bowtie2"
+apptainer_def = "containers/apptainer/bowtie2.def"
+require_labels = true
+
+[[tools]]
+id = "bracken"
+tool_id = "bracken"
+domain = "fastq"
+stage_ids = ["fastq.screen"]
+version = "2.9"
+default_version = "2.9"
+upstream = "https://github.com/jenniferlu717/Bracken"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "bracken --version"
+help_cmd = "bracken -h"
+smoke_version_cmd = "bracken --version"
+smoke_help_cmd = "bracken -h"
+expected_bin = "bracken"
+expected_artifacts = ["abundance_report", "screen_summary"]
+metrics_schema = "bijux.fastq.classify.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.bracken"
+apptainer_def = "containers/apptainer/bracken.def"
+require_labels = true
+
+[[tools]]
+id = "bwa"
+tool_id = "bwa"
+domain = "bam"
+stage_ids = ["bam.align"]
+version = "0.7.17"
+default_version = "0.7.17"
+upstream = "https://github.com/lh3/bwa"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "bwa --version"
+help_cmd = "bwa --help"
+smoke_version_cmd = "bwa --version"
+smoke_help_cmd = "bwa --help"
+expected_bin = "bwa"
+expected_artifacts = ["aligned_bam"]
+metrics_schema = "bijux.bam.align.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.bwa"
+apptainer_def = "containers/apptainer/bwa.def"
+require_labels = true
+
+[[tools]]
+id = "centrifuge"
+tool_id = "centrifuge"
+domain = "fastq"
+stage_ids = ["fastq.screen"]
+version = "latest-pinned"
+default_version = "latest-pinned"
+upstream = "unknown"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "centrifuge --version"
+help_cmd = "centrifuge --help"
+smoke_version_cmd = "centrifuge --version"
+smoke_help_cmd = "centrifuge --help"
+expected_bin = "centrifuge"
+expected_artifacts = ["report_json"]
+metrics_schema = "bijux.unknown.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.centrifuge"
+apptainer_def = "containers/apptainer/centrifuge.def"
+require_labels = true
+
+[[tools]]
+id = "contammix"
+tool_id = "contammix"
+domain = "bam"
+stage_ids = ["bam.contamination"]
+version = "1.0.11"
+default_version = "1.0.11"
+upstream = "https://bioconductor.org/packages/contamMix"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "contammix --version"
+help_cmd = "contammix --help"
+smoke_version_cmd = "contammix --version"
+smoke_help_cmd = "contammix --help"
+expected_bin = "contammix"
+expected_artifacts = ["contamination_estimate", "contammix_report"]
+metrics_schema = "bijux.bam.contamination.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.contammix"
+apptainer_def = "containers/apptainer/contammix.def"
+require_labels = true
+
+[[tools]]
+id = "cutadapt"
+tool_id = "cutadapt"
+domain = "fastq"
+stage_ids = ["fastq.trim"]
+version = "latest-pinned"
+default_version = "latest-pinned"
+upstream = "unknown"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "cutadapt --version"
+help_cmd = "cutadapt --help"
+smoke_version_cmd = "cutadapt --version"
+smoke_help_cmd = "cutadapt --help"
+expected_bin = "cutadapt"
+expected_artifacts = ["report_json"]
+metrics_schema = "bijux.unknown.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.cutadapt"
+apptainer_def = "containers/apptainer/cutadapt.def"
+require_labels = true
+
+[[tools]]
+id = "damageprofiler"
+tool_id = "damageprofiler"
+domain = "bam"
+stage_ids = ["bam.damage", "bam.authenticity"]
+version = "latest-pinned"
+default_version = "latest-pinned"
+upstream = "https://github.com/Integrative-Transcriptomics/DamageProfiler"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "damageprofiler --version"
+help_cmd = "damageprofiler --help"
+smoke_version_cmd = "damageprofiler --version"
+smoke_help_cmd = "damageprofiler --help"
+expected_bin = "damageprofiler"
+expected_artifacts = ["damage_profile", "damage_plot"]
+metrics_schema = "bijux.bam.damage.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.damageprofiler"
+apptainer_def = "containers/apptainer/damageprofiler.def"
+require_labels = true
+
+[[tools]]
+id = "diamond"
+tool_id = "diamond"
+domain = "fastq"
+stage_ids = ["fastq.screen"]
+version = "2.1.8"
+default_version = "2.1.8"
+upstream = "https://github.com/bbuchfink/diamond"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "diamond --version"
+help_cmd = "diamond help"
+smoke_version_cmd = "diamond --version"
+smoke_help_cmd = "diamond help"
+expected_bin = "diamond"
+expected_artifacts = ["screen_report"]
+metrics_schema = "bijux.fastq.classify.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.diamond"
+apptainer_def = "containers/apptainer/diamond.def"
+require_labels = true
+
+[[tools]]
+id = "fastp"
+tool_id = "fastp"
+domain = "fastq"
+stage_ids = ["fastq.trim"]
+version = "latest-pinned"
+default_version = "latest-pinned"
+upstream = "unknown"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "fastp --version"
+help_cmd = "fastp --help"
+smoke_version_cmd = "fastp --version"
+smoke_help_cmd = "fastp --help"
+expected_bin = "fastp"
+expected_artifacts = ["report_json"]
+metrics_schema = "bijux.unknown.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.fastp"
+apptainer_def = "containers/apptainer/fastp.def"
+require_labels = true
+
+[[tools]]
+id = "fastq-scan"
+tool_id = "fastq-scan"
+domain = "fastq"
+stage_ids = ["fastq.validate_pre"]
+version = "planned"
+default_version = "planned"
+upstream = "https://github.com/indraniel/fastq-scan"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = false
+version_cmd = "fastq-scan --version"
+help_cmd = "fastq-scan --help"
+smoke_version_cmd = "fastq-scan --version"
+smoke_help_cmd = "fastq-scan --help"
+expected_bin = "fastq-scan"
+expected_artifacts = ["scan_report"]
+metrics_schema = "bijux.fastq.qc.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.fastq-scan"
+apptainer_def = "containers/apptainer/fastq-scan.def"
+require_labels = true
+
+[[tools]]
+id = "fastq_screen"
+tool_id = "fastq_screen"
+domain = "fastq"
+stage_ids = ["fastq.screen"]
+version = "latest-pinned"
+default_version = "latest-pinned"
+upstream = "unknown"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "fastq_screen --version"
+help_cmd = "fastq_screen --help"
+smoke_version_cmd = "fastq_screen --version"
+smoke_help_cmd = "fastq_screen --help"
+expected_bin = "fastq_screen"
+expected_artifacts = ["report_json"]
+metrics_schema = "bijux.unknown.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.fastq_screen"
+apptainer_def = "containers/apptainer/fastq_screen.def"
+require_labels = true
+
+[[tools]]
+id = "fastqc"
+tool_id = "fastqc"
+domain = "fastq"
+stage_ids = ["fastq.detect_adapters"]
+version = "latest-pinned"
+default_version = "latest-pinned"
+upstream = "unknown"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "fastqc --version"
+help_cmd = "fastqc --help"
+smoke_version_cmd = "fastqc --version"
+smoke_help_cmd = "fastqc --help"
+expected_bin = "fastqc"
+expected_artifacts = ["report_json"]
+metrics_schema = "bijux.unknown.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.fastqc"
+apptainer_def = "containers/apptainer/fastqc.def"
+require_labels = true
+
+[[tools]]
+id = "fastqvalidator"
+tool_id = "fastqvalidator"
+domain = "fastq"
+stage_ids = ["fastq.validate_pre"]
+version = "latest-pinned"
+default_version = "latest-pinned"
+upstream = "unknown"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "fastqvalidator --version"
+help_cmd = "fastqvalidator --help"
+smoke_version_cmd = "fastqvalidator --version"
+smoke_help_cmd = "fastqvalidator --help"
+expected_bin = "fastqvalidator"
+expected_artifacts = ["report_json"]
+metrics_schema = "bijux.unknown.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.fastqvalidator"
+apptainer_def = "containers/apptainer/fastqvalidator.def"
+require_labels = true
+
+[[tools]]
+id = "fastqvalidator_official"
+tool_id = "fastqvalidator_official"
+domain = "fastq"
+stage_ids = ["fastq.validate_pre"]
+version = "latest-pinned"
+default_version = "latest-pinned"
+upstream = "unknown"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "fastqvalidator_official --version"
+help_cmd = "fastqvalidator_official --help"
+smoke_version_cmd = "fastqvalidator_official --version"
+smoke_help_cmd = "fastqvalidator_official --help"
+expected_bin = "fastqvalidator_official"
+expected_artifacts = ["report_json"]
+metrics_schema = "bijux.unknown.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.fastqvalidator_official"
+apptainer_def = "containers/apptainer/fastqvalidator_official.def"
+require_labels = true
+
+[[tools]]
+id = "fastx_clipper"
+tool_id = "fastx_clipper"
+domain = "fastq"
+stage_ids = ["fastq.trim"]
+version = "0.0.14"
+default_version = "0.0.14"
+upstream = "https://github.com/agordon/fastx_toolkit"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "fastx_clipper --version"
+help_cmd = "fastx_clipper --help"
+smoke_version_cmd = "fastx_clipper --version"
+smoke_help_cmd = "fastx_clipper --help"
+expected_bin = "fastx_clipper"
+expected_artifacts = ["trimmed_fastq", "trim_report"]
+metrics_schema = "bijux.fastq.trim.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.fastx_clipper"
+apptainer_def = "containers/apptainer/fastx_clipper.def"
+require_labels = true
+
+[[tools]]
+id = "flash2"
+tool_id = "flash2"
+domain = "fastq"
+stage_ids = ["fastq.merge"]
+version = "latest-pinned"
+default_version = "latest-pinned"
+upstream = "unknown"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "flash2 --version"
+help_cmd = "flash2 --help"
+smoke_version_cmd = "flash2 --version"
+smoke_help_cmd = "flash2 --help"
+expected_bin = "flash2"
+expected_artifacts = ["report_json"]
+metrics_schema = "bijux.unknown.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.flash2"
+apptainer_def = "containers/apptainer/flash2.def"
+require_labels = true
+
+[[tools]]
+id = "fqtools"
+tool_id = "fqtools"
+domain = "fastq"
+stage_ids = ["fastq.validate_pre"]
+version = "latest-pinned"
+default_version = "latest-pinned"
+upstream = "unknown"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "fqtools --version"
+help_cmd = "fqtools --help"
+smoke_version_cmd = "fqtools --version"
+smoke_help_cmd = "fqtools --help"
+expected_bin = "fqtools"
+expected_artifacts = ["report_json"]
+metrics_schema = "bijux.unknown.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.fqtools"
+apptainer_def = "containers/apptainer/fqtools.def"
+require_labels = true
+
+[[tools]]
+id = "gatk"
+tool_id = "gatk"
+domain = "bam"
+stage_ids = ["bam.recalibration"]
+version = "latest-pinned"
+default_version = "latest-pinned"
+upstream = "https://github.com/broadinstitute/gatk"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "gatk --version"
+help_cmd = "gatk --help"
+smoke_version_cmd = "gatk --version"
+smoke_help_cmd = "gatk --help"
+expected_bin = "gatk"
+expected_artifacts = ["recal_report"]
+metrics_schema = "bijux.bam.recalibration.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.gatk"
+apptainer_def = "containers/apptainer/gatk.def"
+require_labels = true
+
+[[tools]]
+id = "kaiju"
+tool_id = "kaiju"
+domain = "fastq"
+stage_ids = ["fastq.screen"]
+version = "latest-pinned"
+default_version = "latest-pinned"
+upstream = "unknown"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "kaiju --version"
+help_cmd = "kaiju --help"
+smoke_version_cmd = "kaiju --version"
+smoke_help_cmd = "kaiju --help"
+expected_bin = "kaiju"
+expected_artifacts = ["report_json"]
+metrics_schema = "bijux.unknown.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.kaiju"
+apptainer_def = "containers/apptainer/kaiju.def"
+require_labels = true
+
+[[tools]]
+id = "king"
+tool_id = "king"
+domain = "bam"
+stage_ids = ["bam.kinship"]
+version = "2.3.0"
+default_version = "2.3.0"
+upstream = "https://www.kingrelatedness.com/"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "king --version"
+help_cmd = "king --help"
+smoke_version_cmd = "king --version"
+smoke_help_cmd = "king --help"
+expected_bin = "king"
+expected_artifacts = ["kinship_report"]
+metrics_schema = "bijux.bam.kinship.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.king"
+apptainer_def = "containers/apptainer/king.def"
+require_labels = true
+
+[[tools]]
+id = "kraken2"
+tool_id = "kraken2"
+domain = "fastq"
+stage_ids = ["fastq.screen"]
+version = "latest-pinned"
+default_version = "latest-pinned"
+upstream = "unknown"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "kraken2 --version"
+help_cmd = "kraken2 --help"
+smoke_version_cmd = "kraken2 --version"
+smoke_help_cmd = "kraken2 --help"
+expected_bin = "kraken2"
+expected_artifacts = ["report_json"]
+metrics_schema = "bijux.unknown.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.kraken2"
+apptainer_def = "containers/apptainer/kraken2.def"
+require_labels = true
+
+[[tools]]
+id = "krakenuniq"
+tool_id = "krakenuniq"
+domain = "fastq"
+stage_ids = ["fastq.screen"]
+version = "1.0.4"
+default_version = "1.0.4"
+upstream = "https://github.com/fbreitwieser/krakenuniq"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "krakenuniq --version"
+help_cmd = "krakenuniq --help"
+smoke_version_cmd = "krakenuniq --version"
+smoke_help_cmd = "krakenuniq --help"
+expected_bin = "krakenuniq"
+expected_artifacts = ["screen_report", "screen_summary"]
+metrics_schema = "bijux.fastq.classify.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.krakenuniq"
+apptainer_def = "containers/apptainer/krakenuniq.def"
+require_labels = true
+
+[[tools]]
+id = "leehom"
+tool_id = "leehom"
+domain = "fastq"
+stage_ids = ["fastq.trim", "fastq.merge"]
+version = "latest-pinned"
+default_version = "latest-pinned"
+upstream = "https://github.com/grenaud/leeHom"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "leehom --version"
+help_cmd = "leehom --help"
+smoke_version_cmd = "leehom --version"
+smoke_help_cmd = "leehom --help"
+expected_bin = "leehom"
+expected_artifacts = ["trimmed_fastq_r1", "merged_fastq", "merge_report"]
+metrics_schema = "bijux.fastq.merge.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.leehom"
+apptainer_def = "containers/apptainer/leehom.def"
+require_labels = true
+
+[[tools]]
+id = "lighter"
+tool_id = "lighter"
+domain = "fastq"
+stage_ids = ["fastq.correct"]
+version = "latest-pinned"
+default_version = "latest-pinned"
+upstream = "unknown"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "lighter --version"
+help_cmd = "lighter --help"
+smoke_version_cmd = "lighter --version"
+smoke_help_cmd = "lighter --help"
+expected_bin = "lighter"
+expected_artifacts = ["report_json"]
+metrics_schema = "bijux.unknown.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.lighter"
+apptainer_def = "containers/apptainer/lighter.def"
+require_labels = true
+
+[[tools]]
+id = "mapdamage2"
+tool_id = "mapdamage2"
+domain = "bam"
+stage_ids = ["bam.damage"]
+version = "2.2.2"
+default_version = "2.2.2"
+upstream = "https://github.com/ginolhac/mapDamage"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "mapdamage2 --version"
+help_cmd = "mapdamage2 --help"
+smoke_version_cmd = "mapdamage2 --version"
+smoke_help_cmd = "mapdamage2 --help"
+expected_bin = "mapdamage2"
+expected_artifacts = ["damage_profile", "damage_plot"]
+metrics_schema = "bijux.bam.damage.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.mapdamage2"
+apptainer_def = "containers/apptainer/mapdamage2.def"
+require_labels = true
+
+[[tools]]
+id = "metaphlan"
+tool_id = "metaphlan"
+domain = "fastq"
+stage_ids = ["fastq.screen"]
+version = "latest-pinned"
+default_version = "latest-pinned"
+upstream = "unknown"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "metaphlan --version"
+help_cmd = "metaphlan --help"
+smoke_version_cmd = "metaphlan --version"
+smoke_help_cmd = "metaphlan --help"
+expected_bin = "metaphlan"
+expected_artifacts = ["report_json"]
+metrics_schema = "bijux.unknown.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.metaphlan"
+apptainer_def = "containers/apptainer/metaphlan.def"
+require_labels = true
+
+[[tools]]
+id = "mosdepth"
+tool_id = "mosdepth"
+domain = "bam"
+stage_ids = ["bam.coverage"]
+version = "0.3.10"
+default_version = "0.3.10"
+upstream = "https://github.com/brentp/mosdepth"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "mosdepth --version"
+help_cmd = "mosdepth --help"
+smoke_version_cmd = "mosdepth --version"
+smoke_help_cmd = "mosdepth --help"
+expected_bin = "mosdepth"
+expected_artifacts = ["coverage_report"]
+metrics_schema = "bijux.bam.coverage.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.mosdepth"
+apptainer_def = "containers/apptainer/mosdepth.def"
+require_labels = true
+
+[[tools]]
+id = "multiqc"
+tool_id = "multiqc"
+domain = "fastq"
+stage_ids = ["fastq.qc_post"]
+version = "latest-pinned"
+default_version = "latest-pinned"
+upstream = "unknown"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "multiqc --version"
+help_cmd = "multiqc --help"
+smoke_version_cmd = "multiqc --version"
+smoke_help_cmd = "multiqc --help"
+expected_bin = "multiqc"
+expected_artifacts = ["report_json"]
+metrics_schema = "bijux.unknown.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.multiqc"
+apptainer_def = "containers/apptainer/multiqc.def"
+require_labels = true
+
+[[tools]]
+id = "musket"
+tool_id = "musket"
+domain = "fastq"
+stage_ids = ["fastq.correct"]
+version = "latest-pinned"
+default_version = "latest-pinned"
+upstream = "unknown"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "musket --version"
+help_cmd = "musket --help"
+smoke_version_cmd = "musket --version"
+smoke_help_cmd = "musket --help"
+expected_bin = "musket"
+expected_artifacts = ["report_json"]
+metrics_schema = "bijux.unknown.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.musket"
+apptainer_def = "containers/apptainer/musket.def"
+require_labels = true
+
+[[tools]]
+id = "ngsbriggs"
+tool_id = "ngsbriggs"
+domain = "bam"
+stage_ids = ["bam.damage"]
+version = "planned"
+default_version = "planned"
+upstream = "unknown"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = false
+version_cmd = "ngsbriggs --version"
+help_cmd = "ngsbriggs --help"
+smoke_version_cmd = "ngsbriggs --version"
+smoke_help_cmd = "ngsbriggs --help"
+expected_bin = "ngsbriggs"
+expected_artifacts = ["damage_profile", "damage_parameters"]
+metrics_schema = "bijux.bam.damage.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.ngsbriggs"
+apptainer_def = "containers/apptainer/ngsbriggs.def"
+require_labels = true
+
+[[tools]]
+id = "pear"
+tool_id = "pear"
+domain = "fastq"
+stage_ids = ["fastq.merge"]
+version = "latest-pinned"
+default_version = "latest-pinned"
+upstream = "unknown"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "pear --version"
+help_cmd = "pear --help"
+smoke_version_cmd = "pear --version"
+smoke_help_cmd = "pear --help"
+expected_bin = "pear"
+expected_artifacts = ["report_json"]
+metrics_schema = "bijux.unknown.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.pear"
+apptainer_def = "containers/apptainer/pear.def"
+require_labels = true
+
+[[tools]]
+id = "picard"
+tool_id = "picard"
+domain = "bam"
+stage_ids = ["bam.markdup"]
+version = "latest-pinned"
+default_version = "latest-pinned"
+upstream = "https://github.com/broadinstitute/picard"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "picard --version"
+help_cmd = "picard --help"
+smoke_version_cmd = "picard --version"
+smoke_help_cmd = "picard --help"
+expected_bin = "picard"
+expected_artifacts = ["markdup_bam", "dup_metrics"]
+metrics_schema = "bijux.bam.markdup.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.picard"
+apptainer_def = "containers/apptainer/picard.def"
+require_labels = true
+
+[[tools]]
+id = "pmdtools"
+tool_id = "pmdtools"
+domain = "bam"
+stage_ids = ["bam.damage", "bam.authenticity"]
+version = "0.60"
+default_version = "0.60"
+upstream = "https://github.com/pontussk/PMDtools"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "pmdtools --version"
+help_cmd = "pmdtools --help"
+smoke_version_cmd = "pmdtools --version"
+smoke_help_cmd = "pmdtools --help"
+expected_bin = "pmdtools"
+expected_artifacts = ["pmd_scores", "damage_profile"]
+metrics_schema = "bijux.bam.authenticity.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.pmdtools"
+apptainer_def = "containers/apptainer/pmdtools.def"
+require_labels = true
+
+[[tools]]
+id = "preseq"
+tool_id = "preseq"
+domain = "bam"
+stage_ids = ["bam.complexity"]
+version = "3.2.0"
+default_version = "3.2.0"
+upstream = "https://github.com/smithlabcode/preseq"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "preseq --version"
+help_cmd = "preseq --help"
+smoke_version_cmd = "preseq --version"
+smoke_help_cmd = "preseq --help"
+expected_bin = "preseq"
+expected_artifacts = ["complexity_curve"]
+metrics_schema = "bijux.bam.complexity.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.preseq"
+apptainer_def = "containers/apptainer/preseq.def"
+require_labels = true
+
+[[tools]]
+id = "prinseq"
+tool_id = "prinseq"
+domain = "fastq"
+stage_ids = ["fastq.filter"]
+version = "latest-pinned"
+default_version = "latest-pinned"
+upstream = "unknown"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "prinseq --version"
+help_cmd = "prinseq --help"
+smoke_version_cmd = "prinseq --version"
+smoke_help_cmd = "prinseq --help"
+expected_bin = "prinseq"
+expected_artifacts = ["report_json"]
+metrics_schema = "bijux.unknown.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.prinseq"
+apptainer_def = "containers/apptainer/prinseq.def"
+require_labels = true
+
+[[tools]]
+id = "pydamage"
+tool_id = "pydamage"
+domain = "bam"
+stage_ids = ["bam.damage"]
+version = "1.0.0"
+default_version = "1.0.0"
+upstream = "https://github.com/maxibor/pydamage"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "pydamage --version"
+help_cmd = "pydamage --help"
+smoke_version_cmd = "pydamage --version"
+smoke_help_cmd = "pydamage --help"
+expected_bin = "pydamage"
+expected_artifacts = ["damage_profile"]
+metrics_schema = "bijux.bam.damage.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.pydamage"
+apptainer_def = "containers/apptainer/pydamage.def"
+require_labels = true
+
+[[tools]]
+id = "qualimap"
+tool_id = "qualimap"
+domain = "fastq"
+stage_ids = ["fastq.qc_post"]
+version = "latest-pinned"
+default_version = "latest-pinned"
+upstream = "unknown"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "qualimap --version"
+help_cmd = "qualimap --help"
+smoke_version_cmd = "qualimap --version"
+smoke_help_cmd = "qualimap --help"
+expected_bin = "qualimap"
+expected_artifacts = ["report_json"]
+metrics_schema = "bijux.unknown.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.qualimap"
+apptainer_def = "containers/apptainer/qualimap.def"
+require_labels = true
+
+[[tools]]
+id = "rcorrector"
+tool_id = "rcorrector"
+domain = "fastq"
+stage_ids = ["fastq.correct"]
+version = "latest-pinned"
+default_version = "latest-pinned"
+upstream = "unknown"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "rcorrector --version"
+help_cmd = "rcorrector --help"
+smoke_version_cmd = "rcorrector --version"
+smoke_help_cmd = "rcorrector --help"
+expected_bin = "rcorrector"
+expected_artifacts = ["report_json"]
+metrics_schema = "bijux.unknown.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.rcorrector"
+apptainer_def = "containers/apptainer/rcorrector.def"
+require_labels = true
+
+[[tools]]
+id = "rxy"
+tool_id = "rxy"
+domain = "bam"
+stage_ids = ["bam.sex"]
+version = "latest-pinned"
+default_version = "latest-pinned"
+upstream = "https://github.com/bijux/bijux-dna"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "rxy --version"
+help_cmd = "rxy --help"
+smoke_version_cmd = "rxy --version"
+smoke_help_cmd = "rxy --help"
+expected_bin = "rxy"
+expected_artifacts = ["sex_estimate"]
+metrics_schema = "bijux.bam.sex.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.rxy"
+apptainer_def = "containers/apptainer/rxy.def"
+require_labels = true
+
+[[tools]]
+id = "samtools"
+tool_id = "samtools"
+domain = "bam"
+stage_ids = ["bam.align", "bam.validate", "bam.filter", "bam.coverage"]
+version = "1.21"
+default_version = "1.21"
+upstream = "https://github.com/samtools/samtools"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "samtools --version"
+help_cmd = "samtools --help"
+smoke_version_cmd = "samtools --version"
+smoke_help_cmd = "samtools --help"
+expected_bin = "samtools"
+expected_artifacts = ["bam_index", "bam_stats"]
+metrics_schema = "bijux.bam.validation.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.samtools"
+apptainer_def = "containers/apptainer/samtools.def"
+require_labels = true
+
+[[tools]]
+id = "schmutzi"
+tool_id = "schmutzi"
+domain = "bam"
+stage_ids = ["bam.contamination"]
+version = "latest-pinned"
+default_version = "latest-pinned"
+upstream = "https://github.com/grenaud/schmutzi"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "schmutzi --version"
+help_cmd = "schmutzi --help"
+smoke_version_cmd = "schmutzi --version"
+smoke_help_cmd = "schmutzi --help"
+expected_bin = "schmutzi"
+expected_artifacts = ["contamination_estimate", "mt_consensus"]
+metrics_schema = "bijux.bam.contamination.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.schmutzi"
+apptainer_def = "containers/apptainer/schmutzi.def"
+require_labels = true
+
+[[tools]]
+id = "seqfu"
+tool_id = "seqfu"
+domain = "fastq"
+stage_ids = ["fastq.stats_neutral"]
+version = "planned"
+default_version = "planned"
+upstream = "https://github.com/telatin/seqfu2"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = false
+version_cmd = "seqfu --version"
+help_cmd = "seqfu --help"
+smoke_version_cmd = "seqfu --version"
+smoke_help_cmd = "seqfu --help"
+expected_bin = "seqfu"
+expected_artifacts = ["stats_report"]
+metrics_schema = "bijux.fastq.stats.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.seqfu"
+apptainer_def = "containers/apptainer/seqfu.def"
+require_labels = true
+
+[[tools]]
+id = "seqkit"
+tool_id = "seqkit"
+domain = "fastq"
+stage_ids = ["fastq.filter"]
+version = "latest-pinned"
+default_version = "latest-pinned"
+upstream = "unknown"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "seqkit --version"
+help_cmd = "seqkit --help"
+smoke_version_cmd = "seqkit --version"
+smoke_help_cmd = "seqkit --help"
+expected_bin = "seqkit"
+expected_artifacts = ["report_json"]
+metrics_schema = "bijux.unknown.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.seqkit"
+apptainer_def = "containers/apptainer/seqkit.def"
+require_labels = true
+
+[[tools]]
+id = "seqkit_stats"
+tool_id = "seqkit_stats"
+domain = "fastq"
+stage_ids = ["fastq.stats_neutral"]
+version = "latest-pinned"
+default_version = "latest-pinned"
+upstream = "unknown"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "seqkit_stats --version"
+help_cmd = "seqkit_stats --help"
+smoke_version_cmd = "seqkit_stats --version"
+smoke_help_cmd = "seqkit_stats --help"
+expected_bin = "seqkit_stats"
+expected_artifacts = ["report_json"]
+metrics_schema = "bijux.unknown.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.seqkit_stats"
+apptainer_def = "containers/apptainer/seqkit_stats.def"
+require_labels = true
+
+[[tools]]
+id = "seqprep"
+tool_id = "seqprep"
+domain = "fastq"
+stage_ids = ["fastq.merge"]
+version = "1.3.2"
+default_version = "1.3.2"
+upstream = "https://github.com/jstjohn/SeqPrep"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "seqprep --version"
+help_cmd = "seqprep --help"
+smoke_version_cmd = "seqprep --version"
+smoke_help_cmd = "seqprep --help"
+expected_bin = "seqprep"
+expected_artifacts = ["merged_fastq", "merge_report"]
+metrics_schema = "bijux.fastq.merge.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.seqprep"
+apptainer_def = "containers/apptainer/seqprep.def"
+require_labels = true
+
+[[tools]]
+id = "seqpurge"
+tool_id = "seqpurge"
+domain = "fastq"
+stage_ids = ["fastq.trim"]
+version = "latest-pinned"
+default_version = "latest-pinned"
+upstream = "unknown"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "seqpurge --version"
+help_cmd = "seqpurge --help"
+smoke_version_cmd = "seqpurge --version"
+smoke_help_cmd = "seqpurge --help"
+expected_bin = "seqpurge"
+expected_artifacts = ["report_json"]
+metrics_schema = "bijux.unknown.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.seqpurge"
+apptainer_def = "containers/apptainer/seqpurge.def"
+require_labels = true
+
+[[tools]]
+id = "seqtk"
+tool_id = "seqtk"
+domain = "fastq"
+stage_ids = ["fastq.validate_pre"]
+version = "latest-pinned"
+default_version = "latest-pinned"
+upstream = "unknown"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "seqtk --version"
+help_cmd = "seqtk --help"
+smoke_version_cmd = "seqtk --version"
+smoke_help_cmd = "seqtk --help"
+expected_bin = "seqtk"
+expected_artifacts = ["report_json"]
+metrics_schema = "bijux.unknown.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.seqtk"
+apptainer_def = "containers/apptainer/seqtk.def"
+require_labels = true
+
+[[tools]]
+id = "skewer"
+tool_id = "skewer"
+domain = "fastq"
+stage_ids = ["fastq.trim"]
+version = "latest-pinned"
+default_version = "latest-pinned"
+upstream = "https://github.com/relipmoc/skewer"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "skewer --version"
+help_cmd = "skewer --help"
+smoke_version_cmd = "skewer --version"
+smoke_help_cmd = "skewer --help"
+expected_bin = "skewer"
+expected_artifacts = ["trimmed_fastq_r1", "trimmed_fastq_r2", "trim_report"]
+metrics_schema = "bijux.fastq.trim.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.skewer"
+apptainer_def = "containers/apptainer/skewer.def"
+require_labels = true
+
+[[tools]]
+id = "sortmerna"
+tool_id = "sortmerna"
+domain = "fastq"
+stage_ids = ["fastq.filter"]
+version = "latest-pinned"
+default_version = "latest-pinned"
+upstream = "https://github.com/biocore/sortmerna"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "sortmerna --version"
+help_cmd = "sortmerna --help"
+smoke_version_cmd = "sortmerna --version"
+smoke_help_cmd = "sortmerna --help"
+expected_bin = "sortmerna"
+expected_artifacts = ["filtered_fastq"]
+metrics_schema = "bijux.fastq.filter.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.sortmerna"
+apptainer_def = "containers/apptainer/sortmerna.def"
+require_labels = true
+
+[[tools]]
+id = "spades"
+tool_id = "spades"
+domain = "fastq"
+stage_ids = ["fastq.correct"]
+version = "latest-pinned"
+default_version = "latest-pinned"
+upstream = "unknown"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "spades --version"
+help_cmd = "spades --help"
+smoke_version_cmd = "spades --version"
+smoke_help_cmd = "spades --help"
+expected_bin = "spades"
+expected_artifacts = ["report_json"]
+metrics_schema = "bijux.unknown.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.spades"
+apptainer_def = "containers/apptainer/spades.def"
+require_labels = true
+
+[[tools]]
+id = "star"
+tool_id = "star"
+domain = "fastq"
+stage_ids = ["fastq.prepare_reference"]
+version = "latest-pinned"
+default_version = "latest-pinned"
+upstream = "https://github.com/alexdobin/STAR"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "star --version"
+help_cmd = "star --help"
+smoke_version_cmd = "star --version"
+smoke_help_cmd = "star --help"
+expected_bin = "star"
+expected_artifacts = ["reference_index"]
+metrics_schema = "bijux.fastq.index.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.star"
+apptainer_def = "containers/apptainer/star.def"
+require_labels = true
+
+[[tools]]
+id = "trim_galore"
+tool_id = "trim_galore"
+domain = "fastq"
+stage_ids = ["fastq.trim"]
+version = "latest-pinned"
+default_version = "latest-pinned"
+upstream = "unknown"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "trim_galore --version"
+help_cmd = "trim_galore --help"
+smoke_version_cmd = "trim_galore --version"
+smoke_help_cmd = "trim_galore --help"
+expected_bin = "trim_galore"
+expected_artifacts = ["report_json"]
+metrics_schema = "bijux.unknown.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.trim_galore"
+apptainer_def = "containers/apptainer/trim_galore.def"
+require_labels = true
+
+[[tools]]
+id = "trimmomatic"
+tool_id = "trimmomatic"
+domain = "fastq"
+stage_ids = ["fastq.trim"]
+version = "latest-pinned"
+default_version = "latest-pinned"
+upstream = "unknown"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "trimmomatic --version"
+help_cmd = "trimmomatic --help"
+smoke_version_cmd = "trimmomatic --version"
+smoke_help_cmd = "trimmomatic --help"
+expected_bin = "trimmomatic"
+expected_artifacts = ["report_json"]
+metrics_schema = "bijux.unknown.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.trimmomatic"
+apptainer_def = "containers/apptainer/trimmomatic.def"
+require_labels = true
+
+[[tools]]
+id = "umi_tools"
+tool_id = "umi_tools"
+domain = "fastq"
+stage_ids = ["fastq.umi"]
+version = "latest-pinned"
+default_version = "latest-pinned"
+upstream = "unknown"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "umi_tools --version"
+help_cmd = "umi_tools --help"
+smoke_version_cmd = "umi_tools --version"
+smoke_help_cmd = "umi_tools --help"
+expected_bin = "umi_tools"
+expected_artifacts = ["report_json"]
+metrics_schema = "bijux.unknown.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.umi_tools"
+apptainer_def = "containers/apptainer/umi_tools.def"
+require_labels = true
+
+[[tools]]
+id = "verifybamid2"
+tool_id = "verifybamid2"
+domain = "bam"
+stage_ids = ["bam.contamination"]
+version = "2.0.1"
+default_version = "2.0.1"
+upstream = "https://github.com/Griffan/VerifyBamID"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "verifybamid2 --version"
+help_cmd = "verifybamid2 --help"
+smoke_version_cmd = "verifybamid2 --version"
+smoke_help_cmd = "verifybamid2 --help"
+expected_bin = "verifybamid2"
+expected_artifacts = ["contamination_estimate"]
+metrics_schema = "bijux.bam.contamination.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.verifybamid2"
+apptainer_def = "containers/apptainer/verifybamid2.def"
+require_labels = true
+
+[[tools]]
+id = "vsearch"
+tool_id = "vsearch"
+domain = "fastq"
+stage_ids = ["fastq.merge"]
+version = "latest-pinned"
+default_version = "latest-pinned"
+upstream = "unknown"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "vsearch --version"
+help_cmd = "vsearch --help"
+smoke_version_cmd = "vsearch --version"
+smoke_help_cmd = "vsearch --help"
+expected_bin = "vsearch"
+expected_artifacts = ["report_json"]
+metrics_schema = "bijux.unknown.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.vsearch"
+apptainer_def = "containers/apptainer/vsearch.def"
+require_labels = true
+
+[[tools]]
+id = "yleaf"
+tool_id = "yleaf"
+domain = "bam"
+stage_ids = ["bam.sex", "bam.haplogroups"]
+version = "latest-pinned"
+default_version = "latest-pinned"
+upstream = "https://github.com/genid/Yleaf"
+pinned_commit = "domain-managed"
+pin_strategy = "pinned"
+runtimes = ["docker", "apptainer"]
+container = true
+version_cmd = "yleaf --version"
+help_cmd = "yleaf --help"
+smoke_version_cmd = "yleaf --version"
+smoke_help_cmd = "yleaf --help"
+expected_bin = "yleaf"
+expected_artifacts = ["haplogroup_report"]
+metrics_schema = "bijux.bam.sex.v1"
+dockerfile = "containers/docker/arm64/Dockerfile.yleaf"
+apptainer_def = "containers/apptainer/yleaf.def"
+require_labels = true
+
+[[stages]]
+id = "bam.align"
+primary_tools = ["bowtie2"]
+optional_alternatives = ["bwa", "samtools"]
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
+id = "bam.authenticity"
+primary_tools = ["authenticct"]
+optional_alternatives = ["damageprofiler", "pmdtools"]
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
+id = "bam.bias_mitigation"
+primary_tools = ["samtools"]
+optional_alternatives = []
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
+id = "bam.complexity"
+primary_tools = ["preseq"]
+optional_alternatives = []
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
+id = "bam.contamination"
+primary_tools = ["contammix"]
+optional_alternatives = ["schmutzi", "verifybamid2"]
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
+id = "bam.coverage"
+primary_tools = ["mosdepth"]
+optional_alternatives = ["samtools"]
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
+id = "bam.damage"
+primary_tools = ["addeam"]
+optional_alternatives = ["damageprofiler", "mapdamage2", "ngsbriggs", "pmdtools", "pydamage"]
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
+id = "bam.filter"
+primary_tools = ["bamtools"]
+optional_alternatives = ["bedtools", "samtools"]
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
+id = "bam.genotyping"
+primary_tools = ["samtools"]
+optional_alternatives = []
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
+id = "bam.haplogroups"
+primary_tools = ["yleaf"]
+optional_alternatives = []
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
+id = "bam.kinship"
+primary_tools = ["angsd"]
+optional_alternatives = ["king"]
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
+id = "bam.markdup"
+primary_tools = ["picard"]
+optional_alternatives = []
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
+id = "bam.qc_pre"
+primary_tools = ["samtools"]
+optional_alternatives = []
+validation_tools = []
+reporting_tools = ["multiqc"]
+planned_out_of_scope = []
+requires_validation = false
+requires_reporting = true
+
+[[stages]]
+id = "bam.recalibration"
+primary_tools = ["gatk"]
+optional_alternatives = []
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
+id = "bam.sex"
+primary_tools = ["angsd"]
+optional_alternatives = ["rxy", "yleaf"]
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
+id = "bam.validate"
+primary_tools = ["bamtools"]
+optional_alternatives = ["bedtools", "samtools"]
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
+id = "fastq.correct"
+primary_tools = ["bayeshammer"]
+optional_alternatives = ["lighter", "musket", "rcorrector", "spades"]
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
+id = "fastq.detect_adapters"
+primary_tools = ["fastqc"]
+optional_alternatives = []
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
+id = "fastq.filter"
+primary_tools = ["prinseq"]
+optional_alternatives = ["seqkit", "sortmerna"]
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
+id = "fastq.merge"
+primary_tools = ["bbmerge"]
+optional_alternatives = ["flash2", "leehom", "pear", "seqprep", "vsearch"]
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
+id = "fastq.prepare_reference"
+primary_tools = ["star"]
+optional_alternatives = []
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
+id = "fastq.preprocess"
+primary_tools = ["fastp"]
+optional_alternatives = []
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
+id = "fastq.qc_post"
+primary_tools = ["multiqc"]
+optional_alternatives = ["qualimap", "samtools"]
+validation_tools = []
+reporting_tools = ["multiqc"]
+planned_out_of_scope = []
+requires_validation = false
+requires_reporting = true
+
+[[stages]]
+id = "fastq.screen"
+primary_tools = ["bracken"]
+optional_alternatives = ["centrifuge", "diamond", "fastq_screen", "kaiju", "kraken2", "krakenuniq", "metaphlan"]
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
+id = "fastq.stats_neutral"
+primary_tools = ["bcftools"]
+optional_alternatives = ["seqfu", "seqkit_stats"]
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
+id = "fastq.trim"
+primary_tools = ["adapterremoval"]
+optional_alternatives = ["alientrimmer", "atropos", "bbduk", "cutadapt", "fastp", "fastx_clipper", "leehom", "seqpurge", "skewer", "trim_galore", "trimmomatic"]
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
+id = "fastq.umi"
+primary_tools = ["umi_tools"]
+optional_alternatives = []
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+requires_validation = false
+requires_reporting = false
+
+[[stages]]
+id = "fastq.validate_pre"
+primary_tools = ["fastq-scan"]
+optional_alternatives = ["fastqvalidator", "fastqvalidator_official", "fqtools", "seqtk"]
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+requires_validation = false
+requires_reporting = false
+

@@ -45,7 +45,7 @@ ISOLATE_COV_TARGET_DIR ?= $(ISOLATE_ROOT)/target-cov
 fmt:
 	$(FMT)
 
-lint: docs-lint domain-validate domain-inventory-drift
+lint: docs-lint domain-validate domain-inventory-drift check-generated-configs
 	$(LINT)
 
 test:
@@ -158,6 +158,11 @@ snapshots-review:
 		test-and-coverage \
 		test-coverage-isolate-parallel \
 		fmt-isolate lint-isolate test-isolate audit-isolate coverage-isolate ci-isolate clean-isolate \
-		domain-validate domain-inventory-drift \
+		domain-validate domain-inventory-drift generate-configs check-generated-configs \
 		policy-fast policy-full \
 		snapshots snapshots-accept snapshots-review ensure-cargo-deny
+generate-configs:
+	cargo run -p bijux-dna-environment-qa --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
+
+check-generated-configs:
+	./scripts/check-generated-configs.sh

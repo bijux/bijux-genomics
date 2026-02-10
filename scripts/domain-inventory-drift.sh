@@ -26,7 +26,7 @@ instage && ($0 ~ /^primary_tools = / || $0 ~ /^optional_alternatives = / || $0 ~
     line=substr(line, RSTART+RLENGTH)
   }
 }
-' "$ROOT_DIR/configs/tools.toml" | sort -u > "$REG_TOOLS"
+' "$ROOT_DIR/configs/tool_registry.toml" | sort -u > "$REG_TOOLS"
 
 rg -No 'ToolId::from_static\("([a-z0-9_\-]+)"\)' "$ROOT_DIR/crates" \
   | sed -E 's/.*from_static\("([a-z0-9_\-]+)"\).*/\1/' \

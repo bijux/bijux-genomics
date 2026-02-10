@@ -2,7 +2,7 @@ schema_version: "bijux.tool.v2"
 tool_id: "bcftools"
 upstream: "https://github.com/samtools/bcftools"
 versioning_strategy: "pinned"
-default_version: "1.21"
+default_version: "planned"
 install_kind: "container"
 license: "GPL-3.0"
 stage_ids: ["fastq.stats_neutral"]

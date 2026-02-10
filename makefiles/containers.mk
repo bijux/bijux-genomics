@@ -26,7 +26,7 @@ SMOKE_SCRIPT_docker_amd64 := scripts/smoke-containers-docker-amd64.sh
 SMOKE_SCRIPT_apptainer := scripts/smoke-containers-apptainer.sh
 SMOKE_SCRIPT := $(SMOKE_SCRIPT_$(CT_KEY))
 
-# ---- Tool groups by stage/domain (derived from configs/tools.toml SSOT) ----
+# ---- Tool groups by stage/domain (derived from configs/tool_registry.toml SSOT) ----
 FASTQ_TOOLS_preprocess := $(shell ./scripts/registry-tools.sh stage-tools fastq.preprocess all)
 FASTQ_TOOLS_prepare_reference := $(shell ./scripts/registry-tools.sh stage-tools fastq.prepare_reference all)
 FASTQ_TOOLS_validate_pre := $(shell ./scripts/registry-tools.sh stage-tools fastq.validate_pre all)
@@ -103,19 +103,6 @@ image-qa: ## Run image QA (docker-only)
 		exit 0; \
 	fi
 	cargo run --bin image_qa -- --platform $(PLATFORM)
-
-# Legacy aliases (docker-centric names retained for compatibility)
-test-images-trim: ## Legacy alias: trimming tool images
-	@$(MAKE) test-images-fastq-trim
-
-test-images-validate: ## Legacy alias: validation tool images
-	@$(MAKE) test-images-fastq-validate-pre
-
-test-images-filter: ## Legacy alias: filtering tool images
-	@$(MAKE) test-images-fastq-filter
-
-test-images-merge: ## Legacy alias: merging tool images
-	@$(MAKE) test-images-fastq-merge
 
 # ---- Stage-specific test-images-* ----
 define FASTQ_STAGE_TARGET

@@ -1,128 +1,210 @@
-[fastp]
-version = "0.23.4"
-digest = "sha256:603656aa361eee1cbd1370db9412e588da91708da5542173e5ae74aab71cbc10"
+# GENERATED - DO NOT EDIT - source: domain/**
+# Regenerate with: cargo run --bin compile_domain_configs
+
+[adapterremoval]
+version = "latest-pinned"
+
+[addeam]
+version = "latest-pinned"
+
+[alientrimmer]
+version = "0.4.0"
+
+[angsd]
+version = "0.940"
+
+[atropos]
+version = "latest-pinned"
+
+[authenticct]
+version = "latest-pinned"
+
+[bamtools]
+version = "2.5.2"
+
+[bayeshammer]
+version = "latest-pinned"
+
+[bbduk]
+version = "latest-pinned"
+
+[bbmerge]
+version = "latest-pinned"
+
+[bcftools]
+version = "planned"
+
+[bedtools]
+version = "2.31.1"
+
+[bowtie2]
+version = "2.5.4"
+
+[bracken]
+version = "2.9"
 
 [bwa]
 version = "0.7.17"
 
+[centrifuge]
+version = "latest-pinned"
+
+[contammix]
+version = "1.0.11"
+
 [cutadapt]
-version = "4.9"
-digest = "sha256:4405f2effc1a195c93098408aa36268357c25b758348bfe6da8790bbe7e842ba"
+version = "latest-pinned"
 
-[seqkit]
-version = "2.8.2"
-digest = "sha256:ca3dc13e3fef5d34927c44b2d8cd2bc6708c2c256f42e51369d7b1203b0d2991"
+[damageprofiler]
+version = "latest-pinned"
 
-[seqkit_stats]
-tool = "seqkit"
-version = "2.8.2"
-digest = "sha256:ca3dc13e3fef5d34927c44b2d8cd2bc6708c2c256f42e51369d7b1203b0d2991"
+[diamond]
+version = "2.1.8"
 
-[bbduk]
-version = "39.08"
-digest = "sha256:2c2188caebf76193734a93d4a8975c6d21dd68888fccbf156e42803a26338af5"
+[fastp]
+version = "latest-pinned"
 
-[adapterremoval]
-version = "2.3.3"
-digest = "sha256:5b618834ce9fc6376c9605c3a69d738236b9be48fdf493c1bc0945568a50808d"
+[fastq-scan]
+version = "planned"
 
-[trimmomatic]
-version = "0.39"
-digest = "sha256:41c0d161444ee7bb6b36ead3bbceb998af611be6ead6784231c5440e092bd5a4"
-
-[trim_galore]
-version = "0.6.10"
-digest = "sha256:f323405a5a0ba19bbdae765dd4269e9156c415993977996079b63c5eb5bb0a61"
-
-[seqtk]
-version = "1.5-r133"
-digest = "sha256:6fdc3bd8b2db5d4af698c56b67e06b73c44aaaadbadd30dddd6df2a86718fa6d"
+[fastq_screen]
+version = "latest-pinned"
 
 [fastqc]
-version = "0.12.1"
-digest = "sha256:55963e17aebb78f047b43e6001855ce18ede30eb68e403f478bb3d9580062d60"
+version = "latest-pinned"
 
 [fastqvalidator]
-version = "0.1.1"
-digest = "sha256:ee07375bda910179d134bd48f05082cd37bf54b818d6af666fc433855518332a"
+version = "latest-pinned"
 
-[fqtools]
-version = "2.3"
-digest = "sha256:9b858e23676cc3bc033c56fb78934704380d8121867b0ac8eecdbdaf8f7c5b02"
+[fastqvalidator_official]
+version = "latest-pinned"
 
-[prinseq]
-version = "1.2.4"
-digest = "sha256:7216ffecd7913edaea33ec76b3775ab0cb0d60064f31e96c63e043d578a3f971"
-
-[pear]
-version = "0.9.6"
-digest = "sha256:4e00e9ffabc5ed46115efab5b6bae946913f1713bb314fd4acb7c379c37efae6"
-
-[vsearch]
-version = "2.28.1"
-digest = "sha256:c16ef98d6fd67ac0b8eea3ebb4f3dc6df9c582d6f838317d5f6ccc7a09e60bb3"
-
-[bbmerge]
-version = "39.01"
-digest = "sha256:6182848b989c8dbf094e06c486190b5d54243ac8eea542daa2c5c059a11bba54"
+[fastx_clipper]
+version = "0.0.14"
 
 [flash2]
-version = "2.2.00"
-digest = "sha256:e3dfc866d56d1ca6d62c58ade5981e0b00fc3c8bf8148ecbd196ab56293e1dd5"
+version = "latest-pinned"
 
-[seqpurge]
-version = "2025_05"
-digest = "sha256:65c1249b64696ad0783c6409126e45f8025851fd4eaf7f651b2df9bda2a0a662"
+[fqtools]
+version = "latest-pinned"
 
-[spades]
-version = "4.2.0"
+[gatk]
+version = "latest-pinned"
 
-[bayeshammer]
-version = "4.2.0"
+[kaiju]
+version = "latest-pinned"
+
+[king]
+version = "2.3.0"
+
+[kraken2]
+version = "latest-pinned"
+
+[krakenuniq]
+version = "1.0.4"
+
+[leehom]
+version = "latest-pinned"
 
 [lighter]
-version = "1.1.2"
+version = "latest-pinned"
 
-[musket]
-version = "1.1"
+[mapdamage2]
+version = "2.2.2"
 
-[umi_tools]
-version = "1.1.6"
-digest = "sha256:0bbc5c72fea584587162daadcc4ff5d964d90fb3043de1e231b59d4c9bf36ca8"
+[metaphlan]
+version = "latest-pinned"
+
+[mosdepth]
+version = "0.3.10"
 
 [multiqc]
-version = "1.24"
-digest = "sha256:40af0025fcc5bc4ea15e5cd2a4fd7bcfc98ea06c9ca781e6268f3c81d12787ec"
+version = "latest-pinned"
+
+[musket]
+version = "latest-pinned"
+
+[ngsbriggs]
+version = "planned"
+
+[pear]
+version = "latest-pinned"
+
+[picard]
+version = "latest-pinned"
+
+[pmdtools]
+version = "0.60"
+
+[preseq]
+version = "3.2.0"
+
+[prinseq]
+version = "latest-pinned"
+
+[pydamage]
+version = "1.0.0"
 
 [qualimap]
-version = "2.3"
+version = "latest-pinned"
+
+[rcorrector]
+version = "latest-pinned"
+
+[rxy]
+version = "latest-pinned"
 
 [samtools]
 version = "1.21"
 
-[kraken2]
-version = "2.1.3"
+[schmutzi]
+version = "latest-pinned"
 
-[centrifuge]
-version = "1.0.4"
+[seqfu]
+version = "planned"
 
-[metaphlan]
-version = "4.1.1"
+[seqkit]
+version = "latest-pinned"
 
-[kaiju]
-version = "1.10.0"
+[seqkit_stats]
+version = "latest-pinned"
 
-[rcorrector]
-version = "1.0.7"
-digest = "sha256:bca789c8749a32d8e39eb8901a09ac24659adf677e657494d91d3383d9cf3f4e"
+[seqprep]
+version = "1.3.2"
 
-[atropos]
-version = "1.1.31"
-digest = "sha256:5a2fab22811303ced83475111a2427eaa894fcb39436618bb26be1da391f300d"
+[seqpurge]
+version = "latest-pinned"
 
-[fastq_screen]
-version = "0.15.3"
+[seqtk]
+version = "latest-pinned"
 
-[fastqvalidator_official]
-version = "v0.1.1"
-digest = "sha256:5fc67838361bff160d38f4e63e9dfbef4f7cbb7d40b5360480da3696ebe6c6fc"
+[skewer]
+version = "latest-pinned"
+
+[sortmerna]
+version = "latest-pinned"
+
+[spades]
+version = "latest-pinned"
+
+[star]
+version = "latest-pinned"
+
+[trim_galore]
+version = "latest-pinned"
+
+[trimmomatic]
+version = "latest-pinned"
+
+[umi_tools]
+version = "latest-pinned"
+
+[verifybamid2]
+version = "2.0.1"
+
+[vsearch]
+version = "latest-pinned"
+
+[yleaf]
+version = "latest-pinned"
+
