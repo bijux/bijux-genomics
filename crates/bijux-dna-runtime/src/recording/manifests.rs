@@ -159,6 +159,23 @@ pub fn write_run_manifest(
             Vec::new()
         }
     };
+    let reproducibility_dir = run_artifacts_dir(run_dirs)?.join("reproducibility");
+    bijux_dna_infra::ensure_dir(&reproducibility_dir).context("create reproducibility dir")?;
+    let reproducibility_report_path = reproducibility_dir.join("report.json");
+    write_canonical_json(
+        &reproducibility_report_path,
+        &serde_json::json!({
+            "schema_version": "bijux.reproducibility_report.v1",
+            "pipeline_id": pipeline_id,
+            "plan_hash": graph_hash,
+            "params_hash": run_provenance.params_hash,
+            "input_hashes": run_provenance.input_hashes,
+            "tool_version": run_provenance.tool_version,
+            "tool_image_digest": run_provenance.tool_image_digest,
+            "tool_invocations": tool_invocations.clone(),
+        }),
+    )
+    .context("write reproducibility report")?;
     let payload = serde_json::json!({
         "schema_version": "bijux.run_manifest.v3",
         "contract_version": bijux_dna_core::contract::ContractVersion::v1(),
@@ -217,7 +234,10 @@ fn collect_all_run_artifacts(
     extra_artifacts: &[RunArtifactInput],
 ) -> Result<Vec<serde_json::Value>> {
     let mut out = Vec::new();
-    out.push(make_artifact_record("execution_manifest", &run_dirs.manifest_path)?);
+    out.push(make_artifact_record(
+        "execution_manifest",
+        &run_dirs.manifest_path,
+    )?);
     out.push(make_artifact_record("metrics", &run_dirs.metrics_path)?);
     for artifact in extra_artifacts {
         out.push(make_artifact_record(artifact.name, &artifact.path)?);
