@@ -160,11 +160,7 @@ pub mod snapshots {
                 seg_end += 1;
             }
             if seg_end > seg_start {
-                if &input[seg_start..seg_end] == "<TMP>" {
-                    out.push_str("<TMPDIR>/<TMP>");
-                } else {
-                    out.push_str("<TMPDIR>/<TMP>");
-                }
+                out.push_str("<TMPDIR>/<TMP>");
             } else {
                 out.push_str("<TMPDIR>");
             }
