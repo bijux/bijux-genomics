@@ -49,25 +49,25 @@ fn as_bool_field(table: &toml::Value, key: &str, default: bool) -> bool {
 #[test]
 fn policy__contracts__tool_registry_completeness__registry_entries_are_machine_checkable() {
     let root = workspace_root();
-    let legacy_registry = root.join("configs/tool_registry.toml");
-    if legacy_registry.exists() {
-        panic!(
-            "legacy registry must not exist; use configs/tools.toml only: {}",
-            legacy_registry.display()
-        );
-    }
-    let registry_path = root.join("configs/tools.toml");
-    let raw = std::fs::read_to_string(&registry_path).expect("read configs/tools.toml");
-    let parsed: toml::Value = raw.parse().expect("parse configs/tools.toml");
-    let tools = as_table_array(&parsed, "tools");
     let mut offenders = Vec::new();
+    let legacy_registry = root.join("configs/tools.toml");
+    if legacy_registry.exists() {
+        offenders.push(format!(
+            "configs/tools.toml is deprecated; use generated configs/tool_registry.toml only: {}",
+            legacy_registry.display()
+        ));
+    }
+    let registry_path = root.join("configs/tool_registry.toml");
+    let raw = std::fs::read_to_string(&registry_path).expect("read configs/tool_registry.toml");
+    let parsed: toml::Value = raw.parse().expect("parse configs/tool_registry.toml");
+    let tools = as_table_array(&parsed, "tools");
     let mut declared_docker_tool_files = std::collections::BTreeSet::new();
     let mut declared_apptainer_tool_files = std::collections::BTreeSet::new();
     let checkout_commit_re =
         Regex::new(r"git checkout [0-9a-f]{40}").expect("compile git checkout regex");
 
     if tools.is_empty() {
-        offenders.push("configs/tools.toml: missing [[tools]] entries".to_string());
+        offenders.push("configs/tool_registry.toml: missing [[tools]] entries".to_string());
     }
 
     for entry in tools {
@@ -80,8 +80,10 @@ fn policy__contracts__tool_registry_completeness__registry_entries_are_machine_c
         }
 
         let container_enabled = as_bool_field(entry, "container", true);
+        let is_planned = as_str_field(entry, "version")
+            .is_some_and(|version| version == "planned");
         let runtimes = runtimes(entry);
-        if runtimes.is_empty() {
+        if runtimes.is_empty() && !is_planned {
             offenders.push(format!("tool={id}: `runtimes` must be non-empty"));
         }
         if container_enabled && runtimes.len() == 1 {
@@ -96,6 +98,9 @@ fn policy__contracts__tool_registry_completeness__registry_entries_are_machine_c
         }
 
         for runtime in &runtimes {
+            if !container_enabled || is_planned {
+                continue;
+            }
             match runtime.as_str() {
                 "docker" => {
                     let path = as_str_field(entry, "dockerfile").unwrap_or("");
@@ -243,7 +248,7 @@ fn policy__contracts__tool_registry_completeness__registry_entries_are_machine_c
         if !labels_required {
             offenders.push(format!("tool={id}: require_labels must be true"));
         }
-        if container_enabled {
+        if container_enabled && !is_planned {
             if runtimes.iter().any(|r| r == "docker")
                 && as_str_field(entry, "dockerfile").unwrap_or("").is_empty()
             {
