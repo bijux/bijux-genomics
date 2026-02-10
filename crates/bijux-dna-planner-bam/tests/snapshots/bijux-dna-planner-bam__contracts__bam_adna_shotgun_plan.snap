@@ -1,5 +1,6 @@
 ---
 source: crates/bijux-dna-planner-bam/tests/contracts/plan/plan_snapshots.rs
+assertion_line: 108
 expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
@@ -12,6 +13,10 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     {
       "from": "bam.authenticity",
       "to": "bam.contamination"
+    },
+    {
+      "from": "bam.bias_mitigation",
+      "to": "bam.haplogroups"
     },
     {
       "from": "bam.complexity",
@@ -34,12 +39,24 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "to": "bam.markdup"
     },
     {
+      "from": "bam.genotyping",
+      "to": "bam.kinship"
+    },
+    {
+      "from": "bam.haplogroups",
+      "to": "bam.genotyping"
+    },
+    {
       "from": "bam.markdup",
       "to": "bam.complexity"
     },
     {
       "from": "bam.qc_pre",
       "to": "bam.filter"
+    },
+    {
+      "from": "bam.sex",
+      "to": "bam.bias_mitigation"
     },
     {
       "from": "bam.validate",
@@ -108,6 +125,59 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       },
       "stage_id": "bam.authenticity",
       "step_id": "bam.authenticity"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "bwa"
+        ]
+      },
+      "expected_artifact_ids": [],
+      "image": {
+        "digest": "sha256:bwa",
+        "image": "bijux/bwa"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "bam",
+            "optional": false,
+            "path": "markdup.bam",
+            "role": "bam"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "bias_report",
+            "optional": false,
+            "path": "bias.json",
+            "role": "report_json"
+          },
+          {
+            "name": "summary",
+            "optional": false,
+            "path": "bias.summary.json",
+            "role": "report_json"
+          },
+          {
+            "name": "stage_metrics",
+            "optional": false,
+            "path": "stage.metrics.json",
+            "role": "metrics_json"
+          }
+        ]
+      },
+      "metrics_schema_ids": [],
+      "out_dir": "bam_bias_mitigation",
+      "resources": {
+        "mem_gb": 2,
+        "runtime": "short",
+        "threads": 2,
+        "tmp_gb": 1
+      },
+      "stage_id": "bam.bias_mitigation",
+      "step_id": "bam.bias_mitigation"
     },
     {
       "aux_images": {},
@@ -417,6 +487,165 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       },
       "stage_id": "bam.filter",
       "step_id": "bam.filter"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "bwa"
+        ]
+      },
+      "expected_artifact_ids": [],
+      "image": {
+        "digest": "sha256:bwa",
+        "image": "bijux/bwa"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "bam",
+            "optional": false,
+            "path": "markdup.bam",
+            "role": "bam"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "genotyping_report",
+            "optional": false,
+            "path": "genotyping.json",
+            "role": "report_json"
+          },
+          {
+            "name": "summary",
+            "optional": false,
+            "path": "genotyping.summary.json",
+            "role": "report_json"
+          },
+          {
+            "name": "stage_metrics",
+            "optional": false,
+            "path": "stage.metrics.json",
+            "role": "metrics_json"
+          }
+        ]
+      },
+      "metrics_schema_ids": [],
+      "out_dir": "bam_genotyping",
+      "resources": {
+        "mem_gb": 2,
+        "runtime": "short",
+        "threads": 2,
+        "tmp_gb": 1
+      },
+      "stage_id": "bam.genotyping",
+      "step_id": "bam.genotyping"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "bwa"
+        ]
+      },
+      "expected_artifact_ids": [],
+      "image": {
+        "digest": "sha256:bwa",
+        "image": "bijux/bwa"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "bam",
+            "optional": false,
+            "path": "markdup.bam",
+            "role": "bam"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "haplogroups",
+            "optional": false,
+            "path": "haplogroups.json",
+            "role": "unknown"
+          },
+          {
+            "name": "summary",
+            "optional": false,
+            "path": "haplogroups.summary.json",
+            "role": "report_json"
+          },
+          {
+            "name": "stage_metrics",
+            "optional": false,
+            "path": "stage.metrics.json",
+            "role": "metrics_json"
+          }
+        ]
+      },
+      "metrics_schema_ids": [],
+      "out_dir": "bam_haplogroups",
+      "resources": {
+        "mem_gb": 2,
+        "runtime": "short",
+        "threads": 2,
+        "tmp_gb": 1
+      },
+      "stage_id": "bam.haplogroups",
+      "step_id": "bam.haplogroups"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "bwa"
+        ]
+      },
+      "expected_artifact_ids": [],
+      "image": {
+        "digest": "sha256:bwa",
+        "image": "bijux/bwa"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "bam",
+            "optional": false,
+            "path": "markdup.bam",
+            "role": "bam"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "kinship_report",
+            "optional": false,
+            "path": "kinship.json",
+            "role": "report_json"
+          },
+          {
+            "name": "summary",
+            "optional": false,
+            "path": "kinship.summary.json",
+            "role": "report_json"
+          },
+          {
+            "name": "stage_metrics",
+            "optional": false,
+            "path": "stage.metrics.json",
+            "role": "metrics_json"
+          }
+        ]
+      },
+      "metrics_schema_ids": [],
+      "out_dir": "bam_kinship",
+      "resources": {
+        "mem_gb": 2,
+        "runtime": "short",
+        "threads": 2,
+        "tmp_gb": 1
+      },
+      "stage_id": "bam.kinship",
+      "step_id": "bam.kinship"
     },
     {
       "aux_images": {},
