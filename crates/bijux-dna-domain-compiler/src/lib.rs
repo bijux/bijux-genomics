@@ -618,6 +618,33 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
         }
     }
 
+    let fastq_canonical = bijux_dna_domain_fastq::stages::ids::STAGES
+        .iter()
+        .map(|id| id.as_str().to_string())
+        .collect::<BTreeSet<_>>();
+    let bam_canonical = bijux_dna_domain_bam::stage_specs::BamStage::all()
+        .iter()
+        .map(|stage| stage.as_str().to_string())
+        .collect::<BTreeSet<_>>();
+    for stage_id in stage_ids.keys() {
+        if stage_id.starts_with("fastq.") && !fastq_canonical.contains(stage_id) {
+            bail!("domain stage_id {} is not declared in fastq stage catalog", stage_id);
+        }
+        if stage_id.starts_with("bam.") && !bam_canonical.contains(stage_id) {
+            bail!("domain stage_id {} is not declared in bam stage catalog", stage_id);
+        }
+    }
+    for stage_id in &fastq_canonical {
+        if !stage_ids.contains_key(stage_id) {
+            bail!("fastq stage catalog contains {} but domain yaml is missing it", stage_id);
+        }
+    }
+    for stage_id in &bam_canonical {
+        if !stage_ids.contains_key(stage_id) {
+            bail!("bam stage catalog contains {} but domain yaml is missing it", stage_id);
+        }
+    }
+
     for dom in ["fastq", "bam"] {
         let index_path = options.domain_dir.join(dom).join("index.yaml");
         let index: DomainIndex = read_yaml(&index_path)?;
