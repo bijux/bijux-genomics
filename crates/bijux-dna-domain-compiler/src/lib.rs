@@ -1,3 +1,4 @@
+use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
@@ -179,6 +180,43 @@ fn git_head_commit(start: &Path) -> Option<String> {
             .map(|s| s.trim().to_string());
     }
     Some(head.to_string())
+}
+
+fn collect_files(dir: &Path, out: &mut Vec<PathBuf>) -> Result<()> {
+    for entry in
+        std::fs::read_dir(dir).with_context(|| format!("read directory {}", dir.display()))?
+    {
+        let entry = entry?;
+        let path = entry.path();
+        if path.is_dir() {
+            collect_files(&path, out)?;
+        } else if path.is_file() {
+            out.push(path);
+        }
+    }
+    Ok(())
+}
+
+fn domain_content_hash(domain_dir: &Path) -> Result<String> {
+    let mut files = Vec::new();
+    collect_files(domain_dir, &mut files)?;
+    files.sort();
+
+    let mut hasher = Sha256::new();
+    for file in files {
+        let rel = file
+            .strip_prefix(domain_dir)
+            .unwrap_or(&file)
+            .to_string_lossy()
+            .into_owned();
+        hasher.update(rel.as_bytes());
+        hasher.update([0]);
+        let file_hash = bijux_dna_infra::hash_file_sha256(&file)
+            .with_context(|| format!("hash {}", file.display()))?;
+        hasher.update(file_hash.as_bytes());
+        hasher.update([0]);
+    }
+    Ok(format!("{:x}", hasher.finalize()))
 }
 
 fn generated_header(source: &str, source_commit: &str) -> String {
@@ -604,8 +642,10 @@ pub fn compile_domain_configs(options: &CompileOptions) -> Result<()> {
     ensure_dir(&options.configs_dir)
         .with_context(|| format!("create {}", options.configs_dir.display()))?;
 
-    let source_commit =
-        git_head_commit(&options.domain_dir).unwrap_or_else(|| "unknown".to_string());
+    let source_commit = domain_content_hash(&options.domain_dir)
+        .ok()
+        .or_else(|| git_head_commit(&options.domain_dir))
+        .unwrap_or_else(|| "unknown".to_string());
 
     let tool_registry_path = options.configs_dir.join("tool_registry.toml");
     let registry_toml = build_tool_registry_toml(
