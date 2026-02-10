@@ -1,5 +1,6 @@
 use std::path::Path;
 
+use bijux_dna_core::prelude::id_catalog;
 use bijux_dna_domain_bam::params::AuthenticityEffectiveParams;
 
 #[must_use]
@@ -12,11 +13,12 @@ pub fn filter_args(
 ) -> Vec<String> {
     let command = format!(
         "pmdtools --input {bam} --output {filtered} > {report} && \
-python - <<'PY' > {summary}\nimport json\nprint(json.dumps({{\"method\": \"pmdtools\", \"stage\": \"bam.authenticity\"}}, indent=2))\nPY",
+python - <<'PY' > {summary}\nimport json\nprint(json.dumps({{\"method\": \"pmdtools\", \"stage\": \"{stage}\"}}, indent=2))\nPY",
         bam = bam.display(),
         filtered = filtered_bam.display(),
         report = report_json.display(),
-        summary = summary_json.display()
+        summary = summary_json.display(),
+        stage = id_catalog::BAM_AUTHENTICITY
     );
     vec!["/bin/sh".to_string(), "-c".to_string(), command]
 }
