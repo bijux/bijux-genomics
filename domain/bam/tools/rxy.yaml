@@ -13,4 +13,10 @@ help_cmd: "rxy --help"
 comparability:
   comparable_with: ["yleaf","angsd"]
   non_comparable_with: []
+capabilities:
+  - bam_input
+io_contract:
+  required_inputs:
+    - bam
+
 notes: "Domain SSOT tool contract entry."
