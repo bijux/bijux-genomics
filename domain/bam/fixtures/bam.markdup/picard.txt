@@ -1,0 +1,3 @@
+tool=picard
+stage=bam.markdup
+fixture_kind=synthetic_truth

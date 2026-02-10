@@ -525,7 +525,7 @@ fn load_domain_tools(
             return Err(anyhow!("{} missing scope", path.display()));
         }
         ensure_status(&tool.status, &path)?;
-        if !scope_active(&tool.scope, active_scope) || tool.status == "out_of_scope" {
+        if !scope_active(&tool.scope, active_scope) || tool.status != "supported" {
             continue;
         }
         if tool.stage_ids.is_empty() {
@@ -623,7 +623,7 @@ fn load_domain_stages(
             return Err(anyhow!("{} missing scope", path.display()));
         }
         ensure_status(&stage.status, &path)?;
-        if !scope_active(&stage.scope, active_scope) || stage.status == "out_of_scope" {
+        if !scope_active(&stage.scope, active_scope) || stage.status != "supported" {
             continue;
         }
         stage_to_tools.entry(stage.stage_id.clone()).or_default();
@@ -1937,6 +1937,55 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                 .join(format!("{}.yaml", stage_suffix.replace('.', "_")));
             let stage: DomainStage = read_yaml(&stage_path)?;
             stage_status_by_id.insert(stage_id.clone(), stage.status);
+        }
+        for (stage_id, status) in &stage_status_by_id {
+            if status != "supported" {
+                continue;
+            }
+            let compatible = index
+                .stage_tool_compatibility
+                .get(stage_id)
+                .is_some_and(|tools| !tools.is_empty());
+            if !compatible {
+                bail!(
+                    "{} supported stage {} missing non-empty stage_tool_compatibility",
+                    index_path.display(),
+                    stage_id
+                );
+            }
+            let has_default = index.active_defaults.contains_key(stage_id);
+            if !has_default {
+                bail!(
+                    "{} supported stage {} missing active_defaults entry",
+                    index_path.display(),
+                    stage_id
+                );
+            }
+            let rationale = index
+                .active_default_rationale
+                .get(stage_id)
+                .map_or("", std::string::String::as_str);
+            if is_unspecified(rationale) {
+                bail!(
+                    "{} supported stage {} missing non-empty active_default_rationale",
+                    index_path.display(),
+                    stage_id
+                );
+            }
+        }
+        let reachable_tools = index
+            .stage_tool_compatibility
+            .values()
+            .flat_map(|tools| tools.iter().cloned())
+            .collect::<BTreeSet<_>>();
+        for tool_id in &index.tool_ids {
+            if !reachable_tools.contains(tool_id) {
+                bail!(
+                    "{} tool {} is unreachable from stage_tool_compatibility",
+                    index_path.display(),
+                    tool_id
+                );
+            }
         }
         let mut supported_tool_fixture_seen: BTreeSet<String> = BTreeSet::new();
         for (stage_id, tools) in &index.stage_tool_compatibility {

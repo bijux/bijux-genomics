@@ -1,0 +1,3 @@
+tool=gatk
+stage=bam.recalibration
+fixture_kind=synthetic_truth

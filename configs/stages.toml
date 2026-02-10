@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: c4d40b322a77d60609cae5ecdfbf3177b42090fe
+# source_commit: 01ef00d85ad57609e48ec6cd789df2fe6ef64b89
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 
@@ -40,22 +40,6 @@ duplication_thresholds = ["duplication_rate|warn=>=0.6|fail=>=0.8"]
 coverage_sufficiency = ["pmd_enriched_reads>=500"]
 sex_kinship_sufficiency = ["not_applicable"]
 tools = ["authenticct", "damageprofiler", "pmdtools"]
-
-[[stages]]
-id = "bam.bias_mitigation"
-status = "planned"
-output_kinds = ["json"]
-ordering_after = []
-prerequisites = []
-tools = []
-
-[[stages]]
-id = "bam.complexity"
-status = "planned"
-output_kinds = ["json"]
-ordering_after = []
-prerequisites = []
-tools = ["preseq"]
 
 [[stages]]
 id = "bam.contamination"
@@ -112,7 +96,7 @@ authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
 duplication_thresholds = ["duplication_rate|warn=>=0.6|fail=>=0.8"]
 coverage_sufficiency = ["coverage_at_damage_sites>=0.2"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["addeam", "damageprofiler", "mapdamage2", "ngsbriggs", "pmdtools", "pydamage"]
+tools = ["addeam", "damageprofiler", "mapdamage2", "pmdtools", "pydamage"]
 
 [[stages]]
 id = "bam.filter"
@@ -134,19 +118,22 @@ sex_kinship_sufficiency = ["not_applicable"]
 tools = ["bamtools", "bedtools", "samtools"]
 
 [[stages]]
-id = "bam.genotyping"
-status = "planned"
-output_kinds = ["json"]
-ordering_after = []
-prerequisites = []
-tools = []
-
-[[stages]]
 id = "bam.haplogroups"
-status = "planned"
-output_kinds = ["json"]
-ordering_after = []
-prerequisites = []
+status = "supported"
+output_kinds = []
+ordering_after = ["bam.coverage"]
+prerequisites = ["bam.coverage"]
+resource_memory_gb = 8
+resource_time_minutes = 45
+resource_threads = 4
+sanity_metrics = ["haplogroup_call_confidence"]
+output_size_estimates_mb = ["haplogroup_report:4"]
+qc_thresholds = ["haplogroup_call_confidence|warn=<0.6|fail=<0.4"]
+contamination_thresholds = ["contamination_estimate|warn=>0.05|fail=>0.2"]
+authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
+duplication_thresholds = ["duplication_rate|warn=>=0.6|fail=>=0.8"]
+coverage_sufficiency = ["haplogroup_markers_covered>=100"]
+sex_kinship_sufficiency = ["haplogroup_markers_covered>=100"]
 tools = ["yleaf"]
 
 [[stages]]
@@ -167,30 +154,6 @@ duplication_thresholds = ["duplication_rate|warn=>=0.6|fail=>=0.8"]
 coverage_sufficiency = ["shared_markers>=5000"]
 sex_kinship_sufficiency = ["kinship_informative_markers>=5000", "panel_match=true"]
 tools = ["angsd", "king"]
-
-[[stages]]
-id = "bam.markdup"
-status = "planned"
-output_kinds = ["json"]
-ordering_after = []
-prerequisites = []
-tools = ["picard"]
-
-[[stages]]
-id = "bam.qc_pre"
-status = "planned"
-output_kinds = ["json"]
-ordering_after = []
-prerequisites = []
-tools = []
-
-[[stages]]
-id = "bam.recalibration"
-status = "planned"
-output_kinds = ["json"]
-ordering_after = []
-prerequisites = []
-tools = ["gatk"]
 
 [[stages]]
 id = "bam.sex"
@@ -326,14 +289,6 @@ sex_kinship_sufficiency = ["not_applicable"]
 tools = ["samtools", "star"]
 
 [[stages]]
-id = "fastq.preprocess"
-status = "planned"
-output_kinds = ["fastq", "json"]
-ordering_after = []
-prerequisites = []
-tools = []
-
-[[stages]]
 id = "fastq.qc_post"
 status = "supported"
 output_kinds = ["html", "json"]
@@ -407,7 +362,7 @@ authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
 duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
 coverage_sufficiency = ["not_applicable"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["seqfu", "seqkit", "seqkit_stats"]
+tools = ["seqkit", "seqkit_stats"]
 
 [[stages]]
 id = "fastq.trim"
@@ -426,7 +381,7 @@ authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
 duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
 coverage_sufficiency = ["not_applicable"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["adapterremoval", "alientrimmer", "atropos", "bbduk", "cutadapt", "fastp", "fastx_clipper", "leehom", "prinseq", "seqkit", "seqpurge", "skewer", "trim_galore", "trimmomatic"]
+tools = ["adapterremoval", "alientrimmer", "atropos", "bbduk", "cutadapt", "fastp", "fastx_clipper", "leehom", "prinseq", "seqkit", "skewer", "trim_galore", "trimmomatic"]
 
 [[stages]]
 id = "fastq.umi"
@@ -464,7 +419,7 @@ authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
 duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
 coverage_sufficiency = ["not_applicable"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["fastq-scan", "fastqc", "fastqvalidator", "fastqvalidator_official", "fqtools", "seqtk"]
+tools = ["fastqc", "fastqvalidator", "fastqvalidator_official", "fqtools", "seqtk"]
 
 [[pipelines]]
 id = "bam.pre_hpc_best"
