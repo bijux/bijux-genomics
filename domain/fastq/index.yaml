@@ -175,7 +175,7 @@ active_defaults:
   fastq.qc_post: multiqc
   fastq.screen: kraken2
   fastq.merge: pear
-  fastq.deduplicate: fastuniq
+  fastq.deduplicate: prinseq
   fastq.low_complexity: bbduk
   fastq.host_depletion: bowtie2
   fastq.correct: rcorrector
