@@ -35,6 +35,10 @@ pub enum RootCommand {
         #[command(subcommand)]
         command: RegistryCommand,
     },
+    Lab {
+        #[command(subcommand)]
+        command: LabCommand,
+    },
 }
 
 #[derive(Debug, Subcommand)]
@@ -180,22 +184,47 @@ pub enum EnvCommand {
     Info,
     Doctor,
     List,
-    Smoke(SmokeArgs),
+    Smoke(EnvRunArgs),
+    Prep(EnvRunArgs),
 }
 
 #[derive(Debug, Subcommand)]
 pub enum RegistryCommand {
-    #[command(name = "list-tools")]
-    ListTools,
-    #[command(name = "list-stages")]
-    ListStages,
+    Tools {
+        #[arg(long)]
+        stage: Option<String>,
+        #[arg(long, default_value = "all")]
+        kind: String,
+    },
+    Stages,
     Show { id: String },
 }
 
 #[derive(Debug, Args)]
-pub struct SmokeArgs {
+pub struct EnvRunArgs {
     pub runtime: String,
-    pub tool: String,
+    pub tool: Option<String>,
+    #[arg(long)]
+    pub stage: Option<String>,
+}
+
+#[derive(Debug, Subcommand)]
+pub enum LabCommand {
+    Corpus {
+        #[command(subcommand)]
+        command: LabCorpusCommand,
+    },
+}
+
+#[derive(Debug, Subcommand)]
+pub enum LabCorpusCommand {
+    #[command(name = "list-fastq")]
+    ListFastq {
+        #[arg(long, default_value = "canonical")]
+        corpus: String,
+        #[arg(long)]
+        paired: bool,
+    },
 }
 
 #[derive(Debug, Subcommand)]
