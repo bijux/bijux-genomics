@@ -73,6 +73,20 @@ fn manifest_has_required_fields() {
             .is_some(),
         "tool_invocation missing input_hashes"
     );
+    assert!(
+        first
+            .get("tool_version")
+            .and_then(|value| value.as_str())
+            .is_some_and(|v| !v.trim().is_empty()),
+        "tool_invocation missing tool_version"
+    );
+    assert!(
+        first
+            .get("image_digest")
+            .and_then(|value| value.as_str())
+            .is_some_and(|v| !v.trim().is_empty()),
+        "tool_invocation missing image_digest"
+    );
 }
 
 #[test]
