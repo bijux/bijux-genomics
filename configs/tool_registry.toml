@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 8c2d300aa39ce578118ea15edd3b455488b9fdbd
+# source_commit: c88c4f235f246427438db33f38ac0c1edc0bece5
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 

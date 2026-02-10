@@ -82,6 +82,7 @@ fn merge_output_name(tool: &str) -> Option<&'static str> {
         "vsearch" => Some("vsearch.fastq.gz"),
         "bbmerge" => Some("bbmerge.fastq.gz"),
         "flash2" => Some("flash2.fastq.gz"),
+        "leehom" => Some("leehom.fastq.gz"),
         _ => None,
     }
 }

@@ -139,6 +139,12 @@ struct DomainIndex {
     stage_completeness_checklist: BTreeMap<String, Vec<String>>,
     #[serde(default)]
     stage_default_settings: BTreeMap<String, BTreeMap<String, BTreeMap<String, String>>>,
+    #[serde(default)]
+    stage_comparability_mapping: BTreeMap<String, Vec<String>>,
+    #[serde(default)]
+    stage_min_quality_gates: BTreeMap<String, Vec<String>>,
+    #[serde(default)]
+    stage_failure_diagnosis_hints: BTreeMap<String, Vec<String>>,
 }
 
 #[derive(Debug, Deserialize, Default)]
@@ -667,6 +673,35 @@ fn collect_domain_data(
             if !stage_settings.contains_key(default_tool) {
                 return Err(anyhow!(
                     "index stage_default_settings for {stage_id} missing default tool {default_tool}"
+                ));
+            }
+            let comparability = index
+                .stage_comparability_mapping
+                .get(stage_id)
+                .ok_or_else(|| anyhow!("index missing stage_comparability_mapping for stage {stage_id}"))?;
+            if comparability.is_empty() {
+                return Err(anyhow!(
+                    "index stage_comparability_mapping for {stage_id} must not be empty"
+                ));
+            }
+            let quality_gates = index
+                .stage_min_quality_gates
+                .get(stage_id)
+                .ok_or_else(|| anyhow!("index missing stage_min_quality_gates for stage {stage_id}"))?;
+            if quality_gates.is_empty() {
+                return Err(anyhow!(
+                    "index stage_min_quality_gates for {stage_id} must not be empty"
+                ));
+            }
+            let diagnosis_hints = index
+                .stage_failure_diagnosis_hints
+                .get(stage_id)
+                .ok_or_else(|| {
+                    anyhow!("index missing stage_failure_diagnosis_hints for stage {stage_id}")
+                })?;
+            if diagnosis_hints.is_empty() {
+                return Err(anyhow!(
+                    "index stage_failure_diagnosis_hints for {stage_id} must not be empty"
                 ));
             }
             stage_defaults.insert(stage_id.clone(), default_tool.clone());
@@ -1529,6 +1564,54 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
             if checklist.is_empty() {
                 bail!(
                     "{} stage {} has empty stage_completeness_checklist",
+                    index_path.display(),
+                    stage_id
+                );
+            }
+            let comparability = index
+                .stage_comparability_mapping
+                .get(stage_id)
+                .ok_or_else(|| {
+                    anyhow!(
+                        "{} stage {} missing stage_comparability_mapping entry",
+                        index_path.display(),
+                        stage_id
+                    )
+                })?;
+            if comparability.is_empty() {
+                bail!(
+                    "{} stage {} has empty stage_comparability_mapping",
+                    index_path.display(),
+                    stage_id
+                );
+            }
+            let quality_gates = index.stage_min_quality_gates.get(stage_id).ok_or_else(|| {
+                anyhow!(
+                    "{} stage {} missing stage_min_quality_gates entry",
+                    index_path.display(),
+                    stage_id
+                )
+            })?;
+            if quality_gates.is_empty() {
+                bail!(
+                    "{} stage {} has empty stage_min_quality_gates",
+                    index_path.display(),
+                    stage_id
+                );
+            }
+            let diagnosis_hints = index
+                .stage_failure_diagnosis_hints
+                .get(stage_id)
+                .ok_or_else(|| {
+                    anyhow!(
+                        "{} stage {} missing stage_failure_diagnosis_hints entry",
+                        index_path.display(),
+                        stage_id
+                    )
+                })?;
+            if diagnosis_hints.is_empty() {
+                bail!(
+                    "{} stage {} has empty stage_failure_diagnosis_hints",
                     index_path.display(),
                     stage_id
                 );
