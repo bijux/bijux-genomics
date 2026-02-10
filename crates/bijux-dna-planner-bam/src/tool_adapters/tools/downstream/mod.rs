@@ -6,3 +6,8 @@ pub mod gatk;
 pub mod rxy;
 pub mod schmutzi;
 pub mod verifybamid2;
+
+#[must_use]
+pub const fn module_name() -> &'static str {
+    "downstream"
+}

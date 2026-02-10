@@ -1,17 +1,25 @@
+#[cfg(feature = "bam_downstream")]
 use std::collections::BTreeMap;
+#[cfg(feature = "bam_downstream")]
 use std::path::PathBuf;
 
+#[cfg(feature = "bam_downstream")]
 use bijux_dna_core::contract::PlanPolicy;
+#[cfg(feature = "bam_downstream")]
 use bijux_dna_core::prelude::{
     CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
 };
+#[cfg(feature = "bam_downstream")]
 use bijux_dna_domain_bam::BamStage;
+#[cfg(feature = "bam_downstream")]
 use bijux_dna_planner_bam::{plan_bam_to_bam__adna_shotgun__v1, BamPipelineInputs};
 
+#[cfg(feature = "bam_downstream")]
 fn snapshot_name(group: &str, name: &str) -> String {
     format!("bijux-dna-planner-bam__{group}__{name}")
 }
 
+#[cfg(feature = "bam_downstream")]
 fn dummy_tool(stage: &str) -> ToolExecutionSpecV1 {
     ToolExecutionSpecV1 {
         tool_id: ToolId::new(format!("tool.{stage}")),
@@ -34,6 +42,7 @@ fn dummy_tool(stage: &str) -> ToolExecutionSpecV1 {
 
 /// Snapshot locks graph structure for the default aDNA shotgun pipeline.
 #[test]
+#[cfg(feature = "bam_downstream")]
 fn bam_adna_shotgun_graph_is_pure() -> anyhow::Result<()> {
     let mut tool_specs = BTreeMap::new();
     for stage in BamStage::all() {

@@ -1,10 +1,21 @@
 use std::collections::BTreeSet;
+use std::path::PathBuf;
 
 use bijux_dna_core::ids::{id_catalog, StageId, ToolId};
 
 fn registry_toml() -> Option<toml::Value> {
     let cwd = std::env::current_dir().ok()?;
-    let path = cwd.join("configs").join("tool_registry.toml");
+    let mut candidates = vec![cwd.join("configs").join("tool_registry.toml")];
+    let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    candidates.push(
+        manifest_dir
+            .parent()
+            .and_then(std::path::Path::parent)
+            .map(|root| root.join("configs").join("tool_registry.toml"))?,
+    );
+    let path = candidates
+        .into_iter()
+        .find(|candidate| candidate.exists())?;
     let raw = std::fs::read_to_string(path).ok()?;
     raw.parse::<toml::Value>().ok()
 }

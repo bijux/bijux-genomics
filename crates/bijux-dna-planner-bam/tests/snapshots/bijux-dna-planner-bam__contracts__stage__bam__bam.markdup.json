@@ -1,7 +1,7 @@
 {
   "stage_id": "bam.markdup",
   "stage_version": 1,
-  "tool_id": "gatk",
+  "tool_id": "picard",
   "tool_version": "1.0.0",
   "image": {
     "image": "bijux/test:latest",
@@ -95,7 +95,7 @@
   "aux_images": {},
   "reason": {
     "kind": "default",
-    "summary": "tool gatk selected by planner",
+    "summary": "tool picard selected by planner",
     "details": {
       "contract_hash": "e91c0268797e944707a1798c79b7b48f9340ca8abffbf89d2e24821859eaa973",
       "defaults_diff": {}
