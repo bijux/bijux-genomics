@@ -1,7 +1,7 @@
 {
   "stage_id": "bam.damage",
   "stage_version": 1,
-  "tool_id": "pydamage",
+  "tool_id": "mapdamage2",
   "tool_version": "1.0.0",
   "image": {
     "image": "bijux/test:latest",
@@ -9,14 +9,9 @@
   },
   "command": {
     "template": [
-      "pydamage",
-      "analyze",
-      "--input",
-      "tests/fixtures/plan_inputs/default/sample.bam",
-      "--output",
-      "out/damage.pydamage.json",
-      "--min-mapq",
-      "0.3"
+      "/bin/sh",
+      "-c",
+      "mapDamage --bam tests/fixtures/plan_inputs/default/sample.bam --folder out && if [ -f out/misincorporation.txt ]; then cp out/misincorporation.txt out/damage.mapdamage2.txt; elif [ -f out/5pCtoT.txt ]; then cp out/5pCtoT.txt out/damage.mapdamage2.txt; else : > out/damage.mapdamage2.txt; fi"
     ]
   },
   "resources": {
@@ -74,7 +69,7 @@
   "aux_images": {},
   "reason": {
     "kind": "default",
-    "summary": "tool pydamage selected by planner",
+    "summary": "tool mapdamage2 selected by planner",
     "details": {
       "contract_hash": "0454c24c1061c6239167de49706c3f48dd6b7a07d703caf76e61e1bb6a9ebb99",
       "defaults_diff": {}

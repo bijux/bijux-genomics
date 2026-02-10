@@ -1,6 +1,5 @@
 ---
 source: crates/bijux-dna-planner-fastq/tests/contracts/graph/graph_snapshots.rs
-assertion_line: 76
 expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
@@ -73,7 +72,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         ]
       },
       "metrics_schema_ids": [],
-      "out_dir": "fastqc",
+      "out_dir": "fastp",
       "resources": {
         "mem_gb": 1,
         "runtime": "docker",
@@ -109,13 +108,13 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           {
             "name": "filtered_reads",
             "optional": false,
-            "path": "seqkit.fastq.gz",
+            "path": "fastp.fastq.gz",
             "role": "reads"
           }
         ]
       },
       "metrics_schema_ids": [],
-      "out_dir": "seqkit",
+      "out_dir": "fastp",
       "resources": {
         "mem_gb": 1,
         "runtime": "docker",
@@ -143,7 +142,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           {
             "name": "reads_r1",
             "optional": false,
-            "path": "seqkit.fastq.gz",
+            "path": "fastp.fastq.gz",
             "role": "reads"
           }
         ],
@@ -191,7 +190,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           {
             "name": "reads_r1",
             "optional": false,
-            "path": "seqkit.fastq.gz",
+            "path": "fastp.fastq.gz",
             "role": "reads"
           }
         ],

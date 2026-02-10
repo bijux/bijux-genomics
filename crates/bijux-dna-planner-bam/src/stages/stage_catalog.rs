@@ -1,13 +1,13 @@
 use anyhow::{anyhow, Result};
 use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_core::ids::StageId;
-use bijux_dna_domain_bam::{contract_for_stage, BamStage, StageSpec};
+use bijux_dna_domain_bam::{contract_for_stage, BamStage, StageSpec, STAGE_PREFIX};
 
 pub fn stage_registry(registry: &ToolRegistry) -> Result<Vec<StageSpec>> {
     let mut stage_ids = registry
         .stages()
         .keys()
-        .filter(|stage_id| stage_id.as_str().starts_with("bam."))
+        .filter(|stage_id| stage_id.as_str().starts_with(STAGE_PREFIX))
         .cloned()
         .collect::<Vec<StageId>>();
     stage_ids.sort();

@@ -41,7 +41,7 @@ fn required_id_catalog() -> Vec<String> {
         .iter()
         .map(|stage| (*stage).to_string())
         .collect::<Vec<_>>();
-    stages.retain(|stage| stage.starts_with("fastq."));
+    stages.retain(|stage| stage.starts_with(STAGE_PREFIX));
     let canonical = canonical_stage_order()
         .into_iter()
         .map(|stage| stage.as_str().to_string())
@@ -955,7 +955,7 @@ pub fn fastq_pipeline_id_catalog(profile_id: &str) -> Vec<String> {
             .capabilities
             .required_stages
             .iter()
-            .filter(|stage| stage.starts_with("fastq."))
+            .filter(|stage| stage.starts_with(bijux_dna_domain_fastq::STAGE_PREFIX))
             .map(|stage| (*stage).to_string())
             .collect();
     }
@@ -963,49 +963,4 @@ pub fn fastq_pipeline_id_catalog(profile_id: &str) -> Vec<String> {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn select_trim_tools_dedup_and_sort() {
-        let tools = vec![
-            "fastp".to_string(),
-            "FASTP".to_string(),
-            "cutadapt".to_string(),
-        ];
-        match select_trim_tools(&tools, false) {
-            Ok(normalized) => {
-                assert_eq!(
-                    normalized,
-                    vec!["cutadapt".to_string(), "fastp".to_string()]
-                );
-            }
-            Err(err) => panic!("normalize failed: {err}"),
-        }
-    }
-
-    #[test]
-    fn select_trim_tools_blocks_experimental_by_default() {
-        let tools = vec!["seqpurge".to_string()];
-        match select_trim_tools(&tools, false) {
-            Ok(_) => panic!("expected failure"),
-            Err(err) => assert!(err.to_string().contains("unsupported tool")),
-        }
-    }
-
-    #[test]
-    fn select_trim_tools_allows_experimental_when_enabled() {
-        let tools = vec!["seqpurge".to_string()];
-        match select_trim_tools(&tools, true) {
-            Ok(normalized) => assert_eq!(normalized, vec!["seqpurge".to_string()]),
-            Err(err) => panic!("normalize failed: {err}"),
-        }
-    }
-
-    #[test]
-    fn select_tools_rejects_empty() {
-        match select_validate_tools(&[]) {
-            Ok(_) => panic!("expected empty failure"),
-            Err(err) => assert!(err.to_string().contains("no tools specified")),
-        }
-    }
-}
+mod unit_checks;

@@ -1,7 +1,7 @@
 {
   "stage_id": "bam.contamination",
   "stage_version": 1,
-  "tool_id": "authenticct",
+  "tool_id": "schmutzi",
   "tool_version": "1.0.0",
   "image": {
     "image": "bijux/test:latest",
@@ -11,7 +11,7 @@
     "template": [
       "/bin/sh",
       "-c",
-      "contamination_tool --input tests/fixtures/plan_inputs/default/sample.bam > out/contamination.json && python - <<'PY' > out/contamination.summary.json\nimport json\npayload = {\"method\": \"authenticct\", \"estimate\": 0.0, \"ci_low\": 0.0, \"ci_high\": 0.0, \"assumptions\": []}\nprint(json.dumps(payload, indent=2))\nPY"
+      "schmutzi --bam tests/fixtures/plan_inputs/default/sample.bam > out/contamination.json && python - <<'PY' > out/contamination.summary.json\nimport json\nprint(json.dumps({\"method\": \"schmutzi\", \"scope\": \"mt\"}, indent=2))\nPY"
     ]
   },
   "resources": {
@@ -58,7 +58,7 @@
     "reference_panels": [],
     "scope": "both",
     "sex_specific": false,
-    "tool_scope": "both"
+    "tool_scope": "mt"
   },
   "effective_params": {
     "assumptions": null,
@@ -70,7 +70,7 @@
   "aux_images": {},
   "reason": {
     "kind": "default",
-    "summary": "tool authenticct selected by planner",
+    "summary": "tool schmutzi selected by planner",
     "details": {
       "contract_hash": "8df77206163efea7385ccca601f4b5ed9479d6eba1b72978f32d50c9f961894b",
       "defaults_diff": {}

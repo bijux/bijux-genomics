@@ -88,16 +88,21 @@ fn bam_plan_snapshot() {
 
 #[test]
 fn bam_adna_shotgun_plan_snapshot() -> anyhow::Result<()> {
+    if !cfg!(feature = "bam_downstream") {
+        return Ok(());
+    }
     let temp = bijux_dna_infra::temp_dir("bam-adna-shotgun-plan")?;
     let bam = temp.path().join("sample.bam");
+    let reference = temp.path().join("mt_reference.fasta");
     std::fs::write(&bam, b"")?;
+    std::fs::write(&reference, b">chrM\nACGT\n")?;
     let inputs = BamPipelineInputs {
         policy: PlanPolicy::PreferAccuracy,
         tool_specs: tool_specs_for_profile("bam-to-bam__adna_shotgun__v1"),
         params_overrides: BTreeMap::new(),
         bam: bam.clone(),
         bam_index: None,
-        reference: None,
+        reference: Some(reference.clone()),
         sample_id: Some("sample".to_string()),
         out_dir: temp.path().join("out"),
         allow_planned: false,
@@ -112,16 +117,21 @@ fn bam_adna_shotgun_plan_snapshot() -> anyhow::Result<()> {
 
 #[test]
 fn bam_adna_capture_plan_snapshot() -> anyhow::Result<()> {
+    if !cfg!(feature = "bam_downstream") {
+        return Ok(());
+    }
     let temp = bijux_dna_infra::temp_dir("bam-adna-capture-plan")?;
     let bam = temp.path().join("sample.bam");
+    let reference = temp.path().join("mt_reference.fasta");
     std::fs::write(&bam, b"")?;
+    std::fs::write(&reference, b">chrM\nACGT\n")?;
     let inputs = BamPipelineInputs {
         policy: PlanPolicy::PreferAccuracy,
         tool_specs: tool_specs_for_profile("bam-to-bam__adna_capture__v1"),
         params_overrides: BTreeMap::new(),
         bam: bam.clone(),
         bam_index: None,
-        reference: None,
+        reference: Some(reference.clone()),
         sample_id: Some("sample".to_string()),
         out_dir: temp.path().join("out"),
         allow_planned: false,
