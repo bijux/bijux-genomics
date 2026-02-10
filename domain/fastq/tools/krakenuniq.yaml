@@ -17,4 +17,5 @@ help_cmd: "krakenuniq --help"
 comparability:
   comparable_with: ["kraken2","bracken"]
   non_comparable_with: []
+comparability_notes: "Comparable only within same stage contract and input constraints."
 notes: "Domain SSOT tool contract entry."

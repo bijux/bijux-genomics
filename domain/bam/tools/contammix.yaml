@@ -17,6 +17,7 @@ help_cmd: "contammix --help"
 comparability:
   comparable_with: ["schmutzi","verifybamid2"]
   non_comparable_with: []
+comparability_notes: "Comparable only within same stage contract and input constraints."
 capabilities:
   - bam_input
 io_contract:

@@ -50,3 +50,13 @@ stage_tool_compatibility:
   bam.contamination: [schmutzi, verifybamid2, contammix]
   bam.sex: [rxy, yleaf, angsd]
   bam.kinship: [king, angsd]
+active_defaults:
+  bam.align: bwa
+  bam.validate: samtools
+  bam.filter: samtools
+  bam.coverage: mosdepth
+  bam.damage: mapdamage2
+  bam.authenticity: authenticct
+  bam.contamination: schmutzi
+  bam.sex: rxy
+  bam.kinship: king

@@ -17,3 +17,4 @@ help_cmd: "sortmerna --help"
 comparability:
   comparable_with: ["bbduk", "prinseq"]
   non_comparable_with: []
+comparability_notes: "Comparable only within same stage contract and input constraints."

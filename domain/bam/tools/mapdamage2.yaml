@@ -17,6 +17,7 @@ help_cmd: "mapdamage2 --help"
 comparability:
   comparable_with: ["pydamage","damageprofiler","addeam","ngsbriggs"]
   non_comparable_with: []
+comparability_notes: "Comparable only within same stage contract and input constraints."
 capabilities:
   - bam_input
 io_contract:

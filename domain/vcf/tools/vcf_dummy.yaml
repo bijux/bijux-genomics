@@ -4,7 +4,8 @@ stage_id: "vcf.validate"
 role: "diagnostic"
 authoritative: false
 strict_capable: false
-status: "experimental"
+status: "planned"
+scope: "post_vcf"
 capabilities:
   - "SE"
 container:

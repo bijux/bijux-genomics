@@ -1,5 +1,7 @@
 schema_version: "bijux.stage.v1"
 stage_id: "vcf.validate"
+status: "planned"
+scope: "post_vcf"
 domain: "vcf"
 inputs:
   - name: "vcf"
