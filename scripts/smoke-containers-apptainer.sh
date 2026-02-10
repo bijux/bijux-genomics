@@ -76,67 +76,50 @@ json_escape() {
 
 get_version_cmd() {
   tool="$1"
-  awk -v tool="$tool" '
-    function unquote(v) {
-      gsub(/^[[:space:]]+|[[:space:]]+$/, "", v)
-      gsub(/^"/, "", v); gsub(/"$/, "", v)
-      return v
-    }
-    /^\[\[tools\]\]/ { in_tools=1; id=""; vercmd=""; next }
-    in_tools && /^[[:space:]]*id[[:space:]]*=/ {
-      split($0, a, "="); id=unquote(a[2]); next
-    }
-    in_tools && /^[[:space:]]*version_cmd[[:space:]]*=/ {
-      split($0, a, "="); vercmd=unquote(a[2]); next
-    }
-    in_tools && id==tool && vercmd!="" { print vercmd; found=1; exit 0 }
-    END { if (!found) print tool " --version" }
-  ' "$ROOT_DIR/configs/tool_registry.toml"
+  value=$(get_registry_field version_cmd "$tool")
+  if [ "$value" = "unknown" ] || [ -z "$value" ]; then
+    printf '%s\n' "$tool --version"
+    return 0
+  fi
+  printf '%s\n' "$value"
 }
 
 get_help_cmd() {
   tool="$1"
-  awk -v tool="$tool" '
-    function unquote(v) {
-      gsub(/^[[:space:]]+|[[:space:]]+$/, "", v)
-      gsub(/^"/, "", v); gsub(/"$/, "", v)
-      return v
-    }
-    /^\[\[tools\]\]/ { in_tools=1; id=""; helpcmd=""; next }
-    in_tools && /^[[:space:]]*id[[:space:]]*=/ {
-      split($0, a, "="); id=unquote(a[2]); next
-    }
-    in_tools && /^[[:space:]]*help_cmd[[:space:]]*=/ {
-      split($0, a, "="); helpcmd=unquote(a[2]); next
-    }
-    in_tools && id==tool && helpcmd!="" { print helpcmd; found=1; exit 0 }
-    END { if (!found) print tool " --help" }
-  ' "$ROOT_DIR/configs/tool_registry.toml"
+  value=$(get_registry_field help_cmd "$tool")
+  if [ "$value" = "unknown" ] || [ -z "$value" ]; then
+    printf '%s\n' "$tool --help"
+    return 0
+  fi
+  printf '%s\n' "$value"
 }
 
 get_registry_field() {
   field="$1"
   tool="$2"
-  awk -v tool="$tool" -v field="$field" '
-    function unquote(v) {
-      gsub(/^[[:space:]]+|[[:space:]]+$/, "", v)
-      gsub(/^"/, "", v); gsub(/"$/, "", v)
-      return v
-    }
-    /^\[\[tools\]\]/ { in_tools=1; id=""; next }
-    in_tools && /^[[:space:]]*id[[:space:]]*=/ {
-      split($0, a, "="); id=unquote(a[2]); next
-    }
-    in_tools && id==tool {
-      key=$0
-      sub(/[[:space:]]*=.*/, "", key)
-      gsub(/^[[:space:]]+|[[:space:]]+$/, "", key)
-      if (key == field) {
-        split($0, a, "="); print unquote(a[2]); found=1; exit 0
+  json=$(cargo run --bin bijux-dna -- registry show-tool "$tool" 2>/dev/null || true)
+  if [ -z "$json" ]; then
+    printf '%s\n' "unknown"
+    return 0
+  fi
+  value=$(printf '%s\n' "$json" | awk -v field="$field" '
+    BEGIN { found=0 }
+    {
+      key="\"" field "\""
+      if (index($0, key) > 0) {
+        line=$0
+        sub(/^.*:[[:space:]]*/, "", line)
+        sub(/[[:space:]]*,?[[:space:]]*$/, "", line)
+        gsub(/^"/, "", line)
+        gsub(/"$/, "", line)
+        print line
+        found=1
+        exit 0
       }
     }
     END { if (!found) print "unknown" }
-  ' "$ROOT_DIR/configs/tool_registry.toml"
+  ')
+  printf '%s\n' "$value"
 }
 
 build_and_smoke_one() {
