@@ -76,7 +76,8 @@ pub mod markdup {
                 "duplicate_action": params.duplicate_action,
             }),
             effective_params: crate::tool_adapters::stages_support::ensure_effective_params(
-                serde_json::to_value(params).expect("BAM stage effective params must serialize"),
+                serde_json::to_value(params)
+                    .map_err(|error| anyhow::anyhow!("BAM stage effective params must serialize: {error}"))?,
             )?,
             aux_images: std::collections::BTreeMap::new(),
             reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
@@ -144,7 +145,8 @@ pub mod complexity {
                 "projection_points": params.projection_points,
             }),
             effective_params: crate::tool_adapters::stages_support::ensure_effective_params(
-                serde_json::to_value(params).expect("BAM stage effective params must serialize"),
+                serde_json::to_value(params)
+                    .map_err(|error| anyhow::anyhow!("BAM stage effective params must serialize: {error}"))?,
             )?,
             aux_images: std::collections::BTreeMap::new(),
             reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
@@ -217,7 +219,8 @@ pub mod coverage {
                 "depth_thresholds": params.depth_thresholds,
             }),
             effective_params: crate::tool_adapters::stages_support::ensure_effective_params(
-                serde_json::to_value(params).expect("BAM stage effective params must serialize"),
+                serde_json::to_value(params)
+                    .map_err(|error| anyhow::anyhow!("BAM stage effective params must serialize: {error}"))?,
             )?,
             aux_images: std::collections::BTreeMap::new(),
             reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
@@ -277,7 +280,8 @@ pub mod recalibration {
                 "skip_criteria": params.skip_criteria,
             }),
             effective_params: crate::tool_adapters::stages_support::ensure_effective_params(
-                serde_json::to_value(params).expect("BAM stage effective params must serialize"),
+                serde_json::to_value(params)
+                    .map_err(|error| anyhow::anyhow!("BAM stage effective params must serialize: {error}"))?,
             )?,
             aux_images: std::collections::BTreeMap::new(),
             reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
