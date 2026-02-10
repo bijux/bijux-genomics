@@ -134,7 +134,7 @@ pub mod snapshots {
 
     #[must_use]
     pub fn sanitize_snapshot_text(input: &str) -> String {
-        let mut out = input.to_string();
+        let mut out = input.replace("\r\n", "\n");
         if let Ok(pwd) = env::current_dir() {
             out = out.replace(&pwd.display().to_string(), "<ROOT>");
         }
@@ -166,6 +166,7 @@ pub mod snapshots {
         if let Ok(hostname) = env::var("COMPUTERNAME") {
             out = out.replace(&hostname, "<HOSTNAME>");
         }
+        out = out.replace('\\', "/");
         out
     }
 
@@ -230,12 +231,8 @@ pub mod snapshots {
     }
 
     pub fn install_snapshot_env() {
-        if env::var("TZ").is_err() {
-            env::set_var("TZ", "UTC");
-        }
-        if env::var("LC_ALL").is_err() {
-            env::set_var("LC_ALL", "C");
-        }
+        env::set_var("TZ", "UTC");
+        env::set_var("LC_ALL", "C");
     }
 
     fn sort_value(value: &Value) -> Value {

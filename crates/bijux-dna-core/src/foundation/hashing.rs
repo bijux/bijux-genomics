@@ -30,6 +30,9 @@ pub fn run_id_from_hashes(
     input_hashes: &[String],
     reference_genome: Option<&str>,
 ) -> String {
+    let mut sorted_inputs = input_hashes.to_vec();
+    sorted_inputs.sort();
+    sorted_inputs.dedup();
     let mut hasher = sha2::Sha256::new();
     hasher.update(pipeline_id.as_bytes());
     hasher.update(b"|");
@@ -37,7 +40,7 @@ pub fn run_id_from_hashes(
     hasher.update(b"|");
     hasher.update(params_hash.as_bytes());
     hasher.update(b"|");
-    for hash in input_hashes {
+    for hash in sorted_inputs {
         hasher.update(hash.as_bytes());
         hasher.update(b",");
     }

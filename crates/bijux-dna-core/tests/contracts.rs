@@ -5,6 +5,8 @@ mod mod_contracts_canonicalization_rs;
 mod mod_contracts_execution_graph_validate_rs;
 #[path = "contracts/execution_plan_contract.rs"]
 mod mod_contracts_execution_plan_contract_rs;
+#[path = "contracts/hashing_identity.rs"]
+mod mod_contracts_hashing_identity_rs;
 #[path = "contracts/prelude_snapshot.rs"]
 mod mod_contracts_prelude_snapshot_rs;
 #[path = "contracts/run_index.rs"]
