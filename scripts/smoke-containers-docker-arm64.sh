@@ -1,5 +1,7 @@
 #!/bin/sh
 set -eu
+export TZ=UTC
+export LC_ALL=C
 
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 ROOT_DIR=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
@@ -25,10 +27,18 @@ MANIFEST_DIR="$ARTIFACT_DIR"
 
 mkdir -p "$LOG_DIR" "$IMG_DIR" "$MANIFEST_DIR"
 
-if ! command -v "$DOCKER_BIN" >/dev/null 2>&1; then
-  echo "ERROR: '$DOCKER_BIN' not found" >&2
-  exit 127
-fi
+require_cmd() {
+  name="$1"
+  if ! command -v "$name" >/dev/null 2>&1; then
+    echo "ERROR: required command '$name' not found in PATH" >&2
+    exit 127
+  fi
+}
+
+require_cmd "$DOCKER_BIN"
+require_cmd cargo
+require_cmd awk
+require_cmd sed
 
 if [ ! -d "$DOCKER_DIR" ]; then
   echo "ERROR: docker dir not found: $DOCKER_DIR" >&2
@@ -43,6 +53,7 @@ run_with_timeout() {
   elif command -v gtimeout >/dev/null 2>&1; then
     gtimeout "$seconds" "$@"
   else
+    require_cmd python3
     python3 - "$seconds" "$@" <<'PY'
 import signal, subprocess, sys
 p = subprocess.Popen(sys.argv[2:])
@@ -54,6 +65,14 @@ except subprocess.TimeoutExpired:
 sys.exit(p.returncode)
 PY
   fi
+}
+
+write_manifest_json() {
+  manifest_path="$1"
+  payload="$2"
+  tmp="${manifest_path}.tmp.$$"
+  printf '%s\n' "$payload" > "$tmp"
+  mv "$tmp" "$manifest_path"
 }
 
 json_escape() {
@@ -158,7 +177,7 @@ build_and_smoke_one() {
     upstream_json="$(json_escape "$upstream")"
     pinned_commit_json="$(json_escape "$pinned_commit")"
     built_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-    cat > "$manifest" <<JSON
+    payload=$(cat <<JSON
 {
   "tool": "$tool",
   "runtime": "$RUNTIME_NAME",
@@ -176,6 +195,8 @@ build_and_smoke_one() {
   "built_at_utc": "$built_at"
 }
 JSON
+)
+    write_manifest_json "$manifest" "$payload"
   } >"$log" 2>&1 || {
     cmd_json="$(json_escape "$cmd")"
     dockerfile_json="$(json_escape "$dockerfile")"
@@ -185,7 +206,7 @@ JSON
     upstream_json="$(json_escape "$upstream")"
     pinned_commit_json="$(json_escape "$pinned_commit")"
     built_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-    cat > "$manifest" <<JSON
+    payload=$(cat <<JSON
 {
   "tool": "$tool",
   "runtime": "$RUNTIME_NAME",
@@ -203,6 +224,8 @@ JSON
   "built_at_utc": "$built_at"
 }
 JSON
+)
+    write_manifest_json "$manifest" "$payload"
     echo "FAIL $tool (see $log)"
     return 1
   }
