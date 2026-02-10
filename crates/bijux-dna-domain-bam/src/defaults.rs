@@ -76,6 +76,7 @@ pub fn adna_capture_params_json(stage: BamStage) -> serde_json::Value {
     value
 }
 
+#[allow(clippy::match_same_arms)]
 fn bam_params_value(params: &BamEffectiveParams) -> serde_json::Value {
     match params {
         BamEffectiveParams::Align(inner) => {

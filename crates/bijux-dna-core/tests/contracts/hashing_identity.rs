@@ -25,7 +25,8 @@ fn input_fingerprint_is_order_independent_and_deduped() {
 fn cache_key_identity_tuple_is_explicit_and_stable() {
     let key = CacheKey::new("in", "params", "tool@1", "sha256:env");
     assert_eq!(key.as_string(), "in|params|tool@1|sha256:env");
-    let payload = serde_json::to_string(&key).expect("serialize cache key");
+    let payload =
+        serde_json::to_string(&key).unwrap_or_else(|err| panic!("serialize cache key: {err}"));
     assert!(payload.contains("input_fingerprint"));
     assert!(payload.contains("parameters_fingerprint"));
     assert!(payload.contains("tool_version"));
