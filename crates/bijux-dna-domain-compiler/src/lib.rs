@@ -113,6 +113,7 @@ type ToolMap = BTreeMap<String, ToolRow>;
 type StageToolMap = BTreeMap<String, BTreeSet<String>>;
 type StagePlannedMap = BTreeMap<String, Vec<String>>;
 type StageDefaultMap = BTreeMap<String, String>;
+type StageStatusMap = BTreeMap<String, String>;
 
 fn ensure_status(status: &str, path: &Path) -> Result<()> {
     match status {
@@ -294,6 +295,7 @@ fn load_domain_stages(
     active_scope: &str,
     stage_to_tools: &mut StageToolMap,
     stage_planned: &mut StagePlannedMap,
+    stage_statuses: &mut StageStatusMap,
 ) -> Result<()> {
     let stages_dir = domain_dir.join(domain).join("stages");
     for stage_id in &index.stage_ids {
@@ -322,6 +324,7 @@ fn load_domain_stages(
             continue;
         }
         stage_to_tools.entry(stage.stage_id.clone()).or_default();
+        stage_statuses.insert(stage.stage_id.clone(), stage.status.clone());
         stage_planned.insert(stage.stage_id, stage.planned_out_of_scope);
     }
     Ok(())
@@ -330,11 +333,12 @@ fn load_domain_stages(
 fn collect_domain_data(
     domain_dir: &Path,
     active_scope: &str,
-) -> Result<(ToolMap, StageToolMap, StagePlannedMap, StageDefaultMap)> {
+) -> Result<(ToolMap, StageToolMap, StagePlannedMap, StageDefaultMap, StageStatusMap)> {
     let mut tools: ToolMap = BTreeMap::new();
     let mut stage_to_tools: StageToolMap = BTreeMap::new();
     let mut stage_planned: StagePlannedMap = BTreeMap::new();
     let mut stage_defaults: StageDefaultMap = BTreeMap::new();
+    let mut stage_statuses: StageStatusMap = BTreeMap::new();
     for domain in ["fastq", "bam"] {
         let index_path = domain_dir.join(domain).join("index.yaml");
         let index: DomainIndex = read_yaml(&index_path)?;
@@ -354,6 +358,7 @@ fn collect_domain_data(
             active_scope,
             &mut stage_to_tools,
             &mut stage_planned,
+            &mut stage_statuses,
         )?;
         for (stage_id, tool_ids) in &index.stage_tool_compatibility {
             if !stage_to_tools.contains_key(stage_id) {
@@ -391,7 +396,7 @@ fn collect_domain_data(
             }
         }
     }
-    Ok((tools, stage_to_tools, stage_planned, stage_defaults))
+    Ok((tools, stage_to_tools, stage_planned, stage_defaults, stage_statuses))
 }
 
 fn build_tool_registry_toml(
@@ -487,11 +492,19 @@ fn build_images_toml(tools: &ToolMap, source_commit: &str) -> String {
     images_toml
 }
 
-fn build_stages_toml(stage_to_tools: &StageToolMap, source_commit: &str) -> String {
+fn build_stages_toml(
+    stage_to_tools: &StageToolMap,
+    stage_statuses: &StageStatusMap,
+    source_commit: &str,
+) -> String {
     let mut stages_toml = generated_header("domain/**", source_commit);
     for (stage_id, tools_set) in stage_to_tools {
         let _ = writeln!(stages_toml, "[[stages]]");
         let _ = writeln!(stages_toml, "id = \"{stage_id}\"");
+        let status = stage_statuses
+            .get(stage_id)
+            .map_or("supported", std::string::String::as_str);
+        let _ = writeln!(stages_toml, "status = \"{status}\"");
         let mut v = tools_set.iter().cloned().collect::<Vec<_>>();
         v.sort();
         let _ = writeln!(stages_toml, "tools = {}\n", toml_array(&v));
@@ -500,7 +513,7 @@ fn build_stages_toml(stage_to_tools: &StageToolMap, source_commit: &str) -> Stri
 }
 
 pub fn compile_domain_configs(options: &CompileOptions) -> Result<()> {
-    let (tools, stage_to_tools, stage_planned, stage_defaults) =
+    let (tools, stage_to_tools, stage_planned, stage_defaults, stage_statuses) =
         collect_domain_data(&options.domain_dir, &options.scope)?;
     if options.scope == "pre_hpc_pre_vcf" {
         if tools.keys().any(|tool_id| tool_id.starts_with("vcf.")) {
@@ -530,7 +543,7 @@ pub fn compile_domain_configs(options: &CompileOptions) -> Result<()> {
         .with_context(|| format!("write {}", images_path.display()))?;
 
     let stages_path = options.configs_dir.join("stages.toml");
-    let stages_toml = build_stages_toml(&stage_to_tools, &source_commit);
+    let stages_toml = build_stages_toml(&stage_to_tools, &stage_statuses, &source_commit);
     write_string(&stages_path, &stages_toml)
         .with_context(|| format!("write {}", stages_path.display()))?;
 

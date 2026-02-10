@@ -1,120 +1,149 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 34cdcb7df8e26910a4160b2a579361b368ee812a
+# source_commit: 6a575508c824e28c81d829ae29f9af203f3b491c
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 
 [[stages]]
 id = "bam.align"
+status = "supported"
 tools = ["bowtie2", "bwa"]
 
 [[stages]]
 id = "bam.authenticity"
+status = "supported"
 tools = ["authenticct", "damageprofiler", "pmdtools"]
 
 [[stages]]
 id = "bam.bias_mitigation"
+status = "supported"
 tools = []
 
 [[stages]]
 id = "bam.complexity"
+status = "supported"
 tools = ["preseq"]
 
 [[stages]]
 id = "bam.contamination"
+status = "supported"
 tools = ["contammix", "schmutzi", "verifybamid2"]
 
 [[stages]]
 id = "bam.coverage"
+status = "supported"
 tools = ["mosdepth", "samtools"]
 
 [[stages]]
 id = "bam.damage"
+status = "supported"
 tools = ["addeam", "damageprofiler", "mapdamage2", "ngsbriggs", "pmdtools", "pydamage"]
 
 [[stages]]
 id = "bam.filter"
+status = "supported"
 tools = ["bamtools", "bedtools", "samtools"]
 
 [[stages]]
 id = "bam.genotyping"
+status = "supported"
 tools = []
 
 [[stages]]
 id = "bam.haplogroups"
+status = "supported"
 tools = ["yleaf"]
 
 [[stages]]
 id = "bam.kinship"
+status = "supported"
 tools = ["angsd", "king"]
 
 [[stages]]
 id = "bam.markdup"
+status = "supported"
 tools = ["picard"]
 
 [[stages]]
 id = "bam.qc_pre"
+status = "supported"
 tools = []
 
 [[stages]]
 id = "bam.recalibration"
+status = "supported"
 tools = ["gatk"]
 
 [[stages]]
 id = "bam.sex"
+status = "supported"
 tools = ["angsd", "rxy", "yleaf"]
 
 [[stages]]
 id = "bam.validate"
+status = "supported"
 tools = ["bamtools", "bedtools", "samtools"]
 
 [[stages]]
 id = "fastq.correct"
+status = "supported"
 tools = ["bayeshammer", "lighter", "musket", "rcorrector", "spades"]
 
 [[stages]]
 id = "fastq.detect_adapters"
+status = "supported"
 tools = ["fastqc"]
 
 [[stages]]
 id = "fastq.filter"
+status = "supported"
 tools = ["prinseq", "seqkit", "sortmerna"]
 
 [[stages]]
 id = "fastq.merge"
+status = "supported"
 tools = ["bbmerge", "flash2", "leehom", "pear", "vsearch"]
 
 [[stages]]
 id = "fastq.prepare_reference"
+status = "supported"
 tools = ["samtools", "star"]
 
 [[stages]]
 id = "fastq.preprocess"
+status = "supported"
 tools = []
 
 [[stages]]
 id = "fastq.qc_post"
+status = "supported"
 tools = ["multiqc", "qualimap", "samtools"]
 
 [[stages]]
 id = "fastq.rrna"
+status = "supported"
 tools = ["sortmerna"]
 
 [[stages]]
 id = "fastq.screen"
+status = "supported"
 tools = ["bracken", "centrifuge", "fastq_screen", "kaiju", "kraken2", "krakenuniq", "metaphlan"]
 
 [[stages]]
 id = "fastq.stats_neutral"
+status = "supported"
 tools = ["seqfu", "seqkit", "seqkit_stats"]
 
 [[stages]]
 id = "fastq.trim"
+status = "supported"
 tools = ["adapterremoval", "alientrimmer", "atropos", "bbduk", "cutadapt", "fastp", "fastx_clipper", "leehom", "prinseq", "seqkit", "seqpurge", "skewer", "trim_galore", "trimmomatic"]
 
 [[stages]]
 id = "fastq.umi"
+status = "supported"
 tools = ["umi_tools"]
 
 [[stages]]
 id = "fastq.validate_pre"
+status = "supported"
 tools = ["fastq-scan", "fastqc", "fastqvalidator", "fastqvalidator_official", "fqtools", "seqtk"]
 
