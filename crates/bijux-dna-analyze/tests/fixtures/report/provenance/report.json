@@ -436,7 +436,7 @@
       },
       "presets": [
         {
-          "effective_config_path": "/Users/bijan/bijux/bijux-dna/crates/bijux-dna-analyze/tests/fixtures/report/effective_config.json",
+          "effective_config_path": "<WORKSPACE_ROOT>/crates/bijux-dna-analyze/tests/fixtures/report/effective_config.json",
           "params_hash": "params",
           "stage_id": "fastq.trim",
           "tool_id": "fastp",
@@ -655,19 +655,19 @@
   },
   "stages": [
     {
-      "bank_report_path": "/Users/bijan/bijux/bijux-dna/crates/bijux-dna-analyze/tests/fixtures/report/bank_report.json",
-      "effective_config_path": "/Users/bijan/bijux/bijux-dna/crates/bijux-dna-analyze/tests/fixtures/report/effective_config.json",
+      "bank_report_path": "<WORKSPACE_ROOT>/crates/bijux-dna-analyze/tests/fixtures/report/bank_report.json",
+      "effective_config_path": "<WORKSPACE_ROOT>/crates/bijux-dna-analyze/tests/fixtures/report/effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "/Users/bijan/bijux/bijux-dna/crates/bijux-dna-analyze/tests/fixtures/report/metrics.json",
+      "metrics_path": "<WORKSPACE_ROOT>/crates/bijux-dna-analyze/tests/fixtures/report/metrics.json",
       "params_hash": "params",
-      "retention_report_path": "/Users/bijan/bijux/bijux-dna/crates/bijux-dna-analyze/tests/fixtures/report/retention_report.json",
+      "retention_report_path": "<WORKSPACE_ROOT>/crates/bijux-dna-analyze/tests/fixtures/report/retention_report.json",
       "runtime_s": 1.0,
       "stage_id": "fastq.trim",
-      "stage_report_path": "/Users/bijan/bijux/bijux-dna/crates/bijux-dna-analyze/tests/fixtures/report/stage_report.json",
+      "stage_report_path": "<WORKSPACE_ROOT>/crates/bijux-dna-analyze/tests/fixtures/report/stage_report.json",
       "tool_id": "fastp",
-      "tool_invocation_path": "/Users/bijan/bijux/bijux-dna/crates/bijux-dna-analyze/tests/fixtures/report/tool_invocation.json",
+      "tool_invocation_path": "<WORKSPACE_ROOT>/crates/bijux-dna-analyze/tests/fixtures/report/tool_invocation.json",
       "tool_version": "0.23.4"
     }
   ],
@@ -675,7 +675,7 @@
     "error_count": 0,
     "event_count": 0,
     "events": [
-      "/Users/bijan/bijux/bijux-dna/crates/bijux-dna-analyze/tests/fixtures/report/telemetry/events.jsonl"
+      "<WORKSPACE_ROOT>/crates/bijux-dna-analyze/tests/fixtures/report/telemetry/events.jsonl"
     ]
   }
 }
