@@ -4,7 +4,7 @@ use std::path::PathBuf;
 use anyhow::{anyhow, Result};
 use bijux_dna_core::contract::PlanPolicy;
 use bijux_dna_core::contract::{ExecutionEdge, ExecutionGraph};
-use bijux_dna_core::prelude::StepId;
+use bijux_dna_core::prelude::{id_catalog, StepId};
 use bijux_dna_domain_bam::BamStage;
 use bijux_dna_pipelines::bam::{bam_adna_capture_profile, bam_adna_shotgun_profile};
 use bijux_dna_pipelines::PipelineProfile;
@@ -511,7 +511,8 @@ fn enforce_stage_tool_contracts(
         BamStage::Authenticity if tool_id == "pmdtools" => {
             if reference.is_none() {
                 return Err(anyhow!(
-                    "bam.authenticity with pmdtools requires reference input"
+                    "{} with pmdtools requires reference input",
+                    id_catalog::BAM_AUTHENTICITY
                 ));
             }
         }
@@ -535,7 +536,8 @@ fn enforce_stage_tool_contracts(
                     ) =>
                 {
                     return Err(anyhow!(
-                        "bam.contamination tool schmutzi requires scope mito/both"
+                        "{} tool schmutzi requires scope mito/both",
+                        id_catalog::BAM_CONTAMINATION
                     ));
                 }
                 "verifybamid2" | "contammix"
@@ -546,7 +548,8 @@ fn enforce_stage_tool_contracts(
                     ) =>
                 {
                     return Err(anyhow!(
-                        "bam.contamination tool {tool_id} requires scope nuclear/both"
+                        "{} tool {tool_id} requires scope nuclear/both",
+                        id_catalog::BAM_CONTAMINATION
                     ));
                 }
                 _ => {}

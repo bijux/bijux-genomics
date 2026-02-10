@@ -21,47 +21,47 @@ fn fastq_defaults(paired: bool) -> EffectiveDefaults {
     let tools = BTreeMap::from([
         (
             StageId::from_static("fastq.validate_pre"),
-            ToolId::from_static("fastqvalidator_official"),
+            ToolId::from_static(id_catalog::TOOL_FASTQVALIDATOR_OFFICIAL),
         ),
         (
             StageId::from_static("fastq.stats_neutral"),
-            ToolId::from_static("seqkit_stats"),
+            ToolId::from_static(id_catalog::TOOL_SEQKIT_STATS),
         ),
         (
             StageId::from_static("fastq.correct"),
-            ToolId::from_static("rcorrector"),
+            ToolId::from_static(id_catalog::TOOL_RCORRECTOR),
         ),
         (
             StageId::from_static("fastq.umi"),
-            ToolId::from_static("umi_tools"),
+            ToolId::from_static(id_catalog::TOOL_UMI_TOOLS),
         ),
         (
             StageId::from_static("fastq.detect_adapters"),
-            ToolId::from_static("fastqc"),
+            ToolId::from_static(id_catalog::TOOL_FASTQC),
         ),
         (
             StageId::from_static("fastq.trim"),
-            ToolId::from_static("fastp"),
+            ToolId::from_static(id_catalog::TOOL_FASTP),
         ),
         (
             StageId::from_static("fastq.filter"),
-            ToolId::from_static("seqkit"),
+            ToolId::from_static(id_catalog::TOOL_SEQKIT),
         ),
         (
             StageId::from_static("fastq.qc_post"),
-            ToolId::from_static("multiqc"),
+            ToolId::from_static(id_catalog::TOOL_MULTIQC),
         ),
         (
             StageId::from_static("fastq.preprocess"),
-            ToolId::from_static("planner"),
+            ToolId::from_static(id_catalog::TOOL_PLANNER),
         ),
         (
             StageId::from_static("fastq.merge"),
-            ToolId::from_static("vsearch"),
+            ToolId::from_static(id_catalog::TOOL_VSEARCH),
         ),
         (
             StageId::from_static("fastq.screen"),
-            ToolId::from_static("kraken2"),
+            ToolId::from_static(id_catalog::TOOL_KRAKEN2),
         ),
     ]);
     let mut params = BTreeMap::new();

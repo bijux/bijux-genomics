@@ -35,27 +35,27 @@ fn base_defaults() -> (PipelineProfile, PipelineProfile, EffectiveDefaults) {
 pub fn fastq_to_bam_adna_shotgun_profile() -> PipelineProfile {
     let (_fastq_profile, _bam_profile, mut defaults) = base_defaults();
     defaults.tools.insert(
-        StageId::from_static("core.prepare_reference"),
-        ToolId::from_static("samtools"),
+        StageId::from_static(id_catalog::CORE_PREPARE_REFERENCE),
+        ToolId::from_static(id_catalog::TOOL_SAMTOOLS),
     );
     defaults.params.insert(
-        StageId::from_static("core.prepare_reference"),
+        StageId::from_static(id_catalog::CORE_PREPARE_REFERENCE),
         DefaultParams::Json(serde_json::json!({})),
     );
     defaults.rationales.insert(
-        StageId::from_static("core.prepare_reference"),
+        StageId::from_static(id_catalog::CORE_PREPARE_REFERENCE),
         "reference prep uses canonical defaults for cross-domain alignment".to_string(),
     );
     defaults.params.insert(
-        StageId::from_static("bam.align"),
+        StageId::from_static(id_catalog::BAM_ALIGN),
         DefaultParams::Json(adna_shotgun_params_json(BamStage::Align)),
     );
     defaults.tools.insert(
-        StageId::from_static("bam.align"),
-        ToolId::from_static("bwa"),
+        StageId::from_static(id_catalog::BAM_ALIGN),
+        ToolId::from_static(id_catalog::TOOL_BWA),
     );
     defaults.rationales.insert(
-        StageId::from_static("bam.align"),
+        StageId::from_static(id_catalog::BAM_ALIGN),
         "aDNA default alignment preset".to_string(),
     );
 
@@ -102,27 +102,27 @@ pub fn fastq_to_bam_adna_shotgun_profile() -> PipelineProfile {
 pub fn fastq_to_bam_default_profile() -> PipelineProfile {
     let (_fastq_profile, _bam_profile, mut defaults) = base_defaults();
     defaults.tools.insert(
-        StageId::from_static("core.prepare_reference"),
-        ToolId::from_static("samtools"),
+        StageId::from_static(id_catalog::CORE_PREPARE_REFERENCE),
+        ToolId::from_static(id_catalog::TOOL_SAMTOOLS),
     );
     defaults.params.insert(
-        StageId::from_static("core.prepare_reference"),
+        StageId::from_static(id_catalog::CORE_PREPARE_REFERENCE),
         DefaultParams::Json(serde_json::json!({})),
     );
     defaults.rationales.insert(
-        StageId::from_static("core.prepare_reference"),
+        StageId::from_static(id_catalog::CORE_PREPARE_REFERENCE),
         "reference prep uses canonical defaults for cross-domain alignment".to_string(),
     );
     defaults.params.insert(
-        StageId::from_static("bam.align"),
+        StageId::from_static(id_catalog::BAM_ALIGN),
         DefaultParams::Json(default_params_json(BamStage::Align)),
     );
     defaults.tools.insert(
-        StageId::from_static("bam.align"),
-        ToolId::from_static("bwa"),
+        StageId::from_static(id_catalog::BAM_ALIGN),
+        ToolId::from_static(id_catalog::TOOL_BWA),
     );
     defaults.rationales.insert(
-        StageId::from_static("bam.align"),
+        StageId::from_static(id_catalog::BAM_ALIGN),
         "modern default alignment preset".to_string(),
     );
 
