@@ -17,4 +17,5 @@ help_cmd: "seqprep --help"
 comparability:
   comparable_with: ["pear","flash2","leehom"]
   non_comparable_with: []
+comparability_notes: "Comparable only within same stage contract and input constraints."
 notes: "Domain SSOT tool contract entry."

@@ -17,3 +17,4 @@ help_cmd: "star --help"
 comparability:
   comparable_with: ["bowtie2", "bwa"]
   non_comparable_with: []
+comparability_notes: "Comparable only within same stage contract and input constraints."

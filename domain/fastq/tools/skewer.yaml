@@ -17,4 +17,5 @@ help_cmd: "skewer --help"
 comparability:
   comparable_with: ["cutadapt","fastp","trimmomatic"]
   non_comparable_with: []
+comparability_notes: "Comparable only within same stage contract and input constraints."
 notes: "Domain SSOT tool contract entry."

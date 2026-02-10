@@ -17,4 +17,5 @@ help_cmd: "fastx_clipper --help"
 comparability:
   comparable_with: ["cutadapt","fastp"]
   non_comparable_with: []
+comparability_notes: "Comparable only within same stage contract and input constraints."
 notes: "Domain SSOT tool contract entry."

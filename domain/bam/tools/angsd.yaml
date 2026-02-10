@@ -17,6 +17,7 @@ help_cmd: "angsd --help"
 comparability:
   comparable_with: ["rxy","king"]
   non_comparable_with: []
+comparability_notes: "Comparable only within same stage contract and input constraints."
 capabilities:
   - bam_input
 io_contract:

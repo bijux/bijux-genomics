@@ -17,6 +17,7 @@ help_cmd: "bamtools --help"
 comparability:
   comparable_with: ["bedtools","samtools"]
   non_comparable_with: []
+comparability_notes: "Comparable only within same stage contract and input constraints."
 capabilities:
   - bam_input
 io_contract:

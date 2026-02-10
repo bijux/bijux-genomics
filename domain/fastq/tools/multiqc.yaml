@@ -53,3 +53,4 @@ help_cmd: "multiqc --help"
 comparability:
   comparable_with: []
   non_comparable_with: []
+comparability_notes: "Comparable only within same stage contract and input constraints."
