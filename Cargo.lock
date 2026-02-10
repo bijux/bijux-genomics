@@ -626,6 +626,7 @@ dependencies = [
  "bijux-dna-core",
  "bijux-dna-infra",
  "bijux-dna-policies",
+ "bijux-dna-testkit",
  "chrono",
  "opentelemetry",
  "serde",
@@ -695,6 +696,7 @@ dependencies = [
  "bijux-dna-policies",
  "serde",
  "serde_json",
+ "tempfile",
 ]
 
 [[package]]
