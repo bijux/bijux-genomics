@@ -35,10 +35,18 @@ pub use selection::args;
 pub mod stage_api;
 
 fn required_id_catalog() -> Vec<String> {
-    let mut stages: Vec<String> = canonical_stage_order()
+    let mut stages = bijux_dna_pipelines::fastq::fastq_default_profile()
+        .capabilities
+        .required_stages
+        .iter()
+        .map(|stage| (*stage).to_string())
+        .collect::<Vec<_>>();
+    stages.retain(|stage| stage.starts_with("fastq."));
+    let canonical = canonical_stage_order()
         .into_iter()
         .map(|stage| stage.as_str().to_string())
-        .collect();
+        .collect::<Vec<_>>();
+    stages.retain(|stage| canonical.contains(stage));
     if !stages.iter().any(|stage| stage == STAGE_QC_POST.as_str()) {
         stages.push(STAGE_QC_POST.as_str().to_string());
     }
@@ -386,6 +394,7 @@ pub struct FastqPlanConfig {
     pub r2: Option<PathBuf>,
     pub out_dir: PathBuf,
     pub tool_reasons: Option<Vec<PlanDecisionReason>>,
+    pub allow_planned: bool,
 }
 
 pub struct FastqPlanner;
@@ -400,6 +409,9 @@ impl FastqPlanner {
                 config.stages.len(),
                 config.tools.len()
             ));
+        }
+        for stage in &config.stages {
+            enforce_stage_status(stage, config.allow_planned)?;
         }
         let out_dir = config.out_dir.clone();
         let plans = compose_fastq_pipeline_steps(
@@ -448,6 +460,36 @@ impl FastqPlanner {
     }
 }
 
+fn stage_status(stage_id: &str) -> Option<String> {
+    let cwd = std::env::current_dir().ok()?;
+    let path = cwd.join("configs").join("stages.toml");
+    let raw = std::fs::read_to_string(path).ok()?;
+    let parsed = raw.parse::<toml::Value>().ok()?;
+    let entries = parsed.get("stages")?.as_array()?;
+    entries.iter().find_map(|entry| {
+        let id = entry.get("id").and_then(toml::Value::as_str)?;
+        if id == stage_id {
+            entry
+                .get("status")
+                .and_then(toml::Value::as_str)
+                .map(std::string::ToString::to_string)
+        } else {
+            None
+        }
+    })
+}
+
+fn enforce_stage_status(stage_id: &str, allow_planned: bool) -> Result<()> {
+    match stage_status(stage_id).as_deref() {
+        Some("supported") | None => Ok(()),
+        Some("planned") | Some("out_of_scope") if allow_planned => Ok(()),
+        Some("planned") | Some("out_of_scope") => Err(anyhow!(
+            "stage {stage_id} is not active in current scope; re-run with --allow-planned to override"
+        )),
+        Some(other) => Err(anyhow!("stage {stage_id} has unknown status {other}")),
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct FastqPipelineInputs {
     pub policy: PlanPolicy,
@@ -485,6 +527,7 @@ pub fn plan_fastq_to_fastq__default__v1(
         r2: inputs.r2.clone(),
         out_dir: inputs.out_dir.clone(),
         tool_reasons: inputs.tool_reasons.clone(),
+        allow_planned: false,
     };
     FastqPlanner::plan(&config)
 }
@@ -905,10 +948,18 @@ pub fn apply_tool_overrides(
 
 #[must_use]
 pub fn fastq_pipeline_id_catalog(profile_id: &str) -> Vec<String> {
-    match profile_id {
-        "fastq-to-fastq__default__v1" | "fastq-to-fastq__minimal__v1" => required_id_catalog(),
-        _ => required_id_catalog(),
+    if let Ok(profile) =
+        bijux_dna_pipelines::registry::profile_by_id(bijux_dna_pipelines::Domain::Fastq, profile_id)
+    {
+        return profile
+            .capabilities
+            .required_stages
+            .iter()
+            .filter(|stage| stage.starts_with("fastq."))
+            .map(|stage| (*stage).to_string())
+            .collect();
     }
+    required_id_catalog()
 }
 
 #[cfg(test)]

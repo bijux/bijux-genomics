@@ -164,6 +164,7 @@ fn bam_run_args_to_api(args: &BamRunArgs) -> bijux_dna_api::v1::api::bench::BamR
             .as_ref()
             .map(|path| path.display().to_string()),
         dry_run: args.dry_run,
+        allow_planned: args.allow_planned,
     }
 }
 

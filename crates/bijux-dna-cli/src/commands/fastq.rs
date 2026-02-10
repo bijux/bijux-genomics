@@ -555,6 +555,7 @@ fn bench_bam_stage_args_to_api(
         replicates: args.replicates,
         jobs: args.jobs,
         dry_run: args.dry_run,
+        allow_planned: args.allow_planned,
     }
 }
 
@@ -573,5 +574,6 @@ fn bench_bam_pipeline_args_to_api(
         replicates: args.replicates,
         jobs: args.jobs,
         dry_run: args.dry_run,
+        allow_planned: args.allow_planned,
     }
 }

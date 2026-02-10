@@ -32,6 +32,7 @@ fn base_bam_args(
         out,
         tool: None,
         dry_run: false,
+        allow_planned: false,
         bai,
         reference,
         regions: None,

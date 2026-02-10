@@ -73,6 +73,7 @@ fn fastq_plan_snapshot() {
         r2: None,
         out_dir: PathBuf::from("out"),
         tool_reasons: None,
+        allow_planned: false,
     };
     let plan = FastqPlanner::plan(&config).expect("plan");
     let name = snapshot_name("contracts", "fastq_plan_snapshot");

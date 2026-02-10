@@ -456,6 +456,7 @@ fn explain_fastq_stage(
             no_qc_post: false,
             force_merge: false,
             enable_correct: false,
+            allow_planned: false,
         };
         let pipeline_id = args
             .profile
