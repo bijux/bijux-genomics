@@ -117,3 +117,33 @@ stage_default_settings:
   bam.kinship:
     king: { profile: "adna_sane_default", notes: "kinship baseline preset" }
     angsd: { profile: "adna_sane_default", notes: "likelihood-based kinship preset" }
+stage_comparability_mapping:
+  bam.align: ["alignment_rate", "mapped_reads"]
+  bam.validate: ["bam_validation_pass_rate"]
+  bam.filter: ["reads_retained_fraction", "mean_mapq_post_filter"]
+  bam.coverage: ["mean_coverage", "breadth_1x", "breadth_5x"]
+  bam.damage: ["ct_5prime_rate", "ga_3prime_rate", "pmd_score_distribution"]
+  bam.authenticity: ["authenticity_score", "pmd_enriched_fraction"]
+  bam.contamination: ["contamination_estimate", "contamination_ci_width"]
+  bam.sex: ["x_y_coverage_ratio", "sex_call_confidence"]
+  bam.kinship: ["kinship_coefficient", "relationship_class"]
+stage_min_quality_gates:
+  bam.align: ["alignment_rate>=0.0"]
+  bam.validate: ["validation_pass=true"]
+  bam.filter: ["reads_retained_fraction>=0.0"]
+  bam.coverage: ["mean_coverage>=0.0"]
+  bam.damage: ["damage_profile_present=true"]
+  bam.authenticity: ["authenticity_score>=0.0"]
+  bam.contamination: ["contamination_estimate>=0.0", "contamination_estimate<=1.0"]
+  bam.sex: ["sex_call_confidence>=0.0"]
+  bam.kinship: ["kinship_coefficient>=-0.5", "kinship_coefficient<=1.0"]
+stage_failure_diagnosis_hints:
+  bam.align: ["check reference index availability and read-group consistency"]
+  bam.validate: ["inspect BAM headers, sort order, and index presence"]
+  bam.filter: ["review MAPQ/length/region thresholds for over-filtering"]
+  bam.coverage: ["verify reference naming consistency and depth inputs"]
+  bam.damage: ["check PMD/damage parameterization and read-end clipping assumptions"]
+  bam.authenticity: ["verify PMD threshold and deamination model assumptions"]
+  bam.contamination: ["ensure required mt/panel references and contamination model inputs"]
+  bam.sex: ["check chrX/chrY naming conventions and coverage sparsity"]
+  bam.kinship: ["verify sample pairing metadata and allele-frequency prerequisites"]
