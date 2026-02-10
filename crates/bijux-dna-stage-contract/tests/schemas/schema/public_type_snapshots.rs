@@ -149,6 +149,13 @@ fn run_execution_plan_snapshot() {
         run_dir: "runs/run-1".into(),
         logs_dir: "runs/run-1/logs".into(),
         artifacts_dir: "runs/run-1/artifacts".into(),
+        planned_artifacts: vec![bijux_dna_stage_contract::PlannedArtifactV1 {
+            artifact_id: "trimmed_r1".to_string(),
+            role: "trimmed_reads".to_string(),
+            path: "trimmed.fastq.gz".to_string(),
+            kind: "fastq".to_string(),
+            schema: "bijux.artifact.fastq.v1".to_string(),
+        }],
         stage: plan,
         tool: bijux_dna_core::contract::ToolExecutionSpecV1 {
             tool_id: bijux_dna_core::ids::ToolId::new("fastp"),
