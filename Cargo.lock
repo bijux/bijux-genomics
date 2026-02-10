@@ -404,6 +404,7 @@ dependencies = [
  "bijux-dna-policies",
  "clap",
  "serde",
+ "serde_json",
  "sha2",
  "tempfile",
 ]

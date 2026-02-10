@@ -306,6 +306,34 @@ fn scope_active(entry_scope: &str, active_scope: &str) -> bool {
     entry_scope == active_scope
 }
 
+fn is_tool_meaningful_in_domain(domain: &str, tool_id: &str) -> bool {
+    // Keep obviously cross-domain tools out of authored domain inventories.
+    const FASTQ_FORBIDDEN: &[&str] = &[
+        "bcftools",
+        "picard",
+        "gatk",
+        "preseq",
+        "schmutzi",
+        "verifybamid2",
+        "contammix",
+    ];
+    const BAM_FORBIDDEN: &[&str] = &[
+        "cutadapt",
+        "fastp",
+        "trimmomatic",
+        "adapterremoval",
+        "fastqc",
+        "kraken2",
+        "bracken",
+        "krakenuniq",
+    ];
+    match domain {
+        "fastq" => !FASTQ_FORBIDDEN.contains(&tool_id),
+        "bam" => !BAM_FORBIDDEN.contains(&tool_id),
+        _ => true,
+    }
+}
+
 fn read_yaml<T: for<'de> Deserialize<'de>>(path: &Path) -> Result<T> {
     let raw = std::fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
     bijux_dna_infra::formats::parse_yaml(&raw).with_context(|| format!("parse {}", path.display()))
@@ -747,19 +775,21 @@ fn collect_domain_data(
                     "index stage_default_settings for {stage_id} missing default tool {default_tool}"
                 ));
             }
-            let comparability = index
-                .stage_comparability_mapping
-                .get(stage_id)
-                .ok_or_else(|| anyhow!("index missing stage_comparability_mapping for stage {stage_id}"))?;
+            let comparability =
+                index
+                    .stage_comparability_mapping
+                    .get(stage_id)
+                    .ok_or_else(|| {
+                        anyhow!("index missing stage_comparability_mapping for stage {stage_id}")
+                    })?;
             if comparability.is_empty() {
                 return Err(anyhow!(
                     "index stage_comparability_mapping for {stage_id} must not be empty"
                 ));
             }
-            let quality_gates = index
-                .stage_min_quality_gates
-                .get(stage_id)
-                .ok_or_else(|| anyhow!("index missing stage_min_quality_gates for stage {stage_id}"))?;
+            let quality_gates = index.stage_min_quality_gates.get(stage_id).ok_or_else(|| {
+                anyhow!("index missing stage_min_quality_gates for stage {stage_id}")
+            })?;
             if quality_gates.is_empty() {
                 return Err(anyhow!(
                     "index stage_min_quality_gates for {stage_id} must not be empty"
@@ -779,7 +809,9 @@ fn collect_domain_data(
             let ordering = index
                 .stage_ordering_constraints
                 .get(stage_id)
-                .ok_or_else(|| anyhow!("index missing stage_ordering_constraints for stage {stage_id}"))?;
+                .ok_or_else(|| {
+                    anyhow!("index missing stage_ordering_constraints for stage {stage_id}")
+                })?;
             if ordering.iter().any(|s| s.trim().is_empty()) {
                 return Err(anyhow!(
                     "index stage_ordering_constraints for {stage_id} contains empty stage id"
@@ -794,10 +826,9 @@ fn collect_domain_data(
                     "index stage_prerequisites for {stage_id} contains empty prerequisite"
                 ));
             }
-            let resources = index
-                .stage_resource_hints
-                .get(stage_id)
-                .ok_or_else(|| anyhow!("index missing stage_resource_hints for stage {stage_id}"))?;
+            let resources = index.stage_resource_hints.get(stage_id).ok_or_else(|| {
+                anyhow!("index missing stage_resource_hints for stage {stage_id}")
+            })?;
             if resources.memory_gb <= 0.0 || resources.time_minutes == 0 || resources.threads == 0 {
                 return Err(anyhow!(
                     "index stage_resource_hints for {stage_id} must define positive memory_gb/time_minutes/threads"
@@ -806,7 +837,9 @@ fn collect_domain_data(
             let size_estimates = index
                 .stage_output_size_estimates_mb
                 .get(stage_id)
-                .ok_or_else(|| anyhow!("index missing stage_output_size_estimates_mb for stage {stage_id}"))?;
+                .ok_or_else(|| {
+                    anyhow!("index missing stage_output_size_estimates_mb for stage {stage_id}")
+                })?;
             if size_estimates.is_empty() {
                 return Err(anyhow!(
                     "index stage_output_size_estimates_mb for {stage_id} must not be empty"
@@ -817,10 +850,9 @@ fn collect_domain_data(
                     "index stage_output_size_estimates_mb for {stage_id} contains negative estimate"
                 ));
             }
-            let sanity = index
-                .stage_sanity_metrics
-                .get(stage_id)
-                .ok_or_else(|| anyhow!("index missing stage_sanity_metrics for stage {stage_id}"))?;
+            let sanity = index.stage_sanity_metrics.get(stage_id).ok_or_else(|| {
+                anyhow!("index missing stage_sanity_metrics for stage {stage_id}")
+            })?;
             if sanity.is_empty() {
                 return Err(anyhow!(
                     "index stage_sanity_metrics for {stage_id} must not be empty"
@@ -831,7 +863,9 @@ fn collect_domain_data(
                 .get(stage_id)
                 .ok_or_else(|| anyhow!("index missing stage_qc_thresholds for stage {stage_id}"))?;
             if qc.is_empty()
-                || qc.values().any(|band| band.warn.trim().is_empty() || band.fail.trim().is_empty())
+                || qc
+                    .values()
+                    .any(|band| band.warn.trim().is_empty() || band.fail.trim().is_empty())
             {
                 return Err(anyhow!(
                     "index stage_qc_thresholds for {stage_id} must contain non-empty warn/fail bands"
@@ -840,7 +874,9 @@ fn collect_domain_data(
             let contam = index
                 .stage_contamination_thresholds
                 .get(stage_id)
-                .ok_or_else(|| anyhow!("index missing stage_contamination_thresholds for stage {stage_id}"))?;
+                .ok_or_else(|| {
+                    anyhow!("index missing stage_contamination_thresholds for stage {stage_id}")
+                })?;
             if contam.is_empty()
                 || contam
                     .values()
@@ -853,7 +889,9 @@ fn collect_domain_data(
             let authenticity = index
                 .stage_authenticity_thresholds
                 .get(stage_id)
-                .ok_or_else(|| anyhow!("index missing stage_authenticity_thresholds for stage {stage_id}"))?;
+                .ok_or_else(|| {
+                    anyhow!("index missing stage_authenticity_thresholds for stage {stage_id}")
+                })?;
             if authenticity.is_empty()
                 || authenticity
                     .values()
@@ -866,7 +904,9 @@ fn collect_domain_data(
             let duplication = index
                 .stage_duplication_thresholds
                 .get(stage_id)
-                .ok_or_else(|| anyhow!("index missing stage_duplication_thresholds for stage {stage_id}"))?;
+                .ok_or_else(|| {
+                    anyhow!("index missing stage_duplication_thresholds for stage {stage_id}")
+                })?;
             if duplication.is_empty()
                 || duplication
                     .values()
@@ -876,10 +916,13 @@ fn collect_domain_data(
                     "index stage_duplication_thresholds for {stage_id} must contain non-empty warn/fail bands"
                 ));
             }
-            let coverage_logic = index
-                .stage_coverage_sufficiency
-                .get(stage_id)
-                .ok_or_else(|| anyhow!("index missing stage_coverage_sufficiency for stage {stage_id}"))?;
+            let coverage_logic =
+                index
+                    .stage_coverage_sufficiency
+                    .get(stage_id)
+                    .ok_or_else(|| {
+                        anyhow!("index missing stage_coverage_sufficiency for stage {stage_id}")
+                    })?;
             if coverage_logic.is_empty() {
                 return Err(anyhow!(
                     "index stage_coverage_sufficiency for {stage_id} must not be empty"
@@ -888,7 +931,9 @@ fn collect_domain_data(
             let sex_kinship_logic = index
                 .stage_sex_kinship_sufficiency
                 .get(stage_id)
-                .ok_or_else(|| anyhow!("index missing stage_sex_kinship_sufficiency for stage {stage_id}"))?;
+                .ok_or_else(|| {
+                    anyhow!("index missing stage_sex_kinship_sufficiency for stage {stage_id}")
+                })?;
             if sex_kinship_logic.is_empty() {
                 return Err(anyhow!(
                     "index stage_sex_kinship_sufficiency for {stage_id} must not be empty"
@@ -1124,7 +1169,8 @@ fn build_stages_toml(
     let mut qc_thresholds_map = BTreeMap::<String, BTreeMap<String, ThresholdBand>>::new();
     let mut contamination_thresholds_map =
         BTreeMap::<String, BTreeMap<String, ThresholdBand>>::new();
-    let mut authenticity_thresholds_map = BTreeMap::<String, BTreeMap<String, ThresholdBand>>::new();
+    let mut authenticity_thresholds_map =
+        BTreeMap::<String, BTreeMap<String, ThresholdBand>>::new();
     let mut duplication_thresholds_map = BTreeMap::<String, BTreeMap<String, ThresholdBand>>::new();
     let mut coverage_sufficiency_map = BTreeMap::<String, Vec<String>>::new();
     let mut sex_kinship_sufficiency_map = BTreeMap::<String, Vec<String>>::new();
@@ -1204,7 +1250,11 @@ fn build_stages_toml(
         );
         if let Some(resources) = resource_map.get(stage_id) {
             let _ = writeln!(stages_toml, "resource_memory_gb = {}", resources.memory_gb);
-            let _ = writeln!(stages_toml, "resource_time_minutes = {}", resources.time_minutes);
+            let _ = writeln!(
+                stages_toml,
+                "resource_time_minutes = {}",
+                resources.time_minutes
+            );
             let _ = writeln!(stages_toml, "resource_threads = {}", resources.threads);
         }
         if let Some(sanity) = sanity_map.get(stage_id) {
@@ -1218,11 +1268,7 @@ fn build_stages_toml(
             );
         }
         if let Some(qc) = qc_thresholds_map.get(stage_id) {
-            let _ = writeln!(
-                stages_toml,
-                "qc_thresholds = {}",
-                encode_threshold_map(qc)
-            );
+            let _ = writeln!(stages_toml, "qc_thresholds = {}", encode_threshold_map(qc));
         }
         if let Some(contam) = contamination_thresholds_map.get(stage_id) {
             let _ = writeln!(
@@ -1387,8 +1433,14 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
         require_exists(&options.domain_dir.join(rel))?;
     }
     let workspace_root = options.domain_dir.parent().unwrap_or(&options.domain_dir);
-    let adapter_bank_path = workspace_root.join("assets").join("adapters").join("bank.v1.yaml");
-    let reference_bank_path = workspace_root.join("assets").join("references").join("bank.v1.yaml");
+    let adapter_bank_path = workspace_root
+        .join("assets")
+        .join("adapters")
+        .join("bank.v1.yaml");
+    let reference_bank_path = workspace_root
+        .join("assets")
+        .join("references")
+        .join("bank.v1.yaml");
     let contamination_db_bank_path = workspace_root
         .join("assets")
         .join("contaminants")
@@ -1401,10 +1453,16 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
         || adapter_bank.bank_id.trim().is_empty()
         || adapter_bank.adapters.is_empty()
     {
-        bail!("{} missing required adapter bank fields", adapter_bank_path.display());
+        bail!(
+            "{} missing required adapter bank fields",
+            adapter_bank_path.display()
+        );
     }
     if adapter_bank.version.trim().is_empty() {
-        bail!("{} missing adapter bank version", adapter_bank_path.display());
+        bail!(
+            "{} missing adapter bank version",
+            adapter_bank_path.display()
+        );
     }
     for entry in &adapter_bank.adapters {
         if entry.id.trim().is_empty()
@@ -1659,6 +1717,15 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                 if dom != "vcf" && stage.scope != "pre_hpc_pre_vcf" {
                     bail!("{} invalid stage scope {}", path.display(), stage.scope);
                 }
+                if dom != "vcf" && stage.domain != dom {
+                    bail!(
+                        "{} stage {} declares domain {} but is filed under domain/{}",
+                        path.display(),
+                        stage.stage_id,
+                        stage.domain,
+                        dom
+                    );
+                }
                 if dom != "vcf" && !stage.stage_id.starts_with(&format!("{}.", stage.domain)) {
                     bail!(
                         "{} stage_id {} must be namespaced by domain {}",
@@ -1710,6 +1777,14 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                 }
                 if tool.default_version.trim() == "0.0.0" {
                     bail!("{} default_version=0.0.0 is forbidden", path.display());
+                }
+                if !is_tool_meaningful_in_domain(dom, &tool.tool_id) {
+                    bail!(
+                        "{} tool_id {} is not meaningful in {} domain",
+                        path.display(),
+                        tool.tool_id,
+                        dom
+                    );
                 }
                 if dom != "vcf"
                     && (tool.stage_ids.is_empty()
@@ -2020,16 +2095,17 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                     stage_id
                 );
             }
-            let comparability = index
-                .stage_comparability_mapping
-                .get(stage_id)
-                .ok_or_else(|| {
-                    anyhow!(
-                        "{} stage {} missing stage_comparability_mapping entry",
-                        index_path.display(),
-                        stage_id
-                    )
-                })?;
+            let comparability =
+                index
+                    .stage_comparability_mapping
+                    .get(stage_id)
+                    .ok_or_else(|| {
+                        anyhow!(
+                            "{} stage {} missing stage_comparability_mapping entry",
+                            index_path.display(),
+                            stage_id
+                        )
+                    })?;
             if comparability.is_empty() {
                 bail!(
                     "{} stage {} has empty stage_comparability_mapping",
@@ -2155,7 +2231,9 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                 )
             })?;
             if qc.is_empty()
-                || qc.values().any(|band| band.warn.trim().is_empty() || band.fail.trim().is_empty())
+                || qc
+                    .values()
+                    .any(|band| band.warn.trim().is_empty() || band.fail.trim().is_empty())
             {
                 bail!(
                     "{} stage {} has invalid stage_qc_thresholds bands",
@@ -2226,16 +2304,17 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                     stage_id
                 );
             }
-            let coverage_logic = index
-                .stage_coverage_sufficiency
-                .get(stage_id)
-                .ok_or_else(|| {
-                    anyhow!(
-                        "{} stage {} missing stage_coverage_sufficiency entry",
-                        index_path.display(),
-                        stage_id
-                    )
-                })?;
+            let coverage_logic =
+                index
+                    .stage_coverage_sufficiency
+                    .get(stage_id)
+                    .ok_or_else(|| {
+                        anyhow!(
+                            "{} stage {} missing stage_coverage_sufficiency entry",
+                            index_path.display(),
+                            stage_id
+                        )
+                    })?;
             if coverage_logic.is_empty() {
                 bail!(
                     "{} stage {} has empty stage_coverage_sufficiency",
@@ -2260,16 +2339,13 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                     stage_id
                 );
             }
-            let settings_map = index
-                .stage_default_settings
-                .get(stage_id)
-                .ok_or_else(|| {
-                    anyhow!(
-                        "{} stage {} missing stage_default_settings entry",
-                        index_path.display(),
-                        stage_id
-                    )
-                })?;
+            let settings_map = index.stage_default_settings.get(stage_id).ok_or_else(|| {
+                anyhow!(
+                    "{} stage {} missing stage_default_settings entry",
+                    index_path.display(),
+                    stage_id
+                )
+            })?;
             let stage_suffix = stage_id
                 .split_once('.')
                 .map_or(stage_id.as_str(), |(_, rhs)| rhs);
@@ -2333,7 +2409,9 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                     );
                 }
                 if stage.status == "supported"
-                    && tool_statuses.get(tool).is_some_and(|status| status == "supported")
+                    && tool_statuses
+                        .get(tool)
+                        .is_some_and(|status| status == "supported")
                 {
                     supported_tools_for_stage += 1;
                     supported_tool_fixture_seen.insert(tool.clone());
@@ -2395,7 +2473,10 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
             .get("pre_hpc_best")
             .ok_or_else(|| anyhow!("{} missing pre_hpc_best pipeline", index_path.display()))?;
         if pre_hpc.is_empty() {
-            bail!("{} pre_hpc_best pipeline cannot be empty", index_path.display());
+            bail!(
+                "{} pre_hpc_best pipeline cannot be empty",
+                index_path.display()
+            );
         }
         let pre_hpc_pos = pre_hpc
             .iter()
@@ -2576,6 +2657,122 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
 
     println!("domain-validate: OK");
     Ok(())
+}
+
+/// # Errors
+/// Returns an error if domain indexes/tools/stages cannot be parsed.
+pub fn domain_coverage_report(domain_dir: &Path) -> Result<serde_json::Value> {
+    let mut by_domain = BTreeMap::new();
+    for dom in ["fastq", "bam"] {
+        let index_path = domain_dir.join(dom).join("index.yaml");
+        let index: DomainIndex = read_yaml(&index_path)?;
+
+        let mut supported_stages_with_defaults = BTreeMap::new();
+        let mut supported_tools_with_stage_mappings = BTreeMap::new();
+
+        for stage_id in &index.stage_ids {
+            let suffix = stage_id
+                .split_once('.')
+                .map_or(stage_id.as_str(), |(_, rhs)| rhs)
+                .replace('.', "_");
+            let stage_path = domain_dir
+                .join(dom)
+                .join("stages")
+                .join(format!("{suffix}.yaml"));
+            let stage: DomainStage = read_yaml(&stage_path)?;
+            if stage.status != "supported" {
+                continue;
+            }
+            let default_tool = index.active_defaults.get(stage_id).cloned();
+            supported_stages_with_defaults.insert(
+                stage_id.clone(),
+                serde_json::json!({
+                    "default_tool": default_tool,
+                    "has_default": default_tool.is_some(),
+                }),
+            );
+        }
+
+        let tool_dir = domain_dir.join(dom).join("tools");
+        let mut tool_path_by_id: BTreeMap<String, PathBuf> = BTreeMap::new();
+        for entry in
+            std::fs::read_dir(&tool_dir).with_context(|| format!("read {}", tool_dir.display()))?
+        {
+            let path = entry?.path();
+            if path.extension().and_then(|v| v.to_str()) != Some("yaml")
+                || path.file_name().and_then(|v| v.to_str()) == Some("_schema.yaml")
+            {
+                continue;
+            }
+            let tool: DomainToolLoose = read_yaml(&path)?;
+            if !tool.tool_id.is_empty() {
+                tool_path_by_id.insert(tool.tool_id, path);
+            }
+        }
+        for other_dom in ["fastq", "bam"] {
+            if other_dom == dom {
+                continue;
+            }
+            let other_tool_dir = domain_dir.join(other_dom).join("tools");
+            if !other_tool_dir.exists() {
+                continue;
+            }
+            for entry in std::fs::read_dir(&other_tool_dir)
+                .with_context(|| format!("read {}", other_tool_dir.display()))?
+            {
+                let path = entry?.path();
+                if path.extension().and_then(|v| v.to_str()) != Some("yaml")
+                    || path.file_name().and_then(|v| v.to_str()) == Some("_schema.yaml")
+                {
+                    continue;
+                }
+                let tool: DomainToolLoose = read_yaml(&path)?;
+                if !tool.tool_id.is_empty() {
+                    tool_path_by_id.entry(tool.tool_id).or_insert(path);
+                }
+            }
+        }
+
+        for tool_id in &index.tool_ids {
+            let tool_path = tool_path_by_id
+                .get(tool_id)
+                .ok_or_else(|| anyhow!("missing tool file for {}", tool_id))?;
+            let tool: DomainToolLoose = read_yaml(tool_path)?;
+            if tool.status != "supported" {
+                continue;
+            }
+            let mut stage_mappings = index
+                .stage_tool_compatibility
+                .iter()
+                .filter_map(|(stage_id, tools)| {
+                    if tools.iter().any(|tool| tool == tool_id) {
+                        Some(stage_id.clone())
+                    } else {
+                        None
+                    }
+                })
+                .collect::<Vec<_>>();
+            stage_mappings.sort();
+            supported_tools_with_stage_mappings.insert(
+                tool_id.clone(),
+                serde_json::json!({
+                    "stage_mappings": stage_mappings,
+                    "mapping_count": stage_mappings.len(),
+                }),
+            );
+        }
+
+        by_domain.insert(
+            dom.to_string(),
+            serde_json::json!({
+                "supported_stage_count": supported_stages_with_defaults.len(),
+                "supported_tool_count": supported_tools_with_stage_mappings.len(),
+                "supported_stages_with_defaults": supported_stages_with_defaults,
+                "supported_tools_with_stage_mappings": supported_tools_with_stage_mappings,
+            }),
+        );
+    }
+    Ok(serde_json::json!({ "domain_coverage": by_domain }))
 }
 
 #[cfg(test)]

@@ -46,3 +46,44 @@ fn policy__contracts__planner_tool_id_policy__selection_registries_use_toolid_no
         offenders.join("\n")
     );
 }
+
+#[test]
+fn policy__contracts__planner_tool_id_policy__planners_ban_silent_contract_fallbacks() {
+    let root = support::workspace_root();
+    let planner_files = [
+        "crates/bijux-dna-planner-fastq/src/lib.rs",
+        "crates/bijux-dna-planner-bam/src/lib.rs",
+        "crates/bijux-dna-planner-bam/src/stages/stage_catalog.rs",
+    ];
+    let mut offenders = Vec::new();
+    let fallback_on_contract = Regex::new(
+        r"contract_for_stage\s*\([^)]*\)\s*\.\s*(unwrap_or|unwrap_or_else|map_or|map_or_else)\s*\(",
+    )
+    .expect("compile contract-fallback regex");
+
+    for rel in planner_files {
+        let path = root.join(rel);
+        let content = std::fs::read_to_string(&path).expect("read planner source");
+        if fallback_on_contract.is_match(&content) {
+            offenders.push(format!(
+                "{}: planner contract lookup must hard-fail; fallback helper chained on contract_for_stage is banned",
+                path.display()
+            ));
+        }
+        if content.contains("missing")
+            && content.contains("contract")
+            && (content.contains("fallback") || content.contains("default"))
+        {
+            offenders.push(format!(
+                "{}: planner contains fallback/default wording around missing contracts",
+                path.display()
+            ));
+        }
+    }
+
+    assert!(
+        offenders.is_empty(),
+        "planner contract-fallback policy violations:\n{}",
+        offenders.join("\n")
+    );
+}
