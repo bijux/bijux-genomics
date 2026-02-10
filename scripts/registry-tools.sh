@@ -11,6 +11,29 @@ fi
 
 cmd="${1:-}"
 case "$cmd" in
+  list-tools)
+    awk '
+      /^\[\[tools\]\]/{ in_tools=1; next }
+      /^\[\[stages\]\]/{ in_tools=0; next }
+      in_tools && /^[[:space:]]*id[[:space:]]*=/ {
+        split($0,a,"="); id=a[2]
+        gsub(/^[[:space:]]+|[[:space:]]+$/, "", id)
+        gsub(/^"|"$/, "", id)
+        print id
+      }
+    ' "$REGISTRY_FILE" | awk '!seen[$0]++'
+    ;;
+  list-stages)
+    awk '
+      /^\[\[stages\]\]/{ in_stages=1; next }
+      in_stages && /^[[:space:]]*id[[:space:]]*=/ {
+        split($0,a,"="); id=a[2]
+        gsub(/^[[:space:]]+|[[:space:]]+$/, "", id)
+        gsub(/^"|"$/, "", id)
+        print id
+      }
+    ' "$REGISTRY_FILE" | awk '!seen[$0]++'
+    ;;
   stage-tools)
     stage_id="${2:-}"
     field="${3:-all}"

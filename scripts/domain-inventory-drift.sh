@@ -5,6 +5,11 @@ ROOT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 TMP_DIR=${TEST_TMP_DIR:-"$ROOT_DIR/artifacts/tmp"}
 mkdir -p "$TMP_DIR"
 
+if ! command -v rg >/dev/null 2>&1; then
+  echo "domain-inventory-drift: ripgrep (rg) is required but not found in PATH" >&2
+  exit 127
+fi
+
 DOM_TOOLS="$TMP_DIR/domain_tools.txt"
 REG_TOOLS="$TMP_DIR/registry_tools.txt"
 CODE_TOOLS="$TMP_DIR/code_tools.txt"
@@ -19,11 +24,9 @@ awk -F'"' '/^tool_id:/{print $2}' "$ROOT_DIR"/domain/fastq/tools/*.yaml "$ROOT_D
 awk -F'"' '/^stage_id:/{print $2}' "$ROOT_DIR"/domain/fastq/stages/*.yaml "$ROOT_DIR"/domain/bam/stages/*.yaml \
   | sort -u > "$DOM_STAGES"
 
-# Registry tools are authoritative from [[tools]] entries.
-awk -F'"' '/^id = / && in_tools {print $2} /^\[\[tools\]\]/{in_tools=1} /^\[\[stages\]\]/{in_tools=0}' \
-  "$ROOT_DIR/configs/tool_registry.toml" | sort -u > "$REG_TOOLS"
-
-awk -F'"' '/^id = /{print $2}' "$ROOT_DIR/configs/stages.toml" | tr -d '"' | sort -u > "$REG_STAGES"
+# Registry views are authoritative via scripts/registry-tools.sh
+"$ROOT_DIR/scripts/registry-tools.sh" list-tools | sort -u > "$REG_TOOLS"
+"$ROOT_DIR/scripts/registry-tools.sh" list-stages | sort -u > "$REG_STAGES"
 
 rg -No 'ToolId::from_static\("([a-z0-9_\-]+)"\)' "$ROOT_DIR/crates" \
   | sed -E 's/.*from_static\("([a-z0-9_\-]+)"\).*/\1/' \

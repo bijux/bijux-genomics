@@ -1,24 +1,26 @@
 FMT = cargo fmt --all -- --check
-LINT = CARGO_BUILD_JOBS=10 cargo clippy --workspace --all-targets --all-features -- -D warnings
+CARGO_BUILD_JOBS ?= $(JOBS)
+LINT = CARGO_BUILD_JOBS=$(CARGO_BUILD_JOBS) cargo clippy --workspace --all-targets --all-features -- -D warnings
 AUDIT = cargo deny check
 NEXTEST_PROFILE ?= ci
 NEXTEST_CONFIG ?= --config-file nextest.toml
 RUN_IGNORED = --run-ignored all
 TEST_FEATURES = --all-features
-NEXTEST_JOBS ?= $(JOBS)
-NEXTEST_TEST_THREADS ?= $(NEXTEST_JOBS)
+NEXTEST_TEST_THREADS ?= $(CARGO_BUILD_JOBS)
 TEST_TARGET_DIR ?= target-test
 COV_TARGET_DIR ?= target-cov
 TEST_TMP_DIR ?= $(abspath $(TEST_TARGET_DIR))/tmp
 COV_TMP_DIR ?= $(abspath $(COV_TARGET_DIR))/tmp
 TEST_PROFRAW_DIR ?= $(abspath $(TEST_TARGET_DIR))/profraw
 COV_PROFRAW_DIR ?= $(abspath $(COV_TARGET_DIR))/profraw
+TEST_CARGO_HOME ?= $(abspath $(TEST_TARGET_DIR))/cargo-home
+COV_CARGO_HOME ?= $(abspath $(COV_TARGET_DIR))/cargo-home
 TEST_ENV = TZ=UTC LC_ALL=C TMPDIR=$(TEST_TMP_DIR) TMP=$(TEST_TMP_DIR) TEMP=$(TEST_TMP_DIR) \
   TEST_TARGET_DIR=$(TEST_TARGET_DIR) COV_TARGET_DIR=$(COV_TARGET_DIR) \
   TEST_TMP_DIR=$(TEST_TMP_DIR) COV_TMP_DIR=$(COV_TMP_DIR) \
-  TEST_PROFRAW_DIR=$(TEST_PROFRAW_DIR) COV_PROFRAW_DIR=$(COV_PROFRAW_DIR) \
+  TEST_PROFRAW_DIR=$(TEST_PROFRAW_DIR) COV_PROFRAW_DIR=$(COV_PROFRAW_DIR) TEST_CARGO_HOME=$(TEST_CARGO_HOME) COV_CARGO_HOME=$(COV_CARGO_HOME) \
   LLVM_PROFILE_FILE=$(TEST_PROFRAW_DIR)/%p.profraw
-TEST = $(TEST_ENV) CARGO_TARGET_DIR=$(TEST_TARGET_DIR) cargo nextest run $(NEXTEST_CONFIG) --workspace $(TEST_FEATURES) --profile $(NEXTEST_PROFILE) --test-threads $(NEXTEST_TEST_THREADS) $(RUN_IGNORED)
+TEST = $(TEST_ENV) CARGO_HOME=$(TEST_CARGO_HOME) CARGO_TARGET_DIR=$(TEST_TARGET_DIR) cargo nextest run $(NEXTEST_CONFIG) --workspace $(TEST_FEATURES) --profile $(NEXTEST_PROFILE) --test-threads $(NEXTEST_TEST_THREADS) $(RUN_IGNORED)
 COVERAGE_ROOT = $(COV_TARGET_DIR)/coverage
 COVERAGE_ROOT_ABS = $(abspath $(COVERAGE_ROOT))
 COV_TARGET_DIR_ABS = $(abspath $(COV_TARGET_DIR))
@@ -29,7 +31,8 @@ COVERAGE_THRESHOLDS = configs/coverage.toml
 COVERAGE_ENV = TZ=UTC LC_ALL=C TMPDIR=$(COV_TMP_DIR) TMP=$(COV_TMP_DIR) TEMP=$(COV_TMP_DIR) \
   TEST_TARGET_DIR=$(TEST_TARGET_DIR) COV_TARGET_DIR=$(COV_TARGET_DIR) \
   TEST_TMP_DIR=$(TEST_TMP_DIR) COV_TMP_DIR=$(COV_TMP_DIR) \
-  TEST_PROFRAW_DIR=$(TEST_PROFRAW_DIR) COV_PROFRAW_DIR=$(COV_PROFRAW_DIR) \
+  TEST_PROFRAW_DIR=$(TEST_PROFRAW_DIR) COV_PROFRAW_DIR=$(COV_PROFRAW_DIR) TEST_CARGO_HOME=$(TEST_CARGO_HOME) COV_CARGO_HOME=$(COV_CARGO_HOME) \
+  CARGO_HOME=$(COV_CARGO_HOME) \
   CARGO_TARGET_DIR=$(COV_TARGET_DIR) \
   CARGO_LLVM_COV_TARGET_DIR=$(COV_TARGET_DIR_ABS) \
   CARGO_LLVM_COV_BUILD_DIR=$(COV_TARGET_DIR_ABS) \
@@ -37,22 +40,29 @@ COVERAGE_ENV = TZ=UTC LC_ALL=C TMPDIR=$(COV_TMP_DIR) TMP=$(COV_TMP_DIR) TEMP=$(C
 COVERAGE_RUN = cargo llvm-cov nextest --no-report --no-cfg-coverage $(NEXTEST_CONFIG) --workspace $(TEST_FEATURES) --profile $(NEXTEST_PROFILE) --test-threads $(NEXTEST_TEST_THREADS) $(RUN_IGNORED)
 COVERAGE_JSON = cargo llvm-cov report --json --output-path $(COVERAGE_OUT)
 COVERAGE_HTML = cargo llvm-cov report --html --output-dir $(COVERAGE_ROOT)
-ISOLATE_ID ?= $(shell sh -c 'date +%Y%m%d%H%M%S-$$PPID')
+GIT_SHORT_SHA ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo nogit)
+ISOLATE_ID ?= $(shell sh -c 'date -u +%Y%m%d%H%M%S-$$PPID-$(GIT_SHORT_SHA)')
 ISOLATE_ROOT ?= artifacts/isolates/$(ISOLATE_ID)
 ISOLATE_TEST_TARGET_DIR ?= $(ISOLATE_ROOT)/target-test
 ISOLATE_COV_TARGET_DIR ?= $(ISOLATE_ROOT)/target-cov
+ISOLATE_TEST_CARGO_HOME ?= $(ISOLATE_ROOT)/cargo-home-test
+ISOLATE_COV_CARGO_HOME ?= $(ISOLATE_ROOT)/cargo-home-cov
 
 fmt:
 	$(FMT)
 
 lint: domain-validate domain-inventory-drift check-generated-configs check-generated-config-headers
+	./scripts/check-artifacts-tracked.sh
+	./scripts/check-no-target-paths-in-tests.sh
 	$(LINT)
 
 test:
 	@rm -rf $(TEST_PROFRAW_DIR)
 	@mkdir -p $(TEST_TMP_DIR)
 	@mkdir -p $(TEST_PROFRAW_DIR)
+	@mkdir -p $(TEST_CARGO_HOME)
 	$(TEST)
+	./scripts/check-isolation-contract.sh
 
 ensure-cargo-deny:
 	@command -v cargo-deny >/dev/null 2>&1 || cargo install cargo-deny
@@ -67,6 +77,7 @@ coverage:
 	@rm -rf $(COV_PROFRAW_DIR)
 	@mkdir -p $(COV_TMP_DIR)
 	@mkdir -p $(COV_PROFRAW_DIR)
+	@mkdir -p $(COV_CARGO_HOME)
 	$(COVERAGE_ENV) $(COVERAGE_RUN)
 	$(COVERAGE_ENV) $(COVERAGE_JSON)
 	$(COVERAGE_ENV) $(COVERAGE_HTML)
@@ -80,22 +91,50 @@ coverage:
 	fi
 
 fmt-isolate:
-	TEST_TARGET_DIR=$(ISOLATE_TEST_TARGET_DIR) COV_TARGET_DIR=$(ISOLATE_COV_TARGET_DIR) $(MAKE) fmt
+	@ISO=$$(date -u +%Y%m%d%H%M%S)-$$$$-$(GIT_SHORT_SHA); \
+	ROOT=artifacts/isolates/$$ISO; \
+	TEST_TARGET_DIR=$$ROOT/target-test COV_TARGET_DIR=$$ROOT/target-cov \
+	TEST_CARGO_HOME=$$ROOT/cargo-home-test COV_CARGO_HOME=$$ROOT/cargo-home-cov \
+	CARGO_HOME=$$ROOT/cargo-home-test \
+	$(MAKE) fmt
 
 lint-isolate:
-	TEST_TARGET_DIR=$(ISOLATE_TEST_TARGET_DIR) COV_TARGET_DIR=$(ISOLATE_COV_TARGET_DIR) $(MAKE) lint
+	@ISO=$$(date -u +%Y%m%d%H%M%S)-$$$$-$(GIT_SHORT_SHA); \
+	ROOT=artifacts/isolates/$$ISO; \
+	TEST_TARGET_DIR=$$ROOT/target-test COV_TARGET_DIR=$$ROOT/target-cov \
+	TEST_CARGO_HOME=$$ROOT/cargo-home-test COV_CARGO_HOME=$$ROOT/cargo-home-cov \
+	CARGO_HOME=$$ROOT/cargo-home-test \
+	$(MAKE) lint
 
 test-isolate:
-	TEST_TARGET_DIR=$(ISOLATE_TEST_TARGET_DIR) COV_TARGET_DIR=$(ISOLATE_COV_TARGET_DIR) $(MAKE) test
+	@ISO=$$(date -u +%Y%m%d%H%M%S)-$$$$-$(GIT_SHORT_SHA); \
+	ROOT=artifacts/isolates/$$ISO; \
+	TEST_TARGET_DIR=$$ROOT/target-test COV_TARGET_DIR=$$ROOT/target-cov \
+	TEST_CARGO_HOME=$$ROOT/cargo-home-test COV_CARGO_HOME=$$ROOT/cargo-home-cov \
+	$(MAKE) test
 
 audit-isolate: ensure-cargo-deny
-	TEST_TARGET_DIR=$(ISOLATE_TEST_TARGET_DIR) COV_TARGET_DIR=$(ISOLATE_COV_TARGET_DIR) $(MAKE) audit
+	@ISO=$$(date -u +%Y%m%d%H%M%S)-$$$$-$(GIT_SHORT_SHA); \
+	ROOT=artifacts/isolates/$$ISO; \
+	TEST_TARGET_DIR=$$ROOT/target-test COV_TARGET_DIR=$$ROOT/target-cov \
+	TEST_CARGO_HOME=$$ROOT/cargo-home-test COV_CARGO_HOME=$$ROOT/cargo-home-cov \
+	CARGO_HOME=$$ROOT/cargo-home-test \
+	$(MAKE) audit
 
 coverage-isolate:
-	TEST_TARGET_DIR=$(ISOLATE_TEST_TARGET_DIR) COV_TARGET_DIR=$(ISOLATE_COV_TARGET_DIR) $(MAKE) coverage
+	@ISO=$$(date -u +%Y%m%d%H%M%S)-$$$$-$(GIT_SHORT_SHA); \
+	ROOT=artifacts/isolates/$$ISO; \
+	TEST_TARGET_DIR=$$ROOT/target-test COV_TARGET_DIR=$$ROOT/target-cov \
+	TEST_CARGO_HOME=$$ROOT/cargo-home-test COV_CARGO_HOME=$$ROOT/cargo-home-cov \
+	$(MAKE) coverage
 
 ci:
-	$(MAKE) fmt lint audit coverage
+	$(MAKE) fmt-isolate
+	$(MAKE) lint-isolate
+	$(MAKE) audit-isolate
+	$(MAKE) test-isolate
+	$(MAKE) docs-isolate
+	./scripts/check-root-pollution.sh
 
 check:
 	$(MAKE) fmt lint audit coverage
@@ -125,8 +164,8 @@ test-and-coverage: verify-parallel-isolation test coverage
 
 test-coverage-parallel: test-and-coverage
 
-clean-isolate:
-	@rm -rf artifacts/isolates target-test/tmp target-test/profraw target-cov/tmp target-cov/profraw
+clean-isolates:
+	@rm -rf artifacts/isolates/*
 
 policy-fast: ## Run fast policy checks (no snapshots)
 	cargo test -p bijux-dna-policies --test dependency_graph --test purity_scans --test core_layering --test domain_dependency_policy --test ci_tools_policy --test dev_deps_policy --test heavy_deps_policy
@@ -156,7 +195,7 @@ snapshots-review:
 	.PHONY: fmt lint test audit coverage ci check ci-local test-coverage-parallel verify-parallel-isolation \
 		test-and-coverage \
 		test-coverage-isolate-parallel \
-		fmt-isolate lint-isolate test-isolate audit-isolate coverage-isolate ci-isolate clean-isolate \
+		fmt-isolate lint-isolate test-isolate audit-isolate coverage-isolate ci-isolate clean-isolates \
 		domain-validate domain-inventory-drift generate-configs check-generated-configs check-generated-config-headers \
 		policy-fast policy-full \
 		snapshots snapshots-accept snapshots-review ensure-cargo-deny

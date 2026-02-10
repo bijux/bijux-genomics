@@ -13,11 +13,11 @@ VERSION_TIMEOUT="${VERSION_TIMEOUT:-120}"
 TOOLS="${TOOLS:-}"
 SMOKE_LEVEL="${SMOKE_LEVEL:-version}"
 
-ARTIFACT_DIR="$ROOT_DIR/target-containers"
+ARTIFACT_DIR="${ARTIFACT_DIR:-$ROOT_DIR/artifacts/container}"
 LOG_DIR="$ARTIFACT_DIR/logs/apptainer"
 IMG_DIR="$ARTIFACT_DIR/images/apptainer"
 SUMMARY="$LOG_DIR/summary.txt"
-MANIFEST_DIR="$ROOT_DIR/target-containers"
+MANIFEST_DIR="$ARTIFACT_DIR"
 
 mkdir -p "$LOG_DIR" "$IMG_DIR" "$VM_OUT_DIR/logs" "$VM_OUT_DIR/sif" "$MANIFEST_DIR"
 
