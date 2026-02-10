@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 44007f985652f2f5c6500a04be12227839e4a41e
+# source_commit: f363b8ebf7fde5d0af7b2f9302e4ea4fa258fb40
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 
 [[tools]]
@@ -1887,6 +1887,16 @@ reporting_tools = ["multiqc"]
 planned_out_of_scope = []
 requires_validation = false
 requires_reporting = true
+
+[[stages]]
+id = "fastq.rrna"
+primary_tools = ["sortmerna"]
+optional_alternatives = []
+validation_tools = []
+reporting_tools = []
+planned_out_of_scope = []
+requires_validation = false
+requires_reporting = false
 
 [[stages]]
 id = "fastq.screen"

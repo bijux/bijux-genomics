@@ -7,6 +7,7 @@ stage_ids:
   - fastq.trim
   - fastq.filter
   - fastq.stats_neutral
+  - fastq.rrna
   - fastq.qc_post
   - fastq.merge
   - fastq.correct
@@ -64,11 +65,13 @@ stage_tool_compatibility:
   fastq.trim: [fastp, cutadapt, atropos, bbduk, adapterremoval, trimmomatic, trim_galore, seqpurge, prinseq, seqkit, skewer, leehom, alientrimmer, fastx_clipper]
   fastq.validate_pre: [fastqvalidator, fastqvalidator_official, fastq-scan, seqtk, fqtools, fastqc]
   fastq.stats_neutral: [seqkit_stats, seqkit, seqfu]
+  fastq.rrna: [sortmerna]
   fastq.screen: [kraken2, krakenuniq, bracken, centrifuge, metaphlan, kaiju, fastq_screen]
   fastq.merge: [pear, vsearch, bbmerge, flash2, leehom]
 active_defaults:
   fastq.trim: fastp
   fastq.validate_pre: fastqvalidator_official
   fastq.stats_neutral: seqkit_stats
+  fastq.rrna: sortmerna
   fastq.screen: kraken2
   fastq.merge: pear
