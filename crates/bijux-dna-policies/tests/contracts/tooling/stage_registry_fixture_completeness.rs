@@ -6,7 +6,7 @@ use std::collections::BTreeMap;
 use support::workspace_root;
 
 #[test]
-fn policy__contracts__tooling__stage_registry_fixture_completeness__each_stage_has_tool_metrics_and_smoke_contract(
+fn policy__contracts__stage_registry_fixture_completeness__each_stage_has_tool_metrics_and_smoke_contract(
 ) {
     let registry_path = workspace_root().join("configs/tool_registry.toml");
     let raw = std::fs::read_to_string(&registry_path).expect("read configs/tool_registry.toml");
