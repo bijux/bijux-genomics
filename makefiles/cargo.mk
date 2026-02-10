@@ -51,13 +51,12 @@ ISOLATE_COV_CARGO_HOME ?= $(ISOLATE_ROOT)/cargo-home-cov
 fmt:
 	$(FMT)
 
-lint: domain-validate domain-inventory-drift check-generated-configs check-generated-config-headers
+lint:
 	./scripts/check-artifacts-tracked.sh
 	./scripts/check-no-target-paths-in-tests.sh
 	$(LINT)
 
 test:
-	./scripts/domain-validate.sh
 	@rm -rf $(TEST_PROFRAW_DIR)
 	@mkdir -p $(TEST_TMP_DIR)
 	@mkdir -p $(TEST_PROFRAW_DIR)
@@ -90,6 +89,16 @@ coverage:
 	else \
 		python3 scripts/coverage_summary.py $(COVERAGE_OUT) --check-thresholds $(COVERAGE_THRESHOLDS); \
 	fi
+
+domain-gates: domain-validate domain-inventory-drift check-generated-configs check-generated-config-headers
+
+domain-gates-isolate:
+	@ISO=$$(date -u +%Y%m%d%H%M%S)-$$$$-$(GIT_SHORT_SHA); \
+	ROOT=artifacts/isolates/$$ISO; \
+	TEST_TARGET_DIR=$$ROOT/target-test COV_TARGET_DIR=$$ROOT/target-cov \
+	TEST_CARGO_HOME=$$ROOT/cargo-home-test COV_CARGO_HOME=$$ROOT/cargo-home-cov \
+	CARGO_HOME=$$ROOT/cargo-home-test \
+	$(MAKE) domain-gates && ./scripts/check-root-pollution.sh
 
 fmt-isolate:
 	@ISO=$$(date -u +%Y%m%d%H%M%S)-$$$$-$(GIT_SHORT_SHA); \
@@ -131,6 +140,7 @@ coverage-isolate:
 
 ci:
 	$(MAKE) fmt-isolate
+	$(MAKE) domain-gates-isolate
 	$(MAKE) lint-isolate
 	$(MAKE) audit-isolate
 	$(MAKE) test-isolate
@@ -140,7 +150,7 @@ ci:
 check:
 	$(MAKE) fmt lint audit coverage
 
-ci-isolate: fmt-isolate lint-isolate audit-isolate test-isolate docs-isolate
+ci-isolate: fmt-isolate domain-gates-isolate lint-isolate audit-isolate test-isolate docs-isolate
 	@# Run with `make -j<N> ci-isolate` for parallel isolate execution.
 	@./scripts/check-root-pollution.sh
 
@@ -171,13 +181,11 @@ clean-isolates:
 
 policy-fast: ## Run fast policy checks (no snapshots)
 	cargo test -p bijux-dna-policies --test dependency_graph --test purity_scans --test core_layering --test domain_dependency_policy --test ci_tools_policy --test dev_deps_policy --test heavy_deps_policy
-	./scripts/domain-validate.sh
-	./scripts/domain-inventory-drift.sh
+	$(MAKE) domain-gates
 
 policy-full: ## Run full policy suite
 	cargo test -p bijux-dna-policies
-	./scripts/domain-validate.sh
-	./scripts/domain-inventory-drift.sh
+	$(MAKE) domain-gates
 
 domain-validate:
 	./scripts/domain-validate.sh
@@ -201,6 +209,7 @@ snapshots-review:
 		test-and-coverage \
 		test-coverage-isolate-parallel \
 		fmt-isolate lint-isolate test-isolate audit-isolate coverage-isolate ci-isolate clean-isolates \
+		domain-gates domain-gates-isolate \
 		domain-validate domain-coverage domain-inventory-drift generate-configs check-generated-configs check-generated-config-headers \
 		policy-fast policy-full \
 		snapshots snapshots-accept snapshots-review ensure-cargo-deny
