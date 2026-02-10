@@ -17,7 +17,15 @@ RUN apt-get update -qq && apt-get install -y --no-install-recommends     python3
 
 RUN git clone --depth 1 https://github.com/maxibor/pydamage.git /opt/pydamage &&     cd /opt/pydamage && git checkout 08f1d0f2d1981d350decbf10964f989e9567ddbf &&     python3 -m pip install --break-system-packages --no-cache-dir .
 
-RUN printf '%s\n'   '#!/usr/bin/env sh'   'case "${1:-}" in'   '  --version) pydamage --version; exit 0 ;;'   '  --help|-h|"") pydamage --help; exit 0 ;;'   'esac'   'exec pydamage "$@"' > /usr/local/bin/pydamage && chmod +x /usr/local/bin/pydamage
+RUN mv /usr/local/bin/pydamage /usr/local/bin/pydamage.real && \
+    printf '%s\n' \
+      '#!/usr/bin/env sh' \
+      'case "${1:-}" in' \
+      '  --version) python3 -c "import importlib.metadata as m; print(m.version(\"pydamage\"))"; exit 0 ;;' \
+      '  --help|-h|"") /usr/local/bin/pydamage.real --help; exit 0 ;;' \
+      'esac' \
+      'exec /usr/local/bin/pydamage.real "$@"' > /usr/local/bin/pydamage && \
+    chmod +x /usr/local/bin/pydamage
 
 ENTRYPOINT ["/usr/local/bin/pydamage"]
 CMD ["--help"]

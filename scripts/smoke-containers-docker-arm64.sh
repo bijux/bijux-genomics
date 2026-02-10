@@ -16,7 +16,7 @@ SAVE_TAR="${SAVE_TAR:-1}"
 VERSION_TIMEOUT="${VERSION_TIMEOUT:-120}"
 IMAGE_PREFIX="${IMAGE_PREFIX:-bijux-smoke}"
 TOOLS="${TOOLS:-}"
-SMOKE_LEVEL="${SMOKE_LEVEL:-version}"
+SMOKE_LEVEL="${SMOKE_LEVEL:-contract}"
 
 ARTIFACT_DIR="${ARTIFACT_DIR:-$ROOT_DIR/artifacts/container}"
 LOG_DIR="$ARTIFACT_DIR/logs/$RUNTIME_NAME"
@@ -36,7 +36,6 @@ require_cmd() {
 }
 
 require_cmd "$DOCKER_BIN"
-require_cmd cargo
 require_cmd python3
 require_cmd awk
 require_cmd sed
@@ -103,35 +102,28 @@ get_help_cmd() {
 get_registry_field() {
   field="$1"
   tool="$2"
-  if [ -z "${REGISTRY_EXPORT_JSON:-}" ]; then
-    REGISTRY_EXPORT_JSON=$(cargo run --bin bijux-dna -- registry export-json 2>/dev/null || true)
-  fi
-  if [ -z "${REGISTRY_EXPORT_JSON:-}" ]; then
-    printf '%s\n' "unknown"
-    return 0
-  fi
-  value=$(printf '%s\n' "$REGISTRY_EXPORT_JSON" | python3 - "$tool" "$field" <<'PY'
-import json, sys
-tool = sys.argv[1]
-field = sys.argv[2]
-try:
-    payload = json.load(sys.stdin)
-except Exception:
-    print("unknown")
-    raise SystemExit(0)
-for item in payload.get("tools", []):
-    if item.get("id") == tool:
-        value = item.get(field, "unknown")
-        if value is None:
-            print("unknown")
-        elif isinstance(value, (dict, list)):
-            print("unknown")
-        else:
-            print(str(value))
-        raise SystemExit(0)
-print("unknown")
-PY
-)
+  value=$(awk -v tool="$tool" -v field="$field" '
+    /^\[\[tools\]\]$/ { in_tools=1; in_target=0; next }
+    /^\[\[/ && $0 != "[[tools]]" { in_tools=0; in_target=0; next }
+    in_tools && /^id = "/ {
+      id=$0
+      sub(/^id = "/, "", id)
+      sub(/"$/, "", id)
+      in_target = (id == tool)
+      next
+    }
+    in_target {
+      pattern = "^" field " = \""
+      if ($0 ~ pattern) {
+        val=$0
+        sub(pattern, "", val)
+        sub(/"$/, "", val)
+        print val
+        exit 0
+      }
+    }
+    END { if (NR >= 0) print "unknown" }
+  ' "$ROOT_DIR/configs/tool_registry.toml" | head -n 1)
   printf '%s\n' "${value:-unknown}"
 }
 
@@ -143,7 +135,11 @@ build_and_smoke_one() {
   cmd=$(get_version_cmd "$tool")
   help_cmd=$(get_help_cmd "$tool")
   expected_bin=$(get_registry_field expected_bin "$tool")
-  if [ "$expected_bin" = "unknown" ]; then
+  cmd_bin=$(printf '%s\n' "$cmd" | awk '{print $1}')
+  if [ "$expected_bin" = "unknown" ] || [ -z "$expected_bin" ] || [ "$expected_bin" = "$tool" ]; then
+    expected_bin="$cmd_bin"
+  fi
+  if [ -z "$expected_bin" ]; then
     expected_bin="$tool"
   fi
   version_output_file="$LOG_DIR/${tool}.version.out"
@@ -160,14 +156,35 @@ build_and_smoke_one() {
     echo "=== [$tool] build start"
     echo "dockerfile: $dockerfile"
     echo "image: $image"
-    "$DOCKER_BIN" build --platform "$DOCKER_PLATFORM" -f "$dockerfile" -t "$image" "$DOCKER_DIR"
+    if ! "$DOCKER_BIN" build --platform "$DOCKER_PLATFORM" -f "$dockerfile" -t "$image" "$DOCKER_DIR"; then
+      echo "build failed for $tool"
+      exit 1
+    fi
     echo "=== [$tool] smoke: $cmd"
-    run_with_timeout "$VERSION_TIMEOUT" "$DOCKER_BIN" run --rm "$image" sh -lc "$cmd" | tee "$version_output_file"
+    if ! run_with_timeout "$VERSION_TIMEOUT" "$DOCKER_BIN" run --rm --entrypoint sh "$image" -lc "$cmd" >"$version_output_file" 2>&1; then
+      cat "$version_output_file"
+      echo "version command failed: $cmd"
+      exit 1
+    fi
+    cat "$version_output_file"
+    if [ ! -s "$version_output_file" ]; then
+      echo "version command produced empty output: $cmd"
+      exit 1
+    fi
     if [ "$SMOKE_LEVEL" = "contract" ]; then
       echo "=== [$tool] smoke-help: $help_cmd"
-      run_with_timeout "$VERSION_TIMEOUT" "$DOCKER_BIN" run --rm "$image" sh -lc "$help_cmd" | tee "$help_output_file"
+      if ! run_with_timeout "$VERSION_TIMEOUT" "$DOCKER_BIN" run --rm --entrypoint sh "$image" -lc "$help_cmd" >"$help_output_file" 2>&1; then
+        cat "$help_output_file"
+        echo "help command failed: $help_cmd"
+        exit 1
+      fi
+      cat "$help_output_file"
+      if [ ! -s "$help_output_file" ]; then
+        echo "help command produced empty output: $help_cmd"
+        exit 1
+      fi
       echo "=== [$tool] smoke-bin: $expected_bin"
-      run_with_timeout "$VERSION_TIMEOUT" "$DOCKER_BIN" run --rm "$image" sh -lc "command -v $expected_bin >/dev/null"
+      run_with_timeout "$VERSION_TIMEOUT" "$DOCKER_BIN" run --rm --entrypoint sh "$image" -lc "command -v $expected_bin >/dev/null"
     fi
     if [ "$SAVE_TAR" = "1" ]; then
       echo "=== [$tool] save image tar"
