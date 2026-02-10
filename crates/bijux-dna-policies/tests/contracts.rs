@@ -34,6 +34,8 @@ mod mod_contracts_tooling_makefile_policies_rs;
 mod mod_contracts_tooling_no_appledouble_rs;
 #[path = "contracts/tooling/planner_tool_id_policy.rs"]
 mod mod_contracts_tooling_planner_tool_id_policy_rs;
+#[path = "contracts/tooling/planner_data_driven_catalog_policy.rs"]
+mod mod_contracts_tooling_planner_data_driven_catalog_policy_rs;
 #[path = "contracts/tooling/policies.rs"]
 mod mod_contracts_tooling_policies_rs;
 #[path = "contracts/tooling/stage_registry_fixture_completeness.rs"]
