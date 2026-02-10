@@ -547,6 +547,7 @@ dependencies = [
  "bijux-dna-testkit",
  "insta",
  "serde_json",
+ "toml",
  "tracing",
 ]
 
@@ -567,6 +568,7 @@ dependencies = [
  "insta",
  "serde",
  "serde_json",
+ "toml",
  "tracing",
 ]
 
