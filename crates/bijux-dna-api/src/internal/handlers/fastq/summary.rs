@@ -517,7 +517,7 @@ fn relative_path_string(base: &Path, path: &Path) -> String {
 }
 
 fn run_provenance_from_stage_runs(
-    _out_dir: &Path,
+    out_dir: &Path,
     stage_runs: &[StageExecutionSummary],
 ) -> serde_json::Value {
     let mut params_by_stage = std::collections::BTreeMap::new();
@@ -570,6 +570,28 @@ fn run_provenance_from_stage_runs(
         std::env::var("BIJUX_BUILD_PROFILE").unwrap_or_else(|_| "unknown".to_string());
     let reference_genome = std::env::var("BIJUX_REFERENCE_GENOME").ok();
     let plan_hash = std::env::var("BIJUX_PLAN_HASH").ok();
+    let workspace_root = out_dir
+        .parent()
+        .and_then(Path::parent)
+        .unwrap_or(out_dir);
+    let adapter_bank_hash = hash_optional(
+        &workspace_root
+            .join("assets")
+            .join("adapters")
+            .join("bank.v1.yaml"),
+    );
+    let reference_bank_hash = hash_optional(
+        &workspace_root
+            .join("assets")
+            .join("references")
+            .join("bank.v1.yaml"),
+    );
+    let contamination_db_bank_hash = hash_optional(
+        &workspace_root
+            .join("assets")
+            .join("contaminants")
+            .join("db_bank.v1.yaml"),
+    );
     serde_json::json!({
         "schema_version": "bijux.run_provenance.v1",
         "tool_image_digest": tool_image_digest,
@@ -581,7 +603,19 @@ fn run_provenance_from_stage_runs(
         "git_commit": git_commit,
         "build_profile": build_profile,
         "plan_hash": plan_hash,
+        "bank_hashes": {
+            "adapter_bank_hash": adapter_bank_hash,
+            "reference_bank_hash": reference_bank_hash,
+            "contamination_db_bank_hash": contamination_db_bank_hash,
+        },
+        "contamination_db_version": "v1",
     })
+}
+
+fn hash_optional(path: &Path) -> Option<String> {
+    bijux_dna_infra::hash_file_sha256(path)
+        .ok()
+        .map(|v| format!("sha256:{v}"))
 }
 
 fn render_run_summary_html(summary: &serde_json::Value) -> String {
