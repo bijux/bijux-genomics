@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
+export TZ=UTC
+export LC_ALL=C
 
 # Batch-build Apptainer defs in a VM-local writable directory.
 # Sequential by default; optional limited concurrency.
@@ -22,6 +24,19 @@ while [[ $# -gt 0 ]]; do
     *) echo "unknown arg: $1" >&2; exit 2 ;;
   esac
 done
+
+require_cmd() {
+  local cmd="$1"
+  if ! command -v "$cmd" >/dev/null 2>&1; then
+    echo "required command not found: $cmd" >&2
+    exit 127
+  fi
+}
+
+require_cmd apptainer
+require_cmd find
+require_cmd sort
+require_cmd mktemp
 
 if [[ ! -d "$DEFS_DIR" ]]; then
   echo "defs dir not found: $DEFS_DIR" >&2
@@ -98,6 +113,7 @@ else
     echo "Install 'parallel' or run with --jobs 1." >&2
     exit 2
   fi
+  require_cmd parallel
   if ! parallel -j "$JOBS" --halt never \
     "$0" --build-one {} --defs-dir "$DEFS_DIR" --vm-out "$VM_OUT_DIR" \
     ::: "${defs[@]}"; then
