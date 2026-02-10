@@ -222,6 +222,8 @@ pub enum RegistryCommand {
     Show { id: String },
     #[command(name = "export-json")]
     ExportJson,
+    #[command(name = "coverage-matrix")]
+    CoverageMatrix,
 }
 
 #[derive(Debug, Subcommand)]

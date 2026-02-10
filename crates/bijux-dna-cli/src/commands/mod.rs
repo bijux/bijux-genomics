@@ -467,7 +467,7 @@ fn handle_environment_root(command: &cli::EnvCommand, cwd: &Path) -> Result<()> 
 
 fn handle_registry_root(command: &cli::RegistryCommand, cwd: &Path) -> Result<()> {
     use crate::commands::cli::env::{
-        print_registry_export_json, print_registry_list_stages, print_registry_show,
+        print_registry_coverage_matrix, print_registry_export_json, print_registry_list_stages, print_registry_show,
         print_registry_show_stage, print_registry_show_tool, print_registry_tools,
     };
     let registry_path = cwd.join("configs").join("tool_registry.toml");
@@ -480,6 +480,7 @@ fn handle_registry_root(command: &cli::RegistryCommand, cwd: &Path) -> Result<()
         cli::RegistryCommand::ShowStage { id } => print_registry_show_stage(&registry_path, id)?,
         cli::RegistryCommand::Show { id } => print_registry_show(&registry_path, id)?,
         cli::RegistryCommand::ExportJson => print_registry_export_json(&registry_path)?,
+        cli::RegistryCommand::CoverageMatrix => print_registry_coverage_matrix(&registry_path)?,
     }
     Ok(())
 }
