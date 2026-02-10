@@ -1,6 +1,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
+use std::process::Command;
 
 use anyhow::{anyhow, bail, Context, Result};
 use bijux_dna_infra::{ensure_dir, write_string};
@@ -179,6 +180,34 @@ fn git_head_commit(start: &Path) -> Option<String> {
             .map(|s| s.trim().to_string());
     }
     Some(head.to_string())
+}
+
+fn git_tree_hash_for_path(path: &Path) -> Option<String> {
+    let abs = path.canonicalize().ok()?;
+    let repo_root = abs
+        .ancestors()
+        .find(|candidate| candidate.join(".git").exists())?;
+    let rel = abs
+        .strip_prefix(repo_root)
+        .ok()?
+        .to_string_lossy()
+        .to_string();
+    let output = Command::new("git")
+        .arg("-C")
+        .arg(repo_root)
+        .arg("rev-parse")
+        .arg(format!("HEAD:{rel}"))
+        .output()
+        .ok()?;
+    if !output.status.success() {
+        return None;
+    }
+    let hash = String::from_utf8(output.stdout).ok()?.trim().to_string();
+    if hash.len() == 40 && hash.chars().all(|c| c.is_ascii_hexdigit()) {
+        Some(hash)
+    } else {
+        None
+    }
 }
 
 fn generated_header(source: &str, source_commit: &str) -> String {
@@ -600,8 +629,9 @@ pub fn compile_domain_configs(options: &CompileOptions) -> Result<()> {
     ensure_dir(&options.configs_dir)
         .with_context(|| format!("create {}", options.configs_dir.display()))?;
 
-    let source_commit =
-        git_head_commit(&options.domain_dir).unwrap_or_else(|| "unknown".to_string());
+    let source_commit = git_tree_hash_for_path(&options.domain_dir)
+        .or_else(|| git_head_commit(&options.domain_dir))
+        .unwrap_or_else(|| "unknown".to_string());
 
     let tool_registry_path = options.configs_dir.join("tool_registry.toml");
     let registry_toml = build_tool_registry_toml(
