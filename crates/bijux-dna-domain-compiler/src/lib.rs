@@ -1083,6 +1083,8 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
     let mut tool_ids = BTreeMap::<String, String>::new();
     let mut stage_ids = BTreeMap::<String, String>::new();
     let mut tool_capabilities = BTreeMap::<String, BTreeSet<String>>::new();
+    let mut tool_statuses = BTreeMap::<String, String>::new();
+    let mut tool_metrics_schemas = BTreeMap::<String, String>::new();
     let mut artifact_vocab = BTreeMap::<String, BTreeSet<String>>::new();
     let mut metric_vocab = BTreeMap::<String, BTreeSet<String>>::new();
 
@@ -1432,6 +1434,8 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                         path.display()
                     );
                 }
+                tool_statuses.insert(tool.tool_id.clone(), tool.status.clone());
+                tool_metrics_schemas.insert(tool.tool_id.clone(), tool.metrics_schema_id.clone());
             }
         }
     }
@@ -1536,6 +1540,20 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                 );
             }
         }
+        let mut stage_status_by_id: BTreeMap<String, String> = BTreeMap::new();
+        for stage_id in &index.stage_ids {
+            let stage_suffix = stage_id
+                .split_once('.')
+                .map_or(stage_id.as_str(), |(_, rhs)| rhs);
+            let stage_path = options
+                .domain_dir
+                .join(dom)
+                .join("stages")
+                .join(format!("{}.yaml", stage_suffix.replace('.', "_")));
+            let stage: DomainStage = read_yaml(&stage_path)?;
+            stage_status_by_id.insert(stage_id.clone(), stage.status);
+        }
+        let mut supported_tool_fixture_seen: BTreeSet<String> = BTreeSet::new();
         for (stage_id, tools) in &index.stage_tool_compatibility {
             if !index.stage_ids.contains(stage_id) {
                 bail!(
@@ -1635,6 +1653,7 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                 .join("stages")
                 .join(format!("{}.yaml", stage_suffix.replace('.', "_")));
             let stage: DomainStage = read_yaml(&stage_path)?;
+            let mut supported_tools_for_stage = 0_usize;
             for tool in tools {
                 if !index.tool_ids.contains(tool) {
                     bail!(
@@ -1687,6 +1706,59 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                         fixture.display()
                     );
                 }
+                if stage.status == "supported"
+                    && tool_statuses.get(tool).is_some_and(|status| status == "supported")
+                {
+                    supported_tools_for_stage += 1;
+                    supported_tool_fixture_seen.insert(tool.clone());
+                }
+            }
+            if stage_status_by_id
+                .get(stage_id)
+                .is_some_and(|status| status == "supported")
+                && supported_tools_for_stage == 0
+            {
+                bail!(
+                    "{} supported stage {} must have at least one supported tool with fixture coverage",
+                    index_path.display(),
+                    stage_id
+                );
+            }
+        }
+        for (tool_id, status) in &tool_statuses {
+            if !index.tool_ids.contains(tool_id) {
+                continue;
+            }
+            if status != "supported" {
+                continue;
+            }
+            let has_stage = index
+                .stage_tool_compatibility
+                .values()
+                .any(|tools| tools.contains(tool_id));
+            if !has_stage {
+                bail!(
+                    "{} supported tool {} is not mapped to any stage in compatibility matrix",
+                    index_path.display(),
+                    tool_id
+                );
+            }
+            if !supported_tool_fixture_seen.contains(tool_id) {
+                bail!(
+                    "{} supported tool {} has no fixture-backed stage coverage",
+                    index_path.display(),
+                    tool_id
+                );
+            }
+            if tool_metrics_schemas
+                .get(tool_id)
+                .map_or(true, |schema| schema.trim().is_empty())
+            {
+                bail!(
+                    "{} supported tool {} missing metrics_schema_id",
+                    index_path.display(),
+                    tool_id
+                );
             }
         }
         for (stage_id, default_tool) in &index.active_defaults {

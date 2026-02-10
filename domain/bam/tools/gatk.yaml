@@ -8,7 +8,7 @@ install_kind: "container"
 license: "GPL-3.0"
 citation: "pending:tool-publication"
 stage_ids: ["bam.recalibration"]
-status: "supported"
+status: "planned"
 scope: "pre_hpc_pre_vcf"
 expected_artifacts: ["recal_report"]
 metrics_schema_id: "bijux.bam.recalibration.v1"
