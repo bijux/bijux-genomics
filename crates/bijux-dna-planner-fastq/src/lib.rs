@@ -624,7 +624,7 @@ where
         let (plan, next_r1, next_r2) = match stage_id {
             stage if stage == STAGE_DETECT_ADAPTERS.as_str() => {
                 let plan =
-                    crate::tool_adapters::fastq::detect_adapters::plan(tool, &current_r1, &out_dir);
+                    crate::tool_adapters::fastq::detect_adapters::plan(tool, &current_r1, &out_dir)?;
                 (plan, current_r1.clone(), current_r2.clone())
             }
             stage if stage == STAGE_TRIM.as_str() => {
@@ -663,7 +663,7 @@ where
             }
             stage if stage == STAGE_VALIDATE_PRE.as_str() => {
                 let plan =
-                    crate::tool_adapters::fastq::validate_pre::plan(tool, &current_r1, &out_dir);
+                    crate::tool_adapters::fastq::validate_pre::plan(tool, &current_r1, &out_dir)?;
                 (plan, current_r1.clone(), current_r2.clone())
             }
             stage if stage == STAGE_MERGE.as_str() => {

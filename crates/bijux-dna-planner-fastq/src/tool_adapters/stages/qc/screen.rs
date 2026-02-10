@@ -76,7 +76,7 @@ pub fn plan_screen(tool: &ToolExecutionSpecV1, r1: &Path, out_dir: &Path) -> Res
             "bracken_report": bracken_report
         }),
         effective_params: serde_json::to_value(&effective_params)
-            .expect("serialize screen effective params"),
+            .map_err(|error| anyhow!("serialize screen effective params: {error}"))?,
         aux_images: std::collections::BTreeMap::new(),
         reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
     })

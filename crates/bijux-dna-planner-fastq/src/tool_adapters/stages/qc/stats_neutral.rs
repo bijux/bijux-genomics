@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRole, StageId, StageVersion, ToolExecutionSpecV1,
 };
@@ -64,7 +64,7 @@ pub fn plan_stats_neutral(
             "out_dir": out_dir
         }),
         effective_params: serde_json::to_value(&effective_params)
-            .expect("serialize stats_neutral effective params"),
+            .map_err(|error| anyhow!("serialize stats_neutral effective params: {error}"))?,
         aux_images: std::collections::BTreeMap::new(),
         reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
     })

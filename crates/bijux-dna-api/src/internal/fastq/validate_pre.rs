@@ -77,7 +77,7 @@ pub fn bench_fastq_validate_pre<S: ::std::hash::BuildHasher>(
             platform,
         )?;
         let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
-        let plan = plan_validate_pre(&tool_spec, &args.r1, &out_dir);
+        let plan = plan_validate_pre(&tool_spec, &args.r1, &out_dir)?;
         plans.push(bijux_dna_stage_contract::execution_step_from_stage_plan(
             &plan,
         ));

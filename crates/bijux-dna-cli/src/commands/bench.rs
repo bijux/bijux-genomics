@@ -318,7 +318,13 @@ fn print_bank_presets() {
     }
 }
 fn list_fastq_tools(registry: &bijux_dna_api::v1::api::run::ToolRegistry, stage_id: &str) {
-    let stage_id = StageId::try_from(stage_id).unwrap_or_else(|_| StageId::new(stage_id));
+    let stage_id = match StageId::try_from(stage_id) {
+        Ok(stage) => stage,
+        Err(_) => {
+            eprintln!("invalid stage id: {stage_id}");
+            return;
+        }
+    };
     let mut tools: Vec<_> = registry
         .tools_for_stage(&stage_id)
         .iter()
@@ -470,7 +476,7 @@ fn explain_fastq_stage(
         }
         return Ok(());
     }
-    let stage_id = StageId::try_from(stage_id).unwrap_or_else(|_| StageId::new(stage_id));
+    let stage_id = StageId::try_from(stage_id).map_err(|_| anyhow!("invalid stage id: {stage_id}"))?;
     let stage = registry
         .stages()
         .get(&stage_id)

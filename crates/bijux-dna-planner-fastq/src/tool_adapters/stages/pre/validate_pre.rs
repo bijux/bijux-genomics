@@ -25,13 +25,13 @@ pub struct ValidatePreEffectiveConfig {
     pub out_dir: std::path::PathBuf,
 }
 
-pub fn plan(tool: &ToolExecutionSpecV1, r1: &Path, out_dir: &Path) -> StagePlanV1 {
+pub fn plan(tool: &ToolExecutionSpecV1, r1: &Path, out_dir: &Path) -> Result<StagePlanV1> {
     let effective_params = ValidateEffectiveParams {
         paired_mode: PairedMode::SingleEnd,
         threads: tool.resources.threads,
         q_cutoff: None,
     };
-    StagePlanV1 {
+    Ok(StagePlanV1 {
         stage_id: STAGE_ID.clone(),
         stage_version: STAGE_VERSION,
         tool_id: tool.tool_id.clone(),
@@ -58,10 +58,10 @@ pub fn plan(tool: &ToolExecutionSpecV1, r1: &Path, out_dir: &Path) -> StagePlanV
             "out_dir": out_dir
         }),
         effective_params: serde_json::to_value(&effective_params)
-            .expect("serialize validate effective params"),
+            .map_err(|error| anyhow!("serialize validate effective params: {error}"))?,
         aux_images: std::collections::BTreeMap::new(),
         reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
-    }
+    })
 }
 
 pub fn normalize_validate_tool_list(tools: &[String]) -> Result<Vec<String>> {
@@ -80,7 +80,7 @@ pub fn resolve_config(user: ValidatePreUserConfig) -> ValidatePreEffectiveConfig
 pub fn plan_from_config(
     tool: &ToolExecutionSpecV1,
     config: &ValidatePreEffectiveConfig,
-) -> StagePlanV1 {
+) -> Result<StagePlanV1> {
     plan(tool, &config.r1, &config.out_dir)
 }
 
