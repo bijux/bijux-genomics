@@ -214,7 +214,10 @@ fn main() -> Result<()> {
         registry_toml.push_str("pinned_commit = \"domain-managed\"\n");
         registry_toml.push_str(&format!("pin_strategy = \"{}\"\n", tool.pin_strategy));
         registry_toml.push_str(&format!("runtimes = {}\n", toml_array(&runtimes)));
-        registry_toml.push_str(&format!("container = {}\n", if is_planned { "false" } else { "true" }));
+        registry_toml.push_str(&format!(
+            "container = {}\n",
+            if is_planned { "false" } else { "true" }
+        ));
         registry_toml.push_str(&format!("version_cmd = \"{}\"\n", tool.version_cmd));
         registry_toml.push_str(&format!("help_cmd = \"{}\"\n", tool.help_cmd));
         registry_toml.push_str(&format!("smoke_version_cmd = \"{}\"\n", tool.version_cmd));

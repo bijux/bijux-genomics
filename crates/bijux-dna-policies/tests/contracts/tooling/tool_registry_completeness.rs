@@ -80,8 +80,7 @@ fn policy__contracts__tool_registry_completeness__registry_entries_are_machine_c
         }
 
         let container_enabled = as_bool_field(entry, "container", true);
-        let is_planned = as_str_field(entry, "version")
-            .is_some_and(|version| version == "planned");
+        let is_planned = as_str_field(entry, "version").is_some_and(|version| version == "planned");
         let runtimes = runtimes(entry);
         if runtimes.is_empty() && !is_planned {
             offenders.push(format!("tool={id}: `runtimes` must be non-empty"));
