@@ -125,6 +125,22 @@ struct DomainIndex {
     active_defaults: BTreeMap<String, String>,
 }
 
+#[derive(Debug, Deserialize, Default)]
+struct DomainArtifactVocabulary {
+    #[serde(default)]
+    domain: String,
+    #[serde(default)]
+    artifact_ids: Vec<String>,
+}
+
+#[derive(Debug, Deserialize, Default)]
+struct DomainMetricVocabulary {
+    #[serde(default)]
+    domain: String,
+    #[serde(default)]
+    metric_ids: Vec<String>,
+}
+
 #[derive(Debug)]
 struct ToolRow {
     id: String,
@@ -815,6 +831,10 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
         "bam/stages/_schema.yaml",
         "fastq/tools/_schema.yaml",
         "bam/tools/_schema.yaml",
+        "fastq/artifacts.yaml",
+        "bam/artifacts.yaml",
+        "fastq/metrics.yaml",
+        "bam/metrics.yaml",
         "fastq/index.yaml",
         "bam/index.yaml",
     ] {
@@ -823,6 +843,39 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
 
     let mut tool_ids = BTreeMap::<String, String>::new();
     let mut stage_ids = BTreeMap::<String, String>::new();
+    let mut artifact_vocab = BTreeMap::<String, BTreeSet<String>>::new();
+    let mut metric_vocab = BTreeMap::<String, BTreeSet<String>>::new();
+
+    for dom in ["fastq", "bam"] {
+        let artifacts_path = options.domain_dir.join(dom).join("artifacts.yaml");
+        let metrics_path = options.domain_dir.join(dom).join("metrics.yaml");
+        let artifacts: DomainArtifactVocabulary = read_yaml(&artifacts_path)?;
+        let metrics: DomainMetricVocabulary = read_yaml(&metrics_path)?;
+        if artifacts.domain != dom {
+            bail!(
+                "{} domain mismatch: expected {}, got {}",
+                artifacts_path.display(),
+                dom,
+                artifacts.domain
+            );
+        }
+        if metrics.domain != dom {
+            bail!(
+                "{} domain mismatch: expected {}, got {}",
+                metrics_path.display(),
+                dom,
+                metrics.domain
+            );
+        }
+        if artifacts.artifact_ids.is_empty() {
+            bail!("{} missing artifact_ids", artifacts_path.display());
+        }
+        if metrics.metric_ids.is_empty() {
+            bail!("{} missing metric_ids", metrics_path.display());
+        }
+        artifact_vocab.insert(dom.to_string(), artifacts.artifact_ids.into_iter().collect());
+        metric_vocab.insert(dom.to_string(), metrics.metric_ids.into_iter().collect());
+    }
 
     for dom in ["fastq", "bam", "vcf"] {
         let stage_glob = options.domain_dir.join(dom).join("stages");
@@ -844,6 +897,12 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                     bail!("{} missing stage_id", path.display());
                 }
                 if dom != "vcf" {
+                    let artifact_ids = artifact_vocab
+                        .get(dom)
+                        .ok_or_else(|| anyhow!("missing artifact vocab for domain {dom}"))?;
+                    let metric_ids = metric_vocab
+                        .get(dom)
+                        .ok_or_else(|| anyhow!("missing metric vocab for domain {dom}"))?;
                     if stage.inputs.is_empty() {
                         bail!("{} missing inputs", path.display());
                     }
@@ -861,6 +920,36 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                     }
                     if stage.allowed_missingness.is_empty() && stage.status == "supported" {
                         bail!("{} missing allowed_missingness", path.display());
+                    }
+                    for output in &stage.outputs {
+                        if !artifact_ids.contains(&output.name) {
+                            bail!(
+                                "{} stage output `{}` is outside {} artifact vocabulary",
+                                path.display(),
+                                output.name,
+                                dom
+                            );
+                        }
+                    }
+                    for output in &stage.required_outputs {
+                        if !artifact_ids.contains(output) {
+                            bail!(
+                                "{} required_output `{}` is outside {} artifact vocabulary",
+                                path.display(),
+                                output,
+                                dom
+                            );
+                        }
+                    }
+                    for metric in &stage.metrics {
+                        if !metric_ids.contains(&metric.name) {
+                            bail!(
+                                "{} metric `{}` is outside {} metric vocabulary",
+                                path.display(),
+                                metric.name,
+                                dom
+                            );
+                        }
                     }
                 }
                 let input_names = stage
@@ -985,6 +1074,19 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                     bail!("{} missing required tool fields", path.display());
                 }
                 if dom != "vcf" && tool.status == "supported" {
+                    let artifact_ids = artifact_vocab
+                        .get(dom)
+                        .ok_or_else(|| anyhow!("missing artifact vocab for domain {dom}"))?;
+                    for artifact in &tool.expected_artifacts {
+                        if !artifact_ids.contains(artifact) {
+                            bail!(
+                                "{} expected_artifact `{}` is outside {} artifact vocabulary",
+                                path.display(),
+                                artifact,
+                                dom
+                            );
+                        }
+                    }
                     for stage_id in &tool.stage_ids {
                         let stage_domain = stage_id.split('.').next().unwrap_or(dom);
                         let stage_path =
