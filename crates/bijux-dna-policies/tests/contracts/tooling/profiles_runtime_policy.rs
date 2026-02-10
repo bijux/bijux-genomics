@@ -12,11 +12,17 @@ fn repo_root() -> PathBuf {
 #[test]
 fn policy__contracts__profiles_runtime_policy__profiles_are_runtime_knobs_only() {
     let root = repo_root();
-    let profiles_dir = root.join("configs").join("profiles");
+    let configs_dir = root.join("configs");
     let mut offenders = Vec::new();
-    for entry in std::fs::read_dir(&profiles_dir).expect("read configs/profiles") {
+    for entry in std::fs::read_dir(&configs_dir).expect("read configs") {
         let path = entry.expect("entry").path();
         if path.extension().and_then(|ext| ext.to_str()) != Some("toml") {
+            continue;
+        }
+        let Some(name) = path.file_name().and_then(|n| n.to_str()) else {
+            continue;
+        };
+        if !name.starts_with("profile.") {
             continue;
         }
         let content = std::fs::read_to_string(&path).expect("read profile");
