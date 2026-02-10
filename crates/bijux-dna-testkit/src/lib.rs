@@ -259,6 +259,7 @@ pub mod snapshots {
 
     fn normalize_string(input: &str) -> String {
         let mut out = sanitize_snapshot_text(input);
+        out = normalize_isolate_tmp_path(&out);
         if looks_like_timestamp(&out) {
             out = "<TIMESTAMP>".to_string();
         }
@@ -266,6 +267,24 @@ pub mod snapshots {
             out = "<DURATION>".to_string();
         }
         out
+    }
+
+    fn normalize_isolate_tmp_path(input: &str) -> String {
+        if input.chars().any(char::is_whitespace) {
+            return input.to_string();
+        }
+        let is_isolate_path = input.contains("artifacts/isolates/")
+            || input.contains("artifacts/target-isolate-")
+            || input.contains("/target-test/tmp/")
+            || input.contains("/target-cov/tmp/")
+            || input.contains("/target-isolate-")
+            || input.contains("<TMPDIR>/<TMP>/");
+        if !is_isolate_path || !input.contains('/') {
+            return input.to_string();
+        }
+        let trimmed = input.trim_end_matches('/');
+        let leaf = trimmed.rsplit('/').next().unwrap_or(trimmed);
+        leaf.to_string()
     }
 
     fn looks_like_timestamp(value: &str) -> bool {
