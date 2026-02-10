@@ -87,3 +87,16 @@ active_defaults:
   fastq.merge: pear
   fastq.correct: rcorrector
   fastq.umi: umi_tools
+active_default_rationale:
+  fastq.prepare_reference: "Stable index generation baseline for pre-HPC runs."
+  fastq.detect_adapters: "Default adapter detector aligned with trim defaults."
+  fastq.trim: "Baseline trimmer for deterministic quality/throughput tradeoff."
+  fastq.filter: "Default filter preserves compatibility with downstream metrics."
+  fastq.validate_pre: "Validation default has broad FASTQ format coverage."
+  fastq.stats_neutral: "Neutral stats baseline is lightweight and deterministic."
+  fastq.rrna: "Default rRNA filter is established for pre-HPC screening."
+  fastq.qc_post: "QC aggregation default provides operator-first summary output."
+  fastq.screen: "Default classifier maximizes comparability with existing reports."
+  fastq.merge: "Default merger is stable for paired-end overlap handling."
+  fastq.correct: "Default corrector chosen for robust error-correction baseline."
+  fastq.umi: "Default UMI handler preserves compatibility with stage contract."

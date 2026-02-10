@@ -31,5 +31,7 @@ allowed_missingness:
   - "none"
 compatible_tools:
   - samtools
+assumptions:
+  - "default stage assumptions captured"
 metrics_schema: "bijux.stage.metrics.v1"
 planned_out_of_scope: []

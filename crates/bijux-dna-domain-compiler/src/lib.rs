@@ -105,6 +105,8 @@ struct DomainStage {
     #[serde(default)]
     compatible_tools: Vec<String>,
     #[serde(default)]
+    assumptions: Vec<String>,
+    #[serde(default)]
     invariants: Vec<String>,
     #[serde(default)]
     allowed_missingness: Vec<String>,
@@ -123,6 +125,8 @@ struct DomainIndex {
     stage_tool_compatibility: BTreeMap<String, Vec<String>>,
     #[serde(default)]
     active_defaults: BTreeMap<String, String>,
+    #[serde(default)]
+    active_default_rationale: BTreeMap<String, String>,
 }
 
 #[derive(Debug, Deserialize, Default)]
@@ -163,6 +167,7 @@ type StagePlannedMap = BTreeMap<String, Vec<String>>;
 type StageDefaultMap = BTreeMap<String, String>;
 type StageStatusMap = BTreeMap<String, String>;
 type StageOutputKindsMap = BTreeMap<String, Vec<String>>;
+type StageDefaultRationaleMap = BTreeMap<String, String>;
 
 fn ensure_status(status: &str, path: &Path) -> Result<()> {
     match status {
@@ -336,6 +341,11 @@ fn has_placeholder_token(raw: &str) -> bool {
     lower.contains("todo") || lower.contains("tbd") || lower.contains("placeholder")
 }
 
+fn is_unspecified(text: &str) -> bool {
+    let trimmed = text.trim();
+    trimmed.is_empty() || trimmed.eq_ignore_ascii_case("unspecified")
+}
+
 fn load_domain_tools(
     domain_dir: &Path,
     domain: &str,
@@ -497,6 +507,7 @@ fn collect_domain_data(
     StageToolMap,
     StagePlannedMap,
     StageDefaultMap,
+    StageDefaultRationaleMap,
     StageStatusMap,
     StageOutputKindsMap,
 )> {
@@ -504,6 +515,7 @@ fn collect_domain_data(
     let mut stage_to_tools: StageToolMap = BTreeMap::new();
     let mut stage_planned: StagePlannedMap = BTreeMap::new();
     let mut stage_defaults: StageDefaultMap = BTreeMap::new();
+    let mut stage_default_rationale: StageDefaultRationaleMap = BTreeMap::new();
     let mut stage_statuses: StageStatusMap = BTreeMap::new();
     let mut stage_output_kinds: StageOutputKindsMap = BTreeMap::new();
     for domain in ["fastq", "bam"] {
@@ -559,7 +571,18 @@ fn collect_domain_data(
                     "index active default {default_tool} for {stage_id} is not compatible"
                 ));
             }
+            let rationale = index
+                .active_default_rationale
+                .get(stage_id)
+                .cloned()
+                .unwrap_or_default();
+            if is_unspecified(&rationale) {
+                return Err(anyhow!(
+                    "index active_default_rationale for {stage_id} must be non-empty and not unspecified"
+                ));
+            }
             stage_defaults.insert(stage_id.clone(), default_tool.clone());
+            stage_default_rationale.insert(stage_id.clone(), rationale);
         }
     }
     for tool in tools.values() {
@@ -578,6 +601,7 @@ fn collect_domain_data(
         stage_to_tools,
         stage_planned,
         stage_defaults,
+        stage_default_rationale,
         stage_statuses,
         stage_output_kinds,
     ))
@@ -588,6 +612,7 @@ fn build_tool_registry_toml(
     stage_to_tools: &StageToolMap,
     stage_planned: &StagePlannedMap,
     stage_defaults: &StageDefaultMap,
+    stage_default_rationale: &StageDefaultRationaleMap,
     source_commit: &str,
 ) -> String {
     let mut registry_toml = generated_header("domain/**", source_commit);
@@ -701,6 +726,11 @@ fn build_tool_registry_toml(
             "planned_out_of_scope = {}",
             toml_array(stage_planned.get(stage_id).map_or(&[], Vec::as_slice))
         );
+        let rationale = stage_default_rationale
+            .get(stage_id)
+            .map_or("", std::string::String::as_str)
+            .replace('"', "'");
+        let _ = writeln!(registry_toml, "default_rationale = \"{rationale}\"");
         registry_toml.push_str("requires_validation = false\n");
         let _ = writeln!(
             registry_toml,
@@ -758,8 +788,15 @@ fn build_stages_toml(
 /// Returns an error when domain inputs are invalid, generated outputs cannot be
 /// written, or scope invariants are violated.
 pub fn compile_domain_configs(options: &CompileOptions) -> Result<()> {
-    let (tools, stage_to_tools, stage_planned, stage_defaults, stage_statuses, stage_output_kinds) =
-        collect_domain_data(&options.domain_dir, &options.scope)?;
+    let (
+        tools,
+        stage_to_tools,
+        stage_planned,
+        stage_defaults,
+        stage_default_rationale,
+        stage_statuses,
+        stage_output_kinds,
+    ) = collect_domain_data(&options.domain_dir, &options.scope)?;
     if options.scope == "pre_hpc_pre_vcf" {
         if tools.keys().any(|tool_id| tool_id.starts_with("vcf.")) {
             bail!("pre_hpc_pre_vcf scope must not include VCF tools in generated configs");
@@ -785,6 +822,7 @@ pub fn compile_domain_configs(options: &CompileOptions) -> Result<()> {
         &stage_to_tools,
         &stage_planned,
         &stage_defaults,
+        &stage_default_rationale,
         &source_commit,
     );
     write_string(&tool_registry_path, &registry_toml)
@@ -914,6 +952,9 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                     }
                     if stage.invariants.is_empty() {
                         bail!("{} missing invariants", path.display());
+                    }
+                    if stage.assumptions.is_empty() {
+                        bail!("{} missing assumptions", path.display());
                     }
                     if stage.metrics.is_empty() {
                         bail!("{} missing metrics", path.display());
@@ -1309,6 +1350,36 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                     default_tool,
                     stage_id
                 );
+            }
+            let rationale = index
+                .active_default_rationale
+                .get(stage_id)
+                .map_or("", std::string::String::as_str);
+            if is_unspecified(rationale) {
+                bail!(
+                    "{} missing non-empty active_default_rationale for {}",
+                    index_path.display(),
+                    stage_id
+                );
+            }
+            let stage_suffix = stage_id
+                .split_once('.')
+                .map_or(stage_id.as_str(), |(_, rhs)| rhs);
+            let stage_path = options
+                .domain_dir
+                .join(dom)
+                .join("stages")
+                .join(format!("{}.yaml", stage_suffix.replace('.', "_")));
+            if stage_path.exists() {
+                let stage: DomainStage = read_yaml(&stage_path)?;
+                if stage.status != "supported" {
+                    bail!(
+                        "{} active default stage {} must be supported (found {})",
+                        index_path.display(),
+                        stage_id,
+                        stage.status
+                    );
+                }
             }
         }
         // Validate that required stage inputs are satisfiable by prior stage outputs in index order.

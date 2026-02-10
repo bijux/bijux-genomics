@@ -50,5 +50,7 @@ compatible_tools:
   - seqkit_stats
   - seqkit
   - seqfu
+assumptions:
+  - "default stage assumptions captured"
 metrics_schema: "bijux.stage.metrics.v1"
 planned_out_of_scope: []
