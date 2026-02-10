@@ -267,6 +267,23 @@ fn policy__contracts__policies__litmus_doc_exists_and_lists_rules() {
         ),
         "ARCHITECTURE.md must define the SSOT rule"
     );
+    let authority_map_path = root.join("docs/10-architecture/CRATE_AUTHORITY_MAP.md");
+    bijux_dna_policies::policy_assert!(
+        authority_map_path.exists(),
+        "CRATE_AUTHORITY_MAP.md must exist"
+    );
+    let authority_map =
+        std::fs::read_to_string(&authority_map_path).expect("read CRATE_AUTHORITY_MAP.md");
+    bijux_dna_policies::policy_assert!(
+        authority_map.contains("bijux-dna-engine")
+            && authority_map.contains("bijux-dna-runner")
+            && authority_map.contains("bijux-dna-environment")
+            && authority_map.contains("bijux-dna-planner-fastq")
+            && authority_map.contains("bijux-dna-planner-bam")
+            && authority_map.contains("bijux-dna-stages-fastq")
+            && authority_map.contains("bijux-dna-stages-bam"),
+        "CRATE_AUTHORITY_MAP.md must define planner/stage/engine/runner/environment authority boundaries"
+    );
 }
 
 #[test]

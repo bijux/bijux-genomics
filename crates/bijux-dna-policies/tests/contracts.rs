@@ -52,6 +52,8 @@ mod mod_contracts_tooling_planner_tool_id_policy_rs;
 mod mod_contracts_tooling_policies_rs;
 #[path = "contracts/tooling/profiles_runtime_policy.rs"]
 mod mod_contracts_tooling_profiles_runtime_policy_rs;
+#[path = "contracts/tooling/purity_effects_responsibility_policy.rs"]
+mod mod_contracts_tooling_purity_effects_responsibility_policy_rs;
 #[path = "contracts/tooling/registry_ssot_completeness_policy.rs"]
 mod mod_contracts_tooling_registry_ssot_completeness_policy_rs;
 #[path = "contracts/tooling/smoke_manifest_policy.rs"]
