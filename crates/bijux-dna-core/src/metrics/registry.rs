@@ -27,6 +27,16 @@ pub const FASTQ_METRICS_SCHEMAS: &[MetricsSchemaId] = &[
         version: 2,
     },
     MetricsSchemaId {
+        stage_id: "fastq.deduplicate",
+        schema: "fastq_deduplicate_v1",
+        version: 1,
+    },
+    MetricsSchemaId {
+        stage_id: "fastq.low_complexity",
+        schema: "fastq_low_complexity_v1",
+        version: 1,
+    },
+    MetricsSchemaId {
         stage_id: "fastq.merge",
         schema: "fastq_merge_v1",
         version: 1,
@@ -80,12 +90,32 @@ pub const BAM_METRICS_SCHEMAS: &[MetricsSchemaId] = &[
         version: 1,
     },
     MetricsSchemaId {
+        stage_id: "bam.mapping_summary",
+        schema: "bam_metrics_v1",
+        version: 1,
+    },
+    MetricsSchemaId {
         stage_id: "bam.filter",
         schema: "bam_metrics_v1",
         version: 1,
     },
     MetricsSchemaId {
+        stage_id: "bam.mapq_filter",
+        schema: "bam_metrics_v1",
+        version: 1,
+    },
+    MetricsSchemaId {
+        stage_id: "bam.length_filter",
+        schema: "bam_metrics_v1",
+        version: 1,
+    },
+    MetricsSchemaId {
         stage_id: "bam.markdup",
+        schema: "bam_metrics_v1",
+        version: 1,
+    },
+    MetricsSchemaId {
+        stage_id: "bam.duplication_metrics",
         schema: "bam_metrics_v1",
         version: 1,
     },
@@ -96,6 +126,26 @@ pub const BAM_METRICS_SCHEMAS: &[MetricsSchemaId] = &[
     },
     MetricsSchemaId {
         stage_id: "bam.coverage",
+        schema: "bam_metrics_v1",
+        version: 1,
+    },
+    MetricsSchemaId {
+        stage_id: "bam.insert_size",
+        schema: "bam_metrics_v1",
+        version: 1,
+    },
+    MetricsSchemaId {
+        stage_id: "bam.gc_bias",
+        schema: "bam_metrics_v1",
+        version: 1,
+    },
+    MetricsSchemaId {
+        stage_id: "bam.endogenous_content",
+        schema: "bam_metrics_v1",
+        version: 1,
+    },
+    MetricsSchemaId {
+        stage_id: "bam.overlap_correction",
         schema: "bam_metrics_v1",
         version: 1,
     },
