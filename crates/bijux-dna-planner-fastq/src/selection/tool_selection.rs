@@ -10,7 +10,7 @@ fn registry_toml() -> Option<toml::Value> {
 }
 
 #[must_use]
-pub fn allowed_tools_for_stage(stage_id: &StageId) -> Vec<String> {
+pub fn allowed_tools_for_stage(stage_id: &StageId) -> Vec<ToolId> {
     let mut tools = BTreeSet::new();
     let Some(parsed) = registry_toml() else {
         return Vec::new();
@@ -32,11 +32,11 @@ pub fn allowed_tools_for_stage(stage_id: &StageId) -> Vec<String> {
             .filter_map(toml::Value::as_str)
             .any(|stage| stage == stage_id.as_str())
         {
-            tools.insert(tool_id.to_string());
+            tools.insert(ToolId::new(tool_id.to_string()));
         }
     }
     let mut tools = tools.into_iter().collect::<Vec<_>>();
-    tools.sort();
+    tools.sort_by(|a, b| a.as_str().cmp(b.as_str()));
     tools
 }
 
@@ -64,5 +64,4 @@ pub fn default_tool_for_stage(stage_id: &StageId) -> Option<ToolId> {
     allowed_tools_for_stage(stage_id)
         .first()
         .cloned()
-        .map(ToolId::new)
 }

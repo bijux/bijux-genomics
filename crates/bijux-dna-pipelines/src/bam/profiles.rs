@@ -99,6 +99,34 @@ fn stable_bam_stages() -> Vec<BamStage> {
     ]
 }
 
+fn catalog_bam_stages() -> Vec<BamStage> {
+    let parsed: toml::Value = include_str!("../../../../configs/stages.toml")
+        .parse()
+        .expect("generated configs/stages.toml must parse");
+    let mut stages = parsed
+        .get("stages")
+        .and_then(toml::Value::as_array)
+        .cloned()
+        .unwrap_or_default()
+        .into_iter()
+        .filter_map(|entry| {
+            entry
+                .get("id")
+                .and_then(toml::Value::as_str)
+                .and_then(|id| {
+                    if id.starts_with("bam.") {
+                        BamStage::try_from(id).ok()
+                    } else {
+                        None
+                    }
+                })
+        })
+        .collect::<Vec<_>>();
+    stages.sort_by_key(|stage| stage.as_str().to_string());
+    stages.dedup();
+    stages
+}
+
 #[must_use]
 pub fn bam_default_profile() -> PipelineProfile {
     let stages = stable_bam_stages();
@@ -133,7 +161,7 @@ pub fn bam_default_profile() -> PipelineProfile {
 
 #[must_use]
 pub fn bam_adna_shotgun_profile() -> PipelineProfile {
-    let mut stages = BamStage::all().to_vec();
+    let mut stages = catalog_bam_stages();
     stages.retain(|stage| *stage != BamStage::Align);
     stages.retain(|stage| *stage != BamStage::Recalibration);
     filter_downstream(&mut stages);
@@ -168,7 +196,7 @@ pub fn bam_adna_shotgun_profile() -> PipelineProfile {
 
 #[must_use]
 pub fn bam_adna_capture_profile() -> PipelineProfile {
-    let mut stages = BamStage::all().to_vec();
+    let mut stages = catalog_bam_stages();
     stages.retain(|stage| *stage != BamStage::Align);
     stages.retain(|stage| *stage != BamStage::Recalibration);
     filter_downstream(&mut stages);

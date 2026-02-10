@@ -89,15 +89,15 @@ pub fn default_pipeline_spec(options: DefaultPipelineOptions) -> PipelineSpec {
 pub struct PreprocessPolicyDecision {
     pub adapter_inference: Option<serde_json::Value>,
     pub adapter_bank_preset_override: Option<String>,
-    pub pipeline_stages: Vec<String>,
-    pub pipeline_tools: Vec<String>,
+    pub pipeline_stages: Vec<StageId>,
+    pub pipeline_tools: Vec<bijux_dna_core::ids::ToolId>,
     pub stage_skips: Vec<serde_json::Value>,
 }
 
 #[must_use]
 pub fn apply_preprocess_policy(
-    pipeline_stages: Vec<String>,
-    pipeline_tools: Vec<String>,
+    pipeline_stages: Vec<StageId>,
+    pipeline_tools: Vec<bijux_dna_core::ids::ToolId>,
 ) -> PreprocessPolicyDecision {
     let mut pipeline_stages = pipeline_stages;
     let mut pipeline_tools = pipeline_tools;
@@ -106,19 +106,19 @@ pub fn apply_preprocess_policy(
     if let (Some(trim_idx), Some(filter_idx)) = (
         pipeline_stages
             .iter()
-            .position(|stage| stage == STAGE_TRIM.as_str()),
+            .position(|stage| stage == &STAGE_TRIM),
         pipeline_stages
             .iter()
-            .position(|stage| stage == STAGE_FILTER.as_str()),
+            .position(|stage| stage == &STAGE_FILTER),
     ) {
-        let trim_tool = pipeline_tools.get(trim_idx).map(String::as_str);
-        let filter_tool = pipeline_tools.get(filter_idx).map(String::as_str);
+        let trim_tool = pipeline_tools.get(trim_idx).map(|tool| tool.as_str());
+        let filter_tool = pipeline_tools.get(filter_idx).map(|tool| tool.as_str());
         if trim_tool == Some("fastp") && filter_tool == Some("fastp") {
             let skipped_stage = pipeline_stages.remove(filter_idx);
             let skipped_tool = pipeline_tools.remove(filter_idx);
             stage_skips.push(serde_json::json!({
-                "stage_id": skipped_stage,
-                "tool_id": skipped_tool,
+                "stage_id": skipped_stage.as_str(),
+                "tool_id": skipped_tool.as_str(),
                 "reason": "fastp trimming already performs quality filtering; filter stage skipped",
                 "equivalent_params": {
                     "quality_filtering": true
@@ -799,7 +799,7 @@ pub fn select_trim_tools(tools: &[String], allow_experimental: bool) -> Result<V
     let mut allowlist =
         crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_TRIM);
     if !allow_experimental {
-        allowlist.retain(|tool| tool != "seqpurge");
+        allowlist.retain(|tool| tool.as_str() != "seqpurge");
     }
     select_tools_with_allowlist(tools, &allowlist)
 }
@@ -825,7 +825,7 @@ pub fn select_correct_tools(tools: &[String], allow_experimental: bool) -> Resul
     let mut allowlist =
         crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_CORRECT);
     if !allow_experimental {
-        allowlist.retain(|tool| tool == "rcorrector");
+        allowlist.retain(|tool| tool.as_str() == "rcorrector");
     }
     select_tools_with_allowlist(tools, &allowlist)
 }
@@ -865,7 +865,10 @@ pub fn scale_tool_spec_for_jobs(tool: &ToolExecutionSpecV1, jobs: usize) -> Tool
     scaled
 }
 
-fn select_tools_with_allowlist(tools: &[String], allowlist: &[String]) -> Result<Vec<String>> {
+fn select_tools_with_allowlist(
+    tools: &[String],
+    allowlist: &[bijux_dna_core::ids::ToolId],
+) -> Result<Vec<String>> {
     let mut normalized: Vec<String> = tools.iter().map(|tool| tool.to_lowercase()).collect();
     normalized.sort();
     normalized.dedup();
@@ -873,7 +876,7 @@ fn select_tools_with_allowlist(tools: &[String], allowlist: &[String]) -> Result
         return Err(anyhow!("no tools specified"));
     }
     for tool in &normalized {
-        if !allowlist.contains(tool) {
+        if !allowlist.iter().any(|allowed| allowed.as_str() == tool) {
             return Err(anyhow!("unsupported tool: {tool}"));
         }
     }

@@ -503,15 +503,16 @@ fn enforce_stage_tool_contracts(
             }
         }
         BamStage::Contamination => {
-            let scope = params
+            let effective = params
                 .map(|value| stage.parse_effective_params(value))
                 .transpose()?
                 .and_then(|effective| match effective {
-                    bijux_dna_domain_bam::params::BamEffectiveParams::Contamination(c) => {
-                        Some(c.scope)
-                    }
+                    bijux_dna_domain_bam::params::BamEffectiveParams::Contamination(c) => Some(c),
                     _ => None,
-                })
+                });
+            let scope = effective
+                .as_ref()
+                .map(|contamination| contamination.scope)
                 .unwrap_or(bijux_dna_domain_bam::params::ContaminationScope::Both);
             match tool_id {
                 id_catalog::TOOL_SCHMUTZI
@@ -541,6 +542,16 @@ fn enforce_stage_tool_contracts(
                 {
                     return Err(anyhow!(
                         "{} tool {tool_id} requires scope nuclear/both",
+                        id_catalog::BAM_CONTAMINATION
+                    ));
+                }
+                id_catalog::TOOL_VERIFYBAMID2 | id_catalog::TOOL_CONTAMMIX
+                    if effective
+                        .as_ref()
+                        .is_some_and(|contamination| contamination.reference_panels.is_empty()) =>
+                {
+                    return Err(anyhow!(
+                        "{} tool {tool_id} requires non-empty reference_panels",
                         id_catalog::BAM_CONTAMINATION
                     ));
                 }
