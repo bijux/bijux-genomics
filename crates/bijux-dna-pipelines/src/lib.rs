@@ -5,6 +5,7 @@
 use std::collections::BTreeMap;
 
 use bijux_dna_core::ids::{StageId, ToolId};
+use bijux_dna_domain_bam::params::BamEffectiveParams;
 use bijux_dna_domain_fastq::params::detect_adapters::DetectAdaptersEffectiveParams;
 use bijux_dna_domain_fastq::params::filter::FilterEffectiveParams;
 use bijux_dna_domain_fastq::params::merge::MergeEffectiveParams;
@@ -13,6 +14,7 @@ use bijux_dna_domain_fastq::params::qc_post::QcPostEffectiveParams;
 use bijux_dna_domain_fastq::params::screen::ScreenEffectiveParams;
 use bijux_dna_domain_fastq::params::trim::TrimEffectiveParams;
 use bijux_dna_domain_fastq::params::validate::ValidateEffectiveParams;
+use serde::ser::Serializer;
 use serde::Serialize;
 
 pub mod bam;
@@ -89,8 +91,10 @@ pub struct EffectiveDefaults {
     pub rationales: BTreeMap<StageId, String>,
 }
 
-#[derive(Debug, Clone, Serialize)]
-#[serde(untagged)]
+#[derive(Debug, Clone, Default)]
+pub struct EmptyParams {}
+
+#[derive(Debug, Clone)]
 pub enum DefaultParams {
     FastqValidate(ValidateEffectiveParams),
     FastqDetectAdapters(DetectAdaptersEffectiveParams),
@@ -100,7 +104,8 @@ pub enum DefaultParams {
     FastqPreprocess(PreprocessEffectiveParams),
     FastqMerge(MergeEffectiveParams),
     FastqScreen(ScreenEffectiveParams),
-    Json(serde_json::Value),
+    Bam(BamEffectiveParams),
+    Empty(EmptyParams),
 }
 
 impl DefaultParams {
@@ -119,8 +124,55 @@ impl DefaultParams {
             }
             DefaultParams::FastqMerge(value) => serde_json::to_value(value).unwrap_or_default(),
             DefaultParams::FastqScreen(value) => serde_json::to_value(value).unwrap_or_default(),
-            DefaultParams::Json(value) => value.clone(),
+            DefaultParams::Bam(value) => match value {
+                BamEffectiveParams::Align(inner) => serde_json::to_value(inner).unwrap_or_default(),
+                BamEffectiveParams::Validate(inner) => {
+                    serde_json::to_value(inner).unwrap_or_default()
+                }
+                BamEffectiveParams::QcPre(inner) => serde_json::to_value(inner).unwrap_or_default(),
+                BamEffectiveParams::Filter(inner) => serde_json::to_value(inner).unwrap_or_default(),
+                BamEffectiveParams::Markdup(inner) => {
+                    serde_json::to_value(inner).unwrap_or_default()
+                }
+                BamEffectiveParams::Complexity(inner) => {
+                    serde_json::to_value(inner).unwrap_or_default()
+                }
+                BamEffectiveParams::Coverage(inner) => {
+                    serde_json::to_value(inner).unwrap_or_default()
+                }
+                BamEffectiveParams::Damage(inner) => serde_json::to_value(inner).unwrap_or_default(),
+                BamEffectiveParams::Authenticity(inner) => {
+                    serde_json::to_value(inner).unwrap_or_default()
+                }
+                BamEffectiveParams::Contamination(inner) => {
+                    serde_json::to_value(inner).unwrap_or_default()
+                }
+                BamEffectiveParams::Sex(inner) => serde_json::to_value(inner).unwrap_or_default(),
+                BamEffectiveParams::BiasMitigation(inner) => {
+                    serde_json::to_value(inner).unwrap_or_default()
+                }
+                BamEffectiveParams::Recalibration(inner) => {
+                    serde_json::to_value(inner).unwrap_or_default()
+                }
+                BamEffectiveParams::Haplogroups(inner) => {
+                    serde_json::to_value(inner).unwrap_or_default()
+                }
+                BamEffectiveParams::Genotyping(inner) => {
+                    serde_json::to_value(inner).unwrap_or_default()
+                }
+                BamEffectiveParams::Kinship(inner) => serde_json::to_value(inner).unwrap_or_default(),
+            },
+            DefaultParams::Empty(_) => serde_json::json!({}),
         }
+    }
+}
+
+impl Serialize for DefaultParams {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.to_json().serialize(serializer)
     }
 }
 

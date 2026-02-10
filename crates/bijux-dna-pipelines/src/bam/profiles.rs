@@ -8,6 +8,7 @@ use bijux_dna_core::prelude::id_catalog;
 use bijux_dna_domain_bam::defaults::{
     adna_capture_params_json, adna_shotgun_params_json, default_params_json,
 };
+use bijux_dna_domain_bam::params::BamEffectiveParams;
 use bijux_dna_domain_bam::BamStage;
 
 use crate::{
@@ -18,7 +19,7 @@ use crate::{
 #[derive(Debug, Clone)]
 struct BamStageDefault {
     stage: BamStage,
-    params: serde_json::Value,
+    params: BamEffectiveParams,
 }
 
 fn defaults_for(
@@ -29,7 +30,14 @@ fn defaults_for(
         .iter()
         .map(|stage| BamStageDefault {
             stage: *stage,
-            params: params_for_stage(*stage),
+            params: stage
+                .parse_effective_params(&params_for_stage(*stage))
+                .unwrap_or_else(|err| {
+                    panic!(
+                        "failed to parse typed BAM defaults for stage {}: {err}",
+                        stage.as_str()
+                    )
+                }),
         })
         .collect()
 }
@@ -63,7 +71,7 @@ fn to_effective_defaults(defaults: &[BamStageDefault]) -> EffectiveDefaults {
         );
         params.insert(
             StageId::from_static(entry.stage.as_str()),
-            DefaultParams::Json(entry.params.clone()),
+            DefaultParams::Bam(entry.params.clone()),
         );
         rationales.insert(
             StageId::from_static(entry.stage.as_str()),
@@ -122,7 +130,12 @@ fn catalog_bam_stages() -> Vec<BamStage> {
                 })
         })
         .collect::<Vec<_>>();
-    stages.sort_by_key(|stage| stage.as_str().to_string());
+    stages.sort_by_key(|stage| {
+        BamStage::all()
+            .iter()
+            .position(|candidate| candidate == stage)
+            .unwrap_or(usize::MAX)
+    });
     stages.dedup();
     stages
 }
