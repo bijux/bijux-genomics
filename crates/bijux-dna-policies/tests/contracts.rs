@@ -50,12 +50,12 @@ mod mod_contracts_tooling_image_catalog_completeness_policy_rs;
 mod mod_contracts_tooling_make_script_enumeration_policy_rs;
 #[path = "contracts/tooling/makefile_policies.rs"]
 mod mod_contracts_tooling_makefile_policies_rs;
+#[path = "contracts/tooling/nextest_determinism_policy.rs"]
+mod mod_contracts_tooling_nextest_determinism_policy_rs;
 #[path = "contracts/tooling/no_appledouble.rs"]
 mod mod_contracts_tooling_no_appledouble_rs;
 #[path = "contracts/tooling/no_placeholders_code_policy.rs"]
 mod mod_contracts_tooling_no_placeholders_code_policy_rs;
-#[path = "contracts/tooling/nextest_determinism_policy.rs"]
-mod mod_contracts_tooling_nextest_determinism_policy_rs;
 #[path = "contracts/tooling/opentelemetry_version_policy.rs"]
 mod mod_contracts_tooling_opentelemetry_version_policy_rs;
 #[path = "contracts/tooling/planner_data_driven_catalog_policy.rs"]
@@ -70,14 +70,14 @@ mod mod_contracts_tooling_profiles_runtime_policy_rs;
 mod mod_contracts_tooling_purity_effects_responsibility_policy_rs;
 #[path = "contracts/tooling/registry_ssot_completeness_policy.rs"]
 mod mod_contracts_tooling_registry_ssot_completeness_policy_rs;
+#[path = "contracts/tooling/root_pollution_policy.rs"]
+mod mod_contracts_tooling_root_pollution_policy_rs;
+#[path = "contracts/tooling/scripts_registry_wrapper_policy.rs"]
+mod mod_contracts_tooling_scripts_registry_wrapper_policy_rs;
 #[path = "contracts/tooling/smoke_manifest_policy.rs"]
 mod mod_contracts_tooling_smoke_manifest_policy_rs;
 #[path = "contracts/tooling/snapshot_hygiene_policy.rs"]
 mod mod_contracts_tooling_snapshot_hygiene_policy_rs;
-#[path = "contracts/tooling/scripts_registry_wrapper_policy.rs"]
-mod mod_contracts_tooling_scripts_registry_wrapper_policy_rs;
-#[path = "contracts/tooling/root_pollution_policy.rs"]
-mod mod_contracts_tooling_root_pollution_policy_rs;
 #[path = "contracts/tooling/stage_registry_fixture_completeness.rs"]
 mod mod_contracts_tooling_stage_registry_fixture_completeness_rs;
 #[path = "contracts/tooling/stage_tool_matrix_policy.rs"]

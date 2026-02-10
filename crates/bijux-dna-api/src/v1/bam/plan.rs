@@ -466,9 +466,9 @@ pub fn plan_for_bam_stage_with_profile(
         bijux_dna_planner_bam::stage_api::BamStage::InsertSize => {
             let default_params = default_params_for_stage(profile, stage);
             let params = match default_params {
-                bijux_dna_planner_bam::stage_api::params::BamEffectiveParams::InsertSize(params) => {
-                    params
-                }
+                bijux_dna_planner_bam::stage_api::params::BamEffectiveParams::InsertSize(
+                    params,
+                ) => params,
                 _ => bijux_dna_planner_bam::stage_api::params::CoverageEffectiveParams {
                     regions: None,
                     depth_thresholds: vec![1],

@@ -19,8 +19,10 @@ fn policy__contracts__snapshot_hygiene_policy__snapshots_avoid_hostnames_and_wal
     let snapshots_root = root.join("crates");
     let host_or_uri =
         Regex::new(r#"(?i)\b(localhost|127\.0\.0\.1)\b|https?://[^\s"'<>()]+"#).expect("regex");
-    let wallclock = Regex::new(r#"\b20[0-9]{2}-[01][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9](\.[0-9]+)?Z\b"#)
-        .expect("regex");
+    let wallclock = Regex::new(
+        r#"\b20[0-9]{2}-[01][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9](\.[0-9]+)?Z\b"#,
+    )
+    .expect("regex");
     let mut offenders = Vec::new();
     for entry in WalkDir::new(&snapshots_root)
         .into_iter()

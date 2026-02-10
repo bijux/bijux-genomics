@@ -135,12 +135,8 @@ impl DefaultParams {
                     Self::encode(inner, "bam.mapping_summary")
                 }
                 BamEffectiveParams::Filter(inner) => Self::encode(inner, "bam.filter"),
-                BamEffectiveParams::MapqFilter(inner) => {
-                    Self::encode(inner, "bam.mapq_filter")
-                }
-                BamEffectiveParams::LengthFilter(inner) => {
-                    Self::encode(inner, "bam.length_filter")
-                }
+                BamEffectiveParams::MapqFilter(inner) => Self::encode(inner, "bam.mapq_filter"),
+                BamEffectiveParams::LengthFilter(inner) => Self::encode(inner, "bam.length_filter"),
                 BamEffectiveParams::Markdup(inner) => Self::encode(inner, "bam.markdup"),
                 BamEffectiveParams::DuplicationMetrics(inner) => {
                     Self::encode(inner, "bam.duplication_metrics")

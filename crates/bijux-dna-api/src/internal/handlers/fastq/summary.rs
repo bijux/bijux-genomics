@@ -570,10 +570,7 @@ fn run_provenance_from_stage_runs(
         std::env::var("BIJUX_BUILD_PROFILE").unwrap_or_else(|_| "unknown".to_string());
     let reference_genome = std::env::var("BIJUX_REFERENCE_GENOME").ok();
     let plan_hash = std::env::var("BIJUX_PLAN_HASH").ok();
-    let workspace_root = out_dir
-        .parent()
-        .and_then(Path::parent)
-        .unwrap_or(out_dir);
+    let workspace_root = out_dir.parent().and_then(Path::parent).unwrap_or(out_dir);
     let adapter_bank_hash = hash_optional(
         &workspace_root
             .join("assets")

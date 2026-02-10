@@ -47,8 +47,9 @@ pub mod haplogroups {
                 "min_coverage": params.min_coverage,
             }),
             effective_params: crate::tool_adapters::stages_support::ensure_effective_params(
-                serde_json::to_value(params)
-                    .map_err(|error| anyhow::anyhow!("BAM stage effective params must serialize: {error}"))?,
+                serde_json::to_value(params).map_err(|error| {
+                    anyhow::anyhow!("BAM stage effective params must serialize: {error}")
+                })?,
             )?,
             aux_images: std::collections::BTreeMap::new(),
             reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
@@ -108,8 +109,9 @@ pub mod genotyping {
                 "min_call_rate": params.min_call_rate,
             }),
             effective_params: crate::tool_adapters::stages_support::ensure_effective_params(
-                serde_json::to_value(params)
-                    .map_err(|error| anyhow::anyhow!("BAM stage effective params must serialize: {error}"))?,
+                serde_json::to_value(params).map_err(|error| {
+                    anyhow::anyhow!("BAM stage effective params must serialize: {error}")
+                })?,
             )?,
             aux_images: std::collections::BTreeMap::new(),
             reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
@@ -168,8 +170,9 @@ pub mod kinship {
                 "min_overlap_snps": params.min_overlap_snps,
             }),
             effective_params: crate::tool_adapters::stages_support::ensure_effective_params(
-                serde_json::to_value(params)
-                    .map_err(|error| anyhow::anyhow!("BAM stage effective params must serialize: {error}"))?,
+                serde_json::to_value(params).map_err(|error| {
+                    anyhow::anyhow!("BAM stage effective params must serialize: {error}")
+                })?,
             )?,
             aux_images: std::collections::BTreeMap::new(),
             reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
@@ -228,8 +231,9 @@ pub mod bias_mitigation {
                 "map_bias_correction": params.map_bias_correction,
             }),
             effective_params: crate::tool_adapters::stages_support::ensure_effective_params(
-                serde_json::to_value(params)
-                    .map_err(|error| anyhow::anyhow!("BAM stage effective params must serialize: {error}"))?,
+                serde_json::to_value(params).map_err(|error| {
+                    anyhow::anyhow!("BAM stage effective params must serialize: {error}")
+                })?,
             )?,
             aux_images: std::collections::BTreeMap::new(),
             reason: bijux_dna_stage_contract::PlanDecisionReason::default(),

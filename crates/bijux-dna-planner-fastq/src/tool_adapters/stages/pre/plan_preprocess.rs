@@ -18,7 +18,10 @@ pub struct PreprocessPlan {
 }
 
 #[must_use]
-pub fn plan_preprocess_stage(plan: &PreprocessPlan, tool: &ToolExecutionSpecV1) -> Result<StagePlanV1> {
+pub fn plan_preprocess_stage(
+    plan: &PreprocessPlan,
+    tool: &ToolExecutionSpecV1,
+) -> Result<StagePlanV1> {
     let paired_mode = if plan.r2.is_some() {
         PairedMode::PairedEnd
     } else {
