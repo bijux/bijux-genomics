@@ -138,3 +138,50 @@ fn run_manifest_output_artifacts_include_hashes_for_runtime_files() {
         );
     }
 }
+
+#[test]
+fn run_manifest_writes_reproducibility_report_artifact() {
+    let base = std::env::var("TEST_TMP_DIR")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| std::env::temp_dir())
+        .join("runtime_repro_report_contract");
+    let _ = std::fs::remove_dir_all(&base);
+    std::fs::create_dir_all(&base).unwrap_or_else(|e| panic!("create base dir: {e}"));
+    let run_dirs = prepare_tool_run_dirs(&base, "fastp", "run-1")
+        .unwrap_or_else(|e| panic!("prepare run dirs: {e}"));
+    write_canonical_json(&run_dirs.manifest_path, &serde_json::json!({"ok": true}))
+        .unwrap_or_else(|e| panic!("write manifest: {e}"));
+    write_canonical_json(&run_dirs.metrics_path, &serde_json::json!({"metrics": []}))
+        .unwrap_or_else(|e| panic!("write metrics: {e}"));
+    let rp = bijux_dna_runtime::RunProvenanceV1 {
+        schema_version: "bijux.run_provenance.v1".to_string(),
+        pipeline_id: "fastq".to_string(),
+        tool_version: "1.0.0".to_string(),
+        tool_image_digest: Some("sha256:synthetic".to_string()),
+        params_hash: "sha256:params".to_string(),
+        input_hashes: vec!["sha256:in".to_string()],
+        reference_genome: None,
+        git_commit: "abc1234".to_string(),
+        build_profile: "test".to_string(),
+        plan_hash: Some("sha256:plan".to_string()),
+    };
+    write_run_manifest(&run_dirs, "fastq.trim", "fastp", &rp, None, &[])
+        .unwrap_or_else(|e| panic!("write run manifest: {e}"));
+    let repro_path = run_dirs
+        .manifest_path
+        .parent()
+        .unwrap_or_else(|| panic!("run dir missing"))
+        .join("run_artifacts")
+        .join("reproducibility")
+        .join("report.json");
+    assert!(repro_path.exists(), "reproducibility report missing");
+    let raw = std::fs::read_to_string(&repro_path).unwrap_or_else(|e| panic!("read repro: {e}"));
+    let value: serde_json::Value =
+        serde_json::from_str(&raw).unwrap_or_else(|e| panic!("parse repro: {e}"));
+    assert_eq!(
+        value.get("schema_version").and_then(|v| v.as_str()),
+        Some("bijux.reproducibility_report.v1")
+    );
+    assert!(value.get("plan_hash").is_some(), "missing plan_hash");
+    assert!(value.get("input_hashes").is_some(), "missing input_hashes");
+}
