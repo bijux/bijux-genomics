@@ -194,12 +194,14 @@ pub enum EnvCommand {
 
 #[derive(Debug, Subcommand)]
 pub enum RegistryCommand {
+    #[command(name = "list-tools", alias = "tools")]
     Tools {
         #[arg(long)]
         stage: Option<String>,
         #[arg(long, default_value = "all")]
         kind: String,
     },
+    #[command(name = "list-stages", alias = "stages")]
     Stages,
     Show { id: String },
 }
