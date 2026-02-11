@@ -1,5 +1,7 @@
 #[path = "profiles/fastq_invariants.rs"]
 mod fastq_invariants;
+#[path = "profiles/bam_invariants.rs"]
+mod bam_invariants;
 #[path = "profiles/param_registry.rs"]
 mod param_registry;
 #[path = "profiles/pipeline_completeness.rs"]
