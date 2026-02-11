@@ -67,6 +67,27 @@ pub fn fastq_to_bam_adna_shotgun_profile() -> PipelineProfile {
         StageId::from_static(id_catalog::BAM_ALIGN),
         "aDNA default alignment preset".to_string(),
     );
+    defaults.params.insert(
+        StageId::from_static("bam.qc_pre"),
+        DefaultParams::Bam(
+            BamStage::QcPre
+                .parse_effective_params(&adna_shotgun_params_json(BamStage::QcPre))
+                .unwrap_or_else(|err| {
+                    panic!(
+                        "failed to parse typed BAM defaults for stage {}: {err}",
+                        BamStage::QcPre.as_str()
+                    )
+                }),
+        ),
+    );
+    defaults.tools.insert(
+        StageId::from_static("bam.qc_pre"),
+        ToolId::from_static(id_catalog::TOOL_SAMTOOLS),
+    );
+    defaults.rationales.insert(
+        StageId::from_static("bam.qc_pre"),
+        "cross-domain compatibility bridge for BAM pre-QC defaults".to_string(),
+    );
 
     PipelineProfile {
         id: PipelineId::from_static(id_catalog::PIPELINE_FASTQ_TO_BAM_ADNA_SHOTGUN),
@@ -142,6 +163,27 @@ pub fn fastq_to_bam_default_profile() -> PipelineProfile {
     defaults.rationales.insert(
         StageId::from_static(id_catalog::BAM_ALIGN),
         "modern default alignment preset".to_string(),
+    );
+    defaults.params.insert(
+        StageId::from_static("bam.qc_pre"),
+        DefaultParams::Bam(
+            BamStage::QcPre
+                .parse_effective_params(&default_params_json(BamStage::QcPre))
+                .unwrap_or_else(|err| {
+                    panic!(
+                        "failed to parse typed BAM defaults for stage {}: {err}",
+                        BamStage::QcPre.as_str()
+                    )
+                }),
+        ),
+    );
+    defaults.tools.insert(
+        StageId::from_static("bam.qc_pre"),
+        ToolId::from_static(id_catalog::TOOL_SAMTOOLS),
+    );
+    defaults.rationales.insert(
+        StageId::from_static("bam.qc_pre"),
+        "cross-domain compatibility bridge for BAM pre-QC defaults".to_string(),
     );
 
     PipelineProfile {
