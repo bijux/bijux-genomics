@@ -18,12 +18,18 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
 
 %post
     export DEBIAN_FRONTEND=noninteractive
-    apt-get update -qq && apt-get install -y --no-install-recommends git build-essential zlib1g-dev ca-certificates && rm -rf /var/lib/apt/lists/*
-    git clone --depth 1 https://github.com/grenaud/leeHom.git /opt/leeHom
+    apt-get update -qq && apt-get install -y --no-install-recommends \
+        git build-essential cmake zlib1g-dev ca-certificates && \
+        rm -rf /var/lib/apt/lists/*
+    git clone https://github.com/grenaud/leeHom.git /opt/leeHom
     cd /opt/leeHom
     git checkout bbddce1542cea0e73e3814df86268445f707b0d2
+    git describe --tags --always >/dev/null 2>&1 || git tag -f v0.0.0 "$(git rev-parse HEAD)"
     make -j"$(nproc)"
-    cp /opt/leeHom/leeHom* /usr/local/bin/
+    cp /opt/leeHom/leeHom* /usr/local/bin/ 2>/dev/null || true
+    bin="$(find /opt/leeHom -maxdepth 2 -type f -perm -111 -name 'leeHom*' | head -n 1 || true)"
+    [ -n "$bin" ] || { echo "leeHom binary not found after build"; exit 1; }
+    cp "$bin" /usr/local/bin/leeHom
     ln -sf /usr/local/bin/leeHom /usr/local/bin/leehom
 
 %runscript

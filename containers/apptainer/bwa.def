@@ -42,7 +42,7 @@ fi
 EOF
     chmod +x /usr/local/bin/bwa && \
 
-    rm -rf /var/lib/apt/lists/* && \
+    rm -rf /var/lib/apt/lists/*
 
 %runscript
     if [ $# -eq 0 ]; then
