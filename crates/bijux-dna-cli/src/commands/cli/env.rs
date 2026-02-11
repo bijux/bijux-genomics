@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::path::Path;
+use std::process::Command;
 
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_api::v1::api::env::{
@@ -311,6 +312,88 @@ pub fn print_registry_show_tool(registry_path: &Path, id: &str) -> Result<()> {
         "pinned_commit": tool.pinned_commit,
     }))?;
     Ok(())
+}
+
+/// # Errors
+/// Returns an error if tool cannot be resolved from registry.
+pub fn verify_registry_tool(registry_path: &Path, id: &str) -> Result<()> {
+    let raw = std::fs::read_to_string(registry_path)
+        .with_context(|| format!("read {}", registry_path.display()))?;
+    let Some(tool) = parse_tools_registry_rows(&raw)?
+        .into_iter()
+        .find(|tool| tool.id == id)
+    else {
+        return Err(anyhow!("tool not found in registry: {id}"));
+    };
+    let pin = tool
+        .pinned_commit
+        .clone()
+        .unwrap_or_else(|| "missing".to_string());
+    let version_cmd = tool.version_cmd.clone().unwrap_or_default();
+    let help_cmd = tool.help_cmd.clone().unwrap_or_default();
+    let version_output =
+        run_shell_capture(&version_cmd).unwrap_or_else(|err| format!("error:{err}"));
+    let help_output = run_shell_capture(&help_cmd).unwrap_or_else(|err| format!("error:{err}"));
+    let parsed_version =
+        parse_first_version(&version_output).unwrap_or_else(|| "unknown".to_string());
+
+    crate::commands::cli::render::json::print_pretty(&serde_json::json!({
+        "tool_id": tool.id,
+        "pin": pin,
+        "entrypoint": tool.expected_bin,
+        "version_cmd": version_cmd,
+        "help_cmd": help_cmd,
+        "version_output_parse": parsed_version,
+        "version_output_sample": version_output.lines().next().unwrap_or(""),
+        "help_ok": !help_output.starts_with("error:"),
+    }))?;
+    Ok(())
+}
+
+fn run_shell_capture(cmd: &str) -> Result<String> {
+    if cmd.trim().is_empty() {
+        return Err(anyhow!("empty command"));
+    }
+    let output = Command::new("sh")
+        .arg("-lc")
+        .arg(cmd)
+        .output()
+        .with_context(|| format!("execute `{cmd}`"))?;
+    let stdout = String::from_utf8_lossy(&output.stdout).to_string();
+    let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+    let merged = if stdout.trim().is_empty() {
+        stderr
+    } else {
+        stdout
+    };
+    if output.status.success() {
+        Ok(merged)
+    } else {
+        Err(anyhow!("{merged}"))
+    }
+}
+
+fn parse_first_version(output: &str) -> Option<String> {
+    let mut chars = output.chars().peekable();
+    let mut token = String::new();
+    while let Some(ch) = chars.next() {
+        if ch.is_ascii_digit() {
+            token.push(ch);
+            while let Some(next) = chars.peek() {
+                if next.is_ascii_digit() || *next == '.' || *next == '-' {
+                    token.push(*next);
+                    let _ = chars.next();
+                } else {
+                    break;
+                }
+            }
+            if token.contains('.') {
+                return Some(token);
+            }
+            token.clear();
+        }
+    }
+    None
 }
 
 /// # Errors
