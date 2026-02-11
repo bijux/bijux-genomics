@@ -466,6 +466,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
             attrs: attrs_from_json(
                 &serde_json::to_value(decision).unwrap_or_else(|_| serde_json::json!({})),
             ),
+            failure_code: None,
         };
         let _ = write_telemetry_event(&telemetry_path, &event);
     }
