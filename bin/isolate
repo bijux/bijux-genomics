@@ -1,0 +1,34 @@
+#!/usr/bin/env sh
+set -eu
+
+if [ "$#" -eq 0 ]; then
+  echo "usage: $0 <command> [args...]" >&2
+  exit 2
+fi
+
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+ROOT_DIR=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
+GIT_SHORT_SHA=$(git -C "$ROOT_DIR" rev-parse --short HEAD 2>/dev/null || echo nogit)
+
+if [ -z "${ISO_TAG:-}" ]; then
+  ISO_TAG="$(date -u +%Y%m%dT%H%M%SZ)-${GIT_SHORT_SHA}-$$"
+fi
+if [ -z "${ISO_ROOT:-}" ]; then
+  ISO_ROOT="$ROOT_DIR/artifacts/isolates/$ISO_TAG"
+fi
+
+mkdir -p "$ISO_ROOT/target" "$ISO_ROOT/cargo-home" "$ISO_ROOT/tmp" "$ISO_ROOT/logs" "$ISO_ROOT/out"
+
+export ISO_TAG
+export ISO_ROOT
+export CARGO_TARGET_DIR="$ISO_ROOT/target"
+export CARGO_HOME="$ISO_ROOT/cargo-home"
+export TMPDIR="$ISO_ROOT/tmp"
+export TMP="$ISO_ROOT/tmp"
+export TEMP="$ISO_ROOT/tmp"
+export TZ="${TZ:-UTC}"
+export LC_ALL="${LC_ALL:-C}"
+export RUST_BACKTRACE="${RUST_BACKTRACE:-1}"
+export CARGO_TERM_COLOR="${CARGO_TERM_COLOR:-always}"
+
+exec "$@"

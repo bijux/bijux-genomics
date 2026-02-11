@@ -1,0 +1,27 @@
+#!/usr/bin/env sh
+set -eu
+
+fail() {
+  echo "isolate-required: $1" >&2
+  exit 1
+}
+
+required_vars="ISO_TAG ISO_ROOT CARGO_TARGET_DIR CARGO_HOME TMPDIR TMP TEMP"
+for var in $required_vars; do
+  eval "value=\${$var:-}"
+  [ -n "$value" ] || fail "missing env var: $var"
+done
+
+case "$ISO_ROOT" in
+  */artifacts/isolates/*) ;;
+  *) fail "ISO_ROOT must be under artifacts/isolates: $ISO_ROOT" ;;
+esac
+
+for path in "$CARGO_TARGET_DIR" "$CARGO_HOME" "$TMPDIR" "$TMP" "$TEMP"; do
+  case "$path" in
+    "$ISO_ROOT"/*) ;;
+    *) fail "path is not inside ISO_ROOT: $path" ;;
+  esac
+done
+
+echo "isolate-required: OK"
