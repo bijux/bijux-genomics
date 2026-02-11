@@ -27,28 +27,28 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "to": "bam.authenticity"
     },
     {
+      "from": "bam.duplication_metrics",
+      "to": "bam.coverage"
+    },
+    {
       "from": "bam.endogenous_content",
       "to": "bam.damage"
     },
     {
       "from": "bam.filter",
-      "to": "bam.markdup"
+      "to": "bam.mapq_filter"
     },
     {
       "from": "bam.length_filter",
-      "to": "bam.filter"
+      "to": "bam.duplication_metrics"
     },
     {
       "from": "bam.mapping_summary",
-      "to": "bam.mapq_filter"
+      "to": "bam.filter"
     },
     {
       "from": "bam.mapq_filter",
       "to": "bam.length_filter"
-    },
-    {
-      "from": "bam.markdup",
-      "to": "bam.coverage"
     },
     {
       "from": "bam.sex",
@@ -292,6 +292,91 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "aux_images": {},
       "command": {
         "template": [
+          "sh",
+          "-c",
+          "<TIMESTAMP>"
+        ]
+      },
+      "expected_artifact_ids": [],
+      "image": {
+        "digest": null,
+        "image": "bijux/dummy:latest"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "bam",
+            "optional": false,
+            "path": "filtered.bam",
+            "role": "bam"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "markdup_bam",
+            "optional": false,
+            "path": "markdup.bam",
+            "role": "bam"
+          },
+          {
+            "name": "markdup_bai",
+            "optional": false,
+            "path": "markdup.bam.bai",
+            "role": "index"
+          },
+          {
+            "name": "flagstat_before",
+            "optional": false,
+            "path": "flagstat.before.txt",
+            "role": "report_json"
+          },
+          {
+            "name": "flagstat_after",
+            "optional": false,
+            "path": "flagstat.after.txt",
+            "role": "report_json"
+          },
+          {
+            "name": "idxstats_before",
+            "optional": false,
+            "path": "idxstats.before.txt",
+            "role": "unknown"
+          },
+          {
+            "name": "idxstats_after",
+            "optional": false,
+            "path": "idxstats.after.txt",
+            "role": "unknown"
+          },
+          {
+            "name": "summary",
+            "optional": false,
+            "path": "markdup.summary.json",
+            "role": "report_json"
+          },
+          {
+            "name": "stage_metrics",
+            "optional": false,
+            "path": "stage.metrics.json",
+            "role": "metrics_json"
+          }
+        ]
+      },
+      "metrics_schema_ids": [],
+      "out_dir": "bam_duplication_metrics",
+      "resources": {
+        "mem_gb": 1,
+        "runtime": "docker",
+        "threads": 1,
+        "tmp_gb": 1
+      },
+      "stage_id": "bam.duplication_metrics",
+      "step_id": "bam.duplication_metrics"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
           "mosdepth",
           "-n",
           "coverage",
@@ -357,7 +442,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           {
             "name": "bam",
             "optional": false,
-            "path": "filtered.bam",
+            "path": "sample.bam",
             "role": "bam"
           }
         ],
@@ -413,7 +498,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         ]
       },
       "metrics_schema_ids": [],
-      "out_dir": "bam_length_filter",
+      "out_dir": "bam_filter",
       "resources": {
         "mem_gb": 1,
         "runtime": "docker",
@@ -552,7 +637,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         ]
       },
       "metrics_schema_ids": [],
-      "out_dir": "bam_mapq_filter",
+      "out_dir": "bam_length_filter",
       "resources": {
         "mem_gb": 1,
         "runtime": "docker",
@@ -642,7 +727,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           {
             "name": "bam",
             "optional": false,
-            "path": "sample.bam",
+            "path": "filtered.bam",
             "role": "bam"
           }
         ],
@@ -698,7 +783,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         ]
       },
       "metrics_schema_ids": [],
-      "out_dir": "bam_filter",
+      "out_dir": "bam_mapq_filter",
       "resources": {
         "mem_gb": 1,
         "runtime": "docker",
@@ -707,91 +792,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       },
       "stage_id": "bam.mapq_filter",
       "step_id": "bam.mapq_filter"
-    },
-    {
-      "aux_images": {},
-      "command": {
-        "template": [
-          "sh",
-          "-c",
-          "<TIMESTAMP>"
-        ]
-      },
-      "expected_artifact_ids": [],
-      "image": {
-        "digest": null,
-        "image": "bijux/dummy:latest"
-      },
-      "io": {
-        "inputs": [
-          {
-            "name": "bam",
-            "optional": false,
-            "path": "filtered.bam",
-            "role": "bam"
-          }
-        ],
-        "outputs": [
-          {
-            "name": "markdup_bam",
-            "optional": false,
-            "path": "markdup.bam",
-            "role": "bam"
-          },
-          {
-            "name": "markdup_bai",
-            "optional": false,
-            "path": "markdup.bam.bai",
-            "role": "index"
-          },
-          {
-            "name": "flagstat_before",
-            "optional": false,
-            "path": "flagstat.before.txt",
-            "role": "report_json"
-          },
-          {
-            "name": "flagstat_after",
-            "optional": false,
-            "path": "flagstat.after.txt",
-            "role": "report_json"
-          },
-          {
-            "name": "idxstats_before",
-            "optional": false,
-            "path": "idxstats.before.txt",
-            "role": "unknown"
-          },
-          {
-            "name": "idxstats_after",
-            "optional": false,
-            "path": "idxstats.after.txt",
-            "role": "unknown"
-          },
-          {
-            "name": "summary",
-            "optional": false,
-            "path": "markdup.summary.json",
-            "role": "report_json"
-          },
-          {
-            "name": "stage_metrics",
-            "optional": false,
-            "path": "stage.metrics.json",
-            "role": "metrics_json"
-          }
-        ]
-      },
-      "metrics_schema_ids": [],
-      "out_dir": "bam_duplication_metrics",
-      "resources": {
-        "mem_gb": 1,
-        "runtime": "docker",
-        "threads": 1,
-        "tmp_gb": 1
-      },
-      "stage_id": "bam.markdup",
-      "step_id": "bam.markdup"
     },
     {
       "aux_images": {},
