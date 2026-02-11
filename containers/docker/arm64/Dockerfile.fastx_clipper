@@ -14,6 +14,7 @@ LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-dna" \
       org.opencontainers.image.version="${TOOL_VERSION}"
 LABEL org.opencontainers.image.tool="fastx_clipper"
 LABEL org.opencontainers.image.base.name="ubuntu:22.04"
+LABEL org.opencontainers.image.base.digest="unknown"
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update -qq && apt-get install -y --no-install-recommends \
     ca-certificates fastx-toolkit && \

@@ -281,7 +281,7 @@ require_labels = true
 [[tools]]
 id = "bowtie2"
 tool_id = "bowtie2"
-domain = "bam"
+domain = "fastq"
 status = "supported"
 stage_ids = ["bam.align"]
 version = "2.5.4"
@@ -1884,4 +1884,3 @@ planned_out_of_scope = []
 default_rationale = "Validation default has broad FASTQ format coverage."
 requires_validation = false
 requires_reporting = false
-
