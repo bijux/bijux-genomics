@@ -8,8 +8,8 @@ use support::workspace_root;
 fn policy__contracts__apptainer_vm_output_policy__builder_enforces_vm_local_writable_and_copy_back()
 {
     let root = workspace_root();
-    let path = root.join("scripts/apptainer_build_all.sh");
-    let content = std::fs::read_to_string(&path).expect("read scripts/apptainer_build_all.sh");
+    let path = root.join("scripts/containers/apptainer_build_all.sh");
+    let content = std::fs::read_to_string(&path).expect("read scripts/containers/apptainer_build_all.sh");
 
     let required = [
         "VM_OUT_DIR",

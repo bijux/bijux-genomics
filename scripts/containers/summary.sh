@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-ROOT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+ROOT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)
 MANIFEST_DIR="${MANIFEST_DIR:-$ROOT_DIR/artifacts/container}"
 
 if [ ! -d "$MANIFEST_DIR" ]; then

@@ -4,10 +4,10 @@ export TZ=UTC
 export LC_ALL=C
 
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-ROOT_DIR=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
+ROOT_DIR=$(CDPATH= cd -- "$SCRIPT_DIR/../.." && pwd)
 SELF_SCRIPT="$SCRIPT_DIR/$(basename -- "$0")"
 if [ ! -f "$SELF_SCRIPT" ]; then
-  SELF_SCRIPT="$SCRIPT_DIR/smoke-containers-apptainer.sh"
+  SELF_SCRIPT="$SCRIPT_DIR/smoke-apptainer.sh"
 fi
 
 APPTAINER_BIN="${APPTAINER_BIN:-apptainer}"

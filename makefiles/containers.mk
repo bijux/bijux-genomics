@@ -19,9 +19,9 @@ CONTAINER_ARTIFACT_DIR ?= $(if $(ISOLATE_ROOT),$(ISOLATE_ROOT)/container,artifac
 BIJUX_BIN ?= ./bin/isolate cargo run --bin bijux-dna --
 
 CT_KEY := $(subst -,_,$(CONTAINER_TYPE))
-SMOKE_SCRIPT_docker_arm64 := scripts/smoke-containers-docker-arm64.sh
-SMOKE_SCRIPT_docker_amd64 := scripts/smoke-containers-docker-amd64.sh
-SMOKE_SCRIPT_apptainer := scripts/smoke-containers-apptainer.sh
+SMOKE_SCRIPT_docker_arm64 := scripts/containers/smoke-docker-arm64.sh
+SMOKE_SCRIPT_docker_amd64 := scripts/containers/smoke-docker-amd64.sh
+SMOKE_SCRIPT_apptainer := scripts/containers/smoke-apptainer.sh
 SMOKE_SCRIPT := $(SMOKE_SCRIPT_$(CT_KEY))
 
 container-runtime-check: ## Validate selected container runtime
@@ -76,19 +76,19 @@ containers-smoke: container-runtime-check ## Prepare+smoke every registered stag
 	done
 
 smoke-containers-docker-arm64: ## Build+smoke Docker arm64 containers
-	@./bin/isolate env TOOLS="$(TOOLS)" JOBS="$(JOBS)" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/smoke-containers-docker-arm64.sh
+	@./bin/isolate env TOOLS="$(TOOLS)" JOBS="$(JOBS)" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/containers/smoke-docker-arm64.sh
 
 smoke-containers-docker-amd64: ## Build+smoke Docker amd64 containers
-	@./bin/isolate env TOOLS="$(TOOLS)" JOBS="$(JOBS)" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/smoke-containers-docker-amd64.sh
+	@./bin/isolate env TOOLS="$(TOOLS)" JOBS="$(JOBS)" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/containers/smoke-docker-amd64.sh
 
 smoke-containers-apptainer: ## Build+smoke Apptainer containers
-	@./bin/isolate env TOOLS="$(TOOLS)" JOBS="$(JOBS)" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/smoke-containers-apptainer.sh
+	@./bin/isolate env TOOLS="$(TOOLS)" JOBS="$(JOBS)" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/containers/smoke-apptainer.sh
 
 smoke-cntainers-apptainer-bijux-run: ## Apptainer smoke in bijux-run mode (registry commands via exec).
-	@./bin/isolate env TOOLS="$(TOOLS)" JOBS="$(JOBS)" SMOKE_RUN_MODE="bijux-run" SMOKE_LEVEL="contract" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)/apptainer-bijux-run" sh scripts/smoke-containers-apptainer.sh
+	@./bin/isolate env TOOLS="$(TOOLS)" JOBS="$(JOBS)" SMOKE_RUN_MODE="bijux-run" SMOKE_LEVEL="contract" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)/apptainer-bijux-run" sh scripts/containers/smoke-apptainer.sh
 
 smoke-cntainers-apptainer-apptainer-run: ## Apptainer smoke in runscript mode (apptainer run).
-	@./bin/isolate env TOOLS="$(TOOLS)" JOBS="$(JOBS)" SMOKE_RUN_MODE="apptainer-run" SMOKE_LEVEL="contract" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)/apptainer-apptainer-run" sh scripts/smoke-containers-apptainer.sh
+	@./bin/isolate env TOOLS="$(TOOLS)" JOBS="$(JOBS)" SMOKE_RUN_MODE="apptainer-run" SMOKE_LEVEL="contract" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)/apptainer-apptainer-run" sh scripts/containers/smoke-apptainer.sh
 
 smoke-cntainers-apptainer-verify: smoke-cntainers-apptainer-bijux-run smoke-cntainers-apptainer-apptainer-run ## Compare bijux-run vs apptainer-run smoke statuses.
 	@python3 - <<'PY'
@@ -140,19 +140,19 @@ build-images: ## Build Docker images (docker-arm64 only)
 	if [ -z "$$TOOLS_VAL" ]; then \
 		TOOLS_VAL="$$( $(BIJUX_BIN) registry list-tools --kind primary | paste -sd, - )"; \
 	fi; \
-	./bin/isolate env TOOLS="$$TOOLS_VAL" JOBS="$(JOBS)" SMOKE_LEVEL="build" SAVE_TAR="0" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/smoke-containers-docker-arm64.sh
+	./bin/isolate env TOOLS="$$TOOLS_VAL" JOBS="$(JOBS)" SMOKE_LEVEL="build" SAVE_TAR="0" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/containers/smoke-docker-arm64.sh
 
 test-images: ## Smoke selected runtime (registry-driven via scripts/CLI)
 	@if [ "$(CONTAINER_TYPE)" = "docker-arm64" ]; then \
 		if [ -n "$(STAGE)" ]; then \
 			TOOLS="$$( $(BIJUX_BIN) registry list-tools --stage "$(STAGE)" --kind all | paste -sd, - )"; \
-			./bin/isolate env TOOLS="$$TOOLS" JOBS="$(JOBS)" SMOKE_LEVEL="contract" SAVE_TAR="0" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/smoke-containers-docker-arm64.sh; \
+			./bin/isolate env TOOLS="$$TOOLS" JOBS="$(JOBS)" SMOKE_LEVEL="contract" SAVE_TAR="0" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/containers/smoke-docker-arm64.sh; \
 		else \
 			TOOLS_VAL="$(TOOLS)"; \
 			if [ -z "$$TOOLS_VAL" ]; then \
 				TOOLS_VAL="$$( $(BIJUX_BIN) registry list-tools --kind primary | paste -sd, - )"; \
 			fi; \
-			./bin/isolate env TOOLS="$$TOOLS_VAL" JOBS="$(JOBS)" SMOKE_LEVEL="contract" SAVE_TAR="0" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/smoke-containers-docker-arm64.sh; \
+			./bin/isolate env TOOLS="$$TOOLS_VAL" JOBS="$(JOBS)" SMOKE_LEVEL="contract" SAVE_TAR="0" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/containers/smoke-docker-arm64.sh; \
 		fi; \
 	elif [ -n "$(STAGE)" ]; then \
 		$(MAKE) env-smoke STAGE="$(STAGE)" CONTAINER_TYPE="$(CONTAINER_TYPE)"; \
@@ -186,9 +186,9 @@ image-smoke-vcf: ## Smoke only VCF tools and write manifests under isolate/conta
 		exit 2; \
 	fi; \
 	if [ "$(CONTAINER_TYPE)" = "apptainer" ]; then \
-		./bin/isolate env TOOLS="$$TOOLS_VCF" JOBS="$(JOBS)" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/smoke-containers-apptainer.sh; \
+		./bin/isolate env TOOLS="$$TOOLS_VCF" JOBS="$(JOBS)" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/containers/smoke-apptainer.sh; \
 	else \
-		./bin/isolate env TOOLS="$$TOOLS_VCF" JOBS="$(JOBS)" SMOKE_LEVEL="contract" SAVE_TAR="0" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/smoke-containers-docker-arm64.sh; \
+		./bin/isolate env TOOLS="$$TOOLS_VCF" JOBS="$(JOBS)" SMOKE_LEVEL="contract" SAVE_TAR="0" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/containers/smoke-docker-arm64.sh; \
 	fi
 
 image-qa: ## Run image QA (docker-arm64 only)
@@ -199,16 +199,16 @@ image-qa: ## Run image QA (docker-arm64 only)
 	./bin/isolate cargo run --bin image_qa -- --platform $(PLATFORM)
 
 containers-apptainer-build: ## Batch-build Apptainer defs to VM-local output and copy back artifacts
-	@JOBS="$(JOBS)" ./scripts/apptainer_build_all.sh \
+	@JOBS="$(JOBS)" ./scripts/containers/apptainer_build_all.sh \
 		--defs-dir containers/apptainer \
 		--vm-out "$(APPTAINER_VM_OUT)" \
 		--copy-back "$(APPTAINER_COPY_BACK)"
 
 containers-lint: ## Lint container naming, headers, labels, and forbidden patterns
-	@./scripts/lint-containers.sh
+	@./scripts/containers/lint.sh
 
 containers: ## Print tools/runtime/result/log summary from target-containers manifests
-	@MANIFEST_DIR="$(CONTAINER_ARTIFACT_DIR)" ./scripts/containers-summary.sh
+	@MANIFEST_DIR="$(CONTAINER_ARTIFACT_DIR)" ./scripts/containers/summary.sh
 
 .PHONY: container-runtime-check env-prep env-smoke container-smoke containers-smoke \
 	smoke-containers-docker-arm64 smoke-containers-docker-amd64 smoke-containers-apptainer \

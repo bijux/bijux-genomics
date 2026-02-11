@@ -9,8 +9,8 @@ fn policy__contracts__vcf_image_smoke_policy__vcf_tools_have_image_entries_and_s
     let root = support::workspace_root();
     let registry_path = root.join("configs/tool_registry_vcf.toml");
     let images_path = root.join("configs/images.toml");
-    let docker_smoke_path = root.join("scripts/smoke-containers-docker-arm64.sh");
-    let apptainer_smoke_path = root.join("scripts/smoke-containers-apptainer.sh");
+    let docker_smoke_path = root.join("scripts/containers/smoke-docker-arm64.sh");
+    let apptainer_smoke_path = root.join("scripts/containers/smoke-apptainer.sh");
 
     let registry_raw = std::fs::read_to_string(&registry_path)
         .unwrap_or_else(|_| panic!("read {registry_path:?}"));
