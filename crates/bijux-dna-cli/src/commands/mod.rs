@@ -143,6 +143,17 @@ pub fn run_with_cli(cli: &cli::Cli, cwd: &Path) -> Result<()> {
         return Ok(());
     }
 
+    if cli.profile.eq_ignore_ascii_case("hpc") {
+        let (stage, _, _) = cli::resolve_stage_tool(dna_command);
+        crate::commands::cli::env::lint_registry_hpc(
+            cwd,
+            &registry_path,
+            stage.as_str().split('.').next(),
+            Some(stage.as_str()),
+        )
+        .map_err(|err| anyhow!("HPC run blocked by registry policy: {err}"))?;
+    }
+
     run_plan::run_plan(cli, dna_command, &registry, &domain_dir)
 }
 
@@ -853,9 +864,10 @@ fn handle_config_root(command: &cli::ConfigCommand, cwd: &Path) -> Result<()> {
 
 fn handle_registry_root(command: &cli::RegistryCommand, cwd: &Path) -> Result<()> {
     use crate::commands::cli::env::{
-        print_registry_coverage_matrix, print_registry_export_json, print_registry_list_stages,
-        print_registry_show, print_registry_show_stage, print_registry_show_tool,
-        print_registry_tools, verify_registry_tool,
+        lint_registry_hpc, print_registry_audit_fix_suggestions, print_registry_coverage_matrix,
+        print_registry_export_json, print_registry_list_stages, print_registry_show,
+        print_registry_show_stage, print_registry_show_tool, print_registry_tools,
+        verify_registry_tool,
     };
     let registry_path = cwd.join("configs").join("tool_registry.toml");
     match command {
@@ -869,6 +881,24 @@ fn handle_registry_root(command: &cli::RegistryCommand, cwd: &Path) -> Result<()
         cli::RegistryCommand::ExportJson => print_registry_export_json(&registry_path)?,
         cli::RegistryCommand::CoverageMatrix => print_registry_coverage_matrix(&registry_path)?,
         cli::RegistryCommand::VerifyTool { id } => verify_registry_tool(&registry_path, id)?,
+        cli::RegistryCommand::Audit { fix_suggestions } => {
+            if *fix_suggestions {
+                print_registry_audit_fix_suggestions(&registry_path)?;
+            } else {
+                print_registry_export_json(&registry_path)?;
+            }
+        }
+        cli::RegistryCommand::Lint {
+            hpc,
+            domain,
+            stages,
+        } => {
+            if *hpc {
+                lint_registry_hpc(cwd, &registry_path, domain.as_deref(), stages.as_deref())?;
+            } else {
+                print_registry_coverage_matrix(&registry_path)?;
+            }
+        }
     }
     Ok(())
 }

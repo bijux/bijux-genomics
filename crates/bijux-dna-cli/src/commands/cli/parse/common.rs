@@ -302,6 +302,20 @@ pub enum RegistryCommand {
     CoverageMatrix,
     #[command(name = "verify-tool")]
     VerifyTool { id: String },
+    #[command(name = "audit")]
+    Audit {
+        #[arg(long, default_value_t = false)]
+        fix_suggestions: bool,
+    },
+    #[command(name = "lint")]
+    Lint {
+        #[arg(long, default_value_t = false)]
+        hpc: bool,
+        #[arg(long)]
+        domain: Option<String>,
+        #[arg(long, help = "Comma-separated stage ids or short stage names")]
+        stages: Option<String>,
+    },
 }
 
 #[derive(Debug, Subcommand)]
