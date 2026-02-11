@@ -3,6 +3,7 @@ default = 0.0
 [classes]
 high = 40.0
 low = 5.0
+critical = 15.0
 
 [crate_class]
 bijux-dna-core = "high"
@@ -20,12 +21,12 @@ bijux-dna-benchmark = "high"
 bijux-dna-benchmark-model = "high"
 bijux-dna-testkit = "high"
 bijux-dna-cli = "low"
-bijux-dna-runner = "low"
-bijux-dna-api = "low"
-bijux-dna-stages-bam = "low"
-bijux-dna-stages-fastq = "low"
-bijux-dna-planner-bam = "low"
-bijux-dna-planner-fastq = "low"
+bijux-dna-runner = "critical"
+bijux-dna-api = "critical"
+bijux-dna-stages-bam = "critical"
+bijux-dna-stages-fastq = "critical"
+bijux-dna-planner-bam = "critical"
+bijux-dna-planner-fastq = "critical"
 bijux-dna-environment-qa = "low"
 
 [overrides]
