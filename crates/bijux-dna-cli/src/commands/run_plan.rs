@@ -111,12 +111,22 @@ struct DecisionTraceSelection<'a> {
 }
 
 #[derive(Debug, Serialize)]
+struct DecisionTraceProvenanceLinks<'a> {
+    defaults_ledger: &'a str,
+    run_manifest: &'a str,
+    tool_invocation: &'a str,
+    metrics_envelope: &'a str,
+    stage_report: &'a str,
+}
+
+#[derive(Debug, Serialize)]
 struct DecisionTrace<'a> {
     schema_version: &'static str,
     run_id: &'a str,
     stage_id: &'a str,
     tool_id: &'a str,
     selection: DecisionTraceSelection<'a>,
+    provenance_links: DecisionTraceProvenanceLinks<'a>,
 }
 
 #[derive(Debug, Serialize)]
@@ -160,6 +170,13 @@ fn write_plan_artifacts(
             reason,
             provenance_notes: &provenance_notes,
             comparability_notes: &comparability_notes,
+        },
+        provenance_links: DecisionTraceProvenanceLinks {
+            defaults_ledger: "defaults_ledger.json",
+            run_manifest: "run_manifest.json",
+            tool_invocation: "tool_invocation.json",
+            metrics_envelope: "metrics_envelope.json",
+            stage_report: "stage_report.json",
         },
     };
     bijux_dna_api::v1::api::run::write_bytes(
