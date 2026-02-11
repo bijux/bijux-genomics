@@ -9,6 +9,13 @@ use bijux_dna_planner_bam::stage_api::{BamStage, StagePlanRequest};
 use bijux_dna_stage_contract::StagePlanV1;
 
 use crate::request_args::BamRunArgs;
+#[path = "plan_parse.rs"]
+mod plan_parse;
+use self::plan_parse::{
+    default_params_for_stage, parse_bqsr_mode, parse_contamination_scope, parse_duplicate_action,
+    parse_expected_sex, parse_flag_list, parse_optical_duplicates, parse_read_group_policy,
+    parse_udg_model, parse_umi_policy,
+};
 
 fn stage_status(stage_id: &str) -> Option<String> {
     let cwd = std::env::current_dir().ok()?;
@@ -897,110 +904,4 @@ pub fn plan_for_bam_stage_with_profile(
             "downstream BAM stages are disabled (enable feature 'bam_downstream')"
         )),
     }
-}
-
-fn default_params_for_stage(
-    profile: &PipelineProfile,
-    stage: bijux_dna_planner_bam::stage_api::BamStage,
-) -> bijux_dna_planner_bam::stage_api::params::BamEffectiveParams {
-    let stage_key = bijux_dna_core::ids::StageId::from_static(stage.as_str());
-    profile
-        .defaults
-        .params
-        .get(&stage_key)
-        .map(bijux_dna_pipelines::DefaultParams::to_json)
-        .and_then(|value| stage.parse_effective_params(&value).ok())
-        .unwrap_or_else(|| bijux_dna_planner_bam::stage_api::stage_spec(stage).default_params)
-}
-
-fn parse_read_group_policy(
-    value: &str,
-) -> Result<bijux_dna_planner_bam::stage_api::types::ReadGroupPolicy> {
-    match value {
-        "preserve" => Ok(bijux_dna_planner_bam::stage_api::types::ReadGroupPolicy::Preserve),
-        "merge" => Ok(bijux_dna_planner_bam::stage_api::types::ReadGroupPolicy::Merge),
-        "regenerate" => Ok(bijux_dna_planner_bam::stage_api::types::ReadGroupPolicy::Regenerate),
-        _ => Err(anyhow!("unknown read group policy: {value}")),
-    }
-}
-
-fn parse_optical_duplicates(
-    value: &str,
-) -> Result<bijux_dna_planner_bam::stage_api::params::OpticalDuplicatePolicy> {
-    match value {
-        "none" => Ok(bijux_dna_planner_bam::stage_api::params::OpticalDuplicatePolicy::None),
-        "mark_only" => {
-            Ok(bijux_dna_planner_bam::stage_api::params::OpticalDuplicatePolicy::MarkOnly)
-        }
-        "remove" => Ok(bijux_dna_planner_bam::stage_api::params::OpticalDuplicatePolicy::Remove),
-        _ => Err(anyhow!("unknown optical duplicate policy: {value}")),
-    }
-}
-
-fn parse_umi_policy(value: &str) -> Result<bijux_dna_planner_bam::stage_api::params::UmiPolicy> {
-    match value {
-        "ignore" => Ok(bijux_dna_planner_bam::stage_api::params::UmiPolicy::Ignore),
-        "use_tag" => Ok(bijux_dna_planner_bam::stage_api::params::UmiPolicy::UseTag),
-        "collapse" => Ok(bijux_dna_planner_bam::stage_api::params::UmiPolicy::Collapse),
-        _ => Err(anyhow!("unknown UMI policy: {value}")),
-    }
-}
-
-fn parse_duplicate_action(
-    value: &str,
-) -> Result<bijux_dna_planner_bam::stage_api::params::DuplicateAction> {
-    match value {
-        "mark" => Ok(bijux_dna_planner_bam::stage_api::params::DuplicateAction::Mark),
-        "remove" => Ok(bijux_dna_planner_bam::stage_api::params::DuplicateAction::Remove),
-        _ => Err(anyhow!("unknown duplicate action: {value}")),
-    }
-}
-
-fn parse_udg_model(value: &str) -> Result<bijux_dna_planner_bam::stage_api::params::UdgModel> {
-    match value {
-        "non_udg" => Ok(bijux_dna_planner_bam::stage_api::params::UdgModel::NonUdg),
-        "half_udg" => Ok(bijux_dna_planner_bam::stage_api::params::UdgModel::HalfUdg),
-        "udg" => Ok(bijux_dna_planner_bam::stage_api::params::UdgModel::Udg),
-        _ => Err(anyhow!("unknown UDG model: {value}")),
-    }
-}
-
-fn parse_contamination_scope(
-    value: &str,
-) -> Result<bijux_dna_planner_bam::stage_api::params::ContaminationScope> {
-    match value {
-        "mito" => Ok(bijux_dna_planner_bam::stage_api::params::ContaminationScope::Mito),
-        "nuclear" => Ok(bijux_dna_planner_bam::stage_api::params::ContaminationScope::Nuclear),
-        "both" => Ok(bijux_dna_planner_bam::stage_api::params::ContaminationScope::Both),
-        _ => Err(anyhow!("unknown contamination scope: {value}")),
-    }
-}
-
-fn parse_expected_sex(value: &str) -> Result<bijux_dna_planner_bam::stage_api::types::ExpectedSex> {
-    match value {
-        "xx" => Ok(bijux_dna_planner_bam::stage_api::types::ExpectedSex::XX),
-        "xy" => Ok(bijux_dna_planner_bam::stage_api::types::ExpectedSex::XY),
-        "unknown" => Ok(bijux_dna_planner_bam::stage_api::types::ExpectedSex::Unknown),
-        _ => Err(anyhow!("unknown expected sex: {value}")),
-    }
-}
-
-fn parse_bqsr_mode(value: &str) -> Result<bijux_dna_planner_bam::stage_api::params::BqsrMode> {
-    match value {
-        "standard" => Ok(bijux_dna_planner_bam::stage_api::params::BqsrMode::Standard),
-        "skip" => Ok(bijux_dna_planner_bam::stage_api::params::BqsrMode::Skip),
-        "emit_only" => Ok(bijux_dna_planner_bam::stage_api::params::BqsrMode::EmitOnly),
-        _ => Err(anyhow!("unknown BQSR mode: {value}")),
-    }
-}
-
-fn parse_flag_list(values: &[String]) -> Result<Vec<u16>> {
-    values
-        .iter()
-        .map(|value| {
-            value
-                .parse::<u16>()
-                .map_err(|_| anyhow!("invalid flag value: {value}"))
-        })
-        .collect()
 }
