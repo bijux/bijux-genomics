@@ -6,7 +6,13 @@ mod support;
 fn policy__contracts__generated_configs_policy__generated_configs_are_not_hand_edited() {
     let root = support::workspace_root();
 
-    for rel in ["tool_registry.toml", "stages.toml", "images.toml"] {
+    for rel in [
+        "tool_registry.toml",
+        "tool_registry_experimental.toml",
+        "required_tools.toml",
+        "stages.toml",
+        "images.toml",
+    ] {
         let checked_in = root.join("configs").join(rel);
         let checked_in_raw = std::fs::read_to_string(&checked_in)
             .unwrap_or_else(|_| panic!("read {}", checked_in.display()));
