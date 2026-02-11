@@ -324,6 +324,13 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
         .any(|row| row.stage_id.starts_with(BAM_STAGE_PREFIX))
     {
         sections.insert(
+            "bam".to_string(),
+            JsonBlob::new(serde_json::json!({
+                "schema_version": "bijux.report.section.bam.v1",
+                "stages": ordered.iter().filter(|row| row.stage_id.starts_with(BAM_STAGE_PREFIX)).count(),
+            })),
+        );
+        sections.insert(
             "bam_accounting".to_string(),
             JsonBlob::new(bam_accounting_section(&ordered)),
         );
@@ -371,6 +378,15 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
                 "snps": snps,
                 "indels": indels,
                 "ti_tv": ti_tv,
+            })),
+        );
+    }
+    if ordered.iter().any(|row| row.stage_id.starts_with("fastq.")) {
+        sections.insert(
+            "fastq".to_string(),
+            JsonBlob::new(serde_json::json!({
+                "schema_version": "bijux.report.section.fastq.v1",
+                "stages": ordered.iter().filter(|row| row.stage_id.starts_with("fastq.")).count(),
             })),
         );
     }
@@ -429,12 +445,38 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
         "run_provenance".to_string(),
         JsonBlob::new(run_provenance_section(base_dir)),
     );
+    enforce_report_completeness_contract(&ordered, &sections)?;
     model.sections = sections;
     model.tables.insert(
         "stage_completeness".to_string(),
         JsonBlob::new(stage_completeness),
     );
     Ok(model)
+}
+
+fn enforce_report_completeness_contract(
+    rows: &[FactsRowV1],
+    sections: &BTreeMap<String, JsonBlob>,
+) -> Result<()> {
+    let has_fastq = rows.iter().any(|row| row.stage_id.starts_with("fastq."));
+    let has_bam = rows.iter().any(|row| row.stage_id.starts_with(BAM_STAGE_PREFIX));
+    let has_vcf = rows.iter().any(|row| row.stage_id.starts_with("vcf."));
+    if has_fastq && !sections.contains_key("fastq") {
+        return Err(anyhow::anyhow!(
+            "report completeness contract violation: missing fastq section"
+        ));
+    }
+    if has_bam && !sections.contains_key("bam") {
+        return Err(anyhow::anyhow!(
+            "report completeness contract violation: missing bam section"
+        ));
+    }
+    if has_vcf && !sections.contains_key("vcf") {
+        return Err(anyhow::anyhow!(
+            "report completeness contract violation: missing vcf section"
+        ));
+    }
+    Ok(())
 }
 
 /// Write a run-level report from facts rows.
@@ -510,6 +552,7 @@ fn cross_domain_handoff_section(base_dir: &Path) -> Option<serde_json::Value> {
 
 fn run_provenance_section(base_dir: &Path) -> serde_json::Value {
     let manifest_path = base_dir.join("run_manifest.json");
+    let manifest_signature = bijux_dna_infra::hash_file_sha256(&manifest_path).ok();
     let raw = std::fs::read_to_string(&manifest_path).ok();
     let manifest: Option<serde_json::Value> =
         raw.as_deref().and_then(|raw| serde_json::from_str(raw).ok());
@@ -550,6 +593,12 @@ fn run_provenance_section(base_dir: &Path) -> serde_json::Value {
         obj.insert("graph_hash".to_string(), graph_hash);
         obj.insert("input_hashes".to_string(), input_hashes);
         obj.insert("stage_contracts".to_string(), stage_contracts);
+        obj.insert(
+            "manifest_signature_sha256".to_string(),
+            serde_json::Value::String(
+                manifest_signature.unwrap_or_else(|| "unknown".to_string()),
+            ),
+        );
     }
     base
 }
