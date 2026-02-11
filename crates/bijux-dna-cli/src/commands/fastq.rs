@@ -156,8 +156,15 @@ pub(crate) fn handle_meta_commands(
                 let payload = serde_json::json!({
                     "profile_id_input": id,
                     "profile_id_resolved": resolved_id,
+                    "library_model": profile.library_model,
                     "effective_params": profile.defaults.params,
                     "effective_tools": profile.defaults.tools,
+                    "default_rationale": profile.defaults.rationales,
+                    "rationale_links": [
+                        "docs/SCIENTIFIC_DEFAULTS.md",
+                        "docs/20-science/SCIENTIFIC_DECISIONS.md",
+                        "crates/bijux-dna-pipelines/docs/PROFILE_RATIONALE.md"
+                    ],
                     "invariants": invariants,
                 });
                 render::json::print_pretty(&payload)?;
