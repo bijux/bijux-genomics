@@ -1,10 +1,13 @@
+use super::correct::{FastqCorrectParams, CORRECT_SCHEMA_VERSION};
 use super::detect_adapters::DetectAdaptersEffectiveParams;
 use super::filter::FilterEffectiveParams;
 use super::merge::MergeEffectiveParams;
 use super::preprocess::PreprocessEffectiveParams;
 use super::qc_post::QcPostEffectiveParams;
 use super::screen::ScreenEffectiveParams;
+use super::stats::{FastqStatsParams, STATS_SCHEMA_VERSION};
 use super::trim::TrimEffectiveParams;
+use super::umi::{FastqUmiParams, UMI_SCHEMA_VERSION};
 use super::validate::ValidateEffectiveParams;
 use super::PairedMode;
 
@@ -22,6 +25,35 @@ pub fn validate_defaults(paired: bool) -> ValidateEffectiveParams {
         paired_mode: paired_mode(paired),
         threads: 1,
         q_cutoff: None,
+    }
+}
+
+#[must_use]
+pub fn stats_defaults(paired: bool) -> FastqStatsParams {
+    FastqStatsParams {
+        schema_version: STATS_SCHEMA_VERSION.to_string(),
+        paired_mode: paired_mode(paired),
+        threads: 1,
+    }
+}
+
+#[must_use]
+pub fn correct_defaults(paired: bool) -> FastqCorrectParams {
+    FastqCorrectParams {
+        schema_version: CORRECT_SCHEMA_VERSION.to_string(),
+        paired_mode: paired_mode(paired),
+        threads: 1,
+        kmer_size: None,
+    }
+}
+
+#[must_use]
+pub fn umi_defaults(paired: bool) -> FastqUmiParams {
+    FastqUmiParams {
+        schema_version: UMI_SCHEMA_VERSION.to_string(),
+        paired_mode: paired_mode(paired),
+        threads: 1,
+        umi_pattern: None,
     }
 }
 

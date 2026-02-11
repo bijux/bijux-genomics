@@ -11,6 +11,7 @@ use crate::stages::ids::{
 };
 use bijux_dna_core::ids::StageId;
 
+pub mod correct;
 pub mod defaults;
 pub mod detect_adapters;
 pub mod filter;
@@ -18,7 +19,9 @@ pub mod merge;
 pub mod preprocess;
 pub mod qc_post;
 pub mod screen;
+pub mod stats;
 pub mod trim;
+pub mod umi;
 pub mod validate;
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
@@ -50,6 +53,9 @@ pub enum DamageMode {
 #[serde(tag = "stage")]
 pub enum EffectiveParams {
     Validate(validate::ValidateEffectiveParams),
+    Stats(stats::FastqStatsParams),
+    Correct(correct::FastqCorrectParams),
+    Umi(umi::FastqUmiParams),
     DetectAdapters(detect_adapters::DetectAdaptersEffectiveParams),
     Trim(trim::TrimEffectiveParams),
     Filter(filter::FilterEffectiveParams),
@@ -65,6 +71,9 @@ impl EffectiveParams {
     pub fn missing_required_fields(&self) -> Vec<&'static str> {
         match self {
             Self::Validate(params) => params.missing_required_fields(),
+            Self::Stats(params) => params.missing_required_fields(),
+            Self::Correct(params) => params.missing_required_fields(),
+            Self::Umi(params) => params.missing_required_fields(),
             Self::DetectAdapters(params) => params.missing_required_fields(),
             Self::Trim(params) => params.missing_required_fields(),
             Self::Filter(params) => params.missing_required_fields(),
@@ -80,6 +89,9 @@ impl EffectiveParams {
     pub fn retention_conditions(&self) -> serde_json::Value {
         match self {
             Self::Validate(params) => params.retention_conditions(),
+            Self::Stats(params) => params.retention_conditions(),
+            Self::Correct(params) => params.retention_conditions(),
+            Self::Umi(params) => params.retention_conditions(),
             Self::DetectAdapters(params) => params.retention_conditions(),
             Self::Trim(params) => params.retention_conditions(),
             Self::Filter(params) => params.retention_conditions(),
@@ -97,14 +109,25 @@ pub fn parse_effective_params(
     stage_id: &StageId,
     value: &serde_json::Value,
 ) -> Option<EffectiveParams> {
-    if stage_id == &STAGE_VALIDATE_PRE
-        || stage_id == &STAGE_STATS_NEUTRAL
-        || stage_id == &STAGE_CORRECT
-        || stage_id == &STAGE_UMI
-    {
+    if stage_id == &STAGE_VALIDATE_PRE {
         return serde_json::from_value::<validate::ValidateEffectiveParams>(value.clone())
             .ok()
             .map(EffectiveParams::Validate);
+    }
+    if stage_id == &STAGE_STATS_NEUTRAL {
+        return serde_json::from_value::<stats::FastqStatsParams>(value.clone())
+            .ok()
+            .map(EffectiveParams::Stats);
+    }
+    if stage_id == &STAGE_CORRECT {
+        return serde_json::from_value::<correct::FastqCorrectParams>(value.clone())
+            .ok()
+            .map(EffectiveParams::Correct);
+    }
+    if stage_id == &STAGE_UMI {
+        return serde_json::from_value::<umi::FastqUmiParams>(value.clone())
+            .ok()
+            .map(EffectiveParams::Umi);
     }
     if stage_id == &STAGE_DETECT_ADAPTERS {
         return serde_json::from_value::<detect_adapters::DetectAdaptersEffectiveParams>(
