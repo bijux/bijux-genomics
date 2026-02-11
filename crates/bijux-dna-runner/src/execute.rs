@@ -89,12 +89,18 @@ pub fn execute_step(
         "--rm=false".to_string(),
         "--name".to_string(),
         container_name.clone(),
+    ];
+    if !network_allowed() {
+        args.push("--network".to_string());
+        args.push("none".to_string());
+    }
+    args.extend([
         "-v".to_string(),
         input_mount,
         "-v".to_string(),
         output_mount,
         step.image.image.clone(),
-    ];
+    ]);
     args.extend(step.command.template.clone());
 
     let output = run_command("docker", &args).context("docker run")?;
@@ -176,16 +182,21 @@ pub fn execute_observer_command(
     }
     let mount_dir = mount_dir.canonicalize().context("resolve mount dir")?;
     let mount_arg = format!("{}:/data:ro", mount_dir.display());
-    let mut command_args: Vec<String> = vec![
-        "run".to_string(),
-        "--rm".to_string(),
-        "-v".to_string(),
-        mount_arg,
-        image.to_string(),
-    ];
+    let mut command_args: Vec<String> = vec!["run".to_string(), "--rm".to_string()];
+    if !network_allowed() {
+        command_args.push("--network".to_string());
+        command_args.push("none".to_string());
+    }
+    command_args.extend(["-v".to_string(), mount_arg, image.to_string()]);
     command_args.extend(args.iter().cloned());
     let output = run_command("docker", &command_args).context("docker run")?;
     Ok(output)
+}
+
+fn network_allowed() -> bool {
+    std::env::var("BIJUX_ALLOW_NETWORK")
+        .ok()
+        .is_some_and(|value| matches!(value.as_str(), "1" | "true" | "TRUE" | "yes" | "YES"))
 }
 
 fn write_minimum_run_artifacts(
