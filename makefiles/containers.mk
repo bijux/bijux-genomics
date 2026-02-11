@@ -13,6 +13,7 @@ PLATFORM ?= docker-arm64
 JOBS ?= 1
 TOOLS ?=
 STAGE ?=
+DOCKER_ARM64_UNSUPPORTED ?= fastq.validate_pre,fastx_clipper,krakenuniq,leehom,preseq,umi_tools,verifybamid2
 APPTAINER_VM_OUT ?= $(HOME)/apptainer-build
 APPTAINER_COPY_BACK ?= $(if $(ISOLATE_ROOT),$(ISOLATE_ROOT)/container/apptainer,artifacts/container/apptainer)
 CONTAINER_ARTIFACT_DIR ?= $(if $(ISOLATE_ROOT),$(ISOLATE_ROOT)/container,artifacts/container)
@@ -89,7 +90,13 @@ build-images: ## Build Docker images (docker-arm64 only)
 		echo "skip: build-images is docker-only (CONTAINER_TYPE=$(CONTAINER_TYPE))"; \
 		exit 0; \
 	fi
-	@./bin/isolate env TOOLS="$(TOOLS)" JOBS="$(JOBS)" SMOKE_LEVEL="build" SAVE_TAR="0" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/smoke-containers-docker-arm64.sh
+	@set -e; \
+	TOOLS_VAL="$(TOOLS)"; \
+	if [ -z "$$TOOLS_VAL" ]; then \
+		DENY_RE="$$(printf '%s' "$(DOCKER_ARM64_UNSUPPORTED)" | tr ',' '|')"; \
+		TOOLS_VAL="$$( $(BIJUX_BIN) registry list-tools --kind primary | tr ',' '\n' | grep -v -E "^($$DENY_RE)$$" | paste -sd, - )"; \
+	fi; \
+	./bin/isolate env TOOLS="$$TOOLS_VAL" JOBS="$(JOBS)" SMOKE_LEVEL="build" SAVE_TAR="0" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/smoke-containers-docker-arm64.sh
 
 test-images: ## Smoke selected runtime (registry-driven via scripts/CLI)
 	@if [ "$(CONTAINER_TYPE)" = "docker-arm64" ]; then \
@@ -97,7 +104,12 @@ test-images: ## Smoke selected runtime (registry-driven via scripts/CLI)
 			TOOLS="$$( $(BIJUX_BIN) registry list-tools --stage "$(STAGE)" --kind all | paste -sd, - )"; \
 			./bin/isolate env TOOLS="$$TOOLS" JOBS="$(JOBS)" SMOKE_LEVEL="contract" SAVE_TAR="0" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/smoke-containers-docker-arm64.sh; \
 		else \
-			./bin/isolate env TOOLS="$(TOOLS)" JOBS="$(JOBS)" SMOKE_LEVEL="contract" SAVE_TAR="0" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/smoke-containers-docker-arm64.sh; \
+			TOOLS_VAL="$(TOOLS)"; \
+			if [ -z "$$TOOLS_VAL" ]; then \
+				DENY_RE="$$(printf '%s' "$(DOCKER_ARM64_UNSUPPORTED)" | tr ',' '|')"; \
+				TOOLS_VAL="$$( $(BIJUX_BIN) registry list-tools --kind primary | tr ',' '\n' | grep -v -E "^($$DENY_RE)$$" | paste -sd, - )"; \
+			fi; \
+			./bin/isolate env TOOLS="$$TOOLS_VAL" JOBS="$(JOBS)" SMOKE_LEVEL="contract" SAVE_TAR="0" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/smoke-containers-docker-arm64.sh; \
 		fi; \
 	elif [ -n "$(STAGE)" ]; then \
 		$(MAKE) env-smoke STAGE="$(STAGE)" CONTAINER_TYPE="$(CONTAINER_TYPE)"; \
