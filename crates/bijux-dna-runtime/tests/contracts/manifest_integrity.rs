@@ -92,8 +92,7 @@ fn manifest_has_required_fields() {
 #[test]
 fn run_manifest_output_artifacts_include_hashes_for_runtime_files() {
     let base = std::env::var("TEST_TMP_DIR")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| std::env::temp_dir())
+        .map_or_else(|_| std::env::temp_dir(), PathBuf::from)
         .join("runtime_manifest_hash_contract");
     let _ = std::fs::remove_dir_all(&base);
     std::fs::create_dir_all(&base).unwrap_or_else(|e| panic!("create base dir: {e}"));
@@ -142,8 +141,7 @@ fn run_manifest_output_artifacts_include_hashes_for_runtime_files() {
 #[test]
 fn run_manifest_writes_reproducibility_report_artifact() {
     let base = std::env::var("TEST_TMP_DIR")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| std::env::temp_dir())
+        .map_or_else(|_| std::env::temp_dir(), PathBuf::from)
         .join("runtime_repro_report_contract");
     let _ = std::fs::remove_dir_all(&base);
     std::fs::create_dir_all(&base).unwrap_or_else(|e| panic!("create base dir: {e}"));
