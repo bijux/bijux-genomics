@@ -23,6 +23,9 @@ FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update -qq && apt-get install -y --no-install-recommends zlib1g ca-certificates && rm -rf /var/lib/apt/lists/*
 COPY --from=builder /opt/leeHom/leeHom* /usr/local/bin/
-RUN ln -sf /usr/local/bin/leeHom /usr/local/bin/leehom
+RUN set -eu; \
+    bin="$(ls /usr/local/bin/leeHom* 2>/dev/null | head -n 1)"; \
+    test -n "$bin"; \
+    ln -sf "$bin" /usr/local/bin/leehom
 ENTRYPOINT ["/usr/local/bin/leehom"]
 CMD ["--help"]

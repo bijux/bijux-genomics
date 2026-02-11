@@ -20,7 +20,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update -qq && apt-get install -y --no-install-recommends git build-essential zlib1g-dev ca-certificates && rm -rf /var/lib/apt/lists/*
 RUN git clone --depth 1 https://github.com/relipmoc/skewer.git /opt/skewer && \
     cd /opt/skewer && git checkout 978e8e46cba44595ece623e5387749284a86b74b && \
-    sed -i 's/bool operator()(const ELEMENT& lhs, const ELEMENT& rhs)/bool operator()(const ELEMENT& lhs, const ELEMENT& rhs) const/' src/matrix.h && \
+    sed -i 's/bool operator()(const ELEMENT &elem1, const ELEMENT &elem2){/bool operator()(const ELEMENT \&elem1, const ELEMENT \&elem2) const {/' src/matrix.h && \
     make -j"$(nproc)"
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 ENV DEBIAN_FRONTEND=noninteractive
