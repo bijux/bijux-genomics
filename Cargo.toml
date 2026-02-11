@@ -10,6 +10,7 @@ members = [
   "crates/bijux-dna-domain-bam",
   "crates/bijux-dna-domain-compiler",
   "crates/bijux-dna-domain-fastq",
+  "crates/bijux-dna-domain-vcf",
   "crates/bijux-dna-engine",
   "crates/bijux-dna-environment",
   "crates/bijux-dna-environment-qa",
@@ -17,12 +18,14 @@ members = [
   "crates/bijux-dna-pipelines",
   "crates/bijux-dna-planner-bam",
   "crates/bijux-dna-planner-fastq",
+  "crates/bijux-dna-planner-vcf",
   "crates/bijux-dna-policies",
   "crates/bijux-dna-runner",
   "crates/bijux-dna-runtime",
   "crates/bijux-dna-stage-contract",
   "crates/bijux-dna-stages-bam",
   "crates/bijux-dna-stages-fastq",
+  "crates/bijux-dna-stages-vcf",
   "crates/bijux-dna-testkit",
 ]
 
