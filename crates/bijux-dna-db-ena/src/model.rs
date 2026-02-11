@@ -88,6 +88,13 @@ pub struct EnaRecord {
     pub analysis_accession: Option<String>,
     pub tax_id: Option<String>,
     pub scientific_name: Option<String>,
+    pub library_layout: Option<String>,
+    pub library_source: Option<String>,
+    pub library_strategy: Option<String>,
+    pub instrument_model: Option<String>,
+    pub base_count: Option<u64>,
+    pub read_count: Option<u64>,
+    pub fastq_bytes: Vec<u64>,
     pub fastq_ftp: Vec<String>,
     pub submitted_ftp: Vec<String>,
     pub sra_ftp: Vec<String>,
@@ -137,6 +144,16 @@ pub fn split_ena_field(value: &str) -> Vec<String> {
         .map(str::trim)
         .filter(|s| !s.is_empty())
         .map(ToString::to_string)
+        .collect()
+}
+
+#[must_use]
+pub fn split_ena_u64_field(value: &str) -> Vec<u64> {
+    value
+        .split(';')
+        .map(str::trim)
+        .filter(|s| !s.is_empty())
+        .filter_map(|s| s.parse::<u64>().ok())
         .collect()
 }
 

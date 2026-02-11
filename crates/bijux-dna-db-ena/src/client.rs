@@ -1,4 +1,4 @@
-use crate::model::{split_ena_field, EnaQuery, EnaRecord, EnaResultKind};
+use crate::model::{split_ena_field, split_ena_u64_field, EnaQuery, EnaRecord, EnaResultKind};
 use reqwest::blocking::Client;
 use std::collections::HashMap;
 use thiserror::Error;
@@ -52,6 +52,13 @@ pub fn build_filereport_url(accession: &str, result: EnaResultKind) -> String {
         "analysis_type",
         "tax_id",
         "scientific_name",
+        "library_layout",
+        "library_source",
+        "library_strategy",
+        "instrument_model",
+        "base_count",
+        "read_count",
+        "fastq_bytes",
         "fastq_ftp",
         "submitted_ftp",
         "sra_ftp",
@@ -122,6 +129,33 @@ pub fn parse_filereport_tsv(tsv: &str, query: &EnaQuery) -> Vec<EnaRecord> {
                     .get("scientific_name")
                     .and_then(|v| opt_field(v))
                     .map(ToString::to_string),
+                library_layout: row
+                    .get("library_layout")
+                    .and_then(|v| opt_field(v))
+                    .map(ToString::to_string),
+                library_source: row
+                    .get("library_source")
+                    .and_then(|v| opt_field(v))
+                    .map(ToString::to_string),
+                library_strategy: row
+                    .get("library_strategy")
+                    .and_then(|v| opt_field(v))
+                    .map(ToString::to_string),
+                instrument_model: row
+                    .get("instrument_model")
+                    .and_then(|v| opt_field(v))
+                    .map(ToString::to_string),
+                base_count: row
+                    .get("base_count")
+                    .and_then(|v| opt_field(v))
+                    .and_then(|v| v.parse::<u64>().ok()),
+                read_count: row
+                    .get("read_count")
+                    .and_then(|v| opt_field(v))
+                    .and_then(|v| v.parse::<u64>().ok()),
+                fastq_bytes: row
+                    .get("fastq_bytes")
+                    .map_or_else(Vec::new, |v| split_ena_u64_field(v)),
                 fastq_ftp: row
                     .get("fastq_ftp")
                     .map_or_else(Vec::new, |v| split_ena_field(v)),
