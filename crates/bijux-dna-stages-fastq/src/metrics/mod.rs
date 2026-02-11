@@ -784,7 +784,9 @@ fn stats_for_paths(
     Ok(out)
 }
 
-fn distributions_for_path(path: Option<&Path>) -> Result<(Vec<(u64, u64)>, Vec<(u8, u64)>)> {
+type LengthGcDistributions = (Vec<(u64, u64)>, Vec<(u8, u64)>);
+
+fn distributions_for_path(path: Option<&Path>) -> Result<LengthGcDistributions> {
     let Some(path) = path else {
         return Ok((Vec::new(), Vec::new()));
     };

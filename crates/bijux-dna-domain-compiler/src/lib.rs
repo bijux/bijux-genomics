@@ -581,7 +581,7 @@ fn parse_git_checkout_pin(recipe: &str) -> Option<String> {
         };
         let commit = rhs
             .chars()
-            .take_while(|ch| ch.is_ascii_hexdigit())
+            .take_while(char::is_ascii_hexdigit)
             .collect::<String>();
         if commit.len() == 40 {
             return Some(format!("git:{commit}"));
@@ -652,8 +652,7 @@ fn tool_upstream_override(tool_id: &str) -> Option<&'static str> {
 
 fn tool_version_override(tool_id: &str) -> Option<&'static str> {
     match tool_id {
-        "authenticct" => Some("1.0.0"),
-        "rxy" => Some("1.0.0"),
+        "authenticct" | "rxy" => Some("1.0.0"),
         "schmutzi" => Some("1.5.4"),
         "seqkit_stats" => Some("2.7.0"),
         _ => None,
@@ -1272,11 +1271,12 @@ fn collect_domain_data(
 }
 
 struct ToolRegistryOutputs {
-    production_registry_toml: String,
-    experimental_registry_toml: String,
-    required_tools_toml: String,
+    production_registry: String,
+    experimental_registry: String,
+    required_tools: String,
 }
 
+#[allow(clippy::uninlined_format_args)]
 fn build_tool_registries_toml(
     tools: &ToolMap,
     stage_to_tools: &StageToolMap,
@@ -1337,9 +1337,7 @@ fn build_tool_registries_toml(
             apptainer_def_path,
             &effective_version,
         );
-        let upstream_pin = tool_pin_override(&tool.id)
-            .map(str::to_string)
-            .unwrap_or(upstream_pin);
+        let upstream_pin = tool_pin_override(&tool.id).map_or(upstream_pin, str::to_string);
         let container_ref = parse_container_ref(
             &tool.container_image,
             &tool.container_digest,
@@ -1477,9 +1475,9 @@ fn build_tool_registries_toml(
         production_toml.push('\n');
     }
     ToolRegistryOutputs {
-        production_registry_toml: production_toml,
-        experimental_registry_toml: experimental_toml,
-        required_tools_toml,
+        production_registry: production_toml,
+        experimental_registry: experimental_toml,
+        required_tools: required_tools_toml,
     }
 }
 
@@ -1721,26 +1719,20 @@ pub fn compile_domain_configs(options: &CompileOptions) -> Result<()> {
         &stage_default_rationale,
         &source_commit,
     );
-    ensure_no_placeholders_in_active_config(
-        "tool_registry.toml",
-        &registries.production_registry_toml,
-    )?;
+    ensure_no_placeholders_in_active_config("tool_registry.toml", &registries.production_registry)?;
     ensure_no_placeholders_in_active_config(
         "tool_registry_experimental.toml",
-        &registries.experimental_registry_toml,
+        &registries.experimental_registry,
     )?;
-    ensure_no_placeholders_in_active_config(
-        "required_tools.toml",
-        &registries.required_tools_toml,
-    )?;
-    write_string(&tool_registry_path, &registries.production_registry_toml)
+    ensure_no_placeholders_in_active_config("required_tools.toml", &registries.required_tools)?;
+    write_string(&tool_registry_path, &registries.production_registry)
         .with_context(|| format!("write {}", tool_registry_path.display()))?;
     write_string(
         &experimental_registry_path,
-        &registries.experimental_registry_toml,
+        &registries.experimental_registry,
     )
     .with_context(|| format!("write {}", experimental_registry_path.display()))?;
-    write_string(&required_tools_path, &registries.required_tools_toml)
+    write_string(&required_tools_path, &registries.required_tools)
         .with_context(|| format!("write {}", required_tools_path.display()))?;
 
     let images_path = options.configs_dir.join("images.toml");
@@ -1828,9 +1820,17 @@ pub fn compile_domain_configs(options: &CompileOptions) -> Result<()> {
             let _ = writeln!(tools_vcf_toml, "tool_id = \"{}\"", tool.tool_id);
             let _ = writeln!(tools_vcf_toml, "domain = \"vcf\"");
             let _ = writeln!(tools_vcf_toml, "status = \"{}\"", tool.status);
-            let _ = writeln!(tools_vcf_toml, "stage_ids = {}", toml_array(&tool.stage_ids));
+            let _ = writeln!(
+                tools_vcf_toml,
+                "stage_ids = {}",
+                toml_array(&tool.stage_ids)
+            );
             let _ = writeln!(tools_vcf_toml, "version = \"{}\"", tool.default_version);
-            let _ = writeln!(tools_vcf_toml, "default_version = \"{}\"", tool.default_version);
+            let _ = writeln!(
+                tools_vcf_toml,
+                "default_version = \"{}\"",
+                tool.default_version
+            );
             let _ = writeln!(tools_vcf_toml, "upstream = \"{}\"", tool.upstream);
             let _ = writeln!(tools_vcf_toml, "version_rule = \"pinned\"");
             let _ = writeln!(tools_vcf_toml, "license = \"{}\"", tool.license);
@@ -1852,9 +1852,16 @@ pub fn compile_domain_configs(options: &CompileOptions) -> Result<()> {
             let _ = writeln!(tools_vcf_toml, "container = true");
             let _ = writeln!(tools_vcf_toml, "version_cmd = \"{}\"", tool.version_cmd);
             let _ = writeln!(tools_vcf_toml, "help_cmd = \"{}\"", tool.help_cmd);
-            let _ = writeln!(tools_vcf_toml, "smoke_version_cmd = \"{}\"", tool.version_cmd);
+            let _ = writeln!(
+                tools_vcf_toml,
+                "smoke_version_cmd = \"{}\"",
+                tool.version_cmd
+            );
             let _ = writeln!(tools_vcf_toml, "smoke_help_cmd = \"{}\"", tool.help_cmd);
-            let _ = writeln!(tools_vcf_toml, "expected_version_regex = \"bcftools [0-9]+[.][0-9]+\"");
+            let _ = writeln!(
+                tools_vcf_toml,
+                "expected_version_regex = \"bcftools [0-9]+[.][0-9]+\""
+            );
             let _ = writeln!(tools_vcf_toml, "healthcheck_cmd = \"{}\"", tool.help_cmd);
             let _ = writeln!(tools_vcf_toml, "expected_bin = \"{}\"", tool.tool_id);
             let _ = writeln!(
@@ -1862,14 +1869,24 @@ pub fn compile_domain_configs(options: &CompileOptions) -> Result<()> {
                 "expected_artifacts = {}",
                 toml_array(&tool.expected_artifacts)
             );
-            let _ = writeln!(tools_vcf_toml, "metrics_schema = \"{}\"", tool.metrics_schema_id);
+            let _ = writeln!(
+                tools_vcf_toml,
+                "metrics_schema = \"{}\"",
+                tool.metrics_schema_id
+            );
             let _ = writeln!(
                 tools_vcf_toml,
                 "comparability_notes = \"{}\"",
                 tool.comparability_notes.replace('"', "'")
             );
-            let _ = writeln!(tools_vcf_toml, "dockerfile = \"containers/docker/arm64/Dockerfile.bcftools\"");
-            let _ = writeln!(tools_vcf_toml, "apptainer_def = \"containers/apptainer/bcftools.def\"");
+            let _ = writeln!(
+                tools_vcf_toml,
+                "dockerfile = \"containers/docker/arm64/Dockerfile.bcftools\""
+            );
+            let _ = writeln!(
+                tools_vcf_toml,
+                "apptainer_def = \"containers/apptainer/bcftools.def\""
+            );
             let _ = writeln!(tools_vcf_toml, "require_labels = true\n");
         }
     }

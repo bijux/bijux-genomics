@@ -235,6 +235,7 @@ fn find_domain_dir(path: &Path) -> Option<PathBuf> {
 
 /// # Errors
 /// Returns an error if registry config cannot be read or parsed.
+#[allow(clippy::too_many_lines)]
 pub fn load_manifests(source_path: &Path) -> Result<ToolRegistry> {
     if let Some(domain_dir) = find_domain_dir(source_path) {
         return read_domain_registry(&domain_dir);

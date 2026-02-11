@@ -4,6 +4,8 @@ use std::path::Path;
 use anyhow::{anyhow, Result};
 use bijux_dna_domain_vcf::VcfStatsMetricsV1;
 
+/// # Errors
+/// Returns an error when the stats file cannot be read or required counters are missing.
 pub fn parse_vcf_stats(path: &Path) -> Result<VcfStatsMetricsV1> {
     let raw = std::fs::read_to_string(path)?;
     let mut metrics = VcfStatsMetricsV1::empty();
