@@ -91,7 +91,10 @@ fn metric_id_parsers_cover_known_and_unknown_values() {
         "multiqc_data",
     ];
     for id in ids {
-        assert!(parse_metric_id(id).is_some(), "expected known metric id: {id}");
+        assert!(
+            parse_metric_id(id).is_some(),
+            "expected known metric id: {id}"
+        );
         assert!(validate_metric_id_str(id).is_ok());
     }
     assert!(parse_metric_id("unknown_metric").is_none());
@@ -190,11 +193,12 @@ fn execution_graph_option_helpers_and_validation_paths() {
         PlanPolicy::default(),
         vec![a, b],
         vec![ExecutionEdge::new(StepId::new("a"), StepId::new("b"))],
-    )
-    .expect("graph should build");
+    );
+    assert!(graph.is_ok());
+    let graph = graph.unwrap_or_else(|err| panic!("graph should build: {err}"));
 
     let graph = graph
-        .with_retry_policy(Default::default())
+        .with_retry_policy(bijux_dna_core::contract::RetryPolicy::default())
         .with_deterministic_scheduler(false)
         .with_step_timeout(Some(30));
     assert_eq!(graph.step_timeout_s(), Some(30));

@@ -110,7 +110,9 @@ fn cancellation_token_and_engine_event_shapes_are_stable() {
         step_id: StepId::new("A"),
         path: "out/file.json".to_string(),
     };
-    let encoded = serde_json::to_string(&vec![start, end, retry, verified]).expect("serialize");
+    let encoded = serde_json::to_string(&vec![start, end, retry, verified]);
+    assert!(encoded.is_ok());
+    let encoded = encoded.unwrap_or_else(|err| panic!("serialize engine events: {err}"));
     assert!(encoded.contains("step_start"));
     assert!(encoded.contains("step_end"));
     assert!(encoded.contains("retry"));
@@ -175,7 +177,13 @@ fn execute_plan_reports_timeout_and_contract_errors() {
         retry_policy: None,
         max_parallelism: None,
     })
-    .execute(&graph, &ScenarioRunner::new(Mode::Timeout), &layout, None, None)
+    .execute(
+        &graph,
+        &ScenarioRunner::new(Mode::Timeout),
+        &layout,
+        None,
+        None,
+    )
     .err()
     .unwrap_or_else(|| panic!("expected timeout error"));
     assert!(timeout_err.to_string().contains("exceeded timeout"));
@@ -186,7 +194,7 @@ fn execute_plan_reports_timeout_and_contract_errors() {
     let missing_output_err = Engine::default()
         .execute(&graph, &missing_output_runner, &layout, None, None)
         .err()
-    .unwrap_or_else(|| panic!("expected missing output contract error"));
+        .unwrap_or_else(|| panic!("expected missing output contract error"));
     assert!(missing_output_err.to_string().contains("missing output"));
 
     let graph = make_graph(false);
@@ -196,11 +204,19 @@ fn execute_plan_reports_timeout_and_contract_errors() {
         .execute(&graph, &invalid_metrics_runner, &layout, None, None)
         .err()
         .unwrap_or_else(|| panic!("expected parse error for metrics output"));
-    assert!(invalid_metrics_err.to_string().contains("metrics output not parseable"));
+    assert!(invalid_metrics_err
+        .to_string()
+        .contains("metrics output not parseable"));
 
     let metrics_graph = make_graph(true);
     let missing_envelope_err = Engine::default()
-        .execute(&metrics_graph, &ScenarioRunner::new(Mode::Success), &layout, None, None)
+        .execute(
+            &metrics_graph,
+            &ScenarioRunner::new(Mode::Success),
+            &layout,
+            None,
+            None,
+        )
         .err()
         .unwrap_or_else(|| panic!("expected missing metrics_envelope contract error"));
     assert!(missing_envelope_err

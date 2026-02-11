@@ -1,9 +1,9 @@
 use std::convert::TryFrom;
 
 use bijux_dna_core::ids::{
-    parse_pipeline_id, parse_stage_id, parse_tool_id, validate_pipeline_id, validate_pipeline_id_str,
-    validate_stage_id, validate_stage_id_str, validate_tool_id, validate_tool_id_str, ArtifactId,
-    PipelineId, ProfileId, RunId, StageId, StepId, ToolId,
+    parse_pipeline_id, parse_stage_id, parse_tool_id, validate_pipeline_id,
+    validate_pipeline_id_str, validate_stage_id, validate_stage_id_str, validate_tool_id,
+    validate_tool_id_str, ArtifactId, PipelineId, ProfileId, RunId, StageId, StepId, ToolId,
 };
 
 #[test]
@@ -49,19 +49,27 @@ fn id_new_from_static_display_and_as_str_cover_all_types() {
 
 #[test]
 fn id_try_from_and_parse_validate_paths_cover_success_and_failures() {
-    let stage = StageId::try_from("fastq.trim").expect("valid stage id");
-    let step = StepId::try_from("fastq.trim").expect("valid step id");
-    let tool = ToolId::try_from("fastp").expect("valid tool id");
-    let artifact = ArtifactId::try_from("reads_out").expect("valid artifact id");
-    let profile = ProfileId::try_from("default").expect("valid profile id");
-    let pipeline = PipelineId::try_from("fastq-to-fastq__default__v1").expect("valid pipeline");
+    let stage = StageId::try_from("fastq.trim");
+    let step = StepId::try_from("fastq.trim");
+    let tool = ToolId::try_from("fastp");
+    let artifact = ArtifactId::try_from("reads_out");
+    let profile = ProfileId::try_from("default");
+    let pipeline = PipelineId::try_from("fastq-to-fastq__default__v1");
 
-    assert!(validate_stage_id(&stage).is_ok());
-    assert!(validate_stage_id_str(step.as_str()).is_ok());
-    assert!(validate_tool_id(&tool).is_ok());
-    assert!(validate_tool_id_str(artifact.as_str()).is_ok());
-    assert!(validate_tool_id_str(profile.as_str()).is_ok());
-    assert!(validate_pipeline_id(&pipeline).is_ok());
+    assert!(stage.as_ref().is_ok_and(|id| validate_stage_id(id).is_ok()));
+    assert!(step
+        .as_ref()
+        .is_ok_and(|id| validate_stage_id_str(id.as_str()).is_ok()));
+    assert!(tool.as_ref().is_ok_and(|id| validate_tool_id(id).is_ok()));
+    assert!(artifact
+        .as_ref()
+        .is_ok_and(|id| validate_tool_id_str(id.as_str()).is_ok()));
+    assert!(profile
+        .as_ref()
+        .is_ok_and(|id| validate_tool_id_str(id.as_str()).is_ok()));
+    assert!(pipeline
+        .as_ref()
+        .is_ok_and(|id| validate_pipeline_id(id).is_ok()));
 
     assert!(parse_stage_id("fastq.trim").is_ok());
     assert!(parse_tool_id("fastp").is_ok());

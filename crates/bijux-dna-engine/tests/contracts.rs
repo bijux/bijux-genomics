@@ -1,10 +1,10 @@
 // Auto-generated test aggregator for contracts
 #[path = "contracts/architecture.rs"]
 mod mod_contracts_architecture_rs;
+#[path = "contracts/execution_orchestration_contracts.rs"]
+mod mod_contracts_execution_orchestration_contracts_rs;
 #[path = "contracts/params_hash.rs"]
 mod mod_contracts_params_hash_rs;
-#[path = "contracts/coverage_engine_70.rs"]
-mod mod_contracts_coverage_engine_70_rs;
 #[path = "contracts/recording.rs"]
 mod mod_contracts_recording_rs;
 #[path = "contracts/runner_tests.rs"]

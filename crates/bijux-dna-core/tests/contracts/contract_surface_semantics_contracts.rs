@@ -2,10 +2,12 @@ use std::collections::BTreeMap;
 use std::path::PathBuf;
 
 use bijux_dna_core::contract::execution::{ExecutionEdge, ExecutionGraph, ExecutionStep};
-use bijux_dna_core::contract::{ArtifactRole, ContractVersion, PlanPolicy, StageIO, ToolConstraints};
+use bijux_dna_core::contract::{
+    ArtifactRole, ContractVersion, PlanPolicy, StageIO, ToolConstraints,
+};
 use bijux_dna_core::metrics::{
-    parse_derived_metric_id, parse_metric_id, validate_derived_metric_id_str, validate_metric_id_str,
-    DerivedMetricId, MetricId,
+    parse_derived_metric_id, parse_metric_id, validate_derived_metric_id_str,
+    validate_metric_id_str, DerivedMetricId, MetricId,
 };
 use bijux_dna_core::prelude::{ArtifactId, CommandSpecV1, ContainerImageRefV1, StageId, StepId};
 
@@ -176,8 +178,9 @@ fn execution_graph_getters_and_edge_accessors_are_stable() {
         policy,
         vec![mk_step("b", "fastq.trim"), mk_step("a", "fastq.qc_post")],
         vec![edge],
-    )
-    .expect("graph builds");
+    );
+    assert!(graph.is_ok());
+    let graph = graph.unwrap_or_else(|err| panic!("graph builds: {err}"));
 
     assert_eq!(graph.schema_version(), "bijux.execution_graph.v1");
     assert_eq!(graph.contract_version(), ContractVersion::v1());

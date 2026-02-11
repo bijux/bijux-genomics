@@ -1,12 +1,12 @@
 // Auto-generated test aggregator for contracts
 #[path = "contracts/canonicalization.rs"]
 mod mod_contracts_canonicalization_rs;
-#[path = "contracts/coverage_core_45.rs"]
-mod mod_contracts_coverage_core_45_rs;
-#[path = "contracts/coverage_core_65.rs"]
-mod mod_contracts_coverage_core_65_rs;
-#[path = "contracts/coverage_core_80.rs"]
-mod mod_contracts_coverage_core_80_rs;
+#[path = "contracts/metrics_ids_selection_contracts.rs"]
+mod mod_contracts_metrics_ids_selection_contracts_rs;
+#[path = "contracts/execution_contract_validation_contracts.rs"]
+mod mod_contracts_execution_contract_validation_contracts_rs;
+#[path = "contracts/contract_surface_semantics_contracts.rs"]
+mod mod_contracts_contract_surface_semantics_contracts_rs;
 #[path = "contracts/execution_graph_validate.rs"]
 mod mod_contracts_execution_graph_validate_rs;
 #[path = "contracts/execution_plan_contract.rs"]

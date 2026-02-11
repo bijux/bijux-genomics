@@ -1,10 +1,16 @@
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 
-use bijux_dna_core::contract::execution::{validate_execution_outputs, ExecutionEdge, ExecutionGraph, ExecutionStep};
-use bijux_dna_core::contract::{ArtifactRole, ExecutionContract, PlanPolicy, StageIO, ToolConstraints};
+use bijux_dna_core::contract::execution::{
+    validate_execution_outputs, ExecutionEdge, ExecutionGraph, ExecutionStep,
+};
+use bijux_dna_core::contract::{
+    ArtifactRole, ExecutionContract, PlanPolicy, StageIO, ToolConstraints,
+};
 use bijux_dna_core::metrics::{validate_derived_metric_id_str, ToolInvocationV1};
-use bijux_dna_core::prelude::{ArtifactId, CommandSpecV1, ContainerImageRefV1, ContractVersion, StageId, StepId, ToolId};
+use bijux_dna_core::prelude::{
+    ArtifactId, CommandSpecV1, ContainerImageRefV1, ContractVersion, StageId, StepId, ToolId,
+};
 
 fn mk_step(step_id: &str, stage_id: &str) -> ExecutionStep {
     ExecutionStep {
@@ -39,10 +45,12 @@ fn mk_step(step_id: &str, stage_id: &str) -> ExecutionStep {
 
 #[test]
 fn validate_execution_outputs_covers_contract_paths() {
-    let root = tempfile::tempdir().expect("tempdir");
-    std::fs::create_dir_all(root.path().join("nested")).expect("mkdir");
-    std::fs::write(root.path().join("ok.txt"), "x").expect("write");
-    std::fs::write(root.path().join("nested/reads.fastq.gz"), "x").expect("write");
+    let root = tempfile::tempdir();
+    assert!(root.is_ok());
+    let root = root.unwrap_or_else(|err| panic!("tempdir: {err}"));
+    assert!(std::fs::create_dir_all(root.path().join("nested")).is_ok());
+    assert!(std::fs::write(root.path().join("ok.txt"), "x").is_ok());
+    assert!(std::fs::write(root.path().join("nested/reads.fastq.gz"), "x").is_ok());
 
     let ok_contract = ExecutionContract {
         required_inputs: Vec::new(),
@@ -86,7 +94,10 @@ fn execution_graph_validation_rejects_multiple_lint_failures() {
         "fastq-to-fastq__default__v1",
         "planner-v1",
         PlanPolicy::default(),
-        vec![mk_step("dup", "fastq.trim"), mk_step("dup", "fastq.qc_post")],
+        vec![
+            mk_step("dup", "fastq.trim"),
+            mk_step("dup", "fastq.qc_post"),
+        ],
         Vec::new(),
     );
     assert!(duplicate_steps.is_err());
@@ -105,7 +116,9 @@ fn execution_graph_validation_rejects_multiple_lint_failures() {
         "planner-v1",
         PlanPolicy::default(),
         vec![ExecutionStep {
-            command: CommandSpecV1 { template: Vec::new() },
+            command: CommandSpecV1 {
+                template: Vec::new(),
+            },
             ..mk_step("a", "fastq.trim")
         }],
         Vec::new(),
