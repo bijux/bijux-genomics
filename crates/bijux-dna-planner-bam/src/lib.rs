@@ -161,9 +161,7 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
                 .ok_or_else(|| anyhow!("mapping_summary requires bam"))?;
             let mut plan =
                 tool_adapters::stages_pre::qc_pre::plan(request.tool, bam, request.out_dir)?;
-            plan.stage_id = bijux_dna_core::ids::StageId::from_static(
-                bijux_dna_domain_bam::BamStage::MappingSummary.as_str(),
-            );
+            plan.stage_id = bijux_dna_core::ids::StageId::new(stage.as_str().to_string());
             Ok(plan)
         }
         bijux_dna_domain_bam::BamStage::Filter => {
@@ -178,9 +176,7 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
                 request.out_dir,
                 &params,
             )?;
-            plan.stage_id = bijux_dna_core::ids::StageId::from_static(
-                bijux_dna_domain_bam::BamStage::MapqFilter.as_str(),
-            );
+            plan.stage_id = bijux_dna_core::ids::StageId::new(stage.as_str().to_string());
             Ok(plan)
         }
         bijux_dna_domain_bam::BamStage::MapqFilter => {
@@ -198,9 +194,7 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
                 request.out_dir,
                 &params,
             )?;
-            plan.stage_id = bijux_dna_core::ids::StageId::from_static(
-                bijux_dna_domain_bam::BamStage::LengthFilter.as_str(),
-            );
+            plan.stage_id = bijux_dna_core::ids::StageId::new(stage.as_str().to_string());
             Ok(plan)
         }
         bijux_dna_domain_bam::BamStage::LengthFilter => {
@@ -212,7 +206,10 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
             else {
                 return Err(anyhow!("length_filter params mismatch"));
             };
-            tool_adapters::stages_pre::filter::plan(request.tool, bam, request.out_dir, &params)
+            let mut plan =
+                tool_adapters::stages_pre::filter::plan(request.tool, bam, request.out_dir, &params)?;
+            plan.stage_id = bijux_dna_core::ids::StageId::new(stage.as_str().to_string());
+            Ok(plan)
         }
         bijux_dna_domain_bam::BamStage::Markdup => {
             let bam = request.bam.ok_or_else(|| anyhow!("markdup requires bam"))?;
@@ -226,9 +223,7 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
                 request.out_dir,
                 &params,
             )?;
-            plan.stage_id = bijux_dna_core::ids::StageId::from_static(
-                bijux_dna_domain_bam::BamStage::DuplicationMetrics.as_str(),
-            );
+            plan.stage_id = bijux_dna_core::ids::StageId::new(stage.as_str().to_string());
             Ok(plan)
         }
         bijux_dna_domain_bam::BamStage::DuplicationMetrics => {
@@ -241,7 +236,10 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
             else {
                 return Err(anyhow!("duplication_metrics params mismatch"));
             };
-            tool_adapters::stages_post::markdup::plan(request.tool, bam, request.out_dir, &params)
+            let mut plan =
+                tool_adapters::stages_post::markdup::plan(request.tool, bam, request.out_dir, &params)?;
+            plan.stage_id = bijux_dna_core::ids::StageId::new(stage.as_str().to_string());
+            Ok(plan)
         }
         bijux_dna_domain_bam::BamStage::Complexity => {
             let bam = request
@@ -318,9 +316,7 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
                 request.out_dir,
                 &params,
             )?;
-            plan.stage_id = bijux_dna_core::ids::StageId::from_static(
-                bijux_dna_domain_bam::BamStage::EndogenousContent.as_str(),
-            );
+            plan.stage_id = bijux_dna_core::ids::StageId::new(stage.as_str().to_string());
             Ok(plan)
         }
         bijux_dna_domain_bam::BamStage::OverlapCorrection => {
@@ -339,9 +335,7 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
                 request.out_dir,
                 &params,
             )?;
-            plan.stage_id = bijux_dna_core::ids::StageId::from_static(
-                bijux_dna_domain_bam::BamStage::OverlapCorrection.as_str(),
-            );
+            plan.stage_id = bijux_dna_core::ids::StageId::new(stage.as_str().to_string());
             Ok(plan)
         }
         bijux_dna_domain_bam::BamStage::Recalibration => {
