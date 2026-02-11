@@ -304,6 +304,12 @@ pub enum PipelinesCommand {
     ExplainProfile {
         id: String,
     },
+    #[command(about = "Diff two pipeline profiles (tools, params, invariants).")]
+    #[command(name = "profile-diff")]
+    ProfileDiff {
+        left: String,
+        right: String,
+    },
     #[command(about = "Audit pipeline stages and completeness.")]
     Audit {
         #[arg(long, value_enum)]
