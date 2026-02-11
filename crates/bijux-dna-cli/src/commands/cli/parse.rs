@@ -3,3 +3,4 @@
 include!("parse/common.rs");
 include!("parse/fastq.rs");
 include!("parse/bam.rs");
+include!("parse/vcf.rs");

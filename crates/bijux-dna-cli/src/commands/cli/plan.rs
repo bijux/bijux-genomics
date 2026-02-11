@@ -7,7 +7,7 @@ use crate::commands::cli::parse::{
     BamCommand, BenchFastqCorrectArgs, BenchFastqFilterArgs, BenchFastqMergeArgs,
     BenchFastqPreprocessArgs, BenchFastqQcPostArgs, BenchFastqScreenArgs, BenchFastqStatsArgs,
     BenchFastqTrimArgs, BenchFastqUmiArgs, BenchFastqValidateArgs, CommonArgs, DnaCommand,
-    FastqCommand, FastqPreprocessArgs, FastqTrimArgs, FastqValidateArgs,
+    FastqCommand, FastqPreprocessArgs, FastqTrimArgs, FastqValidateArgs, VcfCommand,
 };
 
 #[must_use]
@@ -72,6 +72,18 @@ pub fn resolve_stage_tool(command: &DnaCommand) -> (StageId, ToolId, CommonArgs)
             BamCommand::Run(args) => (
                 StageId::new(args.stage.stage().as_str()),
                 ToolId::new(args.tool.clone().unwrap_or_else(|| "samtools".to_string())),
+                CommonArgs::default(),
+            ),
+        },
+        DnaCommand::Vcf { command } => match command {
+            VcfCommand::Plan { .. } | VcfCommand::Explain { .. } => (
+                StageId::from_static("vcf.stats"),
+                ToolId::from_static("bcftools"),
+                CommonArgs::default(),
+            ),
+            VcfCommand::Run(args) => (
+                StageId::from_static("vcf.stats"),
+                ToolId::new(args.tool.clone().unwrap_or_else(|| "bcftools".to_string())),
                 CommonArgs::default(),
             ),
         },
