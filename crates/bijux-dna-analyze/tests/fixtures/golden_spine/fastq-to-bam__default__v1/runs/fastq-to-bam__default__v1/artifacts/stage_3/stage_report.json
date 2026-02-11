@@ -3,7 +3,7 @@
   "stage_id": "bam.coverage",
   "stage_version": 1,
   "tool_id": "unknown",
-  "tool_version": "0.0.0",
+  "tool_version": "99.99.99+fixture",
   "metrics_path": "<WORKSPACE_ROOT>/crates/bijux-dna-analyze/tests/fixtures/golden_spine/fastq-to-bam__default__v1/runs/fastq-to-bam__default__v1/artifacts/stage_3/metrics.json",
   "tool_invocation_path": "<WORKSPACE_ROOT>/crates/bijux-dna-analyze/tests/fixtures/golden_spine/fastq-to-bam__default__v1/runs/fastq-to-bam__default__v1/artifacts/stage_3/tool_invocation.json",
   "effective_config_path": "<WORKSPACE_ROOT>/crates/bijux-dna-analyze/tests/fixtures/golden_spine/fastq-to-bam__default__v1/runs/fastq-to-bam__default__v1/artifacts/stage_3/effective_config.json",
