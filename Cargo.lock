@@ -254,7 +254,6 @@ dependencies = [
  "insta",
  "predicates",
  "regex",
- "schemars",
  "serde",
  "serde_json",
  "tempfile",

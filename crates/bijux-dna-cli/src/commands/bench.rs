@@ -441,7 +441,7 @@ fn explain_fastq_stage(
         let trim_stage = StageId::from_static("fastq.trim");
         let payload = serde_json::json!({
             "stage_id": "fastq.trim",
-            "param_schema": schemars::schema_for!(serde_json::Value),
+            "param_schema": "bijux.fastq.params.trim.v1",
             "param_variant": "FastqTrim (effective defaults payload)",
             "defaults": {
                 "fastq-default": default_profile.defaults.params.get(&trim_stage),
@@ -451,7 +451,7 @@ fn explain_fastq_stage(
                 "fastq-default": bijux_dna_api::v1::api::plan::validate_fastq_profile(&default_profile),
                 "fastq-reference-adna": bijux_dna_api::v1::api::plan::validate_fastq_profile(&reference_profile),
             },
-            "metrics_schema": bijux_dna_core::metrics::metrics_schema_for_stage("fastq.trim").map(|s| s.schema),
+            "metrics_schema": "bijux.fastq.trim.v1",
         });
         render::json::print_pretty(&payload)?;
         return Ok(());
