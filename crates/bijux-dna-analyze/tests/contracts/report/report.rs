@@ -18,6 +18,10 @@ fn fixture_root() -> PathBuf {
     manifest_dir.join("tests").join("fixtures").join("report")
 }
 
+fn fixture_case_dir(root: &std::path::Path, suffix: &str) -> PathBuf {
+    root.join(suffix)
+}
+
 fn write_report_fixture(
     root: &std::path::Path,
     suffix: &str,
@@ -227,7 +231,8 @@ fn base_reports(root: &std::path::Path) -> Result<(PathBuf, PathBuf, PathBuf)> {
 fn golden_run_report_snapshot_happy_path() -> Result<()> {
     let root = fixture_root();
     bijux_dna_infra::ensure_dir(&root)?;
-    let (stage_report_path, retention_report_path, bank_report_path) = base_reports(&root)?;
+    let case_dir = fixture_case_dir(&root, "happy");
+    let (stage_report_path, retention_report_path, bank_report_path) = base_reports(&case_dir)?;
 
     let rows = vec![FactsRowV1 {
         schema_version: "bijux.facts.v1".to_string(),
@@ -286,7 +291,8 @@ fn golden_run_report_snapshot_happy_path() -> Result<()> {
 #[test]
 fn report_includes_sections_block() -> Result<()> {
     let root = fixture_root();
-    let (stage_report_path, retention_report_path, bank_report_path) = base_reports(&root)?;
+    let case_dir = fixture_case_dir(&root, "sections");
+    let (stage_report_path, retention_report_path, bank_report_path) = base_reports(&case_dir)?;
     let rows = vec![FactsRowV1 {
         schema_version: "bijux.facts.v1".to_string(),
         run_id: "run-sections".to_string(),
@@ -344,7 +350,8 @@ fn report_includes_sections_block() -> Result<()> {
 #[test]
 fn golden_run_report_snapshot_tool_failure() -> Result<()> {
     let root = fixture_root();
-    let (stage_report_path, _, _) = base_reports(&root)?;
+    let case_dir = fixture_case_dir(&root, "failure");
+    let (stage_report_path, _, _) = base_reports(&case_dir)?;
     let rows = vec![FactsRowV1 {
         schema_version: "bijux.facts.v1".to_string(),
         run_id: "run-2".to_string(),
@@ -381,7 +388,8 @@ fn golden_run_report_snapshot_tool_failure() -> Result<()> {
 #[test]
 fn golden_run_report_snapshot_missing_metrics() -> Result<()> {
     let root = fixture_root();
-    let (stage_report_path, _, _) = base_reports(&root)?;
+    let case_dir = fixture_case_dir(&root, "missing");
+    let (stage_report_path, _, _) = base_reports(&case_dir)?;
     let rows = vec![FactsRowV1 {
         schema_version: "bijux.facts.v1".to_string(),
         run_id: "run-3".to_string(),
@@ -418,7 +426,8 @@ fn golden_run_report_snapshot_missing_metrics() -> Result<()> {
 #[test]
 fn report_provenance_is_complete() -> Result<()> {
     let root = fixture_root();
-    let (stage_report_path, retention_report_path, bank_report_path) = base_reports(&root)?;
+    let case_dir = fixture_case_dir(&root, "provenance");
+    let (stage_report_path, retention_report_path, bank_report_path) = base_reports(&case_dir)?;
     let rows = vec![FactsRowV1 {
         schema_version: "bijux.facts.v1".to_string(),
         run_id: "run-4".to_string(),
