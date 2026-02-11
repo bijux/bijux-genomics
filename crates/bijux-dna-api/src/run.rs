@@ -333,6 +333,7 @@ pub fn dry_run(request: &DryRunRequest) -> Result<DryRunResponse> {
     }
     let payload = bijux_dna_core::contract::canonical::to_canonical_json_bytes(&manifest)?;
     bijux_dna_infra::atomic_write_bytes(&manifest_path, payload.as_slice())?;
+    bijux_dna_runtime::recording::write_profile_and_lock_manifests(&manifest_path)?;
     Ok(DryRunResponse {
         graph_path,
         manifest_path,

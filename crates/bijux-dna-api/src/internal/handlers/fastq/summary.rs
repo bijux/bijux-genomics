@@ -471,6 +471,42 @@ pub(crate) fn write_run_manifest(
     let payload = bijux_dna_core::contract::canonical::to_canonical_json_bytes(&manifest)?;
     bijux_dna_infra::atomic_write_bytes(&path, payload.as_slice())
         .context("write run_manifest.json")?;
+    bijux_dna_runtime::recording::write_profile_and_lock_manifests(&path)?;
+    let manifest_hash =
+        bijux_dna_infra::hash_file_sha256(&path).context("hash run_manifest.json")?;
+    for entry in stage_runs {
+        let artifacts_dir =
+            bijux_dna_runtime::recording::run_artifacts_dir_for_out(&entry.plan.out_dir);
+        backfill_metric_manifest_hash(&artifacts_dir.join("metrics_envelope.json"), &manifest_hash)?;
+        backfill_metric_manifest_hash(&artifacts_dir.join("stage_metrics.json"), &manifest_hash)?;
+    }
+    Ok(())
+}
+
+fn backfill_metric_manifest_hash(path: &Path, manifest_hash: &str) -> Result<()> {
+    if !path.exists() {
+        return Ok(());
+    }
+    let raw = std::fs::read_to_string(path)?;
+    let mut value: serde_json::Value = serde_json::from_str(&raw)?;
+    let mut changed = false;
+    if let Some(obj) = value.as_object_mut() {
+        let metric_provenance = obj
+            .entry("metric_provenance")
+            .or_insert_with(|| serde_json::json!({}));
+        if let Some(prov_obj) = metric_provenance.as_object_mut() {
+            if !prov_obj.contains_key("manifest_hash") {
+                prov_obj.insert(
+                    "manifest_hash".to_string(),
+                    serde_json::Value::String(manifest_hash.to_string()),
+                );
+                changed = true;
+            }
+        }
+    }
+    if changed {
+        bijux_dna_infra::atomic_write_json(path, &value)?;
+    }
     Ok(())
 }
 
