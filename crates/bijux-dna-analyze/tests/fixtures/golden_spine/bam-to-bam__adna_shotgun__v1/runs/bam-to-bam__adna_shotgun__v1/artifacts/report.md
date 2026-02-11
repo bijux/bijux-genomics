@@ -6,13 +6,13 @@
 - Pipeline Verdict: `Pass`
 
 ## Stage Summary
-- `bam.authenticity` via `unknown` (0.0.0)
-- `bam.complexity` via `unknown` (0.0.0)
-- `bam.contamination` via `unknown` (0.0.0)
-- `bam.coverage` via `unknown` (0.0.0)
-- `bam.damage` via `unknown` (0.0.0)
-- `bam.filter` via `unknown` (0.0.0)
-- `bam.markdup` via `unknown` (0.0.0)
-- `bam.qc_pre` via `unknown` (0.0.0)
-- `bam.sex` via `unknown` (0.0.0)
-- `bam.validate` via `unknown` (0.0.0)
+- `bam.authenticity` via `unknown` (99.99.99+fixture)
+- `bam.complexity` via `unknown` (99.99.99+fixture)
+- `bam.contamination` via `unknown` (99.99.99+fixture)
+- `bam.coverage` via `unknown` (99.99.99+fixture)
+- `bam.damage` via `unknown` (99.99.99+fixture)
+- `bam.filter` via `unknown` (99.99.99+fixture)
+- `bam.markdup` via `unknown` (99.99.99+fixture)
+- `bam.qc_pre` via `unknown` (99.99.99+fixture)
+- `bam.sex` via `unknown` (99.99.99+fixture)
+- `bam.validate` via `unknown` (99.99.99+fixture)
