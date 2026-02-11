@@ -25,8 +25,8 @@ impl CliWorkspace {
     fn setup_configs(&self) {
         self.setup_configs_with_images(
             r#"
-fastp = { version = "0.0.0" }
-seqkit = { version = "0.0.0" }
+fastp = { version = "99.99.99+fixture" }
+seqkit = { version = "99.99.99+fixture" }
 "#,
         );
     }
@@ -187,15 +187,15 @@ fn cli_env_images_are_deterministic_across_input_order() {
     let workspace_a = CliWorkspace::new();
     workspace_a.setup_configs_with_images(
         r#"
-fastp = { version = "0.0.0" }
-seqkit = { version = "0.0.0" }
+fastp = { version = "99.99.99+fixture" }
+seqkit = { version = "99.99.99+fixture" }
 "#,
     );
     let workspace_b = CliWorkspace::new();
     workspace_b.setup_configs_with_images(
         r#"
-seqkit = { version = "0.0.0" }
-fastp = { version = "0.0.0" }
+seqkit = { version = "99.99.99+fixture" }
+fastp = { version = "99.99.99+fixture" }
 "#,
     );
 
