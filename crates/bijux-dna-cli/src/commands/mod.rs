@@ -8,6 +8,7 @@ use bijux_dna_api::v1::api::run::{load_manifests, load_profile, resolve_run_base
 use bijux_dna_api::v1::api::run::{CategorizedError, ErrorCategory};
 use bijux_dna_domain_compiler::{domain_coverage_report, validate_domain, ValidateOptions};
 use clap::Parser;
+use sha2::Digest as _;
 
 struct CwdGuard(PathBuf);
 
@@ -111,21 +112,7 @@ pub fn run_with_cli(cli: &cli::Cli, cwd: &Path) -> Result<()> {
         ))
     })?;
     profile.run_base_dir = resolve_run_base_dir(cwd, &profile.run_base_dir);
-    let profile_value = serde_json::to_value(&profile)?;
-    let profile_hash = {
-        let bytes = serde_json::to_vec(&profile_value)?;
-        let mut hasher = sha2::Sha256::new();
-        use sha2::Digest as _;
-        hasher.update(bytes);
-        format!("{:x}", hasher.finalize())
-    };
-    std::env::set_var("BIJUX_PROFILE_HASH", profile_hash);
-    if cli.profile.eq_ignore_ascii_case("hpc") {
-        std::env::set_var("BIJUX_RUN_CONTEXT", "hpc");
-        std::env::set_var("BIJUX_HPC_SITE", "lunarc");
-    } else {
-        std::env::set_var("BIJUX_RUN_CONTEXT", "local");
-    }
+    configure_run_context_env(cli, &profile)?;
     if cli.print_effective_config || cli.dump_effective_config {
         let payload = serde_json::json!({
             "profile": profile,
@@ -157,6 +144,23 @@ pub fn run_with_cli(cli: &cli::Cli, cwd: &Path) -> Result<()> {
     }
 
     run_plan::run_plan(cli, dna_command, &registry, &domain_dir)
+}
+
+fn configure_run_context_env<T>(cli: &cli::Cli, profile: &T) -> Result<()>
+where
+    T: serde::Serialize,
+{
+    let bytes = serde_json::to_vec(profile)?;
+    let mut hasher = sha2::Sha256::new();
+    hasher.update(bytes);
+    std::env::set_var("BIJUX_PROFILE_HASH", format!("{:x}", hasher.finalize()));
+    if cli.profile.eq_ignore_ascii_case("hpc") {
+        std::env::set_var("BIJUX_RUN_CONTEXT", "hpc");
+        std::env::set_var("BIJUX_HPC_SITE", "lunarc");
+    } else {
+        std::env::set_var("BIJUX_RUN_CONTEXT", "local");
+    }
+    Ok(())
 }
 
 fn handle_observability_commands(dna_command: &cli::DnaCommand, cwd: &Path) -> Result<bool> {
@@ -437,8 +441,7 @@ fn print_contract_status(cwd: &Path) -> Result<()> {
 fn handle_status_root(args: &cli::StatusArgs, cwd: &Path) -> Result<()> {
     if args.hpc {
         let root = std::env::var("BIJUX_HPC_ROOT")
-            .map(PathBuf::from)
-            .unwrap_or_else(|_| PathBuf::from("/home/bijan/bijux"));
+            .map_or_else(|_| PathBuf::from("/home/bijan/bijux"), PathBuf::from);
         let layout = hpc::HpcLayout::from_root(&root);
         let report = hpc::validate_hpc_status(&layout);
         cli::render::json::print_pretty(&report)?;
@@ -756,8 +759,7 @@ fn handle_environment_root(command: &cli::EnvCommand, cwd: &Path) -> Result<()> 
         }
         cli::EnvCommand::ExportHpc { json } => {
             let root = std::env::var("BIJUX_HPC_ROOT")
-                .map(PathBuf::from)
-                .unwrap_or_else(|_| PathBuf::from("/home/bijan/bijux"));
+                .map_or_else(|_| PathBuf::from("/home/bijan/bijux"), PathBuf::from);
             let layout = hpc::HpcLayout::from_root(&root);
             let export = hpc::export_hpc_env_json(&layout)?;
             if *json {

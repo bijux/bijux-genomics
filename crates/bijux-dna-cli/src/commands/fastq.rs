@@ -526,9 +526,10 @@ pub(crate) fn handle_meta_commands(
                     print_env_export_json(&registry_path)?;
                 }
                 EnvCommand::ExportHpc { json } => {
-                    let root = std::env::var("BIJUX_HPC_ROOT")
-                        .map(std::path::PathBuf::from)
-                        .unwrap_or_else(|_| std::path::PathBuf::from("/home/bijan/bijux"));
+                    let root = std::env::var("BIJUX_HPC_ROOT").map_or_else(
+                        |_| std::path::PathBuf::from("/home/bijan/bijux"),
+                        std::path::PathBuf::from,
+                    );
                     let layout = crate::commands::hpc::HpcLayout::from_root(&root);
                     let export = crate::commands::hpc::export_hpc_env_json(&layout)?;
                     if *json {
