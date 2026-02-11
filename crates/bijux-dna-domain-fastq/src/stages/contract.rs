@@ -121,8 +121,7 @@ pub fn contract_for_stage(stage_id: &str) -> Option<FastqStageContract> {
         | "fastq.low_complexity"
         | "fastq.polyg_tailing"
         | "fastq.host_depletion"
-        | "fastq.contaminant_screen" => {
-            Some(FastqStageContract {
+        | "fastq.contaminant_screen" => Some(FastqStageContract {
             input_kind: FastqArtifactKind::SingleEnd,
             output_kind: FastqArtifactKind::SingleEnd,
             may_drop_reads: true,
@@ -132,8 +131,7 @@ pub fn contract_for_stage(stage_id: &str) -> Option<FastqStageContract> {
             may_drop: &["reads", "bases"],
             retention_definition: "reads_out / reads_in; bases_out / bases_in",
             retention_units: "reads,bases",
-        })
-        }
+        }),
         "fastq.merge" => Some(FastqStageContract {
             input_kind: FastqArtifactKind::PairedEnd,
             output_kind: FastqArtifactKind::Merged,
