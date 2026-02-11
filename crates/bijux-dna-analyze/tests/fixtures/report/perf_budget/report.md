@@ -2,7 +2,7 @@
 
 - Run ID: `run-1`
 - Stages: 1
-- Completeness: `complete`
+- Completeness: `incomplete`
 - Pipeline Verdict: `Pass`
 
 ## Stage Summary

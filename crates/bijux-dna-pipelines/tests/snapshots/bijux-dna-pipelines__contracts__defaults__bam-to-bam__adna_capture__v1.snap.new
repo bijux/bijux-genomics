@@ -194,7 +194,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "exclude_flags": [],
       "include_flags": [],
       "mapq_threshold": 30,
-      "min_length": 30,
+      "min_length": 25,
       "remove_duplicates": false
     },
     "bam.length_filter": {
@@ -224,7 +224,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "strict": true
     }
   },
-  "pipeline_id": "bam-to-bam__adna_shotgun__v1",
+  "pipeline_id": "bam-to-bam__adna_capture__v1",
   "thresholds": {},
   "tool_provenance": {
     "bam.authenticity": {
