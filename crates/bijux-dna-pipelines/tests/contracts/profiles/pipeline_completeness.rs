@@ -174,7 +174,7 @@ fn default_fastq_pipeline_declares_required_metrics_objects() {
     let required_stages = &profile.capabilities.required_stages;
     for required in ["fastq.trim", "fastq.filter", "fastq.qc_post"] {
         assert!(
-            required_stages.iter().any(|stage| *stage == required),
+            required_stages.contains(&required),
             "default FASTQ profile missing metrics-critical stage {required}"
         );
     }
@@ -182,8 +182,7 @@ fn default_fastq_pipeline_declares_required_metrics_objects() {
         profile
             .capabilities
             .required_metrics
-            .iter()
-            .any(|metric| *metric == "fastq.metrics"),
+            .contains(&"fastq.metrics"),
         "default FASTQ profile must require fastq.metrics bundle"
     );
 }

@@ -2,7 +2,9 @@ use std::collections::BTreeSet;
 
 use bijux_dna_core::ids::{StageId, ToolId};
 use bijux_dna_core::prelude::id_catalog;
-use bijux_dna_domain_vcf::params::{VcfCallParams, VcfEffectiveParams, VcfFilterParams, VcfStatsParams};
+use bijux_dna_domain_vcf::params::{
+    VcfCallParams, VcfEffectiveParams, VcfFilterParams, VcfStatsParams,
+};
 use serde::Serialize;
 
 use crate::{
@@ -27,7 +29,11 @@ pub struct VcfProfileValidationReport {
     pub violations: Vec<VcfProfileViolation>,
 }
 
-fn violation(code: &'static str, stage_id: Option<&str>, message: impl Into<String>) -> VcfProfileViolation {
+fn violation(
+    code: &'static str,
+    stage_id: Option<&str>,
+    message: impl Into<String>,
+) -> VcfProfileViolation {
     VcfProfileViolation {
         code,
         stage_id: stage_id.map(str::to_string),
@@ -36,7 +42,12 @@ fn violation(code: &'static str, stage_id: Option<&str>, message: impl Into<Stri
 }
 
 fn stage_set(profile: &PipelineProfile) -> BTreeSet<&str> {
-    profile.capabilities.required_stages.iter().copied().collect()
+    profile
+        .capabilities
+        .required_stages
+        .iter()
+        .copied()
+        .collect()
 }
 
 #[must_use]
@@ -44,7 +55,11 @@ pub fn validate_vcf_profile(profile: &PipelineProfile) -> VcfProfileValidationRe
     let mut violations = Vec::new();
     let stages = stage_set(profile);
 
-    for stage in [id_catalog::VCF_CALL, id_catalog::VCF_FILTER, id_catalog::VCF_STATS] {
+    for stage in [
+        id_catalog::VCF_CALL,
+        id_catalog::VCF_FILTER,
+        id_catalog::VCF_STATS,
+    ] {
         if !stages.contains(stage) {
             violations.push(violation(
                 "required_stage_missing",
@@ -52,7 +67,11 @@ pub fn validate_vcf_profile(profile: &PipelineProfile) -> VcfProfileValidationRe
                 format!("required VCF stage `{stage}` is missing"),
             ));
         }
-        if !profile.defaults.params.contains_key(&StageId::new(stage.to_string())) {
+        if !profile
+            .defaults
+            .params
+            .contains_key(&StageId::new(stage.to_string()))
+        {
             violations.push(violation(
                 "required_params_missing",
                 Some(stage),
@@ -61,7 +80,11 @@ pub fn validate_vcf_profile(profile: &PipelineProfile) -> VcfProfileValidationRe
         }
     }
 
-    if !profile.capabilities.required_metrics.iter().any(|m| *m == "vcf.metrics") {
+    if !profile
+        .capabilities
+        .required_metrics
+        .contains(&"vcf.metrics")
+    {
         violations.push(violation(
             "required_metrics_missing",
             None,
@@ -72,8 +95,7 @@ pub fn validate_vcf_profile(profile: &PipelineProfile) -> VcfProfileValidationRe
     if !profile
         .capabilities
         .required_artifacts
-        .iter()
-        .any(|a| *a == "tool_provenance.json")
+        .contains(&"tool_provenance.json")
     {
         violations.push(violation(
             "required_provenance_missing",
@@ -82,7 +104,11 @@ pub fn validate_vcf_profile(profile: &PipelineProfile) -> VcfProfileValidationRe
         ));
     }
 
-    for stage in [id_catalog::VCF_CALL, id_catalog::VCF_FILTER, id_catalog::VCF_STATS] {
+    for stage in [
+        id_catalog::VCF_CALL,
+        id_catalog::VCF_FILTER,
+        id_catalog::VCF_STATS,
+    ] {
         let tool_id = profile
             .defaults
             .tools
@@ -136,10 +162,15 @@ pub fn vcf_minimal_profile() -> PipelineProfile {
         DefaultParams::Vcf(VcfEffectiveParams::Stats(VcfStatsParams::default())),
     );
 
-    for stage in [id_catalog::VCF_CALL, id_catalog::VCF_FILTER, id_catalog::VCF_STATS] {
-        defaults
-            .rationales
-            .insert(StageId::new(stage.to_string()), "vcf minimal default".to_string());
+    for stage in [
+        id_catalog::VCF_CALL,
+        id_catalog::VCF_FILTER,
+        id_catalog::VCF_STATS,
+    ] {
+        defaults.rationales.insert(
+            StageId::new(stage.to_string()),
+            "vcf minimal default".to_string(),
+        );
     }
 
     PipelineProfile {
@@ -161,7 +192,11 @@ pub fn vcf_minimal_profile() -> PipelineProfile {
             report_sections: vec!["vcf"],
             required_report_sections: vec![ReportSection::Vcf, ReportSection::PipelineDefaults],
             required_metrics_bundles: vec![MetricsBundle::VcfCore],
-            required_stages: vec![id_catalog::VCF_CALL, id_catalog::VCF_FILTER, id_catalog::VCF_STATS],
+            required_stages: vec![
+                id_catalog::VCF_CALL,
+                id_catalog::VCF_FILTER,
+                id_catalog::VCF_STATS,
+            ],
             required_metrics: vec!["vcf.metrics"],
             required_artifacts: vec!["report.json", "run_manifest.json", "tool_provenance.json"],
             supports_benchmarks: false,

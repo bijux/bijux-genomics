@@ -158,5 +158,8 @@ fn profile_hash_contract_snapshot() {
             }),
         );
     }
-    assert_json_snapshot!(name, bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashes)));
+    assert_json_snapshot!(
+        name,
+        bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashes))
+    );
 }

@@ -42,11 +42,7 @@ fn reference_adna_profile_stage_contract_and_pairing_invariants() {
         id_catalog::FASTQ_QC_POST,
     ] {
         assert!(
-            profile
-                .capabilities
-                .required_stages
-                .iter()
-                .any(|candidate| *candidate == stage),
+            profile.capabilities.required_stages.contains(&stage),
             "reference profile must include required stage {stage}"
         );
     }
@@ -82,7 +78,7 @@ fn adna_profiles_obey_core_stage_and_param_properties() {
         id_catalog::FASTQ_QC_POST,
     ] {
         assert!(
-            required.iter().any(|candidate| *candidate == stage),
+            required.contains(&stage),
             "aDNA profile must include required stage {stage}"
         );
     }

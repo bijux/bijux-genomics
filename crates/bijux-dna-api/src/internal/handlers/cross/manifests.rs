@@ -292,7 +292,10 @@ pub fn write_cross_run_manifest(
     for entry in bam_runs {
         let artifacts_dir =
             bijux_dna_runtime::recording::run_artifacts_dir_for_out(&entry.plan.out_dir);
-        backfill_metric_manifest_hash(&artifacts_dir.join("metrics_envelope.json"), &manifest_hash)?;
+        backfill_metric_manifest_hash(
+            &artifacts_dir.join("metrics_envelope.json"),
+            &manifest_hash,
+        )?;
         backfill_metric_manifest_hash(&artifacts_dir.join("stage_metrics.json"), &manifest_hash)?;
     }
     Ok(())

@@ -12,10 +12,10 @@ pub const BAM_INVARIANTS: &str = "bam-invariants.v1";
 
 const CORE_BAM_STAGES: [&str; 5] = [
     id_catalog::BAM_VALIDATE,
-    "bam.qc_pre",
     "bam.filter",
     id_catalog::BAM_COVERAGE,
     id_catalog::BAM_DAMAGE,
+    "bam.mapping_summary",
 ];
 
 const INDEX_DEPENDENT_BAM_STAGES: [&str; 9] = [
@@ -48,7 +48,10 @@ pub struct BamProfileValidationReport {
 
 impl BamProfileValidationReport {
     #[must_use]
-    pub fn from_violations(profile: &PipelineProfile, violations: Vec<BamProfileViolation>) -> Self {
+    pub fn from_violations(
+        profile: &PipelineProfile,
+        violations: Vec<BamProfileViolation>,
+    ) -> Self {
         Self {
             profile_id: profile.id.as_str().to_string(),
             invariants_version: BAM_INVARIANTS,
@@ -59,7 +62,11 @@ impl BamProfileValidationReport {
     }
 }
 
-fn violation(code: &'static str, stage_id: Option<&str>, message: impl Into<String>) -> BamProfileViolation {
+fn violation(
+    code: &'static str,
+    stage_id: Option<&str>,
+    message: impl Into<String>,
+) -> BamProfileViolation {
     BamProfileViolation {
         code,
         stage_id: stage_id.map(str::to_string),
@@ -68,7 +75,12 @@ fn violation(code: &'static str, stage_id: Option<&str>, message: impl Into<Stri
 }
 
 fn stage_set(profile: &PipelineProfile) -> BTreeSet<&str> {
-    profile.capabilities.required_stages.iter().copied().collect()
+    profile
+        .capabilities
+        .required_stages
+        .iter()
+        .copied()
+        .collect()
 }
 
 fn has_stage_params(profile: &PipelineProfile, stage_id: &str) -> bool {
@@ -96,8 +108,7 @@ pub fn validate_bam_profile(profile: &PipelineProfile) -> BamProfileValidationRe
     if !profile
         .capabilities
         .required_metrics
-        .iter()
-        .any(|metric| *metric == "bam.metrics")
+        .contains(&"bam.metrics")
     {
         violations.push(violation(
             "required_metrics_missing",
@@ -107,16 +118,13 @@ pub fn validate_bam_profile(profile: &PipelineProfile) -> BamProfileValidationRe
     }
 
     for artifact in ["report.json", "run_manifest.json", "stage_summaries.json"] {
-        if !profile
-            .capabilities
-            .required_artifacts
-            .iter()
-            .any(|required| *required == artifact)
-        {
+        if !profile.capabilities.required_artifacts.contains(&artifact) {
             violations.push(violation(
                 "required_artifact_missing",
                 None,
-                format!("BAM profiles must require `{artifact}` for metrics/provenance completeness"),
+                format!(
+                    "BAM profiles must require `{artifact}` for metrics/provenance completeness"
+                ),
             ));
         }
     }
@@ -131,7 +139,9 @@ pub fn validate_bam_profile(profile: &PipelineProfile) -> BamProfileValidationRe
         }
     }
 
-    if profile.invariants_preset == Some("adna") && !required_stages.contains(id_catalog::BAM_DAMAGE) {
+    if profile.invariants_preset == Some("adna")
+        && !required_stages.contains(id_catalog::BAM_DAMAGE)
+    {
         violations.push(violation(
             "adna_damage_stage_missing",
             Some(id_catalog::BAM_DAMAGE),
