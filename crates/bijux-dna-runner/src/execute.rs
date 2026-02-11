@@ -6,7 +6,7 @@ use bijux_dna_core::contract::ExecutionStep;
 use bijux_dna_core::metrics::ToolInvocationV1;
 use bijux_dna_core::prelude::cache::CacheKey;
 use bijux_dna_core::prelude::hashing::{
-    input_fingerprint, parameters_fingerprint, run_id_from_hashes,
+    input_fingerprint, parameters_fingerprint, params_hash, run_id_from_hashes,
 };
 use bijux_dna_environment::api::RuntimeKind;
 use uuid::Uuid;
@@ -257,18 +257,30 @@ fn write_minimum_run_artifacts(
 
     let stage_report_path = run_artifacts_dir.join("stage_report.json");
     if !stage_report_path.exists() {
+        let summary_params_hash =
+            params_hash(&serde_json::json!({ "command": step.command.template.clone() }))
+                .unwrap_or_else(|_| "unknown".to_string());
         let payload = serde_json::json!({
             "schema_version": "bijux.stage_report.v1",
             "stage_id": step.stage_id.to_string(),
             "stage_version": 1,
-            "tool_id": step.image.image,
+            "tool_id": step.image.image.clone(),
             "tool_version": "unknown",
             "metrics_path": metrics_path.display().to_string(),
             "tool_invocation_path": tool_invocation_path.display().to_string(),
             "effective_config_path": effective_config_path.display().to_string(),
             "effective_config_hash": null,
             "facts_row_id": null,
-            "summary": {},
+            "summary": {
+                "metric_provenance": {
+                    "run_id": std::env::var("BIJUX_RUN_ID").unwrap_or_else(|_| "unknown".to_string()),
+                    "stage_id": step.stage_id.to_string(),
+                    "tool_id": step.image.image.clone(),
+                    "tool_version": "unknown",
+                    "params_hash": summary_params_hash,
+                    "input_artifact_hashes": input_hashes,
+                }
+            },
             "warnings": [],
             "errors": [],
             "invariants": [],

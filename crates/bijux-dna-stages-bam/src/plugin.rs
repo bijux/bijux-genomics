@@ -73,6 +73,7 @@ impl StagePlugin for BamStagePlugin {
             input_fingerprint,
             parameters_json_normalized,
             input_hashes,
+            metric_provenance: None,
             metrics: metrics_json,
         };
         Ok(StagePluginOutputV1 {

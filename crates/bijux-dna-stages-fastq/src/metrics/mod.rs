@@ -586,6 +586,7 @@ pub fn build_metrics_envelope(
         input_fingerprint,
         parameters_json_normalized,
         input_hashes,
+        metric_provenance: None,
         metrics,
     })
 }
