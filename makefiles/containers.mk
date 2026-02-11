@@ -76,28 +76,28 @@ containers-smoke: container-runtime-check ## Prepare+smoke every registered stag
 	done
 
 smoke-containers-docker-arm64: ## Build+smoke Docker arm64 containers
-	@TOOLS="$(TOOLS)" JOBS="$(JOBS)" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/smoke-containers-docker-arm64.sh
+	@./bin/isolate env TOOLS="$(TOOLS)" JOBS="$(JOBS)" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/smoke-containers-docker-arm64.sh
 
 smoke-containers-docker-amd64: ## Build+smoke Docker amd64 containers
-	@TOOLS="$(TOOLS)" JOBS="$(JOBS)" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/smoke-containers-docker-amd64.sh
+	@./bin/isolate env TOOLS="$(TOOLS)" JOBS="$(JOBS)" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/smoke-containers-docker-amd64.sh
 
 smoke-containers-apptainer: ## Build+smoke Apptainer containers
-	@TOOLS="$(TOOLS)" JOBS="$(JOBS)" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/smoke-containers-apptainer.sh
+	@./bin/isolate env TOOLS="$(TOOLS)" JOBS="$(JOBS)" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/smoke-containers-apptainer.sh
 
 build-images: ## Build Docker images (docker-arm64 only)
 	@if [ "$(CONTAINER_TYPE)" != "docker-arm64" ]; then \
 		echo "skip: build-images is docker-only (CONTAINER_TYPE=$(CONTAINER_TYPE))"; \
 		exit 0; \
 	fi
-	@TOOLS="$(TOOLS)" JOBS="$(JOBS)" SMOKE_LEVEL="build" SAVE_TAR="0" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/smoke-containers-docker-arm64.sh
+	@./bin/isolate env TOOLS="$(TOOLS)" JOBS="$(JOBS)" SMOKE_LEVEL="build" SAVE_TAR="0" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/smoke-containers-docker-arm64.sh
 
 test-images: ## Smoke selected runtime (registry-driven via scripts/CLI)
 	@if [ "$(CONTAINER_TYPE)" = "docker-arm64" ]; then \
 		if [ -n "$(STAGE)" ]; then \
 			TOOLS="$$( $(BIJUX_BIN) registry list-tools --stage "$(STAGE)" --kind all | paste -sd, - )"; \
-			TOOLS="$$TOOLS" JOBS="$(JOBS)" SMOKE_LEVEL="contract" SAVE_TAR="0" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/smoke-containers-docker-arm64.sh; \
+			./bin/isolate env TOOLS="$$TOOLS" JOBS="$(JOBS)" SMOKE_LEVEL="contract" SAVE_TAR="0" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/smoke-containers-docker-arm64.sh; \
 		else \
-			TOOLS="$(TOOLS)" JOBS="$(JOBS)" SMOKE_LEVEL="contract" SAVE_TAR="0" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/smoke-containers-docker-arm64.sh; \
+			./bin/isolate env TOOLS="$(TOOLS)" JOBS="$(JOBS)" SMOKE_LEVEL="contract" SAVE_TAR="0" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/smoke-containers-docker-arm64.sh; \
 		fi; \
 	elif [ -n "$(STAGE)" ]; then \
 		$(MAKE) env-smoke STAGE="$(STAGE)" CONTAINER_TYPE="$(CONTAINER_TYPE)"; \
