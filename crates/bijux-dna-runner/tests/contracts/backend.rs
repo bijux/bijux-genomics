@@ -4,5 +4,7 @@ mod backend_invariants;
 mod fixture_parity;
 #[path = "../boundaries/backend/invocation_hash.rs"]
 mod invocation_hash;
+#[path = "../boundaries/backend/network_guardrail.rs"]
+mod network_guardrail;
 #[path = "../boundaries/backend/process_guardrail.rs"]
 mod process_guardrail;
