@@ -1,5 +1,5 @@
 mod contracts {
-    use bijux_dna_domain_vcf::{param_registry_toml, VcfStage};
+    use bijux_dna_domain_vcf::{param_registry_toml, required_tools_toml, VcfStage};
 
     #[test]
     fn vcf_stage_catalog_is_stable() {
@@ -25,5 +25,14 @@ mod contracts {
         let expected = std::fs::read_to_string(expected_path)
             .unwrap_or_else(|err| panic!("read configs/param_registry_vcf.toml: {err}"));
         assert_eq!(param_registry_toml().trim(), expected.trim());
+    }
+
+    #[test]
+    fn generated_required_tools_matches_config_artifact() {
+        let expected_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../configs/required_tools_vcf.toml");
+        let expected = std::fs::read_to_string(expected_path)
+            .unwrap_or_else(|err| panic!("read configs/required_tools_vcf.toml: {err}"));
+        assert_eq!(required_tools_toml().trim(), expected.trim());
     }
 }

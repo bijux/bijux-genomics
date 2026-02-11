@@ -1,0 +1,5 @@
+{
+  "schema_version": "bijux.fixture_case.v1",
+  "format": "markdown_legacy",
+  "content": "# CASE\n\nPath: tests/fixtures/pipelines/vcf-to-vcf__minimal__v1\n\n## Purpose\nToy VCF pipeline fixture bundle for symmetry contracts.\n"
+}
