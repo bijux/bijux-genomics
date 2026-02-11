@@ -1,6 +1,6 @@
 # Tool And Stage Citation Index
 
-Minimal citation index for scientific provenance. Authoritative citation placeholders are in `domain/*/tools/*.yaml` (`citation` field).
+Minimal citation index for scientific provenance. Authoritative citations live in `domain/*/tools/*.yaml` (`citation` field).
 
 ## FASTQ
 - Trimming/merge: `fastp`, `cutadapt`, `adapterremoval`, `leehom`, `skewer`, `alientrimmer`, `fastx_clipper`.
@@ -12,5 +12,5 @@ Minimal citation index for scientific provenance. Authoritative citation placeho
 - Contamination: `schmutzi`, `verifybamid2`, `contammix`.
 - Utilities: `samtools`, `bedtools`, `bamtools`, `mosdepth`.
 
-## Stage-level citation stubs
-Each stage should cite method families plus tool-specific papers in future updates; current canonical placeholders live in domain YAML and are validated for presence.
+## Stage-level citation guidance
+Each stage should cite method families plus tool-specific papers. Domain YAML remains the canonical source for citation metadata.
