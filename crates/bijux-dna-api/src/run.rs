@@ -335,9 +335,8 @@ pub fn execute_run(request: &ExecuteRunRequest) -> Result<ExecuteRunResult> {
     }
     let step = bijux_dna_stage_contract::execution_step_from_stage_plan(&request.plan);
     let unique_tmp = if hpc_context_enabled() {
-        let tmp_root = std::env::var("TMPDIR")
-            .map(PathBuf::from)
-            .unwrap_or_else(|_| run_artifacts_dir.join("tmp"));
+        let tmp_root =
+            std::env::var("TMPDIR").map_or_else(|_| run_artifacts_dir.join("tmp"), PathBuf::from);
         let tmp = tmp_root.join(&run_id);
         bijux_dna_infra::ensure_dir(&tmp)?;
         std::env::set_var("TMPDIR", &tmp);

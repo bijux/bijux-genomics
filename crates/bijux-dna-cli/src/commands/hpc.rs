@@ -228,7 +228,9 @@ pub fn enforce_hpc_results_layout(path: &Path) -> Result<()> {
     else {
         return Err(anyhow!("HPC out_dir must be rooted under results"));
     };
-    if comps.get(results_idx).is_some_and(|v| v == "bijux-dna-results")
+    if comps
+        .get(results_idx)
+        .is_some_and(|v| v == "bijux-dna-results")
         && comps.get(results_idx + 1).is_some_and(|v| v == "results")
     {
         results_idx += 1;
