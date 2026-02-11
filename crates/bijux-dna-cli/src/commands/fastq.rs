@@ -539,6 +539,26 @@ pub(crate) fn handle_meta_commands(
                         println!("sif_count={}", export.sifs.len());
                     }
                 }
+                EnvCommand::EnsureImages(args) => {
+                    let cwd = std::env::current_dir()?;
+                    let registry_path = cwd.join("configs").join("tool_registry.toml");
+                    let report = crate::commands::cli::env::ensure_apptainer_images(
+                        &registry_path,
+                        &args.domain,
+                        &args.stages,
+                        args.force_smoke,
+                    )?;
+                    if args.json {
+                        render::json::print_pretty(&report)?;
+                    } else {
+                        println!("schema_version={}", report.schema_version);
+                        println!("requested_tools={}", report.tools.len());
+                        println!("built={}", report.built);
+                        println!("reused={}", report.reused);
+                        println!("quick_smoked={}", report.quick_smoked);
+                        println!("failed={}", report.failed);
+                    }
+                }
                 EnvCommand::Smoke(args) => {
                     let cwd = std::env::current_dir()?;
                     let registry_path = cwd.join("configs").join("tool_registry.toml");

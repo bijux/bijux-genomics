@@ -744,8 +744,9 @@ fn handle_status_root(args: &cli::StatusArgs, cwd: &Path) -> Result<()> {
 
 fn handle_environment_root(command: &cli::EnvCommand, cwd: &Path) -> Result<()> {
     use crate::commands::cli::env::{
-        env_doctor, print_env_export_json, print_env_images, print_env_info,
-        print_env_registry_list, run_env_prep, run_env_smoke, run_env_smoke_for_stage,
+        ensure_apptainer_images, env_doctor, print_env_export_json, print_env_images,
+        print_env_info, print_env_registry_list, run_env_prep, run_env_smoke,
+        run_env_smoke_for_stage,
     };
     use bijux_dna_api::v1::api::env::{load_image_catalog, load_platform};
     match command {
@@ -767,6 +768,25 @@ fn handle_environment_root(command: &cli::EnvCommand, cwd: &Path) -> Result<()> 
             } else {
                 println!("containers_dir={}", export.containers_dir);
                 println!("sif_count={}", export.sifs.len());
+            }
+        }
+        cli::EnvCommand::EnsureImages(args) => {
+            let registry_path = cwd.join("configs").join("tool_registry.toml");
+            let report = ensure_apptainer_images(
+                &registry_path,
+                &args.domain,
+                &args.stages,
+                args.force_smoke,
+            )?;
+            if args.json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("schema_version={}", report.schema_version);
+                println!("requested_tools={}", report.tools.len());
+                println!("built={}", report.built);
+                println!("reused={}", report.reused);
+                println!("quick_smoked={}", report.quick_smoked);
+                println!("failed={}", report.failed);
             }
         }
         cli::EnvCommand::Smoke(args) => {
@@ -802,6 +822,7 @@ fn handle_environment_root(command: &cli::EnvCommand, cwd: &Path) -> Result<()> 
                 cli::EnvCommand::List
                 | cli::EnvCommand::ExportJson
                 | cli::EnvCommand::ExportHpc { .. }
+                | cli::EnvCommand::EnsureImages(_)
                 | cli::EnvCommand::Smoke(_)
                 | cli::EnvCommand::Prep(_) => {}
             }

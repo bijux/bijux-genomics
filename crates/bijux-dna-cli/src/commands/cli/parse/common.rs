@@ -252,8 +252,22 @@ pub enum EnvCommand {
         #[arg(long, default_value_t = false)]
         json: bool,
     },
+    #[command(name = "ensure-images")]
+    EnsureImages(EnsureImagesArgs),
     Smoke(EnvRunArgs),
     Prep(EnvRunArgs),
+}
+
+#[derive(Debug, Args, Clone)]
+pub struct EnsureImagesArgs {
+    #[arg(long)]
+    pub domain: String,
+    #[arg(long, help = "Comma-separated stage ids or short stage names")]
+    pub stages: String,
+    #[arg(long, default_value_t = false)]
+    pub force_smoke: bool,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
 }
 
 #[derive(Debug, Subcommand)]
