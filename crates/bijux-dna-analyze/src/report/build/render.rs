@@ -132,11 +132,16 @@ fn banks_from_report(path: Option<&str>, fallback: serde_json::Value) -> serde_j
 fn telemetry_path_from_stage_report(path: Option<&str>) -> Option<String> {
     path.and_then(|path| {
         Path::new(path).parent().map(|parent| {
-            parent
-                .join("telemetry")
-                .join("events.jsonl")
-                .display()
-                .to_string()
+            let v2 = parent.join("telemetry.jsonl");
+            if v2.exists() {
+                v2.display().to_string()
+            } else {
+                parent
+                    .join("telemetry")
+                    .join("events.jsonl")
+                    .display()
+                    .to_string()
+            }
         })
     })
 }
@@ -157,6 +162,7 @@ fn telemetry_counts(paths: &[String]) -> (usize, usize) {
                 if matches!(
                     event.event_name,
                     bijux_dna_runtime::TelemetryEventName::Error
+                        | bijux_dna_runtime::TelemetryEventName::RunFailed
                 ) || event.status == "error"
                 {
                     error_events += 1;
@@ -165,6 +171,33 @@ fn telemetry_counts(paths: &[String]) -> (usize, usize) {
         }
     }
     (total_events, error_events)
+}
+
+fn telemetry_timeline_from_paths(paths: &[String]) -> Vec<serde_json::Value> {
+    let mut out = Vec::new();
+    for path in paths {
+        let Ok(raw) = std::fs::read_to_string(path) else {
+            continue;
+        };
+        for line in raw.lines() {
+            if line.trim().is_empty() {
+                continue;
+            }
+            let Ok(event) = serde_json::from_str::<TelemetryEventV1>(line) else {
+                continue;
+            };
+            out.push(serde_json::json!({
+                "timestamp": event.timestamp,
+                "stage_id": event.stage_id,
+                "tool_id": event.tool_id,
+                "event": event.event_name,
+                "status": event.status,
+                "failure_code": event.failure_code,
+            }));
+        }
+    }
+    out.sort_by_key(std::string::ToString::to_string);
+    out
 }
 
 fn telemetry_decisions_from_paths(
