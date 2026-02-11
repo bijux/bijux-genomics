@@ -1,0 +1,6 @@
+variants_total	12
+snps	9
+indels	3
+ti_tv	2.25
+filter.PASS	10
+filter.LowQual	2
