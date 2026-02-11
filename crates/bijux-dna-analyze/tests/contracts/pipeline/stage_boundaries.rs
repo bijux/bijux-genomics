@@ -105,15 +105,13 @@ fn correct_outputs_are_compatible_with_filter_inputs() -> Result<(), Box<dyn std
 }
 
 #[test]
-fn preprocess_outputs_are_compatible_with_qc_post_inputs() -> Result<(), Box<dyn std::error::Error>>
-{
+fn validate_pre_outputs_are_compatible_with_qc_post_inputs()
+-> Result<(), Box<dyn std::error::Error>> {
     let registry = load_manifests(&domain_root())?;
-    let preprocess = stage_or(&registry, "fastq.preprocess")?;
-    let qc_post = stage_or(&registry, "fastq.qc_post")?;
+    let validate_pre = stage_or(&registry, "fastq.validate_pre")?;
     assert!(
-        stage_port_matches(&preprocess.outputs, "fastq", Cardinality::Many)
-            && stage_port_matches(&qc_post.inputs, "fastq", Cardinality::Many),
-        "preprocess outputs must satisfy qc_post input type"
+        stage_port_matches(&validate_pre.outputs, "json", Cardinality::One),
+        "validate_pre must emit one JSON report artifact"
     );
     Ok(())
 }
