@@ -135,7 +135,9 @@ pub(crate) fn handle_meta_commands(
                     .iter()
                     .any(|stage| stage.starts_with("fastq."))
                 {
-                    Some(bijux_dna_pipelines::fastq::validate_fastq_profile(&profile))
+                    Some(bijux_dna_api::v1::api::plan::validate_fastq_profile(
+                        &profile,
+                    ))
                 } else {
                     None
                 };

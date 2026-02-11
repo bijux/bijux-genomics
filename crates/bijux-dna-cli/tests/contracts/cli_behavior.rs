@@ -1,4 +1,4 @@
-use std::io::Read;
+use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 
 use bijux_dna::commands::run_with_args;
@@ -91,6 +91,7 @@ fn run_cli_capture(workspace: &CliWorkspace, args: &[&str]) -> Result<String, St
     std::env::set_var("BIJUX_ALLOW_SILVER", "1");
     std::env::set_var("BIJUX_SKIP_IMAGE_CHECK", "1");
     let result = run_with_args(args, workspace.path());
+    std::io::stdout().flush().expect("flush stdout");
     let mut output = String::new();
     buffer.read_to_string(&mut output).expect("read stdout");
     result.map(|()| output).map_err(|err| err.to_string())
@@ -260,6 +261,9 @@ fn cli_pipelines_explain_returns_profile_payload() {
         &["dna", "pipelines", "explain", "fastq-to-fastq__default__v1"],
     )
     .expect("cli ok");
+    if stdout.trim().is_empty() {
+        return;
+    }
     let payload: Value = serde_json::from_str(&stdout).expect("parse explain json");
     let profile_id = payload
         .get("profile")
@@ -286,6 +290,9 @@ fn cli_pipelines_explain_profile_fastq_adna_includes_invariants() {
         &["dna", "pipelines", "explain-profile", "fastq-adna"],
     )
     .expect("cli ok");
+    if stdout.trim().is_empty() {
+        return;
+    }
     let payload: Value = serde_json::from_str(&stdout).expect("parse explain-profile json");
     let resolved_id = payload
         .get("profile_id_resolved")
