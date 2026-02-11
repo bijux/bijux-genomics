@@ -21,7 +21,7 @@ lint:
 	$(call RUN_IN_ISOLATE,./bin/require-isolate >/dev/null; CARGO_BUILD_JOBS=$(CARGO_BUILD_JOBS) cargo clippy --workspace --all-targets --all-features -- -D warnings)
 
 test:
-	$(call RUN_IN_ISOLATE,./bin/require-isolate >/dev/null; ./scripts/check-isolation-contract.sh; export TZ=UTC LC_ALL=C TEST_TARGET_DIR="$$ISO_ROOT/target-test" COV_TARGET_DIR="$$ISO_ROOT/target-cov" TEST_TMP_DIR="$$ISO_ROOT/tmp-test" COV_TMP_DIR="$$ISO_ROOT/tmp-cov" TEST_PROFRAW_DIR="$$ISO_ROOT/profraw-test" COV_PROFRAW_DIR="$$ISO_ROOT/profraw-cov" CARGO_TARGET_DIR="$$ISO_ROOT/target-test"; if command -v sccache >/dev/null 2>&1; then export RUSTC_WRAPPER="$$(command -v sccache)"; fi; cargo install cargo-nextest --locked >/dev/null 2>&1 || true; cargo nextest run $(NEXTEST_CONFIG) --workspace $(TEST_FEATURES) --profile $(NEXTEST_PROFILE) --test-threads $(NEXTEST_TEST_THREADS) $(RUN_IGNORED); ./scripts/check-isolation-contract.sh)
+	$(call RUN_IN_ISOLATE,./bin/require-isolate >/dev/null; ./scripts/check-isolation-contract.sh; ./scripts/check-ssot-guardrails.sh; export TZ=UTC LC_ALL=C TEST_TARGET_DIR="$$ISO_ROOT/target-test" COV_TARGET_DIR="$$ISO_ROOT/target-cov" TEST_TMP_DIR="$$ISO_ROOT/tmp-test" COV_TMP_DIR="$$ISO_ROOT/tmp-cov" TEST_PROFRAW_DIR="$$ISO_ROOT/profraw-test" COV_PROFRAW_DIR="$$ISO_ROOT/profraw-cov" CARGO_TARGET_DIR="$$ISO_ROOT/target-test"; if command -v sccache >/dev/null 2>&1; then export RUSTC_WRAPPER="$$(command -v sccache)"; fi; cargo install cargo-nextest --locked >/dev/null 2>&1 || true; cargo nextest run $(NEXTEST_CONFIG) --workspace $(TEST_FEATURES) --profile $(NEXTEST_PROFILE) --test-threads $(NEXTEST_TEST_THREADS) $(RUN_IGNORED); ./scripts/check-isolation-contract.sh)
 
 audit:
 	$(call RUN_IN_ISOLATE,./bin/require-isolate >/dev/null; cargo install cargo-deny --locked >/dev/null 2>&1 || true; cargo deny check)
@@ -93,6 +93,11 @@ policy-fast: ## Run fast policy checks (no snapshots)
 	@./bin/isolate cargo test -p bijux-dna-policies --test dependency_graph --test purity_scans --test core_layering --test domain_dependency_policy --test ci_tools_policy --test dev_deps_policy --test heavy_deps_policy
 	$(MAKE) domain-gates
 
+ssot-policy-fast: ## Fast-fail SSOT and registry policy checks.
+	./scripts/check-ssot-guardrails.sh
+	$(MAKE) domain-gates
+	$(call RUN_IN_ISOLATE,./bin/require-isolate >/dev/null; export TZ=UTC LC_ALL=C CARGO_TARGET_DIR="$$ISO_ROOT/target-test"; if command -v sccache >/dev/null 2>&1; then export RUSTC_WRAPPER="$$(command -v sccache)"; fi; cargo test -p bijux-dna-policies --test contracts policy_test_names_are_consistent -- --nocapture; cargo test -p bijux-dna-policies --test contracts supported_stages_and_tools_are_complete -- --nocapture; cargo test -p bijux-dna-policies --test contracts each_tool_has_exactly_one_domain_and_stage_binding -- --nocapture)
+
 test-profile-invariants: ## Run pipeline profile invariant contract tests.
 	$(call RUN_IN_ISOLATE,./bin/require-isolate >/dev/null; export TZ=UTC LC_ALL=C CARGO_TARGET_DIR="$$ISO_ROOT/target-test"; if command -v sccache >/dev/null 2>&1; then export RUSTC_WRAPPER="$$(command -v sccache)"; fi; cargo test -p bijux-dna-pipelines --test invariant_fast -- --nocapture)
 
@@ -107,6 +112,7 @@ release-readiness: ## Block merges on experimental tools, unknown metrics schema
 	$(call RUN_IN_ISOLATE,./bin/require-isolate >/dev/null; export TZ=UTC LC_ALL=C CARGO_TARGET_DIR="$$ISO_ROOT/target-test"; if command -v sccache >/dev/null 2>&1; then export RUSTC_WRAPPER="$$(command -v sccache)"; fi; cargo test -p bijux-dna-policies --test contracts profiles_release_readiness_gate -- --nocapture; cargo test -p bijux-dna-policies --test contracts reference_adna_profile_uses_production_tools_only -- --nocapture)
 
 ci-fast: ## Fast CI tier: unit + contract + registry lint + profile invariants.
+	$(MAKE) ssot-policy-fast
 	$(MAKE) fmt-isolate
 	$(MAKE) lint-isolate
 	$(MAKE) unit-contract-fast
@@ -149,6 +155,10 @@ snapshots-accept:
 snapshots-review:
 	@./bin/isolate cargo insta review
 
+fix-snapshots: ## Rebuild and accept workspace snapshots with the CI insta workflow.
+	@./bin/isolate cargo insta test --workspace
+	@./bin/isolate cargo insta accept --workspace
+
 generate-configs:
 	@./bin/isolate cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 
@@ -168,5 +178,5 @@ policy-no-raw-cargo: ## Fail if raw cargo invocations exist in Make/scripts.
 		fmt-isolate lint-isolate test-isolate audit-isolate coverage-isolate ci-isolate clean-isolates \
 		domain-gates domain-gates-isolate \
 		domain-validate domain-coverage domain-inventory-drift generate-configs check-generated-configs check-generated-config-headers \
-		policy-fast policy-full policy-no-raw-cargo test-profile-invariants registry-lint unit-contract-fast release-readiness ci-fast ci-slow quick \
-		snapshots snapshots-accept snapshots-review
+		policy-fast ssot-policy-fast policy-full policy-no-raw-cargo test-profile-invariants registry-lint unit-contract-fast release-readiness ci-fast ci-slow quick \
+		snapshots snapshots-accept snapshots-review fix-snapshots

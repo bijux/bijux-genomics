@@ -203,7 +203,7 @@ fn policy__contracts__registry_ssot_completeness_policy__supported_stages_and_to
 
     bijux_dna_policies::policy_assert!(
         offenders.is_empty(),
-        "registry ssot completeness policy failures:\n{}",
+        "registry ssot completeness policy failures:\n{}\n\nactionable summary:\n- Sync generated SSOT files via `make generate-configs`.\n- Then verify with `make domain-gates`.\n- Core files: configs/stages.toml, configs/tool_registry.toml, configs/images.toml, configs/param_registry.toml, configs/required_tools.toml.",
         offenders.join("\n")
     );
 }

@@ -5,7 +5,8 @@ mod support;
 use walkdir::WalkDir;
 
 #[test]
-fn policy__contracts__tooling__container_labels_include_tool_version_upstream_and_digest() {
+fn policy__contracts__container_label_policy__container_labels_include_tool_version_upstream_and_digest(
+) {
     let root = support::workspace_root();
     let mut offenders = Vec::new();
 

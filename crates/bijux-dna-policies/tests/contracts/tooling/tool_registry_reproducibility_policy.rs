@@ -35,7 +35,7 @@ fn str_field<'a>(table: &'a toml::Value, key: &str) -> &'a str {
 }
 
 #[test]
-fn policy__contracts__tool_registry_reproducibility__production_registry_is_pinned_and_non_floating(
+fn policy__contracts__tool_registry_reproducibility_policy__production_registry_is_pinned_and_non_floating(
 ) {
     let root = workspace_root();
     let registry = parse_registry(&root.join("configs/tool_registry.toml"));
@@ -125,7 +125,7 @@ fn policy__contracts__tool_registry_reproducibility__production_registry_is_pinn
 }
 
 #[test]
-fn policy__contracts__tool_registry_reproducibility__required_tools_are_present_in_production_registry(
+fn policy__contracts__tool_registry_reproducibility_policy__required_tools_are_present_in_production_registry(
 ) {
     let root = workspace_root();
     let registry = parse_registry(&root.join("configs/tool_registry.toml"));
@@ -156,7 +156,8 @@ fn policy__contracts__tool_registry_reproducibility__required_tools_are_present_
 }
 
 #[test]
-fn policy__contracts__tool_registry_reproducibility__profiles_only_use_valid_production_tools() {
+fn policy__contracts__tool_registry_reproducibility_policy__profiles_only_use_valid_production_tools(
+) {
     let root = workspace_root();
     let production = tools_by_id(&parse_registry(&root.join("configs/tool_registry.toml")));
     let experimental = tools_by_id(&parse_registry(
@@ -208,7 +209,7 @@ fn policy__contracts__tool_registry_reproducibility__profiles_only_use_valid_pro
 }
 
 #[test]
-fn policy__contracts__tool_registry_reproducibility__profiles_release_readiness_gate() {
+fn policy__contracts__tool_registry_reproducibility_policy__profiles_release_readiness_gate() {
     let root = workspace_root();
     let production = tools_by_id(&parse_registry(&root.join("configs/tool_registry.toml")));
     let experimental = tools_by_id(&parse_registry(
@@ -277,7 +278,7 @@ fn policy__contracts__tool_registry_reproducibility__profiles_release_readiness_
 }
 
 #[test]
-fn policy__contracts__tool_registry_reproducibility__reference_adna_profile_uses_production_tools_only(
+fn policy__contracts__tool_registry_reproducibility_policy__reference_adna_profile_uses_production_tools_only(
 ) {
     let root = workspace_root();
     let production = tools_by_id(&parse_registry(&root.join("configs/tool_registry.toml")));
@@ -317,7 +318,8 @@ fn policy__contracts__tool_registry_reproducibility__reference_adna_profile_uses
 }
 
 #[test]
-fn policy__contracts__tool_registry_reproducibility__tool_digest_contract_lock_matches_registry() {
+fn policy__contracts__tool_registry_reproducibility_policy__tool_digest_contract_lock_matches_registry(
+) {
     let root = workspace_root();
     let registry_path = root.join("configs/tool_registry.toml");
     let raw = std::fs::read(&registry_path)

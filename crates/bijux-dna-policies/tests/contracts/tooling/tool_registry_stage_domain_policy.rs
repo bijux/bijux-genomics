@@ -58,6 +58,9 @@ fn policy__contracts__tool_registry_stage_domain_policy__each_tool_has_exactly_o
             .and_then(toml::Value::as_str)
             .unwrap_or("")
             .to_string();
+        let declared_domains = list(tool, "domains")
+            .into_iter()
+            .collect::<BTreeSet<_>>();
         let declared_stage_ids = list(tool, "stage_ids");
         let status = tool
             .get("status")
@@ -69,11 +72,13 @@ fn policy__contracts__tool_registry_stage_domain_policy__each_tool_has_exactly_o
             .unwrap_or_default()
             .into_iter()
             .collect::<Vec<_>>();
-        let effective_stage_ids = if discovered_stage_ids.is_empty() {
-            declared_stage_ids.clone()
-        } else {
-            discovered_stage_ids.clone()
-        };
+        let effective_stage_ids = discovered_stage_ids
+            .iter()
+            .cloned()
+            .chain(declared_stage_ids.iter().cloned())
+            .collect::<BTreeSet<_>>()
+            .into_iter()
+            .collect::<Vec<_>>();
 
         if declared_domain.is_empty() {
             offenders.push(format!("tool={id}: missing `domain`"));
@@ -101,6 +106,16 @@ fn policy__contracts__tool_registry_stage_domain_policy__each_tool_has_exactly_o
                     .unwrap_or_else(|| "unknown".to_string())
             })
             .collect::<BTreeSet<_>>();
+
+        if !declared_domains.is_empty() {
+            if stage_domain_set != declared_domains {
+                offenders.push(format!(
+                    "tool={id}: declared domains {:?} do not match discovered {:?}",
+                    declared_domains, stage_domain_set
+                ));
+            }
+            continue;
+        }
 
         if stage_domain_set.len() != 1 && !cross_domain_allowlist.contains(&id) {
             offenders.push(format!(
