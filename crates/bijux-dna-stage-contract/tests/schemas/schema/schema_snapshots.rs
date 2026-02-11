@@ -61,6 +61,7 @@ fn stage_contract_schema_snapshot() {
             input_fingerprint: "input-hash".to_string(),
             parameters_json_normalized: serde_json::json!({}),
             input_hashes: Vec::new(),
+            metric_provenance: None,
             metrics: serde_json::json!({}),
         },
         artifacts: Vec::new(),

@@ -126,6 +126,7 @@ fn stage_plugin_output_snapshot() {
             input_fingerprint: "input-hash".to_string(),
             parameters_json_normalized: serde_json::json!({"quality": 20}),
             input_hashes: Vec::new(),
+            metric_provenance: None,
             metrics: serde_json::json!({}),
         },
         artifacts: Vec::new(),
