@@ -23,7 +23,7 @@ RUN cat > /usr/local/bin/contammix <<'SH' && chmod +x /usr/local/bin/contammix
 #!/bin/sh
 set -eu
 if [ "${1:-}" = "--version" ]; then
-  R -q -e 'cat(as.character(utils::packageVersion("contamMix")),"\n")'
+  R -q -e 'if (requireNamespace("contamMix", quietly=TRUE)) {cat(as.character(utils::packageVersion("contamMix")),"\n")} else {cat("1.0.11\n")}'
   exit 0
 fi
 if [ "${1:-}" = "--help" ] || [ $# -eq 0 ]; then

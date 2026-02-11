@@ -29,7 +29,7 @@ RUN apt-get update -qq && \
 
 RUN python3 -m venv /opt/venv && \
     /opt/venv/bin/pip install --no-cache-dir --upgrade pip && \
-    /opt/venv/bin/pip install --no-cache-dir umi_tools==${VERSION_UMI_TOOLS} && \
+    /opt/venv/bin/pip install --no-cache-dir "git+https://github.com/CGATOxford/UMI-tools.git@v${VERSION_UMI_TOOLS}" && \
     mv /opt/venv/bin/umi_tools /usr/local/bin/umi_tools-bin && \
     printf '%s\n' \
       '#!/bin/sh' \

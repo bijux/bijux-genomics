@@ -23,7 +23,7 @@ RUN apt-get update -qq && apt-get install -y --no-install-recommends \
 
 RUN git clone --depth 1 https://github.com/LouisPwr/AdDeam.git /opt/AdDeam && \
     cd /opt/AdDeam && git checkout f1dd2a5e530975cab1df48e47a1d51ea76bf183a && \
-    pip3 install --no-cache-dir .
+    pip3 install --break-system-packages --no-cache-dir .
 
 RUN cat > /usr/local/bin/addeam <<'SH' && chmod +x /usr/local/bin/addeam
 #!/bin/sh

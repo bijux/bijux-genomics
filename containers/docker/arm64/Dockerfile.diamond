@@ -22,7 +22,7 @@ RUN apt-get update -qq && apt-get install -y --no-install-recommends \
     ca-certificates && \
     rm -rf /var/lib/apt/lists/*
 
-RUN git clone --depth 1 https://github.com/bbuchfink/diamond.git /opt/diamond && \
+RUN git clone https://github.com/bbuchfink/diamond.git /opt/diamond && \
     cd /opt/diamond && \
     git checkout add7f3bcb120704b8162b99d996fe9f5c110cec6 && \
     cmake -S . -B build -DCMAKE_BUILD_TYPE=Release && \
