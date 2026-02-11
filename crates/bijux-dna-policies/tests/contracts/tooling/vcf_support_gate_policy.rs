@@ -176,3 +176,59 @@ fn policy__contracts__vcf_support_gate_policy__supported_stage_requires_planner_
         );
     }
 }
+
+#[test]
+fn policy__contracts__vcf_support_gate_policy__production_switch_requires_non_experimental_stage_flags(
+) {
+    let root = repo_root();
+    let domains_raw =
+        fs::read_to_string(root.join("configs/domains.toml")).expect("read configs/domains.toml");
+    let domains_doc: toml::Value = domains_raw.parse().expect("parse domains.toml");
+    let stages_raw = fs::read_to_string(root.join("configs/stages_vcf.toml"))
+        .expect("read configs/stages_vcf.toml");
+    let stages_doc: toml::Value = stages_raw.parse().expect("parse stages_vcf.toml");
+
+    let vcf_domain = domains_doc
+        .get("domains")
+        .and_then(toml::Value::as_array)
+        .and_then(|rows| {
+            rows.iter().find(|row| {
+                row.get("id")
+                    .and_then(toml::Value::as_str)
+                    .is_some_and(|id| id == "vcf")
+            })
+        })
+        .expect("vcf domain entry in configs/domains.toml");
+
+    let vcf_is_experimental = vcf_domain
+        .get("experimental")
+        .and_then(toml::Value::as_bool)
+        .unwrap_or(true);
+    if !vcf_is_experimental {
+        let stages = stages_doc
+            .get("stages")
+            .and_then(toml::Value::as_array)
+            .cloned()
+            .unwrap_or_default();
+        for stage in stages {
+            let id = stage
+                .get("id")
+                .and_then(toml::Value::as_str)
+                .unwrap_or_default();
+            let status = stage
+                .get("status")
+                .and_then(toml::Value::as_str)
+                .unwrap_or_default();
+            let experimental = stage
+                .get("experimental")
+                .and_then(toml::Value::as_bool)
+                .unwrap_or(true);
+            if status == "supported" {
+                assert!(
+                    !experimental,
+                    "vcf production switch requires supported stage {id} experimental=false"
+                );
+            }
+        }
+    }
+}
