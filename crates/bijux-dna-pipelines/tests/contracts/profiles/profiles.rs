@@ -200,3 +200,17 @@ fn profile_hash_contract_snapshot() {
         bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashes))
     );
 }
+
+#[test]
+fn profile_hash_depends_on_manifest_only_not_capability_ordering() {
+    let mut profile = fastq_default_profile();
+    let original_hash = profile.profile_hash();
+    profile.capabilities.required_stages.reverse();
+    profile.capabilities.report_sections.reverse();
+    profile.capabilities.required_metrics.reverse();
+    assert_eq!(
+        original_hash,
+        profile.profile_hash(),
+        "profile hash must stay stable when non-manifest capability ordering changes"
+    );
+}
