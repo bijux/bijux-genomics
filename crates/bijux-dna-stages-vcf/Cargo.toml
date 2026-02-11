@@ -9,6 +9,7 @@ rust-version.workspace = true
 anyhow.workspace = true
 serde.workspace = true
 serde_json.workspace = true
+regex.workspace = true
 bijux-dna-domain-vcf = { path = "../bijux-dna-domain-vcf" }
 bijux-dna-core = { path = "../bijux-dna-core" }
 
@@ -18,3 +19,4 @@ workspace = true
 [dev-dependencies]
 bijux-dna-policies = { path = "../bijux-dna-policies" }
 bijux-dna-testkit = { path = "../bijux-dna-testkit" }
+tempfile.workspace = true

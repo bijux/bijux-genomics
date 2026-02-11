@@ -1,6 +1,11 @@
+sample_name	sample1
 variants_total	12
 snps	9
 indels	3
 ti_tv	2.25
 filter.PASS	10
 filter.LowQual	2
+depth.0-9	4
+depth.10-19	5
+depth.20-29	2
+depth.30+	1
