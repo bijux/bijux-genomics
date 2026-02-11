@@ -3,6 +3,8 @@
 mod mod_contracts_canonicalization_rs;
 #[path = "contracts/coverage_core_45.rs"]
 mod mod_contracts_coverage_core_45_rs;
+#[path = "contracts/coverage_core_65.rs"]
+mod mod_contracts_coverage_core_65_rs;
 #[path = "contracts/execution_graph_validate.rs"]
 mod mod_contracts_execution_graph_validate_rs;
 #[path = "contracts/execution_plan_contract.rs"]
