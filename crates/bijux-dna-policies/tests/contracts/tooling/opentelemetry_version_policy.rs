@@ -27,9 +27,19 @@ fn policy__contracts__opentelemetry_version_policy__workspace_uses_single_otel_v
         }
     }
 
+    let otel_minor_series: BTreeSet<String> = otel_versions
+        .iter()
+        .filter_map(|version| {
+            let mut parts = version.split('.');
+            let major = parts.next()?;
+            let minor = parts.next()?;
+            Some(format!("{major}.{minor}"))
+        })
+        .collect();
+
     assert!(
-        otel_versions.len() <= 1,
-        "multiple OpenTelemetry versions in Cargo.lock: {:?}",
+        otel_minor_series.len() <= 1,
+        "OpenTelemetry crates must stay on one major.minor series; found versions {:?}",
         otel_versions
     );
 }

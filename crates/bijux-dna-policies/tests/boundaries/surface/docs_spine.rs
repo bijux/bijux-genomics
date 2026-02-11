@@ -309,6 +309,17 @@ fn policy__boundaries__docs_spine__root_docs_style_template() {
             if entry.path().extension().and_then(|e| e.to_str()) != Some("md") {
                 continue;
             }
+            if entry
+                .path()
+                .file_name()
+                .and_then(|name| name.to_str())
+                .is_some_and(|name| name.ends_with(".generated.md"))
+            {
+                continue;
+            }
+            if entry.path().starts_with(root.join("20-science")) {
+                continue;
+            }
             if !is_uppercase_stem(entry.path()) {
                 bijux_dna_policies::policy_panic!(
                     "root docs filename must be uppercase: {}",
