@@ -6,8 +6,8 @@
 - Pipeline Verdict: `Pass`
 
 ## Stage Summary
-- `bam.align` via `unknown` (0.0.0)
-- `bam.coverage` via `unknown` (0.0.0)
-- `bam.damage` via `unknown` (0.0.0)
-- `bam.qc_pre` via `unknown` (0.0.0)
-- `fastq.preprocess` via `unknown` (0.0.0)
+- `bam.align` via `unknown` (99.99.99+fixture)
+- `bam.coverage` via `unknown` (99.99.99+fixture)
+- `bam.damage` via `unknown` (99.99.99+fixture)
+- `bam.qc_pre` via `unknown` (99.99.99+fixture)
+- `fastq.preprocess` via `unknown` (99.99.99+fixture)
