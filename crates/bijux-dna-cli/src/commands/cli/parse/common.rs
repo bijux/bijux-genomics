@@ -102,6 +102,27 @@ pub enum DnaCommand {
         #[command(subcommand)]
         command: PoliciesCommand,
     },
+    Debug(DebugArgs),
+    Collect(CollectArgs),
+}
+
+#[derive(Debug, Args)]
+pub struct DebugArgs {
+    #[arg(long, default_value = "tail")]
+    pub view: String,
+    #[arg(long, default_value = "artifacts/bench")]
+    pub search_root: PathBuf,
+    pub run_id: String,
+}
+
+#[derive(Debug, Args)]
+pub struct CollectArgs {
+    #[arg(long, default_value = "artifacts/bench")]
+    pub search_root: PathBuf,
+    #[arg(long)]
+    pub run: String,
+    #[arg(long)]
+    pub out: Option<PathBuf>,
 }
 
 #[derive(Debug, Subcommand)]

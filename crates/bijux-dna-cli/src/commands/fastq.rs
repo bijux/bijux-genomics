@@ -736,7 +736,11 @@ pub(crate) fn handle_meta_commands(
             }
             Ok(true)
         }
-        DnaCommand::Fastq { .. } | DnaCommand::Bam { .. } | DnaCommand::Vcf { .. } => Ok(false),
+        DnaCommand::Fastq { .. }
+        | DnaCommand::Bam { .. }
+        | DnaCommand::Vcf { .. }
+        | DnaCommand::Debug(_)
+        | DnaCommand::Collect(_) => Ok(false),
     }
 }
 

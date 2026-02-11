@@ -132,8 +132,87 @@ pub fn run_with_cli(cli: &cli::Cli, cwd: &Path) -> Result<()> {
     if vcf::handle_vcf_commands(cli, dna_command)? {
         return Ok(());
     }
+    if handle_observability_commands(dna_command, cwd)? {
+        return Ok(());
+    }
 
     run_plan::run_plan(cli, dna_command, &registry, &domain_dir)
+}
+
+fn handle_observability_commands(dna_command: &cli::DnaCommand, cwd: &Path) -> Result<bool> {
+    match dna_command {
+        cli::DnaCommand::Debug(args) => {
+            if args.view != "tail" {
+                return Err(anyhow!("unsupported --view `{}` (expected `tail`)", args.view));
+            }
+            let run_dir = cwd.join(&args.search_root).join(&args.run_id);
+            let telemetry_path = run_dir
+                .join("run_artifacts")
+                .join("telemetry.jsonl");
+            let raw = std::fs::read_to_string(&telemetry_path)
+                .with_context(|| format!("read {}", telemetry_path.display()))?;
+            let mut failure: Option<bijux_dna_runtime::TelemetryEventV1> = None;
+            for line in raw.lines() {
+                let Ok(event) = serde_json::from_str::<bijux_dna_runtime::TelemetryEventV1>(line)
+                else {
+                    continue;
+                };
+                if matches!(
+                    event.event_name,
+                    bijux_dna_runtime::TelemetryEventName::RunFailed
+                ) {
+                    failure = Some(event);
+                }
+            }
+            if let Some(event) = failure {
+                println!("run_id: {}", event.run_id);
+                println!("stage_id: {}", event.stage_id);
+                println!("tool_id: {}", event.tool_id);
+                println!("status: {}", event.status);
+                if let Some(code) = event.failure_code {
+                    println!("failure_code: {}", serde_json::to_string(&code)?);
+                }
+                if let Some(stderr) = event.attrs.get("stderr_path") {
+                    println!("stderr_path: {}", serde_json::to_string(stderr)?);
+                } else {
+                    println!(
+                        "stderr_path: {}",
+                        run_dir.join("logs/stderr.log").display()
+                    );
+                }
+            } else {
+                println!("no failure events found in {}", telemetry_path.display());
+            }
+            Ok(true)
+        }
+        cli::DnaCommand::Collect(args) => {
+            let run_dir = cwd.join(&args.search_root).join(&args.run);
+            let out = args
+                .out
+                .clone()
+                .unwrap_or_else(|| run_dir.join(format!("{}-log-pack.tar", args.run)));
+            let file = std::fs::File::create(&out)
+                .with_context(|| format!("create {}", out.display()))?;
+            let mut archive = tar::Builder::new(file);
+            for rel in [
+                "run_manifest.json",
+                "run_manifest.lock.json",
+                "run_artifacts/telemetry.jsonl",
+                "logs/stderr.log",
+            ] {
+                let path = run_dir.join(rel);
+                if path.exists() {
+                    archive
+                        .append_path_with_name(&path, rel)
+                        .with_context(|| format!("add {} to log-pack", path.display()))?;
+                }
+            }
+            archive.finish().context("finalize log-pack tar")?;
+            println!("{}", out.display());
+            Ok(true)
+        }
+        _ => Ok(false),
+    }
 }
 
 fn parse_scalar(raw: &str, key: &str) -> Option<String> {
