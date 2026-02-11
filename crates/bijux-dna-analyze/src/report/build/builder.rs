@@ -359,8 +359,17 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
         let mut snps = 0_u64;
         let mut indels = 0_u64;
         let mut ti_tv = None::<f64>;
+        let mut sample_name = "sample".to_string();
+        let mut filter_breakdown = serde_json::json!({});
+        let mut depth_distribution = serde_json::json!({});
+        let mut call_summary = serde_json::json!({});
+        let mut filter_summary = serde_json::json!({});
         for row in vcf_rows {
-            if let Some(value) = row.metrics.get("variants_total").and_then(serde_json::Value::as_u64) {
+            if let Some(value) = row
+                .metrics
+                .get("variants_total")
+                .and_then(serde_json::Value::as_u64)
+            {
                 variants_total = value;
             }
             if let Some(value) = row.metrics.get("snps").and_then(serde_json::Value::as_u64) {
@@ -372,15 +381,39 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
             if let Some(value) = row.metrics.get("ti_tv").and_then(serde_json::Value::as_f64) {
                 ti_tv = Some(value);
             }
+            if let Some(value) = row
+                .metrics
+                .get("sample_name")
+                .and_then(serde_json::Value::as_str)
+            {
+                sample_name = value.to_string();
+            }
+            if let Some(value) = row.metrics.get("filter_breakdown") {
+                filter_breakdown = value.clone();
+            }
+            if let Some(value) = row.metrics.get("depth_distribution") {
+                depth_distribution = value.clone();
+            }
+            if let Some(value) = row.metrics.get("call_summary") {
+                call_summary = value.clone();
+            }
+            if let Some(value) = row.metrics.get("filter_summary") {
+                filter_summary = value.clone();
+            }
         }
         sections.insert(
             "vcf".to_string(),
             JsonBlob::new(serde_json::json!({
                 "schema_version": "bijux.vcf.stats.v1",
+                "sample_name": sample_name,
                 "variants_total": variants_total,
                 "snps": snps,
                 "indels": indels,
                 "ti_tv": ti_tv,
+                "call_summary": call_summary,
+                "filter_summary": filter_summary,
+                "filter_breakdown": filter_breakdown,
+                "depth_distribution": depth_distribution,
             })),
         );
     }
