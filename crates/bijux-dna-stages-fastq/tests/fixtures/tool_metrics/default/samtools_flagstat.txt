@@ -1,0 +1,2 @@
+1000 + 0 in total (QC-passed reads + QC-failed reads)
+900 + 0 mapped (90.00% : N/A)
