@@ -35,6 +35,7 @@ use crate::report::render::json::write_report_json;
 use bijux_dna_core::contract::Objective;
 use bijux_dna_core::contract::objective_spec;
 use bijux_dna_domain_bam::prelude::STAGE_PREFIX as BAM_STAGE_PREFIX;
+use bijux_dna_domain_fastq::prelude::STAGE_PREFIX as FASTQ_STAGE_PREFIX;
 use bijux_dna_runtime::{
     AssetsProvenanceV1, FactsRowV1, FilterReportV1, ReportProvenanceV1, ReportSchemaV1,
     ReportStageSummaryV1, RetentionContextV1, RetentionDefinitionV1, RetentionReportV1,
@@ -381,12 +382,15 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
             })),
         );
     }
-    if ordered.iter().any(|row| row.stage_id.starts_with("fastq.")) {
+    if ordered
+        .iter()
+        .any(|row| row.stage_id.starts_with(FASTQ_STAGE_PREFIX))
+    {
         sections.insert(
             "fastq".to_string(),
             JsonBlob::new(serde_json::json!({
                 "schema_version": "bijux.report.section.fastq.v1",
-                "stages": ordered.iter().filter(|row| row.stage_id.starts_with("fastq.")).count(),
+                "stages": ordered.iter().filter(|row| row.stage_id.starts_with(FASTQ_STAGE_PREFIX)).count(),
             })),
         );
     }
@@ -458,7 +462,9 @@ fn enforce_report_completeness_contract(
     rows: &[FactsRowV1],
     sections: &BTreeMap<String, JsonBlob>,
 ) -> Result<()> {
-    let has_fastq = rows.iter().any(|row| row.stage_id.starts_with("fastq."));
+    let has_fastq = rows
+        .iter()
+        .any(|row| row.stage_id.starts_with(FASTQ_STAGE_PREFIX));
     let has_bam = rows.iter().any(|row| row.stage_id.starts_with(BAM_STAGE_PREFIX));
     let has_vcf = rows.iter().any(|row| row.stage_id.starts_with("vcf."));
     if has_fastq && !sections.contains_key("fastq") {
