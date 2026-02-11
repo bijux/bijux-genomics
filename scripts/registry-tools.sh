@@ -16,6 +16,14 @@ case "$cmd" in
   list-stages)
     cargo run --bin bijux-dna -- registry list-stages
     ;;
+  show-tool)
+    tool_id="${2:-}"
+    if [ -z "$tool_id" ]; then
+      echo "usage: $0 show-tool <tool-id>" >&2
+      exit 2
+    fi
+    cargo run --bin bijux-dna -- registry show-tool "$tool_id"
+    ;;
   stage-tools)
     stage_id="${2:-}"
     kind="${3:-all}"
