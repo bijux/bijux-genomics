@@ -1,6 +1,7 @@
 schema_version: bijux.contamination_db_bank.v1
 bank_id: bijux-dna-contamination-db-bank
 version: v1
+provenance_status: complete
 databases:
   - id: kraken2_pluspf_2024
     classifier: kraken2
