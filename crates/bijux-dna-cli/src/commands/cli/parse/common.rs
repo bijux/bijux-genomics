@@ -71,6 +71,10 @@ pub enum DnaCommand {
         #[command(subcommand)]
         command: BamCommand,
     },
+    Vcf {
+        #[command(subcommand)]
+        command: VcfCommand,
+    },
     Pipelines {
         #[command(subcommand)]
         command: PipelinesCommand,

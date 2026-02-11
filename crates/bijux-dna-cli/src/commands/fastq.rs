@@ -701,7 +701,7 @@ pub(crate) fn handle_meta_commands(
             }
             Ok(true)
         }
-        DnaCommand::Fastq { .. } | DnaCommand::Bam { .. } => Ok(false),
+        DnaCommand::Fastq { .. } | DnaCommand::Bam { .. } | DnaCommand::Vcf { .. } => Ok(false),
     }
 }
 

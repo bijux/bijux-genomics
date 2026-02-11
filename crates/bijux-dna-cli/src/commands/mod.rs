@@ -25,6 +25,7 @@ pub(crate) mod fastq;
 pub(crate) mod report_inputs;
 pub(crate) mod run_plan;
 pub(crate) mod validation;
+pub(crate) mod vcf;
 
 include!("policies.rs");
 
@@ -128,6 +129,9 @@ pub fn run_with_cli(cli: &cli::Cli, cwd: &Path) -> Result<()> {
     if bam::handle_bam_commands(cli, dna_command, &registry, &domain_dir)? {
         return Ok(());
     }
+    if vcf::handle_vcf_commands(cli, dna_command)? {
+        return Ok(());
+    }
 
     run_plan::run_plan(cli, dna_command, &registry, &domain_dir)
 }
@@ -184,7 +188,7 @@ fn handle_status_root(args: &cli::StatusArgs, cwd: &Path) -> Result<()> {
         "metrics_schema",
     ];
 
-    for dom in ["fastq", "bam"] {
+    for dom in ["fastq", "bam", "vcf"] {
         let stages_dir = domain_dir.join(dom).join("stages");
         if stages_dir.exists() {
             for entry in std::fs::read_dir(&stages_dir)
