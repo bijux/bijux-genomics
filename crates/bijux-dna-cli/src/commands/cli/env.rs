@@ -1,11 +1,10 @@
 use std::collections::HashMap;
 use std::path::Path;
-use std::process::Command;
 
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_api::v1::api::env::{
-    available_runners, cache_dir, docker_image_exists, resolve_image, run_smoke_script,
-    run_smoke_script_batch, PlatformSpec, RuntimeKind, ToolImageSpec,
+    available_runners, cache_dir, docker_image_exists, resolve_image, run_shell_capture,
+    run_smoke_script, run_smoke_script_batch, PlatformSpec, RuntimeKind, ToolImageSpec,
 };
 use regex::Regex;
 use serde::Serialize;
@@ -376,29 +375,6 @@ pub fn verify_registry_tool(registry_path: &Path, id: &str) -> Result<()> {
         "healthcheck_ok": !health_output.starts_with("error:"),
     }))?;
     Ok(())
-}
-
-fn run_shell_capture(cmd: &str) -> Result<String> {
-    if cmd.trim().is_empty() {
-        return Err(anyhow!("empty command"));
-    }
-    let output = Command::new("sh")
-        .arg("-lc")
-        .arg(cmd)
-        .output()
-        .with_context(|| format!("execute `{cmd}`"))?;
-    let stdout = String::from_utf8_lossy(&output.stdout).to_string();
-    let stderr = String::from_utf8_lossy(&output.stderr).to_string();
-    let merged = if stdout.trim().is_empty() {
-        stderr
-    } else {
-        stdout
-    };
-    if output.status.success() {
-        Ok(merged)
-    } else {
-        Err(anyhow!("{merged}"))
-    }
 }
 
 fn parse_first_version(output: &str) -> Option<String> {

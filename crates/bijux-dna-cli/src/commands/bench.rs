@@ -430,19 +430,26 @@ fn explain_fastq_stage(
     stage_id: &str,
 ) -> Result<()> {
     if stage_id == "fastq.trim" {
-        let default_profile = bijux_dna_pipelines::fastq::fastq_default_profile();
-        let reference_profile = bijux_dna_pipelines::fastq::fastq_reference_adna_profile();
+        let default_profile = bijux_dna_api::v1::api::plan::select_pipeline(
+            bijux_dna_api::v1::api::plan::Domain::Fastq,
+            "fastq-to-fastq__default__v1",
+        )?;
+        let reference_profile = bijux_dna_api::v1::api::plan::select_pipeline(
+            bijux_dna_api::v1::api::plan::Domain::Fastq,
+            "fastq-to-fastq__reference_adna__v1",
+        )?;
         let trim_stage = StageId::from_static("fastq.trim");
         let payload = serde_json::json!({
             "stage_id": "fastq.trim",
-            "param_schema": schemars::schema_for!(bijux_dna_domain_fastq::params::trim::TrimEffectiveParams),
+            "param_schema": schemars::schema_for!(serde_json::Value),
+            "param_variant": "FastqTrim (effective defaults payload)",
             "defaults": {
                 "fastq-default": default_profile.defaults.params.get(&trim_stage),
                 "fastq-reference-adna": reference_profile.defaults.params.get(&trim_stage),
             },
             "invariants": {
-                "fastq-default": bijux_dna_pipelines::fastq::validate_fastq_profile(&default_profile),
-                "fastq-reference-adna": bijux_dna_pipelines::fastq::validate_fastq_profile(&reference_profile),
+                "fastq-default": bijux_dna_api::v1::api::plan::validate_fastq_profile(&default_profile),
+                "fastq-reference-adna": bijux_dna_api::v1::api::plan::validate_fastq_profile(&reference_profile),
             },
             "metrics_schema": bijux_dna_core::metrics::metrics_schema_for_stage("fastq.trim").map(|s| s.schema),
         });
