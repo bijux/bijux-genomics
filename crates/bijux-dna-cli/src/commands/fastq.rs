@@ -525,6 +525,19 @@ pub(crate) fn handle_meta_commands(
                     let registry_path = cwd.join("configs").join("tool_registry.toml");
                     print_env_export_json(&registry_path)?;
                 }
+                EnvCommand::ExportHpc { json } => {
+                    let root = std::env::var("BIJUX_HPC_ROOT")
+                        .map(std::path::PathBuf::from)
+                        .unwrap_or_else(|_| std::path::PathBuf::from("/home/bijan/bijux"));
+                    let layout = crate::commands::hpc::HpcLayout::from_root(&root);
+                    let export = crate::commands::hpc::export_hpc_env_json(&layout)?;
+                    if *json {
+                        render::json::print_pretty(&export)?;
+                    } else {
+                        println!("containers_dir={}", export.containers_dir);
+                        println!("sif_count={}", export.sifs.len());
+                    }
+                }
                 EnvCommand::Smoke(args) => {
                     let cwd = std::env::current_dir()?;
                     let registry_path = cwd.join("configs").join("tool_registry.toml");

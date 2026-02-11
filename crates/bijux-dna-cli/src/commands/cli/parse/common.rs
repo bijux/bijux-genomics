@@ -27,6 +27,7 @@ pub enum RootCommand {
         #[command(subcommand)]
         command: DnaCommand,
     },
+    #[command(alias = "env")]
     Environment {
         #[command(subcommand)]
         command: EnvCommand,
@@ -47,6 +48,10 @@ pub enum RootCommand {
         #[command(subcommand)]
         command: LabCommand,
     },
+    Config {
+        #[command(subcommand)]
+        command: ConfigCommand,
+    },
     Status(StatusArgs),
 }
 
@@ -60,6 +65,8 @@ pub struct StatusArgs {
     pub placeholders: bool,
     #[arg(long, default_value_t = false)]
     pub contracts: bool,
+    #[arg(long, default_value_t = false)]
+    pub hpc: bool,
 }
 
 #[derive(Debug, Subcommand)]
@@ -240,8 +247,22 @@ pub enum EnvCommand {
     List,
     #[command(name = "export-json")]
     ExportJson,
+    #[command(name = "export-hpc")]
+    ExportHpc {
+        #[arg(long, default_value_t = false)]
+        json: bool,
+    },
     Smoke(EnvRunArgs),
     Prep(EnvRunArgs),
+}
+
+#[derive(Debug, Subcommand)]
+pub enum ConfigCommand {
+    #[command(name = "init-hpc")]
+    InitHpc {
+        #[arg(long, default_value = "/home/bijan/bijux")]
+        root: PathBuf,
+    },
 }
 
 #[derive(Debug, Subcommand)]

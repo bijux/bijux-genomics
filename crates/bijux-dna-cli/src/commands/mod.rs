@@ -22,6 +22,7 @@ pub(crate) mod bench;
 pub mod cli;
 pub(crate) mod command_prelude;
 pub(crate) mod fastq;
+pub mod hpc;
 pub(crate) mod report_inputs;
 pub(crate) mod run_plan;
 pub(crate) mod validation;
@@ -77,6 +78,9 @@ pub fn run_with_cli(cli: &cli::Cli, cwd: &Path) -> Result<()> {
     if let cli::RootCommand::Lab { command } = &cli.command {
         return handle_lab_root(command, cwd);
     }
+    if let cli::RootCommand::Config { command } = &cli.command {
+        return handle_config_root(command, cwd);
+    }
     if let cli::RootCommand::Status(args) = &cli.command {
         return handle_status_root(args, cwd);
     }
@@ -87,6 +91,7 @@ pub fn run_with_cli(cli: &cli::Cli, cwd: &Path) -> Result<()> {
         | cli::RootCommand::Tool { .. }
         | cli::RootCommand::Domain { .. }
         | cli::RootCommand::Lab { .. }
+        | cli::RootCommand::Config { .. }
         | cli::RootCommand::Status(_) => {
             unreachable!("handled above")
         }
@@ -106,6 +111,21 @@ pub fn run_with_cli(cli: &cli::Cli, cwd: &Path) -> Result<()> {
         ))
     })?;
     profile.run_base_dir = resolve_run_base_dir(cwd, &profile.run_base_dir);
+    let profile_value = serde_json::to_value(&profile)?;
+    let profile_hash = {
+        let bytes = serde_json::to_vec(&profile_value)?;
+        let mut hasher = sha2::Sha256::new();
+        use sha2::Digest as _;
+        hasher.update(bytes);
+        format!("{:x}", hasher.finalize())
+    };
+    std::env::set_var("BIJUX_PROFILE_HASH", profile_hash);
+    if cli.profile.eq_ignore_ascii_case("hpc") {
+        std::env::set_var("BIJUX_RUN_CONTEXT", "hpc");
+        std::env::set_var("BIJUX_HPC_SITE", "lunarc");
+    } else {
+        std::env::set_var("BIJUX_RUN_CONTEXT", "local");
+    }
     if cli.print_effective_config || cli.dump_effective_config {
         let payload = serde_json::json!({
             "profile": profile,
@@ -415,6 +435,18 @@ fn print_contract_status(cwd: &Path) -> Result<()> {
 
 #[allow(clippy::format_push_string, clippy::too_many_lines)]
 fn handle_status_root(args: &cli::StatusArgs, cwd: &Path) -> Result<()> {
+    if args.hpc {
+        let root = std::env::var("BIJUX_HPC_ROOT")
+            .map(PathBuf::from)
+            .unwrap_or_else(|_| PathBuf::from("/home/bijan/bijux"));
+        let layout = hpc::HpcLayout::from_root(&root);
+        let report = hpc::validate_hpc_status(&layout);
+        cli::render::json::print_pretty(&report)?;
+        if !report.ok {
+            return Err(anyhow!("hpc status failed"));
+        }
+        return Ok(());
+    }
     if args.contracts {
         return print_contract_status(cwd);
     }
@@ -722,6 +754,19 @@ fn handle_environment_root(command: &cli::EnvCommand, cwd: &Path) -> Result<()> 
             let registry_path = cwd.join("configs").join("tool_registry.toml");
             print_env_export_json(&registry_path)?;
         }
+        cli::EnvCommand::ExportHpc { json } => {
+            let root = std::env::var("BIJUX_HPC_ROOT")
+                .map(PathBuf::from)
+                .unwrap_or_else(|_| PathBuf::from("/home/bijan/bijux"));
+            let layout = hpc::HpcLayout::from_root(&root);
+            let export = hpc::export_hpc_env_json(&layout)?;
+            if *json {
+                cli::render::json::print_pretty(&export)?;
+            } else {
+                println!("containers_dir={}", export.containers_dir);
+                println!("sif_count={}", export.sifs.len());
+            }
+        }
         cli::EnvCommand::Smoke(args) => {
             let registry_path = cwd.join("configs").join("tool_registry.toml");
             if let Some(stage) = args.stage.as_deref() {
@@ -754,9 +799,30 @@ fn handle_environment_root(command: &cli::EnvCommand, cwd: &Path) -> Result<()> 
                 cli::EnvCommand::Doctor => env_doctor(&catalog, &platform),
                 cli::EnvCommand::List
                 | cli::EnvCommand::ExportJson
+                | cli::EnvCommand::ExportHpc { .. }
                 | cli::EnvCommand::Smoke(_)
                 | cli::EnvCommand::Prep(_) => {}
             }
+        }
+    }
+    Ok(())
+}
+
+fn handle_config_root(command: &cli::ConfigCommand, cwd: &Path) -> Result<()> {
+    match command {
+        cli::ConfigCommand::InitHpc { root } => {
+            let layout = hpc::HpcLayout::from_root(root);
+            layout.ensure_dirs()?;
+            let configs_dir = cwd.join("configs");
+            bijux_dna_infra::ensure_dir(&configs_dir)?;
+            let profile_path = configs_dir.join("profile.hpc.toml");
+            bijux_dna_api::v1::api::run::atomic_write_bytes(
+                &profile_path,
+                layout.profile_hpc_toml().as_bytes(),
+            )?;
+            let lock_path = hpc::write_site_lock(&layout)?;
+            println!("written={}", profile_path.display());
+            println!("site_lock={}", lock_path.display());
         }
     }
     Ok(())

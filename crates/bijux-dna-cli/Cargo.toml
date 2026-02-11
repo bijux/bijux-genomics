@@ -14,6 +14,7 @@ path = "src/main.rs"
 bijux-dna-api = { path = "../bijux-dna-api" }
 bijux-dna-domain-compiler = { path = "../bijux-dna-domain-compiler" }
 bijux-dna-runtime = { path = "../bijux-dna-runtime" }
+bijux-dna-infra = { path = "../bijux-dna-infra" }
 bijux-dna-domain-vcf = { path = "../bijux-dna-domain-vcf" }
 bijux-dna-stages-vcf = { path = "../bijux-dna-stages-vcf" }
 anyhow = { workspace = true }
@@ -23,6 +24,7 @@ serde_json = { workspace = true }
 serde = { workspace = true }
 regex = { workspace = true }
 toml = { workspace = true }
+sha2 = { workspace = true }
 tar = "0.4"
 
 [features]
