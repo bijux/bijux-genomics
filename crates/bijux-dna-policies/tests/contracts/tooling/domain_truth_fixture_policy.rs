@@ -2,14 +2,34 @@
 #[path = "../../support/fs.rs"]
 mod support;
 
+fn configured_domains(root: &std::path::Path) -> Vec<String> {
+    let path = root.join("configs").join("domains.toml");
+    let raw = std::fs::read_to_string(&path)
+        .unwrap_or_else(|_| panic!("read domains config {}", path.display()));
+    let parsed: toml::Value = raw
+        .parse()
+        .unwrap_or_else(|_| panic!("parse domains config {}", path.display()));
+    parsed
+        .get("domains")
+        .and_then(toml::Value::as_array)
+        .map(|entries| {
+            entries
+                .iter()
+                .filter_map(|entry| entry.get("id").and_then(toml::Value::as_str))
+                .map(str::to_string)
+                .collect::<Vec<_>>()
+        })
+        .unwrap_or_default()
+}
+
 #[test]
 fn policy__contracts__domain_truth_fixture_policy__supported_stage_tool_pairs_have_truth_fixtures()
 {
     let root = support::workspace_root();
     let mut offenders = Vec::new();
 
-    for domain in ["fastq", "bam"] {
-        let index = root.join("domain").join(domain).join("index.yaml");
+    for domain in configured_domains(&root) {
+        let index = root.join("domain").join(&domain).join("index.yaml");
         let raw = std::fs::read_to_string(&index)
             .unwrap_or_else(|_| panic!("read domain index {}", index.display()));
 
@@ -35,10 +55,15 @@ fn policy__contracts__domain_truth_fixture_policy__supported_stage_tool_pairs_ha
                 continue;
             };
             let tools = rhs.trim_start_matches('[').trim_end_matches(']');
-            for tool in tools.split(',').map(str::trim).filter(|v| !v.is_empty()) {
+            for tool in tools
+                .split(',')
+                .map(str::trim)
+                .map(|v| v.trim_matches('"').trim_matches('\''))
+                .filter(|v| !v.is_empty())
+            {
                 let tool_file = root
                     .join("domain")
-                    .join(domain)
+                    .join(&domain)
                     .join("tools")
                     .join(format!("{tool}.yaml"));
                 let tool_raw = std::fs::read_to_string(&tool_file)
@@ -58,7 +83,7 @@ fn policy__contracts__domain_truth_fixture_policy__supported_stage_tool_pairs_ha
 
                 let fixture = root
                     .join("domain")
-                    .join(domain)
+                    .join(&domain)
                     .join("fixtures")
                     .join(stage_id)
                     .join(format!("{tool}.txt"));
