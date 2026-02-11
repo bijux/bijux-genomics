@@ -1503,7 +1503,7 @@ requires_reporting = false
 [[stages]]
 id = "bam.contamination"
 primary_tools = ["schmutzi"]
-optional_alternatives = ["schmutzi", "verifybamid2"]
+optional_alternatives = ["contammix", "schmutzi", "verifybamid2"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
@@ -1525,7 +1525,7 @@ requires_reporting = false
 [[stages]]
 id = "bam.damage"
 primary_tools = ["mapdamage2"]
-optional_alternatives = ["damageprofiler", "mapdamage2", "pmdtools", "pydamage"]
+optional_alternatives = ["addeam", "damageprofiler", "mapdamage2", "pmdtools", "pydamage"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
@@ -1558,7 +1558,7 @@ requires_reporting = false
 [[stages]]
 id = "bam.filter"
 primary_tools = ["samtools"]
-optional_alternatives = ["bedtools", "samtools"]
+optional_alternatives = ["bamtools", "bedtools", "samtools"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
@@ -1580,7 +1580,7 @@ requires_reporting = false
 [[stages]]
 id = "bam.kinship"
 primary_tools = ["king"]
-optional_alternatives = ["king"]
+optional_alternatives = ["angsd", "king"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
@@ -1657,7 +1657,7 @@ requires_reporting = true
 [[stages]]
 id = "bam.sex"
 primary_tools = ["rxy"]
-optional_alternatives = ["rxy", "yleaf"]
+optional_alternatives = ["angsd", "rxy", "yleaf"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
@@ -1668,7 +1668,7 @@ requires_reporting = false
 [[stages]]
 id = "bam.validate"
 primary_tools = ["samtools"]
-optional_alternatives = ["bedtools", "samtools"]
+optional_alternatives = ["bamtools", "bedtools", "samtools"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
@@ -1690,7 +1690,7 @@ requires_reporting = false
 [[stages]]
 id = "fastq.correct"
 primary_tools = ["rcorrector"]
-optional_alternatives = ["lighter", "musket", "rcorrector", "spades"]
+optional_alternatives = ["bayeshammer", "lighter", "musket", "rcorrector", "spades"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
@@ -1767,7 +1767,7 @@ requires_reporting = false
 [[stages]]
 id = "fastq.merge"
 primary_tools = ["pear"]
-optional_alternatives = ["flash2", "leehom", "pear", "vsearch"]
+optional_alternatives = ["bbmerge", "flash2", "leehom", "pear", "vsearch"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
@@ -1833,7 +1833,7 @@ requires_reporting = false
 [[stages]]
 id = "fastq.screen"
 primary_tools = ["kraken2"]
-optional_alternatives = ["centrifuge", "fastq_screen", "kaiju", "kraken2", "krakenuniq", "metaphlan"]
+optional_alternatives = ["bracken", "centrifuge", "fastq_screen", "kaiju", "kraken2", "krakenuniq", "metaphlan"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
@@ -1855,7 +1855,7 @@ requires_reporting = false
 [[stages]]
 id = "fastq.trim"
 primary_tools = ["fastp"]
-optional_alternatives = ["alientrimmer", "atropos", "bbduk", "cutadapt", "fastp", "fastx_clipper", "leehom", "prinseq", "seqkit", "skewer", "trim_galore", "trimmomatic"]
+optional_alternatives = ["adapterremoval", "alientrimmer", "atropos", "bbduk", "cutadapt", "fastp", "fastx_clipper", "leehom", "prinseq", "seqkit", "skewer", "trim_galore", "trimmomatic"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []

@@ -15,6 +15,8 @@ Prevents responsibility drift across crates and makes policy failures actionable
 - `bijux-dna-engine`: executes explicit plans only; no planning or backend execution details.
 - `bijux-dna-runner`: backend process/container execution only (Docker/Apptainer invocation boundary).
 - `bijux-dna-environment`: image/runtime resolution and environment probing only.
+- `bijux-dna-planner-fastq` and `bijux-dna-planner-bam`: planner authority for stage selection and plan assembly.
+- `bijux-dna-stages-fastq` and `bijux-dna-stages-bam`: stage authority for invocation/parsing contracts.
 - `bijux-dna-api`: stable API surface orchestrating planner/engine/environment contracts.
 - `bijux-dna-cli`: CLI adapters over API/registry/domain commands.
 - `bijux-dna-analyze`: report/analytics/provenance contracts over produced artifacts.
