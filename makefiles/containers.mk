@@ -17,6 +17,7 @@ APPTAINER_VM_OUT ?= $(HOME)/apptainer-build
 APPTAINER_COPY_BACK ?= $(if $(ISOLATE_ROOT),$(ISOLATE_ROOT)/container/apptainer,artifacts/container/apptainer)
 CONTAINER_ARTIFACT_DIR ?= $(if $(ISOLATE_ROOT),$(ISOLATE_ROOT)/container,artifacts/container)
 BIJUX_BIN ?= ./bin/isolate cargo run --bin bijux-dna --
+BIJUX_HPC_ROOT ?= /home/bijan/bijux
 
 CT_KEY := $(subst -,_,$(CONTAINER_TYPE))
 SMOKE_SCRIPT_docker_arm64 := scripts/containers/smoke-docker-arm64.sh
@@ -204,6 +205,23 @@ containers-apptainer-build: ## Batch-build Apptainer defs to VM-local output and
 		--vm-out "$(APPTAINER_VM_OUT)" \
 		--copy-back "$(APPTAINER_COPY_BACK)"
 
+apptainer-ensure: ## Ensure apptainer images from SSOT stage list. Use DOMAIN=<domain> STAGES=<s1,s2>
+	@if [ -z "$(DOMAIN)" ] || [ -z "$(STAGES)" ]; then \
+		echo "ERROR: set DOMAIN=<domain> and STAGES=<comma-separated>"; \
+		echo "example: make apptainer-ensure DOMAIN=fastq STAGES=validate_pre,trim,filter,stats,qc_post"; \
+		exit 2; \
+	fi
+	@BIJUX_HPC_ROOT="$(BIJUX_HPC_ROOT)" $(BIJUX_BIN) env ensure-images --domain "$(DOMAIN)" --stages "$(STAGES)"
+
+APPTAINER_STAGE_TARGETS := $(shell python3 -c "from pathlib import Path; import re; p=Path('configs/tool_registry.toml'); raw=p.read_text() if p.exists() else ''; stages=sorted(set(re.findall(r'^id\\s*=\\s*\\\"([^.\\\"]+\\.[^\\\"]+)\\\"\\s*$$', raw, flags=re.M))); print(' '.join('make-apptainer-{}-{}'.format(*s.split('.',1)) for s in stages))")
+
+define APPTAINER_STAGE_TARGET_template
+$(1): ## Ensure apptainer image(s) for stage $(2).$(3)
+	@BIJUX_HPC_ROOT="$(BIJUX_HPC_ROOT)" $(BIJUX_BIN) env ensure-images --domain "$(2)" --stages "$(3)"
+endef
+
+$(foreach target,$(APPTAINER_STAGE_TARGETS),$(eval $(call APPTAINER_STAGE_TARGET_template,$(target),$(word 3,$(subst -, ,$(target))),$(word 4,$(subst -, ,$(target))))))
+
 containers-lint: ## Lint container naming, headers, labels, and forbidden patterns
 	@./scripts/containers/lint.sh
 
@@ -214,4 +232,5 @@ containers: ## Print tools/runtime/result/log summary from target-containers man
 	smoke-containers-docker-arm64 smoke-containers-docker-amd64 smoke-containers-apptainer \
 	smoke-cntainers-apptainer-bijux-run smoke-cntainers-apptainer-apptainer-run smoke-cntainers-apptainer-verify \
 	build-images test-images test-images-stage test-images-tool image-smoke-vcf image-qa \
-	containers-apptainer-build containers-lint containers
+	containers-apptainer-build containers-lint containers \
+	apptainer-ensure $(APPTAINER_STAGE_TARGETS)
