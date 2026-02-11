@@ -3,8 +3,9 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Context, Result};
 
 use bijux_dna_core::contract::{
-    Cardinality, ExecutionContract, ImageRequirements, PortSpec, StageId, StageParameterSpec,
-    StageSpec, ToolConstraints, ToolManifest, ToolRegistry, ToolRole,
+    ArtifactKind, Cardinality, ExecutionContract, ImageRequirements, PortSpec, RuntimeScale,
+    StageId, StageParameterSpec, StageSemanticKind, StageSpec, ToolConstraints, ToolManifest,
+    ToolRegistry, ToolRole,
 };
 use bijux_dna_core::ids::ToolId;
 use bijux_dna_core::prelude::tooling::StageMetricSpec;
@@ -127,6 +128,16 @@ fn read_domain_registry(domain_dir: &Path) -> Result<ToolRegistry> {
                 };
                 registry.insert_stage(StageSpec {
                     stage_id,
+                    semantic_kind: stage_semantic_from_id(&stage.stage_id),
+                    input_kind: artifact_kind_from_stage(&stage.stage_id),
+                    output_kind: output_artifact_kind_from_stage(&stage.stage_id),
+                    produced_artifacts: stable_produced_artifacts(
+                        &stage.stage_id,
+                        output_artifact_kind_from_stage(&stage.stage_id),
+                    ),
+                    idempotent: true,
+                    stage_semver: "1.0.0".to_string(),
+                    runtime_scale: RuntimeScale::Small,
                     inputs: to_ports(stage.inputs),
                     outputs: to_ports(stage.outputs),
                     parameters: stage.parameters,
@@ -204,6 +215,86 @@ fn list_strings(table: &toml::Value, key: &str) -> Vec<String> {
                 .collect::<Vec<_>>()
         })
         .unwrap_or_default()
+}
+
+fn stage_semantic_from_id(stage_id: &str) -> StageSemanticKind {
+    if stage_id.ends_with(".index") || stage_id.contains("prepare_reference") {
+        StageSemanticKind::Index
+    } else if stage_id.contains("qc") || stage_id.contains("stats") || stage_id.contains("summary")
+    {
+        StageSemanticKind::Qc
+    } else if stage_id.contains("report") {
+        StageSemanticKind::Report
+    } else if stage_id.contains("filter") || stage_id.contains("trim") {
+        StageSemanticKind::Filter
+    } else if stage_id.contains("annot") || stage_id.contains("haplogroup") {
+        StageSemanticKind::Annotate
+    } else {
+        StageSemanticKind::Transform
+    }
+}
+
+fn artifact_kind_from_stage(stage_id: &str) -> ArtifactKind {
+    if stage_id.starts_with("fastq.") {
+        ArtifactKind::Fastq
+    } else if stage_id.starts_with("bam.") {
+        ArtifactKind::Bam
+    } else if stage_id.starts_with("vcf.") {
+        ArtifactKind::Vcf
+    } else {
+        ArtifactKind::Unknown
+    }
+}
+
+fn output_artifact_kind_from_stage(stage_id: &str) -> ArtifactKind {
+    if stage_id.contains("qc") || stage_id.contains("stats") || stage_id.contains("summary") {
+        ArtifactKind::Metrics
+    } else if stage_id.ends_with(".index") {
+        ArtifactKind::Index
+    } else {
+        artifact_kind_from_stage(stage_id)
+    }
+}
+
+fn stage_scale_from_row(stage: &toml::Value) -> RuntimeScale {
+    let mem = stage
+        .get("resource_memory_gb")
+        .and_then(toml::Value::as_integer)
+        .unwrap_or(4);
+    let mins = stage
+        .get("resource_time_minutes")
+        .and_then(toml::Value::as_integer)
+        .unwrap_or(30);
+    if mem >= 24 || mins >= 180 {
+        RuntimeScale::Large
+    } else if mem >= 12 || mins >= 90 {
+        RuntimeScale::Medium
+    } else if mem >= 4 || mins >= 30 {
+        RuntimeScale::Small
+    } else {
+        RuntimeScale::Tiny
+    }
+}
+
+fn parse_stage_semver(stage: &toml::Value) -> String {
+    stage
+        .get("stage_semver")
+        .and_then(toml::Value::as_str)
+        .unwrap_or("1.0.0")
+        .to_string()
+}
+
+fn stable_produced_artifacts(stage_id: &str, output_kind: ArtifactKind) -> Vec<String> {
+    let base = stage_id.replace('.', "_");
+    match output_kind {
+        ArtifactKind::Fastq => vec![format!("{base}_fastq_out")],
+        ArtifactKind::Bam => vec![format!("{base}_bam_out")],
+        ArtifactKind::Vcf => vec![format!("{base}_vcf_out")],
+        ArtifactKind::Index => vec![format!("{base}_index_out")],
+        ArtifactKind::Metrics => vec![format!("{base}_metrics_out")],
+        ArtifactKind::Report => vec![format!("{base}_report_out")],
+        ArtifactKind::Unknown => vec![format!("{base}_out")],
+    }
 }
 
 fn find_domain_dir(path: &Path) -> Option<PathBuf> {
@@ -295,16 +386,28 @@ pub fn load_manifests(source_path: &Path) -> Result<ToolRegistry> {
         };
         let stage_id = StageId::try_from(stage_id_raw)
             .map_err(|err| anyhow!("invalid stage id `{stage_id_raw}`: {err}"))?;
+        let input_kind = artifact_kind_from_stage(stage_id_raw);
+        let output_kind = output_artifact_kind_from_stage(stage_id_raw);
         let spec = StageSpec {
             stage_id,
+            semantic_kind: stage_semantic_from_id(stage_id_raw),
+            input_kind,
+            output_kind,
+            produced_artifacts: stable_produced_artifacts(stage_id_raw, output_kind),
+            idempotent: stage
+                .get("idempotent")
+                .and_then(toml::Value::as_bool)
+                .unwrap_or(true),
+            stage_semver: parse_stage_semver(&stage),
+            runtime_scale: stage_scale_from_row(&stage),
             inputs: vec![PortSpec {
-                name: "reads".to_string(),
-                data_type: "fastq".to_string(),
+                name: format!("{}_in", stage_id_raw.replace('.', "_")),
+                data_type: format!("{input_kind:?}").to_lowercase(),
                 cardinality: Cardinality::Many,
             }],
             outputs: vec![PortSpec {
-                name: "reads".to_string(),
-                data_type: "fastq".to_string(),
+                name: format!("{}_out", stage_id_raw.replace('.', "_")),
+                data_type: format!("{output_kind:?}").to_lowercase(),
                 cardinality: Cardinality::Many,
             }],
             parameters: Vec::new(),

@@ -61,6 +61,56 @@ pub struct StageMetricSpec {
     pub meaning: Option<String>,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum StageSemanticKind {
+    Transform,
+    Filter,
+    Annotate,
+    Qc,
+    Report,
+    Index,
+}
+
+impl Default for StageSemanticKind {
+    fn default() -> Self {
+        Self::Transform
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ArtifactKind {
+    Fastq,
+    Bam,
+    Vcf,
+    Report,
+    Index,
+    Metrics,
+    Unknown,
+}
+
+impl Default for ArtifactKind {
+    fn default() -> Self {
+        Self::Unknown
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum RuntimeScale {
+    Tiny,
+    Small,
+    Medium,
+    Large,
+}
+
+impl Default for RuntimeScale {
+    fn default() -> Self {
+        Self::Small
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ImageRequirements {
     #[serde(default)]
@@ -72,6 +122,20 @@ pub struct ImageRequirements {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StageSpec {
     pub stage_id: StageId,
+    #[serde(default)]
+    pub semantic_kind: StageSemanticKind,
+    #[serde(default)]
+    pub input_kind: ArtifactKind,
+    #[serde(default)]
+    pub output_kind: ArtifactKind,
+    #[serde(default)]
+    pub produced_artifacts: Vec<String>,
+    #[serde(default)]
+    pub idempotent: bool,
+    #[serde(default = "default_stage_semver")]
+    pub stage_semver: String,
+    #[serde(default = "default_runtime_scale")]
+    pub runtime_scale: RuntimeScale,
     #[serde(default)]
     pub inputs: Vec<PortSpec>,
     #[serde(default)]
@@ -92,6 +156,14 @@ pub struct StageSpec {
     pub image_requirements: Option<ImageRequirements>,
     #[serde(default)]
     pub extends: Option<StageId>,
+}
+
+fn default_stage_semver() -> String {
+    "1.0.0".to_string()
+}
+
+const fn default_runtime_scale() -> RuntimeScale {
+    RuntimeScale::Small
 }
 
 impl StageSpec {
