@@ -1,6 +1,4 @@
 use std::collections::BTreeMap;
-use std::path::PathBuf;
-
 use bijux_dna_core::contract::{
     ArtifactRef, ArtifactRole, ExecutionEdge, ExecutionGraph, ExecutionStep, PlanPolicy, StageIO,
     ToolConstraints,
@@ -13,6 +11,8 @@ pub fn plan_for(stage_id: &str) -> ExecutionStep {
         .tempdir()
         .unwrap_or_else(|err| panic!("tempdir: {err}"))
         .keep();
+    let input_path = out_dir.join("input");
+    let output_path = out_dir.join("output");
     ExecutionStep {
         step_id: StepId::new(stage_id),
         stage_id: StageId::new(stage_id),
@@ -32,12 +32,12 @@ pub fn plan_for(stage_id: &str) -> ExecutionStep {
         io: StageIO {
             inputs: vec![ArtifactRef::required(
                 ArtifactId::from_static("input"),
-                PathBuf::from("input"),
+                input_path,
                 ArtifactRole::Unknown,
             )],
             outputs: vec![ArtifactRef::optional(
                 ArtifactId::from_static("output"),
-                PathBuf::from("output"),
+                output_path,
                 ArtifactRole::Unknown,
             )],
         },
