@@ -6,9 +6,9 @@
 - Pipeline Verdict: `Pass`
 
 ## Stage Summary
-- `fastq.detect_adapters` via `fastqc` (0.0.0)
-- `fastq.filter` via `fastp` (0.0.0)
-- `fastq.qc_post` via `multiqc` (0.0.0)
-- `fastq.stats_neutral` via `seqkit_stats` (0.0.0)
-- `fastq.trim` via `fastp` (0.0.0)
-- `fastq.validate_pre` via `fastqvalidator_official` (0.0.0)
+- `fastq.detect_adapters` via `fastqc` (99.99.99+fixture)
+- `fastq.filter` via `fastp` (99.99.99+fixture)
+- `fastq.qc_post` via `multiqc` (99.99.99+fixture)
+- `fastq.stats_neutral` via `seqkit_stats` (99.99.99+fixture)
+- `fastq.trim` via `fastp` (99.99.99+fixture)
+- `fastq.validate_pre` via `fastqvalidator_official` (99.99.99+fixture)
