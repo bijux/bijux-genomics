@@ -1,0 +1,5 @@
+##fileformat=VCFv4.2
+##source=bijux-toy
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+chr1	100	.	A	G	60	PASS	.
+chr1	140	.	C	T	50	PASS	.

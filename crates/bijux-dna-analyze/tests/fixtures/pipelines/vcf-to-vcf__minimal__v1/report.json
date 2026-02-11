@@ -1,0 +1,9 @@
+{
+  "pipeline_id": "vcf-to-vcf__minimal__v1",
+  "sections": ["vcf"],
+  "summary": {
+    "variants_total": 2,
+    "snps": 2,
+    "indels": 0
+  }
+}

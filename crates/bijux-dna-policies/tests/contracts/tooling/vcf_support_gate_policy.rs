@@ -110,3 +110,69 @@ fn policy__contracts__vcf_support_gate_policy__supported_vcf_tools_must_be_pinne
         );
     }
 }
+
+#[test]
+fn policy__contracts__vcf_support_gate_policy__supported_stage_requires_planner_stages_and_tool_binding(
+) {
+    let root = repo_root();
+    let stages_raw = fs::read_to_string(root.join("configs/stages_vcf.toml"))
+        .expect("read configs/stages_vcf.toml");
+    let stages_doc: toml::Value = stages_raw.parse().expect("parse stages_vcf.toml");
+    let tool_raw = fs::read_to_string(root.join("configs/tool_registry_vcf.toml"))
+        .expect("read configs/tool_registry_vcf.toml");
+    let tool_doc: toml::Value = tool_raw.parse().expect("parse tool_registry_vcf.toml");
+    let planner_source = fs::read_to_string(root.join("crates/bijux-dna-planner-vcf/src/lib.rs"))
+        .expect("read planner vcf source");
+    let stages_source = fs::read_to_string(root.join("crates/bijux-dna-stages-vcf/src/lib.rs"))
+        .expect("read stages vcf source");
+
+    let tools = tool_doc
+        .get("tools")
+        .and_then(toml::Value::as_array)
+        .cloned()
+        .unwrap_or_default();
+    let mut bound_stage_ids = std::collections::BTreeSet::new();
+    for tool in tools {
+        for stage in tool
+            .get("stage_ids")
+            .and_then(toml::Value::as_array)
+            .cloned()
+            .unwrap_or_default()
+        {
+            if let Some(stage_id) = stage.as_str() {
+                bound_stage_ids.insert(stage_id.to_string());
+            }
+        }
+    }
+
+    let stages = stages_doc
+        .get("stages")
+        .and_then(toml::Value::as_array)
+        .cloned()
+        .unwrap_or_default();
+    for stage in stages {
+        let id = stage
+            .get("id")
+            .and_then(toml::Value::as_str)
+            .unwrap_or_default();
+        let status = stage
+            .get("status")
+            .and_then(toml::Value::as_str)
+            .unwrap_or_default();
+        if status != "supported" {
+            continue;
+        }
+        assert!(
+            bound_stage_ids.contains(id),
+            "supported VCF stage {id} must have at least one tool binding in tool_registry_vcf.toml"
+        );
+        assert!(
+            planner_source.contains(id),
+            "supported VCF stage {id} must be referenced by planner-vcf"
+        );
+        assert!(
+            stages_source.contains("implemented_stages"),
+            "stages-vcf must expose implemented stages for support gating"
+        );
+    }
+}

@@ -1,0 +1,19 @@
+{
+  "pipeline_id": "vcf-to-vcf__minimal__v1",
+  "tools": {
+    "vcf.call": "bcftools",
+    "vcf.filter": "bcftools",
+    "vcf.stats": "bcftools"
+  },
+  "params": {
+    "vcf.call": {
+      "schema_version": "bijux.vcf.params.v1"
+    },
+    "vcf.filter": {
+      "schema_version": "bijux.vcf.params.v1"
+    },
+    "vcf.stats": {
+      "schema_version": "bijux.vcf.params.v1"
+    }
+  }
+}

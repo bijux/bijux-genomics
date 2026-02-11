@@ -60,6 +60,8 @@ mod mod_contracts_pipeline_ssot_stage_ids_rs;
 mod mod_contracts_pipeline_stable_ordering_rs;
 #[path = "contracts/pipeline/stage_boundaries.rs"]
 mod mod_contracts_pipeline_stage_boundaries_rs;
+#[path = "contracts/pipeline/vcf_fixture.rs"]
+mod mod_contracts_pipeline_vcf_fixture_rs;
 #[path = "contracts/public_api.rs"]
 mod mod_contracts_public_api_rs;
 #[path = "contracts/report/docs_report_sections.rs"]

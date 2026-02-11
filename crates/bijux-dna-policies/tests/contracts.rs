@@ -84,6 +84,8 @@ mod mod_contracts_tooling_scripts_registry_wrapper_policy_rs;
 mod mod_contracts_tooling_smoke_manifest_policy_rs;
 #[path = "contracts/tooling/snapshot_hygiene_policy.rs"]
 mod mod_contracts_tooling_snapshot_hygiene_policy_rs;
+#[path = "contracts/tooling/stage_id_symmetry_policy.rs"]
+mod mod_contracts_tooling_stage_id_symmetry_policy_rs;
 #[path = "contracts/tooling/stage_registry_fixture_completeness.rs"]
 mod mod_contracts_tooling_stage_registry_fixture_completeness_rs;
 #[path = "contracts/tooling/stage_tool_matrix_policy.rs"]
