@@ -11,6 +11,8 @@ mod mod_contracts_banks_rs;
 mod mod_contracts_cli_behavior_rs;
 #[path = "contracts/dry_run.rs"]
 mod mod_contracts_dry_run_rs;
+#[path = "contracts/hpc_layout_spec.rs"]
+mod mod_contracts_hpc_layout_spec_rs;
 #[path = "snapshots/help.rs"]
 mod mod_snapshots_help_rs;
 #[path = "contracts/banks/bank_fixtures.rs"]
