@@ -155,7 +155,7 @@
       "span_id": "span-fastq.detect_adapters",
       "stage_id": "fastq.detect_adapters",
       "tool_id": "unknown",
-      "tool_version": "0.0.0",
+      "tool_version": "99.99.99+fixture",
       "trace_id": "trace-fastq-to-fastq__default__v1"
     },
     {
@@ -165,7 +165,7 @@
       "span_id": "span-fastq.filter",
       "stage_id": "fastq.filter",
       "tool_id": "unknown",
-      "tool_version": "0.0.0",
+      "tool_version": "99.99.99+fixture",
       "trace_id": "trace-fastq-to-fastq__default__v1"
     },
     {
@@ -175,7 +175,7 @@
       "span_id": "span-fastq.qc_post",
       "stage_id": "fastq.qc_post",
       "tool_id": "unknown",
-      "tool_version": "0.0.0",
+      "tool_version": "99.99.99+fixture",
       "trace_id": "trace-fastq-to-fastq__default__v1"
     },
     {
@@ -185,7 +185,7 @@
       "span_id": "span-fastq.stats_neutral",
       "stage_id": "fastq.stats_neutral",
       "tool_id": "unknown",
-      "tool_version": "0.0.0",
+      "tool_version": "99.99.99+fixture",
       "trace_id": "trace-fastq-to-fastq__default__v1"
     },
     {
@@ -195,7 +195,7 @@
       "span_id": "span-fastq.trim",
       "stage_id": "fastq.trim",
       "tool_id": "unknown",
-      "tool_version": "0.0.0",
+      "tool_version": "99.99.99+fixture",
       "trace_id": "trace-fastq-to-fastq__default__v1"
     },
     {
@@ -205,7 +205,7 @@
       "span_id": "span-fastq.validate_pre",
       "stage_id": "fastq.validate_pre",
       "tool_id": "unknown",
-      "tool_version": "0.0.0",
+      "tool_version": "99.99.99+fixture",
       "trace_id": "trace-fastq-to-fastq__default__v1"
     }
   ],
@@ -431,7 +431,7 @@
           "stage_id": "fastq.detect_adapters",
           "telemetry_decisions": [],
           "tool_id": "unknown",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "adapter_validation": {},
@@ -444,7 +444,7 @@
           "stage_id": "fastq.filter",
           "telemetry_decisions": [],
           "tool_id": "unknown",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "adapter_validation": {},
@@ -457,7 +457,7 @@
           "stage_id": "fastq.qc_post",
           "telemetry_decisions": [],
           "tool_id": "unknown",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "adapter_validation": {},
@@ -470,7 +470,7 @@
           "stage_id": "fastq.stats_neutral",
           "telemetry_decisions": [],
           "tool_id": "unknown",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "adapter_validation": {},
@@ -483,7 +483,7 @@
           "stage_id": "fastq.trim",
           "telemetry_decisions": [],
           "tool_id": "unknown",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "adapter_validation": {},
@@ -496,7 +496,7 @@
           "stage_id": "fastq.validate_pre",
           "telemetry_decisions": [],
           "tool_id": "unknown",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         }
       ]
     },
@@ -581,42 +581,42 @@
           "params_hash": "params",
           "stage_id": "fastq.detect_adapters",
           "tool_id": "unknown",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_config_path": "stage_3/effective_config.json",
           "params_hash": "params",
           "stage_id": "fastq.filter",
           "tool_id": "unknown",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_config_path": "stage_5/effective_config.json",
           "params_hash": "params",
           "stage_id": "fastq.qc_post",
           "tool_id": "unknown",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_config_path": "stage_4/effective_config.json",
           "params_hash": "params",
           "stage_id": "fastq.stats_neutral",
           "tool_id": "unknown",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_config_path": "stage_2/effective_config.json",
           "params_hash": "params",
           "stage_id": "fastq.trim",
           "tool_id": "unknown",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_config_path": "stage_0/effective_config.json",
           "params_hash": "params",
           "stage_id": "fastq.validate_pre",
           "tool_id": "unknown",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         }
       ],
       "tie_break_policy": [
@@ -628,42 +628,42 @@
           "params_hash": "params",
           "stage_id": "fastq.detect_adapters",
           "tool_id": "unknown",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "fastq.filter",
           "tool_id": "unknown",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "fastq.qc_post",
           "tool_id": "unknown",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "fastq.stats_neutral",
           "tool_id": "unknown",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "fastq.trim",
           "tool_id": "unknown",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "fastq.validate_pre",
           "tool_id": "unknown",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         }
       ]
     },
@@ -827,7 +827,7 @@
           "tier_rationale": "unknown_tool",
           "tool_id": "unknown",
           "tool_tier": "experimental",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
@@ -841,7 +841,7 @@
           "tier_rationale": "unknown_tool",
           "tool_id": "unknown",
           "tool_tier": "experimental",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
@@ -855,7 +855,7 @@
           "tier_rationale": "unknown_tool",
           "tool_id": "unknown",
           "tool_tier": "experimental",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
@@ -869,7 +869,7 @@
           "tier_rationale": "unknown_tool",
           "tool_id": "unknown",
           "tool_tier": "experimental",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
@@ -883,7 +883,7 @@
           "tier_rationale": "unknown_tool",
           "tool_id": "unknown",
           "tool_tier": "experimental",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
@@ -897,7 +897,7 @@
           "tier_rationale": "unknown_tool",
           "tool_id": "unknown",
           "tool_tier": "experimental",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         }
       ]
     },
@@ -939,7 +939,7 @@
       ],
       "started_at": null,
       "tool_versions": [
-        "0.0.0"
+        "99.99.99+fixture"
       ]
     },
     "retention": {
@@ -965,7 +965,7 @@
           "resolved_tool_version": null,
           "stage_id": "fastq.detect_adapters",
           "tool_id": "unknown",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_params": {},
@@ -979,7 +979,7 @@
           "resolved_tool_version": null,
           "stage_id": "fastq.filter",
           "tool_id": "unknown",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_params": {},
@@ -993,7 +993,7 @@
           "resolved_tool_version": null,
           "stage_id": "fastq.qc_post",
           "tool_id": "unknown",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_params": {},
@@ -1007,7 +1007,7 @@
           "resolved_tool_version": null,
           "stage_id": "fastq.stats_neutral",
           "tool_id": "unknown",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_params": {},
@@ -1021,7 +1021,7 @@
           "resolved_tool_version": null,
           "stage_id": "fastq.trim",
           "tool_id": "unknown",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_params": {},
@@ -1035,7 +1035,7 @@
           "resolved_tool_version": null,
           "stage_id": "fastq.validate_pre",
           "tool_id": "unknown",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         }
       ]
     },
@@ -1223,7 +1223,7 @@
       "stage_report_path": "stage_1/stage_report.json",
       "tool_id": "unknown",
       "tool_invocation_path": "stage_1/tool_invocation.json",
-      "tool_version": "0.0.0"
+      "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": null,
@@ -1239,7 +1239,7 @@
       "stage_report_path": "stage_3/stage_report.json",
       "tool_id": "unknown",
       "tool_invocation_path": "stage_3/tool_invocation.json",
-      "tool_version": "0.0.0"
+      "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": null,
@@ -1255,7 +1255,7 @@
       "stage_report_path": "stage_5/stage_report.json",
       "tool_id": "unknown",
       "tool_invocation_path": "stage_5/tool_invocation.json",
-      "tool_version": "0.0.0"
+      "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": null,
@@ -1271,7 +1271,7 @@
       "stage_report_path": "stage_4/stage_report.json",
       "tool_id": "unknown",
       "tool_invocation_path": "stage_4/tool_invocation.json",
-      "tool_version": "0.0.0"
+      "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": null,
@@ -1287,7 +1287,7 @@
       "stage_report_path": "stage_2/stage_report.json",
       "tool_id": "unknown",
       "tool_invocation_path": "stage_2/tool_invocation.json",
-      "tool_version": "0.0.0"
+      "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": null,
@@ -1303,7 +1303,7 @@
       "stage_report_path": "stage_0/stage_report.json",
       "tool_id": "unknown",
       "tool_invocation_path": "stage_0/tool_invocation.json",
-      "tool_version": "0.0.0"
+      "tool_version": "99.99.99+fixture"
     }
   ],
   "telemetry": {
