@@ -3,7 +3,7 @@ default = 0.0
 [classes]
 high = 40.0
 low = 5.0
-critical = 15.0
+critical = 20.0
 
 [crate_class]
 bijux-dna-core = "high"
