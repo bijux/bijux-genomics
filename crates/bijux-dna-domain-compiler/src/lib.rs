@@ -543,6 +543,7 @@ fn is_unspecified(text: &str) -> bool {
     trimmed.is_empty() || trimmed.eq_ignore_ascii_case("unspecified")
 }
 
+#[allow(clippy::too_many_lines)]
 fn load_domain_tools(
     domain_dir: &Path,
     domain: &str,
@@ -583,7 +584,8 @@ fn load_domain_tools(
             return Err(anyhow!("{} missing scope", path.display()));
         }
         ensure_status(&tool.status, &path)?;
-        if has_supported_placeholder_forbidden_token(&tool_raw) && !placeholders_allowed(&tool.status)
+        if has_supported_placeholder_forbidden_token(&tool_raw)
+            && !placeholders_allowed(&tool.status)
         {
             bail!(
                 "{} contains placeholder token; placeholders are allowed only under status=planned",
@@ -655,6 +657,7 @@ fn load_domain_tools(
     Ok(())
 }
 
+#[allow(clippy::too_many_arguments)]
 fn load_domain_stages(
     domain_dir: &Path,
     domain: &str,
@@ -716,6 +719,7 @@ fn load_domain_stages(
     Ok(())
 }
 
+#[allow(clippy::too_many_lines)]
 fn collect_domain_data(
     domain_dir: &Path,
     active_scope: &str,
@@ -1360,14 +1364,14 @@ fn build_stages_toml(
     pipelines.sort_by(|a, b| a.0.cmp(&b.0));
     for (pipeline_id, stages) in pipelines {
         let _ = writeln!(stages_toml, "[[pipelines]]");
-        let _ = writeln!(stages_toml, "id = \"{}\"", pipeline_id);
+        let _ = writeln!(stages_toml, "id = \"{pipeline_id}\"");
         let _ = writeln!(stages_toml, "stages = {}", toml_array(&stages));
         stages_toml.push('\n');
     }
     benchmark_scenarios.sort_by(|a, b| a.0.cmp(&b.0));
     for (scenario_id, scenario) in benchmark_scenarios {
         let _ = writeln!(stages_toml, "[[benchmark_scenarios]]");
-        let _ = writeln!(stages_toml, "id = \"{}\"", scenario_id);
+        let _ = writeln!(stages_toml, "id = \"{scenario_id}\"");
         let _ = writeln!(stages_toml, "stage_id = \"{}\"", scenario.stage_id);
         let _ = writeln!(
             stages_toml,
@@ -2753,6 +2757,7 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
 
 /// # Errors
 /// Returns an error if domain indexes/tools/stages cannot be parsed.
+#[allow(clippy::too_many_lines)]
 pub fn domain_coverage_report(domain_dir: &Path) -> Result<serde_json::Value> {
     let mut by_domain = BTreeMap::new();
     for dom in ["fastq", "bam"] {
@@ -2828,7 +2833,7 @@ pub fn domain_coverage_report(domain_dir: &Path) -> Result<serde_json::Value> {
         for tool_id in &index.tool_ids {
             let tool_path = tool_path_by_id
                 .get(tool_id)
-                .ok_or_else(|| anyhow!("missing tool file for {}", tool_id))?;
+                .ok_or_else(|| anyhow!("missing tool file for {tool_id}"))?;
             let tool: DomainToolLoose = read_yaml(tool_path)?;
             if tool.status != "supported" {
                 continue;
@@ -2874,19 +2879,22 @@ mod tests {
 
     #[test]
     fn tool_output_validation_rejects_unknown_output_name() {
-        let tool = r#"
+        let tool = r"
 tool_id: fastp
 outputs:
   - name: trimmed_reads
   - name: rogue_output
-"#;
-        let stage = r#"
+";
+        let stage = r"
 stage_id: fastq.trim
 outputs:
   - name: trimmed_reads
-"#;
-        let err = validate_tool_output_subset(tool, stage, Path::new("tool.yaml"), "fastq.trim")
-            .expect_err("must reject unknown output");
+";
+        let Err(err) =
+            validate_tool_output_subset(tool, stage, Path::new("tool.yaml"), "fastq.trim")
+        else {
+            panic!("must reject unknown output");
+        };
         assert!(
             err.to_string().contains("rogue_output"),
             "unexpected error: {err}"
