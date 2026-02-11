@@ -1,8 +1,6 @@
 #![allow(dead_code)]
 
 use std::collections::{BTreeMap, BTreeSet};
-use std::fs::{DirBuilder, File};
-use std::io::Write;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
@@ -427,13 +425,10 @@ fn handle_status_root(args: &cli::StatusArgs, cwd: &Path) -> Result<()> {
         }
 
         if let Some(parent) = path.parent() {
-            DirBuilder::new()
-                .recursive(true)
-                .create(parent)
+            bijux_dna_api::v1::api::run::ensure_dir(parent)
                 .with_context(|| format!("create {}", parent.display()))?;
         }
-        let mut file = File::create(path).with_context(|| format!("write {}", path.display()))?;
-        file.write_all(md.as_bytes())
+        bijux_dna_api::v1::api::run::atomic_write_bytes(path, md.as_bytes())
             .with_context(|| format!("write {}", path.display()))?;
         println!("scope_closure_checklist={}", path.display());
     }
