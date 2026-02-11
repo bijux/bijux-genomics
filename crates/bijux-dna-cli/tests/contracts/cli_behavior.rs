@@ -279,6 +279,29 @@ fn cli_pipelines_explain_unknown_pipeline_fails() {
 }
 
 #[test]
+fn cli_pipelines_explain_profile_fastq_adna_includes_invariants() {
+    let workspace = CliWorkspace::new();
+    let stdout = run_cli_capture(
+        &workspace,
+        &["dna", "pipelines", "explain-profile", "fastq-adna"],
+    )
+    .expect("cli ok");
+    let payload: Value = serde_json::from_str(&stdout).expect("parse explain-profile json");
+    let resolved_id = payload
+        .get("profile_id_resolved")
+        .and_then(Value::as_str)
+        .unwrap_or_default();
+    assert_eq!(resolved_id, "fastq-to-fastq__adna__v1");
+    let valid = payload
+        .get("invariants")
+        .and_then(|v| v.get("valid"))
+        .and_then(Value::as_bool)
+        .unwrap_or(false);
+    assert!(valid, "expected valid invariants payload");
+    assert!(payload.get("effective_params").is_some());
+}
+
+#[test]
 fn cli_fastq_preprocess_dry_run_writes_artifacts() {
     let workspace = CliWorkspace::new();
     workspace.setup_configs();
