@@ -115,7 +115,8 @@ pub fn redact_key(key: &str) -> bool {
 
 #[must_use]
 pub fn redacted_attrs(attrs: &AttrMap) -> AttrMap {
-    attrs.iter()
+    attrs
+        .iter()
         .map(|(k, v)| {
             if redact_key(k) {
                 (k.clone(), AttrValue::Str(REDACT_TOKEN.to_string()))
@@ -146,7 +147,8 @@ pub fn validate_stage_telemetry(events: &[TelemetryEventV1]) -> Vec<String> {
         .iter()
         .filter(|event| matches!(event.event_name, TelemetryEventName::ArtifactWritten))
     {
-        let has_ref = event.attrs.contains_key("artifact_id") || event.attrs.contains_key("artifact_path");
+        let has_ref =
+            event.attrs.contains_key("artifact_id") || event.attrs.contains_key("artifact_path");
         if !has_ref {
             violations.push(format!(
                 "artifact_written event missing artifact reference for stage {}",
@@ -214,4 +216,15 @@ pub struct RunProvenanceV1 {
     pub build_profile: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub plan_hash: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+pub enum RunContextV1 {
+    Local,
+    Hpc {
+        site: String,
+        scratch: String,
+        slurm: bool,
+    },
 }

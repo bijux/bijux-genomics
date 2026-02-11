@@ -15,6 +15,7 @@ tracing.workspace = true
 uuid.workspace = true
 chrono.workspace = true
 sha2.workspace = true
+regex.workspace = true
 bijux-dna-core = { path = "../bijux-dna-core" }
 bijux-dna-domain-bam = { path = "../bijux-dna-domain-bam" }
 bijux-dna-domain-fastq = { path = "../bijux-dna-domain-fastq" }
