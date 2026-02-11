@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 53b050a6d117e40e0122777655e9d8cc428be9ad
+# source_commit: ea7b857e54b121b8e1f5e71905915f68eb7c8666
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 
@@ -7,8 +7,11 @@
 id = "alientrimmer"
 tool_id = "alientrimmer"
 domain = "fastq"
-status = "experimental"
+domains = ["fastq"]
+status = "supported"
 stage_ids = ["fastq.trim"]
+bindings = ["fastq.trim"]
+tool_role = "trimmer"
 version = "0.4.0"
 default_version = "0.4.0"
 upstream = "https://gite.lirmm.fr/clegrand/AlienTrimmer"
@@ -38,8 +41,11 @@ require_labels = true
 id = "angsd"
 tool_id = "angsd"
 domain = "bam"
-status = "experimental"
+domains = ["bam"]
+status = "supported"
 stage_ids = ["bam.sex", "bam.kinship"]
+bindings = ["bam.kinship", "bam.sex"]
+tool_role = "transform"
 version = "0.940"
 default_version = "0.940"
 upstream = "https://github.com/ANGSD/angsd"
@@ -69,8 +75,11 @@ require_labels = true
 id = "authenticct"
 tool_id = "authenticct"
 domain = "bam"
-status = "experimental"
+domains = ["bam"]
+status = "supported"
 stage_ids = ["bam.authenticity"]
+bindings = ["bam.authenticity"]
+tool_role = "transform"
 version = "1.0.0"
 default_version = "1.0.0"
 upstream = "https://github.com/StephanePeyregne/AuthentiCT"
@@ -100,8 +109,11 @@ require_labels = true
 id = "bamtools"
 tool_id = "bamtools"
 domain = "bam"
-status = "experimental"
+domains = ["bam"]
+status = "supported"
 stage_ids = ["bam.validate", "bam.filter", "bam.mapq_filter"]
+bindings = ["bam.filter", "bam.mapq_filter", "bam.validate"]
+tool_role = "filter"
 version = "2.5.2"
 default_version = "2.5.2"
 upstream = "https://github.com/pezmaster31/bamtools"
@@ -131,8 +143,11 @@ require_labels = true
 id = "bbduk"
 tool_id = "bbduk"
 domain = "fastq"
+domains = ["fastq"]
 status = "supported"
 stage_ids = ["fastq.trim", "fastq.low_complexity"]
+bindings = ["fastq.low_complexity", "fastq.trim"]
+tool_role = "transform"
 version = "39.08"
 default_version = "39.08"
 upstream = "https://sourceforge.net/projects/bbmap/"
@@ -162,8 +177,11 @@ require_labels = true
 id = "bedtools"
 tool_id = "bedtools"
 domain = "bam"
+domains = ["bam"]
 status = "supported"
 stage_ids = ["bam.validate", "bam.filter"]
+bindings = ["bam.filter", "bam.validate"]
+tool_role = "filter"
 version = "2.31.1"
 default_version = "2.31.1"
 upstream = "https://github.com/arq5x/bedtools2"
@@ -193,9 +211,11 @@ require_labels = true
 id = "bowtie2"
 tool_id = "bowtie2"
 domain = "bam"
+domains = ["bam"]
 status = "supported"
-domains = ["bam", "fastq"]
 stage_ids = ["bam.align"]
+bindings = ["bam.align"]
+tool_role = "aligner"
 version = "2.5.4"
 default_version = "2.5.4"
 upstream = "https://github.com/BenLangmead/bowtie2"
@@ -225,8 +245,11 @@ require_labels = true
 id = "bracken"
 tool_id = "bracken"
 domain = "fastq"
-status = "experimental"
+domains = ["fastq"]
+status = "supported"
 stage_ids = ["fastq.screen"]
+bindings = ["fastq.screen"]
+tool_role = "screen"
 version = "2.9"
 default_version = "2.9"
 upstream = "https://github.com/jenniferlu717/Bracken"
@@ -256,8 +279,11 @@ require_labels = true
 id = "bwa"
 tool_id = "bwa"
 domain = "bam"
+domains = ["bam"]
 status = "supported"
 stage_ids = ["bam.align"]
+bindings = ["bam.align"]
+tool_role = "aligner"
 version = "0.7.17"
 default_version = "0.7.17"
 upstream = "https://github.com/lh3/bwa"
@@ -287,8 +313,11 @@ require_labels = true
 id = "contammix"
 tool_id = "contammix"
 domain = "bam"
-status = "experimental"
+domains = ["bam"]
+status = "supported"
 stage_ids = ["bam.contamination"]
+bindings = ["bam.contamination"]
+tool_role = "transform"
 version = "1.0.11"
 default_version = "1.0.11"
 upstream = "https://bioconductor.org/packages/contamMix"
@@ -318,8 +347,11 @@ require_labels = true
 id = "fastp"
 tool_id = "fastp"
 domain = "fastq"
+domains = ["fastq"]
 status = "supported"
 stage_ids = ["fastq.trim", "fastq.filter"]
+bindings = ["fastq.filter", "fastq.trim"]
+tool_role = "filter"
 version = "0.23.4"
 default_version = "0.23.4"
 upstream = "https://github.com/OpenGene/fastp/archive/v${VERSION_FASTP}.tar.gz"
@@ -349,8 +381,11 @@ require_labels = true
 id = "fastqc"
 tool_id = "fastqc"
 domain = "fastq"
+domains = ["fastq"]
 status = "supported"
 stage_ids = ["fastq.detect_adapters"]
+bindings = ["fastq.detect_adapters"]
+tool_role = "trimmer"
 version = "0.12.1"
 default_version = "0.12.1"
 upstream = "https://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v${VERSION_FASTQC}.zip"
@@ -380,8 +415,11 @@ require_labels = true
 id = "fastqvalidator_official"
 tool_id = "fastqvalidator_official"
 domain = "fastq"
+domains = ["fastq"]
 status = "supported"
 stage_ids = ["fastq.validate_pre"]
+bindings = ["fastq.validate_pre"]
+tool_role = "validator"
 version = "v0.1.1"
 default_version = "v0.1.1"
 upstream = "https://github.com/fastqvalidator_official/fastqvalidator_official"
@@ -411,15 +449,18 @@ require_labels = true
 id = "fastx_clipper"
 tool_id = "fastx_clipper"
 domain = "fastq"
+domains = ["fastq"]
 status = "supported"
 stage_ids = ["fastq.trim"]
+bindings = ["fastq.trim"]
+tool_role = "trimmer"
 version = "0.0.14"
 default_version = "0.0.14"
 upstream = "https://github.com/agordon/fastx_toolkit"
 version_rule = "pinned"
 license = "GPL-3.0"
 citation = "upstream:https://github.com/agordon/fastx_toolkit"
-pinned_commit = "git:ea0ca83ba24dce80c20ca589b838a281fe5deb0c"
+pinned_commit = "release:0.0.14"
 pin_strategy = "pinned"
 container_ref = "bijuxdna/fastx_clipper:0.0.14"
 runtimes = ["docker", "apptainer"]
@@ -442,8 +483,11 @@ require_labels = true
 id = "king"
 tool_id = "king"
 domain = "bam"
+domains = ["bam"]
 status = "supported"
 stage_ids = ["bam.kinship"]
+bindings = ["bam.kinship"]
+tool_role = "transform"
 version = "2.3.0"
 default_version = "2.3.0"
 upstream = "https://www.kingrelatedness.com/"
@@ -473,8 +517,11 @@ require_labels = true
 id = "kraken2"
 tool_id = "kraken2"
 domain = "fastq"
+domains = ["fastq"]
 status = "supported"
 stage_ids = ["fastq.screen"]
+bindings = ["fastq.screen"]
+tool_role = "screen"
 version = "2.1.3"
 default_version = "2.1.3"
 upstream = "https://github.com/DerrickWood/kraken2/archive/v${VERSION_KRAKEN2}.tar.gz"
@@ -504,8 +551,11 @@ require_labels = true
 id = "krakenuniq"
 tool_id = "krakenuniq"
 domain = "fastq"
+domains = ["fastq"]
 status = "supported"
 stage_ids = ["fastq.screen"]
+bindings = ["fastq.screen"]
+tool_role = "screen"
 version = "1.0.4"
 default_version = "1.0.4"
 upstream = "https://github.com/fbreitwieser/krakenuniq"
@@ -535,8 +585,11 @@ require_labels = true
 id = "mapdamage2"
 tool_id = "mapdamage2"
 domain = "bam"
+domains = ["bam"]
 status = "supported"
 stage_ids = ["bam.damage"]
+bindings = ["bam.damage"]
+tool_role = "transform"
 version = "2.2.2"
 default_version = "2.2.2"
 upstream = "https://github.com/ginolhac/mapDamage"
@@ -566,8 +619,11 @@ require_labels = true
 id = "mosdepth"
 tool_id = "mosdepth"
 domain = "bam"
+domains = ["bam"]
 status = "supported"
 stage_ids = ["bam.coverage"]
+bindings = ["bam.coverage"]
+tool_role = "transform"
 version = "0.3.10"
 default_version = "0.3.10"
 upstream = "https://github.com/brentp/mosdepth"
@@ -597,8 +653,11 @@ require_labels = true
 id = "multiqc"
 tool_id = "multiqc"
 domain = "fastq"
+domains = ["fastq"]
 status = "supported"
 stage_ids = ["fastq.qc_post"]
+bindings = ["fastq.qc_post"]
+tool_role = "qc"
 version = "1.24"
 default_version = "1.24"
 upstream = "https://github.com/multiqc/multiqc"
@@ -628,8 +687,11 @@ require_labels = true
 id = "pear"
 tool_id = "pear"
 domain = "fastq"
+domains = ["fastq"]
 status = "supported"
 stage_ids = ["fastq.merge"]
+bindings = ["fastq.merge"]
+tool_role = "merger"
 version = "0.9.6"
 default_version = "0.9.6"
 upstream = "https://github.com/xflouris/PEAR"
@@ -659,8 +721,11 @@ require_labels = true
 id = "pmdtools"
 tool_id = "pmdtools"
 domain = "bam"
+domains = ["bam"]
 status = "supported"
 stage_ids = ["bam.damage", "bam.authenticity"]
+bindings = ["bam.authenticity", "bam.damage"]
+tool_role = "transform"
 version = "0.60"
 default_version = "0.60"
 upstream = "https://github.com/pontussk/PMDtools"
@@ -690,8 +755,11 @@ require_labels = true
 id = "pydamage"
 tool_id = "pydamage"
 domain = "bam"
+domains = ["bam"]
 status = "supported"
 stage_ids = ["bam.damage"]
+bindings = ["bam.damage"]
+tool_role = "transform"
 version = "1.0.0"
 default_version = "1.0.0"
 upstream = "https://github.com/maxibor/pydamage"
@@ -721,8 +789,11 @@ require_labels = true
 id = "rcorrector"
 tool_id = "rcorrector"
 domain = "fastq"
+domains = ["fastq"]
 status = "supported"
 stage_ids = ["fastq.correct"]
+bindings = ["fastq.correct"]
+tool_role = "corrector"
 version = "1.0.7"
 default_version = "1.0.7"
 upstream = "https://github.com/mourisl/Rcorrector"
@@ -752,8 +823,11 @@ require_labels = true
 id = "rxy"
 tool_id = "rxy"
 domain = "bam"
+domains = ["bam"]
 status = "supported"
 stage_ids = ["bam.sex"]
+bindings = ["bam.sex"]
+tool_role = "transform"
 version = "1.0.0"
 default_version = "1.0.0"
 upstream = "https://github.com/bijux/bijux-dna"
@@ -783,8 +857,11 @@ require_labels = true
 id = "samtools"
 tool_id = "samtools"
 domain = "bam"
+domains = ["bam", "fastq"]
 status = "supported"
 stage_ids = ["bam.align", "bam.validate", "bam.qc_pre", "bam.mapping_summary", "bam.filter", "bam.mapq_filter", "bam.length_filter", "bam.markdup", "bam.duplication_metrics", "bam.coverage", "bam.endogenous_content", "bam.overlap_correction", "fastq.prepare_reference", "fastq.qc_post"]
+bindings = ["bam.align", "bam.coverage", "bam.duplication_metrics", "bam.endogenous_content", "bam.filter", "bam.length_filter", "bam.mapping_summary", "bam.mapq_filter", "bam.markdup", "bam.overlap_correction", "bam.qc_pre", "bam.validate", "fastq.prepare_reference", "fastq.qc_post"]
+tool_role = "aligner"
 version = "1.21"
 default_version = "1.21"
 upstream = "https://github.com/samtools/samtools"
@@ -814,8 +891,11 @@ require_labels = true
 id = "schmutzi"
 tool_id = "schmutzi"
 domain = "bam"
+domains = ["bam"]
 status = "supported"
 stage_ids = ["bam.contamination"]
+bindings = ["bam.contamination"]
+tool_role = "transform"
 version = "1.5.4"
 default_version = "1.5.4"
 upstream = "https://github.com/grenaud/schmutzi"
@@ -845,8 +925,11 @@ require_labels = true
 id = "seqkit"
 tool_id = "seqkit"
 domain = "fastq"
+domains = ["fastq"]
 status = "supported"
 stage_ids = ["fastq.filter"]
+bindings = ["fastq.filter"]
+tool_role = "filter"
 version = "2.8.2"
 default_version = "2.8.2"
 upstream = "https://github.com/shenwei356/seqkit/releases/download/v${VERSION_SEQKIT}/seqkit_linux_arm64.tar.gz"
@@ -876,8 +959,11 @@ require_labels = true
 id = "seqkit_stats"
 tool_id = "seqkit_stats"
 domain = "fastq"
+domains = ["fastq"]
 status = "supported"
 stage_ids = ["fastq.stats_neutral"]
+bindings = ["fastq.stats_neutral"]
+tool_role = "qc"
 version = "2.7.0"
 default_version = "2.7.0"
 upstream = "https://github.com/seqkit_stats/seqkit_stats"
@@ -907,8 +993,11 @@ require_labels = true
 id = "sortmerna"
 tool_id = "sortmerna"
 domain = "fastq"
+domains = ["fastq"]
 status = "supported"
 stage_ids = ["fastq.filter"]
+bindings = ["fastq.filter"]
+tool_role = "filter"
 version = "4.3.7"
 default_version = "4.3.7"
 upstream = "https://github.com/biocore/sortmerna"
@@ -938,8 +1027,11 @@ require_labels = true
 id = "star"
 tool_id = "star"
 domain = "fastq"
+domains = ["fastq"]
 status = "supported"
 stage_ids = ["fastq.prepare_reference"]
+bindings = ["fastq.prepare_reference"]
+tool_role = "transform"
 version = "2.7.11b"
 default_version = "2.7.11b"
 upstream = "https://github.com/alexdobin/STAR"
@@ -969,8 +1061,11 @@ require_labels = true
 id = "umi_tools"
 tool_id = "umi_tools"
 domain = "fastq"
+domains = ["fastq"]
 status = "supported"
 stage_ids = ["fastq.umi"]
+bindings = ["fastq.umi"]
+tool_role = "transform"
 version = "1.1.6"
 default_version = "1.1.6"
 upstream = "https://github.com/umi_tools/umi_tools"
@@ -1000,8 +1095,11 @@ require_labels = true
 id = "verifybamid2"
 tool_id = "verifybamid2"
 domain = "bam"
+domains = ["bam"]
 status = "supported"
 stage_ids = ["bam.contamination"]
+bindings = ["bam.contamination"]
+tool_role = "transform"
 version = "2.0.1"
 default_version = "2.0.1"
 upstream = "https://github.com/Griffan/VerifyBamID"
@@ -1031,8 +1129,11 @@ require_labels = true
 id = "vsearch"
 tool_id = "vsearch"
 domain = "fastq"
+domains = ["fastq"]
 status = "supported"
 stage_ids = ["fastq.merge"]
+bindings = ["fastq.merge"]
+tool_role = "merger"
 version = "2.28.1"
 default_version = "2.28.1"
 upstream = "https://github.com/vsearch/vsearch"
@@ -1060,6 +1161,7 @@ require_labels = true
 
 [[stages]]
 id = "bam.align"
+required_tool_roles = ["aligner"]
 primary_tools = ["bwa"]
 optional_alternatives = ["bwa"]
 validation_tools = []
@@ -1071,6 +1173,7 @@ requires_reporting = false
 
 [[stages]]
 id = "bam.authenticity"
+required_tool_roles = ["transform"]
 primary_tools = ["authenticct"]
 optional_alternatives = ["pmdtools"]
 validation_tools = []
@@ -1082,6 +1185,7 @@ requires_reporting = false
 
 [[stages]]
 id = "bam.contamination"
+required_tool_roles = ["transform"]
 primary_tools = ["schmutzi"]
 optional_alternatives = ["schmutzi", "verifybamid2"]
 validation_tools = []
@@ -1093,6 +1197,7 @@ requires_reporting = false
 
 [[stages]]
 id = "bam.coverage"
+required_tool_roles = ["transform"]
 primary_tools = ["mosdepth"]
 optional_alternatives = ["samtools"]
 validation_tools = []
@@ -1104,6 +1209,7 @@ requires_reporting = false
 
 [[stages]]
 id = "bam.damage"
+required_tool_roles = ["transform"]
 primary_tools = ["mapdamage2"]
 optional_alternatives = ["pmdtools", "pydamage"]
 validation_tools = []
@@ -1115,6 +1221,7 @@ requires_reporting = false
 
 [[stages]]
 id = "bam.duplication_metrics"
+required_tool_roles = ["transform"]
 primary_tools = ["samtools"]
 optional_alternatives = []
 validation_tools = []
@@ -1126,6 +1233,7 @@ requires_reporting = false
 
 [[stages]]
 id = "bam.endogenous_content"
+required_tool_roles = ["transform"]
 primary_tools = ["samtools"]
 optional_alternatives = []
 validation_tools = []
@@ -1137,6 +1245,7 @@ requires_reporting = false
 
 [[stages]]
 id = "bam.filter"
+required_tool_roles = ["filter"]
 primary_tools = ["samtools"]
 optional_alternatives = ["bedtools", "samtools"]
 validation_tools = []
@@ -1148,17 +1257,19 @@ requires_reporting = false
 
 [[stages]]
 id = "bam.haplogroups"
+required_tool_roles = ["transform"]
 primary_tools = ["samtools"]
 optional_alternatives = []
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
-default_rationale = "Haplogroup default prioritizes deterministic lineage signal extraction from mapped reads."
+default_rationale = ""
 requires_validation = false
 requires_reporting = false
 
 [[stages]]
 id = "bam.kinship"
+required_tool_roles = ["transform"]
 primary_tools = ["king"]
 optional_alternatives = ["king"]
 validation_tools = []
@@ -1170,6 +1281,7 @@ requires_reporting = false
 
 [[stages]]
 id = "bam.length_filter"
+required_tool_roles = ["filter"]
 primary_tools = ["samtools"]
 optional_alternatives = []
 validation_tools = []
@@ -1181,6 +1293,7 @@ requires_reporting = false
 
 [[stages]]
 id = "bam.mapping_summary"
+required_tool_roles = ["transform"]
 primary_tools = ["samtools"]
 optional_alternatives = []
 validation_tools = []
@@ -1192,6 +1305,7 @@ requires_reporting = false
 
 [[stages]]
 id = "bam.mapq_filter"
+required_tool_roles = ["filter"]
 primary_tools = ["samtools"]
 optional_alternatives = ["samtools"]
 validation_tools = []
@@ -1203,39 +1317,43 @@ requires_reporting = false
 
 [[stages]]
 id = "bam.markdup"
+required_tool_roles = ["transform"]
 primary_tools = ["samtools"]
 optional_alternatives = []
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
-default_rationale = "Duplicate marking default balances comparability and conservative retention."
+default_rationale = ""
 requires_validation = false
 requires_reporting = false
 
 [[stages]]
 id = "bam.overlap_correction"
+required_tool_roles = ["corrector"]
 primary_tools = ["samtools"]
 optional_alternatives = []
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
-default_rationale = "Overlap correction default prevents paired-read double-counting in damage-sensitive contexts."
+default_rationale = ""
 requires_validation = false
 requires_reporting = false
 
 [[stages]]
 id = "bam.qc_pre"
+required_tool_roles = ["qc"]
 primary_tools = ["samtools"]
 optional_alternatives = []
 validation_tools = []
 reporting_tools = ["multiqc"]
 planned_out_of_scope = []
-default_rationale = "Pre-QC default captures baseline BAM integrity metrics before downstream filters."
+default_rationale = ""
 requires_validation = false
 requires_reporting = true
 
 [[stages]]
 id = "bam.sex"
+required_tool_roles = ["transform"]
 primary_tools = ["rxy"]
 optional_alternatives = ["rxy"]
 validation_tools = []
@@ -1247,6 +1365,7 @@ requires_reporting = false
 
 [[stages]]
 id = "bam.validate"
+required_tool_roles = ["validator"]
 primary_tools = ["samtools"]
 optional_alternatives = ["bedtools", "samtools"]
 validation_tools = []
@@ -1258,6 +1377,7 @@ requires_reporting = false
 
 [[stages]]
 id = "fastq.contaminant_screen"
+required_tool_roles = ["screen"]
 primary_tools = ["bbduk"]
 optional_alternatives = ["bowtie2"]
 validation_tools = []
@@ -1269,6 +1389,7 @@ requires_reporting = false
 
 [[stages]]
 id = "fastq.correct"
+required_tool_roles = ["corrector"]
 primary_tools = ["rcorrector"]
 optional_alternatives = []
 validation_tools = []
@@ -1280,6 +1401,7 @@ requires_reporting = false
 
 [[stages]]
 id = "fastq.detect_adapters"
+required_tool_roles = ["trimmer"]
 primary_tools = ["fastp"]
 optional_alternatives = []
 validation_tools = []
@@ -1291,6 +1413,7 @@ requires_reporting = false
 
 [[stages]]
 id = "fastq.filter"
+required_tool_roles = ["filter"]
 primary_tools = ["fastp"]
 optional_alternatives = ["fastp", "seqkit"]
 validation_tools = []
@@ -1302,6 +1425,7 @@ requires_reporting = false
 
 [[stages]]
 id = "fastq.host_depletion"
+required_tool_roles = ["aligner"]
 primary_tools = ["bowtie2"]
 optional_alternatives = ["samtools"]
 validation_tools = []
@@ -1313,6 +1437,7 @@ requires_reporting = false
 
 [[stages]]
 id = "fastq.length_distribution_pre"
+required_tool_roles = ["transform"]
 primary_tools = ["seqkit_stats"]
 optional_alternatives = ["seqkit_stats"]
 validation_tools = []
@@ -1324,6 +1449,7 @@ requires_reporting = false
 
 [[stages]]
 id = "fastq.low_complexity"
+required_tool_roles = ["transform"]
 primary_tools = ["bbduk"]
 optional_alternatives = []
 validation_tools = []
@@ -1335,6 +1461,7 @@ requires_reporting = false
 
 [[stages]]
 id = "fastq.merge"
+required_tool_roles = ["merger"]
 primary_tools = ["pear"]
 optional_alternatives = ["vsearch"]
 validation_tools = []
@@ -1346,6 +1473,7 @@ requires_reporting = false
 
 [[stages]]
 id = "fastq.overrepresented_sequences"
+required_tool_roles = ["transform"]
 primary_tools = ["fastqc"]
 optional_alternatives = ["seqkit"]
 validation_tools = []
@@ -1357,6 +1485,7 @@ requires_reporting = false
 
 [[stages]]
 id = "fastq.polyg_tailing"
+required_tool_roles = ["transform"]
 primary_tools = ["fastp"]
 optional_alternatives = ["fastp"]
 validation_tools = []
@@ -1368,6 +1497,7 @@ requires_reporting = false
 
 [[stages]]
 id = "fastq.prepare_reference"
+required_tool_roles = ["transform"]
 primary_tools = ["star"]
 optional_alternatives = ["star"]
 validation_tools = []
@@ -1379,6 +1509,7 @@ requires_reporting = false
 
 [[stages]]
 id = "fastq.qc_post"
+required_tool_roles = ["qc"]
 primary_tools = ["multiqc"]
 optional_alternatives = ["multiqc", "samtools"]
 validation_tools = []
@@ -1390,6 +1521,7 @@ requires_reporting = true
 
 [[stages]]
 id = "fastq.rrna"
+required_tool_roles = ["transform"]
 primary_tools = ["sortmerna"]
 optional_alternatives = []
 validation_tools = []
@@ -1401,6 +1533,7 @@ requires_reporting = false
 
 [[stages]]
 id = "fastq.screen"
+required_tool_roles = ["screen"]
 primary_tools = ["kraken2"]
 optional_alternatives = ["kraken2", "krakenuniq"]
 validation_tools = []
@@ -1412,6 +1545,7 @@ requires_reporting = false
 
 [[stages]]
 id = "fastq.stats_neutral"
+required_tool_roles = ["qc"]
 primary_tools = ["seqkit_stats"]
 optional_alternatives = ["seqkit_stats"]
 validation_tools = []
@@ -1423,6 +1557,7 @@ requires_reporting = false
 
 [[stages]]
 id = "fastq.trim"
+required_tool_roles = ["trimmer"]
 primary_tools = ["fastp"]
 optional_alternatives = ["bbduk", "fastp", "fastx_clipper", "seqkit"]
 validation_tools = []
@@ -1434,6 +1569,7 @@ requires_reporting = false
 
 [[stages]]
 id = "fastq.umi"
+required_tool_roles = ["transform"]
 primary_tools = ["umi_tools"]
 optional_alternatives = []
 validation_tools = []
@@ -1445,6 +1581,7 @@ requires_reporting = false
 
 [[stages]]
 id = "fastq.validate_pre"
+required_tool_roles = ["validator"]
 primary_tools = ["fastqvalidator_official"]
 optional_alternatives = ["fastqvalidator_official"]
 validation_tools = []
@@ -1453,3 +1590,4 @@ planned_out_of_scope = []
 default_rationale = "Validation default has broad FASTQ format coverage."
 requires_validation = false
 requires_reporting = false
+
