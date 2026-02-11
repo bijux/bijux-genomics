@@ -45,6 +45,7 @@ fn policy__boundaries__cli_dependency_policy__cli_depends_only_on_api_and_cli_su
         "anyhow",
         "serde",
         "serde_json",
+        "regex",
     ];
     let offenders: Vec<String> = deps
         .iter()
