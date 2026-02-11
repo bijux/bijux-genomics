@@ -1,0 +1,23 @@
+schema_version: "bijux.stage.v1"
+stage_id: "vcf.filter"
+status: "supported"
+scope: "post_vcf"
+domain: "vcf"
+inputs:
+  - name: "vcf"
+    data_type: "vcf"
+    cardinality: "One"
+outputs:
+  - name: "filtered_vcf"
+    data_type: "vcf"
+    cardinality: "One"
+required_inputs: ["vcf"]
+required_outputs: ["filtered_vcf"]
+metrics:
+  - name: "filtered_variants"
+compatible_tools: ["bcftools"]
+assumptions: ["pass_filtering"]
+bank_hooks: ["none"]
+invariants: ["tool_pinned"]
+allowed_missingness: []
+planned_out_of_scope: []

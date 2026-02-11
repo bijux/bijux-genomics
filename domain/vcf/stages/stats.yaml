@@ -1,0 +1,24 @@
+schema_version: "bijux.stage.v1"
+stage_id: "vcf.stats"
+status: "supported"
+scope: "post_vcf"
+domain: "vcf"
+inputs:
+  - name: "vcf"
+    data_type: "vcf"
+    cardinality: "One"
+outputs:
+  - name: "stats_json"
+    data_type: "json"
+    cardinality: "One"
+required_inputs: ["vcf"]
+required_outputs: ["stats_json"]
+metrics:
+  - name: "variants_total"
+  - name: "ti_tv"
+compatible_tools: ["bcftools"]
+assumptions: ["vcf_is_normalized"]
+bank_hooks: ["none"]
+invariants: ["stats_required"]
+allowed_missingness: []
+planned_out_of_scope: []

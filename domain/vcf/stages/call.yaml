@@ -1,0 +1,23 @@
+schema_version: "bijux.stage.v1"
+stage_id: "vcf.call"
+status: "supported"
+scope: "post_vcf"
+domain: "vcf"
+inputs:
+  - name: "vcf"
+    data_type: "vcf"
+    cardinality: "One"
+outputs:
+  - name: "called_vcf"
+    data_type: "vcf"
+    cardinality: "One"
+required_inputs: ["vcf"]
+required_outputs: ["called_vcf"]
+metrics:
+  - name: "called_variants"
+compatible_tools: ["bcftools"]
+assumptions: ["diploid_calling"]
+bank_hooks: ["none"]
+invariants: ["tool_pinned"]
+allowed_missingness: []
+planned_out_of_scope: []

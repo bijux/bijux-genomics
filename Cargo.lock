@@ -433,6 +433,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "bijux-dna-domain-vcf"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bijux-dna-policies",
+ "schemars",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "bijux-dna-engine"
 version = "0.1.0"
 dependencies = [
@@ -535,6 +546,7 @@ dependencies = [
  "bijux-dna-core",
  "bijux-dna-domain-bam",
  "bijux-dna-domain-fastq",
+ "bijux-dna-domain-vcf",
  "bijux-dna-policies",
  "bijux-dna-testkit",
  "insta",
@@ -582,6 +594,19 @@ dependencies = [
  "serde_json",
  "toml",
  "tracing",
+]
+
+[[package]]
+name = "bijux-dna-planner-vcf"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bijux-dna-core",
+ "bijux-dna-domain-vcf",
+ "bijux-dna-policies",
+ "bijux-dna-stage-contract",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
@@ -692,6 +717,19 @@ dependencies = [
  "tempfile",
  "tracing",
  "walkdir",
+]
+
+[[package]]
+name = "bijux-dna-stages-vcf"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bijux-dna-core",
+ "bijux-dna-domain-vcf",
+ "bijux-dna-policies",
+ "bijux-dna-testkit",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

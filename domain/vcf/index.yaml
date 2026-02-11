@@ -1,0 +1,19 @@
+domain: "vcf"
+stage_ids:
+  - "vcf.call"
+  - "vcf.filter"
+  - "vcf.stats"
+tool_ids:
+  - "bcftools"
+stage_tool_compatibility:
+  vcf.call: ["bcftools"]
+  vcf.filter: ["bcftools"]
+  vcf.stats: ["bcftools"]
+active_defaults:
+  vcf.call: "bcftools"
+  vcf.filter: "bcftools"
+  vcf.stats: "bcftools"
+active_default_rationale:
+  vcf.call: "deterministic baseline caller"
+  vcf.filter: "deterministic pass filter"
+  vcf.stats: "required summary metrics"
