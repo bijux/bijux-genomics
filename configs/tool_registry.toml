@@ -1153,7 +1153,7 @@ optional_alternatives = []
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
-default_rationale = ""
+default_rationale = "Haplogroup default prioritizes deterministic lineage signal extraction from mapped reads."
 requires_validation = false
 requires_reporting = false
 
@@ -1208,7 +1208,7 @@ optional_alternatives = []
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
-default_rationale = ""
+default_rationale = "Duplicate marking default balances comparability and conservative retention."
 requires_validation = false
 requires_reporting = false
 
@@ -1219,7 +1219,7 @@ optional_alternatives = []
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
-default_rationale = ""
+default_rationale = "Overlap correction default prevents paired-read double-counting in damage-sensitive contexts."
 requires_validation = false
 requires_reporting = false
 
@@ -1230,7 +1230,7 @@ optional_alternatives = []
 validation_tools = []
 reporting_tools = ["multiqc"]
 planned_out_of_scope = []
-default_rationale = ""
+default_rationale = "Pre-QC default captures baseline BAM integrity metrics before downstream filters."
 requires_validation = false
 requires_reporting = true
 

@@ -183,9 +183,9 @@ fn policy__contracts__contract_authority_policy__stage_contracts_are_complete_pe
             let has_metrics = !stage_metrics_schema.trim().is_empty()
                 || stage_metrics_schema == "none"
                 || stage_tools.iter().any(|tool| {
-                    tool_metrics
-                        .get(tool)
-                        .is_some_and(|schema| !schema.trim().is_empty() && schema != "bijux.unknown.v1")
+                    tool_metrics.get(tool).is_some_and(|schema| {
+                        !schema.trim().is_empty() && schema != "bijux.unknown.v1"
+                    })
                 });
             let has_tools = !stage_tools.is_empty();
             let runnable = status == "supported";
@@ -304,6 +304,59 @@ fn policy__contracts__contract_authority_policy__registry_unknowns_images_and_re
     assert!(
         offenders.is_empty(),
         "registry/image/required_tools authority failures:\n{}",
+        offenders.join("\n")
+    );
+}
+
+#[test]
+fn policy__contracts__contract_authority_policy__production_stages_have_scientific_rationale() {
+    let root = support::workspace_root();
+    let stages = parse_toml(&root.join("configs/stages.toml"));
+    let registry = parse_toml(&root.join("configs/tool_registry.toml"));
+    let rationale_by_stage = table_array(&registry, "stages")
+        .into_iter()
+        .filter_map(|row| {
+            let stage_id = row.get("id").and_then(toml::Value::as_str)?;
+            let rationale = row
+                .get("default_rationale")
+                .and_then(toml::Value::as_str)
+                .unwrap_or_default()
+                .trim()
+                .to_string();
+            Some((stage_id.to_string(), rationale))
+        })
+        .collect::<BTreeMap<_, _>>();
+
+    let mut offenders = Vec::new();
+    for stage in table_array(&stages, "stages") {
+        let stage_id = stage
+            .get("id")
+            .and_then(toml::Value::as_str)
+            .unwrap_or("<unknown>");
+        let status = stage
+            .get("status")
+            .and_then(toml::Value::as_str)
+            .unwrap_or("supported");
+        let experimental = stage
+            .get("experimental")
+            .and_then(toml::Value::as_bool)
+            .unwrap_or(false);
+        if status != "supported" || experimental {
+            continue;
+        }
+        if rationale_by_stage
+            .get(stage_id)
+            .is_none_or(|value| value.trim().is_empty())
+        {
+            offenders.push(format!(
+                "production stage {stage_id} has no non-empty default_rationale in configs/tool_registry.toml [[stages]]"
+            ));
+        }
+    }
+
+    assert!(
+        offenders.is_empty(),
+        "production scientific rationale failures:\n{}",
         offenders.join("\n")
     );
 }
