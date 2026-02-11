@@ -510,6 +510,13 @@ pub(crate) fn handle_meta_commands(
                     });
                     render::json::print_pretty(&summary)?;
                 }
+                AnalyzeCommand::Bench(args) => {
+                    let report_path = crate::commands::bench_suite::analyze_suite(
+                        &std::env::current_dir()?,
+                        &args.suite,
+                    )?;
+                    println!("suite_analysis_report={}", report_path.display());
+                }
             }
             Ok(true)
         }
@@ -612,6 +619,14 @@ pub(crate) fn handle_meta_commands(
             let catalog =
                 load_image_catalog().map_err(|err| anyhow!("failed to load images: {err}"))?;
             match command {
+                BenchCommand::Run(args) => {
+                    let run_dir = crate::commands::bench_suite::run_suite(
+                        &std::env::current_dir()?,
+                        &args.suite,
+                        args.hpc,
+                    )?;
+                    println!("suite_run_dir={}", run_dir.display());
+                }
                 BenchCommand::Fastq { command } => match command {
                     BenchFastqCommand::Trim(args) => {
                         set_tool_tier_policy(false, args.allow_experimental);

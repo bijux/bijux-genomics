@@ -179,6 +179,13 @@ pub enum AnalyzeCommand {
     Rank(AnalyzeRankArgs),
     Report(AnalyzeReportArgs),
     Metrics(AnalyzeMetricsArgs),
+    Bench(AnalyzeBenchArgs),
+}
+
+#[derive(Debug, Args)]
+pub struct AnalyzeBenchArgs {
+    #[arg(long)]
+    pub suite: String,
 }
 
 #[derive(Debug, Args)]
@@ -459,6 +466,7 @@ impl PipelineDomainArg {
 #[derive(Debug, Subcommand)]
 #[allow(clippy::large_enum_variant)]
 pub enum BenchCommand {
+    Run(BenchRunArgs),
     Fastq {
         #[command(subcommand)]
         command: BenchFastqCommand,
@@ -470,6 +478,14 @@ pub enum BenchCommand {
     Schema {
         stage: String,
     },
+}
+
+#[derive(Debug, Args)]
+pub struct BenchRunArgs {
+    #[arg(long)]
+    pub suite: String,
+    #[arg(long, default_value_t = false)]
+    pub hpc: bool,
 }
 
 #[derive(Debug, Subcommand)]
