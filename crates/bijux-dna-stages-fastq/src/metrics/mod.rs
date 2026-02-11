@@ -605,6 +605,7 @@ pub fn build_metrics_envelope(
             tool_version: plan.tool_version.clone(),
             params_hash: parameters_fingerprint.clone(),
             input_artifact_hashes: input_hashes.clone(),
+            manifest_hash: None,
         }),
         metrics,
     })

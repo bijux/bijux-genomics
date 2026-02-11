@@ -13,6 +13,8 @@ pub struct MetricProvenanceV1 {
     pub tool_version: String,
     pub params_hash: String,
     pub input_artifact_hashes: Vec<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub manifest_hash: Option<String>,
 }
 
 impl MetricProvenanceV1 {

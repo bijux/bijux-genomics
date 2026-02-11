@@ -114,6 +114,7 @@ impl FactsRowV1 {
             tool_version: self.tool_version.clone(),
             params_hash: self.params_hash.clone(),
             input_artifact_hashes: vec![self.input_hash.clone()],
+            manifest_hash: None,
         }
     }
 }
