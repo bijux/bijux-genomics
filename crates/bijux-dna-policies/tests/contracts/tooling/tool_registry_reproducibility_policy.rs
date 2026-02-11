@@ -337,3 +337,110 @@ fn policy__contracts__tool_registry_reproducibility_policy__tool_digest_contract
         "tool digest contract violated: configs/tool_registry.lock.sha256 is stale; update it after tool pin changes"
     );
 }
+
+#[test]
+fn policy__contracts__tool_registry_reproducibility_policy__production_registries_forbid_latest_pinned(
+) {
+    let root = workspace_root();
+    let mut offenders = Vec::new();
+    for rel in [
+        "configs/tool_registry.toml",
+        "configs/tool_registry_vcf.toml",
+    ] {
+        let registry = parse_registry(&root.join(rel));
+        for (id, tool) in tools_by_id(&registry) {
+            let version = str_field(&tool, "version");
+            let default_version = str_field(&tool, "default_version");
+            if version == "latest-pinned" || default_version == "latest-pinned" {
+                offenders.push(format!(
+                    "{rel}: tool={id} uses forbidden latest-pinned version marker"
+                ));
+            }
+        }
+    }
+    bijux_dna_policies::policy_assert!(
+        offenders.is_empty(),
+        "production registry versions must be immutable:\n{}",
+        offenders.join("\n")
+    );
+}
+
+#[test]
+fn policy__contracts__tool_registry_reproducibility_policy__production_registries_forbid_unknown_upstream_and_domain_managed_pins(
+) {
+    let root = workspace_root();
+    let mut offenders = Vec::new();
+    for rel in [
+        "configs/tool_registry.toml",
+        "configs/tool_registry_vcf.toml",
+    ] {
+        let registry = parse_registry(&root.join(rel));
+        for (id, tool) in tools_by_id(&registry) {
+            let upstream = str_field(&tool, "upstream");
+            let pin = str_field(&tool, "pinned_commit");
+            if upstream.eq_ignore_ascii_case("unknown") {
+                offenders.push(format!("{rel}: tool={id} has upstream=unknown"));
+            }
+            if pin == "domain-managed" {
+                offenders.push(format!("{rel}: tool={id} has pinned_commit=domain-managed"));
+            }
+        }
+    }
+    bijux_dna_policies::policy_assert!(
+        offenders.is_empty(),
+        "production registries must avoid unknown upstreams and domain-managed pins:\n{}",
+        offenders.join("\n")
+    );
+}
+
+#[test]
+fn policy__contracts__tool_registry_reproducibility_policy__stable_profiles_must_not_use_unknown_declared_versions(
+) {
+    let root = workspace_root();
+    let mut tools = tools_by_id(&parse_registry(&root.join("configs/tool_registry.toml")));
+    for (id, value) in tools_by_id(&parse_registry(
+        &root.join("configs/tool_registry_vcf.toml"),
+    )) {
+        tools.entry(id).or_insert(value);
+    }
+
+    let mut profiles = Vec::new();
+    profiles.extend(fastq_profiles());
+    profiles.extend(bam_profiles());
+    profiles.extend(cross_profiles());
+
+    let mut offenders = Vec::new();
+    for profile in profiles {
+        if profile.stability != StabilityTier::Stable {
+            continue;
+        }
+        for (stage_id, tool_id) in &profile.defaults.tools {
+            let tool_key = tool_id.as_str().to_string();
+            if tool_key == "planner" {
+                continue;
+            }
+            let Some(tool) = tools.get(&tool_key) else {
+                offenders.push(format!(
+                    "profile={} stage={} tool={} missing from production registries",
+                    profile.id, stage_id, tool_key
+                ));
+                continue;
+            };
+            let declared_version = str_field(tool, "version");
+            if declared_version.trim().is_empty()
+                || declared_version.eq_ignore_ascii_case("unknown")
+            {
+                offenders.push(format!(
+                    "profile={} stage={} tool={} has invalid declared version `{declared_version}`",
+                    profile.id, stage_id, tool_key
+                ));
+            }
+        }
+    }
+
+    bijux_dna_policies::policy_assert!(
+        offenders.is_empty(),
+        "stable profiles cannot use tools with unknown declared_version:\n{}",
+        offenders.join("\n")
+    );
+}
