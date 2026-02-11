@@ -22,6 +22,8 @@ pub struct AnalyzeInput {
 pub enum AnalyzeSources {
 pub struct AnalyzeOptions {
 pub enum AnalyzeMode {
+pub enum AnalyzeMetricId {
+pub const fn as_str(self) -> &'static str {
 pub struct RenderOptions {
 pub struct AnalyzeOutput {
 pub fn analyze_run(input: &AnalyzeInput) -> anyhow::Result<AnalyzeOutput> {
