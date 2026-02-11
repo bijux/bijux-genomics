@@ -23,7 +23,7 @@ fn snapshot_name(group: &str, name: &str) -> String {
 fn dummy_tool(stage: &str) -> ToolExecutionSpecV1 {
     ToolExecutionSpecV1 {
         tool_id: ToolId::new(format!("tool.{stage}")),
-        tool_version: "0.0.0".to_string(),
+        tool_version: "99.99.99+fixture".to_string(),
         image: ContainerImageRefV1 {
             image: "bijux/dummy:latest".to_string(),
             digest: None,
