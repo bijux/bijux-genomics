@@ -27,6 +27,7 @@ impl CliWorkspace {
             r#"
 fastp = { version = "99.99.99+fixture" }
 seqkit = { version = "99.99.99+fixture" }
+fastqvalidator_official = { version = "99.99.99+fixture" }
 "#,
         );
     }
