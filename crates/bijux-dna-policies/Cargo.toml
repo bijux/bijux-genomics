@@ -19,3 +19,4 @@ insta = { version = "1.38", features = ["glob"] }
 sha2 = "0.10"
 bijux-dna-testkit = { path = "../bijux-dna-testkit" }
 bijux-dna-pipelines = { path = "../bijux-dna-pipelines" }
+bijux-dna-core = { path = "../bijux-dna-core" }

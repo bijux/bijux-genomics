@@ -8,8 +8,8 @@ use bijux_dna_domain_vcf::params::{
 use serde::Serialize;
 
 use crate::{
-    ArtifactType, DefaultParams, Domain, EffectiveDefaults, MetricsBundle, PipelineCapabilities,
-    PipelineId, PipelineProfile, ReportSection, StabilityTier,
+    ArtifactType, DefaultParams, Domain, EffectiveDefaults, InvariantsPreset, MetricsBundle,
+    PipelineCapabilities, PipelineId, PipelineProfile, ReportSection, StabilityTier,
 };
 
 pub const VCF_INVARIANTS: &str = "vcf-invariants.v1";
@@ -179,7 +179,7 @@ pub fn vcf_minimal_profile() -> PipelineProfile {
         output_domains: vec![Domain::Vcf],
         defaults,
         defaults_ledger_ref: "defaults_ledger.json",
-        invariants_preset: Some("vcf_minimal"),
+        invariants_preset: Some(InvariantsPreset::VcfMinimal),
         capabilities: PipelineCapabilities {
             input_domains: vec![Domain::Vcf],
             output_domains: vec![Domain::Vcf],

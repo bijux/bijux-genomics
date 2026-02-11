@@ -12,8 +12,8 @@ use bijux_dna_domain_bam::params::BamEffectiveParams;
 use bijux_dna_domain_bam::BamStage;
 
 use crate::{
-    ArtifactType, DefaultParams, Domain, EffectiveDefaults, MetricsBundle, PipelineCapabilities,
-    PipelineId, PipelineProfile, ReportSection, StabilityTier,
+    ArtifactType, DefaultParams, Domain, EffectiveDefaults, InvariantsPreset, MetricsBundle,
+    PipelineCapabilities, PipelineId, PipelineProfile, ReportSection, StabilityTier,
 };
 
 #[derive(Debug, Clone)]
@@ -221,7 +221,7 @@ pub fn bam_adna_shotgun_profile() -> PipelineProfile {
         output_domains: vec![Domain::Bam],
         defaults: to_effective_defaults(&defaults),
         defaults_ledger_ref: "defaults_ledger.json",
-        invariants_preset: Some("adna"),
+        invariants_preset: Some(InvariantsPreset::Adna),
         capabilities: PipelineCapabilities {
             input_domains: vec![Domain::Bam],
             output_domains: vec![Domain::Bam],
@@ -256,7 +256,7 @@ pub fn bam_adna_capture_profile() -> PipelineProfile {
         output_domains: vec![Domain::Bam],
         defaults: to_effective_defaults(&defaults),
         defaults_ledger_ref: "defaults_ledger.json",
-        invariants_preset: Some("adna"),
+        invariants_preset: Some(InvariantsPreset::Adna),
         capabilities: PipelineCapabilities {
             input_domains: vec![Domain::Bam],
             output_domains: vec![Domain::Bam],

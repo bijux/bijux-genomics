@@ -71,7 +71,10 @@ pub fn canonical_tools_for_stage(stage: BamStage) -> Vec<ToolId> {
 pub fn default_tool(stage: BamStage) -> ToolId {
     let allowed = canonical_tools_for_stage(stage);
     if allowed.is_empty() {
-        return fallback_tool_for_stage(stage);
+        panic!(
+            "no configured tool candidates for stage {}; planner must not silently fallback",
+            stage.as_str()
+        );
     }
     if let Some(parsed) = registry_toml() {
         if let Some(stages) = parsed.get("stages").and_then(toml::Value::as_array) {
@@ -109,32 +112,4 @@ fn domain_tools_for_stage(stage: BamStage) -> Vec<ToolId> {
         .into_iter()
         .filter_map(|value| value.as_str().map(|tool| ToolId::new(tool.to_string())))
         .collect()
-}
-
-fn fallback_tool_for_stage(stage: BamStage) -> ToolId {
-    let tool = match stage {
-        BamStage::Align => "bwa",
-        BamStage::Validate
-        | BamStage::QcPre
-        | BamStage::MappingSummary
-        | BamStage::Filter
-        | BamStage::MapqFilter
-        | BamStage::LengthFilter
-        | BamStage::DuplicationMetrics
-        | BamStage::EndogenousContent
-        | BamStage::OverlapCorrection => "samtools",
-        BamStage::Markdup | BamStage::InsertSize | BamStage::GcBias | BamStage::Recalibration => {
-            "gatk"
-        }
-        BamStage::Complexity => "preseq",
-        BamStage::Coverage => "mosdepth",
-        BamStage::Damage => "pydamage",
-        BamStage::Authenticity => "authenticct",
-        BamStage::Contamination => "authenticct",
-        BamStage::Sex => "rxy",
-        BamStage::BiasMitigation | BamStage::Genotyping => "angsd",
-        BamStage::Haplogroups => "yleaf",
-        BamStage::Kinship => "king",
-    };
-    ToolId::new(tool.to_string())
 }

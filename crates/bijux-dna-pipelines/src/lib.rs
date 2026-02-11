@@ -260,7 +260,7 @@ pub struct PipelineProfile {
     pub output_domains: Vec<Domain>,
     pub defaults: EffectiveDefaults,
     pub defaults_ledger_ref: &'static str,
-    pub invariants_preset: Option<&'static str>,
+    pub invariants_preset: Option<InvariantsPreset>,
     pub capabilities: PipelineCapabilities,
 }
 
@@ -299,6 +299,25 @@ pub struct ProfileManifestV1 {
     pub tool_ids: BTreeMap<String, String>,
     pub param_hashes: BTreeMap<String, String>,
     pub schema_versions: BTreeMap<String, String>,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum InvariantsPreset {
+    Adna,
+    ReferenceAdna,
+    VcfMinimal,
+}
+
+impl InvariantsPreset {
+    #[must_use]
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Adna => "adna",
+            Self::ReferenceAdna => "reference_adna",
+            Self::VcfMinimal => "vcf_minimal",
+        }
+    }
 }
 
 impl PipelineProfile {
@@ -431,7 +450,9 @@ impl PipelineProfile {
         ProfileManifestV1 {
             schema_version: "bijux.profile_manifest.v1",
             pipeline_id: self.id.as_str().to_string(),
-            invariants_preset: self.invariants_preset.map(str::to_string),
+            invariants_preset: self
+                .invariants_preset
+                .map(|preset| preset.as_str().to_string()),
             stage_list,
             tool_ids,
             param_hashes,

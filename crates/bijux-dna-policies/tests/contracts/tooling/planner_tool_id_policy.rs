@@ -54,6 +54,9 @@ fn policy__contracts__planner_tool_id_policy__planners_ban_silent_contract_fallb
         "crates/bijux-dna-planner-fastq/src/lib.rs",
         "crates/bijux-dna-planner-bam/src/lib.rs",
         "crates/bijux-dna-planner-bam/src/stages/stage_catalog.rs",
+        "crates/bijux-dna-planner-bam/src/selection/tool_selection.rs",
+        "crates/bijux-dna-planner-fastq/src/selection/tool_selection.rs",
+        "crates/bijux-dna-planner-vcf/src/lib.rs",
     ];
     let mut offenders = Vec::new();
     let fallback_on_contract = Regex::new(
@@ -67,6 +70,18 @@ fn policy__contracts__planner_tool_id_policy__planners_ban_silent_contract_fallb
         if fallback_on_contract.is_match(&content) {
             offenders.push(format!(
                 "{}: planner contract lookup must hard-fail; fallback helper chained on contract_for_stage is banned",
+                path.display()
+            ));
+        }
+        if content.contains("fallback_tool_for_stage(") {
+            offenders.push(format!(
+                "{}: fallback_tool_for_stage is banned; planner selection must be registry/domain-driven and explicit",
+                path.display()
+            ));
+        }
+        if content.contains("defaults_ledger") {
+            offenders.push(format!(
+                "{}: planners must not embed defaults ledger concerns; keep defaults in pipelines layer only",
                 path.display()
             ));
         }
