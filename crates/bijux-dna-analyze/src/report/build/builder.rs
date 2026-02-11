@@ -217,6 +217,7 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
     telemetry_events.dedup();
     let (telemetry_event_count, telemetry_error_count) = telemetry_counts(&telemetry_events);
     let telemetry_decisions = telemetry_decisions_from_paths(&telemetry_events);
+    let telemetry_timeline = telemetry_timeline_from_paths(&telemetry_events);
 
     let metric_semantics = report_metric_semantics();
     let completeness = report_completeness(&missing_metrics, &missing_reports);
@@ -243,6 +244,7 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
             "events": telemetry_events,
             "event_count": telemetry_event_count,
             "error_count": telemetry_error_count,
+            "timeline": telemetry_timeline,
         }),
         qc_improvement,
         final_qc_summary,
