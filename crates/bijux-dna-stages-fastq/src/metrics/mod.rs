@@ -100,9 +100,10 @@ pub fn stage_metrics_for_plan(
             ])?;
             let input = stats.first().copied().unwrap_or_else(zero_seqkit_metrics);
             let output = stats.get(1).copied().unwrap_or_else(zero_seqkit_metrics);
-            let parsed_counts = std::fs::read_to_string(plan.out_dir.join("deduplicate_report.json"))
-                .ok()
-                .and_then(|raw| crate::observer::parse_deduplicate_report(&raw).ok());
+            let parsed_counts =
+                std::fs::read_to_string(plan.out_dir.join("deduplicate_report.json"))
+                    .ok()
+                    .and_then(|raw| crate::observer::parse_deduplicate_report(&raw).ok());
             let (reads_in, reads_out) = parsed_counts.unwrap_or((input.reads, output.reads));
             let (pairs_in, pairs_out) = pair_counts_from_paths(inputs, outputs)?;
             let read_retention = if reads_in > 0 {
@@ -157,12 +158,11 @@ pub fn stage_metrics_for_plan(
             ])?;
             let input = stats.first().copied().unwrap_or_else(zero_seqkit_metrics);
             let output = stats.get(1).copied().unwrap_or_else(zero_seqkit_metrics);
-            removals.by_low_complexity = std::fs::read_to_string(
-                plan.out_dir.join("low_complexity_report.json"),
-            )
-            .ok()
-            .and_then(|raw| crate::observer::parse_low_complexity_report(&raw).ok())
-            .unwrap_or_else(|| input.reads.saturating_sub(output.reads));
+            removals.by_low_complexity =
+                std::fs::read_to_string(plan.out_dir.join("low_complexity_report.json"))
+                    .ok()
+                    .and_then(|raw| crate::observer::parse_low_complexity_report(&raw).ok())
+                    .unwrap_or_else(|| input.reads.saturating_sub(output.reads));
             filter_metrics_with_removals(
                 &plan.stage_id,
                 inputs,
