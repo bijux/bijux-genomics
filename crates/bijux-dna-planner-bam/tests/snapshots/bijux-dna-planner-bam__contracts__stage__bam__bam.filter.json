@@ -1,5 +1,5 @@
 {
-  "stage_id": "bam.mapq_filter",
+  "stage_id": "bam.filter",
   "stage_version": 1,
   "tool_id": "samtools",
   "tool_version": "1.0.0",
