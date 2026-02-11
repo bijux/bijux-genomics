@@ -10,6 +10,7 @@ include makefiles/benchmarks-fastq.mk
 include makefiles/benchmarks-bam.mk
 include makefiles/lab.mk
 include makefiles/docs.mk
+include makefiles/toy.mk
 
 .DEFAULT_GOAL := help
 
