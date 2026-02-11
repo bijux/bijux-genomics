@@ -99,13 +99,15 @@ pub fn validate_corpus(cwd: &Path, corpus: &str) -> Result<()> {
         }
         if let Some(r2_path) = r2 {
             let h2 = first_fastq_header(&r2_path)?;
-                let n1 = normalize_read_header(&h1);
-                let n2 = normalize_read_header(&h2);
-                if n1 != n2 {
-                    return Err(anyhow!("sample {sample} paired read-name mismatch: `{n1}` vs `{n2}`"));
-                }
+            let n1 = normalize_read_header(&h1);
+            let n2 = normalize_read_header(&h2);
+            if n1 != n2 {
+                return Err(anyhow!(
+                    "sample {sample} paired read-name mismatch: `{n1}` vs `{n2}`"
+                ));
             }
         }
+    }
     println!("corpus validation ok: {}", root.display());
     Ok(())
 }
