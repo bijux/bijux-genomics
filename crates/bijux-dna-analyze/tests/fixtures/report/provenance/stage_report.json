@@ -4,9 +4,9 @@
   "stage_version": 2,
   "tool_id": "fastp",
   "tool_version": "0.23.4",
-  "metrics_path": "/Users/bijan/bijux/bijux-dna/crates/bijux-dna-analyze/tests/fixtures/report/provenance/metrics.json",
-  "tool_invocation_path": "/Users/bijan/bijux/bijux-dna/crates/bijux-dna-analyze/tests/fixtures/report/provenance/tool_invocation.json",
-  "effective_config_path": "/Users/bijan/bijux/bijux-dna/crates/bijux-dna-analyze/tests/fixtures/report/provenance/effective_config.json",
+  "metrics_path": "crates/bijux-dna-analyze/tests/fixtures/report/provenance/metrics.json",
+  "tool_invocation_path": "crates/bijux-dna-analyze/tests/fixtures/report/provenance/tool_invocation.json",
+  "effective_config_path": "crates/bijux-dna-analyze/tests/fixtures/report/provenance/effective_config.json",
   "effective_config_hash": "sha256:config",
   "facts_row_id": "facts-1",
   "summary": {
