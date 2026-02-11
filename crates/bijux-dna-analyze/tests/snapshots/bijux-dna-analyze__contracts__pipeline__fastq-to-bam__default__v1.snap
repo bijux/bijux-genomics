@@ -175,7 +175,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "span_id": "span-bam.align",
       "stage_id": "bam.align",
       "tool_id": "bwa",
-      "tool_version": "0.0.0",
+      "tool_version": "99.99.99+fixture",
       "trace_id": "trace-1"
     },
     {
@@ -185,7 +185,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "span_id": "span-bam.coverage",
       "stage_id": "bam.coverage",
       "tool_id": "mosdepth",
-      "tool_version": "0.0.0",
+      "tool_version": "99.99.99+fixture",
       "trace_id": "trace-1"
     },
     {
@@ -195,7 +195,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "span_id": "span-bam.damage",
       "stage_id": "bam.damage",
       "tool_id": "pydamage",
-      "tool_version": "0.0.0",
+      "tool_version": "99.99.99+fixture",
       "trace_id": "trace-1"
     },
     {
@@ -205,7 +205,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "span_id": "span-bam.qc_pre",
       "stage_id": "bam.qc_pre",
       "tool_id": "samtools",
-      "tool_version": "0.0.0",
+      "tool_version": "99.99.99+fixture",
       "trace_id": "trace-1"
     },
     {
@@ -215,7 +215,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "span_id": "span-core.prepare_reference",
       "stage_id": "core.prepare_reference",
       "tool_id": "samtools",
-      "tool_version": "0.0.0",
+      "tool_version": "99.99.99+fixture",
       "trace_id": "trace-1"
     },
     {
@@ -225,7 +225,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "span_id": "span-fastq.preprocess",
       "stage_id": "fastq.preprocess",
       "tool_id": "planner",
-      "tool_version": "0.0.0",
+      "tool_version": "99.99.99+fixture",
       "trace_id": "trace-1"
     }
   ],
@@ -781,7 +781,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "stage_id": "bam.align",
           "telemetry_decisions": [],
           "tool_id": "bwa",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "adapter_validation": {},
@@ -797,7 +797,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "stage_id": "bam.coverage",
           "telemetry_decisions": [],
           "tool_id": "mosdepth",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "adapter_validation": {},
@@ -813,7 +813,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "stage_id": "bam.damage",
           "telemetry_decisions": [],
           "tool_id": "pydamage",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "adapter_validation": {},
@@ -829,7 +829,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "stage_id": "bam.qc_pre",
           "telemetry_decisions": [],
           "tool_id": "samtools",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "adapter_validation": {},
@@ -847,7 +847,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "stage_id": "core.prepare_reference",
           "telemetry_decisions": [],
           "tool_id": "samtools",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "adapter_validation": {},
@@ -863,7 +863,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "stage_id": "fastq.preprocess",
           "telemetry_decisions": [],
           "tool_id": "planner",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         }
       ]
     },
@@ -976,42 +976,42 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "params_hash": "params",
           "stage_id": "bam.align",
           "tool_id": "bwa",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "bam.coverage",
           "tool_id": "mosdepth",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "bam.damage",
           "tool_id": "pydamage",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "bam.qc_pre",
           "tool_id": "samtools",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "core.prepare_reference",
           "tool_id": "samtools",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "fastq.preprocess",
           "tool_id": "planner",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         }
       ],
       "tie_break_policy": [
@@ -1023,42 +1023,42 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "params_hash": "params",
           "stage_id": "bam.align",
           "tool_id": "bwa",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "bam.coverage",
           "tool_id": "mosdepth",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "bam.damage",
           "tool_id": "pydamage",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "bam.qc_pre",
           "tool_id": "samtools",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "core.prepare_reference",
           "tool_id": "samtools",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "fastq.preprocess",
           "tool_id": "planner",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         }
       ]
     },
@@ -1933,7 +1933,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "tier_rationale": "unknown_tool",
           "tool_id": "bwa",
           "tool_tier": "experimental",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
@@ -1947,7 +1947,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "tier_rationale": "unknown_tool",
           "tool_id": "mosdepth",
           "tool_tier": "experimental",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
@@ -1961,7 +1961,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "tier_rationale": "unknown_tool",
           "tool_id": "pydamage",
           "tool_tier": "experimental",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
@@ -1975,7 +1975,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "tier_rationale": "unknown_tool",
           "tool_id": "samtools",
           "tool_tier": "experimental",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
@@ -1989,7 +1989,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "tier_rationale": "unknown_tool",
           "tool_id": "samtools",
           "tool_tier": "experimental",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
@@ -2003,7 +2003,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "tier_rationale": "unknown_tool",
           "tool_id": "planner",
           "tool_tier": "experimental",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         }
       ]
     },
@@ -2044,7 +2044,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "params"
       ],
       "tool_versions": [
-        "0.0.0"
+        "99.99.99+fixture"
       ]
     },
     "retention": {
@@ -2070,7 +2070,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "resolved_tool_version": null,
           "stage_id": "bam.align",
           "tool_id": "bwa",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_params": {},
@@ -2084,7 +2084,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "resolved_tool_version": null,
           "stage_id": "bam.coverage",
           "tool_id": "mosdepth",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_params": {},
@@ -2098,7 +2098,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "resolved_tool_version": null,
           "stage_id": "bam.damage",
           "tool_id": "pydamage",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_params": {},
@@ -2112,7 +2112,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "resolved_tool_version": null,
           "stage_id": "bam.qc_pre",
           "tool_id": "samtools",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_params": {},
@@ -2126,7 +2126,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "resolved_tool_version": null,
           "stage_id": "core.prepare_reference",
           "tool_id": "samtools",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_params": {},
@@ -2140,7 +2140,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "resolved_tool_version": null,
           "stage_id": "fastq.preprocess",
           "tool_id": "planner",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         }
       ]
     },
@@ -2348,7 +2348,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "stage_report_path": "bam.align/stage_report.json",
       "tool_id": "bwa",
       "tool_invocation_path": "",
-      "tool_version": "0.0.0"
+      "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": null,
@@ -2364,7 +2364,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "stage_report_path": "bam.coverage/stage_report.json",
       "tool_id": "mosdepth",
       "tool_invocation_path": "",
-      "tool_version": "0.0.0"
+      "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": null,
@@ -2380,7 +2380,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "stage_report_path": "bam.damage/stage_report.json",
       "tool_id": "pydamage",
       "tool_invocation_path": "",
-      "tool_version": "0.0.0"
+      "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": null,
@@ -2396,7 +2396,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "stage_report_path": "bam.qc_pre/stage_report.json",
       "tool_id": "samtools",
       "tool_invocation_path": "",
-      "tool_version": "0.0.0"
+      "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": null,
@@ -2412,7 +2412,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "stage_report_path": "core.prepare_reference/stage_report.json",
       "tool_id": "samtools",
       "tool_invocation_path": "",
-      "tool_version": "0.0.0"
+      "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": null,
@@ -2428,7 +2428,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "stage_report_path": "fastq.preprocess/stage_report.json",
       "tool_id": "planner",
       "tool_invocation_path": "",
-      "tool_version": "0.0.0"
+      "tool_version": "99.99.99+fixture"
     }
   ],
   "telemetry": {
