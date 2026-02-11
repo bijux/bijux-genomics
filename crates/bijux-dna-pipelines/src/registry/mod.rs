@@ -6,7 +6,9 @@ use anyhow::{anyhow, Result};
 
 use crate::bam::{bam_adna_capture_profile, bam_adna_shotgun_profile, bam_default_profile};
 use crate::cross::{fastq_to_bam_adna_shotgun_profile, fastq_to_bam_default_profile};
-use crate::fastq::{fastq_adna_profile, fastq_default_profile, fastq_minimal_profile};
+use crate::fastq::{
+    fastq_adna_profile, fastq_default_profile, fastq_minimal_profile, fastq_reference_adna_profile,
+};
 use crate::{Domain, PipelineProfile, StabilityTier};
 
 #[derive(Debug, Clone)]
@@ -54,6 +56,7 @@ pub fn fastq_profiles() -> Vec<PipelineProfile> {
         fastq_default_profile(),
         fastq_minimal_profile(),
         fastq_adna_profile(),
+        fastq_reference_adna_profile(),
     ]
 }
 

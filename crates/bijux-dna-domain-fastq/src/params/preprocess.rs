@@ -3,10 +3,21 @@ use serde::{Deserialize, Serialize};
 
 use super::PairedMode;
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum LibraryDamageTreatment {
+    Udg,
+    PartialUdg,
+    NoUdg,
+    Unknown,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct PreprocessEffectiveParams {
     pub paired_mode: PairedMode,
+    pub library_declared_paired: bool,
+    pub library_damage_treatment: LibraryDamageTreatment,
     pub threads: u32,
     pub stages: Vec<String>,
     #[serde(default)]
@@ -19,6 +30,9 @@ impl PreprocessEffectiveParams {
         let mut missing = Vec::new();
         if self.paired_mode == PairedMode::Unknown {
             missing.push("paired_mode");
+        }
+        if self.library_damage_treatment == LibraryDamageTreatment::Unknown {
+            missing.push("library_damage_treatment");
         }
         if self.threads == 0 {
             missing.push("threads");
@@ -33,6 +47,8 @@ impl PreprocessEffectiveParams {
     pub fn retention_conditions(&self) -> serde_json::Value {
         serde_json::json!({
             "paired_mode": self.paired_mode,
+            "library_declared_paired": self.library_declared_paired,
+            "library_damage_treatment": self.library_damage_treatment,
             "threads": self.threads,
             "stages": self.stages,
             "enable_contaminant_removal": self.enable_contaminant_removal,

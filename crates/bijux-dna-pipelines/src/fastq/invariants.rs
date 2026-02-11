@@ -7,12 +7,14 @@ use bijux_dna_core::prelude::id_catalog;
 use bijux_dna_domain_fastq::params::detect_adapters::DetectAdaptersEffectiveParams;
 use bijux_dna_domain_fastq::params::filter::FilterEffectiveParams;
 use bijux_dna_domain_fastq::params::merge::MergeEffectiveParams;
+use bijux_dna_domain_fastq::params::preprocess::PreprocessEffectiveParams;
+use bijux_dna_domain_fastq::params::screen::ScreenEffectiveParams;
 use bijux_dna_domain_fastq::params::trim::TrimEffectiveParams;
 use serde::Serialize;
 
 use crate::{DefaultParams, PipelineProfile};
 
-pub const FASTQ_INVARIANTS: &str = "fastq-invariants.v1";
+pub const FASTQ_INVARIANTS: &str = "fastq-invariants.v2";
 
 const CORE_FASTQ_STAGES: [&str; 5] = [
     id_catalog::FASTQ_VALIDATE_PRE,
@@ -111,6 +113,20 @@ fn merge_params(profile: &PipelineProfile) -> Option<&MergeEffectiveParams> {
     }
 }
 
+fn preprocess_params(profile: &PipelineProfile) -> Option<&PreprocessEffectiveParams> {
+    match default_params_for(profile, id_catalog::FASTQ_PREPROCESS) {
+        Some(DefaultParams::FastqPreprocess(params)) => Some(params),
+        _ => None,
+    }
+}
+
+fn screen_params(profile: &PipelineProfile) -> Option<&ScreenEffectiveParams> {
+    match default_params_for(profile, id_catalog::FASTQ_SCREEN) {
+        Some(DefaultParams::FastqScreen(params)) => Some(params),
+        _ => None,
+    }
+}
+
 /// Validate FASTQ profile invariants and return a structured violations report.
 #[must_use]
 pub fn validate_fastq_profile(profile: &PipelineProfile) -> FastqProfileValidationReport {
@@ -159,8 +175,9 @@ pub fn validate_fastq_profile(profile: &PipelineProfile) -> FastqProfileValidati
         }
     }
 
-    let is_adna = profile.invariants_preset == Some("adna");
-    if is_adna {
+    let is_adna_like = profile.invariants_preset == Some("adna")
+        || profile.invariants_preset == Some("reference_adna");
+    if is_adna_like {
         if let Some(params) = trim_params(profile) {
             if params.min_len == 0 {
                 violations.push(violation(
@@ -223,32 +240,81 @@ pub fn validate_fastq_profile(profile: &PipelineProfile) -> FastqProfileValidati
             ));
         }
 
-        let trim_tool = profile
-            .defaults
-            .tools
-            .get(&StageId::from_static(id_catalog::FASTQ_TRIM))
-            .map(|tool| tool.as_str())
-            .unwrap_or_default();
-        if trim_tool != "adapterremoval" && trim_tool != "leehom" {
+        if profile.invariants_preset == Some("adna") {
+            let trim_tool = profile
+                .defaults
+                .tools
+                .get(&StageId::from_static(id_catalog::FASTQ_TRIM))
+                .map(|tool| tool.as_str())
+                .unwrap_or_default();
+            if trim_tool != "adapterremoval" && trim_tool != "leehom" {
+                violations.push(violation(
+                    "adna_trim_tool_incompatible",
+                    Some(id_catalog::FASTQ_TRIM),
+                    "aDNA profiles must use trim tool `adapterremoval` or `leehom`",
+                ));
+            }
+
+            let merge_tool = profile
+                .defaults
+                .tools
+                .get(&StageId::from_static(id_catalog::FASTQ_MERGE))
+                .map(|tool| tool.as_str())
+                .unwrap_or_default();
+            if merge_tool != "leehom" {
+                violations.push(violation(
+                    "adna_merge_tool_incompatible",
+                    Some(id_catalog::FASTQ_MERGE),
+                    "aDNA profiles must use merge tool `leehom`",
+                ));
+            }
+        }
+    }
+
+    if profile.invariants_preset == Some("reference_adna") {
+        for stage in [
+            id_catalog::FASTQ_LOW_COMPLEXITY,
+            id_catalog::FASTQ_STATS_NEUTRAL,
+            id_catalog::FASTQ_MERGE,
+        ] {
+            if !required_stages.contains(stage) {
+                violations.push(violation(
+                    "reference_required_stage_missing",
+                    Some(stage),
+                    format!("reference-grade aDNA profile requires stage `{stage}`"),
+                ));
+            }
+        }
+
+        if let Some(preprocess) = preprocess_params(profile) {
+            if preprocess.library_declared_paired
+                && !required_stages.contains(id_catalog::FASTQ_MERGE)
+            {
+                violations.push(violation(
+                    "paired_library_requires_merge",
+                    Some(id_catalog::FASTQ_MERGE),
+                    "paired library declaration requires fastq.merge unless explicitly disabled with justification",
+                ));
+            }
+        } else {
             violations.push(violation(
-                "adna_trim_tool_incompatible",
-                Some(id_catalog::FASTQ_TRIM),
-                "aDNA profiles must use trim tool `adapterremoval` or `leehom`",
+                "required_params_missing",
+                Some(id_catalog::FASTQ_PREPROCESS),
+                "reference-grade profile requires preprocess library declaration params",
             ));
         }
 
-        let merge_tool = profile
-            .defaults
-            .tools
-            .get(&StageId::from_static(id_catalog::FASTQ_MERGE))
-            .map(|tool| tool.as_str())
-            .unwrap_or_default();
-        if merge_tool != "leehom" {
-            violations.push(violation(
-                "adna_merge_tool_incompatible",
-                Some(id_catalog::FASTQ_MERGE),
-                "aDNA profiles must use merge tool `leehom`",
-            ));
+        if required_stages.contains(id_catalog::FASTQ_SCREEN) {
+            let missing_db = screen_params(profile)
+                .and_then(|params| params.contaminant_db.as_ref())
+                .map_or(true, |value| value.trim().is_empty());
+            if missing_db {
+                violations.push(violation(
+                    "screen_reference_db_missing",
+                    Some(id_catalog::FASTQ_SCREEN),
+                    "fastq.screen requires contaminant_db when enabled for reference-grade profile",
+                ));
+            }
         }
     }
 

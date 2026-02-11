@@ -1,0 +1,45 @@
+---
+source: crates/bijux-dna-pipelines/tests/contracts/profiles/profiles.rs
+expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
+---
+{
+  "param_hashes": {
+    "fastq.correct": "40832ecb9984bf27cffb09b35adbcf2fcea99a290fe315d7ae4e0d8d98753bf4",
+    "fastq.detect_adapters": "69c53f03b661bc36910aa69e91beafebe6390195a55b0fc59157a06e581dfdf8",
+    "fastq.filter": "578cf743a57ec9554533b5b78fca6c48138b36cf39d1e953ea2e9dcea35b3df3",
+    "fastq.low_complexity": "9f87c0a7b5bd23cfe60b142cce2543a36e028dc02c5b5353d6c7971772c4eb50",
+    "fastq.merge": "b78868955d93f5f5e3bdade58275a889292f698cdce7602769cfb3590277f506",
+    "fastq.preprocess": "ec49ee8136c8fa55e4a601190cd4e6043ccaf084b5f319990ec45d34abc7dd24",
+    "fastq.qc_post": "7340317e312feb6a4d10d584cbf61e7e22237c4c7acccde58c90548fd172f68b",
+    "fastq.screen": "7e6384522ad5c0b377ffef7ccca91f390a30a0281ebd7ae6afd9d045bfed18af",
+    "fastq.stats_neutral": "1148dbfe778e358b62df082e88ac7a441d2306439ef79249318a1b7048b23e6c",
+    "fastq.trim": "34e3c83c409e09fc55a46a3027746ace54ab5925836028915d34966a8de6827a",
+    "fastq.umi": "ed924bf5ac256fcb8875f53af7f9a5ff3e6c4a9b22093b44ed6ee0f6d51010de",
+    "fastq.validate_pre": "db9c11dd97dff0eae3d590d4e1cdaa041cce4b3c277285e23c1df12c466d4734"
+  },
+  "profile_id": "fastq-to-fastq__reference_adna__v1",
+  "required_stages": [
+    "fastq.validate_pre",
+    "fastq.detect_adapters",
+    "fastq.trim",
+    "fastq.low_complexity",
+    "fastq.merge",
+    "fastq.filter",
+    "fastq.stats_neutral",
+    "fastq.qc_post"
+  ],
+  "tool_ids": {
+    "fastq.correct": "rcorrector",
+    "fastq.detect_adapters": "fastqc",
+    "fastq.filter": "seqkit",
+    "fastq.low_complexity": "bbduk",
+    "fastq.merge": "vsearch",
+    "fastq.preprocess": "planner",
+    "fastq.qc_post": "multiqc",
+    "fastq.screen": "kraken2",
+    "fastq.stats_neutral": "seqkit_stats",
+    "fastq.trim": "fastp",
+    "fastq.umi": "umi_tools",
+    "fastq.validate_pre": "fastqvalidator_official"
+  }
+}

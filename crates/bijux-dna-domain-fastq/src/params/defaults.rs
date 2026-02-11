@@ -2,6 +2,7 @@ use super::correct::{FastqCorrectParams, CORRECT_SCHEMA_VERSION};
 use super::detect_adapters::DetectAdaptersEffectiveParams;
 use super::filter::FilterEffectiveParams;
 use super::merge::MergeEffectiveParams;
+use super::preprocess::LibraryDamageTreatment;
 use super::preprocess::PreprocessEffectiveParams;
 use super::qc_post::QcPostEffectiveParams;
 use super::screen::ScreenEffectiveParams;
@@ -110,6 +111,8 @@ pub fn qc_post_defaults(paired: bool) -> QcPostEffectiveParams {
 pub fn preprocess_defaults(paired: bool) -> PreprocessEffectiveParams {
     PreprocessEffectiveParams {
         paired_mode: paired_mode(paired),
+        library_declared_paired: paired,
+        library_damage_treatment: LibraryDamageTreatment::Unknown,
         threads: 1,
         stages: vec![
             "fastq.validate_pre".to_string(),
