@@ -92,43 +92,43 @@ smoke-cntainers-apptainer-apptainer-run: ## Apptainer smoke in runscript mode (a
 
 smoke-cntainers-apptainer-verify: smoke-cntainers-apptainer-bijux-run smoke-cntainers-apptainer-apptainer-run ## Compare bijux-run vs apptainer-run smoke statuses.
 	@python3 - <<'PY'
-import json
-from pathlib import Path
+		import json
+		from pathlib import Path
 
-root = Path("artifacts/container")
-a = root / "apptainer-bijux-run"
-b = root / "apptainer-apptainer-run"
-if not a.exists() or not b.exists():
-    raise SystemExit("missing smoke artifact dirs for compare")
+		root = Path("artifacts/container")
+		a = root / "apptainer-bijux-run"
+		b = root / "apptainer-apptainer-run"
+		if not a.exists() or not b.exists():
+		    raise SystemExit("missing smoke artifact dirs for compare")
 
-def load_statuses(base: Path) -> dict[str, str]:
-    statuses = {}
-    for mf in sorted(base.glob("*.json")):
-        if mf.name in {"report.json", "summary.json"}:
-            continue
-        payload = json.loads(mf.read_text())
-        tool = payload.get("tool")
-        status = payload.get("status")
-        if tool:
-            statuses[tool] = status
-    return statuses
+		def load_statuses(base: Path) -> dict[str, str]:
+		    statuses = {}
+		    for mf in sorted(base.glob("*.json")):
+		        if mf.name in {"report.json", "summary.json"}:
+		            continue
+		        payload = json.loads(mf.read_text())
+		        tool = payload.get("tool")
+		        status = payload.get("status")
+		        if tool:
+		            statuses[tool] = status
+		    return statuses
 
-left = load_statuses(a)
-right = load_statuses(b)
-missing_left = sorted(set(right) - set(left))
-missing_right = sorted(set(left) - set(right))
-mismatch = sorted(t for t in set(left) & set(right) if left[t] != right[t])
-if missing_left or missing_right or mismatch:
-    print("smoke mode mismatch detected")
-    if missing_left:
-        print("missing in bijux-run:", ",".join(missing_left))
-    if missing_right:
-        print("missing in apptainer-run:", ",".join(missing_right))
-    if mismatch:
-        print("status mismatch:", ",".join(f"{t}:{left[t]}!={right[t]}" for t in mismatch))
-    raise SystemExit(1)
-print(f"smoke mode compare OK for {len(left)} tools")
-PY
+		left = load_statuses(a)
+		right = load_statuses(b)
+		missing_left = sorted(set(right) - set(left))
+		missing_right = sorted(set(left) - set(right))
+		mismatch = sorted(t for t in set(left) & set(right) if left[t] != right[t])
+		if missing_left or missing_right or mismatch:
+		    print("smoke mode mismatch detected")
+		    if missing_left:
+		        print("missing in bijux-run:", ",".join(missing_left))
+		    if missing_right:
+		        print("missing in apptainer-run:", ",".join(missing_right))
+		    if mismatch:
+		        print("status mismatch:", ",".join(f"{t}:{left[t]}!={right[t]}" for t in mismatch))
+		    raise SystemExit(1)
+		print(f"smoke mode compare OK for {len(left)} tools")
+		PY
 
 build-images: ## Build Docker images (docker-arm64 only)
 	@if [ "$(CONTAINER_TYPE)" != "docker-arm64" ]; then \
