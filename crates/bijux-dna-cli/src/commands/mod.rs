@@ -425,10 +425,11 @@ fn handle_status_root(args: &cli::StatusArgs, cwd: &Path) -> Result<()> {
         }
 
         if let Some(parent) = path.parent() {
-            std::fs::create_dir_all(parent)
+            bijux_dna_infra::ensure_dir(parent)
                 .with_context(|| format!("create {}", parent.display()))?;
         }
-        std::fs::write(path, md).with_context(|| format!("write {}", path.display()))?;
+        bijux_dna_infra::write_string(path, &md)
+            .with_context(|| format!("write {}", path.display()))?;
         println!("scope_closure_checklist={}", path.display());
     }
     Ok(())

@@ -1,0 +1,5 @@
+{
+  "id": "deduplicate_default",
+  "status": "supported",
+  "notes": "Default deduplicate observer fixture"
+}

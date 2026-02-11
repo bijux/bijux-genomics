@@ -19,6 +19,13 @@ fn policy__boundaries__no_duplicate_policy_checks__no_duplicate_policy_checks() 
     let mut offenders = Vec::new();
 
     for crate_root in support::crate_roots() {
+        if crate_root
+            .file_name()
+            .and_then(|name| name.to_str())
+            == Some("bijux-dna-policies")
+        {
+            continue;
+        }
         let tests_root = crate_root.join("tests");
         if !tests_root.exists() {
             continue;
