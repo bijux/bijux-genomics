@@ -20,6 +20,7 @@ impl Drop for CwdGuard {
 
 pub(crate) mod bam;
 pub(crate) mod bench;
+pub(crate) mod bench_suite;
 pub mod cli;
 pub(crate) mod command_prelude;
 pub(crate) mod corpus;
@@ -461,6 +462,17 @@ fn print_contract_status(cwd: &Path) -> Result<()> {
 
 #[allow(clippy::format_push_string, clippy::too_many_lines)]
 fn handle_status_root(args: &cli::StatusArgs, cwd: &Path) -> Result<()> {
+    if args.scope.eq_ignore_ascii_case("production-readiness") {
+        let report = crate::commands::bench_suite::production_readiness_status(
+            cwd,
+            "bench-suite-01-fastq-5stages",
+        )?;
+        cli::render::json::print_pretty(&report)?;
+        if report.get("ok").and_then(serde_json::Value::as_bool) != Some(true) {
+            return Err(anyhow!("production readiness gate failed"));
+        }
+        return Ok(());
+    }
     if args.hpc {
         let root = std::env::var("BIJUX_HPC_ROOT")
             .map_or_else(|_| PathBuf::from("/home/bijan/bijux"), PathBuf::from);

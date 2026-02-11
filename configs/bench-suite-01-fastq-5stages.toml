@@ -1,0 +1,28 @@
+schema_version = "bijux.bench-suite.fastq.v1"
+suite_id = "bench-suite-01-fastq-5stages"
+corpus = "corpus-01"
+repetitions = 3
+
+[resource_hints]
+threads = 16
+mem_gb = 64
+
+[[stages]]
+stage = "validate_pre"
+tools = ["seqkit", "fastp"]
+
+[[stages]]
+stage = "trim"
+tools = ["fastp", "cutadapt"]
+
+[[stages]]
+stage = "filter"
+tools = ["fastp", "bbduk"]
+
+[[stages]]
+stage = "stats"
+tools = ["seqkit", "fastp"]
+
+[[stages]]
+stage = "qc_post"
+tools = ["fastqc", "falco"]
