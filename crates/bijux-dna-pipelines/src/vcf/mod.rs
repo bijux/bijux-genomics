@@ -110,6 +110,16 @@ pub fn validate_vcf_profile(profile: &PipelineProfile) -> VcfProfileValidationRe
             ));
         }
     }
+    if profile.stability == StabilityTier::Stable
+        && !stages.contains(id_catalog::VCF_FILTER)
+    {
+        violations.push(violation(
+            "production_filter_required",
+            Some(id_catalog::VCF_FILTER),
+            InvariantSeverity::Hard,
+            "production VCF profile must include vcf.filter stage",
+        ));
+    }
 
     if !profile
         .capabilities
@@ -158,6 +168,74 @@ pub fn validate_vcf_profile(profile: &PipelineProfile) -> VcfProfileValidationRe
                 Some(stage),
                 InvariantSeverity::Hard,
                 "VCF stage must have pinned tool selection",
+            ));
+        }
+    }
+
+    if let Some(DefaultParams::Vcf(VcfEffectiveParams::Call(call))) = profile
+        .defaults
+        .params
+        .get(&StageId::from_static(id_catalog::VCF_CALL))
+    {
+        if call.sample_name.trim().is_empty() {
+            violations.push(violation(
+                "sample_name_missing",
+                Some(id_catalog::VCF_CALL),
+                InvariantSeverity::Hard,
+                "vcf.call requires sample_name",
+            ));
+        }
+        if profile.stability == StabilityTier::Stable && call.reference_fasta.is_none() {
+            violations.push(violation(
+                "reference_required",
+                Some(id_catalog::VCF_CALL),
+                InvariantSeverity::Hard,
+                "production VCF profile requires reference_fasta",
+            ));
+        }
+    }
+    if let Some(DefaultParams::Vcf(VcfEffectiveParams::Filter(filter))) = profile
+        .defaults
+        .params
+        .get(&StageId::from_static(id_catalog::VCF_FILTER))
+    {
+        if filter.sample_name.trim().is_empty() {
+            violations.push(violation(
+                "sample_name_missing",
+                Some(id_catalog::VCF_FILTER),
+                InvariantSeverity::Hard,
+                "vcf.filter requires sample_name",
+            ));
+        }
+        if profile.stability == StabilityTier::Stable && !filter.require_pass {
+            violations.push(violation(
+                "filter_stage_misconfigured",
+                Some(id_catalog::VCF_FILTER),
+                InvariantSeverity::Hard,
+                "production VCF profile cannot disable pass-filtering",
+            ));
+        }
+        if filter.require_bgzip_tabix && !profile.capabilities.required_artifacts.contains(&"vcf.tbi")
+        {
+            violations.push(violation(
+                "artifact_correctness_missing",
+                Some(id_catalog::VCF_FILTER),
+                InvariantSeverity::Hard,
+                "bgzip/tabix policy requires vcf.tbi artifact declaration",
+            ));
+        }
+    }
+    if let Some(DefaultParams::Vcf(VcfEffectiveParams::Stats(stats))) = profile
+        .defaults
+        .params
+        .get(&StageId::from_static(id_catalog::VCF_STATS))
+    {
+        if stats.sample_name.trim().is_empty() {
+            violations.push(violation(
+                "sample_name_missing",
+                Some(id_catalog::VCF_STATS),
+                InvariantSeverity::Hard,
+                "vcf.stats requires sample_name",
             ));
         }
     }
@@ -214,7 +292,7 @@ pub fn vcf_minimal_profile() -> PipelineProfile {
     PipelineProfile {
         id: PipelineId::from_static(id_catalog::PIPELINE_VCF_MINIMAL),
         description: "Minimal VCF experimental profile",
-        stability: StabilityTier::Experimental,
+        stability: StabilityTier::Beta,
         input_domains: vec![Domain::Vcf],
         output_domains: vec![Domain::Vcf],
         defaults,
@@ -231,7 +309,7 @@ pub fn vcf_minimal_profile() -> PipelineProfile {
             output_domains: vec![Domain::Vcf],
             input_artifacts: vec![ArtifactType::ReportJson],
             output_artifacts: vec![ArtifactType::ReportJson, ArtifactType::MetricsBundle],
-            required_inputs: vec!["vcf"],
+            required_inputs: vec!["vcf", "sample_name"],
             produces_outputs: vec!["vcf", "vcf.metrics"],
             report_sections: vec!["vcf"],
             required_report_sections: vec![ReportSection::Vcf, ReportSection::PipelineDefaults],
@@ -247,6 +325,7 @@ pub fn vcf_minimal_profile() -> PipelineProfile {
                 "run_manifest.json",
                 "tool_provenance.json",
                 "invariants_report.json",
+                "vcf.tbi",
             ],
             supports_benchmarks: false,
         },
@@ -258,6 +337,22 @@ pub fn vcf_reference_basic_profile() -> PipelineProfile {
     let mut profile = vcf_minimal_profile();
     profile.id = PipelineId::from_static(id_catalog::PIPELINE_VCF_REFERENCE_BASIC);
     profile.description = "Reference-grade VCF baseline profile";
-    profile.stability = StabilityTier::Beta;
+    profile.stability = StabilityTier::Stable;
+    if let Some(DefaultParams::Vcf(VcfEffectiveParams::Call(call))) = profile
+        .defaults
+        .params
+        .get_mut(&StageId::from_static(id_catalog::VCF_CALL))
+    {
+        call.reference_fasta = Some("reference.fa".to_string());
+        call.sample_name = "reference_sample".to_string();
+    }
+    if let Some(DefaultParams::Vcf(VcfEffectiveParams::Filter(filter))) = profile
+        .defaults
+        .params
+        .get_mut(&StageId::from_static(id_catalog::VCF_FILTER))
+    {
+        filter.production_profile = true;
+        filter.require_pass = true;
+    }
     profile
 }
