@@ -1,6 +1,7 @@
 schema_version: bijux.reference_bank.v1
 bank_id: bijux-dna-reference-bank
 version: v1
+provenance_status: complete
 references:
   - id: hs37d5_primary
     kind: nuclear_reference

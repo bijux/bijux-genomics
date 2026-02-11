@@ -15,6 +15,7 @@ pub struct AdapterBankV1 {
     pub schema_version: String,
     pub bank_id: String,
     pub version: String,
+    pub provenance_status: String,
     pub adapters: Vec<AdapterEntryV1>,
 }
 
@@ -171,6 +172,11 @@ fn validate_adapter_bank(bank: &AdapterBankV1) -> Result<()> {
     }
     if bank.version.trim().is_empty() {
         return Err(anyhow!("adapter bank missing version"));
+    }
+    if bank.provenance_status != "complete" {
+        return Err(anyhow!(
+            "adapter bank provenance_status must be `complete` for supported scope"
+        ));
     }
     let mut ids = BTreeSet::new();
     for adapter in &bank.adapters {
