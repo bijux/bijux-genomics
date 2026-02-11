@@ -3,7 +3,10 @@ mod contracts {
 
     #[test]
     fn vcf_stage_catalog_is_stable() {
-        let ids = VcfStage::all().iter().map(|s| s.as_str()).collect::<Vec<_>>();
+        let ids = VcfStage::all()
+            .iter()
+            .map(|s| s.as_str())
+            .collect::<Vec<_>>();
         assert_eq!(ids, vec!["vcf.call", "vcf.filter", "vcf.stats"]);
     }
 
@@ -20,7 +23,7 @@ mod contracts {
         let expected_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
             .join("../../configs/param_registry_vcf.toml");
         let expected = std::fs::read_to_string(expected_path)
-            .expect("read configs/param_registry_vcf.toml");
+            .unwrap_or_else(|err| panic!("read configs/param_registry_vcf.toml: {err}"));
         assert_eq!(param_registry_toml().trim(), expected.trim());
     }
 }

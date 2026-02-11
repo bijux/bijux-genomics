@@ -11,7 +11,7 @@ use bijux_dna_domain_vcf::{
     params::{VcfCallParams, VcfFilterParams, VcfStatsParams},
     VcfStage,
 };
-use bijux_dna_stage_contract::StagePlanV1;
+use bijux_dna_stage_contract::{PlanDecisionReason, StagePlanV1};
 
 pub const PLANNER_VERSION: &str = "bijux-dna-planner-vcf.v1";
 
@@ -24,9 +24,7 @@ pub struct VcfPipelineInputs {
 
 fn default_tool(stage: VcfStage) -> &'static str {
     match stage {
-        VcfStage::Call => "bcftools",
-        VcfStage::Filter => "bcftools",
-        VcfStage::Stats => "bcftools",
+        VcfStage::Call | VcfStage::Filter | VcfStage::Stats => "bcftools",
     }
 }
 
@@ -39,7 +37,7 @@ fn stage_plan(stage: VcfStage, input_vcf: &Path, out_dir: &Path) -> StagePlanV1 
     };
     let output_path = match stage {
         VcfStage::Stats => out_dir.join("stats.json"),
-        _ => out_dir.join(format!("{}.vcf.gz", output_name)),
+        _ => out_dir.join(format!("{output_name}.vcf.gz")),
     };
 
     let params = match stage {
@@ -89,7 +87,7 @@ fn stage_plan(stage: VcfStage, input_vcf: &Path, out_dir: &Path) -> StagePlanV1 
         params: params.clone(),
         effective_params: params,
         aux_images: BTreeMap::new(),
-        reason: Default::default(),
+        reason: PlanDecisionReason::default(),
     }
 }
 

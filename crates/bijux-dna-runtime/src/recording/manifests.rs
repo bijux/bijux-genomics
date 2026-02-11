@@ -327,7 +327,7 @@ pub fn write_profile_and_lock_manifests(run_manifest_path: &Path) -> Result<()> 
             })
         })
         .collect::<Vec<_>>();
-    resolved_tools.sort_by(|a, b| a.to_string().cmp(&b.to_string()));
+    resolved_tools.sort_by_key(std::string::ToString::to_string);
     let lock_manifest = serde_json::json!({
         "schema_version": "bijux.run_manifest.lock.v1",
         "run_manifest": {

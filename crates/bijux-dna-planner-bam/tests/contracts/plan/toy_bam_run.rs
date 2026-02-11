@@ -66,7 +66,7 @@ fn toy_bam_run_plans_adna_pipeline_with_damage_stage() -> Result<()> {
     let stage_ids = graph
         .steps()
         .iter()
-        .map(|step| step.id.as_str().to_string())
+        .map(|step| step.stage_id.as_str().to_string())
         .collect::<Vec<_>>();
 
     assert!(stage_ids.iter().any(|id| id == "bam.validate"));

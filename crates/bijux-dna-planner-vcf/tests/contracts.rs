@@ -10,7 +10,7 @@ fn vcf_minimal_plan_contains_call_filter_stats_chain() {
         vcf: PathBuf::from("sample.vcf.gz"),
         out_dir: PathBuf::from("out"),
     };
-    let graph = plan_vcf_minimal(&input).expect("plan graph");
+    let graph = plan_vcf_minimal(&input).unwrap_or_else(|err| panic!("plan graph: {err}"));
     let ids = graph
         .steps()
         .iter()
