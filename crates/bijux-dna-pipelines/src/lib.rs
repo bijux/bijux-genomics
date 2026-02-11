@@ -17,6 +17,7 @@ use bijux_dna_domain_fastq::params::stats::FastqStatsParams;
 use bijux_dna_domain_fastq::params::trim::TrimEffectiveParams;
 use bijux_dna_domain_fastq::params::umi::FastqUmiParams;
 use bijux_dna_domain_fastq::params::validate::ValidateEffectiveParams;
+use bijux_dna_domain_vcf::params::VcfEffectiveParams;
 use serde::de::Deserializer;
 use serde::ser::Serializer;
 use serde::{Deserialize, Serialize};
@@ -26,6 +27,7 @@ pub mod cross;
 pub mod defaults;
 pub mod fastq;
 pub mod registry;
+pub mod vcf;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 pub enum Domain {
@@ -76,6 +78,7 @@ pub enum MetricsBundle {
     FastqCore,
     BamCore,
     BamAdna,
+    VcfCore,
     CrossHandoff,
 }
 
@@ -83,6 +86,7 @@ pub enum MetricsBundle {
 pub enum ReportSection {
     Fastq,
     Bam,
+    Vcf,
     Cross,
     Handoff,
     PipelineDefaults,
@@ -112,6 +116,7 @@ pub enum DefaultParams {
     FastqMerge(MergeEffectiveParams),
     FastqScreen(ScreenEffectiveParams),
     Bam(BamEffectiveParams),
+    Vcf(VcfEffectiveParams),
     Empty(EmptyParams),
 }
 
@@ -177,6 +182,11 @@ impl DefaultParams {
                 BamEffectiveParams::Genotyping(inner) => Self::encode(inner, "bam.genotyping"),
                 BamEffectiveParams::Kinship(inner) => Self::encode(inner, "bam.kinship"),
             },
+            DefaultParams::Vcf(value) => match value {
+                VcfEffectiveParams::Call(inner) => Self::encode(inner, "vcf.call"),
+                VcfEffectiveParams::Filter(inner) => Self::encode(inner, "vcf.filter"),
+                VcfEffectiveParams::Stats(inner) => Self::encode(inner, "vcf.stats"),
+            },
             DefaultParams::Empty(_) => serde_json::json!({}),
         }
     }
@@ -199,6 +209,9 @@ impl<'de> Deserialize<'de> for DefaultParams {
         let value = serde_json::Value::deserialize(deserializer)?;
         if let Ok(parsed) = serde_json::from_value::<BamEffectiveParams>(value.clone()) {
             return Ok(DefaultParams::Bam(parsed));
+        }
+        if let Ok(parsed) = serde_json::from_value::<VcfEffectiveParams>(value.clone()) {
+            return Ok(DefaultParams::Vcf(parsed));
         }
         if let Ok(parsed) = serde_json::from_value::<ValidateEffectiveParams>(value.clone()) {
             return Ok(DefaultParams::FastqValidate(parsed));

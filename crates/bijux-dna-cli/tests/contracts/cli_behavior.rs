@@ -352,6 +352,31 @@ fn cli_pipelines_validate_profile_bam_adna_returns_report() {
 }
 
 #[test]
+fn cli_pipelines_explain_profile_vcf_minimal_includes_invariants() {
+    let workspace = CliWorkspace::new();
+    let stdout = run_cli_capture(
+        &workspace,
+        &["dna", "pipelines", "explain-profile", "vcf-minimal"],
+    )
+    .expect("cli ok");
+    if stdout.trim().is_empty() {
+        return;
+    }
+    let payload: Value = serde_json::from_str(&stdout).expect("parse explain-profile json");
+    let resolved_id = payload
+        .get("profile_id_resolved")
+        .and_then(Value::as_str)
+        .unwrap_or_default();
+    assert_eq!(resolved_id, "vcf-to-vcf__minimal__v1");
+    let valid = payload
+        .get("invariants")
+        .and_then(|v| v.get("valid"))
+        .and_then(Value::as_bool)
+        .unwrap_or(false);
+    assert!(valid, "expected valid VCF invariants payload");
+}
+
+#[test]
 fn cli_fastq_preprocess_dry_run_writes_artifacts() {
     let workspace = CliWorkspace::new();
     workspace.setup_configs();

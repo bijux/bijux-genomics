@@ -136,12 +136,20 @@ pub(crate) fn handle_meta_commands(
                     .required_stages
                     .iter()
                     .any(|stage| stage.starts_with("bam."));
-                let invariants = match (has_fastq, has_bam) {
-                    (true, false) => serde_json::to_value(
+                let has_vcf = profile
+                    .capabilities
+                    .required_stages
+                    .iter()
+                    .any(|stage| stage.starts_with("vcf."));
+                let invariants = match (has_fastq, has_bam, has_vcf) {
+                    (true, false, false) => serde_json::to_value(
                         bijux_dna_api::v1::api::plan::validate_fastq_profile(&profile),
                     )?,
-                    (false, true) => serde_json::to_value(
+                    (false, true, false) => serde_json::to_value(
                         bijux_dna_api::v1::api::plan::validate_bam_profile(&profile),
+                    )?,
+                    (false, false, true) => serde_json::to_value(
+                        bijux_dna_api::v1::api::plan::validate_vcf_profile(&profile),
                     )?,
                     _ => serde_json::Value::Null,
                 };
@@ -171,12 +179,20 @@ pub(crate) fn handle_meta_commands(
                     .required_stages
                     .iter()
                     .any(|stage| stage.starts_with("bam."));
-                let payload = match (has_fastq, has_bam) {
-                    (true, false) => serde_json::to_value(
+                let has_vcf = profile
+                    .capabilities
+                    .required_stages
+                    .iter()
+                    .any(|stage| stage.starts_with("vcf."));
+                let payload = match (has_fastq, has_bam, has_vcf) {
+                    (true, false, false) => serde_json::to_value(
                         bijux_dna_api::v1::api::plan::validate_fastq_profile(&profile),
                     )?,
-                    (false, true) => serde_json::to_value(
+                    (false, true, false) => serde_json::to_value(
                         bijux_dna_api::v1::api::plan::validate_bam_profile(&profile),
+                    )?,
+                    (false, false, true) => serde_json::to_value(
+                        bijux_dna_api::v1::api::plan::validate_vcf_profile(&profile),
                     )?,
                     _ => serde_json::json!({
                         "profile_id": resolved_id,
@@ -207,11 +223,21 @@ pub(crate) fn handle_meta_commands(
                     .required_stages
                     .iter()
                     .any(|stage| stage.starts_with("fastq."));
+                let left_has_vcf = left_profile
+                    .capabilities
+                    .required_stages
+                    .iter()
+                    .any(|stage| stage.starts_with("vcf."));
                 let right_has_fastq = right_profile
                     .capabilities
                     .required_stages
                     .iter()
                     .any(|stage| stage.starts_with("fastq."));
+                let right_has_vcf = right_profile
+                    .capabilities
+                    .required_stages
+                    .iter()
+                    .any(|stage| stage.starts_with("vcf."));
                 let payload = serde_json::json!({
                     "left": left_profile.id,
                     "right": right_profile.id,
@@ -221,11 +247,15 @@ pub(crate) fn handle_meta_commands(
                     "params_right": right_profile.defaults.params,
                     "invariants_left": if left_has_fastq {
                         serde_json::to_value(bijux_dna_api::v1::api::plan::validate_fastq_profile(left_profile))?
+                    } else if left_has_vcf {
+                        serde_json::to_value(bijux_dna_api::v1::api::plan::validate_vcf_profile(left_profile))?
                     } else {
                         serde_json::to_value(bijux_dna_api::v1::api::plan::validate_bam_profile(left_profile))?
                     },
                     "invariants_right": if right_has_fastq {
                         serde_json::to_value(bijux_dna_api::v1::api::plan::validate_fastq_profile(right_profile))?
+                    } else if right_has_vcf {
+                        serde_json::to_value(bijux_dna_api::v1::api::plan::validate_vcf_profile(right_profile))?
                     } else {
                         serde_json::to_value(bijux_dna_api::v1::api::plan::validate_bam_profile(right_profile))?
                     },
@@ -682,6 +712,7 @@ fn resolve_profile_alias(id: &str) -> &str {
         "fastq-default" => "fastq-to-fastq__default__v1",
         "bam-adna" => "bam-to-bam__adna_shotgun__v1",
         "bam-default" => "bam-to-bam__default__v1",
+        "vcf-minimal" => "vcf-to-vcf__minimal__v1",
         other => other,
     }
 }

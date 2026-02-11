@@ -17,6 +17,10 @@ pub use bijux_dna_pipelines::fastq::{
 pub use bijux_dna_pipelines::{
     bam::{validate_bam_profile, BamProfileValidationReport, BamProfileViolation, BAM_INVARIANTS},
 };
+pub use bijux_dna_pipelines::vcf::{
+    validate_vcf_profile, vcf_minimal_profile, VcfProfileValidationReport, VcfProfileViolation,
+    VCF_INVARIANTS,
+};
 pub use bijux_dna_pipelines::registry::PipelineRegistry;
 pub use bijux_dna_pipelines::{Domain, PipelineProfile};
 pub use bijux_dna_planner_bam::{

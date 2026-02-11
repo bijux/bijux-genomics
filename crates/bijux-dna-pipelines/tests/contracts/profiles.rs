@@ -14,3 +14,5 @@ mod pipeline_id;
 mod pipeline_ids_unique;
 #[path = "profiles/profiles.rs"]
 mod profiles;
+#[path = "profiles/vcf_invariants.rs"]
+mod vcf_invariants;
