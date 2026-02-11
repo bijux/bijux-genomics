@@ -1,6 +1,5 @@
 ---
 source: crates/bijux-dna-pipelines/tests/contracts/profiles/profiles.rs
-assertion_line: 161
 expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashes))"
 ---
 {
@@ -15,6 +14,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "bam.duplication_metrics": "d16177884920cd9cac3df9ab44826211fe3caa008a78b8838a3854d5ce95c440",
         "bam.endogenous_content": "b450c62e0e5512f2e5c193a7b44984fc92158c695c327f3d7d29e02641bdb4f5",
         "bam.filter": "8e1c62080596f4b3ecf57123656d83a9abd09b270d00d8474a7b04714302013c",
+        "bam.kinship": "c635f0974a5f1ac6c613fbdb4ca2a4599ba8a0569f8ba9c7c3ed800c10e3f13b",
         "bam.length_filter": "05f99969eb491376ac21b147d9ada1d4a432d3e4f8a408f1b7bd966cad13b693",
         "bam.mapping_summary": "1ecb015a182d5b4089e50b33b96106648a2b528f96c9f5c3e40da54e780da0b9",
         "bam.mapq_filter": "3c12047dbf7a2291032a79d74221ef035b20895673722ef282efddf3a0a6b23e",
@@ -36,6 +36,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "bam.duplication_metrics",
         "bam.endogenous_content",
         "bam.filter",
+        "bam.kinship",
         "bam.length_filter",
         "bam.mapping_summary",
         "bam.mapq_filter",
@@ -50,6 +51,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "bam.duplication_metrics": "samtools",
         "bam.endogenous_content": "samtools",
         "bam.filter": "samtools",
+        "bam.kinship": "king",
         "bam.length_filter": "samtools",
         "bam.mapping_summary": "samtools",
         "bam.mapq_filter": "samtools",
@@ -57,7 +59,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "bam.validate": "samtools"
       }
     },
-    "profile_hash": "de39dfd212debcf85bd967c57c742cae1ebe0a431762681759517901a6ec79b6"
+    "profile_hash": "6653550816c275b9860ad1d53fe3c42b95d97f70922277d9ed177877b963f7c6"
   },
   "bam-to-bam__adna_shotgun__v1": {
     "manifest": {
@@ -70,6 +72,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "bam.duplication_metrics": "d16177884920cd9cac3df9ab44826211fe3caa008a78b8838a3854d5ce95c440",
         "bam.endogenous_content": "b450c62e0e5512f2e5c193a7b44984fc92158c695c327f3d7d29e02641bdb4f5",
         "bam.filter": "bc17955610700ea43bcdc5a11db198d8524d23afcd0af978dec7dac0560fdbb6",
+        "bam.kinship": "c635f0974a5f1ac6c613fbdb4ca2a4599ba8a0569f8ba9c7c3ed800c10e3f13b",
         "bam.length_filter": "05f99969eb491376ac21b147d9ada1d4a432d3e4f8a408f1b7bd966cad13b693",
         "bam.mapping_summary": "1ecb015a182d5b4089e50b33b96106648a2b528f96c9f5c3e40da54e780da0b9",
         "bam.mapq_filter": "3c12047dbf7a2291032a79d74221ef035b20895673722ef282efddf3a0a6b23e",
@@ -91,6 +94,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "bam.duplication_metrics",
         "bam.endogenous_content",
         "bam.filter",
+        "bam.kinship",
         "bam.length_filter",
         "bam.mapping_summary",
         "bam.mapq_filter",
@@ -105,6 +109,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "bam.duplication_metrics": "samtools",
         "bam.endogenous_content": "samtools",
         "bam.filter": "samtools",
+        "bam.kinship": "king",
         "bam.length_filter": "samtools",
         "bam.mapping_summary": "samtools",
         "bam.mapq_filter": "samtools",
@@ -112,7 +117,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "bam.validate": "samtools"
       }
     },
-    "profile_hash": "28892157dd2aa498707c5a90009d016ac6f7bcf4da2a46e6bbdb5978b09e4985"
+    "profile_hash": "44b30674f95b58156d6d95800e31336adcc720898cfe85e74badfbbc49a2c05d"
   },
   "bam-to-bam__default__v1": {
     "manifest": {
@@ -163,6 +168,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "bam.duplication_metrics": "d16177884920cd9cac3df9ab44826211fe3caa008a78b8838a3854d5ce95c440",
         "bam.endogenous_content": "b450c62e0e5512f2e5c193a7b44984fc92158c695c327f3d7d29e02641bdb4f5",
         "bam.filter": "bc17955610700ea43bcdc5a11db198d8524d23afcd0af978dec7dac0560fdbb6",
+        "bam.kinship": "c635f0974a5f1ac6c613fbdb4ca2a4599ba8a0569f8ba9c7c3ed800c10e3f13b",
         "bam.length_filter": "05f99969eb491376ac21b147d9ada1d4a432d3e4f8a408f1b7bd966cad13b693",
         "bam.mapping_summary": "1ecb015a182d5b4089e50b33b96106648a2b528f96c9f5c3e40da54e780da0b9",
         "bam.mapq_filter": "3c12047dbf7a2291032a79d74221ef035b20895673722ef282efddf3a0a6b23e",
@@ -198,6 +204,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "bam.duplication_metrics",
         "bam.endogenous_content",
         "bam.filter",
+        "bam.kinship",
         "bam.length_filter",
         "bam.mapping_summary",
         "bam.mapq_filter",
@@ -226,6 +233,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "bam.duplication_metrics": "samtools",
         "bam.endogenous_content": "samtools",
         "bam.filter": "samtools",
+        "bam.kinship": "king",
         "bam.length_filter": "samtools",
         "bam.mapping_summary": "samtools",
         "bam.mapq_filter": "samtools",
@@ -246,7 +254,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "fastq.validate_pre": "fastqvalidator_official"
       }
     },
-    "profile_hash": "32a428456998b7a69e2ca7d3850ca54083a72fb0f7027603b9d3bd5ad9fa90f6"
+    "profile_hash": "942091845608731bed62d784e3cc6c510d72b4254bb9015f0533c80f6a9f11e9"
   },
   "fastq-to-bam__default__v1": {
     "manifest": {
@@ -260,6 +268,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "bam.duplication_metrics": "d16177884920cd9cac3df9ab44826211fe3caa008a78b8838a3854d5ce95c440",
         "bam.endogenous_content": "b450c62e0e5512f2e5c193a7b44984fc92158c695c327f3d7d29e02641bdb4f5",
         "bam.filter": "bc17955610700ea43bcdc5a11db198d8524d23afcd0af978dec7dac0560fdbb6",
+        "bam.kinship": "c635f0974a5f1ac6c613fbdb4ca2a4599ba8a0569f8ba9c7c3ed800c10e3f13b",
         "bam.length_filter": "05f99969eb491376ac21b147d9ada1d4a432d3e4f8a408f1b7bd966cad13b693",
         "bam.mapping_summary": "1ecb015a182d5b4089e50b33b96106648a2b528f96c9f5c3e40da54e780da0b9",
         "bam.mapq_filter": "3c12047dbf7a2291032a79d74221ef035b20895673722ef282efddf3a0a6b23e",
@@ -295,6 +304,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "bam.duplication_metrics",
         "bam.endogenous_content",
         "bam.filter",
+        "bam.kinship",
         "bam.length_filter",
         "bam.mapping_summary",
         "bam.mapq_filter",
@@ -323,6 +333,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "bam.duplication_metrics": "samtools",
         "bam.endogenous_content": "samtools",
         "bam.filter": "samtools",
+        "bam.kinship": "king",
         "bam.length_filter": "samtools",
         "bam.mapping_summary": "samtools",
         "bam.mapq_filter": "samtools",
@@ -343,7 +354,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "fastq.validate_pre": "fastqvalidator_official"
       }
     },
-    "profile_hash": "2c5fb8cfcd6513248a359efa75245416f629a5dfbf81404e08864fdab01b051b"
+    "profile_hash": "5ebba8cac564999af408791c6220be8604a59a71e0a13abc845b5c98122f03f5"
   },
   "fastq-to-fastq__adna__v1": {
     "manifest": {

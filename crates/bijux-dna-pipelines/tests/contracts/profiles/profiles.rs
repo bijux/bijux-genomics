@@ -11,6 +11,42 @@ use bijux_dna_pipelines::fastq::{
 use bijux_dna_testkit::snapshot_name;
 use insta::assert_json_snapshot;
 
+fn profile_drift_components(profile: &bijux_dna_pipelines::PipelineProfile) -> serde_json::Value {
+    use bijux_dna_core::prelude::hashing::params_hash;
+    use std::collections::BTreeMap;
+
+    let tool_map = profile
+        .defaults
+        .tools
+        .iter()
+        .map(|(stage, tool)| (stage.as_str().to_string(), tool.as_str().to_string()))
+        .collect::<BTreeMap<_, _>>();
+    let param_map = profile
+        .defaults
+        .params
+        .iter()
+        .map(|(stage, params)| {
+            (
+                stage.as_str().to_string(),
+                params_hash(&params.to_json()).expect("hash profile params"),
+            )
+        })
+        .collect::<BTreeMap<_, _>>();
+
+    let tool_hash = params_hash(&serde_json::to_value(&tool_map).expect("serialize tools map"))
+        .expect("hash tools map");
+    let params_hash_value =
+        params_hash(&serde_json::to_value(&param_map).expect("serialize params hash map"))
+            .expect("hash params map");
+
+    serde_json::json!({
+        "tool_bindings_hash": tool_hash,
+        "param_bindings_hash": params_hash_value,
+        "tool_bindings": tool_map,
+        "param_bindings": param_map,
+    })
+}
+
 fn prune_bam_downstream(value: &mut serde_json::Value) {
     let banned = ["bam.genotyping", "bam.haplogroups", "bam.kinship"];
     match value {
@@ -155,6 +191,7 @@ fn profile_hash_contract_snapshot() {
             serde_json::json!({
                 "profile_hash": profile.profile_hash(),
                 "manifest": profile.profile_manifest(),
+                "drift_components": profile_drift_components(&profile),
             }),
         );
     }
