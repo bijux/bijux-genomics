@@ -26,6 +26,8 @@ mod mod_contracts_tooling_architecture_invariants_suite_rs;
 mod mod_contracts_tooling_artifacts_policy_rs;
 #[path = "contracts/tooling/assets_scope_policy.rs"]
 mod mod_contracts_tooling_assets_scope_policy_rs;
+#[path = "contracts/tooling/authenticct_container_policy.rs"]
+mod mod_contracts_tooling_authenticct_container_policy_rs;
 #[path = "contracts/tooling/bank_loader_ownership_policy.rs"]
 mod mod_contracts_tooling_bank_loader_ownership_policy_rs;
 #[path = "contracts/tooling/ci_no_stage_tool_defs_policy.rs"]
@@ -36,6 +38,8 @@ mod mod_contracts_tooling_ci_tools_policy_rs;
 mod mod_contracts_tooling_cli_sql_policy_rs;
 #[path = "contracts/tooling/command_spawn_policy.rs"]
 mod mod_contracts_tooling_command_spawn_policy_rs;
+#[path = "contracts/tooling/container_label_policy.rs"]
+mod mod_contracts_tooling_container_label_policy_rs;
 #[path = "contracts/tooling/docs_links.rs"]
 mod mod_contracts_tooling_docs_links_rs;
 #[path = "contracts/tooling/domain_truth_fixture_policy.rs"]

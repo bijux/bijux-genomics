@@ -58,9 +58,16 @@ fn policy__contracts__tool_registry_completeness__registry_entries_are_machine_c
         ));
     }
     let registry_path = root.join("configs/tool_registry.toml");
+    let experimental_registry_path = root.join("configs/tool_registry_experimental.toml");
     let raw = std::fs::read_to_string(&registry_path).expect("read configs/tool_registry.toml");
     let parsed: toml::Value = raw.parse().expect("parse configs/tool_registry.toml");
-    let tools = as_table_array(&parsed, "tools");
+    let experimental_raw = std::fs::read_to_string(&experimental_registry_path)
+        .expect("read configs/tool_registry_experimental.toml");
+    let experimental_parsed: toml::Value = experimental_raw
+        .parse()
+        .expect("parse configs/tool_registry_experimental.toml");
+    let mut tools = as_table_array(&parsed, "tools");
+    tools.extend(as_table_array(&experimental_parsed, "tools"));
     let mut declared_docker_tool_files = std::collections::BTreeSet::new();
     let mut declared_apptainer_tool_files = std::collections::BTreeSet::new();
     let checkout_commit_re =
@@ -72,7 +79,15 @@ fn policy__contracts__tool_registry_completeness__registry_entries_are_machine_c
 
     for entry in tools {
         let id = as_str_field(entry, "id").unwrap_or("<missing>");
-        for required in ["id", "version", "upstream", "pinned_commit", "version_cmd"] {
+        for required in [
+            "id",
+            "version",
+            "upstream",
+            "pinned_commit",
+            "version_cmd",
+            "expected_version_regex",
+            "healthcheck_cmd",
+        ] {
             let value = as_str_field(entry, required).unwrap_or("");
             if value.trim().is_empty() {
                 offenders.push(format!("tool={id}: missing required field `{required}`"));
