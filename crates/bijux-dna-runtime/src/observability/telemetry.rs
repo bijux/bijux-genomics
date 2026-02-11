@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
+use bijux_dna_core::contract::MetricProvenanceV1;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(untagged)]
@@ -101,6 +102,20 @@ pub struct FactsRowV1 {
     pub metrics: serde_json::Value,
     pub reports: serde_json::Value,
     pub artifacts: serde_json::Value,
+}
+
+impl FactsRowV1 {
+    #[must_use]
+    pub fn effective_metric_provenance(&self) -> MetricProvenanceV1 {
+        MetricProvenanceV1 {
+            run_id: self.run_id.clone(),
+            stage_id: self.stage_id.clone(),
+            tool_id: self.tool_id.clone(),
+            tool_version: self.tool_version.clone(),
+            params_hash: self.params_hash.clone(),
+            input_artifact_hashes: vec![self.input_hash.clone()],
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

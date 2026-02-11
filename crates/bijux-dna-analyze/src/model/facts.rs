@@ -145,6 +145,13 @@ impl FactTable {
                     ));
                 }
             }
+            let provenance = row.effective_metric_provenance();
+            if !provenance.is_complete() {
+                return Err(anyhow::anyhow!(
+                    "facts row has incomplete metric provenance for stage {}",
+                    row.stage_id
+                ));
+            }
             let fact = FactRow {
                 schema_version: row.schema_version.clone(),
                 run_id: row.run_id.clone(),
