@@ -1,0 +1,2 @@
+{"schema_version":"bijux.telemetry.v1","run_id":"toy-run","stage_id":"fastq.trim","tool_id":"fastp","event_name":"stage_start","timestamp":"2026-01-01T00:00:00Z","duration_ms":null,"status":"running","trace_id":"trace-fastq.trim","span_id":"span-fastp","attrs":{}}
+{"schema_version":"bijux.telemetry.v1","run_id":"toy-run","stage_id":"fastq.trim","tool_id":"fastp","event_name":"stage_end","timestamp":"2026-01-01T00:00:05Z","duration_ms":5000,"status":"ok","trace_id":"trace-fastq.trim","span_id":"span-fastp","attrs":{"bytes_written":1024},"failure_code":"tool_failed"}
