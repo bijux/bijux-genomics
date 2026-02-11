@@ -309,6 +309,49 @@ fn cli_pipelines_explain_profile_fastq_adna_includes_invariants() {
 }
 
 #[test]
+fn cli_pipelines_explain_profile_bam_adna_includes_invariants() {
+    let workspace = CliWorkspace::new();
+    let stdout = run_cli_capture(&workspace, &["dna", "pipelines", "explain-profile", "bam-adna"])
+        .expect("cli ok");
+    if stdout.trim().is_empty() {
+        return;
+    }
+    let payload: Value = serde_json::from_str(&stdout).expect("parse explain-profile json");
+    let resolved_id = payload
+        .get("profile_id_resolved")
+        .and_then(Value::as_str)
+        .unwrap_or_default();
+    assert_eq!(resolved_id, "bam-to-bam__adna_shotgun__v1");
+    let valid = payload
+        .get("invariants")
+        .and_then(|v| v.get("valid"))
+        .and_then(Value::as_bool)
+        .unwrap_or(false);
+    assert!(valid, "expected valid BAM invariants payload");
+}
+
+#[test]
+fn cli_pipelines_validate_profile_bam_adna_returns_report() {
+    let workspace = CliWorkspace::new();
+    let stdout = run_cli_capture(&workspace, &["dna", "pipelines", "validate-profile", "bam-adna"])
+        .expect("cli ok");
+    if stdout.trim().is_empty() {
+        return;
+    }
+    let payload: Value = serde_json::from_str(&stdout).expect("parse validate-profile json");
+    let profile_id = payload
+        .get("profile_id")
+        .and_then(Value::as_str)
+        .unwrap_or_default();
+    assert_eq!(profile_id, "bam-to-bam__adna_shotgun__v1");
+    assert_eq!(
+        payload.get("valid").and_then(Value::as_bool),
+        Some(true),
+        "expected valid BAM profile report"
+    );
+}
+
+#[test]
 fn cli_fastq_preprocess_dry_run_writes_artifacts() {
     let workspace = CliWorkspace::new();
     workspace.setup_configs();

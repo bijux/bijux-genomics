@@ -304,6 +304,11 @@ pub enum PipelinesCommand {
     ExplainProfile {
         id: String,
     },
+    #[command(about = "Validate a pipeline profile invariants and print a report.")]
+    #[command(name = "validate-profile")]
+    ValidateProfile {
+        id: String,
+    },
     #[command(about = "Diff two pipeline profiles (tools, params, invariants).")]
     #[command(name = "profile-diff")]
     ProfileDiff {

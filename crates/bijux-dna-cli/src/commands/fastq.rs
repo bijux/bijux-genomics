@@ -126,17 +126,24 @@ pub(crate) fn handle_meta_commands(
                     .into_iter()
                     .find(|profile| profile.id.as_str() == resolved_id)
                     .ok_or_else(|| anyhow!("unknown pipeline profile: {id}"))?;
-                let invariants = if profile
+                let has_fastq = profile
                     .capabilities
                     .required_stages
                     .iter()
-                    .any(|stage| stage.starts_with("fastq."))
-                {
-                    Some(bijux_dna_api::v1::api::plan::validate_fastq_profile(
-                        &profile,
-                    ))
-                } else {
-                    None
+                    .any(|stage| stage.starts_with("fastq."));
+                let has_bam = profile
+                    .capabilities
+                    .required_stages
+                    .iter()
+                    .any(|stage| stage.starts_with("bam."));
+                let invariants = match (has_fastq, has_bam) {
+                    (true, false) => serde_json::to_value(
+                        bijux_dna_api::v1::api::plan::validate_fastq_profile(&profile),
+                    )?,
+                    (false, true) => serde_json::to_value(
+                        bijux_dna_api::v1::api::plan::validate_bam_profile(&profile),
+                    )?,
+                    _ => serde_json::Value::Null,
                 };
                 let payload = serde_json::json!({
                     "profile_id_input": id,
@@ -145,6 +152,41 @@ pub(crate) fn handle_meta_commands(
                     "effective_tools": profile.defaults.tools,
                     "invariants": invariants,
                 });
+                render::json::print_pretty(&payload)?;
+                Ok(true)
+            }
+            PipelinesCommand::ValidateProfile { id } => {
+                let resolved_id = resolve_profile_alias(id);
+                let profile = bijux_dna_api::v1::api::plan::select_pipelines(None, true)
+                    .into_iter()
+                    .find(|profile| profile.id.as_str() == resolved_id)
+                    .ok_or_else(|| anyhow!("unknown pipeline profile: {id}"))?;
+                let has_fastq = profile
+                    .capabilities
+                    .required_stages
+                    .iter()
+                    .any(|stage| stage.starts_with("fastq."));
+                let has_bam = profile
+                    .capabilities
+                    .required_stages
+                    .iter()
+                    .any(|stage| stage.starts_with("bam."));
+                let payload = match (has_fastq, has_bam) {
+                    (true, false) => serde_json::to_value(
+                        bijux_dna_api::v1::api::plan::validate_fastq_profile(&profile),
+                    )?,
+                    (false, true) => serde_json::to_value(
+                        bijux_dna_api::v1::api::plan::validate_bam_profile(&profile),
+                    )?,
+                    _ => serde_json::json!({
+                        "profile_id": resolved_id,
+                        "valid": false,
+                        "violations": [{
+                            "code": "unsupported_domain_mix",
+                            "message": "profile must map to exactly one of fastq or bam domains for validate-profile"
+                        }]
+                    }),
+                };
                 render::json::print_pretty(&payload)?;
                 Ok(true)
             }
@@ -160,6 +202,16 @@ pub(crate) fn handle_meta_commands(
                     .iter()
                     .find(|profile| profile.id.as_str() == right_id)
                     .ok_or_else(|| anyhow!("unknown pipeline profile: {right}"))?;
+                let left_has_fastq = left_profile
+                    .capabilities
+                    .required_stages
+                    .iter()
+                    .any(|stage| stage.starts_with("fastq."));
+                let right_has_fastq = right_profile
+                    .capabilities
+                    .required_stages
+                    .iter()
+                    .any(|stage| stage.starts_with("fastq."));
                 let payload = serde_json::json!({
                     "left": left_profile.id,
                     "right": right_profile.id,
@@ -167,8 +219,16 @@ pub(crate) fn handle_meta_commands(
                     "tools_right": right_profile.defaults.tools,
                     "params_left": left_profile.defaults.params,
                     "params_right": right_profile.defaults.params,
-                    "invariants_left": bijux_dna_api::v1::api::plan::validate_fastq_profile(left_profile),
-                    "invariants_right": bijux_dna_api::v1::api::plan::validate_fastq_profile(right_profile),
+                    "invariants_left": if left_has_fastq {
+                        serde_json::to_value(bijux_dna_api::v1::api::plan::validate_fastq_profile(left_profile))?
+                    } else {
+                        serde_json::to_value(bijux_dna_api::v1::api::plan::validate_bam_profile(left_profile))?
+                    },
+                    "invariants_right": if right_has_fastq {
+                        serde_json::to_value(bijux_dna_api::v1::api::plan::validate_fastq_profile(right_profile))?
+                    } else {
+                        serde_json::to_value(bijux_dna_api::v1::api::plan::validate_bam_profile(right_profile))?
+                    },
                 });
                 render::json::print_pretty(&payload)?;
                 Ok(true)
@@ -620,6 +680,8 @@ fn resolve_profile_alias(id: &str) -> &str {
         "fastq-adna" => "fastq-to-fastq__adna__v1",
         "fastq-reference-adna" => "fastq-to-fastq__reference_adna__v1",
         "fastq-default" => "fastq-to-fastq__default__v1",
+        "bam-adna" => "bam-to-bam__adna_shotgun__v1",
+        "bam-default" => "bam-to-bam__default__v1",
         other => other,
     }
 }
