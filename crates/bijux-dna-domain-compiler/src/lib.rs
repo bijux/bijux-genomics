@@ -223,6 +223,8 @@ struct AdapterBank {
     bank_id: String,
     version: String,
     #[serde(default)]
+    provenance_status: String,
+    #[serde(default)]
     adapters: Vec<AdapterEntry>,
 }
 
@@ -238,6 +240,8 @@ struct ReferenceBank {
     schema_version: String,
     bank_id: String,
     version: String,
+    #[serde(default)]
+    provenance_status: String,
     #[serde(default)]
     references: Vec<ReferenceEntry>,
 }
@@ -255,6 +259,8 @@ struct ContaminationDbBank {
     schema_version: String,
     bank_id: String,
     version: String,
+    #[serde(default)]
+    provenance_status: String,
     #[serde(default)]
     databases: Vec<ContaminationDbEntry>,
 }
@@ -514,6 +520,24 @@ fn has_placeholder_token(raw: &str) -> bool {
     lower.contains("todo") || lower.contains("tbd") || lower.contains("placeholder")
 }
 
+fn has_supported_placeholder_forbidden_token(raw: &str) -> bool {
+    let lower = raw.to_ascii_lowercase();
+    has_placeholder_token(raw) || lower.contains("sha256:dummy") || lower.contains("0.0.0")
+}
+
+fn placeholders_allowed(status: &str) -> bool {
+    status == "planned"
+}
+
+fn ensure_no_placeholders_in_active_config(name: &str, rendered: &str) -> Result<()> {
+    if has_supported_placeholder_forbidden_token(rendered) {
+        bail!(
+            "generated {name} contains placeholder token (todo/tbd/placeholder/sha256:dummy/0.0.0)"
+        );
+    }
+    Ok(())
+}
+
 fn is_unspecified(text: &str) -> bool {
     let trimmed = text.trim();
     trimmed.is_empty() || trimmed.eq_ignore_ascii_case("unspecified")
@@ -550,6 +574,8 @@ fn load_domain_tools(
             ));
         };
         let tool: DomainTool = read_yaml(&path)?;
+        let tool_raw =
+            std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
         if tool.tool_id.trim().is_empty() {
             return Err(anyhow!("{} missing tool_id", path.display()));
         }
@@ -557,6 +583,13 @@ fn load_domain_tools(
             return Err(anyhow!("{} missing scope", path.display()));
         }
         ensure_status(&tool.status, &path)?;
+        if has_supported_placeholder_forbidden_token(&tool_raw) && !placeholders_allowed(&tool.status)
+        {
+            bail!(
+                "{} contains placeholder token; placeholders are allowed only under status=planned",
+                path.display()
+            );
+        }
         if !scope_active(&tool.scope, active_scope) || tool.status != "supported" {
             continue;
         }
@@ -648,6 +681,8 @@ fn load_domain_stages(
             ));
         }
         let stage: DomainStage = read_yaml(&path)?;
+        let stage_raw =
+            std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
         if stage.stage_id.trim().is_empty() {
             return Err(anyhow!("{} missing stage_id", path.display()));
         }
@@ -655,6 +690,14 @@ fn load_domain_stages(
             return Err(anyhow!("{} missing scope", path.display()));
         }
         ensure_status(&stage.status, &path)?;
+        if has_supported_placeholder_forbidden_token(&stage_raw)
+            && !placeholders_allowed(&stage.status)
+        {
+            bail!(
+                "{} contains placeholder token; placeholders are allowed only under status=planned",
+                path.display()
+            );
+        }
         if !scope_active(&stage.scope, active_scope) || stage.status != "supported" {
             continue;
         }
@@ -1385,11 +1428,13 @@ pub fn compile_domain_configs(options: &CompileOptions) -> Result<()> {
         &stage_default_rationale,
         &source_commit,
     );
+    ensure_no_placeholders_in_active_config("tool_registry.toml", &registry_toml)?;
     write_string(&tool_registry_path, &registry_toml)
         .with_context(|| format!("write {}", tool_registry_path.display()))?;
 
     let images_path = options.configs_dir.join("images.toml");
     let images_toml = build_images_toml(&tools, &source_commit);
+    ensure_no_placeholders_in_active_config("images.toml", &images_toml)?;
     write_string(&images_path, &images_toml)
         .with_context(|| format!("write {}", images_path.display()))?;
 
@@ -1401,6 +1446,7 @@ pub fn compile_domain_configs(options: &CompileOptions) -> Result<()> {
         &options.domain_dir,
         &source_commit,
     );
+    ensure_no_placeholders_in_active_config("stages.toml", &stages_toml)?;
     write_string(&stages_path, &stages_toml)
         .with_context(|| format!("write {}", stages_path.display()))?;
 
@@ -1458,10 +1504,17 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
     let adapter_bank: AdapterBank = read_yaml(&adapter_bank_path)?;
     if adapter_bank.schema_version.trim().is_empty()
         || adapter_bank.bank_id.trim().is_empty()
+        || adapter_bank.provenance_status.trim().is_empty()
         || adapter_bank.adapters.is_empty()
     {
         bail!(
             "{} missing required adapter bank fields",
+            adapter_bank_path.display()
+        );
+    }
+    if adapter_bank.provenance_status != "complete" {
+        bail!(
+            "{} provenance_status must be `complete` for supported scope",
             adapter_bank_path.display()
         );
     }
@@ -1486,10 +1539,17 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
     if reference_bank.schema_version.trim().is_empty()
         || reference_bank.bank_id.trim().is_empty()
         || reference_bank.version.trim().is_empty()
+        || reference_bank.provenance_status.trim().is_empty()
         || reference_bank.references.is_empty()
     {
         bail!(
             "{} missing required reference bank fields",
+            reference_bank_path.display()
+        );
+    }
+    if reference_bank.provenance_status != "complete" {
+        bail!(
+            "{} provenance_status must be `complete` for supported scope",
             reference_bank_path.display()
         );
     }
@@ -1509,10 +1569,17 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
     if contamination_db_bank.schema_version.trim().is_empty()
         || contamination_db_bank.bank_id.trim().is_empty()
         || contamination_db_bank.version.trim().is_empty()
+        || contamination_db_bank.provenance_status.trim().is_empty()
         || contamination_db_bank.databases.is_empty()
     {
         bail!(
             "{} missing required contamination db bank fields",
+            contamination_db_bank_path.display()
+        );
+    }
+    if contamination_db_bank.provenance_status != "complete" {
+        bail!(
+            "{} provenance_status must be `complete` for supported scope",
             contamination_db_bank_path.display()
         );
     }
@@ -1721,13 +1788,15 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                         bail!("{} has metric with empty name", path.display());
                     }
                 }
-                if has_placeholder_token(&stage_raw) {
+                ensure_status(&stage.status, &path)?;
+                if has_supported_placeholder_forbidden_token(&stage_raw)
+                    && !placeholders_allowed(&stage.status)
+                {
                     bail!(
-                        "{} contains placeholder token (todo/tbd/placeholder)",
+                        "{} contains placeholder token; placeholders are allowed only under status=planned",
                         path.display()
                     );
                 }
-                ensure_status(&stage.status, &path)?;
                 if dom != "vcf" && stage.scope != "pre_hpc_pre_vcf" {
                     bail!("{} invalid stage scope {}", path.display(), stage.scope);
                 }
@@ -1779,13 +1848,15 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
                 if tool.tool_id.is_empty() {
                     bail!("{} missing tool_id", path.display());
                 }
-                if has_placeholder_token(&tool_raw) {
+                ensure_status(&tool.status, &path)?;
+                if has_supported_placeholder_forbidden_token(&tool_raw)
+                    && !placeholders_allowed(&tool.status)
+                {
                     bail!(
-                        "{} contains placeholder token (todo/tbd/placeholder)",
+                        "{} contains placeholder token; placeholders are allowed only under status=planned",
                         path.display()
                     );
                 }
-                ensure_status(&tool.status, &path)?;
                 if dom != "vcf" && tool.scope != "pre_hpc_pre_vcf" {
                     bail!("{} invalid tool scope {}", path.display(), tool.scope);
                 }
