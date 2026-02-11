@@ -42,6 +42,8 @@ mod mod_contracts_tooling_cli_sql_policy_rs;
 mod mod_contracts_tooling_command_spawn_policy_rs;
 #[path = "contracts/tooling/container_label_policy.rs"]
 mod mod_contracts_tooling_container_label_policy_rs;
+#[path = "contracts/tooling/contract_authority_policy.rs"]
+mod mod_contracts_tooling_contract_authority_policy_rs;
 #[path = "contracts/tooling/docs_links.rs"]
 mod mod_contracts_tooling_docs_links_rs;
 #[path = "contracts/tooling/domain_catalog_symmetry_policy.rs"]
