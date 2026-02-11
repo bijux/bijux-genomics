@@ -22,7 +22,10 @@ fn parse_record_fields(line: &str) -> Option<Vec<&str>> {
 }
 
 fn normalize_alleles(reference: &str, alternate: &str) -> (String, String) {
-    (reference.to_ascii_uppercase(), alternate.to_ascii_uppercase())
+    (
+        reference.to_ascii_uppercase(),
+        alternate.to_ascii_uppercase(),
+    )
 }
 
 /// # Errors
@@ -90,11 +93,15 @@ pub fn run_filter_stage(
                     fields[7].to_string(),
                 ];
                 if fields.len() > 8 {
-                    row.extend(fields[8..].iter().map(|field| field.to_string()));
+                    row.extend(fields[8..].iter().copied().map(str::to_string));
                 }
                 row
             } else {
-                fields.iter().map(|field| field.to_string()).collect::<Vec<_>>()
+                fields
+                    .iter()
+                    .copied()
+                    .map(str::to_string)
+                    .collect::<Vec<_>>()
             };
             kept += 1;
             out.push_str(&normalized.join("\t"));

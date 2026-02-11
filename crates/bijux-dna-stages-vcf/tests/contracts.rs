@@ -25,17 +25,17 @@ mod contracts {
 
     #[test]
     fn vcf_call_and_filter_parsers_fixture_roundtrip() {
-        let call = parse_vcf_call_summary(
-            Path::new("tests/fixtures/vcf/default/input.vcf"),
-            "sample1",
-        )
-        .unwrap_or_else(|err| panic!("parse call fixture: {err}"));
+        let call =
+            parse_vcf_call_summary(Path::new("tests/fixtures/vcf/default/input.vcf"), "sample1")
+                .unwrap_or_else(|err| panic!("parse call fixture: {err}"));
         assert_eq!(call.variants_called, 4);
         assert_eq!(call.snps, 3);
 
-        let filter =
-            parse_vcf_filter_breakdown(Path::new("tests/fixtures/vcf/default/input.vcf"), "sample1")
-                .unwrap_or_else(|err| panic!("parse filter fixture: {err}"));
+        let filter = parse_vcf_filter_breakdown(
+            Path::new("tests/fixtures/vcf/default/input.vcf"),
+            "sample1",
+        )
+        .unwrap_or_else(|err| panic!("parse filter fixture: {err}"));
         assert_eq!(filter.variants_in, 4);
         assert_eq!(filter.filter_breakdown.get("PASS"), Some(&3));
     }
@@ -70,8 +70,10 @@ mod contracts {
         let vcf = dir.path().join("x.vcf.gz");
         std::fs::write(&vcf, b"##fileformat=VCFv4.2\n").unwrap_or_else(|err| panic!("{err}"));
         let tbi = dir.path().join("x.vcf.gz.tbi");
-        let err = assert_bgzip_tabix_artifacts(&vcf, &tbi)
-            .expect_err("missing tbi must fail artifact correctness");
+        let err = match assert_bgzip_tabix_artifacts(&vcf, &tbi) {
+            Ok(()) => panic!("missing tbi must fail artifact correctness"),
+            Err(err) => err,
+        };
         assert!(err.to_string().contains("tabix index missing"));
     }
 
