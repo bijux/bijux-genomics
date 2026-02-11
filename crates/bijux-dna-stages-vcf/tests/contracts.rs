@@ -2,7 +2,7 @@ mod contracts {
     use std::path::Path;
 
     use bijux_dna_stages_vcf::metrics::parse_vcf_stats;
-    use bijux_dna_stages_vcf::stage_specs::{stage_specs, supported_vcf_stages};
+    use bijux_dna_stages_vcf::stage_specs::{supported_vcf_stages, vcf_stage_catalog};
 
     #[test]
     fn vcf_stats_parser_fixture_roundtrip() {
@@ -19,7 +19,7 @@ mod contracts {
 
     #[test]
     fn no_supported_vcf_stage_without_smoke_and_schema() {
-        for spec in stage_specs() {
+        for spec in vcf_stage_catalog() {
             if supported_vcf_stages().contains(&spec.stage_id) {
                 assert!(spec.smoke_supported, "{} missing smoke", spec.stage_id);
                 assert!(spec.parser_supported, "{} missing parser", spec.stage_id);

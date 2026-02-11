@@ -60,6 +60,7 @@ pub fn validate_vcf_profile(profile: &PipelineProfile) -> VcfProfileValidationRe
         id_catalog::VCF_FILTER,
         id_catalog::VCF_STATS,
     ] {
+        let stage_id = StageId::from_static(stage);
         if !stages.contains(stage) {
             violations.push(violation(
                 "required_stage_missing",
@@ -67,11 +68,7 @@ pub fn validate_vcf_profile(profile: &PipelineProfile) -> VcfProfileValidationRe
                 format!("required VCF stage `{stage}` is missing"),
             ));
         }
-        if !profile
-            .defaults
-            .params
-            .contains_key(&StageId::new(stage.to_string()))
-        {
+        if !profile.defaults.params.contains_key(&stage_id) {
             violations.push(violation(
                 "required_params_missing",
                 Some(stage),
@@ -109,10 +106,11 @@ pub fn validate_vcf_profile(profile: &PipelineProfile) -> VcfProfileValidationRe
         id_catalog::VCF_FILTER,
         id_catalog::VCF_STATS,
     ] {
+        let stage_id = StageId::from_static(stage);
         let tool_id = profile
             .defaults
             .tools
-            .get(&StageId::new(stage.to_string()))
+            .get(&stage_id)
             .map(|t| t.as_str())
             .unwrap_or_default();
         if tool_id.is_empty() {
@@ -138,15 +136,15 @@ pub fn vcf_minimal_profile() -> PipelineProfile {
 
     defaults.tools.insert(
         StageId::from_static(id_catalog::VCF_CALL),
-        ToolId::new("bcftools"),
+        ToolId::from_static(id_catalog::TOOL_BCFTOOLS),
     );
     defaults.tools.insert(
         StageId::from_static(id_catalog::VCF_FILTER),
-        ToolId::new("bcftools"),
+        ToolId::from_static(id_catalog::TOOL_BCFTOOLS),
     );
     defaults.tools.insert(
         StageId::from_static(id_catalog::VCF_STATS),
-        ToolId::new("bcftools"),
+        ToolId::from_static(id_catalog::TOOL_BCFTOOLS),
     );
 
     defaults.params.insert(
@@ -168,7 +166,7 @@ pub fn vcf_minimal_profile() -> PipelineProfile {
         id_catalog::VCF_STATS,
     ] {
         defaults.rationales.insert(
-            StageId::new(stage.to_string()),
+            StageId::from_static(stage),
             "vcf minimal default".to_string(),
         );
     }
