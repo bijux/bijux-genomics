@@ -105,8 +105,8 @@ fn correct_outputs_are_compatible_with_filter_inputs() -> Result<(), Box<dyn std
 }
 
 #[test]
-fn validate_pre_outputs_are_compatible_with_qc_post_inputs()
--> Result<(), Box<dyn std::error::Error>> {
+fn validate_pre_outputs_are_compatible_with_qc_post_inputs(
+) -> Result<(), Box<dyn std::error::Error>> {
     let registry = load_manifests(&domain_root())?;
     let validate_pre = stage_or(&registry, "fastq.validate_pre")?;
     assert!(
