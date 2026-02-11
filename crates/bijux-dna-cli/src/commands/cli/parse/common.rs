@@ -58,6 +58,8 @@ pub struct StatusArgs {
     pub write_checklist: Option<PathBuf>,
     #[arg(long, default_value_t = false)]
     pub placeholders: bool,
+    #[arg(long, default_value_t = false)]
+    pub contracts: bool,
 }
 
 #[derive(Debug, Subcommand)]

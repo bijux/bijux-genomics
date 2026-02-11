@@ -152,8 +152,194 @@ fn parse_scalar(raw: &str, key: &str) -> Option<String> {
     })
 }
 
+fn parse_toml_path(path: &Path) -> Result<toml::Value> {
+    let raw = std::fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
+    raw.parse::<toml::Value>()
+        .map_err(|err| anyhow!("parse {}: {err}", path.display()))
+}
+
+fn toml_array<'a>(value: &'a toml::Value, key: &str) -> Vec<&'a toml::Value> {
+    value
+        .get(key)
+        .and_then(toml::Value::as_array)
+        .map(|rows| rows.iter().collect::<Vec<_>>())
+        .unwrap_or_default()
+}
+
+fn param_rows<'a>(value: &'a toml::Value) -> Vec<&'a toml::Value> {
+    let rows = toml_array(value, "params");
+    if rows.is_empty() {
+        toml_array(value, "entries")
+    } else {
+        rows
+    }
+}
+
+fn toml_list(value: &toml::Value, key: &str) -> Vec<String> {
+    value
+        .get(key)
+        .and_then(toml::Value::as_array)
+        .map(|rows| {
+            rows.iter()
+                .filter_map(toml::Value::as_str)
+                .map(str::to_string)
+                .collect::<Vec<_>>()
+        })
+        .unwrap_or_default()
+}
+
+fn print_contract_status(cwd: &Path) -> Result<()> {
+    let domains = parse_toml_path(&cwd.join("configs/domains.toml"))?;
+    let images = parse_toml_path(&cwd.join("configs/images.toml"))?;
+    let image_ids = images
+        .as_table()
+        .map(|table| table.keys().cloned().collect::<BTreeSet<_>>())
+        .unwrap_or_default();
+
+    println!(
+        "{:<8} {:<12} {:<7} {:<7} {:<7} {:<7} {:<9} {:<8}",
+        "domain", "mode", "stages", "params", "tools", "metrics", "images", "failures"
+    );
+    println!("{}", "-".repeat(74));
+
+    for domain in toml_array(&domains, "domains") {
+        let id = domain
+            .get("id")
+            .and_then(toml::Value::as_str)
+            .unwrap_or("<unknown>");
+        let experimental = domain
+            .get("experimental")
+            .and_then(toml::Value::as_bool)
+            .unwrap_or(false);
+        let stages_rel = domain
+            .get("stages_ssot")
+            .and_then(toml::Value::as_str)
+            .unwrap_or_default();
+        let params_rel = domain
+            .get("param_registry_ssot")
+            .and_then(toml::Value::as_str)
+            .unwrap_or_default();
+        let tools_rel = domain
+            .get("tool_registry_ssot")
+            .and_then(toml::Value::as_str)
+            .unwrap_or_default();
+        if stages_rel.is_empty() || params_rel.is_empty() || tools_rel.is_empty() {
+            println!(
+                "{:<8} {:<12} {:<7} {:<7} {:<7} {:<7} {:<9} {:<8}",
+                id, "invalid", "-", "-", "-", "-", "-", "yes"
+            );
+            continue;
+        }
+        let stages = parse_toml_path(&cwd.join(stages_rel))?;
+        let params = parse_toml_path(&cwd.join(params_rel))?;
+        let tools = parse_toml_path(&cwd.join(tools_rel))?;
+
+        let param_stage_ids = param_rows(&params)
+            .into_iter()
+            .filter_map(|row| row.get("stage_id").and_then(toml::Value::as_str))
+            .collect::<BTreeSet<_>>();
+        let tool_rows = toml_array(&tools, "tools");
+        let mut tools_by_stage = BTreeMap::<String, BTreeSet<String>>::new();
+        let mut tool_metrics = BTreeMap::<String, String>::new();
+        for row in &tool_rows {
+            let tool_id = row
+                .get("id")
+                .and_then(toml::Value::as_str)
+                .unwrap_or_default()
+                .to_string();
+            let metrics_schema = row
+                .get("metrics_schema")
+                .and_then(toml::Value::as_str)
+                .unwrap_or_default()
+                .to_string();
+            tool_metrics.insert(tool_id.clone(), metrics_schema);
+            for stage_id in toml_list(row, "stage_ids") {
+                tools_by_stage
+                    .entry(stage_id)
+                    .or_default()
+                    .insert(tool_id.clone());
+            }
+        }
+
+        let mut stage_count = 0usize;
+        let mut missing_params = 0usize;
+        let mut missing_tools = 0usize;
+        let mut missing_metrics = 0usize;
+        let mut missing_images = 0usize;
+        for stage in toml_array(&stages, "stages") {
+            let stage_id = stage
+                .get("id")
+                .and_then(toml::Value::as_str)
+                .unwrap_or_default();
+            if !stage_id.starts_with(&format!("{id}.")) {
+                continue;
+            }
+            let status = stage
+                .get("status")
+                .and_then(toml::Value::as_str)
+                .unwrap_or("supported");
+            if status != "supported" {
+                continue;
+            }
+            stage_count += 1;
+            if !param_stage_ids.contains(stage_id) {
+                missing_params += 1;
+            }
+            let stage_metrics_schema = stage
+                .get("metrics_schema")
+                .and_then(toml::Value::as_str)
+                .unwrap_or_default();
+            let stage_tools = toml_list(stage, "tools")
+                .into_iter()
+                .chain(
+                    tools_by_stage
+                        .get(stage_id)
+                        .cloned()
+                        .unwrap_or_default()
+                        .into_iter(),
+                )
+                .collect::<BTreeSet<_>>();
+            let has_metrics = !stage_metrics_schema.trim().is_empty()
+                || stage_metrics_schema == "none"
+                || stage_tools.iter().any(|tool| {
+                    tool_metrics
+                        .get(tool)
+                        .is_some_and(|schema| !schema.trim().is_empty() && schema != "bijux.unknown.v1")
+                });
+            if !has_metrics {
+                missing_metrics += 1;
+            }
+            if stage_tools.is_empty() {
+                missing_tools += 1;
+            } else if !experimental && stage_tools.iter().any(|tool| !image_ids.contains(tool)) {
+                missing_images += 1;
+            }
+        }
+        let failures = missing_params + missing_tools + missing_metrics + missing_images;
+        println!(
+            "{:<8} {:<12} {:<7} {:<7} {:<7} {:<7} {:<9} {:<8}",
+            id,
+            if experimental {
+                "experimental"
+            } else {
+                "production"
+            },
+            stage_count,
+            missing_params,
+            missing_tools,
+            missing_metrics,
+            missing_images,
+            if failures > 0 { "yes" } else { "no" }
+        );
+    }
+    Ok(())
+}
+
 #[allow(clippy::format_push_string, clippy::too_many_lines)]
 fn handle_status_root(args: &cli::StatusArgs, cwd: &Path) -> Result<()> {
+    if args.contracts {
+        return print_contract_status(cwd);
+    }
     let domain_dir = cwd.join("domain");
     let mut planned = Vec::new();
     let mut placeholders = Vec::new();

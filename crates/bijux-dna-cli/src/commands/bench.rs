@@ -439,9 +439,11 @@ fn explain_fastq_stage(
             "fastq-to-fastq__reference_adna__v1",
         )?;
         let trim_stage = StageId::from_static("fastq.trim");
+        let param_schema = lookup_param_schema_id("fastq.trim")
+            .unwrap_or_else(|| "unknown_from_registry".to_string());
         let payload = serde_json::json!({
             "stage_id": "fastq.trim",
-            "param_schema": "bijux.fastq.params.trim.v1",
+            "param_schema": param_schema,
             "param_variant": "FastqTrim (effective defaults payload)",
             "defaults": {
                 "fastq-default": default_profile.defaults.params.get(&trim_stage),
@@ -521,4 +523,36 @@ fn explain_fastq_stage(
         println!("- {} ({})", output.name, output.data_type);
     }
     Ok(())
+}
+
+fn lookup_param_schema_id(stage_id: &str) -> Option<String> {
+    let cwd = std::env::current_dir().ok()?;
+    let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    let mut roots = vec![cwd, manifest_dir.parent()?.parent()?.to_path_buf()];
+    roots.sort();
+    roots.dedup();
+    for root in roots {
+        for rel in [
+            "configs/param_registry.toml",
+            "configs/param_registry_vcf.toml",
+        ] {
+            let path = root.join(rel);
+            if !path.exists() {
+                continue;
+            }
+            let raw = std::fs::read_to_string(&path).ok()?;
+            let parsed: toml::Value = raw.parse().ok()?;
+            let rows = parsed.get("params").and_then(toml::Value::as_array)?;
+            for row in rows {
+                let id = row.get("stage_id").and_then(toml::Value::as_str)?;
+                if id == stage_id {
+                    return row
+                        .get("schema_version")
+                        .and_then(toml::Value::as_str)
+                        .map(str::to_string);
+                }
+            }
+        }
+    }
+    None
 }
