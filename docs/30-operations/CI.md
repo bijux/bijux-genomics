@@ -10,16 +10,12 @@ Keeps code and docs in sync.
 - Performance optimization.
 
 ## Contracts
-CI runs:
-- `make ci`
+CI runs only isolated commands.
+- `./bin/isolate make ci`
 
-`make ci` is exactly:
-- `make fmt`
-- `make lint`
-- `make audit`
-- `make coverage`
+`make ci` executes isolated gates (`fmt-isolate`, `lint-isolate`, `audit-isolate`, `test-isolate`, `docs-isolate`).
 
-`make check` is the same minimal gate as `make ci`.
+`make check` should be run through isolate as well: `./bin/isolate make check`.
 
 ## Examples
 Run locally with the same commands before pushing.

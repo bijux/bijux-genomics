@@ -24,10 +24,10 @@ Prevents subjective scope debates and forces auditable closure criteria.
 - Fixture metadata is machine-readable (`CASE.toml`/`CASE.json`) where churn matters.
 
 ## Examples
-- `cargo test -p bijux-dna-runtime --test contracts mod_contracts_telemetry_contract_rs`
-- `cargo test -p bijux-dna-api --test contracts v1_dry_run_manifest`
-- `cargo test -p bijux-dna-cli --test contracts cli_behavior`
-- `cargo test -p bijux-dna-environment-qa --test contracts`
+- `./bin/isolate cargo test -p bijux-dna-runtime --test contracts mod_contracts_telemetry_contract_rs`
+- `./bin/isolate cargo test -p bijux-dna-api --test contracts v1_dry_run_manifest`
+- `./bin/isolate cargo test -p bijux-dna-cli --test contracts cli_behavior`
+- `./bin/isolate cargo test -p bijux-dna-environment-qa --test contracts`
 
 ## Failure modes
 - Unknown telemetry events deserialize successfully.

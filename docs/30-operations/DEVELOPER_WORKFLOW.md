@@ -11,19 +11,20 @@ Ensures local checks match pipeline enforcement.
 
 ## Contracts
 CI enforces these commands via `make` and policy tests.
+- Any command that touches Cargo must run under `./bin/isolate`.
 
 ## Examples
 ```bash
-make fmt
-make lint
-make test
-make policy-fast
-make policy-full
+./bin/isolate make fmt
+./bin/isolate make lint
+./bin/isolate make test
+./bin/isolate make policy-fast
+./bin/isolate make policy-full
 ```
 
 Outputs:
-- test artifacts under `target/`
-- docs build under `site/` (mkdocs)
+- isolate-scoped test/build artifacts under `artifacts/isolates/<ISO_TAG>/`
+- docs build under `artifacts/isolates/<ISO_TAG>/docs/site/`
 
 ## Failure modes
 Any failure must be resolved locally before merging.
