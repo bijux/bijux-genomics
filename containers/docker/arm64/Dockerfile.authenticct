@@ -30,13 +30,21 @@ RUN git clone --depth 1 https://github.com/StephanePeyregne/AuthentiCT.git /opt/
 
 RUN printf '%s\n' \
   '#!/usr/bin/env sh' \
-  'AUTHENTICT_SCRIPT="/opt/authenticct/AuthentiCT.py"' \
+  'AUTHENTICT_SCRIPT="${AUTHENTICT_SCRIPT:-/opt/authenticct/AuthentiCT.py}"' \
+  'if [ ! -f "${AUTHENTICT_SCRIPT}" ]; then' \
+  '  AUTHENTICT_SCRIPT="$(find /opt/authenticct -type f -name "AuthentiCT.py" -print -quit 2>/dev/null || true)"' \
+  'fi' \
   'run_authenticct() {' \
+  '  if [ -n "${AUTHENTICT_SCRIPT}" ] && [ -f "${AUTHENTICT_SCRIPT}" ]; then' \
+  '    python3 "${AUTHENTICT_SCRIPT}" "$@"' \
+  '    return 0' \
+  '  fi' \
   '  if command -v AuthentiCT.py >/dev/null 2>&1; then' \
   '    AuthentiCT.py "$@"' \
-  '  else' \
-  '    python3 "${AUTHENTICT_SCRIPT}" "$@"' \
+  '    return 0' \
   '  fi' \
+  '  echo "AuthentiCT.py not found under /opt/authenticct and not on PATH" >&2' \
+  '  return 127' \
   '}' \
   'case "${1:-}" in' \
   '  --version) run_authenticct --version; exit 0 ;;' \
