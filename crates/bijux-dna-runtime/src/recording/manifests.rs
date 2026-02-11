@@ -19,6 +19,22 @@ fn canonical_sha256(value: &serde_json::Value) -> Result<String> {
     Ok(format!("{:x}", hasher.finalize()))
 }
 
+fn detect_run_context() -> crate::RunContextV1 {
+    let mode = std::env::var("BIJUX_RUN_CONTEXT").unwrap_or_else(|_| "local".to_string());
+    if mode.eq_ignore_ascii_case("hpc") {
+        let site = std::env::var("BIJUX_HPC_SITE").unwrap_or_else(|_| "lunarc".to_string());
+        let scratch = std::env::var("TMPDIR").unwrap_or_else(|_| String::new());
+        let slurm = std::env::var("SLURM_JOB_ID").is_ok();
+        crate::RunContextV1::Hpc {
+            site,
+            scratch,
+            slurm,
+        }
+    } else {
+        crate::RunContextV1::Local
+    }
+}
+
 #[derive(Debug)]
 pub struct RunDirs {
     pub artifacts_dir: PathBuf,
@@ -185,6 +201,36 @@ pub fn write_run_manifest(
     let reproducibility_dir = run_artifacts_dir(run_dirs)?.join("reproducibility");
     bijux_dna_infra::ensure_dir(&reproducibility_dir).context("create reproducibility dir")?;
     let reproducibility_report_path = reproducibility_dir.join("report.json");
+    let profile_hash = std::env::var("BIJUX_PROFILE_HASH").ok();
+    let reproducibility_tuple = serde_json::json!({
+        "schema_version": "bijux.repro_tuple.v1",
+        "tool_digests": tool_invocations
+            .iter()
+            .map(|inv| serde_json::json!({
+                "stage_id": inv.stage_id,
+                "tool_id": inv.tool_id,
+                "image_digest": inv.image_digest,
+            }))
+            .collect::<Vec<_>>(),
+        "bank_hashes": serde_json::json!({}),
+        "profile_hash": profile_hash,
+    });
+    let run_context = detect_run_context();
+    if matches!(run_context, crate::RunContextV1::Hpc { .. }) {
+        let has_tool_digests = reproducibility_tuple
+            .get("tool_digests")
+            .and_then(serde_json::Value::as_array)
+            .is_some_and(|v| !v.is_empty());
+        let has_profile_hash = reproducibility_tuple
+            .get("profile_hash")
+            .and_then(serde_json::Value::as_str)
+            .is_some_and(|v| !v.trim().is_empty());
+        if !has_tool_digests || !has_profile_hash {
+            return Err(anyhow!(
+                "missing reproducibility tuple for HPC run (tool digests + profile hash required)"
+            ));
+        }
+    }
     let reproducibility_identity = bijux_dna_core::prelude::ReproducibilityIdentityV1 {
         image_digest: replay_tool_image_digest.clone(),
         tool_version: run_provenance.tool_version.clone(),
@@ -208,6 +254,7 @@ pub fn write_run_manifest(
             "tool_image_digest": run_provenance.tool_image_digest,
             "tool_invocations": tool_invocations.clone(),
             "reproducibility_identity": reproducibility_identity,
+            "reproducibility_tuple": reproducibility_tuple.clone(),
         }),
     )
     .context("write reproducibility report")?;
@@ -241,6 +288,8 @@ pub fn write_run_manifest(
         "dashboard": {
             "facts_jsonl": run_artifacts_dir(run_dirs)?.join("dashboard").join("facts.jsonl"),
         },
+        "run_context": run_context,
+        "reproducibility_tuple": reproducibility_tuple,
     });
     let payload = bijux_dna_core::contract::canonical::to_canonical_json_bytes(&payload)?;
     super::io::write_atomic_bytes(&run_dirs.run_manifest_path, payload.as_slice())
