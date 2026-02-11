@@ -10,7 +10,7 @@ pub mod invariants;
 pub mod measure;
 pub mod version;
 
-pub use cache::CacheKey;
+pub use cache::{CacheKey, ReproducibilityIdentityV1};
 pub use command::*;
 pub use errors::{
     BijuxError, CategorizedError, ErrorCategory, ErrorHintV1, HintSeverity, RawFailure, Result,
