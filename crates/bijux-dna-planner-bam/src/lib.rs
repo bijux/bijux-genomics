@@ -159,7 +159,11 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
             let bam = request
                 .bam
                 .ok_or_else(|| anyhow!("mapping_summary requires bam"))?;
-            tool_adapters::stages_pre::qc_pre::plan(request.tool, bam, request.out_dir)
+            let mut plan = tool_adapters::stages_pre::qc_pre::plan(request.tool, bam, request.out_dir)?;
+            plan.stage_id = bijux_dna_core::ids::StageId::from_static(
+                bijux_dna_domain_bam::BamStage::MappingSummary.as_str(),
+            );
+            Ok(plan)
         }
         bijux_dna_domain_bam::BamStage::Filter => {
             let bam = request.bam.ok_or_else(|| anyhow!("filter requires bam"))?;
@@ -167,7 +171,12 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
             let bijux_dna_domain_bam::params::BamEffectiveParams::Filter(params) = params else {
                 return Err(anyhow!("filter params mismatch"));
             };
-            tool_adapters::stages_pre::filter::plan(request.tool, bam, request.out_dir, &params)
+            let mut plan =
+                tool_adapters::stages_pre::filter::plan(request.tool, bam, request.out_dir, &params)?;
+            plan.stage_id = bijux_dna_core::ids::StageId::from_static(
+                bijux_dna_domain_bam::BamStage::MapqFilter.as_str(),
+            );
+            Ok(plan)
         }
         bijux_dna_domain_bam::BamStage::MapqFilter => {
             let bam = request
@@ -178,7 +187,12 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
             else {
                 return Err(anyhow!("mapq_filter params mismatch"));
             };
-            tool_adapters::stages_pre::filter::plan(request.tool, bam, request.out_dir, &params)
+            let mut plan =
+                tool_adapters::stages_pre::filter::plan(request.tool, bam, request.out_dir, &params)?;
+            plan.stage_id = bijux_dna_core::ids::StageId::from_static(
+                bijux_dna_domain_bam::BamStage::LengthFilter.as_str(),
+            );
+            Ok(plan)
         }
         bijux_dna_domain_bam::BamStage::LengthFilter => {
             let bam = request
@@ -197,7 +211,12 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
             let bijux_dna_domain_bam::params::BamEffectiveParams::Markdup(params) = params else {
                 return Err(anyhow!("markdup params mismatch"));
             };
-            tool_adapters::stages_post::markdup::plan(request.tool, bam, request.out_dir, &params)
+            let mut plan =
+                tool_adapters::stages_post::markdup::plan(request.tool, bam, request.out_dir, &params)?;
+            plan.stage_id = bijux_dna_core::ids::StageId::from_static(
+                bijux_dna_domain_bam::BamStage::DuplicationMetrics.as_str(),
+            );
+            Ok(plan)
         }
         bijux_dna_domain_bam::BamStage::DuplicationMetrics => {
             let bam = request
@@ -280,7 +299,12 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
             else {
                 return Err(anyhow!("endogenous_content params mismatch"));
             };
-            tool_adapters::stages_post::coverage::plan(request.tool, bam, request.out_dir, &params)
+            let mut plan =
+                tool_adapters::stages_post::coverage::plan(request.tool, bam, request.out_dir, &params)?;
+            plan.stage_id = bijux_dna_core::ids::StageId::from_static(
+                bijux_dna_domain_bam::BamStage::EndogenousContent.as_str(),
+            );
+            Ok(plan)
         }
         bijux_dna_domain_bam::BamStage::OverlapCorrection => {
             let bam = request
@@ -292,7 +316,12 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
             else {
                 return Err(anyhow!("overlap_correction params mismatch"));
             };
-            tool_adapters::stages_pre::filter::plan(request.tool, bam, request.out_dir, &params)
+            let mut plan =
+                tool_adapters::stages_pre::filter::plan(request.tool, bam, request.out_dir, &params)?;
+            plan.stage_id = bijux_dna_core::ids::StageId::from_static(
+                bijux_dna_domain_bam::BamStage::OverlapCorrection.as_str(),
+            );
+            Ok(plan)
         }
         bijux_dna_domain_bam::BamStage::Recalibration => {
             let bam = request
