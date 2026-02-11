@@ -150,7 +150,7 @@
       "span_id": "span-bam.align",
       "stage_id": "bam.align",
       "tool_id": "unknown",
-      "tool_version": "0.0.0",
+      "tool_version": "99.99.99+fixture",
       "trace_id": "trace-fastq-to-bam__default__v1"
     },
     {
@@ -160,7 +160,7 @@
       "span_id": "span-bam.coverage",
       "stage_id": "bam.coverage",
       "tool_id": "unknown",
-      "tool_version": "0.0.0",
+      "tool_version": "99.99.99+fixture",
       "trace_id": "trace-fastq-to-bam__default__v1"
     },
     {
@@ -170,7 +170,7 @@
       "span_id": "span-bam.damage",
       "stage_id": "bam.damage",
       "tool_id": "unknown",
-      "tool_version": "0.0.0",
+      "tool_version": "99.99.99+fixture",
       "trace_id": "trace-fastq-to-bam__default__v1"
     },
     {
@@ -180,7 +180,7 @@
       "span_id": "span-bam.qc_pre",
       "stage_id": "bam.qc_pre",
       "tool_id": "unknown",
-      "tool_version": "0.0.0",
+      "tool_version": "99.99.99+fixture",
       "trace_id": "trace-fastq-to-bam__default__v1"
     },
     {
@@ -190,7 +190,7 @@
       "span_id": "span-fastq.preprocess",
       "stage_id": "fastq.preprocess",
       "tool_id": "unknown",
-      "tool_version": "0.0.0",
+      "tool_version": "99.99.99+fixture",
       "trace_id": "trace-fastq-to-bam__default__v1"
     }
   ],
@@ -215,7 +215,7 @@
       "stage_report_path": "stage_1/stage_report.json",
       "tool_id": "unknown",
       "tool_invocation_path": "stage_1/tool_invocation.json",
-      "tool_version": "0.0.0"
+      "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": null,
@@ -231,7 +231,7 @@
       "stage_report_path": "stage_3/stage_report.json",
       "tool_id": "unknown",
       "tool_invocation_path": "stage_3/tool_invocation.json",
-      "tool_version": "0.0.0"
+      "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": null,
@@ -247,7 +247,7 @@
       "stage_report_path": "stage_4/stage_report.json",
       "tool_id": "unknown",
       "tool_invocation_path": "stage_4/tool_invocation.json",
-      "tool_version": "0.0.0"
+      "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": null,
@@ -263,7 +263,7 @@
       "stage_report_path": "stage_2/stage_report.json",
       "tool_id": "unknown",
       "tool_invocation_path": "stage_2/tool_invocation.json",
-      "tool_version": "0.0.0"
+      "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": null,
@@ -279,7 +279,7 @@
       "stage_report_path": "stage_0/stage_report.json",
       "tool_id": "unknown",
       "tool_invocation_path": "stage_0/tool_invocation.json",
-      "tool_version": "0.0.0"
+      "tool_version": "99.99.99+fixture"
     }
   ],
   "telemetry": {
