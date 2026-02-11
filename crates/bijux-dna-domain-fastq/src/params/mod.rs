@@ -24,6 +24,89 @@ pub mod trim;
 pub mod umi;
 pub mod validate;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct StageParamDescriptor {
+    pub param_type_id: &'static str,
+    pub schema_version: &'static str,
+}
+
+#[must_use]
+pub fn stage_param_descriptor(stage_id: &StageId) -> Option<StageParamDescriptor> {
+    if stage_id == &STAGE_VALIDATE_PRE {
+        return Some(StageParamDescriptor {
+            param_type_id: "fastq.validate",
+            schema_version: "legacy.unversioned",
+        });
+    }
+    if stage_id == &STAGE_STATS_NEUTRAL {
+        return Some(StageParamDescriptor {
+            param_type_id: "fastq.stats",
+            schema_version: stats::STATS_SCHEMA_VERSION,
+        });
+    }
+    if stage_id == &STAGE_CORRECT {
+        return Some(StageParamDescriptor {
+            param_type_id: "fastq.correct",
+            schema_version: correct::CORRECT_SCHEMA_VERSION,
+        });
+    }
+    if stage_id == &STAGE_UMI {
+        return Some(StageParamDescriptor {
+            param_type_id: "fastq.umi",
+            schema_version: umi::UMI_SCHEMA_VERSION,
+        });
+    }
+    if stage_id == &STAGE_DETECT_ADAPTERS {
+        return Some(StageParamDescriptor {
+            param_type_id: "fastq.detect_adapters",
+            schema_version: "legacy.unversioned",
+        });
+    }
+    if stage_id == &STAGE_TRIM {
+        return Some(StageParamDescriptor {
+            param_type_id: "fastq.trim",
+            schema_version: "legacy.unversioned",
+        });
+    }
+    if stage_id == &STAGE_FILTER {
+        return Some(StageParamDescriptor {
+            param_type_id: "fastq.filter",
+            schema_version: "legacy.unversioned",
+        });
+    }
+    if stage_id == &STAGE_MERGE {
+        return Some(StageParamDescriptor {
+            param_type_id: "fastq.merge",
+            schema_version: "legacy.unversioned",
+        });
+    }
+    if stage_id == &STAGE_RRNA {
+        return Some(StageParamDescriptor {
+            param_type_id: "fastq.rrna",
+            schema_version: "legacy.unversioned",
+        });
+    }
+    if stage_id == &STAGE_SCREEN {
+        return Some(StageParamDescriptor {
+            param_type_id: "fastq.screen",
+            schema_version: "legacy.unversioned",
+        });
+    }
+    if stage_id == &STAGE_QC_POST {
+        return Some(StageParamDescriptor {
+            param_type_id: "fastq.qc_post",
+            schema_version: "legacy.unversioned",
+        });
+    }
+    if stage_id == &STAGE_PREPROCESS {
+        return Some(StageParamDescriptor {
+            param_type_id: "fastq.preprocess",
+            schema_version: "legacy.unversioned",
+        });
+    }
+    None
+}
+
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum PairedMode {

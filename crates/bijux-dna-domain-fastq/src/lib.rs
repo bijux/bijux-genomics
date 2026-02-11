@@ -57,7 +57,10 @@ pub use params::trim::{
     ReadHandlingMode, SkewerTrimParamsV1, TrimAdapterMode, TrimQualityMode, TrimToolParamsV1,
 };
 pub use params::umi::FastqUmiParams;
-pub use params::{parse_effective_params, EffectiveParams, PairedMode};
+pub use params::{
+    parse_effective_params, stage_param_descriptor, EffectiveParams, PairedMode,
+    StageParamDescriptor,
+};
 pub use pipeline_contract::{
     canonical_stage_order, forbidden_transitions, optional_branches, StageCriticality,
 };

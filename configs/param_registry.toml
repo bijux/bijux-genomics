@@ -1,0 +1,162 @@
+schema_version = "bijux.param_registry.v1"
+source = "domain stage parameter contracts"
+
+[[entries]]
+stage_id = "bam.align"
+param_type_id = "bam.align"
+schema_version = "bijux.bam.params.v1"
+
+[[entries]]
+stage_id = "bam.authenticity"
+param_type_id = "bam.authenticity"
+schema_version = "bijux.bam.params.v1"
+
+[[entries]]
+stage_id = "bam.contamination"
+param_type_id = "bam.contamination"
+schema_version = "bijux.bam.params.v1"
+
+[[entries]]
+stage_id = "bam.coverage"
+param_type_id = "bam.coverage"
+schema_version = "bijux.bam.params.v1"
+
+[[entries]]
+stage_id = "bam.damage"
+param_type_id = "bam.damage"
+schema_version = "bijux.bam.params.v1"
+
+[[entries]]
+stage_id = "bam.duplication_metrics"
+param_type_id = "bam.duplication_metrics"
+schema_version = "bijux.bam.params.v1"
+
+[[entries]]
+stage_id = "bam.endogenous_content"
+param_type_id = "bam.endogenous_content"
+schema_version = "bijux.bam.params.v1"
+
+[[entries]]
+stage_id = "bam.filter"
+param_type_id = "bam.filter"
+schema_version = "bijux.bam.params.v1"
+
+[[entries]]
+stage_id = "bam.kinship"
+param_type_id = "bam.kinship"
+schema_version = "bijux.bam.params.v1"
+
+[[entries]]
+stage_id = "bam.length_filter"
+param_type_id = "bam.length_filter"
+schema_version = "bijux.bam.params.v1"
+
+[[entries]]
+stage_id = "bam.mapping_summary"
+param_type_id = "bam.mapping_summary"
+schema_version = "bijux.bam.params.v1"
+
+[[entries]]
+stage_id = "bam.mapq_filter"
+param_type_id = "bam.mapq_filter"
+schema_version = "bijux.bam.params.v1"
+
+[[entries]]
+stage_id = "bam.sex"
+param_type_id = "bam.sex"
+schema_version = "bijux.bam.params.v1"
+
+[[entries]]
+stage_id = "bam.validate"
+param_type_id = "bam.validate"
+schema_version = "bijux.bam.params.v1"
+
+[[entries]]
+stage_id = "bam.qc_pre"
+param_type_id = "bam.qc_pre"
+schema_version = "bijux.bam.params.v1"
+
+[[entries]]
+stage_id = "fastq.contaminant_screen"
+param_type_id = "paramless"
+schema_version = "none"
+
+[[entries]]
+stage_id = "fastq.correct"
+param_type_id = "fastq.correct"
+schema_version = "bijux.fastq.params.correct.v1"
+
+[[entries]]
+stage_id = "fastq.detect_adapters"
+param_type_id = "fastq.detect_adapters"
+schema_version = "legacy.unversioned"
+
+[[entries]]
+stage_id = "fastq.filter"
+param_type_id = "fastq.filter"
+schema_version = "legacy.unversioned"
+
+[[entries]]
+stage_id = "fastq.host_depletion"
+param_type_id = "paramless"
+schema_version = "none"
+
+[[entries]]
+stage_id = "fastq.length_distribution_pre"
+param_type_id = "paramless"
+schema_version = "none"
+
+[[entries]]
+stage_id = "fastq.merge"
+param_type_id = "fastq.merge"
+schema_version = "legacy.unversioned"
+
+[[entries]]
+stage_id = "fastq.overrepresented_sequences"
+param_type_id = "paramless"
+schema_version = "none"
+
+[[entries]]
+stage_id = "fastq.polyg_tailing"
+param_type_id = "paramless"
+schema_version = "none"
+
+[[entries]]
+stage_id = "fastq.prepare_reference"
+param_type_id = "paramless"
+schema_version = "none"
+
+[[entries]]
+stage_id = "fastq.qc_post"
+param_type_id = "fastq.qc_post"
+schema_version = "legacy.unversioned"
+
+[[entries]]
+stage_id = "fastq.rrna"
+param_type_id = "fastq.rrna"
+schema_version = "legacy.unversioned"
+
+[[entries]]
+stage_id = "fastq.screen"
+param_type_id = "fastq.screen"
+schema_version = "legacy.unversioned"
+
+[[entries]]
+stage_id = "fastq.stats_neutral"
+param_type_id = "fastq.stats"
+schema_version = "bijux.fastq.params.stats.v1"
+
+[[entries]]
+stage_id = "fastq.trim"
+param_type_id = "fastq.trim"
+schema_version = "legacy.unversioned"
+
+[[entries]]
+stage_id = "fastq.umi"
+param_type_id = "fastq.umi"
+schema_version = "bijux.fastq.params.umi.v1"
+
+[[entries]]
+stage_id = "fastq.validate_pre"
+param_type_id = "fastq.validate"
+schema_version = "legacy.unversioned"
