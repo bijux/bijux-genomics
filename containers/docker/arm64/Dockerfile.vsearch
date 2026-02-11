@@ -51,7 +51,7 @@ RUN apt-get update && \
 # Create a wrapper script for unified VSEARCH execution
 RUN echo '#!/bin/sh' > /usr/local/bin/vsearch && \
     echo 'if [ "$1" = "--version" ]; then' >> /usr/local/bin/vsearch && \
-    echo '    echo "$VERSION_VSEARCH"' >> /usr/local/bin/vsearch && \
+    echo '    /usr/local/bin/vsearch-bin --version | head -n 1' >> /usr/local/bin/vsearch && \
     echo '    exit 0' >> /usr/local/bin/vsearch && \
     echo 'elif [ "$1" = "--help" ]; then' >> /usr/local/bin/vsearch && \
     echo '    /usr/local/bin/vsearch-bin --help' >> /usr/local/bin/vsearch && \

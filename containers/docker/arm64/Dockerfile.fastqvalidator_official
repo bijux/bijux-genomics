@@ -60,7 +60,8 @@ RUN printf '%s\n' \
     '  --help|-h|"") exec /usr/local/bin/fq-validator-bin --help;;' \
     '  *) exec /usr/local/bin/fq-validator-bin "$@";; esac' \
   > /usr/local/bin/fastq-validator && \
-  chmod +x /usr/local/bin/fastq-validator
+  chmod +x /usr/local/bin/fastq-validator && \
+  ln -sf /usr/local/bin/fastq-validator /usr/local/bin/fastqvalidator_official
 
 WORKDIR /data
 
