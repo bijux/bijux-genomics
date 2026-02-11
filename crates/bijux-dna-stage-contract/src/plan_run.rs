@@ -124,7 +124,14 @@ pub fn build_run_execution_plan(
         })?,
         effective_params: serde_json::json!({}),
         aux_images: BTreeMap::new(),
-        reason: crate::stage_plan::PlanDecisionReason::default(),
+        reason: crate::stage_plan::PlanDecisionReason {
+            kind: crate::stage_plan::PlanReasonKind::Default,
+            summary: "planner default".to_string(),
+            details: serde_json::json!({
+                "runtime_scale": stage_spec.runtime_scale,
+                "semantic_kind": stage_spec.semantic_kind,
+            }),
+        },
     };
 
     let planned_artifacts = stage

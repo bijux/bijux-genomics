@@ -24,9 +24,10 @@ pub use run::{
     ToolExecutionMetadataV1, ToolInvocationMetadataV1, ToolProvenanceV1,
 };
 pub use tooling::{
-    objective_spec, select_stage, BenchResultRecord, BenchResultStatus, Cardinality,
+    objective_spec, select_stage, ArtifactKind, BenchResultRecord, BenchResultStatus, Cardinality,
     Disqualification, ExecutionContract, ImageRequirements, Objective, ObjectiveSpec,
-    ObjectiveWeights, PathSpec, PortSpec, StageParameterSpec, StageSelection, StageSpec,
-    ToolConstraints, ToolExecutionSpecV1, ToolManifest, ToolRegistry, ToolRole, ToolScore,
+    ObjectiveWeights, PathSpec, PortSpec, RuntimeScale, StageParameterSpec, StageSelection,
+    StageSemanticKind, StageSpec, ToolConstraints, ToolExecutionSpecV1, ToolManifest, ToolRegistry,
+    ToolRole, ToolScore,
 };
 pub use version::ContractVersion;
