@@ -28,6 +28,8 @@ check_file() {
 }
 
 check_file "$ROOT_DIR/configs/tool_registry.toml"
+check_file "$ROOT_DIR/configs/tool_registry_experimental.toml"
+check_file "$ROOT_DIR/configs/required_tools.toml"
 check_file "$ROOT_DIR/configs/stages.toml"
 check_file "$ROOT_DIR/configs/images.toml"
 

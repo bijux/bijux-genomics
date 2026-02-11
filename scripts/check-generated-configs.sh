@@ -12,5 +12,7 @@ cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-
 
 git diff --exit-code -- \
   configs/tool_registry.toml \
+  configs/tool_registry_experimental.toml \
+  configs/required_tools.toml \
   configs/stages.toml \
   configs/images.toml
