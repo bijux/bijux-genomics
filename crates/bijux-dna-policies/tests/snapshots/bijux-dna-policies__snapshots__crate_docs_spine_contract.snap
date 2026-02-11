@@ -1,5 +1,6 @@
 ---
 source: crates/bijux-dna-policies/tests/boundaries/surface/docs_spine_contract.rs
+assertion_line: 33
 expression: "bijux_dna_testkit::snapshot_normalize_text(&lines.join(\"\\n\"))"
 ---
 [bijux-dna-analyze]
@@ -238,6 +239,24 @@ See `CHANGE_RULES.md` for safe extension guidelines.
 ## How to Test
 See `TESTS.md` for test mapping and fixtures.
 
+[bijux-dna-domain-vcf]
+# Documentation Index
+
+## Scope
+- [SCOPE.md](SCOPE.md)
+
+## Effects
+- [EFFECTS.md](EFFECTS.md)
+
+## Boundaries
+- [ARCHITECTURE.md](ARCHITECTURE.md)
+
+## Extension Points
+- Extend via typed params and stage contracts.
+
+## How to Test
+- [TESTS.md](TESTS.md)
+
 [bijux-dna-engine]
 # bijux-dna-engine Docs Index
 
@@ -381,6 +400,24 @@ See `CHANGE_RULES.md` for safe extension guidelines.
 ## How to Test
 See `TESTS.md` for test mapping and fixtures.
 
+[bijux-dna-planner-vcf]
+# Documentation Index
+
+## Scope
+- [SCOPE.md](SCOPE.md)
+
+## Effects
+- [EFFECTS.md](EFFECTS.md)
+
+## Boundaries
+- [ARCHITECTURE.md](ARCHITECTURE.md)
+
+## Extension Points
+- Extend via typed params and stage contracts.
+
+## How to Test
+- [TESTS.md](TESTS.md)
+
 [bijux-dna-policies]
 # bijux-dna-policies Docs Index
 
@@ -520,6 +557,24 @@ See `CHANGE_RULES.md` for safe extension guidelines.
 
 ## How to Test
 See `TESTS.md` for test mapping and fixtures.
+
+[bijux-dna-stages-vcf]
+# Documentation Index
+
+## Scope
+- [SCOPE.md](SCOPE.md)
+
+## Effects
+- [EFFECTS.md](EFFECTS.md)
+
+## Boundaries
+- [ARCHITECTURE.md](ARCHITECTURE.md)
+
+## Extension Points
+- Extend via typed params and stage contracts.
+
+## How to Test
+- [TESTS.md](TESTS.md)
 
 [bijux-dna-testkit]
 # bijux-dna-testkit Docs Index

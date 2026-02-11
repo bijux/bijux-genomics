@@ -573,6 +573,10 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "status": "incomplete"
       }
     },
+    "fastq": {
+      "schema_version": "bijux.report.section.fastq.v1",
+      "stages": 6
+    },
     "filtering": {},
     "final_qc_summary": {
       "adapter_inference": {
@@ -889,8 +893,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         },
         "params": {
           "fastq.correct": {
+            "kmer_size": null,
             "paired_mode": "single_end",
-            "q_cutoff": null,
+            "schema_version": "bijux.fastq.params.correct.v1",
             "threads": 1
           },
           "fastq.detect_adapters": {
@@ -918,6 +923,8 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           },
           "fastq.preprocess": {
             "enable_contaminant_removal": false,
+            "library_damage_treatment": "no_udg",
+            "library_declared_paired": false,
             "paired_mode": "single_end",
             "stages": [
               "fastq.validate_pre",
@@ -940,7 +947,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           },
           "fastq.stats_neutral": {
             "paired_mode": "single_end",
-            "q_cutoff": null,
+            "schema_version": "bijux.fastq.params.stats.v1",
             "threads": 1
           },
           "fastq.trim": {
@@ -955,8 +962,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           },
           "fastq.umi": {
             "paired_mode": "single_end",
-            "q_cutoff": null,
-            "threads": 1
+            "schema_version": "bijux.fastq.params.umi.v1",
+            "threads": 1,
+            "umi_pattern": null
           },
           "fastq.validate_pre": {
             "paired_mode": "single_end",
@@ -1251,6 +1259,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     "run_provenance": {
       "graph_hash": "unknown",
       "input_hashes": [],
+      "manifest_signature_sha256": "unknown",
       "stage_contracts": {}
     },
     "scientific_provenance": {
