@@ -31,6 +31,29 @@ fn looks_like_path(value: &str) -> bool {
     value.contains('/') || value.contains('\\')
 }
 
+fn looks_like_hostname(value: &str) -> bool {
+    value.contains('.') && !value.contains(' ')
+}
+
+fn normalize_sensitive_string(value: &str) -> String {
+    let username = std::env::var("USER")
+        .ok()
+        .or_else(|| std::env::var("USERNAME").ok())
+        .unwrap_or_default();
+    let hostname = std::env::var("HOSTNAME").unwrap_or_default();
+    let mut normalized = value.to_string();
+    if !username.is_empty() {
+        normalized = normalized.replace(&username, "<user>");
+    }
+    if !hostname.is_empty() {
+        normalized = normalized.replace(&hostname, "<host>");
+    }
+    if looks_like_hostname(&normalized) && normalized.ends_with(".local") {
+        return "<host>".to_string();
+    }
+    normalized
+}
+
 fn normalize_path_string(value: &str) -> String {
     let path = Path::new(value);
     let mut components: Vec<String> = Vec::new();
@@ -88,7 +111,7 @@ fn normalize_numbers_and_paths(value: &serde_json::Value) -> serde_json::Value {
             if looks_like_path(s) {
                 serde_json::Value::String(normalize_path_string(s))
             } else {
-                serde_json::Value::String(s.clone())
+                serde_json::Value::String(normalize_sensitive_string(s))
             }
         }
         serde_json::Value::Array(items) => {
