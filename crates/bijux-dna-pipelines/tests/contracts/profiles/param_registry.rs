@@ -63,6 +63,7 @@ fn profile_param_kind(params: &DefaultParams) -> &'static str {
         DefaultParams::FastqMerge(_) => "fastq.merge",
         DefaultParams::FastqScreen(_) => "fastq.screen",
         DefaultParams::Bam(_) => "bam.effective",
+        DefaultParams::Vcf(_) => "vcf.effective",
         DefaultParams::Empty(_) => "paramless",
     }
 }
