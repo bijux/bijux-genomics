@@ -67,6 +67,9 @@ pub fn run_with_cli(cli: &cli::Cli, cwd: &Path) -> Result<()> {
     if let cli::RootCommand::Registry { command } = &cli.command {
         return handle_registry_root(command, cwd);
     }
+    if let cli::RootCommand::Tool { command } = &cli.command {
+        return handle_tool_root(command, cwd);
+    }
     if let cli::RootCommand::Domain { command } = &cli.command {
         return handle_domain_root(command, cwd);
     }
@@ -80,6 +83,7 @@ pub fn run_with_cli(cli: &cli::Cli, cwd: &Path) -> Result<()> {
         cli::RootCommand::Dna { command } => command,
         cli::RootCommand::Environment { .. }
         | cli::RootCommand::Registry { .. }
+        | cli::RootCommand::Tool { .. }
         | cli::RootCommand::Domain { .. }
         | cli::RootCommand::Lab { .. }
         | cli::RootCommand::Status(_) => {
@@ -494,7 +498,7 @@ fn handle_registry_root(command: &cli::RegistryCommand, cwd: &Path) -> Result<()
     use crate::commands::cli::env::{
         print_registry_coverage_matrix, print_registry_export_json, print_registry_list_stages,
         print_registry_show, print_registry_show_stage, print_registry_show_tool,
-        print_registry_tools,
+        print_registry_tools, verify_registry_tool,
     };
     let registry_path = cwd.join("configs").join("tool_registry.toml");
     match command {
@@ -507,6 +511,16 @@ fn handle_registry_root(command: &cli::RegistryCommand, cwd: &Path) -> Result<()
         cli::RegistryCommand::Show { id } => print_registry_show(&registry_path, id)?,
         cli::RegistryCommand::ExportJson => print_registry_export_json(&registry_path)?,
         cli::RegistryCommand::CoverageMatrix => print_registry_coverage_matrix(&registry_path)?,
+        cli::RegistryCommand::VerifyTool { id } => verify_registry_tool(&registry_path, id)?,
+    }
+    Ok(())
+}
+
+fn handle_tool_root(command: &cli::ToolCommand, cwd: &Path) -> Result<()> {
+    use crate::commands::cli::env::verify_registry_tool;
+    let registry_path = cwd.join("configs").join("tool_registry.toml");
+    match command {
+        cli::ToolCommand::Verify { id } => verify_registry_tool(&registry_path, id)?,
     }
     Ok(())
 }

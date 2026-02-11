@@ -254,9 +254,34 @@ pub fn load_manifests(source_path: &Path) -> Result<ToolRegistry> {
     }
     let raw = std::fs::read_to_string(&registry_path)
         .with_context(|| format!("read {}", registry_path.display()))?;
-    let parsed: toml::Value = raw
+    let mut parsed: toml::Value = raw
         .parse()
         .with_context(|| format!("parse {}", registry_path.display()))?;
+    let experimental_enabled = std::env::var("BIJUX_INCLUDE_EXPERIMENTAL_TOOLS")
+        .ok()
+        .is_some_and(|value| value == "1" || value.eq_ignore_ascii_case("true"));
+    if experimental_enabled {
+        let experimental_path = registry_path
+            .parent()
+            .unwrap_or_else(|| Path::new("."))
+            .join("tool_registry_experimental.toml");
+        if experimental_path.exists() {
+            let exp_raw = std::fs::read_to_string(&experimental_path)
+                .with_context(|| format!("read {}", experimental_path.display()))?;
+            let exp: toml::Value = exp_raw
+                .parse()
+                .with_context(|| format!("parse {}", experimental_path.display()))?;
+            if let Some(exp_tools) = exp.get("tools").and_then(toml::Value::as_array) {
+                let current = parsed
+                    .as_table_mut()
+                    .and_then(|table| table.get_mut("tools"))
+                    .and_then(toml::Value::as_array_mut);
+                if let Some(current_tools) = current {
+                    current_tools.extend(exp_tools.iter().cloned());
+                }
+            }
+        }
+    }
 
     for stage in parsed
         .get("stages")

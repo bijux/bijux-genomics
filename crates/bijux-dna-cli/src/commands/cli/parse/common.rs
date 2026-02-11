@@ -35,6 +35,10 @@ pub enum RootCommand {
         #[command(subcommand)]
         command: RegistryCommand,
     },
+    Tool {
+        #[command(subcommand)]
+        command: ToolCommand,
+    },
     Domain {
         #[command(subcommand)]
         command: DomainCommand,
@@ -226,6 +230,13 @@ pub enum RegistryCommand {
     ExportJson,
     #[command(name = "coverage-matrix")]
     CoverageMatrix,
+    #[command(name = "verify-tool")]
+    VerifyTool { id: String },
+}
+
+#[derive(Debug, Subcommand)]
+pub enum ToolCommand {
+    Verify { id: String },
 }
 
 #[derive(Debug, Subcommand)]
