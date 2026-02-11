@@ -16,7 +16,7 @@ use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_environment::resolve::{ReferenceBuildRequest, ReferenceRegistry};
 use bijux_dna_infra::bench_base_dir;
 use bijux_dna_pipelines::registry;
-use bijux_dna_pipelines::{Domain, PipelineProfile};
+use bijux_dna_pipelines::{Domain, InvariantsPreset, PipelineProfile};
 use bijux_dna_planner_bam::stage_api::BamStage;
 use bijux_dna_planner_fastq::stage_api::bench_dir_name;
 
@@ -230,7 +230,7 @@ fn build_alignment_boundary(args: &FastqCrossArgs) -> Result<AlignmentBoundary> 
 }
 
 fn select_bam_profile(profile: &PipelineProfile) -> Result<PipelineProfile> {
-    let id = if profile.invariants_preset == Some("adna") {
+    let id = if profile.invariants_preset == Some(InvariantsPreset::Adna) {
         "bam-to-bam__adna_shotgun__v1"
     } else {
         "bam-to-bam__default__v1"

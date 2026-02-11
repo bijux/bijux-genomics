@@ -16,8 +16,8 @@ use bijux_dna_domain_fastq::params::preprocess::LibraryDamageTreatment;
 use bijux_dna_domain_fastq::params::{DamageMode, PairedMode};
 
 use crate::{
-    ArtifactType, DefaultParams, Domain, EffectiveDefaults, MetricsBundle, PipelineCapabilities,
-    PipelineId, PipelineProfile, ReportSection, StabilityTier,
+    ArtifactType, DefaultParams, Domain, EffectiveDefaults, InvariantsPreset, MetricsBundle,
+    PipelineCapabilities, PipelineId, PipelineProfile, ReportSection, StabilityTier,
 };
 
 pub use invariants::{
@@ -375,7 +375,7 @@ pub fn fastq_adna_profile() -> PipelineProfile {
         output_domains: vec![Domain::Fastq],
         defaults,
         defaults_ledger_ref: "defaults_ledger.json",
-        invariants_preset: Some("adna"),
+        invariants_preset: Some(InvariantsPreset::Adna),
         capabilities: PipelineCapabilities {
             input_domains: vec![Domain::Fastq],
             output_domains: vec![Domain::Fastq],
@@ -413,7 +413,7 @@ pub fn fastq_reference_adna_profile() -> PipelineProfile {
         output_domains: vec![Domain::Fastq],
         defaults,
         defaults_ledger_ref: "defaults_ledger.json",
-        invariants_preset: Some("reference_adna"),
+        invariants_preset: Some(InvariantsPreset::ReferenceAdna),
         capabilities: PipelineCapabilities {
             input_domains: vec![Domain::Fastq],
             output_domains: vec![Domain::Fastq],

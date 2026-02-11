@@ -12,7 +12,7 @@ use bijux_dna_domain_fastq::params::screen::ScreenEffectiveParams;
 use bijux_dna_domain_fastq::params::trim::TrimEffectiveParams;
 use serde::Serialize;
 
-use crate::{DefaultParams, PipelineProfile};
+use crate::{DefaultParams, InvariantsPreset, PipelineProfile};
 
 pub const FASTQ_INVARIANTS: &str = "fastq-invariants.v2";
 
@@ -49,7 +49,9 @@ impl FastqProfileValidationReport {
         Self {
             profile_id: profile.id.as_str().to_string(),
             invariants_version: FASTQ_INVARIANTS,
-            invariants_preset: profile.invariants_preset.map(str::to_string),
+            invariants_preset: profile
+                .invariants_preset
+                .map(|preset| preset.as_str().to_string()),
             valid: violations.is_empty(),
             violations,
         }
@@ -175,8 +177,8 @@ pub fn validate_fastq_profile(profile: &PipelineProfile) -> FastqProfileValidati
         }
     }
 
-    let is_adna_like = profile.invariants_preset == Some("adna")
-        || profile.invariants_preset == Some("reference_adna");
+    let is_adna_like = profile.invariants_preset == Some(InvariantsPreset::Adna)
+        || profile.invariants_preset == Some(InvariantsPreset::ReferenceAdna);
     if is_adna_like {
         if let Some(params) = trim_params(profile) {
             if params.min_len == 0 {
@@ -240,7 +242,7 @@ pub fn validate_fastq_profile(profile: &PipelineProfile) -> FastqProfileValidati
             ));
         }
 
-        if profile.invariants_preset == Some("adna") {
+        if profile.invariants_preset == Some(InvariantsPreset::Adna) {
             let trim_tool = profile
                 .defaults
                 .tools
@@ -272,7 +274,7 @@ pub fn validate_fastq_profile(profile: &PipelineProfile) -> FastqProfileValidati
         }
     }
 
-    if profile.invariants_preset == Some("reference_adna") {
+    if profile.invariants_preset == Some(InvariantsPreset::ReferenceAdna) {
         for stage in [
             id_catalog::FASTQ_LOW_COMPLEXITY,
             id_catalog::FASTQ_STATS_NEUTRAL,

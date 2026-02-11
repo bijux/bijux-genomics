@@ -2,6 +2,7 @@
 #[path = "../../support/fs.rs"]
 mod support;
 
+use bijux_dna_core::ids::DomainKind;
 use std::collections::{BTreeMap, BTreeSet};
 use support::workspace_root;
 
@@ -53,14 +54,13 @@ fn policy__contracts__tool_registry_stage_domain_policy__each_tool_has_exactly_o
             .get("id")
             .and_then(toml::Value::as_str)
             .unwrap_or("<missing-id>");
-        let declared_domain = tool
+        let declared_domain_raw = tool
             .get("domain")
             .and_then(toml::Value::as_str)
             .unwrap_or("")
             .to_string();
-        let declared_domains = list(tool, "domains")
-            .into_iter()
-            .collect::<BTreeSet<_>>();
+        let declared_domain = DomainKind::try_from(declared_domain_raw.as_str()).ok();
+        let declared_domains = list(tool, "domains").into_iter().collect::<BTreeSet<_>>();
         let declared_stage_ids = list(tool, "stage_ids");
         let status = tool
             .get("status")
@@ -80,8 +80,12 @@ fn policy__contracts__tool_registry_stage_domain_policy__each_tool_has_exactly_o
             .into_iter()
             .collect::<Vec<_>>();
 
-        if declared_domain.is_empty() {
+        if declared_domain_raw.is_empty() {
             offenders.push(format!("tool={id}: missing `domain`"));
+        } else if declared_domain.is_none() {
+            offenders.push(format!(
+                "tool={id}: invalid `domain` value `{declared_domain_raw}`"
+            ));
         }
         if declared_stage_ids.is_empty() {
             offenders.push(format!("tool={id}: missing non-empty `stage_ids`"));
@@ -98,20 +102,23 @@ fn policy__contracts__tool_registry_stage_domain_policy__each_tool_has_exactly_o
 
         let stage_domain_set = effective_stage_ids
             .iter()
-            .map(|stage_id| {
+            .filter_map(|stage_id| {
                 stage_id
                     .split('.')
                     .next()
-                    .map(str::to_string)
-                    .unwrap_or_else(|| "unknown".to_string())
+                    .and_then(|domain| DomainKind::try_from(domain).ok())
             })
+            .collect::<BTreeSet<_>>();
+        let stage_domain_strs = stage_domain_set
+            .iter()
+            .map(|domain| domain.as_str().to_string())
             .collect::<BTreeSet<_>>();
 
         if !declared_domains.is_empty() {
-            if stage_domain_set != declared_domains {
+            if stage_domain_strs != declared_domains {
                 offenders.push(format!(
                     "tool={id}: declared domains {:?} do not match discovered {:?}",
-                    declared_domains, stage_domain_set
+                    declared_domains, stage_domain_strs
                 ));
             }
             continue;
@@ -120,13 +127,14 @@ fn policy__contracts__tool_registry_stage_domain_policy__each_tool_has_exactly_o
         if stage_domain_set.len() != 1 && !cross_domain_allowlist.contains(&id) {
             offenders.push(format!(
                 "tool={id}: must map to exactly one domain; found {:?}",
-                stage_domain_set
+                stage_domain_strs
             ));
         } else if stage_domain_set.len() == 1 {
             if let Some(actual_domain) = stage_domain_set.iter().next() {
-                if *actual_domain != declared_domain {
+                if Some(*actual_domain) != declared_domain {
                     offenders.push(format!(
-                        "tool={id}: declared domain `{declared_domain}` does not match discovered `{actual_domain}`"
+                        "tool={id}: declared domain `{declared_domain_raw}` does not match discovered `{}`",
+                        actual_domain.as_str()
                     ));
                 }
             }

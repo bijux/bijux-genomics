@@ -3,8 +3,8 @@
 use crate::bam::bam_adna_shotgun_profile;
 use crate::fastq::fastq_adna_profile;
 use crate::{
-    ArtifactType, DefaultParams, Domain, EffectiveDefaults, EmptyParams, MetricsBundle,
-    PipelineCapabilities, PipelineId, PipelineProfile, ReportSection, StabilityTier,
+    ArtifactType, DefaultParams, Domain, EffectiveDefaults, EmptyParams, InvariantsPreset,
+    MetricsBundle, PipelineCapabilities, PipelineId, PipelineProfile, ReportSection, StabilityTier,
 };
 use bijux_dna_core::ids::{StageId, ToolId};
 use bijux_dna_core::prelude::id_catalog;
@@ -97,7 +97,7 @@ pub fn fastq_to_bam_adna_shotgun_profile() -> PipelineProfile {
         output_domains: vec![Domain::Bam],
         defaults,
         defaults_ledger_ref: "defaults_ledger.json",
-        invariants_preset: Some("adna"),
+        invariants_preset: Some(InvariantsPreset::Adna),
         capabilities: PipelineCapabilities {
             input_domains: vec![Domain::Fastq, Domain::Cross],
             output_domains: vec![Domain::Bam],

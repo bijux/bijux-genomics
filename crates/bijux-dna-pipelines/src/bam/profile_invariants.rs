@@ -6,7 +6,7 @@ use bijux_dna_core::ids::StageId;
 use bijux_dna_core::prelude::id_catalog;
 use serde::Serialize;
 
-use crate::PipelineProfile;
+use crate::{InvariantsPreset, PipelineProfile};
 
 pub const BAM_INVARIANTS: &str = "bam-invariants.v1";
 
@@ -55,7 +55,9 @@ impl BamProfileValidationReport {
         Self {
             profile_id: profile.id.as_str().to_string(),
             invariants_version: BAM_INVARIANTS,
-            invariants_preset: profile.invariants_preset.map(str::to_string),
+            invariants_preset: profile
+                .invariants_preset
+                .map(|preset| preset.as_str().to_string()),
             valid: violations.is_empty(),
             violations,
         }
@@ -139,7 +141,7 @@ pub fn validate_bam_profile(profile: &PipelineProfile) -> BamProfileValidationRe
         }
     }
 
-    if profile.invariants_preset == Some("adna")
+    if profile.invariants_preset == Some(InvariantsPreset::Adna)
         && !required_stages.contains(id_catalog::BAM_DAMAGE)
     {
         violations.push(violation(

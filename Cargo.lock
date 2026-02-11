@@ -612,6 +612,7 @@ name = "bijux-dna-policies"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "bijux-dna-core",
  "bijux-dna-pipelines",
  "bijux-dna-testkit",
  "cargo_metadata",

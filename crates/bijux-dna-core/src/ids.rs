@@ -34,6 +34,41 @@ pub struct StageVersion(pub i32);
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct RunId(pub String);
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum DomainKind {
+    Fastq,
+    Bam,
+    Vcf,
+    Cross,
+}
+
+impl DomainKind {
+    #[must_use]
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Fastq => "fastq",
+            Self::Bam => "bam",
+            Self::Vcf => "vcf",
+            Self::Cross => "cross",
+        }
+    }
+}
+
+impl TryFrom<&str> for DomainKind {
+    type Error = BijuxError;
+
+    fn try_from(value: &str) -> Result<Self> {
+        match value {
+            "fastq" => Ok(Self::Fastq),
+            "bam" => Ok(Self::Bam),
+            "vcf" => Ok(Self::Vcf),
+            "cross" => Ok(Self::Cross),
+            _ => Err(BijuxError::validation("unknown domain kind")),
+        }
+    }
+}
+
 impl StageId {
     #[must_use]
     pub const fn from_static(value: &'static str) -> Self {
