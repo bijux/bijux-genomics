@@ -35,6 +35,7 @@ pub fn run_pipeline(request: RunRequest, _mode: RunMode) -> Result<RunResult> {
     bijux_dna_infra::ensure_dir(&request.run_dir)?;
     let ledger_path = request.run_dir.join("defaults_ledger.json");
     let defaults = profile.defaults_ledger();
+    defaults.validate_strict()?;
     bijux_dna_infra::atomic_write_json(&ledger_path, &defaults)?;
     Ok(RunResult {
         run_dir: request.run_dir,

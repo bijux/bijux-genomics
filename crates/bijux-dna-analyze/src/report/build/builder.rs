@@ -74,6 +74,19 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
         std::collections::BTreeMap::new();
 
     for row in &ordered {
+        if row.tool_version.trim().is_empty() || row.params_hash.trim().is_empty() {
+            return Err(anyhow::anyhow!(
+                "report policy violation: stage {} missing tool_version or params_hash",
+                row.stage_id
+            ));
+        }
+        let metric_provenance_contract = row.effective_metric_provenance();
+        if !metric_provenance_contract.is_complete() {
+            return Err(anyhow::anyhow!(
+                "report policy violation: stage {} has incomplete metric provenance",
+                row.stage_id
+            ));
+        }
         let stage_report_path = report_path_for(&row.reports, "stage_report");
         if stage_report_path.is_none() {
             missing_reports.push(format!("{}:stage_report", row.stage_id));
@@ -189,6 +202,7 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
                 metric_provenance.insert(
                     row.stage_id.clone(),
                     serde_json::json!({
+                        "metric_provenance": metric_provenance_contract,
                         "tool_id": row.tool_id,
                         "params_hash": row.params_hash,
                         "normalized_params_excerpt": excerpt,
@@ -510,6 +524,9 @@ fn pipeline_defaults_section(base_dir: &Path) -> Result<serde_json::Value> {
     let defaults_path = base_dir.join("defaults_ledger.json");
     let raw = std::fs::read_to_string(&defaults_path)
         .with_context(|| format!("missing defaults ledger at {}", defaults_path.display()))?;
+    let typed = serde_json::from_str::<bijux_dna_pipelines::DefaultsLedgerV1>(&raw)
+        .context("parse typed defaults ledger json")?;
+    typed.validate_strict()?;
     let parsed = serde_json::from_str::<serde_json::Value>(&raw)
         .context("parse defaults ledger json")?;
     Ok(serde_json::json!({

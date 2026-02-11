@@ -15,7 +15,7 @@ use bijux_dna_domain_fastq::params::screen::ScreenEffectiveParams;
 use bijux_dna_domain_fastq::params::trim::TrimEffectiveParams;
 use bijux_dna_domain_fastq::params::validate::ValidateEffectiveParams;
 use serde::ser::Serializer;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 pub mod bam;
 pub mod cross;
@@ -91,10 +91,10 @@ pub struct EffectiveDefaults {
     pub rationales: BTreeMap<StageId, String>,
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct EmptyParams {}
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Deserialize)]
 pub enum DefaultParams {
     FastqValidate(ValidateEffectiveParams),
     FastqDetectAdapters(DetectAdaptersEffectiveParams),
