@@ -560,10 +560,13 @@ fn policy__boundaries__workspace__workspace_no_orphan_crates() {
     let allowlist: BTreeSet<&str> = BTreeSet::from([
         "bijux-dna",
         "bijux-dna-benchmark",
+        "bijux-dna-domain-vcf",
         "bijux-dna-environment",
         "bijux-dna-environment-qa",
+        "bijux-dna-planner-vcf",
         "bijux-dna-runner",
         "bijux-dna-runtime",
+        "bijux-dna-stages-vcf",
     ]);
     for (name, count) in dependents {
         let crate_dir = crates.get(&name).expect("crate dir");

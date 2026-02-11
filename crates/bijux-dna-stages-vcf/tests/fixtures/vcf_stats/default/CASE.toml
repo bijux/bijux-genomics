@@ -1,0 +1,3 @@
+[case]
+id = "vcf-stats-default"
+description = "Default VCF stats parser fixture"
