@@ -113,18 +113,21 @@ pub fn parse_low_complexity_report(report_json: &str) -> Result<u64> {
 }
 
 fn parse_report_u64_field(raw: &str, field: &str) -> Option<u64> {
-    serde_json::from_str::<serde_json::Value>(raw).ok().and_then(|value| {
-        value
-            .get(field)
-            .and_then(serde_json::Value::as_u64)
-            .or_else(|| {
-                value
-                    .as_object()
-                    .and_then(|obj| obj.get(field))
-                    .and_then(serde_json::Value::as_str)
-                    .and_then(|s| s.parse::<u64>().ok())
-            })
-    }).or_else(|| parse_kv_u64_field(raw, field))
+    serde_json::from_str::<serde_json::Value>(raw)
+        .ok()
+        .and_then(|value| {
+            value
+                .get(field)
+                .and_then(serde_json::Value::as_u64)
+                .or_else(|| {
+                    value
+                        .as_object()
+                        .and_then(|obj| obj.get(field))
+                        .and_then(serde_json::Value::as_str)
+                        .and_then(|s| s.parse::<u64>().ok())
+                })
+        })
+        .or_else(|| parse_kv_u64_field(raw, field))
 }
 
 fn parse_kv_u64_field(raw: &str, field: &str) -> Option<u64> {
@@ -181,7 +184,8 @@ mod tests {
 
     #[test]
     fn parse_deduplicate_report_parses_fixture() -> Result<()> {
-        let raw = include_str!("../../tests/fixtures/deduplicate/default/deduplicate_report_v1.json");
+        let raw =
+            include_str!("../../tests/fixtures/deduplicate/default/deduplicate_report_v1.json");
         let (reads_in, reads_out) = parse_deduplicate_report(raw)?;
         assert_eq!(reads_in, 1000);
         assert_eq!(reads_out, 820);
@@ -190,7 +194,9 @@ mod tests {
 
     #[test]
     fn parse_low_complexity_report_parses_fixture() -> Result<()> {
-        let raw = include_str!("../../tests/fixtures/low_complexity/default/low_complexity_report_v1.json");
+        let raw = include_str!(
+            "../../tests/fixtures/low_complexity/default/low_complexity_report_v1.json"
+        );
         let removed = parse_low_complexity_report(raw)?;
         assert_eq!(removed, 137);
         Ok(())
@@ -198,8 +204,9 @@ mod tests {
 
     #[test]
     fn parse_deduplicate_report_parses_key_value_fixture() -> Result<()> {
-        let raw =
-            include_str!("../../tests/fixtures/stage_output_bank/default/fastq.deduplicate.fastuniq.txt");
+        let raw = include_str!(
+            "../../tests/fixtures/stage_output_bank/default/fastq.deduplicate.fastuniq.txt"
+        );
         let (reads_in, reads_out) = parse_deduplicate_report(raw)?;
         assert_eq!(reads_in, 1000);
         assert_eq!(reads_out, 820);
@@ -208,8 +215,9 @@ mod tests {
 
     #[test]
     fn parse_low_complexity_report_parses_key_value_fixture() -> Result<()> {
-        let raw =
-            include_str!("../../tests/fixtures/stage_output_bank/default/fastq.low_complexity.bbduk.txt");
+        let raw = include_str!(
+            "../../tests/fixtures/stage_output_bank/default/fastq.low_complexity.bbduk.txt"
+        );
         let removed = parse_low_complexity_report(raw)?;
         assert_eq!(removed, 137);
         Ok(())

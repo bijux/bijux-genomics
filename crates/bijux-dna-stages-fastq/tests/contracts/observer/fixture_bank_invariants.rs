@@ -79,7 +79,11 @@ fn low_complexity_fixture_invariants_parse_metrics() -> Result<()> {
 fn kv_u64(raw: &str, key: &str) -> Option<u64> {
     raw.lines()
         .filter_map(|line| line.split_once('='))
-        .find_map(|(k, v)| (k.trim() == key).then(|| v.trim().parse::<u64>().ok()).flatten())
+        .find_map(|(k, v)| {
+            (k.trim() == key)
+                .then(|| v.trim().parse::<u64>().ok())
+                .flatten()
+        })
 }
 
 #[test]
