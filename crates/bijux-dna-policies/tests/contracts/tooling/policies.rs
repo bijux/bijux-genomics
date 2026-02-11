@@ -178,7 +178,10 @@ fn policy__contracts__policies__domains_do_not_depend_on_stages_or_runner() {
     for domain_id in domains {
         let domain = format!("bijux-dna-domain-{domain_id}");
         let deps = crate_dependencies(&root, &domain);
-        let forbidden = [format!("bijux-dna-stages-{domain_id}"), "bijux-dna-runner".to_string()];
+        let forbidden = [
+            format!("bijux-dna-stages-{domain_id}"),
+            "bijux-dna-runner".to_string(),
+        ];
         for banned in forbidden {
             bijux_dna_policies::policy_assert!(
                 !deps.contains(&banned),
