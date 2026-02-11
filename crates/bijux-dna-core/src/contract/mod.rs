@@ -18,10 +18,10 @@ pub use execution::{
     StageExecutionRecordV1, StageIO,
 };
 pub use run::{
-    list_runs, query_latest_runs, query_run, query_runs, query_stage_rows, run_dir, PipelineDomain,
-    PipelineSpec, Profile, RunIndexEntry, RunIndexLine, RunMetadataV1, RunQuery, RunSpec,
-    MetricProvenanceV1, ScientificProvenanceV1, StageIndexRow, StageMetadataV1, ToolExecutionMetadataV1,
-    ToolInvocationMetadataV1, ToolProvenanceV1,
+    list_runs, query_latest_runs, query_run, query_runs, query_stage_rows, run_dir,
+    MetricProvenanceV1, PipelineDomain, PipelineSpec, Profile, RunIndexEntry, RunIndexLine,
+    RunMetadataV1, RunQuery, RunSpec, ScientificProvenanceV1, StageIndexRow, StageMetadataV1,
+    ToolExecutionMetadataV1, ToolInvocationMetadataV1, ToolProvenanceV1,
 };
 pub use tooling::{
     objective_spec, select_stage, BenchResultRecord, BenchResultStatus, Cardinality,
