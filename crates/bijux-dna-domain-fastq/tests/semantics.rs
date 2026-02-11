@@ -9,5 +9,7 @@ mod mod_semantics_params_canonical_rs;
 mod mod_semantics_retention_semantics_rs;
 #[path = "semantics/retention_truth_table.rs"]
 mod mod_semantics_retention_truth_table_rs;
+#[path = "semantics/stage_params.rs"]
+mod mod_semantics_stage_params_rs;
 #[path = "semantics/tool_models.rs"]
 mod mod_semantics_tool_models_rs;
