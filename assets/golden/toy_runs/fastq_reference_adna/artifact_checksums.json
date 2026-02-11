@@ -1,0 +1,10 @@
+{
+  "artifacts": {
+    "manifest.json": "821751afa14d97e0301fb21abceb45a34ea1b756b76d0111731090d107f00c2a",
+    "metrics.json": "0eaf0b866a8b26bb822678fc98541ed49ac0ce2b1927f45ae6abef608c332901",
+    "report.html": "ee82f5bb7bc3a3452b147d981ca6fceb0e12973da134f88373922ea12b741bd0"
+  },
+  "generated_at": "2026-02-11T19:44:31.172439+00:00",
+  "profile_id": "fastq_reference_adna",
+  "schema_version": "bijux.toy.artifact_checksums.v1"
+}

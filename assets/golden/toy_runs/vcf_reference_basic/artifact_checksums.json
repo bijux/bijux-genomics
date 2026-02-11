@@ -1,0 +1,10 @@
+{
+  "artifacts": {
+    "manifest.json": "ad36affb0288b39c8e46b03147f864bf184141c47faee00406d85559486a9b19",
+    "metrics.json": "597437a6319adea41100b60fdb8cb6f1e2fc4d7960dc99accb79eec01e37de3a",
+    "report.html": "419c1e6501ca990371659618b08691f490ceaedd5a6621e8fa51e97d8f7b96aa"
+  },
+  "generated_at": "2026-02-11T19:44:31.173901+00:00",
+  "profile_id": "vcf_reference_basic",
+  "schema_version": "bijux.toy.artifact_checksums.v1"
+}

@@ -1,0 +1,10 @@
+{
+  "artifacts": {
+    "manifest.json": "8080849515836c4f969e4d5b458ba7ddd7fa393d7c0e58e80f2f4fe23471fce0",
+    "metrics.json": "59d4e3bb4f07eb644e75888d970f360304891badfc0500d53bc9905afc2a8f4d",
+    "report.html": "2ea5479203f2f1db419914fb252d4e320bde04e22a8af66497abd9530ef18d23"
+  },
+  "generated_at": "2026-02-11T19:44:31.173414+00:00",
+  "profile_id": "bam_reference_adna",
+  "schema_version": "bijux.toy.artifact_checksums.v1"
+}
