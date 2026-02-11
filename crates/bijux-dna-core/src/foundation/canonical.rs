@@ -48,7 +48,11 @@ fn normalize_sensitive_string(value: &str) -> String {
     if !hostname.is_empty() {
         normalized = normalized.replace(&hostname, "<host>");
     }
-    if looks_like_hostname(&normalized) && normalized.ends_with(".local") {
+    if looks_like_hostname(&normalized)
+        && Path::new(&normalized)
+            .extension()
+            .is_some_and(|ext| ext.eq_ignore_ascii_case("local"))
+    {
         return "<host>".to_string();
     }
     normalized
