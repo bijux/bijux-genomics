@@ -1,6 +1,6 @@
 ---
 source: crates/bijux-dna-pipelines/tests/contracts/profiles/profiles.rs
-assertion_line: 72
+assertion_line: 74
 expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
@@ -56,8 +56,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
   "defaults": {
     "params": {
       "fastq.correct": {
+        "kmer_size": null,
         "paired_mode": "single_end",
-        "q_cutoff": null,
+        "schema_version": "bijux.fastq.params.correct.v1",
         "threads": 1
       },
       "fastq.detect_adapters": {
@@ -85,6 +86,8 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       },
       "fastq.preprocess": {
         "enable_contaminant_removal": false,
+        "library_damage_treatment": "no_udg",
+        "library_declared_paired": false,
         "paired_mode": "single_end",
         "stages": [
           "fastq.validate_pre",
@@ -107,7 +110,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       },
       "fastq.stats_neutral": {
         "paired_mode": "single_end",
-        "q_cutoff": null,
+        "schema_version": "bijux.fastq.params.stats.v1",
         "threads": 1
       },
       "fastq.trim": {
@@ -122,8 +125,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       },
       "fastq.umi": {
         "paired_mode": "single_end",
-        "q_cutoff": null,
-        "threads": 1
+        "schema_version": "bijux.fastq.params.umi.v1",
+        "threads": 1,
+        "umi_pattern": null
       },
       "fastq.validate_pre": {
         "paired_mode": "single_end",
