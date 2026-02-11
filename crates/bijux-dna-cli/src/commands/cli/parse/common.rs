@@ -280,6 +280,11 @@ pub enum PipelinesCommand {
     Explain {
         id: String,
     },
+    #[command(about = "Explain profile defaults and invariants status.")]
+    #[command(name = "explain-profile")]
+    ExplainProfile {
+        id: String,
+    },
     #[command(about = "Audit pipeline stages and completeness.")]
     Audit {
         #[arg(long, value_enum)]

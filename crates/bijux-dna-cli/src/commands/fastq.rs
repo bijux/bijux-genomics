@@ -120,6 +120,35 @@ pub(crate) fn handle_meta_commands(
                 render::json::print_pretty(&payload)?;
                 Ok(true)
             }
+            PipelinesCommand::ExplainProfile { id } => {
+                let resolved_id = match id.as_str() {
+                    "fastq-adna" => "fastq-to-fastq__adna__v1",
+                    other => other,
+                };
+                let profile = bijux_dna_api::v1::api::plan::select_pipelines(None, true)
+                    .into_iter()
+                    .find(|profile| profile.id.as_str() == resolved_id)
+                    .ok_or_else(|| anyhow!("unknown pipeline profile: {id}"))?;
+                let invariants = if profile
+                    .capabilities
+                    .required_stages
+                    .iter()
+                    .any(|stage| stage.starts_with("fastq."))
+                {
+                    Some(bijux_dna_pipelines::fastq::validate_fastq_profile(&profile))
+                } else {
+                    None
+                };
+                let payload = serde_json::json!({
+                    "profile_id_input": id,
+                    "profile_id_resolved": resolved_id,
+                    "effective_params": profile.defaults.params,
+                    "effective_tools": profile.defaults.tools,
+                    "invariants": invariants,
+                });
+                render::json::print_pretty(&payload)?;
+                Ok(true)
+            }
             PipelinesCommand::Audit {
                 domain,
                 show_experimental,
