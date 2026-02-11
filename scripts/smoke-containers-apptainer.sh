@@ -146,6 +146,39 @@ for item in payload.get("tools", []):
 print("unknown")
 PY
 )
+  if [ -n "${value:-}" ] && [ "$value" != "unknown" ]; then
+    printf '%s\n' "$value"
+    return 0
+  fi
+
+  # Fallback for VCF-only tools that are tracked in configs/tool_registry_vcf.toml.
+  value=$(python3 - "$ROOT_DIR/configs/tool_registry_vcf.toml" "$tool" "$field" <<'PY'
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+tool = sys.argv[2]
+field = sys.argv[3]
+if not path.exists():
+    print("unknown")
+    raise SystemExit(0)
+try:
+    import tomllib
+except ModuleNotFoundError:
+    print("unknown")
+    raise SystemExit(0)
+data = tomllib.loads(path.read_text())
+for row in data.get("tools", []):
+    if row.get("id") == tool:
+        value = row.get(field, "unknown")
+        if isinstance(value, (list, dict)) or value is None:
+            print("unknown")
+        else:
+            print(str(value))
+        raise SystemExit(0)
+print("unknown")
+PY
+)
   printf '%s\n' "${value:-unknown}"
 }
 

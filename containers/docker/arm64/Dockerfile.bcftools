@@ -1,0 +1,22 @@
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2026 Bijan Mousavi
+#
+# Container definition license: MIT.
+# The bijux-dna software source code is licensed under Apache-2.0.
+FROM quay.io/biocontainers/bcftools:1.20--h8b25389_0@sha256:67f54df47f501f6ddef08e3b9ad89cf693952f9a89de0d74df6e39fce15f1ff6
+ARG OCI_REVISION=unknown
+ARG OCI_CREATED=unknown
+ARG TOOL_VERSION=1.20
+ARG OCI_UPSTREAM="https://github.com/samtools/bcftools"
+LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-dna" \
+      org.opencontainers.image.revision="${OCI_REVISION}" \
+      org.opencontainers.image.created="${OCI_CREATED}" \
+      org.opencontainers.image.licenses="MIT" \
+      org.opencontainers.image.version="${TOOL_VERSION}" \
+      org.opencontainers.image.upstream="${OCI_UPSTREAM}"
+LABEL org.opencontainers.image.tool="bcftools"
+LABEL org.opencontainers.image.base.name="quay.io/biocontainers/bcftools:1.20--h8b25389_0@sha256:67f54df47f501f6ddef08e3b9ad89cf693952f9a89de0d74df6e39fce15f1ff6"
+LABEL org.opencontainers.image.base.digest="sha256:67f54df47f501f6ddef08e3b9ad89cf693952f9a89de0d74df6e39fce15f1ff6"
+
+ENTRYPOINT ["bcftools"]
+CMD ["--help"]

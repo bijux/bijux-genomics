@@ -1,0 +1,22 @@
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2026 Bijan Mousavi
+#
+# Container definition license: MIT.
+# The bijux-dna software source code is licensed under Apache-2.0.
+Bootstrap: docker
+From: quay.io/biocontainers/bcftools:1.20--h8b25389_0@sha256:67f54df47f501f6ddef08e3b9ad89cf693952f9a89de0d74df6e39fce15f1ff6
+
+%labels
+    org.opencontainers.image.source https://github.com/bijux/bijux-dna
+    org.opencontainers.image.revision unknown
+    org.opencontainers.image.created unknown
+    org.opencontainers.image.licenses MIT
+    org.opencontainers.image.version 1.20
+    org.opencontainers.image.tool bcftools
+
+%runscript
+    exec bcftools "$@"
+
+%help
+    Apptainer image for bcftools.
+    Default runscript forwards arguments to the tool entrypoint.
