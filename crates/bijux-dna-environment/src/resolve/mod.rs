@@ -8,6 +8,7 @@ use std::fmt;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
+use anyhow::Context;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use thiserror::Error;
@@ -398,6 +399,33 @@ pub fn run_smoke_script_batch(
         anyhow::bail!("smoke failed for runtime={runtime} (exit={status})");
     }
     Ok(())
+}
+
+/// Execute a shell command and capture stdout/stderr.
+///
+/// # Errors
+/// Returns an error when command execution fails or exits non-zero.
+pub fn run_shell_capture(cmd: &str) -> anyhow::Result<String> {
+    if cmd.trim().is_empty() {
+        anyhow::bail!("empty command");
+    }
+    let output = std::process::Command::new("sh")
+        .arg("-lc")
+        .arg(cmd)
+        .output()
+        .with_context(|| format!("execute `{cmd}`"))?;
+    let stdout = String::from_utf8_lossy(&output.stdout).to_string();
+    let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+    let merged = if stdout.trim().is_empty() {
+        stderr
+    } else {
+        stdout
+    };
+    if output.status.success() {
+        Ok(merged)
+    } else {
+        Err(anyhow::anyhow!("{merged}"))
+    }
 }
 
 #[must_use]
