@@ -161,17 +161,16 @@ pub fn write_run_manifest(
     };
     let replay_tool_image_ref = tool_invocations
         .first()
-        .map(|inv| inv.tool_id.to_string())
-        .unwrap_or_else(|| "unknown".to_string());
-    let replay_tool_image_digest = tool_invocations
-        .first()
-        .map(|inv| inv.image_digest.clone())
-        .unwrap_or_else(|| {
+        .map_or_else(|| "unknown".to_string(), |inv| inv.tool_id.to_string());
+    let replay_tool_image_digest = tool_invocations.first().map_or_else(
+        || {
             run_provenance
                 .tool_image_digest
                 .clone()
                 .unwrap_or_else(|| "unknown".to_string())
-        });
+        },
+        |inv| inv.image_digest.clone(),
+    );
     let replay_tool_version_output = tool_invocations
         .first()
         .and_then(|inv| inv.resolved_tool_version.clone())

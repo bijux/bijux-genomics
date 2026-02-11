@@ -1,6 +1,6 @@
+use bijux_dna_core::contract::MetricProvenanceV1;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
-use bijux_dna_core::contract::MetricProvenanceV1;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(untagged)]
