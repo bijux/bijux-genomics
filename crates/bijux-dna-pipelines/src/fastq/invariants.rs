@@ -79,7 +79,8 @@ fn default_params_for<'a>(
     profile: &'a PipelineProfile,
     stage_id: &str,
 ) -> Option<&'a DefaultParams> {
-    profile.defaults.params.get(&StageId::from_static(stage_id))
+    let stage = StageId::new(stage_id.to_string());
+    profile.defaults.params.get(&stage)
 }
 
 fn trim_params(profile: &PipelineProfile) -> Option<&TrimEffectiveParams> {
