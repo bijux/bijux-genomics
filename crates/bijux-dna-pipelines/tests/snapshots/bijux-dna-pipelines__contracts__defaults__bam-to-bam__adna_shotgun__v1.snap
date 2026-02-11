@@ -1,5 +1,6 @@
 ---
 source: crates/bijux-dna-pipelines/tests/contracts/defaults/defaults_ledger.rs
+assertion_line: 46
 expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
@@ -7,30 +8,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
   "citations": {},
   "param_provenance": {
     "bam.authenticity": {
-      "assumptions": [
-        "defaults chosen for pre-HPC deterministic baseline comparisons"
-      ],
-      "citations": [
-        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
-      ],
-      "comparability_implications": [
-        "changing this default can shift cross-run comparability baselines"
-      ],
-      "rationale": "pipeline default"
-    },
-    "bam.bias_mitigation": {
-      "assumptions": [
-        "defaults chosen for pre-HPC deterministic baseline comparisons"
-      ],
-      "citations": [
-        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
-      ],
-      "comparability_implications": [
-        "changing this default can shift cross-run comparability baselines"
-      ],
-      "rationale": "pipeline default"
-    },
-    "bam.complexity": {
       "assumptions": [
         "defaults chosen for pre-HPC deterministic baseline comparisons"
       ],
@@ -78,6 +55,30 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       ],
       "rationale": "pipeline default"
     },
+    "bam.duplication_metrics": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "bam.endogenous_content": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
     "bam.filter": {
       "assumptions": [
         "defaults chosen for pre-HPC deterministic baseline comparisons"
@@ -90,7 +91,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       ],
       "rationale": "pipeline default"
     },
-    "bam.markdup": {
+    "bam.length_filter": {
       "assumptions": [
         "defaults chosen for pre-HPC deterministic baseline comparisons"
       ],
@@ -102,7 +103,19 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       ],
       "rationale": "pipeline default"
     },
-    "bam.qc_pre": {
+    "bam.mapping_summary": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "bam.mapq_filter": {
       "assumptions": [
         "defaults chosen for pre-HPC deterministic baseline comparisons"
       ],
@@ -143,17 +156,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     "bam.authenticity": {
       "mode": "aggregate"
     },
-    "bam.bias_mitigation": {
-      "gc_bias_correction": true,
-      "map_bias_correction": false
-    },
-    "bam.complexity": {
-      "min_reads": 100000,
-      "projection_points": [
-        1000000,
-        2000000
-      ]
-    },
     "bam.contamination": {
       "assumptions": null,
       "prior": null,
@@ -176,6 +178,17 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "trim_5p": 2,
       "udg_model": "non_udg"
     },
+    "bam.duplication_metrics": {
+      "duplicate_action": "mark",
+      "optical_duplicates": "mark_only",
+      "umi_policy": "ignore"
+    },
+    "bam.endogenous_content": {
+      "depth_thresholds": [
+        1
+      ],
+      "regions": null
+    },
     "bam.filter": {
       "base_quality_threshold": 20,
       "exclude_flags": [],
@@ -184,13 +197,24 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "min_length": 30,
       "remove_duplicates": false
     },
-    "bam.markdup": {
-      "duplicate_action": "mark",
-      "optical_duplicates": "mark_only",
-      "umi_policy": "ignore"
+    "bam.length_filter": {
+      "base_quality_threshold": 20,
+      "exclude_flags": [],
+      "include_flags": [],
+      "mapq_threshold": 0,
+      "min_length": 30,
+      "remove_duplicates": false
     },
-    "bam.qc_pre": {
+    "bam.mapping_summary": {
       "regions": null
+    },
+    "bam.mapq_filter": {
+      "base_quality_threshold": 20,
+      "exclude_flags": [],
+      "include_flags": [],
+      "mapq_threshold": 30,
+      "min_length": 0,
+      "remove_duplicates": false
     },
     "bam.sex": {
       "expected_sex": null,
@@ -215,30 +239,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       ],
       "rationale": "pipeline default"
     },
-    "bam.bias_mitigation": {
-      "assumptions": [
-        "defaults chosen for pre-HPC deterministic baseline comparisons"
-      ],
-      "citations": [
-        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
-      ],
-      "comparability_implications": [
-        "changing this default can shift cross-run comparability baselines"
-      ],
-      "rationale": "pipeline default"
-    },
-    "bam.complexity": {
-      "assumptions": [
-        "defaults chosen for pre-HPC deterministic baseline comparisons"
-      ],
-      "citations": [
-        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
-      ],
-      "comparability_implications": [
-        "changing this default can shift cross-run comparability baselines"
-      ],
-      "rationale": "pipeline default"
-    },
     "bam.contamination": {
       "assumptions": [
         "defaults chosen for pre-HPC deterministic baseline comparisons"
@@ -275,6 +275,30 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       ],
       "rationale": "pipeline default"
     },
+    "bam.duplication_metrics": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "bam.endogenous_content": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
     "bam.filter": {
       "assumptions": [
         "defaults chosen for pre-HPC deterministic baseline comparisons"
@@ -287,7 +311,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       ],
       "rationale": "pipeline default"
     },
-    "bam.markdup": {
+    "bam.length_filter": {
       "assumptions": [
         "defaults chosen for pre-HPC deterministic baseline comparisons"
       ],
@@ -299,7 +323,19 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       ],
       "rationale": "pipeline default"
     },
-    "bam.qc_pre": {
+    "bam.mapping_summary": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "bam.mapq_filter": {
       "assumptions": [
         "defaults chosen for pre-HPC deterministic baseline comparisons"
       ],
@@ -338,14 +374,15 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
   },
   "tools": {
     "bam.authenticity": "authenticct",
-    "bam.bias_mitigation": "angsd",
-    "bam.complexity": "preseq",
     "bam.contamination": "authenticct",
     "bam.coverage": "mosdepth",
     "bam.damage": "pydamage",
+    "bam.duplication_metrics": "samtools",
+    "bam.endogenous_content": "samtools",
     "bam.filter": "samtools",
-    "bam.markdup": "gatk",
-    "bam.qc_pre": "samtools",
+    "bam.length_filter": "samtools",
+    "bam.mapping_summary": "samtools",
+    "bam.mapq_filter": "samtools",
     "bam.sex": "rxy",
     "bam.validate": "samtools"
   }

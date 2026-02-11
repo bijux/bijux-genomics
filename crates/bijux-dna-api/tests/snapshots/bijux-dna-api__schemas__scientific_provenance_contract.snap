@@ -1,7 +1,7 @@
 ---
 source: crates/bijux-dna-api/src/internal/handlers/fastq/summary.rs
-assertion_line: 873
-expression: payload
+assertion_line: 930
+expression: "bijux_dna_testkit::snapshot_normalize_json(&payload)"
 ---
 {
   "contract_version": {
@@ -32,7 +32,7 @@ expression: payload
       "params_hash": "params",
       "stage_id": "fastq.trim",
       "tool_id": "fastp",
-      "tool_version": "99.99.99+fixture"
+      "tool_version": "0.0.0"
     }
   ]
 }
