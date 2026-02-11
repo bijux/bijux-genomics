@@ -24,12 +24,15 @@ RUN apt-get update -qq && apt-get install -y --no-install-recommends \
 RUN git clone --depth 1 https://github.com/Griffan/VerifyBamID.git /opt/VerifyBamID && \
     cd /opt/VerifyBamID && git checkout 4b362f5191b8385d038350acc03800890dd66524 && \
     cmake -S . -B build -DCMAKE_BUILD_TYPE=Release && \
-    cmake --build build -j"$(nproc)"
+    cmake --build build -j"$(nproc)" && \
+    BIN_PATH="$(find /opt/VerifyBamID/build -maxdepth 2 -type f -perm -111 | head -n 1)" && \
+    test -n "$BIN_PATH" && \
+    cp "$BIN_PATH" /opt/verifybamid2
 
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update -qq && apt-get install -y --no-install-recommends \
     ca-certificates zlib1g libbz2-1.0 liblzma5 libcurl4 && rm -rf /var/lib/apt/lists/*
-COPY --from=builder /opt/VerifyBamID/build/verifyBamID /usr/local/bin/verifybamid2
+COPY --from=builder /opt/verifybamid2 /usr/local/bin/verifybamid2
 ENTRYPOINT ["/usr/local/bin/verifybamid2"]
 CMD ["--help"]

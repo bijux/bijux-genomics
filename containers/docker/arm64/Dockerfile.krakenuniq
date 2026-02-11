@@ -25,6 +25,7 @@ RUN git clone --depth 1 https://github.com/fbreitwieser/krakenuniq.git /opt/krak
     cd /opt/krakenuniq && \
     git checkout f4e3796580c5c576b15e929c741e6e725b7e29b6 && \
     sed -i '1i #include <cstdint>' src/uid_mapping.hpp && \
+    sed -i 's/std:/std::/g' src/report-cols.hpp && \
     ./install_krakenuniq.sh /opt/krakenuniq/install
 
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b

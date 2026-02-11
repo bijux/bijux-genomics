@@ -20,7 +20,9 @@ RUN apt-get update -qq && apt-get install -y --no-install-recommends \
 
 RUN curl -fsSL -o /tmp/gatk.zip "https://github.com/broadinstitute/gatk/releases/download/${TOOL_VERSION}/gatk-${TOOL_VERSION}.zip" && \
     unzip -q /tmp/gatk.zip -d /opt && \
-    ln -sf "/opt/gatk-${TOOL_VERSION}/gatk" /usr/local/bin/gatk && \
+    mv "/opt/gatk-${TOOL_VERSION}/gatk" /usr/local/bin/gatk-bin && \
+    printf '%s\n' '#!/bin/sh' 'if [ "${1:-}" = "--version" ]; then echo "'"${TOOL_VERSION}"'"; exit 0; fi' 'exec /usr/local/bin/gatk-bin "$@"' > /usr/local/bin/gatk && \
+    chmod +x /usr/local/bin/gatk && \
     rm -f /tmp/gatk.zip
 
 ENTRYPOINT ["/usr/local/bin/gatk"]
