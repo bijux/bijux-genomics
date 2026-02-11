@@ -1,4 +1,4 @@
-use bijux_dna_pipelines::registry::{bam_profiles, cross_profiles, fastq_profiles};
+use bijux_dna_pipelines::registry::{bam_profiles, cross_profiles, fastq_profiles, vcf_profiles};
 use bijux_dna_pipelines::{fastq::fastq_default_profile, Domain, PipelineProfile};
 
 fn assert_report_sections(profile: &PipelineProfile) {
@@ -13,6 +13,19 @@ fn assert_report_sections(profile: &PipelineProfile) {
         assert!(
             sections.contains(&"fastq"),
             "missing fastq report section for {}",
+            profile.id
+        );
+    }
+    if profile
+        .capabilities
+        .input_domains
+        .iter()
+        .chain(profile.capabilities.output_domains.iter())
+        .any(|domain| matches!(domain, Domain::Vcf))
+    {
+        assert!(
+            sections.contains(&"vcf"),
+            "missing vcf report section for {}",
             profile.id
         );
     }
@@ -50,6 +63,7 @@ fn pipeline_profiles_are_complete() {
     profiles.extend(fastq_profiles());
     profiles.extend(bam_profiles());
     profiles.extend(cross_profiles());
+    profiles.extend(vcf_profiles());
 
     for profile in profiles {
         assert!(

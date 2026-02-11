@@ -2,6 +2,7 @@
 
 pub const FASTQ_PREFIX: &str = "fastq.";
 pub const BAM_PREFIX: &str = "bam.";
+pub const VCF_PREFIX: &str = "vcf.";
 pub const CORE_PREFIX: &str = "core.";
 
 pub const CORE_PREPARE_REFERENCE: &str = "core.prepare_reference";
@@ -36,6 +37,9 @@ pub const BAM_HAPLOGROUPS: &str = "bam.haplogroups";
 pub const BAM_KINSHIP: &str = "bam.kinship";
 pub const BAM_CONTAMINATION: &str = "bam.contamination";
 pub const BAM_SEX: &str = "bam.sex";
+pub const VCF_CALL: &str = "vcf.call";
+pub const VCF_FILTER: &str = "vcf.filter";
+pub const VCF_STATS: &str = "vcf.stats";
 
 pub const PIPELINE_FASTQ_DEFAULT: &str = "fastq-to-fastq__default__v1";
 pub const PIPELINE_FASTQ_MINIMAL: &str = "fastq-to-fastq__minimal__v1";
@@ -46,6 +50,7 @@ pub const PIPELINE_BAM_ADNA_SHOTGUN: &str = "bam-to-bam__adna_shotgun__v1";
 pub const PIPELINE_BAM_ADNA_CAPTURE: &str = "bam-to-bam__adna_capture__v1";
 pub const PIPELINE_FASTQ_TO_BAM_DEFAULT: &str = "fastq-to-bam__default__v1";
 pub const PIPELINE_FASTQ_TO_BAM_ADNA_SHOTGUN: &str = "fastq-to-bam__adna_shotgun__v1";
+pub const PIPELINE_VCF_MINIMAL: &str = "vcf-to-vcf__minimal__v1";
 
 pub const TOOL_FASTQVALIDATOR_OFFICIAL: &str = "fastqvalidator_official";
 pub const TOOL_SEQKIT_STATS: &str = "seqkit_stats";
@@ -75,3 +80,4 @@ pub const TOOL_RXY: &str = "rxy";
 pub const TOOL_ANGSD: &str = "angsd";
 pub const TOOL_YLEAF: &str = "yleaf";
 pub const TOOL_KING: &str = "king";
+pub const TOOL_BCFTOOLS: &str = "bcftools";

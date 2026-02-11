@@ -340,6 +340,40 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
             JsonBlob::new(bam_plots_section(&ordered)),
         );
     }
+    if ordered.iter().any(|row| row.stage_id.starts_with("vcf.")) {
+        let vcf_rows = ordered
+            .iter()
+            .filter(|row| row.stage_id == "vcf.stats")
+            .collect::<Vec<_>>();
+        let mut variants_total = 0_u64;
+        let mut snps = 0_u64;
+        let mut indels = 0_u64;
+        let mut ti_tv = None::<f64>;
+        for row in vcf_rows {
+            if let Some(value) = row.metrics.get("variants_total").and_then(serde_json::Value::as_u64) {
+                variants_total = value;
+            }
+            if let Some(value) = row.metrics.get("snps").and_then(serde_json::Value::as_u64) {
+                snps = value;
+            }
+            if let Some(value) = row.metrics.get("indels").and_then(serde_json::Value::as_u64) {
+                indels = value;
+            }
+            if let Some(value) = row.metrics.get("ti_tv").and_then(serde_json::Value::as_f64) {
+                ti_tv = Some(value);
+            }
+        }
+        sections.insert(
+            "vcf".to_string(),
+            JsonBlob::new(serde_json::json!({
+                "schema_version": "bijux.vcf.stats.v1",
+                "variants_total": variants_total,
+                "snps": snps,
+                "indels": indels,
+                "ti_tv": ti_tv,
+            })),
+        );
+    }
     sections.insert(
         "impact_metrics".to_string(),
         JsonBlob::new(impact_metrics_section(&ordered)),

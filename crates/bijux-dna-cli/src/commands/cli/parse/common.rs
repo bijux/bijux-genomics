@@ -328,6 +328,7 @@ pub enum PipelinesCommand {
 pub enum PipelineDomainArg {
     Fastq,
     Bam,
+    Vcf,
     Cross,
 }
 
@@ -337,6 +338,7 @@ impl PipelineDomainArg {
         match self {
             Self::Fastq => bijux_dna_api::v1::api::plan::Domain::Fastq,
             Self::Bam => bijux_dna_api::v1::api::plan::Domain::Bam,
+            Self::Vcf => bijux_dna_api::v1::api::plan::Domain::Vcf,
             Self::Cross => bijux_dna_api::v1::api::plan::Domain::Cross,
         }
     }
