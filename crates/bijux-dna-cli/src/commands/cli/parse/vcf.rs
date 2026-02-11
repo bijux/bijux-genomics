@@ -8,6 +8,12 @@ pub struct VcfRunArgs {
     pub out: PathBuf,
     #[arg(long)]
     pub tool: Option<String>,
+    #[arg(long, default_value = "sample")]
+    pub sample_name: String,
+    #[arg(long)]
+    pub reference_fasta: Option<PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub production_profile: bool,
     #[arg(long)]
     pub dry_run: bool,
 }
