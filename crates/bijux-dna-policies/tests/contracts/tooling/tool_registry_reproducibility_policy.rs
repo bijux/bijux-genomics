@@ -205,3 +205,72 @@ fn policy__contracts__tool_registry_reproducibility__profiles_only_use_valid_pro
         offenders.join("\n")
     );
 }
+
+#[test]
+fn policy__contracts__tool_registry_reproducibility__profiles_release_readiness_gate() {
+    let root = workspace_root();
+    let production = tools_by_id(&parse_registry(&root.join("configs/tool_registry.toml")));
+    let experimental = tools_by_id(&parse_registry(
+        &root.join("configs/tool_registry_experimental.toml"),
+    ));
+
+    let mut profiles = Vec::new();
+    profiles.extend(fastq_profiles());
+    profiles.extend(bam_profiles());
+    profiles.extend(cross_profiles());
+
+    let mut offenders = Vec::new();
+    for profile in profiles {
+        if profile.stability != StabilityTier::Stable {
+            continue;
+        }
+        for (stage_id, tool_id) in &profile.defaults.tools {
+            let tool_key = tool_id.as_str().to_string();
+            if tool_key == "planner" {
+                continue;
+            }
+            if experimental.contains_key(&tool_key) {
+                offenders.push(format!(
+                    "profile={} stage={} tool={} is experimental",
+                    profile.id, stage_id, tool_key
+                ));
+                continue;
+            }
+            let Some(tool) = production.get(&tool_key) else {
+                offenders.push(format!(
+                    "profile={} stage={} tool={} missing from production registry",
+                    profile.id, stage_id, tool_key
+                ));
+                continue;
+            };
+            let metrics_schema = str_field(tool, "metrics_schema");
+            let default_version = str_field(tool, "default_version");
+            let container_ref = str_field(tool, "container_ref");
+            let pin = str_field(tool, "pinned_commit");
+            if metrics_schema == "bijux.unknown.v1" {
+                offenders.push(format!(
+                    "profile={} stage={} tool={} uses unknown metrics schema",
+                    profile.id, stage_id, tool_key
+                ));
+            }
+            if default_version == "latest-pinned" || container_ref.contains(":latest") {
+                offenders.push(format!(
+                    "profile={} stage={} tool={} uses floating pin",
+                    profile.id, stage_id, tool_key
+                ));
+            }
+            if pin.is_empty() || pin == "domain-managed" || pin == "unresolved" {
+                offenders.push(format!(
+                    "profile={} stage={} tool={} missing immutable pin",
+                    profile.id, stage_id, tool_key
+                ));
+            }
+        }
+    }
+
+    bijux_dna_policies::policy_assert!(
+        offenders.is_empty(),
+        "release readiness violations:\n{}",
+        offenders.join("\n")
+    );
+}
