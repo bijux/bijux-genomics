@@ -143,7 +143,7 @@
       "span_id": "span-bam.align",
       "stage_id": "bam.align",
       "tool_id": "bwa",
-      "tool_version": "0.0.0",
+      "tool_version": "99.99.99+fixture",
       "trace_id": "trace-1"
     },
     {
@@ -153,7 +153,7 @@
       "span_id": "span-bam.coverage",
       "stage_id": "bam.coverage",
       "tool_id": "mosdepth",
-      "tool_version": "0.0.0",
+      "tool_version": "99.99.99+fixture",
       "trace_id": "trace-1"
     },
     {
@@ -163,7 +163,7 @@
       "span_id": "span-bam.damage",
       "stage_id": "bam.damage",
       "tool_id": "pydamage",
-      "tool_version": "0.0.0",
+      "tool_version": "99.99.99+fixture",
       "trace_id": "trace-1"
     },
     {
@@ -173,7 +173,7 @@
       "span_id": "span-bam.qc_pre",
       "stage_id": "bam.qc_pre",
       "tool_id": "samtools",
-      "tool_version": "0.0.0",
+      "tool_version": "99.99.99+fixture",
       "trace_id": "trace-1"
     },
     {
@@ -183,7 +183,7 @@
       "span_id": "span-core.prepare_reference",
       "stage_id": "core.prepare_reference",
       "tool_id": "samtools",
-      "tool_version": "0.0.0",
+      "tool_version": "99.99.99+fixture",
       "trace_id": "trace-1"
     },
     {
@@ -193,7 +193,7 @@
       "span_id": "span-fastq.preprocess",
       "stage_id": "fastq.preprocess",
       "tool_id": "planner",
-      "tool_version": "0.0.0",
+      "tool_version": "99.99.99+fixture",
       "trace_id": "trace-1"
     }
   ],
@@ -687,7 +687,7 @@
           "stage_id": "bam.align",
           "telemetry_decisions": [],
           "tool_id": "bwa",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "adapter_validation": {},
@@ -702,7 +702,7 @@
           "stage_id": "bam.coverage",
           "telemetry_decisions": [],
           "tool_id": "mosdepth",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "adapter_validation": {},
@@ -717,7 +717,7 @@
           "stage_id": "bam.damage",
           "telemetry_decisions": [],
           "tool_id": "pydamage",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "adapter_validation": {},
@@ -732,7 +732,7 @@
           "stage_id": "bam.qc_pre",
           "telemetry_decisions": [],
           "tool_id": "samtools",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "adapter_validation": {},
@@ -749,7 +749,7 @@
           "stage_id": "core.prepare_reference",
           "telemetry_decisions": [],
           "tool_id": "samtools",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "adapter_validation": {},
@@ -764,7 +764,7 @@
           "stage_id": "fastq.preprocess",
           "telemetry_decisions": [],
           "tool_id": "planner",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         }
       ]
     },
@@ -864,42 +864,42 @@
           "params_hash": "params",
           "stage_id": "bam.align",
           "tool_id": "bwa",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "bam.coverage",
           "tool_id": "mosdepth",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "bam.damage",
           "tool_id": "pydamage",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "bam.qc_pre",
           "tool_id": "samtools",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "core.prepare_reference",
           "tool_id": "samtools",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "fastq.preprocess",
           "tool_id": "planner",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         }
       ],
       "tie_break_policy": [
@@ -911,42 +911,42 @@
           "params_hash": "params",
           "stage_id": "bam.align",
           "tool_id": "bwa",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "bam.coverage",
           "tool_id": "mosdepth",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "bam.damage",
           "tool_id": "pydamage",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "bam.qc_pre",
           "tool_id": "samtools",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "core.prepare_reference",
           "tool_id": "samtools",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "fastq.preprocess",
           "tool_id": "planner",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         }
       ]
     },
@@ -1397,7 +1397,7 @@
           "tier_rationale": "unknown_tool",
           "tool_id": "bwa",
           "tool_tier": "experimental",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
@@ -1411,7 +1411,7 @@
           "tier_rationale": "unknown_tool",
           "tool_id": "mosdepth",
           "tool_tier": "experimental",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
@@ -1425,7 +1425,7 @@
           "tier_rationale": "unknown_tool",
           "tool_id": "pydamage",
           "tool_tier": "experimental",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
@@ -1439,7 +1439,7 @@
           "tier_rationale": "unknown_tool",
           "tool_id": "samtools",
           "tool_tier": "experimental",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
@@ -1453,7 +1453,7 @@
           "tier_rationale": "unknown_tool",
           "tool_id": "samtools",
           "tool_tier": "experimental",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
@@ -1467,7 +1467,7 @@
           "tier_rationale": "unknown_tool",
           "tool_id": "planner",
           "tool_tier": "experimental",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         }
       ]
     },
@@ -1496,7 +1496,7 @@
       ],
       "started_at": null,
       "tool_versions": [
-        "0.0.0"
+        "99.99.99+fixture"
       ]
     },
     "retention": {
@@ -1517,7 +1517,7 @@
           "resolved_tool_version": null,
           "stage_id": "bam.align",
           "tool_id": "bwa",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_params": {},
@@ -1531,7 +1531,7 @@
           "resolved_tool_version": null,
           "stage_id": "bam.coverage",
           "tool_id": "mosdepth",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_params": {},
@@ -1545,7 +1545,7 @@
           "resolved_tool_version": null,
           "stage_id": "bam.damage",
           "tool_id": "pydamage",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_params": {},
@@ -1559,7 +1559,7 @@
           "resolved_tool_version": null,
           "stage_id": "bam.qc_pre",
           "tool_id": "samtools",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_params": {},
@@ -1573,7 +1573,7 @@
           "resolved_tool_version": null,
           "stage_id": "core.prepare_reference",
           "tool_id": "samtools",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_params": {},
@@ -1587,7 +1587,7 @@
           "resolved_tool_version": null,
           "stage_id": "fastq.preprocess",
           "tool_id": "planner",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         }
       ]
     },
@@ -1789,7 +1789,7 @@
       "stage_report_path": "/tmp/stage_report.json",
       "tool_id": "bwa",
       "tool_invocation_path": "",
-      "tool_version": "0.0.0"
+      "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": "/tmp/bank_report.json",
@@ -1805,7 +1805,7 @@
       "stage_report_path": "/tmp/stage_report.json",
       "tool_id": "mosdepth",
       "tool_invocation_path": "",
-      "tool_version": "0.0.0"
+      "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": "/tmp/bank_report.json",
@@ -1821,7 +1821,7 @@
       "stage_report_path": "/tmp/stage_report.json",
       "tool_id": "pydamage",
       "tool_invocation_path": "",
-      "tool_version": "0.0.0"
+      "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": "/tmp/bank_report.json",
@@ -1837,7 +1837,7 @@
       "stage_report_path": "/tmp/stage_report.json",
       "tool_id": "samtools",
       "tool_invocation_path": "",
-      "tool_version": "0.0.0"
+      "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": "/tmp/bank_report.json",
@@ -1853,7 +1853,7 @@
       "stage_report_path": "/tmp/stage_report.json",
       "tool_id": "samtools",
       "tool_invocation_path": "",
-      "tool_version": "0.0.0"
+      "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": "/tmp/bank_report.json",
@@ -1869,7 +1869,7 @@
       "stage_report_path": "/tmp/stage_report.json",
       "tool_id": "planner",
       "tool_invocation_path": "",
-      "tool_version": "0.0.0"
+      "tool_version": "99.99.99+fixture"
     }
   ],
   "telemetry": {
