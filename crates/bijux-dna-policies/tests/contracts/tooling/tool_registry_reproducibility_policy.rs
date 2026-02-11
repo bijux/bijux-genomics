@@ -274,3 +274,43 @@ fn policy__contracts__tool_registry_reproducibility__profiles_release_readiness_
         offenders.join("\n")
     );
 }
+
+#[test]
+fn policy__contracts__tool_registry_reproducibility__reference_adna_profile_uses_production_tools_only(
+) {
+    let root = workspace_root();
+    let production = tools_by_id(&parse_registry(&root.join("configs/tool_registry.toml")));
+    let experimental = tools_by_id(&parse_registry(
+        &root.join("configs/tool_registry_experimental.toml"),
+    ));
+    let profile = bijux_dna_pipelines::fastq::fastq_reference_adna_profile();
+    let mut offenders = Vec::new();
+
+    for (stage_id, tool_id) in &profile.defaults.tools {
+        let tool_key = tool_id.as_str().to_string();
+        if tool_key == "planner" {
+            continue;
+        }
+        if experimental.contains_key(&tool_key) {
+            offenders.push(format!(
+                "stage={} tool={} is experimental",
+                stage_id.as_str(),
+                tool_key
+            ));
+            continue;
+        }
+        if !production.contains_key(&tool_key) {
+            offenders.push(format!(
+                "stage={} tool={} missing from production registry",
+                stage_id.as_str(),
+                tool_key
+            ));
+        }
+    }
+
+    bijux_dna_policies::policy_assert!(
+        offenders.is_empty(),
+        "reference aDNA profile must not use experimental tools:\n{}",
+        offenders.join("\n")
+    );
+}

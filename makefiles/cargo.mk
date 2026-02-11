@@ -97,20 +97,20 @@ test-profile-invariants: ## Run pipeline profile invariant contract tests.
 	$(call RUN_IN_ISOLATE,./bin/require-isolate >/dev/null; export TZ=UTC LC_ALL=C CARGO_TARGET_DIR="$$ISO_ROOT/target-test"; if command -v sccache >/dev/null 2>&1; then export RUSTC_WRAPPER="$$(command -v sccache)"; fi; cargo test -p bijux-dna-pipelines --test invariant_fast -- --nocapture)
 
 registry-lint: ## Run strict tool registry reproducibility policy checks.
-	$(call RUN_IN_ISOLATE,./bin/require-isolate >/dev/null; export TZ=UTC LC_ALL=C CARGO_TARGET_DIR="$$ISO_ROOT/target-test"; if command -v sccache >/dev/null 2>&1; then export RUSTC_WRAPPER="$$(command -v sccache)"; fi; cargo test -p bijux-dna-policies --test contracts policy__contracts__tool_registry_reproducibility__production_registry_is_pinned_and_non_floating -- --exact --nocapture; cargo test -p bijux-dna-policies --test contracts policy__contracts__tool_registry_reproducibility__profiles_only_use_valid_production_tools -- --exact --nocapture)
+	$(call RUN_IN_ISOLATE,./bin/require-isolate >/dev/null; export TZ=UTC LC_ALL=C CARGO_TARGET_DIR="$$ISO_ROOT/target-test"; if command -v sccache >/dev/null 2>&1; then export RUSTC_WRAPPER="$$(command -v sccache)"; fi; cargo test -p bijux-dna-policies --test contracts production_registry_is_pinned_and_non_floating -- --nocapture; cargo test -p bijux-dna-policies --test contracts profiles_only_use_valid_production_tools -- --nocapture)
 
 unit-contract-fast: ## Fast unit/contract checks for critical crates.
 	$(call RUN_IN_ISOLATE,./bin/require-isolate >/dev/null; export TZ=UTC LC_ALL=C CARGO_TARGET_DIR="$$ISO_ROOT/target-test"; if command -v sccache >/dev/null 2>&1; then export RUSTC_WRAPPER="$$(command -v sccache)"; fi; cargo test -p bijux-dna-runner --lib -- --nocapture; cargo test -p bijux-dna-planner-fastq --lib -- --nocapture; cargo test -p bijux-dna-planner-bam --lib -- --nocapture; cargo test -p bijux-dna-stages-fastq --lib -- --nocapture; cargo test -p bijux-dna-stages-bam --lib -- --nocapture; cargo test -p bijux-dna-api --lib -- --nocapture)
 
 release-readiness: ## Block merges on experimental tools, unknown metrics schemas, or floating pins.
 	$(MAKE) registry-lint
-	$(call RUN_IN_ISOLATE,./bin/require-isolate >/dev/null; export TZ=UTC LC_ALL=C CARGO_TARGET_DIR="$$ISO_ROOT/target-test"; if command -v sccache >/dev/null 2>&1; then export RUSTC_WRAPPER="$$(command -v sccache)"; fi; cargo test -p bijux-dna-policies --test contracts policy__contracts__tool_registry_reproducibility__profiles_release_readiness_gate -- --exact --nocapture)
+	$(call RUN_IN_ISOLATE,./bin/require-isolate >/dev/null; export TZ=UTC LC_ALL=C CARGO_TARGET_DIR="$$ISO_ROOT/target-test"; if command -v sccache >/dev/null 2>&1; then export RUSTC_WRAPPER="$$(command -v sccache)"; fi; cargo test -p bijux-dna-policies --test contracts profiles_release_readiness_gate -- --nocapture; cargo test -p bijux-dna-policies --test contracts reference_adna_profile_uses_production_tools_only -- --nocapture)
 
 ci-fast: ## Fast CI tier: unit + contract + registry lint + profile invariants.
 	$(MAKE) fmt-isolate
 	$(MAKE) lint-isolate
 	$(MAKE) unit-contract-fast
-	$(MAKE) registry-lint
+	$(MAKE) release-readiness
 	$(MAKE) test-profile-invariants
 	$(MAKE) policy-no-raw-cargo
 
