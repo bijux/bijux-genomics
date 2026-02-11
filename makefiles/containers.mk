@@ -9,13 +9,13 @@ else
 CONTAINER_TYPE ?= docker-arm64
 endif
 
-PLATFORM ?=
+PLATFORM ?= docker-arm64
 JOBS ?= 1
 TOOLS ?=
 STAGE ?=
 APPTAINER_VM_OUT ?= $(HOME)/apptainer-build
-APPTAINER_COPY_BACK ?= $(ISOLATE_ROOT)/container/apptainer
-CONTAINER_ARTIFACT_DIR ?= $(ISOLATE_ROOT)/container
+APPTAINER_COPY_BACK ?= $(if $(ISOLATE_ROOT),$(ISOLATE_ROOT)/container/apptainer,artifacts/container/apptainer)
+CONTAINER_ARTIFACT_DIR ?= $(if $(ISOLATE_ROOT),$(ISOLATE_ROOT)/container,artifacts/container)
 BIJUX_BIN ?= ./bin/isolate cargo run --bin bijux-dna --
 
 CT_KEY := $(subst -,_,$(CONTAINER_TYPE))
@@ -89,10 +89,17 @@ build-images: ## Build Docker images (docker-arm64 only)
 		echo "skip: build-images is docker-only (CONTAINER_TYPE=$(CONTAINER_TYPE))"; \
 		exit 0; \
 	fi
-	./bin/isolate cargo run --bin build_docker_images -- --platform $(PLATFORM)
+	@TOOLS="$(TOOLS)" JOBS="$(JOBS)" SMOKE_LEVEL="build" SAVE_TAR="0" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/smoke-containers-docker-arm64.sh
 
 test-images: ## Smoke selected runtime (registry-driven via scripts/CLI)
-	@if [ -n "$(STAGE)" ]; then \
+	@if [ "$(CONTAINER_TYPE)" = "docker-arm64" ]; then \
+		if [ -n "$(STAGE)" ]; then \
+			TOOLS="$$( $(BIJUX_BIN) registry list-tools --stage "$(STAGE)" --kind all | paste -sd, - )"; \
+			TOOLS="$$TOOLS" JOBS="$(JOBS)" SMOKE_LEVEL="contract" SAVE_TAR="0" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/smoke-containers-docker-arm64.sh; \
+		else \
+			TOOLS="$(TOOLS)" JOBS="$(JOBS)" SMOKE_LEVEL="contract" SAVE_TAR="0" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/smoke-containers-docker-arm64.sh; \
+		fi; \
+	elif [ -n "$(STAGE)" ]; then \
 		$(MAKE) env-smoke STAGE="$(STAGE)" CONTAINER_TYPE="$(CONTAINER_TYPE)"; \
 	elif [ -n "$(TOOLS)" ]; then \
 		$(MAKE) env-smoke TOOLS="$(TOOLS)" CONTAINER_TYPE="$(CONTAINER_TYPE)"; \

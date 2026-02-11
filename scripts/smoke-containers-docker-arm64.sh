@@ -40,6 +40,12 @@ require_cmd python3
 require_cmd awk
 require_cmd sed
 
+if ! "$DOCKER_BIN" info >/dev/null 2>&1; then
+  echo "ERROR: cannot connect to docker daemon via $DOCKER_BIN" >&2
+  echo "hint: start Docker Desktop/daemon and retry" >&2
+  exit 2
+fi
+
 if [ ! -d "$DOCKER_DIR" ]; then
   echo "ERROR: docker dir not found: $DOCKER_DIR" >&2
   exit 2
@@ -160,16 +166,18 @@ build_and_smoke_one() {
       echo "build failed for $tool"
       exit 1
     fi
-    echo "=== [$tool] smoke: $cmd"
-    if ! run_with_timeout "$VERSION_TIMEOUT" "$DOCKER_BIN" run --rm --entrypoint sh "$image" -lc "$cmd" >"$version_output_file" 2>&1; then
+    if [ "$SMOKE_LEVEL" != "build" ]; then
+      echo "=== [$tool] smoke: $cmd"
+      if ! run_with_timeout "$VERSION_TIMEOUT" "$DOCKER_BIN" run --rm --entrypoint sh "$image" -lc "$cmd" >"$version_output_file" 2>&1; then
+        cat "$version_output_file"
+        echo "version command failed: $cmd"
+        exit 1
+      fi
       cat "$version_output_file"
-      echo "version command failed: $cmd"
-      exit 1
-    fi
-    cat "$version_output_file"
-    if [ ! -s "$version_output_file" ]; then
-      echo "version command produced empty output: $cmd"
-      exit 1
+      if [ ! -s "$version_output_file" ]; then
+        echo "version command produced empty output: $cmd"
+        exit 1
+      fi
     fi
     if [ "$SMOKE_LEVEL" = "contract" ]; then
       echo "=== [$tool] smoke-help: $help_cmd"
@@ -292,6 +300,7 @@ fi
 : >"$SUMMARY"
 : >"$IMAGES_TXT"
 echo "Docker $DOCKER_ARCH smoke run ($DOCKER_PLATFORM)" | tee -a "$SUMMARY"
+echo "smoke_level: $SMOKE_LEVEL" | tee -a "$SUMMARY"
 echo "logs: $LOG_DIR" | tee -a "$SUMMARY"
 echo "images: $IMG_DIR" | tee -a "$SUMMARY"
 
