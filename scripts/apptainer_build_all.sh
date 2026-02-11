@@ -116,15 +116,9 @@ if [[ "$JOBS" -le 1 ]]; then
     fi
   done
 else
-  if ! command -v parallel >/dev/null 2>&1; then
-    echo "JOBS=$JOBS requires GNU parallel, but it is not installed." >&2
-    echo "Install 'parallel' or run with --jobs 1." >&2
-    exit 2
-  fi
-  require_cmd parallel
-  if ! parallel -j "$JOBS" --halt never \
-    "$0" --build-one {} --defs-dir "$DEFS_DIR" --vm-out "$VM_OUT_DIR" \
-    ::: "${defs[@]}"; then
+  require_cmd xargs
+  if ! printf '%s\0' "${defs[@]}" | xargs -0 -P "$JOBS" -I {} \
+    "$0" --build-one "{}" --defs-dir "$DEFS_DIR" --vm-out "$VM_OUT_DIR"; then
     status=1
   fi
 fi
