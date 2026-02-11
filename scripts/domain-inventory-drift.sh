@@ -58,36 +58,9 @@ END{
 ' "$ROOT_DIR"/domain/fastq/stages/*.yaml "$ROOT_DIR"/domain/bam/stages/*.yaml \
   | sort -u > "$DOM_STAGES"
 
-# Registry views are authoritative via generated configs.
-awk '
-/^\[\[tools\]\]$/ { in_tools=1; next }
-/^\[\[stages\]\]$/ { in_tools=0; next }
-in_tools && /^id = "/ {
-  gsub(/^id = "/, "", $0)
-  gsub(/"$/, "", $0)
-  print $0
-}
-' "$ROOT_DIR/configs/tool_registry.toml" | sort -u > "$REG_TOOLS"
-
-awk '
-/^\[\[stages\]\]$/ { in_stages=1; next }
-/^\[\[[^]]+\]\]$/ { if ($0 != "[[stages]]") in_stages=0 }
-in_stages && /^id = "/ {
-  id = $0
-  gsub(/^id = "/, "", id)
-  gsub(/"$/, "", id)
-}
-in_stages && /^status = "/ {
-  status = $0
-  gsub(/^status = "/, "", status)
-  gsub(/"$/, "", status)
-  if (status == "supported" && id != "") {
-    print id
-  }
-  id = ""
-  status = ""
-}
-' "$ROOT_DIR/configs/stages.toml" | sort -u > "$REG_STAGES"
+# Registry views are authoritative via CLI wrappers.
+"$ROOT_DIR/scripts/registry-tools.sh" list-tools | sort -u > "$REG_TOOLS"
+"$ROOT_DIR/scripts/registry-tools.sh" list-stages | sort -u > "$REG_STAGES"
 
 rg -No 'ToolId::from_static\("([a-z0-9_\-]+)"\)' "$ROOT_DIR/crates" \
   | sed -E 's/.*from_static\("([a-z0-9_\-]+)"\).*/\1/' \

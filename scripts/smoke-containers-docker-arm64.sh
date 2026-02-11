@@ -37,6 +37,7 @@ require_cmd() {
 }
 
 require_cmd "$DOCKER_BIN"
+require_cmd jq
 require_cmd python3
 require_cmd awk
 require_cmd sed
@@ -120,28 +121,9 @@ get_help_cmd() {
 get_registry_field() {
   field="$1"
   tool="$2"
-  value=$(awk -v tool="$tool" -v field="$field" '
-    /^\[\[tools\]\]$/ { in_tools=1; in_target=0; next }
-    /^\[\[/ && $0 != "[[tools]]" { in_tools=0; in_target=0; next }
-    in_tools && /^id = "/ {
-      id=$0
-      sub(/^id = "/, "", id)
-      sub(/"$/, "", id)
-      in_target = (id == tool)
-      next
-    }
-    in_target {
-      pattern = "^" field " = \""
-      if ($0 ~ pattern) {
-        val=$0
-        sub(pattern, "", val)
-        sub(/"$/, "", val)
-        print val
-        exit 0
-      }
-    }
-    END { if (NR >= 0) print "unknown" }
-  ' "$ROOT_DIR/configs/tool_registry.toml" | head -n 1)
+  value=$("$ROOT_DIR/scripts/registry-tools.sh" show-tool "$tool" 2>/dev/null \
+    | jq -r --arg f "$field" '.[$f] // "unknown"' \
+    | head -n 1 || true)
   printf '%s\n' "${value:-unknown}"
 }
 
