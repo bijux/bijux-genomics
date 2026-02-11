@@ -159,9 +159,37 @@ pub fn write_run_manifest(
             Vec::new()
         }
     };
+    let replay_tool_image_ref = tool_invocations
+        .first()
+        .map(|inv| inv.tool_id.to_string())
+        .unwrap_or_else(|| "unknown".to_string());
+    let replay_tool_image_digest = tool_invocations
+        .first()
+        .map(|inv| inv.image_digest.clone())
+        .unwrap_or_else(|| {
+            run_provenance
+                .tool_image_digest
+                .clone()
+                .unwrap_or_else(|| "unknown".to_string())
+        });
+    let replay_tool_version_output = tool_invocations
+        .first()
+        .and_then(|inv| inv.resolved_tool_version.clone())
+        .unwrap_or_else(|| run_provenance.tool_version.clone());
     let reproducibility_dir = run_artifacts_dir(run_dirs)?.join("reproducibility");
     bijux_dna_infra::ensure_dir(&reproducibility_dir).context("create reproducibility dir")?;
     let reproducibility_report_path = reproducibility_dir.join("report.json");
+    let reproducibility_identity = bijux_dna_core::prelude::ReproducibilityIdentityV1 {
+        image_digest: replay_tool_image_digest.clone(),
+        tool_version: run_provenance.tool_version.clone(),
+        params_hash: run_provenance.params_hash.clone(),
+        input_hash: run_provenance
+            .input_hashes
+            .first()
+            .cloned()
+            .unwrap_or_else(|| "unknown".to_string()),
+        bank_hashes: serde_json::json!({}),
+    };
     write_canonical_json(
         &reproducibility_report_path,
         &serde_json::json!({
@@ -173,6 +201,7 @@ pub fn write_run_manifest(
             "tool_version": run_provenance.tool_version,
             "tool_image_digest": run_provenance.tool_image_digest,
             "tool_invocations": tool_invocations.clone(),
+            "reproducibility_identity": reproducibility_identity,
         }),
     )
     .context("write reproducibility report")?;
@@ -195,6 +224,11 @@ pub fn write_run_manifest(
         "stages": [],
         "failures": [],
         "run_provenance": run_provenance,
+        "execution_replay_identity": {
+            "tool_image_ref": replay_tool_image_ref,
+            "tool_image_digest": replay_tool_image_digest,
+            "tool_version_output": replay_tool_version_output,
+        },
         "telemetry": {
             "events_jsonl": run_artifacts_dir(run_dirs)?.join("telemetry").join("events.jsonl"),
         },

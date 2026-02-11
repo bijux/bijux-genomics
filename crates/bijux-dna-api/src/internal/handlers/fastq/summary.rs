@@ -429,6 +429,20 @@ pub(crate) fn write_run_manifest(
         "defaults_ledger": relative_path_string(out_dir, &defaults_path),
         "defaults_ledger_sha256": defaults_hash,
         "run_provenance": run_provenance,
+        "execution_replay_identity": {
+            "tool_image_ref": tool_invocations
+                .first()
+                .map(|inv| inv.tool_id.to_string())
+                .unwrap_or_else(|| "unknown".to_string()),
+            "tool_image_digest": tool_invocations
+                .first()
+                .map(|inv| inv.image_digest.clone())
+                .unwrap_or_else(|| "unknown".to_string()),
+            "tool_version_output": tool_invocations
+                .first()
+                .and_then(|inv| inv.resolved_tool_version.clone())
+                .unwrap_or_else(|| "unknown".to_string()),
+        },
         "telemetry": {
             "events": stage_runs.iter().map(|entry| {
                 relative_path_string(
@@ -604,8 +618,10 @@ fn run_provenance_from_stage_runs(
             "adapter_bank_hash": adapter_bank_hash,
             "reference_bank_hash": reference_bank_hash,
             "contamination_db_bank_hash": contamination_db_bank_hash,
+            "taxonomy_db_hash": contamination_db_bank_hash,
         },
         "contamination_db_version": "v1",
+        "taxonomy_db_version": "v1",
     })
 }
 
