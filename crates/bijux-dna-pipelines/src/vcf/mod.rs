@@ -1,6 +1,6 @@
 use std::collections::BTreeSet;
 
-use bijux_dna_core::ids::StageId;
+use bijux_dna_core::ids::{StageId, ToolId};
 use bijux_dna_core::prelude::id_catalog;
 use bijux_dna_domain_vcf::params::{VcfCallParams, VcfEffectiveParams, VcfFilterParams, VcfStatsParams};
 use serde::Serialize;
@@ -110,9 +110,18 @@ pub fn validate_vcf_profile(profile: &PipelineProfile) -> VcfProfileValidationRe
 pub fn vcf_minimal_profile() -> PipelineProfile {
     let mut defaults = EffectiveDefaults::default();
 
-    defaults.tools.insert(StageId::from_static(id_catalog::VCF_CALL), "bcftools".into());
-    defaults.tools.insert(StageId::from_static(id_catalog::VCF_FILTER), "bcftools".into());
-    defaults.tools.insert(StageId::from_static(id_catalog::VCF_STATS), "bcftools".into());
+    defaults.tools.insert(
+        StageId::from_static(id_catalog::VCF_CALL),
+        ToolId::new("bcftools"),
+    );
+    defaults.tools.insert(
+        StageId::from_static(id_catalog::VCF_FILTER),
+        ToolId::new("bcftools"),
+    );
+    defaults.tools.insert(
+        StageId::from_static(id_catalog::VCF_STATS),
+        ToolId::new("bcftools"),
+    );
 
     defaults.params.insert(
         StageId::from_static(id_catalog::VCF_CALL),
