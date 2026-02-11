@@ -6,6 +6,33 @@ use crate::contract::ContractVersion;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
+pub struct MetricProvenanceV1 {
+    pub run_id: String,
+    pub stage_id: String,
+    pub tool_id: String,
+    pub tool_version: String,
+    pub params_hash: String,
+    pub input_artifact_hashes: Vec<String>,
+}
+
+impl MetricProvenanceV1 {
+    #[must_use]
+    pub fn is_complete(&self) -> bool {
+        !self.run_id.trim().is_empty()
+            && !self.stage_id.trim().is_empty()
+            && !self.tool_id.trim().is_empty()
+            && !self.tool_version.trim().is_empty()
+            && !self.params_hash.trim().is_empty()
+            && !self.input_artifact_hashes.is_empty()
+            && self
+                .input_artifact_hashes
+                .iter()
+                .all(|hash| !hash.trim().is_empty())
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ToolProvenanceV1 {
     pub stage_id: String,
     pub tool_id: String,

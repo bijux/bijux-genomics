@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 
 use serde::{Deserialize, Serialize};
 
-use crate::contract::{ContractVersion, ToolConstraints};
+use crate::contract::{ContractVersion, MetricProvenanceV1, ToolConstraints};
 use crate::foundation::{measure::ExecutionMetrics, BijuxError, Result};
 use crate::ids::{StageId, ToolId};
 use crate::metrics::MetricContextV1;
@@ -242,6 +242,8 @@ pub struct MetricsEnvelope<T> {
     pub parameters_json_normalized: serde_json::Value,
     #[serde(default)]
     pub input_hashes: Vec<String>,
+    #[serde(default)]
+    pub metric_provenance: Option<MetricProvenanceV1>,
     pub metrics: T,
 }
 
@@ -254,6 +256,8 @@ pub struct StageMetricsV1<T> {
     pub tool_id: String,
     pub tool_version: String,
     pub context: MetricContextV1,
+    #[serde(default)]
+    pub metric_provenance: Option<MetricProvenanceV1>,
     pub execution: ExecutionMetrics,
     #[serde(default)]
     pub failure_class: Option<String>,

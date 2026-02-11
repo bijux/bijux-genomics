@@ -48,6 +48,18 @@ pub fn write_metrics_envelope(
         input_fingerprint: ctx.input_fingerprint.clone(),
         parameters_json_normalized: ctx.parameters_json_normalized.clone(),
         input_hashes: input_hashes.to_vec(),
+        metric_provenance: Some(bijux_dna_core::contract::MetricProvenanceV1 {
+            run_id: std::env::var("BIJUX_RUN_ID").unwrap_or_else(|_| "unknown".to_string()),
+            stage_id: ctx.stage_id.clone(),
+            tool_id: ctx.tool_id.clone(),
+            tool_version: ctx.tool_version.clone(),
+            params_hash: ctx.parameters_fingerprint.clone(),
+            input_artifact_hashes: if input_hashes.is_empty() {
+                vec![ctx.input_fingerprint.clone()]
+            } else {
+                input_hashes.to_vec()
+            },
+        }),
         metrics: metrics.clone(),
     };
     let path = run_artifacts_dir.join("metrics_envelope.json");

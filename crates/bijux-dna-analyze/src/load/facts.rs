@@ -33,7 +33,7 @@ pub fn load_facts(path: &Path) -> std::result::Result<Vec<FactsRowV1>, AnalyzeEr
         if line.trim().is_empty() {
             continue;
         }
-        let parsed_row: FactsRowV1 =
+        let mut parsed_row: FactsRowV1 =
             serde_json::from_str(&line).map_err(|err| AnalyzeError::InvalidJsonlRow {
                 line: idx + 1,
                 message: err.to_string(),
@@ -44,6 +44,13 @@ pub fn load_facts(path: &Path) -> std::result::Result<Vec<FactsRowV1>, AnalyzeEr
                 expected: "bijux.facts.v1".to_string(),
             });
         }
+        if !parsed_row.effective_metric_provenance().is_complete() {
+            return Err(AnalyzeError::InvalidJsonlRow {
+                line: idx + 1,
+                message: "incomplete metric provenance contract".to_string(),
+            });
+        }
+        normalize_bank_hashes(&mut parsed_row.bank_hashes);
         rows.push(parsed_row);
     }
     stable_sort_records(&mut rows, |row| {
@@ -89,7 +96,7 @@ pub fn load_facts_parquet(path: &Path) -> std::result::Result<Vec<FactsRowV1>, A
             message: err.to_string(),
         })?;
         let value = record.to_json_value();
-        let parsed: FactsRowV1 =
+        let mut parsed: FactsRowV1 =
             serde_json::from_value(value).map_err(|err| AnalyzeError::InvalidJson {
                 message: err.to_string(),
             })?;
@@ -99,6 +106,12 @@ pub fn load_facts_parquet(path: &Path) -> std::result::Result<Vec<FactsRowV1>, A
                 expected: "bijux.facts.v1".to_string(),
             });
         }
+        if !parsed.effective_metric_provenance().is_complete() {
+            return Err(AnalyzeError::InvalidJson {
+                message: "incomplete metric provenance contract".to_string(),
+            });
+        }
+        normalize_bank_hashes(&mut parsed.bank_hashes);
         rows.push(parsed);
     }
     stable_sort_records(&mut rows, |row| {
@@ -111,6 +124,26 @@ pub fn load_facts_parquet(path: &Path) -> std::result::Result<Vec<FactsRowV1>, A
         )
     });
     Ok(rows)
+}
+
+fn normalize_bank_hashes(bank_hashes: &mut serde_json::Value) {
+    let Some(obj) = bank_hashes.as_object_mut() else {
+        *bank_hashes = serde_json::json!({
+            "adapter_bank_hash": "unknown",
+            "reference_bank_hash": "unknown",
+            "taxonomy_db_hash": "unknown",
+            "taxonomy_db_version": "unknown",
+        });
+        return;
+    };
+    obj.entry("adapter_bank_hash".to_string())
+        .or_insert_with(|| serde_json::Value::String("unknown".to_string()));
+    obj.entry("reference_bank_hash".to_string())
+        .or_insert_with(|| serde_json::Value::String("unknown".to_string()));
+    obj.entry("taxonomy_db_hash".to_string())
+        .or_insert_with(|| serde_json::Value::String("unknown".to_string()));
+    obj.entry("taxonomy_db_version".to_string())
+        .or_insert_with(|| serde_json::Value::String("unknown".to_string()));
 }
 
 /// # Errors

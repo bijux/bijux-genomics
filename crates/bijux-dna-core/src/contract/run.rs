@@ -16,5 +16,5 @@ pub use index::{
 pub use metadata::{
     RunMetadataV1, StageMetadataV1, ToolExecutionMetadataV1, ToolInvocationMetadataV1,
 };
-pub use provenance::{ScientificProvenanceV1, ToolProvenanceV1};
+pub use provenance::{MetricProvenanceV1, ScientificProvenanceV1, ToolProvenanceV1};
 pub use spec::{run_dir, Profile, RunSpec};
