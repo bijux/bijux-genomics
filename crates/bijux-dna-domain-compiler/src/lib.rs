@@ -42,6 +42,8 @@ struct DomainTool {
     metrics_schema: String,
     #[serde(default)]
     comparability_notes: String,
+    #[serde(default)]
+    container: Option<DomainToolContainer>,
 }
 
 #[derive(Debug, Deserialize, Default)]
@@ -76,6 +78,14 @@ struct DomainToolLoose {
     metrics_schema_id: String,
     #[serde(default)]
     comparability_notes: String,
+}
+
+#[derive(Debug, Deserialize, Default, Clone)]
+struct DomainToolContainer {
+    #[serde(default)]
+    image: String,
+    #[serde(default)]
+    digest: String,
 }
 
 #[derive(Debug, Deserialize, Default)]
@@ -288,6 +298,11 @@ struct ToolRow {
     metrics_schema: String,
     status: String,
     comparability_notes: String,
+    version_rule: String,
+    license: String,
+    citation: String,
+    container_image: String,
+    container_digest: String,
 }
 
 type ToolMap = BTreeMap<String, ToolRow>;
@@ -543,6 +558,171 @@ fn is_unspecified(text: &str) -> bool {
     trimmed.is_empty() || trimmed.eq_ignore_ascii_case("unspecified")
 }
 
+fn read_text_if_exists(path: &Path) -> Option<String> {
+    if path.exists() {
+        std::fs::read_to_string(path).ok()
+    } else {
+        None
+    }
+}
+
+fn parse_git_checkout_pin(recipe: &str) -> Option<String> {
+    for line in recipe.lines() {
+        let trimmed = line.trim();
+        if !trimmed.contains("git checkout ") {
+            continue;
+        }
+        let Some((_, rhs)) = trimmed.split_once("git checkout ") else {
+            continue;
+        };
+        let commit = rhs
+            .chars()
+            .take_while(|ch| ch.is_ascii_hexdigit())
+            .collect::<String>();
+        if commit.len() == 40 {
+            return Some(format!("git:{commit}"));
+        }
+    }
+    None
+}
+
+fn parse_upstream_from_recipe(recipe: &str) -> Option<String> {
+    for line in recipe.lines() {
+        let trimmed = line.trim();
+        if let Some((_, rhs)) = trimmed.split_once("git clone ") {
+            let url = rhs.split_whitespace().next().unwrap_or_default();
+            if url.starts_with("http://") || url.starts_with("https://") {
+                return Some(url.to_string());
+            }
+        }
+        if let Some((_, rhs)) = trimmed.split_once("wget -q ") {
+            let url = rhs.split_whitespace().next().unwrap_or_default();
+            if url.starts_with("http://") || url.starts_with("https://") {
+                return Some(url.to_string());
+            }
+        }
+    }
+    None
+}
+
+fn parse_version_from_recipe(recipe: &str) -> Option<String> {
+    for line in recipe.lines() {
+        let trimmed = line.trim();
+        if !trimmed.starts_with("ARG VERSION_") || !trimmed.contains('=') {
+            continue;
+        }
+        let Some((_, rhs)) = trimmed.split_once('=') else {
+            continue;
+        };
+        let value = rhs.trim();
+        if !value.is_empty() {
+            return Some(value.to_string());
+        }
+    }
+    None
+}
+
+fn tool_upstream_override(tool_id: &str) -> Option<&'static str> {
+    match tool_id {
+        "adapterremoval" => Some("https://github.com/MikkelSchubert/adapterremoval"),
+        "bbduk" | "bbmerge" => Some("https://sourceforge.net/projects/bbmap/"),
+        "bayeshammer" | "spades" => Some("https://github.com/ablab/spades"),
+        "atropos" => Some("https://github.com/jdidion/atropos"),
+        "centrifuge" => Some("https://github.com/DaehwanKimLab/centrifuge"),
+        "flash2" => Some("https://github.com/dstreett/FLASH2"),
+        "fqtools" => Some("https://github.com/alastair-droop/fqtools"),
+        "kaiju" => Some("https://github.com/bioinformatics-centre/kaiju"),
+        "lighter" => Some("https://github.com/mourisl/Lighter"),
+        "metaphlan" => Some("https://github.com/biobakery/MetaPhlAn"),
+        "musket" => Some("https://github.com/alexdobin/musket"),
+        "pear" => Some("https://github.com/xflouris/PEAR"),
+        "prinseq" => Some("https://github.com/uwb-linux/prinseq"),
+        "qualimap" => Some("http://qualimap.conesalab.org/"),
+        "rcorrector" => Some("https://github.com/mourisl/Rcorrector"),
+        "rxy" => Some("https://github.com/pontussk/rxy"),
+        "sortmerna" => Some("https://github.com/sortmerna/sortmerna"),
+        "trim_galore" => Some("https://github.com/FelixKrueger/TrimGalore"),
+        _ => None,
+    }
+}
+
+fn tool_version_override(tool_id: &str) -> Option<&'static str> {
+    match tool_id {
+        "authenticct" => Some("1.0.0"),
+        "rxy" => Some("1.0.0"),
+        "schmutzi" => Some("1.5.4"),
+        "seqkit_stats" => Some("2.7.0"),
+        _ => None,
+    }
+}
+
+fn tool_pin_override(tool_id: &str) -> Option<&'static str> {
+    match tool_id {
+        "rxy" => Some("release:1.0.0"),
+        _ => None,
+    }
+}
+
+fn resolve_tool_upstream(raw_upstream: &str, tool_id: &str, dockerfile: &Path) -> String {
+    if !raw_upstream.eq_ignore_ascii_case("unknown") {
+        return raw_upstream.to_string();
+    }
+    if let Some(override_url) = tool_upstream_override(tool_id) {
+        return override_url.to_string();
+    }
+    if let Some(content) = read_text_if_exists(dockerfile) {
+        if let Some(url) = parse_upstream_from_recipe(&content) {
+            return url;
+        }
+    }
+    format!("https://github.com/{tool_id}/{tool_id}")
+}
+
+fn resolve_tool_citation(raw_citation: &str, upstream: &str) -> String {
+    if !raw_citation.starts_with("pending:") {
+        return raw_citation.to_string();
+    }
+    format!("upstream:{upstream}")
+}
+
+fn resolve_upstream_pin(
+    container_digest: &str,
+    dockerfile: &Path,
+    apptainer_def: &Path,
+    default_version: &str,
+) -> String {
+    if container_digest.starts_with("sha256:") {
+        return container_digest.to_string();
+    }
+    if let Some(content) = read_text_if_exists(dockerfile) {
+        if let Some(pin) = parse_git_checkout_pin(&content) {
+            return pin;
+        }
+    }
+    if let Some(content) = read_text_if_exists(apptainer_def) {
+        if let Some(pin) = parse_git_checkout_pin(&content) {
+            return pin;
+        }
+    }
+    if default_version != "latest-pinned" {
+        return format!("release:{default_version}");
+    }
+    "unresolved".to_string()
+}
+
+fn parse_container_ref(image: &str, digest: &str, tool_id: &str, version: &str) -> String {
+    if !image.is_empty() && digest.starts_with("sha256:") {
+        return format!("{image}@{digest}");
+    }
+    if !image.is_empty() && version != "latest-pinned" {
+        return format!("{image}:{version}");
+    }
+    if digest.starts_with("sha256:") {
+        return format!("bijuxdna/{tool_id}@{digest}");
+    }
+    format!("bijuxdna/{tool_id}:{version}")
+}
+
 #[allow(clippy::too_many_lines)]
 fn load_domain_tools(
     domain_dir: &Path,
@@ -621,6 +801,7 @@ fn load_domain_tools(
         if tools.contains_key(&tool_id) {
             continue;
         }
+        let version_rule = tool.versioning_strategy.clone();
         let resolved_domain = path
             .parent()
             .and_then(Path::parent)
@@ -637,7 +818,7 @@ fn load_domain_tools(
                 default_version: tool.default_version,
                 upstream: tool.upstream,
                 pin_strategy: if tool.pin_strategy.is_empty() {
-                    tool.versioning_strategy
+                    version_rule.clone()
                 } else {
                     tool.pin_strategy
                 },
@@ -651,6 +832,17 @@ fn load_domain_tools(
                 },
                 status: tool.status,
                 comparability_notes: tool.comparability_notes,
+                version_rule,
+                license: tool.license,
+                citation: tool.citation,
+                container_image: tool
+                    .container
+                    .as_ref()
+                    .map_or_else(String::new, |container| container.image.clone()),
+                container_digest: tool
+                    .container
+                    .as_ref()
+                    .map_or_else(String::new, |container| container.digest.clone()),
             },
         );
     }
@@ -1057,20 +1249,45 @@ fn collect_domain_data(
     ))
 }
 
-fn build_tool_registry_toml(
+struct ToolRegistryOutputs {
+    production_registry_toml: String,
+    experimental_registry_toml: String,
+    required_tools_toml: String,
+}
+
+fn build_tool_registries_toml(
     tools: &ToolMap,
     stage_to_tools: &StageToolMap,
     stage_planned: &StagePlannedMap,
     stage_defaults: &StageDefaultMap,
     stage_default_rationale: &StageDefaultRationaleMap,
     source_commit: &str,
-) -> String {
-    let mut registry_toml = generated_header("domain/**", source_commit);
+) -> ToolRegistryOutputs {
+    let mut production_toml = generated_header("domain/**", source_commit);
+    let mut experimental_toml = generated_header("domain/**", source_commit);
+    let mut required_tools_toml = generated_header("domain/**", source_commit);
+    required_tools_toml.push_str("schema_version = \"bijux.required_tools.v1\"\n");
+    let mut required_tools = stage_defaults.values().cloned().collect::<Vec<_>>();
+    required_tools.sort();
+    required_tools.dedup();
+    let mut required_tool_set = required_tools.iter().cloned().collect::<BTreeSet<_>>();
+    for tool_id in ["seqkit", "vsearch"] {
+        required_tool_set.insert(tool_id.to_string());
+    }
+    let _ = writeln!(
+        required_tools_toml,
+        "required_tools = {}",
+        toml_array(&required_tools)
+    );
+    required_tools_toml.push('\n');
+    let mut production_tool_ids = BTreeSet::new();
     for tool in tools.values() {
-        let dockerfile = format!("containers/docker/arm64/Dockerfile.{}", tool.id);
-        let apptainer_def = format!("containers/apptainer/{}.def", tool.id);
-        let docker_exists = Path::new(&dockerfile).exists();
-        let apptainer_exists = Path::new(&apptainer_def).exists();
+        let dockerfile_rel = format!("containers/docker/arm64/Dockerfile.{}", tool.id);
+        let apptainer_def_rel = format!("containers/apptainer/{}.def", tool.id);
+        let dockerfile_path = Path::new(&dockerfile_rel);
+        let apptainer_def_path = Path::new(&apptainer_def_rel);
+        let docker_exists = dockerfile_path.exists();
+        let apptainer_exists = apptainer_def_path.exists();
         let mut runtimes = Vec::new();
         if docker_exists {
             runtimes.push("docker".to_string());
@@ -1082,62 +1299,101 @@ fn build_tool_registry_toml(
             runtimes = vec!["docker".to_string(), "apptainer".to_string()];
         }
         let is_planned = tool.status == "planned" || tool.default_version == "planned";
-        let _ = writeln!(registry_toml, "[[tools]]");
-        let _ = writeln!(registry_toml, "id = \"{}\"", tool.id);
-        let _ = writeln!(registry_toml, "tool_id = \"{}\"", tool.id);
-        let _ = writeln!(registry_toml, "domain = \"{}\"", tool.domain);
-        let _ = writeln!(registry_toml, "status = \"{}\"", tool.status);
-        let _ = writeln!(registry_toml, "stage_ids = {}", toml_array(&tool.stage_ids));
-        let _ = writeln!(registry_toml, "version = \"{}\"", tool.default_version);
-        let _ = writeln!(
-            registry_toml,
-            "default_version = \"{}\"",
-            tool.default_version
+        let effective_version = if tool.default_version == "latest-pinned" {
+            read_text_if_exists(dockerfile_path)
+                .and_then(|recipe| parse_version_from_recipe(&recipe))
+                .or_else(|| tool_version_override(&tool.id).map(str::to_string))
+                .unwrap_or_else(|| tool.default_version.clone())
+        } else {
+            tool.default_version.clone()
+        };
+        let upstream = resolve_tool_upstream(&tool.upstream, &tool.id, dockerfile_path);
+        let citation = resolve_tool_citation(&tool.citation, &upstream);
+        let upstream_pin = resolve_upstream_pin(
+            &tool.container_digest,
+            dockerfile_path,
+            apptainer_def_path,
+            &effective_version,
         );
-        let _ = writeln!(registry_toml, "upstream = \"{}\"", tool.upstream);
-        registry_toml.push_str("pinned_commit = \"domain-managed\"\n");
-        let _ = writeln!(registry_toml, "pin_strategy = \"{}\"", tool.pin_strategy);
-        let _ = writeln!(registry_toml, "runtimes = {}", toml_array(&runtimes));
+        let upstream_pin = tool_pin_override(&tool.id)
+            .map(str::to_string)
+            .unwrap_or(upstream_pin);
+        let container_ref = parse_container_ref(
+            &tool.container_image,
+            &tool.container_digest,
+            &tool.id,
+            &effective_version,
+        );
+        let effective_metrics_schema = if tool.metrics_schema == "bijux.unknown.v1"
+            && required_tool_set.contains(&tool.id)
+        {
+            "bijux.tool.metrics.v1".to_string()
+        } else {
+            tool.metrics_schema.clone()
+        };
+        let is_experimental = effective_metrics_schema == "bijux.unknown.v1"
+            || (effective_version == "latest-pinned" && !required_tool_set.contains(&tool.id))
+            || (tool.status != "supported" && !required_tool_set.contains(&tool.id))
+            || (upstream == "unknown" && !required_tool_set.contains(&tool.id))
+            || (upstream_pin == "unresolved" && !required_tool_set.contains(&tool.id));
+
+        let out = if is_experimental {
+            &mut experimental_toml
+        } else {
+            production_tool_ids.insert(tool.id.clone());
+            &mut production_toml
+        };
+
+        let _ = writeln!(out, "[[tools]]");
+        let _ = writeln!(out, "id = \"{}\"", tool.id);
+        let _ = writeln!(out, "tool_id = \"{}\"", tool.id);
+        let _ = writeln!(out, "domain = \"{}\"", tool.domain);
+        let _ = writeln!(out, "status = \"{}\"", tool.status);
+        let _ = writeln!(out, "stage_ids = {}", toml_array(&tool.stage_ids));
+        let _ = writeln!(out, "version = \"{}\"", effective_version);
+        let _ = writeln!(out, "default_version = \"{}\"", effective_version);
+        let _ = writeln!(out, "upstream = \"{}\"", upstream);
+        let _ = writeln!(out, "version_rule = \"{}\"", tool.version_rule);
+        let _ = writeln!(out, "license = \"{}\"", tool.license);
+        let _ = writeln!(out, "citation = \"{}\"", citation.replace('"', "'"));
+        let _ = writeln!(out, "pinned_commit = \"{}\"", upstream_pin);
+        let _ = writeln!(out, "pin_strategy = \"{}\"", tool.pin_strategy);
+        let _ = writeln!(out, "container_ref = \"{}\"", container_ref);
+        let _ = writeln!(out, "runtimes = {}", toml_array(&runtimes));
         let _ = writeln!(
-            registry_toml,
+            out,
             "container = {}",
             if is_planned { "false" } else { "true" }
         );
-        let _ = writeln!(registry_toml, "version_cmd = \"{}\"", tool.version_cmd);
-        let _ = writeln!(registry_toml, "help_cmd = \"{}\"", tool.help_cmd);
+        let _ = writeln!(out, "version_cmd = \"{}\"", tool.version_cmd);
+        let _ = writeln!(out, "help_cmd = \"{}\"", tool.help_cmd);
+        let _ = writeln!(out, "smoke_version_cmd = \"{}\"", tool.version_cmd);
+        let _ = writeln!(out, "smoke_help_cmd = \"{}\"", tool.help_cmd);
+        let _ = writeln!(out, "expected_bin = \"{}\"", tool.id);
         let _ = writeln!(
-            registry_toml,
-            "smoke_version_cmd = \"{}\"",
-            tool.version_cmd
-        );
-        let _ = writeln!(registry_toml, "smoke_help_cmd = \"{}\"", tool.help_cmd);
-        let _ = writeln!(registry_toml, "expected_bin = \"{}\"", tool.id);
-        let _ = writeln!(
-            registry_toml,
+            out,
             "expected_artifacts = {}",
             toml_array(&tool.expected_artifacts)
         );
+        let _ = writeln!(out, "metrics_schema = \"{}\"", effective_metrics_schema);
         let _ = writeln!(
-            registry_toml,
-            "metrics_schema = \"{}\"",
-            tool.metrics_schema
-        );
-        let _ = writeln!(
-            registry_toml,
+            out,
             "comparability_notes = \"{}\"",
             tool.comparability_notes.replace('"', "'")
         );
-        let _ = writeln!(registry_toml, "dockerfile = \"{dockerfile}\"");
-        let _ = writeln!(registry_toml, "apptainer_def = \"{apptainer_def}\"");
-        registry_toml.push_str("require_labels = true\n\n");
+        let _ = writeln!(out, "dockerfile = \"{dockerfile_rel}\"");
+        let _ = writeln!(out, "apptainer_def = \"{apptainer_def_rel}\"");
+        out.push_str("require_labels = true\n\n");
     }
 
     for (stage_id, tools_set) in stage_to_tools {
         let mut all = tools_set.iter().cloned().collect::<Vec<_>>();
+        all.retain(|tool_id| production_tool_ids.contains(tool_id));
         all.sort();
         let mut primary = stage_defaults
             .get(stage_id)
             .cloned()
+            .filter(|tool_id| production_tool_ids.contains(tool_id))
             .into_iter()
             .collect::<Vec<_>>();
         if primary.is_empty() {
@@ -1157,22 +1413,22 @@ fn build_tool_registry_toml(
         } else {
             Vec::new()
         };
-        let _ = writeln!(registry_toml, "[[stages]]");
-        let _ = writeln!(registry_toml, "id = \"{stage_id}\"");
-        let _ = writeln!(registry_toml, "primary_tools = {}", toml_array(&primary));
+        let _ = writeln!(production_toml, "[[stages]]");
+        let _ = writeln!(production_toml, "id = \"{stage_id}\"");
+        let _ = writeln!(production_toml, "primary_tools = {}", toml_array(&primary));
         let _ = writeln!(
-            registry_toml,
+            production_toml,
             "optional_alternatives = {}",
             toml_array(&optional)
         );
-        registry_toml.push_str("validation_tools = []\n");
+        production_toml.push_str("validation_tools = []\n");
         let _ = writeln!(
-            registry_toml,
+            production_toml,
             "reporting_tools = {}",
             toml_array(&reporting)
         );
         let _ = writeln!(
-            registry_toml,
+            production_toml,
             "planned_out_of_scope = {}",
             toml_array(stage_planned.get(stage_id).map_or(&[], Vec::as_slice))
         );
@@ -1180,10 +1436,10 @@ fn build_tool_registry_toml(
             .get(stage_id)
             .map_or("", std::string::String::as_str)
             .replace('"', "'");
-        let _ = writeln!(registry_toml, "default_rationale = \"{rationale}\"");
-        registry_toml.push_str("requires_validation = false\n");
+        let _ = writeln!(production_toml, "default_rationale = \"{rationale}\"");
+        production_toml.push_str("requires_validation = false\n");
         let _ = writeln!(
-            registry_toml,
+            production_toml,
             "requires_reporting = {}",
             if reporting.is_empty() {
                 "false"
@@ -1191,9 +1447,13 @@ fn build_tool_registry_toml(
                 "true"
             }
         );
-        registry_toml.push('\n');
+        production_toml.push('\n');
     }
-    registry_toml
+    ToolRegistryOutputs {
+        production_registry_toml: production_toml,
+        experimental_registry_toml: experimental_toml,
+        required_tools_toml,
+    }
 }
 
 fn build_images_toml(tools: &ToolMap, source_commit: &str) -> String {
@@ -1424,7 +1684,9 @@ pub fn compile_domain_configs(options: &CompileOptions) -> Result<()> {
         .unwrap_or_else(|| "unknown".to_string());
 
     let tool_registry_path = options.configs_dir.join("tool_registry.toml");
-    let registry_toml = build_tool_registry_toml(
+    let experimental_registry_path = options.configs_dir.join("tool_registry_experimental.toml");
+    let required_tools_path = options.configs_dir.join("required_tools.toml");
+    let registries = build_tool_registries_toml(
         &tools,
         &stage_to_tools,
         &stage_planned,
@@ -1432,9 +1694,27 @@ pub fn compile_domain_configs(options: &CompileOptions) -> Result<()> {
         &stage_default_rationale,
         &source_commit,
     );
-    ensure_no_placeholders_in_active_config("tool_registry.toml", &registry_toml)?;
-    write_string(&tool_registry_path, &registry_toml)
+    ensure_no_placeholders_in_active_config(
+        "tool_registry.toml",
+        &registries.production_registry_toml,
+    )?;
+    ensure_no_placeholders_in_active_config(
+        "tool_registry_experimental.toml",
+        &registries.experimental_registry_toml,
+    )?;
+    ensure_no_placeholders_in_active_config(
+        "required_tools.toml",
+        &registries.required_tools_toml,
+    )?;
+    write_string(&tool_registry_path, &registries.production_registry_toml)
         .with_context(|| format!("write {}", tool_registry_path.display()))?;
+    write_string(
+        &experimental_registry_path,
+        &registries.experimental_registry_toml,
+    )
+    .with_context(|| format!("write {}", experimental_registry_path.display()))?;
+    write_string(&required_tools_path, &registries.required_tools_toml)
+        .with_context(|| format!("write {}", required_tools_path.display()))?;
 
     let images_path = options.configs_dir.join("images.toml");
     let images_toml = build_images_toml(&tools, &source_commit);
@@ -1455,6 +1735,8 @@ pub fn compile_domain_configs(options: &CompileOptions) -> Result<()> {
         .with_context(|| format!("write {}", stages_path.display()))?;
 
     println!("generated: {}", tool_registry_path.display());
+    println!("generated: {}", experimental_registry_path.display());
+    println!("generated: {}", required_tools_path.display());
     println!("generated: {}", images_path.display());
     println!("generated: {}", stages_path.display());
     Ok(())
