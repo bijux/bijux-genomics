@@ -121,6 +121,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "bam.coverage": "4e08e0fe3d9d60e17b5a2fb00312c712cc9cf182d2665960d41747cb376b9493",
         "bam.damage": "f4033357035aeb868a5082fff2a55f0cd367f03658cd845df490cc1dc400efc6",
         "bam.filter": "bc17955610700ea43bcdc5a11db198d8524d23afcd0af978dec7dac0560fdbb6",
+        "bam.mapping_summary": "1ecb015a182d5b4089e50b33b96106648a2b528f96c9f5c3e40da54e780da0b9",
         "bam.qc_pre": "1ecb015a182d5b4089e50b33b96106648a2b528f96c9f5c3e40da54e780da0b9",
         "bam.validate": "f73b69e6270cf767e0d8a99e2a78c8a3d5b241d8ad0bf4c8ba8f5626fcafc9c2"
       },
@@ -135,6 +136,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "bam.coverage",
         "bam.damage",
         "bam.filter",
+        "bam.mapping_summary",
         "bam.qc_pre",
         "bam.validate"
       ],
@@ -142,11 +144,12 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "bam.coverage": "mosdepth",
         "bam.damage": "pydamage",
         "bam.filter": "samtools",
+        "bam.mapping_summary": "samtools",
         "bam.qc_pre": "samtools",
         "bam.validate": "samtools"
       }
     },
-    "profile_hash": "0684b8057a713f08092480c676e0ccc92a3c488ccdc231b34df7a8483ef7ec61"
+    "profile_hash": "37d7a04bf87d8506aab1ad777abaedf8d01d9e94fa7061e3e39c0c91fe82c981"
   },
   "fastq-to-bam__adna_shotgun__v1": {
     "manifest": {
@@ -402,7 +405,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "fastq.detect_adapters": "01ea35549d8a0fe45d36a5b00567b470496f02f59e6de28c1326d271ccb178b3",
         "fastq.filter": "df22956ae2de0e2e2c200c2f751287ceaac742be389c24b0f5d15b121a94f030",
         "fastq.merge": "410770f1d452085dac281a1d78dc7d2d3cf9361441cab4b5797bbfe61ccaade5",
-        "fastq.preprocess": "454f3fb111f84670b09b32fa1a23731ad112fad6048fd8551d5a5963754f111d",
+        "fastq.preprocess": "b7b708591cc52c3afb3438c961494be9cf707e225b8f867b8cb424f457f74f54",
         "fastq.qc_post": "bf0296741b8d01596d5d961abfd61200eed6152f0b2b88078427a2a52eff51a1",
         "fastq.screen": "969954c2ad7a1786570b1f566f74dda6ab6ac5fee695fd20970700397fe76230",
         "fastq.stats_neutral": "a438a1a0c6d1ebd7fa58dfc188d70a8ff4e61c1b2fe1fbdabe6b92c20bc14efb",
@@ -444,7 +447,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "fastq.validate_pre": "fastqvalidator_official"
       }
     },
-    "profile_hash": "ab6eb8c2038d15b6b5e64971127308d0f4fb35b856cca4e2c68c194f4627c465"
+    "profile_hash": "4c006b10d56c23eabe49c19d77b060c0b1e86cdf356501c818b8b1c5498dcfc7"
   },
   "fastq-to-fastq__minimal__v1": {
     "manifest": {
@@ -454,7 +457,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "fastq.detect_adapters": "01ea35549d8a0fe45d36a5b00567b470496f02f59e6de28c1326d271ccb178b3",
         "fastq.filter": "df22956ae2de0e2e2c200c2f751287ceaac742be389c24b0f5d15b121a94f030",
         "fastq.merge": "410770f1d452085dac281a1d78dc7d2d3cf9361441cab4b5797bbfe61ccaade5",
-        "fastq.preprocess": "454f3fb111f84670b09b32fa1a23731ad112fad6048fd8551d5a5963754f111d",
+        "fastq.preprocess": "b7b708591cc52c3afb3438c961494be9cf707e225b8f867b8cb424f457f74f54",
         "fastq.qc_post": "bf0296741b8d01596d5d961abfd61200eed6152f0b2b88078427a2a52eff51a1",
         "fastq.screen": "969954c2ad7a1786570b1f566f74dda6ab6ac5fee695fd20970700397fe76230",
         "fastq.stats_neutral": "a438a1a0c6d1ebd7fa58dfc188d70a8ff4e61c1b2fe1fbdabe6b92c20bc14efb",
@@ -496,7 +499,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "fastq.validate_pre": "fastqvalidator_official"
       }
     },
-    "profile_hash": "f39d846d6e461855d8db0988e9e7e4dd9620bdcbebfef5bbcaa5eb3e8a4799b6"
+    "profile_hash": "efc8087b55f93c4a283cf10301f666567d205d4d2d6e925166a99b498078f7a4"
   },
   "fastq-to-fastq__reference_adna__v1": {
     "manifest": {
