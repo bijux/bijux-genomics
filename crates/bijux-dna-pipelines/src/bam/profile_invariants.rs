@@ -93,6 +93,34 @@ pub fn validate_bam_profile(profile: &PipelineProfile) -> BamProfileValidationRe
         }
     }
 
+    if !profile
+        .capabilities
+        .required_metrics
+        .iter()
+        .any(|metric| *metric == "bam.metrics")
+    {
+        violations.push(violation(
+            "required_metrics_missing",
+            None,
+            "BAM profiles must require bam.metrics output",
+        ));
+    }
+
+    for artifact in ["report.json", "run_manifest.json", "stage_summaries.json"] {
+        if !profile
+            .capabilities
+            .required_artifacts
+            .iter()
+            .any(|required| *required == artifact)
+        {
+            violations.push(violation(
+                "required_artifact_missing",
+                None,
+                format!("BAM profiles must require `{artifact}` for metrics/provenance completeness"),
+            ));
+        }
+    }
+
     for stage in &required_stages {
         if !has_stage_params(profile, stage) {
             violations.push(violation(
