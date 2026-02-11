@@ -3,7 +3,8 @@
 mod support;
 
 #[test]
-fn policy__contracts__no_placeholders_code_policy__production_paths_ban_todo_markers_and_unimplemented() {
+fn policy__contracts__no_placeholders_code_policy__production_paths_ban_todo_markers_and_unimplemented(
+) {
     let root = support::workspace_root();
     let crates = root.join("crates");
     let mut offenders = Vec::new();
