@@ -17,33 +17,7 @@ fn fixture_path(name: &str) -> PathBuf {
 }
 
 fn params_to_value(params: &BamEffectiveParams) -> anyhow::Result<serde_json::Value> {
-    let value = match params {
-        BamEffectiveParams::Align(inner) => serde_json::to_value(inner),
-        BamEffectiveParams::Validate(inner) => serde_json::to_value(inner),
-        BamEffectiveParams::QcPre(inner) => serde_json::to_value(inner),
-        BamEffectiveParams::MappingSummary(inner) => serde_json::to_value(inner),
-        BamEffectiveParams::Filter(inner) => serde_json::to_value(inner),
-        BamEffectiveParams::MapqFilter(inner) => serde_json::to_value(inner),
-        BamEffectiveParams::LengthFilter(inner) => serde_json::to_value(inner),
-        BamEffectiveParams::Markdup(inner) => serde_json::to_value(inner),
-        BamEffectiveParams::DuplicationMetrics(inner) => serde_json::to_value(inner),
-        BamEffectiveParams::Complexity(inner) => serde_json::to_value(inner),
-        BamEffectiveParams::Coverage(inner) => serde_json::to_value(inner),
-        BamEffectiveParams::InsertSize(inner) => serde_json::to_value(inner),
-        BamEffectiveParams::GcBias(inner) => serde_json::to_value(inner),
-        BamEffectiveParams::EndogenousContent(inner) => serde_json::to_value(inner),
-        BamEffectiveParams::OverlapCorrection(inner) => serde_json::to_value(inner),
-        BamEffectiveParams::Damage(inner) => serde_json::to_value(inner),
-        BamEffectiveParams::Authenticity(inner) => serde_json::to_value(inner),
-        BamEffectiveParams::Contamination(inner) => serde_json::to_value(inner),
-        BamEffectiveParams::Sex(inner) => serde_json::to_value(inner),
-        BamEffectiveParams::BiasMitigation(inner) => serde_json::to_value(inner),
-        BamEffectiveParams::Recalibration(inner) => serde_json::to_value(inner),
-        BamEffectiveParams::Haplogroups(inner) => serde_json::to_value(inner),
-        BamEffectiveParams::Genotyping(inner) => serde_json::to_value(inner),
-        BamEffectiveParams::Kinship(inner) => serde_json::to_value(inner),
-    }?;
-    Ok(value)
+    Ok(serde_json::to_value(params)?)
 }
 
 #[test]

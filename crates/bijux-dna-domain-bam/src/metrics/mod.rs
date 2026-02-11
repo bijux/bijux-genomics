@@ -12,9 +12,8 @@ pub use core::{
     parse_samtools_depth_with_uniformity, AdDeamMetricsV1, BamMetricsBundleV1, BamMetricsV1,
     ComplexityMetricsV1, CoverageMetricsV1, CoverageUniformityV1, DamageComparisonV1,
     DamageCoreFieldsV1, DamageMetricsV1, DamageProfilerMetricsV1, EffectiveCoverageV1,
-    GcBiasMetricsV1, InsertSizeMetricsV1, MisincorporationCurveSummaryV1,
-    MisincorporationPointV1, NgsBriggsMetricsV1, PmdHistogramBinV1, PmdScoreDistributionV1,
-    PmdtoolsMetricsV1,
+    GcBiasMetricsV1, InsertSizeMetricsV1, MisincorporationCurveSummaryV1, MisincorporationPointV1,
+    NgsBriggsMetricsV1, PmdHistogramBinV1, PmdScoreDistributionV1, PmdtoolsMetricsV1,
 };
 pub use downstream::{
     authenticity_score, contamination_cross_check, parse_contamination_json, parse_sex_json,
