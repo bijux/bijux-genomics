@@ -1,7 +1,7 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use super::PairedMode;
+use super::{DamageMode, PairedMode};
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
@@ -25,7 +25,7 @@ pub struct FilterEffectiveParams {
     #[serde(default)]
     pub polyx_policy: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub damage_mode: Option<String>,
+    pub damage_mode: Option<DamageMode>,
 }
 
 impl FilterEffectiveParams {

@@ -1,7 +1,7 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use super::PairedMode;
+use super::{DamageMode, PairedMode};
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
@@ -13,7 +13,7 @@ pub struct TrimEffectiveParams {
     pub q_cutoff: Option<u32>,
     pub adapter_policy: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub damage_mode: Option<String>,
+    pub damage_mode: Option<DamageMode>,
     #[serde(default)]
     pub polyx_policy: Option<String>,
     #[serde(default)]
