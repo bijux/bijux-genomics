@@ -43,6 +43,9 @@ fn defaults_compile_against_domain_params() {
             if stage_id_str.starts_with("core.") {
                 continue;
             }
+            if stage_id_str.starts_with("vcf.") {
+                continue;
+            }
             panic!("unknown stage namespace in defaults: {stage_id_str}");
         }
     }

@@ -10,7 +10,7 @@ pub struct VcfStageSpec {
 }
 
 #[must_use]
-pub fn stage_specs() -> &'static [VcfStageSpec] {
+pub fn vcf_stage_catalog() -> &'static [VcfStageSpec] {
     &[
         VcfStageSpec {
             stage_id: STAGE_CALL,
@@ -38,7 +38,7 @@ pub fn stage_specs() -> &'static [VcfStageSpec] {
 
 #[must_use]
 pub fn vcf_stage_completeness(stage: VcfStage) -> bool {
-    stage_specs()
+    vcf_stage_catalog()
         .iter()
         .find(|spec| spec.stage_id == stage.as_str())
         .is_some_and(|spec| spec.smoke_supported && spec.parser_supported)
@@ -46,7 +46,7 @@ pub fn vcf_stage_completeness(stage: VcfStage) -> bool {
 
 #[must_use]
 pub fn supported_vcf_stages() -> Vec<&'static str> {
-    stage_specs()
+    vcf_stage_catalog()
         .iter()
         .filter(|spec| spec.smoke_supported && spec.parser_supported)
         .map(|spec| spec.stage_id)
