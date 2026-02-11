@@ -3,7 +3,7 @@
   "stage_id": "bam.markdup",
   "stage_version": 1,
   "tool_id": "unknown",
-  "tool_version": "0.0.0",
+  "tool_version": "99.99.99+fixture",
   "metrics_path": "<WORKSPACE_ROOT>/crates/bijux-dna-analyze/tests/fixtures/golden_spine/bam-to-bam__adna_shotgun__v1/runs/bam-to-bam__adna_shotgun__v1/artifacts/stage_3/metrics.json",
   "tool_invocation_path": "<WORKSPACE_ROOT>/crates/bijux-dna-analyze/tests/fixtures/golden_spine/bam-to-bam__adna_shotgun__v1/runs/bam-to-bam__adna_shotgun__v1/artifacts/stage_3/tool_invocation.json",
   "effective_config_path": "<WORKSPACE_ROOT>/crates/bijux-dna-analyze/tests/fixtures/golden_spine/bam-to-bam__adna_shotgun__v1/runs/bam-to-bam__adna_shotgun__v1/artifacts/stage_3/effective_config.json",
