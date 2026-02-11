@@ -1,11 +1,11 @@
 use anyhow::{anyhow, Result};
 use bijux_dna_pipelines::PipelineProfile;
-use bijux_dna_planner_bam::stage_api::BamStage;
 use bijux_dna_planner_bam::stage_api::params::{
     BamEffectiveParams, BqsrMode, ContaminationScope, DuplicateAction, OpticalDuplicatePolicy,
     UdgModel, UmiPolicy,
 };
 use bijux_dna_planner_bam::stage_api::types::{ExpectedSex, ReadGroupPolicy};
+use bijux_dna_planner_bam::stage_api::BamStage;
 
 pub(super) fn default_params_for_stage(
     profile: &PipelineProfile,

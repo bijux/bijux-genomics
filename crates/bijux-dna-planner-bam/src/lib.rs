@@ -206,8 +206,12 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
             else {
                 return Err(anyhow!("length_filter params mismatch"));
             };
-            let mut plan =
-                tool_adapters::stages_pre::filter::plan(request.tool, bam, request.out_dir, &params)?;
+            let mut plan = tool_adapters::stages_pre::filter::plan(
+                request.tool,
+                bam,
+                request.out_dir,
+                &params,
+            )?;
             plan.stage_id = bijux_dna_core::ids::StageId::new(stage.as_str().to_string());
             Ok(plan)
         }
@@ -236,8 +240,12 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
             else {
                 return Err(anyhow!("duplication_metrics params mismatch"));
             };
-            let mut plan =
-                tool_adapters::stages_post::markdup::plan(request.tool, bam, request.out_dir, &params)?;
+            let mut plan = tool_adapters::stages_post::markdup::plan(
+                request.tool,
+                bam,
+                request.out_dir,
+                &params,
+            )?;
             plan.stage_id = bijux_dna_core::ids::StageId::new(stage.as_str().to_string());
             Ok(plan)
         }
