@@ -9,6 +9,7 @@ use flate2::read::GzDecoder;
 
 use bijux_dna_core::contract::canonical::parameters_json_canonicalization;
 use bijux_dna_core::contract::ContractVersion;
+use bijux_dna_core::contract::MetricProvenanceV1;
 use bijux_dna_core::metrics::MetricsEnvelope;
 use bijux_dna_core::prelude::hashing::{input_fingerprint, parameters_fingerprint};
 use bijux_dna_domain_fastq::metrics::*;
@@ -582,11 +583,18 @@ pub fn build_metrics_envelope(
         tool_id: plan.tool_id.0.to_string(),
         tool_version: plan.tool_version.clone(),
         image_digest,
-        parameters_fingerprint,
+        parameters_fingerprint: parameters_fingerprint.clone(),
         input_fingerprint,
         parameters_json_normalized,
-        input_hashes,
-        metric_provenance: None,
+        input_hashes: input_hashes.clone(),
+        metric_provenance: Some(MetricProvenanceV1 {
+            run_id: "standalone".to_string(),
+            stage_id: plan.stage_id.0.to_string(),
+            tool_id: plan.tool_id.0.to_string(),
+            tool_version: plan.tool_version.clone(),
+            params_hash: parameters_fingerprint.clone(),
+            input_artifact_hashes: input_hashes.clone(),
+        }),
         metrics,
     })
 }
