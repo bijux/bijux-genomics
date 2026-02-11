@@ -31,15 +31,15 @@ include!("policies.rs");
 /// # Errors
 /// Returns an error if CLI execution fails.
 pub fn run_with_args(args: &[&str], cwd: &Path) -> Result<()> {
-    let normalized_args = if matches!(args.first(), Some(&"bijux") | Some(&"bijux-dna")) {
+    let normalized_args = if matches!(args.first(), Some(&"bijux" | &"bijux-dna")) {
         &args[1..]
     } else {
         args
     };
-    let argv = std::iter::once("bijux-dna")
+    let args_with_bin = std::iter::once("bijux-dna")
         .chain(normalized_args.iter().copied())
         .collect::<Vec<_>>();
-    let cli = cli::Cli::parse_from(argv);
+    let cli = cli::Cli::parse_from(args_with_bin);
     run_with_cli(&cli, cwd)
 }
 
@@ -144,6 +144,7 @@ fn parse_scalar(raw: &str, key: &str) -> Option<String> {
     })
 }
 
+#[allow(clippy::format_push_string, clippy::too_many_lines)]
 fn handle_status_root(args: &cli::StatusArgs, cwd: &Path) -> Result<()> {
     let domain_dir = cwd.join("domain");
     let mut planned = Vec::new();
