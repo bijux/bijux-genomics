@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: df355915c6e4b6ad0fec80087a5a828ff7a25f1d
+# source_commit: 53b050a6d117e40e0122777655e9d8cc428be9ad
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 
@@ -28,7 +28,7 @@ expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
 healthcheck_cmd = "adapterremoval --help"
 expected_bin = "adapterremoval"
 expected_artifacts = ["report_json"]
-metrics_schema = "bijux.adapterremoval.metrics.v1"
+metrics_schema = "bijux.unknown.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
 dockerfile = "containers/docker/arm64/Dockerfile.adapterremoval"
 apptainer_def = "containers/apptainer/adapterremoval.def"
@@ -777,3 +777,4 @@ comparability_notes = "Comparable only within same stage contract and input cons
 dockerfile = "containers/docker/arm64/Dockerfile.yleaf"
 apptainer_def = "containers/apptainer/yleaf.def"
 require_labels = true
+
