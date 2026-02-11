@@ -24,6 +24,8 @@ impl HpcLayout {
         }
     }
 
+    /// # Errors
+    /// Returns an error if any required HPC directory cannot be created.
     pub fn ensure_dirs(&self) -> Result<()> {
         for dir in [
             &self.code_dir,
@@ -65,7 +67,7 @@ fn writable_dir(path: &Path) -> bool {
         .map_or(0, |d| d.as_nanos());
     let probe = path.join(format!(".bijux_write_probe_{nonce}"));
     std::fs::write(&probe, b"ok")
-        .and_then(|_| std::fs::remove_file(&probe))
+        .and_then(|()| std::fs::remove_file(&probe))
         .is_ok()
 }
 
@@ -90,9 +92,8 @@ pub fn validate_hpc_status(layout: &HpcLayout) -> HpcStatusReport {
         });
     }
 
-    let scratch = std::env::var("TMPDIR")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| layout.results_dir.join("scratch"));
+    let scratch =
+        std::env::var("TMPDIR").map_or_else(|_| layout.results_dir.join("scratch"), PathBuf::from);
     checks.push(HpcCheck {
         name: "scratch_exists".to_string(),
         ok: scratch.exists(),
@@ -118,8 +119,7 @@ pub fn validate_hpc_status(layout: &HpcLayout) -> HpcStatusReport {
     });
 
     let sif_cache = std::env::var("APPTAINER_CACHEDIR")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| layout.containers_dir.join(".cache"));
+        .map_or_else(|_| layout.containers_dir.join(".cache"), PathBuf::from);
     let _ = bijux_dna_infra::ensure_dir(&sif_cache);
     checks.push(HpcCheck {
         name: "sif_cache_writable".to_string(),
@@ -144,6 +144,8 @@ pub struct HpcEnvExport {
     pub sifs: Vec<HpcSifEntry>,
 }
 
+/// # Errors
+/// Returns an error if container directories cannot be traversed or SIF hashes cannot be computed.
 pub fn export_hpc_env_json(layout: &HpcLayout) -> Result<HpcEnvExport> {
     let mut sifs = Vec::new();
     let mut stack = vec![layout.containers_dir.clone()];
@@ -180,6 +182,8 @@ pub fn export_hpc_env_json(layout: &HpcLayout) -> Result<HpcEnvExport> {
     })
 }
 
+/// # Errors
+/// Returns an error if `site_lock.json` cannot be written.
 pub fn write_site_lock(layout: &HpcLayout) -> Result<PathBuf> {
     let lock_path = layout.results_dir.join("site_lock.json");
     let apptainer_version = std::process::Command::new("apptainer")
@@ -217,6 +221,8 @@ pub fn write_site_lock(layout: &HpcLayout) -> Result<PathBuf> {
     Ok(lock_path)
 }
 
+/// # Errors
+/// Returns an error when `path` does not follow the required HPC results layout spec.
 pub fn enforce_hpc_results_layout(path: &Path) -> Result<()> {
     let comps = path
         .components()
