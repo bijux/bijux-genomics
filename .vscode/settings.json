@@ -1,0 +1,15 @@
+{
+  "rust-analyzer.checkOnSave": false,
+  "rust-analyzer.check.command": "",
+  "rust-analyzer.cargo.autoreload": false,
+  "rust-analyzer.cargo.buildScripts.enable": false,
+  "rust-analyzer.procMacro.enable": false,
+  "rust-analyzer.diagnostics.enable": false,
+  "rust-analyzer.runnables.command": "",
+
+  "npm.autoDetect": "off",
+  "typescript.tsc.autoDetect": "off",
+  "grunt.autoDetect": "off",
+  "gulp.autoDetect": "off",
+  "jake.autoDetect": "off"
+}
