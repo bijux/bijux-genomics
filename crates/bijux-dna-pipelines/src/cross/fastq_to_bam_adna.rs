@@ -1,7 +1,7 @@
 //! Cross-domain FASTQ → BAM profile (aDNA).
 
 use crate::bam::bam_adna_shotgun_profile;
-use crate::fastq::fastq_default_profile;
+use crate::fastq::fastq_adna_profile;
 use crate::{
     ArtifactType, DefaultParams, Domain, EffectiveDefaults, EmptyParams, MetricsBundle,
     PipelineCapabilities, PipelineId, PipelineProfile, ReportSection, StabilityTier,
@@ -12,7 +12,7 @@ use bijux_dna_domain_bam::defaults::{adna_shotgun_params_json, default_params_js
 use bijux_dna_domain_bam::BamStage;
 
 fn base_defaults() -> (PipelineProfile, PipelineProfile, EffectiveDefaults) {
-    let fastq_profile = fastq_default_profile();
+    let fastq_profile = fastq_adna_profile();
     let bam_profile = bam_adna_shotgun_profile();
 
     let mut defaults = EffectiveDefaults::default();
