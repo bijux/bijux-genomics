@@ -50,7 +50,7 @@ fn stage_plan(stage: VcfStage, input_vcf: &Path, out_dir: &Path) -> StagePlanV1 
 
     StagePlanV1 {
         stage_id: StageId::new(stage_id.to_string()),
-        stage_version: StageVersion::new("v1"),
+        stage_version: StageVersion(1),
         tool_id: ToolId::new(default_tool(stage)),
         tool_version: "1.20".to_string(),
         image: ContainerImageRefV1 {
@@ -113,11 +113,11 @@ pub fn plan_vcf_minimal(inputs: &VcfPipelineInputs) -> Result<ExecutionGraph> {
         ExecutionEdge::new(StepId::new("vcf.call"), StepId::new("vcf.filter")),
         ExecutionEdge::new(StepId::new("vcf.filter"), StepId::new("vcf.stats")),
     ];
-    ExecutionGraph::new(
+    Ok(ExecutionGraph::new(
         "vcf-to-vcf__minimal__v1".to_string(),
         PLANNER_VERSION,
         inputs.policy,
         steps,
         edges,
-    )
+    )?)
 }
