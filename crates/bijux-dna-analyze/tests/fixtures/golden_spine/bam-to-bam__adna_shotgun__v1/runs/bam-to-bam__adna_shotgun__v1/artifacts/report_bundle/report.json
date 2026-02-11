@@ -175,7 +175,7 @@
       "span_id": "span-bam.authenticity",
       "stage_id": "bam.authenticity",
       "tool_id": "unknown",
-      "tool_version": "0.0.0",
+      "tool_version": "99.99.99+fixture",
       "trace_id": "trace-bam-to-bam__adna_shotgun__v1"
     },
     {
@@ -185,7 +185,7 @@
       "span_id": "span-bam.complexity",
       "stage_id": "bam.complexity",
       "tool_id": "unknown",
-      "tool_version": "0.0.0",
+      "tool_version": "99.99.99+fixture",
       "trace_id": "trace-bam-to-bam__adna_shotgun__v1"
     },
     {
@@ -195,7 +195,7 @@
       "span_id": "span-bam.contamination",
       "stage_id": "bam.contamination",
       "tool_id": "unknown",
-      "tool_version": "0.0.0",
+      "tool_version": "99.99.99+fixture",
       "trace_id": "trace-bam-to-bam__adna_shotgun__v1"
     },
     {
@@ -205,7 +205,7 @@
       "span_id": "span-bam.coverage",
       "stage_id": "bam.coverage",
       "tool_id": "unknown",
-      "tool_version": "0.0.0",
+      "tool_version": "99.99.99+fixture",
       "trace_id": "trace-bam-to-bam__adna_shotgun__v1"
     },
     {
@@ -215,7 +215,7 @@
       "span_id": "span-bam.damage",
       "stage_id": "bam.damage",
       "tool_id": "unknown",
-      "tool_version": "0.0.0",
+      "tool_version": "99.99.99+fixture",
       "trace_id": "trace-bam-to-bam__adna_shotgun__v1"
     },
     {
@@ -225,7 +225,7 @@
       "span_id": "span-bam.filter",
       "stage_id": "bam.filter",
       "tool_id": "unknown",
-      "tool_version": "0.0.0",
+      "tool_version": "99.99.99+fixture",
       "trace_id": "trace-bam-to-bam__adna_shotgun__v1"
     },
     {
@@ -235,7 +235,7 @@
       "span_id": "span-bam.markdup",
       "stage_id": "bam.markdup",
       "tool_id": "unknown",
-      "tool_version": "0.0.0",
+      "tool_version": "99.99.99+fixture",
       "trace_id": "trace-bam-to-bam__adna_shotgun__v1"
     },
     {
@@ -245,7 +245,7 @@
       "span_id": "span-bam.qc_pre",
       "stage_id": "bam.qc_pre",
       "tool_id": "unknown",
-      "tool_version": "0.0.0",
+      "tool_version": "99.99.99+fixture",
       "trace_id": "trace-bam-to-bam__adna_shotgun__v1"
     },
     {
@@ -255,7 +255,7 @@
       "span_id": "span-bam.sex",
       "stage_id": "bam.sex",
       "tool_id": "unknown",
-      "tool_version": "0.0.0",
+      "tool_version": "99.99.99+fixture",
       "trace_id": "trace-bam-to-bam__adna_shotgun__v1"
     },
     {
@@ -265,7 +265,7 @@
       "span_id": "span-bam.validate",
       "stage_id": "bam.validate",
       "tool_id": "unknown",
-      "tool_version": "0.0.0",
+      "tool_version": "99.99.99+fixture",
       "trace_id": "trace-bam-to-bam__adna_shotgun__v1"
     }
   ],
@@ -290,7 +290,7 @@
       "stage_report_path": "stage_7/stage_report.json",
       "tool_id": "unknown",
       "tool_invocation_path": "stage_7/tool_invocation.json",
-      "tool_version": "0.0.0"
+      "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": null,
@@ -306,7 +306,7 @@
       "stage_report_path": "stage_4/stage_report.json",
       "tool_id": "unknown",
       "tool_invocation_path": "stage_4/tool_invocation.json",
-      "tool_version": "0.0.0"
+      "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": null,
@@ -322,7 +322,7 @@
       "stage_report_path": "stage_8/stage_report.json",
       "tool_id": "unknown",
       "tool_invocation_path": "stage_8/tool_invocation.json",
-      "tool_version": "0.0.0"
+      "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": null,
@@ -338,7 +338,7 @@
       "stage_report_path": "stage_5/stage_report.json",
       "tool_id": "unknown",
       "tool_invocation_path": "stage_5/tool_invocation.json",
-      "tool_version": "0.0.0"
+      "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": null,
@@ -354,7 +354,7 @@
       "stage_report_path": "stage_6/stage_report.json",
       "tool_id": "unknown",
       "tool_invocation_path": "stage_6/tool_invocation.json",
-      "tool_version": "0.0.0"
+      "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": null,
@@ -370,7 +370,7 @@
       "stage_report_path": "stage_2/stage_report.json",
       "tool_id": "unknown",
       "tool_invocation_path": "stage_2/tool_invocation.json",
-      "tool_version": "0.0.0"
+      "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": null,
@@ -386,7 +386,7 @@
       "stage_report_path": "stage_3/stage_report.json",
       "tool_id": "unknown",
       "tool_invocation_path": "stage_3/tool_invocation.json",
-      "tool_version": "0.0.0"
+      "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": null,
@@ -402,7 +402,7 @@
       "stage_report_path": "stage_1/stage_report.json",
       "tool_id": "unknown",
       "tool_invocation_path": "stage_1/tool_invocation.json",
-      "tool_version": "0.0.0"
+      "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": null,
@@ -418,7 +418,7 @@
       "stage_report_path": "stage_9/stage_report.json",
       "tool_id": "unknown",
       "tool_invocation_path": "stage_9/tool_invocation.json",
-      "tool_version": "0.0.0"
+      "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": null,
@@ -434,7 +434,7 @@
       "stage_report_path": "stage_0/stage_report.json",
       "tool_id": "unknown",
       "tool_invocation_path": "stage_0/tool_invocation.json",
-      "tool_version": "0.0.0"
+      "tool_version": "99.99.99+fixture"
     }
   ],
   "telemetry": {
