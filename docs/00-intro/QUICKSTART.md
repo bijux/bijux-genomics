@@ -12,12 +12,13 @@ Provides a minimal end-to-end proof that Bijux is installed and functioning.
 
 ## Contracts
 All outputs are contract artifacts: manifest, report, and step records.
+If a command touches Cargo, run it via `./bin/isolate`.
 
 ## Examples
 ```bash
 # Plan + execute a minimal FASTQ pipeline
-bijux dna plan --pipeline fastq.default.v1 > graph.json
-bijux dna execute --pipeline fastq.default.v1 --out runs/demo
+./bin/isolate cargo run --bin bijux-dna -- plan --pipeline fastq.default.v1 > graph.json
+./bin/isolate cargo run --bin bijux-dna -- execute --pipeline fastq.default.v1 --out runs/demo
 ```
 
 Artifacts created:
