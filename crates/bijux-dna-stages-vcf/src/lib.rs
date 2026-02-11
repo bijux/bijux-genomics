@@ -1,7 +1,9 @@
 //! VCF stage specs and metrics parser bindings.
 
 pub mod metrics;
+pub mod pipeline;
 pub mod stage_specs;
+pub mod wrappers;
 
 #[must_use]
 pub fn implemented_stages() -> Vec<bijux_dna_domain_vcf::VcfStage> {
