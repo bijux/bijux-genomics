@@ -72,6 +72,26 @@ fn policy_test_prefix(path: &Path, root: &Path) -> String {
     format!("policy__{suite}__{stem}__")
 }
 
+fn configured_domains(root: &Path) -> Vec<String> {
+    let path = root.join("configs").join("domains.toml");
+    let raw = std::fs::read_to_string(&path)
+        .unwrap_or_else(|_| panic!("read domains config {}", path.display()));
+    let parsed: TomlValue = raw
+        .parse()
+        .unwrap_or_else(|_| panic!("parse domains config {}", path.display()));
+    parsed
+        .get("domains")
+        .and_then(TomlValue::as_array)
+        .map(|entries| {
+            entries
+                .iter()
+                .filter_map(|entry| entry.get("id").and_then(TomlValue::as_str))
+                .map(str::to_string)
+                .collect::<Vec<_>>()
+        })
+        .unwrap_or_default()
+}
+
 #[test]
 fn policy__contracts__policies__prelude_exports_only() {
     let root = workspace_root();
@@ -154,17 +174,14 @@ fn policy__contracts__policies__core_does_not_depend_on_runtime() {
 #[test]
 fn policy__contracts__policies__domains_do_not_depend_on_stages_or_runner() {
     let root = workspace_root();
-    let domains = ["bijux-dna-domain-fastq", "bijux-dna-domain-bam"];
-    for domain in domains {
-        let deps = crate_dependencies(&root, domain);
-        let forbidden = [
-            "bijux-dna-stages-fastq",
-            "bijux-dna-stages-bam",
-            "bijux-dna-runner",
-        ];
+    let domains = configured_domains(&root);
+    for domain_id in domains {
+        let domain = format!("bijux-dna-domain-{domain_id}");
+        let deps = crate_dependencies(&root, &domain);
+        let forbidden = [format!("bijux-dna-stages-{domain_id}"), "bijux-dna-runner".to_string()];
         for banned in forbidden {
             bijux_dna_policies::policy_assert!(
-                !deps.contains(banned),
+                !deps.contains(&banned),
                 "{domain} must not depend on {banned}"
             );
         }
