@@ -1,0 +1,54 @@
+use bijux_dna_domain_vcf::{VcfStage, STAGE_CALL, STAGE_FILTER, STAGE_STATS};
+
+#[derive(Debug, Clone, Copy)]
+pub struct VcfStageSpec {
+    pub stage_id: &'static str,
+    pub metrics_schema: &'static str,
+    pub smoke_supported: bool,
+    pub parser_supported: bool,
+    pub experimental: bool,
+}
+
+#[must_use]
+pub fn stage_specs() -> &'static [VcfStageSpec] {
+    &[
+        VcfStageSpec {
+            stage_id: STAGE_CALL,
+            metrics_schema: "bijux.vcf.call.v1",
+            smoke_supported: true,
+            parser_supported: true,
+            experimental: true,
+        },
+        VcfStageSpec {
+            stage_id: STAGE_FILTER,
+            metrics_schema: "bijux.vcf.filter.v1",
+            smoke_supported: true,
+            parser_supported: true,
+            experimental: true,
+        },
+        VcfStageSpec {
+            stage_id: STAGE_STATS,
+            metrics_schema: "bijux.vcf.stats.v1",
+            smoke_supported: true,
+            parser_supported: true,
+            experimental: true,
+        },
+    ]
+}
+
+#[must_use]
+pub fn vcf_stage_completeness(stage: VcfStage) -> bool {
+    stage_specs()
+        .iter()
+        .find(|spec| spec.stage_id == stage.as_str())
+        .is_some_and(|spec| spec.smoke_supported && spec.parser_supported)
+}
+
+#[must_use]
+pub fn supported_vcf_stages() -> Vec<&'static str> {
+    stage_specs()
+        .iter()
+        .filter(|spec| spec.smoke_supported && spec.parser_supported)
+        .map(|spec| spec.stage_id)
+        .collect()
+}
