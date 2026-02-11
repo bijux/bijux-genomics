@@ -1,0 +1,29 @@
+# GENERATED - DO NOT EDIT - source: domain/vcf/**
+# source_commit: 53b050a6d117e40e0122777655e9d8cc428be9ad
+# domain_schema_version: bijux.domain.v1
+# Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
+
+[[stages]]
+id = "vcf.filter"
+status = "supported"
+experimental = true
+metrics_schema = "bijux.vcf.filter.v1"
+smoke_required = true
+tools = ["bcftools"]
+
+[[stages]]
+id = "vcf.call"
+status = "supported"
+experimental = true
+metrics_schema = "bijux.vcf.call.v1"
+smoke_required = true
+tools = ["bcftools"]
+
+[[stages]]
+id = "vcf.stats"
+status = "supported"
+experimental = true
+metrics_schema = "bijux.vcf.stats.v1"
+smoke_required = true
+tools = ["bcftools"]
+
