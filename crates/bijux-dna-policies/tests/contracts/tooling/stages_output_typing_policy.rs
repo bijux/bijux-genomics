@@ -36,3 +36,41 @@ fn policy__contracts__stages_output_typing_policy__generated_stages_define_outpu
         offenders.join("\n")
     );
 }
+
+#[test]
+fn policy__contracts__stages_output_typing_policy__registry_stages_declare_semantics_and_artifacts()
+{
+    let root = support::workspace_root();
+    let registry = bijux_dna_runtime::manifests::load_manifests(
+        &root.join("configs").join("tool_registry.toml"),
+    )
+    .expect("load tool registry manifests");
+
+    let mut offenders = Vec::new();
+    let stable_name = regex::Regex::new(r"^[a-z0-9_]+$").expect("compile stable name regex");
+    let semver_re = regex::Regex::new(r"^[0-9]+\.[0-9]+\.[0-9]+$").expect("compile semver regex");
+    for (stage_id, stage) in registry.stages() {
+        if stage.produced_artifacts.is_empty() {
+            offenders.push(format!("stage={stage_id}: missing produced_artifacts"));
+        }
+        for artifact in &stage.produced_artifacts {
+            if !stable_name.is_match(artifact) {
+                offenders.push(format!(
+                    "stage={stage_id}: produced artifact `{artifact}` must be stable snake_case"
+                ));
+            }
+        }
+        if !semver_re.is_match(&stage.stage_semver) {
+            offenders.push(format!(
+                "stage={stage_id}: invalid stage_semver `{}`",
+                stage.stage_semver
+            ));
+        }
+    }
+
+    assert!(
+        offenders.is_empty(),
+        "stage semantic declaration violations:\n{}",
+        offenders.join("\n")
+    );
+}

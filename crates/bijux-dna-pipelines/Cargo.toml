@@ -24,3 +24,4 @@ insta = { version = "1", features = ["json"] }
 bijux-dna-policies = { path = "../bijux-dna-policies" }
 walkdir.workspace = true
 bijux-dna-testkit = { path = "../bijux-dna-testkit" }
+bijux-dna-runtime = { path = "../bijux-dna-runtime" }
