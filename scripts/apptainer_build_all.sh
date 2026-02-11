@@ -37,6 +37,7 @@ require_cmd apptainer
 require_cmd find
 require_cmd sort
 require_cmd mktemp
+require_cmd sed
 
 if [[ ! -d "$DEFS_DIR" ]]; then
   echo "defs dir not found: $DEFS_DIR" >&2
@@ -76,11 +77,18 @@ build_one() {
   name="$(basename "$def_file" .def)"
   local sif="$VM_OUT_DIR/sif/${name}.sif"
   local log="$VM_OUT_DIR/logs/${name}.log"
+  local tmp_def=""
 
   echo "[build] $name"
-  if apptainer build "$sif" "$def_file" >"$log" 2>&1; then
+  # Some Apptainer versions reject Docker refs with both tag and digest
+  # (image:tag@sha256:...). Normalize to image@sha256 in a temp copy.
+  tmp_def="$(mktemp "${TMPDIR:-/tmp}/apptainer-def-${name}.XXXXXX.def")"
+  sed -E 's#^([[:space:]]*From:[[:space:]]*.+):([^:@[:space:]]+)@(sha256:[a-f0-9]+)[[:space:]]*$#\1@\3#' "$def_file" >"$tmp_def"
+  if apptainer build "$sif" "$tmp_def" >"$log" 2>&1; then
+    rm -f "$tmp_def"
     echo "[ok] $name -> $sif"
   else
+    rm -f "$tmp_def"
     echo "[fail] $name (see $log)" >&2
     return 1
   fi
