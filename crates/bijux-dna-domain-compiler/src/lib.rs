@@ -303,6 +303,8 @@ struct ToolRow {
     citation: String,
     container_image: String,
     container_digest: String,
+    expected_version_regex: String,
+    healthcheck_cmd: String,
 }
 
 type ToolMap = BTreeMap<String, ToolRow>;
@@ -723,6 +725,21 @@ fn parse_container_ref(image: &str, digest: &str, tool_id: &str, version: &str) 
     format!("bijuxdna/{tool_id}:{version}")
 }
 
+fn default_version_regex(tool_id: &str) -> &'static str {
+    match tool_id {
+        "authenticct" => "authentic|v?[0-9]+[.][0-9]+",
+        "fastqvalidator_official" => "fastqvalidator|v?[0-9]+[.][0-9]+",
+        _ => "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?",
+    }
+}
+
+fn default_healthcheck_cmd(tool_id: &str, help_cmd: &str) -> String {
+    if help_cmd.trim().is_empty() {
+        return format!("{tool_id} --help");
+    }
+    help_cmd.to_string()
+}
+
 #[allow(clippy::too_many_lines)]
 fn load_domain_tools(
     domain_dir: &Path,
@@ -802,6 +819,7 @@ fn load_domain_tools(
             continue;
         }
         let version_rule = tool.versioning_strategy.clone();
+        let help_cmd_value = tool.help_cmd.clone();
         let resolved_domain = path
             .parent()
             .and_then(Path::parent)
@@ -823,7 +841,7 @@ fn load_domain_tools(
                     tool.pin_strategy
                 },
                 version_cmd: tool.version_cmd,
-                help_cmd: tool.help_cmd,
+                help_cmd: help_cmd_value.clone(),
                 expected_artifacts: tool.expected_artifacts,
                 metrics_schema: if tool.metrics_schema_id.is_empty() {
                     tool.metrics_schema
@@ -843,6 +861,8 @@ fn load_domain_tools(
                     .container
                     .as_ref()
                     .map_or_else(String::new, |container| container.digest.clone()),
+                expected_version_regex: default_version_regex(&tool_id).to_string(),
+                healthcheck_cmd: default_healthcheck_cmd(&tool_id, &help_cmd_value),
             },
         );
     }
@@ -1324,13 +1344,12 @@ fn build_tool_registries_toml(
             &tool.id,
             &effective_version,
         );
-        let effective_metrics_schema = if tool.metrics_schema == "bijux.unknown.v1"
-            && required_tool_set.contains(&tool.id)
-        {
-            "bijux.tool.metrics.v1".to_string()
-        } else {
-            tool.metrics_schema.clone()
-        };
+        let effective_metrics_schema =
+            if tool.metrics_schema == "bijux.unknown.v1" && required_tool_set.contains(&tool.id) {
+                "bijux.tool.metrics.v1".to_string()
+            } else {
+                tool.metrics_schema.clone()
+            };
         let is_experimental = effective_metrics_schema == "bijux.unknown.v1"
             || (effective_version == "latest-pinned" && !required_tool_set.contains(&tool.id))
             || (tool.status != "supported" && !required_tool_set.contains(&tool.id))
@@ -1369,6 +1388,12 @@ fn build_tool_registries_toml(
         let _ = writeln!(out, "help_cmd = \"{}\"", tool.help_cmd);
         let _ = writeln!(out, "smoke_version_cmd = \"{}\"", tool.version_cmd);
         let _ = writeln!(out, "smoke_help_cmd = \"{}\"", tool.help_cmd);
+        let _ = writeln!(
+            out,
+            "expected_version_regex = \"{}\"",
+            tool.expected_version_regex
+        );
+        let _ = writeln!(out, "healthcheck_cmd = \"{}\"", tool.healthcheck_cmd);
         let _ = writeln!(out, "expected_bin = \"{}\"", tool.id);
         let _ = writeln!(
             out,

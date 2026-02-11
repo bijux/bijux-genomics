@@ -253,6 +253,7 @@ dependencies = [
  "gag",
  "insta",
  "predicates",
+ "regex",
  "serde",
  "serde_json",
  "tempfile",
