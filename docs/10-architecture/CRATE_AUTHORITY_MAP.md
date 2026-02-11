@@ -35,3 +35,11 @@ Prevents responsibility drift across crates and makes policy failures actionable
 - Command spawn confinement: `crates/bijux-dna-policies/tests/contracts/tooling/command_spawn_policy.rs`
 - Domain/stage purity and crate responsibilities:
   `crates/bijux-dna-policies/tests/contracts/tooling/purity_effects_responsibility_policy.rs`
+
+## Examples
+- Planner-only tool selection logic lives in `crates/bijux-dna-planner-*`; execution wiring lives in `crates/bijux-dna-engine`.
+- Stage contracts (`crates/bijux-dna-stages-*`) define invocation and parsing boundaries, while domain truth (`crates/bijux-dna-domain-*`) owns IDs and invariants.
+
+## Failure modes
+- Ownership drift: crates begin to absorb responsibilities owned elsewhere, creating duplicated logic and policy violations.
+- Boundary erosion: planner/execution/runtime concerns blend, reducing determinism and making failures harder to localize.
