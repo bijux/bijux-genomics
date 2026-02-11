@@ -14,6 +14,7 @@ use bijux_dna_domain_fastq::params::qc_post::QcPostEffectiveParams;
 use bijux_dna_domain_fastq::params::screen::ScreenEffectiveParams;
 use bijux_dna_domain_fastq::params::trim::TrimEffectiveParams;
 use bijux_dna_domain_fastq::params::validate::ValidateEffectiveParams;
+use serde::de::Deserializer;
 use serde::ser::Serializer;
 use serde::{Deserialize, Serialize};
 
@@ -94,7 +95,7 @@ pub struct EffectiveDefaults {
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct EmptyParams {}
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone)]
 pub enum DefaultParams {
     FastqValidate(ValidateEffectiveParams),
     FastqDetectAdapters(DetectAdaptersEffectiveParams),
@@ -178,6 +179,44 @@ impl Serialize for DefaultParams {
         S: Serializer,
     {
         self.to_json().serialize(serializer)
+    }
+}
+
+impl<'de> Deserialize<'de> for DefaultParams {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let value = serde_json::Value::deserialize(deserializer)?;
+        if let Ok(parsed) = serde_json::from_value::<BamEffectiveParams>(value.clone()) {
+            return Ok(DefaultParams::Bam(parsed));
+        }
+        if let Ok(parsed) = serde_json::from_value::<ValidateEffectiveParams>(value.clone()) {
+            return Ok(DefaultParams::FastqValidate(parsed));
+        }
+        if let Ok(parsed) = serde_json::from_value::<DetectAdaptersEffectiveParams>(value.clone())
+        {
+            return Ok(DefaultParams::FastqDetectAdapters(parsed));
+        }
+        if let Ok(parsed) = serde_json::from_value::<TrimEffectiveParams>(value.clone()) {
+            return Ok(DefaultParams::FastqTrim(parsed));
+        }
+        if let Ok(parsed) = serde_json::from_value::<FilterEffectiveParams>(value.clone()) {
+            return Ok(DefaultParams::FastqFilter(parsed));
+        }
+        if let Ok(parsed) = serde_json::from_value::<QcPostEffectiveParams>(value.clone()) {
+            return Ok(DefaultParams::FastqQcPost(parsed));
+        }
+        if let Ok(parsed) = serde_json::from_value::<PreprocessEffectiveParams>(value.clone()) {
+            return Ok(DefaultParams::FastqPreprocess(parsed));
+        }
+        if let Ok(parsed) = serde_json::from_value::<MergeEffectiveParams>(value.clone()) {
+            return Ok(DefaultParams::FastqMerge(parsed));
+        }
+        if let Ok(parsed) = serde_json::from_value::<ScreenEffectiveParams>(value.clone()) {
+            return Ok(DefaultParams::FastqScreen(parsed));
+        }
+        Ok(DefaultParams::Empty(EmptyParams {}))
     }
 }
 
