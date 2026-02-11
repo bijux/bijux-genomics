@@ -7,11 +7,13 @@ pub use deltas::{compute_delta, delta_from_counts, ratio_u64, FastqDelta};
 pub use spec::{metric_spec_for_stage, MetricClass, StageMetricSpec};
 #[allow(unused_imports)]
 pub use types::{
-    BrackenClassificationMetricsV1, BrackenRecordV1, ClassificationDbProvenanceV1,
-    FastqCorrectMetricsV1, FastqDeduplicateMetricsV1, FastqDeltaMetricsV1,
-    FastqDetectAdaptersMetricsV1, FastqFilterMetricsV1, FastqMergeMetricsV1,
-    FastqPreprocessMetricsV1, FastqQScoreSummaryV1, FastqQcPostMetricsV1, FastqQcSummaryMetricsV1,
-    FastqScanMetricsV1, FastqTrimMetricsV1, FastqUmiMetricsV1, FastqValidateMetricsV1,
-    KrakenUniqClassificationMetricsV1, KrakenUniqRecordV1, RetentionReportMetricV1, SeqfuMetricsV1,
+    AdapterRemovalToolMetricsV1, BrackenClassificationMetricsV1, BrackenRecordV1,
+    ClassificationDbProvenanceV1, FastpToolMetricsV1, FastqCorrectMetricsV1,
+    FastqDeduplicateMetricsV1, FastqDeltaMetricsV1, FastqDetectAdaptersMetricsV1,
+    FastqFilterMetricsV1, FastqMergeMetricsV1, FastqPreprocessMetricsV1, FastqQScoreSummaryV1,
+    FastqQcPostMetricsV1, FastqQcSummaryMetricsV1, FastqScanMetricsV1, FastqTrimMetricsV1,
+    FastqUmiMetricsV1, FastqValidateMetricsV1, FastqcToolMetricsV1,
+    KrakenUniqClassificationMetricsV1, KrakenUniqRecordV1, MultiqcToolMetricsV1,
+    RetentionReportMetricV1, SamtoolsFlagstatMetricsV1, SeqfuMetricsV1, SeqkitToolMetricsV1,
     TaxonomyRecordV1,
 };

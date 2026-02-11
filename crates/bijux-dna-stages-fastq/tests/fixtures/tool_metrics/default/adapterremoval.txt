@@ -1,0 +1,2 @@
+Total number of read pairs: 1000
+Number of fully overlapping pairs: 640
