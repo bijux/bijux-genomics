@@ -25,9 +25,6 @@ docs-clean: ## Remove built docs
 	rm -rf $(DOCS_ROOT)
 
 docs-isolate: ## Build docs in strict mode under an isolate dir
-	@ISO=$$(date -u +%Y%m%d%H%M%S)-$$$$-$(shell git rev-parse --short HEAD 2>/dev/null || echo nogit); \
-	ROOT=artifacts/isolates/$$ISO/docs; \
-	./scripts/docs/check-domain-doc-references.sh && \
-	DOCS_ROOT=$$ROOT $(MAKE) docs-lint && ./scripts/check-root-pollution.sh
+	@./bin/isolate sh -ceu './scripts/docs/check-domain-doc-references.sh; DOCS_ROOT="$$ISO_ROOT/docs" $(MAKE) docs-lint; ./scripts/check-root-pollution.sh'
 
 .PHONY: docs docs-lint docs-serve docs-clean docs-isolate
