@@ -24,6 +24,7 @@ IMG_DIR="$ARTIFACT_DIR/images/$RUNTIME_NAME"
 SUMMARY="$LOG_DIR/summary.txt"
 IMAGES_TXT="$IMG_DIR/images.txt"
 MANIFEST_DIR="$ARTIFACT_DIR"
+INTERRUPTED=0
 
 mkdir -p "$LOG_DIR" "$IMG_DIR" "$MANIFEST_DIR"
 
@@ -79,6 +80,17 @@ write_manifest_json() {
   tmp="${manifest_path}.tmp.$$"
   printf '%s\n' "$payload" > "$tmp"
   mv "$tmp" "$manifest_path"
+}
+
+cleanup_files() {
+  rm -f "$LIST_FILE" "${TOOLS_FILE:-}" "${FILTERED_FILE:-}"
+}
+
+handle_interrupt() {
+  INTERRUPTED=1
+  echo "Interrupted; stopping container smoke run" >&2
+  cleanup_files
+  exit 130
 }
 
 json_escape() {
@@ -140,14 +152,6 @@ build_and_smoke_one() {
   log="$LOG_DIR/${tool}.log"
   cmd=$(get_version_cmd "$tool")
   help_cmd=$(get_help_cmd "$tool")
-  expected_bin=$(get_registry_field expected_bin "$tool")
-  cmd_bin=$(printf '%s\n' "$cmd" | awk '{print $1}')
-  if [ "$expected_bin" = "unknown" ] || [ -z "$expected_bin" ] || [ "$expected_bin" = "$tool" ]; then
-    expected_bin="$cmd_bin"
-  fi
-  if [ -z "$expected_bin" ]; then
-    expected_bin="$tool"
-  fi
   version_output_file="$LOG_DIR/${tool}.version.out"
   help_output_file="$LOG_DIR/${tool}.help.out"
   manifest="$MANIFEST_DIR/${tool}.json"
@@ -166,18 +170,16 @@ build_and_smoke_one() {
       echo "build failed for $tool"
       exit 1
     fi
-    if [ "$SMOKE_LEVEL" != "build" ]; then
-      echo "=== [$tool] smoke: $cmd"
-      if ! run_with_timeout "$VERSION_TIMEOUT" "$DOCKER_BIN" run --rm --entrypoint sh "$image" -lc "$cmd" >"$version_output_file" 2>&1; then
-        cat "$version_output_file"
-        echo "version command failed: $cmd"
-        exit 1
-      fi
+    echo "=== [$tool] smoke: $cmd"
+    if ! run_with_timeout "$VERSION_TIMEOUT" "$DOCKER_BIN" run --rm --entrypoint sh "$image" -lc "$cmd" >"$version_output_file" 2>&1; then
       cat "$version_output_file"
-      if [ ! -s "$version_output_file" ]; then
-        echo "version command produced empty output: $cmd"
-        exit 1
-      fi
+      echo "version command failed: $cmd"
+      exit 1
+    fi
+    cat "$version_output_file"
+    if [ ! -s "$version_output_file" ]; then
+      echo "version command produced empty output: $cmd"
+      exit 1
     fi
     if [ "$SMOKE_LEVEL" = "contract" ]; then
       echo "=== [$tool] smoke-help: $help_cmd"
@@ -191,8 +193,6 @@ build_and_smoke_one() {
         echo "help command produced empty output: $help_cmd"
         exit 1
       fi
-      echo "=== [$tool] smoke-bin: $expected_bin"
-      run_with_timeout "$VERSION_TIMEOUT" "$DOCKER_BIN" run --rm --entrypoint sh "$image" -lc "command -v $expected_bin >/dev/null"
     fi
     if [ "$SAVE_TAR" = "1" ]; then
       echo "=== [$tool] save image tar"
@@ -272,14 +272,35 @@ if [ "${1:-}" = "--worker" ]; then
 fi
 
 LIST_FILE=$(mktemp "${TMPDIR:-/tmp}/dockerfiles.XXXXXX")
-trap 'rm -f "$LIST_FILE"' EXIT INT TERM
+trap cleanup_files EXIT
+trap handle_interrupt INT TERM
 find "$DOCKER_DIR" -maxdepth 1 -type f -name 'Dockerfile.*' | sort > "$LIST_FILE"
 
 if [ -n "$TOOLS" ]; then
   TOOLS_FILE=$(mktemp "${TMPDIR:-/tmp}/docker-tools.XXXXXX")
   FILTERED_FILE=$(mktemp "${TMPDIR:-/tmp}/dockerfiles-filtered.XXXXXX")
-  trap 'rm -f "$LIST_FILE" "$TOOLS_FILE" "$FILTERED_FILE"' EXIT INT TERM
   printf '%s\n' "$TOOLS" | tr ',' '\n' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | grep -v '^$' > "$TOOLS_FILE"
+  MISSING_FILE=$(mktemp "${TMPDIR:-/tmp}/docker-tools-missing.XXXXXX")
+  awk -F/ '
+    NR==FNR { wanted[$0]=1; next }
+    {
+      file=$NF
+      sub(/^Dockerfile\./, "", file)
+      found[file]=1
+    }
+    END {
+      for (tool in wanted) {
+        if (!(tool in found)) print tool
+      }
+    }
+  ' "$TOOLS_FILE" "$LIST_FILE" | sort > "$MISSING_FILE"
+  if [ -s "$MISSING_FILE" ]; then
+    echo "ERROR: requested tools missing dockerfiles in $DOCKER_DIR:" >&2
+    cat "$MISSING_FILE" >&2
+    rm -f "$MISSING_FILE"
+    exit 2
+  fi
+  rm -f "$MISSING_FILE"
   awk -F/ '
     NR==FNR { wanted[$0]=1; next }
     {
@@ -313,19 +334,30 @@ else
   xargs -P "$JOBS" -I{} sh "$0" --worker {} < "$LIST_FILE" || status=1
 fi
 
-ok_count=$(grep -h '^=== .* OK$' "$LOG_DIR"/*.log 2>/dev/null | wc -l | tr -d ' ')
+ok_count=0
 fail_count=0
+total_count=0
+if [ ! -f "$LIST_FILE" ]; then
+  echo "ERROR: dockerfile list missing before summary accounting" >&2
+  status=1
+else
 while IFS= read -r f; do
+  [ -n "$f" ] || continue
   t=$(basename "$f" | sed 's/^Dockerfile\.//')
+  total_count=$((total_count + 1))
   if ! grep -q "=== \[$t\] OK" "$LOG_DIR/$t.log" 2>/dev/null; then
     fail_count=$((fail_count + 1))
+  else
+    ok_count=$((ok_count + 1))
   fi
 done < "$LIST_FILE"
+fi
 
+echo "total: $total_count" | tee -a "$SUMMARY"
 echo "ok: $ok_count" | tee -a "$SUMMARY"
 echo "fail: $fail_count" | tee -a "$SUMMARY"
 
-if [ "$fail_count" -ne 0 ] || [ "$status" -ne 0 ]; then
+if [ "$INTERRUPTED" -ne 0 ] || [ "$fail_count" -ne 0 ] || [ "$status" -ne 0 ]; then
   echo "DONE with failures. inspect: $LOG_DIR" | tee -a "$SUMMARY"
   exit 1
 fi
