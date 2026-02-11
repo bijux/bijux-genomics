@@ -8,8 +8,9 @@ pub mod profiles;
 use bijux_dna_core::ids::{StageId, ToolId};
 use bijux_dna_core::prelude::id_catalog;
 use bijux_dna_domain_fastq::params::defaults::{
-    detect_adapters_defaults, filter_defaults, merge_defaults, preprocess_defaults,
-    qc_post_defaults, screen_defaults, trim_defaults, validate_defaults,
+    correct_defaults, detect_adapters_defaults, filter_defaults, merge_defaults,
+    preprocess_defaults, qc_post_defaults, screen_defaults, stats_defaults, trim_defaults,
+    umi_defaults, validate_defaults,
 };
 use bijux_dna_domain_fastq::params::{DamageMode, PairedMode};
 
@@ -76,15 +77,15 @@ fn fastq_defaults(paired: bool) -> EffectiveDefaults {
     );
     params.insert(
         StageId::from_static("fastq.stats_neutral"),
-        DefaultParams::FastqValidate(validate_defaults(paired)),
+        DefaultParams::FastqStats(stats_defaults(paired)),
     );
     params.insert(
         StageId::from_static("fastq.correct"),
-        DefaultParams::FastqValidate(validate_defaults(paired)),
+        DefaultParams::FastqCorrect(correct_defaults(paired)),
     );
     params.insert(
         StageId::from_static("fastq.umi"),
-        DefaultParams::FastqValidate(validate_defaults(paired)),
+        DefaultParams::FastqUmi(umi_defaults(paired)),
     );
     params.insert(
         StageId::from_static("fastq.detect_adapters"),

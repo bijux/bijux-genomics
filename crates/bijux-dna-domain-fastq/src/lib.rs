@@ -49,10 +49,14 @@ pub use metrics::{
     FastqQScoreSummaryV1, FastqQcSummaryMetricsV1, FastqScanMetricsV1,
     KrakenUniqClassificationMetricsV1, KrakenUniqRecordV1, SeqfuMetricsV1, TaxonomyRecordV1,
 };
+pub use params::correct::FastqCorrectParams;
+pub use params::defaults::{correct_defaults, stats_defaults, umi_defaults};
+pub use params::stats::FastqStatsParams;
 pub use params::trim::{
     AlienTrimmerParamsV1, FastxClipperParamsV1, LeeHomTrimParamsV1, OverlapCollapseMode,
     ReadHandlingMode, SkewerTrimParamsV1, TrimAdapterMode, TrimQualityMode, TrimToolParamsV1,
 };
+pub use params::umi::FastqUmiParams;
 pub use params::{parse_effective_params, EffectiveParams, PairedMode};
 pub use pipeline_contract::{
     canonical_stage_order, forbidden_transitions, optional_branches, StageCriticality,
