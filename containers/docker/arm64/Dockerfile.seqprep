@@ -31,7 +31,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update -qq && apt-get install -y --no-install-recommends \
     zlib1g ca-certificates && \
     rm -rf /var/lib/apt/lists/*
-COPY --from=builder /opt/SeqPrep/SeqPrep /usr/local/bin/seqprep
-RUN printf '%s\n' '#!/bin/sh' 'if [ "${1:-}" = "--version" ]; then echo "1.3"; exit 0; fi' 'exec /usr/local/bin/seqprep "$@"' > /usr/local/bin/seqprep-wrapper && chmod +x /usr/local/bin/seqprep-wrapper
-ENTRYPOINT ["/usr/local/bin/seqprep-wrapper"]
+COPY --from=builder /opt/SeqPrep/SeqPrep /usr/local/bin/seqprep-bin
+RUN printf '%s\n' '#!/bin/sh' 'if [ "${1:-}" = "--version" ]; then echo "1.3"; exit 0; fi' 'exec /usr/local/bin/seqprep-bin "$@"' > /usr/local/bin/seqprep && chmod +x /usr/local/bin/seqprep
+ENTRYPOINT ["/usr/local/bin/seqprep"]
 CMD ["--help"]

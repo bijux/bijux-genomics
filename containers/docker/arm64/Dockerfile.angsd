@@ -15,7 +15,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update -qq && apt-get install -y --no-install-recommends     git build-essential zlib1g-dev libbz2-dev liblzma-dev libcurl4-openssl-dev     ca-certificates make autoconf automake libtool pkg-config &&     rm -rf /var/lib/apt/lists/*
 
-RUN git clone --depth 1 https://github.com/ANGSD/angsd.git /opt/angsd &&     cd /opt/angsd && git checkout 6b5d90641cc6924a0fab06584297f9a1cd1f46ac &&     make -j"$(nproc)"
+RUN git clone --depth 1 https://github.com/ANGSD/angsd.git /opt/angsd &&     cd /opt/angsd && git checkout 6b5d90641cc6924a0fab06584297f9a1cd1f46ac &&     make -j1
 
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 ENV DEBIAN_FRONTEND=noninteractive

@@ -3,10 +3,10 @@
 #
 # Container definition license: GPL-3.0.
 # The bijux-dna software source code is licensed under Apache-2.0.
-FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b AS builder
+FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 ARG OCI_REVISION=unknown
 ARG OCI_CREATED=unknown
-ARG TOOL_VERSION=latest-pinned
+ARG TOOL_VERSION=1.1
 LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-dna" \
       org.opencontainers.image.revision="${OCI_REVISION}" \
       org.opencontainers.image.created="${OCI_CREATED}" \
@@ -15,21 +15,12 @@ LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-dna" \
 LABEL org.opencontainers.image.tool="damageprofiler"
 LABEL org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
 LABEL org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
+ENV DEBIAN_FRONTEND=noninteractive
 ARG TOOL_VERSION
-ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update -qq && apt-get install -y --no-install-recommends git maven openjdk-17-jdk ca-certificates && rm -rf /var/lib/apt/lists/*
-RUN git clone --depth 1 https://github.com/Integrative-Transcriptomics/DamageProfiler.git /opt/damageprofiler && \
-    cd /opt/damageprofiler && git checkout a1e9a136303173edff82e396791181bea957e1e3 && \
-    POM_DIR="$(find . -maxdepth 3 -name pom.xml -print | head -n 1)" && \
-    test -n "$POM_DIR" && \
-    mvn -q -DskipTests -f "$POM_DIR" package && \
-    JAR_PATH="$(find . -path '*/target/*-jar-with-dependencies.jar' -print | head -n 1)" && \
-    test -n "$JAR_PATH" && \
-    cp "$JAR_PATH" /opt/damageprofiler.jar
-FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
-ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update -qq && apt-get install -y --no-install-recommends openjdk-17-jre ca-certificates && rm -rf /var/lib/apt/lists/*
-COPY --from=builder /opt/damageprofiler.jar /opt/damageprofiler.jar
+RUN apt-get update -qq && apt-get install -y --no-install-recommends \
+    ca-certificates curl openjdk-17-jre-headless && \
+    rm -rf /var/lib/apt/lists/*
+RUN curl -fsSL -o /opt/damageprofiler.jar "https://github.com/Integrative-Transcriptomics/DamageProfiler/releases/download/v${TOOL_VERSION}/DamageProfiler-${TOOL_VERSION}-java11.jar"
 RUN cat > /usr/local/bin/damageprofiler <<'SH' && chmod +x /usr/local/bin/damageprofiler
 #!/bin/sh
 set -eu

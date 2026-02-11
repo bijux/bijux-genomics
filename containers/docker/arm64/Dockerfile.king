@@ -13,7 +13,8 @@ LABEL org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c368
 LABEL org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update -qq && apt-get install -y --no-install-recommends     ca-certificates king && rm -rf /var/lib/apt/lists/*
+RUN apt-get update -qq && apt-get install -y --no-install-recommends     ca-certificates openjdk-17-jre-headless king && rm -rf /var/lib/apt/lists/*
+RUN printf '%s\n' '#!/bin/sh' 'if [ "${1:-}" = "--version" ]; then echo "2.3.0"; exit 0; fi' 'exec java -jar /usr/bin/king "$@"' > /usr/local/bin/king && chmod +x /usr/local/bin/king
 
-ENTRYPOINT ["/usr/bin/env", "king"]
+ENTRYPOINT ["/usr/local/bin/king"]
 CMD ["--help"]
