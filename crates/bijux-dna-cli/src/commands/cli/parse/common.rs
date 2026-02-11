@@ -136,6 +136,7 @@ pub enum AnalyzeCommand {
     Compare(AnalyzeCompareArgs),
     Rank(AnalyzeRankArgs),
     Report(AnalyzeReportArgs),
+    Metrics(AnalyzeMetricsArgs),
 }
 
 #[derive(Debug, Args)]
@@ -195,6 +196,13 @@ pub struct AnalyzeReportArgs {
     pub sqlite: Option<PathBuf>,
     #[arg(long, default_value = "json")]
     pub format: String,
+}
+
+#[derive(Debug, Args)]
+pub struct AnalyzeMetricsArgs {
+    #[arg(long, default_value = "artifacts/bench")]
+    pub search_root: PathBuf,
+    pub run_id: String,
 }
 
 #[derive(Debug, Subcommand)]

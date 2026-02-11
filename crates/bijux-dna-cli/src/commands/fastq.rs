@@ -346,6 +346,23 @@ pub(crate) fn handle_meta_commands(
                         }
                     }
                 }
+                AnalyzeCommand::Metrics(args) => {
+                    let run_dir = args.search_root.join(&args.run_id);
+                    let facts_path = run_dir.join("facts.jsonl");
+                    let facts = load_facts_auto(&facts_path)?;
+                    let mut stage_metrics: BTreeMap<String, serde_json::Value> = BTreeMap::new();
+                    for row in facts {
+                        if row.stage_id.starts_with("fastq.") {
+                            stage_metrics.insert(row.stage_id.clone(), row.metrics.clone());
+                        }
+                    }
+                    let summary = serde_json::json!({
+                        "schema_version": "bijux.metrics.summary.v1",
+                        "run_id": args.run_id,
+                        "stages": stage_metrics,
+                    });
+                    render::json::print_pretty(&summary)?;
+                }
             }
             Ok(true)
         }
