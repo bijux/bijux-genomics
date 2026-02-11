@@ -3,11 +3,13 @@ use std::path::Path;
 use bijux_dna_domain_compiler::{compile_domain_configs, CompileOptions};
 
 fn repo_root() -> std::path::PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
+    let Some(root) = Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .and_then(|p| p.parent())
-        .expect("repo root")
-        .to_path_buf()
+    else {
+        panic!("repo root");
+    };
+    root.to_path_buf()
 }
 
 #[test]
