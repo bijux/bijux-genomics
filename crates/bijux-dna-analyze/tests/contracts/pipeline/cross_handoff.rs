@@ -22,7 +22,7 @@ fn cross_domain_handoff_section_is_emitted() -> Result<()> {
         "boundaries": [{
             "name": "alignment_boundary",
             "path": "run_artifacts/boundaries/alignment_boundary.json",
-            "sha256": "sha256:dummy"
+            "sha256": "sha256:0000000000000000000000000000000000000000000000000000000000000001"
         }]
     });
     bijux_dna_infra::write_bytes(
