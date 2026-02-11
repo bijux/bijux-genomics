@@ -10,3 +10,18 @@ fn vcf_minimal_profile_satisfies_invariants() {
         report.violations
     );
 }
+
+#[test]
+fn vcf_invariants_reject_missing_required_artifacts() {
+    let mut profile = vcf_minimal_profile();
+    profile
+        .capabilities
+        .required_artifacts
+        .retain(|artifact| *artifact != "invariants_report.json");
+    let report = validate_vcf_profile(&profile);
+    assert!(!report.valid);
+    assert!(report
+        .violations
+        .iter()
+        .any(|v| v.code == "required_artifact_missing"));
+}

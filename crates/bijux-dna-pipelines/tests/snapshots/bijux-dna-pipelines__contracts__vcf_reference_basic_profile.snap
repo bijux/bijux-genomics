@@ -1,0 +1,99 @@
+---
+source: crates/bijux-dna-pipelines/tests/contracts/profiles/profiles.rs
+expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
+---
+{
+  "capabilities": {
+    "input_artifacts": [
+      "ReportJson"
+    ],
+    "input_domains": [
+      "Vcf"
+    ],
+    "output_artifacts": [
+      "ReportJson",
+      "MetricsBundle"
+    ],
+    "output_domains": [
+      "Vcf"
+    ],
+    "produces_outputs": [
+      "vcf",
+      "vcf.metrics"
+    ],
+    "report_sections": [
+      "vcf"
+    ],
+    "required_artifacts": [
+      "report.json",
+      "run_manifest.json",
+      "tool_provenance.json",
+      "invariants_report.json"
+    ],
+    "required_inputs": [
+      "vcf"
+    ],
+    "required_metrics": [
+      "vcf.metrics"
+    ],
+    "required_metrics_bundles": [
+      "VcfCore"
+    ],
+    "required_report_sections": [
+      "Vcf",
+      "PipelineDefaults"
+    ],
+    "required_stages": [
+      "vcf.call",
+      "vcf.filter",
+      "vcf.stats"
+    ],
+    "supports_benchmarks": false
+  },
+  "defaults": {
+    "params": {
+      "vcf.call": {
+        "caller": "bcftools",
+        "min_base_quality": 20,
+        "min_mapping_quality": 20,
+        "schema_version": "bijux.vcf.params.v1"
+      },
+      "vcf.filter": {
+        "min_qual": 30.0,
+        "require_pass": true,
+        "schema_version": "bijux.vcf.params.v1"
+      },
+      "vcf.stats": {
+        "compute_titv": true,
+        "schema_version": "bijux.vcf.params.v1"
+      }
+    },
+    "rationales": {
+      "vcf.call": "vcf minimal default",
+      "vcf.filter": "vcf minimal default",
+      "vcf.stats": "vcf minimal default"
+    },
+    "tools": {
+      "vcf.call": "bcftools",
+      "vcf.filter": "bcftools",
+      "vcf.stats": "bcftools"
+    }
+  },
+  "defaults_ledger_ref": "defaults_ledger.json",
+  "description": "Reference-grade VCF baseline profile",
+  "id": "vcf-to-vcf__reference_basic__v1",
+  "input_domains": [
+    "Vcf"
+  ],
+  "invariants_preset": "vcf_minimal",
+  "library_model": {
+    "assay_kind": "unknown",
+    "layout": "single_end",
+    "platform_hint": "unknown",
+    "udg_treatment": "unknown"
+  },
+  "output_domains": [
+    "Vcf"
+  ],
+  "stability": "Beta"
+}

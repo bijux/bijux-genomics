@@ -1,6 +1,5 @@
 ---
 source: crates/bijux-dna-pipelines/tests/contracts/profiles/profiles.rs
-assertion_line: 139
 expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
@@ -33,7 +32,8 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     "required_artifacts": [
       "report.json",
       "run_manifest.json",
-      "stage_summaries.json"
+      "stage_summaries.json",
+      "invariants_report.json"
     ],
     "required_inputs": [
       "fastq",
@@ -302,6 +302,12 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     "Cross"
   ],
   "invariants_preset": null,
+  "library_model": {
+    "assay_kind": "shotgun",
+    "layout": "paired_end",
+    "platform_hint": "illumina",
+    "udg_treatment": "unknown"
+  },
   "output_domains": [
     "Bam"
   ],
