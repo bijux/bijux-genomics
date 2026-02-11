@@ -121,8 +121,10 @@ pub fn summarize(
     for ((stage_id, dataset_id, tool_id), hashes) in &stage_dataset_tool_params {
         if hashes.len() > 1 {
             scientifically_invalid = true;
-            let warning =
-                format!("fairness_previous_defaults_mismatch:{stage_id}:{dataset_id}:{tool_id}");
+            let warning = format!(
+                "fairness_param_hash_mismatch:{stage_id}:{dataset_id}:{tool}",
+                tool = tool_id
+            );
             warnings.push(warning.clone());
             invalid_reasons.push(warning);
         }
