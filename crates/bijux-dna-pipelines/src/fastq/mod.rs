@@ -11,10 +11,15 @@ use bijux_dna_domain_fastq::params::defaults::{
     detect_adapters_defaults, filter_defaults, merge_defaults, preprocess_defaults,
     qc_post_defaults, screen_defaults, trim_defaults, validate_defaults,
 };
+use bijux_dna_domain_fastq::params::{DamageMode, PairedMode};
 
 use crate::{
     ArtifactType, DefaultParams, Domain, EffectiveDefaults, MetricsBundle, PipelineCapabilities,
     PipelineId, PipelineProfile, ReportSection, StabilityTier,
+};
+
+pub use invariants::{
+    validate_fastq_profile, FastqProfileValidationReport, FastqProfileViolation, FASTQ_INVARIANTS,
 };
 
 fn fastq_defaults(paired: bool) -> EffectiveDefaults {
@@ -122,6 +127,94 @@ fn fastq_defaults(paired: bool) -> EffectiveDefaults {
     }
 }
 
+fn adna_fastq_defaults() -> EffectiveDefaults {
+    let mut defaults = fastq_defaults(true);
+
+    defaults.tools.insert(
+        StageId::from_static("fastq.trim"),
+        ToolId::from_static(id_catalog::TOOL_ADAPTERREMOVAL),
+    );
+    defaults.tools.insert(
+        StageId::from_static("fastq.merge"),
+        ToolId::from_static(id_catalog::TOOL_LEEHOM),
+    );
+
+    if let Some(DefaultParams::FastqTrim(mut params)) = defaults
+        .params
+        .get(&StageId::from_static("fastq.trim"))
+        .cloned()
+    {
+        params.paired_mode = PairedMode::PairedEnd;
+        params.min_len = 25;
+        params.q_cutoff = Some(20);
+        params.adapter_policy = "ancient_strict".to_string();
+        params.damage_mode = Some(DamageMode::Ancient);
+        params.polyx_policy = Some("trim".to_string());
+        defaults.params.insert(
+            StageId::from_static("fastq.trim"),
+            DefaultParams::FastqTrim(params),
+        );
+    }
+
+    if let Some(DefaultParams::FastqFilter(mut params)) = defaults
+        .params
+        .get(&StageId::from_static("fastq.filter"))
+        .cloned()
+    {
+        params.paired_mode = PairedMode::PairedEnd;
+        params.damage_mode = Some(DamageMode::Ancient);
+        params.polyx_policy = Some("trim".to_string());
+        params.max_n_fraction = Some(0.02);
+        defaults.params.insert(
+            StageId::from_static("fastq.filter"),
+            DefaultParams::FastqFilter(params),
+        );
+    }
+
+    if let Some(DefaultParams::FastqDetectAdapters(mut params)) = defaults
+        .params
+        .get(&StageId::from_static("fastq.detect_adapters"))
+        .cloned()
+    {
+        params.paired_mode = PairedMode::PairedEnd;
+        params.sample_reads = Some(2_000_000);
+        defaults.params.insert(
+            StageId::from_static("fastq.detect_adapters"),
+            DefaultParams::FastqDetectAdapters(params),
+        );
+    }
+
+    if let Some(DefaultParams::FastqMerge(mut params)) = defaults
+        .params
+        .get(&StageId::from_static("fastq.merge"))
+        .cloned()
+    {
+        params.paired_mode = PairedMode::PairedEnd;
+        params.min_len = Some(20);
+        params.merge_overlap = Some(11);
+        defaults.params.insert(
+            StageId::from_static("fastq.merge"),
+            DefaultParams::FastqMerge(params),
+        );
+    }
+
+    defaults.rationales.insert(
+        StageId::from_static("fastq.trim"),
+        "aDNA preset: short-read preserving trim with strict adapter handling".to_string(),
+    );
+    defaults.rationales.insert(
+        StageId::from_static("fastq.merge"),
+        "aDNA preset: aggressive overlap merge/collapse for fragmented paired-end reads"
+            .to_string(),
+    );
+    defaults.rationales.insert(
+        StageId::from_static("fastq.detect_adapters"),
+        "aDNA preset: stricter adapter detection depth for short fragments".to_string(),
+    );
+
+    defaults
+}
+
 #[must_use]
 pub fn fastq_minimal_profile() -> PipelineProfile {
     PipelineProfile {
@@ -197,30 +290,7 @@ pub fn fastq_default_profile() -> PipelineProfile {
 
 #[must_use]
 pub fn fastq_adna_profile() -> PipelineProfile {
-    let mut defaults = fastq_defaults(false);
-    if let Some(DefaultParams::FastqTrim(mut params)) = defaults
-        .params
-        .get(&StageId::from_static("fastq.trim"))
-        .cloned()
-    {
-        params.damage_mode = Some("adna".to_string());
-        params.min_len = 25;
-        defaults.params.insert(
-            StageId::from_static("fastq.trim"),
-            DefaultParams::FastqTrim(params),
-        );
-    }
-    if let Some(DefaultParams::FastqFilter(mut params)) = defaults
-        .params
-        .get(&StageId::from_static("fastq.filter"))
-        .cloned()
-    {
-        params.damage_mode = Some("adna".to_string());
-        defaults.params.insert(
-            StageId::from_static("fastq.filter"),
-            DefaultParams::FastqFilter(params),
-        );
-    }
+    let defaults = adna_fastq_defaults();
     PipelineProfile {
         id: PipelineId::from_static(id_catalog::PIPELINE_FASTQ_ADNA),
         description: "aDNA-oriented FASTQ pipeline defaults",
@@ -245,6 +315,7 @@ pub fn fastq_adna_profile() -> PipelineProfile {
                 "fastq.detect_adapters",
                 "fastq.trim",
                 "fastq.filter",
+                "fastq.merge",
                 "fastq.stats_neutral",
                 "fastq.qc_post",
             ],

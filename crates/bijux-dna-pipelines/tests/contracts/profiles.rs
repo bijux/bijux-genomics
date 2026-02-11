@@ -1,3 +1,5 @@
+#[path = "profiles/fastq_invariants.rs"]
+mod fastq_invariants;
 #[path = "profiles/pipeline_completeness.rs"]
 mod pipeline_completeness;
 #[path = "profiles/pipeline_contract.rs"]
