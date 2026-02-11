@@ -32,6 +32,11 @@ pub fn write_metrics_envelope(
     metrics: &serde_json::Value,
     input_hashes: &[String],
 ) -> Result<PathBuf> {
+    let manifest_hash = run_artifacts_dir
+        .parent()
+        .map(|dir| dir.join("run_manifest.json"))
+        .filter(|path| path.exists())
+        .and_then(|path| bijux_dna_infra::hash_file_sha256(&path).ok());
     let payload: MetricsEnvelope<serde_json::Value> = MetricsEnvelope {
         schema_version: "bijux.metrics_envelope.v2".to_string(),
         contract_version: ContractVersion::v1(),
@@ -59,6 +64,7 @@ pub fn write_metrics_envelope(
             } else {
                 input_hashes.to_vec()
             },
+            manifest_hash,
         }),
         metrics: metrics.clone(),
     };

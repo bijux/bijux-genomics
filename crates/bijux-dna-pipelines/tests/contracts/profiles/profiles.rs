@@ -138,3 +138,25 @@ fn cross_fastq_to_bam_default_profile_snapshot() {
     prune_bam_downstream(&mut json);
     assert_json_snapshot!(name, bijux_dna_testkit::snapshot_normalize_json(&json));
 }
+
+#[test]
+fn profile_hash_contract_snapshot() {
+    let _guard = snapshot_settings().bind_to_scope();
+    let name = snapshot_name("contracts", "profile_hash_contract");
+    let mut hashes = std::collections::BTreeMap::new();
+    let mut profiles = Vec::new();
+    profiles.extend(bijux_dna_pipelines::registry::fastq_profiles());
+    profiles.extend(bijux_dna_pipelines::registry::bam_profiles());
+    profiles.extend(bijux_dna_pipelines::registry::cross_profiles());
+    profiles.extend(bijux_dna_pipelines::registry::vcf_profiles());
+    for profile in profiles {
+        hashes.insert(
+            profile.id.as_str().to_string(),
+            serde_json::json!({
+                "profile_hash": profile.profile_hash(),
+                "manifest": profile.profile_manifest(),
+            }),
+        );
+    }
+    assert_json_snapshot!(name, bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashes)));
+}
