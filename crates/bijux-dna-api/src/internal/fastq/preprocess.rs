@@ -31,7 +31,7 @@ use crate::internal::handlers::fastq::summary::{
     StageExecutionSummary,
 };
 use crate::internal::handlers::fastq::write_explain_plan_json;
-use crate::internal::handlers::fastq::{STAGE_PREPROCESS, STAGE_TRIM};
+use crate::internal::handlers::fastq::{STAGE_PREPROCESS, STAGE_QC_POST, STAGE_TRIM};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir};
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_dna_planner_fastq::stage_api::{
@@ -182,7 +182,11 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         tool_specs.push(spec);
     }
     let mut aux_tools = std::collections::BTreeMap::new();
-    if policy.pipeline_stages.iter().any(|stage| stage == &STAGE_QC_POST) {
+    if policy
+        .pipeline_stages
+        .iter()
+        .any(|stage| stage == &STAGE_QC_POST)
+    {
         for aux_tool in bijux_dna_planner_fastq::stage_api::fastq::qc_post::aux_tool_ids() {
             let spec = catalog
                 .get(*aux_tool)
