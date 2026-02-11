@@ -9,6 +9,8 @@ use crate::commands::cli::render;
 use crate::commands::command_prelude::{anyhow, Cli, Context, DnaCommand, Path, PathBuf, Result};
 use crate::commands::validation::{ensure_profile_run_base_dir, load_profile_for_cli};
 use std::collections::BTreeMap;
+use std::process::Command;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 pub(crate) fn run_plan(
     cli: &Cli,
@@ -70,6 +72,7 @@ pub(crate) fn run_plan(
             })
             .collect::<Vec<_>>(),
     )?;
+    write_policy_snapshot(&plan.artifacts_dir)?;
 
     if !common.dry_run {
         warn!(
@@ -189,5 +192,36 @@ fn write_plan_artifacts(
         serde_json::to_vec_pretty(&decision_trace)?,
     )
     .context("write decision_trace.json")?;
+    Ok(())
+}
+
+fn write_policy_snapshot(artifacts_dir: &Path) -> Result<()> {
+    let commit_hash = Command::new("git")
+        .arg("rev-parse")
+        .arg("HEAD")
+        .output()
+        .ok()
+        .filter(|out| out.status.success())
+        .map_or_else(
+            || "unknown".to_string(),
+            |out| String::from_utf8_lossy(&out.stdout).trim().to_string(),
+        );
+    let checks: serde_json::Value = std::env::var("BIJUX_POLICY_CLEAN_REPORT_JSON")
+        .ok()
+        .and_then(|raw| serde_json::from_str(&raw).ok())
+        .unwrap_or_else(
+            || serde_json::json!({"schema_version":"bijux.policy.clean.v1","ok":false}),
+        );
+    let payload = serde_json::json!({
+        "schema_version": "bijux.policy_snapshot.v1",
+        "git_commit": commit_hash,
+        "checked_at_unix_s": SystemTime::now().duration_since(UNIX_EPOCH).map_or(0, |d| d.as_secs()),
+        "checks": checks,
+    });
+    bijux_dna_api::v1::api::run::write_bytes(
+        artifacts_dir.join("policy_snapshot.json"),
+        serde_json::to_vec_pretty(&payload)?,
+    )
+    .context("write policy_snapshot.json")?;
     Ok(())
 }

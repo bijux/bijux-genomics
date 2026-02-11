@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::io::Read;
 use std::path::Path;
 use std::path::PathBuf;
@@ -326,6 +326,207 @@ pub fn print_registry_audit_fix_suggestions(registry_path: &Path) -> Result<()> 
         println!();
     }
     Ok(())
+}
+
+/// # Errors
+/// Returns an error if registry cannot be read or parsed.
+pub fn registry_binding_violations(
+    registry_path: &Path,
+    domain: Option<&str>,
+) -> Result<Vec<String>> {
+    let raw = std::fs::read_to_string(registry_path)
+        .with_context(|| format!("read {}", registry_path.display()))?;
+    let tools = parse_tools_registry_rows(&raw)?;
+    let stages = parse_stage_registry_rows(&raw)?;
+    let stage_ids = stages.into_iter().map(|row| row.id).collect::<HashSet<_>>();
+
+    let mut offenders = Vec::new();
+    for tool in tools {
+        if tool.id.is_empty() || tool.status == "planned" || tool.status == "out_of_scope" {
+            continue;
+        }
+        let bindings = if tool.bindings.is_empty() {
+            tool.stage_ids.clone()
+        } else {
+            tool.bindings.clone()
+        };
+        if bindings.is_empty() {
+            offenders.push(format!("tool={} missing non-empty bindings", tool.id));
+            continue;
+        }
+        if let Some(dom) = domain {
+            let relevant = bindings
+                .iter()
+                .any(|stage_id| stage_id.starts_with(&format!("{dom}.")));
+            if !relevant {
+                continue;
+            }
+        }
+        for stage_id in &bindings {
+            if !stage_ids.contains(stage_id) {
+                offenders.push(format!(
+                    "tool={} binding references unknown stage {}",
+                    tool.id, stage_id
+                ));
+            }
+            if let Some(dom) = domain {
+                if !stage_id.starts_with(&format!("{dom}.")) {
+                    offenders.push(format!(
+                        "tool={} binding {} crosses requested domain {}",
+                        tool.id, stage_id, dom
+                    ));
+                }
+            }
+        }
+    }
+
+    offenders.sort();
+    offenders.dedup();
+    Ok(offenders)
+}
+
+/// # Errors
+/// Returns an error if registry cannot be read or parsed.
+pub fn print_registry_binding_violations(registry_path: &Path, domain: Option<&str>) -> Result<()> {
+    let offenders = registry_binding_violations(registry_path, domain)?;
+    if offenders.is_empty() {
+        println!("binding_violations: none");
+        return Ok(());
+    }
+    for offender in offenders {
+        println!("{offender}");
+    }
+    Ok(())
+}
+
+/// # Errors
+/// Returns an error if registry cannot be read or parsed.
+pub fn policy_clean_report(registry_path: &Path, domain: &str) -> Result<PolicyCleanReport> {
+    let raw = std::fs::read_to_string(registry_path)
+        .with_context(|| format!("read {}", registry_path.display()))?;
+    let tools = parse_tools_registry_rows(&raw)?;
+    let stages = parse_stage_registry_rows(&raw)?;
+    let tool_by_id = tools
+        .iter()
+        .map(|tool| (tool.id.clone(), tool))
+        .collect::<std::collections::BTreeMap<_, _>>();
+
+    let binding_offenders = registry_binding_violations(registry_path, Some(domain))?;
+
+    let role_offenders = role_policy_offenders(&stages, &tool_by_id, domain);
+    let smoke_offenders = smoke_policy_offenders(tools, domain);
+
+    let checks = vec![
+        PolicyCheckResult {
+            name: "binding_policy".to_string(),
+            ok: binding_offenders.is_empty(),
+            detail: if binding_offenders.is_empty() {
+                "ok".to_string()
+            } else {
+                binding_offenders.join("; ")
+            },
+        },
+        PolicyCheckResult {
+            name: "role_policy".to_string(),
+            ok: role_offenders.is_empty(),
+            detail: if role_offenders.is_empty() {
+                "ok".to_string()
+            } else {
+                role_offenders.join("; ")
+            },
+        },
+        PolicyCheckResult {
+            name: "smoke_policy".to_string(),
+            ok: smoke_offenders.is_empty(),
+            detail: if smoke_offenders.is_empty() {
+                "ok".to_string()
+            } else {
+                smoke_offenders.join("; ")
+            },
+        },
+    ];
+    let ok = checks.iter().all(|check| check.ok);
+    Ok(PolicyCleanReport {
+        schema_version: "bijux.policy.clean.v1",
+        domain: domain.to_string(),
+        ok,
+        checks,
+    })
+}
+
+fn role_policy_offenders(
+    stages: &[StageRegistryRow],
+    tool_by_id: &std::collections::BTreeMap<String, &RegistryRow>,
+    domain: &str,
+) -> Vec<String> {
+    let mut offenders = Vec::new();
+    for stage in stages {
+        if !stage.id.starts_with(&format!("{domain}.")) {
+            continue;
+        }
+        let required = stage
+            .required_tool_roles
+            .iter()
+            .map(String::as_str)
+            .collect::<HashSet<_>>();
+        if required.is_empty() {
+            offenders.push(format!("stage={} missing required_tool_roles", stage.id));
+            continue;
+        }
+        for tool_id in stage_tool_ids(stage) {
+            match tool_by_id.get(&tool_id) {
+                Some(tool) if required.contains(tool.tool_role.as_deref().unwrap_or("")) => {}
+                Some(tool) => offenders.push(format!(
+                    "stage={} tool={} role={} not in {:?}",
+                    stage.id,
+                    tool_id,
+                    tool.tool_role.as_deref().unwrap_or(""),
+                    stage.required_tool_roles
+                )),
+                None => offenders.push(format!("stage={} unknown tool={tool_id}", stage.id)),
+            }
+        }
+    }
+    offenders.sort();
+    offenders.dedup();
+    offenders
+}
+
+fn stage_tool_ids(stage: &StageRegistryRow) -> Vec<String> {
+    let mut ids = stage.primary_tools.clone();
+    ids.extend(stage.optional_alternatives.clone());
+    ids.extend(stage.validation_tools.clone());
+    ids.extend(stage.reporting_tools.clone());
+    ids.sort();
+    ids.dedup();
+    ids
+}
+
+fn smoke_policy_offenders(tools: Vec<RegistryRow>, domain: &str) -> Vec<String> {
+    let mut offenders = Vec::new();
+    for tool in tools {
+        if tool.status != "supported" || !tool_in_domain(&tool, domain) {
+            continue;
+        }
+        let version_cmd = tool.version_cmd.as_deref().unwrap_or("").trim();
+        let help_cmd = tool.help_cmd.as_deref().unwrap_or("").trim();
+        if version_cmd.is_empty() || help_cmd.is_empty() {
+            offenders.push(format!(
+                "tool={} missing smoke commands (version/help)",
+                tool.id
+            ));
+        }
+    }
+    offenders.sort();
+    offenders.dedup();
+    offenders
+}
+
+fn tool_in_domain(tool: &RegistryRow, domain: &str) -> bool {
+    tool.bindings
+        .iter()
+        .chain(tool.stage_ids.iter())
+        .any(|stage| stage.starts_with(&format!("{domain}.")))
 }
 
 /// # Errors
@@ -852,10 +1053,26 @@ pub fn print_registry_coverage_matrix(registry_path: &Path) -> Result<()> {
 #[derive(Default, Serialize)]
 struct StageRegistryRow {
     id: String,
+    required_tool_roles: Vec<String>,
     primary_tools: Vec<String>,
     optional_alternatives: Vec<String>,
     validation_tools: Vec<String>,
     reporting_tools: Vec<String>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct PolicyCheckResult {
+    pub name: String,
+    pub ok: bool,
+    pub detail: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct PolicyCleanReport {
+    pub schema_version: &'static str,
+    pub domain: String,
+    pub ok: bool,
+    pub checks: Vec<PolicyCheckResult>,
 }
 
 /// # Errors
@@ -1094,6 +1311,8 @@ fn parse_stage_registry_rows(raw: &str) -> Result<Vec<StageRegistryRow>> {
         };
         if let Some(value) = parse_toml_string(trimmed, "id") {
             row.id = value;
+        } else if let Some(values) = parse_toml_array(trimmed, "required_tool_roles") {
+            row.required_tool_roles = values;
         } else if let Some(values) = parse_toml_array(trimmed, "primary_tools") {
             row.primary_tools = values;
         } else if let Some(values) = parse_toml_array(trimmed, "optional_alternatives") {
