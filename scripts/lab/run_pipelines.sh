@@ -1,6 +1,13 @@
 #!/usr/bin/env sh
 set -eu
 
+ROOT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)
+cd "$ROOT_DIR"
+
+if ! ./bin/require-isolate >/dev/null 2>&1; then
+  exec ./bin/isolate "$0" "$@"
+fi
+
 CONFIG_PATH="${CONFIG_PATH:-scripts/lab/config.toml}"
 if [ ! -f "$CONFIG_PATH" ]; then
   echo "config not found: $CONFIG_PATH"
