@@ -30,6 +30,7 @@ invariants:
 allowed_missingness:
   - "none"
 compatible_tools:
+  - picard
   - samtools
 assumptions:
   - "default stage assumptions captured"
