@@ -132,6 +132,19 @@ test-images-tool: ## Smoke one tool via CLI registry
 	fi
 	@$(MAKE) env-smoke TOOLS="$(TOOLS)" CONTAINER_TYPE="$(CONTAINER_TYPE)"
 
+image-smoke-vcf: ## Smoke only VCF tools and write manifests under isolate/container artifacts.
+	@set -eu; \
+	TOOLS_VCF="$$(python3 -c "import tomllib; from pathlib import Path; rows=tomllib.loads(Path('configs/tool_registry_vcf.toml').read_text()).get('tools', []); print(','.join(sorted({row.get('id','') for row in rows if row.get('id')})))")"; \
+	if [ -z "$$TOOLS_VCF" ]; then \
+		echo "ERROR: no VCF tools found in configs/tool_registry_vcf.toml"; \
+		exit 2; \
+	fi; \
+	if [ "$(CONTAINER_TYPE)" = "apptainer" ]; then \
+		./bin/isolate env TOOLS="$$TOOLS_VCF" JOBS="$(JOBS)" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/smoke-containers-apptainer.sh; \
+	else \
+		./bin/isolate env TOOLS="$$TOOLS_VCF" JOBS="$(JOBS)" SMOKE_LEVEL="contract" SAVE_TAR="0" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/smoke-containers-docker-arm64.sh; \
+	fi
+
 image-qa: ## Run image QA (docker-arm64 only)
 	@if [ "$(CONTAINER_TYPE)" != "docker-arm64" ]; then \
 		echo "skip: image-qa is docker-only (CONTAINER_TYPE=$(CONTAINER_TYPE))"; \
@@ -153,5 +166,5 @@ containers: ## Print tools/runtime/result/log summary from target-containers man
 
 .PHONY: container-runtime-check env-prep env-smoke container-smoke containers-smoke \
 	smoke-containers-docker-arm64 smoke-containers-docker-amd64 smoke-containers-apptainer \
-	build-images test-images test-images-stage test-images-tool image-qa \
+	build-images test-images test-images-stage test-images-tool image-smoke-vcf image-qa \
 	containers-apptainer-build containers-lint containers

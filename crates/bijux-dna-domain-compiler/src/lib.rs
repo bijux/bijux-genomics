@@ -1481,11 +1481,46 @@ fn build_tool_registries_toml(
     }
 }
 
-fn build_images_toml(tools: &ToolMap, source_commit: &str) -> String {
+fn collect_vcf_image_versions(domain_dir: &Path) -> Result<BTreeMap<String, String>> {
+    let mut out = BTreeMap::new();
+    let vcf_tools_dir = domain_dir.join("vcf").join("tools");
+    if !vcf_tools_dir.exists() {
+        return Ok(out);
+    }
+    for entry in std::fs::read_dir(&vcf_tools_dir)
+        .with_context(|| format!("read {}", vcf_tools_dir.display()))?
+    {
+        let path = entry?.path();
+        if path.extension().and_then(|v| v.to_str()) != Some("yaml") {
+            continue;
+        }
+        let tool: DomainToolLoose = read_yaml(&path)?;
+        if tool.tool_id.trim().is_empty() || tool.status == "out_of_scope" {
+            continue;
+        }
+        out.insert(tool.tool_id, tool.default_version);
+    }
+    Ok(out)
+}
+
+fn build_images_toml(
+    tools: &ToolMap,
+    vcf_image_versions: &BTreeMap<String, String>,
+    source_commit: &str,
+) -> String {
     let mut images_toml = generated_header("domain/**", source_commit);
+    let mut image_versions = BTreeMap::<String, String>::new();
     for tool in tools.values() {
-        let _ = writeln!(images_toml, "[{}]", tool.id);
-        let _ = writeln!(images_toml, "version = \"{}\"\n", tool.default_version);
+        image_versions.insert(tool.id.clone(), tool.default_version.clone());
+    }
+    for (tool_id, version) in vcf_image_versions {
+        image_versions
+            .entry(tool_id.clone())
+            .or_insert_with(|| version.clone());
+    }
+    for (tool_id, version) in image_versions {
+        let _ = writeln!(images_toml, "[{tool_id}]");
+        let _ = writeln!(images_toml, "version = \"{version}\"\n");
     }
     images_toml
 }
@@ -1736,7 +1771,8 @@ pub fn compile_domain_configs(options: &CompileOptions) -> Result<()> {
         .with_context(|| format!("write {}", required_tools_path.display()))?;
 
     let images_path = options.configs_dir.join("images.toml");
-    let images_toml = build_images_toml(&tools, &source_commit);
+    let vcf_image_versions = collect_vcf_image_versions(&options.domain_dir)?;
+    let images_toml = build_images_toml(&tools, &vcf_image_versions, &source_commit);
     ensure_no_placeholders_in_active_config("images.toml", &images_toml)?;
     write_string(&images_path, &images_toml)
         .with_context(|| format!("write {}", images_path.display()))?;
