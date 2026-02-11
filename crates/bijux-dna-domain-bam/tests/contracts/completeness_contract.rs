@@ -1,10 +1,10 @@
 use std::path::PathBuf;
 
+use bijux_dna_domain_bam::defaults::default_params_json;
 use bijux_dna_domain_bam::metrics::{
     parse_mapdamage2_misincorporation, parse_mosdepth_summary, parse_pydamage_json,
     parse_samtools_flagstat, parse_samtools_idxstats, parse_samtools_stats,
 };
-use bijux_dna_domain_bam::params::BamEffectiveParams;
 use bijux_dna_domain_bam::{required_audit_artifacts, stage_spec, BamStage};
 
 fn fixture_path(name: &str) -> PathBuf {
@@ -16,12 +16,8 @@ fn fixture_path(name: &str) -> PathBuf {
         .join(name)
 }
 
-fn params_to_value(params: &BamEffectiveParams) -> anyhow::Result<serde_json::Value> {
-    Ok(serde_json::to_value(params)?)
-}
-
 #[test]
-fn bam_stages_meet_completeness_contract() -> anyhow::Result<()> {
+fn bam_stages_meet_completeness_contract() {
     for stage in BamStage::all() {
         let spec = stage_spec(*stage);
         let audit = required_audit_artifacts(*stage);
@@ -35,12 +31,11 @@ fn bam_stages_meet_completeness_contract() -> anyhow::Result<()> {
             "stage {} missing required outputs",
             stage.as_str()
         );
-        let params_value = params_to_value(&spec.default_params)?;
+        let params_value = default_params_json(*stage);
         stage
             .parse_effective_params(&params_value)
             .unwrap_or_else(|_| panic!("default params invalid for {}", stage.as_str()));
     }
-    Ok(())
 }
 
 #[test]
