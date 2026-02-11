@@ -290,7 +290,10 @@ struct ContaminationDbEntry {
 struct ToolRow {
     id: String,
     domain: String,
+    domains: Vec<String>,
     stage_ids: Vec<String>,
+    bindings: Vec<String>,
+    tool_role: String,
     default_version: String,
     upstream: String,
     pin_strategy: String,
@@ -741,6 +744,39 @@ fn default_healthcheck_cmd(tool_id: &str, help_cmd: &str) -> String {
     help_cmd.to_string()
 }
 
+fn tool_role_from_stage_id(stage_id: &str) -> &'static str {
+    if stage_id.contains(".align") || stage_id.contains("host_depletion") {
+        "aligner"
+    } else if stage_id.contains("screen") || stage_id.contains("contaminant") {
+        "screen"
+    } else if stage_id.contains("trim") || stage_id.contains("adapter") {
+        "trimmer"
+    } else if stage_id.contains("qc") || stage_id.contains("stats") || stage_id.contains("report") {
+        "qc"
+    } else if stage_id.contains("filter") {
+        "filter"
+    } else if stage_id.contains("validate") {
+        "validator"
+    } else if stage_id.contains("merge") {
+        "merger"
+    } else if stage_id.contains("correct") {
+        "corrector"
+    } else {
+        "transform"
+    }
+}
+
+fn infer_tool_role(stage_ids: &[String]) -> String {
+    stage_ids.first().map_or_else(
+        || "transform".to_string(),
+        |stage_id| tool_role_from_stage_id(stage_id).to_string(),
+    )
+}
+
+fn required_tool_roles_for_stage(stage_id: &str) -> Vec<String> {
+    vec![tool_role_from_stage_id(stage_id).to_string()]
+}
+
 #[allow(clippy::too_many_lines)]
 fn load_domain_tools(
     domain_dir: &Path,
@@ -828,12 +864,26 @@ fn load_domain_tools(
             .and_then(|v| v.to_str())
             .unwrap_or(domain)
             .to_string();
+        let mut domains = tool
+            .stage_ids
+            .iter()
+            .filter_map(|stage_id| stage_id.split('.').next().map(str::to_string))
+            .collect::<Vec<_>>();
+        domains.sort();
+        domains.dedup();
+        let mut bindings = tool.stage_ids.clone();
+        bindings.sort();
+        bindings.dedup();
+        let tool_role = infer_tool_role(&bindings);
         tools.insert(
             tool_id.clone(),
             ToolRow {
                 id: tool_id.clone(),
                 domain: resolved_domain,
+                domains,
                 stage_ids: tool.stage_ids,
+                bindings,
+                tool_role,
                 default_version: tool.default_version,
                 upstream: tool.upstream,
                 pin_strategy: if tool.pin_strategy.is_empty() {
@@ -1367,8 +1417,11 @@ fn build_tool_registries_toml(
         let _ = writeln!(out, "id = \"{}\"", tool.id);
         let _ = writeln!(out, "tool_id = \"{}\"", tool.id);
         let _ = writeln!(out, "domain = \"{}\"", tool.domain);
+        let _ = writeln!(out, "domains = {}", toml_array(&tool.domains));
         let _ = writeln!(out, "status = \"{}\"", tool.status);
         let _ = writeln!(out, "stage_ids = {}", toml_array(&tool.stage_ids));
+        let _ = writeln!(out, "bindings = {}", toml_array(&tool.bindings));
+        let _ = writeln!(out, "tool_role = \"{}\"", tool.tool_role);
         let _ = writeln!(out, "version = \"{}\"", effective_version);
         let _ = writeln!(out, "default_version = \"{}\"", effective_version);
         let _ = writeln!(out, "upstream = \"{}\"", upstream);
@@ -1440,6 +1493,11 @@ fn build_tool_registries_toml(
         };
         let _ = writeln!(production_toml, "[[stages]]");
         let _ = writeln!(production_toml, "id = \"{stage_id}\"");
+        let _ = writeln!(
+            production_toml,
+            "required_tool_roles = {}",
+            toml_array(&required_tool_roles_for_stage(stage_id))
+        );
         let _ = writeln!(production_toml, "primary_tools = {}", toml_array(&primary));
         let _ = writeln!(
             production_toml,

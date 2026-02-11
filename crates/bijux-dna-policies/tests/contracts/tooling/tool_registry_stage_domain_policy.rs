@@ -7,7 +7,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use support::workspace_root;
 
 #[test]
-fn policy__contracts__tool_registry_stage_domain_policy__each_tool_has_exactly_one_domain_and_stage_binding(
+fn policy__contracts__tool_registry_stage_domain_policy__tool_bindings_are_explicit_and_domain_consistent(
 ) {
     let registry_path = workspace_root().join("configs/tool_registry.toml");
     let raw = std::fs::read_to_string(&registry_path).expect("read configs/tool_registry.toml");
@@ -45,7 +45,6 @@ fn policy__contracts__tool_registry_stage_domain_policy__each_tool_has_exactly_o
     }
 
     let mut offenders = Vec::new();
-    let cross_domain_allowlist = ["multiqc", "samtools"];
     for tool in &tools {
         if tool.get("tool_id").and_then(toml::Value::as_str).is_none() {
             continue;
@@ -62,6 +61,7 @@ fn policy__contracts__tool_registry_stage_domain_policy__each_tool_has_exactly_o
         let declared_domain = DomainKind::try_from(declared_domain_raw.as_str()).ok();
         let declared_domains = list(tool, "domains").into_iter().collect::<BTreeSet<_>>();
         let declared_stage_ids = list(tool, "stage_ids");
+        let declared_bindings = list(tool, "bindings");
         let status = tool
             .get("status")
             .and_then(toml::Value::as_str)
@@ -79,6 +79,11 @@ fn policy__contracts__tool_registry_stage_domain_policy__each_tool_has_exactly_o
             .collect::<BTreeSet<_>>()
             .into_iter()
             .collect::<Vec<_>>();
+        let binding_stage_ids = if declared_bindings.is_empty() {
+            effective_stage_ids.clone()
+        } else {
+            declared_bindings
+        };
 
         if declared_domain_raw.is_empty() {
             offenders.push(format!("tool={id}: missing `domain`"));
@@ -90,6 +95,9 @@ fn policy__contracts__tool_registry_stage_domain_policy__each_tool_has_exactly_o
         if declared_stage_ids.is_empty() {
             offenders.push(format!("tool={id}: missing non-empty `stage_ids`"));
         }
+        if binding_stage_ids.is_empty() {
+            offenders.push(format!("tool={id}: missing non-empty `bindings`"));
+        }
         if status != "supported" {
             continue;
         }
@@ -100,7 +108,7 @@ fn policy__contracts__tool_registry_stage_domain_policy__each_tool_has_exactly_o
             continue;
         }
 
-        let stage_domain_set = effective_stage_ids
+        let stage_domain_set = binding_stage_ids
             .iter()
             .filter_map(|stage_id| {
                 stage_id
@@ -114,29 +122,18 @@ fn policy__contracts__tool_registry_stage_domain_policy__each_tool_has_exactly_o
             .map(|domain| domain.as_str().to_string())
             .collect::<BTreeSet<_>>();
 
-        if !declared_domains.is_empty() {
-            if stage_domain_strs != declared_domains {
-                offenders.push(format!(
-                    "tool={id}: declared domains {:?} do not match discovered {:?}",
-                    declared_domains, stage_domain_strs
-                ));
-            }
-            continue;
-        }
-
-        if stage_domain_set.len() != 1 && !cross_domain_allowlist.contains(&id) {
+        if !declared_domains.is_empty() && stage_domain_strs != declared_domains {
             offenders.push(format!(
-                "tool={id}: must map to exactly one domain; found {:?}",
-                stage_domain_strs
+                "tool={id}: declared domains {:?} do not match discovered {:?}",
+                declared_domains, stage_domain_strs
             ));
-        } else if stage_domain_set.len() == 1 {
-            if let Some(actual_domain) = stage_domain_set.iter().next() {
-                if Some(*actual_domain) != declared_domain {
-                    offenders.push(format!(
-                        "tool={id}: declared domain `{declared_domain_raw}` does not match discovered `{}`",
-                        actual_domain.as_str()
-                    ));
-                }
+        }
+        if let Some(primary_domain) = declared_domain {
+            if !stage_domain_set.contains(&primary_domain) {
+                offenders.push(format!(
+                    "tool={id}: declared primary domain `{declared_domain_raw}` is absent from bindings {:?}",
+                    binding_stage_ids
+                ));
             }
         }
     }
