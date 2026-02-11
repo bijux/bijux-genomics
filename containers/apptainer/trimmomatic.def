@@ -72,10 +72,6 @@ EOF
     rm -rf /opt/Trimmomatic-0.39
     rm -rf /var/lib/apt/lists/*
 
-    # Purge build-time fetch/unpack tools only (keep Java + ca-certs)
-        wget \
-        unzip
-
 %runscript
     if [ $# -eq 0 ]; then
         exec trimmomatic --help

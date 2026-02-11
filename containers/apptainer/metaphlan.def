@@ -52,9 +52,6 @@ case "$1" in
 esac
 EOF
     chmod +x /usr/local/bin/metaphlan && \
-
-        libbz2-dev liblzma-dev libcurl4-gnutls-dev libssl-dev \
-        zlib1g-dev libhdf5-dev && \
     rm -rf /var/lib/apt/lists/*
 
 %runscript

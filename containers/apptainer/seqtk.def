@@ -71,11 +71,6 @@ EOF
     cd /
     rm -rf /opt/seqtk
 
-    # Remove build deps; keep runtime deps (zlib + ca-certs)
-        git \
-        build-essential \
-        zlib1g-dev
-
     rm -rf /var/lib/apt/lists/*
 
 %runscript

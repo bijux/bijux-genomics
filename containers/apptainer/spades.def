@@ -82,17 +82,9 @@ exec spades --only-error-correction "$@"
 EOF
     chmod 0755 /usr/local/bin/bayeshammer
 
-    # Section 6: Clean up and purge build-time dependencies only.
+    # Section 6: Clean up build tree.
     cd /
     rm -rf /opt/spades-4.2.0 /tmp/spades.tar.gz
-
-        build-essential \
-        cmake \
-        g++ \
-        wget \
-        zlib1g-dev \
-        libbz2-dev \
-        libboost-all-dev
 
     rm -rf /var/lib/apt/lists/*
 

@@ -26,16 +26,30 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
     git clone --depth 1 https://github.com/LouisPwr/AdDeam.git /opt/AdDeam
     cd /opt/AdDeam
     git checkout f1dd2a5e530975cab1df48e47a1d51ea76bf183a
-    pip3 install --no-cache-dir .
-
     cat > /usr/local/bin/addeam <<'SH'
 #!/bin/sh
 set -eu
 if [ "${1:-}" = "--version" ]; then
-  python3 -c 'import importlib.metadata as m; print(m.version("addeam"))' || echo "unknown"
+  (cd /opt/AdDeam && git rev-parse --short=12 HEAD) || echo "unknown"
   exit 0
 fi
-exec python3 -m addeam "$@"
+entry=""
+for candidate in \
+  /opt/AdDeam/AdDeam.py \
+  /opt/AdDeam/addeam.py \
+  /opt/AdDeam/src/AdDeam.py \
+  /opt/AdDeam/src/addeam.py
+do
+  if [ -f "$candidate" ]; then
+    entry="$candidate"
+    break
+  fi
+done
+if [ -z "$entry" ]; then
+  entry="$(find /opt/AdDeam -maxdepth 3 -type f \( -name '*deam*.py' -o -name '*Deam*.py' \) | head -n 1 || true)"
+fi
+[ -n "$entry" ] || { echo "AdDeam entry script not found" >&2; exit 127; }
+exec python3 "$entry" "$@"
 SH
     chmod +x /usr/local/bin/addeam
 
