@@ -94,6 +94,8 @@ mod mod_contracts_tooling_tool_registry_completeness_rs;
 mod mod_contracts_tooling_tool_registry_reproducibility_policy_rs;
 #[path = "contracts/tooling/tool_registry_stage_domain_policy.rs"]
 mod mod_contracts_tooling_tool_registry_stage_domain_policy_rs;
+#[path = "contracts/tooling/vcf_image_smoke_policy.rs"]
+mod mod_contracts_tooling_vcf_image_smoke_policy_rs;
 #[path = "contracts/tooling/vcf_support_gate_policy.rs"]
 mod mod_contracts_tooling_vcf_support_gate_policy_rs;
 #[path = "contracts/workspace.rs"]

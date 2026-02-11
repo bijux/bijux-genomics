@@ -12,6 +12,7 @@ fn policy__contracts__smoke_manifest_policy__container_smoke_manifests_include_i
     let required_tokens = [
         "\"runtime\"",
         "\"image\"",
+        "\"resolved_image_digest\"",
         "\"declared_version\"",
         "\"upstream\"",
         "\"upstream_pin\"",
