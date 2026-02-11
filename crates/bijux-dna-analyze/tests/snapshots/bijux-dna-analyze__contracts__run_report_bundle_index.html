@@ -166,12 +166,12 @@
       "runtime_s": 1.0,
       "memory_mb": 64.0,
       "exit_code": 0,
-      "metrics_path": "/Users/bijan/bijux/bijux-dna/crates/bijux-dna-analyze/tests/fixtures/report/metrics.json",
-      "tool_invocation_path": "/Users/bijan/bijux/bijux-dna/crates/bijux-dna-analyze/tests/fixtures/report/tool_invocation.json",
-      "effective_config_path": "/Users/bijan/bijux/bijux-dna/crates/bijux-dna-analyze/tests/fixtures/report/effective_config.json",
-      "stage_report_path": "/Users/bijan/bijux/bijux-dna/crates/bijux-dna-analyze/tests/fixtures/report/stage_report.json",
-      "retention_report_path": "/Users/bijan/bijux/bijux-dna/crates/bijux-dna-analyze/tests/fixtures/report/retention_report.json",
-      "bank_report_path": "/Users/bijan/bijux/bijux-dna/crates/bijux-dna-analyze/tests/fixtures/report/bank_report.json"
+      "metrics_path": "metrics.json",
+      "tool_invocation_path": "tool_invocation.json",
+      "effective_config_path": "effective_config.json",
+      "stage_report_path": "stage_report.json",
+      "retention_report_path": "retention_report.json",
+      "bank_report_path": "bank_report.json"
     }
   ],
   "provenance": [
@@ -184,9 +184,13 @@
       "span_id": "span-1",
       "params_hash": "params",
       "bank_hashes": {
+        "adapter_bank_hash": "unknown",
         "adapters": "sha256:adapters",
         "contaminants": "sha256:contam",
-        "polyx": "sha256:polyx"
+        "polyx": "sha256:polyx",
+        "reference_bank_hash": "unknown",
+        "taxonomy_db_hash": "unknown",
+        "taxonomy_db_version": "unknown"
       }
     }
   ],
@@ -316,7 +320,7 @@
     "error_count": 0,
     "event_count": 0,
     "events": [
-      "/Users/bijan/bijux/bijux-dna/crates/bijux-dna-analyze/tests/fixtures/report/telemetry/events.jsonl"
+      "telemetry/events.jsonl"
     ]
   },
   "qc_improvement": {},
@@ -582,7 +586,7 @@
       },
       "presets": [
         {
-          "effective_config_path": "/Users/bijan/bijux/bijux-dna/crates/bijux-dna-analyze/tests/fixtures/report/effective_config.json",
+          "effective_config_path": "effective_config.json",
           "params_hash": "params",
           "stage_id": "fastq.trim",
           "tool_id": "fastp",
@@ -602,15 +606,7 @@
         }
       ]
     },
-    "metric_provenance": {
-      "fastq.trim": {
-        "normalized_params_excerpt": {
-          "min_len": 20
-        },
-        "params_hash": "params",
-        "tool_id": "fastp"
-      }
-    },
+    "metric_provenance": {},
     "pipeline_defaults": {
       "defaults_ledger": {
         "assumptions": [],
@@ -862,7 +858,7 @@
   </div>
   <div class=\"stage-artifacts\">
     <h4>Artifacts</h4>
-    <ul><li><a href=\"/Users/bijan/bijux/bijux-dna/crates/bijux-dna-analyze/tests/fixtures/report/stage_report.json\">stage_report</a></li><li><a href=\"/Users/bijan/bijux/bijux-dna/crates/bijux-dna-analyze/tests/fixtures/report/metrics.json\">metrics</a></li><li><a href=\"/Users/bijan/bijux/bijux-dna/crates/bijux-dna-analyze/tests/fixtures/report/retention_report.json\">retention_report</a></li><li><a href=\"/Users/bijan/bijux/bijux-dna/crates/bijux-dna-analyze/tests/fixtures/report/bank_report.json\">bank_report</a></li><li><a href=\"/Users/bijan/bijux/bijux-dna/crates/bijux-dna-analyze/tests/fixtures/report/tool_invocation.json\">tool_invocation</a></li></ul>
+    <ul><li><a href=\"stage_report.json\">stage_report</a></li><li><a href=\"metrics.json\">metrics</a></li><li><a href=\"retention_report.json\">retention_report</a></li><li><a href=\"bank_report.json\">bank_report</a></li><li><a href=\"tool_invocation.json\">tool_invocation</a></li></ul>
   </div>
   <div class=\"stage-plots\" data-stage=\"fastq.trim\"></div>
 </div>
@@ -1090,7 +1086,7 @@
   },
   "presets": [
     {
-      "effective_config_path": "/Users/bijan/bijux/bijux-dna/crates/bijux-dna-analyze/tests/fixtures/report/effective_config.json",
+      "effective_config_path": "effective_config.json",
       "params_hash": "params",
       "stage_id": "fastq.trim",
       "tool_id": "fastp",
@@ -1109,15 +1105,7 @@
       "tool_version": "0.23.4"
     }
   ]
-}</pre></details><details id=\"section-metric_provenance\" class=\"section\"><summary>metric_provenance</summary><pre>{
-  "fastq.trim": {
-    "normalized_params_excerpt": {
-      "min_len": 20
-    },
-    "params_hash": "params",
-    "tool_id": "fastp"
-  }
-}</pre></details><details id=\"section-pipeline_defaults\" class=\"section\"><summary>pipeline_defaults</summary><pre>{
+}</pre></details><details id=\"section-metric_provenance\" class=\"section\"><summary>metric_provenance</summary><pre>{}</pre></details><details id=\"section-pipeline_defaults\" class=\"section\"><summary>pipeline_defaults</summary><pre>{
   "defaults_ledger": {
     "assumptions": [],
     "citations": {},

@@ -157,9 +157,13 @@
   "provenance": [
     {
       "bank_hashes": {
+        "adapter_bank_hash": "unknown",
         "adapters": "sha256:adapters",
         "contaminants": "sha256:contam",
-        "polyx": "sha256:polyx"
+        "polyx": "sha256:polyx",
+        "reference_bank_hash": "unknown",
+        "taxonomy_db_hash": "unknown",
+        "taxonomy_db_version": "unknown"
       },
       "image_digest": "sha256:img",
       "params_hash": "params",
@@ -438,7 +442,7 @@
       },
       "presets": [
         {
-          "effective_config_path": "/Users/bijan/bijux/bijux-dna/crates/bijux-dna-analyze/tests/fixtures/report/effective_config.json",
+          "effective_config_path": "effective_config.json",
           "params_hash": "params",
           "stage_id": "fastq.trim",
           "tool_id": "fastp",
@@ -458,15 +462,7 @@
         }
       ]
     },
-    "metric_provenance": {
-      "fastq.trim": {
-        "normalized_params_excerpt": {
-          "min_len": 20
-        },
-        "params_hash": "params",
-        "tool_id": "fastp"
-      }
-    },
+    "metric_provenance": {},
     "pipeline_defaults": {
       "defaults_ledger": {
         "assumptions": [],
@@ -657,19 +653,19 @@
   },
   "stages": [
     {
-      "bank_report_path": "/Users/bijan/bijux/bijux-dna/crates/bijux-dna-analyze/tests/fixtures/report/bank_report.json",
-      "effective_config_path": "/Users/bijan/bijux/bijux-dna/crates/bijux-dna-analyze/tests/fixtures/report/effective_config.json",
+      "bank_report_path": "bank_report.json",
+      "effective_config_path": "effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "/Users/bijan/bijux/bijux-dna/crates/bijux-dna-analyze/tests/fixtures/report/metrics.json",
+      "metrics_path": "metrics.json",
       "params_hash": "params",
-      "retention_report_path": "/Users/bijan/bijux/bijux-dna/crates/bijux-dna-analyze/tests/fixtures/report/retention_report.json",
+      "retention_report_path": "retention_report.json",
       "runtime_s": 1.0,
       "stage_id": "fastq.trim",
-      "stage_report_path": "/Users/bijan/bijux/bijux-dna/crates/bijux-dna-analyze/tests/fixtures/report/stage_report.json",
+      "stage_report_path": "stage_report.json",
       "tool_id": "fastp",
-      "tool_invocation_path": "/Users/bijan/bijux/bijux-dna/crates/bijux-dna-analyze/tests/fixtures/report/tool_invocation.json",
+      "tool_invocation_path": "tool_invocation.json",
       "tool_version": "0.23.4"
     }
   ],
@@ -677,7 +673,7 @@
     "error_count": 0,
     "event_count": 0,
     "events": [
-      "/Users/bijan/bijux/bijux-dna/crates/bijux-dna-analyze/tests/fixtures/report/telemetry/events.jsonl"
+      "telemetry/events.jsonl"
     ]
   }
 }
