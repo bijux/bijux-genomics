@@ -9,20 +9,20 @@ mem_gb = 64
 
 [[stages]]
 stage = "validate_pre"
-tools = ["seqkit", "fastp"]
+tools = ["fastqvalidator_official"]
 
 [[stages]]
 stage = "trim"
-tools = ["fastp", "cutadapt"]
+tools = ["bbduk", "fastp", "fastx_clipper", "seqkit"]
 
 [[stages]]
 stage = "filter"
-tools = ["fastp", "bbduk"]
+tools = ["fastp", "seqkit"]
 
 [[stages]]
 stage = "stats"
-tools = ["seqkit", "fastp"]
+tools = ["seqkit_stats"]
 
 [[stages]]
 stage = "qc_post"
-tools = ["fastqc", "falco"]
+tools = ["multiqc", "samtools"]

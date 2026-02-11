@@ -286,7 +286,7 @@ authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
 duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
 coverage_sufficiency = ["not_applicable"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["bbduk", "bowtie2"]
+tools = ["bbduk"]
 
 [[stages]]
 id = "fastq.correct"
@@ -362,7 +362,7 @@ authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
 duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
 coverage_sufficiency = ["not_applicable"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["bowtie2", "samtools"]
+tools = ["bowtie2"]
 
 [[stages]]
 id = "fastq.length_distribution_pre"
@@ -623,4 +623,3 @@ id = "fastq.trim_fairness"
 stage_id = "fastq.trim"
 description = "Compare trim tools on identical raw FASTQ pairs and identical adapter bank."
 fairness_rules = ["same_input_hash", "same_previous_stage_defaults", "same_dataset_class"]
-
