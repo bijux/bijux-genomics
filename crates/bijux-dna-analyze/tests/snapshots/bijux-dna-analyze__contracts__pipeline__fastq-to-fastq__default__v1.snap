@@ -173,7 +173,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "span_id": "span-fastq.detect_adapters",
       "stage_id": "fastq.detect_adapters",
       "tool_id": "fastqc",
-      "tool_version": "0.0.0",
+      "tool_version": "99.99.99+fixture",
       "trace_id": "trace-1"
     },
     {
@@ -183,7 +183,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "span_id": "span-fastq.filter",
       "stage_id": "fastq.filter",
       "tool_id": "seqkit",
-      "tool_version": "0.0.0",
+      "tool_version": "99.99.99+fixture",
       "trace_id": "trace-1"
     },
     {
@@ -193,7 +193,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "span_id": "span-fastq.qc_post",
       "stage_id": "fastq.qc_post",
       "tool_id": "multiqc",
-      "tool_version": "0.0.0",
+      "tool_version": "99.99.99+fixture",
       "trace_id": "trace-1"
     },
     {
@@ -203,7 +203,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "span_id": "span-fastq.stats_neutral",
       "stage_id": "fastq.stats_neutral",
       "tool_id": "seqkit_stats",
-      "tool_version": "0.0.0",
+      "tool_version": "99.99.99+fixture",
       "trace_id": "trace-1"
     },
     {
@@ -213,7 +213,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "span_id": "span-fastq.trim",
       "stage_id": "fastq.trim",
       "tool_id": "fastp",
-      "tool_version": "0.0.0",
+      "tool_version": "99.99.99+fixture",
       "trace_id": "trace-1"
     },
     {
@@ -223,7 +223,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "span_id": "span-fastq.validate_pre",
       "stage_id": "fastq.validate_pre",
       "tool_id": "fastqvalidator_official",
-      "tool_version": "0.0.0",
+      "tool_version": "99.99.99+fixture",
       "trace_id": "trace-1"
     }
   ],
@@ -465,7 +465,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "stage_id": "fastq.detect_adapters",
           "telemetry_decisions": [],
           "tool_id": "fastqc",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "adapter_validation": {},
@@ -481,7 +481,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "stage_id": "fastq.filter",
           "telemetry_decisions": [],
           "tool_id": "seqkit",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "adapter_validation": {},
@@ -497,7 +497,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "stage_id": "fastq.qc_post",
           "telemetry_decisions": [],
           "tool_id": "multiqc",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "adapter_validation": {},
@@ -513,7 +513,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "stage_id": "fastq.stats_neutral",
           "telemetry_decisions": [],
           "tool_id": "seqkit_stats",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "adapter_validation": {},
@@ -529,7 +529,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "stage_id": "fastq.trim",
           "telemetry_decisions": [],
           "tool_id": "fastp",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "adapter_validation": {},
@@ -545,7 +545,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "stage_id": "fastq.validate_pre",
           "telemetry_decisions": [],
           "tool_id": "fastqvalidator_official",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         }
       ]
     },
@@ -662,42 +662,42 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "params_hash": "params",
           "stage_id": "fastq.detect_adapters",
           "tool_id": "fastqc",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "fastq.filter",
           "tool_id": "seqkit",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "fastq.qc_post",
           "tool_id": "multiqc",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "fastq.stats_neutral",
           "tool_id": "seqkit_stats",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "fastq.trim",
           "tool_id": "fastp",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "fastq.validate_pre",
           "tool_id": "fastqvalidator_official",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         }
       ],
       "tie_break_policy": [
@@ -709,42 +709,42 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "params_hash": "params",
           "stage_id": "fastq.detect_adapters",
           "tool_id": "fastqc",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "fastq.filter",
           "tool_id": "seqkit",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "fastq.qc_post",
           "tool_id": "multiqc",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "fastq.stats_neutral",
           "tool_id": "seqkit_stats",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "fastq.trim",
           "tool_id": "fastp",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "fastq.validate_pre",
           "tool_id": "fastqvalidator_official",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         }
       ]
     },
@@ -1130,7 +1130,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "tier_rationale": "unknown_tool",
           "tool_id": "fastqc",
           "tool_tier": "experimental",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
@@ -1144,7 +1144,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "tier_rationale": "unknown_tool",
           "tool_id": "seqkit",
           "tool_tier": "experimental",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
@@ -1158,7 +1158,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "tier_rationale": "unknown_tool",
           "tool_id": "multiqc",
           "tool_tier": "experimental",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
@@ -1172,7 +1172,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "tier_rationale": "diagnostic_stats",
           "tool_id": "seqkit_stats",
           "tool_tier": "silver",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
@@ -1186,7 +1186,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "tier_rationale": "curated_default",
           "tool_id": "fastp",
           "tool_tier": "gold",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
@@ -1200,7 +1200,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "tier_rationale": "unknown_tool",
           "tool_id": "fastqvalidator_official",
           "tool_tier": "experimental",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         }
       ]
     },
@@ -1241,7 +1241,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "params"
       ],
       "tool_versions": [
-        "0.0.0"
+        "99.99.99+fixture"
       ]
     },
     "retention": {
@@ -1267,7 +1267,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "resolved_tool_version": null,
           "stage_id": "fastq.detect_adapters",
           "tool_id": "fastqc",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_params": {},
@@ -1281,7 +1281,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "resolved_tool_version": null,
           "stage_id": "fastq.filter",
           "tool_id": "seqkit",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_params": {},
@@ -1295,7 +1295,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "resolved_tool_version": null,
           "stage_id": "fastq.qc_post",
           "tool_id": "multiqc",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_params": {},
@@ -1309,7 +1309,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "resolved_tool_version": null,
           "stage_id": "fastq.stats_neutral",
           "tool_id": "seqkit_stats",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_params": {},
@@ -1323,7 +1323,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "resolved_tool_version": null,
           "stage_id": "fastq.trim",
           "tool_id": "fastp",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_params": {},
@@ -1337,7 +1337,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "resolved_tool_version": null,
           "stage_id": "fastq.validate_pre",
           "tool_id": "fastqvalidator_official",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         }
       ]
     },
@@ -1543,7 +1543,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "stage_report_path": "fastq.detect_adapters/stage_report.json",
       "tool_id": "fastqc",
       "tool_invocation_path": "",
-      "tool_version": "0.0.0"
+      "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": null,
@@ -1559,7 +1559,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "stage_report_path": "fastq.filter/stage_report.json",
       "tool_id": "seqkit",
       "tool_invocation_path": "",
-      "tool_version": "0.0.0"
+      "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": null,
@@ -1575,7 +1575,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "stage_report_path": "fastq.qc_post/stage_report.json",
       "tool_id": "multiqc",
       "tool_invocation_path": "",
-      "tool_version": "0.0.0"
+      "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": null,
@@ -1591,7 +1591,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "stage_report_path": "fastq.stats_neutral/stage_report.json",
       "tool_id": "seqkit_stats",
       "tool_invocation_path": "",
-      "tool_version": "0.0.0"
+      "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": null,
@@ -1607,7 +1607,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "stage_report_path": "fastq.trim/stage_report.json",
       "tool_id": "fastp",
       "tool_invocation_path": "",
-      "tool_version": "0.0.0"
+      "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": null,
@@ -1623,7 +1623,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "stage_report_path": "fastq.validate_pre/stage_report.json",
       "tool_id": "fastqvalidator_official",
       "tool_invocation_path": "",
-      "tool_version": "0.0.0"
+      "tool_version": "99.99.99+fixture"
     }
   ],
   "telemetry": {
