@@ -2,7 +2,7 @@
 
 use std::collections::BTreeSet;
 
-use bijux_dna_core::ids::StageId;
+use bijux_dna_core::ids::{LibraryLayout, StageId};
 use bijux_dna_core::prelude::id_catalog;
 use bijux_dna_domain_fastq::params::detect_adapters::DetectAdaptersEffectiveParams;
 use bijux_dna_domain_fastq::params::filter::FilterEffectiveParams;
@@ -12,7 +12,10 @@ use bijux_dna_domain_fastq::params::screen::ScreenEffectiveParams;
 use bijux_dna_domain_fastq::params::trim::TrimEffectiveParams;
 use serde::Serialize;
 
-use crate::{DefaultParams, InvariantsPreset, PipelineProfile};
+use crate::{
+    DefaultParams, InvariantSeverity, InvariantViolationV1, InvariantsPreset, InvariantsReportV1,
+    PipelineProfile,
+};
 
 pub const FASTQ_INVARIANTS: &str = "fastq-invariants.v2";
 
@@ -28,6 +31,7 @@ const CORE_FASTQ_STAGES: [&str; 5] = [
 pub struct FastqProfileViolation {
     pub code: &'static str,
     pub stage_id: Option<String>,
+    pub severity: InvariantSeverity,
     pub message: String,
 }
 
@@ -56,16 +60,42 @@ impl FastqProfileValidationReport {
             violations,
         }
     }
+
+    #[must_use]
+    pub fn as_invariants_report(&self) -> InvariantsReportV1 {
+        InvariantsReportV1 {
+            schema_version: "bijux.invariants_report.v1".to_string(),
+            profile_id: self.profile_id.clone(),
+            invariants_version: self.invariants_version.to_string(),
+            valid: self.valid,
+            blocking: self
+                .violations
+                .iter()
+                .any(|v| v.severity == InvariantSeverity::Hard),
+            violations: self
+                .violations
+                .iter()
+                .map(|v| InvariantViolationV1 {
+                    code: v.code.to_string(),
+                    stage_id: v.stage_id.clone(),
+                    severity: v.severity,
+                    message: v.message.clone(),
+                })
+                .collect(),
+        }
+    }
 }
 
 fn violation(
     code: &'static str,
     stage_id: Option<&str>,
+    severity: InvariantSeverity,
     message: impl Into<String>,
 ) -> FastqProfileViolation {
     FastqProfileViolation {
         code,
         stage_id: stage_id.map(str::to_string),
+        severity,
         message: message.into(),
     }
 }
@@ -140,6 +170,7 @@ pub fn validate_fastq_profile(profile: &PipelineProfile) -> FastqProfileValidati
             violations.push(violation(
                 "required_stage_missing",
                 Some(stage),
+                InvariantSeverity::Hard,
                 format!("required FASTQ stage `{stage}` is missing"),
             ));
         }
@@ -149,6 +180,7 @@ pub fn validate_fastq_profile(profile: &PipelineProfile) -> FastqProfileValidati
         violations.push(violation(
             "required_params_missing",
             Some(id_catalog::FASTQ_TRIM),
+            InvariantSeverity::Hard,
             "missing or invalid trim params",
         ));
     }
@@ -156,6 +188,7 @@ pub fn validate_fastq_profile(profile: &PipelineProfile) -> FastqProfileValidati
         violations.push(violation(
             "required_params_missing",
             Some(id_catalog::FASTQ_FILTER),
+            InvariantSeverity::Hard,
             "missing or invalid filter params",
         ));
     }
@@ -163,6 +196,7 @@ pub fn validate_fastq_profile(profile: &PipelineProfile) -> FastqProfileValidati
         violations.push(violation(
             "required_params_missing",
             Some(id_catalog::FASTQ_DETECT_ADAPTERS),
+            InvariantSeverity::Hard,
             "missing or invalid detect_adapters params",
         ));
     }
@@ -172,9 +206,37 @@ pub fn validate_fastq_profile(profile: &PipelineProfile) -> FastqProfileValidati
             violations.push(violation(
                 "trim_adapter_policy_invalid",
                 Some(id_catalog::FASTQ_TRIM),
+                InvariantSeverity::Hard,
                 "trim.adapter_policy must be non-empty",
             ));
         }
+    }
+
+    for artifact in [
+        "report.json",
+        "run_manifest.json",
+        "stage_summaries.json",
+        "invariants_report.json",
+    ] {
+        if !profile.capabilities.required_artifacts.contains(&artifact) {
+            violations.push(violation(
+                "required_artifact_missing",
+                None,
+                InvariantSeverity::Hard,
+                format!("FASTQ profiles must require `{artifact}`"),
+            ));
+        }
+    }
+
+    if profile.library_model.layout == LibraryLayout::PairedEnd
+        && !required_stages.contains(id_catalog::FASTQ_MERGE)
+    {
+        violations.push(violation(
+            "paired_library_requires_merge",
+            Some(id_catalog::FASTQ_MERGE),
+            InvariantSeverity::Hard,
+            "paired library declaration requires fastq.merge unless explicitly disabled with justification",
+        ));
     }
 
     let is_adna_like = profile.invariants_preset == Some(InvariantsPreset::Adna)
@@ -185,6 +247,7 @@ pub fn validate_fastq_profile(profile: &PipelineProfile) -> FastqProfileValidati
                 violations.push(violation(
                     "trim_min_len_invalid",
                     Some(id_catalog::FASTQ_TRIM),
+                    InvariantSeverity::Hard,
                     "aDNA profiles must set trim.min_len > 0",
                 ));
             }
@@ -192,6 +255,7 @@ pub fn validate_fastq_profile(profile: &PipelineProfile) -> FastqProfileValidati
                 violations.push(violation(
                     "adna_adapter_policy_invalid",
                     Some(id_catalog::FASTQ_TRIM),
+                    InvariantSeverity::Hard,
                     "aDNA profiles must set trim.adapter_policy != \"none\"",
                 ));
             }
@@ -199,6 +263,7 @@ pub fn validate_fastq_profile(profile: &PipelineProfile) -> FastqProfileValidati
                 violations.push(violation(
                     "adna_quality_trimming_missing",
                     Some(id_catalog::FASTQ_TRIM),
+                    InvariantSeverity::Hard,
                     "aDNA profiles must enable quality trimming (trim.q_cutoff)",
                 ));
             }
@@ -206,6 +271,7 @@ pub fn validate_fastq_profile(profile: &PipelineProfile) -> FastqProfileValidati
                 violations.push(violation(
                     "adna_polyx_trimming_missing",
                     Some(id_catalog::FASTQ_TRIM),
+                    InvariantSeverity::Soft,
                     "aDNA profiles must enable poly-X trimming (trim.polyx_policy)",
                 ));
             }
@@ -215,6 +281,7 @@ pub fn validate_fastq_profile(profile: &PipelineProfile) -> FastqProfileValidati
             violations.push(violation(
                 "adna_merge_stage_missing",
                 Some(id_catalog::FASTQ_MERGE),
+                InvariantSeverity::Hard,
                 "aDNA profiles must include fastq.merge for paired-end collapse/merge",
             ));
         }
@@ -224,6 +291,7 @@ pub fn validate_fastq_profile(profile: &PipelineProfile) -> FastqProfileValidati
                 violations.push(violation(
                     "adna_merge_min_len_invalid",
                     Some(id_catalog::FASTQ_MERGE),
+                    InvariantSeverity::Hard,
                     "aDNA profiles must set merge.min_len > 0",
                 ));
             }
@@ -231,6 +299,7 @@ pub fn validate_fastq_profile(profile: &PipelineProfile) -> FastqProfileValidati
                 violations.push(violation(
                     "adna_merge_overlap_missing",
                     Some(id_catalog::FASTQ_MERGE),
+                    InvariantSeverity::Soft,
                     "aDNA profiles should set merge.merge_overlap for aggressive merging",
                 ));
             }
@@ -238,6 +307,7 @@ pub fn validate_fastq_profile(profile: &PipelineProfile) -> FastqProfileValidati
             violations.push(violation(
                 "required_params_missing",
                 Some(id_catalog::FASTQ_MERGE),
+                InvariantSeverity::Hard,
                 "missing or invalid merge params",
             ));
         }
@@ -254,6 +324,7 @@ pub fn validate_fastq_profile(profile: &PipelineProfile) -> FastqProfileValidati
                 violations.push(violation(
                     "adna_trim_tool_incompatible",
                     Some(id_catalog::FASTQ_TRIM),
+                    InvariantSeverity::Hard,
                     "aDNA profiles must use an allowed aDNA trim tool from id_catalog",
                 ));
             }
@@ -268,6 +339,7 @@ pub fn validate_fastq_profile(profile: &PipelineProfile) -> FastqProfileValidati
                 violations.push(violation(
                     "adna_merge_tool_incompatible",
                     Some(id_catalog::FASTQ_MERGE),
+                    InvariantSeverity::Hard,
                     "aDNA profiles must use the allowed aDNA merge tool from id_catalog",
                 ));
             }
@@ -284,6 +356,7 @@ pub fn validate_fastq_profile(profile: &PipelineProfile) -> FastqProfileValidati
                 violations.push(violation(
                     "reference_required_stage_missing",
                     Some(stage),
+                    InvariantSeverity::Hard,
                     format!("reference-grade aDNA profile requires stage `{stage}`"),
                 ));
             }
@@ -296,6 +369,7 @@ pub fn validate_fastq_profile(profile: &PipelineProfile) -> FastqProfileValidati
                 violations.push(violation(
                     "paired_library_requires_merge",
                     Some(id_catalog::FASTQ_MERGE),
+                    InvariantSeverity::Hard,
                     "paired library declaration requires fastq.merge unless explicitly disabled with justification",
                 ));
             }
@@ -303,6 +377,7 @@ pub fn validate_fastq_profile(profile: &PipelineProfile) -> FastqProfileValidati
             violations.push(violation(
                 "required_params_missing",
                 Some(id_catalog::FASTQ_PREPROCESS),
+                InvariantSeverity::Hard,
                 "reference-grade profile requires preprocess library declaration params",
             ));
         }
@@ -315,6 +390,7 @@ pub fn validate_fastq_profile(profile: &PipelineProfile) -> FastqProfileValidati
                 violations.push(violation(
                     "screen_reference_db_missing",
                     Some(id_catalog::FASTQ_SCREEN),
+                    InvariantSeverity::Soft,
                     "fastq.screen requires contaminant_db when enabled for reference-grade profile",
                 ));
             }

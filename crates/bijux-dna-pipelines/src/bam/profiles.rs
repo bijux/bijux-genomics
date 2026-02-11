@@ -3,7 +3,9 @@
 use std::collections::BTreeMap;
 
 use anyhow::{anyhow, Result};
-use bijux_dna_core::ids::{StageId, ToolId};
+use bijux_dna_core::ids::{
+    AssayKind, LibraryLayout, LibraryModel, PlatformHint, StageId, ToolId, UdgTreatment,
+};
 use bijux_dna_core::prelude::id_catalog;
 use bijux_dna_domain_bam::defaults::{
     adna_capture_params_json, adna_shotgun_params_json, default_params_json,
@@ -187,6 +189,12 @@ pub fn bam_default_profile() -> PipelineProfile {
         defaults: to_effective_defaults(&defaults),
         defaults_ledger_ref: "defaults_ledger.json",
         invariants_preset: None,
+        library_model: LibraryModel {
+            layout: LibraryLayout::SingleEnd,
+            udg_treatment: UdgTreatment::Unknown,
+            platform_hint: PlatformHint::Illumina,
+            assay_kind: AssayKind::Unknown,
+        },
         capabilities: PipelineCapabilities {
             input_domains: vec![Domain::Bam],
             output_domains: vec![Domain::Bam],
@@ -199,7 +207,12 @@ pub fn bam_default_profile() -> PipelineProfile {
             required_metrics_bundles: vec![MetricsBundle::BamCore],
             required_stages,
             required_metrics: vec!["bam.metrics"],
-            required_artifacts: vec!["report.json", "run_manifest.json", "stage_summaries.json"],
+            required_artifacts: vec![
+                "report.json",
+                "run_manifest.json",
+                "stage_summaries.json",
+                "invariants_report.json",
+            ],
             supports_benchmarks: true,
         },
     }
@@ -222,6 +235,12 @@ pub fn bam_adna_shotgun_profile() -> PipelineProfile {
         defaults: to_effective_defaults(&defaults),
         defaults_ledger_ref: "defaults_ledger.json",
         invariants_preset: Some(InvariantsPreset::Adna),
+        library_model: LibraryModel {
+            layout: LibraryLayout::PairedEnd,
+            udg_treatment: UdgTreatment::None,
+            platform_hint: PlatformHint::Illumina,
+            assay_kind: AssayKind::Shotgun,
+        },
         capabilities: PipelineCapabilities {
             input_domains: vec![Domain::Bam],
             output_domains: vec![Domain::Bam],
@@ -234,7 +253,12 @@ pub fn bam_adna_shotgun_profile() -> PipelineProfile {
             required_metrics_bundles: vec![MetricsBundle::BamAdna],
             required_stages,
             required_metrics: vec!["bam.metrics"],
-            required_artifacts: vec!["report.json", "run_manifest.json", "stage_summaries.json"],
+            required_artifacts: vec![
+                "report.json",
+                "run_manifest.json",
+                "stage_summaries.json",
+                "invariants_report.json",
+            ],
             supports_benchmarks: true,
         },
     }
@@ -257,6 +281,12 @@ pub fn bam_adna_capture_profile() -> PipelineProfile {
         defaults: to_effective_defaults(&defaults),
         defaults_ledger_ref: "defaults_ledger.json",
         invariants_preset: Some(InvariantsPreset::Adna),
+        library_model: LibraryModel {
+            layout: LibraryLayout::PairedEnd,
+            udg_treatment: UdgTreatment::None,
+            platform_hint: PlatformHint::Illumina,
+            assay_kind: AssayKind::Capture,
+        },
         capabilities: PipelineCapabilities {
             input_domains: vec![Domain::Bam],
             output_domains: vec![Domain::Bam],
@@ -269,7 +299,12 @@ pub fn bam_adna_capture_profile() -> PipelineProfile {
             required_metrics_bundles: vec![MetricsBundle::BamAdna],
             required_stages,
             required_metrics: vec!["bam.metrics"],
-            required_artifacts: vec!["report.json", "run_manifest.json", "stage_summaries.json"],
+            required_artifacts: vec![
+                "report.json",
+                "run_manifest.json",
+                "stage_summaries.json",
+                "invariants_report.json",
+            ],
             supports_benchmarks: true,
         },
     }
@@ -280,6 +315,14 @@ pub fn bam_adna_profile() -> PipelineProfile {
     bam_adna_shotgun_profile()
 }
 
+#[must_use]
+pub fn bam_reference_adna_profile() -> PipelineProfile {
+    let mut profile = bam_adna_shotgun_profile();
+    profile.id = PipelineId::from_static(id_catalog::PIPELINE_BAM_REFERENCE_ADNA);
+    profile.description = "Reference-grade ancient DNA BAM defaults";
+    profile
+}
+
 /// # Errors
 /// Returns an error if the requested profile id is unknown.
 pub fn bam_profiles_by_id(id: &str) -> Result<PipelineProfile> {
@@ -287,6 +330,7 @@ pub fn bam_profiles_by_id(id: &str) -> Result<PipelineProfile> {
         id_catalog::PIPELINE_BAM_DEFAULT => Ok(bam_default_profile()),
         id_catalog::PIPELINE_BAM_ADNA_SHOTGUN => Ok(bam_adna_shotgun_profile()),
         id_catalog::PIPELINE_BAM_ADNA_CAPTURE => Ok(bam_adna_capture_profile()),
+        id_catalog::PIPELINE_BAM_REFERENCE_ADNA => Ok(bam_reference_adna_profile()),
         _ => Err(anyhow!("unknown BAM profile: {id}")),
     }
 }

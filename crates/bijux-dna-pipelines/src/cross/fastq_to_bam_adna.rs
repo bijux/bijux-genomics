@@ -6,7 +6,9 @@ use crate::{
     ArtifactType, DefaultParams, Domain, EffectiveDefaults, EmptyParams, InvariantsPreset,
     MetricsBundle, PipelineCapabilities, PipelineId, PipelineProfile, ReportSection, StabilityTier,
 };
-use bijux_dna_core::ids::{StageId, ToolId};
+use bijux_dna_core::ids::{
+    AssayKind, LibraryLayout, LibraryModel, PlatformHint, StageId, ToolId, UdgTreatment,
+};
 use bijux_dna_core::prelude::id_catalog;
 use bijux_dna_domain_bam::defaults::{adna_shotgun_params_json, default_params_json};
 use bijux_dna_domain_bam::BamStage;
@@ -98,6 +100,12 @@ pub fn fastq_to_bam_adna_shotgun_profile() -> PipelineProfile {
         defaults,
         defaults_ledger_ref: "defaults_ledger.json",
         invariants_preset: Some(InvariantsPreset::Adna),
+        library_model: LibraryModel {
+            layout: LibraryLayout::PairedEnd,
+            udg_treatment: UdgTreatment::None,
+            platform_hint: PlatformHint::Illumina,
+            assay_kind: AssayKind::Shotgun,
+        },
         capabilities: PipelineCapabilities {
             input_domains: vec![Domain::Fastq, Domain::Cross],
             output_domains: vec![Domain::Bam],
@@ -122,7 +130,12 @@ pub fn fastq_to_bam_adna_shotgun_profile() -> PipelineProfile {
                 "bam.damage",
             ],
             required_metrics: vec!["fastq.metrics", "bam.metrics"],
-            required_artifacts: vec!["report.json", "run_manifest.json", "stage_summaries.json"],
+            required_artifacts: vec![
+                "report.json",
+                "run_manifest.json",
+                "stage_summaries.json",
+                "invariants_report.json",
+            ],
             supports_benchmarks: false,
         },
     }
@@ -195,6 +208,12 @@ pub fn fastq_to_bam_default_profile() -> PipelineProfile {
         defaults,
         defaults_ledger_ref: "defaults_ledger.json",
         invariants_preset: None,
+        library_model: LibraryModel {
+            layout: LibraryLayout::PairedEnd,
+            udg_treatment: UdgTreatment::Unknown,
+            platform_hint: PlatformHint::Illumina,
+            assay_kind: AssayKind::Shotgun,
+        },
         capabilities: PipelineCapabilities {
             input_domains: vec![Domain::Fastq, Domain::Cross],
             output_domains: vec![Domain::Bam],
@@ -219,7 +238,12 @@ pub fn fastq_to_bam_default_profile() -> PipelineProfile {
                 "bam.damage",
             ],
             required_metrics: vec!["fastq.metrics", "bam.metrics"],
-            required_artifacts: vec!["report.json", "run_manifest.json", "stage_summaries.json"],
+            required_artifacts: vec![
+                "report.json",
+                "run_manifest.json",
+                "stage_summaries.json",
+                "invariants_report.json",
+            ],
             supports_benchmarks: false,
         },
     }

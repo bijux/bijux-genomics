@@ -43,6 +43,50 @@ pub enum DomainKind {
     Cross,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum LibraryLayout {
+    SingleEnd,
+    PairedEnd,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum UdgTreatment {
+    None,
+    Partial,
+    Full,
+    Unknown,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum PlatformHint {
+    Illumina,
+    Bgi,
+    IonTorrent,
+    Nanopore,
+    Pacbio,
+    Unknown,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum AssayKind {
+    Shotgun,
+    Capture,
+    Unknown,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct LibraryModel {
+    pub layout: LibraryLayout,
+    pub udg_treatment: UdgTreatment,
+    pub platform_hint: PlatformHint,
+    pub assay_kind: AssayKind,
+}
+
 impl DomainKind {
     #[must_use]
     pub const fn as_str(self) -> &'static str {

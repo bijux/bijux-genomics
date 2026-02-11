@@ -2,11 +2,13 @@
 
 use std::collections::BTreeSet;
 
-use bijux_dna_core::ids::StageId;
+use bijux_dna_core::ids::{StageId, UdgTreatment};
 use bijux_dna_core::prelude::id_catalog;
 use serde::Serialize;
 
-use crate::{InvariantsPreset, PipelineProfile};
+use crate::{
+    InvariantSeverity, InvariantViolationV1, InvariantsPreset, InvariantsReportV1, PipelineProfile,
+};
 
 pub const BAM_INVARIANTS: &str = "bam-invariants.v1";
 
@@ -34,6 +36,7 @@ const INDEX_DEPENDENT_BAM_STAGES: [&str; 9] = [
 pub struct BamProfileViolation {
     pub code: &'static str,
     pub stage_id: Option<String>,
+    pub severity: InvariantSeverity,
     pub message: String,
 }
 
@@ -62,16 +65,42 @@ impl BamProfileValidationReport {
             violations,
         }
     }
+
+    #[must_use]
+    pub fn as_invariants_report(&self) -> InvariantsReportV1 {
+        InvariantsReportV1 {
+            schema_version: "bijux.invariants_report.v1".to_string(),
+            profile_id: self.profile_id.clone(),
+            invariants_version: self.invariants_version.to_string(),
+            valid: self.valid,
+            blocking: self
+                .violations
+                .iter()
+                .any(|v| v.severity == InvariantSeverity::Hard),
+            violations: self
+                .violations
+                .iter()
+                .map(|v| InvariantViolationV1 {
+                    code: v.code.to_string(),
+                    stage_id: v.stage_id.clone(),
+                    severity: v.severity,
+                    message: v.message.clone(),
+                })
+                .collect(),
+        }
+    }
 }
 
 fn violation(
     code: &'static str,
     stage_id: Option<&str>,
+    severity: InvariantSeverity,
     message: impl Into<String>,
 ) -> BamProfileViolation {
     BamProfileViolation {
         code,
         stage_id: stage_id.map(str::to_string),
+        severity,
         message: message.into(),
     }
 }
@@ -102,6 +131,7 @@ pub fn validate_bam_profile(profile: &PipelineProfile) -> BamProfileValidationRe
             violations.push(violation(
                 "required_stage_missing",
                 Some(stage),
+                InvariantSeverity::Hard,
                 format!("required BAM stage `{stage}` is missing"),
             ));
         }
@@ -115,15 +145,22 @@ pub fn validate_bam_profile(profile: &PipelineProfile) -> BamProfileValidationRe
         violations.push(violation(
             "required_metrics_missing",
             None,
+            InvariantSeverity::Hard,
             "BAM profiles must require bam.metrics output",
         ));
     }
 
-    for artifact in ["report.json", "run_manifest.json", "stage_summaries.json"] {
+    for artifact in [
+        "report.json",
+        "run_manifest.json",
+        "stage_summaries.json",
+        "invariants_report.json",
+    ] {
         if !profile.capabilities.required_artifacts.contains(&artifact) {
             violations.push(violation(
                 "required_artifact_missing",
                 None,
+                InvariantSeverity::Hard,
                 format!(
                     "BAM profiles must require `{artifact}` for metrics/provenance completeness"
                 ),
@@ -136,6 +173,7 @@ pub fn validate_bam_profile(profile: &PipelineProfile) -> BamProfileValidationRe
             violations.push(violation(
                 "required_params_missing",
                 Some(stage),
+                InvariantSeverity::Hard,
                 format!("missing or invalid params for BAM stage `{stage}`"),
             ));
         }
@@ -147,7 +185,18 @@ pub fn validate_bam_profile(profile: &PipelineProfile) -> BamProfileValidationRe
         violations.push(violation(
             "adna_damage_stage_missing",
             Some(id_catalog::BAM_DAMAGE),
+            InvariantSeverity::Hard,
             "aDNA BAM profile must include bam.damage unless explicitly disabled with justification",
+        ));
+    }
+    if profile.invariants_preset == Some(InvariantsPreset::Adna)
+        && profile.library_model.udg_treatment == UdgTreatment::Unknown
+    {
+        violations.push(violation(
+            "library_udg_treatment_unknown",
+            None,
+            InvariantSeverity::Soft,
+            "aDNA BAM profile should declare library_model.udg_treatment to calibrate damage expectations",
         ));
     }
 
@@ -159,6 +208,7 @@ pub fn validate_bam_profile(profile: &PipelineProfile) -> BamProfileValidationRe
                 violations.push(violation(
                     "index_prerequisite_missing",
                     Some(stage),
+                    InvariantSeverity::Hard,
                     "index-dependent BAM QC stages require bam.validate or bam.qc_pre first",
                 ));
             }

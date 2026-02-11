@@ -5,7 +5,9 @@ use std::collections::BTreeMap;
 pub mod invariants;
 pub mod profiles;
 
-use bijux_dna_core::ids::{StageId, ToolId};
+use bijux_dna_core::ids::{
+    AssayKind, LibraryLayout, LibraryModel, PlatformHint, StageId, ToolId, UdgTreatment,
+};
 use bijux_dna_core::prelude::id_catalog;
 use bijux_dna_domain_fastq::params::defaults::{
     correct_defaults, detect_adapters_defaults, filter_defaults, merge_defaults,
@@ -302,6 +304,12 @@ pub fn fastq_minimal_profile() -> PipelineProfile {
         defaults: fastq_defaults(false),
         defaults_ledger_ref: "defaults_ledger.json",
         invariants_preset: None,
+        library_model: LibraryModel {
+            layout: LibraryLayout::SingleEnd,
+            udg_treatment: UdgTreatment::Unknown,
+            platform_hint: PlatformHint::Illumina,
+            assay_kind: AssayKind::Unknown,
+        },
         capabilities: PipelineCapabilities {
             input_domains: vec![Domain::Fastq],
             output_domains: vec![Domain::Fastq],
@@ -321,7 +329,12 @@ pub fn fastq_minimal_profile() -> PipelineProfile {
                 "fastq.qc_post",
             ],
             required_metrics: vec!["fastq.metrics"],
-            required_artifacts: vec!["report.json", "run_manifest.json", "stage_summaries.json"],
+            required_artifacts: vec![
+                "report.json",
+                "run_manifest.json",
+                "stage_summaries.json",
+                "invariants_report.json",
+            ],
             supports_benchmarks: true,
         },
     }
@@ -346,6 +359,12 @@ pub fn fastq_default_profile() -> PipelineProfile {
         defaults: fastq_defaults(false),
         defaults_ledger_ref: "defaults_ledger.json",
         invariants_preset: None,
+        library_model: LibraryModel {
+            layout: LibraryLayout::SingleEnd,
+            udg_treatment: UdgTreatment::Unknown,
+            platform_hint: PlatformHint::Illumina,
+            assay_kind: AssayKind::Unknown,
+        },
         capabilities: PipelineCapabilities {
             input_domains: vec![Domain::Fastq],
             output_domains: vec![Domain::Fastq],
@@ -358,7 +377,12 @@ pub fn fastq_default_profile() -> PipelineProfile {
             required_metrics_bundles: vec![MetricsBundle::FastqCore],
             required_stages,
             required_metrics: vec!["fastq.metrics"],
-            required_artifacts: vec!["report.json", "run_manifest.json", "stage_summaries.json"],
+            required_artifacts: vec![
+                "report.json",
+                "run_manifest.json",
+                "stage_summaries.json",
+                "invariants_report.json",
+            ],
             supports_benchmarks: true,
         },
     }
@@ -376,6 +400,12 @@ pub fn fastq_adna_profile() -> PipelineProfile {
         defaults,
         defaults_ledger_ref: "defaults_ledger.json",
         invariants_preset: Some(InvariantsPreset::Adna),
+        library_model: LibraryModel {
+            layout: LibraryLayout::PairedEnd,
+            udg_treatment: UdgTreatment::None,
+            platform_hint: PlatformHint::Illumina,
+            assay_kind: AssayKind::Shotgun,
+        },
         capabilities: PipelineCapabilities {
             input_domains: vec![Domain::Fastq],
             output_domains: vec![Domain::Fastq],
@@ -396,7 +426,12 @@ pub fn fastq_adna_profile() -> PipelineProfile {
                 "fastq.qc_post",
             ],
             required_metrics: vec!["fastq.metrics"],
-            required_artifacts: vec!["report.json", "run_manifest.json", "stage_summaries.json"],
+            required_artifacts: vec![
+                "report.json",
+                "run_manifest.json",
+                "stage_summaries.json",
+                "invariants_report.json",
+            ],
             supports_benchmarks: true,
         },
     }
@@ -414,6 +449,12 @@ pub fn fastq_reference_adna_profile() -> PipelineProfile {
         defaults,
         defaults_ledger_ref: "defaults_ledger.json",
         invariants_preset: Some(InvariantsPreset::ReferenceAdna),
+        library_model: LibraryModel {
+            layout: LibraryLayout::PairedEnd,
+            udg_treatment: UdgTreatment::None,
+            platform_hint: PlatformHint::Illumina,
+            assay_kind: AssayKind::Shotgun,
+        },
         capabilities: PipelineCapabilities {
             input_domains: vec![Domain::Fastq],
             output_domains: vec![Domain::Fastq],
@@ -435,7 +476,12 @@ pub fn fastq_reference_adna_profile() -> PipelineProfile {
                 id_catalog::FASTQ_QC_POST,
             ],
             required_metrics: vec!["fastq.metrics"],
-            required_artifacts: vec!["report.json", "run_manifest.json", "stage_summaries.json"],
+            required_artifacts: vec![
+                "report.json",
+                "run_manifest.json",
+                "stage_summaries.json",
+                "invariants_report.json",
+            ],
             supports_benchmarks: true,
         },
     }
