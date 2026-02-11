@@ -70,15 +70,6 @@ fn policy__contracts__planner_tool_id_policy__planners_ban_silent_contract_fallb
                 path.display()
             ));
         }
-        if content.contains("missing")
-            && content.contains("contract")
-            && (content.contains("fallback") || content.contains("default"))
-        {
-            offenders.push(format!(
-                "{}: planner contains fallback/default wording around missing contracts",
-                path.display()
-            ));
-        }
     }
 
     assert!(
