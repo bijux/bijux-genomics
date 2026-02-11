@@ -171,7 +171,7 @@
       "span_id": "span-bam.authenticity",
       "stage_id": "bam.authenticity",
       "tool_id": "authenticity",
-      "tool_version": "0.0.0",
+      "tool_version": "99.99.99+fixture",
       "trace_id": "trace-1"
     },
     {
@@ -181,7 +181,7 @@
       "span_id": "span-bam.bias_mitigation",
       "stage_id": "bam.bias_mitigation",
       "tool_id": "angsd",
-      "tool_version": "0.0.0",
+      "tool_version": "99.99.99+fixture",
       "trace_id": "trace-1"
     },
     {
@@ -191,7 +191,7 @@
       "span_id": "span-bam.complexity",
       "stage_id": "bam.complexity",
       "tool_id": "preseq",
-      "tool_version": "0.0.0",
+      "tool_version": "99.99.99+fixture",
       "trace_id": "trace-1"
     },
     {
@@ -201,7 +201,7 @@
       "span_id": "span-bam.contamination",
       "stage_id": "bam.contamination",
       "tool_id": "authenticct",
-      "tool_version": "0.0.0",
+      "tool_version": "99.99.99+fixture",
       "trace_id": "trace-1"
     },
     {
@@ -211,7 +211,7 @@
       "span_id": "span-bam.coverage",
       "stage_id": "bam.coverage",
       "tool_id": "mosdepth",
-      "tool_version": "0.0.0",
+      "tool_version": "99.99.99+fixture",
       "trace_id": "trace-1"
     },
     {
@@ -221,7 +221,7 @@
       "span_id": "span-bam.damage",
       "stage_id": "bam.damage",
       "tool_id": "pydamage",
-      "tool_version": "0.0.0",
+      "tool_version": "99.99.99+fixture",
       "trace_id": "trace-1"
     },
     {
@@ -231,7 +231,7 @@
       "span_id": "span-bam.filter",
       "stage_id": "bam.filter",
       "tool_id": "samtools",
-      "tool_version": "0.0.0",
+      "tool_version": "99.99.99+fixture",
       "trace_id": "trace-1"
     },
     {
@@ -241,7 +241,7 @@
       "span_id": "span-bam.markdup",
       "stage_id": "bam.markdup",
       "tool_id": "gatk",
-      "tool_version": "0.0.0",
+      "tool_version": "99.99.99+fixture",
       "trace_id": "trace-1"
     },
     {
@@ -251,7 +251,7 @@
       "span_id": "span-bam.qc_pre",
       "stage_id": "bam.qc_pre",
       "tool_id": "samtools",
-      "tool_version": "0.0.0",
+      "tool_version": "99.99.99+fixture",
       "trace_id": "trace-1"
     },
     {
@@ -261,7 +261,7 @@
       "span_id": "span-bam.sex",
       "stage_id": "bam.sex",
       "tool_id": "rxy",
-      "tool_version": "0.0.0",
+      "tool_version": "99.99.99+fixture",
       "trace_id": "trace-1"
     },
     {
@@ -271,7 +271,7 @@
       "span_id": "span-bam.validate",
       "stage_id": "bam.validate",
       "tool_id": "samtools",
-      "tool_version": "0.0.0",
+      "tool_version": "99.99.99+fixture",
       "trace_id": "trace-1"
     }
   ],
@@ -1370,7 +1370,7 @@
           "stage_id": "bam.authenticity",
           "telemetry_decisions": [],
           "tool_id": "authenticity",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "adapter_validation": {},
@@ -1385,7 +1385,7 @@
           "stage_id": "bam.bias_mitigation",
           "telemetry_decisions": [],
           "tool_id": "angsd",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "adapter_validation": {},
@@ -1400,7 +1400,7 @@
           "stage_id": "bam.complexity",
           "telemetry_decisions": [],
           "tool_id": "preseq",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "adapter_validation": {},
@@ -1415,7 +1415,7 @@
           "stage_id": "bam.contamination",
           "telemetry_decisions": [],
           "tool_id": "authenticct",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "adapter_validation": {},
@@ -1430,7 +1430,7 @@
           "stage_id": "bam.coverage",
           "telemetry_decisions": [],
           "tool_id": "mosdepth",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "adapter_validation": {},
@@ -1445,7 +1445,7 @@
           "stage_id": "bam.damage",
           "telemetry_decisions": [],
           "tool_id": "pydamage",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "adapter_validation": {},
@@ -1460,7 +1460,7 @@
           "stage_id": "bam.filter",
           "telemetry_decisions": [],
           "tool_id": "samtools",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "adapter_validation": {},
@@ -1475,7 +1475,7 @@
           "stage_id": "bam.markdup",
           "telemetry_decisions": [],
           "tool_id": "gatk",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "adapter_validation": {},
@@ -1490,7 +1490,7 @@
           "stage_id": "bam.qc_pre",
           "telemetry_decisions": [],
           "tool_id": "samtools",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "adapter_validation": {},
@@ -1505,7 +1505,7 @@
           "stage_id": "bam.sex",
           "telemetry_decisions": [],
           "tool_id": "rxy",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "adapter_validation": {},
@@ -1520,7 +1520,7 @@
           "stage_id": "bam.validate",
           "telemetry_decisions": [],
           "tool_id": "samtools",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         }
       ]
     },
@@ -1621,77 +1621,77 @@
           "params_hash": "params",
           "stage_id": "bam.authenticity",
           "tool_id": "authenticity",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "bam.bias_mitigation",
           "tool_id": "angsd",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "bam.complexity",
           "tool_id": "preseq",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "bam.contamination",
           "tool_id": "authenticct",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "bam.coverage",
           "tool_id": "mosdepth",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "bam.damage",
           "tool_id": "pydamage",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "bam.filter",
           "tool_id": "samtools",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "bam.markdup",
           "tool_id": "gatk",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "bam.qc_pre",
           "tool_id": "samtools",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "bam.sex",
           "tool_id": "rxy",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "bam.validate",
           "tool_id": "samtools",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         }
       ],
       "tie_break_policy": [
@@ -1703,77 +1703,77 @@
           "params_hash": "params",
           "stage_id": "bam.authenticity",
           "tool_id": "authenticity",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "bam.bias_mitigation",
           "tool_id": "angsd",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "bam.complexity",
           "tool_id": "preseq",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "bam.contamination",
           "tool_id": "authenticct",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "bam.coverage",
           "tool_id": "mosdepth",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "bam.damage",
           "tool_id": "pydamage",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "bam.filter",
           "tool_id": "samtools",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "bam.markdup",
           "tool_id": "gatk",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "bam.qc_pre",
           "tool_id": "samtools",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "bam.sex",
           "tool_id": "rxy",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "bam.validate",
           "tool_id": "samtools",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         }
       ]
     },
@@ -1989,7 +1989,7 @@
           "tier_rationale": "unknown_tool",
           "tool_id": "authenticity",
           "tool_tier": "experimental",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
@@ -2003,7 +2003,7 @@
           "tier_rationale": "unknown_tool",
           "tool_id": "angsd",
           "tool_tier": "experimental",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
@@ -2017,7 +2017,7 @@
           "tier_rationale": "unknown_tool",
           "tool_id": "preseq",
           "tool_tier": "experimental",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
@@ -2031,7 +2031,7 @@
           "tier_rationale": "unknown_tool",
           "tool_id": "authenticct",
           "tool_tier": "experimental",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
@@ -2045,7 +2045,7 @@
           "tier_rationale": "unknown_tool",
           "tool_id": "mosdepth",
           "tool_tier": "experimental",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
@@ -2059,7 +2059,7 @@
           "tier_rationale": "unknown_tool",
           "tool_id": "pydamage",
           "tool_tier": "experimental",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
@@ -2073,7 +2073,7 @@
           "tier_rationale": "unknown_tool",
           "tool_id": "samtools",
           "tool_tier": "experimental",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
@@ -2087,7 +2087,7 @@
           "tier_rationale": "unknown_tool",
           "tool_id": "gatk",
           "tool_tier": "experimental",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
@@ -2101,7 +2101,7 @@
           "tier_rationale": "unknown_tool",
           "tool_id": "samtools",
           "tool_tier": "experimental",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
@@ -2115,7 +2115,7 @@
           "tier_rationale": "unknown_tool",
           "tool_id": "rxy",
           "tool_tier": "experimental",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "image_digest": "sha256:img",
@@ -2129,7 +2129,7 @@
           "tier_rationale": "unknown_tool",
           "tool_id": "samtools",
           "tool_tier": "experimental",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         }
       ]
     },
@@ -2158,7 +2158,7 @@
       ],
       "started_at": null,
       "tool_versions": [
-        "0.0.0"
+        "99.99.99+fixture"
       ]
     },
     "retention": {
@@ -2179,7 +2179,7 @@
           "resolved_tool_version": null,
           "stage_id": "bam.authenticity",
           "tool_id": "authenticity",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_params": {},
@@ -2193,7 +2193,7 @@
           "resolved_tool_version": null,
           "stage_id": "bam.bias_mitigation",
           "tool_id": "angsd",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_params": {},
@@ -2207,7 +2207,7 @@
           "resolved_tool_version": null,
           "stage_id": "bam.complexity",
           "tool_id": "preseq",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_params": {},
@@ -2221,7 +2221,7 @@
           "resolved_tool_version": null,
           "stage_id": "bam.contamination",
           "tool_id": "authenticct",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_params": {},
@@ -2235,7 +2235,7 @@
           "resolved_tool_version": null,
           "stage_id": "bam.coverage",
           "tool_id": "mosdepth",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_params": {},
@@ -2249,7 +2249,7 @@
           "resolved_tool_version": null,
           "stage_id": "bam.damage",
           "tool_id": "pydamage",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_params": {},
@@ -2263,7 +2263,7 @@
           "resolved_tool_version": null,
           "stage_id": "bam.filter",
           "tool_id": "samtools",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_params": {},
@@ -2277,7 +2277,7 @@
           "resolved_tool_version": null,
           "stage_id": "bam.markdup",
           "tool_id": "gatk",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_params": {},
@@ -2291,7 +2291,7 @@
           "resolved_tool_version": null,
           "stage_id": "bam.qc_pre",
           "tool_id": "samtools",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_params": {},
@@ -2305,7 +2305,7 @@
           "resolved_tool_version": null,
           "stage_id": "bam.sex",
           "tool_id": "rxy",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         },
         {
           "effective_params": {},
@@ -2319,7 +2319,7 @@
           "resolved_tool_version": null,
           "stage_id": "bam.validate",
           "tool_id": "samtools",
-          "tool_version": "0.0.0"
+          "tool_version": "99.99.99+fixture"
         }
       ]
     },
@@ -2654,7 +2654,7 @@
       "stage_report_path": "/tmp/stage_report.json",
       "tool_id": "authenticity",
       "tool_invocation_path": "",
-      "tool_version": "0.0.0"
+      "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": "/tmp/bank_report.json",
@@ -2670,7 +2670,7 @@
       "stage_report_path": "/tmp/stage_report.json",
       "tool_id": "angsd",
       "tool_invocation_path": "",
-      "tool_version": "0.0.0"
+      "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": "/tmp/bank_report.json",
@@ -2686,7 +2686,7 @@
       "stage_report_path": "/tmp/stage_report.json",
       "tool_id": "preseq",
       "tool_invocation_path": "",
-      "tool_version": "0.0.0"
+      "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": "/tmp/bank_report.json",
@@ -2702,7 +2702,7 @@
       "stage_report_path": "/tmp/stage_report.json",
       "tool_id": "authenticct",
       "tool_invocation_path": "",
-      "tool_version": "0.0.0"
+      "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": "/tmp/bank_report.json",
@@ -2718,7 +2718,7 @@
       "stage_report_path": "/tmp/stage_report.json",
       "tool_id": "mosdepth",
       "tool_invocation_path": "",
-      "tool_version": "0.0.0"
+      "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": "/tmp/bank_report.json",
@@ -2734,7 +2734,7 @@
       "stage_report_path": "/tmp/stage_report.json",
       "tool_id": "pydamage",
       "tool_invocation_path": "",
-      "tool_version": "0.0.0"
+      "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": "/tmp/bank_report.json",
@@ -2750,7 +2750,7 @@
       "stage_report_path": "/tmp/stage_report.json",
       "tool_id": "samtools",
       "tool_invocation_path": "",
-      "tool_version": "0.0.0"
+      "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": "/tmp/bank_report.json",
@@ -2766,7 +2766,7 @@
       "stage_report_path": "/tmp/stage_report.json",
       "tool_id": "gatk",
       "tool_invocation_path": "",
-      "tool_version": "0.0.0"
+      "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": "/tmp/bank_report.json",
@@ -2782,7 +2782,7 @@
       "stage_report_path": "/tmp/stage_report.json",
       "tool_id": "samtools",
       "tool_invocation_path": "",
-      "tool_version": "0.0.0"
+      "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": "/tmp/bank_report.json",
@@ -2798,7 +2798,7 @@
       "stage_report_path": "/tmp/stage_report.json",
       "tool_id": "rxy",
       "tool_invocation_path": "",
-      "tool_version": "0.0.0"
+      "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": "/tmp/bank_report.json",
@@ -2814,7 +2814,7 @@
       "stage_report_path": "/tmp/stage_report.json",
       "tool_id": "samtools",
       "tool_invocation_path": "",
-      "tool_version": "0.0.0"
+      "tool_version": "99.99.99+fixture"
     }
   ],
   "telemetry": {
