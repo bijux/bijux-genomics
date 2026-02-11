@@ -429,6 +429,26 @@ fn explain_fastq_stage(
     registry: &bijux_dna_api::v1::api::run::ToolRegistry,
     stage_id: &str,
 ) -> Result<()> {
+    if stage_id == "fastq.trim" {
+        let default_profile = bijux_dna_pipelines::fastq::fastq_default_profile();
+        let reference_profile = bijux_dna_pipelines::fastq::fastq_reference_adna_profile();
+        let trim_stage = StageId::from_static("fastq.trim");
+        let payload = serde_json::json!({
+            "stage_id": "fastq.trim",
+            "param_schema": schemars::schema_for!(bijux_dna_domain_fastq::params::trim::TrimEffectiveParams),
+            "defaults": {
+                "fastq-default": default_profile.defaults.params.get(&trim_stage),
+                "fastq-reference-adna": reference_profile.defaults.params.get(&trim_stage),
+            },
+            "invariants": {
+                "fastq-default": bijux_dna_pipelines::fastq::validate_fastq_profile(&default_profile),
+                "fastq-reference-adna": bijux_dna_pipelines::fastq::validate_fastq_profile(&reference_profile),
+            },
+            "metrics_schema": bijux_dna_core::metrics::metrics_schema_for_stage("fastq.trim").map(|s| s.schema),
+        });
+        render::json::print_pretty(&payload)?;
+        return Ok(());
+    }
     if stage_id == "fastq.preprocess" {
         let args = bijux_dna_api::v1::api::bench::fastq_args::BenchFastqPreprocessArgs {
             sample_id: "explain".to_string(),

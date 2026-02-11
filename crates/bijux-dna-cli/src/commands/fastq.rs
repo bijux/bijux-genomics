@@ -121,10 +121,7 @@ pub(crate) fn handle_meta_commands(
                 Ok(true)
             }
             PipelinesCommand::ExplainProfile { id } => {
-                let resolved_id = match id.as_str() {
-                    "fastq-adna" => "fastq-to-fastq__adna__v1",
-                    other => other,
-                };
+                let resolved_id = resolve_profile_alias(id);
                 let profile = bijux_dna_api::v1::api::plan::select_pipelines(None, true)
                     .into_iter()
                     .find(|profile| profile.id.as_str() == resolved_id)
@@ -147,6 +144,31 @@ pub(crate) fn handle_meta_commands(
                     "effective_params": profile.defaults.params,
                     "effective_tools": profile.defaults.tools,
                     "invariants": invariants,
+                });
+                render::json::print_pretty(&payload)?;
+                Ok(true)
+            }
+            PipelinesCommand::ProfileDiff { left, right } => {
+                let left_id = resolve_profile_alias(left);
+                let right_id = resolve_profile_alias(right);
+                let profiles = bijux_dna_api::v1::api::plan::select_pipelines(None, true);
+                let left_profile = profiles
+                    .iter()
+                    .find(|profile| profile.id.as_str() == left_id)
+                    .ok_or_else(|| anyhow!("unknown pipeline profile: {left}"))?;
+                let right_profile = profiles
+                    .iter()
+                    .find(|profile| profile.id.as_str() == right_id)
+                    .ok_or_else(|| anyhow!("unknown pipeline profile: {right}"))?;
+                let payload = serde_json::json!({
+                    "left": left_profile.id,
+                    "right": right_profile.id,
+                    "tools_left": left_profile.defaults.tools,
+                    "tools_right": right_profile.defaults.tools,
+                    "params_left": left_profile.defaults.params,
+                    "params_right": right_profile.defaults.params,
+                    "invariants_left": bijux_dna_api::v1::api::plan::validate_fastq_profile(left_profile),
+                    "invariants_right": bijux_dna_api::v1::api::plan::validate_fastq_profile(right_profile),
                 });
                 render::json::print_pretty(&payload)?;
                 Ok(true)
@@ -590,6 +612,15 @@ pub(crate) fn handle_meta_commands(
             Ok(true)
         }
         DnaCommand::Fastq { .. } | DnaCommand::Bam { .. } => Ok(false),
+    }
+}
+
+fn resolve_profile_alias(id: &str) -> &str {
+    match id {
+        "fastq-adna" => "fastq-to-fastq__adna__v1",
+        "fastq-reference-adna" => "fastq-to-fastq__reference_adna__v1",
+        "fastq-default" => "fastq-to-fastq__default__v1",
+        other => other,
     }
 }
 
