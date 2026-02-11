@@ -3,7 +3,7 @@
 mod support;
 
 #[test]
-fn policy__contracts__no_placeholders_code_policy__production_paths_ban_todo_unimplemented() {
+fn policy__contracts__no_placeholders_code_policy__production_paths_ban_todo_markers_and_unimplemented() {
     let root = support::workspace_root();
     let crates = root.join("crates");
     let mut offenders = Vec::new();
@@ -26,7 +26,8 @@ fn policy__contracts__no_placeholders_code_policy__production_paths_ban_todo_uni
         }
         let raw = std::fs::read_to_string(path)
             .unwrap_or_else(|_| panic!("read source file {}", path.display()));
-        if raw.contains("todo!(")
+        if raw.contains("TODO")
+            || raw.contains("todo!(")
             || raw.contains("unimplemented!(")
             || raw.contains("bail!(\"not implemented")
         {
