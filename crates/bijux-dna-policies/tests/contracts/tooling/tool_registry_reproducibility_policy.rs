@@ -2,8 +2,8 @@
 #[path = "../../support/fs.rs"]
 mod support;
 
-use std::collections::{BTreeMap, BTreeSet};
 use sha2::Digest;
+use std::collections::{BTreeMap, BTreeSet};
 
 use bijux_dna_pipelines::registry::{bam_profiles, cross_profiles, fastq_profiles};
 use bijux_dna_pipelines::StabilityTier;

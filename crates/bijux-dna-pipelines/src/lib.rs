@@ -401,15 +401,14 @@ impl PipelineProfile {
             .params
             .iter()
             .map(|(stage, params)| {
-                let canonical = bijux_dna_core::contract::canonical::to_canonical_json_bytes(
-                    &params.to_json(),
-                )
-                .unwrap_or_else(|err| {
-                    panic!(
-                        "failed to canonicalize params for stage {}: {err}",
-                        stage.as_str()
-                    )
-                });
+                let canonical =
+                    bijux_dna_core::contract::canonical::to_canonical_json_bytes(&params.to_json())
+                        .unwrap_or_else(|err| {
+                            panic!(
+                                "failed to canonicalize params for stage {}: {err}",
+                                stage.as_str()
+                            )
+                        });
                 let mut hasher = sha2::Sha256::new();
                 hasher.update(canonical);
                 (
@@ -419,8 +418,14 @@ impl PipelineProfile {
             })
             .collect();
         let schema_versions = BTreeMap::from([
-            ("profile_manifest".to_string(), "bijux.profile_manifest.v1".to_string()),
-            ("defaults_ledger".to_string(), "bijux.defaults_ledger.v1".to_string()),
+            (
+                "profile_manifest".to_string(),
+                "bijux.profile_manifest.v1".to_string(),
+            ),
+            (
+                "defaults_ledger".to_string(),
+                "bijux.defaults_ledger.v1".to_string(),
+            ),
             ("params".to_string(), "by_stage".to_string()),
         ]);
         ProfileManifestV1 {

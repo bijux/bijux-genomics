@@ -311,8 +311,11 @@ fn cli_pipelines_explain_profile_fastq_adna_includes_invariants() {
 #[test]
 fn cli_pipelines_explain_profile_bam_adna_includes_invariants() {
     let workspace = CliWorkspace::new();
-    let stdout = run_cli_capture(&workspace, &["dna", "pipelines", "explain-profile", "bam-adna"])
-        .expect("cli ok");
+    let stdout = run_cli_capture(
+        &workspace,
+        &["dna", "pipelines", "explain-profile", "bam-adna"],
+    )
+    .expect("cli ok");
     if stdout.trim().is_empty() {
         return;
     }
@@ -333,8 +336,11 @@ fn cli_pipelines_explain_profile_bam_adna_includes_invariants() {
 #[test]
 fn cli_pipelines_validate_profile_bam_adna_returns_report() {
     let workspace = CliWorkspace::new();
-    let stdout = run_cli_capture(&workspace, &["dna", "pipelines", "validate-profile", "bam-adna"])
-        .expect("cli ok");
+    let stdout = run_cli_capture(
+        &workspace,
+        &["dna", "pipelines", "validate-profile", "bam-adna"],
+    )
+    .expect("cli ok");
     if stdout.trim().is_empty() {
         return;
     }

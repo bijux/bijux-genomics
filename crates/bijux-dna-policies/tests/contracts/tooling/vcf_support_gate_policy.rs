@@ -20,7 +20,10 @@ fn supported_vcf_stages_require_smoke_and_schema() {
         .unwrap_or_default();
 
     for stage in stages {
-        let id = stage.get("id").and_then(toml::Value::as_str).unwrap_or_default();
+        let id = stage
+            .get("id")
+            .and_then(toml::Value::as_str)
+            .unwrap_or_default();
         let status = stage
             .get("status")
             .and_then(toml::Value::as_str)
@@ -36,9 +39,18 @@ fn supported_vcf_stages_require_smoke_and_schema() {
             .get("metrics_schema")
             .and_then(toml::Value::as_str)
             .unwrap_or_default();
-        assert!(smoke, "supported VCF stage {id} must declare smoke_required=true");
-        assert!(!schema.is_empty(), "supported VCF stage {id} must declare metrics_schema");
-        assert!(schema != "bijux.unknown.v1", "supported VCF stage {id} cannot use unknown schema");
+        assert!(
+            smoke,
+            "supported VCF stage {id} must declare smoke_required=true"
+        );
+        assert!(
+            !schema.is_empty(),
+            "supported VCF stage {id} must declare metrics_schema"
+        );
+        assert!(
+            schema != "bijux.unknown.v1",
+            "supported VCF stage {id} cannot use unknown schema"
+        );
     }
 }
 
@@ -54,7 +66,10 @@ fn supported_vcf_tools_must_be_pinned() {
         .unwrap_or_default();
 
     for tool in tools {
-        let id = tool.get("id").and_then(toml::Value::as_str).unwrap_or_default();
+        let id = tool
+            .get("id")
+            .and_then(toml::Value::as_str)
+            .unwrap_or_default();
         let status = tool
             .get("status")
             .and_then(toml::Value::as_str)
@@ -80,8 +95,17 @@ fn supported_vcf_tools_must_be_pinned() {
             .unwrap_or_default();
 
         assert!(!pin.is_empty(), "supported VCF tool {id} must be pinned");
-        assert!(schema != "bijux.unknown.v1", "supported VCF tool {id} cannot use unknown schema");
-        assert!(!smoke_help.is_empty(), "supported VCF tool {id} must define smoke_help_cmd");
-        assert!(!smoke_version.is_empty(), "supported VCF tool {id} must define smoke_version_cmd");
+        assert!(
+            schema != "bijux.unknown.v1",
+            "supported VCF tool {id} cannot use unknown schema"
+        );
+        assert!(
+            !smoke_help.is_empty(),
+            "supported VCF tool {id} must define smoke_help_cmd"
+        );
+        assert!(
+            !smoke_version.is_empty(),
+            "supported VCF tool {id} must define smoke_version_cmd"
+        );
     }
 }

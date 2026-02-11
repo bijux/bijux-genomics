@@ -11,17 +11,17 @@ pub use crate::run::plan_run;
 pub use crate::run::{select_pipeline, select_pipelines};
 pub use crate::v1::bam::plan::plan_for_bam_stage_with_profile;
 pub use bijux_dna_core::contract::ExecutionGraph;
+pub use bijux_dna_pipelines::bam::{
+    validate_bam_profile, BamProfileValidationReport, BamProfileViolation, BAM_INVARIANTS,
+};
 pub use bijux_dna_pipelines::fastq::{
     validate_fastq_profile, FastqProfileValidationReport, FastqProfileViolation, FASTQ_INVARIANTS,
 };
-pub use bijux_dna_pipelines::{
-    bam::{validate_bam_profile, BamProfileValidationReport, BamProfileViolation, BAM_INVARIANTS},
-};
+pub use bijux_dna_pipelines::registry::PipelineRegistry;
 pub use bijux_dna_pipelines::vcf::{
     validate_vcf_profile, vcf_minimal_profile, VcfProfileValidationReport, VcfProfileViolation,
     VCF_INVARIANTS,
 };
-pub use bijux_dna_pipelines::registry::PipelineRegistry;
 pub use bijux_dna_pipelines::{Domain, PipelineProfile};
 pub use bijux_dna_planner_bam::{
     pipeline_id_catalog as bam_pipeline_id_catalog, plan_bam_to_bam__adna_capture__v1,
