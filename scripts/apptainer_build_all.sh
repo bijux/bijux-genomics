@@ -12,6 +12,7 @@ COPY_BACK_DIR=""
 JOBS=1
 SUMMARY_FILE=""
 BUILD_ONE_DEF=""
+UBUNTU_BASE_SIF="${APPTAINER_UBUNTU_BASE_SIF:-}"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -80,10 +81,20 @@ build_one() {
   local tmp_def=""
 
   echo "[build] $name"
+  rm -f "$sif" "$log"
   # Some Apptainer versions reject Docker refs with both tag and digest
   # (image:tag@sha256:...). Normalize to image@sha256 in a temp copy.
   tmp_def="$(mktemp "${TMPDIR:-/tmp}/apptainer-def-${name}.XXXXXX.def")"
   sed -E 's#^([[:space:]]*From:[[:space:]]*.+):([^:@[:space:]]+)@(sha256:[a-f0-9]+)[[:space:]]*$#\1@\3#' "$def_file" >"$tmp_def"
+  if [[ -n "$UBUNTU_BASE_SIF" && -f "$UBUNTU_BASE_SIF" ]]; then
+    if grep -Eq '^Bootstrap:[[:space:]]*docker[[:space:]]*$' "$tmp_def" && \
+       grep -Eq '^From:[[:space:]]*(ubuntu(:[[:alnum:]._-]+)?@sha256:[a-f0-9]+|docker\.io/library/ubuntu(:[[:alnum:]._-]+)?@sha256:[a-f0-9]+)[[:space:]]*$' "$tmp_def"; then
+      sed -Ei \
+        -e 's#^Bootstrap:[[:space:]]*docker[[:space:]]*$#Bootstrap: localimage#' \
+        -e "s#^From:[[:space:]].*\$#From: ${UBUNTU_BASE_SIF}#" \
+        "$tmp_def"
+    fi
+  fi
   if apptainer build "$sif" "$tmp_def" >"$log" 2>&1; then
     rm -f "$tmp_def"
     echo "[ok] $name -> $sif"
