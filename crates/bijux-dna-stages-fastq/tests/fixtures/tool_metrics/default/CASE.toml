@@ -1,0 +1,3 @@
+[case]
+id = "default-tool-metrics"
+description = "Default FASTQ tool metrics fixture bundle"
