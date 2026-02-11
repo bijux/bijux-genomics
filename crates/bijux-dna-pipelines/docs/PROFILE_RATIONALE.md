@@ -108,3 +108,11 @@ Metrics expectations:
 - `fastq.stats_neutral` includes read-length and GC distributions.
 - `fastq.detect_adapters` and `fastq.qc_post` include overrepresented-sequence counts derived from FastQC data.
 - `fastq.low_complexity` is used as a pre-alignment complexity/duplication proxy estimate stage.
+
+## Scientific rigor additions
+
+- Every profile carries an explicit `library_model` (`layout`, `udg_treatment`, `platform_hint`, `assay_kind`).
+- Invariant violations include severity semantics:
+  - `hard`: blocking for production validation
+  - `soft`: warning-level scientific risk
+- Validators can be projected into `bijux.invariants_report.v1` and emitted as `invariants_report.json`.

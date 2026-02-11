@@ -302,9 +302,9 @@ fn print_contract_status(cwd: &Path) -> Result<()> {
             let has_metrics = !stage_metrics_schema.trim().is_empty()
                 || stage_metrics_schema == "none"
                 || stage_tools.iter().any(|tool| {
-                    tool_metrics
-                        .get(tool)
-                        .is_some_and(|schema| !schema.trim().is_empty() && schema != "bijux.unknown.v1")
+                    tool_metrics.get(tool).is_some_and(|schema| {
+                        !schema.trim().is_empty() && schema != "bijux.unknown.v1"
+                    })
                 });
             if !has_metrics {
                 missing_metrics += 1;
