@@ -13,9 +13,9 @@ fn snapshot_name(group: &str, name: &str) -> String {
     format!("bijux-dna-analyze__{group}__{name}")
 }
 
-fn fixture_root() -> PathBuf {
-    let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    manifest_dir.join("tests").join("fixtures").join("report")
+fn fixture_root() -> Result<tempfile::TempDir> {
+    bijux_dna_infra::temp_dir("analyze-report-fixtures")
+        .map_err(|err| anyhow::anyhow!(err.to_string()))
 }
 
 fn fixture_case_dir(root: &std::path::Path, suffix: &str) -> PathBuf {
@@ -229,9 +229,9 @@ fn base_reports(root: &std::path::Path) -> Result<(PathBuf, PathBuf, PathBuf)> {
 #[test]
 #[allow(clippy::too_many_lines)]
 fn golden_run_report_snapshot_happy_path() -> Result<()> {
-    let root = fixture_root();
-    bijux_dna_infra::ensure_dir(&root)?;
-    let case_dir = fixture_case_dir(&root, "happy");
+    let root = fixture_root()?;
+    bijux_dna_infra::ensure_dir(root.path())?;
+    let case_dir = fixture_case_dir(root.path(), "happy");
     let (stage_report_path, retention_report_path, bank_report_path) = base_reports(&case_dir)?;
 
     let rows = vec![FactsRowV1 {
@@ -269,7 +269,7 @@ fn golden_run_report_snapshot_happy_path() -> Result<()> {
         artifacts: serde_json::json!({}),
     }];
 
-    let report_value = write_report_fixture(&root, "happy", &rows)?;
+    let report_value = write_report_fixture(root.path(), "happy", &rows)?;
     let _: ReportSchemaV1 = serde_json::from_value(report_value.clone())?;
     let snapshot_file = format!("{}.json", snapshot_name("schemas", "run_report"));
     let snapshot_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -290,8 +290,8 @@ fn golden_run_report_snapshot_happy_path() -> Result<()> {
 
 #[test]
 fn report_includes_sections_block() -> Result<()> {
-    let root = fixture_root();
-    let case_dir = fixture_case_dir(&root, "sections");
+    let root = fixture_root()?;
+    let case_dir = fixture_case_dir(root.path(), "sections");
     let (stage_report_path, retention_report_path, bank_report_path) = base_reports(&case_dir)?;
     let rows = vec![FactsRowV1 {
         schema_version: "bijux.facts.v1".to_string(),
@@ -327,7 +327,7 @@ fn report_includes_sections_block() -> Result<()> {
         }),
         artifacts: serde_json::json!({}),
     }];
-    let report_value = write_report_fixture(&root, "sections", &rows)?;
+    let report_value = write_report_fixture(root.path(), "sections", &rows)?;
     let Some(sections) = report_value
         .get("sections")
         .and_then(|value| value.as_object())
@@ -349,8 +349,8 @@ fn report_includes_sections_block() -> Result<()> {
 
 #[test]
 fn golden_run_report_snapshot_tool_failure() -> Result<()> {
-    let root = fixture_root();
-    let case_dir = fixture_case_dir(&root, "failure");
+    let root = fixture_root()?;
+    let case_dir = fixture_case_dir(root.path(), "failure");
     let (stage_report_path, _, _) = base_reports(&case_dir)?;
     let rows = vec![FactsRowV1 {
         schema_version: "bijux.facts.v1".to_string(),
@@ -380,15 +380,15 @@ fn golden_run_report_snapshot_tool_failure() -> Result<()> {
         }),
         artifacts: serde_json::json!({}),
     }];
-    let report_value = write_report_fixture(&root, "failure", &rows)?;
+    let report_value = write_report_fixture(root.path(), "failure", &rows)?;
     assert_eq!(report_value["completeness"]["status"], "incomplete");
     Ok(())
 }
 
 #[test]
 fn golden_run_report_snapshot_missing_metrics() -> Result<()> {
-    let root = fixture_root();
-    let case_dir = fixture_case_dir(&root, "missing");
+    let root = fixture_root()?;
+    let case_dir = fixture_case_dir(root.path(), "missing");
     let (stage_report_path, _, _) = base_reports(&case_dir)?;
     let rows = vec![FactsRowV1 {
         schema_version: "bijux.facts.v1".to_string(),
@@ -418,15 +418,15 @@ fn golden_run_report_snapshot_missing_metrics() -> Result<()> {
         }),
         artifacts: serde_json::json!({}),
     }];
-    let report_value = write_report_fixture(&root, "missing", &rows)?;
+    let report_value = write_report_fixture(root.path(), "missing", &rows)?;
     assert_eq!(report_value["completeness"]["status"], "incomplete");
     Ok(())
 }
 
 #[test]
 fn report_provenance_is_complete() -> Result<()> {
-    let root = fixture_root();
-    let case_dir = fixture_case_dir(&root, "provenance");
+    let root = fixture_root()?;
+    let case_dir = fixture_case_dir(root.path(), "provenance");
     let (stage_report_path, retention_report_path, bank_report_path) = base_reports(&case_dir)?;
     let rows = vec![FactsRowV1 {
         schema_version: "bijux.facts.v1".to_string(),
@@ -459,7 +459,7 @@ fn report_provenance_is_complete() -> Result<()> {
         artifacts: serde_json::json!({}),
     }];
 
-    let report_value = write_report_fixture(&root, "provenance", &rows)?;
+    let report_value = write_report_fixture(root.path(), "provenance", &rows)?;
     for entry in report_value["provenance"]
         .as_array()
         .ok_or_else(|| anyhow::anyhow!("missing provenance"))?
