@@ -16,7 +16,7 @@ STAGE ?=
 APPTAINER_VM_OUT ?= $(HOME)/apptainer-build
 APPTAINER_COPY_BACK ?= $(ISOLATE_ROOT)/container/apptainer
 CONTAINER_ARTIFACT_DIR ?= $(ISOLATE_ROOT)/container
-BIJUX_BIN ?= cargo run --bin bijux-dna --
+BIJUX_BIN ?= ./bin/isolate cargo run --bin bijux-dna --
 
 CT_KEY := $(subst -,_,$(CONTAINER_TYPE))
 SMOKE_SCRIPT_docker_arm64 := scripts/smoke-containers-docker-arm64.sh
@@ -89,7 +89,7 @@ build-images: ## Build Docker images (docker-arm64 only)
 		echo "skip: build-images is docker-only (CONTAINER_TYPE=$(CONTAINER_TYPE))"; \
 		exit 0; \
 	fi
-	cargo run --bin build_docker_images -- --platform $(PLATFORM)
+	./bin/isolate cargo run --bin build_docker_images -- --platform $(PLATFORM)
 
 test-images: ## Smoke selected runtime (registry-driven via scripts/CLI)
 	@if [ -n "$(STAGE)" ]; then \
@@ -121,7 +121,7 @@ image-qa: ## Run image QA (docker-arm64 only)
 		echo "skip: image-qa is docker-only (CONTAINER_TYPE=$(CONTAINER_TYPE))"; \
 		exit 0; \
 	fi
-	cargo run --bin image_qa -- --platform $(PLATFORM)
+	./bin/isolate cargo run --bin image_qa -- --platform $(PLATFORM)
 
 containers-apptainer-build: ## Batch-build Apptainer defs to VM-local output and copy back artifacts
 	@JOBS="$(JOBS)" ./scripts/apptainer_build_all.sh \

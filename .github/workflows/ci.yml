@@ -14,12 +14,6 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           shared-key: ci-build
-      - name: Install cargo-nextest
-        run: cargo install cargo-nextest --locked
-      - name: Install cargo-llvm-cov
-        run: cargo install cargo-llvm-cov --locked
-      - name: Install cargo-deny
-        run: cargo install cargo-deny --locked
       - name: Minimal CI gate
         env:
           TZ: UTC
@@ -30,3 +24,4 @@ jobs:
           make audit-isolate
           make test-isolate
           make docs-isolate
+          make policy-no-raw-cargo
