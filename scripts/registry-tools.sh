@@ -2,6 +2,11 @@
 set -eu
 
 ROOT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+cd "$ROOT_DIR"
+
+if ! ./bin/require-isolate >/dev/null 2>&1; then
+  exec ./bin/isolate "$0" "$@"
+fi
 
 cmd="${1:-}"
 case "$cmd" in
@@ -34,8 +39,6 @@ case "$cmd" in
         exit 2
         ;;
     esac
-    # Registry CLI currently does not expose a runtime-filtered list.
-    # Keep compatibility by returning the supported tool set in this scope.
     cargo run --bin bijux-dna -- registry list-tools | paste -sd, -
     ;;
   *)
