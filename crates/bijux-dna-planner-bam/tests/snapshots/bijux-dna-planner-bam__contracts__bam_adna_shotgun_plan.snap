@@ -1,5 +1,6 @@
 ---
 source: crates/bijux-dna-planner-bam/tests/contracts/plan/plan_snapshots.rs
+assertion_line: 114
 expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
@@ -48,6 +49,10 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     {
       "from": "bam.markdup",
       "to": "bam.coverage"
+    },
+    {
+      "from": "bam.sex",
+      "to": "bam.kinship"
     },
     {
       "from": "bam.validate",
@@ -416,6 +421,59 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       },
       "stage_id": "bam.filter",
       "step_id": "bam.filter"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "bwa"
+        ]
+      },
+      "expected_artifact_ids": [],
+      "image": {
+        "digest": "sha256:bwa",
+        "image": "bijux/bwa"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "bam",
+            "optional": false,
+            "path": "markdup.bam",
+            "role": "bam"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "kinship_report",
+            "optional": false,
+            "path": "kinship.json",
+            "role": "report_json"
+          },
+          {
+            "name": "summary",
+            "optional": false,
+            "path": "kinship.summary.json",
+            "role": "report_json"
+          },
+          {
+            "name": "stage_metrics",
+            "optional": false,
+            "path": "stage.metrics.json",
+            "role": "metrics_json"
+          }
+        ]
+      },
+      "metrics_schema_ids": [],
+      "out_dir": "bam_kinship",
+      "resources": {
+        "mem_gb": 2,
+        "runtime": "short",
+        "threads": 2,
+        "tmp_gb": 1
+      },
+      "stage_id": "bam.kinship",
+      "step_id": "bam.kinship"
     },
     {
       "aux_images": {},
