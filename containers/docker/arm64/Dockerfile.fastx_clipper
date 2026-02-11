@@ -17,7 +17,7 @@ LABEL org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c368
 LABEL org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
 ARG TOOL_VERSION
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update -qq && apt-get install -y --no-install-recommends git build-essential automake autoconf libtool zlib1g-dev ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN apt-get update -qq && apt-get install -y --no-install-recommends git build-essential automake autoconf libtool pkg-config libgtextutils-dev zlib1g-dev ca-certificates && rm -rf /var/lib/apt/lists/*
 RUN git clone --depth 1 https://github.com/agordon/fastx_toolkit.git /opt/fastx && cd /opt/fastx && git checkout ea0ca83ba24dce80c20ca589b838a281fe5deb0c && ./reconf && ./configure && make -j"$(nproc)"
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 ENV DEBIAN_FRONTEND=noninteractive

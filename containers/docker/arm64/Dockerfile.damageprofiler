@@ -18,11 +18,18 @@ LABEL org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c422
 ARG TOOL_VERSION
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update -qq && apt-get install -y --no-install-recommends git maven openjdk-17-jdk ca-certificates && rm -rf /var/lib/apt/lists/*
-RUN git clone --depth 1 https://github.com/Integrative-Transcriptomics/DamageProfiler.git /opt/damageprofiler && cd /opt/damageprofiler && git checkout a1e9a136303173edff82e396791181bea957e1e3 && mvn -q -DskipTests package
+RUN git clone --depth 1 https://github.com/Integrative-Transcriptomics/DamageProfiler.git /opt/damageprofiler && \
+    cd /opt/damageprofiler && git checkout a1e9a136303173edff82e396791181bea957e1e3 && \
+    POM_DIR="$(find . -maxdepth 3 -name pom.xml -print | head -n 1)" && \
+    test -n "$POM_DIR" && \
+    mvn -q -DskipTests -f "$POM_DIR" package && \
+    JAR_PATH="$(find . -path '*/target/*-jar-with-dependencies.jar' -print | head -n 1)" && \
+    test -n "$JAR_PATH" && \
+    cp "$JAR_PATH" /opt/damageprofiler.jar
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update -qq && apt-get install -y --no-install-recommends openjdk-17-jre ca-certificates && rm -rf /var/lib/apt/lists/*
-COPY --from=builder /opt/damageprofiler/target/*-jar-with-dependencies.jar /opt/damageprofiler.jar
+COPY --from=builder /opt/damageprofiler.jar /opt/damageprofiler.jar
 RUN cat > /usr/local/bin/damageprofiler <<'SH' && chmod +x /usr/local/bin/damageprofiler
 #!/bin/sh
 set -eu

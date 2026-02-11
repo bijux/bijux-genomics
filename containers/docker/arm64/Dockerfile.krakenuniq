@@ -18,7 +18,7 @@ LABEL org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c422
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update -qq && apt-get install -y --no-install-recommends \
-    git build-essential wget perl python3 ca-certificates zlib1g-dev && \
+    git build-essential wget perl python3 ca-certificates zlib1g-dev libbz2-dev && \
     rm -rf /var/lib/apt/lists/*
 
 RUN git clone --depth 1 https://github.com/fbreitwieser/krakenuniq.git /opt/krakenuniq && \
