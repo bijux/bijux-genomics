@@ -1,5 +1,5 @@
 use bijux_dna_pipelines::registry::{bam_profiles, cross_profiles, fastq_profiles};
-use bijux_dna_pipelines::{Domain, PipelineProfile};
+use bijux_dna_pipelines::{fastq::fastq_default_profile, Domain, PipelineProfile};
 
 fn assert_report_sections(profile: &PipelineProfile) {
     let sections = &profile.capabilities.report_sections;
@@ -152,4 +152,24 @@ fn pipeline_profiles_are_complete() {
             profile.id
         );
     }
+}
+
+#[test]
+fn default_fastq_pipeline_declares_required_metrics_objects() {
+    let profile = fastq_default_profile();
+    let required_stages = &profile.capabilities.required_stages;
+    for required in ["fastq.trim", "fastq.filter", "fastq.qc_post"] {
+        assert!(
+            required_stages.iter().any(|stage| *stage == required),
+            "default FASTQ profile missing metrics-critical stage {required}"
+        );
+    }
+    assert!(
+        profile
+            .capabilities
+            .required_metrics
+            .iter()
+            .any(|metric| *metric == "fastq.metrics"),
+        "default FASTQ profile must require fastq.metrics bundle"
+    );
 }
