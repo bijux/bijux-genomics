@@ -4,7 +4,7 @@
 
 use std::collections::BTreeMap;
 
-use bijux_dna_core::ids::{StageId, ToolId};
+use bijux_dna_core::ids::{LibraryModel, StageId, ToolId};
 use bijux_dna_domain_bam::params::BamEffectiveParams;
 use bijux_dna_domain_fastq::params::correct::FastqCorrectParams;
 use bijux_dna_domain_fastq::params::detect_adapters::DetectAdaptersEffectiveParams;
@@ -261,6 +261,7 @@ pub struct PipelineProfile {
     pub defaults: EffectiveDefaults,
     pub defaults_ledger_ref: &'static str,
     pub invariants_preset: Option<InvariantsPreset>,
+    pub library_model: LibraryModel,
     pub capabilities: PipelineCapabilities,
 }
 
@@ -295,10 +296,38 @@ pub struct ProfileManifestV1 {
     pub schema_version: &'static str,
     pub pipeline_id: String,
     pub invariants_preset: Option<String>,
+    pub library_model: LibraryModel,
     pub stage_list: Vec<String>,
     pub tool_ids: BTreeMap<String, String>,
     pub param_hashes: BTreeMap<String, String>,
     pub schema_versions: BTreeMap<String, String>,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum InvariantSeverity {
+    Soft,
+    Hard,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct InvariantViolationV1 {
+    pub code: String,
+    pub stage_id: Option<String>,
+    pub severity: InvariantSeverity,
+    pub message: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct InvariantsReportV1 {
+    pub schema_version: String,
+    pub profile_id: String,
+    pub invariants_version: String,
+    pub valid: bool,
+    pub blocking: bool,
+    pub violations: Vec<InvariantViolationV1>,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, PartialEq, Eq)]
@@ -453,6 +482,7 @@ impl PipelineProfile {
             invariants_preset: self
                 .invariants_preset
                 .map(|preset| preset.as_str().to_string()),
+            library_model: self.library_model,
             stage_list,
             tool_ids,
             param_hashes,

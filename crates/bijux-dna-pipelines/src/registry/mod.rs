@@ -5,12 +5,15 @@ pub mod id;
 use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::id_catalog;
 
-use crate::bam::{bam_adna_capture_profile, bam_adna_shotgun_profile, bam_default_profile};
+use crate::bam::{
+    bam_adna_capture_profile, bam_adna_shotgun_profile, bam_default_profile,
+    bam_reference_adna_profile,
+};
 use crate::cross::{fastq_to_bam_adna_shotgun_profile, fastq_to_bam_default_profile};
 use crate::fastq::{
     fastq_adna_profile, fastq_default_profile, fastq_minimal_profile, fastq_reference_adna_profile,
 };
-use crate::vcf::vcf_minimal_profile;
+use crate::vcf::{vcf_minimal_profile, vcf_reference_basic_profile};
 use crate::{Domain, PipelineProfile, StabilityTier};
 
 #[derive(Debug, Clone)]
@@ -69,6 +72,7 @@ pub fn bam_profiles() -> Vec<PipelineProfile> {
         bam_default_profile(),
         bam_adna_shotgun_profile(),
         bam_adna_capture_profile(),
+        bam_reference_adna_profile(),
     ]
 }
 
@@ -82,7 +86,7 @@ pub fn cross_profiles() -> Vec<PipelineProfile> {
 
 #[must_use]
 pub fn vcf_profiles() -> Vec<PipelineProfile> {
-    vec![vcf_minimal_profile()]
+    vec![vcf_minimal_profile(), vcf_reference_basic_profile()]
 }
 
 /// # Errors
@@ -98,6 +102,7 @@ pub fn profile_by_id(domain: Domain, id: &str) -> Result<PipelineProfile> {
         },
         Domain::Vcf => match id {
             id_catalog::PIPELINE_VCF_MINIMAL => Ok(vcf_minimal_profile()),
+            id_catalog::PIPELINE_VCF_REFERENCE_BASIC => Ok(vcf_reference_basic_profile()),
             _ => Err(anyhow!("unknown VCF profile: {id}")),
         },
     }

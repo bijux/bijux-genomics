@@ -10,5 +10,5 @@ pub use profile_invariants::{
 };
 pub use profiles::{
     bam_adna_capture_profile, bam_adna_profile, bam_adna_shotgun_profile, bam_default_profile,
-    bam_profiles_by_id,
+    bam_profiles_by_id, bam_reference_adna_profile,
 };
