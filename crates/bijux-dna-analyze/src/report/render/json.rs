@@ -2,7 +2,7 @@
 //! JSON renderer for report models.
 
 use anyhow::Result;
-use bijux_dna_infra::atomic_write_json;
+use bijux_dna_infra::atomic_write_bytes;
 
 use crate::model::JsonBlob;
 use crate::report::model::ReportModel;
@@ -20,6 +20,7 @@ pub fn render_report_json(model: &ReportModel) -> Result<JsonBlob> {
 
 pub fn write_report_json(path: &std::path::Path, model: &ReportModel) -> Result<()> {
     let rendered = render_report_json(model)?;
-    atomic_write_json(path, rendered.as_value()).map_err(anyhow::Error::from)?;
+    let payload = bijux_dna_core::contract::canonical::to_canonical_json_bytes(rendered.as_value())?;
+    atomic_write_bytes(path, &payload).map_err(anyhow::Error::from)?;
     Ok(())
 }
