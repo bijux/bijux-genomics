@@ -246,15 +246,29 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
             else {
                 return Err(anyhow!("insert_size params mismatch"));
             };
-            tool_adapters::stages_post::coverage::plan(request.tool, bam, request.out_dir, &params)
+            tool_adapters::stages_post::insert_size::plan(
+                request.tool,
+                bam,
+                request.out_dir,
+                &params,
+            )
         }
         bijux_dna_domain_bam::BamStage::GcBias => {
             let bam = request.bam.ok_or_else(|| anyhow!("gc_bias requires bam"))?;
+            let reference = request
+                .reference
+                .ok_or_else(|| anyhow!("gc_bias requires reference"))?;
             let params = effective_params_for_stage(stage, request.params)?;
             let bijux_dna_domain_bam::params::BamEffectiveParams::GcBias(params) = params else {
                 return Err(anyhow!("gc_bias params mismatch"));
             };
-            tool_adapters::stages_post::coverage::plan(request.tool, bam, request.out_dir, &params)
+            tool_adapters::stages_post::gc_bias::plan(
+                request.tool,
+                bam,
+                reference,
+                request.out_dir,
+                &params,
+            )
         }
         bijux_dna_domain_bam::BamStage::EndogenousContent => {
             let bam = request
