@@ -30,6 +30,8 @@ mod mod_contracts_tooling_assets_scope_policy_rs;
 mod mod_contracts_tooling_authenticct_container_policy_rs;
 #[path = "contracts/tooling/bank_loader_ownership_policy.rs"]
 mod mod_contracts_tooling_bank_loader_ownership_policy_rs;
+#[path = "contracts/tooling/boundary_docs_policy.rs"]
+mod mod_contracts_tooling_boundary_docs_policy_rs;
 #[path = "contracts/tooling/ci_no_stage_tool_defs_policy.rs"]
 mod mod_contracts_tooling_ci_no_stage_tool_defs_policy_rs;
 #[path = "contracts/tooling/ci_tools_policy.rs"]
@@ -46,6 +48,8 @@ mod mod_contracts_tooling_docs_links_rs;
 mod mod_contracts_tooling_domain_catalog_symmetry_policy_rs;
 #[path = "contracts/tooling/domain_truth_fixture_policy.rs"]
 mod mod_contracts_tooling_domain_truth_fixture_policy_rs;
+#[path = "contracts/tooling/error_boundary_policy.rs"]
+mod mod_contracts_tooling_error_boundary_policy_rs;
 #[path = "contracts/tooling/fixture_privacy_policy.rs"]
 mod mod_contracts_tooling_fixture_privacy_policy_rs;
 #[path = "contracts/tooling/generated_configs_policy.rs"]
