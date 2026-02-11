@@ -28,11 +28,27 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
 
     cat > /usr/local/bin/authenticct <<'EOS'
 #!/usr/bin/env sh
+AUTHENTICT_SCRIPT="${AUTHENTICT_SCRIPT:-/opt/authenticct/AuthentiCT.py}"
+if [ ! -f "${AUTHENTICT_SCRIPT}" ]; then
+  AUTHENTICT_SCRIPT="$(find /opt/authenticct -type f -name "AuthentiCT.py" -print -quit 2>/dev/null || true)"
+fi
+run_authenticct() {
+  if [ -n "${AUTHENTICT_SCRIPT}" ] && [ -f "${AUTHENTICT_SCRIPT}" ]; then
+    python3 "${AUTHENTICT_SCRIPT}" "$@"
+    return 0
+  fi
+  if command -v AuthentiCT.py >/dev/null 2>&1; then
+    AuthentiCT.py "$@"
+    return 0
+  fi
+  echo "AuthentiCT.py not found under /opt/authenticct and not on PATH" >&2
+  return 127
+}
 case "${1:-}" in
-  --version) AuthentiCT.py --version; exit 0 ;;
-  --help|-h|"") AuthentiCT.py --help; exit 0 ;;
+  --version) run_authenticct --version; exit 0 ;;
+  --help|-h|"") run_authenticct --help; exit 0 ;;
 esac
-exec AuthentiCT.py "$@"
+run_authenticct "$@"
 EOS
     chmod +x /usr/local/bin/authenticct
 
