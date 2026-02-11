@@ -16,6 +16,31 @@ use crate::backend::docker::executor::{
 };
 use crate::runner_core::{run_command, CommandOutputV1};
 
+#[derive(Debug, Clone, Copy)]
+enum RunnerEffectKind {
+    UnsupportedRuntime,
+    Filesystem,
+    CommandSpawn,
+    ContainerLifecycle,
+    TelemetryWrite,
+}
+
+impl RunnerEffectKind {
+    const fn code(self) -> &'static str {
+        match self {
+            Self::UnsupportedRuntime => "unsupported_runtime",
+            Self::Filesystem => "filesystem",
+            Self::CommandSpawn => "command_spawn",
+            Self::ContainerLifecycle => "container_lifecycle",
+            Self::TelemetryWrite => "telemetry_write",
+        }
+    }
+}
+
+fn runner_failure(kind: RunnerEffectKind, message: impl Into<String>) -> anyhow::Error {
+    anyhow!("[runner_effect:{}] {}", kind.code(), message.into())
+}
+
 #[derive(Debug, Clone)]
 pub struct StageResultV1 {
     pub run_id: String,
@@ -66,12 +91,14 @@ pub fn execute_step(
     timeout: Option<Duration>,
 ) -> Result<StageResultV1> {
     if runner != RuntimeKind::Docker {
-        return Err(anyhow!(
-            "runner {runner:?} not supported for step execution"
+        return Err(runner_failure(
+            RunnerEffectKind::UnsupportedRuntime,
+            format!("runner {runner:?} not supported for step execution"),
         ));
     }
     let out_dir = &step.out_dir;
-    bijux_dna_infra::ensure_dir(out_dir).context("ensure out dir")?;
+    bijux_dna_infra::ensure_dir(out_dir)
+        .map_err(|err| runner_failure(RunnerEffectKind::Filesystem, err.to_string()))?;
     let inputs: Vec<PathBuf> = step
         .io
         .inputs
@@ -103,13 +130,20 @@ pub fn execute_step(
     ]);
     args.extend(step.command.template.clone());
 
-    let output = run_command("docker", &args).context("docker run")?;
+    let output = run_command("docker", &args)
+        .map_err(|err| runner_failure(RunnerEffectKind::CommandSpawn, err.to_string()))?;
     if output.exit_code != 0 {
-        return Err(anyhow!("docker run failed for {}", step.step_id.0));
+        return Err(runner_failure(
+            RunnerEffectKind::ContainerLifecycle,
+            format!("docker run failed for {}", step.step_id.0),
+        ));
     }
     let id = output.stdout.trim().to_string();
     if id.is_empty() {
-        return Err(anyhow!("missing container id for {}", step.step_id.0));
+        return Err(runner_failure(
+            RunnerEffectKind::ContainerLifecycle,
+            format!("missing container id for {}", step.step_id.0),
+        ));
     }
     let exit_code = if let Some(timeout) = timeout {
         docker_wait_timeout(&id, timeout)?
@@ -176,11 +210,14 @@ pub fn execute_observer_command(
     runner: RuntimeKind,
 ) -> Result<CommandOutputV1> {
     if runner != RuntimeKind::Docker {
-        return Err(anyhow!(
-            "runner {runner:?} not supported for observer execution"
+        return Err(runner_failure(
+            RunnerEffectKind::UnsupportedRuntime,
+            format!("runner {runner:?} not supported for observer execution"),
         ));
     }
-    let mount_dir = mount_dir.canonicalize().context("resolve mount dir")?;
+    let mount_dir = mount_dir
+        .canonicalize()
+        .map_err(|err| runner_failure(RunnerEffectKind::Filesystem, err.to_string()))?;
     let mount_arg = format!("{}:/data:ro", mount_dir.display());
     let mut command_args: Vec<String> = vec!["run".to_string(), "--rm".to_string()];
     if !network_allowed() {
@@ -189,7 +226,8 @@ pub fn execute_observer_command(
     }
     command_args.extend(["-v".to_string(), mount_arg, image.to_string()]);
     command_args.extend(args.iter().cloned());
-    let output = run_command("docker", &command_args).context("docker run")?;
+    let output = run_command("docker", &command_args)
+        .map_err(|err| runner_failure(RunnerEffectKind::CommandSpawn, err.to_string()))?;
     Ok(output)
 }
 
@@ -207,12 +245,13 @@ fn write_minimum_run_artifacts(
     command: &str,
 ) -> Result<()> {
     let run_artifacts_dir = step.out_dir.join("run_artifacts");
-    bijux_dna_infra::ensure_dir(&run_artifacts_dir).context("ensure run_artifacts dir")?;
+    bijux_dna_infra::ensure_dir(&run_artifacts_dir)
+        .map_err(|err| runner_failure(RunnerEffectKind::Filesystem, err.to_string()))?;
 
     let metrics_path = run_artifacts_dir.join("metrics.json");
     if !metrics_path.exists() {
         bijux_dna_infra::atomic_write_json(&metrics_path, &serde_json::json!({}))
-            .context("write metrics.json")?;
+            .map_err(|err| runner_failure(RunnerEffectKind::TelemetryWrite, err.to_string()))?;
     }
 
     let effective_config_path = run_artifacts_dir.join("effective_config.json");
@@ -223,7 +262,7 @@ fn write_minimum_run_artifacts(
             "resources": step.resources,
         });
         bijux_dna_infra::atomic_write_json(&effective_config_path, &payload)
-            .context("write effective_config.json")?;
+            .map_err(|err| runner_failure(RunnerEffectKind::TelemetryWrite, err.to_string()))?;
     }
 
     let tool_invocation_path = run_artifacts_dir.join("tool_invocation.json");
