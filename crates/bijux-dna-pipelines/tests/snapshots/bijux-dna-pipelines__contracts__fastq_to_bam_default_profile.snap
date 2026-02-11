@@ -1,6 +1,5 @@
 ---
 source: crates/bijux-dna-pipelines/tests/contracts/profiles/profiles.rs
-assertion_line: 99
 expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
@@ -144,6 +143,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "min_length": 0,
         "remove_duplicates": false
       },
+      "bam.qc_pre": {
+        "regions": null
+      },
       "bam.sex": {
         "expected_sex": null,
         "method": "rxy"
@@ -240,6 +242,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "bam.length_filter": "pipeline default",
       "bam.mapping_summary": "pipeline default",
       "bam.mapq_filter": "pipeline default",
+      "bam.qc_pre": "cross-domain compatibility bridge for BAM pre-QC defaults",
       "bam.sex": "pipeline default",
       "bam.validate": "pipeline default",
       "core.prepare_reference": "reference prep uses canonical defaults for cross-domain alignment",
@@ -267,6 +270,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "bam.length_filter": "samtools",
       "bam.mapping_summary": "samtools",
       "bam.mapq_filter": "samtools",
+      "bam.qc_pre": "samtools",
       "bam.sex": "rxy",
       "bam.validate": "samtools",
       "core.prepare_reference": "samtools",
