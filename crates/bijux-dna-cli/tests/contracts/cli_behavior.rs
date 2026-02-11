@@ -196,7 +196,9 @@ fn cli_env_images_are_listed_in_order() {
     assert_eq!(lines, sorted);
     assert!(lines.iter().any(|line| line.starts_with("fastp:")));
     assert!(lines.iter().any(|line| line.starts_with("fastqc:")));
-    assert!(lines.iter().any(|line| line.starts_with("fastqvalidator_official:")));
+    assert!(lines
+        .iter()
+        .any(|line| line.starts_with("fastqvalidator_official:")));
     assert!(lines.iter().any(|line| line.starts_with("seqkit:")));
 }
 
