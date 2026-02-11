@@ -87,13 +87,6 @@ EOF
     cd /
     rm -rf /opt/STAR-2.7.11b /tmp/star.tar.gz
 
-    # Purge build deps only (keep ca-certificates)
-        wget \
-        build-essential \
-        xxd \
-        zlib1g-dev \
-        libbz2-dev
-
     rm -rf /var/lib/apt/lists/*
 
 %runscript

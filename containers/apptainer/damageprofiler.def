@@ -18,12 +18,11 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
 
 %post
     export DEBIAN_FRONTEND=noninteractive
-    apt-get update -qq && apt-get install -y --no-install-recommends git maven openjdk-17-jdk ca-certificates && rm -rf /var/lib/apt/lists/*
-    git clone --depth 1 https://github.com/Integrative-Transcriptomics/DamageProfiler.git /opt/damageprofiler
-    cd /opt/damageprofiler
-    git checkout a1e9a136303173edff82e396791181bea957e1e3
-    mvn -q -DskipTests package
-    cp /opt/damageprofiler/target/*-jar-with-dependencies.jar /opt/damageprofiler.jar
+    apt-get update -qq && apt-get install -y --no-install-recommends \
+        wget openjdk-17-jre-headless ca-certificates && \
+        rm -rf /var/lib/apt/lists/*
+    wget -q -O /opt/damageprofiler.jar \
+      "https://github.com/Integrative-Transcriptomics/DamageProfiler/releases/download/v1.1/DamageProfiler-1.1-java11.jar"
     cat > /usr/local/bin/damageprofiler <<'SH'
 #!/bin/sh
 set -eu

@@ -58,7 +58,7 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
     # Section: Fetch and pin Rcorrector.
     mkdir -p /opt/rcorrector
     for i in 1 2 3; do \
-        git clone --depth 1 https://github.com/mourisl/Rcorrector.git /opt/rcorrector && break || \
+        git clone https://github.com/mourisl/Rcorrector.git /opt/rcorrector && break || \
         echo "Git clone attempt $i failed, retrying..." && sleep 5; \
     done || { echo "Failed to clone Rcorrector after 3 attempts"; exit 1; }
 
@@ -100,14 +100,6 @@ EOF
     # Section: Clean up.
     cd /
     rm -rf /opt/src/jellyfish-2.3.0 /opt/src/jellyfish.tar.gz /opt/rcorrector
-
-    # Do not remove sed or grep (essential on Ubuntu). Purge only real build dependencies.
-        build-essential \
-        git \
-        wget \
-        curl \
-        zlib1g-dev \
-        libbz2-dev
 
     rm -rf /var/lib/apt/lists/*
 
