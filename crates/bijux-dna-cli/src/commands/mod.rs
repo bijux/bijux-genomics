@@ -203,7 +203,11 @@ fn handle_status_root(args: &cli::StatusArgs, cwd: &Path) -> Result<()> {
                     planned.push(format!("stage:{stage_id}:{status}"));
                 }
                 let lower = raw.to_ascii_lowercase();
-                if lower.contains("todo") || lower.contains("tbd") || lower.contains("placeholder")
+                if lower.contains("todo")
+                    || lower.contains("tbd")
+                    || lower.contains("placeholder")
+                    || lower.contains("sha256:dummy")
+                    || lower.contains("0.0.0")
                 {
                     placeholders.push(path.display().to_string());
                 }
@@ -246,7 +250,11 @@ fn handle_status_root(args: &cli::StatusArgs, cwd: &Path) -> Result<()> {
                     planned.push(format!("tool:{tool_id}:{status}"));
                 }
                 let lower = raw.to_ascii_lowercase();
-                if lower.contains("todo") || lower.contains("tbd") || lower.contains("placeholder")
+                if lower.contains("todo")
+                    || lower.contains("tbd")
+                    || lower.contains("placeholder")
+                    || lower.contains("sha256:dummy")
+                    || lower.contains("0.0.0")
                 {
                     placeholders.push(path.display().to_string());
                 }
@@ -322,6 +330,13 @@ fn handle_status_root(args: &cli::StatusArgs, cwd: &Path) -> Result<()> {
     missing_stage_fields.dedup();
     missing_tool_fields.sort();
     missing_tool_fields.dedup();
+
+    if args.placeholders {
+        for item in &placeholders {
+            println!("{item}");
+        }
+        return Ok(());
+    }
 
     println!("scope={}", args.scope);
     println!("planned_or_out_of_scope={}", planned.len());
