@@ -342,9 +342,10 @@ fn write_manifest(corpus_root: &Path) -> Result<()> {
             if !is_fastq {
                 continue;
             }
-            let rel = path
-                .strip_prefix(corpus_root)
-                .map_or_else(|_| path.display().to_string(), |v| v.to_string_lossy().to_string());
+            let rel = path.strip_prefix(corpus_root).map_or_else(
+                |_| path.display().to_string(),
+                |v| v.to_string_lossy().to_string(),
+            );
             let digest = bijux_dna_infra::hash_file_sha256(&path)
                 .with_context(|| format!("hash {}", path.display()))?;
             files.insert(rel, digest);
