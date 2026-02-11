@@ -91,7 +91,7 @@ pub mod temp {
     pub fn tempdir_for(test_name: &str) -> TempDir {
         let prefix = format!("bijux-dna-{test_name}-");
         if let Some(root) = test_tmp_root() {
-            if std::fs::create_dir_all(&root).is_ok() {
+            if root.exists() {
                 return tempfile::Builder::new()
                     .prefix(&prefix)
                     .tempdir_in(&root)

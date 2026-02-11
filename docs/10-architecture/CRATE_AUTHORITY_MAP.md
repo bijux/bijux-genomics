@@ -22,6 +22,11 @@ Prevents responsibility drift across crates and makes policy failures actionable
 ## Non-goals
 - Duplicating low-level dependency edge tables (see `docs/10-architecture/BOUNDARY_MAP.md`).
 
+## Contracts
+- Ownership source of truth: `docs/10-architecture/CRATE_AUTHORITY_MAP.md`
+- Boundary map and allowed edges: `docs/10-architecture/BOUNDARY_MAP.md`
+- Workspace policy diagnostics: `crates/bijux-dna-policies/docs/POLICY_DIAGNOSTICS.md`
+
 ## Enforcement
 - Dependency edges: `crates/bijux-dna-policies/tests/boundaries/deps/*.rs`
 - Effect boundaries: `crates/bijux-dna-policies/tests/boundaries/deps/effect_boundary_map.rs`

@@ -866,7 +866,7 @@ pub fn select_trim_tools(tools: &[String], allow_experimental: bool) -> Result<V
         crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_TRIM);
     if allow_experimental {
         if !allowlist.iter().any(|tool| tool.as_str() == "seqpurge") {
-            allowlist.push(bijux_dna_core::ids::ToolId::new("seqpurge".to_string()));
+            allowlist.push(bijux_dna_core::ids::ToolId::from_static("seqpurge"));
         }
     } else {
         allowlist.retain(|tool| tool.as_str() != "seqpurge");
