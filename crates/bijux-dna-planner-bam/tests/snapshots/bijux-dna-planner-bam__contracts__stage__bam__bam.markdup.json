@@ -1,5 +1,5 @@
 {
-  "stage_id": "bam.markdup",
+  "stage_id": "bam.duplication_metrics",
   "stage_version": 1,
   "tool_id": "samtools",
   "tool_version": "1.0.0",

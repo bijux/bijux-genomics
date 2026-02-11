@@ -1,6 +1,5 @@
 ---
 source: crates/bijux-dna-planner-bam/tests/contracts/graph/graph_snapshots.rs
-assertion_line: 67
 expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
@@ -15,52 +14,44 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "to": "bam.contamination"
     },
     {
-      "from": "bam.bias_mitigation",
-      "to": "bam.haplogroups"
-    },
-    {
-      "from": "bam.complexity",
-      "to": "bam.coverage"
-    },
-    {
       "from": "bam.contamination",
       "to": "bam.sex"
     },
     {
       "from": "bam.coverage",
-      "to": "bam.damage"
+      "to": "bam.endogenous_content"
     },
     {
       "from": "bam.damage",
       "to": "bam.authenticity"
     },
     {
+      "from": "bam.endogenous_content",
+      "to": "bam.damage"
+    },
+    {
       "from": "bam.filter",
       "to": "bam.markdup"
     },
     {
-      "from": "bam.genotyping",
-      "to": "bam.kinship"
-    },
-    {
-      "from": "bam.haplogroups",
-      "to": "bam.genotyping"
-    },
-    {
-      "from": "bam.markdup",
-      "to": "bam.complexity"
-    },
-    {
-      "from": "bam.qc_pre",
+      "from": "bam.length_filter",
       "to": "bam.filter"
     },
     {
-      "from": "bam.sex",
-      "to": "bam.bias_mitigation"
+      "from": "bam.mapping_summary",
+      "to": "bam.mapq_filter"
+    },
+    {
+      "from": "bam.mapq_filter",
+      "to": "bam.length_filter"
+    },
+    {
+      "from": "bam.markdup",
+      "to": "bam.coverage"
     },
     {
       "from": "bam.validate",
-      "to": "bam.qc_pre"
+      "to": "bam.mapping_summary"
     }
   ],
   "pipeline_id": "bam-to-bam__adna_shotgun__v1",
@@ -126,120 +117,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       },
       "stage_id": "bam.authenticity",
       "step_id": "bam.authenticity"
-    },
-    {
-      "aux_images": {},
-      "command": {
-        "template": [
-          "echo",
-          "bam.bias_mitigation"
-        ]
-      },
-      "expected_artifact_ids": [],
-      "image": {
-        "digest": null,
-        "image": "bijux/dummy:latest"
-      },
-      "io": {
-        "inputs": [
-          {
-            "name": "bam",
-            "optional": false,
-            "path": "markdup.bam",
-            "role": "bam"
-          }
-        ],
-        "outputs": [
-          {
-            "name": "bias_report",
-            "optional": false,
-            "path": "bias.json",
-            "role": "report_json"
-          },
-          {
-            "name": "summary",
-            "optional": false,
-            "path": "bias.summary.json",
-            "role": "report_json"
-          },
-          {
-            "name": "stage_metrics",
-            "optional": false,
-            "path": "stage.metrics.json",
-            "role": "metrics_json"
-          }
-        ]
-      },
-      "metrics_schema_ids": [],
-      "out_dir": "bam_bias_mitigation",
-      "resources": {
-        "mem_gb": 1,
-        "runtime": "docker",
-        "threads": 1,
-        "tmp_gb": 1
-      },
-      "stage_id": "bam.bias_mitigation",
-      "step_id": "bam.bias_mitigation"
-    },
-    {
-      "aux_images": {},
-      "command": {
-        "template": [
-          "echo",
-          "bam.complexity"
-        ]
-      },
-      "expected_artifact_ids": [],
-      "image": {
-        "digest": null,
-        "image": "bijux/dummy:latest"
-      },
-      "io": {
-        "inputs": [
-          {
-            "name": "bam",
-            "optional": false,
-            "path": "markdup.bam",
-            "role": "bam"
-          }
-        ],
-        "outputs": [
-          {
-            "name": "complexity_report",
-            "optional": false,
-            "path": "complexity.json",
-            "role": "report_json"
-          },
-          {
-            "name": "preseq",
-            "optional": false,
-            "path": "preseq.txt",
-            "role": "unknown"
-          },
-          {
-            "name": "summary",
-            "optional": false,
-            "path": "complexity.summary.json",
-            "role": "report_json"
-          },
-          {
-            "name": "stage_metrics",
-            "optional": false,
-            "path": "stage.metrics.json",
-            "role": "metrics_json"
-          }
-        ]
-      },
-      "metrics_schema_ids": [],
-      "out_dir": "bam_complexity",
-      "resources": {
-        "mem_gb": 1,
-        "runtime": "docker",
-        "threads": 1,
-        "tmp_gb": 1
-      },
-      "stage_id": "bam.complexity",
-      "step_id": "bam.complexity"
     },
     {
       "aux_images": {},
@@ -410,6 +287,287 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "aux_images": {},
       "command": {
         "template": [
+          "mosdepth",
+          "-n",
+          "coverage",
+          "markdup.bam"
+        ]
+      },
+      "expected_artifact_ids": [],
+      "image": {
+        "digest": null,
+        "image": "bijux/dummy:latest"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "bam",
+            "optional": false,
+            "path": "markdup.bam",
+            "role": "bam"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "coverage_summary",
+            "optional": false,
+            "path": "coverage.mosdepth.summary.txt",
+            "role": "report_json"
+          },
+          {
+            "name": "stage_metrics",
+            "optional": false,
+            "path": "stage.metrics.json",
+            "role": "metrics_json"
+          }
+        ]
+      },
+      "metrics_schema_ids": [],
+      "out_dir": "bam_endogenous_content",
+      "resources": {
+        "mem_gb": 1,
+        "runtime": "docker",
+        "threads": 1,
+        "tmp_gb": 1
+      },
+      "stage_id": "bam.endogenous_content",
+      "step_id": "bam.endogenous_content"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "sh",
+          "-c",
+          "<TIMESTAMP>"
+        ]
+      },
+      "expected_artifact_ids": [],
+      "image": {
+        "digest": null,
+        "image": "bijux/dummy:latest"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "bam",
+            "optional": false,
+            "path": "filtered.bam",
+            "role": "bam"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "filtered_bam",
+            "optional": false,
+            "path": "filtered.bam",
+            "role": "bam"
+          },
+          {
+            "name": "filtered_bai",
+            "optional": false,
+            "path": "filtered.bam.bai",
+            "role": "index"
+          },
+          {
+            "name": "flagstat_before",
+            "optional": false,
+            "path": "flagstat.before.txt",
+            "role": "report_json"
+          },
+          {
+            "name": "flagstat_after",
+            "optional": false,
+            "path": "flagstat.after.txt",
+            "role": "report_json"
+          },
+          {
+            "name": "idxstats_before",
+            "optional": false,
+            "path": "idxstats.before.txt",
+            "role": "unknown"
+          },
+          {
+            "name": "idxstats_after",
+            "optional": false,
+            "path": "idxstats.after.txt",
+            "role": "unknown"
+          },
+          {
+            "name": "summary",
+            "optional": false,
+            "path": "filter.summary.json",
+            "role": "report_json"
+          },
+          {
+            "name": "stage_metrics",
+            "optional": false,
+            "path": "stage.metrics.json",
+            "role": "metrics_json"
+          }
+        ]
+      },
+      "metrics_schema_ids": [],
+      "out_dir": "bam_length_filter",
+      "resources": {
+        "mem_gb": 1,
+        "runtime": "docker",
+        "threads": 1,
+        "tmp_gb": 1
+      },
+      "stage_id": "bam.filter",
+      "step_id": "bam.filter"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "sh",
+          "-c",
+          "<TIMESTAMP>"
+        ]
+      },
+      "expected_artifact_ids": [],
+      "image": {
+        "digest": null,
+        "image": "bijux/dummy:latest"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "bam",
+            "optional": false,
+            "path": "filtered.bam",
+            "role": "bam"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "filtered_bam",
+            "optional": false,
+            "path": "filtered.bam",
+            "role": "bam"
+          },
+          {
+            "name": "filtered_bai",
+            "optional": false,
+            "path": "filtered.bam.bai",
+            "role": "index"
+          },
+          {
+            "name": "flagstat_before",
+            "optional": false,
+            "path": "flagstat.before.txt",
+            "role": "report_json"
+          },
+          {
+            "name": "flagstat_after",
+            "optional": false,
+            "path": "flagstat.after.txt",
+            "role": "report_json"
+          },
+          {
+            "name": "idxstats_before",
+            "optional": false,
+            "path": "idxstats.before.txt",
+            "role": "unknown"
+          },
+          {
+            "name": "idxstats_after",
+            "optional": false,
+            "path": "idxstats.after.txt",
+            "role": "unknown"
+          },
+          {
+            "name": "summary",
+            "optional": false,
+            "path": "filter.summary.json",
+            "role": "report_json"
+          },
+          {
+            "name": "stage_metrics",
+            "optional": false,
+            "path": "stage.metrics.json",
+            "role": "metrics_json"
+          }
+        ]
+      },
+      "metrics_schema_ids": [],
+      "out_dir": "bam_mapq_filter",
+      "resources": {
+        "mem_gb": 1,
+        "runtime": "docker",
+        "threads": 1,
+        "tmp_gb": 1
+      },
+      "stage_id": "bam.length_filter",
+      "step_id": "bam.length_filter"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "sh",
+          "-c",
+          "samtools flagstat <TMPDIR>/<TMP>/sample.bam > <TMPDIR>/<TMP>/out/bam_mapping_summary/flagstat.txt && samtools idxstats <TMPDIR>/<TMP>/sample.bam > <TMPDIR>/<TMP>/out/bam_mapping_summary/idxstats.txt && samtools stats <TMPDIR>/<TMP>/sample.bam > <TMPDIR>/<TMP>/out/bam_mapping_summary/samtools_stats.txt"
+        ]
+      },
+      "expected_artifact_ids": [],
+      "image": {
+        "digest": null,
+        "image": "bijux/dummy:latest"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "bam",
+            "optional": false,
+            "path": "sample.bam",
+            "role": "bam"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "flagstat",
+            "optional": false,
+            "path": "flagstat.txt",
+            "role": "report_json"
+          },
+          {
+            "name": "idxstats",
+            "optional": false,
+            "path": "idxstats.txt",
+            "role": "unknown"
+          },
+          {
+            "name": "stats",
+            "optional": false,
+            "path": "samtools_stats.txt",
+            "role": "unknown"
+          },
+          {
+            "name": "stage_metrics",
+            "optional": false,
+            "path": "stage.metrics.json",
+            "role": "metrics_json"
+          }
+        ]
+      },
+      "metrics_schema_ids": [],
+      "out_dir": "bam_mapping_summary",
+      "resources": {
+        "mem_gb": 1,
+        "runtime": "docker",
+        "threads": 1,
+        "tmp_gb": 1
+      },
+      "stage_id": "bam.mapping_summary",
+      "step_id": "bam.mapping_summary"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
           "sh",
           "-c",
           "<TIMESTAMP>"
@@ -488,170 +646,8 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "threads": 1,
         "tmp_gb": 1
       },
-      "stage_id": "bam.filter",
-      "step_id": "bam.filter"
-    },
-    {
-      "aux_images": {},
-      "command": {
-        "template": [
-          "echo",
-          "bam.genotyping"
-        ]
-      },
-      "expected_artifact_ids": [],
-      "image": {
-        "digest": null,
-        "image": "bijux/dummy:latest"
-      },
-      "io": {
-        "inputs": [
-          {
-            "name": "bam",
-            "optional": false,
-            "path": "markdup.bam",
-            "role": "bam"
-          }
-        ],
-        "outputs": [
-          {
-            "name": "genotyping_report",
-            "optional": false,
-            "path": "genotyping.json",
-            "role": "report_json"
-          },
-          {
-            "name": "summary",
-            "optional": false,
-            "path": "genotyping.summary.json",
-            "role": "report_json"
-          },
-          {
-            "name": "stage_metrics",
-            "optional": false,
-            "path": "stage.metrics.json",
-            "role": "metrics_json"
-          }
-        ]
-      },
-      "metrics_schema_ids": [],
-      "out_dir": "bam_genotyping",
-      "resources": {
-        "mem_gb": 1,
-        "runtime": "docker",
-        "threads": 1,
-        "tmp_gb": 1
-      },
-      "stage_id": "bam.genotyping",
-      "step_id": "bam.genotyping"
-    },
-    {
-      "aux_images": {},
-      "command": {
-        "template": [
-          "echo",
-          "bam.haplogroups"
-        ]
-      },
-      "expected_artifact_ids": [],
-      "image": {
-        "digest": null,
-        "image": "bijux/dummy:latest"
-      },
-      "io": {
-        "inputs": [
-          {
-            "name": "bam",
-            "optional": false,
-            "path": "markdup.bam",
-            "role": "bam"
-          }
-        ],
-        "outputs": [
-          {
-            "name": "haplogroups",
-            "optional": false,
-            "path": "haplogroups.json",
-            "role": "unknown"
-          },
-          {
-            "name": "summary",
-            "optional": false,
-            "path": "haplogroups.summary.json",
-            "role": "report_json"
-          },
-          {
-            "name": "stage_metrics",
-            "optional": false,
-            "path": "stage.metrics.json",
-            "role": "metrics_json"
-          }
-        ]
-      },
-      "metrics_schema_ids": [],
-      "out_dir": "bam_haplogroups",
-      "resources": {
-        "mem_gb": 1,
-        "runtime": "docker",
-        "threads": 1,
-        "tmp_gb": 1
-      },
-      "stage_id": "bam.haplogroups",
-      "step_id": "bam.haplogroups"
-    },
-    {
-      "aux_images": {},
-      "command": {
-        "template": [
-          "echo",
-          "bam.kinship"
-        ]
-      },
-      "expected_artifact_ids": [],
-      "image": {
-        "digest": null,
-        "image": "bijux/dummy:latest"
-      },
-      "io": {
-        "inputs": [
-          {
-            "name": "bam",
-            "optional": false,
-            "path": "markdup.bam",
-            "role": "bam"
-          }
-        ],
-        "outputs": [
-          {
-            "name": "kinship_report",
-            "optional": false,
-            "path": "kinship.json",
-            "role": "report_json"
-          },
-          {
-            "name": "summary",
-            "optional": false,
-            "path": "kinship.summary.json",
-            "role": "report_json"
-          },
-          {
-            "name": "stage_metrics",
-            "optional": false,
-            "path": "stage.metrics.json",
-            "role": "metrics_json"
-          }
-        ]
-      },
-      "metrics_schema_ids": [],
-      "out_dir": "bam_kinship",
-      "resources": {
-        "mem_gb": 1,
-        "runtime": "docker",
-        "threads": 1,
-        "tmp_gb": 1
-      },
-      "stage_id": "bam.kinship",
-      "step_id": "bam.kinship"
+      "stage_id": "bam.mapq_filter",
+      "step_id": "bam.mapq_filter"
     },
     {
       "aux_images": {},
@@ -728,7 +724,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         ]
       },
       "metrics_schema_ids": [],
-      "out_dir": "bam_markdup",
+      "out_dir": "bam_duplication_metrics",
       "resources": {
         "mem_gb": 1,
         "runtime": "docker",
@@ -737,67 +733,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       },
       "stage_id": "bam.markdup",
       "step_id": "bam.markdup"
-    },
-    {
-      "aux_images": {},
-      "command": {
-        "template": [
-          "sh",
-          "-c",
-          "samtools flagstat <TMPDIR>/<TMP>/sample.bam > <TMPDIR>/<TMP>/out/bam_qc_pre/flagstat.txt && samtools idxstats <TMPDIR>/<TMP>/sample.bam > <TMPDIR>/<TMP>/out/bam_qc_pre/idxstats.txt && samtools stats <TMPDIR>/<TMP>/sample.bam > <TMPDIR>/<TMP>/out/bam_qc_pre/samtools_stats.txt"
-        ]
-      },
-      "expected_artifact_ids": [],
-      "image": {
-        "digest": null,
-        "image": "bijux/dummy:latest"
-      },
-      "io": {
-        "inputs": [
-          {
-            "name": "bam",
-            "optional": false,
-            "path": "sample.bam",
-            "role": "bam"
-          }
-        ],
-        "outputs": [
-          {
-            "name": "flagstat",
-            "optional": false,
-            "path": "flagstat.txt",
-            "role": "report_json"
-          },
-          {
-            "name": "idxstats",
-            "optional": false,
-            "path": "idxstats.txt",
-            "role": "unknown"
-          },
-          {
-            "name": "stats",
-            "optional": false,
-            "path": "samtools_stats.txt",
-            "role": "unknown"
-          },
-          {
-            "name": "stage_metrics",
-            "optional": false,
-            "path": "stage.metrics.json",
-            "role": "metrics_json"
-          }
-        ]
-      },
-      "metrics_schema_ids": [],
-      "out_dir": "bam_qc_pre",
-      "resources": {
-        "mem_gb": 1,
-        "runtime": "docker",
-        "threads": 1,
-        "tmp_gb": 1
-      },
-      "stage_id": "bam.qc_pre",
-      "step_id": "bam.qc_pre"
     },
     {
       "aux_images": {},
