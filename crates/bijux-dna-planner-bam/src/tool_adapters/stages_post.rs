@@ -262,11 +262,11 @@ pub mod insert_size {
         let report = out_dir.join("insert_size.metrics.txt");
         let histogram = out_dir.join("insert_size.histogram.pdf");
         let command = match tool.tool_id.as_str() {
-            "picard" => crate::tool_adapters::tools::core::picard::collect_insert_size_metrics_args(
-                bam,
-                &report,
-                &histogram,
-            ),
+            "picard" => {
+                crate::tool_adapters::tools::core::picard::collect_insert_size_metrics_args(
+                    bam, &report, &histogram,
+                )
+            }
             _ => tool.command.template.clone(),
         };
         let plan = StagePlanV1 {
@@ -331,18 +331,16 @@ pub mod gc_bias {
         out_dir: &Path,
         params: &CoverageEffectiveParams,
     ) -> anyhow::Result<StagePlanV1> {
-        let outputs =
-            crate::tool_adapters::stages_support::audit_outputs(bijux_dna_domain_bam::BamStage::GcBias, out_dir);
+        let outputs = crate::tool_adapters::stages_support::audit_outputs(
+            bijux_dna_domain_bam::BamStage::GcBias,
+            out_dir,
+        );
         let report = out_dir.join("gc_bias.metrics.txt");
         let summary = out_dir.join("gc_bias.summary.json");
         let chart = out_dir.join("gc_bias.plot.pdf");
         let command = match tool.tool_id.as_str() {
             "picard" => crate::tool_adapters::tools::core::picard::collect_gc_bias_metrics_args(
-                bam,
-                reference,
-                &report,
-                &summary,
-                &chart,
+                bam, reference, &report, &summary, &chart,
             ),
             _ => tool.command.template.clone(),
         };
