@@ -44,6 +44,8 @@
   },
   "effective_params": {
     "enable_contaminant_removal": false,
+    "library_damage_treatment": "unknown",
+    "library_declared_paired": true,
     "paired_mode": "paired_end",
     "stages": [
       "fastq.trim",
