@@ -152,9 +152,11 @@
   },
   "run_id": "run-1",
   "completeness": {
-    "status": "complete",
+    "status": "incomplete",
     "missing_metrics": [],
-    "missing_reports": []
+    "missing_reports": [
+      "fastq.trim:metrics_path"
+    ]
   },
   "stages": [
     {
@@ -166,9 +168,9 @@
       "runtime_s": 1.0,
       "memory_mb": 64.0,
       "exit_code": 0,
-      "metrics_path": "crates/bijux-dna-analyze/tests/fixtures/report/happy/metrics.json",
-      "tool_invocation_path": "crates/bijux-dna-analyze/tests/fixtures/report/happy/tool_invocation.json",
-      "effective_config_path": "crates/bijux-dna-analyze/tests/fixtures/report/happy/effective_config.json",
+      "metrics_path": "",
+      "tool_invocation_path": "",
+      "effective_config_path": "",
       "stage_report_path": "crates/bijux-dna-analyze/tests/fixtures/report/happy/stage_report.json",
       "retention_report_path": "crates/bijux-dna-analyze/tests/fixtures/report/happy/retention_report.json",
       "bank_report_path": "crates/bijux-dna-analyze/tests/fixtures/report/happy/bank_report.json"
@@ -194,63 +196,20 @@
       }
     }
   ],
-  "retention_definition": [
-    {
-      "stage_id": "fastq.trim",
-      "tool_id": "fastp",
-      "numerator": "{\"bases_out\":800,\"reads_out\":80}",
-      "denominator": "{\"bases_in\":1000,\"reads_in\":100}",
-      "conditions": {
-        "min_len": 20
-      }
-    }
-  ],
-  "retention_context": [
-    {
-      "stage_id": "fastq.trim",
-      "tool_id": "fastp",
-      "definition": "{\"bases_out\":800,\"reads_out\":80} / {\"bases_in\":1000,\"reads_in\":100} (reads)",
-      "conditions": {
-        "min_len": 20
-      }
-    }
-  ],
+  "retention_definition": [],
+  "retention_context": [],
   "assets_provenance": [
     {
       "stage_id": "fastq.trim",
       "tool_id": "fastp",
       "banks": {
-        "adapters": {
-          "entries": [
-            {
-              "enabled": true,
-              "id": "A1",
-              "sequence": "ACGT"
-            }
-          ],
-          "hash": "sha256:adapters",
-          "preset": "default"
-        },
-        "contaminants": {
-          "entries": [
-            {
-              "enabled": true,
-              "id": "phix"
-            }
-          ],
-          "hash": "sha256:contam",
-          "preset": "illumina_default"
-        },
-        "polyx": {
-          "entries": [
-            {
-              "enabled": true,
-              "id": "polyG"
-            }
-          ],
-          "hash": "sha256:polyx",
-          "preset": "illumina_twocolor"
-        }
+        "adapter_bank_hash": "unknown",
+        "adapters": "sha256:adapters",
+        "contaminants": "sha256:contam",
+        "polyx": "sha256:polyx",
+        "reference_bank_hash": "unknown",
+        "taxonomy_db_hash": "unknown",
+        "taxonomy_db_version": "unknown"
       }
     }
   ],
@@ -384,7 +343,7 @@
   </div>
   <div class=\"stage-artifacts\">
     <h4>Artifacts</h4>
-    <ul><li><a href=\"crates/bijux-dna-analyze/tests/fixtures/report/happy/stage_report.json\">stage_report</a></li><li><a href=\"crates/bijux-dna-analyze/tests/fixtures/report/happy/metrics.json\">metrics</a></li><li><a href=\"crates/bijux-dna-analyze/tests/fixtures/report/happy/retention_report.json\">retention_report</a></li><li><a href=\"crates/bijux-dna-analyze/tests/fixtures/report/happy/bank_report.json\">bank_report</a></li><li><a href=\"crates/bijux-dna-analyze/tests/fixtures/report/happy/tool_invocation.json\">tool_invocation</a></li></ul>
+    <ul><li><a href=\"crates/bijux-dna-analyze/tests/fixtures/report/happy/stage_report.json\">stage_report</a></li><li><a href=\"\">metrics</a></li><li><a href=\"crates/bijux-dna-analyze/tests/fixtures/report/happy/retention_report.json\">retention_report</a></li><li><a href=\"crates/bijux-dna-analyze/tests/fixtures/report/happy/bank_report.json\">bank_report</a></li><li><a href=\"\">tool_invocation</a></li></ul>
   </div>
   <div class=\"stage-plots\" data-stage=\"fastq.trim\"></div>
 </div>
