@@ -1,7 +1,8 @@
 use bijux_dna_core::ids::StageId;
 use bijux_dna_core::prelude::id_catalog;
 use bijux_dna_pipelines::fastq::{
-    fastq_adna_profile, fastq_default_profile, fastq_minimal_profile, validate_fastq_profile,
+    fastq_adna_profile, fastq_default_profile, fastq_minimal_profile, fastq_reference_adna_profile,
+    validate_fastq_profile,
 };
 use bijux_dna_pipelines::DefaultParams;
 
@@ -10,6 +11,7 @@ fn fastq_profiles_validate_in_tests() {
     for profile in [
         fastq_default_profile(),
         fastq_adna_profile(),
+        fastq_reference_adna_profile(),
         fastq_minimal_profile(),
     ] {
         let report = validate_fastq_profile(&profile);
@@ -19,6 +21,46 @@ fn fastq_profiles_validate_in_tests() {
             report.profile_id, report.violations
         );
     }
+}
+
+#[test]
+fn reference_adna_profile_stage_contract_and_pairing_invariants() {
+    let profile = fastq_reference_adna_profile();
+    let report = validate_fastq_profile(&profile);
+    assert!(
+        report.valid,
+        "reference profile invalid: {:?}",
+        report.violations
+    );
+    for stage in [
+        id_catalog::FASTQ_VALIDATE_PRE,
+        id_catalog::FASTQ_DETECT_ADAPTERS,
+        id_catalog::FASTQ_TRIM,
+        id_catalog::FASTQ_LOW_COMPLEXITY,
+        id_catalog::FASTQ_MERGE,
+        id_catalog::FASTQ_STATS_NEUTRAL,
+        id_catalog::FASTQ_QC_POST,
+    ] {
+        assert!(
+            profile
+                .capabilities
+                .required_stages
+                .iter()
+                .any(|candidate| *candidate == stage),
+            "reference profile must include required stage {stage}"
+        );
+    }
+
+    let preprocess_stage = StageId::from_static(id_catalog::FASTQ_PREPROCESS);
+    let Some(bijux_dna_pipelines::DefaultParams::FastqPreprocess(preprocess)) =
+        profile.defaults.params.get(&preprocess_stage)
+    else {
+        panic!("missing preprocess params");
+    };
+    assert!(
+        preprocess.library_declared_paired,
+        "reference profile must declare paired library type"
+    );
 }
 
 #[test]

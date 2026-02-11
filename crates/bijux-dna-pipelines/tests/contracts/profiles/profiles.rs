@@ -5,7 +5,9 @@ use bijux_dna_pipelines::bam::{
     bam_adna_capture_profile, bam_adna_shotgun_profile, bam_default_profile,
 };
 use bijux_dna_pipelines::cross::{fastq_to_bam_adna_shotgun_profile, fastq_to_bam_default_profile};
-use bijux_dna_pipelines::fastq::{fastq_default_profile, fastq_minimal_profile};
+use bijux_dna_pipelines::fastq::{
+    fastq_default_profile, fastq_minimal_profile, fastq_reference_adna_profile,
+};
 use bijux_dna_testkit::snapshot_name;
 use insta::assert_json_snapshot;
 
@@ -77,6 +79,44 @@ fn fastq_minimal_profile_snapshot() {
     let _guard = snapshot_settings().bind_to_scope();
     let name = snapshot_name("contracts", "fastq_minimal_profile");
     let json = serde_json::to_value(fastq_minimal_profile()).expect("serialize profile");
+    assert_json_snapshot!(name, bijux_dna_testkit::snapshot_normalize_json(&json));
+}
+
+#[test]
+fn fastq_reference_adna_profile_snapshot() {
+    let _guard = snapshot_settings().bind_to_scope();
+    let name = snapshot_name("contracts", "fastq_reference_adna_profile");
+    let json = serde_json::to_value(fastq_reference_adna_profile()).expect("serialize profile");
+    assert_json_snapshot!(name, bijux_dna_testkit::snapshot_normalize_json(&json));
+}
+
+#[test]
+fn fastq_reference_adna_profile_golden_stage_tool_and_param_hashes_snapshot() {
+    let _guard = snapshot_settings().bind_to_scope();
+    let name = snapshot_name("contracts", "fastq_reference_adna_profile_golden");
+    let profile = fastq_reference_adna_profile();
+    let stage_list = profile
+        .capabilities
+        .required_stages
+        .iter()
+        .map(|stage| (*stage).to_string())
+        .collect::<Vec<_>>();
+    let mut tool_ids = std::collections::BTreeMap::new();
+    let mut param_hashes = std::collections::BTreeMap::new();
+    for (stage, tool) in &profile.defaults.tools {
+        tool_ids.insert(stage.as_str().to_string(), tool.as_str().to_string());
+    }
+    for (stage, params) in &profile.defaults.params {
+        let hash = bijux_dna_core::prelude::hashing::params_hash(&params.to_json())
+            .expect("hash default params");
+        param_hashes.insert(stage.as_str().to_string(), hash);
+    }
+    let json = serde_json::json!({
+        "profile_id": profile.id,
+        "required_stages": stage_list,
+        "tool_ids": tool_ids,
+        "param_hashes": param_hashes,
+    });
     assert_json_snapshot!(name, bijux_dna_testkit::snapshot_normalize_json(&json));
 }
 

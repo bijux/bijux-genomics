@@ -2,7 +2,10 @@ use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRole, StageId, StageVersion, ToolExecutionSpecV1,
 };
-use bijux_dna_domain_fastq::params::{preprocess::PreprocessEffectiveParams, PairedMode};
+use bijux_dna_domain_fastq::params::preprocess::{
+    LibraryDamageTreatment, PreprocessEffectiveParams,
+};
+use bijux_dna_domain_fastq::params::PairedMode;
 use bijux_dna_domain_fastq::STAGE_PREPROCESS;
 use bijux_dna_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 
@@ -29,6 +32,8 @@ pub fn plan_preprocess_stage(
     let effective_params = PreprocessEffectiveParams {
         enable_contaminant_removal: plan.enable_contaminant_removal,
         paired_mode,
+        library_declared_paired: plan.r2.is_some(),
+        library_damage_treatment: LibraryDamageTreatment::Unknown,
         stages: plan.stages.clone(),
         threads: tool.resources.threads,
     };

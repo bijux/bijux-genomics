@@ -12,6 +12,7 @@ use bijux_dna_domain_fastq::params::defaults::{
     preprocess_defaults, qc_post_defaults, screen_defaults, stats_defaults, trim_defaults,
     umi_defaults, validate_defaults,
 };
+use bijux_dna_domain_fastq::params::preprocess::LibraryDamageTreatment;
 use bijux_dna_domain_fastq::params::{DamageMode, PairedMode};
 
 use crate::{
@@ -185,6 +186,20 @@ fn adna_fastq_defaults() -> EffectiveDefaults {
         );
     }
 
+    if let Some(DefaultParams::FastqPreprocess(mut params)) = defaults
+        .params
+        .get(&StageId::from_static("fastq.preprocess"))
+        .cloned()
+    {
+        params.paired_mode = PairedMode::PairedEnd;
+        params.library_declared_paired = true;
+        params.library_damage_treatment = LibraryDamageTreatment::NoUdg;
+        defaults.params.insert(
+            StageId::from_static("fastq.preprocess"),
+            DefaultParams::FastqPreprocess(params),
+        );
+    }
+
     if let Some(DefaultParams::FastqMerge(mut params)) = defaults
         .params
         .get(&StageId::from_static("fastq.merge"))
@@ -211,6 +226,66 @@ fn adna_fastq_defaults() -> EffectiveDefaults {
     defaults.rationales.insert(
         StageId::from_static("fastq.detect_adapters"),
         "aDNA preset: stricter adapter detection depth for short fragments".to_string(),
+    );
+
+    defaults
+}
+
+fn reference_adna_fastq_defaults() -> EffectiveDefaults {
+    let mut defaults = adna_fastq_defaults();
+
+    defaults.tools.insert(
+        StageId::from_static(id_catalog::FASTQ_TRIM),
+        ToolId::from_static(id_catalog::TOOL_FASTP),
+    );
+    defaults.tools.insert(
+        StageId::from_static(id_catalog::FASTQ_MERGE),
+        ToolId::from_static(id_catalog::TOOL_VSEARCH),
+    );
+    defaults.rationales.insert(
+        StageId::from_static(id_catalog::FASTQ_TRIM),
+        "reference-grade gate: production-pinned trim tool with aDNA-safe parameters".to_string(),
+    );
+    defaults.rationales.insert(
+        StageId::from_static(id_catalog::FASTQ_MERGE),
+        "reference-grade gate: production-pinned merge tool with explicit overlap/min-length defaults"
+            .to_string(),
+    );
+
+    defaults.tools.insert(
+        StageId::from_static(id_catalog::FASTQ_LOW_COMPLEXITY),
+        ToolId::new("bbduk".to_string()),
+    );
+    defaults.params.insert(
+        StageId::from_static(id_catalog::FASTQ_LOW_COMPLEXITY),
+        DefaultParams::FastqFilter(filter_defaults(true)),
+    );
+    defaults.rationales.insert(
+        StageId::from_static(id_catalog::FASTQ_LOW_COMPLEXITY),
+        "reference-grade aDNA: pre-alignment low-complexity/duplication proxy estimate stage"
+            .to_string(),
+    );
+
+    defaults.tools.insert(
+        StageId::from_static(id_catalog::FASTQ_SCREEN),
+        ToolId::from_static(id_catalog::TOOL_KRAKEN2),
+    );
+    if let Some(DefaultParams::FastqScreen(mut params)) = defaults
+        .params
+        .get(&StageId::from_static(id_catalog::FASTQ_SCREEN))
+        .cloned()
+    {
+        params.paired_mode = PairedMode::PairedEnd;
+        params.contaminant_db = Some("host_depletion_db".to_string());
+        defaults.params.insert(
+            StageId::from_static(id_catalog::FASTQ_SCREEN),
+            DefaultParams::FastqScreen(params),
+        );
+    }
+    defaults.rationales.insert(
+        StageId::from_static(id_catalog::FASTQ_SCREEN),
+        "reference-grade aDNA: contamination/host depletion hook with declared reference DB"
+            .to_string(),
     );
 
     defaults
@@ -327,6 +402,45 @@ pub fn fastq_adna_profile() -> PipelineProfile {
     }
 }
 
+#[must_use]
+pub fn fastq_reference_adna_profile() -> PipelineProfile {
+    let defaults = reference_adna_fastq_defaults();
+    PipelineProfile {
+        id: PipelineId::from_static(id_catalog::PIPELINE_FASTQ_REFERENCE_ADNA),
+        description: "Reference-grade aDNA FASTQ pipeline defaults",
+        stability: StabilityTier::Beta,
+        input_domains: vec![Domain::Fastq],
+        output_domains: vec![Domain::Fastq],
+        defaults,
+        defaults_ledger_ref: "defaults_ledger.json",
+        invariants_preset: Some("reference_adna"),
+        capabilities: PipelineCapabilities {
+            input_domains: vec![Domain::Fastq],
+            output_domains: vec![Domain::Fastq],
+            input_artifacts: vec![ArtifactType::FastqReads],
+            output_artifacts: vec![ArtifactType::FastqReads, ArtifactType::MetricsBundle],
+            required_inputs: vec!["fastq"],
+            produces_outputs: vec!["fastq", "fastq.metrics"],
+            report_sections: vec!["fastq"],
+            required_report_sections: vec![ReportSection::Fastq, ReportSection::PipelineDefaults],
+            required_metrics_bundles: vec![MetricsBundle::FastqCore],
+            required_stages: vec![
+                id_catalog::FASTQ_VALIDATE_PRE,
+                id_catalog::FASTQ_DETECT_ADAPTERS,
+                id_catalog::FASTQ_TRIM,
+                id_catalog::FASTQ_LOW_COMPLEXITY,
+                id_catalog::FASTQ_MERGE,
+                id_catalog::FASTQ_FILTER,
+                id_catalog::FASTQ_STATS_NEUTRAL,
+                id_catalog::FASTQ_QC_POST,
+            ],
+            required_metrics: vec!["fastq.metrics"],
+            required_artifacts: vec!["report.json", "run_manifest.json", "stage_summaries.json"],
+            supports_benchmarks: true,
+        },
+    }
+}
+
 /// # Errors
 /// Returns an error if the requested profile id is unknown.
 pub fn fastq_profiles_by_id(id: &str) -> anyhow::Result<PipelineProfile> {
@@ -334,6 +448,7 @@ pub fn fastq_profiles_by_id(id: &str) -> anyhow::Result<PipelineProfile> {
         id_catalog::PIPELINE_FASTQ_DEFAULT => Ok(fastq_default_profile()),
         id_catalog::PIPELINE_FASTQ_MINIMAL => Ok(fastq_minimal_profile()),
         id_catalog::PIPELINE_FASTQ_ADNA => Ok(fastq_adna_profile()),
+        id_catalog::PIPELINE_FASTQ_REFERENCE_ADNA => Ok(fastq_reference_adna_profile()),
         _ => Err(anyhow::anyhow!("unknown FASTQ profile: {id}")),
     }
 }

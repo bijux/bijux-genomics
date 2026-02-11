@@ -40,6 +40,7 @@ pub const BAM_SEX: &str = "bam.sex";
 pub const PIPELINE_FASTQ_DEFAULT: &str = "fastq-to-fastq__default__v1";
 pub const PIPELINE_FASTQ_MINIMAL: &str = "fastq-to-fastq__minimal__v1";
 pub const PIPELINE_FASTQ_ADNA: &str = "fastq-to-fastq__adna__v1";
+pub const PIPELINE_FASTQ_REFERENCE_ADNA: &str = "fastq-to-fastq__reference_adna__v1";
 pub const PIPELINE_BAM_DEFAULT: &str = "bam-to-bam__default__v1";
 pub const PIPELINE_BAM_ADNA_SHOTGUN: &str = "bam-to-bam__adna_shotgun__v1";
 pub const PIPELINE_BAM_ADNA_CAPTURE: &str = "bam-to-bam__adna_capture__v1";
