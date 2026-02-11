@@ -20,7 +20,8 @@ pub fn render_report_json(model: &ReportModel) -> Result<JsonBlob> {
 
 pub fn write_report_json(path: &std::path::Path, model: &ReportModel) -> Result<()> {
     let rendered = render_report_json(model)?;
-    let payload = bijux_dna_core::contract::canonical::to_canonical_json_bytes(rendered.as_value())?;
+    let payload =
+        bijux_dna_core::contract::canonical::to_canonical_json_bytes(rendered.as_value())?;
     atomic_write_bytes(path, &payload).map_err(anyhow::Error::from)?;
     Ok(())
 }

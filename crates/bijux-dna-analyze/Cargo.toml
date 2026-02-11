@@ -17,6 +17,7 @@ bijux-dna-domain-bam = { path = "../bijux-dna-domain-bam" }
 bijux-dna-domain-fastq = { path = "../bijux-dna-domain-fastq" }
 bijux-dna-infra = { path = "../bijux-dna-infra" }
 bijux-dna-runtime = { path = "../bijux-dna-runtime" }
+bijux-dna-pipelines = { path = "../bijux-dna-pipelines" }
 sha2.workspace = true
 parquet = { version = "50", optional = true, features = ["json"] }
 
@@ -33,7 +34,6 @@ bijux-dna-domain-fastq = { path = "../bijux-dna-domain-fastq" }
 insta = { version = "1", features = ["json"] }
 bijux-dna-planner-fastq = { path = "../bijux-dna-planner-fastq" }
 bijux-dna-planner-bam = { path = "../bijux-dna-planner-bam" }
-bijux-dna-pipelines = { path = "../bijux-dna-pipelines" }
 bijux-dna-benchmark = { path = "../bijux-dna-benchmark" }
 walkdir.workspace = true
 

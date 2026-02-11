@@ -168,10 +168,10 @@
       "runtime_s": 3.0,
       "memory_mb": 32.0,
       "exit_code": 0,
-      "metrics_path": "/Users/bijan/bijux/bijux-dna/crates/bijux-dna-analyze/tests/fixtures/report/metrics.json",
-      "tool_invocation_path": "/Users/bijan/bijux/bijux-dna/crates/bijux-dna-analyze/tests/fixtures/report/tool_invocation.json",
-      "effective_config_path": "/Users/bijan/bijux/bijux-dna/crates/bijux-dna-analyze/tests/fixtures/report/effective_config.json",
-      "stage_report_path": "/Users/bijan/bijux/bijux-dna/crates/bijux-dna-analyze/tests/fixtures/report/stage_report.json",
+      "metrics_path": "metrics.json",
+      "tool_invocation_path": "tool_invocation.json",
+      "effective_config_path": "effective_config.json",
+      "stage_report_path": "stage_report.json",
       "retention_report_path": null,
       "bank_report_path": null
     }
@@ -185,7 +185,12 @@
       "trace_id": "trace-3",
       "span_id": "span-3",
       "params_hash": "params3",
-      "bank_hashes": {}
+      "bank_hashes": {
+        "adapter_bank_hash": "unknown",
+        "reference_bank_hash": "unknown",
+        "taxonomy_db_hash": "unknown",
+        "taxonomy_db_version": "unknown"
+      }
     }
   ],
   "retention_definition": [],
@@ -194,7 +199,12 @@
     {
       "stage_id": "fastq.validate_pre",
       "tool_id": "fastqvalidator",
-      "banks": {}
+      "banks": {
+        "adapter_bank_hash": "unknown",
+        "reference_bank_hash": "unknown",
+        "taxonomy_db_hash": "unknown",
+        "taxonomy_db_version": "unknown"
+      }
     }
   ],
   "metric_semantics": [
@@ -263,7 +273,7 @@
     "error_count": 0,
     "event_count": 0,
     "events": [
-      "/Users/bijan/bijux/bijux-dna/crates/bijux-dna-analyze/tests/fixtures/report/telemetry/events.jsonl"
+      "telemetry/events.jsonl"
     ]
   },
   "qc_improvement": {},
@@ -327,7 +337,7 @@
   </div>
   <div class=\"stage-artifacts\">
     <h4>Artifacts</h4>
-    <ul><li><a href=\"/Users/bijan/bijux/bijux-dna/crates/bijux-dna-analyze/tests/fixtures/report/stage_report.json\">stage_report</a></li><li><a href=\"/Users/bijan/bijux/bijux-dna/crates/bijux-dna-analyze/tests/fixtures/report/metrics.json\">metrics</a></li><li><a href=\"/Users/bijan/bijux/bijux-dna/crates/bijux-dna-analyze/tests/fixtures/report/tool_invocation.json\">tool_invocation</a></li></ul>
+    <ul><li><a href=\"stage_report.json\">stage_report</a></li><li><a href=\"metrics.json\">metrics</a></li><li><a href=\"tool_invocation.json\">tool_invocation</a></li></ul>
   </div>
   <div class=\"stage-plots\" data-stage=\"fastq.validate_pre\"></div>
 </div>
