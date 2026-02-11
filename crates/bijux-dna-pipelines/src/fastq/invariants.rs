@@ -247,11 +247,12 @@ pub fn validate_fastq_profile(profile: &PipelineProfile) -> FastqProfileValidati
                 .get(&StageId::from_static(id_catalog::FASTQ_TRIM))
                 .map(|tool| tool.as_str())
                 .unwrap_or_default();
-            if trim_tool != "adapterremoval" && trim_tool != "leehom" {
+            if trim_tool != id_catalog::TOOL_ADAPTERREMOVAL && trim_tool != id_catalog::TOOL_LEEHOM
+            {
                 violations.push(violation(
                     "adna_trim_tool_incompatible",
                     Some(id_catalog::FASTQ_TRIM),
-                    "aDNA profiles must use trim tool `adapterremoval` or `leehom`",
+                    "aDNA profiles must use an allowed aDNA trim tool from id_catalog",
                 ));
             }
 
@@ -261,11 +262,11 @@ pub fn validate_fastq_profile(profile: &PipelineProfile) -> FastqProfileValidati
                 .get(&StageId::from_static(id_catalog::FASTQ_MERGE))
                 .map(|tool| tool.as_str())
                 .unwrap_or_default();
-            if merge_tool != "leehom" {
+            if merge_tool != id_catalog::TOOL_LEEHOM {
                 violations.push(violation(
                     "adna_merge_tool_incompatible",
                     Some(id_catalog::FASTQ_MERGE),
-                    "aDNA profiles must use merge tool `leehom`",
+                    "aDNA profiles must use the allowed aDNA merge tool from id_catalog",
                 ));
             }
         }

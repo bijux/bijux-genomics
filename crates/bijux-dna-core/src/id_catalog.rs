@@ -81,3 +81,4 @@ pub const TOOL_ANGSD: &str = "angsd";
 pub const TOOL_YLEAF: &str = "yleaf";
 pub const TOOL_KING: &str = "king";
 pub const TOOL_BCFTOOLS: &str = "bcftools";
+pub const TOOL_BBDUK: &str = "bbduk";

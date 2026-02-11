@@ -5,9 +5,9 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::stages::ids::{
-    STAGE_CORRECT, STAGE_DETECT_ADAPTERS, STAGE_FILTER, STAGE_MERGE, STAGE_PREPROCESS,
-    STAGE_QC_POST, STAGE_RRNA, STAGE_SCREEN, STAGE_STATS_NEUTRAL, STAGE_TRIM, STAGE_UMI,
-    STAGE_VALIDATE_PRE,
+    STAGE_CORRECT, STAGE_DETECT_ADAPTERS, STAGE_FILTER, STAGE_LOW_COMPLEXITY, STAGE_MERGE,
+    STAGE_PREPROCESS, STAGE_QC_POST, STAGE_RRNA, STAGE_SCREEN, STAGE_STATS_NEUTRAL, STAGE_TRIM,
+    STAGE_UMI, STAGE_VALIDATE_PRE,
 };
 use bijux_dna_core::ids::StageId;
 
@@ -225,6 +225,11 @@ pub fn parse_effective_params(
             .map(EffectiveParams::Trim);
     }
     if stage_id == &STAGE_FILTER {
+        return serde_json::from_value::<filter::FilterEffectiveParams>(value.clone())
+            .ok()
+            .map(EffectiveParams::Filter);
+    }
+    if stage_id == &STAGE_LOW_COMPLEXITY {
         return serde_json::from_value::<filter::FilterEffectiveParams>(value.clone())
             .ok()
             .map(EffectiveParams::Filter);
