@@ -72,7 +72,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         ]
       },
       "metrics_schema_ids": [],
-      "out_dir": "fastp",
+      "out_dir": "fastqc",
       "resources": {
         "mem_gb": 1,
         "runtime": "docker",

@@ -124,7 +124,7 @@ fn default_pipeline_plan_snapshot_is_stable() {
         .iter()
         .map(|stage| ToolExecutionSpecV1 {
             tool_id: ToolId::new(tool_id_for_stage(stage)),
-            tool_version: "0.0.0".to_string(),
+            tool_version: "99.99.99+fixture".to_string(),
             image: ContainerImageRefV1 {
                 image: "bijux/test".to_string(),
                 digest: Some("sha256:plan".to_string()),

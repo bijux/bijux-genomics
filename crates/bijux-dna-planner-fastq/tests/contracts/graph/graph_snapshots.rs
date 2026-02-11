@@ -21,7 +21,7 @@ fn tool_for_stage(stage: &str) -> ToolExecutionSpecV1 {
         .map_or_else(|| "planner".to_string(), |tool| tool.to_string());
     ToolExecutionSpecV1 {
         tool_id: ToolId::new(tool_id),
-        tool_version: "0.0.0".to_string(),
+        tool_version: "99.99.99+fixture".to_string(),
         image: ContainerImageRefV1 {
             image: "bijux/dummy:latest".to_string(),
             digest: None,
