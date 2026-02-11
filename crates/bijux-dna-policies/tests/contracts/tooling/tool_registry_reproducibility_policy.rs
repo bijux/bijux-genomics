@@ -3,6 +3,7 @@
 mod support;
 
 use std::collections::{BTreeMap, BTreeSet};
+use sha2::Digest;
 
 use bijux_dna_pipelines::registry::{bam_profiles, cross_profiles, fastq_profiles};
 use bijux_dna_pipelines::StabilityTier;
@@ -312,5 +313,25 @@ fn policy__contracts__tool_registry_reproducibility__reference_adna_profile_uses
         offenders.is_empty(),
         "reference aDNA profile must not use experimental tools:\n{}",
         offenders.join("\n")
+    );
+}
+
+#[test]
+fn policy__contracts__tool_registry_reproducibility__tool_digest_contract_lock_matches_registry() {
+    let root = workspace_root();
+    let registry_path = root.join("configs/tool_registry.toml");
+    let raw = std::fs::read(&registry_path)
+        .unwrap_or_else(|err| panic!("read {}: {err}", registry_path.display()));
+    let mut hasher = sha2::Sha256::new();
+    hasher.update(raw);
+    let expected_hash = format!("{:x}", hasher.finalize());
+    let lock_path = root.join("configs/tool_registry.lock.sha256");
+    let actual_hash = std::fs::read_to_string(&lock_path)
+        .unwrap_or_else(|err| panic!("read lockfile: {err}"))
+        .trim()
+        .to_string();
+    bijux_dna_policies::policy_assert!(
+        actual_hash == expected_hash,
+        "tool digest contract violated: configs/tool_registry.lock.sha256 is stale; update it after tool pin changes"
     );
 }
