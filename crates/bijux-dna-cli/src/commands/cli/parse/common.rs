@@ -320,7 +320,11 @@ pub enum RegistryCommand {
     #[command(name = "audit")]
     Audit {
         #[arg(long, default_value_t = false)]
+        show_binding_violations: bool,
+        #[arg(long, default_value_t = false)]
         fix_suggestions: bool,
+        #[arg(long, default_value_t = false)]
+        fix_hints: bool,
     },
     #[command(name = "lint")]
     Lint {

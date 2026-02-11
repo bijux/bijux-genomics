@@ -155,6 +155,38 @@ pub fn run_with_cli(cli: &cli::Cli, cwd: &Path) -> Result<()> {
         return Ok(());
     }
 
+    if matches!(
+        dna_command,
+        cli::DnaCommand::Fastq { .. } | cli::DnaCommand::Bam { .. } | cli::DnaCommand::Vcf { .. }
+    ) {
+        let (stage, _, _) = cli::resolve_stage_tool(dna_command);
+        let run_domain = stage
+            .as_str()
+            .split('.')
+            .next()
+            .unwrap_or("fastq")
+            .to_string();
+        let registry_policy_report =
+            crate::commands::cli::env::policy_clean_report(&registry_path, &run_domain)?;
+        if !registry_policy_report.ok {
+            return Err(anyhow!(
+                "run blocked by policy-clean gate for domain `{}`: {}",
+                run_domain,
+                registry_policy_report
+                    .checks
+                    .iter()
+                    .filter(|check| !check.ok)
+                    .map(|check| format!("{}={}", check.name, check.detail))
+                    .collect::<Vec<_>>()
+                    .join(" | ")
+            ));
+        }
+        std::env::set_var(
+            "BIJUX_POLICY_CLEAN_REPORT_JSON",
+            serde_json::to_string(&registry_policy_report)?,
+        );
+    }
+
     if cli.profile.eq_ignore_ascii_case("hpc") {
         let (stage, _, _) = cli::resolve_stage_tool(dna_command);
         crate::commands::cli::env::lint_registry_hpc(
@@ -887,10 +919,10 @@ fn handle_config_root(command: &cli::ConfigCommand, cwd: &Path) -> Result<()> {
 
 fn handle_registry_root(command: &cli::RegistryCommand, cwd: &Path) -> Result<()> {
     use crate::commands::cli::env::{
-        lint_registry_hpc, print_registry_audit_fix_suggestions, print_registry_coverage_matrix,
-        print_registry_export_json, print_registry_list_stages, print_registry_show,
-        print_registry_show_stage, print_registry_show_tool, print_registry_tools,
-        verify_registry_tool,
+        lint_registry_hpc, print_registry_audit_fix_suggestions, print_registry_binding_violations,
+        print_registry_coverage_matrix, print_registry_export_json, print_registry_list_stages,
+        print_registry_show, print_registry_show_stage, print_registry_show_tool,
+        print_registry_tools, verify_registry_tool,
     };
     let registry_path = cwd.join("configs").join("tool_registry.toml");
     match command {
@@ -904,8 +936,14 @@ fn handle_registry_root(command: &cli::RegistryCommand, cwd: &Path) -> Result<()
         cli::RegistryCommand::ExportJson => print_registry_export_json(&registry_path)?,
         cli::RegistryCommand::CoverageMatrix => print_registry_coverage_matrix(&registry_path)?,
         cli::RegistryCommand::VerifyTool { id } => verify_registry_tool(&registry_path, id)?,
-        cli::RegistryCommand::Audit { fix_suggestions } => {
-            if *fix_suggestions {
+        cli::RegistryCommand::Audit {
+            show_binding_violations,
+            fix_suggestions,
+            fix_hints,
+        } => {
+            if *show_binding_violations {
+                print_registry_binding_violations(&registry_path, None)?;
+            } else if *fix_suggestions || *fix_hints {
                 print_registry_audit_fix_suggestions(&registry_path)?;
             } else {
                 print_registry_export_json(&registry_path)?;
