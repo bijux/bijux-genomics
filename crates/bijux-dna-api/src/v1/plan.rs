@@ -14,6 +14,9 @@ pub use bijux_dna_core::contract::ExecutionGraph;
 pub use bijux_dna_pipelines::fastq::{
     validate_fastq_profile, FastqProfileValidationReport, FastqProfileViolation, FASTQ_INVARIANTS,
 };
+pub use bijux_dna_pipelines::{
+    bam::{validate_bam_profile, BamProfileValidationReport, BamProfileViolation, BAM_INVARIANTS},
+};
 pub use bijux_dna_pipelines::registry::PipelineRegistry;
 pub use bijux_dna_pipelines::{Domain, PipelineProfile};
 pub use bijux_dna_planner_bam::{

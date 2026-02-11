@@ -274,6 +274,11 @@ pub fn bam_adna_capture_profile() -> PipelineProfile {
     }
 }
 
+#[must_use]
+pub fn bam_adna_profile() -> PipelineProfile {
+    bam_adna_shotgun_profile()
+}
+
 /// # Errors
 /// Returns an error if the requested profile id is unknown.
 pub fn bam_profiles_by_id(id: &str) -> Result<PipelineProfile> {
