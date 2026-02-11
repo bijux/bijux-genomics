@@ -52,7 +52,7 @@ impl Runner for ScenarioRunner {
                 "stage_report.json",
                 "tool_invocation.json",
             ] {
-                bijux_dna_infra::write_bytes(&run_artifacts.join(name), "{}")?;
+                bijux_dna_infra::write_bytes(run_artifacts.join(name), "{}")?;
             }
         }
 
@@ -68,7 +68,7 @@ impl Runner for ScenarioRunner {
         let (exit_code, duration) = match self.mode {
             Mode::Success => (0, Duration::from_millis(1)),
             Mode::FailOnceThenSuccess => {
-                let code = if invocation.attempt == 0 { 1 } else { 0 };
+                let code = i32::from(invocation.attempt == 0);
                 (code, Duration::from_millis(1))
             }
             Mode::Timeout => (0, Duration::from_secs(2)),
