@@ -14,7 +14,7 @@ fn vcf_minimal_plan_contains_call_filter_stats_chain() {
     let ids = graph
         .steps()
         .iter()
-        .map(|s| s.id.as_str().to_string())
+        .map(|s| s.stage_id.as_str().to_string())
         .collect::<Vec<_>>();
     assert!(ids.contains(&"vcf.call".to_string()));
     assert!(ids.contains(&"vcf.filter".to_string()));
