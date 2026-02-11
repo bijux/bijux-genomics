@@ -143,12 +143,13 @@ fn handle_observability_commands(dna_command: &cli::DnaCommand, cwd: &Path) -> R
     match dna_command {
         cli::DnaCommand::Debug(args) => {
             if args.view != "tail" {
-                return Err(anyhow!("unsupported --view `{}` (expected `tail`)", args.view));
+                return Err(anyhow!(
+                    "unsupported --view `{}` (expected `tail`)",
+                    args.view
+                ));
             }
             let run_dir = cwd.join(&args.search_root).join(&args.run_id);
-            let telemetry_path = run_dir
-                .join("run_artifacts")
-                .join("telemetry.jsonl");
+            let telemetry_path = run_dir.join("run_artifacts").join("telemetry.jsonl");
             let raw = std::fs::read_to_string(&telemetry_path)
                 .with_context(|| format!("read {}", telemetry_path.display()))?;
             let mut failure: Option<bijux_dna_runtime::TelemetryEventV1> = None;
@@ -175,10 +176,7 @@ fn handle_observability_commands(dna_command: &cli::DnaCommand, cwd: &Path) -> R
                 if let Some(stderr) = event.attrs.get("stderr_path") {
                     println!("stderr_path: {}", serde_json::to_string(stderr)?);
                 } else {
-                    println!(
-                        "stderr_path: {}",
-                        run_dir.join("logs/stderr.log").display()
-                    );
+                    println!("stderr_path: {}", run_dir.join("logs/stderr.log").display());
                 }
             } else {
                 println!("no failure events found in {}", telemetry_path.display());
@@ -191,8 +189,8 @@ fn handle_observability_commands(dna_command: &cli::DnaCommand, cwd: &Path) -> R
                 .out
                 .clone()
                 .unwrap_or_else(|| run_dir.join(format!("{}-log-pack.tar", args.run)));
-            let file = std::fs::File::create(&out)
-                .with_context(|| format!("create {}", out.display()))?;
+            let file =
+                std::fs::File::create(&out).with_context(|| format!("create {}", out.display()))?;
             let mut archive = tar::Builder::new(file);
             for rel in [
                 "run_manifest.json",
@@ -245,7 +243,7 @@ fn toml_array<'a>(value: &'a toml::Value, key: &str) -> Vec<&'a toml::Value> {
         .unwrap_or_default()
 }
 
-fn param_rows<'a>(value: &'a toml::Value) -> Vec<&'a toml::Value> {
+fn param_rows(value: &toml::Value) -> Vec<&toml::Value> {
     let rows = toml_array(value, "params");
     if rows.is_empty() {
         toml_array(value, "entries")
@@ -267,6 +265,7 @@ fn toml_list(value: &toml::Value, key: &str) -> Vec<String> {
         .unwrap_or_default()
 }
 
+#[allow(clippy::too_many_lines)]
 fn print_contract_status(cwd: &Path) -> Result<()> {
     let domains = parse_toml_path(&cwd.join("configs/domains.toml"))?;
     let images = parse_toml_path(&cwd.join("configs/images.toml"))?;

@@ -11,7 +11,7 @@ fn table_array<'a>(root: &'a toml::Value, key: &str) -> Vec<&'a toml::Value> {
         .unwrap_or_default()
 }
 
-fn param_rows<'a>(root: &'a toml::Value) -> Vec<&'a toml::Value> {
+fn param_rows(root: &toml::Value) -> Vec<&toml::Value> {
     let rows = table_array(root, "params");
     if rows.is_empty() {
         table_array(root, "entries")
