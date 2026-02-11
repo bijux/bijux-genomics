@@ -36,6 +36,14 @@ pub enum RootCommand {
         #[command(subcommand)]
         command: RegistryCommand,
     },
+    Ena {
+        #[command(subcommand)]
+        command: EnaCommand,
+    },
+    Corpus {
+        #[command(subcommand)]
+        command: CorpusCommand,
+    },
     Tool {
         #[command(subcommand)]
         command: ToolCommand,
@@ -321,6 +329,32 @@ pub enum RegistryCommand {
 #[derive(Debug, Subcommand)]
 pub enum ToolCommand {
     Verify { id: String },
+}
+
+#[derive(Debug, Subcommand)]
+pub enum EnaCommand {
+    Fetch(EnaFetchArgs),
+}
+
+#[derive(Debug, Args)]
+pub struct EnaFetchArgs {
+    #[arg(long)]
+    pub project: String,
+    #[arg(long = "limit", value_delimiter = ',', default_values = ["10-se", "10-pe"])]
+    pub limits: Vec<String>,
+    #[arg(long, default_value = "bijux-dna-data/corpus-01/raw")]
+    pub out: PathBuf,
+}
+
+#[derive(Debug, Subcommand)]
+pub enum CorpusCommand {
+    Validate {
+        corpus: String,
+    },
+    List {
+        #[arg(long, default_value_t = false)]
+        json: bool,
+    },
 }
 
 #[derive(Debug, Subcommand)]

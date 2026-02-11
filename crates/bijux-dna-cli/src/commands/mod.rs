@@ -22,6 +22,8 @@ pub(crate) mod bam;
 pub(crate) mod bench;
 pub mod cli;
 pub(crate) mod command_prelude;
+pub(crate) mod corpus;
+pub(crate) mod ena;
 pub(crate) mod fastq;
 pub mod hpc;
 pub(crate) mod report_inputs;
@@ -48,6 +50,7 @@ pub fn run_with_args(args: &[&str], cwd: &Path) -> Result<()> {
 
 /// # Errors
 /// Returns an error if CLI execution fails.
+#[allow(clippy::too_many_lines)]
 pub fn run_with_cli(cli: &cli::Cli, cwd: &Path) -> Result<()> {
     let original_cwd = std::env::current_dir().context("resolve current dir")?;
     std::env::set_current_dir(cwd).context("set current dir")?;
@@ -70,6 +73,12 @@ pub fn run_with_cli(cli: &cli::Cli, cwd: &Path) -> Result<()> {
     if let cli::RootCommand::Registry { command } = &cli.command {
         return handle_registry_root(command, cwd);
     }
+    if let cli::RootCommand::Ena { command } = &cli.command {
+        return handle_ena_root(command, cwd);
+    }
+    if let cli::RootCommand::Corpus { command } = &cli.command {
+        return handle_corpus_root(command, cwd);
+    }
     if let cli::RootCommand::Tool { command } = &cli.command {
         return handle_tool_root(command, cwd);
     }
@@ -89,6 +98,8 @@ pub fn run_with_cli(cli: &cli::Cli, cwd: &Path) -> Result<()> {
         cli::RootCommand::Dna { command } => command,
         cli::RootCommand::Environment { .. }
         | cli::RootCommand::Registry { .. }
+        | cli::RootCommand::Ena { .. }
+        | cli::RootCommand::Corpus { .. }
         | cli::RootCommand::Tool { .. }
         | cli::RootCommand::Domain { .. }
         | cli::RootCommand::Lab { .. }
@@ -899,6 +910,21 @@ fn handle_registry_root(command: &cli::RegistryCommand, cwd: &Path) -> Result<()
                 print_registry_coverage_matrix(&registry_path)?;
             }
         }
+    }
+    Ok(())
+}
+
+fn handle_ena_root(command: &cli::EnaCommand, cwd: &Path) -> Result<()> {
+    match command {
+        cli::EnaCommand::Fetch(args) => ena::fetch_corpus(cwd, args)?,
+    }
+    Ok(())
+}
+
+fn handle_corpus_root(command: &cli::CorpusCommand, cwd: &Path) -> Result<()> {
+    match command {
+        cli::CorpusCommand::Validate { corpus } => corpus::validate_corpus(cwd, corpus)?,
+        cli::CorpusCommand::List { .. } => corpus::list_corpus_json(cwd)?,
     }
     Ok(())
 }

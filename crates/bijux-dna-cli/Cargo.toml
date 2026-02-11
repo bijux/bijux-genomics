@@ -17,6 +17,7 @@ bijux-dna-runtime = { path = "../bijux-dna-runtime" }
 bijux-dna-infra = { path = "../bijux-dna-infra" }
 bijux-dna-domain-vcf = { path = "../bijux-dna-domain-vcf" }
 bijux-dna-stages-vcf = { path = "../bijux-dna-stages-vcf" }
+bijux-dna-db-ena = { path = "../bijux-dna-db-ena" }
 anyhow = { workspace = true }
 clap = { workspace = true }
 tracing = { workspace = true }
@@ -26,6 +27,7 @@ regex = { workspace = true }
 toml = { workspace = true }
 sha2 = { workspace = true }
 tar = "0.4"
+flate2 = "1"
 
 [features]
 bam_downstream = ["bijux-dna-api/bam_downstream"]
