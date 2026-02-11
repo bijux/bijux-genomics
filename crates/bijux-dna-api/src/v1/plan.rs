@@ -11,6 +11,9 @@ pub use crate::run::plan_run;
 pub use crate::run::{select_pipeline, select_pipelines};
 pub use crate::v1::bam::plan::plan_for_bam_stage_with_profile;
 pub use bijux_dna_core::contract::ExecutionGraph;
+pub use bijux_dna_pipelines::fastq::{
+    validate_fastq_profile, FastqProfileValidationReport, FastqProfileViolation, FASTQ_INVARIANTS,
+};
 pub use bijux_dna_pipelines::registry::PipelineRegistry;
 pub use bijux_dna_pipelines::{Domain, PipelineProfile};
 pub use bijux_dna_planner_bam::{
