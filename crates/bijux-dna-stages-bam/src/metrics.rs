@@ -73,9 +73,7 @@ pub fn bam_metrics_from_dir(out_dir: &Path) -> BamMetricsV1 {
 
     let gc_bias_path = first_existing(out_dir, &["gc_bias.metrics.txt"]);
     if let Some(path) = gc_bias_path {
-        if let Ok(gc_bias) =
-            bijux_dna_domain_bam::metrics::parse_picard_gc_bias_metrics(&path)
-        {
+        if let Ok(gc_bias) = bijux_dna_domain_bam::metrics::parse_picard_gc_bias_metrics(&path) {
             metrics.gc_bias = gc_bias;
         }
     }
