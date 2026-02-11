@@ -3,7 +3,8 @@
 mod support;
 
 #[test]
-fn policy__contracts__tooling__authenticct_container_uses_valid_entrypoint_script_path() {
+fn policy__contracts__authenticct_container_policy__authenticct_container_uses_valid_entrypoint_script_path(
+) {
     let path = support::workspace_root()
         .join("containers")
         .join("docker")

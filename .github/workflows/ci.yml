@@ -29,6 +29,7 @@ jobs:
           TZ: UTC
           LC_ALL: C
         run: |
+          make ssot-policy-fast
           make ci-fast
 
   slow-tier:

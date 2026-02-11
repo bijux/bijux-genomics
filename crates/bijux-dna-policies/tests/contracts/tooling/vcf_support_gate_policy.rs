@@ -1,3 +1,4 @@
+#![allow(non_snake_case)]
 use std::fs;
 use std::path::Path;
 
@@ -9,7 +10,7 @@ fn repo_root() -> std::path::PathBuf {
 }
 
 #[test]
-fn supported_vcf_stages_require_smoke_and_schema() {
+fn policy__contracts__vcf_support_gate_policy__supported_vcf_stages_require_smoke_and_schema() {
     let path = repo_root().join("configs/stages_vcf.toml");
     let raw = fs::read_to_string(path).expect("read stages_vcf.toml");
     let doc: toml::Value = raw.parse().expect("parse stages_vcf.toml");
@@ -55,7 +56,7 @@ fn supported_vcf_stages_require_smoke_and_schema() {
 }
 
 #[test]
-fn supported_vcf_tools_must_be_pinned() {
+fn policy__contracts__vcf_support_gate_policy__supported_vcf_tools_must_be_pinned() {
     let path = repo_root().join("configs/tool_registry_vcf.toml");
     let raw = fs::read_to_string(path).expect("read tool_registry_vcf.toml");
     let doc: toml::Value = raw.parse().expect("parse tool_registry_vcf.toml");
