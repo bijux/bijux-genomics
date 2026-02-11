@@ -384,6 +384,20 @@ pub(crate) fn write_run_manifest(
             serde_json::from_str(&raw).ok()
         })
         .collect();
+    let tool_provenance = serde_json::json!({
+        "schema_version": "bijux.tool_provenance.v1",
+        "tools": tool_invocations.iter().map(|inv| {
+            serde_json::json!({
+                "stage_id": inv.stage_id,
+                "tool_id": inv.tool_id,
+                "image_digest": inv.image_digest,
+                "resolved_tool_version": inv.resolved_tool_version,
+                "executed_command": inv.executed_command,
+            })
+        }).collect::<Vec<_>>()
+    });
+    bijux_dna_infra::atomic_write_json(&out_dir.join("tool_provenance.json"), &tool_provenance)
+        .context("write tool_provenance.json")?;
     let cache_key = {
         let params_hash = run_provenance
             .get("params_hash")
@@ -423,6 +437,7 @@ pub(crate) fn write_run_manifest(
         "toolchain_versions": toolchain_versions,
         "dataset_fingerprints": dataset_fingerprints,
         "tool_invocations": tool_invocations,
+        "tool_provenance": "tool_provenance.json",
         "output_artifacts": output_artifacts,
         "stages": stages,
         "failures": failures_json,
