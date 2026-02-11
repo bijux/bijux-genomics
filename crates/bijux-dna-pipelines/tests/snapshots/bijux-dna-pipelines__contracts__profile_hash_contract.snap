@@ -4,8 +4,46 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
 ---
 {
   "bam-to-bam__adna_capture__v1": {
+    "drift_components": {
+      "param_bindings": {
+        "bam.authenticity": "7c7899cf9ab029db7328b1f9d02947a276fcb6c27db18089cc35fde6fb3c15cc",
+        "bam.contamination": "052f8338d978b8923e0adf167dd2d960adc90cc50105cad9bf99f89a07eda600",
+        "bam.coverage": "4e08e0fe3d9d60e17b5a2fb00312c712cc9cf182d2665960d41747cb376b9493",
+        "bam.damage": "f4033357035aeb868a5082fff2a55f0cd367f03658cd845df490cc1dc400efc6",
+        "bam.duplication_metrics": "d16177884920cd9cac3df9ab44826211fe3caa008a78b8838a3854d5ce95c440",
+        "bam.endogenous_content": "b450c62e0e5512f2e5c193a7b44984fc92158c695c327f3d7d29e02641bdb4f5",
+        "bam.filter": "8e1c62080596f4b3ecf57123656d83a9abd09b270d00d8474a7b04714302013c",
+        "bam.length_filter": "05f99969eb491376ac21b147d9ada1d4a432d3e4f8a408f1b7bd966cad13b693",
+        "bam.mapping_summary": "1ecb015a182d5b4089e50b33b96106648a2b528f96c9f5c3e40da54e780da0b9",
+        "bam.mapq_filter": "3c12047dbf7a2291032a79d74221ef035b20895673722ef282efddf3a0a6b23e",
+        "bam.sex": "baefa9d6f18b22287ff81b048816e8f7da64b8a198b86341d32ec09563e22a48",
+        "bam.validate": "f73b69e6270cf767e0d8a99e2a78c8a3d5b241d8ad0bf4c8ba8f5626fcafc9c2"
+      },
+      "param_bindings_hash": "587aabf03691f64e3bef56ce82f2a08fadb179e17c3f467dad5769866f014cbd",
+      "tool_bindings": {
+        "bam.authenticity": "authenticct",
+        "bam.contamination": "authenticct",
+        "bam.coverage": "mosdepth",
+        "bam.damage": "pydamage",
+        "bam.duplication_metrics": "samtools",
+        "bam.endogenous_content": "samtools",
+        "bam.filter": "samtools",
+        "bam.length_filter": "samtools",
+        "bam.mapping_summary": "samtools",
+        "bam.mapq_filter": "samtools",
+        "bam.sex": "rxy",
+        "bam.validate": "samtools"
+      },
+      "tool_bindings_hash": "5e5dd8e4bd9048651036a92e0f6ded621925c0354dceb4c94f14ae3d1cc68b67"
+    },
     "manifest": {
       "invariants_preset": "adna",
+      "library_model": {
+        "assay_kind": "capture",
+        "layout": "paired_end",
+        "platform_hint": "illumina",
+        "udg_treatment": "none"
+      },
       "param_hashes": {
         "bam.authenticity": "7c7899cf9ab029db7328b1f9d02947a276fcb6c27db18089cc35fde6fb3c15cc",
         "bam.contamination": "052f8338d978b8923e0adf167dd2d960adc90cc50105cad9bf99f89a07eda600",
@@ -14,7 +52,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "bam.duplication_metrics": "d16177884920cd9cac3df9ab44826211fe3caa008a78b8838a3854d5ce95c440",
         "bam.endogenous_content": "b450c62e0e5512f2e5c193a7b44984fc92158c695c327f3d7d29e02641bdb4f5",
         "bam.filter": "8e1c62080596f4b3ecf57123656d83a9abd09b270d00d8474a7b04714302013c",
-        "bam.kinship": "c635f0974a5f1ac6c613fbdb4ca2a4599ba8a0569f8ba9c7c3ed800c10e3f13b",
         "bam.length_filter": "05f99969eb491376ac21b147d9ada1d4a432d3e4f8a408f1b7bd966cad13b693",
         "bam.mapping_summary": "1ecb015a182d5b4089e50b33b96106648a2b528f96c9f5c3e40da54e780da0b9",
         "bam.mapq_filter": "3c12047dbf7a2291032a79d74221ef035b20895673722ef282efddf3a0a6b23e",
@@ -36,7 +73,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "bam.duplication_metrics",
         "bam.endogenous_content",
         "bam.filter",
-        "bam.kinship",
         "bam.length_filter",
         "bam.mapping_summary",
         "bam.mapq_filter",
@@ -51,7 +87,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "bam.duplication_metrics": "samtools",
         "bam.endogenous_content": "samtools",
         "bam.filter": "samtools",
-        "bam.kinship": "king",
         "bam.length_filter": "samtools",
         "bam.mapping_summary": "samtools",
         "bam.mapq_filter": "samtools",
@@ -59,11 +94,49 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "bam.validate": "samtools"
       }
     },
-    "profile_hash": "6653550816c275b9860ad1d53fe3c42b95d97f70922277d9ed177877b963f7c6"
+    "profile_hash": "494937d0009e96ce9e944ae706109cffb2e3614157a466586cfcaed3bffccece"
   },
   "bam-to-bam__adna_shotgun__v1": {
+    "drift_components": {
+      "param_bindings": {
+        "bam.authenticity": "7c7899cf9ab029db7328b1f9d02947a276fcb6c27db18089cc35fde6fb3c15cc",
+        "bam.contamination": "052f8338d978b8923e0adf167dd2d960adc90cc50105cad9bf99f89a07eda600",
+        "bam.coverage": "4e08e0fe3d9d60e17b5a2fb00312c712cc9cf182d2665960d41747cb376b9493",
+        "bam.damage": "f4033357035aeb868a5082fff2a55f0cd367f03658cd845df490cc1dc400efc6",
+        "bam.duplication_metrics": "d16177884920cd9cac3df9ab44826211fe3caa008a78b8838a3854d5ce95c440",
+        "bam.endogenous_content": "b450c62e0e5512f2e5c193a7b44984fc92158c695c327f3d7d29e02641bdb4f5",
+        "bam.filter": "bc17955610700ea43bcdc5a11db198d8524d23afcd0af978dec7dac0560fdbb6",
+        "bam.length_filter": "05f99969eb491376ac21b147d9ada1d4a432d3e4f8a408f1b7bd966cad13b693",
+        "bam.mapping_summary": "1ecb015a182d5b4089e50b33b96106648a2b528f96c9f5c3e40da54e780da0b9",
+        "bam.mapq_filter": "3c12047dbf7a2291032a79d74221ef035b20895673722ef282efddf3a0a6b23e",
+        "bam.sex": "baefa9d6f18b22287ff81b048816e8f7da64b8a198b86341d32ec09563e22a48",
+        "bam.validate": "f73b69e6270cf767e0d8a99e2a78c8a3d5b241d8ad0bf4c8ba8f5626fcafc9c2"
+      },
+      "param_bindings_hash": "8b3651212069a88f5c12b8b0dbba413594bad52ed6d279ea01c8740467ece281",
+      "tool_bindings": {
+        "bam.authenticity": "authenticct",
+        "bam.contamination": "authenticct",
+        "bam.coverage": "mosdepth",
+        "bam.damage": "pydamage",
+        "bam.duplication_metrics": "samtools",
+        "bam.endogenous_content": "samtools",
+        "bam.filter": "samtools",
+        "bam.length_filter": "samtools",
+        "bam.mapping_summary": "samtools",
+        "bam.mapq_filter": "samtools",
+        "bam.sex": "rxy",
+        "bam.validate": "samtools"
+      },
+      "tool_bindings_hash": "5e5dd8e4bd9048651036a92e0f6ded621925c0354dceb4c94f14ae3d1cc68b67"
+    },
     "manifest": {
       "invariants_preset": "adna",
+      "library_model": {
+        "assay_kind": "shotgun",
+        "layout": "paired_end",
+        "platform_hint": "illumina",
+        "udg_treatment": "none"
+      },
       "param_hashes": {
         "bam.authenticity": "7c7899cf9ab029db7328b1f9d02947a276fcb6c27db18089cc35fde6fb3c15cc",
         "bam.contamination": "052f8338d978b8923e0adf167dd2d960adc90cc50105cad9bf99f89a07eda600",
@@ -72,7 +145,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "bam.duplication_metrics": "d16177884920cd9cac3df9ab44826211fe3caa008a78b8838a3854d5ce95c440",
         "bam.endogenous_content": "b450c62e0e5512f2e5c193a7b44984fc92158c695c327f3d7d29e02641bdb4f5",
         "bam.filter": "bc17955610700ea43bcdc5a11db198d8524d23afcd0af978dec7dac0560fdbb6",
-        "bam.kinship": "c635f0974a5f1ac6c613fbdb4ca2a4599ba8a0569f8ba9c7c3ed800c10e3f13b",
         "bam.length_filter": "05f99969eb491376ac21b147d9ada1d4a432d3e4f8a408f1b7bd966cad13b693",
         "bam.mapping_summary": "1ecb015a182d5b4089e50b33b96106648a2b528f96c9f5c3e40da54e780da0b9",
         "bam.mapq_filter": "3c12047dbf7a2291032a79d74221ef035b20895673722ef282efddf3a0a6b23e",
@@ -94,7 +166,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "bam.duplication_metrics",
         "bam.endogenous_content",
         "bam.filter",
-        "bam.kinship",
         "bam.length_filter",
         "bam.mapping_summary",
         "bam.mapq_filter",
@@ -109,7 +180,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "bam.duplication_metrics": "samtools",
         "bam.endogenous_content": "samtools",
         "bam.filter": "samtools",
-        "bam.kinship": "king",
         "bam.length_filter": "samtools",
         "bam.mapping_summary": "samtools",
         "bam.mapq_filter": "samtools",
@@ -117,11 +187,37 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "bam.validate": "samtools"
       }
     },
-    "profile_hash": "44b30674f95b58156d6d95800e31336adcc720898cfe85e74badfbbc49a2c05d"
+    "profile_hash": "4ef0a6278972d2066fd683ca0289bfefe60bde3f5a8aa20a3721313961a38b7f"
   },
   "bam-to-bam__default__v1": {
+    "drift_components": {
+      "param_bindings": {
+        "bam.coverage": "4e08e0fe3d9d60e17b5a2fb00312c712cc9cf182d2665960d41747cb376b9493",
+        "bam.damage": "f4033357035aeb868a5082fff2a55f0cd367f03658cd845df490cc1dc400efc6",
+        "bam.filter": "bc17955610700ea43bcdc5a11db198d8524d23afcd0af978dec7dac0560fdbb6",
+        "bam.mapping_summary": "1ecb015a182d5b4089e50b33b96106648a2b528f96c9f5c3e40da54e780da0b9",
+        "bam.qc_pre": "1ecb015a182d5b4089e50b33b96106648a2b528f96c9f5c3e40da54e780da0b9",
+        "bam.validate": "f73b69e6270cf767e0d8a99e2a78c8a3d5b241d8ad0bf4c8ba8f5626fcafc9c2"
+      },
+      "param_bindings_hash": "954c5138f960582e95449ae6eac9fc5e62c5c4605ee67737d9eef86c906c7e4c",
+      "tool_bindings": {
+        "bam.coverage": "mosdepth",
+        "bam.damage": "pydamage",
+        "bam.filter": "samtools",
+        "bam.mapping_summary": "samtools",
+        "bam.qc_pre": "samtools",
+        "bam.validate": "samtools"
+      },
+      "tool_bindings_hash": "d183d17add30d2b6a96febf523b237ca2db847d3fa39710c5c5bcf990a67e8fb"
+    },
     "manifest": {
       "invariants_preset": null,
+      "library_model": {
+        "assay_kind": "unknown",
+        "layout": "single_end",
+        "platform_hint": "illumina",
+        "udg_treatment": "unknown"
+      },
       "param_hashes": {
         "bam.coverage": "4e08e0fe3d9d60e17b5a2fb00312c712cc9cf182d2665960d41747cb376b9493",
         "bam.damage": "f4033357035aeb868a5082fff2a55f0cd367f03658cd845df490cc1dc400efc6",
@@ -154,11 +250,170 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "bam.validate": "samtools"
       }
     },
-    "profile_hash": "37d7a04bf87d8506aab1ad777abaedf8d01d9e94fa7061e3e39c0c91fe82c981"
+    "profile_hash": "7fa80e43f65fb909f741c20414f30b10cc30a1aff294c18902f0d65ba2def7d6"
   },
-  "fastq-to-bam__adna_shotgun__v1": {
+  "bam-to-bam__reference_adna__v1": {
+    "drift_components": {
+      "param_bindings": {
+        "bam.authenticity": "7c7899cf9ab029db7328b1f9d02947a276fcb6c27db18089cc35fde6fb3c15cc",
+        "bam.contamination": "052f8338d978b8923e0adf167dd2d960adc90cc50105cad9bf99f89a07eda600",
+        "bam.coverage": "4e08e0fe3d9d60e17b5a2fb00312c712cc9cf182d2665960d41747cb376b9493",
+        "bam.damage": "f4033357035aeb868a5082fff2a55f0cd367f03658cd845df490cc1dc400efc6",
+        "bam.duplication_metrics": "d16177884920cd9cac3df9ab44826211fe3caa008a78b8838a3854d5ce95c440",
+        "bam.endogenous_content": "b450c62e0e5512f2e5c193a7b44984fc92158c695c327f3d7d29e02641bdb4f5",
+        "bam.filter": "bc17955610700ea43bcdc5a11db198d8524d23afcd0af978dec7dac0560fdbb6",
+        "bam.length_filter": "05f99969eb491376ac21b147d9ada1d4a432d3e4f8a408f1b7bd966cad13b693",
+        "bam.mapping_summary": "1ecb015a182d5b4089e50b33b96106648a2b528f96c9f5c3e40da54e780da0b9",
+        "bam.mapq_filter": "3c12047dbf7a2291032a79d74221ef035b20895673722ef282efddf3a0a6b23e",
+        "bam.sex": "baefa9d6f18b22287ff81b048816e8f7da64b8a198b86341d32ec09563e22a48",
+        "bam.validate": "f73b69e6270cf767e0d8a99e2a78c8a3d5b241d8ad0bf4c8ba8f5626fcafc9c2"
+      },
+      "param_bindings_hash": "8b3651212069a88f5c12b8b0dbba413594bad52ed6d279ea01c8740467ece281",
+      "tool_bindings": {
+        "bam.authenticity": "authenticct",
+        "bam.contamination": "authenticct",
+        "bam.coverage": "mosdepth",
+        "bam.damage": "pydamage",
+        "bam.duplication_metrics": "samtools",
+        "bam.endogenous_content": "samtools",
+        "bam.filter": "samtools",
+        "bam.length_filter": "samtools",
+        "bam.mapping_summary": "samtools",
+        "bam.mapq_filter": "samtools",
+        "bam.sex": "rxy",
+        "bam.validate": "samtools"
+      },
+      "tool_bindings_hash": "5e5dd8e4bd9048651036a92e0f6ded621925c0354dceb4c94f14ae3d1cc68b67"
+    },
     "manifest": {
       "invariants_preset": "adna",
+      "library_model": {
+        "assay_kind": "shotgun",
+        "layout": "paired_end",
+        "platform_hint": "illumina",
+        "udg_treatment": "none"
+      },
+      "param_hashes": {
+        "bam.authenticity": "7c7899cf9ab029db7328b1f9d02947a276fcb6c27db18089cc35fde6fb3c15cc",
+        "bam.contamination": "052f8338d978b8923e0adf167dd2d960adc90cc50105cad9bf99f89a07eda600",
+        "bam.coverage": "4e08e0fe3d9d60e17b5a2fb00312c712cc9cf182d2665960d41747cb376b9493",
+        "bam.damage": "f4033357035aeb868a5082fff2a55f0cd367f03658cd845df490cc1dc400efc6",
+        "bam.duplication_metrics": "d16177884920cd9cac3df9ab44826211fe3caa008a78b8838a3854d5ce95c440",
+        "bam.endogenous_content": "b450c62e0e5512f2e5c193a7b44984fc92158c695c327f3d7d29e02641bdb4f5",
+        "bam.filter": "bc17955610700ea43bcdc5a11db198d8524d23afcd0af978dec7dac0560fdbb6",
+        "bam.length_filter": "05f99969eb491376ac21b147d9ada1d4a432d3e4f8a408f1b7bd966cad13b693",
+        "bam.mapping_summary": "1ecb015a182d5b4089e50b33b96106648a2b528f96c9f5c3e40da54e780da0b9",
+        "bam.mapq_filter": "3c12047dbf7a2291032a79d74221ef035b20895673722ef282efddf3a0a6b23e",
+        "bam.sex": "baefa9d6f18b22287ff81b048816e8f7da64b8a198b86341d32ec09563e22a48",
+        "bam.validate": "f73b69e6270cf767e0d8a99e2a78c8a3d5b241d8ad0bf4c8ba8f5626fcafc9c2"
+      },
+      "pipeline_id": "bam-to-bam__reference_adna__v1",
+      "schema_version": "bijux.profile_manifest.v1",
+      "schema_versions": {
+        "defaults_ledger": "bijux.defaults_ledger.v1",
+        "params": "by_stage",
+        "profile_manifest": "bijux.profile_manifest.v1"
+      },
+      "stage_list": [
+        "bam.authenticity",
+        "bam.contamination",
+        "bam.coverage",
+        "bam.damage",
+        "bam.duplication_metrics",
+        "bam.endogenous_content",
+        "bam.filter",
+        "bam.length_filter",
+        "bam.mapping_summary",
+        "bam.mapq_filter",
+        "bam.sex",
+        "bam.validate"
+      ],
+      "tool_ids": {
+        "bam.authenticity": "authenticct",
+        "bam.contamination": "authenticct",
+        "bam.coverage": "mosdepth",
+        "bam.damage": "pydamage",
+        "bam.duplication_metrics": "samtools",
+        "bam.endogenous_content": "samtools",
+        "bam.filter": "samtools",
+        "bam.length_filter": "samtools",
+        "bam.mapping_summary": "samtools",
+        "bam.mapq_filter": "samtools",
+        "bam.sex": "rxy",
+        "bam.validate": "samtools"
+      }
+    },
+    "profile_hash": "416e4f746553ddee3402397044ab20466d1586c1cf05fc0a23e8b5c3926d327f"
+  },
+  "fastq-to-bam__adna_shotgun__v1": {
+    "drift_components": {
+      "param_bindings": {
+        "bam.align": "7043c7923ea578591315d8b835d059856b388598f89886505e40c696dc4959e4",
+        "bam.authenticity": "7c7899cf9ab029db7328b1f9d02947a276fcb6c27db18089cc35fde6fb3c15cc",
+        "bam.contamination": "052f8338d978b8923e0adf167dd2d960adc90cc50105cad9bf99f89a07eda600",
+        "bam.coverage": "4e08e0fe3d9d60e17b5a2fb00312c712cc9cf182d2665960d41747cb376b9493",
+        "bam.damage": "f4033357035aeb868a5082fff2a55f0cd367f03658cd845df490cc1dc400efc6",
+        "bam.duplication_metrics": "d16177884920cd9cac3df9ab44826211fe3caa008a78b8838a3854d5ce95c440",
+        "bam.endogenous_content": "b450c62e0e5512f2e5c193a7b44984fc92158c695c327f3d7d29e02641bdb4f5",
+        "bam.filter": "bc17955610700ea43bcdc5a11db198d8524d23afcd0af978dec7dac0560fdbb6",
+        "bam.length_filter": "05f99969eb491376ac21b147d9ada1d4a432d3e4f8a408f1b7bd966cad13b693",
+        "bam.mapping_summary": "1ecb015a182d5b4089e50b33b96106648a2b528f96c9f5c3e40da54e780da0b9",
+        "bam.mapq_filter": "3c12047dbf7a2291032a79d74221ef035b20895673722ef282efddf3a0a6b23e",
+        "bam.qc_pre": "1ecb015a182d5b4089e50b33b96106648a2b528f96c9f5c3e40da54e780da0b9",
+        "bam.sex": "baefa9d6f18b22287ff81b048816e8f7da64b8a198b86341d32ec09563e22a48",
+        "bam.validate": "f73b69e6270cf767e0d8a99e2a78c8a3d5b241d8ad0bf4c8ba8f5626fcafc9c2",
+        "core.prepare_reference": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "fastq.correct": "40832ecb9984bf27cffb09b35adbcf2fcea99a290fe315d7ae4e0d8d98753bf4",
+        "fastq.detect_adapters": "69c53f03b661bc36910aa69e91beafebe6390195a55b0fc59157a06e581dfdf8",
+        "fastq.filter": "578cf743a57ec9554533b5b78fca6c48138b36cf39d1e953ea2e9dcea35b3df3",
+        "fastq.merge": "b78868955d93f5f5e3bdade58275a889292f698cdce7602769cfb3590277f506",
+        "fastq.preprocess": "ec49ee8136c8fa55e4a601190cd4e6043ccaf084b5f319990ec45d34abc7dd24",
+        "fastq.qc_post": "7340317e312feb6a4d10d584cbf61e7e22237c4c7acccde58c90548fd172f68b",
+        "fastq.screen": "dc6359cd69497dc17c55aeb9f119ae2cba41c144cfc0f7f439e48953d0441c87",
+        "fastq.stats_neutral": "1148dbfe778e358b62df082e88ac7a441d2306439ef79249318a1b7048b23e6c",
+        "fastq.trim": "34e3c83c409e09fc55a46a3027746ace54ab5925836028915d34966a8de6827a",
+        "fastq.umi": "ed924bf5ac256fcb8875f53af7f9a5ff3e6c4a9b22093b44ed6ee0f6d51010de",
+        "fastq.validate_pre": "db9c11dd97dff0eae3d590d4e1cdaa041cce4b3c277285e23c1df12c466d4734"
+      },
+      "param_bindings_hash": "45231875cdd3493807580896e1fee5176535c6ef98469eceb0413b5418375090",
+      "tool_bindings": {
+        "bam.align": "bwa",
+        "bam.authenticity": "authenticct",
+        "bam.contamination": "authenticct",
+        "bam.coverage": "mosdepth",
+        "bam.damage": "pydamage",
+        "bam.duplication_metrics": "samtools",
+        "bam.endogenous_content": "samtools",
+        "bam.filter": "samtools",
+        "bam.length_filter": "samtools",
+        "bam.mapping_summary": "samtools",
+        "bam.mapq_filter": "samtools",
+        "bam.qc_pre": "samtools",
+        "bam.sex": "rxy",
+        "bam.validate": "samtools",
+        "core.prepare_reference": "samtools",
+        "fastq.correct": "rcorrector",
+        "fastq.detect_adapters": "fastqc",
+        "fastq.filter": "seqkit",
+        "fastq.merge": "leehom",
+        "fastq.preprocess": "planner",
+        "fastq.qc_post": "multiqc",
+        "fastq.screen": "kraken2",
+        "fastq.stats_neutral": "seqkit_stats",
+        "fastq.trim": "adapterremoval",
+        "fastq.umi": "umi_tools",
+        "fastq.validate_pre": "fastqvalidator_official"
+      },
+      "tool_bindings_hash": "0d7532979be96e70683ebbacae91cc885d23e7976106ea905817fb1d89090452"
+    },
+    "manifest": {
+      "invariants_preset": "adna",
+      "library_model": {
+        "assay_kind": "shotgun",
+        "layout": "paired_end",
+        "platform_hint": "illumina",
+        "udg_treatment": "none"
+      },
       "param_hashes": {
         "bam.align": "7043c7923ea578591315d8b835d059856b388598f89886505e40c696dc4959e4",
         "bam.authenticity": "7c7899cf9ab029db7328b1f9d02947a276fcb6c27db18089cc35fde6fb3c15cc",
@@ -168,7 +423,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "bam.duplication_metrics": "d16177884920cd9cac3df9ab44826211fe3caa008a78b8838a3854d5ce95c440",
         "bam.endogenous_content": "b450c62e0e5512f2e5c193a7b44984fc92158c695c327f3d7d29e02641bdb4f5",
         "bam.filter": "bc17955610700ea43bcdc5a11db198d8524d23afcd0af978dec7dac0560fdbb6",
-        "bam.kinship": "c635f0974a5f1ac6c613fbdb4ca2a4599ba8a0569f8ba9c7c3ed800c10e3f13b",
         "bam.length_filter": "05f99969eb491376ac21b147d9ada1d4a432d3e4f8a408f1b7bd966cad13b693",
         "bam.mapping_summary": "1ecb015a182d5b4089e50b33b96106648a2b528f96c9f5c3e40da54e780da0b9",
         "bam.mapq_filter": "3c12047dbf7a2291032a79d74221ef035b20895673722ef282efddf3a0a6b23e",
@@ -204,7 +458,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "bam.duplication_metrics",
         "bam.endogenous_content",
         "bam.filter",
-        "bam.kinship",
         "bam.length_filter",
         "bam.mapping_summary",
         "bam.mapq_filter",
@@ -233,7 +486,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "bam.duplication_metrics": "samtools",
         "bam.endogenous_content": "samtools",
         "bam.filter": "samtools",
-        "bam.kinship": "king",
         "bam.length_filter": "samtools",
         "bam.mapping_summary": "samtools",
         "bam.mapq_filter": "samtools",
@@ -254,11 +506,77 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "fastq.validate_pre": "fastqvalidator_official"
       }
     },
-    "profile_hash": "942091845608731bed62d784e3cc6c510d72b4254bb9015f0533c80f6a9f11e9"
+    "profile_hash": "57f26322590d6fe1c4031c88ced9e2321e89fe1d825cab20dc6938c78bc6444f"
   },
   "fastq-to-bam__default__v1": {
+    "drift_components": {
+      "param_bindings": {
+        "bam.align": "7043c7923ea578591315d8b835d059856b388598f89886505e40c696dc4959e4",
+        "bam.authenticity": "7c7899cf9ab029db7328b1f9d02947a276fcb6c27db18089cc35fde6fb3c15cc",
+        "bam.contamination": "052f8338d978b8923e0adf167dd2d960adc90cc50105cad9bf99f89a07eda600",
+        "bam.coverage": "4e08e0fe3d9d60e17b5a2fb00312c712cc9cf182d2665960d41747cb376b9493",
+        "bam.damage": "f4033357035aeb868a5082fff2a55f0cd367f03658cd845df490cc1dc400efc6",
+        "bam.duplication_metrics": "d16177884920cd9cac3df9ab44826211fe3caa008a78b8838a3854d5ce95c440",
+        "bam.endogenous_content": "b450c62e0e5512f2e5c193a7b44984fc92158c695c327f3d7d29e02641bdb4f5",
+        "bam.filter": "bc17955610700ea43bcdc5a11db198d8524d23afcd0af978dec7dac0560fdbb6",
+        "bam.length_filter": "05f99969eb491376ac21b147d9ada1d4a432d3e4f8a408f1b7bd966cad13b693",
+        "bam.mapping_summary": "1ecb015a182d5b4089e50b33b96106648a2b528f96c9f5c3e40da54e780da0b9",
+        "bam.mapq_filter": "3c12047dbf7a2291032a79d74221ef035b20895673722ef282efddf3a0a6b23e",
+        "bam.qc_pre": "1ecb015a182d5b4089e50b33b96106648a2b528f96c9f5c3e40da54e780da0b9",
+        "bam.sex": "baefa9d6f18b22287ff81b048816e8f7da64b8a198b86341d32ec09563e22a48",
+        "bam.validate": "f73b69e6270cf767e0d8a99e2a78c8a3d5b241d8ad0bf4c8ba8f5626fcafc9c2",
+        "core.prepare_reference": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "fastq.correct": "40832ecb9984bf27cffb09b35adbcf2fcea99a290fe315d7ae4e0d8d98753bf4",
+        "fastq.detect_adapters": "69c53f03b661bc36910aa69e91beafebe6390195a55b0fc59157a06e581dfdf8",
+        "fastq.filter": "578cf743a57ec9554533b5b78fca6c48138b36cf39d1e953ea2e9dcea35b3df3",
+        "fastq.merge": "b78868955d93f5f5e3bdade58275a889292f698cdce7602769cfb3590277f506",
+        "fastq.preprocess": "ec49ee8136c8fa55e4a601190cd4e6043ccaf084b5f319990ec45d34abc7dd24",
+        "fastq.qc_post": "7340317e312feb6a4d10d584cbf61e7e22237c4c7acccde58c90548fd172f68b",
+        "fastq.screen": "dc6359cd69497dc17c55aeb9f119ae2cba41c144cfc0f7f439e48953d0441c87",
+        "fastq.stats_neutral": "1148dbfe778e358b62df082e88ac7a441d2306439ef79249318a1b7048b23e6c",
+        "fastq.trim": "34e3c83c409e09fc55a46a3027746ace54ab5925836028915d34966a8de6827a",
+        "fastq.umi": "ed924bf5ac256fcb8875f53af7f9a5ff3e6c4a9b22093b44ed6ee0f6d51010de",
+        "fastq.validate_pre": "db9c11dd97dff0eae3d590d4e1cdaa041cce4b3c277285e23c1df12c466d4734"
+      },
+      "param_bindings_hash": "45231875cdd3493807580896e1fee5176535c6ef98469eceb0413b5418375090",
+      "tool_bindings": {
+        "bam.align": "bwa",
+        "bam.authenticity": "authenticct",
+        "bam.contamination": "authenticct",
+        "bam.coverage": "mosdepth",
+        "bam.damage": "pydamage",
+        "bam.duplication_metrics": "samtools",
+        "bam.endogenous_content": "samtools",
+        "bam.filter": "samtools",
+        "bam.length_filter": "samtools",
+        "bam.mapping_summary": "samtools",
+        "bam.mapq_filter": "samtools",
+        "bam.qc_pre": "samtools",
+        "bam.sex": "rxy",
+        "bam.validate": "samtools",
+        "core.prepare_reference": "samtools",
+        "fastq.correct": "rcorrector",
+        "fastq.detect_adapters": "fastqc",
+        "fastq.filter": "seqkit",
+        "fastq.merge": "leehom",
+        "fastq.preprocess": "planner",
+        "fastq.qc_post": "multiqc",
+        "fastq.screen": "kraken2",
+        "fastq.stats_neutral": "seqkit_stats",
+        "fastq.trim": "adapterremoval",
+        "fastq.umi": "umi_tools",
+        "fastq.validate_pre": "fastqvalidator_official"
+      },
+      "tool_bindings_hash": "0d7532979be96e70683ebbacae91cc885d23e7976106ea905817fb1d89090452"
+    },
     "manifest": {
       "invariants_preset": null,
+      "library_model": {
+        "assay_kind": "shotgun",
+        "layout": "paired_end",
+        "platform_hint": "illumina",
+        "udg_treatment": "unknown"
+      },
       "param_hashes": {
         "bam.align": "7043c7923ea578591315d8b835d059856b388598f89886505e40c696dc4959e4",
         "bam.authenticity": "7c7899cf9ab029db7328b1f9d02947a276fcb6c27db18089cc35fde6fb3c15cc",
@@ -268,7 +586,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "bam.duplication_metrics": "d16177884920cd9cac3df9ab44826211fe3caa008a78b8838a3854d5ce95c440",
         "bam.endogenous_content": "b450c62e0e5512f2e5c193a7b44984fc92158c695c327f3d7d29e02641bdb4f5",
         "bam.filter": "bc17955610700ea43bcdc5a11db198d8524d23afcd0af978dec7dac0560fdbb6",
-        "bam.kinship": "c635f0974a5f1ac6c613fbdb4ca2a4599ba8a0569f8ba9c7c3ed800c10e3f13b",
         "bam.length_filter": "05f99969eb491376ac21b147d9ada1d4a432d3e4f8a408f1b7bd966cad13b693",
         "bam.mapping_summary": "1ecb015a182d5b4089e50b33b96106648a2b528f96c9f5c3e40da54e780da0b9",
         "bam.mapq_filter": "3c12047dbf7a2291032a79d74221ef035b20895673722ef282efddf3a0a6b23e",
@@ -304,7 +621,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "bam.duplication_metrics",
         "bam.endogenous_content",
         "bam.filter",
-        "bam.kinship",
         "bam.length_filter",
         "bam.mapping_summary",
         "bam.mapq_filter",
@@ -333,7 +649,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "bam.duplication_metrics": "samtools",
         "bam.endogenous_content": "samtools",
         "bam.filter": "samtools",
-        "bam.kinship": "king",
         "bam.length_filter": "samtools",
         "bam.mapping_summary": "samtools",
         "bam.mapq_filter": "samtools",
@@ -354,11 +669,47 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "fastq.validate_pre": "fastqvalidator_official"
       }
     },
-    "profile_hash": "5ebba8cac564999af408791c6220be8604a59a71e0a13abc845b5c98122f03f5"
+    "profile_hash": "86b7d555f9b7553d1a90d9736a01d18c2f91acf05ad7cdd0476aa095e815bc6e"
   },
   "fastq-to-fastq__adna__v1": {
+    "drift_components": {
+      "param_bindings": {
+        "fastq.correct": "40832ecb9984bf27cffb09b35adbcf2fcea99a290fe315d7ae4e0d8d98753bf4",
+        "fastq.detect_adapters": "69c53f03b661bc36910aa69e91beafebe6390195a55b0fc59157a06e581dfdf8",
+        "fastq.filter": "578cf743a57ec9554533b5b78fca6c48138b36cf39d1e953ea2e9dcea35b3df3",
+        "fastq.merge": "b78868955d93f5f5e3bdade58275a889292f698cdce7602769cfb3590277f506",
+        "fastq.preprocess": "ec49ee8136c8fa55e4a601190cd4e6043ccaf084b5f319990ec45d34abc7dd24",
+        "fastq.qc_post": "7340317e312feb6a4d10d584cbf61e7e22237c4c7acccde58c90548fd172f68b",
+        "fastq.screen": "dc6359cd69497dc17c55aeb9f119ae2cba41c144cfc0f7f439e48953d0441c87",
+        "fastq.stats_neutral": "1148dbfe778e358b62df082e88ac7a441d2306439ef79249318a1b7048b23e6c",
+        "fastq.trim": "34e3c83c409e09fc55a46a3027746ace54ab5925836028915d34966a8de6827a",
+        "fastq.umi": "ed924bf5ac256fcb8875f53af7f9a5ff3e6c4a9b22093b44ed6ee0f6d51010de",
+        "fastq.validate_pre": "db9c11dd97dff0eae3d590d4e1cdaa041cce4b3c277285e23c1df12c466d4734"
+      },
+      "param_bindings_hash": "5a4db704c767c24487b85c940ed82bd7587883232ecf84bc2a2ac35585a418a5",
+      "tool_bindings": {
+        "fastq.correct": "rcorrector",
+        "fastq.detect_adapters": "fastqc",
+        "fastq.filter": "seqkit",
+        "fastq.merge": "leehom",
+        "fastq.preprocess": "planner",
+        "fastq.qc_post": "multiqc",
+        "fastq.screen": "kraken2",
+        "fastq.stats_neutral": "seqkit_stats",
+        "fastq.trim": "adapterremoval",
+        "fastq.umi": "umi_tools",
+        "fastq.validate_pre": "fastqvalidator_official"
+      },
+      "tool_bindings_hash": "298041fd4e5d59165df84a81d69d608c02f2b9571a52ff21a8d9509949de6f0f"
+    },
     "manifest": {
       "invariants_preset": "adna",
+      "library_model": {
+        "assay_kind": "shotgun",
+        "layout": "paired_end",
+        "platform_hint": "illumina",
+        "udg_treatment": "none"
+      },
       "param_hashes": {
         "fastq.correct": "40832ecb9984bf27cffb09b35adbcf2fcea99a290fe315d7ae4e0d8d98753bf4",
         "fastq.detect_adapters": "69c53f03b661bc36910aa69e91beafebe6390195a55b0fc59157a06e581dfdf8",
@@ -406,11 +757,47 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "fastq.validate_pre": "fastqvalidator_official"
       }
     },
-    "profile_hash": "c51b2d5cc28c11571bf9b5be1a7a84bf8f1a9c7caa55ad732191605b3f3c52de"
+    "profile_hash": "a19da743f3c8f029231c5da2ef33163afa91e01ec36cbe2eede2e418f68defe5"
   },
   "fastq-to-fastq__default__v1": {
+    "drift_components": {
+      "param_bindings": {
+        "fastq.correct": "52e93da2284d5d8a5b53b2583b7be1cb680e7f1d0f173c6690ddd6db6e2c3425",
+        "fastq.detect_adapters": "01ea35549d8a0fe45d36a5b00567b470496f02f59e6de28c1326d271ccb178b3",
+        "fastq.filter": "df22956ae2de0e2e2c200c2f751287ceaac742be389c24b0f5d15b121a94f030",
+        "fastq.merge": "410770f1d452085dac281a1d78dc7d2d3cf9361441cab4b5797bbfe61ccaade5",
+        "fastq.preprocess": "b7b708591cc52c3afb3438c961494be9cf707e225b8f867b8cb424f457f74f54",
+        "fastq.qc_post": "bf0296741b8d01596d5d961abfd61200eed6152f0b2b88078427a2a52eff51a1",
+        "fastq.screen": "969954c2ad7a1786570b1f566f74dda6ab6ac5fee695fd20970700397fe76230",
+        "fastq.stats_neutral": "a438a1a0c6d1ebd7fa58dfc188d70a8ff4e61c1b2fe1fbdabe6b92c20bc14efb",
+        "fastq.trim": "ddadfa6596679a4f73b8c0d4b98b8c31a213c71f1b4dd5bf74861a2bb796ea18",
+        "fastq.umi": "4fe98d1f16388e7c7cc6190f4353b9c8631da21cb1d03f569712bf7f7f1ad675",
+        "fastq.validate_pre": "9af6412e7305dd5a6ee1e215500c176aba3f6e7e05f3fe376ccadfbd086030f2"
+      },
+      "param_bindings_hash": "2d1ba86043247ff6bd153daeb8af76c83f38babd0bd54216bbe0fd1a65d837be",
+      "tool_bindings": {
+        "fastq.correct": "rcorrector",
+        "fastq.detect_adapters": "fastqc",
+        "fastq.filter": "seqkit",
+        "fastq.merge": "vsearch",
+        "fastq.preprocess": "planner",
+        "fastq.qc_post": "multiqc",
+        "fastq.screen": "kraken2",
+        "fastq.stats_neutral": "seqkit_stats",
+        "fastq.trim": "fastp",
+        "fastq.umi": "umi_tools",
+        "fastq.validate_pre": "fastqvalidator_official"
+      },
+      "tool_bindings_hash": "eb2967808727894652e50a49d6b08bde7b31e9b6063c0f35901cc6ef61bc32fb"
+    },
     "manifest": {
       "invariants_preset": null,
+      "library_model": {
+        "assay_kind": "unknown",
+        "layout": "single_end",
+        "platform_hint": "illumina",
+        "udg_treatment": "unknown"
+      },
       "param_hashes": {
         "fastq.correct": "52e93da2284d5d8a5b53b2583b7be1cb680e7f1d0f173c6690ddd6db6e2c3425",
         "fastq.detect_adapters": "01ea35549d8a0fe45d36a5b00567b470496f02f59e6de28c1326d271ccb178b3",
@@ -458,11 +845,47 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "fastq.validate_pre": "fastqvalidator_official"
       }
     },
-    "profile_hash": "4c006b10d56c23eabe49c19d77b060c0b1e86cdf356501c818b8b1c5498dcfc7"
+    "profile_hash": "fc52e5988b1d8ee574a6d5ee84ba8ad526acfc8b5ec5be2317ba6d576cff5456"
   },
   "fastq-to-fastq__minimal__v1": {
+    "drift_components": {
+      "param_bindings": {
+        "fastq.correct": "52e93da2284d5d8a5b53b2583b7be1cb680e7f1d0f173c6690ddd6db6e2c3425",
+        "fastq.detect_adapters": "01ea35549d8a0fe45d36a5b00567b470496f02f59e6de28c1326d271ccb178b3",
+        "fastq.filter": "df22956ae2de0e2e2c200c2f751287ceaac742be389c24b0f5d15b121a94f030",
+        "fastq.merge": "410770f1d452085dac281a1d78dc7d2d3cf9361441cab4b5797bbfe61ccaade5",
+        "fastq.preprocess": "b7b708591cc52c3afb3438c961494be9cf707e225b8f867b8cb424f457f74f54",
+        "fastq.qc_post": "bf0296741b8d01596d5d961abfd61200eed6152f0b2b88078427a2a52eff51a1",
+        "fastq.screen": "969954c2ad7a1786570b1f566f74dda6ab6ac5fee695fd20970700397fe76230",
+        "fastq.stats_neutral": "a438a1a0c6d1ebd7fa58dfc188d70a8ff4e61c1b2fe1fbdabe6b92c20bc14efb",
+        "fastq.trim": "ddadfa6596679a4f73b8c0d4b98b8c31a213c71f1b4dd5bf74861a2bb796ea18",
+        "fastq.umi": "4fe98d1f16388e7c7cc6190f4353b9c8631da21cb1d03f569712bf7f7f1ad675",
+        "fastq.validate_pre": "9af6412e7305dd5a6ee1e215500c176aba3f6e7e05f3fe376ccadfbd086030f2"
+      },
+      "param_bindings_hash": "2d1ba86043247ff6bd153daeb8af76c83f38babd0bd54216bbe0fd1a65d837be",
+      "tool_bindings": {
+        "fastq.correct": "rcorrector",
+        "fastq.detect_adapters": "fastqc",
+        "fastq.filter": "seqkit",
+        "fastq.merge": "vsearch",
+        "fastq.preprocess": "planner",
+        "fastq.qc_post": "multiqc",
+        "fastq.screen": "kraken2",
+        "fastq.stats_neutral": "seqkit_stats",
+        "fastq.trim": "fastp",
+        "fastq.umi": "umi_tools",
+        "fastq.validate_pre": "fastqvalidator_official"
+      },
+      "tool_bindings_hash": "eb2967808727894652e50a49d6b08bde7b31e9b6063c0f35901cc6ef61bc32fb"
+    },
     "manifest": {
       "invariants_preset": null,
+      "library_model": {
+        "assay_kind": "unknown",
+        "layout": "single_end",
+        "platform_hint": "illumina",
+        "udg_treatment": "unknown"
+      },
       "param_hashes": {
         "fastq.correct": "52e93da2284d5d8a5b53b2583b7be1cb680e7f1d0f173c6690ddd6db6e2c3425",
         "fastq.detect_adapters": "01ea35549d8a0fe45d36a5b00567b470496f02f59e6de28c1326d271ccb178b3",
@@ -510,11 +933,49 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "fastq.validate_pre": "fastqvalidator_official"
       }
     },
-    "profile_hash": "efc8087b55f93c4a283cf10301f666567d205d4d2d6e925166a99b498078f7a4"
+    "profile_hash": "f9012f8a65f19b5d0ea5761a51c206e4aabc0ed0b3a0b337a0fedfc8bb4326c1"
   },
   "fastq-to-fastq__reference_adna__v1": {
+    "drift_components": {
+      "param_bindings": {
+        "fastq.correct": "40832ecb9984bf27cffb09b35adbcf2fcea99a290fe315d7ae4e0d8d98753bf4",
+        "fastq.detect_adapters": "69c53f03b661bc36910aa69e91beafebe6390195a55b0fc59157a06e581dfdf8",
+        "fastq.filter": "578cf743a57ec9554533b5b78fca6c48138b36cf39d1e953ea2e9dcea35b3df3",
+        "fastq.low_complexity": "9f87c0a7b5bd23cfe60b142cce2543a36e028dc02c5b5353d6c7971772c4eb50",
+        "fastq.merge": "b78868955d93f5f5e3bdade58275a889292f698cdce7602769cfb3590277f506",
+        "fastq.preprocess": "ec49ee8136c8fa55e4a601190cd4e6043ccaf084b5f319990ec45d34abc7dd24",
+        "fastq.qc_post": "7340317e312feb6a4d10d584cbf61e7e22237c4c7acccde58c90548fd172f68b",
+        "fastq.screen": "7e6384522ad5c0b377ffef7ccca91f390a30a0281ebd7ae6afd9d045bfed18af",
+        "fastq.stats_neutral": "1148dbfe778e358b62df082e88ac7a441d2306439ef79249318a1b7048b23e6c",
+        "fastq.trim": "34e3c83c409e09fc55a46a3027746ace54ab5925836028915d34966a8de6827a",
+        "fastq.umi": "ed924bf5ac256fcb8875f53af7f9a5ff3e6c4a9b22093b44ed6ee0f6d51010de",
+        "fastq.validate_pre": "db9c11dd97dff0eae3d590d4e1cdaa041cce4b3c277285e23c1df12c466d4734"
+      },
+      "param_bindings_hash": "e92e21a295c9d27f981bb1ccbe31d1294adc447ab042b6c8cfbe36a6efeaae84",
+      "tool_bindings": {
+        "fastq.correct": "rcorrector",
+        "fastq.detect_adapters": "fastqc",
+        "fastq.filter": "seqkit",
+        "fastq.low_complexity": "bbduk",
+        "fastq.merge": "vsearch",
+        "fastq.preprocess": "planner",
+        "fastq.qc_post": "multiqc",
+        "fastq.screen": "kraken2",
+        "fastq.stats_neutral": "seqkit_stats",
+        "fastq.trim": "fastp",
+        "fastq.umi": "umi_tools",
+        "fastq.validate_pre": "fastqvalidator_official"
+      },
+      "tool_bindings_hash": "c83c8b39ed63593a298057565bbc4da1ec80add33e3bb2c182a55e29776741d5"
+    },
     "manifest": {
       "invariants_preset": "reference_adna",
+      "library_model": {
+        "assay_kind": "shotgun",
+        "layout": "paired_end",
+        "platform_hint": "illumina",
+        "udg_treatment": "none"
+      },
       "param_hashes": {
         "fastq.correct": "40832ecb9984bf27cffb09b35adbcf2fcea99a290fe315d7ae4e0d8d98753bf4",
         "fastq.detect_adapters": "69c53f03b661bc36910aa69e91beafebe6390195a55b0fc59157a06e581dfdf8",
@@ -565,11 +1026,31 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "fastq.validate_pre": "fastqvalidator_official"
       }
     },
-    "profile_hash": "f347cb9e2c6a6af350b18a34f9182d78d359885d4f487955acbf37e9e4f4510f"
+    "profile_hash": "c3e1f6f7339f4be2fc20a6ecd7eb87f6853ca76bfa8f100e72e94547f801a169"
   },
   "vcf-to-vcf__minimal__v1": {
+    "drift_components": {
+      "param_bindings": {
+        "vcf.call": "13d14e5a3707e434e49b2032936a1803d6c664fe8d524ef06271d7fa6516eb79",
+        "vcf.filter": "16fd646680d1134f22d68c12f332e5f2e0bb2d8dcb9b23498e8171e8a224afea",
+        "vcf.stats": "83cceb1c85b61cd2776610d360004237e50b400a30dfb07dfce8f99e03f5072d"
+      },
+      "param_bindings_hash": "36225ad00bac1a3c72c8637c2251109d27b4fa68b2e39da4dfa2759a3f6b83a1",
+      "tool_bindings": {
+        "vcf.call": "bcftools",
+        "vcf.filter": "bcftools",
+        "vcf.stats": "bcftools"
+      },
+      "tool_bindings_hash": "498b8150aafedaeacaaec258fef4e873ee9dd5b4d3b8010623b794f5757603ee"
+    },
     "manifest": {
       "invariants_preset": "vcf_minimal",
+      "library_model": {
+        "assay_kind": "unknown",
+        "layout": "single_end",
+        "platform_hint": "unknown",
+        "udg_treatment": "unknown"
+      },
       "param_hashes": {
         "vcf.call": "13d14e5a3707e434e49b2032936a1803d6c664fe8d524ef06271d7fa6516eb79",
         "vcf.filter": "16fd646680d1134f22d68c12f332e5f2e0bb2d8dcb9b23498e8171e8a224afea",
@@ -593,6 +1074,54 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "vcf.stats": "bcftools"
       }
     },
-    "profile_hash": "f9bd85b16d1625f80f2d439e03880e7ea7167ad6e9ef77fe9e80781d7e464c34"
+    "profile_hash": "8c63e8b88e4f924623742285e883deea69b5e6e0a270323c0999f267f38a2e5e"
+  },
+  "vcf-to-vcf__reference_basic__v1": {
+    "drift_components": {
+      "param_bindings": {
+        "vcf.call": "13d14e5a3707e434e49b2032936a1803d6c664fe8d524ef06271d7fa6516eb79",
+        "vcf.filter": "16fd646680d1134f22d68c12f332e5f2e0bb2d8dcb9b23498e8171e8a224afea",
+        "vcf.stats": "83cceb1c85b61cd2776610d360004237e50b400a30dfb07dfce8f99e03f5072d"
+      },
+      "param_bindings_hash": "36225ad00bac1a3c72c8637c2251109d27b4fa68b2e39da4dfa2759a3f6b83a1",
+      "tool_bindings": {
+        "vcf.call": "bcftools",
+        "vcf.filter": "bcftools",
+        "vcf.stats": "bcftools"
+      },
+      "tool_bindings_hash": "498b8150aafedaeacaaec258fef4e873ee9dd5b4d3b8010623b794f5757603ee"
+    },
+    "manifest": {
+      "invariants_preset": "vcf_minimal",
+      "library_model": {
+        "assay_kind": "unknown",
+        "layout": "single_end",
+        "platform_hint": "unknown",
+        "udg_treatment": "unknown"
+      },
+      "param_hashes": {
+        "vcf.call": "13d14e5a3707e434e49b2032936a1803d6c664fe8d524ef06271d7fa6516eb79",
+        "vcf.filter": "16fd646680d1134f22d68c12f332e5f2e0bb2d8dcb9b23498e8171e8a224afea",
+        "vcf.stats": "83cceb1c85b61cd2776610d360004237e50b400a30dfb07dfce8f99e03f5072d"
+      },
+      "pipeline_id": "vcf-to-vcf__reference_basic__v1",
+      "schema_version": "bijux.profile_manifest.v1",
+      "schema_versions": {
+        "defaults_ledger": "bijux.defaults_ledger.v1",
+        "params": "by_stage",
+        "profile_manifest": "bijux.profile_manifest.v1"
+      },
+      "stage_list": [
+        "vcf.call",
+        "vcf.filter",
+        "vcf.stats"
+      ],
+      "tool_ids": {
+        "vcf.call": "bcftools",
+        "vcf.filter": "bcftools",
+        "vcf.stats": "bcftools"
+      }
+    },
+    "profile_hash": "8761e026cc3a849c70444b87fe078df3dc13e9864d8609065ead1ac71bdd27e5"
   }
 }

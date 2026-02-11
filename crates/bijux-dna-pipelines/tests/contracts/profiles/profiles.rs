@@ -3,11 +3,13 @@ use std::path::PathBuf;
 
 use bijux_dna_pipelines::bam::{
     bam_adna_capture_profile, bam_adna_shotgun_profile, bam_default_profile,
+    bam_reference_adna_profile,
 };
 use bijux_dna_pipelines::cross::{fastq_to_bam_adna_shotgun_profile, fastq_to_bam_default_profile};
 use bijux_dna_pipelines::fastq::{
     fastq_default_profile, fastq_minimal_profile, fastq_reference_adna_profile,
 };
+use bijux_dna_pipelines::vcf::vcf_reference_basic_profile;
 use bijux_dna_testkit::snapshot_name;
 use insta::assert_json_snapshot;
 
@@ -103,6 +105,15 @@ fn bam_adna_capture_profile_snapshot() {
 }
 
 #[test]
+fn bam_reference_adna_profile_snapshot() {
+    let _guard = snapshot_settings().bind_to_scope();
+    let name = snapshot_name("contracts", "bam_reference_adna_profile");
+    let mut json = serde_json::to_value(bam_reference_adna_profile()).expect("serialize profile");
+    prune_bam_downstream(&mut json);
+    assert_json_snapshot!(name, bijux_dna_testkit::snapshot_normalize_json(&json));
+}
+
+#[test]
 fn fastq_default_profile_snapshot() {
     let _guard = snapshot_settings().bind_to_scope();
     let name = snapshot_name("contracts", "fastq_default_profile");
@@ -153,6 +164,14 @@ fn fastq_reference_adna_profile_golden_stage_tool_and_param_hashes_snapshot() {
         "tool_ids": tool_ids,
         "param_hashes": param_hashes,
     });
+    assert_json_snapshot!(name, bijux_dna_testkit::snapshot_normalize_json(&json));
+}
+
+#[test]
+fn vcf_reference_basic_profile_snapshot() {
+    let _guard = snapshot_settings().bind_to_scope();
+    let name = snapshot_name("contracts", "vcf_reference_basic_profile");
+    let json = serde_json::to_value(vcf_reference_basic_profile()).expect("serialize profile");
     assert_json_snapshot!(name, bijux_dna_testkit::snapshot_normalize_json(&json));
 }
 

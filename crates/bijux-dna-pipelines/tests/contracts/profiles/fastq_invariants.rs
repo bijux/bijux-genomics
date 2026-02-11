@@ -127,4 +127,11 @@ fn adna_invariants_reject_scientifically_invalid_defaults() {
             .any(|violation| violation.code == "adna_adapter_policy_invalid"),
         "expected adna_adapter_policy_invalid violation"
     );
+
+    let invariants_report = report.as_invariants_report();
+    assert_eq!(
+        invariants_report.schema_version,
+        "bijux.invariants_report.v1"
+    );
+    assert!(invariants_report.blocking);
 }

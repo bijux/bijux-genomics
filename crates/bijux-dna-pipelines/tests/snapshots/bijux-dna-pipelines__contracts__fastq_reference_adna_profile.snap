@@ -27,7 +27,8 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     "required_artifacts": [
       "report.json",
       "run_manifest.json",
-      "stage_summaries.json"
+      "stage_summaries.json",
+      "invariants_report.json"
     ],
     "required_inputs": [
       "fastq"
@@ -186,6 +187,12 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     "Fastq"
   ],
   "invariants_preset": "reference_adna",
+  "library_model": {
+    "assay_kind": "shotgun",
+    "layout": "paired_end",
+    "platform_hint": "illumina",
+    "udg_treatment": "none"
+  },
   "output_domains": [
     "Fastq"
   ],

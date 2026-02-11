@@ -162,8 +162,8 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     }
   },
   "defaults_ledger_ref": "defaults_ledger.json",
-  "description": "Ancient DNA shotgun defaults",
-  "id": "bam-to-bam__adna_shotgun__v1",
+  "description": "Reference-grade ancient DNA BAM defaults",
+  "id": "bam-to-bam__reference_adna__v1",
   "input_domains": [
     "Bam"
   ],
