@@ -254,6 +254,9 @@ pub fn stage_metrics_for_plan(
             let kmer_warning_count = metrics
                 .as_ref()
                 .and_then(|m| m.kmer_content.as_ref().map(|k| k.warning_count));
+            let overrepresented_sequence_count = metrics
+                .as_ref()
+                .and_then(|m| m.overrepresented_sequences.as_ref().map(|o| o.count));
             serde_json::to_value(FastqDetectAdaptersMetricsV1 {
                 reads_in: input.reads,
                 reads_out: input.reads,
@@ -267,6 +270,7 @@ pub fn stage_metrics_for_plan(
                 duplication_rate,
                 n_rate,
                 kmer_warning_count,
+                overrepresented_sequence_count,
             })?
         }
         id_catalog::FASTQ_CORRECT => {
@@ -427,6 +431,8 @@ pub fn stage_metrics_for_plan(
                 metrics_source.and_then(|m| m.n_content.as_ref().map(|n| n.mean_percent / 100.0));
             let kmer_warning_count =
                 metrics_source.and_then(|m| m.kmer_content.as_ref().map(|k| k.warning_count));
+            let overrepresented_sequence_count =
+                metrics_source.and_then(|m| m.overrepresented_sequences.as_ref().map(|o| o.count));
             let read_retention = if input.reads > 0 {
                 f64_from_u64(output.reads) / f64_from_u64(input.reads)
             } else {
@@ -475,6 +481,7 @@ pub fn stage_metrics_for_plan(
                 duplication_rate,
                 n_rate,
                 kmer_warning_count,
+                overrepresented_sequence_count,
                 raw_fastqc_dir: raw_dir.exists().then_some(raw_dir.display().to_string()),
                 trimmed_fastqc_dir: trimmed_dir
                     .exists()
@@ -497,14 +504,18 @@ pub fn stage_metrics_for_plan(
                 stats.first().copied().unwrap_or_else(zero_seqkit_metrics)
             };
             let (pairs_in, pairs_out) = pair_counts_from_paths(inputs, outputs)?;
-            serde_json::json!({
-                "reads_in": input.reads,
-                "reads_out": output.reads,
-                "bases_in": input.bases,
-                "bases_out": output.bases,
-                "pairs_in": pairs_in,
-                "pairs_out": pairs_out,
-            })
+            let (read_length_distribution, gc_distribution) =
+                distributions_for_path(inputs.first().map(PathBuf::as_path))?;
+            serde_json::to_value(FastqStatsNeutralMetricsV1 {
+                reads_in: input.reads,
+                reads_out: output.reads,
+                bases_in: input.bases,
+                bases_out: output.bases,
+                pairs_in,
+                pairs_out,
+                read_length_distribution,
+                gc_distribution,
+            })?
         }
         id_catalog::FASTQ_SCREEN => {
             let stats = stats_for_paths(&[inputs.first().map(PathBuf::as_path)])?;
@@ -770,6 +781,59 @@ fn stats_for_paths(
         out.push(value);
     }
     Ok(out)
+}
+
+fn distributions_for_path(path: Option<&Path>) -> Result<(Vec<(u64, u64)>, Vec<(u8, u64)>)> {
+    let Some(path) = path else {
+        return Ok((Vec::new(), Vec::new()));
+    };
+    if !path.exists() || path.is_dir() {
+        return Ok((Vec::new(), Vec::new()));
+    }
+    let file = std::fs::File::open(path).context("open fastq for distributions")?;
+    let reader: Box<dyn std::io::Read> = if path
+        .extension()
+        .and_then(|ext| ext.to_str())
+        .is_some_and(|ext| ext.eq_ignore_ascii_case("gz"))
+    {
+        Box::new(GzDecoder::new(file))
+    } else {
+        Box::new(file)
+    };
+    let mut length_hist = std::collections::BTreeMap::<u64, u64>::new();
+    let mut gc_hist = std::collections::BTreeMap::<u8, u64>::new();
+    let mut lines = BufReader::new(reader).lines();
+    while let Some(line) = lines.next() {
+        let header = line?;
+        if header.is_empty() {
+            continue;
+        }
+        let seq = lines
+            .next()
+            .ok_or_else(|| anyhow!("fastq missing sequence line"))??;
+        let _plus = lines
+            .next()
+            .ok_or_else(|| anyhow!("fastq missing plus line"))??;
+        let _qual = lines
+            .next()
+            .ok_or_else(|| anyhow!("fastq missing quality line"))??;
+        let len = seq.len() as u64;
+        *length_hist.entry(len).or_insert(0) += 1;
+        let gc = seq
+            .bytes()
+            .filter(|base| matches!(base, b'G' | b'g' | b'C' | b'c'))
+            .count() as f64;
+        let gc_pct = if len > 0 {
+            ((gc / len as f64) * 100.0).round() as u8
+        } else {
+            0
+        };
+        *gc_hist.entry(gc_pct).or_insert(0) += 1;
+    }
+    Ok((
+        length_hist.into_iter().collect(),
+        gc_hist.into_iter().collect(),
+    ))
 }
 
 fn pair_counts_from_paths(

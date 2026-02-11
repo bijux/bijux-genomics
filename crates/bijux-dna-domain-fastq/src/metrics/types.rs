@@ -141,6 +141,8 @@ pub struct FastqQcPostMetricsV1 {
     #[serde(default)]
     pub kmer_warning_count: Option<u64>,
     #[serde(default)]
+    pub overrepresented_sequence_count: Option<u64>,
+    #[serde(default)]
     pub raw_fastqc_dir: Option<String>,
     #[serde(default)]
     pub trimmed_fastqc_dir: Option<String>,
@@ -240,6 +242,25 @@ pub struct FastqDetectAdaptersMetricsV1 {
     pub n_rate: Option<f64>,
     #[serde(default)]
     pub kmer_warning_count: Option<u64>,
+    #[serde(default)]
+    pub overrepresented_sequence_count: Option<u64>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct FastqStatsNeutralMetricsV1 {
+    pub reads_in: u64,
+    pub reads_out: u64,
+    pub bases_in: u64,
+    pub bases_out: u64,
+    #[serde(default)]
+    pub pairs_in: Option<u64>,
+    #[serde(default)]
+    pub pairs_out: Option<u64>,
+    #[serde(default)]
+    pub read_length_distribution: Vec<(u64, u64)>,
+    #[serde(default)]
+    pub gc_distribution: Vec<(u8, u64)>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

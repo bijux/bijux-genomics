@@ -13,6 +13,7 @@ pub(super) struct FastqcMetricsV2 {
     pub(super) duplication: Option<DuplicationSummary>,
     pub(super) n_content: Option<NContentSummary>,
     pub(super) kmer_content: Option<KmerContentSummary>,
+    pub(super) overrepresented_sequences: Option<OverrepresentedSummary>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -70,6 +71,11 @@ struct KmerSignal {
     percent: f64,
 }
 
+#[derive(Debug, Clone, Serialize)]
+pub(super) struct OverrepresentedSummary {
+    pub(super) count: u64,
+}
+
 pub(super) fn fastqc_metrics_v2_from_dir(dir: &Path) -> Option<FastqcMetricsV2> {
     let path = find_fastqc_data(dir)?;
     let raw = std::fs::read_to_string(path).ok()?;
@@ -93,6 +99,9 @@ pub(super) fn fastqc_metrics_v2_from_dir(dir: &Path) -> Option<FastqcMetricsV2> 
     let kmer_content = modules
         .get("Kmer Content")
         .map(|lines| parse_kmer_content(lines));
+    let overrepresented_sequences = modules
+        .get("Overrepresented sequences")
+        .map(|lines| parse_overrepresented(lines));
 
     Some(FastqcMetricsV2 {
         schema_version: "bijux.fastqc_metrics.v2".to_string(),
@@ -103,6 +112,7 @@ pub(super) fn fastqc_metrics_v2_from_dir(dir: &Path) -> Option<FastqcMetricsV2> 
         duplication,
         n_content,
         kmer_content,
+        overrepresented_sequences,
     })
 }
 
@@ -355,4 +365,15 @@ fn parse_kmer_content(lines: &[String]) -> KmerContentSummary {
         warning_count,
         kmers,
     }
+}
+
+fn parse_overrepresented(lines: &[String]) -> OverrepresentedSummary {
+    let count = lines
+        .iter()
+        .filter(|line| {
+            let trimmed = line.trim();
+            !trimmed.is_empty() && !trimmed.starts_with('#') && !trimmed.starts_with("Sequence")
+        })
+        .count() as u64;
+    OverrepresentedSummary { count }
 }
