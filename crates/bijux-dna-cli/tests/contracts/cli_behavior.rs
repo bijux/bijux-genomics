@@ -28,6 +28,7 @@ impl CliWorkspace {
 fastp = { version = "99.99.99+fixture" }
 seqkit = { version = "99.99.99+fixture" }
 fastqvalidator_official = { version = "99.99.99+fixture" }
+fastqc = { version = "99.99.99+fixture" }
 "#,
         );
     }
@@ -160,7 +161,7 @@ fn cli_env_info_is_deterministic() {
         run_cli_capture(&workspace, &["--platform", "test", "dna", "env", "info"]).expect("cli ok");
     assert!(stdout.contains("platform: test"));
     assert!(stdout.contains("runner: docker"));
-    assert!(stdout.contains("image count: 2"));
+    assert!(stdout.contains("image count: 4"));
     let expected_cache = workspace
         .home
         .join(".cache")
@@ -178,9 +179,11 @@ fn cli_env_images_are_listed_in_order() {
     let stdout = run_cli_capture(&workspace, &["--platform", "test", "dna", "env", "images"])
         .expect("cli ok");
     let lines: Vec<&str> = stdout.lines().collect();
-    assert_eq!(lines.len(), 2);
+    assert_eq!(lines.len(), 4);
     assert!(lines[0].starts_with("fastp:"));
-    assert!(lines[1].starts_with("seqkit:"));
+    assert!(lines[1].starts_with("fastqc:"));
+    assert!(lines[2].starts_with("fastqvalidator_official:"));
+    assert!(lines[3].starts_with("seqkit:"));
 }
 
 #[test]

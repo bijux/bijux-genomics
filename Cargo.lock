@@ -248,6 +248,7 @@ dependencies = [
  "bijux-dna-api",
  "bijux-dna-core",
  "bijux-dna-domain-compiler",
+ "bijux-dna-infra",
  "bijux-dna-policies",
  "clap",
  "gag",
