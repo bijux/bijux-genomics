@@ -49,6 +49,7 @@ pub fn bam_stage_has_invariants(stage: BamStage) -> bool {
     matches!(
         stage,
         BamStage::Validate
+            | BamStage::MappingSummary
             | BamStage::QcPre
             | BamStage::Filter
             | BamStage::Markdup
@@ -73,6 +74,7 @@ pub fn bam_stage_completeness(stage: BamStage) -> StageCompleteness {
         stage,
         BamStage::Align
             | BamStage::Validate
+            | BamStage::MappingSummary
             | BamStage::QcPre
             | BamStage::Filter
             | BamStage::Markdup
@@ -90,6 +92,7 @@ pub fn bam_stage_completeness(stage: BamStage) -> StageCompleteness {
     let has_parser_fixtures = matches!(
         stage,
         BamStage::Validate
+            | BamStage::MappingSummary
             | BamStage::QcPre
             | BamStage::Filter
             | BamStage::Coverage
@@ -111,6 +114,7 @@ pub fn bam_stage_is_stable(stage: BamStage) -> bool {
     matches!(
         stage,
         BamStage::Validate
+            | BamStage::MappingSummary
             | BamStage::QcPre
             | BamStage::Filter
             | BamStage::Coverage

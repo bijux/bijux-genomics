@@ -109,6 +109,7 @@ fn stable_bam_stages() -> Vec<BamStage> {
     vec![
         BamStage::Validate,
         BamStage::QcPre,
+        BamStage::MappingSummary,
         BamStage::Filter,
         BamStage::Coverage,
         BamStage::Damage,

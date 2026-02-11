@@ -254,7 +254,7 @@ fn reference_adna_fastq_defaults() -> EffectiveDefaults {
 
     defaults.tools.insert(
         StageId::from_static(id_catalog::FASTQ_LOW_COMPLEXITY),
-        ToolId::new("bbduk".to_string()),
+        ToolId::from_static(id_catalog::TOOL_BBDUK),
     );
     defaults.params.insert(
         StageId::from_static(id_catalog::FASTQ_LOW_COMPLEXITY),

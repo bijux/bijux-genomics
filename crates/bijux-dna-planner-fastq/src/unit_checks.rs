@@ -5,14 +5,11 @@ fn select_trim_tools_dedup_and_sort() {
     let tools = vec![
         "fastp".to_string(),
         "FASTP".to_string(),
-        "cutadapt".to_string(),
+        "bbduk".to_string(),
     ];
     match select_trim_tools(&tools, false) {
         Ok(normalized) => {
-            assert_eq!(
-                normalized,
-                vec!["cutadapt".to_string(), "fastp".to_string()]
-            );
+            assert_eq!(normalized, vec!["bbduk".to_string(), "fastp".to_string()]);
         }
         Err(err) => panic!("normalize failed: {err}"),
     }

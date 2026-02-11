@@ -112,7 +112,7 @@ pub fn preprocess_defaults(paired: bool) -> PreprocessEffectiveParams {
     PreprocessEffectiveParams {
         paired_mode: paired_mode(paired),
         library_declared_paired: paired,
-        library_damage_treatment: LibraryDamageTreatment::Unknown,
+        library_damage_treatment: LibraryDamageTreatment::NoUdg,
         threads: 1,
         stages: vec![
             "fastq.validate_pre".to_string(),
