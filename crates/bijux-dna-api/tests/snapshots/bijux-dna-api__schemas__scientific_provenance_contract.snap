@@ -32,7 +32,7 @@ expression: payload
       "params_hash": "params",
       "stage_id": "fastq.trim",
       "tool_id": "fastp",
-      "tool_version": "0.0.0"
+      "tool_version": "99.99.99+fixture"
     }
   ]
 }

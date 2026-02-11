@@ -128,7 +128,7 @@ fn golden_spine_contract() -> Result<()> {
         run_id: "run-test".to_string(),
         stage_id: "core.test".to_string(),
         tool_id: "tool.test".to_string(),
-        tool_version: "0.0.0".to_string(),
+        tool_version: "99.99.99+fixture".to_string(),
         image_digest: Some("sha256:deadbeef".to_string()),
         trace_id: "trace-1".to_string(),
         span_id: "span-1".to_string(),
