@@ -17,7 +17,6 @@ pub struct PreprocessPlan {
     pub enable_contaminant_removal: bool,
 }
 
-#[must_use]
 pub fn plan_preprocess_stage(
     plan: &PreprocessPlan,
     tool: &ToolExecutionSpecV1,

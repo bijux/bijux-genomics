@@ -59,16 +59,18 @@ pub fn plan_low_complexity(
                 r1.to_path_buf(),
                 ArtifactRole::Reads,
             )],
-            outputs: vec![ArtifactRef::required(
-                ArtifactId::from_static("filtered_fastq"),
-                output.clone(),
-                ArtifactRole::Reads,
-            ),
-            ArtifactRef::required(
-                ArtifactId::from_static("filter_report_json"),
-                report.clone(),
-                ArtifactRole::ReportJson,
-            )],
+            outputs: vec![
+                ArtifactRef::required(
+                    ArtifactId::from_static("filtered_fastq"),
+                    output.clone(),
+                    ArtifactRole::Reads,
+                ),
+                ArtifactRef::required(
+                    ArtifactId::from_static("filter_report_json"),
+                    report.clone(),
+                    ArtifactRole::ReportJson,
+                ),
+            ],
         },
         out_dir: out_dir.to_path_buf(),
         params: serde_json::json!({
