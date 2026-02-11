@@ -432,12 +432,10 @@ pub(crate) fn write_run_manifest(
         "execution_replay_identity": {
             "tool_image_ref": tool_invocations
                 .first()
-                .map(|inv| inv.tool_id.to_string())
-                .unwrap_or_else(|| "unknown".to_string()),
+                .map_or_else(|| "unknown".to_string(), |inv| inv.tool_id.to_string()),
             "tool_image_digest": tool_invocations
                 .first()
-                .map(|inv| inv.image_digest.clone())
-                .unwrap_or_else(|| "unknown".to_string()),
+                .map_or_else(|| "unknown".to_string(), |inv| inv.image_digest.clone()),
             "tool_version_output": tool_invocations
                 .first()
                 .and_then(|inv| inv.resolved_tool_version.clone())
