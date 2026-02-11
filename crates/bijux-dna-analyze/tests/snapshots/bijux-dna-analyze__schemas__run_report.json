@@ -382,6 +382,10 @@
         "status": "complete"
       }
     },
+    "fastq": {
+      "schema_version": "bijux.report.section.fastq.v1",
+      "stages": 1
+    },
     "filtering": {},
     "final_qc_summary": {
       "adapter_inference": {
@@ -561,6 +565,7 @@
     "run_provenance": {
       "graph_hash": "unknown",
       "input_hashes": [],
+      "manifest_signature_sha256": "unknown",
       "stage_contracts": {}
     },
     "scientific_provenance": {
