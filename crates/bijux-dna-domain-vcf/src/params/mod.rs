@@ -27,6 +27,7 @@ impl Default for VcfCallParams {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[allow(clippy::struct_excessive_bools)]
 pub struct VcfFilterParams {
     pub schema_version: String,
     pub sample_name: String,

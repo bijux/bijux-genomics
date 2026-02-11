@@ -61,9 +61,10 @@ pub struct StageMetricSpec {
     pub meaning: Option<String>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "snake_case")]
 pub enum StageSemanticKind {
+    #[default]
     Transform,
     Filter,
     Annotate,
@@ -72,13 +73,7 @@ pub enum StageSemanticKind {
     Index,
 }
 
-impl Default for StageSemanticKind {
-    fn default() -> Self {
-        Self::Transform
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "snake_case")]
 pub enum ArtifactKind {
     Fastq,
@@ -87,28 +82,18 @@ pub enum ArtifactKind {
     Report,
     Index,
     Metrics,
+    #[default]
     Unknown,
 }
 
-impl Default for ArtifactKind {
-    fn default() -> Self {
-        Self::Unknown
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "snake_case")]
 pub enum RuntimeScale {
     Tiny,
+    #[default]
     Small,
     Medium,
     Large,
-}
-
-impl Default for RuntimeScale {
-    fn default() -> Self {
-        Self::Small
-    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -120,6 +105,7 @@ pub struct ImageRequirements {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[allow(clippy::struct_excessive_bools)]
 pub struct StageSpec {
     pub stage_id: StageId,
     #[serde(default)]

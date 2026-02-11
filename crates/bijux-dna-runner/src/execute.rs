@@ -85,6 +85,7 @@ fn hash_inputs(inputs: &[PathBuf]) -> Result<Vec<String>> {
 ///
 /// # Errors
 /// Returns an error if execution fails or docker is unavailable.
+#[allow(clippy::too_many_lines)]
 pub fn execute_step(
     step: &ExecutionStep,
     runner: RuntimeKind,

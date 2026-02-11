@@ -96,6 +96,7 @@ fn parse_tool_role(raw: Option<&str>) -> ToolRole {
     }
 }
 
+#[allow(clippy::too_many_lines)]
 fn read_domain_registry(domain_dir: &Path) -> Result<ToolRegistry> {
     let mut registry = ToolRegistry::default();
     for domain_name in ["fastq", "bam"] {
@@ -217,8 +218,15 @@ fn list_strings(table: &toml::Value, key: &str) -> Vec<String> {
         .unwrap_or_default()
 }
 
+fn has_index_suffix(stage_id: &str) -> bool {
+    Path::new(stage_id)
+        .extension()
+        .and_then(|ext| ext.to_str())
+        .is_some_and(|ext| ext.eq_ignore_ascii_case("index"))
+}
+
 fn stage_semantic_from_id(stage_id: &str) -> StageSemanticKind {
-    if stage_id.ends_with(".index") || stage_id.contains("prepare_reference") {
+    if has_index_suffix(stage_id) || stage_id.contains("prepare_reference") {
         StageSemanticKind::Index
     } else if stage_id.contains("qc") || stage_id.contains("stats") || stage_id.contains("summary")
     {
@@ -249,7 +257,7 @@ fn artifact_kind_from_stage(stage_id: &str) -> ArtifactKind {
 fn output_artifact_kind_from_stage(stage_id: &str) -> ArtifactKind {
     if stage_id.contains("qc") || stage_id.contains("stats") || stage_id.contains("summary") {
         ArtifactKind::Metrics
-    } else if stage_id.ends_with(".index") {
+    } else if has_index_suffix(stage_id) {
         ArtifactKind::Index
     } else {
         artifact_kind_from_stage(stage_id)
