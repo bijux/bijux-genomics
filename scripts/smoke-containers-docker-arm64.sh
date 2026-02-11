@@ -127,6 +127,26 @@ get_registry_field() {
   printf '%s\n' "${value:-unknown}"
 }
 
+get_healthcheck_cmd() {
+  tool="$1"
+  value=$(get_registry_field healthcheck_cmd "$tool")
+  if [ "$value" = "unknown" ] || [ -z "$value" ]; then
+    get_help_cmd "$tool"
+    return 0
+  fi
+  printf '%s\n' "$value"
+}
+
+get_expected_version_regex() {
+  tool="$1"
+  value=$(get_registry_field expected_version_regex "$tool")
+  if [ "$value" = "unknown" ] || [ -z "$value" ]; then
+    printf '%s\n' 'v?[0-9]+\.[0-9]+([.-][0-9A-Za-z]+)?'
+    return 0
+  fi
+  printf '%s\n' "$value"
+}
+
 build_and_smoke_one() {
   dockerfile="$1"
   tool=$(basename "$dockerfile" | sed 's/^Dockerfile\.//')
@@ -134,6 +154,12 @@ build_and_smoke_one() {
   log="$LOG_DIR/${tool}.log"
   cmd=$(get_version_cmd "$tool")
   help_cmd=$(get_help_cmd "$tool")
+  health_cmd=$(get_healthcheck_cmd "$tool")
+  version_regex=$(get_expected_version_regex "$tool")
+  expected_bin=$(get_registry_field expected_bin "$tool")
+  if [ "$expected_bin" = "unknown" ] || [ -z "$expected_bin" ]; then
+    expected_bin="$tool"
+  fi
   version_output_file="$LOG_DIR/${tool}.version.out"
   help_output_file="$LOG_DIR/${tool}.help.out"
   manifest="$MANIFEST_DIR/${tool}.json"
@@ -148,8 +174,17 @@ build_and_smoke_one() {
     echo "=== [$tool] build start"
     echo "dockerfile: $dockerfile"
     echo "image: $image"
-    if ! "$DOCKER_BIN" build --platform "$DOCKER_PLATFORM" -f "$dockerfile" -t "$image" "$DOCKER_DIR"; then
+    if ! "$DOCKER_BIN" build --platform "$DOCKER_PLATFORM" \
+      --build-arg "OCI_REVISION=$(git rev-parse HEAD 2>/dev/null || echo unknown)" \
+      --build-arg "OCI_CREATED=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+      --build-arg "TOOL_VERSION=$declared_version" \
+      -f "$dockerfile" -t "$image" "$DOCKER_DIR"; then
       echo "build failed for $tool"
+      exit 1
+    fi
+    echo "=== [$tool] smoke-bin: $expected_bin"
+    if ! run_with_timeout "$VERSION_TIMEOUT" "$DOCKER_BIN" run --rm --entrypoint sh "$image" -lc "command -v $expected_bin >/dev/null"; then
+      echo "binary missing in image: $expected_bin"
       exit 1
     fi
     echo "=== [$tool] smoke: $cmd"
@@ -163,6 +198,11 @@ build_and_smoke_one() {
       echo "version command produced empty output: $cmd"
       exit 1
     fi
+    if ! grep -Eiq "$version_regex" "$version_output_file"; then
+      cat "$version_output_file"
+      echo "version output does not match expected regex: $version_regex"
+      exit 1
+    fi
     if [ "$SMOKE_LEVEL" = "contract" ]; then
       echo "=== [$tool] smoke-help: $help_cmd"
       if ! run_with_timeout "$VERSION_TIMEOUT" "$DOCKER_BIN" run --rm --entrypoint sh "$image" -lc "$help_cmd" >"$help_output_file" 2>&1; then
@@ -173,6 +213,11 @@ build_and_smoke_one() {
       cat "$help_output_file"
       if [ ! -s "$help_output_file" ]; then
         echo "help command produced empty output: $help_cmd"
+        exit 1
+      fi
+      echo "=== [$tool] healthcheck: $health_cmd"
+      if ! run_with_timeout "$VERSION_TIMEOUT" "$DOCKER_BIN" run --rm --entrypoint sh "$image" -lc "$health_cmd" >/dev/null 2>&1; then
+        echo "healthcheck failed: $health_cmd"
         exit 1
       fi
     fi

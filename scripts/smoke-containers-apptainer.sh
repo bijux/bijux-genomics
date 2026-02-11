@@ -149,6 +149,26 @@ PY
   printf '%s\n' "${value:-unknown}"
 }
 
+get_healthcheck_cmd() {
+  tool="$1"
+  value=$(get_registry_field healthcheck_cmd "$tool")
+  if [ "$value" = "unknown" ] || [ -z "$value" ]; then
+    get_help_cmd "$tool"
+    return 0
+  fi
+  printf '%s\n' "$value"
+}
+
+get_expected_version_regex() {
+  tool="$1"
+  value=$(get_registry_field expected_version_regex "$tool")
+  if [ "$value" = "unknown" ] || [ -z "$value" ]; then
+    printf '%s\n' 'v?[0-9]+\.[0-9]+([.-][0-9A-Za-z]+)?'
+    return 0
+  fi
+  printf '%s\n' "$value"
+}
+
 build_and_smoke_one() {
   def_file="$1"
   tool=$(basename "$def_file" .def)
@@ -158,6 +178,8 @@ build_and_smoke_one() {
   out_sif="$IMG_DIR/${tool}.sif"
   cmd=$(get_version_cmd "$tool")
   help_cmd=$(get_help_cmd "$tool")
+  health_cmd=$(get_healthcheck_cmd "$tool")
+  version_regex=$(get_expected_version_regex "$tool")
   expected_bin=$(get_registry_field expected_bin "$tool")
   if [ "$expected_bin" = "unknown" ]; then
     expected_bin="$tool"
@@ -180,11 +202,22 @@ build_and_smoke_one() {
     "$APPTAINER_BIN" build --force $BUILD_OPTS "$vm_sif" "$def_file"
     echo "=== [$tool] smoke: $cmd"
     run_with_timeout "$VERSION_TIMEOUT" "$APPTAINER_BIN" exec "$vm_sif" sh -lc "$cmd" | tee "$version_output_file"
+    if [ ! -s "$version_output_file" ]; then
+      echo "version command produced empty output: $cmd"
+      exit 1
+    fi
+    if ! grep -Eiq "$version_regex" "$version_output_file"; then
+      cat "$version_output_file"
+      echo "version output does not match expected regex: $version_regex"
+      exit 1
+    fi
     if [ "$SMOKE_LEVEL" = "contract" ]; then
       echo "=== [$tool] smoke-help: $help_cmd"
       run_with_timeout "$VERSION_TIMEOUT" "$APPTAINER_BIN" exec "$vm_sif" sh -lc "$help_cmd" | tee "$help_output_file"
       echo "=== [$tool] smoke-bin: $expected_bin"
       run_with_timeout "$VERSION_TIMEOUT" "$APPTAINER_BIN" exec "$vm_sif" sh -lc "command -v $expected_bin >/dev/null"
+      echo "=== [$tool] healthcheck: $health_cmd"
+      run_with_timeout "$VERSION_TIMEOUT" "$APPTAINER_BIN" exec "$vm_sif" sh -lc "$health_cmd" >/dev/null
     fi
     echo "=== [$tool] OK"
     version_output="$(head -n 1 "$version_output_file" 2>/dev/null | tr -d '\r')"

@@ -7,6 +7,7 @@ use bijux_dna_api::v1::api::env::{
     available_runners, cache_dir, docker_image_exists, resolve_image, run_smoke_script,
     run_smoke_script_batch, PlatformSpec, RuntimeKind, ToolImageSpec,
 };
+use regex::Regex;
 use serde::Serialize;
 
 /// # Errors
@@ -150,6 +151,8 @@ struct RegistryRow {
     help_cmd: Option<String>,
     expected_bin: Option<String>,
     pinned_commit: Option<String>,
+    expected_version_regex: Option<String>,
+    healthcheck_cmd: Option<String>,
 }
 
 fn parse_tools_registry_rows(raw: &str) -> Result<Vec<RegistryRow>> {
@@ -191,6 +194,10 @@ fn parse_tools_registry_rows(raw: &str) -> Result<Vec<RegistryRow>> {
             row.expected_bin = Some(value);
         } else if let Some(value) = parse_toml_string(trimmed, "pinned_commit") {
             row.pinned_commit = Some(value);
+        } else if let Some(value) = parse_toml_string(trimmed, "expected_version_regex") {
+            row.expected_version_regex = Some(value);
+        } else if let Some(value) = parse_toml_string(trimmed, "healthcheck_cmd") {
+            row.healthcheck_cmd = Some(value);
         } else if let Some(values) = parse_toml_array(trimmed, "runtimes") {
             row.runtimes = values;
         }
@@ -267,7 +274,9 @@ pub fn print_registry_show(registry_path: &Path, id: &str) -> Result<()> {
             "apptainer_def": tool.apptainer_def,
             "version_cmd": tool.version_cmd,
             "help_cmd": tool.help_cmd,
+            "healthcheck_cmd": tool.healthcheck_cmd,
             "expected_bin": tool.expected_bin,
+            "expected_version_regex": tool.expected_version_regex,
             "pinned_commit": tool.pinned_commit,
         }))?;
         return Ok(());
@@ -308,7 +317,9 @@ pub fn print_registry_show_tool(registry_path: &Path, id: &str) -> Result<()> {
         "apptainer_def": tool.apptainer_def,
         "version_cmd": tool.version_cmd,
         "help_cmd": tool.help_cmd,
+        "healthcheck_cmd": tool.healthcheck_cmd,
         "expected_bin": tool.expected_bin,
+        "expected_version_regex": tool.expected_version_regex,
         "pinned_commit": tool.pinned_commit,
     }))?;
     Ok(())
@@ -331,9 +342,22 @@ pub fn verify_registry_tool(registry_path: &Path, id: &str) -> Result<()> {
         .unwrap_or_else(|| "missing".to_string());
     let version_cmd = tool.version_cmd.clone().unwrap_or_default();
     let help_cmd = tool.help_cmd.clone().unwrap_or_default();
+    let healthcheck_cmd = tool
+        .healthcheck_cmd
+        .clone()
+        .unwrap_or_else(|| help_cmd.clone());
+    let expected_version_regex = tool
+        .expected_version_regex
+        .clone()
+        .unwrap_or_else(|| "v?[0-9]+\\.[0-9]+([.-][0-9A-Za-z]+)?".to_string());
     let version_output =
         run_shell_capture(&version_cmd).unwrap_or_else(|err| format!("error:{err}"));
     let help_output = run_shell_capture(&help_cmd).unwrap_or_else(|err| format!("error:{err}"));
+    let health_output =
+        run_shell_capture(&healthcheck_cmd).unwrap_or_else(|err| format!("error:{err}"));
+    let version_matches_regex = Regex::new(&expected_version_regex)
+        .ok()
+        .is_some_and(|regex| regex.is_match(&version_output));
     let parsed_version =
         parse_first_version(&version_output).unwrap_or_else(|| "unknown".to_string());
 
@@ -343,9 +367,13 @@ pub fn verify_registry_tool(registry_path: &Path, id: &str) -> Result<()> {
         "entrypoint": tool.expected_bin,
         "version_cmd": version_cmd,
         "help_cmd": help_cmd,
+        "healthcheck_cmd": healthcheck_cmd,
+        "expected_version_regex": expected_version_regex,
         "version_output_parse": parsed_version,
+        "version_output_matches_regex": version_matches_regex,
         "version_output_sample": version_output.lines().next().unwrap_or(""),
         "help_ok": !help_output.starts_with("error:"),
+        "healthcheck_ok": !health_output.starts_with("error:"),
     }))?;
     Ok(())
 }
