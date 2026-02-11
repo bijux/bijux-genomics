@@ -71,7 +71,9 @@ impl Default for GcBiasMetricsV1 {
 
 /// # Errors
 /// Returns an error if the Picard insert-size metrics file cannot be parsed.
-pub fn parse_picard_insert_size_metrics(path: &std::path::Path) -> anyhow::Result<InsertSizeMetricsV1> {
+pub fn parse_picard_insert_size_metrics(
+    path: &std::path::Path,
+) -> anyhow::Result<InsertSizeMetricsV1> {
     let raw = std::fs::read_to_string(path).context("read picard insert-size metrics")?;
     let (header, data) = first_table_header_and_row(&raw)
         .ok_or_else(|| anyhow::anyhow!("insert-size metrics table missing"))?;
@@ -97,8 +99,7 @@ pub fn parse_picard_gc_bias_metrics(path: &std::path::Path) -> anyhow::Result<Gc
     let map = header_map(header, data);
     let at_dropout = f64_field(&map, "AT_DROPOUT");
     let gc_dropout = f64_field(&map, "GC_DROPOUT");
-    let gc_bias_score = normalize_dropout(at_dropout)
-        .max(normalize_dropout(gc_dropout));
+    let gc_bias_score = normalize_dropout(at_dropout).max(normalize_dropout(gc_dropout));
     Ok(GcBiasMetricsV1 {
         gc_bias_score,
         at_dropout,
@@ -122,7 +123,10 @@ fn first_table_header_and_row(raw: &str) -> Option<(Vec<&str>, Vec<&str>)> {
     })
 }
 
-fn header_map<'a>(header: Vec<&'a str>, data: Vec<&'a str>) -> std::collections::BTreeMap<&'a str, &'a str> {
+fn header_map<'a>(
+    header: Vec<&'a str>,
+    data: Vec<&'a str>,
+) -> std::collections::BTreeMap<&'a str, &'a str> {
     header
         .into_iter()
         .zip(data)
@@ -163,6 +167,7 @@ fn normalize_dropout(value: f64) -> f64 {
     }
 }
 
+#[allow(clippy::trivially_copy_pass_by_ref)]
 fn is_zero_f64(value: &f64) -> bool {
     *value == 0.0
 }
