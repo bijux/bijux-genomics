@@ -248,8 +248,10 @@ dependencies = [
  "bijux-dna-api",
  "bijux-dna-core",
  "bijux-dna-domain-compiler",
+ "bijux-dna-domain-vcf",
  "bijux-dna-policies",
  "bijux-dna-runtime",
+ "bijux-dna-stages-vcf",
  "clap",
  "gag",
  "insta",
@@ -733,8 +735,10 @@ dependencies = [
  "bijux-dna-domain-vcf",
  "bijux-dna-policies",
  "bijux-dna-testkit",
+ "regex",
  "serde",
  "serde_json",
+ "tempfile",
 ]
 
 [[package]]
