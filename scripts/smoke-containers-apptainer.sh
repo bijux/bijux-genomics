@@ -5,6 +5,10 @@ export LC_ALL=C
 
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 ROOT_DIR=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
+SELF_SCRIPT="$SCRIPT_DIR/$(basename -- "$0")"
+if [ ! -f "$SELF_SCRIPT" ]; then
+  SELF_SCRIPT="$SCRIPT_DIR/smoke-containers-apptainer.sh"
+fi
 
 APPTAINER_BIN="${APPTAINER_BIN:-apptainer}"
 DEFS_DIR="${DEFS_DIR:-$ROOT_DIR/containers/apptainer}"
@@ -14,6 +18,8 @@ BUILD_OPTS="${BUILD_OPTS:-}"
 VERSION_TIMEOUT="${VERSION_TIMEOUT:-120}"
 TOOLS="${TOOLS:-}"
 SMOKE_LEVEL="${SMOKE_LEVEL:-version}"
+SMOKE_RUN_MODE="${SMOKE_RUN_MODE:-bijux-run}"
+UBUNTU_BASE_SIF="${APPTAINER_UBUNTU_BASE_SIF:-}"
 
 ARTIFACT_DIR="${ARTIFACT_DIR:-$ROOT_DIR/artifacts/container}"
 LOG_DIR="$ARTIFACT_DIR/logs/apptainer"
@@ -22,6 +28,10 @@ SUMMARY="$LOG_DIR/summary.txt"
 MANIFEST_DIR="$ARTIFACT_DIR"
 
 mkdir -p "$LOG_DIR" "$IMG_DIR" "$VM_OUT_DIR/logs" "$VM_OUT_DIR/sif" "$MANIFEST_DIR"
+export APPTAINER_BIN DEFS_DIR VM_OUT_DIR BUILD_OPTS VERSION_TIMEOUT TOOLS SMOKE_LEVEL
+export SMOKE_RUN_MODE
+export ARTIFACT_DIR LOG_DIR IMG_DIR SUMMARY MANIFEST_DIR ROOT_DIR SCRIPT_DIR
+export UBUNTU_BASE_SIF REGISTRY_EXPORT_JSON
 
 require_cmd() {
   name="$1"
@@ -32,7 +42,6 @@ require_cmd() {
 }
 
 require_cmd "$APPTAINER_BIN"
-require_cmd cargo
 require_cmd python3
 require_cmd awk
 require_cmd sed
@@ -41,6 +50,14 @@ if [ ! -d "$DEFS_DIR" ]; then
   echo "ERROR: defs dir not found: $DEFS_DIR" >&2
   exit 2
 fi
+
+case "$SMOKE_RUN_MODE" in
+  bijux-run|apptainer-run) ;;
+  *)
+    echo "ERROR: unsupported SMOKE_RUN_MODE=$SMOKE_RUN_MODE (expected bijux-run|apptainer-run)" >&2
+    exit 2
+    ;;
+esac
 
 if [ ! -w "$VM_OUT_DIR" ]; then
   echo "ERROR: VM_OUT_DIR not writable: $VM_OUT_DIR" >&2
@@ -202,8 +219,46 @@ get_expected_version_regex() {
   printf '%s\n' "$value"
 }
 
+derive_runscript_args() {
+  cmd="$1"
+  expected_bin="$2"
+  trimmed="$(printf '%s' "$cmd" | sed -E 's/^[[:space:]]+//;s/[[:space:]]+$//')"
+  if [ -z "$trimmed" ]; then
+    return 1
+  fi
+  # Strict parser: only allow "<expected_bin> <args...>" forms for apptainer run mode.
+  first="$(printf '%s' "$trimmed" | awk '{print $1}')"
+  if [ "$first" = "$expected_bin" ]; then
+    printf '%s\n' "$(printf '%s' "$trimmed" | sed -E "s#^${expected_bin}([[:space:]]+|$)##")"
+    return 0
+  fi
+  return 1
+}
+
+run_tool_command() {
+  sif="$1"
+  cmd="$2"
+  expected_bin="$3"
+  if [ "$SMOKE_RUN_MODE" = "apptainer-run" ]; then
+    args="$(derive_runscript_args "$cmd" "$expected_bin" || true)"
+    if [ -z "${args:-}" ] && [ "$cmd" != "$expected_bin" ]; then
+      echo "cannot derive runscript args from command in apptainer-run mode: $cmd" >&2
+      return 2
+    fi
+    if [ -n "${args:-}" ]; then
+      # shellcheck disable=SC2086
+      run_with_timeout "$VERSION_TIMEOUT" "$APPTAINER_BIN" run "$sif" $args
+    else
+      run_with_timeout "$VERSION_TIMEOUT" "$APPTAINER_BIN" run "$sif"
+    fi
+  else
+    run_with_timeout "$VERSION_TIMEOUT" "$APPTAINER_BIN" exec "$sif" sh -lc "$cmd"
+  fi
+}
+
 build_and_smoke_one() {
   def_file="$1"
+  tmp_def=""
   tool=$(basename "$def_file" .def)
   vm_log="$VM_OUT_DIR/logs/${tool}.log"
   vm_sif="$VM_OUT_DIR/sif/${tool}.sif"
@@ -227,14 +282,31 @@ build_and_smoke_one() {
   image_ref="$out_sif"
   image_digest="$(shasum -a 256 "$vm_sif" 2>/dev/null | awk '{print $1}' || true)"
 
+  rm -f "$vm_sif" "$vm_log" "$out_log" "$out_sif" "$version_output_file" "$help_output_file"
+
+  set +e
   {
     echo "=== [$tool] build start"
     echo "def: $def_file"
     echo "sif: $vm_sif"
+    echo "mode: $SMOKE_RUN_MODE"
+    tmp_def="$(mktemp "${TMPDIR:-/tmp}/apptainer-smoke-${tool}.XXXXXX.def")"
+    sed -E 's#^([[:space:]]*From:[[:space:]]*.+):([^:@[:space:]]+)@(sha256:[a-f0-9]+)[[:space:]]*$#\1@\3#' "$def_file" > "$tmp_def"
+    if [ -n "$UBUNTU_BASE_SIF" ] && [ -f "$UBUNTU_BASE_SIF" ]; then
+      if grep -Eq '^Bootstrap:[[:space:]]*docker[[:space:]]*$' "$tmp_def" && \
+         grep -Eq '^From:[[:space:]]*(ubuntu(:[[:alnum:]._-]+)?@sha256:[a-f0-9]+|docker\.io/library/ubuntu(:[[:alnum:]._-]+)?@sha256:[a-f0-9]+)[[:space:]]*$' "$tmp_def"; then
+        sed -Ei \
+          -e 's#^Bootstrap:[[:space:]]*docker[[:space:]]*$#Bootstrap: localimage#' \
+          -e "s#^From:[[:space:]].*\$#From: ${UBUNTU_BASE_SIF}#" \
+          "$tmp_def"
+      fi
+    fi
     # shellcheck disable=SC2086
-    "$APPTAINER_BIN" build --force $BUILD_OPTS "$vm_sif" "$def_file"
+    "$APPTAINER_BIN" build --force $BUILD_OPTS "$vm_sif" "$tmp_def"
+    rm -f "$tmp_def"
+    tmp_def=""
     echo "=== [$tool] smoke: $cmd"
-    run_with_timeout "$VERSION_TIMEOUT" "$APPTAINER_BIN" exec "$vm_sif" sh -lc "$cmd" | tee "$version_output_file"
+    run_tool_command "$vm_sif" "$cmd" "$expected_bin" 2>&1 | tee "$version_output_file"
     if [ ! -s "$version_output_file" ]; then
       echo "version command produced empty output: $cmd"
       exit 1
@@ -246,11 +318,11 @@ build_and_smoke_one() {
     fi
     if [ "$SMOKE_LEVEL" = "contract" ]; then
       echo "=== [$tool] smoke-help: $help_cmd"
-      run_with_timeout "$VERSION_TIMEOUT" "$APPTAINER_BIN" exec "$vm_sif" sh -lc "$help_cmd" | tee "$help_output_file"
+      run_tool_command "$vm_sif" "$help_cmd" "$expected_bin" 2>&1 | tee "$help_output_file"
       echo "=== [$tool] smoke-bin: $expected_bin"
       run_with_timeout "$VERSION_TIMEOUT" "$APPTAINER_BIN" exec "$vm_sif" sh -lc "command -v $expected_bin >/dev/null"
       echo "=== [$tool] healthcheck: $health_cmd"
-      run_with_timeout "$VERSION_TIMEOUT" "$APPTAINER_BIN" exec "$vm_sif" sh -lc "$health_cmd" >/dev/null
+      run_tool_command "$vm_sif" "$health_cmd" "$expected_bin" >/dev/null
     fi
     echo "=== [$tool] OK"
     version_output="$(head -n 1 "$version_output_file" 2>/dev/null | tr -d '\r')"
@@ -283,7 +355,12 @@ build_and_smoke_one() {
 JSON
 )
     write_manifest_json "$manifest" "$payload"
-  } >"$vm_log" 2>&1 || {
+  } >"$vm_log" 2>&1
+  run_status=$?
+  if [ "$run_status" -ne 0 ]; then
+    if [ -n "$tmp_def" ]; then
+      rm -f "$tmp_def"
+    fi
     cmd_json="$(json_escape "$cmd")"
     def_json="$(json_escape "$def_file")"
     base_image_json="$(json_escape "$base_image")"
@@ -314,8 +391,10 @@ JSON
     write_manifest_json "$manifest" "$payload"
     cp -f "$vm_log" "$out_log" 2>/dev/null || true
     echo "FAIL $tool (see $out_log)"
+    set -e
     return 1
-  }
+  fi
+  set -e
 
   cp -f "$vm_log" "$out_log"
   cp -f "$vm_sif" "$out_sif"
@@ -355,6 +434,7 @@ fi
 
 : >"$SUMMARY"
 echo "Apptainer smoke run" | tee -a "$SUMMARY"
+echo "mode: $SMOKE_RUN_MODE" | tee -a "$SUMMARY"
 echo "logs: $LOG_DIR" | tee -a "$SUMMARY"
 echo "images: $IMG_DIR" | tee -a "$SUMMARY"
 
@@ -364,7 +444,7 @@ if [ "$JOBS" -le 1 ] 2>/dev/null; then
     build_and_smoke_one "$d" || status=1
   done < "$LIST_FILE"
 else
-  xargs -P "$JOBS" -I{} sh "$0" --worker {} < "$LIST_FILE" || status=1
+  xargs -P "$JOBS" -I{} sh "$SELF_SCRIPT" --worker {} < "$LIST_FILE" || status=1
 fi
 
 ok_count=$(grep -h '^=== .* OK$' "$LOG_DIR"/*.log 2>/dev/null | wc -l | tr -d ' ')
