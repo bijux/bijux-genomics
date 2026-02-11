@@ -160,7 +160,7 @@ fix-snapshots: ## Rebuild and accept workspace snapshots with the CI insta workf
 	@./bin/isolate cargo insta accept --workspace
 
 generate-configs:
-	@./bin/isolate cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
+	@./scripts/generate-configs.sh
 
 check-generated-configs:
 	./scripts/check-generated-configs.sh
