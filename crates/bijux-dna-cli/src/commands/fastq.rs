@@ -106,16 +106,44 @@ pub(crate) fn handle_meta_commands(
                 }
                 Ok(true)
             }
-            PipelinesCommand::Explain { id } => {
+            PipelinesCommand::Explain { id, explain_io } => {
                 let profile = bijux_dna_api::v1::api::plan::select_pipelines(None, true)
                     .into_iter()
                     .find(|profile| profile.id.as_str() == id)
                     .ok_or_else(|| anyhow!("unknown pipeline profile: {id}"))?;
+                let io_graph = if *explain_io {
+                    let registry = load_manifests(registry_path)?;
+                    let nodes = profile
+                        .capabilities
+                        .required_stages
+                        .iter()
+                        .filter_map(|stage_id| {
+                            let key = bijux_dna_api::v1::api::run::StageId::new(
+                                (*stage_id).to_string(),
+                            );
+                            registry.stages().get(&key).map(|stage| {
+                                serde_json::json!({
+                                    "stage_id": stage_id,
+                                    "semantic_kind": stage.semantic_kind,
+                                    "input_kind": stage.input_kind,
+                                    "output_kind": stage.output_kind,
+                                    "produced_artifacts": stage.produced_artifacts,
+                                    "consumes": stage.inputs.iter().map(|p| p.name.clone()).collect::<Vec<_>>(),
+                                    "produces": stage.outputs.iter().map(|p| p.name.clone()).collect::<Vec<_>>(),
+                                })
+                            })
+                        })
+                        .collect::<Vec<_>>();
+                    serde_json::Value::Array(nodes)
+                } else {
+                    serde_json::Value::Null
+                };
                 let payload = serde_json::json!({
                     "profile": profile,
                     "defaults_ledger": profile.defaults_ledger(),
                     "promised_outputs": profile.capabilities.produces_outputs,
                     "report_sections": profile.capabilities.report_sections,
+                    "artifact_graph": io_graph,
                 });
                 render::json::print_pretty(&payload)?;
                 Ok(true)
