@@ -12,6 +12,7 @@
 pub mod banks;
 pub mod bench_repository;
 mod domain_adapter;
+pub mod id_catalog;
 pub mod invariants;
 pub mod metrics;
 pub mod params;
@@ -40,6 +41,9 @@ pub use banks::{
     EffectivePolyxSet, PolyxBankV1, PolyxEntryV1, PolyxPresetV1, PolyxPresetsV1,
 };
 pub use bench_repository::BenchResultsRepository;
+pub use id_catalog::{
+    FastqInvariantsPreset, FASTQ_METRICS_CATALOG, FASTQ_PARAMS_CATALOG, FASTQ_STAGE_ID_CATALOG,
+};
 pub use invariants::{
     evaluate_invariants, fastq_invariant_specs, thresholds_from_env, InvariantEvaluation,
     InvariantThresholds,
