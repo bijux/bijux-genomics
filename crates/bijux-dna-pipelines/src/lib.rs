@@ -194,8 +194,7 @@ impl<'de> Deserialize<'de> for DefaultParams {
         if let Ok(parsed) = serde_json::from_value::<ValidateEffectiveParams>(value.clone()) {
             return Ok(DefaultParams::FastqValidate(parsed));
         }
-        if let Ok(parsed) = serde_json::from_value::<DetectAdaptersEffectiveParams>(value.clone())
-        {
+        if let Ok(parsed) = serde_json::from_value::<DetectAdaptersEffectiveParams>(value.clone()) {
             return Ok(DefaultParams::FastqDetectAdapters(parsed));
         }
         if let Ok(parsed) = serde_json::from_value::<TrimEffectiveParams>(value.clone()) {
