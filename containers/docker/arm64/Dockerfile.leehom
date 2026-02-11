@@ -18,7 +18,7 @@ LABEL org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c422
 ARG TOOL_VERSION
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update -qq && apt-get install -y --no-install-recommends git build-essential cmake zlib1g-dev ca-certificates && rm -rf /var/lib/apt/lists/*
-RUN git clone --depth 1 https://github.com/grenaud/leeHom.git /opt/leeHom && cd /opt/leeHom && git checkout bbddce1542cea0e73e3814df86268445f707b0d2 && make -j"$(nproc)"
+RUN git clone https://github.com/grenaud/leeHom.git /opt/leeHom && cd /opt/leeHom && git checkout bbddce1542cea0e73e3814df86268445f707b0d2 && make -j"$(nproc)"
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update -qq && apt-get install -y --no-install-recommends zlib1g ca-certificates && rm -rf /var/lib/apt/lists/*
