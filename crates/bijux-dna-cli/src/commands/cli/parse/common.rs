@@ -304,6 +304,8 @@ pub enum PipelinesCommand {
     #[command(about = "Explain a pipeline profile.")]
     Explain {
         id: String,
+        #[arg(long, default_value_t = false)]
+        explain_io: bool,
     },
     #[command(about = "Explain profile defaults and invariants status.")]
     #[command(name = "explain-profile")]

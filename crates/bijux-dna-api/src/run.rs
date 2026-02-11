@@ -91,8 +91,68 @@ pub fn plan_only(request: PlanRunRequest, registry: &ToolRegistry) -> Result<Pla
 /// # Errors
 /// Returns an error if execution fails.
 pub fn execute_run(request: &ExecuteRunRequest) -> Result<ExecuteRunResult> {
+    let manifest_hash = bijux_dna_core::contract::canonical::to_canonical_json_bytes(
+        &bijux_dna_stage_contract::StagePlanJsonV1::from_plan(&request.plan),
+    )
+    .map(|bytes| {
+        use sha2::Digest;
+        let mut hasher = sha2::Sha256::new();
+        hasher.update(bytes);
+        format!("{:x}", hasher.finalize())
+    })?;
+    let params_hash = bijux_dna_core::prelude::hashing::params_hash(&request.plan.params)?;
+    let idempotent = request
+        .plan
+        .reason
+        .details
+        .get("idempotent")
+        .and_then(serde_json::Value::as_bool)
+        .unwrap_or(true);
+    let resume_meta_path = request
+        .plan
+        .out_dir
+        .join("run_artifacts")
+        .join("stage_resume.json");
+    if idempotent {
+        let outputs_exist = request.plan.io.outputs.iter().all(|artifact| {
+            let path = request.plan.out_dir.join(&artifact.path);
+            path.exists()
+        });
+        if outputs_exist && resume_meta_path.exists() {
+            let meta_raw = std::fs::read_to_string(&resume_meta_path)
+                .with_context(|| format!("read {}", resume_meta_path.display()))?;
+            let meta: serde_json::Value = serde_json::from_str(&meta_raw)
+                .with_context(|| format!("parse {}", resume_meta_path.display()))?;
+            let same_manifest = meta
+                .get("manifest_hash")
+                .and_then(serde_json::Value::as_str)
+                == Some(manifest_hash.as_str());
+            if same_manifest {
+                return Ok(ExecuteRunResult);
+            }
+        }
+    }
     let step = bijux_dna_stage_contract::execution_step_from_stage_plan(&request.plan);
     bijux_dna_runner::execute::execute_step(&step, request.runner, None)?;
+    let run_artifacts_dir = request.plan.out_dir.join("run_artifacts");
+    bijux_dna_infra::ensure_dir(&run_artifacts_dir)?;
+    let params_hash_path = run_artifacts_dir.join("stage_params_hash.json");
+    let params_hash_payload = serde_json::json!({
+        "schema_version": "bijux.stage_params_hash.v1",
+        "stage_id": request.plan.stage_id,
+        "params_hash": params_hash,
+        "manifest_hash": manifest_hash,
+        "stage_semver": request.plan.stage_version.0,
+    });
+    bijux_dna_infra::atomic_write_json(&params_hash_path, &params_hash_payload)?;
+    let resume_payload = serde_json::json!({
+        "schema_version": "bijux.stage_resume.v1",
+        "manifest_hash": manifest_hash,
+        "params_hash": params_hash,
+        "stage_semver": request.plan.stage_version.0,
+        "idempotent": idempotent,
+    });
+    bijux_dna_infra::atomic_write_json(&resume_meta_path, &resume_payload)?;
     Ok(ExecuteRunResult)
 }
 
