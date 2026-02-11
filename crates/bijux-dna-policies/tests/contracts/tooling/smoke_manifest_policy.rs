@@ -6,8 +6,8 @@ mod support;
 fn policy__contracts__smoke_manifest_policy__container_smoke_manifests_include_image_identity() {
     let root = support::workspace_root();
     let scripts = [
-        root.join("scripts/smoke-containers-docker-arm64.sh"),
-        root.join("scripts/smoke-containers-apptainer.sh"),
+        root.join("scripts/containers/smoke-docker-arm64.sh"),
+        root.join("scripts/containers/smoke-apptainer.sh"),
     ];
     let required_tokens = [
         "\"runtime\"",

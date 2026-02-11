@@ -4,7 +4,7 @@ export TZ=UTC
 export LC_ALL=C
 
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-ROOT_DIR=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
+ROOT_DIR=$(CDPATH= cd -- "$SCRIPT_DIR/../.." && pwd)
 
 DOCKER_BIN="${DOCKER_BIN:-docker}"
 DOCKER_DIR="${DOCKER_DIR:-$ROOT_DIR/containers/docker/arm64}"

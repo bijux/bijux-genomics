@@ -57,7 +57,7 @@ if ! [[ "$JOBS" =~ ^[0-9]+$ ]] || [[ "$JOBS" -lt 1 ]]; then
 fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-WORKSPACE_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+WORKSPACE_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 VM_OUT_ABS="$(cd "$VM_OUT_DIR" && pwd)"
 if [[ "$VM_OUT_ABS" == "$WORKSPACE_ROOT"* ]]; then
   echo "vm output dir must be outside workspace: $VM_OUT_ABS" >&2

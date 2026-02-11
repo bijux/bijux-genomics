@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-ROOT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+ROOT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)
 DOCKER_ROOT="$ROOT_DIR/containers/docker"
 APPTAINER_ROOT="$ROOT_DIR/containers/apptainer"
 
