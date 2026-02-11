@@ -14,6 +14,29 @@ pub const STAGE_STATS: &str = "vcf.stats";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+pub enum VcfInvariantsPreset {
+    Minimal,
+}
+
+impl VcfInvariantsPreset {
+    #[must_use]
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Minimal => "vcf_minimal",
+        }
+    }
+}
+
+pub const VCF_STAGE_ID_CATALOG: &[&str] = &[STAGE_CALL, STAGE_FILTER, STAGE_STATS];
+pub const VCF_PARAMS_CATALOG: &[&str] = &[
+    "bijux.vcf.call.params",
+    "bijux.vcf.filter.params",
+    "bijux.vcf.stats.params",
+];
+pub const VCF_METRICS_CATALOG: &[&str] = &["bijux.vcf.stats.v1"];
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum VcfStage {
     Call,
     Filter,
