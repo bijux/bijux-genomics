@@ -89,7 +89,7 @@ fn run_cli_capture(workspace: &CliWorkspace, args: &[&str]) -> Result<String, St
     let result = run_with_args(args, workspace.path());
     let mut output = String::new();
     buffer.read_to_string(&mut output).expect("read stdout");
-    result.map(|_| output).map_err(|err| err.to_string())
+    result.map(|()| output).map_err(|err| err.to_string())
 }
 
 fn scrub_paths(value: &mut Value, root: &str) {
