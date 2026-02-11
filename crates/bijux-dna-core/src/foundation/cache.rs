@@ -9,6 +9,28 @@ pub struct CacheKey {
     pub env_digest: String,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct ReproducibilityIdentityV1 {
+    pub image_digest: String,
+    pub tool_version: String,
+    pub params_hash: String,
+    pub input_hash: String,
+    pub bank_hashes: serde_json::Value,
+}
+
+impl ReproducibilityIdentityV1 {
+    #[must_use]
+    pub fn as_string(&self) -> String {
+        let bank_hashes =
+            serde_json::to_string(&self.bank_hashes).unwrap_or_else(|_| "{}".to_string());
+        format!(
+            "{}|{}|{}|{}|{}",
+            self.image_digest, self.tool_version, self.params_hash, self.input_hash, bank_hashes
+        )
+    }
+}
+
 impl CacheKey {
     #[must_use]
     pub fn new(
