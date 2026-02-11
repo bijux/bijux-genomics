@@ -74,6 +74,9 @@ pub fn build_download_tasks(records: &[EnaRecord], config: &DownloadConfig) -> V
     tasks
 }
 
+/// # Errors
+/// Returns an error if configuration is invalid, the thread pool cannot be
+/// created, or HTTP client initialization fails.
 pub fn download_tasks(tasks: &[DownloadTask], config: &DownloadConfig) -> Result<DownloadReport> {
     if config.dry_run {
         return Ok(DownloadReport {

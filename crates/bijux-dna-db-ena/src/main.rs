@@ -60,6 +60,7 @@ enum ResultKindArg {
 }
 
 #[derive(Debug, Clone, Copy, ValueEnum)]
+#[allow(clippy::enum_variant_names)]
 enum SourceArg {
     FastqFtp,
     SubmittedFtp,

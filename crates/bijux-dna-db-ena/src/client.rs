@@ -19,11 +19,15 @@ pub struct EnaClient {
 }
 
 impl EnaClient {
+    /// # Errors
+    /// Returns an error if the HTTP client cannot be constructed.
     pub fn new(user_agent: &str) -> Result<Self, EnaClientError> {
         let http = Client::builder().user_agent(user_agent).build()?;
         Ok(Self { http })
     }
 
+    /// # Errors
+    /// Returns an error if any ENA request fails or response decoding fails.
     pub fn fetch_records(&self, query: &EnaQuery) -> Result<Vec<EnaRecord>, EnaClientError> {
         let accessions = query.normalized_accessions();
         let mut out = Vec::new();
