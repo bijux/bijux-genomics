@@ -42,9 +42,11 @@ pub fn run_with_args(args: &[&str], cwd: &Path) -> Result<()> {
     } else {
         args
     };
-    let args_with_bin = std::iter::once("bijux-dna")
-        .chain(normalized_args.iter().copied())
-        .collect::<Vec<_>>();
+    let mut args_with_bin = vec!["bijux"];
+    if !matches!(normalized_args.first(), Some(&"dna")) {
+        args_with_bin.push("dna");
+    }
+    args_with_bin.extend(normalized_args.iter().copied());
     let cli = cli::Cli::parse_from(args_with_bin);
     run_with_cli(&cli, cwd)
 }
@@ -65,58 +67,31 @@ pub fn run_with_cli(cli: &cli::Cli, cwd: &Path) -> Result<()> {
         };
         std::env::set_var("BIJUX_TELEMETRY_JSONL", telemetry_path);
     }
+    if cli.json {
+        std::env::set_var("BIJUX_OUTPUT_JSON", "1");
+    }
     let domain_dir = cwd.join("domain");
     let registry_path = cwd.join("configs").join("tool_registry.toml");
 
-    if let cli::RootCommand::Environment { command } = &cli.command {
-        return handle_environment_root(command, cwd);
-    }
-    if let cli::RootCommand::Registry { command } = &cli.command {
-        return handle_registry_root(command, cwd);
-    }
-    if let cli::RootCommand::Ena { command } = &cli.command {
-        return handle_ena_root(command, cwd);
-    }
-    if let cli::RootCommand::Corpus { command } = &cli.command {
-        return handle_corpus_root(command, cwd);
-    }
-    if let cli::RootCommand::Example { command } = &cli.command {
-        return handle_example_root(command, cwd);
-    }
-    if let cli::RootCommand::Plan(args) = &cli.command {
-        return example::print_example_plan(cwd, &args.id);
-    }
-    if let cli::RootCommand::Tool { command } = &cli.command {
-        return handle_tool_root(command, cwd);
-    }
-    if let cli::RootCommand::Domain { command } = &cli.command {
-        return handle_domain_root(command, cwd);
-    }
-    if let cli::RootCommand::Lab { command } = &cli.command {
-        return handle_lab_root(command, cwd);
-    }
-    if let cli::RootCommand::Config { command } = &cli.command {
-        return handle_config_root(command, cwd);
-    }
-    if let cli::RootCommand::Status(args) = &cli.command {
-        return handle_status_root(args, cwd);
-    }
     let dna_command = match &cli.command {
         cli::RootCommand::Dna { command } => command,
-        cli::RootCommand::Environment { .. }
-        | cli::RootCommand::Registry { .. }
-        | cli::RootCommand::Ena { .. }
-        | cli::RootCommand::Corpus { .. }
-        | cli::RootCommand::Example { .. }
-        | cli::RootCommand::Plan(_)
-        | cli::RootCommand::Tool { .. }
-        | cli::RootCommand::Domain { .. }
-        | cli::RootCommand::Lab { .. }
-        | cli::RootCommand::Config { .. }
-        | cli::RootCommand::Status(_) => {
-            unreachable!("handled above")
-        }
     };
+    match dna_command {
+        cli::DnaCommand::Environment { command } | cli::DnaCommand::Env { command } => {
+            return handle_environment_root(command, cwd);
+        }
+        cli::DnaCommand::Registry { command } => return handle_registry_root(command, cwd),
+        cli::DnaCommand::Ena { command } => return handle_ena_root(command, cwd),
+        cli::DnaCommand::Corpus { command } => return handle_corpus_root(command, cwd),
+        cli::DnaCommand::Example { command } => return handle_example_root(command, cwd),
+        cli::DnaCommand::Plan(args) => return example::print_example_plan(cwd, &args.id),
+        cli::DnaCommand::Tool { command } => return handle_tool_root(command, cwd),
+        cli::DnaCommand::Domain { command } => return handle_domain_root(command, cwd),
+        cli::DnaCommand::Lab { command } => return handle_lab_root(command, cwd),
+        cli::DnaCommand::Config { command } => return handle_config_root(command, cwd),
+        cli::DnaCommand::Status(args) => return handle_status_root(args, cwd),
+        _ => {}
+    }
 
     if fastq::handle_meta_commands(cli, dna_command, &domain_dir, &registry_path)? {
         return Ok(());
@@ -149,10 +124,8 @@ pub fn run_with_cli(cli: &cli::Cli, cwd: &Path) -> Result<()> {
         ))
     })?;
 
-    match dna_command {
-        cli::DnaCommand::Example { command } => return handle_example_root(command, cwd),
-        cli::DnaCommand::Dev { command } => return handle_dev_dna(command, cwd),
-        _ => {}
+    if let cli::DnaCommand::Dev { command } = dna_command {
+        return handle_dev_dna(command, cwd);
     }
 
     if bench::handle_fastq_bench(cli, dna_command, &registry)? {

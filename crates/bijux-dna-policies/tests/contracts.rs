@@ -44,6 +44,8 @@ mod mod_contracts_tooling_boundary_docs_policy_rs;
 mod mod_contracts_tooling_ci_no_stage_tool_defs_policy_rs;
 #[path = "contracts/tooling/ci_tools_policy.rs"]
 mod mod_contracts_tooling_ci_tools_policy_rs;
+#[path = "contracts/tooling/cli_app_prefix_policy.rs"]
+mod mod_contracts_tooling_cli_app_prefix_policy_rs;
 #[path = "contracts/tooling/cli_sql_policy.rs"]
 mod mod_contracts_tooling_cli_sql_policy_rs;
 #[path = "contracts/tooling/command_spawn_policy.rs"]

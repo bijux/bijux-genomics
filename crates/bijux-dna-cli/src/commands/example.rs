@@ -1,3 +1,4 @@
+use std::fmt::Write as _;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -249,7 +250,7 @@ pub fn chain_examples(cwd: &Path, from: &str, arrow: &str, to: &str) -> Result<(
     });
     let chain_path = to_root.join("golden").join("chain.json");
     bijux_dna_infra::atomic_write_json(&chain_path, &chain)?;
-    println!("chain={} -> {}", from, to);
+    println!("chain={from} -> {to}");
     println!("chain_manifest={}", chain_path.display());
     Ok(())
 }
@@ -276,12 +277,11 @@ pub fn scaffold_examples_series(cwd: &Path, series: &str, count: usize) -> Resul
     }
 
     let template_root = cwd.join("examples").join("_template");
-    for idx in 0..count {
+    for (idx, stage_id) in catalog.iter().enumerate().take(count) {
         let stage_catalog_index = idx + 1;
         let example_id = format!("example-{}", base + stage_catalog_index);
-        let stage_id = catalog[idx];
         let stage_short = stage_id.split('.').nth(1).unwrap_or("stage");
-        let suite_id = format!("{domain}_stage{:02}_{}", stage_catalog_index, stage_short);
+        let suite_id = format!("{domain}_stage{stage_catalog_index:02}_{stage_short}");
         scaffold_one_example(
             cwd,
             &template_root,
@@ -295,6 +295,7 @@ pub fn scaffold_examples_series(cwd: &Path, series: &str, count: usize) -> Resul
     Ok(())
 }
 
+#[allow(clippy::too_many_lines)]
 fn scaffold_one_example(
     cwd: &Path,
     template_root: &Path,
@@ -306,9 +307,9 @@ fn scaffold_one_example(
 ) -> Result<()> {
     let root = cwd.join("examples").join(example_id);
     bijux_dna_infra::ensure_dir(&root)?;
-    bijux_dna_infra::ensure_dir(&root.join("golden"))?;
-    bijux_dna_infra::ensure_dir(&root.join("helpers"))?;
-    bijux_dna_infra::ensure_dir(&root.join("contracts"))?;
+    bijux_dna_infra::ensure_dir(root.join("golden"))?;
+    bijux_dna_infra::ensure_dir(root.join("helpers"))?;
+    bijux_dna_infra::ensure_dir(root.join("contracts"))?;
 
     let primary_tool = primary_tool_for_stage(cwd, stage_id)
         .unwrap_or_else(|| if domain == "bam" { "bwa" } else { "fastp" }.to_string());
@@ -344,7 +345,7 @@ fn scaffold_one_example(
         extra.push_str("required_banks = [\"reference\"]\n");
         extra.push_str("handoff_mode = \"bijux_produced\"\n");
         let upstream = format!("example-{}", 100 + stage_catalog_index);
-        extra.push_str(&format!("upstream_example = \"{}\"\n", upstream));
+        let _ = writeln!(&mut extra, "upstream_example = \"{upstream}\"");
     }
 
     let example_toml = format!(
@@ -425,6 +426,7 @@ fn scaffold_one_example(
     Ok(())
 }
 
+#[allow(clippy::too_many_lines)]
 fn validate_example_spec(cwd: &Path, spec: &ExampleSpec, root: &Path) -> Result<()> {
     if spec.schema_version != "bijux.example.v1" {
         return Err(anyhow!("unsupported example schema `{}`", spec.schema_version));
@@ -599,9 +601,9 @@ fn build_plan(cwd: &Path, spec: &ExampleSpec, hpc_mode: bool, redacted: bool) ->
             stage_1: spec.stage_1.clone(),
             benchmark_suite: spec.benchmark_suite.clone(),
             paths: ExamplePaths {
-                snapshot: format!("<DATA_ROOT>/{}/ENA_METADATA.snapshot.json", corpus_rel),
-                raw_out: format!("<DATA_ROOT>/{}/raw", corpus_rel),
-                corpus_root: format!("<DATA_ROOT>/{}", corpus_rel),
+                snapshot: format!("<DATA_ROOT>/{corpus_rel}/ENA_METADATA.snapshot.json"),
+                raw_out: format!("<DATA_ROOT>/{corpus_rel}/raw"),
+                corpus_root: format!("<DATA_ROOT>/{corpus_rel}"),
                 results_root: "<RESULTS_ROOT>".to_string(),
             },
         });

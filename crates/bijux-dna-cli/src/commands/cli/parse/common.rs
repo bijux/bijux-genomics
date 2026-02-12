@@ -16,6 +16,8 @@ pub struct Cli {
     #[arg(long, verbatim_doc_comment)]
     /// Dump effective config JSON (alias for --print-effective-config).
     pub dump_effective_config: bool,
+    #[arg(long, global = true, default_value_t = false)]
+    pub json: bool,
     #[command(subcommand)]
     pub command: RootCommand,
 }
@@ -27,6 +29,25 @@ pub enum RootCommand {
         #[command(subcommand)]
         command: DnaCommand,
     },
+}
+
+#[derive(Debug, Args)]
+pub struct StatusArgs {
+    #[arg(long, default_value = "pre-hpc")]
+    pub scope: String,
+    #[arg(long, value_name = "PATH")]
+    pub write_checklist: Option<PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub placeholders: bool,
+    #[arg(long, default_value_t = false)]
+    pub contracts: bool,
+    #[arg(long, default_value_t = false)]
+    pub hpc: bool,
+}
+
+#[derive(Debug, Subcommand)]
+#[allow(clippy::large_enum_variant)]
+pub enum DnaCommand {
     #[command(alias = "env")]
     Environment {
         #[command(subcommand)]
@@ -66,29 +87,6 @@ pub enum RootCommand {
         command: ConfigCommand,
     },
     Status(StatusArgs),
-}
-
-#[derive(Debug, Args)]
-pub struct StatusArgs {
-    #[arg(long, default_value = "pre-hpc")]
-    pub scope: String,
-    #[arg(long, value_name = "PATH")]
-    pub write_checklist: Option<PathBuf>,
-    #[arg(long, default_value_t = false)]
-    pub placeholders: bool,
-    #[arg(long, default_value_t = false)]
-    pub contracts: bool,
-    #[arg(long, default_value_t = false)]
-    pub hpc: bool,
-}
-
-#[derive(Debug, Subcommand)]
-#[allow(clippy::large_enum_variant)]
-pub enum DnaCommand {
-    Example {
-        #[command(subcommand)]
-        command: ExampleCommand,
-    },
     Dev {
         #[command(subcommand)]
         command: DevCommand,
