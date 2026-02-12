@@ -5,14 +5,11 @@ environment
 registry
 ena
 corpus
-example
-plan
 tool
 domain
 lab
 config
 status
-dev
 fastq
 bam
 vcf
