@@ -14,8 +14,12 @@ mod mod_contracts_policy_snapshot_rs;
 mod mod_contracts_snapshots_snapshot_hygiene_rs;
 #[path = "contracts/tooling/apptainer_cpu_flag_policy.rs"]
 mod mod_contracts_tooling_apptainer_cpu_flag_policy_rs;
+#[path = "contracts/tooling/apptainer_def_location_policy.rs"]
+mod mod_contracts_tooling_apptainer_def_location_policy_rs;
 #[path = "contracts/tooling/apptainer_exec_repro_policy.rs"]
 mod mod_contracts_tooling_apptainer_exec_repro_policy_rs;
+#[path = "contracts/tooling/apptainer_header_policy.rs"]
+mod mod_contracts_tooling_apptainer_header_policy_rs;
 #[path = "contracts/tooling/apptainer_purge_policy.rs"]
 mod mod_contracts_tooling_apptainer_purge_policy_rs;
 #[path = "contracts/tooling/apptainer_runtime_entrypoint_policy.rs"]
