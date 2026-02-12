@@ -1,0 +1,11 @@
+{
+  "schema_version": "bijux.example.contract.v1",
+  "example_id": "example-201",
+  "stage_id": "bam.align",
+  "postconditions": [
+    "bam is produced",
+    "bam index exists",
+    "samtools quickcheck passes",
+    "flagstat and idxstats artifacts exist"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "schema_version": "bijux.example.explain.v1",
+  "id": "example-201",
+  "stage_1": "bam.align",
+  "suite": "bam_stage01_align",
+  "determinism": {
+    "plan_hash_policy": "stable-json-sorted-keys"
+  },
+  "bam_prerequisites": [
+    "reference bank available",
+    "mapping preset pinned",
+    "bam + bai + flagstat + idxstats artifacts required"
+  ]
+}
