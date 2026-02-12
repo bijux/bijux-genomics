@@ -31,6 +31,6 @@ expected_artifacts = ["vcf", "vcf_metrics"]
 metrics_schema = "bijux.vcf.stats.v1"
 comparability_notes = "Comparable only within same stage contract and reference build."
 dockerfile = "containers/docker/arm64/Dockerfile.bcftools"
-apptainer_def = "containers/apptainer/bcftools.def"
+apptainer_def = "containers/apptainer/non-bijux/bcftools.def"
 require_labels = true
 

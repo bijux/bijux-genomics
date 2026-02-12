@@ -1,0 +1,68 @@
+# Container definition license: GPL-3.0.
+# This container definition is part of bijux-dna.
+# The bijux-dna software source code is licensed under Apache-2.0.
+# Copyright (C) 2026 Bijan Mousavi
+
+Bootstrap: docker
+From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+
+%labels
+    MAINTAINER Bijan Mousavi <mousavi.bijan@gmail.com>
+    VERSION Qualimap-v2.3
+    org.opencontainers.image.source https://bitbucket.org/kokonech/qualimap
+
+    org.opencontainers.image.source https://github.com/bijux/bijux-dna
+    org.opencontainers.image.revision unknown
+    org.opencontainers.image.created unknown
+    org.opencontainers.image.licenses GPL-3.0
+    org.opencontainers.image.version unknown
+    org.opencontainers.image.tool qualimap
+%environment
+    DEBIAN_FRONTEND=noninteractive
+
+%post
+    export DEBIAN_FRONTEND=noninteractive
+
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        curl \
+        ca-certificates \
+        unzip \
+        openjdk-11-jre-headless && \
+
+    curl -L --retry 5 --retry-delay 3 --connect-timeout 20 --max-time 300 \
+        -o /tmp/qualimap.zip \
+        https://bitbucket.org/kokonech/qualimap/downloads/qualimap_v2.3.zip && \
+    unzip -q /tmp/qualimap.zip -d /opt && \
+    mv /opt/qualimap_v2.3 /opt/qualimap && \
+    rm /tmp/qualimap.zip && \
+
+    # Create a wrapper script with version override and help handling.
+    cat > /usr/local/bin/qualimap <<'EOF'
+#!/bin/sh
+if [ "$1" = "--version" ]; then
+    echo "2.3"
+    exit 0
+elif [ "$1" = "--help" ]; then
+    java -jar /opt/qualimap/qualimap.jar --help
+    exit 0
+else
+    java -jar /opt/qualimap/qualimap.jar "$@"
+fi
+EOF
+    chmod +x /usr/local/bin/qualimap && \
+
+    rm -rf /var/lib/apt/lists/*
+
+%runscript
+    if [ $# -eq 0 ]; then
+        exec /usr/local/bin/qualimap --help
+    else
+        exec /usr/local/bin/qualimap "$@"
+    fi
+
+%help
+    This Apptainer image provides Qualimap version 2.3.
+    The default command is 'qualimap' (with wrapper for consistent --version output).
+    Run without arguments to display help.
+    Note: Qualimap requires aligned BAM files and optional GFF/BED for specific analyses.

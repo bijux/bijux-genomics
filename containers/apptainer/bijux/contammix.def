@@ -1,0 +1,42 @@
+# Container definition license: GPL-3.0.
+# This container definition is part of bijux-dna.
+# The bijux-dna software source code is licensed under Apache-2.0.
+# Copyright (C) 2026 Bijan Mousavi
+
+Bootstrap: docker
+From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+
+%labels
+    org.opencontainers.image.source https://github.com/bijux/bijux-dna
+    org.opencontainers.image.revision unknown
+    org.opencontainers.image.created unknown
+    org.opencontainers.image.licenses GPL-3.0
+    org.opencontainers.image.version 1.0.11
+    org.opencontainers.image.tool contammix
+%environment
+    DEBIAN_FRONTEND=noninteractive
+
+%post
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update -qq && apt-get install -y --no-install-recommends r-base ca-certificates && rm -rf /var/lib/apt/lists/*
+    R -q -e 'install.packages("BiocManager", repos="https://cran.r-project.org"); BiocManager::install("contamMix", ask=FALSE, update=FALSE)'
+    cat > /usr/local/bin/contammix <<'SH'
+#!/bin/sh
+set -eu
+if [ "${1:-}" = "--version" ]; then
+  R -q -e 'cat(as.character(utils::packageVersion("contamMix")),"\n")'
+  exit 0
+fi
+if [ "${1:-}" = "--help" ] || [ $# -eq 0 ]; then
+  R -q -e 'cat("contamMix installed. Use R scripts for workflow integration.\n")'
+  exit 0
+fi
+exec R "$@"
+SH
+    chmod +x /usr/local/bin/contammix
+
+%runscript
+    exec /usr/local/bin/contammix "$@"
+
+%help
+    Apptainer image for contamMix.

@@ -1,0 +1,116 @@
+# Container definition license: GPL-3.0.
+# This container definition is part of bijux-dna.
+# The bijux-dna software source code is licensed under Apache-2.0.
+# Copyright (C) 2026 Bijan Mousavi
+
+Bootstrap: docker
+From: python:3.10-slim@sha256:e508a34e5491225a76fbb9e0f43ebde1f691c6a689d096d7510cf7fb17d4ba6f
+
+%labels
+    MAINTAINER Bijan Mousavi <mousavi.bijan@gmail.com>
+    VERSION umi_tools-1.1.6
+    org.opencontainers.image.source https://github.com/CGATOxford/UMI-tools
+    org.opencontainers.image.title UMI-tools
+    org.opencontainers.image.licenses Apache-2.0
+
+    org.opencontainers.image.source https://github.com/bijux/bijux-dna
+    org.opencontainers.image.revision unknown
+    org.opencontainers.image.created unknown
+    org.opencontainers.image.licenses GPL-3.0
+    org.opencontainers.image.version unknown
+    org.opencontainers.image.tool umi_tools
+%environment
+    DEBIAN_FRONTEND=noninteractive
+    TZ=UTC
+    VERSION_UMI_TOOLS=1.1.6
+    PATH=/opt/venv/bin:/usr/local/bin:/usr/bin:/bin
+
+%post
+    set -eux
+    export DEBIAN_FRONTEND=noninteractive
+
+    apt-get update -qq
+    apt-get install -y --no-install-recommends \
+        build-essential \
+        ca-certificates \
+        wget \
+        tar \
+        gzip \
+        zlib1g-dev \
+        libbz2-dev \
+        liblzma-dev
+
+    # Create a virtual environment.
+    python3 -m venv /opt/venv
+
+    # Pin pip to keep legacy knobs stable (and avoid pip 26 flag removals)
+    /opt/venv/bin/python -m pip install --no-cache-dir --upgrade \
+        "pip==23.3.2" \
+        "setuptools>=65" \
+        "wheel"
+
+    # Section: Patch sdist bootstrap for Python 3.10 compatibility.
+    # UMI-tools 1.1.6 sdist hardcodes ez_setup -> setuptools==10.0.
+    # That crashes on Python 3.10 because `symbol` is removed.
+    # Workaround: fetch sdist without pip, patch setup.py, and install locally.
+    mkdir -p /tmp/umi && cd /tmp/umi
+
+    # Use a direct sdist URL to bypass pip metadata and egg_info.
+    wget -q -O umi_tools-1.1.6.tar.gz \
+      "https://files.pythonhosted.org/packages/source/u/umi-tools/umi_tools-1.1.6.tar.gz"
+
+    tar -xzf umi_tools-1.1.6.tar.gz
+    cd umi_tools-1.1.6
+
+    # Remove ez_setup bootstrapping because it forces setuptools==10.0.
+    # Typical offenders:
+    #   from ez_setup import use_setuptools
+    #   use_setuptools("10.0")
+    #   import ez_setup
+    sed -i '/ez_setup/d' setup.py
+    sed -i '/use_setuptools/d' setup.py
+    sed -i '/setuptools-10\.0/d' setup.py
+
+    # Install from patched source.
+    /opt/venv/bin/pip install --no-cache-dir --no-build-isolation --no-use-pep517 .
+
+    # Keep the real entrypoint as umi_tools-bin.
+    install -m 0755 /opt/venv/bin/umi_tools /usr/local/bin/umi_tools-bin
+
+    # Create a wrapper for stable --version and --help behavior.
+    cat > /usr/local/bin/umi_tools <<'EOF'
+#!/usr/bin/env sh
+set -eu
+
+case "${1:-}" in
+  --version)
+    echo "${VERSION_UMI_TOOLS}"
+    exit 0
+    ;;
+  --help|-h|"")
+    exec /usr/local/bin/umi_tools-bin --help
+    ;;
+esac
+
+exec /usr/local/bin/umi_tools-bin "$@"
+EOF
+    chmod 0755 /usr/local/bin/umi_tools
+
+    # Clean up.
+    cd /
+    rm -rf /tmp/umi
+    rm -rf /var/lib/apt/lists/*
+
+%runscript
+    if [ $# -eq 0 ]; then
+        exec umi_tools --help
+    else
+        exec umi_tools "$@"
+    fi
+
+%help
+    UMI-tools v1.1.6 installed into /opt/venv (Python 3.10).
+    Upstream sdist forces ez_setup -> setuptools==10.0 (breaks on Python 3.10 due to missing 'symbol').
+    This image bypasses pip download/metadata, patches setup.py, then installs locally.
+    Wrapper: umi_tools
+    Real binary: umi_tools-bin

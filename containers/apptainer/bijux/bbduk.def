@@ -1,0 +1,48 @@
+# Container definition license: GPL-3.0.
+# This container definition is part of bijux-dna.
+# The bijux-dna software source code is licensed under Apache-2.0.
+# Copyright (C) 2026 Bijan Mousavi
+
+Bootstrap: docker
+From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+
+%labels
+    MAINTAINER Bijan Mousavi <mousavi.bijan@gmail.com>
+    VERSION BBDuk-v39.08
+
+    org.opencontainers.image.source https://github.com/bijux/bijux-dna
+    org.opencontainers.image.revision unknown
+    org.opencontainers.image.created unknown
+    org.opencontainers.image.licenses GPL-3.0
+    org.opencontainers.image.version unknown
+    org.opencontainers.image.tool bbduk
+%environment
+    DEBIAN_FRONTEND=noninteractive
+
+%post
+    export DEBIAN_FRONTEND=noninteractive
+
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        wget ca-certificates openjdk-17-jre-headless && \
+
+    wget -q https://sourceforge.net/projects/bbmap/files/BBMap_39.08.tar.gz -O /tmp/bbmap.tar.gz && \
+    tar -xzf /tmp/bbmap.tar.gz -C /opt && \
+    rm /tmp/bbmap.tar.gz && \
+
+    # Create a wrapper script.
+    printf '#!/bin/sh\nexec /opt/bbmap/bbduk.sh "$@"\n' > /usr/local/bin/bbduk && \
+    chmod +x /usr/local/bin/bbduk && \
+
+    rm -rf /var/lib/apt/lists/*
+
+%runscript
+    if [ $# -eq 0 ]; then
+        exec /usr/local/bin/bbduk --help
+    else
+        exec /usr/local/bin/bbduk "$@"
+    fi
+
+%help
+    This Apptainer image provides BBDuk (part of BBMap version 39.08).
+    Run with arguments to execute bbduk.sh, or without arguments to display help.

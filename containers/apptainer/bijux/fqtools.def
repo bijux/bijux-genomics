@@ -1,0 +1,64 @@
+# Container definition license: GPL-3.0.
+# This container definition is part of bijux-dna.
+# The bijux-dna software source code is licensed under Apache-2.0.
+# Copyright (C) 2026 Bijan Mousavi
+
+Bootstrap: docker
+From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+
+%labels
+    MAINTAINER Bijan Mousavi <mousavi.bijan@gmail.com>
+    VERSION fqtools-v2.3
+    org.opencontainers.image.source https://github.com/alastair-droop/fqtools
+
+    org.opencontainers.image.source https://github.com/bijux/bijux-dna
+    org.opencontainers.image.revision unknown
+    org.opencontainers.image.created unknown
+    org.opencontainers.image.licenses GPL-3.0
+    org.opencontainers.image.version unknown
+    org.opencontainers.image.tool fqtools
+%environment
+    DEBIAN_FRONTEND=noninteractive
+
+%post
+    export DEBIAN_FRONTEND=noninteractive
+
+    apt-get update -qq && \
+    apt-get install -y --no-install-recommends \
+        git build-essential zlib1g-dev libhts-dev ca-certificates && \
+
+    git clone --branch v2.3 --depth 1 \
+        https://github.com/alastair-droop/fqtools /opt/fqtools && \
+    cd /opt/fqtools && git checkout 63c6fa707fabc7569c2f256b8bcfc6ebb760f72a && cd - >/dev/null && \
+
+    cd /opt/fqtools && \
+    make -j$(nproc) HTSDIR=/usr CFLAGS="-O2 -g -Wall -Wextra -Wno-unused-parameter -fcommon" && \
+    cp bin/fqtools /usr/local/bin/fqtools-bin && \
+
+    # Create a wrapper script with version reporting.
+    cat > /usr/local/bin/fqtools <<'EOF'
+#!/bin/sh
+case "$1" in
+  --version|-v)
+    echo "2.3"
+    exit 0;;
+  *)
+    exec /usr/local/bin/fqtools-bin "$@";;
+esac
+EOF
+    chmod +x /usr/local/bin/fqtools && \
+
+    # Clean up source and build dependencies.
+    rm -rf /opt/fqtools && \
+    rm -rf /var/lib/apt/lists/*
+
+%runscript
+    if [ $# -eq 0 ]; then
+        exec /usr/local/bin/fqtools --help
+    else
+        exec /usr/local/bin/fqtools "$@"
+    fi
+
+%help
+    This Apptainer image provides fqtools version 2.3, compiled from source.
+    The default command is 'fqtools'; run without arguments to display help.

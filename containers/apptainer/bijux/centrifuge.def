@@ -1,0 +1,89 @@
+# Container definition license: GPL-3.0.
+# This container definition is part of bijux-dna.
+# The bijux-dna software source code is licensed under Apache-2.0.
+# Copyright (C) 2026 Bijan Mousavi
+
+Bootstrap: docker
+From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+
+%labels
+    MAINTAINER Bijan Mousavi <mousavi.bijan@gmail.com>
+    VERSION Centrifuge-v1.0.4-beta
+    org.opencontainers.image.source https://github.com/DaehwanKimLab/centrifuge
+
+    org.opencontainers.image.source https://github.com/bijux/bijux-dna
+    org.opencontainers.image.revision unknown
+    org.opencontainers.image.created unknown
+    org.opencontainers.image.licenses GPL-3.0
+    org.opencontainers.image.version unknown
+    org.opencontainers.image.tool centrifuge
+%environment
+    DEBIAN_FRONTEND=noninteractive
+
+%post
+    export DEBIAN_FRONTEND=noninteractive
+
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        wget build-essential ca-certificates \
+        zlib1g-dev libbz2-dev liblzma-dev && \
+
+    wget -qO /tmp/centrifuge.tar.gz \
+        https://github.com/DaehwanKimLab/centrifuge/archive/v1.0.4-beta.tar.gz && \
+    tar -xf /tmp/centrifuge.tar.gz -C /opt && \
+    cd /opt/centrifuge-1.0.4-beta && \
+
+    # Fix typographic (curly) quotes in source files; required for compilation with modern g++.
+    find . -type f \( -name "*.cpp" -o -name "*.h" \) -exec sed -i 's/[“”]/"/g' {} + && \
+
+    ARCH=$(uname -m) && \
+    if [ "$ARCH" = "aarch64" ]; then \
+        # Stub out x86-only CPUID routines for ARM64 compatibility. \
+        printf '%s\n' \
+          '#pragma once' \
+          '#include <stdint.h>' \
+          'static inline void __cpuid(int32_t, int32_t*, int32_t*, int32_t*, int32_t*) {}' \
+          'static inline void __get_cpuid(unsigned int, unsigned int*, unsigned int*, unsigned int*, unsigned int*) {}' \
+          'static inline void __get_cpuid_count(unsigned int, unsigned int, unsigned int*, unsigned int*, unsigned int*, unsigned int*) {}' \
+        > third_party/cpuid.h && \
+        \
+        # Remove unsupported x86 flags from the Makefile. \
+        sed -i 's/-msse2//g; s/-DPOPCNT_CAPABILITY//g' Makefile ; \
+    fi && \
+    \
+    # Remove obsolete -m32 flag (safe for all architectures). \
+    sed -i 's/-m32//g' Makefile && \
+    \
+    # Fix a narrowing conversion issue. \
+    sed -i 's/-1/(char)-1/g' alphabet.cpp && \
+    \
+    # Avoid potential header shadowing. \
+    if [ -f version ] && [ ! -f VERSION ]; then mv version VERSION; fi && \
+    \
+    # Build serially to match the original and avoid potential issues. \
+    make -j1 CXXFLAGS="-O3" && \
+    \
+    # Install binaries. \
+    install -m0755 centrifuge-class /usr/local/bin/centrifuge && \
+    install -m0755 centrifuge-build-bin /usr/local/bin/centrifuge-build && \
+    install -m0755 centrifuge-inspect-bin /usr/local/bin/centrifuge-inspect && \
+    \
+    # Clean up source and temporary files. \
+    cd / && \
+    rm -rf /tmp/centrifuge.tar.gz /opt/centrifuge-1.0.4-beta && \
+    \
+    # Purge build dependencies to minimize image size (runtime libraries retained). \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+%runscript
+    if [ $# -eq 0 ]; then
+        exec /usr/local/bin/centrifuge --help
+    else
+        exec /usr/local/bin/centrifuge "$@"
+    fi
+
+%help
+    This Apptainer image provides Centrifuge version 1.0.4-beta.
+    Architecture-specific optimizations are applied during build (full features on x86_64; compatibility stubs on aarch64).
+    The default command is 'centrifuge'; run without arguments to display help.
