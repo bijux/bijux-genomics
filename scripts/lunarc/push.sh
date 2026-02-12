@@ -2,7 +2,7 @@
 set -euo pipefail
 
 LUNARC_HOST="${LUNARC_HOST:-lunarc}"
-LUNARC_ROOT="${LUNARC_ROOT:-/home/bijan/bijux}"
+LUNARC_ROOT="${LUNARC_ROOT:-${HOME}/bijux}"
 LUNARC_REPO_DIR="${LUNARC_REPO_DIR:-${LUNARC_ROOT}/bijux-dna}"
 CLEAN_CONTEXT="${CLEAN_CONTEXT:-1}"
 ALLOW_DIRTY="${ALLOW_DIRTY:-0}"

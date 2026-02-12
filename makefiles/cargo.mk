@@ -18,6 +18,7 @@ fmt:
 lint:
 	./scripts/check-artifacts-tracked.sh
 	./scripts/check-no-target-paths-in-tests.sh
+	./scripts/check-no-user-path-literals.sh
 	$(call RUN_IN_ISOLATE,./bin/require-isolate >/dev/null; CARGO_BUILD_JOBS=$(CARGO_BUILD_JOBS) cargo clippy --workspace --all-targets --all-features -- -D warnings)
 
 test:

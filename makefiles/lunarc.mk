@@ -1,9 +1,9 @@
 ##@ Lunarc Sync
 
 LUNARC_HOST ?= lunarc
-LUNARC_ROOT ?= /home/bijan/bijux
+LUNARC_ROOT ?= $(HOME)/bijux
 LUNARC_REPO_DIR ?= $(LUNARC_ROOT)/bijux-dna
-LUNARC_PULL_BASE ?= /Users/bijan/bijux
+LUNARC_PULL_BASE ?= $(HOME)/bijux
 CLEAN_CONTEXT ?= 1
 ALLOW_DIRTY ?= 0
 INCLUDE_CONTAINERS_MANIFEST ?= 0
