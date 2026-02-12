@@ -118,9 +118,96 @@
 </head>
 <body>
   <script id="report-json" type="application/json">{
-  "schema_version": "bijux.report.v1",
+  "adapter_inference": {
+    "rationale": "Adapter detection ran before trimming.",
+    "safety": "Inference only applies when adapters are not explicitly set.",
+    "suggested_adapters": {}
+  },
+  "assets_provenance": [
+    {
+      "banks": {
+        "adapter_bank_hash": "unknown",
+        "reference_bank_hash": "unknown",
+        "taxonomy_db_hash": "unknown",
+        "taxonomy_db_version": "unknown"
+      },
+      "stage_id": "fastq.detect_adapters",
+      "tool_id": "fastqc"
+    },
+    {
+      "banks": {
+        "adapter_bank_hash": "unknown",
+        "reference_bank_hash": "unknown",
+        "taxonomy_db_hash": "unknown",
+        "taxonomy_db_version": "unknown"
+      },
+      "stage_id": "fastq.filter",
+      "tool_id": "fastp"
+    },
+    {
+      "banks": {
+        "adapter_bank_hash": "unknown",
+        "reference_bank_hash": "unknown",
+        "taxonomy_db_hash": "unknown",
+        "taxonomy_db_version": "unknown"
+      },
+      "stage_id": "fastq.qc_post",
+      "tool_id": "multiqc"
+    },
+    {
+      "banks": {
+        "adapter_bank_hash": "unknown",
+        "reference_bank_hash": "unknown",
+        "taxonomy_db_hash": "unknown",
+        "taxonomy_db_version": "unknown"
+      },
+      "stage_id": "fastq.stats_neutral",
+      "tool_id": "seqkit_stats"
+    },
+    {
+      "banks": {
+        "adapter_bank_hash": "unknown",
+        "reference_bank_hash": "unknown",
+        "taxonomy_db_hash": "unknown",
+        "taxonomy_db_version": "unknown"
+      },
+      "stage_id": "fastq.trim",
+      "tool_id": "fastp"
+    },
+    {
+      "banks": {
+        "adapter_bank_hash": "unknown",
+        "reference_bank_hash": "unknown",
+        "taxonomy_db_hash": "unknown",
+        "taxonomy_db_version": "unknown"
+      },
+      "stage_id": "fastq.validate_pre",
+      "tool_id": "fastqvalidator_official"
+    }
+  ],
+  "bundle_schema_version": "bijux.report_bundle.v1",
+  "completeness": {
+    "missing_metrics": [],
+    "missing_reports": [
+      "fastq.detect_adapters:metrics_path",
+      "fastq.filter:metrics_path",
+      "fastq.qc_post:metrics_path",
+      "fastq.stats_neutral:metrics_path",
+      "fastq.trim:metrics_path",
+      "fastq.validate_pre:metrics_path"
+    ],
+    "status": "incomplete"
+  },
   "contract": {
-    "schema_version": "bijux.report_contract.v1",
+    "required_provenance_fields": [
+      "tool_id",
+      "tool_version",
+      "image_digest",
+      "trace_id",
+      "span_id",
+      "params_hash",
+      "bank_hashes"
+    ],
     "required_sections": [
       "contract",
       "completeness",
@@ -140,343 +227,285 @@
       "adapter_inference",
       "claims_registry"
     ],
-    "required_provenance_fields": [
-      "tool_id",
-      "tool_version",
-      "image_digest",
-      "trace_id",
-      "span_id",
-      "params_hash",
-      "bank_hashes"
-    ]
+    "schema_version": "bijux.report_contract.v1"
   },
+  "filter_interpretation": {},
+  "final_qc_summary": {
+    "adapter_inference": {
+      "rationale": "Adapter detection ran before trimming.",
+      "safety": "Inference only applies when adapters are not explicitly set.",
+      "suggested_adapters": {}
+    },
+    "qc": {}
+  },
+  "metric_semantics": [
+    {
+      "direction": "LowerBetter",
+      "influencing_params": [],
+      "metric_id": "runtime_s",
+      "missing_data_policy": "treat_as_infinite",
+      "range": ">= 0",
+      "units": "seconds"
+    },
+    {
+      "direction": "LowerBetter",
+      "influencing_params": [],
+      "metric_id": "memory_mb",
+      "missing_data_policy": "treat_as_infinite",
+      "range": ">= 0",
+      "units": "MB"
+    },
+    {
+      "direction": "HigherBetter",
+      "influencing_params": [
+        "adapter_bank",
+        "trim_settings",
+        "filter_settings"
+      ],
+      "metric_id": "read_retention",
+      "missing_data_policy": "treat_as_0.0",
+      "range": "[0, 1]",
+      "units": "ratio"
+    },
+    {
+      "direction": "HigherBetter",
+      "influencing_params": [
+        "adapter_bank",
+        "trim_settings",
+        "filter_settings"
+      ],
+      "metric_id": "base_retention",
+      "missing_data_policy": "treat_as_0.0",
+      "range": "[0, 1]",
+      "units": "ratio"
+    },
+    {
+      "direction": "HigherBetter",
+      "influencing_params": [
+        "merge_policy"
+      ],
+      "metric_id": "merge_rate",
+      "missing_data_policy": "treat_as_0.0",
+      "range": "[0, 1]",
+      "units": "ratio"
+    },
+    {
+      "direction": "HigherBetter",
+      "influencing_params": [
+        "corrector_settings"
+      ],
+      "metric_id": "error_reduction_proxy",
+      "missing_data_policy": "treat_as_0.0",
+      "range": "[0, 45]",
+      "units": "mean_q_delta"
+    }
+  ],
+  "pipeline_verdict": {
+    "reasons": [],
+    "verdict": "pass"
+  },
+  "provenance": [
+    {
+      "bank_hashes": {
+        "adapter_bank_hash": "unknown",
+        "reference_bank_hash": "unknown",
+        "taxonomy_db_hash": "unknown",
+        "taxonomy_db_version": "unknown"
+      },
+      "image_digest": "sha256:img",
+      "params_hash": "params",
+      "span_id": "span-fastq.detect_adapters",
+      "stage_id": "fastq.detect_adapters",
+      "tool_id": "fastqc",
+      "tool_version": "99.99.99+fixture",
+      "trace_id": "trace-1"
+    },
+    {
+      "bank_hashes": {
+        "adapter_bank_hash": "unknown",
+        "reference_bank_hash": "unknown",
+        "taxonomy_db_hash": "unknown",
+        "taxonomy_db_version": "unknown"
+      },
+      "image_digest": "sha256:img",
+      "params_hash": "params",
+      "span_id": "span-fastq.filter",
+      "stage_id": "fastq.filter",
+      "tool_id": "fastp",
+      "tool_version": "99.99.99+fixture",
+      "trace_id": "trace-1"
+    },
+    {
+      "bank_hashes": {
+        "adapter_bank_hash": "unknown",
+        "reference_bank_hash": "unknown",
+        "taxonomy_db_hash": "unknown",
+        "taxonomy_db_version": "unknown"
+      },
+      "image_digest": "sha256:img",
+      "params_hash": "params",
+      "span_id": "span-fastq.qc_post",
+      "stage_id": "fastq.qc_post",
+      "tool_id": "multiqc",
+      "tool_version": "99.99.99+fixture",
+      "trace_id": "trace-1"
+    },
+    {
+      "bank_hashes": {
+        "adapter_bank_hash": "unknown",
+        "reference_bank_hash": "unknown",
+        "taxonomy_db_hash": "unknown",
+        "taxonomy_db_version": "unknown"
+      },
+      "image_digest": "sha256:img",
+      "params_hash": "params",
+      "span_id": "span-fastq.stats_neutral",
+      "stage_id": "fastq.stats_neutral",
+      "tool_id": "seqkit_stats",
+      "tool_version": "99.99.99+fixture",
+      "trace_id": "trace-1"
+    },
+    {
+      "bank_hashes": {
+        "adapter_bank_hash": "unknown",
+        "reference_bank_hash": "unknown",
+        "taxonomy_db_hash": "unknown",
+        "taxonomy_db_version": "unknown"
+      },
+      "image_digest": "sha256:img",
+      "params_hash": "params",
+      "span_id": "span-fastq.trim",
+      "stage_id": "fastq.trim",
+      "tool_id": "fastp",
+      "tool_version": "99.99.99+fixture",
+      "trace_id": "trace-1"
+    },
+    {
+      "bank_hashes": {
+        "adapter_bank_hash": "unknown",
+        "reference_bank_hash": "unknown",
+        "taxonomy_db_hash": "unknown",
+        "taxonomy_db_version": "unknown"
+      },
+      "image_digest": "sha256:img",
+      "params_hash": "params",
+      "span_id": "span-fastq.validate_pre",
+      "stage_id": "fastq.validate_pre",
+      "tool_id": "fastqvalidator_official",
+      "tool_version": "99.99.99+fixture",
+      "trace_id": "trace-1"
+    }
+  ],
+  "qc_improvement": {},
+  "retention_context": [],
+  "retention_definition": [],
   "run_id": "fastq-to-fastq__default__v1",
-  "completeness": {
-    "status": "incomplete",
-    "missing_metrics": [],
-    "missing_reports": [
-      "fastq.detect_adapters:metrics_path",
-      "fastq.filter:metrics_path",
-      "fastq.qc_post:metrics_path",
-      "fastq.stats_neutral:metrics_path",
-      "fastq.trim:metrics_path",
-      "fastq.validate_pre:metrics_path"
-    ]
+  "schema_version": "bijux.report.v1",
+  "sections": {
+    "fastq": {
+      "schema_version": "bijux.report.section.fastq.v1",
+      "stages": 6
+    },
+    "run_provenance": {
+      "manifest_signature_sha256": "unknown"
+    }
   },
   "stages": [
     {
+      "bank_report_path": "/tmp/bank_report.json",
+      "effective_config_path": "",
+      "exit_code": 0,
+      "input_hash": "input",
+      "memory_mb": 64.0,
+      "metrics_path": "",
+      "params_hash": "params",
+      "retention_report_path": "/tmp/retention_report.json",
+      "runtime_s": 1.0,
       "stage_id": "fastq.detect_adapters",
+      "stage_report_path": "/tmp/stage_report.json",
       "tool_id": "fastqc",
-      "tool_version": "99.99.99+fixture",
-      "params_hash": "params",
-      "input_hash": "input",
-      "runtime_s": 1.0,
-      "memory_mb": 64.0,
-      "exit_code": 0,
-      "metrics_path": "",
       "tool_invocation_path": "",
-      "effective_config_path": "",
-      "stage_report_path": "/tmp/stage_report.json",
-      "retention_report_path": "/tmp/retention_report.json",
-      "bank_report_path": "/tmp/bank_report.json"
+      "tool_version": "99.99.99+fixture"
     },
     {
+      "bank_report_path": "/tmp/bank_report.json",
+      "effective_config_path": "",
+      "exit_code": 0,
+      "input_hash": "input",
+      "memory_mb": 64.0,
+      "metrics_path": "",
+      "params_hash": "params",
+      "retention_report_path": "/tmp/retention_report.json",
+      "runtime_s": 1.0,
       "stage_id": "fastq.filter",
-      "tool_id": "fastp",
-      "tool_version": "99.99.99+fixture",
-      "params_hash": "params",
-      "input_hash": "input",
-      "runtime_s": 1.0,
-      "memory_mb": 64.0,
-      "exit_code": 0,
-      "metrics_path": "",
-      "tool_invocation_path": "",
-      "effective_config_path": "",
       "stage_report_path": "/tmp/stage_report.json",
-      "retention_report_path": "/tmp/retention_report.json",
-      "bank_report_path": "/tmp/bank_report.json"
+      "tool_id": "fastp",
+      "tool_invocation_path": "",
+      "tool_version": "99.99.99+fixture"
     },
     {
+      "bank_report_path": "/tmp/bank_report.json",
+      "effective_config_path": "",
+      "exit_code": 0,
+      "input_hash": "input",
+      "memory_mb": 64.0,
+      "metrics_path": "",
+      "params_hash": "params",
+      "retention_report_path": "/tmp/retention_report.json",
+      "runtime_s": 1.0,
       "stage_id": "fastq.qc_post",
+      "stage_report_path": "/tmp/stage_report.json",
       "tool_id": "multiqc",
-      "tool_version": "99.99.99+fixture",
-      "params_hash": "params",
-      "input_hash": "input",
-      "runtime_s": 1.0,
-      "memory_mb": 64.0,
-      "exit_code": 0,
-      "metrics_path": "",
       "tool_invocation_path": "",
-      "effective_config_path": "",
-      "stage_report_path": "/tmp/stage_report.json",
-      "retention_report_path": "/tmp/retention_report.json",
-      "bank_report_path": "/tmp/bank_report.json"
+      "tool_version": "99.99.99+fixture"
     },
     {
+      "bank_report_path": "/tmp/bank_report.json",
+      "effective_config_path": "",
+      "exit_code": 0,
+      "input_hash": "input",
+      "memory_mb": 64.0,
+      "metrics_path": "",
+      "params_hash": "params",
+      "retention_report_path": "/tmp/retention_report.json",
+      "runtime_s": 1.0,
       "stage_id": "fastq.stats_neutral",
-      "tool_id": "seqkit_stats",
-      "tool_version": "99.99.99+fixture",
-      "params_hash": "params",
-      "input_hash": "input",
-      "runtime_s": 1.0,
-      "memory_mb": 64.0,
-      "exit_code": 0,
-      "metrics_path": "",
-      "tool_invocation_path": "",
-      "effective_config_path": "",
       "stage_report_path": "/tmp/stage_report.json",
-      "retention_report_path": "/tmp/retention_report.json",
-      "bank_report_path": "/tmp/bank_report.json"
-    },
-    {
-      "stage_id": "fastq.trim",
-      "tool_id": "fastp",
-      "tool_version": "99.99.99+fixture",
-      "params_hash": "params",
-      "input_hash": "input",
-      "runtime_s": 1.0,
-      "memory_mb": 64.0,
-      "exit_code": 0,
-      "metrics_path": "",
-      "tool_invocation_path": "",
-      "effective_config_path": "",
-      "stage_report_path": "/tmp/stage_report.json",
-      "retention_report_path": "/tmp/retention_report.json",
-      "bank_report_path": "/tmp/bank_report.json"
-    },
-    {
-      "stage_id": "fastq.validate_pre",
-      "tool_id": "fastqvalidator_official",
-      "tool_version": "99.99.99+fixture",
-      "params_hash": "params",
-      "input_hash": "input",
-      "runtime_s": 1.0,
-      "memory_mb": 64.0,
-      "exit_code": 0,
-      "metrics_path": "",
-      "tool_invocation_path": "",
-      "effective_config_path": "",
-      "stage_report_path": "/tmp/stage_report.json",
-      "retention_report_path": "/tmp/retention_report.json",
-      "bank_report_path": "/tmp/bank_report.json"
-    }
-  ],
-  "provenance": [
-    {
-      "stage_id": "fastq.detect_adapters",
-      "tool_id": "fastqc",
-      "tool_version": "99.99.99+fixture",
-      "image_digest": "sha256:img",
-      "trace_id": "trace-1",
-      "span_id": "span-fastq.detect_adapters",
-      "params_hash": "params",
-      "bank_hashes": {
-        "adapter_bank_hash": "unknown",
-        "reference_bank_hash": "unknown",
-        "taxonomy_db_hash": "unknown",
-        "taxonomy_db_version": "unknown"
-      }
-    },
-    {
-      "stage_id": "fastq.filter",
-      "tool_id": "fastp",
-      "tool_version": "99.99.99+fixture",
-      "image_digest": "sha256:img",
-      "trace_id": "trace-1",
-      "span_id": "span-fastq.filter",
-      "params_hash": "params",
-      "bank_hashes": {
-        "adapter_bank_hash": "unknown",
-        "reference_bank_hash": "unknown",
-        "taxonomy_db_hash": "unknown",
-        "taxonomy_db_version": "unknown"
-      }
-    },
-    {
-      "stage_id": "fastq.qc_post",
-      "tool_id": "multiqc",
-      "tool_version": "99.99.99+fixture",
-      "image_digest": "sha256:img",
-      "trace_id": "trace-1",
-      "span_id": "span-fastq.qc_post",
-      "params_hash": "params",
-      "bank_hashes": {
-        "adapter_bank_hash": "unknown",
-        "reference_bank_hash": "unknown",
-        "taxonomy_db_hash": "unknown",
-        "taxonomy_db_version": "unknown"
-      }
-    },
-    {
-      "stage_id": "fastq.stats_neutral",
       "tool_id": "seqkit_stats",
-      "tool_version": "99.99.99+fixture",
-      "image_digest": "sha256:img",
-      "trace_id": "trace-1",
-      "span_id": "span-fastq.stats_neutral",
-      "params_hash": "params",
-      "bank_hashes": {
-        "adapter_bank_hash": "unknown",
-        "reference_bank_hash": "unknown",
-        "taxonomy_db_hash": "unknown",
-        "taxonomy_db_version": "unknown"
-      }
+      "tool_invocation_path": "",
+      "tool_version": "99.99.99+fixture"
     },
     {
+      "bank_report_path": "/tmp/bank_report.json",
+      "effective_config_path": "",
+      "exit_code": 0,
+      "input_hash": "input",
+      "memory_mb": 64.0,
+      "metrics_path": "",
+      "params_hash": "params",
+      "retention_report_path": "/tmp/retention_report.json",
+      "runtime_s": 1.0,
       "stage_id": "fastq.trim",
+      "stage_report_path": "/tmp/stage_report.json",
       "tool_id": "fastp",
-      "tool_version": "99.99.99+fixture",
-      "image_digest": "sha256:img",
-      "trace_id": "trace-1",
-      "span_id": "span-fastq.trim",
+      "tool_invocation_path": "",
+      "tool_version": "99.99.99+fixture"
+    },
+    {
+      "bank_report_path": "/tmp/bank_report.json",
+      "effective_config_path": "",
+      "exit_code": 0,
+      "input_hash": "input",
+      "memory_mb": 64.0,
+      "metrics_path": "",
       "params_hash": "params",
-      "bank_hashes": {
-        "adapter_bank_hash": "unknown",
-        "reference_bank_hash": "unknown",
-        "taxonomy_db_hash": "unknown",
-        "taxonomy_db_version": "unknown"
-      }
-    },
-    {
+      "retention_report_path": "/tmp/retention_report.json",
+      "runtime_s": 1.0,
       "stage_id": "fastq.validate_pre",
+      "stage_report_path": "/tmp/stage_report.json",
       "tool_id": "fastqvalidator_official",
-      "tool_version": "99.99.99+fixture",
-      "image_digest": "sha256:img",
-      "trace_id": "trace-1",
-      "span_id": "span-fastq.validate_pre",
-      "params_hash": "params",
-      "bank_hashes": {
-        "adapter_bank_hash": "unknown",
-        "reference_bank_hash": "unknown",
-        "taxonomy_db_hash": "unknown",
-        "taxonomy_db_version": "unknown"
-      }
-    }
-  ],
-  "retention_definition": [],
-  "retention_context": [],
-  "assets_provenance": [
-    {
-      "stage_id": "fastq.detect_adapters",
-      "tool_id": "fastqc",
-      "banks": {
-        "adapter_bank_hash": "unknown",
-        "reference_bank_hash": "unknown",
-        "taxonomy_db_hash": "unknown",
-        "taxonomy_db_version": "unknown"
-      }
-    },
-    {
-      "stage_id": "fastq.filter",
-      "tool_id": "fastp",
-      "banks": {
-        "adapter_bank_hash": "unknown",
-        "reference_bank_hash": "unknown",
-        "taxonomy_db_hash": "unknown",
-        "taxonomy_db_version": "unknown"
-      }
-    },
-    {
-      "stage_id": "fastq.qc_post",
-      "tool_id": "multiqc",
-      "banks": {
-        "adapter_bank_hash": "unknown",
-        "reference_bank_hash": "unknown",
-        "taxonomy_db_hash": "unknown",
-        "taxonomy_db_version": "unknown"
-      }
-    },
-    {
-      "stage_id": "fastq.stats_neutral",
-      "tool_id": "seqkit_stats",
-      "banks": {
-        "adapter_bank_hash": "unknown",
-        "reference_bank_hash": "unknown",
-        "taxonomy_db_hash": "unknown",
-        "taxonomy_db_version": "unknown"
-      }
-    },
-    {
-      "stage_id": "fastq.trim",
-      "tool_id": "fastp",
-      "banks": {
-        "adapter_bank_hash": "unknown",
-        "reference_bank_hash": "unknown",
-        "taxonomy_db_hash": "unknown",
-        "taxonomy_db_version": "unknown"
-      }
-    },
-    {
-      "stage_id": "fastq.validate_pre",
-      "tool_id": "fastqvalidator_official",
-      "banks": {
-        "adapter_bank_hash": "unknown",
-        "reference_bank_hash": "unknown",
-        "taxonomy_db_hash": "unknown",
-        "taxonomy_db_version": "unknown"
-      }
-    }
-  ],
-  "metric_semantics": [
-    {
-      "metric_id": "runtime_s",
-      "direction": "LowerBetter",
-      "units": "seconds",
-      "range": ">= 0",
-      "missing_data_policy": "treat_as_infinite",
-      "influencing_params": []
-    },
-    {
-      "metric_id": "memory_mb",
-      "direction": "LowerBetter",
-      "units": "MB",
-      "range": ">= 0",
-      "missing_data_policy": "treat_as_infinite",
-      "influencing_params": []
-    },
-    {
-      "metric_id": "read_retention",
-      "direction": "HigherBetter",
-      "units": "ratio",
-      "range": "[0, 1]",
-      "missing_data_policy": "treat_as_0.0",
-      "influencing_params": [
-        "adapter_bank",
-        "trim_settings",
-        "filter_settings"
-      ]
-    },
-    {
-      "metric_id": "base_retention",
-      "direction": "HigherBetter",
-      "units": "ratio",
-      "range": "[0, 1]",
-      "missing_data_policy": "treat_as_0.0",
-      "influencing_params": [
-        "adapter_bank",
-        "trim_settings",
-        "filter_settings"
-      ]
-    },
-    {
-      "metric_id": "merge_rate",
-      "direction": "HigherBetter",
-      "units": "ratio",
-      "range": "[0, 1]",
-      "missing_data_policy": "treat_as_0.0",
-      "influencing_params": [
-        "merge_policy"
-      ]
-    },
-    {
-      "metric_id": "error_reduction_proxy",
-      "direction": "HigherBetter",
-      "units": "mean_q_delta",
-      "range": "[0, 45]",
-      "missing_data_policy": "treat_as_0.0",
-      "influencing_params": [
-        "corrector_settings"
-      ]
+      "tool_invocation_path": "",
+      "tool_version": "99.99.99+fixture"
     }
   ],
   "telemetry": {
@@ -486,27 +515,7 @@
       "/tmp/telemetry/events.jsonl"
     ],
     "timeline": []
-  },
-  "qc_improvement": {},
-  "final_qc_summary": {
-    "adapter_inference": {
-      "rationale": "Adapter detection ran before trimming.",
-      "safety": "Inference only applies when adapters are not explicitly set.",
-      "suggested_adapters": {}
-    },
-    "qc": {}
-  },
-  "filter_interpretation": {},
-  "adapter_inference": {
-    "rationale": "Adapter detection ran before trimming.",
-    "safety": "Inference only applies when adapters are not explicitly set.",
-    "suggested_adapters": {}
-  },
-  "pipeline_verdict": {
-    "verdict": "pass",
-    "reasons": []
-  },
-  "sections": {}
+  }
 }</script>
   <div class="layout">
     <nav>
