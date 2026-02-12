@@ -3,7 +3,7 @@
 #
 # Container definition license: GPL-3.0.
 # The bijux-dna software source code is licensed under Apache-2.0.
-FROM ubuntu:22.04
+FROM ubuntu:22.04@sha256:34577a83cd7a8f1e55f6eb173fd9bb70c16127a83d6bf06f56f6b1fff9e406b9
 ARG OCI_REVISION=unknown
 ARG OCI_CREATED=unknown
 ARG TOOL_VERSION=0.0.14
@@ -13,8 +13,8 @@ LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-dna" \
       org.opencontainers.image.licenses="GPL-3.0" \
       org.opencontainers.image.version="${TOOL_VERSION}"
 LABEL org.opencontainers.image.tool="fastx_clipper"
-LABEL org.opencontainers.image.base.name="ubuntu:22.04"
-LABEL org.opencontainers.image.base.digest="unknown"
+LABEL org.opencontainers.image.base.name="ubuntu:22.04@sha256:34577a83cd7a8f1e55f6eb173fd9bb70c16127a83d6bf06f56f6b1fff9e406b9"
+LABEL org.opencontainers.image.base.digest="sha256:34577a83cd7a8f1e55f6eb173fd9bb70c16127a83d6bf06f56f6b1fff9e406b9"
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update -qq && apt-get install -y --no-install-recommends \
     ca-certificates fastx-toolkit && \
