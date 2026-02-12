@@ -1,0 +1,40 @@
+#![allow(non_snake_case)]
+#[path = "../../support/fs.rs"]
+mod support;
+
+use std::process::Command;
+
+#[test]
+fn policy__contracts__cli_release_help_snapshot_policy__release_help_matches_snapshot_exactly() {
+    let root = support::workspace_root();
+    let snapshot_path = root.join("docs/cli/release_help_snapshot.txt");
+    let expected = std::fs::read_to_string(&snapshot_path)
+        .unwrap_or_else(|err| panic!("read {}: {err}", snapshot_path.display()));
+
+    let build = Command::new("cargo")
+        .arg("build")
+        .arg("--release")
+        .arg("-p")
+        .arg("bijux-dna")
+        .arg("--bin")
+        .arg("bijux")
+        .current_dir(&root)
+        .status()
+        .unwrap_or_else(|err| panic!("build release bijux binary: {err}"));
+    assert!(build.success(), "release build failed");
+
+    let output = Command::new(root.join("target/release/bijux"))
+        .arg("dna")
+        .arg("--help")
+        .current_dir(&root)
+        .output()
+        .unwrap_or_else(|err| panic!("run release help: {err}"));
+    assert!(output.status.success(), "release help command failed");
+    let actual = String::from_utf8(output.stdout).expect("release help must be valid UTF-8");
+
+    assert_eq!(
+        actual.trim(),
+        expected.trim(),
+        "docs/cli/release_help_snapshot.txt is stale. Regenerate with: target/release/bijux dna --help > docs/cli/release_help_snapshot.txt"
+    );
+}
