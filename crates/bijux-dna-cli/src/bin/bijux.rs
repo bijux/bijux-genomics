@@ -1,0 +1,66 @@
+use anyhow::Context;
+use anyhow::Result;
+use bijux_dna::cli::Cli;
+use bijux_dna_api::v1::api::run::CategorizedError;
+use bijux_dna_api::v1::api::run::ErrorCategory;
+use clap::Parser;
+
+fn main() {
+    if let Err(err) = run() {
+        let failure = bijux_dna_api::v1::api::run::classify_operator_failure(&err);
+        eprintln!(
+            "operator_failure category={:?} message={}",
+            failure.category, failure.message
+        );
+        for hint in &failure.hints {
+            eprintln!(
+                "hint id={} severity={:?} action={}",
+                hint.id, hint.severity, hint.suggested_action
+            );
+        }
+        eprintln!("{err}");
+        std::process::exit(exit_code_for_error(&err));
+    }
+}
+
+fn run() -> Result<()> {
+    let cli = Cli::parse();
+    let cwd = std::env::current_dir().context("resolve current directory")?;
+    bijux_dna::commands::run_with_cli(&cli, &cwd)
+}
+
+fn exit_code_for_error(err: &anyhow::Error) -> i32 {
+    if let Some(category) = error_category_from_chain(err) {
+        return match category {
+            ErrorCategory::PlanError => 2,
+            ErrorCategory::ContractError => 3,
+            ErrorCategory::ParseError => 4,
+            ErrorCategory::ToolError => 5,
+            ErrorCategory::InfraError => 70,
+        };
+    }
+    let msg = err.to_string().to_lowercase();
+    if msg.contains("invalid arg") || msg.contains("usage:") {
+        2
+    } else if msg.contains("invalid") || msg.contains("missing") || msg.contains("not found") {
+        3
+    } else if msg.contains("tool") && msg.contains("failed") {
+        4
+    } else if msg.contains("contract") || msg.contains("invariant") {
+        5
+    } else {
+        70
+    }
+}
+
+fn error_category_from_chain(err: &anyhow::Error) -> Option<ErrorCategory> {
+    if let Some(categorized) = err.downcast_ref::<CategorizedError>() {
+        return Some(categorized.category);
+    }
+    for cause in err.chain() {
+        if let Some(categorized) = cause.downcast_ref::<CategorizedError>() {
+            return Some(categorized.category);
+        }
+    }
+    None
+}
