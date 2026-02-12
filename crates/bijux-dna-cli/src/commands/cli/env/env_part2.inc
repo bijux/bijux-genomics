@@ -683,6 +683,46 @@ pub fn print_registry_export_json(registry_path: &Path) -> Result<()> {
 
 /// # Errors
 /// Returns an error if registry cannot be read or parsed.
+pub fn print_registry_export_containers_json(registry_path: &Path) -> Result<()> {
+    let raw = std::fs::read_to_string(registry_path)
+        .with_context(|| format!("read {}", registry_path.display()))?;
+    let mut tools = parse_tools_registry_rows(&raw)?
+        .into_iter()
+        .filter(|row| {
+            row.runtimes.iter().any(|v| v == "docker" || v == "apptainer")
+                && (row.dockerfile.is_some() || row.apptainer_def.is_some())
+        })
+        .map(|row| {
+            serde_json::json!({
+                "tool_id": row.id,
+                "version": row.version,
+                "upstream": row.upstream,
+                "pinned_commit": row.pinned_commit,
+                "runtimes": row.runtimes,
+                "dockerfile": row.dockerfile,
+                "apptainer_def": row.apptainer_def,
+            })
+        })
+        .collect::<Vec<_>>();
+    tools.sort_by(|a, b| {
+        a.get("tool_id")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or_default()
+            .cmp(
+                b.get("tool_id")
+                    .and_then(serde_json::Value::as_str)
+                    .unwrap_or_default(),
+            )
+    });
+    crate::commands::cli::render::json::print_pretty(&serde_json::json!({
+        "schema_version": "bijux.container_manifest.v1",
+        "containers": tools,
+    }))?;
+    Ok(())
+}
+
+/// # Errors
+/// Returns an error if registry cannot be read or parsed.
 pub fn print_registry_coverage_matrix(registry_path: &Path) -> Result<()> {
     let raw = std::fs::read_to_string(registry_path)
         .with_context(|| format!("read {}", registry_path.display()))?;

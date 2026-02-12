@@ -5,7 +5,6 @@ pub mod plan;
 pub mod render;
 pub mod validate;
 
-pub use execute::*;
 pub use parse::*;
 pub use plan::*;
 pub use validate::*;

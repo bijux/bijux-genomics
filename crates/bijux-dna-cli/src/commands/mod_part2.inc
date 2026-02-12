@@ -16,6 +16,10 @@ fn handle_environment_root(command: &cli::EnvCommand, cwd: &Path) -> Result<()> 
             let registry_path = cwd.join("configs").join("tool_registry.toml");
             print_env_export_json(&registry_path)?;
         }
+        cli::EnvCommand::ExportContainers { .. } => {
+            let registry_path = cwd.join("configs").join("tool_registry.toml");
+            crate::commands::cli::env::print_registry_export_containers_json(&registry_path)?;
+        }
         cli::EnvCommand::ExportHpc { json, hpc_root } => {
             let root = hpc_root.clone().map_or_else(
                 || hpc::load_hpc_config().map(|cfg| cfg.resolve_paths().root),
@@ -149,6 +153,7 @@ fn handle_environment_root(command: &cli::EnvCommand, cwd: &Path) -> Result<()> 
                 cli::EnvCommand::Doctor => env_doctor(&catalog, &platform),
                 cli::EnvCommand::List
                 | cli::EnvCommand::ExportJson
+                | cli::EnvCommand::ExportContainers { .. }
                 | cli::EnvCommand::ExportHpc { .. }
                 | cli::EnvCommand::SifInventory { .. }
                 | cli::EnvCommand::Ensure(_)
@@ -208,7 +213,7 @@ fn handle_registry_root(command: &cli::RegistryCommand, cwd: &Path) -> Result<()
     use crate::commands::cli::env::{
         lint_registry_hpc, print_registry_audit_fix_suggestions, print_registry_binding_violations,
         print_registry_coverage_matrix, print_registry_doctor, print_registry_export_json,
-        print_registry_list_stages, print_registry_show, print_registry_show_stage,
+        print_registry_export_containers_json, print_registry_list_stages, print_registry_show, print_registry_show_stage,
         print_registry_show_tool, print_registry_tools, promote_registry_tool,
         verify_registry_tool,
     };
@@ -222,6 +227,13 @@ fn handle_registry_root(command: &cli::RegistryCommand, cwd: &Path) -> Result<()
         cli::RegistryCommand::ShowStage { id } => print_registry_show_stage(&registry_path, id)?,
         cli::RegistryCommand::Show { id } => print_registry_show(&registry_path, id)?,
         cli::RegistryCommand::ExportJson => print_registry_export_json(&registry_path)?,
+        cli::RegistryCommand::ExportContainers { json } => {
+            if *json {
+                print_registry_export_containers_json(&registry_path)?;
+            } else {
+                return Err(anyhow!("registry export-containers requires --json"));
+            }
+        }
         cli::RegistryCommand::CoverageMatrix => print_registry_coverage_matrix(&registry_path)?,
         cli::RegistryCommand::ValidateTool { id } => verify_registry_tool(&registry_path, id)?,
         cli::RegistryCommand::Audit {

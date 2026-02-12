@@ -1,3 +1,4 @@
+#[allow(unused_imports)]
 use crate::commands::command_prelude::{
     anyhow, atomic_write_bytes, bench_args_correct, bench_args_filter, bench_args_merge,
     bench_args_preprocess, bench_args_qc_post, bench_args_screen, bench_args_stats,
@@ -546,6 +547,16 @@ pub(crate) fn handle_meta_commands(
                     let registry_path = cwd.join("configs").join("tool_registry.toml");
                     print_env_export_json(&registry_path)?;
                 }
+                EnvCommand::ExportContainers { json } => {
+                    if !json {
+                        return Err(anyhow!("environment export-containers requires --json"));
+                    }
+                    let cwd = std::env::current_dir()?;
+                    let registry_path = cwd.join("configs").join("tool_registry.toml");
+                    crate::commands::cli::env::print_registry_export_containers_json(
+                        &registry_path,
+                    )?;
+                }
                 EnvCommand::ExportHpc { json, hpc_root } => {
                     let root = hpc_root.clone().map_or_else(
                         || {
@@ -886,30 +897,7 @@ pub(crate) fn handle_meta_commands(
             }
             Ok(true)
         }
-        DnaCommand::Fastq { .. }
-        #[cfg(debug_assertions)]
-        | DnaCommand::Bam { .. }
-        #[cfg(debug_assertions)]
-        | DnaCommand::Vcf { .. }
-        | DnaCommand::Registry { .. }
-        #[cfg(debug_assertions)]
-        | DnaCommand::Ena { .. }
-        | DnaCommand::Corpus { .. }
-        #[cfg(debug_assertions)]
-        | DnaCommand::Tool { .. }
-        #[cfg(debug_assertions)]
-        | DnaCommand::Domain { .. }
-        #[cfg(debug_assertions)]
-        | DnaCommand::Lab { .. }
-        #[cfg(debug_assertions)]
-        | DnaCommand::Config { .. }
-        | DnaCommand::Status(_)
-        #[cfg(debug_assertions)]
-        | DnaCommand::Ci { .. }
-        #[cfg(debug_assertions)]
-        | DnaCommand::Debug(_)
-        #[cfg(debug_assertions)]
-        | DnaCommand::Collect(_) => Ok(false),
+        _ => Ok(false),
     }
 }
 
