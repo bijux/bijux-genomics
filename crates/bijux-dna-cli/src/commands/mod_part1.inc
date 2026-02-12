@@ -24,7 +24,6 @@ pub mod cli;
 pub(crate) mod command_prelude;
 pub(crate) mod corpus;
 pub(crate) mod ena;
-pub(crate) mod example;
 pub(crate) mod fastq;
 pub mod hpc;
 pub(crate) mod report_inputs;
@@ -37,7 +36,7 @@ include!("policies.rs");
 /// # Errors
 /// Returns an error if CLI execution fails.
 pub fn run_with_args(args: &[&str], cwd: &Path) -> Result<()> {
-    let normalized_args = if matches!(args.first(), Some(&"bijux" | &"bijux-dna")) {
+    let normalized_args = if matches!(args.first(), Some(&"bijux")) {
         &args[1..]
     } else {
         args
@@ -100,8 +99,6 @@ pub fn run_with_cli(cli: &cli::Cli, cwd: &Path) -> Result<()> {
         cli::DnaCommand::Registry { command } => return handle_registry_root(command, cwd),
         cli::DnaCommand::Ena { command } => return handle_ena_root(command, cwd),
         cli::DnaCommand::Corpus { command } => return handle_corpus_root(command, cwd),
-        cli::DnaCommand::Example { command } => return handle_example_root(command, cwd),
-        cli::DnaCommand::Plan(args) => return example::print_example_plan(cwd, &args.id),
         cli::DnaCommand::Tool { command } => return handle_tool_root(command, cwd),
         cli::DnaCommand::Domain { command } => return handle_domain_root(command, cwd),
         cli::DnaCommand::Lab { command } => return handle_lab_root(command, cwd),
@@ -141,10 +138,6 @@ pub fn run_with_cli(cli: &cli::Cli, cwd: &Path) -> Result<()> {
             format!("manifest validation failed: {err}")
         ))
     })?;
-
-    if let cli::DnaCommand::Dev { command } = dna_command {
-        return handle_dev_dna(command, cwd);
-    }
 
     if bench::handle_fastq_bench(cli, dna_command, &registry)? {
         return Ok(());

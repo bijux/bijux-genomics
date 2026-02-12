@@ -886,15 +886,12 @@ pub(crate) fn handle_meta_commands(
         | DnaCommand::Registry { .. }
         | DnaCommand::Ena { .. }
         | DnaCommand::Corpus { .. }
-        | DnaCommand::Example { .. }
-        | DnaCommand::Plan(_)
         | DnaCommand::Tool { .. }
         | DnaCommand::Domain { .. }
         | DnaCommand::Lab { .. }
         | DnaCommand::Config { .. }
         | DnaCommand::Status(_)
         | DnaCommand::Ci { .. }
-        | DnaCommand::Dev { .. }
         | DnaCommand::Debug(_)
         | DnaCommand::Collect(_) => Ok(false),
     }
