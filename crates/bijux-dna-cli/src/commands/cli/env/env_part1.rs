@@ -1,5 +1,5 @@
 use std::collections::{BTreeSet, HashMap, HashSet};
-use std::io::{Read, Write};
+use std::io::Read;
 use std::path::Path;
 use std::time::{Duration, SystemTime};
 
@@ -888,9 +888,7 @@ fn upsert_container_version_entry(
 
 fn ensure_parent_dir(path: &Path) -> Result<()> {
     if let Some(parent) = path.parent() {
-        std::fs::DirBuilder::new()
-            .recursive(true)
-            .create(parent)
+        bijux_dna_api::v1::api::run::ensure_dir(parent)
             .with_context(|| format!("mkdir {}", parent.display()))?;
     }
     Ok(())
@@ -898,9 +896,7 @@ fn ensure_parent_dir(path: &Path) -> Result<()> {
 
 fn write_text_file(path: &Path, content: &str) -> Result<()> {
     ensure_parent_dir(path)?;
-    let mut file =
-        std::fs::File::create(path).with_context(|| format!("write {}", path.display()))?;
-    file.write_all(content.as_bytes())
+    bijux_dna_api::v1::api::run::write_bytes(path, content.as_bytes())
         .with_context(|| format!("write {}", path.display()))?;
     Ok(())
 }
