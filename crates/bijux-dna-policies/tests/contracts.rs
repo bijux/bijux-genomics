@@ -82,6 +82,8 @@ mod mod_contracts_tooling_makefile_policies_rs;
 mod mod_contracts_tooling_nextest_determinism_policy_rs;
 #[path = "contracts/tooling/no_appledouble.rs"]
 mod mod_contracts_tooling_no_appledouble_rs;
+#[path = "contracts/tooling/no_runtime_escape_hatch_policy.rs"]
+mod mod_contracts_tooling_no_runtime_escape_hatch_policy_rs;
 #[path = "contracts/tooling/no_placeholders_code_policy.rs"]
 mod mod_contracts_tooling_no_placeholders_code_policy_rs;
 #[path = "contracts/tooling/opentelemetry_version_policy.rs"]

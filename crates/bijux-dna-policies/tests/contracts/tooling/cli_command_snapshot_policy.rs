@@ -20,11 +20,11 @@ fn policy__contracts__cli_command_snapshot_policy__dna_help_matches_snapshot() {
     let expected = std::fs::read_to_string(&snapshot_path)
         .unwrap_or_else(|err| panic!("read {}: {err}", snapshot_path.display()));
 
-    let output = Command::new(root.join("target/debug/bijux-dna"))
+    let output = Command::new(root.join("target/debug/bijux"))
         .arg("--help")
         .current_dir(&root)
         .output()
-        .unwrap_or_else(|err| panic!("run 'bijux dna --help' via shim binary: {err}"));
+        .unwrap_or_else(|err| panic!("run 'bijux dna --help' via workspace binary: {err}"));
 
     assert!(
         output.status.success(),
@@ -37,6 +37,6 @@ fn policy__contracts__cli_command_snapshot_policy__dna_help_matches_snapshot() {
     assert_eq!(
         normalize_whitespace(&actual),
         normalize_whitespace(&expected),
-        "docs/cli/command_snapshot.txt is stale. Regenerate with: target/debug/bijux-dna --help | sed -E 's/[[:space:]]+/ /g; s/^ //; s/ $//' > docs/cli/command_snapshot.txt"
+        "docs/cli/command_snapshot.txt is stale. Regenerate with: target/debug/bijux dna --help | sed -E 's/[[:space:]]+/ /g; s/^ //; s/ $//' > docs/cli/command_snapshot.txt"
     );
 }
