@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 set -euo pipefail
-bijux example run example-101 --hpc
+bijux example run example-102 --hpc

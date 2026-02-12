@@ -1,11 +1,11 @@
 schema_version = "bijux.example.v1"
-id = "example-101"
+id = "example-103"
 ena_project = "PRJEB44430"
 species = "human"
-corpus_id = "example-101"
+corpus_id = "example-103"
 target_se = 10
 target_pe = 10
-benchmark_suite = "fastq_stage01_validate_pre"
+benchmark_suite = "fastq_stage03_filter"
 runtime = "apptainer"
 objective = "balanced"
-stage_1 = "fastq.validate_pre"
+stage_1 = "fastq.filter"

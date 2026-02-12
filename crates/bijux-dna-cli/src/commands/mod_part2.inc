@@ -272,6 +272,25 @@ fn handle_example_root(command: &cli::ExampleCommand, cwd: &Path) -> Result<()> 
     match command {
         cli::ExampleCommand::Run(args) => example::run_example(cwd, &args.id, args.hpc)?,
         cli::ExampleCommand::Validate(args) => example::validate_example(cwd, &args.id)?,
+        cli::ExampleCommand::Plan(args) => example::print_example_plan(cwd, &args.id)?,
+        cli::ExampleCommand::List(args) => {
+            if args.json {
+                example::list_examples_json(cwd)?;
+            } else {
+                example::list_examples_text(cwd)?;
+            }
+        }
+    }
+    Ok(())
+}
+
+fn handle_dev_dna(command: &cli::DevCommand, cwd: &Path) -> Result<()> {
+    match command {
+        cli::DevCommand::Examples { command } => match command {
+            cli::DevExamplesCommand::Scaffold(args) => {
+                example::scaffold_examples_series(cwd, &args.series, args.count)?
+            }
+        },
     }
     Ok(())
 }

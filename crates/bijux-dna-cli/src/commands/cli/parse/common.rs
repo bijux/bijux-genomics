@@ -85,6 +85,14 @@ pub struct StatusArgs {
 #[derive(Debug, Subcommand)]
 #[allow(clippy::large_enum_variant)]
 pub enum DnaCommand {
+    Example {
+        #[command(subcommand)]
+        command: ExampleCommand,
+    },
+    Dev {
+        #[command(subcommand)]
+        command: DevCommand,
+    },
     Fastq {
         #[command(subcommand)]
         command: FastqCommand,
@@ -439,21 +447,12 @@ pub enum CorpusCommand {
 pub enum ExampleCommand {
     Run(ExampleRunArgs),
     Validate(ExampleValidateArgs),
+    Plan(ExamplePlanArgs),
+    List(ExampleListArgs),
 }
 
 include!("common_example_args.rs");
-
-#[derive(Debug, Args)]
-pub struct PlanArgs {
-    pub id: String,
-}
-
-#[derive(Debug, Args)]
-pub struct CorpusListArgs {
-    #[arg(long, default_value_t = false)]
-    pub json: bool,
-    pub corpus: Option<String>,
-}
+include!("common_root_args.rs");
 
 #[derive(Debug, Subcommand)]
 pub enum DomainCommand {
@@ -481,6 +480,19 @@ pub enum LabCommand {
         #[command(subcommand)]
         command: LabCorpusCommand,
     },
+}
+
+#[derive(Debug, Subcommand)]
+pub enum DevCommand {
+    Examples {
+        #[command(subcommand)]
+        command: DevExamplesCommand,
+    },
+}
+
+#[derive(Debug, Subcommand)]
+pub enum DevExamplesCommand {
+    Scaffold(DevExamplesScaffoldArgs),
 }
 
 #[derive(Debug, Subcommand)]

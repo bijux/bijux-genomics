@@ -149,6 +149,12 @@ pub fn run_with_cli(cli: &cli::Cli, cwd: &Path) -> Result<()> {
         ))
     })?;
 
+    match dna_command {
+        cli::DnaCommand::Example { command } => return handle_example_root(command, cwd),
+        cli::DnaCommand::Dev { command } => return handle_dev_dna(command, cwd),
+        _ => {}
+    }
+
     if bench::handle_fastq_bench(cli, dna_command, &registry)? {
         return Ok(());
     }
@@ -867,4 +873,3 @@ fn handle_status_root(args: &cli::StatusArgs, cwd: &Path) -> Result<()> {
     }
     Ok(())
 }
-
