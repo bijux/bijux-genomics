@@ -50,6 +50,8 @@ mod mod_contracts_tooling_cli_app_prefix_policy_rs;
 mod mod_contracts_tooling_cli_command_snapshot_policy_rs;
 #[path = "contracts/tooling/cli_release_help_snapshot_policy.rs"]
 mod mod_contracts_tooling_cli_release_help_snapshot_policy_rs;
+#[path = "contracts/tooling/cli_runtime_dependency_policy.rs"]
+mod mod_contracts_tooling_cli_runtime_dependency_policy_rs;
 #[path = "contracts/tooling/cli_sql_policy.rs"]
 mod mod_contracts_tooling_cli_sql_policy_rs;
 #[path = "contracts/tooling/command_spawn_policy.rs"]
@@ -104,6 +106,8 @@ mod mod_contracts_tooling_purity_effects_responsibility_policy_rs;
 mod mod_contracts_tooling_registry_ssot_completeness_policy_rs;
 #[path = "contracts/tooling/root_pollution_policy.rs"]
 mod mod_contracts_tooling_root_pollution_policy_rs;
+#[path = "contracts/tooling/root_layout_policy.rs"]
+mod mod_contracts_tooling_root_layout_policy_rs;
 #[path = "contracts/tooling/scripts_registry_wrapper_policy.rs"]
 mod mod_contracts_tooling_scripts_registry_wrapper_policy_rs;
 #[path = "contracts/tooling/smoke_manifest_policy.rs"]
