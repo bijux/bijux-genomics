@@ -590,7 +590,7 @@ authenticity_thresholds = ["authenticity_score|warn=<=1.0|fail=<=0.0"]
 duplication_thresholds = ["duplication_rate|warn=>=0.7|fail=>=0.9"]
 coverage_sufficiency = ["not_applicable"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["fastqc", "fastqvalidator", "fastqvalidator_official", "fqtools", "seqtk"]
+tools = ["fastqc", "fastqvalidator", "fastqvalidator", "fqtools", "seqtk"]
 
 [[pipelines]]
 id = "bam.pre_hpc_best"

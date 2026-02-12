@@ -53,7 +53,7 @@ allowed_missingness:
   - "none"
 compatible_tools:
   - fastqvalidator
-  - fastqvalidator_official
+  - fastqvalidator
   - fastq-scan
   - seqtk
   - fqtools

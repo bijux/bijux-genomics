@@ -9,7 +9,7 @@ mem_gb = 64
 
 [[stages]]
 stage = "validate_pre"
-tools = ["fastqvalidator_official"]
+tools = ["fastqvalidator"]
 
 [[stages]]
 stage = "trim"

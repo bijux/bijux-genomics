@@ -12,4 +12,4 @@ warm_runs = 1
 
 [[stages]]
 stage = "validate_pre"
-tools = ["fastqvalidator_official"]
+tools = ["fastqvalidator"]

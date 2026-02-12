@@ -1,4 +1,0 @@
-tool=fastqvalidator_official
-stage=fastq.validate_pre
-domain=fastq
-fixture_kind=truth

@@ -38,7 +38,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     {
       "banks": {},
       "stage_id": "fastq.validate_pre",
-      "tool_id": "fastqvalidator_official"
+      "tool_id": "fastqvalidator"
     }
   ],
   "completeness": {
@@ -222,7 +222,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "params_hash": "params",
       "span_id": "span-fastq.validate_pre",
       "stage_id": "fastq.validate_pre",
-      "tool_id": "fastqvalidator_official",
+      "tool_id": "fastqvalidator",
       "tool_version": "99.99.99+fixture",
       "trace_id": "trace-1"
     }
@@ -269,7 +269,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "bases": 800,
           "reads": 80,
           "stage_id": "fastq.validate_pre",
-          "tool_id": "fastqvalidator_official"
+          "tool_id": "fastqvalidator"
         }
       ]
     },
@@ -355,7 +355,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         {
           "results": [],
           "stage_id": "fastq.validate_pre",
-          "tool_id": "fastqvalidator_official"
+          "tool_id": "fastqvalidator"
         }
       ]
     },
@@ -403,7 +403,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         {
           "banks": {},
           "stage_id": "fastq.validate_pre",
-          "tool_id": "fastqvalidator_official"
+          "tool_id": "fastqvalidator"
         }
       ]
     },
@@ -544,7 +544,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "quality_gate": {},
           "stage_id": "fastq.validate_pre",
           "telemetry_decisions": [],
-          "tool_id": "fastqvalidator_official",
+          "tool_id": "fastqvalidator",
           "tool_version": "99.99.99+fixture"
         }
       ]
@@ -700,7 +700,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "fastq.validate_pre",
-          "tool_id": "fastqvalidator_official",
+          "tool_id": "fastqvalidator",
           "tool_version": "99.99.99+fixture"
         }
       ],
@@ -747,7 +747,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "fastq.validate_pre",
-          "tool_id": "fastqvalidator_official",
+          "tool_id": "fastqvalidator",
           "tool_version": "99.99.99+fixture"
         }
       ]
@@ -1119,7 +1119,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "fastq.stats_neutral": "seqkit_stats",
           "fastq.trim": "fastp",
           "fastq.umi": "umi_tools",
-          "fastq.validate_pre": "fastqvalidator_official"
+          "fastq.validate_pre": "fastqvalidator"
         }
       },
       "overrides": []
@@ -1206,7 +1206,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "scientific_preset": null,
           "stage_id": "fastq.validate_pre",
           "tier_rationale": "unknown_tool",
-          "tool_id": "fastqvalidator_official",
+          "tool_id": "fastqvalidator",
           "tool_tier": "experimental",
           "tool_version": "99.99.99+fixture"
         }
@@ -1345,7 +1345,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "raw_params": {},
           "resolved_tool_version": null,
           "stage_id": "fastq.validate_pre",
-          "tool_id": "fastqvalidator_official",
+          "tool_id": "fastqvalidator",
           "tool_version": "99.99.99+fixture"
         }
       ]
@@ -1450,7 +1450,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "reasons": [],
           "score": 1.0,
           "stage_id": "fastq.validate_pre",
-          "tool_id": "fastqvalidator_official"
+          "tool_id": "fastqvalidator"
         }
       ]
     },
@@ -1502,7 +1502,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "mean_q_delta": null,
           "read_retention": 0.8,
           "stage_id": "fastq.validate_pre",
-          "tool_id": "fastqvalidator_official"
+          "tool_id": "fastqvalidator"
         }
       ],
       "waterfall": [
@@ -1630,7 +1630,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "runtime_s": 1.0,
       "stage_id": "fastq.validate_pre",
       "stage_report_path": "fastq.validate_pre/stage_report.json",
-      "tool_id": "fastqvalidator_official",
+      "tool_id": "fastqvalidator",
       "tool_invocation_path": "",
       "tool_version": "99.99.99+fixture"
     }

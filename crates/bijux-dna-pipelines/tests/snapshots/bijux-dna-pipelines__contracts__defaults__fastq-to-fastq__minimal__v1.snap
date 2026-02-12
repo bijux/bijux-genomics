@@ -368,6 +368,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     "fastq.stats_neutral": "seqkit_stats",
     "fastq.trim": "fastp",
     "fastq.umi": "umi_tools",
-    "fastq.validate_pre": "fastqvalidator_official"
+    "fastq.validate_pre": "fastqvalidator"
   }
 }

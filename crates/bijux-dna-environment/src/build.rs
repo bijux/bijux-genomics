@@ -103,7 +103,7 @@ pub fn default_docker_tools() -> Vec<DockerToolSpec> {
             help_cmd: Some("fastqc --help".to_string()),
         },
         DockerToolSpec {
-            name: "fastqvalidator_official".to_string(),
+            name: "fastqvalidator".to_string(),
             executable: Some("fastqvalidator".to_string()),
             version_cmd: "fastqvalidator --version".to_string(),
             probe_cmd: Some("fastqvalidator --version".to_string()),

@@ -45,7 +45,7 @@ pub fn run_validate_container_with_timeout(
             push_arg(&mut cmd, &mut args, "/data/output");
             push_arg(&mut cmd, &mut args, input_path.clone());
         }
-        "fastqvalidator" | "fastqvalidator_official" => {
+        "fastqvalidator" | "fastqvalidator" => {
             push_arg(&mut cmd, &mut args, "fastq-validator");
             push_arg(&mut cmd, &mut args, "--file");
             push_arg(&mut cmd, &mut args, input_path.clone());

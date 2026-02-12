@@ -113,11 +113,6 @@ version = "0.0.0"
 source = "https://github.com/fastqvalidator/fastqvalidator"
 date_pinned = "2026-02-12"
 
-[fastqvalidator_official]
-version = "0.0.0"
-source = "https://github.com/fastqvalidator_official/fastqvalidator_official"
-date_pinned = "2026-02-12"
-
 [fastx_clipper]
 version = "0.0.14"
 source = "https://github.com/agordon/fastx_toolkit"

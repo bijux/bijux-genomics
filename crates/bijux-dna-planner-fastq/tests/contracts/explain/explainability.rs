@@ -16,7 +16,7 @@ fn tool_reasons_carry_defaults_and_contract_hash() -> anyhow::Result<()> {
     bijux_dna_infra::write_bytes(&r1, "@r1\nA\n+\n#\n")?;
 
     let tool = ToolExecutionSpecV1 {
-        tool_id: ToolId::new("fastqvalidator_official"),
+        tool_id: ToolId::new("fastqvalidator"),
         tool_version: "1.0".to_string(),
         image: ContainerImageRefV1 {
             image: "fastqvalidator".to_string(),

@@ -67,7 +67,7 @@ impl QaStage {
                 "seqtk",
                 "fastqc",
                 "fastqvalidator",
-                "fastqvalidator_official",
+                "fastqvalidator",
                 "fqtools",
             ],
             QaStage::Filter => &["prinseq", "fastp", "seqkit"],

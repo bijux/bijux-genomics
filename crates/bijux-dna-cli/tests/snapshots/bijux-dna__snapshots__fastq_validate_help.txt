@@ -16,5 +16,5 @@ Options:
   -h, --help                   Print help
 
 Examples:
-  bijux dna fastq validate-pre --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE --tools fastqvalidator_official
+  bijux dna fastq validate-pre --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE --tools fastqvalidator
   bijux dna fastq validate-pre --list-tools
