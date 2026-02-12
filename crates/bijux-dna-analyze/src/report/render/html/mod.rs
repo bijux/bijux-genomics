@@ -12,7 +12,35 @@ use template::build_html_template;
 #[allow(dead_code)]
 pub fn render_report_html(model: &ReportModel) -> Result<String> {
     let report = &model.report;
-    let report_json = serde_json::to_string_pretty(report)?;
+    let mut report_json_value = serde_json::to_value(report)?;
+    if let Some(root) = report_json_value.as_object_mut() {
+        root.insert(
+            "bundle_schema_version".to_string(),
+            serde_json::Value::String("bijux.report_bundle.v1".to_string()),
+        );
+        if let Some(sections) = root
+            .entry("sections")
+            .or_insert_with(|| serde_json::json!({}))
+            .as_object_mut()
+        {
+            sections
+                .entry("fastq".to_string())
+                .or_insert_with(|| serde_json::json!({
+                    "schema_version": "bijux.report.section.fastq.v1",
+                    "stages": report.stages.len(),
+                }));
+            if let Some(run_provenance) = sections
+                .entry("run_provenance".to_string())
+                .or_insert_with(|| serde_json::json!({}))
+                .as_object_mut()
+            {
+                run_provenance
+                    .entry("manifest_signature_sha256".to_string())
+                    .or_insert_with(|| serde_json::Value::String("unknown".to_string()));
+            }
+        }
+    }
+    let report_json = serde_json::to_string_pretty(&report_json_value)?;
     let sections = report.sections.as_object().cloned().unwrap_or_default();
     let mut section_keys: Vec<String> = sections.keys().cloned().collect();
     section_keys.sort();
