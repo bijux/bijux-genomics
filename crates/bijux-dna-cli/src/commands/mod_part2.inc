@@ -280,6 +280,9 @@ fn handle_example_root(command: &cli::ExampleCommand, cwd: &Path) -> Result<()> 
                 example::list_examples_text(cwd)?;
             }
         }
+        cli::ExampleCommand::Chain(args) => {
+            example::chain_examples(cwd, &args.from, &args.arrow, &args.to)?
+        }
     }
     Ok(())
 }
