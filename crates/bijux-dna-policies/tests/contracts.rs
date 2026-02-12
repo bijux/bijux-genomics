@@ -48,6 +48,8 @@ mod mod_contracts_tooling_ci_tools_policy_rs;
 mod mod_contracts_tooling_cli_app_prefix_policy_rs;
 #[path = "contracts/tooling/cli_command_snapshot_policy.rs"]
 mod mod_contracts_tooling_cli_command_snapshot_policy_rs;
+#[path = "contracts/tooling/cli_release_help_snapshot_policy.rs"]
+mod mod_contracts_tooling_cli_release_help_snapshot_policy_rs;
 #[path = "contracts/tooling/cli_sql_policy.rs"]
 mod mod_contracts_tooling_cli_sql_policy_rs;
 #[path = "contracts/tooling/command_spawn_policy.rs"]
