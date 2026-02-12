@@ -144,13 +144,13 @@ fn policy__contracts__tool_registry_completeness__registry_entries_are_machine_c
                             offenders.push(format!("tool={id}: dockerfile not found at {path}"));
                         } else {
                             let content = std::fs::read_to_string(&abs).unwrap_or_default();
-                            if !content.contains("SPDX-License-Identifier: GPL-3.0-only") {
+                            if !content.contains("SPDX-License-Identifier: ") {
                                 offenders
-                                    .push(format!("tool={id}: dockerfile missing GPL SPDX header"));
+                                    .push(format!("tool={id}: dockerfile missing SPDX header"));
                             }
-                            if !content.contains("org.opencontainers.image.licenses=\"GPL-3.0\"") {
+                            if !content.contains("org.opencontainers.image.licenses=") {
                                 offenders.push(format!(
-                                    "tool={id}: dockerfile missing OCI GPL-3.0 license label"
+                                    "tool={id}: dockerfile missing OCI license label"
                                 ));
                             }
                             for required in [
@@ -191,9 +191,11 @@ fn policy__contracts__tool_registry_completeness__registry_entries_are_machine_c
                     if path.is_empty() {
                         offenders.push(format!("tool={id}: missing apptainer_def path"));
                     } else {
-                        if !path.starts_with("containers/apptainer/") {
+                        if !path.starts_with("containers/apptainer/bijux/")
+                            && !path.starts_with("containers/apptainer/non-bijux/")
+                        {
                             offenders.push(format!(
-                                "tool={id}: apptainer def path must be under containers/apptainer/: {path}"
+                                "tool={id}: apptainer def path must be under containers/apptainer/bijux/ or containers/apptainer/non-bijux/: {path}"
                             ));
                         }
                         let expected = format!("{id}.def");
@@ -209,14 +211,13 @@ fn policy__contracts__tool_registry_completeness__registry_entries_are_machine_c
                             offenders.push(format!("tool={id}: apptainer def not found at {path}"));
                         } else {
                             let content = std::fs::read_to_string(&abs).unwrap_or_default();
-                            if !content.contains("SPDX-License-Identifier: GPL-3.0-only") {
-                                offenders.push(format!(
-                                    "tool={id}: apptainer def missing GPL SPDX header"
-                                ));
+                            if !content.contains("Container definition license: ") {
+                                offenders
+                                    .push(format!("tool={id}: apptainer def missing license header"));
                             }
-                            if !content.contains("org.opencontainers.image.licenses GPL-3.0") {
+                            if !content.contains("org.opencontainers.image.licenses ") {
                                 offenders.push(format!(
-                                    "tool={id}: apptainer def missing OCI GPL-3.0 license label"
+                                    "tool={id}: apptainer def missing OCI license label"
                                 ));
                             }
                             for required in [

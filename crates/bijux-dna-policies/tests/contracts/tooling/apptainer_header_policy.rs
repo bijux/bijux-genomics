@@ -1,0 +1,39 @@
+#![allow(non_snake_case)]
+#[path = "../../support/fs.rs"]
+mod support;
+
+use walkdir::WalkDir;
+
+#[test]
+fn policy__contracts__apptainer_header_policy__bijux_defs_start_with_exact_bijux_header() {
+    let root = support::workspace_root();
+    let bijux_root = root.join("containers").join("apptainer").join("bijux");
+    let mut offenders = Vec::new();
+
+    let expected = concat!(
+        "# Container definition license: GPL-3.0.\n",
+        "# This container definition is part of bijux-dna.\n",
+        "# The bijux-dna software source code is licensed under Apache-2.0.\n",
+        "# Copyright (C) 2026 Bijan Mousavi\n\n",
+    );
+
+    for entry in WalkDir::new(&bijux_root).into_iter().filter_map(Result::ok) {
+        if !entry.file_type().is_file() {
+            continue;
+        }
+        let path = entry.path();
+        if path.extension().and_then(|ext| ext.to_str()) != Some("def") {
+            continue;
+        }
+        let content = std::fs::read_to_string(path).unwrap_or_default();
+        if !content.starts_with(expected) {
+            offenders.push(path.display().to_string());
+        }
+    }
+
+    bijux_dna_policies::policy_assert!(
+        offenders.is_empty(),
+        "bijux-owned apptainer .def headers must match exact required header:\n{}",
+        offenders.join("\n")
+    );
+}
