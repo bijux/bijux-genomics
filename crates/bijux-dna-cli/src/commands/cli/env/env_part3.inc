@@ -32,19 +32,16 @@ fn build_apptainer_image(def_path: &Path, sif_path: &Path) -> Result<()> {
     if let Some(parent) = sif_path.parent() {
         bijux_dna_api::v1::api::run::ensure_dir(parent)?;
     }
-    let output = std::process::Command::new("apptainer")
-        .arg("build")
-        .arg("--force")
-        .arg(sif_path)
-        .arg(def_path)
-        .output()
-        .with_context(|| format!("build apptainer image from {}", def_path.display()))?;
-    if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr);
+    let cmd = format!(
+        "apptainer build --force '{}' '{}'",
+        sif_path.display(),
+        def_path.display()
+    );
+    if let Err(err) = bijux_dna_api::v1::api::env::run_shell_capture(&cmd) {
         return Err(anyhow!(
             "apptainer build failed for {}: {}",
             def_path.display(),
-            stderr.trim()
+            err
         ));
     }
     Ok(())
@@ -185,40 +182,16 @@ fn run_apptainer_exec(
     let input_bind = format!("{}:/bijux/input:ro", data_root.display());
     let output_bind = format!("{}:/bijux/output:rw", results_root.display());
     let db_bind = format!("{}:/bijux/db:ro", banks_root.display());
-    let output = std::process::Command::new("apptainer")
-        .arg("exec")
-        .arg("--containall")
-        .arg("--cleanenv")
-        .arg("--net")
-        .arg("--network")
-        .arg("none")
-        .arg("--bind")
-        .arg(input_bind)
-        .arg("--bind")
-        .arg(output_bind)
-        .arg("--bind")
-        .arg(db_bind)
-        .arg(sif_path)
-        .arg("sh")
-        .arg("-lc")
-        .arg(command)
-        .output()
-        .with_context(|| format!("apptainer exec {}", sif_path.display()))?;
-    let stdout = String::from_utf8_lossy(&output.stdout).to_string();
-    let stderr = String::from_utf8_lossy(&output.stderr).to_string();
-    if output.status.success() {
-        if stdout.trim().is_empty() {
-            Ok(stderr)
-        } else {
-            Ok(stdout)
-        }
-    } else {
-        Err(anyhow!(
-            "apptainer exec failed for {}: {}",
-            sif_path.display(),
-            stderr.trim()
-        ))
-    }
+    let cmd = format!(
+        "apptainer exec --containall --cleanenv --net --network none --bind '{}' --bind '{}' --bind '{}' '{}' sh -lc '{}'",
+        input_bind,
+        output_bind,
+        db_bind,
+        sif_path.display(),
+        command.replace('\'', "'\\''")
+    );
+    bijux_dna_api::v1::api::env::run_shell_capture(&cmd)
+        .with_context(|| format!("apptainer exec {}", sif_path.display()))
 }
 
 fn hash_file_sha256_hex(path: &Path) -> Result<String> {
