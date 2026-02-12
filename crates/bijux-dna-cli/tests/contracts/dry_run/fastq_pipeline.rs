@@ -131,15 +131,6 @@ arch = "x86_64"
         "--sample-id",
         "sample",
     ];
-    run_with_args(&args, root).expect("run cli");
-
-    let artifacts_root = out_dir
-        .join("bench")
-        .join("preprocess")
-        .join("sample")
-        .join("run_artifacts");
-    assert!(artifacts_root.join("graph.json").exists());
-    assert!(artifacts_root.join("decision_trace.json").exists());
-    assert!(artifacts_root.join("plan_artifact_manifest.json").exists());
-    assert!(out_dir.join("run_manifest.json").exists());
+    let err = run_with_args(&args, root).expect_err("fastq command family should be removed");
+    assert!(err.to_string().contains("unrecognized subcommand"));
 }

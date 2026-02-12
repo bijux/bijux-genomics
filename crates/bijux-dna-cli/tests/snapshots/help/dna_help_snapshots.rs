@@ -19,8 +19,11 @@ fn cli_dna_help_snapshot() {
 
 #[test]
 fn cli_dna_fastq_help_snapshot() {
-    let help = help_for(&["dna", "fastq", "--help"]);
-    assert!(help.contains("Usage: bijux dna fastq [OPTIONS] <COMMAND>"));
+    let cmd = Cli::command();
+    let err = cmd
+        .try_get_matches_from(["bijux", "dna", "fastq", "--help"])
+        .expect_err("fastq should be removed");
+    assert_eq!(err.kind(), clap::error::ErrorKind::InvalidSubcommand);
 }
 
 #[test]
