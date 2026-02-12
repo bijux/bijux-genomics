@@ -62,6 +62,10 @@ mod mod_contracts_tooling_cli_sql_policy_rs;
 mod mod_contracts_tooling_command_spawn_policy_rs;
 #[path = "contracts/tooling/container_label_policy.rs"]
 mod mod_contracts_tooling_container_label_policy_rs;
+#[path = "contracts/tooling/container_registry_parity_policy.rs"]
+mod mod_contracts_tooling_container_registry_parity_policy_rs;
+#[path = "contracts/tooling/container_runtime_invocation_policy.rs"]
+mod mod_contracts_tooling_container_runtime_invocation_policy_rs;
 #[path = "contracts/tooling/container_manifest_snapshot_policy.rs"]
 mod mod_contracts_tooling_container_manifest_snapshot_policy_rs;
 #[path = "contracts/tooling/container_versions_policy.rs"]
