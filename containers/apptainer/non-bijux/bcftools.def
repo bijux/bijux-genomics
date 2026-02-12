@@ -8,6 +8,7 @@ Bootstrap: docker
 From: quay.io/biocontainers/bcftools:1.20--h8b25389_0@sha256:67f54df47f501f6ddef08e3b9ad89cf693952f9a89de0d74df6e39fce15f1ff6
 
 %labels
+    VERSION unknown
     org.opencontainers.image.source https://github.com/bijux/bijux-dna
     org.opencontainers.image.revision unknown
     org.opencontainers.image.created unknown
