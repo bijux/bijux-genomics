@@ -23,6 +23,7 @@ pub(crate) fn handle_meta_commands(
     registry_path: &Path,
 ) -> Result<bool> {
     match dna_command {
+        #[cfg(debug_assertions)]
         DnaCommand::ValidateManifests => {
             let registry = load_manifests(registry_path)
                 .map_err(|err| anyhow!("manifest validation failed: {err}"))?;
@@ -37,28 +38,32 @@ pub(crate) fn handle_meta_commands(
             );
             Ok(true)
         }
+        #[cfg(debug_assertions)]
         DnaCommand::Platform => {
             let platform = load_platform(cli.platform.as_deref())
                 .map_err(|err| anyhow!("failed to load platform: {err}"))?;
             render::json::print_pretty(&platform)?;
             Ok(true)
         }
+        #[cfg(debug_assertions)]
         DnaCommand::ImageQa => {
             run_image_qa(cli.platform.as_deref())?;
             Ok(true)
         }
+        #[cfg(debug_assertions)]
         DnaCommand::Replay(args) => {
             if let Some(manifest_path) = args.manifest.as_ref() {
-                bijux_dna_api::v1::api::run::replay_manifest(manifest_path, args.verify_only)?;
+                bijux_dna_api::v1::api::run::replay_manifest(manifest_path, args.validate_only)?;
                 return Ok(true);
             }
             let manifest_path = args
                 .search_root
                 .join(&args.run_id)
                 .join("run_manifest.json");
-            bijux_dna_api::v1::api::run::replay_manifest(&manifest_path, args.verify_only)?;
+            bijux_dna_api::v1::api::run::replay_manifest(&manifest_path, args.validate_only)?;
             Ok(true)
         }
+        #[cfg(debug_assertions)]
         DnaCommand::Compare(args) => {
             let objective = objective_spec(Objective::Balanced);
             let run_a = args.search_root.join(&args.run_a);
@@ -77,6 +82,7 @@ pub(crate) fn handle_meta_commands(
             render::json::print_pretty(&result)?;
             Ok(true)
         }
+        #[cfg(debug_assertions)]
         DnaCommand::Policies { command } => {
             match command {
                 PoliciesCommand::Audit { out } => {
@@ -355,7 +361,7 @@ pub(crate) fn handle_meta_commands(
                 Ok(true)
             }
         },
-        DnaCommand::Analyze { command } => {
+        DnaCommand::Analyze { command } | DnaCommand::Explain { command } => {
             match command {
                 AnalyzeCommand::Runs(args) => {
                     let query = bijux_dna_api::v1::api::run::RunQuery {
@@ -881,18 +887,28 @@ pub(crate) fn handle_meta_commands(
             Ok(true)
         }
         DnaCommand::Fastq { .. }
+        #[cfg(debug_assertions)]
         | DnaCommand::Bam { .. }
+        #[cfg(debug_assertions)]
         | DnaCommand::Vcf { .. }
         | DnaCommand::Registry { .. }
+        #[cfg(debug_assertions)]
         | DnaCommand::Ena { .. }
         | DnaCommand::Corpus { .. }
+        #[cfg(debug_assertions)]
         | DnaCommand::Tool { .. }
+        #[cfg(debug_assertions)]
         | DnaCommand::Domain { .. }
+        #[cfg(debug_assertions)]
         | DnaCommand::Lab { .. }
+        #[cfg(debug_assertions)]
         | DnaCommand::Config { .. }
         | DnaCommand::Status(_)
+        #[cfg(debug_assertions)]
         | DnaCommand::Ci { .. }
+        #[cfg(debug_assertions)]
         | DnaCommand::Debug(_)
+        #[cfg(debug_assertions)]
         | DnaCommand::Collect(_) => Ok(false),
     }
 }

@@ -48,7 +48,7 @@ pub struct StatusArgs {
 #[derive(Debug, Subcommand)]
 #[allow(clippy::large_enum_variant)]
 pub enum DnaCommand {
-    #[command(alias = "env")]
+    #[command(name = "env", alias = "environment")]
     Environment {
         #[command(subcommand)]
         command: EnvCommand,
@@ -57,6 +57,7 @@ pub enum DnaCommand {
         #[command(subcommand)]
         command: RegistryCommand,
     },
+    #[cfg_attr(not(debug_assertions), command(hide = true))]
     Ena {
         #[command(subcommand)]
         command: EnaCommand,
@@ -65,61 +66,83 @@ pub enum DnaCommand {
         #[command(subcommand)]
         command: CorpusCommand,
     },
+    #[cfg_attr(not(debug_assertions), command(hide = true))]
     Tool {
         #[command(subcommand)]
         command: ToolCommand,
     },
+    #[cfg_attr(not(debug_assertions), command(hide = true))]
     Domain {
         #[command(subcommand)]
         command: DomainCommand,
     },
+    #[cfg_attr(not(debug_assertions), command(hide = true))]
     Lab {
         #[command(subcommand)]
         command: LabCommand,
     },
+    #[cfg_attr(not(debug_assertions), command(hide = true))]
     Config {
         #[command(subcommand)]
         command: ConfigCommand,
     },
     Status(StatusArgs),
+    #[command(name = "run")]
     Fastq {
         #[command(subcommand)]
         command: FastqCommand,
     },
+    #[cfg_attr(not(debug_assertions), command(hide = true))]
     Bam {
         #[command(subcommand)]
         command: BamCommand,
     },
+    #[cfg_attr(not(debug_assertions), command(hide = true))]
     Vcf {
         #[command(subcommand)]
         command: VcfCommand,
     },
+    #[command(name = "plan")]
     Pipelines {
         #[command(subcommand)]
         command: PipelinesCommand,
     },
+    #[command(visible_alias = "explain")]
     Analyze {
         #[command(subcommand)]
         command: AnalyzeCommand,
     },
+    Explain {
+        #[command(subcommand)]
+        command: AnalyzeCommand,
+    },
+    #[cfg_attr(not(debug_assertions), command(hide = true))]
     ValidateManifests,
+    #[cfg_attr(not(debug_assertions), command(hide = true))]
     Platform,
+    #[cfg_attr(not(debug_assertions), command(hide = true))]
     ImageQa,
+    #[cfg_attr(not(debug_assertions), command(hide = true))]
     Replay(ReplayArgs),
+    #[cfg_attr(not(debug_assertions), command(hide = true))]
     Compare(CompareArgs),
     Bench {
         #[command(subcommand)]
         command: BenchCommand,
     },
+    #[cfg_attr(not(debug_assertions), command(hide = true))]
     Policies {
         #[command(subcommand)]
         command: PoliciesCommand,
     },
+    #[cfg_attr(not(debug_assertions), command(hide = true))]
     Ci {
         #[command(subcommand)]
         command: CiCommand,
     },
+    #[cfg_attr(not(debug_assertions), command(hide = true))]
     Debug(DebugArgs),
+    #[cfg_attr(not(debug_assertions), command(hide = true))]
     Collect(CollectArgs),
 }
 
@@ -159,7 +182,7 @@ pub struct ReplayArgs {
     #[arg(long)]
     pub manifest: Option<PathBuf>,
     #[arg(long)]
-    pub verify_only: bool,
+    pub validate_only: bool,
 }
 
 #[derive(Debug, Args)]
@@ -361,8 +384,8 @@ pub enum RegistryCommand {
     ExportJson,
     #[command(name = "coverage-matrix")]
     CoverageMatrix,
-    #[command(name = "verify-tool")]
-    VerifyTool { id: String },
+    #[command(name = "validate-tool")]
+    ValidateTool { id: String },
     #[command(name = "audit")]
     Audit {
         #[arg(long, default_value_t = false)]
@@ -392,7 +415,7 @@ pub enum RegistryCommand {
 
 #[derive(Debug, Subcommand)]
 pub enum ToolCommand {
-    Verify { id: String },
+    Validate { id: String },
 }
 
 #[derive(Debug, Subcommand)]

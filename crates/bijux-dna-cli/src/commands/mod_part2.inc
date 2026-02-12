@@ -223,7 +223,7 @@ fn handle_registry_root(command: &cli::RegistryCommand, cwd: &Path) -> Result<()
         cli::RegistryCommand::Show { id } => print_registry_show(&registry_path, id)?,
         cli::RegistryCommand::ExportJson => print_registry_export_json(&registry_path)?,
         cli::RegistryCommand::CoverageMatrix => print_registry_coverage_matrix(&registry_path)?,
-        cli::RegistryCommand::VerifyTool { id } => verify_registry_tool(&registry_path, id)?,
+        cli::RegistryCommand::ValidateTool { id } => verify_registry_tool(&registry_path, id)?,
         cli::RegistryCommand::Audit {
             show_binding_violations,
             fix_suggestions,
@@ -336,14 +336,14 @@ fn handle_ci_root(command: &cli::CiCommand, cwd: &Path) -> Result<()> {
         checks,
     };
     match command {
-        cli::CiCommand::Verify { out } => {
+        cli::CiCommand::Validate { out } => {
             if let Some(parent) = out.parent() {
                 bijux_dna_infra::ensure_dir(parent)?;
             }
             bijux_dna_infra::atomic_write_json(out, &summary)?;
-            println!("ci_verify_summary={}", out.display());
+            println!("ci_validate_summary={}", out.display());
             if !ok {
-                return Err(anyhow!("ci verify failed; see {}", out.display()));
+                return Err(anyhow!("ci validate failed; see {}", out.display()));
             }
         }
     }
@@ -354,7 +354,7 @@ fn handle_tool_root(command: &cli::ToolCommand, cwd: &Path) -> Result<()> {
     use crate::commands::cli::env::verify_registry_tool;
     let registry_path = cwd.join("configs").join("tool_registry.toml");
     match command {
-        cli::ToolCommand::Verify { id } => verify_registry_tool(&registry_path, id)?,
+        cli::ToolCommand::Validate { id } => verify_registry_tool(&registry_path, id)?,
     }
     Ok(())
 }
