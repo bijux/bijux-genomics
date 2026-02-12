@@ -1,5 +1,0 @@
-{
-  "schema_version": "bijux.fixture_case.v1",
-  "format": "markdown_legacy",
-  "content": "# CASE\n\nPath: tests/fixtures/handshake/default\n\n## Purpose\nDescribe the input meaning, why it exists, and the invariant it tests.\n"
-}
