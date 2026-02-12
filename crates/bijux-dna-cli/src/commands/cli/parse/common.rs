@@ -44,6 +44,11 @@ pub enum RootCommand {
         #[command(subcommand)]
         command: CorpusCommand,
     },
+    Example {
+        #[command(subcommand)]
+        command: ExampleCommand,
+    },
+    Plan(PlanArgs),
     Tool {
         #[command(subcommand)]
         command: ToolCommand,
@@ -421,6 +426,29 @@ pub enum CorpusCommand {
         #[arg(long, default_value_t = false)]
         json: bool,
     },
+}
+
+#[derive(Debug, Subcommand)]
+pub enum ExampleCommand {
+    Run(ExampleRunArgs),
+    Validate(ExampleValidateArgs),
+}
+
+#[derive(Debug, Args)]
+pub struct ExampleRunArgs {
+    pub id: String,
+    #[arg(long, default_value_t = false)]
+    pub hpc: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct ExampleValidateArgs {
+    pub id: String,
+}
+
+#[derive(Debug, Args)]
+pub struct PlanArgs {
+    pub id: String,
 }
 
 #[derive(Debug, Args)]
