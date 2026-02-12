@@ -567,11 +567,20 @@ pub(crate) fn handle_meta_commands(
                         },
                         Ok,
                     )?;
+                    let stages = match (&args.stage, &args.stages) {
+                        (Some(stage), None) => stage.clone(),
+                        (None, Some(stages)) => stages.clone(),
+                        _ => {
+                            return Err(anyhow!(
+                                "environment ensure-images requires exactly one of --stage or --stages"
+                            ));
+                        }
+                    };
                     let report = crate::commands::cli::env::ensure_apptainer_images(
                         &registry_path,
                         &hpc_root,
                         &args.domain,
-                        &args.stages,
+                        &stages,
                         args.force_smoke,
                         args.repair_mismatch,
                     )?;
@@ -585,6 +594,10 @@ pub(crate) fn handle_meta_commands(
                         println!("quick_smoked={}", report.quick_smoked);
                         println!("failed={}", report.failed);
                     }
+                }
+                EnvCommand::LintApptainerDefs => {
+                    let cwd = std::env::current_dir()?;
+                    crate::commands::cli::env::lint_apptainer_defs(&cwd)?;
                 }
                 EnvCommand::SifInventory { hpc_root, json } => {
                     let root = hpc_root.clone().map_or_else(
