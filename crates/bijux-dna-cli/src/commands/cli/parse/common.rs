@@ -380,28 +380,52 @@ pub enum ToolCommand {
 
 #[derive(Debug, Subcommand)]
 pub enum EnaCommand {
+    Select(EnaSelectArgs),
     Fetch(EnaFetchArgs),
 }
 
 #[derive(Debug, Args)]
-pub struct EnaFetchArgs {
+pub struct EnaSelectArgs {
     #[arg(long)]
     pub project: String,
-    #[arg(long = "limit", value_delimiter = ',', default_values = ["10-se", "10-pe"])]
-    pub limits: Vec<String>,
+    #[arg(long = "target-se", default_value_t = 10)]
+    pub target_se: usize,
+    #[arg(long = "target-pe", default_value_t = 10)]
+    pub target_pe: usize,
+    #[arg(long, default_value = "ENA_METADATA.snapshot.json")]
+    pub out: PathBuf,
+}
+
+#[derive(Debug, Args)]
+pub struct EnaFetchArgs {
+    #[arg(long, value_name = "PATH")]
+    pub snapshot: PathBuf,
     #[arg(long, default_value = "bijux-dna-data/corpus-01/raw")]
     pub out: PathBuf,
 }
 
 #[derive(Debug, Subcommand)]
 pub enum CorpusCommand {
+    Normalize {
+        corpus: String,
+    },
     Validate {
         corpus: String,
     },
-    List {
+    List(CorpusListArgs),
+    Diff {
+        left: String,
+        right: String,
         #[arg(long, default_value_t = false)]
         json: bool,
     },
+}
+
+#[derive(Debug, Args)]
+pub struct CorpusListArgs {
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+    pub corpus: Option<String>,
 }
 
 #[derive(Debug, Subcommand)]
