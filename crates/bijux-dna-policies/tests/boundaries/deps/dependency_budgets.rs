@@ -5,7 +5,7 @@ const BUDGETS: &[(&str, usize)] = &[
     ("bijux-dna-core", 20),
     ("bijux-dna-runtime", 25),
     ("bijux-dna-analyze", 35),
-    ("bijux-dna-benchmark-model", 20),
+    ("bijux-dna-bench-model", 20),
     ("bijux-dna-infra", 20),
     ("bijux-dna-environment-qa", 80),
 ];

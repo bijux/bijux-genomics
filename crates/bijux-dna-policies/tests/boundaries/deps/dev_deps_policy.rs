@@ -55,7 +55,7 @@ fn policy__boundaries__dev_deps_policy__dev_dependencies_are_allowlisted() {
     let allowlist: BTreeSet<&str> = BTreeSet::from([
         "anyhow.workspace",
         "assert_cmd",
-        "bijux-dna-benchmark",
+        "bijux-dna-bench",
         "bijux-dna-core",
         "bijux-dna-domain-bam",
         "bijux-dna-domain-compiler",

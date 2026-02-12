@@ -6,7 +6,6 @@ pub use bijux_dna_analyze::compare::compare_runs_with_baseline;
 pub use bijux_dna_analyze::{build_rankings, compare_runs, print_bench_schema, RankInput};
 
 pub use crate::request_args::{BamRunArgs, BenchBamPipelineArgs, BenchBamStageArgs};
-pub use bijux_dna_benchmark::{benchmark_runs, write_benchmark_exports};
 pub use bijux_dna_core::contract::objective_spec;
 pub use bijux_dna_core::contract::{Objective, ObjectiveSpec, ObjectiveWeights};
 pub use bijux_dna_planner_bam::stage_api::{bam_stage_completeness, BamStage};

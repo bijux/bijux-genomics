@@ -60,8 +60,8 @@ See `TESTS.md` for test mapping and fixtures.
   `tests/snapshots/bijux-dna-api__schemas__explain_schema.snap`,
   `tests/snapshots/bijux-dna-api__schemas__policy_audit_schema.snap`.
 
-[bijux-dna-benchmark]
-# bijux-dna-benchmark Docs Index
+[bijux-dna-bench]
+# bijux-dna-bench Docs Index
 
 ## Scope
 See `SCOPE.md` for what belongs here.
@@ -81,8 +81,8 @@ See `CHANGE_RULES.md` for safe extension guidelines.
 ## How to Test
 See `TESTS.md` for test mapping and fixtures.
 
-[bijux-dna-benchmark-model]
-# bijux-dna-benchmark-model Docs Index
+[bijux-dna-bench-model]
+# bijux-dna-bench-model Docs Index
 
 ## Scope
 See `SCOPE.md` for what belongs here.

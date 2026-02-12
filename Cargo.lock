@@ -286,7 +286,7 @@ name = "bijux-dna-analyze"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bijux-dna-benchmark",
+ "bijux-dna-bench",
  "bijux-dna-core",
  "bijux-dna-domain-bam",
  "bijux-dna-domain-fastq",
@@ -316,7 +316,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bijux-dna-analyze",
- "bijux-dna-benchmark",
+ "bijux-dna-bench",
  "bijux-dna-core",
  "bijux-dna-domain-bam",
  "bijux-dna-domain-fastq",
@@ -346,12 +346,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "bijux-dna-benchmark"
+name = "bijux-dna-bench"
 version = "0.1.0"
 dependencies = [
  "anyhow",
  "bijux-dna-analyze",
- "bijux-dna-benchmark-model",
+ "bijux-dna-bench-model",
  "bijux-dna-core",
  "bijux-dna-domain-bam",
  "bijux-dna-domain-fastq",
@@ -367,7 +367,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "bijux-dna-benchmark-model"
+name = "bijux-dna-bench-model"
 version = "0.1.0"
 dependencies = [
  "anyhow",

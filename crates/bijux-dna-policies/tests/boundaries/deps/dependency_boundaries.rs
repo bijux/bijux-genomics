@@ -91,8 +91,8 @@ fn policy__boundaries__dependency_boundaries__analyze_and_benchmark_do_not_depen
     let root = repo_root();
     let manifests = [
         root.join("crates/bijux-dna-analyze/Cargo.toml"),
-        root.join("crates/bijux-dna-benchmark/Cargo.toml"),
-        root.join("crates/bijux-dna-benchmark-model/Cargo.toml"),
+        root.join("crates/bijux-dna-bench/Cargo.toml"),
+        root.join("crates/bijux-dna-bench-model/Cargo.toml"),
     ];
     let mut offenders = Vec::new();
     for manifest in manifests {
