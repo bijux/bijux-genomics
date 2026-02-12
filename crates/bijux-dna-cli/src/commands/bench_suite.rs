@@ -69,6 +69,9 @@ pub struct SuiteRunManifest {
     pub metrics_artifacts: Vec<MetricsArtifactRow>,
     pub postconditions: Vec<PostconditionRow>,
     pub run_records: Vec<RunRecordRow>,
+    pub comparability_hash: String,
+    pub environment: EnvironmentSnapshot,
+    pub scientific_defaults: ScientificDefaultsStatus,
     pub telemetry_path: String,
     pub reproducibility_bundle: String,
     pub created_at_unix: u64,
@@ -91,7 +94,7 @@ pub struct ColdWarmContract {
     pub warm_runs_exclude_image_cost: bool,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct DecisionTraceRow {
     pub stage: String,
     pub candidates: Vec<String>,
@@ -142,6 +145,20 @@ pub struct RunRecordRow {
     pub valid: bool,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct EnvironmentSnapshot {
+    pub apptainer_version: String,
+    pub kernel: String,
+    pub site_lock: serde_json::Value,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ScientificDefaultsStatus {
+    pub doc_path: String,
+    pub reference_defaults_ok: bool,
+    pub checked_rows: usize,
+}
+
 #[derive(Debug, Serialize)]
 pub struct SuiteAnalysisReport {
     pub schema_version: String,
@@ -149,6 +166,10 @@ pub struct SuiteAnalysisReport {
     pub run_dir: String,
     pub performance_ranking: Vec<RankingRow>,
     pub scientific_deltas: Vec<DeltaRow>,
+    pub claims_registry: ClaimsRegistry,
+    pub scientific_sufficiency: ScientificSufficiency,
+    pub comparability_hash: String,
+    pub environment: EnvironmentSnapshot,
     pub outliers: Vec<String>,
     pub invalid_runs_excluded: usize,
 }
@@ -165,6 +186,19 @@ pub struct DeltaRow {
     pub stage: String,
     pub metric: String,
     pub note: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct ClaimsRegistry {
+    pub can_conclude: Vec<String>,
+    pub cannot_conclude: Vec<String>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct ScientificSufficiency {
+    pub sufficient: bool,
+    pub thresholds: serde_json::Value,
+    pub reasons: Vec<String>,
 }
 
 fn default_repetitions() -> u32 {
@@ -217,6 +251,7 @@ pub fn load_suite(cwd: &Path, suite: &str) -> Result<SuiteSpec> {
 pub fn run_suite(cwd: &Path, suite_id: &str, hpc: bool) -> Result<PathBuf> {
     let suite = load_suite(cwd, suite_id)?;
     let fairness = suite.effective_fairness();
+    let scientific_defaults = validate_scientific_defaults_doc(cwd)?;
     let corpus_root = cwd.join("bijux-dna-data").join(&suite.corpus);
     if !corpus_root.exists() {
         return Err(anyhow!("missing corpus root {}", corpus_root.display()));
@@ -408,6 +443,9 @@ pub fn run_suite(cwd: &Path, suite_id: &str, hpc: bool) -> Result<PathBuf> {
     let now = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .map_or(0, |d| d.as_secs());
+    let environment = capture_environment_snapshot(cwd);
+    let comparability_hash =
+        compute_comparability_hash(&suite, &fairness, &tool_invocations, &scientific_defaults)?;
 
     let mut manifest = SuiteRunManifest {
         schema_version: "bijux.bench.suite_run_manifest.v2".to_string(),
@@ -433,6 +471,9 @@ pub fn run_suite(cwd: &Path, suite_id: &str, hpc: bool) -> Result<PathBuf> {
         metrics_artifacts,
         postconditions,
         run_records,
+        comparability_hash,
+        environment,
+        scientific_defaults,
         telemetry_path: telemetry_path.display().to_string(),
         reproducibility_bundle: String::new(),
         created_at_unix: now,
@@ -555,12 +596,31 @@ pub fn analyze_suite_with_format(
         });
     }
 
+    let sufficiency = evaluate_scientific_sufficiency(&manifest.run_records);
+    let claims_registry = ClaimsRegistry {
+        can_conclude: vec![
+            "relative runtime/memory ranking within this suite under recorded fairness constraints"
+                .to_string(),
+            "stage-level retention and length-shift deltas for trim/filter under recorded corpus"
+                .to_string(),
+        ],
+        cannot_conclude: vec![
+            "clinical validity or biological truth beyond benchmark artifacts".to_string(),
+            "cross-platform comparability outside matching comparability_hash".to_string(),
+            "population-level inference from this benchmark alone".to_string(),
+        ],
+    };
+
     let report = SuiteAnalysisReport {
         schema_version: "bijux.bench.suite_analysis.v2".to_string(),
         suite_id: manifest.suite_id,
         run_dir: run_dir.display().to_string(),
         performance_ranking: ranking,
         scientific_deltas: deltas,
+        claims_registry,
+        scientific_sufficiency: sufficiency,
+        comparability_hash: manifest.comparability_hash,
+        environment: manifest.environment,
         outliers,
         invalid_runs_excluded,
     };
@@ -651,6 +711,26 @@ pub fn production_readiness_status(cwd: &Path, suite_id: &str) -> Result<serde_j
             "name": "all_required_stages_ranked",
             "ok": missing.is_empty(),
             "detail": if missing.is_empty() { "ok".to_string() } else { format!("missing: {}", missing.join(",")) },
+        }));
+
+        let sufficiency_ok = report
+            .get("scientific_sufficiency")
+            .and_then(|v| v.get("sufficient"))
+            .and_then(serde_json::Value::as_bool)
+            .unwrap_or(false);
+        checks.push(serde_json::json!({
+            "name": "scientific_sufficiency_gate",
+            "ok": sufficiency_ok,
+            "detail": if sufficiency_ok { "ok".to_string() } else { "report marked scientifically insufficient".to_string() },
+        }));
+    }
+
+    if suite_id == "fastq_hpc_01" {
+        let (ok_mini, detail_mini) = mini_suite_stability_gate(cwd);
+        checks.push(serde_json::json!({
+            "name": "mini_suite_stability_no_drift",
+            "ok": ok_mini,
+            "detail": detail_mini,
         }));
     }
 
@@ -881,6 +961,224 @@ fn write_repro_bundle(bundle_path: &Path, run_dir: &Path) -> Result<()> {
             .with_context(|| format!("add {}", metrics.display()))?;
     }
     archive.finish().context("finalize reproducibility bundle")
+}
+
+fn validate_scientific_defaults_doc(cwd: &Path) -> Result<ScientificDefaultsStatus> {
+    let path = cwd.join("docs").join("SCIENTIFIC_DEFAULTS.md");
+    let raw = fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+    let mut checked_rows = 0usize;
+    for line in raw.lines() {
+        let trimmed = line.trim();
+        if !trimmed.starts_with('|') || trimmed.contains("---") {
+            continue;
+        }
+        let cols = trimmed
+            .trim_matches('|')
+            .split('|')
+            .map(str::trim)
+            .collect::<Vec<_>>();
+        if cols.len() < 7 {
+            continue;
+        }
+        if cols[0].eq_ignore_ascii_case("domain") {
+            continue;
+        }
+        let applies = cols[3].to_ascii_lowercase();
+        if !applies.contains("reference") {
+            continue;
+        }
+        checked_rows += 1;
+        let rationale = cols[4];
+        let comparability = cols[5];
+        let citation = cols[6];
+        if rationale.is_empty() || comparability.is_empty() || citation.is_empty() {
+            return Err(anyhow!(
+                "SCIENTIFIC_DEFAULTS reference row missing rationale/comparability/citation: {line}",
+            ));
+        }
+    }
+    if checked_rows == 0 {
+        return Err(anyhow!(
+            "SCIENTIFIC_DEFAULTS.md has no reference rows with enforceable metadata"
+        ));
+    }
+    Ok(ScientificDefaultsStatus {
+        doc_path: path.display().to_string(),
+        reference_defaults_ok: true,
+        checked_rows,
+    })
+}
+
+fn capture_environment_snapshot(cwd: &Path) -> EnvironmentSnapshot {
+    let apptainer_version = command_output("apptainer", &["--version"])
+        .or_else(|| command_output("singularity", &["--version"]))
+        .unwrap_or_else(|| "unavailable".to_string());
+    let kernel = command_output("uname", &["-r"]).unwrap_or_else(|| "unknown".to_string());
+    let site_lock = load_site_lock(cwd);
+    EnvironmentSnapshot {
+        apptainer_version,
+        kernel,
+        site_lock,
+    }
+}
+
+fn command_output(cmd: &str, args: &[&str]) -> Option<String> {
+    let output = std::process::Command::new(cmd).args(args).output().ok()?;
+    if !output.status.success() {
+        return None;
+    }
+    let value = String::from_utf8(output.stdout).ok()?;
+    let trimmed = value.trim();
+    if trimmed.is_empty() {
+        None
+    } else {
+        Some(trimmed.to_string())
+    }
+}
+
+fn load_site_lock(cwd: &Path) -> serde_json::Value {
+    let hpc_root = std::env::var("BIJUX_HPC_ROOT")
+        .map_or_else(|_| PathBuf::from("/home/bijan/bijux"), PathBuf::from);
+    let candidates = [
+        hpc_root.join("bijux-dna-results").join("site_lock.json"),
+        cwd.join("bijux-dna-results").join("site_lock.json"),
+    ];
+    for path in candidates {
+        if !path.exists() {
+            continue;
+        }
+        if let Ok(raw) = fs::read_to_string(&path) {
+            if let Ok(value) = serde_json::from_str::<serde_json::Value>(&raw) {
+                return value;
+            }
+        }
+    }
+    serde_json::json!({
+        "status": "missing",
+        "detail": "site_lock.json not found",
+    })
+}
+
+fn compute_comparability_hash(
+    suite: &SuiteSpec,
+    fairness: &FairnessSpec,
+    tool_invocations: &[ToolInvocationRow],
+    scientific_defaults: &ScientificDefaultsStatus,
+) -> Result<String> {
+    let mut versions = tool_invocations
+        .iter()
+        .map(|row| format!("{}:{}:{}", row.stage, row.tool, row.tool_version))
+        .collect::<Vec<_>>();
+    versions.sort();
+    versions.dedup();
+    let payload = serde_json::json!({
+        "suite_id": suite.suite_id,
+        "corpus": suite.corpus,
+        "fairness": {
+            "threads": fairness.threads,
+            "mem_gb": fairness.mem_gb,
+            "tmp_policy": fairness.tmp_policy,
+        },
+        "tool_versions": versions,
+        "scientific_defaults": scientific_defaults,
+    });
+    let bytes = serde_json::to_vec(&payload)?;
+    let mut hasher = sha2::Sha256::new();
+    hasher.update(bytes);
+    Ok(format!("{:x}", hasher.finalize()))
+}
+
+fn evaluate_scientific_sufficiency(rows: &[RunRecordRow]) -> ScientificSufficiency {
+    const MIN_READS_AFTER: u64 = 100_000;
+    const MIN_RETENTION: f64 = 0.10;
+    let mut reasons = Vec::new();
+    for row in rows {
+        if row.read_retention < MIN_RETENTION {
+            reasons.push(format!(
+                "{}:{}:{} run{} retention {:.3} < {:.3}",
+                row.stage, row.tool, row.mode, row.run_index, row.read_retention, MIN_RETENTION
+            ));
+        }
+        if let Some(delta) = &row.delta_metrics {
+            let reads_after = delta.get("reads_after").and_then(serde_json::Value::as_u64);
+            if let Some(reads_after) = reads_after {
+                if reads_after < MIN_READS_AFTER {
+                    reasons.push(format!(
+                        "{}:{}:{} run{} reads_after {} < {}",
+                        row.stage, row.tool, row.mode, row.run_index, reads_after, MIN_READS_AFTER
+                    ));
+                }
+            }
+        }
+    }
+    ScientificSufficiency {
+        sufficient: reasons.is_empty(),
+        thresholds: serde_json::json!({
+            "min_reads_after": MIN_READS_AFTER,
+            "min_retention": MIN_RETENTION
+        }),
+        reasons,
+    }
+}
+
+fn mini_suite_stability_gate(cwd: &Path) -> (bool, String) {
+    let runs_dir = cwd
+        .join("artifacts")
+        .join("bench")
+        .join("suites")
+        .join("fastq_hpc_01_mini")
+        .join("runs");
+    if !runs_dir.exists() {
+        return (
+            false,
+            format!("missing mini suite runs at {}", runs_dir.display()),
+        );
+    }
+    let mut manifests = fs::read_dir(&runs_dir)
+        .ok()
+        .into_iter()
+        .flat_map(std::iter::Iterator::flatten)
+        .map(|entry| entry.path().join("run_manifest.json"))
+        .filter(|path| path.exists())
+        .collect::<Vec<_>>();
+    manifests.sort();
+    if manifests.len() < 2 {
+        return (false, "need at least two corpus-01-mini runs".to_string());
+    }
+    let right = manifests.pop().unwrap_or_default();
+    let left = manifests.pop().unwrap_or_default();
+    let left_raw = match fs::read_to_string(&left) {
+        Ok(value) => value,
+        Err(err) => return (false, format!("read {} failed: {err}", left.display())),
+    };
+    let right_raw = match fs::read_to_string(&right) {
+        Ok(value) => value,
+        Err(err) => return (false, format!("read {} failed: {err}", right.display())),
+    };
+    let left_manifest = match serde_json::from_str::<SuiteRunManifest>(&left_raw) {
+        Ok(value) => value,
+        Err(err) => return (false, format!("parse {} failed: {err}", left.display())),
+    };
+    let right_manifest = match serde_json::from_str::<SuiteRunManifest>(&right_raw) {
+        Ok(value) => value,
+        Err(err) => return (false, format!("parse {} failed: {err}", right.display())),
+    };
+    if left_manifest.comparability_hash != right_manifest.comparability_hash {
+        return (
+            false,
+            "comparability_hash drift detected on corpus-01-mini".to_string(),
+        );
+    }
+    if left_manifest.decision_trace != right_manifest.decision_trace {
+        return (
+            false,
+            "decision trace drift detected on corpus-01-mini".to_string(),
+        );
+    }
+    (
+        true,
+        "stable (no drift across latest two mini runs)".to_string(),
+    )
 }
 
 fn html_escape(raw: &str) -> String {

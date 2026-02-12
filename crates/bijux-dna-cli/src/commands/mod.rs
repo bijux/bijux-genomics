@@ -550,10 +550,8 @@ fn print_contract_status(cwd: &Path) -> Result<()> {
 #[allow(clippy::format_push_string, clippy::too_many_lines)]
 fn handle_status_root(args: &cli::StatusArgs, cwd: &Path) -> Result<()> {
     if args.scope.eq_ignore_ascii_case("production-readiness") {
-        let report = crate::commands::bench_suite::production_readiness_status(
-            cwd,
-            "bench-suite-01-fastq-5stages",
-        )?;
+        let report =
+            crate::commands::bench_suite::production_readiness_status(cwd, "fastq_hpc_01")?;
         cli::render::json::print_pretty(&report)?;
         if report.get("ok").and_then(serde_json::Value::as_bool) != Some(true) {
             return Err(anyhow!("production readiness gate failed"));
