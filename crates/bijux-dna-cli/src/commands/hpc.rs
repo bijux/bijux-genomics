@@ -250,6 +250,17 @@ fn writable_dir(path: &Path) -> bool {
         .is_ok()
 }
 
+fn command_on_path(name: &str) -> Option<PathBuf> {
+    let path = std::env::var_os("PATH")?;
+    for dir in std::env::split_paths(&path) {
+        let candidate = dir.join(name);
+        if candidate.is_file() {
+            return Some(candidate);
+        }
+    }
+    None
+}
+
 pub fn validate_hpc_status(layout: &HpcLayout) -> HpcStatusReport {
     let mut checks = Vec::new();
     for (name, path) in [
@@ -284,17 +295,13 @@ pub fn validate_hpc_status(layout: &HpcLayout) -> HpcStatusReport {
         detail: scratch.display().to_string(),
     });
 
-    let apptainer = std::process::Command::new("sh")
-        .arg("-c")
-        .arg("command -v apptainer")
-        .output()
-        .ok()
-        .filter(|o| o.status.success())
-        .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string());
+    let apptainer = command_on_path("apptainer");
     checks.push(HpcCheck {
         name: "apptainer_present".to_string(),
         ok: apptainer.is_some(),
-        detail: apptainer.unwrap_or("not found".to_string()),
+        detail: apptainer
+            .map(|p| p.display().to_string())
+            .unwrap_or_else(|| "not found".to_string()),
     });
 
     let sif_cache = std::env::var("APPTAINER_CACHEDIR")
@@ -330,12 +337,7 @@ pub fn config_doctor() -> Result<ConfigDoctorReport> {
 
     let slurm_enabled = cfg.slurm.enabled;
     for cmd in ["sbatch", "squeue", "sinfo"] {
-        let found = std::process::Command::new("sh")
-            .arg("-c")
-            .arg(format!("command -v {cmd}"))
-            .output()
-            .ok()
-            .is_some_and(|o| o.status.success());
+        let found = command_on_path(cmd).is_some();
         checks.push(HpcCheck {
             name: format!("slurm_{cmd}_present"),
             ok: if slurm_enabled { found } else { true },
