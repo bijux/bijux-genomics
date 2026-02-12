@@ -1,0 +1,16 @@
+# SSOT: common names/aliases -> latin binomial
+# key: lowercase alias
+# value: "Genus species"
+[aliases]
+horse = "Equus caballus"
+human = "Homo sapiens"
+dog = "Canis lupus"
+wolf = "Canis lupus"
+cat = "Felis catus"
+cow = "Bos taurus"
+pig = "Sus scrofa"
+sheep = "Ovis aries"
+goat = "Capra hircus"
+chicken = "Gallus gallus"
+mouse = "Mus musculus"
+rat = "Rattus norvegicus"

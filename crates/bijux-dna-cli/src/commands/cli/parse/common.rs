@@ -395,20 +395,26 @@ pub enum EnaCommand {
 pub struct EnaSelectArgs {
     #[arg(long)]
     pub project: String,
+    #[arg(long)]
+    pub species: String,
+    #[arg(long, default_value = "corpus-01")]
+    pub corpus_id: String,
     #[arg(long = "target-se", default_value_t = 10)]
     pub target_se: usize,
     #[arg(long = "target-pe", default_value_t = 10)]
     pub target_pe: usize,
-    #[arg(long, default_value = "ENA_METADATA.snapshot.json")]
-    pub out: PathBuf,
+    #[arg(long)]
+    pub out: Option<PathBuf>,
 }
 
 #[derive(Debug, Args)]
 pub struct EnaFetchArgs {
+    #[arg(long)]
+    pub species: String,
     #[arg(long, value_name = "PATH")]
     pub snapshot: PathBuf,
-    #[arg(long, default_value = "bijux-dna-data/corpus-01/raw")]
-    pub out: PathBuf,
+    #[arg(long)]
+    pub out: Option<PathBuf>,
 }
 
 #[derive(Debug, Subcommand)]
