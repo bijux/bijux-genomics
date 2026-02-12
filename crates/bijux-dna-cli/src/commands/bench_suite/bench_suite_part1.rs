@@ -759,10 +759,7 @@ pub fn production_readiness_status(cwd: &Path, suite_id: &str) -> Result<serde_j
 }
 
 fn suite_path(cwd: &Path, suite: &str) -> Result<PathBuf> {
-    let preferred = cwd
-        .join("examples")
-        .join("bench-suites")
-        .join(format!("{suite}.toml"));
+    let preferred = cwd.join("bench").join("suites").join(format!("{suite}.toml"));
     if preferred.exists() {
         return Ok(preferred);
     }

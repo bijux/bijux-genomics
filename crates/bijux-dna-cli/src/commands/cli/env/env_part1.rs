@@ -724,7 +724,7 @@ pub fn promote_registry_tool(registry_path: &Path, cwd: &Path, id: &str) -> Resu
     }
 
     let mut referenced_in_suite = false;
-    for rel in ["examples/bench-suites", "examples"] {
+    for rel in ["bench/suites", "examples"] {
         let root = cwd.join(rel);
         if !root.exists() {
             continue;
@@ -744,7 +744,7 @@ pub fn promote_registry_tool(registry_path: &Path, cwd: &Path, id: &str) -> Resu
     }
     if !referenced_in_suite {
         failures.push(format!(
-            "tool `{id}` not referenced by any benchmark suite (examples/bench-suites/*.toml or examples/**/bench-suite.toml)"
+            "tool `{id}` not referenced by any benchmark suite (bench/suites/*.toml or examples/**/bench-suite.toml)"
         ));
     }
 
