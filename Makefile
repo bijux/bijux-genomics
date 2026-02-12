@@ -9,6 +9,7 @@ include makefiles/containers.mk
 include makefiles/benchmarks-fastq.mk
 include makefiles/benchmarks-bam.mk
 include makefiles/lab.mk
+include makefiles/lunarc.mk
 include makefiles/docs.mk
 include makefiles/toy.mk
 

@@ -1,0 +1,8 @@
++ /bijux-dna-results/***
++ /bijux-dna/logs/***
++ /bijux-dna/**/run_manifest.json
++ /bijux-dna/**/telemetry.jsonl
++ /bijux-dna/**/analysis_report.json
++ /bijux-dna/**/analysis_report.html
++ /bijux-dna/**/stderr.log
+- *
