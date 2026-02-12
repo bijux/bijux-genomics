@@ -2,6 +2,20 @@
 
 This document defines the default buckets used to triage CI/local test failures.
 
+## What
+Defines standard failure buckets and a reproducible triage workflow for local/CI runs.
+
+## Why
+Makes repeated failure classes easy to route to the right subsystem owner.
+
+## Non-goals
+- Replacing full nextest logs as source of truth.
+- Auto-fixing failed tests.
+
+## Contracts
+- Every failing run should be saved under `artifacts/test-logs/`.
+- Buckets are heuristic labels; decisions still require reading failing tests.
+
 ## Buckets
 
 - `guardrails`: naming/lint/guardrail policy checks (for example `policy_test_names_are_consistent`, workspace-lints coverage).
@@ -25,3 +39,11 @@ This document defines the default buckets used to triage CI/local test failures.
 
 - `make test-triage` is heuristic and intended for fast diagnosis.
 - Final source of truth remains `cargo nextest` output and individual failing test logs.
+
+## Examples
+- `snapshot` failures from `.snap.new` drift.
+- `guardrails` failures from oversized files or module layout limits.
+
+## Failure modes
+- Misclassification when a failure spans multiple policy classes.
+- Stale `latest.log` causing misleading triage output.
