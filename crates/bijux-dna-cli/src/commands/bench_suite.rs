@@ -788,14 +788,21 @@ fn validate_suite_contracts(suite: &SuiteSpec) -> Result<()> {
         }
     }
 
-    let required = ["validate_pre", "trim", "filter", "stats", "qc_post"];
     let stage_set = suite
         .stages
         .iter()
         .map(|row| row.stage.as_str())
         .collect::<BTreeSet<_>>();
-    for stage in required {
-        if !stage_set.contains(stage) {
+    if stage_set.len() == 1 {
+        if !(stage_set.contains("validate_pre") || stage_set.contains("fastq.validate_pre")) {
+            return Err(anyhow!(
+                "single-stage suites must target `validate_pre` (stage-1 contract)"
+            ));
+        }
+        return Ok(());
+    }
+    for stage in ["validate_pre", "trim", "filter", "stats", "qc_post"] {
+        if !(stage_set.contains(stage) || stage_set.contains(&format!("fastq.{stage}").as_str())) {
             return Err(anyhow!("suite missing required stage `{stage}`"));
         }
     }
