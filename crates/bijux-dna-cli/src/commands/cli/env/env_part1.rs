@@ -1,5 +1,5 @@
 use std::collections::{BTreeSet, HashMap, HashSet};
-use std::io::Read;
+use std::io::{Read, Write};
 use std::path::Path;
 use std::time::{Duration, SystemTime};
 
@@ -757,8 +757,7 @@ pub fn promote_registry_tool(registry_path: &Path, cwd: &Path, id: &str) -> Resu
     }
 
     let updated_registry = set_registry_tool_status(&raw, id, "supported")?;
-    std::fs::write(registry_path, updated_registry.as_bytes())
-        .with_context(|| format!("write {}", registry_path.display()))?;
+    write_text_file(registry_path, &updated_registry)?;
 
     let versions_path = cwd.join("containers/versions/versions.toml");
     upsert_container_version_entry(
@@ -770,13 +769,10 @@ pub fn promote_registry_tool(registry_path: &Path, cwd: &Path, id: &str) -> Resu
 
     let manifest_value = crate::commands::cli::env::registry_export_containers_value(registry_path)?;
     let manifest_path = cwd.join("artifacts/container_manifest.json");
-    if let Some(parent) = manifest_path.parent() {
-        std::fs::create_dir_all(parent).with_context(|| format!("mkdir {}", parent.display()))?;
-    }
+    ensure_parent_dir(&manifest_path)?;
     let manifest_pretty =
         serde_json::to_string_pretty(&manifest_value).context("serialize container manifest")?;
-    std::fs::write(&manifest_path, format!("{manifest_pretty}\n"))
-        .with_context(|| format!("write {}", manifest_path.display()))?;
+    write_text_file(&manifest_path, &format!("{manifest_pretty}\n"))?;
 
     println!(
         "registry promote tool {id}: updated status + versions.toml + container manifest snapshot"
@@ -799,8 +795,13 @@ fn set_registry_tool_status(raw: &str, tool_id: &str, target_status: &str) -> Re
         }
         let mut id_line = None;
         let mut status_line = None;
-        for idx in block_start + 1..block_end {
-            let trimmed = lines[idx].trim();
+        for (idx, line) in lines
+            .iter()
+            .enumerate()
+            .take(block_end)
+            .skip(block_start + 1)
+        {
+            let trimmed = line.trim();
             if parse_toml_string(trimmed, "id").as_deref() == Some(tool_id) {
                 id_line = Some(idx);
             }
@@ -871,8 +872,7 @@ fn upsert_container_version_entry(
             source
                 .map(str::trim)
                 .filter(|v| !v.is_empty())
-                .map(str::to_string)
-                .unwrap_or_else(|| format!("tag:{tool_id}")),
+                .map_or_else(|| format!("tag:{tool_id}"), str::to_string),
         ),
     );
     row.insert(
@@ -882,8 +882,26 @@ fn upsert_container_version_entry(
     table.insert(tool_id.to_string(), toml::Value::Table(row));
     let rendered = toml::to_string_pretty(&parsed)
         .with_context(|| format!("render {}", versions_path.display()))?;
-    std::fs::write(versions_path, format!("{rendered}\n"))
-        .with_context(|| format!("write {}", versions_path.display()))?;
+    write_text_file(versions_path, &format!("{rendered}\n"))?;
+    Ok(())
+}
+
+fn ensure_parent_dir(path: &Path) -> Result<()> {
+    if let Some(parent) = path.parent() {
+        std::fs::DirBuilder::new()
+            .recursive(true)
+            .create(parent)
+            .with_context(|| format!("mkdir {}", parent.display()))?;
+    }
+    Ok(())
+}
+
+fn write_text_file(path: &Path, content: &str) -> Result<()> {
+    ensure_parent_dir(path)?;
+    let mut file =
+        std::fs::File::create(path).with_context(|| format!("write {}", path.display()))?;
+    file.write_all(content.as_bytes())
+        .with_context(|| format!("write {}", path.display()))?;
     Ok(())
 }
 

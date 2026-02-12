@@ -2,6 +2,7 @@ use clap::ValueEnum;
 use clap::{Args, Parser, Subcommand};
 use std::path::PathBuf;
 #[derive(Debug, Parser)]
+#[allow(clippy::struct_excessive_bools)]
 #[command(name = "bijux", version, about = "Bijux DNA CLI", subcommand_required = true, arg_required_else_help = true)]
 pub struct Cli {
     #[arg(short = 'v', long, global = true, default_value_t = false)]
@@ -113,7 +114,6 @@ pub enum DnaCommand {
         #[command(subcommand)]
         command: PipelinesCommand,
     },
-    #[command(visible_alias = "explain")]
     Analyze {
         #[command(subcommand)]
         command: AnalyzeCommand,
