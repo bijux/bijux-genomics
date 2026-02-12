@@ -142,7 +142,7 @@ domain-validate:
 	./scripts/domain-validate.sh
 
 domain-coverage:
-	@./bin/isolate cargo run -p bijux-dna-cli --bin bijux-dna -- domain coverage --domain-dir domain
+	@./bin/isolate cargo run -p bijux-dna --bin bijux -- dna domain coverage --domain-dir domain
 
 domain-inventory-drift:
 	./scripts/domain-inventory-drift.sh

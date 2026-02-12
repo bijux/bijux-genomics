@@ -4,11 +4,15 @@ version = "0.1.0"
 edition.workspace = true
 license.workspace = true
 rust-version.workspace = true
-default-run = "bijux-dna"
+default-run = "bijux"
+
+[[bin]]
+name = "bijux"
+path = "src/main.rs"
 
 [[bin]]
 name = "bijux-dna"
-path = "src/main.rs"
+path = "src/bin/bijux-dna.rs"
 
 [dependencies]
 bijux-dna-api = { path = "../bijux-dna-api" }

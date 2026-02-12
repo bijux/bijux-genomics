@@ -299,9 +299,7 @@ pub fn validate_hpc_status(layout: &HpcLayout) -> HpcStatusReport {
     checks.push(HpcCheck {
         name: "apptainer_present".to_string(),
         ok: apptainer.is_some(),
-        detail: apptainer
-            .map(|p| p.display().to_string())
-            .unwrap_or_else(|| "not found".to_string()),
+        detail: apptainer.map_or_else(|| "not found".to_string(), |p| p.display().to_string()),
     });
 
     let sif_cache = std::env::var("APPTAINER_CACHEDIR")

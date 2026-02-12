@@ -281,7 +281,7 @@ fn handle_example_root(command: &cli::ExampleCommand, cwd: &Path) -> Result<()> 
             }
         }
         cli::ExampleCommand::Chain(args) => {
-            example::chain_examples(cwd, &args.from, &args.arrow, &args.to)?
+            example::chain_examples(cwd, &args.from, &args.arrow, &args.to)?;
         }
     }
     Ok(())
@@ -291,7 +291,7 @@ fn handle_dev_dna(command: &cli::DevCommand, cwd: &Path) -> Result<()> {
     match command {
         cli::DevCommand::Examples { command } => match command {
             cli::DevExamplesCommand::Scaffold(args) => {
-                example::scaffold_examples_series(cwd, &args.series, args.count)?
+                example::scaffold_examples_series(cwd, &args.series, args.count)?;
             }
         },
     }
