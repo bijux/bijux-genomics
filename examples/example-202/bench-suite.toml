@@ -1,11 +1,11 @@
 schema_version = "bijux.example.bench-suite.v1"
-example_id = "example-201"
-stage_catalog_index = 1
-stage_id = "bam.align"
+example_id = "example-202"
+stage_catalog_index = 2
+stage_id = "bam.validate"
 
 [pinning]
 source_of_truth = "configs/tool_registry.toml"
-pinned_tools = ["bwa"]
+pinned_tools = ["samtools"]
 
 [probes]
 required = ["--help", "--version"]

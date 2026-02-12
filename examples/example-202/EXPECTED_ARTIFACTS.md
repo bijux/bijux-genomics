@@ -3,4 +3,4 @@
 - run_manifest.json
 - telemetry.jsonl
 - report.html
-- stage metrics for `bam.align`
+- stage metrics for `bam.validate`

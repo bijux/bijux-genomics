@@ -1,10 +1,10 @@
 {
-  "example_id": "example-201",
+  "example_id": "example-203",
   "postconditions": [
     "stage output exists",
     "stage telemetry exists",
     "non-zero input read count"
   ],
   "schema_version": "bijux.example.contract.v1",
-  "stage_id": "bam.align"
+  "stage_id": "bam.filter"
 }

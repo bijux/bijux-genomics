@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.example.plan.v1",
   "id": "example-201",
-  "hpc_root": "/Users/bijan/bijux",
+  "hpc_root": "<HPC_ROOT>",
   "source_project": "PRJEB44430",
   "selection": {
     "target_se": 10,
@@ -11,9 +11,9 @@
   "stage_1": "bam.align",
   "benchmark_suite": "bam_stage01_align",
   "paths": {
-    "snapshot": "/Users/bijan/bijux/bijux-dna-data/homo_sapiens/PRJEB44430/example-201/ENA_METADATA.snapshot.json",
-    "raw_out": "/Users/bijan/bijux/bijux-dna-data/homo_sapiens/PRJEB44430/example-201/raw",
-    "corpus_root": "/Users/bijan/bijux/bijux-dna-data/homo_sapiens/PRJEB44430/example-201",
-    "results_root": "/Users/bijan/bijux/bijux-dna-results"
+    "snapshot": "<DATA_ROOT>/homo_sapiens/PRJEB44430/example-201/ENA_METADATA.snapshot.json",
+    "raw_out": "<DATA_ROOT>/homo_sapiens/PRJEB44430/example-201/raw",
+    "corpus_root": "<DATA_ROOT>/homo_sapiens/PRJEB44430/example-201",
+    "results_root": "<RESULTS_ROOT>"
   }
 }

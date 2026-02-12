@@ -1,0 +1,22 @@
+{
+  "schema_version": "bijux.example.report_contract_sections.v1",
+  "required_sections": [
+    "contract",
+    "completeness",
+    "stages",
+    "provenance",
+    "run_provenance",
+    "decision_config",
+    "analysis_selection_contract",
+    "retention_definition",
+    "retention_context",
+    "assets_provenance",
+    "metric_semantics",
+    "telemetry",
+    "qc_improvement",
+    "final_qc_summary",
+    "filter_interpretation",
+    "adapter_inference",
+    "claims_registry"
+  ]
+}
