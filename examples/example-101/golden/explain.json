@@ -1,0 +1,14 @@
+{
+  "schema_version": "bijux.example.explain.v1",
+  "id": "example-101",
+  "stage_1": "fastq.validate_pre",
+  "suite": "fastq_stage01_validate_pre",
+  "determinism": {
+    "plan_hash_policy": "stable-json-sorted-keys",
+    "selection_policy": "10-se-10-pe"
+  },
+  "notes": [
+    "Stage-01 scope is intentionally limited to validation stage.",
+    "Example pins runtime to apptainer for HPC reproducibility."
+  ]
+}
