@@ -296,6 +296,11 @@ pub enum EnvCommand {
     List,
     #[command(name = "export-json")]
     ExportJson,
+    #[command(name = "export-containers")]
+    ExportContainers {
+        #[arg(long, default_value_t = false)]
+        json: bool,
+    },
     #[command(name = "export-hpc")]
     ExportHpc {
         #[arg(long, default_value_t = false)]
@@ -388,6 +393,11 @@ pub enum RegistryCommand {
     Show { id: String },
     #[command(name = "export-json")]
     ExportJson,
+    #[command(name = "export-containers")]
+    ExportContainers {
+        #[arg(long, default_value_t = false)]
+        json: bool,
+    },
     #[command(name = "coverage-matrix")]
     CoverageMatrix,
     #[command(name = "validate-tool")]
