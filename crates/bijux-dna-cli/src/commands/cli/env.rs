@@ -1,7 +1,6 @@
 use std::collections::{HashMap, HashSet};
 use std::io::Read;
 use std::path::Path;
-use std::path::PathBuf;
 use std::process::Command;
 use std::time::{Duration, SystemTime};
 
@@ -163,6 +162,9 @@ struct RegistryRow {
     container_ref: Option<String>,
     expected_version_regex: Option<String>,
     healthcheck_cmd: Option<String>,
+    smoke_version_cmd: Option<String>,
+    smoke_help_cmd: Option<String>,
+    smoke_require_help: Option<bool>,
 }
 
 #[derive(Debug, Serialize)]
@@ -187,6 +189,22 @@ pub struct EnsureToolReport {
     pub built: bool,
     pub quick_smoked: bool,
     pub status: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct SifInventoryReport {
+    pub schema_version: &'static str,
+    pub containers_dir: String,
+    pub entries: Vec<SifInventoryEntry>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct SifInventoryEntry {
+    pub tool_id: String,
+    pub sif_path: String,
+    pub sha256: String,
+    pub smoke_manifest_path: Option<String>,
+    pub smoke_status: Option<String>,
 }
 
 #[derive(Debug, Serialize)]
@@ -261,6 +279,12 @@ fn parse_tools_registry_rows(raw: &str) -> Result<Vec<RegistryRow>> {
             row.expected_version_regex = Some(value);
         } else if let Some(value) = parse_toml_string(trimmed, "healthcheck_cmd") {
             row.healthcheck_cmd = Some(value);
+        } else if let Some(value) = parse_toml_string(trimmed, "smoke_version_cmd") {
+            row.smoke_version_cmd = Some(value);
+        } else if let Some(value) = parse_toml_string(trimmed, "smoke_help_cmd") {
+            row.smoke_help_cmd = Some(value);
+        } else if let Some(value) = parse_toml_bool(trimmed, "smoke_require_help") {
+            row.smoke_require_help = Some(value);
         } else if let Some(values) = parse_toml_array(trimmed, "runtimes") {
             row.runtimes = values;
         }
@@ -508,11 +532,22 @@ fn smoke_policy_offenders(tools: Vec<RegistryRow>, domain: &str) -> Vec<String> 
         if tool.status != "supported" || !tool_in_domain(&tool, domain) {
             continue;
         }
-        let version_cmd = tool.version_cmd.as_deref().unwrap_or("").trim();
-        let help_cmd = tool.help_cmd.as_deref().unwrap_or("").trim();
-        if version_cmd.is_empty() || help_cmd.is_empty() {
+        let version_cmd = tool
+            .smoke_version_cmd
+            .as_deref()
+            .or(tool.version_cmd.as_deref())
+            .unwrap_or("")
+            .trim();
+        let help_cmd = tool
+            .smoke_help_cmd
+            .as_deref()
+            .or(tool.help_cmd.as_deref())
+            .unwrap_or("")
+            .trim();
+        let require_help = tool.smoke_require_help.unwrap_or(true);
+        if version_cmd.is_empty() || (require_help && help_cmd.is_empty()) {
             offenders.push(format!(
-                "tool={} missing smoke commands (version/help)",
+                "tool={} missing smoke commands (version/help policy)",
                 tool.id
             ));
         }
@@ -630,9 +665,11 @@ fn toml_array_inline(values: &[String]) -> String {
 #[allow(clippy::too_many_lines)]
 pub fn ensure_apptainer_images(
     registry_path: &Path,
+    hpc_root: &Path,
     domain: &str,
     stages_csv: &str,
     force_smoke: bool,
+    repair_mismatch: bool,
 ) -> Result<EnsureImagesReport> {
     let raw = std::fs::read_to_string(registry_path)
         .with_context(|| format!("read {}", registry_path.display()))?;
@@ -646,7 +683,7 @@ pub fn ensure_apptainer_images(
         .collect::<std::collections::BTreeMap<_, _>>();
     let stage_ids = normalize_stage_ids(domain, stages_csv);
 
-    let root = PathBuf::from("/home/bijan/bijux");
+    let root = hpc_root.to_path_buf();
     let containers_root = root.join("bijux-dna-containers");
     let data_root = root.join("bijux-dna-data");
     let results_root = root.join("bijux-dna-results");
@@ -688,16 +725,34 @@ pub fn ensure_apptainer_images(
             let tool_dir = containers_root.join(&tool_id);
             bijux_dna_api::v1::api::run::ensure_dir(&tool_dir)?;
             let sif_path = tool_dir.join(format!("{expected_digest}.sif"));
-            let smoke_manifest_path = tool_dir.join("smoke_manifest.json");
+            let smoke_manifest_path =
+                tool_dir.join(format!("{expected_digest}.smoke_manifest.json"));
+            let compat_smoke_manifest_path = tool_dir.join("smoke_manifest.json");
             let mut built_this = false;
 
             if sif_path.exists() {
                 let actual = hash_file_sha256_hex(&sif_path)?;
                 if actual != expected_digest {
-                    std::fs::remove_file(&sif_path)
-                        .with_context(|| format!("remove {}", sif_path.display()))?;
+                    if repair_mismatch {
+                        quarantine_file(
+                            &sif_path,
+                            &containers_root.join("quarantine"),
+                            "digest_mismatch",
+                        )?;
+                    } else {
+                        return Err(anyhow!(
+                            "digest mismatch for existing SIF {}; rerun with --repair-mismatch",
+                            sif_path.display()
+                        ));
+                    }
                 }
             }
+            quarantine_unexpected_sifs(
+                &tool_dir,
+                &expected_digest,
+                repair_mismatch,
+                &containers_root,
+            )?;
             if sif_path.exists() {
                 reused += 1;
             } else {
@@ -716,13 +771,20 @@ pub fn ensure_apptainer_images(
 
             let do_quick_smoke = force_smoke || should_run_weekly_quick_smoke(&smoke_manifest_path);
             let version_cmd = tool
-                .version_cmd
+                .smoke_version_cmd
                 .clone()
+                .or(tool.version_cmd.clone())
+                .filter(|v| !v.trim().is_empty())
+                .or_else(|| Some(format!("{tool_id} --version")))
                 .unwrap_or_else(|| format!("{tool_id} --version"));
             let help_cmd = tool
-                .help_cmd
+                .smoke_help_cmd
                 .clone()
+                .or(tool.help_cmd.clone())
+                .filter(|v| !v.trim().is_empty())
+                .or_else(|| Some(format!("{tool_id} --help")))
                 .unwrap_or_else(|| format!("{tool_id} --help"));
+            let require_help = tool.smoke_require_help.unwrap_or(true);
             let mut status = "ok".to_string();
             if do_quick_smoke {
                 quick_smoked += 1;
@@ -734,6 +796,7 @@ pub fn ensure_apptainer_images(
                     &actual_digest,
                     &version_cmd,
                     &help_cmd,
+                    require_help,
                     &data_root,
                     &results_root,
                 )?;
@@ -744,6 +807,8 @@ pub fn ensure_apptainer_images(
                 }
                 bijux_dna_infra::atomic_write_json(&smoke_manifest_path, &smoke)
                     .with_context(|| format!("write {}", smoke_manifest_path.display()))?;
+                bijux_dna_infra::atomic_write_json(&compat_smoke_manifest_path, &smoke)
+                    .with_context(|| format!("write {}", compat_smoke_manifest_path.display()))?;
             }
 
             reports.push(EnsureToolReport {
@@ -781,6 +846,171 @@ pub fn ensure_apptainer_images(
         quick_smoked,
         failed,
     })
+}
+
+fn quarantine_unexpected_sifs(
+    tool_dir: &Path,
+    expected_digest: &str,
+    repair_mismatch: bool,
+    containers_root: &Path,
+) -> Result<()> {
+    let mut offenders = Vec::new();
+    for entry in
+        std::fs::read_dir(tool_dir).with_context(|| format!("read {}", tool_dir.display()))?
+    {
+        let path = entry?.path();
+        let is_sif = path
+            .extension()
+            .and_then(|v| v.to_str())
+            .is_some_and(|v| v.eq_ignore_ascii_case("sif"));
+        if !is_sif {
+            continue;
+        }
+        let Some(stem) = path.file_stem().and_then(|v| v.to_str()) else {
+            continue;
+        };
+        if stem != expected_digest {
+            offenders.push(path);
+        }
+    }
+    if offenders.is_empty() {
+        return Ok(());
+    }
+    if !repair_mismatch {
+        return Err(anyhow!(
+            "unexpected SIF(s) for tool at {}. rerun with --repair-mismatch",
+            tool_dir.display()
+        ));
+    }
+    let quarantine_root = containers_root.join("quarantine");
+    for path in offenders {
+        quarantine_file(&path, &quarantine_root, "unexpected_digest")?;
+    }
+    Ok(())
+}
+
+fn quarantine_file(path: &Path, quarantine_root: &Path, reason: &str) -> Result<()> {
+    bijux_dna_api::v1::api::run::ensure_dir(quarantine_root)?;
+    let tool = path
+        .parent()
+        .and_then(Path::file_name)
+        .and_then(|v| v.to_str())
+        .unwrap_or("unknown_tool");
+    let dest_dir = quarantine_root.join(tool);
+    bijux_dna_api::v1::api::run::ensure_dir(&dest_dir)?;
+    let name = path
+        .file_name()
+        .and_then(|v| v.to_str())
+        .unwrap_or("artifact.sif");
+    let dest = dest_dir.join(format!("{name}.{}.{}", reason, now_unix_s()));
+    std::fs::rename(path, &dest)
+        .with_context(|| format!("quarantine {} -> {}", path.display(), dest.display()))?;
+    Ok(())
+}
+
+/// # Errors
+/// Returns an error if stage id is malformed.
+pub fn parse_stage_domain(stage: &str) -> Result<String> {
+    let Some((domain, _)) = stage.split_once('.') else {
+        return Err(anyhow!("stage must be fully qualified, got `{stage}`"));
+    };
+    if domain.is_empty() {
+        return Err(anyhow!("stage must include domain prefix, got `{stage}`"));
+    }
+    Ok(domain.to_string())
+}
+
+/// # Errors
+/// Returns an error if the containers inventory cannot be read.
+pub fn sif_inventory(root: &Path) -> Result<SifInventoryReport> {
+    let containers_dir = root.join("bijux-dna-containers");
+    let mut entries = Vec::new();
+    let mut stack = vec![containers_dir.clone()];
+    while let Some(dir) = stack.pop() {
+        if !dir.exists() {
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir).with_context(|| format!("read {}", dir.display()))? {
+            let path = entry?.path();
+            if path.is_dir() {
+                stack.push(path);
+                continue;
+            }
+            let is_sif = path
+                .extension()
+                .and_then(|ext| ext.to_str())
+                .is_some_and(|ext| ext.eq_ignore_ascii_case("sif"));
+            if !is_sif {
+                continue;
+            }
+            let tool_id = path
+                .parent()
+                .and_then(Path::file_name)
+                .and_then(|v| v.to_str())
+                .unwrap_or("unknown")
+                .to_string();
+            let digest = hash_file_sha256_hex(&path)?;
+            let stem = path
+                .file_stem()
+                .and_then(|v| v.to_str())
+                .unwrap_or_default();
+            let manifest = path
+                .parent()
+                .map(|p| p.join(format!("{stem}.smoke_manifest.json")));
+            let smoke_raw = manifest
+                .as_ref()
+                .and_then(|p| std::fs::read_to_string(p).ok());
+            let smoke_status = smoke_raw
+                .as_deref()
+                .and_then(|raw| serde_json::from_str::<serde_json::Value>(raw).ok())
+                .and_then(|v| v.get("status").and_then(|s| s.as_str()).map(str::to_string));
+            entries.push(SifInventoryEntry {
+                tool_id,
+                sif_path: path.display().to_string(),
+                sha256: digest,
+                smoke_manifest_path: manifest
+                    .as_ref()
+                    .filter(|p| p.exists())
+                    .map(|p| p.display().to_string()),
+                smoke_status,
+            });
+        }
+    }
+    entries.sort_by(|a, b| a.sif_path.cmp(&b.sif_path));
+    Ok(SifInventoryReport {
+        schema_version: "bijux.sif_inventory.v1",
+        containers_dir: containers_dir.display().to_string(),
+        entries,
+    })
+}
+
+/// # Errors
+/// Returns an error if the markdown QA matrix cannot be generated.
+pub fn generate_apptainer_qa_matrix_markdown(root: &Path) -> Result<String> {
+    let inventory = sif_inventory(root)?;
+    let mut lines = vec![
+        "# Apptainer QA Matrix".to_string(),
+        String::new(),
+        format!("Generated at unix_s={}", now_unix_s()),
+        String::new(),
+        "| Tool | Build OK | Smoke OK | Run OK | SIF |".to_string(),
+        "|---|---|---|---|---|".to_string(),
+    ];
+    for entry in inventory.entries {
+        let smoke_ok = entry.smoke_status.as_deref().is_some_and(|v| v == "ok");
+        let build_ok = true;
+        let run_ok = smoke_ok;
+        lines.push(format!(
+            "| {} | {} | {} | {} | `{}` |",
+            entry.tool_id,
+            if build_ok { "yes" } else { "no" },
+            if smoke_ok { "yes" } else { "no" },
+            if run_ok { "yes" } else { "no" },
+            entry.sif_path
+        ));
+    }
+    lines.push(String::new());
+    Ok(lines.join("\n"))
 }
 
 /// # Errors
@@ -1175,11 +1405,16 @@ fn run_smoke_with_manifest(
     actual_digest: &str,
     version_cmd: &str,
     help_cmd: &str,
+    require_help: bool,
     data_root: &Path,
     results_root: &Path,
 ) -> Result<SmokeManifest> {
     let version_out = run_apptainer_exec(sif_path, version_cmd, data_root, results_root)?;
-    let help_ok = run_apptainer_exec(sif_path, help_cmd, data_root, results_root).is_ok();
+    let help_ok = if require_help {
+        run_apptainer_exec(sif_path, help_cmd, data_root, results_root).is_ok()
+    } else {
+        true
+    };
     let parsed_version = parse_first_version(&version_out).unwrap_or_default();
     let fallback_version = version_out
         .lines()
@@ -1220,13 +1455,29 @@ fn run_apptainer_exec(
     data_root: &Path,
     results_root: &Path,
 ) -> Result<String> {
+    if !data_root.exists() {
+        return Err(anyhow!("input bind root missing: {}", data_root.display()));
+    }
+    if !results_root.exists() {
+        return Err(anyhow!(
+            "output bind root missing: {}",
+            results_root.display()
+        ));
+    }
+    let banks_root = data_root.join("banks");
+    if !banks_root.exists() {
+        return Err(anyhow!("db bind root missing: {}", banks_root.display()));
+    }
     let input_bind = format!("{}:/bijux/input:ro", data_root.display());
     let output_bind = format!("{}:/bijux/output:rw", results_root.display());
-    let db_bind = format!("{}:/bijux/db:ro", data_root.join("banks").display());
+    let db_bind = format!("{}:/bijux/db:ro", banks_root.display());
     let output = Command::new("apptainer")
         .arg("exec")
         .arg("--containall")
         .arg("--cleanenv")
+        .arg("--net")
+        .arg("--network")
+        .arg("none")
         .arg("--bind")
         .arg(input_bind)
         .arg("--bind")
@@ -1361,6 +1612,18 @@ fn parse_toml_array(line: &str, key: &str) -> Option<Vec<String>> {
         .map(|token| token.trim_matches('"').to_string())
         .collect::<Vec<_>>();
     Some(items)
+}
+
+fn parse_toml_bool(line: &str, key: &str) -> Option<bool> {
+    let (lhs, rhs) = line.split_once('=')?;
+    if lhs.trim() != key {
+        return None;
+    }
+    match rhs.trim() {
+        "true" => Some(true),
+        "false" => Some(false),
+        _ => None,
+    }
 }
 
 pub fn print_env_info<S: ::std::hash::BuildHasher>(

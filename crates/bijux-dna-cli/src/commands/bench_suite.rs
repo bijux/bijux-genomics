@@ -120,6 +120,7 @@ pub fn load_suite(cwd: &Path, suite: &str) -> Result<SuiteSpec> {
     Ok(parsed)
 }
 
+#[allow(clippy::too_many_lines)]
 pub fn run_suite(cwd: &Path, suite_id: &str, hpc: bool) -> Result<PathBuf> {
     let suite = load_suite(cwd, suite_id)?;
     let corpus_root = cwd.join("bijux-dna-data").join(&suite.corpus);
@@ -207,6 +208,15 @@ pub fn run_suite(cwd: &Path, suite_id: &str, hpc: bool) -> Result<PathBuf> {
 
     let manifest_path = run_dir.join("run_manifest.json");
     bijux_dna_infra::atomic_write_json(&manifest_path, &manifest)?;
+    if hpc {
+        let root = std::env::var("BIJUX_HPC_ROOT").map_or_else(
+            |_| std::path::PathBuf::from("/home/bijan/bijux"),
+            std::path::PathBuf::from,
+        );
+        let inventory = crate::commands::cli::env::sif_inventory(&root)?;
+        let inventory_path = run_dir.join("sif_inventory.json");
+        bijux_dna_infra::atomic_write_json(&inventory_path, &inventory)?;
+    }
 
     let latest = cwd
         .join("artifacts")
