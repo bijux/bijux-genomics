@@ -33,9 +33,7 @@ pub(crate) use bijux_dna_api::v1::api::bench::{
     bench_fastq_umi, bench_fastq_validate_pre, compare_runs, compare_runs_with_baseline,
     print_bench_schema, RankInput,
 };
-pub(crate) use bijux_dna_api::v1::api::bench::{
-    benchmark_runs, write_benchmark_exports, AdapterPresetsV1,
-};
+pub(crate) use bijux_dna_api::v1::api::bench::AdapterPresetsV1;
 pub(crate) use bijux_dna_api::v1::api::report::render_report_bundle_html;
 pub(crate) use bijux_dna_api::v1::api::report::{
     load_facts_auto, load_run_summary, write_correct_report, write_filter_report,

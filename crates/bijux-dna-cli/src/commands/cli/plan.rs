@@ -19,8 +19,6 @@ pub fn resolve_stage_tool(command: &DnaCommand) -> (StageId, ToolId, CommonArgs)
             | FastqCommand::Doctor
             | FastqCommand::ListTools { .. }
             | FastqCommand::Explain { .. }
-            | FastqCommand::Benchmark(_)
-            | FastqCommand::Analyze(_)
             | FastqCommand::Compare(_)
             | FastqCommand::Run(_) => (
                 StageId::from_static("fastq.trim"),
