@@ -3,8 +3,8 @@ resolver = "2"
 members = [
   "crates/bijux-dna-analyze",
   "crates/bijux-dna-api",
-  "crates/bijux-dna-benchmark",
-  "crates/bijux-dna-benchmark-model",
+  "crates/bijux-dna-bench",
+  "crates/bijux-dna-bench-model",
   "crates/bijux-dna-cli",
   "crates/bijux-dna-core", "crates/bijux-dna-db-ena",
   "crates/bijux-dna-domain-bam",

@@ -35,5 +35,5 @@ fn assert_no_imports(dir: &str, forbidden: &[&str]) {
 
 #[test]
 fn analyze_does_not_import_bench() {
-    assert_no_imports("crates/bijux-dna-analyze/src", &["bijux_dna_benchmark"]);
+    assert_no_imports("crates/bijux-dna-analyze/src", &["bijux_dna_bench"]);
 }

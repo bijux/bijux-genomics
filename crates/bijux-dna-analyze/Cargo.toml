@@ -34,7 +34,7 @@ bijux-dna-domain-fastq = { path = "../bijux-dna-domain-fastq" }
 insta = { version = "1", features = ["json"] }
 bijux-dna-planner-fastq = { path = "../bijux-dna-planner-fastq" }
 bijux-dna-planner-bam = { path = "../bijux-dna-planner-bam" }
-bijux-dna-benchmark = { path = "../bijux-dna-benchmark" }
+bijux-dna-bench = { path = "../bijux-dna-bench" }
 walkdir.workspace = true
 
 [lints]

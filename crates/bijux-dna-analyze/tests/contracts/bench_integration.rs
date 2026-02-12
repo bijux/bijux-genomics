@@ -1,5 +1,5 @@
 use bijux_dna_analyze::report::write_run_report_from_facts;
-use bijux_dna_benchmark::{
+use bijux_dna_bench::{
     summarize, AnalysisRequirements, BenchRunOptions, BenchmarkObservation, BenchmarkSuiteSpec,
     DatasetSpec, DiversityRequirements, MetricsEnvelope, ReplicatePolicy,
     StratificationRequirement,

@@ -39,7 +39,7 @@ fn parse_dependency_names(manifest: &Path) -> Vec<String> {
 fn policy__boundaries__benchmark_dependency_policy__benchmark_has_no_planner_or_stage_dependencies()
 {
     let root = repo_root();
-    let manifest = root.join("crates/bijux-dna-benchmark/Cargo.toml");
+    let manifest = root.join("crates/bijux-dna-bench/Cargo.toml");
     let deps = parse_dependency_names(&manifest);
     let denylist = [
         "bijux-dna-stages-fastq",
@@ -54,7 +54,7 @@ fn policy__boundaries__benchmark_dependency_policy__benchmark_has_no_planner_or_
         .collect();
     bijux_dna_policies::policy_assert!(
         offenders.is_empty(),
-        "bijux-dna-benchmark must not depend on stages/planners:\n{}",
+        "bijux-dna-bench must not depend on stages/planners:\n{}",
         offenders.join("\n")
     );
 }
