@@ -683,7 +683,7 @@ pub fn print_registry_export_json(registry_path: &Path) -> Result<()> {
 
 /// # Errors
 /// Returns an error if registry cannot be read or parsed.
-pub fn print_registry_export_containers_json(registry_path: &Path) -> Result<()> {
+pub fn registry_export_containers_value(registry_path: &Path) -> Result<serde_json::Value> {
     let raw = std::fs::read_to_string(registry_path)
         .with_context(|| format!("read {}", registry_path.display()))?;
     let mut tools = parse_tools_registry_rows(&raw)?
@@ -714,10 +714,17 @@ pub fn print_registry_export_containers_json(registry_path: &Path) -> Result<()>
                     .unwrap_or_default(),
             )
     });
-    crate::commands::cli::render::json::print_pretty(&serde_json::json!({
+    Ok(serde_json::json!({
         "schema_version": "bijux.container_manifest.v1",
         "containers": tools,
-    }))?;
+    }))
+}
+
+/// # Errors
+/// Returns an error if registry cannot be read or parsed.
+pub fn print_registry_export_containers_json(registry_path: &Path) -> Result<()> {
+    let payload = registry_export_containers_value(registry_path)?;
+    crate::commands::cli::render::json::print_pretty(&payload)?;
     Ok(())
 }
 

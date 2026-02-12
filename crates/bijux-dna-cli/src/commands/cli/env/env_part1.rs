@@ -756,7 +756,134 @@ pub fn promote_registry_tool(registry_path: &Path, cwd: &Path, id: &str) -> Resu
         ));
     }
 
-    println!("registry promote tool {id}: checks passed (policy-clean + smoke probes + suite reference)");
+    let updated_registry = set_registry_tool_status(&raw, id, "supported")?;
+    std::fs::write(registry_path, updated_registry.as_bytes())
+        .with_context(|| format!("write {}", registry_path.display()))?;
+
+    let versions_path = cwd.join("containers/versions/versions.toml");
+    upsert_container_version_entry(
+        &versions_path,
+        id,
+        tool.version.as_deref(),
+        tool.upstream.as_deref(),
+    )?;
+
+    let manifest_value = crate::commands::cli::env::registry_export_containers_value(registry_path)?;
+    let manifest_path = cwd.join("artifacts/container_manifest.json");
+    if let Some(parent) = manifest_path.parent() {
+        std::fs::create_dir_all(parent).with_context(|| format!("mkdir {}", parent.display()))?;
+    }
+    let manifest_pretty =
+        serde_json::to_string_pretty(&manifest_value).context("serialize container manifest")?;
+    std::fs::write(&manifest_path, format!("{manifest_pretty}\n"))
+        .with_context(|| format!("write {}", manifest_path.display()))?;
+
+    println!(
+        "registry promote tool {id}: updated status + versions.toml + container manifest snapshot"
+    );
+    Ok(())
+}
+
+fn set_registry_tool_status(raw: &str, tool_id: &str, target_status: &str) -> Result<String> {
+    let mut lines = raw.lines().map(str::to_string).collect::<Vec<_>>();
+    let mut i = 0usize;
+    while i < lines.len() {
+        if lines[i].trim() != "[[tools]]" {
+            i += 1;
+            continue;
+        }
+        let block_start = i;
+        let mut block_end = i + 1;
+        while block_end < lines.len() && lines[block_end].trim() != "[[tools]]" {
+            block_end += 1;
+        }
+        let mut id_line = None;
+        let mut status_line = None;
+        for idx in block_start + 1..block_end {
+            let trimmed = lines[idx].trim();
+            if parse_toml_string(trimmed, "id").as_deref() == Some(tool_id) {
+                id_line = Some(idx);
+            }
+            if parse_toml_string(trimmed, "status").is_some() {
+                status_line = Some(idx);
+            }
+        }
+        if id_line.is_some() {
+            let replacement = format!("status = \"{target_status}\"");
+            if let Some(status_idx) = status_line {
+                lines[status_idx] = replacement;
+            } else if let Some(id_idx) = id_line {
+                lines.insert(id_idx + 1, replacement);
+            }
+            return Ok(format!("{}\n", lines.join("\n")));
+        }
+        i = block_end;
+    }
+    Err(anyhow!("tool `{tool_id}` block not found in registry"))
+}
+
+fn normalize_semver_like(value: Option<&str>) -> String {
+    let Some(raw) = value.map(str::trim).filter(|v| !v.is_empty()) else {
+        return "0.0.0".to_string();
+    };
+    let trimmed = raw.trim_start_matches('v');
+    let mut parts = trimmed
+        .split(|ch: char| !(ch.is_ascii_digit() || ch == '.'))
+        .find(|part| !part.is_empty())
+        .unwrap_or_default()
+        .split('.')
+        .filter(|part| !part.is_empty())
+        .take(3)
+        .map(str::to_string)
+        .collect::<Vec<_>>();
+    while parts.len() < 3 {
+        parts.push("0".to_string());
+    }
+    if parts.iter().all(|part| part.chars().all(|ch| ch.is_ascii_digit())) {
+        parts.join(".")
+    } else {
+        "0.0.0".to_string()
+    }
+}
+
+fn upsert_container_version_entry(
+    versions_path: &Path,
+    tool_id: &str,
+    version: Option<&str>,
+    source: Option<&str>,
+) -> Result<()> {
+    let raw = std::fs::read_to_string(versions_path)
+        .with_context(|| format!("read {}", versions_path.display()))?;
+    let mut parsed: toml::Value = raw
+        .parse()
+        .with_context(|| format!("parse {}", versions_path.display()))?;
+    let table = parsed
+        .as_table_mut()
+        .ok_or_else(|| anyhow!("{} must contain a top-level table", versions_path.display()))?;
+    let mut row = toml::map::Map::new();
+    row.insert(
+        "version".to_string(),
+        toml::Value::String(normalize_semver_like(version)),
+    );
+    row.insert(
+        "source".to_string(),
+        toml::Value::String(
+            source
+                .map(str::trim)
+                .filter(|v| !v.is_empty())
+                .map(str::to_string)
+                .unwrap_or_else(|| format!("tag:{tool_id}")),
+        ),
+    );
+    row.insert(
+        "date_pinned".to_string(),
+        toml::Value::String("2026-02-12".to_string()),
+    );
+    table.insert(tool_id.to_string(), toml::Value::Table(row));
+    let rendered = toml::to_string_pretty(&parsed)
+        .with_context(|| format!("render {}", versions_path.display()))?;
+    std::fs::write(versions_path, format!("{rendered}\n"))
+        .with_context(|| format!("write {}", versions_path.display()))?;
     Ok(())
 }
 
