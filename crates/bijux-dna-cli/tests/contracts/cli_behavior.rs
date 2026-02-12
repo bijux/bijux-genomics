@@ -27,7 +27,7 @@ impl CliWorkspace {
             r#"
 fastp = { version = "99.99.99+fixture" }
 seqkit = { version = "99.99.99+fixture" }
-fastqvalidator_official = { version = "99.99.99+fixture" }
+fastqvalidator = { version = "99.99.99+fixture" }
 fastqc = { version = "99.99.99+fixture" }
 multiqc = { version = "99.99.99+fixture" }
 seqkit_stats = { version = "99.99.99+fixture" }
@@ -199,7 +199,7 @@ fn cli_env_images_are_listed_in_order() {
     assert!(lines.iter().any(|line| line.starts_with("fastqc:")));
     assert!(lines
         .iter()
-        .any(|line| line.starts_with("fastqvalidator_official:")));
+        .any(|line| line.starts_with("fastqvalidator:")));
     assert!(lines.iter().any(|line| line.starts_with("seqkit:")));
 }
 

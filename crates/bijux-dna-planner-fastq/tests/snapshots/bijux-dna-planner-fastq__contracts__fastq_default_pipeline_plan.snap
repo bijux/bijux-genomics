@@ -301,13 +301,13 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           {
             "name": "validation_report",
             "optional": false,
-            "path": "out/validate_pre/fastqvalidator_official/validation.json",
+            "path": "out/validate_pre/fastqvalidator/validation.json",
             "role": "report_json"
           }
         ]
       },
       "metrics_schema_ids": [],
-      "out_dir": "out/validate_pre/fastqvalidator_official",
+      "out_dir": "out/validate_pre/fastqvalidator",
       "resources": {
         "mem_gb": 1,
         "runtime": "docker",

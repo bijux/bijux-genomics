@@ -52,7 +52,7 @@ expression: fastq_to_bam_adna_profile()
       "fastq.stats_neutral": "seqkit_stats",
       "fastq.trim": "fastp",
       "fastq.umi": "umi_tools",
-      "fastq.validate_pre": "fastqvalidator_official"
+      "fastq.validate_pre": "fastqvalidator"
     },
     "params": {
       "bam.authenticity": {

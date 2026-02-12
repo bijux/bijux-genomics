@@ -54,7 +54,7 @@ pub const PIPELINE_FASTQ_TO_BAM_ADNA_SHOTGUN: &str = "fastq-to-bam__adna_shotgun
 pub const PIPELINE_VCF_MINIMAL: &str = "vcf-to-vcf__minimal__v1";
 pub const PIPELINE_VCF_REFERENCE_BASIC: &str = "vcf-to-vcf__reference_basic__v1";
 
-pub const TOOL_FASTQVALIDATOR_OFFICIAL: &str = "fastqvalidator_official";
+pub const TOOL_FASTQVALIDATOR_OFFICIAL: &str = "fastqvalidator";
 pub const TOOL_SEQKIT_STATS: &str = "seqkit_stats";
 pub const TOOL_RCORRECTOR: &str = "rcorrector";
 pub const TOOL_UMI_TOOLS: &str = "umi_tools";

@@ -227,7 +227,7 @@ pub enum FastqCommand {
         name = "validate-pre",
         alias = "validate",
         about = "Validate FASTQ reads (pre).",
-        after_help = "Examples:\n  bijux dna fastq validate-pre --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE --tools fastqvalidator_official\n  bijux dna fastq validate-pre --list-tools"
+        after_help = "Examples:\n  bijux dna fastq validate-pre --r1 reads.fastq.gz --out artifacts --sample-id SAMPLE --tools fastqvalidator\n  bijux dna fastq validate-pre --list-tools"
     )]
     ValidatePre(FastqValidateArgs),
     #[command(about = "Compare two FASTQ runs.")]

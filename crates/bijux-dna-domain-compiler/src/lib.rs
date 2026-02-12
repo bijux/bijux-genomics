@@ -732,7 +732,7 @@ fn parse_container_ref(image: &str, digest: &str, tool_id: &str, version: &str) 
 fn default_version_regex(tool_id: &str) -> &'static str {
     match tool_id {
         "authenticct" => "authentic|v?[0-9]+[.][0-9]+",
-        "fastqvalidator_official" => "fastqvalidator|v?[0-9]+[.][0-9]+",
+        "fastqvalidator" => "fastqvalidator|v?[0-9]+[.][0-9]+",
         _ => "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?",
     }
 }

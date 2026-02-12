@@ -39,7 +39,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     "seqtk",
     "fastqc",
     "fastqvalidator",
-    "fastqvalidator_official",
+    "fastqvalidator",
     "fastq-scan",
     "fqtools"
   ]

@@ -11,4 +11,4 @@
 - `fastq.qc_post` via `multiqc` (99.99.99+fixture)
 - `fastq.stats_neutral` via `seqkit_stats` (99.99.99+fixture)
 - `fastq.trim` via `fastp` (99.99.99+fixture)
-- `fastq.validate_pre` via `fastqvalidator_official` (99.99.99+fixture)
+- `fastq.validate_pre` via `fastqvalidator` (99.99.99+fixture)

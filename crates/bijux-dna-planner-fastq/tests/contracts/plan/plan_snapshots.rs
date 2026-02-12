@@ -43,7 +43,7 @@ fn fastq_plan_snapshot() {
         },
     };
     let tool_validate = ToolExecutionSpecV1 {
-        tool_id: ToolId::from_static("fastqvalidator_official"),
+        tool_id: ToolId::from_static("fastqvalidator"),
         tool_version: "1.0.0".to_string(),
         image: ContainerImageRefV1 {
             image: "bijux/fastqvalidator".to_string(),
@@ -111,7 +111,7 @@ fn default_pipeline_plan_snapshot_is_stable() {
     ];
     let tool_id_for_stage = |stage: &str| -> &'static str {
         match stage {
-            "fastq.validate_pre" => "fastqvalidator_official",
+            "fastq.validate_pre" => "fastqvalidator",
             "fastq.detect_adapters" => "fastqc",
             "fastq.trim" => "fastp",
             "fastq.filter" => "fastp",

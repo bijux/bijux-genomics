@@ -72,9 +72,6 @@ version = "latest-pinned"
 [fastqvalidator]
 version = "latest-pinned"
 
-[fastqvalidator_official]
-version = "latest-pinned"
-
 [fastx_clipper]
 version = "0.0.14"
 
@@ -182,4 +179,3 @@ version = "latest-pinned"
 
 [yleaf]
 version = "latest-pinned"
-

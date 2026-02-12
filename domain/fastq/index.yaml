@@ -33,7 +33,7 @@ tool_ids:
 - fastq_screen
 - fastqc
 - fastqvalidator
-- fastqvalidator_official
+- fastqvalidator
 - fastx_clipper
 - flash2
 - fqtools
@@ -98,7 +98,7 @@ stage_tool_compatibility:
   - bbduk
   fastq.validate_pre:
   - fastqvalidator
-  - fastqvalidator_official
+  - fastqvalidator
   - fastq-scan
   - seqtk
   - fqtools
@@ -169,7 +169,7 @@ active_defaults:
   fastq.detect_adapters: fastp
   fastq.trim: fastp
   fastq.filter: fastp
-  fastq.validate_pre: fastqvalidator_official
+  fastq.validate_pre: fastqvalidator
   fastq.stats_neutral: seqkit_stats
   fastq.rrna: sortmerna
   fastq.qc_post: multiqc
@@ -398,7 +398,7 @@ stage_default_settings:
     fastqvalidator:
       profile: adna_sane_default
       notes: strict fastq validation preset
-    fastqvalidator_official:
+    fastqvalidator:
       profile: adna_sane_default
       notes: official validator baseline preset
     fastq-scan:

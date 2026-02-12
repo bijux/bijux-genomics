@@ -258,7 +258,7 @@ fn policy__boundaries__purity_scans__pipelines_do_not_embed_tool_names() {
         "fastqc",
         "fastq_screen",
         "fastqvalidator",
-        "fastqvalidator_official",
+        "fastqvalidator",
         "flash2",
         "fqtools",
         "gatk",
