@@ -11,9 +11,9 @@
   "stage_1": "fastq.validate_pre",
   "benchmark_suite": "fastq_stage01_validate_pre",
   "paths": {
-    "snapshot": "/home/bijan/bijux/bijux-dna-data/example-01/ENA_METADATA.snapshot.json",
-    "raw_out": "/home/bijan/bijux/bijux-dna-data/example-01/raw",
-    "corpus_root": "/home/bijan/bijux/bijux-dna-data/example-01",
+    "snapshot": "/home/bijan/bijux/bijux-dna-data/homo_sapiens/PRJEB44430/example-01/ENA_METADATA.snapshot.json",
+    "raw_out": "/home/bijan/bijux/bijux-dna-data/homo_sapiens/PRJEB44430/example-01/raw",
+    "corpus_root": "/home/bijan/bijux/bijux-dna-data/homo_sapiens/PRJEB44430/example-01",
     "results_root": "/home/bijan/bijux/bijux-dna-results"
   }
 }

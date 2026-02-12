@@ -62,6 +62,7 @@ pub struct SuiteRunManifest {
     pub run_id: String,
     pub run_context: String,
     pub corpus: String,
+    pub species_id: Option<String>,
     pub fairness: FairnessContract,
     pub cold_vs_warm: ColdWarmContract,
     pub decision_trace: Vec<DecisionTraceRow>,
@@ -257,6 +258,7 @@ pub fn run_suite(cwd: &Path, suite_id: &str, hpc: bool) -> Result<PathBuf> {
         return Err(anyhow!("missing corpus root {}", corpus_root.display()));
     }
     crate::commands::corpus::validate_corpus(cwd, &suite.corpus)?;
+    let species_id = load_species_id_from_snapshot(&corpus_root);
 
     let run_context = if hpc { "HPC" } else { "Local" }.to_string();
     let suite_signature = suite_signature(cwd, suite_id, hpc)?;
@@ -453,6 +455,7 @@ pub fn run_suite(cwd: &Path, suite_id: &str, hpc: bool) -> Result<PathBuf> {
         run_id: run_id.clone(),
         run_context,
         corpus: suite.corpus.clone(),
+        species_id,
         fairness: FairnessContract {
             threads: fairness.threads,
             mem_gb: fairness.mem_gb,
@@ -518,6 +521,16 @@ pub fn run_suite(cwd: &Path, suite_id: &str, hpc: bool) -> Result<PathBuf> {
     )?;
 
     Ok(run_dir)
+}
+
+fn load_species_id_from_snapshot(corpus_root: &Path) -> Option<String> {
+    let snapshot = corpus_root.join("ENA_METADATA.snapshot.json");
+    let raw = fs::read_to_string(snapshot).ok()?;
+    let value = serde_json::from_str::<serde_json::Value>(&raw).ok()?;
+    value
+        .get("species_id")
+        .and_then(serde_json::Value::as_str)
+        .map(str::to_string)
 }
 
 pub fn analyze_suite(cwd: &Path, suite_id: &str) -> Result<PathBuf> {
