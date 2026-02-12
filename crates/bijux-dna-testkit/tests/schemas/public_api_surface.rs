@@ -7,7 +7,8 @@ fn public_surface_is_deliberate() {
     let lib_rs = Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("src")
         .join("lib.rs");
-    let content = fs::read_to_string(&lib_rs).expect("read lib.rs");
+    let content =
+        fs::read_to_string(&lib_rs).unwrap_or_else(|err| panic!("read lib.rs failed: {err}"));
     let mut exports = BTreeSet::new();
     for export in collect_pub_uses(&content) {
         exports.insert(export);

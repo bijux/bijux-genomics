@@ -2,14 +2,14 @@
 fn stage_contract_types_are_ssot() {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
-        .unwrap()
+        .unwrap_or_else(|| panic!("crate root parent"))
         .parent()
-        .unwrap()
+        .unwrap_or_else(|| panic!("workspace root parent"))
         .to_path_buf();
     let mut offenders = Vec::new();
     for entry in walkdir::WalkDir::new(root.join("crates"))
         .into_iter()
-        .filter_map(|e| e.ok())
+        .filter_map(std::result::Result::ok)
     {
         if !entry.file_type().is_file() {
             continue;
