@@ -1,8 +1,0 @@
-{
-  "deterministic_binding": true,
-  "from": "example-101",
-  "schema_version": "bijux.example.chain.v1",
-  "stage_from": "fastq.validate_pre",
-  "stage_to": "bam.align",
-  "to": "example-201"
-}

@@ -1,9 +1,0 @@
-{
-  "determinism": {
-    "plan_hash_policy": "stable-json-sorted-keys"
-  },
-  "id": "example-102",
-  "schema_version": "bijux.example.explain.v1",
-  "stage_1": "fastq.trim",
-  "suite": "fastq_stage02_trim"
-}
