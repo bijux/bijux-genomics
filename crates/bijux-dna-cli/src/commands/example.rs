@@ -414,7 +414,10 @@ fn scaffold_one_example(
         let _ = template_root;
     }
 
-    let global_suite_path = cwd.join("bench-suites").join(format!("{suite_id}.toml"));
+    let global_suite_path = cwd
+        .join("examples")
+        .join("bench-suites")
+        .join(format!("{suite_id}.toml"));
     if !global_suite_path.exists() {
         let suite = format!(
             "schema_version = \"bijux.bench-suite.fastq.v1\"\nsuite_id = \"{suite_id}\"\ncorpus = \"{example_id}\"\nrepetitions = 2\n\n[fairness]\nthreads = 16\nmem_gb = 64\ntmp_policy = \"unique-per-run-id\"\ncold_runs = 1\nwarm_runs = 1\n\n[[stages]]\nstage = \"{stage_id}\"\ntools = [\"{primary_tool}\"]\n"
@@ -616,7 +619,7 @@ fn build_plan(cwd: &Path, spec: &ExampleSpec, hpc_mode: bool, redacted: bool) ->
         let root = cwd.to_path_buf();
         (
             root.clone(),
-            cwd.join("bijux-dna-data"),
+            cwd.join("examples").join("bijux-dna-data"),
             cwd.join("bijux-dna-results"),
         )
     };
@@ -729,7 +732,7 @@ fn ensure_required_banks(cwd: &Path, spec: &ExampleSpec, hpc_root: &Path) -> Res
     }
     let candidates_root = [
         hpc_root.join("bijux-dna-data").join("banks"),
-        cwd.join("bijux-dna-data").join("banks"),
+        cwd.join("examples").join("bijux-dna-data").join("banks"),
         cwd.join("assets").join("banks"),
     ];
     let banks_root = candidates_root
@@ -828,7 +831,7 @@ fn shell_escape_path(path: &Path) -> String {
 }
 
 fn ensure_workspace_corpus_binding(cwd: &Path, corpus_name: &str, corpus_root: &Path) -> Result<()> {
-    let workspace_corpus = cwd.join("bijux-dna-data").join(corpus_name);
+    let workspace_corpus = cwd.join("examples").join("bijux-dna-data").join(corpus_name);
     if workspace_corpus == corpus_root {
         return Ok(());
     }

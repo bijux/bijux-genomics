@@ -236,7 +236,7 @@ fn list_inputs(cwd: &Path, corpus: Option<&str>) -> Result<Vec<CorpusInputs>> {
         return Ok(corpora);
     }
 
-    let data_root = cwd.join("bijux-dna-data");
+    let data_root = cwd.join("examples").join("bijux-dna-data");
     if data_root.exists() {
         for entry in
             fs::read_dir(&data_root).with_context(|| format!("read {}", data_root.display()))?
@@ -439,7 +439,7 @@ fn resolve_corpus_root(cwd: &Path, corpus: &str) -> PathBuf {
     if corpus.contains('/') {
         return cwd.join(corpus);
     }
-    cwd.join("bijux-dna-data").join(corpus)
+    cwd.join("examples").join("bijux-dna-data").join(corpus)
 }
 
 fn first_fastq_header(path: &Path) -> Result<String> {

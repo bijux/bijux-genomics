@@ -253,7 +253,7 @@ pub fn run_suite(cwd: &Path, suite_id: &str, hpc: bool) -> Result<PathBuf> {
     let suite = load_suite(cwd, suite_id)?;
     let fairness = suite.effective_fairness();
     let scientific_defaults = validate_scientific_defaults_doc(cwd)?;
-    let corpus_root = cwd.join("bijux-dna-data").join(&suite.corpus);
+    let corpus_root = cwd.join("examples").join("bijux-dna-data").join(&suite.corpus);
     if !corpus_root.exists() {
         return Err(anyhow!("missing corpus root {}", corpus_root.display()));
     }
@@ -690,7 +690,7 @@ pub fn production_readiness_status(cwd: &Path, suite_id: &str) -> Result<serde_j
 
     checks.push(serde_json::json!({
         "name": "corpus_exists",
-        "ok": cwd.join("bijux-dna-data").join(&suite.corpus).exists(),
+        "ok": cwd.join("examples").join("bijux-dna-data").join(&suite.corpus).exists(),
         "detail": suite.corpus,
     }));
 
@@ -759,7 +759,10 @@ pub fn production_readiness_status(cwd: &Path, suite_id: &str) -> Result<serde_j
 }
 
 fn suite_path(cwd: &Path, suite: &str) -> Result<PathBuf> {
-    let preferred = cwd.join("bench-suites").join(format!("{suite}.toml"));
+    let preferred = cwd
+        .join("examples")
+        .join("bench-suites")
+        .join(format!("{suite}.toml"));
     if preferred.exists() {
         return Ok(preferred);
     }
