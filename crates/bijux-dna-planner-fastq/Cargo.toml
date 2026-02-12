@@ -22,3 +22,6 @@ bijux-dna-policies = { path = "../bijux-dna-policies" }
 bijux-dna-infra = { path = "../bijux-dna-infra" }
 bijux-dna-testkit = { path = "../bijux-dna-testkit" }
 insta = { version = "1", features = ["json", "filters"] }
+
+[lints]
+workspace = true

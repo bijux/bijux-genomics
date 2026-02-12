@@ -16,3 +16,6 @@ bijux-dna-policies = { path = "../bijux-dna-policies" }
 
 [lib]
 path = "src/lib.rs"
+
+[lints]
+workspace = true
