@@ -1,5 +1,6 @@
 ---
 source: crates/bijux-dna-pipelines/tests/contracts/profiles/profiles.rs
+assertion_line: 217
 expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashes))"
 ---
 {
@@ -404,7 +405,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "fastq.umi": "umi_tools",
         "fastq.validate_pre": "fastqvalidator"
       },
-      "tool_bindings_hash": "0d7532979be96e70683ebbacae91cc885d23e7976106ea905817fb1d89090452"
+      "tool_bindings_hash": "53b0321209ef51b40b53776459271a968f31a38833207210a64fe4d1263af0f4"
     },
     "manifest": {
       "invariants_preset": "adna",
@@ -506,7 +507,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "fastq.validate_pre": "fastqvalidator"
       }
     },
-    "profile_hash": "57f26322590d6fe1c4031c88ced9e2321e89fe1d825cab20dc6938c78bc6444f"
+    "profile_hash": "b418ebc67f4c8176483cdc48cadc500d5da93d511975b041405f1fb1aa45b193"
   },
   "fastq-to-bam__default__v1": {
     "drift_components": {
@@ -567,7 +568,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "fastq.umi": "umi_tools",
         "fastq.validate_pre": "fastqvalidator"
       },
-      "tool_bindings_hash": "0d7532979be96e70683ebbacae91cc885d23e7976106ea905817fb1d89090452"
+      "tool_bindings_hash": "53b0321209ef51b40b53776459271a968f31a38833207210a64fe4d1263af0f4"
     },
     "manifest": {
       "invariants_preset": null,
@@ -669,7 +670,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "fastq.validate_pre": "fastqvalidator"
       }
     },
-    "profile_hash": "86b7d555f9b7553d1a90d9736a01d18c2f91acf05ad7cdd0476aa095e815bc6e"
+    "profile_hash": "fe65592176a100e6176927f325e8c27044cba669a6a9b63e24d85ac242823b93"
   },
   "fastq-to-fastq__adna__v1": {
     "drift_components": {
@@ -700,7 +701,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "fastq.umi": "umi_tools",
         "fastq.validate_pre": "fastqvalidator"
       },
-      "tool_bindings_hash": "298041fd4e5d59165df84a81d69d608c02f2b9571a52ff21a8d9509949de6f0f"
+      "tool_bindings_hash": "9f271b1dafe6435fd07a37512dfd501db79dc2a169f962a65c1cc59170f49a18"
     },
     "manifest": {
       "invariants_preset": "adna",
@@ -757,7 +758,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "fastq.validate_pre": "fastqvalidator"
       }
     },
-    "profile_hash": "a19da743f3c8f029231c5da2ef33163afa91e01ec36cbe2eede2e418f68defe5"
+    "profile_hash": "3f69f2e1355ff0c713253c1c979e54bd12dc5b0a14576d810d45d8f12031110b"
   },
   "fastq-to-fastq__default__v1": {
     "drift_components": {
@@ -788,7 +789,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "fastq.umi": "umi_tools",
         "fastq.validate_pre": "fastqvalidator"
       },
-      "tool_bindings_hash": "eb2967808727894652e50a49d6b08bde7b31e9b6063c0f35901cc6ef61bc32fb"
+      "tool_bindings_hash": "ac51b0c5936995a7540c439ea8ec6ea02ba0630584d8757f7b0c3540821288f8"
     },
     "manifest": {
       "invariants_preset": null,
@@ -845,7 +846,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "fastq.validate_pre": "fastqvalidator"
       }
     },
-    "profile_hash": "fc52e5988b1d8ee574a6d5ee84ba8ad526acfc8b5ec5be2317ba6d576cff5456"
+    "profile_hash": "f9775e89290a143f8805c76dd5c8d668001d4c848a0f00f109dcc7dcb66c48d3"
   },
   "fastq-to-fastq__minimal__v1": {
     "drift_components": {
@@ -876,7 +877,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "fastq.umi": "umi_tools",
         "fastq.validate_pre": "fastqvalidator"
       },
-      "tool_bindings_hash": "eb2967808727894652e50a49d6b08bde7b31e9b6063c0f35901cc6ef61bc32fb"
+      "tool_bindings_hash": "ac51b0c5936995a7540c439ea8ec6ea02ba0630584d8757f7b0c3540821288f8"
     },
     "manifest": {
       "invariants_preset": null,
@@ -933,7 +934,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "fastq.validate_pre": "fastqvalidator"
       }
     },
-    "profile_hash": "f9012f8a65f19b5d0ea5761a51c206e4aabc0ed0b3a0b337a0fedfc8bb4326c1"
+    "profile_hash": "f23b2727feb899dac9de0901150467fb6402168f0809733d85d39696db6de494"
   },
   "fastq-to-fastq__reference_adna__v1": {
     "drift_components": {
@@ -966,7 +967,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "fastq.umi": "umi_tools",
         "fastq.validate_pre": "fastqvalidator"
       },
-      "tool_bindings_hash": "c83c8b39ed63593a298057565bbc4da1ec80add33e3bb2c182a55e29776741d5"
+      "tool_bindings_hash": "021bfbc91633e71f2bd03ebc43561efaccb95d7d54c152753edc529b616deada"
     },
     "manifest": {
       "invariants_preset": "reference_adna",
@@ -1026,7 +1027,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "fastq.validate_pre": "fastqvalidator"
       }
     },
-    "profile_hash": "c3e1f6f7339f4be2fc20a6ecd7eb87f6853ca76bfa8f100e72e94547f801a169"
+    "profile_hash": "71f16aa300ade15c46e147cb5d24ed6709f1efe234a7e0fa5030fbf6195e2a68"
   },
   "vcf-to-vcf__minimal__v1": {
     "drift_components": {
