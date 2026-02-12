@@ -62,6 +62,8 @@ mod mod_contracts_tooling_domain_catalog_symmetry_policy_rs;
 mod mod_contracts_tooling_domain_truth_fixture_policy_rs;
 #[path = "contracts/tooling/error_boundary_policy.rs"]
 mod mod_contracts_tooling_error_boundary_policy_rs;
+#[path = "contracts/tooling/examples_golden_hygiene_policy.rs"]
+mod mod_contracts_tooling_examples_golden_hygiene_policy_rs;
 #[path = "contracts/tooling/fixture_privacy_policy.rs"]
 mod mod_contracts_tooling_fixture_privacy_policy_rs;
 #[path = "contracts/tooling/generated_configs_policy.rs"]
