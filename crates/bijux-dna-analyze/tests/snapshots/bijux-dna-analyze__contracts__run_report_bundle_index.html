@@ -118,107 +118,13 @@
 </head>
 <body>
   <script id="report-json" type="application/json">{
-  "schema_version": "bijux.report.v1",
-  "contract": {
-    "schema_version": "bijux.report_contract.v1",
-    "required_sections": [
-      "contract",
-      "completeness",
-      "stages",
-      "provenance",
-      "run_provenance",
-      "decision_config",
-      "analysis_selection_contract",
-      "retention_definition",
-      "retention_context",
-      "assets_provenance",
-      "metric_semantics",
-      "telemetry",
-      "qc_improvement",
-      "final_qc_summary",
-      "filter_interpretation",
-      "adapter_inference",
-      "claims_registry"
-    ],
-    "required_provenance_fields": [
-      "tool_id",
-      "tool_version",
-      "image_digest",
-      "trace_id",
-      "span_id",
-      "params_hash",
-      "bank_hashes"
-    ]
+  "adapter_inference": {
+    "rationale": "Adapter detection ran before trimming.",
+    "safety": "Inference only applies when adapters are not explicitly set.",
+    "suggested_adapters": {}
   },
-  "run_id": "run-1",
-  "completeness": {
-    "status": "complete",
-    "missing_metrics": [],
-    "missing_reports": []
-  },
-  "stages": [
-    {
-      "stage_id": "fastq.trim",
-      "tool_id": "fastp",
-      "tool_version": "0.23.4",
-      "params_hash": "params",
-      "input_hash": "input",
-      "runtime_s": 1.0,
-      "memory_mb": 64.0,
-      "exit_code": 0,
-      "metrics_path": "metrics.json",
-      "tool_invocation_path": "tool_invocation.json",
-      "effective_config_path": "effective_config.json",
-      "stage_report_path": "stage_report.json",
-      "retention_report_path": "retention_report.json",
-      "bank_report_path": "bank_report.json"
-    }
-  ],
-  "provenance": [
-    {
-      "stage_id": "fastq.trim",
-      "tool_id": "fastp",
-      "tool_version": "0.23.4",
-      "image_digest": "sha256:img",
-      "trace_id": "trace-1",
-      "span_id": "span-1",
-      "params_hash": "params",
-      "bank_hashes": {
-        "adapter_bank_hash": "unknown",
-        "adapters": "sha256:adapters",
-        "contaminants": "sha256:contam",
-        "polyx": "sha256:polyx",
-        "reference_bank_hash": "unknown",
-        "taxonomy_db_hash": "unknown",
-        "taxonomy_db_version": "unknown"
-      }
-    }
-  ],
-  "retention_definition": [
-    {
-      "stage_id": "fastq.trim",
-      "tool_id": "fastp",
-      "numerator": "{\"bases_out\":800,\"reads_out\":80}",
-      "denominator": "{\"bases_in\":1000,\"reads_in\":100}",
-      "conditions": {
-        "min_len": 20
-      }
-    }
-  ],
-  "retention_context": [
-    {
-      "stage_id": "fastq.trim",
-      "tool_id": "fastp",
-      "definition": "{\"bases_out\":800,\"reads_out\":80} / {\"bases_in\":1000,\"reads_in\":100} (reads)",
-      "conditions": {
-        "min_len": 20
-      }
-    }
-  ],
   "assets_provenance": [
     {
-      "stage_id": "fastq.trim",
-      "tool_id": "fastp",
       "banks": {
         "adapters": {
           "entries": [
@@ -251,79 +157,49 @@
           "hash": "sha256:polyx",
           "preset": "illumina_twocolor"
         }
-      }
+      },
+      "stage_id": "fastq.trim",
+      "tool_id": "fastp"
     }
   ],
-  "metric_semantics": [
-    {
-      "metric_id": "runtime_s",
-      "direction": "LowerBetter",
-      "units": "seconds",
-      "range": ">= 0",
-      "missing_data_policy": "treat_as_infinite",
-      "influencing_params": []
-    },
-    {
-      "metric_id": "memory_mb",
-      "direction": "LowerBetter",
-      "units": "MB",
-      "range": ">= 0",
-      "missing_data_policy": "treat_as_infinite",
-      "influencing_params": []
-    },
-    {
-      "metric_id": "read_retention",
-      "direction": "HigherBetter",
-      "units": "ratio",
-      "range": "[0, 1]",
-      "missing_data_policy": "treat_as_0.0",
-      "influencing_params": [
-        "adapter_bank",
-        "trim_settings",
-        "filter_settings"
-      ]
-    },
-    {
-      "metric_id": "base_retention",
-      "direction": "HigherBetter",
-      "units": "ratio",
-      "range": "[0, 1]",
-      "missing_data_policy": "treat_as_0.0",
-      "influencing_params": [
-        "adapter_bank",
-        "trim_settings",
-        "filter_settings"
-      ]
-    },
-    {
-      "metric_id": "merge_rate",
-      "direction": "HigherBetter",
-      "units": "ratio",
-      "range": "[0, 1]",
-      "missing_data_policy": "treat_as_0.0",
-      "influencing_params": [
-        "merge_policy"
-      ]
-    },
-    {
-      "metric_id": "error_reduction_proxy",
-      "direction": "HigherBetter",
-      "units": "mean_q_delta",
-      "range": "[0, 45]",
-      "missing_data_policy": "treat_as_0.0",
-      "influencing_params": [
-        "corrector_settings"
-      ]
-    }
-  ],
-  "telemetry": {
-    "error_count": 0,
-    "event_count": 0,
-    "events": [
-      "telemetry/events.jsonl"
-    ]
+  "bundle_schema_version": "bijux.report_bundle.v1",
+  "completeness": {
+    "missing_metrics": [],
+    "missing_reports": [],
+    "status": "complete"
   },
-  "qc_improvement": {},
+  "contract": {
+    "required_provenance_fields": [
+      "tool_id",
+      "tool_version",
+      "image_digest",
+      "trace_id",
+      "span_id",
+      "params_hash",
+      "bank_hashes"
+    ],
+    "required_sections": [
+      "contract",
+      "completeness",
+      "stages",
+      "provenance",
+      "run_provenance",
+      "decision_config",
+      "analysis_selection_contract",
+      "retention_definition",
+      "retention_context",
+      "assets_provenance",
+      "metric_semantics",
+      "telemetry",
+      "qc_improvement",
+      "final_qc_summary",
+      "filter_interpretation",
+      "adapter_inference",
+      "claims_registry"
+    ],
+    "schema_version": "bijux.report_contract.v1"
+  },
+  "filter_interpretation": {},
   "final_qc_summary": {
     "adapter_inference": {
       "rationale": "Adapter detection ran before trimming.",
@@ -332,16 +208,116 @@
     },
     "qc": {}
   },
-  "filter_interpretation": {},
-  "adapter_inference": {
-    "rationale": "Adapter detection ran before trimming.",
-    "safety": "Inference only applies when adapters are not explicitly set.",
-    "suggested_adapters": {}
-  },
+  "metric_semantics": [
+    {
+      "direction": "LowerBetter",
+      "influencing_params": [],
+      "metric_id": "runtime_s",
+      "missing_data_policy": "treat_as_infinite",
+      "range": ">= 0",
+      "units": "seconds"
+    },
+    {
+      "direction": "LowerBetter",
+      "influencing_params": [],
+      "metric_id": "memory_mb",
+      "missing_data_policy": "treat_as_infinite",
+      "range": ">= 0",
+      "units": "MB"
+    },
+    {
+      "direction": "HigherBetter",
+      "influencing_params": [
+        "adapter_bank",
+        "trim_settings",
+        "filter_settings"
+      ],
+      "metric_id": "read_retention",
+      "missing_data_policy": "treat_as_0.0",
+      "range": "[0, 1]",
+      "units": "ratio"
+    },
+    {
+      "direction": "HigherBetter",
+      "influencing_params": [
+        "adapter_bank",
+        "trim_settings",
+        "filter_settings"
+      ],
+      "metric_id": "base_retention",
+      "missing_data_policy": "treat_as_0.0",
+      "range": "[0, 1]",
+      "units": "ratio"
+    },
+    {
+      "direction": "HigherBetter",
+      "influencing_params": [
+        "merge_policy"
+      ],
+      "metric_id": "merge_rate",
+      "missing_data_policy": "treat_as_0.0",
+      "range": "[0, 1]",
+      "units": "ratio"
+    },
+    {
+      "direction": "HigherBetter",
+      "influencing_params": [
+        "corrector_settings"
+      ],
+      "metric_id": "error_reduction_proxy",
+      "missing_data_policy": "treat_as_0.0",
+      "range": "[0, 45]",
+      "units": "mean_q_delta"
+    }
+  ],
   "pipeline_verdict": {
-    "verdict": "pass",
-    "reasons": []
+    "reasons": [],
+    "verdict": "pass"
   },
+  "provenance": [
+    {
+      "bank_hashes": {
+        "adapter_bank_hash": "unknown",
+        "adapters": "sha256:adapters",
+        "contaminants": "sha256:contam",
+        "polyx": "sha256:polyx",
+        "reference_bank_hash": "unknown",
+        "taxonomy_db_hash": "unknown",
+        "taxonomy_db_version": "unknown"
+      },
+      "image_digest": "sha256:img",
+      "params_hash": "params",
+      "span_id": "span-1",
+      "stage_id": "fastq.trim",
+      "tool_id": "fastp",
+      "tool_version": "0.23.4",
+      "trace_id": "trace-1"
+    }
+  ],
+  "qc_improvement": {},
+  "retention_context": [
+    {
+      "conditions": {
+        "min_len": 20
+      },
+      "definition": "{\"bases_out\":800,\"reads_out\":80} / {\"bases_in\":1000,\"reads_in\":100} (reads)",
+      "stage_id": "fastq.trim",
+      "tool_id": "fastp"
+    }
+  ],
+  "retention_definition": [
+    {
+      "conditions": {
+        "min_len": 20
+      },
+      "denominator": "{\"bases_in\":1000,\"reads_in\":100}",
+      "numerator": "{\"bases_out\":800,\"reads_out\":80}",
+      "stage_id": "fastq.trim",
+      "tool_id": "fastp"
+    }
+  ],
+  "run_id": "run-1",
+  "schema_version": "bijux.report.v1",
   "sections": {
     "accounting": {
       "stages": [
@@ -526,6 +502,10 @@
         "status": "complete"
       }
     },
+    "fastq": {
+      "schema_version": "bijux.report.section.fastq.v1",
+      "stages": 1
+    },
     "filtering": {},
     "final_qc_summary": {
       "adapter_inference": {
@@ -705,6 +685,7 @@
     "run_provenance": {
       "graph_hash": "unknown",
       "input_hashes": [],
+      "manifest_signature_sha256": "unknown",
       "stage_contracts": {}
     },
     "scientific_provenance": {
@@ -794,6 +775,32 @@
         }
       ]
     }
+  },
+  "stages": [
+    {
+      "bank_report_path": "bank_report.json",
+      "effective_config_path": "effective_config.json",
+      "exit_code": 0,
+      "input_hash": "input",
+      "memory_mb": 64.0,
+      "metrics_path": "metrics.json",
+      "params_hash": "params",
+      "retention_report_path": "retention_report.json",
+      "runtime_s": 1.0,
+      "stage_id": "fastq.trim",
+      "stage_report_path": "stage_report.json",
+      "tool_id": "fastp",
+      "tool_invocation_path": "tool_invocation.json",
+      "tool_version": "0.23.4"
+    }
+  ],
+  "telemetry": {
+    "error_count": 0,
+    "event_count": 0,
+    "events": [
+      "telemetry/events.jsonl"
+    ],
+    "timeline": []
   }
 }</script>
   <div class="layout">
@@ -802,7 +809,7 @@
       <ul>
         <li><a href="#overview">overview</a></li>
         <li><a href="#stages">stages</a></li>
-<li><a href="#section-accounting">accounting</a></li><li><a href="#section-adapter_config">adapter_config</a></li><li><a href="#section-analysis_selection_contract">analysis_selection_contract</a></li><li><a href="#section-assertions">assertions</a></li><li><a href="#section-bench_summary">bench_summary</a></li><li><a href="#section-claims_registry">claims_registry</a></li><li><a href="#section-comparison_view">comparison_view</a></li><li><a href="#section-contaminant_summary">contaminant_summary</a></li><li><a href="#section-contamination">contamination</a></li><li><a href="#section-data_contract_validation">data_contract_validation</a></li><li><a href="#section-decision_config">decision_config</a></li><li><a href="#section-decision_trace">decision_trace</a></li><li><a href="#section-failure_hints">failure_hints</a></li><li><a href="#section-failures">failures</a></li><li><a href="#section-filtering">filtering</a></li><li><a href="#section-final_qc_summary">final_qc_summary</a></li><li><a href="#section-findings">findings</a></li><li><a href="#section-handoff">handoff</a></li><li><a href="#section-impact_metrics">impact_metrics</a></li><li><a href="#section-key_findings">key_findings</a></li><li><a href="#section-method_assumptions">method_assumptions</a></li><li><a href="#section-metric_provenance">metric_provenance</a></li><li><a href="#section-pipeline_defaults">pipeline_defaults</a></li><li><a href="#section-pipeline_overview">pipeline_overview</a></li><li><a href="#section-pipeline_verdict">pipeline_verdict</a></li><li><a href="#section-qc">qc</a></li><li><a href="#section-qc_artifacts">qc_artifacts</a></li><li><a href="#section-qc_delta">qc_delta</a></li><li><a href="#section-reproducibility">reproducibility</a></li><li><a href="#section-retention">retention</a></li><li><a href="#section-run_provenance">run_provenance</a></li><li><a href="#section-scientific_provenance">scientific_provenance</a></li><li><a href="#section-stage_completeness">stage_completeness</a></li><li><a href="#section-stage_confidence">stage_confidence</a></li><li><a href="#section-stage_plots">stage_plots</a></li><li><a href="#section-trimming">trimming</a></li>
+<li><a href="#section-accounting">accounting</a></li><li><a href="#section-adapter_config">adapter_config</a></li><li><a href="#section-analysis_selection_contract">analysis_selection_contract</a></li><li><a href="#section-assertions">assertions</a></li><li><a href="#section-bench_summary">bench_summary</a></li><li><a href="#section-claims_registry">claims_registry</a></li><li><a href="#section-comparison_view">comparison_view</a></li><li><a href="#section-contaminant_summary">contaminant_summary</a></li><li><a href="#section-contamination">contamination</a></li><li><a href="#section-data_contract_validation">data_contract_validation</a></li><li><a href="#section-decision_config">decision_config</a></li><li><a href="#section-decision_trace">decision_trace</a></li><li><a href="#section-failure_hints">failure_hints</a></li><li><a href="#section-failures">failures</a></li><li><a href="#section-fastq">fastq</a></li><li><a href="#section-filtering">filtering</a></li><li><a href="#section-final_qc_summary">final_qc_summary</a></li><li><a href="#section-findings">findings</a></li><li><a href="#section-handoff">handoff</a></li><li><a href="#section-impact_metrics">impact_metrics</a></li><li><a href="#section-key_findings">key_findings</a></li><li><a href="#section-method_assumptions">method_assumptions</a></li><li><a href="#section-metric_provenance">metric_provenance</a></li><li><a href="#section-pipeline_defaults">pipeline_defaults</a></li><li><a href="#section-pipeline_overview">pipeline_overview</a></li><li><a href="#section-pipeline_verdict">pipeline_verdict</a></li><li><a href="#section-qc">qc</a></li><li><a href="#section-qc_artifacts">qc_artifacts</a></li><li><a href="#section-qc_delta">qc_delta</a></li><li><a href="#section-reproducibility">reproducibility</a></li><li><a href="#section-retention">retention</a></li><li><a href="#section-run_provenance">run_provenance</a></li><li><a href="#section-scientific_provenance">scientific_provenance</a></li><li><a href="#section-stage_completeness">stage_completeness</a></li><li><a href="#section-stage_confidence">stage_confidence</a></li><li><a href="#section-stage_plots">stage_plots</a></li><li><a href="#section-trimming">trimming</a></li>
       </ul>
     </nav>
     <main>
@@ -1032,6 +1039,9 @@
     "missing_reports": [],
     "status": "complete"
   }
+}</pre></details><details id=\"section-fastq\" class=\"section\"><summary>fastq</summary><pre>{
+  "schema_version": "bijux.report.section.fastq.v1",
+  "stages": 1
 }</pre></details><details id=\"section-filtering\" class=\"section\"><summary>filtering</summary><pre>{}</pre></details><details id=\"section-final_qc_summary\" class=\"section\"><summary>final_qc_summary</summary><pre>{
   "adapter_inference": {
     "rationale": "Adapter detection ran before trimming.",
@@ -1195,6 +1205,7 @@
 }</pre></details><details id=\"section-run_provenance\" class=\"section\"><summary>run_provenance</summary><pre>{
   "graph_hash": "unknown",
   "input_hashes": [],
+  "manifest_signature_sha256": "unknown",
   "stage_contracts": {}
 }</pre></details><details id=\"section-scientific_provenance\" class=\"section\"><summary>scientific_provenance</summary><pre>{
   "entries": [
