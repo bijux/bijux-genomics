@@ -14,7 +14,7 @@ fn help_for(args: &[&str]) -> String {
 #[test]
 fn cli_vcf_help_snapshot() {
     let help = help_for(&["dna", "vcf", "--help"]);
-    assert!(help.contains("Usage: bijux dna vcf <COMMAND>"));
+    assert!(help.contains("Usage: bijux dna vcf [OPTIONS] <COMMAND>"));
     assert!(help.contains("plan"));
     assert!(help.contains("explain"));
     assert!(help.contains("run"));

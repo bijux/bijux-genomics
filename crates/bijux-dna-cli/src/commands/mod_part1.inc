@@ -43,10 +43,27 @@ pub fn run_with_args(args: &[&str], cwd: &Path) -> Result<()> {
         args
     };
     let mut args_with_bin = vec!["bijux"];
-    if !matches!(normalized_args.first(), Some(&"dna")) {
-        args_with_bin.push("dna");
+    if matches!(normalized_args.first(), Some(&"dna")) {
+        args_with_bin.extend(normalized_args.iter().copied());
+    } else {
+        let mut insert_at = 0usize;
+        while insert_at < normalized_args.len() {
+            match normalized_args[insert_at] {
+                "--profile" | "--platform" | "--telemetry-jsonl" => {
+                    insert_at = (insert_at + 2).min(normalized_args.len());
+                }
+                "--print-effective-config" | "--dump-effective-config" | "--json" => {
+                    insert_at += 1;
+                }
+                _ => break,
+            }
+        }
+        args_with_bin.extend(normalized_args[..insert_at].iter().copied());
+        if !matches!(normalized_args.get(insert_at), Some(&"dna")) {
+            args_with_bin.push("dna");
+        }
+        args_with_bin.extend(normalized_args[insert_at..].iter().copied());
     }
-    args_with_bin.extend(normalized_args.iter().copied());
     let cli = cli::Cli::parse_from(args_with_bin);
     run_with_cli(&cli, cwd)
 }
@@ -77,7 +94,7 @@ pub fn run_with_cli(cli: &cli::Cli, cwd: &Path) -> Result<()> {
         cli::RootCommand::Dna { command } => command,
     };
     match dna_command {
-        cli::DnaCommand::Environment { command } | cli::DnaCommand::Env { command } => {
+        cli::DnaCommand::Environment { command } => {
             return handle_environment_root(command, cwd);
         }
         cli::DnaCommand::Registry { command } => return handle_registry_root(command, cwd),

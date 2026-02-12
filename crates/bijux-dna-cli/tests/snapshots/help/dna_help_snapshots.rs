@@ -14,23 +14,23 @@ fn help_for(args: &[&str]) -> String {
 #[test]
 fn cli_dna_help_snapshot() {
     let help = help_for(&["dna", "--help"]);
-    assert!(help.contains("Usage: bijux dna <COMMAND>"));
+    assert!(help.contains("Usage: bijux dna [OPTIONS] <COMMAND>"));
 }
 
 #[test]
 fn cli_dna_fastq_help_snapshot() {
     let help = help_for(&["dna", "fastq", "--help"]);
-    assert!(help.contains("Usage: bijux dna fastq <COMMAND>"));
+    assert!(help.contains("Usage: bijux dna fastq [OPTIONS] <COMMAND>"));
 }
 
 #[test]
 fn cli_dna_bam_help_snapshot() {
     let help = help_for(&["dna", "bam", "--help"]);
-    assert!(help.contains("Usage: bijux dna bam <COMMAND>"));
+    assert!(help.contains("Usage: bijux dna bam [OPTIONS] <COMMAND>"));
 }
 
 #[test]
 fn cli_dna_vcf_help_snapshot() {
     let help = help_for(&["dna", "vcf", "--help"]);
-    assert!(help.contains("Usage: bijux dna vcf <COMMAND>"));
+    assert!(help.contains("Usage: bijux dna vcf [OPTIONS] <COMMAND>"));
 }

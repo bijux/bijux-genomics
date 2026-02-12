@@ -116,10 +116,6 @@ pub enum DnaCommand {
     ImageQa,
     Replay(ReplayArgs),
     Compare(CompareArgs),
-    Env {
-        #[command(subcommand)]
-        command: EnvCommand,
-    },
     Bench {
         #[command(subcommand)]
         command: BenchCommand,
@@ -164,13 +160,6 @@ pub enum PoliciesCommand {
     },
 }
 
-#[derive(Debug, Subcommand)]
-pub enum CiCommand {
-    Verify {
-        #[arg(long, default_value = "artifacts/ci/verify_summary.json")]
-        out: PathBuf,
-    },
-}
 #[derive(Debug, Args)]
 pub struct ReplayArgs {
     pub run_id: String,
