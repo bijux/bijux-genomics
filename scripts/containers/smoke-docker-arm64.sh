@@ -121,7 +121,7 @@ get_help_cmd() {
 get_registry_field() {
   field="$1"
   tool="$2"
-  value=$("$ROOT_DIR/scripts/registry-tools.sh" show-tool "$tool" 2>/dev/null \
+  value=$("$ROOT_DIR/scripts/containers/registry-tools.sh" show-tool "$tool" 2>/dev/null \
     | jq -r --arg f "$field" '.[$f] // "unknown"' \
     | head -n 1 || true)
   if [ -n "${value:-}" ] && [ "$value" != "unknown" ]; then

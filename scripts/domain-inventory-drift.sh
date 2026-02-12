@@ -59,8 +59,8 @@ END{
   | sort -u > "$DOM_STAGES"
 
 # Registry views are authoritative via CLI wrappers.
-"$ROOT_DIR/scripts/registry-tools.sh" list-tools | sort -u > "$REG_TOOLS"
-"$ROOT_DIR/scripts/registry-tools.sh" list-stages | sort -u > "$REG_STAGES"
+"$ROOT_DIR/scripts/containers/registry-tools.sh" list-tools | sort -u > "$REG_TOOLS"
+"$ROOT_DIR/scripts/containers/registry-tools.sh" list-stages | sort -u > "$REG_STAGES"
 
 rg -No 'ToolId::from_static\("([a-z0-9_\-]+)"\)' "$ROOT_DIR/crates" \
   | sed -E 's/.*from_static\("([a-z0-9_\-]+)"\).*/\1/' \
@@ -83,7 +83,7 @@ rg -No 'stage-tools ([a-z0-9._-]+) all' "$ROOT_DIR/makefiles" \
 > "$MAKE_TOOLS"
 while IFS= read -r stage_id; do
   [ -z "$stage_id" ] && continue
-  "$ROOT_DIR/scripts/registry-tools.sh" stage-tools "$stage_id" all | tr ',' '\n' >> "$MAKE_TOOLS" || :
+  "$ROOT_DIR/scripts/containers/registry-tools.sh" stage-tools "$stage_id" all | tr ',' '\n' >> "$MAKE_TOOLS" || :
 done < "$STAGES_FILE"
 
 sed -i.bak '/^$/d' "$MAKE_TOOLS" 2>/dev/null || true
