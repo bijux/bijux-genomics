@@ -6,7 +6,7 @@ mod support;
 use support::workspace_root;
 
 #[test]
-fn policy__contracts__tooling__examples_golden_hygiene_policy__goldens_are_redacted_and_stamped() {
+fn policy__contracts__examples_golden_hygiene_policy__goldens_are_redacted_and_stamped() {
     let root = workspace_root().join("examples");
     let mut offenders = Vec::new();
 

@@ -15,3 +15,6 @@ sha2 = { workspace = true }
 bijux-dna-policies = { path = "../bijux-dna-policies" }
 walkdir.workspace = true
 bijux-dna-testkit = { path = "../bijux-dna-testkit" }
+
+[lints]
+workspace = true

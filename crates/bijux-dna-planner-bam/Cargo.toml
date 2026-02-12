@@ -24,3 +24,6 @@ serde_json.workspace = true
 
 [features]
 bam_downstream = ["bijux-dna-stages-bam/bam_downstream"]
+
+[lints]
+workspace = true

@@ -160,6 +160,9 @@ fix-snapshots: ## Rebuild and accept workspace snapshots with the CI insta workf
 	@./bin/isolate cargo insta test --workspace
 	@./bin/isolate cargo insta accept --workspace
 
+test-triage: ## Group failed tests from a saved nextest log.
+	@./scripts/test-triage.sh artifacts/test-logs/latest.log
+
 generate-configs:
 	@./scripts/generate-configs.sh
 
@@ -180,4 +183,4 @@ policy-no-raw-cargo: ## Fail if raw cargo invocations exist in Make/scripts.
 		domain-gates domain-gates-isolate \
 		domain-validate domain-coverage domain-inventory-drift generate-configs check-generated-configs check-generated-config-headers \
 		policy-fast ssot-policy-fast policy-full policy-no-raw-cargo test-profile-invariants registry-lint unit-contract-fast release-readiness ci-fast ci-slow quick \
-		snapshots snapshots-accept snapshots-review fix-snapshots
+		snapshots snapshots-accept snapshots-review fix-snapshots test-triage
