@@ -1,0 +1,15 @@
+schema_version = "bijux.bench-suite.fastq.v1"
+suite_id = "fastq_stage02_trim"
+corpus = "example-102"
+repetitions = 2
+
+[fairness]
+threads = 16
+mem_gb = 64
+tmp_policy = "unique-per-run-id"
+cold_runs = 1
+warm_runs = 1
+
+[[stages]]
+stage = "trim"
+tools = ["fastp"]

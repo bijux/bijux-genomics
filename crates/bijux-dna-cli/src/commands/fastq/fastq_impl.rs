@@ -870,6 +870,8 @@ pub(crate) fn handle_meta_commands(
         DnaCommand::Fastq { .. }
         | DnaCommand::Bam { .. }
         | DnaCommand::Vcf { .. }
+        | DnaCommand::Example { .. }
+        | DnaCommand::Dev { .. }
         | DnaCommand::Debug(_)
         | DnaCommand::Collect(_) => Ok(false),
     }

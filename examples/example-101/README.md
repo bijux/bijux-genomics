@@ -22,12 +22,12 @@ Validate end-to-end reproducibility for FASTQ stage-01 benchmarking on HPC using
 - Golden deterministic plan/explain artifacts
 
 ## Acceptance Criteria
-- Example validates against schema (`bijux example validate example-101`)
-- Plan output matches `golden/plan.json` deterministically
-- Explain output matches `golden/explain.json` deterministically
-- Stage-01 suite only includes `fastq.validate_pre`
+- `bijux dna example validate example-101` passes
+- `golden/plan.json` is deterministic for `bijux dna example plan example-101`
+- `golden/explain.json` exists and matches stage/suite semantics
+- `bench-suite.toml` pins exactly stage-01 tooling probes
 
 ## How To Run On HPC
 ```bash
-bijux example run example-101 --hpc
+bijux dna example run example-101 --hpc
 ```
