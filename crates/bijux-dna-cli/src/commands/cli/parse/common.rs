@@ -4,6 +4,12 @@ use std::path::PathBuf;
 #[derive(Debug, Parser)]
 #[command(name = "bijux", version, about = "Bijux DNA CLI", subcommand_required = true, arg_required_else_help = true)]
 pub struct Cli {
+    #[arg(short = 'v', long, global = true, default_value_t = false)]
+    pub verbose: bool,
+    #[arg(short = 'q', long, global = true, default_value_t = false)]
+    pub quiet: bool,
+    #[arg(long, global = true, value_name = "LEVEL")]
+    pub log_level: Option<String>,
     #[arg(long, default_value = "local")]
     pub profile: String,
     #[arg(long)]

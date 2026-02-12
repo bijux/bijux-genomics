@@ -86,6 +86,15 @@ pub fn run_with_cli(cli: &cli::Cli, cwd: &Path) -> Result<()> {
     if cli.json {
         std::env::set_var("BIJUX_OUTPUT_JSON", "1");
     }
+    if cli.verbose {
+        std::env::set_var("BIJUX_VERBOSE", "1");
+    }
+    if cli.quiet {
+        std::env::set_var("BIJUX_QUIET", "1");
+    }
+    if let Some(level) = &cli.log_level {
+        std::env::set_var("RUST_LOG", level);
+    }
     let domain_dir = cwd.join("domain");
     let registry_path = cwd.join("configs").join("tool_registry.toml");
 
@@ -256,7 +265,7 @@ fn ensure_stage_bank_requirements(cwd: &Path, stage_id: &str) -> Result<()> {
         .map_or_else(|_| PathBuf::from("bijux"), |cfg| cfg.resolve_paths().root);
     let candidates = [
         hpc_root.join("bijux-dna-data").join("banks"),
-        cwd.join("bijux-dna-data").join("banks"),
+        cwd.join("examples").join("bijux-dna-data").join("banks"),
         cwd.join("assets"),
     ];
     let mut found = None;
