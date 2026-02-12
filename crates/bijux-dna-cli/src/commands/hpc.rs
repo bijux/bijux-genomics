@@ -1,7 +1,7 @@
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize)]
 pub struct HpcLayout {
@@ -10,6 +10,174 @@ pub struct HpcLayout {
     pub containers_dir: PathBuf,
     pub data_dir: PathBuf,
     pub results_dir: PathBuf,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct HpcConfig {
+    pub hpc: HpcSection,
+    pub paths: HpcPathsSection,
+    pub slurm: SlurmSection,
+    pub user: UserSection,
+    pub site: SiteSection,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct HpcSection {
+    pub root: PathBuf,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct HpcPathsSection {
+    pub repo: PathBuf,
+    pub containers: PathBuf,
+    pub data: PathBuf,
+    pub results: PathBuf,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct SlurmSection {
+    #[serde(default = "default_true")]
+    pub enabled: bool,
+    #[serde(default)]
+    pub account: String,
+    #[serde(default)]
+    pub partition: String,
+    #[serde(default)]
+    pub qos: String,
+    #[serde(default = "default_time")]
+    pub time_default: String,
+    #[serde(default = "default_cpus")]
+    pub cpus_default: u32,
+}
+
+impl Default for SlurmSection {
+    fn default() -> Self {
+        Self {
+            enabled: default_true(),
+            account: String::new(),
+            partition: String::new(),
+            qos: String::new(),
+            time_default: default_time(),
+            cpus_default: default_cpus(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
+pub struct UserSection {
+    #[serde(default)]
+    pub name: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
+pub struct SiteSection {
+    #[serde(default = "default_site_name")]
+    pub name: String,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct HpcResolvedPaths {
+    pub root: PathBuf,
+    pub repo: PathBuf,
+    pub containers: PathBuf,
+    pub data: PathBuf,
+    pub results: PathBuf,
+}
+
+fn default_true() -> bool {
+    true
+}
+
+fn default_time() -> String {
+    "04:00:00".to_string()
+}
+
+fn default_cpus() -> u32 {
+    16
+}
+
+fn default_site_name() -> String {
+    "hpc".to_string()
+}
+
+fn default_hpc_root() -> PathBuf {
+    std::env::var_os("HOME").map_or_else(
+        || PathBuf::from("bijux"),
+        |home| PathBuf::from(home).join("bijux"),
+    )
+}
+
+fn default_hpc_config_path() -> PathBuf {
+    std::env::var_os("HOME").map_or_else(
+        || PathBuf::from(".config").join("bijux").join("hpc.toml"),
+        |home| {
+            PathBuf::from(home)
+                .join(".config")
+                .join("bijux")
+                .join("hpc.toml")
+        },
+    )
+}
+
+impl HpcConfig {
+    #[must_use]
+    pub fn from_root(root: PathBuf) -> Self {
+        let paths = HpcPathsSection {
+            repo: root.join("bijux-dna"),
+            containers: root.join("bijux-dna-containers"),
+            data: root.join("bijux-dna-data"),
+            results: root.join("bijux-dna-results"),
+        };
+        Self {
+            hpc: HpcSection { root },
+            paths,
+            slurm: SlurmSection::default(),
+            user: UserSection::default(),
+            site: SiteSection::default(),
+        }
+    }
+
+    #[must_use]
+    pub fn resolve_paths(&self) -> HpcResolvedPaths {
+        HpcResolvedPaths {
+            root: self.hpc.root.clone(),
+            repo: self.paths.repo.clone(),
+            containers: self.paths.containers.clone(),
+            data: self.paths.data.clone(),
+            results: self.paths.results.clone(),
+        }
+    }
+}
+
+/// # Errors
+/// Returns an error if the configured `hpc.toml` cannot be read or parsed.
+pub fn load_hpc_config() -> Result<HpcConfig> {
+    let config_path =
+        std::env::var_os("BIJUX_HPC_CONFIG").map_or_else(default_hpc_config_path, PathBuf::from);
+    if config_path.exists() {
+        let raw = std::fs::read_to_string(&config_path)
+            .with_context(|| format!("read {}", config_path.display()))?;
+        let cfg: HpcConfig =
+            toml::from_str(&raw).with_context(|| format!("parse {}", config_path.display()))?;
+        return Ok(cfg);
+    }
+    let root = std::env::var_os("BIJUX_HPC_ROOT").map_or_else(default_hpc_root, PathBuf::from);
+    Ok(HpcConfig::from_root(root))
+}
+
+/// # Errors
+/// Returns an error if the config file cannot be written.
+pub fn write_hpc_config(config: &HpcConfig) -> Result<PathBuf> {
+    let config_path =
+        std::env::var_os("BIJUX_HPC_CONFIG").map_or_else(default_hpc_config_path, PathBuf::from);
+    if let Some(parent) = config_path.parent() {
+        bijux_dna_infra::ensure_dir(parent)
+            .with_context(|| format!("create {}", parent.display()))?;
+    }
+    let raw = toml::to_string_pretty(config).context("serialize hpc config")?;
+    bijux_dna_api::v1::api::run::atomic_write_bytes(&config_path, raw.as_bytes())
+        .with_context(|| format!("write {}", config_path.display()))?;
+    Ok(config_path)
 }
 
 impl HpcLayout {
@@ -21,6 +189,17 @@ impl HpcLayout {
             containers_dir: root.join("bijux-dna-containers"),
             data_dir: root.join("bijux-dna-data"),
             results_dir: root.join("bijux-dna-results"),
+        }
+    }
+
+    #[must_use]
+    pub fn from_resolved(paths: &HpcResolvedPaths) -> Self {
+        Self {
+            root: paths.root.clone(),
+            code_dir: paths.repo.clone(),
+            containers_dir: paths.containers.clone(),
+            data_dir: paths.data.clone(),
+            results_dir: paths.results.clone(),
         }
     }
 
@@ -115,7 +294,7 @@ pub fn validate_hpc_status(layout: &HpcLayout) -> HpcStatusReport {
     checks.push(HpcCheck {
         name: "apptainer_present".to_string(),
         ok: apptainer.is_some(),
-        detail: apptainer.unwrap_or_else(|| "not found".to_string()),
+        detail: apptainer.unwrap_or("not found".to_string()),
     });
 
     let sif_cache = std::env::var("APPTAINER_CACHEDIR")
@@ -129,6 +308,56 @@ pub fn validate_hpc_status(layout: &HpcLayout) -> HpcStatusReport {
 
     let ok = checks.iter().all(|c| c.ok);
     HpcStatusReport { ok, checks }
+}
+
+#[derive(Debug, Serialize)]
+pub struct ConfigDoctorReport {
+    pub schema_version: &'static str,
+    pub config_path: String,
+    pub checks: Vec<HpcCheck>,
+    pub ok: bool,
+}
+
+/// # Errors
+/// Returns an error if config cannot be loaded.
+pub fn config_doctor() -> Result<ConfigDoctorReport> {
+    let config_path =
+        std::env::var_os("BIJUX_HPC_CONFIG").map_or_else(default_hpc_config_path, PathBuf::from);
+    let cfg = load_hpc_config()?;
+    let paths = cfg.resolve_paths();
+    let layout = HpcLayout::from_resolved(&paths);
+    let mut checks = validate_hpc_status(&layout).checks;
+
+    let slurm_enabled = cfg.slurm.enabled;
+    for cmd in ["sbatch", "squeue", "sinfo"] {
+        let found = std::process::Command::new("sh")
+            .arg("-c")
+            .arg(format!("command -v {cmd}"))
+            .output()
+            .ok()
+            .is_some_and(|o| o.status.success());
+        checks.push(HpcCheck {
+            name: format!("slurm_{cmd}_present"),
+            ok: if slurm_enabled { found } else { true },
+            detail: if slurm_enabled {
+                if found {
+                    "ok".to_string()
+                } else {
+                    "missing".to_string()
+                }
+            } else {
+                "disabled".to_string()
+            },
+        });
+    }
+
+    let ok = checks.iter().all(|c| c.ok);
+    Ok(ConfigDoctorReport {
+        schema_version: "bijux.config_doctor.v1",
+        config_path: config_path.display().to_string(),
+        checks,
+        ok,
+    })
 }
 
 #[derive(Debug, Serialize)]
@@ -266,7 +495,7 @@ mod tests {
     #[test]
     fn hpc_layout_accepts_canonical_shape() {
         let path = Path::new(
-            "/home/bijan/bijux/bijux-dna-results/results/corpus-a/pipeline-x/stage-y/tool-z/20260211T120001Z/run-123",
+            "/hpc/root/bijux-dna-results/results/corpus-a/pipeline-x/stage-y/tool-z/20260211T120001Z/run-123",
         );
         assert!(enforce_hpc_results_layout(path).is_ok());
     }

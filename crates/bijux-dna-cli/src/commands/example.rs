@@ -190,8 +190,9 @@ pub fn print_example_plan(cwd: &Path, id: &str) -> Result<()> {
 
 fn build_plan(cwd: &Path, spec: &ExampleSpec, hpc_mode: bool) -> Result<ExamplePlan> {
     let (hpc_root, data_root, results_root) = if hpc_mode {
-        let root = std::env::var("BIJUX_HPC_ROOT")
-            .map_or_else(|_| PathBuf::from("/home/bijan/bijux"), PathBuf::from);
+        let root = crate::commands::hpc::load_hpc_config()?
+            .resolve_paths()
+            .root;
         let layout = hpc::HpcLayout::from_root(&root);
         (root, layout.data_dir, layout.results_dir)
     } else {
