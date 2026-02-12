@@ -22,6 +22,14 @@ pub struct ExampleListArgs {
 }
 
 #[derive(Debug, Args)]
+pub struct ExampleChainArgs {
+    pub from: String,
+    #[arg(allow_hyphen_values = true)]
+    pub arrow: String,
+    pub to: String,
+}
+
+#[derive(Debug, Args)]
 pub struct DevExamplesScaffoldArgs {
     #[arg(long, default_value = "1xx")]
     pub series: String,

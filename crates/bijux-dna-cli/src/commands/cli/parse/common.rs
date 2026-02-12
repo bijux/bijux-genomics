@@ -449,6 +449,7 @@ pub enum ExampleCommand {
     Validate(ExampleValidateArgs),
     Plan(ExamplePlanArgs),
     List(ExampleListArgs),
+    Chain(ExampleChainArgs),
 }
 
 include!("common_example_args.rs");
