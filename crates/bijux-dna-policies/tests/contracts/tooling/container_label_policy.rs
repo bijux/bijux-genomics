@@ -29,6 +29,7 @@ fn policy__contracts__container_label_policy__container_labels_include_tool_vers
             let content = std::fs::read_to_string(path).unwrap_or_default();
             for marker in [
                 "org.opencontainers.image.tool=",
+                "org.opencontainers.image.title=",
                 "org.opencontainers.image.version=",
                 "org.opencontainers.image.source=",
                 "org.opencontainers.image.base.digest=",
@@ -39,6 +40,14 @@ fn policy__contracts__container_label_policy__container_labels_include_tool_vers
                         path.display()
                     ));
                 }
+            }
+            if !content.contains("org.opencontainers.image.license=")
+                && !content.contains("org.opencontainers.image.licenses=")
+            {
+                offenders.push(format!(
+                    "{} missing label marker `org.opencontainers.image.license(s)=`",
+                    path.display()
+                ));
             }
         }
     }
@@ -62,6 +71,7 @@ fn policy__contracts__container_label_policy__container_labels_include_tool_vers
             let content = std::fs::read_to_string(path).unwrap_or_default();
             for marker in [
                 "org.opencontainers.image.tool ",
+                "org.opencontainers.image.title ",
                 "org.opencontainers.image.version ",
                 "org.opencontainers.image.source ",
                 "org.opencontainers.image.revision ",
@@ -72,6 +82,14 @@ fn policy__contracts__container_label_policy__container_labels_include_tool_vers
                         path.display()
                     ));
                 }
+            }
+            if !content.contains("org.opencontainers.image.license ")
+                && !content.contains("org.opencontainers.image.licenses ")
+            {
+                offenders.push(format!(
+                    "{} missing label marker `org.opencontainers.image.license(s) `",
+                    path.display()
+                ));
             }
         }
     }
