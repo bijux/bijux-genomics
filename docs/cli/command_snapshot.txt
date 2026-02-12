@@ -1,33 +1,17 @@
-Usage: bijux dna [OPTIONS] <COMMAND>
+Bijux DNA CLI
+
+Usage: bijux [OPTIONS] <COMMAND>
 
 Commands:
-env
-registry
-ena
-corpus
-tool
-domain
-lab
-config
-status
-run
-bam
-vcf
-plan
-analyze
-explain
-validate-manifests
-platform
-image-qa
-replay
-compare
-bench
-policies
-ci
-debug
-collect
-help Print this message or the help of the given subcommand(s)
+  dna   
+  help  Print this message or the help of the given subcommand(s)
 
 Options:
---json
--h, --help Print help
+      --profile <PROFILE>       [default: local]
+      --platform <PLATFORM>     
+      --telemetry-jsonl <PATH>  
+      --print-effective-config  Print resolved config JSON (skeleton for future defaults).
+      --dump-effective-config   Dump effective config JSON (alias for --print-effective-config).
+      --json                    
+  -h, --help                    Print help
+  -V, --version                 Print version
