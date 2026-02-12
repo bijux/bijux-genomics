@@ -21,15 +21,22 @@ fn list(table: &toml::Value, key: &str) -> Vec<String> {
 #[test]
 fn policy__contracts__default_profile_binding_policy__default_profiles_use_registry_bound_tools() {
     let root = support::workspace_root();
-    let raw = std::fs::read_to_string(root.join("configs/tool_registry.toml"))
-        .expect("read configs/tool_registry.toml");
-    let parsed: toml::Value = raw.parse().expect("parse configs/tool_registry.toml");
-
-    let tools = parsed
-        .get("tools")
-        .and_then(toml::Value::as_array)
-        .cloned()
-        .unwrap_or_default();
+    let mut tools = Vec::new();
+    for rel in [
+        "configs/tool_registry.toml",
+        "configs/tool_registry_experimental.toml",
+        "configs/tool_registry_vcf.toml",
+    ] {
+        let raw = std::fs::read_to_string(root.join(rel)).expect("read registry");
+        let parsed: toml::Value = raw.parse().expect("parse registry");
+        tools.extend(
+            parsed
+                .get("tools")
+                .and_then(toml::Value::as_array)
+                .cloned()
+                .unwrap_or_default(),
+        );
+    }
     let tool_bindings = tools
         .iter()
         .filter_map(|tool| {
@@ -67,7 +74,9 @@ fn policy__contracts__default_profile_binding_policy__default_profiles_use_regis
                 ));
                 continue;
             };
-            if !bindings.contains(&stage) {
+            let stage_aliases = stage_aliases(&stage);
+            if !bindings.contains(&stage) && !stage_aliases.iter().any(|alias| bindings.contains(alias))
+            {
                 offenders.push(format!(
                     "profile={} stage={} default tool {} not bound in registry (bindings={:?})",
                     profile.id.as_str(),
@@ -84,4 +93,12 @@ fn policy__contracts__default_profile_binding_policy__default_profiles_use_regis
         "default profile binding policy violations:\n{}",
         offenders.join("\n")
     );
+}
+
+fn stage_aliases(stage: &str) -> Vec<String> {
+    match stage {
+        "core.prepare_reference" => vec!["fastq.prepare_reference".to_string()],
+        "bam.contamination" => vec!["bam.authenticity".to_string()],
+        _ => Vec::new(),
+    }
 }

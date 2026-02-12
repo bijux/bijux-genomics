@@ -59,6 +59,7 @@ fn policy__contracts__tool_registry_completeness__registry_entries_are_machine_c
     }
     let registry_path = root.join("configs/tool_registry.toml");
     let experimental_registry_path = root.join("configs/tool_registry_experimental.toml");
+    let vcf_registry_path = root.join("configs/tool_registry_vcf.toml");
     let raw = std::fs::read_to_string(&registry_path).expect("read configs/tool_registry.toml");
     let parsed: toml::Value = raw.parse().expect("parse configs/tool_registry.toml");
     let experimental_raw = std::fs::read_to_string(&experimental_registry_path)
@@ -66,8 +67,12 @@ fn policy__contracts__tool_registry_completeness__registry_entries_are_machine_c
     let experimental_parsed: toml::Value = experimental_raw
         .parse()
         .expect("parse configs/tool_registry_experimental.toml");
+    let vcf_raw =
+        std::fs::read_to_string(&vcf_registry_path).expect("read configs/tool_registry_vcf.toml");
+    let vcf_parsed: toml::Value = vcf_raw.parse().expect("parse configs/tool_registry_vcf.toml");
     let mut tools = as_table_array(&parsed, "tools");
     tools.extend(as_table_array(&experimental_parsed, "tools"));
+    tools.extend(as_table_array(&vcf_parsed, "tools"));
     let mut declared_docker_tool_files = std::collections::BTreeSet::new();
     let mut declared_apptainer_tool_files = std::collections::BTreeSet::new();
     let checkout_commit_re =
