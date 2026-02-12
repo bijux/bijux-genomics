@@ -5,8 +5,11 @@ mod support;
 use std::collections::BTreeSet;
 
 fn parse_registry_tools(path: &std::path::Path) -> Vec<toml::Value> {
-    let raw = std::fs::read_to_string(path).unwrap_or_else(|err| panic!("read {}: {err}", path.display()));
-    let parsed: toml::Value = raw.parse().unwrap_or_else(|err| panic!("parse {}: {err}", path.display()));
+    let raw = std::fs::read_to_string(path)
+        .unwrap_or_else(|err| panic!("read {}: {err}", path.display()));
+    let parsed: toml::Value = raw
+        .parse()
+        .unwrap_or_else(|err| panic!("parse {}: {err}", path.display()));
     parsed
         .get("tools")
         .and_then(toml::Value::as_array)
@@ -21,10 +24,10 @@ fn policy__contracts__production_container_policy__production_tools_have_version
     let registry_tools = parse_registry_tools(&root.join("configs/tool_registry.toml"));
     let versions_raw = std::fs::read_to_string(root.join("containers/versions/versions.toml"))
         .expect("read containers/versions/versions.toml");
-    let versions: toml::Value = versions_raw.parse().expect("parse containers/versions/versions.toml");
-    let version_table = versions
-        .as_table()
-        .expect("versions.toml top-level table");
+    let versions: toml::Value = versions_raw
+        .parse()
+        .expect("parse containers/versions/versions.toml");
+    let version_table = versions.as_table().expect("versions.toml top-level table");
 
     let mut offenders = Vec::new();
     let mut production_ids = BTreeSet::new();
@@ -101,4 +104,3 @@ fn policy__contracts__production_container_policy__production_tools_have_version
         offenders.join("\n")
     );
 }
-

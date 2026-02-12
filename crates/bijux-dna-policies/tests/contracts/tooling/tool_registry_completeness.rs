@@ -69,7 +69,9 @@ fn policy__contracts__tool_registry_completeness__registry_entries_are_machine_c
         .expect("parse configs/tool_registry_experimental.toml");
     let vcf_raw =
         std::fs::read_to_string(&vcf_registry_path).expect("read configs/tool_registry_vcf.toml");
-    let vcf_parsed: toml::Value = vcf_raw.parse().expect("parse configs/tool_registry_vcf.toml");
+    let vcf_parsed: toml::Value = vcf_raw
+        .parse()
+        .expect("parse configs/tool_registry_vcf.toml");
     let mut tools = as_table_array(&parsed, "tools");
     tools.extend(as_table_array(&experimental_parsed, "tools"));
     tools.extend(as_table_array(&vcf_parsed, "tools"));
@@ -212,8 +214,9 @@ fn policy__contracts__tool_registry_completeness__registry_entries_are_machine_c
                         } else {
                             let content = std::fs::read_to_string(&abs).unwrap_or_default();
                             if !content.contains("Container definition license: ") {
-                                offenders
-                                    .push(format!("tool={id}: apptainer def missing license header"));
+                                offenders.push(format!(
+                                    "tool={id}: apptainer def missing license header"
+                                ));
                             }
                             if !content.contains("org.opencontainers.image.licenses ") {
                                 offenders.push(format!(

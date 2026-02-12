@@ -38,4 +38,3 @@ fn policy__contracts__container_smoke_registry_driven_policy__smoke_scripts_are_
         offenders.join("\n")
     );
 }
-

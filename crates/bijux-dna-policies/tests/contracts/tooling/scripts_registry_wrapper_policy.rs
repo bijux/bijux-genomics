@@ -17,7 +17,8 @@ fn policy__contracts__scripts_registry_wrapper_policy__registry_script_is_cli_wr
         .join("scripts")
         .join("containers")
         .join("registry-tools.sh");
-    let content = std::fs::read_to_string(&script).expect("read scripts/containers/registry-tools.sh");
+    let content =
+        std::fs::read_to_string(&script).expect("read scripts/containers/registry-tools.sh");
 
     bijux_dna_policies::policy_assert!(
         content.contains("cargo run --bin bijux-dna -- registry"),

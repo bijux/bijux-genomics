@@ -251,8 +251,13 @@ fn policy__boundaries__docs_spine__crate_docs_contract() {
             if path.extension().and_then(|ext| ext.to_str()) != Some("md") {
                 continue;
             }
-            let file_name = path.file_name().and_then(|n| n.to_str()).unwrap_or_default();
-            if file_name != "README.md" && file_name != "BOUNDARY.md" && file_name != "PUBLIC_API.md"
+            let file_name = path
+                .file_name()
+                .and_then(|n| n.to_str())
+                .unwrap_or_default();
+            if file_name != "README.md"
+                && file_name != "BOUNDARY.md"
+                && file_name != "PUBLIC_API.md"
             {
                 bijux_dna_policies::policy_panic!(
                     "crate root contains extra doc: {}",

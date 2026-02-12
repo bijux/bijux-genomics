@@ -87,7 +87,9 @@ fn policy__contracts__container_versions_policy__each_container_definition_has_v
     let mut offenders = Vec::new();
     for tool_id in expected {
         let Some(row) = table.get(&tool_id).and_then(toml::Value::as_table) else {
-            offenders.push(format!("missing [{tool_id}] in containers/versions/versions.toml"));
+            offenders.push(format!(
+                "missing [{tool_id}] in containers/versions/versions.toml"
+            ));
             continue;
         };
         let version = row
@@ -110,8 +112,7 @@ fn policy__contracts__container_versions_policy__each_container_definition_has_v
         }
         let date_ok = date.len() == 10
             && date.chars().enumerate().all(|(idx, ch)| {
-                matches!(idx, 4 | 7) && ch == '-'
-                    || (!matches!(idx, 4 | 7) && ch.is_ascii_digit())
+                matches!(idx, 4 | 7) && ch == '-' || (!matches!(idx, 4 | 7) && ch.is_ascii_digit())
             });
         if !date_ok {
             offenders.push(format!(

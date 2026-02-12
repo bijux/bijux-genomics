@@ -145,11 +145,8 @@ fn suite_requires_stratification_metadata() {
             min_replicates_for_bootstrap: 5,
         },
     );
-    let result = bijux_dna_bench::summarize(
-        &suite,
-        &[],
-        &bijux_dna_bench::BenchRunOptions::default(),
-    );
+    let result =
+        bijux_dna_bench::summarize(&suite, &[], &bijux_dna_bench::BenchRunOptions::default());
     assert!(
         result.is_err(),
         "suite validation should fail on missing strata"

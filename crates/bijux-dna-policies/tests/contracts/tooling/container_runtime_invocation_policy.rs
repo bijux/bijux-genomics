@@ -49,4 +49,3 @@ fn policy__contracts__container_runtime_invocation_policy__only_scripts_containe
         offenders.join("\n")
     );
 }
-

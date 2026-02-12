@@ -23,10 +23,7 @@ fn policy__contracts__cli_app_prefix_policy__root_cli_requires_app_prefix() {
             || line.is_empty()
             || line == "{"
             || line == "}"
-            || !line
-                .chars()
-                .next()
-                .is_some_and(|c| c.is_ascii_uppercase())
+            || !line.chars().next().is_some_and(|c| c.is_ascii_uppercase())
         {
             return false;
         }
