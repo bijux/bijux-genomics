@@ -76,3 +76,39 @@ jobs:
           cargo run -p bijux-dna --bin bijux -- dna example plan example-202
           cargo run -p bijux-dna --bin bijux -- dna example validate example-203
           cargo run -p bijux-dna --bin bijux -- dna example plan example-203
+
+  registry-vs-containers:
+    runs-on: ubuntu-latest
+    needs: fast-tier
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: ci-build
+      - name: Registry tools must have container defs
+        run: |
+          ./bin/isolate sh -ceu '
+            export CARGO_TARGET_DIR="$PWD/artifacts/isolated/ci-registry-vs-containers"
+            cargo test -p bijux-dna-policies --test contracts \
+              policy__contracts__container_registry_parity_policy__registry_runtime_tools_have_container_defs \
+              -- --nocapture
+          '
+
+  container-orphans:
+    runs-on: ubuntu-latest
+    needs: fast-tier
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: ci-build
+      - name: Container defs must exist in registry
+        run: |
+          ./bin/isolate sh -ceu '
+            export CARGO_TARGET_DIR="$PWD/artifacts/isolated/ci-container-orphans"
+            cargo test -p bijux-dna-policies --test contracts \
+              policy__contracts__container_registry_parity_policy__container_defs_are_registered_tools \
+              -- --nocapture
+          '
