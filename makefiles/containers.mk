@@ -10,7 +10,8 @@ CONTAINER_TYPE ?= docker-arm64
 endif
 
 PLATFORM ?= docker-arm64
-JOBS ?= 1
+BIJUX_WORKERS ?= 1
+JOBS ?= $(BIJUX_WORKERS)
 TOOLS ?=
 STAGE ?=
 APPTAINER_VM_OUT ?= $(HOME)/apptainer-build
@@ -77,19 +78,19 @@ containers-smoke: container-runtime-check ## Prepare+smoke every registered stag
 	done
 
 smoke-containers-docker-arm64: ## Build+smoke Docker arm64 containers
-	@./bin/isolate env TOOLS="$(TOOLS)" JOBS="$(JOBS)" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/containers/smoke-docker-arm64.sh
+	@./bin/isolate env TOOLS="$(TOOLS)" BIJUX_WORKERS="$(BIJUX_WORKERS)" JOBS="$(BIJUX_WORKERS)" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/containers/smoke-docker-arm64.sh
 
 smoke-containers-docker-amd64: ## Build+smoke Docker amd64 containers
-	@./bin/isolate env TOOLS="$(TOOLS)" JOBS="$(JOBS)" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/containers/smoke-docker-amd64.sh
+	@./bin/isolate env TOOLS="$(TOOLS)" BIJUX_WORKERS="$(BIJUX_WORKERS)" JOBS="$(BIJUX_WORKERS)" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/containers/smoke-docker-amd64.sh
 
 smoke-containers-apptainer: ## Build+smoke Apptainer containers
-	@./bin/isolate env TOOLS="$(TOOLS)" JOBS="$(JOBS)" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/containers/smoke-apptainer.sh
+	@./bin/isolate env TOOLS="$(TOOLS)" BIJUX_WORKERS="$(BIJUX_WORKERS)" JOBS="$(BIJUX_WORKERS)" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/containers/smoke-apptainer.sh
 
 smoke-cntainers-apptainer-bijux-run: ## Apptainer smoke in bijux-run mode (registry commands via exec).
-	@./bin/isolate env TOOLS="$(TOOLS)" JOBS="$(JOBS)" SMOKE_RUN_MODE="bijux-run" SMOKE_LEVEL="contract" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)/apptainer-bijux-run" sh scripts/containers/smoke-apptainer.sh
+	@./bin/isolate env TOOLS="$(TOOLS)" BIJUX_WORKERS="$(BIJUX_WORKERS)" JOBS="$(BIJUX_WORKERS)" SMOKE_RUN_MODE="bijux-run" SMOKE_LEVEL="contract" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)/apptainer-bijux-run" sh scripts/containers/smoke-apptainer.sh
 
 smoke-cntainers-apptainer-apptainer-run: ## Apptainer smoke in runscript mode (apptainer run).
-	@./bin/isolate env TOOLS="$(TOOLS)" JOBS="$(JOBS)" SMOKE_RUN_MODE="apptainer-run" SMOKE_LEVEL="contract" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)/apptainer-apptainer-run" sh scripts/containers/smoke-apptainer.sh
+	@./bin/isolate env TOOLS="$(TOOLS)" BIJUX_WORKERS="$(BIJUX_WORKERS)" JOBS="$(BIJUX_WORKERS)" SMOKE_RUN_MODE="apptainer-run" SMOKE_LEVEL="contract" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)/apptainer-apptainer-run" sh scripts/containers/smoke-apptainer.sh
 
 smoke-cntainers-apptainer-verify: smoke-cntainers-apptainer-bijux-run smoke-cntainers-apptainer-apptainer-run ## Compare bijux-run vs apptainer-run smoke statuses.
 	@python3 - <<'PY'
@@ -141,19 +142,19 @@ build-images: ## Build Docker images (docker-arm64 only)
 	if [ -z "$$TOOLS_VAL" ]; then \
 		TOOLS_VAL="$$( $(BIJUX_BIN) registry list-tools --kind primary | paste -sd, - )"; \
 	fi; \
-	./bin/isolate env TOOLS="$$TOOLS_VAL" JOBS="$(JOBS)" SMOKE_LEVEL="build" SAVE_TAR="0" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/containers/smoke-docker-arm64.sh
+	./bin/isolate env TOOLS="$$TOOLS_VAL" BIJUX_WORKERS="$(BIJUX_WORKERS)" JOBS="$(BIJUX_WORKERS)" SMOKE_LEVEL="build" SAVE_TAR="0" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/containers/smoke-docker-arm64.sh
 
 test-images: ## Smoke selected runtime (registry-driven via scripts/CLI)
 	@if [ "$(CONTAINER_TYPE)" = "docker-arm64" ]; then \
 		if [ -n "$(STAGE)" ]; then \
 			TOOLS="$$( $(BIJUX_BIN) registry list-tools --stage "$(STAGE)" --kind all | paste -sd, - )"; \
-			./bin/isolate env TOOLS="$$TOOLS" JOBS="$(JOBS)" SMOKE_LEVEL="contract" SAVE_TAR="0" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/containers/smoke-docker-arm64.sh; \
+			./bin/isolate env TOOLS="$$TOOLS" BIJUX_WORKERS="$(BIJUX_WORKERS)" JOBS="$(BIJUX_WORKERS)" SMOKE_LEVEL="contract" SAVE_TAR="0" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/containers/smoke-docker-arm64.sh; \
 		else \
 			TOOLS_VAL="$(TOOLS)"; \
 			if [ -z "$$TOOLS_VAL" ]; then \
 				TOOLS_VAL="$$( $(BIJUX_BIN) registry list-tools --kind primary | paste -sd, - )"; \
 			fi; \
-			./bin/isolate env TOOLS="$$TOOLS_VAL" JOBS="$(JOBS)" SMOKE_LEVEL="contract" SAVE_TAR="0" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/containers/smoke-docker-arm64.sh; \
+			./bin/isolate env TOOLS="$$TOOLS_VAL" BIJUX_WORKERS="$(BIJUX_WORKERS)" JOBS="$(BIJUX_WORKERS)" SMOKE_LEVEL="contract" SAVE_TAR="0" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/containers/smoke-docker-arm64.sh; \
 		fi; \
 	elif [ -n "$(STAGE)" ]; then \
 		$(MAKE) env-smoke STAGE="$(STAGE)" CONTAINER_TYPE="$(CONTAINER_TYPE)"; \
@@ -181,15 +182,22 @@ test-images-tool: ## Smoke one tool via CLI registry
 
 image-smoke-vcf: ## Smoke only VCF tools and write manifests under isolate/container artifacts.
 	@set -eu; \
-	TOOLS_VCF="$$(python3 -c "import tomllib; from pathlib import Path; rows=tomllib.loads(Path('configs/tool_registry_vcf.toml').read_text()).get('tools', []); print(','.join(sorted({row.get('id','') for row in rows if row.get('id')})))")"; \
+	TOOLS_VCF="$$( stages="$$( $(BIJUX_BIN) registry list-stages | awk -F. '$$1==\"vcf\"{print $$0}' )"; \
+		if [ -z "$$stages" ]; then \
+			echo ""; \
+		else \
+			for stage in $$stages; do \
+				$(BIJUX_BIN) registry list-tools --stage "$$stage" --kind all; \
+			done | tr ',' '\n' | sed '/^$$/d' | sort -u | paste -sd, -; \
+		fi )"; \
 	if [ -z "$$TOOLS_VCF" ]; then \
-		echo "ERROR: no VCF tools found in configs/tool_registry_vcf.toml"; \
+		echo "ERROR: no VCF tools found via registry stage/tool mapping"; \
 		exit 2; \
 	fi; \
 	if [ "$(CONTAINER_TYPE)" = "apptainer" ]; then \
-		./bin/isolate env TOOLS="$$TOOLS_VCF" JOBS="$(JOBS)" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/containers/smoke-apptainer.sh; \
+		./bin/isolate env TOOLS="$$TOOLS_VCF" BIJUX_WORKERS="$(BIJUX_WORKERS)" JOBS="$(BIJUX_WORKERS)" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/containers/smoke-apptainer.sh; \
 	else \
-		./bin/isolate env TOOLS="$$TOOLS_VCF" JOBS="$(JOBS)" SMOKE_LEVEL="contract" SAVE_TAR="0" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/containers/smoke-docker-arm64.sh; \
+		./bin/isolate env TOOLS="$$TOOLS_VCF" BIJUX_WORKERS="$(BIJUX_WORKERS)" JOBS="$(BIJUX_WORKERS)" SMOKE_LEVEL="contract" SAVE_TAR="0" ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" sh scripts/containers/smoke-docker-arm64.sh; \
 	fi
 
 image-qa: ## Run image QA (docker-arm64 only)
@@ -200,7 +208,7 @@ image-qa: ## Run image QA (docker-arm64 only)
 	./bin/isolate cargo run --bin image_qa -- --platform $(PLATFORM)
 
 containers-apptainer-build: ## Batch-build Apptainer defs to VM-local output and copy back artifacts
-	@JOBS="$(JOBS)" ./scripts/containers/apptainer_build_all.sh \
+	@BIJUX_WORKERS="$(BIJUX_WORKERS)" JOBS="$(BIJUX_WORKERS)" ./scripts/containers/apptainer_build_all.sh \
 		--defs-dir containers/apptainer \
 		--vm-out "$(APPTAINER_VM_OUT)" \
 		--copy-back "$(APPTAINER_COPY_BACK)"
@@ -213,7 +221,7 @@ apptainer-ensure: ## Ensure apptainer images from SSOT stage list. Use DOMAIN=<d
 	fi
 	@BIJUX_HPC_ROOT="$(BIJUX_HPC_ROOT)" $(BIJUX_BIN) env ensure-images --domain "$(DOMAIN)" --stages "$(STAGES)"
 
-APPTAINER_STAGE_TARGETS := $(shell python3 -c "from pathlib import Path; import re; p=Path('configs/tool_registry.toml'); raw=p.read_text() if p.exists() else ''; stages=sorted(set(re.findall(r'^id\\s*=\\s*\\\"([^.\\\"]+\\.[^\\\"]+)\\\"\\s*$$', raw, flags=re.M))); print(' '.join('make-apptainer-{}-{}'.format(*s.split('.',1)) for s in stages))")
+APPTAINER_STAGE_TARGETS := $(shell $(BIJUX_BIN) registry list-stages | awk -F. 'NF==2{printf "make-apptainer-%s-%s ", $$1, $$2}')
 
 define APPTAINER_STAGE_TARGET_template
 $(1): ## Ensure apptainer image(s) for stage $(2).$(3)
