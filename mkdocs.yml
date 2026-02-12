@@ -173,6 +173,7 @@ nav:
       - Report Contract: 30-operations/REPORT_CONTRACT.md
       - Explainability: 30-operations/EXPLAINABILITY.md
       - Containers: 30-operations/CONTAINERS.md
+      - Apptainer QA Matrix: 30-operations/APPTAINER_QA_MATRIX.md
       - Security: 30-operations/SECURITY.md
       - Security Policy: 30-operations/SECURITY_POLICY.md
       - Threat Model: 30-operations/THREAT_MODEL.md
