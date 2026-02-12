@@ -679,6 +679,7 @@
     "event_count": 0,
     "events": [
       "telemetry/events.jsonl"
-    ]
+    ],
+    "timeline": []
   }
 }
