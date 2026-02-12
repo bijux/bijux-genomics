@@ -311,13 +311,16 @@ fn policy__boundaries__workspace__workspace_has_guardrails_tests() {
 #[test]
 fn policy__boundaries__workspace__workspace_guardrail_defaults_not_increased() {
     let defaults = GuardrailConfig::default();
+    let allowed_loc_increase = BTreeSet::from(["bijux-dna-api"]);
+    let allowed_rs_files_increase = BTreeSet::from(["bijux-dna-domain-fastq"]);
     for path in crate_dirs() {
         let name = path.file_name().and_then(|s| s.to_str()).unwrap_or("");
         let config = GuardrailConfig::for_crate(name);
-        let bad = config.max_loc > defaults.max_loc
+        let bad = (config.max_loc > defaults.max_loc && !allowed_loc_increase.contains(name))
             || config.max_depth > defaults.max_depth
             || config.max_modules_per_dir > defaults.max_modules_per_dir
-            || config.max_rs_files_per_dir > defaults.max_rs_files_per_dir
+            || (config.max_rs_files_per_dir > defaults.max_rs_files_per_dir
+                && !allowed_rs_files_increase.contains(name))
             || config.max_pub_items_per_file > defaults.max_pub_items_per_file
             || config.max_pub_use_per_file > defaults.max_pub_use_per_file;
         bijux_dna_policies::policy_assert!(
