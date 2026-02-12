@@ -18,5 +18,8 @@ thiserror = { workspace = true }
 reqwest = { version = "0.12", default-features = false, features = ["blocking", "json", "rustls-tls"] }
 rayon = "1"
 
+[dev-dependencies]
+bijux-dna-policies = { path = "../bijux-dna-policies" }
+
 [lints]
 workspace = true
